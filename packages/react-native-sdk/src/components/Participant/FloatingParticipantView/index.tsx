@@ -6,7 +6,7 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import { FLOATING_VIDEO_VIEW_STYLE, Z_INDEX } from '../../../constants';
+import { Z_INDEX } from '../../../constants';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { VideoSlash } from '../../../icons';
 import FloatingView from './FloatingView';
@@ -21,6 +21,7 @@ import {
   type ParticipantViewProps,
 } from '../ParticipantView';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { useFloatingVideoDimensions } from './useFloatingVideoDimensions';
 import { type StreamVideoParticipant } from '@stream-io/video-client';
 
 export type FloatingParticipantViewAlignment =
@@ -104,7 +105,11 @@ export const FloatingParticipantView = ({
   objectFit,
 }: FloatingParticipantViewProps) => {
   const {
-    theme: { colors, floatingParticipantsView },
+    theme: {
+      colors,
+      floatingParticipantsView,
+      variants: { spacingSizes },
+    },
   } = useTheme();
 
   const floatingAlignmentMap: Record<
@@ -121,6 +126,12 @@ export const FloatingParticipantView = ({
     width: number;
     height: number;
   }>();
+
+  const floatingVideoDimensions = useFloatingVideoDimensions(
+    containerDimensions,
+    participant,
+    'videoTrack',
+  );
 
   const participantViewProps: ParticipantViewComponentProps = {
     ParticipantLabel: null,
@@ -158,7 +169,7 @@ export const FloatingParticipantView = ({
         });
       }}
     >
-      {containerDimensions && (
+      {containerDimensions && floatingVideoDimensions && (
         <FloatingView
           containerHeight={containerDimensions.height}
           containerWidth={containerDimensions.width}
@@ -171,6 +182,12 @@ export const FloatingParticipantView = ({
                 trackType="videoTrack"
                 style={[
                   styles.participantViewContainer,
+                  {
+                    width: floatingVideoDimensions.width,
+                    height: floatingVideoDimensions.height,
+                    borderRadius: floatingVideoDimensions.width * 0.1,
+                    marginHorizontal: spacingSizes.md,
+                  },
                   participantViewStyle,
                   { shadowColor: colors.sheetPrimary },
                   floatingParticipantsView.participantViewContainer,
@@ -197,9 +214,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   participantViewContainer: {
-    height: FLOATING_VIDEO_VIEW_STYLE.height,
-    width: FLOATING_VIDEO_VIEW_STYLE.width,
-    borderRadius: FLOATING_VIDEO_VIEW_STYLE.borderRadius,
     shadowOffset: {
       width: 0,
       height: 2,

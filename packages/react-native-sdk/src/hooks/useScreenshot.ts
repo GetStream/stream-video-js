@@ -4,7 +4,7 @@ import { NativeModules, Platform } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import {
   StreamVideoParticipant,
-  getLogger,
+  videoLoggerSystem,
   type VideoTrackType,
 } from '@stream-io/video-client';
 
@@ -49,11 +49,9 @@ export function useScreenshot(): UseScreenshotResult {
               videoStreamForScreenshot.toURL(),
             );
           } catch (error) {
-            getLogger(['useScreenshot'])(
-              'error',
-              'Error taking screenshot',
-              error,
-            );
+            videoLoggerSystem
+              .getLogger('useScreenshot')
+              .error('Error taking screenshot', error);
             return null;
           }
         }
@@ -62,11 +60,9 @@ export function useScreenshot(): UseScreenshotResult {
         try {
           return await take(participant, videoTrackType);
         } catch (error) {
-          getLogger(['useScreenshot'])(
-            'error',
-            'Error taking screenshot',
-            error,
-          );
+          videoLoggerSystem
+            .getLogger('useScreenshot')
+            .error('Error taking screenshot', error);
           return null;
         }
       }

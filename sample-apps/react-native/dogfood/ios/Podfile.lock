@@ -3025,9 +3025,9 @@ PODS:
     - SocketRocket
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (137.0.0-alpha.1):
+  - stream-react-native-webrtc (137.0.0-alpha.4):
     - React-Core
-  - stream-video-react-native (1.22.1):
+  - stream-video-react-native (1.23.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3461,8 +3461,8 @@ SPEC CHECKSUMS:
   stream-chat-react-native: c88c3a1087393358e660885479e21be1f2c286a3
   stream-io-noise-cancellation-react-native: ed874466f2e7967ada45a9e4dfad147dabe8f9dd
   stream-io-video-filters-react-native: 1336c7f604d99d452817b90828389f47771f9417
-  stream-react-native-webrtc: 938ba756fabf9f0878e1fe30655c106c172f2dab
-  stream-video-react-native: 76f36e8801910cbc5a0f909a75cef826b699ad23
+  stream-react-native-webrtc: feb45ec204f918513d9945a7f57e3625ccd33bd3
+  stream-video-react-native: bf225fddf306adb3f47219adc83ad36a3ee357b3
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   VisionCamera: 891edb31806dd3a239c8a9d6090d6ec78e11ee80
   Yoga: 9b30b783a17681321b52ac507a37219d7d795ace

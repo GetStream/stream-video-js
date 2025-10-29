@@ -11,10 +11,10 @@ import { NativeEventEmitter, NativeModules } from 'react-native';
  * `tracktype` should be 'videoTrack' for video track and 'screenShareTrack' for screen share track.
  */
 export function useTrackDimensions(
-  participant: StreamVideoParticipant,
+  participant: StreamVideoParticipant | undefined,
   trackType: VideoTrackType,
 ) {
-  const { videoStream, screenShareStream } = participant;
+  const { videoStream, screenShareStream } = participant || {};
   const stream =
     trackType === 'screenShareTrack' ? screenShareStream : videoStream;
   const [track] = stream?.getVideoTracks() ?? [];
