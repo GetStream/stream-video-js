@@ -70,3 +70,61 @@ export const enableStereo = (offerSdp: string, answerSdp: string): string => {
 
   return write(parsedAnswerSdp);
 };
+
+/**
+ * Removes all codecs from the SDP except the specified codec.
+ *
+ * @param sdp the SDP to modify.
+ * @param codecMimeTypeToKeep the codec mime type to keep (video/h264 or audio/opus).
+ */
+export const removeCodecsExcept = (
+  sdp: string,
+  codecMimeTypeToKeep: string,
+): string => {
+  const [kind, codec] = codecMimeTypeToKeep.split('/');
+  if (!kind || !codec) return sdp;
+
+  const parsed = parse(sdp);
+  for (const media of parsed.media) {
+    if (media.type !== kind) continue;
+
+    // Build a set of payloads to KEEP: all payloads whose rtp.codec matches codec
+    const payloadsToKeep = new Set<number>();
+    for (const rtp of media.rtp) {
+      if (rtp.codec.toLowerCase() !== codec) continue;
+      payloadsToKeep.add(rtp.payload);
+    }
+
+    // Nothing to keep in this m-section, skip modifications
+    if (payloadsToKeep.size === 0) continue;
+
+    // Keep RTX payloads that are associated with kept primary payloads via apt
+    // RTX mappings look like: a=fmtp:<rtxPayload> apt=<primaryPayload>
+    for (const fmtp of media.fmtp) {
+      const matches = /\s*apt\s*=\s*(\d+)\s*/i.exec(fmtp.config);
+      if (!matches) continue;
+
+      const primaryPayloadApt = Number(matches[1]);
+      if (!payloadsToKeep.has(primaryPayloadApt)) continue;
+      payloadsToKeep.add(fmtp.payload);
+    }
+
+    // Filter rtp, fmtp and rtcpFb entries
+    media.rtp = media.rtp.filter((rtp) => payloadsToKeep.has(rtp.payload));
+    media.fmtp = media.fmtp.filter((fmtp) => payloadsToKeep.has(fmtp.payload));
+    media.rtcpFb = media.rtcpFb?.filter((fb) =>
+      typeof fb.payload === 'number' ? payloadsToKeep.has(fb.payload) : true,
+    );
+
+    // Update the m= line payload list to only the kept payloads, preserving original order
+    const payloads: number[] = [];
+    for (const id of (media.payloads || '').split(/\s+/)) {
+      const payload = Number(id);
+      if (!payloadsToKeep.has(payload)) continue;
+      payloads.push(payload);
+    }
+    media.payloads = payloads.join(' ');
+  }
+
+  return write(parsed);
+};

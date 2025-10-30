@@ -988,8 +988,8 @@ export class Call {
       // these are throw-away SDPs that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
       const [subscriberSdp, publisherSdp] = await Promise.all([
-        getGenericSdp('recvonly'),
-        getGenericSdp('sendonly'),
+        getGenericSdp('recvonly', this.clientPublishOptions?.subscriberCodec),
+        getGenericSdp('sendonly', this.clientPublishOptions?.preferredCodec),
       ]);
       const isReconnecting =
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
