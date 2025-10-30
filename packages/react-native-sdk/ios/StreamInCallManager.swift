@@ -129,13 +129,21 @@ class StreamInCallManager: RCTEventEmitter {
         } else {
             intendedCategory = .playAndRecord
             intendedMode = .voiceChat
+            
+            // XCode 16 and older don't expose .allowBluetoothHFP
+            // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
+            #if compiler(>=6.2) // For Xcode 26.0+
+                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
+            #else
+                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
+            #endif
 
             if (defaultAudioDevice == .speaker) {
                 // defaultToSpeaker will route to speaker if nothing else is connected
-                intendedOptions = [.allowBluetoothHFP, .defaultToSpeaker]
+                intendedOptions = [bluetoothOption, .defaultToSpeaker]
             } else {
                 // having no defaultToSpeaker makes sure audio goes to earpiece if nothing is connected
-                intendedOptions = [.allowBluetoothHFP]
+                intendedOptions = [bluetoothOption]
             }
         }
 
