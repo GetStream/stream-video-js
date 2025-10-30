@@ -140,10 +140,10 @@ class StreamInCallManager: RCTEventEmitter {
 
             if (defaultAudioDevice == .speaker) {
                 // defaultToSpeaker will route to speaker if nothing else is connected
-                intendedOptions = [bluetoothOption, .defaultToSpeaker]
+                intendedOptions = [bluetoothOption, .allowBluetoothA2DP, .defaultToSpeaker]
             } else {
                 // having no defaultToSpeaker makes sure audio goes to earpiece if nothing is connected
-                intendedOptions = [bluetoothOption]
+                intendedOptions = [bluetoothOption, .allowBluetoothA2DP]
             }
         }
 
