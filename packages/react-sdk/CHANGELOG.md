@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.25.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.24.3...@stream-io/video-react-sdk-1.25.0) (2025-10-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.36.0`
+- `@stream-io/video-filters-web` updated to version `0.4.0`
+- `@stream-io/video-react-bindings` updated to version `1.10.4`
+
+### Features
+
+- Migrate logger to js-toolkit logger implementation ([#1959](https://github.com/GetStream/stream-video-js/issues/1959)) ([5a424f7](https://github.com/GetStream/stream-video-js/commit/5a424f72cec2a8cbc0bfa23147d9988ab9bfbdc1))
+
 ## [1.24.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.24.2...@stream-io/video-react-sdk-1.24.3) (2025-10-27)
 
 ### Dependency Updates
