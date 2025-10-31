@@ -5,7 +5,9 @@ import {
 } from '@stream-io/video-react-sdk';
 import { useConfigurationContext } from '../../../ConfigurationContext';
 
-export const useSpotlightParticipant = () => {
+export const useSpotlightParticipant = ():
+  | StreamVideoParticipant
+  | undefined => {
   const [speakerInSpotlight, setSpeakerInSpotlight] =
     useState<StreamVideoParticipant>();
 
