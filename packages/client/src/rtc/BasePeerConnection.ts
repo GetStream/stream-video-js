@@ -1,8 +1,5 @@
-import { getLogger } from '../logger';
-import type {
-  CallEventListener,
-  Logger,
-} from '../coordinator/connection/types';
+import { ScopedLogger, videoLoggerSystem } from '../logger';
+import type { CallEventListener } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
 import { createSafeAsyncSubscription } from '../store/rxUtils';
 import {
@@ -23,7 +20,7 @@ import { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
  * @internal
  */
 export abstract class BasePeerConnection {
-  protected readonly logger: Logger;
+  protected readonly logger: ScopedLogger;
   protected readonly peerType: PeerType;
   protected readonly pc: RTCPeerConnection;
   protected readonly state: CallState;
@@ -67,10 +64,10 @@ export abstract class BasePeerConnection {
     this.dispatcher = dispatcher;
     this.iceRestartDelay = iceRestartDelay;
     this.onReconnectionNeeded = onReconnectionNeeded;
-    this.logger = getLogger([
+    this.logger = videoLoggerSystem.getLogger(
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
-      tag,
-    ]);
+      { tags: [tag] },
+    );
     this.pc = this.createPeerConnection(connectionConfig);
     this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
     if (enableTracing) {
@@ -142,7 +139,7 @@ export abstract class BasePeerConnection {
   protected tryRestartIce = () => {
     this.restartIce().catch((e) => {
       const reason = 'restartICE() failed, initiating reconnect';
-      this.logger('error', reason, e);
+      this.logger.error(reason, e);
       const strategy =
         e instanceof NegotiationError &&
         e.error.code === ErrorCode.PARTICIPANT_SIGNAL_LOST
@@ -165,7 +162,7 @@ export abstract class BasePeerConnection {
         const lockKey = `pc.${this.lock}.${event}`;
         withoutConcurrency(lockKey, async () => fn(e)).catch((err) => {
           if (this.isDisposed) return;
-          this.logger('warn', `Error handling ${event}`, err);
+          this.logger.warn(`Error handling ${event}`, err);
         });
       }),
     );
@@ -187,7 +184,7 @@ export abstract class BasePeerConnection {
       async (candidate) => {
         return this.pc.addIceCandidate(candidate).catch((e) => {
           if (this.isDisposed) return;
-          this.logger('warn', `ICE candidate error`, e, candidate);
+          this.logger.warn(`ICE candidate error`, e, candidate);
         });
       },
     );
@@ -240,7 +237,7 @@ export abstract class BasePeerConnection {
   private onIceCandidate = (e: RTCPeerConnectionIceEvent) => {
     const { candidate } = e;
     if (!candidate) {
-      this.logger('debug', 'null ice candidate');
+      this.logger.debug('null ice candidate');
       return;
     }
 
@@ -249,7 +246,7 @@ export abstract class BasePeerConnection {
       .iceTrickle({ peerType: this.peerType, iceCandidate })
       .catch((err) => {
         if (this.isDisposed) return;
-        this.logger('warn', `ICETrickle failed`, err);
+        this.logger.warn(`ICETrickle failed`, err);
       });
   };
 
@@ -272,7 +269,7 @@ export abstract class BasePeerConnection {
    */
   private onConnectionStateChange = async () => {
     const state = this.pc.connectionState;
-    this.logger('debug', `Connection state changed`, state);
+    this.logger.debug(`Connection state changed`, state);
     if (this.tracer && (state === 'connected' || state === 'failed')) {
       try {
         const stats = await this.stats.get();
@@ -299,7 +296,7 @@ export abstract class BasePeerConnection {
    */
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
-    this.logger('debug', `ICE connection state changed`, state);
+    this.logger.debug(`ICE connection state changed`, state);
     this.handleConnectionStateUpdate(state);
   };
 
@@ -316,14 +313,14 @@ export abstract class BasePeerConnection {
     switch (state) {
       case 'failed':
         // in the `failed` state, we try to restart ICE immediately
-        this.logger('info', 'restartICE due to failed connection');
+        this.logger.info('restartICE due to failed connection');
         this.tryRestartIce();
         break;
 
       case 'disconnected':
         // in the `disconnected` state, we schedule a restartICE() after a delay
         // as the browser might recover the connection in the meantime
-        this.logger('info', 'disconnected connection, scheduling restartICE');
+        this.logger.info('disconnected connection, scheduling restartICE');
         clearTimeout(this.iceRestartTimeout);
         this.iceRestartTimeout = setTimeout(() => {
           const currentState = this.pc.iceConnectionState;
@@ -336,7 +333,7 @@ export abstract class BasePeerConnection {
       case 'connected':
         // in the `connected` state, we clear the ice restart timeout if it exists
         if (this.iceRestartTimeout) {
-          this.logger('info', 'connected connection, canceling restartICE');
+          this.logger.info('connected connection, canceling restartICE');
           clearTimeout(this.iceRestartTimeout);
           this.iceRestartTimeout = undefined;
         }
@@ -352,20 +349,20 @@ export abstract class BasePeerConnection {
       e instanceof RTCPeerConnectionIceErrorEvent
         ? `${e.errorCode}: ${e.errorText}`
         : e;
-    this.logger('debug', 'ICE Candidate error', errorMessage);
+    this.logger.debug('ICE Candidate error', errorMessage);
   };
 
   /**
    * Handles the ICE gathering state change event.
    */
   private onIceGatherChange = () => {
-    this.logger('debug', `ICE Gathering State`, this.pc.iceGatheringState);
+    this.logger.debug(`ICE Gathering State`, this.pc.iceGatheringState);
   };
 
   /**
    * Handles the signaling state change event.
    */
   private onSignalingChange = () => {
-    this.logger('debug', `Signaling state changed`, this.pc.signalingState);
+    this.logger.debug(`Signaling state changed`, this.pc.signalingState);
   };
 }

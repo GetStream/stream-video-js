@@ -1,5 +1,5 @@
-import { getLogger } from '../logger';
+import { videoLoggerSystem } from '../logger';
 
 export const ensureExhausted = (x: never, message: string) => {
-  getLogger(['helpers'])('warn', message, x);
+  videoLoggerSystem.getLogger('helpers').warn(message, x);
 };

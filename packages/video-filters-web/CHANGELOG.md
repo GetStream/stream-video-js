@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.3.0...@stream-io/video-filters-web-0.4.0) (2025-10-30)
+
+### Features
+
+- Migrate logger to js-toolkit logger implementation ([#1959](https://github.com/GetStream/stream-video-js/issues/1959)) ([5a424f7](https://github.com/GetStream/stream-video-js/commit/5a424f72cec2a8cbc0bfa23147d9988ab9bfbdc1))
+
 ## [0.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.2.2...@stream-io/video-filters-web-0.3.0) (2025-10-14)
 
 ### Features

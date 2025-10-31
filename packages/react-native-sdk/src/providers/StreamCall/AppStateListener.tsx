@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { disablePiPMode$, isInPiPMode$ } from '../../utils/internal/rxSubjects';
-import { getLogger, RxUtils } from '@stream-io/video-client';
+import { RxUtils, videoLoggerSystem } from '@stream-io/video-client';
 
 const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
 
@@ -29,17 +29,16 @@ export const AppStateListener = () => {
     }
 
     const disablePiP = RxUtils.getCurrentValue(disablePiPMode$);
-    const logger = getLogger(['AppStateListener']);
+    const logger = videoLoggerSystem.getLogger('AppStateListener');
     const initialPipMode =
       !disablePiP && AppState.currentState === 'background';
     isInPiPMode$.next(initialPipMode);
-    logger('debug', 'Initial PiP mode on mount set to ', initialPipMode);
+    logger.debug('Initial PiP mode on mount set to ', initialPipMode);
 
     NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
       (isInPiP: boolean | null | undefined) => {
         isInPiPMode$.next(!!isInPiP);
-        logger(
-          'debug',
+        logger.debug(
           'Initial PiP mode on mount (after asking native module) set to ',
           !!isInPiP,
         );
@@ -67,7 +66,7 @@ export const AppStateListener = () => {
     // we dont check for inactive states
     // ref: https://www.reddit.com/r/reactnative/comments/15kib42/appstate_behavior_in_ios_when_swiping_down_to/
     const subscription = AppState.addEventListener('change', (nextAppState) => {
-      const logger = getLogger(['AppStateListener']);
+      const logger = videoLoggerSystem.getLogger('AppStateListener');
       if (appState.current.match(/background/) && nextAppState === 'active') {
         if (call?.camera?.state.status === 'enabled') {
           // Android: when device is locked and resumed, the status isnt made disabled but stays enabled
@@ -76,15 +75,12 @@ export const AppStateListener = () => {
           call?.camera?.disable(true).then(() => {
             call?.camera?.enable();
           });
-          logger(
-            'debug',
-            'Disable and reenable camera as app came to foreground',
-          );
+          logger.debug('Disable and reenable camera as app came to foreground');
         } else {
           if (cameraDisabledByAppState.current) {
             call?.camera?.resume();
             cameraDisabledByAppState.current = false;
-            logger('debug', 'Resume camera as app came to foreground');
+            logger.debug('Resume camera as app came to foreground');
           }
         }
         appState.current = nextAppState;
@@ -96,7 +92,7 @@ export const AppStateListener = () => {
           if (call?.camera?.state.status === 'enabled') {
             cameraDisabledByAppState.current = true;
             call?.camera?.disable();
-            logger('debug', 'Camera disabled by app going to background');
+            logger.debug('Camera disabled by app going to background');
           }
         };
         if (Platform.OS === 'android') {

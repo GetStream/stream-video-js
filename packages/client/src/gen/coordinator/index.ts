@@ -157,7 +157,7 @@ export interface AudioSettingsResponse {
    * @type {boolean}
    * @memberof AudioSettingsResponse
    */
-  hifi_audio_enabled?: boolean;
+  hifi_audio_enabled: boolean;
   /**
    *
    * @type {boolean}
@@ -1393,6 +1393,37 @@ export interface CallParticipantResponse {
   user_session_id: string;
 }
 /**
+ *
+ * @export
+ * @interface CallParticipantTimeline
+ */
+export interface CallParticipantTimeline {
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof CallParticipantTimeline
+   */
+  data: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantTimeline
+   */
+  severity: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantTimeline
+   */
+  timestamp: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantTimeline
+   */
+  type: string;
+}
+/**
  * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
  * @export
  * @interface CallReactionEvent
@@ -2500,6 +2531,129 @@ export interface CallStateResponseFields {
    * @memberof CallStateResponseFields
    */
   own_capabilities: Array<OwnCapability>;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsParticipant
+ */
+export interface CallStatsParticipant {
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipant
+   */
+  latest_activity_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipant
+   */
+  name?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof CallStatsParticipant
+   */
+  roles?: Array<string>;
+  /**
+   *
+   * @type {Array<CallStatsParticipantSession>}
+   * @memberof CallStatsParticipant
+   */
+  sessions: Array<CallStatsParticipantSession>;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipant
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsParticipantCounts
+ */
+export interface CallStatsParticipantCounts {
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  live_sessions: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  participants: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  publishers: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  sessions: number;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsParticipantSession
+ */
+export interface CallStatsParticipantSession {
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantSession
+   */
+  cq_score?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  ended_at?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallStatsParticipantSession
+   */
+  is_live: boolean;
+  /**
+   *
+   * @type {PublishedTrackFlags}
+   * @memberof CallStatsParticipantSession
+   */
+  published_tracks: PublishedTrackFlags;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  publisher_type?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  unified_session_id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  user_session_id: string;
 }
 /**
  * This event is sent when the insights report is ready
@@ -3912,6 +4066,73 @@ export interface GetCallResponse {
 /**
  * Basic response information
  * @export
+ * @interface GetCallSessionParticipantStatsDetailsResponse
+ */
+export interface GetCallSessionParticipantStatsDetailsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  call_type: string;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {ParticipantSeriesPublisherStats}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  publisher?: ParticipantSeriesPublisherStats;
+  /**
+   *
+   * @type {ParticipantSeriesSubscriberStats}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  subscriber?: ParticipantSeriesSubscriberStats;
+  /**
+   *
+   * @type {ParticipantSeriesTimeframe}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  timeframe?: ParticipantSeriesTimeframe;
+  /**
+   *
+   * @type {ParticipantSeriesUserStats}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  user?: ParticipantSeriesUserStats;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  user_session_id: string;
+}
+/**
+ * Basic response information
+ * @export
  * @interface GetEdgesResponse
  */
 export interface GetEdgesResponse {
@@ -4323,6 +4544,67 @@ export interface IngressSettingsResponse {
 /**
  *
  * @export
+ * @interface IngressSourceRequest
+ */
+export interface IngressSourceRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceRequest
+   */
+  fps: IngressSourceRequestFpsEnum;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceRequest
+   */
+  height: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceRequest
+   */
+  width: number;
+}
+
+/**
+ * @export
+ */
+export const IngressSourceRequestFpsEnum = {
+  NUMBER_30: 30,
+  NUMBER_60: 60,
+} as const;
+export type IngressSourceRequestFpsEnum =
+  (typeof IngressSourceRequestFpsEnum)[keyof typeof IngressSourceRequestFpsEnum];
+
+/**
+ *
+ * @export
+ * @interface IngressSourceResponse
+ */
+export interface IngressSourceResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceResponse
+   */
+  fps: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceResponse
+   */
+  height: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceResponse
+   */
+  width: number;
+}
+/**
+ *
+ * @export
  * @interface IngressVideoEncodingOptionsRequest
  */
 export interface IngressVideoEncodingOptionsRequest {
@@ -4332,6 +4614,12 @@ export interface IngressVideoEncodingOptionsRequest {
    * @memberof IngressVideoEncodingOptionsRequest
    */
   layers: Array<IngressVideoLayerRequest>;
+  /**
+   *
+   * @type {IngressSourceRequest}
+   * @memberof IngressVideoEncodingOptionsRequest
+   */
+  source: IngressSourceRequest;
 }
 /**
  *
@@ -4345,6 +4633,12 @@ export interface IngressVideoEncodingResponse {
    * @memberof IngressVideoEncodingResponse
    */
   layers: Array<IngressVideoLayerResponse>;
+  /**
+   *
+   * @type {IngressSourceResponse}
+   * @memberof IngressVideoEncodingResponse
+   */
+  source: IngressSourceResponse;
 }
 /**
  *
@@ -4870,6 +5164,43 @@ export interface MessageStatsResponse {
 /**
  *
  * @export
+ * @interface MetricThreshold
+ */
+export interface MetricThreshold {
+  /**
+   *
+   * @type {string}
+   * @memberof MetricThreshold
+   */
+  level: string;
+  /**
+   *
+   * @type {string}
+   * @memberof MetricThreshold
+   */
+  operator: string;
+  /**
+   *
+   * @type {number}
+   * @memberof MetricThreshold
+   */
+  value: number;
+  /**
+   *
+   * @type {string}
+   * @memberof MetricThreshold
+   */
+  value_unit?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof MetricThreshold
+   */
+  window_seconds?: number;
+}
+/**
+ *
+ * @export
  * @interface MuteUsersRequest
  */
 export interface MuteUsersRequest {
@@ -5260,6 +5591,186 @@ export interface ParticipantReportResponse {
 /**
  *
  * @export
+ * @interface ParticipantSeriesPublisherStats
+ */
+export interface ParticipantSeriesPublisherStats {
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesPublisherStats
+   */
+  global?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesPublisherStats
+   */
+  global_thresholds?: { [key: string]: Array<MetricThreshold> };
+  /**
+   *
+   * @type {{ [key: string]: Array<ParticipantSeriesTrackMetrics>; }}
+   * @memberof ParticipantSeriesPublisherStats
+   */
+  tracks?: { [key: string]: Array<ParticipantSeriesTrackMetrics> };
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesSubscriberStats
+ */
+export interface ParticipantSeriesSubscriberStats {
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesSubscriberStats
+   */
+  global?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesSubscriberStats
+   */
+  global_thresholds?: { [key: string]: Array<MetricThreshold> };
+  /**
+   *
+   * @type {Array<ParticipantSeriesSubscriptionTrackMetrics>}
+   * @memberof ParticipantSeriesSubscriberStats
+   */
+  subscriptions?: Array<ParticipantSeriesSubscriptionTrackMetrics>;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesSubscriptionTrackMetrics
+ */
+export interface ParticipantSeriesSubscriptionTrackMetrics {
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  publisher_name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  publisher_user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  publisher_user_session_id?: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<ParticipantSeriesTrackMetrics>; }}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  tracks?: { [key: string]: Array<ParticipantSeriesTrackMetrics> };
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesTimeframe
+ */
+export interface ParticipantSeriesTimeframe {
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  max_points: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  since: string;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  step_seconds: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  until: string;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesTrackMetrics
+ */
+export interface ParticipantSeriesTrackMetrics {
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  codec?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  label?: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  metrics?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  rid?: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  thresholds?: { [key: string]: Array<MetricThreshold> };
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  track_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  track_type?: string;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesUserStats
+ */
+export interface ParticipantSeriesUserStats {
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesUserStats
+   */
+  metrics?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesUserStats
+   */
+  thresholds?: { [key: string]: Array<MetricThreshold> };
+}
+/**
+ *
+ * @export
  * @interface PerSDKUsageReport
  */
 export interface PerSDKUsageReport {
@@ -5345,6 +5856,37 @@ export interface PinResponse {
    * @memberof PinResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface PublishedTrackFlags
+ */
+export interface PublishedTrackFlags {
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  audio: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  screenshare: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  screenshare_audio: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  video: boolean;
 }
 /**
  *
@@ -5643,6 +6185,128 @@ export interface QueryCallParticipantsResponse {
    * @memberof QueryCallParticipantsResponse
    */
   total_participants: number;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface QueryCallSessionParticipantStatsResponse
+ */
+export interface QueryCallSessionParticipantStatsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_ended_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_type: string;
+  /**
+   *
+   * @type {CallStatsParticipantCounts}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  counts: CallStatsParticipantCounts;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  next?: string;
+  /**
+   *
+   * @type {Array<CallStatsParticipant>}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  participants: Array<CallStatsParticipant>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  prev?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  tmp_data_source?: string;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface QueryCallSessionParticipantStatsTimelineResponse
+ */
+export interface QueryCallSessionParticipantStatsTimelineResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  call_type: string;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<CallParticipantTimeline>}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  events: Array<CallParticipantTimeline>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  user_session_id: string;
 }
 /**
  *

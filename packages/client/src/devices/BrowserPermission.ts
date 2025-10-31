@@ -1,8 +1,8 @@
 import { fromEventPattern, map } from 'rxjs';
 import { isReactNative } from '../helpers/platforms';
-import { getLogger } from '../logger';
 import { disposeOfMediaStream } from './utils';
 import { withoutConcurrency } from '../helpers/concurrency';
+import { videoLoggerSystem } from '../logger';
 
 interface BrowserPermissionConfig {
   constraints: DisplayMediaStreamOptions;
@@ -17,7 +17,7 @@ export class BrowserPermission {
   private state: BrowserPermissionState | undefined;
   private wasPrompted: boolean = false;
   private listeners = new Set<(state: BrowserPermissionState) => void>();
-  private logger = getLogger(['permissions']);
+  private logger = videoLoggerSystem.getLogger('permissions');
 
   constructor(private readonly permission: BrowserPermissionConfig) {
     const signal = this.disposeController.signal;
@@ -47,7 +47,7 @@ export class BrowserPermission {
           });
         }
       } catch (err) {
-        this.logger('debug', 'Failed to query permission status', err);
+        this.logger.debug('Failed to query permission status', err);
         assumeGranted();
       }
     })();
@@ -104,7 +104,7 @@ export class BrowserPermission {
             'name' in e &&
             (e.name === 'NotAllowedError' || e.name === 'SecurityError')
           ) {
-            this.logger('info', 'Browser permission was not granted', {
+            this.logger.info('Browser permission was not granted', {
               permission: this.permission,
             });
             this.setState('denied');
@@ -116,7 +116,7 @@ export class BrowserPermission {
             return false;
           }
 
-          this.logger('error', `Failed to getUserMedia`, {
+          this.logger.error(`Failed to getUserMedia`, {
             error: e,
             permission: this.permission,
           });

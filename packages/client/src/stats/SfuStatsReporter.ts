@@ -1,7 +1,6 @@
 import { combineLatest } from 'rxjs';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { OwnCapability, StatsOptions } from '../gen/coordinator';
-import { getLogger } from '../logger';
 import { Publisher, Subscriber } from '../rtc';
 import { Tracer, TraceRecord } from './rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
@@ -15,6 +14,7 @@ import { CameraManager, MicrophoneManager } from '../devices';
 import { createSubscription } from '../store/rxUtils';
 import { CallState } from '../store';
 import { Telemetry } from '../gen/video/sfu/signal_rpc/signal';
+import { videoLoggerSystem } from '../logger';
 
 export type SfuStatsReporterOptions = {
   options: StatsOptions;
@@ -29,7 +29,7 @@ export type SfuStatsReporterOptions = {
 };
 
 export class SfuStatsReporter {
-  private readonly logger = getLogger(['SfuStatsReporter']);
+  private readonly logger = videoLoggerSystem.getLogger('SfuStatsReporter');
 
   readonly options: StatsOptions;
 
@@ -153,7 +153,7 @@ export class SfuStatsReporter {
     // intentionally not awaiting the promise here
     // to avoid impeding with the ongoing actions.
     this.run(telemetryData).catch((err) => {
-      this.logger('warn', 'Failed to send telemetry data', err);
+      this.logger.warn('Failed to send telemetry data', err);
     });
   };
 
@@ -217,7 +217,7 @@ export class SfuStatsReporter {
     clearInterval(this.intervalId);
     this.intervalId = setInterval(() => {
       this.run().catch((err) => {
-        this.logger('warn', 'Failed to report stats', err);
+        this.logger.warn('Failed to report stats', err);
       });
     }, this.options.reporting_interval_ms);
   };
@@ -237,7 +237,7 @@ export class SfuStatsReporter {
 
   flush = () => {
     this.run().catch((err) => {
-      this.logger('warn', 'Failed to flush report stats', err);
+      this.logger.warn('Failed to flush report stats', err);
     });
   };
 
@@ -245,7 +245,7 @@ export class SfuStatsReporter {
     clearTimeout(this.timeoutId);
     this.timeoutId = setTimeout(() => {
       this.run().catch((err) => {
-        this.logger('warn', 'Failed to report stats', err);
+        this.logger.warn('Failed to report stats', err);
       });
     }, timeout);
   };

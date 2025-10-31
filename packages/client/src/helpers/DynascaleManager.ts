@@ -15,7 +15,6 @@ import {
   takeWhile,
 } from 'rxjs';
 import { ViewportTracker } from './ViewportTracker';
-import { getLogger } from '../logger';
 import { isFirefox, isSafari } from './browsers';
 import {
   hasScreenShare,
@@ -27,6 +26,7 @@ import type { CallState } from '../store';
 import type { StreamSfuClient } from '../StreamSfuClient';
 import { SpeakerManager } from '../devices';
 import { getCurrentValue, setCurrentValue } from '../store/rxUtils';
+import { videoLoggerSystem } from '../logger';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -66,7 +66,7 @@ export class DynascaleManager {
    */
   readonly viewportTracker = new ViewportTracker();
 
-  private logger = getLogger(['DynascaleManager']);
+  private logger = videoLoggerSystem.getLogger('DynascaleManager');
   private callState: CallState;
   private speaker: SpeakerManager;
   private audioContext: AudioContext | undefined;
@@ -212,7 +212,7 @@ export class DynascaleManager {
       this.sfuClient
         ?.updateSubscriptions(this.trackSubscriptions)
         .catch((err: unknown) => {
-          this.logger('debug', `Failed to update track subscriptions`, err);
+          this.logger.debug(`Failed to update track subscriptions`, err);
         });
     };
 
@@ -324,7 +324,7 @@ export class DynascaleManager {
         // is not visible (e.g., has display: none).
         // we treat this as "unsubscription" as we don't want to keep
         // consuming bandwidth for a video that is not visible on the screen.
-        this.logger('debug', `Ignoring 0x0 dimension`, boundParticipant);
+        this.logger.debug(`Ignoring 0x0 dimension`, boundParticipant);
         dimension = undefined;
       }
       this.callState.updateParticipantTracks(trackType, {
@@ -468,7 +468,7 @@ export class DynascaleManager {
           setTimeout(() => {
             videoElement.srcObject = source ?? null;
             videoElement.play().catch((e) => {
-              this.logger('warn', `Failed to play stream`, e);
+              this.logger.warn(`Failed to play stream`, e);
             });
             // we add extra delay until we attempt to force-play
             // the participant's media stream in Firefox and Safari,
@@ -519,14 +519,14 @@ export class DynascaleManager {
       if (!deviceId) return;
       if ('setSinkId' in audioElement) {
         audioElement.setSinkId(deviceId).catch((e) => {
-          this.logger('warn', `Can't to set AudioElement sinkId`, e);
+          this.logger.warn(`Can't to set AudioElement sinkId`, e);
         });
       }
 
       if (audioContext && 'setSinkId' in audioContext) {
         // @ts-expect-error setSinkId is not available in all browsers
         audioContext.setSinkId(deviceId).catch((e) => {
-          this.logger('warn', `Can't to set AudioContext sinkId`, e);
+          this.logger.warn(`Can't to set AudioContext sinkId`, e);
         });
       }
     };
@@ -574,7 +574,7 @@ export class DynascaleManager {
             // we will play audio directly through the audio element in other browsers
             audioElement.muted = false;
             audioElement.play().catch((e) => {
-              this.logger('warn', `Failed to play audio stream`, e);
+              this.logger.warn(`Failed to play audio stream`, e);
             });
           }
 
@@ -630,7 +630,7 @@ export class DynascaleManager {
     if (this.audioContext?.state === 'suspended') {
       this.audioContext
         .resume()
-        .catch((err) => this.logger('warn', `Can't resume audio context`, err))
+        .catch((err) => this.logger.warn(`Can't resume audio context`, err))
         .then(() => {
           document.removeEventListener('click', this.resumeAudioContext);
         });

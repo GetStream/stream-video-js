@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
 import {
   useCall,
   useCallStateHooks,
+  useEffectEvent,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
 import {
@@ -12,7 +13,6 @@ import {
   LivestreamLayoutProps,
   StreamCall,
 } from '../../core';
-import { useEffectEvent } from '@stream-io/video-react-bindings';
 
 export type LivestreamPlayerProps = {
   /**
@@ -28,7 +28,7 @@ export type LivestreamPlayerProps = {
    *
    * `"asap"` behavior means joining the call as soon as it is possible
    * (either the `join_ahead_time_seconds` setting allows it, or the user
-   * has a the capability to join backstage).
+   * has the capability to join backstage).
    *
    * `"live"` behavior means joining the call when it goes live.
    *
@@ -49,8 +49,10 @@ export type LivestreamPlayerProps = {
   onError?: (error: any) => void;
 };
 
-export const LivestreamPlayer = (props: LivestreamPlayerProps) => {
-  const { callType, callId, ...restProps } = props;
+export const LivestreamPlayer = (
+  props: PropsWithChildren<LivestreamPlayerProps>,
+) => {
+  const { callType, callId, children, ...restProps } = props;
   const client = useStreamVideoClient();
   const [call, setCall] = useState<Call>();
   const onError = useEffectEvent(props.onError ?? (() => {}));
@@ -78,6 +80,7 @@ export const LivestreamPlayer = (props: LivestreamPlayerProps) => {
   return (
     <StreamCall call={call}>
       <LivestreamCall {...restProps} />
+      {children}
     </StreamCall>
   );
 };

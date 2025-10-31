@@ -3,8 +3,8 @@ import { getVoipPushNotificationLib } from './libs';
 import { Platform } from 'react-native';
 import { onVoipNotificationReceived } from './internal/ios';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
-import { getLogger } from '@stream-io/video-client';
 import { StreamVideoConfig } from '../StreamVideoRN/types';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 export function setupIosVoipPushEvents(
   pushConfig: NonNullable<StreamVideoConfig['push']>,
@@ -12,26 +12,24 @@ export function setupIosVoipPushEvents(
   if (Platform.OS !== 'ios' || !pushConfig.ios?.pushProviderName) {
     return;
   }
-  const logger = getLogger(['setupIosVoipPushEvents']);
+  const logger = videoLoggerSystem.getLogger('setupIosVoipPushEvents');
   if (!pushConfig.ios.pushProviderName) {
     // TODO: remove this check and find a better way once we have telecom integration for android
-    logger(
-      'debug',
+    logger.debug(
       'ios pushProviderName is not defined, so skipping the setupIosVoipPushEvents',
     );
     return;
   }
   const voipPushNotification = getVoipPushNotificationLib();
 
-  logger('debug', 'notification event listener added');
+  logger.debug('notification event listener added');
   voipPushNotification.addEventListener('notification', (notification) => {
     onVoipNotificationReceived(notification, pushConfig);
   });
   setPushLogoutCallback(async () => {
-    getLogger(['setPushLogoutCallback'])(
-      'debug',
-      'notification event listener removed',
-    );
+    videoLoggerSystem
+      .getLogger('setPushLogoutCallback')
+      .debug('notification event listener removed');
     voipPushNotification.removeEventListener('notification');
   });
 }

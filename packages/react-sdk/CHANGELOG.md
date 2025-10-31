@@ -2,6 +2,36 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.25.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.24.3...@stream-io/video-react-sdk-1.25.0) (2025-10-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.36.0`
+- `@stream-io/video-filters-web` updated to version `0.4.0`
+- `@stream-io/video-react-bindings` updated to version `1.10.4`
+
+### Features
+
+- Migrate logger to js-toolkit logger implementation ([#1959](https://github.com/GetStream/stream-video-js/issues/1959)) ([5a424f7](https://github.com/GetStream/stream-video-js/commit/5a424f72cec2a8cbc0bfa23147d9988ab9bfbdc1))
+
+## [1.24.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.24.2...@stream-io/video-react-sdk-1.24.3) (2025-10-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.35.1`
+- `@stream-io/video-react-bindings` updated to version `1.10.3`
+
+## [1.24.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.24.1...@stream-io/video-react-sdk-1.24.2) (2025-10-24)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.35.0`
+- `@stream-io/video-react-bindings` updated to version `1.10.2`
+
+### Bug Fixes
+
+- accept `children` in LivestreamPlayer components ([#1968](https://github.com/GetStream/stream-video-js/issues/1968)) ([1558f06](https://github.com/GetStream/stream-video-js/commit/1558f060614581964b72e9627e82a8419fc3d570))
+
 ## [1.24.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.24.0...@stream-io/video-react-sdk-1.24.1) (2025-10-17)
 
 ### Dependency Updates

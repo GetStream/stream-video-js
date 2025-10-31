@@ -429,15 +429,15 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             busyToneJob?.cancel()
             busyToneJob = null
 
-            busyToneAudioTrack?.let { track ->
+            busyToneAudioTrack?.apply {
                 try {
-                    if (track.playState == AudioTrack.PLAYSTATE_PLAYING) {
-                        track.stop()
+                    if (playState == AudioTrack.PLAYSTATE_PLAYING) {
+                        stop()
                     }
                 } catch (e: Exception) {
                     Log.e(NAME, "Error stopping AudioTrack: ${e.message}")
                 } finally {
-                    track.release()
+                    release()
                 }
             }
             busyToneAudioTrack = null

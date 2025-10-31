@@ -2,6 +2,53 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.24.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.23.0...@stream-io/video-react-native-sdk-1.24.0) (2025-10-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.36.0`
+- `@stream-io/video-react-bindings` updated to version `1.10.4`
+
+### Features
+
+- Migrate logger to js-toolkit logger implementation ([#1959](https://github.com/GetStream/stream-video-js/issues/1959)) ([5a424f7](https://github.com/GetStream/stream-video-js/commit/5a424f72cec2a8cbc0bfa23147d9988ab9bfbdc1))
+
+### Bug Fixes
+
+- keep compatibility with older xcode versions ([#1973](https://github.com/GetStream/stream-video-js/issues/1973)) ([3b2f281](https://github.com/GetStream/stream-video-js/commit/3b2f281ac565ff4c422aa37c1eb90c58afee3bea))
+
+## [1.23.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.3...@stream-io/video-react-native-sdk-1.23.0) (2025-10-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.35.1`
+- `@stream-io/video-react-bindings` updated to version `1.10.3`
+
+### Features
+
+- adaptive floating video dimensions ([#1969](https://github.com/GetStream/stream-video-js/issues/1969)) ([5a213d2](https://github.com/GetStream/stream-video-js/commit/5a213d2571610846bdcd9b4554a5a8d1a3def6c4))
+
+### Bug Fixes
+
+- **react-native:** restore screen wake lock and proximity sensing ([#1971](https://github.com/GetStream/stream-video-js/issues/1971)) ([f20ef70](https://github.com/GetStream/stream-video-js/commit/f20ef70a5958fddf52075233f9f3d64a2ce01895)), closes [#1840](https://github.com/GetStream/stream-video-js/issues/1840)
+
+## [1.22.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.2...@stream-io/video-react-native-sdk-1.22.3) (2025-10-24)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.35.0`
+- `@stream-io/video-react-bindings` updated to version `1.10.2`
+
+### Bug Fixes
+
+- accept `children` in LivestreamPlayer components ([#1968](https://github.com/GetStream/stream-video-js/issues/1968)) ([1558f06](https://github.com/GetStream/stream-video-js/commit/1558f060614581964b72e9627e82a8419fc3d570))
+
+## [1.22.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.1...@stream-io/video-react-native-sdk-1.22.2) (2025-10-24)
+
+### Bug Fixes
+
+- compilation error in older kotlin versions ([cedb942](https://github.com/GetStream/stream-video-js/commit/cedb94296ca659a1ad5584d3bd3d29f6be12c3ab))
+
 ## [1.22.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.0...@stream-io/video-react-native-sdk-1.22.1) (2025-10-17)
 
 ### Dependency Updates

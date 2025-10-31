@@ -8,10 +8,10 @@ import type {
 } from './types';
 import { CallState } from '../store';
 import { Publisher, Subscriber } from '../rtc';
-import { getLogger } from '../logger';
 import { flatten } from './utils';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isFirefox } from '../helpers/browsers';
+import { videoLoggerSystem } from '../logger';
 
 export type StatsReporterOpts = {
   subscriber: Subscriber;
@@ -77,7 +77,7 @@ export const createStatsReporter = ({
   datacenter,
   pollingIntervalInMs = 2000,
 }: StatsReporterOpts): StatsReporter => {
-  const logger = getLogger(['stats']);
+  const logger = videoLoggerSystem.getLogger('stats');
   const getRawStatsForTrack = async (
     kind: PeerConnectionKind,
     selector?: MediaStreamTrack,
@@ -148,7 +148,7 @@ export const createStatsReporter = ({
               ];
           participantStats[sessionId] = await getStatsForStream(kind, tracks);
         } catch (e) {
-          logger('warn', `Failed to collect ${kind} stats for ${userId}`, e);
+          logger.warn(`Failed to collect ${kind} stats for ${userId}`, e);
         }
       }
     }
@@ -186,7 +186,7 @@ export const createStatsReporter = ({
       // (they are expensive) if no one is listening to them
       if (state.isCallStatsReportObserved) {
         await run().catch((e) => {
-          logger('debug', 'Failed to collect stats', e);
+          logger.debug('Failed to collect stats', e);
         });
       }
       timeoutId = setTimeout(loop, pollingIntervalInMs);

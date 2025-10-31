@@ -8,6 +8,7 @@ import {
 import { TwirpFetchTransport } from '@protobuf-ts/twirp-transport';
 import { NextUnaryFn, UnaryCall } from '@protobuf-ts/runtime-rpc';
 import { promiseWithResolvers } from '../../helpers/promise';
+import { ScopedLogger } from '../../logger';
 
 describe('createClient', () => {
   it('should create a client with TwirpFetchTransport', () => {
@@ -30,7 +31,10 @@ describe('createClient', () => {
 
   it('withRequestLogger should log the request', () => {
     const logger = vi.fn();
-    const interceptor = withRequestLogger(logger, 'debug');
+    const interceptor = withRequestLogger(
+      { debug: logger } as unknown as ScopedLogger,
+      'debug',
+    );
     const next = vi.fn().mockReturnValue({});
     // @ts-expect-error - private field
     interceptor.interceptUnary(next, { name: 'test' }, null, null);
