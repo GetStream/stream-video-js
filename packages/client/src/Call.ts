@@ -989,7 +989,7 @@ export class Call {
       // the capabilities of the client (codec support, etc.)
       const [subscriberSdp, publisherSdp] = await Promise.all([
         getGenericSdp('recvonly', this.clientPublishOptions?.subscriberCodec),
-        getGenericSdp('sendonly', this.clientPublishOptions?.preferredCodec),
+        getGenericSdp('sendonly'),
       ]);
       const isReconnecting =
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
