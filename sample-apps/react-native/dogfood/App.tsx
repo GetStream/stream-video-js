@@ -34,6 +34,7 @@ import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Alert, LogBox } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
+import { RTMP } from './src/navigators/RTMP';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import {
   defaultTheme,
@@ -120,6 +121,15 @@ const StackNavigator = () => {
         <Stack.Screen
           name="LiveStream"
           component={LiveStream}
+          options={{ headerShown: false }}
+        />
+      );
+      break;
+    case 'RTMP':
+      mode = (
+        <Stack.Screen
+          name="RTMP"
+          component={RTMP}
           options={{ headerShown: false }}
         />
       );
