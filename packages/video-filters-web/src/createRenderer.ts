@@ -2,9 +2,8 @@ import { WorkerTimer } from '@stream-io/worker-timer';
 import { TFLite } from './tflite';
 import { buildWebGL2Pipeline } from './webgl2/webgl2Pipeline';
 import { getSegmentationParams, SegmentationLevel } from './segmentation';
+import { BackgroundBlurLevel, BackgroundFilter } from './types';
 
-export type BackgroundFilter = 'blur' | 'image';
-export type BackgroundBlurLevel = 'low' | 'medium' | 'high' | number;
 export type Renderer = {
   /**
    * Disposes of the renderer.

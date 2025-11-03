@@ -4054,6 +4054,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mediapipe/tasks-vision@npm:^0.10.22-rc.20250304":
+  version: 0.10.22-rc.20250304
+  resolution: "@mediapipe/tasks-vision@npm:0.10.22-rc.20250304"
+  checksum: 10/8bf7fff086dbdbe8b22c66c1344f2a2c8697831c89fd96a655611fc3c89969e2c290829c1195d64f4f6dbea8fabe40143154ee2027c256d6cb35c62921bff53d
+  languageName: node
+  linkType: hard
+
 "@mui/core-downloads-tracker@npm:^6.5.0":
   version: 6.5.0
   resolution: "@mui/core-downloads-tracker@npm:6.5.0"
@@ -7366,9 +7373,11 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-filters-web@workspace:packages/video-filters-web"
   dependencies:
+    "@mediapipe/tasks-vision": "npm:^0.10.22-rc.20250304"
     "@rollup/plugin-replace": "npm:^6.0.2"
     "@rollup/plugin-typescript": "npm:^12.1.4"
     "@stream-io/worker-timer": "npm:^1.2.5"
+    "@types/dom-mediacapture-transform": "npm:^0.1.11"
     "@types/emscripten": "npm:^1.41.2"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.4"
@@ -7928,6 +7937,22 @@ __metadata:
   version: 4.0.2
   resolution: "@types/deep-eql@npm:4.0.2"
   checksum: 10/249a27b0bb22f6aa28461db56afa21ec044fa0e303221a62dff81831b20c8530502175f1a49060f7099e7be06181078548ac47c668de79ff9880241968d43d0c
+  languageName: node
+  linkType: hard
+
+"@types/dom-mediacapture-transform@npm:^0.1.11":
+  version: 0.1.11
+  resolution: "@types/dom-mediacapture-transform@npm:0.1.11"
+  dependencies:
+    "@types/dom-webcodecs": "npm:*"
+  checksum: 10/7e989c819db9378d5317683c4a9a99bc66397430fff07491faffce47f3b8d81039ccbce74ad93aa9f0bf527f30e1ac06466e9b6bdbeafbb620544560365e3ea2
+  languageName: node
+  linkType: hard
+
+"@types/dom-webcodecs@npm:*":
+  version: 0.1.16
+  resolution: "@types/dom-webcodecs@npm:0.1.16"
+  checksum: 10/960344edec71a445db3a9260a69c34933cd873ac8ca7ec18b3ea9cd213582ed5b57ab2123c669df847f8e555aa0646366e8589d86f0ebe304517bfec2f7cf116
   languageName: node
   linkType: hard
 

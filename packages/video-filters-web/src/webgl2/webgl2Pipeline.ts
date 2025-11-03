@@ -11,8 +11,8 @@ import {
 import { buildJointBilateralFilterStage } from './jointBilateralFilterStage';
 import { buildResizingStage } from './resizingStage';
 import { buildSoftmaxStage } from './softmaxStage';
-import { BackgroundBlurLevel, BackgroundFilter } from '../createRenderer';
 import { SegmentationParams } from '../segmentation';
+import type { BackgroundBlurLevel, BackgroundFilter } from '../types';
 
 export function buildWebGL2Pipeline(
   videoSource: HTMLVideoElement,
