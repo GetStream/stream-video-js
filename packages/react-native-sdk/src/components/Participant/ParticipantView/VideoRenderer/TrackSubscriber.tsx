@@ -83,18 +83,14 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
         dimensions$,
         isPublishingTrack$,
         isJoinedState$,
-      ]).subscribe(([dimension, isPublishing, isJoined]) => {
-        if (isJoined && isPublishing && !isVisible) {
-          // the participant is publishing and we are not visible, so we unsubscribe from the video track
-          requestTrackWithDimensions(DebounceType.FAST, undefined);
-        } else if (isJoined && isPublishing && isVisible && dimension) {
-          // the participant is publishing and we are visible and have valid dimensions, so we subscribe to the video track
-          requestTrackWithDimensions(DebounceType.IMMEDIATE, dimension);
-        } else if (isJoined && !isPublishing) {
-          // the participant stopped publishing a track, so we unsubscribe from the video track
-          requestTrackWithDimensions(DebounceType.FAST, undefined);
+      ]).subscribe(([dimension, , isJoined]) => {
+        if (isJoined) {
+          if (!isVisible) {
+            requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
+          } else if (dimension) {
+            requestTrackWithDimensions(DebounceType.IMMEDIATE, dimension);
+          }
         }
-        // if isPublishing but no dimension yet, we wait for dimensions
       });
 
       return () => {
