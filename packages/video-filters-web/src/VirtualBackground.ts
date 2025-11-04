@@ -28,12 +28,15 @@ export class VirtualBackground {
     private readonly hooks: VideoTrackProcessorHooks = {},
   ) {
     this.processor = new MediaStreamTrackProcessor({ track });
-    this.generator = new MediaStreamTrackGenerator({ kind: 'video' });
+    this.generator = new MediaStreamTrackGenerator({
+      kind: 'video',
+      signalTarget: track,
+    });
 
     this.abortController = new AbortController();
   }
 
-  public async processTrack(): Promise<MediaStreamTrack> {
+  public async start(): Promise<MediaStreamTrack> {
     const { onError } = this.hooks;
 
     const { readable } = this.processor;
@@ -58,6 +61,10 @@ export class VirtualBackground {
 
           const processed = await this.transform(frame, opts);
           controller.enqueue(processed);
+        } catch (e) {
+          console.error('error processing frame: ', e);
+          controller.enqueue(frame);
+          console.error(e);
         } finally {
           frame.close();
         }
@@ -131,7 +138,7 @@ export class VirtualBackground {
    *
    * @returns A new `VideoFrame` containing the processed image.
    */
-  async transform(
+  private async transform(
     frame: VideoFrame,
     opts: SegmenterOptions,
   ): Promise<VideoFrame> {
@@ -167,7 +174,7 @@ export class VirtualBackground {
     return new VideoFrame(this.canvas, { timestamp: frame.timestamp });
   }
 
-  async loadBackground(url: string | undefined) {
+  private async loadBackground(url: string | undefined) {
     if (!url) {
       return;
     }

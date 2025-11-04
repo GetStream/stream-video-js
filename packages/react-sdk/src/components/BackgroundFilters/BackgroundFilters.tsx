@@ -27,6 +27,12 @@ import { Notification } from '../Notification';
 import { useLowFpsWarning } from '../../hooks/useLowFpsWarning';
 import clsx from 'clsx';
 
+export enum FilterEngine {
+  TF = 'TF',
+  MEDIA_PIPE = 'MEDIA_PIPE',
+  NONE = 'NONE',
+}
+
 export type BackgroundFiltersProps = PlatformSupportFlags & {
   /**
    * A list of URLs to use as background images.
@@ -99,6 +105,11 @@ export type BackgroundFiltersAPI = {
   isSupported: boolean;
 
   /**
+   * The filter engine that will be used (TF, MEDIA_PIPE, or NONE).
+   */
+  engine: FilterEngine;
+
+  /**
    * Indicates whether the background filters engine is loaded and ready.
    */
   isReady: boolean;
@@ -150,6 +161,28 @@ export const useBackgroundFilters = () => {
 };
 
 /**
+ * Determines which filter engine is available.
+ * MEDIA_PIPE is the default unless legacy filters are requested or MediaPipe is unsupported.
+ * Returns NONE if neither is available.
+ */
+const determineEngine = async (
+  useLegacyFilterModel: boolean | undefined,
+  forceSafariSupport: boolean | undefined,
+  forceMobileSupport: boolean | undefined,
+): Promise<FilterEngine> => {
+  const mediaPipeSupported = isMediaPipeSupported();
+  if (mediaPipeSupported && !useLegacyFilterModel) {
+    return FilterEngine.MEDIA_PIPE;
+  }
+
+  const tfSupported = await isPlatformSupported({
+    forceSafariSupport,
+    forceMobileSupport,
+  });
+  return tfSupported ? FilterEngine.TF : FilterEngine.NONE;
+};
+
+/**
  * A provider component that enables the use of background filters in your app.
  *
  * Please make sure you have the `@stream-io/video-filters-web` package installed
@@ -198,30 +231,31 @@ export const BackgroundFiltersProvider = (
     setBackgroundBlurLevel(undefined);
   }, []);
 
+  const [engine, setEngine] = useState<FilterEngine>(FilterEngine.NONE);
   const [isSupported, setIsSupported] = useState(false);
   useEffect(() => {
-    if (useLegacyFilterModel) {
-      setIsSupported(isMediaPipeSupported());
-    } else {
-      isPlatformSupported({
-        forceSafariSupport,
-        forceMobileSupport,
-      }).then(setIsSupported);
-    }
+    determineEngine(
+      useLegacyFilterModel,
+      forceSafariSupport,
+      forceMobileSupport,
+    ).then((determinedEngine) => {
+      setEngine(determinedEngine);
+      setIsSupported(determinedEngine !== FilterEngine.NONE);
+    });
   }, [forceMobileSupport, forceSafariSupport, useLegacyFilterModel]);
 
   const [tfLite, setTfLite] = useState<TFLite>();
   useEffect(() => {
-    // don't try to load TFLite if the platform is not supported
-    if (!isSupported || !useLegacyFilterModel) return;
+    if (engine !== FilterEngine.TF) return;
+
     loadTFLite({ basePath, modelFilePath, tfFilePath })
       .then(setTfLite)
       .catch((err) => console.error('Failed to load TFLite', err));
-  }, [basePath, isSupported, modelFilePath, tfFilePath, useLegacyFilterModel]);
+  }, [basePath, engine, modelFilePath, tfFilePath]);
 
   const [mediaPipe, setMediaPipe] = useState<ArrayBuffer>();
   useEffect(() => {
-    if (!isSupported || useLegacyFilterModel) return;
+    if (engine !== FilterEngine.MEDIA_PIPE) return;
 
     loadMediaPipe({
       wasmPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm',
@@ -229,7 +263,7 @@ export const BackgroundFiltersProvider = (
     })
       .then(setMediaPipe)
       .catch((err) => console.error('Failed to preload MediaPipe', err));
-  }, [isSupported, mediaPipeModelFilePath, useLegacyFilterModel]);
+  }, [engine, mediaPipeModelFilePath]);
 
   const handleError = useCallback(
     (error: any) => {
@@ -246,7 +280,7 @@ export const BackgroundFiltersProvider = (
     <BackgroundFiltersContext.Provider
       value={{
         isSupported,
-        useLegacyFilterModel,
+        engine,
         isReady: useLegacyFilterModel ? !!tfLite : !!mediaPipe,
         mediaPipeModelFilePath,
         backgroundImage,
@@ -263,12 +297,12 @@ export const BackgroundFiltersProvider = (
       }}
     >
       {children}
-      {tfLite && <BackgroundFilters tfLite={tfLite} />}
+      <BackgroundFilters tfLite={tfLite} />
     </BackgroundFiltersContext.Provider>
   );
 };
 
-const BackgroundFilters = (props: { tfLite: TFLite }) => {
+const BackgroundFilters = (props: { tfLite?: TFLite }) => {
   const call = useCall();
   const { children, start } = useRenderer(props.tfLite, call);
   const { onError, backgroundFilter } = useBackgroundFilters();
@@ -291,12 +325,12 @@ const BackgroundFilters = (props: { tfLite: TFLite }) => {
   return children;
 };
 
-const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
+const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
   const {
     backgroundFilter,
     backgroundBlurLevel,
     backgroundImage,
-    useLegacyFilterModel,
+    engine,
     mediaPipeModelFilePath,
   } = useBackgroundFilters();
 
@@ -330,50 +364,73 @@ const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
         const canvasEl = canvasRef.current;
         const bgImageEl = bgImageRef.current;
 
-        if (!videoEl || !canvasEl || (backgroundImage && !bgImageEl)) {
-          // You should start renderer in effect or event handlers
-          reject(new Error('Renderer started before elements are ready'));
+        const [track] = ms.getVideoTracks();
+
+        if (!track) {
+          reject(new Error('No video tracks in input media stream'));
           return;
         }
 
-        videoEl.srcObject = ms;
-        videoEl.play().then(
-          async () => {
-            const [track] = ms.getVideoTracks();
+        if (engine === FilterEngine.MEDIA_PIPE) {
+          call?.tracer.trace('backgroundFilters.enable', {
+            backgroundFilter,
+            backgroundBlurLevel,
+            backgroundImage,
+            engine,
+          });
 
-            if (!track) {
-              reject(new Error('No video tracks in input media stream'));
-              return;
-            }
-
-            const trackSettings = track.getSettings();
-            flushSync(() =>
-              setVideoSize({
-                width: trackSettings.width ?? 0,
-                height: trackSettings.height ?? 0,
-              }),
-            );
-            call?.tracer.trace('backgroundFilters.enable', {
-              backgroundFilter,
+          console.log('Using MediaPipe model');
+          processor = new VirtualBackground(
+            track,
+            {
+              modelPath: mediaPipeModelFilePath,
               backgroundBlurLevel,
               backgroundImage,
-            });
-
-            if (useLegacyFilterModel) {
-              console.log('Using MediaPipe model');
-              processor = new VirtualBackground(
-                track,
-                {
-                  modelPath: mediaPipeModelFilePath,
-                  backgroundBlurLevel,
-                  backgroundImage,
-                  backgroundFilter,
-                },
-                { onError },
-              );
-              const processedTrack = await processor.processTrack();
+              backgroundFilter,
+            },
+            { onError },
+          );
+          processor
+            .start()
+            .then((processedTrack) => {
               outputStream = new MediaStream([processedTrack]);
-            } else {
+              resolve(outputStream);
+            })
+            .catch((error) => {
+              reject(error);
+            });
+          return;
+        }
+
+        if (engine === FilterEngine.TF) {
+          if (!videoEl || !canvasEl || (backgroundImage && !bgImageEl)) {
+            // You should start renderer in effect or event handlers
+            reject(new Error('Renderer started before elements are ready'));
+            return;
+          }
+
+          videoEl.srcObject = ms;
+          videoEl.play().then(
+            () => {
+              const trackSettings = track.getSettings();
+              flushSync(() =>
+                setVideoSize({
+                  width: trackSettings.width ?? 0,
+                  height: trackSettings.height ?? 0,
+                }),
+              );
+              call?.tracer.trace('backgroundFilters.enable', {
+                backgroundFilter,
+                backgroundBlurLevel,
+                backgroundImage,
+                engine,
+              });
+
+              if (!tfLite) {
+                reject(new Error('TensorFlow Lite not loaded'));
+                return;
+              }
+
               console.log('Using TensorFlow Lite');
               renderer = createRenderer(
                 tfLite,
@@ -387,14 +444,17 @@ const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
                 onError,
               );
               outputStream = canvasEl.captureStream();
-            }
 
-            resolve(outputStream);
-          },
-          () => {
-            reject(new Error('Could not play the source video stream'));
-          },
-        );
+              resolve(outputStream);
+            },
+            () => {
+              reject(new Error('Could not play the source video stream'));
+            },
+          );
+          return;
+        }
+
+        reject(new Error('No supported engine available'));
       });
 
       return {
@@ -414,7 +474,7 @@ const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
       backgroundImage,
       call?.tracer,
       tfLite,
-      useLegacyFilterModel,
+      engine,
       mediaPipeModelFilePath,
     ],
   );
