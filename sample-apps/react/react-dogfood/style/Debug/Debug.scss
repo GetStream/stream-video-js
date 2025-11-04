@@ -26,6 +26,11 @@
   padding-left: var(--str-video__spacing-md);
 }
 
+.rd__debug__participant-view--screen-share {
+  padding-top: 0;
+  padding-left: 0;
+}
+
 .rd__debug__participant-view--hide-elements {
   .str-video__participant-details__connection-quality,
   .str-video__notification {
