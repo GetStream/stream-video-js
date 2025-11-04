@@ -2,6 +2,7 @@ import { forwardRef } from 'react';
 
 import {
   DeviceSelectorAudioInput,
+  DeviceSelectorAudioOutput,
   Icon,
   MenuToggle,
   MenuVisualType,
@@ -40,7 +41,8 @@ export const ToggleMicButton = () => {
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
     >
-      <DeviceSelectorAudioInput visualType="list" />
+      <DeviceSelectorAudioOutput visualType="list" title="Speaker" />
+      <DeviceSelectorAudioInput visualType="list" title="Microphone" />
     </MenuToggle>
   );
 };
