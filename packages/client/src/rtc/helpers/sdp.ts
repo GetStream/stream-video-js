@@ -76,10 +76,12 @@ export const enableStereo = (offerSdp: string, answerSdp: string): string => {
  *
  * @param sdp the SDP to modify.
  * @param codecMimeTypeToKeep the codec mime type to keep (video/h264 or audio/opus).
+ * @param fmtpProfileToKeep the fmtp profile to keep (e.g. 'profile-level-id=42e01f' or multiple segments like 'profile-level-id=64001f;packetization-mode=1').
  */
 export const removeCodecsExcept = (
   sdp: string,
   codecMimeTypeToKeep: string,
+  fmtpProfileToKeep: string | undefined,
 ): string => {
   const [kind, codec] = toMimeType(codecMimeTypeToKeep).split('/');
   if (!kind || !codec) return sdp;
@@ -89,14 +91,29 @@ export const removeCodecsExcept = (
     if (media.type !== kind) continue;
 
     // Build a set of payloads to KEEP: all payloads whose rtp.codec matches codec
-    const payloadsToKeep = new Set<number>();
+    let payloadsToKeep = new Set<number>();
     for (const rtp of media.rtp) {
       if (rtp.codec.toLowerCase() !== codec) continue;
       payloadsToKeep.add(rtp.payload);
     }
 
-    // Nothing to keep in this m-section, skip modifications
-    if (payloadsToKeep.size === 0) continue;
+    // If a specific fmtp profile is requested, only keep payloads whose fmtp config matches it
+    if (fmtpProfileToKeep) {
+      const filtered = new Set<number>();
+      const required = new Set(fmtpProfileToKeep.split(';'));
+      for (const fmtp of media.fmtp) {
+        if (
+          payloadsToKeep.has(fmtp.payload) &&
+          required.difference(new Set(fmtp.config.split(';'))).size === 0
+        ) {
+          filtered.add(fmtp.payload);
+        }
+      }
+      payloadsToKeep = filtered;
+    }
+
+    // If no payloads to keep AND no fmtpProfile was specified, skip modifications (preserve SDP as-is)
+    if (payloadsToKeep.size === 0 && !fmtpProfileToKeep) continue;
 
     // Keep RTX payloads that are associated with kept primary payloads via apt
     // RTX mappings look like: a=fmtp:<rtxPayload> apt=<primaryPayload>

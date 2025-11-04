@@ -153,8 +153,14 @@ export class Subscriber extends BasePeerConnection {
     const answer = await this.pc.createAnswer();
     if (answer.sdp) {
       answer.sdp = enableStereo(subscriberOffer.sdp, answer.sdp);
-      if (this.dangerouslyForceCodec) {
-        answer.sdp = removeCodecsExcept(answer.sdp, this.dangerouslyForceCodec);
+      const { dangerouslyForceCodec, subscriberFmtpLine } =
+        this.clientPublishOptions || {};
+      if (dangerouslyForceCodec) {
+        answer.sdp = removeCodecsExcept(
+          answer.sdp,
+          dangerouslyForceCodec,
+          subscriberFmtpLine,
+        );
       }
     }
     await this.pc.setLocalDescription(answer);

@@ -454,13 +454,175 @@ a=rtcp-mux
 a=rtcp-rsize
 `;
 
+const expectedSdpH264Profile64001f = `v=0
+o=- 6339689900541563983 2 IN IP4 127.0.0.1
+s=-
+t=0 0
+a=extmap-allow-mixed
+a=msid-semantic:  WMS
+a=group:BUNDLE 0 1
+m=video 9 UDP/TLS/RTP/SAVPF 119 120
+c=IN IP4 0.0.0.0
+a=rtpmap:119 H264/90000
+a=rtpmap:120 rtx/90000
+a=fmtp:119 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=64001f
+a=fmtp:120 apt=119
+a=rtcp:9 IN IP4 0.0.0.0
+a=rtcp-fb:119 goog-remb
+a=rtcp-fb:119 transport-cc
+a=rtcp-fb:119 ccm fir
+a=rtcp-fb:119 nack
+a=rtcp-fb:119 nack pli
+a=extmap:1 urn:ietf:params:rtp-hdrext:toffset
+a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+a=extmap:3 urn:3gpp:video-orientation
+a=extmap:4 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+a=extmap:5 http://www.webrtc.org/experiments/rtp-hdrext/playout-delay
+a=extmap:6 http://www.webrtc.org/experiments/rtp-hdrext/video-content-type
+a=extmap:7 http://www.webrtc.org/experiments/rtp-hdrext/video-timing
+a=extmap:8 http://www.webrtc.org/experiments/rtp-hdrext/color-space
+a=extmap:9 urn:ietf:params:rtp-hdrext:sdes:mid
+a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id
+a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id
+a=setup:actpass
+a=mid:0
+a=recvonly
+a=ice-ufrag:BRD8
+a=ice-pwd:8e+C7eV4BeLTWG9HvRNQZ52S
+a=fingerprint:sha-256 7B:A4:54:EF:70:A8:30:82:F6:88:A6:DC:E9:8A:7E:6E:59:5C:53:32:D7:AD:4F:C9:4D:DB:6C:DD:0B:DD:03:04
+a=ice-options:trickle
+a=rtcp-mux
+a=rtcp-rsize
+m=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126
+c=IN IP4 0.0.0.0
+a=rtpmap:111 opus/48000/2
+a=rtpmap:63 red/48000/2
+a=rtpmap:9 G722/8000
+a=rtpmap:0 PCMU/8000
+a=rtpmap:8 PCMA/8000
+a=rtpmap:13 CN/8000
+a=rtpmap:110 telephone-event/48000
+a=rtpmap:126 telephone-event/8000
+a=fmtp:111 minptime=10;useinbandfec=1
+a=fmtp:63 111/111
+a=rtcp:9 IN IP4 0.0.0.0
+a=rtcp-fb:111 transport-cc
+a=extmap:14 urn:ietf:params:rtp-hdrext:ssrc-audio-level
+a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+a=extmap:4 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+a=extmap:9 urn:ietf:params:rtp-hdrext:sdes:mid
+a=setup:actpass
+a=mid:1
+a=recvonly
+a=ice-ufrag:BRD8
+a=ice-pwd:8e+C7eV4BeLTWG9HvRNQZ52S
+a=fingerprint:sha-256 7B:A4:54:EF:70:A8:30:82:F6:88:A6:DC:E9:8A:7E:6E:59:5C:53:32:D7:AD:4F:C9:4D:DB:6C:DD:0B:DD:03:04
+a=ice-options:trickle
+a=rtcp-mux
+a=rtcp-rsize
+`;
+
+const expectedSdpH264Profile64001fOnly = `v=0
+o=- 6339689900541563983 2 IN IP4 127.0.0.1
+s=-
+t=0 0
+a=extmap-allow-mixed
+a=msid-semantic:  WMS
+a=group:BUNDLE 0 1
+m=video 9 UDP/TLS/RTP/SAVPF 119 120 121 122
+c=IN IP4 0.0.0.0
+a=rtpmap:119 H264/90000
+a=rtpmap:120 rtx/90000
+a=rtpmap:121 H264/90000
+a=rtpmap:122 rtx/90000
+a=fmtp:119 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=64001f
+a=fmtp:120 apt=119
+a=fmtp:121 level-asymmetry-allowed=1;packetization-mode=0;profile-level-id=64001f
+a=fmtp:122 apt=121
+a=rtcp:9 IN IP4 0.0.0.0
+a=rtcp-fb:119 goog-remb
+a=rtcp-fb:119 transport-cc
+a=rtcp-fb:119 ccm fir
+a=rtcp-fb:119 nack
+a=rtcp-fb:119 nack pli
+a=rtcp-fb:121 goog-remb
+a=rtcp-fb:121 transport-cc
+a=rtcp-fb:121 ccm fir
+a=rtcp-fb:121 nack
+a=rtcp-fb:121 nack pli
+a=extmap:1 urn:ietf:params:rtp-hdrext:toffset
+a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+a=extmap:3 urn:3gpp:video-orientation
+a=extmap:4 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+a=extmap:5 http://www.webrtc.org/experiments/rtp-hdrext/playout-delay
+a=extmap:6 http://www.webrtc.org/experiments/rtp-hdrext/video-content-type
+a=extmap:7 http://www.webrtc.org/experiments/rtp-hdrext/video-timing
+a=extmap:8 http://www.webrtc.org/experiments/rtp-hdrext/color-space
+a=extmap:9 urn:ietf:params:rtp-hdrext:sdes:mid
+a=extmap:10 urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id
+a=extmap:11 urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id
+a=setup:actpass
+a=mid:0
+a=recvonly
+a=ice-ufrag:BRD8
+a=ice-pwd:8e+C7eV4BeLTWG9HvRNQZ52S
+a=fingerprint:sha-256 7B:A4:54:EF:70:A8:30:82:F6:88:A6:DC:E9:8A:7E:6E:59:5C:53:32:D7:AD:4F:C9:4D:DB:6C:DD:0B:DD:03:04
+a=ice-options:trickle
+a=rtcp-mux
+a=rtcp-rsize
+m=audio 9 UDP/TLS/RTP/SAVPF 111 63 9 0 8 13 110 126
+c=IN IP4 0.0.0.0
+a=rtpmap:111 opus/48000/2
+a=rtpmap:63 red/48000/2
+a=rtpmap:9 G722/8000
+a=rtpmap:0 PCMU/8000
+a=rtpmap:8 PCMA/8000
+a=rtpmap:13 CN/8000
+a=rtpmap:110 telephone-event/48000
+a=rtpmap:126 telephone-event/8000
+a=fmtp:111 minptime=10;useinbandfec=1
+a=fmtp:63 111/111
+a=rtcp:9 IN IP4 0.0.0.0
+a=rtcp-fb:111 transport-cc
+a=extmap:14 urn:ietf:params:rtp-hdrext:ssrc-audio-level
+a=extmap:2 http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time
+a=extmap:4 http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01
+a=extmap:9 urn:ietf:params:rtp-hdrext:sdes:mid
+a=setup:actpass
+a=mid:1
+a=recvonly
+a=ice-ufrag:BRD8
+a=ice-pwd:8e+C7eV4BeLTWG9HvRNQZ52S
+a=fingerprint:sha-256 7B:A4:54:EF:70:A8:30:82:F6:88:A6:DC:E9:8A:7E:6E:59:5C:53:32:D7:AD:4F:C9:4D:DB:6C:DD:0B:DD:03:04
+a=ice-options:trickle
+a=rtcp-mux
+a=rtcp-rsize
+`;
+
 describe('sdp - remove codecs', () => {
   it('it should remove non-matching codecs', () => {
-    expect(removeCodecsExcept(sdp, 'video/vp8')).toEqual(
+    expect(removeCodecsExcept(sdp, 'video/vp8', undefined)).toEqual(
       expectedSdpVP8.replace(/\n/g, '\r\n'),
     );
-    expect(removeCodecsExcept(sdp, 'video/h264')).toEqual(
+    expect(removeCodecsExcept(sdp, 'video/h264', undefined)).toEqual(
       expectedSdpH264.replace(/\n/g, '\r\n'),
     );
+    expect(
+      removeCodecsExcept(
+        sdp,
+        'video/h264',
+        'level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=64001f',
+      ),
+    ).toEqual(expectedSdpH264Profile64001f.replace(/\n/g, '\r\n'));
+    expect(
+      removeCodecsExcept(
+        sdp,
+        'video/h264',
+        'level-asymmetry-allowed=1;profile-level-id=64001f;packetization-mode=1',
+      ),
+    ).toEqual(expectedSdpH264Profile64001f.replace(/\n/g, '\r\n'));
+    expect(
+      removeCodecsExcept(sdp, 'video/h264', 'profile-level-id=64001f'),
+    ).toEqual(expectedSdpH264Profile64001fOnly.replace(/\n/g, '\r\n'));
   });
 });

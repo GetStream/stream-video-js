@@ -382,8 +382,10 @@ export class Publisher extends BasePeerConnection {
         await this.pc.setLocalDescription(offer);
 
         const { sdp: baseSdp = '' } = offer;
-        const sdp = this.dangerouslyForceCodec
-          ? removeCodecsExcept(baseSdp, this.dangerouslyForceCodec)
+        const { dangerouslyForceCodec, fmtpLine } =
+          this.clientPublishOptions || {};
+        const sdp = dangerouslyForceCodec
+          ? removeCodecsExcept(baseSdp, dangerouslyForceCodec, fmtpLine)
           : baseSdp;
         const { response } = await this.sfuClient.setPublisher({ sdp, tracks });
         if (response.error) throw new NegotiationError(response.error);

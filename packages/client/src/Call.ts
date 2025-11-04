@@ -989,10 +989,11 @@ export class Call {
       // prepare a generic SDP and send it to the SFU.
       // these are throw-away SDPs that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
-      const { dangerouslyForceCodec } = this.clientPublishOptions || {};
+      const { dangerouslyForceCodec, fmtpLine, subscriberFmtpLine } =
+        this.clientPublishOptions || {};
       const [subscriberSdp, publisherSdp] = await Promise.all([
-        getGenericSdp('recvonly', dangerouslyForceCodec),
-        getGenericSdp('sendonly', dangerouslyForceCodec),
+        getGenericSdp('recvonly', dangerouslyForceCodec, subscriberFmtpLine),
+        getGenericSdp('sendonly', dangerouslyForceCodec, fmtpLine),
       ]);
       const isReconnecting =
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
@@ -1247,7 +1248,7 @@ export class Call {
       connectionConfig,
       tag: sfuClient.tag,
       enableTracing,
-      dangerouslyForceCodec: this.clientPublishOptions?.dangerouslyForceCodec,
+      clientPublishOptions: this.clientPublishOptions,
       onReconnectionNeeded: (kind, reason, peerType) => {
         this.reconnect(kind, reason).catch((err) => {
           const message = `[Reconnect] Error reconnecting, after a ${PeerType[peerType]} error: ${reason}`;

@@ -7,10 +7,12 @@ import { removeCodecsExcept } from './helpers/sdp';
  *
  * @param direction the direction of the transceiver.
  * @param codecToKeep the codec mime type to keep (video/h264 or audio/opus).
+ * @param fmtpProfileToKeep optional fmtp profile to keep.
  */
 export const getGenericSdp = async (
   direction: RTCRtpTransceiverDirection,
-  codecToKeep?: string,
+  codecToKeep: string | undefined,
+  fmtpProfileToKeep: string | undefined,
 ) => {
   const tempPc = new RTCPeerConnection();
   tempPc.addTransceiver('video', { direction });
@@ -18,7 +20,9 @@ export const getGenericSdp = async (
 
   const offer = await tempPc.createOffer();
   const { sdp: baseSdp = '' } = offer;
-  const sdp = codecToKeep ? removeCodecsExcept(baseSdp, codecToKeep) : baseSdp;
+  const sdp = codecToKeep
+    ? removeCodecsExcept(baseSdp, codecToKeep, fmtpProfileToKeep)
+    : baseSdp;
 
   tempPc.getTransceivers().forEach((t) => {
     t.stop?.();
