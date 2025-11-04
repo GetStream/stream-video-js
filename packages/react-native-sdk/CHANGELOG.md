@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.24.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.0...@stream-io/video-react-native-sdk-1.24.1) (2025-11-04)
+
+### Bug Fixes
+
+- ios callkit related audio inconsistencies ([#1982](https://github.com/GetStream/stream-video-js/issues/1982)) ([112e380](https://github.com/GetStream/stream-video-js/commit/112e38090be4e41d1554a966af1f6e15965ea786))
+- no video if camera is disabled on init and then enabled ([#1981](https://github.com/GetStream/stream-video-js/issues/1981)) ([b30ca34](https://github.com/GetStream/stream-video-js/commit/b30ca34eb598eb61716f3e4d389ffaf31236b90e))
+
 ## [1.24.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.23.0...@stream-io/video-react-native-sdk-1.24.0) (2025-10-30)
 
 ### Dependency Updates
