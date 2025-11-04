@@ -1,7 +1,7 @@
 import { BasePeerConnection } from './BasePeerConnection';
-import {
+import type {
+  BasePeerConnectionOpts,
   PublishBundle,
-  PublisherConstructorOpts,
   TrackPublishOptions,
 } from './types';
 import { NegotiationError } from './NegotiationError';
@@ -38,7 +38,10 @@ export class Publisher extends BasePeerConnection {
   /**
    * Constructs a new `Publisher` instance.
    */
-  constructor({ publishOptions, ...baseOptions }: PublisherConstructorOpts) {
+  constructor(
+    baseOptions: BasePeerConnectionOpts,
+    publishOptions: PublishOption[],
+  ) {
     super(PeerType.PUBLISHER_UNSPECIFIED, baseOptions);
     this.publishOptions = publishOptions;
 

@@ -149,7 +149,7 @@ export abstract class BasePeerConnection {
         e.error.code === ErrorCode.PARTICIPANT_SIGNAL_LOST
           ? WebsocketReconnectStrategy.FAST
           : WebsocketReconnectStrategy.REJOIN;
-      this.onReconnectionNeeded?.(strategy, reason);
+      this.onReconnectionNeeded?.(strategy, reason, this.peerType);
     });
   };
 
@@ -288,6 +288,7 @@ export abstract class BasePeerConnection {
       this.onReconnectionNeeded?.(
         WebsocketReconnectStrategy.REJOIN,
         'Connection failed',
+        this.peerType,
       );
       return;
     }

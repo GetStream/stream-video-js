@@ -1,5 +1,6 @@
 import {
   AudioBitrateProfile,
+  PeerType,
   PublishOption,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
@@ -12,6 +13,7 @@ import type { PreferredCodec } from '../types';
 export type OnReconnectionNeeded = (
   kind: WebsocketReconnectStrategy,
   reason: string,
+  peerType: PeerType,
 ) => void;
 
 export type BasePeerConnectionOpts = {
@@ -24,10 +26,6 @@ export type BasePeerConnectionOpts = {
   enableTracing: boolean;
   iceRestartDelay?: number;
   dangerouslyForceCodec?: PreferredCodec;
-};
-
-export type PublisherConstructorOpts = BasePeerConnectionOpts & {
-  publishOptions: PublishOption[];
 };
 
 export type TrackPublishOptions = {
