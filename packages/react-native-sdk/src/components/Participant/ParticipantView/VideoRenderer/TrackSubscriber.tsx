@@ -83,7 +83,10 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
         dimensions$,
         isPublishingTrack$,
         isJoinedState$,
-      ]).subscribe(([dimension, , isJoined]) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      ]).subscribe(([dimension, isPublishing, isJoined]) => {
+        // isPublishing is not used here, but we need to keep it for the subscription
+        // to send the dimensions again when the participant starts publishing the track again
         if (isJoined) {
           if (!isVisible) {
             requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
