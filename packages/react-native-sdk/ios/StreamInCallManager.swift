@@ -96,6 +96,17 @@ class StreamInCallManager: RCTEventEmitter {
             if !audioManagerActivated {
                 return
             }
+            let session = RTCAudioSession.sharedInstance()
+            session.lockForConfiguration()
+            defer {
+                session.unlockForConfiguration()
+            }
+
+            do {
+                try session.setActive(false)
+            } catch {
+                log("Error deactivating audio session: \(error.localizedDescription)")
+            }
             if let prev = previousAudioSessionState {
                 let session = AVAudioSession.sharedInstance()
                 do {
@@ -155,32 +166,25 @@ class StreamInCallManager: RCTEventEmitter {
         RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
         // END
 
-        // START: compare current audio session with intended, and update if different
+        // START: activate the webrtc audio session
         let session = RTCAudioSession.sharedInstance()
-        let currentCategory = session.category
-        let currentMode = session.mode
-        let currentOptions = session.categoryOptions
-        let currentIsActive = session.isActive
-
-        if currentCategory != intendedCategory.rawValue || currentMode != intendedMode.rawValue || currentOptions != intendedOptions || !currentIsActive {
-            session.lockForConfiguration()
-            do {
-                try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
-                try session.setActive(true)
-                log("configureAudioSession: setCategory success \(intendedCategory.rawValue) \(intendedMode.rawValue) \(intendedOptions.rawValue)")
-            } catch {
-                log("configureAudioSession: setCategory failed due to: \(error.localizedDescription)")
-                do {
-                    try session.setMode(intendedMode)
-                    try session.setActive(true)
-                    log("configureAudioSession: setMode success \(intendedMode.rawValue)")
-                } catch {
-                    log("configureAudioSession: Error setting mode: \(error.localizedDescription)")
-                }
-            }
+        session.lockForConfiguration()
+        defer {
             session.unlockForConfiguration()
-        } else {
-            log("configureAudioSession: no change needed")
+        }
+        do {
+            try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
+            try session.setActive(true)
+            log("configureAudioSession: setCategory success \(intendedCategory.rawValue) \(intendedMode.rawValue) \(intendedOptions.rawValue)")
+        } catch {
+            log("configureAudioSession: setCategory failed due to: \(error.localizedDescription)")
+            do {
+                try session.setMode(intendedMode)
+                try session.setActive(true)
+                log("configureAudioSession: setMode success \(intendedMode.rawValue)")
+            } catch {
+                log("configureAudioSession: Error setting mode: \(error.localizedDescription)")
+            }
         }
         // END
     }
