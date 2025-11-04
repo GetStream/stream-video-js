@@ -13,7 +13,8 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
-import { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
+import type { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
+import type { PreferredCodec } from '../types';
 
 /**
  * A base class for the `Publisher` and `Subscriber` classes.
@@ -25,6 +26,7 @@ export abstract class BasePeerConnection {
   protected readonly pc: RTCPeerConnection;
   protected readonly state: CallState;
   protected readonly dispatcher: Dispatcher;
+  protected readonly dangerouslyForceCodec?: PreferredCodec;
   protected sfuClient: StreamSfuClient;
 
   private onReconnectionNeeded?: OnReconnectionNeeded;
@@ -55,6 +57,7 @@ export abstract class BasePeerConnection {
       onReconnectionNeeded,
       tag,
       enableTracing,
+      dangerouslyForceCodec,
       iceRestartDelay = 2500,
     }: BasePeerConnectionOpts,
   ) {
@@ -63,6 +66,7 @@ export abstract class BasePeerConnection {
     this.state = state;
     this.dispatcher = dispatcher;
     this.iceRestartDelay = iceRestartDelay;
+    this.dangerouslyForceCodec = dangerouslyForceCodec;
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.logger = videoLoggerSystem.getLogger(
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',

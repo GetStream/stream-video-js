@@ -64,11 +64,15 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
     const maxSimulcastLayers = router.query['max_simulcast_layers'] as
       | string
       | undefined;
+    const forceCodec = router.query['force_codec'] as
+      | PreferredCodec
+      | undefined;
 
     const preferredBitrate = bitrateOverride
       ? parseInt(bitrateOverride, 10)
       : undefined;
     _call.updatePublishOptions({
+      dangerouslyForceCodec: forceCodec,
       preferredCodec: videoCodecOverride,
       fmtpLine: fmtpOverride,
       preferredBitrate,

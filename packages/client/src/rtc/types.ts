@@ -7,6 +7,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { CallState } from '../store';
 import { Dispatcher } from './Dispatcher';
 import type { OptimalVideoLayer } from './layers';
+import type { PreferredCodec } from '../types';
 
 export type OnReconnectionNeeded = (
   kind: WebsocketReconnectStrategy,
@@ -22,6 +23,7 @@ export type BasePeerConnectionOpts = {
   tag: string;
   enableTracing: boolean;
   iceRestartDelay?: number;
+  dangerouslyForceCodec?: PreferredCodec;
 };
 
 export type PublisherConstructorOpts = BasePeerConnectionOpts & {

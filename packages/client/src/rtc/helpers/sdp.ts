@@ -81,7 +81,7 @@ export const removeCodecsExcept = (
   sdp: string,
   codecMimeTypeToKeep: string,
 ): string => {
-  const [kind, codec] = codecMimeTypeToKeep.split('/');
+  const [kind, codec] = toMimeType(codecMimeTypeToKeep).split('/');
   if (!kind || !codec) return sdp;
 
   const parsed = parse(sdp);
@@ -128,3 +128,10 @@ export const removeCodecsExcept = (
 
   return write(parsed);
 };
+
+/**
+ * Converts the given codec to a mime-type format when necessary.
+ * e.g.: `vp9` -> `video/vp9`
+ */
+const toMimeType = (codec: string, kind: 'video' | 'audio' = 'video') =>
+  codec.includes('/') ? codec : `${kind}/${codec}`;

@@ -17,9 +17,8 @@ export const getGenericSdp = async (
   tempPc.addTransceiver('audio', { direction });
 
   const offer = await tempPc.createOffer();
-  const sdp = codecToKeep
-    ? removeCodecsExcept(offer.sdp ?? '', toMimeType(codecToKeep))
-    : (offer.sdp ?? '');
+  const { sdp: baseSdp = '' } = offer;
+  const sdp = codecToKeep ? removeCodecsExcept(baseSdp, codecToKeep) : baseSdp;
 
   tempPc.getTransceivers().forEach((t) => {
     t.stop?.();
@@ -43,10 +42,3 @@ export const isSvcCodec = (codecOrMimeType: string | undefined) => {
     codecOrMimeType === 'video/av1'
   );
 };
-
-/**
- * Converts the given codec to a mime-type format when necessary.
- * e.g.: `vp9` -> `video/vp9`
- */
-const toMimeType = (codec: string, kind: 'video' | 'audio' = 'video') =>
-  codec.includes('/') ? codec : `${kind}/${codec}`;
