@@ -142,11 +142,9 @@ export class WebGLRenderer {
 
                 float nonLinearConfidence = smoothstep(u_smoothstepMin, u_smoothstepMax, confidenceValue);
                 float prevCategoryValue = texture2D(u_prevStateTexture, prevCoord).r;
-
-                float diff = abs(categoryValue - prevCategoryValue);
-                float motionFactor = smoothstep(0.2, 0.4, diff);
-                float alpha = mix(u_smoothingFactor, u_smoothingFactor * 0.5, motionFactor);
+                float alpha = u_smoothingFactor * nonLinearConfidence;
                 float newCategoryValue = alpha * categoryValue + (1.0 - alpha) * prevCategoryValue;
+
 
                 gl_FragColor = vec4(newCategoryValue, 0.0, 0.0, 0.0);
             }
@@ -874,7 +872,7 @@ export class WebGLRenderer {
     gl.uniform1i(stateUpdateLocations.prevStateTexture, 2);
 
     gl.uniform1f(stateUpdateLocations.smoothingFactor, 0.8);
-    gl.uniform1f(stateUpdateLocations.smoothstepMin, 0.6);
+    gl.uniform1f(stateUpdateLocations.smoothstepMin, 0.0);
     gl.uniform1f(stateUpdateLocations.smoothstepMax, 0.9);
 
     gl.uniform1i(stateUpdateLocations.selfieModel, useSelfieModel ? 1 : 0);
