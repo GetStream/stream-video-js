@@ -1,5 +1,6 @@
 import {
   DeviceSelectorAudioInput,
+  DeviceSelectorAudioOutput,
   OwnCapability,
   Restricted,
   ToggleAudioPublishingButton,
@@ -11,7 +12,10 @@ export const ToggleDualMicButton = () => {
       <div className="rd__dual-toggle">
         <ToggleAudioPublishingButton
           Menu={
-            <DeviceSelectorAudioInput visualType="list" title={undefined} />
+            <>
+              <DeviceSelectorAudioOutput visualType="list" title="Speaker" />
+              <DeviceSelectorAudioInput visualType="list" title="Microphone" />
+            </>
           }
           menuPlacement="top"
         />
