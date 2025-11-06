@@ -67,6 +67,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const maxSimulcastLayers = router.query['max_simulcast_layers'] as
     | string
     | undefined;
+  const forceCodec = router.query['force_codec'] as PreferredCodec | undefined;
 
   const onJoin = useCallback(
     async (options: { fastJoin?: boolean; displayName?: string } = {}) => {
@@ -77,6 +78,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
           ? parseInt(bitrateOverride, 10)
           : undefined;
         call.updatePublishOptions({
+          dangerouslyForceCodec: forceCodec,
           preferredCodec: videoCodecOverride,
           fmtpLine: fmtpOverride,
           preferredBitrate,
@@ -106,15 +108,16 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       }
     },
     [
-      chatClient,
-      bitrateOverride,
       call,
-      fmtpOverride,
-      maxSimulcastLayers,
+      bitrateOverride,
+      forceCodec,
       videoCodecOverride,
-      videoDecoderFmtpOverride,
+      fmtpOverride,
       videoDecoderOverride,
+      videoDecoderFmtpOverride,
+      maxSimulcastLayers,
       isRestricted,
+      chatClient,
     ],
   );
 
