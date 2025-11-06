@@ -13,7 +13,6 @@ import {
   Image,
   Modal,
   PanResponder,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -22,6 +21,7 @@ import {
   View,
 } from 'react-native';
 import { BOTTOM_CONTROLS_HEIGHT } from '../constants';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type DrawerProps = {
   isVisible: boolean;

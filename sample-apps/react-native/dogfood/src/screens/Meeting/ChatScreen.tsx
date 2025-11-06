@@ -1,12 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Pressable,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import {
   Channel,
   MessageInput,
@@ -60,6 +53,7 @@ const ChannelHeader = () => {
 };
 
 export const ChatScreen = ({ route }: ChatScreenProps) => {
+  const styles = useStyles();
   const [channel, setChannel] = useState<ChannelType>();
   const { client } = useChatContext();
   const {
@@ -77,14 +71,14 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
   }
 
   return (
-    <SafeAreaView>
+    <View style={styles.container}>
       <StatusBar barStyle="default" />
       <Channel channel={channel} keyboardVerticalOffset={120}>
         <ChannelHeader />
         <MessageList />
         <MessageInput />
       </Channel>
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -93,6 +87,10 @@ const useStyles = () => {
   return useMemo(
     () =>
       StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: theme.colors.sheetSecondary,
+        },
         header: {
           padding: 10,
           flexDirection: 'row',
