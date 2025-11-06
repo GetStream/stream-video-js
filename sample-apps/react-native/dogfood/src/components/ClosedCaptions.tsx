@@ -6,6 +6,12 @@ export const ClosedCaptions = () => {
   const { useCallClosedCaptions } = useCallStateHooks();
   const closedCaptions = useCallClosedCaptions();
   const styles = useStyles();
+  console.log('closedCaptions', closedCaptions);
+
+  // if (closedCaptions.length === 0) {
+  //   return null;
+  // }
+
   return (
     <View style={styles.rootContainer}>
       {closedCaptions.map(({ user, start_time, text }) => (
@@ -27,7 +33,10 @@ const useStyles = () => {
           backgroundColor: theme.colors.sheetPrimary,
           padding: theme.variants.spacingSizes.md,
           width: '100%',
-          minHeight: 55,
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
         },
         closedCaptionItem: {
           flexDirection: 'row',

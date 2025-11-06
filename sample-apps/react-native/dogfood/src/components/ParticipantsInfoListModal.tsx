@@ -35,7 +35,7 @@ import { Z_INDEX } from '../constants';
 import { ButtonTestIds } from '../constants/TestIds';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 
-export interface ParticipantsInfoListProps {
+interface ParticipantsInfoListProps {
   /**
    * Boolean that decides whether the CallParticipantsInfo modal should be open or not.
    */
@@ -53,7 +53,7 @@ export interface ParticipantsInfoListProps {
  * their mute states, video states, screen share states, etc.
  * Mute all participants, invite participants, etc.
  **/
-export const ParticipantsInfoList = ({
+export const ParticipantsInfoListModal = ({
   isCallParticipantsInfoVisible,
   setIsCallParticipantsInfoVisible,
 }: ParticipantsInfoListProps) => {

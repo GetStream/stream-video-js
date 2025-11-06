@@ -36,64 +36,69 @@ export const BottomControls = ({
 }: BottomControlsProps) => {
   const { useMicrophoneState } = useCallStateHooks();
   const { isSpeakingWhileMuted } = useMicrophoneState();
-  const styles = useStyles(isSpeakingWhileMuted);
+  const styles = useStyles();
 
   return (
-    <View style={styles.container}>
-      {isSpeakingWhileMuted && (
-        <View style={styles.speakingLabelContainer}>
-          <Text style={styles.label}>You are muted. Unmute to speak.</Text>
-        </View>
-      )}
-      <View style={[styles.callControlsWrapper]}>
-        <View style={styles.left}>
-          <MoreActionsButton />
-          <ToggleAudioPublishingButton />
-          <ToggleVideoPublishingButton />
-          <ScreenShareToggleButton />
-          <RecordCallButton
-            toggleCallRecording={toggleCallRecording}
-            isAwaitingResponse={isAwaitingResponse}
-            isCallRecordingInProgress={isCallRecordingInProgress}
-          />
-        </View>
-        <View style={styles.right}>
-          <ParticipantsButton onParticipantInfoPress={onParticipantInfoPress} />
-          <ChatButton
-            onPressHandler={onChatOpenHandler}
-            unreadBadgeCount={unreadCountIndicator}
-          />
+    <>
+      <View style={styles.container}>
+        <View style={[styles.callControlsWrapper]}>
+          <View style={styles.left}>
+            <MoreActionsButton />
+            <ToggleAudioPublishingButton />
+            <ToggleVideoPublishingButton />
+            <ScreenShareToggleButton />
+            <RecordCallButton
+              toggleCallRecording={toggleCallRecording}
+              isAwaitingResponse={isAwaitingResponse}
+              isCallRecordingInProgress={isCallRecordingInProgress}
+            />
+          </View>
+          <View style={styles.right}>
+            <ParticipantsButton
+              onParticipantInfoPress={onParticipantInfoPress}
+            />
+            <ChatButton
+              onPressHandler={onChatOpenHandler}
+              unreadBadgeCount={unreadCountIndicator}
+            />
+          </View>
         </View>
       </View>
-    </View>
+      {/* {isSpeakingWhileMuted && ( */}
+      <View style={styles.speakingLabelContainer}>
+        <Text style={styles.label}>You are muted. Unmute to speak.</Text>
+      </View>
+      {/* )} */}
+    </>
   );
 };
 
-const useStyles = (showMicLabel: boolean) => {
+const useStyles = () => {
   const { theme } = useTheme();
 
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          paddingVertical: !showMicLabel ? theme.variants.spacingSizes.md : 0,
-          paddingHorizontal: theme.variants.spacingSizes.md,
-          backgroundColor: theme.colors.sheetPrimary,
+          paddingVertical: theme.variants.spacingSizes.md,
+          backgroundColor: 'pink',
           height: BOTTOM_CONTROLS_HEIGHT,
         },
         speakingLabelContainer: {
           backgroundColor: theme.colors.sheetPrimary,
-          width: '100%',
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: BOTTOM_CONTROLS_HEIGHT,
         },
         label: {
           textAlign: 'center',
           color: theme.colors.textPrimary,
         },
         callControlsWrapper: {
-          display: 'flex',
+          paddingHorizontal: theme.variants.spacingSizes.md,
           flexDirection: 'row',
           justifyContent: 'flex-start',
-          zIndex: Z_INDEX.IN_FRONT,
         },
         left: {
           flex: 2.5,
@@ -108,6 +113,6 @@ const useStyles = (showMicLabel: boolean) => {
           gap: theme.variants.spacingSizes.xs,
         },
       }),
-    [theme, showMicLabel],
+    [theme],
   );
 };

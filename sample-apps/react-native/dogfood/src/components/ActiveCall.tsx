@@ -23,7 +23,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { ParticipantsInfoList } from './ParticipantsInfoList';
+import { ParticipantsInfoListModal } from './ParticipantsInfoListModal';
 import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
@@ -173,7 +173,7 @@ export const ActiveCall = ({
           landscape={isLandscape}
           layout={selectedLayout}
         />
-        <ParticipantsInfoList
+        <ParticipantsInfoListModal
           isCallParticipantsInfoVisible={isCallParticipantsVisible}
           setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
         />
