@@ -1,5 +1,6 @@
 import { StreamSfuClient } from './StreamSfuClient';
 import {
+  BasePeerConnectionOpts,
   Dispatcher,
   getGenericSdp,
   isAudioTrackType,
@@ -118,6 +119,7 @@ import {
   ClientDetails,
   Codec,
   ParticipantSource,
+  PeerType,
   PublishOption,
   SubscribeOption,
   TrackType,
@@ -987,9 +989,11 @@ export class Call {
       // prepare a generic SDP and send it to the SFU.
       // these are throw-away SDPs that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
+      const { dangerouslyForceCodec, fmtpLine, subscriberFmtpLine } =
+        this.clientPublishOptions || {};
       const [subscriberSdp, publisherSdp] = await Promise.all([
-        getGenericSdp('recvonly'),
-        getGenericSdp('sendonly'),
+        getGenericSdp('recvonly', dangerouslyForceCodec, subscriberFmtpLine),
+        getGenericSdp('sendonly', dangerouslyForceCodec, fmtpLine),
       ]);
       const isReconnecting =
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
@@ -1237,20 +1241,23 @@ export class Call {
     if (closePreviousInstances && this.subscriber) {
       this.subscriber.dispose();
     }
-    this.subscriber = new Subscriber({
+    const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
       dispatcher: this.dispatcher,
       state: this.state,
       connectionConfig,
       tag: sfuClient.tag,
       enableTracing,
-      onReconnectionNeeded: (kind, reason) => {
+      clientPublishOptions: this.clientPublishOptions,
+      onReconnectionNeeded: (kind, reason, peerType) => {
         this.reconnect(kind, reason).catch((err) => {
-          const message = `[Reconnect] Error reconnecting after a subscriber error: ${reason}`;
+          const message = `[Reconnect] Error reconnecting, after a ${PeerType[peerType]} error: ${reason}`;
           this.logger.warn(message, err);
         });
       },
-    });
+    };
+
+    this.subscriber = new Subscriber(basePeerConnectionOptions);
 
     // anonymous users can't publish anything hence, there is no need
     // to create Publisher Peer Connection for them
@@ -1259,21 +1266,7 @@ export class Call {
       if (closePreviousInstances && this.publisher) {
         this.publisher.dispose();
       }
-      this.publisher = new Publisher({
-        sfuClient,
-        dispatcher: this.dispatcher,
-        state: this.state,
-        connectionConfig,
-        publishOptions,
-        tag: sfuClient.tag,
-        enableTracing,
-        onReconnectionNeeded: (kind, reason) => {
-          this.reconnect(kind, reason).catch((err) => {
-            const message = `[Reconnect] Error reconnecting after a publisher error: ${reason}`;
-            this.logger.warn(message, err);
-          });
-        },
-      });
+      this.publisher = new Publisher(basePeerConnectionOptions, publishOptions);
     }
 
     this.statsReporter?.stop();

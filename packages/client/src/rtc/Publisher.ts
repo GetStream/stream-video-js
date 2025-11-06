@@ -1,7 +1,7 @@
 import { BasePeerConnection } from './BasePeerConnection';
-import {
+import type {
+  BasePeerConnectionOpts,
   PublishBundle,
-  PublisherConstructorOpts,
   TrackPublishOptions,
 } from './types';
 import { NegotiationError } from './NegotiationError';
@@ -21,7 +21,7 @@ import {
 } from './layers';
 import { isSvcCodec } from './codecs';
 import { isAudioTrackType } from './helpers/tracks';
-import { extractMid } from './helpers/sdp';
+import { extractMid, removeCodecsExcept } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
 
@@ -38,7 +38,10 @@ export class Publisher extends BasePeerConnection {
   /**
    * Constructs a new `Publisher` instance.
    */
-  constructor({ publishOptions, ...baseOptions }: PublisherConstructorOpts) {
+  constructor(
+    baseOptions: BasePeerConnectionOpts,
+    publishOptions: PublishOption[],
+  ) {
     super(PeerType.PUBLISHER_UNSPECIFIED, baseOptions);
     this.publishOptions = publishOptions;
 
@@ -378,7 +381,12 @@ export class Publisher extends BasePeerConnection {
         this.isIceRestarting = options?.iceRestart ?? false;
         await this.pc.setLocalDescription(offer);
 
-        const { sdp = '' } = offer;
+        const { sdp: baseSdp = '' } = offer;
+        const { dangerouslyForceCodec, fmtpLine } =
+          this.clientPublishOptions || {};
+        const sdp = dangerouslyForceCodec
+          ? removeCodecsExcept(baseSdp, dangerouslyForceCodec, fmtpLine)
+          : baseSdp;
         const { response } = await this.sfuClient.setPublisher({ sdp, tracks });
         if (response.error) throw new NegotiationError(response.error);
 

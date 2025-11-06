@@ -7153,7 +7153,7 @@ __metadata:
     "@rnx-kit/metro-config": "npm:^2.1.2"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:125.4.4"
+    "@stream-io/react-native-webrtc": "npm:137.0.0"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
@@ -7258,7 +7258,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/noise-cancellation-react-native@workspace:packages/noise-cancellation-react-native"
   dependencies:
-    "@stream-io/react-native-webrtc": "npm:125.4.4"
+    "@stream-io/react-native-webrtc": "npm:137.0.0"
     react: "npm:19.1.0"
     react-native: "npm:^0.81.4"
     react-native-builder-bob: "npm:^0.37.0"
@@ -7270,16 +7270,16 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/react-native-webrtc@npm:125.4.4":
-  version: 125.4.4
-  resolution: "@stream-io/react-native-webrtc@npm:125.4.4"
+"@stream-io/react-native-webrtc@npm:137.0.0":
+  version: 137.0.0
+  resolution: "@stream-io/react-native-webrtc@npm:137.0.0"
   dependencies:
     base64-js: "npm:1.5.1"
     debug: "npm:4.3.4"
     event-target-shim: "npm:6.0.2"
   peerDependencies:
     react-native: ">=0.73.0"
-  checksum: 10/a29be364f4b4e3312e9f9ba2c124bd6f973a00a86936c73504ef9246ccb3ffdbf977c42d919833f8b5de2dff7b842f80f00be6e3bdb916416d925639ec273f74
+  checksum: 10/45acf7df6eb9e100c85bb3b72b1a54dc361609f6b160cf270bd24074eef5ad33422b533b3028dbf7a3e072b543914969ea55d144310da942418f13cc4e02cdec
   languageName: node
   linkType: hard
 
@@ -7357,7 +7357,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-filters-react-native@workspace:packages/video-filters-react-native"
   dependencies:
-    "@stream-io/react-native-webrtc": "npm:125.4.4"
+    "@stream-io/react-native-webrtc": "npm:137.0.0"
     react: "npm:19.1.0"
     react-native: "npm:^0.81.4"
     react-native-builder-bob: "npm:^0.37.0"
@@ -7497,7 +7497,7 @@ __metadata:
     "@rnx-kit/metro-config": "npm:^2.1.2"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:125.4.4"
+    "@stream-io/react-native-webrtc": "npm:137.0.0"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
@@ -7548,7 +7548,7 @@ __metadata:
     "@react-navigation/native": "npm:^7.1.18"
     "@rnx-kit/metro-config": "npm:^2.1.2"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
-    "@stream-io/react-native-webrtc": "npm:125.4.4"
+    "@stream-io/react-native-webrtc": "npm:137.0.0"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
     expo: "npm:^54.0.12"
@@ -7597,7 +7597,7 @@ __metadata:
     "@react-native-firebase/messaging": "npm:^23.4.0"
     "@react-native/babel-preset": "npm:^0.81.4"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:125.4.4"
+    "@stream-io/react-native-webrtc": "npm:137.0.0"
     "@stream-io/video-client": "workspace:*"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:*"

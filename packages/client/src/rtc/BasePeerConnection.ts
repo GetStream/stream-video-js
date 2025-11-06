@@ -13,7 +13,8 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
-import { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
+import type { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
+import type { ClientPublishOptions } from '../types';
 
 /**
  * A base class for the `Publisher` and `Subscriber` classes.
@@ -25,6 +26,7 @@ export abstract class BasePeerConnection {
   protected readonly pc: RTCPeerConnection;
   protected readonly state: CallState;
   protected readonly dispatcher: Dispatcher;
+  protected readonly clientPublishOptions?: ClientPublishOptions;
   protected sfuClient: StreamSfuClient;
 
   private onReconnectionNeeded?: OnReconnectionNeeded;
@@ -55,6 +57,7 @@ export abstract class BasePeerConnection {
       onReconnectionNeeded,
       tag,
       enableTracing,
+      clientPublishOptions,
       iceRestartDelay = 2500,
     }: BasePeerConnectionOpts,
   ) {
@@ -63,6 +66,7 @@ export abstract class BasePeerConnection {
     this.state = state;
     this.dispatcher = dispatcher;
     this.iceRestartDelay = iceRestartDelay;
+    this.clientPublishOptions = clientPublishOptions;
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.logger = videoLoggerSystem.getLogger(
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
@@ -145,7 +149,7 @@ export abstract class BasePeerConnection {
         e.error.code === ErrorCode.PARTICIPANT_SIGNAL_LOST
           ? WebsocketReconnectStrategy.FAST
           : WebsocketReconnectStrategy.REJOIN;
-      this.onReconnectionNeeded?.(strategy, reason);
+      this.onReconnectionNeeded?.(strategy, reason, this.peerType);
     });
   };
 
@@ -284,6 +288,7 @@ export abstract class BasePeerConnection {
       this.onReconnectionNeeded?.(
         WebsocketReconnectStrategy.REJOIN,
         'Connection failed',
+        this.peerType,
       );
       return;
     }
