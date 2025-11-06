@@ -3,19 +3,14 @@ import {
   VideoTrackType,
 } from '@stream-io/video-client';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
+import { useWindowDimensions } from 'react-native';
 
 export const useFloatingVideoDimensions = (
-  containerDimensions:
-    | {
-        width: number;
-        height: number;
-      }
-    | undefined,
   participant: StreamVideoParticipant | undefined,
   trackType: VideoTrackType,
 ) => {
-  const containerWidth = containerDimensions?.width ?? 0;
-  const containerHeight = containerDimensions?.height ?? 0;
+  const { width: containerWidth, height: containerHeight } =
+    useWindowDimensions();
   const { width, height } = useTrackDimensions(participant, trackType);
 
   if (
