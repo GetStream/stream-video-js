@@ -15,22 +15,36 @@ export const useFloatingVideoDimensions = (
   trackType: VideoTrackType,
 ) => {
   const containerWidth = containerDimensions?.width ?? 0;
+  const containerHeight = containerDimensions?.height ?? 0;
   const { width, height } = useTrackDimensions(participant, trackType);
 
-  if (width === 0 || height === 0 || containerWidth === 0) {
+  if (
+    width === 0 ||
+    height === 0 ||
+    containerWidth === 0 ||
+    containerHeight === 0
+  ) {
     return undefined;
   }
 
-  const aspectRatio = width / height;
-
   // based on Android AOSP PiP mode default dimensions algorithm
-  // 23% of the container width
-  const floatingVideoWidth = containerWidth * 0.23;
-  // the height is calculated based on the aspect ratio
-  const floatingVideoHeight = floatingVideoWidth / aspectRatio;
+  // 23% of the shorter container dimension is the base dimension
+  const shorterContainerDimension = Math.min(containerWidth, containerHeight);
+  const baseDimension = shorterContainerDimension * 0.23;
 
-  return {
-    width: floatingVideoWidth,
-    height: floatingVideoHeight,
-  };
+  const aspectRatio = width / height;
+  const isPortraitVideo = aspectRatio < 1;
+
+  // baseDimension is assigned to either height or width based on whether the video is landscape or portrait
+  if (isPortraitVideo) {
+    return {
+      width: baseDimension,
+      height: baseDimension / aspectRatio,
+    };
+  } else {
+    return {
+      width: baseDimension * aspectRatio,
+      height: baseDimension,
+    };
+  }
 };
