@@ -21,7 +21,6 @@ import {
   VirtualBackground,
   Renderer,
   TFLite,
-  isMediaPipeSupported,
 } from '@stream-io/video-filters-web';
 import { Notification } from '../Notification';
 import { useLowFpsWarning } from '../../hooks/useLowFpsWarning';
@@ -170,16 +169,13 @@ const determineEngine = async (
   forceSafariSupport: boolean | undefined,
   forceMobileSupport: boolean | undefined,
 ): Promise<FilterEngine> => {
-  const mediaPipeSupported = isMediaPipeSupported();
-  if (mediaPipeSupported && !useLegacyFilterModel) {
-    return FilterEngine.MEDIA_PIPE;
-  }
-
-  const tfSupported = await isPlatformSupported({
+  const isSupported = await isPlatformSupported({
     forceSafariSupport,
     forceMobileSupport,
   });
-  return tfSupported ? FilterEngine.TF : FilterEngine.NONE;
+
+  if (!isSupported) return FilterEngine.NONE;
+  return useLegacyFilterModel ? FilterEngine.TF : FilterEngine.MEDIA_PIPE;
 };
 
 /**
@@ -379,26 +375,55 @@ const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
             engine,
           });
 
-          console.log('Using MediaPipe model');
-          processor = new VirtualBackground(
-            track,
-            {
-              modelPath: mediaPipeModelFilePath,
-              backgroundBlurLevel,
-              backgroundImage,
-              backgroundFilter,
+          if (!videoEl) {
+            reject(new Error('Renderer started before elements are ready'));
+            return;
+          }
+
+          videoEl.srcObject = ms;
+          videoEl.play().then(
+            () => {
+              const trackSettings = track.getSettings();
+              flushSync(() =>
+                setVideoSize({
+                  width: trackSettings.width ?? 0,
+                  height: trackSettings.height ?? 0,
+                }),
+              );
+              call?.tracer.trace('backgroundFilters.enable', {
+                backgroundFilter,
+                backgroundBlurLevel,
+                backgroundImage,
+                engine,
+              });
+
+              console.log('Using MediaPipe model');
+
+              processor = new VirtualBackground(
+                track,
+                {
+                  modelPath: mediaPipeModelFilePath,
+                  backgroundBlurLevel,
+                  backgroundImage,
+                  backgroundFilter,
+                },
+                { onError },
+              );
+              processor
+                .start()
+                .then((processedTrack) => {
+                  outputStream = new MediaStream([processedTrack]);
+                  resolve(outputStream);
+                })
+                .catch((error) => {
+                  reject(error);
+                });
             },
-            { onError },
+            () => {
+              reject(new Error('Could not play the source video stream'));
+            },
           );
-          processor
-            .start()
-            .then((processedTrack) => {
-              outputStream = new MediaStream([processedTrack]);
-              resolve(outputStream);
-            })
-            .catch((error) => {
-              reject(error);
-            });
+
           return;
         }
 

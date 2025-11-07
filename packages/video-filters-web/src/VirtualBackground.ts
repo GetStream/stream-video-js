@@ -7,14 +7,16 @@ import {
 import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision';
 import { WebGLRenderer } from './WebGLRenderer';
 import { packageName, version } from './version';
+import { TrackGenerator, MediaStreamTrackGenerator } from './FallbackGenerator';
+import { MediaStreamTrackProcessor, TrackProcessor } from './FallbackProcessor';
 
 /**
  * Wraps a track in a real-time processing pipeline where each frame
  * passes through a transformer and outputs a new `MediaStreamVideoTrack`
  */
 export class VirtualBackground {
-  private readonly processor: MediaStreamTrackProcessor<VideoFrame>;
-  private readonly generator: MediaStreamTrackGenerator<VideoFrame>;
+  private readonly processor: MediaStreamTrackProcessor;
+  private readonly generator: MediaStreamTrackGenerator;
 
   private canvas!: OffscreenCanvas;
   private segmenter: ImageSegmenter | null = null;
@@ -27,11 +29,11 @@ export class VirtualBackground {
     private readonly options: BackgroundOptions = {},
     private readonly hooks: VideoTrackProcessorHooks = {},
   ) {
-    this.processor = new MediaStreamTrackProcessor({ track });
-    this.generator = new MediaStreamTrackGenerator({
+    this.processor = new TrackProcessor({ track });
+    this.generator = new TrackGenerator({
       kind: 'video',
       signalTarget: track,
-    });
+    }) as MediaStreamTrackGenerator;
 
     this.abortController = new AbortController();
   }
@@ -56,6 +58,7 @@ export class VirtualBackground {
       transform: async (frame, controller) => {
         try {
           if (this.abortController.signal.aborted) {
+            console.log('aborted');
             return frame.close();
           }
 
@@ -84,13 +87,14 @@ export class VirtualBackground {
       .pipeThrough(transformStream, { signal })
       .pipeTo(writable)
       .catch((e) => {
+        console.log('HEREE');
         if (e.name !== 'AbortError') {
           console.error('[virtual-background] Error processing track:', e);
           onError?.(e);
         }
       });
 
-    return this.generator as MediaStreamVideoTrack;
+    return this.generator;
   }
 
   /**
