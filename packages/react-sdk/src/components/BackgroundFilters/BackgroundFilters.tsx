@@ -407,8 +407,6 @@ const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
                 engine,
               });
 
-              console.log('Using MediaPipe model');
-
               processor = new VirtualBackground(
                 track,
                 {
@@ -465,7 +463,6 @@ const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
                 return;
               }
 
-              console.log('Using TensorFlow Lite');
               renderer = createRenderer(
                 tfLite,
                 videoEl,
