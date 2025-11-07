@@ -1,6 +1,7 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
 import { AllSfuEvents } from '../../rtc';
+import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 
 export type UR = Record<string, unknown>;
 
@@ -23,8 +24,6 @@ export type UserWithId =
 export type { OwnUserResponse } from '../../gen/coordinator';
 
 export type ConnectAPIResponse = Promise<void | ConnectedEvent>;
-
-export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
 
 type ErrorResponseDetails = {
   code: number;
@@ -156,8 +155,28 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    */
   baseURL?: string;
   browser?: boolean;
+
+  /**
+   *  @deprecated Use `logOptions` instead.
+   *  Custom logger instance used to handle log messages.
+   *  Will be removed in a future release.
+   */
   logger?: Logger;
+
+  /**
+   *  @deprecated Use `logOptions` instead.
+   *  Sets the minimum log level for all logs.
+   *  Will be removed in a future release.
+   */
   logLevel?: LogLevel;
+
+  /**
+   * Configuration options where keys are logger scopes.
+   * The `default` scope is reserved is used to set defaults for all loggers.
+   *
+   */
+  logOptions?: ConfigureLoggersOptions;
+
   /**
    * The URL to use for the location hint.
    */

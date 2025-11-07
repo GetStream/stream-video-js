@@ -1,9 +1,9 @@
 import {
   CallingState,
-  getLogger,
   hasScreenShare,
   speakerLayoutSortPreset,
   type StreamVideoParticipant,
+  videoLoggerSystem,
   type VideoTrackType,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
@@ -72,18 +72,16 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       shouldDisableIOSLocalVideoOnBackgroundRef.current = true;
     };
     const unsubFunc = call?.on('call.ended', () => {
-      getLogger(['RTCViewPipIOS'])(
-        'debug',
-        `onCallClosed due to call.ended event`,
-      );
+      videoLoggerSystem
+        .getLogger('RTCViewPipIOS')
+        .debug(`onCallClosed due to call.ended event`);
       onCallClosed();
     });
     const subscription = call?.state.callingState$.subscribe((state) => {
       if (state === CallingState.LEFT) {
-        getLogger(['RTCViewPipIOS'])(
-          'debug',
-          `onCallClosed due to callingState: ${state}`,
-        );
+        videoLoggerSystem
+          .getLogger('RTCViewPipIOS')
+          .debug(`onCallClosed due to callingState: ${state}`);
         onCallClosed();
       }
     });

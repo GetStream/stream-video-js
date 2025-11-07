@@ -6,7 +6,7 @@ import {
 import { TwirpErrorCode } from '@protobuf-ts/twirp-transport';
 import { retryInterval, sleep } from '../coordinator/connection/utils';
 import { Error as SfuError } from '../gen/video/sfu/models/models';
-import { getLogger } from '../logger';
+import { videoLoggerSystem } from '../logger';
 
 /**
  * An internal interface which asserts that "retryable" SFU responses
@@ -48,7 +48,9 @@ export const retryable = async <
         err.code === TwirpErrorCode[TwirpErrorCode.cancelled];
       const isAborted = signal?.aborted ?? false;
       if (isRequestCancelled || isAborted) throw err;
-      getLogger(['sfu-client', 'rpc'])('debug', `rpc failed (${attempt})`, err);
+      videoLoggerSystem
+        .getLogger('sfu-client', { tags: ['rpc'] })
+        .debug(`rpc failed (${attempt})`, err);
       attempt++;
     }
   } while (!result || result.response.error?.shouldRetry);

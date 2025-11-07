@@ -2,6 +2,39 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.24.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.1...@stream-io/video-react-native-sdk-1.24.2) (2025-11-05)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.1`
+- `@stream-io/video-filters-react-native` updated to version `0.8.1`
+
+### Bug Fixes
+
+- noise cancellation webrtc 137 support and dev dep and sampleapp webrtc updates ([#1974](https://github.com/GetStream/stream-video-js/issues/1974)) ([c555695](https://github.com/GetStream/stream-video-js/commit/c555695e53018412ea8964a2e222daa99a9544e5))
+
+## [1.24.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.0...@stream-io/video-react-native-sdk-1.24.1) (2025-11-04)
+
+### Bug Fixes
+
+- ios callkit related audio inconsistencies ([#1982](https://github.com/GetStream/stream-video-js/issues/1982)) ([112e380](https://github.com/GetStream/stream-video-js/commit/112e38090be4e41d1554a966af1f6e15965ea786))
+- no video if camera is disabled on init and then enabled ([#1981](https://github.com/GetStream/stream-video-js/issues/1981)) ([b30ca34](https://github.com/GetStream/stream-video-js/commit/b30ca34eb598eb61716f3e4d389ffaf31236b90e))
+
+## [1.24.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.23.0...@stream-io/video-react-native-sdk-1.24.0) (2025-10-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.36.0`
+- `@stream-io/video-react-bindings` updated to version `1.10.4`
+
+### Features
+
+- Migrate logger to js-toolkit logger implementation ([#1959](https://github.com/GetStream/stream-video-js/issues/1959)) ([5a424f7](https://github.com/GetStream/stream-video-js/commit/5a424f72cec2a8cbc0bfa23147d9988ab9bfbdc1))
+
+### Bug Fixes
+
+- keep compatibility with older xcode versions ([#1973](https://github.com/GetStream/stream-video-js/issues/1973)) ([3b2f281](https://github.com/GetStream/stream-video-js/commit/3b2f281ac565ff4c422aa37c1eb90c58afee3bea))
+
 ## [1.23.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.3...@stream-io/video-react-native-sdk-1.23.0) (2025-10-27)
 
 ### Dependency Updates

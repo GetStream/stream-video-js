@@ -1,7 +1,7 @@
 import { BaseStats } from '../stats';
 import { SoundStateChangeHandler } from './sound-detector';
 import { flatten } from '../stats/utils';
-import { getLogger } from '../logger';
+import { videoLoggerSystem } from '../logger';
 
 export class RNSpeechDetector {
   private pc1 = new RTCPeerConnection({});
@@ -64,8 +64,8 @@ export class RNSpeechDetector {
         this.stop();
       };
     } catch (error) {
-      const logger = getLogger(['RNSpeechDetector']);
-      logger('error', 'error handling permissions: ', error);
+      const logger = videoLoggerSystem.getLogger('RNSpeechDetector');
+      logger.error('error handling permissions: ', error);
       return () => {};
     }
   }
@@ -164,8 +164,8 @@ export class RNSpeechDetector {
           }
         }
       } catch (error) {
-        const logger = getLogger(['RNSpeechDetector']);
-        logger('error', 'error checking audio level from stats', error);
+        const logger = videoLoggerSystem.getLogger('RNSpeechDetector');
+        logger.error('error checking audio level from stats', error);
       }
     };
 

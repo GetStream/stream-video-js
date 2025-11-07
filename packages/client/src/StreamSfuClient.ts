@@ -29,8 +29,7 @@ import { ICETrickle } from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
 import { generateUUIDv4 } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
-import { Logger } from './coordinator/connection/types';
-import { getLogger, getLogLevel } from './logger';
+import { ScopedLogger, videoLoggerSystem } from './logger';
 import {
   makeSafePromise,
   PromiseWithResolvers,
@@ -152,7 +151,7 @@ export class StreamSfuClient {
   private readonly unsubscribeIceTrickle: () => void;
   private readonly unsubscribeNetworkChanged: () => void;
   private readonly onSignalClose: ((reason: string) => void) | undefined;
-  private readonly logger: Logger;
+  private readonly logger: ScopedLogger;
   readonly tag: string;
   private readonly credentials: Credentials;
   private readonly dispatcher: Dispatcher;
@@ -219,7 +218,7 @@ export class StreamSfuClient {
     this.edgeName = server.edge_name;
     this.joinResponseTimeout = joinResponseTimeout;
     this.tag = tag;
-    this.logger = getLogger(['SfuClient', tag]);
+    this.logger = videoLoggerSystem.getLogger('SfuClient', { tags: [tag] });
     this.tracer = enableTracing
       ? new Tracer(`${tag}-${this.edgeName}`)
       : undefined;
@@ -228,7 +227,8 @@ export class StreamSfuClient {
       interceptors: [
         withHeaders({ Authorization: `Bearer ${token}` }),
         this.tracer && withRequestTracer(this.tracer.trace),
-        getLogLevel() === 'trace' && withRequestLogger(this.logger, 'trace'),
+        this.logger.getLogLevel() === 'trace' &&
+          withRequestLogger(this.logger, 'trace'),
       ].filter((v) => !!v),
     });
 
@@ -346,7 +346,7 @@ export class StreamSfuClient {
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
     this.isClosingClean = code !== StreamSfuClient.ERROR_CONNECTION_UNHEALTHY;
     if (this.signalWs.readyState === WebSocket.OPEN) {
-      this.logger('debug', `Closing SFU WS connection: ${code} - ${reason}`);
+      this.logger.debug(`Closing SFU WS connection: ${code} - ${reason}`);
       this.signalWs.close(code, `js-client: ${reason}`);
       this.signalWs.removeEventListener('close', this.handleWebSocketClose);
     }
@@ -354,7 +354,7 @@ export class StreamSfuClient {
   };
 
   private dispose = () => {
-    this.logger('debug', 'Disposing SFU client');
+    this.logger.debug('Disposing SFU client');
     this.unsubscribeIceTrickle();
     this.unsubscribeNetworkChanged();
     clearInterval(this.keepAliveInterval);
@@ -375,7 +375,7 @@ export class StreamSfuClient {
       await this.joinTask;
       await this.notifyLeave(reason);
     } catch (err) {
-      this.logger('debug', 'Error notifying SFU about leaving call', err);
+      this.logger.debug('Error notifying SFU about leaving call', err);
     }
 
     this.close(StreamSfuClient.NORMAL_CLOSURE, reason.substring(0, 115));
@@ -557,10 +557,10 @@ export class StreamSfuClient {
     await this.signalReady(); // wait for the signal ws to be open
     const msgJson = SfuRequest.toJson(message);
     if (this.signalWs.readyState !== WebSocket.OPEN) {
-      this.logger('debug', 'Signal WS is not open. Skipping message', msgJson);
+      this.logger.debug('Signal WS is not open. Skipping message', msgJson);
       return;
     }
-    this.logger('debug', `Sending message to: ${this.edgeName}`, msgJson);
+    this.logger.debug(`Sending message to: ${this.edgeName}`, msgJson);
     this.signalWs.send(SfuRequest.toBinary(message));
   };
 
@@ -569,7 +569,7 @@ export class StreamSfuClient {
     timers.clearInterval(this.keepAliveInterval);
     this.keepAliveInterval = timers.setInterval(() => {
       this.ping().catch((e) => {
-        this.logger('error', 'Error sending healthCheckRequest to SFU', e);
+        this.logger.error('Error sending healthCheckRequest to SFU', e);
       });
     }, this.pingIntervalInMs);
   };
