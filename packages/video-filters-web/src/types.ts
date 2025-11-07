@@ -12,6 +12,7 @@ export interface SegmenterOptions {
   backgroundSource?: BackgroundSource | null;
   bgBlur: number;
   bgBlurRadius: number;
+  isSelfieMode: boolean;
 }
 /**
  * Static configuration for the processor, defining which background
@@ -25,10 +26,19 @@ export interface BackgroundOptions {
 }
 
 /**
+ * Performance statistics for video processing.
+ */
+export interface PerformanceStats {
+  delay: number;
+  fps: number;
+}
+
+/**
  * Runtime hooks for handling lifecycle or error events.
  */
 export interface VideoTrackProcessorHooks {
   onError?: (error: unknown) => void;
+  onStats?: (stats: PerformanceStats) => void;
 }
 
 export const BACKGROUND_BLUR_MAP: Record<

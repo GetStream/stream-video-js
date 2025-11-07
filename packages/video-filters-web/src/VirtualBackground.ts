@@ -24,6 +24,10 @@ export class VirtualBackground {
   private webGlRenderer!: WebGLRenderer;
   private abortController: AbortController;
 
+  private segmenterDelayTotal = 0;
+  private frames = 0;
+  private lastStatsTime = 0;
+
   constructor(
     private readonly track: MediaStreamVideoTrack,
     private readonly options: BackgroundOptions = {},
@@ -147,12 +151,8 @@ export class VirtualBackground {
     opts: SegmenterOptions,
   ): Promise<VideoFrame> {
     if (this.isSegmenterReady && this.segmenter) {
-      const { modelPath } = this.options;
       try {
-        const isSelfieMode = modelPath
-          ? modelPath?.includes('selfie_segmenter')
-          : true;
-
+        const start = performance.now();
         await new Promise<void>((resolve) => {
           this.segmenter!.segmentForVideo(frame, frame.timestamp, (result) => {
             const categoryMask = result.categoryMask!.getAsWebGLTexture();
@@ -164,8 +164,30 @@ export class VirtualBackground {
               opts,
               categoryMask,
               confidenceMask,
-              isSelfieMode,
             );
+
+            const now = performance.now();
+            this.segmenterDelayTotal += now - start;
+            this.frames++;
+
+            if (this.lastStatsTime === 0) {
+              this.lastStatsTime = now;
+            }
+
+            if (now - this.lastStatsTime > 1000) {
+              const delay =
+                Math.round((this.segmenterDelayTotal / this.frames) * 100) /
+                100;
+              const fps = Math.round(
+                (1000 * this.frames) / (now - this.lastStatsTime),
+              );
+
+              this.hooks.onStats?.({ delay, fps });
+
+              this.lastStatsTime = now;
+              this.segmenterDelayTotal = 0;
+              this.frames = 0;
+            }
 
             resolve();
           });
@@ -197,6 +219,10 @@ export class VirtualBackground {
   }
 
   private async initializeSegmenterOptions(): Promise<SegmenterOptions> {
+    const isSelfieMode = this.options.modelPath
+      ? this.options.modelPath?.includes('selfie_segmenter')
+      : true;
+
     if (this.options.backgroundFilter === 'image') {
       return {
         backgroundSource: await this.loadBackground(
@@ -204,12 +230,14 @@ export class VirtualBackground {
         ),
         bgBlur: 0,
         bgBlurRadius: 0,
+        isSelfieMode,
       };
     }
 
     return {
       ...BACKGROUND_BLUR_MAP[this.options.backgroundBlurLevel || 'medium'],
       backgroundSource: undefined,
+      isSelfieMode,
     };
   }
 

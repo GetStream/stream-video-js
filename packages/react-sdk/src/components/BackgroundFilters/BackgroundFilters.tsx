@@ -21,6 +21,7 @@ import {
   VirtualBackground,
   Renderer,
   TFLite,
+  PerformanceStats,
 } from '@stream-io/video-filters-web';
 import { Notification } from '../Notification';
 import { useLowFpsWarning } from '../../hooks/useLowFpsWarning';
@@ -95,6 +96,12 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
    * or to try registering the filter again.
    */
   onError?: (error: any) => void;
+
+  /**
+   * Called every ~1s with FPS and delay stats.
+   * Use this to track or display performance.
+   */
+  onStats?: (stats: PerformanceStats) => void;
 };
 
 export type BackgroundFiltersAPI = {
@@ -199,6 +206,7 @@ export const BackgroundFiltersProvider = (
     mediaPipeModelFilePath,
     basePath,
     onError,
+    onStats,
     forceSafariSupport,
     forceMobileSupport,
   } = props;
@@ -290,6 +298,7 @@ export const BackgroundFiltersProvider = (
         modelFilePath,
         basePath,
         onError: handleError,
+        onStats,
       }}
     >
       {children}
@@ -328,6 +337,7 @@ const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
     backgroundImage,
     engine,
     mediaPipeModelFilePath,
+    onStats,
   } = useBackgroundFilters();
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -407,7 +417,7 @@ const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
                   backgroundImage,
                   backgroundFilter,
                 },
-                { onError },
+                { onError, onStats },
               );
               processor
                 .start()
@@ -429,7 +439,6 @@ const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
 
         if (engine === FilterEngine.TF) {
           if (!videoEl || !canvasEl || (backgroundImage && !bgImageEl)) {
-            // You should start renderer in effect or event handlers
             reject(new Error('Renderer started before elements are ready'));
             return;
           }
@@ -494,6 +503,7 @@ const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
       };
     },
     [
+      onStats,
       backgroundBlurLevel,
       backgroundFilter,
       backgroundImage,

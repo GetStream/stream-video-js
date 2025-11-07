@@ -758,10 +758,10 @@ export class WebGLRenderer {
       backgroundSource?: BackgroundSource | null;
       bgBlur: number;
       bgBlurRadius: number;
+      isSelfieMode: boolean;
     },
     categoryTexture?: WebGLTexture,
     confidenceTexture?: WebGLTexture,
-    useSelfieModel?: boolean,
   ) {
     if (!this.running) return;
     const {
@@ -875,7 +875,10 @@ export class WebGLRenderer {
     gl.uniform1f(stateUpdateLocations.smoothstepMin, 0.0);
     gl.uniform1f(stateUpdateLocations.smoothstepMax, 0.9);
 
-    gl.uniform1i(stateUpdateLocations.selfieModel, useSelfieModel ? 1 : 0);
+    gl.uniform1i(
+      stateUpdateLocations.selfieModel,
+      options.isSelfieMode ? 1 : 0,
+    );
 
     gl.enableVertexAttribArray(stateUpdateLocations.position);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
@@ -975,7 +978,7 @@ export class WebGLRenderer {
     gl.disableVertexAttribArray(maskRefineLocations.position);
     gl.disableVertexAttribArray(maskRefineLocations.texCoord);
 
-    let backgroundTexToUse: WebGLTexture | null = null;
+    let backgroundTexToUse: WebGLTexture | null;
     let bgWToSend = width;
     let bgHToSend = height;
 
