@@ -7052,6 +7052,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@skooldev/skool-stream-layout@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@skooldev/skool-stream-layout@npm:1.0.1"
+  peerDependencies:
+    "@stream-io/video-react-sdk": ^1.25.0
+    react: ^17 || ^18 || ^19
+    react-dom: ^17 || ^18 || ^19
+  checksum: 10/ff87dd44de90a5622fe77c11260832091e52d9dd957b694cc92199cf57480a4bf1c191b2603f2d86575bdf5fa93a693f39bf58f06b6a1d79dc055258cb7f4078
+  languageName: node
+  linkType: hard
+
 "@stream-io/audio-filters-web@workspace:^, @stream-io/audio-filters-web@workspace:packages/audio-filters-web":
   version: 0.0.0-use.local
   resolution: "@stream-io/audio-filters-web@workspace:packages/audio-filters-web"
@@ -7108,6 +7119,7 @@ __metadata:
     "@playwright/test": "npm:^1.56.0"
     "@sentry/react": "npm:^10.19.0"
     "@sentry/vite-plugin": "npm:^4.3.0"
+    "@skooldev/skool-stream-layout": "npm:^1.0.1"
     "@stream-io/video-react-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
