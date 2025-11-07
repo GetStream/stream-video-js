@@ -145,7 +145,7 @@ describe('StreamVideoClient Ringing', () => {
       // oliver is calling sacha. only sacha should get a ring event
       const sachaIndividualRing = expectEvent(sachaClient, 'call.ring');
       const marceloIndividualRing = expectEvent(marceloClient, 'call.ring');
-      await oliverCall.ring({ target_member_ids: ['sacha'] });
+      await oliverCall.ring({ members_ids: ['sacha'] });
       await expect(sachaIndividualRing).resolves.toHaveProperty(
         'call.cid',
         oliverCall.cid,
@@ -158,7 +158,7 @@ describe('StreamVideoClient Ringing', () => {
       // sacha is calling marcelo. only marcelo should get a ring event
       const oliverIndividualRing = expectEvent(oliverClient, 'call.ring');
       const marceloIndividualRing2 = expectEvent(marceloClient, 'call.ring');
-      await sachaCall.ring({ target_member_ids: ['marcelo'] });
+      await sachaCall.ring({ members_ids: ['marcelo'] });
       await expect(marceloIndividualRing2).resolves.toHaveProperty(
         'call.cid',
         sachaCall.cid,

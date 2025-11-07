@@ -64,6 +64,8 @@ import type {
   RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
+  RingCallRequest,
+  RingCallResponse,
   SendCallEventRequest,
   SendCallEventResponse,
   SendReactionRequest,
@@ -732,19 +734,17 @@ export class Call {
    * @param params.notify if set to true, a `call.notification` event will be sent to the call members.
    * @param params.members_limit the total number of members to return as part of the response.
    * @param params.video if set to true, in a ringing scenario, mobile SDKs will show "incoming video call", audio only otherwise.
-   * @param params.target_member_ids the list of members to ring. Limited to 100 members per request.
    */
   get = async (params?: {
     ring?: boolean;
     notify?: boolean;
     members_limit?: number;
     video?: boolean;
-    target_member_ids?: string[];
   }): Promise<GetCallResponse> => {
     await this.setup();
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
-      { ...params, target_member_ids: params?.target_member_ids?.join(',') },
+      params,
     );
 
     this.state.updateFromCallResponse(response.call);
@@ -817,15 +817,14 @@ export class Call {
   };
 
   /**
-   * A shortcut for {@link Call.get} with `ring` parameter set to `true`.
-   * Will send a `call.ring` event to the call members.
-   *
-   * @param params.member_ids the list of members to ring. Limited to 100 members per request.
+   * Sends a ring notification to the provided users who are not already in the call.
+   * All users should be members of the call.
    */
-  ring = async (params: {
-    target_member_ids?: string[];
-  }): Promise<GetCallResponse> => {
-    return await this.get({ ...params, ring: true });
+  ring = async (data: RingCallRequest = {}): Promise<RingCallResponse> => {
+    return this.streamClient.post<RingCallResponse, RingCallRequest>(
+      `${this.streamClientBasePath}/ring`,
+      data,
+    );
   };
 
   /**
