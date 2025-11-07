@@ -1,4 +1,5 @@
 import {
+  DegradedPerformanceNotification,
   DeviceSelectorVideo,
   OwnCapability,
   Restricted,
@@ -9,6 +10,7 @@ export const ToggleDualCameraButton = () => {
   return (
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]} hasPermissionsOnly>
       <div className="rd__dual-toggle">
+        <DegradedPerformanceNotification className="rd__dual-toggle__notifications" />
         <ToggleVideoPublishingButton
           Menu={<DeviceSelectorVideo visualType="list" />}
           menuPlacement="top"

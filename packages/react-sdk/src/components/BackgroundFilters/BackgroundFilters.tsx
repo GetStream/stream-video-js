@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react';
 import { flushSync } from 'react-dom';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import { Call, disposeOfMediaStream } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
@@ -23,8 +23,6 @@ import {
   TFLite,
   PerformanceStats,
 } from '@stream-io/video-filters-web';
-import { Notification } from '../Notification';
-import { useLowFpsWarning } from '../../hooks/useLowFpsWarning';
 import clsx from 'clsx';
 
 export enum FilterEngine {
@@ -349,10 +347,6 @@ const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
       height: 1080,
     },
   );
-  const { useCallStatsReport } = useCallStateHooks();
-  const callStatsReport = useCallStatsReport();
-
-  const showLowFpsWarning = useLowFpsWarning(callStatsReport?.publisherStats);
 
   const start = useCallback(
     (ms: MediaStream, onError?: (error: any) => void) => {
@@ -512,48 +506,35 @@ const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
   );
 
   const children = (
-    <>
-      {showLowFpsWarning && !!backgroundFilter && (
-        <div className="str-video__background-filters__notifications ">
-          <Notification
-            isVisible
-            placement="top"
-            message={`Background filters performance is degraded. Consider disabling filters for better performance.`}
-          >
-            <span />
-          </Notification>
-        </div>
-      )}
-      <div className="str-video__background-filters">
-        <video
-          className={clsx(
-            'str-video__background-filters__video',
-            videoSize.height > videoSize.width &&
-              'str-video__background-filters__video--tall',
-          )}
-          ref={videoRef}
-          playsInline
-          muted
-          controls={false}
-          {...videoSize}
-        />
-        {backgroundImage && (
-          <img
-            className="str-video__background-filters__background-image"
-            alt="Background"
-            ref={bgImageRef}
-            crossOrigin="anonymous"
-            src={backgroundImage}
-            {...videoSize}
-          />
+    <div className="str-video__background-filters">
+      <video
+        className={clsx(
+          'str-video__background-filters__video',
+          videoSize.height > videoSize.width &&
+            'str-video__background-filters__video--tall',
         )}
-        <canvas
-          className="str-video__background-filters__target-canvas"
+        ref={videoRef}
+        playsInline
+        muted
+        controls={false}
+        {...videoSize}
+      />
+      {backgroundImage && (
+        <img
+          className="str-video__background-filters__background-image"
+          alt="Background"
+          ref={bgImageRef}
+          crossOrigin="anonymous"
+          src={backgroundImage}
           {...videoSize}
-          ref={canvasRef}
         />
-      </div>
-    </>
+      )}
+      <canvas
+        className="str-video__background-filters__target-canvas"
+        {...videoSize}
+        ref={canvasRef}
+      />
+    </div>
   );
 
   return { start, children };
