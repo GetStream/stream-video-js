@@ -45,7 +45,9 @@ export const BottomControls = ({
     <>
       <View style={styles.container} onLayout={onLayout}>
         <View style={styles.left}>
-          <MoreActionsButton />
+          <MoreActionsButton
+            controlsContainerHeight={controlsContainerHeight}
+          />
           <ToggleAudioPublishingButton />
           <ToggleVideoPublishingButton />
           <ScreenShareToggleButton />

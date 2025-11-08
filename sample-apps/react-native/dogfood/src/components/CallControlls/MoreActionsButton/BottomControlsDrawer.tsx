@@ -20,10 +20,9 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { BOTTOM_CONTROLS_HEIGHT } from '../constants';
-import RaiseHand from '../assets/RaiseHand';
-import { CallStats } from './CallStats';
-import { VideoFilters } from './VideoEffects';
+import RaiseHand from '../../../assets/RaiseHand';
+import { CallStats } from '../../CallStats';
+import { VideoFilters } from '../../VideoEffects';
 
 export type DrawerOption = {
   id: string;
@@ -37,6 +36,7 @@ type DrawerProps = {
   showCallStats: boolean;
   onClose: () => void;
   options: DrawerOption[];
+  bottomControlsHeight: number;
 };
 
 export const BottomControlsDrawer: React.FC<DrawerProps> = ({
@@ -44,6 +44,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   showCallStats,
   onClose,
   options,
+  bottomControlsHeight,
 }) => {
   const { theme } = useTheme();
   const screenHeight = Dimensions.get('window').height;
@@ -51,8 +52,8 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   const styles = useStyles();
   const call = useCall();
 
-  // negative offset is needed so the drawer component start above the bottom controls
-  const offset = -BOTTOM_CONTROLS_HEIGHT;
+  // negative offset to position the drawer component above the bottom controls
+  const offset = -bottomControlsHeight;
 
   const translateY = useRef<any>(
     new Animated.Value(drawerHeight + offset),
