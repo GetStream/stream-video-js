@@ -38,6 +38,10 @@ const createJwtToken = async (
   req: NextApiRequest,
   res: NextApiResponse<CreateJwtTokenResponse | CreateJwtTokenErrorResponse>,
 ) => {
+  if (process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'pronto-sales') {
+    return error(res, 'This endpoint is not enabled', 404);
+  }
+
   const {
     user_id: userId,
     api_key: apiKeyFromRequest,
