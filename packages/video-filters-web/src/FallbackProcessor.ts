@@ -68,7 +68,7 @@ class FallbackProcessor implements MediaStreamTrackProcessor {
           return;
         }
         const delta = performance.now() - timestamp;
-        if (delta < frameDuration) {
+        if (delta <= frameDuration) {
           await new Promise((r: (value?: unknown) => void) =>
             this.timers.setTimeout(r, frameDuration - delta),
           );

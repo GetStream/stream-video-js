@@ -384,47 +384,39 @@ const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
             return;
           }
 
-          videoEl.srcObject = ms;
-          videoEl.play().then(
-            () => {
-              const trackSettings = track.getSettings();
-              flushSync(() =>
-                setVideoSize({
-                  width: trackSettings.width ?? 0,
-                  height: trackSettings.height ?? 0,
-                }),
-              );
-              call?.tracer.trace('backgroundFilters.enable', {
-                backgroundFilter,
-                backgroundBlurLevel,
-                backgroundImage,
-                engine,
-              });
-
-              processor = new VirtualBackground(
-                track,
-                {
-                  modelPath: mediaPipeModelFilePath,
-                  backgroundBlurLevel,
-                  backgroundImage,
-                  backgroundFilter,
-                },
-                { onError, onStats },
-              );
-              processor
-                .start()
-                .then((processedTrack) => {
-                  outputStream = new MediaStream([processedTrack]);
-                  resolve(outputStream);
-                })
-                .catch((error) => {
-                  reject(error);
-                });
-            },
-            () => {
-              reject(new Error('Could not play the source video stream'));
-            },
+          const trackSettings = track.getSettings();
+          flushSync(() =>
+            setVideoSize({
+              width: trackSettings.width ?? 0,
+              height: trackSettings.height ?? 0,
+            }),
           );
+          call?.tracer.trace('backgroundFilters.enable', {
+            backgroundFilter,
+            backgroundBlurLevel,
+            backgroundImage,
+            engine,
+          });
+
+          processor = new VirtualBackground(
+            track,
+            {
+              modelPath: mediaPipeModelFilePath,
+              backgroundBlurLevel,
+              backgroundImage,
+              backgroundFilter,
+            },
+            { onError, onStats },
+          );
+          processor
+            .start()
+            .then((processedTrack) => {
+              outputStream = new MediaStream([processedTrack]);
+              resolve(outputStream);
+            })
+            .catch((error) => {
+              reject(error);
+            });
 
           return;
         }
