@@ -19,9 +19,9 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import RaiseHand from '../assets/RaiseHand';
-import { CallStats } from './CallStats';
-import { VideoFilters } from './VideoEffects';
+import RaiseHand from '../../../assets/RaiseHand';
+import { CallStats } from '../../CallStats';
+import { VideoFilters } from '../../VideoEffects';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export type DrawerOption = {
