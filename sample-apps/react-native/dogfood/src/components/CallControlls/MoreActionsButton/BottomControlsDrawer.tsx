@@ -13,16 +13,16 @@ import {
   FlatList,
   Modal,
   PanResponder,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import RaiseHand from '../../../assets/RaiseHand';
-import { CallStats } from '../../CallStats';
-import { VideoFilters } from '../../VideoEffects';
+import RaiseHand from '../assets/RaiseHand';
+import { CallStats } from './CallStats';
+import { VideoFilters } from './VideoEffects';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export type DrawerOption = {
   id: string;
@@ -208,8 +208,8 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
       supportedOrientations={['portrait', 'landscape']}
     >
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
-          <SafeAreaView style={styles.safeArea}>
+        <SafeAreaProvider>
+          <SafeAreaView style={styles.overlay} edges={['bottom']}>
             <Animated.View
               style={[styles.container, { transform: [{ translateY }] }]}
             >
@@ -218,7 +218,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
               {showCallStats && <CallStats showCodecInfo />}
             </Animated.View>
           </SafeAreaView>
-        </View>
+        </SafeAreaProvider>
       </TouchableWithoutFeedback>
     </Modal>
   );
@@ -232,10 +232,6 @@ const useStyles = () => {
     () =>
       StyleSheet.create({
         overlay: {
-          flex: 1,
-          justifyContent: 'flex-end',
-        },
-        safeArea: {
           flex: 1,
           justifyContent: 'flex-end',
         },

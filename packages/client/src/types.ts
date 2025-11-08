@@ -212,6 +212,12 @@ export type ClientPublishOptions = {
    * Screen share settings.
    */
   screenShareSettings?: ScreenShareSettings;
+  /**
+   * Forces a specific codec to be used when publishing and subscribing a video stream.
+   * Never use it in production as it can have unforeseeable consequences.
+   * @internal
+   */
+  dangerouslyForceCodec?: PreferredCodec;
 };
 
 export type ScreenShareSettings = {

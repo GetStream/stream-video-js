@@ -1,5 +1,6 @@
 import {
   AudioBitrateProfile,
+  PeerType,
   PublishOption,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
@@ -7,10 +8,12 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { CallState } from '../store';
 import { Dispatcher } from './Dispatcher';
 import type { OptimalVideoLayer } from './layers';
+import type { ClientPublishOptions } from '../types';
 
 export type OnReconnectionNeeded = (
   kind: WebsocketReconnectStrategy,
   reason: string,
+  peerType: PeerType,
 ) => void;
 
 export type BasePeerConnectionOpts = {
@@ -22,10 +25,7 @@ export type BasePeerConnectionOpts = {
   tag: string;
   enableTracing: boolean;
   iceRestartDelay?: number;
-};
-
-export type PublisherConstructorOpts = BasePeerConnectionOpts & {
-  publishOptions: PublishOption[];
+  clientPublishOptions?: ClientPublishOptions;
 };
 
 export type TrackPublishOptions = {
