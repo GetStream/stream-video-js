@@ -1,10 +1,10 @@
 import {
-  DegradedPerformanceNotification,
   DeviceSelectorVideo,
   OwnCapability,
   Restricted,
   ToggleVideoPublishingButton,
 } from '@stream-io/video-react-sdk';
+import { DegradedPerformanceNotification } from './DegradedPerformanceNotification';
 
 export const ToggleDualCameraButton = () => {
   return (

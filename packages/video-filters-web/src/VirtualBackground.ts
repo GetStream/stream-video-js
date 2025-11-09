@@ -62,7 +62,6 @@ export class VirtualBackground {
       transform: async (frame, controller) => {
         try {
           if (this.abortController.signal.aborted) {
-            console.log('aborted');
             return frame.close();
           }
 
@@ -91,7 +90,6 @@ export class VirtualBackground {
       .pipeThrough(transformStream, { signal })
       .pipeTo(writable)
       .catch((e) => {
-        console.log('HEREE');
         if (e.name !== 'AbortError') {
           console.error('[virtual-background] Error processing track:', e);
           onError?.(e);

@@ -8,7 +8,7 @@ import {
   useState,
 } from 'react';
 import { flushSync } from 'react-dom';
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Call, disposeOfMediaStream } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
@@ -24,6 +24,7 @@ import {
   PerformanceStats,
 } from '@stream-io/video-filters-web';
 import clsx from 'clsx';
+import { useLowFpsWarning } from '../../hooks/useLowFpsWarning';
 
 export enum FilterEngine {
   TF = 'TF',
@@ -119,6 +120,11 @@ export type BackgroundFiltersAPI = {
   isReady: boolean;
 
   /**
+   * Indicates whether the background filters degrade performance.
+   */
+  isPerformanceDegraded: boolean;
+
+  /**
    * Disables all background filters applied to the video.
    */
   disableBackgroundFilter: () => void;
@@ -209,6 +215,11 @@ export const BackgroundFiltersProvider = (
     forceMobileSupport,
   } = props;
 
+  const { useCallStatsReport } = useCallStateHooks();
+  const callStatsReport = useCallStatsReport();
+
+  const showLowFpsWarning = useLowFpsWarning(callStatsReport?.publisherStats);
+
   const [backgroundFilter, setBackgroundFilter] = useState(bgFilterFromProps);
   const [backgroundImage, setBackgroundImage] = useState(bgImageFromProps);
   const [backgroundBlurLevel, setBackgroundBlurLevel] =
@@ -283,6 +294,7 @@ export const BackgroundFiltersProvider = (
       value={{
         isSupported,
         engine,
+        isPerformanceDegraded: showLowFpsWarning && !!backgroundFilter,
         isReady: useLegacyFilterModel ? !!tfLite : !!mediaPipe,
         mediaPipeModelFilePath,
         backgroundImage,

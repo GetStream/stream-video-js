@@ -1,10 +1,10 @@
 import { PropsWithChildren } from 'react';
 import { Placement } from '@floating-ui/react';
-
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
-import { Notification } from './Notification';
-import { useBackgroundFilters } from '../BackgroundFilters';
-import { useLowFpsWarning } from '../../hooks/useLowFpsWarning';
+import {
+  Notification,
+  useBackgroundFilters,
+  useI18n,
+} from '@stream-io/video-react-sdk';
 
 export type DegradedPerformanceNotificationProps = {
   /**
@@ -21,11 +21,7 @@ export const DegradedPerformanceNotification = ({
   placement,
   className,
 }: PropsWithChildren<DegradedPerformanceNotificationProps>) => {
-  const { useCallStatsReport } = useCallStateHooks();
-  const callStatsReport = useCallStatsReport();
-  const { backgroundFilter } = useBackgroundFilters();
-
-  const showLowFpsWarning = useLowFpsWarning(callStatsReport?.publisherStats);
+  const { isPerformanceDegraded } = useBackgroundFilters();
 
   const { t } = useI18n();
 
@@ -36,7 +32,7 @@ export const DegradedPerformanceNotification = ({
     );
   return (
     <Notification
-      isVisible={showLowFpsWarning && !!backgroundFilter}
+      isVisible={isPerformanceDegraded}
       placement={placement || 'top-start'}
       message={message}
       className={className}
