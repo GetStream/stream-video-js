@@ -67,10 +67,7 @@ class ProximityManager(
         }
         try {
             powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            // Obtain PROXIMITY_SCREEN_OFF_WAKE_LOCK via reflection to avoid compile-time dependency
-            val field = PowerManager::class.java.getField("PROXIMITY_SCREEN_OFF_WAKE_LOCK")
-            val level = field.getInt(null)
-            proximityWakeLock = powerManager?.newWakeLock(level, "$TAG:Proximity")
+            proximityWakeLock = powerManager?.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, "$TAG:Proximity")
         } catch (t: Throwable) {
             Log.w(TAG, "Proximity wakelock init failed (may be unsupported on this device)", t)
             proximityWakeLock = null
