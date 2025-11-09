@@ -8,6 +8,7 @@ import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.PowerManager
 import android.util.Log
+import com.streamvideo.reactnative.audio.AudioDeviceManager
 
 /**
  * Encapsulates Android proximity sensor handling for in-call UX.
@@ -20,6 +21,7 @@ import android.util.Log
  */
 class ProximityManager(
     private val context: Context,
+    private val audioDeviceManager: AudioDeviceManager,
 ) {
 
     companion object {
@@ -153,28 +155,6 @@ class ProximityManager(
     }
 
     private fun isOnEarpiece(): Boolean {
-        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        // If speakerphone is on, not earpiece
-        if (audioManager.isSpeakerphoneOn) return false
-
-        // Check if Bluetooth SCO/A2DP or wired headset is connected
-        var hasBt = false
-        var hasWired = false
-        val outputs = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        outputs.forEach { dev ->
-            val type = dev.type
-            if (type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
-                type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-            ) {
-                hasBt = true
-            } else if (type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES
-                || type == AudioDeviceInfo.TYPE_WIRED_HEADSET
-                || type == AudioDeviceInfo.TYPE_USB_HEADSET
-            ) {
-                hasWired = true
-            }
-        }
-
-        return !hasBt && !hasWired
+        return audioDeviceManager.selectedAudioDeviceEndpoint?.isEarpieceType() ?: false
     }
 }
