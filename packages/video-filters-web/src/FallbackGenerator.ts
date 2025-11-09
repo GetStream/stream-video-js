@@ -2,25 +2,26 @@
  * Type representing a video track generator that can be either the native
  * MediaStreamTrackGenerator or the fallback implementation.
  */
-export interface MediaStreamTrackGenerator extends MediaStreamTrack {
-  readonly writable: WritableStream;
+export interface MediaStreamTrackGenerator<T> extends MediaStreamTrack {
+  writable: WritableStream<T>;
 }
 
 /**
- * Fallback video processor for browsers that do not support
- * MediaStreamTrackGenerator.
+ * Configuration options for creating a track generator.
+ */
+export interface TrackGeneratorOptions {
+  readonly kind: 'video';
+  readonly signalTarget?: MediaStreamTrack;
+}
+
+/**
+ * Fallback video processor for browsers that do not support MediaStreamTrackGenerator.
  *
  * Produces a video MediaStreamTrack sourced from a canvas and exposes
  * a WritableStream<VideoFrame> on track.writable for writing frames.
  */
 class FallbackGenerator {
-  constructor({
-    kind,
-    signalTarget,
-  }: {
-    kind: 'video';
-    signalTarget?: MediaStreamTrack;
-  }) {
+  constructor({ kind, signalTarget }: TrackGeneratorOptions) {
     if (kind !== 'video') {
       throw new Error('Only video tracks are supported');
     }
@@ -32,9 +33,8 @@ class FallbackGenerator {
     }
 
     const mediaStream = canvas.captureStream();
-    const track = mediaStream.getVideoTracks()[0] as MediaStreamVideoTrack & {
-      writable: WritableStream<VideoFrame>;
-    };
+    const track =
+      mediaStream.getVideoTracks()[0] as MediaStreamTrackGenerator<VideoFrame>;
 
     const height = signalTarget?.getSettings().height;
     const width = signalTarget?.getSettings().width;
@@ -69,13 +69,17 @@ class FallbackGenerator {
       },
     });
 
-    return track as MediaStreamTrackGenerator;
+    return track as MediaStreamTrackGenerator<VideoFrame>;
   }
 }
 
-const TrackGenerator =
+type VideoTrackGeneratorConstructor = new (
+  options: TrackGeneratorOptions,
+) => MediaStreamTrackGenerator<VideoFrame>;
+
+const TrackGenerator: VideoTrackGeneratorConstructor =
   typeof MediaStreamTrackGenerator !== 'undefined'
-    ? MediaStreamTrackGenerator
-    : FallbackGenerator;
+    ? (MediaStreamTrackGenerator as unknown as VideoTrackGeneratorConstructor)
+    : (FallbackGenerator as unknown as VideoTrackGeneratorConstructor);
 
 export { TrackGenerator };

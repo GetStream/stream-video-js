@@ -11,12 +11,13 @@ import { TrackGenerator, MediaStreamTrackGenerator } from './FallbackGenerator';
 import { MediaStreamTrackProcessor, TrackProcessor } from './FallbackProcessor';
 
 /**
- * Wraps a track in a real-time processing pipeline where each frame
- * passes through a transformer and outputs a new `MediaStreamVideoTrack`
+ * Wraps a video MediaStreamTrack in a real-time processing pipeline.
+ * Incoming frames are processed through a transformer and re-emitted
+ * on a new MediaStreamVideoTrack for downstream consumption.
  */
 export class VirtualBackground {
-  private readonly processor: MediaStreamTrackProcessor;
-  private readonly generator: MediaStreamTrackGenerator;
+  private readonly processor: MediaStreamTrackProcessor<VideoFrame>;
+  private readonly generator: MediaStreamTrackGenerator<VideoFrame>;
 
   private canvas!: OffscreenCanvas;
   private segmenter: ImageSegmenter | null = null;
@@ -37,7 +38,7 @@ export class VirtualBackground {
     this.generator = new TrackGenerator({
       kind: 'video',
       signalTarget: track,
-    }) as MediaStreamTrackGenerator;
+    });
 
     this.abortController = new AbortController();
   }

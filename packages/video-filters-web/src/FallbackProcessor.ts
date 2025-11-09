@@ -1,36 +1,45 @@
 import { WorkerTimer } from '@stream-io/worker-timer';
 
 /**
- * Type representing a video track processor that can be either the native
+ * Representing a video track processor that can be either the native
  * MediaStreamTrackProcessor or the fallback implementation.
  */
-export interface MediaStreamTrackProcessor {
-  readable: ReadableStream;
+export interface MediaStreamTrackProcessor<T> {
+  readonly readable: ReadableStream<T>;
 }
 
 /**
- * Fallback video processor for browsers that do not support
- * MediaStreamTrackProcessor.
- *
- * Takes a video track and produces a `ReadableStream<VideoFrame>` by drawing
- * frames to an `OffscreenCanvas`.
+ * Configuration options for creating a track processor.
  */
-class FallbackProcessor implements MediaStreamTrackProcessor {
-  readonly readable: ReadableStream<VideoFrame>;
-  readonly timers: WorkerTimer;
+export interface TrackProcessorOptions {
+  readonly track: MediaStreamTrack;
+}
 
-  constructor({ track }: { track: MediaStreamTrack }) {
+/**
+ * Fallback implementation for browsers without MediaStreamTrackGenerator.
+ *
+ * Produces a video MediaStreamTrack sourced from a canvas and exposes a
+ * WritableStream<VideoFrame> on track.writable. Written frames are drawn
+ * into the canvas and update the underlying track automatically.
+ */
+class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
+  readonly readable: ReadableStream<VideoFrame>;
+
+  readonly workerTimer: WorkerTimer;
+  readonly video: HTMLVideoElement;
+
+  constructor({ track }: TrackProcessorOptions) {
     if (!track) throw new Error('MediaStreamTrack is required');
     if (track.kind !== 'video') {
       throw new Error('MediaStreamTrack must be video');
     }
     let running = true;
 
-    const video = document.createElement('video');
-    video.muted = true;
-    video.playsInline = true;
-    video.crossOrigin = 'anonymous';
-    video.srcObject = new MediaStream([track]);
+    this.video = document.createElement('video');
+
+    this.video.muted = true;
+    this.video.playsInline = true;
+    this.video.srcObject = new MediaStream([track]);
 
     const canvas = new OffscreenCanvas(1, 1);
     const ctx = canvas.getContext('2d');
@@ -41,21 +50,13 @@ class FallbackProcessor implements MediaStreamTrackProcessor {
     const frameRate = track.getSettings().frameRate || 30;
     let frameDuration = 1000 / frameRate;
 
-    const close = () => {
-      video.pause();
-      video.srcObject = null;
-      video.src = '';
-
-      this.timers.destroy();
-    };
-
-    this.timers = new WorkerTimer({ useWorker: true });
+    this.workerTimer = new WorkerTimer({ useWorker: true });
     this.readable = new ReadableStream({
       start: async () => {
         await Promise.all([
-          video.play(),
+          this.video.play(),
           new Promise((r) =>
-            video.addEventListener('loadeddata', r, { once: true }),
+            this.video.addEventListener('loadeddata', r, { once: true }),
           ),
         ]);
         frameDuration = 1000 / (track.getSettings().frameRate || 30);
@@ -70,21 +71,36 @@ class FallbackProcessor implements MediaStreamTrackProcessor {
         const delta = performance.now() - timestamp;
         if (delta <= frameDuration) {
           await new Promise((r: (value?: unknown) => void) =>
-            this.timers.setTimeout(r, frameDuration - delta),
+            this.workerTimer.setTimeout(r, frameDuration - delta),
           );
         }
         timestamp = performance.now();
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0);
+
+        if (
+          canvas.width !== this.video.videoWidth ||
+          canvas.height !== this.video.videoHeight
+        ) {
+          canvas.width = this.video.videoWidth;
+          canvas.height = this.video.videoHeight;
+        }
+
+        ctx.drawImage(this.video, 0, 0);
         controller.enqueue(new VideoFrame(canvas, { timestamp }));
       },
       cancel: () => {
         running = false;
-        close();
+        this.close();
       },
     });
   }
+
+  public close = () => {
+    this.video.pause();
+    this.video.srcObject = null;
+    this.video.src = '';
+
+    this.workerTimer.destroy();
+  };
 }
 
 const TrackProcessor =
