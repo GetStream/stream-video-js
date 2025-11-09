@@ -531,7 +531,7 @@ class AudioDeviceManager(
         }
     }
 
-    private fun audioStatusMap(): WritableMap {
+    fun audioStatusMap(): WritableMap {
         val endpoint = this.selectedAudioDeviceEndpoint
         val availableEndpoints = Arguments.fromList(getCurrentDeviceEndpoints().map { it.name })
 

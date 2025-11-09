@@ -3,6 +3,7 @@ package com.streamvideo.reactnative.callmanager
 import android.util.Log
 import android.view.WindowManager
 import com.facebook.react.bridge.LifecycleEventListener
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -133,6 +134,11 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     @ReactMethod
     fun setMicrophoneMute(enable: Boolean) {
         mAudioDeviceManager.setMicrophoneMute(enable)
+    }
+
+    @ReactMethod
+    fun getAudioDeviceStatus(promise: Promise) {
+        promise.resolve(mAudioDeviceManager.audioStatusMap())
     }
 
     @ReactMethod
