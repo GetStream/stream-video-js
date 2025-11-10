@@ -100,21 +100,20 @@ describe('StreamVideoClient Ringing', () => {
           ],
         },
       });
+      expect(call.ringing).toBe(true);
 
-      const [oliverRingEvent, sachaRingEvent, marceloRingEvent] =
-        await Promise.all([oliverRing, sachaRing, marceloRing]);
+      const ringEventsPromise = Promise.all([sachaRing, marceloRing]);
+      await expect(ringEventsPromise).resolves.toHaveLength(2);
+      await expect(oliverRing).rejects.toThrow(); // caller doesn't get ring event
+      const [sachaRingEvent, marceloRingEvent] = await ringEventsPromise;
 
-      expect(oliverRingEvent.call.cid).toBe(call.cid);
       expect(sachaRingEvent.call.cid).toBe(call.cid);
       expect(marceloRingEvent.call.cid).toBe(call.cid);
 
-      const oliverCall = await expectCall(oliverClient, call.cid);
       const sachaCall = await expectCall(sachaClient, call.cid);
       const marceloCall = await expectCall(marceloClient, call.cid);
-      expect(oliverCall).toBeDefined();
       expect(sachaCall).toBeDefined();
       expect(marceloCall).toBeDefined();
-      expect(oliverCall.ringing).toBe(true);
       expect(sachaCall.ringing).toBe(true);
       expect(marceloCall.ringing).toBe(true);
     });
