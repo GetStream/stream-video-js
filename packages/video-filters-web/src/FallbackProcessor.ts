@@ -81,6 +81,9 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
         const hasNewFrame = currentTime !== lastVideoTime;
 
         if (!hasNewFrame) {
+          await new Promise((r: (value?: unknown) => void) =>
+            this.workerTimer.setTimeout(r, frameDuration),
+          );
           return;
         }
 
