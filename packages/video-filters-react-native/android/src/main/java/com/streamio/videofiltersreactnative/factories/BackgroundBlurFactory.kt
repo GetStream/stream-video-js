@@ -2,6 +2,7 @@ package com.streamio.videofiltersreactnative.factories
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.google.android.gms.tasks.Tasks
@@ -85,13 +86,15 @@ private class BlurredBackgroundVideoFilter(
       confidenceThreshold = foregroundThreshold,
     )
 
-    val canvas = Canvas(videoFrameBitmap)
-    val matrix = newSegmentationMaskMatrix(videoFrameBitmap, segmentationMask)
     // Blur the background bitmap
     if (gpuBlurHelper != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      val canvas = Canvas(videoFrameBitmap)
+      val matrix = newSegmentationMaskMatrix(videoFrameBitmap, segmentationMask)
       gpuBlurHelper!!.applyBlurAndDraw(backgroundBitmap, canvas, matrix)
     } else {
       val blurredBackgroundBitmap = Toolkit.blur(backgroundBitmap, blurIntensity.radius)
+      val canvas = Canvas(videoFrameBitmap)
+      val matrix = newSegmentationMaskMatrix(videoFrameBitmap, segmentationMask)
       // Draw the blurred background bitmap on the original bitmap
       canvas.drawBitmap(blurredBackgroundBitmap, matrix, null)
     }

@@ -15,6 +15,9 @@ import androidx.annotation.RequiresApi
 
 @RequiresApi(Build.VERSION_CODES.S)
 internal class GpuBlurHelper(private val radius: Float): AutoCloseable {
+  init {
+    require(radius >= 0) { "Radius must be non-negative" }
+  }
   private var imageReader: ImageReader? = null
   private var hardwareRenderer: android.graphics.HardwareRenderer? = null
   private var renderNode: RenderNode? = null
@@ -39,7 +42,7 @@ internal class GpuBlurHelper(private val radius: Float): AutoCloseable {
         height,
         PixelFormat.RGBA_8888,
         1,
-        HardwareBuffer.USAGE_GPU_SAMPLED_IMAGE or HardwareBuffer.USAGE_GPU_COLOR_OUTPUT
+        HardwareBuffer.USAGE_GPU_SAMPLED_IMAGE or HardwareBuffer.USAGE_GPU_COLOR_OUTPUT or HardwareBuffer.USAGE_CPU_READ_OFTEN
       )
       hardwareRenderer = android.graphics.HardwareRenderer().apply {
         setSurface(imageReader!!.surface)
@@ -61,6 +64,14 @@ internal class GpuBlurHelper(private val radius: Float): AutoCloseable {
     }
   }
 
+  /**
+   * Applies a blur effect to the given [bitmap] and draws it onto the [destinationCanvas].
+   *
+   * @param bitmap The source bitmap to blur.
+   * @param destinationCanvas The canvas to draw the blurred bitmap onto.
+   * @param matrix Optional matrix to apply when drawing the blurred bitmap.
+   * @return `true` if blurring was successful, `false` otherwise.
+   */
   fun applyBlurAndDraw(bitmap: Bitmap, destinationCanvas: Canvas, matrix: Matrix? = null): Boolean {
     if (bitmap.isRecycled) {
       return false
@@ -82,18 +93,24 @@ internal class GpuBlurHelper(private val radius: Float): AutoCloseable {
 
       image = imageReader!!.acquireNextImage() ?: return false
       hardwareBuffer = image.hardwareBuffer ?: return false
-      val tempBitmap = Bitmap.wrapHardwareBuffer(hardwareBuffer, null)
-      if (tempBitmap != null) {
+      val hardwareBitmap = Bitmap.wrapHardwareBuffer(hardwareBuffer, null)
+        ?: return false
+
+      // This is valid only if USAGE_CPU_READ_OFTEN is set on the HardwareBuffer.
+      val blurredSoftwareBitmap = hardwareBitmap.copy(Bitmap.Config.ARGB_8888, false)
+        hardwareBitmap.recycle()
+      if (blurredSoftwareBitmap != null) {
         if (matrix != null) {
-          destinationCanvas.drawBitmap(tempBitmap, matrix, null)
+          destinationCanvas.drawBitmap(blurredSoftwareBitmap, matrix, null)
         } else {
-          destinationCanvas.drawBitmap(tempBitmap, 0f, 0f, null)
+          destinationCanvas.drawBitmap(blurredSoftwareBitmap, 0f, 0f, null)
         }
+          blurredSoftwareBitmap.recycle()
       } else {
         return false
       }
     } catch (e: Exception) {
-      Log.e("GpuBlurHelper", "Failed to apply blur", e)
+      Log.e("GpuBlurHelper", "Failed to apply blur and draw", e)
       return false
     } finally {
       hardwareBuffer?.close()
@@ -106,7 +123,7 @@ internal class GpuBlurHelper(private val radius: Float): AutoCloseable {
     release()
   }
 
-  fun release() {
+  private fun release() {
     imageReader?.close()
     imageReader = null
     hardwareRenderer?.destroy()
