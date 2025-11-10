@@ -872,7 +872,7 @@ export class WebGLRenderer {
     gl.uniform1i(stateUpdateLocations.prevStateTexture, 2);
 
     gl.uniform1f(stateUpdateLocations.smoothingFactor, 0.8);
-    gl.uniform1f(stateUpdateLocations.smoothstepMin, 0.0);
+    gl.uniform1f(stateUpdateLocations.smoothstepMin, 0.6);
     gl.uniform1f(stateUpdateLocations.smoothstepMax, 0.9);
 
     gl.uniform1i(
