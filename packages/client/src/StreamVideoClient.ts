@@ -592,16 +592,14 @@ export class StreamVideoClient {
 
   private shouldRejectCall = (currentCallId: string) => {
     if (!this.rejectCallWhenBusy) return false;
-
-    const hasOngoingRingingCall = this.state.calls.some(
+    return this.state.calls.some(
       (c) =>
         c.cid !== currentCallId &&
         c.ringing &&
+        !c.isCreatedByMe &&
         c.state.callingState !== CallingState.IDLE &&
         c.state.callingState !== CallingState.LEFT &&
         c.state.callingState !== CallingState.RECONNECTING_FAILED,
     );
-
-    return hasOngoingRingingCall;
   };
 }
