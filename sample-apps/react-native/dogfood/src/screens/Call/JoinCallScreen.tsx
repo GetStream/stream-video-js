@@ -96,8 +96,8 @@ const JoinCallScreen = () => {
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 20}
+      behavior={'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
     >
       <ScrollView
         contentContainerStyle={[styles.scrollContent, landscapeStyles]}
@@ -165,6 +165,7 @@ const useStyles = () => {
           paddingHorizontal: appTheme.spacing.lg,
         },
         topContainer: {
+          paddingTop: appTheme.spacing.lg,
           paddingHorizontal: appTheme.spacing.lg,
         },
         participant: {
