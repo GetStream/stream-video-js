@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -94,51 +95,58 @@ const JoinCallScreen = () => {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, landscapeStyles]}
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 20}
     >
-      <View style={styles.topContainer}>
-        <Text style={styles.headerText}>{t('Select Participants')}</Text>
-        {KnownUsers.filter((user) => user.id !== userId).map((user) => {
-          return (
-            <Pressable
-              style={styles.participant}
-              key={user.id}
-              onPress={() => ringingUsersSetHandler(user.id)}
-            >
-              <Image source={{ uri: user.image }} style={styles.avatar} />
-              <Text
-                style={[
-                  styles.text,
-                  isRingingUserSelected(user.id)
-                    ? styles.selectedParticipant
-                    : null,
-                ]}
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, landscapeStyles]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={true}
+      >
+        <View style={styles.topContainer}>
+          <Text style={styles.headerText}>{t('Select Participants')}</Text>
+          {KnownUsers.filter((user) => user.id !== userId).map((user) => {
+            return (
+              <Pressable
+                style={styles.participant}
+                key={user.id}
+                onPress={() => ringingUsersSetHandler(user.id)}
               >
-                {user.name + ' - id: ' + user.id}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      <View style={styles.bottomContainer}>
-        <Text style={styles.orText}>{t('OR')}</Text>
-        <TextInput
-          autoCapitalize="none"
-          autoCorrect={false}
-          placeholder={t('Enter comma separated User ids')}
-          value={ringingUserIdsText}
-          onChangeText={(value) => {
-            setRingingUserIdsText(value);
-          }}
-          style={styles.textInputStyle}
-        />
-        <Button
-          title={isLoading ? t('Calling...') : t('Start a New Call')}
-          disabled={startCallDisabled}
-          onPress={startCallHandler}
-        />
-      </View>
+                <Image source={{ uri: user.image }} style={styles.avatar} />
+                <Text
+                  style={[
+                    styles.text,
+                    isRingingUserSelected(user.id)
+                      ? styles.selectedParticipant
+                      : null,
+                  ]}
+                >
+                  {user.name + ' - id: ' + user.id}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <View style={styles.bottomContainer}>
+          <Text style={styles.orText}>{t('OR')}</Text>
+          <TextInput
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholder={t('Enter comma separated User ids')}
+            value={ringingUserIdsText}
+            onChangeText={(value) => {
+              setRingingUserIdsText(value);
+            }}
+            style={styles.textInputStyle}
+          />
+          <Button
+            title={isLoading ? t('Calling...') : t('Start a New Call')}
+            disabled={startCallDisabled}
+            onPress={startCallHandler}
+          />
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -149,14 +157,14 @@ const useStyles = () => {
     () =>
       StyleSheet.create({
         container: {
-          padding: appTheme.spacing.lg,
-          backgroundColor: theme.colors.sheetPrimary,
           flex: 1,
-          justifyContent: 'space-evenly',
+          backgroundColor: theme.colors.sheetPrimary,
+        },
+        scrollContent: {
+          flexGrow: 1,
+          paddingHorizontal: appTheme.spacing.lg,
         },
         topContainer: {
-          flex: 1,
-          justifyContent: 'center',
           paddingHorizontal: appTheme.spacing.lg,
         },
         participant: {
@@ -189,8 +197,7 @@ const useStyles = () => {
           fontWeight: '500',
         },
         bottomContainer: {
-          flex: 1,
-          justifyContent: 'center',
+          paddingVertical: appTheme.spacing.lg,
         },
         orText: {
           fontSize: 17,
