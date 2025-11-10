@@ -49,6 +49,7 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
     let timestamp = 0;
     const frameRate = track.getSettings().frameRate || 30;
     let frameDuration = 1000 / frameRate;
+    let lastVideoTime = -1;
 
     this.workerTimer = new WorkerTimer({ useWorker: true });
     this.readable = new ReadableStream({
@@ -75,6 +76,15 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
           );
         }
         timestamp = performance.now();
+
+        const currentTime = this.video.currentTime;
+        const hasNewFrame = currentTime !== lastVideoTime;
+
+        if (!hasNewFrame) {
+          return;
+        }
+
+        lastVideoTime = currentTime;
 
         if (
           canvas.width !== this.video.videoWidth ||
