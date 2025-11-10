@@ -47,19 +47,7 @@ class VideoBlurFactory(
 
 // Base implementation with shared drawing logic
 private abstract class BlurredVideoFilter : BitmapVideoFilter() {
-
-  protected abstract fun blurBitmap(bitmap: Bitmap): Bitmap
-
-  override fun applyFilter(videoFrameBitmap: Bitmap) {
-    // Apply blur (CPU or GPU depending on implementation)
-    val blurred = blurBitmap(videoFrameBitmap)
-
-    val canvas = Canvas(videoFrameBitmap)
-    // Draw the blurred bitmap at the top-left corner (0f, 0f) of the original bitmap.
-    // 0f, 0f: x and y coordinates (top-left corner)
-    // null: use default Paint (no special effects)
-    canvas.drawBitmap(blurred, 0f, 0f, null)
-  }
+  abstract override fun applyFilter(videoFrameBitmap: Bitmap)
 }
 
 // CPU-based implementation using RenderScript Toolkit
@@ -71,9 +59,11 @@ private class CpuBlurredVideoFilter(
     Log.d(TAG, "CpuBlurredVideoFilter initialized with radius: ${blurIntensity.radius}")
   }
 
-  override fun blurBitmap(bitmap: Bitmap): Bitmap {
-    Log.d(TAG, "Applying CPU blur to bitmap ${bitmap.width}x${bitmap.height}")
-    return Toolkit.blur(bitmap, blurIntensity.radius)
+  override fun applyFilter(videoFrameBitmap: Bitmap) {
+    Log.d(TAG, "Applying CPU blur to bitmap ${videoFrameBitmap.width}x${videoFrameBitmap.height}")
+    val blurred = Toolkit.blur(videoFrameBitmap, blurIntensity.radius)
+    val canvas = Canvas(videoFrameBitmap)
+    canvas.drawBitmap(blurred, 0f, 0f, null)
   }
 }
 
@@ -89,22 +79,29 @@ private class GpuBlurredVideoFilter(
     Log.d(TAG, "GpuBlurredVideoFilter initialized")
   }
 
-  override fun blurBitmap(bitmap: Bitmap): Bitmap {
-    return try {
-      gpuBlurHelper.applyBlur(bitmap)
-        ?: run {
-          Log.w(TAG, "GPU blur returned null, falling back to CPU for this frame.")
-          Toolkit.blur(bitmap, blurIntensity.radius)
-        }
+  override fun applyFilter(videoFrameBitmap: Bitmap) {
+    var gpuSuccess = false
+    try {
+      val canvas = Canvas(videoFrameBitmap)
+      gpuSuccess = gpuBlurHelper.applyBlurAndDraw(videoFrameBitmap, canvas)
     } catch (e: Exception) {
-      // GPU blur failed unexpectedly - fallback to CPU blur for this frame
       Log.w(
         TAG,
         "GPU blur failed, falling back to CPU: ${e.javaClass.simpleName} - ${e.message}"
       )
-      Toolkit.blur(bitmap, blurIntensity.radius)
+    }
+
+    if (!gpuSuccess) {
+      Log.w(TAG, "GPU blur was not successful, falling back to CPU for this frame.")
+      val blurred = Toolkit.blur(videoFrameBitmap, blurIntensity.radius)
+      val canvas = Canvas(videoFrameBitmap)
+      canvas.drawBitmap(blurred, 0f, 0f, null)
     }
   }
+
+//  override fun release() {
+//    gpuBlurHelper.close()
+//  }
 }
 
 /**

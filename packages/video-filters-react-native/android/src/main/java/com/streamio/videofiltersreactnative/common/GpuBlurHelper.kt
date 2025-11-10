@@ -1,6 +1,8 @@
 package com.streamio.videofiltersreactnative.common
 
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.PixelFormat
 import android.graphics.RenderEffect
 import android.graphics.RenderNode
@@ -13,17 +15,15 @@ import androidx.annotation.RequiresApi
 
 @RequiresApi(Build.VERSION_CODES.S)
 internal class GpuBlurHelper(private val radius: Float): AutoCloseable {
-    private var imageReader: ImageReader? = null
+  private var imageReader: ImageReader? = null
   private var hardwareRenderer: android.graphics.HardwareRenderer? = null
   private var renderNode: RenderNode? = null
-  private var outputBitmap: Bitmap? = null
-  private var outputCanvas: android.graphics.Canvas? = null
 
   private var bitmapWidth = 0
   private var bitmapHeight = 0
 
   private fun isInitialized() =
-    imageReader != null && hardwareRenderer != null && renderNode != null && outputBitmap != null
+    imageReader != null && hardwareRenderer != null && renderNode != null
 
   private fun maybeInit(width: Int, height: Int) {
     if (width == bitmapWidth && height == bitmapHeight && isInitialized()) {
@@ -34,8 +34,6 @@ internal class GpuBlurHelper(private val radius: Float): AutoCloseable {
     bitmapHeight = height
 
     try {
-      outputBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-      outputCanvas = android.graphics.Canvas(outputBitmap!!)
       imageReader = ImageReader.newInstance(
         width,
         height,
@@ -63,13 +61,13 @@ internal class GpuBlurHelper(private val radius: Float): AutoCloseable {
     }
   }
 
-  fun applyBlur(bitmap: Bitmap): Bitmap? {
+  fun applyBlurAndDraw(bitmap: Bitmap, destinationCanvas: Canvas, matrix: Matrix? = null): Boolean {
     if (bitmap.isRecycled) {
-      return null
+      return false
     }
     maybeInit(bitmap.width, bitmap.height)
     if (!isInitialized()) {
-      return null
+      return false
     }
 
     var hardwareBuffer: HardwareBuffer? = null
@@ -82,29 +80,33 @@ internal class GpuBlurHelper(private val radius: Float): AutoCloseable {
 
       hardwareRenderer!!.createRenderRequest().syncAndDraw()
 
-      image = imageReader!!.acquireNextImage() ?: return null
-      hardwareBuffer = image.hardwareBuffer ?: return null
+      image = imageReader!!.acquireNextImage() ?: return false
+      hardwareBuffer = image.hardwareBuffer ?: return false
       val tempBitmap = Bitmap.wrapHardwareBuffer(hardwareBuffer, null)
       if (tempBitmap != null) {
-        outputCanvas!!.drawBitmap(tempBitmap, 0f, 0f, null)
+        if (matrix != null) {
+          destinationCanvas.drawBitmap(tempBitmap, matrix, null)
+        } else {
+          destinationCanvas.drawBitmap(tempBitmap, 0f, 0f, null)
+        }
       } else {
-        return null
+        return false
       }
     } catch (e: Exception) {
       Log.e("GpuBlurHelper", "Failed to apply blur", e)
-      return null
+      return false
     } finally {
       hardwareBuffer?.close()
       image?.close()
     }
+    return true
+  }
 
-    return outputBitmap
+  override fun close() {
+    release()
   }
 
   fun release() {
-    outputBitmap?.recycle()
-    outputBitmap = null
-    outputCanvas = null
     imageReader?.close()
     imageReader = null
     hardwareRenderer?.destroy()
@@ -112,8 +114,4 @@ internal class GpuBlurHelper(private val radius: Float): AutoCloseable {
     renderNode?.discardDisplayList()
     renderNode = null
   }
-
-    override fun close() {
-        release()
-    }
 }

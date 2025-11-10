@@ -3,6 +3,7 @@ package com.streamio.videofiltersreactnative.factories
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.os.Build
+import androidx.annotation.RequiresApi
 import com.google.android.gms.tasks.Tasks
 import com.google.android.renderscript.Toolkit
 import com.google.mlkit.vision.common.InputImage
@@ -24,23 +25,25 @@ import com.streamio.videofiltersreactnative.common.newSegmentationMaskMatrix
 // https://github.com/GetStream/stream-video-android/blob/develop/stream-video-android-filters-video/src/main/kotlin/io/getstream/video/android/filters/video/BlurredBackgroundVideoFilter.kt
 /**
  * Applies a blur effect to the background of a video call.
+ * Uses GPU acceleration via RenderEffect on Android 12+ (API 31+), otherwise falls back to CPU.
  *
  * @param blurIntensity The intensity of the blur effect. See [BlurIntensity] for options. Defaults to [BlurIntensity.MEDIUM].
  * @param foregroundThreshold The confidence threshold for the foreground. Pixels with a confidence value greater than or equal to this threshold are considered to be in the foreground. Value is coerced between 0 and 1, inclusive.
  */
 class BackgroundBlurFactory(
   private val blurIntensity: BlurIntensity = BlurIntensity.MEDIUM,
-  private val foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
+  private val foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD
 ) : VideoFrameProcessorFactoryInterface {
   override fun build(): VideoFrameProcessor {
     return VideoFrameProcessorWithBitmapFilter {
-      BlurredBackgroundVideoFilter(blurIntensity, foregroundThreshold)
-    }
+          BlurredBackgroundVideoFilter(blurIntensity, foregroundThreshold)
+   }
   }
 }
 
+// Base implementation with shared segmentation logic
 private class BlurredBackgroundVideoFilter(
-  private val blurIntensity: BlurIntensity,
+   val blurIntensity: BlurIntensity,
   foregroundThreshold: Double,
 ) : BitmapVideoFilter() {
   private val options =
@@ -58,13 +61,14 @@ private class BlurredBackgroundVideoFilter(
       Bitmap.Config.ARGB_8888,
     )
   }
-  private val gpuBlurHelper by lazy {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isGpuBlurSupported()) {
-      GpuBlurHelper(blurIntensity.radius.toFloat())
-    } else {
-      null
+
+    private val gpuBlurHelper by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && isGpuBlurSupported()) {
+            GpuBlurHelper(blurIntensity.radius.toFloat())
+        } else {
+            null
+        }
     }
-  }
 
   override fun applyFilter(videoFrameBitmap: Bitmap) {
     // Apply segmentation
@@ -81,20 +85,43 @@ private class BlurredBackgroundVideoFilter(
       confidenceThreshold = foregroundThreshold,
     )
 
-    // Blur the background bitmap
-    val blurredBackgroundBitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-      gpuBlurHelper?.applyBlur(backgroundBitmap)
-        ?: Toolkit.blur(backgroundBitmap, blurIntensity.radius)
-    } else {
-      Toolkit.blur(backgroundBitmap, blurIntensity.radius)
-    }
-
-    // Draw the blurred background bitmap on the original bitmap
     val canvas = Canvas(videoFrameBitmap)
     val matrix = newSegmentationMaskMatrix(videoFrameBitmap, segmentationMask)
-    canvas.drawBitmap(blurredBackgroundBitmap, matrix, null)
+    // Blur the background bitmap
+    if (gpuBlurHelper != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      gpuBlurHelper!!.applyBlurAndDraw(backgroundBitmap, canvas, matrix)
+    } else {
+      val blurredBackgroundBitmap = Toolkit.blur(backgroundBitmap, blurIntensity.radius)
+      // Draw the blurred background bitmap on the original bitmap
+      canvas.drawBitmap(blurredBackgroundBitmap, matrix, null)
+    }
   }
 }
+
+//// CPU-based implementation using RenderScript Toolkit
+//private class CpuBlurredBackgroundVideoFilter(
+//  private val blurIntensity: BlurIntensity,
+//  foregroundThreshold: Double,
+//) : BlurredBackgroundVideoFilter(foregroundThreshold) {
+//
+//  override fun blurBitmap(bitmap: Bitmap): Bitmap {
+//    return Toolkit.blur(bitmap, blurIntensity.radius)
+//  }
+//}
+//
+//// GPU-accelerated implementation for Android 12+ using RenderEffect
+//@RequiresApi(Build.VERSION_CODES.S)
+//private class GpuBlurredBackgroundVideoFilter(
+//  private val blurIntensity: BlurIntensity,
+//  foregroundThreshold: Double,
+//) : BlurredBackgroundVideoFilter(foregroundThreshold) {
+//
+//  private val gpuBlurHelper = GpuBlurHelper(blurIntensity.radius.toFloat())
+//
+//  override fun blurBitmap(bitmap: Bitmap): Bitmap {
+//    return gpuBlurHelper.applyBlur(bitmap)
+//  }
+//}
 
 /**
  * The intensity of the background blur effect. Used in [BlurredBackgroundVideoFilter].
@@ -106,5 +133,5 @@ enum class BlurIntensity(val radius: Int) {
   HEAVY(15),
 }
 
-private const val DEFAULT_FOREGROUND_THRESHOLD: Double =
+private val DEFAULT_FOREGROUND_THRESHOLD: Double =
   0.999 // 1 is max confidence that pixel is in the foreground
