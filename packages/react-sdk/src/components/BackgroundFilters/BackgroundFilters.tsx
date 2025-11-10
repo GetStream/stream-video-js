@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -77,7 +78,10 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
   modelFilePath?: string;
 
   /**
-   * When `true`, uses the legacy background segmentation model.
+   * When true, the filter uses the legacy TensorFlow-based segmentation model.
+   * When false, it uses the default MediaPipe Tasks Vision model.
+   *
+   * Only enable this if you need to mimic the behavior of older SDK versions.
    */
   useLegacyFilterModel?: boolean;
 
@@ -85,6 +89,12 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
    * The path to the MediaPipe model file.
    * Override this prop to use a custom path to the MediaPipe model file
    * (e.g., if you choose to host it yourself).
+   *
+   * @default 'https://unpkg.com/@stream-io/video-filters-web/mediapipe/models/selfie_segmenter.tflite'.
+   *
+   * For higher quality masks, you may use:
+   * 'https://unpkg.com/@stream-io/video-filters-web/mediapipe/models/selfie_multiclass_256x256.tflite'
+   * delivers cleaner edges but increases CPU/GPU cost.
    */
   mediaPipeModelFilePath?: string;
 
@@ -103,6 +113,20 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
   onStats?: (stats: PerformanceStats) => void;
 };
 
+/**
+ * Performance degradation information for background filters.
+ */
+export type BackgroundFiltersPerformance = {
+  /**
+   * Whether performance is currently degraded.
+   */
+  degraded: boolean;
+  /**
+   * Reasons for performance degradation.
+   */
+  reason?: Array<'low-fps' | 'cpu'>;
+};
+
 export type BackgroundFiltersAPI = {
   /**
    * Whether the current platform supports the background filters.
@@ -110,19 +134,14 @@ export type BackgroundFiltersAPI = {
   isSupported: boolean;
 
   /**
-   * The filter engine that will be used (TF, MEDIA_PIPE, or NONE).
-   */
-  engine: FilterEngine;
-
-  /**
    * Indicates whether the background filters engine is loaded and ready.
    */
   isReady: boolean;
 
   /**
-   * Indicates whether the background filters degrade performance.
+   * Performance information for background filters.
    */
-  isPerformanceDegraded: boolean;
+  performance: BackgroundFiltersPerformance;
 
   /**
    * Disables all background filters applied to the video.
@@ -218,12 +237,39 @@ export const BackgroundFiltersProvider = (
   const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
-  const showLowFpsWarning = useLowFpsWarning(callStatsReport?.publisherStats);
-
   const [backgroundFilter, setBackgroundFilter] = useState(bgFilterFromProps);
   const [backgroundImage, setBackgroundImage] = useState(bgImageFromProps);
   const [backgroundBlurLevel, setBackgroundBlurLevel] =
     useState(bgBlurLevelFromProps);
+
+  const showLowFpsWarning = useLowFpsWarning(callStatsReport?.publisherStats);
+
+  const performance: BackgroundFiltersPerformance = useMemo(() => {
+    if (!backgroundFilter) {
+      return { degraded: false };
+    }
+
+    const reasons: Array<'low-fps' | 'cpu'> = [];
+
+    if (showLowFpsWarning) {
+      reasons.push('low-fps');
+    }
+
+    const qualityLimitationReasons =
+      callStatsReport?.publisherStats?.qualityLimitationReasons;
+    if (qualityLimitationReasons && qualityLimitationReasons.includes('cpu')) {
+      reasons.push('cpu');
+    }
+
+    return {
+      degraded: reasons.length > 0,
+      reason: reasons.length > 0 ? reasons : undefined,
+    };
+  }, [
+    showLowFpsWarning,
+    callStatsReport?.publisherStats?.qualityLimitationReasons,
+    backgroundFilter,
+  ]);
 
   const applyBackgroundImageFilter = useCallback((imageUrl: string) => {
     setBackgroundFilter('image');
@@ -289,13 +335,13 @@ export const BackgroundFiltersProvider = (
     [disableBackgroundFilter, onError],
   );
 
+  const isReady = useLegacyFilterModel ? !!tfLite : !!mediaPipe;
   return (
     <BackgroundFiltersContext.Provider
       value={{
         isSupported,
-        engine,
-        isPerformanceDegraded: showLowFpsWarning && !!backgroundFilter,
-        isReady: useLegacyFilterModel ? !!tfLite : !!mediaPipe,
+        performance,
+        isReady,
         mediaPipeModelFilePath,
         backgroundImage,
         backgroundBlurLevel,
@@ -312,14 +358,17 @@ export const BackgroundFiltersProvider = (
       }}
     >
       {children}
-      <BackgroundFilters tfLite={tfLite} />
+      {isReady && <BackgroundFilters tfLite={tfLite} engine={engine} />}
     </BackgroundFiltersContext.Provider>
   );
 };
 
-const BackgroundFilters = (props: { tfLite?: TFLite }) => {
+const BackgroundFilters = (props: {
+  tfLite?: TFLite;
+  engine: FilterEngine;
+}) => {
   const call = useCall();
-  const { children, start } = useRenderer(props.tfLite, call);
+  const { children, start } = useRenderer(props.tfLite, call, props.engine);
   const { onError, backgroundFilter } = useBackgroundFilters();
   const handleErrorRef = useRef<((error: any) => void) | undefined>(undefined);
   handleErrorRef.current = onError;
@@ -340,12 +389,15 @@ const BackgroundFilters = (props: { tfLite?: TFLite }) => {
   return children;
 };
 
-const useRenderer = (tfLite: TFLite | undefined, call: Call | undefined) => {
+const useRenderer = (
+  tfLite: TFLite | undefined,
+  call: Call | undefined,
+  engine: FilterEngine,
+) => {
   const {
     backgroundFilter,
     backgroundBlurLevel,
     backgroundImage,
-    engine,
     mediaPipeModelFilePath,
     onStats,
   } = useBackgroundFilters();

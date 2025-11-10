@@ -65,7 +65,7 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
       pull: async (controller) => {
         if (!running) {
           controller.close();
-          close();
+          this.close();
           return;
         }
         const delta = performance.now() - timestamp;
@@ -85,7 +85,15 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
         }
 
         ctx.drawImage(this.video, 0, 0);
-        controller.enqueue(new VideoFrame(canvas, { timestamp }));
+
+        try {
+          const frame = new VideoFrame(canvas, { timestamp });
+          controller.enqueue(frame);
+        } catch (err) {
+          running = false;
+          controller.error(err);
+          this.close();
+        }
       },
       cancel: () => {
         running = false;

@@ -55,8 +55,13 @@ class FallbackGenerator {
 
     track.writable = new WritableStream({
       write: (frame: VideoFrame) => {
-        canvas.width = frame.displayWidth;
-        canvas.height = frame.displayHeight;
+        if (
+          canvas.width !== frame.displayWidth ||
+          canvas.height !== frame.displayHeight
+        ) {
+          canvas.width = frame.displayWidth;
+          canvas.height = frame.displayHeight;
+        }
 
         ctx.drawImage(frame, 0, 0, canvas.width, canvas.height);
         frame.close();

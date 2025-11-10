@@ -194,7 +194,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
             <BackgroundFiltersProvider
               basePath={`${basePath}/tf`}
               forceSafariSupport
-              mediaPipeModelFilePath="https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite"
+              mediaPipeModelFilePath="https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite"
               backgroundImages={[
                 `${basePath}/backgrounds/amsterdam-1.jpg`,
                 `${basePath}/backgrounds/amsterdam-2.jpg`,

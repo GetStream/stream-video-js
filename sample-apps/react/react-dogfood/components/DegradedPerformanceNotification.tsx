@@ -21,18 +21,19 @@ export const DegradedPerformanceNotification = ({
   placement,
   className,
 }: PropsWithChildren<DegradedPerformanceNotificationProps>) => {
-  const { isPerformanceDegraded } = useBackgroundFilters();
+  const { performance } = useBackgroundFilters();
 
   const { t } = useI18n();
 
   const message =
     text ??
     t(
-      'Background filters performance is degraded. Consider disabling filters for better performance.',
+      'Background filters performance is degraded. Consider disabling filters for optimal performance.',
     );
+
   return (
     <Notification
-      isVisible={isPerformanceDegraded}
+      isVisible={performance?.degraded}
       placement={placement || 'top-start'}
       message={message}
       className={className}

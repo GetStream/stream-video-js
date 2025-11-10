@@ -69,9 +69,12 @@ export class VirtualBackground {
           const processed = await this.transform(frame, opts);
           controller.enqueue(processed);
         } catch (e) {
-          console.error('error processing frame: ', e);
-          controller.enqueue(frame);
-          console.error(e);
+          console.error('[virtual-background] error processing frame:', e);
+          this.hooks.onError?.(e);
+
+          if (!this.abortController.signal.aborted) {
+            controller.enqueue(frame);
+          }
         } finally {
           frame.close();
         }
