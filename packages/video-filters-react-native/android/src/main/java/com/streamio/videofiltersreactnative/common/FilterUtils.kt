@@ -18,57 +18,65 @@ import com.google.mlkit.vision.segmentation.SegmentationMask
  * 5. Write the mutated pixel array back into the [destination] bitmap.
  */
 internal fun copySegment(
-  segment: Segment,
-  source: Bitmap,
-  destination: Bitmap,
-  segmentationMask: SegmentationMask,
-  confidenceThreshold: Double,
+    segment: Segment,
+    source: Bitmap,
+    destination: Bitmap,
+    segmentationMask: SegmentationMask,
+    confidenceThreshold: Double,
+    sourcePixels: IntArray,
+    destinationPixels: IntArray,
 ) {
-  // 1. Match each mask coordinate to the corresponding position in the source bitmap.
-  val scaleBetweenSourceAndMask = getScalingFactors(
-    widths = Pair(source.width, segmentationMask.width),
-    heights = Pair(source.height, segmentationMask.height),
-  )
+    // 1. Match each mask coordinate to the corresponding position in the source bitmap.
+    val scaleBetweenSourceAndMask = getScalingFactors(
+        widths = Pair(source.width, segmentationMask.width),
+        heights = Pair(source.height, segmentationMask.height),
+    )
 
-  // 2. Ensure subsequent reads traverse the mask from the beginning.
-  segmentationMask.buffer.rewind()
+    // 2. Ensure subsequent reads traverse the mask from the beginning.
+    // Get foreground probabilities for each pixel. Since ML Kit returns this
+    // in a byte buffer with each 4 bytes representing a float, convert it to
+    // a FloatBuffer for easier use.
+    val maskProbabilities = segmentationMask.buffer.asFloatBuffer()
+    maskProbabilities.rewind()
 
-  // 3. Read pixel data into arrays so we can mutate it efficiently.
-  val sourcePixels = IntArray(source.width * source.height)
-  source.getPixels(sourcePixels, 0, source.width, 0, 0, source.width, source.height)
-  val destinationPixels = IntArray(destination.width * destination.height)
+    // 3. Read pixel data into arrays so we can mutate it efficiently.
+    source.getPixels(sourcePixels, 0, source.width, 0, 0, source.width, source.height)
 
-  // 4. Walk every mask pixel, evaluate whether it belongs to the requested segment,
-  //    and copy across the corresponding source pixel when it does.
-  for (y in 0 until segmentationMask.height) {
-    for (x in 0 until segmentationMask.width) {
-      val confidence = segmentationMask.buffer.float
-
-      if (((segment == Segment.BACKGROUND) && confidence < confidenceThreshold) ||
-        ((segment == Segment.FOREGROUND) && confidence >= confidenceThreshold)
-      ) {
-        val scaledX = (x * scaleBetweenSourceAndMask.first).toInt()
-        val scaledY = (y * scaleBetweenSourceAndMask.second).toInt()
-        destinationPixels[y * destination.width + x] =
-          sourcePixels[scaledY * source.width + scaledX]
-      }
+    // 4. Walk every mask pixel, evaluate whether it belongs to the requested segment,
+    //    and copy across the corresponding source pixel when it does.
+    // We use a line buffer here to optimize reads from the FloatBuffer.
+    val lineBuffer = FloatArray(segmentationMask.width)
+    for (y in 0 until segmentationMask.height) {
+        maskProbabilities.get(lineBuffer)
+        for ((x, confidence) in lineBuffer.withIndex()) {
+            if (((segment == Segment.BACKGROUND) && confidence < confidenceThreshold) ||
+                ((segment == Segment.FOREGROUND) && confidence >= confidenceThreshold)
+            ) {
+                val scaledX = (x * scaleBetweenSourceAndMask.first).toInt()
+                val scaledY = (y * scaleBetweenSourceAndMask.second).toInt()
+                destinationPixels[y * destination.width + x] =
+                    sourcePixels[scaledY * source.width + scaledX]
+            } else {
+                // set to transparent
+                destinationPixels[y * destination.width + x] = 0
+            }
+        }
     }
-  }
 
-  // 5. Push the filtered pixels back into the destination bitmap.
-  destination.setPixels(
-    destinationPixels,
-    0,
-    destination.width,
-    0,
-    0,
-    destination.width,
-    destination.height,
-  )
+    // 5. Push the filtered pixels back into the destination bitmap.
+    destination.setPixels(
+        destinationPixels,
+        0,
+        destination.width,
+        0,
+        0,
+        destination.width,
+        destination.height,
+    )
 }
 
 internal enum class Segment {
-  FOREGROUND, BACKGROUND
+    FOREGROUND, BACKGROUND
 }
 
 /**
@@ -76,19 +84,19 @@ internal enum class Segment {
  * This allows us to map mask coordinates back to the original bitmap coordinates.
  */
 private fun getScalingFactors(widths: Pair<Int, Int>, heights: Pair<Int, Int>) =
-  Pair(widths.first.toFloat() / widths.second, heights.first.toFloat() / heights.second)
+    Pair(widths.first.toFloat() / widths.second, heights.first.toFloat() / heights.second)
 
 /**
  * Creates a transformation matrix that scales the segmentation mask so it can be drawn on top of
  * the original bitmap. If the mask is already at raw size we return an identity matrix.
  */
 internal fun newSegmentationMaskMatrix(bitmap: Bitmap, mask: SegmentationMask): Matrix {
-  val isRawSizeMaskEnabled = mask.width != bitmap.width || mask.height != bitmap.height
-  return if (!isRawSizeMaskEnabled) {
-    Matrix()
-  } else {
-    val scale =
-      getScalingFactors(Pair(bitmap.width, mask.width), Pair(bitmap.height, mask.height))
-    Matrix().apply { preScale(scale.first, scale.second) }
-  }
+    val isRawSizeMaskEnabled = mask.width != bitmap.width || mask.height != bitmap.height
+    return if (!isRawSizeMaskEnabled) {
+        Matrix()
+    } else {
+        val scale =
+            getScalingFactors(Pair(bitmap.width, mask.width), Pair(bitmap.height, mask.height))
+        Matrix().apply { preScale(scale.first, scale.second) }
+    }
 }

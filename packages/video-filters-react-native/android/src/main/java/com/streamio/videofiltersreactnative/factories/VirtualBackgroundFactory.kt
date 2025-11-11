@@ -105,15 +105,22 @@ private class VirtualBackgroundVideoFilter(
   }
   private var scaledVirtualBackgroundBitmap: Bitmap? = null
   private var scaledVirtualBackgroundBitmapCopy: Bitmap? = null
+  private var sourcePixels: IntArray? = null
+  private var destinationPixels: IntArray? = null
 
   private var latestFrameWidth: Int? = null
   private var latestFrameHeight: Int? = null
 
+  @Synchronized
   override fun applyFilter(videoFrameBitmap: Bitmap) {
     // Apply segmentation
     val mlImage = InputImage.fromBitmap(videoFrameBitmap, 0)
     val task = segmenter.process(mlImage)
-    segmentationMask = Tasks.await(task)
+    try {
+      segmentationMask = Tasks.await(task, 50, java.util.concurrent.TimeUnit.MILLISECONDS)
+    } catch (e: java.util.concurrent.TimeoutException) {
+      // Keep using previous mask
+    }
 
     // Copy the foreground segment (the person) to a new bitmap - foregroundBitmap
     copySegment(
@@ -122,6 +129,8 @@ private class VirtualBackgroundVideoFilter(
       destination = foregroundBitmap,
       segmentationMask = segmentationMask,
       confidenceThreshold = foregroundThreshold,
+      sourcePixels = sourcePixels!!,
+      destinationPixels = destinationPixels!!,
     )
 
     virtualBackgroundBitmap?.let { virtualBackgroundBitmap ->
@@ -146,6 +155,9 @@ private class VirtualBackgroundVideoFilter(
 
         latestFrameWidth = videoFrameBitmap.width
         latestFrameHeight = videoFrameBitmap.height
+
+        sourcePixels = IntArray(latestFrameWidth!! * latestFrameHeight!!)
+        destinationPixels = IntArray(foregroundBitmap.width * foregroundBitmap.height)
 
         segmentationMatrix = newSegmentationMaskMatrix(videoFrameBitmap, segmentationMask)
       }

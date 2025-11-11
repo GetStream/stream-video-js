@@ -51,28 +51,33 @@ private class BlurredBackgroundVideoFilter(
 
     // Reusable buffers
     private var backgroundBitmap: Bitmap? = null
-    private var currentWidth = 0
-    private var currentHeight = 0
+    private var currentFrameWidth = 0
+    private var currentFrameHeight = 0
+    private var currentMaskWidth = 0
+    private var currentMaskHeight = 0
+    private var sourcePixels: IntArray? = null
+    private var destinationPixels: IntArray? = null
+
 
     override fun applyFilter(videoFrameBitmap: Bitmap) {
-
-        // Check if buffers need recreation
-        if (currentWidth != videoFrameBitmap.width || currentHeight != videoFrameBitmap.height) {
-            recreateBuffers(videoFrameBitmap.width, videoFrameBitmap.height)
-        }
-
-        val bgBitmap = backgroundBitmap ?: return
         // Apply segmentation
         val mlImage = InputImage.fromBitmap(videoFrameBitmap, 0)
         val task = segmenter.process(mlImage)
 
         try {
-            segmentationMask = Tasks.await(task, 50, TimeUnit.MILLISECONDS)
-        } catch (e: TimeoutException) {
+            segmentationMask = Tasks.await(task, 33, TimeUnit.MILLISECONDS)
+        } catch (_: TimeoutException) {
             // Keep using previous mask
         }
 
         val mask = segmentationMask ?: return
+
+        createSourceBuffersIfNeeded(videoFrameBitmap)
+        createMaskBuffersIfNeeded(mask)
+
+        val srcPixels = sourcePixels ?: return
+        val destPixels = destinationPixels ?: return
+        val bgBitmap = backgroundBitmap ?: return
 
         // Copy the background segment to a new bitmap - backgroundBitmap
         copySegment(
@@ -81,6 +86,8 @@ private class BlurredBackgroundVideoFilter(
             destination = bgBitmap,
             segmentationMask = mask,
             confidenceThreshold = foregroundThreshold,
+            sourcePixels = srcPixels,
+            destinationPixels = destPixels,
         )
 
         // Blur the background bitmap
@@ -90,13 +97,29 @@ private class BlurredBackgroundVideoFilter(
         val canvas = Canvas(videoFrameBitmap)
         val matrix = newSegmentationMaskMatrix(videoFrameBitmap, mask)
         canvas.drawBitmap(blurredBackgroundBitmap, matrix, null)
+
+        blurredBackgroundBitmap.recycle()
     }
 
-    private fun recreateBuffers(width: Int, height: Int) {
+    private fun createSourceBuffersIfNeeded(videoFrameBitmap: Bitmap) {
+        if (currentFrameWidth == videoFrameBitmap.width && currentFrameHeight == videoFrameBitmap.height) {
+            return
+        }
+        currentFrameWidth = videoFrameBitmap.width
+        currentFrameHeight = videoFrameBitmap.height
+        sourcePixels = IntArray(currentFrameWidth * currentFrameHeight)
+    }
+
+    private fun createMaskBuffersIfNeeded(mask: SegmentationMask) {
+        if (mask.width == currentMaskWidth && mask.height == currentMaskHeight) {
+            return
+        }
+        currentMaskWidth = mask.width
+        currentMaskHeight = mask.height
         backgroundBitmap?.recycle()
-        backgroundBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        currentWidth = width
-        currentHeight = height
+        backgroundBitmap =
+            Bitmap.createBitmap(currentMaskWidth, currentMaskHeight, Bitmap.Config.ARGB_8888)
+        destinationPixels = IntArray(currentMaskWidth * currentMaskHeight)
     }
 }
 
