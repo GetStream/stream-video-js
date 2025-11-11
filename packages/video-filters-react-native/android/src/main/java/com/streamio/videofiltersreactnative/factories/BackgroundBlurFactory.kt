@@ -15,6 +15,8 @@ import com.streamio.videofiltersreactnative.common.Segment
 import com.streamio.videofiltersreactnative.common.VideoFrameProcessorWithBitmapFilter
 import com.streamio.videofiltersreactnative.common.copySegment
 import com.streamio.videofiltersreactnative.common.newSegmentationMaskMatrix
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 
 // Original Sources
@@ -26,59 +28,76 @@ import com.streamio.videofiltersreactnative.common.newSegmentationMaskMatrix
  * @param foregroundThreshold The confidence threshold for the foreground. Pixels with a confidence value greater than or equal to this threshold are considered to be in the foreground. Value is coerced between 0 and 1, inclusive.
  */
 class BackgroundBlurFactory(
-  private val blurIntensity: BlurIntensity = BlurIntensity.MEDIUM,
-  private val foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
+    private val blurIntensity: BlurIntensity = BlurIntensity.MEDIUM,
+    private val foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
 ) : VideoFrameProcessorFactoryInterface {
-  override fun build(): VideoFrameProcessor {
-    return VideoFrameProcessorWithBitmapFilter {
-      BlurredBackgroundVideoFilter(blurIntensity, foregroundThreshold)
+    override fun build(): VideoFrameProcessor {
+        return VideoFrameProcessorWithBitmapFilter {
+            BlurredBackgroundVideoFilter(blurIntensity, foregroundThreshold)
+        }
     }
-  }
 }
 
 private class BlurredBackgroundVideoFilter(
-  private val blurIntensity: BlurIntensity,
-  foregroundThreshold: Double,
+    private val blurIntensity: BlurIntensity,
+    foregroundThreshold: Double,
 ) : BitmapVideoFilter() {
-  private val options =
-    SelfieSegmenterOptions.Builder()
-      .setDetectorMode(SelfieSegmenterOptions.STREAM_MODE)
-      .enableRawSizeMask()
-      .build()
-  private val segmenter = Segmentation.getClient(options)
-  private lateinit var segmentationMask: SegmentationMask
-  private var foregroundThreshold: Double = foregroundThreshold.coerceIn(0.0, 1.0)
-  private val backgroundBitmap by lazy {
-    Bitmap.createBitmap(
-      segmentationMask.width,
-      segmentationMask.height,
-      Bitmap.Config.ARGB_8888,
-    )
-  }
+    private val options =
+        SelfieSegmenterOptions.Builder().setDetectorMode(SelfieSegmenterOptions.STREAM_MODE)
+            .enableRawSizeMask().build()
+    private val segmenter = Segmentation.getClient(options)
+    private var segmentationMask: SegmentationMask? = null
+    private var foregroundThreshold: Double = foregroundThreshold.coerceIn(0.0, 1.0)
 
-  override fun applyFilter(videoFrameBitmap: Bitmap) {
-    // Apply segmentation
-    val mlImage = InputImage.fromBitmap(videoFrameBitmap, 0)
-    val task = segmenter.process(mlImage)
-    segmentationMask = Tasks.await(task)
+    // Reusable buffers
+    private var backgroundBitmap: Bitmap? = null
+    private var currentWidth = 0
+    private var currentHeight = 0
 
-    // Copy the background segment to a new bitmap - backgroundBitmap
-    copySegment(
-      segment = Segment.BACKGROUND,
-      source = videoFrameBitmap,
-      destination = backgroundBitmap,
-      segmentationMask = segmentationMask,
-      confidenceThreshold = foregroundThreshold,
-    )
+    override fun applyFilter(videoFrameBitmap: Bitmap) {
 
-    // Blur the background bitmap
-    val blurredBackgroundBitmap = Toolkit.blur(backgroundBitmap, blurIntensity.radius)
+        // Check if buffers need recreation
+        if (currentWidth != videoFrameBitmap.width || currentHeight != videoFrameBitmap.height) {
+            recreateBuffers(videoFrameBitmap.width, videoFrameBitmap.height)
+        }
 
-    // Draw the blurred background bitmap on the original bitmap
-    val canvas = Canvas(videoFrameBitmap)
-    val matrix = newSegmentationMaskMatrix(videoFrameBitmap, segmentationMask)
-    canvas.drawBitmap(blurredBackgroundBitmap, matrix, null)
-  }
+        val bgBitmap = backgroundBitmap ?: return
+        // Apply segmentation
+        val mlImage = InputImage.fromBitmap(videoFrameBitmap, 0)
+        val task = segmenter.process(mlImage)
+
+        try {
+            segmentationMask = Tasks.await(task, 50, TimeUnit.MILLISECONDS)
+        } catch (e: TimeoutException) {
+            // Keep using previous mask
+        }
+
+        val mask = segmentationMask ?: return
+
+        // Copy the background segment to a new bitmap - backgroundBitmap
+        copySegment(
+            segment = Segment.BACKGROUND,
+            source = videoFrameBitmap,
+            destination = bgBitmap,
+            segmentationMask = mask,
+            confidenceThreshold = foregroundThreshold,
+        )
+
+        // Blur the background bitmap
+        val blurredBackgroundBitmap = Toolkit.blur(bgBitmap, blurIntensity.radius)
+
+        // Draw the blurred background bitmap on the original bitmap
+        val canvas = Canvas(videoFrameBitmap)
+        val matrix = newSegmentationMaskMatrix(videoFrameBitmap, mask)
+        canvas.drawBitmap(blurredBackgroundBitmap, matrix, null)
+    }
+
+    private fun recreateBuffers(width: Int, height: Int) {
+        backgroundBitmap?.recycle()
+        backgroundBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        currentWidth = width
+        currentHeight = height
+    }
 }
 
 /**
@@ -86,10 +105,8 @@ private class BlurredBackgroundVideoFilter(
  * Range is 1 to 25
  */
 enum class BlurIntensity(val radius: Int) {
-  LIGHT(5),
-  MEDIUM(10),
-  HEAVY(15),
+    LIGHT(5), MEDIUM(10), HEAVY(15),
 }
 
 private const val DEFAULT_FOREGROUND_THRESHOLD: Double =
-  0.999 // 1 is max confidence that pixel is in the foreground
+    0.999 // 1 is max confidence that pixel is in the foreground
