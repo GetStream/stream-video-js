@@ -31,6 +31,7 @@ export interface BackgroundOptions {
 export interface PerformanceStats {
   delay: number;
   fps: number;
+  timestamp: number;
 }
 
 /**

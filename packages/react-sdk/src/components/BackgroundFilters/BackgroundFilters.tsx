@@ -242,7 +242,19 @@ export const BackgroundFiltersProvider = (
   const [backgroundBlurLevel, setBackgroundBlurLevel] =
     useState(bgBlurLevelFromProps);
 
-  const showLowFpsWarning = useLowFpsWarning(callStatsReport?.publisherStats);
+  const [processorStats, setProcessorStats] = useState<
+    PerformanceStats | undefined
+  >(undefined);
+
+  const handleStats = useCallback(
+    (stats: PerformanceStats) => {
+      setProcessorStats(stats);
+      onStats?.(stats);
+    },
+    [onStats],
+  );
+
+  const showLowFpsWarning = useLowFpsWarning(processorStats);
 
   const performance: BackgroundFiltersPerformance = useMemo(() => {
     if (!backgroundFilter) {
@@ -288,6 +300,7 @@ export const BackgroundFiltersProvider = (
     setBackgroundFilter(undefined);
     setBackgroundImage(undefined);
     setBackgroundBlurLevel(undefined);
+    setProcessorStats(undefined);
   }, []);
 
   const [engine, setEngine] = useState<FilterEngine>(FilterEngine.NONE);
@@ -354,7 +367,7 @@ export const BackgroundFiltersProvider = (
         modelFilePath,
         basePath,
         onError: handleError,
-        onStats,
+        onStats: handleStats,
       }}
     >
       {children}

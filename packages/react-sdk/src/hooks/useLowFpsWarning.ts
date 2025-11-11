@@ -1,5 +1,5 @@
-import { AggregatedStatsReport } from '@stream-io/video-client';
 import { useEffect, useRef, useState } from 'react';
+import { PerformanceStats } from '@stream-io/video-filters-web';
 
 const ALPHA = 0.2;
 const FPS_WARNING_THRESHOLD_LOWER = 23;
@@ -14,33 +14,34 @@ const OUTLIER_PERSISTENCE = 5;
  * Smooths out quick spikes using an EMA, ignores brief outliers,
  * and uses two thresholds to avoid flickering near the limit.
  *
- * @param stats - Aggregated call stats containing FPS data.
+ * @param stats - Performance stats from the processor, including FPS and timestamp.
  * @returns True when the smoothed FPS stays below the warning threshold.
  */
-export function useLowFpsWarning(stats?: AggregatedStatsReport): boolean {
+export function useLowFpsWarning(stats?: PerformanceStats): boolean {
   const [lowFps, setLowFps] = useState<boolean>(false);
   const emaRef = useRef<number>(DEFAULT_FPS);
   const outlierStreakRef = useRef<number>(0);
 
-  const { highestFramesPerSecond, timestamp } = stats ?? {};
+  const fps = stats?.fps;
+  const timestamp = stats?.timestamp;
 
   useEffect(() => {
-    if (!highestFramesPerSecond) {
+    if (fps === undefined || fps === null) {
       emaRef.current = DEFAULT_FPS;
       outlierStreakRef.current = 0;
       setLowFps(false);
       return;
     }
 
+    console.log('FPS: ', fps);
     const prevEma = emaRef.current;
-    const deviation = Math.abs(highestFramesPerSecond - prevEma) / prevEma;
+    const deviation = Math.abs(fps - prevEma) / prevEma;
 
-    const isOutlier =
-      highestFramesPerSecond < prevEma && deviation > DEVIATION_LIMIT;
+    const isOutlier = fps < prevEma && deviation > DEVIATION_LIMIT;
     outlierStreakRef.current = isOutlier ? outlierStreakRef.current + 1 : 0;
     if (isOutlier && outlierStreakRef.current < OUTLIER_PERSISTENCE) return;
 
-    emaRef.current = ALPHA * highestFramesPerSecond + (1 - ALPHA) * prevEma;
+    emaRef.current = ALPHA * fps + (1 - ALPHA) * prevEma;
 
     setLowFps((prev) => {
       if (prev && emaRef.current > FPS_WARNING_THRESHOLD_UPPER) return false;
@@ -48,7 +49,7 @@ export function useLowFpsWarning(stats?: AggregatedStatsReport): boolean {
 
       return prev;
     });
-  }, [highestFramesPerSecond, timestamp]);
+  }, [fps, timestamp]);
 
   return lowFps;
 }

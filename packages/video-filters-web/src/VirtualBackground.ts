@@ -184,7 +184,7 @@ export class VirtualBackground {
                 (1000 * this.frames) / (now - this.lastStatsTime),
               );
 
-              this.hooks.onStats?.({ delay, fps });
+              this.hooks.onStats?.({ delay, fps, timestamp: now });
 
               this.lastStatsTime = now;
               this.segmenterDelayTotal = 0;
