@@ -254,7 +254,6 @@ export const BackgroundFiltersProvider = (
     [onStats],
   );
 
-
   const showLowFpsWarning = useLowFpsWarning(processorStats);
 
   const performance: BackgroundFiltersPerformance = useMemo(() => {
