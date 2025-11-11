@@ -35,6 +35,10 @@ export type ScreenshareLayout =
   // custom layouts
   | 'skool';
 
+const CustomSkoolStreamLayout = () => {
+  return <SkoolStreamLayout excludeLocalParticipant />;
+};
+
 export const layoutMap: Record<
   Layout,
   // normal & screen share view
@@ -47,5 +51,5 @@ export const layoutMap: Record<
   spotlight: [Spotlight, Spotlight],
 
   // custom layouts
-  skool: [SkoolStreamLayout, SkoolStreamLayout],
+  skool: [CustomSkoolStreamLayout, CustomSkoolStreamLayout],
 };
