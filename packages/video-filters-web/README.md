@@ -14,13 +14,13 @@ yarn add @stream-io/video-filters-web
 
 ```typescript
 import {
-  isPlatformSupported,
+  isMediaPipePlatformSupported,
   loadMediaPipe,
   VirtualBackground,
 } from '@stream-io/video-filters-web';
 
 // 1. Check if the platform is supported
-const isSupported = await isPlatformSupported();
+const isSupported = await isMediaPipePlatformSupported();
 if (!isSupported) {
   throw new Error('Platform not supported');
 }

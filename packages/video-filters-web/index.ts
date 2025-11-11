@@ -1,4 +1,4 @@
-export * from './src/legacy/compatibility';
+export * from './src/compatibility';
 export * from './src/legacy/createRenderer';
 export { SegmentationLevel } from './src/legacy/segmentation';
 export * from './src/legacy/tflite';

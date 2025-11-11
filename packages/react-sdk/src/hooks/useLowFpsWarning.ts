@@ -33,7 +33,6 @@ export function useLowFpsWarning(stats?: PerformanceStats): boolean {
       return;
     }
 
-    console.log('FPS: ', fps);
     const prevEma = emaRef.current;
     const deviation = Math.abs(fps - prevEma) / prevEma;
 

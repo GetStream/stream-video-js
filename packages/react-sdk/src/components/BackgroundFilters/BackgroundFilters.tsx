@@ -16,6 +16,7 @@ import {
   BackgroundFilter,
   createRenderer,
   isPlatformSupported,
+  isMediaPipePlatformSupported,
   loadTFLite,
   loadMediaPipe,
   PlatformSupportFlags,
@@ -84,19 +85,6 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
    * Only enable this if you need to mimic the behavior of older SDK versions.
    */
   useLegacyFilter?: boolean;
-
-  /**
-   * The path to the MediaPipe model file.
-   * Override this prop to use a custom path to the MediaPipe model file
-   * (e.g., if you choose to host it yourself).
-   *
-   * @default 'https://unpkg.com/@stream-io/video-filters-web/mediapipe/models/selfie_segmenter.tflite'.
-   *
-   * For higher quality masks, you may use:
-   * 'https://unpkg.com/@stream-io/video-filters-web/mediapipe/models/selfie_multiclass_256x256.tflite'
-   * delivers cleaner edges but increases CPU/GPU cost.
-   */
-  mediaPipeModelFilePath?: string;
 
   /**
    * When a started filter encounters an error, this callback will be executed.
@@ -199,13 +187,19 @@ const determineEngine = async (
   forceSafariSupport: boolean | undefined,
   forceMobileSupport: boolean | undefined,
 ): Promise<FilterEngine> => {
-  const isSupported = await isPlatformSupported({
+  const isMediaPipeSupported = await isMediaPipePlatformSupported({
     forceSafariSupport,
     forceMobileSupport,
   });
 
-  if (!isSupported) return FilterEngine.NONE;
-  return useLegacyFilter ? FilterEngine.TF : FilterEngine.MEDIA_PIPE;
+  if (isMediaPipeSupported && !useLegacyFilter) return FilterEngine.MEDIA_PIPE;
+
+  const isTfPlatformSupported = await isPlatformSupported({
+    forceSafariSupport,
+    forceMobileSupport,
+  });
+
+  return isTfPlatformSupported ? FilterEngine.TF : FilterEngine.MEDIA_PIPE;
 };
 
 /**
@@ -226,7 +220,6 @@ export const BackgroundFiltersProvider = (
     tfFilePath,
     modelFilePath,
     useLegacyFilter,
-    mediaPipeModelFilePath,
     basePath,
     onError,
     onStats,
@@ -331,11 +324,11 @@ export const BackgroundFiltersProvider = (
 
     loadMediaPipe({
       wasmPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm',
-      modelPath: mediaPipeModelFilePath,
+      modelPath: modelFilePath,
     })
       .then(setMediaPipe)
       .catch((err) => console.error('Failed to preload MediaPipe', err));
-  }, [engine, mediaPipeModelFilePath]);
+  }, [engine, modelFilePath]);
 
   const handleError = useCallback(
     (error: any) => {
@@ -355,7 +348,6 @@ export const BackgroundFiltersProvider = (
         isSupported,
         performance,
         isReady,
-        mediaPipeModelFilePath,
         backgroundImage,
         backgroundBlurLevel,
         backgroundFilter,
@@ -411,7 +403,7 @@ const useRenderer = (
     backgroundFilter,
     backgroundBlurLevel,
     backgroundImage,
-    mediaPipeModelFilePath,
+    modelFilePath,
     onStats,
   } = useBackgroundFilters();
 
@@ -478,7 +470,7 @@ const useRenderer = (
           processor = new VirtualBackground(
             track,
             {
-              modelPath: mediaPipeModelFilePath,
+              modelPath: modelFilePath,
               backgroundBlurLevel,
               backgroundImage,
               backgroundFilter,
@@ -570,7 +562,7 @@ const useRenderer = (
       call?.tracer,
       tfLite,
       engine,
-      mediaPipeModelFilePath,
+      modelFilePath,
     ],
   );
 
