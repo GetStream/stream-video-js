@@ -7418,12 +7418,14 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.4"
     "@stream-io/video-client": "workspace:^"
     "@types/react": "npm:~19.1.17"
+    "@types/use-sync-external-store": "npm:^1"
     i18next: "npm:^25.6.0"
     react: "npm:19.1.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.4"
     rxjs: "npm:~7.8.2"
     typescript: "npm:^5.9.3"
+    use-sync-external-store: "npm:^1.6.0"
   peerDependencies:
     "@stream-io/video-client": "workspace:^"
     react: ^17 || ^18 || ^19
@@ -8277,6 +8279,13 @@ __metadata:
   version: 2.0.11
   resolution: "@types/unist@npm:2.0.11"
   checksum: 10/6d436e832bc35c6dde9f056ac515ebf2b3384a1d7f63679d12358766f9b313368077402e9c1126a14d827f10370a5485e628bf61aa91117cf4fc882423191a4e
+  languageName: node
+  linkType: hard
+
+"@types/use-sync-external-store@npm:^1":
+  version: 1.5.0
+  resolution: "@types/use-sync-external-store@npm:1.5.0"
+  checksum: 10/39e5be8dc2cca080b490f2f79fed4381ae7eebee3f981208e359856733eafb2479d229db07a552f6c99fe0b5c09b3e46a3e6a870e00a88b50f3e690e73d2649b
   languageName: node
   linkType: hard
 
@@ -23900,6 +23909,15 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10/ddae7c4572511f7f641d6977bd0725340aa7dbeda8250418b54c1a57ec285083d96cf50d1a1acbd6cf729f7a87071b2302c6fbd29310432bf1b21a961a313279
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "use-sync-external-store@npm:1.6.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/b40ad2847ba220695bff2d4ba4f4d60391c0fb4fb012faa7a4c18eb38b69181936f5edc55a522c4d20a788d1a879b73c3810952c9d0fd128d01cb3f22042c09e
   languageName: node
   linkType: hard
 

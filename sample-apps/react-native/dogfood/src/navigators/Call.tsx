@@ -46,7 +46,7 @@ const CallLeaveOnUnmount = ({ call }: { call: StreamCallType }) => {
   useEffect(() => {
     callManager.start({
       audioRole: 'communicator',
-      deviceEndpointType: 'earpiece',
+      deviceEndpointType: 'speaker',
     });
     return () => {
       callManager.stop();

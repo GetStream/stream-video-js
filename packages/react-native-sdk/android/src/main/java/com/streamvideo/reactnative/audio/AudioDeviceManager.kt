@@ -33,6 +33,7 @@ import com.streamvideo.reactnative.audio.utils.AudioManagerUtil
 import com.streamvideo.reactnative.audio.utils.AudioManagerUtil.Companion.getAvailableAudioDevices
 import com.streamvideo.reactnative.audio.utils.AudioSetupStoreUtil
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
+import com.streamvideo.reactnative.callmanager.ProximityManager
 import com.streamvideo.reactnative.callmanager.StreamInCallManagerModule
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint
 import com.streamvideo.reactnative.model.AudioDeviceEndpoint.Companion.EndpointType
@@ -70,12 +71,15 @@ class AudioDeviceManager(
 
     /** Returns the currently selected audio device. */
     private var _selectedAudioDeviceEndpoint: AudioDeviceEndpoint? = null
-    private var selectedAudioDeviceEndpoint: AudioDeviceEndpoint?
+    var selectedAudioDeviceEndpoint: AudioDeviceEndpoint?
         get() = _selectedAudioDeviceEndpoint
         set(value) {
             _selectedAudioDeviceEndpoint = value
             // send an event to the frontend everytime this endpoint changes
             sendAudioStatusEvent()
+            if (callAudioRole == CallAudioRole.Communicator) {
+                proximityManager.update()
+            }
         }
 
     // Default audio device; speaker phone for video calls or earpiece for audio only phone calls
@@ -101,6 +105,8 @@ class AudioDeviceManager(
 
     val bluetoothManager = BluetoothManager(mReactContext, this)
 
+    private val proximityManager by lazy { ProximityManager(mReactContext, this) }
+
     init {
         // Note that we will immediately receive a call to onDevicesAdded with the list of
         // devices which are currently connected.
@@ -120,6 +126,7 @@ class AudioDeviceManager(
                 bluetoothManager.start()
                 mAudioManager.registerAudioDeviceCallback(this, null)
                 updateAudioDeviceState()
+                proximityManager.start()
             } else {
                 // Audio routing is handled automatically by the system in normal media mode
                 // and bluetooth microphones may not work on some devices.
@@ -141,6 +148,7 @@ class AudioDeviceManager(
                     mAudioManager.setSpeakerphoneOn(false)
                 }
                 bluetoothManager.stop()
+                proximityManager.stop()
             }
             audioSetupStoreUtil.restoreOriginalAudioSetup()
             audioFocusUtil.abandonFocus()
@@ -221,6 +229,7 @@ class AudioDeviceManager(
 
     override fun close() {
         mAudioManager.unregisterAudioDeviceCallback(this)
+        proximityManager.onDestroy()
     }
 
     override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
@@ -522,7 +531,7 @@ class AudioDeviceManager(
         }
     }
 
-    private fun audioStatusMap(): WritableMap {
+    fun audioStatusMap(): WritableMap {
         val endpoint = this.selectedAudioDeviceEndpoint
         val availableEndpoints = Arguments.fromList(getCurrentDeviceEndpoints().map { it.name })
 
