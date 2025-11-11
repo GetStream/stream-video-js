@@ -416,12 +416,6 @@ const useRenderer = (
     onStats,
   } = useBackgroundFilters();
 
-  useEffect(() => {
-    return call?.on('call.moderation_warning', (event) => {
-      console.log('call.moderation_warning', event);
-    });
-  }, [call]);
-
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgImageRef = useRef<HTMLImageElement>(null);
