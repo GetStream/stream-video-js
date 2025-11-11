@@ -1,6 +1,6 @@
 // @ts-expect-error - module is not declared
 import { createTFLiteSIMDModule } from './tflite-simd.js';
-import { packageName, version } from './version';
+import { packageName, version } from '../version';
 
 // This is a WebAssembly module compiled from the TensorFlow Lite C++ library.
 const createTFLite = createTFLiteSIMDModule as (opts?: any) => Promise<TFLite>;

@@ -2,7 +2,7 @@ import { WorkerTimer } from '@stream-io/worker-timer';
 import { TFLite } from './tflite';
 import { buildWebGL2Pipeline } from './webgl2/webgl2Pipeline';
 import { getSegmentationParams, SegmentationLevel } from './segmentation';
-import { BackgroundBlurLevel, BackgroundFilter } from './types';
+import { BackgroundBlurLevel, BackgroundFilter } from '../types';
 
 export type Renderer = {
   /**

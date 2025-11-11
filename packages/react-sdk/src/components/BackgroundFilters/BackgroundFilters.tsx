@@ -254,6 +254,7 @@ export const BackgroundFiltersProvider = (
     [onStats],
   );
 
+
   const showLowFpsWarning = useLowFpsWarning(processorStats);
 
   const performance: BackgroundFiltersPerformance = useMemo(() => {
@@ -414,6 +415,12 @@ const useRenderer = (
     mediaPipeModelFilePath,
     onStats,
   } = useBackgroundFilters();
+
+  useEffect(() => {
+    return call?.on('call.moderation_warning', (event) => {
+      console.log('call.moderation_warning', event);
+    });
+  }, [call]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -22,7 +22,3 @@ export const loadMediaPipe = async (
 
   return model;
 };
-
-export const isMediaPipeSupported = () =>
-  typeof MediaStreamTrackGenerator !== 'undefined' &&
-  typeof MediaStreamTrackProcessor !== 'undefined';
