@@ -83,7 +83,7 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
    *
    * Only enable this if you need to mimic the behavior of older SDK versions.
    */
-  useLegacyFilterModel?: boolean;
+  useLegacyFilter?: boolean;
 
   /**
    * The path to the MediaPipe model file.
@@ -195,7 +195,7 @@ export const useBackgroundFilters = () => {
  * Returns NONE if neither is available.
  */
 const determineEngine = async (
-  useLegacyFilterModel: boolean | undefined,
+  useLegacyFilter: boolean | undefined,
   forceSafariSupport: boolean | undefined,
   forceMobileSupport: boolean | undefined,
 ): Promise<FilterEngine> => {
@@ -205,7 +205,7 @@ const determineEngine = async (
   });
 
   if (!isSupported) return FilterEngine.NONE;
-  return useLegacyFilterModel ? FilterEngine.TF : FilterEngine.MEDIA_PIPE;
+  return useLegacyFilter ? FilterEngine.TF : FilterEngine.MEDIA_PIPE;
 };
 
 /**
@@ -225,7 +225,7 @@ export const BackgroundFiltersProvider = (
     backgroundBlurLevel: bgBlurLevelFromProps = undefined,
     tfFilePath,
     modelFilePath,
-    useLegacyFilterModel,
+    useLegacyFilter,
     mediaPipeModelFilePath,
     basePath,
     onError,
@@ -307,14 +307,14 @@ export const BackgroundFiltersProvider = (
   const [isSupported, setIsSupported] = useState(false);
   useEffect(() => {
     determineEngine(
-      useLegacyFilterModel,
+      useLegacyFilter,
       forceSafariSupport,
       forceMobileSupport,
     ).then((determinedEngine) => {
       setEngine(determinedEngine);
       setIsSupported(determinedEngine !== FilterEngine.NONE);
     });
-  }, [forceMobileSupport, forceSafariSupport, useLegacyFilterModel]);
+  }, [forceMobileSupport, forceSafariSupport, useLegacyFilter]);
 
   const [tfLite, setTfLite] = useState<TFLite>();
   useEffect(() => {
@@ -348,7 +348,7 @@ export const BackgroundFiltersProvider = (
     [disableBackgroundFilter, onError],
   );
 
-  const isReady = useLegacyFilterModel ? !!tfLite : !!mediaPipe;
+  const isReady = useLegacyFilter ? !!tfLite : !!mediaPipe;
   return (
     <BackgroundFiltersContext.Provider
       value={{
