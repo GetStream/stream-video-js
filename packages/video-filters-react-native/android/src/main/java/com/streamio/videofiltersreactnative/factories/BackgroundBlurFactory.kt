@@ -3,6 +3,7 @@ package com.streamio.videofiltersreactnative.factories
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
+import android.util.Log
 import com.google.android.gms.tasks.Tasks
 import com.google.android.renderscript.Toolkit
 import com.google.mlkit.vision.common.InputImage
@@ -18,6 +19,7 @@ import com.streamio.videofiltersreactnative.common.copySegment
 import com.streamio.videofiltersreactnative.common.getScalingFactors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 // Original Sources
@@ -48,6 +50,7 @@ private class BlurredBackgroundVideoFilter(
             .enableRawSizeMask().build()
     private val segmenter = Segmentation.getClient(options)
     private var segmentationMask: SegmentationMask? = null
+    private val isProcessing = AtomicBoolean(false)
     private var foregroundThreshold: Double = foregroundThreshold.coerceIn(0.0, 1.0)
     private var scaleBetweenSourceAndMask: Pair<Float, Float>? = null
     private var scaleMatrix: Matrix? = null
@@ -64,17 +67,28 @@ private class BlurredBackgroundVideoFilter(
 
 
     override fun applyFilter(videoFrameBitmap: Bitmap) {
-        // Apply segmentation
-        val mlImage = InputImage.fromBitmap(videoFrameBitmap, 0)
-        val task = segmenter.process(mlImage)
-
-        try {
-            segmentationMask = Tasks.await(task, 33, TimeUnit.MILLISECONDS)
-        } catch (_: TimeoutException) {
-            // Keep using previous mask
+        if (!isProcessing.getAndSet(true)) {
+            // Apply segmentation
+            val mlImage = InputImage.fromBitmap(videoFrameBitmap, 0)
+            val timeBeforeSegment = System.currentTimeMillis()
+            segmenter.process(mlImage)
+                .addOnSuccessListener { mask ->
+                    Log.d("VideoFilters", "Time taken to segment image : ${System.currentTimeMillis() - timeBeforeSegment}")
+                    segmentationMask = mask
+                }
+                .addOnFailureListener { e ->
+                    Log.e("VideoFilters", "Failed to segment image", e)
+                }
+                .addOnCompleteListener {
+                    isProcessing.set(false)
+                }
+        } else {
+            Log.d("VideoFilters", "Skipping frame, segmenter busy.")
         }
 
         val mask = segmentationMask ?: return
+
+        val timeBeforeProcess = System.currentTimeMillis()
 
         createBuffers(videoFrameBitmap, mask)
 
@@ -99,6 +113,7 @@ private class BlurredBackgroundVideoFilter(
         canvas.drawBitmap(blurredBackgroundBitmap, scaleMatrix!!, null)
 
         blurredBackgroundBitmap.recycle()
+        Log.d("VideoFilters", "Time taken to process image : ${System.currentTimeMillis() - timeBeforeProcess}" )
     }
 
     private fun createBuffers(videoFrameBitmap: Bitmap, mask: SegmentationMask) {
@@ -121,6 +136,7 @@ private class BlurredBackgroundVideoFilter(
         }
 
         if (createScale || scaleBetweenSourceAndMask == null) {
+            Log.d("VideoFilters", "Creating scale" )
             scaleBetweenSourceAndMask = getScalingFactors(
                 widths = Pair(currentFrameWidth, currentMaskWidth),
                 heights = Pair(currentFrameHeight, currentMaskHeight),
@@ -139,4 +155,4 @@ enum class BlurIntensity(val radius: Int) {
 }
 
 private const val DEFAULT_FOREGROUND_THRESHOLD: Double =
-    0.999 // 1 is max confidence that pixel is in the foreground
+    0.8 // 1 is max confidence that pixel is in the foreground

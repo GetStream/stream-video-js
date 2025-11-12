@@ -1,6 +1,7 @@
 package com.streamio.videofiltersreactnative.common
 
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Matrix
 import com.google.mlkit.vision.segmentation.SegmentationMask
 import java.nio.ByteBuffer
@@ -67,10 +68,11 @@ internal fun copySegment(
 }
 
 /**
- * Makes the pixels that belong to the requested [segment] to colored (black) and rest as transparent
+ * Makes the alpha pixels that belong to the requested [segment] to 255 and rest as 0
  */
 internal fun colouredSegment(
     segment: Segment,
+    // ALPHA_8 intended bitmap
     destination: Bitmap,
     segmentationMask: SegmentationMask,
     confidenceThreshold: Double,
@@ -123,6 +125,66 @@ internal fun colouredSegment(
     maskBuffer.rewind()
     // Convert the mask buffer to a Bitmap
     destination.copyPixelsFromBuffer(maskBuffer)
+}
+
+internal fun colouredSegmentInt(
+    segment: Segment,
+    // ARGB_8888 intended bitmap
+    destination: Bitmap,
+    segmentationMask: SegmentationMask,
+    confidenceThreshold: Double,
+    maskArray: IntArray,
+    // We use a line buffer here to optimize reads from the FloatBuffer.
+    lineBuffer: FloatArray,
+) {
+    // 1. Ensure subsequent reads traverse the mask from the beginning.
+    // Get foreground probabilities for each pixel. Since ML Kit returns this
+    // in a byte buffer with each 4 bytes representing a float, convert it to
+    // a FloatBuffer for easier use.
+    val maskProbabilities = segmentationMask.buffer.asFloatBuffer()
+    maskProbabilities.rewind()
+
+    // 2. Walk every mask pixel, evaluate whether it belongs to the requested segment,
+    //    and copy across the corresponding source pixel when it does.
+    var index = 0
+    if (segment == Segment.FOREGROUND) {
+        for (y in 0 until segmentationMask.height) {
+            maskProbabilities.get(lineBuffer)
+            for (confidence in lineBuffer) {
+                maskArray[index] =
+                    if (confidence >= confidenceThreshold) {
+                        Color.BLACK
+                    } else {
+                        Color.TRANSPARENT
+                    }
+
+                index++
+            }
+        }
+    } else {
+        for (y in 0 until segmentationMask.height) {
+            maskProbabilities.get(lineBuffer)
+            for (confidence in lineBuffer) {
+                maskArray[index] =
+                    if (confidence < confidenceThreshold) {
+                        Color.BLACK
+                    } else {
+                        Color.TRANSPARENT
+                    }
+                index++
+            }
+        }
+    }
+
+    destination.setPixels(
+        maskArray,
+        0,
+        destination.width,
+        0,
+        0,
+        destination.width,
+        destination.height,
+    )
 }
 
 internal enum class Segment {

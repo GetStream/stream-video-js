@@ -13,7 +13,6 @@ import android.util.Log
 import androidx.annotation.Keep
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.views.imagehelper.ResourceDrawableIdHelper
-import com.google.android.gms.tasks.Tasks
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.segmentation.Segmentation
 import com.google.mlkit.vision.segmentation.SegmentationMask
@@ -24,10 +23,12 @@ import com.streamio.videofiltersreactnative.common.BitmapVideoFilter
 import com.streamio.videofiltersreactnative.common.Segment
 import com.streamio.videofiltersreactnative.common.VideoFrameProcessorWithBitmapFilter
 import com.streamio.videofiltersreactnative.common.colouredSegment
+import com.streamio.videofiltersreactnative.common.colouredSegmentInt
 import com.streamio.videofiltersreactnative.common.getScalingFactors
 import java.io.IOException
 import java.net.URL
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * original source: https://github.com/GetStream/stream-video-android/blob/develop/stream-video-android-filters-video/src/main/kotlin/io/getstream/video/android/filters/video/VirtualBackgroundVideoFilter.kt
@@ -75,10 +76,14 @@ private class VirtualBackgroundVideoFilter(
             .enableRawSizeMask().build()
     private val segmenter = Segmentation.getClient(options)
     private var segmentationMask: SegmentationMask? = null
+    private var processedSegmentationMask: SegmentationMask? = null
     private var segmentationMatrix: Matrix? = null
+    private val isProcessing = AtomicBoolean(false)
+    private val isProcessingSync = false
 
     private var foregroundThreshold: Double = foregroundThreshold.coerceIn(0.0, 1.0)
     private var foregroundBitmap: Bitmap? = null
+    private var scaledForegroundBitmap: Bitmap? = null
 
     private val virtualBackgroundBitmap by lazy {
         Log.d(TAG, "getBitmapFromUrl - $backgroundImageUrlString")
@@ -104,16 +109,6 @@ private class VirtualBackgroundVideoFilter(
         // DST_IN - Keeps the destination pixels that are covered by source pixels.
         Paint().apply {
             xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
-            // This matrix copies the alpha channel to all RGBA channels
-            // Useful when drawing ALPHA_8 bitmaps
-            colorFilter = ColorMatrixColorFilter(
-                floatArrayOf(
-                    0f, 0f, 0f, 1f, 0f,  // R = A
-                    0f, 0f, 0f, 1f, 0f,  // G = A
-                    0f, 0f, 0f, 1f, 0f,  // B = A
-                    0f, 0f, 0f, 1f, 0f,  // A = A
-                ),
-            )
         }
     }
     private val backgroundPaint by lazy {
@@ -124,6 +119,7 @@ private class VirtualBackgroundVideoFilter(
     }
     private var scaledVirtualBackgroundBitmap: Bitmap? = null
     private var scaleBetweenSourceAndMask: Pair<Float, Float>? = null
+    private var maskArray: IntArray? = null
     private var maskBuffer: ByteBuffer? = null
     private var lineBuffer: FloatArray? = null
 
@@ -136,35 +132,74 @@ private class VirtualBackgroundVideoFilter(
     override fun applyFilter(videoFrameBitmap: Bitmap) {
         val backgroundImageBitmap = virtualBackgroundBitmap ?: return
 
-        // Apply segmentation
-        val mlImage = InputImage.fromBitmap(videoFrameBitmap, 0)
-        val task = segmenter.process(mlImage)
-        try {
-            segmentationMask = Tasks.await(task, 33, java.util.concurrent.TimeUnit.MILLISECONDS)
-        } catch (e: java.util.concurrent.TimeoutException) {
-            // Keep using previous mask
+        val timeBeforeSegment = System.currentTimeMillis()
+        Log.d(TAG, "applyFilter thread: ${Thread.currentThread().name}")
+
+        if (!isProcessing.getAndSet(true)) {
+            // Apply segmentation
+            val mlImage = InputImage.fromBitmap(videoFrameBitmap, 0)
+            segmenter.process(mlImage)
+                .addOnSuccessListener { mask ->
+                    Log.d(TAG, "Callback thread: ${Thread.currentThread().name}")
+                    segmentationMask = mask
+                    Log.d(TAG, "Time taken to segment image : ${System.currentTimeMillis() - timeBeforeSegment}")
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Failed to segment image", e)
+                }
+                .addOnCompleteListener {
+                    isProcessing.set(false)
+                }
+        } else {
+            Log.d(TAG, "Skipping frame, segmenter busy.")
         }
 
         val mask = segmentationMask ?: return
+        
+        // Only create mask bitmap if we have a new mask that hasn't been processed yet
+        val createMaskBitmap = mask !== processedSegmentationMask
+        if (!createMaskBitmap) {
+            Log.d(TAG, "Reusing existing mask bitmap, no need to recreate.")
+        }
 
         createBuffers(videoFrameBitmap, backgroundImageBitmap, mask)
 
-        // Color the foreground segment (the person) to a bitmap - foregroundBitmap
-        colouredSegment(
-            segment = Segment.FOREGROUND,
-            destination = foregroundBitmap!!,
-            segmentationMask = mask,
-            confidenceThreshold = foregroundThreshold,
-            maskBuffer = maskBuffer!!,
-            lineBuffer = lineBuffer!!
-        )
-
+        if (createMaskBitmap) {
+            val timeBeforeColouredSegment = System.currentTimeMillis()
+            // Color the foreground segment (the person) to a bitmap - foregroundBitmap
+            colouredSegmentInt(
+                segment = Segment.FOREGROUND,
+                destination = foregroundBitmap!!,
+                segmentationMask = mask,
+                confidenceThreshold = foregroundThreshold,
+                maskArray = maskArray!!,
+                lineBuffer = lineBuffer!!
+            )
+            Log.d(TAG, "Time taken to create mask bitmap : ${System.currentTimeMillis() - timeBeforeColouredSegment}")
+            val timeBeforeProcess = System.currentTimeMillis()
+            val canvas = Canvas(scaledForegroundBitmap!!)
+            // Clear the bitmap before drawing (important to avoid artifacts!)
+            canvas.drawColor(0, PorterDuff.Mode.CLEAR)
+            // scale the masked bitmap to the video frame size
+            canvas.drawBitmap(foregroundBitmap!!, segmentationMatrix!!, null)
+            Log.d(TAG, "Time taken to for scaledForegroundBitmap: ${System.currentTimeMillis() - timeBeforeProcess}")
+            
+            // Mark this mask as processed
+            processedSegmentationMask = mask
+        }
+        val timeBeforeProcess = System.currentTimeMillis()
         val canvas = Canvas(videoFrameBitmap)
+        val timeBeforeDrawing1 = System.currentTimeMillis()
         // 1. Punch a hole in the video frame so that only the person is left
-        canvas.drawBitmap(foregroundBitmap!!, segmentationMatrix!!, foregroundPaint)
+        canvas.drawBitmap(scaledForegroundBitmap!!,  0f, 0f, foregroundPaint)
+        Log.d(TAG, "Time taken to for drawing hole : ${System.currentTimeMillis() - timeBeforeDrawing1}")
 
+        val timeBeforeDrawing2 = System.currentTimeMillis()
+        if (scaledVirtualBackgroundBitmap!!.isRecycled) return
         // 2. Draw the virtual background behind the person
         canvas.drawBitmap(scaledVirtualBackgroundBitmap!!, 0f, 0f, backgroundPaint)
+        Log.d(TAG, "Time taken to for drawing virtual background: ${System.currentTimeMillis() - timeBeforeDrawing2}")
+        Log.d(TAG, "Time taken to process image : ${System.currentTimeMillis() - timeBeforeProcess}" )
     }
 
     private fun scaleVirtualBackgroundBitmap(bitmap: Bitmap, targetHeight: Int): Bitmap {
@@ -204,13 +239,14 @@ private class VirtualBackgroundVideoFilter(
         mask: SegmentationMask
     ) {
         var createScale = false
-        if (scaledVirtualBackgroundBitmap == null || videoFrameBitmap.width != latestFrameWidth || videoFrameBitmap.height != latestFrameHeight) {
+        if (scaledVirtualBackgroundBitmap == null || scaledForegroundBitmap == null || videoFrameBitmap.width != latestFrameWidth || videoFrameBitmap.height != latestFrameHeight) {
             scaledVirtualBackgroundBitmap?.recycle()
+            scaledForegroundBitmap?.recycle()
             scaledVirtualBackgroundBitmap = scaleVirtualBackgroundBitmap(
                 bitmap = backgroundImageBitmap,
                 targetHeight = videoFrameBitmap.height,
             )
-
+            scaledForegroundBitmap = Bitmap.createBitmap(videoFrameBitmap.width, videoFrameBitmap.height, Bitmap.Config.ARGB_8888)
             latestFrameWidth = videoFrameBitmap.width
             latestFrameHeight = videoFrameBitmap.height
             createScale = true
@@ -220,10 +256,11 @@ private class VirtualBackgroundVideoFilter(
             latestMaskHeight = mask.height
             foregroundBitmap?.recycle()
             foregroundBitmap =
-                Bitmap.createBitmap(latestMaskWidth, latestMaskHeight, Bitmap.Config.ALPHA_8)
+                Bitmap.createBitmap(latestMaskWidth, latestMaskHeight, Bitmap.Config.ARGB_8888)
             maskBuffer = ByteBuffer.allocateDirect(
                 foregroundBitmap!!.allocationByteCount,
             )
+            maskArray = IntArray(latestMaskWidth * latestMaskHeight)
             lineBuffer = FloatArray(latestMaskWidth)
             createScale = true
         }
