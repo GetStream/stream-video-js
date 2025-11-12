@@ -108,6 +108,7 @@ private class VirtualBackgroundVideoFilter(
     private var scaleBetweenSourceAndMask: Pair<Float, Float>? = null
     private var sourcePixels: IntArray? = null
     private var destinationPixels: IntArray? = null
+    private var lineBuffer: FloatArray? = null
 
     private var latestFrameWidth: Int? = null
     private var latestFrameHeight: Int? = null
@@ -115,7 +116,6 @@ private class VirtualBackgroundVideoFilter(
     private var latestMaskWidth = 0
     private var latestMaskHeight = 0
 
-    @Synchronized
     override fun applyFilter(videoFrameBitmap: Bitmap) {
         val backgroundImageBitmap = virtualBackgroundBitmap ?: return
 
@@ -139,6 +139,7 @@ private class VirtualBackgroundVideoFilter(
             segmentationMask = mask,
             confidenceThreshold = foregroundThreshold,
             destinationPixels = destinationPixels!!,
+            lineBuffer = lineBuffer!!
         )
 
         // Restore the virtual background after cutting-out the person in the previous frame
@@ -194,6 +195,8 @@ private class VirtualBackgroundVideoFilter(
     ) {
         var createScale = false
         if (scaledVirtualBackgroundBitmap == null || videoFrameBitmap.width != latestFrameWidth || videoFrameBitmap.height != latestFrameHeight) {
+            scaledVirtualBackgroundBitmap?.recycle()
+            scaledVirtualBackgroundBitmapCopy?.recycle()
             scaledVirtualBackgroundBitmap = scaleVirtualBackgroundBitmap(
                 bitmap = backgroundImageBitmap,
                 targetHeight = videoFrameBitmap.height,
@@ -219,7 +222,7 @@ private class VirtualBackgroundVideoFilter(
             foregroundBitmap =
                 Bitmap.createBitmap(latestMaskWidth, latestMaskHeight, Bitmap.Config.ARGB_8888)
             destinationPixels = IntArray(latestMaskWidth * latestMaskHeight)
-
+            lineBuffer = FloatArray(latestMaskWidth)
             createScale = true
         }
 

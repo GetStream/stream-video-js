@@ -8,12 +8,6 @@ import com.google.mlkit.vision.segmentation.SegmentationMask
  * Copies pixels that belong to the requested [segment] from the [source] bitmap into the supplied
  * [destination] bitmap using the provided [segmentationMask].
  *
- * Steps performed:
- * 1. Reset the mask's underlying buffer so we can iterate over every confidence value exactly once.
- * 2. Materialize both the source and destination pixel arrays to work with raw integers.
- * 3. Iterate over every position in the segmentation mask, check the confidence value against the
- *    [confidenceThreshold], and copy pixels that belong to the requested [segment].
- * 4. Write the mutated pixel array back into the [destination] bitmap.
  */
 internal fun copySegment(
     segment: Segment,
@@ -24,7 +18,12 @@ internal fun copySegment(
     sourcePixels: IntArray,
     destinationPixels: IntArray,
     scaleBetweenSourceAndMask: Pair<Float, Float>,
+    // We use a line buffer here to optimize reads from the FloatBuffer.
+    lineBuffer: FloatArray,
 ) {
+    // Determine if we're looking for foreground or background
+    val isForeground = segment == Segment.FOREGROUND
+
     // 1. Ensure subsequent reads traverse the mask from the beginning.
     // Get foreground probabilities for each pixel. Since ML Kit returns this
     // in a byte buffer with each 4 bytes representing a float, convert it to
@@ -37,13 +36,11 @@ internal fun copySegment(
 
     // 3. Walk every mask pixel, evaluate whether it belongs to the requested segment,
     //    and copy across the corresponding source pixel when it does.
-    // We use a line buffer here to optimize reads from the FloatBuffer.
-    val lineBuffer = FloatArray(segmentationMask.width)
     for (y in 0 until segmentationMask.height) {
         maskProbabilities.get(lineBuffer)
         for ((x, confidence) in lineBuffer.withIndex()) {
-            if (((segment == Segment.BACKGROUND) && confidence < confidenceThreshold) ||
-                ((segment == Segment.FOREGROUND) && confidence >= confidenceThreshold)
+            if ((isForeground && confidence >= confidenceThreshold) ||
+                (!isForeground && confidence < confidenceThreshold)
             ) {
                 val scaledX = (x * scaleBetweenSourceAndMask.first).toInt()
                 val scaledY = (y * scaleBetweenSourceAndMask.second).toInt()
@@ -70,7 +67,6 @@ internal fun copySegment(
 
 /**
  * Makes the pixels that belong to the requested [segment] to colored (black) and rest as transparent
- *
  */
 internal fun colouredSegment(
     segment: Segment,
@@ -78,7 +74,12 @@ internal fun colouredSegment(
     segmentationMask: SegmentationMask,
     confidenceThreshold: Double,
     destinationPixels: IntArray,
+    // We use a line buffer here to optimize reads from the FloatBuffer.
+    lineBuffer: FloatArray,
 ) {
+    // Determine if we're looking for foreground or background
+    val isForeground = segment == Segment.FOREGROUND
+
     // 1. Ensure subsequent reads traverse the mask from the beginning.
     // Get foreground probabilities for each pixel. Since ML Kit returns this
     // in a byte buffer with each 4 bytes representing a float, convert it to
@@ -86,29 +87,22 @@ internal fun colouredSegment(
     val maskProbabilities = segmentationMask.buffer.asFloatBuffer()
     maskProbabilities.rewind()
 
-    // Pre-fill with transparent pixels (0)
-    destinationPixels.fill(0)
-
-    val colorValue = 0xFF000000.toInt() // Opaque black instead of 1
+    val colorValue = 0xFF000000.toInt() // Opaque black
+    val transparentValue = 0
 
     // 2. Walk every mask pixel, evaluate whether it belongs to the requested segment,
     //    and copy across the corresponding source pixel when it does.
-    // We use a line buffer here to optimize reads from the FloatBuffer.
-    val lineBuffer = FloatArray(segmentationMask.width)
 
-    // Determine if we're looking for foreground or background
-    val isForeground = segment == Segment.FOREGROUND
 
     var index = 0
     for (y in 0 until segmentationMask.height) {
         maskProbabilities.get(lineBuffer)
         for (confidence in lineBuffer) {
             // Only write non-zero values
-            if ((isForeground && confidence >= confidenceThreshold) ||
+            destinationPixels[index] = if (
+                (isForeground && confidence >= confidenceThreshold) ||
                 (!isForeground && confidence < confidenceThreshold)
-            ) {
-                destinationPixels[index] = colorValue
-            }
+            ) colorValue else transparentValue
             index++
         }
     }

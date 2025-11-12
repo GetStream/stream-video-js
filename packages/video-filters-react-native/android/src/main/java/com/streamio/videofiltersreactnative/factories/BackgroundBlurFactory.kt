@@ -58,6 +58,7 @@ private class BlurredBackgroundVideoFilter(
     private var currentFrameHeight = 0
     private var currentMaskWidth = 0
     private var currentMaskHeight = 0
+    private var lineBuffer: FloatArray? = null
     private var sourcePixels: IntArray? = null
     private var destinationPixels: IntArray? = null
 
@@ -77,30 +78,25 @@ private class BlurredBackgroundVideoFilter(
 
         createBuffers(videoFrameBitmap, mask)
 
-        val srcPixels = sourcePixels ?: return
-        val destPixels = destinationPixels ?: return
-        val bgBitmap = backgroundBitmap ?: return
-        val scale = scaleBetweenSourceAndMask ?: return
-        val matrix = scaleMatrix ?: return
-
         // Copy the background segment to a new bitmap - backgroundBitmap
         copySegment(
             segment = Segment.BACKGROUND,
             source = videoFrameBitmap,
-            destination = bgBitmap,
+            destination = backgroundBitmap!!,
             segmentationMask = mask,
             confidenceThreshold = foregroundThreshold,
-            sourcePixels = srcPixels,
-            destinationPixels = destPixels,
-            scaleBetweenSourceAndMask = scale,
+            sourcePixels = sourcePixels!!,
+            destinationPixels = destinationPixels!!,
+            scaleBetweenSourceAndMask = scaleBetweenSourceAndMask!!,
+            lineBuffer = lineBuffer!!
         )
 
         // Blur the background bitmap
-        val blurredBackgroundBitmap = Toolkit.blur(bgBitmap, blurIntensity.radius)
+        val blurredBackgroundBitmap = Toolkit.blur(backgroundBitmap!!, blurIntensity.radius)
 
         // Draw the blurred background bitmap on the original bitmap
         val canvas = Canvas(videoFrameBitmap)
-        canvas.drawBitmap(blurredBackgroundBitmap, matrix, null)
+        canvas.drawBitmap(blurredBackgroundBitmap, scaleMatrix!!, null)
 
         blurredBackgroundBitmap.recycle()
     }
@@ -120,6 +116,7 @@ private class BlurredBackgroundVideoFilter(
             backgroundBitmap =
                 Bitmap.createBitmap(currentMaskWidth, currentMaskHeight, Bitmap.Config.ARGB_8888)
             destinationPixels = IntArray(currentMaskWidth * currentMaskHeight)
+            lineBuffer = FloatArray(currentMaskWidth)
             createScale = true
         }
 
