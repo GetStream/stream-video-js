@@ -97,14 +97,18 @@ private class VirtualBackgroundVideoFilter(
     }
 
     private val foregroundPaint by lazy {
-        // source = Bitmap with sgemented person, background is transparent
-        // destination = scaledVirtualBackgroundBitmapCopy
-        // intention = pick only parts on destination covered by source (image background with transparent cutout of person)
-        // DST_OUT - Keeps the destination pixels that are not covered by source pixels.
-        Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT) }
+        // destination - video frame
+        // source - black mask bitmap of person cutout
+        // DST_IN - Keeps the destination pixels that are covered by source pixels.
+        Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN) }
+    }
+    private val backgroundPaint by lazy {
+        // destination - video frame
+        // source - scaled video background frame
+        // DST_OVER - Source pixels are drawn behind the destination pixels
+        Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OVER) }
     }
     private var scaledVirtualBackgroundBitmap: Bitmap? = null
-    private var scaledVirtualBackgroundBitmapCopy: Bitmap? = null
     private var scaleBetweenSourceAndMask: Pair<Float, Float>? = null
     private var sourcePixels: IntArray? = null
     private var destinationPixels: IntArray? = null
@@ -142,19 +146,12 @@ private class VirtualBackgroundVideoFilter(
             lineBuffer = lineBuffer!!
         )
 
-        // Restore the virtual background after cutting-out the person in the previous frame
-        val backgroundCanvas = Canvas(scaledVirtualBackgroundBitmapCopy!!)
-        backgroundCanvas.drawBitmap(scaledVirtualBackgroundBitmap!!, 0f, 0f, null)
+        val canvas = Canvas(videoFrameBitmap)
+        // 1. Punch a hole in the video frame so that only the person is left
+        canvas.drawBitmap(foregroundBitmap!!, segmentationMatrix!!, foregroundPaint)
 
-        // source = Bitmap with segmented person, background is transparent, person is black
-        // destination = scaledVirtualBackgroundBitmapCopy
-        // intention = pick only parts on destination covered by source (image background with transparent cutout of person)
-        // DST_OUT - Keeps the destination pixels that are not covered by source pixels.
-        backgroundCanvas.drawBitmap(foregroundBitmap!!, segmentationMatrix!!, foregroundPaint)
-
-        val videoFrameCanvas = Canvas(videoFrameBitmap)
-        // Draw the virtual background (with the cutout) on the video frame bitmap
-        videoFrameCanvas.drawBitmap(scaledVirtualBackgroundBitmapCopy!!, 0f, 0f, null)
+        // 2. Draw the virtual background behind the person
+        canvas.drawBitmap(scaledVirtualBackgroundBitmap!!, 0f, 0f, backgroundPaint)
     }
 
     private fun scaleVirtualBackgroundBitmap(bitmap: Bitmap, targetHeight: Int): Bitmap {
@@ -196,17 +193,9 @@ private class VirtualBackgroundVideoFilter(
         var createScale = false
         if (scaledVirtualBackgroundBitmap == null || videoFrameBitmap.width != latestFrameWidth || videoFrameBitmap.height != latestFrameHeight) {
             scaledVirtualBackgroundBitmap?.recycle()
-            scaledVirtualBackgroundBitmapCopy?.recycle()
             scaledVirtualBackgroundBitmap = scaleVirtualBackgroundBitmap(
                 bitmap = backgroundImageBitmap,
                 targetHeight = videoFrameBitmap.height,
-            )
-            // Make a copy of the scaled virtual background bitmap. Used when processing each frame.
-            scaledVirtualBackgroundBitmapCopy = scaledVirtualBackgroundBitmap!!.copy(
-                /* config = */
-                scaledVirtualBackgroundBitmap!!.config!!,
-                /* isMutable = */
-                true,
             )
 
             latestFrameWidth = videoFrameBitmap.width
