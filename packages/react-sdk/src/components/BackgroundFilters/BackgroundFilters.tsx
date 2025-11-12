@@ -28,10 +28,21 @@ import {
 import clsx from 'clsx';
 import { useLowFpsWarning } from '../../hooks/useLowFpsWarning';
 
+/**
+ * Represents the available background filter processing engines.
+ */
 export enum FilterEngine {
   TF = 'TF',
   MEDIA_PIPE = 'MEDIA_PIPE',
   NONE = 'NONE',
+}
+
+/**
+ * Represents the possible reasons for background filter performance degradation.
+ */
+export enum PerformanceDegradationReason {
+  FRAME_DROP = 'frame-drop',
+  CPU_THROTTLING = 'cpu-throttling',
 }
 
 export type BackgroundFiltersProps = PlatformSupportFlags & {
@@ -112,7 +123,7 @@ export type BackgroundFiltersPerformance = {
   /**
    * Reasons for performance degradation.
    */
-  reason?: Array<'low-fps' | 'cpu'>;
+  reason?: Array<PerformanceDegradationReason>;
 };
 
 export type BackgroundFiltersAPI = {
@@ -254,16 +265,16 @@ export const BackgroundFiltersProvider = (
       return { degraded: false };
     }
 
-    const reasons: Array<'low-fps' | 'cpu'> = [];
+    const reasons: Array<PerformanceDegradationReason> = [];
 
     if (showLowFpsWarning) {
-      reasons.push('low-fps');
+      reasons.push(PerformanceDegradationReason.FRAME_DROP);
     }
 
     const qualityLimitationReasons =
       callStatsReport?.publisherStats?.qualityLimitationReasons;
     if (qualityLimitationReasons && qualityLimitationReasons.includes('cpu')) {
-      reasons.push('cpu');
+      reasons.push(PerformanceDegradationReason.CPU_THROTTLING);
     }
 
     return {

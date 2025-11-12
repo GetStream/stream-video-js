@@ -7,9 +7,6 @@ import {
 } from '@stream-io/video-react-sdk';
 
 export type DegradedPerformanceNotificationProps = {
-  /**
-   * Text message displayed by the notification.
-   */
   text?: string;
   placement?: Placement;
   className?: string;
