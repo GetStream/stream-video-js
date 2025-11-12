@@ -3,7 +3,6 @@ import { CallingState, InputDeviceStatus } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type LocalDevicePreference = {
-  timestamp: number;
   selectedDeviceId: string;
   selectedDeviceLabel: string;
   muted?: boolean;
@@ -91,10 +90,10 @@ export const usePersistedDevicePreferences = (
             state as DeviceState<'camera' | 'microphone' | 'speaker'>
           )[deviceKey];
 
-          const applyPromise: Promise<void> = preference
+          const applyPromise = preference
             ? applyLocalDevicePreference(
                 manager,
-                [preference].flat().sort((a, b) => b.timestamp - a.timestamp),
+                [preference].flat(),
                 deviceKey === 'camera' ? cameraDevices || [] : state.devices,
                 enabledInCallType,
               )
@@ -322,10 +321,9 @@ const patchLocalDevicePreference = (
         {
           ...nextPreference,
           muted: state.isMute,
-          timestamp: Date.now(),
         } satisfies LocalDevicePreference,
         ...preferenceHistory,
-      ].slice(0, 5),
+      ].slice(0, 3),
     }),
   );
 };
