@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { ChangeEventHandler, useCallback } from 'react';
+import { ChangeEventHandler, PropsWithChildren, useCallback } from 'react';
 
 import { useDeviceList } from '../../hooks';
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
@@ -51,14 +51,23 @@ const DeviceSelectorOption = ({
 
 export type DeviceSelectorType = 'audioinput' | 'audiooutput' | 'videoinput';
 
-const DeviceSelectorList = (props: {
-  devices: MediaDeviceInfo[];
-  type: DeviceSelectorType;
-  selectedDeviceId?: string;
-  title?: string;
-  onChange?: (deviceId: string) => void;
-}) => {
-  const { devices = [], selectedDeviceId, title, type, onChange } = props;
+const DeviceSelectorList = (
+  props: PropsWithChildren<{
+    devices: MediaDeviceInfo[];
+    type: DeviceSelectorType;
+    selectedDeviceId?: string;
+    title?: string;
+    onChange?: (deviceId: string) => void;
+  }>,
+) => {
+  const {
+    devices = [],
+    selectedDeviceId,
+    title,
+    type,
+    onChange,
+    children,
+  } = props;
   const { close } = useMenuContext();
   const { deviceList } = useDeviceList(devices, selectedDeviceId);
 
@@ -88,6 +97,7 @@ const DeviceSelectorList = (props: {
           />
         );
       })}
+      {children}
     </div>
   );
 };
@@ -139,15 +149,17 @@ const DeviceSelectorDropdown = (props: {
   );
 };
 
-export const DeviceSelector = (props: {
-  devices: MediaDeviceInfo[];
-  icon: string;
-  type: DeviceSelectorType;
-  selectedDeviceId?: string;
-  title?: string;
-  onChange?: (deviceId: string) => void;
-  visualType?: 'list' | 'dropdown';
-}) => {
+export const DeviceSelector = (
+  props: PropsWithChildren<{
+    devices: MediaDeviceInfo[];
+    icon: string;
+    type: DeviceSelectorType;
+    selectedDeviceId?: string;
+    title?: string;
+    onChange?: (deviceId: string) => void;
+    visualType?: 'list' | 'dropdown';
+  }>,
+) => {
   const { visualType = 'list', icon, ...rest } = props;
 
   if (visualType === 'list') {
