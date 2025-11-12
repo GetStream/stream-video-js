@@ -116,7 +116,7 @@ export class VirtualBackground {
 
       const model = this.options?.modelPath || defaultModelPath;
 
-      const wasmPath = `${basePath}/wasm`
+      const wasmPath = `${basePath}/wasm`;
 
       const fileset = await FilesetResolver.forVisionTasks(wasmPath);
 
