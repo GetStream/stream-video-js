@@ -136,7 +136,7 @@ private class VirtualBackgroundVideoFilter(
 
         createBuffers(videoFrameBitmap, backgroundImageBitmap, mask)
 
-        // Color the foreground segment (the person) to a the bitmap - foregroundBitmap
+        // Color the foreground segment (the person) to a bitmap - foregroundBitmap
         colouredSegment(
             segment = Segment.FOREGROUND,
             destination = foregroundBitmap!!,
