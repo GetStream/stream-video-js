@@ -19,6 +19,7 @@ export interface SegmenterOptions {
  * effect should be applied and how it should behave.
  */
 export interface BackgroundOptions {
+  basePath?: string;
   modelPath?: string;
   backgroundFilter?: BackgroundFilter;
   backgroundBlurLevel?: BackgroundBlurLevel;

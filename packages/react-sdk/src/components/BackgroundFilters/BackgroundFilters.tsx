@@ -335,11 +335,12 @@ export const BackgroundFiltersProvider = (
     if (engine !== FilterEngine.MEDIA_PIPE) return;
 
     loadMediaPipe({
+      basePath: basePath,
       modelPath: modelFilePath,
     })
       .then(setMediaPipe)
       .catch((err) => console.error('Failed to preload MediaPipe', err));
-  }, [engine, modelFilePath]);
+  }, [engine, modelFilePath, basePath]);
 
   const handleError = useCallback(
     (error: any) => {
@@ -415,6 +416,7 @@ const useRenderer = (
     backgroundBlurLevel,
     backgroundImage,
     modelFilePath,
+    basePath,
     onStats,
   } = useBackgroundFilters();
 
@@ -481,6 +483,7 @@ const useRenderer = (
           processor = new VirtualBackground(
             track,
             {
+              basePath: basePath,
               modelPath: modelFilePath,
               backgroundBlurLevel,
               backgroundImage,
@@ -574,6 +577,7 @@ const useRenderer = (
       tfLite,
       engine,
       modelFilePath,
+      basePath,
     ],
   );
 

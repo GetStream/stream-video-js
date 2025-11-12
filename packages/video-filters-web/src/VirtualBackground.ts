@@ -108,13 +108,17 @@ export class VirtualBackground {
    */
   private async initializeSegmenter() {
     try {
-      const defaultModelPath = `https://unpkg.com/${packageName}@${version}/mediapipe/models/selfie_segmenter.tflite`;
+      const basePath =
+        this.options?.basePath ||
+        `https://unpkg.com/${packageName}@${version}/mediapipe`;
+
+      const defaultModelPath = `${basePath}/models/selfie_segmenter.tflite`;
 
       const model = this.options?.modelPath || defaultModelPath;
 
-      const fileset = await FilesetResolver.forVisionTasks(
-        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm',
-      );
+      const wasmPath = `${basePath}/wasm`
+
+      const fileset = await FilesetResolver.forVisionTasks(wasmPath);
 
       this.segmenter = await ImageSegmenter.createFromOptions(fileset, {
         baseOptions: {
