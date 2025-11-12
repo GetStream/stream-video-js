@@ -2,6 +2,7 @@ package com.streamio.videofiltersreactnative.factories
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Matrix
 import com.google.android.gms.tasks.Tasks
 import com.google.android.renderscript.Toolkit
 import com.google.mlkit.vision.common.InputImage
@@ -14,7 +15,7 @@ import com.streamio.videofiltersreactnative.common.BitmapVideoFilter
 import com.streamio.videofiltersreactnative.common.Segment
 import com.streamio.videofiltersreactnative.common.VideoFrameProcessorWithBitmapFilter
 import com.streamio.videofiltersreactnative.common.copySegment
-import com.streamio.videofiltersreactnative.common.newSegmentationMaskMatrix
+import com.streamio.videofiltersreactnative.common.getScalingFactors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
@@ -48,6 +49,8 @@ private class BlurredBackgroundVideoFilter(
     private val segmenter = Segmentation.getClient(options)
     private var segmentationMask: SegmentationMask? = null
     private var foregroundThreshold: Double = foregroundThreshold.coerceIn(0.0, 1.0)
+    private var scaleBetweenSourceAndMask: Pair<Float, Float>? = null
+    private var scaleMatrix: Matrix? = null
 
     // Reusable buffers
     private var backgroundBitmap: Bitmap? = null
@@ -72,12 +75,13 @@ private class BlurredBackgroundVideoFilter(
 
         val mask = segmentationMask ?: return
 
-        createSourceBuffersIfNeeded(videoFrameBitmap)
-        createMaskBuffersIfNeeded(mask)
+        createBuffers(videoFrameBitmap, mask)
 
         val srcPixels = sourcePixels ?: return
         val destPixels = destinationPixels ?: return
         val bgBitmap = backgroundBitmap ?: return
+        val scale = scaleBetweenSourceAndMask ?: return
+        val matrix = scaleMatrix ?: return
 
         // Copy the background segment to a new bitmap - backgroundBitmap
         copySegment(
@@ -88,6 +92,7 @@ private class BlurredBackgroundVideoFilter(
             confidenceThreshold = foregroundThreshold,
             sourcePixels = srcPixels,
             destinationPixels = destPixels,
+            scaleBetweenSourceAndMask = scale,
         )
 
         // Blur the background bitmap
@@ -95,31 +100,36 @@ private class BlurredBackgroundVideoFilter(
 
         // Draw the blurred background bitmap on the original bitmap
         val canvas = Canvas(videoFrameBitmap)
-        val matrix = newSegmentationMaskMatrix(videoFrameBitmap, mask)
         canvas.drawBitmap(blurredBackgroundBitmap, matrix, null)
 
         blurredBackgroundBitmap.recycle()
     }
 
-    private fun createSourceBuffersIfNeeded(videoFrameBitmap: Bitmap) {
-        if (currentFrameWidth == videoFrameBitmap.width && currentFrameHeight == videoFrameBitmap.height) {
-            return
+    private fun createBuffers(videoFrameBitmap: Bitmap, mask: SegmentationMask) {
+        var createScale = false
+        if (currentFrameWidth != videoFrameBitmap.width || currentFrameHeight != videoFrameBitmap.height) {
+            currentFrameWidth = videoFrameBitmap.width
+            currentFrameHeight = videoFrameBitmap.height
+            sourcePixels = IntArray(currentFrameWidth * currentFrameHeight)
+            createScale = true
         }
-        currentFrameWidth = videoFrameBitmap.width
-        currentFrameHeight = videoFrameBitmap.height
-        sourcePixels = IntArray(currentFrameWidth * currentFrameHeight)
-    }
+        if (currentMaskWidth != mask.width || currentMaskHeight != mask.height) {
+            currentMaskWidth = mask.width
+            currentMaskHeight = mask.height
+            backgroundBitmap?.recycle()
+            backgroundBitmap =
+                Bitmap.createBitmap(currentMaskWidth, currentMaskHeight, Bitmap.Config.ARGB_8888)
+            destinationPixels = IntArray(currentMaskWidth * currentMaskHeight)
+            createScale = true
+        }
 
-    private fun createMaskBuffersIfNeeded(mask: SegmentationMask) {
-        if (mask.width == currentMaskWidth && mask.height == currentMaskHeight) {
-            return
+        if (createScale || scaleBetweenSourceAndMask == null) {
+            scaleBetweenSourceAndMask = getScalingFactors(
+                widths = Pair(currentFrameWidth, currentMaskWidth),
+                heights = Pair(currentFrameHeight, currentMaskHeight),
+            )
+            scaleMatrix = Matrix().apply { preScale(scaleBetweenSourceAndMask!!.first, scaleBetweenSourceAndMask!!.second) }
         }
-        currentMaskWidth = mask.width
-        currentMaskHeight = mask.height
-        backgroundBitmap?.recycle()
-        backgroundBitmap =
-            Bitmap.createBitmap(currentMaskWidth, currentMaskHeight, Bitmap.Config.ARGB_8888)
-        destinationPixels = IntArray(currentMaskWidth * currentMaskHeight)
     }
 }
 

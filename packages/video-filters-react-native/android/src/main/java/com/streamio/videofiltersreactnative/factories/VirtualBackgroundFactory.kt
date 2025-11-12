@@ -22,8 +22,8 @@ import com.oney.WebRTCModule.videoEffects.VideoFrameProcessorFactoryInterface
 import com.streamio.videofiltersreactnative.common.BitmapVideoFilter
 import com.streamio.videofiltersreactnative.common.Segment
 import com.streamio.videofiltersreactnative.common.VideoFrameProcessorWithBitmapFilter
-import com.streamio.videofiltersreactnative.common.copySegment
-import com.streamio.videofiltersreactnative.common.newSegmentationMaskMatrix
+import com.streamio.videofiltersreactnative.common.colouredSegment
+import com.streamio.videofiltersreactnative.common.getScalingFactors
 import java.io.IOException
 import java.net.URL
 
@@ -36,20 +36,24 @@ import java.net.URL
  * @param foregroundThreshold The confidence threshold for the foreground. Pixels with a confidence value greater than or equal to this threshold are considered to be in the foreground. Value is coerced between 0 and 1, inclusive.
  */
 class VirtualBackgroundFactory(
-  private val reactContext: ReactApplicationContext,
-  private val backgroundImageUrlString: String,
-  private val foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
+    private val reactContext: ReactApplicationContext,
+    private val backgroundImageUrlString: String,
+    private val foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
 ) : VideoFrameProcessorFactoryInterface {
 
-  override fun build(): VideoFrameProcessor {
-    return VideoFrameProcessorWithBitmapFilter {
-      VirtualBackgroundVideoFilter(reactContext, backgroundImageUrlString, foregroundThreshold)
+    override fun build(): VideoFrameProcessor {
+        return VideoFrameProcessorWithBitmapFilter {
+            VirtualBackgroundVideoFilter(
+                reactContext,
+                backgroundImageUrlString,
+                foregroundThreshold
+            )
+        }
     }
-  }
 
-  companion object {
-    private const val TAG = "VirtualBackgroundFactory"
-  }
+    companion object {
+        private const val TAG = "VirtualBackgroundFactory"
+    }
 }
 
 /**
@@ -60,155 +64,184 @@ class VirtualBackgroundFactory(
  */
 @Keep
 private class VirtualBackgroundVideoFilter(
-  reactContext: ReactApplicationContext,
-  backgroundImageUrlString: String,
-  foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
+    reactContext: ReactApplicationContext,
+    backgroundImageUrlString: String,
+    foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
 ) : BitmapVideoFilter() {
-  private val options =
-    SelfieSegmenterOptions.Builder()
-      .setDetectorMode(SelfieSegmenterOptions.STREAM_MODE)
-      .enableRawSizeMask()
-      .build()
-  private val segmenter = Segmentation.getClient(options)
-  private lateinit var segmentationMask: SegmentationMask
-  private lateinit var segmentationMatrix: Matrix
+    private val options =
+        SelfieSegmenterOptions.Builder().setDetectorMode(SelfieSegmenterOptions.STREAM_MODE)
+            .enableRawSizeMask().build()
+    private val segmenter = Segmentation.getClient(options)
+    private var segmentationMask: SegmentationMask? = null
+    private var segmentationMatrix: Matrix? = null
 
-  private var foregroundThreshold: Double = foregroundThreshold.coerceIn(0.0, 1.0)
-  private val foregroundBitmap by lazy {
-    Bitmap.createBitmap(
-      segmentationMask.width,
-      segmentationMask.height,
-      Bitmap.Config.ARGB_8888,
-    )
-  }
+    private var foregroundThreshold: Double = foregroundThreshold.coerceIn(0.0, 1.0)
+    private var foregroundBitmap: Bitmap? = null
 
-  private val virtualBackgroundBitmap by lazy {
-    Log.d(TAG, "getBitmapFromUrl - $backgroundImageUrlString")
-    try {
-      val uri = Uri.parse(backgroundImageUrlString)
-      if (uri.scheme == null) { // this is a local image
-        val drawableId = ResourceDrawableIdHelper.getInstance()
-          .getResourceDrawableId(reactContext, backgroundImageUrlString)
-        BitmapFactory.decodeResource(reactContext.resources, drawableId)
-      } else {
-        val url = URL(backgroundImageUrlString)
-        BitmapFactory.decodeStream(url.openConnection().getInputStream())
-      }
-    } catch (e: IOException) {
-      Log.e(TAG, "cant get bitmap for image url: $backgroundImageUrlString", e)
-      null
-    }
-  }
-
-  private val foregroundPaint by lazy {
-    Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT) }
-  }
-  private var scaledVirtualBackgroundBitmap: Bitmap? = null
-  private var scaledVirtualBackgroundBitmapCopy: Bitmap? = null
-  private var sourcePixels: IntArray? = null
-  private var destinationPixels: IntArray? = null
-
-  private var latestFrameWidth: Int? = null
-  private var latestFrameHeight: Int? = null
-
-  @Synchronized
-  override fun applyFilter(videoFrameBitmap: Bitmap) {
-    // Apply segmentation
-    val mlImage = InputImage.fromBitmap(videoFrameBitmap, 0)
-    val task = segmenter.process(mlImage)
-    try {
-      segmentationMask = Tasks.await(task, 50, java.util.concurrent.TimeUnit.MILLISECONDS)
-    } catch (e: java.util.concurrent.TimeoutException) {
-      // Keep using previous mask
+    private val virtualBackgroundBitmap by lazy {
+        Log.d(TAG, "getBitmapFromUrl - $backgroundImageUrlString")
+        try {
+            val uri = Uri.parse(backgroundImageUrlString)
+            if (uri.scheme == null) { // this is a local image
+                val drawableId = ResourceDrawableIdHelper.getInstance()
+                    .getResourceDrawableId(reactContext, backgroundImageUrlString)
+                BitmapFactory.decodeResource(reactContext.resources, drawableId)
+            } else {
+                val url = URL(backgroundImageUrlString)
+                BitmapFactory.decodeStream(url.openConnection().getInputStream())
+            }
+        } catch (e: IOException) {
+            Log.e(TAG, "cant get bitmap for image url: $backgroundImageUrlString", e)
+            null
+        }
     }
 
-    // Copy the foreground segment (the person) to a new bitmap - foregroundBitmap
-    copySegment(
-      segment = Segment.FOREGROUND,
-      source = videoFrameBitmap,
-      destination = foregroundBitmap,
-      segmentationMask = segmentationMask,
-      confidenceThreshold = foregroundThreshold,
-      sourcePixels = sourcePixels!!,
-      destinationPixels = destinationPixels!!,
-    )
+    private val foregroundPaint by lazy {
+        // source = Bitmap with sgemented person, background is transparent
+        // destination = scaledVirtualBackgroundBitmapCopy
+        // intention = pick only parts on destination covered by source (image background with transparent cutout of person)
+        // DST_OUT - Keeps the destination pixels that are not covered by source pixels.
+        Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT) }
+    }
+    private var scaledVirtualBackgroundBitmap: Bitmap? = null
+    private var scaledVirtualBackgroundBitmapCopy: Bitmap? = null
+    private var scaleBetweenSourceAndMask: Pair<Float, Float>? = null
+    private var sourcePixels: IntArray? = null
+    private var destinationPixels: IntArray? = null
 
-    virtualBackgroundBitmap?.let { virtualBackgroundBitmap ->
-      val videoFrameCanvas = Canvas(videoFrameBitmap)
+    private var latestFrameWidth: Int? = null
+    private var latestFrameHeight: Int? = null
 
-      // Scale the virtual background bitmap to the height of the video frame, if needed
-      if (scaledVirtualBackgroundBitmap == null ||
-        videoFrameCanvas.width != latestFrameWidth ||
-        videoFrameCanvas.height != latestFrameHeight
-      ) {
-        scaledVirtualBackgroundBitmap = scaleVirtualBackgroundBitmap(
-          bitmap = virtualBackgroundBitmap,
-          targetHeight = videoFrameCanvas.height,
-        )
-        // Make a copy of the scaled virtual background bitmap. Used when processing each frame.
-        scaledVirtualBackgroundBitmapCopy = scaledVirtualBackgroundBitmap!!.copy(
-          /* config = */
-            scaledVirtualBackgroundBitmap!!.config!!,
-          /* isMutable = */
-          true,
+    private var latestMaskWidth = 0
+    private var latestMaskHeight = 0
+
+    @Synchronized
+    override fun applyFilter(videoFrameBitmap: Bitmap) {
+        val backgroundImageBitmap = virtualBackgroundBitmap ?: return
+
+        // Apply segmentation
+        val mlImage = InputImage.fromBitmap(videoFrameBitmap, 0)
+        val task = segmenter.process(mlImage)
+        try {
+            segmentationMask = Tasks.await(task, 33, java.util.concurrent.TimeUnit.MILLISECONDS)
+        } catch (e: java.util.concurrent.TimeoutException) {
+            // Keep using previous mask
+        }
+
+        val mask = segmentationMask ?: return
+
+        createBuffers(videoFrameBitmap, backgroundImageBitmap, mask)
+
+        // Color the foreground segment (the person) to a the bitmap - foregroundBitmap
+        colouredSegment(
+            segment = Segment.FOREGROUND,
+            destination = foregroundBitmap!!,
+            segmentationMask = mask,
+            confidenceThreshold = foregroundThreshold,
+            destinationPixels = destinationPixels!!,
         )
 
-        latestFrameWidth = videoFrameBitmap.width
-        latestFrameHeight = videoFrameBitmap.height
+        // Restore the virtual background after cutting-out the person in the previous frame
+        val backgroundCanvas = Canvas(scaledVirtualBackgroundBitmapCopy!!)
+        backgroundCanvas.drawBitmap(scaledVirtualBackgroundBitmap!!, 0f, 0f, null)
 
-        sourcePixels = IntArray(latestFrameWidth!! * latestFrameHeight!!)
-        destinationPixels = IntArray(foregroundBitmap.width * foregroundBitmap.height)
+        // source = Bitmap with segmented person, background is transparent, person is black
+        // destination = scaledVirtualBackgroundBitmapCopy
+        // intention = pick only parts on destination covered by source (image background with transparent cutout of person)
+        // DST_OUT - Keeps the destination pixels that are not covered by source pixels.
+        backgroundCanvas.drawBitmap(foregroundBitmap!!, segmentationMatrix!!, foregroundPaint)
 
-        segmentationMatrix = newSegmentationMaskMatrix(videoFrameBitmap, segmentationMask)
-      }
-
-      // Restore the virtual background after cutting-out the person in the previous frame
-      val backgroundCanvas = Canvas(scaledVirtualBackgroundBitmapCopy!!)
-      backgroundCanvas.drawBitmap(scaledVirtualBackgroundBitmap!!, 0f, 0f, null)
-
-      // Cut out the person from the virtual background
-      backgroundCanvas.drawBitmap(foregroundBitmap, segmentationMatrix, foregroundPaint)
-
-      // Draw the virtual background (with the cutout) on the video frame bitmap
-      videoFrameCanvas.drawBitmap(scaledVirtualBackgroundBitmapCopy!!, 0f, 0f, null)
+        val videoFrameCanvas = Canvas(videoFrameBitmap)
+        // Draw the virtual background (with the cutout) on the video frame bitmap
+        videoFrameCanvas.drawBitmap(scaledVirtualBackgroundBitmapCopy!!, 0f, 0f, null)
     }
-  }
 
-  private fun scaleVirtualBackgroundBitmap(bitmap: Bitmap, targetHeight: Int): Bitmap {
-    val scale = targetHeight.toFloat() / bitmap.height
-    return ensureAlpha(
-      Bitmap.createScaledBitmap(
-        /* src = */
-        bitmap,
-        /* dstWidth = */
-        (bitmap.width * scale).toInt(),
-        /* dstHeight = */
-        targetHeight,
-        /* filter = */
-        true,
-      ),
-    )
-  }
-
-  private fun ensureAlpha(original: Bitmap): Bitmap {
-    return if (original.hasAlpha()) {
-      original
-    } else {
-      val bitmapWithAlpha = Bitmap.createBitmap(
-        original.width,
-        original.height,
-        Bitmap.Config.ARGB_8888,
-      )
-      val canvas = Canvas(bitmapWithAlpha)
-      canvas.drawBitmap(original, 0f, 0f, null)
-      bitmapWithAlpha
+    private fun scaleVirtualBackgroundBitmap(bitmap: Bitmap, targetHeight: Int): Bitmap {
+        val scale = targetHeight.toFloat() / bitmap.height
+        return ensureAlpha(
+            Bitmap.createScaledBitmap(
+                /* src = */
+                bitmap,
+                /* dstWidth = */
+                (bitmap.width * scale).toInt(),
+                /* dstHeight = */
+                targetHeight,
+                /* filter = */
+                true,
+            ),
+        )
     }
-  }
 
-  companion object {
-    private const val TAG = "VirtualBackgroundVideoFilter"
-  }
+    private fun ensureAlpha(original: Bitmap): Bitmap {
+        return if (original.hasAlpha()) {
+            original
+        } else {
+            val bitmapWithAlpha = Bitmap.createBitmap(
+                original.width,
+                original.height,
+                Bitmap.Config.ARGB_8888,
+            )
+            val canvas = Canvas(bitmapWithAlpha)
+            canvas.drawBitmap(original, 0f, 0f, null)
+            bitmapWithAlpha
+        }
+    }
+
+    private fun createBuffers(
+        videoFrameBitmap: Bitmap,
+        backgroundImageBitmap: Bitmap,
+        mask: SegmentationMask
+    ) {
+        var createScale = false
+        if (scaledVirtualBackgroundBitmap == null || videoFrameBitmap.width != latestFrameWidth || videoFrameBitmap.height != latestFrameHeight) {
+            scaledVirtualBackgroundBitmap = scaleVirtualBackgroundBitmap(
+                bitmap = backgroundImageBitmap,
+                targetHeight = videoFrameBitmap.height,
+            )
+            // Make a copy of the scaled virtual background bitmap. Used when processing each frame.
+            scaledVirtualBackgroundBitmapCopy = scaledVirtualBackgroundBitmap!!.copy(
+                /* config = */
+                scaledVirtualBackgroundBitmap!!.config!!,
+                /* isMutable = */
+                true,
+            )
+
+            latestFrameWidth = videoFrameBitmap.width
+            latestFrameHeight = videoFrameBitmap.height
+
+            sourcePixels = IntArray(latestFrameWidth!! * latestFrameHeight!!)
+            createScale = true
+        }
+        if (latestMaskWidth != mask.width || latestMaskHeight != mask.height) {
+            latestMaskWidth = mask.width
+            latestMaskHeight = mask.height
+            foregroundBitmap?.recycle()
+            foregroundBitmap =
+                Bitmap.createBitmap(latestMaskWidth, latestMaskHeight, Bitmap.Config.ARGB_8888)
+            destinationPixels = IntArray(latestMaskWidth * latestMaskHeight)
+
+            createScale = true
+        }
+
+        if (createScale || scaleBetweenSourceAndMask == null) {
+            scaleBetweenSourceAndMask = getScalingFactors(
+                widths = Pair(videoFrameBitmap.width, mask.width),
+                heights = Pair(videoFrameBitmap.height, mask.height),
+            )
+
+            segmentationMatrix = Matrix().apply {
+                preScale(
+                    scaleBetweenSourceAndMask!!.first,
+                    scaleBetweenSourceAndMask!!.second
+                )
+            }
+        }
+    }
+
+    companion object {
+        private const val TAG = "VirtualBackgroundVideoFilter"
+    }
 }
 
 private const val DEFAULT_FOREGROUND_THRESHOLD: Double =
-  0.7 // 1 is max confidence that pixel is in the foreground
+    0.7 // 1 is max confidence that pixel is in the foreground
