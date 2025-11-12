@@ -236,4 +236,4 @@ private class VirtualBackgroundVideoFilter(
 }
 
 private const val DEFAULT_FOREGROUND_THRESHOLD: Double =
-    0.7 // 1 is max confidence that pixel is in the foreground
+    0.8 // 1 is max confidence that pixel is in the foreground
