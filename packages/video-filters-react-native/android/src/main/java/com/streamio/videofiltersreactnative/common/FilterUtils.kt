@@ -3,6 +3,7 @@ package com.streamio.videofiltersreactnative.common
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import com.google.mlkit.vision.segmentation.SegmentationMask
+import java.nio.ByteBuffer
 
 /**
  * Copies pixels that belong to the requested [segment] from the [source] bitmap into the supplied
@@ -73,7 +74,7 @@ internal fun colouredSegment(
     destination: Bitmap,
     segmentationMask: SegmentationMask,
     confidenceThreshold: Double,
-    destinationPixels: IntArray,
+    maskBuffer: ByteBuffer,
     // We use a line buffer here to optimize reads from the FloatBuffer.
     lineBuffer: FloatArray,
 ) {
@@ -83,20 +84,24 @@ internal fun colouredSegment(
     // a FloatBuffer for easier use.
     val maskProbabilities = segmentationMask.buffer.asFloatBuffer()
     maskProbabilities.rewind()
+    maskBuffer.rewind()
 
-    val colorValue = 0xFF000000.toInt() // Opaque black
-    val transparentValue = 0
+    val colorValue = 255.toByte() // Opaque
+    val transparentValue = 0.toByte()
 
     // 2. Walk every mask pixel, evaluate whether it belongs to the requested segment,
     //    and copy across the corresponding source pixel when it does.
-    var index = 0
     if (segment == Segment.FOREGROUND) {
         for (y in 0 until segmentationMask.height) {
             maskProbabilities.get(lineBuffer)
             for (confidence in lineBuffer) {
-                // Only write non-zero values
-                destinationPixels[index] = if (confidence >= confidenceThreshold) colorValue else transparentValue
-                index++
+                maskBuffer.put(
+                    if (confidence >= confidenceThreshold) {
+                        colorValue
+                    } else {
+                        transparentValue
+                    },
+                )
             }
         }
     } else {
@@ -104,22 +109,20 @@ internal fun colouredSegment(
             maskProbabilities.get(lineBuffer)
             for (confidence in lineBuffer) {
                 // Only write non-zero values
-                destinationPixels[index] = if (confidence < confidenceThreshold) colorValue else transparentValue
-                index++
+                maskBuffer.put(
+                    if (confidence < confidenceThreshold) {
+                        colorValue
+                    } else {
+                        transparentValue
+                    },
+                )
             }
         }
     }
 
-    // 4. Push the filtered pixels back into the destination bitmap.
-    destination.setPixels(
-        destinationPixels,
-        0,
-        destination.width,
-        0,
-        0,
-        destination.width,
-        destination.height,
-    )
+    maskBuffer.rewind()
+    // Convert the mask buffer to a Bitmap
+    destination.copyPixelsFromBuffer(maskBuffer)
 }
 
 internal enum class Segment {

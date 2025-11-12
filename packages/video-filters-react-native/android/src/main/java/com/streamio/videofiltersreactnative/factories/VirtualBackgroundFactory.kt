@@ -3,6 +3,7 @@ package com.streamio.videofiltersreactnative.factories
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.PorterDuff
@@ -26,6 +27,7 @@ import com.streamio.videofiltersreactnative.common.colouredSegment
 import com.streamio.videofiltersreactnative.common.getScalingFactors
 import java.io.IOException
 import java.net.URL
+import java.nio.ByteBuffer
 
 /**
  * original source: https://github.com/GetStream/stream-video-android/blob/develop/stream-video-android-filters-video/src/main/kotlin/io/getstream/video/android/filters/video/VirtualBackgroundVideoFilter.kt
@@ -100,7 +102,19 @@ private class VirtualBackgroundVideoFilter(
         // destination - video frame
         // source - black mask bitmap of person cutout
         // DST_IN - Keeps the destination pixels that are covered by source pixels.
-        Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN) }
+        Paint().apply {
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
+            // This matrix copies the alpha channel to all RGBA channels
+            // Useful when drawing ALPHA_8 bitmaps
+            colorFilter = ColorMatrixColorFilter(
+                floatArrayOf(
+                    0f, 0f, 0f, 1f, 0f,  // R = A
+                    0f, 0f, 0f, 1f, 0f,  // G = A
+                    0f, 0f, 0f, 1f, 0f,  // B = A
+                    0f, 0f, 0f, 1f, 0f,  // A = A
+                ),
+            )
+        }
     }
     private val backgroundPaint by lazy {
         // destination - video frame
@@ -110,8 +124,7 @@ private class VirtualBackgroundVideoFilter(
     }
     private var scaledVirtualBackgroundBitmap: Bitmap? = null
     private var scaleBetweenSourceAndMask: Pair<Float, Float>? = null
-    private var sourcePixels: IntArray? = null
-    private var destinationPixels: IntArray? = null
+    private var maskBuffer: ByteBuffer? = null
     private var lineBuffer: FloatArray? = null
 
     private var latestFrameWidth: Int? = null
@@ -142,7 +155,7 @@ private class VirtualBackgroundVideoFilter(
             destination = foregroundBitmap!!,
             segmentationMask = mask,
             confidenceThreshold = foregroundThreshold,
-            destinationPixels = destinationPixels!!,
+            maskBuffer = maskBuffer!!,
             lineBuffer = lineBuffer!!
         )
 
@@ -200,8 +213,6 @@ private class VirtualBackgroundVideoFilter(
 
             latestFrameWidth = videoFrameBitmap.width
             latestFrameHeight = videoFrameBitmap.height
-
-            sourcePixels = IntArray(latestFrameWidth!! * latestFrameHeight!!)
             createScale = true
         }
         if (latestMaskWidth != mask.width || latestMaskHeight != mask.height) {
@@ -209,8 +220,10 @@ private class VirtualBackgroundVideoFilter(
             latestMaskHeight = mask.height
             foregroundBitmap?.recycle()
             foregroundBitmap =
-                Bitmap.createBitmap(latestMaskWidth, latestMaskHeight, Bitmap.Config.ARGB_8888)
-            destinationPixels = IntArray(latestMaskWidth * latestMaskHeight)
+                Bitmap.createBitmap(latestMaskWidth, latestMaskHeight, Bitmap.Config.ALPHA_8)
+            maskBuffer = ByteBuffer.allocateDirect(
+                foregroundBitmap!!.allocationByteCount,
+            )
             lineBuffer = FloatArray(latestMaskWidth)
             createScale = true
         }
