@@ -525,7 +525,7 @@ function useLazyDeviceList(manager: DeviceManagerLike) {
       setDevices$(manager.listDevices());
     }
 
-    return devices;
+    return devices ?? EMPTY_DEVICES_ARRAY;
   };
 
   return { getDevices };
