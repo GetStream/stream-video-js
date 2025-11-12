@@ -191,7 +191,8 @@ export const useBackgroundFilters = () => {
 /**
  * Determines which filter engine is available.
  * MEDIA_PIPE is the default unless legacy filters are requested or MediaPipe is unsupported.
- * Returns NONE if neither is available.
+ *
+ * Returns NONE if neither is supported.
  */
 const determineEngine = async (
   useLegacyFilter: boolean | undefined,
@@ -334,7 +335,6 @@ export const BackgroundFiltersProvider = (
     if (engine !== FilterEngine.MEDIA_PIPE) return;
 
     loadMediaPipe({
-      wasmPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm',
       modelPath: modelFilePath,
     })
       .then(setMediaPipe)

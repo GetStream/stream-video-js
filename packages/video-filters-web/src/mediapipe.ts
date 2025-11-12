@@ -4,7 +4,6 @@ let lastModelFilePath = '';
 let modelFileCache: ArrayBuffer | undefined;
 export const loadMediaPipe = async (
   options: {
-    wasmPath?: string;
     modelPath?: string;
   } = {},
 ): Promise<ArrayBuffer> => {
