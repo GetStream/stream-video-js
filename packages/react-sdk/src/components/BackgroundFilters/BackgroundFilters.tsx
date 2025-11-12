@@ -210,7 +210,7 @@ const determineEngine = async (
     forceMobileSupport,
   });
 
-  return isTfPlatformSupported ? FilterEngine.TF : FilterEngine.MEDIA_PIPE;
+  return isTfPlatformSupported ? FilterEngine.TF : FilterEngine.NONE;
 };
 
 /**
