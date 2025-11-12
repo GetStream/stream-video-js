@@ -77,9 +77,6 @@ internal fun colouredSegment(
     // We use a line buffer here to optimize reads from the FloatBuffer.
     lineBuffer: FloatArray,
 ) {
-    // Determine if we're looking for foreground or background
-    val isForeground = segment == Segment.FOREGROUND
-
     // 1. Ensure subsequent reads traverse the mask from the beginning.
     // Get foreground probabilities for each pixel. Since ML Kit returns this
     // in a byte buffer with each 4 bytes representing a float, convert it to
@@ -92,18 +89,24 @@ internal fun colouredSegment(
 
     // 2. Walk every mask pixel, evaluate whether it belongs to the requested segment,
     //    and copy across the corresponding source pixel when it does.
-
-
     var index = 0
-    for (y in 0 until segmentationMask.height) {
-        maskProbabilities.get(lineBuffer)
-        for (confidence in lineBuffer) {
-            // Only write non-zero values
-            destinationPixels[index] = if (
-                (isForeground && confidence >= confidenceThreshold) ||
-                (!isForeground && confidence < confidenceThreshold)
-            ) colorValue else transparentValue
-            index++
+    if (segment == Segment.FOREGROUND) {
+        for (y in 0 until segmentationMask.height) {
+            maskProbabilities.get(lineBuffer)
+            for (confidence in lineBuffer) {
+                // Only write non-zero values
+                destinationPixels[index] = if (confidence >= confidenceThreshold) colorValue else transparentValue
+                index++
+            }
+        }
+    } else {
+        for (y in 0 until segmentationMask.height) {
+            maskProbabilities.get(lineBuffer)
+            for (confidence in lineBuffer) {
+                // Only write non-zero values
+                destinationPixels[index] = if (confidence < confidenceThreshold) colorValue else transparentValue
+                index++
+            }
         }
     }
 
@@ -129,18 +132,3 @@ internal enum class Segment {
  */
 internal fun getScalingFactors(widths: Pair<Int, Int>, heights: Pair<Int, Int>) =
     Pair(widths.first.toFloat() / widths.second, heights.first.toFloat() / heights.second)
-
-/**
- * Creates a transformation matrix that scales the segmentation mask so it can be drawn on top of
- * the original bitmap. If the mask is already at raw size we return an identity matrix.
- */
-internal fun newSegmentationMaskMatrix(bitmap: Bitmap, mask: SegmentationMask): Matrix {
-    val isRawSizeMaskEnabled = mask.width != bitmap.width || mask.height != bitmap.height
-    return if (!isRawSizeMaskEnabled) {
-        Matrix()
-    } else {
-        val scale =
-            getScalingFactors(Pair(bitmap.width, mask.width), Pair(bitmap.height, mask.height))
-        Matrix().apply { preScale(scale.first, scale.second) }
-    }
-}
