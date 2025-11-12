@@ -70,7 +70,7 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
 
   /**
    * The base path for the TensorFlow Lite files.
-   * @default 'https://unpkg.com/@stream-io/video-filters-web/tf'.
+   * @default 'https://unpkg.com/@stream-io/video-filters-web/mediapipe'.
    */
   basePath?: string;
 
@@ -83,8 +83,8 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
   tfFilePath?: string;
 
   /**
-   * The path to the TensorFlow Lite model file.
-   * Override this prop to use a custom path to the TensorFlow Lite model file
+   * The path to the MediaPipe model file.
+   * Override this prop to use a custom path to the MediaPipe model file
    * (e.g., if you choose to host it yourself).
    */
   modelFilePath?: string;
