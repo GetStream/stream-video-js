@@ -1,7 +1,8 @@
-import { PropsWithChildren } from 'react';
+import { PropsWithChildren, useMemo } from 'react';
 import { Placement } from '@floating-ui/react';
 import {
   Notification,
+  PerformanceDegradationReason,
   useBackgroundFilters,
   useI18n,
 } from '@stream-io/video-react-sdk';
@@ -22,11 +23,41 @@ export const DegradedPerformanceNotification = ({
 
   const { t } = useI18n();
 
-  const message =
-    text ??
-    t(
+  const message = useMemo(() => {
+    if (text) {
+      return text;
+    }
+
+    const reasons = performance?.reason || [];
+    const hasFrameDrop = reasons.includes(
+      PerformanceDegradationReason.FRAME_DROP,
+    );
+    const hasCpuThrottling = reasons.includes(
+      PerformanceDegradationReason.CPU_THROTTLING,
+    );
+
+    if (hasFrameDrop && hasCpuThrottling) {
+      return t(
+        'Background filters are reducing frame rate and overloading the CPU. Disable filters for optimal performance.',
+      );
+    }
+
+    if (hasFrameDrop) {
+      return t(
+        'Background filters are reducing frame rate. Consider disabling filters for optimal performance.',
+      );
+    }
+
+    if (hasCpuThrottling) {
+      return t(
+        'Background filters are overloading the CPU. Consider disabling filters for optimal performance.',
+      );
+    }
+
+    return t(
       'Background filters performance is degraded. Consider disabling filters for optimal performance.',
     );
+  }, [text, performance?.reason, t]);
 
   return (
     <Notification
