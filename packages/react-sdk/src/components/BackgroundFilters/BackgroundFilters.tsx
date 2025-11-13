@@ -310,7 +310,7 @@ export const BackgroundFiltersProvider = (
     if (
       showLowFpsWarning &&
       qualityLimitationReasons &&
-      qualityLimitationReasons.includes('cpu')
+      qualityLimitationReasons?.includes('cpu')
     ) {
       reasons.push(PerformanceDegradationReason.CPU_THROTTLING);
     }
