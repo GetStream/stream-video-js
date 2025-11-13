@@ -48,12 +48,6 @@ export const DegradedPerformanceNotification = ({
       );
     }
 
-    if (hasCpuThrottling) {
-      return t(
-        'Background filters are overloading the CPU. Consider disabling filters for optimal performance.',
-      );
-    }
-
     return t(
       'Background filters performance is degraded. Consider disabling filters for optimal performance.',
     );

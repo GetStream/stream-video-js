@@ -31,7 +31,7 @@ import { useLowFpsWarning } from '../../hooks/useLowFpsWarning';
 /**
  * Represents the available background filter processing engines.
  */
-export enum FilterEngine {
+enum FilterEngine {
   TF = 'TF',
   MEDIA_PIPE = 'MEDIA_PIPE',
   NONE = 'NONE',
@@ -274,7 +274,12 @@ export const BackgroundFiltersProvider = (
 
     const qualityLimitationReasons =
       callStatsReport?.publisherStats?.qualityLimitationReasons;
-    if (qualityLimitationReasons && qualityLimitationReasons.includes('cpu')) {
+
+    if (
+      showLowFpsWarning &&
+      qualityLimitationReasons &&
+      qualityLimitationReasons.includes('cpu')
+    ) {
       reasons.push(PerformanceDegradationReason.CPU_THROTTLING);
     }
 
