@@ -26,7 +26,18 @@ import {
   PerformanceStats,
 } from '@stream-io/video-filters-web';
 import clsx from 'clsx';
-import { useLowFpsWarning } from '../../hooks/useLowFpsWarning';
+
+/**
+ * Constants for FPS warning calculation.
+ * Smooths out quick spikes using an EMA, ignores brief outliers,
+ * and uses two thresholds to avoid flickering near the limit.
+ */
+const ALPHA = 0.2;
+const FPS_WARNING_THRESHOLD_LOWER = 23;
+const FPS_WARNING_THRESHOLD_UPPER = 25;
+const DEFAULT_FPS = 30;
+const DEVIATION_LIMIT = 0.5;
+const OUTLIER_PERSISTENCE = 5;
 
 /**
  * Represents the available background filter processing engines.
@@ -247,19 +258,40 @@ export const BackgroundFiltersProvider = (
   const [backgroundBlurLevel, setBackgroundBlurLevel] =
     useState(bgBlurLevelFromProps);
 
-  const [processorStats, setProcessorStats] = useState<
-    PerformanceStats | undefined
-  >(undefined);
+  const [showLowFpsWarning, setShowLowFpsWarning] = useState<boolean>(false);
+  const emaRef = useRef<number>(DEFAULT_FPS);
+  const outlierStreakRef = useRef<number>(0);
 
   const handleStats = useCallback(
     (stats: PerformanceStats) => {
-      setProcessorStats(stats);
       onStats?.(stats);
+
+      const fps = stats?.fps;
+      if (fps === undefined || fps === null) {
+        emaRef.current = DEFAULT_FPS;
+        outlierStreakRef.current = 0;
+        setShowLowFpsWarning(false);
+        return;
+      }
+
+      const prevEma = emaRef.current;
+      const deviation = Math.abs(fps - prevEma) / prevEma;
+
+      const isOutlier = fps < prevEma && deviation > DEVIATION_LIMIT;
+      outlierStreakRef.current = isOutlier ? outlierStreakRef.current + 1 : 0;
+      if (isOutlier && outlierStreakRef.current < OUTLIER_PERSISTENCE) return;
+
+      emaRef.current = ALPHA * fps + (1 - ALPHA) * prevEma;
+
+      setShowLowFpsWarning((prev) => {
+        if (prev && emaRef.current > FPS_WARNING_THRESHOLD_UPPER) return false;
+        if (!prev && emaRef.current < FPS_WARNING_THRESHOLD_LOWER) return true;
+
+        return prev;
+      });
     },
     [onStats],
   );
-
-  const showLowFpsWarning = useLowFpsWarning(processorStats);
 
   const performance: BackgroundFiltersPerformance = useMemo(() => {
     if (!backgroundFilter) {
@@ -310,7 +342,10 @@ export const BackgroundFiltersProvider = (
     setBackgroundFilter(undefined);
     setBackgroundImage(undefined);
     setBackgroundBlurLevel(undefined);
-    setProcessorStats(undefined);
+
+    emaRef.current = DEFAULT_FPS;
+    outlierStreakRef.current = 0;
+    setShowLowFpsWarning(false);
   }, []);
 
   const [engine, setEngine] = useState<FilterEngine>(FilterEngine.NONE);
