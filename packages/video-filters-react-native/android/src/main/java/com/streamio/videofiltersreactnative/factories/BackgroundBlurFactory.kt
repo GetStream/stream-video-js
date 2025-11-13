@@ -3,8 +3,10 @@ package com.streamio.videofiltersreactnative.factories
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.util.Log
-import com.google.android.gms.tasks.Tasks
 import com.google.android.renderscript.Toolkit
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.segmentation.Segmentation
@@ -15,10 +17,8 @@ import com.oney.WebRTCModule.videoEffects.VideoFrameProcessorFactoryInterface
 import com.streamio.videofiltersreactnative.common.BitmapVideoFilter
 import com.streamio.videofiltersreactnative.common.Segment
 import com.streamio.videofiltersreactnative.common.VideoFrameProcessorWithBitmapFilter
-import com.streamio.videofiltersreactnative.common.copySegment
+import com.streamio.videofiltersreactnative.common.colouredSegmentInt
 import com.streamio.videofiltersreactnative.common.getScalingFactors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 
 
@@ -49,14 +49,46 @@ private class BlurredBackgroundVideoFilter(
         SelfieSegmenterOptions.Builder().setDetectorMode(SelfieSegmenterOptions.STREAM_MODE)
             .enableRawSizeMask().build()
     private val segmenter = Segmentation.getClient(options)
+
+    @Volatile // volatile as its get and set happen in different threads
     private var segmentationMask: SegmentationMask? = null
+    private var processedSegmentationMask: SegmentationMask? = null
+
+    // used for throttling, we dont want to send to ML model when there is an ongoing processing
+    // atomic as its get and set happen in different threads
     private val isProcessing = AtomicBoolean(false)
     private var foregroundThreshold: Double = foregroundThreshold.coerceIn(0.0, 1.0)
     private var scaleBetweenSourceAndMask: Pair<Float, Float>? = null
     private var scaleMatrix: Matrix? = null
 
-    // Reusable buffers
-    private var backgroundBitmap: Bitmap? = null
+    // bitmap to hold the background values, 1 for background 0 for foreground, raw mask sized
+    private var backgroundMaskBitmap: Bitmap? = null
+
+    // bitmap to hold a downscaled version (0.5) of the actual background, to optimise blur step
+    private var downScaledBackgroundBitmap: Bitmap? = null
+
+    private val downScaleMatrix by lazy { Matrix().apply { preScale(0.5f, 0.5f) } }
+    private val downScalePaint by lazy {
+        Paint().apply {
+            // apply bilinear filtering by scaling
+            isFilterBitmap = true
+        }
+    }
+    private var maskToDownScaledBackgroundScale: Matrix? = null
+    private val maskToDownScalePaint by lazy {
+        // destination - downscaled background
+        // source - black mask bitmap of person cutout
+        // DST_IN - Keeps the destination pixels that are covered by source pixels.
+        Paint().apply {
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
+            // smooth the edges
+            isAntiAlias = true
+        }
+    }
+
+    // scale for downscaled blurred background to videoframe size
+    private val upScaleMatrix by lazy { Matrix().apply { preScale(2f, 2f) } }
+
     private var currentFrameWidth = 0
     private var currentFrameHeight = 0
     private var currentMaskWidth = 0
@@ -70,65 +102,69 @@ private class BlurredBackgroundVideoFilter(
         if (!isProcessing.getAndSet(true)) {
             // Apply segmentation
             val mlImage = InputImage.fromBitmap(videoFrameBitmap, 0)
-            val timeBeforeSegment = System.currentTimeMillis()
-            segmenter.process(mlImage)
-                .addOnSuccessListener { mask ->
-                    Log.d("VideoFilters", "Time taken to segment image : ${System.currentTimeMillis() - timeBeforeSegment}")
-                    segmentationMask = mask
-                }
-                .addOnFailureListener { e ->
-                    Log.e("VideoFilters", "Failed to segment image", e)
-                }
-                .addOnCompleteListener {
-                    isProcessing.set(false)
-                }
-        } else {
-            Log.d("VideoFilters", "Skipping frame, segmenter busy.")
+            segmenter.process(mlImage).addOnSuccessListener { mask ->
+                segmentationMask = mask
+            }.addOnFailureListener { e ->
+                Log.e("VideoFilters", "Failed to segment image", e)
+            }.addOnCompleteListener {
+                isProcessing.set(false)
+            }
         }
 
         val mask = segmentationMask ?: return
 
-        val timeBeforeProcess = System.currentTimeMillis()
+        maybeInit(videoFrameBitmap, mask)
 
-        createBuffers(videoFrameBitmap, mask)
+        if (mask !== processedSegmentationMask) {
+            colouredSegmentInt(
+                segment = Segment.BACKGROUND,
+                destination = backgroundMaskBitmap!!,
+                segmentationMask = mask,
+                confidenceThreshold = foregroundThreshold,
+                maskArray = destinationPixels!!,
+                lineBuffer = lineBuffer!!
+            )
+            processedSegmentationMask = mask
+        }
 
-        // Copy the background segment to a new bitmap - backgroundBitmap
-        copySegment(
-            segment = Segment.BACKGROUND,
-            source = videoFrameBitmap,
-            destination = backgroundBitmap!!,
-            segmentationMask = mask,
-            confidenceThreshold = foregroundThreshold,
-            sourcePixels = sourcePixels!!,
-            destinationPixels = destinationPixels!!,
-            scaleBetweenSourceAndMask = scaleBetweenSourceAndMask!!,
-            lineBuffer = lineBuffer!!
+        val scaledBackgroundCanvas = Canvas(downScaledBackgroundBitmap!!)
+        scaledBackgroundCanvas.drawBitmap(
+            videoFrameBitmap, downScaleMatrix, downScalePaint
+        )
+
+        scaledBackgroundCanvas.drawBitmap(
+            backgroundMaskBitmap!!,
+            maskToDownScaledBackgroundScale!!,
+            maskToDownScalePaint
         )
 
         // Blur the background bitmap
-        val blurredBackgroundBitmap = Toolkit.blur(backgroundBitmap!!, blurIntensity.radius)
+        val blurredBackgroundBitmap =
+            Toolkit.blur(downScaledBackgroundBitmap!!, blurIntensity.radius)
 
         // Draw the blurred background bitmap on the original bitmap
         val canvas = Canvas(videoFrameBitmap)
-        canvas.drawBitmap(blurredBackgroundBitmap, scaleMatrix!!, null)
+        canvas.drawBitmap(blurredBackgroundBitmap, upScaleMatrix, null)
 
         blurredBackgroundBitmap.recycle()
-        Log.d("VideoFilters", "Time taken to process image : ${System.currentTimeMillis() - timeBeforeProcess}" )
     }
 
-    private fun createBuffers(videoFrameBitmap: Bitmap, mask: SegmentationMask) {
+    private fun maybeInit(videoFrameBitmap: Bitmap, mask: SegmentationMask) {
         var createScale = false
         if (currentFrameWidth != videoFrameBitmap.width || currentFrameHeight != videoFrameBitmap.height) {
             currentFrameWidth = videoFrameBitmap.width
             currentFrameHeight = videoFrameBitmap.height
             sourcePixels = IntArray(currentFrameWidth * currentFrameHeight)
+            downScaledBackgroundBitmap = Bitmap.createBitmap(
+                currentFrameWidth / 2, currentFrameHeight / 2, Bitmap.Config.ARGB_8888
+            )
             createScale = true
         }
         if (currentMaskWidth != mask.width || currentMaskHeight != mask.height) {
             currentMaskWidth = mask.width
             currentMaskHeight = mask.height
-            backgroundBitmap?.recycle()
-            backgroundBitmap =
+            backgroundMaskBitmap?.recycle()
+            backgroundMaskBitmap =
                 Bitmap.createBitmap(currentMaskWidth, currentMaskHeight, Bitmap.Config.ARGB_8888)
             destinationPixels = IntArray(currentMaskWidth * currentMaskHeight)
             lineBuffer = FloatArray(currentMaskWidth)
@@ -136,12 +172,20 @@ private class BlurredBackgroundVideoFilter(
         }
 
         if (createScale || scaleBetweenSourceAndMask == null) {
-            Log.d("VideoFilters", "Creating scale" )
             scaleBetweenSourceAndMask = getScalingFactors(
                 widths = Pair(currentFrameWidth, currentMaskWidth),
                 heights = Pair(currentFrameHeight, currentMaskHeight),
             )
-            scaleMatrix = Matrix().apply { preScale(scaleBetweenSourceAndMask!!.first, scaleBetweenSourceAndMask!!.second) }
+            scaleMatrix = Matrix().apply {
+                preScale(
+                    scaleBetweenSourceAndMask!!.first, scaleBetweenSourceAndMask!!.second
+                )
+            }
+            maskToDownScaledBackgroundScale = Matrix().apply {
+                preScale(
+                    scaleBetweenSourceAndMask!!.first / 2, scaleBetweenSourceAndMask!!.second / 2
+                )
+            }
         }
     }
 }
