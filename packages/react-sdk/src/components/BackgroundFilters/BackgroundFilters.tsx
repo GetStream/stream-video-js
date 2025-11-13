@@ -391,22 +391,29 @@ const BackgroundFilters = (props: {
 }) => {
   const call = useCall();
   const { children, start } = useRenderer(props.tfLite, call, props.engine);
-  const { onError, backgroundFilter } = useBackgroundFilters();
+  const { onError, onStats, backgroundFilter } = useBackgroundFilters();
   const handleErrorRef = useRef<((error: any) => void) | undefined>(undefined);
   handleErrorRef.current = onError;
 
-  const enabled = !!backgroundFilter;
+  const handleStatsRef = useRef<
+    ((stats: PerformanceStats) => void) | undefined
+  >(undefined);
+  handleStatsRef.current = onStats;
 
   useEffect(() => {
-    if (!call || !enabled) return;
+    if (!call || !backgroundFilter) return;
 
     const { unregister } = call.camera.registerFilter((ms) => {
-      return start(ms, (error) => handleErrorRef.current?.(error));
+      return start(
+        ms,
+        (error) => handleErrorRef.current?.(error),
+        (stats: PerformanceStats) => handleStatsRef.current?.(stats),
+      );
     });
     return () => {
       unregister().catch((err) => console.warn(`Can't unregister filter`, err));
     };
-  }, [call, start, enabled]);
+  }, [call, start, backgroundFilter]);
 
   return children;
 };
@@ -422,7 +429,6 @@ const useRenderer = (
     backgroundImage,
     modelFilePath,
     basePath,
-    onStats,
   } = useBackgroundFilters();
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -436,7 +442,11 @@ const useRenderer = (
   );
 
   const start = useCallback(
-    (ms: MediaStream, onError?: (error: any) => void) => {
+    (
+      ms: MediaStream,
+      onError?: (error: any) => void,
+      onStats?: (stats: PerformanceStats) => void,
+    ) => {
       let outputStream: MediaStream | undefined;
       let processor: VirtualBackground | undefined;
       let renderer: Renderer | undefined;
@@ -574,7 +584,6 @@ const useRenderer = (
       };
     },
     [
-      onStats,
       backgroundBlurLevel,
       backgroundFilter,
       backgroundImage,
