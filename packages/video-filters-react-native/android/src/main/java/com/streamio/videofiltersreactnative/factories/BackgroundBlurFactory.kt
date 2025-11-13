@@ -59,7 +59,7 @@ private class BlurredBackgroundVideoFilter(
     private val isProcessing = AtomicBoolean(false)
     private var foregroundThreshold: Double = foregroundThreshold.coerceIn(0.0, 1.0)
     private var scaleBetweenSourceAndMask: Pair<Float, Float>? = null
-    private var scaleMatrix: Matrix? = null
+    private var scaleBetweenSourceAndMaskMatrix: Matrix? = null
 
     // bitmap to hold the background values, 1 for background 0 for foreground, raw mask sized
     private var backgroundMaskBitmap: Bitmap? = null
@@ -176,7 +176,7 @@ private class BlurredBackgroundVideoFilter(
                 widths = Pair(currentFrameWidth, currentMaskWidth),
                 heights = Pair(currentFrameHeight, currentMaskHeight),
             )
-            scaleMatrix = Matrix().apply {
+            scaleBetweenSourceAndMaskMatrix = Matrix().apply {
                 preScale(
                     scaleBetweenSourceAndMask!!.first, scaleBetweenSourceAndMask!!.second
                 )
