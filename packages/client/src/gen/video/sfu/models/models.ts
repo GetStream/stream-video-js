@@ -1171,6 +1171,12 @@ export enum ClientCapability {
    * @generated from protobuf enum value: CLIENT_CAPABILITY_SUBSCRIBER_VIDEO_PAUSE = 1;
    */
   SUBSCRIBER_VIDEO_PAUSE = 1,
+  /**
+   * Instructs SFU that stats will be sent to the coordinator
+   *
+   * @generated from protobuf enum value: CLIENT_CAPABILITY_COORDINATOR_STATS = 2;
+   */
+  COORDINATOR_STATS = 2,
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {

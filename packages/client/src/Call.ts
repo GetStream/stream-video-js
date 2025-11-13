@@ -285,6 +285,7 @@ export class Call {
    */
   private clientCapabilities = new Set<ClientCapability>([
     ClientCapability.SUBSCRIBER_VIDEO_PAUSE,
+    ClientCapability.COORDINATOR_STATS,
   ]);
 
   /**
@@ -1284,17 +1285,22 @@ export class Call {
     this.sfuStatsReporter?.flush();
     this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
-      this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
-        clientDetails,
-        options: statsOptions,
-        subscriber: this.subscriber,
-        publisher: this.publisher,
-        microphone: this.microphone,
-        camera: this.camera,
-        state: this.state,
-        tracer: this.tracer,
-        unifiedSessionId,
-      });
+      this.sfuStatsReporter = new SfuStatsReporter(
+        sfuClient,
+        this.streamClient,
+        {
+          clientDetails,
+          options: statsOptions,
+          subscriber: this.subscriber,
+          publisher: this.publisher,
+          tracer: this.tracer,
+          unifiedSessionId,
+          basePath: this.streamClientBasePath,
+          useLegacyStats: !this.clientCapabilities.has(
+            ClientCapability.COORDINATOR_STATS,
+          ),
+        },
+      );
       this.sfuStatsReporter.start();
     }
   };

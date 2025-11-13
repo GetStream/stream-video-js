@@ -435,9 +435,7 @@ export class StreamClient {
     type: string,
     url: string,
     data: unknown,
-    config: AxiosRequestConfig & {
-      config?: AxiosRequestConfig & { maxBodyLength?: number };
-    },
+    config: AxiosRequestConfig,
   ) => {
     if (this.logger.getLogLevel() !== 'trace') return;
     this.logger.trace(`client: ${type} - Request - ${url}`, {
@@ -465,7 +463,6 @@ export class StreamClient {
     url: string,
     data?: D,
     options: AxiosRequestConfig & {
-      config?: AxiosRequestConfig & { maxBodyLength?: number };
       publicEndpoint?: boolean;
     } = {},
   ): Promise<T> => {
@@ -636,13 +633,12 @@ export class StreamClient {
     return this.cachedUserAgent;
   };
 
-  _enrichAxiosOptions = (
-    options: AxiosRequestConfig & { config?: AxiosRequestConfig } & {
+  private _enrichAxiosOptions = (
+    options: AxiosRequestConfig & {
       publicEndpoint?: boolean;
     } = {
       params: {},
       headers: {},
-      config: {},
     },
   ): AxiosRequestConfig => {
     const token =
@@ -680,7 +676,6 @@ export class StreamClient {
         ...options.headers,
         ...axiosConfigHeaders,
       },
-      ...options.config,
       ...axiosRequestConfig,
     };
   };
