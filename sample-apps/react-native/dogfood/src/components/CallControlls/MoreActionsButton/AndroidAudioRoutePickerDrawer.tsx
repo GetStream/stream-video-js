@@ -20,7 +20,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { BOTTOM_CONTROLS_HEIGHT } from '../constants';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type DrawerProps = {
@@ -31,20 +31,23 @@ type DrawerProps = {
 const endpointNameToIconImage = (endPointName: AudioDeviceEndpointType) => {
   switch (endPointName) {
     case 'Speaker':
-      return require('../assets/audio-routes/volume_up_24dp.png');
+      return require('../../../assets/audio-routes/volume_up_24dp.png');
     case 'Earpiece':
-      return require('../assets/audio-routes/call_24dp.png');
+      return require('../../../assets/audio-routes/call_24dp.png');
     case 'Wired Headset':
-      return require('../assets/audio-routes/headphones_24dp.png');
+      return require('../../../assets/audio-routes/headphones_24dp.png');
     default:
-      return require('../assets/audio-routes/bluetooth_connected_24dp.png');
+      return require('../../../assets/audio-routes/bluetooth_connected_24dp.png');
   }
 };
 
-export const AndroidAudioRoutePickerDrawer: React.FC<DrawerProps> = ({
-  isVisible,
-  onClose,
-}) => {
+type AndroidAudioRoutePickerDrawerProps = DrawerProps & {
+  bottomControlsHeight: number;
+};
+
+export const AndroidAudioRoutePickerDrawer: React.FC<
+  AndroidAudioRoutePickerDrawerProps
+> = ({ isVisible, onClose, bottomControlsHeight }) => {
   const screenHeight = useWindowDimensions().height;
   const drawerHeight = screenHeight * 0.8;
   const styles = useStyles();
@@ -63,7 +66,7 @@ export const AndroidAudioRoutePickerDrawer: React.FC<DrawerProps> = ({
   const selectedAudioDeviceName = audioDeviceStatus?.selectedDevice;
 
   // negative offset is needed so the drawer component start above the bottom controls
-  const offset = -BOTTOM_CONTROLS_HEIGHT;
+  const offset = -bottomControlsHeight;
 
   const translateY = useRef<any>(
     new Animated.Value(drawerHeight + offset),

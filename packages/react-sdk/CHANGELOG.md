@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.26.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.25.1...@stream-io/video-react-sdk-1.26.0) (2025-11-12)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.7.0`
+- `@stream-io/video-client` updated to version `1.36.1`
+- `@stream-io/video-react-bindings` updated to version `1.11.0`
+
+### Features
+
+- **react:** Microphone Audio Level Indicator ([#1993](https://github.com/GetStream/stream-video-js/issues/1993)) ([9b62d2d](https://github.com/GetStream/stream-video-js/commit/9b62d2d8d2171ae97fbedaedbe473fdb0b85444b))
+
 ## [1.25.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.25.0...@stream-io/video-react-sdk-1.25.1) (2025-11-04)
 
 ### Dependency Updates
