@@ -76,17 +76,13 @@ export class WebGLRenderer {
     bgBlurRadius: WebGLUniformLocation | null;
     enabled: WebGLUniformLocation | null;
   };
-  // Buffers & Framebuffers
   readonly positionBuffer: WebGLBuffer | null;
   readonly texCoordBuffer: WebGLBuffer | null;
   readonly storedStateTextures: (WebGLTexture | null)[];
   readonly fbo: WebGLFramebuffer | null;
-  // Refine outputs
   readonly refineFbo: WebGLFramebuffer | null;
   readonly refinedMaskTexture: WebGLTexture | null;
-  // Frame texture
   readonly frameTexture: WebGLTexture | null;
-  // Blur resources
   readonly blurTexture1: WebGLTexture | null;
   readonly blurTexture2: WebGLTexture | null;
   readonly blurFbo1: WebGLFramebuffer | null;
@@ -115,40 +111,39 @@ export class WebGLRenderer {
 
     const stateUpdateVertexShaderSource = `attribute vec2 a_position; attribute vec2 a_texCoord; varying vec2 v_texCoord; void main() { gl_Position = vec4(a_position, 0.0, 1.0); v_texCoord = a_texCoord; }`;
     const stateUpdateFragmentShaderSource = `
-            precision mediump float;
-            varying vec2 v_texCoord;
-            uniform sampler2D u_categoryTexture;
-            uniform sampler2D u_confidenceTexture;
-            uniform sampler2D u_prevStateTexture;
-            uniform float u_smoothingFactor;
-            uniform float u_smoothstepMin;
-            uniform float u_smoothstepMax;
-            uniform int u_selfieModel;
+      precision mediump float;
+      varying vec2 v_texCoord;
+      uniform sampler2D u_categoryTexture;
+      uniform sampler2D u_confidenceTexture;
+      uniform sampler2D u_prevStateTexture;
+      uniform float u_smoothingFactor;
+      uniform float u_smoothstepMin;
+      uniform float u_smoothstepMax;
+      uniform int u_selfieModel;
 
-            void main() {
-                vec2 prevCoord = vec2(v_texCoord.x, 1.0 - v_texCoord.y);
-                float categoryValue = texture2D(u_categoryTexture, v_texCoord).r;
-                float confidenceValue = texture2D(u_confidenceTexture, v_texCoord).r;
+      void main() {
+        vec2 prevCoord = vec2(v_texCoord.x, 1.0 - v_texCoord.y);
+        float categoryValue = texture2D(u_categoryTexture, v_texCoord).r;
+        float confidenceValue = texture2D(u_confidenceTexture, v_texCoord).r;
 
-                if (u_selfieModel == 1) {
-                    categoryValue = 1.0 - categoryValue;
-                    confidenceValue = 1.0 - confidenceValue;
-                }
+        if (u_selfieModel == 1) {
+            categoryValue = 1.0 - categoryValue;
+            confidenceValue = 1.0 - confidenceValue;
+        }
 
-                if (categoryValue > 0.0) {
-                    categoryValue = 1.0;
-                    confidenceValue = 1.0 - confidenceValue;
-                }
+        if (categoryValue > 0.0) {
+            categoryValue = 1.0;
+            confidenceValue = 1.0 - confidenceValue;
+        }
 
-                float nonLinearConfidence = smoothstep(u_smoothstepMin, u_smoothstepMax, confidenceValue);
-                float prevCategoryValue = texture2D(u_prevStateTexture, prevCoord).r;
-                float alpha = u_smoothingFactor * nonLinearConfidence;
-                float newCategoryValue = alpha * categoryValue + (1.0 - alpha) * prevCategoryValue;
+        float nonLinearConfidence = smoothstep(u_smoothstepMin, u_smoothstepMax, confidenceValue);
+        float prevCategoryValue = texture2D(u_prevStateTexture, prevCoord).r;
+        float alpha = u_smoothingFactor * nonLinearConfidence;
+        float newCategoryValue = alpha * categoryValue + (1.0 - alpha) * prevCategoryValue;
 
-
-                gl_FragColor = vec4(newCategoryValue, 0.0, 0.0, 0.0);
-            }
-        `;
+        gl_FragColor = vec4(newCategoryValue, 0.0, 0.0, 0.0);
+      }
+    `;
     this.stateUpdateProgram = this.createAndLinkProgram(
       stateUpdateVertexShaderSource,
       stateUpdateFragmentShaderSource,
@@ -188,44 +183,44 @@ export class WebGLRenderer {
 
     const maskRefineVertexShaderSource = stateUpdateVertexShaderSource;
     const maskRefineFragmentShaderSource = `
-            precision mediump float;
-            varying vec2 v_texCoord;
+      precision mediump float;
+      varying vec2 v_texCoord;
 
-            uniform sampler2D u_maskTexture;
-            uniform sampler2D u_frameTexture;
-            uniform vec2 u_texelSize;
-            uniform float u_sigmaSpatial;
-            uniform float u_sigmaRange;
+      uniform sampler2D u_maskTexture;
+      uniform sampler2D u_frameTexture;
+      uniform vec2 u_texelSize;
+      uniform float u_sigmaSpatial;
+      uniform float u_sigmaRange;
 
-            void main() {
-              vec2 flippedCoord = v_texCoord;
-              vec3 centerPixelColor = texture2D(u_frameTexture, v_texCoord).rgb;
-              float totalWeight = 0.0;
-              float weightedMaskSum = 0.0;
+      void main() {
+        vec2 flippedCoord = v_texCoord;
+        vec3 centerPixelColor = texture2D(u_frameTexture, v_texCoord).rgb;
+        float totalWeight = 0.0;
+        float weightedMaskSum = 0.0;
 
-              for (int offsetX = -2; offsetX <= 2; offsetX++) {
-                for (int offsetY = -2; offsetY <= 2; offsetY++) {
-                  vec2 shift = vec2(float(offsetX), float(offsetY)) * u_texelSize;
-                  vec2 frameCoord = v_texCoord + shift;
-                  vec2 maskCoord = flippedCoord + shift;
+        for (int offsetX = -2; offsetX <= 2; offsetX++) {
+          for (int offsetY = -2; offsetY <= 2; offsetY++) {
+            vec2 shift = vec2(float(offsetX), float(offsetY)) * u_texelSize;
+            vec2 frameCoord = v_texCoord + shift;
+            vec2 maskCoord = flippedCoord + shift;
 
-                  vec3 neighborPixelColor = texture2D(u_frameTexture, frameCoord).rgb;
-                  float neighborMaskValue = texture2D(u_maskTexture, maskCoord).r;
+            vec3 neighborPixelColor = texture2D(u_frameTexture, frameCoord).rgb;
+            float neighborMaskValue = texture2D(u_maskTexture, maskCoord).r;
 
-                  float spatialWeight = exp(-dot(shift, shift) / (2.0 * u_sigmaSpatial * u_sigmaSpatial));
-                  vec3 colorDifference = neighborPixelColor - centerPixelColor;
-                  float rangeWeight = exp(-(dot(colorDifference, colorDifference)) / (2.0 * u_sigmaRange * u_sigmaRange));
+            float spatialWeight = exp(-dot(shift, shift) / (2.0 * u_sigmaSpatial * u_sigmaSpatial));
+            vec3 colorDifference = neighborPixelColor - centerPixelColor;
+            float rangeWeight = exp(-(dot(colorDifference, colorDifference)) / (2.0 * u_sigmaRange * u_sigmaRange));
 
-                  float combinedWeight = spatialWeight * rangeWeight;
-                  weightedMaskSum += neighborMaskValue * combinedWeight;
-                  totalWeight += combinedWeight;
-                }
-              }
+            float combinedWeight = spatialWeight * rangeWeight;
+            weightedMaskSum += neighborMaskValue * combinedWeight;
+            totalWeight += combinedWeight;
+          }
+        }
 
-              float refinedMaskValue = weightedMaskSum / max(totalWeight, 1e-6);
-              gl_FragColor = vec4(refinedMaskValue, refinedMaskValue, refinedMaskValue, 1.0);
-            }
-        `;
+        float refinedMaskValue = weightedMaskSum / max(totalWeight, 1e-6);
+        gl_FragColor = vec4(refinedMaskValue, refinedMaskValue, refinedMaskValue, 1.0);
+      }
+    `;
 
     this.maskRefineProgram = this.createAndLinkProgram(
       maskRefineVertexShaderSource,
@@ -252,52 +247,52 @@ export class WebGLRenderer {
 
     const blurVertexShaderSource = stateUpdateVertexShaderSource;
     const blurFragmentShaderSource = `
-            precision highp float;
-            varying vec2 v_texCoord;
+      precision highp float;
+      varying vec2 v_texCoord;
 
-            uniform sampler2D u_image;
-            uniform sampler2D u_personMask;
-            uniform vec2 u_texelSize;
-            uniform float u_sigma;
-            uniform float u_radiusScale;
-            uniform vec2 u_direction;
+      uniform sampler2D u_image;
+      uniform sampler2D u_personMask;
+      uniform vec2 u_texelSize;
+      uniform float u_sigma;
+      uniform float u_radiusScale;
+      uniform vec2 u_direction;
 
-            const int KERNEL_RADIUS = 10;
+      const int KERNEL_RADIUS = 10;
 
-            float gauss(float x, float s) {
-              return exp(-(x * x) / (2.0 * s * s));
-            }
+      float gauss(float x, float s) {
+        return exp(-(x * x) / (2.0 * s * s));
+      }
 
-            void main() {
-              vec2 maskCoord = u_direction.y > 0.5 ? vec2(v_texCoord.x, 1.0 - v_texCoord.y) : v_texCoord;
-              float mCenter = texture2D(u_personMask, maskCoord).r;
-              float wCenter = gauss(0.0, u_sigma);
-              vec4 accum = texture2D(u_image, v_texCoord) * wCenter * (1.0 - mCenter);
-              float weightSum = wCenter * (1.0 - mCenter);
+      void main() {
+        vec2 maskCoord = u_direction.y > 0.5 ? vec2(v_texCoord.x, 1.0 - v_texCoord.y) : v_texCoord;
+        float mCenter = texture2D(u_personMask, maskCoord).r;
+        float wCenter = gauss(0.0, u_sigma);
+        vec4 accum = texture2D(u_image, v_texCoord) * wCenter * (1.0 - mCenter);
+        float weightSum = wCenter * (1.0 - mCenter);
 
-              for (int i = 1; i <= KERNEL_RADIUS; i++) {
-                float f = float(i);
-                float offset = f * u_radiusScale;
-                float w = gauss(offset, u_sigma);
-                vec2 texOffset = u_direction * offset * u_texelSize;
+        for (int i = 1; i <= KERNEL_RADIUS; i++) {
+          float f = float(i);
+          float offset = f * u_radiusScale;
+          float w = gauss(offset, u_sigma);
+          vec2 texOffset = u_direction * offset * u_texelSize;
 
-                vec2 uvPlus = v_texCoord + texOffset;
-                vec2 maskCoordPlus = u_direction.y > 0.5 ? vec2(uvPlus.x, 1.0 - uvPlus.y) : uvPlus;
-                float mPlus = texture2D(u_personMask, maskCoordPlus).r;
-                accum += texture2D(u_image, uvPlus) * w * (1.0 - mPlus);
-                weightSum += w * (1.0 - mPlus);
+          vec2 uvPlus = v_texCoord + texOffset;
+          vec2 maskCoordPlus = u_direction.y > 0.5 ? vec2(uvPlus.x, 1.0 - uvPlus.y) : uvPlus;
+          float mPlus = texture2D(u_personMask, maskCoordPlus).r;
+          accum += texture2D(u_image, uvPlus) * w * (1.0 - mPlus);
+          weightSum += w * (1.0 - mPlus);
 
-                vec2 uvMinus = v_texCoord - texOffset;
-                vec2 maskCoordMinus = u_direction.y > 0.5 ? vec2(uvMinus.x, 1.0 - uvMinus.y) : uvMinus;
-                float mMinus = texture2D(u_personMask, maskCoordMinus).r;
-                accum += texture2D(u_image, uvMinus) * w * (1.0 - mMinus);
-                weightSum += w * (1.0 - mMinus);
-              }
+          vec2 uvMinus = v_texCoord - texOffset;
+          vec2 maskCoordMinus = u_direction.y > 0.5 ? vec2(uvMinus.x, 1.0 - uvMinus.y) : uvMinus;
+          float mMinus = texture2D(u_personMask, maskCoordMinus).r;
+          accum += texture2D(u_image, uvMinus) * w * (1.0 - mMinus);
+          weightSum += w * (1.0 - mMinus);
+        }
 
-              vec4 blurred = accum / max(weightSum, 1e-6);
-              gl_FragColor = blurred;
-            }
-        `;
+        vec4 blurred = accum / max(weightSum, 1e-6);
+        gl_FragColor = blurred;
+      }
+    `;
 
     this.blurProgram = this.createAndLinkProgram(
       blurVertexShaderSource,
@@ -316,57 +311,57 @@ export class WebGLRenderer {
 
     const blendVertexShaderSource = stateUpdateVertexShaderSource;
     const blendFragmentShaderSource = `
-            precision mediump float;
-            varying vec2 v_texCoord;
+      precision mediump float;
+      varying vec2 v_texCoord;
 
-            uniform sampler2D u_frameTexture;
-            uniform sampler2D u_currentStateTexture;
-            uniform sampler2D u_backgroundTexture;
-            uniform vec2 u_bgImageDimensions;   // Dimensions of the background image
-            uniform vec2 u_canvasDimensions;    // Dimensions of the canvas
-            uniform float u_borderSmooth;
-            uniform float u_bgBlur;
-            uniform float u_bgBlurRadius;
-            uniform int u_enabled;
+      uniform sampler2D u_frameTexture;
+      uniform sampler2D u_currentStateTexture;
+      uniform sampler2D u_backgroundTexture;
+      uniform vec2 u_bgImageDimensions;
+      uniform vec2 u_canvasDimensions;
+      uniform float u_borderSmooth;
+      uniform float u_bgBlur;
+      uniform float u_bgBlurRadius;
+      uniform int u_enabled;
 
-            vec4 getMixedFragColor(vec2 bgTexCoord, vec2 categoryCoord, vec2 offset) {
-                vec4 backgroundColor = texture2D(u_backgroundTexture, bgTexCoord + offset);
-                vec4 frameColor = texture2D(u_frameTexture, v_texCoord + offset);
-                float categoryValue = texture2D(u_currentStateTexture, categoryCoord + offset).r;
-                return mix(backgroundColor, frameColor, categoryValue);
-            }
+      vec4 getMixedFragColor(vec2 bgTexCoord, vec2 categoryCoord, vec2 offset) {
+          vec4 backgroundColor = texture2D(u_backgroundTexture, bgTexCoord + offset);
+          vec4 frameColor = texture2D(u_frameTexture, v_texCoord + offset);
+          float categoryValue = texture2D(u_currentStateTexture, categoryCoord + offset).r;
+          return mix(backgroundColor, frameColor, categoryValue);
+      }
 
-            void main() {
-              if (u_enabled == 0) {
-                gl_FragColor = texture2D(u_frameTexture, v_texCoord);
-                return;
-              }
+      void main() {
+        if (u_enabled == 0) {
+          gl_FragColor = texture2D(u_frameTexture, v_texCoord);
+          return;
+        }
 
-              vec2 categoryCoord = v_texCoord;
-              float categoryValue = texture2D(u_currentStateTexture, categoryCoord).r;
+        vec2 categoryCoord = v_texCoord;
+        float categoryValue = texture2D(u_currentStateTexture, categoryCoord).r;
 
-              float canvasAspect = u_canvasDimensions.x / u_canvasDimensions.y;
-                float bgAspect = u_bgImageDimensions.x / u_bgImageDimensions.y;
+        float canvasAspect = u_canvasDimensions.x / u_canvasDimensions.y;
+          float bgAspect = u_bgImageDimensions.x / u_bgImageDimensions.y;
 
-                vec2 bgTexCoord = v_texCoord;
-                float scaleX = 1.0;
-                float scaleY = 1.0;
-                float offsetX = 0.0;
-                float offsetY = 0.0;
+          vec2 bgTexCoord = v_texCoord;
+          float scaleX = 1.0;
+          float scaleY = 1.0;
+          float offsetX = 0.0;
+          float offsetY = 0.0;
 
-                if (canvasAspect < bgAspect) {
-                    scaleY = 1.0;
-                    scaleX = bgAspect / canvasAspect;
-                    offsetX = (1.0 - scaleX) / 2.0;
-                } else {
-                    scaleX = 1.0;
-                    scaleY = canvasAspect / bgAspect;
-                    offsetY = (1.0 - scaleY) / 2.0;
-                }
+          if (canvasAspect < bgAspect) {
+              scaleY = 1.0;
+              scaleX = bgAspect / canvasAspect;
+              offsetX = (1.0 - scaleX) / 2.0;
+          } else {
+              scaleX = 1.0;
+              scaleY = canvasAspect / bgAspect;
+              offsetY = (1.0 - scaleY) / 2.0;
+          }
 
-                bgTexCoord = vec2((v_texCoord.x - offsetX) / scaleX, (v_texCoord.y - offsetY) / scaleY);
-                gl_FragColor = getMixedFragColor(bgTexCoord, categoryCoord, vec2(0.0, 0.0));
-            }`;
+          bgTexCoord = vec2((v_texCoord.x - offsetX) / scaleX, (v_texCoord.y - offsetY) / scaleY);
+          gl_FragColor = getMixedFragColor(bgTexCoord, categoryCoord, vec2(0.0, 0.0));
+    }`;
 
     this.blendProgram = this.createAndLinkProgram(
       blendVertexShaderSource,
@@ -827,7 +822,6 @@ export class WebGLRenderer {
       return;
     }
 
-    // Determine read/write indices for state ping-pong
     const readStateIndex = this.currentStateIndex;
     const writeStateIndex = (this.currentStateIndex + 1) % 2;
     const prevStateTexture = storedStateTextures[readStateIndex];
@@ -835,7 +829,6 @@ export class WebGLRenderer {
 
     this.updateBackgroundIfNeeded(options.backgroundSource);
 
-    // --- 1. State Update Pass (Calculates Moving Average) ---
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
     gl.framebufferTexture2D(
       gl.FRAMEBUFFER,
@@ -868,7 +861,7 @@ export class WebGLRenderer {
     gl.bindTexture(gl.TEXTURE_2D, confidenceTexture);
     gl.uniform1i(stateUpdateLocations.confidenceTexture, 1);
     gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, prevStateTexture); // Read previous state
+    gl.bindTexture(gl.TEXTURE_2D, prevStateTexture);
     gl.uniform1i(stateUpdateLocations.prevStateTexture, 2);
 
     gl.uniform1f(stateUpdateLocations.smoothingFactor, 0.8);
