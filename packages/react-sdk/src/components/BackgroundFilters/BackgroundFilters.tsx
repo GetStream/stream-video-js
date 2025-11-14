@@ -115,12 +115,6 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
    * or to try registering the filter again.
    */
   onError?: (error: any) => void;
-
-  /**
-   * Called every ~1s with FPS and delay stats.
-   * Use this to track or display performance.
-   */
-  onStats?: (stats: PerformanceStats) => void;
 };
 
 /**
@@ -245,7 +239,6 @@ export const BackgroundFiltersProvider = (
     useLegacyFilter,
     basePath,
     onError,
-    onStats,
     forceSafariSupport,
     forceMobileSupport,
   } = props;
@@ -262,36 +255,31 @@ export const BackgroundFiltersProvider = (
   const emaRef = useRef<number>(DEFAULT_FPS);
   const outlierStreakRef = useRef<number>(0);
 
-  const handleStats = useCallback(
-    (stats: PerformanceStats) => {
-      onStats?.(stats);
+  const handleStats = useCallback((stats: PerformanceStats) => {
+    const fps = stats?.fps;
+    if (fps === undefined || fps === null) {
+      emaRef.current = DEFAULT_FPS;
+      outlierStreakRef.current = 0;
+      setShowLowFpsWarning(false);
+      return;
+    }
 
-      const fps = stats?.fps;
-      if (fps === undefined || fps === null) {
-        emaRef.current = DEFAULT_FPS;
-        outlierStreakRef.current = 0;
-        setShowLowFpsWarning(false);
-        return;
-      }
+    const prevEma = emaRef.current;
+    const deviation = Math.abs(fps - prevEma) / prevEma;
 
-      const prevEma = emaRef.current;
-      const deviation = Math.abs(fps - prevEma) / prevEma;
+    const isOutlier = fps < prevEma && deviation > DEVIATION_LIMIT;
+    outlierStreakRef.current = isOutlier ? outlierStreakRef.current + 1 : 0;
+    if (isOutlier && outlierStreakRef.current < OUTLIER_PERSISTENCE) return;
 
-      const isOutlier = fps < prevEma && deviation > DEVIATION_LIMIT;
-      outlierStreakRef.current = isOutlier ? outlierStreakRef.current + 1 : 0;
-      if (isOutlier && outlierStreakRef.current < OUTLIER_PERSISTENCE) return;
+    emaRef.current = ALPHA * fps + (1 - ALPHA) * prevEma;
 
-      emaRef.current = ALPHA * fps + (1 - ALPHA) * prevEma;
+    setShowLowFpsWarning((prev) => {
+      if (prev && emaRef.current > FPS_WARNING_THRESHOLD_UPPER) return false;
+      if (!prev && emaRef.current < FPS_WARNING_THRESHOLD_LOWER) return true;
 
-      setShowLowFpsWarning((prev) => {
-        if (prev && emaRef.current > FPS_WARNING_THRESHOLD_UPPER) return false;
-        if (!prev && emaRef.current < FPS_WARNING_THRESHOLD_LOWER) return true;
-
-        return prev;
-      });
-    },
-    [onStats],
-  );
+      return prev;
+    });
+  }, []);
 
   const performance: BackgroundFiltersPerformance = useMemo(() => {
     if (!backgroundFilter) {
@@ -411,11 +399,16 @@ export const BackgroundFiltersProvider = (
         modelFilePath,
         basePath,
         onError: handleError,
-        onStats: handleStats,
       }}
     >
       {children}
-      {isReady && <BackgroundFilters tfLite={tfLite} engine={engine} />}
+      {isReady && (
+        <BackgroundFilters
+          tfLite={tfLite}
+          engine={engine}
+          onStats={handleStats}
+        />
+      )}
     </BackgroundFiltersContext.Provider>
   );
 };
@@ -423,17 +416,18 @@ export const BackgroundFiltersProvider = (
 const BackgroundFilters = (props: {
   tfLite?: TFLite;
   engine: FilterEngine;
+  onStats: (stats: PerformanceStats) => void;
 }) => {
   const call = useCall();
   const { children, start } = useRenderer(props.tfLite, call, props.engine);
-  const { onError, onStats, backgroundFilter } = useBackgroundFilters();
+  const { onError, backgroundFilter } = useBackgroundFilters();
   const handleErrorRef = useRef<((error: any) => void) | undefined>(undefined);
   handleErrorRef.current = onError;
 
   const handleStatsRef = useRef<
     ((stats: PerformanceStats) => void) | undefined
   >(undefined);
-  handleStatsRef.current = onStats;
+  handleStatsRef.current = props.onStats;
 
   useEffect(() => {
     if (!call || !backgroundFilter) return;
