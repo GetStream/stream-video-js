@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.24.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.2...@stream-io/video-react-native-sdk-1.24.3) (2025-11-12)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.36.1`
+- `@stream-io/video-react-bindings` updated to version `1.11.0`
+
+### Bug Fixes
+
+- improve android wake lock and power manager handling RN-291 ([#1990](https://github.com/GetStream/stream-video-js/issues/1990)) ([28096ad](https://github.com/GetStream/stream-video-js/commit/28096ad9b14848b352afa358dcaf655cbcfb0626)), closes [#1971](https://github.com/GetStream/stream-video-js/issues/1971)
+- missing adaptive floating dimensions for landscape video ([#1983](https://github.com/GetStream/stream-video-js/issues/1983)) ([7803f2c](https://github.com/GetStream/stream-video-js/commit/7803f2cd80e9680974803fb72b3e5b4bf8caba7c))
+
 ## [1.24.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.1...@stream-io/video-react-native-sdk-1.24.2) (2025-11-05)
 
 ### Dependency Updates

@@ -6,11 +6,16 @@ export const ClosedCaptions = () => {
   const { useCallClosedCaptions } = useCallStateHooks();
   const closedCaptions = useCallClosedCaptions();
   const styles = useStyles();
+
+  if (closedCaptions.length === 0) {
+    return null;
+  }
+
   return (
     <View style={styles.rootContainer}>
       {closedCaptions.map(({ user, start_time, text }) => (
         <View style={styles.closedCaptionItem} key={`${user.id}/${start_time}`}>
-          <Text style={styles.speakerName}>{user.name}:</Text>
+          <Text style={styles.speakerName}>{`${user.name}:`}</Text>
           <Text style={styles.closedCaption}>{text}</Text>
         </View>
       ))}
@@ -25,17 +30,13 @@ const useStyles = () => {
       StyleSheet.create({
         rootContainer: {
           backgroundColor: theme.colors.sheetPrimary,
-          padding: theme.variants.spacingSizes.md,
+          padding: theme.variants.spacingSizes.sm,
           width: '100%',
-          minHeight: 55,
         },
         closedCaptionItem: {
           flexDirection: 'row',
           flexWrap: 'wrap',
-          flexShrink: 1,
-          gap: theme.variants.spacingSizes.xs,
-          alignItems: 'flex-start',
-          marginBottom: 4,
+          columnGap: theme.variants.spacingSizes.xs,
         },
         speakerName: {
           color: theme.colors.textSecondary,
