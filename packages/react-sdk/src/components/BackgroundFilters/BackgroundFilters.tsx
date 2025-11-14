@@ -279,6 +279,7 @@ export const BackgroundFiltersProvider = (
     forceMobileSupport,
   } = props;
 
+  const call = useCall();
   const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
@@ -359,6 +360,31 @@ export const BackgroundFiltersProvider = (
     showLowFpsWarning,
     callStatsReport?.publisherStats?.qualityLimitationReasons,
     backgroundFilter,
+  ]);
+
+  const prevDegradedRef = useRef<boolean | undefined>(undefined);
+  useEffect(() => {
+    const currentDegraded = performance.degraded;
+    const prevDegraded = prevDegradedRef.current;
+
+    if (
+      !!backgroundFilter &&
+      prevDegraded !== undefined &&
+      prevDegraded !== currentDegraded
+    ) {
+      call?.tracer.trace('backgroundFilters.performance', {
+        degraded: currentDegraded,
+        reason: performance?.reason,
+        fps: emaRef.current,
+      });
+    }
+    prevDegradedRef.current = currentDegraded;
+  }, [
+    performanceThresholds,
+    performance.degraded,
+    performance.reason,
+    backgroundFilter,
+    call?.tracer,
   ]);
 
   const applyBackgroundImageFilter = useCallback((imageUrl: string) => {
@@ -565,12 +591,6 @@ const useRenderer = (
               height: trackSettings.height ?? 0,
             }),
           );
-          call?.tracer.trace('backgroundFilters.enable', {
-            backgroundFilter,
-            backgroundBlurLevel,
-            backgroundImage,
-            engine,
-          });
 
           processor = new VirtualBackground(
             track,
