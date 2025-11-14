@@ -67,7 +67,7 @@ export const SpeakerTest = (props: { audioUrl?: string }) => {
       >
         <div className="str-video__speaker-test__button-content">
           <Icon icon="speaker" />
-          {isPlaying ? t('Stop speaker test') : t('Start speaker test')}
+          {isPlaying ? t('Stop test') : t('Test speaker')}
         </div>
       </CompositeButton>
     </div>
