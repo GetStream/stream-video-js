@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.26.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.26.0...@stream-io/video-react-sdk-1.26.1) (2025-11-14)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.37.0`
+- `@stream-io/video-react-bindings` updated to version `1.11.1`
+
+### Bug Fixes
+
+- Allow ParticipantViewUI override in LivestreamLayout ([#1997](https://github.com/GetStream/stream-video-js/issues/1997)) ([7b7a652](https://github.com/GetStream/stream-video-js/commit/7b7a6527e482e9b099d40087a86229f53f7a128a))
+- export AudioVolumeIndicator ([91d8051](https://github.com/GetStream/stream-video-js/commit/91d8051c0fbb70c6a5ad65e07e14d6e9f2f1440d))
+- propagate `enableFullscreen`, hide the overlay bar when empty ([c8c8d56](https://github.com/GetStream/stream-video-js/commit/c8c8d5600803942f5975b9afc5494f5c5e10889e))
+
 ## [1.26.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.25.1...@stream-io/video-react-sdk-1.26.0) (2025-11-12)
 
 ### Dependency Updates

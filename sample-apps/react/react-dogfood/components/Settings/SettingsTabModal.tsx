@@ -148,6 +148,7 @@ export const SettingsTabModalMenu = (props: {
         <DeviceSelectorAudioOutput
           visualType="dropdown"
           title={t('Select a Speaker')}
+          speakerTestAudioUrl="/beeps/piano.mp3"
         />
         <IncomingVideoSettingsDropdown title={t('Incoming video quality')} />
         <div className="rd__tab-panel__note">
