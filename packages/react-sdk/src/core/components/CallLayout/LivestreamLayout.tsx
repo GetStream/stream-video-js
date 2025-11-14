@@ -1,5 +1,11 @@
 import clsx from 'clsx';
-import { useCallback, useEffect, useState } from 'react';
+import {
+  ComponentType,
+  ReactElement,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import {
   useCall,
   useCallStateHooks,
@@ -62,6 +68,11 @@ export type LivestreamLayoutProps = {
      */
     position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   };
+
+  /**
+   * Override the default participant view overlay UI.
+   */
+  ParticipantViewUI?: ComponentType | ReactElement | null;
 };
 
 export const LivestreamLayout = (props: LivestreamLayoutProps) => {
@@ -77,7 +88,8 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
 
   usePaginatedLayoutSortPreset(call);
 
-  const overlay = (
+  const { floatingParticipantProps, muted, ParticipantViewUI } = props;
+  const overlay = ParticipantViewUI ?? (
     <ParticipantOverlay
       showParticipantCount={props.showParticipantCount}
       showDuration={props.showDuration}
@@ -86,18 +98,19 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
     />
   );
 
-  const { floatingParticipantProps, muted } = props;
-  const floatingParticipantOverlay = hasOngoingScreenShare && (
-    <ParticipantOverlay
-      // these elements aren't needed for the video feed
-      showParticipantCount={
-        floatingParticipantProps?.showParticipantCount ?? false
-      }
-      showDuration={floatingParticipantProps?.showDuration ?? false}
-      showLiveBadge={floatingParticipantProps?.showLiveBadge ?? false}
-      showSpeakerName={floatingParticipantProps?.showSpeakerName ?? true}
-    />
-  );
+  const floatingParticipantOverlay =
+    hasOngoingScreenShare &&
+    (ParticipantViewUI ?? (
+      <ParticipantOverlay
+        // these elements aren't needed for the video feed
+        showParticipantCount={
+          floatingParticipantProps?.showParticipantCount ?? false
+        }
+        showDuration={floatingParticipantProps?.showDuration ?? false}
+        showLiveBadge={floatingParticipantProps?.showLiveBadge ?? false}
+        showSpeakerName={floatingParticipantProps?.showSpeakerName ?? true}
+      />
+    ));
 
   return (
     <div className="str-video__livestream-layout__wrapper">
