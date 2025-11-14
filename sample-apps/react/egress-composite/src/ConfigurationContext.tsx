@@ -135,6 +135,11 @@ export type ConfigurationValue = {
     'layout.spotlight.participants_bar_limit'?: 'dynamic' | number; // ✅
 
     custom_actions?: CustomActions;
+    // used for customer-specific layouts that aren't yet available for
+    // selection through our dashboard UI. In this case, customers can enable
+    // them by specifying their identifier in call recording's advanced options.
+    custom_layout_override?: Layout;
+    custom_screen_share_layout_override?: ScreenshareLayout;
   };
 } & {
   setOptionsOverride: Dispatch<
@@ -200,6 +205,11 @@ export const applyConfigurationDefaults = (
     options = {},
     ...rest
   } = configuration;
+
+  // apply overrides
+  rest.layout = options.custom_layout_override ?? rest.layout;
+  rest.screenshare_layout =
+    options.custom_screen_share_layout_override ?? rest.screenshare_layout;
 
   return {
     api_key,

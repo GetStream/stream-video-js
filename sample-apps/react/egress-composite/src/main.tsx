@@ -9,6 +9,7 @@ import {
 import { CompositeApp } from './CompositeApp';
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
+import '@skooldev/skool-stream-layout/dist/styles.css';
 // Uncomment this line to test your own custom CSS
 // import cssUrl from '../public/example/custom.css?url';
 
