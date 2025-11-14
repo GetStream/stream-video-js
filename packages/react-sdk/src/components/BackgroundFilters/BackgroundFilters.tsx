@@ -40,12 +40,38 @@ const DEVIATION_LIMIT = 0.5;
 const OUTLIER_PERSISTENCE = 5;
 
 /**
+ * Configuration for performance metric thresholds.
+ */
+export type BackgroundFiltersPerformanceThresholds = {
+  /**
+   * The lower FPS threshold for triggering a performance warning.
+   * When the EMA FPS falls below this value, a warning is shown.
+   * @default 23
+   */
+  fpsWarningThresholdLower?: number;
+
+  /**
+   * The upper FPS threshold for clearing a performance warning.
+   * When the EMA FPS rises above this value, the warning is cleared.
+   * @default 25
+   */
+  fpsWarningThresholdUpper?: number;
+
+  /**
+   * The default FPS value used as the initial value for the EMA (Exponential Moving Average)
+   * calculation and when stats are unavailable or when resetting the filter.
+   * @default 30
+   */
+  defaultFps?: number;
+};
+
+/**
  * Represents the available background filter processing engines.
  */
 enum FilterEngine {
-  TF = 'TF',
-  MEDIA_PIPE = 'MEDIA_PIPE',
-  NONE = 'NONE',
+  TF,
+  MEDIA_PIPE,
+  NONE,
 }
 
 /**
@@ -115,10 +141,19 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
    * or to try registering the filter again.
    */
   onError?: (error: any) => void;
+
+  /**
+   * Configuration for performance metric thresholds.
+   * Use this to customize when performance warnings are triggered.
+   */
+  performanceThresholds?: BackgroundFiltersPerformanceThresholds;
 };
 
 /**
  * Performance degradation information for background filters.
+ *
+ * Performance is calculated using an Exponential Moving Average (EMA) of FPS values
+ * to smooth out quick spikes and provide stable performance warnings.
  */
 export type BackgroundFiltersPerformance = {
   /**
@@ -239,6 +274,7 @@ export const BackgroundFiltersProvider = (
     useLegacyFilter,
     basePath,
     onError,
+    performanceThresholds,
     forceSafariSupport,
     forceMobileSupport,
   } = props;
@@ -252,34 +288,46 @@ export const BackgroundFiltersProvider = (
     useState(bgBlurLevelFromProps);
 
   const [showLowFpsWarning, setShowLowFpsWarning] = useState<boolean>(false);
-  const emaRef = useRef<number>(DEFAULT_FPS);
+
+  const fpsWarningThresholdLower =
+    performanceThresholds?.fpsWarningThresholdLower ??
+    FPS_WARNING_THRESHOLD_LOWER;
+  const fpsWarningThresholdUpper =
+    performanceThresholds?.fpsWarningThresholdUpper ??
+    FPS_WARNING_THRESHOLD_UPPER;
+  const defaultFps = performanceThresholds?.defaultFps ?? DEFAULT_FPS;
+
+  const emaRef = useRef<number>(defaultFps);
   const outlierStreakRef = useRef<number>(0);
 
-  const handleStats = useCallback((stats: PerformanceStats) => {
-    const fps = stats?.fps;
-    if (fps === undefined || fps === null) {
-      emaRef.current = DEFAULT_FPS;
-      outlierStreakRef.current = 0;
-      setShowLowFpsWarning(false);
-      return;
-    }
+  const handleStats = useCallback(
+    (stats: PerformanceStats) => {
+      const fps = stats?.fps;
+      if (fps === undefined || fps === null) {
+        emaRef.current = defaultFps;
+        outlierStreakRef.current = 0;
+        setShowLowFpsWarning(false);
+        return;
+      }
 
-    const prevEma = emaRef.current;
-    const deviation = Math.abs(fps - prevEma) / prevEma;
+      const prevEma = emaRef.current;
+      const deviation = Math.abs(fps - prevEma) / prevEma;
 
-    const isOutlier = fps < prevEma && deviation > DEVIATION_LIMIT;
-    outlierStreakRef.current = isOutlier ? outlierStreakRef.current + 1 : 0;
-    if (isOutlier && outlierStreakRef.current < OUTLIER_PERSISTENCE) return;
+      const isOutlier = fps < prevEma && deviation > DEVIATION_LIMIT;
+      outlierStreakRef.current = isOutlier ? outlierStreakRef.current + 1 : 0;
+      if (isOutlier && outlierStreakRef.current < OUTLIER_PERSISTENCE) return;
 
-    emaRef.current = ALPHA * fps + (1 - ALPHA) * prevEma;
+      emaRef.current = ALPHA * fps + (1 - ALPHA) * prevEma;
 
-    setShowLowFpsWarning((prev) => {
-      if (prev && emaRef.current > FPS_WARNING_THRESHOLD_UPPER) return false;
-      if (!prev && emaRef.current < FPS_WARNING_THRESHOLD_LOWER) return true;
+      setShowLowFpsWarning((prev) => {
+        if (prev && emaRef.current > fpsWarningThresholdUpper) return false;
+        if (!prev && emaRef.current < fpsWarningThresholdLower) return true;
 
-      return prev;
-    });
-  }, []);
+        return prev;
+      });
+    },
+    [fpsWarningThresholdLower, fpsWarningThresholdUpper, defaultFps],
+  );
 
   const performance: BackgroundFiltersPerformance = useMemo(() => {
     if (!backgroundFilter) {
@@ -331,10 +379,10 @@ export const BackgroundFiltersProvider = (
     setBackgroundImage(undefined);
     setBackgroundBlurLevel(undefined);
 
-    emaRef.current = DEFAULT_FPS;
+    emaRef.current = defaultFps;
     outlierStreakRef.current = 0;
     setShowLowFpsWarning(false);
-  }, []);
+  }, [defaultFps]);
 
   const [engine, setEngine] = useState<FilterEngine>(FilterEngine.NONE);
   const [isSupported, setIsSupported] = useState(false);
