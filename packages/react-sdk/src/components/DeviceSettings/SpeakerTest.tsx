@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { CompositeButton } from '../Button';
 import { Icon } from '../Icon';
 
@@ -12,6 +12,7 @@ export const SpeakerTest = (props: { audioUrl?: string }) => {
   const { selectedDevice } = useSpeakerState();
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const { t } = useI18n();
 
   const {
     audioUrl = `https://unpkg.com/${process.env.PKG_NAME}@${process.env.PKG_VERSION}/assets/piano.mp3`,
@@ -30,7 +31,7 @@ export const SpeakerTest = (props: { audioUrl?: string }) => {
     }
   }, [selectedDevice]);
 
-  const handlePlayTest = useCallback(async () => {
+  const handleStartTest = useCallback(async () => {
     const audio = audioElementRef.current;
     if (!audio) return;
 
@@ -51,25 +52,22 @@ export const SpeakerTest = (props: { audioUrl?: string }) => {
     }
   }, [isPlaying, audioUrl]);
 
-  const handleAudioEnded = useCallback(() => {
-    setIsPlaying(false);
-  }, []);
-
+  const handleAudioEnded = useCallback(() => setIsPlaying(false), []);
   return (
     <div className="str-video__speaker-test">
       <audio
         ref={audioElementRef}
         onEnded={handleAudioEnded}
-        onPause={() => setIsPlaying(false)}
+        onPause={handleAudioEnded}
       />
       <CompositeButton
         className="str-video__speaker-test__button"
-        onClick={handlePlayTest}
+        onClick={handleStartTest}
         type="button"
       >
         <div className="str-video__speaker-test__button-content">
           <Icon icon="speaker" />
-          {isPlaying ? 'Stop Test' : 'Test Speaker'}
+          {isPlaying ? t('Stop speaker test') : t('Start speaker test')}
         </div>
       </CompositeButton>
     </div>
