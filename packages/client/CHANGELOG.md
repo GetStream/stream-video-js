@@ -2,6 +2,10 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.36.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.36.0...@stream-io/video-client-1.36.1) (2025-11-12)
+
+- enforce the client to publish options on SDP level ([#1976](https://github.com/GetStream/stream-video-js/issues/1976)) ([1d93f72](https://github.com/GetStream/stream-video-js/commit/1d93f72cb4395aaf9b487eb66e0c3b6a8111aca4))
+
 ## [1.36.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.35.1...@stream-io/video-client-1.36.0) (2025-10-30)
 
 ### Features

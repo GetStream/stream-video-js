@@ -18,7 +18,6 @@ import {
   FlatList,
   Modal,
   Pressable,
-  SafeAreaView,
   Share,
   StyleSheet,
   Text,
@@ -34,8 +33,9 @@ import { generateParticipantTitle } from '../utils';
 import { Z_INDEX } from '../constants';
 import { ButtonTestIds } from '../constants/TestIds';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export interface ParticipantsInfoListProps {
+interface ParticipantsInfoListProps {
   /**
    * Boolean that decides whether the CallParticipantsInfo modal should be open or not.
    */
@@ -53,7 +53,7 @@ export interface ParticipantsInfoListProps {
  * their mute states, video states, screen share states, etc.
  * Mute all participants, invite participants, etc.
  **/
-export const ParticipantsInfoList = ({
+export const ParticipantsInfoListModal = ({
   isCallParticipantsInfoVisible,
   setIsCallParticipantsInfoVisible,
 }: ParticipantsInfoListProps) => {
@@ -272,6 +272,7 @@ const useStyles = () => {
           borderRadius: 15,
           marginHorizontal: 16,
           marginTop: 65,
+          flexShrink: 1,
         },
         header: {
           flexDirection: 'row',

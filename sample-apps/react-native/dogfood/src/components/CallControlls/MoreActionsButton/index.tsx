@@ -20,31 +20,35 @@ import {
   View,
 } from 'react-native';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import MoreActions from '../../assets/MoreActions';
-import { BottomControlsDrawer, DrawerOption } from '../BottomControlsDrawer';
-import Feedback from '../../assets/Feedback';
-import FeedbackModal from '../FeedbackModal';
+import MoreActions from '../../../assets/MoreActions';
+import { BottomControlsDrawer, DrawerOption } from './BottomControlsDrawer';
+import Feedback from '../../../assets/Feedback';
+import FeedbackModal from '../../FeedbackModal';
 import {
   ThemeMode,
   useAppGlobalStoreSetState,
   useAppGlobalStoreValue,
-} from '../../contexts/AppContext';
-import LightDark from '../../assets/LightDark';
-import Stats from '../../assets/Stats';
-import ClosedCaptions from '../../assets/ClosedCaptions';
-import Screenshot from '../../assets/Screenshot';
-import Hearing from '../../assets/Hearing';
-import { AudioOutput } from '../../assets/AudioOutput';
-import { AndroidAudioRoutePickerDrawer } from '../AndroidAudioRoutePickerDrawer';
+} from '../../../contexts/AppContext';
+import LightDark from '../../../assets/LightDark';
+import Stats from '../../../assets/Stats';
+import ClosedCaptions from '../../../assets/ClosedCaptions';
+import Screenshot from '../../../assets/Screenshot';
+import Hearing from '../../../assets/Hearing';
+import { AudioOutput } from '../../../assets/AudioOutput';
+import { AndroidAudioRoutePickerDrawer } from './AndroidAudioRoutePickerDrawer';
 
 /**
  * The props for the More Actions Button in the Call Controls.
  */
-export type MoreActionsButtonProps = {
+type MoreActionsButtonProps = {
   /**
    * Handler to be called when the more actions button is pressed.
    */
   onPressHandler?: () => void;
+  /**
+   * The height of the bottom controls container.
+   */
+  controlsContainerHeight: number;
 };
 
 /**
@@ -54,6 +58,7 @@ export type MoreActionsButtonProps = {
  */
 export const MoreActionsButton = ({
   onPressHandler,
+  controlsContainerHeight,
 }: MoreActionsButtonProps) => {
   const {
     theme: { colors, variants, moreActionsButton, defaults },
@@ -309,23 +314,27 @@ export const MoreActionsButton = ({
       style={moreActionsButton}
       color={buttonColor}
     >
-      {Platform.OS === 'android' && (
+      {Platform.OS === 'android' && !!controlsContainerHeight && (
         <AndroidAudioRoutePickerDrawer
           isVisible={isAndroidAudioRoutePickerDrawerVisible}
+          bottomControlsHeight={controlsContainerHeight}
           onClose={() => {
             setIsAndroidAudioRoutePickerDrawerVisible(false);
           }}
         />
       )}
-      <BottomControlsDrawer
-        isVisible={isDrawerVisible}
-        onClose={() => {
-          setShowCallStats(false);
-          setIsDrawerVisible(false);
-        }}
-        options={options}
-        showCallStats={showCallStats}
-      />
+      {!!controlsContainerHeight && (
+        <BottomControlsDrawer
+          isVisible={isDrawerVisible}
+          bottomControlsHeight={controlsContainerHeight}
+          onClose={() => {
+            setShowCallStats(false);
+            setIsDrawerVisible(false);
+          }}
+          options={options}
+          showCallStats={showCallStats}
+        />
+      )}
       <FeedbackModal
         visible={feedbackModalVisible}
         onClose={() => setFeedbackModalVisible(false)}

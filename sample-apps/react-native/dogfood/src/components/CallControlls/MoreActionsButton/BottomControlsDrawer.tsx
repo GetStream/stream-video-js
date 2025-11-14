@@ -13,17 +13,16 @@ import {
   FlatList,
   Modal,
   PanResponder,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { BOTTOM_CONTROLS_HEIGHT } from '../constants';
-import RaiseHand from '../assets/RaiseHand';
-import { CallStats } from './CallStats';
-import { VideoFilters } from './VideoEffects';
+import RaiseHand from '../../../assets/RaiseHand';
+import { CallStats } from '../../CallStats';
+import { VideoFilters } from '../../VideoEffects';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 export type DrawerOption = {
   id: string;
@@ -37,6 +36,7 @@ type DrawerProps = {
   showCallStats: boolean;
   onClose: () => void;
   options: DrawerOption[];
+  bottomControlsHeight: number;
 };
 
 export const BottomControlsDrawer: React.FC<DrawerProps> = ({
@@ -44,6 +44,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   showCallStats,
   onClose,
   options,
+  bottomControlsHeight,
 }) => {
   const { theme } = useTheme();
   const screenHeight = Dimensions.get('window').height;
@@ -51,8 +52,8 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   const styles = useStyles();
   const call = useCall();
 
-  // negative offset is needed so the drawer component start above the bottom controls
-  const offset = -BOTTOM_CONTROLS_HEIGHT;
+  // negative offset to position the drawer component above the bottom controls
+  const offset = -bottomControlsHeight;
 
   const translateY = useRef<any>(
     new Animated.Value(drawerHeight + offset),
@@ -207,8 +208,8 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
       supportedOrientations={['portrait', 'landscape']}
     >
       <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
-          <SafeAreaView style={styles.safeArea}>
+        <SafeAreaProvider>
+          <SafeAreaView style={styles.overlay} edges={['bottom']}>
             <Animated.View
               style={[styles.container, { transform: [{ translateY }] }]}
             >
@@ -217,7 +218,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
               {showCallStats && <CallStats showCodecInfo />}
             </Animated.View>
           </SafeAreaView>
-        </View>
+        </SafeAreaProvider>
       </TouchableWithoutFeedback>
     </Modal>
   );
@@ -231,10 +232,6 @@ const useStyles = () => {
     () =>
       StyleSheet.create({
         overlay: {
-          flex: 1,
-          justifyContent: 'flex-end',
-        },
-        safeArea: {
           flex: 1,
           justifyContent: 'flex-end',
         },

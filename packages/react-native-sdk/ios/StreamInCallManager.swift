@@ -79,9 +79,11 @@ class StreamInCallManager: RCTEventEmitter {
                 options: session.categoryOptions
             )
             configureAudioSession()
-            // Enable wake lock to prevent the screen from dimming/locking during a call
+            
             DispatchQueue.main.async {
+                // Enable wake lock to prevent the screen from dimming/locking during a call
                 UIApplication.shared.isIdleTimerDisabled = true
+                // Register for audio route changes to turn off screen when earpiece is connected
                 self.registerAudioRouteObserver()
                 self.updateProximityMonitoring()
                 self.log("Wake lock enabled (idle timer disabled)")
@@ -120,8 +122,10 @@ class StreamInCallManager: RCTEventEmitter {
         }
         // Disable wake lock and proximity when call manager stops so the device can sleep again
         DispatchQueue.main.async {
+            // Disable proximity monitoring to disable earpiece detection
             self.setProximityMonitoringEnabled(false)
             self.unregisterAudioRouteObserver()
+            // Disable wake lock to allow the screen to dim/lock again
             UIApplication.shared.isIdleTimerDisabled = false
             self.log("Wake lock disabled (idle timer enabled)")
         }
