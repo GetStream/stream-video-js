@@ -1,8 +1,8 @@
 # @stream-io/video-filters-web
 
-A helper library for that provides the core functionality for video filters in the [Stream Video SDK](https://getstream.io/video/sdk/react/).
+A helper library that provides the core functionality for video filters in the [Stream Video SDK](https://getstream.io/video/sdk/react/).
 
-This library borrows a lot of code and concepts from the amazing [virtual-background](https://github.com/Volcomix/virtual-background) library.
+This library borrows a lot of code and concepts from the amazing [virtual-background](https://github.com/vpalmisano/virtual-background) library.
 
 ## Installation
 
@@ -14,34 +14,37 @@ yarn add @stream-io/video-filters-web
 
 ```typescript
 import {
-  isPlatformSupported,
-  loadTfLite,
-  createRenderer,
+  isMediaPipePlatformSupported,
+  loadMediaPipe,
+  VirtualBackground,
 } from '@stream-io/video-filters-web';
 
-// 1. check if the platform is supported
-const isSupported = await isPlatformSupported();
+// 1. Check if the platform is supported
+const isSupported = await isMediaPipePlatformSupported();
 if (!isSupported) {
   throw new Error('Platform not supported');
 }
 
-// 2. get reference to the source video, background image and target canvas elements
-const sourceVideo = document.getElementById('source-video');
-const targetCanvas = document.getElementById('target-canvas');
-const backgroundImage = document.getElementById('background-image');
+// 2. Load the MediaPipe model
+const mediaPipeModel = await loadMediaPipe();
 
-// 3. load the TensorFlow Lite
-const tfLite = await loadTfLite();
+// 3. Create the processor
+const processor = new VirtualBackground(
+  track,
+  {
+    modelPath: mediaPipeModel.modelPath,
+    backgroundBlurLevel: blurLevel, // 'low' | 'medium' | 'high' | number
+    backgroundImage: backgroundImage, // string (URL or data URI)
+    backgroundFilter: 'image', // or 'blur'
+  },
+  { onError, onStats },
+);
 
-// 4. create the renderer
-const renderer = createRenderer(tfLite, sourceVideo, targetCanvas, {
-  backgroundFilter: 'image', // or 'blur'
-  backgroundImage: backgroundImage,
-  fps: 30,
-});
+// 4. Start the processor and use the processed track
+const processedTrack = await processor.start();
 
-// 5. Dispose the renderer when done
-renderer.dispose();
+// 5. Stop the processor
+processor.stop();
 ```
 
 ## Known limitations

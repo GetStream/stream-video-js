@@ -46,3 +46,25 @@ export const isPlatformSupported = async ({
   !!window.WebGL2RenderingContext && // WebGL2 is required for the video filters
   !!document.createElement('canvas').getContext('webgl2') &&
   (await simd()); // SIMD is required for the wasm module
+
+/**
+ * Runs a check to see if the current platform supports
+ * the necessary APIs required for the MediaPipe-based video filters.
+ */
+export const isMediaPipePlatformSupported = async ({
+  forceMobileSupport = false,
+  forceSafariSupport = false,
+}: PlatformSupportFlags = {}) =>
+  typeof document !== 'undefined' &&
+  typeof window !== 'undefined' &&
+  typeof navigator !== 'undefined' &&
+  // we don't support mobile devices yet due to performance issues
+  (forceMobileSupport || !isMobile()) &&
+  // Safari has issues with timer throttling, causing low FPS when the tab goes to the background
+  (forceSafariSupport || !isSafari()) &&
+  typeof WebAssembly !== 'undefined' &&
+  typeof OffscreenCanvas !== 'undefined' && // OffscreenCanvas is required for efficient rendering
+  !!window.WebGL2RenderingContext && // WebGL2 is required for the video filters
+  !!new OffscreenCanvas(1, 1).getContext('webgl2') &&
+  typeof VideoFrame !== 'undefined' && // VideoFrame API is required for frame processing
+  typeof createImageBitmap !== 'undefined'; // createImageBitmap is required for background image processing

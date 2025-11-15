@@ -29,6 +29,10 @@
   z-index: 3;
 }
 
+.rd__dual-toggle__notifications {
+  z-index: 1;
+}
+
 .rd__sidebar {
   position: absolute;
   border-radius: var(--str-video__border-radius-md);
