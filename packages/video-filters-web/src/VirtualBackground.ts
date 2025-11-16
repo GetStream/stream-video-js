@@ -240,9 +240,24 @@ export class VirtualBackground {
       };
     }
 
+    const blurLevel = this.options.backgroundBlurLevel;
+    if (typeof blurLevel === 'string') {
+      return {
+        ...BACKGROUND_BLUR_MAP[blurLevel],
+        backgroundSource: undefined,
+        isSelfieMode,
+      };
+    }
+
+    const numeric = blurLevel ?? 5;
+
+    const bgBlur = Math.min(numeric * 3, 30);
+    const bgBlurRadius = Math.min(numeric, 10);
+
     return {
-      ...BACKGROUND_BLUR_MAP[this.options.backgroundBlurLevel || 'medium'],
       backgroundSource: undefined,
+      bgBlur,
+      bgBlurRadius,
       isSelfieMode,
     };
   }
