@@ -106,16 +106,35 @@ export const NoiseCancellationProvider = (
 
   const [isEnabled, setIsEnabled] = useState(false);
   const deinit = useRef<Promise<void>>(undefined);
+
+  const pendingState = useRef<boolean | null>(null);
+  const isInitialized = useRef(false);
+
   useEffect(() => {
     if (!call || !isSupported) return;
     noiseCancellation.isEnabled().then((e) => setIsEnabled(e));
     const unsubscribe = noiseCancellation.on('change', (v) => setIsEnabled(v));
     const init = (deinit.current || Promise.resolve())
       .then(() => noiseCancellation.init({ tracer: call.tracer }))
-      .then(() => call.microphone.enableNoiseCancellation(noiseCancellation))
+      .then(() => {
+        isInitialized.current = true;
+
+        if (pendingState.current !== null) {
+          const desiredState = pendingState.current;
+          if (desiredState) {
+            noiseCancellation.enable();
+          } else {
+            noiseCancellation.disable();
+          }
+          pendingState.current = null;
+        }
+        return call.microphone.enableNoiseCancellation(noiseCancellation);
+      })
       .catch((e) => console.error(`Can't initialize noise cancellation`, e));
 
     return () => {
+      isInitialized.current = false;
+      pendingState.current = null;
       deinit.current = init
         .then(() => call.microphone.disableNoiseCancellation())
         .then(() => noiseCancellation.dispose())
@@ -133,14 +152,22 @@ export const NoiseCancellationProvider = (
       },
       setEnabled: (enabledOrSetter) => {
         if (!noiseCancellation) return;
-        const enable =
+
+        const currentState = pendingState.current ?? isEnabled;
+        const desiredState =
           typeof enabledOrSetter === 'function'
-            ? enabledOrSetter(isEnabled)
+            ? enabledOrSetter(currentState)
             : enabledOrSetter;
-        if (enable) {
-          noiseCancellation.enable();
-        } else {
-          noiseCancellation.disable();
+
+        pendingState.current = desiredState;
+
+        if (isInitialized.current) {
+          if (desiredState) {
+            noiseCancellation.enable();
+          } else {
+            noiseCancellation.disable();
+          }
+          pendingState.current = null;
         }
       },
     }),
