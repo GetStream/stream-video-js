@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.37.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.0...@stream-io/video-client-1.37.1) (2025-11-17)
+
+### Bug Fixes
+
+- dynascale manager doesnt pick up updated dimensions all the time ([#2001](https://github.com/GetStream/stream-video-js/issues/2001)) ([d91e008](https://github.com/GetStream/stream-video-js/commit/d91e008f27fa2a4324f22555fbe0a59afe702bbb))
+
 ## [1.37.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.36.1...@stream-io/video-client-1.37.0) (2025-11-14)
 
 ### Features
