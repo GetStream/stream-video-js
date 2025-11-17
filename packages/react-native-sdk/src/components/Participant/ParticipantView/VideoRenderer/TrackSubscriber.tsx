@@ -3,11 +3,11 @@ import { LayoutChangeEvent } from 'react-native';
 import {
   Call,
   CallingState,
+  DebounceType,
   hasScreenShare,
   hasVideo,
   SfuModels,
   type VideoTrackType,
-  DebounceType,
 } from '@stream-io/video-client';
 import {
   BehaviorSubject,
@@ -68,7 +68,6 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
       const isPublishingTrack$ = call.state.participants$.pipe(
         map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
         takeWhile((p) => !!p),
-        distinctUntilChanged(),
         distinctUntilKeyChanged('publishedTracks'),
         map((p) =>
           trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
@@ -83,12 +82,11 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
         dimensions$,
         isPublishingTrack$,
         isJoinedState$,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       ]).subscribe(([dimension, isPublishing, isJoined]) => {
         // isPublishing is not used here, but we need to keep it for the subscription
         // to send the dimensions again when the participant starts publishing the track again
         if (isJoined) {
-          if (!isVisible) {
+          if (!isVisible || !isPublishing) {
             requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
           } else if (dimension) {
             requestTrackWithDimensions(DebounceType.IMMEDIATE, dimension);
