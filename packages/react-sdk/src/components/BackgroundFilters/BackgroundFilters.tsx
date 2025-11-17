@@ -239,19 +239,21 @@ const determineEngine = async (
   forceSafariSupport: boolean | undefined,
   forceMobileSupport: boolean | undefined,
 ): Promise<FilterEngine> => {
-  const isMediaPipeSupported = await isMediaPipePlatformSupported({
-    forceSafariSupport,
-    forceMobileSupport,
-  });
-
-  if (isMediaPipeSupported && !useLegacyFilter) return FilterEngine.MEDIA_PIPE;
-
   const isTfPlatformSupported = await isPlatformSupported({
     forceSafariSupport,
     forceMobileSupport,
   });
 
-  return isTfPlatformSupported ? FilterEngine.TF : FilterEngine.NONE;
+  if (useLegacyFilter) {
+    return isTfPlatformSupported ? FilterEngine.TF : FilterEngine.NONE;
+  }
+
+  const isMediaPipeSupported = await isMediaPipePlatformSupported({
+    forceSafariSupport,
+    forceMobileSupport,
+  });
+
+  return isMediaPipeSupported ? FilterEngine.MEDIA_PIPE : FilterEngine.NONE;
 };
 
 /**
@@ -411,6 +413,7 @@ export const BackgroundFiltersProvider = (
   }, [defaultFps]);
 
   const [engine, setEngine] = useState<FilterEngine>(FilterEngine.NONE);
+  console.log(engine);
   const [isSupported, setIsSupported] = useState(false);
   useEffect(() => {
     determineEngine(
