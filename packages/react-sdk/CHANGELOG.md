@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.27.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.26.1...@stream-io/video-react-sdk-1.27.0) (2025-11-17)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.8.0`
+- `@stream-io/video-client` updated to version `1.37.1`
+- `@stream-io/video-filters-web` updated to version `0.5.0`
+- `@stream-io/video-react-bindings` updated to version `1.11.2`
+
+- replace speaker-test sound ([3dc35a1](https://github.com/GetStream/stream-video-js/commit/3dc35a13d9eb1a17aaefe51b078a0316dc225c0e))
+- update the "Test speaker" label ([e4412db](https://github.com/GetStream/stream-video-js/commit/e4412dba0e111ed16bb2b5c25d744939f6c86359))
+
+### Features
+
+- add SpeakerTest component ([#1998](https://github.com/GetStream/stream-video-js/issues/1998)) ([c626384](https://github.com/GetStream/stream-video-js/commit/c62638422f858782dcc3174e927d82cd0d9e9e1e))
+- **react:** Improved Video Filters ([#1977](https://github.com/GetStream/stream-video-js/issues/1977)) ([f8831f1](https://github.com/GetStream/stream-video-js/commit/f8831f152a716ebf4e9656f32a8f83b707db779f))
+
+### Bug Fixes
+
+- Don't fallback to MediaPipe model when TF is not supported ([#1999](https://github.com/GetStream/stream-video-js/issues/1999)) ([94a5bd0](https://github.com/GetStream/stream-video-js/commit/94a5bd0154f58c44e480ff26f7aeecf60db07d4f))
+
 ## [1.26.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.26.0...@stream-io/video-react-sdk-1.26.1) (2025-11-14)
 
 ### Dependency Updates
