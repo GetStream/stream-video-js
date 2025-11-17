@@ -413,7 +413,6 @@ export const BackgroundFiltersProvider = (
   }, [defaultFps]);
 
   const [engine, setEngine] = useState<FilterEngine>(FilterEngine.NONE);
-  console.log(engine);
   const [isSupported, setIsSupported] = useState(false);
   useEffect(() => {
     determineEngine(
