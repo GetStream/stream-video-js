@@ -1,6 +1,6 @@
 import { PropsWithChildren, ReactNode, useEffect } from 'react';
+import clsx from 'clsx';
 import { Placement } from '@floating-ui/react';
-
 import { useFloatingUIPreset } from '../../hooks';
 
 export type NotificationProps = {
@@ -9,6 +9,7 @@ export type NotificationProps = {
   visibilityTimeout?: number;
   resetIsVisible?: () => void;
   placement?: Placement;
+  className?: string;
   iconClassName?: string | null;
   close?: () => void;
 };
@@ -21,6 +22,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
     visibilityTimeout,
     resetIsVisible,
     placement = 'top',
+    className,
     iconClassName = 'str-video__notification__icon',
     close,
   } = props;
@@ -44,7 +46,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
     <div ref={refs.setReference}>
       {isVisible && (
         <div
-          className="str-video__notification"
+          className={clsx('str-video__notification', className)}
           ref={refs.setFloating}
           style={{
             position: strategy,

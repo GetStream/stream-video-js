@@ -19,6 +19,7 @@
   "files": [
     "dist",
     "tf",
+    "mediapipe",
     "src",
     "index.ts",
     "package.json",
@@ -27,12 +28,14 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.22-rc.20250304",
     "@stream-io/worker-timer": "^1.2.5",
     "wasm-feature-detect": "^1.8.0"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-typescript": "^12.1.4",
+    "@types/dom-mediacapture-transform": "^0.1.11",
     "@types/emscripten": "^1.41.2",
     "rimraf": "^6.0.1",
     "rollup": "^4.52.4",
