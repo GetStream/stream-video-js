@@ -139,7 +139,12 @@ export class DynascaleManager {
 
   get trackSubscriptions() {
     const subscriptions: TrackSubscriptionDetails[] = [];
-    for (const p of this.callState.remoteParticipants) {
+    // Use getParticipantsSnapshot() to bypass the observable pipeline
+    // and avoid stale data caused by shareReplay with no active subscribers
+    const remoteParticipants = this.callState
+      .getParticipantsSnapshot()
+      .filter((p) => !p.isLocalParticipant);
+    for (const p of remoteParticipants) {
       // NOTE: audio tracks don't have to be requested explicitly
       // as the SFU will implicitly subscribe us to all of them,
       // once they become available.
