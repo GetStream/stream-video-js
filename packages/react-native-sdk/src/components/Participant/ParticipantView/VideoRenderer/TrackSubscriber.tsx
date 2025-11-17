@@ -50,7 +50,6 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
 
     useEffect(() => {
       const requestTrackWithDimensions = (
-        debounceType: DebounceType,
         dimension: SfuModels.VideoDimension | undefined,
       ) => {
         if (dimension && (dimension.width === 0 || dimension.height === 0)) {
@@ -63,12 +62,16 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
         call.state.updateParticipantTracks(trackType, {
           [participantSessionId]: { dimension },
         });
-        call.dynascaleManager.applyTrackSubscriptions(debounceType);
+        // FIXME: temporary workaround for dynascaleManager.applyTrackSubscriptions() taking a stale value in RN
+        // problem: applyTrackSubscriptions doesnt reflect the updated track dimensions
+        // solution: update the track subscriptions directly using the sfuClient
+        const trackSubscriptions = call.dynascaleManager.trackSubscriptions;
+        // @ts-expect-error sfuClient is private
+        call.sfuClient?.updateSubscriptions(trackSubscriptions);
       };
       const isPublishingTrack$ = call.state.participants$.pipe(
         map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
         takeWhile((p) => !!p),
-        distinctUntilChanged(),
         distinctUntilKeyChanged('publishedTracks'),
         map((p) =>
           trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
@@ -83,15 +86,14 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
         dimensions$,
         isPublishingTrack$,
         isJoinedState$,
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       ]).subscribe(([dimension, isPublishing, isJoined]) => {
         // isPublishing is not used here, but we need to keep it for the subscription
         // to send the dimensions again when the participant starts publishing the track again
         if (isJoined) {
-          if (!isVisible) {
-            requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
+          if (!isVisible || !isPublishing) {
+            requestTrackWithDimensions(undefined);
           } else if (dimension) {
-            requestTrackWithDimensions(DebounceType.IMMEDIATE, dimension);
+            requestTrackWithDimensions(dimension);
           }
         }
       });
