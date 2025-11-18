@@ -6,7 +6,7 @@ import {
   StatsOptions,
 } from '../gen/coordinator';
 import { Publisher, Subscriber } from '../rtc';
-import { Tracer, TraceRecord } from './rtc';
+import { type ComputedStats, Tracer, TraceRecord } from './rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getDeviceState, getWebRTCInfo } from '../helpers/client-details';
 import {
@@ -165,7 +165,12 @@ export class SfuStatsReporter {
           }),
         );
       } else {
-        await this.sendCoordinatorStats(stats);
+        await this.sendCoordinatorStats(stats).catch((err) => {
+          this.logger.warn('Failed to send stats to coordinator', err);
+        });
+        await this.sendMetrics(subscriberStats, publisherStats).catch((err) => {
+          this.logger.warn('Failed to send metrics to sfu', err);
+        });
       }
     } catch (err) {
       publisherTrace?.rollback();
@@ -198,6 +203,28 @@ export class SfuStatsReporter {
       SendStatsRequest
     >('post', `${this.basePath}/stats`, payload, {
       headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  };
+
+  private sendMetrics = async (
+    subscriberStats: ComputedStats,
+    publisherStats: ComputedStats | undefined,
+  ) => {
+    const subscriberMetrics = this.subscriber.stats.getSubscriberMetrics(
+      subscriberStats.currentStats,
+      subscriberStats.previousStats,
+    );
+    const publisherMetrics =
+      publisherStats && this.publisher
+        ? this.publisher.stats.getPublisherMetrics(
+            publisherStats.currentStats,
+            publisherStats.previousStats,
+          )
+        : { outbound: [], remoteInbound: [] };
+    await this.sfuClient.sendMetrics({
+      unifiedSessionId: this.unifiedSessionId,
+      ...subscriberMetrics,
+      ...publisherMetrics,
     });
   };
 

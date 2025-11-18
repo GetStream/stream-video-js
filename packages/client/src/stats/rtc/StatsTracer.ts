@@ -8,7 +8,12 @@ import {
   RemoteOutboundRtp,
   TrackType,
 } from '../../gen/video/sfu/models/models';
-import type { RTCCodecStats, RTCMediaSourceStats } from '../types';
+import type {
+  RTCCodecStats,
+  RTCMediaSourceStats,
+  RTCRemoteInboundRtpStreamStats,
+  RTCRemoteOutboundRtpStreamStats,
+} from '../types';
 import type { ComputedStats } from './types';
 
 /**
@@ -64,11 +69,12 @@ export class StatsTracer {
     const delta = deltaCompression(this.previousStats, currentStats);
 
     // store the current data for the next iteration
+    const previousStats = this.previousStats;
     this.previousStats = currentStats;
     this.frameTimeHistory = this.frameTimeHistory.slice(-2);
     this.fpsHistory = this.fpsHistory.slice(-2);
 
-    return { performanceStats, delta, stats, currentStats };
+    return { performanceStats, delta, stats, currentStats, previousStats };
   };
 
   /**
@@ -218,223 +224,224 @@ export class StatsTracer {
   /**
    * Get metrics for the SendMetricsRequest.
    * Returns populated SendMetricsRequest with outbound-rtp and remote-inbound-rtp.
+   * Collects both stat types in a single loop for optimal performance.
    *
    * @internal
    */
-  getPublisherMetrics = (currentStats: Record<string, RTCStats>) => {
-    return {
-      outbound: this.getOutboundRtpStats(currentStats),
-      remoteInbound: this.getRemoteInboundRtpStats(currentStats),
-    };
+  getPublisherMetrics = (
+    currentStats: Record<string, RTCStats>,
+    previousStats: Record<string, RTCStats>,
+  ) => {
+    const outbound: OutboundRtp[] = [];
+    const remoteInbound: RemoteInboundRtp[] = [];
+
+    for (const rtp of Object.values(currentStats)) {
+      if (rtp.type === 'outbound-rtp') {
+        outbound.push(
+          processOutboundRtpStat(
+            rtp as RTCOutboundRtpStreamStats,
+            previousStats,
+          ),
+        );
+      } else if (rtp.type === 'remote-inbound-rtp') {
+        remoteInbound.push(
+          processRemoteInboundRtpStat(rtp as RTCRemoteInboundRtpStreamStats),
+        );
+      }
+    }
+
+    return { outbound, remoteInbound };
   };
 
   /**
    * Get metrics for the SendMetricsRequest.
    * Returns populated SendMetricsRequest with inbound-rtp and remote-outbound-rtp stats.
+   * Collects both stat types in a single loop for optimal performance.
    *
    * @internal
    */
-  getSubscriberMetrics = (currentStats: Record<string, RTCStats>) => {
-    return {
-      inbound: this.getInboundRtpStats(currentStats),
-      remoteOutbound: this.getRemoteOutboundRtpStats(currentStats),
-    };
-  };
-
-  /**
-   * Collect all outbound-rtp stats from the current stats.
-   */
-  private getOutboundRtpStats = (
+  getSubscriberMetrics = (
     currentStats: Record<string, RTCStats>,
-  ): OutboundRtp[] => {
-    const outboundStats: OutboundRtp[] = [];
+    previousStats: Record<string, RTCStats>,
+  ) => {
+    const inbound: InboundRtp[] = [];
+    const remoteOutbound: RemoteOutboundRtp[] = [];
 
     for (const rtp of Object.values(currentStats)) {
-      if (rtp.type !== 'outbound-rtp') continue;
-
-      const stat = rtp as RTCOutboundRtpStreamStats;
-      const {
-        kind,
-        ssrc,
-        timestamp,
-        bytesSent = 0,
-        framesEncoded = 0,
-        totalEncodeTime = 0,
-        frameWidth = 0,
-        frameHeight = 0,
-        id,
-      } = stat;
-
-      // Calculate FPS
-      let fps = 0;
-      if (this.previousStats[id]) {
-        const prevStat = this.previousStats[id] as RTCOutboundRtpStreamStats;
-        const deltaFrames = framesEncoded - (prevStat.framesEncoded || 0);
-        const deltaTime = (timestamp - prevStat.timestamp) / 1000; // Convert to seconds
-        fps = deltaTime > 0 ? deltaFrames / deltaTime : 0;
+      if (rtp.type === 'inbound-rtp') {
+        inbound.push(
+          processInboundRtpStat(rtp as RTCInboundRtpStreamStats, previousStats),
+        );
+      } else if (rtp.type === 'remote-outbound-rtp') {
+        remoteOutbound.push(
+          processRemoteOutboundRtpStat(rtp as RTCRemoteOutboundRtpStreamStats),
+        );
       }
-
-      // Calculate average encode time
-      const avgEncodeTimeSeconds =
-        framesEncoded > 0 ? totalEncodeTime / framesEncoded : 0;
-
-      // Calculate bitrate
-      let bitrateBps = 0;
-      if (this.previousStats[id]) {
-        const prevStat = this.previousStats[id] as RTCOutboundRtpStreamStats;
-        const deltaBytes = bytesSent - (prevStat.bytesSent || 0);
-        const deltaTime = (timestamp - prevStat.timestamp) / 1000; // Convert to seconds
-        bitrateBps = deltaTime > 0 ? (deltaBytes * 8) / deltaTime : 0;
-      }
-
-      // Calculate min dimension
-      const minDimensionPx =
-        kind === 'video' ? Math.min(frameWidth, frameHeight) : 0;
-
-      outboundStats.push({
-        base: { ssrc, kind, timestampMs: timestamp },
-        fps,
-        avgEncodeTimeSeconds,
-        bitrateBps,
-        minDimensionPx,
-      });
     }
 
-    return outboundStats;
-  };
-
-  /**
-   * Collect all inbound-rtp stats from the current stats.
-   */
-  private getInboundRtpStats = (
-    currentStats: Record<string, RTCStats>,
-  ): InboundRtp[] => {
-    const inboundStats: InboundRtp[] = [];
-
-    for (const rtp of Object.values(currentStats)) {
-      if (rtp.type !== 'inbound-rtp') continue;
-
-      const stat = rtp as RTCInboundRtpStreamStats;
-      const {
-        kind,
-        ssrc,
-        timestamp,
-        jitter = 0,
-        packetsReceived = 0,
-        packetsLost = 0,
-        concealmentEvents = 0,
-        concealedSamples = 0,
-        totalSamplesReceived = 0,
-        framesDecoded = 0,
-        totalDecodeTime = 0,
-        totalFreezesDuration = 0,
-        frameWidth = 0,
-        frameHeight = 0,
-        id,
-      } = stat;
-
-      // Calculate packet loss percentage
-      const totalPackets = packetsReceived + packetsLost;
-      const packetLossPercent =
-        totalPackets > 0 ? (packetsLost / totalPackets) * 100 : 0;
-
-      // Calculate concealment percentage (only if sufficient samples)
-      const concealmentPercent =
-        totalSamplesReceived >= 96000
-          ? (concealedSamples / totalSamplesReceived) * 100
-          : 0;
-
-      // Calculate FPS
-      let fps = 0;
-      if (this.previousStats[id]) {
-        const prevStat = this.previousStats[id] as RTCInboundRtpStreamStats;
-        const deltaFrames = framesDecoded - (prevStat.framesDecoded || 0);
-        const deltaTime = (timestamp - prevStat.timestamp) / 1000; // Convert to seconds
-        fps = deltaTime > 0 ? deltaFrames / deltaTime : 0;
-      }
-
-      // Calculate average decode time
-      const avgDecodeTimeSeconds =
-        framesDecoded > 0 ? totalDecodeTime / framesDecoded : 0;
-
-      // Calculate min dimension
-      const minDimensionPx =
-        kind === 'video' ? Math.min(frameWidth, frameHeight) : 0;
-
-      inboundStats.push({
-        base: { ssrc, kind, timestampMs: timestamp },
-        jitterSeconds: jitter,
-        packetsReceived: packetsReceived.toString(),
-        packetsLost: packetsLost.toString(),
-        packetLossPercent,
-        concealmentEvents,
-        concealmentPercent,
-        fps,
-        freezeDurationSeconds: totalFreezesDuration,
-        avgDecodeTimeSeconds,
-        minDimensionPx,
-      });
-    }
-
-    return inboundStats;
-  };
-
-  /**
-   * Collect all remote-inbound-rtp stats from the current stats.
-   */
-  private getRemoteInboundRtpStats = (
-    currentStats: Record<string, RTCStats>,
-  ): RemoteInboundRtp[] => {
-    const remoteInboundStats: RemoteInboundRtp[] = [];
-
-    for (const rtp of Object.values(currentStats)) {
-      if (rtp.type !== 'remote-inbound-rtp') continue;
-
-      // Type assertion to any since RTCRemoteInboundRtpStreamStats is not in standard types
-      const stat = rtp as any;
-      const {
-        kind = '',
-        ssrc = 0,
-        timestamp = 0,
-        jitter = 0,
-        roundTripTime = 0,
-      } = stat;
-
-      remoteInboundStats.push({
-        base: { ssrc, kind, timestampMs: timestamp },
-        jitterSeconds: jitter,
-        roundTripTimeS: roundTripTime,
-      });
-    }
-
-    return remoteInboundStats;
-  };
-
-  /**
-   * Collect all remote-outbound-rtp stats from the current stats.
-   */
-  private getRemoteOutboundRtpStats = (
-    currentStats: Record<string, RTCStats>,
-  ): RemoteOutboundRtp[] => {
-    const remoteOutboundStats: RemoteOutboundRtp[] = [];
-
-    for (const rtp of Object.values(currentStats)) {
-      if (rtp.type !== 'remote-outbound-rtp') continue;
-
-      // Type assertion to any since RTCRemoteOutboundRtpStreamStats is not in standard types
-      const stat = rtp as any;
-      const { kind = '', ssrc = 0, timestamp = 0, roundTripTime = 0 } = stat;
-
-      remoteOutboundStats.push({
-        base: { ssrc, kind, timestampMs: timestamp },
-        jitterSeconds: 0, // Remote outbound may not have jitter
-        roundTripTimeS: roundTripTime,
-      });
-    }
-
-    return remoteOutboundStats;
+    return { inbound, remoteOutbound };
   };
 }
+
+/**
+ * Process an outbound-rtp stat and return the OutboundRtp object.
+ *
+ * @param stat the outbound RTP stream stats.
+ * @param previousStats the previous stats to calculate deltas.
+ */
+const processOutboundRtpStat = (
+  stat: RTCOutboundRtpStreamStats,
+  previousStats: Record<string, RTCStats>,
+): OutboundRtp => {
+  const {
+    kind,
+    ssrc,
+    timestamp,
+    bytesSent = 0,
+    framesEncoded = 0,
+    totalEncodeTime = 0,
+    frameWidth = 0,
+    frameHeight = 0,
+    id,
+  } = stat;
+
+  // Calculate FPS
+  let fps = 0;
+  if (previousStats[id]) {
+    const prevStat = previousStats[id] as RTCOutboundRtpStreamStats;
+    const deltaFrames = framesEncoded - (prevStat.framesEncoded || 0);
+    const deltaTime = (timestamp - prevStat.timestamp) / 1000;
+    fps = deltaTime > 0 ? deltaFrames / deltaTime : 0;
+  }
+
+  // Calculate average encode time
+  const avgEncodeTimeSeconds =
+    framesEncoded > 0 ? totalEncodeTime / framesEncoded : 0;
+
+  // Calculate bitrate
+  let bitrateBps = 0;
+  if (previousStats[id]) {
+    const prevStat = previousStats[id] as RTCOutboundRtpStreamStats;
+    const deltaBytes = bytesSent - (prevStat.bytesSent || 0);
+    const deltaTime = (timestamp - prevStat.timestamp) / 1000;
+    bitrateBps = deltaTime > 0 ? (deltaBytes * 8) / deltaTime : 0;
+  }
+
+  // Calculate min dimension
+  const minDimensionPx =
+    kind === 'video' ? Math.min(frameWidth, frameHeight) : 0;
+
+  return {
+    base: { ssrc, kind, timestampMs: timestamp },
+    fps,
+    avgEncodeTimeSeconds,
+    bitrateBps,
+    minDimensionPx,
+  };
+};
+
+/**
+ * Process an inbound-rtp stat and return the InboundRtp object.
+ *
+ * @param stat the inbound RTP stream stats.
+ * @param previousStats the previous stats to calculate deltas.
+ */
+const processInboundRtpStat = (
+  stat: RTCInboundRtpStreamStats,
+  previousStats: Record<string, RTCStats>,
+): InboundRtp => {
+  const {
+    kind,
+    ssrc,
+    timestamp,
+    jitter = 0,
+    packetsReceived = 0,
+    packetsLost = 0,
+    concealmentEvents = 0,
+    concealedSamples = 0,
+    totalSamplesReceived = 0,
+    framesDecoded = 0,
+    totalDecodeTime = 0,
+    totalFreezesDuration = 0,
+    frameWidth = 0,
+    frameHeight = 0,
+    id,
+  } = stat;
+
+  // Calculate packet loss percentage
+  const totalPackets = packetsReceived + packetsLost;
+  const packetLossPercent =
+    totalPackets > 0 ? (packetsLost / totalPackets) * 100 : 0;
+
+  // Calculate concealment percentage (only if sufficient samples)
+  const concealmentPercent =
+    totalSamplesReceived >= 96000
+      ? (concealedSamples / totalSamplesReceived) * 100
+      : 0;
+
+  // Calculate FPS
+  let fps = 0;
+  if (previousStats[id]) {
+    const prevStat = previousStats[id] as RTCInboundRtpStreamStats;
+    const deltaFrames = framesDecoded - (prevStat.framesDecoded || 0);
+    const deltaTime = (timestamp - prevStat.timestamp) / 1000;
+    fps = deltaTime > 0 ? deltaFrames / deltaTime : 0;
+  }
+
+  // Calculate average decode time
+  const avgDecodeTimeSeconds =
+    framesDecoded > 0 ? totalDecodeTime / framesDecoded : 0;
+
+  // Calculate min dimension
+  const minDimensionPx =
+    kind === 'video' ? Math.min(frameWidth, frameHeight) : 0;
+
+  return {
+    base: { ssrc, kind, timestampMs: timestamp },
+    jitterSeconds: jitter,
+    packetsReceived: packetsReceived.toString(),
+    packetsLost: packetsLost.toString(),
+    packetLossPercent,
+    concealmentEvents,
+    concealmentPercent,
+    fps,
+    freezeDurationSeconds: totalFreezesDuration,
+    avgDecodeTimeSeconds,
+    minDimensionPx,
+  };
+};
+
+/**
+ * Process a remote-inbound-rtp stat and return the RemoteInboundRtp object.
+ *
+ * @param stat the remote inbound RTP stream stats.
+ */
+const processRemoteInboundRtpStat = (
+  stat: RTCRemoteInboundRtpStreamStats,
+): RemoteInboundRtp => {
+  const { kind, ssrc, timestamp, jitter = 0, roundTripTime = 0 } = stat;
+  return {
+    base: { ssrc, kind, timestampMs: timestamp },
+    jitterSeconds: jitter,
+    roundTripTimeS: roundTripTime,
+  };
+};
+
+/**
+ * Process a remote-outbound-rtp stat and return the RemoteOutboundRtp object.
+ *
+ * @param stat the remote outbound RTP stream stats.
+ */
+const processRemoteOutboundRtpStat = (
+  stat: RTCRemoteOutboundRtpStreamStats,
+): RemoteOutboundRtp => {
+  const { kind, ssrc, timestamp, roundTripTime = 0 } = stat;
+  return {
+    base: { ssrc, kind, timestampMs: timestamp },
+    jitterSeconds: 0, // Remote outbound may not have jitter
+    roundTripTimeS: roundTripTime,
+  };
+};
 
 /**
  * Convert the stat report to an object.
