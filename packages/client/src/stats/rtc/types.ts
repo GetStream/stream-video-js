@@ -40,6 +40,10 @@ export type ComputedStats = {
    */
   stats: RTCStatsReport;
   /**
+   * The current stats as a map of type to stats.
+   */
+  currentStats: Record<any, RTCStats>;
+  /**
    * Delta between the current stats and the previous stats.
    */
   delta: Record<any, any>;

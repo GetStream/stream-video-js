@@ -6,6 +6,8 @@ import {
   AppleState,
   Error,
   ICETrickle,
+  InboundRtp,
+  OutboundRtp,
   InputDevices,
   PeerType,
   PerformanceStats,
@@ -14,6 +16,8 @@ import {
   TrackType,
   VideoDimension,
   WebsocketReconnectStrategy,
+  RemoteInboundRtp,
+  RemoteOutboundRtp,
 } from '../models/models';
 import { ServiceType } from '@protobuf-ts/runtime-rpc';
 import { MessageType } from '@protobuf-ts/runtime';
@@ -93,6 +97,39 @@ export interface Telemetry {
         oneofKind: undefined;
       };
 }
+/**
+ * @generated from protobuf message stream.video.sfu.signal.SendMetricsRequest
+ */
+export interface SendMetricsRequest {
+  /**
+   * @generated from protobuf field: string session_id = 1;
+   */
+  sessionId: string;
+  /**
+   * @generated from protobuf field: string unified_session_id = 2;
+   */
+  unifiedSessionId: string;
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.models.InboundRtp inbound = 3;
+   */
+  inbound: InboundRtp[];
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.models.OutboundRtp outbound = 4;
+   */
+  outbound: OutboundRtp[];
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.models.RemoteInboundRtp remote_inbound = 5;
+   */
+  remoteInbound: RemoteInboundRtp[];
+  /**
+   * @generated from protobuf field: repeated stream.video.sfu.models.RemoteOutboundRtp remote_outbound = 6;
+   */
+  remoteOutbound: RemoteOutboundRtp[];
+}
+/**
+ * @generated from protobuf message stream.video.sfu.signal.SendMetricsResponse
+ */
+export interface SendMetricsResponse {}
 /**
  * @generated from protobuf message stream.video.sfu.signal.SendStatsRequest
  */
@@ -502,6 +539,62 @@ class Telemetry$Type extends MessageType<Telemetry> {
  */
 export const Telemetry = new Telemetry$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class SendMetricsRequest$Type extends MessageType<SendMetricsRequest> {
+  constructor() {
+    super('stream.video.sfu.signal.SendMetricsRequest', [
+      { no: 1, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 2,
+        name: 'unified_session_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
+        no: 3,
+        name: 'inbound',
+        kind: 'message',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: () => InboundRtp,
+      },
+      {
+        no: 4,
+        name: 'outbound',
+        kind: 'message',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: () => OutboundRtp,
+      },
+      {
+        no: 5,
+        name: 'remote_inbound',
+        kind: 'message',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: () => RemoteInboundRtp,
+      },
+      {
+        no: 6,
+        name: 'remote_outbound',
+        kind: 'message',
+        repeat: 2 /*RepeatType.UNPACKED*/,
+        T: () => RemoteOutboundRtp,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.signal.SendMetricsRequest
+ */
+export const SendMetricsRequest = new SendMetricsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SendMetricsResponse$Type extends MessageType<SendMetricsResponse> {
+  constructor() {
+    super('stream.video.sfu.signal.SendMetricsResponse', []);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.signal.SendMetricsResponse
+ */
+export const SendMetricsResponse = new SendMetricsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class SendStatsRequest$Type extends MessageType<SendStatsRequest> {
   constructor() {
     super('stream.video.sfu.signal.SendStatsRequest', [
@@ -884,6 +977,12 @@ export const SignalServer = new ServiceType(
       options: {},
       I: SendStatsRequest,
       O: SendStatsResponse,
+    },
+    {
+      name: 'SendMetrics',
+      options: {},
+      I: SendMetricsRequest,
+      O: SendMetricsResponse,
     },
     {
       name: 'StartNoiseCancellation',

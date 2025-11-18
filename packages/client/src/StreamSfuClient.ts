@@ -20,6 +20,7 @@ import {
 import {
   ICERestartRequest,
   SendAnswerRequest,
+  SendMetricsRequest,
   SendStatsRequest,
   SetPublisherRequest,
   TrackMuteState,
@@ -434,6 +435,12 @@ export class StreamSfuClient {
     await this.joinTask;
     // NOTE: we don't retry sending stats
     return this.rpc.sendStats({ ...stats, sessionId: this.sessionId });
+  };
+
+  sendMetrics = async (metrics: Omit<SendMetricsRequest, 'sessionId'>) => {
+    await this.joinTask;
+    // NOTE: we don't retry sending metrics
+    return this.rpc.sendMetrics({ ...metrics, sessionId: this.sessionId });
   };
 
   startNoiseCancellation = async () => {
