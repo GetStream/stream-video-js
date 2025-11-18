@@ -96,7 +96,7 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: ${{ matrix.application.base-path || '' }}
         run: >
           yarn dlx vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} &&
-          yarn dlx vercel build --token=${{ secrets.VERCEL_TOKEN }} &&
+          yarn dlx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }} &&
           yarn dlx vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
       ### Vercel deployment (Production) ###
