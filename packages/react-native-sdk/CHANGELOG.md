@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.24.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.4...@stream-io/video-react-native-sdk-1.24.5) (2025-11-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.37.1`
+- `@stream-io/video-react-bindings` updated to version `1.11.2`
+
+- remove outdated comment ([2323e27](https://github.com/GetStream/stream-video-js/commit/2323e27b7e50f82e8ef2a3d0d12f1012025b3e50))
+
+### Bug Fixes
+
+- dynascale manager doesnt pick up updated dimensions all the time ([#2001](https://github.com/GetStream/stream-video-js/issues/2001)) ([d91e008](https://github.com/GetStream/stream-video-js/commit/d91e008f27fa2a4324f22555fbe0a59afe702bbb))
+
+## [1.24.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.3...@stream-io/video-react-native-sdk-1.24.4) (2025-11-14)
+
+### Dependency Updates
+
+- `@stream-io/video-filters-react-native` updated to version `0.9.0`
+- `@stream-io/video-client` updated to version `1.37.0`
+- `@stream-io/video-react-bindings` updated to version `1.11.1`
+
 ## [1.24.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.2...@stream-io/video-react-native-sdk-1.24.3) (2025-11-12)
 
 ### Dependency Updates

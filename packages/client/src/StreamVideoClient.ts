@@ -199,11 +199,6 @@ export class StreamVideoClient {
    * @param e the event.
    */
   private initCallFromEvent = async (e: CallCreatedEvent | CallRingEvent) => {
-    if (this.state.connectedUser?.id === e.call.created_by.id) {
-      this.logger.debug(`Ignoring ${e.type} event sent by the current user`);
-      return;
-    }
-
     try {
       const concurrencyTag = getCallInitConcurrencyTag(e.call_cid);
       await withoutConcurrency(concurrencyTag, async () => {
@@ -597,16 +592,14 @@ export class StreamVideoClient {
 
   private shouldRejectCall = (currentCallId: string) => {
     if (!this.rejectCallWhenBusy) return false;
-
-    const hasOngoingRingingCall = this.state.calls.some(
+    return this.state.calls.some(
       (c) =>
         c.cid !== currentCallId &&
         c.ringing &&
+        !c.isCreatedByMe &&
         c.state.callingState !== CallingState.IDLE &&
         c.state.callingState !== CallingState.LEFT &&
         c.state.callingState !== CallingState.RECONNECTING_FAILED,
     );
-
-    return hasOngoingRingingCall;
   };
 }
