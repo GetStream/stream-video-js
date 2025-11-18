@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.11.1...@stream-io/video-react-bindings-1.11.2) (2025-11-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.37.1`
+
+## [1.11.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.11.0...@stream-io/video-react-bindings-1.11.1) (2025-11-14)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.37.0`
+
+## [1.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.10.4...@stream-io/video-react-bindings-1.11.0) (2025-11-12)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.36.1`
+
+### Features
+
+- **react-bindings:** integrate useSyncExternalStore in useObservableValue ([#1953](https://github.com/GetStream/stream-video-js/issues/1953)) ([ad4b147](https://github.com/GetStream/stream-video-js/commit/ad4b147713f40c96658ddaf70a01d7ca8e369a14))
+
 ## [1.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.10.3...@stream-io/video-react-bindings-1.10.4) (2025-10-30)
 
 ### Dependency Updates

@@ -689,6 +689,18 @@ export class CallState {
   }
 
   /**
+   * Returns the current participants array directly from the BehaviorSubject.
+   * This bypasses the observable pipeline and is guaranteed to be synchronous.
+   * Use this when you need the absolute latest value without any potential
+   * timing issues from shareReplay/refCount.
+   *
+   * @internal
+   */
+  getParticipantsSnapshot = () => {
+    return this.participantsSubject.getValue();
+  };
+
+  /**
    * Sets the list of participants in the current call.
    *
    * @internal
