@@ -1,5 +1,3 @@
-import type { PerformanceStats } from '../../gen/video/sfu/models/models';
-
 export type RTCStatsDataType =
   | RTCConfiguration
   | RTCIceCandidate
@@ -51,8 +49,4 @@ export type ComputedStats = {
    * Delta between the current stats and the previous stats.
    */
   delta: Record<any, any>;
-  /**
-   * The current iteration of the stats.
-   */
-  performanceStats: PerformanceStats[];
 };

@@ -130,7 +130,9 @@ export class SfuStatsReporter {
     const subscriberTrace = this.subscriber.tracer?.take();
     const publisherTrace = this.publisher?.tracer?.take();
     const tracer = this.tracer.take();
-    const sfuTrace = this.sfuClient.getTrace();
+    const sfuTrace = this.sfuClient.tracer?.take();
+
+    // not sorted, our backend will take care of it
     const traces: TraceRecord[] = [
       ...tracer.snapshot,
       ...(sfuTrace?.snapshot ?? []),
@@ -138,10 +140,8 @@ export class SfuStatsReporter {
       ...(subscriberTrace?.snapshot ?? []),
     ];
 
-    const useLegacyStats = this.useLegacyStats;
-
     try {
-      const stats = SfuSendStatsRequest.create({
+      const baseStats = SfuSendStatsRequest.create({
         sessionId: this.sfuClient.sessionId,
         sdk: this.sdkName,
         sdkVersion: this.sdkVersion,
@@ -151,12 +151,19 @@ export class SfuStatsReporter {
         telemetry,
       });
 
-      if (useLegacyStats) {
+      if (this.useLegacyStats) {
+        const encodeStats =
+          publisherStats && this.publisher
+            ? this.publisher.stats.getEncodeStats(publisherStats.currentStats)
+            : undefined;
+        const decodeStats = this.subscriber.stats.getDecodeStats(
+          subscriberStats.currentStats,
+        );
         await this.sfuClient.sendStats(
           SfuSendStatsRequest.create({
-            ...stats,
-            encodeStats: publisherStats?.performanceStats ?? [],
-            decodeStats: subscriberStats.performanceStats,
+            ...baseStats,
+            encodeStats,
+            decodeStats,
             deviceState: getDeviceState(),
             subscriberStats: JSON.stringify(flatten(subscriberStats.stats)),
             publisherStats: publisherStats
@@ -165,7 +172,7 @@ export class SfuStatsReporter {
           }),
         );
       } else {
-        await this.sendCoordinatorStats(stats).catch((err) => {
+        await this.sendCoordinatorStats(baseStats).catch((err) => {
           this.logger.warn('Failed to send stats to coordinator', err);
         });
         await this.sendMetrics(subscriberStats, publisherStats).catch((err) => {
@@ -187,17 +194,24 @@ export class SfuStatsReporter {
       sdk: stats.sdk,
       sdk_version: stats.sdkVersion,
       sfu_id: this.sfuClient.edgeName,
-      telemetry: {
-        connection_time_seconds: 0,
-        reconnection: {
-          strategy: '',
-          time_seconds: 0,
-        },
-      },
       unified_session_id: stats.unifiedSessionId,
       user_session_id: stats.sessionId,
       webrtc_version: stats.webrtcVersion,
     };
+    if (stats.telemetry) {
+      const { data } = stats.telemetry;
+      payload.telemetry = {
+        ...(data.oneofKind === 'connectionTimeSeconds' && {
+          connection_time_seconds: data.connectionTimeSeconds,
+        }),
+        ...(data.oneofKind === 'reconnection' && {
+          reconnection: {
+            strategy: WebsocketReconnectStrategy[data.reconnection.strategy],
+            time_seconds: data.reconnection.timeSeconds,
+          },
+        }),
+      };
+    }
     return this.streamClient.doAxiosRequest<
       SendStatsResponse,
       SendStatsRequest

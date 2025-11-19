@@ -73,7 +73,7 @@ export abstract class BasePeerConnection {
       { tags: [tag] },
     );
     this.pc = this.createPeerConnection(connectionConfig);
-    this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
+    this.stats = new StatsTracer(this.pc, this.trackIdToTrackType);
     if (enableTracing) {
       this.tracer = new Tracer(
         `${tag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`,

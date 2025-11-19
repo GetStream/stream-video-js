@@ -2,7 +2,6 @@ import {
   Codec,
   InboundRtp,
   OutboundRtp,
-  PeerType,
   PerformanceStats,
   RemoteInboundRtp,
   RemoteOutboundRtp,
@@ -26,10 +25,7 @@ import type { ComputedStats } from './types';
  */
 export class StatsTracer {
   private readonly pc: RTCPeerConnection;
-  private readonly peerType: PeerType;
   private readonly trackIdToTrackType: Map<string, TrackType>;
-
-  private costOverrides?: Map<TrackType, number>;
 
   private previousStats: Record<string, RTCStats> = {};
   private frameTimeHistory: number[] = [];
@@ -40,11 +36,9 @@ export class StatsTracer {
    */
   constructor(
     pc: RTCPeerConnection,
-    peerType: PeerType,
     trackIdToTrackType: Map<string, TrackType>,
   ) {
     this.pc = pc;
-    this.peerType = peerType;
     this.trackIdToTrackType = trackIdToTrackType;
   }
 
@@ -59,28 +53,23 @@ export class StatsTracer {
   get = async (): Promise<ComputedStats> => {
     const stats = await this.pc.getStats();
     const currentStats = toObject(stats);
-
-    const performanceStats = this.withOverrides(
-      this.peerType === PeerType.SUBSCRIBER
-        ? this.getDecodeStats(currentStats)
-        : this.getEncodeStats(currentStats),
-    );
-
-    const delta = deltaCompression(this.previousStats, currentStats);
+    const previousStats = this.previousStats;
+    const delta = deltaCompression(previousStats, currentStats);
 
     // store the current data for the next iteration
-    const previousStats = this.previousStats;
     this.previousStats = currentStats;
     this.frameTimeHistory = this.frameTimeHistory.slice(-2);
     this.fpsHistory = this.fpsHistory.slice(-2);
 
-    return { performanceStats, delta, stats, currentStats, previousStats };
+    return { delta, stats, currentStats, previousStats };
   };
 
   /**
    * Collects encode stats from the RTCPeerConnection.
+   *
+   * @deprecated replaced with the new sendMetrics endpoint.
    */
-  private getEncodeStats = (
+  getEncodeStats = (
     currentStats: Record<string, RTCStats>,
   ): PerformanceStats[] => {
     const encodeStats: PerformanceStats[] = [];
@@ -136,8 +125,10 @@ export class StatsTracer {
 
   /**
    * Collects decode stats from the RTCPeerConnection.
+   *
+   * @deprecated replaced with the new sendMetrics endpoint.
    */
-  private getDecodeStats = (
+  getDecodeStats = (
     currentStats: Record<string, RTCStats>,
   ): PerformanceStats[] => {
     let rtp: RTCInboundRtpStreamStats | undefined = undefined;
@@ -189,39 +180,6 @@ export class StatsTracer {
   };
 
   /**
-   * Applies cost overrides to the performance stats.
-   * This is used to override the default encode/decode times with custom values.
-   * This is useful for testing and debugging purposes, and it shouldn't be used in production.
-   */
-  private withOverrides = (
-    performanceStats: PerformanceStats[],
-  ): PerformanceStats[] => {
-    if (this.costOverrides) {
-      for (const s of performanceStats) {
-        const override = this.costOverrides.get(s.trackType);
-        if (override !== undefined) {
-          // override the average encode/decode time with the provided cost.
-          // format: [override].[original-frame-time]
-          s.avgFrameTimeMs = override + (s.avgFrameTimeMs || 0) / 1000;
-        }
-      }
-    }
-    return performanceStats;
-  };
-
-  /**
-   * Set the encode/decode cost for a specific track type.
-   * This is used to override the default encode/decode times with custom values.
-   * This is useful for testing and debugging purposes, and it shouldn't be used in production.
-   *
-   * @internal
-   */
-  setCost = (cost: number, trackType = TrackType.VIDEO) => {
-    if (!this.costOverrides) this.costOverrides = new Map();
-    this.costOverrides.set(trackType, cost);
-  };
-
-  /**
    * Get metrics for the SendMetricsRequest.
    * Returns populated SendMetricsRequest with outbound-rtp and remote-inbound-rtp.
    * Collects both stat types in a single loop for optimal performance.
@@ -234,7 +192,6 @@ export class StatsTracer {
   ) => {
     const outbound: OutboundRtp[] = [];
     const remoteInbound: RemoteInboundRtp[] = [];
-
     for (const rtp of Object.values(currentStats)) {
       if (rtp.type === 'outbound-rtp') {
         outbound.push(
@@ -249,7 +206,6 @@ export class StatsTracer {
         );
       }
     }
-
     return { outbound, remoteInbound };
   };
 
@@ -266,7 +222,6 @@ export class StatsTracer {
   ) => {
     const inbound: InboundRtp[] = [];
     const remoteOutbound: RemoteOutboundRtp[] = [];
-
     for (const rtp of Object.values(currentStats)) {
       if (rtp.type === 'inbound-rtp') {
         inbound.push(
@@ -278,7 +233,6 @@ export class StatsTracer {
         );
       }
     }
-
     return { inbound, remoteOutbound };
   };
 }

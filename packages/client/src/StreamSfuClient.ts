@@ -148,7 +148,7 @@ export class StreamSfuClient {
   private readonly pingIntervalInMs = 5 * 1000;
   private readonly unhealthyTimeoutInMs = 15 * 1000;
   private lastMessageTimestamp?: Date;
-  private readonly tracer?: Tracer;
+  readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
   private readonly unsubscribeNetworkChanged: () => void;
   private readonly onSignalClose: ((reason: string) => void) | undefined;
@@ -364,10 +364,6 @@ export class StreamSfuClient {
     this.abortController.abort();
     this.migrationTask?.resolve();
     this.iceTrickleBuffer.dispose();
-  };
-
-  getTrace = (): TraceSlice | undefined => {
-    return this.tracer?.take();
   };
 
   leaveAndClose = async (reason: string) => {
