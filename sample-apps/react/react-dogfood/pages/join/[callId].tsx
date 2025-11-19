@@ -4,6 +4,7 @@ import {
   Call,
   CallingState,
   CallRequest,
+  ModerationProvider,
   NoiseCancellationProvider,
   StreamCall,
   StreamVideo,
@@ -204,14 +205,16 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
                 `${basePath}/backgrounds/gradient-3.jpg`,
               ]}
             >
-              {noiseCancellation && (
-                <NoiseCancellationProvider
-                  noiseCancellation={noiseCancellation}
-                >
-                  <RingingCallNotification />
-                  <MeetingUI key={call.cid} chatClient={chatClient} />
-                </NoiseCancellationProvider>
-              )}
+              <ModerationProvider>
+                {noiseCancellation && (
+                  <NoiseCancellationProvider
+                    noiseCancellation={noiseCancellation}
+                  >
+                    <RingingCallNotification />
+                    <MeetingUI key={call.cid} chatClient={chatClient} />
+                  </NoiseCancellationProvider>
+                )}
+              </ModerationProvider>
             </BackgroundFiltersProvider>
           </TourProvider>
         </StreamCall>
