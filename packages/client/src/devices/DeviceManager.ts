@@ -307,7 +307,6 @@ export abstract class DeviceManager<
     }
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
-    this.filters.forEach((entry) => entry.stop?.());
     if (allEnded) {
       // @ts-expect-error release() is present in react-native-webrtc
       if (typeof mediaStream.release === 'function') {
@@ -315,8 +314,7 @@ export abstract class DeviceManager<
         mediaStream.release();
       }
       this.state.setMediaStream(undefined, undefined);
-      // why?
-      // this.filters.forEach((entry) => entry.stop?.());
+      this.filters.forEach((entry) => entry.stop?.());
     }
   }
 
