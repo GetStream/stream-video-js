@@ -1,5 +1,5 @@
 import type { Observable } from 'rxjs';
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useSyncExternalStore } from 'use-sync-external-store/shim';
 import { RxUtils } from '@stream-io/video-client';
 
@@ -12,32 +12,32 @@ import { RxUtils } from '@stream-io/video-client';
 export const useObservableValue = <T>(
   observable$: Observable<T>,
   defaultValue?: T,
-) => {
-  const getSnapshot = useCallback(() => {
+): T => {
+  const initialRenderRef = useRef(false);
+  const valueRef = useRef<T | undefined>(undefined);
+  if (valueRef.current === undefined && !initialRenderRef.current) {
+    initialRenderRef.current = true;
     try {
-      return RxUtils.getCurrentValue(observable$);
+      valueRef.current = RxUtils.getCurrentValue(observable$);
     } catch (error) {
       if (typeof defaultValue === 'undefined') throw error;
-      return defaultValue;
+      valueRef.current = defaultValue;
     }
-  }, [defaultValue, observable$]);
+  }
 
   const subscribe = useCallback(
-    (onStoreChange: (v: T) => void) => {
-      const unsubscribe = RxUtils.createSubscription(
+    (onStoreChange: () => void) =>
+      RxUtils.createSubscription(
         observable$,
-        onStoreChange,
-        (error) => {
-          console.log('An error occurred while reading an observable', error);
-
-          if (defaultValue) onStoreChange(defaultValue);
+        (value: T) => {
+          valueRef.current = value;
+          onStoreChange();
         },
-      );
-
-      return unsubscribe;
-    },
-    [defaultValue, observable$],
+        (err) => console.log('Failed to read an observable', err),
+      ),
+    [observable$],
   );
 
+  const getSnapshot = useCallback(() => valueRef.current as T, []);
   return useSyncExternalStore(subscribe, getSnapshot);
 };
