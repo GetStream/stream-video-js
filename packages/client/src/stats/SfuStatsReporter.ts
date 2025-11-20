@@ -190,7 +190,6 @@ export class SfuStatsReporter {
 
   private sendCoordinatorStats = async (stats: SfuSendStatsRequest) => {
     const payload: SendStatsRequest = {
-      rtc_stats: new Blob([stats.rtcStats], { type: 'application/json' }),
       sdk: stats.sdk,
       sdk_version: stats.sdkVersion,
       sfu_id: this.sfuClient.edgeName,
@@ -212,6 +211,10 @@ export class SfuStatsReporter {
         }),
       };
     }
+
+    // must be last entry in the payload
+    payload.rtc_stats = new Blob([stats.rtcStats], { type: 'application/json' });
+
     return this.streamClient.doAxiosRequest<
       SendStatsResponse,
       SendStatsRequest
