@@ -6,6 +6,7 @@ import {
   PreferredCodec,
   useCall,
   useCallStateHooks,
+  useModeration,
   usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
 import Gleap from 'gleap';
@@ -52,6 +53,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const {
     settings: { deviceSelectionPreference },
   } = useSettings();
+  useModeration();
   const isRestricted = useIsRestrictedEnvironment();
 
   const videoCodecOverride = (router.query['video_encoder'] ||

@@ -258,7 +258,6 @@ export abstract class DeviceManager<
   };
 
   protected async applySettingsToStream() {
-    console.log('applySettingsToStream ');
     await withCancellation(this.statusChangeConcurrencyTag, async (signal) => {
       if (this.enabled) {
         try {

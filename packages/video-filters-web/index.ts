@@ -5,3 +5,4 @@ export * from './src/legacy/tflite';
 export * from './src/mediapipe';
 export * from './src/types';
 export * from './src/VirtualBackground';
+export * from './src/FullScreenBlur';
