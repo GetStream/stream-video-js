@@ -74,6 +74,8 @@ type OrphanedTrack = {
   track: MediaStream;
 };
 
+const stableEmptyArray: StreamVideoParticipant[] = [];
+
 /**
  * Holds the state of the current call.
  * @react You don't have to use this class directly, as we are exposing the state through Hooks.
@@ -353,7 +355,23 @@ export class CallState {
     );
 
     this.remoteParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => !p.isLocalParticipant)),
+      map((participants) => {
+        // no need to filter if there are no participants
+        if (!participants.length) {
+          return participants;
+        }
+
+        const filteredParticipants = participants.filter(
+          (p) => !p.isLocalParticipant,
+        );
+
+        // return a stable empty array if there are no remote participants
+        if (!filteredParticipants.length) {
+          return stableEmptyArray;
+        }
+
+        return filteredParticipants;
+      }),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
