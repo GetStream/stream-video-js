@@ -8,15 +8,6 @@ export type BackgroundSource = {
 export type BackgroundFilter = 'blur' | 'image';
 export type BackgroundBlurLevel = 'low' | 'medium' | 'high' | number;
 
-/**
- * Represents the available blur intensity levels.
- */
-export enum ModerationBlurIntensity {
-  LOW,
-  MEDIUM,
-  HIGH,
-}
-
 export interface SegmenterOptions {
   backgroundSource?: BackgroundSource | null;
   bgBlur: number;

@@ -4,12 +4,12 @@ import {
   Call,
   CallingState,
   CallRequest,
-  ModerationProvider,
   NoiseCancellationProvider,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
   useCallStateHooks,
+  useModeration,
   User,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
@@ -138,6 +138,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     }
   }, []);
 
+  useModeration();
   useGleap(gleapApiKey, client, call, user);
   const [noiseCancellation, setNoiseCancellation] =
     useState<INoiseCancellation>();
@@ -205,16 +206,14 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
                 `${basePath}/backgrounds/gradient-3.jpg`,
               ]}
             >
-              <ModerationProvider>
-                {noiseCancellation && (
-                  <NoiseCancellationProvider
-                    noiseCancellation={noiseCancellation}
-                  >
-                    <RingingCallNotification />
-                    <MeetingUI key={call.cid} chatClient={chatClient} />
-                  </NoiseCancellationProvider>
-                )}
-              </ModerationProvider>
+              {noiseCancellation && (
+                <NoiseCancellationProvider
+                  noiseCancellation={noiseCancellation}
+                >
+                  <RingingCallNotification />
+                  <MeetingUI key={call.cid} chatClient={chatClient} />
+                </NoiseCancellationProvider>
+              )}
             </BackgroundFiltersProvider>
           </TourProvider>
         </StreamCall>

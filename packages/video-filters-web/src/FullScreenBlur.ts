@@ -1,9 +1,9 @@
-import { ModerationBlurIntensity, VideoTrackProcessorHooks } from './types';
+import { VideoTrackProcessorHooks } from './types';
 import { BaseVideoProcessor } from './BaseVideoProcessor';
 import { FullScreenBlurRenderer } from './FullScreenBlurRenderer';
 
 export interface FullScreenBlurOptions {
-  blurIntensity?: number;
+  blurRadius?: number;
 }
 
 /**
@@ -15,7 +15,7 @@ export interface FullScreenBlurOptions {
  */
 export class FullScreenBlur extends BaseVideoProcessor {
   private blurRenderer!: FullScreenBlurRenderer;
-  private readonly blurRadius: ModerationBlurIntensity;
+  private readonly blurRadius: number;
 
   /**
    * Creates a new full-screen blur processor for the given video track.
@@ -30,8 +30,7 @@ export class FullScreenBlur extends BaseVideoProcessor {
     hooks: VideoTrackProcessorHooks = {},
   ) {
     super(track, hooks);
-
-    this.blurRadius = this.intensityToRadius(options.blurIntensity);
+    this.blurRadius = options.blurRadius ?? 6;
   }
 
   protected async initialize(): Promise<void> {
@@ -49,18 +48,5 @@ export class FullScreenBlur extends BaseVideoProcessor {
 
   protected get processorName(): string {
     return 'fullscreen-blur';
-  }
-
-  private intensityToRadius(level?: ModerationBlurIntensity): number {
-    switch (level) {
-      case ModerationBlurIntensity.LOW:
-        return 4;
-      case ModerationBlurIntensity.MEDIUM:
-        return 8;
-      case ModerationBlurIntensity.HIGH:
-        return 12;
-      default:
-        return 6;
-    }
   }
 }
