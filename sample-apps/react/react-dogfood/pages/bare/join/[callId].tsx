@@ -78,6 +78,33 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
       | PreferredCodec
       | undefined;
 
+    const cameraOverride = router.query['camera'] as string | undefined;
+    const micOverride = router.query['mic'] as string | undefined;
+
+    if (cameraOverride != null) {
+      if (cameraOverride === 'false') {
+        _call.camera
+          .disable()
+          .catch((e) => console.error('Failed to disable camera', e));
+      } else {
+        _call.camera
+          .enable()
+          .catch((e) => console.error('Failed to enable camera', e));
+      }
+    }
+
+    if (micOverride != null) {
+      if (micOverride === 'false') {
+        _call.microphone
+          .disable()
+          .catch((e) => console.error('Failed to disable microphone', e));
+      } else {
+        _call.microphone
+          .enable()
+          .catch((e) => console.error('Failed to enable microphone', e));
+      }
+    }
+
     const preferredBitrate = bitrateOverride
       ? parseInt(bitrateOverride, 10)
       : undefined;
