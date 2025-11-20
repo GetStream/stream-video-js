@@ -9,7 +9,6 @@ import {
   StreamVideo,
   StreamVideoClient,
   useCallStateHooks,
-  useModeration,
   User,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
@@ -138,7 +137,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     }
   }, []);
 
-  useModeration();
   useGleap(gleapApiKey, client, call, user);
   const [noiseCancellation, setNoiseCancellation] =
     useState<INoiseCancellation>();
