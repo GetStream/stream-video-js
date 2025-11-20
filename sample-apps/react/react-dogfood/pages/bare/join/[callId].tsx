@@ -1,13 +1,21 @@
 import {
   Call,
-  CallControls,
   CallingState,
+  CancelCallButton,
   Icon,
+  OwnCapability,
   PreferredCodec,
+  ReactionsButton,
+  RecordCallButton,
+  Restricted,
+  ScreenShareButton,
   SpeakerLayout,
+  SpeakingWhileMutedNotification,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  ToggleAudioPublishingButton,
+  ToggleVideoPublishingButton,
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
@@ -20,6 +28,8 @@ import {
   getServerSideCredentialsProps,
   ServerSideCredentialsProps,
 } from '../../../lib/getServerSideCredentialsProps';
+import { IncomingVideoSettingsButton } from '../../../components/IncomingVideoSettings';
+import appTranslations from '../../../translations';
 
 export default function BareCallRoom(props: ServerSideCredentialsProps) {
   const { apiKey, userToken, user } = props;
@@ -100,7 +110,11 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
 
-      <StreamVideo client={client}>
+      <StreamVideo
+        client={client}
+        language="en"
+        translationsOverrides={appTranslations}
+      >
         <StreamCall call={call}>
           <Stage />
         </StreamCall>
@@ -182,5 +196,34 @@ const Lobby = (props: { onJoin: () => void }) => {
     </div>
   );
 };
+
+const CallControls = () => (
+  <div className="str-video__call-controls">
+    <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
+      <SpeakingWhileMutedNotification>
+        <ToggleAudioPublishingButton />
+      </SpeakingWhileMutedNotification>
+    </Restricted>
+    <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
+      <ToggleVideoPublishingButton />
+    </Restricted>
+    <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
+      <ReactionsButton />
+    </Restricted>
+    <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
+      <ScreenShareButton />
+    </Restricted>
+    <Restricted
+      requiredGrants={[
+        OwnCapability.START_RECORD_CALL,
+        OwnCapability.STOP_RECORD_CALL,
+      ]}
+    >
+      <RecordCallButton />
+    </Restricted>
+    <IncomingVideoSettingsButton />
+    <CancelCallButton />
+  </div>
+);
 
 export const getServerSideProps = getServerSideCredentialsProps;
