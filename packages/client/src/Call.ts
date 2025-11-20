@@ -1291,7 +1291,8 @@ export class Call {
     this.tracer.setEnabled(enableTracing);
     this.sfuStatsReporter?.flush();
     this.sfuStatsReporter?.stop();
-    if (statsOptions?.reporting_interval_ms > 0) {
+    const callSessionId = this.state.session?.id;
+    if (statsOptions?.reporting_interval_ms > 0 && callSessionId) {
       this.sfuStatsReporter = new SfuStatsReporter(
         sfuClient,
         this.streamClient,
@@ -1302,7 +1303,7 @@ export class Call {
           publisher: this.publisher,
           tracer: this.tracer,
           unifiedSessionId,
-          basePath: this.streamClientBasePath,
+          basePath: `${this.streamClientBasePath}/${callSessionId}`,
           useLegacyStats: !this.clientCapabilities.has(
             ClientCapability.COORDINATOR_STATS,
           ),
