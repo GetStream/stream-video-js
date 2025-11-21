@@ -180,10 +180,7 @@ export class StatsTracer {
   };
 
   /**
-   * Get metrics for the SendMetricsRequest.
-   * Returns populated SendMetricsRequest with outbound-rtp and remote-inbound-rtp.
-   * Collects both stat types in a single loop for optimal performance.
-   *
+   * Get publisher metrics (outbound-rtp and remote-inbound-rtp).
    * @internal
    */
   getPublisherMetrics = (
@@ -210,10 +207,7 @@ export class StatsTracer {
   };
 
   /**
-   * Get metrics for the SendMetricsRequest.
-   * Returns populated SendMetricsRequest with inbound-rtp and remote-outbound-rtp stats.
-   * Collects both stat types in a single loop for optimal performance.
-   *
+   * Get subscriber metrics (inbound-rtp and remote-outbound-rtp).
    * @internal
    */
   getSubscriberMetrics = (
@@ -422,7 +416,7 @@ const toObject = (report: RTCStatsReport): Record<string, RTCStats> => {
  * Reduces size by ~90%.
  * To reduce further, report keys could be compressed.
  */
-const deltaCompression = (
+export const deltaCompression = (
   oldStats: Record<any, any>,
   newStats: Record<any, any>,
 ): Record<any, any> => {
