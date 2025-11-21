@@ -171,7 +171,7 @@ Styling is managed by `@stream-io/video-styling` package:
 
 All components rely on React Context provided by entry point components:
 
-```typescript
+```tsx
 <StreamVideo client={client}>
   <StreamCall call={call}>
     {/* All components have access to client and call context */}
@@ -193,7 +193,7 @@ All components rely on React Context provided by entry point components:
 
 This is the **most important pattern** in the SDK. Instead of importing individual hooks, components use a factory:
 
-```typescript
+```tsx
 const { useParticipants, useMicrophoneState, useCameraState } =
   useCallStateHooks();
 const participants = useParticipants();
@@ -213,7 +213,7 @@ const microphoneState = useMicrophoneState();
 
 The bindings layer uses `useObservableValue()` to bridge RxJS → React:
 
-```typescript
+```tsx
 // In bindings (callStateHooks.ts)
 export const useParticipants = () => {
   const { participants$ } = useCallState();
