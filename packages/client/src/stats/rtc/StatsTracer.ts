@@ -265,9 +265,7 @@ const processOutboundRtpStat = (
     const deltaFrames = framesEncoded - (prevStat.framesEncoded || 0);
     const deltaTime = (timestamp - prevStat.timestamp) / 1000;
     // Spec: delta(framesEncoded)/delta(time); ignore if deltaTime <= 0 or counters decreased
-    fps = Math.round(
-      deltaTime > 0 && deltaFrames >= 0 ? deltaFrames / deltaTime : 0,
-    );
+    fps = deltaTime > 0 ? Math.round(deltaFrames / deltaTime) : 0;
   }
 
   // Spec: totalEncodeTime / max(1, framesEncoded)
@@ -279,9 +277,7 @@ const processOutboundRtpStat = (
     const deltaBytes = bytesSent - (prevStat.bytesSent || 0);
     const deltaTime = (timestamp - prevStat.timestamp) / 1000;
     // Spec: delta(bytesSent)*8 / delta(timeSeconds); ignore if delta <= 0
-    bitrateBps = Math.round(
-      deltaTime > 0 && deltaBytes > 0 ? (deltaBytes * 8) / deltaTime : 0,
-    );
+    bitrateBps = deltaTime > 0 ? Math.round((deltaBytes * 8) / deltaTime) : 0;
   }
 
   // Calculate min dimension
@@ -352,9 +348,7 @@ const processInboundRtpStat = (
     const prevStat = previousStats[id] as RTCInboundRtpStreamStats;
     const deltaFrames = framesDecoded - (prevStat.framesDecoded || 0);
     const deltaTime = (timestamp - prevStat.timestamp) / 1000;
-    fps = Math.round(
-      deltaTime > 0 && deltaFrames >= 0 ? deltaFrames / deltaTime : 0,
-    );
+    fps = deltaTime > 0 ? Math.round(deltaFrames / deltaTime) : 0;
   }
 
   // Spec: totalDecodeTime / max(1, framesDecoded)
