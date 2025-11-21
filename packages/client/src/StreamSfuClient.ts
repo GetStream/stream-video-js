@@ -38,7 +38,7 @@ import {
   SafePromise,
 } from './helpers/promise';
 import { getTimers } from './timers';
-import { Tracer, TraceSlice } from './stats';
+import { Tracer } from './stats';
 
 export type StreamSfuClientConstructor = {
   /**

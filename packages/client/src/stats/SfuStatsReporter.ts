@@ -4,6 +4,7 @@ import {
   SendStatsRequest,
   SendStatsResponse,
   StatsOptions,
+  Telemetry,
 } from '../gen/coordinator';
 import { Publisher, Subscriber } from '../rtc';
 import { type ComputedStats, Tracer, TraceRecord } from './rtc';
@@ -193,28 +194,13 @@ export class SfuStatsReporter {
       sdk: stats.sdk,
       sdk_version: stats.sdkVersion,
       sfu_id: this.sfuClient.edgeName,
+      telemetry: toTelemetry(stats.telemetry?.data),
       unified_session_id: stats.unifiedSessionId,
       user_session_id: stats.sessionId,
       webrtc_version: stats.webrtcVersion,
+      // must be the last entry in the payload
+      rtc_stats: new Blob([stats.rtcStats], { type: 'application/json' }),
     };
-    if (stats.telemetry) {
-      const { data } = stats.telemetry;
-      payload.telemetry = {
-        ...(data.oneofKind === 'connectionTimeSeconds' && {
-          connection_time_seconds: data.connectionTimeSeconds,
-        }),
-        ...(data.oneofKind === 'reconnection' && {
-          reconnection: {
-            strategy: WebsocketReconnectStrategy[data.reconnection.strategy],
-            time_seconds: data.reconnection.timeSeconds,
-          },
-        }),
-      };
-    }
-
-    // must be last entry in the payload
-    payload.rtc_stats = new Blob([stats.rtcStats], { type: 'application/json' });
-
     return this.streamClient.doAxiosRequest<
       SendStatsResponse,
       SendStatsRequest
@@ -278,3 +264,15 @@ export class SfuStatsReporter {
     }, timeout);
   };
 }
+
+const toTelemetry = (data?: SfuTelemetry['data']): Telemetry | undefined => {
+  if (!data) return;
+  if (data.oneofKind === 'connectionTimeSeconds') {
+    return { connection_time_seconds: data.connectionTimeSeconds };
+  }
+  if (data.oneofKind === 'reconnection') {
+    const { strategy, timeSeconds } = data.reconnection;
+    const s = WebsocketReconnectStrategy[strategy];
+    return { reconnection: { strategy: s, time_seconds: timeSeconds } };
+  }
+};
