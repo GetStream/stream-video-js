@@ -20,6 +20,7 @@ import {
 import {
   ICERestartRequest,
   SendAnswerRequest,
+  SendMetricsRequest,
   SendStatsRequest,
   SetPublisherRequest,
   TrackMuteState,
@@ -37,7 +38,7 @@ import {
   SafePromise,
 } from './helpers/promise';
 import { getTimers } from './timers';
-import { Tracer, TraceSlice } from './stats';
+import { Tracer } from './stats';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -147,7 +148,7 @@ export class StreamSfuClient {
   private readonly pingIntervalInMs = 5 * 1000;
   private readonly unhealthyTimeoutInMs = 15 * 1000;
   private lastMessageTimestamp?: Date;
-  private readonly tracer?: Tracer;
+  readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
   private readonly unsubscribeNetworkChanged: () => void;
   private readonly onSignalClose: ((reason: string) => void) | undefined;
@@ -365,10 +366,6 @@ export class StreamSfuClient {
     this.iceTrickleBuffer.dispose();
   };
 
-  getTrace = (): TraceSlice | undefined => {
-    return this.tracer?.take();
-  };
-
   leaveAndClose = async (reason: string) => {
     try {
       this.isLeaving = true;
@@ -434,6 +431,12 @@ export class StreamSfuClient {
     await this.joinTask;
     // NOTE: we don't retry sending stats
     return this.rpc.sendStats({ ...stats, sessionId: this.sessionId });
+  };
+
+  sendMetrics = async (metrics: Omit<SendMetricsRequest, 'sessionId'>) => {
+    await this.joinTask;
+    // NOTE: we don't retry sending metrics
+    return this.rpc.sendMetrics({ ...metrics, sessionId: this.sessionId });
   };
 
   startNoiseCancellation = async () => {
