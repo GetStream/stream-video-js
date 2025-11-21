@@ -259,26 +259,29 @@ const processOutboundRtpStat = (
     id,
   } = stat;
 
-  // Calculate FPS
   let fps = 0;
   if (previousStats[id]) {
     const prevStat = previousStats[id] as RTCOutboundRtpStreamStats;
     const deltaFrames = framesEncoded - (prevStat.framesEncoded || 0);
     const deltaTime = (timestamp - prevStat.timestamp) / 1000;
-    fps = deltaTime > 0 ? deltaFrames / deltaTime : 0;
+    // Spec: delta(framesEncoded)/delta(time); ignore if deltaTime <= 0 or counters decreased
+    fps = Math.round(
+      deltaTime > 0 && deltaFrames >= 0 ? deltaFrames / deltaTime : 0,
+    );
   }
 
-  // Calculate average encode time
-  const avgEncodeTimeSeconds =
-    framesEncoded > 0 ? totalEncodeTime / framesEncoded : 0;
+  // Spec: totalEncodeTime / max(1, framesEncoded)
+  const avgEncodeTimeSeconds = totalEncodeTime / Math.max(1, framesEncoded);
 
-  // Calculate bitrate
   let bitrateBps = 0;
   if (previousStats[id]) {
     const prevStat = previousStats[id] as RTCOutboundRtpStreamStats;
     const deltaBytes = bytesSent - (prevStat.bytesSent || 0);
     const deltaTime = (timestamp - prevStat.timestamp) / 1000;
-    bitrateBps = deltaTime > 0 ? (deltaBytes * 8) / deltaTime : 0;
+    // Spec: delta(bytesSent)*8 / delta(timeSeconds); ignore if delta <= 0
+    bitrateBps = Math.round(
+      deltaTime > 0 && deltaBytes > 0 ? (deltaBytes * 8) / deltaTime : 0,
+    );
   }
 
   // Calculate min dimension
@@ -322,10 +325,20 @@ const processInboundRtpStat = (
     id,
   } = stat;
 
-  // Calculate packet loss percentage
+  // Spec: (packets_lost / (packets_received + packets_lost)) * 100;
+  // skip if denominator <= 0 or counters decreased
   const totalPackets = packetsReceived + packetsLost;
+  let countersDecreased = false;
+  if (previousStats[id]) {
+    const prev = previousStats[id] as RTCInboundRtpStreamStats;
+    countersDecreased =
+      packetsReceived < (prev.packetsReceived || 0) ||
+      packetsLost < (prev.packetsLost || 0);
+  }
   const packetLossPercent =
-    totalPackets > 0 ? (packetsLost / totalPackets) * 100 : 0;
+    totalPackets > 0 && !countersDecreased
+      ? (packetsLost / totalPackets) * 100
+      : 0;
 
   // Calculate concealment percentage (only if sufficient samples)
   const concealmentPercent =
@@ -333,20 +346,20 @@ const processInboundRtpStat = (
       ? (concealedSamples / totalSamplesReceived) * 100
       : 0;
 
-  // Calculate FPS
+  // Spec: use delta(framesDecoded)/delta(time) with prev sample
   let fps = 0;
   if (previousStats[id]) {
     const prevStat = previousStats[id] as RTCInboundRtpStreamStats;
     const deltaFrames = framesDecoded - (prevStat.framesDecoded || 0);
     const deltaTime = (timestamp - prevStat.timestamp) / 1000;
-    fps = deltaTime > 0 ? deltaFrames / deltaTime : 0;
+    fps = Math.round(
+      deltaTime > 0 && deltaFrames >= 0 ? deltaFrames / deltaTime : 0,
+    );
   }
 
-  // Calculate average decode time
-  const avgDecodeTimeSeconds =
-    framesDecoded > 0 ? totalDecodeTime / framesDecoded : 0;
+  // Spec: totalDecodeTime / max(1, framesDecoded)
+  const avgDecodeTimeSeconds = totalDecodeTime / Math.max(1, framesDecoded);
 
-  // Calculate min dimension
   const minDimensionPx =
     kind === 'video' ? Math.min(frameWidth, frameHeight) : 0;
 
