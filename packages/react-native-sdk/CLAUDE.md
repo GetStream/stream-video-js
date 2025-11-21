@@ -153,7 +153,7 @@ The React Native SDK extends the standard three-layer architecture with platform
 
 **Key initialization:**
 
-```typescript
+```tsx
 // Registers window and navigator globals for React Native
 if (Platform.OS !== 'web') {
   registerGlobals();
@@ -176,7 +176,7 @@ Wraps `StreamVideoProvider` from bindings with React Native-specific features:
 
 **Usage:**
 
-```typescript
+```tsx
 <StreamVideo client={client} style={customTheme}>
   <App />
 </StreamVideo>
@@ -233,7 +233,7 @@ Uses renderless child components for side effects - keeps logic separated and te
 
 **Files:**
 
-- `src/hooks/useAndroidKeepCallAliveEffect.ts` (272 lines - complex!)
+- `src/hooks/useAndroidKeepCallAliveEffect.ts`
 - `android/src/main/java/com/streamvideo/reactnative/util/CallAliveServiceChecker.kt`
 
 **Flow:**
@@ -271,7 +271,7 @@ Uses renderless child components for side effects - keeps logic separated and te
 
 **Files:**
 
-- `src/utils/push/android.ts` (complex - 500+ lines)
+- `src/utils/push/android.ts`
 - Android native modules
 
 **Libraries:**
@@ -366,7 +366,7 @@ Observable streams for push events:
 
 Main configuration utility for React Native-specific settings:
 
-```typescript
+```tsx
 StreamVideoRN.configure({
   foregroundService: {
     android: {
@@ -403,7 +403,7 @@ StreamVideoRN.configure({
 
 Deep merge-based theme system:
 
-```typescript
+```tsx
 const customTheme: DeepPartial<Theme> = {
   colors: {
     primary: '#005FFF',
@@ -411,14 +411,14 @@ const customTheme: DeepPartial<Theme> = {
   },
   variants: {
     buttonSizes: {
-      md: { fontSize: 16 }
-    }
-  }
+      md: { fontSize: 16 },
+    },
+  },
 };
 
 <StreamVideo client={client} style={customTheme}>
   <App />
-</StreamVideo>
+</StreamVideo>;
 ```
 
 **Theme structure** (`src/theme/theme.ts`):
@@ -468,7 +468,7 @@ Auto-configures native projects for Expo apps:
 
 Native functionality is exposed via React Native's native module system:
 
-```typescript
+```tsx
 // TypeScript interface
 export class CallManager {
   async setProximityEnabled(enabled: boolean): Promise<void> {
@@ -508,7 +508,7 @@ export const callManager = new CallManager();
 
 **Library detection** (`src/utils/push/libs.ts`):
 
-```typescript
+```tsx
 // Safely check if library is installed
 const firebase = getFirebaseMessagingLibNoThrow();
 if (firebase) {
@@ -532,7 +532,7 @@ Push events flow through RxJS subjects to decouple native events from React:
 
 **Example:**
 
-```typescript
+```tsx
 // In native event handler
 voipPushNotificationCallCId$.next(callCid);
 
@@ -551,14 +551,14 @@ useEffect(() => {
 
 Used extensively in `StreamCall` provider:
 
-```typescript
+```tsx
 export const StreamCall = ({ call, children }) => {
   return (
     <StreamCallProvider call={call}>
-      <AppStateListener />           {/* Side effect only */}
-      <AndroidKeepCallAlive />       {/* Side effect only */}
-      <IosInformCallkeepCallEnd />  {/* Side effect only */}
-      <DeviceStats />                {/* Side effect only */}
+      <AppStateListener /> {/* Side effect only */}
+      <AndroidKeepCallAlive /> {/* Side effect only */}
+      <IosInformCallkeepCallEnd /> {/* Side effect only */}
+      <DeviceStats /> {/* Side effect only */}
       {children}
     </StreamCallProvider>
   );
@@ -584,7 +584,7 @@ Media permissions require careful sequencing on React Native:
 
 **Flow:**
 
-```typescript
+```tsx
 // 1. Check current permission state
 const { useHasPermissions } = useCallStateHooks();
 const hasPermissions = useHasPermissions();
@@ -621,7 +621,7 @@ if (hasPermissions.microphone) {
 
 **Implementation:**
 
-```typescript
+```tsx
 // AppStateListener.tsx
 useEffect(() => {
   const subscription = AppState.addEventListener('change', (state) => {
@@ -710,7 +710,7 @@ useEffect(() => {
 
 **Initialization:**
 
-```typescript
+```tsx
 // In index.ts
 import { registerGlobals } from '@stream-io/react-native-webrtc';
 
@@ -810,7 +810,7 @@ yarn android
 
 **TypeScript interface must match native:**
 
-```typescript
+```
 // TypeScript
 async setProximityEnabled(enabled: boolean): Promise<void>
 
@@ -826,7 +826,7 @@ RCT_EXTERN_METHOD(setProximityEnabled:(BOOL)enabled
 
 **Always handle promise rejection:**
 
-```typescript
+```tsx
 try {
   await callManager.setSpeakerphoneOn(true);
 } catch (error) {
@@ -856,7 +856,7 @@ try {
 
 **Request permissions before enabling devices:**
 
-```typescript
+```tsx
 // ❌ WRONG - will fail on first run
 await call.camera.enable();
 
@@ -876,7 +876,7 @@ if (granted) {
 
 **iOS video handling:**
 
-```typescript
+```tsx
 // Disable video when backgrounded to save battery
 if (Platform.OS === 'ios' && appState === 'background') {
   await call.camera.disable();
@@ -885,7 +885,7 @@ if (Platform.OS === 'ios' && appState === 'background') {
 
 **Android foreground service:**
 
-```typescript
+```tsx
 // Ensure service is running for background calls
 useAndroidKeepCallAliveEffect(); // Handles automatically
 ```
@@ -894,7 +894,7 @@ useAndroidKeepCallAliveEffect(); // Handles automatically
 
 **Use deep partial for type safety:**
 
-```typescript
+```tsx
 const theme: DeepPartial<Theme> = {
   colors: {
     primary: '#FF0000',
@@ -910,7 +910,7 @@ Theme context uses React Context, updates propagate to all components.
 
 ### 1. Forgetting to Register Globals
 
-```typescript
+```tsx
 // ❌ WRONG - WebRTC won't work
 import { StreamVideoClient } from '@stream-io/video-client';
 
@@ -926,14 +926,14 @@ import { StreamVideoClient } from '@stream-io/video-react-native-sdk';
 
 ### 3. Android Foreground Service Permissions
 
-```typescript
+```tsx
 // Android 13+ requires POST_NOTIFICATIONS permission
 // SDK handles automatically, but check if manually implementing
 ```
 
 ### 4. CallKeep Configuration Mismatch
 
-```typescript
+```tsx
 // iOS: CallKeep appName must match what's configured
 StreamVideoRN.configure({
   push: {
@@ -978,7 +978,7 @@ npx expo prebuild --clean
 
 ### 9. Multiple StreamVideo Providers
 
-```typescript
+```tsx
 // ❌ WRONG - multiple providers will conflict
 <StreamVideo client={client1}>
   <StreamVideo client={client2}> {/* DON'T DO THIS */}
@@ -993,7 +993,7 @@ npx expo prebuild --clean
 
 ### 10. Platform-Specific Imports
 
-```typescript
+```tsx
 // ✅ CORRECT - Check platform before importing
 const CallKeep =
   Platform.OS === 'ios' ? require('react-native-callkeep').default : null;

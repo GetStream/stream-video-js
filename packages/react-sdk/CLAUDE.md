@@ -253,11 +253,15 @@ Video and audio elements need refs for two purposes:
 
 **Pattern used:**
 
-```typescript
+```tsx
 <ParticipantView
   refs={{
-    setVideoElement: (el) => { /* custom logic */ },
-    setVideoPlaceholderElement: (el) => { /* custom logic */ }
+    setVideoElement: (el) => {
+      /* custom logic */
+    },
+    setVideoPlaceholderElement: (el) => {
+      /* custom logic */
+    },
   }}
 />
 ```
@@ -272,7 +276,7 @@ Video and audio elements need refs for two purposes:
 
 **Critical for performance:** Only visible participants receive high-quality video.
 
-```typescript
+```tsx
 // In ParticipantView
 useTrackElementVisibility({
   sessionId: participant.sessionId,
@@ -294,7 +298,7 @@ useTrackElementVisibility({
 
 Video/audio elements don't directly receive tracks. The client manages this:
 
-```typescript
+```tsx
 // In Video component
 useLayoutEffect(() => {
   if (!call || !videoElement || trackType === 'none') return;
@@ -316,7 +320,7 @@ useLayoutEffect(() => {
 
 Layouts support complex participant filtering via filter objects or predicates:
 
-```typescript
+```tsx
 // Predicate approach
 <SpeakerLayout
   filterParticipants={(p) => p.roles.includes('speaker')}
@@ -346,7 +350,7 @@ Layouts support complex participant filtering via filter objects or predicates:
 
 Each layout applies a different participant sorting strategy via the client:
 
-```typescript
+```tsx
 // In SpeakerLayout
 useSpeakerLayoutSortPreset(call, isOneOnOneCall);
 
@@ -370,7 +374,7 @@ useEffect(() => {
 
 Device selection is handled through persisted preferences:
 
-```typescript
+```tsx
 // At app level - automatically applies and persists device choices
 usePersistedDevicePreferences('@stream-io/device-prefs');
 
@@ -387,20 +391,20 @@ const { devices, selectedDevice } = useDeviceList(devices, selectedDeviceId);
 4. Persists changes back to localStorage when devices change
 5. Stores history of last 3 devices per type
 
-**Located in:** `src/hooks/usePersistedDevicePreferences.ts` (383 lines - complex!)
+**Located in:** `src/hooks/usePersistedDevicePreferences.ts`
 
 #### 11. Background Filters Integration
 
 Background blur/replacement uses a separate filter pipeline:
 
-```typescript
+```tsx
 <BackgroundFiltersProvider
   backgroundFilter="blur"
   backgroundBlurLevel="high"
   basePath="https://unpkg.com/@stream-io/video-filters-web/tf"
 >
   <MyVideoApp />
-</BackgroundFiltersProvider>
+</BackgroundFiltersProvider>;
 
 // In components
 const { applyBackgroundBlurFilter, isReady } = useBackgroundFilters();
@@ -420,7 +424,7 @@ const { applyBackgroundBlurFilter, isReady } = useBackgroundFilters();
 
 Components use the `Restricted` wrapper to conditionally render based on permissions:
 
-```typescript
+```tsx
 // In CallControls
 <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
   <ToggleAudioPublishingButton />
@@ -438,9 +442,9 @@ Components use the `Restricted` wrapper to conditionally render based on permiss
 
 Translations are provided via i18next integration in bindings:
 
-```typescript
+```tsx
 // StreamVideo passes translations to provider
-<StreamVideoProvider translationsOverrides={translations} {...props} />
+<StreamVideoProvider translationsOverrides={translations} {...props} />;
 
 // In components
 const { t } = useI18n(); // From bindings
@@ -455,7 +459,7 @@ Users can override translations by passing `translationsOverrides` prop to `Stre
 
 When video is not available, components show placeholder UI:
 
-```typescript
+```tsx
 <Video
   VideoPlaceholder={CustomPlaceholder}
   PictureInPicturePlaceholder={CustomPiPPlaceholder}
@@ -479,7 +483,7 @@ When video is not available, components show placeholder UI:
 
 Most components accept UI override props for customization:
 
-```typescript
+```tsx
 <SpeakerLayout
   ParticipantViewUISpotlight={CustomSpotlightUI}
   ParticipantViewUIBar={CustomBarUI}
@@ -495,30 +499,34 @@ Most components accept UI override props for customization:
 
 **Check before rendering:**
 
-```typescript
-{isComponentType(ParticipantViewUI) ? (
-  <ParticipantViewUI />
-) : (
-  ParticipantViewUI
-)}
+```tsx
+{
+  isComponentType(ParticipantViewUI) ? (
+    <ParticipantViewUI />
+  ) : (
+    ParticipantViewUI
+  );
+}
 ```
 
 #### 16. Audio Handling Pattern
 
 Audio is simpler than video (no visibility concerns):
 
-```typescript
+```tsx
 // In ParticipantView - audio always rendered if present
-{!isLocalParticipant && !muteAudio && (
-  <>
-    {hasAudioTrack && (
-      <Audio participant={participant} trackType="audioTrack" />
-    )}
-    {hasScreenShareAudioTrack && (
-      <Audio participant={participant} trackType="screenShareAudioTrack" />
-    )}
-  </>
-)}
+{
+  !isLocalParticipant && !muteAudio && (
+    <>
+      {hasAudioTrack && (
+        <Audio participant={participant} trackType="audioTrack" />
+      )}
+      {hasScreenShareAudioTrack && (
+        <Audio participant={participant} trackType="screenShareAudioTrack" />
+      )}
+    </>
+  );
+}
 ```
 
 **Key points:**
@@ -588,35 +596,30 @@ Audio is simpler than video (no visibility concerns):
 
 #### Callback Refs Pattern
 
-```typescript
+```tsx
 // Good - allows both internal and external refs
 const [internalRef, setInternalRef] = useState<HTMLElement | null>(null);
-
 <div
   ref={(el) => {
     setInternalRef(el);
     externalRef?.(el); // Call user's ref too
   }}
-/>
+/>;
 ```
 
 #### Memoizing Context Values
 
-```typescript
+```tsx
 // Always memoize context values to prevent unnecessary re-renders
 const contextValue = useMemo(
-  () => ({
-    participant,
-    videoElement,
-    trackType,
-  }),
+  () => ({ participant, videoElement, trackType }),
   [participant, videoElement, trackType],
 );
 ```
 
 #### Handling Optional Props
 
-```typescript
+```tsx
 // Use default values in destructuring
 const {
   ParticipantViewUI = DefaultParticipantViewUI,
@@ -627,18 +630,20 @@ const {
 
 #### Component Type Checking
 
-```typescript
+```tsx
 // Use utility to check if prop is ComponentType vs ReactElement
 import { isComponentType } from '../../../utilities';
 
-{isComponentType(CustomUI) ? <CustomUI /> : CustomUI}
+{
+  isComponentType(CustomUI) ? <CustomUI /> : CustomUI;
+}
 ```
 
 ### Common Gotchas & Pitfalls
 
 #### 1. Don't Access Observable Directly
 
-```typescript
+```tsx
 // ❌ WRONG - never do this in react-sdk
 const participants = call.state.participants$.value;
 
@@ -649,7 +654,7 @@ const participants = useParticipants();
 
 #### 2. Effect Dependencies with Hooks Factory
 
-```typescript
+```tsx
 // ❌ WRONG - useCallStateHooks() creates new object every render
 const hooks = useCallStateHooks();
 useEffect(() => {
@@ -666,7 +671,7 @@ useEffect(() => {
 
 #### 3. Video Element Binding Timing
 
-```typescript
+```tsx
 // ❌ WRONG - useEffect runs too late
 useEffect(() => {
   call?.bindVideoElement(videoElement, sessionId, trackType);
@@ -681,21 +686,23 @@ useLayoutEffect(() => {
 
 #### 4. ParticipantViewUI Rendering
 
-```typescript
+```tsx
 // ❌ WRONG - doesn't handle ReactElement or null
-<ParticipantViewUI />
+<ParticipantViewUI />;
 
 // ✅ CORRECT - handles all override types
-{isComponentType(ParticipantViewUI) ? (
-  <ParticipantViewUI />
-) : (
-  ParticipantViewUI
-)}
+{
+  isComponentType(ParticipantViewUI) ? (
+    <ParticipantViewUI />
+  ) : (
+    ParticipantViewUI
+  );
+}
 ```
 
 #### 5. Cleanup Functions
 
-```typescript
+```tsx
 // ❌ WRONG - no cleanup
 useEffect(() => {
   call?.dynascaleManager.trackElementVisibility(element, sessionId, trackType);
@@ -715,7 +722,7 @@ useEffect(() => {
 
 #### 6. Participant Identification
 
-```typescript
+```tsx
 // ❌ WRONG - userId is not unique per connection
 participants.find((p) => p.userId === userId);
 
@@ -728,7 +735,7 @@ participants.find((p) => p.sessionId === sessionId);
 
 #### 7. Layout Sort Preset Cleanup
 
-```typescript
+```tsx
 // ❌ WRONG - doesn't restore default sorting
 useEffect(() => {
   if (!call) return;
@@ -750,7 +757,7 @@ useEffect(() => {
 
 #### 8. Device Selection State
 
-```typescript
+```tsx
 // ❌ WRONG - doesn't wait for devices to be available
 usePersistedDevicePreferences();
 // Immediately try to use devices - might not be ready!
@@ -766,7 +773,7 @@ if (devices.length === 0) {
 
 #### 9. Mirror Local Video
 
-```typescript
+```tsx
 // ❌ WRONG - mirrors all participants
 <Video participant={participant} mirror={true} />
 
@@ -781,16 +788,20 @@ if (devices.length === 0) {
 
 #### 10. Audio Muting
 
-```typescript
+```tsx
 // ❌ WRONG - plays local participant audio (you hear yourself)
-{hasAudio(participant) && (
-  <Audio participant={participant} trackType="audioTrack" />
-)}
+{
+  hasAudio(participant) && (
+    <Audio participant={participant} trackType="audioTrack" />
+  );
+}
 
 // ✅ CORRECT - never play local participant audio
-{!participant.isLocalParticipant && hasAudio(participant) && (
-  <Audio participant={participant} trackType="audioTrack" />
-)}
+{
+  !participant.isLocalParticipant && hasAudio(participant) && (
+    <Audio participant={participant} trackType="audioTrack" />
+  );
+}
 ```
 
 ### When Modifying Layouts
@@ -945,29 +956,29 @@ When adding public APIs:
 
 ### Core Entry Points
 
-- `src/core/components/StreamVideo/StreamVideo.tsx` - Main provider (15 lines - simple wrapper)
-- `src/core/components/StreamCall/StreamCall.tsx` - Call provider (13 lines - re-export)
+- `src/core/components/StreamVideo/StreamVideo.tsx` - Main provider
+- `src/core/components/StreamCall/StreamCall.tsx` - Call provider
 
 ### Core Components
 
-- `src/core/components/ParticipantView/ParticipantView.tsx` - Single participant renderer (203 lines)
-- `src/core/components/Video/Video.tsx` - Video element binding (223 lines)
+- `src/core/components/ParticipantView/ParticipantView.tsx` - Single participant renderer
+- `src/core/components/Video/Video.tsx` - Video element binding
 - `src/core/components/Audio/Audio.tsx` - Audio element binding
-- `src/core/components/CallLayout/SpeakerLayout.tsx` - Speaker-focused layout (331 lines)
+- `src/core/components/CallLayout/SpeakerLayout.tsx` - Speaker-focused layout
 - `src/core/components/CallLayout/PaginatedGridLayout.tsx` - Grid with pagination
 - `src/core/components/CallLayout/LivestreamLayout.tsx` - Livestream-optimized layout
 - `src/core/components/CallLayout/PipLayout.tsx` - Picture-in-picture layout
 
 ### Important Hooks
 
-- `src/core/hooks/useTrackElementVisibility.ts` - Dynascale viewport tracking (30 lines)
-- `src/hooks/usePersistedDevicePreferences.ts` - Device persistence (383 lines - complex!)
+- `src/core/hooks/useTrackElementVisibility.ts` - Dynascale viewport tracking
+- `src/hooks/usePersistedDevicePreferences.ts` - Device persistence
 - `src/hooks/useDeviceList.tsx` - Device enumeration helper
 - `src/hooks/useScrollPosition.ts` - Scroll position tracking for pagination
 
 ### Utilities & Helpers
 
-- `src/utilities/filter.ts` - MongoDB-like filter system (132 lines)
+- `src/utilities/filter.ts` - MongoDB-like filter system
 - `src/utilities/applyElementToRef.ts` - Ref helper
 - `src/utilities/isComponentType.ts` - Component type checking
 - `src/core/components/CallLayout/hooks.ts` - Layout-specific hooks (filtering, sorting)
@@ -977,8 +988,8 @@ When adding public APIs:
 - `src/components/CallControls/CallControls.tsx` - Main control bar
 - `src/components/CallControls/ToggleAudioButton.tsx` - Mic toggle (complex state)
 - `src/components/CallControls/ToggleVideoButton.tsx` - Camera toggle (complex state)
-- `src/components/DeviceSettings/DeviceSelector.tsx` - Device selection UI (170 lines)
-- `src/components/BackgroundFilters/BackgroundFilters.tsx` - Video filters (386 lines)
+- `src/components/DeviceSettings/DeviceSelector.tsx` - Device selection UI
+- `src/components/BackgroundFilters/BackgroundFilters.tsx` - Video filters
 - `src/components/CallParticipantsList/` - Participant list UI
 - `src/components/CallStats/` - Call quality statistics display
 
@@ -991,7 +1002,7 @@ When adding public APIs:
 
 ### Configuration & Build
 
-- `rollup.config.mjs` - Build configuration (60 lines)
+- `rollup.config.mjs` - Build configuration
 - `index.ts` - Package entry point
 - `src/translations/en.json` - English translations
 - `package.json` - Dependencies and scripts
