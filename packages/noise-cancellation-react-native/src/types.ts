@@ -3,8 +3,8 @@ export interface INoiseCancellation {
   init: () => Promise<void>;
   canAutoEnable?: () => Promise<boolean>;
   isEnabled: () => Promise<boolean>;
-  enable: () => void;
-  disable: () => void;
+  enable: () => Promise<void>;
+  disable: () => Promise<void>;
   dispose: () => Promise<void>;
   resume: () => void;
   setSuppressionLevel: (level: number) => void;
