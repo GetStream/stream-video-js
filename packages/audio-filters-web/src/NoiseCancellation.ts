@@ -87,7 +87,9 @@ export class NoiseCancellation implements INoiseCancellation {
   private audioContext?: AudioContext;
   private restoreTimeoutId?: number;
   private tracer?: Tracer;
-  private isReady?: Promise<void>;
+
+  private readonly initializing: Promise<void>;
+  private readonly resolveInitialized!: () => void;
 
   private readonly basePath: string;
   private readonly restoreTimeoutMs: number;
@@ -105,6 +107,10 @@ export class NoiseCancellation implements INoiseCancellation {
     restoreAttempts = 3,
     krispSDKParams,
   }: NoiseCancellationOptions = {}) {
+    const { promise, resolve } = promiseWithResolvers<void>();
+    this.initializing = promise;
+    this.resolveInitialized = resolve;
+
     this.basePath = basePath;
     this.restoreTimeoutMs = restoreTimeoutMs;
     this.restoreAttempts = restoreAttempts;
@@ -178,19 +184,18 @@ export class NoiseCancellation implements INoiseCancellation {
       document.addEventListener('click', resume);
     }
 
-    const { promise: ready, resolve: filterReady } = promiseWithResolvers();
     const filterNode = await sdk.createNoiseFilter(
       this.audioContext,
       () => {
         this.tracer?.trace('noiseCancellation.started', 'true');
-        filterReady();
+        this.resolveInitialized();
       },
       () => document.removeEventListener('click', resume),
     );
     filterNode.addEventListener('buffer_overflow', this.handleBufferOverflow);
     this.filterNode = filterNode;
-    this.isReady = ready;
-    return ready;
+
+    return this.initializing;
   };
 
   /**
@@ -206,7 +211,7 @@ export class NoiseCancellation implements INoiseCancellation {
    */
   enable = async () => {
     if (!this.filterNode) return;
-    await this.isReady;
+    await this.initializing;
     this.filterNode.enable();
     this.dispatch('change', true);
   };
@@ -216,7 +221,7 @@ export class NoiseCancellation implements INoiseCancellation {
    */
   disable = async () => {
     if (!this.filterNode) return;
-    await this.isReady;
+    await this.initializing;
     this.filterNode.disable();
     this.dispatch('change', false);
   };
@@ -245,7 +250,6 @@ export class NoiseCancellation implements INoiseCancellation {
       this.sdk.dispose();
       this.sdk = undefined;
     }
-    this.isReady = undefined;
   };
 
   /**
