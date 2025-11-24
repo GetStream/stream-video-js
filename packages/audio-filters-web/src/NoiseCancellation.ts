@@ -238,7 +238,7 @@ export class NoiseCancellation implements INoiseCancellation {
       this.audioContext = undefined;
     }
     if (this.filterNode) {
-      this.disable();
+      await this.disable();
       this.filterNode.removeEventListener(
         'buffer_overflow',
         this.handleBufferOverflow,
