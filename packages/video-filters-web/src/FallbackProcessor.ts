@@ -84,7 +84,6 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
           await new Promise((r: (value?: unknown) => void) =>
             this.workerTimer.setTimeout(r, frameDuration),
           );
-          return;
         }
 
         lastVideoTime = currentTime;

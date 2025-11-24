@@ -78,13 +78,7 @@ export abstract class BaseVideoProcessor {
       .pipeThrough(transformStream, { signal: this.abortController.signal })
       .pipeTo(writable, { signal: this.abortController.signal })
       .catch((e) => {
-        const isExpectedCleanup =
-          e.name === 'AbortError' ||
-          (e.name === 'InvalidStateError' &&
-            (this.abortController.signal.aborted ||
-              this.generator.readyState === 'ended'));
-
-        if (!isExpectedCleanup) {
+        if (e.name !== 'AbortError') {
           console.error(`[${this.processorName}] Error processing track:`, e);
           this.hooks.onError?.(e);
         }
