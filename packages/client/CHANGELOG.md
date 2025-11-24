@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.37.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.1...@stream-io/video-client-1.37.2) (2025-11-20)
+
+### Bug Fixes
+
+- **react-bindings:** getSnapshot caching ([#2008](https://github.com/GetStream/stream-video-js/issues/2008)) ([ed0983c](https://github.com/GetStream/stream-video-js/commit/ed0983cf2d1525a2faaa0b9e9387ac448b35c8e1)), closes [#2006](https://github.com/GetStream/stream-video-js/issues/2006) [#1953](https://github.com/GetStream/stream-video-js/issues/1953)
+
 ## [1.37.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.0...@stream-io/video-client-1.37.1) (2025-11-17)
 
 ### Bug Fixes
