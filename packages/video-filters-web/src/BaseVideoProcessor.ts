@@ -76,7 +76,7 @@ export abstract class BaseVideoProcessor {
 
     readable
       .pipeThrough(transformStream, { signal: this.abortController.signal })
-      .pipeTo(writable)
+      .pipeTo(writable, { signal: this.abortController.signal })
       .catch((e) => {
         const isExpectedCleanup =
           e.name === 'AbortError' ||
