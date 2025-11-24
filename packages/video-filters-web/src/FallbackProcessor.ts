@@ -111,6 +111,9 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
   };
 }
 
-const TrackProcessor = FallbackProcessor;
+const TrackProcessor =
+  typeof MediaStreamTrackProcessor !== 'undefined'
+    ? MediaStreamTrackProcessor
+    : FallbackProcessor;
 
 export { TrackProcessor };
