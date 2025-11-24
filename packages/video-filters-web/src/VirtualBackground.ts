@@ -92,7 +92,7 @@ export class VirtualBackground {
 
     readable
       .pipeThrough(transformStream, { signal })
-      .pipeTo(writable)
+      .pipeTo(writable, { signal })
       .catch((e) => {
         if (e.name !== 'AbortError') {
           console.error('[virtual-background] Error processing track:', e);
