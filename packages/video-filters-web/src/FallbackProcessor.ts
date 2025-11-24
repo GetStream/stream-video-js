@@ -49,6 +49,8 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
     let timestamp = 0;
     const frameRate = track.getSettings().frameRate || 30;
     let frameDuration = 1000 / frameRate;
+    let lastVideoTime = -1;
+    const counter = 0;
 
     this.workerTimer = new WorkerTimer({ useWorker: true });
     this.readable = new ReadableStream({
@@ -75,6 +77,19 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
           );
         }
         timestamp = performance.now();
+
+        const currentTime = this.video.currentTime;
+        const hasNewFrame = currentTime !== lastVideoTime;
+
+        if (!hasNewFrame) {
+          console.log('No new frame, waiting for next frame...');
+          await new Promise((r: (value?: unknown) => void) =>
+            this.workerTimer.setTimeout(r, frameDuration),
+          );
+          return;
+        }
+
+        lastVideoTime = currentTime;
 
         if (
           canvas.width !== this.video.videoWidth ||
