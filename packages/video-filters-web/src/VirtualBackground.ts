@@ -17,6 +17,7 @@ import { BaseVideoProcessor } from './BaseVideoProcessor';
 export class VirtualBackground extends BaseVideoProcessor {
   private segmenter: ImageSegmenter | null = null;
   private isSegmenterReady = false;
+  private isFirstFrame = true;
   private webGlRenderer!: WebGLRenderer;
 
   private opts!: SegmenterOptions;
@@ -64,6 +65,12 @@ export class VirtualBackground extends BaseVideoProcessor {
   }
 
   protected async transform(frame: VideoFrame): Promise<VideoFrame> {
+    if (this.isFirstFrame) {
+      this.isFirstFrame = false;
+
+      return new VideoFrame(frame, { timestamp: frame.timestamp });
+    }
+
     if (this.isSegmenterReady && this.segmenter) {
       await new Promise<void>((resolve) => {
         this.segmenter!.segmentForVideo(frame, frame.timestamp, (result) => {
