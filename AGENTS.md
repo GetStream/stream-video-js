@@ -12,6 +12,18 @@ Stream Video SDKs for:
 
 Goals: API stability, backward compatibility, predictable releases, strong test coverage, accessibility, and performance discipline.
 
+## Low-Level (Core) SDK
+
+Please find the instructions in `packages/client/CLAUDE.md`.
+
+## React SDK
+
+Please find the instructions in `packages/react-sdk/CLAUDE.md`.
+
+## React Native SDK
+
+Please find the instructions in `packages/react-native-sdk/CLAUDE.md`.
+
 ## Tech & toolchain
 
 - Languages: TypeScript, React (web + native)
