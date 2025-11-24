@@ -92,7 +92,9 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
             })
             .then((canAutoEnable) => {
               if (canAutoEnable) {
-                this.noiseCancellation?.enable();
+                this.noiseCancellation?.enable().catch((err) => {
+                  this.logger.warn('Failed to enable noise cancellation', err);
+                });
               }
             })
             .catch((err) => {
@@ -175,7 +177,9 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           canAutoEnable = await noiseCancellation.canAutoEnable();
         }
         if (canAutoEnable) {
-          noiseCancellation.enable();
+          noiseCancellation.enable().catch((err) => {
+            this.logger.warn('Failed to enable noise cancellation', err);
+          });
         }
       }
     } catch (e) {
@@ -268,9 +272,16 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       const disableAudioProcessing =
         profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
       if (disableAudioProcessing) {
-        this.noiseCancellation.disable(); // disable for high quality music mode
+        this.noiseCancellation.disable().catch((err) => {
+          this.logger.warn(
+            'Failed to disable noise cancellation for music mode',
+            err,
+          );
+        }); // disable for high quality music mode
       } else {
-        this.noiseCancellation.enable(); // restore it for other modes if available
+        this.noiseCancellation.enable().catch((err) => {
+          this.logger.warn('Failed to enable noise cancellation', err);
+        }); // restore it for other modes if available
       }
     }
   }

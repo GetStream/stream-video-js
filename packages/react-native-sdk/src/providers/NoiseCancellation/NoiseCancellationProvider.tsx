@@ -130,9 +130,13 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
               ? enabledOrSetter(isEnabled)
               : enabledOrSetter;
           if (enable) {
-            ncInstance.enable();
+            ncInstance.enable().catch((err) => {
+              console.error('Failed to enable noise cancellation', err);
+            });
           } else {
-            ncInstance.disable();
+            ncInstance.disable().catch((err) => {
+              console.error('Failed to disable noise cancellation', err);
+            });
           }
         },
       }}

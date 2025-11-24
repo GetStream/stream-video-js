@@ -41,16 +41,16 @@ export class NoiseCancellation implements INoiseCancellation {
   /**
    * Enables the noise cancellation.
    */
-  enable = () => {
-    NoiseCancellationReactNative.setEnabled(true);
+  enable = async () => {
+    await NoiseCancellationReactNative.setEnabled(true);
     this.dispatch('change', true);
   };
 
   /**
    * Disables the noise cancellation.
    */
-  disable = () => {
-    NoiseCancellationReactNative.setEnabled(false);
+  disable = async () => {
+    await NoiseCancellationReactNative.setEnabled(false);
     this.dispatch('change', false);
   };
 
