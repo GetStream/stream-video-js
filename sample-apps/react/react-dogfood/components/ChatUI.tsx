@@ -4,10 +4,10 @@ import {
   Channel,
   MESSAGE_ACTIONS,
   MessageInput,
-  MessageList,
   SendButtonProps,
   useChannelStateContext,
   useChatContext,
+  VirtualizedMessageList,
   Window,
 } from 'stream-chat-react';
 
@@ -23,7 +23,7 @@ const ALLOWED_MESSAGE_ACTIONS = [
   MESSAGE_ACTIONS.react,
 ];
 
-export const NoMessages = () => {
+const NoMessages = () => {
   const { messages } = useChannelStateContext();
 
   if (messages?.length === 0) {
@@ -56,7 +56,7 @@ export const NoMessages = () => {
   return null;
 };
 
-export const ChatSendButton = ({ sendMessage, ...rest }: SendButtonProps) => {
+const ChatSendButton = ({ sendMessage, ...rest }: SendButtonProps) => {
   return (
     <div className="str-chat__send-button-container">
       <button
@@ -72,6 +72,8 @@ export const ChatSendButton = ({ sendMessage, ...rest }: SendButtonProps) => {
     </div>
   );
 };
+
+const PaperClipIcon = () => <Icon icon="paperclip" />;
 
 export const ChatUI = ({
   onClose,
@@ -96,7 +98,7 @@ export const ChatUI = ({
     <Channel
       EmptyStateIndicator={NoMessages}
       SendButton={ChatSendButton}
-      FileUploadIcon={() => <Icon icon="paperclip" />}
+      AttachmentSelectorInitiationButtonContents={PaperClipIcon}
     >
       <Window>
         <div className="rd__chat-wrapper">
@@ -109,7 +111,10 @@ export const ChatUI = ({
             />
           </div>
         </div>
-        <MessageList messageActions={ALLOWED_MESSAGE_ACTIONS} />
+        <VirtualizedMessageList
+          shouldGroupByUser
+          messageActions={ALLOWED_MESSAGE_ACTIONS}
+        />
         <MessageInput
           focus
           maxRows={5}
