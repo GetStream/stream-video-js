@@ -63,6 +63,8 @@ export class VirtualBackground {
 
     const opts = await this.initializeSegmenterOptions();
 
+    let lastFrameTime = -1;
+
     const transformStream = new TransformStream<VideoFrame, VideoFrame>({
       transform: (frame, controller) => {
         try {
@@ -71,8 +73,15 @@ export class VirtualBackground {
             return;
           }
 
-          if (this.isSegmenterReady) {
+          const currentTime = frame.timestamp;
+          const hasNewFrame = currentTime !== lastFrameTime;
+
+          lastFrameTime = currentTime;
+          if (this.isSegmenterReady && hasNewFrame) {
+            console.log('[virtual-background] running segmentation');
             this.runSegmentation(frame);
+          } else {
+            console.log('[virtual-background] skipping segmentation');
           }
           this.webGlRenderer.render(
             frame,
@@ -185,9 +194,7 @@ export class VirtualBackground {
         canvas: this.canvas,
       });
 
-      setTimeout(() => {
-        this.isSegmenterReady = true;
-      }, 2500);
+      this.isSegmenterReady = true;
     } catch (error) {
       console.error(
         '[virtual-background] Failed to initialize MediaPipe segmenter:',
