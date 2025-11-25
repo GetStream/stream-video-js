@@ -85,7 +85,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [call, router.query, chatClient, isRestricted],
+    [call, router, chatClient, isRestricted],
   );
 
   const onLeave = useCallback(

@@ -70,7 +70,7 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
       setCall(undefined);
       window.call = undefined;
     };
-  }, [callId, callType, client, router.query]);
+  }, [callId, callType, client, router]);
 
   if (!client || !call) return null;
 

@@ -14,7 +14,7 @@ export const getQueryConfigParams = (query: NextRouter['query']) => {
     maxSimulcastLayers: query['max_simulcast_layers'] as string | undefined,
     forceCodec: query['force_codec'] as PreferredCodec | undefined,
     cameraOverride: query['camera'] as string | undefined,
-    microphoneOverride: query['microphone'] as string | undefined,
+    microphoneOverride: query['mic'] as string | undefined,
   };
 };
 
