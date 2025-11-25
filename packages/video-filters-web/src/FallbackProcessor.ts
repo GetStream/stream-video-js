@@ -49,7 +49,6 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
     let timestamp = 0;
     const frameRate = track.getSettings().frameRate || 30;
     let frameDuration = 1000 / frameRate;
-    let lastVideoTime = -1;
 
     this.workerTimer = new WorkerTimer({ useWorker: true });
     this.readable = new ReadableStream({
@@ -77,21 +76,6 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
         }
         timestamp = performance.now();
 
-        const currentTime = this.video.currentTime;
-        const hasNewFrame = currentTime !== lastVideoTime;
-
-        if (!hasNewFrame) {
-          await new Promise((r: (value?: unknown) => void) =>
-            this.workerTimer.setTimeout(r, frameDuration),
-          );
-          console.log(
-            "FallbackProcessor didn't get a new frame, skipping frame",
-          );
-          return;
-        }
-
-        lastVideoTime = currentTime;
-
         if (
           canvas.width !== this.video.videoWidth ||
           canvas.height !== this.video.videoHeight
@@ -103,7 +87,9 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
         ctx.drawImage(this.video, 0, 0);
 
         try {
-          const frame = new VideoFrame(canvas, { timestamp });
+          const frame = new VideoFrame(canvas, {
+            timestamp: Math.round(this.video.currentTime * 1000000),
+          });
           controller.enqueue(frame);
         } catch (err) {
           running = false;

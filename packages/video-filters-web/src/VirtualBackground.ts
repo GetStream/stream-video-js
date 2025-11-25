@@ -78,10 +78,7 @@ export class VirtualBackground {
 
           lastFrameTime = currentTime;
           if (this.isSegmenterReady && hasNewFrame) {
-            console.log('[virtual-background] running segmentation');
             this.runSegmentation(frame);
-          } else {
-            console.log('[virtual-background] skipping segmentation');
           }
           this.webGlRenderer.render(
             frame,
