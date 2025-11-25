@@ -71,7 +71,9 @@ export class VirtualBackground {
             return;
           }
 
-          this.runSegmentation(frame);
+          if (this.isSegmenterReady) {
+            this.runSegmentation(frame);
+          }
           this.webGlRenderer.render(
             frame,
             opts,
@@ -183,7 +185,9 @@ export class VirtualBackground {
         canvas: this.canvas,
       });
 
-      this.isSegmenterReady = true;
+      setTimeout(() => {
+        this.isSegmenterReady = true;
+      }, 2500);
     } catch (error) {
       console.error(
         '[virtual-background] Failed to initialize MediaPipe segmenter:',
