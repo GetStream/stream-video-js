@@ -237,14 +237,6 @@
     }
   }
 
-  .rd__call-header__controls-group {
-    > * {
-      &:nth-child(4) {
-        display: none;
-      }
-    }
-  }
-
   .rd__header__latency {
     display: flex;
   }
