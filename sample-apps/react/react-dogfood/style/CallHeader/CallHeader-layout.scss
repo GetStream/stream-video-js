@@ -132,6 +132,19 @@
   }
 }
 
+.rd__header__participant-count {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  font-variant: tabular-nums;
+  background-color: var(--str-video__base-color6);
+  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-md);
+  border-radius: var(--str-video__border-radius-md);
+  font-size: var(--str-video__font-size-xs);
+  font-weight: 600;
+  gap: var(--str-video__spacing-xs);
+}
+
 .rd__call-header__notifications {
   display: flex;
   justify-content: center;
@@ -233,6 +246,10 @@
   }
 
   .rd__header__latency {
+    display: flex;
+  }
+
+  .rd__header__participant-count {
     display: flex;
   }
 

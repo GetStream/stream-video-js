@@ -13,9 +13,7 @@ import clsx from 'clsx';
 import { CallHeaderTitle } from './CallHeaderTitle';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleDocumentationButton } from './ToggleDocumentationButton';
-
 import { LayoutSelectorProps } from './LayoutSelector';
-
 import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
 
 const LatencyIndicator = () => {
@@ -71,6 +69,19 @@ const RecordingIndicator = () => {
   return <div className="rd__header__recording-indicator">Recording...</div>;
 };
 
+const ParticipantCountIndicator = () => {
+  const { useParticipants, useParticipantCount } = useCallStateHooks();
+  const participants = useParticipants();
+  const participantCount = useParticipantCount();
+  const count = Math.max(participantCount, participants.length);
+  return (
+    <div className="rd__header__participant-count" title="Total participants">
+      <Icon icon="participants" />
+      {count}
+    </div>
+  );
+};
+
 export const ActiveCallHeader = ({
   onLeave,
   selectedLayout,
@@ -108,14 +119,13 @@ export const ActiveCallHeader = ({
               selectedLayout: selectedLayout,
               onMenuItemClick: onMenuItemClick,
             }}
-            tabModalProps={{
-              inMeeting: true,
-            }}
+            tabModalProps={{ inMeeting: true }}
           />
         </div>
 
         <div className="rd__call-header__controls-group">
           {isRecordingInProgress && <RecordingIndicator />}
+          <ParticipantCountIndicator />
           <Elapsed startedAt={session?.started_at} />
           <LatencyIndicator />
         </div>
