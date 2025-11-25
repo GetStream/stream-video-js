@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.37.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.2...@stream-io/video-client-1.37.3) (2025-11-25)
+
+- instructions for Claude and other coding agents ([#2012](https://github.com/GetStream/stream-video-js/issues/2012)) ([08a3459](https://github.com/GetStream/stream-video-js/commit/08a345954f7cb5b1fae5a4b39b5b585bf1f631ec))
+
+### Bug Fixes
+
+- **noise cancellation:** delay toggling until initialization is finished ([#2014](https://github.com/GetStream/stream-video-js/issues/2014)) ([d28b8ea](https://github.com/GetStream/stream-video-js/commit/d28b8ea282322a25688ff48966b0dc10dd7e60bd))
+
 ## [1.37.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.1...@stream-io/video-client-1.37.2) (2025-11-20)
 
 ### Bug Fixes
