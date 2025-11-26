@@ -85,6 +85,8 @@ const IncomingVideoSettingsMenu = (props: {
             className={clsx('rd__button rd__button--align-left', {
               'rd__button--primary': value === props.value,
             })}
+            type="button"
+            data-testid={`incoming-video-resolution-${value}`}
             onClick={() => props.onChange(value as IncomingVideoSetting)}
           >
             <span className="str-video__dropdown-label">

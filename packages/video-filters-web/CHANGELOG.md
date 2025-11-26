@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.5.0...@stream-io/video-filters-web-0.5.1) (2025-11-25)
+
+### Bug Fixes
+
+- **react:** Fix InvalidStateException when track is stopped ([#2015](https://github.com/GetStream/stream-video-js/issues/2015)) ([d3c0331](https://github.com/GetStream/stream-video-js/commit/d3c0331803e5a512a93bd972883f27ac81689c61))
+
 ## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.4.0...@stream-io/video-filters-web-0.5.0) (2025-11-17)
 
 ### Features

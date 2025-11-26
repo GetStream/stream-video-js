@@ -50,8 +50,8 @@ export interface INoiseCancellation {
   init: (options?: { tracer?: Tracer }) => Promise<void>;
   isEnabled: () => Promise<boolean>;
   canAutoEnable?: () => Promise<boolean>;
-  enable: () => void;
-  disable: () => void;
+  enable: () => Promise<void>;
+  disable: () => Promise<void>;
   dispose: () => Promise<void>;
   resume: () => void;
   setSuppressionLevel: (level: number) => void;
@@ -87,6 +87,9 @@ export class NoiseCancellation implements INoiseCancellation {
   private restoreTimeoutId?: number;
   private tracer?: Tracer;
 
+  private readonly initializing: Promise<void>;
+  private readonly resolveInitialized!: () => void;
+
   private readonly basePath: string;
   private readonly restoreTimeoutMs: number;
   private readonly restoreAttempts: number;
@@ -103,6 +106,10 @@ export class NoiseCancellation implements INoiseCancellation {
     restoreAttempts = 3,
     krispSDKParams,
   }: NoiseCancellationOptions = {}) {
+    const { promise, resolve } = promiseWithResolvers<void>();
+    this.initializing = promise;
+    this.resolveInitialized = resolve;
+
     this.basePath = basePath;
     this.restoreTimeoutMs = restoreTimeoutMs;
     this.restoreAttempts = restoreAttempts;
@@ -176,18 +183,18 @@ export class NoiseCancellation implements INoiseCancellation {
       document.addEventListener('click', resume);
     }
 
-    const { promise: ready, resolve: filterReady } = promiseWithResolvers();
     const filterNode = await sdk.createNoiseFilter(
       this.audioContext,
       () => {
         this.tracer?.trace('noiseCancellation.started', 'true');
-        filterReady();
+        this.resolveInitialized();
       },
       () => document.removeEventListener('click', resume),
     );
     filterNode.addEventListener('buffer_overflow', this.handleBufferOverflow);
     this.filterNode = filterNode;
-    return ready;
+
+    return this.initializing;
   };
 
   /**
@@ -201,8 +208,9 @@ export class NoiseCancellation implements INoiseCancellation {
   /**
    * Enables the noise cancellation.
    */
-  enable = () => {
+  enable = async () => {
     if (!this.filterNode) return;
+    await this.initializing;
     this.filterNode.enable();
     this.dispatch('change', true);
   };
@@ -210,8 +218,9 @@ export class NoiseCancellation implements INoiseCancellation {
   /**
    * Disables the noise cancellation.
    */
-  disable = () => {
+  disable = async () => {
     if (!this.filterNode) return;
+    await this.initializing;
     this.filterNode.disable();
     this.dispatch('change', false);
   };
@@ -228,7 +237,7 @@ export class NoiseCancellation implements INoiseCancellation {
       this.audioContext = undefined;
     }
     if (this.filterNode) {
-      this.disable();
+      await this.disable();
       this.filterNode.removeEventListener(
         'buffer_overflow',
         this.handleBufferOverflow,
@@ -351,11 +360,15 @@ export class NoiseCancellation implements INoiseCancellation {
     this.tracer?.trace('noiseCancellation.bufferOverflowCount', String(count));
 
     window.clearTimeout(this.restoreTimeoutId);
-    this.disable();
+    this.disable().catch((err) =>
+      console.error('Failed to disable noise cancellation ', err),
+    );
 
     if (count < this.restoreAttempts) {
       this.restoreTimeoutId = window.setTimeout(() => {
-        this.enable();
+        this.enable().catch((err) =>
+          console.error('Failed to enable noise cancellation ', err),
+        );
       }, this.restoreTimeoutMs);
     }
   };

@@ -2,6 +2,31 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.24.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.6...@stream-io/video-react-native-sdk-1.24.7) (2025-11-25)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.2`
+- `@stream-io/video-client` updated to version `1.37.3`
+- `@stream-io/video-react-bindings` updated to version `1.11.4`
+
+- instructions for Claude and other coding agents ([#2012](https://github.com/GetStream/stream-video-js/issues/2012)) ([08a3459](https://github.com/GetStream/stream-video-js/commit/08a345954f7cb5b1fae5a4b39b5b585bf1f631ec))
+
+### Bug Fixes
+
+- **noise cancellation:** delay toggling until initialization is finished ([#2014](https://github.com/GetStream/stream-video-js/issues/2014)) ([d28b8ea](https://github.com/GetStream/stream-video-js/commit/d28b8ea282322a25688ff48966b0dc10dd7e60bd))
+
+## [1.24.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.5...@stream-io/video-react-native-sdk-1.24.6) (2025-11-20)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.1`
+- `@stream-io/video-filters-react-native` updated to version `0.9.1`
+- `@stream-io/video-client` updated to version `1.37.2`
+- `@stream-io/video-react-bindings` updated to version `1.11.3`
+
+- update react-native to 0.81.5 ([33554fc](https://github.com/GetStream/stream-video-js/commit/33554fc31015f4af57ba19b1f925b19fbfcbe0ea))
+
 ## [1.24.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.4...@stream-io/video-react-native-sdk-1.24.5) (2025-11-17)
 
 ### Dependency Updates
