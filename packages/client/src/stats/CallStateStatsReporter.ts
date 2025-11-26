@@ -294,7 +294,10 @@ const transform = (
         ) as RTCMediaSourceStats | undefined;
         if (mediaSource) {
           trackType = publisher.getTrackType(mediaSource.trackIdentifier);
-          if (trackKind === 'audio' && mediaSource.audioLevel !== undefined) {
+          if (
+            trackKind === 'audio' &&
+            typeof mediaSource.audioLevel === 'number'
+          ) {
             audioLevel = mediaSource.audioLevel;
           }
         }

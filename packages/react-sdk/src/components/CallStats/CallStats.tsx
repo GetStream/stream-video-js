@@ -28,7 +28,7 @@ export const CallStats = (props: CallStatsProps) => {
   const {
     latencyLowBound = 75,
     latencyHighBound = 400,
-    showCodecInfo = false,
+    showCodecInfo = true,
     LatencyChartSuspenseFallback = null,
   } = props;
   const [latencyBuffer, setLatencyBuffer] = useState<
@@ -101,6 +101,11 @@ export const CallStats = (props: CallStatsProps) => {
     value: callStatsReport?.publisherStats.averageRoundTripTimeInMs || 0,
   };
 
+  const jitterComparison = {
+    lowBound: 5,
+    highBound: 15,
+  };
+
   return (
     <div className="str-video__call-stats">
       {callStatsReport && (
@@ -150,7 +155,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Receive jitter')}
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
               comparison={{
-                ...latencyComparison,
+                ...jitterComparison,
                 value: callStatsReport.subscriberStats.averageJitterInMs,
               }}
             />
@@ -158,7 +163,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Publish jitter')}
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
               comparison={{
-                ...latencyComparison,
+                ...jitterComparison,
                 value: callStatsReport.publisherStats.averageJitterInMs,
               }}
             />
@@ -207,7 +212,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Audio jitter (publish)')}
               value={`${callStatsReport.publisherAudioStats.averageJitterInMs} ms.`}
               comparison={{
-                ...latencyComparison,
+                ...jitterComparison,
                 value: callStatsReport.publisherAudioStats.averageJitterInMs,
               }}
             />
@@ -215,7 +220,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Audio jitter (receive)')}
               value={`${callStatsReport.subscriberAudioStats.averageJitterInMs} ms.`}
               comparison={{
-                ...latencyComparison,
+                ...jitterComparison,
                 value: callStatsReport.subscriberAudioStats.averageJitterInMs,
               }}
             />
@@ -348,6 +353,7 @@ const formatCodec = (callStatsReport: CallStatsReport): string => {
     return '';
   }
   const [, name] = codecPerTrackType[SfuModels.TrackType.VIDEO].split('/');
+  console.log(name);
   return name ? ` (${name})` : '';
 };
 
