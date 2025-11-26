@@ -280,6 +280,8 @@ const transform = (
 
       let trackType: TrackType | undefined;
       let audioLevel: number | undefined;
+      let concealedSamples: number | undefined;
+      let concealmentEvents: number | undefined;
       if (kind === 'publisher' && publisher) {
         const firefox = isFirefox();
         const mediaSource = stats.find(
@@ -295,10 +297,13 @@ const transform = (
           }
         }
       } else if (kind === 'subscriber' && trackKind === 'audio') {
-        const inboundLevel = rtcStreamStats.audioLevel;
+        const inboundStats = rtcStreamStats as RTCInboundRtpStreamStats;
+        const inboundLevel = inboundStats.audioLevel;
         if (typeof inboundLevel === 'number') {
           audioLevel = inboundLevel;
         }
+        concealedSamples = inboundStats.concealedSamples;
+        concealmentEvents = inboundStats.concealmentEvents;
       }
 
       return {
@@ -317,6 +322,8 @@ const transform = (
         ssrc: rtcStreamStats.ssrc,
         trackType,
         audioLevel,
+        concealedSamples,
+        concealmentEvents,
       };
     });
 
@@ -352,6 +359,8 @@ const getEmptyAudioStats = (): AudioAggregatedStats => {
     codec: '',
     codecPerTrackType: {},
     timestamp: Date.now(),
+    totalConcealedSamples: 0,
+    totalConcealmentEvents: 0,
   };
 };
 
@@ -436,6 +445,8 @@ const aggregateAudio = (stats: StatsReport): AudioAggregatedStats => {
     acc.totalBytesSent += stream.bytesSent || 0;
     acc.totalBytesReceived += stream.bytesReceived || 0;
     acc.averageJitterInMs += stream.jitter || 0;
+    acc.totalConcealedSamples += stream.concealedSamples || 0;
+    acc.totalConcealmentEvents += stream.concealmentEvents || 0;
 
     return acc;
   }, audioStats);

@@ -16,6 +16,8 @@ export type BaseStats = {
   rid?: string;
   ssrc?: number;
   trackType?: TrackType;
+  concealedSamples?: number;
+  concealmentEvents?: number;
 };
 
 export type StatsReport = {
@@ -31,6 +33,8 @@ export type AudioAggregatedStats = {
   codec: string;
   codecPerTrackType: Partial<Record<TrackType, string>>;
   timestamp: number;
+  totalConcealedSamples: number;
+  totalConcealmentEvents: number;
 };
 
 export type AggregatedStatsReport = {
