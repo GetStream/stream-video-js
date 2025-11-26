@@ -356,6 +356,7 @@ const getEmptyAudioStats = (): AudioAggregatedStats => {
     totalBytesSent: 0,
     totalBytesReceived: 0,
     averageJitterInMs: 0,
+    averageRoundTripTimeInMs: 0,
     codec: '',
     codecPerTrackType: {},
     timestamp: Date.now(),
@@ -445,6 +446,7 @@ const aggregateAudio = (stats: StatsReport): AudioAggregatedStats => {
     acc.totalBytesSent += stream.bytesSent || 0;
     acc.totalBytesReceived += stream.bytesReceived || 0;
     acc.averageJitterInMs += stream.jitter || 0;
+    acc.averageRoundTripTimeInMs += stream.currentRoundTripTime || 0;
     acc.totalConcealedSamples += stream.concealedSamples || 0;
     acc.totalConcealmentEvents += stream.concealmentEvents || 0;
 
@@ -454,6 +456,9 @@ const aggregateAudio = (stats: StatsReport): AudioAggregatedStats => {
   if (streams.length > 0) {
     report.averageJitterInMs = Math.round(
       (report.averageJitterInMs / streams.length) * 1000,
+    );
+    report.averageRoundTripTimeInMs = Math.round(
+      (report.averageRoundTripTimeInMs / streams.length) * 1000,
     );
     report.codec = streams[0].codec || '';
     report.codecPerTrackType = streams.reduce(

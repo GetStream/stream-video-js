@@ -30,6 +30,7 @@ export type AudioAggregatedStats = {
   totalBytesSent: number;
   totalBytesReceived: number;
   averageJitterInMs: number;
+  averageRoundTripTimeInMs: number;
   codec: string;
   codecPerTrackType: Partial<Record<TrackType, string>>;
   timestamp: number;
