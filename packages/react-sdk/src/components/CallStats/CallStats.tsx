@@ -442,5 +442,5 @@ const calculateSubscribeAudioPacketLoss = (
     previous.subscriberAudioStats.totalPacketsLost;
   const total = packetsReceivedDelta + packetsLostDelta;
   const percent = total > 0 ? (packetsLostDelta / total) * 100 : 0;
-  return `${percent.toFixed(2)}%`;
+  return `${percent.toFixed(2)} %`;
 };
