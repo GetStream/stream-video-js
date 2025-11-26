@@ -226,11 +226,7 @@ export const CallStats = (props: CallStatsProps) => {
             />
             <StatCard
               label={t('Audio codec')}
-              value={
-                callStatsReport.publisherAudioStats?.codec ||
-                callStatsReport.subscriberAudioStats?.codec ||
-                '–'
-              }
+              value={formatAudioCodec(callStatsReport)}
             />
             <StatCard
               label={t('Audio packet loss (receive)')}
@@ -353,8 +349,17 @@ const formatCodec = (callStatsReport: CallStatsReport): string => {
     return '';
   }
   const [, name] = codecPerTrackType[SfuModels.TrackType.VIDEO].split('/');
-  console.log(name);
   return name ? ` (${name})` : '';
+};
+
+const formatAudioCodec = (callStatsReport: CallStatsReport): string => {
+  const { codecPerTrackType } = callStatsReport.publisherAudioStats;
+  console.log(codecPerTrackType);
+  if (!codecPerTrackType || !codecPerTrackType[SfuModels.TrackType.AUDIO]) {
+    return '';
+  }
+  const [, name] = codecPerTrackType[SfuModels.TrackType.AUDIO].split('/');
+  return name ?? '';
 };
 
 const calculatePublishBitrate = (
