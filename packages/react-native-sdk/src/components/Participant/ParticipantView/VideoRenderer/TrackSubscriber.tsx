@@ -3,11 +3,11 @@ import { LayoutChangeEvent } from 'react-native';
 import {
   Call,
   CallingState,
+  DebounceType,
   hasScreenShare,
   hasVideo,
   SfuModels,
   type VideoTrackType,
-  DebounceType,
 } from '@stream-io/video-client';
 import {
   BehaviorSubject,
@@ -68,7 +68,6 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
       const isPublishingTrack$ = call.state.participants$.pipe(
         map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
         takeWhile((p) => !!p),
-        distinctUntilChanged(),
         distinctUntilKeyChanged('publishedTracks'),
         map((p) =>
           trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
@@ -84,17 +83,13 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
         isPublishingTrack$,
         isJoinedState$,
       ]).subscribe(([dimension, isPublishing, isJoined]) => {
-        if (isJoined && isPublishing && !isVisible) {
-          // the participant is publishing and we are not visible, so we unsubscribe from the video track
-          requestTrackWithDimensions(DebounceType.FAST, undefined);
-        } else if (isJoined && isPublishing && isVisible && dimension) {
-          // the participant is publishing and we are visible and have valid dimensions, so we subscribe to the video track
-          requestTrackWithDimensions(DebounceType.IMMEDIATE, dimension);
-        } else if (isJoined && !isPublishing) {
-          // the participant stopped publishing a track, so we unsubscribe from the video track
-          requestTrackWithDimensions(DebounceType.FAST, undefined);
+        if (isJoined) {
+          if (!isVisible || !isPublishing) {
+            requestTrackWithDimensions(DebounceType.MEDIUM, undefined);
+          } else if (dimension) {
+            requestTrackWithDimensions(DebounceType.IMMEDIATE, dimension);
+          }
         }
-        // if isPublishing but no dimension yet, we wait for dimensions
       });
 
       return () => {

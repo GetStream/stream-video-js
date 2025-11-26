@@ -63,13 +63,15 @@ describe('Publisher', () => {
     sfuClient['sessionId'] = sessionId;
 
     state = new CallState();
-    publisher = new Publisher({
-      sfuClient,
-      dispatcher,
-      state,
-      tag: 'test',
-      enableTracing: false,
-      publishOptions: [
+    publisher = new Publisher(
+      {
+        sfuClient,
+        dispatcher,
+        state,
+        tag: 'test',
+        enableTracing: false,
+      },
+      [
         {
           id: 1,
           trackType: TrackType.VIDEO,
@@ -81,7 +83,7 @@ describe('Publisher', () => {
           maxSpatialLayers: 3,
         },
       ],
-    });
+    );
   });
 
   afterEach(() => {
@@ -309,6 +311,7 @@ describe('Publisher', () => {
       expect(publisher['onReconnectionNeeded']).toHaveBeenCalledWith(
         WebsocketReconnectStrategy.FAST,
         anyString(),
+        PeerType.PUBLISHER_UNSPECIFIED,
       );
 
       expect(pc.setLocalDescription).toHaveBeenCalledTimes(2);
@@ -354,6 +357,7 @@ describe('Publisher', () => {
       expect(publisher['onReconnectionNeeded']).toHaveBeenCalledWith(
         WebsocketReconnectStrategy.REJOIN,
         anyString(),
+        PeerType.PUBLISHER_UNSPECIFIED,
       );
     });
 

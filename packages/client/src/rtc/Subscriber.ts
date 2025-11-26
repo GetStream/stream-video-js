@@ -4,7 +4,7 @@ import { NegotiationError } from './NegotiationError';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
-import { enableStereo } from './helpers/sdp';
+import { enableStereo, removeCodecsExcept } from './helpers/sdp';
 
 /**
  * A wrapper around the `RTCPeerConnection` that handles the incoming
@@ -153,6 +153,15 @@ export class Subscriber extends BasePeerConnection {
     const answer = await this.pc.createAnswer();
     if (answer.sdp) {
       answer.sdp = enableStereo(subscriberOffer.sdp, answer.sdp);
+      const { dangerouslyForceCodec, subscriberFmtpLine } =
+        this.clientPublishOptions || {};
+      if (dangerouslyForceCodec) {
+        answer.sdp = removeCodecsExcept(
+          answer.sdp,
+          dangerouslyForceCodec,
+          subscriberFmtpLine,
+        );
+      }
     }
     await this.pc.setLocalDescription(answer);
 

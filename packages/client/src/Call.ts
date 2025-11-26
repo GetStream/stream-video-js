@@ -1,5 +1,6 @@
 import { StreamSfuClient } from './StreamSfuClient';
 import {
+  BasePeerConnectionOpts,
   Dispatcher,
   getGenericSdp,
   isAudioTrackType,
@@ -63,6 +64,8 @@ import type {
   RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
+  RingCallRequest,
+  RingCallResponse,
   SendCallEventRequest,
   SendCallEventResponse,
   SendReactionRequest,
@@ -118,6 +121,7 @@ import {
   ClientDetails,
   Codec,
   ParticipantSource,
+  PeerType,
   PublishOption,
   SubscribeOption,
   TrackType,
@@ -729,12 +733,14 @@ export class Call {
    * @param params.ring if set to true, a `call.ring` event will be sent to the call members.
    * @param params.notify if set to true, a `call.notification` event will be sent to the call members.
    * @param params.members_limit the total number of members to return as part of the response.
+   * @param params.video if set to true, in a ringing scenario, mobile SDKs will show "incoming video call", audio only otherwise.
    */
   get = async (params?: {
     ring?: boolean;
     notify?: boolean;
     members_limit?: number;
-  }) => {
+    video?: boolean;
+  }): Promise<GetCallResponse> => {
     await this.setup();
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
@@ -811,11 +817,14 @@ export class Call {
   };
 
   /**
-   * A shortcut for {@link Call.get} with `ring` parameter set to `true`.
-   * Will send a `call.ring` event to the call members.
+   * Sends a ring notification to the provided users who are not already in the call.
+   * All users should be members of the call.
    */
-  ring = async (): Promise<GetCallResponse> => {
-    return await this.get({ ring: true });
+  ring = async (data: RingCallRequest = {}): Promise<RingCallResponse> => {
+    return this.streamClient.post<RingCallResponse, RingCallRequest>(
+      `${this.streamClientBasePath}/ring`,
+      data,
+    );
   };
 
   /**
@@ -987,9 +996,11 @@ export class Call {
       // prepare a generic SDP and send it to the SFU.
       // these are throw-away SDPs that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
+      const { dangerouslyForceCodec, fmtpLine, subscriberFmtpLine } =
+        this.clientPublishOptions || {};
       const [subscriberSdp, publisherSdp] = await Promise.all([
-        getGenericSdp('recvonly'),
-        getGenericSdp('sendonly'),
+        getGenericSdp('recvonly', dangerouslyForceCodec, subscriberFmtpLine),
+        getGenericSdp('sendonly', dangerouslyForceCodec, fmtpLine),
       ]);
       const isReconnecting =
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
@@ -1237,20 +1248,23 @@ export class Call {
     if (closePreviousInstances && this.subscriber) {
       this.subscriber.dispose();
     }
-    this.subscriber = new Subscriber({
+    const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
       dispatcher: this.dispatcher,
       state: this.state,
       connectionConfig,
       tag: sfuClient.tag,
       enableTracing,
-      onReconnectionNeeded: (kind, reason) => {
+      clientPublishOptions: this.clientPublishOptions,
+      onReconnectionNeeded: (kind, reason, peerType) => {
         this.reconnect(kind, reason).catch((err) => {
-          const message = `[Reconnect] Error reconnecting after a subscriber error: ${reason}`;
+          const message = `[Reconnect] Error reconnecting, after a ${PeerType[peerType]} error: ${reason}`;
           this.logger.warn(message, err);
         });
       },
-    });
+    };
+
+    this.subscriber = new Subscriber(basePeerConnectionOptions);
 
     // anonymous users can't publish anything hence, there is no need
     // to create Publisher Peer Connection for them
@@ -1259,21 +1273,7 @@ export class Call {
       if (closePreviousInstances && this.publisher) {
         this.publisher.dispose();
       }
-      this.publisher = new Publisher({
-        sfuClient,
-        dispatcher: this.dispatcher,
-        state: this.state,
-        connectionConfig,
-        publishOptions,
-        tag: sfuClient.tag,
-        enableTracing,
-        onReconnectionNeeded: (kind, reason) => {
-          this.reconnect(kind, reason).catch((err) => {
-            const message = `[Reconnect] Error reconnecting after a publisher error: ${reason}`;
-            this.logger.warn(message, err);
-          });
-        },
-      });
+      this.publisher = new Publisher(basePeerConnectionOptions, publishOptions);
     }
 
     this.statsReporter?.stop();

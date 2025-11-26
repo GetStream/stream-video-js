@@ -139,14 +139,20 @@ export class DynascaleManager {
 
   get trackSubscriptions() {
     const subscriptions: TrackSubscriptionDetails[] = [];
-    for (const p of this.callState.remoteParticipants) {
+    // Use getParticipantsSnapshot() to bypass the observable pipeline
+    // and avoid stale data caused by shareReplay with no active subscribers
+    const participants = this.callState.getParticipantsSnapshot();
+    const videoTrackSubscriptionOverrides =
+      this.videoTrackSubscriptionOverridesSubject.getValue();
+    for (const p of participants) {
+      if (p.isLocalParticipant) continue;
       // NOTE: audio tracks don't have to be requested explicitly
       // as the SFU will implicitly subscribe us to all of them,
       // once they become available.
       if (p.videoDimension && hasVideo(p)) {
         const override =
-          this.videoTrackSubscriptionOverrides[p.sessionId] ??
-          this.videoTrackSubscriptionOverrides[globalOverrideKey];
+          videoTrackSubscriptionOverrides[p.sessionId] ??
+          videoTrackSubscriptionOverrides[globalOverrideKey];
 
         if (override?.enabled !== false) {
           subscriptions.push({

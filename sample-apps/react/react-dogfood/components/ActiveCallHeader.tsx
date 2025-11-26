@@ -13,10 +13,29 @@ import clsx from 'clsx';
 import { CallHeaderTitle } from './CallHeaderTitle';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleDocumentationButton } from './ToggleDocumentationButton';
-
 import { LayoutSelectorProps } from './LayoutSelector';
-
 import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
+
+/**
+ * Formats large numbers into a compact, human-friendly form: 1k, 1.5k, 2M, etc.
+ */
+const humanizeCount = (n: number): string => {
+  if (n < 1000) return String(n);
+  const units = [
+    { value: 1_000_000_000, suffix: 'B' },
+    { value: 1_000_000, suffix: 'M' },
+    { value: 1_000, suffix: 'k' },
+  ];
+  for (const { value, suffix } of units) {
+    if (n >= value) {
+      const num = n / value;
+      const precision = num < 100 ? 1 : 0; // show one decimal only for small leading numbers
+      const formatted = num.toFixed(precision).replace(/\.0$/g, '');
+      return `${formatted}${suffix}`;
+    }
+  }
+  return String(n);
+};
 
 const LatencyIndicator = () => {
   const { useCallStatsReport } = useCallStateHooks();
@@ -71,6 +90,19 @@ const RecordingIndicator = () => {
   return <div className="rd__header__recording-indicator">Recording...</div>;
 };
 
+const ParticipantCountIndicator = () => {
+  const { useParticipants, useParticipantCount } = useCallStateHooks();
+  const participants = useParticipants();
+  const participantCount = useParticipantCount();
+  const count = Math.max(participantCount, participants.length);
+  return (
+    <div className="rd__header__participant-count" title={`Total: ${count}`}>
+      <Icon icon="participants" />
+      {humanizeCount(count)}
+    </div>
+  );
+};
+
 export const ActiveCallHeader = ({
   onLeave,
   selectedLayout,
@@ -108,14 +140,13 @@ export const ActiveCallHeader = ({
               selectedLayout: selectedLayout,
               onMenuItemClick: onMenuItemClick,
             }}
-            tabModalProps={{
-              inMeeting: true,
-            }}
+            tabModalProps={{ inMeeting: true }}
           />
         </div>
 
         <div className="rd__call-header__controls-group">
           {isRecordingInProgress && <RecordingIndicator />}
+          <ParticipantCountIndicator />
           <Elapsed startedAt={session?.started_at} />
           <LatencyIndicator />
         </div>

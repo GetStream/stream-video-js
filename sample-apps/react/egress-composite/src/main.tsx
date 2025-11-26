@@ -9,6 +9,7 @@ import {
 } from './ConfigurationContext';
 import { CompositeApp } from './CompositeApp';
 
+import '@skooldev/skool-stream-layout/dist/styles.css';
 // Uncomment this line to test your own custom CSS
 // import cssUrl from '../public/example/custom.css?url';
 

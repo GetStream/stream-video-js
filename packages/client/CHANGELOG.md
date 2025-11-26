@@ -2,6 +2,36 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.37.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.2...@stream-io/video-client-1.37.3) (2025-11-25)
+
+- instructions for Claude and other coding agents ([#2012](https://github.com/GetStream/stream-video-js/issues/2012)) ([08a3459](https://github.com/GetStream/stream-video-js/commit/08a345954f7cb5b1fae5a4b39b5b585bf1f631ec))
+
+### Bug Fixes
+
+- **noise cancellation:** delay toggling until initialization is finished ([#2014](https://github.com/GetStream/stream-video-js/issues/2014)) ([d28b8ea](https://github.com/GetStream/stream-video-js/commit/d28b8ea282322a25688ff48966b0dc10dd7e60bd))
+
+## [1.37.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.1...@stream-io/video-client-1.37.2) (2025-11-20)
+
+### Bug Fixes
+
+- **react-bindings:** getSnapshot caching ([#2008](https://github.com/GetStream/stream-video-js/issues/2008)) ([ed0983c](https://github.com/GetStream/stream-video-js/commit/ed0983cf2d1525a2faaa0b9e9387ac448b35c8e1)), closes [#2006](https://github.com/GetStream/stream-video-js/issues/2006) [#1953](https://github.com/GetStream/stream-video-js/issues/1953)
+
+## [1.37.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.0...@stream-io/video-client-1.37.1) (2025-11-17)
+
+### Bug Fixes
+
+- dynascale manager doesnt pick up updated dimensions all the time ([#2001](https://github.com/GetStream/stream-video-js/issues/2001)) ([d91e008](https://github.com/GetStream/stream-video-js/commit/d91e008f27fa2a4324f22555fbe0a59afe702bbb))
+
+## [1.37.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.36.1...@stream-io/video-client-1.37.0) (2025-11-14)
+
+### Features
+
+- ring individual members ([#1755](https://github.com/GetStream/stream-video-js/issues/1755)) ([57564d6](https://github.com/GetStream/stream-video-js/commit/57564d63f21da7b95b582f74c88b24af7e77659c))
+
+## [1.36.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.36.0...@stream-io/video-client-1.36.1) (2025-11-12)
+
+- enforce the client to publish options on SDP level ([#1976](https://github.com/GetStream/stream-video-js/issues/1976)) ([1d93f72](https://github.com/GetStream/stream-video-js/commit/1d93f72cb4395aaf9b487eb66e0c3b6a8111aca4))
+
 ## [1.36.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.35.1...@stream-io/video-client-1.36.0) (2025-10-30)
 
 ### Features

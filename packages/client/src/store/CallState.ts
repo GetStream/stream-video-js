@@ -75,6 +75,29 @@ type OrphanedTrack = {
 };
 
 /**
+ * Creates a stable participant filter function, ready to be used in combination
+ * with the `useSyncExternalStore` hook.
+ *
+ * @param predicate the predicate to use.
+ */
+const createStableParticipantsFilter = (
+  predicate: (p: StreamVideoParticipant) => boolean,
+) => {
+  const empty: StreamVideoParticipant[] = [];
+  return (participants: StreamVideoParticipant[]) => {
+    // no need to filter if there are no participants
+    if (!participants.length) return participants;
+
+    // return a stable empty array if there are no remote participants
+    // instead of creating an empty one
+    const filteredParticipants = participants.filter(predicate);
+    if (!filteredParticipants.length) return empty;
+
+    return filteredParticipants;
+  };
+};
+
+/**
  * Holds the state of the current call.
  * @react You don't have to use this class directly, as we are exposing the state through Hooks.
  */
@@ -353,12 +376,12 @@ export class CallState {
     );
 
     this.remoteParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => !p.isLocalParticipant)),
+      map(createStableParticipantsFilter((p) => !p.isLocalParticipant)),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
     this.pinnedParticipants$ = this.participants$.pipe(
-      map((participants) => participants.filter((p) => !!p.pin)),
+      map(createStableParticipantsFilter((p) => !!p.pin)),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
 
@@ -687,6 +710,18 @@ export class CallState {
   get rawParticipants() {
     return this.getCurrentValue(this.rawParticipants$);
   }
+
+  /**
+   * Returns the current participants array directly from the BehaviorSubject.
+   * This bypasses the observable pipeline and is guaranteed to be synchronous.
+   * Use this when you need the absolute latest value without any potential
+   * timing issues from shareReplay/refCount.
+   *
+   * @internal
+   */
+  getParticipantsSnapshot = () => {
+    return this.participantsSubject.getValue();
+  };
 
   /**
    * Sets the list of participants in the current call.

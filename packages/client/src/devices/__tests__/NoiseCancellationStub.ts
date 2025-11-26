@@ -7,8 +7,12 @@ export class NoiseCancellationStub implements INoiseCancellation {
   isSupported = () => true;
   init = () => Promise.resolve(undefined);
   isEnabled = async () => true;
-  enable = () => this.listeners['change']?.forEach((l) => l(true));
-  disable = () => this.listeners['change']?.forEach((l) => l(false));
+  enable = async () => {
+    this.listeners['change']?.forEach((l) => l(true));
+  };
+  disable = async () => {
+    this.listeners['change']?.forEach((l) => l(false));
+  };
   setSuppressionLevel = () => {};
   dispose = () => Promise.resolve(undefined);
   toFilter = () => (ms: MediaStream) => ({ output: ms });

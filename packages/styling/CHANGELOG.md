@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.7.0...@stream-io/video-styling-1.8.0) (2025-11-17)
+
+### Features
+
+- add SpeakerTest component ([#1998](https://github.com/GetStream/stream-video-js/issues/1998)) ([c626384](https://github.com/GetStream/stream-video-js/commit/c62638422f858782dcc3174e927d82cd0d9e9e1e))
+
+## [1.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.6.1...@stream-io/video-styling-1.7.0) (2025-11-12)
+
+### Features
+
+- **react:** Microphone Audio Level Indicator ([#1993](https://github.com/GetStream/stream-video-js/issues/1993)) ([9b62d2d](https://github.com/GetStream/stream-video-js/commit/9b62d2d8d2171ae97fbedaedbe473fdb0b85444b))
+
+## [1.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.6.0...@stream-io/video-styling-1.6.1) (2025-11-04)
+
 ## [1.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.5.1...@stream-io/video-styling-1.6.0) (2025-10-14)
 
 ### Features

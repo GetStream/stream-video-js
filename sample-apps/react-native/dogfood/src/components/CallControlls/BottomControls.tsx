@@ -6,13 +6,13 @@ import {
   useCallStateHooks,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { BOTTOM_CONTROLS_HEIGHT, Z_INDEX } from '../../constants';
+import React, { useMemo, useState } from 'react';
+import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { MoreActionsButton } from './MoreActionsButton';
 import { ParticipantsButton } from './ParticipantsButton';
 import { ChatButton } from './ChatButton';
 import { RecordCallButton } from './RecordCallButton';
+import { ClosedCaptions } from './ClosedCaptions';
 
 export type BottomControlsProps = Pick<
   CallContentProps,
@@ -34,20 +34,20 @@ export const BottomControls = ({
   isAwaitingResponse,
   isCallRecordingInProgress,
 }: BottomControlsProps) => {
-  const { useMicrophoneState } = useCallStateHooks();
-  const { isSpeakingWhileMuted } = useMicrophoneState();
-  const styles = useStyles(isSpeakingWhileMuted);
+  const styles = useStyles();
+  const [controlsContainerHeight, setControlsContainerHeight] = useState(0);
+
+  const onLayout = (event: LayoutChangeEvent) => {
+    setControlsContainerHeight(event.nativeEvent.layout.height);
+  };
 
   return (
-    <View style={styles.container}>
-      {isSpeakingWhileMuted && (
-        <View style={styles.speakingLabelContainer}>
-          <Text style={styles.label}>You are muted. Unmute to speak.</Text>
-        </View>
-      )}
-      <View style={[styles.callControlsWrapper]}>
+    <>
+      <View style={styles.container} onLayout={onLayout}>
         <View style={styles.left}>
-          <MoreActionsButton />
+          <MoreActionsButton
+            controlsContainerHeight={controlsContainerHeight}
+          />
           <ToggleAudioPublishingButton />
           <ToggleVideoPublishingButton />
           <ScreenShareToggleButton />
@@ -65,35 +65,63 @@ export const BottomControls = ({
           />
         </View>
       </View>
+      {!!controlsContainerHeight && (
+        <SubtitleContainer controlsContainerHeight={controlsContainerHeight} />
+      )}
+    </>
+  );
+};
+
+// speaking while muted and caption controls - aka subtitle on top of video
+const SubtitleContainer = ({
+  controlsContainerHeight,
+}: {
+  controlsContainerHeight: number;
+}) => {
+  const styles = useStyles();
+  const { useIsCallCaptioningInProgress, useMicrophoneState } =
+    useCallStateHooks();
+  const isCaptioningInProgress = useIsCallCaptioningInProgress();
+  const { isSpeakingWhileMuted } = useMicrophoneState();
+  if (!isCaptioningInProgress || !isSpeakingWhileMuted) {
+    return null;
+  }
+  return (
+    <View
+      style={[styles.subtitleContainer, { bottom: controlsContainerHeight }]}
+    >
+      <ClosedCaptions />
+      <View style={styles.speakingLabelContainer}>
+        <Text style={styles.label}>{'You are muted. Unmute to speak.'}</Text>
+      </View>
     </View>
   );
 };
 
-const useStyles = (showMicLabel: boolean) => {
+const useStyles = () => {
   const { theme } = useTheme();
 
   return useMemo(
     () =>
       StyleSheet.create({
         container: {
-          paddingVertical: !showMicLabel ? theme.variants.spacingSizes.md : 0,
+          paddingTop: theme.variants.spacingSizes.sm,
+          paddingBottom: theme.variants.spacingSizes.md,
           paddingHorizontal: theme.variants.spacingSizes.md,
-          backgroundColor: theme.colors.sheetPrimary,
-          height: BOTTOM_CONTROLS_HEIGHT,
+          flexDirection: 'row',
+          justifyContent: 'flex-start',
+        },
+        subtitleContainer: {
+          position: 'absolute',
+          left: 0,
+          right: 0,
         },
         speakingLabelContainer: {
           backgroundColor: theme.colors.sheetPrimary,
-          width: '100%',
         },
         label: {
           textAlign: 'center',
           color: theme.colors.textPrimary,
-        },
-        callControlsWrapper: {
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'flex-start',
-          zIndex: Z_INDEX.IN_FRONT,
         },
         left: {
           flex: 2.5,
@@ -108,6 +136,6 @@ const useStyles = (showMicLabel: boolean) => {
           gap: theme.variants.spacingSizes.xs,
         },
       }),
-    [theme, showMicLabel],
+    [theme],
   );
 };

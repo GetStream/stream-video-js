@@ -294,6 +294,14 @@ export const useRemoteParticipants = () => {
 };
 
 /**
+ * A hook which provides a list of participants that are currently pinned.
+ */
+export const usePinnedParticipants = () => {
+  const { pinnedParticipants$ } = useCallState();
+  return useObservableValue(pinnedParticipants$);
+};
+
+/**
  * Returns the approximate participant count of the active call.
  * This includes the anonymous users as well, and it is computed on the server.
  */
@@ -525,7 +533,7 @@ function useLazyDeviceList(manager: DeviceManagerLike) {
       setDevices$(manager.listDevices());
     }
 
-    return devices;
+    return devices ?? EMPTY_DEVICES_ARRAY;
   };
 
   return { getDevices };
