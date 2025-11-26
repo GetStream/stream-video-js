@@ -1,5 +1,6 @@
 import type {
   AggregatedStatsReport,
+  AudioAggregatedStats,
   BaseStats,
   ParticipantsStatsReport,
   RTCCodecStats,
@@ -158,20 +159,32 @@ export const createStatsReporter = ({
       publisher ? getRawStatsForTrack('publisher') : undefined,
     ]);
 
-    const process = (report: RTCStatsReport, kind: PeerConnectionKind) =>
-      aggregate(transform(report, { kind, trackKind: 'video', publisher }));
+    const process = (report: RTCStatsReport, kind: PeerConnectionKind) => {
+      const videoStats = aggregate(
+        transform(report, { kind, trackKind: 'video', publisher }),
+      );
+      const audioStats = aggregateAudio(
+        transform(report, { kind, trackKind: 'audio', publisher }),
+      );
+      return {
+        videoStats,
+        audioStats,
+      };
+    };
 
-    const subscriberStats = subscriberRawStats
+    const subscriberResult = subscriberRawStats
       ? process(subscriberRawStats, 'subscriber')
-      : getEmptyStats();
-    const publisherStats = publisherRawStats
+      : { videoStats: getEmptyVideoStats(), audioStats: getEmptyAudioStats() };
+    const publisherResult = publisherRawStats
       ? process(publisherRawStats, 'publisher')
-      : getEmptyStats();
+      : { videoStats: getEmptyVideoStats(), audioStats: getEmptyAudioStats() };
 
     state.setCallStatsReport({
       datacenter,
-      publisherStats,
-      subscriberStats,
+      publisherStats: publisherResult.videoStats,
+      publisherAudioStats: publisherResult.audioStats,
+      subscriberStats: subscriberResult.videoStats,
+      subscriberAudioStats: subscriberResult.audioStats,
       subscriberRawStats,
       publisherRawStats,
       participants: participantStats,
@@ -266,6 +279,7 @@ const transform = (
       }
 
       let trackType: TrackType | undefined;
+      let audioLevel: number | undefined;
       if (kind === 'publisher' && publisher) {
         const firefox = isFirefox();
         const mediaSource = stats.find(
@@ -276,6 +290,14 @@ const transform = (
         ) as RTCMediaSourceStats | undefined;
         if (mediaSource) {
           trackType = publisher.getTrackType(mediaSource.trackIdentifier);
+          if (trackKind === 'audio' && mediaSource.audioLevel !== undefined) {
+            audioLevel = mediaSource.audioLevel;
+          }
+        }
+      } else if (kind === 'subscriber' && trackKind === 'audio') {
+        const inboundLevel = rtcStreamStats.audioLevel;
+        if (typeof inboundLevel === 'number') {
+          audioLevel = inboundLevel;
         }
       }
 
@@ -294,6 +316,7 @@ const transform = (
         rid: rtcStreamStats.rid,
         ssrc: rtcStreamStats.ssrc,
         trackType,
+        audioLevel,
       };
     });
 
@@ -304,7 +327,7 @@ const transform = (
   };
 };
 
-const getEmptyStats = (stats?: StatsReport): AggregatedStatsReport => {
+const getEmptyVideoStats = (stats?: StatsReport): AggregatedStatsReport => {
   return {
     rawReport: stats ?? { streams: [], timestamp: Date.now() },
     totalBytesSent: 0,
@@ -321,13 +344,24 @@ const getEmptyStats = (stats?: StatsReport): AggregatedStatsReport => {
   };
 };
 
+const getEmptyAudioStats = (): AudioAggregatedStats => {
+  return {
+    totalBytesSent: 0,
+    totalBytesReceived: 0,
+    averageJitterInMs: 0,
+    codec: '',
+    codecPerTrackType: {},
+    timestamp: Date.now(),
+  };
+};
+
 /**
  * Aggregates generic stats.
  *
  * @param stats the stats to aggregate.
  */
 const aggregate = (stats: StatsReport): AggregatedStatsReport => {
-  const aggregatedStats = getEmptyStats(stats);
+  const aggregatedStats = getEmptyVideoStats(stats);
 
   let maxArea = -1;
   const area = (w: number, h: number) => w * h;
@@ -382,6 +416,44 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
     .join(', ');
   if (qualityLimitationReason) {
     report.qualityLimitationReasons = qualityLimitationReason;
+  }
+
+  return report;
+};
+
+/**
+ * Aggregates audio stats from a stats report.
+ *
+ * @param stats the stats report containing audio streams.
+ * @returns aggregated audio stats.
+ */
+const aggregateAudio = (stats: StatsReport): AudioAggregatedStats => {
+  const streams = stats.streams;
+
+  const audioStats = getEmptyAudioStats();
+
+  const report = streams.reduce((acc, stream) => {
+    acc.totalBytesSent += stream.bytesSent || 0;
+    acc.totalBytesReceived += stream.bytesReceived || 0;
+    acc.averageJitterInMs += stream.jitter || 0;
+
+    return acc;
+  }, audioStats);
+
+  if (streams.length > 0) {
+    report.averageJitterInMs = Math.round(
+      (report.averageJitterInMs / streams.length) * 1000,
+    );
+    report.codec = streams[0].codec || '';
+    report.codecPerTrackType = streams.reduce(
+      (acc, stream) => {
+        if (stream.trackType) {
+          acc[stream.trackType] = stream.codec || '';
+        }
+        return acc;
+      },
+      {} as Record<TrackType, string>,
+    );
   }
 
   return report;
