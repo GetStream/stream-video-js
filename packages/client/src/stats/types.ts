@@ -18,6 +18,8 @@ export type BaseStats = {
   trackType?: TrackType;
   concealedSamples?: number;
   concealmentEvents?: number;
+  packetsReceived?: number;
+  packetsLost?: number;
 };
 
 export type StatsReport = {
@@ -36,6 +38,8 @@ export type AudioAggregatedStats = {
   timestamp: number;
   totalConcealedSamples: number;
   totalConcealmentEvents: number;
+  totalPacketsReceived: number;
+  totalPacketsLost: number;
 };
 
 export type AggregatedStatsReport = {

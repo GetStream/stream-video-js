@@ -282,6 +282,8 @@ const transform = (
       let audioLevel: number | undefined;
       let concealedSamples: number | undefined;
       let concealmentEvents: number | undefined;
+      let packetsReceived: number | undefined;
+      let packetsLost: number | undefined;
       if (kind === 'publisher' && publisher) {
         const firefox = isFirefox();
         const mediaSource = stats.find(
@@ -304,6 +306,8 @@ const transform = (
         }
         concealedSamples = inboundStats.concealedSamples;
         concealmentEvents = inboundStats.concealmentEvents;
+        packetsReceived = inboundStats.packetsReceived;
+        packetsLost = inboundStats.packetsLost;
       }
 
       return {
@@ -324,6 +328,8 @@ const transform = (
         audioLevel,
         concealedSamples,
         concealmentEvents,
+        packetsReceived,
+        packetsLost,
       };
     });
 
@@ -362,6 +368,8 @@ const getEmptyAudioStats = (): AudioAggregatedStats => {
     timestamp: Date.now(),
     totalConcealedSamples: 0,
     totalConcealmentEvents: 0,
+    totalPacketsReceived: 0,
+    totalPacketsLost: 0,
   };
 };
 
@@ -449,6 +457,8 @@ const aggregateAudio = (stats: StatsReport): AudioAggregatedStats => {
     acc.averageRoundTripTimeInMs += stream.currentRoundTripTime || 0;
     acc.totalConcealedSamples += stream.concealedSamples || 0;
     acc.totalConcealmentEvents += stream.concealmentEvents || 0;
+    acc.totalPacketsReceived += stream.packetsReceived || 0;
+    acc.totalPacketsLost += stream.packetsLost || 0;
 
     return acc;
   }, audioStats);
