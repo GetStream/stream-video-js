@@ -87,7 +87,9 @@ export const CallStats = (props: CallStatsProps) => {
       const newLatencyBuffer = latencyBuf.slice(-19);
       newLatencyBuffer.push({
         x: callStatsReport.timestamp,
-        y: callStatsReport.publisherStats.averageRoundTripTimeInMs,
+        y:
+          callStatsReport.publisherStats.averageRoundTripTimeInMs ||
+          callStatsReport.publisherAudioStats.averageRoundTripTimeInMs,
       });
       return newLatencyBuffer;
     });
@@ -201,6 +203,15 @@ export const CallStats = (props: CallStatsProps) => {
 
           <div className="str-video__call-stats__card-container">
             <StatCard
+              label={t('Latency')}
+              value={`${callStatsReport.publisherAudioStats.averageRoundTripTimeInMs} ms.`}
+              comparison={latencyComparison}
+            />
+            <StatCard
+              label={t('Audio packet loss (receive)')}
+              value={subscribePacketLoss}
+            />
+            <StatCard
               label={t('Audio bitrate (publish)')}
               value={publishAudioBitrate}
             />
@@ -227,10 +238,6 @@ export const CallStats = (props: CallStatsProps) => {
             <StatCard
               label={t('Audio codec')}
               value={formatAudioCodec(callStatsReport)}
-            />
-            <StatCard
-              label={t('Audio packet loss (receive)')}
-              value={subscribePacketLoss}
             />
           </div>
         </>
@@ -354,7 +361,6 @@ const formatCodec = (callStatsReport: CallStatsReport): string => {
 
 const formatAudioCodec = (callStatsReport: CallStatsReport): string => {
   const { codecPerTrackType } = callStatsReport.publisherAudioStats;
-  console.log(codecPerTrackType);
   if (!codecPerTrackType || !codecPerTrackType[SfuModels.TrackType.AUDIO]) {
     return '';
   }
