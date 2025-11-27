@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.media.AudioAttributes
 import android.media.AudioFormat
@@ -331,6 +332,24 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         } catch (e: Exception) {
             promise.reject("BATTERY_ERROR", "Failed to get charging state", e)
         }
+    }
+
+    @ReactMethod
+    fun hasAudioOutputHardware(promise: Promise) {
+        val hasAudioOutput = reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_AUDIO_OUTPUT)
+        promise.resolve(hasAudioOutput)
+    }
+
+    @ReactMethod
+    fun hasMicrophoneHardware(promise: Promise) {
+        val hasAudioInput = reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE)
+        promise.resolve(hasAudioInput)
+    }
+
+    @ReactMethod
+    fun hasCameraHardware(promise: Promise) {
+        val hasCamera = reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+        promise.resolve(hasCamera)
     }
 
     private fun getBatteryStatusFromIntent(intent: Intent): WritableMap {
