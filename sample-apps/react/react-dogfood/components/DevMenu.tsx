@@ -37,7 +37,7 @@ export const DevMenu = () => {
       <li className="rd__dev-menu__item">
         <ConnectToLocalSfu sfuId="SFU-3" port={3036} />
       </li>
-
+      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
       <li className="rd__dev-menu__item">
         <SfuCallStats />
       </li>
@@ -112,6 +112,7 @@ export const DevMenu = () => {
           Go to Inspector
         </a>
       )}
+      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
       {call && (
         <a
           className="rd__link rd__link--faux-button rd__link--align-left"
@@ -144,6 +145,16 @@ export const DevMenu = () => {
           target="_blank"
         >
           Go to {localParticipant?.name || 'User'} Stats (Timeline)
+        </a>
+      )}
+      {call && (
+        <a
+          className="rd__link rd__link--faux-button rd__link--align-left"
+          href={withParams(`/stats/map/${call.cid}`)}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Go to Call Stats Map
         </a>
       )}
     </ul>
