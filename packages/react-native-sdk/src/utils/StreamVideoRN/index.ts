@@ -171,14 +171,14 @@ export class StreamVideoRN {
    * Play native busy tone for call rejection
    */
   static async playBusyTone() {
-    return NativeModules.StreamVideoReactNative?.playBusyTone();
+    return NativeModules.StreamVideoReactNative.playBusyTone();
   }
 
   /**
    * Stop native busy tone
    */
   static async stopBusyTone() {
-    return NativeModules.StreamVideoReactNative?.stopBusyTone();
+    return NativeModules.StreamVideoReactNative.stopBusyTone();
   }
 
   /*
@@ -186,8 +186,8 @@ export class StreamVideoRN {
    * @returns True if the device has audio output hardware
    */
   static async androidHasAudioOutputHardware(): Promise<boolean> {
-    if (Platform.OS !== 'android') return Promise.resolve(true);
-    return NativeModules.StreamVideoReactNative?.hasAudioOutputHardware();
+    if (Platform.OS !== 'android') return true;
+    return NativeModules.StreamVideoReactNative.hasAudioOutputHardware();
   }
 
   /*
@@ -195,8 +195,8 @@ export class StreamVideoRN {
    * @returns True if the device has microphone hardware
    */
   static async androidHasMicrophoneHardware(): Promise<boolean> {
-    if (Platform.OS !== 'android') return Promise.resolve(true);
-    return NativeModules.StreamVideoReactNative?.hasMicrophoneHardware();
+    if (Platform.OS !== 'android') return true;
+    return NativeModules.StreamVideoReactNative.hasMicrophoneHardware();
   }
 
   /*
@@ -204,7 +204,7 @@ export class StreamVideoRN {
    * @returns True if the device has camera hardware
    */
   static async androidHasCameraHardware(): Promise<boolean> {
-    if (Platform.OS !== 'android') return Promise.resolve(true);
-    return NativeModules.StreamVideoReactNative?.hasCameraHardware();
+    if (Platform.OS !== 'android') return true;
+    return NativeModules.StreamVideoReactNative.hasCameraHardware();
   }
 }
