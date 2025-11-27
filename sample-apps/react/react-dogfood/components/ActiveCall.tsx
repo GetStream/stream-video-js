@@ -59,6 +59,10 @@ import { StepNames, useTourContext } from '../context/TourContext';
 import { useNotificationSounds } from '../hooks/useNotificationSounds';
 import { usePipWindow } from '../hooks/usePipWindow';
 import { StagePip } from './StagePip';
+import {
+  RemoteVideoControls,
+  useRemoteFilePublisher,
+} from './RemoteFilePublisher';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -151,6 +155,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
     close: closePipWindow,
   } = usePipWindow('@pronto/pip');
   useNotificationSounds();
+
+  const remoteFilePublisherAPI = useRemoteFilePublisher();
 
   return (
     <div className="rd__call">
@@ -273,6 +279,10 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--media">
+            {remoteFilePublisherAPI && (
+              <RemoteVideoControls api={remoteFilePublisherAPI} />
+            )}
+
             <ToggleDualMicButton />
             <ToggleDualCameraButton />
             <div className="str-video__call-controls__desktop">

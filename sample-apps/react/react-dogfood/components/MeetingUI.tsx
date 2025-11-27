@@ -25,7 +25,11 @@ import { DefaultAppHeader } from './DefaultAppHeader';
 import { Feedback } from './Feedback/Feedback';
 import { Lobby, UserMode } from './Lobby';
 import { getRandomName, sanitizeUserId } from '../lib/names';
-import { publishRemoteFile } from '../lib/remoteFilePublisher';
+import {
+  publishRemoteFile,
+  RemoteFilePublisher,
+  RemoteFilePublisherContext,
+} from './RemoteFilePublisher';
 import { applyQueryConfigParams } from '../lib/queryConfigParams';
 
 const contents = {
@@ -41,6 +45,7 @@ type MeetingUIProps = {
   chatClient?: StreamChat | null;
   mode?: UserMode;
 };
+
 export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call' | 'left'
@@ -54,6 +59,8 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     settings: { deviceSelectionPreference },
   } = useSettings();
   const isRestricted = useIsRestrictedEnvironment();
+  const [remoteFilePublisherAPI, setRemoteFilePublisherAPI] =
+    useState<RemoteFilePublisher>();
 
   const onJoin = useCallback(
     async (options: { fastJoin?: boolean; displayName?: string } = {}) => {
@@ -73,7 +80,8 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
           }
 
           if (videoFile) {
-            await publishRemoteFile(call, videoFile);
+            const api = await publishRemoteFile(call, videoFile);
+            setRemoteFilePublisherAPI(api);
           } else {
             await call.join({ create: !isRestricted });
           }
@@ -184,12 +192,14 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     );
   } else {
     childrenToRender = (
-      <ActiveCall
-        activeCall={call}
-        chatClient={chatClient}
-        onLeave={onLeave}
-        onJoin={() => onJoin()}
-      />
+      <RemoteFilePublisherContext.Provider value={remoteFilePublisherAPI}>
+        <ActiveCall
+          activeCall={call}
+          chatClient={chatClient}
+          onLeave={onLeave}
+          onJoin={() => onJoin()}
+        />
+      </RemoteFilePublisherContext.Provider>
     );
   }
 
