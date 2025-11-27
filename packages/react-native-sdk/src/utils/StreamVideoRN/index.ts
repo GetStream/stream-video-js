@@ -186,7 +186,10 @@ export class StreamVideoRN {
    * @returns True if the device has audio output hardware
    */
   static async androidHasAudioOutputHardware(): Promise<boolean> {
-    if (Platform.OS !== 'android') return true;
+    if (Platform.OS !== 'android')
+      throw new Error(
+        'androidHasAudioOutputHardware function is only available on Android',
+      );
     return NativeModules.StreamVideoReactNative.hasAudioOutputHardware();
   }
 
@@ -195,7 +198,10 @@ export class StreamVideoRN {
    * @returns True if the device has microphone hardware
    */
   static async androidHasMicrophoneHardware(): Promise<boolean> {
-    if (Platform.OS !== 'android') return true;
+    if (Platform.OS !== 'android')
+      throw new Error(
+        'androidHasMicrophoneHardware function is only available on Android',
+      );
     return NativeModules.StreamVideoReactNative.hasMicrophoneHardware();
   }
 
@@ -204,7 +210,10 @@ export class StreamVideoRN {
    * @returns True if the device has camera hardware
    */
   static async androidHasCameraHardware(): Promise<boolean> {
-    if (Platform.OS !== 'android') return true;
+    if (Platform.OS !== 'android')
+      throw new Error(
+        'androidHasCameraHardware function is only available on Android',
+      );
     return NativeModules.StreamVideoReactNative.hasCameraHardware();
   }
 }
