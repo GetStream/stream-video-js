@@ -181,7 +181,7 @@ export class StreamVideoRN {
     return NativeModules.StreamVideoReactNative.stopBusyTone();
   }
 
-  /*
+  /**
    * Check if the device has audio output hardware
    * @returns True if the device has audio output hardware
    */
@@ -190,7 +190,7 @@ export class StreamVideoRN {
     return NativeModules.StreamVideoReactNative.hasAudioOutputHardware();
   }
 
-  /*
+  /**
    * Check if the device has microphone hardware
    * @returns True if the device has microphone hardware
    */
@@ -199,7 +199,7 @@ export class StreamVideoRN {
     return NativeModules.StreamVideoReactNative.hasMicrophoneHardware();
   }
 
-  /*
+  /**
    * Check if the device has camera hardware
    * @returns True if the device has camera hardware
    */
