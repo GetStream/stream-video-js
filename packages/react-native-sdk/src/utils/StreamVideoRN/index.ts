@@ -5,7 +5,7 @@ import newNotificationCallbacks, {
 } from '../internal/newNotificationCallbacks';
 import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 // Utility type for deep partial
 type DeepPartial<T> = {
@@ -179,5 +179,32 @@ export class StreamVideoRN {
    */
   static async stopBusyTone() {
     return NativeModules.StreamVideoReactNative?.stopBusyTone();
+  }
+
+  /*
+   * Check if the device has audio output hardware
+   * @returns True if the device has audio output hardware
+   */
+  static async androidHasAudioOutputHardware(): Promise<boolean> {
+    if (Platform.OS !== 'android') return Promise.resolve(true);
+    return NativeModules.StreamVideoReactNative?.hasAudioOutputHardware();
+  }
+
+  /*
+   * Check if the device has microphone hardware
+   * @returns True if the device has microphone hardware
+   */
+  static async androidHasMicrophoneHardware(): Promise<boolean> {
+    if (Platform.OS !== 'android') return Promise.resolve(true);
+    return NativeModules.StreamVideoReactNative?.hasMicrophoneHardware();
+  }
+
+  /*
+   * Check if the device has camera hardware
+   * @returns True if the device has camera hardware
+   */
+  static async androidHasCameraHardware(): Promise<boolean> {
+    if (Platform.OS !== 'android') return Promise.resolve(true);
+    return NativeModules.StreamVideoReactNative?.hasCameraHardware();
   }
 }
