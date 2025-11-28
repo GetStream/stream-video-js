@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.25.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.7...@stream-io/video-react-native-sdk-1.25.0) (2025-11-28)
+
+### Features
+
+- add native methods to check for hardware presence in android RN-310 ([#2023](https://github.com/GetStream/stream-video-js/issues/2023)) ([90fddbc](https://github.com/GetStream/stream-video-js/commit/90fddbc22d9c21e51e2322c69031d81a30de063f))
+
 ## [1.24.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.6...@stream-io/video-react-native-sdk-1.24.7) (2025-11-25)
 
 ### Dependency Updates
