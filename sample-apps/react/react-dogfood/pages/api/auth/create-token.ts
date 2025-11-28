@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createToken, maxTokenValidityInSeconds } from '../../../helpers/jwt';
 import { getEnvironmentConfig } from '../../../lib/environmentConfig';
+import { getRandomName, sanitizeUserId } from '../../../lib/names';
 
 export type CreateJwtTokenErrorResponse = {
   error: string;
@@ -14,7 +15,7 @@ export type CreateJwtTokenResponse = {
 };
 
 export type CreateJwtTokenRequest = {
-  user_id: string;
+  user_id?: string;
   environment?: string;
   /** @deprecated */
   api_key?: string;
@@ -26,7 +27,7 @@ const createJwtToken = async (
   res: NextApiResponse<CreateJwtTokenResponse | CreateJwtTokenErrorResponse>,
 ) => {
   const {
-    user_id: userId,
+    user_id: userId = sanitizeUserId(getRandomName()),
     api_key: apiKeyFromRequest,
     ...params
   } = req.query as CreateJwtTokenRequest;
@@ -38,10 +39,6 @@ const createJwtToken = async (
     else if (apiKeyFromRequest === 'mmhfdzb5evj2') environment = 'demo';
     // https://getstream.slack.com/archives/C022N8JNQGZ/p1691402858403159
     else if (apiKeyFromRequest === '2g3htdemzwhg') environment = 'demo-flutter';
-  }
-
-  if (!userId) {
-    return error(res, `'user_id' is a mandatory query parameter.`);
   }
 
   if (!params.exp) {
