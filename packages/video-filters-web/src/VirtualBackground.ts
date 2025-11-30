@@ -21,7 +21,6 @@ export class VirtualBackground {
 
   private canvas!: OffscreenCanvas;
   private segmenter: ImageSegmenter | null = null;
-  private isSegmenterReady = false;
   private webGlRenderer!: WebGLRenderer;
   private abortController: AbortController;
 
@@ -31,7 +30,6 @@ export class VirtualBackground {
 
   private latestCategoryMask: WebGLTexture | undefined = undefined;
   private latestConfidenceMask: WebGLTexture | undefined = undefined;
-  private segmentationRunning = false;
 
   constructor(
     private readonly track: MediaStreamVideoTrack,
@@ -64,7 +62,6 @@ export class VirtualBackground {
     const opts = await this.initializeSegmenterOptions();
 
     let lastFrameTime = -1;
-
     const transformStream = new TransformStream<VideoFrame, VideoFrame>({
       transform: (frame, controller) => {
         try {
@@ -73,11 +70,19 @@ export class VirtualBackground {
             return;
           }
 
+          if (
+            this.canvas.width !== frame.displayWidth ||
+            this.canvas.height !== frame.displayHeight
+          ) {
+            this.canvas.width = frame.displayWidth;
+            this.canvas.height = frame.displayHeight;
+          }
+
           const currentTime = frame.timestamp;
           const hasNewFrame = currentTime !== lastFrameTime;
 
           lastFrameTime = currentTime;
-          if (this.isSegmenterReady && hasNewFrame) {
+          if (hasNewFrame) {
             this.runSegmentation(frame);
           }
           this.webGlRenderer.render(
@@ -102,7 +107,6 @@ export class VirtualBackground {
           this.segmenter.close();
           this.segmenter = null;
         }
-        this.isSegmenterReady = false;
       },
     });
 
@@ -122,9 +126,8 @@ export class VirtualBackground {
   }
 
   private runSegmentation(frame: VideoFrame) {
-    if (!this.segmenter || this.segmentationRunning) return;
+    if (!this.segmenter) return;
 
-    this.segmentationRunning = true;
     const start = performance.now();
 
     this.segmenter.segmentForVideo(frame, frame.timestamp, (result) => {
@@ -158,7 +161,7 @@ export class VirtualBackground {
       } catch (err) {
         console.error('[virtual-background] segmentation error:', err);
       } finally {
-        this.segmentationRunning = false;
+        result.close();
       }
     });
   }
@@ -190,14 +193,11 @@ export class VirtualBackground {
         outputConfidenceMasks: true,
         canvas: this.canvas,
       });
-
-      this.isSegmenterReady = true;
     } catch (error) {
       console.error(
         '[virtual-background] Failed to initialize MediaPipe segmenter:',
         error,
       );
-      this.isSegmenterReady = false;
     }
   }
 
@@ -266,6 +266,5 @@ export class VirtualBackground {
       this.segmenter.close();
       this.segmenter = null;
     }
-    this.isSegmenterReady = false;
   }
 }
