@@ -44,6 +44,13 @@ export type ViewerLivestreamControlsProps = ViewerLeaveStreamButtonProps & {
    * Handler to be called when the layout of the component changes.
    */
   onLayout?: ViewProps['onLayout'];
+
+  /**
+   * Whether to humanize the participant count.
+   * @default true
+   * @example 1000 -> 1k; 1500 -> 1.5k
+   */
+  humanizeParticipantCount?: boolean;
 };
 
 /**
@@ -53,6 +60,7 @@ export const ViewerLivestreamControls = ({
   ViewerLeaveStreamButton = DefaultViewerLeaveStreamButton,
   onLeaveStreamHandler,
   onLayout,
+  humanizeParticipantCount,
 }: ViewerLivestreamControlsProps) => {
   const styles = useStyles();
   const {
@@ -187,7 +195,9 @@ export const ViewerLivestreamControls = ({
             <View style={[styles.leftElement]}>
               <View style={[styles.liveInfo]}>
                 <LiveIndicator />
-                <FollowerCount />
+                <FollowerCount
+                  humanizeParticipantCount={humanizeParticipantCount}
+                />
               </View>
             </View>
           </View>
