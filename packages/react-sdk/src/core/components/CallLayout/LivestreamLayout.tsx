@@ -39,7 +39,7 @@ export type LivestreamLayoutProps = {
    * 1000 participants -> 1k
    * 1500 participants -> 1.5k
    * 10_000 participants -> 10k
-   * 10_0000 participants -> 100k
+   * 100_000 participants -> 100k
    */
   humanizeParticipantCount?: boolean;
 
