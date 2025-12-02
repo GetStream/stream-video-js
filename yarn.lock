@@ -7794,7 +7794,7 @@ __metadata:
     react-native-url-polyfill: "npm:^3.0.0"
     react-native-voip-push-notification: "npm:3.3.3"
     react-native-worklets: "npm:^0.5.0"
-    react-test-renderer: "npm:19.1.0"
+    react-test-renderer: "npm:19.2.0"
     rimraf: "npm:^6.0.1"
     rxjs: "npm:~7.8.2"
     text-encoding-polyfill: "npm:0.6.7"
@@ -20389,6 +20389,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-is@npm:^19.2.0":
+  version: 19.2.0
+  resolution: "react-is@npm:19.2.0"
+  checksum: 10/5cf0230571da0b446c64c0ff7b0e6992b7a8b12b39542db4003de1611e3f108e26f30b93a85ded5cd89c5bcce97f57639524ae40e57bb2f4f1ebd0935b624abf
+  languageName: node
+  linkType: hard
+
 "react-markdown@npm:^9.0.3":
   version: 9.1.0
   resolution: "react-markdown@npm:9.1.0"
@@ -20958,6 +20965,18 @@ __metadata:
   peerDependencies:
     react: ^19.1.0
   checksum: 10/73ae0ea779bacd0ff084dd3644b763a4431d68adf9c6acffdaa3d0810aab5322f24c95c60259c23b77f38b5f36d9d614ffaa46d91a33840536f2d4b7188dcc89
+  languageName: node
+  linkType: hard
+
+"react-test-renderer@npm:19.2.0":
+  version: 19.2.0
+  resolution: "react-test-renderer@npm:19.2.0"
+  dependencies:
+    react-is: "npm:^19.2.0"
+    scheduler: "npm:^0.27.0"
+  peerDependencies:
+    react: ^19.2.0
+  checksum: 10/1a072bf5c383ee9cec1eed5872114a25d8029e8fabe17a9154cbb7b5d6e5570711efc3e80e336d170bb1f60e29d395087147891fa198743d17c29ff86782cde3
   languageName: node
   linkType: hard
 
