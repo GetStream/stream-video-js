@@ -44,6 +44,7 @@ const Select = (props: {
   defaultSelectedIndex: number;
   handleSelect: (index: number) => void;
 }) => {
+  'use no memo';
   const {
     children,
     icon,
@@ -68,6 +69,7 @@ const Select = (props: {
     middleware: [flip()],
   });
 
+  const { setFloating, setReference } = refs;
   const elementsRef = useRef<Array<HTMLElement | null>>([]);
   const labelsRef = useRef<Array<string | null>>([]);
 
@@ -125,7 +127,7 @@ const Select = (props: {
     <div className="str-video__dropdown">
       <div
         className="str-video__dropdown-selected"
-        ref={refs.setReference}
+        ref={setReference}
         tabIndex={0}
         {...getReferenceProps()}
       >
@@ -145,7 +147,7 @@ const Select = (props: {
           <FloatingFocusManager context={context} modal={false}>
             <div
               className="str-video__dropdown-list"
-              ref={refs.setFloating}
+              ref={setFloating}
               {...getFloatingProps()}
             >
               <FloatingList elementsRef={elementsRef} labelsRef={labelsRef}>

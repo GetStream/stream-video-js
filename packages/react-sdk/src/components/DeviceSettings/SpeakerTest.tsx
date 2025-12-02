@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { getCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { CompositeButton } from '../Button';
 import { Icon } from '../Icon';
 
@@ -7,8 +7,8 @@ import { Icon } from '../Icon';
  * SpeakerTest component that plays a test audio through the selected speaker.
  * This allows users to verify their audio output device is working correctly.
  */
+const { useSpeakerState } = getCallStateHooks();
 export const SpeakerTest = (props: { audioUrl?: string }) => {
-  const { useSpeakerState } = useCallStateHooks();
   const { selectedDevice } = useSpeakerState();
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);

@@ -11,6 +11,7 @@ export const DefaultVideoPlaceholder = forwardRef<
   HTMLDivElement,
   VideoPlaceholderProps
 >(function DefaultVideoPlaceholder(props, ref) {
+  'use no memo';
   const { t } = useI18n();
   return (
     <BaseVideoPlaceholder ref={ref} {...props}>

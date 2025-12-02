@@ -7,14 +7,14 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
 
+const { useMicrophoneState } = getCallStateHooks();
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
     const { t } = useI18n();
-    const { useMicrophoneState } = useCallStateHooks();
     const { selectedDevice: selectedMic, devices: microphones } =
       useMicrophoneState();
 

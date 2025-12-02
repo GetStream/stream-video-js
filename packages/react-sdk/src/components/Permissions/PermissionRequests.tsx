@@ -15,7 +15,7 @@ import {
 import {
   TranslatorFunction,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
@@ -35,9 +35,9 @@ type HandleUpdatePermission = (
   type: 'grant' | 'revoke' | 'dismiss',
 ) => () => Promise<void>;
 
+const { useLocalParticipant, useHasPermissions } = getCallStateHooks();
 export const PermissionRequests = () => {
   const call = useCall();
-  const { useLocalParticipant, useHasPermissions } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const [expanded, setExpanded] = useState(false);
   const [permissionRequests, setPermissionRequests] = useState<
@@ -82,12 +82,13 @@ export const PermissionRequests = () => {
     placement: 'bottom',
     strategy: 'absolute',
   });
+  const { setFloating, setReference } = refs;
 
   // don't render anything if there are no permission requests
   if (permissionRequests.length === 0) return null;
 
   return (
-    <div className="str-video__permission-requests" ref={refs.setReference}>
+    <div className="str-video__permission-requests" ref={setReference}>
       <div className="str-video__permission-requests__notification">
         <span className="str-video__permission-requests__notification__message">
           {permissionRequests.length} pending permission requests
@@ -103,7 +104,7 @@ export const PermissionRequests = () => {
       </div>
       {expanded && (
         <PermissionRequestList
-          ref={refs.setFloating}
+          ref={setFloating}
           style={{
             position: strategy,
             top: y ?? 0,
@@ -127,6 +128,7 @@ export const PermissionRequestList = forwardRef<
   HTMLDivElement,
   PermissionRequestListProps
 >(function PermissionRequestList(props, ref) {
+  'use no memo';
   const { permissionRequests, handleUpdatePermission, ...rest } = props;
 
   const { t } = useI18n();

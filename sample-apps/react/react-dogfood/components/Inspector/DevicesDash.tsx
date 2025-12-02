@@ -7,7 +7,7 @@ import {
   getVideoDevices,
   MicrophoneManager,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useObservableValue,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
@@ -75,6 +75,7 @@ function useAudioDevices() {
   };
 }
 
+const { useCameraState, useMicrophoneState } = getCallStateHooks();
 function WithCameraState(props: {
   call: Call;
   children: (props: {
@@ -83,7 +84,6 @@ function WithCameraState(props: {
     isEnabled: boolean;
   }) => ReactNode;
 }) {
-  const { useCameraState } = useCallStateHooks();
   const { camera, selectedDevice, optimisticIsMute } = useCameraState();
   return props.children({
     manager: camera,
@@ -100,7 +100,6 @@ function WithMicrophoneState(props: {
     isEnabled: boolean;
   }) => ReactNode;
 }) {
-  const { useMicrophoneState } = useCallStateHooks();
   const { microphone, selectedDevice, optimisticIsMute } = useMicrophoneState();
   return props.children({
     manager: microphone,

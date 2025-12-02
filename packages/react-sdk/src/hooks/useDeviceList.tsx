@@ -25,33 +25,45 @@ export function useDeviceList(
   const { t } = useI18n();
 
   return useMemo(() => {
-    let selectedDeviceInfo: DeviceListItem | null = null;
-    let selectedIndex: number | null = null;
+    const selectedIndex = devices.findIndex(
+      (d) => d.deviceId === selectedDeviceId,
+    );
 
-    const deviceList: DeviceListItem[] = devices.map((d, i) => {
-      const isSelected = d.deviceId === selectedDeviceId;
-      const device = { deviceId: d.deviceId, label: d.label, isSelected };
+    let deviceList: DeviceListItem[];
 
-      if (isSelected) {
-        selectedDeviceInfo = device;
-        selectedIndex = i;
-      }
-
-      return device;
-    });
-
-    if (selectedDeviceInfo === null || selectedIndex === null) {
-      const defaultDevice = {
+    if (selectedIndex === -1) {
+      const defaultDevice: DeviceListItem = {
         deviceId: 'default',
         label: t('Default'),
         isSelected: true,
       };
 
-      selectedDeviceInfo = defaultDevice;
-      selectedIndex = 0;
-      deviceList.unshift(defaultDevice);
+      deviceList = [
+        defaultDevice,
+        ...devices.map((d) => ({
+          deviceId: d.deviceId,
+          label: d.label,
+          isSelected: false,
+        })),
+      ];
+
+      return {
+        deviceList,
+        selectedDeviceInfo: defaultDevice,
+        selectedIndex: 0,
+      };
     }
 
-    return { deviceList, selectedDeviceInfo, selectedIndex };
+    deviceList = devices.map((d) => ({
+      deviceId: d.deviceId,
+      label: d.label,
+      isSelected: d.deviceId === selectedDeviceId,
+    }));
+
+    return {
+      deviceList,
+      selectedDeviceInfo: deviceList[selectedIndex],
+      selectedIndex,
+    };
   }, [devices, selectedDeviceId, t]);
 }

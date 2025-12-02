@@ -13,7 +13,10 @@ const nextConfig = {
   productionBrowserSourceMaps: true,
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   reactStrictMode: true,
-  reactCompiler: true,
+  reactCompiler: {
+    compilationMode: 'infer',
+    panicThreshold: 'critical_errors',
+  },
   async headers() {
     return [
       {

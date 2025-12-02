@@ -5,7 +5,7 @@ import {
   hasAudio,
   hasVideo,
   SfuModels,
-  useCallStateHooks,
+  getCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
 export type RemoteFilePublisher = {
@@ -61,9 +61,9 @@ export const publishRemoteFile = async (
   return { publish, unpublish, videoElement };
 };
 
+const { useLocalParticipant } = getCallStateHooks();
 export const RemoteVideoControls = (props: { api: RemoteFilePublisher }) => {
   const { api } = props;
-  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const isPublishingVideo = localParticipant && hasVideo(localParticipant);
   const isPublishingAudio = localParticipant && hasAudio(localParticipant);

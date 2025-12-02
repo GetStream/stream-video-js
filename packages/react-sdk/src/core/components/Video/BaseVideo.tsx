@@ -13,6 +13,7 @@ export type BaseVideoProps = ComponentPropsWithRef<'video'> & {
  */
 export const BaseVideo = forwardRef<HTMLVideoElement, BaseVideoProps>(
   function BaseVideo({ stream, ...rest }, ref) {
+    'use no memo';
     const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(
       null,
     );

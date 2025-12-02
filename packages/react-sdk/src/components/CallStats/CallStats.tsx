@@ -5,7 +5,9 @@ import {
   CallStatsReport,
   SfuModels,
 } from '@stream-io/video-client';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { getCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+
+const { useCallStatsReport } = getCallStateHooks();
 import { useFloating, useHover, useInteractions } from '@floating-ui/react';
 import { Icon } from '../Icon';
 
@@ -42,7 +44,6 @@ export const CallStats = (props: CallStatsProps) => {
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
   const previousStats = useRef<CallStatsReport>(undefined);
-  const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
   useEffect(() => {
@@ -177,13 +178,14 @@ const StatCardExplanation = (props: { description: string }) => {
 
   const hover = useHover(context);
 
+  const { setReference, setFloating } = refs;
   const { getReferenceProps, getFloatingProps } = useInteractions([hover]);
 
   return (
     <>
       <div
         className="str-video__call-explanation"
-        ref={refs.setReference}
+        ref={setReference}
         {...getReferenceProps()}
       >
         <Icon className="str-video__call-explanation__icon" icon="info" />
@@ -191,7 +193,7 @@ const StatCardExplanation = (props: { description: string }) => {
       {isOpen && (
         <div
           className="str-video__call-explanation__description"
-          ref={refs.setFloating}
+          ref={setFloating}
           style={floatingStyles}
           {...getFloatingProps()}
         >

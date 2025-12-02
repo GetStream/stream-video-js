@@ -4,16 +4,17 @@ import {
   ParticipantView,
   SpeakerLayout,
   StreamVideoParticipant,
-  useCallStateHooks,
+  getCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { motion } from 'framer-motion';
 
+const { useParticipants, useHasOngoingScreenShare, useRemoteParticipants } =
+  getCallStateHooks();
 const CustomParticipantViewUISpotlight = ({
   ParticipantViewUI,
 }: {
   ParticipantViewUI?: ComponentType;
 }) => {
-  const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const [participantInSpotlight, otherParticipant] = useParticipants();
   const constraintsElementRef = useRef<HTMLDivElement | null>(null);
   const hasOngoingScreenShare = useHasOngoingScreenShare();
@@ -56,7 +57,6 @@ export const SpeakerOneOnOne = ({
 }: {
   ParticipantViewUI?: ComponentType;
 }) => {
-  const { useRemoteParticipants } = useCallStateHooks();
   const otherParticipants = useRemoteParticipants();
   const isOneOnOneCall = otherParticipants.length === 1;
 

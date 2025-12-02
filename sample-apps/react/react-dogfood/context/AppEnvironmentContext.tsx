@@ -46,16 +46,8 @@ export const useIsDemoEnvironment = () => useAppEnvironment() === 'demo';
  * Returns true if the current app has restricted permissions for regular users.
  */
 export const useIsRestrictedEnvironment = () => {
-  const user = useConnectedUserSafe();
+  const user = useConnectedUser();
   return (
-    useAppEnvironment() === 'pronto-sales' && (!user || user.role === 'user')
+    useAppEnvironment() === 'pronto-sales' && (!user || user?.role === 'user')
   );
-};
-
-const useConnectedUserSafe = () => {
-  try {
-    return useConnectedUser();
-  } catch {
-    return undefined;
-  }
 };

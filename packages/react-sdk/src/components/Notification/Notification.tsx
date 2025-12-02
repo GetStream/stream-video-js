@@ -32,6 +32,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
     strategy: 'absolute',
   });
 
+  const { setReference, setFloating } = refs;
   useEffect(() => {
     if (!isVisible || !visibilityTimeout || !resetIsVisible) return;
 
@@ -43,11 +44,11 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
   }, [isVisible, resetIsVisible, visibilityTimeout]);
 
   return (
-    <div ref={refs.setReference}>
+    <div ref={setReference}>
       {isVisible && (
         <div
           className={clsx('str-video__notification', className)}
-          ref={refs.setFloating}
+          ref={setFloating}
           style={{
             position: strategy,
             top: y ?? 0,

@@ -16,6 +16,7 @@ export const useCreateStreamChatClient = ({
   userData: OwnUserResponse | UserResponse;
   tokenOrProvider: TokenOrProvider;
 }) => {
+  'use no memo';
   const [chatClient, setChatClient] = useState<StreamChat | null>(null);
   const router = useRouter();
   useEffect(() => {
