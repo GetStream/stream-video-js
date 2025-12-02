@@ -13,6 +13,7 @@ const nextConfig = {
   productionBrowserSourceMaps: true,
   basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   reactStrictMode: true,
+  reactCompiler: true,
   async headers() {
     return [
       {
@@ -43,19 +44,6 @@ const nextConfig = {
         ],
       },
     ];
-  },
-
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /\.js$/,
-      enforce: 'pre',
-      use: ['source-map-loader'],
-    });
-    config.ignoreWarnings = [
-      ...(config.ignoreWarnings || []),
-      /Failed to parse source map/,
-    ];
-    return config;
   },
 };
 

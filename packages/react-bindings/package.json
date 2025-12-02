@@ -34,7 +34,7 @@
     "@stream-io/video-client": "workspace:^",
     "@types/react": "~19.1.17",
     "@types/use-sync-external-store": "^1",
-    "react": "19.1.0",
+    "react": "^19.2.0",
     "rimraf": "^6.0.1",
     "rollup": "^4.52.4",
     "typescript": "^5.9.3"

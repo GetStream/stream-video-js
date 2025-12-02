@@ -4,6 +4,7 @@ import tsEsLint from 'typescript-eslint';
 import pluginReact from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import importPlugin from 'eslint-plugin-import';
+import reactCompiler from 'eslint-plugin-react-compiler';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -18,6 +19,7 @@ export default [
     plugins: {
       import: importPlugin,
       'react-hooks': reactHooksPlugin,
+      'react-compiler': reactCompiler,
     },
     settings: {
       react: { version: 'detect' },
@@ -42,6 +44,8 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',
+      'react-hooks/refs': 'off',
+      'react-compiler/react-compiler': 'off',
     },
   },
 ];
