@@ -1,10 +1,11 @@
-import { AppState, NativeModules, Platform } from 'react-native';
-import { getCallKeepLib, getVoipPushNotificationLib } from '../libs';
+import { NativeModules, Platform } from 'react-native';
+import { getVoipPushNotificationLib } from '../libs';
 import { voipPushNotificationCallCId$ } from './rxSubjects';
 import { pushUnsubscriptionCallbacks } from './constants';
-import { canAddPushWSSubscriptionsRef, shouldCallBeEnded } from './utils';
+import { canListenToWS, shouldCallBeClosed } from './utils';
 import { StreamVideoConfig } from '../../StreamVideoRN/types';
-import { videoLoggerSystem } from '@stream-io/video-client';
+import { RxUtils, videoLoggerSystem } from '@stream-io/video-client';
+import { getCallingxLib } from '../libs/callingx';
 
 export const onVoipNotificationReceived = async (
   notification: any,
@@ -32,6 +33,8 @@ export const onVoipNotificationReceived = async (
         "version": "v2"
       }
     } */
+  const logger = videoLoggerSystem.getLogger('setupIosVoipPushEvents');
+
   const sender = notification?.stream?.sender;
   const type = notification?.stream?.type;
   // do not process any other notifications other than stream.video or ringing
@@ -42,9 +45,15 @@ export const onVoipNotificationReceived = async (
   if (!call_cid || Platform.OS !== 'ios' || !pushConfig.ios.pushProviderName) {
     return;
   }
-  const logger = videoLoggerSystem.getLogger('setupIosVoipPushEvents');
-  const client = await pushConfig.createStreamVideoClient();
 
+  if (RxUtils.getCurrentValue(voipPushNotificationCallCId$)) {
+    logger.debug(
+      `call.ring notification already processed, skipping the call.ring notification`,
+    );
+    return;
+  }
+
+  const client = await pushConfig.createStreamVideoClient();
   if (!client) {
     logger.debug(
       'client not found, not processing call.ring voip push notification',
@@ -59,44 +68,23 @@ export const onVoipNotificationReceived = async (
     );
   }
   const callFromPush = await client.onRingingCall(call_cid);
-  let uuid = '';
-  try {
-    uuid =
-      await NativeModules?.StreamVideoReactNative?.getIncomingCallUUid(
-        call_cid,
-      );
-  } catch (error) {
-    logger.error('Error in getting call uuid from native module', error);
-  }
-  if (!uuid) {
-    logger.error(
-      `Not processing call.ring push notification, as no uuid found for call_cid: ${call_cid}`,
-    );
-    return;
-  }
-  const created_by_id = notification?.stream?.created_by_id;
-  const receiver_id = notification?.stream?.receiver_id;
+
   function closeCallIfNecessary() {
-    const { mustEndCall, callkeepReason } = shouldCallBeEnded(
-      callFromPush,
-      created_by_id,
-      receiver_id,
-    );
+    const mustEndCall = shouldCallBeClosed(callFromPush, notification?.stream);
     if (mustEndCall) {
-      const callkeep = getCallKeepLib();
-      logger.debug(
-        `callkeep.reportEndCallWithUUID for uuid: ${uuid}, call_cid: ${call_cid}, reason: ${callkeepReason}`,
-      );
-      callkeep.reportEndCallWithUUID(uuid, callkeepReason);
+      logger.debug(`callkeep.reportEndCallWithUUID for call_cid: ${call_cid}`);
+      //TODO: think about sending appropriate reason for end call
+      const callingx = getCallingxLib();
+      callingx.endCallWithReason(call_cid, 'remote');
+
       const voipPushNotification = getVoipPushNotificationLib();
-      voipPushNotification.onVoipNotificationCompleted(uuid);
+      voipPushNotification.onVoipNotificationCompleted(call_cid);
       return true;
     }
     return false;
   }
+
   const closed = closeCallIfNecessary();
-  const canListenToWS = () =>
-    canAddPushWSSubscriptionsRef.current && AppState.currentState !== 'active';
   if (!closed && canListenToWS()) {
     const unsubscribe = callFromPush.on('all', (event) => {
       const _canListenToWS = canListenToWS();
@@ -121,10 +109,11 @@ export const onVoipNotificationReceived = async (
     pushUnsubscriptionCallbacks.get(call_cid)?.forEach((cb) => cb());
     pushUnsubscriptionCallbacks.set(call_cid, [unsubscribe]);
   }
+
   // send the info to this subject, it is listened by callkeep events
   // callkeep events will then accept/reject the call
   logger.debug(
-    `call_cid:${call_cid} uuid:${uuid} received and processed from call.ring push notification`,
+    `call_cid:${call_cid} received and processed from call.ring push notification`,
   );
   voipPushNotificationCallCId$.next(call_cid);
 };

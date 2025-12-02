@@ -1,0 +1,220 @@
+import { Platform } from 'react-native';
+import NativeCallingModule from './spec/NativeCallingx';
+import { requestCallPermissions } from './utils/permissions';
+import type { PermissionsResult } from './utils/permissions';
+import {
+  HEADLESS_TASK_NAME,
+  registerHeadlessTask,
+  setHeadlessTask,
+} from './utils/headlessTask';
+import type { ManagableTask } from './utils/headlessTask';
+import { EventManager } from './EventManager';
+import type { EventListener, EventName, EventParams } from './EventManager';
+import {
+  type ICallingxModule,
+  type InfoDisplayOptions,
+  type AndroidOptions,
+  type iOSOptions,
+  type TextTransformer,
+  type NotificationTransformers,
+  type EndCallReason,
+  type EventData,
+} from './types';
+import {
+  androidEndCallReasonMap,
+  defaultAndroidOptions,
+  defaultiOSOptions,
+  defaultTextTransformer,
+  iosEndCallReasonMap,
+} from './utils/constants';
+
+class CallingxModule implements ICallingxModule {
+  private isNotificationsAllowed = false;
+
+  private titleTransformer: TextTransformer = (text: string) => text;
+  private subtitleTransformer: TextTransformer | undefined = undefined;
+
+  private eventManager: EventManager = new EventManager();
+
+  get canPostNotifications(): boolean {
+    return this.isNotificationsAllowed;
+  }
+
+  setup(options: {
+    ios: Partial<iOSOptions>;
+    android: Partial<AndroidOptions & NotificationTransformers>;
+  }): void {
+    if (Platform.OS === 'ios') {
+      NativeCallingModule.setupiOS({ ...defaultiOSOptions, ...options.ios });
+    }
+
+    if (Platform.OS === 'android') {
+      const { titleTransformer, subtitleTransformer, ...rest } =
+        options.android;
+
+      this.titleTransformer = titleTransformer ?? defaultTextTransformer;
+      this.subtitleTransformer = subtitleTransformer;
+
+      const notificationsConfig: Required<AndroidOptions> = {
+        incomingChannel: {
+          ...defaultAndroidOptions.incomingChannel,
+          ...(rest.incomingChannel ?? {}),
+        },
+        outgoingChannel: {
+          ...defaultAndroidOptions.outgoingChannel,
+          ...(rest.outgoingChannel ?? {}),
+        },
+      };
+      NativeCallingModule.setupAndroid(notificationsConfig);
+
+      registerHeadlessTask();
+    }
+  }
+
+  async requestPermissions(): Promise<PermissionsResult> {
+    const result: {
+      recordAudio: boolean;
+      postNotifications: boolean;
+    } = await requestCallPermissions();
+
+    this.isNotificationsAllowed = result.postNotifications;
+    return result;
+  }
+
+  async checkPermissions(): Promise<PermissionsResult> {
+    const result: {
+      recordAudio: boolean;
+      postNotifications: boolean;
+    } = await requestCallPermissions();
+
+    this.isNotificationsAllowed = result.postNotifications;
+    return result;
+  }
+
+  getInitialEvents(): EventData[] {
+    return NativeCallingModule.getInitialEvents();
+  }
+
+  clearInitialEvents(): Promise<void> {
+    return NativeCallingModule.clearInitialEvents();
+  }
+
+  //activates call that was registered with the telecom stack
+  setCurrentCallActive(callId: string): Promise<void> {
+    return NativeCallingModule.setCurrentCallActive(callId);
+  }
+
+  displayIncomingCall(
+    callId: string,
+    phoneNumber: string,
+    callerName: string,
+    hasVideo: boolean
+  ): Promise<void> {
+    const displayOptions: InfoDisplayOptions = {
+      displayTitle: this.titleTransformer(callerName),
+      displaySubtitle: this.subtitleTransformer?.(phoneNumber),
+    };
+    return NativeCallingModule.displayIncomingCall(
+      callId,
+      phoneNumber,
+      callerName,
+      hasVideo,
+      displayOptions
+    );
+  }
+
+  answerIncomingCall(callId: string): Promise<void> {
+    return NativeCallingModule.answerIncomingCall(callId);
+  }
+
+  //registers call with the telecom stack
+  startCall(
+    callId: string,
+    phoneNumber: string,
+    callerName: string,
+    hasVideo: boolean
+  ): Promise<void> {
+    const displayOptions: InfoDisplayOptions = {
+      displayTitle: this.titleTransformer(callerName),
+      displaySubtitle: this.subtitleTransformer?.(phoneNumber),
+    };
+    return NativeCallingModule.startCall(
+      callId,
+      phoneNumber,
+      callerName,
+      hasVideo,
+      displayOptions
+    );
+  }
+
+  updateDisplay(
+    callId: string,
+    phoneNumber: string,
+    callerName: string
+  ): Promise<void> {
+    const displayOptions: InfoDisplayOptions = {
+      displayTitle: this.titleTransformer(callerName),
+      displaySubtitle: this.subtitleTransformer?.(phoneNumber),
+    };
+    return NativeCallingModule.updateDisplay(
+      callId,
+      phoneNumber,
+      callerName,
+      displayOptions
+    );
+  }
+
+  endCallWithReason(callId: string, reason: EndCallReason): Promise<void> {
+    const reasons =
+      Platform.OS === 'ios' ? iosEndCallReasonMap : androidEndCallReasonMap;
+
+    if (Platform.OS === 'ios' && reason === 'local') {
+      return NativeCallingModule.endCall(callId);
+    }
+
+    return NativeCallingModule.endCallWithReason(callId, reasons[reason]);
+  }
+
+  setMutedCall(callId: string, isMuted: boolean): Promise<void> {
+    return NativeCallingModule.setMutedCall(callId, isMuted);
+  }
+
+  setOnHoldCall(callId: string, isOnHold: boolean): Promise<void> {
+    return NativeCallingModule.setOnHoldCall(callId, isOnHold);
+  }
+
+  startBackgroundTask(taskProvider: ManagableTask): Promise<void> {
+    const stopTask = () => {
+      NativeCallingModule.log(`stopBackgroundTask`, 'warn');
+      NativeCallingModule.stopBackgroundTask(HEADLESS_TASK_NAME);
+    };
+
+    setHeadlessTask((taskData: any) => taskProvider(taskData, stopTask));
+
+    return NativeCallingModule.startBackgroundTask(HEADLESS_TASK_NAME, 0);
+  }
+
+  stopBackgroundTask(): Promise<void> {
+    return NativeCallingModule.stopBackgroundTask(HEADLESS_TASK_NAME);
+  }
+
+  addEventListener<T extends EventName>(
+    eventName: T,
+    callback: EventListener<EventParams[T]>
+  ): { remove: () => void } {
+    this.eventManager.addListener(eventName, callback);
+
+    return {
+      remove: () => {
+        this.eventManager.removeListener(eventName, callback);
+      },
+    };
+  }
+
+  log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): void {
+    NativeCallingModule.log(message, level);
+  }
+}
+
+const module = new CallingxModule();
+export default module;

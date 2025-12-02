@@ -1,0 +1,146 @@
+import type { EventListener } from './EventManager';
+import type { ManagableTask } from './utils/headlessTask';
+import type { PermissionsResult } from './utils/permissions';
+
+export interface ICallingxModule {
+  setup(options: Options): void;
+
+  checkPermissions(): Promise<PermissionsResult>;
+
+  requestPermissions(): Promise<PermissionsResult>;
+
+  setCurrentCallActive(callId: string): Promise<void>;
+
+  getInitialEvents(): EventData[];
+
+  displayIncomingCall(
+    callId: string,
+    phoneNumber: string,
+    callerName: string,
+    hasVideo: boolean,
+    displayOptions?: InfoDisplayOptions
+  ): Promise<void>;
+  answerIncomingCall(callId: string): Promise<void>;
+
+  startCall(
+    callId: string,
+    phoneNumber: string,
+    callerName: string,
+    hasVideo: boolean,
+    displayOptions?: InfoDisplayOptions
+  ): void;
+
+  updateDisplay(
+    callId: string,
+    phoneNumber: string,
+    callerName: string,
+    displayOptions?: InfoDisplayOptions
+  ): Promise<void>;
+
+  endCallWithReason(callId: string, reason: EndCallReason): Promise<void>;
+
+  setMutedCall(callId: string, isMuted: boolean): Promise<void>;
+
+  setOnHoldCall(callId: string, isOnHold: boolean): Promise<void>;
+
+  startBackgroundTask(taskProvider: ManagableTask): Promise<void>;
+
+  stopBackgroundTask(taskName: string): Promise<void>;
+
+  addEventListener<T extends EventName>(
+    eventName: T,
+    callback: EventListener<EventParams[T]>
+  ): { remove: () => void };
+
+  log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): void;
+}
+
+export type iOSOptions = {
+  appName: string;
+  supportsVideo?: boolean;
+  maximumCallsPerCallGroup?: number;
+  maximumCallGroups?: number;
+  handleType?: string; //'generic' | 'number' | 'phone' | 'email';
+};
+
+export type AndroidOptions = {
+  incomingChannel?: {
+    id: string;
+    name: string;
+    sound?: string;
+    vibration?: boolean;
+  };
+  outgoingChannel?: {
+    id: string;
+    name: string;
+    sound?: string;
+    vibration?: boolean;
+  };
+};
+
+export type TextTransformer = (text: string) => string;
+export type NotificationTransformers = {
+  titleTransformer: TextTransformer;
+  subtitleTransformer?: TextTransformer;
+};
+
+export type Options = {
+  ios: iOSOptions;
+  android: AndroidOptions & NotificationTransformers;
+};
+
+export type InfoDisplayOptions = {
+  displayTitle?: string;
+  displaySubtitle?: string;
+};
+
+export type EventData = {
+  eventName: string;
+  params: { callId: string; cause?: string };
+};
+
+export type EventName =
+  | 'answerCall'
+  | 'endCall'
+  | 'didDisplayIncomingCall'
+  | 'didToggleHoldCallAction'
+  | 'didChangeAudioRoute'
+  | 'didReceiveStartCallAction'
+  | 'didPerformSetMutedCallAction';
+
+export type EventParams = {
+  answerCall: {
+    callId: string;
+  };
+  endCall: {
+    callId: string;
+    cause: string;
+  };
+  didDisplayIncomingCall: {
+    callId: string;
+  };
+  didToggleHoldCallAction: {
+    callId: string;
+    hold: boolean;
+  };
+  didPerformSetMutedCallAction: {
+    callId: string;
+    muted: boolean;
+  };
+  didChangeAudioRoute: {
+    callId: string;
+    output: string;
+  };
+  didReceiveStartCallAction: {
+    callId: string;
+  };
+};
+
+export type EndCallReason =
+  | 'local' // when call is ended by the user
+  | 'remote'
+  | 'rejected'
+  | 'busy'
+  | 'answeredElsewhere'
+  | 'missed'
+  | 'error';

@@ -1,8 +1,10 @@
 package io.getstream.rnvideosample
 
 import android.content.res.Configuration
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.lifecycle.Lifecycle
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
@@ -10,6 +12,7 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.oney.WebRTCModule.WebRTCModuleOptions
 import com.streamvideo.reactnative.StreamVideoReactNative
+import com.callingx.CallingxModule
 
 class MainActivity : ReactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,8 +21,13 @@ class MainActivity : ReactActivity() {
         // for react-navigation
         super.onCreate(null)
         StreamVideoReactNative.setupCallActivity(this)
+        CallingxModule.handleCallingIntent(this, intent)
     }
 
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        CallingxModule.handleCallingIntent(this, intent)
+    }
     /**
      * Returns the name of the main component registered from JavaScript. This is used to schedule
      * rendering of the component.

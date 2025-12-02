@@ -10,6 +10,7 @@ import type {
 } from '../../StreamVideoRN/types';
 import { onNewCallNotification } from '../../internal/newNotificationCallbacks';
 import { pushUnsubscriptionCallbacks } from './constants';
+import { AppState } from 'react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -122,6 +123,16 @@ export const processCallFromPush = async (
         .debug(
           `joining call from push notification with callCid: ${callFromPush.cid}`,
         );
+
+      if (callFromPush.state.callingState === CallingState.JOINED) {
+        videoLoggerSystem
+          .getLogger('processCallFromPush')
+          .debug(
+            `call already joined from push notification with callCid: ${callFromPush.cid}`,
+          );
+        return;
+      }
+
       await callFromPush.join();
     } else if (action === 'decline') {
       const canReject =
@@ -190,4 +201,18 @@ export const clearPushWSEventSubscriptions = (call_cid: string) => {
  */
 export const canAddPushWSSubscriptionsRef: CanAddPushWSSubscriptionsRef = {
   current: true,
+};
+
+export const canListenToWS = () =>
+  canAddPushWSSubscriptionsRef.current && AppState.currentState !== 'active';
+
+export const shouldCallBeClosed = (
+  call: Call,
+  pushData: { [key: string]: string | object },
+) => {
+  const created_by_id = pushData?.created_by_id as string;
+  const receiver_id = pushData?.receiver_id as string;
+
+  const { mustEndCall } = shouldCallBeEnded(call, created_by_id, receiver_id);
+  return mustEndCall;
 };

@@ -42,30 +42,8 @@ export const pushRejectedIncomingCallCId$ = new BehaviorSubject<
 >(undefined);
 
 /**
- * This rxjs subject is used to store the call cid of the incoming call from ios voip pushkit notification
+ * This rxjs subject is used to store the call cid of the incoming call from voip notification
  */
 export const voipPushNotificationCallCId$ = new BehaviorSubject<
   string | undefined
->(undefined);
-
-/** The pair of cid of a call and its corresponding uuid created in the native side */
-type CallkeepMap = {
-  uuid: string;
-  cid: string;
-};
-
-/*
- * This rxjs subject should only used to store the CallkeepMap
- * for the incoming call when on foreground
- * or in other words, when we get didDisplayIncomingCall from callkeep lib
- */
-export const voipCallkeepCallOnForegroundMap$ = new BehaviorSubject<
-  CallkeepMap | undefined
->(undefined);
-
-/*
- * This rxjs subject should only used to store the CallkeepMap when it was accepted in the native dialer
- */
-export const voipCallkeepAcceptedCallOnNativeDialerMap$ = new BehaviorSubject<
-  CallkeepMap | undefined
 >(undefined);
