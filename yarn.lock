@@ -7246,8 +7246,8 @@ __metadata:
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
-    react: "npm:^19.2.0"
-    react-dom: "npm:^19.2.0"
+    react: "npm:19.2.0"
+    react-dom: "npm:19.2.0"
     react-router-dom: "npm:^6.30.1"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.9"
@@ -7266,8 +7266,8 @@ __metadata:
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
-    react: "npm:^19.2.0"
-    react-dom: "npm:^19.2.0"
+    react: "npm:19.2.0"
+    react-dom: "npm:19.2.0"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.9"
   languageName: unknown
@@ -7289,8 +7289,8 @@ __metadata:
     clsx: "npm:^2.0.0"
     js-base64: "npm:^3.7.8"
     nanoid: "npm:^5.1.6"
-    react: "npm:^19.2.0"
-    react-dom: "npm:^19.2.0"
+    react: "npm:19.2.0"
+    react-dom: "npm:19.2.0"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.9"
   languageName: unknown
@@ -7335,8 +7335,8 @@ __metadata:
     expo-splash-screen: "npm:~31.0.10"
     expo-status-bar: "npm:~3.0.8"
     expo-system-ui: "npm:~6.0.7"
-    react: "npm:^19.2.0"
-    react-dom: "npm:^19.2.0"
+    react: "npm:19.2.0"
+    react-dom: "npm:19.2.0"
     react-native: "npm:^0.81.5"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:^2.28.0"
@@ -7363,8 +7363,8 @@ __metadata:
     "@vitejs/plugin-react": "npm:^5.0.4"
     clsx: "npm:^2.0.0"
     hls.js: "npm:^1.6.13"
-    react: "npm:^19.2.0"
-    react-dom: "npm:^19.2.0"
+    react: "npm:19.2.0"
+    react-dom: "npm:19.2.0"
     react-router-dom: "npm:^6.30.1"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.9"
@@ -7393,8 +7393,8 @@ __metadata:
     dotenv: "npm:^16.6.1"
     immer: "npm:^9.0.21"
     nanoid: "npm:^5.1.6"
-    react: "npm:^19.2.0"
-    react-dom: "npm:^19.2.0"
+    react: "npm:19.2.0"
+    react-dom: "npm:19.2.0"
     react-router-dom: "npm:^6.30.1"
     sass: "npm:^1.93.2"
     stream-chat: "npm:^9.26.0"
@@ -7426,7 +7426,7 @@ __metadata:
   resolution: "@stream-io/noise-cancellation-react-native@workspace:packages/noise-cancellation-react-native"
   dependencies:
     "@stream-io/react-native-webrtc": "npm:137.0.0"
-    react: "npm:^19.2.0"
+    react: "npm:19.2.0"
     react-native: "npm:^0.81.5"
     react-native-builder-bob: "npm:^0.37.0"
     rimraf: "npm:^6.0.1"
@@ -7458,8 +7458,8 @@ __metadata:
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
-    react: "npm:^19.2.0"
-    react-dom: "npm:^19.2.0"
+    react: "npm:19.2.0"
+    react-dom: "npm:19.2.0"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.9"
   languageName: unknown
@@ -7525,7 +7525,7 @@ __metadata:
   resolution: "@stream-io/video-filters-react-native@workspace:packages/video-filters-react-native"
   dependencies:
     "@stream-io/react-native-webrtc": "npm:137.0.0"
-    react: "npm:^19.2.0"
+    react: "npm:19.2.0"
     react-native: "npm:^0.81.5"
     react-native-builder-bob: "npm:^0.37.0"
     rimraf: "npm:^6.0.1"
@@ -7585,7 +7585,7 @@ __metadata:
     "@types/react": "npm:~19.1.17"
     "@types/use-sync-external-store": "npm:^1"
     i18next: "npm:^25.6.0"
-    react: "npm:^19.2.0"
+    react: "npm:19.2.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.4"
     rxjs: "npm:~7.8.2"
@@ -7629,8 +7629,8 @@ __metadata:
     next-auth: "npm:^4.24.11"
     qrcode.react: "npm:^4.2.0"
     raw-body: "npm:^3.0.1"
-    react: "npm:^19.2.0"
-    react-dom: "npm:^19.2.0"
+    react: "npm:19.2.0"
+    react-dom: "npm:19.2.0"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.93.2"
     stream-chat: "npm:^9.26.0"
@@ -7671,7 +7671,7 @@ __metadata:
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
     axios: "npm:^1.12.2"
-    react: "npm:^19.2.0"
+    react: "npm:19.2.0"
     react-native: "npm:^0.81.5"
     react-native-blob-util: "npm:^0.22.2"
     react-native-callkeep: "npm:^4.3.16"
@@ -7734,8 +7734,8 @@ __metadata:
     expo-symbols: "npm:~1.0.7"
     expo-system-ui: "npm:~6.0.7"
     expo-web-browser: "npm:~15.0.8"
-    react: "npm:^19.2.0"
-    react-dom: "npm:^19.2.0"
+    react: "npm:19.2.0"
+    react-dom: "npm:19.2.0"
     react-native: "npm:^0.81.5"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:^2.28.0"
@@ -7784,7 +7784,7 @@ __metadata:
     intl-pluralrules: "npm:2.0.1"
     jest: "npm:^29.7.0"
     lodash.merge: "npm:^4.6.2"
-    react: "npm:^19.2.0"
+    react: "npm:19.2.0"
     react-native: "npm:^0.81.5"
     react-native-builder-bob: "npm:~0.23"
     react-native-callkeep: "npm:^4.3.16"
@@ -7865,9 +7865,9 @@ __metadata:
     "@types/react-dom": "npm:~19.1.11"
     chart.js: "npm:^4.4.4"
     clsx: "npm:^2.0.0"
-    react: "npm:^19.2.0"
+    react: "npm:19.2.0"
     react-chartjs-2: "npm:^5.3.0"
-    react-dom: "npm:^19.2.0"
+    react-dom: "npm:19.2.0"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.4"
     typescript: "npm:^5.9.3"
@@ -7906,8 +7906,8 @@ __metadata:
     dotenv: "npm:^16.6.1"
     nanoid: "npm:^5.1.6"
     postcss: "npm:^8.5.6"
-    react: "npm:^19.2.0"
-    react-dom: "npm:^19.2.0"
+    react: "npm:19.2.0"
+    react-dom: "npm:19.2.0"
     react-router-dom: "npm:^6.30.1"
     stream-chat: "npm:^9.26.0"
     stream-chat-react: "npm:^13.12.0"
@@ -20319,7 +20319,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:^19.2.0":
+"react-dom@npm:19.2.0":
   version: 19.2.0
   resolution: "react-dom@npm:19.2.0"
   dependencies:
@@ -21002,7 +21002,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^19.2.0":
+"react@npm:19.2.0":
   version: 19.2.0
   resolution: "react@npm:19.2.0"
   checksum: 10/e13bcdb8e994c3cfa922743cb75ca8deb60531bf02f584d2d8dab940a8132ce8a2e6ef16f8ed7f372b4072e7a7eeff589b2812dabbedfa73e6e46201dac8a9d0
