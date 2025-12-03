@@ -19,8 +19,8 @@
     "dayjs": "^1.11.6",
     "immer": "^9.0.21",
     "nanoid": "^5.1.6",
-    "react": "19.2.0",
-    "react-dom": "19.2.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-router-dom": "^6.30.1",
     "stream-chat": "^9.26.0",
     "stream-chat-react": "^13.12.0"
