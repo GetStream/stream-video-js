@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.callingx
+package com.callingx.model
 
 import android.os.ParcelUuid
 import android.os.Parcelable

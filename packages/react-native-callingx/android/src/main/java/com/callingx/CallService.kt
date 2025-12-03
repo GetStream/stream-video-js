@@ -30,6 +30,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import com.callingx.model.Call
+import com.callingx.model.CallAction
+import com.callingx.notifications.CallNotificationManager
 
 /**
  * This service handles the app call logic (show notification, record mic, display audio, etc..). It
@@ -49,7 +52,7 @@ import kotlinx.coroutines.launch
 class CallService : Service(), CallRepository.Listener {
 
     companion object {
-        private const val TAG = "TelecomCallService"
+        private const val TAG = "[Callingx] CallService"
 
         internal const val EXTRA_CALL_ID = "extra_call_id"
         internal const val EXTRA_NAME = "extra_name"

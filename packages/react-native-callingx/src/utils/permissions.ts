@@ -6,6 +6,9 @@ export interface PermissionsResult {
   postNotifications: boolean;
 }
 
+const allowedPostNotifications =
+  Platform.OS === 'android' && Platform.Version < 33;
+
 export const requestCallPermissions = async (): Promise<PermissionsResult> => {
   if (Platform.OS !== 'android') {
     return { recordAudio: true, postNotifications: true }; // iOS handles permissions differently
@@ -46,7 +49,7 @@ export const requestCallPermissions = async (): Promise<PermissionsResult> => {
         PermissionsAndroid.RESULTS.GRANTED,
       postNotifications:
         results[PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS] ===
-        PermissionsAndroid.RESULTS.GRANTED,
+          PermissionsAndroid.RESULTS.GRANTED || allowedPostNotifications,
     };
   } catch (err) {
     console.warn('Error requesting permissions:', err);
@@ -95,7 +98,9 @@ export const requestPostNotificationPermissions =
     const results = await PermissionsAndroid.request(
       PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
     );
-    return results === PermissionsAndroid.RESULTS.GRANTED;
+    return (
+      results === PermissionsAndroid.RESULTS.GRANTED || allowedPostNotifications
+    );
   };
 
 export const canPostNotifications = async (): Promise<boolean> => {

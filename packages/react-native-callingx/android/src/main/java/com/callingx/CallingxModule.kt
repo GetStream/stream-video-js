@@ -12,6 +12,8 @@ import android.os.Bundle
 import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
+import com.callingx.model.CallAction
+import com.callingx.notifications.NotificationsConfig
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
@@ -27,7 +29,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec(reactContext) {
 
     companion object {
-        const val TAG = "TelecomCallingx"
+        const val TAG = "[Callingx] CallingxModule"
         const val NAME = "Callingx"
 
         const val EXTRA_CALL_ID = "call_id"
@@ -46,19 +48,6 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         const val CALL_END_ACTION = "call_end"
 
         const val SERVICE_READY_ACTION = "service_ready"
-
-        public fun handleCallingIntent(context: Context, intent: Intent) {
-            if (intent?.action == CALL_ANSWERED_ACTION) {
-                val callId = intent.getStringExtra(EXTRA_CALL_ID)
-                // Send broadcast or directly call your module to handle the answer
-                val broadcastIntent =
-                        Intent(CALL_ANSWERED_ACTION).apply {
-                            setPackage(context.packageName)
-                            putExtra(EXTRA_CALL_ID, callId)
-                        }
-                context.sendBroadcast(broadcastIntent)
-            }
-        }
     }
 
     // Track binding state carefully
@@ -142,14 +131,9 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
 
     override fun setupAndroid(options: ReadableMap) {
         Log.d(TAG, "[module] setupAndroid: Setting up Android: $options")
-        val notificationsConfig = extractNotificationsConfig(options)
-        CallNotificationManager.saveNotificationsConfig(
-                reactApplicationContext,
-                notificationsConfig
-        )
+        NotificationsConfig.saveNotificationsConfig(reactApplicationContext, options)
 
         isModuleInitialized = true
-        Log.d(TAG, "[module] setupAndroid: Notifications config: $notificationsConfig")
     }
 
     override fun getInitialEvents(): WritableArray {
@@ -483,6 +467,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             if (action == SERVICE_READY_ACTION) {
                 Log.d(TAG, "[module] onReceive: Service is ready, initiating binding")
                 bindToServiceIfNeeded()
+                return
             }
 
             if (action == null) {

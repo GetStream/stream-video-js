@@ -21,13 +21,8 @@ class MainActivity : ReactActivity() {
         // for react-navigation
         super.onCreate(null)
         StreamVideoReactNative.setupCallActivity(this)
-        CallingxModule.handleCallingIntent(this, intent)
     }
 
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        CallingxModule.handleCallingIntent(this, intent)
-    }
     /**
      * Returns the name of the main component registered from JavaScript. This is used to schedule
      * rendering of the component.

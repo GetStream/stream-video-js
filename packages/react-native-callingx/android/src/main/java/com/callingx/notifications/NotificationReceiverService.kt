@@ -1,0 +1,45 @@
+package com.callingx.notifications
+
+import android.app.Service
+import android.content.Intent
+import android.os.IBinder
+import com.callingx.CallingxModule
+
+class NotificationReceiverService : Service() {
+
+  override fun onBind(intent: Intent?): IBinder? = null
+
+  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    val action = intent?.action
+    if (action == null) {
+      stopSelf(startId)
+      return START_NOT_STICKY
+    }
+
+    when (action) {
+      CallingxModule.CALL_ANSWERED_ACTION -> onCallAnswered(intent)
+    }
+
+    stopSelf(startId)
+    return START_NOT_STICKY
+  }
+
+  private fun onCallAnswered(intent: Intent) {
+    val callId = intent.getStringExtra(CallingxModule.EXTRA_CALL_ID)
+    callId?.let {
+      NotificationIntentFactory.getPendingBroadcastIntent(
+        applicationContext,
+        CallingxModule.CALL_ANSWERED_ACTION,
+        it
+      )
+        .send()
+
+      NotificationIntentFactory.getLaunchActivityIntent(
+        applicationContext,
+        CallingxModule.CALL_ANSWERED_ACTION,
+        it
+      )
+        .send()
+    }
+  }
+}

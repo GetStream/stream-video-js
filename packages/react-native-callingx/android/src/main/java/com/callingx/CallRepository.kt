@@ -36,13 +36,14 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.callingx.model.Call
+import com.callingx.model.CallAction
 
 /**
  * The central repository that keeps track of the current call and allows to register new calls.
@@ -66,7 +67,7 @@ class CallRepository(context: Context) {
     }
 
     companion object {
-        private const val TAG = "TelecomCallRepository"
+        private const val TAG = "[Callingx] CallRepository"
     }
 
     private var listener: Listener? = null
