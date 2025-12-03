@@ -12,7 +12,7 @@
     "@floating-ui/dom": "^1.6.13",
     "@floating-ui/react": "^0.27.6",
     "@next/third-parties": "^16.0.6",
-    "@sentry/nextjs": "^10.19.0",
+    "@sentry/nextjs": "^10.28.0",
     "@stream-io/audio-filters-web": "workspace:^",
     "@stream-io/node-sdk": "^0.7.9",
     "@stream-io/video-filters-web": "workspace:^",
