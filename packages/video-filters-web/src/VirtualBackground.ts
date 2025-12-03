@@ -21,13 +21,15 @@ export class VirtualBackground {
 
   private canvas!: OffscreenCanvas;
   private segmenter: ImageSegmenter | null = null;
-  private isSegmenterReady = false;
   private webGlRenderer!: WebGLRenderer;
   private abortController: AbortController;
 
   private segmenterDelayTotal = 0;
   private frames = 0;
   private lastStatsTime = 0;
+
+  private latestCategoryMask: WebGLTexture | undefined = undefined;
+  private latestConfidenceMask: WebGLTexture | undefined = undefined;
 
   constructor(
     private readonly track: MediaStreamVideoTrack,
@@ -59,22 +61,43 @@ export class VirtualBackground {
 
     const opts = await this.initializeSegmenterOptions();
 
+    let lastFrameTime = -1;
     const transformStream = new TransformStream<VideoFrame, VideoFrame>({
-      transform: async (frame, controller) => {
+      transform: (frame, controller) => {
         try {
           if (this.abortController.signal.aborted) {
-            return frame.close();
+            frame.close();
+            return;
           }
 
-          const processed = await this.transform(frame, opts);
-          controller.enqueue(processed);
+          if (
+            this.canvas.width !== frame.displayWidth ||
+            this.canvas.height !== frame.displayHeight
+          ) {
+            this.canvas.width = frame.displayWidth;
+            this.canvas.height = frame.displayHeight;
+          }
+
+          const currentTime = frame.timestamp;
+          const hasNewFrame = currentTime !== lastFrameTime;
+
+          lastFrameTime = currentTime;
+          if (hasNewFrame) {
+            this.runSegmentation(frame);
+          }
+          this.webGlRenderer.render(
+            frame,
+            opts,
+            this.latestCategoryMask,
+            this.latestConfidenceMask,
+          );
+
+          controller.enqueue(
+            new VideoFrame(this.canvas, { timestamp: frame.timestamp }),
+          );
         } catch (e) {
           console.error('[virtual-background] error processing frame:', e);
-          this.hooks.onError?.(e);
-
-          if (!this.abortController.signal.aborted) {
-            controller.enqueue(frame);
-          }
+          onError?.(e);
         } finally {
           frame.close();
         }
@@ -84,7 +107,6 @@ export class VirtualBackground {
           this.segmenter.close();
           this.segmenter = null;
         }
-        this.isSegmenterReady = false;
       },
     });
 
@@ -101,6 +123,47 @@ export class VirtualBackground {
       });
 
     return this.generator;
+  }
+
+  private runSegmentation(frame: VideoFrame) {
+    if (!this.segmenter) return;
+
+    const start = performance.now();
+
+    this.segmenter.segmentForVideo(frame, frame.timestamp, (result) => {
+      try {
+        this.latestCategoryMask = result.categoryMask?.getAsWebGLTexture();
+
+        this.latestConfidenceMask =
+          result.confidenceMasks?.[0]?.getAsWebGLTexture();
+
+        const now = performance.now();
+        this.segmenterDelayTotal += now - start;
+        this.frames++;
+
+        if (this.lastStatsTime === 0) {
+          this.lastStatsTime = now;
+        }
+
+        if (now - this.lastStatsTime > 1000) {
+          const delay =
+            Math.round((this.segmenterDelayTotal / this.frames) * 100) / 100;
+          const fps = Math.round(
+            (1000 * this.frames) / (now - this.lastStatsTime),
+          );
+
+          this.hooks.onStats?.({ delay, fps, timestamp: now });
+
+          this.lastStatsTime = now;
+          this.segmenterDelayTotal = 0;
+          this.frames = 0;
+        }
+      } catch (err) {
+        console.error('[virtual-background] segmentation error:', err);
+      } finally {
+        result.close();
+      }
+    });
   }
 
   /**
@@ -130,80 +193,12 @@ export class VirtualBackground {
         outputConfidenceMasks: true,
         canvas: this.canvas,
       });
-
-      this.isSegmenterReady = true;
     } catch (error) {
       console.error(
         '[virtual-background] Failed to initialize MediaPipe segmenter:',
         error,
       );
-      this.isSegmenterReady = false;
     }
-  }
-
-  /**
-   * Processes a single video frame.
-   *
-   * Performs segmentation via MediaPipe and then composites the frame
-   * through the WebGL renderer to apply background effects.
-   *
-   * @param frame - The incoming frame from the processor.
-   * @param opts - The segmentation options to use.
-   *
-   * @returns A new `VideoFrame` containing the processed image.
-   */
-  private async transform(
-    frame: VideoFrame,
-    opts: SegmenterOptions,
-  ): Promise<VideoFrame> {
-    if (this.isSegmenterReady && this.segmenter) {
-      try {
-        const start = performance.now();
-        await new Promise<void>((resolve) => {
-          this.segmenter!.segmentForVideo(frame, frame.timestamp, (result) => {
-            const categoryMask = result.categoryMask!.getAsWebGLTexture();
-            const confidenceMask =
-              result.confidenceMasks![0].getAsWebGLTexture();
-
-            this.webGlRenderer.render(
-              frame,
-              opts,
-              categoryMask,
-              confidenceMask,
-            );
-
-            const now = performance.now();
-            this.segmenterDelayTotal += now - start;
-            this.frames++;
-
-            if (this.lastStatsTime === 0) {
-              this.lastStatsTime = now;
-            }
-
-            if (now - this.lastStatsTime > 1000) {
-              const delay =
-                Math.round((this.segmenterDelayTotal / this.frames) * 100) /
-                100;
-              const fps = Math.round(
-                (1000 * this.frames) / (now - this.lastStatsTime),
-              );
-
-              this.hooks.onStats?.({ delay, fps, timestamp: now });
-
-              this.lastStatsTime = now;
-              this.segmenterDelayTotal = 0;
-              this.frames = 0;
-            }
-
-            resolve();
-          });
-        });
-      } catch (error) {
-        console.error('[virtual-background] Error during segmentation:', error);
-      }
-    }
-
-    return new VideoFrame(this.canvas, { timestamp: frame.timestamp });
   }
 
   private async loadBackground(url: string | undefined) {
@@ -271,6 +266,5 @@ export class VirtualBackground {
       this.segmenter.close();
       this.segmenter = null;
     }
-    this.isSegmenterReady = false;
   }
 }
