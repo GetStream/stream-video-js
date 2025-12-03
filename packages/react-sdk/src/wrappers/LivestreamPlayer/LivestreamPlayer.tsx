@@ -2,7 +2,7 @@ import { PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
 import {
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useEffectEvent,
   useStreamVideoClient,
 } from '@stream-io/video-react-bindings';
@@ -85,6 +85,8 @@ export const LivestreamPlayer = (
   );
 };
 
+const { useIsCallLive, useOwnCapabilities, useCallStartsAt, useCallSettings } =
+  getCallStateHooks();
 const LivestreamCall = (props: {
   joinBehavior?: 'asap' | 'live';
   layoutProps?: LivestreamLayoutProps;
@@ -92,7 +94,6 @@ const LivestreamCall = (props: {
   onError?: (error: any) => void;
 }) => {
   const call = useLivestreamCall(props);
-  const { useIsCallLive } = useCallStateHooks();
   const isLive = useIsCallLive();
 
   if (!call) return null;
@@ -109,7 +110,6 @@ const useLivestreamCall = (props: {
   onError?: (error: any) => void;
 }) => {
   const call = useCall();
-  const { useIsCallLive, useOwnCapabilities } = useCallStateHooks();
   const canJoinLive = useIsCallLive();
   const canJoinEarly = useCanJoinEarly();
   const canJoinBackstage =
@@ -134,7 +134,6 @@ const useLivestreamCall = (props: {
 };
 
 const useCanJoinEarly = () => {
-  const { useCallStartsAt, useCallSettings } = useCallStateHooks();
   const startsAt = useCallStartsAt();
   const settings = useCallSettings();
   const joinAheadTimeSeconds = settings?.backstage.join_ahead_time_seconds;

@@ -42,6 +42,7 @@ const ToggleDeviceSettingsMenuButton = forwardRef<
   HTMLButtonElement,
   ToggleMenuButtonProps
 >(function ToggleDeviceSettingsMenuButton({ menuShown }, ref) {
+  'use no memo';
   const { t } = useI18n();
   return (
     <IconButton

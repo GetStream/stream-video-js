@@ -1,7 +1,6 @@
 import { DeepPartial, Theme } from '@stream-io/video-react-native-sdk';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemeMode } from './contexts/AppContext';
-import { Dimensions } from 'react-native';
 
 const opacityToHex = (opacity: number) => {
   return Math.round(opacity * 255)

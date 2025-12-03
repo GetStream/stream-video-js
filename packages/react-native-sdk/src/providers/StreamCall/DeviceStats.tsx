@@ -1,4 +1,4 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect } from 'react';
 import {
   CallingState,
@@ -12,8 +12,8 @@ const eventEmitter = new NativeEventEmitter(StreamVideoReactNative);
 /**
  * This is a renderless component to get the device stats like thermal state and power saver mode.
  */
+const { useCallCallingState } = getCallStateHooks();
 export const DeviceStats = () => {
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const call = useCall();
 

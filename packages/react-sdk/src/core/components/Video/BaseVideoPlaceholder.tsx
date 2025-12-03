@@ -10,6 +10,7 @@ export const BaseVideoPlaceholder = forwardRef<
   HTMLDivElement,
   BaseVideoPlaceholderProps
 >(function DefaultVideoPlaceholder({ participant, style, children }, ref) {
+  'use no memo';
   const [error, setError] = useState(false);
   const name = participant.name || participant.userId;
   return (

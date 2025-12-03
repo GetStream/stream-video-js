@@ -1,7 +1,7 @@
 import {
   name,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useConnectedUser,
 } from '@stream-io/video-react-sdk';
 import { useMemo } from 'react';
@@ -11,10 +11,10 @@ type CallTitleProps = {
   title?: string;
 };
 
+const { useParticipants } = getCallStateHooks();
 export const CallHeaderTitle = ({ title }: CallTitleProps) => {
   const activeCall = useCall();
   const connectedUser = useConnectedUser();
-  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants({ sortBy: name });
 
   const standInTitle = useMemo(() => {

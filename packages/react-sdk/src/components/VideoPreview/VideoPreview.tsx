@@ -1,7 +1,9 @@
 import { ComponentType } from 'react';
 import clsx from 'clsx';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { getCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { BaseVideo } from '../../core/components/Video';
+
+const { useCameraState } = getCallStateHooks();
 import { LoadingIndicator } from '../LoadingIndicator';
 
 const DefaultDisabledVideoPreview = () => {
@@ -52,7 +54,6 @@ export const VideoPreview = ({
   NoCameraPreview = DefaultNoCameraPreview,
   StartingCameraPreview = LoadingIndicator,
 }: VideoPreviewProps) => {
-  const { useCameraState } = useCallStateHooks();
   const { devices, status, isMute, mediaStream } = useCameraState();
 
   let contents;

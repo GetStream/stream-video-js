@@ -13,7 +13,7 @@ import {
   type FollowerCountProps,
 } from './FollowerCount';
 import { useTheme } from '../../../contexts';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { getCallStateHooks } from '@stream-io/video-react-bindings';
 import { Z_INDEX } from '../../../constants';
 
 /**
@@ -38,14 +38,14 @@ export type HostLivestreamTopViewProps = {
 /**
  * The HostLivestreamTopView component displays the top view component of the host's live stream.
  */
+const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
+  getCallStateHooks();
 export const HostLivestreamTopView = ({
   DurationBadge = DefaultDurationBadge,
   LiveIndicator = DefaultLiveIndicator,
   FollowerCount = DefaultFollowerCount,
   onLayout,
 }: HostLivestreamTopViewProps) => {
-  const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
-    useCallStateHooks();
   const isCallLive = useIsCallLive();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
 

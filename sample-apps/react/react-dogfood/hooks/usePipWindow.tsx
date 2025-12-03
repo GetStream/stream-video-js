@@ -19,6 +19,7 @@ declare global {
 }
 
 export function usePipWindow(key: string) {
+  'use no memo';
   const isSupported = 'documentPictureInPicture' in window;
   const [pipWindow, setPipWindow] = useState<Window | null>(null);
   const sizeRef = useRef<{ width: number; height: number }>({

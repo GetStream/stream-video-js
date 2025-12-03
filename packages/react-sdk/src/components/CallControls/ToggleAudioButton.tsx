@@ -1,7 +1,7 @@
 import { OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
   type UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
@@ -26,6 +26,7 @@ export type ToggleAudioPreviewButtonProps = PropsWithErrorHandler<
     UseInputMediaDeviceOptions
 >;
 
+const { useMicrophoneState } = getCallStateHooks();
 export const ToggleAudioPreviewButton = (
   props: ToggleAudioPreviewButtonProps,
 ) => {
@@ -38,7 +39,6 @@ export const ToggleAudioPreviewButton = (
     ...restCompositeButtonProps
   } = props;
   const { t } = useI18n();
-  const { useMicrophoneState } = useCallStateHooks();
   const {
     microphone,
     hasBrowserPermission,
@@ -128,7 +128,6 @@ export const ToggleAudioPublishingButton = (
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_AUDIO);
 
-  const { useMicrophoneState } = useCallStateHooks();
   const {
     microphone,
     hasBrowserPermission,

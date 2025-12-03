@@ -96,6 +96,7 @@ const BottomSheetChatWrapper = React.forwardRef<
   BottomSheetWrapperMethods,
   Props
 >((props, ref) => {
+  'use no memo';
   const { onBottomSheetClose, onBottomSheetOpen, callId, children } = props;
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const safeAreaInsets = patchSafeAreaInsets(useSafeAreaInsets());
@@ -216,6 +217,7 @@ const LivestreamChat = ({
   channel,
   focusOutsideMessageInput,
 }: LivestreamChatProps) => {
+  'use no memo';
   const { shouldHandleKeyboardEvents } = useBottomSheetInternal();
 
   /**
@@ -226,6 +228,7 @@ const LivestreamChat = ({
   useEffect(() => {
     return () => {
       // Reset the flag on unmount
+       
       shouldHandleKeyboardEvents.value = false;
     };
   }, [shouldHandleKeyboardEvents]);

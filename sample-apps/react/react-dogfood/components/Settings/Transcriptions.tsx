@@ -5,7 +5,7 @@ import {
   TranscriptionSettingsRequestLanguageEnum,
   TranscriptionSettingsRequestModeEnum,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
@@ -109,10 +109,13 @@ export const TranscriptionSettings = () => {
   );
 };
 
+const {
+  useCallSettings,
+  useIsCallCaptioningInProgress,
+  useIsCallTranscribingInProgress,
+} = getCallStateHooks();
 const ClosedCaptionStatus = () => {
   const { t } = useI18n();
-  const { useCallSettings, useIsCallCaptioningInProgress } =
-    useCallStateHooks();
   const settings = useCallSettings();
   const inProgress = useIsCallCaptioningInProgress();
 
@@ -127,8 +130,6 @@ const ClosedCaptionStatus = () => {
 
 const TranscriptionStatus = () => {
   const { t } = useI18n();
-  const { useCallSettings, useIsCallTranscribingInProgress } =
-    useCallStateHooks();
   const settings = useCallSettings();
   const inProgress = useIsCallTranscribingInProgress();
 

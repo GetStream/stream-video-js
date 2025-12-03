@@ -1,7 +1,7 @@
 import {
   defaultReactions,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { useEffect, useRef } from 'react';
 
@@ -23,8 +23,9 @@ const isMacOS = () => {
 
 const [, raiseHandReaction] = defaultReactions;
 
+const { useMicrophoneState, useCameraState } = getCallStateHooks();
 export const usePushToTalk = (key: string) => {
-  const { useMicrophoneState } = useCallStateHooks();
+  'use no memo';
   const { microphone, isMute } = useMicrophoneState();
   const hotkeyHandlerRef = useRef<(e: KeyboardEvent) => void>(undefined);
   const enableMicWithPushToTalkPromiseRef = useRef<Promise<void> | null>(null);
@@ -63,7 +64,6 @@ export const usePushToTalk = (key: string) => {
 
 export const useKeyboardShortcuts = () => {
   const call = useCall();
-  const { useCameraState, useMicrophoneState } = useCallStateHooks();
   const { microphone } = useMicrophoneState();
   const { camera } = useCameraState();
   usePushToTalk(KeyboardShortcut.PUSH_TO_TALK);

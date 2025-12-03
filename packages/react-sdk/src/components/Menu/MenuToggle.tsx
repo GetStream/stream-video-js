@@ -6,7 +6,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import {
@@ -18,6 +17,7 @@ import {
 } from '@floating-ui/react';
 
 import { useFloatingUIPreset } from '../../hooks';
+import { useEffectEvent } from '@stream-io/video-react-bindings';
 
 export type ToggleMenuButtonProps<E extends HTMLElement = HTMLButtonElement> = {
   menuShown: boolean;
@@ -64,12 +64,13 @@ const MenuPortal = ({
     [],
   );
 
+  const { setFloating } = refs;
   return (
     <>
       <div id={portalId} className="str-video__portal" />
       <FloatingOverlay>
         <FloatingPortal id={portalId}>
-          <div className="str-video__portal-content" ref={refs.setFloating}>
+          <div className="str-video__portal-content" ref={setFloating}>
             {children}
           </div>
         </FloatingPortal>
@@ -88,8 +89,7 @@ export const MenuToggle = <E extends HTMLElement>({
   onToggle,
 }: MenuToggleProps<E>) => {
   const [menuShown, setMenuShown] = useState(false);
-  const toggleHandler = useRef(onToggle);
-  toggleHandler.current = onToggle;
+  const handleToggle = useEffectEvent(onToggle ?? (() => {}));
 
   const { floating, domReference, refs, x, y } = useFloatingUIPreset({
     placement,
@@ -97,16 +97,17 @@ export const MenuToggle = <E extends HTMLElement>({
     offset,
   });
 
+  const { setReference, setFloating } = refs;
   useEffect(() => {
     const parentDocument = domReference?.ownerDocument;
 
     const handleClick = (event: MouseEvent) => {
       if (!floating && domReference?.contains(event.target as Node)) {
         setMenuShown(true);
-        toggleHandler.current?.(true);
+        handleToggle(true);
       } else if (floating && !floating?.contains(event.target as Node)) {
         setMenuShown(false);
-        toggleHandler.current?.(false);
+        handleToggle(false);
       }
     };
 
@@ -118,7 +119,7 @@ export const MenuToggle = <E extends HTMLElement>({
         !event.ctrlKey
       ) {
         setMenuShown(false);
-        toggleHandler.current?.(false);
+        handleToggle(false);
       }
     };
     parentDocument?.addEventListener('click', handleClick, { capture: true });
@@ -140,7 +141,7 @@ export const MenuToggle = <E extends HTMLElement>({
           ) : visualType === MenuVisualType.MENU ? (
             <div
               className="str-video__menu-container"
-              ref={refs.setFloating}
+              ref={setFloating}
               style={{
                 position: strategy,
                 top: y ?? 0,
@@ -153,7 +154,7 @@ export const MenuToggle = <E extends HTMLElement>({
           ) : null}
         </MenuContext.Provider>
       )}
-      <ToggleButton menuShown={menuShown} ref={refs.setReference} />
+      <ToggleButton menuShown={menuShown} ref={setReference} />
     </>
   );
 };

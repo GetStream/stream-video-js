@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { getCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
@@ -33,6 +33,12 @@ export type CallParticipantsGridProps = ParticipantViewComponentProps &
 /**
  * Component used to display the list of participants in a grid mode.
  */
+const {
+  useRemoteParticipants,
+  useParticipants,
+  useLocalParticipant,
+  useDominantSpeaker,
+} = getCallStateHooks();
 export const CallParticipantsGrid = ({
   CallParticipantsList = DefaultCallParticipantsList,
   ParticipantLabel,
@@ -48,12 +54,6 @@ export const CallParticipantsGrid = ({
   const {
     theme: { colors, callParticipantsGrid },
   } = useTheme();
-  const {
-    useRemoteParticipants,
-    useParticipants,
-    useLocalParticipant,
-    useDominantSpeaker,
-  } = useCallStateHooks();
   const _remoteParticipants = useRemoteParticipants();
   const localParticipant = useLocalParticipant();
   const _allParticipants = useParticipants();

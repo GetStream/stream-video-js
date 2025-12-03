@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { Call, StatCard, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { Call, StatCard, getCallStateHooks } from '@stream-io/video-react-sdk';
 import { useFloatingUIPreset } from '../../hooks/useFloatingUIPreset';
 
+const { useCallStatsReport } = getCallStateHooks();
 export const DebugStatsView = (props: {
   call: Call;
   sessionId: string;
   userId: string;
 }) => {
+  'use no memo';
   const { call, sessionId, userId } = props;
-  const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
   useEffect(() => {
@@ -43,12 +44,15 @@ export const DebugStatsView = (props: {
   });
 
   const [isPopperOpen, setIsPopperOpen] = useState(false);
+
+  const { setReference, setFloating } = refs;
+
   return (
     <>
       <span
         className="rd__debug__track-stats-icon"
         tabIndex={0}
-        ref={refs.setReference}
+        ref={setReference}
         onClick={() => {
           setIsPopperOpen((v) => !v);
         }}
@@ -56,7 +60,7 @@ export const DebugStatsView = (props: {
       {isPopperOpen && (
         <div
           className="rd__debug__track-stats str-video__call-stats"
-          ref={refs.setFloating}
+          ref={setFloating}
           style={{
             position: strategy,
             top: y ?? 0,

@@ -3,7 +3,7 @@ import {
   OwnCapability,
   videoLoggerSystem,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import React, { useEffect, useRef } from 'react';
 import { findNodeHandle, NativeModules, Platform } from 'react-native';
 import { usePrevious } from '../utils/hooks';
@@ -15,6 +15,8 @@ const CanDeviceScreenShare =
     Number.parseInt(Platform.Version?.split('.')[0] ?? '0', 10) >= 14) ||
   Platform.OS === 'android';
 
+const { useLocalParticipant, useCallSettings, useOwnCapabilities } =
+  getCallStateHooks();
 export const useScreenShareButton = (
   /**
    * Ref of the ScreenCapturePickerView component.
@@ -37,9 +39,8 @@ export const useScreenShareButton = (
    */
   onMissingScreenShareStreamPermission?: () => void,
 ) => {
+  'use no memo';
   const call = useCall();
-  const { useLocalParticipant, useCallSettings, useOwnCapabilities } =
-    useCallStateHooks();
   const callSettings = useCallSettings();
   const ownCapabilities = useOwnCapabilities();
   const hasScreenSharingPermissions = ownCapabilities?.includes(

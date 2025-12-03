@@ -7,7 +7,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import {
-  useCallStateHooks,
+  getCallStateHooks,
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
@@ -37,6 +37,7 @@ export type IncomingCallProps = IncomingCallControlsProps & {
  * An incoming call with the caller's avatar, name and accept/reject buttons.
  * Used when the user is receiving a call.
  */
+const { useCallMembers } = getCallStateHooks();
 export const IncomingCall = ({
   onAcceptCallHandler,
   onRejectCallHandler,
@@ -97,7 +98,6 @@ const Background: React.FunctionComponent<{
     theme: { colors, incomingCall },
   } = useTheme();
   const connectedUser = useConnectedUser();
-  const { useCallMembers } = useCallStateHooks();
   const members = useCallMembers();
 
   // take the first N members to show their avatars

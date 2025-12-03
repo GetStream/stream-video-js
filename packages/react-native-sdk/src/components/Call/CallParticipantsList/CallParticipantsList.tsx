@@ -89,6 +89,7 @@ export const CallParticipantsList = ({
   supportedReactions,
   landscape,
 }: CallParticipantsListProps) => {
+  'use no memo';
   const styles = useStyles();
   const [containerLayout, setContainerLayout] = useState({
     width: 0,

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   type CallSessionResponse,
   type StreamCallEvent,
@@ -17,9 +17,9 @@ export type DurationBadgeProps = {
 /**
  * The HostDurationBadge component displays the duration while the live stream is active.
  */
+const { useCallSession } = getCallStateHooks();
 export const DurationBadge = ({ mode }: DurationBadgeProps) => {
   const styles = useStyles();
-  const { useCallSession } = useCallStateHooks();
   const session = useCallSession();
 
   const [duration, setDuration] = useState(() => {

@@ -1,11 +1,11 @@
-import { Icon, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { getCallStateHooks, Icon, useCall } from '@stream-io/video-react-sdk';
 import { decodeBase64 } from 'stream-chat';
 import { useRouter } from 'next/router';
 import { getConnectionString } from '../lib/connectionString';
 
+const { useLocalParticipant } = getCallStateHooks();
 export const DevMenu = () => {
   const call = useCall();
-  const { useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const router = useRouter();
   const withParams = (url: string) => {
@@ -150,9 +150,9 @@ export const DevMenu = () => {
   );
 };
 
+const { useIsCallHLSBroadcastingInProgress } = getCallStateHooks();
 const StartStopBroadcasting = () => {
   const call = useCall();
-  const { useIsCallHLSBroadcastingInProgress } = useCallStateHooks();
   const isBroadcasting = useIsCallHLSBroadcastingInProgress();
   return (
     <button
@@ -184,9 +184,9 @@ const StartStopBroadcasting = () => {
   );
 };
 
+const { useIsCallLive } = getCallStateHooks();
 const GoOrStopLive = () => {
   const call = useCall();
-  const { useIsCallLive } = useCallStateHooks();
   const isLive = useIsCallLive();
   return (
     <button

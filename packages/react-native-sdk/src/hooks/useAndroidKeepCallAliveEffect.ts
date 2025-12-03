@@ -1,4 +1,4 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
 import { StreamVideoRN } from '../utils';
 import {
@@ -18,7 +18,9 @@ const callToPassToForegroundService: { current: Call | undefined } = {
   current: undefined,
 };
 
+const { useCallCallingState } = getCallStateHooks();
 function setForegroundService() {
+  'use no memo';
   if (Platform.OS === 'ios' || !notifeeLib) return;
   NativeModules.StreamVideoReactNative.isCallAliveConfigured().then(
     (isConfigured: boolean) => {
@@ -122,12 +124,12 @@ let isSetForegroundServiceRan = false;
  * Additionally: also responsible for cancelling any notifee displayed notification when the call has transitioned out of ringing
  */
 export const useAndroidKeepCallAliveEffect = () => {
+  'use no memo';
   const foregroundServiceStartedRef = useRef(false);
 
   const call = useCall();
   callToPassToForegroundService.current = call;
   const activeCallCid = call?.cid;
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const isOutgoingCall =

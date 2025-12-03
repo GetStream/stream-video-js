@@ -2,7 +2,7 @@ import React from 'react';
 import {
   CallControlsButton,
   CallingState,
-  useCallStateHooks,
+  getCallStateHooks,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
@@ -29,6 +29,7 @@ export type ParticipantsButtonProps = {
  *
  * This button also displays the participant count of the participants in the call.
  */
+const { useCallMembers, useCallCallingState } = getCallStateHooks();
 export const ParticipantsButton = ({
   onParticipantInfoPress,
   participantCount,
@@ -37,7 +38,6 @@ export const ParticipantsButton = ({
     theme: { colors, chatButton, defaults },
   } = useTheme();
 
-  const { useCallMembers, useCallCallingState } = useCallStateHooks();
   const members = useCallMembers();
   const callingState = useCallCallingState();
 
