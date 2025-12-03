@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.6.0...@stream-io/audio-filters-web-0.6.1) (2025-11-25)
+
+### Bug Fixes
+
+- **noise cancellation:** delay toggling until initialization is finished ([#2014](https://github.com/GetStream/stream-video-js/issues/2014)) ([d28b8ea](https://github.com/GetStream/stream-video-js/commit/d28b8ea282322a25688ff48966b0dc10dd7e60bd))
+- **noise cancellation:** delay toggling until initialization is finished ([#2017](https://github.com/GetStream/stream-video-js/issues/2017)) ([cbd3e43](https://github.com/GetStream/stream-video-js/commit/cbd3e437f75979d6babd8ff8b825140d4afbc062))
+
 ## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.5.0...@stream-io/audio-filters-web-0.6.0) (2025-10-14)
 
 ### Features

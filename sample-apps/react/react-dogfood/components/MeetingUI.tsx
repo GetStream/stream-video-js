@@ -3,7 +3,6 @@ import {
   defaultSortPreset,
   LoadingIndicator,
   noopComparator,
-  PreferredCodec,
   useCall,
   useCallStateHooks,
   useModeration,
@@ -27,6 +26,12 @@ import { DefaultAppHeader } from './DefaultAppHeader';
 import { Feedback } from './Feedback/Feedback';
 import { Lobby, UserMode } from './Lobby';
 import { getRandomName, sanitizeUserId } from '../lib/names';
+import {
+  publishRemoteFile,
+  RemoteFilePublisher,
+  RemoteFilePublisherContext,
+} from './RemoteFilePublisher';
+import { applyQueryConfigParams } from '../lib/queryConfigParams';
 
 const contents = {
   'error-join': {
@@ -41,6 +46,7 @@ type MeetingUIProps = {
   chatClient?: StreamChat | null;
   mode?: UserMode;
 };
+
 export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call' | 'left'
@@ -55,41 +61,15 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   } = useSettings();
   useModeration();
   const isRestricted = useIsRestrictedEnvironment();
-
-  const videoCodecOverride = (router.query['video_encoder'] ||
-    router.query['video_codec']) as PreferredCodec | undefined;
-  const fmtpOverride = router.query['fmtp'] as string | undefined;
-  const bitrateOverride = router.query['bitrate'] as string | undefined;
-  const videoDecoderOverride = router.query['video_decoder'] as
-    | PreferredCodec
-    | undefined;
-  const videoDecoderFmtpOverride = router.query['video_decoder_fmtp'] as
-    | string
-    | undefined;
-  const maxSimulcastLayers = router.query['max_simulcast_layers'] as
-    | string
-    | undefined;
-  const forceCodec = router.query['force_codec'] as PreferredCodec | undefined;
+  const [remoteFilePublisherAPI, setRemoteFilePublisherAPI] =
+    useState<RemoteFilePublisher>();
 
   const onJoin = useCallback(
     async (options: { fastJoin?: boolean; displayName?: string } = {}) => {
       if (!options.fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
-        const preferredBitrate = bitrateOverride
-          ? parseInt(bitrateOverride, 10)
-          : undefined;
-        call.updatePublishOptions({
-          dangerouslyForceCodec: forceCodec,
-          preferredCodec: videoCodecOverride,
-          fmtpLine: fmtpOverride,
-          preferredBitrate,
-          subscriberCodec: videoDecoderOverride,
-          subscriberFmtpLine: videoDecoderFmtpOverride,
-          maxSimulcastLayers: maxSimulcastLayers
-            ? parseInt(maxSimulcastLayers, 10)
-            : undefined,
-        });
+        const { videoFile } = applyQueryConfigParams(call, router.query);
         if (call.state.callingState !== CallingState.JOINED) {
           if (typeof options.displayName === 'string') {
             const name = options.displayName || getRandomName();
@@ -100,7 +80,13 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
               email: (chatClient?.user as any)?.email,
             } as any);
           }
-          await call.join({ create: !isRestricted });
+
+          if (videoFile) {
+            const api = await publishRemoteFile(call, videoFile);
+            setRemoteFilePublisherAPI(api);
+          } else {
+            await call.join({ create: !isRestricted });
+          }
         }
         setShow('active-call');
       } catch (e) {
@@ -109,18 +95,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [
-      call,
-      bitrateOverride,
-      forceCodec,
-      videoCodecOverride,
-      fmtpOverride,
-      videoDecoderOverride,
-      videoDecoderFmtpOverride,
-      maxSimulcastLayers,
-      isRestricted,
-      chatClient,
-    ],
+    [call, router, chatClient, isRestricted],
   );
 
   const onLeave = useCallback(
@@ -219,12 +194,14 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     );
   } else {
     childrenToRender = (
-      <ActiveCall
-        activeCall={call}
-        chatClient={chatClient}
-        onLeave={onLeave}
-        onJoin={() => onJoin()}
-      />
+      <RemoteFilePublisherContext.Provider value={remoteFilePublisherAPI}>
+        <ActiveCall
+          activeCall={call}
+          chatClient={chatClient}
+          onLeave={onLeave}
+          onJoin={() => onJoin()}
+        />
+      </RemoteFilePublisherContext.Provider>
     );
   }
 

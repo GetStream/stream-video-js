@@ -64,7 +64,6 @@ export type StreamVideoConfig = {
        *  id: 'stream_incoming_call',
        *  name: 'Incoming call notifications',
        *  importance: AndroidImportance.HIGH,
-       *  sound: 'default',
        * }
        */
       incomingCallChannel?: AndroidChannel;

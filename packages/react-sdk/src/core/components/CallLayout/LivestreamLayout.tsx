@@ -11,7 +11,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { hasScreenShare } from '@stream-io/video-client';
+import { hasScreenShare, humanize } from '@stream-io/video-client';
 import { ParticipantView, useParticipantViewContext } from '../ParticipantView';
 import { ParticipantsAudio } from '../Audio';
 import {
@@ -34,6 +34,16 @@ export type LivestreamLayoutProps = {
   showParticipantCount?: boolean;
 
   /**
+   * Whether to humanize the participant count. Defaults to `true`.
+   * @example
+   * 1000 participants -> 1k
+   * 1500 participants -> 1.5k
+   * 10_000 participants -> 10k
+   * 100_000 participants -> 100k
+   */
+  humanizeParticipantCount?: boolean;
+
+  /**
    * Whether to enable fullscreen mode. Defaults to `true`.
    */
   enableFullScreen?: boolean;
@@ -52,6 +62,11 @@ export type LivestreamLayoutProps = {
    * Whether to show the speaker name. Defaults to `false`.
    */
   showSpeakerName?: boolean;
+
+  /**
+   * Whether to show the mute button. Defaults to `true`.
+   */
+  showMuteButton?: boolean;
 
   /**
    * When set to `false` disables mirroring of the local participant's video.
@@ -94,6 +109,7 @@ export const LivestreamLayout = (props: LivestreamLayoutProps) => {
       showParticipantCount={props.showParticipantCount}
       showDuration={props.showDuration}
       showLiveBadge={props.showLiveBadge}
+      showMuteButton={props.showMuteButton}
       showSpeakerName={props.showSpeakerName}
       enableFullScreen={props.enableFullScreen}
     />
@@ -160,10 +176,21 @@ export type BackstageLayoutProps = {
    * the livestream went live. Defaults to `true`.
    */
   showEarlyParticipantCount?: boolean;
+
+  /**
+   * Show the participant count in a humanized format. Defaults to `true`.
+   * @example
+   * 1000 participants -> 1k
+   * 1500 participants -> 1.5k
+   * 10_000 participants -> 10k
+   * 10_0000 participants -> 100k
+   */
+  humanizeParticipantCount?: boolean;
 };
 
 export const BackstageLayout = (props: BackstageLayoutProps) => {
-  const { showEarlyParticipantCount = true } = props;
+  const { showEarlyParticipantCount = true, humanizeParticipantCount = true } =
+    props;
   const { useParticipantCount, useCallStartsAt } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const startsAt = useCallStartsAt();
@@ -182,7 +209,9 @@ export const BackstageLayout = (props: BackstageLayoutProps) => {
         {showEarlyParticipantCount && (
           <span className="str-video__livestream-layout__early-viewers-count">
             {t('{{ count }} participants joined early', {
-              count: participantCount,
+              count: humanizeParticipantCount
+                ? humanize(participantCount)
+                : participantCount,
             })}
           </span>
         )}
@@ -196,15 +225,19 @@ BackstageLayout.displayName = 'BackstageLayout';
 const ParticipantOverlay = (props: {
   enableFullScreen?: boolean;
   showParticipantCount?: boolean;
+  humanizeParticipantCount?: boolean;
   showDuration?: boolean;
   showLiveBadge?: boolean;
   showSpeakerName?: boolean;
+  showMuteButton?: boolean;
 }) => {
   const {
     enableFullScreen = true,
     showParticipantCount = true,
+    humanizeParticipantCount = true,
     showDuration = true,
     showLiveBadge = true,
+    showMuteButton = true,
     showSpeakerName = false,
   } = props;
   const overlayBarVisible =
@@ -212,12 +245,15 @@ const ParticipantOverlay = (props: {
     showParticipantCount ||
     showDuration ||
     showLiveBadge ||
+    showMuteButton ||
     showSpeakerName;
   const { participant } = useParticipantViewContext();
-  const { useParticipantCount } = useCallStateHooks();
+  const { useParticipantCount, useSpeakerState } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const duration = useUpdateCallDuration();
   const toggleFullScreen = useToggleFullScreen();
+  const { speaker, volume } = useSpeakerState();
+  const isSpeakerMuted = volume === 0;
   const { t } = useI18n();
   return (
     <div className="str-video__livestream-layout__overlay">
@@ -230,7 +266,9 @@ const ParticipantOverlay = (props: {
           )}
           {showParticipantCount && (
             <span className="str-video__livestream-layout__viewers-count">
-              {participantCount}
+              {humanizeParticipantCount
+                ? humanize(participantCount)
+                : participantCount}
             </span>
           )}
           {showSpeakerName && (
@@ -245,6 +283,16 @@ const ParticipantOverlay = (props: {
             <span className="str-video__livestream-layout__duration">
               {formatDuration(duration)}
             </span>
+          )}
+          {showMuteButton && (
+            <span
+              className={clsx(
+                'str-video__livestream-layout__mute-button',
+                isSpeakerMuted &&
+                  'str-video__livestream-layout__mute-button--muted',
+              )}
+              onClick={() => speaker.setVolume(isSpeakerMuted ? 1 : 0)}
+            />
           )}
           {enableFullScreen && (
             <span

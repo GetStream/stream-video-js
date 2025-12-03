@@ -2,6 +2,26 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.25.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.7...@stream-io/video-react-native-sdk-1.25.0) (2025-11-28)
+
+### Features
+
+- add native methods to check for hardware presence in android RN-310 ([#2023](https://github.com/GetStream/stream-video-js/issues/2023)) ([90fddbc](https://github.com/GetStream/stream-video-js/commit/90fddbc22d9c21e51e2322c69031d81a30de063f))
+
+## [1.24.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.6...@stream-io/video-react-native-sdk-1.24.7) (2025-11-25)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.2`
+- `@stream-io/video-client` updated to version `1.37.3`
+- `@stream-io/video-react-bindings` updated to version `1.11.4`
+
+- instructions for Claude and other coding agents ([#2012](https://github.com/GetStream/stream-video-js/issues/2012)) ([08a3459](https://github.com/GetStream/stream-video-js/commit/08a345954f7cb5b1fae5a4b39b5b585bf1f631ec))
+
+### Bug Fixes
+
+- **noise cancellation:** delay toggling until initialization is finished ([#2014](https://github.com/GetStream/stream-video-js/issues/2014)) ([d28b8ea](https://github.com/GetStream/stream-video-js/commit/d28b8ea282322a25688ff48966b0dc10dd7e60bd))
+
 ## [1.24.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.5...@stream-io/video-react-native-sdk-1.24.6) (2025-11-20)
 
 ### Dependency Updates
