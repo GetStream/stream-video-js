@@ -4,7 +4,7 @@ import {
   callManager,
   OwnCapability,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useNoiseCancellation,
   useScreenshot,
   useTheme,
@@ -56,6 +56,12 @@ type MoreActionsButtonProps = {
  * of a menu or bottom sheet with more actions.
  *
  */
+const {
+  useIsCallCaptioningInProgress,
+  useHasPermissions,
+  useParticipants,
+  useDominantSpeaker,
+} = getCallStateHooks();
 export const MoreActionsButton = ({
   onPressHandler,
   controlsContainerHeight,
@@ -82,12 +88,6 @@ export const MoreActionsButton = ({
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const call = useCall();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const {
-    useIsCallCaptioningInProgress,
-    useHasPermissions,
-    useParticipants,
-    useDominantSpeaker,
-  } = useCallStateHooks();
   const isCaptioningInProgress = useIsCallCaptioningInProgress();
   const canToggle = useHasPermissions(
     OwnCapability.START_CLOSED_CAPTIONS_CALL,

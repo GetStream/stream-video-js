@@ -4,7 +4,7 @@ import {
   BackgroundFiltersProvider,
   CallingState,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList, ScreenTypes } from '../../types';
@@ -23,6 +23,7 @@ type Props = NativeStackScreenProps<
   callId: string;
 };
 
+const { useCallCallingState } = getCallStateHooks();
 export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const [show, setShow] = useState<ScreenTypes>('lobby');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -30,7 +31,6 @@ export const MeetingUI = ({ callId, navigation, route }: Props) => {
   const { t } = useI18n();
   const unreadCountIndicator = useUnreadCount();
 
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   const call = useCall();

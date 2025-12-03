@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { RecordCall } from '../../assets/RecordCall';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import { useCallStateHooks, useTheme } from '@stream-io/video-react-native-sdk';
+import { getCallStateHooks, useTheme } from '@stream-io/video-react-native-sdk';
 
 const formatTime = (seconds: number) => {
   const date = new Date(0);
@@ -19,6 +19,7 @@ export type CallStatusBadgeProps = {
   isAwaitingResponse: boolean;
 };
 
+const { useCallSession } = getCallStateHooks();
 export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
   isCallRecordingInProgress,
   isAwaitingResponse,
@@ -32,7 +33,6 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
 
   // TODO: replace this with useDuration when that https://github.com/GetStream/stream-video-js/pull/1528 is merged
   const [elapsed, setElapsed] = useState<string>('00:00');
-  const { useCallSession } = useCallStateHooks();
   const session = useCallSession();
   const startedAt = session?.started_at;
   const startedAtDate = useMemo(() => {

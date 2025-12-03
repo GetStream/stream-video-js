@@ -1,6 +1,6 @@
 import {
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -19,12 +19,12 @@ type LobbyProps = {
   handleJoinCall?: () => void;
 };
 
+const { useCallStartsAt, useParticipants, useCallCallingState } =
+  getCallStateHooks();
 export const ViewerLobby = ({ isLive }: LobbyProps) => {
   const styles = useStyles();
   const { theme } = useTheme();
   const { t } = useI18n();
-  const { useCallStartsAt, useParticipants, useCallCallingState } =
-    useCallStateHooks();
   const callingState = useCallCallingState();
   const call = useCall();
   const startsAt = useCallStartsAt();

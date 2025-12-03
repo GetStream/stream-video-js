@@ -46,6 +46,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   options,
   bottomControlsHeight,
 }) => {
+  'use no memo';
   const { theme } = useTheme();
   const screenHeight = Dimensions.get('window').height;
   const drawerHeight = screenHeight * 0.8;

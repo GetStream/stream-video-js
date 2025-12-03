@@ -1,6 +1,6 @@
 import React from 'react';
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { Restricted, getCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, Mic, MicOff } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -19,10 +19,10 @@ export type ToggleAudioPublishingButtonProps = {
 /**
  * Button to toggle audio mute/unmute status while in the call.
  */
+const { useMicrophoneState } = getCallStateHooks();
 export const ToggleAudioPublishingButton = ({
   onPressHandler,
 }: ToggleAudioPublishingButtonProps) => {
-  const { useMicrophoneState } = useCallStateHooks();
   const { optimisticIsMute, microphone } = useMicrophoneState();
 
   const {

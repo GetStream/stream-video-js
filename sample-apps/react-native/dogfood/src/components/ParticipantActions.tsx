@@ -5,7 +5,7 @@ import {
   OwnCapability,
   StreamVideoParticipant,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
@@ -34,6 +34,7 @@ type ParticipantActionsType = {
   >;
 };
 
+const { useHasPermissions } = getCallStateHooks();
 export const ParticipantActions = (props: ParticipantActionsType) => {
   const { participant, setSelectedParticipant } = props;
   const call = useCall();
@@ -42,7 +43,6 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
   } = useTheme();
   const styles = useStyles();
   const { t } = useI18n();
-  const { useHasPermissions } = useCallStateHooks();
   const userHasMuteUsersCapability = useHasPermissions(
     OwnCapability.MUTE_USERS,
   );

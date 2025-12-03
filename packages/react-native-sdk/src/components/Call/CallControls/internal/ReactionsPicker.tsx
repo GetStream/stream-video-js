@@ -26,6 +26,7 @@ export const ReactionsPicker = ({
   reactionsButtonLayoutRectangle,
   onRequestedClose,
 }: ReactionPickerProps) => {
+  'use no memo';
   const {
     theme: { colors, reactionsPicker, variants },
   } = useTheme();

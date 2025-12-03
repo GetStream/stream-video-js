@@ -4,7 +4,7 @@ import {
   SfuModels,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { usePaginatedLayoutSortPreset } from '../../../hooks/usePaginatedLayoutSortPreset';
 import { useTheme } from '../../../contexts';
@@ -37,12 +37,12 @@ export type LivestreamLayoutProps = {
 /**
  * The LivestreamLayout component presents the live stream video layout.
  */
+const { useParticipants, useHasOngoingScreenShare } = getCallStateHooks();
 export const LivestreamLayout = ({
   landscape,
   VideoRenderer = DefaultVideoRenderer,
   ScreenShareOverlay,
 }: LivestreamLayoutProps) => {
-  const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const call = useCall();
   const {
     theme: { colors, livestreamLayout },

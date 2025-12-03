@@ -22,6 +22,7 @@ const AnimatedFloatingView = ({
   containerHeight,
   children,
 }: FloatingViewProps) => {
+  'use no memo';
   // the translate is calculated using distance of dragging (dx, dy)
   // computed value = value + offset
   // Start of a DRAG state: value is (0,0) and offset is the last (translateX, translateY)

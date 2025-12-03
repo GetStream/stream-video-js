@@ -3,7 +3,7 @@ import {
   RxUtils,
   videoLoggerSystem,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import { NativeModules, Platform } from 'react-native';
 import { useEffect, useState } from 'react';
 import { StreamVideoRN } from '../../utils';
@@ -13,6 +13,8 @@ import {
   voipCallkeepCallOnForegroundMap$,
   voipPushNotificationCallCId$,
 } from '../../utils/push/internal/rxSubjects';
+
+const { useCallCallingState } = getCallStateHooks();
 
 const isNonActiveCallingState = (callingState: CallingState) => {
   return (
@@ -54,7 +56,6 @@ const log = (message: string) => {
  */
 export const useIosCallkeepWithCallingStateEffect = () => {
   const activeCall = useCall();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const [acceptedForegroundCallkeepMap, setAcceptedForegroundCallkeepMap] =
     useState<{

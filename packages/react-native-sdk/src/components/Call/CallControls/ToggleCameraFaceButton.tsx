@@ -1,5 +1,5 @@
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { Restricted, getCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { CameraSwitch, IconWrapper } from '../../../icons';
@@ -25,11 +25,11 @@ export type ToggleCameraFaceButtonProps = {
 /**
  * Button to toggle camera face(front/back) when in the call.
  */
+const { useCameraState, useCallSettings } = getCallStateHooks();
 export const ToggleCameraFaceButton = ({
   onPressHandler,
   backgroundColor,
 }: ToggleCameraFaceButtonProps) => {
-  const { useCameraState, useCallSettings } = useCallStateHooks();
   const { camera, optimisticIsMute, direction } = useCameraState();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;

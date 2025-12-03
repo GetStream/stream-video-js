@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { getCallStateHooks } from '@stream-io/video-react-bindings';
 import { useTheme } from '../../../contexts';
 import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, Video, VideoSlash } from '../../../icons';
@@ -18,6 +18,7 @@ export type ToggleVideoPreviewButtonProps = {
 /**
  * Button to toggle video mute/unmute status before joining the call.
  */
+const { useCameraState, useCallSettings } = getCallStateHooks();
 export const ToggleVideoPreviewButton = ({
   onPressHandler,
 }: ToggleVideoPreviewButtonProps) => {
@@ -28,7 +29,6 @@ export const ToggleVideoPreviewButton = ({
       variants: { buttonSizes, iconSizes },
     },
   } = useTheme();
-  const { useCameraState, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
   const { optimisticIsMute, camera } = useCameraState();

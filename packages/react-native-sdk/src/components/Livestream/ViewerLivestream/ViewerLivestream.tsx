@@ -11,7 +11,7 @@ import {
   LivestreamLayout as DefaultLivestreamLayout,
   type LivestreamLayoutProps,
 } from '../LivestreamLayout';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   FloatingParticipantView as DefaultFloatingParticipantView,
   type FloatingParticipantViewProps,
@@ -56,6 +56,16 @@ export type ViewerLivestreamProps = ViewerLivestreamTopViewProps &
 /**
  * The ViewerLivestream component renders the UI for the Viewer's live stream.
  */
+const {
+  useHasOngoingScreenShare,
+  useParticipants,
+  useCallCallingState,
+  useCallEndedAt,
+  useIsCallLive,
+  useOwnCapabilities,
+  useCallStartsAt,
+  useCallSettings,
+} = getCallStateHooks();
 export const ViewerLivestream = ({
   ViewerLivestreamTopView,
   ViewerLivestreamControls = DefaultViewerLivestreamControls,
@@ -73,14 +83,6 @@ export const ViewerLivestream = ({
   const {
     theme: { viewerLivestream },
   } = useTheme();
-  const {
-    useHasOngoingScreenShare,
-    useParticipants,
-    useCallCallingState,
-    useCallEndedAt,
-    useIsCallLive,
-    useOwnCapabilities,
-  } = useCallStateHooks();
   const canJoinLive = useIsCallLive();
   const callingState = useCallCallingState();
   const endedAt = useCallEndedAt();
@@ -188,7 +190,6 @@ export const ViewerLivestream = ({
 };
 
 const useCanJoinEarly = () => {
-  const { useCallStartsAt, useCallSettings } = useCallStateHooks();
   const startsAt = useCallStartsAt();
   const settings = useCallSettings();
   const joinAheadTimeSeconds = settings?.backstage.join_ahead_time_seconds;

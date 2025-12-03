@@ -2,7 +2,7 @@ import {
   AggregatedStatsReport,
   CallStatsReport,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
@@ -23,6 +23,7 @@ export type CallStatsProps = {
   showCodecInfo?: boolean;
 };
 
+const { useCallStatsReport } = getCallStateHooks();
 export const CallStats = (props: CallStatsProps) => {
   const {
     latencyLowBound = 75,
@@ -36,7 +37,6 @@ export const CallStats = (props: CallStatsProps) => {
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
   const previousStats = useRef<CallStatsReport | undefined>(undefined);
 
-  const { useCallStatsReport } = useCallStateHooks();
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);
   const callStatsReport = useCallStatsReport();
 

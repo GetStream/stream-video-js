@@ -1,4 +1,4 @@
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import React, { useState } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, PhoneDown } from '../../../icons';
@@ -41,6 +41,7 @@ type RejectCallButtonProps = {
  *
  * Calls call.leave({ reject: true, reason: `OPTIONAL-REASON` }) internally.
  */
+const { useCallCallingState } = getCallStateHooks();
 export const RejectCallButton = ({
   onPressHandler,
   onRejectCallHandler,
@@ -48,7 +49,6 @@ export const RejectCallButton = ({
   rejectReason,
 }: RejectCallButtonProps) => {
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const {
     theme: {

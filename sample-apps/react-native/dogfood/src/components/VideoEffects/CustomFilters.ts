@@ -15,6 +15,7 @@ const isSupported = Platform.OS === 'android' || Platform.OS === 'ios';
 type CustomFilters = 'GrayScale';
 
 export const useCustomVideoFilters = () => {
+  'use no memo';
   const call = useCall();
   const isGrayScaleRegisteredRef = useRef(false);
   const { disableAllFilters } = useBackgroundFilters();

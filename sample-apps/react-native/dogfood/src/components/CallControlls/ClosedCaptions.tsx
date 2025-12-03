@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useCallStateHooks, useTheme } from '@stream-io/video-react-native-sdk';
+import { getCallStateHooks, useTheme } from '@stream-io/video-react-native-sdk';
 
+const { useCallClosedCaptions } = getCallStateHooks();
 export const ClosedCaptions = () => {
-  const { useCallClosedCaptions } = useCallStateHooks();
   const closedCaptions = useCallClosedCaptions();
   const styles = useStyles();
 

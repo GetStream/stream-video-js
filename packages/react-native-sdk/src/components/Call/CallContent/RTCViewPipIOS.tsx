@@ -6,7 +6,7 @@ import {
   videoLoggerSystem,
   type VideoTrackType,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import React, { useEffect, useMemo, useCallback } from 'react';
 import { findNodeHandle } from 'react-native';
@@ -29,10 +29,10 @@ type Props = {
   onPiPChange?: (active: boolean) => void;
 };
 
+const { useParticipants } = getCallStateHooks();
 export const RTCViewPipIOS = React.memo((props: Props) => {
   const { includeLocalParticipantVideo, onPiPChange } = props;
   const call = useCall();
-  const { useParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });

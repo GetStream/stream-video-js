@@ -3,7 +3,7 @@ import {
   ScreenShareToggleButton,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
-  useCallStateHooks,
+  getCallStateHooks,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, { useMemo, useState } from 'react';
@@ -72,6 +72,8 @@ export const BottomControls = ({
   );
 };
 
+const { useIsCallCaptioningInProgress, useMicrophoneState } =
+  getCallStateHooks();
 // speaking while muted and caption controls - aka subtitle on top of video
 const SubtitleContainer = ({
   controlsContainerHeight,
@@ -79,8 +81,6 @@ const SubtitleContainer = ({
   controlsContainerHeight: number;
 }) => {
   const styles = useStyles();
-  const { useIsCallCaptioningInProgress, useMicrophoneState } =
-    useCallStateHooks();
   const isCaptioningInProgress = useIsCallCaptioningInProgress();
   const { isSpeakingWhileMuted } = useMicrophoneState();
   if (!isCaptioningInProgress || !isSpeakingWhileMuted) {

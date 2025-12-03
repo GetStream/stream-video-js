@@ -20,7 +20,7 @@ import {
   FloatingParticipantView as DefaultFloatingParticipantView,
   type FloatingParticipantViewProps,
 } from '../../Participant/FloatingParticipantView';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { getCallStateHooks } from '@stream-io/video-react-bindings';
 import { hasVideo } from '@stream-io/video-client';
 import {
   ScreenShareOverlay as DefaultScreenShaerOverlay,
@@ -57,6 +57,7 @@ export type HostLivestreamProps = Omit<HostLivestreamTopViewProps, 'onLayout'> &
 /**
  * The HostLivestream component displays the UI for the Host's live stream.
  */
+const { useParticipants, useHasOngoingScreenShare } = getCallStateHooks();
 export const HostLivestream = ({
   HostLivestreamTopView = DefaultHostLivestreamTopView,
   HostLivestreamControls = DefaultHostLivestreamControls,
@@ -78,7 +79,6 @@ export const HostLivestream = ({
     theme: { colors, hostLivestream },
   } = useTheme();
 
-  const { useParticipants, useHasOngoingScreenShare } = useCallStateHooks();
   const [currentSpeaker] = useParticipants();
   const hasOngoingScreenShare = useHasOngoingScreenShare();
   const floatingParticipant =

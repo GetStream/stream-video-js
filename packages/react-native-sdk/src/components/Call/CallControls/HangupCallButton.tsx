@@ -2,7 +2,7 @@ import React from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { PhoneDown } from '../../../icons';
 import { ButtonTestIds } from '../../../constants/TestIds';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { IconWrapper } from '../../../icons/IconWrapper';
@@ -33,13 +33,13 @@ export type HangUpCallButtonProps = {
  *
  * Mostly calls call.leave() internally.
  */
+const { useCallCallingState } = getCallStateHooks();
 export const HangUpCallButton = ({
   size,
   onPressHandler,
   onHangupCallHandler,
 }: HangUpCallButtonProps) => {
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const {
     theme: { colors, hangupCallButton, variants },

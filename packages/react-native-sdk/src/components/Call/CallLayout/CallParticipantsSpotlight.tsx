@@ -3,7 +3,7 @@ import {
   hasScreenShare,
   speakerLayoutSortPreset,
 } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { getCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
 import { ComponentTestIds } from '../../../constants/TestIds';
@@ -39,6 +39,7 @@ export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
  * Component used to display the list of participants in a spotlight mode.
  * This can be used when you want to render the screen sharing stream.
  */
+const { useParticipants } = getCallStateHooks();
 export const CallParticipantsSpotlight = ({
   CallParticipantsList = DefaultCallParticipantsList,
   ParticipantLabel,
@@ -55,7 +56,6 @@ export const CallParticipantsSpotlight = ({
     theme: { callParticipantsSpotlight, variants },
   } = useTheme();
   const styles = useStyles();
-  const { useParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });

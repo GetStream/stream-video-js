@@ -1,6 +1,6 @@
 import {
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
 import React, { useState } from 'react';
@@ -42,6 +42,8 @@ export type HostStartStreamButtonProps = {
 /**
  * The HostStartStreamButton component displays and controls the start and end of the host's live stream.
  */
+const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
+  getCallStateHooks();
 export const HostStartStreamButton = ({
   onEndStreamHandler,
   onStartStreamHandler,
@@ -49,8 +51,6 @@ export const HostStartStreamButton = ({
   disableStopPublishedStreamsOnEndStream,
 }: HostStartStreamButtonProps) => {
   const [isAwaitingResponse, setIsAwaitingResponse] = useState(false);
-  const { useIsCallLive, useIsCallHLSBroadcastingInProgress } =
-    useCallStateHooks();
   const {
     theme: {
       colors,

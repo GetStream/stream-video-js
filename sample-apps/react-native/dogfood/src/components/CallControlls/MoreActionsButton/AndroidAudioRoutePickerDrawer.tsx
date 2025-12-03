@@ -48,6 +48,7 @@ type AndroidAudioRoutePickerDrawerProps = DrawerProps & {
 export const AndroidAudioRoutePickerDrawer: React.FC<
   AndroidAudioRoutePickerDrawerProps
 > = ({ isVisible, onClose, bottomControlsHeight }) => {
+  'use no memo';
   const screenHeight = useWindowDimensions().height;
   const drawerHeight = screenHeight * 0.8;
   const styles = useStyles();
