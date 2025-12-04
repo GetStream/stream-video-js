@@ -91,7 +91,8 @@ export class VirtualBackground extends BaseVideoProcessor {
     if (!this.segmenter) return;
 
     return new Promise<void>((resolve) => {
-      this.segmenter!.segmentForVideo(frame, performance.now(), (result) => {
+      const timestamp = Math.floor(performance.now());
+      this.segmenter!.segmentForVideo(frame, timestamp, (result) => {
         try {
           this.latestCategoryMask = result.categoryMask?.getAsWebGLTexture();
           this.latestConfidenceMask =
