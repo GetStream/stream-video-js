@@ -1,17 +1,14 @@
 package com.callingx.notifications
 
-import android.Manifest
 import android.app.Notification
 import android.content.Context
 import android.os.Build
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
-import androidx.core.content.PermissionChecker
 import androidx.core.graphics.drawable.IconCompat
 import com.callingx.CallService
 import com.callingx.CallingxModule
@@ -36,28 +33,21 @@ class CallNotificationManager(
         private const val TAG = "[Callingx] CallNotificationManager"
 
         const val NOTIFICATION_ID = 200
-        const val NOTIFICATION_ACTION = "notification_action"
     }
 
-    private var notificationsConfig: NotificationsConfig.ChannelsConfig
-
-    init {
-        notificationsConfig = NotificationsConfig.loadNotificationsConfig(context)
-        createNotificationChannels(notificationsConfig)
-        Log.d(TAG, "CallNotificationManager: Notifications config: $notificationsConfig")
-    }
+    private var notificationsConfig = NotificationsConfig.loadNotificationsConfig(context)
 
     fun createNotification(call: Call.Registered): Notification {
         Log.d(TAG, "createNotification: Creating notification for call ID: ${call.id}")
 
-        val contentIntent = NotificationIntentFactory.getLaunchActivityIntent(context, CallingxModule.CALL_ANSWERED_ACTION, call.id)
+        val contentIntent =
+                NotificationIntentFactory.getLaunchActivityIntent(
+                        context,
+                        CallingxModule.CALL_ANSWERED_ACTION,
+                        call.id
+                )
         val callStyle = createCallStyle(call)
-        val channelId =
-                if (call.isIncoming() && !call.isActive) {
-                    notificationsConfig.incomingChannel.id
-                } else {
-                    notificationsConfig.outgoingChannel.id
-                }
+        val channelId = getChannelId(call)
 
         val builder =
                 NotificationCompat.Builder(context, channelId)
@@ -68,32 +58,17 @@ class CallNotificationManager(
                         .setCategory(NotificationCompat.CATEGORY_CALL)
                         .setPriority(NotificationCompat.PRIORITY_MAX)
                         .setOngoing(true)
-
+        
         call.displayOptions?.let {
             if (it.containsKey(CallService.EXTRA_DISPLAY_SUBTITLE)) {
                 builder.setContentText(it.getString(CallService.EXTRA_DISPLAY_SUBTITLE))
             }
         }
 
-        // if (call.isOnHold) {
-        //     val activateAction = TelecomCallAction.Activate
-        //     builder.addAction(
-        //             R.drawable.ic_phone_paused_24,
-        //             "Resume",
-        //             getPendingIntent(activateAction)
-        //     )
-        // }
-
         return builder.build()
     }
 
-    /** Updates, creates or dismisses a CallStyle notification based on the given [TelecomCall] */
     fun updateCallNotification(call: Call) {
-        if (!canPostNotifications()) {
-            Log.w(TAG, "updateCallNotification: Notifications are not granted, skipping update")
-            return
-        }
-
         when (call) {
             Call.None, is Call.Unregistered -> {
                 Log.d(TAG, "Dismissing notification (call is None or Unregistered)")
@@ -111,27 +86,12 @@ class CallNotificationManager(
         notificationManager.cancel(NOTIFICATION_ID)
     }
 
-    fun createNotificationChannels(notificationsConfig: NotificationsConfig.ChannelsConfig) {
-        val incomingChannel = createNotificationChannel(notificationsConfig.incomingChannel)
-        val ongoingChannel = createNotificationChannel(notificationsConfig.outgoingChannel)
-
-        notificationManager.createNotificationChannelsCompat(
-                listOf(
-                        incomingChannel,
-                        ongoingChannel,
-                ),
-        )
-        Log.d(TAG, "createNotificationChannels: Notification channels registered")
-    }
-
-    private fun createNotificationChannel(config: NotificationsConfig.ChannelParams): NotificationChannelCompat {
-        return NotificationChannelCompat.Builder(config.id, config.importance)
-                .apply {
-                    setName(config.name)
-                    setVibrationEnabled(config.vibration)
-                    ResourceUtils.getSoundUri(context, config.sound)?.let { setSound(it, null) }
-                }
-                .build()
+    private fun getChannelId(call: Call.Registered): String {
+        return if (call.isIncoming() && !call.isActive) {
+            notificationsConfig.incomingChannel.id
+        } else {
+            notificationsConfig.outgoingChannel.id
+        }
     }
 
     private fun createCallStyle(call: Call.Registered): NotificationCompat.CallStyle {
@@ -183,18 +143,5 @@ class CallNotificationManager(
                 .setIcon(IconCompat.createWithResource(context, R.drawable.ic_user))
                 .setImportant(true)
                 .build()
-    }
-
-    private fun canPostNotifications(): Boolean {
-        // POST_NOTIFICATIONS permission is only required on Android 13+
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return true
-        }
-
-        val permission = PermissionChecker.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS,
-        )
-        return permission == PermissionChecker.PERMISSION_GRANTED
     }
 }

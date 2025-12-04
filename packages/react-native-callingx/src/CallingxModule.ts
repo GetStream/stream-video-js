@@ -1,6 +1,9 @@
 import { Platform } from 'react-native';
 import NativeCallingModule from './spec/NativeCallingx';
-import { requestCallPermissions } from './utils/permissions';
+import {
+  checkCallPermissions,
+  requestCallPermissions,
+} from './utils/permissions';
 import type { PermissionsResult } from './utils/permissions';
 import {
   HEADLESS_TASK_NAME,
@@ -36,8 +39,14 @@ class CallingxModule implements ICallingxModule {
 
   private eventManager: EventManager = new EventManager();
 
-  get canPostNotifications(): boolean {
-    return this.isNotificationsAllowed;
+  canPostNotifications(): boolean {
+    if (Platform.OS !== 'android') {
+      return true;
+    }
+
+    return (
+      this.isNotificationsAllowed && NativeCallingModule.canPostNotifications()
+    );
   }
 
   setup(options: {
@@ -85,7 +94,7 @@ class CallingxModule implements ICallingxModule {
     const result: {
       recordAudio: boolean;
       postNotifications: boolean;
-    } = await requestCallPermissions();
+    } = await checkCallPermissions();
 
     this.isNotificationsAllowed = result.postNotifications;
     return result;

@@ -27,6 +27,8 @@ export interface Spec extends TurboModule {
     };
   }): void;
 
+  canPostNotifications(): boolean;
+
   getInitialEvents(): Array<{
     eventName: string;
     params: {

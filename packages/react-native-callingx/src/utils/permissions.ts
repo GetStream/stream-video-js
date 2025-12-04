@@ -57,9 +57,9 @@ export const requestCallPermissions = async (): Promise<PermissionsResult> => {
   }
 };
 
-export const checkCallPermissions = async (): Promise<boolean> => {
+export const checkCallPermissions = async (): Promise<PermissionsResult> => {
   if (Platform.OS !== 'android') {
-    return true;
+    return { recordAudio: true, postNotifications: true };
   }
 
   const permissions: string[] = [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO];
@@ -78,14 +78,29 @@ export const checkCallPermissions = async (): Promise<boolean> => {
 
   try {
     const results = await Promise.all(
-      permissions.map((permission) =>
-        PermissionsAndroid.check(permission as Permission)
-      )
+      permissions.map(async (permission) => ({
+        permission,
+        granted: await PermissionsAndroid.check(permission as Permission),
+      }))
     );
-    return Object.values(results).every((granted) => granted === true);
+
+    const resultsObject = results.reduce(
+      (acc, { permission, granted }) => {
+        acc[permission as Permission] = granted;
+        return acc;
+      },
+      {} as { [key in Permission]: boolean }
+    );
+
+    return {
+      recordAudio: resultsObject[PermissionsAndroid.PERMISSIONS.RECORD_AUDIO],
+      postNotifications:
+        resultsObject[PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS] ||
+        allowedPostNotifications,
+    };
   } catch (err) {
     console.warn('Error checking permissions:', err);
-    return false;
+    return { recordAudio: false, postNotifications: false };
   }
 };
 

@@ -159,8 +159,8 @@ export const firebaseDataHandler = async (
     }
 
     const callingx = getCallingxLib();
-    const permissions = await callingx.checkPermissions();
-    if (!permissions.postNotifications) {
+    await callingx.checkPermissions();
+    if (!callingx.canPostNotifications()) {
       logger.debug(
         `Notification permission not granted, unable to post ${data.type} notifications`,
       );

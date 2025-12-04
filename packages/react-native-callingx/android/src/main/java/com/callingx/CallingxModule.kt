@@ -13,6 +13,7 @@ import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
 import com.callingx.model.CallAction
+import com.callingx.notifications.NotificationChannelsManager
 import com.callingx.notifications.NotificationsConfig
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
@@ -50,7 +51,6 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         const val SERVICE_READY_ACTION = "service_ready"
     }
 
-    // Track binding state carefully
     private enum class BindingState {
         UNBOUND,
         BINDING,
@@ -60,31 +60,19 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     private var callService: CallService? = null
     private var bindingState = BindingState.UNBOUND
 
-    // private lateinit var notificationsConfig: NotificationsConfig
-
     private var delayedEvents = WritableNativeArray()
     private var isModuleInitialized = false
 
+    private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
     private val callEventBroadcastReceiver = CallEventBroadcastReceiver()
     private val appStateListener =
             object : LifecycleEventListener {
-                override fun onHostResume() {
-                    // App resumed - ensure service is bound if needed
-                    Log.d(TAG, "[module] onHostResume: App resumed")
-                    // if (!isBound && shouldServiceBeRunning()) {
-                    //     bindToService()
-                    // }
-                }
+                override fun onHostResume() {}
 
-                override fun onHostPause() {
-                    // App paused - start unbind timer
-                    Log.d(TAG, "[module] onHostPause: App paused")
-                    // startUnbindTimer()
-                }
+                override fun onHostPause() {}
 
                 override fun onHostDestroy() {
                     // App destroyed - force unbind
-                    // forceUnbindService()
                     Log.d(TAG, "[module] onHostDestroy: App destroyed")
                     unbindServiceSafely()
                 }
@@ -131,9 +119,16 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
 
     override fun setupAndroid(options: ReadableMap) {
         Log.d(TAG, "[module] setupAndroid: Setting up Android: $options")
-        NotificationsConfig.saveNotificationsConfig(reactApplicationContext, options)
+        val notificationsConfig =
+                NotificationsConfig.saveNotificationsConfig(reactApplicationContext, options)
+        notificationChannelsManager.setNotificationsConfig(notificationsConfig)
+        notificationChannelsManager.createNotificationChannels()
 
         isModuleInitialized = true
+    }
+
+    override fun canPostNotifications(): Boolean {
+        return notificationChannelsManager.getNotificationStatus().canPost
     }
 
     override fun getInitialEvents(): WritableArray {
@@ -166,6 +161,11 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 TAG,
                 "[module] displayIncomingCall: Displaying incoming call: $callId, $phoneNumber, $callerName, $hasVideo"
         )
+        if (!notificationChannelsManager.getNotificationStatus().canPost) {
+            promise.reject("ERROR", "Notifications are not granted")
+            return
+        }
+
         startCallService(
                 CallService.ACTION_INCOMING_CALL,
                 callId,
@@ -199,6 +199,11 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 TAG,
                 "[module] startCall: Starting outgoing call: $callId, $phoneNumber, $callerName, $hasVideo, $displayOptions"
         )
+        if (!notificationChannelsManager.getNotificationStatus().canPost) {
+            promise.reject("ERROR", "Notifications are not granted")
+            return
+        }
+
         startCallService(
                 CallService.ACTION_OUTGOING_CALL,
                 callId,
@@ -218,6 +223,11 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             promise: Promise
     ) {
         Log.d(TAG, "[module] updateDisplay: Updating display: $callId, $phoneNumber, $callerName")
+        if (!notificationChannelsManager.getNotificationStatus().canPost) {
+            promise.reject("ERROR", "Notifications are not granted")
+            return
+        }
+
         startCallService(
                 CallService.ACTION_UPDATE_CALL,
                 callId,

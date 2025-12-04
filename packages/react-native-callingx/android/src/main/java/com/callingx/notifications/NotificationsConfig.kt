@@ -14,6 +14,7 @@ object NotificationsConfig {
   private const val KEY_NAME = "name"
   private const val KEY_SOUND = "sound"
   private const val KEY_VIBRATION = "vibration"
+  private const val KEY_TIMEOUT = "timeout"
 
   private const val DEFAULT_INCOMING_CHANNEL_ID = "incoming_channel"
   private const val DEFAULT_INCOMING_CHANNEL_NAME = "Incoming calls"
@@ -29,32 +30,34 @@ object NotificationsConfig {
   )
 
   data class ChannelsConfig(
-    val incomingChannel: ChannelParams,
-    val outgoingChannel: ChannelParams,
+          val incomingChannel: ChannelParams,
+          val outgoingChannel: ChannelParams,
   )
 
-  fun saveNotificationsConfig(context: Context, rawConfig: ReadableMap) {
+  fun saveNotificationsConfig(context: Context, rawConfig: ReadableMap): ChannelsConfig {
     Log.d(TAG, "saveNotificationsConfig: Saving notifications config: $rawConfig")
     val config = extractNotificationsConfig(rawConfig)
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     prefs.edit()
             .apply {
-                // Incoming channel
-                putString(PREFIX_IN + KEY_ID, config.incomingChannel.id)
-                putString(PREFIX_IN + KEY_NAME, config.incomingChannel.name)
-                putString(PREFIX_IN + KEY_SOUND, config.incomingChannel.sound)
-                putBoolean(PREFIX_IN + KEY_VIBRATION, config.incomingChannel.vibration)
+              // Incoming channel
+              putString(PREFIX_IN + KEY_ID, config.incomingChannel.id)
+              putString(PREFIX_IN + KEY_NAME, config.incomingChannel.name)
+              putString(PREFIX_IN + KEY_SOUND, config.incomingChannel.sound)
+              putBoolean(PREFIX_IN + KEY_VIBRATION, config.incomingChannel.vibration)
 
-                // Outgoing channel
-                putString(PREFIX_OUT + KEY_ID, config.outgoingChannel.id)
-                putString(PREFIX_OUT + KEY_NAME, config.outgoingChannel.name)
-                putString(PREFIX_OUT + KEY_SOUND, config.outgoingChannel.sound)
-                putBoolean(PREFIX_OUT + KEY_VIBRATION, config.outgoingChannel.vibration)
+              // Outgoing channel
+              putString(PREFIX_OUT + KEY_ID, config.outgoingChannel.id)
+              putString(PREFIX_OUT + KEY_NAME, config.outgoingChannel.name)
+              putString(PREFIX_OUT + KEY_SOUND, config.outgoingChannel.sound)
+              putBoolean(PREFIX_OUT + KEY_VIBRATION, config.outgoingChannel.vibration)
             }
             .apply()
-}
 
-fun loadNotificationsConfig(context: Context): ChannelsConfig {
+    return config
+  }
+
+  fun loadNotificationsConfig(context: Context): ChannelsConfig {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     Log.d(
             TAG,
@@ -69,7 +72,7 @@ fun loadNotificationsConfig(context: Context): ChannelsConfig {
                                             ?: DEFAULT_INCOMING_CHANNEL_NAME,
                             sound = prefs.getString(PREFIX_IN + KEY_SOUND, "") ?: "",
                             vibration = prefs.getBoolean(PREFIX_IN + KEY_VIBRATION, false),
-                            importance = NotificationManagerCompat.IMPORTANCE_MAX
+                            importance = NotificationManagerCompat.IMPORTANCE_MAX,
                     ),
             outgoingChannel =
                     ChannelParams(
@@ -79,22 +82,35 @@ fun loadNotificationsConfig(context: Context): ChannelsConfig {
                                             ?: DEFAULT_ONGOING_CHANNEL_NAME,
                             sound = prefs.getString(PREFIX_OUT + KEY_SOUND, "") ?: "",
                             vibration = prefs.getBoolean(PREFIX_OUT + KEY_VIBRATION, false),
-                            importance = NotificationManagerCompat.IMPORTANCE_DEFAULT
+                            importance = NotificationManagerCompat.IMPORTANCE_DEFAULT,
                     )
-    )
-}
-
-  fun extractNotificationsConfig(config: ReadableMap): ChannelsConfig {
-    return ChannelsConfig(
-            incomingChannel = extractChannelConfig(config.getMap("incomingChannel")),
-            outgoingChannel = extractChannelConfig(config.getMap("outgoingChannel")),
     )
   }
 
-  fun extractChannelConfig(channel: ReadableMap?): ChannelParams {
+  fun extractNotificationsConfig(config: ReadableMap): ChannelsConfig {
+    return ChannelsConfig(
+            incomingChannel =
+                    extractChannelConfig(
+                            config.getMap("incomingChannel"),
+                            NotificationManagerCompat.IMPORTANCE_MAX
+                    ),
+            outgoingChannel =
+                    extractChannelConfig(
+                            config.getMap("outgoingChannel"),
+                            NotificationManagerCompat.IMPORTANCE_DEFAULT
+                    ),
+    )
+  }
+
+  fun extractChannelConfig(channel: ReadableMap?, importance: Int): ChannelParams {
     if (channel == null) {
-      // return
-      return ChannelParams(id = "", name = "", sound = "", vibration = false, importance = 0)
+      return ChannelParams(
+              id = "",
+              name = "",
+              sound = "",
+              vibration = false,
+              importance = importance,
+      )
     }
 
     return ChannelParams(
@@ -102,7 +118,7 @@ fun loadNotificationsConfig(context: Context): ChannelsConfig {
             name = channel.getString("name") ?: "",
             sound = channel.getString("sound") ?: "",
             vibration = channel.getBoolean("vibration"),
-            importance = 0
+            importance = importance,
     )
   }
 }

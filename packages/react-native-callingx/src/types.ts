@@ -9,6 +9,8 @@ export interface ICallingxModule {
 
   requestPermissions(): Promise<PermissionsResult>;
 
+  canPostNotifications(): boolean;
+
   setCurrentCallActive(callId: string): Promise<void>;
 
   getInitialEvents(): EventData[];
