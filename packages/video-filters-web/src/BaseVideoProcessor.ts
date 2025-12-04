@@ -63,9 +63,6 @@ export abstract class BaseVideoProcessor {
           this.updateStats(delay);
           controller.enqueue(processed);
         } catch (e) {
-          if (!this.abortController.signal.aborted) {
-            controller.enqueue(frame);
-          }
           this.hooks.onError?.(e);
         } finally {
           frame.close();

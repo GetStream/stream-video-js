@@ -21,6 +21,10 @@ export class VirtualBackground extends BaseVideoProcessor {
 
   private opts!: SegmenterOptions;
 
+  private latestCategoryMask: WebGLTexture | undefined = undefined;
+  private latestConfidenceMask: WebGLTexture | undefined = undefined;
+  private lastFrameTime = -1;
+
   constructor(
     track: MediaStreamVideoTrack,
     private readonly options: BackgroundOptions = {},
@@ -64,25 +68,42 @@ export class VirtualBackground extends BaseVideoProcessor {
   }
 
   protected async transform(frame: VideoFrame): Promise<VideoFrame> {
-    if (this.isSegmenterReady && this.segmenter) {
-      await new Promise<void>((resolve) => {
-        this.segmenter!.segmentForVideo(frame, frame.timestamp, (result) => {
-          const categoryMask = result.categoryMask!.getAsWebGLTexture();
-          const confidenceMask = result.confidenceMasks![0].getAsWebGLTexture();
+    const currentTime = frame.timestamp;
+    const hasNewFrame = currentTime !== this.lastFrameTime;
+    this.lastFrameTime = currentTime;
 
-          this.webGlRenderer.render(
-            frame,
-            this.opts,
-            categoryMask,
-            confidenceMask,
-          );
-
-          resolve();
-        });
-      });
+    if (hasNewFrame && this.isSegmenterReady && this.segmenter) {
+      await this.runSegmentation(frame);
     }
 
+    this.webGlRenderer.render(
+      frame,
+      this.opts,
+      this.latestCategoryMask,
+      this.latestConfidenceMask,
+    );
+
     return new VideoFrame(this.canvas, { timestamp: frame.timestamp });
+  }
+
+  private async runSegmentation(frame: VideoFrame): Promise<void> {
+    if (!this.segmenter) return;
+
+    return new Promise<void>((resolve) => {
+      this.segmenter!.segmentForVideo(frame, frame.timestamp, (result) => {
+        try {
+          this.latestCategoryMask = result.categoryMask?.getAsWebGLTexture();
+          this.latestConfidenceMask =
+            result.confidenceMasks?.[0]?.getAsWebGLTexture();
+        } catch (err) {
+          console.error('[virtual-background] segmentation error:', err);
+          this.hooks.onError?.(err);
+        } finally {
+          result.close();
+          resolve();
+        }
+      });
+    });
   }
 
   private async initializeSegmenterOptions(): Promise<SegmenterOptions> {
