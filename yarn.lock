@@ -4293,78 +4293,78 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/env@npm:15.5.4":
-  version: 15.5.4
-  resolution: "@next/env@npm:15.5.4"
-  checksum: 10/0727ef6dbb15c04d85119e3d4b28e000ca0a4dbb8bce46b2657181776545912181c74dd370e75ea8157bffbaf33bc687bd34c49b33e0b3a598c22295892ae1d9
+"@next/env@npm:15.5.7":
+  version: 15.5.7
+  resolution: "@next/env@npm:15.5.7"
+  checksum: 10/11f971691018bd62a5bf253fc843fb2a6cf1431468f5c3a9d4d41753a6ff3e8bf7f539f46aba3f58f8bac59e681bf05fb5d771ac08d7dbd966a601257e1368bf
   languageName: node
   linkType: hard
 
-"@next/swc-darwin-arm64@npm:15.5.4":
-  version: 15.5.4
-  resolution: "@next/swc-darwin-arm64@npm:15.5.4"
+"@next/swc-darwin-arm64@npm:15.5.7":
+  version: 15.5.7
+  resolution: "@next/swc-darwin-arm64@npm:15.5.7"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@next/swc-darwin-x64@npm:15.5.4":
-  version: 15.5.4
-  resolution: "@next/swc-darwin-x64@npm:15.5.4"
+"@next/swc-darwin-x64@npm:15.5.7":
+  version: 15.5.7
+  resolution: "@next/swc-darwin-x64@npm:15.5.7"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@next/swc-linux-arm64-gnu@npm:15.5.4":
-  version: 15.5.4
-  resolution: "@next/swc-linux-arm64-gnu@npm:15.5.4"
+"@next/swc-linux-arm64-gnu@npm:15.5.7":
+  version: 15.5.7
+  resolution: "@next/swc-linux-arm64-gnu@npm:15.5.7"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@next/swc-linux-arm64-musl@npm:15.5.4":
-  version: 15.5.4
-  resolution: "@next/swc-linux-arm64-musl@npm:15.5.4"
+"@next/swc-linux-arm64-musl@npm:15.5.7":
+  version: 15.5.7
+  resolution: "@next/swc-linux-arm64-musl@npm:15.5.7"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@next/swc-linux-x64-gnu@npm:15.5.4":
-  version: 15.5.4
-  resolution: "@next/swc-linux-x64-gnu@npm:15.5.4"
+"@next/swc-linux-x64-gnu@npm:15.5.7":
+  version: 15.5.7
+  resolution: "@next/swc-linux-x64-gnu@npm:15.5.7"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@next/swc-linux-x64-musl@npm:15.5.4":
-  version: 15.5.4
-  resolution: "@next/swc-linux-x64-musl@npm:15.5.4"
+"@next/swc-linux-x64-musl@npm:15.5.7":
+  version: 15.5.7
+  resolution: "@next/swc-linux-x64-musl@npm:15.5.7"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@next/swc-win32-arm64-msvc@npm:15.5.4":
-  version: 15.5.4
-  resolution: "@next/swc-win32-arm64-msvc@npm:15.5.4"
+"@next/swc-win32-arm64-msvc@npm:15.5.7":
+  version: 15.5.7
+  resolution: "@next/swc-win32-arm64-msvc@npm:15.5.7"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@next/swc-win32-x64-msvc@npm:15.5.4":
-  version: 15.5.4
-  resolution: "@next/swc-win32-x64-msvc@npm:15.5.4"
+"@next/swc-win32-x64-msvc@npm:15.5.7":
+  version: 15.5.7
+  resolution: "@next/swc-win32-x64-msvc@npm:15.5.7"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
-"@next/third-parties@npm:^15.5.4":
-  version: 15.5.4
-  resolution: "@next/third-parties@npm:15.5.4"
+"@next/third-parties@npm:^15.5.7":
+  version: 15.5.7
+  resolution: "@next/third-parties@npm:15.5.7"
   dependencies:
     third-party-capital: "npm:1.0.20"
   peerDependencies:
     next: ^13.0.0 || ^14.0.0 || ^15.0.0
     react: ^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0
-  checksum: 10/5b0f97164c41fe3fe31ef3c85bdc87c48380b0cd1a1b634358d66749e041c00bd4f850aca86f59938423c9f43dcde41e8b93b62442cacf8c777b71c4980a9b81
+  checksum: 10/38aa516f5eae1683b711db3403a4febe8ea416fe1068d83c301906f3a7cfced053a3ee64c6534c5d3a29db9f97255ba7b8a0f51c44840f6f4898f81809ba5d2b
   languageName: node
   linkType: hard
 
@@ -7206,8 +7206,8 @@ __metadata:
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
-    react: "npm:19.1.0"
-    react-dom: "npm:19.1.0"
+    react: "npm:19.1.2"
+    react-dom: "npm:19.1.2"
     react-router-dom: "npm:^6.30.1"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.9"
@@ -7226,8 +7226,8 @@ __metadata:
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
-    react: "npm:19.1.0"
-    react-dom: "npm:19.1.0"
+    react: "npm:19.1.2"
+    react-dom: "npm:19.1.2"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.9"
   languageName: unknown
@@ -7249,8 +7249,8 @@ __metadata:
     clsx: "npm:^2.0.0"
     js-base64: "npm:^3.7.8"
     nanoid: "npm:^5.1.6"
-    react: "npm:19.1.0"
-    react-dom: "npm:19.1.0"
+    react: "npm:19.1.2"
+    react-dom: "npm:19.1.2"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.9"
   languageName: unknown
@@ -7295,8 +7295,8 @@ __metadata:
     expo-splash-screen: "npm:~31.0.10"
     expo-status-bar: "npm:~3.0.8"
     expo-system-ui: "npm:~6.0.7"
-    react: "npm:19.1.0"
-    react-dom: "npm:19.1.0"
+    react: "npm:19.1.2"
+    react-dom: "npm:19.1.2"
     react-native: "npm:^0.81.5"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:^2.28.0"
@@ -7323,8 +7323,8 @@ __metadata:
     "@vitejs/plugin-react": "npm:^5.0.4"
     clsx: "npm:^2.0.0"
     hls.js: "npm:^1.6.13"
-    react: "npm:19.1.0"
-    react-dom: "npm:19.1.0"
+    react: "npm:19.1.2"
+    react-dom: "npm:19.1.2"
     react-router-dom: "npm:^6.30.1"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.9"
@@ -7353,8 +7353,8 @@ __metadata:
     dotenv: "npm:^16.6.1"
     immer: "npm:^9.0.21"
     nanoid: "npm:^5.1.6"
-    react: "npm:19.1.0"
-    react-dom: "npm:19.1.0"
+    react: "npm:19.1.2"
+    react-dom: "npm:19.1.2"
     react-router-dom: "npm:^6.30.1"
     sass: "npm:^1.93.2"
     stream-chat: "npm:^9.26.0"
@@ -7386,7 +7386,7 @@ __metadata:
   resolution: "@stream-io/noise-cancellation-react-native@workspace:packages/noise-cancellation-react-native"
   dependencies:
     "@stream-io/react-native-webrtc": "npm:137.0.0"
-    react: "npm:19.1.0"
+    react: "npm:19.1.2"
     react-native: "npm:^0.81.5"
     react-native-builder-bob: "npm:^0.37.0"
     rimraf: "npm:^6.0.1"
@@ -7418,8 +7418,8 @@ __metadata:
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
-    react: "npm:19.1.0"
-    react-dom: "npm:19.1.0"
+    react: "npm:19.1.2"
+    react-dom: "npm:19.1.2"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.1.9"
   languageName: unknown
@@ -7485,7 +7485,7 @@ __metadata:
   resolution: "@stream-io/video-filters-react-native@workspace:packages/video-filters-react-native"
   dependencies:
     "@stream-io/react-native-webrtc": "npm:137.0.0"
-    react: "npm:19.1.0"
+    react: "npm:19.1.2"
     react-native: "npm:^0.81.5"
     react-native-builder-bob: "npm:^0.37.0"
     rimraf: "npm:^6.0.1"
@@ -7544,7 +7544,7 @@ __metadata:
     "@types/react": "npm:~19.1.17"
     "@types/use-sync-external-store": "npm:^1"
     i18next: "npm:^25.6.0"
-    react: "npm:19.1.0"
+    react: "npm:19.1.2"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.4"
     rxjs: "npm:~7.8.2"
@@ -7562,7 +7562,7 @@ __metadata:
   dependencies:
     "@floating-ui/dom": "npm:^1.6.13"
     "@floating-ui/react": "npm:^0.27.6"
-    "@next/third-parties": "npm:^15.5.4"
+    "@next/third-parties": "npm:^15.5.7"
     "@sentry/nextjs": "npm:^10.19.0"
     "@stream-io/audio-filters-web": "workspace:^"
     "@stream-io/node-sdk": "npm:^0.7.9"
@@ -7584,12 +7584,12 @@ __metadata:
     mapbox-gl: "npm:^2.15.0"
     mobile-device-detect: "npm:^0.4.3"
     nanoid: "npm:^5.1.6"
-    next: "npm:^15.5.4"
+    next: "npm:^15.5.7"
     next-auth: "npm:^4.24.11"
     qrcode.react: "npm:^4.2.0"
     raw-body: "npm:^3.0.1"
-    react: "npm:19.1.0"
-    react-dom: "npm:19.1.0"
+    react: "npm:19.1.2"
+    react-dom: "npm:19.1.2"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.93.2"
     source-map-loader: "npm:^5.0.0"
@@ -7631,7 +7631,7 @@ __metadata:
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
     axios: "npm:^1.12.2"
-    react: "npm:19.1.0"
+    react: "npm:19.1.2"
     react-native: "npm:^0.81.5"
     react-native-blob-util: "npm:^0.22.2"
     react-native-callkeep: "npm:^4.3.16"
@@ -7694,8 +7694,8 @@ __metadata:
     expo-symbols: "npm:~1.0.7"
     expo-system-ui: "npm:~6.0.7"
     expo-web-browser: "npm:~15.0.8"
-    react: "npm:19.1.0"
-    react-dom: "npm:19.1.0"
+    react: "npm:19.1.2"
+    react-dom: "npm:19.1.2"
     react-native: "npm:^0.81.5"
     react-native-callkeep: "npm:^4.3.16"
     react-native-gesture-handler: "npm:^2.28.0"
@@ -7744,7 +7744,7 @@ __metadata:
     intl-pluralrules: "npm:2.0.1"
     jest: "npm:^29.7.0"
     lodash.merge: "npm:^4.6.2"
-    react: "npm:19.1.0"
+    react: "npm:19.1.2"
     react-native: "npm:^0.81.5"
     react-native-builder-bob: "npm:~0.23"
     react-native-callkeep: "npm:^4.3.16"
@@ -7754,7 +7754,7 @@ __metadata:
     react-native-url-polyfill: "npm:^3.0.0"
     react-native-voip-push-notification: "npm:3.3.3"
     react-native-worklets: "npm:^0.5.0"
-    react-test-renderer: "npm:19.1.0"
+    react-test-renderer: "npm:19.1.2"
     rimraf: "npm:^6.0.1"
     rxjs: "npm:~7.8.2"
     text-encoding-polyfill: "npm:0.6.7"
@@ -7825,9 +7825,9 @@ __metadata:
     "@types/react-dom": "npm:~19.1.11"
     chart.js: "npm:^4.4.4"
     clsx: "npm:^2.0.0"
-    react: "npm:19.1.0"
+    react: "npm:19.1.2"
     react-chartjs-2: "npm:^5.3.0"
-    react-dom: "npm:19.1.0"
+    react-dom: "npm:19.1.2"
     rimraf: "npm:^6.0.1"
     rollup: "npm:^4.52.4"
     typescript: "npm:^5.9.3"
@@ -7866,8 +7866,8 @@ __metadata:
     dotenv: "npm:^16.6.1"
     nanoid: "npm:^5.1.6"
     postcss: "npm:^8.5.6"
-    react: "npm:19.1.0"
-    react-dom: "npm:19.1.0"
+    react: "npm:19.1.2"
+    react-dom: "npm:19.1.2"
     react-router-dom: "npm:^6.30.1"
     stream-chat: "npm:^9.26.0"
     stream-chat-react: "npm:^13.12.0"
@@ -18597,19 +18597,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:^15.5.4":
-  version: 15.5.4
-  resolution: "next@npm:15.5.4"
+"next@npm:^15.5.7":
+  version: 15.5.7
+  resolution: "next@npm:15.5.7"
   dependencies:
-    "@next/env": "npm:15.5.4"
-    "@next/swc-darwin-arm64": "npm:15.5.4"
-    "@next/swc-darwin-x64": "npm:15.5.4"
-    "@next/swc-linux-arm64-gnu": "npm:15.5.4"
-    "@next/swc-linux-arm64-musl": "npm:15.5.4"
-    "@next/swc-linux-x64-gnu": "npm:15.5.4"
-    "@next/swc-linux-x64-musl": "npm:15.5.4"
-    "@next/swc-win32-arm64-msvc": "npm:15.5.4"
-    "@next/swc-win32-x64-msvc": "npm:15.5.4"
+    "@next/env": "npm:15.5.7"
+    "@next/swc-darwin-arm64": "npm:15.5.7"
+    "@next/swc-darwin-x64": "npm:15.5.7"
+    "@next/swc-linux-arm64-gnu": "npm:15.5.7"
+    "@next/swc-linux-arm64-musl": "npm:15.5.7"
+    "@next/swc-linux-x64-gnu": "npm:15.5.7"
+    "@next/swc-linux-x64-musl": "npm:15.5.7"
+    "@next/swc-win32-arm64-msvc": "npm:15.5.7"
+    "@next/swc-win32-x64-msvc": "npm:15.5.7"
     "@swc/helpers": "npm:0.5.15"
     caniuse-lite: "npm:^1.0.30001579"
     postcss: "npm:8.4.31"
@@ -18652,7 +18652,7 @@ __metadata:
       optional: true
   bin:
     next: dist/bin/next
-  checksum: 10/6cc933dd0e829e122e0232776b6fda5d9ff1a3c9c5f423163bb5962c524c479e0ad21cd8a6556ac028a17758b56e3988af4e11c5792ad986c973a370e42d1689
+  checksum: 10/bfac0cbac41b36227ec91d3a0727561f73dfc35d6a78eafd0200528ef95fa2e9d2dba5a8c8922864b4f4e4321ae6a07c6cf8f5766ac3192ad03e68516c3a458a
   languageName: node
   linkType: hard
 
@@ -20256,14 +20256,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:19.1.0":
-  version: 19.1.0
-  resolution: "react-dom@npm:19.1.0"
+"react-dom@npm:19.1.2":
+  version: 19.1.2
+  resolution: "react-dom@npm:19.1.2"
   dependencies:
     scheduler: "npm:^0.26.0"
   peerDependencies:
-    react: ^19.1.0
-  checksum: 10/c5b58605862c7b0bb044416b01c73647bb8e89717fb5d7a2c279b11815fb7b49b619fe685c404e59f55eb52c66831236cc565c25ee1c2d042739f4a2cc538aa2
+    react: ^19.1.2
+  checksum: 10/778e29e4ec05a437fbf520a58769236985379088e566d741aa82dc8542cec06e14673c11f5f193b46ffcd24e036359ebd48bd695e5ce783291e1af0f387c9b13
   languageName: node
   linkType: hard
 
@@ -20319,10 +20319,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-is@npm:^19.0.0, react-is@npm:^19.1.0":
-  version: 19.1.0
-  resolution: "react-is@npm:19.1.0"
-  checksum: 10/4aceca94492032a19411138bf68c6ca7dce4abee7ae6c7f23db9291d2dff14d6a643717b176ef9a151e8cdf6a2b71fdbc59fd998328e086a6f752512304a252b
+"react-is@npm:^19.0.0, react-is@npm:^19.1.0, react-is@npm:^19.1.2":
+  version: 19.2.1
+  resolution: "react-is@npm:19.2.1"
+  checksum: 10/d2d0f2b55710c73af1ee5c17e438a274a52758522af9cb1f1f6df35b233a5eb158f4dc8e38e0c058b090bf7d432f27fc6c59dd016c811109260097cea5268461
   languageName: node
   linkType: hard
 
@@ -20898,6 +20898,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-test-renderer@npm:19.1.2":
+  version: 19.1.2
+  resolution: "react-test-renderer@npm:19.1.2"
+  dependencies:
+    react-is: "npm:^19.1.2"
+    scheduler: "npm:^0.26.0"
+  peerDependencies:
+    react: ^19.1.2
+  checksum: 10/3f609a1a6cb2484a6190a9ac11004c46c7e1cd805f33a84a7a7d9f2da7d4bbeda148328942998cbc54a87bfcf1356d87c7b1d7b32ecaaadd23e3089d3672e93f
+  languageName: node
+  linkType: hard
+
 "react-textarea-autosize@npm:^8.3.0":
   version: 8.5.9
   resolution: "react-textarea-autosize@npm:8.5.9"
@@ -20939,10 +20951,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:19.1.0":
-  version: 19.1.0
-  resolution: "react@npm:19.1.0"
-  checksum: 10/d0180689826fd9de87e839c365f6f361c561daea397d61d724687cae88f432a307d1c0f53a0ee95ddbe3352c10dac41d7ff1ad85530fb24951b27a39e5398db4
+"react@npm:19.1.2":
+  version: 19.1.2
+  resolution: "react@npm:19.1.2"
+  checksum: 10/aeab5f109eaf65a93935d2e94d8983ab7f7c96b8d447128774edafd2dcada1238d05dc28f8a06c4c848b200166976b62099392045d41d09cf53e23292bf9a2ab
   languageName: node
   linkType: hard
 
