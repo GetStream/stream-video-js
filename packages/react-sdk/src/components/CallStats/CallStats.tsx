@@ -43,7 +43,6 @@ export const CallStats = (props: CallStatsProps) => {
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
   const [publishAudioBitrate, setPublishAudioBitrate] = useState('-');
   const [subscribeAudioBitrate, setSubscribeAudioBitrate] = useState('-');
-  const [subscribePacketLoss, setSubscribePacketLoss] = useState('-');
   const previousStats = useRef<CallStatsReport>(undefined);
   const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
@@ -72,12 +71,6 @@ export const CallStats = (props: CallStatsProps) => {
     });
     setSubscribeAudioBitrate(() => {
       return calculateSubscribeAudioBitrate(
-        previousCallStatsReport,
-        callStatsReport,
-      );
-    });
-    setSubscribePacketLoss(() => {
-      return calculateSubscribeAudioPacketLoss(
         previousCallStatsReport,
         callStatsReport,
       );
@@ -206,10 +199,6 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Latency')}
               value={`${callStatsReport.publisherAudioStats.averageRoundTripTimeInMs} ms.`}
               comparison={latencyComparison}
-            />
-            <StatCard
-              label={t('Audio packet loss (receive)')}
-              value={subscribePacketLoss}
             />
             <StatCard
               label={t('Audio bitrate (publish)')}
@@ -434,19 +423,4 @@ const calculateSubscribeAudioBitrate = (
   const timeElapsed = audioStats.timestamp - previousAudioStats.timestamp;
 
   return `${((bytesReceived * 8) / timeElapsed).toFixed(2)} kbps`;
-};
-
-const calculateSubscribeAudioPacketLoss = (
-  previous: CallStatsReport,
-  current: CallStatsReport,
-) => {
-  const packetsReceivedDelta =
-    current.subscriberAudioStats.totalPacketsReceived -
-    previous.subscriberAudioStats.totalPacketsReceived;
-  const packetsLostDelta =
-    current.subscriberAudioStats.totalPacketsLost -
-    previous.subscriberAudioStats.totalPacketsLost;
-  const total = packetsReceivedDelta + packetsLostDelta;
-  const percent = total > 0 ? (packetsLostDelta / total) * 100 : 0;
-  return `${percent.toFixed(2)} %`;
 };
