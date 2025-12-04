@@ -28,7 +28,7 @@ export const CallStats = (props: CallStatsProps) => {
   const {
     latencyLowBound = 75,
     latencyHighBound = 400,
-    showCodecInfo = true,
+    showCodecInfo = false,
     LatencyChartSuspenseFallback = null,
   } = props;
   const [latencyBuffer, setLatencyBuffer] = useState<
