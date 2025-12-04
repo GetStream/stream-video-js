@@ -24,6 +24,7 @@ export class VirtualBackground extends BaseVideoProcessor {
   private latestCategoryMask: WebGLTexture | undefined = undefined;
   private latestConfidenceMask: WebGLTexture | undefined = undefined;
   private lastFrameTime = -1;
+  private count = 0;
 
   constructor(
     track: MediaStreamVideoTrack,
@@ -90,7 +91,7 @@ export class VirtualBackground extends BaseVideoProcessor {
     if (!this.segmenter) return;
 
     return new Promise<void>((resolve) => {
-      this.segmenter!.segmentForVideo(frame, frame.timestamp, (result) => {
+      this.segmenter!.segmentForVideo(frame, performance.now(), (result) => {
         try {
           this.latestCategoryMask = result.categoryMask?.getAsWebGLTexture();
           this.latestConfidenceMask =
