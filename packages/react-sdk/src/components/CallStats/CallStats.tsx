@@ -20,6 +20,10 @@ enum Status {
 export type CallStatsProps = {
   latencyLowBound?: number;
   latencyHighBound?: number;
+  audioJitterLowBound?: number;
+  audioJitterHighBound?: number;
+  videoJitterLowBound?: number;
+  videoJitterHighBound?: number;
   showCodecInfo?: boolean;
   LatencyChartSuspenseFallback?: ReactNode;
 };
@@ -28,6 +32,10 @@ export const CallStats = (props: CallStatsProps) => {
   const {
     latencyLowBound = 75,
     latencyHighBound = 400,
+    audioJitterLowBound = 10,
+    audioJitterHighBound = 30,
+    videoJitterLowBound = 20,
+    videoJitterHighBound = 50,
     showCodecInfo = false,
     LatencyChartSuspenseFallback = null,
   } = props;
@@ -96,9 +104,14 @@ export const CallStats = (props: CallStatsProps) => {
     value: callStatsReport?.publisherStats.averageRoundTripTimeInMs || 0,
   };
 
-  const jitterComparison = {
-    lowBound: 5,
-    highBound: 15,
+  const audioJitterComparison = {
+    lowBound: audioJitterLowBound,
+    highBound: audioJitterHighBound,
+  };
+
+  const videoJitterComparison = {
+    lowBound: videoJitterLowBound,
+    highBound: videoJitterHighBound,
   };
 
   return (
@@ -150,7 +163,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Receive jitter')}
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
               comparison={{
-                ...latencyComparison,
+                ...videoJitterComparison,
                 value: callStatsReport.subscriberStats.averageJitterInMs,
               }}
             />
@@ -158,7 +171,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Publish jitter')}
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
               comparison={{
-                ...latencyComparison,
+                ...videoJitterComparison,
                 value: callStatsReport.publisherStats.averageJitterInMs,
               }}
             />
@@ -212,7 +225,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Audio jitter (publish)')}
               value={`${callStatsReport.publisherAudioStats.averageJitterInMs} ms.`}
               comparison={{
-                ...jitterComparison,
+                ...audioJitterComparison,
                 value: callStatsReport.publisherAudioStats.averageJitterInMs,
               }}
             />
@@ -220,7 +233,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Audio jitter (receive)')}
               value={`${callStatsReport.subscriberAudioStats.averageJitterInMs} ms.`}
               comparison={{
-                ...jitterComparison,
+                ...audioJitterComparison,
                 value: callStatsReport.subscriberAudioStats.averageJitterInMs,
               }}
             />
