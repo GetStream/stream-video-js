@@ -72,7 +72,6 @@ export const useModeration = (options?: ModerationOptions) => {
       .catch((err) => console.error('[moderation] unregister error:', err));
 
     unregisterRef.current = null;
-    processorRef.current = null;
   }, []);
 
   const handleFallback = useCallback(async () => {
