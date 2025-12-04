@@ -43,7 +43,7 @@ export const ViewLiveStreamChildren = ({
   } = route;
 
   useEffect(() => {
-    callManager.start({ audioRole: 'listener' });
+    callManager.start({ audioRole: 'listener', enableStereoAudio: true });
     return () => {
       callManager.stop();
     };

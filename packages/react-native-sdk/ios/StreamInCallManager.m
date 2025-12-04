@@ -7,6 +7,8 @@ RCT_EXTERN_METHOD(setAudioRole:(NSString *)audioRole)
 
 RCT_EXTERN_METHOD(setDefaultAudioDeviceEndpointType:(NSString *)endpointType)
 
+RCT_EXTERN_METHOD(setEnableStereoAudioOutput:(BOOL)enable)
+
 RCT_EXTERN_METHOD(start)
 
 RCT_EXTERN_METHOD(stop)

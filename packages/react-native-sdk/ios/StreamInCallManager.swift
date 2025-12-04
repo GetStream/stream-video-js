@@ -24,6 +24,7 @@ class StreamInCallManager: RCTEventEmitter {
     private var audioManagerActivated = false
     private var callAudioRole: CallAudioRole = .communicator
     private var defaultAudioDevice: DefaultAudioDevice = .speaker
+    private var enableStereo: Bool = false
     private var previousVolume: Float = 0.75
 
     private struct AudioSessionState {
@@ -63,6 +64,13 @@ class StreamInCallManager: RCTEventEmitter {
                 return
             }
             self.defaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
+        }
+    }
+    
+    @objc(setEnableStereoAudioOutput:)
+    func setEnableStereoAudioOutput(enabled: Bool) {
+        audioSessionQueue.async { [self] in
+            self.enableStereo = enabled
         }
     }
 
@@ -140,7 +148,11 @@ class StreamInCallManager: RCTEventEmitter {
             // enables high quality audio playback but disables microphone
             intendedCategory = .playback
             intendedMode = .default
-            intendedOptions = []
+            // for stereo we should disallow BluetoothHFP
+            intendedOptions = self.enableStereo ? [.allowBluetoothA2DP] : []
+            if (self.enableStereo) {
+                getAudioDeviceModule()?.setStereoPlayoutPreference(true)
+            }
         } else {
             intendedCategory = .playAndRecord
             intendedMode = .voiceChat
@@ -367,6 +379,11 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     // MARK: - Helper Methods
+    private func getAudioDeviceModule() -> RTCAudioDeviceModule? {
+        let webrtcModule = self.bridge.module(forName: "WebRTCModule") as! WebRTCModule
+        return webrtcModule.audioDeviceModule
+    }
+
     private func getCurrentWindow() -> UIWindow? {
         if #available(iOS 13.0, *) {
             return UIApplication.shared.connectedScenes
