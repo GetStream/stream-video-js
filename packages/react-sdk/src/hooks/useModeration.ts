@@ -29,13 +29,13 @@ const isFullScreenBlurPlatformSupported = (): boolean => {
 export interface ModerationOptions {
   /**
    * How long the moderation effect should stay active before being disabled.
-   * Set to `0` to keep it active indefinitely.
+   * Set to `0` to keep it active indefinitely. Defaults to 5000 ms.
    */
-  moderationDuration?: number;
+  duration?: number;
 }
 
 export const useModeration = (options?: ModerationOptions) => {
-  const { moderationDuration = 5000 } = options || {};
+  const { duration = 5000 } = options || {};
 
   const call = useCall();
 
@@ -128,6 +128,14 @@ export const useModeration = (options?: ModerationOptions) => {
             try {
               processor = new FullScreenBlurClass(track);
               processorRef.current = processor;
+
+              const result = await processor.start();
+              const output = new MediaStream([result]);
+              resolve(output);
+
+              if (duration > 0) {
+                timeoutRef.current = setTimeout(disableBlur, duration);
+              }
             } catch (error) {
               reject(error);
               console.error('[moderation] Processor init failed:', error);
@@ -139,31 +147,6 @@ export const useModeration = (options?: ModerationOptions) => {
               await handleFallback();
               return;
             }
-
-            processor
-              .start()
-              .then((processedTrack) => {
-                const output = new MediaStream([processedTrack]);
-                resolve(output);
-
-                if (moderationDuration > 0) {
-                  timeoutRef.current = setTimeout(
-                    disableBlur,
-                    moderationDuration,
-                  );
-                }
-              })
-              .catch(async (error) => {
-                reject(error);
-                console.error('[moderation] Processor init failed:', error);
-
-                await unregisterRef.current?.();
-                unregisterRef.current = null;
-                processorRef.current = null;
-
-                await handleFallback();
-                return;
-              });
           },
         );
 
@@ -178,13 +161,7 @@ export const useModeration = (options?: ModerationOptions) => {
         };
       });
     });
-  }, [
-    call,
-    loadVideoFiltersWebModule,
-    disableBlur,
-    handleFallback,
-    moderationDuration,
-  ]);
+  }, [call, loadVideoFiltersWebModule, disableBlur, handleFallback, duration]);
 
   useEffect(() => disableBlur, [disableBlur]);
 };
