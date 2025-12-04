@@ -47,7 +47,7 @@
   },
   "homepage": "https://github.com/GetStream/stream-video-js#readme",
   "devDependencies": {
-    "@stream-io/react-native-webrtc": "137.0.0",
+    "@stream-io/react-native-webrtc": "137.0.2",
     "react": "19.1.0",
     "react-native": "^0.81.5",
     "react-native-builder-bob": "^0.37.0",
