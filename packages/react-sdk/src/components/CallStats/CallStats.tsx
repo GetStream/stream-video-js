@@ -157,7 +157,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Receive jitter')}
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
               comparison={{
-                ...jitterComparison,
+                ...latencyComparison,
                 value: callStatsReport.subscriberStats.averageJitterInMs,
               }}
             />
@@ -165,7 +165,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Publish jitter')}
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
               comparison={{
-                ...jitterComparison,
+                ...latencyComparison,
                 value: callStatsReport.publisherStats.averageJitterInMs,
               }}
             />
