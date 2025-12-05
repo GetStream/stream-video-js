@@ -184,6 +184,10 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.endCallWithReason(callId, reasons[reason]);
   }
 
+  isCallRegistered(callId: string): boolean {
+    return NativeCallingModule.isCallRegistered(callId);
+  }
+
   setMutedCall(callId: string, isMuted: boolean): Promise<void> {
     return NativeCallingModule.setMutedCall(callId, isMuted);
   }

@@ -1,19 +1,3 @@
-/*
- * Copyright 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.callingx
 
 import CallRepository
@@ -26,7 +10,6 @@ import android.os.Bundle
 import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
-import androidx.annotation.RequiresApi
 import com.callingx.model.Call
 import com.callingx.model.CallAction
 import com.callingx.notifications.CallNotificationManager
@@ -268,6 +251,11 @@ class CallService : Service(), CallRepository.Listener {
             putExtra(CallingxModule.EXTRA_CALL_ID, callId)
             putExtra(CallingxModule.EXTRA_AUDIO_ENDPOINT, endpoint)
         }
+    }
+
+    fun isCallRegistered(callId: String): Boolean {
+        val currentCall = callRepository.currentCall.value
+        return currentCall is Call.Registered && currentCall.id == callId
     }
 
     public fun processAction(action: CallAction) {

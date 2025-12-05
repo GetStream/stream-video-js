@@ -5,7 +5,6 @@ import {
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useRef } from 'react';
-import { voipPushNotificationCallCId$ } from '../../utils/push/internal/rxSubjects';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 
 //calling state methods are not exhaustive, so we need to add more methods to cover all the cases
@@ -40,53 +39,40 @@ export const useCallingExpWithCallingStateEffect = () => {
   useEffect(() => {
     return () => {
       const callingx = getCallingxLibIfAvailable();
-      if (!callingx) {
+      if (!callingx || !activeCallCid) {
         return;
       }
-      //as an alternative think about method which will return CallKit/Telecom state for given cid
-      const incomingCallCid = RxUtils.getCurrentValue(
-        voipPushNotificationCallCId$,
-      );
-      if (
-        !activeCallCid ||
-        !incomingCallCid ||
-        incomingCallCid !== activeCallCid
-      ) {
+
+      const isCallRegistered = callingx.isCallRegistered(activeCallCid);
+      if (!isCallRegistered) {
         logger.debug(
-          `No active call cid to end in calling exp: ${activeCallCid} incomingCallCid: ${incomingCallCid}`,
+          `No active call cid to end in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
         );
         return;
       }
       //if incoming stream call was unmounted, we need to end the call in CallKit/Telecom
       //TODO: think about sending appropriate reason for end call
+      logger.debug(`Ending call in calling exp: ${activeCallCid}`);
       callingx.endCallWithReason(activeCallCid, 'local');
-      voipPushNotificationCallCId$.next(undefined);
     };
   }, [activeCallCid]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
-    if (!callingx) {
+    if (!callingx || !activeCallCid) {
       return;
     }
 
-    //as an alternative think about method which will return CallKit/Telecom state for given cid
-    const incomingCallCid = RxUtils.getCurrentValue(
-      voipPushNotificationCallCId$,
-    );
-    if (
-      !incomingCallCid ||
-      !activeCallCid ||
-      incomingCallCid !== activeCallCid
-    ) {
+    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
+    if (!isCallRegistered) {
       logger.debug(
-        `No active call cid to end in calling exp: ${activeCallCid} incomingCallCid: ${incomingCallCid}`,
+        `No active call cid to end in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
       );
       return;
     }
 
     logger.debug(
-      `useEffect: ${activeCallCid} incomingCallCid: ${incomingCallCid}`,
+      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
     );
     logger.debug(
       `prevState.current: ${prevState.current}, current callingState: ${callingState}`,
@@ -99,7 +85,7 @@ export const useCallingExpWithCallingStateEffect = () => {
       ) {
         //in case call was registered as incoming and state changed to joined, we need to answer the call
         logger.debug(
-          `Should accept call in callkeep: ${activeCallCid} callCid: ${incomingCallCid}`,
+          `Should accept call in callkeep: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
         );
         callingx.answerIncomingCall(activeCallCid);
       } else if (
@@ -110,7 +96,6 @@ export const useCallingExpWithCallingStateEffect = () => {
         logger.debug(`Should end call in callkeep: ${activeCallCid}`);
         //TODO: think about sending appropriate reason for end call
         callingx.endCallWithReason(activeCallCid, 'local');
-        voipPushNotificationCallCId$.next(undefined);
       }
     }
 
@@ -119,21 +104,14 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
-    if (!callingx) {
+    if (!callingx || !activeCallCid) {
       return;
     }
 
-    //for now supports only incoming calls
-    const incomingCallCid = RxUtils.getCurrentValue(
-      voipPushNotificationCallCId$,
-    );
-    if (
-      !incomingCallCid ||
-      !activeCallCid ||
-      incomingCallCid !== activeCallCid
-    ) {
+    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
+    if (!isCallRegistered) {
       logger.debug(
-        `No active call cid to set muted in calling exp: ${activeCallCid} incomingCallCid: ${incomingCallCid}`,
+        `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
       );
       return;
     }

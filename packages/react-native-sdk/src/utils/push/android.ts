@@ -1,6 +1,5 @@
 import {
   CallingState,
-  RxUtils,
   StreamVideoClient,
   videoLoggerSystem,
 } from '@stream-io/video-client';
@@ -18,10 +17,7 @@ import {
   getNotifeeLibThrowIfNotInstalledForPush,
   type NotifeeLib,
 } from './libs';
-import {
-  pushNonRingingCallData$,
-  voipPushNotificationCallCId$,
-} from './internal/rxSubjects';
+import { pushNonRingingCallData$ } from './internal/rxSubjects';
 import { pushUnsubscriptionCallbacks } from './internal/constants';
 import { canListenToWS, shouldCallBeClosed } from './internal/utils';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
@@ -151,14 +147,15 @@ export const firebaseDataHandler = async (
       return;
     }
 
-    if (RxUtils.getCurrentValue(voipPushNotificationCallCId$)) {
+    const callingx = getCallingxLib();
+
+    if (callingx.isCallRegistered(call_cid)) {
       logger.debug(
         `call.ring notification already processed, skipping the call.ring notification`,
       );
       return;
     }
 
-    const callingx = getCallingxLib();
     await callingx.checkPermissions();
     if (!callingx.canPostNotifications()) {
       logger.debug(
@@ -190,7 +187,6 @@ export const firebaseDataHandler = async (
     logger.debug(
       `Displaying incoming call notification with callCid: ${call_cid} asForegroundService: ${asForegroundService}`,
     );
-    voipPushNotificationCallCId$.next(call_cid);
 
     if (asForegroundService) {
       // Listen to call events from WS through fg service
@@ -223,7 +219,6 @@ export const firebaseDataHandler = async (
               `Ending call with callCid: ${call_cid} shouldCallBeClosed`,
               'debug',
             );
-            voipPushNotificationCallCId$.next(undefined);
             //TODO: think about sending appropriate reason for end call
             callingx.endCallWithReason(call_cid, 'remote');
             return;
@@ -251,7 +246,6 @@ export const firebaseDataHandler = async (
               );
               unsubscribeFunctions.forEach((fn) => fn());
 
-              voipPushNotificationCallCId$.next(undefined);
               finishBackgroundTask();
               //TODO: think about sending appropriate reason for end call
               callingx.endCallWithReason(call_cid, 'rejected');
@@ -275,7 +269,6 @@ export const firebaseDataHandler = async (
                   `Ending call with callCid: ${call_cid} callingState: ${callingState}`,
                   'debug',
                 );
-                voipPushNotificationCallCId$.next(undefined);
                 finishBackgroundTask();
                 callingx.endCallWithReason(call_cid, 'remote');
               }
@@ -297,7 +290,6 @@ export const firebaseDataHandler = async (
                   `Ending call with callCid: ${call_cid} callId: ${callId}`,
                   'debug',
                 );
-                voipPushNotificationCallCId$.next(undefined);
                 finishBackgroundTask();
                 callingx.endCallWithReason(callId, 'rejected');
               }

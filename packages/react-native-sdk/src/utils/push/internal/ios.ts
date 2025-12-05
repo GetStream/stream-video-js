@@ -1,10 +1,9 @@
 import { NativeModules, Platform } from 'react-native';
 import { getVoipPushNotificationLib } from '../libs';
-import { voipPushNotificationCallCId$ } from './rxSubjects';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canListenToWS, shouldCallBeClosed } from './utils';
 import { StreamVideoConfig } from '../../StreamVideoRN/types';
-import { RxUtils, videoLoggerSystem } from '@stream-io/video-client';
+import { videoLoggerSystem } from '@stream-io/video-client';
 import { getCallingxLib } from '../libs/callingx';
 
 export const onVoipNotificationReceived = async (
@@ -46,7 +45,8 @@ export const onVoipNotificationReceived = async (
     return;
   }
 
-  if (RxUtils.getCurrentValue(voipPushNotificationCallCId$)) {
+  const callingx = getCallingxLib();
+  if (callingx.isCallRegistered(call_cid)) {
     logger.debug(
       `call.ring notification already processed, skipping the call.ring notification`,
     );
@@ -74,7 +74,6 @@ export const onVoipNotificationReceived = async (
     if (mustEndCall) {
       logger.debug(`callkeep.reportEndCallWithUUID for call_cid: ${call_cid}`);
       //TODO: think about sending appropriate reason for end call
-      const callingx = getCallingxLib();
       callingx.endCallWithReason(call_cid, 'remote');
 
       const voipPushNotification = getVoipPushNotificationLib();
@@ -115,5 +114,4 @@ export const onVoipNotificationReceived = async (
   logger.debug(
     `call_cid:${call_cid} received and processed from call.ring push notification`,
   );
-  voipPushNotificationCallCId$.next(call_cid);
 };

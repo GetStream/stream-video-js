@@ -118,7 +118,7 @@ object NotificationsConfig {
       id = channel.getString("id") ?: "",
       name = channel.getString("name") ?: "",
       sound = channel.getString("sound"),
-      vibration = channel.getBoolean("vibration"),
+      vibration = channel.hasKey("vibration") && channel.getBoolean("vibration") ?: false,
       importance = importance,
     )
   }

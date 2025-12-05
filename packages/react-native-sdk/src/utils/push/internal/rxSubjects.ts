@@ -40,10 +40,3 @@ export const pushAndroidBackgroundDeliveredIncomingCallCId$ =
 export const pushRejectedIncomingCallCId$ = new BehaviorSubject<
   string | undefined
 >(undefined);
-
-/**
- * This rxjs subject is used to store the call cid of the incoming call from voip notification
- */
-export const voipPushNotificationCallCId$ = new BehaviorSubject<
-  string | undefined
->(undefined);

@@ -355,6 +355,8 @@ static UUIDStorage *uuidStorage;
   default:
     break;
   }
+
+  [uuidStorage removeCid:callId];
 }
 
 + (BOOL)requiresMainQueueSetup {
@@ -742,6 +744,20 @@ static UUIDStorage *uuidStorage;
 
   [self requestTransaction:transaction];
   resolve(@YES);
+}
+
+- (NSNumber *)isCallRegistered:(nonnull NSString *)callId {
+  NSUUID *uuid = [uuidStorage getUUIDForCid:callId];
+  if (uuid == nil) return @NO;
+  
+  CXCallObserver *observer = [[CXCallObserver alloc] init];
+  for (CXCall *call in observer.calls) {
+    if ([call.UUID isEqual:uuid]) {
+      return @YES;
+    }
+  }
+
+  return @NO;
 }
 
 - (void)setCurrentCallActive:(nonnull NSString *)callId

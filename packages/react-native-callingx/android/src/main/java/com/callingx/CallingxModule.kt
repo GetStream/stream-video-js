@@ -12,6 +12,7 @@ import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import com.callingx.model.CallAction
 import com.callingx.notifications.NotificationChannelsManager
 import com.callingx.notifications.NotificationsConfig
@@ -25,7 +26,6 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.core.DeviceEventManagerModule
-import androidx.core.net.toUri
 
 @ReactModule(name = CallingxModule.NAME)
 class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec(reactContext) {
@@ -252,6 +252,11 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         executeServiceAction(action, promise)
     }
 
+    override fun isCallRegistered(callId: String): Boolean {
+        Log.d(TAG, "[module] isCallRegistered: Checking if call is registered: $callId")
+        return callService?.isCallRegistered(callId) ?: false
+    }
+
     override fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {
         Log.d(TAG, "[module] setMutedCall: Setting muted call: $callId, $isMuted")
         val action = CallAction.ToggleMute(isMuted)
@@ -475,6 +480,11 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             val action = intent.action
             val callId = intent.getStringExtra(EXTRA_CALL_ID)
 
+            Log.d(
+                    TAG,
+                    "[module] onReceive: Received intent: $action callId: $callId callService: ${callService != null}"
+            )
+
             if (action == SERVICE_READY_ACTION) {
                 Log.d(TAG, "[module] onReceive: Service is ready, initiating binding")
                 bindToServiceIfNeeded()
@@ -486,10 +496,6 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 return
             }
 
-            Log.d(
-                    TAG,
-                    "[module] onReceive: Received intent: $action callId: $callId callService: ${callService != null}"
-            )
             val params = Arguments.createMap()
             if (callId != null) {
                 params.putString("callId", callId)
