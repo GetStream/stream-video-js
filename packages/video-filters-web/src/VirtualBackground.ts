@@ -82,11 +82,8 @@ export class VirtualBackground extends BaseVideoProcessor {
         this.latestCategoryMask,
         this.latestConfidenceMask,
       );
-    } else {
-      console.log(
-        'Skipping frame due to missing segmentation or background image',
-      );
     }
+
     return new VideoFrame(this.canvas, { timestamp: frame.timestamp });
   }
 
