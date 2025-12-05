@@ -90,6 +90,7 @@ class FallbackProcessor implements MediaStreamTrackProcessor<VideoFrame> {
           const frame = new VideoFrame(canvas, {
             timestamp: Math.round(this.video.currentTime * 1000000),
           });
+
           controller.enqueue(frame);
         } catch (err) {
           running = false;

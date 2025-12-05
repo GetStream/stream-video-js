@@ -63,6 +63,7 @@ import {
   RemoteVideoControls,
   useRemoteFilePublisher,
 } from './RemoteFilePublisher';
+import { ModerationNotification } from './ModerationNotification';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -236,6 +237,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
             )}
           </div>
         </div>
+        <ModerationNotification />
         <div className="rd__notifications">
           <Restricted
             requiredGrants={[OwnCapability.SEND_AUDIO]}
