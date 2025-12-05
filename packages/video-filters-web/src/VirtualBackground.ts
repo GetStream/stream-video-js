@@ -75,15 +75,18 @@ export class VirtualBackground extends BaseVideoProcessor {
 
     if (hasNewFrame && this.isSegmenterReady && this.segmenter) {
       await this.runSegmentation(frame);
+
+      this.webGlRenderer.render(
+        frame,
+        this.opts,
+        this.latestCategoryMask,
+        this.latestConfidenceMask,
+      );
+    } else {
+      console.log(
+        'Skipping frame due to missing segmentation or background image',
+      );
     }
-
-    this.webGlRenderer.render(
-      frame,
-      this.opts,
-      this.latestCategoryMask,
-      this.latestConfidenceMask,
-    );
-
     return new VideoFrame(this.canvas, { timestamp: frame.timestamp });
   }
 
