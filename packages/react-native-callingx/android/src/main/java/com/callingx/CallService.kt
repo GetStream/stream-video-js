@@ -16,6 +16,7 @@
 
 package com.callingx
 
+import CallRepository
 import android.app.Service
 import android.content.Intent
 import android.net.Uri
@@ -48,7 +49,6 @@ import kotlinx.coroutines.launch
  * calls can consume significant memory, although that would require more complex setup to make it
  * work across multiple process.
  */
-@RequiresApi(Build.VERSION_CODES.O)
 class CallService : Service(), CallRepository.Listener {
 
     companion object {
@@ -80,7 +80,7 @@ class CallService : Service(), CallRepository.Listener {
 
     private lateinit var headlessJSManager: HeadlessTaskManager
     private lateinit var notificationManager: CallNotificationManager
-    private lateinit var telecomRepository: CallRepository
+    private lateinit var callRepository: CallRepository
 
     private val binder = CallServiceBinder()
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob())
@@ -93,8 +93,8 @@ class CallService : Service(), CallRepository.Listener {
 
         notificationManager = CallNotificationManager(applicationContext)
         headlessJSManager = HeadlessTaskManager(applicationContext)
-        telecomRepository = CallRepository(applicationContext)
-        telecomRepository.setListener(this)
+        callRepository = CallRepositoryFactory.create(applicationContext)
+        callRepository.setListener(this)
 
         sendBroadcastEvent(CallingxModule.SERVICE_READY_ACTION)
     }
@@ -105,7 +105,7 @@ class CallService : Service(), CallRepository.Listener {
 
         notificationManager.cancelNotifications()
         notificationManager.stopRingtone()
-        telecomRepository.release()
+        callRepository.release()
         headlessJSManager.release()
 
         if (isInForeground) {
@@ -272,7 +272,7 @@ class CallService : Service(), CallRepository.Listener {
 
     public fun processAction(action: CallAction) {
         Log.d(TAG, "[service] processAction: Processing action: ${action::class.simpleName}")
-        val currentCall = telecomRepository.currentCall.value
+        val currentCall = callRepository.currentCall.value
         if (currentCall is Call.Registered) {
             currentCall.processAction(action)
         } else {
@@ -297,7 +297,7 @@ class CallService : Service(), CallRepository.Listener {
         Log.d(TAG, "[service] registerCall: ${if (incoming) "in" else "out"} call")
 
         // If we have an ongoing call ignore command
-        if (telecomRepository.currentCall.value is Call.Registered) {
+        if (callRepository.currentCall.value is Call.Registered) {
             Log.w(TAG, "[service] registerCall: Call already registered, ignoring new call request")
             return
         }
@@ -316,7 +316,7 @@ class CallService : Service(), CallRepository.Listener {
         Log.d(TAG, "[service] registerCall: Call details - Name: $name, URI: $uri")
 
         scope.launch {
-            telecomRepository.registerCall(
+            callRepository.registerCall(
                     callId,
                     name,
                     uri,

@@ -6,12 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.callingx.model.CallAction
 import com.callingx.notifications.NotificationChannelsManager
 import com.callingx.notifications.NotificationsConfig
@@ -25,6 +25,7 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import androidx.core.net.toUri
 
 @ReactModule(name = CallingxModule.NAME)
 class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec(reactContext) {
@@ -314,11 +315,11 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     this.action = action
                     putExtra(CallService.EXTRA_CALL_ID, callId)
                     putExtra(CallService.EXTRA_NAME, callerName)
-                    putExtra(CallService.EXTRA_URI, Uri.parse(phoneNumber))
+                    putExtra(CallService.EXTRA_URI, phoneNumber.toUri())
                     putExtra(CallService.EXTRA_IS_VIDEO, hasVideo)
                     putExtra(CallService.EXTRA_DISPLAY_OPTIONS, Arguments.toBundle(displayOptions))
                 }
-                .also { reactApplicationContext.startForegroundService(it) }
+                .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
     }
 
     private fun executeServiceAction(action: CallAction, promise: Promise) {

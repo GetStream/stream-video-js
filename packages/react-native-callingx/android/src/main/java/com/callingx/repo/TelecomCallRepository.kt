@@ -1,20 +1,4 @@
-/*
- * Copyright 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package com.callingx
+package com.callingx.repo
 
 import android.content.Context
 import android.net.Uri
@@ -44,6 +28,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.callingx.model.Call
 import com.callingx.model.CallAction
+import CallRepository
 
 /**
  * The central repository that keeps track of the current call and allows to register new calls.
@@ -53,24 +38,13 @@ import com.callingx.model.CallAction
  * @see registerCall
  */
 @RequiresApi(Build.VERSION_CODES.O)
-class CallRepository(context: Context) {
-
-    interface Listener {
-        fun onCallStateChanged(call: Call)
-        fun onIsCallAnswered(callId: String)
-        fun onIsCallDisconnected(cause: DisconnectCause)
-        fun onIsCallInactive(callId: String)
-        fun onIsCallActive(callId: String)
-        fun onCallRegistered(callId: String)
-        fun onMuteCallChanged(callId: String, isMuted: Boolean)
-        fun onCallEndpointChanged(callId: String, endpoint: String)
-    }
+class TelecomCallRepository(private val context: Context) : CallRepository {
 
     companion object {
-        private const val TAG = "[Callingx] CallRepository"
+        private const val TAG = "[Callingx] TelecomCallRepository"
     }
 
-    private var listener: Listener? = null
+    private var listener: CallRepository.Listener? = null
     private var observeCallStateJob: Job? = null
 
     private val callsManager: CallsManager
@@ -78,7 +52,7 @@ class CallRepository(context: Context) {
 
     // Keeps track of the current TelecomCall state
     private val _currentCall: MutableStateFlow<Call> = MutableStateFlow(Call.None)
-    val currentCall = _currentCall.asStateFlow()
+    override val currentCall = _currentCall.asStateFlow()
 
     init {
         val capabilities =
@@ -91,14 +65,14 @@ class CallRepository(context: Context) {
         Log.d(TAG, "[repository] init: CallsManager created and registered")
     }
 
-    fun setListener(listener: Listener) {
+    override fun setListener(listener: CallRepository.Listener) {
         this.listener = listener
 
         observeCallStateJob?.cancel()
         observeCallStateJob = observeCallState()
     }
 
-    fun release() {
+    override fun release() {
         val currentCall = currentCall.value
         if (currentCall is Call.Registered) {
             currentCall.processAction(
@@ -118,7 +92,7 @@ class CallRepository(context: Context) {
      * Register a new call with the provided attributes. Use the [currentCall] StateFlow to receive
      * status updates and process call related actions.
      */
-    suspend fun registerCall(
+    override suspend fun registerCall(
             callId: String,
             displayName: String,
             address: Uri,
@@ -140,9 +114,7 @@ class CallRepository(context: Context) {
                 "[repository] registerCall: No existing call found, proceeding with registration"
         )
 
-        // Create the call attributes
         val attributes = createCallAttributes(displayName, address, isIncoming, isVideo)
-        // Creates a channel to send actions to the call scope.
         val actionSource = Channel<CallAction>()
 
         // Register the call and handle actions in the scope

@@ -7,7 +7,6 @@ import android.media.RingtoneManager
 import android.os.Build
 import android.telecom.DisconnectCause
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -24,7 +23,6 @@ import com.callingx.model.Call
  *
  * @see updateCallNotification
  */
-@RequiresApi(Build.VERSION_CODES.O)
 class CallNotificationManager(
         private val context: Context,
         private val notificationManager: NotificationManagerCompat =
