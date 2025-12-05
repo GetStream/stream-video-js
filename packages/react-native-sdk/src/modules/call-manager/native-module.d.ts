@@ -67,6 +67,12 @@ export interface CallManager extends NativeModule {
   setForceSpeakerphoneOn: (boolean) => void;
 
   /**
+   * Enables or disables stereo audio output.
+   * @param enable - Whether to enable stereo audio output.
+   */
+  setEnableStereoAudioOutput: (enable: boolean) => void;
+
+  /**
    * Log the current audio state natively.
    * Meant for debugging purposes.
    */

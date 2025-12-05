@@ -143,6 +143,9 @@ class StreamInCallManager: RCTEventEmitter {
         let intendedCategory: AVAudioSession.Category!
         let intendedMode: AVAudioSession.Mode!
         let intendedOptions: AVAudioSession.CategoryOptions!
+        
+        let adm = getAudioDeviceModule()
+        adm.reset()
 
         if (callAudioRole == .listener) {
             // enables high quality audio playback but disables microphone
@@ -151,7 +154,7 @@ class StreamInCallManager: RCTEventEmitter {
             // for stereo we should disallow BluetoothHFP
             intendedOptions = self.enableStereo ? [.allowBluetoothA2DP] : []
             if (self.enableStereo) {
-                getAudioDeviceModule()?.setStereoPlayoutPreference(true)
+                adm.setStereoPlayoutPreference(true)
             }
         } else {
             intendedCategory = .playAndRecord
@@ -379,7 +382,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     // MARK: - Helper Methods
-    private func getAudioDeviceModule() -> RTCAudioDeviceModule? {
+    private func getAudioDeviceModule() -> AudioDeviceModule {
         let webrtcModule = self.bridge.module(forName: "WebRTCModule") as! WebRTCModule
         return webrtcModule.audioDeviceModule
     }

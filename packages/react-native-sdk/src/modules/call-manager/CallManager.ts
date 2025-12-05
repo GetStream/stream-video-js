@@ -98,7 +98,7 @@ export class CallManager {
       const type = config.deviceEndpointType ?? 'speaker';
       NativeManager.setDefaultAudioDeviceEndpointType(type);
     }
-    if (config?.enableStereoAudioOutput) {
+    if (config?.audioRole === 'listener' && config.enableStereoAudioOutput) {
       NativeManager.setEnableStereoAudioOutput(true);
     }
     NativeManager.start();
