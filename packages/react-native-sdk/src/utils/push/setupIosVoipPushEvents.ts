@@ -23,6 +23,15 @@ export function setupIosVoipPushEvents(
   const voipPushNotification = getVoipPushNotificationLib();
 
   logger.debug('notification event listener added');
+  voipPushNotification.addEventListener('didLoadWithEvents', (events) => {
+    //we need this for cold start scenario where the app is not running and the events are not processed when the app is launched
+    for (const event of events) {
+      const { name, data } = event;
+      if (name === 'RNVoipPushRemoteNotificationReceivedEvent') {
+        onVoipNotificationReceived(data, pushConfig);
+      }
+    }
+  });
   voipPushNotification.addEventListener('notification', (notification) => {
     onVoipNotificationReceived(notification, pushConfig);
   });
