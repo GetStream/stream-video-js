@@ -83,7 +83,7 @@ export abstract class BaseVideoProcessor {
       .pipeThrough(transformStream, { signal: this.abortController.signal })
       .pipeTo(writable, { signal: this.abortController.signal })
       .catch((e) => {
-        if (e.name !== 'AbortError') {
+        if (e.name !== 'AbortError' && e.name !== 'InvalidStateError') {
           console.error(`[${this.processorName}] Error processing track:`, e);
           this.hooks.onError?.(e);
         }
