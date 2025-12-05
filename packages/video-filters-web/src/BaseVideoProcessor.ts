@@ -56,6 +56,14 @@ export abstract class BaseVideoProcessor {
         try {
           if (this.abortController.signal.aborted) return frame.close();
 
+          if (
+            this.canvas.width !== frame.displayWidth ||
+            this.canvas.height !== frame.displayHeight
+          ) {
+            this.canvas.width = frame.displayWidth;
+            this.canvas.height = frame.displayHeight;
+          }
+
           const start = performance.now();
           const processed = await this.transform(frame);
           const delay = performance.now() - start;
