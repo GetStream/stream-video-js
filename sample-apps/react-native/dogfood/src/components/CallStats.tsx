@@ -356,7 +356,6 @@ const calculatePublishAudioBitrate = (
     audioStats.totalBytesSent - previousAudioStats.totalBytesSent;
   const timeElapsed = audioStats.timestamp - previousAudioStats.timestamp;
 
-  console.log(bytesSent);
   return `${((bytesSent * 8) / timeElapsed).toFixed(2)} kbps`;
 };
 
