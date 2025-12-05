@@ -26,13 +26,13 @@ import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.callingx.model.Call
+import com.callingx.model.CallAction
+import com.callingx.notifications.CallNotificationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import com.callingx.model.Call
-import com.callingx.model.CallAction
-import com.callingx.notifications.CallNotificationManager
 
 /**
  * This service handles the app call logic (show notification, record mic, display audio, etc..). It
@@ -104,6 +104,7 @@ class CallService : Service(), CallRepository.Listener {
         Log.d(TAG, "[service] onDestroy: TelecomCallService destroyed")
 
         notificationManager.cancelNotifications()
+        notificationManager.stopRingtone()
         telecomRepository.release()
         headlessJSManager.release()
 
@@ -173,6 +174,11 @@ class CallService : Service(), CallRepository.Listener {
                         TAG,
                         "[service] updateServiceState: Call registered - Active: ${call.isActive}, OnHold: ${call.isOnHold}, Muted: ${call.isMuted}"
                 )
+
+                if (call.isIncoming()) {
+                    if (!call.isActive) notificationManager.startRingtone()
+                    else notificationManager.stopRingtone()
+                }
                 // Update the call state.
                 if (isInForeground) {
                     Log.d(
@@ -199,6 +205,7 @@ class CallService : Service(), CallRepository.Listener {
                     isInForeground = false
                 }
 
+                notificationManager.stopRingtone()
                 stopSelf()
             }
             is Call.None -> {
@@ -209,6 +216,7 @@ class CallService : Service(), CallRepository.Listener {
                     stopForeground(STOP_FOREGROUND_REMOVE)
                     isInForeground = false
                 }
+                notificationManager.stopRingtone()
             }
         }
     }

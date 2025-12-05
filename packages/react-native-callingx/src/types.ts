@@ -75,8 +75,6 @@ export type AndroidOptions = {
   outgoingChannel?: {
     id: string;
     name: string;
-    sound?: string;
-    vibration?: boolean;
   };
 };
 

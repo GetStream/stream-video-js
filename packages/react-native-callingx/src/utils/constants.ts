@@ -25,8 +25,6 @@ export const defaultAndroidOptions: Required<AndroidOptions> = {
   outgoingChannel: {
     id: 'telecom_ongoing_channel',
     name: 'Ongoing calls',
-    sound: '',
-    vibration: false,
   },
 };
 

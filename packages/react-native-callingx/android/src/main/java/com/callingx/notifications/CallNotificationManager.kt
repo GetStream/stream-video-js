@@ -2,6 +2,8 @@ package com.callingx.notifications
 
 import android.app.Notification
 import android.content.Context
+import android.media.Ringtone
+import android.media.RingtoneManager
 import android.os.Build
 import android.telecom.DisconnectCause
 import android.util.Log
@@ -37,6 +39,8 @@ class CallNotificationManager(
 
     private var notificationsConfig = NotificationsConfig.loadNotificationsConfig(context)
 
+    private var ringtone: Ringtone? = null
+
     fun createNotification(call: Call.Registered): Notification {
         Log.d(TAG, "createNotification: Creating notification for call ID: ${call.id}")
 
@@ -58,7 +62,7 @@ class CallNotificationManager(
                         .setCategory(NotificationCompat.CATEGORY_CALL)
                         .setPriority(NotificationCompat.PRIORITY_MAX)
                         .setOngoing(true)
-        
+
         call.displayOptions?.let {
             if (it.containsKey(CallService.EXTRA_DISPLAY_SUBTITLE)) {
                 builder.setContentText(it.getString(CallService.EXTRA_DISPLAY_SUBTITLE))
@@ -84,6 +88,32 @@ class CallNotificationManager(
 
     fun cancelNotifications() {
         notificationManager.cancel(NOTIFICATION_ID)
+    }
+
+    fun startRingtone() {
+        if (ringtone?.isPlaying == true) {
+            Log.d(TAG, "startRingtone: Ringtone already playing")
+            return
+        }
+
+        val soundUri =
+                ResourceUtils.getSoundUri(context, notificationsConfig.incomingChannel.sound)
+                        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+
+        ringtone = RingtoneManager.getRingtone(context, soundUri)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            ringtone?.isLooping = true
+        }
+        ringtone?.play()
+        Log.d(TAG, "startRingtone: Ringtone started")
+    }
+
+    fun stopRingtone() {
+        if (ringtone?.isPlaying == true) {
+            ringtone?.stop()
+            Log.d(TAG, "stopRingtone: Ringtone stopped")
+        }
+        ringtone = null
     }
 
     private fun getChannelId(call: Call.Registered): String {

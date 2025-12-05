@@ -14,7 +14,7 @@ class NotificationChannelsManager(
                 NotificationManagerCompat.from(context)
 ) {
 
-  private var notificationsConfig: NotificationsConfig.ChannelsConfig? = null
+  private var notificationsConfig: NotificationsConfig.Channels? = null
 
   companion object {
     private const val TAG = "[Callingx] NotificationChannelsManager"
@@ -28,7 +28,7 @@ class NotificationChannelsManager(
           val isOutgoingChannelEnabled: Boolean,
   )
 
-  fun setNotificationsConfig(notificationsConfig: NotificationsConfig.ChannelsConfig) {
+  fun setNotificationsConfig(notificationsConfig: NotificationsConfig.Channels) {
     this.notificationsConfig = notificationsConfig
   }
 
@@ -71,12 +71,11 @@ class NotificationChannelsManager(
   private fun createNotificationChannel(
           config: NotificationsConfig.ChannelParams
   ): NotificationChannelCompat {
-    Log.d(TAG, "createNotificationChannel: Creating notification channel: ${config.id}, ${config.name}, ${config.importance}, ${config.vibration}, ${config.sound}")
     return NotificationChannelCompat.Builder(config.id, config.importance)
             .apply {
               setName(config.name)
               setVibrationEnabled(config.vibration)
-              ResourceUtils.getSoundUri(context, config.sound)?.let { setSound(it, null) }
+              setSound(null, null)
             }
             .build()
   }
