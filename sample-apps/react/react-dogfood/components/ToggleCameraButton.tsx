@@ -6,14 +6,14 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
 
+const { useCameraState } = getCallStateHooks();
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
     const { t } = useI18n();
-    const { useCameraState } = useCallStateHooks();
     const { selectedDevice: selectedCamera, devices: cameras } =
       useCameraState();
 

@@ -4,6 +4,10 @@ module.exports = function (api) {
 
   return {
     presets: ['module:@react-native/babel-preset'],
-    plugins: ['module:react-native-dotenv', 'react-native-worklets/plugin'],
+    plugins: [
+      'babel-plugin-react-compiler',
+      'module:react-native-dotenv',
+      'react-native-worklets/plugin',
+    ],
   };
 };

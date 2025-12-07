@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { type LobbyProps } from './Lobby';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { getCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Lock } from '../../../icons/Lock';
 
 /**
@@ -16,6 +16,7 @@ export type LobbyFooterProps = Pick<
 /**
  * The default Lobby Footer to be used in the Lobby component.
  */
+const { useCallSession } = getCallStateHooks();
 export const LobbyFooter = ({
   onJoinCallHandler,
   JoinCallButton,
@@ -24,7 +25,6 @@ export const LobbyFooter = ({
     theme: { colors, lobby, variants },
   } = useTheme();
   const styles = useStyles();
-  const { useCallSession } = useCallStateHooks();
   const { t } = useI18n();
   const session = useCallSession();
   const numberOfParticipants = session?.participants.length;

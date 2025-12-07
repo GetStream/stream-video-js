@@ -10,7 +10,7 @@ import {
   type VideoTrackType,
   VisibilityState,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from '../ParticipantVideoFallback';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useTrackDimensions } from '../../../../hooks/useTrackDimensions';
@@ -43,6 +43,7 @@ export type VideoRendererProps = Pick<
  *
  * It internally used `RTCView` to render video stream.
  */
+const { useCameraState, useIncomingVideoSettings } = getCallStateHooks();
 export const VideoRenderer = ({
   trackType = 'videoTrack',
   participant,
@@ -55,7 +56,6 @@ export const VideoRenderer = ({
     theme: { videoRenderer },
   } = useTheme();
   const call = useCall();
-  const { useCameraState, useIncomingVideoSettings } = useCallStateHooks();
   const trackSubscriberRef = useRef<TrackSubscriberHandle>(null);
   const { isParticipantVideoEnabled } = useIncomingVideoSettings();
   const { direction } = useCameraState();

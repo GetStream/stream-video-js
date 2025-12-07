@@ -3,35 +3,36 @@ import {
   CancelCallButton,
   Notification,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
+  useEffectEvent,
 } from '@stream-io/video-react-sdk';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 export interface DialingCallNotificationProps {
   onJoin: () => void;
   onLeave: () => void;
 }
 
+const { useCallCallingState, useCallMembers } = getCallStateHooks();
 export function DialingCallNotification(props: {
   onJoin: () => void;
   onLeave: () => void;
 }) {
   const { t } = useI18n();
   const call = useCall();
-  const { useCallCallingState, useCallMembers } = useCallStateHooks();
   const callingState = useCallCallingState();
   const otherMembers = useCallMembers().filter(
     (m) => m.user_id !== call?.state.createdBy?.id,
   );
-  const callbackRefs = useRef<DialingCallNotificationProps>(null);
-  callbackRefs.current = props;
+  const onJoin = useEffectEvent(props.onJoin ?? (() => {}));
+  const onLeave = useEffectEvent(props.onLeave ?? (() => {}));
 
   useEffect(() => {
     if (callingState === CallingState.JOINED) {
-      callbackRefs.current?.onJoin();
+      onJoin();
     } else if (callingState === CallingState.LEFT) {
-      callbackRefs.current?.onLeave();
+      onLeave();
     }
   }, [callingState]);
 

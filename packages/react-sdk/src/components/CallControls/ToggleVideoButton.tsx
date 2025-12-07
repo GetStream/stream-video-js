@@ -1,6 +1,6 @@
 import {
   Restricted,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
   UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
@@ -26,6 +26,7 @@ export type ToggleVideoPreviewButtonProps = PropsWithErrorHandler<
     UseInputMediaDeviceOptions
 >;
 
+const { useCameraState, useCallSettings } = getCallStateHooks();
 export const ToggleVideoPreviewButton = (
   props: ToggleVideoPreviewButtonProps,
 ) => {
@@ -38,7 +39,6 @@ export const ToggleVideoPreviewButton = (
     ...restCompositeButtonProps
   } = props;
   const { t } = useI18n();
-  const { useCameraState } = useCallStateHooks();
   const {
     camera,
     hasBrowserPermission,
@@ -126,7 +126,6 @@ export const ToggleVideoPublishingButton = (
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_VIDEO);
 
-  const { useCameraState, useCallSettings } = useCallStateHooks();
   const {
     camera,
     optionsAwareIsMute,

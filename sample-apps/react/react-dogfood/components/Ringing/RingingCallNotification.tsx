@@ -5,7 +5,7 @@ import {
   StreamCall,
   useCall,
   useCalls,
-  useCallStateHooks,
+  getCallStateHooks,
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-sdk';
@@ -28,11 +28,11 @@ export function RingingCallNotification() {
   );
 }
 
+const { useCallMembers, useCallSession } = getCallStateHooks();
 function RingingCallUI() {
   const { t } = useI18n();
   const router = useRouter();
   const call = useCall();
-  const { useCallMembers, useCallSession } = useCallStateHooks();
   const session = useCallSession();
   const connectedUser = useConnectedUser();
   const otherMembers = useCallMembers().filter(

@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import {
   StreamVideoParticipant,
-  useCallStateHooks,
+  getCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
 import {
   FlatList,
@@ -14,8 +14,8 @@ import {
 
 type ParticipantFlatList = FlatListProps<StreamVideoParticipant>;
 
+const { useParticipants } = getCallStateHooks();
 export function ParticipantsPanel() {
-  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const renderItem: NonNullable<ParticipantFlatList['renderItem']> =
     useCallback(({ item: participantItem }) => {

@@ -39,12 +39,14 @@ export default function createStoreContext<
     setState: SetStateFuncType;
     subscribe: SubscribeFunc;
   } {
+    'use no memo';
     const storeRef = useRef<StoreType>(initialState);
 
     // have we initialized the values from the state keys that were persisted?
     const initializedPersistStateKeys = useRef(false);
 
     const getSnapshot = useRef(() => {
+      'use no memo';
       // initialize store with persisted values if not already done
       if (!initializedPersistStateKeys.current) {
         const persistedValues: Partial<StoreType> = {};
@@ -103,6 +105,7 @@ export default function createStoreContext<
   const StoreContext = createContext<HookReturnType | null>(null);
 
   function Provider(props: React.PropsWithChildren<{}>) {
+    'use no memo';
     const value = useStoreData();
     return (
       <StoreContext.Provider value={value}>
@@ -114,6 +117,7 @@ export default function createStoreContext<
   function useStoreValue<SelectorOutput extends StoreType[keyof StoreType]>(
     selector: (store: StoreType) => SelectorOutput,
   ): SelectorOutput {
+    'use no memo';
     const store = useContext(StoreContext);
     if (!store) {
       throw new Error('Store not found');

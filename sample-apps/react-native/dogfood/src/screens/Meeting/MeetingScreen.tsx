@@ -11,6 +11,7 @@ import { MeetingUI } from '../../components/MeetingUI';
 type Props = NativeStackScreenProps<MeetingStackParamList, 'MeetingScreen'>;
 
 export const MeetingScreen = (props: Props) => {
+  'use no memo';
   const { route } = props;
   const client = useStreamVideoClient();
   const callType = 'default';
@@ -24,6 +25,7 @@ export const MeetingScreen = (props: Props) => {
     return client.call(callType, callId);
   }, [callId, callType, client]);
   // @ts-expect-error - Expose call to globalThis for debugging purposes
+   
   globalThis.call = call;
 
   useEffect(() => {

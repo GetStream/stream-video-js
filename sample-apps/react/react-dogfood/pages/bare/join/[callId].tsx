@@ -16,7 +16,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
@@ -94,10 +94,10 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
   );
 }
 
+const { useCallCallingState } = getCallStateHooks();
 const Stage = (props: { videoFile?: string }) => {
   const { videoFile } = props;
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const showLobby = [
     CallingState.IDLE,

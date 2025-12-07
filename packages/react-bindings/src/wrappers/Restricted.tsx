@@ -2,7 +2,7 @@ import { OwnCapability } from '@stream-io/video-client';
 
 import { PropsWithChildren } from 'react';
 import { useCall } from '../contexts';
-import { useCallStateHooks } from '../hooks';
+import { getCallStateHooks } from '../hooks';
 
 type RestrictedProps = PropsWithChildren<{
   /**
@@ -24,6 +24,7 @@ type RestrictedProps = PropsWithChildren<{
   requireAll?: boolean;
 }>;
 
+const { useCallSettings, useOwnCapabilities } = getCallStateHooks();
 export const Restricted = ({
   canRequestOnly,
   hasPermissionsOnly,
@@ -32,7 +33,6 @@ export const Restricted = ({
   children,
 }: RestrictedProps) => {
   const call = useCall();
-  const { useCallSettings, useOwnCapabilities } = useCallStateHooks();
   const ownCapabilities = useOwnCapabilities();
   const settings = useCallSettings();
   const hasPermissions = requiredGrants[requireAll ? 'every' : 'some'](

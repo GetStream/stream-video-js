@@ -1,5 +1,5 @@
 import { CallingState } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
@@ -60,6 +60,7 @@ export type RingingCallContentProps = {
   onBackPress?: () => void;
 };
 
+const { useCallCallingState } = getCallStateHooks();
 const RingingCallPanel = ({
   IncomingCall = DefaultIncomingCall,
   OutgoingCall = DefaultOutgoingCall,
@@ -72,7 +73,6 @@ const RingingCallPanel = ({
   const call = useCall();
   const isCallCreatedByMe = call?.isCreatedByMe;
 
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
   switch (callingState) {

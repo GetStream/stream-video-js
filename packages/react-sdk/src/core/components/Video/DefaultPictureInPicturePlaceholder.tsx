@@ -11,6 +11,7 @@ export const DefaultPictureInPicturePlaceholder = forwardRef<
   HTMLDivElement,
   PictureInPicturePlaceholderProps
 >(function DefaultPictureInPicturePlaceholder(props, ref) {
+  'use no memo';
   const { t } = useI18n();
   return (
     <BaseVideoPlaceholder ref={ref} {...props}>

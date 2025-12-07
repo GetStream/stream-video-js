@@ -2,7 +2,7 @@ import {
   Call,
   StreamCall,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import { getConnectionString } from '../../lib/connectionString';
 
@@ -14,9 +14,9 @@ export function CallingState(props: { call: Call }) {
   );
 }
 
+const { useCallCallingState } = getCallStateHooks();
 function CallingStateInner() {
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
   const state = useCallCallingState();
   return (
     <div className="rd__calling-state" data-copy="In call" data-h>

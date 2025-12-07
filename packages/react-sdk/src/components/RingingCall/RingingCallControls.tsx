@@ -1,10 +1,10 @@
 import { CallingState } from '@stream-io/video-client';
 import { AcceptCallButton, CancelCallButton } from '../CallControls';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 
+const { useCallCallingState } = getCallStateHooks();
 export const RingingCallControls = () => {
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
   const callCallingState = useCallCallingState();
 
   if (!call) return null;

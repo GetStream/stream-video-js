@@ -16,6 +16,7 @@ import axios, { AxiosResponseTransformer } from 'axios';
 import { Alert } from 'react-native';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
+  'use no memo';
   const userId = useAppGlobalStoreValue((store) => store.userId);
   const userName = useAppGlobalStoreValue((store) => store.userName);
   const userImageUrl = useAppGlobalStoreValue((store) => store.userImageUrl);

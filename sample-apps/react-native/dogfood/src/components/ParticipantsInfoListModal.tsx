@@ -8,7 +8,7 @@ import {
   Restricted,
   StreamVideoParticipant,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useConnectedUser,
   useI18n,
   useTheme,
@@ -53,13 +53,13 @@ interface ParticipantsInfoListProps {
  * their mute states, video states, screen share states, etc.
  * Mute all participants, invite participants, etc.
  **/
+const { useParticipants } = getCallStateHooks();
 export const ParticipantsInfoListModal = ({
   isCallParticipantsInfoVisible,
   setIsCallParticipantsInfoVisible,
 }: ParticipantsInfoListProps) => {
   const styles = useStyles();
   const { theme } = useTheme();
-  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const { t } = useI18n();
   const [selectedParticipant, setSelectedParticipant] = useState<

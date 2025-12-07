@@ -20,6 +20,7 @@ const ToggleMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps<HTMLDivElement> & CallStatsButtonProps
 >(function ToggleMenuButton(props, ref) {
+  'use no memo';
   const { t } = useI18n();
   const { caption, menuShown } = props;
 

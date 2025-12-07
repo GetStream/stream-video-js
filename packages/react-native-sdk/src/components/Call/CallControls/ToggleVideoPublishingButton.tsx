@@ -1,6 +1,6 @@
 import React from 'react';
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { Restricted, getCallStateHooks } from '@stream-io/video-react-bindings';
 import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, Video, VideoSlash } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -19,10 +19,10 @@ export type ToggleVideoPublishingButtonProps = {
 /**
  * Button to toggle video mute/unmute status while in the call.
  */
+const { useCameraState, useCallSettings } = getCallStateHooks();
 export const ToggleVideoPublishingButton = ({
   onPressHandler,
 }: ToggleVideoPublishingButtonProps) => {
-  const { useCameraState, useCallSettings } = useCallStateHooks();
   const { camera, optimisticIsMute } = useCameraState();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;

@@ -1,4 +1,4 @@
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { getCallStateHooks } from '@stream-io/video-react-bindings';
 import { DeviceSelector } from './DeviceSelector';
 import { AudioVolumeIndicator } from './AudioVolumeIndicator';
 import { SpeakerTest } from './SpeakerTest';
@@ -9,12 +9,12 @@ export type DeviceSelectorAudioInputProps = {
   volumeIndicatorVisible?: boolean;
 };
 
+const { useMicrophoneState, useSpeakerState } = getCallStateHooks();
 export const DeviceSelectorAudioInput = ({
   title,
   visualType,
   volumeIndicatorVisible = true,
 }: DeviceSelectorAudioInputProps) => {
-  const { useMicrophoneState } = useCallStateHooks();
   const { microphone, selectedDevice, devices } = useMicrophoneState();
 
   return (
@@ -52,7 +52,6 @@ export const DeviceSelectorAudioOutput = ({
   speakerTestVisible = true,
   speakerTestAudioUrl,
 }: DeviceSelectorAudioOutputProps) => {
-  const { useSpeakerState } = useCallStateHooks();
   const { speaker, selectedDevice, devices, isDeviceSelectionSupported } =
     useSpeakerState();
 

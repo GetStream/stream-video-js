@@ -1,7 +1,7 @@
 import React, { type ComponentType, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import {
-  useCallStateHooks,
+  getCallStateHooks,
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
@@ -50,6 +50,7 @@ export type LobbyProps = {
 /**
  * Components that acts as a pre-join view for the call. Where you can preview your video and audio. Check for call details and check for number of participants already in the call.
  */
+const { useCameraState, useCallSettings } = getCallStateHooks();
 export const Lobby = ({
   onJoinCallHandler,
   LobbyControls = DefaultLobbyControls,
@@ -62,7 +63,6 @@ export const Lobby = ({
   } = useTheme();
   const styles = useStyles(landscape);
   const connectedUser = useConnectedUser();
-  const { useCameraState, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
   const { isMute: cameraIsMuted, mediaStream } = useCameraState();

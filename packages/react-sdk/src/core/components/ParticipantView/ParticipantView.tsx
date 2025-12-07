@@ -13,7 +13,7 @@ import {
   StreamVideoParticipant,
   VideoTrackType,
 } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { getCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { Audio } from '../Audio';
 import { Video, VideoProps } from '../Video';
@@ -70,6 +70,7 @@ export type ParticipantViewProps = {
   className?: string;
 } & Pick<VideoProps, 'VideoPlaceholder' | 'PictureInPicturePlaceholder'>;
 
+const { useIncomingVideoSettings } = getCallStateHooks();
 export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
   function ParticipantView(
     {
@@ -85,6 +86,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
     },
     ref,
   ) {
+    'use no memo';
     const { isLocalParticipant, isSpeaking, isDominantSpeaker, sessionId } =
       participant;
 
@@ -109,7 +111,6 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
       trackType,
     });
 
-    const { useIncomingVideoSettings } = useCallStateHooks();
     const { isParticipantVideoEnabled } = useIncomingVideoSettings();
 
     const participantViewContextValue = useMemo(

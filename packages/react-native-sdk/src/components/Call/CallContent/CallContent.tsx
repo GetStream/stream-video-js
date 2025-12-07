@@ -17,7 +17,7 @@ import {
   CallControls as DefaultCallControls,
   type HangUpCallButtonProps,
 } from '../CallControls';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   CallingState,
   type StreamReaction,
@@ -105,6 +105,8 @@ export type CallContentProps = Pick<
     initialInCallManagerAudioMode?: 'video' | 'audio';
   };
 
+const { useHasOngoingScreenShare, useRemoteParticipants, useLocalParticipant } =
+  getCallStateHooks();
 export const CallContent = ({
   onHangupCallHandler,
   CallParticipantsList,
@@ -133,11 +135,6 @@ export const CallContent = ({
     theme: { callContent },
   } = useTheme();
   const call = useCall();
-  const {
-    useHasOngoingScreenShare,
-    useRemoteParticipants,
-    useLocalParticipant,
-  } = useCallStateHooks();
 
   useAutoEnterPiPEffect(disablePictureInPicture);
 

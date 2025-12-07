@@ -2,16 +2,15 @@ import {
   CompositeButton,
   Icon,
   SfuModels,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
   WithTooltip,
 } from '@stream-io/video-react-sdk';
 import { useCallback } from 'react';
 
+const { useMicrophoneState, useCallSettings } = getCallStateHooks();
 export const ToggleHiFiButton = () => {
   const { t } = useI18n();
-  const { useMicrophoneState, useCallSettings } = useCallStateHooks();
-
   const settings = useCallSettings();
   const allowHiFi = settings?.audio.hifi_audio_enabled ?? false;
 

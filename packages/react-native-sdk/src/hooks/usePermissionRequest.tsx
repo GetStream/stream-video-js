@@ -3,14 +3,13 @@ import {
   type PermissionRequestEvent,
   videoLoggerSystem,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
 
+const { useHasPermissions } = getCallStateHooks();
 export const usePermissionRequest = () => {
   const call = useCall();
-
-  const { useHasPermissions } = useCallStateHooks();
   const userHasUpdateCallPermissionsCapability = useHasPermissions(
     OwnCapability.UPDATE_CALL_PERMISSIONS,
   );

@@ -8,9 +8,10 @@ import {
 import {
   Restricted,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
+
 import {
   name,
   OwnCapability,
@@ -138,6 +139,7 @@ const CallParticipantListContentHeader = ({
   );
 };
 
+const { useParticipants, useCallBlockedUserIds } = getCallStateHooks();
 const ActiveUsersSearchResults = ({
   searchQuery,
   activeUsersSearchFn: activeUsersSearchFnFromProps,
@@ -146,7 +148,6 @@ const ActiveUsersSearchResults = ({
   CallParticipantListProps,
   'activeUsersSearchFn' | 'debounceSearchInterval'
 > & { searchQuery: string }) => {
-  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants({ sortBy: name });
 
   const activeUsersSearchFn = useCallback(
@@ -182,7 +183,6 @@ const BlockedUsersSearchResults = ({
   CallParticipantListProps,
   'blockedUsersSearchFn' | 'debounceSearchInterval'
 > & { searchQuery: string }) => {
-  const { useCallBlockedUserIds } = useCallStateHooks();
   const blockedUsers = useCallBlockedUserIds();
 
   const blockedUsersSearchFn = useCallback(

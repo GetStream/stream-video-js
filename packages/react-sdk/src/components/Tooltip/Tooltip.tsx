@@ -23,6 +23,7 @@ export const Tooltip = <T extends HTMLElement>({
   tooltipPlacement = 'top',
   visible = false,
 }: TooltipProps<T>) => {
+  'use no memo';
   const arrowRef = useRef<SVGSVGElement>(null);
   const { refs, x, y, strategy, context } = useFloatingUIPreset({
     placement: tooltipPlacement,
@@ -30,16 +31,18 @@ export const Tooltip = <T extends HTMLElement>({
     middleware: [arrow({ element: arrowRef })],
   });
 
+  const { setFloating, setReference } = refs;
+
   useEffect(() => {
-    refs.setReference(referenceElement);
-  }, [referenceElement, refs]);
+    setReference(referenceElement);
+  }, [referenceElement, setReference]);
 
   if (!visible) return null;
 
   return (
     <div
       className={clsx('str-video__tooltip', tooltipClassName)}
-      ref={refs.setFloating}
+      ref={setFloating}
       style={{
         position: strategy,
         top: y ?? 0,

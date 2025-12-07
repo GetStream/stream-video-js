@@ -6,6 +6,7 @@ export const GenericMenu = ({
 }: PropsWithChildren<{
   onItemClick?: (e: MouseEvent) => void;
 }>) => {
+  'use no memo';
   const ref = useRef<HTMLUListElement>(null);
   return (
     <ul

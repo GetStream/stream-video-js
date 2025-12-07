@@ -1,4 +1,4 @@
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { getCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { useTheme } from '../../../contexts';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -7,8 +7,8 @@ import { IconWrapper, Mic, MicOff } from '../../../icons';
 /**
  * The LivestreamAudioControlButton controls the audio stream publish/unpublish while in the livestream for the host.
  */
+const { useMicrophoneState } = getCallStateHooks();
 export const LivestreamAudioControlButton = () => {
-  const { useMicrophoneState } = useCallStateHooks();
   const { optimisticIsMute, microphone } = useMicrophoneState();
   const {
     theme: {

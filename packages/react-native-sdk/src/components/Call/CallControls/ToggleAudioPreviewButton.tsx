@@ -1,4 +1,4 @@
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { getCallStateHooks } from '@stream-io/video-react-bindings';
 import React from 'react';
 import { useTheme } from '../../../contexts';
 import { IconWrapper, Mic, MicOff } from '../../../icons';
@@ -18,6 +18,7 @@ export type ToggleAudioPreviewButtonProps = {
 /**
  * Button to toggle audio mute/unmute status before joining the call.
  */
+const { useMicrophoneState } = getCallStateHooks();
 export const ToggleAudioPreviewButton = ({
   onPressHandler,
 }: ToggleAudioPreviewButtonProps) => {
@@ -29,7 +30,6 @@ export const ToggleAudioPreviewButton = ({
       defaults,
     },
   } = useTheme();
-  const { useMicrophoneState } = useCallStateHooks();
   const { optimisticIsMute, microphone } = useMicrophoneState();
 
   const onPress = async () => {
