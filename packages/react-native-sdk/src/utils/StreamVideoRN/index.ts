@@ -5,7 +5,7 @@ import newNotificationCallbacks, {
 } from '../internal/newNotificationCallbacks';
 import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 
 // Utility type for deep partial
 type DeepPartial<T> = {
@@ -171,13 +171,49 @@ export class StreamVideoRN {
    * Play native busy tone for call rejection
    */
   static async playBusyTone() {
-    return NativeModules.StreamVideoReactNative?.playBusyTone();
+    return NativeModules.StreamVideoReactNative.playBusyTone();
   }
 
   /**
    * Stop native busy tone
    */
   static async stopBusyTone() {
-    return NativeModules.StreamVideoReactNative?.stopBusyTone();
+    return NativeModules.StreamVideoReactNative.stopBusyTone();
+  }
+
+  /**
+   * Check if the device has audio output hardware
+   * @returns True if the device has audio output hardware
+   */
+  static async androidHasAudioOutputHardware(): Promise<boolean> {
+    if (Platform.OS !== 'android')
+      throw new Error(
+        'androidHasAudioOutputHardware function is only available on Android',
+      );
+    return NativeModules.StreamVideoReactNative.hasAudioOutputHardware();
+  }
+
+  /**
+   * Check if the device has microphone hardware
+   * @returns True if the device has microphone hardware
+   */
+  static async androidHasMicrophoneHardware(): Promise<boolean> {
+    if (Platform.OS !== 'android')
+      throw new Error(
+        'androidHasMicrophoneHardware function is only available on Android',
+      );
+    return NativeModules.StreamVideoReactNative.hasMicrophoneHardware();
+  }
+
+  /**
+   * Check if the device has camera hardware
+   * @returns True if the device has camera hardware
+   */
+  static async androidHasCameraHardware(): Promise<boolean> {
+    if (Platform.OS !== 'android')
+      throw new Error(
+        'androidHasCameraHardware function is only available on Android',
+      );
+    return NativeModules.StreamVideoReactNative.hasCameraHardware();
   }
 }

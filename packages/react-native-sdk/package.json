@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "1.24.7",
+  "version": "1.26.0",
   "description": "Stream Video SDK for React Native",
   "author": "https://getstream.io",
   "homepage": "https://getstream.io/video/docs/react-native/",
@@ -126,7 +126,7 @@
     "@react-native-firebase/messaging": "^23.4.0",
     "@react-native/babel-preset": "^0.81.5",
     "@stream-io/noise-cancellation-react-native": "workspace:^",
-    "@stream-io/react-native-webrtc": "137.0.0",
+    "@stream-io/react-native-webrtc": "137.0.2",
     "@stream-io/video-filters-react-native": "workspace:^",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "13.3.3",

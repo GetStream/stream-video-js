@@ -429,7 +429,7 @@ export const useMicrophoneState = ({
 export const useSpeakerState = () => {
   if (isReactNative()) {
     throw new Error(
-      'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
+      'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/react-native/guides/camera-and-microphone/#speaker-management for more details',
     );
   }
   const call = useCall();
@@ -437,9 +437,11 @@ export const useSpeakerState = () => {
 
   const { getDevices } = useLazyDeviceList(speaker);
   const selectedDevice = useObservableValue(speaker.state.selectedDevice$);
+  const volume = useObservableValue(speaker.state.volume$);
 
   return {
     speaker,
+    volume,
     get devices() {
       return getDevices();
     },

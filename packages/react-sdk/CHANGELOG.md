@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.28.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.27.2...@stream-io/video-react-sdk-1.28.0) (2025-12-08)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.9.0`
+- `@stream-io/video-client` updated to version `1.38.0`
+- `@stream-io/video-filters-web` updated to version `0.6.0`
+- `@stream-io/video-react-bindings` updated to version `1.12.0`
+
+### Features
+
+- **LivestreamLayout:** Enrich with mute option and humanized participant count ([#2027](https://github.com/GetStream/stream-video-js/issues/2027)) ([cdc0c4f](https://github.com/GetStream/stream-video-js/commit/cdc0c4f985ab15a6c2e184b73432911510b43f99))
+- **react:** Extend the statistics report with audio stats ([#2020](https://github.com/GetStream/stream-video-js/issues/2020)) ([0f4df3c](https://github.com/GetStream/stream-video-js/commit/0f4df3ce5f3b865c8ef09766dd72bc33f65539f3))
+- **react:** Video Call moderation for React SDK ([#2007](https://github.com/GetStream/stream-video-js/issues/2007)) ([e242d35](https://github.com/GetStream/stream-video-js/commit/e242d35cc619d1ad0fc55d01944e97269af60cdf))
+
 ## [1.27.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.27.1...@stream-io/video-react-sdk-1.27.2) (2025-11-25)
 
 ### Dependency Updates

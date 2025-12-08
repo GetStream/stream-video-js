@@ -29,7 +29,7 @@ import {
 } from '../../../lib/getServerSideCredentialsProps';
 import { IncomingVideoSettingsButton } from '../../../components/IncomingVideoSettings';
 import appTranslations from '../../../translations';
-import { publishRemoteFile } from '../../../lib/remoteFilePublisher';
+import { publishRemoteFile } from '../../../components/RemoteFilePublisher';
 import { applyQueryConfigParams } from '../../../lib/queryConfigParams';
 
 export default function BareCallRoom(props: ServerSideCredentialsProps) {

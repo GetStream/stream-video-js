@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.38.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.3...@stream-io/video-client-1.38.0) (2025-12-08)
+
+### Features
+
+- **LivestreamLayout:** Enrich with mute option and humanized participant count ([#2027](https://github.com/GetStream/stream-video-js/issues/2027)) ([cdc0c4f](https://github.com/GetStream/stream-video-js/commit/cdc0c4f985ab15a6c2e184b73432911510b43f99))
+- **react:** Extend the statistics report with audio stats ([#2020](https://github.com/GetStream/stream-video-js/issues/2020)) ([0f4df3c](https://github.com/GetStream/stream-video-js/commit/0f4df3ce5f3b865c8ef09766dd72bc33f65539f3))
+
 ## [1.37.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.2...@stream-io/video-client-1.37.3) (2025-11-25)
 
 - instructions for Claude and other coding agents ([#2012](https://github.com/GetStream/stream-video-js/issues/2012)) ([08a3459](https://github.com/GetStream/stream-video-js/commit/08a345954f7cb5b1fae5a4b39b5b585bf1f631ec))
