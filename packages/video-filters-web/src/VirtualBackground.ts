@@ -7,228 +7,116 @@ import {
 import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision';
 import { WebGLRenderer } from './WebGLRenderer';
 import { packageName, version } from './version';
-import { TrackGenerator, MediaStreamTrackGenerator } from './FallbackGenerator';
-import { MediaStreamTrackProcessor, TrackProcessor } from './FallbackProcessor';
+import { BaseVideoProcessor } from './BaseVideoProcessor';
 
 /**
  * Wraps a video MediaStreamTrack in a real-time processing pipeline.
  * Incoming frames are processed through a transformer and re-emitted
  * on a new MediaStreamVideoTrack for downstream consumption.
  */
-export class VirtualBackground {
-  private readonly processor: MediaStreamTrackProcessor<VideoFrame>;
-  private readonly generator: MediaStreamTrackGenerator<VideoFrame>;
-
-  private canvas!: OffscreenCanvas;
+export class VirtualBackground extends BaseVideoProcessor {
   private segmenter: ImageSegmenter | null = null;
+  private isSegmenterReady = false;
   private webGlRenderer!: WebGLRenderer;
-  private abortController: AbortController;
 
-  private segmenterDelayTotal = 0;
-  private frames = 0;
-  private lastStatsTime = 0;
+  private opts!: SegmenterOptions;
 
   private latestCategoryMask: WebGLTexture | undefined = undefined;
   private latestConfidenceMask: WebGLTexture | undefined = undefined;
+  private lastFrameTime = -1;
+  private count = 0;
 
   constructor(
-    private readonly track: MediaStreamVideoTrack,
+    track: MediaStreamVideoTrack,
     private readonly options: BackgroundOptions = {},
-    private readonly hooks: VideoTrackProcessorHooks = {},
+    hooks: VideoTrackProcessorHooks = {},
   ) {
-    this.processor = new TrackProcessor({ track });
-    this.generator = new TrackGenerator({
-      kind: 'video',
-      signalTarget: track,
-    });
-
-    this.abortController = new AbortController();
+    super(track, hooks);
   }
 
-  public async start(): Promise<MediaStreamTrack> {
-    const { onError } = this.hooks;
-
-    const { readable } = this.processor;
-    const { writable } = this.generator;
-
-    const displayWidth = this.track.getSettings().width ?? 1280;
-    const displayHeight = this.track.getSettings().height ?? 720;
-
-    this.canvas = new OffscreenCanvas(displayWidth, displayHeight);
+  protected async initialize(): Promise<void> {
     this.webGlRenderer = new WebGLRenderer(this.canvas);
 
     await this.initializeSegmenter();
-
-    const opts = await this.initializeSegmenterOptions();
-
-    let lastFrameTime = -1;
-    const transformStream = new TransformStream<VideoFrame, VideoFrame>({
-      transform: (frame, controller) => {
-        try {
-          if (this.abortController.signal.aborted) {
-            frame.close();
-            return;
-          }
-
-          if (
-            this.canvas.width !== frame.displayWidth ||
-            this.canvas.height !== frame.displayHeight
-          ) {
-            this.canvas.width = frame.displayWidth;
-            this.canvas.height = frame.displayHeight;
-          }
-
-          const currentTime = frame.timestamp;
-          const hasNewFrame = currentTime !== lastFrameTime;
-
-          lastFrameTime = currentTime;
-          if (hasNewFrame) {
-            this.runSegmentation(frame);
-          }
-          this.webGlRenderer.render(
-            frame,
-            opts,
-            this.latestCategoryMask,
-            this.latestConfidenceMask,
-          );
-
-          controller.enqueue(
-            new VideoFrame(this.canvas, { timestamp: frame.timestamp }),
-          );
-        } catch (e) {
-          console.error('[virtual-background] error processing frame:', e);
-          onError?.(e);
-        } finally {
-          frame.close();
-        }
-      },
-      flush: () => {
-        if (this.segmenter) {
-          this.segmenter.close();
-          this.segmenter = null;
-        }
-      },
-    });
-
-    const signal = this.abortController.signal;
-
-    readable
-      .pipeThrough(transformStream, { signal })
-      .pipeTo(writable, { signal })
-      .catch((e) => {
-        if (e.name !== 'AbortError') {
-          console.error('[virtual-background] Error processing track:', e);
-          onError?.(e);
-        }
-      });
-
-    return this.generator;
   }
 
-  private runSegmentation(frame: VideoFrame) {
-    if (!this.segmenter) return;
-
-    const start = performance.now();
-
-    this.segmenter.segmentForVideo(frame, frame.timestamp, (result) => {
-      try {
-        this.latestCategoryMask = result.categoryMask?.getAsWebGLTexture();
-
-        this.latestConfidenceMask =
-          result.confidenceMasks?.[0]?.getAsWebGLTexture();
-
-        const now = performance.now();
-        this.segmenterDelayTotal += now - start;
-        this.frames++;
-
-        if (this.lastStatsTime === 0) {
-          this.lastStatsTime = now;
-        }
-
-        if (now - this.lastStatsTime > 1000) {
-          const delay =
-            Math.round((this.segmenterDelayTotal / this.frames) * 100) / 100;
-          const fps = Math.round(
-            (1000 * this.frames) / (now - this.lastStatsTime),
-          );
-
-          this.hooks.onStats?.({ delay, fps, timestamp: now });
-
-          this.lastStatsTime = now;
-          this.segmenterDelayTotal = 0;
-          this.frames = 0;
-        }
-      } catch (err) {
-        console.error('[virtual-background] segmentation error:', err);
-      } finally {
-        result.close();
-      }
-    });
-  }
-
-  /**
-   * Loads and initializes the MediaPipe `ImageSegmenter`.
-   */
   private async initializeSegmenter() {
     try {
+      this.opts = await this.initializeSegmenterOptions();
+
       const basePath =
-        this.options?.basePath ||
+        this.options.basePath ||
         `https://unpkg.com/${packageName}@${version}/mediapipe`;
 
-      const defaultModelPath = `${basePath}/models/selfie_segmenter.tflite`;
+      const model =
+        this.options.modelPath || `${basePath}/models/selfie_segmenter.tflite`;
 
-      const model = this.options?.modelPath || defaultModelPath;
-
-      const wasmPath = `${basePath}/wasm`;
-
-      const fileset = await FilesetResolver.forVisionTasks(wasmPath);
+      const fileset = await FilesetResolver.forVisionTasks(`${basePath}/wasm`);
 
       this.segmenter = await ImageSegmenter.createFromOptions(fileset, {
-        baseOptions: {
-          modelAssetPath: model,
-          delegate: 'GPU',
-        },
+        baseOptions: { modelAssetPath: model, delegate: 'GPU' },
         runningMode: 'VIDEO',
         outputCategoryMask: true,
         outputConfidenceMasks: true,
         canvas: this.canvas,
       });
+
+      this.isSegmenterReady = true;
     } catch (error) {
-      console.error(
-        '[virtual-background] Failed to initialize MediaPipe segmenter:',
-        error,
-      );
+      console.error('[virtual-background] Segmenter init failed:', error);
+      this.isSegmenterReady = false;
     }
   }
 
-  private async loadBackground(url: string | undefined) {
-    if (!url) {
-      return;
-    }
+  protected async transform(frame: VideoFrame): Promise<VideoFrame> {
+    const currentTime = frame.timestamp;
+    const hasNewFrame = currentTime !== this.lastFrameTime;
+    this.lastFrameTime = currentTime;
 
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(
-        `[virtual-background] Failed to fetch background source ${url} (status: ${response.status})`,
+    if (hasNewFrame && this.isSegmenterReady && this.segmenter) {
+      await this.runSegmentation(frame);
+
+      this.webGlRenderer.render(
+        frame,
+        this.opts,
+        this.latestCategoryMask,
+        this.latestConfidenceMask,
       );
-      return;
     }
-    const blob = await response.blob();
 
-    const imageBitmap = await createImageBitmap(blob);
-    return { type: 'image', media: imageBitmap, url };
+    return new VideoFrame(this.canvas, { timestamp: frame.timestamp });
+  }
+
+  private async runSegmentation(frame: VideoFrame): Promise<void> {
+    if (!this.segmenter) return;
+
+    return new Promise<void>((resolve) => {
+      const timestamp = Math.floor(performance.now());
+      this.segmenter!.segmentForVideo(frame, timestamp, (result) => {
+        try {
+          this.latestCategoryMask = result.categoryMask?.getAsWebGLTexture();
+          this.latestConfidenceMask =
+            result.confidenceMasks?.[0]?.getAsWebGLTexture();
+        } catch (err) {
+          console.error('[virtual-background] segmentation error:', err);
+          this.hooks.onError?.(err);
+        } finally {
+          result.close();
+          resolve();
+        }
+      });
+    });
   }
 
   private async initializeSegmenterOptions(): Promise<SegmenterOptions> {
     const isSelfieMode = this.options.modelPath
-      ? this.options.modelPath?.includes('selfie_segmenter')
+      ? this.options.modelPath.includes('selfie_segmenter')
       : true;
 
     if (this.options.backgroundFilter === 'image') {
+      const source = await this.loadBackground(this.options.backgroundImage);
       return {
-        backgroundSource: await this.loadBackground(
-          this.options.backgroundImage,
-        ),
+        backgroundSource: source,
         bgBlur: 0,
         bgBlurRadius: 0,
         isSelfieMode,
@@ -236,6 +124,7 @@ export class VirtualBackground {
     }
 
     const blurLevel = this.options.backgroundBlurLevel;
+
     if (typeof blurLevel === 'string') {
       return {
         ...BACKGROUND_BLUR_MAP[blurLevel],
@@ -245,26 +134,42 @@ export class VirtualBackground {
     }
 
     const numeric = blurLevel ?? 5;
-
-    const bgBlur = Math.min(numeric * 3, 30);
-    const bgBlurRadius = Math.min(numeric, 10);
-
     return {
       backgroundSource: undefined,
-      bgBlur,
-      bgBlurRadius,
+      bgBlur: Math.min(numeric * 3, 30),
+      bgBlurRadius: Math.min(numeric, 10),
       isSelfieMode,
     };
   }
 
-  public stop(): void {
-    this.abortController.abort();
-    this.webGlRenderer.close();
-    this.generator.stop();
+  private async loadBackground(url?: string) {
+    if (!url) return null;
+    const result = await fetch(url);
+    if (!result.ok) return null;
 
-    if (this.segmenter) {
-      this.segmenter.close();
-      this.segmenter = null;
-    }
+    return {
+      type: 'image',
+      media: await createImageBitmap(await result.blob()),
+      url,
+    };
+  }
+
+  protected onFlush(): void {
+    this.destroySegmenter();
+  }
+
+  protected onStop(): void {
+    this.webGlRenderer?.close();
+    this.destroySegmenter();
+  }
+
+  private destroySegmenter() {
+    this.segmenter?.close();
+    this.segmenter = null;
+    this.isSegmenterReady = false;
+  }
+
+  protected get processorName() {
+    return 'background-processor';
   }
 }
