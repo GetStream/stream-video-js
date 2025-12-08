@@ -11,8 +11,8 @@
   "dependencies": {
     "@floating-ui/dom": "^1.6.13",
     "@floating-ui/react": "^0.27.6",
-    "@next/third-parties": "^15.5.7",
-    "@sentry/nextjs": "^10.19.0",
+    "@next/third-parties": "^16.0.7",
+    "@sentry/nextjs": "^10.29.0",
     "@stream-io/audio-filters-web": "workspace:^",
     "@stream-io/node-sdk": "^0.7.9",
     "@stream-io/video-filters-web": "workspace:^",
@@ -28,8 +28,8 @@
     "mapbox-gl": "^2.15.0",
     "mobile-device-detect": "^0.4.3",
     "nanoid": "^5.1.6",
-    "next": "^15.5.7",
-    "next-auth": "^4.24.11",
+    "next": "^16.0.7",
+    "next-auth": "^4.24.13",
     "qrcode.react": "^4.2.0",
     "raw-body": "^3.0.1",
     "react": "19.1.0",
@@ -46,7 +46,6 @@
     "@types/react-dom": "~19.1.11",
     "@types/yargs": "^17.0.33",
     "rimraf": "^6.0.1",
-    "sass": "^1.93.2",
-    "source-map-loader": "^5.0.0"
+    "sass": "^1.93.2"
   }
 }
