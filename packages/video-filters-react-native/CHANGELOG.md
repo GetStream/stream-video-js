@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.9.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.9.1...@stream-io/video-filters-react-native-0.9.2) (2025-12-08)
+
 ## [0.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.9.0...@stream-io/video-filters-react-native-0.9.1) (2025-11-20)
 
 ## [0.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.8.1...@stream-io/video-filters-react-native-0.9.0) (2025-11-14)
