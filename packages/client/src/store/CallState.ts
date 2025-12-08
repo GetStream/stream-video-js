@@ -86,7 +86,7 @@ const createStableParticipantsFilter = (
   const empty: StreamVideoParticipant[] = [];
   return (participants: StreamVideoParticipant[]) => {
     // no need to filter if there are no participants
-    if (!participants.length) return participants;
+    if (!participants.length) return empty;
 
     // return a stable empty array if there are no remote participants
     // instead of creating an empty one
