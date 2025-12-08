@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   CallingState,
   CancelCallConfirmButton,
+  getCallStateHooks,
   humanize,
   Icon,
   LoadingIndicator,
   Notification,
-  useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
@@ -17,8 +17,15 @@ import { ToggleDocumentationButton } from './ToggleDocumentationButton';
 import { LayoutSelectorProps } from './LayoutSelector';
 import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
 
+const {
+  useCallStatsReport,
+  useParticipants,
+  useParticipantCount,
+  useCallCallingState,
+  useCallSession,
+  useIsCallRecordingInProgress,
+} = getCallStateHooks();
 const LatencyIndicator = () => {
-  const { useCallStatsReport } = useCallStateHooks();
   const statsReport = useCallStatsReport();
   const latency = statsReport?.publisherStats?.averageRoundTripTimeInMs ?? 0;
 
@@ -71,7 +78,6 @@ const RecordingIndicator = () => {
 };
 
 const ParticipantCountIndicator = () => {
-  const { useParticipants, useParticipantCount } = useCallStateHooks();
   const participants = useParticipants();
   const participantCount = useParticipantCount();
   const count = Math.max(participantCount, participants.length);
@@ -88,8 +94,6 @@ export const ActiveCallHeader = ({
   selectedLayout,
   onMenuItemClick,
 }: { onLeave: () => void } & LayoutSelectorProps) => {
-  const { useCallCallingState, useCallSession, useIsCallRecordingInProgress } =
-    useCallStateHooks();
   const isRecordingInProgress = useIsCallRecordingInProgress();
   const callingState = useCallCallingState();
   const session = useCallSession();

@@ -22,6 +22,7 @@ export function useDeviceList(
   selectedDeviceInfo: DeviceListItem;
   selectedIndex: number;
 } {
+  'use no memo';
   const { t } = useI18n();
 
   return useMemo(() => {

@@ -50,6 +50,7 @@ const CancelCallToggleMenuButton = forwardRef<
   HTMLButtonElement,
   ToggleMenuButtonProps
 >(function CancelCallToggleMenuButton({ menuShown }, ref) {
+  'use no memo';
   const { t } = useI18n();
   return (
     <WithTooltip title={t('Leave call')} tooltipDisabled={menuShown}>

@@ -2,6 +2,7 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  useEffectEvent,
   WithTooltip,
   type Call,
 } from '@stream-io/video-react-sdk';
@@ -299,12 +300,11 @@ function useInspectorCall() {
 
 function useAutoJoinDemoCall(flag: boolean, join: () => void) {
   const autoJoined = useRef(false);
-  const joinRef = useRef(join);
-  joinRef.current = join;
+  const handleJoin = useEffectEvent(join ?? (() => {}));
 
   useEffect(() => {
     if (flag && !autoJoined.current) {
-      joinRef.current();
+      handleJoin();
       autoJoined.current = true;
     }
   }, [flag]);

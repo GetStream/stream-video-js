@@ -4,7 +4,7 @@ import {
   DropDownSelect,
   DropDownSelectOption,
   Icon,
-  useCallStateHooks,
+  getCallStateHooks,
   useMenuContext,
 } from '@stream-io/video-react-sdk';
 import { LayoutMap } from '../hooks';
@@ -100,12 +100,12 @@ const DropdownMenu = ({
   );
 };
 
+const { useHasOngoingScreenShare } = getCallStateHooks();
 const Menu = ({
   onMenuItemClick: setLayout,
   selectedLayout,
   visualType = LayoutSelectorType.DROPDOWN,
 }: LayoutSelectorProps) => {
-  const { useHasOngoingScreenShare } = useCallStateHooks();
   const hasScreenShare = useHasOngoingScreenShare();
 
   const canScreenshare = (key: string) =>

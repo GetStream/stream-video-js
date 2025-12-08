@@ -7,7 +7,7 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useCallStateHooks,
+  getCallStateHooks,
   User,
   UserResponse,
 } from '@stream-io/video-react-sdk';
@@ -31,8 +31,8 @@ type GuestCallRoomProps = {
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
+const { useCallCustomData } = getCallStateHooks();
 const HeadComponent = ({ callId }: { callId: string }) => {
-  const { useCallCustomData } = useCallStateHooks();
   const customData = useCallCustomData();
 
   return (

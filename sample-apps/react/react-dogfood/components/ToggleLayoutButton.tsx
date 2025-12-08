@@ -18,12 +18,12 @@ import {
 import { LayoutMap } from '../hooks';
 
 export const ToggleLayoutButton = (props: LayoutSelectorProps) => {
+  const { t } = useI18n();
   const { onMenuItemClick, selectedLayout } = props;
   const ToggleMenuButtonComponent = useMemo(
     () =>
       forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
         function ToggleMenuButton(buttonProps, ref) {
-          const { t } = useI18n();
           return (
             <WithTooltip
               title={t('Layout')}
@@ -40,7 +40,7 @@ export const ToggleLayoutButton = (props: LayoutSelectorProps) => {
           );
         },
       ),
-    [selectedLayout],
+    [selectedLayout, t],
   );
 
   return (

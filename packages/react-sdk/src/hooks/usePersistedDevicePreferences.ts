@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CallingState, InputDeviceStatus } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { getCallStateHooks } from '@stream-io/video-react-bindings';
 
 export type LocalDevicePreference = {
   selectedDeviceId: string;
@@ -33,6 +33,14 @@ interface DeviceManagerLike {
 
 const defaultDevice = 'default';
 
+const {
+  useCallSettings,
+  useCallCallingState,
+  useMicrophoneState,
+  useCameraState,
+  useSpeakerState,
+} = getCallStateHooks();
+
 /**
  * This hook will apply and persist the device preferences from local storage.
  *
@@ -41,13 +49,6 @@ const defaultDevice = 'default';
 export const usePersistedDevicePreferences = (
   key: string = '@stream-io/device-preferences',
 ): void => {
-  const {
-    useCallSettings,
-    useCallCallingState,
-    useMicrophoneState,
-    useCameraState,
-    useSpeakerState,
-  } = useCallStateHooks();
   const settings = useCallSettings();
   const callingState = useCallCallingState();
 

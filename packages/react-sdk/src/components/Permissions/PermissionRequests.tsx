@@ -15,7 +15,7 @@ import {
 import {
   TranslatorFunction,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
@@ -35,9 +35,9 @@ type HandleUpdatePermission = (
   type: 'grant' | 'revoke' | 'dismiss',
 ) => () => Promise<void>;
 
+const { useLocalParticipant, useHasPermissions } = getCallStateHooks();
 export const PermissionRequests = () => {
   const call = useCall();
-  const { useLocalParticipant, useHasPermissions } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const [expanded, setExpanded] = useState(false);
   const [permissionRequests, setPermissionRequests] = useState<
@@ -127,6 +127,7 @@ export const PermissionRequestList = forwardRef<
   HTMLDivElement,
   PermissionRequestListProps
 >(function PermissionRequestList(props, ref) {
+  'use no memo';
   const { permissionRequests, handleUpdatePermission, ...rest } = props;
 
   const { t } = useI18n();

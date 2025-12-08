@@ -14,7 +14,7 @@ import {
   speakerLayoutSortPreset,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { getCallStateHooks } from '@stream-io/video-react-bindings';
 import { applyFilter, Filter } from '../../../utilities/filter';
 
 export type FilterableParticipant = Pick<
@@ -32,6 +32,8 @@ export type ParticipantPredicate = (
   participant: StreamVideoParticipant,
 ) => boolean;
 
+const { useParticipants, useRemoteParticipants, useRawParticipants } =
+  getCallStateHooks();
 export const useFilteredParticipants = ({
   excludeLocalParticipant = false,
   filterParticipants,
@@ -39,7 +41,6 @@ export const useFilteredParticipants = ({
   excludeLocalParticipant?: boolean;
   filterParticipants?: ParticipantFilter | ParticipantPredicate;
 }) => {
-  const { useParticipants, useRemoteParticipants } = useCallStateHooks();
   const allParticipants = useParticipants();
   const remoteParticipants = useRemoteParticipants();
   return useMemo(() => {
@@ -113,7 +114,6 @@ export const useSpeakerLayoutSortPreset = (
 };
 
 export const useRawRemoteParticipants = () => {
-  const { useRawParticipants } = useCallStateHooks();
   const rawParticipants = useRawParticipants();
   return useMemo(
     () => rawParticipants.filter((p) => !p.isLocalParticipant),

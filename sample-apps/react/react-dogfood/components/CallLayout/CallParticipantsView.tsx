@@ -2,15 +2,15 @@ import { ComponentType } from 'react';
 import {
   DefaultParticipantViewUI,
   ParticipantView,
-  useCallStateHooks,
+  getCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
+const { useParticipants } = getCallStateHooks();
 export const CallParticipantsView = ({
   ParticipantViewUI,
 }: {
   ParticipantViewUI?: ComponentType;
 }) => {
-  const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const grid = `str-video__grid-${participants.length || 1}`;
   return (

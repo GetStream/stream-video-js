@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { hasScreenShare } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   DefaultParticipantViewUI,
   ParticipantView,
@@ -97,6 +96,7 @@ const DefaultParticipantViewUIBar = () => (
   <DefaultParticipantViewUI menuPlacement="top-end" />
 );
 
+const { useParticipants } = getCallStateHooks();
 export const SpeakerLayout = ({
   ParticipantViewUIBar = DefaultParticipantViewUIBar,
   ParticipantViewUISpotlight = DefaultParticipantViewUI,
@@ -111,7 +111,6 @@ export const SpeakerLayout = ({
   muted,
 }: SpeakerLayoutProps) => {
   const call = useCall();
-  const { useParticipants } = useCallStateHooks();
   const allParticipants = useParticipants();
   const remoteParticipants = useRawRemoteParticipants();
   const [participantInSpotlight, ...otherParticipants] =

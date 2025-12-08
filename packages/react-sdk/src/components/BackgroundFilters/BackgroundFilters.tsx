@@ -9,7 +9,11 @@ import {
   useState,
 } from 'react';
 import { flushSync } from 'react-dom';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  getCallStateHooks,
+  useEffectEvent,
+} from '@stream-io/video-react-bindings';
 import { Call, disposeOfMediaStream } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
@@ -262,9 +266,11 @@ const determineEngine = async (
  * Please make sure you have the `@stream-io/video-filters-web` package installed
  * in your project before using this component.
  */
+const { useCallStatsReport } = getCallStateHooks();
 export const BackgroundFiltersProvider = (
   props: PropsWithChildren<BackgroundFiltersProps>,
 ) => {
+  'use no memo';
   const {
     children,
     backgroundImages = [],
@@ -282,7 +288,6 @@ export const BackgroundFiltersProvider = (
   } = props;
 
   const call = useCall();
-  const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
 
   const [backgroundFilter, setBackgroundFilter] = useState(bgFilterFromProps);
@@ -497,13 +502,8 @@ const BackgroundFilters = (props: {
   const call = useCall();
   const { children, start } = useRenderer(props.tfLite, call, props.engine);
   const { onError, backgroundFilter } = useBackgroundFilters();
-  const handleErrorRef = useRef<((error: any) => void) | undefined>(undefined);
-  handleErrorRef.current = onError;
-
-  const handleStatsRef = useRef<
-    ((stats: PerformanceStats) => void) | undefined
-  >(undefined);
-  handleStatsRef.current = props.onStats;
+  const handleError = useEffectEvent(onError ?? (() => {}));
+  const handleStats = useEffectEvent(props.onStats ?? (() => {}));
 
   useEffect(() => {
     if (!call || !backgroundFilter) return;
@@ -511,8 +511,8 @@ const BackgroundFilters = (props: {
     const { unregister } = call.camera.registerFilter((ms) => {
       return start(
         ms,
-        (error) => handleErrorRef.current?.(error),
-        (stats: PerformanceStats) => handleStatsRef.current?.(stats),
+        (error) => handleError(error),
+        (stats: PerformanceStats) => handleStats(stats),
       );
     });
     return () => {
@@ -528,6 +528,7 @@ const useRenderer = (
   call: Call | undefined,
   engine: FilterEngine,
 ) => {
+  'use no memo';
   const {
     backgroundFilter,
     backgroundBlurLevel,

@@ -13,9 +13,9 @@ import {
   Restricted,
   ScreenShareButton,
   SpeakingWhileMutedNotification,
-  useCallStateHooks,
   useI18n,
   WithTooltip,
+  getCallStateHooks,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
@@ -79,9 +79,9 @@ type SidebarContent =
   | 'closed-captions'
   | null;
 
+const { useParticipantCount } = getCallStateHooks();
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;
-  const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const {
     current: currentTourStep,

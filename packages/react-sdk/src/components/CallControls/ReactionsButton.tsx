@@ -67,6 +67,7 @@ const ToggleReactionsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
 >(function ToggleReactionsMenuButton({ menuShown }, ref) {
+  'use no memo';
   const { t } = useI18n();
   return (
     <WithTooltip title={t('Reactions')} tooltipDisabled={menuShown}>

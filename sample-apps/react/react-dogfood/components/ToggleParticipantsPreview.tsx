@@ -7,7 +7,7 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
 
@@ -15,8 +15,8 @@ export type Props = {
   onJoin: () => void;
 };
 
+const { useCallSession, useCallThumbnail } = getCallStateHooks();
 const ParticipantsPreview = ({ onJoin }: Props) => {
-  const { useCallSession, useCallThumbnail } = useCallStateHooks();
   const session = useCallSession();
   const { t } = useI18n();
 
@@ -51,7 +51,6 @@ const ParticipantsPreview = ({ onJoin }: Props) => {
 
 const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
-    const { useCallSession } = useCallStateHooks();
     const session = useCallSession();
     const total = session?.participants?.length || 0;
     return (
@@ -72,7 +71,6 @@ const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
 );
 
 export const ToggleParticipantsPreviewButton = ({ onJoin }: Props) => {
-  const { useCallSession } = useCallStateHooks();
   const session = useCallSession();
 
   if (!session?.participants || session?.participants.length === 0) return null;

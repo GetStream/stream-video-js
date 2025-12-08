@@ -1,7 +1,7 @@
 import { PropsWithChildren } from 'react';
 import { Placement } from '@floating-ui/react';
 
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { getCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Notification } from './Notification';
 
 export type SpeakingWhileMutedNotificationProps = {
@@ -12,12 +12,12 @@ export type SpeakingWhileMutedNotificationProps = {
   placement?: Placement;
 };
 
+const { useMicrophoneState } = getCallStateHooks();
 export const SpeakingWhileMutedNotification = ({
   children,
   text,
   placement,
 }: PropsWithChildren<SpeakingWhileMutedNotificationProps>) => {
-  const { useMicrophoneState } = useCallStateHooks();
   const { isSpeakingWhileMuted } = useMicrophoneState();
   const { t } = useI18n();
 

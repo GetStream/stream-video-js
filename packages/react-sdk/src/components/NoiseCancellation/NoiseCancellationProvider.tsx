@@ -11,7 +11,7 @@ import {
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall, getCallStateHooks } from '@stream-io/video-react-bindings';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 
 export type NoiseCancellationProviderProps = {
@@ -57,6 +57,7 @@ const NoiseCancellationContext = createContext<NoiseCancellationAPI | null>(
  * Exposes the NoiseCancellation API.
  * Throws an error if used outside <NoiseCancellationProvider />.
  */
+const { useCallSettings, useHasPermissions } = getCallStateHooks();
 export const useNoiseCancellation = (): NoiseCancellationAPI => {
   const context = useContext(NoiseCancellationContext);
   if (!context) {
@@ -72,7 +73,6 @@ export const NoiseCancellationProvider = (
 ) => {
   const { children, noiseCancellation } = props;
   const call = useCall();
-  const { useCallSettings, useHasPermissions } = useCallStateHooks();
   const settings = useCallSettings();
   const noiseCancellationAllowed = !!(
     settings &&

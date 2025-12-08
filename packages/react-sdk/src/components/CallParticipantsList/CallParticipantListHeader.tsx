@@ -1,5 +1,4 @@
-import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
-
+import { getCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { IconButton } from '../Button';
 
 export type CallParticipantListHeaderProps = {
@@ -9,10 +8,10 @@ export type CallParticipantListHeaderProps = {
   onClose: () => void;
 };
 
+const { useParticipants, useAnonymousParticipantCount } = getCallStateHooks();
 export const CallParticipantListHeader = ({
   onClose,
 }: CallParticipantListHeaderProps) => {
-  const { useParticipants, useAnonymousParticipantCount } = useCallStateHooks();
   const participants = useParticipants();
   const anonymousParticipantCount = useAnonymousParticipantCount();
   const { t } = useI18n();

@@ -4,7 +4,7 @@ import {
   LoadingIndicator,
   noopComparator,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useModeration,
   usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
@@ -47,6 +47,7 @@ type MeetingUIProps = {
   mode?: UserMode;
 };
 
+const { useCallCallingState } = getCallStateHooks();
 export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call' | 'left'
@@ -54,7 +55,6 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [lastError, setLastError] = useState<Error>();
   const router = useRouter();
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
   const {
     settings: { deviceSelectionPreference },
@@ -272,7 +272,6 @@ const ErrorPage = ({
 );
 
 export const LoadingScreen = () => {
-  const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const message =
     callingState === CallingState.RECONNECTING

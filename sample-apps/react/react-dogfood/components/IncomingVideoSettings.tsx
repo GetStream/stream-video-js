@@ -4,7 +4,7 @@ import {
   DropDownSelectOption,
   Icon,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
@@ -99,9 +99,9 @@ const IncomingVideoSettingsMenu = (props: {
   );
 };
 
+const { useIncomingVideoSettings } = getCallStateHooks();
 function useIncomingVideoSettingsSelector() {
   const call = useCall();
-  const { useIncomingVideoSettings } = useCallStateHooks();
   const { enabled, preferredResolution } = useIncomingVideoSettings();
   const currentSetting = getIncomingVideoSetting(enabled, preferredResolution);
   const currentIndex = incomingVideoSettings.indexOf(currentSetting);

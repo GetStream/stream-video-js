@@ -5,7 +5,7 @@ import {
   Icon,
   IconButtonWithMenuProps,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useI18n,
   UserResponse,
   WithTooltip,
@@ -17,11 +17,12 @@ export type ToggleParticipantListButtonProps = { caption?: string } & Omit<
   'icon' | 'ref'
 >;
 
+const { useParticipants } = getCallStateHooks();
 export const ToggleParticipantListButton = (
   props: ToggleParticipantListButtonProps,
 ) => {
+  const { t } = useI18n();
   const call = useCall();
-  const { useParticipants } = useCallStateHooks();
   const participantCount = useParticipants().length;
 
   const { refs, x, y } = useFloatingUIPreset({
@@ -29,7 +30,18 @@ export const ToggleParticipantListButton = (
     strategy: 'absolute',
   });
 
+  const { setFloating, setReference } = refs;
+  const [isDismissed, setIsDismissed] = useState(false);
   const [waitingRoom, setWaitingRoom] = useState<UserResponse[]>([]);
+
+  const admitUser = (user: UserResponse) => async () => {
+    if (!call) return;
+    await call.updateCallMembers({
+      update_members: [{ user_id: user.id, role: 'call_member' }],
+    });
+    setWaitingRoom((queue) => queue.filter((u) => u.id !== user.id));
+  };
+
   useEffect(() => {
     if (!call) return;
     return call.on('custom', (event) => {
@@ -40,22 +52,12 @@ export const ToggleParticipantListButton = (
     });
   }, [call]);
 
-  const [isDismissed, setIsDismissed] = useState(false);
-  const admitUser = (user: UserResponse) => async () => {
-    if (!call) return;
-    await call.updateCallMembers({
-      update_members: [{ user_id: user.id, role: 'call_member' }],
-    });
-    setWaitingRoom((queue) => queue.filter((u) => u.id !== user.id));
-  };
-  const { t } = useI18n();
-
   return (
-    <div className="rd__toggle-participants" ref={refs.setReference}>
+    <div className="rd__toggle-participants" ref={setReference}>
       {!isDismissed && waitingRoom.length > 0 && (
         <div
           className="str-video__menu-container rd__waiting-room-list"
-          ref={refs.setFloating}
+          ref={setFloating}
           style={{
             position: 'absolute',
             top: y ?? 0,

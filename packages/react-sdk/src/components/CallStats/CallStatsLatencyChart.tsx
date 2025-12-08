@@ -19,7 +19,12 @@ const CallStatsLatencyChart = (props: {
   values: Array<{ x: number; y: number }>;
 }) => {
   const { values } = props;
-  let max = 0;
+
+  const max = useMemo(() => {
+    if (values.length === 0) return 0;
+    return Math.max(...values.map((v) => v.y));
+  }, [values]);
+
   const data: ChartData<'line'> = {
     labels: values.map((point) => {
       const date = new Date(point.x * 1000);
@@ -27,11 +32,7 @@ const CallStatsLatencyChart = (props: {
     }),
     datasets: [
       {
-        data: values.map((point) => {
-          const { y } = point;
-          max = Math.max(max, y);
-          return point;
-        }),
+        data: values,
         borderColor: '#00e2a1',
         backgroundColor: '#00e2a1',
       },

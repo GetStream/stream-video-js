@@ -5,7 +5,7 @@ import {
   ToggleAudioPreviewButton,
   ToggleVideoPreviewButton,
   useCall,
-  useCallStateHooks,
+  getCallStateHooks,
   useConnectedUser,
   useI18n,
   VideoPreview,
@@ -45,17 +45,18 @@ export type LobbyProps = {
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
+const {
+  useMicrophoneState,
+  useCameraState,
+  useCallSession,
+  useCallMembers,
+  useCallCustomData,
+  useCallSettings,
+} = getCallStateHooks();
+
 export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const call = useCall();
   const { data: session, status } = useSession();
-  const {
-    useMicrophoneState,
-    useCameraState,
-    useCallSession,
-    useCallMembers,
-    useCallCustomData,
-    useCallSettings,
-  } = useCallStateHooks();
   const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
   const { hasBrowserPermission: hasCameraPermission, isMute: isCameraMute } =
     useCameraState();

@@ -1,7 +1,7 @@
-import { useCallStateHooks } from '@stream-io/video-react-sdk';
+import { getCallStateHooks } from '@stream-io/video-react-sdk';
 
+const { useCallStatsReport } = getCallStateHooks();
 export function CallStatsDash() {
-  const { useCallStatsReport } = useCallStateHooks();
   const stats = useCallStatsReport();
 
   return (
