@@ -19,7 +19,9 @@
 - (NSUUID *)getOrCreateUUIDForCid:(NSString *)cid {
   if ([self containsCid:cid]) {
     NSString *existingUUID = self.uuidDict[cid];
+#ifdef DEBUG
     NSLog(@"[UUIDStorage] getUUIDForCid: found existing UUID %@ for cid %@", existingUUID, cid);
+#endif
     return [[NSUUID alloc] initWithUUIDString:existingUUID];
   }
 
@@ -27,8 +29,9 @@
   NSString *uuidString = [uuid.UUIDString lowercaseString];
   self.uuidDict[cid] = uuidString;
   self.cidDict[uuidString] = cid;
+#ifdef DEBUG
   NSLog(@"[UUIDStorage] getUUIDForCid: created new UUID %@ for cid %@", uuidString, cid);
-  
+#endif
   return uuid;
 }
 
@@ -43,7 +46,9 @@
 - (NSString *)getCidForUUID:(NSUUID *)uuid {
   NSString *uuidString = [uuid.UUIDString lowercaseString];
   NSString *cid = self.cidDict[uuidString];
+#ifdef DEBUG
   NSLog(@"[UUIDStorage] getCidForUUID: UUID %@ -> cid %@", uuidString, cid ?: @"(not found)");
+#endif
   return cid;
 }
 
@@ -53,9 +58,13 @@
   if (cid) {
     [self.uuidDict removeObjectForKey:cid];
     [self.cidDict removeObjectForKey:uuidString];
+#ifdef DEBUG
     NSLog(@"[UUIDStorage] removeCidForUUID: removed cid %@ for UUID %@", cid, uuidString);
+#endif
   } else {
+#ifdef DEBUG
     NSLog(@"[UUIDStorage] removeCidForUUID: no cid found for UUID %@", uuidString);
+#endif
   }
 }
 
@@ -64,9 +73,13 @@
   if (uuidString) {
     [self.cidDict removeObjectForKey:uuidString];
     [self.uuidDict removeObjectForKey:cid];
+#ifdef DEBUG
     NSLog(@"[UUIDStorage] removeCid: removed cid %@ with UUID %@", cid, uuidString);
+#endif
   } else {
+#ifdef DEBUG
     NSLog(@"[UUIDStorage] removeCid: no UUID found for cid %@", cid);
+#endif
   }
 }
 
@@ -74,7 +87,9 @@
   NSUInteger count = [self.uuidDict count];
   [self.uuidDict removeAllObjects];
   [self.cidDict removeAllObjects];
+#ifdef DEBUG
   NSLog(@"[UUIDStorage] removeAllObjects: cleared %lu entries", (unsigned long)count);
+#endif
 }
 
 - (NSUInteger)count {

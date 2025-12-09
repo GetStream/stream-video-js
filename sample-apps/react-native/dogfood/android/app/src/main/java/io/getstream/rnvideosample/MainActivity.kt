@@ -12,7 +12,6 @@ import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnable
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 import com.oney.WebRTCModule.WebRTCModuleOptions
 import com.streamvideo.reactnative.StreamVideoReactNative
-import com.callingx.CallingxModule
 
 class MainActivity : ReactActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

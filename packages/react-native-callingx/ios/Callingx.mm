@@ -1,10 +1,3 @@
-//
-//  Callingx.m
-//  POCCallingX
-//
-//  Created by Artem Grintsevich on 17/11/2025.
-//
-
 #import "Callingx.h"
 #import <React/RCTBridge+Private.h>
 #import <React/RCTConvert.h>
@@ -12,6 +5,7 @@
 #import <AVFoundation/AVAudioSession.h>
 #import <CallKit/CallKit.h>
 #import "UUIDStorage.h"
+#import "Settings.h"
 
 #ifdef DEBUG
 static int const OUTGOING_CALL_WAKEUP_DELAY = 10;
@@ -28,12 +22,10 @@ static NSString *const CallingxDidChangeAudioRoute = @"didChangeAudioRoute";
 static NSString *const CallingxDidLoadWithEvents = @"didLoadWithEvents";
 static NSString *const CallingxDidDisplayIncomingCall = @"didDisplayIncomingCall";
 
-static NSString *const RNCallKeepHandleStartCallNotification = @"RNCallKeepHandleStartCallNotification";
-static NSString *const RNCallKeepDidActivateAudioSession = @"RNCallKeepDidActivateAudioSession";
-static NSString *const RNCallKeepDidDeactivateAudioSession = @"RNCallKeepDidDeactivateAudioSession";
-static NSString *const RNCallKeepPerformPlayDTMFCallAction = @"RNCallKeepDidPerformDTMFAction";
-static NSString *const RNCallKeepProviderReset = @"RNCallKeepProviderReset";
-static NSString *const RNCallKeepCheckReachability = @"RNCallKeepCheckReachability";
+static NSString *const CallingxDidActivateAudioSession = @"didActivateAudioSession";
+static NSString *const CallingxDidDeactivateAudioSession = @"didDeactivateAudioSession";
+static NSString *const CallingxPerformPlayDTMFCallAction = @"didPerformDTMFAction";
+static NSString *const CallingxProviderReset = @"providerReset";
 
 @implementation Callingx {
   NSOperatingSystemVersion _version;
@@ -42,7 +34,6 @@ static NSString *const RNCallKeepCheckReachability = @"RNCallKeepCheckReachabili
   NSMutableArray *_delayedEvents;
 }
 
-static bool isSetupNatively;
 static CXProvider *sharedProvider;
 static UUIDStorage *uuidStorage;
 
@@ -57,10 +48,6 @@ static UUIDStorage *uuidStorage;
   return sharedInstance;
 }
 
-+ (NSDictionary *)getSettings {
-  return [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"CallingxSettings"];
-}
-
 + (void)initUUIDStorage {
   if (uuidStorage == nil) {
     uuidStorage = [[UUIDStorage alloc] init];
@@ -70,46 +57,14 @@ static UUIDStorage *uuidStorage;
 
 + (void)initCallKitProvider {
   if (sharedProvider == nil) {
-    NSDictionary *settings = [self getSettings];
+    NSDictionary *settings = [Settings getSettings];
     if (settings != nil) {
-      sharedProvider = [[CXProvider alloc] initWithConfiguration:[Callingx getProviderConfiguration:settings]];
+      sharedProvider = [[CXProvider alloc] initWithConfiguration:[Settings getProviderConfiguration:settings]];
       NSLog(@"[Callingx] initCallKitProvider");
     }
   }
 }
 
-+ (CXProviderConfiguration *)getProviderConfiguration:(NSDictionary *)settings {
-#ifdef DEBUG
-  NSLog(@"[Callingx][getProviderConfiguration]");
-#endif
-  CXProviderConfiguration *providerConfiguration = [[CXProviderConfiguration alloc] init];
-  providerConfiguration.supportsVideo = YES;
-  providerConfiguration.maximumCallGroups = 3;
-  providerConfiguration.maximumCallsPerCallGroup = 1;
-  providerConfiguration.supportedHandleTypes = [Callingx getSupportedHandleTypes:settings[@"handleType"]];
-
-  if (settings[@"supportsVideo"]) {
-    providerConfiguration.supportsVideo = [settings[@"supportsVideo"] boolValue];
-  }
-  if (settings[@"maximumCallGroups"]) {
-    providerConfiguration.maximumCallGroups = [settings[@"maximumCallGroups"] integerValue];
-  }
-  if (settings[@"maximumCallsPerCallGroup"]) {
-    providerConfiguration.maximumCallsPerCallGroup = [settings[@"maximumCallsPerCallGroup"] integerValue];
-  }
-  if (settings[@"imageName"]) {
-    providerConfiguration.iconTemplateImageData = UIImagePNGRepresentation([UIImage imageNamed:settings[@"imageName"]]);
-  }
-  if (settings[@"ringtoneSound"]) {
-    providerConfiguration.ringtoneSound = settings[@"ringtoneSound"];
-  }
-  if (@available(iOS 11.0, *)) {
-    if (settings[@"includesCallsInRecents"]) {
-      providerConfiguration.includesCallsInRecents = [settings[@"includesCallsInRecents"] boolValue];
-    }
-  }
-  return providerConfiguration;
-}
 
 + (void)reportNewIncomingCall:(NSString *)callId
                        handle:(NSString *)handle
@@ -125,6 +80,8 @@ static UUIDStorage *uuidStorage;
         withCompletionHandler:(void (^_Nullable)(void))completion {
 #ifdef DEBUG
   NSLog(@"[Callingx][reportNewIncomingCall] callId = %@", callId);
+  NSLog(@"[Callingx][reportNewIncomingCall] handle = %@", handle);
+  NSLog(@"[Callingx][reportNewIncomingCall] localizedCallerName = %@", localizedCallerName);
 #endif
 
   [Callingx initUUIDStorage];
@@ -135,7 +92,7 @@ static UUIDStorage *uuidStorage;
     return;
   }
 
-  CXHandleType _handleType = [Callingx getHandleType:handleType];
+  CXHandleType _handleType = [Settings getHandleType:handleType];
   NSUUID *uuid = [uuidStorage getOrCreateUUIDForCid:callId];
   CXCallUpdate *callUpdate = [[CXCallUpdate alloc] init];
   callUpdate.remoteHandle = [[CXHandle alloc] initWithType:_handleType value:handle];
@@ -263,39 +220,6 @@ static UUIDStorage *uuidStorage;
 //    return NO;
 //}
 
-+ (NSSet *)getSupportedHandleTypes:(id)handleType {
-  if (handleType) {
-    if ([handleType isKindOfClass:[NSArray class]]) {
-      NSSet *types = [NSSet set];
-
-      for (NSString *type in handleType) {
-        types = [types setByAddingObject: [NSNumber numberWithInteger:[Callingx getHandleType:type]]];
-      }
-
-      return types;
-    } else {
-      CXHandleType _handleType = [Callingx getHandleType:handleType];
-
-      return [NSSet setWithObjects:[NSNumber numberWithInteger:_handleType], nil];
-    }
-  } else {
-    return [NSSet setWithObjects:[NSNumber numberWithInteger:CXHandleTypePhoneNumber], nil];
-  }
-}
-
-+ (CXHandleType)getHandleType:(NSString *)handleType {
-  if ([handleType isEqualToString:@"generic"]) {
-    return CXHandleTypeGeneric;
-  } else if ([handleType isEqualToString:@"number"]) {
-    return CXHandleTypePhoneNumber;
-  } else if ([handleType isEqualToString:@"phone"]) {
-    return CXHandleTypePhoneNumber;
-  } else if ([handleType isEqualToString:@"email"]) {
-    return CXHandleTypeEmailAddress;
-  } else {
-    return CXHandleTypeGeneric;
-  }
-}
 
 + (NSString *)getAudioOutput {
   @try {
@@ -309,12 +233,6 @@ static UUIDStorage *uuidStorage;
   }
 
   return nil;
-}
-
-+ (void)setup:(NSDictionary *)options {
-   Callingx *callKeep = [Callingx allocWithZone: nil];
-   [callKeep setup:options];
-   isSetupNatively = YES;
 }
 
 + (void)endCall:(NSString *)callId reason:(int)reason {
@@ -413,25 +331,6 @@ static UUIDStorage *uuidStorage;
   _isReachable = NO;
 }
 
-// Override method of RCTEventEmitter
-- (NSArray<NSString *> *)supportedEvents {
-  return @[
-    CallingxDidReceiveStartCallAction,
-    CallingxPerformAnswerCallAction,
-    CallingxPerformEndCallAction,
-    CallingxDidPerformSetMutedCallAction,
-    CallingxDidToggleHoldAction,
-    CallingxDidLoadWithEvents,
-    CallingxDidChangeAudioRoute,
-    CallingxDidDisplayIncomingCall,
-    RNCallKeepDidActivateAudioSession,
-    RNCallKeepDidDeactivateAudioSession,
-    RNCallKeepPerformPlayDTMFCallAction,
-    RNCallKeepProviderReset,
-    RNCallKeepCheckReachability,
-  ];
-}
-
 //- (void)startObserving {
 //  NSLog(@"[Callingx][startObserving]");
 //  _hasListeners = YES;
@@ -465,15 +364,6 @@ static UUIDStorage *uuidStorage;
 //  }
 //}
 
-- (void)setSettings:(NSDictionary *)options {
-#ifdef DEBUG
-  NSLog(@"[Callingx][setSettings] options = %@", options);
-#endif
-  NSDictionary *settings = [[NSMutableDictionary alloc] initWithDictionary:options];
-  // Store settings in NSUserDefault
-  [[NSUserDefaults standardUserDefaults] setObject:settings forKey:@"CallingxSettings"];
-  [[NSUserDefaults standardUserDefaults] synchronize];
-}
 
 - (void)configureAudioSession {
 #ifdef DEBUG
@@ -484,7 +374,7 @@ static UUIDStorage *uuidStorage;
                                AVAudioSessionCategoryOptionAllowBluetoothA2DP;
   NSString *mode = AVAudioSessionModeDefault;
 
-  NSDictionary *settings = [Callingx getSettings];
+  NSDictionary *settings = [Settings getSettings];
   if (settings && settings[@"audioSession"]) {
     if (settings[@"audioSession"][@"categoryOptions"]) {
       categoryOptions = [settings[@"audioSession"][@"categoryOptions"] integerValue];
@@ -599,31 +489,22 @@ static UUIDStorage *uuidStorage;
   }
 }
 
-- (void)setup:(NSDictionary *)options {
-  NSLog(@"[Callingx][setup] options = %@", options);
-  if (isSetupNatively) {
-#ifdef DEBUG
-    NSLog(@"[Callingx][setup] already setup");
-    RCTLog(@"[Callingx][setup] already setup in native code");
-#endif
-    return;
-  }
-
-#ifdef DEBUG
-  NSLog(@"[Callingx][setup] options = %@", options);
-#endif
-  _version = [[[NSProcessInfo alloc] init] operatingSystemVersion];
-  self.callKeepCallController = [[CXCallController alloc] init];
-
-  [self setSettings:options];
-
-  [Callingx initCallKitProvider];
-  [Callingx initUUIDStorage];
-
-  self.callKeepProvider = sharedProvider;
-  [self.callKeepProvider setDelegate:nil queue:nil];
-  [self.callKeepProvider setDelegate:self queue:nil];
-}
+//- (void)setup:(NSDictionary *)options {
+//#ifdef DEBUG
+//  NSLog(@"[Callingx][setup] options = %@", options);
+//#endif
+//  _version = [[[NSProcessInfo alloc] init] operatingSystemVersion];
+//  self.callKeepCallController = [[CXCallController alloc] init];
+//
+//  [Settings setSettings:options];
+//
+//  [Callingx initCallKitProvider];
+//  [Callingx initUUIDStorage];
+//
+//  self.callKeepProvider = sharedProvider;
+//  [self.callKeepProvider setDelegate:nil queue:nil];
+//  [self.callKeepProvider setDelegate:self queue:nil];
+//}
 
 #pragma mark - Turbo module methods
 
@@ -635,7 +516,17 @@ static UUIDStorage *uuidStorage;
     @"maximumCallGroups" : @(options.maximumCallGroups()),
     @"handleType" : options.handleType()
   };
-  [self setup:optionsDict];
+  
+  _version = [[[NSProcessInfo alloc] init] operatingSystemVersion];
+  self.callKeepCallController = [[CXCallController alloc] init];
+
+  [Settings setSettings:optionsDict];
+  [Callingx initCallKitProvider];
+  [Callingx initUUIDStorage];
+
+  self.callKeepProvider = sharedProvider;
+  [self.callKeepProvider setDelegate:nil queue:nil];
+  [self.callKeepProvider setDelegate:self queue:nil];
 
   _isInitialized = YES;
 }
@@ -696,7 +587,7 @@ static UUIDStorage *uuidStorage;
                                payload:nil
                  withCompletionHandler:nil];
 
-  NSDictionary *settings = [Callingx getSettings];
+  NSDictionary *settings = [Settings getSettings];
   NSNumber *timeout = settings[@"displayCallReachabilityTimeout"];
 
   if (timeout) {
@@ -763,7 +654,6 @@ static UUIDStorage *uuidStorage;
 - (void)setCurrentCallActive:(nonnull NSString *)callId
                      resolve:(nonnull RCTPromiseResolveBlock)resolve
                       reject:(nonnull RCTPromiseRejectBlock)reject {
-  //TODO: adjust implementation
   NSUUID *uuid = [uuidStorage getUUIDForCid:callId];
   if (uuid == nil) {
     NSLog(@"[Callingx][setCurrentCallActive] callId not found");
@@ -831,7 +721,7 @@ static UUIDStorage *uuidStorage;
 #ifdef DEBUG
   NSLog(@"[Callingx][startCall] uuidString = %@", callId, phoneNumber);
 #endif
-  CXHandleType _handleType = [Callingx getHandleType:@"generic"];
+  CXHandleType _handleType = [Settings getHandleType:@"generic"];
   NSUUID *uuid = [uuidStorage getOrCreateUUIDForCid:callId];
   CXHandle *callHandle = [[CXHandle alloc] initWithType:_handleType value:phoneNumber];
   CXStartCallAction *startCallAction = [[CXStartCallAction alloc] initWithCallUUID:uuid handle:callHandle];
@@ -912,6 +802,11 @@ static UUIDStorage *uuidStorage;
   resolve(@YES);
 }
 
+- (nonnull NSNumber *)canPostNotifications { 
+  return @YES;
+}
+
+
 #pragma mark - CXProviderDelegate
 
 - (void)providerDidReset:(CXProvider *)provider {
@@ -920,7 +815,7 @@ static UUIDStorage *uuidStorage;
 #endif
   // this means something big changed, so tell the JS. The JS should
   // probably respond by hanging up all calls.
-  [self sendEventWithNameWrapper:RNCallKeepProviderReset body:nil];
+  [self sendEventWithNameWrapper:CallingxProviderReset body:nil];
 }
 
 - (void)provider:(CXProvider *)provider
@@ -1030,7 +925,7 @@ static UUIDStorage *uuidStorage;
     return;
   }
 
-  [self sendEventWithNameWrapper:RNCallKeepPerformPlayDTMFCallAction
+  [self sendEventWithNameWrapper:CallingxPerformPlayDTMFCallAction
                             body:@{
                               @"digits" : action.digits,
                               @"callId" : callId
@@ -1082,7 +977,7 @@ static UUIDStorage *uuidStorage;
                   userInfo:userInfo];
 
   [self configureAudioSession];
-  [self sendEventWithNameWrapper:RNCallKeepDidActivateAudioSession body:nil];
+  [self sendEventWithNameWrapper:CallingxDidActivateAudioSession body:nil];
 }
 
 - (void)provider:(CXProvider *)provider
@@ -1091,7 +986,7 @@ static UUIDStorage *uuidStorage;
   NSLog(
       @"[Callingx][CXProviderDelegate][provider:didDeactivateAudioSession]");
 #endif
-  [self sendEventWithNameWrapper:RNCallKeepDidDeactivateAudioSession body:nil];
+  [self sendEventWithNameWrapper:CallingxDidDeactivateAudioSession body:nil];
 }
 
 @end
