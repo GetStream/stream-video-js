@@ -322,6 +322,29 @@ export type CallConstructor = {
   clientStore: StreamVideoWriteableStateStore;
 };
 
+export type StreamRNVideoSDKGlobals = {
+  callManager: {
+    /**
+     * Sets up the in call manager.
+     */
+    setup(): void;
+
+    /**
+     * Starts the in call manager.
+     */
+    start(): void;
+
+    /**
+     * Stops the in call manager.
+     */
+    stop(): void;
+  };
+};
+
+declare global {
+  var streamRNVideoSDK: StreamRNVideoSDKGlobals | undefined;
+}
+
 /**
  * The options to pass to {@link Call.join} method.
  */

@@ -35,6 +35,7 @@ class StreamInCallManager: RCTEventEmitter {
 
     private var previousAudioSessionState: AudioSessionState?
     private var hasRegisteredRouteObserver = false
+    private var stereoRefreshWorkItem: DispatchWorkItem?
 
     override func invalidate() {
         stop()
@@ -70,8 +71,62 @@ class StreamInCallManager: RCTEventEmitter {
     @objc(setEnableStereoAudioOutput:)
     func setEnableStereoAudioOutput(enabled: Bool) {
         audioSessionQueue.async { [self] in
+            if audioManagerActivated {
+                log("AudioManager is already activated, enable stereo audio output cannot be changed.")
+                return
+            }
             self.enableStereo = enabled
         }
+    }
+    
+    @objc
+    func setup() {
+        let intendedCategory: AVAudioSession.Category!
+        let intendedMode: AVAudioSession.Mode!
+        let intendedOptions: AVAudioSession.CategoryOptions!
+        
+        let adm = getAudioDeviceModule()
+        adm.reset()
+
+        if (callAudioRole == .listener) {
+            // enables high quality audio playback but disables microphone
+            intendedCategory = .playback
+            intendedMode = .default
+            intendedOptions = []
+            // TODO: for stereo we should disallow BluetoothHFP and allow only allowBluetoothA2DP
+            // note: this is the behaviour of iOS native SDK, but fails here with (OSStatus error -50.)
+            // intendedOptions = self.enableStereo ? [.allowBluetoothA2DP] : []
+            if (self.enableStereo) {
+                adm.setStereoPlayoutPreference(true)
+            }
+        } else {
+            intendedCategory = .playAndRecord
+            intendedMode = .voiceChat
+            
+            // XCode 16 and older don't expose .allowBluetoothHFP
+            // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
+            #if compiler(>=6.2) // For Xcode 26.0+
+                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
+            #else
+                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
+            #endif
+
+            if (defaultAudioDevice == .speaker) {
+                // defaultToSpeaker will route to speaker if nothing else is connected
+                intendedOptions = [bluetoothOption, .defaultToSpeaker]
+            } else {
+                // having no defaultToSpeaker makes sure audio goes to earpiece if nothing is connected
+                intendedOptions = [bluetoothOption]
+            }
+        }
+
+        // START: set the config that webrtc must use when it takes control
+        let rtcConfig = RTCAudioSessionConfiguration.webRTC()
+        rtcConfig.category = intendedCategory.rawValue
+        rtcConfig.mode = intendedMode.rawValue
+        rtcConfig.categoryOptions = intendedOptions
+        RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
+        // END
     }
 
     @objc
@@ -80,13 +135,23 @@ class StreamInCallManager: RCTEventEmitter {
             if audioManagerActivated {
                 return
             }
-            let session = AVAudioSession.sharedInstance()
+            let currentAvAudiosession = AVAudioSession.sharedInstance()
             previousAudioSessionState = AudioSessionState(
-                category: session.category,
-                mode: session.mode,
-                options: session.categoryOptions
+                category: currentAvAudiosession.category,
+                mode: currentAvAudiosession.mode,
+                options: currentAvAudiosession.categoryOptions
             )
-            configureAudioSession()
+            setup()
+            let session = RTCAudioSession.sharedInstance()
+            session.lockForConfiguration()
+            defer {
+                session.unlockForConfiguration()
+            }
+            do {
+                try session.setActive(true)
+            } catch {
+                log("Error activating audio session: \(error.localizedDescription)")
+            }
             
             DispatchQueue.main.async {
                 // Enable wake lock to prevent the screen from dimming/locking during a call
@@ -128,6 +193,9 @@ class StreamInCallManager: RCTEventEmitter {
             }
             audioManagerActivated = false
         }
+        // Cancel any pending debounced stereo refresh
+        stereoRefreshWorkItem?.cancel()
+        stereoRefreshWorkItem = nil
         // Disable wake lock and proximity when call manager stops so the device can sleep again
         DispatchQueue.main.async {
             // Disable proximity monitoring to disable earpiece detection
@@ -137,75 +205,6 @@ class StreamInCallManager: RCTEventEmitter {
             UIApplication.shared.isIdleTimerDisabled = false
             self.log("Wake lock disabled (idle timer enabled)")
         }
-    }
-
-    private func configureAudioSession() {
-        let intendedCategory: AVAudioSession.Category!
-        let intendedMode: AVAudioSession.Mode!
-        let intendedOptions: AVAudioSession.CategoryOptions!
-        
-        let adm = getAudioDeviceModule()
-        adm.reset()
-
-        if (callAudioRole == .listener) {
-            // enables high quality audio playback but disables microphone
-            intendedCategory = .playback
-            intendedMode = .default
-            // for stereo we should disallow BluetoothHFP
-            intendedOptions = self.enableStereo ? [.allowBluetoothA2DP] : []
-            if (self.enableStereo) {
-                adm.setStereoPlayoutPreference(true)
-            }
-        } else {
-            intendedCategory = .playAndRecord
-            intendedMode = .voiceChat
-            
-            // XCode 16 and older don't expose .allowBluetoothHFP
-            // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
-            #if compiler(>=6.2) // For Xcode 26.0+
-                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
-            #else
-                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
-            #endif
-
-            if (defaultAudioDevice == .speaker) {
-                // defaultToSpeaker will route to speaker if nothing else is connected
-                intendedOptions = [bluetoothOption, .defaultToSpeaker]
-            } else {
-                // having no defaultToSpeaker makes sure audio goes to earpiece if nothing is connected
-                intendedOptions = [bluetoothOption]
-            }
-        }
-
-        // START: set the config that webrtc must use when it takes control
-        let rtcConfig = RTCAudioSessionConfiguration.webRTC()
-        rtcConfig.category = intendedCategory.rawValue
-        rtcConfig.mode = intendedMode.rawValue
-        rtcConfig.categoryOptions = intendedOptions
-        RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
-        // END
-
-        // START: activate the webrtc audio session
-        let session = RTCAudioSession.sharedInstance()
-        session.lockForConfiguration()
-        defer {
-            session.unlockForConfiguration()
-        }
-        do {
-            try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
-            try session.setActive(true)
-            log("configureAudioSession: setCategory success \(intendedCategory.rawValue) \(intendedMode.rawValue) \(intendedOptions.rawValue)")
-        } catch {
-            log("configureAudioSession: setCategory failed due to: \(error.localizedDescription)")
-            do {
-                try session.setMode(intendedMode)
-                try session.setActive(true)
-                log("configureAudioSession: setMode success \(intendedMode.rawValue)")
-            } catch {
-                log("configureAudioSession: Error setting mode: \(error.localizedDescription)")
-            }
-        }
-        // END
     }
 
     @objc(showAudioRoutePicker)
@@ -332,6 +331,28 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc private func handleAudioRouteChange(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+            return
+        }
+        
+        log("Audio route change reason: \(reason.rawValue)")
+        
+        if reason == .routeConfigurationChange {
+            log("Route configuration changed")
+            // Cancel any pending debounced refresh
+            stereoRefreshWorkItem?.cancel()
+            // Create a new debounced work item
+            let workItem = DispatchWorkItem { [weak self] in
+                self?.getAudioDeviceModule().refreshStereoPlayoutState()
+                self?.log("Executed debounced refreshStereoPlayoutState")
+            }
+            stereoRefreshWorkItem = workItem
+            // Schedule the work item after 2 seconds
+            audioSessionQueue.asyncAfter(deadline: .now() + 2.0, execute: workItem)
+        }
+        
         // Route changes can arrive on arbitrary queues; ensure UI-safe work on main
         DispatchQueue.main.async { [weak self] in
             self?.updateProximityMonitoring()

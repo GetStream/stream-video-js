@@ -112,6 +112,13 @@ export class CallManager {
   };
 
   /**
+   * Sets up the in call manager.
+   */
+  setup = (): void => {
+    NativeManager.setup();
+  };
+
+  /**
    * For debugging purposes, will emit a log event with the current audio state.
    * in the native layer.
    */

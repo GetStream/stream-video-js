@@ -81,6 +81,22 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun setEnableStereoAudioOutput(enabled: Boolean) {
+        AudioDeviceManager.runInAudioThread {
+            if (audioManagerActivated) {
+                Log.e(TAG, "setAudioRole(): AudioManager is already activated and so enabling stereo audio output cannot be changed")
+                return@runInAudioThread
+            }
+            mAudioDeviceManager.enableStereo = enabled
+        }
+    }
+
+    @ReactMethod
+    fun setup() {
+        mAudioDeviceManager.setup()
+    }
+
+    @ReactMethod
     fun start() {
         AudioDeviceManager.runInAudioThread {
             if (!audioManagerActivated) {
@@ -99,7 +115,9 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
                 Log.d(TAG, "stop() mAudioDeviceManager")
-                mAudioDeviceManager.stop()
+                reactApplicationContext.currentActivity?.let {
+                    mAudioDeviceManager.stop(it)
+                }
                 setMicrophoneMute(false)
                 setKeepScreenOn(false)
                 audioManagerActivated = false
