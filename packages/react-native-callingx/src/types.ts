@@ -65,6 +65,7 @@ export type iOSOptions = {
   maximumCallsPerCallGroup?: number;
   maximumCallGroups?: number;
   handleType?: string; //'generic' | 'number' | 'phone' | 'email';
+  sound?: string | null;
 };
 
 export type AndroidOptions = {

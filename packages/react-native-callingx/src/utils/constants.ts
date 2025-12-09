@@ -13,6 +13,7 @@ export const defaultiOSOptions: Required<iOSOptions> = {
   maximumCallsPerCallGroup: 1,
   maximumCallGroups: 1,
   handleType: 'generic',
+  sound: null,
 };
 
 export const defaultAndroidOptions: Required<AndroidOptions> = {

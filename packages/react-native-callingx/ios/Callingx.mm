@@ -514,7 +514,8 @@ static UUIDStorage *uuidStorage;
     @"supportsVideo" : @(options.supportsVideo()),
     @"maximumCallsPerCallGroup" : @(options.maximumCallsPerCallGroup()),
     @"maximumCallGroups" : @(options.maximumCallGroups()),
-    @"handleType" : options.handleType()
+    @"handleType" : options.handleType(),
+    @"ringtoneSound" : options.sound()
   };
   
   _version = [[[NSProcessInfo alloc] init] operatingSystemVersion];

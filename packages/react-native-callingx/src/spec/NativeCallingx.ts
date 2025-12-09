@@ -10,6 +10,7 @@ export interface Spec extends TurboModule {
     maximumCallsPerCallGroup: number;
     maximumCallGroups: number;
     handleType: string;
+    sound: string | null;
   }): void;
 
   setupAndroid(options: {
