@@ -71,7 +71,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   ) {
     
     guard let stream = payload.dictionaryPayload["stream"] as? [String: Any],
-          let createdCallerName = stream["created_by_display_name"] as? String,
+          let _ = stream["created_by_display_name"] as? String,
           let cid = stream["call_cid"] as? String else {
       completion() // Ensure completion handler is called even if parsing fails
       return

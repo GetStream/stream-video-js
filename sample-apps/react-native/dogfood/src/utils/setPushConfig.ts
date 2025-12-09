@@ -101,10 +101,8 @@ export function setPushConfig() {
         incoming
           ? `Incoming call from ${callerName}`
           : `Outgoing call to ${callerName}`,
-      subtitleTransformer: (phoneNumber: string, incoming: boolean) =>
-        incoming
-          ? `Tap to open the call: ${phoneNumber}`
-          : `Tap to open the call: ${phoneNumber}`,
+      subtitleTransformer: (callId: string) =>
+        `Tap to open the call: ${callId}`,
     },
   });
 

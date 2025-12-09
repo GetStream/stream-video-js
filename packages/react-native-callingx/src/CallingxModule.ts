@@ -50,7 +50,7 @@ class CallingxModule implements ICallingxModule {
   }
 
   setup(options: {
-    ios: Partial<iOSOptions>;
+    ios?: Partial<iOSOptions>;
     android: Partial<AndroidOptions & NotificationTransformers>;
   }): void {
     if (Platform.OS === 'ios') {

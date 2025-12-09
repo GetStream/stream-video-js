@@ -10,6 +10,7 @@ export interface Spec extends TurboModule {
     maximumCallGroups: number;
     handleType: string;
     sound: string | null;
+    imageName: string | null;
     callsHistory: boolean;
   }): void;
 

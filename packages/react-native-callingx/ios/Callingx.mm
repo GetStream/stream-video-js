@@ -515,6 +515,7 @@ static UUIDStorage *uuidStorage;
     @"maximumCallGroups" : @(options.maximumCallGroups()),
     @"handleType" : options.handleType(),
     @"ringtoneSound" : options.sound(),
+    @"imageName" : options.imageName(),
     @"includesCallsInRecents" : @(options.callsHistory())
   };
   

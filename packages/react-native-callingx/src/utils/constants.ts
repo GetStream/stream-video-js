@@ -13,6 +13,7 @@ export const defaultiOSOptions: Required<iOSOptions> = {
   maximumCallGroups: 1,
   handleType: 'generic',
   sound: null,
+  imageName: null,
   callsHistory: false,
 };
 

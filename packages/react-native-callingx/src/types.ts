@@ -65,6 +65,7 @@ export type iOSOptions = {
   maximumCallGroups?: number;
   handleType?: string; //'generic' | 'number' | 'phone' | 'email';
   sound?: string | null;
+  imageName?: string | null;
   callsHistory?: boolean;
 };
 
