@@ -39,6 +39,8 @@ class CallNotificationManager(
 
     private var ringtone: Ringtone? = null
 
+    private var hasBecameActive = false
+
     fun createNotification(call: Call.Registered): Notification {
         Log.d(TAG, "createNotification: Creating notification for call ID: ${call.id}")
 
@@ -60,6 +62,14 @@ class CallNotificationManager(
                         .setCategory(NotificationCompat.CATEGORY_CALL)
                         .setPriority(NotificationCompat.PRIORITY_MAX)
                         .setOngoing(true)
+
+        if (!hasBecameActive && call.isActive) {
+            Log.d(TAG, "createNotification: Setting when to current time")
+            builder.setWhen(System.currentTimeMillis())
+            builder.setUsesChronometer(true)
+            builder.setShowWhen(true)
+            hasBecameActive = true
+        }
 
         call.displayOptions?.let {
             if (it.containsKey(CallService.EXTRA_DISPLAY_SUBTITLE)) {
@@ -86,6 +96,7 @@ class CallNotificationManager(
 
     fun cancelNotifications() {
         notificationManager.cancel(NOTIFICATION_ID)
+        hasBecameActive = false
     }
 
     fun startRingtone() {
