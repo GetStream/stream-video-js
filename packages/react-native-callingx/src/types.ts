@@ -30,7 +30,7 @@ export interface ICallingxModule {
     callerName: string,
     hasVideo: boolean,
     displayOptions?: InfoDisplayOptions
-  ): void;
+  ): Promise<void>;
 
   updateDisplay(
     callId: string,
@@ -80,7 +80,7 @@ export type AndroidOptions = {
   };
 };
 
-export type TextTransformer = (text: string) => string;
+export type TextTransformer = (text: string, incoming: boolean) => string;
 export type NotificationTransformers = {
   titleTransformer: TextTransformer;
   subtitleTransformer?: TextTransformer;

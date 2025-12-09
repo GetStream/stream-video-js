@@ -1,10 +1,11 @@
 import {
   CallingState,
+  MemberResponse,
   RxUtils,
   videoLoggerSystem,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 
 //calling state methods are not exhaustive, so we need to add more methods to cover all the cases
@@ -21,8 +22,24 @@ const logger = videoLoggerSystem.getLogger(
   'useCallingExpWithCallingStateEffect',
 );
 
+function getOutcomingDisplayName(
+  members: MemberResponse[] | undefined,
+  currentUserId: string | undefined,
+) {
+  if (!members || !currentUserId) {
+    return 'Unknown';
+  }
+
+  const names = members
+    .filter((member) => member.user_id !== currentUserId)
+    .map((member) => member.user.name)
+    .filter(Boolean);
+
+  return names.length > 0 ? names.join(', ') : 'Unknown';
+}
+
 /**
- * This hook is used to inform sync call state with CallKit/Telecom (e.i. start call, end call, mute/unmute call).
+ * This hook is used to inform sync call state with CallKit/Telecom (i.e. start call, end call, mute/unmute call).
  */
 export const useCallingExpWithCallingStateEffect = () => {
   const { useCallCallingState, useMicrophoneState } = useCallStateHooks();
@@ -34,7 +51,14 @@ export const useCallingExpWithCallingStateEffect = () => {
   const prevState = useRef<CallingState | undefined>(undefined);
 
   const activeCallCid = activeCall?.cid;
-  // const isOutcomingCall = activeCall?.isCreatedByMe; //can be used to trigger CallKit/Telecom start call for outcoming calls
+  const isOutcomingCall = activeCall?.isCreatedByMe && activeCall?.ringing; //is this reliable??
+  const currentUserId = activeCall?.currentUserId;
+  const isVideoCall = activeCall?.state.settings?.video?.enabled ?? false;
+
+  const outcomingDisplayName = useMemo(
+    () => getOutcomingDisplayName(activeCall?.state.members, currentUserId),
+    [activeCall?.state.members, currentUserId],
+  );
 
   useEffect(() => {
     return () => {
@@ -53,9 +77,89 @@ export const useCallingExpWithCallingStateEffect = () => {
       //if incoming stream call was unmounted, we need to end the call in CallKit/Telecom
       //TODO: think about sending appropriate reason for end call
       logger.debug(`Ending call in calling exp: ${activeCallCid}`);
-      callingx.endCallWithReason(activeCallCid, 'local');
+      callingx
+        .endCallWithReason(activeCallCid, 'remote')
+        .catch((error: unknown) => {
+          logger.error(
+            `Error ending call in calling exp: ${activeCallCid}`,
+            error,
+          );
+        });
     };
   }, [activeCallCid]);
+
+  useEffect(() => {
+    const callingx = getCallingxLibIfAvailable();
+    if (!callingx || !activeCallCid || prevState.current === callingState) {
+      return;
+    }
+
+    //tells if call is registered in CallKit/Telecom
+    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
+    logger.debug(
+      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered} isOutcomingCall: ${isOutcomingCall}`,
+    );
+    logger.debug(
+      `prevState.current: ${prevState.current}, current callingState: ${callingState}`,
+    );
+
+    if (
+      !isAcceptedCallingState(prevState.current) &&
+      isAcceptedCallingState(callingState)
+    ) {
+      if (isOutcomingCall && !isCallRegistered) {
+        //we request start call action from CallKit/Telecom, next step is to make call active when we receive call started event
+        logger.debug(`Should start call in callkeep: ${activeCallCid}`);
+        callingx
+          .startCall(
+            activeCallCid,
+            activeCallCid,
+            outcomingDisplayName,
+            isVideoCall,
+          )
+          .catch((error: unknown) => {
+            logger.error(
+              `Error starting call in calling exp: ${activeCallCid}`,
+              error,
+            );
+          });
+      } else if (isCallRegistered) {
+        logger.debug(
+          `Should accept call in callkeep: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+        );
+        callingx.answerIncomingCall(activeCallCid).catch((error: unknown) => {
+          logger.error(
+            `Error answering call in calling exp: ${activeCallCid}`,
+            error,
+          );
+        });
+      }
+    } else if (
+      isAcceptedCallingState(prevState.current) &&
+      !isAcceptedCallingState(callingState) &&
+      isCallRegistered
+    ) {
+      //in case call was registered as incoming and state changed to "not joined", we need to end the call and clear rxjs subject
+      logger.debug(`Should end call in callkeep: ${activeCallCid}`);
+      //TODO: think about sending appropriate reason for end call
+      callingx
+        .endCallWithReason(activeCallCid, 'remote')
+        .catch((error: unknown) => {
+          logger.error(
+            `Error ending call in calling exp: ${activeCallCid}`,
+            error,
+          );
+        });
+    }
+
+    prevState.current = callingState;
+  }, [
+    activeCallCid,
+    callingState,
+    isOutcomingCall,
+    outcomingDisplayName,
+    isVideoCall,
+  ]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
@@ -63,44 +167,26 @@ export const useCallingExpWithCallingStateEffect = () => {
       return;
     }
 
-    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
-    if (!isCallRegistered) {
-      logger.debug(
-        `No active call cid to end in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
-      );
-      return;
-    }
-
-    logger.debug(
-      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+    //listen to start call action from CallKit/Telecom and set the current call active
+    const subscription = callingx.addEventListener(
+      'didReceiveStartCallAction',
+      ({ callId }: { callId: string }) => {
+        if (callId === activeCallCid) {
+          logger.debug(`Received start call action for call: ${activeCallCid}`);
+          callingx.answerIncomingCall(activeCallCid).catch((error: unknown) => {
+            logger.error(
+              `Error answering call in calling exp: ${activeCallCid}`,
+              error,
+            );
+          });
+        }
+      },
     );
-    logger.debug(
-      `prevState.current: ${prevState.current}, current callingState: ${callingState}`,
-    );
 
-    if (prevState.current !== callingState) {
-      if (
-        !isAcceptedCallingState(prevState.current) &&
-        isAcceptedCallingState(callingState)
-      ) {
-        //in case call was registered as incoming and state changed to joined, we need to answer the call
-        logger.debug(
-          `Should accept call in callkeep: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
-        );
-        callingx.answerIncomingCall(activeCallCid);
-      } else if (
-        isAcceptedCallingState(prevState.current) &&
-        !isAcceptedCallingState(callingState)
-      ) {
-        //in case call was registered as incoming and state changed to "not joined", we need to end the call and clear rxjs subject
-        logger.debug(`Should end call in callkeep: ${activeCallCid}`);
-        //TODO: think about sending appropriate reason for end call
-        callingx.endCallWithReason(activeCallCid, 'local');
-      }
-    }
-
-    prevState.current = callingState;
-  }, [activeCallCid, callingState]);
+    return () => {
+      subscription.remove();
+    };
+  }, [activeCallCid]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
@@ -128,7 +214,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     //listen to mic toggle events from CallKit/Telecom and update stream call microphone state
     const subscription = callingx.addEventListener(
       'didPerformSetMutedCallAction',
-      async (event) => {
+      async (event: { callId: string; muted: boolean }) => {
         const { callId, muted } = event;
 
         if (callId === activeCallCid) {
@@ -142,10 +228,17 @@ export const useCallingExpWithCallingStateEffect = () => {
             return;
           }
 
-          if (muted) {
-            await microphone.disable();
-          } else {
-            await microphone.enable();
+          try {
+            if (muted) {
+              await microphone.disable();
+            } else {
+              await microphone.enable();
+            }
+          } catch (error: unknown) {
+            logger.error(
+              `Error toggling mic in calling exp: ${activeCallCid}`,
+              error,
+            );
           }
         }
       },

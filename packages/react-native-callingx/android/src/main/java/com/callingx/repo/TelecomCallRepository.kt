@@ -1,5 +1,6 @@
 package com.callingx.repo
 
+import CallRepository
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -11,6 +12,8 @@ import androidx.core.telecom.CallAttributesCompat
 import androidx.core.telecom.CallControlResult
 import androidx.core.telecom.CallControlScope
 import androidx.core.telecom.CallsManager
+import com.callingx.model.Call
+import com.callingx.model.CallAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -26,9 +29,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.callingx.model.Call
-import com.callingx.model.CallAction
-import CallRepository
 
 /**
  * The central repository that keeps track of the current call and allows to register new calls.
@@ -75,9 +75,7 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
     override fun release() {
         val currentCall = currentCall.value
         if (currentCall is Call.Registered) {
-            currentCall.processAction(
-                    CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL))
-            )
+            currentCall.processAction(CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL)))
         }
         _currentCall.value = Call.None
 
@@ -182,11 +180,16 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
                 .onEach { (previous, current) ->
                     when {
                         previous is Call.None && current is Call.Registered -> {
-                            listener?.onCallRegistered(current.id)
+                            if (!(current as Call.Registered).isIncoming()) {
+                                listener?.onCallRegistered(current.id)
+                            }
                         }
                         previous is Call.Registered && current is Call.Registered -> {
                             if (previous.isMuted != current.isMuted) {
-                                Log.d(TAG, "[repository] observeCallState: Mute changed: ${current.isMuted}")
+                                Log.d(
+                                        TAG,
+                                        "[repository] observeCallState: Mute changed: ${current.isMuted}"
+                                )
                                 listener?.onMuteCallChanged(current.id, current.isMuted)
                             }
                             if (previous.currentCallEndpoint != current.currentCallEndpoint) {
@@ -306,9 +309,7 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
         }
     }
 
-    private suspend fun CallControlScope.doSwitchEndpoint(
-            action: CallAction.SwitchAudioEndpoint
-    ) {
+    private suspend fun CallControlScope.doSwitchEndpoint(action: CallAction.SwitchAudioEndpoint) {
         Log.d(TAG, "[repository] doSwitchEndpoint: Switching to endpoint: ${action.endpointId}")
         // TODO once availableCallEndpoints is a state flow we can just get the value
         val endpoints = (_currentCall.value as Call.Registered).availableCallEndpoints

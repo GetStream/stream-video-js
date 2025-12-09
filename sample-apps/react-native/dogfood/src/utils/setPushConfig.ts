@@ -97,9 +97,14 @@ export function setPushConfig() {
         id: 'stream_outgoing_call_channel_update2',
         name: 'Outgoing call notifications',
       },
-      titleTransformer: (callerName: string) =>
-        `Incoming call from ${callerName}`,
-      subtitleTransformer: (phoneNumber: string) => `Tap to open the call`,
+      titleTransformer: (callerName: string, incoming: boolean) =>
+        incoming
+          ? `Incoming call from ${callerName}`
+          : `Outgoing call to ${callerName}`,
+      subtitleTransformer: (phoneNumber: string, incoming: boolean) =>
+        incoming
+          ? `Tap to open the call: ${phoneNumber}`
+          : `Tap to open the call: ${phoneNumber}`,
     },
   });
 

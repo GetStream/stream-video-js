@@ -772,6 +772,7 @@ static UUIDStorage *uuidStorage;
   }
 
   [self.callKeepProvider reportOutgoingCallWithUUID:uuid startedConnectingAtDate:[NSDate date]];
+  [self.callKeepProvider reportOutgoingCallWithUUID:uuid connectedAtDate:[NSDate date]];
   resolve(@YES);
 }
 

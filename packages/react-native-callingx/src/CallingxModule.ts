@@ -120,8 +120,8 @@ class CallingxModule implements ICallingxModule {
     hasVideo: boolean
   ): Promise<void> {
     const displayOptions: InfoDisplayOptions = {
-      displayTitle: this.titleTransformer(callerName),
-      displaySubtitle: this.subtitleTransformer?.(phoneNumber),
+      displayTitle: this.titleTransformer(callerName, true),
+      displaySubtitle: this.subtitleTransformer?.(phoneNumber, true),
     };
     return NativeCallingModule.displayIncomingCall(
       callId,
@@ -144,8 +144,8 @@ class CallingxModule implements ICallingxModule {
     hasVideo: boolean
   ): Promise<void> {
     const displayOptions: InfoDisplayOptions = {
-      displayTitle: this.titleTransformer(callerName),
-      displaySubtitle: this.subtitleTransformer?.(phoneNumber),
+      displayTitle: this.titleTransformer(callerName, false),
+      displaySubtitle: this.subtitleTransformer?.(phoneNumber, false),
     };
     return NativeCallingModule.startCall(
       callId,
@@ -162,8 +162,8 @@ class CallingxModule implements ICallingxModule {
     callerName: string
   ): Promise<void> {
     const displayOptions: InfoDisplayOptions = {
-      displayTitle: this.titleTransformer(callerName),
-      displaySubtitle: this.subtitleTransformer?.(phoneNumber),
+      displayTitle: this.titleTransformer(callerName, false),
+      displaySubtitle: this.subtitleTransformer?.(phoneNumber, false),
     };
     return NativeCallingModule.updateDisplay(
       callId,

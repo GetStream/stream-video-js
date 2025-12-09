@@ -175,7 +175,7 @@ export const firebaseDataHandler = async (
     const asForegroundService = canListenToWS();
 
     const phoneNumber = data.created_by_display_name as string;
-    const callerName = data.call_display_name as string;
+    const callerName = data.created_by_display_name as string;
     const hasVideo = data.video === 'true';
 
     await callingx.displayIncomingCall(
