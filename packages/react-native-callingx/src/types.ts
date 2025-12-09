@@ -60,12 +60,12 @@ export interface ICallingxModule {
 }
 
 export type iOSOptions = {
-  appName: string;
   supportsVideo?: boolean;
   maximumCallsPerCallGroup?: number;
   maximumCallGroups?: number;
   handleType?: string; //'generic' | 'number' | 'phone' | 'email';
   sound?: string | null;
+  callsHistory?: boolean;
 };
 
 export type AndroidOptions = {
@@ -88,7 +88,7 @@ export type NotificationTransformers = {
 };
 
 export type Options = {
-  ios: iOSOptions;
+  ios?: iOSOptions;
   android: AndroidOptions & NotificationTransformers;
 };
 

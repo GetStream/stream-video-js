@@ -8,12 +8,12 @@ import type {
 export const defaultTextTransformer: TextTransformer = (text: string) => text;
 
 export const defaultiOSOptions: Required<iOSOptions> = {
-  appName: 'My App',
   supportsVideo: true,
   maximumCallsPerCallGroup: 1,
   maximumCallGroups: 1,
   handleType: 'generic',
   sound: null,
+  callsHistory: false,
 };
 
 export const defaultAndroidOptions: Required<AndroidOptions> = {

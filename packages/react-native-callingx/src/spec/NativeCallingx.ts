@@ -5,12 +5,12 @@ import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
 
 export interface Spec extends TurboModule {
   setupiOS(options: {
-    appName: string;
     supportsVideo: boolean;
     maximumCallsPerCallGroup: number;
     maximumCallGroups: number;
     handleType: string;
     sound: string | null;
+    callsHistory: boolean;
   }): void;
 
   setupAndroid(options: {

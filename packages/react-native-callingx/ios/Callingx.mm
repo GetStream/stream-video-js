@@ -510,12 +510,12 @@ static UUIDStorage *uuidStorage;
 
 - (void)setupiOS:(JS::NativeCallingx::SpecSetupiOSOptions &)options {
   NSDictionary *optionsDict = @{
-    @"appName" : options.appName(),
     @"supportsVideo" : @(options.supportsVideo()),
     @"maximumCallsPerCallGroup" : @(options.maximumCallsPerCallGroup()),
     @"maximumCallGroups" : @(options.maximumCallGroups()),
     @"handleType" : options.handleType(),
-    @"ringtoneSound" : options.sound()
+    @"ringtoneSound" : options.sound(),
+    @"includesCallsInRecents" : @(options.callsHistory())
   };
   
   _version = [[[NSProcessInfo alloc] init] operatingSystemVersion];

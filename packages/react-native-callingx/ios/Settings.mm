@@ -23,10 +23,10 @@
 #endif
   CXProviderConfiguration *providerConfiguration = [[CXProviderConfiguration alloc] init];
   providerConfiguration.supportsVideo = YES;
-  providerConfiguration.maximumCallGroups = 3;
+  providerConfiguration.maximumCallGroups = 1;
   providerConfiguration.maximumCallsPerCallGroup = 1;
   providerConfiguration.supportedHandleTypes = [Settings getSupportedHandleTypes:settings[@"handleType"]];
-
+  
   if (settings[@"supportsVideo"]) {
     providerConfiguration.supportsVideo = [settings[@"supportsVideo"] boolValue];
   }
