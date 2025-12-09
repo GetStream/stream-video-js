@@ -68,13 +68,13 @@ export function setPushConfig() {
     // on press handlers of background notifications
     notifee.onBackgroundEvent(async (event) => {
       if (isNotifeeStreamVideoEvent(event)) {
-        await onAndroidNotifeeEvent({ event, isBackground: true });
+        await onAndroidNotifeeEvent({ event });
       }
     });
     // on press handlers of foreground notifications
     notifee.onForegroundEvent((event) => {
       if (isNotifeeStreamVideoEvent(event)) {
-        onAndroidNotifeeEvent({ event, isBackground: false });
+        onAndroidNotifeeEvent({ event });
       }
     });
   }
@@ -96,7 +96,7 @@ export function setPushConfig() {
     // note: used only for non-ringing notifications
     notifee.onForegroundEvent((event) => {
       if (isNotifeeStreamVideoEvent(event)) {
-        oniOSNotifeeEvent({ event, isBackground: false });
+        oniOSNotifeeEvent({ event });
       }
     });
   }
