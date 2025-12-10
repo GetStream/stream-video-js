@@ -69,6 +69,7 @@ export type iOSOptions = {
   sound?: string | null;
   imageName?: string | null;
   callsHistory?: boolean;
+  setupAudioSession?: boolean;
 };
 
 export type AndroidOptions = {
@@ -113,7 +114,9 @@ export type EventName =
   | 'didToggleHoldCallAction'
   | 'didChangeAudioRoute'
   | 'didReceiveStartCallAction'
-  | 'didPerformSetMutedCallAction';
+  | 'didPerformSetMutedCallAction'
+  | 'didActivateAudioSession'
+  | 'didDeactivateAudioSession';
 
 export type EventParams = {
   answerCall: {
@@ -141,6 +144,8 @@ export type EventParams = {
   didReceiveStartCallAction: {
     callId: string;
   };
+  didActivateAudioSession: undefined;
+  didDeactivateAudioSession: undefined;
 };
 
 export type EndCallReason =

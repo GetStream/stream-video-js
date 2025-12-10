@@ -17,6 +17,14 @@
   [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
++ (BOOL)getAutoConfigureAudioSession {
+  NSDictionary *settings = [Settings getSettings];
+  if (settings && settings[@"autoConfigureAudioSession"]) {
+    return [settings[@"autoConfigureAudioSession"] boolValue];
+  }
+  return NO;
+}
+
 + (CXProviderConfiguration *)getProviderConfiguration:(NSDictionary *)settings {
 #ifdef DEBUG
   NSLog(@"[Settings][getProviderConfiguration]");

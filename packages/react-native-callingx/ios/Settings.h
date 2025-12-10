@@ -7,6 +7,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSDictionary *)getSettings;
 + (void)setSettings:(NSDictionary *)options;
++ (BOOL)getAutoConfigureAudioSession;
 + (CXProviderConfiguration *)getProviderConfiguration:(NSDictionary *)settings;
 + (NSSet *)getSupportedHandleTypes:(id)handleType;
 + (CXHandleType)getHandleType:(NSString *)handleType;

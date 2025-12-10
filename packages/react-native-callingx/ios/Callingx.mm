@@ -6,6 +6,7 @@
 #import <CallKit/CallKit.h>
 #import "UUIDStorage.h"
 #import "Settings.h"
+#import "AudioSessionManager.h"
 
 #ifdef DEBUG
 static int const OUTGOING_CALL_WAKEUP_DELAY = 10;
@@ -364,42 +365,6 @@ static UUIDStorage *uuidStorage;
 //  }
 //}
 
-
-- (void)configureAudioSession {
-#ifdef DEBUG
-  NSLog(@"[Callingx][configureAudioSession] Activating audio session");
-#endif
-
-  NSUInteger categoryOptions = AVAudioSessionCategoryOptionAllowBluetooth |
-                               AVAudioSessionCategoryOptionAllowBluetoothA2DP;
-  NSString *mode = AVAudioSessionModeDefault;
-
-  NSDictionary *settings = [Settings getSettings];
-  if (settings && settings[@"audioSession"]) {
-    if (settings[@"audioSession"][@"categoryOptions"]) {
-      categoryOptions = [settings[@"audioSession"][@"categoryOptions"] integerValue];
-    }
-
-    if (settings[@"audioSession"][@"mode"]) {
-      mode = settings[@"audioSession"][@"mode"];
-    }
-  }
-
-  AVAudioSession *audioSession = [AVAudioSession sharedInstance];
-  [audioSession setCategory:AVAudioSessionCategoryPlayAndRecord
-                withOptions:categoryOptions
-                      error:nil];
-
-  [audioSession setMode:mode error:nil];
-
-  double sampleRate = 44100.0;
-  [audioSession setPreferredSampleRate:sampleRate error:nil];
-
-  NSTimeInterval bufferDuration = .005;
-  [audioSession setPreferredIOBufferDuration:bufferDuration error:nil];
-  [audioSession setActive:TRUE error:nil];
-}
-
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params {
   return std::make_shared<facebook::react::NativeCallingxSpecJSI>(params);
@@ -499,7 +464,8 @@ static UUIDStorage *uuidStorage;
     @"handleType" : options.handleType(),
     @"ringtoneSound" : options.sound(),
     @"imageName" : options.imageName(),
-    @"includesCallsInRecents" : @(options.callsHistory())
+    @"includesCallsInRecents" : @(options.callsHistory()),
+    @"autoConfigureAudioSession" : @(options.setupAudioSession())
   };
   
   _version = [[[NSProcessInfo alloc] init] operatingSystemVersion];
@@ -814,7 +780,7 @@ static UUIDStorage *uuidStorage;
     return;
   }
   // do this first, audio sessions are flakey
-  [self configureAudioSession];
+  [AudioSessionManager createAudioSessionIfNeeded];
   // tell the JS to actually make the call
   [self sendEventWithNameWrapper:CallingxDidReceiveStartCallAction
                             body:@{
@@ -850,7 +816,7 @@ static UUIDStorage *uuidStorage;
     return;
   }
 
-  [self configureAudioSession];
+  [AudioSessionManager createAudioSessionIfNeeded];
   [self sendEventWithNameWrapper:CallingxPerformAnswerCallAction
                             body:@{
                               @"callId" : callId
@@ -961,7 +927,6 @@ static UUIDStorage *uuidStorage;
                     object:nil
                   userInfo:userInfo];
 
-  [self configureAudioSession];
   [self sendEventWithNameWrapper:CallingxDidActivateAudioSession body:nil];
 }
 

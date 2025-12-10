@@ -26,11 +26,19 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
 
   const { remove: removeAnswerCall } = callingx.addEventListener(
     'answerCall',
-    callingExpAcceptCall,
+    onAcceptCall,
   );
   const { remove: removeEndCall } = callingx.addEventListener(
     'endCall',
-    callingExpRejectCall(pushConfig),
+    onEndCall(pushConfig),
+  );
+  const { remove: removeDidActivateAudioSession } = callingx.addEventListener(
+    'didActivateAudioSession',
+    onDidActivateAudioSession,
+  );
+  const { remove: removeDidDeactivateAudioSession } = callingx.addEventListener(
+    'didDeactivateAudioSession',
+    onDidDeactivateAudioSession,
   );
 
   //TODO: need to find cases where delayed events can appear
@@ -51,10 +59,12 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   setPushLogoutCallback(async () => {
     removeAnswerCall();
     removeEndCall();
+    removeDidActivateAudioSession();
+    removeDidDeactivateAudioSession();
   });
 }
 
-const callingExpAcceptCall = ({ callId: call_cid }: { callId: string }) => {
+const onAcceptCall = ({ callId: call_cid }: { callId: string }) => {
   videoLoggerSystem
     .getLogger('callingExpAcceptCall')
     .debug(`callingExpAcceptCall event callId: ${call_cid}`);
@@ -72,7 +82,7 @@ const callingExpAcceptCall = ({ callId: call_cid }: { callId: string }) => {
   pushAcceptedIncomingCallCId$.next(call_cid);
 };
 
-const callingExpRejectCall =
+const onEndCall =
   (pushConfig: PushConfig) =>
   async ({ callId: call_cid }: { callId: string }) => {
     getCallingxLibIfAvailable()?.log(
@@ -98,3 +108,11 @@ const callingExpRejectCall =
       .debug(`ending call with call_cid: ${call_cid}`);
     await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
   };
+
+const onDidActivateAudioSession = () => {
+  //TODO: start audio session here
+};
+
+const onDidDeactivateAudioSession = () => {
+  //TODO: end audio session here
+};

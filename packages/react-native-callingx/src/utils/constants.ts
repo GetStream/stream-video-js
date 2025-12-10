@@ -15,6 +15,7 @@ export const defaultiOSOptions: Required<iOSOptions> = {
   sound: null,
   imageName: null,
   callsHistory: false,
+  setupAudioSession: true,
 };
 
 export const defaultAndroidOptions: Required<AndroidOptions> = {
