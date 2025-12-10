@@ -91,7 +91,7 @@ jobs:
 
       ### Vercel deployment (Preview) ###
       - name: Vercel Pull/Build/Deploy (Preview)
-        if: ${{ github.ref_name != 'main' && matrix.application.manual-only != true }}
+        if: ${{ github.ref_name != 'main' }}
         env:
           NEXT_PUBLIC_BASE_PATH: ${{ matrix.application.base-path || '' }}
         run: >
