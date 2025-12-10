@@ -81,6 +81,17 @@ class CallingxModule implements ICallingxModule {
 
       registerHeadlessTask();
     }
+
+    //by default we will request permissions on setup call
+    if (options.enableAutoPermissions ?? true) {
+      this.requestPermissions()
+        .then((result) => {
+          console.log('Permissions result:', result);
+        })
+        .catch((error) => {
+          console.error('Error requesting permissions:', error);
+        });
+    }
   }
 
   async requestPermissions(): Promise<PermissionsResult> {

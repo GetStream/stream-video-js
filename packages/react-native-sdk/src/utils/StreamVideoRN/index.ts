@@ -133,11 +133,6 @@ export class StreamVideoRN {
   static setupCallingExp(options: CallingxOptions) {
     const callingx = getCallingxLib();
     callingx.setup(options);
-    callingx.checkPermissions().catch((error) => {
-      videoLoggerSystem
-        .getLogger('setupCallingExp')
-        .error('failed to check permissions', error);
-    });
   }
 
   static getConfig() {

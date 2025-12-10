@@ -66,8 +66,8 @@ export type iOSOptions = {
   maximumCallsPerCallGroup?: number;
   maximumCallGroups?: number;
   handleType?: string; //'generic' | 'number' | 'phone' | 'email';
-  sound?: string | null;
-  imageName?: string | null;
+  sound?: string;
+  imageName?: string;
   callsHistory?: boolean;
   setupAudioSession?: boolean;
 };
@@ -95,6 +95,7 @@ export type Options = {
   ios?: iOSOptions;
   android: AndroidOptions & NotificationTransformers;
   enableOutcomingCalls?: boolean;
+  enableAutoPermissions?: boolean;
 };
 
 export type InfoDisplayOptions = {

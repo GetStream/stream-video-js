@@ -44,11 +44,13 @@
   if (settings[@"maximumCallsPerCallGroup"]) {
     providerConfiguration.maximumCallsPerCallGroup = [settings[@"maximumCallsPerCallGroup"] integerValue];
   }
-  if (settings[@"imageName"]) {
-    providerConfiguration.iconTemplateImageData = UIImagePNGRepresentation([UIImage imageNamed:settings[@"imageName"]]);
+  NSString *imageName = settings[@"imageName"];
+  if ([imageName isKindOfClass:[NSString class]] && imageName.length > 0) {
+    providerConfiguration.iconTemplateImageData = UIImagePNGRepresentation([UIImage imageNamed:imageName]);
   }
-  if (settings[@"ringtoneSound"]) {
-    providerConfiguration.ringtoneSound = settings[@"ringtoneSound"];
+  NSString *ringtoneSound = settings[@"ringtoneSound"];
+  if ([ringtoneSound isKindOfClass:[NSString class]] && ringtoneSound.length > 0) {
+    providerConfiguration.ringtoneSound = ringtoneSound;
   }
   if (@available(iOS 11.0, *)) {
     if (settings[@"includesCallsInRecents"]) {

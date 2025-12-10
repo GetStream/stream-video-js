@@ -12,8 +12,8 @@ export const defaultiOSOptions: Required<iOSOptions> = {
   maximumCallsPerCallGroup: 1,
   maximumCallGroups: 1,
   handleType: 'generic',
-  sound: null,
-  imageName: null,
+  sound: '',
+  imageName: '',
   callsHistory: false,
   setupAudioSession: true,
 };
