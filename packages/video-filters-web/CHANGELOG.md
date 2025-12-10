@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.5.1...@stream-io/video-filters-web-0.6.0) (2025-12-08)
+
+### Features
+
+- **react:** Video Call moderation for React SDK ([#2007](https://github.com/GetStream/stream-video-js/issues/2007)) ([e242d35](https://github.com/GetStream/stream-video-js/commit/e242d35cc619d1ad0fc55d01944e97269af60cdf))
+
+### Bug Fixes
+
+- **react:** Prevent frame exhaustion in fallback MediaStreamTrackProcessor ([#2019](https://github.com/GetStream/stream-video-js/issues/2019)) ([b06e130](https://github.com/GetStream/stream-video-js/commit/b06e1301c2d5a8bdcb2a75389b4b39fafec6c7b2))
+
 ## [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.5.0...@stream-io/video-filters-web-0.5.1) (2025-11-25)
 
 ### Bug Fixes
