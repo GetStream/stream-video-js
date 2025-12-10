@@ -102,12 +102,19 @@ export const useCallingExpWithCallingStateEffect = () => {
     logger.debug(
       `prevState.current: ${prevState.current}, current callingState: ${callingState}`,
     );
+    logger.debug(
+      `isOutcomingCallsEnabled: ${callingx.isOutcomingCallsEnabled}`,
+    );
 
     if (
       !isAcceptedCallingState(prevState.current) &&
       isAcceptedCallingState(callingState)
     ) {
-      if (isOutcomingCall && !isCallRegistered) {
+      if (
+        isOutcomingCall &&
+        !isCallRegistered &&
+        callingx.isOutcomingCallsEnabled
+      ) {
         //we request start call action from CallKit/Telecom, next step is to make call active when we receive call started event
         logger.debug(`Should start call in callkeep: ${activeCallCid}`);
         callingx

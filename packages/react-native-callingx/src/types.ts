@@ -3,13 +3,15 @@ import type { ManagableTask } from './utils/headlessTask';
 import type { PermissionsResult } from './utils/permissions';
 
 export interface ICallingxModule {
+  get isOutcomingCallsEnabled(): boolean;
+
+  get isNotificationsAllowed(): boolean;
+
   setup(options: Options): void;
 
   checkPermissions(): Promise<PermissionsResult>;
 
   requestPermissions(): Promise<PermissionsResult>;
-
-  canPostNotifications(): boolean;
 
   setCurrentCallActive(callId: string): Promise<void>;
 
@@ -91,6 +93,7 @@ export type NotificationTransformers = {
 export type Options = {
   ios?: iOSOptions;
   android: AndroidOptions & NotificationTransformers;
+  enableOutcomingCalls?: boolean;
 };
 
 export type InfoDisplayOptions = {

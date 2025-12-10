@@ -17,11 +17,10 @@ import {
   type ICallingxModule,
   type InfoDisplayOptions,
   type AndroidOptions,
-  type iOSOptions,
   type TextTransformer,
-  type NotificationTransformers,
   type EndCallReason,
   type EventData,
+  type Options,
 } from './types';
 import {
   androidEndCallReasonMap,
@@ -32,27 +31,31 @@ import {
 } from './utils/constants';
 
 class CallingxModule implements ICallingxModule {
-  private isNotificationsAllowed = false;
+  private _isNotificationsAllowed = false;
+  private _isOutcomingCallsEnabled = false;
 
   private titleTransformer: TextTransformer = (text: string) => text;
   private subtitleTransformer: TextTransformer | undefined = undefined;
 
   private eventManager: EventManager = new EventManager();
 
-  canPostNotifications(): boolean {
+  get isOutcomingCallsEnabled(): boolean {
+    return this._isOutcomingCallsEnabled;
+  }
+
+  get isNotificationsAllowed(): boolean {
     if (Platform.OS !== 'android') {
       return true;
     }
 
     return (
-      this.isNotificationsAllowed && NativeCallingModule.canPostNotifications()
+      this._isNotificationsAllowed && NativeCallingModule.canPostNotifications()
     );
   }
 
-  setup(options: {
-    ios?: Partial<iOSOptions>;
-    android: Partial<AndroidOptions & NotificationTransformers>;
-  }): void {
+  setup(options: Options): void {
+    this._isOutcomingCallsEnabled = options.enableOutcomingCalls ?? false;
+
     if (Platform.OS === 'ios') {
       NativeCallingModule.setupiOS({ ...defaultiOSOptions, ...options.ios });
     }
@@ -86,7 +89,7 @@ class CallingxModule implements ICallingxModule {
       postNotifications: boolean;
     } = await requestCallPermissions();
 
-    this.isNotificationsAllowed = result.postNotifications;
+    this._isNotificationsAllowed = result.postNotifications;
     return result;
   }
 
@@ -96,7 +99,7 @@ class CallingxModule implements ICallingxModule {
       postNotifications: boolean;
     } = await checkCallPermissions();
 
-    this.isNotificationsAllowed = result.postNotifications;
+    this._isNotificationsAllowed = result.postNotifications;
     return result;
   }
 
