@@ -345,7 +345,7 @@ export class Call {
   setup = async () => {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
-      streamRNVideoSDK?.callManager.setup();
+      globalThis.streamRNVideoSDK?.callManager.setup();
 
       this.leaveCallHooks.add(
         this.on('all', (event) => {
@@ -660,7 +660,7 @@ export class Call {
       this.cancelAutoDrop();
       this.clientStore.unregisterCall(this);
 
-      streamRNVideoSDK?.callManager.stop();
+      globalThis.streamRNVideoSDK?.callManager.stop();
 
       this.camera.dispose();
       this.microphone.dispose();
@@ -887,7 +887,7 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
-    streamRNVideoSDK?.callManager.start();
+    globalThis.streamRNVideoSDK?.callManager.start();
 
     // we will count the number of join failures per SFU.
     // once the number of failures reaches 2, we will piggyback on the `migrating_from`
