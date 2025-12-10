@@ -50,12 +50,6 @@ class EventManager {
       this.subscription?.remove();
       this.subscription = null;
     }
-
-    console.log(
-      '!!! remove listener',
-      this.listenersCount,
-      this.subscription === null ? 'null' : 'not null'
-    );
   }
 }
 

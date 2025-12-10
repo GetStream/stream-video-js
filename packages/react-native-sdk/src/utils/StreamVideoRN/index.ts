@@ -131,7 +131,6 @@ export class StreamVideoRN {
   }
 
   static setupCallingExp(options: CallingxOptions) {
-    //check if calling exp pacakge is installed
     const callingx = getCallingxLib();
     callingx.setup(options);
     callingx.checkPermissions().catch((error) => {

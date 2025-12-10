@@ -117,13 +117,3 @@ export const requestPostNotificationPermissions =
       results === PermissionsAndroid.RESULTS.GRANTED || allowedPostNotifications
     );
   };
-
-export const canPostNotifications = async (): Promise<boolean> => {
-  if (Platform.OS !== 'android') {
-    return true;
-  }
-
-  return PermissionsAndroid.check(
-    PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-  );
-};

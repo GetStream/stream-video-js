@@ -489,23 +489,6 @@ static UUIDStorage *uuidStorage;
   }
 }
 
-//- (void)setup:(NSDictionary *)options {
-//#ifdef DEBUG
-//  NSLog(@"[Callingx][setup] options = %@", options);
-//#endif
-//  _version = [[[NSProcessInfo alloc] init] operatingSystemVersion];
-//  self.callKeepCallController = [[CXCallController alloc] init];
-//
-//  [Settings setSettings:options];
-//
-//  [Callingx initCallKitProvider];
-//  [Callingx initUUIDStorage];
-//
-//  self.callKeepProvider = sharedProvider;
-//  [self.callKeepProvider setDelegate:nil queue:nil];
-//  [self.callKeepProvider setDelegate:self queue:nil];
-//}
-
 #pragma mark - Turbo module methods
 
 - (void)setupiOS:(JS::NativeCallingx::SpecSetupiOSOptions &)options {
