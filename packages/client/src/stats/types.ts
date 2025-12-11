@@ -131,3 +131,27 @@ export type RTCCodecStats = {
   sdpFmtpLine?: string;
   transportId?: string;
 };
+
+// shim for RTCRemoteInboundRtpStreamStats, not yet available in the standard types
+// https://developer.mozilla.org/en-US/docs/Web/API/RTCRemoteInboundRtpStreamStats
+export interface RTCRemoteInboundRtpStreamStats
+  extends RTCReceivedRtpStreamStats {
+  type: 'remote-inbound-rtp';
+  localId?: string;
+  roundTripTime?: number;
+  totalRoundTripTime?: number;
+  fractionLost?: number;
+  roundTripTimeMeasurements?: number;
+}
+
+// shim for RTCRemoteOutboundRtpStreamStats, not yet available in the standard types
+// https://developer.mozilla.org/en-US/docs/Web/API/RTCRemoteOutboundRtpStreamStats
+export interface RTCRemoteOutboundRtpStreamStats extends RTCSentRtpStreamStats {
+  type: 'remote-outbound-rtp';
+  localId?: string;
+  remoteTimestamp?: number;
+  reportsSent?: number;
+  roundTripTime?: number;
+  totalRoundTripTime?: number;
+  roundTripTimeMeasurements?: number;
+}
