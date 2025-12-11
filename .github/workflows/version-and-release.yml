@@ -13,6 +13,10 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  id-token: write # Required for OIDC
+  contents: write # required for committing the version bump
+
 concurrency:
   group: version-and-release-${{ github.ref }}
   cancel-in-progress: true
@@ -30,8 +34,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: ESLint Cache
         uses: actions/cache@v4
@@ -57,7 +62,4 @@ jobs:
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-          npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}
-          yarn config set npmRegistryServer https://registry.npmjs.org/
-          yarn config set npmAuthToken ${{ secrets.NPM_TOKEN }}
           yarn release
