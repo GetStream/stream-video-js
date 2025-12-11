@@ -26,20 +26,22 @@ class NotificationReceiverService : Service() {
 
   private fun onCallAnswered(intent: Intent) {
     val callId = intent.getStringExtra(CallingxModule.EXTRA_CALL_ID)
+    val source = intent.getStringExtra(CallingxModule.EXTRA_SOURCE)
     callId?.let {
       NotificationIntentFactory.getPendingBroadcastIntent(
-        applicationContext,
-        CallingxModule.CALL_ANSWERED_ACTION,
-        it
-      )
-        .send()
+                      applicationContext,
+                      CallingxModule.CALL_ANSWERED_ACTION,
+                      it
+              ) { putExtra(CallingxModule.EXTRA_SOURCE, source) }
+              .send()
 
       NotificationIntentFactory.getLaunchActivityIntent(
-        applicationContext,
-        CallingxModule.CALL_ANSWERED_ACTION,
-        it
-      )
-        .send()
+                      applicationContext,
+                      CallingxModule.CALL_ANSWERED_ACTION,
+                      it,
+                      source
+              )
+              .send()
     }
   }
 }

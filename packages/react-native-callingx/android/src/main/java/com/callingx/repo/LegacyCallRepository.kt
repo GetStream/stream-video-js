@@ -80,14 +80,18 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
         when (action) {
             is CallAction.Answer -> {
                 updateCurrentCall { copy(isActive = true, isOnHold = false) }
-                (currentCall.value as? Call.Registered)?.let { listener?.onIsCallAnswered(it.id) }
+                // In legacy mode, all actions are initiated from the app
+                (currentCall.value as? Call.Registered)?.let { 
+                    listener?.onIsCallAnswered(it.id, CallRepository.EventSource.APP) 
+                }
             }
             is CallAction.Disconnect -> {
                 val call = currentCall.value as? Call.Registered
                 if (call != null) {
                     _currentCall.value =
                             Call.Unregistered(call.id, call.callAttributes, action.cause)
-                    listener?.onIsCallDisconnected(call.id, action.cause)
+                    // In legacy mode, all actions are initiated from the app
+                    listener?.onIsCallDisconnected(call.id, action.cause, CallRepository.EventSource.APP)
                 }
             }
             is CallAction.ToggleMute -> {

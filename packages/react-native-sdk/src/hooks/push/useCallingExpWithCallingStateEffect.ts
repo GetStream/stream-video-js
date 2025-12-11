@@ -77,7 +77,7 @@ export const useCallingExpWithCallingStateEffect = () => {
       //if incoming stream call was unmounted, we need to end the call in CallKit/Telecom
       logger.debug(`Ending call in calling exp: ${activeCallCid}`);
       callingx
-        .endCallWithReason(activeCallCid, 'remote')
+        .endCallWithReason(activeCallCid, 'local')
         .catch((error: unknown) => {
           logger.error(
             `Error ending call in calling exp: ${activeCallCid}`,
@@ -129,7 +129,7 @@ export const useCallingExpWithCallingStateEffect = () => {
               error,
             );
           });
-      } else if (isCallRegistered) {
+      } else if (!isOutcomingCall && isCallRegistered) {
         logger.debug(
           `Should accept call in callkeep: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
         );
@@ -149,7 +149,7 @@ export const useCallingExpWithCallingStateEffect = () => {
       logger.debug(`Should end call in callkeep: ${activeCallCid}`);
       //TODO: think about sending appropriate reason for end call
       callingx
-        .endCallWithReason(activeCallCid, 'remote')
+        .endCallWithReason(activeCallCid, 'local')
         .catch((error: unknown) => {
           logger.error(
             `Error ending call in calling exp: ${activeCallCid}`,
@@ -179,12 +179,14 @@ export const useCallingExpWithCallingStateEffect = () => {
       ({ callId }: { callId: string }) => {
         if (callId === activeCallCid) {
           logger.debug(`Received start call action for call: ${activeCallCid}`);
-          callingx.answerIncomingCall(activeCallCid).catch((error: unknown) => {
-            logger.error(
-              `Error answering call in calling exp: ${activeCallCid}`,
-              error,
-            );
-          });
+          callingx
+            .setCurrentCallActive(activeCallCid)
+            .catch((error: unknown) => {
+              logger.error(
+                `Error answering call in calling exp: ${activeCallCid}`,
+                error,
+              );
+            });
         }
       },
     );

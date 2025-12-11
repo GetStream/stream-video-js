@@ -15,20 +15,22 @@ object NotificationIntentFactory {
   fun getPendingNotificationIntent(
     context: Context,
     action: String,
-    callId: String
+    callId: String,
+    source: String
   ): PendingIntent {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      getReceiverActivityIntent(context, action, callId)
+      getReceiverActivityIntent(context, action, callId, source)
     } else {
-      getPendingServiceIntent(context, action, callId)
+      getPendingServiceIntent(context, action, callId, source)
     }
   }
 
-  fun getPendingServiceIntent(context: Context, action: String, callId: String): PendingIntent {
+  fun getPendingServiceIntent(context: Context, action: String, callId: String, source: String): PendingIntent {
     val intent =
       Intent(context, NotificationReceiverService::class.java).apply {
         this.action = action
         putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+        putExtra(CallingxModule.EXTRA_SOURCE, source)
       }
 
     return PendingIntent.getService(
@@ -39,11 +41,12 @@ object NotificationIntentFactory {
     )
   }
 
-  fun getReceiverActivityIntent(context: Context, action: String, callId: String): PendingIntent {
+  fun getReceiverActivityIntent(context: Context, action: String, callId: String, source: String): PendingIntent {
     val receiverIntent =
       Intent(context, NotificationReceiverActivity::class.java).apply {
         this.action = action
         putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+        putExtra(CallingxModule.EXTRA_SOURCE, source)
       }
 
     val launchActivity = context.packageManager.getLaunchIntentForPackage(context.packageName)
@@ -60,12 +63,13 @@ object NotificationIntentFactory {
     )
   }
 
-  fun getLaunchActivityIntent(context: Context, action: String, callId: String): PendingIntent {
+  fun getLaunchActivityIntent(context: Context, action: String, callId: String, source: String? = null): PendingIntent {
     val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
     val callIntent =
       Intent(launchIntent).apply {
         this.action = action
         putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+        source?.let { putExtra(CallingxModule.EXTRA_SOURCE, it) }
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
       }
 

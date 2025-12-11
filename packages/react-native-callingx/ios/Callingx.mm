@@ -33,6 +33,7 @@ static NSString *const CallingxProviderReset = @"providerReset";
   bool _isReachable;
   bool _isInitialized;
   bool _isSelfAnswered;
+  bool _isSelfEnded;
   NSMutableArray *_delayedEvents;
 }
 
@@ -509,16 +510,6 @@ static UUIDStorage *uuidStorage;
     return;
   }
 
-  // Check if call was already answered
-  CXCallObserver *observer = [[CXCallObserver alloc] init];
-  for (CXCall *call in observer.calls) {
-    if ([call.UUID isEqual:uuid] && call.hasConnected) {
-      NSLog(@"[Callingx][answerIncomingCall] call already answered, skipping");
-      resolve(@YES);
-      return;
-    }
-  }
-
   _isSelfAnswered = true;
   CXAnswerCallAction *answerCallAction = [[CXAnswerCallAction alloc] initWithCallUUID:uuid];
   CXTransaction *transaction = [[CXTransaction alloc] init];
@@ -593,6 +584,7 @@ static UUIDStorage *uuidStorage;
     return;
   }
 
+  _isSelfEnded = true;
   CXEndCallAction *endCallAction = [[CXEndCallAction alloc] initWithCallUUID:uuid];
   CXTransaction *transaction = [[CXTransaction alloc] initWithAction:endCallAction];
 
@@ -830,13 +822,12 @@ static UUIDStorage *uuidStorage;
 
   [AudioSessionManager createAudioSessionIfNeeded];
   
-  // Only send event if the answer was triggered by the system UI, not programmatically
-  if (!_isSelfAnswered) {
-    [self sendEventWithNameWrapper:CallingxPerformAnswerCallAction
-                              body:@{
-                                @"callId" : callId
-                              }];
-  }
+  NSString *source = _isSelfAnswered ? @"app" : @"sys";
+  [self sendEventWithNameWrapper:CallingxPerformAnswerCallAction
+                            body:@{
+                              @"callId" : callId,
+                              @"source" : source
+                            }];
   _isSelfAnswered = false;
   [action fulfill];
 }
@@ -844,7 +835,7 @@ static UUIDStorage *uuidStorage;
 - (void)provider:(CXProvider *)provider
     performEndCallAction:(CXEndCallAction *)action {
 #ifdef DEBUG
-  NSLog(@"[Callingx][CXProviderDelegate][provider:performEndCallAction]");
+  NSLog(@"[Callingx][CXProviderDelegate][provider:performEndCallAction] isSelfEnded: %d", _isSelfEnded);
 #endif
   NSString *callId = [uuidStorage getCidForUUID:action.callUUID];
   if (callId == nil) {
@@ -853,10 +844,13 @@ static UUIDStorage *uuidStorage;
     return;
   }
 
+  NSString *source = _isSelfEnded ? @"app" : @"sys";
   [self sendEventWithNameWrapper:CallingxPerformEndCallAction
                             body:@{
-                              @"callId" : callId
+                              @"callId" : callId,
+                              @"source" : source
                             }];
+  _isSelfEnded = false;
   [uuidStorage removeCid:callId];
   [action fulfill];
 }

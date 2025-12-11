@@ -211,13 +211,14 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    override fun onIsCallAnswered(callId: String) {
+    override fun onIsCallAnswered(callId: String, source: CallRepository.EventSource) {
         sendBroadcastEvent(CallingxModule.CALL_ANSWERED_ACTION) {
             putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+            putExtra(CallingxModule.EXTRA_SOURCE, source.name.lowercase())
         }
     }
 
-    override fun onIsCallDisconnected(callId: String?, cause: DisconnectCause) {
+    override fun onIsCallDisconnected(callId: String?, cause: DisconnectCause, source: CallRepository.EventSource) {
         // we're not passing the callId here to prevent infinite loops
         // callEnd event with callId will sent only when after interaction with notification buttons
         sendBroadcastEvent(CallingxModule.CALL_END_ACTION) {
@@ -225,6 +226,7 @@ class CallService : Service(), CallRepository.Listener {
                 putExtra(CallingxModule.EXTRA_CALL_ID, callId)
             }
             putExtra(CallingxModule.EXTRA_DISCONNECT_CAUSE, getDisconnectCauseString(cause))
+            putExtra(CallingxModule.EXTRA_SOURCE, source.name.lowercase())
         }
     }
 

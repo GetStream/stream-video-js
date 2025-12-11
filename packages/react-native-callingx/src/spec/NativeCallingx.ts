@@ -35,6 +35,9 @@ export interface Spec extends TurboModule {
     params: {
       callId: string;
       cause?: string;
+      muted?: boolean;
+      hold?: boolean;
+      source?: string;
     };
   }>;
 

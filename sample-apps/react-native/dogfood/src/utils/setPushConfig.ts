@@ -85,25 +85,7 @@ export function setPushConfig() {
   });
 
   StreamVideoRN.setupCallingExp({
-    ios: {
-      appName: 'Dogfood app',
-    },
-    android: {
-      incomingChannel: {
-        id: 'stream_incoming_call_channel_update2',
-        name: 'Incoming call notifications',
-      },
-      outgoingChannel: {
-        id: 'stream_outgoing_call_channel_update2',
-        name: 'Outgoing call notifications',
-      },
-      titleTransformer: (callerName: string, incoming: boolean) =>
-        incoming
-          ? `Incoming call from ${callerName}`
-          : `Outgoing call to ${callerName}`,
-      subtitleTransformer: (callId: string) =>
-        `Tap to open the call: ${callId}`,
-    },
+    enableOutcomingCalls: true,
   });
 
   setFirebaseListeners();

@@ -1,4 +1,5 @@
 export type RNCallingxType = import('react-native-callingx').ICallingxModule;
+export type EventParams = import('react-native-callingx').EventParams;
 
 let callingx: RNCallingxType | undefined;
 

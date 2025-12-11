@@ -376,8 +376,9 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
         updateCurrentCall { copy(isActive = true, isOnHold = false) }
 
         val call = _currentCall.value
-        if (!isSelfAnswered && call is Call.Registered) {
-            listener?.onIsCallAnswered(call.id)
+        val source = if (isSelfAnswered) CallRepository.EventSource.APP else CallRepository.EventSource.SYS
+        if (call is Call.Registered) {
+            listener?.onIsCallAnswered(call.id, source)
         }
         isSelfAnswered = false
         Log.d(TAG, "[repository] onIsCallAnswered: Call state updated to active")
@@ -389,13 +390,14 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
                 TAG,
                 "[repository] onIsCallDisconnected: Call disconnected, cause: ${it.reason}, description: ${it.description}"
         )
+        val source = if (isSelfDisconnected) CallRepository.EventSource.APP else CallRepository.EventSource.SYS
         var callId: String? = null
-        if (!isSelfDisconnected && _currentCall.value is Call.Registered) {
+        if (_currentCall.value is Call.Registered) {
             callId = (_currentCall.value as Call.Registered).id
         }
 
         updateCurrentCall { Call.Unregistered(id, callAttributes, it) }
-        listener?.onIsCallDisconnected(callId, it)
+        listener?.onIsCallDisconnected(callId, it, source)
         isSelfDisconnected = false
         Log.d(TAG, "[repository] onIsCallDisconnected: Call state updated to Unregistered")
     }

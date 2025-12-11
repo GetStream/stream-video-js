@@ -152,11 +152,13 @@ class CallNotificationManager(
                                 CallingxModule.EXTRA_DISCONNECT_CAUSE,
                                 getDisconnectCauseString(DisconnectCause(DisconnectCause.REJECTED))
                         )
+                        putExtra(CallingxModule.EXTRA_SOURCE, CallRepository.EventSource.SYS.name.lowercase())
                     },
                     NotificationIntentFactory.getPendingNotificationIntent(
                             context,
                             CallingxModule.CALL_ANSWERED_ACTION,
-                            call.id
+                            call.id,
+                            CallRepository.EventSource.SYS.name.lowercase()
                     )
             )
         }
@@ -172,6 +174,7 @@ class CallNotificationManager(
                             CallingxModule.EXTRA_DISCONNECT_CAUSE,
                             getDisconnectCauseString(DisconnectCause(DisconnectCause.LOCAL))
                     )
+                    putExtra(CallingxModule.EXTRA_SOURCE, CallRepository.EventSource.SYS.name.lowercase())
                 },
         )
     }

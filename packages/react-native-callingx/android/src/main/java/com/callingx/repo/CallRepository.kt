@@ -9,10 +9,14 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface CallRepository {
 
+  enum class EventSource {
+    APP, SYS
+  }
+
   interface Listener {
     fun onCallStateChanged(call: Call)
-    fun onIsCallAnswered(callId: String)
-    fun onIsCallDisconnected(callId: String?, cause: DisconnectCause)
+    fun onIsCallAnswered(callId: String, source: EventSource)
+    fun onIsCallDisconnected(callId: String?, cause: DisconnectCause, source: EventSource)
     fun onIsCallInactive(callId: String)
     fun onIsCallActive(callId: String)
     fun onCallRegistered(callId: String)

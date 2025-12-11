@@ -29,10 +29,12 @@ class NotificationReceiverActivity : Activity() {
     //we need it only for answered call event, as for cold start case we need to send broadcast event and to launch the app
     if (intent.action == CallingxModule.CALL_ANSWERED_ACTION) {
       val callId = intent.getStringExtra(CallingxModule.EXTRA_CALL_ID)
+      val source = intent.getStringExtra(CallingxModule.EXTRA_SOURCE)
       Intent(CallingxModule.CALL_ANSWERED_ACTION)
         .apply {
           setPackage(packageName)
           putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+          putExtra(CallingxModule.EXTRA_SOURCE, source)
         }
         .also { sendBroadcast(it) }
     }

@@ -104,8 +104,8 @@ export type InfoDisplayOptions = {
 };
 
 export type EventData = {
-  eventName: string;
-  params: { callId: string; cause?: string };
+  eventName: EventName;
+  params: EventParams[EventName];
 };
 
 export type EventName =
@@ -122,10 +122,12 @@ export type EventName =
 export type EventParams = {
   answerCall: {
     callId: string;
+    source: 'app' | 'sys';
   };
   endCall: {
     callId: string;
     cause: string;
+    source: 'app' | 'sys';
   };
   didDisplayIncomingCall: {
     callId: string;

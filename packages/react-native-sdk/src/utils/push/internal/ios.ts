@@ -74,7 +74,7 @@ export const onVoipNotificationReceived = async (
     if (mustEndCall) {
       logger.debug(`callkeep.reportEndCallWithUUID for call_cid: ${call_cid}`);
       //TODO: think about sending appropriate reason for end call
-      callingx.endCallWithReason(call_cid, 'remote');
+      callingx.endCallWithReason(call_cid, 'local');
 
       const voipPushNotification = getVoipPushNotificationLib();
       voipPushNotification.onVoipNotificationCompleted(call_cid);

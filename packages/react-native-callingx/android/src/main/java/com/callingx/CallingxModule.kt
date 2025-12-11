@@ -39,6 +39,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         const val EXTRA_ON_HOLD = "hold"
         const val EXTRA_DISCONNECT_CAUSE = "disconnect_cause"
         const val EXTRA_AUDIO_ENDPOINT = "audio_endpoint"
+        const val EXTRA_SOURCE = "source"
 
         const val CALL_REGISTERED_ACTION = "call_registered"
         const val CALL_ANSWERED_ACTION = "call_answered"
@@ -506,16 +507,22 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     sendJSEvent("didReceiveStartCallAction", params)
                 }
                 CALL_ANSWERED_ACTION -> {
+                    if (intent.hasExtra(EXTRA_SOURCE)) {
+                        params.putString("source", intent.getStringExtra(EXTRA_SOURCE))
+                    }
                     sendJSEvent("answerCall", params)
                 }
                 CALL_END_ACTION -> {
                     if (callId == null) {
                         // means the call was disconnected, we're ready to unbind the service
                         unbindServiceSafely()
-                    } else {
-                        params.putString("cause", intent.getStringExtra(EXTRA_DISCONNECT_CAUSE))
-                        sendJSEvent("endCall", params)
                     }
+                    
+                    params.putString("cause", intent.getStringExtra(EXTRA_DISCONNECT_CAUSE))
+                    if (intent.hasExtra(EXTRA_SOURCE)) {
+                        params.putString("source", intent.getStringExtra(EXTRA_SOURCE))
+                    }
+                    sendJSEvent("endCall", params)
                 }
                 CALL_INACTIVE_ACTION -> {
                     params.putBoolean("hold", true)
