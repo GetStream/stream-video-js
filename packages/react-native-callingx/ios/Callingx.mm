@@ -32,6 +32,7 @@ static NSString *const CallingxProviderReset = @"providerReset";
   NSOperatingSystemVersion _version;
   bool _isReachable;
   bool _isInitialized;
+  bool _isSelfAnswered;
   NSMutableArray *_delayedEvents;
 }
 
@@ -508,6 +509,17 @@ static UUIDStorage *uuidStorage;
     return;
   }
 
+  // Check if call was already answered
+  CXCallObserver *observer = [[CXCallObserver alloc] init];
+  for (CXCall *call in observer.calls) {
+    if ([call.UUID isEqual:uuid] && call.hasConnected) {
+      NSLog(@"[Callingx][answerIncomingCall] call already answered, skipping");
+      resolve(@YES);
+      return;
+    }
+  }
+
+  _isSelfAnswered = true;
   CXAnswerCallAction *answerCallAction = [[CXAnswerCallAction alloc] initWithCallUUID:uuid];
   CXTransaction *transaction = [[CXTransaction alloc] init];
   [transaction addAction:answerCallAction];
@@ -807,7 +819,7 @@ static UUIDStorage *uuidStorage;
 - (void)provider:(CXProvider *)provider
     performAnswerCallAction:(CXAnswerCallAction *)action {
 #ifdef DEBUG
-  NSLog(@"[Callingx][CXProviderDelegate][provider:performAnswerCallAction]");
+  NSLog(@"[Callingx][CXProviderDelegate][provider:performAnswerCallAction] isSelfAnswered: %d", _isSelfAnswered);
 #endif
   NSString *callId = [uuidStorage getCidForUUID:action.callUUID];
   if (callId == nil) {
@@ -817,10 +829,15 @@ static UUIDStorage *uuidStorage;
   }
 
   [AudioSessionManager createAudioSessionIfNeeded];
-  [self sendEventWithNameWrapper:CallingxPerformAnswerCallAction
-                            body:@{
-                              @"callId" : callId
-                            }];
+  
+  // Only send event if the answer was triggered by the system UI, not programmatically
+  if (!_isSelfAnswered) {
+    [self sendEventWithNameWrapper:CallingxPerformAnswerCallAction
+                              body:@{
+                                @"callId" : callId
+                              }];
+  }
+  _isSelfAnswered = false;
   [action fulfill];
 }
 

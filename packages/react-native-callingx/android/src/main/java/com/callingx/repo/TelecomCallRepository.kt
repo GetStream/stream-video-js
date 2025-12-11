@@ -49,6 +49,7 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
 
     private val callsManager: CallsManager
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var isSelfAnswered = false
     private var isSelfDisconnected = false
 
     // Keeps track of the current TelecomCall state
@@ -340,6 +341,7 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
     }
 
     private suspend fun CallControlScope.doAnswer(isAudioCall: Boolean) {
+        isSelfAnswered = true
         val callType =
                 if (isAudioCall) CallAttributesCompat.CALL_TYPE_AUDIO_CALL
                 else CallAttributesCompat.CALL_TYPE_VIDEO_CALL
@@ -353,6 +355,7 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
                         TAG,
                         "[repository] doAnswer: Answer failed with error code: ${result.errorCode}"
                 )
+                isSelfAnswered = false
                 updateCurrentCall {
                     Call.Unregistered(
                             id = id,
@@ -369,13 +372,14 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
      * if we can answer a call Example you may need to wait for another call to hold.
      */
     val onIsCallAnswered: suspend (type: Int) -> Unit = {
-        Log.d(TAG, "[repository] onIsCallAnswered: Call answered, type: $it")
+        Log.d(TAG, "[repository] onIsCallAnswered: Call answered, type: $it, isSelfAnswered: $isSelfAnswered")
         updateCurrentCall { copy(isActive = true, isOnHold = false) }
 
         val call = _currentCall.value
-        if (call is Call.Registered) {
+        if (!isSelfAnswered && call is Call.Registered) {
             listener?.onIsCallAnswered(call.id)
         }
+        isSelfAnswered = false
         Log.d(TAG, "[repository] onIsCallAnswered: Call state updated to active")
     }
 

@@ -279,7 +279,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     putExtra(CallService.EXTRA_TASK_DATA, Bundle())
                     putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
                 }
-                .also { reactApplicationContext.startService(it) }
+                .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
 
         promise.resolve(true)
     }
@@ -292,7 +292,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     this.action = CallService.ACTION_STOP_BACKGROUND_TASK
                     putExtra(CallService.EXTRA_TASK_NAME, taskName)
                 }
-                .also { reactApplicationContext.startService(it) }
+                .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
 
         promise.resolve(true)
     }

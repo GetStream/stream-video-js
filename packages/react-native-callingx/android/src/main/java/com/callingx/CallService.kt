@@ -120,6 +120,13 @@ class CallService : Service(), CallRepository.Listener {
                 registerCall(intent, false)
             }
             ACTION_START_BACKGROUND_TASK -> {
+                if (!isInForeground) {
+                    Log.d(TAG, "[service] onStartCommand: Starting foreground for background task")
+                    //for now bg task is intended to be used after a call registered and notification is shown, so we don't need to show a separate notification for bg task
+                    // startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
+                    isInForeground = true
+                }
+
                 val taskName = intent.getStringExtra(EXTRA_TASK_NAME)!!
                 val taskData = intent.getBundleExtra(EXTRA_TASK_DATA)!!
                 val taskTimeout = intent.getLongExtra(EXTRA_TASK_TIMEOUT, 0)
@@ -256,7 +263,7 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    fun isCallRegistered(callId: String): Boolean {
+    public fun isCallRegistered(callId: String): Boolean {
         val currentCall = callRepository.currentCall.value
         return currentCall is Call.Registered && currentCall.id == callId
     }
