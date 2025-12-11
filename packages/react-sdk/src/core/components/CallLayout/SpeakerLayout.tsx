@@ -10,6 +10,7 @@ import {
 } from '../ParticipantView';
 import { IconButton } from '../../../components';
 import {
+  useDragToScroll,
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
 } from '../../../hooks';
@@ -146,6 +147,7 @@ export const SpeakerLayout = ({
 
   const isOneOnOneCall = allParticipants.length === 2;
   useSpeakerLayoutSortPreset(call, isOneOnOneCall);
+  useDragToScroll(participantsBarWrapperElement);
 
   let participantsWithAppliedLimit = otherParticipants;
 
