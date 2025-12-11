@@ -49,6 +49,7 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
 
     private val callsManager: CallsManager
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var isSelfDisconnected = false
 
     // Keeps track of the current TelecomCall state
     private val _currentCall: MutableStateFlow<Call> = MutableStateFlow(Call.None)
@@ -331,6 +332,7 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
     }
 
     private suspend fun CallControlScope.doDisconnect(action: CallAction.Disconnect) {
+        isSelfDisconnected = true
         Log.d(TAG, "[repository] doDisconnect: Disconnecting call with cause: ${action.cause}")
         disconnect(action.cause)
         Log.d(TAG, "[repository] doDisconnect: Disconnect called, triggering onIsCallDisconnected")
@@ -383,9 +385,14 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
                 TAG,
                 "[repository] onIsCallDisconnected: Call disconnected, cause: ${it.reason}, description: ${it.description}"
         )
-        updateCurrentCall { Call.Unregistered(id, callAttributes, it) }
+        var callId: String? = null
+        if (!isSelfDisconnected && _currentCall.value is Call.Registered) {
+            callId = (_currentCall.value as Call.Registered).id
+        }
 
-        listener?.onIsCallDisconnected(it)
+        updateCurrentCall { Call.Unregistered(id, callAttributes, it) }
+        listener?.onIsCallDisconnected(callId, it)
+        isSelfDisconnected = false
         Log.d(TAG, "[repository] onIsCallDisconnected: Call state updated to Unregistered")
     }
 

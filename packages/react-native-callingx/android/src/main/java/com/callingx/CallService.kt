@@ -210,10 +210,13 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    override fun onIsCallDisconnected(cause: DisconnectCause) {
+    override fun onIsCallDisconnected(callId: String?, cause: DisconnectCause) {
         // we're not passing the callId here to prevent infinite loops
         // callEnd event with callId will sent only when after interaction with notification buttons
         sendBroadcastEvent(CallingxModule.CALL_END_ACTION) {
+            if (callId != null) {
+                putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+            }
             putExtra(CallingxModule.EXTRA_DISCONNECT_CAUSE, getDisconnectCauseString(cause))
         }
     }

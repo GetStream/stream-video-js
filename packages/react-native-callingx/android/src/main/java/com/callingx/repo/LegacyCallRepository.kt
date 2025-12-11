@@ -87,7 +87,7 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
                 if (call != null) {
                     _currentCall.value =
                             Call.Unregistered(call.id, call.callAttributes, action.cause)
-                    listener?.onIsCallDisconnected(action.cause)
+                    listener?.onIsCallDisconnected(call.id, action.cause)
                 }
             }
             is CallAction.ToggleMute -> {

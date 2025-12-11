@@ -85,27 +85,20 @@ const onAcceptCall = ({ callId: call_cid }: { callId: string }) => {
 const onEndCall =
   (pushConfig: PushConfig) =>
   async ({ callId: call_cid }: { callId: string }) => {
-    getCallingxLibIfAvailable()?.log(
-      `callingExpRejectCall call_cid: ${call_cid}`,
-      'debug',
-    );
     videoLoggerSystem
       .getLogger('callingExpRejectCall')
-      .debug(`call_cid: ${call_cid}`);
+      .debug(`callingExpRejectCall event callId: ${call_cid}`);
 
     if (!call_cid) {
-      videoLoggerSystem
-        .getLogger('callingExpRejectCall')
-        .debug('call_cid is undefined, so returning early');
+      getCallingxLibIfAvailable()?.log(
+        `call_cid is undefined, so returning early`,
+        'debug',
+      );
       return;
     }
 
     clearPushWSEventSubscriptions(call_cid);
-    // remove the references if the call_cid matches
 
-    videoLoggerSystem
-      .getLogger('callingExpRejectCall')
-      .debug(`ending call with call_cid: ${call_cid}`);
     await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
   };
 

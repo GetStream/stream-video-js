@@ -75,7 +75,6 @@ export const useCallingExpWithCallingStateEffect = () => {
         return;
       }
       //if incoming stream call was unmounted, we need to end the call in CallKit/Telecom
-      //TODO: think about sending appropriate reason for end call
       logger.debug(`Ending call in calling exp: ${activeCallCid}`);
       callingx
         .endCallWithReason(activeCallCid, 'remote')

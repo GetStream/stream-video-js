@@ -12,7 +12,7 @@ interface CallRepository {
   interface Listener {
     fun onCallStateChanged(call: Call)
     fun onIsCallAnswered(callId: String)
-    fun onIsCallDisconnected(cause: DisconnectCause)
+    fun onIsCallDisconnected(callId: String?, cause: DisconnectCause)
     fun onIsCallInactive(callId: String)
     fun onIsCallActive(callId: String)
     fun onCallRegistered(callId: String)

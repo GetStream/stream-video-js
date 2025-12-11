@@ -509,12 +509,12 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     sendJSEvent("answerCall", params)
                 }
                 CALL_END_ACTION -> {
-                    params.putString("cause", intent.getStringExtra(EXTRA_DISCONNECT_CAUSE))
-                    sendJSEvent("endCall", params)
-
                     if (callId == null) {
-                        // callId null means the call was disconnected, service should be unbound
+                        // means the call was disconnected, we're ready to unbind the service
                         unbindServiceSafely()
+                    } else {
+                        params.putString("cause", intent.getStringExtra(EXTRA_DISCONNECT_CAUSE))
+                        sendJSEvent("endCall", params)
                     }
                 }
                 CALL_INACTIVE_ACTION -> {
