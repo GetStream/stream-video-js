@@ -16,17 +16,15 @@ export interface Spec extends TurboModule {
   }): void;
 
   setupAndroid(options: {
-    incomingChannel?: {
+    incomingChannel: {
       id: string;
       name: string;
-      sound?: string;
-      vibration?: boolean;
+      sound: string;
+      vibration: boolean;
     };
-    outgoingChannel?: {
+    outgoingChannel: {
       id: string;
       name: string;
-      sound?: string;
-      vibration?: boolean;
     };
   }): void;
 

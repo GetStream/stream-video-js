@@ -74,14 +74,14 @@ export type iOSOptions = {
 
 export type AndroidOptions = {
   incomingChannel?: {
-    id: string;
-    name: string;
+    id?: string;
+    name?: string;
     sound?: string;
     vibration?: boolean;
   };
   outgoingChannel?: {
-    id: string;
-    name: string;
+    id?: string;
+    name?: string;
   };
 };
 
@@ -93,7 +93,7 @@ export type NotificationTransformers = {
 
 export type Options = {
   ios?: iOSOptions;
-  android: AndroidOptions & NotificationTransformers;
+  android?: AndroidOptions & NotificationTransformers;
   enableOutcomingCalls?: boolean;
   enableAutoPermissions?: boolean;
 };

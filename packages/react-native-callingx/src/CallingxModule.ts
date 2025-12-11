@@ -16,7 +16,6 @@ import type { EventListener, EventName, EventParams } from './EventManager';
 import {
   type ICallingxModule,
   type InfoDisplayOptions,
-  type AndroidOptions,
   type TextTransformer,
   type EndCallReason,
   type EventData,
@@ -61,20 +60,24 @@ class CallingxModule implements ICallingxModule {
     }
 
     if (Platform.OS === 'android') {
-      const { titleTransformer, subtitleTransformer, ...rest } =
-        options.android;
+      const {
+        titleTransformer,
+        subtitleTransformer,
+        incomingChannel,
+        outgoingChannel,
+      } = options.android ?? {};
 
       this.titleTransformer = titleTransformer ?? defaultTextTransformer;
       this.subtitleTransformer = subtitleTransformer;
 
-      const notificationsConfig: Required<AndroidOptions> = {
+      const notificationsConfig = {
         incomingChannel: {
           ...defaultAndroidOptions.incomingChannel,
-          ...(rest.incomingChannel ?? {}),
+          ...(incomingChannel ?? {}),
         },
         outgoingChannel: {
           ...defaultAndroidOptions.outgoingChannel,
-          ...(rest.outgoingChannel ?? {}),
+          ...(outgoingChannel ?? {}),
         },
       };
       NativeCallingModule.setupAndroid(notificationsConfig);

@@ -16,11 +16,6 @@ object NotificationsConfig {
   private const val KEY_SOUND = "sound"
   private const val KEY_VIBRATION = "vibration"
 
-  private const val DEFAULT_INCOMING_CHANNEL_ID = "incoming_channel"
-  private const val DEFAULT_INCOMING_CHANNEL_NAME = "Incoming calls"
-  private const val DEFAULT_ONGOING_CHANNEL_ID = "ongoing_channel"
-  private const val DEFAULT_ONGOING_CHANNEL_NAME = "Ongoing calls"
-
   data class ChannelParams(
     val id: String,
     val name: String,
@@ -67,20 +62,16 @@ object NotificationsConfig {
     return Channels(
       incomingChannel =
         ChannelParams(
-          id = prefs.getString(PREFIX_IN + KEY_ID, "")
-            ?: DEFAULT_INCOMING_CHANNEL_ID,
-          name = prefs.getString(PREFIX_IN + KEY_NAME, "")
-            ?: DEFAULT_INCOMING_CHANNEL_NAME,
+          id = prefs.getString(PREFIX_IN + KEY_ID, "") ?: "",
+          name = prefs.getString(PREFIX_IN + KEY_NAME, "") ?: "",
           sound = prefs.getString(PREFIX_IN + KEY_SOUND, "") ?: "",
           vibration = prefs.getBoolean(PREFIX_IN + KEY_VIBRATION, false),
           importance = NotificationManagerCompat.IMPORTANCE_MAX,
         ),
       outgoingChannel =
         ChannelParams(
-          id = prefs.getString(PREFIX_OUT + KEY_ID, "")
-            ?: DEFAULT_ONGOING_CHANNEL_ID,
-          name = prefs.getString(PREFIX_OUT + KEY_NAME, "")
-            ?: DEFAULT_ONGOING_CHANNEL_NAME,
+          id = prefs.getString(PREFIX_OUT + KEY_ID, "") ?: "",
+          name = prefs.getString(PREFIX_OUT + KEY_NAME, "") ?: "",
           importance = NotificationManagerCompat.IMPORTANCE_DEFAULT,
           vibration = false,
           sound = null,

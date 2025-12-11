@@ -43,7 +43,7 @@ class CallNotificationManager(
     private var hasBecameActive = false
 
     fun createNotification(call: Call.Registered): Notification {
-        Log.d(TAG, "createNotification: Creating notification for call ID: ${call.id}")
+        Log.d(TAG, "[notifications] createNotification: Creating notification for call ID: ${call.id}")
 
         val contentIntent =
                 NotificationIntentFactory.getLaunchActivityIntent(
@@ -53,6 +53,7 @@ class CallNotificationManager(
                 )
         val callStyle = createCallStyle(call)
         val channelId = getChannelId(call)
+        Log.d(TAG, "[notifications] createNotification: Channel ID: $channelId")
 
         val builder =
                 NotificationCompat.Builder(context, channelId)
@@ -65,7 +66,7 @@ class CallNotificationManager(
                         .setOngoing(true)
 
         if (!hasBecameActive && call.isActive) {
-            Log.d(TAG, "createNotification: Setting when to current time")
+            Log.d(TAG, "[notifications] createNotification: Setting when to current time")
             builder.setWhen(System.currentTimeMillis())
             builder.setUsesChronometer(true)
             builder.setShowWhen(true)
@@ -84,13 +85,13 @@ class CallNotificationManager(
     fun updateCallNotification(call: Call) {
         when (call) {
             Call.None, is Call.Unregistered -> {
-                Log.d(TAG, "Dismissing notification (call is None or Unregistered)")
+                Log.d(TAG, "[notifications] updateCallNotification: Dismissing notification (call is None or Unregistered)")
                 notificationManager.cancel(NOTIFICATION_ID)
             }
             is Call.Registered -> {
                 val notification = createNotification(call)
                 notificationManager.notify(NOTIFICATION_ID, notification)
-                Log.d(TAG, "updateCallNotification: Notification posted successfully")
+                Log.d(TAG, "[notifications] updateCallNotification: Notification posted successfully")
             }
         }
     }
@@ -102,7 +103,7 @@ class CallNotificationManager(
 
     fun startRingtone() {
         if (ringtone?.isPlaying == true) {
-            Log.d(TAG, "startRingtone: Ringtone already playing")
+            Log.d(TAG, "[notifications] startRingtone: Ringtone already playing")
             return
         }
 
@@ -111,17 +112,19 @@ class CallNotificationManager(
                         ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
 
         ringtone = RingtoneManager.getRingtone(context, soundUri)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             ringtone?.isLooping = true
         }
+
         ringtone?.play()
-        Log.d(TAG, "startRingtone: Ringtone started")
+        Log.d(TAG, "[notifications] startRingtone: Ringtone started")
     }
 
     fun stopRingtone() {
         if (ringtone?.isPlaying == true) {
             ringtone?.stop()
-            Log.d(TAG, "stopRingtone: Ringtone stopped")
+            Log.d(TAG, "[notifications] stopRingtone: Ringtone stopped")
         }
         ringtone = null
     }

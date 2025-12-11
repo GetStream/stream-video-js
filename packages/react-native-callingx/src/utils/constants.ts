@@ -4,6 +4,7 @@ import type {
   EndCallReason,
   TextTransformer,
 } from '../types';
+import type { DeepRequired } from './types';
 
 export const defaultTextTransformer: TextTransformer = (text: string) => text;
 
@@ -18,15 +19,15 @@ export const defaultiOSOptions: Required<iOSOptions> = {
   setupAudioSession: true,
 };
 
-export const defaultAndroidOptions: Required<AndroidOptions> = {
+export const defaultAndroidOptions: DeepRequired<AndroidOptions> = {
   incomingChannel: {
-    id: 'telecom_incoming_channel',
+    id: 'incoming_calls_channel',
     name: 'Incoming calls',
     sound: '',
     vibration: false,
   },
   outgoingChannel: {
-    id: 'telecom_ongoing_channel',
+    id: 'ongoing_calls_channel',
     name: 'Ongoing calls',
   },
 };
