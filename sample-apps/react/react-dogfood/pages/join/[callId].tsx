@@ -192,7 +192,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
           <TourProvider>
             <BackgroundFiltersProvider
-              basePath={`${basePath}/mediapipe`}
+              basePath={`${basePath}/tf`}
+              useLegacyFilter
               forceSafariSupport
               backgroundImages={[
                 `${basePath}/backgrounds/amsterdam-1.jpg`,
