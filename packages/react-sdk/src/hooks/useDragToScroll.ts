@@ -16,6 +16,7 @@ interface DragToScrollOptions {
   decay?: number;
   minVelocity?: number;
   dragThreshold?: number;
+  enabled?: boolean;
 }
 
 /**
@@ -45,7 +46,7 @@ export function useDragToScroll(
   });
 
   useEffect(() => {
-    if (!element) return;
+    if (!element || !options.enabled) return;
 
     const { decay = 0.95, minVelocity = 0.5, dragThreshold = 5 } = options;
 
