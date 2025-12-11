@@ -15,6 +15,7 @@ on:
 
 permissions:
   id-token: write # Required for OIDC
+  actions: write # Required for dispatching other workflows
   contents: write # required for committing the version bump
 
 concurrency:
