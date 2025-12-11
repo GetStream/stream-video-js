@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.28.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.28.1...@stream-io/video-react-sdk-1.28.2) (2025-12-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.2`
+- `@stream-io/video-react-bindings` updated to version `1.12.2`
+
+### Bug Fixes
+
+- **perf:** Chunk and lazy load BackgroundFiltersProvider ([#2040](https://github.com/GetStream/stream-video-js/issues/2040)) ([21164f1](https://github.com/GetStream/stream-video-js/commit/21164f156ca6426baefcf1207d7d6cbfa69fc74a)), closes [#1977](https://github.com/GetStream/stream-video-js/issues/1977)
+
 ## [1.28.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.28.0...@stream-io/video-react-sdk-1.28.1) (2025-12-08)
 
 ### Dependency Updates
