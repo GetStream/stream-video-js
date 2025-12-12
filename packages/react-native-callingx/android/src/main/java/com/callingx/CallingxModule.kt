@@ -254,8 +254,15 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     override fun isCallRegistered(callId: String): Boolean {
-        Log.d(TAG, "[module] isCallRegistered: Checking if call is registered: $callId")
-        return callService?.isCallRegistered(callId) ?: false
+        val isCallRegistered = callService?.isCallRegistered(callId) ?: false
+        Log.d(TAG, "[module] isCallRegistered: Is call registered: $isCallRegistered")
+        return isCallRegistered
+    }
+
+    override fun hasRegisteredCall(): Boolean {
+        val hasRegisteredCall = callService?.hasRegisteredCall() ?: false
+        Log.d(TAG, "[module] hasRegisteredCall: Has registered call: $hasRegisteredCall")
+        return hasRegisteredCall
     }
 
     override fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {

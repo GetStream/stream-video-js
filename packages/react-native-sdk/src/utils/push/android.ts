@@ -149,9 +149,9 @@ export const firebaseDataHandler = async (
 
     const callingx = getCallingxLib();
 
-    if (callingx.isCallRegistered(call_cid)) {
+    if (callingx.hasRegisteredCall()) {
       logger.debug(
-        `call.ring notification already processed, skipping the call.ring notification`,
+        `registered call found, skipping the call.ring notification`,
       );
       return;
     }

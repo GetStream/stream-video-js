@@ -46,10 +46,8 @@ export const onVoipNotificationReceived = async (
   }
 
   const callingx = getCallingxLib();
-  if (callingx.isCallRegistered(call_cid)) {
-    logger.debug(
-      `call.ring notification already processed, skipping the call.ring notification`,
-    );
+  if (callingx.hasRegisteredCall()) {
+    logger.debug(`registered call found, skipping the call.ring notification`);
     return;
   }
 

@@ -3,6 +3,7 @@
 @interface UUIDStorage : NSObject
 
 - (instancetype)init;
+- (NSArray<NSUUID *> *)allUUIDs;
 - (NSUUID *)getOrCreateUUIDForCid:(NSString *)cid;
 - (NSUUID *)getUUIDForCid:(NSString *)cid;
 - (NSString *)getCidForUUID:(NSUUID *)uuid;

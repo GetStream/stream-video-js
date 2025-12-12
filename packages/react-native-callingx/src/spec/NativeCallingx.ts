@@ -82,6 +82,8 @@ export interface Spec extends TurboModule {
 
   isCallRegistered(callId: string): boolean;
 
+  hasRegisteredCall(): boolean;
+
   endCallWithReason(callId: string, reason: number): Promise<void>;
 
   endCall(callId: string): Promise<void>;

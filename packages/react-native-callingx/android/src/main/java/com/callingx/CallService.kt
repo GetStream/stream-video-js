@@ -270,6 +270,11 @@ class CallService : Service(), CallRepository.Listener {
         return currentCall is Call.Registered && currentCall.id == callId
     }
 
+    public fun hasRegisteredCall(): Boolean {
+        val currentCall = callRepository.currentCall.value
+        return currentCall is Call.Registered
+    }
+
     public fun processAction(action: CallAction) {
         Log.d(TAG, "[service] processAction: Processing action: ${action::class.simpleName}")
         val currentCall = callRepository.currentCall.value

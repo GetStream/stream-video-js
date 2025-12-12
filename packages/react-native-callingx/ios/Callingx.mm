@@ -606,6 +606,23 @@ static UUIDStorage *uuidStorage;
   return @NO;
 }
 
+- (NSNumber *)hasRegisteredCall {
+  NSArray<NSUUID *> *appUUIDs = [uuidStorage allUUIDs];
+  if ([appUUIDs count] == 0) return @NO;
+  
+  CXCallObserver *observer = [[CXCallObserver alloc] init];
+  
+  for (CXCall *call in observer.calls) {
+    for (NSUUID *uuid in appUUIDs) {
+      if ([call.UUID isEqual:uuid]) {
+        return @YES;
+      }
+    }
+  }
+  
+  return @NO;
+}
+
 - (void)setCurrentCallActive:(nonnull NSString *)callId
                      resolve:(nonnull RCTPromiseResolveBlock)resolve
                       reject:(nonnull RCTPromiseRejectBlock)reject {

@@ -205,6 +205,10 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.isCallRegistered(callId);
   }
 
+  hasRegisteredCall(): boolean {
+    return NativeCallingModule.hasRegisteredCall();
+  }
+
   setMutedCall(callId: string, isMuted: boolean): Promise<void> {
     return NativeCallingModule.setMutedCall(callId, isMuted);
   }

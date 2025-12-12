@@ -16,6 +16,14 @@
     return self;
 }
 
+- (NSArray<NSUUID *> *)allUUIDs {
+  NSMutableArray<NSUUID *> *uuids = [NSMutableArray array];
+  for (NSString *uuidString in self.uuidDict.allValues) {
+    [uuids addObject:[[NSUUID alloc] initWithUUIDString:uuidString.lowercaseString]];
+  }
+  return uuids;
+}
+
 - (NSUUID *)getOrCreateUUIDForCid:(NSString *)cid {
   if ([self containsCid:cid]) {
     NSString *existingUUID = self.uuidDict[cid];

@@ -43,6 +43,8 @@ export interface ICallingxModule {
 
   isCallRegistered(callId: string): boolean;
 
+  hasRegisteredCall(): boolean;
+
   endCallWithReason(callId: string, reason: EndCallReason): Promise<void>;
 
   setMutedCall(callId: string, isMuted: boolean): Promise<void>;
