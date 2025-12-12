@@ -274,8 +274,11 @@ describe('StreamVideoClient.connectUser retries', () => {
 
     await client.disconnectUser();
   });
+});
 
+describe('StreamVideoClient.watchCalls retries', () => {
   it('should retry queryCalls up to 3 times after reconnecting', async () => {
+    vi.useFakeTimers();
     const client = new StreamVideoClient(apiKey, {
       browser: true,
     });
@@ -301,14 +304,18 @@ describe('StreamVideoClient.connectUser retries', () => {
       online: true,
     });
 
-    await new Promise((r) => setTimeout(r, 3500));
+    await vi.runAllTimersAsync();
 
     expect(queryCallsSpy).toHaveBeenCalledTimes(3);
 
     await client.disconnectUser();
+
+    vi.useRealTimers();
   });
 
   it('should stop retrying after 3 failures on reconnect', async () => {
+    vi.useFakeTimers();
+
     const client = new StreamVideoClient(apiKey, {
       browser: true,
     });
@@ -335,14 +342,16 @@ describe('StreamVideoClient.connectUser retries', () => {
       online: true,
     });
 
-    await new Promise((r) => setTimeout(r, 3500));
+    await vi.runAllTimersAsync();
 
     expect(queryCallsSpy).toHaveBeenCalledTimes(3);
 
     await client.disconnectUser();
+    vi.useRealTimers();
   });
 
   it('should call only once when no errors occur', async () => {
+    vi.useFakeTimers();
     const client = new StreamVideoClient(apiKey, {
       browser: true,
     });
@@ -364,10 +373,11 @@ describe('StreamVideoClient.connectUser retries', () => {
       online: true,
     });
 
-    await new Promise((r) => setTimeout(r, 3500));
+    await vi.runAllTimersAsync();
 
     expect(queryCallsSpy).toHaveBeenCalledTimes(1);
 
     await client.disconnectUser();
+    vi.useRealTimers();
   });
 });
