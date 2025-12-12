@@ -10,6 +10,7 @@ import {
 } from '../ParticipantView';
 import { IconButton } from '../../../components';
 import {
+  useDragToScroll,
   useHorizontalScrollPosition,
   useVerticalScrollPosition,
 } from '../../../hooks';
@@ -88,6 +89,12 @@ export type SpeakerLayoutProps = {
    * Whether the layout is muted. Defaults to `false`.
    */
   muted?: boolean;
+
+  /**
+   * Whether to enable drag-to-scroll functionality on the participants bar.
+   * @default false
+   */
+  enableDragToScroll?: boolean;
 } & Pick<
   ParticipantViewProps,
   'VideoPlaceholder' | 'PictureInPicturePlaceholder'
@@ -109,6 +116,7 @@ export const SpeakerLayout = ({
   filterParticipants,
   pageArrowsVisible = true,
   muted,
+  enableDragToScroll = false,
 }: SpeakerLayoutProps) => {
   const call = useCall();
   const { useParticipants } = useCallStateHooks();
@@ -146,6 +154,9 @@ export const SpeakerLayout = ({
 
   const isOneOnOneCall = allParticipants.length === 2;
   useSpeakerLayoutSortPreset(call, isOneOnOneCall);
+  useDragToScroll(participantsBarWrapperElement, {
+    enabled: enableDragToScroll,
+  });
 
   let participantsWithAppliedLimit = otherParticipants;
 
