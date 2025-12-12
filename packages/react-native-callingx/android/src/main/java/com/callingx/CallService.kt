@@ -122,7 +122,9 @@ class CallService : Service(), CallRepository.Listener {
             ACTION_START_BACKGROUND_TASK -> {
                 if (!isInForeground) {
                     Log.d(TAG, "[service] onStartCommand: Starting foreground for background task")
-                    //for now bg task is intended to be used after a call registered and notification is shown, so we don't need to show a separate notification for bg task
+                    // for now bg task is intended to be used after a call registered and
+                    // notification is shown, so we don't need to show a separate notification for
+                    // bg task
                     // startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
                     isInForeground = true
                 }
@@ -218,7 +220,11 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    override fun onIsCallDisconnected(callId: String?, cause: DisconnectCause, source: CallRepository.EventSource) {
+    override fun onIsCallDisconnected(
+            callId: String?,
+            cause: DisconnectCause,
+            source: CallRepository.EventSource
+    ) {
         // we're not passing the callId here to prevent infinite loops
         // callEnd event with callId will sent only when after interaction with notification buttons
         sendBroadcastEvent(CallingxModule.CALL_END_ACTION) {
@@ -321,14 +327,18 @@ class CallService : Service(), CallRepository.Listener {
         Log.d(TAG, "[service] registerCall: Call details - Name: $name, URI: $uri")
 
         scope.launch {
-            callRepository.registerCall(
-                    callId,
-                    name,
-                    uri,
-                    incoming,
-                    isVideo,
-                    displayOptions,
-            )
+            try {
+                callRepository.registerCall(
+                        callId,
+                        name,
+                        uri,
+                        incoming,
+                        isVideo,
+                        displayOptions,
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
+            }
         }
     }
 
