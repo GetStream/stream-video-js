@@ -60,6 +60,7 @@ import type {
   QueryCallMembersResponse,
   QueryCallSessionParticipantStatsResponse,
   QueryCallSessionParticipantStatsTimelineResponse,
+  QueryCallStatsMapResponse,
   RejectCallRequest,
   RejectCallResponse,
   RequestPermissionRequest,
@@ -2617,6 +2618,27 @@ export class Call {
         'x-stream-platform-data': platform,
       },
     });
+  };
+
+  /**
+   * Retrieves the call stats for the current call session in a format suitable
+   * for displaying in map-like UIs.
+   */
+  getCallStatsMap = async (
+    params: {
+      start_time?: Date | string;
+      end_time?: Date | string;
+      exclude_publishers?: boolean;
+      exclude_subscribers?: boolean;
+      exclude_sfus?: boolean;
+    } = {},
+    callSessionId: string | undefined = this.state.session?.id,
+  ): Promise<QueryCallStatsMapResponse> => {
+    if (!callSessionId) throw new Error('callSessionId is required');
+    return this.streamClient.get<QueryCallStatsMapResponse>(
+      `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${callSessionId}/map`,
+      params,
+    );
   };
 
   /**
