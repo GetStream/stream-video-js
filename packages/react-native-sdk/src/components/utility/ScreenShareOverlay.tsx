@@ -3,7 +3,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { StopScreenShare } from '../../icons';
 import { useTheme } from '../../contexts';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
-import { SfuModels } from '@stream-io/video-client';
 
 /**
  * Props for the ScreenShareOverlay component
@@ -26,7 +25,8 @@ export const ScreenShareOverlay = ({}: ScreenShareOverlayProps) => {
   } = useTheme();
 
   const onStopScreenshareHandler = async () => {
-    await call?.stopPublish(SfuModels.TrackType.SCREEN_SHARE);
+    // force-stop is required to stop the OS prompts of screen share
+    await call?.screenShare.disable(true);
   };
 
   return (
