@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@emotion/css": "^11.13.5",
-    "@sentry/react": "^10.19.0",
+    "@sentry/react": "^10.30.0",
     "@skooldev/skool-stream-layout": "^1.0.9",
     "@stream-io/video-react-sdk": "workspace:^",
     "clsx": "^2.0.0",
@@ -22,12 +22,12 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.56.0",
-    "@sentry/vite-plugin": "^4.3.0",
+    "@sentry/vite-plugin": "^4.6.1",
     "@types/react": "~19.1.17",
     "@types/react-dom": "~19.1.11",
     "@vitejs/plugin-react": "^5.0.4",
     "nanoid": "^5.1.6",
     "typescript": "^5.9.3",
-    "vite": "^7.1.9"
+    "vite": "^7.2.7"
   }
 }
