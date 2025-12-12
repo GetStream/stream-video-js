@@ -50,7 +50,7 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
   return withAndroidManifest(configuration, (config) => {
     const androidManifest = config.modResults;
     const mainApplication = getMainApplicationOrThrow(androidManifest);
-    if (props?.ringingPushNotifications || props?.androidKeepCallAlive) {
+    if (props?.ringing || props?.androidKeepCallAlive) {
       ensureToolsAvailable(androidManifest);
       /* Add the notifee foreground Service */
       let services = mainApplication.service ?? [];

@@ -80,11 +80,7 @@
       [
         "@stream-io/video-react-native-sdk",
         {
-          "ringingPushNotifications": {
-            "disableVideoIos": false,
-            "includesCallsInRecentsIos": false,
-            "showWhenLockedAndroid": true
-          },
+          "ringing": true,
           "androidKeepCallAlive": true
         }
       ],

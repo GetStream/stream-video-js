@@ -35,9 +35,7 @@ const getMainActivityOrThrow = AndroidConfig.Manifest.getMainActivityOrThrow;
 const sampleManifestPath = getFixturePath('AndroidManifest.xml');
 
 const props: ConfigProps = {
-  ringingPushNotifications: {
-    disableVideoIos: false,
-  },
+  ringing: true,
   androidPictureInPicture: true,
   androidKeepCallAlive: true,
 };

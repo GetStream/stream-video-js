@@ -1,11 +1,14 @@
+import { type Options as CallingxOptions } from 'react-native-callingx';
 import type { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
 import newNotificationCallbacks, {
   type NewCallNotificationCallback,
 } from '../internal/newNotificationCallbacks';
-import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
+import { setupCallingExpEvents } from '../push/setupCallingExpEvents';
+import { getCallingxLib } from '../push/libs/callingx';
 import { NativeModules, Platform } from 'react-native';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 // Utility type for deep partial
 type DeepPartial<T> = {
@@ -123,8 +126,13 @@ export class StreamVideoRN {
 
     this.config.push = pushConfig;
 
-    setupIosCallKeepEvents(pushConfig);
+    setupCallingExpEvents(pushConfig);
     setupIosVoipPushEvents(pushConfig);
+  }
+
+  static setupCallingExp(options: CallingxOptions) {
+    const callingx = getCallingxLib();
+    callingx.setup(options);
   }
 
   static getConfig() {

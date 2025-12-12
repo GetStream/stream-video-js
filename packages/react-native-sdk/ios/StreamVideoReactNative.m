@@ -4,6 +4,7 @@
 #import <React/RCTUIManagerUtils.h>
 #import <UIKit/UIKit.h>
 #import <CallKit/CallKit.h>
+#import <PushKit/PushKit.h>
 #import "StreamVideoReactNative.h"
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
@@ -14,8 +15,6 @@
 NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
 NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped";
 
-static NSMutableDictionary *_incomingCallUUIDsByCallID = nil;
-static NSMutableDictionary *_incomingCallCidsByUUID = nil;
 static dispatch_queue_t _dictionaryQueue = nil;
 
 static BOOL _shouldRejectCallWhenBusy = NO;
@@ -60,9 +59,60 @@ RCT_EXPORT_MODULE();
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _dictionaryQueue = dispatch_queue_create("com.stream.video.dictionary", DISPATCH_QUEUE_SERIAL);
-        _incomingCallUUIDsByCallID = [NSMutableDictionary dictionary];
-        _incomingCallCidsByUUID = [NSMutableDictionary dictionary];
     });
+}
+
++(void)didReceiveIncomingPush:(PKPushPayload *)payload completionHandler: (void (^_Nullable)(void)) completion {
+    NSDictionary *streamPayload = payload.dictionaryPayload[@"stream"];
+    if (!streamPayload) {
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Stream payload not found");
+        return;
+    }
+
+    Class callingxClass = NSClassFromString(@"Callingx");
+    if (!callingxClass) {
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Callingx not available");
+        return;
+    }
+    
+    NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Callingx available");
+    
+    SEL selector = @selector(reportNewIncomingCall:handle:handleType:hasVideo:localizedCallerName:supportsHolding:supportsDTMF:supportsGrouping:supportsUngrouping:fromPushKit:payload:withCompletionHandler:);
+    
+    if (![callingxClass respondsToSelector:selector]) {
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Callingx does not respond to selector");
+        return;
+    }
+
+    NSString *callCid = streamPayload[@"call_cid"];
+    NSString *createdCallerName = streamPayload[@"created_by_display_name"];
+    NSString *videoIncluded = streamPayload[@"video"];
+    BOOL hasVideo = [videoIncluded isEqualToString:@"false"] ? NO : YES;
+    NSString *handleType = @"generic";
+    BOOL supportsHolding = NO;
+    BOOL supportsDTMF = NO;
+    BOOL supportsGrouping = NO;
+    BOOL supportsUngrouping = NO;
+    BOOL fromPushKit = YES;
+    void (^completionHandler)(void) = nil;
+    
+    NSMethodSignature *signature = [callingxClass methodSignatureForSelector:selector];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+    [invocation setTarget:callingxClass];
+    [invocation setSelector:selector];
+    [invocation setArgument:&callCid atIndex:2];
+    [invocation setArgument:&createdCallerName atIndex:3];
+    [invocation setArgument:&handleType atIndex:4];
+    [invocation setArgument:&hasVideo atIndex:5];
+    [invocation setArgument:&createdCallerName atIndex:6];
+    [invocation setArgument:&supportsHolding atIndex:7];
+    [invocation setArgument:&supportsDTMF atIndex:8];
+    [invocation setArgument:&supportsGrouping atIndex:9];
+    [invocation setArgument:&supportsUngrouping atIndex:10];
+    [invocation setArgument:&fromPushKit atIndex:11];
+    [invocation setArgument:&streamPayload atIndex:12];
+    [invocation setArgument:&completionHandler atIndex:13];
+    [invocation invoke];
 }
 
 -(instancetype)init {
@@ -189,71 +239,6 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
     if (hasListeners) {
         [self sendEventWithName:@"StreamVideoReactNative_Ios_Screenshare_Event" body:@{@"name": event}];
     }
-}
-
-+(void)registerIncomingCall:(NSString *)cid uuid:(NSString *)uuid {
-    [StreamVideoReactNative initializeSharedDictionaries];
-    dispatch_sync(_dictionaryQueue, ^{
-        
-#ifdef DEBUG
-        NSLog(@"registerIncomingCall cid:%@ -> uuid:%@",cid,uuid);
-#endif
-        NSString *lowercaseUUID = [uuid lowercaseString];
-        _incomingCallUUIDsByCallID[cid] = lowercaseUUID;
-        _incomingCallCidsByUUID[lowercaseUUID] = cid;
-    });
-}
-
-RCT_EXPORT_METHOD(getIncomingCallUUid:(NSString *)cid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-    dispatch_sync(_dictionaryQueue, ^{
-        NSString *uuid = _incomingCallUUIDsByCallID[cid];
-        if (uuid) {
-            resolve(uuid);
-        } else {
-            NSString *errorString = [NSString stringWithFormat:@"requested incoming call not found for cid: %@", cid];
-            reject(@"access_failure", errorString, nil);
-        }
-    });
-}
-
-RCT_EXPORT_METHOD(getIncomingCallCid:(NSString *)uuid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-    dispatch_sync(_dictionaryQueue, ^{
-        NSString *lowercaseUUID = [uuid lowercaseString];
-        NSString *foundCid = _incomingCallCidsByUUID[lowercaseUUID];
-        
-        if (foundCid) {
-            resolve(foundCid);
-        } else {
-            NSString *errorString = [NSString stringWithFormat:@"requested incoming call not found for uuid: %@", uuid];
-            reject(@"access_failure", errorString, nil);
-        }
-    });
-}
-
-RCT_EXPORT_METHOD(removeIncomingCall:(NSString *)cid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-    dispatch_sync(_dictionaryQueue, ^{
-        NSString *uuid = _incomingCallUUIDsByCallID[cid];
-        if (uuid) {
-#ifdef DEBUG
-            NSLog(@"removeIncomingCall cid:%@ -> uuid:%@",cid,uuid);
-#endif
-            
-            [_incomingCallUUIDsByCallID removeObjectForKey:cid];
-            [_incomingCallCidsByUUID removeObjectForKey:uuid];
-            resolve(@YES);
-        } else {
-            resolve(@NO);
-        }
-    });
 }
 
 RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
