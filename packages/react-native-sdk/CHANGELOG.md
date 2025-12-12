@@ -2,6 +2,36 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.26.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.1...@stream-io/video-react-native-sdk-1.26.2) (2025-12-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.2`
+- `@stream-io/video-react-bindings` updated to version `1.12.2`
+
+## [1.26.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.0...@stream-io/video-react-native-sdk-1.26.1) (2025-12-08)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.1`
+- `@stream-io/video-react-bindings` updated to version `1.12.1`
+
+## [1.26.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.25.0...@stream-io/video-react-native-sdk-1.26.0) (2025-12-08)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.2`
+- `@stream-io/video-filters-react-native` updated to version `0.9.2`
+- `@stream-io/video-client` updated to version `1.38.0`
+- `@stream-io/video-react-bindings` updated to version `1.12.0`
+
+- remove default sound from jsdoc comment for notifications ([8f38784](https://github.com/GetStream/stream-video-js/commit/8f38784c41808fb65a31f2e5591a71c32b201eca))
+- **sample:** add benchmark environment ([#2032](https://github.com/GetStream/stream-video-js/issues/2032)) ([8bb7044](https://github.com/GetStream/stream-video-js/commit/8bb70447ca5b6fc3e0a3bad09f2bf1f91a4fa881))
+
+### Features
+
+- **LivestreamLayout:** Enrich with mute option and humanized participant count ([#2027](https://github.com/GetStream/stream-video-js/issues/2027)) ([cdc0c4f](https://github.com/GetStream/stream-video-js/commit/cdc0c4f985ab15a6c2e184b73432911510b43f99))
+
 ## [1.25.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.7...@stream-io/video-react-native-sdk-1.25.0) (2025-11-28)
 
 ### Features

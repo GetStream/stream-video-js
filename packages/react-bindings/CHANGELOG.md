@@ -2,6 +2,32 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.1...@stream-io/video-react-bindings-1.12.2) (2025-12-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.2`
+
+### Bug Fixes
+
+- revert usage of useSyncExternalStore ([#2043](https://github.com/GetStream/stream-video-js/issues/2043)) ([849e896](https://github.com/GetStream/stream-video-js/commit/849e8964ac90d5785a6d608443f80156d1081744)), closes [#1953](https://github.com/GetStream/stream-video-js/issues/1953) [#2034](https://github.com/GetStream/stream-video-js/issues/2034) [#2006](https://github.com/GetStream/stream-video-js/issues/2006) [#2008](https://github.com/GetStream/stream-video-js/issues/2008)
+
+## [1.12.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.0...@stream-io/video-react-bindings-1.12.1) (2025-12-08)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.1`
+
+## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.11.4...@stream-io/video-react-bindings-1.12.0) (2025-12-08)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.0`
+
+### Features
+
+- **LivestreamLayout:** Enrich with mute option and humanized participant count ([#2027](https://github.com/GetStream/stream-video-js/issues/2027)) ([cdc0c4f](https://github.com/GetStream/stream-video-js/commit/cdc0c4f985ab15a6c2e184b73432911510b43f99))
+
 ## [1.11.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.11.3...@stream-io/video-react-bindings-1.11.4) (2025-11-25)
 
 ### Dependency Updates

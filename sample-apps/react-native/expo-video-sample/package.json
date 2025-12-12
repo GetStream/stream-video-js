@@ -20,7 +20,7 @@
     "@react-native-firebase/app": "^23.4.0",
     "@react-native-firebase/messaging": "^23.4.0",
     "@stream-io/noise-cancellation-react-native": "workspace:^",
-    "@stream-io/react-native-webrtc": "137.0.0",
+    "@stream-io/react-native-webrtc": "137.0.2",
     "@stream-io/video-filters-react-native": "workspace:^",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "expo": "^54.0.12",

@@ -82,6 +82,21 @@ export class StreamVideoWriteableStateStore {
   };
 
   /**
+   * Registers a {@link Call} object if it doesn't exist, otherwise updates it.
+   *
+   * @param call the call to register or update.
+   */
+  registerOrUpdateCall = (call: Call) => {
+    if (this.calls.find((c) => c.cid === call.cid)) {
+      return this.setCalls((calls) =>
+        calls.map((c) => (c.cid === call.cid ? call : c)),
+      );
+    } else {
+      return this.registerCall(call);
+    }
+  };
+
+  /**
    * Removes a {@link Call} object from the list of {@link Call} objects created/tracked by this client.
    *
    * @param call the call to remove

@@ -79,9 +79,7 @@ export const ParticipantsInfoListModal = ({
           ? `https://pronto.getstream.io/join/${call.id}`
           : environment === 'pronto-staging'
             ? `https://pronto-staging.getstream.io/join/${call.id}`
-            : environment === 'livestream'
-              ? `https://livestream.getstream.io/join/${call.id}`
-              : `https://getstream.io/video/demos/join/${call.id}`;
+            : `https://getstream.io/video/demos/join/${call.id}`;
       await Share.share({
         url,
         title: 'Stream Calls | Join Call',

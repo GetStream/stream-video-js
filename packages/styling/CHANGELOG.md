@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.8.0...@stream-io/video-styling-1.9.0) (2025-12-08)
+
+### Features
+
+- **LivestreamLayout:** Enrich with mute option and humanized participant count ([#2027](https://github.com/GetStream/stream-video-js/issues/2027)) ([cdc0c4f](https://github.com/GetStream/stream-video-js/commit/cdc0c4f985ab15a6c2e184b73432911510b43f99))
+
 ## [1.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.7.0...@stream-io/video-styling-1.8.0) (2025-11-17)
 
 ### Features
