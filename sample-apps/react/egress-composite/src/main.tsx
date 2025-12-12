@@ -132,6 +132,7 @@ window.setupLayout = (configuration: ConfigurationValue) => {
       'video.background_color': '#000000',
       'video.scale_mode': 'fit',
       'video.screenshare_scale_mode': 'fit',
+      'debug.show_timestamp': true,
     },
   } satisfies Partial<ConfigurationValue>)});`;
   document.head.appendChild(v);
