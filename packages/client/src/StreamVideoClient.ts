@@ -264,7 +264,6 @@ export class StreamVideoClient {
         await this.queryCalls({
           watch: true,
           filter_conditions: { cid: { $in: callsToReWatch } },
-          sort: [{ field: 'cid', direction: 1 }],
         });
 
         return;
