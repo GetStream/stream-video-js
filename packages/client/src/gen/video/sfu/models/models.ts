@@ -701,6 +701,155 @@ export interface PerformanceStats {
   targetBitrate: number;
 }
 /**
+ * ===================================================================
+ * BASE (shared by all RTP directions)
+ * ===================================================================
+ *
+ * @generated from protobuf message stream.video.sfu.models.RtpBase
+ */
+export interface RtpBase {
+  /**
+   * @generated from protobuf field: uint32 ssrc = 1;
+   */
+  ssrc: number; // raw stat["ssrc"]
+  /**
+   * @generated from protobuf field: string kind = 2;
+   */
+  kind: string; // stat["kind"] ("audio","video")
+  /**
+   * @generated from protobuf field: double timestamp_ms = 3;
+   */
+  timestampMs: number; // stat["timestamp"] in milliseconds
+}
+/**
+ * ===================================================================
+ * INBOUND (SUBSCRIBER RECEIVING MEDIA)
+ * ===================================================================
+ *
+ * @generated from protobuf message stream.video.sfu.models.InboundRtp
+ */
+export interface InboundRtp {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.RtpBase base = 1;
+   */
+  base?: RtpBase;
+  /**
+   * @generated from protobuf field: double jitter_seconds = 2;
+   */
+  jitterSeconds: number; // stat["jitter"]
+  /**
+   * @generated from protobuf field: uint64 packets_received = 3;
+   */
+  packetsReceived: string; // stat["packetsReceived"]
+  /**
+   * @generated from protobuf field: uint64 packets_lost = 4;
+   */
+  packetsLost: string; // stat["packetsLost"]
+  /**
+   * @generated from protobuf field: double packet_loss_percent = 5;
+   */
+  packetLossPercent: number; // (packets_lost / (packets_received + packets_lost)) * 100; skip if denominator <= 0 or counters decreased
+  /**
+   * -------- AUDIO METRICS --------
+   *
+   * @generated from protobuf field: uint32 concealment_events = 10;
+   */
+  concealmentEvents: number; // stat["concealmentEvents"]
+  /**
+   * @generated from protobuf field: double concealment_percent = 11;
+   */
+  concealmentPercent: number; // (concealedSamples / totalSamplesReceived) * 100 when totalSamplesReceived >= 96_000 (≈2 s @ 48 kHz)
+  /**
+   * -------- VIDEO METRICS --------
+   *
+   * @generated from protobuf field: double fps = 20;
+   */
+  fps: number; // use delta(framesDecoded)/delta(time) with prev sample
+  /**
+   * @generated from protobuf field: double freeze_duration_seconds = 21;
+   */
+  freezeDurationSeconds: number; // stat["totalFreezesDuration"]
+  /**
+   * @generated from protobuf field: double avg_decode_time_seconds = 22;
+   */
+  avgDecodeTimeSeconds: number; // stat["totalDecodeTime"] / max(1, stat["framesDecoded"])
+  /**
+   * @generated from protobuf field: uint32 min_dimension_px = 23;
+   */
+  minDimensionPx: number; // min(stat["frameWidth"], stat["frameHeight"]) for video-like tracks
+}
+/**
+ * ===================================================================
+ * OUTBOUND (PUBLISHER SENDING MEDIA)
+ * ===================================================================
+ *
+ * @generated from protobuf message stream.video.sfu.models.OutboundRtp
+ */
+export interface OutboundRtp {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.RtpBase base = 1;
+   */
+  base?: RtpBase;
+  /**
+   * @generated from protobuf field: double fps = 10;
+   */
+  fps: number; // delta(framesEncoded)/delta(time) if missing
+  /**
+   * @generated from protobuf field: double avg_encode_time_seconds = 11;
+   */
+  avgEncodeTimeSeconds: number; // stat["totalEncodeTime"] / max(1, stat["framesEncoded"])
+  /**
+   * @generated from protobuf field: double bitrate_bps = 12;
+   */
+  bitrateBps: number; // delta(bytesSent)*8 / delta(timeSeconds); requires prev bytes/timestamp; ignore if delta<=0
+  /**
+   * @generated from protobuf field: uint32 min_dimension_px = 13;
+   */
+  minDimensionPx: number; // min(stat["frameWidth"], stat["frameHeight"])
+}
+/**
+ * ===================================================================
+ * SFU FEEDBACK: REMOTE-INBOUND (Publisher receives feedback)
+ * ===================================================================
+ *
+ * @generated from protobuf message stream.video.sfu.models.RemoteInboundRtp
+ */
+export interface RemoteInboundRtp {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.RtpBase base = 1;
+   */
+  base?: RtpBase;
+  /**
+   * @generated from protobuf field: double jitter_seconds = 2;
+   */
+  jitterSeconds: number; // stat["jitter"]
+  /**
+   * @generated from protobuf field: double round_trip_time_s = 3;
+   */
+  roundTripTimeS: number; // stat["roundTripTime"]
+}
+/**
+ * ===================================================================
+ * SFU FEEDBACK: REMOTE-OUTBOUND (Subscriber receives feedback)
+ * ===================================================================
+ *
+ * @generated from protobuf message stream.video.sfu.models.RemoteOutboundRtp
+ */
+export interface RemoteOutboundRtp {
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.RtpBase base = 1;
+   */
+  base?: RtpBase;
+  /**
+   * @generated from protobuf field: double jitter_seconds = 2;
+   */
+  jitterSeconds: number; // stat["jitter"] if provided
+  /**
+   * @generated from protobuf field: double round_trip_time_s = 3;
+   */
+  roundTripTimeS: number; // stat["roundTripTime"]
+}
+/**
  * @generated from protobuf enum stream.video.sfu.models.PeerType
  */
 export enum PeerType {
@@ -1171,6 +1320,12 @@ export enum ClientCapability {
    * @generated from protobuf enum value: CLIENT_CAPABILITY_SUBSCRIBER_VIDEO_PAUSE = 1;
    */
   SUBSCRIBER_VIDEO_PAUSE = 1,
+  /**
+   * Instructs SFU that stats will be sent to the coordinator
+   *
+   * @generated from protobuf enum value: CLIENT_CAPABILITY_COORDINATOR_STATS = 2;
+   */
+  COORDINATOR_STATS = 2,
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
@@ -1869,3 +2024,168 @@ class PerformanceStats$Type extends MessageType<PerformanceStats> {
  * @generated MessageType for protobuf message stream.video.sfu.models.PerformanceStats
  */
 export const PerformanceStats = new PerformanceStats$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RtpBase$Type extends MessageType<RtpBase> {
+  constructor() {
+    super('stream.video.sfu.models.RtpBase', [
+      { no: 1, name: 'ssrc', kind: 'scalar', T: 13 /*ScalarType.UINT32*/ },
+      { no: 2, name: 'kind', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 3,
+        name: 'timestamp_ms',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.RtpBase
+ */
+export const RtpBase = new RtpBase$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class InboundRtp$Type extends MessageType<InboundRtp> {
+  constructor() {
+    super('stream.video.sfu.models.InboundRtp', [
+      { no: 1, name: 'base', kind: 'message', T: () => RtpBase },
+      {
+        no: 2,
+        name: 'jitter_seconds',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+      {
+        no: 3,
+        name: 'packets_received',
+        kind: 'scalar',
+        T: 4 /*ScalarType.UINT64*/,
+      },
+      {
+        no: 4,
+        name: 'packets_lost',
+        kind: 'scalar',
+        T: 4 /*ScalarType.UINT64*/,
+      },
+      {
+        no: 5,
+        name: 'packet_loss_percent',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+      {
+        no: 10,
+        name: 'concealment_events',
+        kind: 'scalar',
+        T: 13 /*ScalarType.UINT32*/,
+      },
+      {
+        no: 11,
+        name: 'concealment_percent',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+      { no: 20, name: 'fps', kind: 'scalar', T: 1 /*ScalarType.DOUBLE*/ },
+      {
+        no: 21,
+        name: 'freeze_duration_seconds',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+      {
+        no: 22,
+        name: 'avg_decode_time_seconds',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+      {
+        no: 23,
+        name: 'min_dimension_px',
+        kind: 'scalar',
+        T: 13 /*ScalarType.UINT32*/,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.InboundRtp
+ */
+export const InboundRtp = new InboundRtp$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class OutboundRtp$Type extends MessageType<OutboundRtp> {
+  constructor() {
+    super('stream.video.sfu.models.OutboundRtp', [
+      { no: 1, name: 'base', kind: 'message', T: () => RtpBase },
+      { no: 10, name: 'fps', kind: 'scalar', T: 1 /*ScalarType.DOUBLE*/ },
+      {
+        no: 11,
+        name: 'avg_encode_time_seconds',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+      {
+        no: 12,
+        name: 'bitrate_bps',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+      {
+        no: 13,
+        name: 'min_dimension_px',
+        kind: 'scalar',
+        T: 13 /*ScalarType.UINT32*/,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.OutboundRtp
+ */
+export const OutboundRtp = new OutboundRtp$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RemoteInboundRtp$Type extends MessageType<RemoteInboundRtp> {
+  constructor() {
+    super('stream.video.sfu.models.RemoteInboundRtp', [
+      { no: 1, name: 'base', kind: 'message', T: () => RtpBase },
+      {
+        no: 2,
+        name: 'jitter_seconds',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+      {
+        no: 3,
+        name: 'round_trip_time_s',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.RemoteInboundRtp
+ */
+export const RemoteInboundRtp = new RemoteInboundRtp$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class RemoteOutboundRtp$Type extends MessageType<RemoteOutboundRtp> {
+  constructor() {
+    super('stream.video.sfu.models.RemoteOutboundRtp', [
+      { no: 1, name: 'base', kind: 'message', T: () => RtpBase },
+      {
+        no: 2,
+        name: 'jitter_seconds',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+      {
+        no: 3,
+        name: 'round_trip_time_s',
+        kind: 'scalar',
+        T: 1 /*ScalarType.DOUBLE*/,
+      },
+    ]);
+  }
+}
+/**
+ * @generated MessageType for protobuf message stream.video.sfu.models.RemoteOutboundRtp
+ */
+export const RemoteOutboundRtp = new RemoteOutboundRtp$Type();
