@@ -29,6 +29,42 @@ export const extractMid = (
   return String(transceiverInitIndex);
 };
 
+/*
+ * Sets the start bitrate for the VP9 and H264 codecs in the SDP.
+ *
+ * @param offerSdp the offer SDP to modify.
+ * @param startBitrate the start bitrate to set.
+ */
+export const setStartBitrate = (
+  offerSdp: string,
+  startBitrate: number = 1000,
+): string => {
+  const parsedSdp = parse(offerSdp);
+  const targetCodecs = ['vp9', 'h264'];
+
+  for (const media of parsedSdp.media) {
+    if (media.type !== 'video') continue;
+
+    for (const rtp of media.rtp) {
+      if (!targetCodecs.includes(rtp.codec.toLowerCase())) continue;
+
+      // Find or create fmtp entry for this codec payload
+      let fmtp = media.fmtp.find((f) => f.payload === rtp.payload);
+      if (!fmtp) {
+        fmtp = { payload: rtp.payload, config: '' };
+        media.fmtp.push(fmtp);
+      }
+
+      // Add x-google-start-bitrate to fmtp config
+      const param = `x-google-start-bitrate=${startBitrate}`;
+      if (!fmtp.config.includes('x-google-start-bitrate')) {
+        fmtp.config = fmtp.config ? `${fmtp.config};${param}` : param;
+      }
+    }
+  }
+  return write(parsedSdp);
+};
+
 /**
  * Enables stereo in the answer SDP based on the offered stereo in the offer SDP.
  *

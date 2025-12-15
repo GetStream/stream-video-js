@@ -21,7 +21,7 @@ import {
 } from './layers';
 import { isSvcCodec } from './codecs';
 import { isAudioTrackType } from './helpers/tracks';
-import { extractMid, removeCodecsExcept } from './helpers/sdp';
+import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
 
@@ -384,9 +384,10 @@ export class Publisher extends BasePeerConnection {
         const { sdp: baseSdp = '' } = offer;
         const { dangerouslyForceCodec, fmtpLine } =
           this.clientPublishOptions || {};
-        const sdp = dangerouslyForceCodec
+        let sdp = dangerouslyForceCodec
           ? removeCodecsExcept(baseSdp, dangerouslyForceCodec, fmtpLine)
           : baseSdp;
+        sdp = setStartBitrate(sdp, 1000);
         const { response } = await this.sfuClient.setPublisher({ sdp, tracks });
         if (response.error) throw new NegotiationError(response.error);
 
