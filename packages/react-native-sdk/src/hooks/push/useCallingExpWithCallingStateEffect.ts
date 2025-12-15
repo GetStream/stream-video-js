@@ -15,7 +15,22 @@ const isAcceptedCallingState = (callingState: CallingState | undefined) => {
     return false;
   }
 
-  return callingState === CallingState.JOINED;
+  return (
+    callingState === CallingState.JOINED ||
+    callingState === CallingState.JOINING
+  );
+};
+
+const canRegisterCall = (callingState: CallingState | undefined) => {
+  if (!callingState) {
+    return false;
+  }
+
+  return (
+    callingState === CallingState.JOINED ||
+    callingState === CallingState.JOINING ||
+    callingState === CallingState.RINGING
+  );
 };
 
 const logger = videoLoggerSystem.getLogger(
@@ -107,7 +122,7 @@ export const useCallingExpWithCallingStateEffect = () => {
 
     if (
       !isAcceptedCallingState(prevState.current) &&
-      isAcceptedCallingState(callingState)
+      canRegisterCall(callingState)
     ) {
       if (
         isOutcomingCall &&
