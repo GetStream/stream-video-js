@@ -64,16 +64,30 @@ export const withRequestLogger = (
 };
 
 export const withRequestTracer = (trace: Trace): RpcInterceptor => {
-  type RpcMethodNames = {
-    [K in keyof SignalServerClient as Capitalize<K>]: boolean;
+  type RpcMethodName = Capitalize<keyof SignalServerClient>;
+
+  // requests to exclude from tracings
+  const exclusions: Partial<Record<RpcMethodName, boolean>> = {
+    SendStats: true,
+  };
+
+  // responses to include in tracings
+  const responseInclusions: Partial<Record<RpcMethodName, boolean>> = {
+    SetPublisher: true,
   };
 
   const traceError = (name: string, input: object, err: unknown) =>
     trace(`${name}OnFailure`, [err, input]);
 
-  const exclusions: Record<string, boolean | undefined> = {
-    SendStats: true,
-  } satisfies Partial<RpcMethodNames>;
+  const traceResponse = (
+    name: RpcMethodName,
+    input: object,
+    response: SfuResponseWithError,
+  ) => {
+    if (response.error) traceError(name, input, response.error);
+    if (responseInclusions[name]) trace(`${name}Response`, response);
+  };
+
   return {
     interceptUnary(
       next: NextUnaryFn,
@@ -81,18 +95,14 @@ export const withRequestTracer = (trace: Trace): RpcInterceptor => {
       input: object,
       options: RpcOptions,
     ): UnaryCall {
-      if (exclusions[method.name as keyof RpcMethodNames]) {
-        return next(method, input, options);
-      }
+      const name = method.name as RpcMethodName;
+      if (exclusions[name]) return next(method, input, options);
 
-      trace(method.name, input);
+      trace(name, input);
       const unaryCall = next(method, input, options);
       unaryCall.then(
-        (invocation) => {
-          const err = (invocation.response as SfuResponseWithError)?.error;
-          if (err) traceError(method.name, input, err);
-        },
-        (err) => traceError(method.name, input, err),
+        (invocation) => traceResponse(name, input, invocation.response),
+        (error) => traceError(name, input, error),
       );
       return unaryCall;
     },
