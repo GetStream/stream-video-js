@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class LegacyCallRepository(private val context: Context) : CallRepository {
 
@@ -27,6 +29,8 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
 
     private var listener: CallRepository.Listener? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    private val registrationMutex = Mutex()
 
     override fun setListener(listener: CallRepository.Listener) {
         this.listener = listener
@@ -50,29 +54,38 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
             isVideo: Boolean,
             displayOptions: Bundle?,
     ) {
-
-        val attributes = createCallAttributes(displayName, address, isIncoming, isVideo)
-        val actionSource = Channel<CallAction>()
-
-        _currentCall.value =
-                Call.Registered(
-                        id = callId,
-                        isActive = false,
-                        isOnHold = false,
-                        callAttributes = attributes,
-                        displayOptions = displayOptions,
-                        isMuted = false,
-                        errorCode = null,
-                        currentCallEndpoint = null,
-                        availableCallEndpoints = emptyList(),
-                        actionSource = actionSource,
+        registrationMutex.withLock {
+            if (currentCall.value is Call.Registered) {
+                Log.w(
+                        TAG,
+                        "[repository] registerCall: Call already registered, ignoring new call request"
                 )
+                return@withLock
+            }
 
-        listener?.onCallRegistered(callId)
+            val attributes = createCallAttributes(displayName, address, isIncoming, isVideo)
+            val actionSource = Channel<CallAction>()
 
-        // Process actions without telecom SDK
-        scope.launch {
-            actionSource.consumeAsFlow().collect { action -> processActionLegacy(action) }
+            _currentCall.value =
+                    Call.Registered(
+                            id = callId,
+                            isActive = false,
+                            isOnHold = false,
+                            callAttributes = attributes,
+                            displayOptions = displayOptions,
+                            isMuted = false,
+                            errorCode = null,
+                            currentCallEndpoint = null,
+                            availableCallEndpoints = emptyList(),
+                            actionSource = actionSource,
+                    )
+
+            listener?.onCallRegistered(callId)
+
+            // Process actions without telecom SDK
+            scope.launch {
+                actionSource.consumeAsFlow().collect { action -> processActionLegacy(action) }
+            }
         }
     }
 
@@ -81,8 +94,8 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
             is CallAction.Answer -> {
                 updateCurrentCall { copy(isActive = true, isOnHold = false) }
                 // In legacy mode, all actions are initiated from the app
-                (currentCall.value as? Call.Registered)?.let { 
-                    listener?.onIsCallAnswered(it.id, CallRepository.EventSource.APP) 
+                (currentCall.value as? Call.Registered)?.let {
+                    listener?.onIsCallAnswered(it.id, CallRepository.EventSource.APP)
                 }
             }
             is CallAction.Disconnect -> {
@@ -91,7 +104,11 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
                     _currentCall.value =
                             Call.Unregistered(call.id, call.callAttributes, action.cause)
                     // In legacy mode, all actions are initiated from the app
-                    listener?.onIsCallDisconnected(call.id, action.cause, CallRepository.EventSource.APP)
+                    listener?.onIsCallDisconnected(
+                            call.id,
+                            action.cause,
+                            CallRepository.EventSource.APP
+                    )
                 }
             }
             is CallAction.ToggleMute -> {

@@ -148,7 +148,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
 
     override fun setCurrentCallActive(callId: String, promise: Promise) {
         Log.d(TAG, "[module] activateCall: Activating call: $callId")
-        executeServiceAction(CallAction.Activate, promise)
+        executeServiceAction(callId, CallAction.Activate, promise)
     }
 
     override fun displayIncomingCall(
@@ -186,7 +186,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         // registeredCall.callAttributes.callType ==
         //         CallAttributesCompat.CALL_TYPE_AUDIO_CALL
         // currentCall?.processAction(TelecomCallAction.Answer(isAudioCall))
-        executeServiceAction(CallAction.Answer(isAudioCall), promise)
+        executeServiceAction(callId, CallAction.Answer(isAudioCall), promise)
     }
 
     override fun startCall(
@@ -244,13 +244,13 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     override fun endCallWithReason(callId: String, reason: Double, promise: Promise) {
         Log.d(TAG, "[module] endCallWithReason: Ending call: $callId, $reason")
         val action = CallAction.Disconnect(DisconnectCause(reason.toInt()))
-        executeServiceAction(action, promise)
+        executeServiceAction(callId, action, promise)
     }
 
     override fun endCall(callId: String, promise: Promise) {
         Log.d(TAG, "[module] endCall: Ending call: $callId")
         val action = CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL))
-        executeServiceAction(action, promise)
+        executeServiceAction(callId, action, promise)
     }
 
     override fun isCallRegistered(callId: String): Boolean {
@@ -268,13 +268,13 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     override fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {
         Log.d(TAG, "[module] setMutedCall: Setting muted call: $callId, $isMuted")
         val action = CallAction.ToggleMute(isMuted)
-        executeServiceAction(action, promise)
+        executeServiceAction(callId, action, promise)
     }
 
     override fun setOnHoldCall(callId: String, isOnHold: Boolean, promise: Promise) {
         Log.d(TAG, "[module] setOnHoldCall: Setting on hold call: $callId, $isOnHold")
         val action = if (isOnHold) CallAction.Hold else CallAction.Activate
-        executeServiceAction(action, promise)
+        executeServiceAction(callId, action, promise)
     }
 
     override fun startBackgroundTask(taskName: String, timeout: Double, promise: Promise) {
@@ -335,12 +335,12 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
     }
 
-    private fun executeServiceAction(action: CallAction, promise: Promise) {
+    private fun executeServiceAction(callId: String, action: CallAction, promise: Promise) {
         Log.d(TAG, "[module] executeServiceAction: Executing service action: $action")
         when (bindingState) {
             BindingState.BOUND -> {
                 if (callService != null) {
-                    callService?.processAction(action)
+                    callService?.processAction(callId, action)
                     promise.resolve(true)
                 } else {
                     promise.reject("ERROR", "Service reference lost")

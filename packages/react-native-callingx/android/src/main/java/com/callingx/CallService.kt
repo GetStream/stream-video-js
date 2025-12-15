@@ -281,13 +281,13 @@ class CallService : Service(), CallRepository.Listener {
         return currentCall is Call.Registered
     }
 
-    public fun processAction(action: CallAction) {
+    public fun processAction(callId: String, action: CallAction) {
         Log.d(TAG, "[service] processAction: Processing action: ${action::class.simpleName}")
         val currentCall = callRepository.currentCall.value
-        if (currentCall is Call.Registered) {
+        if (currentCall is Call.Registered && currentCall.id == callId) {
             currentCall.processAction(action)
         } else {
-            Log.e(TAG, "[service] processAction: Call not registered, ignoring action")
+            Log.e(TAG, "[service] processAction: Call not registered or not the current call, ignoring action")
         }
     }
 
