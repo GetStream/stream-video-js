@@ -33,7 +33,7 @@ export const extractMid = (
  * Sets the start bitrate for the VP9 and H264 codecs in the SDP.
  *
  * @param offerSdp the offer SDP to modify.
- * @param startBitrate the start bitrate to set.
+ * @param startBitrate the start bitrate in kbps to set. Default is 1000 kbps.
  */
 export const setStartBitrate = (
   offerSdp: string,
