@@ -25,14 +25,22 @@ const uniqueModules = dependencyPackageNames.map((packageName) => {
   };
 });
 
+// Filter out expo from unique modules to avoid blocking expo virtual files
+// Expo virtual files are in the workspace root's node_modules and must be accessible
+const uniqueModulesFiltered = uniqueModules.filter(
+  ({ packageName }) => packageName !== 'expo',
+);
+
 // provide the path for the unique modules
-const extraNodeModules = uniqueModules.reduce((acc, item) => {
+// Exclude expo from extraNodeModules to allow it to resolve from workspace root
+// (needed for Expo virtual files)
+const extraNodeModules = uniqueModulesFiltered.reduce((acc, item) => {
   acc[item.packageName] = item.modulePath;
   return acc;
 }, {});
 
 // block the other paths for unique modules from being resolved
-const blockList = uniqueModules.map(({ blockPattern }) => blockPattern);
+const blockList = uniqueModulesFiltered.map(({ blockPattern }) => blockPattern);
 
 const workspaceRoot = path.resolve(projectRoot, '../../..');
 
