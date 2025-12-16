@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { anyObject } from 'vitest-mock-extended';
 import {
   createSignalClient,
   withHeaders,
@@ -105,12 +106,25 @@ describe('createClient', () => {
 
     // @ts-expect-error - partial data
     resolve({ response: { data: 'response data' } });
+
+    interceptor.interceptUnary(
+      next,
+      // @ts-expect-error - invalid name
+      { name: 'UpdateMuteStates' },
+      { data: 'data' },
+      { meta: {} },
+    );
     await promise;
 
     expect(next).toHaveBeenCalled();
     expect(trace).toHaveBeenCalledWith('SetPublisher', { param: 'value' });
+    expect(trace).toHaveBeenCalledWith('UpdateMuteStates', { data: 'data' });
     expect(trace).toHaveBeenCalledWith('SetPublisherResponse', {
       data: 'response data',
     });
+    expect(trace).not.toHaveBeenCalledWith(
+      'UpdateMuteStatesResponse',
+      anyObject(),
+    );
   });
 });

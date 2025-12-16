@@ -65,28 +65,11 @@ export const withRequestLogger = (
 
 export const withRequestTracer = (trace: Trace): RpcInterceptor => {
   type RpcMethodName = Capitalize<keyof SignalServerClient>;
-
-  // requests to exclude from tracings
-  const exclusions: Partial<Record<RpcMethodName, boolean>> = {
-    SendStats: true,
-  };
-
-  // responses to include in tracings
-  const responseInclusions: Partial<Record<RpcMethodName, boolean>> = {
-    SetPublisher: true,
-  };
+  const exclusions = new Set<RpcMethodName>(['SendStats']);
+  const responseInclusions = new Set<RpcMethodName>(['SetPublisher']);
 
   const traceError = (name: string, input: object, err: unknown) =>
     trace(`${name}OnFailure`, [err, input]);
-
-  const traceResponse = (
-    name: RpcMethodName,
-    input: object,
-    response: SfuResponseWithError,
-  ) => {
-    if (response.error) traceError(name, input, response.error);
-    if (responseInclusions[name]) trace(`${name}Response`, response);
-  };
 
   return {
     interceptUnary(
@@ -96,12 +79,16 @@ export const withRequestTracer = (trace: Trace): RpcInterceptor => {
       options: RpcOptions,
     ): UnaryCall {
       const name = method.name as RpcMethodName;
-      if (exclusions[name]) return next(method, input, options);
+      if (exclusions.has(name)) return next(method, input, options);
 
       trace(name, input);
       const unaryCall = next(method, input, options);
       unaryCall.then(
-        (invocation) => traceResponse(name, input, invocation.response),
+        (invocation) => {
+          const response = invocation.response as SfuResponseWithError;
+          if (response.error) traceError(name, input, response.error);
+          if (responseInclusions.has(name)) trace(`${name}Response`, response);
+        },
         (error) => traceError(name, input, error),
       );
       return unaryCall;
