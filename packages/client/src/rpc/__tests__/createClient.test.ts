@@ -86,4 +86,31 @@ describe('createClient', () => {
       { param: 'value' },
     ]);
   });
+
+  it('withRequestTracer should trace the response of SetPublisher', async () => {
+    const trace = vi.fn();
+    const interceptor = withRequestTracer(trace);
+    const { promise, resolve } = promiseWithResolvers<UnaryCall['then']>();
+    // @ts-expect-error - partial implementation
+    const next: NextUnaryFn = vi.fn(() => ({
+      then: (...args) => promise.then(...args),
+    }));
+    interceptor.interceptUnary(
+      next,
+      // @ts-expect-error - invalid name
+      { name: 'SetPublisher' },
+      { param: 'value' },
+      { meta: {} },
+    );
+
+    // @ts-expect-error - partial data
+    resolve({ response: { data: 'response data' } });
+    await promise;
+
+    expect(next).toHaveBeenCalled();
+    expect(trace).toHaveBeenCalledWith('SetPublisher', { param: 'value' });
+    expect(trace).toHaveBeenCalledWith('SetPublisherResponse', {
+      data: 'response data',
+    });
+  });
 });
