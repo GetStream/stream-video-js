@@ -41,7 +41,7 @@ export interface Spec extends TurboModule {
     };
   }>;
 
-  clearInitialEvents(): Promise<void>;
+  clearInitialEvents(): void;
 
   setCurrentCallActive(callId: string): Promise<void>;
 

@@ -40,13 +40,18 @@ export const onVoipNotificationReceived = async (
   if (sender !== 'stream.video' && type !== 'call.ring') {
     return;
   }
+
   const call_cid = notification?.stream?.call_cid;
   if (!call_cid || Platform.OS !== 'ios' || !pushConfig.ios.pushProviderName) {
     return;
   }
 
   const callingx = getCallingxLib();
-  if (callingx.hasRegisteredCall()) {
+  if (
+    (callingx.hasRegisteredCall() && !callingx.isCallRegistered(call_cid)) ||
+    callingx.isCallRegistered(call_cid)
+  ) {
+    //this means that a call with different call_cid is registered or the same call_cid is registered, so we skipping the notification
     logger.debug(`registered call found, skipping the call.ring notification`);
     return;
   }

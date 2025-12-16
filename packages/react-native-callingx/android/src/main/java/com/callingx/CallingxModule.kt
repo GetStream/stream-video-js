@@ -64,6 +64,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
 
     private var delayedEvents = WritableNativeArray()
     private var isModuleInitialized = false
+    private var canSendEvents = false
 
     private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
     private val callEventBroadcastReceiver = CallEventBroadcastReceiver()
@@ -137,13 +138,14 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         // NOTE: writabel native array can be consumed only once, think of getting rid from clear
         // event and clear eat immidiate after getting initial events
         val events = delayedEvents
+        Log.d(TAG, "[module] getInitialEvents: Getting initial events: $events")
         delayedEvents = WritableNativeArray()
+        canSendEvents = true
         return events
     }
 
-    override fun clearInitialEvents(promise: Promise) {
+    override fun clearInitialEvents() {
         delayedEvents = WritableNativeArray()
-        promise.resolve(true)
     }
 
     override fun setCurrentCallActive(callId: String, promise: Promise) {
@@ -363,7 +365,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     private fun sendJSEvent(eventName: String, params: WritableMap? = null) {
-        if (isModuleInitialized && reactApplicationContext.hasActiveReactInstance()) {
+        if (isModuleInitialized && reactApplicationContext.hasActiveReactInstance() && canSendEvents) {
             val paramsMap =
                     Arguments.createMap().apply {
                         params?.let {
@@ -387,9 +389,10 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     }
             emitOnNewEvent(value)
         } else {
+            Log.d(TAG, "[module] sendJSEvent: Queueing event: $eventName, $params")
             Arguments.createMap()
                     .apply {
-                        putString("name", eventName)
+                        putString("eventName", eventName)
                         putMap("params", params)
                     }
                     .also { delayedEvents.pushMap(it) }

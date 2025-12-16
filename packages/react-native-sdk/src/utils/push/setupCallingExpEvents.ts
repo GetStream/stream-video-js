@@ -7,6 +7,7 @@ import {
 } from './internal/utils';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import { getCallingxLib, type EventParams } from './libs/callingx';
+import { EventData } from 'react-native-callingx';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -21,7 +22,6 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   }
 
   const callingx = getCallingxLib();
-  // const logger = videoLoggerSystem.getLogger('setupCallingExpEvents');
 
   const { remove: removeAnswerCall } = callingx.addEventListener(
     'answerCall',
@@ -40,20 +40,23 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     onDidDeactivateAudioSession,
   );
 
-  //TODO: need to find cases where delayed events can appear
-  // const events = callingx.getInitialEvents();
-  // events.forEach((event: EventData) => {
-  //   const { eventName, params } = event;
-  //   if (eventName === 'didDisplayIncomingCall') {
-  //     logger.debug(`[delayed] didDisplayIncomingCall event callId: ${params.callId}`);
-  //   } else if (eventName === 'answerCall') {
-  //     logger.debug(`[delayed] answerCall event callId: ${params.callId}`);
-  //     callingExpAcceptCall(params);
-  //   } else if (eventName === 'endCall') {
-  //     logger.debug(`[delayed] endCall event callId: ${params.callId}`);
-  //     callingExpRejectCall(pushConfig)(params);
-  //   }
-  // });
+  //NOTE: until getInitialEvents invocation, events are delayed and won't be sent to event listeners, this is a way to make sure none of required events are missed
+  //in most cases there will be no delayed answers or ends, but it we don't want to miss any of them
+  const events = callingx.getInitialEvents();
+  events.forEach((event: EventData) => {
+    const { eventName, params } = event;
+    if (eventName === 'answerCall') {
+      videoLoggerSystem
+        .getLogger('setupCallingExpEvents')
+        .debug(`answerCall delayed event callId: ${params?.callId}`);
+      onAcceptCall(params as EventParams['answerCall']);
+    } else if (eventName === 'endCall') {
+      videoLoggerSystem
+        .getLogger('setupCallingExpEvents')
+        .debug(`endCall delayed event callId: ${params?.callId}`);
+      onEndCall(pushConfig)(params as EventParams['endCall']);
+    }
+  });
 
   setPushLogoutCallback(async () => {
     removeAnswerCall();

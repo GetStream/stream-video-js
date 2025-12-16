@@ -30,8 +30,8 @@ static NSString *const CallingxProviderReset = @"providerReset";
 
 @implementation Callingx {
   NSOperatingSystemVersion _version;
-  bool _isReachable;
-  bool _isInitialized;
+  bool _isSetup;
+  bool _canSendEvents;
   bool _isSelfAnswered;
   bool _isSelfEnded;
   NSMutableArray *_delayedEvents;
@@ -67,7 +67,6 @@ static UUIDStorage *uuidStorage;
     }
   }
 }
-
 
 + (void)reportNewIncomingCall:(NSString *)callId
                        handle:(NSString *)handle
@@ -106,57 +105,33 @@ static UUIDStorage *uuidStorage;
   callUpdate.hasVideo = hasVideo;
   callUpdate.localizedCallerName = localizedCallerName;
 
-  [sharedProvider
-      reportNewIncomingCallWithUUID:uuid
-                         update:callUpdate
-                         completion:^(NSError *_Nullable error) {
-                          NSLog(@"[Callingx][reportNewIncomingCall] callId = %@, error = %@", callId, error);
-                           Callingx *callKeep = [Callingx allocWithZone:nil];
-                           [callKeep
-                               sendEventWithNameWrapper:
-                                   CallingxDidDisplayIncomingCall
-                                                   body:@{
-                                                     @"error" : error && error.localizedDescription
-                                                         ? error.localizedDescription
-                                                         : @"",
-                                                     @"errorCode" : error
-                                                         ? [callKeep getIncomingCallErrorCode: error]
-                                                         : @"",
-                                                     @"callId" : callId,
-                                                     @"handle" : handle,
-                                                     @"localizedCallerName" : localizedCallerName
-                                                         ? localizedCallerName
-                                                         : @"",
-                                                     @"hasVideo" : hasVideo
-                                                         ? @"1"
-                                                         : @"0",
-                                                     @"supportsHolding" : supportsHolding
-                                                         ? @"1"
-                                                         : @"0",
-                                                     @"supportsDTMF" : supportsDTMF
-                                                         ? @"1"
-                                                         : @"0",
-                                                     @"supportsGrouping" : supportsGrouping
-                                                         ? @"1"
-                                                         : @"0",
-                                                     @"supportsUngrouping" : supportsUngrouping
-                                                         ? @"1"
-                                                         : @"0",
-                                                     @"fromPushKit" : fromPushKit 
-                                                         ? @"1"
-                                                         : @"0",
-                                                     @"payload" : payload
-                                                         ? payload
-                                                         : @"",
-                                                   }];
-                           if (error == nil) {
-                             NSLog(@"[Callingx][reportNewIncomingCall] success callId = %@", callId);
-                           }
-                           if (completion != nil) {
-                             NSLog(@"[Callingx][reportNewIncomingCall] completion");
-                             completion();
-                           }
-                         }];
+  [sharedProvider reportNewIncomingCallWithUUID:uuid update:callUpdate completion:^(NSError *_Nullable error) {
+    NSLog(@"[Callingx][reportNewIncomingCall] callId = %@, error = %@", callId, error);
+    Callingx *callKeep = [Callingx allocWithZone:nil];
+    [callKeep sendEventWithNameWrapper: CallingxDidDisplayIncomingCall body:@{
+      @"error" : error && error.localizedDescription ? error.localizedDescription : @"",
+      @"errorCode" : error ? [callKeep getIncomingCallErrorCode: error] : @"",
+      @"callId" : callId,
+      @"handle" : handle,
+      @"localizedCallerName" : localizedCallerName ? localizedCallerName : @"",
+      @"hasVideo" : hasVideo ? @"1" : @"0",
+      @"supportsHolding" : supportsHolding ? @"1" : @"0",
+      @"supportsDTMF" : supportsDTMF ? @"1" : @"0",
+      @"supportsGrouping" : supportsGrouping ? @"1" : @"0",
+      @"supportsUngrouping" : supportsUngrouping ? @"1" : @"0",
+      @"fromPushKit" : fromPushKit ? @"1" : @"0",
+      @"payload" : payload ? payload : @"",
+    }];
+    
+    if (error == nil) {
+      NSLog(@"[Callingx][reportNewIncomingCall] success callId = %@", callId);
+    }
+    
+    if (completion != nil) {
+      NSLog(@"[Callingx][reportNewIncomingCall] completion");
+      completion();
+    }
+  }];
 }
 
 //+ (BOOL)application:(UIApplication *)application
@@ -295,11 +270,9 @@ static UUIDStorage *uuidStorage;
   NSLog(@"[Callingx][init]");
 #endif
   if (self = [super init]) {
-    _isReachable = NO;
-    _isInitialized = NO;
-    
-    if (_delayedEvents == nil)
-      _delayedEvents = [NSMutableArray array];
+    _isSetup = NO;
+    _delayedEvents = [NSMutableArray array];
+    _canSendEvents = NO;
 
     [[NSNotificationCenter defaultCenter]
      addObserver:self
@@ -316,6 +289,7 @@ static UUIDStorage *uuidStorage;
     [self.callKeepProvider setDelegate:nil queue:nil];
     [self.callKeepProvider setDelegate:self queue:nil];
   }
+
   return self;
 }
 
@@ -330,42 +304,10 @@ static UUIDStorage *uuidStorage;
     [self.callKeepProvider invalidate];
   }
   sharedProvider = nil;
-  _isInitialized = NO;
-  _isReachable = NO;
+  _canSendEvents = NO;
+  _delayedEvents = nil;
+  _isSetup = NO;
 }
-
-//- (void)startObserving {
-//  NSLog(@"[Callingx][startObserving]");
-//  _hasListeners = YES;
-//  if ([_delayedEvents count] > 0) {
-////    [self sendEventWithName:CallingxDidLoadWithEvents body:_delayedEvents];
-//    NSDictionary *dictionary = [
-//      NSDictionary dictionaryWithObjectsAndKeys:
-//        CallingxDidLoadWithEvents, @"name",
-//      _delayedEvents, @"params",
-//      nil
-//    ];
-//    [self emitOnNewEvent: dictionary];
-//  }
-//}
-//
-//- (void)stopObserving {
-//  _hasListeners = FALSE;
-//
-//  // Fix for
-//  // https://github.com/react-native-webrtc/react-native-callkeep/issues/406 We
-//  // use Objective-C Key Value Coding(KVC) to sync _RTCEventEmitter_
-//  // `_listenerCount`.
-//  @try {
-//    [self setValue:@0 forKey:@"_listenerCount"];
-//  } @catch (NSException *e) {
-//    NSLog(@"[Callingx][stopObserving] exception: %@", e);
-//    NSLog(@"[Callingx][stopObserving] Callingx parent class "
-//          @"RTCEventEmitter might have a broken state.");
-//    NSLog(@"[Callingx][stopObserving] Please verify that the parent "
-//          @"RTCEventEmitter.m has iVar `_listenerCount`.");
-//  }
-//}
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params {
@@ -409,15 +351,16 @@ static UUIDStorage *uuidStorage;
 
 - (void)sendEventWithNameWrapper:(NSString *)name body:(id)body {
   NSLog(@"[Callingx] sendEventWithNameWrapper: %@", name);
-
+  
   NSDictionary *dictionary = [NSDictionary
       dictionaryWithObjectsAndKeys:name, @"eventName", body, @"params", nil];
   
- if (_isInitialized) {
+  if (_canSendEvents) {
     [self emitOnNewEvent: dictionary];
- } else {
-   [_delayedEvents addObject:dictionary];
- }
+  } else {
+    [_delayedEvents addObject:dictionary];
+  }
+  NSLog(@"[Callingx] delayedEvents: %@", _delayedEvents);
 }
 
 - (void)onAudioRouteChange:(NSNotification *)notification {
@@ -438,8 +381,8 @@ static UUIDStorage *uuidStorage;
     params, @"params",
     nil
   ];
-  // [self emitOnNewEvent: dictionary];
-  // [self sendEventWithNameWrapper:CallingxDidChangeAudioRoute body:params];
+   [self emitOnNewEvent: dictionary];
+   [self sendEventWithNameWrapper:CallingxDidChangeAudioRoute body:params];
 }
 
 - (NSString *)getIncomingCallErrorCode:(NSError *)error {
@@ -481,20 +424,21 @@ static UUIDStorage *uuidStorage;
   [self.callKeepProvider setDelegate:nil queue:nil];
   [self.callKeepProvider setDelegate:self queue:nil];
 
-  _isInitialized = YES;
+  _isSetup = YES;
 }
 
 - (NSArray<NSDictionary *> *)getInitialEvents {
 #ifdef DEBUG
-  NSLog(@"[Callingx][getInitialEvents] _delayedEvents = %@", _delayedEvents);
+  NSLog(@"[Callingx][getInitialEvents] delayedEvents = %@", _delayedEvents);
 #endif
-  return _delayedEvents;
+  NSMutableArray *events = _delayedEvents ? [_delayedEvents copy] : [NSMutableArray array];
+  _delayedEvents = [NSMutableArray array];
+  _canSendEvents = YES;
+  return events;
 }
 
-- (void)clearInitialEvents:(nonnull RCTPromiseResolveBlock)resolve
-                    reject:(nonnull RCTPromiseRejectBlock)reject {
+- (void)clearInitialEvents {
   _delayedEvents = [NSMutableArray array];
-  resolve(@YES);
 }
 
 - (void)answerIncomingCall:(nonnull NSString *)callId
@@ -547,7 +491,7 @@ static UUIDStorage *uuidStorage;
   if (timeout) {
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)([timeout intValue] * NSEC_PER_MSEC));
     dispatch_after(popTime, dispatch_get_main_queue(), ^(void) {
-      if (!self->_isReachable) {
+      if (!self->_isSetup) {
 #ifdef DEBUG
         NSLog(@"[Callingx] Displayed a call without a reachable app, ending "
               @"the call: %@",

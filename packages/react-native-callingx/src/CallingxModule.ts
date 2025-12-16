@@ -121,7 +121,7 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.getInitialEvents() as EventData[];
   }
 
-  clearInitialEvents(): Promise<void> {
+  clearInitialEvents(): void {
     return NativeCallingModule.clearInitialEvents();
   }
 
