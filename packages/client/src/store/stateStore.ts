@@ -4,7 +4,7 @@ import * as RxUtils from './rxUtils';
 import { Call } from '../Call';
 import { CallingState } from './CallingState';
 import type { OwnUserResponse } from '../gen/coordinator';
-import { getLogger } from '../logger';
+import { videoLoggerSystem } from '../logger';
 
 export class StreamVideoWriteableStateStore {
   /**
@@ -23,15 +23,15 @@ export class StreamVideoWriteableStateStore {
     this.connectedUserSubject.subscribe(async (user) => {
       // leave all calls when the user disconnects.
       if (!user) {
-        const logger = getLogger(['client-state']);
+        const logger = videoLoggerSystem.getLogger('client-state');
         for (const call of this.calls) {
           if (call.state.callingState === CallingState.LEFT) continue;
 
-          logger('info', `User disconnected, leaving call: ${call.cid}`);
+          logger.info(`User disconnected, leaving call: ${call.cid}`);
           await call
             .leave({ message: 'client.disconnectUser() called' })
             .catch((err) => {
-              logger('error', `Error leaving call: ${call.cid}`, err);
+              logger.error(`Error leaving call: ${call.cid}`, err);
             });
         }
       }
@@ -82,13 +82,28 @@ export class StreamVideoWriteableStateStore {
   };
 
   /**
+   * Registers a {@link Call} object if it doesn't exist, otherwise updates it.
+   *
+   * @param call the call to register or update.
+   */
+  registerOrUpdateCall = (call: Call) => {
+    if (this.calls.find((c) => c.cid === call.cid)) {
+      return this.setCalls((calls) =>
+        calls.map((c) => (c.cid === call.cid ? call : c)),
+      );
+    } else {
+      return this.registerCall(call);
+    }
+  };
+
+  /**
    * Removes a {@link Call} object from the list of {@link Call} objects created/tracked by this client.
    *
    * @param call the call to remove
    */
   unregisterCall = (call: Call) => {
-    const logger = getLogger(['client-state']);
-    logger('trace', `Unregistering call: ${call.cid}`);
+    const logger = videoLoggerSystem.getLogger('client-state');
+    logger.trace(`Unregistering call: ${call.cid}`);
     return this.setCalls((calls) => calls.filter((c) => c !== call));
   };
 

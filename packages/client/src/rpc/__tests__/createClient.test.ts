@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { anyObject } from 'vitest-mock-extended';
 import {
   createSignalClient,
   withHeaders,
@@ -8,6 +9,7 @@ import {
 import { TwirpFetchTransport } from '@protobuf-ts/twirp-transport';
 import { NextUnaryFn, UnaryCall } from '@protobuf-ts/runtime-rpc';
 import { promiseWithResolvers } from '../../helpers/promise';
+import { ScopedLogger } from '../../logger';
 
 describe('createClient', () => {
   it('should create a client with TwirpFetchTransport', () => {
@@ -30,7 +32,10 @@ describe('createClient', () => {
 
   it('withRequestLogger should log the request', () => {
     const logger = vi.fn();
-    const interceptor = withRequestLogger(logger, 'debug');
+    const interceptor = withRequestLogger(
+      { debug: logger } as unknown as ScopedLogger,
+      'debug',
+    );
     const next = vi.fn().mockReturnValue({});
     // @ts-expect-error - private field
     interceptor.interceptUnary(next, { name: 'test' }, null, null);
@@ -81,5 +86,45 @@ describe('createClient', () => {
       { msg: 'err' },
       { param: 'value' },
     ]);
+  });
+
+  it('withRequestTracer should trace the response of SetPublisher', async () => {
+    const trace = vi.fn();
+    const interceptor = withRequestTracer(trace);
+    const { promise, resolve } = promiseWithResolvers<UnaryCall['then']>();
+    // @ts-expect-error - partial implementation
+    const next: NextUnaryFn = vi.fn(() => ({
+      then: (...args) => promise.then(...args),
+    }));
+    interceptor.interceptUnary(
+      next,
+      // @ts-expect-error - invalid name
+      { name: 'SetPublisher' },
+      { param: 'value' },
+      { meta: {} },
+    );
+
+    // @ts-expect-error - partial data
+    resolve({ response: { data: 'response data' } });
+
+    interceptor.interceptUnary(
+      next,
+      // @ts-expect-error - invalid name
+      { name: 'UpdateMuteStates' },
+      { data: 'data' },
+      { meta: {} },
+    );
+    await promise;
+
+    expect(next).toHaveBeenCalled();
+    expect(trace).toHaveBeenCalledWith('SetPublisher', { param: 'value' });
+    expect(trace).toHaveBeenCalledWith('UpdateMuteStates', { data: 'data' });
+    expect(trace).toHaveBeenCalledWith('SetPublisherResponse', {
+      data: 'response data',
+    });
+    expect(trace).not.toHaveBeenCalledWith(
+      'UpdateMuteStatesResponse',
+      anyObject(),
+    );
   });
 });

@@ -13,13 +13,13 @@ import {
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { TranslationLanguages } from 'stream-chat';
 import { MeetingUI } from '../../components';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { useSettings } from '../../context/SettingsContext';
 import { TourProvider } from '../../context/TourContext';
-import { createTokenProvider, getClient } from '../../helpers/client';
+import { getClient } from '../../helpers/client';
 import { useCreateStreamChatClient } from '../../hooks';
 import { useGleap } from '../../hooks/useGleap';
 import {
@@ -54,6 +54,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const coordinatorUrl = useLocalCoordinator
     ? 'http://localhost:3030/video'
     : (router.query['coordinator_url'] as string | undefined);
+  const useLegacyFilters = router.query['useLegacyFilters'] === 'true';
 
   const { apiKey, userToken, user, gleapApiKey } = props;
 
@@ -74,13 +75,9 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     };
   }, [apiKey, coordinatorUrl, environment, user, userToken]);
 
-  const tokenProvider = useMemo(
-    () => createTokenProvider(user.id, environment),
-    [environment, user.id],
-  );
   const chatClient = useCreateStreamChatClient({
     apiKey,
-    tokenOrProvider: tokenProvider,
+    tokenOrProvider: userToken,
     userData: {
       id: '!anon',
       ...(user as Omit<User, 'type' | 'push_notifications'>),
@@ -196,7 +193,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
           <TourProvider>
             <BackgroundFiltersProvider
-              basePath={`${basePath}/tf`}
+              forceSafariSupport
+              useLegacyFilter={useLegacyFilters}
               backgroundImages={[
                 `${basePath}/backgrounds/amsterdam-1.jpg`,
                 `${basePath}/backgrounds/amsterdam-2.jpg`,

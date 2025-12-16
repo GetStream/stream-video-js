@@ -2,6 +2,40 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.9.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.9.1...@stream-io/video-filters-react-native-0.9.2) (2025-12-08)
+
+## [0.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.9.0...@stream-io/video-filters-react-native-0.9.1) (2025-11-20)
+
+## [0.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.8.1...@stream-io/video-filters-react-native-0.9.0) (2025-11-14)
+
+### Features
+
+- improve performance of android video filters RN-308 ([#1995](https://github.com/GetStream/stream-video-js/issues/1995)) ([7eb6eb8](https://github.com/GetStream/stream-video-js/commit/7eb6eb8d632ba37c60feeff37bdd483773fef9e4))
+
+## [0.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.8.0...@stream-io/video-filters-react-native-0.8.1) (2025-11-05)
+
+### Bug Fixes
+
+- noise cancellation webrtc 137 support and dev dep and sampleapp webrtc updates ([#1974](https://github.com/GetStream/stream-video-js/issues/1974)) ([c555695](https://github.com/GetStream/stream-video-js/commit/c555695e53018412ea8964a2e222daa99a9544e5))
+
+## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.7.0...@stream-io/video-filters-react-native-0.8.0) (2025-10-14)
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.3...@stream-io/video-filters-react-native-0.7.0) (2025-09-29)
+
+### Features
+
+- 16KB page size support for noise cancellation & screenshot ([#1933](https://github.com/GetStream/stream-video-js/issues/1933)) ([7e3b046](https://github.com/GetStream/stream-video-js/commit/7e3b046820bde9d331871718a6f841bff88a73ce)), closes [#1937](https://github.com/GetStream/stream-video-js/issues/1937)
+
+## [0.6.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.2...@stream-io/video-filters-react-native-0.6.3) (2025-09-05)
+
+### Bug Fixes
+
+- update webrtc peer dep to 125.4.3 ([#1908](https://github.com/GetStream/stream-video-js/issues/1908)) ([24b2f95](https://github.com/GetStream/stream-video-js/commit/24b2f958f4430212116ddd78800a1ea71adbea4d))
+
 ## [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.6.1...@stream-io/video-filters-react-native-0.6.2) (2025-08-21)
 
 ### Bug Fixes

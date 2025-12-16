@@ -71,6 +71,8 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>$(PRODUCT_NAME) requires access to photo library to allow you to share photo
 			attachments</string>
+	<key>RCTNewArchEnabled</key>
+	<true/>
 	<key>RTCAppGroupIdentifier</key>
 	<string>group.io.getstream.rn.videodogfood</string>
 	<key>RTCScreenSharingExtension</key>

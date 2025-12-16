@@ -14,6 +14,8 @@ class RTCViewPip: UIView {
     private var pictureInPictureController = StreamPictureInPictureController()
     private var webRtcModule: WebRTCModule?
     
+    @objc var onPiPChange: RCTBubblingEventBlock?
+    
     private func setupNotificationObserver() {
         NotificationCenter.default.addObserver(
             self,
@@ -88,6 +90,10 @@ class RTCViewPip: UIView {
             setupNotificationObserver()
             DispatchQueue.main.async {
                 self.pictureInPictureController?.sourceView = self
+                // Set up PiP state change callback
+                self.pictureInPictureController?.onPiPStateChange = { [weak self] isActive in
+                    self?.sendPiPChangeEvent(isActive: isActive)
+                }
                 if let reactTag = self.reactTag, let bridge = self.webRtcModule?.bridge {
                     if let manager = bridge.module(for: RTCViewPipManager.self) as? RTCViewPipManager,
                        let size = manager.getCachedSize(for: reactTag) {
@@ -97,5 +103,14 @@ class RTCViewPip: UIView {
                 }
             }
         }
+    }
+    
+    private func sendPiPChangeEvent(isActive: Bool) {
+        guard let onPiPChange = onPiPChange else {
+            return
+        }
+        
+        NSLog("PiP - Sending PiP state change event: \(isActive)")
+        onPiPChange(["active": isActive])
     }
 }

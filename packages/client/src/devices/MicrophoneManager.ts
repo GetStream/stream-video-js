@@ -1,11 +1,14 @@
 import { combineLatest, Observable } from 'rxjs';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
-import { InputMediaDeviceManager } from './InputMediaDeviceManager';
+import {
+  AudioDeviceManager,
+  createAudioConstraints,
+} from './AudioDeviceManager';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
-import { TrackDisableMode } from './InputMediaDeviceManagerState';
+import { TrackDisableMode } from './DeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
-import { TrackType } from '../gen/video/sfu/models/models';
+import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
 import { isReactNative } from '../helpers/platforms';
 import {
@@ -21,7 +24,7 @@ import {
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
 
-export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManagerState> {
+export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
   private soundDetectorConcurrencyTag = Symbol('soundDetectorConcurrencyTag');
   private soundDetectorCleanup?: Function;
@@ -63,7 +66,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
               await this.stopSpeakingWhileMutedDetection();
             }
           } catch (err) {
-            this.logger('warn', 'Could not enable speaking while muted', err);
+            this.logger.warn('Could not enable speaking while muted', err);
           }
         },
       ),
@@ -89,18 +92,20 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
             })
             .then((canAutoEnable) => {
               if (canAutoEnable) {
-                this.noiseCancellation?.enable();
+                this.noiseCancellation?.enable().catch((err) => {
+                  this.logger.warn('Failed to enable noise cancellation', err);
+                });
               }
             })
             .catch((err) => {
-              this.logger('warn', `Failed to enable noise cancellation`, err);
+              this.logger.warn(`Failed to enable noise cancellation`, err);
               return this.call.notifyNoiseCancellationStopped();
             });
         } else if (callingState === CallingState.LEFT) {
           this.noiseCancellationRegistration
             .then(() => this.noiseCancellation?.disable())
             .catch((err) => {
-              this.logger('warn', `Failed to disable noise cancellation`, err);
+              this.logger.warn(`Failed to disable noise cancellation`, err);
             });
         }
       }),
@@ -138,11 +143,11 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
           this.call.tracer.trace('noiseCancellation.enabled', enabled);
           if (enabled) {
             this.call.notifyNoiseCancellationStarting().catch((err) => {
-              this.logger('warn', `notifyNoiseCancellationStart failed`, err);
+              this.logger.warn(`notifyNoiseCancellationStart failed`, err);
             });
           } else {
             this.call.notifyNoiseCancellationStopped().catch((err) => {
-              this.logger('warn', `notifyNoiseCancellationStop failed`, err);
+              this.logger.warn(`notifyNoiseCancellationStop failed`, err);
             });
           }
         },
@@ -172,13 +177,15 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
           canAutoEnable = await noiseCancellation.canAutoEnable();
         }
         if (canAutoEnable) {
-          noiseCancellation.enable();
+          noiseCancellation.enable().catch((err) => {
+            this.logger.warn('Failed to enable noise cancellation', err);
+          });
         }
       }
     } catch (e) {
-      this.logger('warn', 'Failed to enable noise cancellation', e);
+      this.logger.warn('Failed to enable noise cancellation', e);
       await this.disableNoiseCancellation().catch((err) => {
-        this.logger('warn', 'Failed to disable noise cancellation', err);
+        this.logger.warn('Failed to disable noise cancellation', err);
       });
       throw e;
     }
@@ -192,7 +199,7 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
       .then(() => this.noiseCancellation?.disable())
       .then(() => this.noiseCancellationChangeUnsubscribe?.())
       .catch((err) => {
-        this.logger('warn', 'Failed to unregister noise cancellation', err);
+        this.logger.warn('Failed to unregister noise cancellation', err);
       });
 
     this.call.tracer.trace('noiseCancellation.disabled', true);
@@ -245,14 +252,38 @@ export class MicrophoneManager extends InputMediaDeviceManager<MicrophoneManager
     }
   }
 
-  protected getDevices(): Observable<MediaDeviceInfo[]> {
+  protected override getDevices(): Observable<MediaDeviceInfo[]> {
     return getAudioDevices(this.call.tracer);
   }
 
-  protected getStream(
+  protected override getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
     return getAudioStream(constraints, this.call.tracer);
+  }
+
+  protected override doSetAudioBitrateProfile(profile: AudioBitrateProfile) {
+    this.setDefaultConstraints({
+      ...this.state.defaultConstraints,
+      ...createAudioConstraints(profile),
+    });
+
+    if (this.noiseCancellation) {
+      const disableAudioProcessing =
+        profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
+      if (disableAudioProcessing) {
+        this.noiseCancellation.disable().catch((err) => {
+          this.logger.warn(
+            'Failed to disable noise cancellation for music mode',
+            err,
+          );
+        }); // disable for high quality music mode
+      } else {
+        this.noiseCancellation.enable().catch((err) => {
+          this.logger.warn('Failed to enable noise cancellation', err);
+        }); // restore it for other modes if available
+      }
+    }
   }
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {

@@ -1,9 +1,9 @@
 import {
   CallingState,
-  getLogger,
   hasScreenShare,
   speakerLayoutSortPreset,
   type StreamVideoParticipant,
+  videoLoggerSystem,
   type VideoTrackType,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
@@ -18,13 +18,19 @@ import {
 import { useDebouncedValue } from '../../../utils/hooks';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
+import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
 
 type Props = {
   includeLocalParticipantVideo?: boolean;
+  /**
+   * Callback that is called when the PiP mode state changes.
+   * @param active - true when PiP started, false when PiP stopped
+   */
+  onPiPChange?: (active: boolean) => void;
 };
 
 export const RTCViewPipIOS = React.memo((props: Props) => {
-  const { includeLocalParticipantVideo } = props;
+  const { includeLocalParticipantVideo, onPiPChange } = props;
   const call = useCall();
   const { useParticipants } = useCallStateHooks();
   const _allParticipants = useParticipants({
@@ -66,18 +72,16 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
       shouldDisableIOSLocalVideoOnBackgroundRef.current = true;
     };
     const unsubFunc = call?.on('call.ended', () => {
-      getLogger(['RTCViewPipIOS'])(
-        'debug',
-        `onCallClosed due to call.ended event`,
-      );
+      videoLoggerSystem
+        .getLogger('RTCViewPipIOS')
+        .debug(`onCallClosed due to call.ended event`);
       onCallClosed();
     });
     const subscription = call?.state.callingState$.subscribe((state) => {
       if (state === CallingState.LEFT) {
-        getLogger(['RTCViewPipIOS'])(
-          'debug',
-          `onCallClosed due to callingState: ${state}`,
-        );
+        videoLoggerSystem
+          .getLogger('RTCViewPipIOS')
+          .debug(`onCallClosed due to callingState: ${state}`);
         onCallClosed();
       }
     });
@@ -112,9 +116,18 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     return videoStreamToRender?.toURL();
   }, [videoStreamToRender]);
 
+  const handlePiPChange = (event: { nativeEvent: { active: boolean } }) => {
+    isInPiPMode$.next(event.nativeEvent.active);
+    onPiPChange?.(event.nativeEvent.active);
+  };
+
   return (
     <>
-      <RTCViewPipNative streamURL={streamURL} ref={nativeRef} />
+      <RTCViewPipNative
+        streamURL={streamURL}
+        ref={nativeRef}
+        onPiPChange={handlePiPChange}
+      />
       {participantInSpotlight && (
         <DimensionsUpdatedRenderless
           participant={participantInSpotlight}

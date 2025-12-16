@@ -1,4 +1,5 @@
 #import <React/RCTEventEmitter.h>
+#import <React/RCTBridge.h>
 
 @interface StreamVideoReactNative : RCTEventEmitter <RCTBridgeModule>
 
@@ -7,5 +8,9 @@
 + (void)registerIncomingCall:(NSString *)cid uuid:(NSString *)uuid;
 
 + (void)setup DEPRECATED_MSG_ATTRIBUTE("No need to use setup() anymore");
+
++ (BOOL)shouldRejectCallWhenBusy;
+
++ (BOOL)hasAnyActiveCall;
 
 @end

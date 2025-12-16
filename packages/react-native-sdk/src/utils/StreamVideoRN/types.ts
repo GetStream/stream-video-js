@@ -24,6 +24,7 @@ export type StreamVideoConfig = {
      * @internal
      */
     publishOptions?: ClientPublishOptions;
+
     ios: {
       /**
        * The name for the alias of push provider used for iOS
@@ -63,7 +64,6 @@ export type StreamVideoConfig = {
        *  id: 'stream_incoming_call',
        *  name: 'Incoming call notifications',
        *  importance: AndroidImportance.HIGH,
-       *  sound: 'default',
        * }
        */
       incomingCallChannel?: AndroidChannel;

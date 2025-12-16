@@ -25,6 +25,13 @@ const EMPTY_DEVICES_ARRAY = Object.freeze<MediaDeviceInfo[]>(
   [],
 ) as MediaDeviceInfo[];
 
+export type UseInputMediaDeviceOptions = {
+  /**
+   * If `true`, the hook will use the optimistic status to determine whether the device is muted or not.
+   */
+  optimisticUpdates?: boolean;
+};
+
 /**
  * Utility hook, which provides the current call's state.
  */
@@ -287,6 +294,14 @@ export const useRemoteParticipants = () => {
 };
 
 /**
+ * A hook which provides a list of participants that are currently pinned.
+ */
+export const usePinnedParticipants = () => {
+  const { pinnedParticipants$ } = useCallState();
+  return useObservableValue(pinnedParticipants$);
+};
+
+/**
  * Returns the approximate participant count of the active call.
  * This includes the anonymous users as well, and it is computed on the server.
  */
@@ -333,7 +348,9 @@ export const useHasPermissions = (...permissions: OwnCapability[]): boolean => {
 /**
  * Returns the camera state of the current call.
  */
-export const useCameraState = () => {
+export const useCameraState = ({
+  optimisticUpdates = true,
+}: UseInputMediaDeviceOptions = {}) => {
   const call = useCall();
   const { camera } = call as Call;
 
@@ -360,6 +377,7 @@ export const useCameraState = () => {
     ...getComputedStatus(
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
+      { optimisticUpdates },
     ),
   };
 };
@@ -367,7 +385,9 @@ export const useCameraState = () => {
 /**
  * Returns the microphone state of the current call.
  */
-export const useMicrophoneState = () => {
+export const useMicrophoneState = ({
+  optimisticUpdates = true,
+}: UseInputMediaDeviceOptions = {}) => {
   const call = useCall();
   const { microphone } = call as Call;
 
@@ -380,6 +400,7 @@ export const useMicrophoneState = () => {
     state.isPromptingPermission$,
   );
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
+  const audioBitrateProfile = useObservableValue(state.audioBitrateProfile$);
 
   return {
     microphone,
@@ -391,9 +412,11 @@ export const useMicrophoneState = () => {
     hasBrowserPermission,
     isPromptingPermission,
     isSpeakingWhileMuted,
+    audioBitrateProfile,
     ...getComputedStatus(
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
+      { optimisticUpdates },
     ),
   };
 };
@@ -406,7 +429,7 @@ export const useMicrophoneState = () => {
 export const useSpeakerState = () => {
   if (isReactNative()) {
     throw new Error(
-      'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
+      'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/react-native/guides/camera-and-microphone/#speaker-management for more details',
     );
   }
   const call = useCall();
@@ -414,9 +437,11 @@ export const useSpeakerState = () => {
 
   const { getDevices } = useLazyDeviceList(speaker);
   const selectedDevice = useObservableValue(speaker.state.selectedDevice$);
+  const volume = useObservableValue(speaker.state.volume$);
 
   return {
     speaker,
+    volume,
     get devices() {
       return getDevices();
     },
@@ -428,16 +453,20 @@ export const useSpeakerState = () => {
 /**
  * Returns the Screen Share state of the current call.
  */
-export const useScreenShareState = () => {
+export const useScreenShareState = ({
+  optimisticUpdates = true,
+}: UseInputMediaDeviceOptions = {}) => {
   const call = useCall();
   const { screenShare } = call as Call;
-
+  const { state } = screenShare;
   return {
     screenShare,
-    mediaStream: useObservableValue(screenShare.state.mediaStream$),
+    mediaStream: useObservableValue(state.mediaStream$),
+    audioBitrateProfile: useObservableValue(state.audioBitrateProfile$),
     ...getComputedStatus(
-      useObservableValue(screenShare.state.status$),
-      useObservableValue(screenShare.state.optimisticStatus$),
+      useObservableValue(state.status$),
+      useObservableValue(state.optimisticStatus$),
+      { optimisticUpdates },
     ),
   };
 };
@@ -448,10 +477,7 @@ export const useScreenShareState = () => {
  */
 export const useIncomingVideoSettings = () => {
   const call = useCall() as Call;
-  const settings = useObservableValue(
-    call.dynascaleManager.incomingVideoSettings$,
-  );
-  return settings;
+  return useObservableValue(call.dynascaleManager.incomingVideoSettings$);
 };
 
 /**
@@ -473,6 +499,7 @@ export const useIsCallCaptioningInProgress = (): boolean => {
 function getComputedStatus(
   status: InputDeviceStatus,
   pendingStatus: InputDeviceStatus,
+  options: Required<UseInputMediaDeviceOptions>,
 ) {
   const optimisticStatus = pendingStatus ?? status;
 
@@ -483,6 +510,14 @@ function getComputedStatus(
     isMute: status !== 'enabled',
     optimisticIsMute: optimisticStatus !== 'enabled',
     isTogglePending: optimisticStatus !== status,
+    /**
+     * If optimistic updates are enabled (`options.optimisticUpdates`), we
+     * consider the optimistic status to determine whether the device is muted or not.
+     * Otherwise, we rely on the actual status.
+     */
+    optionsAwareIsMute: options.optimisticUpdates
+      ? optimisticStatus !== 'enabled'
+      : status !== 'enabled',
   };
 }
 
@@ -500,7 +535,7 @@ function useLazyDeviceList(manager: DeviceManagerLike) {
       setDevices$(manager.listDevices());
     }
 
-    return devices;
+    return devices ?? EMPTY_DEVICES_ARRAY;
   };
 
   return { getDevices };

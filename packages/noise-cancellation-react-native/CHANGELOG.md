@@ -2,6 +2,47 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.1...@stream-io/noise-cancellation-react-native-0.4.2) (2025-11-25)
+
+### Bug Fixes
+
+- **noise cancellation:** delay toggling until initialization is finished ([#2014](https://github.com/GetStream/stream-video-js/issues/2014)) ([d28b8ea](https://github.com/GetStream/stream-video-js/commit/d28b8ea282322a25688ff48966b0dc10dd7e60bd))
+
+## [0.4.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.0...@stream-io/noise-cancellation-react-native-0.4.1) (2025-11-05)
+
+### Bug Fixes
+
+- noise cancellation webrtc 137 support and dev dep and sampleapp webrtc updates ([#1974](https://github.com/GetStream/stream-video-js/issues/1974)) ([c555695](https://github.com/GetStream/stream-video-js/commit/c555695e53018412ea8964a2e222daa99a9544e5))
+
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.3.0...@stream-io/noise-cancellation-react-native-0.4.0) (2025-10-14)
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+- move audio route manager inside SDK ([#1840](https://github.com/GetStream/stream-video-js/issues/1840)) ([847dd30](https://github.com/GetStream/stream-video-js/commit/847dd30d6240a0780fe3d58d681554bc392f6f51)), closes [#1829](https://github.com/GetStream/stream-video-js/issues/1829)
+
+## [0.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.4...@stream-io/noise-cancellation-react-native-0.3.0) (2025-09-29)
+
+### Features
+
+- 16KB page size support for noise cancellation & screenshot ([#1933](https://github.com/GetStream/stream-video-js/issues/1933)) ([7e3b046](https://github.com/GetStream/stream-video-js/commit/7e3b046820bde9d331871718a6f841bff88a73ce)), closes [#1937](https://github.com/GetStream/stream-video-js/issues/1937)
+
+### Bug Fixes
+
+- **nc:** switch to a stable version channel ([#1931](https://github.com/GetStream/stream-video-js/issues/1931)) ([9f8e555](https://github.com/GetStream/stream-video-js/commit/9f8e5558ab288eb5a7a503b4be341b9018750b7f))
+
+## [0.2.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.3...@stream-io/noise-cancellation-react-native-0.2.4) (2025-09-18)
+
+### Bug Fixes
+
+- noise cancellation snapshot url ([#1925](https://github.com/GetStream/stream-video-js/issues/1925)) ([7bdf589](https://github.com/GetStream/stream-video-js/commit/7bdf589e079f8d3f2836999781dbfa57be96cfa3))
+
+## [0.2.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.2...@stream-io/noise-cancellation-react-native-0.2.3) (2025-09-05)
+
+### Bug Fixes
+
+- update webrtc peer dep to 125.4.3 ([#1908](https://github.com/GetStream/stream-video-js/issues/1908)) ([24b2f95](https://github.com/GetStream/stream-video-js/commit/24b2f958f4430212116ddd78800a1ea71adbea4d))
+
 ## [0.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.2.1...@stream-io/noise-cancellation-react-native-0.2.2) (2025-08-21)
 
 ### Bug Fixes

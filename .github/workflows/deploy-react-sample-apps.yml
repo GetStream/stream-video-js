@@ -74,7 +74,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: 'yarn'
 
       - name: Install Dependencies
@@ -95,9 +95,9 @@ jobs:
         env:
           NEXT_PUBLIC_BASE_PATH: ${{ matrix.application.base-path || '' }}
         run: >
-          yarn dlx vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} &&
-          yarn dlx vercel build --token=${{ secrets.VERCEL_TOKEN }} &&
-          yarn dlx vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+          yarn dlx vercel@49.1.2 pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }} &&
+          yarn dlx vercel@49.1.2 build --token=${{ secrets.VERCEL_TOKEN }} &&
+          yarn dlx vercel@49.1.2 deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
 
       ### Vercel deployment (Production) ###
       - name: Vercel Pull/Build/Deploy (Production)
@@ -105,6 +105,6 @@ jobs:
         env:
           NEXT_PUBLIC_BASE_PATH: ${{ matrix.application.base-path || '' }}
         run: >
-          yarn dlx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} &&
-          yarn dlx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }} &&
-          yarn dlx vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+          yarn dlx vercel@49.1.2 pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} &&
+          yarn dlx vercel@49.1.2 build --prod --token=${{ secrets.VERCEL_TOKEN }} &&
+          yarn dlx vercel@49.1.2 deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}

@@ -1,4 +1,4 @@
-import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { RxUtils } from '../store';
 import { checkIfAudioOutputChangeSupported } from './devices';
 import { Tracer } from '../stats';
@@ -16,26 +16,18 @@ export class SpeakerState {
    *
    * Note: this feature is not supported in React Native
    */
-  selectedDevice$: Observable<string>;
+  selectedDevice$ = this.selectedDeviceSubject
+    .asObservable()
+    .pipe(distinctUntilChanged());
 
   /**
    * An Observable that emits the currently selected volume
    *
    * Note: this feature is not supported in React Native
    */
-  volume$: Observable<number>;
+  volume$ = this.volumeSubject.asObservable().pipe(distinctUntilChanged());
 
-  private tracer: Tracer;
-
-  constructor(tracer: Tracer) {
-    this.tracer = tracer;
-    this.selectedDevice$ = this.selectedDeviceSubject
-      .asObservable()
-      .pipe(distinctUntilChanged());
-    this.volume$ = this.volumeSubject
-      .asObservable()
-      .pipe(distinctUntilChanged());
-  }
+  constructor(private tracer: Tracer) {}
 
   /**
    * The currently selected device

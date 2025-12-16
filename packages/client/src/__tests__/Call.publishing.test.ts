@@ -35,7 +35,7 @@ describe('Publishing and Unpublishing tracks', () => {
   describe('Validations', () => {
     it('publishing is not allowed only when call is not joined', async () => {
       const ms = new MediaStream();
-      const err = 'Call not joined yet.';
+      const err = 'Call is not joined yet';
       await expect(call.publish(ms, TrackType.VIDEO)).rejects.toThrowError(err);
       await expect(call.publish(ms, TrackType.AUDIO)).rejects.toThrowError(err);
       await expect(
@@ -140,7 +140,11 @@ describe('Publishing and Unpublishing tracks', () => {
       vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([track]);
 
       await call.publish(mediaStream, TrackType.VIDEO);
-      expect(publisher.publish).toHaveBeenCalledWith(track, TrackType.VIDEO);
+      expect(publisher.publish).toHaveBeenCalledWith(
+        track,
+        TrackType.VIDEO,
+        undefined,
+      );
       expect(call['trackPublishOrder']).toEqual([TrackType.VIDEO]);
 
       expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
@@ -159,7 +163,11 @@ describe('Publishing and Unpublishing tracks', () => {
       vi.spyOn(mediaStream, 'getAudioTracks').mockReturnValue([track]);
 
       await call.publish(mediaStream, TrackType.AUDIO);
-      expect(publisher.publish).toHaveBeenCalledWith(track, TrackType.AUDIO);
+      expect(publisher.publish).toHaveBeenCalledWith(
+        track,
+        TrackType.AUDIO,
+        undefined,
+      );
       expect(call['trackPublishOrder']).toEqual([TrackType.AUDIO]);
 
       expect(sfuClient.updateMuteStates).toHaveBeenCalledWith([
@@ -181,6 +189,7 @@ describe('Publishing and Unpublishing tracks', () => {
       expect(publisher.publish).toHaveBeenCalledWith(
         track,
         TrackType.SCREEN_SHARE,
+        undefined,
       );
       expect(call['trackPublishOrder']).toEqual([TrackType.SCREEN_SHARE]);
 
@@ -205,10 +214,12 @@ describe('Publishing and Unpublishing tracks', () => {
       expect(publisher.publish).toHaveBeenCalledWith(
         videoTrack,
         TrackType.SCREEN_SHARE,
+        undefined,
       );
       expect(publisher.publish).toHaveBeenCalledWith(
         audioTrack,
         TrackType.SCREEN_SHARE_AUDIO,
+        undefined,
       );
       expect(call['trackPublishOrder']).toEqual([
         TrackType.SCREEN_SHARE,

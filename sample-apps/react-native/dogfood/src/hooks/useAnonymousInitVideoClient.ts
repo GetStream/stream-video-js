@@ -12,6 +12,7 @@ export const useAnonymousInitVideoClient = () => {
     const _client = StreamVideoClient.getOrCreateInstance({
       apiKey,
       user: { type: 'anonymous' },
+      options: { rejectCallWhenBusy: true },
     });
 
     return () => {

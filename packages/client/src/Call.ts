@@ -1,5 +1,6 @@
 import { StreamSfuClient } from './StreamSfuClient';
 import {
+  BasePeerConnectionOpts,
   Dispatcher,
   getGenericSdp,
   isAudioTrackType,
@@ -8,6 +9,7 @@ import {
   Publisher,
   Subscriber,
   toRtcConfiguration,
+  TrackPublishOptions,
   trackTypeToParticipantStreamKey,
 } from './rtc';
 import {
@@ -24,6 +26,7 @@ import {
   createSubscription,
   getCurrentValue,
 } from './store/rxUtils';
+import { ScopedLogger, videoLoggerSystem } from './logger';
 import type {
   AcceptCallResponse,
   BlockUserRequest,
@@ -38,6 +41,7 @@ import type {
   EndCallResponse,
   GetCallReportResponse,
   GetCallResponse,
+  GetCallSessionParticipantStatsDetailsResponse,
   GetOrCreateCallRequest,
   GetOrCreateCallResponse,
   GoLiveRequest,
@@ -54,10 +58,14 @@ import type {
   PinResponse,
   QueryCallMembersRequest,
   QueryCallMembersResponse,
+  QueryCallSessionParticipantStatsResponse,
+  QueryCallSessionParticipantStatsTimelineResponse,
   RejectCallRequest,
   RejectCallResponse,
   RequestPermissionRequest,
   RequestPermissionResponse,
+  RingCallRequest,
+  RingCallResponse,
   SendCallEventRequest,
   SendCallEventResponse,
   SendReactionRequest,
@@ -112,6 +120,8 @@ import {
   ClientCapability,
   ClientDetails,
   Codec,
+  ParticipantSource,
+  PeerType,
   PublishOption,
   SubscribeOption,
   TrackType,
@@ -134,12 +144,10 @@ import {
   AllCallEvents,
   CallEventListener,
   ErrorFromResponse,
-  Logger,
   RejectReason,
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './helpers/client-details';
-import { getLogger } from './logger';
 import {
   CameraManager,
   MicrophoneManager,
@@ -224,7 +232,7 @@ export class Call {
    */
   readonly permissionsContext = new PermissionsContext();
   readonly tracer = new Tracer(null);
-  readonly logger: Logger;
+  readonly logger: ScopedLogger;
 
   /**
    * The event dispatcher instance dedicated to this Call instance.
@@ -307,7 +315,7 @@ export class Call {
     this.streamClient = streamClient;
     this.clientStore = clientStore;
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
-    this.logger = getLogger(['Call']);
+    this.logger = videoLoggerSystem.getLogger('Call');
 
     const callTypeConfig = CallTypes.get(type);
     const participantSorter =
@@ -391,9 +399,9 @@ export class Call {
         if (!blockedUserIds || blockedUserIds.length === 0) return;
         const currentUserId = this.currentUserId;
         if (currentUserId && blockedUserIds.includes(currentUserId)) {
-          this.logger('info', 'Leaving call because of being blocked');
+          this.logger.info('Leaving call because of being blocked');
           await this.leave({ message: 'user blocked' }).catch((err) => {
-            this.logger('error', 'Error leaving call after being blocked', err);
+            this.logger.error('Error leaving call after being blocked', err);
           });
         }
       }),
@@ -437,8 +445,7 @@ export class Call {
           !hasPending(this.joinLeaveConcurrencyTag)
         ) {
           this.leave().catch(() => {
-            this.logger(
-              'error',
+            this.logger.error(
               'Could not leave a call that was accepted or rejected elsewhere',
             );
           });
@@ -521,8 +528,7 @@ export class Call {
             break;
         }
       } catch (err) {
-        this.logger(
-          'error',
+        this.logger.error(
           `Can't disable mic/camera/screenshare after revoked permissions`,
           err,
         );
@@ -727,12 +733,14 @@ export class Call {
    * @param params.ring if set to true, a `call.ring` event will be sent to the call members.
    * @param params.notify if set to true, a `call.notification` event will be sent to the call members.
    * @param params.members_limit the total number of members to return as part of the response.
+   * @param params.video if set to true, in a ringing scenario, mobile SDKs will show "incoming video call", audio only otherwise.
    */
   get = async (params?: {
     ring?: boolean;
     notify?: boolean;
     members_limit?: number;
-  }) => {
+    video?: boolean;
+  }): Promise<GetCallResponse> => {
     await this.setup();
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
@@ -749,7 +757,7 @@ export class Call {
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
-      this.clientStore.registerCall(this);
+      this.clientStore.registerOrUpdateCall(this);
     }
 
     await this.applyDeviceConfig(response.call.settings, false);
@@ -779,7 +787,7 @@ export class Call {
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
-      this.clientStore.registerCall(this);
+      this.clientStore.registerOrUpdateCall(this);
     }
 
     await this.applyDeviceConfig(response.call.settings, false);
@@ -809,11 +817,14 @@ export class Call {
   };
 
   /**
-   * A shortcut for {@link Call.get} with `ring` parameter set to `true`.
-   * Will send a `call.ring` event to the call members.
+   * Sends a ring notification to the provided users who are not already in the call.
+   * All users should be members of the call.
    */
-  ring = async (): Promise<GetCallResponse> => {
-    return await this.get({ ring: true });
+  ring = async (data: RingCallRequest = {}): Promise<RingCallResponse> => {
+    return this.streamClient.post<RingCallResponse, RingCallRequest>(
+      `${this.streamClientBasePath}/ring`,
+      data,
+    );
   };
 
   /**
@@ -873,8 +884,6 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
-    this.state.setCallingState(CallingState.JOINING);
-
     // we will count the number of join failures per SFU.
     // once the number of failures reaches 2, we will piggyback on the `migrating_from`
     // field to force the coordinator to provide us another SFU
@@ -883,12 +892,12 @@ export class Call {
     maxJoinRetries = Math.max(maxJoinRetries, 1);
     for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
       try {
-        this.logger('trace', `Joining call (${attempt})`, this.cid);
+        this.logger.trace(`Joining call (${attempt})`, this.cid);
         await this.doJoin(data);
         delete joinData.migrating_from;
         break;
       } catch (err) {
-        this.logger('warn', `Failed to join call (${attempt})`, this.cid);
+        this.logger.warn(`Failed to join call (${attempt})`, this.cid);
         if (err instanceof ErrorFromResponse && err.unrecoverable) {
           // if the error is unrecoverable, we should not retry as that signals
           // that connectivity is good, but the coordinator doesn't allow the user
@@ -904,8 +913,6 @@ export class Call {
         }
 
         if (attempt === maxJoinRetries - 1) {
-          // restore the previous call state if the join-flow fails
-          this.state.setCallingState(callingState);
           throw err;
         }
       }
@@ -926,7 +933,7 @@ export class Call {
 
     this.joinCallData = data;
 
-    this.logger('debug', 'Starting join flow');
+    this.logger.debug('Starting join flow');
     this.state.setCallingState(CallingState.JOINING);
 
     const performingMigration =
@@ -980,6 +987,7 @@ export class Call {
           })
         : previousSfuClient;
     this.sfuClient = sfuClient;
+    this.unifiedSessionId ??= sfuClient.sessionId;
     this.dynascaleManager.setSfuClient(sfuClient);
 
     const clientDetails = await getClientDetails();
@@ -988,9 +996,11 @@ export class Call {
       // prepare a generic SDP and send it to the SFU.
       // these are throw-away SDPs that the SFU will use to determine
       // the capabilities of the client (codec support, etc.)
+      const { dangerouslyForceCodec, fmtpLine, subscriberFmtpLine } =
+        this.clientPublishOptions || {};
       const [subscriberSdp, publisherSdp] = await Promise.all([
-        getGenericSdp('recvonly'),
-        getGenericSdp('sendonly'),
+        getGenericSdp('recvonly', dangerouslyForceCodec, subscriberFmtpLine),
+        getGenericSdp('sendonly', dangerouslyForceCodec, fmtpLine),
       ]);
       const isReconnecting =
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
@@ -1007,6 +1017,7 @@ export class Call {
       try {
         const { callState, fastReconnectDeadlineSeconds, publishOptions } =
           await sfuClient.join({
+            unifiedSessionId: this.unifiedSessionId,
             subscriberSdp,
             publisherSdp,
             clientDetails,
@@ -1015,6 +1026,7 @@ export class Call {
             preferredPublishOptions,
             preferredSubscribeOptions,
             capabilities: Array.from(this.clientCapabilities),
+            source: ParticipantSource.WEBRTC_UNSPECIFIED,
           });
 
         this.currentPublishOptions = publishOptions;
@@ -1027,7 +1039,7 @@ export class Call {
           );
         }
       } catch (error) {
-        this.logger('warn', 'Join SFU request failed', error);
+        this.logger.warn('Join SFU request failed', error);
         sfuClient.close(
           StreamSfuClient.JOIN_FAILED,
           'Join request failed, connection considered unhealthy',
@@ -1059,6 +1071,7 @@ export class Call {
         statsOptions,
         publishOptions: this.currentPublishOptions || [],
         closePreviousInstances: !performingMigration,
+        unifiedSessionId: this.unifiedSessionId,
       });
     }
 
@@ -1098,7 +1111,7 @@ export class Call {
     this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
     this.reconnectReason = '';
 
-    this.logger('info', `Joined call ${this.cid}`);
+    this.logger.info(`Joined call ${this.cid}`);
   };
 
   /**
@@ -1220,6 +1233,7 @@ export class Call {
     clientDetails: ClientDetails;
     publishOptions: PublishOption[];
     closePreviousInstances: boolean;
+    unifiedSessionId: string;
   }) => {
     const {
       sfuClient,
@@ -1228,25 +1242,29 @@ export class Call {
       statsOptions,
       publishOptions,
       closePreviousInstances,
+      unifiedSessionId,
     } = opts;
     const { enable_rtc_stats: enableTracing } = statsOptions;
     if (closePreviousInstances && this.subscriber) {
       this.subscriber.dispose();
     }
-    this.subscriber = new Subscriber({
+    const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
       dispatcher: this.dispatcher,
       state: this.state,
       connectionConfig,
       tag: sfuClient.tag,
       enableTracing,
-      onReconnectionNeeded: (kind, reason) => {
+      clientPublishOptions: this.clientPublishOptions,
+      onReconnectionNeeded: (kind, reason, peerType) => {
         this.reconnect(kind, reason).catch((err) => {
-          const message = `[Reconnect] Error reconnecting after a subscriber error: ${reason}`;
-          this.logger('warn', message, err);
+          const message = `[Reconnect] Error reconnecting, after a ${PeerType[peerType]} error: ${reason}`;
+          this.logger.warn(message, err);
         });
       },
-    });
+    };
+
+    this.subscriber = new Subscriber(basePeerConnectionOptions);
 
     // anonymous users can't publish anything hence, there is no need
     // to create Publisher Peer Connection for them
@@ -1255,21 +1273,7 @@ export class Call {
       if (closePreviousInstances && this.publisher) {
         this.publisher.dispose();
       }
-      this.publisher = new Publisher({
-        sfuClient,
-        dispatcher: this.dispatcher,
-        state: this.state,
-        connectionConfig,
-        publishOptions,
-        tag: sfuClient.tag,
-        enableTracing,
-        onReconnectionNeeded: (kind, reason) => {
-          this.reconnect(kind, reason).catch((err) => {
-            const message = `[Reconnect] Error reconnecting after a publisher error: ${reason}`;
-            this.logger('warn', message, err);
-          });
-        },
-      });
+      this.publisher = new Publisher(basePeerConnectionOptions, publishOptions);
     }
 
     this.statsReporter?.stop();
@@ -1284,9 +1288,9 @@ export class Call {
     }
 
     this.tracer.setEnabled(enableTracing);
+    this.sfuStatsReporter?.flush();
     this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
-      this.unifiedSessionId ??= sfuClient.sessionId;
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
         options: statsOptions,
@@ -1296,7 +1300,7 @@ export class Call {
         camera: this.camera,
         state: this.state,
         tracer: this.tracer,
-        unifiedSessionId: this.unifiedSessionId,
+        unifiedSessionId,
       });
       this.sfuStatsReporter.start();
     }
@@ -1351,7 +1355,7 @@ export class Call {
     sfuClient: StreamSfuClient,
     reason: string,
   ) => {
-    this.logger('debug', '[Reconnect] SFU signal connection closed');
+    this.logger.debug('[Reconnect] SFU signal connection closed');
     const { callingState } = this.state;
     if (
       // SFU WS closed before we finished current join,
@@ -1374,7 +1378,7 @@ export class Call {
         ? WebsocketReconnectStrategy.FAST
         : WebsocketReconnectStrategy.REJOIN;
     this.reconnect(strategy, reason).catch((err) => {
-      this.logger('warn', '[Reconnect] Error reconnecting', err);
+      this.logger.warn('[Reconnect] Error reconnecting', err);
     });
   };
 
@@ -1420,8 +1424,7 @@ export class Call {
           reconnectingTime / 1000 > this.disconnectionTimeoutSeconds;
 
         if (shouldGiveUpReconnecting) {
-          this.logger(
-            'warn',
+          this.logger.warn(
             '[Reconnect] Stopping reconnection attempts after reaching disconnection timeout',
           );
           await markAsReconnectingFailed();
@@ -1438,16 +1441,14 @@ export class Call {
           // wait until the network is available
           await this.networkAvailableTask?.promise;
 
-          this.logger(
-            'info',
+          this.logger.info(
             `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[this.reconnectStrategy]}`,
           );
 
           switch (this.reconnectStrategy) {
             case WebsocketReconnectStrategy.UNSPECIFIED:
             case WebsocketReconnectStrategy.DISCONNECT:
-              this.logger(
-                'debug',
+              this.logger.debug(
                 `[Reconnect] No-op strategy ${currentStrategy}`,
               );
               break;
@@ -1470,8 +1471,7 @@ export class Call {
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
           if (this.state.callingState === CallingState.OFFLINE) {
-            this.logger(
-              'debug',
+            this.logger.debug(
               `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,
             );
             break;
@@ -1479,8 +1479,7 @@ export class Call {
             // network change event will trigger the reconnection
           }
           if (error instanceof ErrorFromResponse && error.unrecoverable) {
-            this.logger(
-              'warn',
+            this.logger.warn(
               `[Reconnect] Can't reconnect due to coordinator unrecoverable error`,
               error,
             );
@@ -1513,8 +1512,7 @@ export class Call {
             : WebsocketReconnectStrategy.FAST;
           this.reconnectStrategy = nextStrategy;
 
-          this.logger(
-            'info',
+          this.logger.info(
             `[Reconnect] ${currentStrategy} (${this.reconnectAttempts}) failed. Attempting with ${WebsocketReconnectStrategy[nextStrategy]}`,
             error,
           );
@@ -1524,7 +1522,7 @@ export class Call {
         this.state.callingState !== CallingState.RECONNECTING_FAILED &&
         this.state.callingState !== CallingState.LEFT
       );
-      this.logger('info', '[Reconnect] Reconnection flow finished');
+      this.logger.info('[Reconnect] Reconnection flow finished');
     });
   };
 
@@ -1626,7 +1624,7 @@ export class Call {
     // handles the legacy "goAway" event
     const unregisterGoAway = this.on('goAway', () => {
       this.reconnect(WebsocketReconnectStrategy.MIGRATE, 'goAway').catch(
-        (err) => this.logger('warn', '[Reconnect] Error reconnecting', err),
+        (err) => this.logger.warn('[Reconnect] Error reconnecting', err),
       );
     });
 
@@ -1636,11 +1634,11 @@ export class Call {
       if (strategy === WebsocketReconnectStrategy.UNSPECIFIED) return;
       if (strategy === WebsocketReconnectStrategy.DISCONNECT) {
         this.leave({ message: 'SFU instructed to disconnect' }).catch((err) => {
-          this.logger('warn', `Can't leave call after disconnect request`, err);
+          this.logger.warn(`Can't leave call after disconnect request`, err);
         });
       } else {
         this.reconnect(strategy, error?.message || 'SFU Error').catch((err) => {
-          this.logger('warn', '[Reconnect] Error reconnecting', err);
+          this.logger.warn('[Reconnect] Error reconnecting', err);
         });
       }
     });
@@ -1650,7 +1648,7 @@ export class Call {
       (e) => {
         this.tracer.trace('network.changed', e);
         if (!e.online) {
-          this.logger('debug', '[Reconnect] Going offline');
+          this.logger.debug('[Reconnect] Going offline');
           if (!this.hasJoinedOnce) return;
           this.lastOfflineTimestamp = Date.now();
           // create a new task that would resolve when the network is available
@@ -1667,8 +1665,7 @@ export class Call {
             }
 
             this.reconnect(strategy, 'Going online').catch((err) => {
-              this.logger(
-                'warn',
+              this.logger.warn(
                 '[Reconnect] Error reconnecting after going online',
                 err,
               );
@@ -1678,7 +1675,7 @@ export class Call {
           this.sfuStatsReporter?.stop();
           this.state.setCallingState(CallingState.OFFLINE);
         } else {
-          this.logger('debug', '[Reconnect] Going online');
+          this.logger.debug('[Reconnect] Going online');
           this.sfuClient?.close(
             StreamSfuClient.DISPOSE_OLD_SOCKET,
             'Closing WS to reconnect after going online',
@@ -1768,9 +1765,14 @@ export class Call {
    *
    * @param mediaStream the media stream to publish.
    * @param trackType the type of the track to announce.
+   * @param options the publish options.
    */
-  publish = async (mediaStream: MediaStream, trackType: TrackType) => {
-    if (!this.sfuClient) throw new Error(`Call not joined yet.`);
+  publish = async (
+    mediaStream: MediaStream,
+    trackType: TrackType,
+    options?: TrackPublishOptions,
+  ) => {
+    if (!this.sfuClient) throw new Error(`Call is not joined yet`);
     // joining is in progress, and we should wait until the client is ready
     await this.sfuClient.joinTask;
 
@@ -1795,15 +1797,16 @@ export class Call {
     }
 
     pushToIfMissing(this.trackPublishOrder, trackType);
-    await this.publisher.publish(track, trackType);
+    await this.publisher.publish(track, trackType, options);
 
     const trackTypes = [trackType];
     if (trackType === TrackType.SCREEN_SHARE) {
       const [audioTrack] = mediaStream.getAudioTracks();
       if (audioTrack) {
-        pushToIfMissing(this.trackPublishOrder, TrackType.SCREEN_SHARE_AUDIO);
-        await this.publisher.publish(audioTrack, TrackType.SCREEN_SHARE_AUDIO);
-        trackTypes.push(TrackType.SCREEN_SHARE_AUDIO);
+        const screenShareAudio = TrackType.SCREEN_SHARE_AUDIO;
+        pushToIfMissing(this.trackPublishOrder, screenShareAudio);
+        await this.publisher.publish(audioTrack, screenShareAudio, options);
+        trackTypes.push(screenShareAudio);
       }
     }
 
@@ -1862,14 +1865,12 @@ export class Call {
    * @param options the options to use.
    */
   updatePublishOptions = (options: ClientPublishOptions) => {
-    this.logger(
-      'warn',
+    this.logger.warn(
       '[call.updatePublishOptions]: You are manually overriding the publish options for this call. ' +
         'This is not recommended, and it can cause call stability/compatibility issues. Use with caution.',
     );
     if (this.state.callingState === CallingState.JOINED) {
-      this.logger(
-        'warn',
+      this.logger.warn(
         'Updating publish options after joining the call does not have an effect',
       );
     }
@@ -1883,7 +1884,7 @@ export class Call {
    */
   notifyNoiseCancellationStarting = async () => {
     return this.sfuClient?.startNoiseCancellation().catch((err) => {
-      this.logger('warn', 'Failed to notify start of noise cancellation', err);
+      this.logger.warn('Failed to notify start of noise cancellation', err);
     });
   };
 
@@ -1894,7 +1895,7 @@ export class Call {
    */
   notifyNoiseCancellationStopped = async () => {
     return this.sfuClient?.stopNoiseCancellation().catch((err) => {
-      this.logger('warn', 'Failed to notify stop of noise cancellation', err);
+      this.logger.warn('Failed to notify stop of noise cancellation', err);
     });
   };
 
@@ -2228,13 +2229,10 @@ export class Call {
 
   /**
    * Allows you to grant or revoke a specific permission to a user in a call. The permissions are specific to the call experience and do not survive the call itself.
-   *
    * When revoking a permission, this endpoint will also mute the relevant track from the user. This is similar to muting a user with the difference that the user will not be able to unmute afterwards.
-   *
    * Supported permissions that can be granted or revoked: `send-audio`, `send-video` and `screenshare`.
    *
    * `call.permissions_updated` event is sent to all members of the call.
-   *
    */
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
     return this.streamClient.post<
@@ -2479,7 +2477,7 @@ export class Call {
         reason: 'timeout',
         message: `ringing timeout - ${this.isCreatedByMe ? 'no one accepted' : `user didn't interact with incoming call screen`}`,
       }).catch((err) => {
-        this.logger('error', 'Failed to drop call', err);
+        this.logger.error('Failed to drop call', err);
       });
     }, timeoutInMs);
   };
@@ -2552,6 +2550,43 @@ export class Call {
   };
 
   /**
+   * Loads the call participant stats for the given parameters.
+   */
+  getCallParticipantsStats = async (opts: {
+    sessionId?: string;
+    userId?: string;
+    userSessionId?: string;
+    kind?: 'timeline' | 'details';
+  }): Promise<
+    | QueryCallSessionParticipantStatsResponse
+    | GetCallSessionParticipantStatsDetailsResponse
+    | QueryCallSessionParticipantStatsTimelineResponse
+    | undefined
+  > => {
+    const {
+      sessionId = this.state.session?.id,
+      userId = this.currentUserId,
+      userSessionId = this.unifiedSessionId,
+      kind = 'details',
+    } = opts;
+    if (!sessionId) return;
+    const base = `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${sessionId}`;
+    if (!userId || !userSessionId) {
+      return this.streamClient.get<QueryCallSessionParticipantStatsResponse>(
+        `${base}/participants`,
+      );
+    }
+    if (kind === 'details') {
+      return this.streamClient.get<GetCallSessionParticipantStatsDetailsResponse>(
+        `${base}/participant/${userId}/${userSessionId}/details`,
+      );
+    }
+    return this.streamClient.get<QueryCallSessionParticipantStatsTimelineResponse>(
+      `${base}/participants/${userId}/${userSessionId}/timeline`,
+    );
+  };
+
+  /**
    * Submit user feedback for the call
    *
    * @param rating Rating between 1 and 5 denoting the experience of the user in the call
@@ -2606,10 +2641,10 @@ export class Call {
     publish: boolean,
   ) => {
     await this.camera.apply(settings.video, publish).catch((err) => {
-      this.logger('warn', 'Camera init failed', err);
+      this.logger.warn('Camera init failed', err);
     });
     await this.microphone.apply(settings.audio, publish).catch((err) => {
-      this.logger('warn', 'Mic init failed', err);
+      this.logger.warn('Mic init failed', err);
     });
   };
 

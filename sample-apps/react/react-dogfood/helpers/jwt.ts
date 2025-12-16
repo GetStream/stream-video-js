@@ -48,7 +48,9 @@ export const createToken = async (
   });
 };
 
-export const decodeToken = (token: string): Record<string, any> => {
+export const decodeToken = (
+  token: string,
+): Record<string, string | undefined> => {
   const [, payload] = token.split('.');
   if (!payload) throw new Error('Malformed token, missing payload');
   try {

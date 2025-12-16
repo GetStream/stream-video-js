@@ -15,10 +15,16 @@ import {
   useParticipantLabelStyles,
   useVideoStyles,
 } from './hooks';
-import { LogoAndTitleOverlay, UIDispatcher } from './components';
+import {
+  DebugTimestamp,
+  LogoAndTitleOverlay,
+  UIDispatcher,
+} from './components';
 
 import './CompositeApp.scss';
 import { useParticipantStyles } from './hooks/options/useParticipantStyles';
+import { WithCustomActions } from './components/CustomActionsContext';
+import { useConfigurationContext } from './ConfigurationContext';
 
 export const CompositeApp = () => {
   const { client, call } = useInitializeClientAndCall();
@@ -28,16 +34,23 @@ export const CompositeApp = () => {
   // @ts-expect-error makes it easy to debug in the browser console
   window.client = client;
 
+  const {
+    options: { 'debug.show_timestamp': showDebugTimestamp = false },
+  } = useConfigurationContext();
+
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <StreamThemeWrapper>
-          <EgressReadyNotificationProvider>
-            <UIDispatcher />
-            <LogoAndTitleOverlay />
-          </EgressReadyNotificationProvider>
-          {/* <StyleComponent /> */}
-        </StreamThemeWrapper>
+        <WithCustomActions>
+          <StreamThemeWrapper>
+            <EgressReadyNotificationProvider>
+              <UIDispatcher />
+              <LogoAndTitleOverlay />
+              {showDebugTimestamp && <DebugTimestamp />}
+            </EgressReadyNotificationProvider>
+            {/* <StyleComponent /> */}
+          </StreamThemeWrapper>
+        </WithCustomActions>
       </StreamCall>
     </StreamVideo>
   );

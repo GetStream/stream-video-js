@@ -15,6 +15,7 @@ import {
   ICETrickle as ICETrickle$,
   Participant,
   ParticipantCount,
+  ParticipantSource,
   PeerType,
   Pin,
   PublishOption,
@@ -471,6 +472,14 @@ export interface JoinRequest {
    */
   sessionId: string;
   /**
+   * user_session id can change during reconnects, this helps us to
+   * identify the user across reconnects and should remain consistent until the user explicitly
+   * disconnects, is kicked or the call is ended.
+   *
+   * @generated from protobuf field: string unified_session_id = 13;
+   */
+  unifiedSessionId: string;
+  /**
    * dumb SDP that allow us to extract subscriber's decode codecs
    *
    * @generated from protobuf field: string subscriber_sdp = 3;
@@ -522,6 +531,10 @@ export interface JoinRequest {
    * @generated from protobuf field: repeated stream.video.sfu.models.ClientCapability capabilities = 11;
    */
   capabilities: ClientCapability[];
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.ParticipantSource source = 12;
+   */
+  source: ParticipantSource;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.ReconnectDetails
@@ -1349,6 +1362,12 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
       { no: 1, name: 'token', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       {
+        no: 13,
+        name: 'unified_session_id',
+        kind: 'scalar',
+        T: 9 /*ScalarType.STRING*/,
+      },
+      {
         no: 3,
         name: 'subscriber_sdp',
         kind: 'scalar',
@@ -1402,6 +1421,16 @@ class JoinRequest$Type extends MessageType<JoinRequest> {
           'stream.video.sfu.models.ClientCapability',
           ClientCapability,
           'CLIENT_CAPABILITY_',
+        ],
+      },
+      {
+        no: 12,
+        name: 'source',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.ParticipantSource',
+          ParticipantSource,
+          'PARTICIPANT_SOURCE_',
         ],
       },
     ]);

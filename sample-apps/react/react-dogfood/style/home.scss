@@ -87,6 +87,6 @@
 @include breakpoints.respond-above(md) {
   .rd__home-content,
   .rd__guest-page__content {
-    max-width: 25vw;
+    max-width: 30vw;
   }
 }

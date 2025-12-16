@@ -1,14 +1,14 @@
 import { Observable } from 'rxjs';
 import { Call } from '../Call';
 import { CameraDirection, CameraManagerState } from './CameraManagerState';
-import { InputMediaDeviceManager } from './InputMediaDeviceManager';
+import { DeviceManager } from './DeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
 import { OwnCapability, VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 
-export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
+export class CameraManager extends DeviceManager<CameraManagerState> {
   private targetResolution = {
     width: 1280,
     height: 720,
@@ -34,22 +34,22 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
    */
   async selectDirection(direction: Exclude<CameraDirection, undefined>) {
     if (!this.isDirectionSupportedByDevice()) {
-      this.logger('warn', 'Setting direction is not supported on this device');
+      this.logger.warn('Setting direction is not supported on this device');
       return;
     }
-
-    // providing both device id and direction doesn't work, so we deselect the device
-    this.state.setDirection(direction);
-    this.state.setDevice(undefined);
 
     if (isReactNative()) {
       const videoTrack = this.getTracks()[0] as MediaStreamTrack | undefined;
       await videoTrack?.applyConstraints({
         facingMode: direction === 'front' ? 'user' : 'environment',
       });
+    }
+    // providing both device id and direction doesn't work, so we deselect the device
+    this.state.setDirection(direction);
+    this.state.setDevice(undefined);
+    if (isReactNative()) {
       return;
     }
-
     this.getTracks().forEach((track) => track.stop());
     try {
       await this.unmuteStream();
@@ -86,7 +86,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
         await this.statusChangeSettled();
       } catch (error) {
         // couldn't enable device, target resolution will be applied the next time user attempts to start the device
-        this.logger('warn', 'could not apply target resolution', error);
+        this.logger.warn('could not apply target resolution', error);
       }
     }
     if (this.enabled && this.state.mediaStream) {
@@ -98,8 +98,7 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
         height !== this.targetResolution.height
       ) {
         await this.applySettingsToStream();
-        this.logger(
-          'debug',
+        this.logger.debug(
           `${width}x${height} target resolution applied to media stream`,
         );
       }
@@ -122,7 +121,8 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     // Wait for any in progress camera operation
     await this.statusChangeSettled();
 
-    const { target_resolution, camera_facing, camera_default_on } = settings;
+    const { target_resolution, camera_facing, camera_default_on, enabled } =
+      settings;
     // normalize target resolution to landscape format.
     // on mobile devices, the device itself adjusts the resolution to portrait or landscape
     // depending on the orientation of the device. using portrait resolution
@@ -142,17 +142,21 @@ export class CameraManager extends InputMediaDeviceManager<CameraManagerState> {
     if (this.enabled && mediaStream) {
       // The camera is already enabled (e.g. lobby screen). Publish the stream
       await this.publishStream(mediaStream);
-    } else if (this.state.status === undefined && camera_default_on) {
+    } else if (
+      this.state.status === undefined &&
+      camera_default_on &&
+      enabled
+    ) {
       // Start camera if backend config specifies, and there is no local setting
       await this.enable();
     }
   }
 
-  protected getDevices(): Observable<MediaDeviceInfo[]> {
+  protected override getDevices(): Observable<MediaDeviceInfo[]> {
     return getVideoDevices(this.call.tracer);
   }
 
-  protected getStream(
+  protected override getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
     constraints.width = this.targetResolution.width;

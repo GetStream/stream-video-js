@@ -9,6 +9,7 @@ import {
   Restricted,
   useCall,
   useCallStateHooks,
+  useI18n,
 } from '@stream-io/video-react-bindings';
 import {
   name,
@@ -100,6 +101,7 @@ const CallParticipantListContentHeader = ({
   setUserListType: Dispatch<SetStateAction<keyof typeof UserListTypes>>;
 }) => {
   const call = useCall();
+  const { t } = useI18n();
 
   const muteAll = useCallback(() => {
     call?.muteAllUsers('audio');
@@ -113,7 +115,7 @@ const CallParticipantListContentHeader = ({
             requiredGrants={[OwnCapability.MUTE_USERS]}
             hasPermissionsOnly
           >
-            <TextButton onClick={muteAll}>Mute all</TextButton>
+            <TextButton onClick={muteAll}>{t('Mute all')}</TextButton>
           </Restricted>
         )}
       </div>

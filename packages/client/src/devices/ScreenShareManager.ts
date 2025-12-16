@@ -1,13 +1,16 @@
 import { Observable, of } from 'rxjs';
-import { InputMediaDeviceManager } from './InputMediaDeviceManager';
+import {
+  AudioDeviceManager,
+  createAudioConstraints,
+} from './AudioDeviceManager';
 import { ScreenShareState } from './ScreenShareState';
 import { Call } from '../Call';
-import { TrackType } from '../gen/video/sfu/models/models';
+import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { getScreenShareStream } from './devices';
 import { ScreenShareSettings } from '../types';
 import { createSubscription } from '../store/rxUtils';
 
-export class ScreenShareManager extends InputMediaDeviceManager<
+export class ScreenShareManager extends AudioDeviceManager<
   ScreenShareState,
   DisplayMediaStreamOptions
 > {
@@ -23,6 +26,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
 
         if (maybeTargetResolution) {
           this.setDefaultConstraints({
+            ...this.state.defaultConstraints,
             video: {
               width: maybeTargetResolution.width,
               height: maybeTargetResolution.height,
@@ -73,7 +77,7 @@ export class ScreenShareManager extends InputMediaDeviceManager<
     return of([]); // there are no devices to be listed for Screen Share
   }
 
-  protected async getStream(
+  protected override async getStream(
     constraints: DisplayMediaStreamOptions,
   ): Promise<MediaStream> {
     if (!this.state.audioEnabled) {
@@ -90,6 +94,21 @@ export class ScreenShareManager extends InputMediaDeviceManager<
       track.contentHint = contentHint;
     }
     return stream;
+  }
+
+  protected override doSetAudioBitrateProfile(profile: AudioBitrateProfile) {
+    const { defaultConstraints } = this.state;
+    const baseAudioConstraints =
+      typeof defaultConstraints?.audio !== 'boolean'
+        ? defaultConstraints?.audio
+        : null;
+    this.setDefaultConstraints({
+      ...defaultConstraints,
+      audio: {
+        ...baseAudioConstraints,
+        ...createAudioConstraints(profile),
+      },
+    });
   }
 
   protected override async stopPublishStream(): Promise<void> {

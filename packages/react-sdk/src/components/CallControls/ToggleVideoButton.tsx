@@ -2,6 +2,7 @@ import {
   Restricted,
   useCallStateHooks,
   useI18n,
+  UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
 import { OwnCapability } from '@stream-io/video-client';
@@ -21,7 +22,8 @@ export type ToggleVideoPreviewButtonProps = PropsWithErrorHandler<
   Pick<
     IconButtonWithMenuProps,
     'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
-  >
+  > &
+    UseInputMediaDeviceOptions
 >;
 
 export const ToggleVideoPreviewButton = (
@@ -32,16 +34,18 @@ export const ToggleVideoPreviewButton = (
     Menu = DeviceSelectorVideo,
     menuPlacement = 'top',
     onMenuToggle,
+    optimisticUpdates,
     ...restCompositeButtonProps
   } = props;
   const { t } = useI18n();
   const { useCameraState } = useCallStateHooks();
   const {
     camera,
-    optimisticIsMute,
     hasBrowserPermission,
     isPromptingPermission,
-  } = useCameraState();
+    isTogglePending,
+    optionsAwareIsMute,
+  } = useCameraState({ optimisticUpdates });
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, () => camera.toggle());
 
@@ -55,19 +59,21 @@ export const ToggleVideoPreviewButton = (
       tooltipDisabled={tooltipDisabled}
     >
       <CompositeButton
-        active={optimisticIsMute}
+        active={optionsAwareIsMute}
         caption={caption}
         className={clsx(
           !hasBrowserPermission && 'str-video__device-unavailable',
         )}
         variant="secondary"
         data-testid={
-          optimisticIsMute
+          optionsAwareIsMute
             ? 'preview-video-unmute-button'
             : 'preview-video-mute-button'
         }
         onClick={handleClick}
-        disabled={!hasBrowserPermission}
+        disabled={
+          !hasBrowserPermission || (!optimisticUpdates && isTogglePending)
+        }
         Menu={Menu}
         menuPlacement={menuPlacement}
         {...restCompositeButtonProps}
@@ -76,7 +82,7 @@ export const ToggleVideoPreviewButton = (
           onMenuToggle?.(shown);
         }}
       >
-        <Icon icon={!optimisticIsMute ? 'camera' : 'camera-off'} />
+        <Icon icon={!optionsAwareIsMute ? 'camera' : 'camera-off'} />
         {!hasBrowserPermission && (
           <span
             className="str-video__no-media-permission"
@@ -100,7 +106,8 @@ type ToggleVideoPublishingButtonProps = PropsWithErrorHandler<
   Pick<
     IconButtonWithMenuProps,
     'caption' | 'Menu' | 'menuPlacement' | 'onMenuToggle'
-  >
+  > &
+    UseInputMediaDeviceOptions
 >;
 
 export const ToggleVideoPublishingButton = (
@@ -112,6 +119,7 @@ export const ToggleVideoPublishingButton = (
     Menu = <DeviceSelectorVideo visualType="list" />,
     menuPlacement = 'top',
     onMenuToggle,
+    optimisticUpdates,
     ...restCompositeButtonProps
   } = props;
 
@@ -121,10 +129,11 @@ export const ToggleVideoPublishingButton = (
   const { useCameraState, useCallSettings } = useCallStateHooks();
   const {
     camera,
-    optimisticIsMute,
+    optionsAwareIsMute,
     hasBrowserPermission,
     isPromptingPermission,
-  } = useCameraState();
+    isTogglePending,
+  } = useCameraState({ optimisticUpdates });
   const callSettings = useCallSettings();
   const isPublishingVideoAllowed = callSettings?.video.enabled;
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
@@ -160,16 +169,17 @@ export const ToggleVideoPublishingButton = (
           tooltipDisabled={tooltipDisabled}
         >
           <CompositeButton
-            active={optimisticIsMute}
+            active={optionsAwareIsMute}
             caption={caption}
             variant="secondary"
             disabled={
               !hasBrowserPermission ||
               !hasPermission ||
-              !isPublishingVideoAllowed
+              !isPublishingVideoAllowed ||
+              (!optimisticUpdates && isTogglePending)
             }
             data-testid={
-              optimisticIsMute ? 'video-unmute-button' : 'video-mute-button'
+              optionsAwareIsMute ? 'video-unmute-button' : 'video-mute-button'
             }
             onClick={handleClick}
             Menu={Menu}
@@ -181,7 +191,7 @@ export const ToggleVideoPublishingButton = (
               onMenuToggle?.(shown);
             }}
           >
-            <Icon icon={optimisticIsMute ? 'camera-off' : 'camera'} />
+            <Icon icon={optionsAwareIsMute ? 'camera-off' : 'camera'} />
             {(!hasBrowserPermission ||
               !hasPermission ||
               !isPublishingVideoAllowed) && (

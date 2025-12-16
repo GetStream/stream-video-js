@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { StreamChat, Event } from 'stream-chat';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { Event, StreamChat } from 'stream-chat';
 import { CHANNEL_TYPE } from '.';
 
 // FIXME: unread count 0 on load (even if before refresh was >0)
@@ -13,8 +14,9 @@ export const UnreadCountBadge = ({
   channelWatched: boolean;
 }) => {
   const [unread, setUnread] = useState(0);
-
-  const cid = `${CHANNEL_TYPE}:${channelId}`;
+  const router = useRouter();
+  const channelType = (router.query['channel_type'] as string) || CHANNEL_TYPE;
+  const cid = `${channelType}:${channelId}`;
 
   useEffect(() => {
     if (!client) return;
@@ -32,7 +34,6 @@ export const UnreadCountBadge = ({
 
     const handleEvent = () => {
       const channel = client.activeChannels[cid];
-
       setUnread(channel?.countUnread() ?? 0);
     };
 

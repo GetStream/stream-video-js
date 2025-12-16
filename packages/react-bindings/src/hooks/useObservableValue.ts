@@ -6,7 +6,7 @@ import { RxUtils } from '@stream-io/video-client';
  * Utility hook which provides the current value of the given observable.
  *
  * @param observable$ the observable to read data from.
- * @param defaultValue a default value. Used when the observable data can't be read or emits an error.
+ * @param defaultValue a default value. Used when the observable data can't be read or emits an error - must be stable.
  */
 export const useObservableValue = <T>(
   observable$: Observable<T>,

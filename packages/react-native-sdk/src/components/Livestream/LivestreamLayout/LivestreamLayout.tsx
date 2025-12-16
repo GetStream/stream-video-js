@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { hasScreenShare, SfuModels } from '@stream-io/video-client';
+import {
+  hasScreenShare,
+  SfuModels,
+  StreamVideoParticipant,
+} from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { usePaginatedLayoutSortPreset } from '../../../hooks/usePaginatedLayoutSortPreset';
@@ -9,6 +13,7 @@ import {
   type VideoRendererProps,
 } from '../../Participant';
 import type { ScreenShareOverlayProps } from '../../utility/ScreenShareOverlay';
+import { useTrackDimensions } from '../../../hooks';
 
 /**
  * Props for the LivestreamLayout component.
@@ -56,11 +61,6 @@ export const LivestreamLayout = ({
       React.ComponentProps<NonNullable<typeof VideoRenderer>>['objectFit']
     >();
 
-  // no need to pass object fit for local participant as the dimensions are for remote tracks
-  const objectFitToBeSet = currentSpeaker?.isLocalParticipant
-    ? undefined
-    : objectFit;
-
   const onDimensionsChange = useCallback(
     (d: SfuModels.VideoDimension | undefined) => {
       if (d) {
@@ -84,48 +84,57 @@ export const LivestreamLayout = ({
         livestreamLayout.container,
       ]}
     >
-      <RemoteVideoTrackDimensionsRenderLessComponent
-        onDimensionsChange={onDimensionsChange}
-      />
       {VideoRenderer &&
         hasOngoingScreenShare &&
         presenter &&
         (presenter.isLocalParticipant && ScreenShareOverlay ? (
           <ScreenShareOverlay />
         ) : (
-          <VideoRenderer trackType="screenShareTrack" participant={presenter} />
+          <>
+            <VideoRenderer
+              trackType="screenShareTrack"
+              objectFit={objectFit}
+              participant={presenter}
+            />
+            <VideoTrackDimensionsRenderLessComponent
+              onDimensionsChange={onDimensionsChange}
+              participant={presenter}
+              trackType="screenShareTrack"
+            />
+          </>
         ))}
       {VideoRenderer && !hasOngoingScreenShare && currentSpeaker && (
-        <VideoRenderer
-          participant={currentSpeaker}
-          objectFit={objectFitToBeSet}
-          trackType="videoTrack"
-        />
+        <>
+          <VideoRenderer
+            participant={currentSpeaker}
+            objectFit={objectFit}
+            trackType="videoTrack"
+          />
+          <VideoTrackDimensionsRenderLessComponent
+            onDimensionsChange={onDimensionsChange}
+            participant={currentSpeaker}
+            trackType="videoTrack"
+          />
+        </>
       )}
     </View>
   );
 };
 
-const RemoteVideoTrackDimensionsRenderLessComponent = ({
+const VideoTrackDimensionsRenderLessComponent = ({
   onDimensionsChange,
+  participant,
+  trackType,
 }: {
   onDimensionsChange: (d: SfuModels.VideoDimension | undefined) => void;
+  participant: StreamVideoParticipant;
+  trackType: 'videoTrack' | 'screenShareTrack';
 }) => {
-  const [dimension, setDimension] = useState<SfuModels.VideoDimension>();
-  const { useCallStatsReport } = useCallStateHooks();
-  const statsReport = useCallStatsReport();
-  const highestFrameHeight = statsReport?.subscriberStats?.highestFrameHeight;
-  const highestFrameWidth = statsReport?.subscriberStats?.highestFrameWidth;
+  const { width, height } = useTrackDimensions(participant, trackType);
 
   useEffect(() => {
-    if (highestFrameHeight && highestFrameWidth) {
-      setDimension({ height: highestFrameHeight, width: highestFrameWidth });
-    }
-  }, [highestFrameHeight, highestFrameWidth]);
-
-  useEffect(() => {
-    onDimensionsChange(dimension);
-  }, [dimension, onDimensionsChange]);
+    onDimensionsChange({ width, height });
+  }, [width, height, onDimensionsChange]);
 
   return null;
 };

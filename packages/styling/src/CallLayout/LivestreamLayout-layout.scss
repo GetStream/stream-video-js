@@ -100,6 +100,22 @@
       text-align: center;
     }
 
+    .str-video__livestream-layout__mute-button {
+      background: var(--str-video__icon--speaker) center no-repeat;
+      border-radius: var(--str-video__border-radius-xxs);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+
+      &.str-video__livestream-layout__mute-button--muted {
+        background: var(--str-video__icon--speaker-off) center no-repeat;
+      }
+
+      &:hover {
+        background-color: var(--str-video__overlay-color);
+      }
+    }
+
     .str-video__livestream-layout__go-fullscreen {
       background: var(--str-video__icon--fullscreen) center no-repeat;
       border-radius: var(--str-video__border-radius-xxs);

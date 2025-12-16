@@ -6,9 +6,9 @@ import React, {
   useState,
 } from 'react';
 import {
-  getLogger,
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
+  videoLoggerSystem,
 } from '@stream-io/video-client';
 
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
@@ -100,22 +100,18 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
     call.microphone
       .enableNoiseCancellation(ncInstance)
       .catch((err) =>
-        getLogger(['NoiseCancellationProvider'])(
-          'error',
-          `Can't initialize noise suppression`,
-          err,
-        ),
+        videoLoggerSystem
+          .getLogger('NoiseCancellationProvider')
+          .error(`Can't initialize noise suppression`, err),
       );
 
     return () => {
       call.microphone
         .disableNoiseCancellation()
         .catch((err) =>
-          getLogger(['NoiseCancellationProvider'])(
-            'error',
-            `Can't disable noise suppression`,
-            err,
-          ),
+          videoLoggerSystem
+            .getLogger('NoiseCancellationProvider')
+            .error(`Can't disable noise suppression`, err),
         );
       unsubscribe();
     };
@@ -134,9 +130,13 @@ export const NoiseCancellationProvider = (props: PropsWithChildren<{}>) => {
               ? enabledOrSetter(isEnabled)
               : enabledOrSetter;
           if (enable) {
-            ncInstance.enable();
+            ncInstance.enable().catch((err) => {
+              console.error('Failed to enable noise cancellation', err);
+            });
           } else {
-            ncInstance.disable();
+            ncInstance.disable().catch((err) => {
+              console.error('Failed to disable noise cancellation', err);
+            });
           }
         },
       }}

@@ -32,6 +32,9 @@ import Foundation
         }
     }
     
+    /// A closure called when the picture-in-picture state changes.
+    public var onPiPStateChange: ((Bool) -> Void)?
+    
     /// A boolean value indicating whether the picture-in-picture session should start automatically when the app enters background.
     public var canStartPictureInPictureAutomaticallyFromInline: Bool
     
@@ -102,6 +105,7 @@ import Foundation
     public func pictureInPictureControllerDidStartPictureInPicture(
         _ pictureInPictureController: AVPictureInPictureController
     ) {
+        onPiPStateChange?(true)
     }
     
     public func pictureInPictureController(
@@ -119,6 +123,7 @@ import Foundation
     public func pictureInPictureControllerDidStopPictureInPicture(
         _ pictureInPictureController: AVPictureInPictureController
     ) {
+        onPiPStateChange?(false)
     }
     
     // MARK: - Private helpers

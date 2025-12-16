@@ -7,11 +7,8 @@ import {
   Platform,
 } from 'react-native';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
-import {
-  disablePiPMode$,
-  isInPiPModeAndroid$,
-} from '../../utils/internal/rxSubjects';
-import { getLogger, RxUtils } from '@stream-io/video-client';
+import { disablePiPMode$, isInPiPMode$ } from '../../utils/internal/rxSubjects';
+import { RxUtils, videoLoggerSystem } from '@stream-io/video-client';
 
 const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
 
@@ -32,17 +29,16 @@ export const AppStateListener = () => {
     }
 
     const disablePiP = RxUtils.getCurrentValue(disablePiPMode$);
-    const logger = getLogger(['AppStateListener']);
+    const logger = videoLoggerSystem.getLogger('AppStateListener');
     const initialPipMode =
       !disablePiP && AppState.currentState === 'background';
-    isInPiPModeAndroid$.next(initialPipMode);
-    logger('debug', 'Initial PiP mode on mount set to ', initialPipMode);
+    isInPiPMode$.next(initialPipMode);
+    logger.debug('Initial PiP mode on mount set to ', initialPipMode);
 
     NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
       (isInPiP: boolean | null | undefined) => {
-        isInPiPModeAndroid$.next(!!isInPiP);
-        logger(
-          'debug',
+        isInPiPMode$.next(!!isInPiP);
+        logger.debug(
           'Initial PiP mode on mount (after asking native module) set to ',
           !!isInPiP,
         );
@@ -56,7 +52,7 @@ export const AppStateListener = () => {
     const subscriptionPiPChange = eventEmitter.addListener(
       PIP_CHANGE_EVENT,
       (isInPiPMode: boolean) => {
-        isInPiPModeAndroid$.next(isInPiPMode);
+        isInPiPMode$.next(isInPiPMode);
       },
     );
 
@@ -70,7 +66,7 @@ export const AppStateListener = () => {
     // we dont check for inactive states
     // ref: https://www.reddit.com/r/reactnative/comments/15kib42/appstate_behavior_in_ios_when_swiping_down_to/
     const subscription = AppState.addEventListener('change', (nextAppState) => {
-      const logger = getLogger(['AppStateListener']);
+      const logger = videoLoggerSystem.getLogger('AppStateListener');
       if (appState.current.match(/background/) && nextAppState === 'active') {
         if (call?.camera?.state.status === 'enabled') {
           // Android: when device is locked and resumed, the status isnt made disabled but stays enabled
@@ -79,15 +75,12 @@ export const AppStateListener = () => {
           call?.camera?.disable(true).then(() => {
             call?.camera?.enable();
           });
-          logger(
-            'debug',
-            'Disable and reenable camera as app came to foreground',
-          );
+          logger.debug('Disable and reenable camera as app came to foreground');
         } else {
           if (cameraDisabledByAppState.current) {
             call?.camera?.resume();
             cameraDisabledByAppState.current = false;
-            logger('debug', 'Resume camera as app came to foreground');
+            logger.debug('Resume camera as app came to foreground');
           }
         }
         appState.current = nextAppState;
@@ -99,7 +92,7 @@ export const AppStateListener = () => {
           if (call?.camera?.state.status === 'enabled') {
             cameraDisabledByAppState.current = true;
             call?.camera?.disable();
-            logger('debug', 'Camera disabled by app going to background');
+            logger.debug('Camera disabled by app going to background');
           }
         };
         if (Platform.OS === 'android') {
@@ -108,11 +101,11 @@ export const AppStateListener = () => {
           if (isAndroid8OrAbove) {
             // set with an assumption that its enabled so that UI disabling happens faster
             const disablePiP = RxUtils.getCurrentValue(disablePiPMode$);
-            isInPiPModeAndroid$.next(!disablePiP);
+            isInPiPMode$.next(!disablePiP);
             // if PiP was not enabled anyway, then in the next code we ll set it to false and UI wont be shown anyway
             NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
               (isInPiP: boolean | null | undefined) => {
-                isInPiPModeAndroid$.next(!!isInPiP);
+                isInPiPMode$.next(!!isInPiP);
                 if (!isInPiP) {
                   if (AppState.currentState === 'active') {
                     // this is to handle the case that the app became active as soon as it went to background

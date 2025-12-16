@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { Call } from '../../Call';
 import { Dispatcher } from '../../rtc';
 import { CallState } from '../../store';
@@ -30,13 +31,12 @@ describe('internal events', () => {
     dispatcher.dispatch({
       eventPayload: {
         oneofKind: 'connectionQualityChanged',
-        // @ts-expect-error incomplete data
         connectionQualityChanged: {
           connectionQualityUpdates: [
-            {
+            fromPartial({
               sessionId: 'session-1',
               connectionQuality: ConnectionQuality.EXCELLENT,
-            },
+            }),
           ],
         },
       },
@@ -60,7 +60,6 @@ describe('internal events', () => {
     dispatcher.dispatch({
       eventPayload: {
         oneofKind: 'healthCheckResponse',
-        // @ts-expect-error incomplete data
         healthCheckResponse: { participantCount: { total: 5, anonymous: 2 } },
       },
     });
@@ -118,20 +117,35 @@ describe('internal events', () => {
   it('handles pinUpdated', () => {
     const state = new CallState();
     state.setParticipants([
-      // @ts-expect-error incomplete data
-      { userId: 'u1', sessionId: 'session-1', pin: { isLocalPin: false } },
-      // @ts-expect-error incomplete data
-      { userId: 'u2', sessionId: 'session-2', pin: { isLocalPin: false } },
+      fromPartial({
+        userId: 'u1',
+        sessionId: 'session-1',
+        publishedTracks: [],
+      }),
+      fromPartial({
+        userId: 'u2',
+        sessionId: 'session-2',
+        publishedTracks: [],
+      }),
     ]);
-    const update = watchPinsUpdated(state);
-    update({ pins: [{ userId: 'u1', sessionId: 'session-1' }] });
+
+    watchPinsUpdated(state)({
+      pins: [{ userId: 'u1', sessionId: 'session-1' }],
+    });
+
     expect(state.participants).toEqual([
       {
         userId: 'u1',
         sessionId: 'session-1',
         pin: { isLocalPin: false, pinnedAt: expect.any(Number) },
+        publishedTracks: [],
       },
-      { userId: 'u2', sessionId: 'session-2', pin: undefined },
+      {
+        userId: 'u2',
+        sessionId: 'session-2',
+        pin: undefined,
+        publishedTracks: [],
+      },
     ]);
   });
 

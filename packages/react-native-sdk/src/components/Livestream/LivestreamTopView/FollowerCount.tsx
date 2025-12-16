@@ -1,18 +1,29 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../../contexts';
+import { humanize } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Eye } from '../../../icons';
 
 /**
  * Props for the FollowerCount component.
  */
-export type FollowerCountProps = {};
+export type FollowerCountProps = {
+  /**
+   * Humanize the participant count. @default true
+   * @example 1000 -> 1k
+   * @example 1450 -> 1.45k
+   * @example 1000000 -> 1m
+   */
+  humanizeParticipantCount?: boolean;
+};
 
 /**
  * The FollowerCount component that displays the number of participants while in the call.
  */
-export const FollowerCount = ({}: FollowerCountProps) => {
+export const FollowerCount = ({
+  humanizeParticipantCount = true,
+}: FollowerCountProps) => {
   const styles = useStyles();
   const {
     theme: { followerCount },
@@ -27,7 +38,9 @@ export const FollowerCount = ({}: FollowerCountProps) => {
         <Eye />
       </View>
       <Text style={[styles.label, followerCount.label]}>
-        {totalParticipants}
+        {humanizeParticipantCount
+          ? humanize(totalParticipants)
+          : totalParticipants}
       </Text>
     </View>
   );

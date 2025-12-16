@@ -2,6 +2,46 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.5.1...@stream-io/video-filters-web-0.6.0) (2025-12-08)
+
+### Features
+
+- **react:** Video Call moderation for React SDK ([#2007](https://github.com/GetStream/stream-video-js/issues/2007)) ([e242d35](https://github.com/GetStream/stream-video-js/commit/e242d35cc619d1ad0fc55d01944e97269af60cdf))
+
+### Bug Fixes
+
+- **react:** Prevent frame exhaustion in fallback MediaStreamTrackProcessor ([#2019](https://github.com/GetStream/stream-video-js/issues/2019)) ([b06e130](https://github.com/GetStream/stream-video-js/commit/b06e1301c2d5a8bdcb2a75389b4b39fafec6c7b2))
+
+## [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.5.0...@stream-io/video-filters-web-0.5.1) (2025-11-25)
+
+### Bug Fixes
+
+- **react:** Fix InvalidStateException when track is stopped ([#2015](https://github.com/GetStream/stream-video-js/issues/2015)) ([d3c0331](https://github.com/GetStream/stream-video-js/commit/d3c0331803e5a512a93bd972883f27ac81689c61))
+
+## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.4.0...@stream-io/video-filters-web-0.5.0) (2025-11-17)
+
+### Features
+
+- **react:** Improved Video Filters ([#1977](https://github.com/GetStream/stream-video-js/issues/1977)) ([f8831f1](https://github.com/GetStream/stream-video-js/commit/f8831f152a716ebf4e9656f32a8f83b707db779f))
+
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.3.0...@stream-io/video-filters-web-0.4.0) (2025-10-30)
+
+### Features
+
+- Migrate logger to js-toolkit logger implementation ([#1959](https://github.com/GetStream/stream-video-js/issues/1959)) ([5a424f7](https://github.com/GetStream/stream-video-js/commit/5a424f72cec2a8cbc0bfa23147d9988ab9bfbdc1))
+
+## [0.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.2.2...@stream-io/video-filters-web-0.3.0) (2025-10-14)
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+
+## [0.2.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.2.1...@stream-io/video-filters-web-0.2.2) (2025-09-17)
+
+### Bug Fixes
+
+- **video-filters:** prevent background tab throttling ([#1920](https://github.com/GetStream/stream-video-js/issues/1920)) ([f93d5cc](https://github.com/GetStream/stream-video-js/commit/f93d5cc5785957c7f181fcaf689ec366df9e646b))
+
 ## [0.2.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.2.0...@stream-io/video-filters-web-0.2.1) (2025-05-15)
 
 ### Bug Fixes

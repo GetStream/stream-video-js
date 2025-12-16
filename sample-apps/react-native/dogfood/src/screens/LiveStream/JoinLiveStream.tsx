@@ -1,14 +1,14 @@
 import { useI18n, useTheme } from '@stream-io/video-react-native-sdk';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
   ViewStyle,
-  TouchableOpacity,
 } from 'react-native';
 import { useAppGlobalStoreValue } from '../../contexts/AppContext';
 import { TextInput } from '../../components/TextInput';

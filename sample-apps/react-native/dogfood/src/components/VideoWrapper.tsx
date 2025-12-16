@@ -13,6 +13,7 @@ import { createToken } from '../modules/helpers/createToken';
 import translations from '../translations';
 import { useCustomTheme } from '../theme';
 import axios, { AxiosResponseTransformer } from 'axios';
+import { Alert } from 'react-native';
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const userId = useAppGlobalStoreValue((store) => store.userId);
@@ -44,6 +45,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
 
   useEffect(() => {
     let _videoClient: StreamVideoClient | undefined;
+    let unsubscribeCallRejected: (() => void) | undefined;
     const run = async () => {
       const fetchAuthDetails = async () => {
         return await createToken({ user_id: user.id }, appEnvironment);
@@ -57,6 +59,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         token,
         tokenProvider,
         options: {
+          rejectCallWhenBusy: true,
           logLevel: 'debug',
           logger: (level, message, ...args) => {
             if (
@@ -75,6 +78,21 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
             : undefined,
         },
       });
+
+      unsubscribeCallRejected = _videoClient?.on(
+        'call.rejected',
+        async (event) => {
+          const isCallCreatedByMe =
+            event.call.created_by.id === _videoClient?.state.connectedUser?.id;
+          const calleeName = event.user.name ?? event.user.id;
+          const isCalleeBusy = isCallCreatedByMe && event.reason === 'busy';
+
+          if (isCalleeBusy) {
+            Alert.alert('Call rejected', `User: ${calleeName} is busy.`);
+          }
+        },
+      );
+
       setVideoClient(_videoClient);
     };
     if (user.id) {
@@ -84,6 +102,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
     }
 
     return () => {
+      unsubscribeCallRejected?.();
       _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };

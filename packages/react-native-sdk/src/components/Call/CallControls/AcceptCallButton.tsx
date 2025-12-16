@@ -1,9 +1,9 @@
 import { useCall } from '@stream-io/video-react-bindings';
-import { getLogger } from '@stream-io/video-client';
 import React, { useState } from 'react';
 import { CallControlsButton } from './CallControlsButton';
 import { IconWrapper, Phone } from '../../../icons';
 import { useTheme } from '../../../contexts/ThemeContext';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 /**
  * The props for the Accept Call button.
@@ -52,8 +52,8 @@ export const AcceptCallButton = ({
         onAcceptCallHandler();
       }
     } catch (error) {
-      const logger = getLogger(['AcceptCallButton']);
-      logger('error', 'Error joining Call', error);
+      const logger = videoLoggerSystem.getLogger('AcceptCallButton');
+      logger.error('Error joining Call', error);
     } finally {
       setIsLoading(false);
     }

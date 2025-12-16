@@ -1,8 +1,9 @@
 import {
+  callManager,
   StreamCall,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
-import React, { PropsWithChildren } from 'react';
+import React, { PropsWithChildren, useEffect } from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
 import { useSetCall } from '../../hooks/useSetCall';
@@ -41,21 +42,17 @@ export const ViewLiveStreamChildren = ({
     params: { callId },
   } = route;
 
-  const client = useStreamVideoClient();
-  const call = useSetCall(callId, 'livestream', client);
-
-  if (!call) {
-    return null;
-  }
+  useEffect(() => {
+    callManager.start({ audioRole: 'listener' });
+    return () => {
+      callManager.stop();
+    };
+  }, []);
 
   /**
    * Note: Here we provide the `StreamCall` component again. This is done, so that the call used, is created by the anonymous user.
    */
-  return (
-    <StreamCall call={call}>
-      <LivestreamPlayer callId={callId} callType="livestream" />
-    </StreamCall>
-  );
+  return <LivestreamPlayer callId={callId} callType="livestream" />;
 };
 
 export const ViewLiveStreamScreen = ({

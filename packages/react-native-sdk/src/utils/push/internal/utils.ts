@@ -1,16 +1,15 @@
 import {
   Call,
   CallingState,
-  getLogger,
-  RxUtils,
   StreamVideoClient,
+  videoLoggerSystem,
 } from '@stream-io/video-client';
 import type {
   NonRingingPushEvent,
   StreamVideoConfig,
 } from '../../StreamVideoRN/types';
 import { onNewCallNotification } from '../../internal/newNotificationCallbacks';
-import { pushUnsubscriptionCallbacks$ } from './rxSubjects';
+import { pushUnsubscriptionCallbacks } from './constants';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -57,10 +56,11 @@ export const shouldCallBeEnded = (
       callkeepReason = 4;
     }
   }
-  getLogger(['shouldCallBeEnded'])(
-    'debug',
-    `callCid: ${callFromPush.cid} mustEndCall: ${mustEndCall} callkeepReason: ${callkeepReason}`,
-  );
+  videoLoggerSystem
+    .getLogger('shouldCallBeEnded')
+    .debug(
+      `callCid: ${callFromPush.cid} mustEndCall: ${mustEndCall} callkeepReason: ${callkeepReason}`,
+    );
   return { mustEndCall, callkeepReason };
 };
 
@@ -81,8 +81,10 @@ export const processCallFromPushInBackground = async (
       return;
     }
   } catch (e) {
-    const logger = getLogger(['processCallFromPushInBackground']);
-    logger('error', 'failed to create video client', e);
+    const logger = videoLoggerSystem.getLogger(
+      'processCallFromPushInBackground',
+    );
+    logger.error('failed to create video client', e);
     return;
   }
   await processCallFromPush(videoClient, call_cid, action, pushConfig);
@@ -105,8 +107,8 @@ export const processCallFromPush = async (
   try {
     callFromPush = await client.onRingingCall(call_cid);
   } catch (e) {
-    const logger = getLogger(['processCallFromPush']);
-    logger('error', 'failed to fetch call from push notification', e);
+    const logger = videoLoggerSystem.getLogger('processCallFromPush');
+    logger.error('failed to fetch call from push notification', e);
     return;
   }
   // note: when action was pressed or delivered, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
@@ -115,27 +117,25 @@ export const processCallFromPush = async (
       if (pushConfig.publishOptions) {
         callFromPush.updatePublishOptions(pushConfig.publishOptions);
       }
-      getLogger(['processCallFromPush'])(
-        'debug',
-        `joining call from push notification with callCid: ${callFromPush.cid}`,
-      );
+      videoLoggerSystem
+        .getLogger('processCallFromPush')
+        .debug(
+          `joining call from push notification with callCid: ${callFromPush.cid}`,
+        );
       await callFromPush.join();
     } else if (action === 'decline') {
       const canReject =
         callFromPush.state.callingState === CallingState.RINGING;
-      getLogger(['processCallFromPush'])(
-        'debug',
-        `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`,
-      );
+      videoLoggerSystem
+        .getLogger('processCallFromPush')
+        .debug(
+          `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`,
+        );
       await callFromPush.leave({ reject: canReject, reason: 'decline' });
     }
   } catch (e) {
-    const logger = getLogger(['processCallFromPush']);
-    logger(
-      'warn',
-      `failed to process ${action} call from push notification`,
-      e,
-    );
+    const logger = videoLoggerSystem.getLogger('processCallFromPush');
+    logger.warn(`failed to process ${action} call from push notification`, e);
   }
 };
 
@@ -163,8 +163,10 @@ export const processNonIncomingCallFromPush = async (
       await callFromPush.get();
     }
   } catch (e) {
-    const logger = getLogger(['processNonIncomingCallFromPush']);
-    logger('error', 'failed to fetch call from push notification', e);
+    const logger = videoLoggerSystem.getLogger(
+      'processNonIncomingCallFromPush',
+    );
+    logger.error('failed to fetch call from push notification', e);
     return;
   }
   onNewCallNotification(callFromPush, nonRingingNotificationType);
@@ -174,14 +176,12 @@ export const processNonIncomingCallFromPush = async (
  * This function is used to clear all the push related WS subscriptions
  * note: events are subscribed in push for accept/decline through WS
  */
-export const clearPushWSEventSubscriptions = () => {
-  const unsubscriptionCallbacks = RxUtils.getCurrentValue(
-    pushUnsubscriptionCallbacks$,
-  );
+export const clearPushWSEventSubscriptions = (call_cid: string) => {
+  const unsubscriptionCallbacks = pushUnsubscriptionCallbacks.get(call_cid);
   if (unsubscriptionCallbacks) {
     unsubscriptionCallbacks.forEach((cb) => cb());
+    pushUnsubscriptionCallbacks.delete(call_cid);
   }
-  pushUnsubscriptionCallbacks$.next(undefined);
 };
 
 /**

@@ -1,5 +1,6 @@
 import { StreamVideoParticipant, VisibilityState } from '../types';
 import { combineComparators, conditional } from './comparator';
+import { ParticipantSource } from '../gen/video/sfu/models/models';
 import {
   dominantSpeaker,
   pinned,
@@ -9,6 +10,7 @@ import {
   role,
   screenSharing,
   speaking,
+  withParticipantSource,
 } from './participants';
 
 // a comparator decorator which applies the decorated comparator only if the
@@ -34,11 +36,21 @@ const ifInvisibleOrUnknownBy = conditional(
 );
 
 /**
+ * A comparator that prioritizes participants with video ingress sources.
+ */
+const withVideoIngressSource = withParticipantSource(
+  ParticipantSource.RTMP,
+  ParticipantSource.SRT,
+  ParticipantSource.WHIP,
+  ParticipantSource.RTSP,
+);
+
+/**
  * The default sorting preset.
  */
 export const defaultSortPreset = combineComparators(
-  pinned,
   screenSharing,
+  pinned,
   ifInvisibleBy(
     combineComparators(
       dominantSpeaker,
@@ -48,25 +60,24 @@ export const defaultSortPreset = combineComparators(
       publishingAudio,
     ),
   ),
-  // ifInvisibleBy(name),
 );
 
 /**
  * The sorting preset for speaker layout.
  */
 export const speakerLayoutSortPreset = combineComparators(
-  pinned,
   screenSharing,
+  pinned,
   dominantSpeaker,
   ifInvisibleBy(
     combineComparators(
       speaking,
       reactionType('raised-hand'),
+      withVideoIngressSource,
       publishingVideo,
       publishingAudio,
     ),
   ),
-  // ifInvisibleBy(name),
 );
 
 /**
@@ -80,11 +91,11 @@ export const paginatedLayoutSortPreset = combineComparators(
       dominantSpeaker,
       speaking,
       reactionType('raised-hand'),
+      withVideoIngressSource,
       publishingVideo,
       publishingAudio,
     ),
   ),
-  // ifInvisibleOrUnknownBy(name),
 );
 
 /**
@@ -96,10 +107,10 @@ export const livestreamOrAudioRoomSortPreset = combineComparators(
       dominantSpeaker,
       speaking,
       reactionType('raised-hand'),
+      withVideoIngressSource,
       publishingVideo,
       publishingAudio,
     ),
   ),
   role('admin', 'host', 'speaker'),
-  // name,
 );

@@ -2,6 +2,154 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.38.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.1...@stream-io/video-client-1.38.2) (2025-12-11)
+
+### Bug Fixes
+
+- revert usage of useSyncExternalStore ([#2043](https://github.com/GetStream/stream-video-js/issues/2043)) ([849e896](https://github.com/GetStream/stream-video-js/commit/849e8964ac90d5785a6d608443f80156d1081744)), closes [#1953](https://github.com/GetStream/stream-video-js/issues/1953) [#2034](https://github.com/GetStream/stream-video-js/issues/2034) [#2006](https://github.com/GetStream/stream-video-js/issues/2006) [#2008](https://github.com/GetStream/stream-video-js/issues/2008)
+
+## [1.38.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.0...@stream-io/video-client-1.38.1) (2025-12-08)
+
+### Bug Fixes
+
+- added call state update for handling case when call.ring event as not triggered ([#2035](https://github.com/GetStream/stream-video-js/issues/2035)) ([3c79665](https://github.com/GetStream/stream-video-js/commit/3c79665323ad5172d3af35e9ee2f86655ac11670))
+- **state:** ensure stable empty array for participant predicates ([#2036](https://github.com/GetStream/stream-video-js/issues/2036)) ([1aa72c8](https://github.com/GetStream/stream-video-js/commit/1aa72c8daf482bd157866960b4b9a92e272ac90b)), closes [#2034](https://github.com/GetStream/stream-video-js/issues/2034) [#2008](https://github.com/GetStream/stream-video-js/issues/2008)
+
+## [1.38.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.3...@stream-io/video-client-1.38.0) (2025-12-08)
+
+### Features
+
+- **LivestreamLayout:** Enrich with mute option and humanized participant count ([#2027](https://github.com/GetStream/stream-video-js/issues/2027)) ([cdc0c4f](https://github.com/GetStream/stream-video-js/commit/cdc0c4f985ab15a6c2e184b73432911510b43f99))
+- **react:** Extend the statistics report with audio stats ([#2020](https://github.com/GetStream/stream-video-js/issues/2020)) ([0f4df3c](https://github.com/GetStream/stream-video-js/commit/0f4df3ce5f3b865c8ef09766dd72bc33f65539f3))
+
+## [1.37.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.2...@stream-io/video-client-1.37.3) (2025-11-25)
+
+- instructions for Claude and other coding agents ([#2012](https://github.com/GetStream/stream-video-js/issues/2012)) ([08a3459](https://github.com/GetStream/stream-video-js/commit/08a345954f7cb5b1fae5a4b39b5b585bf1f631ec))
+
+### Bug Fixes
+
+- **noise cancellation:** delay toggling until initialization is finished ([#2014](https://github.com/GetStream/stream-video-js/issues/2014)) ([d28b8ea](https://github.com/GetStream/stream-video-js/commit/d28b8ea282322a25688ff48966b0dc10dd7e60bd))
+
+## [1.37.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.1...@stream-io/video-client-1.37.2) (2025-11-20)
+
+### Bug Fixes
+
+- **react-bindings:** getSnapshot caching ([#2008](https://github.com/GetStream/stream-video-js/issues/2008)) ([ed0983c](https://github.com/GetStream/stream-video-js/commit/ed0983cf2d1525a2faaa0b9e9387ac448b35c8e1)), closes [#2006](https://github.com/GetStream/stream-video-js/issues/2006) [#1953](https://github.com/GetStream/stream-video-js/issues/1953)
+
+## [1.37.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.0...@stream-io/video-client-1.37.1) (2025-11-17)
+
+### Bug Fixes
+
+- dynascale manager doesnt pick up updated dimensions all the time ([#2001](https://github.com/GetStream/stream-video-js/issues/2001)) ([d91e008](https://github.com/GetStream/stream-video-js/commit/d91e008f27fa2a4324f22555fbe0a59afe702bbb))
+
+## [1.37.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.36.1...@stream-io/video-client-1.37.0) (2025-11-14)
+
+### Features
+
+- ring individual members ([#1755](https://github.com/GetStream/stream-video-js/issues/1755)) ([57564d6](https://github.com/GetStream/stream-video-js/commit/57564d63f21da7b95b582f74c88b24af7e77659c))
+
+## [1.36.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.36.0...@stream-io/video-client-1.36.1) (2025-11-12)
+
+- enforce the client to publish options on SDP level ([#1976](https://github.com/GetStream/stream-video-js/issues/1976)) ([1d93f72](https://github.com/GetStream/stream-video-js/commit/1d93f72cb4395aaf9b487eb66e0c3b6a8111aca4))
+
+## [1.36.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.35.1...@stream-io/video-client-1.36.0) (2025-10-30)
+
+### Features
+
+- Migrate logger to js-toolkit logger implementation ([#1959](https://github.com/GetStream/stream-video-js/issues/1959)) ([5a424f7](https://github.com/GetStream/stream-video-js/commit/5a424f72cec2a8cbc0bfa23147d9988ab9bfbdc1))
+
+## [1.35.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.35.0...@stream-io/video-client-1.35.1) (2025-10-27)
+
+- **deps-dev:** bump happy-dom from 20.0.0 to 20.0.2 ([#1970](https://github.com/GetStream/stream-video-js/issues/1970)) ([702f409](https://github.com/GetStream/stream-video-js/commit/702f409b2e5529e7b8f1cfc757e2e776c75deacf)), closes [#1934](https://github.com/GetStream/stream-video-js/issues/1934) [#1932](https://github.com/GetStream/stream-video-js/issues/1932) [#0](https://github.com/GetStream/stream-video-js/issues/0) [#1934](https://github.com/GetStream/stream-video-js/issues/1934) [#0](https://github.com/GetStream/stream-video-js/issues/0) [#1932](https://github.com/GetStream/stream-video-js/issues/1932)
+
+## [1.35.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.34.1...@stream-io/video-client-1.35.0) (2025-10-24)
+
+### Features
+
+- Participant Stats ([#1922](https://github.com/GetStream/stream-video-js/issues/1922)) ([b96de03](https://github.com/GetStream/stream-video-js/commit/b96de03a2b96db2288a6d2d52a25d3deea9148d8))
+
+## [1.34.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.34.0...@stream-io/video-client-1.34.1) (2025-10-17)
+
+### Bug Fixes
+
+- camera toggle along with flip ([#1961](https://github.com/GetStream/stream-video-js/issues/1961)) ([2703121](https://github.com/GetStream/stream-video-js/commit/2703121d27aee7a54bdc07b99a30feea9a4e4512))
+
+## [1.34.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.33.1...@stream-io/video-client-1.34.0) (2025-10-14)
+
+- use fromPartial instead of suppressing ts-errors ([#1949](https://github.com/GetStream/stream-video-js/issues/1949)) ([95e5654](https://github.com/GetStream/stream-video-js/commit/95e5654e2bac5dc7c5126079795fca9951652290))
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+- move audio route manager inside SDK ([#1840](https://github.com/GetStream/stream-video-js/issues/1840)) ([847dd30](https://github.com/GetStream/stream-video-js/commit/847dd30d6240a0780fe3d58d681554bc392f6f51)), closes [#1829](https://github.com/GetStream/stream-video-js/issues/1829)
+
+### Bug Fixes
+
+- flush rtc stats when reconnecting ([#1946](https://github.com/GetStream/stream-video-js/issues/1946)) ([fb1f6fc](https://github.com/GetStream/stream-video-js/commit/fb1f6fcb2837154a4fe746a6efe4f9a4830bca20))
+
+## [1.33.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.33.0...@stream-io/video-client-1.33.1) (2025-10-02)
+
+### Bug Fixes
+
+- ensure ingress participants are prioritized ([#1943](https://github.com/GetStream/stream-video-js/issues/1943)) ([a51a119](https://github.com/GetStream/stream-video-js/commit/a51a119cfb9f13736395b4afb3d3947ef994a6d9))
+
+## [1.33.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.32.0...@stream-io/video-client-1.33.0) (2025-09-30)
+
+### Features
+
+- Audio profiles and Hi-Fi stereo audio ([#1887](https://github.com/GetStream/stream-video-js/issues/1887)) ([3b60c89](https://github.com/GetStream/stream-video-js/commit/3b60c89b8c0dbc40544fe13be79c10e93bbddd3d))
+
+### Bug Fixes
+
+- **client:** server side pinning ([#1936](https://github.com/GetStream/stream-video-js/issues/1936)) ([cd33b9e](https://github.com/GetStream/stream-video-js/commit/cd33b9e4417e8fdc452b6d4a192e10183ddfa31b))
+
+## [1.32.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.31.0...@stream-io/video-client-1.32.0) (2025-09-29)
+
+### Features
+
+- **react-native:** reject call when busy ([#1856](https://github.com/GetStream/stream-video-js/issues/1856)) ([b60bc7c](https://github.com/GetStream/stream-video-js/commit/b60bc7cd2dc2e09d52496d7b5cb593cac4b89485))
+
+### Bug Fixes
+
+- restore calling state after unrecoverable join fail ([#1935](https://github.com/GetStream/stream-video-js/issues/1935)) ([8ab0168](https://github.com/GetStream/stream-video-js/commit/8ab01680d01cc47f9cf48078634358507f0c109d))
+- send unifiedSessionId in the initial join request ([#1934](https://github.com/GetStream/stream-video-js/issues/1934)) ([e6a533d](https://github.com/GetStream/stream-video-js/commit/e6a533d7e926086ac5930ebfb4648dade449d15a))
+
+## [1.31.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.30.1...@stream-io/video-client-1.31.0) (2025-09-17)
+
+### Features
+
+- introduce @stream-io/worker-timers ([94c962b](https://github.com/GetStream/stream-video-js/commit/94c962b2c5f731c152771b7803a59664fa925477))
+
+### Bug Fixes
+
+- **video-filters:** prevent background tab throttling ([#1920](https://github.com/GetStream/stream-video-js/issues/1920)) ([f93d5cc](https://github.com/GetStream/stream-video-js/commit/f93d5cc5785957c7f181fcaf689ec366df9e646b))
+
+## [1.30.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.30.0...@stream-io/video-client-1.30.1) (2025-09-16)
+
+### Bug Fixes
+
+- don't apply default camera state if video is off ([#1917](https://github.com/GetStream/stream-video-js/issues/1917)) ([9cf1d75](https://github.com/GetStream/stream-video-js/commit/9cf1d752d824a0527fbb187df21d8a020590d4bb))
+- **rn:** set direction state for flip after constraints are applied ([1f03c59](https://github.com/GetStream/stream-video-js/commit/1f03c59b9b3fecc0ff1f7cb6b0eccb083b4a3475))
+
+## [1.30.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.29.0...@stream-io/video-client-1.30.0) (2025-09-11)
+
+- Skip tests for StreamVideoClient coordinator API ([aabe1d0](https://github.com/GetStream/stream-video-js/commit/aabe1d0ad3e3a95698b422991729e46289ab0277))
+
+### Features
+
+- Participant Source ([#1896](https://github.com/GetStream/stream-video-js/issues/1896)) ([b1cf710](https://github.com/GetStream/stream-video-js/commit/b1cf710ac3bfda573c0379dac1e6a107d2dbabf6))
+
+## [1.29.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.28.1...@stream-io/video-client-1.29.0) (2025-09-09)
+
+### Features
+
+- opt-out from optimistic updates ([#1904](https://github.com/GetStream/stream-video-js/issues/1904)) ([45dba34](https://github.com/GetStream/stream-video-js/commit/45dba34d38dc64f456e37b593e38e420426529f5))
+
+### Bug Fixes
+
+- capabilities and call grants ([#1899](https://github.com/GetStream/stream-video-js/issues/1899)) ([5725dfa](https://github.com/GetStream/stream-video-js/commit/5725dfa29b1e5fdb6fe4e26825ce7b268664d2fa))
+- graceful Axios request config overrides ([#1913](https://github.com/GetStream/stream-video-js/issues/1913)) ([a124099](https://github.com/GetStream/stream-video-js/commit/a124099f984a592750d66ac440ef6c27ae7a02d9))
+
 ## [1.28.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.28.0...@stream-io/video-client-1.28.1) (2025-08-22)
 
 ### Bug Fixes

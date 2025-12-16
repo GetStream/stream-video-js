@@ -91,6 +91,12 @@ export interface AudioSettingsRequest {
    * @type {boolean}
    * @memberof AudioSettingsRequest
    */
+  hifi_audio_enabled?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsRequest
+   */
   mic_default_on?: boolean;
   /**
    *
@@ -146,6 +152,12 @@ export interface AudioSettingsResponse {
    * @memberof AudioSettingsResponse
    */
   default_device: AudioSettingsResponseDefaultDeviceEnum;
+  /**
+   *
+   * @type {boolean}
+   * @memberof AudioSettingsResponse
+   */
+  hifi_audio_enabled: boolean;
   /**
    *
    * @type {boolean}
@@ -413,6 +425,24 @@ export interface CallClosedCaption {
    * @type {string}
    * @memberof CallClosedCaption
    */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  language: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
+  service?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallClosedCaption
+   */
   speaker_id: string;
   /**
    *
@@ -426,6 +456,12 @@ export interface CallClosedCaption {
    * @memberof CallClosedCaption
    */
   text: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallClosedCaption
+   */
+  translated: boolean;
   /**
    *
    * @type {UserResponse}
@@ -917,6 +953,18 @@ export interface CallIngressResponse {
    * @memberof CallIngressResponse
    */
   rtmp: RTMPIngress;
+  /**
+   *
+   * @type {SRTIngress}
+   * @memberof CallIngressResponse
+   */
+  srt: SRTIngress;
+  /**
+   *
+   * @type {WHIPIngress}
+   * @memberof CallIngressResponse
+   */
+  whip: WHIPIngress;
 }
 /**
  * This event is sent when a call is started. Clients receiving this event should start the call.
@@ -1159,7 +1207,7 @@ export interface CallMissedEvent {
   user: UserResponse;
 }
 /**
- *
+ * This event is sent when a moderation blur action is applied to a user's video stream
  * @export
  * @interface CallModerationBlurEvent
  */
@@ -1177,26 +1225,26 @@ export interface CallModerationBlurEvent {
    */
   created_at: string;
   /**
-   *
+   * Custom data associated with the moderation action
    * @type {{ [key: string]: any; }}
    * @memberof CallModerationBlurEvent
    */
   custom: { [key: string]: any };
   /**
-   *
+   * The type of event: "call.moderation_blur" in this case
    * @type {string}
    * @memberof CallModerationBlurEvent
    */
   type: string;
   /**
-   *
+   * The user ID whose video stream is being blurred
    * @type {string}
    * @memberof CallModerationBlurEvent
    */
   user_id: string;
 }
 /**
- *
+ * This event is sent when a moderation warning is issued to a user
  * @export
  * @interface CallModerationWarningEvent
  */
@@ -1214,25 +1262,25 @@ export interface CallModerationWarningEvent {
    */
   created_at: string;
   /**
-   *
+   * Custom data associated with the moderation action
    * @type {{ [key: string]: any; }}
    * @memberof CallModerationWarningEvent
    */
   custom: { [key: string]: any };
   /**
-   *
+   * The warning message
    * @type {string}
    * @memberof CallModerationWarningEvent
    */
   message: string;
   /**
-   *
+   * The type of event: "call.moderation_warning" in this case
    * @type {string}
    * @memberof CallModerationWarningEvent
    */
   type: string;
   /**
-   *
+   * The user ID who is receiving the warning
    * @type {string}
    * @memberof CallModerationWarningEvent
    */
@@ -1343,6 +1391,37 @@ export interface CallParticipantResponse {
    * @memberof CallParticipantResponse
    */
   user_session_id: string;
+}
+/**
+ *
+ * @export
+ * @interface CallParticipantTimeline
+ */
+export interface CallParticipantTimeline {
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof CallParticipantTimeline
+   */
+  data: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantTimeline
+   */
+  severity: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantTimeline
+   */
+  timestamp: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallParticipantTimeline
+   */
+  type: string;
 }
 /**
  * This event is sent when a reaction is sent in a call, clients should use this to show the reaction in the call screen
@@ -1792,6 +1871,12 @@ export interface CallResponse {
    */
   transcribing: boolean;
   /**
+   *
+   * @type {boolean}
+   * @memberof CallResponse
+   */
+  translating: boolean;
+  /**
    * The type of call
    * @type {string}
    * @memberof CallResponse
@@ -2100,6 +2185,12 @@ export interface CallSessionParticipantLeftEvent {
    */
   participant: CallParticipantResponse;
   /**
+   * The reason why the participant left the session
+   * @type {string}
+   * @memberof CallSessionParticipantLeftEvent
+   */
+  reason?: string;
+  /**
    * Call session ID
    * @type {string}
    * @memberof CallSessionParticipantLeftEvent
@@ -2130,6 +2221,12 @@ export interface CallSessionResponse {
    * @memberof CallSessionResponse
    */
   anonymous_participant_count: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallSessionResponse
+   */
+  created_at: string;
   /**
    *
    * @type {string}
@@ -2442,6 +2539,250 @@ export interface CallStateResponseFields {
   own_capabilities: Array<OwnCapability>;
 }
 /**
+ *
+ * @export
+ * @interface CallStatsLocation
+ */
+export interface CallStatsLocation {
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsLocation
+   */
+  accuracy_radius_meters?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsLocation
+   */
+  city?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsLocation
+   */
+  continent?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsLocation
+   */
+  country?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsLocation
+   */
+  latitude?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsLocation
+   */
+  longitude?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsLocation
+   */
+  subdivision?: string;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsParticipant
+ */
+export interface CallStatsParticipant {
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipant
+   */
+  latest_activity_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipant
+   */
+  name?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof CallStatsParticipant
+   */
+  roles?: Array<string>;
+  /**
+   *
+   * @type {Array<CallStatsParticipantSession>}
+   * @memberof CallStatsParticipant
+   */
+  sessions: Array<CallStatsParticipantSession>;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipant
+   */
+  user_id: string;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsParticipantCounts
+ */
+export interface CallStatsParticipantCounts {
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  live_sessions: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  participants: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  peak_concurrent_sessions: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  peak_concurrent_users: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  publishers: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  sessions: number;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsParticipantSession
+ */
+export interface CallStatsParticipantSession {
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  browser?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  browser_version?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantSession
+   */
+  cq_score?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  current_ip?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  current_sfu?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantSession
+   */
+  distance_to_sfu_kilometers?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  ended_at?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallStatsParticipantSession
+   */
+  is_live: boolean;
+  /**
+   *
+   * @type {CallStatsLocation}
+   * @memberof CallStatsParticipantSession
+   */
+  location?: CallStatsLocation;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  os?: string;
+  /**
+   *
+   * @type {PublishedTrackFlags}
+   * @memberof CallStatsParticipantSession
+   */
+  published_tracks: PublishedTrackFlags;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  publisher_type?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  sdk?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  sdk_version?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  unified_session_id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  user_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  webrtc_version?: string;
+}
+/**
  * This event is sent when the insights report is ready
  * @export
  * @interface CallStatsReportReadyEvent
@@ -2732,7 +3073,7 @@ export interface CallUpdatedEvent {
    */
   created_at: string;
   /**
-   * The type of event: "call.ended" in this case
+   * The type of event: "call.updated" in this case
    * @type {string}
    * @memberof CallUpdatedEvent
    */
@@ -2835,6 +3176,12 @@ export interface CallUserMutedEvent {
    * @memberof CallUserMutedEvent
    */
   muted_user_ids: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof CallUserMutedEvent
+   */
+  reason: string;
   /**
    * The type of event: "call.user_muted" in this case
    * @type {string}
@@ -3695,7 +4042,6 @@ export const FrameRecordingSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
-  _2160P: '2160p',
 } as const;
 export type FrameRecordingSettingsRequestQualityEnum =
   (typeof FrameRecordingSettingsRequestQualityEnum)[keyof typeof FrameRecordingSettingsRequestQualityEnum];
@@ -3789,6 +4135,12 @@ export interface GetCallReportResponse {
   report: ReportResponse;
   /**
    *
+   * @type {CallSessionResponse}
+   * @memberof GetCallReportResponse
+   */
+  session?: CallSessionResponse;
+  /**
+   *
    * @type {string}
    * @memberof GetCallReportResponse
    */
@@ -3836,6 +4188,73 @@ export interface GetCallResponse {
    * @memberof GetCallResponse
    */
   own_capabilities: Array<OwnCapability>;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface GetCallSessionParticipantStatsDetailsResponse
+ */
+export interface GetCallSessionParticipantStatsDetailsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  call_type: string;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {ParticipantSeriesPublisherStats}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  publisher?: ParticipantSeriesPublisherStats;
+  /**
+   *
+   * @type {ParticipantSeriesSubscriberStats}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  subscriber?: ParticipantSeriesSubscriberStats;
+  /**
+   *
+   * @type {ParticipantSeriesTimeframe}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  timeframe?: ParticipantSeriesTimeframe;
+  /**
+   *
+   * @type {ParticipantSeriesUserStats}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  user?: ParticipantSeriesUserStats;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallSessionParticipantStatsDetailsResponse
+   */
+  user_session_id: string;
 }
 /**
  * Basic response information
@@ -4251,6 +4670,67 @@ export interface IngressSettingsResponse {
 /**
  *
  * @export
+ * @interface IngressSourceRequest
+ */
+export interface IngressSourceRequest {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceRequest
+   */
+  fps: IngressSourceRequestFpsEnum;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceRequest
+   */
+  height: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceRequest
+   */
+  width: number;
+}
+
+/**
+ * @export
+ */
+export const IngressSourceRequestFpsEnum = {
+  NUMBER_30: 30,
+  NUMBER_60: 60,
+} as const;
+export type IngressSourceRequestFpsEnum =
+  (typeof IngressSourceRequestFpsEnum)[keyof typeof IngressSourceRequestFpsEnum];
+
+/**
+ *
+ * @export
+ * @interface IngressSourceResponse
+ */
+export interface IngressSourceResponse {
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceResponse
+   */
+  fps: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceResponse
+   */
+  height: number;
+  /**
+   *
+   * @type {number}
+   * @memberof IngressSourceResponse
+   */
+  width: number;
+}
+/**
+ *
+ * @export
  * @interface IngressVideoEncodingOptionsRequest
  */
 export interface IngressVideoEncodingOptionsRequest {
@@ -4260,6 +4740,12 @@ export interface IngressVideoEncodingOptionsRequest {
    * @memberof IngressVideoEncodingOptionsRequest
    */
   layers: Array<IngressVideoLayerRequest>;
+  /**
+   *
+   * @type {IngressSourceRequest}
+   * @memberof IngressVideoEncodingOptionsRequest
+   */
+  source: IngressSourceRequest;
 }
 /**
  *
@@ -4273,6 +4759,12 @@ export interface IngressVideoEncodingResponse {
    * @memberof IngressVideoEncodingResponse
    */
   layers: Array<IngressVideoLayerResponse>;
+  /**
+   *
+   * @type {IngressSourceResponse}
+   * @memberof IngressVideoEncodingResponse
+   */
+  source: IngressSourceResponse;
 }
 /**
  *
@@ -4798,6 +5290,68 @@ export interface MessageStatsResponse {
 /**
  *
  * @export
+ * @interface MetricDescriptor
+ */
+export interface MetricDescriptor {
+  /**
+   *
+   * @type {string}
+   * @memberof MetricDescriptor
+   */
+  description?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof MetricDescriptor
+   */
+  label: string;
+  /**
+   *
+   * @type {string}
+   * @memberof MetricDescriptor
+   */
+  unit?: string;
+}
+/**
+ *
+ * @export
+ * @interface MetricThreshold
+ */
+export interface MetricThreshold {
+  /**
+   *
+   * @type {string}
+   * @memberof MetricThreshold
+   */
+  level: string;
+  /**
+   *
+   * @type {string}
+   * @memberof MetricThreshold
+   */
+  operator: string;
+  /**
+   *
+   * @type {number}
+   * @memberof MetricThreshold
+   */
+  value: number;
+  /**
+   *
+   * @type {string}
+   * @memberof MetricThreshold
+   */
+  value_unit?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof MetricThreshold
+   */
+  window_seconds?: number;
+}
+/**
+ *
+ * @export
  * @interface MuteUsersRequest
  */
 export interface MuteUsersRequest {
@@ -4928,6 +5482,7 @@ export const OwnCapability = {
   REMOVE_CALL_MEMBER: 'remove-call-member',
   SCREENSHARE: 'screenshare',
   SEND_AUDIO: 'send-audio',
+  SEND_CLOSED_CAPTIONS_CALL: 'send-closed-captions-call',
   SEND_VIDEO: 'send-video',
   START_BROADCAST_CALL: 'start-broadcast-call',
   START_CLOSED_CAPTIONS_CALL: 'start-closed-captions-call',
@@ -5187,6 +5742,234 @@ export interface ParticipantReportResponse {
 /**
  *
  * @export
+ * @interface ParticipantSeriesPublisherStats
+ */
+export interface ParticipantSeriesPublisherStats {
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesPublisherStats
+   */
+  global?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {{ [key: string]: MetricDescriptor; }}
+   * @memberof ParticipantSeriesPublisherStats
+   */
+  global_meta?: { [key: string]: MetricDescriptor };
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof ParticipantSeriesPublisherStats
+   */
+  global_metrics_order?: Array<string>;
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesPublisherStats
+   */
+  global_thresholds?: { [key: string]: Array<MetricThreshold> };
+  /**
+   *
+   * @type {{ [key: string]: Array<ParticipantSeriesTrackMetrics>; }}
+   * @memberof ParticipantSeriesPublisherStats
+   */
+  tracks?: { [key: string]: Array<ParticipantSeriesTrackMetrics> };
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesSubscriberStats
+ */
+export interface ParticipantSeriesSubscriberStats {
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesSubscriberStats
+   */
+  global?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {{ [key: string]: MetricDescriptor; }}
+   * @memberof ParticipantSeriesSubscriberStats
+   */
+  global_meta?: { [key: string]: MetricDescriptor };
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof ParticipantSeriesSubscriberStats
+   */
+  global_metrics_order?: Array<string>;
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesSubscriberStats
+   */
+  global_thresholds?: { [key: string]: Array<MetricThreshold> };
+  /**
+   *
+   * @type {Array<ParticipantSeriesSubscriptionTrackMetrics>}
+   * @memberof ParticipantSeriesSubscriberStats
+   */
+  subscriptions?: Array<ParticipantSeriesSubscriptionTrackMetrics>;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesSubscriptionTrackMetrics
+ */
+export interface ParticipantSeriesSubscriptionTrackMetrics {
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  publisher_name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  publisher_user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  publisher_user_session_id?: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<ParticipantSeriesTrackMetrics>; }}
+   * @memberof ParticipantSeriesSubscriptionTrackMetrics
+   */
+  tracks?: { [key: string]: Array<ParticipantSeriesTrackMetrics> };
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesTimeframe
+ */
+export interface ParticipantSeriesTimeframe {
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  max_points: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  since: string;
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  step_seconds: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTimeframe
+   */
+  until: string;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesTrackMetrics
+ */
+export interface ParticipantSeriesTrackMetrics {
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  codec?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  label?: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  metrics?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {{ [key: string]: MetricDescriptor; }}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  metrics_meta?: { [key: string]: MetricDescriptor };
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  metrics_order?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  rid?: string;
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  thresholds?: { [key: string]: Array<MetricThreshold> };
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  track_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSeriesTrackMetrics
+   */
+  track_type?: string;
+}
+/**
+ *
+ * @export
+ * @interface ParticipantSeriesUserStats
+ */
+export interface ParticipantSeriesUserStats {
+  /**
+   *
+   * @type {{ [key: string]: Array<Array<number>>; }}
+   * @memberof ParticipantSeriesUserStats
+   */
+  metrics?: { [key: string]: Array<Array<number>> };
+  /**
+   *
+   * @type {{ [key: string]: MetricDescriptor; }}
+   * @memberof ParticipantSeriesUserStats
+   */
+  metrics_meta?: { [key: string]: MetricDescriptor };
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof ParticipantSeriesUserStats
+   */
+  metrics_order?: Array<string>;
+  /**
+   *
+   * @type {{ [key: string]: Array<MetricThreshold>; }}
+   * @memberof ParticipantSeriesUserStats
+   */
+  thresholds?: { [key: string]: Array<MetricThreshold> };
+}
+/**
+ *
+ * @export
  * @interface PerSDKUsageReport
  */
 export interface PerSDKUsageReport {
@@ -5272,6 +6055,37 @@ export interface PinResponse {
    * @memberof PinResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface PublishedTrackFlags
+ */
+export interface PublishedTrackFlags {
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  audio: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  screenshare: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  screenshare_audio: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PublishedTrackFlags
+   */
+  video: boolean;
 }
 /**
  *
@@ -5572,6 +6386,128 @@ export interface QueryCallParticipantsResponse {
   total_participants: number;
 }
 /**
+ * Basic response information
+ * @export
+ * @interface QueryCallSessionParticipantStatsResponse
+ */
+export interface QueryCallSessionParticipantStatsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_ended_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_type: string;
+  /**
+   *
+   * @type {CallStatsParticipantCounts}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  counts: CallStatsParticipantCounts;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  next?: string;
+  /**
+   *
+   * @type {Array<CallStatsParticipant>}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  participants: Array<CallStatsParticipant>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  prev?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  tmp_data_source?: string;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface QueryCallSessionParticipantStatsTimelineResponse
+ */
+export interface QueryCallSessionParticipantStatsTimelineResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  call_type: string;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {Array<CallParticipantTimeline>}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  events: Array<CallParticipantTimeline>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionParticipantStatsTimelineResponse
+   */
+  user_session_id: string;
+}
+/**
  *
  * @export
  * @interface QueryCallStatsRequest
@@ -5760,13 +6696,11 @@ export const RTMPBroadcastRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
-  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
-  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RTMPBroadcastRequestQualityEnum =
   (typeof RTMPBroadcastRequestQualityEnum)[keyof typeof RTMPBroadcastRequestQualityEnum];
@@ -5813,13 +6747,11 @@ export const RTMPSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
-  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
-  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RTMPSettingsRequestQualityEnum =
   (typeof RTMPSettingsRequestQualityEnum)[keyof typeof RTMPSettingsRequestQualityEnum];
@@ -5920,13 +6852,11 @@ export const RecordSettingsRequestQualityEnum = {
   _720P: '720p',
   _1080P: '1080p',
   _1440P: '1440p',
-  _2160P: '2160p',
   PORTRAIT_360X640: 'portrait-360x640',
   PORTRAIT_480X854: 'portrait-480x854',
   PORTRAIT_720X1280: 'portrait-720x1280',
   PORTRAIT_1080X1920: 'portrait-1080x1920',
   PORTRAIT_1440X2560: 'portrait-1440x2560',
-  PORTRAIT_2160X3840: 'portrait-2160x3840',
 } as const;
 export type RecordSettingsRequestQualityEnum =
   (typeof RecordSettingsRequestQualityEnum)[keyof typeof RecordSettingsRequestQualityEnum];
@@ -6071,6 +7001,68 @@ export interface RequestPermissionResponse {
   duration: string;
 }
 /**
+ * Request to resolve SIP inbound routing using challenge authentication
+ * @export
+ * @interface ResolveSipInboundRequest
+ */
+export interface ResolveSipInboundRequest {
+  /**
+   *
+   * @type {SIPChallenge}
+   * @memberof ResolveSipInboundRequest
+   */
+  challenge: SIPChallenge;
+  /**
+   * SIP caller number
+   * @type {string}
+   * @memberof ResolveSipInboundRequest
+   */
+  sip_caller_number: string;
+  /**
+   * Optional SIP headers as key-value pairs
+   * @type {{ [key: string]: string; }}
+   * @memberof ResolveSipInboundRequest
+   */
+  sip_headers?: { [key: string]: string };
+  /**
+   * SIP trunk number to resolve
+   * @type {string}
+   * @memberof ResolveSipInboundRequest
+   */
+  sip_trunk_number: string;
+}
+/**
+ * Response containing resolved SIP inbound routing information
+ * @export
+ * @interface ResolveSipInboundResponse
+ */
+export interface ResolveSipInboundResponse {
+  /**
+   *
+   * @type {SipInboundCredentials}
+   * @memberof ResolveSipInboundResponse
+   */
+  credentials: SipInboundCredentials;
+  /**
+   *
+   * @type {string}
+   * @memberof ResolveSipInboundResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {SIPInboundRoutingRuleResponse}
+   * @memberof ResolveSipInboundResponse
+   */
+  sip_routing_rule?: SIPInboundRoutingRuleResponse;
+  /**
+   *
+   * @type {SIPTrunkResponse}
+   * @memberof ResolveSipInboundResponse
+   */
+  sip_trunk?: SIPTrunkResponse;
+}
+/**
  * Basic response information
  * @export
  * @interface Response
@@ -6082,6 +7074,44 @@ export interface Response {
    * @memberof Response
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface RingCallRequest
+ */
+export interface RingCallRequest {
+  /**
+   * Members that should receive the ring. If no ids are provided, all call members who are not already in the call will receive ring notifications.
+   * @type {Array<string>}
+   * @memberof RingCallRequest
+   */
+  members_ids?: Array<string>;
+  /**
+   * Indicate if call should be video
+   * @type {boolean}
+   * @memberof RingCallRequest
+   */
+  video?: boolean;
+}
+/**
+ *
+ * @export
+ * @interface RingCallResponse
+ */
+export interface RingCallResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof RingCallResponse
+   */
+  duration: string;
+  /**
+   * List of members ringing notification was sent to
+   * @type {Array<string>}
+   * @memberof RingCallResponse
+   */
+  members_ids: Array<string>;
 }
 /**
  *
@@ -6183,6 +7213,375 @@ export interface SFUResponse {
    * @memberof SFUResponse
    */
   ws_endpoint: string;
+}
+/**
+ * SIP call configuration response
+ * @export
+ * @interface SIPCallConfigsResponse
+ */
+export interface SIPCallConfigsResponse {
+  /**
+   * Custom data associated with the call
+   * @type {{ [key: string]: any; }}
+   * @memberof SIPCallConfigsResponse
+   */
+  custom_data: { [key: string]: any };
+}
+/**
+ * SIP caller configuration response
+ * @export
+ * @interface SIPCallerConfigsResponse
+ */
+export interface SIPCallerConfigsResponse {
+  /**
+   * Custom data associated with the caller
+   * @type {{ [key: string]: any; }}
+   * @memberof SIPCallerConfigsResponse
+   */
+  custom_data: { [key: string]: any };
+  /**
+   * Unique identifier for the caller
+   * @type {string}
+   * @memberof SIPCallerConfigsResponse
+   */
+  id: string;
+}
+/**
+ *
+ * @export
+ * @interface SIPChallenge
+ */
+export interface SIPChallenge {
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  a1?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  algorithm?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  charset?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  cnonce?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof SIPChallenge
+   */
+  domain?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  method?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  nc?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  nonce?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  opaque?: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof SIPChallenge
+   */
+  qop?: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  realm?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  response?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof SIPChallenge
+   */
+  stale?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  uri?: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof SIPChallenge
+   */
+  userhash?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPChallenge
+   */
+  username?: string;
+}
+/**
+ * Direct routing rule call configuration response
+ * @export
+ * @interface SIPDirectRoutingRuleCallConfigsResponse
+ */
+export interface SIPDirectRoutingRuleCallConfigsResponse {
+  /**
+   * ID of the call
+   * @type {string}
+   * @memberof SIPDirectRoutingRuleCallConfigsResponse
+   */
+  call_id: string;
+  /**
+   * Type of the call
+   * @type {string}
+   * @memberof SIPDirectRoutingRuleCallConfigsResponse
+   */
+  call_type: string;
+}
+/**
+ * PIN routing rule call configuration response
+ * @export
+ * @interface SIPInboundRoutingRulePinConfigsResponse
+ */
+export interface SIPInboundRoutingRulePinConfigsResponse {
+  /**
+   * Optional webhook URL for custom PIN handling
+   * @type {string}
+   * @memberof SIPInboundRoutingRulePinConfigsResponse
+   */
+  custom_webhook_url?: string;
+  /**
+   * Prompt message for failed PIN attempts
+   * @type {string}
+   * @memberof SIPInboundRoutingRulePinConfigsResponse
+   */
+  pin_failed_attempt_prompt?: string;
+  /**
+   * Prompt message for hangup after PIN input
+   * @type {string}
+   * @memberof SIPInboundRoutingRulePinConfigsResponse
+   */
+  pin_hangup_prompt?: string;
+  /**
+   * Prompt message for PIN input
+   * @type {string}
+   * @memberof SIPInboundRoutingRulePinConfigsResponse
+   */
+  pin_prompt?: string;
+  /**
+   * Prompt message for successful PIN input
+   * @type {string}
+   * @memberof SIPInboundRoutingRulePinConfigsResponse
+   */
+  pin_success_prompt?: string;
+}
+/**
+ * SIP Inbound Routing Rule response
+ * @export
+ * @interface SIPInboundRoutingRuleResponse
+ */
+export interface SIPInboundRoutingRuleResponse {
+  /**
+   *
+   * @type {SIPCallConfigsResponse}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  call_configs?: SIPCallConfigsResponse;
+  /**
+   * List of called numbers
+   * @type {Array<string>}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  called_numbers: Array<string>;
+  /**
+   *
+   * @type {SIPCallerConfigsResponse}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  caller_configs?: SIPCallerConfigsResponse;
+  /**
+   * List of caller numbers
+   * @type {Array<string>}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  caller_numbers?: Array<string>;
+  /**
+   *
+   * @type {SIPDirectRoutingRuleCallConfigsResponse}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  direct_routing_configs?: SIPDirectRoutingRuleCallConfigsResponse;
+  /**
+   *
+   * @type {string}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  duration: string;
+  /**
+   * Unique identifier of the SIP Inbound Routing Rule
+   * @type {string}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  id: string;
+  /**
+   * Name of the SIP Inbound Routing Rule
+   * @type {string}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  name: string;
+  /**
+   *
+   * @type {SIPPinProtectionConfigsResponse}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  pin_protection_configs?: SIPPinProtectionConfigsResponse;
+  /**
+   *
+   * @type {SIPInboundRoutingRulePinConfigsResponse}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  pin_routing_configs?: SIPInboundRoutingRulePinConfigsResponse;
+  /**
+   * List of SIP trunk IDs
+   * @type {Array<string>}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  trunk_ids: Array<string>;
+  /**
+   *
+   * @type {object}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  updated_at: object;
+}
+/**
+ * PIN protection configuration response
+ * @export
+ * @interface SIPPinProtectionConfigsResponse
+ */
+export interface SIPPinProtectionConfigsResponse {
+  /**
+   * Default PIN to use if there is no PIN set on the call object
+   * @type {string}
+   * @memberof SIPPinProtectionConfigsResponse
+   */
+  default_pin?: string;
+  /**
+   * Whether PIN protection is enabled
+   * @type {boolean}
+   * @memberof SIPPinProtectionConfigsResponse
+   */
+  enabled: boolean;
+  /**
+   * Maximum number of PIN attempts allowed
+   * @type {number}
+   * @memberof SIPPinProtectionConfigsResponse
+   */
+  max_attempts?: number;
+  /**
+   * Number of digits required for the PIN
+   * @type {number}
+   * @memberof SIPPinProtectionConfigsResponse
+   */
+  required_pin_digits?: number;
+}
+/**
+ * SIP trunk information
+ * @export
+ * @interface SIPTrunkResponse
+ */
+export interface SIPTrunkResponse {
+  /**
+   *
+   * @type {object}
+   * @memberof SIPTrunkResponse
+   */
+  created_at: object;
+  /**
+   * Unique identifier for the SIP trunk
+   * @type {string}
+   * @memberof SIPTrunkResponse
+   */
+  id: string;
+  /**
+   * Name of the SIP trunk
+   * @type {string}
+   * @memberof SIPTrunkResponse
+   */
+  name: string;
+  /**
+   * Phone numbers associated with this SIP trunk
+   * @type {Array<string>}
+   * @memberof SIPTrunkResponse
+   */
+  numbers: Array<string>;
+  /**
+   * Password for SIP trunk authentication
+   * @type {string}
+   * @memberof SIPTrunkResponse
+   */
+  password: string;
+  /**
+   *
+   * @type {object}
+   * @memberof SIPTrunkResponse
+   */
+  updated_at: object;
+  /**
+   * The URI for the SIP trunk
+   * @type {string}
+   * @memberof SIPTrunkResponse
+   */
+  uri: string;
+  /**
+   * Username for SIP trunk authentication
+   * @type {string}
+   * @memberof SIPTrunkResponse
+   */
+  username: string;
+}
+/**
+ *
+ * @export
+ * @interface SRTIngress
+ */
+export interface SRTIngress {
+  /**
+   *
+   * @type {string}
+   * @memberof SRTIngress
+   */
+  address: string;
 }
 /**
  *
@@ -6331,6 +7730,49 @@ export interface SessionSettingsResponse {
   inactivity_timeout_seconds: number;
 }
 /**
+ * Credentials for SIP inbound call authentication
+ * @export
+ * @interface SipInboundCredentials
+ */
+export interface SipInboundCredentials {
+  /**
+   * Custom data associated with the call
+   * @type {{ [key: string]: any; }}
+   * @memberof SipInboundCredentials
+   */
+  call_custom_data: { [key: string]: any };
+  /**
+   * ID of the call
+   * @type {string}
+   * @memberof SipInboundCredentials
+   */
+  call_id: string;
+  /**
+   * Type of the call
+   * @type {string}
+   * @memberof SipInboundCredentials
+   */
+  call_type: string;
+  /**
+   * Authentication token for the call
+   * @type {string}
+   * @memberof SipInboundCredentials
+   */
+  token: string;
+  /**
+   * Custom data associated with the user
+   * @type {{ [key: string]: any; }}
+   * @memberof SipInboundCredentials
+   */
+  user_custom_data: { [key: string]: any };
+  /**
+   * User ID for the call
+   * @type {string}
+   * @memberof SipInboundCredentials
+   */
+  user_id: string;
+}
+/**
  *
  * @export
  * @interface SortParamRequest
@@ -6348,6 +7790,25 @@ export interface SortParamRequest {
    * @memberof SortParamRequest
    */
   field?: string;
+}
+/**
+ *
+ * @export
+ * @interface SpeechSegmentConfig
+ */
+export interface SpeechSegmentConfig {
+  /**
+   *
+   * @type {number}
+   * @memberof SpeechSegmentConfig
+   */
+  max_speech_caption_ms?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof SpeechSegmentConfig
+   */
+  silence_duration_ms?: number;
 }
 /**
  *
@@ -6373,6 +7834,12 @@ export interface StartClosedCaptionsRequest {
    * @memberof StartClosedCaptionsRequest
    */
   language?: StartClosedCaptionsRequestLanguageEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof StartClosedCaptionsRequest
+   */
+  speech_segment_config?: SpeechSegmentConfig;
 }
 
 /**
@@ -6937,7 +8404,19 @@ export interface TranscriptionSettingsRequest {
    * @type {string}
    * @memberof TranscriptionSettingsRequest
    */
-  mode: TranscriptionSettingsRequestModeEnum;
+  mode?: TranscriptionSettingsRequestModeEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof TranscriptionSettingsRequest
+   */
+  speech_segment_config?: SpeechSegmentConfig;
+  /**
+   *
+   * @type {TranslationSettings}
+   * @memberof TranscriptionSettingsRequest
+   */
+  translation?: TranslationSettings;
 }
 
 /**
@@ -7031,6 +8510,18 @@ export interface TranscriptionSettingsResponse {
    * @memberof TranscriptionSettingsResponse
    */
   mode: TranscriptionSettingsResponseModeEnum;
+  /**
+   *
+   * @type {SpeechSegmentConfig}
+   * @memberof TranscriptionSettingsResponse
+   */
+  speech_segment_config?: SpeechSegmentConfig;
+  /**
+   *
+   * @type {TranslationSettings}
+   * @memberof TranscriptionSettingsResponse
+   */
+  translation?: TranslationSettings;
 }
 
 /**
@@ -7100,6 +8591,25 @@ export const TranscriptionSettingsResponseModeEnum = {
 export type TranscriptionSettingsResponseModeEnum =
   (typeof TranscriptionSettingsResponseModeEnum)[keyof typeof TranscriptionSettingsResponseModeEnum];
 
+/**
+ *
+ * @export
+ * @interface TranslationSettings
+ */
+export interface TranslationSettings {
+  /**
+   *
+   * @type {boolean}
+   * @memberof TranslationSettings
+   */
+  enabled?: boolean;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof TranslationSettings
+   */
+  languages?: Array<string>;
+}
 /**
  * UnblockUserRequest is the payload for unblocking a user.
  * @export
@@ -7925,6 +9435,19 @@ export const VideoSettingsResponseCameraFacingEnum = {
 export type VideoSettingsResponseCameraFacingEnum =
   (typeof VideoSettingsResponseCameraFacingEnum)[keyof typeof VideoSettingsResponseCameraFacingEnum];
 
+/**
+ *
+ * @export
+ * @interface WHIPIngress
+ */
+export interface WHIPIngress {
+  /**
+   * URL for a new whip input, every time a new link is created
+   * @type {string}
+   * @memberof WHIPIngress
+   */
+  address: string;
+}
 /**
  * Websocket auth message
  * @export

@@ -10,6 +10,7 @@ import { translations } from '../translations';
 import { type DeepPartial, StreamTheme } from '../contexts/ThemeContext';
 import { type Theme } from '../theme/theme';
 import { ScreenshotIosContextProvider } from '../contexts/internal/ScreenshotIosContext';
+import BusyTonePlayer from './BusyTonePlayer';
 
 /**
  *
@@ -59,11 +60,10 @@ export const StreamVideo = (
       translationsOverrides={translationsOverrides}
       i18nInstance={i18nInstance}
     >
+      <PushRegister />
+      <BusyTonePlayer />
       <StreamTheme style={style}>
-        <ScreenshotIosContextProvider>
-          <PushRegister />
-          {children}
-        </ScreenshotIosContextProvider>
+        <ScreenshotIosContextProvider>{children}</ScreenshotIosContextProvider>
       </StreamTheme>
     </StreamVideoProvider>
   );

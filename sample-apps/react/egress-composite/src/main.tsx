@@ -3,12 +3,13 @@ import * as Sentry from '@sentry/react';
 
 import {
   applyConfigurationDefaults,
-  ConfigurationContext,
+  ConfigurationContextProvider,
   ConfigurationValue,
 } from './ConfigurationContext';
 import { CompositeApp } from './CompositeApp';
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
+import '@skooldev/skool-stream-layout/dist/styles.css';
 // Uncomment this line to test your own custom CSS
 // import cssUrl from '../public/example/custom.css?url';
 
@@ -35,9 +36,9 @@ window.setupLayout = (configuration: ConfigurationValue) => {
   console.log('Mounting with config:', { configuration: newConfiguration });
 
   createRoot(document.getElementById('root') as HTMLElement).render(
-    <ConfigurationContext.Provider value={newConfiguration}>
+    <ConfigurationContextProvider value={newConfiguration}>
       <CompositeApp />
-    </ConfigurationContext.Provider>,
+    </ConfigurationContextProvider>,
   );
 };
 
@@ -57,6 +58,23 @@ window.setupLayout = (configuration: ConfigurationValue) => {
     screenshare_layout: 'spotlight',
     // ext_css: cssUrl,
     options: {
+      // custom_actions: [
+      //   {
+      //     action_type: 'layout_override',
+      //     layout: 'dominant-speaker',
+      //     condition: { pinned_participant_count: { $gte: 1 } },
+      //   },
+      //   {
+      //     action_type: 'options_override',
+      //     options: { 'layout.background_color': 'green' },
+      //     condition: { participant_count: { $lte: 3 } },
+      //   },
+      //   {
+      //     action_type: 'options_override',
+      //     options: { 'layout.background_color': 'pink' },
+      //     condition: { participant_count: { $gte: 4 } },
+      //   },
+      // ],
       // 'grid.cell_padding': 0,
       // 'grid.columns': 5,
       // 'grid.margin': 0,
@@ -114,6 +132,7 @@ window.setupLayout = (configuration: ConfigurationValue) => {
       'video.background_color': '#000000',
       'video.scale_mode': 'fit',
       'video.screenshare_scale_mode': 'fit',
+      'debug.show_timestamp': true,
     },
   } satisfies Partial<ConfigurationValue>)});`;
   document.head.appendChild(v);

@@ -63,7 +63,7 @@ const useJoinCall = ({
     ]);
 
     const callJoinPromise = deviceSetup
-      .then(() => call.join())
+      .then(() => call.join({ maxJoinRetries: 100 }))
       .catch((err) => console.error('Error joining call', err));
     return () => {
       callJoinPromise

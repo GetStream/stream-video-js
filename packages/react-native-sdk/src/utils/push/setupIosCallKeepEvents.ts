@@ -4,7 +4,7 @@ import {
   voipCallkeepCallOnForegroundMap$,
   voipPushNotificationCallCId$,
 } from './internal/rxSubjects';
-import { getLogger, RxUtils } from '@stream-io/video-client';
+import { RxUtils, videoLoggerSystem } from '@stream-io/video-client';
 import { getCallKeepLib, getVoipPushNotificationLib } from './libs';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import {
@@ -27,46 +27,50 @@ export function setupIosCallKeepEvents(
   }
   if (!pushConfig.android.incomingCallChannel) {
     // TODO: remove this check and find a better way once we have telecom integration for android
-    getLogger(['setupIosCallKeepEvents'])(
-      'debug',
-      'android incomingCallChannel is not defined, so skipping the setupIosCallKeepEvents',
-    );
+    videoLoggerSystem
+      .getLogger('setupIosCallKeepEvents')
+      .debug(
+        'android incomingCallChannel is not defined, so skipping the setupIosCallKeepEvents',
+      );
     return;
   }
-  const logger = getLogger(['setupIosCallKeepEvents']);
+  const logger = videoLoggerSystem.getLogger('setupIosCallKeepEvents');
   const callkeep = getCallKeepLib();
 
   async function getCallCid(callUUID: string): Promise<string | undefined> {
-    let call_cid = RxUtils.getCurrentValue(voipPushNotificationCallCId$);
-    if (!call_cid) {
-      // if call_cid is not available, try to get it from native module
-      try {
-        call_cid =
-          await NativeModules?.StreamVideoReactNative?.getIncomingCallCid(
-            callUUID,
-          );
-        voipPushNotificationCallCId$.next(call_cid);
-      } catch (error) {
-        logger(
-          'debug',
-          'Error in getting call cid from native module - probably the call was already processed, so ignoring this callkeep event',
-          error,
+    try {
+      const call_cid =
+        await NativeModules.StreamVideoReactNative.getIncomingCallCid(callUUID);
+      // in a case that voipPushNotificationCallCId$ is empty (this should not happen as voipPushNotificationCallCId$ is updated in push reception)]
+      // update it with this call_cid
+      const voipPushNotificationCallCId = RxUtils.getCurrentValue(
+        voipPushNotificationCallCId$,
+      );
+      if (!voipPushNotificationCallCId) {
+        logger.debug(
+          `voipPushNotificationCallCId$ is empty, updating it with the call_cid: ${call_cid} for callUUID: ${callUUID}`,
         );
+        voipPushNotificationCallCId$.next(call_cid);
       }
+      return call_cid;
+    } catch {
+      logger.debug(
+        `Error in getting call cid from native module for callUUID: ${callUUID} - probably the call was already processed, so ignoring this callkeep event`,
+      );
     }
-    return call_cid;
+    return undefined;
   }
 
   function answerCall(callUUID: string) {
     getCallCid(callUUID).then((call_cid) => {
-      logger('debug', `answerCall event with call_cid: ${call_cid}`);
+      logger.debug(`answerCall event with call_cid: ${call_cid}`);
       iosCallkeepAcceptCall(call_cid, callUUID);
     });
   }
 
   function endCall(callUUID: string) {
     getCallCid(callUUID).then((call_cid) => {
-      logger('debug', `endCall event with call_cid: ${call_cid}`);
+      logger.debug(`endCall event with call_cid: ${call_cid}`);
       iosCallkeepRejectCall(call_cid, callUUID, pushConfig!);
     });
   }
@@ -75,8 +79,7 @@ export function setupIosCallKeepEvents(
     const voipPushNotification = getVoipPushNotificationLib();
     // @ts-expect-error - call_cid is not part of RNCallKeepEventPayload
     const call_cid = payload?.call_cid as string | undefined;
-    logger(
-      'debug',
+    logger.debug(
       `didDisplayIncomingCall event with callUUID: ${callUUID} call_cid: ${call_cid}`,
     );
     if (call_cid) {
@@ -150,7 +153,7 @@ const iosCallkeepAcceptCall = (
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
   }
-  clearPushWSEventSubscriptions();
+  clearPushWSEventSubscriptions(call_cid);
   // to call end callkeep later if ended in app and not through callkeep
   voipCallkeepAcceptedCallOnNativeDialerMap$.next({
     uuid: callUUIDFromCallkeep,
@@ -170,11 +173,17 @@ const iosCallkeepRejectCall = async (
   if (!shouldProcessCallFromCallkeep(call_cid, callUUIDFromCallkeep)) {
     return;
   }
-  clearPushWSEventSubscriptions();
-  // no need to keep these references anymore
-  voipCallkeepAcceptedCallOnNativeDialerMap$.next(undefined);
-  voipCallkeepCallOnForegroundMap$.next(undefined);
-  voipPushNotificationCallCId$.next(undefined);
+  clearPushWSEventSubscriptions(call_cid);
+  // remove the references if the call_cid matches
+  const voipPushNotificationCallCId = RxUtils.getCurrentValue(
+    voipPushNotificationCallCId$,
+  );
+  if (voipPushNotificationCallCId === call_cid) {
+    voipCallkeepAcceptedCallOnNativeDialerMap$.next(undefined);
+    voipCallkeepCallOnForegroundMap$.next(undefined);
+    voipPushNotificationCallCId$.next(undefined);
+  }
+
   await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
   await NativeModules.StreamVideoReactNative?.removeIncomingCall(call_cid);
 };
