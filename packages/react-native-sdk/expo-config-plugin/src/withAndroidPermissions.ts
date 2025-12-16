@@ -29,8 +29,7 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
     permissions.push(
       'android.permission.FOREGROUND_SERVICE_CAMERA',
       'android.permission.FOREGROUND_SERVICE_MICROPHONE',
-      'android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE',
-      'android.permission.FOREGROUND_SERVICE_DATA_SYNC',
+      'android.permission.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK',
     );
   }
   if (props?.ringingPushNotifications?.showWhenLockedAndroid) {
