@@ -28,8 +28,8 @@ const canRegisterCall = (callingState: CallingState | undefined) => {
 
   return (
     callingState === CallingState.JOINED ||
-    callingState === CallingState.JOINING ||
-    callingState === CallingState.RINGING
+    callingState === CallingState.JOINING
+    // || callingState === CallingState.RINGING // issue for incoming calls
   );
 };
 
