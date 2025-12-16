@@ -170,7 +170,7 @@ jobs:
     name: Deploy Android
     needs: build_android
     timeout-minutes: 60
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/android-review-fix' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
