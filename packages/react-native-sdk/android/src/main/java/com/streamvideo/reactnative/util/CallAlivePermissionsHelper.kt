@@ -23,8 +23,7 @@ object CallAlivePermissionsHelper {
                     "android.permission.FOREGROUND_SERVICE",
                     "android.permission.FOREGROUND_SERVICE_CAMERA",
                     "android.permission.FOREGROUND_SERVICE_MICROPHONE",
-                    "android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE",
-                    "android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+                    "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
                 )
 
                 val missingPermissions =
