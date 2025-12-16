@@ -17,9 +17,9 @@ export type SampleAppCallConfig = {
 
 export type AppEnvironment = 'pronto' | 'demo' | (string & {});
 
-const config: SampleAppCallConfig = JSON.parse(
-  process.env.SAMPLE_APP_CALL_CONFIG || '{}',
-);
+const config: SampleAppCallConfig = process.env.SAMPLE_APP_CALL_CONFIG
+  ? JSON.parse(process.env.SAMPLE_APP_CALL_CONFIG)
+  : {};
 
 // 'pronto' is a special environment that we ensure it exists
 if (!config['pronto']) {
