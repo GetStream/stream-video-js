@@ -1,5 +1,11 @@
 #import "NoiseCancellationManagerObjc.h"
-#import "stream_io_noise_cancellation_react_native/stream_io_noise_cancellation_react_native-Swift.h"
+// use_frameworks! (dynamic framework)
+#if __has_include(<stream_io_noise_cancellation_react_native/stream_io_noise_cancellation_react_native-Swift.h>)
+#import <stream_io_noise_cancellation_react_native/stream_io_noise_cancellation_react_native-Swift.h>
+// no use_frameworks! (static library)
+#else
+#import "stream_io_noise_cancellation_react_native-Swift.h"
+#endif
 
 @interface NoiseCancellationManagerObjc ()
 @end

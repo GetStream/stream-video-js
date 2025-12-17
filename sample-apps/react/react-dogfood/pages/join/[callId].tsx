@@ -54,6 +54,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const coordinatorUrl = useLocalCoordinator
     ? 'http://localhost:3030/video'
     : (router.query['coordinator_url'] as string | undefined);
+  const useLegacyFilters = router.query['useLegacyFilters'] === 'true';
 
   const { apiKey, userToken, user, gleapApiKey } = props;
 
@@ -192,8 +193,8 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
           <TourProvider>
             <BackgroundFiltersProvider
-              basePath={`${basePath}/mediapipe`}
               forceSafariSupport
+              useLegacyFilter={useLegacyFilters}
               backgroundImages={[
                 `${basePath}/backgrounds/amsterdam-1.jpg`,
                 `${basePath}/backgrounds/amsterdam-2.jpg`,

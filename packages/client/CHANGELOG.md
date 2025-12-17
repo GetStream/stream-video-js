@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.38.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.1...@stream-io/video-client-1.38.2) (2025-12-11)
+
+### Bug Fixes
+
+- revert usage of useSyncExternalStore ([#2043](https://github.com/GetStream/stream-video-js/issues/2043)) ([849e896](https://github.com/GetStream/stream-video-js/commit/849e8964ac90d5785a6d608443f80156d1081744)), closes [#1953](https://github.com/GetStream/stream-video-js/issues/1953) [#2034](https://github.com/GetStream/stream-video-js/issues/2034) [#2006](https://github.com/GetStream/stream-video-js/issues/2006) [#2008](https://github.com/GetStream/stream-video-js/issues/2008)
+
+## [1.38.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.0...@stream-io/video-client-1.38.1) (2025-12-08)
+
+### Bug Fixes
+
+- added call state update for handling case when call.ring event as not triggered ([#2035](https://github.com/GetStream/stream-video-js/issues/2035)) ([3c79665](https://github.com/GetStream/stream-video-js/commit/3c79665323ad5172d3af35e9ee2f86655ac11670))
+- **state:** ensure stable empty array for participant predicates ([#2036](https://github.com/GetStream/stream-video-js/issues/2036)) ([1aa72c8](https://github.com/GetStream/stream-video-js/commit/1aa72c8daf482bd157866960b4b9a92e272ac90b)), closes [#2034](https://github.com/GetStream/stream-video-js/issues/2034) [#2008](https://github.com/GetStream/stream-video-js/issues/2008)
+
 ## [1.38.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.3...@stream-io/video-client-1.38.0) (2025-12-08)
 
 ### Features

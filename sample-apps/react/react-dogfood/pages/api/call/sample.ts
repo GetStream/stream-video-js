@@ -46,7 +46,9 @@ async function createSampleAppCall(req: NextApiRequest, res: NextApiResponse) {
   const appConfig = getEnvironmentConfig(data.app_type);
 
   const userName = getRandomName();
-  const userId = toUserId(userName);
+  // Feeds tutorial needs unique user ids (we use user id as feed id)
+  const userId =
+    data.app_type === 'feedsv3' ? crypto.randomUUID() : toUserId(userName);
   const token = await createToken(userId, appConfig.apiKey, appConfig.secret);
   const buddyUserName = getBuddyUserName(userName);
   const buddyUserId = toUserId(buddyUserName);
