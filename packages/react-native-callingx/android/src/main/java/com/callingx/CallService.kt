@@ -6,7 +6,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
-import android.os.Bundle
 import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
@@ -126,13 +125,10 @@ class CallService : Service(), CallRepository.Listener {
                     // notification is shown, so we don't need to show a separate notification for
                     // bg task
                     // startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
-                    isInForeground = true
+                    // isInForeground = true
                 }
 
-                val taskName = intent.getStringExtra(EXTRA_TASK_NAME)!!
-                val taskData = intent.getBundleExtra(EXTRA_TASK_DATA)!!
-                val taskTimeout = intent.getLongExtra(EXTRA_TASK_TIMEOUT, 0)
-                startBackgroundTask(taskName, taskData, taskTimeout)
+                startBackgroundTask(intent)
             }
             ACTION_STOP_BACKGROUND_TASK -> {
                 stopBackgroundTask()
@@ -159,7 +155,6 @@ class CallService : Service(), CallRepository.Listener {
 
     override fun onCallStateChanged(call: Call) {
         Log.d(TAG, "[service] onCallStateChanged: Call state changed: ${call::class.simpleName}")
-        Log.d(TAG, "[service] updateServiceState: Updating service state for call type: ${call}")
         when (call) {
             is Call.Registered -> {
                 Log.d(
@@ -173,10 +168,6 @@ class CallService : Service(), CallRepository.Listener {
                 }
                 // Update the call state.
                 if (isInForeground) {
-                    Log.d(
-                            TAG,
-                            "[service] updateServiceState: Updating notification for call: ${call.id}"
-                    )
                     notificationManager.updateCallNotification(call)
                 } else {
                     Log.d(
@@ -189,7 +180,6 @@ class CallService : Service(), CallRepository.Listener {
                 }
             }
             is Call.Unregistered -> {
-                Log.d(TAG, "[service] updateServiceState: Call unregistered, stopping service")
                 notificationManager.updateCallNotification(call)
 
                 if (isInForeground) {
@@ -201,7 +191,6 @@ class CallService : Service(), CallRepository.Listener {
                 stopSelf()
             }
             is Call.None -> {
-                Log.d(TAG, "[service] updateServiceState: No active call, stopping audio loop")
                 notificationManager.updateCallNotification(call)
 
                 if (isInForeground) {
@@ -249,14 +238,12 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     override fun onCallRegistered(callId: String) {
-        Log.d(TAG, "[service] onCallRegistered: Call registered: $callId")
         sendBroadcastEvent(CallingxModule.CALL_REGISTERED_ACTION) {
             putExtra(CallingxModule.EXTRA_CALL_ID, callId)
         }
     }
 
     override fun onMuteCallChanged(callId: String, isMuted: Boolean) {
-        Log.d(TAG, "[service] onMuteCallChanged: Call muted: $callId, $isMuted")
         sendBroadcastEvent(CallingxModule.CALL_MUTED_ACTION) {
             putExtra(CallingxModule.EXTRA_CALL_ID, callId)
             putExtra(CallingxModule.EXTRA_MUTED, isMuted)
@@ -264,7 +251,6 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     override fun onCallEndpointChanged(callId: String, endpoint: String) {
-        Log.d(TAG, "[service] onCallEndpointChanged: Call endpoint changed: $callId, $endpoint")
         sendBroadcastEvent(CallingxModule.CALL_ENDPOINT_CHANGED_ACTION) {
             putExtra(CallingxModule.EXTRA_CALL_ID, callId)
             putExtra(CallingxModule.EXTRA_AUDIO_ENDPOINT, endpoint)
@@ -287,20 +273,21 @@ class CallService : Service(), CallRepository.Listener {
         if (currentCall is Call.Registered && currentCall.id == callId) {
             currentCall.processAction(action)
         } else {
-            Log.e(TAG, "[service] processAction: Call not registered or not the current call, ignoring action")
+            Log.e(
+                    TAG,
+                    "[service] processAction: Call not registered or not the current call, ignoring action"
+            )
         }
     }
 
-    public fun startBackgroundTask(taskName: String, data: Bundle, timeout: Long) {
-        Log.d(
-                TAG,
-                "[service] startBackgroundTask: Starting background task: $taskName, $data, $timeout"
-        )
+    public fun startBackgroundTask(intent: Intent) {
+        val taskName = intent.getStringExtra(EXTRA_TASK_NAME)!!
+        val data = intent.getBundleExtra(EXTRA_TASK_DATA)!!
+        val timeout = intent.getLongExtra(EXTRA_TASK_TIMEOUT, 0)
         headlessJSManager.startHeadlessTask(taskName, data, timeout)
     }
 
     public fun stopBackgroundTask() {
-        Log.d(TAG, "[service] stopBackgroundTask: Stopping background task")
         headlessJSManager.stopHeadlessTask()
     }
 
@@ -324,8 +311,6 @@ class CallService : Service(), CallRepository.Listener {
                 }
         val displayOptions = intent.getBundleExtra(EXTRA_DISPLAY_OPTIONS)
 
-        Log.d(TAG, "[service] registerCall: Call details - Name: $name, URI: $uri")
-
         scope.launch {
             try {
                 callRepository.registerCall(
@@ -348,17 +333,6 @@ class CallService : Service(), CallRepository.Listener {
                     setPackage(packageName)
                     applyParams(this)
                 }
-        Log.d(TAG, "[service] sendBroadcastEvent: Sending broadcast event: ${intent.action}")
         sendBroadcast(intent)
     }
-
-    // private fun hasMicPermission(): Boolean {
-    //     val hasPermission =
-    //             PermissionChecker.checkSelfPermission(
-    //                     this,
-    //                     Manifest.permission.RECORD_AUDIO,
-    //             ) == PermissionChecker.PERMISSION_GRANTED
-    //     Log.d(TAG, "[service] hasMicPermission: Mic permission granted = $hasPermission")
-    //     return hasPermission
-    // }
 }

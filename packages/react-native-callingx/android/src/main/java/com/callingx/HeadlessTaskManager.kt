@@ -25,7 +25,7 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
 
   public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long) {
     if (activeTaskId != null) {
-      Log.w(TAG, "startHeadlessTask: Task already starting or active, ignoring new task request")
+      Log.w(TAG, "[headless] startHeadlessTask: Task already starting or active, ignoring new task request")
       return
     }
 
@@ -41,7 +41,7 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
   }
 
   public fun stopHeadlessTask() {
-    Log.d(TAG, "stopHeadlessTask: Stopping headless task")
+    Log.d(TAG, "[headless] stopHeadlessTask: Stopping headless task")
     activeTaskId?.let { taskId ->
       if (UiThreadUtil.isOnUiThread()) {
         stopTask(taskId)
@@ -64,7 +64,7 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
   }
 
   private fun invokeStartTask(reactContext: ReactContext, taskConfig: HeadlessJsTaskConfig) {
-    Log.d(TAG, "invokeStartTask: Invoking start task")
+    Log.d(TAG, "[headless] invokeStartTask: Invoking start task")
     val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(reactContext)
     headlessJsTaskContext.addTaskEventListener(this)
 
@@ -95,11 +95,11 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
   }
 
   override fun onHeadlessJsTaskStart(taskId: Int) {
-    Log.d(TAG, "onHeadlessJsTaskStart: Task started: $taskId")
+    Log.d(TAG, "[headless] onHeadlessJsTaskStart: Task started: $taskId")
   }
 
   override fun onHeadlessJsTaskFinish(taskId: Int) {
-    Log.d(TAG, "onHeadlessJsTaskFinish: Task finished: $taskId")
+    Log.d(TAG, "[headless] onHeadlessJsTaskFinish: Task finished: $taskId")
     activeTaskId = null
   }
 
