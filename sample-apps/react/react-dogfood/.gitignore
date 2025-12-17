@@ -34,3 +34,5 @@ yarn-error.log*
 .sentryclirc
 
 certificates
+
+next-env.d.ts
