@@ -3,7 +3,10 @@
     "outDir": "./dist",
     "module": "ES2020",
     "target": "ES2020",
-    "lib": ["esnext", "dom"],
+    "lib": [
+      "esnext",
+      "dom"
+    ],
     "allowJs": true,
     "declaration": true,
     "moduleResolution": "node",
@@ -19,5 +22,8 @@
     "inlineSources": true
   },
   "exclude": ["**/__tests__/**"],
-  "include": ["./src", "index.ts"]
+  "include": [
+    "./src",
+    "index.ts"
+  ]
 }

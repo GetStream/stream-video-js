@@ -5,7 +5,7 @@ import {
   getCallInitConcurrencyTag,
   getInstanceKey,
 } from '../clientUtils';
-import type { TokenProvider } from '../../coordinator/cownnection/types';
+import type { TokenProvider } from '../../coordinator/connection/types';
 import { getSdkInfo, setSdkInfo } from '../client-details';
 
 describe('clientUtils', () => {

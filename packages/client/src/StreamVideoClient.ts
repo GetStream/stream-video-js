@@ -21,7 +21,7 @@ import type {
   QueryCallStatsRequest,
   QueryCallStatsResponse,
 } from './gen/coordinator';
-import  {
+import {
   type AllClientEvents,
   type ClientEventListener,
   ErrorFromResponse,

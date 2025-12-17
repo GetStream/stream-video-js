@@ -3,7 +3,10 @@
     "outDir": "./dist",
     "module": "ES2020",
     "target": "ES2020",
-    "lib": ["esnext", "dom"],
+    "lib": [
+      "esnext",
+      "dom"
+    ],
     "declaration": true,
     "moduleResolution": "node",
     "verbatimModuleSyntax": true,
@@ -19,5 +22,8 @@
     "jsx": "react-jsxdev"
   },
   "exclude": ["**/__tests__/**"],
-  "include": ["./src", "index.ts"]
+  "include": [
+    "./src",
+    "index.ts"
+  ]
 }
