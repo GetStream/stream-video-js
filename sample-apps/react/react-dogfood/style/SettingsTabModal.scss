@@ -126,9 +126,30 @@
         flex-direction: column;
         min-height: 320px;
         max-width: 480px;
+        position: relative;
 
         .str-video__video-preview-container {
           width: 100%;
+        }
+
+        .rd__video-effects__progress-bar {
+          width: 100%;
+          height: 5px;
+          border-radius: 0 0 var(--str-video__border-radius-xs);
+          overflow: hidden;
+          position: absolute;
+          bottom: -10px;
+          left: 0;
+
+          &__fill {
+            height: 100%;
+            width: 30%;
+            background-color: var(--str-video__brand-color1);
+            border-radius: var(--str-video__border-radius-xs);
+            animation: rd__video-effects__progress-bar__animation 1.5s
+              ease-in-out infinite;
+            position: absolute;
+          }
         }
       }
 
@@ -244,5 +265,14 @@
     &__tabmodal-container {
       width: 45vw;
     }
+  }
+}
+
+@keyframes rd__video-effects__progress-bar__animation {
+  0% {
+    left: -30%;
+  }
+  100% {
+    left: 100%;
   }
 }

@@ -48,15 +48,15 @@ export const BACKGROUND_BLUR_MAP: Record<
   { bgBlur: number; bgBlurRadius: number }
 > = {
   low: {
-    bgBlur: 15,
+    bgBlur: 10,
     bgBlurRadius: 5,
   },
   medium: {
     bgBlur: 20,
-    bgBlurRadius: 7,
+    bgBlurRadius: 6,
   },
   high: {
-    bgBlur: 25,
-    bgBlurRadius: 10,
+    bgBlur: 30,
+    bgBlurRadius: 7,
   },
 };

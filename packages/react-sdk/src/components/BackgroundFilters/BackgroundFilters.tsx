@@ -119,6 +119,7 @@ export const BackgroundFiltersProvider = (
     useState(bgBlurLevelFromProps);
 
   const [showLowFpsWarning, setShowLowFpsWarning] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const fpsWarningThresholdLower =
     performanceThresholds?.fpsWarningThresholdLower ??
@@ -217,6 +218,10 @@ export const BackgroundFiltersProvider = (
     call?.tracer,
   ]);
 
+  const setLoading = useCallback((loading: boolean) => {
+    setIsLoading(loading);
+  }, []);
+
   const applyBackgroundImageFilter = useCallback((imageUrl: string) => {
     setBackgroundFilter('image');
     setBackgroundImage(imageUrl);
@@ -290,6 +295,7 @@ export const BackgroundFiltersProvider = (
     isSupported,
     performance,
     isReady,
+    isLoading,
     backgroundImage,
     backgroundBlurLevel,
     backgroundFilter,
@@ -311,6 +317,7 @@ export const BackgroundFiltersProvider = (
           tfLite={tfLite}
           engine={engine}
           onStats={handleStats}
+          setIsLoading={setLoading}
         />
       )}
     </ContextProvider.Provider>
@@ -322,9 +329,10 @@ const BackgroundFilters = (props: {
   tfLite?: TFLite;
   engine: FilterEngine;
   onStats: (stats: PerformanceStats) => void;
+  setIsLoading: (loading: boolean) => void;
 }) => {
   const call = useCall();
-  const { engine, api, tfLite, onStats } = props;
+  const { engine, api, tfLite, onStats, setIsLoading } = props;
   const { children, start } = useRenderer(api, tfLite, call, engine);
   const { onError, backgroundFilter } = api;
   const handleErrorRef = useRef<((error: any) => void) | undefined>(undefined);
@@ -338,17 +346,22 @@ const BackgroundFilters = (props: {
   useEffect(() => {
     if (!call || !backgroundFilter) return;
 
-    const { unregister } = call.camera.registerFilter((ms) => {
+    setIsLoading(true);
+    const { unregister, registered } = call.camera.registerFilter((ms) => {
       return start(
         ms,
         (error) => handleErrorRef.current?.(error),
         (stats: PerformanceStats) => handleStatsRef.current?.(stats),
       );
     });
+    registered.finally(() => {
+      setIsLoading(false);
+    });
+
     return () => {
       unregister().catch((err) => console.warn(`Can't unregister filter`, err));
     };
-  }, [call, start, backgroundFilter]);
+  }, [call, start, backgroundFilter, setIsLoading]);
 
   return children;
 };
