@@ -21,6 +21,14 @@ const isAcceptedCallingState = (callingState: CallingState | undefined) => {
   );
 };
 
+const isInitialCallingState = (callingState: CallingState | undefined) => {
+  return (
+    !callingState ||
+    callingState === CallingState.IDLE ||
+    callingState === CallingState.UNKNOWN
+  );
+};
+
 const canRegisterCall = (callingState: CallingState | undefined) => {
   if (!callingState) {
     return false;
@@ -28,8 +36,8 @@ const canRegisterCall = (callingState: CallingState | undefined) => {
 
   return (
     callingState === CallingState.JOINED ||
-    callingState === CallingState.JOINING
-    // || callingState === CallingState.RINGING // issue for incoming calls
+    callingState === CallingState.JOINING ||
+    callingState === CallingState.RINGING // issue for incoming calls
   );
 };
 
@@ -111,50 +119,44 @@ export const useCallingExpWithCallingStateEffect = () => {
     //tells if call is registered in CallKit/Telecom
     const isCallRegistered = callingx.isCallRegistered(activeCallCid);
     logger.debug(
-      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered} isOutcomingCall: ${isOutcomingCall}`,
-    );
-    logger.debug(
-      `prevState.current: ${prevState.current}, current callingState: ${callingState}`,
-    );
-    logger.debug(
-      `isOutcomingCallsEnabled: ${callingx.isOutcomingCallsEnabled}`,
+      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered} isOutcomingCall: ${isOutcomingCall} prevState: ${prevState.current}, currentState: ${callingState} isOutcomingCallsEnabled: ${callingx.isOutcomingCallsEnabled}`,
     );
 
     if (
+      !isOutcomingCall &&
+      isCallRegistered &&
       !isAcceptedCallingState(prevState.current) &&
+      isAcceptedCallingState(callingState)
+    ) {
+      logger.debug(`Should accept call in callkeep: ${activeCallCid}`);
+      callingx.answerIncomingCall(activeCallCid).catch((error: unknown) => {
+        logger.error(
+          `Error answering call in calling exp: ${activeCallCid}`,
+          error,
+        );
+      });
+    } else if (
+      callingx.isOutcomingCallsEnabled &&
+      isOutcomingCall &&
+      !isCallRegistered &&
+      isInitialCallingState(prevState.current) &&
       canRegisterCall(callingState)
     ) {
-      if (
-        isOutcomingCall &&
-        !isCallRegistered &&
-        callingx.isOutcomingCallsEnabled
-      ) {
-        //we request start call action from CallKit/Telecom, next step is to make call active when we receive call started event
-        logger.debug(`Should start call in callkeep: ${activeCallCid}`);
-        callingx
-          .startCall(
-            activeCallCid,
-            activeCallCid,
-            outcomingDisplayName,
-            isVideoCall,
-          )
-          .catch((error: unknown) => {
-            logger.error(
-              `Error starting call in calling exp: ${activeCallCid}`,
-              error,
-            );
-          });
-      } else if (!isOutcomingCall && isCallRegistered) {
-        logger.debug(
-          `Should accept call in callkeep: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
-        );
-        callingx.answerIncomingCall(activeCallCid).catch((error: unknown) => {
+      logger.debug(`Should register call in callkeep: ${activeCallCid}`);
+      //we request start call action from CallKit/Telecom, next step is to make call active when we receive call started event
+      callingx
+        .startCall(
+          activeCallCid,
+          activeCallCid,
+          outcomingDisplayName,
+          isVideoCall,
+        )
+        .catch((error: unknown) => {
           logger.error(
-            `Error answering call in calling exp: ${activeCallCid}`,
+            `Error starting call in calling exp: ${activeCallCid}`,
             error,
           );
         });
-      }
     } else if (
       isAcceptedCallingState(prevState.current) &&
       !isAcceptedCallingState(callingState) &&
