@@ -138,9 +138,13 @@ export const NoiseCancellationProvider = (
             ? enabledOrSetter(isEnabled)
             : enabledOrSetter;
         if (enable) {
-          noiseCancellation.enable();
+          noiseCancellation.enable().catch((err) => {
+            console.error('Failed to enable noise cancellation', err);
+          });
         } else {
-          noiseCancellation.disable();
+          noiseCancellation.disable().catch((err) => {
+            console.error('Failed to disable noise cancellation', err);
+          });
         }
       },
     }),

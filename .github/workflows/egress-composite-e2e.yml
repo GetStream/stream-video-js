@@ -18,9 +18,7 @@ env:
 jobs:
   test:
     timeout-minutes: 20
-    # Playwright doesn't work on 24.04.
-    # We need to revisit this and switch to ubuntu-latest when it's supported.
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +28,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: 'yarn'
           cache-dependency-path: 'yarn.lock'
 

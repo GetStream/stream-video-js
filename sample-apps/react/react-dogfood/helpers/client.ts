@@ -1,6 +1,5 @@
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
-import type { User }  from '@stream-io/video-react-sdk';
-import { AppEnvironment } from '../context/AppEnvironmentContext';
+import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import type { AppEnvironment } from '../lib/environmentConfig';
 import {
   CreateJwtTokenRequest,
   CreateJwtTokenResponse,
@@ -47,8 +46,15 @@ export const getClient = (
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
-export const createTokenProvider =
-  (userId: string | undefined, environment: AppEnvironment) => async () => {
+export const createTokenProvider = (
+  userId: string | undefined,
+  environment: AppEnvironment,
+) => {
+  if (process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'pronto-sales') {
+    return undefined;
+  }
+
+  return async () => {
     const params = new URLSearchParams({
       user_id: userId || '!anon',
       environment,
@@ -59,3 +65,4 @@ export const createTokenProvider =
     const json = await ((await res.json()) as Promise<CreateJwtTokenResponse>);
     return json.token;
   };
+};

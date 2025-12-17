@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import {
   OwnUserResponse,
   StreamChat,
@@ -16,9 +17,11 @@ export const useCreateStreamChatClient = ({
   tokenOrProvider: TokenOrProvider;
 }) => {
   const [chatClient, setChatClient] = useState<StreamChat | null>(null);
-
+  const router = useRouter();
   useEffect(() => {
-    const disableChat = process.env.NEXT_PUBLIC_DISABLE_CHAT === 'true';
+    const disableChat =
+      router.query['disable_chat'] === 'true' ||
+      process.env.NEXT_PUBLIC_DISABLE_CHAT === 'true';
     if (disableChat || !apiKey) return;
 
     const client = new StreamChat(apiKey, {
@@ -42,7 +45,7 @@ export const useCreateStreamChatClient = ({
         });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [apiKey, userData.id, tokenOrProvider]);
+  }, [apiKey, router.query, userData.id, tokenOrProvider]);
 
   return chatClient;
 };

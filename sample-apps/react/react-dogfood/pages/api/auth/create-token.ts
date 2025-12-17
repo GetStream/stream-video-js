@@ -1,19 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createToken, maxTokenValidityInSeconds } from '../../../helpers/jwt';
-import { SampleAppCallConfig } from '../call/sample';
-import type { AppEnvironment } from '../../../context/AppEnvironmentContext';
-
-const config: SampleAppCallConfig = JSON.parse(
-  process.env.SAMPLE_APP_CALL_CONFIG || '{}',
-);
-
-// 'pronto' is a special environment that we ensure it exists
-if (!config['pronto']) {
-  config.pronto = {
-    apiKey: process.env.STREAM_API_KEY,
-    secret: process.env.STREAM_SECRET_KEY,
-  };
-}
+import { getEnvironmentConfig } from '../../../lib/environmentConfig';
+import { getRandomName, sanitizeUserId } from '../../../lib/names';
 
 export type CreateJwtTokenErrorResponse = {
   error: string;
@@ -27,8 +15,8 @@ export type CreateJwtTokenResponse = {
 };
 
 export type CreateJwtTokenRequest = {
-  user_id: string;
-  environment?: AppEnvironment;
+  user_id?: string;
+  environment?: string;
   /** @deprecated */
   api_key?: string;
   [key: string]: string | string[] | undefined;
@@ -38,8 +26,12 @@ const createJwtToken = async (
   req: NextApiRequest,
   res: NextApiResponse<CreateJwtTokenResponse | CreateJwtTokenErrorResponse>,
 ) => {
+  if (process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'pronto-sales') {
+    return error(res, 'This endpoint is not enabled', 404);
+  }
+
   const {
-    user_id: userId,
+    user_id: userId = sanitizeUserId(getRandomName()),
     api_key: apiKeyFromRequest,
     ...params
   } = req.query as CreateJwtTokenRequest;
@@ -51,26 +43,6 @@ const createJwtToken = async (
     else if (apiKeyFromRequest === 'mmhfdzb5evj2') environment = 'demo';
     // https://getstream.slack.com/archives/C022N8JNQGZ/p1691402858403159
     else if (apiKeyFromRequest === '2g3htdemzwhg') environment = 'demo-flutter';
-  }
-
-  const appConfig = config[(environment || 'demo') as AppEnvironment];
-  if (!appConfig) {
-    return error(res, `'environment' parameter is invalid.`);
-  }
-
-  if (!appConfig.apiKey || !appConfig.secret) {
-    return res.status(400).json({
-      error: `environment: '${environment}' is not configured properly.`,
-    });
-  }
-
-  const { apiKey, secret: secretKey } = appConfig;
-  if (!secretKey) {
-    return error(res, `'api_key' parameter is invalid.`);
-  }
-
-  if (!userId) {
-    return error(res, `'user_id' is a mandatory query parameter.`);
   }
 
   if (!params.exp) {
@@ -93,21 +65,30 @@ const createJwtToken = async (
         .map((cid) => cid.trim());
     }
   }
-
+  const appConfig = getEnvironmentConfig(environment || 'demo');
   const token = await createToken(
     userId,
-    apiKey,
-    secretKey,
+    appConfig.apiKey,
+    appConfig.secret,
     params as Record<string, string | string[]>,
   );
-  return res.status(200).json({
+  res.status(200).json({
     userId,
-    apiKey,
+    apiKey: appConfig.apiKey,
     token,
   });
 };
 
-export default createJwtToken;
+export default async function createTokenApi(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
+  try {
+    return await createJwtToken(req, res);
+  } catch (e) {
+    return error(res, (e as Error).message);
+  }
+}
 
 const error = (
   res: NextApiResponse,

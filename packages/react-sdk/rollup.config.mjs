@@ -11,6 +11,9 @@ const chunkFileNames = (chunkInfo) => {
   if (chunkInfo.name.includes('CallStatsLatencyChart')) {
     return 'latency-chart-[hash].[format].js';
   }
+  if (chunkInfo.name.includes('BackgroundFilters')) {
+    return 'background-filters-[hash].[format].js';
+  }
   return '[name]-[hash].[format].js';
 };
 
@@ -45,6 +48,7 @@ const config = {
     json(),
     replace({
       preventAssignment: true,
+      'process.env.PKG_NAME': JSON.stringify(pkg.name),
       'process.env.PKG_VERSION': JSON.stringify(pkg.version),
     }),
     typescript({

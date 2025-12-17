@@ -3,6 +3,7 @@ package com.streamvideo.reactnative.callmanager
 import android.util.Log
 import android.view.WindowManager
 import com.facebook.react.bridge.LifecycleEventListener
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -20,7 +21,6 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     private var audioManagerActivated = false
 
     private val mAudioDeviceManager = AudioDeviceManager(reactContext)
-
 
     override fun getName(): String {
         return TAG
@@ -40,6 +40,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     override fun invalidate() {
+        // Ensure we cleanup proximity and screen flags too
+        stop()
         mAudioDeviceManager.close()
         super.invalidate()
     }
@@ -135,6 +137,11 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun getAudioDeviceStatus(promise: Promise) {
+        promise.resolve(mAudioDeviceManager.audioStatusMap())
+    }
+
+    @ReactMethod
     fun logAudioState() {
         WebRtcAudioUtils.logAudioState(
             TAG,
@@ -163,6 +170,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     fun unmuteAudioOutput() {
         mAudioDeviceManager.unmuteAudioOutput()
     }
+
 
     override fun onHostResume() {
     }

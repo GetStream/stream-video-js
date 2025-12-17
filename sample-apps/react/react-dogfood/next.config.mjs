@@ -42,6 +42,16 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value:
+              "frame-ancestors 'self' https://stream-generic-demo.vercel.app http://localhost:5100;",
+          },
+        ],
+      },
     ];
   },
 

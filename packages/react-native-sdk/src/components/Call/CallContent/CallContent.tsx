@@ -20,8 +20,8 @@ import {
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   CallingState,
-  getLogger,
   type StreamReaction,
+  videoLoggerSystem,
 } from '@stream-io/video-client';
 
 import { Z_INDEX } from '../../../constants';
@@ -151,18 +151,16 @@ export const CallContent = ({
   useEffect(() => {
     if (isInPiPMode && Platform.OS === 'android') {
       const unsubFunc = call?.on('call.ended', () => {
-        getLogger(['CallContent'])(
-          'debug',
-          `exiting PiP mode due to call.ended`,
-        );
+        videoLoggerSystem
+          .getLogger('CallContent')
+          .debug(`exiting PiP mode due to call.ended`);
         NativeModules.StreamVideoReactNative.exitPipMode();
       });
       const subscription = call?.state.callingState$.subscribe((state) => {
         if (state === CallingState.LEFT) {
-          getLogger(['CallContent'])(
-            'debug',
-            `exiting PiP mode due to callingState: LEFT`,
-          );
+          videoLoggerSystem
+            .getLogger('CallContent')
+            .debug(`exiting PiP mode due to callingState: LEFT`);
           NativeModules.StreamVideoReactNative.exitPipMode();
         }
       });

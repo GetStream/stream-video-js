@@ -27,6 +27,10 @@ enum Status {
 export type CallStatsProps = {
   latencyLowBound?: number;
   latencyHighBound?: number;
+  audioJitterLowBound?: number;
+  audioJitterHighBound?: number;
+  videoJitterLowBound?: number;
+  videoJitterHighBound?: number;
   showCodecInfo?: boolean;
   LatencyChartSuspenseFallback?: ReactNode;
 };
@@ -35,6 +39,10 @@ export const CallStats = (props: CallStatsProps) => {
   const {
     latencyLowBound = 75,
     latencyHighBound = 400,
+    audioJitterLowBound = 10,
+    audioJitterHighBound = 30,
+    videoJitterLowBound = 20,
+    videoJitterHighBound = 50,
     showCodecInfo = false,
     LatencyChartSuspenseFallback = null,
   } = props;
@@ -48,6 +56,8 @@ export const CallStats = (props: CallStatsProps) => {
   const { t } = useI18n();
   const [publishBitrate, setPublishBitrate] = useState('-');
   const [subscribeBitrate, setSubscribeBitrate] = useState('-');
+  const [publishAudioBitrate, setPublishAudioBitrate] = useState('-');
+  const [subscribeAudioBitrate, setSubscribeAudioBitrate] = useState('-');
   const previousStats = useRef<CallStatsReport>(undefined);
   const { useCallStatsReport } = useCallStateHooks();
   const callStatsReport = useCallStatsReport();
@@ -68,12 +78,26 @@ export const CallStats = (props: CallStatsProps) => {
         callStatsReport,
       );
     });
+    setPublishAudioBitrate(() => {
+      return calculatePublishAudioBitrate(
+        previousCallStatsReport,
+        callStatsReport,
+      );
+    });
+    setSubscribeAudioBitrate(() => {
+      return calculateSubscribeAudioBitrate(
+        previousCallStatsReport,
+        callStatsReport,
+      );
+    });
 
     setLatencyBuffer((latencyBuf) => {
       const newLatencyBuffer = latencyBuf.slice(-19);
       newLatencyBuffer.push({
         x: callStatsReport.timestamp,
-        y: callStatsReport.publisherStats.averageRoundTripTimeInMs,
+        y:
+          callStatsReport.publisherStats.averageRoundTripTimeInMs ||
+          callStatsReport.publisherAudioStats.averageRoundTripTimeInMs,
       });
       return newLatencyBuffer;
     });
@@ -85,6 +109,16 @@ export const CallStats = (props: CallStatsProps) => {
     lowBound: latencyLowBound,
     highBound: latencyHighBound,
     value: callStatsReport?.publisherStats.averageRoundTripTimeInMs || 0,
+  };
+
+  const audioJitterComparison = {
+    lowBound: audioJitterLowBound,
+    highBound: audioJitterHighBound,
+  };
+
+  const videoJitterComparison = {
+    lowBound: videoJitterLowBound,
+    highBound: videoJitterHighBound,
   };
 
   return (
@@ -118,7 +152,7 @@ export const CallStats = (props: CallStatsProps) => {
                 className="str-video__call-stats__icon"
                 icon="network-quality"
               />
-              {t('Call performance')}
+              {t('Video performance')}
             </h3>
             <p className="str-video__call-stats__description">
               {t('Review the key data points below to assess call performance')}
@@ -136,7 +170,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Receive jitter')}
               value={`${callStatsReport.subscriberStats.averageJitterInMs} ms.`}
               comparison={{
-                ...latencyComparison,
+                ...videoJitterComparison,
                 value: callStatsReport.subscriberStats.averageJitterInMs,
               }}
             />
@@ -144,7 +178,7 @@ export const CallStats = (props: CallStatsProps) => {
               label={t('Publish jitter')}
               value={`${callStatsReport.publisherStats.averageJitterInMs} ms.`}
               comparison={{
-                ...latencyComparison,
+                ...videoJitterComparison,
                 value: callStatsReport.publisherStats.averageJitterInMs,
               }}
             />
@@ -166,6 +200,54 @@ export const CallStats = (props: CallStatsProps) => {
             />
             <StatCard label={t('Publish bitrate')} value={publishBitrate} />
             <StatCard label={t('Receiving bitrate')} value={subscribeBitrate} />
+          </div>
+
+          <div className="str-video__call-stats__header">
+            <h3 className="str-video__call-stats__heading">
+              <Icon className="str-video__call-stats__icon" icon="mic" />
+              {t('Audio Performance')}
+            </h3>
+            <p className="str-video__call-stats__description">
+              {t(
+                'Review the key audio data points below to assess audio performance',
+              )}
+            </p>
+          </div>
+
+          <div className="str-video__call-stats__card-container">
+            <StatCard
+              label={t('Latency')}
+              value={`${callStatsReport.publisherAudioStats.averageRoundTripTimeInMs} ms.`}
+              comparison={latencyComparison}
+            />
+            <StatCard
+              label={t('Audio bitrate (publish)')}
+              value={publishAudioBitrate}
+            />
+            <StatCard
+              label={t('Audio bitrate (receive)')}
+              value={subscribeAudioBitrate}
+            />
+            <StatCard
+              label={t('Audio jitter (publish)')}
+              value={`${callStatsReport.publisherAudioStats.averageJitterInMs} ms.`}
+              comparison={{
+                ...audioJitterComparison,
+                value: callStatsReport.publisherAudioStats.averageJitterInMs,
+              }}
+            />
+            <StatCard
+              label={t('Audio jitter (receive)')}
+              value={`${callStatsReport.subscriberAudioStats.averageJitterInMs} ms.`}
+              comparison={{
+                ...audioJitterComparison,
+                value: callStatsReport.subscriberAudioStats.averageJitterInMs,
+              }}
+            />
+            <StatCard
+              label={t('Audio codec')}
+              value={formatAudioCodec(callStatsReport)}
+            />
           </div>
         </>
       )}
@@ -286,6 +368,15 @@ const formatCodec = (callStatsReport: CallStatsReport): string => {
   return name ? ` (${name})` : '';
 };
 
+const formatAudioCodec = (callStatsReport: CallStatsReport): string => {
+  const { codecPerTrackType } = callStatsReport.publisherAudioStats;
+  if (!codecPerTrackType || !codecPerTrackType[SfuModels.TrackType.AUDIO]) {
+    return '';
+  }
+  const [, name] = codecPerTrackType[SfuModels.TrackType.AUDIO].split('/');
+  return name ?? '';
+};
+
 const calculatePublishBitrate = (
   previousCallStatsReport: CallStatsReport,
   callStatsReport: CallStatsReport,
@@ -323,5 +414,33 @@ const calculateSubscribeBitrate = (
 
   const bytesReceived = totalBytesReceived - previousTotalBytesReceived;
   const timeElapsed = timestamp - previousTimestamp;
+  return `${((bytesReceived * 8) / timeElapsed).toFixed(2)} kbps`;
+};
+
+const calculatePublishAudioBitrate = (
+  previousCallStatsReport: CallStatsReport,
+  callStatsReport: CallStatsReport,
+) => {
+  const previousAudioStats = previousCallStatsReport.publisherAudioStats;
+  const audioStats = callStatsReport.publisherAudioStats;
+
+  const bytesSent =
+    audioStats.totalBytesSent - previousAudioStats.totalBytesSent;
+  const timeElapsed = audioStats.timestamp - previousAudioStats.timestamp;
+
+  return `${((bytesSent * 8) / timeElapsed).toFixed(2)} kbps`;
+};
+
+const calculateSubscribeAudioBitrate = (
+  previousCallStatsReport: CallStatsReport,
+  callStatsReport: CallStatsReport,
+) => {
+  const previousAudioStats = previousCallStatsReport.subscriberAudioStats;
+  const audioStats = callStatsReport.subscriberAudioStats;
+
+  const bytesReceived =
+    audioStats.totalBytesReceived - previousAudioStats.totalBytesReceived;
+  const timeElapsed = audioStats.timestamp - previousAudioStats.timestamp;
+
   return `${((bytesReceived * 8) / timeElapsed).toFixed(2)} kbps`;
 };

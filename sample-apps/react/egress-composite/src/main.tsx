@@ -9,6 +9,7 @@ import {
 import { CompositeApp } from './CompositeApp';
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
+import '@skooldev/skool-stream-layout/dist/styles.css';
 // Uncomment this line to test your own custom CSS
 // import cssUrl from '../public/example/custom.css?url';
 
@@ -131,6 +132,7 @@ window.setupLayout = (configuration: ConfigurationValue) => {
       'video.background_color': '#000000',
       'video.scale_mode': 'fit',
       'video.screenshare_scale_mode': 'fit',
+      'debug.show_timestamp': true,
     },
   } satisfies Partial<ConfigurationValue>)});`;
   document.head.appendChild(v);

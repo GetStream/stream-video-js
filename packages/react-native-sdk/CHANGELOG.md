@@ -2,6 +2,198 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.26.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.1...@stream-io/video-react-native-sdk-1.26.2) (2025-12-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.2`
+- `@stream-io/video-react-bindings` updated to version `1.12.2`
+
+## [1.26.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.0...@stream-io/video-react-native-sdk-1.26.1) (2025-12-08)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.1`
+- `@stream-io/video-react-bindings` updated to version `1.12.1`
+
+## [1.26.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.25.0...@stream-io/video-react-native-sdk-1.26.0) (2025-12-08)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.2`
+- `@stream-io/video-filters-react-native` updated to version `0.9.2`
+- `@stream-io/video-client` updated to version `1.38.0`
+- `@stream-io/video-react-bindings` updated to version `1.12.0`
+
+- remove default sound from jsdoc comment for notifications ([8f38784](https://github.com/GetStream/stream-video-js/commit/8f38784c41808fb65a31f2e5591a71c32b201eca))
+- **sample:** add benchmark environment ([#2032](https://github.com/GetStream/stream-video-js/issues/2032)) ([8bb7044](https://github.com/GetStream/stream-video-js/commit/8bb70447ca5b6fc3e0a3bad09f2bf1f91a4fa881))
+
+### Features
+
+- **LivestreamLayout:** Enrich with mute option and humanized participant count ([#2027](https://github.com/GetStream/stream-video-js/issues/2027)) ([cdc0c4f](https://github.com/GetStream/stream-video-js/commit/cdc0c4f985ab15a6c2e184b73432911510b43f99))
+
+## [1.25.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.7...@stream-io/video-react-native-sdk-1.25.0) (2025-11-28)
+
+### Features
+
+- add native methods to check for hardware presence in android RN-310 ([#2023](https://github.com/GetStream/stream-video-js/issues/2023)) ([90fddbc](https://github.com/GetStream/stream-video-js/commit/90fddbc22d9c21e51e2322c69031d81a30de063f))
+
+## [1.24.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.6...@stream-io/video-react-native-sdk-1.24.7) (2025-11-25)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.2`
+- `@stream-io/video-client` updated to version `1.37.3`
+- `@stream-io/video-react-bindings` updated to version `1.11.4`
+
+- instructions for Claude and other coding agents ([#2012](https://github.com/GetStream/stream-video-js/issues/2012)) ([08a3459](https://github.com/GetStream/stream-video-js/commit/08a345954f7cb5b1fae5a4b39b5b585bf1f631ec))
+
+### Bug Fixes
+
+- **noise cancellation:** delay toggling until initialization is finished ([#2014](https://github.com/GetStream/stream-video-js/issues/2014)) ([d28b8ea](https://github.com/GetStream/stream-video-js/commit/d28b8ea282322a25688ff48966b0dc10dd7e60bd))
+
+## [1.24.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.5...@stream-io/video-react-native-sdk-1.24.6) (2025-11-20)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.1`
+- `@stream-io/video-filters-react-native` updated to version `0.9.1`
+- `@stream-io/video-client` updated to version `1.37.2`
+- `@stream-io/video-react-bindings` updated to version `1.11.3`
+
+- update react-native to 0.81.5 ([33554fc](https://github.com/GetStream/stream-video-js/commit/33554fc31015f4af57ba19b1f925b19fbfcbe0ea))
+
+## [1.24.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.4...@stream-io/video-react-native-sdk-1.24.5) (2025-11-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.37.1`
+- `@stream-io/video-react-bindings` updated to version `1.11.2`
+
+- remove outdated comment ([2323e27](https://github.com/GetStream/stream-video-js/commit/2323e27b7e50f82e8ef2a3d0d12f1012025b3e50))
+
+### Bug Fixes
+
+- dynascale manager doesnt pick up updated dimensions all the time ([#2001](https://github.com/GetStream/stream-video-js/issues/2001)) ([d91e008](https://github.com/GetStream/stream-video-js/commit/d91e008f27fa2a4324f22555fbe0a59afe702bbb))
+
+## [1.24.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.3...@stream-io/video-react-native-sdk-1.24.4) (2025-11-14)
+
+### Dependency Updates
+
+- `@stream-io/video-filters-react-native` updated to version `0.9.0`
+- `@stream-io/video-client` updated to version `1.37.0`
+- `@stream-io/video-react-bindings` updated to version `1.11.1`
+
+## [1.24.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.2...@stream-io/video-react-native-sdk-1.24.3) (2025-11-12)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.36.1`
+- `@stream-io/video-react-bindings` updated to version `1.11.0`
+
+### Bug Fixes
+
+- improve android wake lock and power manager handling RN-291 ([#1990](https://github.com/GetStream/stream-video-js/issues/1990)) ([28096ad](https://github.com/GetStream/stream-video-js/commit/28096ad9b14848b352afa358dcaf655cbcfb0626)), closes [#1971](https://github.com/GetStream/stream-video-js/issues/1971)
+- missing adaptive floating dimensions for landscape video ([#1983](https://github.com/GetStream/stream-video-js/issues/1983)) ([7803f2c](https://github.com/GetStream/stream-video-js/commit/7803f2cd80e9680974803fb72b3e5b4bf8caba7c))
+
+## [1.24.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.1...@stream-io/video-react-native-sdk-1.24.2) (2025-11-05)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.1`
+- `@stream-io/video-filters-react-native` updated to version `0.8.1`
+
+### Bug Fixes
+
+- noise cancellation webrtc 137 support and dev dep and sampleapp webrtc updates ([#1974](https://github.com/GetStream/stream-video-js/issues/1974)) ([c555695](https://github.com/GetStream/stream-video-js/commit/c555695e53018412ea8964a2e222daa99a9544e5))
+
+## [1.24.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.24.0...@stream-io/video-react-native-sdk-1.24.1) (2025-11-04)
+
+### Bug Fixes
+
+- ios callkit related audio inconsistencies ([#1982](https://github.com/GetStream/stream-video-js/issues/1982)) ([112e380](https://github.com/GetStream/stream-video-js/commit/112e38090be4e41d1554a966af1f6e15965ea786))
+- no video if camera is disabled on init and then enabled ([#1981](https://github.com/GetStream/stream-video-js/issues/1981)) ([b30ca34](https://github.com/GetStream/stream-video-js/commit/b30ca34eb598eb61716f3e4d389ffaf31236b90e))
+
+## [1.24.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.23.0...@stream-io/video-react-native-sdk-1.24.0) (2025-10-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.36.0`
+- `@stream-io/video-react-bindings` updated to version `1.10.4`
+
+### Features
+
+- Migrate logger to js-toolkit logger implementation ([#1959](https://github.com/GetStream/stream-video-js/issues/1959)) ([5a424f7](https://github.com/GetStream/stream-video-js/commit/5a424f72cec2a8cbc0bfa23147d9988ab9bfbdc1))
+
+### Bug Fixes
+
+- keep compatibility with older xcode versions ([#1973](https://github.com/GetStream/stream-video-js/issues/1973)) ([3b2f281](https://github.com/GetStream/stream-video-js/commit/3b2f281ac565ff4c422aa37c1eb90c58afee3bea))
+
+## [1.23.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.3...@stream-io/video-react-native-sdk-1.23.0) (2025-10-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.35.1`
+- `@stream-io/video-react-bindings` updated to version `1.10.3`
+
+### Features
+
+- adaptive floating video dimensions ([#1969](https://github.com/GetStream/stream-video-js/issues/1969)) ([5a213d2](https://github.com/GetStream/stream-video-js/commit/5a213d2571610846bdcd9b4554a5a8d1a3def6c4))
+
+### Bug Fixes
+
+- **react-native:** restore screen wake lock and proximity sensing ([#1971](https://github.com/GetStream/stream-video-js/issues/1971)) ([f20ef70](https://github.com/GetStream/stream-video-js/commit/f20ef70a5958fddf52075233f9f3d64a2ce01895)), closes [#1840](https://github.com/GetStream/stream-video-js/issues/1840)
+
+## [1.22.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.2...@stream-io/video-react-native-sdk-1.22.3) (2025-10-24)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.35.0`
+- `@stream-io/video-react-bindings` updated to version `1.10.2`
+
+### Bug Fixes
+
+- accept `children` in LivestreamPlayer components ([#1968](https://github.com/GetStream/stream-video-js/issues/1968)) ([1558f06](https://github.com/GetStream/stream-video-js/commit/1558f060614581964b72e9627e82a8419fc3d570))
+
+## [1.22.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.1...@stream-io/video-react-native-sdk-1.22.2) (2025-10-24)
+
+### Bug Fixes
+
+- compilation error in older kotlin versions ([cedb942](https://github.com/GetStream/stream-video-js/commit/cedb94296ca659a1ad5584d3bd3d29f6be12c3ab))
+
+## [1.22.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.22.0...@stream-io/video-react-native-sdk-1.22.1) (2025-10-17)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.34.1`
+- `@stream-io/video-react-bindings` updated to version `1.10.1`
+
+### Bug Fixes
+
+- videorenderer didnt call update subscriptions on remote reconnect ([#1964](https://github.com/GetStream/stream-video-js/issues/1964)) ([cb85bb4](https://github.com/GetStream/stream-video-js/commit/cb85bb495fe0fbe6ab803de2765e4c38bc74cd2f))
+
+## [1.22.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.21.2...@stream-io/video-react-native-sdk-1.22.0) (2025-10-14)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.0`
+- `@stream-io/video-filters-react-native` updated to version `0.8.0`
+- `@stream-io/video-client` updated to version `1.34.0`
+- `@stream-io/video-react-bindings` updated to version `1.10.0`
+
+- add useEffectEvent shim to bindings with react 19.2 dev dep ([#1944](https://github.com/GetStream/stream-video-js/issues/1944)) ([26ca6bd](https://github.com/GetStream/stream-video-js/commit/26ca6bd7702d4960c098104e12db18f7d8afc7ce))
+- update react-native peer dep to 0.73.0 ([#1958](https://github.com/GetStream/stream-video-js/issues/1958)) ([0dfcbf3](https://github.com/GetStream/stream-video-js/commit/0dfcbf36dcf5136881109bef39470e4d5d7a10e7))
+
+### Features
+
+- **deps:** React 19.1, React Native 0.81, NextJS 15.5, Expo 54 ([#1940](https://github.com/GetStream/stream-video-js/issues/1940)) ([30f8ce2](https://github.com/GetStream/stream-video-js/commit/30f8ce2b335189e1f77160236839bc6c6a02f634))
+- move audio route manager inside SDK ([#1840](https://github.com/GetStream/stream-video-js/issues/1840)) ([847dd30](https://github.com/GetStream/stream-video-js/commit/847dd30d6240a0780fe3d58d681554bc392f6f51)), closes [#1829](https://github.com/GetStream/stream-video-js/issues/1829)
+
+### Bug Fixes
+
+- add useIsInPiPMode for ios ([#1947](https://github.com/GetStream/stream-video-js/issues/1947)) ([2fe1f9f](https://github.com/GetStream/stream-video-js/commit/2fe1f9fde5f0d25bdc43394b65f8eb002dea7b5f))
+- compatibility with RN 0.80+ ([#1950](https://github.com/GetStream/stream-video-js/issues/1950)) ([58e0bc4](https://github.com/GetStream/stream-video-js/commit/58e0bc499117381e6f0dad977cc9a5279164179d))
+
 ## [1.21.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.21.1...@stream-io/video-react-native-sdk-1.21.2) (2025-10-02)
 
 ### Dependency Updates

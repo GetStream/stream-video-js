@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.media.AudioAttributes
 import android.media.AudioFormat
@@ -333,6 +334,24 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    @ReactMethod
+    fun hasAudioOutputHardware(promise: Promise) {
+        val hasAudioOutput = reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_AUDIO_OUTPUT)
+        promise.resolve(hasAudioOutput)
+    }
+
+    @ReactMethod
+    fun hasMicrophoneHardware(promise: Promise) {
+        val hasAudioInput = reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_MICROPHONE)
+        promise.resolve(hasAudioInput)
+    }
+
+    @ReactMethod
+    fun hasCameraHardware(promise: Promise) {
+        val hasCamera = reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
+        promise.resolve(hasCamera)
+    }
+
     private fun getBatteryStatusFromIntent(intent: Intent): WritableMap {
         val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
         val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
@@ -429,15 +448,15 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             busyToneJob?.cancel()
             busyToneJob = null
 
-            busyToneAudioTrack?.let { track ->
+            busyToneAudioTrack?.apply {
                 try {
-                    if (track.playState == AudioTrack.PLAYSTATE_PLAYING) {
-                        track.stop()
+                    if (playState == AudioTrack.PLAYSTATE_PLAYING) {
+                        stop()
                     }
                 } catch (e: Exception) {
                     Log.e(NAME, "Error stopping AudioTrack: ${e.message}")
                 } finally {
-                    track.release()
+                    release()
                 }
             }
             busyToneAudioTrack = null

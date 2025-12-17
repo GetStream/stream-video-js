@@ -10,9 +10,10 @@ import {
   type TwirpOptions,
 } from '@protobuf-ts/twirp-transport';
 import { SignalServerClient } from '../gen/video/sfu/signal_rpc/signal.client';
-import type { Logger, LogLevel } from '../coordinator/connection/types';
 import type { Trace } from '../stats';
 import type { SfuResponseWithError } from './retryable';
+import type { ScopedLogger } from '../logger';
+import type { LogLevel } from '@stream-io/logger';
 
 const defaultOptions: TwirpOptions = {
   baseUrl: '',
@@ -40,7 +41,7 @@ export const withHeaders = (
 };
 
 export const withRequestLogger = (
-  logger: Logger,
+  logger: ScopedLogger,
   level: LogLevel,
 ): RpcInterceptor => {
   return {
@@ -51,7 +52,7 @@ export const withRequestLogger = (
       options: RpcOptions,
     ): UnaryCall => {
       const invocation = next(method, input, options);
-      logger(level, `Invoked SFU RPC method ${method.name}`, {
+      logger[level](`Invoked SFU RPC method ${method.name}`, {
         request: invocation.request,
         headers: invocation.requestHeaders,
         response: invocation.response,
@@ -63,16 +64,13 @@ export const withRequestLogger = (
 };
 
 export const withRequestTracer = (trace: Trace): RpcInterceptor => {
-  type RpcMethodNames = {
-    [K in keyof SignalServerClient as Capitalize<K>]: boolean;
-  };
+  type RpcMethodName = Capitalize<keyof SignalServerClient>;
+  const exclusions = new Set<RpcMethodName>(['SendStats']);
+  const responseInclusions = new Set<RpcMethodName>(['SetPublisher']);
 
   const traceError = (name: string, input: object, err: unknown) =>
     trace(`${name}OnFailure`, [err, input]);
 
-  const exclusions: Record<string, boolean | undefined> = {
-    SendStats: true,
-  } satisfies Partial<RpcMethodNames>;
   return {
     interceptUnary(
       next: NextUnaryFn,
@@ -80,18 +78,18 @@ export const withRequestTracer = (trace: Trace): RpcInterceptor => {
       input: object,
       options: RpcOptions,
     ): UnaryCall {
-      if (exclusions[method.name as keyof RpcMethodNames]) {
-        return next(method, input, options);
-      }
+      const name = method.name as RpcMethodName;
+      if (exclusions.has(name)) return next(method, input, options);
 
-      trace(method.name, input);
+      trace(name, input);
       const unaryCall = next(method, input, options);
       unaryCall.then(
         (invocation) => {
-          const err = (invocation.response as SfuResponseWithError)?.error;
-          if (err) traceError(method.name, input, err);
+          const response = invocation.response as SfuResponseWithError;
+          if (response.error) traceError(name, input, response.error);
+          if (responseInclusions.has(name)) trace(`${name}Response`, response);
         },
-        (err) => traceError(method.name, input, err),
+        (error) => traceError(name, input, error),
       );
       return unaryCall;
     },

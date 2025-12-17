@@ -100,23 +100,72 @@ describe('StreamVideoClient Ringing', () => {
           ],
         },
       });
+      expect(call.ringing).toBe(true);
 
-      const [oliverRingEvent, sachaRingEvent, marceloRingEvent] =
-        await Promise.all([oliverRing, sachaRing, marceloRing]);
+      const ringEventsPromise = Promise.all([sachaRing, marceloRing]);
+      await expect(ringEventsPromise).resolves.toHaveLength(2);
+      await expect(oliverRing).rejects.toThrow(); // caller doesn't get ring event
+      const [sachaRingEvent, marceloRingEvent] = await ringEventsPromise;
 
-      expect(oliverRingEvent.call.cid).toBe(call.cid);
       expect(sachaRingEvent.call.cid).toBe(call.cid);
       expect(marceloRingEvent.call.cid).toBe(call.cid);
 
-      const oliverCall = await expectCall(oliverClient, call.cid);
       const sachaCall = await expectCall(sachaClient, call.cid);
       const marceloCall = await expectCall(marceloClient, call.cid);
-      expect(oliverCall).toBeDefined();
       expect(sachaCall).toBeDefined();
       expect(marceloCall).toBeDefined();
-      expect(oliverCall.ringing).toBe(true);
       expect(sachaCall.ringing).toBe(true);
       expect(marceloCall.ringing).toBe(true);
+    });
+  });
+
+  describe('ringing individual members', () => {
+    it('should ring individual members', async () => {
+      const oliverCall = oliverClient.call('default', crypto.randomUUID());
+      await oliverCall.create({
+        ring: false, // don't ring all members by default
+        data: {
+          members: [
+            { user_id: 'oliver' },
+            { user_id: 'sacha' },
+            { user_id: 'marcelo' },
+          ],
+        },
+      });
+
+      // no one should get a ring event yet
+      const oliverRing = expectEvent(oliverClient, 'call.ring', 500);
+      const sachaRing = expectEvent(sachaClient, 'call.ring', 500);
+      const marceloRing = expectEvent(marceloClient, 'call.ring', 500);
+      await expect(
+        Promise.all([oliverRing, sachaRing, marceloRing]),
+      ).rejects.toThrow();
+
+      // oliver is calling sacha. only sacha should get a ring event
+      const sachaIndividualRing = expectEvent(sachaClient, 'call.ring');
+      const marceloIndividualRing = expectEvent(marceloClient, 'call.ring');
+      await oliverCall.ring({ members_ids: ['sacha'] });
+      await expect(sachaIndividualRing).resolves.toHaveProperty(
+        'call.cid',
+        oliverCall.cid,
+      );
+      await expect(marceloIndividualRing).rejects.toThrow();
+
+      const sachaCall = await expectCall(sachaClient, oliverCall.cid);
+      expect(sachaCall).toBeDefined();
+
+      // sacha is calling marcelo. only marcelo should get a ring event
+      const oliverIndividualRing = expectEvent(oliverClient, 'call.ring');
+      const marceloIndividualRing2 = expectEvent(marceloClient, 'call.ring');
+      await sachaCall.ring({ members_ids: ['marcelo'] });
+      await expect(marceloIndividualRing2).resolves.toHaveProperty(
+        'call.cid',
+        sachaCall.cid,
+      );
+      await expect(oliverIndividualRing).rejects.toThrow();
+
+      const marceloCall = await expectCall(marceloClient, sachaCall.cid);
+      expect(marceloCall).toBeDefined();
     });
   });
 

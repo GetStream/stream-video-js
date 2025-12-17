@@ -129,6 +129,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    // Uncomment the next line to enable verbose WebRTC logs
+    // WebRTCModuleOptions.sharedInstance().loggingSeverity = .verbose
+    
     let localizedAppName = Bundle.main.localizedInfoDictionary?["CFBundleDisplayName"] as? String
     let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
     RNCallKeep.setup([

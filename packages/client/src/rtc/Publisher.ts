@@ -1,7 +1,7 @@
 import { BasePeerConnection } from './BasePeerConnection';
 import type {
+  BasePeerConnectionOpts,
   PublishBundle,
-  PublisherConstructorOpts,
   TrackPublishOptions,
 } from './types';
 import { NegotiationError } from './NegotiationError';
@@ -21,7 +21,7 @@ import {
 } from './layers';
 import { isSvcCodec } from './codecs';
 import { isAudioTrackType } from './helpers/tracks';
-import { extractMid } from './helpers/sdp';
+import { extractMid, removeCodecsExcept } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
 
@@ -38,7 +38,10 @@ export class Publisher extends BasePeerConnection {
   /**
    * Constructs a new `Publisher` instance.
    */
-  constructor({ publishOptions, ...baseOptions }: PublisherConstructorOpts) {
+  constructor(
+    baseOptions: BasePeerConnectionOpts,
+    publishOptions: PublishOption[],
+  ) {
     super(PeerType.PUBLISHER_UNSPECIFIED, baseOptions);
     this.publishOptions = publishOptions;
 
@@ -136,7 +139,7 @@ export class Publisher extends BasePeerConnection {
     await transceiver.sender.setParameters(params);
 
     const trackType = publishOption.trackType;
-    this.logger('debug', `Added ${TrackType[trackType]} transceiver`);
+    this.logger.debug(`Added ${TrackType[trackType]} transceiver`);
     this.transceiverCache.add({ publishOption, transceiver, options });
     this.trackIdToTrackType.set(track.id, trackType);
 
@@ -273,7 +276,7 @@ export class Publisher extends BasePeerConnection {
     const enabledLayers = layers.filter((l) => l.active);
 
     const tag = 'Update publish quality:';
-    this.logger('info', `${tag} requested layers by SFU:`, enabledLayers);
+    this.logger.info(`${tag} requested layers by SFU:`, enabledLayers);
 
     const transceiverId = this.transceiverCache.find(
       (t) =>
@@ -282,12 +285,12 @@ export class Publisher extends BasePeerConnection {
     );
     const sender = transceiverId?.transceiver.sender;
     if (!sender) {
-      return this.logger('warn', `${tag} no video sender found.`);
+      return this.logger.warn(`${tag} no video sender found.`);
     }
 
     const params = sender.getParameters();
     if (params.encodings.length === 0) {
-      return this.logger('warn', `${tag} there are no encodings set.`);
+      return this.logger.warn(`${tag} there are no encodings set.`);
     }
 
     const codecInUse = transceiverId?.publishOption.codec?.name;
@@ -343,21 +346,21 @@ export class Publisher extends BasePeerConnection {
 
     const activeEncoders = params.encodings.filter((e) => e.active);
     if (!changed) {
-      return this.logger('info', `${tag} no change:`, activeEncoders);
+      return this.logger.info(`${tag} no change:`, activeEncoders);
     }
 
     await sender.setParameters(params);
-    this.logger('info', `${tag} enabled rids:`, activeEncoders);
+    this.logger.info(`${tag} enabled rids:`, activeEncoders);
   };
 
   /**
    * Restarts the ICE connection and renegotiates with the SFU.
    */
   restartIce = async (): Promise<void> => {
-    this.logger('debug', 'Restarting ICE connection');
+    this.logger.debug('Restarting ICE connection');
     const signalingState = this.pc.signalingState;
     if (this.isIceRestarting || signalingState === 'have-local-offer') {
-      this.logger('debug', 'ICE restart is already in progress');
+      this.logger.debug('ICE restart is already in progress');
       return;
     }
     await this.negotiate({ iceRestart: true });
@@ -378,7 +381,12 @@ export class Publisher extends BasePeerConnection {
         this.isIceRestarting = options?.iceRestart ?? false;
         await this.pc.setLocalDescription(offer);
 
-        const { sdp = '' } = offer;
+        const { sdp: baseSdp = '' } = offer;
+        const { dangerouslyForceCodec, fmtpLine } =
+          this.clientPublishOptions || {};
+        const sdp = dangerouslyForceCodec
+          ? removeCodecsExcept(baseSdp, dangerouslyForceCodec, fmtpLine)
+          : baseSdp;
         const { response } = await this.sfuClient.setPublisher({ sdp, tracks });
         if (response.error) throw new NegotiationError(response.error);
 

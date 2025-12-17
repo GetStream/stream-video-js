@@ -1,7 +1,6 @@
 import { useConnectedUser } from '@stream-io/video-react-sdk';
 import { createContext, PropsWithChildren, useContext } from 'react';
-
-export type AppEnvironment = 'pronto' | 'demo' | string;
+import type { AppEnvironment } from '../lib/environmentConfig';
 
 const environmentOverride =
   typeof window !== 'undefined' &&

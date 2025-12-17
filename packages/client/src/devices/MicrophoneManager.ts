@@ -66,7 +66,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
               await this.stopSpeakingWhileMutedDetection();
             }
           } catch (err) {
-            this.logger('warn', 'Could not enable speaking while muted', err);
+            this.logger.warn('Could not enable speaking while muted', err);
           }
         },
       ),
@@ -92,18 +92,20 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
             })
             .then((canAutoEnable) => {
               if (canAutoEnable) {
-                this.noiseCancellation?.enable();
+                this.noiseCancellation?.enable().catch((err) => {
+                  this.logger.warn('Failed to enable noise cancellation', err);
+                });
               }
             })
             .catch((err) => {
-              this.logger('warn', `Failed to enable noise cancellation`, err);
+              this.logger.warn(`Failed to enable noise cancellation`, err);
               return this.call.notifyNoiseCancellationStopped();
             });
         } else if (callingState === CallingState.LEFT) {
           this.noiseCancellationRegistration
             .then(() => this.noiseCancellation?.disable())
             .catch((err) => {
-              this.logger('warn', `Failed to disable noise cancellation`, err);
+              this.logger.warn(`Failed to disable noise cancellation`, err);
             });
         }
       }),
@@ -141,11 +143,11 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           this.call.tracer.trace('noiseCancellation.enabled', enabled);
           if (enabled) {
             this.call.notifyNoiseCancellationStarting().catch((err) => {
-              this.logger('warn', `notifyNoiseCancellationStart failed`, err);
+              this.logger.warn(`notifyNoiseCancellationStart failed`, err);
             });
           } else {
             this.call.notifyNoiseCancellationStopped().catch((err) => {
-              this.logger('warn', `notifyNoiseCancellationStop failed`, err);
+              this.logger.warn(`notifyNoiseCancellationStop failed`, err);
             });
           }
         },
@@ -175,13 +177,15 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           canAutoEnable = await noiseCancellation.canAutoEnable();
         }
         if (canAutoEnable) {
-          noiseCancellation.enable();
+          noiseCancellation.enable().catch((err) => {
+            this.logger.warn('Failed to enable noise cancellation', err);
+          });
         }
       }
     } catch (e) {
-      this.logger('warn', 'Failed to enable noise cancellation', e);
+      this.logger.warn('Failed to enable noise cancellation', e);
       await this.disableNoiseCancellation().catch((err) => {
-        this.logger('warn', 'Failed to disable noise cancellation', err);
+        this.logger.warn('Failed to disable noise cancellation', err);
       });
       throw e;
     }
@@ -195,7 +199,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       .then(() => this.noiseCancellation?.disable())
       .then(() => this.noiseCancellationChangeUnsubscribe?.())
       .catch((err) => {
-        this.logger('warn', 'Failed to unregister noise cancellation', err);
+        this.logger.warn('Failed to unregister noise cancellation', err);
       });
 
     this.call.tracer.trace('noiseCancellation.disabled', true);
@@ -268,9 +272,16 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       const disableAudioProcessing =
         profile === AudioBitrateProfile.MUSIC_HIGH_QUALITY;
       if (disableAudioProcessing) {
-        this.noiseCancellation.disable(); // disable for high quality music mode
+        this.noiseCancellation.disable().catch((err) => {
+          this.logger.warn(
+            'Failed to disable noise cancellation for music mode',
+            err,
+          );
+        }); // disable for high quality music mode
       } else {
-        this.noiseCancellation.enable(); // restore it for other modes if available
+        this.noiseCancellation.enable().catch((err) => {
+          this.logger.warn('Failed to enable noise cancellation', err);
+        }); // restore it for other modes if available
       }
     }
   }

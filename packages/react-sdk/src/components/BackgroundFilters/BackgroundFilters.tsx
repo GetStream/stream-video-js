@@ -1,135 +1,81 @@
 import {
-  createContext,
+  type Context,
   type PropsWithChildren,
   useCallback,
-  useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
 import { flushSync } from 'react-dom';
-import clsx from 'clsx';
-import { useCall } from '@stream-io/video-react-bindings';
-import { Call, disposeOfMediaStream, getLogger } from '@stream-io/video-client';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { Call, disposeOfMediaStream } from '@stream-io/video-client';
 import {
   type BackgroundBlurLevel,
-  type BackgroundFilter,
   createRenderer,
+  isMediaPipePlatformSupported,
   isPlatformSupported,
+  loadMediaPipe,
   loadTFLite,
-  type PlatformSupportFlags,
+  type PerformanceStats,
   type Renderer,
   type TFLite,
+  VirtualBackground,
 } from '@stream-io/video-filters-web';
-
-export type BackgroundFiltersProps = PlatformSupportFlags & {
-  /**
-   * A list of URLs to use as background images.
-   */
-  backgroundImages?: string[];
-
-  /**
-   * The background filter to apply to the video (by default).
-   * @default undefined no filter applied
-   */
-  backgroundFilter?: BackgroundFilter;
-
-  /**
-   * The URL of the image to use as the background (by default).
-   */
-  backgroundImage?: string;
-
-  /**
-   * The level of blur to apply to the background (by default).
-   * @default 'high'.
-   */
-  backgroundBlurLevel?: BackgroundBlurLevel;
-
-  /**
-   * The base path for the TensorFlow Lite files.
-   * @default 'https://unpkg.com/@stream-io/video-filters-web/tf'.
-   */
-  basePath?: string;
-
-  /**
-   * The path to the TensorFlow Lite WebAssembly file.
-   *
-   * Override this prop to use a custom path to the TensorFlow Lite WebAssembly file
-   * (e.g., if you choose to host it yourself).
-   */
-  tfFilePath?: string;
-
-  /**
-   * The path to the TensorFlow Lite model file.
-   * Override this prop to use a custom path to the TensorFlow Lite model file
-   * (e.g., if you choose to host it yourself).
-   */
-  modelFilePath?: string;
-
-  /**
-   * When a started filter encounters an error, this callback will be executed.
-   * The default behavior (not overridable) is unregistering a failed filter.
-   * Use this callback to display UI error message, disable the corresponsing stream,
-   * or to try registering the filter again.
-   */
-  onError?: (error: any) => void;
-};
-
-export type BackgroundFiltersAPI = {
-  /**
-   * Whether the current platform supports the background filters.
-   */
-  isSupported: boolean;
-
-  /**
-   * Indicates whether the background filters engine is loaded and ready.
-   */
-  isReady: boolean;
-
-  /**
-   * Disables all background filters applied to the video.
-   */
-  disableBackgroundFilter: () => void;
-
-  /**
-   * Applies a background blur filter to the video.
-   *
-   * @param blurLevel the level of blur to apply to the background.
-   */
-  applyBackgroundBlurFilter: (blurLevel: BackgroundBlurLevel) => void;
-
-  /**
-   * Applies a background image filter to the video.
-   *
-   * @param imageUrl the URL of the image to use as the background.
-   */
-  applyBackgroundImageFilter: (imageUrl: string) => void;
-};
+import clsx from 'clsx';
+import type {
+  BackgroundFiltersPerformance,
+  BackgroundFiltersProps,
+  BackgroundFiltersContextValue,
+  PerformanceDegradationReason,
+} from './types';
 
 /**
- * The context value for the background filters context.
+ * Constants for FPS warning calculation.
+ * Smooths out quick spikes using an EMA, ignores brief outliers,
+ * and uses two thresholds to avoid flickering near the limit.
  */
-export type BackgroundFiltersContextValue = BackgroundFiltersProps &
-  BackgroundFiltersAPI;
+const ALPHA = 0.2;
+const FPS_WARNING_THRESHOLD_LOWER = 23;
+const FPS_WARNING_THRESHOLD_UPPER = 25;
+const DEFAULT_FPS = 30;
+const DEVIATION_LIMIT = 0.5;
+const OUTLIER_PERSISTENCE = 5;
 
 /**
- * The context for the background filters.
+ * Represents the available background filter processing engines.
  */
-const BackgroundFiltersContext = createContext<
-  BackgroundFiltersContextValue | undefined
->(undefined);
+enum FilterEngine {
+  TF,
+  MEDIA_PIPE,
+  NONE,
+}
 
 /**
- * A hook to access the background filters context API.
+ * Determines which filter engine is available.
+ * MEDIA_PIPE is the default unless legacy filters are requested or MediaPipe is unsupported.
+ *
+ * Returns NONE if neither is supported.
  */
-export const useBackgroundFilters = () => {
-  const context = useContext(BackgroundFiltersContext);
-  if (!context) {
-    throw new Error(
-      'useBackgroundFilters must be used within a BackgroundFiltersProvider',
-    );
+const determineEngine = async (
+  useLegacyFilter: boolean | undefined,
+  forceSafariSupport: boolean | undefined,
+  forceMobileSupport: boolean | undefined,
+): Promise<FilterEngine> => {
+  if (useLegacyFilter) {
+    const isTfPlatformSupported = await isPlatformSupported({
+      forceSafariSupport,
+      forceMobileSupport,
+    });
+    return isTfPlatformSupported ? FilterEngine.TF : FilterEngine.NONE;
   }
-  return context;
+
+  const isMediaPipeSupported = await isMediaPipePlatformSupported({
+    forceSafariSupport,
+    forceMobileSupport,
+  });
+
+  return isMediaPipeSupported ? FilterEngine.MEDIA_PIPE : FilterEngine.NONE;
 };
 
 /**
@@ -139,9 +85,15 @@ export const useBackgroundFilters = () => {
  * in your project before using this component.
  */
 export const BackgroundFiltersProvider = (
-  props: PropsWithChildren<BackgroundFiltersProps>,
+  props: PropsWithChildren<BackgroundFiltersProps> & {
+    // for code splitting. Prevents circular dependency issues where
+    // this Context needs to be present in the main chunk, but also
+    // imported by the background filters chunk.
+    ContextProvider: Context<BackgroundFiltersContextValue | undefined>;
+  },
 ) => {
   const {
+    ContextProvider,
     children,
     backgroundImages = [],
     backgroundFilter: bgFilterFromProps = undefined,
@@ -149,16 +101,121 @@ export const BackgroundFiltersProvider = (
     backgroundBlurLevel: bgBlurLevelFromProps = undefined,
     tfFilePath,
     modelFilePath,
+    useLegacyFilter,
     basePath,
     onError,
+    performanceThresholds,
     forceSafariSupport,
     forceMobileSupport,
   } = props;
+
+  const call = useCall();
+  const { useCallStatsReport } = useCallStateHooks();
+  const callStatsReport = useCallStatsReport();
 
   const [backgroundFilter, setBackgroundFilter] = useState(bgFilterFromProps);
   const [backgroundImage, setBackgroundImage] = useState(bgImageFromProps);
   const [backgroundBlurLevel, setBackgroundBlurLevel] =
     useState(bgBlurLevelFromProps);
+
+  const [showLowFpsWarning, setShowLowFpsWarning] = useState<boolean>(false);
+
+  const fpsWarningThresholdLower =
+    performanceThresholds?.fpsWarningThresholdLower ??
+    FPS_WARNING_THRESHOLD_LOWER;
+  const fpsWarningThresholdUpper =
+    performanceThresholds?.fpsWarningThresholdUpper ??
+    FPS_WARNING_THRESHOLD_UPPER;
+  const defaultFps = performanceThresholds?.defaultFps ?? DEFAULT_FPS;
+
+  const emaRef = useRef<number>(defaultFps);
+  const outlierStreakRef = useRef<number>(0);
+
+  const handleStats = useCallback(
+    (stats: PerformanceStats) => {
+      const fps = stats?.fps;
+      if (fps === undefined || fps === null) {
+        emaRef.current = defaultFps;
+        outlierStreakRef.current = 0;
+        setShowLowFpsWarning(false);
+        return;
+      }
+
+      const prevEma = emaRef.current;
+      const deviation = Math.abs(fps - prevEma) / prevEma;
+
+      const isOutlier = fps < prevEma && deviation > DEVIATION_LIMIT;
+      outlierStreakRef.current = isOutlier ? outlierStreakRef.current + 1 : 0;
+      if (isOutlier && outlierStreakRef.current < OUTLIER_PERSISTENCE) return;
+
+      emaRef.current = ALPHA * fps + (1 - ALPHA) * prevEma;
+
+      setShowLowFpsWarning((prev) => {
+        if (prev && emaRef.current > fpsWarningThresholdUpper) return false;
+        if (!prev && emaRef.current < fpsWarningThresholdLower) return true;
+
+        return prev;
+      });
+    },
+    [fpsWarningThresholdLower, fpsWarningThresholdUpper, defaultFps],
+  );
+
+  const performance: BackgroundFiltersPerformance = useMemo(() => {
+    if (!backgroundFilter) {
+      return { degraded: false };
+    }
+
+    const reasons: Array<PerformanceDegradationReason> = [];
+
+    if (showLowFpsWarning) {
+      reasons.push('frame-drop');
+    }
+
+    const qualityLimitationReasons =
+      callStatsReport?.publisherStats?.qualityLimitationReasons;
+
+    if (
+      showLowFpsWarning &&
+      qualityLimitationReasons &&
+      qualityLimitationReasons?.includes('cpu')
+    ) {
+      reasons.push('cpu-throttling');
+    }
+
+    return {
+      degraded: reasons.length > 0,
+      reason: reasons.length > 0 ? reasons : undefined,
+    };
+  }, [
+    showLowFpsWarning,
+    callStatsReport?.publisherStats?.qualityLimitationReasons,
+    backgroundFilter,
+  ]);
+
+  const prevDegradedRef = useRef<boolean | undefined>(undefined);
+  useEffect(() => {
+    const currentDegraded = performance.degraded;
+    const prevDegraded = prevDegradedRef.current;
+
+    if (
+      !!backgroundFilter &&
+      prevDegraded !== undefined &&
+      prevDegraded !== currentDegraded
+    ) {
+      call?.tracer.trace('backgroundFilters.performance', {
+        degraded: currentDegraded,
+        reason: performance?.reason,
+        fps: emaRef.current,
+      });
+    }
+    prevDegradedRef.current = currentDegraded;
+  }, [
+    performanceThresholds,
+    performance.degraded,
+    performance.reason,
+    backgroundFilter,
+    call?.tracer,
+  ]);
 
   const applyBackgroundImageFilter = useCallback((imageUrl: string) => {
     setBackgroundFilter('image');
@@ -177,30 +234,50 @@ export const BackgroundFiltersProvider = (
     setBackgroundFilter(undefined);
     setBackgroundImage(undefined);
     setBackgroundBlurLevel(undefined);
-  }, []);
 
+    emaRef.current = defaultFps;
+    outlierStreakRef.current = 0;
+    setShowLowFpsWarning(false);
+  }, [defaultFps]);
+
+  const [engine, setEngine] = useState<FilterEngine>(FilterEngine.NONE);
   const [isSupported, setIsSupported] = useState(false);
   useEffect(() => {
-    isPlatformSupported({
+    determineEngine(
+      useLegacyFilter,
       forceSafariSupport,
       forceMobileSupport,
-    }).then(setIsSupported);
-  }, [forceMobileSupport, forceSafariSupport]);
+    ).then((determinedEngine) => {
+      setEngine(determinedEngine);
+      setIsSupported(determinedEngine !== FilterEngine.NONE);
+    });
+  }, [forceMobileSupport, forceSafariSupport, useLegacyFilter]);
 
   const [tfLite, setTfLite] = useState<TFLite>();
   useEffect(() => {
-    // don't try to load TFLite if the platform is not supported
-    if (!isSupported) return;
+    if (engine !== FilterEngine.TF) return;
+
     loadTFLite({ basePath, modelFilePath, tfFilePath })
       .then(setTfLite)
       .catch((err) => console.error('Failed to load TFLite', err));
-  }, [basePath, isSupported, modelFilePath, tfFilePath]);
+  }, [basePath, engine, modelFilePath, tfFilePath]);
+
+  const [mediaPipe, setMediaPipe] = useState<ArrayBuffer>();
+  useEffect(() => {
+    if (engine !== FilterEngine.MEDIA_PIPE) return;
+
+    loadMediaPipe({
+      basePath: basePath,
+      modelPath: modelFilePath,
+    })
+      .then(setMediaPipe)
+      .catch((err) => console.error('Failed to preload MediaPipe', err));
+  }, [engine, modelFilePath, basePath]);
 
   const handleError = useCallback(
     (error: any) => {
-      getLogger(['filters'])(
-        'warn',
-        'Filter encountered an error and will be disabled',
+      console.warn(
+        '[filters] Filter encountered an error and will be disabled',
       );
       disableBackgroundFilter();
       onError?.(error);
@@ -208,53 +285,88 @@ export const BackgroundFiltersProvider = (
     [disableBackgroundFilter, onError],
   );
 
+  const isReady = useLegacyFilter ? !!tfLite : !!mediaPipe;
+  const contextValue: BackgroundFiltersContextValue = {
+    isSupported,
+    performance,
+    isReady,
+    backgroundImage,
+    backgroundBlurLevel,
+    backgroundFilter,
+    disableBackgroundFilter,
+    applyBackgroundBlurFilter,
+    applyBackgroundImageFilter,
+    backgroundImages,
+    tfFilePath,
+    modelFilePath,
+    basePath,
+    onError: handleError,
+  };
   return (
-    <BackgroundFiltersContext.Provider
-      value={{
-        isSupported,
-        isReady: !!tfLite,
-        backgroundImage,
-        backgroundBlurLevel,
-        backgroundFilter,
-        disableBackgroundFilter,
-        applyBackgroundBlurFilter,
-        applyBackgroundImageFilter,
-        backgroundImages,
-        tfFilePath,
-        modelFilePath,
-        basePath,
-        onError: handleError,
-      }}
-    >
+    <ContextProvider.Provider value={contextValue}>
       {children}
-      {tfLite && <BackgroundFilters tfLite={tfLite} />}
-    </BackgroundFiltersContext.Provider>
+      {isReady && (
+        <BackgroundFilters
+          api={contextValue}
+          tfLite={tfLite}
+          engine={engine}
+          onStats={handleStats}
+        />
+      )}
+    </ContextProvider.Provider>
   );
 };
 
-const BackgroundFilters = (props: { tfLite: TFLite }) => {
+const BackgroundFilters = (props: {
+  api: BackgroundFiltersContextValue;
+  tfLite?: TFLite;
+  engine: FilterEngine;
+  onStats: (stats: PerformanceStats) => void;
+}) => {
   const call = useCall();
-  const { children, start } = useRenderer(props.tfLite, call);
-  const { backgroundFilter, onError } = useBackgroundFilters();
+  const { engine, api, tfLite, onStats } = props;
+  const { children, start } = useRenderer(api, tfLite, call, engine);
+  const { onError, backgroundFilter } = api;
   const handleErrorRef = useRef<((error: any) => void) | undefined>(undefined);
   handleErrorRef.current = onError;
 
+  const handleStatsRef = useRef<
+    ((stats: PerformanceStats) => void) | undefined
+  >(undefined);
+  handleStatsRef.current = onStats;
+
   useEffect(() => {
     if (!call || !backgroundFilter) return;
-    const { unregister } = call.camera.registerFilter((ms) =>
-      start(ms, (error) => handleErrorRef.current?.(error)),
-    );
+
+    const { unregister } = call.camera.registerFilter((ms) => {
+      return start(
+        ms,
+        (error) => handleErrorRef.current?.(error),
+        (stats: PerformanceStats) => handleStatsRef.current?.(stats),
+      );
+    });
     return () => {
       unregister().catch((err) => console.warn(`Can't unregister filter`, err));
     };
-  }, [backgroundFilter, call, start]);
+  }, [call, start, backgroundFilter]);
 
   return children;
 };
 
-const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
-  const { backgroundFilter, backgroundBlurLevel, backgroundImage } =
-    useBackgroundFilters();
+const useRenderer = (
+  api: BackgroundFiltersContextValue,
+  tfLite: TFLite | undefined,
+  call: Call | undefined,
+  engine: FilterEngine,
+) => {
+  const {
+    backgroundFilter,
+    backgroundBlurLevel,
+    backgroundImage,
+    modelFilePath,
+    basePath,
+  } = api;
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgImageRef = useRef<HTMLImageElement>(null);
@@ -266,8 +378,13 @@ const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
   );
 
   const start = useCallback(
-    (ms: MediaStream, onError?: (error: any) => void) => {
+    (
+      ms: MediaStream,
+      onError?: (error: any) => void,
+      onStats?: (stats: PerformanceStats) => void,
+    ) => {
       let outputStream: MediaStream | undefined;
+      let processor: VirtualBackground | undefined;
       let renderer: Renderer | undefined;
 
       const output = new Promise<MediaStream>((resolve, reject) => {
@@ -280,58 +397,116 @@ const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
         const canvasEl = canvasRef.current;
         const bgImageEl = bgImageRef.current;
 
-        if (!videoEl || !canvasEl || (backgroundImage && !bgImageEl)) {
-          // You should start renderer in effect or event handlers
-          reject(new Error('Renderer started before elements are ready'));
+        const [track] = ms.getVideoTracks();
+
+        if (!track) {
+          reject(new Error('No video tracks in input media stream'));
           return;
         }
 
-        videoEl.srcObject = ms;
-        videoEl.play().then(
-          () => {
-            const [track] = ms.getVideoTracks();
+        if (engine === FilterEngine.MEDIA_PIPE) {
+          call?.tracer.trace('backgroundFilters.enable', {
+            backgroundFilter,
+            backgroundBlurLevel,
+            backgroundImage,
+            engine,
+          });
 
-            if (!track) {
-              reject(new Error('No video tracks in input media stream'));
-              return;
-            }
+          if (!videoEl) {
+            reject(new Error('Renderer started before elements are ready'));
+            return;
+          }
 
-            const trackSettings = track.getSettings();
-            flushSync(() =>
-              setVideoSize({
-                width: trackSettings.width ?? 0,
-                height: trackSettings.height ?? 0,
-              }),
-            );
-            call?.tracer.trace('backgroundFilters.enable', {
-              backgroundFilter,
+          const trackSettings = track.getSettings();
+          flushSync(() =>
+            setVideoSize({
+              width: trackSettings.width ?? 0,
+              height: trackSettings.height ?? 0,
+            }),
+          );
+
+          processor = new VirtualBackground(
+            track,
+            {
+              basePath: basePath,
+              modelPath: modelFilePath,
               backgroundBlurLevel,
               backgroundImage,
+              backgroundFilter,
+            },
+            { onError, onStats },
+          );
+          processor
+            .start()
+            .then((processedTrack) => {
+              outputStream = new MediaStream([processedTrack]);
+              resolve(outputStream);
+            })
+            .catch((error) => {
+              reject(error);
             });
-            renderer = createRenderer(
-              tfLite,
-              videoEl,
-              canvasEl,
-              {
+
+          return;
+        }
+
+        if (engine === FilterEngine.TF) {
+          if (!videoEl || !canvasEl || (backgroundImage && !bgImageEl)) {
+            reject(new Error('Renderer started before elements are ready'));
+            return;
+          }
+
+          videoEl.srcObject = ms;
+          videoEl.play().then(
+            () => {
+              const trackSettings = track.getSettings();
+              flushSync(() =>
+                setVideoSize({
+                  width: trackSettings.width ?? 0,
+                  height: trackSettings.height ?? 0,
+                }),
+              );
+              call?.tracer.trace('backgroundFilters.enable', {
                 backgroundFilter,
                 backgroundBlurLevel,
-                backgroundImage: bgImageEl ?? undefined,
-              },
-              onError,
-            );
-            outputStream = canvasEl.captureStream();
-            resolve(outputStream);
-          },
-          () => {
-            reject(new Error('Could not play the source video stream'));
-          },
-        );
+                backgroundImage,
+                engine,
+              });
+
+              if (!tfLite) {
+                reject(new Error('TensorFlow Lite not loaded'));
+                return;
+              }
+
+              renderer = createRenderer(
+                tfLite,
+                videoEl,
+                canvasEl,
+                {
+                  backgroundFilter,
+                  backgroundBlurLevel,
+                  backgroundImage: bgImageEl ?? undefined,
+                },
+                onError,
+              );
+              outputStream = canvasEl.captureStream();
+
+              resolve(outputStream);
+            },
+            () => {
+              reject(new Error('Could not play the source video stream'));
+            },
+          );
+          return;
+        }
+
+        reject(new Error('No supported engine available'));
       });
 
       return {
         output,
         stop: () => {
           call?.tracer.trace('backgroundFilters.disable', null);
+          processor?.stop();
           renderer?.dispose();
           if (videoRef.current) videoRef.current.srcObject = null;
           if (outputStream) disposeOfMediaStream(outputStream);
@@ -344,6 +519,9 @@ const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
       backgroundImage,
       call?.tracer,
       tfLite,
+      engine,
+      modelFilePath,
+      basePath,
     ],
   );
 
@@ -379,8 +557,5 @@ const useRenderer = (tfLite: TFLite, call: Call | undefined) => {
     </div>
   );
 
-  return {
-    start,
-    children,
-  };
+  return { start, children };
 };

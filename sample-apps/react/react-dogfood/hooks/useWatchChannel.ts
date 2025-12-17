@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import type { Event, StreamChat } from 'stream-chat';
 
 import { CHANNEL_TYPE } from '../components';
@@ -13,11 +14,12 @@ export const useWatchChannel = ({
   channelType?: string;
 }) => {
   const [channelWatched, setChannelWatched] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (!client) return;
-
-    const channel = client.channel(channelType, channelId);
+    const type = (router.query['channel_type'] as string) || channelType;
+    const channel = client.channel(type, channelId);
     // initiate watching now so we can receive message events
     const watchingPromise = channel.watch();
 
@@ -26,7 +28,7 @@ export const useWatchChannel = ({
         // channel.stopWatching();
       });
     };
-  }, [client, channelId, channelType]);
+  }, [client, channelId, channelType, router.query]);
 
   useEffect(() => {
     if (!client) return;

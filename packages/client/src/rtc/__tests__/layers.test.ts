@@ -1,5 +1,6 @@
 import './mocks/webrtc.mocks';
 import { describe, expect, it, vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import {
   AudioBitrateProfile,
   PublishOption,
@@ -24,13 +25,12 @@ describe('videoLayers', () => {
     const targetBitrate = 3000000;
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
 
-    const publishOption: PublishOption = {
+    const publishOption: PublishOption = fromPartial({
       bitrate: targetBitrate,
-      // @ts-expect-error - incomplete data
       codec: { name: 'vp8' },
       videoDimension: { width, height },
       fps: 30,
-    };
+    });
     const layers = computeVideoLayers(track, publishOption);
     expect(layers).toEqual([
       {
@@ -66,12 +66,13 @@ describe('videoLayers', () => {
   it('should return undefined for audio track', () => {
     const track = new MediaStreamTrack();
     expect(
-      // @ts-expect-error - incomplete data
-      computeVideoLayers(track, { trackType: TrackType.AUDIO }),
+      computeVideoLayers(track, fromPartial({ trackType: TrackType.AUDIO })),
     ).toBeUndefined();
     expect(
-      // @ts-expect-error - incomplete data
-      computeVideoLayers(track, { trackType: TrackType.SCREEN_SHARE_AUDIO }),
+      computeVideoLayers(
+        track,
+        fromPartial({ trackType: TrackType.SCREEN_SHARE_AUDIO }),
+      ),
     ).toBeUndefined();
   });
 
@@ -79,13 +80,15 @@ describe('videoLayers', () => {
     const bitrate = 3000000;
     const track = new MediaStreamTrack();
     vi.spyOn(track, 'getSettings').mockReturnValue({});
-    const layers = computeVideoLayers(track, {
-      bitrate,
-      // @ts-expect-error - incomplete data
-      codec: { name: 'vp8' },
-      fps: 30,
-      videoDimension: { width: 320, height: 180 },
-    });
+    const layers = computeVideoLayers(
+      track,
+      fromPartial({
+        bitrate,
+        codec: { name: 'vp8' },
+        fps: 30,
+        videoDimension: { width: 320, height: 180 },
+      }),
+    );
     expect(layers).toEqual([
       {
         active: true,
@@ -104,13 +107,15 @@ describe('videoLayers', () => {
     const width = 320;
     const height = 240;
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
-    const layers = computeVideoLayers(track, {
-      bitrate: 0,
-      // @ts-expect-error - incomplete data
-      codec: { name: 'vp8' },
-      fps: 30,
-      videoDimension: { width, height },
-    });
+    const layers = computeVideoLayers(
+      track,
+      fromPartial({
+        bitrate: 0,
+        codec: { name: 'vp8' },
+        fps: 30,
+        videoDimension: { width, height },
+      }),
+    );
     expect(layers.length).toBe(1);
     const [q] = layers;
     expect(q.rid).toBe('q');
@@ -123,13 +128,15 @@ describe('videoLayers', () => {
     const width = 640;
     const height = 480;
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
-    const layers = computeVideoLayers(track, {
-      bitrate: 0,
-      // @ts-expect-error - incomplete data
-      codec: { name: 'vp8' },
-      fps: 30,
-      videoDimension: { width, height },
-    });
+    const layers = computeVideoLayers(
+      track,
+      fromPartial({
+        bitrate: 0,
+        codec: { name: 'vp8' },
+        fps: 30,
+        videoDimension: { width, height },
+      }),
+    );
     expect(layers.length).toBe(2);
     const [q, h] = layers;
     expect(q.rid).toBe('q');
@@ -145,13 +152,15 @@ describe('videoLayers', () => {
     const width = 1280;
     const height = 720;
     vi.spyOn(track, 'getSettings').mockReturnValue({ width, height });
-    const layers = computeVideoLayers(track, {
-      bitrate: 0,
-      // @ts-expect-error - incomplete data
-      codec: { name: 'vp8' },
-      fps: 30,
-      videoDimension: { width, height },
-    });
+    const layers = computeVideoLayers(
+      track,
+      fromPartial({
+        bitrate: 0,
+        codec: { name: 'vp8' },
+        fps: 30,
+        videoDimension: { width, height },
+      }),
+    );
     expect(layers.length).toBe(3);
     const [q, h, f] = layers;
     expect(q.rid).toBe('q');
@@ -171,13 +180,15 @@ describe('videoLayers', () => {
       width: 1280,
       height: 720,
     });
-    const layers = computeVideoLayers(track, {
-      maxTemporalLayers: 3,
-      maxSpatialLayers: 3,
-      // @ts-expect-error - incomplete data
-      codec: { name: 'vp9' },
-      videoDimension: { width: 1280, height: 720 },
-    });
+    const layers = computeVideoLayers(
+      track,
+      fromPartial({
+        maxTemporalLayers: 3,
+        maxSpatialLayers: 3,
+        codec: { name: 'vp9' },
+        videoDimension: { width: 1280, height: 720 },
+      }),
+    );
     expect(layers.length).toBe(3);
     expect(layers[0].scalabilityMode).toBe('L3T3_KEY');
     expect(layers[0].rid).toBe('q');
@@ -187,8 +198,10 @@ describe('videoLayers', () => {
 
   it('should activate only a single layer when useSingleLayer is true', () => {
     const track = new MediaStreamTrack();
-    // @ts-expect-error - incomplete data
-    const layers = computeVideoLayers(track, { useSingleLayer: true });
+    const layers = computeVideoLayers(
+      track,
+      fromPartial({ useSingleLayer: true }),
+    );
     expect(layers.length).toBe(3);
     expect(layers[0].active).toBe(false);
     expect(layers[0].rid).toBe('q');
@@ -201,8 +214,10 @@ describe('videoLayers', () => {
   it('should activate only a single layer when useSingleLayer is true in single layer mode', () => {
     const track = new MediaStreamTrack();
     vi.spyOn(track, 'getSettings').mockReturnValue({ width: 320, height: 180 });
-    // @ts-expect-error - incomplete data
-    const layers = computeVideoLayers(track, { useSingleLayer: true });
+    const layers = computeVideoLayers(
+      track,
+      fromPartial({ useSingleLayer: true }),
+    );
     expect(layers.length).toBe(1);
     expect(layers[0].active).toBe(true);
     expect(layers[0].rid).toBe('q');
@@ -210,13 +225,15 @@ describe('videoLayers', () => {
 
   it('should activate only one temporal layer when useSingleLayer is true for SVC', () => {
     const track = new MediaStreamTrack();
-    const layers = computeVideoLayers(track, {
-      // @ts-expect-error - incomplete data
-      codec: { name: 'vp9' },
-      maxSpatialLayers: 3,
-      maxTemporalLayers: 3,
-      useSingleLayer: true,
-    });
+    const layers = computeVideoLayers(
+      track,
+      fromPartial({
+        codec: { name: 'vp9' },
+        maxSpatialLayers: 3,
+        maxTemporalLayers: 3,
+        useSingleLayer: true,
+      }),
+    );
     expect(layers.length).toBe(3);
     expect(layers[0].rid).toBe('q');
     expect(layers[0].active).toBe(false);
@@ -318,13 +335,15 @@ describe('videoLayers', () => {
 
   it('should use integer for maxBitrate', () => {
     const track = new MediaStreamTrack();
-    const layers = computeVideoLayers(track, {
-      bitrate: 2999777,
-      // @ts-expect-error - incomplete data
-      codec: { name: 'vp8' },
-      videoDimension: { width: 1920, height: 1080 },
-      fps: 30,
-    });
+    const layers = computeVideoLayers(
+      track,
+      fromPartial({
+        bitrate: 2999777,
+        codec: { name: 'vp8' },
+        videoDimension: { width: 1920, height: 1080 },
+        fps: 30,
+      }),
+    );
     expect(layers).toBeDefined();
     for (const layer of layers!) {
       expect(Number.isInteger(layer.width)).toBe(true);
@@ -422,22 +441,31 @@ describe('audioLayers', () => {
   it('should use predefined bitrates when publish options are missing', () => {
     expect(
       computeAudioLayers(
-        // @ts-expect-error - incomplete data
-        { trackType: TrackType.AUDIO, id: 1, audioBitrateProfiles: [] },
+        fromPartial({
+          trackType: TrackType.AUDIO,
+          id: 1,
+          audioBitrateProfiles: [],
+        }),
         { audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED },
       ),
     ).toEqual([{ maxBitrate: 64000 }]);
     expect(
       computeAudioLayers(
-        // @ts-expect-error - incomplete data
-        { trackType: TrackType.AUDIO, id: 1, audioBitrateProfiles: [] },
+        fromPartial({
+          trackType: TrackType.AUDIO,
+          id: 1,
+          audioBitrateProfiles: [],
+        }),
         { audioBitrateProfile: AudioBitrateProfile.VOICE_HIGH_QUALITY },
       ),
     ).toEqual([{ maxBitrate: 128000 }]);
     expect(
       computeAudioLayers(
-        // @ts-expect-error - incomplete data
-        { trackType: TrackType.AUDIO, id: 1, audioBitrateProfiles: [] },
+        fromPartial({
+          trackType: TrackType.AUDIO,
+          id: 1,
+          audioBitrateProfiles: [],
+        }),
         { audioBitrateProfile: AudioBitrateProfile.MUSIC_HIGH_QUALITY },
       ),
     ).toEqual([{ maxBitrate: 128000 }]);
@@ -445,17 +473,14 @@ describe('audioLayers', () => {
 
   it('should use the predefined bitrate when the SFU does not provide audioBitrateProfiles', () => {
     expect(
-      computeAudioLayers(
-        // @ts-expect-error - incomplete data
-        { trackType: TrackType.AUDIO, id: 1 },
-        { audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED },
-      ),
+      computeAudioLayers(fromPartial({ trackType: TrackType.AUDIO, id: 1 }), {
+        audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
+      }),
     ).toEqual([{ maxBitrate: 64000 }]);
   });
 
   it('should respect the bitrates provided in publish options', () => {
-    // @ts-expect-error - incomplete data
-    const config: PublishOption = {
+    const config: PublishOption = fromPartial({
       trackType: TrackType.AUDIO,
       id: 1,
       audioBitrateProfiles: [
@@ -472,7 +497,7 @@ describe('audioLayers', () => {
           bitrate: 192000,
         },
       ],
-    };
+    });
     expect(
       computeAudioLayers(config, {
         audioBitrateProfile: AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,

@@ -1,13 +1,20 @@
 import {
   Call,
-  CallControls,
   CallingState,
+  CancelCallButton,
   Icon,
-  PreferredCodec,
+  OwnCapability,
+  ReactionsButton,
+  RecordCallButton,
+  Restricted,
+  ScreenShareButton,
   SpeakerLayout,
+  SpeakingWhileMutedNotification,
   StreamCall,
   StreamVideo,
   StreamVideoClient,
+  ToggleAudioPublishingButton,
+  ToggleVideoPublishingButton,
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
@@ -20,6 +27,10 @@ import {
   getServerSideCredentialsProps,
   ServerSideCredentialsProps,
 } from '../../../lib/getServerSideCredentialsProps';
+import { IncomingVideoSettingsButton } from '../../../components/IncomingVideoSettings';
+import appTranslations from '../../../translations';
+import { publishRemoteFile } from '../../../components/RemoteFilePublisher';
+import { applyQueryConfigParams } from '../../../lib/queryConfigParams';
 
 export default function BareCallRoom(props: ServerSideCredentialsProps) {
   const { apiKey, userToken, user } = props;
@@ -45,39 +56,13 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
   const router = useRouter();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
+  const videoFile = router.query['video_file'] as string | undefined;
   useEffect(() => {
     if (!client) return;
 
     const _call = client.call(callType, callId);
     setCall(_call);
-
-    const videoCodecOverride = (router.query['video_encoder'] ||
-      router.query['video_codec']) as PreferredCodec | undefined;
-    const fmtpOverride = router.query['fmtp'] as string | undefined;
-    const bitrateOverride = router.query['bitrate'] as string | undefined;
-    const videoDecoderOverride = router.query['video_decoder'] as
-      | PreferredCodec
-      | undefined;
-    const videoDecoderFmtpOverride = router.query['video_decoder_fmtp'] as
-      | string
-      | undefined;
-    const maxSimulcastLayers = router.query['max_simulcast_layers'] as
-      | string
-      | undefined;
-
-    const preferredBitrate = bitrateOverride
-      ? parseInt(bitrateOverride, 10)
-      : undefined;
-    _call.updatePublishOptions({
-      preferredCodec: videoCodecOverride,
-      fmtpLine: fmtpOverride,
-      preferredBitrate,
-      subscriberCodec: videoDecoderOverride,
-      subscriberFmtpLine: videoDecoderFmtpOverride,
-      maxSimulcastLayers: maxSimulcastLayers
-        ? parseInt(maxSimulcastLayers, 10)
-        : undefined,
-    });
+    applyQueryConfigParams(_call, router.query);
 
     window.call = _call;
     return () => {
@@ -85,7 +70,7 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
       setCall(undefined);
       window.call = undefined;
     };
-  }, [callId, callType, client, router.query]);
+  }, [callId, callType, client, router]);
 
   if (!client || !call) return null;
 
@@ -96,16 +81,21 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
 
-      <StreamVideo client={client}>
+      <StreamVideo
+        client={client}
+        language="en"
+        translationsOverrides={appTranslations}
+      >
         <StreamCall call={call}>
-          <Stage />
+          <Stage videoFile={videoFile} />
         </StreamCall>
       </StreamVideo>
     </>
   );
 }
 
-const Stage = () => {
+const Stage = (props: { videoFile?: string }) => {
+  const { videoFile } = props;
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -121,6 +111,8 @@ const Stage = () => {
           onJoin={async () => {
             if (!call) return;
             try {
+              if (videoFile) return await publishRemoteFile(call, videoFile);
+
               await call.join({ create: true });
               console.log('Joined call:', call.cid);
 
@@ -178,5 +170,34 @@ const Lobby = (props: { onJoin: () => void }) => {
     </div>
   );
 };
+
+const CallControls = () => (
+  <div className="str-video__call-controls">
+    <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
+      <SpeakingWhileMutedNotification>
+        <ToggleAudioPublishingButton />
+      </SpeakingWhileMutedNotification>
+    </Restricted>
+    <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
+      <ToggleVideoPublishingButton />
+    </Restricted>
+    <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
+      <ReactionsButton />
+    </Restricted>
+    <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
+      <ScreenShareButton />
+    </Restricted>
+    <Restricted
+      requiredGrants={[
+        OwnCapability.START_RECORD_CALL,
+        OwnCapability.STOP_RECORD_CALL,
+      ]}
+    >
+      <RecordCallButton />
+    </Restricted>
+    <IncomingVideoSettingsButton />
+    <CancelCallButton />
+  </div>
+);
 
 export const getServerSideProps = getServerSideCredentialsProps;

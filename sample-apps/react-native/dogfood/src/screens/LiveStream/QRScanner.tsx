@@ -1,14 +1,14 @@
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useI18n } from '@stream-io/video-react-native-sdk';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LiveStreamParamList } from '../../../types';
 import {
   Camera,
   useCameraDevice,
+  useCameraPermission,
   useCodeScanner,
 } from 'react-native-vision-camera';
-import { useCameraPermission } from 'react-native-vision-camera';
 import { appTheme } from '../../theme';
 
 type QRScannerScreenProps = NativeStackScreenProps<
@@ -40,7 +40,7 @@ export const QRScanner = ({ navigation, route }: QRScannerScreenProps) => {
             onScan(id);
             safeGoBack(id);
           }
-        } catch (error) {
+        } catch {
           // If not a valid URL, pass the raw QR data
           onScan(qrData);
           safeGoBack(qrData);

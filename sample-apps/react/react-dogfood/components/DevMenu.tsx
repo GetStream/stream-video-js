@@ -1,9 +1,22 @@
 import { Icon, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
 import { decodeBase64 } from 'stream-chat';
+import { useRouter } from 'next/router';
 import { getConnectionString } from '../lib/connectionString';
 
 export const DevMenu = () => {
   const call = useCall();
+  const { useLocalParticipant } = useCallStateHooks();
+  const localParticipant = useLocalParticipant();
+  const router = useRouter();
+  const withParams = (url: string) => {
+    const targetUrl = new URL(url, window.location.origin);
+    const existingParams = targetUrl.searchParams;
+    const params = router.query;
+    for (const key in params) {
+      existingParams.set(key, params[key] as string);
+    }
+    return targetUrl.toString();
+  };
   return (
     <ul className="rd__dev-menu">
       <li className="rd__dev-menu__item">
@@ -63,7 +76,9 @@ export const DevMenu = () => {
       <li className="rd__dev-menu__item">
         <a
           className="rd__link rd__link--faux-button rd__link--align-left"
-          href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/call-recordings`}
+          href={withParams(
+            `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/call-recordings`,
+          )}
           target="_blank"
           rel="noreferrer"
         >
@@ -95,6 +110,40 @@ export const DevMenu = () => {
           target="_blank"
         >
           Go to Inspector
+        </a>
+      )}
+      {call && (
+        <a
+          className="rd__link rd__link--faux-button rd__link--align-left"
+          href={withParams(`/stats/${call.cid}`)}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Go to Participant Stats
+        </a>
+      )}
+      {call && localParticipant && (
+        <a
+          className="rd__link rd__link--faux-button rd__link--align-left"
+          href={withParams(
+            `/stats/${call.cid}?user_id=${call.currentUserId}&user_session_id=${call['unifiedSessionId'] || localParticipant.sessionId}&kind=details`,
+          )}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Go to {localParticipant?.name || 'User'} Stats (Details)
+        </a>
+      )}
+      {call && localParticipant && (
+        <a
+          className="rd__link rd__link--faux-button rd__link--align-left"
+          href={withParams(
+            `/stats/${call.cid}?user_id=${call.currentUserId}&user_session_id=${call['unifiedSessionId'] || localParticipant.sessionId}&kind=timeline`,
+          )}
+          rel="noreferrer"
+          target="_blank"
+        >
+          Go to {localParticipant?.name || 'User'} Stats (Timeline)
         </a>
       )}
     </ul>

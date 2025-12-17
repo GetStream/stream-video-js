@@ -11,7 +11,6 @@ import {
   NoiseCancellationProvider,
   useBackgroundFilters,
   useCall,
-  useCallStateHooks,
   useIsInPiPMode,
   useTheme,
   useToggleCallRecording,
@@ -23,7 +22,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { ParticipantsInfoList } from './ParticipantsInfoList';
+import { ParticipantsInfoListModal } from './ParticipantsInfoListModal';
 import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
@@ -32,7 +31,6 @@ import { useLayout } from '../contexts/LayoutContext';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
 import Toast from 'react-native-toast-message';
-import { ClosedCaptions } from './ClosedCaptions';
 
 type ActiveCallProps = {
   onHangupCallHandler?: () => void;
@@ -118,22 +116,17 @@ export const ActiveCall = ({
 
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
-  const { useIsCallCaptioningInProgress } = useCallStateHooks();
-  const isCaptioningInProgress = useIsCallCaptioningInProgress();
 
   const CustomBottomControls = useCallback(() => {
     return (
-      <>
-        {isCaptioningInProgress && <ClosedCaptions />}
-        <BottomControls
-          onParticipantInfoPress={onOpenCallParticipantsInfo}
-          onChatOpenHandler={onChatOpenHandler}
-          unreadCountIndicator={unreadCountIndicator}
-          toggleCallRecording={toggleCallRecording}
-          isCallRecordingInProgress={isCallRecordingInProgress}
-          isAwaitingResponse={isAwaitingResponse}
-        />
-      </>
+      <BottomControls
+        onParticipantInfoPress={onOpenCallParticipantsInfo}
+        onChatOpenHandler={onChatOpenHandler}
+        unreadCountIndicator={unreadCountIndicator}
+        toggleCallRecording={toggleCallRecording}
+        isCallRecordingInProgress={isCallRecordingInProgress}
+        isAwaitingResponse={isAwaitingResponse}
+      />
     );
   }, [
     onChatOpenHandler,
@@ -142,7 +135,6 @@ export const ActiveCall = ({
     toggleCallRecording,
     isAwaitingResponse,
     isCallRecordingInProgress,
-    isCaptioningInProgress,
   ]);
 
   const CustomTopControls = useCallback(() => {
@@ -173,7 +165,7 @@ export const ActiveCall = ({
           landscape={isLandscape}
           layout={selectedLayout}
         />
-        <ParticipantsInfoList
+        <ParticipantsInfoListModal
           isCallParticipantsInfoVisible={isCallParticipantsVisible}
           setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}
         />
