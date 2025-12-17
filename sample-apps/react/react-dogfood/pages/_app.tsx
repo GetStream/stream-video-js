@@ -4,6 +4,7 @@ import '../style/index.scss';
 import { ComponentType } from 'react';
 import { Session } from 'next-auth';
 import Head from 'next/head';
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 import { SessionProvider } from 'next-auth/react';
 import { StreamTheme } from '@stream-io/video-react-sdk';
 import { SettingsProvider } from '../context/SettingsContext';
@@ -39,6 +40,8 @@ export default function App({
           </StreamTheme>
         </SettingsProvider>
       </AppEnvironmentProvider>
+      {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
+      {GA_ID && <GoogleAnalytics gaId={GA_ID} />}
     </SessionProvider>
   );
 }
