@@ -1,4 +1,9 @@
-import { type ComponentProps, type MouseEvent, type PropsWithChildren, useRef } from 'react';
+import {
+  type ComponentProps,
+  type MouseEvent,
+  type PropsWithChildren,
+  useRef,
+} from 'react';
 
 export const GenericMenu = ({
   children,

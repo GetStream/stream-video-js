@@ -1,11 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Gleap from 'gleap';
-import {
-  Call,
-  RxUtils,
-  StreamVideoClient,
-} from '@stream-io/video-react-sdk';
-import type { User }  from '@stream-io/video-react-sdk';
+import { Call, RxUtils, StreamVideoClient } from '@stream-io/video-react-sdk';
+import type { User } from '@stream-io/video-react-sdk';
 import { getLayoutSettings } from './useLayoutSwitcher';
 
 type GleapReportPayload = {

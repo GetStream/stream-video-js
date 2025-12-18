@@ -60,7 +60,7 @@
 }
 
 .room-intro .room-host h3 {
-  margin: .5rem 0 0;
+  margin: 0.5rem 0 0;
   font-size: 1.5rem;
 }
 
@@ -91,7 +91,6 @@
   width: 100%;
   overflow-x: auto;
   gap: 3rem;
-
 }
 
 .speakers-list svg {
@@ -170,7 +169,7 @@
   position: absolute;
   left: 4px;
   bottom: 4px;
-  content: "";
+  content: '';
   border-radius: 999px;
   background: greenyellow;
   width: 8px;
@@ -266,7 +265,7 @@
   border: 1px solid var(--background-color-light);
   border-radius: 8px;
   padding: 1rem;
-  background: var(--background-color-light)
+  background: var(--background-color-light);
 }
 
 .speaking-requests-container__header {
@@ -309,7 +308,6 @@
   align-items: center;
   display: flex;
   width: 100%;
-
 }
 
 .user-counts {
@@ -330,7 +328,6 @@
   gap: 0.5rem;
 }
 
-
 .live-room-controls__notificaton {
   position: absolute;
   right: 0;
@@ -343,7 +340,6 @@
   font-size: 0.75rem;
 }
 
-
 .speaking-request-buttons {
   display: flex;
   align-items: center;
@@ -354,7 +350,8 @@
   transition: background 200ms ease-out;
 }
 
-.reject-button svg, .accept-button svg {
+.reject-button svg,
+.accept-button svg {
   stroke: #fff;
 }
 
@@ -373,7 +370,6 @@
   padding: 0.5rem;
   z-index: 1;
 }
-
 
 @media screen and (max-width: 800px) {
   .active-room.with-room-list {

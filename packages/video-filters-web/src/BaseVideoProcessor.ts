@@ -1,6 +1,12 @@
 import type { VideoTrackProcessorHooks } from './types';
-import { TrackGenerator, type MediaStreamTrackGenerator } from './FallbackGenerator';
-import { type MediaStreamTrackProcessor, TrackProcessor } from './FallbackProcessor';
+import {
+  TrackGenerator,
+  type MediaStreamTrackGenerator,
+} from './FallbackGenerator';
+import {
+  type MediaStreamTrackProcessor,
+  TrackProcessor,
+} from './FallbackProcessor';
 
 /**
  * Base class for real-time video filters.

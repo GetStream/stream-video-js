@@ -1,4 +1,11 @@
-import { lazy, type ReactNode, Suspense, useEffect, useRef, useState } from 'react';
+import {
+  lazy,
+  type ReactNode,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import clsx from 'clsx';
 import {
   type AggregatedStatsReport,

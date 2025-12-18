@@ -1,7 +1,11 @@
 import { forwardRef } from 'react';
 import { useI18n } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
-import { MenuToggle, MenuVisualType, type ToggleMenuButtonProps } from '../Menu';
+import {
+  MenuToggle,
+  MenuVisualType,
+  type ToggleMenuButtonProps,
+} from '../Menu';
 import {
   DeviceSelectorAudioInput,
   DeviceSelectorAudioOutput,

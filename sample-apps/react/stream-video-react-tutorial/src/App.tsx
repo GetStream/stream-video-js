@@ -11,7 +11,7 @@ import {
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
-import type { User }  from '@stream-io/video-react-sdk';
+import type { User } from '@stream-io/video-react-sdk';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './style.css';
 

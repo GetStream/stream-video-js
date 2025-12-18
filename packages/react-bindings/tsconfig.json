@@ -19,5 +19,5 @@
     "jsx": "react-jsxdev"
   },
   "exclude": ["**/__tests__/**"],
-  "include": ["./src", "index.ts"],
+  "include": ["./src", "index.ts"]
 }

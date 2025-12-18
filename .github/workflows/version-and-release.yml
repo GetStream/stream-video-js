@@ -4,12 +4,12 @@ env:
   STREAM_SECRET: ${{ secrets.CLIENT_TEST_SECRET }}
 
 on:
-# Disable the automatic release trigger
-#  push:
-#    branches:
-#      - main
-#    paths:
-#      - 'packages/**'
+  # Disable the automatic release trigger
+  #  push:
+  #    branches:
+  #      - main
+  #    paths:
+  #      - 'packages/**'
 
   workflow_dispatch:
 
