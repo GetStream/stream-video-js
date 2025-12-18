@@ -38,7 +38,8 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/GetStream/stream-video-js.git"
+    "url": "https://github.com/GetStream/stream-video-js.git",
+    "directory": "packages/noise-cancellation-react-native"
   },
   "author": "https://getstream.io <support@getstream.io> (https://github.com/GetStream)",
   "license": "See license in LICENSE",

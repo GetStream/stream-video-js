@@ -19,6 +19,11 @@
     "test": "yarn copy-version && jest --coverage && yarn test:expo-plugin",
     "copy-version": "echo \"export const version = '$npm_package_version';\" > ./src/version.ts"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GetStream/stream-video-js.git",
+    "directory": "packages/react-native-sdk"
+  },
   "files": [
     "dist",
     "src",
