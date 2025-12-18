@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.39.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.2...@stream-io/video-client-1.39.0) (2025-12-18)
+
+### Features
+
+- **react:** Retryable call watching ([#2046](https://github.com/GetStream/stream-video-js/issues/2046)) ([7205011](https://github.com/GetStream/stream-video-js/commit/7205011a451995585848b89388c91ae9a1b0bc64))
+
+### Bug Fixes
+
+- add response tracing for the SetPublisher RPC ([#2055](https://github.com/GetStream/stream-video-js/issues/2055)) ([a25d9a8](https://github.com/GetStream/stream-video-js/commit/a25d9a89870db47be046f31c85888995e43d44cd))
+
 ## [1.38.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.1...@stream-io/video-client-1.38.2) (2025-12-11)
 
 ### Bug Fixes
