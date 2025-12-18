@@ -1,16 +1,15 @@
-// RollupError: @rollup/plugin-typescript TS7016: Could not find a declaration file for module './krispai/krispsdk.mjs'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - issues with typescript on CI
-import KrispSDK from './krispai/krispsdk.mjs';
+import KrispSDK from './krispai';
 import type {
   IAudioFilterNode,
   IKrispSDK,
   ISDKPartialOptions,
-} from './krispai/krispsdk';
+} from './krispai';
 import { packageName, packageVersion } from './version';
 import { promiseWithResolvers } from './withResolvers';
 import { simd } from 'wasm-feature-detect';
 import type { Tracer } from './tracer';
+
+const MODEL_FILENAME = 'krisp-nc-o-med-v7.kef';
 
 /**
  * Options to pass to the NoiseCancellation instance.
@@ -149,7 +148,7 @@ export class NoiseCancellation implements INoiseCancellation {
         useSharedArrayBuffer: false,
         models: {
           // https://sdk-docs.krisp.ai/docs/krisp-audio-sdk-model-selection-guide
-          modelNC: `${this.basePath}/c6.f.s.da1785.kef`,
+          modelNC: `${this.basePath}/${MODEL_FILENAME}`,
         },
         ...this.krispSDKParams,
       },
