@@ -24,7 +24,6 @@
   "files": [
     "dist",
     "src",
-    "!src/krispai/*",
     "index.ts",
     "package.json",
     "README.md",
