@@ -36,6 +36,7 @@ export const LayoutMap = {
     title: 'Speaker [top]',
     icon: 'layout-speaker-top',
     props: {
+      enableDragToScroll: true,
       participantsBarPosition: 'bottom',
       ParticipantViewUIBar: DebugParticipantViewUI,
       ParticipantViewUISpotlight: DebugParticipantViewUI,
@@ -46,6 +47,7 @@ export const LayoutMap = {
     title: 'Speaker [bottom]',
     icon: 'layout-speaker-bottom',
     props: {
+      enableDragToScroll: true,
       ParticipantViewUIBar: DebugParticipantViewUI,
       ParticipantViewUISpotlight: DebugParticipantViewUI,
       participantsBarPosition: 'top',
@@ -56,6 +58,7 @@ export const LayoutMap = {
     title: 'Speaker [left]',
     icon: 'layout-speaker-left',
     props: {
+      enableDragToScroll: true,
       ParticipantViewUIBar: DebugParticipantViewUI,
       ParticipantViewUISpotlight: DebugParticipantViewUI,
       participantsBarPosition: 'right',
@@ -66,6 +69,7 @@ export const LayoutMap = {
     title: 'Speaker [right]',
     icon: 'layout-speaker-right',
     props: {
+      enableDragToScroll: true,
       participantsBarPosition: 'left',
       ParticipantViewUIBar: DebugParticipantViewUI,
       ParticipantViewUISpotlight: DebugParticipantViewUI,

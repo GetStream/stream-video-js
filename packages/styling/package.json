@@ -1,11 +1,16 @@
 {
   "name": "@stream-io/video-styling",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
     "start": "sass --watch index.scss ./dist/css/styles.css",
     "build": "sass --embed-sources index.scss ./dist/css/styles.css"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GetStream/stream-video-js.git",
+    "directory": "packages/styling"
   },
   "devDependencies": {
     "rimraf": "^6.0.1",

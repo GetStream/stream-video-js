@@ -1,14 +1,19 @@
 {
   "name": "@stream-io/audio-filters-web",
-  "version": "0.6.1",
-  "main": "./dist/index.cjs.js",
-  "module": "./dist/index.es.js",
-  "types": "./dist/index.d.ts",
+  "version": "0.7.0",
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/cjs/index.js"
+    }
+  },
   "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
-    "start": "rollup -c -w",
-    "build": "NODE_ENV=production rollup -c"
+    "start": "vite build --watch",
+    "build": "yarn clean && concurrently 'vite build' 'tsc'"
   },
   "repository": {
     "type": "git",
@@ -19,6 +24,7 @@
   "files": [
     "dist",
     "src",
+    "!src/krispai/*",
     "index.ts",
     "package.json",
     "README.md",
@@ -29,10 +35,9 @@
     "wasm-feature-detect": "^1.8.0"
   },
   "devDependencies": {
-    "@rollup/plugin-replace": "^6.0.2",
-    "@rollup/plugin-typescript": "^12.1.4",
+    "concurrently": "^9.2.1",
     "rimraf": "^6.0.1",
-    "rollup": "^4.52.4",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.2.7"
   }
 }

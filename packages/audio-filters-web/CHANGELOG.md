@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.6.1...@stream-io/audio-filters-web-0.7.0) (2025-12-18)
+
+### Features
+
+- **audio-filters-web:** upgrade Krisp.ai & move build process from Rollup to Vite ([#1960](https://github.com/GetStream/stream-video-js/issues/1960)) ([7c3de2f](https://github.com/GetStream/stream-video-js/commit/7c3de2fedf534cc914213a9c6f493c25c27f13cb))
+
 ## [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.6.0...@stream-io/audio-filters-web-0.6.1) (2025-11-25)
 
 ### Bug Fixes

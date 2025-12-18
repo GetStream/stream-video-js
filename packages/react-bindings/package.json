@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-bindings",
-  "version": "1.12.2",
+  "version": "1.12.4",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
@@ -11,6 +11,11 @@
     "build": "NODE_ENV=production rollup -c"
   },
   "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GetStream/stream-video-js.git",
+    "directory": "packages/react-bindings"
+  },
   "files": [
     "dist",
     "src",
