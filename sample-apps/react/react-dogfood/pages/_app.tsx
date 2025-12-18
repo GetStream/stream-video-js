@@ -4,21 +4,11 @@ import '../style/index.scss';
 import { ComponentType } from 'react';
 import { Session } from 'next-auth';
 import Head from 'next/head';
+import { GoogleAnalytics, GoogleTagManager } from '@next/third-parties/google';
 import { SessionProvider } from 'next-auth/react';
 import { StreamTheme } from '@stream-io/video-react-sdk';
 import { SettingsProvider } from '../context/SettingsContext';
 import { AppEnvironmentProvider } from '../context/AppEnvironmentContext';
-import dynamic from 'next/dynamic';
-
-const GoogleAnalytics = dynamic(
-  () => import('@next/third-parties/google').then((mod) => mod.GoogleAnalytics),
-  { ssr: false },
-);
-const GoogleTagManager = dynamic(
-  () =>
-    import('@next/third-parties/google').then((mod) => mod.GoogleTagManager),
-  { ssr: false },
-);
 
 type AppProps = {
   Component: ComponentType;
