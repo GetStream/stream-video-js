@@ -8,42 +8,68 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useMemo, useRef } from 'react';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 
-//calling state methods are not exhaustive, so we need to add more methods to cover all the cases
-//for now we can check is state is joined or !joined
-const isAcceptedCallingState = (callingState: CallingState | undefined) => {
-  if (!callingState) {
-    return false;
-  }
-
-  return (
-    callingState === CallingState.JOINED ||
-    callingState === CallingState.JOINING
-  );
-};
-
-const isInitialCallingState = (callingState: CallingState | undefined) => {
-  return (
-    !callingState ||
-    callingState === CallingState.IDLE ||
-    callingState === CallingState.UNKNOWN
-  );
-};
-
-const canRegisterCall = (callingState: CallingState | undefined) => {
-  if (!callingState) {
-    return false;
-  }
-
-  return (
-    callingState === CallingState.JOINED ||
-    callingState === CallingState.JOINING ||
-    callingState === CallingState.RINGING // issue for incoming calls
-  );
-};
-
 const logger = videoLoggerSystem.getLogger(
   'useCallingExpWithCallingStateEffect',
 );
+
+//calling state methods are not exhaustive, so we need to add more methods to cover different cases
+const canAcceptIncomingCall = (
+  prevState: CallingState | undefined,
+  currentState: CallingState | undefined,
+) => {
+  if (!prevState && !currentState) {
+    return false;
+  }
+
+  const isJoined = (state: CallingState | undefined) => {
+    if (!state) {
+      return false;
+    }
+
+    return state === CallingState.JOINING || state === CallingState.JOINED;
+  };
+
+  return !isJoined(prevState) && isJoined(currentState);
+};
+
+const canEndCall = (
+  prevState: CallingState | undefined,
+  currentState: CallingState | undefined,
+) => {
+  if (!prevState && !currentState) {
+    return false;
+  }
+
+  return (
+    (prevState === CallingState.JOINED ||
+      prevState === CallingState.JOINING ||
+      prevState === CallingState.RINGING ||
+      prevState === CallingState.RECONNECTING ||
+      prevState === CallingState.MIGRATING ||
+      prevState === CallingState.OFFLINE) &&
+    (currentState === CallingState.LEFT ||
+      currentState === CallingState.RECONNECTING_FAILED ||
+      currentState === CallingState.IDLE)
+  );
+};
+
+const canStartCall = (
+  prevState: CallingState | undefined,
+  currentState: CallingState | undefined,
+) => {
+  if (!prevState && !currentState) {
+    return false;
+  }
+
+  return (
+    (!prevState ||
+      prevState === CallingState.IDLE ||
+      prevState === CallingState.UNKNOWN) &&
+    (currentState === CallingState.JOINED ||
+      currentState === CallingState.JOINING ||
+      currentState === CallingState.RINGING)
+  );
+};
 
 function getOutcomingDisplayName(
   members: MemberResponse[] | undefined,
@@ -125,8 +151,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     if (
       !isOutcomingCall &&
       isCallRegistered &&
-      !isAcceptedCallingState(prevState.current) &&
-      isAcceptedCallingState(callingState)
+      canAcceptIncomingCall(prevState.current, callingState)
     ) {
       logger.debug(`Should accept call in callkeep: ${activeCallCid}`);
       callingx.answerIncomingCall(activeCallCid).catch((error: unknown) => {
@@ -139,8 +164,7 @@ export const useCallingExpWithCallingStateEffect = () => {
       callingx.isOutcomingCallsEnabled &&
       isOutcomingCall &&
       !isCallRegistered &&
-      isInitialCallingState(prevState.current) &&
-      canRegisterCall(callingState)
+      canStartCall(prevState.current, callingState)
     ) {
       logger.debug(`Should register call in callkeep: ${activeCallCid}`);
       //we request start call action from CallKit/Telecom, next step is to make call active when we receive call started event
@@ -158,9 +182,8 @@ export const useCallingExpWithCallingStateEffect = () => {
           );
         });
     } else if (
-      isAcceptedCallingState(prevState.current) &&
-      !isAcceptedCallingState(callingState) &&
-      isCallRegistered
+      isCallRegistered &&
+      canEndCall(prevState.current, callingState)
     ) {
       //in case call was registered as incoming and state changed to "not joined", we need to end the call and clear rxjs subject
       logger.debug(`Should end call in callkeep: ${activeCallCid}`);
