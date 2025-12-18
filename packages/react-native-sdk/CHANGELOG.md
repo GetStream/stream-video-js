@@ -2,6 +2,31 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.26.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.3...@stream-io/video-react-native-sdk-1.26.4) (2025-12-18)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.4`
+- `@stream-io/video-filters-react-native` updated to version `0.9.3`
+- `@stream-io/video-client` updated to version `1.39.1`
+- `@stream-io/video-react-bindings` updated to version `1.12.4`
+
+### Bug Fixes
+
+- **provenance:** add repository info to every package ([4159633](https://github.com/GetStream/stream-video-js/commit/4159633b908afe6542b4be53151da6218175426c))
+
+## [1.26.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.2...@stream-io/video-react-native-sdk-1.26.3) (2025-12-18)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.4.3`
+- `@stream-io/video-client` updated to version `1.39.0`
+- `@stream-io/video-react-bindings` updated to version `1.12.3`
+
+### Bug Fixes
+
+- stop of android system prompt from screenshare overlay ([#2052](https://github.com/GetStream/stream-video-js/issues/2052)) ([b1a5b46](https://github.com/GetStream/stream-video-js/commit/b1a5b46553df18897126c1e59066ff79e0e0704c))
+
 ## [1.26.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.1...@stream-io/video-react-native-sdk-1.26.2) (2025-12-11)
 
 ### Dependency Updates
