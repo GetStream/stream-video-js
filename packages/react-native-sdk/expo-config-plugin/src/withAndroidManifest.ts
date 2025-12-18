@@ -30,7 +30,7 @@ function getNotifeeService(isKeepCallAliveEnabled = false) {
   let foregroundServiceType = 'shortService';
   if (isKeepCallAliveEnabled) {
     foregroundServiceType =
-      'dataSync|camera|microphone|connectedDevice|' + foregroundServiceType;
+      'mediaPlayback|camera|microphone|' + foregroundServiceType;
   }
   let head = prefixAndroidKeys({
     name: 'app.notifee.core.ForegroundService',
