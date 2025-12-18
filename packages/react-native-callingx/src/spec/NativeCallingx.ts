@@ -28,6 +28,8 @@ export interface Spec extends TurboModule {
     };
   }): void;
 
+  setShouldRejectCallWhenBusy(shouldReject: boolean): void;
+
   canPostNotifications(): boolean;
 
   getInitialEvents(): Array<{

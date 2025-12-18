@@ -62,6 +62,40 @@ RCT_EXPORT_MODULE();
     });
 }
 
++(BOOL)rejectIncomingCallIfNeeded:(void (^_Nullable)(void)) completion {
+    Class callingxClass = NSClassFromString(@"Callingx");
+    if (!callingxClass) {
+        NSLog(@"[StreamVideoReactNative][rejectIncomingCallIfNeeded] Callingx not available");
+        return YES;
+    }
+    
+    SEL selector = @selector(canRegisterCall);
+    if (![callingxClass respondsToSelector:selector]) {
+        NSLog(@"[StreamVideoReactNative][rejectIncomingCallIfNeeded] Callingx does not respond to canRegisterCall selector");
+        return YES;
+    }
+    
+    NSMethodSignature *signature = [callingxClass methodSignatureForSelector:selector];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+    [invocation setTarget:callingxClass];
+    [invocation setSelector:selector];
+    [invocation invoke];
+    
+    BOOL canRegister = NO;
+    [invocation getReturnValue:&canRegister];
+    
+    NSLog(@"[StreamVideoReactNative][rejectIncomingCallIfNeeded] canRegisterCall = %@", canRegister ? @"YES" : @"NO");
+    
+    if (!canRegister) {
+        if (completion) {
+            completion();
+        }
+        return NO;
+    }
+    
+    return YES;
+}
+
 +(void)didReceiveIncomingPush:(PKPushPayload *)payload completionHandler: (void (^_Nullable)(void)) completion {
     NSDictionary *streamPayload = payload.dictionaryPayload[@"stream"];
     if (!streamPayload) {
@@ -358,17 +392,7 @@ RCT_EXPORT_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
     ];
 }
 
-+(BOOL)shouldRejectCallWhenBusy {
-    return _shouldRejectCallWhenBusy;
-}
-
-RCT_EXPORT_METHOD(setShouldRejectCallWhenBusy:(BOOL)shouldReject) {
-    _shouldRejectCallWhenBusy = shouldReject;
-#ifdef DEBUG
-    NSLog(@"setShouldRejectCallWhenBusy: %@", shouldReject ? @"YES" : @"NO");
-#endif
-}
-
+//current implementation will return any registered calls not only stream calls
 + (BOOL)hasAnyActiveCall
 {
     CXCallObserver *callObserver = [[CXCallObserver alloc] init];

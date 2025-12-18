@@ -97,6 +97,10 @@ class CallingxModule implements ICallingxModule {
     }
   }
 
+  setShouldRejectCallWhenBusy(shouldReject: boolean): void {
+    NativeCallingModule.setShouldRejectCallWhenBusy(shouldReject);
+  }
+
   async requestPermissions(): Promise<PermissionsResult> {
     const result: {
       recordAudio: boolean;

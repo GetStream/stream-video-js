@@ -314,15 +314,11 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
     }
 
     // Check if user is busy BEFORE registering the call
-    let shouldReject = StreamVideoReactNative.shouldRejectCallWhenBusy()
-    let hasAnyActiveCall = StreamVideoReactNative.hasAnyActiveCall()
-        
-    if shouldReject && hasAnyActiveCall {
-        // Complete the VoIP notification without showing CallKit UI
-        completion()
-        return
+    guard StreamVideoReactNative.rejectIncomingCallIfNeeded(completion) else {
+      return
     }
-    
+        
+    // required if you want to call completion() on the js side
     RNVoipPushNotificationManager.addCompletionHandler(cid, completionHandler: completion)
     
     // Process the received push // fire 'notification' event to JS
@@ -370,12 +366,8 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   NSString *cid = stream[@"call_cid"];
   
   // Check if user is busy BEFORE registering the call
-  BOOL shouldReject = [StreamVideoReactNative shouldRejectCallWhenBusy];
-  BOOL hasAnyActiveCall = [StreamVideoReactNative hasAnyActiveCall];
-  
-  if (shouldReject && hasAnyActiveCall) {
-      // Complete the VoIP notification without showing CallKit UI
-      completion();
+  BOOL canProceed = [StreamVideoReactNative rejectIncomingCallIfNeeded:completion];
+  if (!canProceed) {
       return;
   }
   

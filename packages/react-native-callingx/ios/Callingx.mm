@@ -39,6 +39,7 @@ static NSString *const CallingxProviderReset = @"providerReset";
 
 static CXProvider *sharedProvider;
 static UUIDStorage *uuidStorage;
+static BOOL _shouldRejectCallWhenBusy = NO;
 
 #pragma mark - Class Methods
 
@@ -47,7 +48,7 @@ static UUIDStorage *uuidStorage;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
     sharedInstance = [super allocWithZone:zone];
-  });
+});
   return sharedInstance;
 }
 
@@ -197,7 +198,30 @@ static UUIDStorage *uuidStorage;
 //    }
 //    return NO;
 //}
++ (BOOL)canRegisterCall {
+  BOOL hasRegisteredCall = [Callingx hasRegisteredCall];
+  NSLog(@"[Callingx][canRegisterCall] hasRegisteredCall = %@, _shouldRejectCallWhenBusy = %@", hasRegisteredCall ? @"YES" : @"NO", _shouldRejectCallWhenBusy ? @"YES" : @"NO");
+  return !_shouldRejectCallWhenBusy || (_shouldRejectCallWhenBusy && !hasRegisteredCall);
+}
 
++ (BOOL)hasRegisteredCall {
+  [Callingx initUUIDStorage];
+  
+  NSArray<NSUUID *> *appUUIDs = [uuidStorage allUUIDs];
+  if ([appUUIDs count] == 0) return NO;
+  
+  CXCallObserver *observer = [[CXCallObserver alloc] init];
+  
+  for (CXCall *call in observer.calls) {
+    for (NSUUID *uuid in appUUIDs) {
+      if ([call.UUID isEqual:uuid]) {
+        return YES;
+      }
+    }
+  }
+  
+  return NO;
+}
 
 + (NSString *)getAudioOutput {
   @try {
@@ -253,6 +277,7 @@ static UUIDStorage *uuidStorage;
   }
 
   [uuidStorage removeCid:callId];
+  _shouldRejectCallWhenBusy = NO;
 }
 
 + (BOOL)requiresMainQueueSetup {
@@ -427,6 +452,10 @@ static UUIDStorage *uuidStorage;
   _isSetup = YES;
 }
 
+- (void)setShouldRejectCallWhenBusy:(BOOL)shouldReject {
+  _shouldRejectCallWhenBusy = shouldReject;
+}
+
 - (NSArray<NSDictionary *> *)getInitialEvents {
 #ifdef DEBUG
   NSLog(@"[Callingx][getInitialEvents] delayedEvents = %@", _delayedEvents);
@@ -551,20 +580,7 @@ static UUIDStorage *uuidStorage;
 }
 
 - (NSNumber *)hasRegisteredCall {
-  NSArray<NSUUID *> *appUUIDs = [uuidStorage allUUIDs];
-  if ([appUUIDs count] == 0) return @NO;
-  
-  CXCallObserver *observer = [[CXCallObserver alloc] init];
-  
-  for (CXCall *call in observer.calls) {
-    for (NSUUID *uuid in appUUIDs) {
-      if ([call.UUID isEqual:uuid]) {
-        return @YES;
-      }
-    }
-  }
-  
-  return @NO;
+  return @([Callingx hasRegisteredCall]);
 }
 
 - (void)setCurrentCallActive:(nonnull NSString *)callId
@@ -635,7 +651,7 @@ static UUIDStorage *uuidStorage;
            resolve:(nonnull RCTPromiseResolveBlock)resolve
             reject:(nonnull RCTPromiseRejectBlock)reject {
 #ifdef DEBUG
-  NSLog(@"[Callingx][startCall] uuidString = %@", callId, phoneNumber);
+  NSLog(@"[Callingx][startCall] uuidString = %@, phoneNumber = %@", callId, phoneNumber);
 #endif
   CXHandleType _handleType = [Settings getHandleType:@"generic"];
   NSUUID *uuid = [uuidStorage getOrCreateUUIDForCid:callId];
@@ -812,7 +828,9 @@ static UUIDStorage *uuidStorage;
                               @"source" : source
                             }];
   _isSelfEnded = false;
+  _shouldRejectCallWhenBusy = NO;
   [uuidStorage removeCid:callId];
+  
   [action fulfill];
 }
 

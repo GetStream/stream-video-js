@@ -149,13 +149,6 @@ export const firebaseDataHandler = async (
 
     const callingx = getCallingxLib();
 
-    if (callingx.hasRegisteredCall()) {
-      logger.debug(
-        `registered call found, skipping the call.ring notification`,
-      );
-      return;
-    }
-
     await callingx.checkPermissions();
     if (!callingx.isNotificationsAllowed) {
       logger.debug(
@@ -168,6 +161,14 @@ export const firebaseDataHandler = async (
     if (!client) {
       logger.debug(
         `video client not found, skipping the call.ring notification`,
+      );
+      return;
+    }
+
+    const shouldRejectCallWhenBusy = client['rejectCallWhenBusy'] ?? false;
+    if (callingx.hasRegisteredCall() && shouldRejectCallWhenBusy) {
+      logger.debug(
+        `registered call found, skipping the call.ring notification`,
       );
       return;
     }

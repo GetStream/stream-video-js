@@ -47,12 +47,11 @@ export const onVoipNotificationReceived = async (
   }
 
   const callingx = getCallingxLib();
-  if (
-    (callingx.hasRegisteredCall() && !callingx.isCallRegistered(call_cid)) ||
-    callingx.isCallRegistered(call_cid)
-  ) {
-    //this means that a call with different call_cid is registered or the same call_cid is registered, so we skipping the notification
-    logger.debug(`registered call found, skipping the call.ring notification`);
+  if (callingx.isCallRegistered(call_cid)) {
+    //same call_cid is registered, so we skipping the notification
+    logger.debug(
+      `the same call_cid ${call_cid} is registered, skipping the call.ring notification`,
+    );
     return;
   }
 
@@ -66,10 +65,13 @@ export const onVoipNotificationReceived = async (
   const shouldRejectCallWhenBusy = client['rejectCallWhenBusy'] ?? false;
   if (shouldRejectCallWhenBusy) {
     // inform the iOS native module that we should reject call when busy
-    NativeModules.StreamVideoReactNative.setShouldRejectCallWhenBusy(
-      shouldRejectCallWhenBusy,
-    );
+    callingx.setShouldRejectCallWhenBusy(shouldRejectCallWhenBusy);
   }
+
+  videoLoggerSystem
+    .getLogger('onVoipNotificationReceived')
+    .debug('shouldRejectCallWhenBusy', shouldRejectCallWhenBusy);
+
   const callFromPush = await client.onRingingCall(call_cid);
 
   function closeCallIfNecessary() {

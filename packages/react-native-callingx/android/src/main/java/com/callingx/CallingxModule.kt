@@ -134,6 +134,10 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         return notificationChannelsManager.getNotificationStatus().canPost
     }
 
+    override fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
+        //leave empty
+    }
+
     override fun getInitialEvents(): WritableArray {
         // NOTE: writabel native array can be consumed only once, think of getting rid from clear
         // event and clear eat immidiate after getting initial events

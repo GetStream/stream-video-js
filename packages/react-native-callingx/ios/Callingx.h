@@ -34,6 +34,8 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)endCall:(NSString *)callId
                  reason:(int)reason;
 
++ (BOOL)canRegisterCall;
+
 @end
 
 NS_ASSUME_NONNULL_END

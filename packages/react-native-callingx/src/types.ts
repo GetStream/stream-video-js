@@ -9,6 +9,8 @@ export interface ICallingxModule {
 
   setup(options: Options): void;
 
+  setShouldRejectCallWhenBusy(shouldReject: boolean): void;
+
   checkPermissions(): Promise<PermissionsResult>;
 
   requestPermissions(): Promise<PermissionsResult>;
