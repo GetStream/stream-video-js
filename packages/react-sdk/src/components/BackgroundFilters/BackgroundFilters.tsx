@@ -218,10 +218,6 @@ export const BackgroundFiltersProvider = (
     call?.tracer,
   ]);
 
-  const setLoading = useCallback((loading: boolean) => {
-    setIsLoading(loading);
-  }, []);
-
   const applyBackgroundImageFilter = useCallback((imageUrl: string) => {
     setBackgroundFilter('image');
     setBackgroundImage(imageUrl);
@@ -317,7 +313,7 @@ export const BackgroundFiltersProvider = (
           tfLite={tfLite}
           engine={engine}
           onStats={handleStats}
-          setIsLoading={setLoading}
+          setIsLoading={setIsLoading}
         />
       )}
     </ContextProvider.Provider>
