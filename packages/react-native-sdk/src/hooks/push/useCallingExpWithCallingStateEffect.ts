@@ -29,7 +29,10 @@ const canAcceptIncomingCall = (
     return state === CallingState.JOINING || state === CallingState.JOINED;
   };
 
-  return !isJoined(prevState) && isJoined(currentState);
+  return (
+    (!isJoined(prevState) && isJoined(currentState)) ||
+    (prevState === CallingState.JOINING && currentState === CallingState.JOINED)
+  );
 };
 
 const canEndCall = (
