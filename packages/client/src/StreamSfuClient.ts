@@ -403,6 +403,7 @@ export class StreamSfuClient {
           { invocationMeta },
         ),
       this.abortController.signal,
+      5, // attempt max 5 times
     );
   };
 
