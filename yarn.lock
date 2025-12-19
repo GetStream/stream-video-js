@@ -7363,27 +7363,27 @@ __metadata:
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
     sass: "npm:^1.93.2"
-    stream-chat: "npm:^9.26.0"
-    stream-chat-react: "npm:^13.12.0"
+    stream-chat: "npm:^9.27.2"
+    stream-chat-react: "npm:^13.13.1"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
   languageName: unknown
   linkType: soft
 
-"@stream-io/node-sdk@npm:^0.7.9":
-  version: 0.7.9
-  resolution: "@stream-io/node-sdk@npm:0.7.9"
+"@stream-io/node-sdk@npm:^0.7.28":
+  version: 0.7.28
+  resolution: "@stream-io/node-sdk@npm:0.7.28"
   dependencies:
     "@types/jsonwebtoken": "npm:^9.0.3"
     "@types/node": "npm:^18.3.0"
-    jsonwebtoken: "npm:^9.0.2"
+    jsonwebtoken: "npm:^9.0.3"
     uuid: "npm:^9.0.1"
   peerDependencies:
     "@stream-io/openai-realtime-api": ~0.1.3 || ~0.2.0 || ~0.3.0
   peerDependenciesMeta:
     "@stream-io/openai-realtime-api":
       optional: true
-  checksum: 10/71bf4fb99e1d7b031686eee65ec9d690d2c5f4455d7567ca0bf088dcbb8c04bd9e5e32f7fee3e9e3aac0e01a71bd7299a20184cfde53f07064192fdd6f71b210
+  checksum: 10/2f35afbf3ba475a86a6295da48cef54f025211c2f256b731f9097d027c3b318e1c4820ecd6ab2a25f6c9d7e24d3a90398738966e3c7a24354c0a58d7c1bc3775
   languageName: node
   linkType: hard
 
@@ -7464,7 +7464,7 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.1.4"
     "@stream-io/audio-filters-web": "workspace:^"
     "@stream-io/logger": "npm:^2.0.0"
-    "@stream-io/node-sdk": "npm:^0.7.9"
+    "@stream-io/node-sdk": "npm:^0.7.28"
     "@stream-io/worker-timer": "npm:^1.2.5"
     "@total-typescript/shoehorn": "npm:^0.1.2"
     "@types/sdp-transform": "npm:^2.15.0"
@@ -7570,7 +7570,7 @@ __metadata:
     "@next/third-parties": "npm:^16.0.10"
     "@sentry/nextjs": "npm:^10.30.0"
     "@stream-io/audio-filters-web": "workspace:^"
-    "@stream-io/node-sdk": "npm:^0.7.9"
+    "@stream-io/node-sdk": "npm:^0.7.28"
     "@stream-io/video-filters-web": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
@@ -7597,8 +7597,8 @@ __metadata:
     react-dom: "npm:19.1.0"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.93.2"
-    stream-chat: "npm:^9.26.0"
-    stream-chat-react: "npm:^13.12.0"
+    stream-chat: "npm:^9.27.2"
+    stream-chat-react: "npm:^13.13.1"
     swr: "npm:^2.3.6"
     yargs: "npm:^18.0.0"
   languageName: unknown
@@ -7657,8 +7657,8 @@ __metadata:
     react-native-voip-push-notification: "npm:~3.3.3"
     react-native-worklets: "npm:^0.5.0"
     rxjs: "npm:~7.8.2"
-    stream-chat: "npm:^9.26.0"
-    stream-chat-react-native: "npm:^8.9.1"
+    stream-chat: "npm:^9.27.2"
+    stream-chat-react-native: "npm:^8.12.0"
     typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
@@ -7874,8 +7874,8 @@ __metadata:
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
-    stream-chat: "npm:^9.26.0"
-    stream-chat-react: "npm:^13.12.0"
+    stream-chat: "npm:^9.27.2"
+    stream-chat-react: "npm:^13.13.1"
     tailwindcss: "npm:^3.4.18"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
@@ -16141,11 +16141,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsonwebtoken@npm:^9.0.2":
-  version: 9.0.2
-  resolution: "jsonwebtoken@npm:9.0.2"
+"jsonwebtoken@npm:^9.0.3":
+  version: 9.0.3
+  resolution: "jsonwebtoken@npm:9.0.3"
   dependencies:
-    jws: "npm:^3.2.2"
+    jws: "npm:^4.0.1"
     lodash.includes: "npm:^4.3.0"
     lodash.isboolean: "npm:^3.0.3"
     lodash.isinteger: "npm:^4.0.4"
@@ -16155,7 +16155,7 @@ __metadata:
     lodash.once: "npm:^4.0.0"
     ms: "npm:^2.1.1"
     semver: "npm:^7.5.4"
-  checksum: 10/6e9b6d879cec2b27f2f3a88a0c0973edc7ba956a5d9356b2626c4fddfda969e34a3832deaf79c3e1c6c9a525bc2c4f2c2447fa477f8ac660f0017c31a59ae96b
+  checksum: 10/a67a276db41fbfb458ebdc4938d5d7b01d4743e16bda0f25ac01996fe5b5819d66656153f6cfce19b4680b79ae9f9ca185965defc22e77e0abddf443573238d6
   languageName: node
   linkType: hard
 
@@ -16169,24 +16169,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jwa@npm:^1.4.1":
-  version: 1.4.2
-  resolution: "jwa@npm:1.4.2"
+"jwa@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "jwa@npm:2.0.1"
   dependencies:
     buffer-equal-constant-time: "npm:^1.0.1"
     ecdsa-sig-formatter: "npm:1.0.11"
     safe-buffer: "npm:^5.0.1"
-  checksum: 10/a46c9ddbcc226d9e85e13ef96328c7d331abddd66b5a55ec44bcf4350464a6125385ac9c1e64faa0fae8d586d90a14d6b5e96c73f0388970a3918d5252efb0f3
+  checksum: 10/b04312a1de85f912b96aa3a7211717b8336945fab5b4f7cbc7800f4c80934060c0a3111576fad8d76e41ad62887d6da4b21fd4c47e45c174197f8be7dc0c1694
   languageName: node
   linkType: hard
 
-"jws@npm:^3.2.2":
-  version: 3.2.2
-  resolution: "jws@npm:3.2.2"
+"jws@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "jws@npm:4.0.1"
   dependencies:
-    jwa: "npm:^1.4.1"
+    jwa: "npm:^2.0.1"
     safe-buffer: "npm:^5.0.1"
-  checksum: 10/70b016974af8a76d25030c80a0097b24ed5b17a9cf10f43b163c11cb4eb248d5d04a3fe48c0d724d2884c32879d878ccad7be0663720f46b464f662f7ed778fe
+  checksum: 10/75d7b157489fa9a72023712c58a7a7706c7e2b10eec27fabd3bb9cae0c9e492251ab72527d20a8a5f5726196f0508c320c643fddff7076657f6bca16d0ceeeeb
   languageName: node
   linkType: hard
 
@@ -22465,9 +22465,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react-native-core@npm:8.9.1":
-  version: 8.9.1
-  resolution: "stream-chat-react-native-core@npm:8.9.1"
+"stream-chat-react-native-core@npm:8.12.0":
+  version: 8.12.0
+  resolution: "stream-chat-react-native-core@npm:8.12.0"
   dependencies:
     "@gorhom/bottom-sheet": "npm:^5.1.8"
     "@ungap/structured-clone": "npm:^1.3.0"
@@ -22481,7 +22481,7 @@ __metadata:
     path: "npm:0.12.7"
     react-native-markdown-package: "npm:1.8.2"
     react-native-url-polyfill: "npm:^2.0.0"
-    stream-chat: "npm:^9.26.0"
+    stream-chat: "npm:^9.27.2"
     use-sync-external-store: "npm:^1.5.0"
   peerDependencies:
     "@emoji-mart/data": ">=1.1.0"
@@ -22503,17 +22503,17 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: 10/8915b44f26c87b547e67f1a2fc1bb14126c212d315e77f367d909a253b743179b780317e5adf8f2409293a3f6a0c7c3a92f65c11c35f065b847043b01ffcc849
+  checksum: 10/7f82912bf05c50a74d8bb934655b6ac1ca647449d2ab6dc75bcd4e9c5aab5c1c83a3753af49205c14f1acd585195f2073090f99e7a1c1269c723cea1e8295d2b
   languageName: node
   linkType: hard
 
-"stream-chat-react-native@npm:^8.9.1":
-  version: 8.9.1
-  resolution: "stream-chat-react-native@npm:8.9.1"
+"stream-chat-react-native@npm:^8.12.0":
+  version: 8.12.0
+  resolution: "stream-chat-react-native@npm:8.12.0"
   dependencies:
     es6-symbol: "npm:^3.1.3"
     mime: "npm:^4.0.7"
-    stream-chat-react-native-core: "npm:8.9.1"
+    stream-chat-react-native-core: "npm:8.12.0"
   peerDependencies:
     "@react-native-camera-roll/camera-roll": ">=7.8.0"
     "@react-native-clipboard/clipboard": ">=1.14.1"
@@ -22550,13 +22550,13 @@ __metadata:
       optional: true
     react-native-video:
       optional: true
-  checksum: 10/7f41e3e3b3b9c59354dc51e14aff8263c469fef49b216ddd126077c65dd374cb634f47119386b4cca727353df01391827e9981e9e2a4e62c1122f9fb9a5c2c8d
+  checksum: 10/1226a5756abc31c735788a5b246809f5e62a29511c09b117225b41b614eac9b18d45fc6a41ca5bd05524aca3f5d5e37ee586a913dbd3819486440f2e77c9e58f
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:^13.12.0":
-  version: 13.12.0
-  resolution: "stream-chat-react@npm:13.12.0"
+"stream-chat-react@npm:^13.13.1":
+  version: 13.13.1
+  resolution: "stream-chat-react@npm:13.13.1"
   dependencies:
     "@braintree/sanitize-url": "npm:^6.0.4"
     "@floating-ui/react": "npm:^0.27.2"
@@ -22594,7 +22594,7 @@ __metadata:
     emoji-mart: ^5.4.0
     react: ^19.0.0 || ^18.0.0 || ^17.0.0
     react-dom: ^19.0.0 || ^18.0.0 || ^17.0.0
-    stream-chat: ^9.25.0
+    stream-chat: ^9.27.2
   dependenciesMeta:
     "@stream-io/transliterate":
       optional: true
@@ -22607,13 +22607,13 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: 10/b7ffbee019e75e50d141e0c22cdbede77d2dd597652da9df7177f0f7668ea56a1231927675aba4f5cccc4edf66d17f36bdcb8984444ab79e84f1c47dfda3f63e
+  checksum: 10/83e1798c3b70a8067e5a1db6201886db3aa5cfb34a5afee362a666895731789b8bd87cfac58c95a0ffb322eca96ef6b6f0a7887596bd3fee8598c93685de7e97
   languageName: node
   linkType: hard
 
-"stream-chat@npm:^9.26.0":
-  version: 9.26.0
-  resolution: "stream-chat@npm:9.26.0"
+"stream-chat@npm:^9.27.2":
+  version: 9.27.2
+  resolution: "stream-chat@npm:9.27.2"
   dependencies:
     "@types/jsonwebtoken": "npm:^9.0.8"
     "@types/ws": "npm:^8.5.14"
@@ -22621,10 +22621,10 @@ __metadata:
     base64-js: "npm:^1.5.1"
     form-data: "npm:^4.0.4"
     isomorphic-ws: "npm:^5.0.0"
-    jsonwebtoken: "npm:^9.0.2"
+    jsonwebtoken: "npm:^9.0.3"
     linkifyjs: "npm:^4.3.2"
     ws: "npm:^8.18.1"
-  checksum: 10/58149cbc466cb5787e4f832e6075cb7d2569b2f4929898187abd17f7522bfa36a5eb764b5a44a573b28ea5e074f5e05a16cf2a6b5649dd42823363c293c37781
+  checksum: 10/6c54fdb790784735c0976c3c8918f868363d56193602100f2f420459158411554b3ed0609ffdfb2813c8a6de5eb145931d28c25d5b034a30e4d5ee0b965fd568
   languageName: node
   linkType: hard
 
