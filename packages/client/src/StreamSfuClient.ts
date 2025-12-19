@@ -5,6 +5,7 @@ import {
   withHeaders,
   withRequestLogger,
   withRequestTracer,
+  withTimeout,
 } from './rpc';
 import {
   createWebSocketSignalChannel,
@@ -227,8 +228,8 @@ export class StreamSfuClient {
       interceptors: [
         withHeaders({ Authorization: `Bearer ${token}` }),
         this.tracer && withRequestTracer(this.tracer.trace),
-        this.logger.getLogLevel() === 'trace' &&
-          withRequestLogger(this.logger, 'trace'),
+        this.logger.getLogLevel() === 'trace' && withRequestLogger(this.logger),
+        withTimeout(this.joinResponseTimeout),
       ].filter((v) => !!v),
     });
 
@@ -384,7 +385,11 @@ export class StreamSfuClient {
   updateSubscriptions = async (tracks: TrackSubscriptionDetails[]) => {
     await this.joinTask;
     return retryable(
-      () => this.rpc.updateSubscriptions({ sessionId: this.sessionId, tracks }),
+      (invocationMeta) =>
+        this.rpc.updateSubscriptions(
+          { sessionId: this.sessionId, tracks },
+          { invocationMeta },
+        ),
       this.abortController.signal,
     );
   };
@@ -392,7 +397,11 @@ export class StreamSfuClient {
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
     await this.joinTask;
     return retryable(
-      () => this.rpc.setPublisher({ ...data, sessionId: this.sessionId }),
+      (invocationMeta) =>
+        this.rpc.setPublisher(
+          { ...data, sessionId: this.sessionId },
+          { invocationMeta },
+        ),
       this.abortController.signal,
     );
   };
@@ -400,7 +409,11 @@ export class StreamSfuClient {
   sendAnswer = async (data: Omit<SendAnswerRequest, 'sessionId'>) => {
     await this.joinTask;
     return retryable(
-      () => this.rpc.sendAnswer({ ...data, sessionId: this.sessionId }),
+      (invocationMeta) =>
+        this.rpc.sendAnswer(
+          { ...data, sessionId: this.sessionId },
+          { invocationMeta },
+        ),
       this.abortController.signal,
     );
   };
@@ -408,7 +421,11 @@ export class StreamSfuClient {
   iceTrickle = async (data: Omit<ICETrickle, 'sessionId'>) => {
     await this.joinTask;
     return retryable(
-      () => this.rpc.iceTrickle({ ...data, sessionId: this.sessionId }),
+      (invocationMeta) =>
+        this.rpc.iceTrickle(
+          { ...data, sessionId: this.sessionId },
+          { invocationMeta },
+        ),
       this.abortController.signal,
     );
   };
@@ -416,7 +433,11 @@ export class StreamSfuClient {
   iceRestart = async (data: Omit<ICERestartRequest, 'sessionId'>) => {
     await this.joinTask;
     return retryable(
-      () => this.rpc.iceRestart({ ...data, sessionId: this.sessionId }),
+      (invocationMeta) =>
+        this.rpc.iceRestart(
+          { ...data, sessionId: this.sessionId },
+          { invocationMeta },
+        ),
       this.abortController.signal,
     );
   };
@@ -424,8 +445,11 @@ export class StreamSfuClient {
   updateMuteStates = async (muteStates: TrackMuteState[]) => {
     await this.joinTask;
     return retryable(
-      () =>
-        this.rpc.updateMuteStates({ muteStates, sessionId: this.sessionId }),
+      (invocationMeta) =>
+        this.rpc.updateMuteStates(
+          { muteStates, sessionId: this.sessionId },
+          { invocationMeta },
+        ),
       this.abortController.signal,
     );
   };
@@ -439,7 +463,11 @@ export class StreamSfuClient {
   startNoiseCancellation = async () => {
     await this.joinTask;
     return retryable(
-      () => this.rpc.startNoiseCancellation({ sessionId: this.sessionId }),
+      (invocationMeta) =>
+        this.rpc.startNoiseCancellation(
+          { sessionId: this.sessionId },
+          { invocationMeta },
+        ),
       this.abortController.signal,
     );
   };
@@ -447,7 +475,11 @@ export class StreamSfuClient {
   stopNoiseCancellation = async () => {
     await this.joinTask;
     return retryable(
-      () => this.rpc.stopNoiseCancellation({ sessionId: this.sessionId }),
+      (invocationMeta) =>
+        this.rpc.stopNoiseCancellation(
+          { sessionId: this.sessionId },
+          { invocationMeta },
+        ),
       this.abortController.signal,
     );
   };
