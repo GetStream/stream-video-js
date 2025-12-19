@@ -68,6 +68,14 @@ export const useIsCallRawRecordingInProgress = (): boolean => {
 /**
  * Utility hook which provides information whether the current call is broadcasting.
  */
+export const useIsCallIndividualRecordingInProgress = (): boolean => {
+  const { individualRecording$ } = useCallState();
+  return useObservableValue(individualRecording$);
+};
+
+/**
+ * Utility hook which provides information whether the current call is broadcasting.
+ */
 export const useIsCallHLSBroadcastingInProgress = (): boolean => {
   const { egress$ } = useCallState();
   const egress = useObservableValue(egress$);

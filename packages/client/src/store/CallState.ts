@@ -99,6 +99,7 @@ export class CallState {
     undefined,
   );
   private recordingSubject = new BehaviorSubject<boolean>(false);
+  private individualRecordingSubject = new BehaviorSubject<boolean>(false);
   private rawRecordingSubject = new BehaviorSubject<boolean>(false);
   private sessionSubject = new BehaviorSubject<CallSessionResponse | undefined>(
     undefined,
@@ -280,6 +281,11 @@ export class CallState {
    * Will provide the recording state of this call.
    */
   recording$: Observable<boolean>;
+
+  /**
+   * Will provide the recording state of this call.
+   */
+  individualRecording$: Observable<boolean>;
 
   /**
    * Will provide the recording state of this call.
@@ -471,6 +477,7 @@ export class CallState {
     );
     this.participantCount$ = duc(this.participantCountSubject);
     this.recording$ = duc(this.recordingSubject);
+    this.individualRecording$ = duc(this.individualRecordingSubject);
     this.rawRecording$ = duc(this.rawRecordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
     this.captioning$ = duc(this.captioningSubject);
@@ -546,7 +553,7 @@ export class CallState {
             this.setCurrentValue(this.recordingSubject, true);
             break;
           case CallRecordingStartedEventRecordingTypeEnum.INDIVIDUAL:
-            this.setCurrentValue(this.rawRecordingSubject, true);
+            this.setCurrentValue(this.individualRecordingSubject, true);
             break;
           case CallRecordingStartedEventRecordingTypeEnum.RAW:
             this.setCurrentValue(this.rawRecordingSubject, true);
@@ -559,7 +566,7 @@ export class CallState {
             this.setCurrentValue(this.recordingSubject, false);
             break;
           case CallRecordingStoppedEventRecordingTypeEnum.INDIVIDUAL:
-            this.setCurrentValue(this.rawRecordingSubject, false);
+            this.setCurrentValue(this.individualRecordingSubject, false);
             break;
           case CallRecordingStoppedEventRecordingTypeEnum.RAW:
             this.setCurrentValue(this.rawRecordingSubject, false);
@@ -572,7 +579,7 @@ export class CallState {
             this.setCurrentValue(this.recordingSubject, false);
             break;
           case CallRecordingFailedEventRecordingTypeEnum.INDIVIDUAL:
-            this.setCurrentValue(this.rawRecordingSubject, false);
+            this.setCurrentValue(this.individualRecordingSubject, false);
             break;
           case CallRecordingFailedEventRecordingTypeEnum.RAW:
             this.setCurrentValue(this.rawRecordingSubject, false);

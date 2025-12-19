@@ -59,6 +59,9 @@ export const DevMenu = () => {
         <StartStopBroadcasting />
       </li>
       <li className="rd__dev-menu__item">
+        <StartStopIndividualRecording />
+      </li>
+      <li className="rd__dev-menu__item">
         <StartStopRawRecording />
       </li>
       <li className="rd__dev-menu__item">
@@ -222,6 +225,47 @@ const StartStopRawRecording = () => {
         icon={isRawRecording ? 'recording-off' : 'recording-on'}
       />
       {isRawRecording ? 'Stop Raw Recording' : 'Start Raw Recording'}
+    </button>
+  );
+};
+
+const StartStopIndividualRecording = () => {
+  const call = useCall();
+  const { useIsCallIndividualRecordingInProgress } = useCallStateHooks();
+  const isIndividualRecording = useIsCallIndividualRecordingInProgress();
+  return (
+    <button
+      className="rd__button rd__button--align-left"
+      onClick={() => {
+        if (!call) return;
+        if (isIndividualRecording) {
+          call
+            .stopRecording('individual')
+            .then(() => {
+              console.log(`Individual recording stopped`);
+            })
+            .catch((err) => {
+              console.error(`Failed to stop individual recording`, err);
+            });
+        } else {
+          call
+            .startRecording('individual')
+            .then(() => {
+              console.log(`Individual recording started`);
+            })
+            .catch((err) => {
+              console.error(`Failed to start individual recording`, err);
+            });
+        }
+      }}
+    >
+      <Icon
+        className="rd__button__icon"
+        icon={isIndividualRecording ? 'recording-off' : 'recording-on'}
+      />
+      {isIndividualRecording
+        ? 'Stop Individual Recording'
+        : 'Start Individual Recording'}
     </button>
   );
 };
