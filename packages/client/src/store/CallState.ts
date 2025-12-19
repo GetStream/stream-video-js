@@ -99,6 +99,7 @@ export class CallState {
     undefined,
   );
   private recordingSubject = new BehaviorSubject<boolean>(false);
+  private rawRecordingSubject = new BehaviorSubject<boolean>(false);
   private sessionSubject = new BehaviorSubject<CallSessionResponse | undefined>(
     undefined,
   );
@@ -279,6 +280,11 @@ export class CallState {
    * Will provide the recording state of this call.
    */
   recording$: Observable<boolean>;
+
+  /**
+   * Will provide the recording state of this call.
+   */
+  rawRecording$: Observable<boolean>;
 
   /**
    * Will provide the session data of this call.
@@ -465,6 +471,7 @@ export class CallState {
     );
     this.participantCount$ = duc(this.participantCountSubject);
     this.recording$ = duc(this.recordingSubject);
+    this.rawRecording$ = duc(this.rawRecordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
     this.captioning$ = duc(this.captioningSubject);
 
@@ -534,27 +541,42 @@ export class CallState {
       'call.permissions_updated': this.updateOwnCapabilities,
       'call.reaction_new': this.updateParticipantReaction,
       'call.recording_started': (e) => {
-        if (
-          e.recording_type ===
-          CallRecordingStartedEventRecordingTypeEnum.COMPOSITE
-        ) {
-          this.setCurrentValue(this.recordingSubject, true);
+        switch (e.recording_type) {
+          case CallRecordingStartedEventRecordingTypeEnum.COMPOSITE:
+            this.setCurrentValue(this.recordingSubject, true);
+            break;
+          case CallRecordingStartedEventRecordingTypeEnum.INDIVIDUAL:
+            this.setCurrentValue(this.rawRecordingSubject, true);
+            break;
+          case CallRecordingStartedEventRecordingTypeEnum.RAW:
+            this.setCurrentValue(this.rawRecordingSubject, true);
+            break;
         }
       },
       'call.recording_stopped': (e) => {
-        if (
-          e.recording_type ===
-          CallRecordingStoppedEventRecordingTypeEnum.COMPOSITE
-        ) {
-          this.setCurrentValue(this.recordingSubject, false);
+        switch (e.recording_type) {
+          case CallRecordingStoppedEventRecordingTypeEnum.COMPOSITE:
+            this.setCurrentValue(this.recordingSubject, false);
+            break;
+          case CallRecordingStoppedEventRecordingTypeEnum.INDIVIDUAL:
+            this.setCurrentValue(this.rawRecordingSubject, false);
+            break;
+          case CallRecordingStoppedEventRecordingTypeEnum.RAW:
+            this.setCurrentValue(this.rawRecordingSubject, false);
+            break;
         }
       },
       'call.recording_failed': (e) => {
-        if (
-          e.recording_type ===
-          CallRecordingFailedEventRecordingTypeEnum.COMPOSITE
-        ) {
-          this.setCurrentValue(this.recordingSubject, false);
+        switch (e.recording_type) {
+          case CallRecordingFailedEventRecordingTypeEnum.COMPOSITE:
+            this.setCurrentValue(this.recordingSubject, false);
+            break;
+          case CallRecordingFailedEventRecordingTypeEnum.INDIVIDUAL:
+            this.setCurrentValue(this.rawRecordingSubject, false);
+            break;
+          case CallRecordingFailedEventRecordingTypeEnum.RAW:
+            this.setCurrentValue(this.rawRecordingSubject, false);
+            break;
         }
       },
       'call.rejected': (e) => this.updateFromCallResponse(e.call),

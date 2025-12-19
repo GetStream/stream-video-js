@@ -59,6 +59,9 @@ export const DevMenu = () => {
         <StartStopBroadcasting />
       </li>
       <li className="rd__dev-menu__item">
+        <StartStopRawRecording />
+      </li>
+      <li className="rd__dev-menu__item">
         <GoOrStopLive />
       </li>
       <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
@@ -180,6 +183,45 @@ const StartStopBroadcasting = () => {
         icon={isBroadcasting ? 'recording-off' : 'recording-on'}
       />
       {isBroadcasting ? 'Stop broadcasting' : 'Start broadcasting'}
+    </button>
+  );
+};
+
+const StartStopRawRecording = () => {
+  const call = useCall();
+  const { useIsCallRawRecordingInProgress } = useCallStateHooks();
+  const isRawRecording = useIsCallRawRecordingInProgress();
+  return (
+    <button
+      className="rd__button rd__button--align-left"
+      onClick={() => {
+        if (!call) return;
+        if (isRawRecording) {
+          call
+            .stopRecording('raw')
+            .then(() => {
+              console.log(`Raw recording stopped`);
+            })
+            .catch((err) => {
+              console.error(`Failed to stop raw recording`, err);
+            });
+        } else {
+          call
+            .startRecording('raw')
+            .then(() => {
+              console.log(`Raw recording started`);
+            })
+            .catch((err) => {
+              console.error(`Failed to start raw recording`, err);
+            });
+        }
+      }}
+    >
+      <Icon
+        className="rd__button__icon"
+        icon={isRawRecording ? 'recording-off' : 'recording-on'}
+      />
+      {isRawRecording ? 'Stop Raw Recording' : 'Start Raw Recording'}
     </button>
   );
 };
