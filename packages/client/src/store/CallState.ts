@@ -30,6 +30,9 @@ import {
   CallMemberUpdatedEvent,
   CallMemberUpdatedPermissionEvent,
   CallReactionEvent,
+  CallRecordingFailedEventRecordingTypeEnum,
+  CallRecordingStartedEventRecordingTypeEnum,
+  CallRecordingStoppedEventRecordingTypeEnum,
   CallResponse,
   CallSessionParticipantCountsUpdatedEvent,
   CallSessionParticipantJoinedEvent,
@@ -530,12 +533,30 @@ export class CallState {
       },
       'call.permissions_updated': this.updateOwnCapabilities,
       'call.reaction_new': this.updateParticipantReaction,
-      'call.recording_started': () =>
-        this.setCurrentValue(this.recordingSubject, true),
-      'call.recording_stopped': () =>
-        this.setCurrentValue(this.recordingSubject, false),
-      'call.recording_failed': () =>
-        this.setCurrentValue(this.recordingSubject, false),
+      'call.recording_started': (e) => {
+        if (
+          e.recording_type ===
+          CallRecordingStartedEventRecordingTypeEnum.COMPOSITE
+        ) {
+          this.setCurrentValue(this.recordingSubject, true);
+        }
+      },
+      'call.recording_stopped': (e) => {
+        if (
+          e.recording_type ===
+          CallRecordingStoppedEventRecordingTypeEnum.COMPOSITE
+        ) {
+          this.setCurrentValue(this.recordingSubject, false);
+        }
+      },
+      'call.recording_failed': (e) => {
+        if (
+          e.recording_type ===
+          CallRecordingFailedEventRecordingTypeEnum.COMPOSITE
+        ) {
+          this.setCurrentValue(this.recordingSubject, false);
+        }
+      },
       'call.rejected': (e) => this.updateFromCallResponse(e.call),
       'call.ring': (e) => this.updateFromCallResponse(e.call),
       'call.missed': (e) => this.updateFromCallResponse(e.call),

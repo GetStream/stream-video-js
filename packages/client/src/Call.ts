@@ -2092,21 +2092,43 @@ export class Call {
   /**
    * Starts recording the call
    */
-  startRecording = async (request?: StartRecordingRequest) => {
-    return this.streamClient.post<
-      StartRecordingResponse,
-      StartRecordingRequest
-    >(`${this.streamClientBasePath}/start_recording`, request ? request : {});
+  startRecording = async (
+    type?: 'all' | 'composite' | 'individual' | 'raw' | undefined,
+    request?: StartRecordingRequest,
+  ) => {
+    if (type === undefined) {
+      return this.streamClient.post<
+        StartRecordingResponse,
+        StartRecordingRequest
+      >(`${this.streamClientBasePath}/start_recording`, request ? request : {});
+    } else {
+      return this.streamClient.post<
+        StartRecordingResponse,
+        StartRecordingRequest
+      >(
+        `${this.streamClientBasePath}/recordings/${type}/start`,
+        request ? request : {},
+      );
+    }
   };
 
   /**
    * Stops recording the call
    */
-  stopRecording = async () => {
-    return this.streamClient.post<StopRecordingResponse>(
-      `${this.streamClientBasePath}/stop_recording`,
-      {},
-    );
+  stopRecording = async (
+    type?: 'all' | 'composite' | 'individual' | 'raw' | undefined,
+  ) => {
+    if (type === undefined) {
+      return this.streamClient.post<StopRecordingResponse>(
+        `${this.streamClientBasePath}/stop_recording`,
+        {},
+      );
+    } else {
+      return this.streamClient.post<StopRecordingResponse>(
+        `${this.streamClientBasePath}/recordings/${type}/stop`,
+        {},
+      );
+    }
   };
 
   /**
