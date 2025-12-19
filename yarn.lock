@@ -7397,6 +7397,19 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stream-io/react-native-webrtc@file:/Users/santhoshvaiyapuri/Projects/stream-react-native-webrtc/stream-io-react-native-webrtc-137.1.0-alpha.11.tgz::locator=%40stream-io%2Fvideo-react-native-dogfood%40workspace%3Asample-apps%2Freact-native%2Fdogfood":
+  version: 137.1.0-alpha.11
+  resolution: "@stream-io/react-native-webrtc@file:/Users/santhoshvaiyapuri/Projects/stream-react-native-webrtc/stream-io-react-native-webrtc-137.1.0-alpha.11.tgz#/Users/santhoshvaiyapuri/Projects/stream-react-native-webrtc/stream-io-react-native-webrtc-137.1.0-alpha.11.tgz::hash=9f018c&locator=%40stream-io%2Fvideo-react-native-dogfood%40workspace%3Asample-apps%2Freact-native%2Fdogfood"
+  dependencies:
+    base64-js: "npm:1.5.1"
+    debug: "npm:4.3.4"
+    event-target-shim: "npm:6.0.2"
+  peerDependencies:
+    react-native: ">=0.73.0"
+  checksum: 10/db2804aba8b2cd01fd6fabeee1cc79be0277081d746325debc78862bffa41dbfc2d1eb3a996eb5c77f8e3b7be2b882b5cd69c31403795711547f6e75db19b555
+  languageName: node
+  linkType: hard
+
 "@stream-io/react-native-webrtc@npm:137.0.2":
   version: 137.0.2
   resolution: "@stream-io/react-native-webrtc@npm:137.0.2"
@@ -7626,7 +7639,7 @@ __metadata:
     "@rnx-kit/metro-config": "npm:^2.1.2"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:137.0.2"
+    "@stream-io/react-native-webrtc": /Users/santhoshvaiyapuri/Projects/stream-react-native-webrtc/stream-io-react-native-webrtc-137.1.0-alpha.11.tgz
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"

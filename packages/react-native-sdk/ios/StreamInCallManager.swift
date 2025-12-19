@@ -33,7 +33,6 @@ class StreamInCallManager: RCTEventEmitter {
         let options: AVAudioSession.CategoryOptions
     }
 
-    private var previousAudioSessionState: AudioSessionState?
     private var hasRegisteredRouteObserver = false
     private var stereoRefreshWorkItem: DispatchWorkItem?
 
@@ -110,23 +109,14 @@ class StreamInCallManager: RCTEventEmitter {
             #else
                 let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
             #endif
-
-            if (defaultAudioDevice == .speaker) {
-                // defaultToSpeaker will route to speaker if nothing else is connected
-                intendedOptions = [bluetoothOption, .defaultToSpeaker]
-            } else {
-                // having no defaultToSpeaker makes sure audio goes to earpiece if nothing is connected
-                intendedOptions = [bluetoothOption]
-            }
+            intendedOptions = [bluetoothOption]
         }
 
-        // START: set the config that webrtc must use when it takes control
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
         rtcConfig.category = intendedCategory.rawValue
         rtcConfig.mode = intendedMode.rawValue
         rtcConfig.categoryOptions = intendedOptions
         RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
-        // END
     }
 
     @objc
@@ -135,12 +125,6 @@ class StreamInCallManager: RCTEventEmitter {
             if audioManagerActivated {
                 return
             }
-            let currentAvAudiosession = AVAudioSession.sharedInstance()
-            previousAudioSessionState = AudioSessionState(
-                category: currentAvAudiosession.category,
-                mode: currentAvAudiosession.mode,
-                options: currentAvAudiosession.categoryOptions
-            )
             setup()
             let session = RTCAudioSession.sharedInstance()
             session.lockForConfiguration()
@@ -149,6 +133,9 @@ class StreamInCallManager: RCTEventEmitter {
             }
             do {
                 try session.setActive(true)
+                if (defaultAudioDevice == .speaker) {
+                    setForceSpeakerphoneOn(enable: true)
+                }
             } catch {
                 log("Error activating audio session: \(error.localizedDescription)")
             }
@@ -181,15 +168,6 @@ class StreamInCallManager: RCTEventEmitter {
                 try session.setActive(false)
             } catch {
                 log("Error deactivating audio session: \(error.localizedDescription)")
-            }
-            if let prev = previousAudioSessionState {
-                let session = AVAudioSession.sharedInstance()
-                do {
-                    try session.setCategory(prev.category, mode: prev.mode, options: prev.options)
-                } catch {
-                    log("Error restoring previous audio session: \(error.localizedDescription)")
-                }
-                previousAudioSessionState = nil
             }
             audioManagerActivated = false
         }
@@ -224,12 +202,14 @@ class StreamInCallManager: RCTEventEmitter {
 
     @objc(setForceSpeakerphoneOn:)
     func setForceSpeakerphoneOn(enable: Bool) {
-        let session = AVAudioSession.sharedInstance()
-        do {
-            try session.overrideOutputAudioPort(enable ? .speaker : .none)
-            try session.setActive(true)
-        } catch {
-            log("Error setting speakerphone: \(error)")
+        audioSessionQueue.async { [self] in
+            let session = AVAudioSession.sharedInstance()
+            do {
+                try session.overrideOutputAudioPort(enable ? .speaker : .none)
+                try session.setActive(true)
+            } catch {
+                log("Error setting speakerphone: \(error)")
+            }
         }
     }
 
