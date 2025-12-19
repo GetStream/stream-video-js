@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-dogfood",
-  "version": "4.28.2",
+  "version": "4.28.4",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -63,6 +63,7 @@
     "@rnx-kit/metro-config": "^2.1.2",
     "@rnx-kit/metro-resolver-symlinks": "^0.2.6",
     "@types/react": "~19.1.17",
+    "babel-plugin-react-compiler": "^1.0.0",
     "typescript": "^5.9.3"
   },
   "engines": {
