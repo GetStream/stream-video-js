@@ -1323,6 +1323,15 @@ export class CallState {
     this.setCurrentValue(this.egressSubject, call.egress);
     this.setCurrentValue(this.ingressSubject, call.ingress);
     this.setCurrentValue(this.recordingSubject, call.recording);
+    this.setCurrentValue(
+      this.individualRecordingSubject,
+      !!call.egress?.individual_recording,
+    );
+    this.setCurrentValue(
+      this.rawRecordingSubject,
+      !!call.egress?.raw_recording,
+    );
+
     const s = this.setCurrentValue(this.sessionSubject, call.session);
     this.updateParticipantCountFromSession(s);
     this.setCurrentValue(this.settingsSubject, call.settings);
