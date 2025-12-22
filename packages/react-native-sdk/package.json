@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "1.26.2",
+  "version": "1.26.4",
   "description": "Stream Video SDK for React Native",
   "author": "https://getstream.io",
   "homepage": "https://getstream.io/video/docs/react-native/",
@@ -18,6 +18,11 @@
     "test:expo-plugin": "jest --config=expo-config-plugin/jest.config.js --coverage",
     "test": "yarn copy-version && jest --coverage && yarn test:expo-plugin",
     "copy-version": "echo \"export const version = '$npm_package_version';\" > ./src/version.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GetStream/stream-video-js.git",
+    "directory": "packages/react-native-sdk"
   },
   "files": [
     "dist",
