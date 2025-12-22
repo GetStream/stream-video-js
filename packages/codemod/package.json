@@ -1,0 +1,25 @@
+{
+  "name": "@stream-io/codemod",
+  "version": "0.0.1",
+  "license": "See license in LICENSE",
+  "scripts": {
+    "test": "vitest"
+  },
+  "files": [
+    "transforms/*.js",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GetStream/stream-video-js.git",
+    "directory": "packages/codemod"
+  },
+  "devDependencies": {
+    "@types/jscodeshift": "^17.3.0",
+    "jscodeshift": "^17.3.0",
+    "vitest": "^3.2.4"
+  }
+}
