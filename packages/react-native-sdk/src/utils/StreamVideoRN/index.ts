@@ -79,20 +79,6 @@ export class StreamVideoRN {
     this.config = deepMerge(this.config, updateConfig);
   }
 
-  static updateAndroidIncomingCallChannel(
-    updateChannel: Partial<
-      NonNullable<StreamVideoConfig['push']>['android']['incomingCallChannel']
-    >,
-  ) {
-    const prevChannel = this.config.push?.android?.incomingCallChannel;
-    if (prevChannel) {
-      this.config.push!.android.incomingCallChannel = {
-        ...prevChannel,
-        ...updateChannel,
-      };
-    }
-  }
-
   /**
    * Set the push config for StreamVideoRN.
    * This method must be called **outside** of your application lifecycle, e.g. alongside your
@@ -113,16 +99,6 @@ export class StreamVideoRN {
       // Ignoring this config as push config was already set
       return;
     }
-    if (
-      __DEV__ &&
-      (pushConfig.navigateAcceptCall || pushConfig.navigateToIncomingCall)
-    ) {
-      throw new Error(
-        `Support for navigateAcceptCall or navigateToIncomingCall in pushConfig has been removed.
-        Please watch for incoming and outgoing calls in the root component of your app.
-        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information.`,
-      );
-    }
 
     this.config.push = pushConfig;
 
@@ -130,9 +106,46 @@ export class StreamVideoRN {
     setupIosVoipPushEvents(pushConfig);
   }
 
-  static setupCallingExp(options: CallingxOptions) {
+  /**
+   * Setup the module responsible for integration with CallKit/Android Telecom API.
+   * This function must be called **outside** of your application lifecycle, e.g. alongside your
+   * `AppRegistry.registerComponent()` method call at the entry point of your application code.
+   * @example // in index.js
+   * import { AppRegistry } from 'react-native';
+   * import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
+   * import App from './App';
+   * // Setup callingx module
+   * StreamVideoRN.setupCallingExp({
+   *   ios: {
+   *     callsHistory: true,
+   *     setupAudioSession: true,
+   *     displayCallTimeout: 60000,
+   *     sound: 'ringtone',
+   *     imageName: 'callkit_icon',
+   *   },
+   *   android: {
+   *     incomingChannel: {
+   *       id: 'stream_call_notifications',
+   *       name: 'Call notifications',
+   *       vibration: true,
+   *       sound: 'default',
+   *     },
+   *     outgoingChannel: {
+   *       id: 'stream_call_notifications',
+   *       name: 'Call notifications',
+   *     },
+   *     titleTransformer: (text: string) => text,
+   *     subtitleTransformer: (text: string) => text,
+   *   },
+   *   enableOutcomingCalls: true,
+   *   enableAutoPermissions: true,
+   * });
+   * AppRegistry.registerComponent('app', () => App);
+   * @param options - The options which are used to setup CallKit/Android Telecom API integration.
+   */
+  static setupCallingExp(options?: CallingxOptions) {
     const callingx = getCallingxLib();
-    callingx.setup(options);
+    callingx.setup(options ?? {});
   }
 
   static getConfig() {

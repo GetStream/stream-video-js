@@ -58,32 +58,6 @@ export type StreamVideoConfig = {
        */
       callChannel?: AndroidChannel;
       /**
-       * The notification channel to be used for incoming calls for Android.
-       * @example
-       * {
-       *  id: 'stream_incoming_call',
-       *  name: 'Incoming call notifications',
-       *  importance: AndroidImportance.HIGH,
-       * }
-       */
-      incomingCallChannel?: AndroidChannel;
-      /**
-       * Functions to create the texts shown in the notification for incoming calls in Android.
-       * @example
-       * {
-       *  getTitle: (createdUserName: string) => `Incoming call from ${createdUserName}`,
-       *  getBody: (createdUserName: string) => `Tap to answer the call`
-       *  getAcceptButtonTitle?: () => `Accept`,
-       *  getDeclineButtonTitle?: () => `Decline`,
-       * }
-       */
-      incomingCallNotificationTextGetters?: {
-        getTitle: (createdUserName: string) => string;
-        getBody: (createdUserName: string) => string;
-        getAcceptButtonTitle?: () => string;
-        getDeclineButtonTitle?: () => string;
-      };
-      /**
        * Functions to create the texts shown in the notification for non ringing calls in Android.
        * @example
        *  getTitle(type, createdUserName) {
@@ -130,12 +104,6 @@ export type StreamVideoConfig = {
      * }
      */
     createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;
-    /** @deprecated This method will be removed in the future. Please watch for incoming and outgoing calls in the root component of your app.
-        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information */
-    navigateAcceptCall?: () => void;
-    /** @deprecated This method will be removed in the future. Please watch for incoming and outgoing calls in the root component of your app.
-        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information */
-    navigateToIncomingCall?: () => void;
     /** Callback that is called when a non ringing push notification was tapped */
     onTapNonRingingCallNotification?: (
       call_cid: string,

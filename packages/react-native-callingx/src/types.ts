@@ -69,21 +69,49 @@ export type iOSOptions = {
   supportsVideo?: boolean;
   maximumCallsPerCallGroup?: number;
   maximumCallGroups?: number;
-  handleType?: string; //'generic' | 'number' | 'phone' | 'email';
+  handleType?: 'generic' | 'number' | 'phone' | 'email';
+  /**
+   * Sound to play when an incoming call is received. Must be a valid sound resource name in the project.
+   * @default '' (no sound)
+   */
   sound?: string;
+  /**
+   * Image to display when an incoming call is received. Must be a valid image resource name in the project.
+   * @default '' (no image)
+   */
   imageName?: string;
+  /**
+   * Enable calls history. When enabled, the call will be added to the calls history.
+   * @default false
+   */
   callsHistory?: boolean;
+  /**
+   * Enable default audio session setup. When enabled, the module will setup the audio session.
+   * @default true
+   */
   setupAudioSession?: boolean;
+  /**
+   * Timeout to display an incoming call. When the call is displayed for more than the timeout, the call will be rejected.
+   * @default 60000 (1 minute)
+   */
   displayCallTimeout?: number;
 };
 
 export type AndroidOptions = {
+  /**
+   * Incoming channel configuration.
+   * @default { id: 'incoming_calls_channel', name: 'Incoming calls', sound: '', vibration: false }
+   */
   incomingChannel?: {
     id?: string;
     name?: string;
     sound?: string;
     vibration?: boolean;
   };
+  /**
+   * Outgoing channel configuration.
+   * @default { id: 'ongoing_calls_channel', name: 'Ongoing calls' }
+   */
   outgoingChannel?: {
     id?: string;
     name?: string;
@@ -92,14 +120,25 @@ export type AndroidOptions = {
 
 export type TextTransformer = (text: string, incoming: boolean) => string;
 export type NotificationTransformers = {
-  titleTransformer: TextTransformer;
+  titleTransformer?: TextTransformer;
   subtitleTransformer?: TextTransformer;
 };
 
 export type Options = {
-  ios?: iOSOptions;
+  ios?: Omit<
+    iOSOptions,
+    'maximumCallsPerCallGroup' | 'maximumCallGroups' | 'handleType'
+  >;
   android?: AndroidOptions & NotificationTransformers;
+  /**
+   * Enable outgoing calls registration
+   * @default true
+   */
   enableOutcomingCalls?: boolean;
+  /**
+   * Enable auto permissions request on setup call
+   * @default true
+   */
   enableAutoPermissions?: boolean;
 };
 

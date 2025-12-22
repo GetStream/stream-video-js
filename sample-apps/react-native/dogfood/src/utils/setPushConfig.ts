@@ -41,16 +41,6 @@ export function setPushConfig() {
         importance: AndroidImportance.HIGH,
         sound: 'default',
       },
-      incomingCallChannel: {
-        id: 'stream_incoming_call_channel_update2',
-        name: 'Incoming call notifications',
-        importance: AndroidImportance.HIGH,
-      },
-      incomingCallNotificationTextGetters: {
-        getTitle: (createdUserName: string) =>
-          `Incoming call from ${createdUserName}`,
-        getBody: () => 'Tap to open the call',
-      },
       callNotificationTextGetters: {
         getTitle(type, createdUserName) {
           if (type === 'call.live_started') {

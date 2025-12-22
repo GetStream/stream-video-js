@@ -32,6 +32,7 @@ import {
 class CallingxModule implements ICallingxModule {
   private _isNotificationsAllowed = false;
   private _isOutcomingCallsEnabled = false;
+  private _isSetup = false;
 
   private titleTransformer: TextTransformer = (text: string) => text;
   private subtitleTransformer: TextTransformer | undefined = undefined;
@@ -53,7 +54,11 @@ class CallingxModule implements ICallingxModule {
   }
 
   setup(options: Options): void {
-    this._isOutcomingCallsEnabled = options.enableOutcomingCalls ?? false;
+    if (this._isSetup) {
+      return;
+    }
+
+    this._isOutcomingCallsEnabled = options.enableOutcomingCalls ?? true;
 
     if (Platform.OS === 'ios') {
       NativeCallingModule.setupiOS({ ...defaultiOSOptions, ...options.ios });
@@ -95,6 +100,8 @@ class CallingxModule implements ICallingxModule {
           console.error('Error requesting permissions:', error);
         });
     }
+
+    this._isSetup = true;
   }
 
   setShouldRejectCallWhenBusy(shouldReject: boolean): void {

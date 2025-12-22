@@ -91,11 +91,10 @@ export async function initAndroidPushToken(
       await setDeviceToken(token);
     }
   }
-  // TODO: remove the incomingCallChannel check and find a better way once we have telecom integration for android
-  const messaging =
-    pushConfig.isExpo && !pushConfig.android.incomingCallChannel
-      ? getFirebaseMessagingLibNoThrow(true)
-      : getFirebaseMessagingLib();
+
+  const messaging = pushConfig.isExpo
+    ? getFirebaseMessagingLibNoThrow(true)
+    : getFirebaseMessagingLib();
   if (messaging) {
     logger.debug(`setting firebase token listeners`);
     const unsubscribe = messaging().onTokenRefresh((refreshedToken) =>
