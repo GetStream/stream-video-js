@@ -387,7 +387,15 @@ export class Publisher extends BasePeerConnection {
         let sdp = dangerouslyForceCodec
           ? removeCodecsExcept(baseSdp, dangerouslyForceCodec, fmtpLine)
           : baseSdp;
-        sdp = setStartBitrate(sdp, 1000);
+        if (this.clientPublishOptions?.dangerouslySetStartBitrateFactor) {
+          const startBitrateFactor =
+            this.clientPublishOptions.dangerouslySetStartBitrateFactor;
+          this.transceiverCache.items().forEach((t) => {
+            if (t.publishOption.trackType !== TrackType.VIDEO) return;
+            const maxBitrate = t.publishOption.bitrate;
+            sdp = setStartBitrate(sdp, maxBitrate, startBitrateFactor);
+          });
+        }
         const { response } = await this.sfuClient.setPublisher({ sdp, tracks });
         if (response.error) throw new NegotiationError(response.error);
 

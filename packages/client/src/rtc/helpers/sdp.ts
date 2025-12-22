@@ -37,10 +37,16 @@ export const extractMid = (
  */
 export const setStartBitrate = (
   offerSdp: string,
-  startBitrate: number = 1000,
+  maxBitrateKbps: number,
+  startBitrateFactor: number,
 ): string => {
+  // start bitrate should be between 300kbps and max-bitrate-kbps
+  const startBitrate = Math.max(
+    Math.min(maxBitrateKbps, startBitrateFactor * maxBitrateKbps),
+    300,
+  );
   const parsedSdp = parse(offerSdp);
-  const targetCodecs = ['vp9', 'h264'];
+  const targetCodecs = ['av1', 'vp9', 'h264'];
 
   for (const media of parsedSdp.media) {
     if (media.type !== 'video') continue;
@@ -48,17 +54,13 @@ export const setStartBitrate = (
     for (const rtp of media.rtp) {
       if (!targetCodecs.includes(rtp.codec.toLowerCase())) continue;
 
-      // Find or create fmtp entry for this codec payload
-      let fmtp = media.fmtp.find((f) => f.payload === rtp.payload);
-      if (!fmtp) {
-        fmtp = { payload: rtp.payload, config: '' };
-        media.fmtp.push(fmtp);
-      }
-
-      // Add x-google-start-bitrate to fmtp config
-      const param = `x-google-start-bitrate=${startBitrate}`;
-      if (!fmtp.config.includes('x-google-start-bitrate')) {
-        fmtp.config = fmtp.config ? `${fmtp.config};${param}` : param;
+      for (const fmtp of media.fmtp) {
+        if (fmtp.payload === rtp.payload) {
+          if (!fmtp.config.includes('x-google-start-bitrate')) {
+            fmtp.config += `;x-google-start-bitrate=${startBitrate}`;
+          }
+          break;
+        }
       }
     }
   }
