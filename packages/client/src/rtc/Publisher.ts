@@ -390,13 +390,12 @@ export class Publisher extends BasePeerConnection {
         if (this.clientPublishOptions?.dangerouslySetStartBitrateFactor) {
           const startBitrateFactor =
             this.clientPublishOptions.dangerouslySetStartBitrateFactor;
-          const midByTrackId = new Map(tracks.map((t) => [t.trackId, t.mid]));
           this.transceiverCache.items().forEach((t) => {
             if (t.publishOption.trackType !== TrackType.VIDEO) return;
             const maxBitrate = t.publishOption.bitrate;
             const trackId = t.transceiver.sender.track?.id;
             if (!trackId) return;
-            const mid = midByTrackId.get(trackId);
+            const mid = tracks.find((x) => x.trackId === trackId)?.mid;
             if (!mid) return;
             sdp = setStartBitrate(sdp, maxBitrate, startBitrateFactor, mid);
           });
