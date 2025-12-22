@@ -13,6 +13,7 @@ export interface Spec extends TurboModule {
     imageName: string | null;
     callsHistory: boolean;
     setupAudioSession: boolean;
+    displayCallTimeout: number;
   }): void;
 
   setupAndroid(options: {

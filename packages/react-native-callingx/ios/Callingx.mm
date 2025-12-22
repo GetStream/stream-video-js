@@ -353,7 +353,7 @@ static BOOL _shouldRejectCallWhenBusy = NO;
                   NSLog(@"[Callingx][requestTransaction] Error requesting "
                         @"transaction (%@): (%@)",
                         transaction.actions, error);
-                } else {
+                } else { 
                   NSLog(@"[Callingx][requestTransaction] Requested "
                         @"transaction successfully");
 
@@ -435,7 +435,8 @@ static BOOL _shouldRejectCallWhenBusy = NO;
     @"ringtoneSound" : options.sound(),
     @"imageName" : options.imageName(),
     @"includesCallsInRecents" : @(options.callsHistory()),
-    @"autoConfigureAudioSession" : @(options.setupAudioSession())
+    @"autoConfigureAudioSession" : @(options.setupAudioSession()),
+    @"displayCallTimeout" : @(options.displayCallTimeout())
   };
   
   _version = [[[NSProcessInfo alloc] init] operatingSystemVersion];
@@ -515,7 +516,7 @@ static BOOL _shouldRejectCallWhenBusy = NO;
                  withCompletionHandler:nil];
 
   NSDictionary *settings = [Settings getSettings];
-  NSNumber *timeout = settings[@"displayCallReachabilityTimeout"];
+  NSNumber *timeout = settings[@"displayCallTimeout"];
 
   if (timeout) {
     dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)([timeout intValue] * NSEC_PER_MSEC));

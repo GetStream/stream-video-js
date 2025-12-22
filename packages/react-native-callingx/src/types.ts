@@ -74,6 +74,7 @@ export type iOSOptions = {
   imageName?: string;
   callsHistory?: boolean;
   setupAudioSession?: boolean;
+  displayCallTimeout?: number;
 };
 
 export type AndroidOptions = {

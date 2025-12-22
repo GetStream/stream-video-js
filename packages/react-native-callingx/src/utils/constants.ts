@@ -17,6 +17,7 @@ export const defaultiOSOptions: Required<iOSOptions> = {
   imageName: '',
   callsHistory: false,
   setupAudioSession: true,
+  displayCallTimeout: 60000, // 1 minute
 };
 
 export const defaultAndroidOptions: DeepRequired<AndroidOptions> = {
