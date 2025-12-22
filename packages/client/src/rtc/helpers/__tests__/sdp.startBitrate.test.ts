@@ -10,6 +10,7 @@ s=-
 t=0 0
 m=video 9 UDP/TLS/RTP/SAVPF 96 98 103 45
 c=IN IP4 0.0.0.0
+a=mid:0
 a=rtpmap:96 VP8/90000
 a=rtpmap:98 VP9/90000
 a=fmtp:98 profile-id=0
@@ -19,7 +20,7 @@ a=rtpmap:45 AV1/90000
 a=fmtp:45 level-idx=5;profile=0;tier=0
 `;
 
-    const result = setStartBitrate(offerSdp, 1500, 0.5); // 750kbps
+    const result = setStartBitrate(offerSdp, 1500, 0.5, '0'); // 750kbps
 
     expect(result).toContain(
       'a=fmtp:98 profile-id=0;x-google-start-bitrate=750',
@@ -45,11 +46,12 @@ s=-
 t=0 0
 m=video 9 UDP/TLS/RTP/SAVPF 103
 c=IN IP4 0.0.0.0
+a=mid:0
 a=rtpmap:103 H264/90000
 a=fmtp:103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f;x-google-start-bitrate=500
 `;
 
-    const result = setStartBitrate(offerSdp, 1500, 0.9);
+    const result = setStartBitrate(offerSdp, 1500, 0.9, '0');
     expect(result).toContain('x-google-start-bitrate=500');
     expect(result).not.toContain('x-google-start-bitrate=1350');
 
@@ -64,36 +66,46 @@ s=-
 t=0 0
 m=video 9 UDP/TLS/RTP/SAVPF 98
 c=IN IP4 0.0.0.0
+a=mid:0
 a=rtpmap:98 VP9/90000
 a=fmtp:98 profile-id=0
 `;
 
-    const result = setStartBitrate(offerSdp, 1500, 0.1); // 150 -> clamped to 300
+    const result = setStartBitrate(offerSdp, 1500, 0.1, '0'); // 150 -> clamped to 300
     expect(result).toContain(
       'a=fmtp:98 profile-id=0;x-google-start-bitrate=300',
     );
   });
 
-  it('applies to all video media sections', () => {
+  it('can scope the change to a specific mid', () => {
     const offerSdp = `v=0
 o=- 123 2 IN IP4 127.0.0.1
 s=-
 t=0 0
 m=video 9 UDP/TLS/RTP/SAVPF 98
 c=IN IP4 0.0.0.0
+a=mid:0
 a=rtpmap:98 VP9/90000
 a=fmtp:98 profile-id=0
 m=video 9 UDP/TLS/RTP/SAVPF 103
 c=IN IP4 0.0.0.0
+a=mid:1
 a=rtpmap:103 H264/90000
 a=fmtp:103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f
 `;
 
-    const result = setStartBitrate(offerSdp, 1500, 0.7); // 1050kbps
+    const result = setStartBitrate(offerSdp, 1500, 0.7, '0'); // 1050kbps
+
+    // mid:0 updated
     expect(result).toContain(
       'a=fmtp:98 profile-id=0;x-google-start-bitrate=1050',
     );
+
+    // mid:1 untouched
     expect(result).toContain(
+      'a=fmtp:103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f',
+    );
+    expect(result).not.toContain(
       'a=fmtp:103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f;x-google-start-bitrate=1050',
     );
   });

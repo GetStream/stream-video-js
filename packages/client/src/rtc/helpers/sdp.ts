@@ -39,6 +39,7 @@ export const setStartBitrate = (
   offerSdp: string,
   maxBitrateKbps: number,
   startBitrateFactor: number,
+  targetMid: string,
 ): string => {
   // start bitrate should be between 300kbps and max-bitrate-kbps
   const startBitrate = Math.max(
@@ -46,13 +47,13 @@ export const setStartBitrate = (
     300,
   );
   const parsedSdp = parse(offerSdp);
-  const targetCodecs = ['av1', 'vp9', 'h264'];
+  const targetCodecs = new Set(['av1', 'vp9', 'h264']);
 
   for (const media of parsedSdp.media) {
-    if (media.type !== 'video') continue;
+    if (media.mid !== targetMid || media.type !== 'video') continue;
 
     for (const rtp of media.rtp) {
-      if (!targetCodecs.includes(rtp.codec.toLowerCase())) continue;
+      if (!targetCodecs.has(rtp.codec.toLowerCase())) continue;
 
       for (const fmtp of media.fmtp) {
         if (fmtp.payload === rtp.payload) {
