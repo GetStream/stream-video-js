@@ -50,7 +50,8 @@ export const setStartBitrate = (
   const targetCodecs = new Set(['av1', 'vp9', 'h264']);
 
   for (const media of parsedSdp.media) {
-    if (media.mid !== targetMid || media.type !== 'video') continue;
+    if (media.type !== 'video') continue;
+    if (String(media.mid) !== targetMid) continue;
 
     for (const rtp of media.rtp) {
       if (!targetCodecs.has(rtp.codec.toLowerCase())) continue;
