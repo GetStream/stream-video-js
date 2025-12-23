@@ -1,4 +1,4 @@
-import { NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { getVoipPushNotificationLib } from '../libs';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canListenToWS, shouldCallBeClosed } from './utils';

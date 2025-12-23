@@ -1,10 +1,8 @@
 package io.getstream.rnvideosample
 
 import android.content.res.Configuration
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.lifecycle.Lifecycle
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
