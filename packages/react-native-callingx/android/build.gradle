@@ -27,7 +27,7 @@ def getExtOrIntegerDefault(name) {
 }
 
 android {
-  namespace "com.callingx"
+  namespace "io.getstream.rn.callingx"
 
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 

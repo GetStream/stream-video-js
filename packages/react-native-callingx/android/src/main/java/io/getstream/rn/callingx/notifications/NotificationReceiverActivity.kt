@@ -1,9 +1,9 @@
-package com.callingx.notifications
+package io.getstream.rn.callingx.notifications
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import com.callingx.CallingxModule
+import io.getstream.rn.callingx.CallingxModule
 
 // For Android 12+
 class NotificationReceiverActivity : Activity() {

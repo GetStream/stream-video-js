@@ -1,4 +1,4 @@
-package com.callingx
+package io.getstream.rn.callingx
 
 import android.content.Context
 import android.os.Bundle

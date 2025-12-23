@@ -1,6 +1,5 @@
-package com.callingx.repo
+package io.getstream.rn.callingx.repo
 
-import CallRepository
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -12,8 +11,9 @@ import androidx.core.telecom.CallAttributesCompat
 import androidx.core.telecom.CallControlResult
 import androidx.core.telecom.CallControlScope
 import androidx.core.telecom.CallsManager
-import com.callingx.model.Call
-import com.callingx.model.CallAction
+import io.getstream.rn.callingx.model.Call
+import io.getstream.rn.callingx.model.CallAction
+import io.getstream.rn.callingx.repo.CallRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

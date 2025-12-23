@@ -1,4 +1,4 @@
-package com.callingx
+package io.getstream.rn.callingx
 
 import com.facebook.react.BaseReactPackage
 import com.facebook.react.bridge.NativeModule

@@ -1,4 +1,4 @@
-package com.callingx.notifications
+package io.getstream.rn.callingx.notifications
 
 import android.app.Notification
 import android.content.Context
@@ -11,12 +11,13 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.graphics.drawable.IconCompat
-import com.callingx.CallService
-import com.callingx.CallingxModule
-import com.callingx.R
-import com.callingx.ResourceUtils
-import com.callingx.getDisconnectCauseString
-import com.callingx.model.Call
+import io.getstream.rn.callingx.CallService
+import io.getstream.rn.callingx.CallingxModule
+import io.getstream.rn.callingx.R
+import io.getstream.rn.callingx.ResourceUtils
+import io.getstream.rn.callingx.getDisconnectCauseString
+import io.getstream.rn.callingx.model.Call
+import io.getstream.rn.callingx.repo.CallRepository
 
 /**
  * Handles call status changes and updates the notification accordingly. For more guidance around

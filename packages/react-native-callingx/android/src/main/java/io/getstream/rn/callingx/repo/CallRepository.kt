@@ -1,10 +1,12 @@
+package io.getstream.rn.callingx.repo
+
 import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.telecom.DisconnectCause
-import com.callingx.model.Call
-import com.callingx.repo.TelecomCallRepository
+import io.getstream.rn.callingx.model.Call
+import io.getstream.rn.callingx.repo.TelecomCallRepository
 import kotlinx.coroutines.flow.StateFlow
 
 interface CallRepository {

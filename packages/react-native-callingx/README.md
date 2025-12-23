@@ -76,26 +76,6 @@ withCompletionHandler:(void (^)(void))completion {
 
 ### Android Setup
 
-Handle incoming call intents in your `MainActivity`:
-
-```kotlin
-import android.content.Intent
-import android.os.Bundle
-import com.callingx.CallingxModule
-
-class MainActivity : ReactActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        CallingxModule.handleCallingIntent(this, intent)
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        CallingxModule.handleCallingIntent(this, intent)
-    }
-}
-```
-
 ## Usage
 
 ### Setup
@@ -151,7 +131,7 @@ await CallingxModule.displayIncomingCall(
   'unique-call-id',
   '+1234567890', // phone number / handle
   'John Doe', // caller name
-  true // has video
+  true, // has video
 );
 ```
 
@@ -164,7 +144,7 @@ await CallingxModule.startCall(
   'unique-call-id',
   '+1234567890',
   'John Doe',
-  false // audio only
+  false, // audio only
 );
 ```
 
@@ -222,7 +202,7 @@ Update the caller information during a call:
 await CallingxModule.updateDisplay(
   'unique-call-id',
   '+1234567890',
-  'Updated Name'
+  'Updated Name',
 );
 ```
 
@@ -239,7 +219,7 @@ const answerSubscription = CallingxModule.addEventListener(
   'answerCall',
   (params) => {
     console.log('Call answered:', params.callId);
-  }
+  },
 );
 
 // End event - call ended
@@ -252,7 +232,7 @@ const holdSubscription = CallingxModule.addEventListener(
   'didToggleHoldCallAction',
   (params) => {
     console.log('Hold toggled:', params.callId, 'On hold:', params.hold);
-  }
+  },
 );
 
 // Mute toggle event
@@ -260,7 +240,7 @@ const muteSubscription = CallingxModule.addEventListener(
   'didPerformSetMutedCallAction',
   (params) => {
     console.log('Mute toggled:', params.callId, 'Muted:', params.muted);
-  }
+  },
 );
 
 // Start call action (outgoing call initiated from system)
@@ -268,7 +248,7 @@ const startSubscription = CallingxModule.addEventListener(
   'didReceiveStartCallAction',
   (params) => {
     console.log('Start call action:', params.callId);
-  }
+  },
 );
 
 // Clean up when done

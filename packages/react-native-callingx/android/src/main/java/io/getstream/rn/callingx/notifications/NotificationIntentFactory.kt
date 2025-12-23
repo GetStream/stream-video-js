@@ -1,10 +1,10 @@
-package com.callingx.notifications
+package io.getstream.rn.callingx.notifications
 
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.callingx.CallingxModule
+import io.getstream.rn.callingx.CallingxModule
 
 object NotificationIntentFactory {
   // Stable request codes for PendingIntents

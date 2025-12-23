@@ -1,4 +1,4 @@
-package com.callingx
+package io.getstream.rn.callingx
 
 import android.content.BroadcastReceiver
 import android.content.ComponentName
@@ -13,9 +13,9 @@ import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import com.callingx.model.CallAction
-import com.callingx.notifications.NotificationChannelsManager
-import com.callingx.notifications.NotificationsConfig
+import io.getstream.rn.callingx.model.CallAction
+import io.getstream.rn.callingx.notifications.NotificationChannelsManager
+import io.getstream.rn.callingx.notifications.NotificationsConfig
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise

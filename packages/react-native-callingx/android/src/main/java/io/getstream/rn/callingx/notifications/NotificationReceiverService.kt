@@ -1,9 +1,9 @@
-package com.callingx.notifications
+package io.getstream.rn.callingx.notifications
 
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import com.callingx.CallingxModule
+import io.getstream.rn.callingx.CallingxModule
 
 class NotificationReceiverService : Service() {
 

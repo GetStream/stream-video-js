@@ -1,10 +1,12 @@
+package io.getstream.rn.callingx.repo
+
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.core.telecom.CallAttributesCompat
-import com.callingx.model.Call
-import com.callingx.model.CallAction
+import io.getstream.rn.callingx.model.Call
+import io.getstream.rn.callingx.model.CallAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

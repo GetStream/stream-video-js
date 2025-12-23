@@ -1,6 +1,5 @@
-package com.callingx
+package io.getstream.rn.callingx
 
-import CallRepository
 import android.app.Service
 import android.content.Intent
 import android.net.Uri
@@ -9,9 +8,11 @@ import android.os.Build
 import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
-import com.callingx.model.Call
-import com.callingx.model.CallAction
-import com.callingx.notifications.CallNotificationManager
+import io.getstream.rn.callingx.model.Call
+import io.getstream.rn.callingx.model.CallAction
+import io.getstream.rn.callingx.notifications.CallNotificationManager
+import io.getstream.rn.callingx.repo.CallRepository
+import io.getstream.rn.callingx.repo.CallRepositoryFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel

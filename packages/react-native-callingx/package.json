@@ -92,7 +92,7 @@
     "type": "modules",
     "jsSrcsDir": "src/spec",
     "android": {
-      "javaPackageName": "com.callingx"
+      "javaPackageName": "io.getstream.rn.callingx"
     },
     "ios": {
       "moduleName": "Callingx"

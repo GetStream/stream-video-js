@@ -1,4 +1,4 @@
-package com.callingx.notifications
+package io.getstream.rn.callingx.notifications
 
 import android.content.Context
 import android.util.Log
