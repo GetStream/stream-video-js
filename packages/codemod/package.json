@@ -1,5 +1,5 @@
 {
-  "name": "@stream-io/codemod",
+  "name": "@stream-io/video-codemod",
   "version": "0.0.1",
   "license": "See license in LICENSE",
   "scripts": {

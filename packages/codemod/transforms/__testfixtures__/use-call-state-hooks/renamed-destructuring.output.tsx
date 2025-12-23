@@ -2,7 +2,7 @@ import { useCallStateHooks as getCallStateHooks } from '@stream-io/video-react-s
 
 const {
   useCallCallingState: getCallingState,
-  useParticipants: getParticipants,
+  useParticipants: getParticipants
 } = getCallStateHooks();
 
 export const MyComponent = () => {

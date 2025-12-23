@@ -1,4 +1,4 @@
-# @stream-io/codemod
+# @stream-io/video-codemod
 
 This package contains codemods to help migrate your codebase when upgrading Stream Video SDK versions.
 
@@ -45,7 +45,7 @@ and will be reported in the log output.
 npx jscodeshift ./path/to/src/ \
   --extensions=ts,tsx \
   --parser=tsx \
-  --transform=./node_modules/@stream-io/codemod/transforms/use-call-state-hooks-transform.js
+  --transform=./node_modules/@stream-io/video-codemod/transforms/use-call-state-hooks-transform.js
 ```
 
 **Note:** Applying the codemod might break your code formatting, so please run Prettier and ESLint after you've applied

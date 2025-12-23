@@ -1,6 +1,8 @@
 import { useCallStateHooks as getCallStateHooks } from '@stream-io/video-react-sdk';
 
-const { useCallCallingState } = getCallStateHooks();
+const {
+  useCallCallingState
+} = getCallStateHooks();
 
 export const CallingState = () => {
   const callingState = useCallCallingState();

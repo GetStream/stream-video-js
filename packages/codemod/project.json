@@ -1,5 +1,5 @@
 {
-  "name": "@stream-io/codemod",
+  "name": "@stream-io/video-codemod",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "targets": {
     "version": {

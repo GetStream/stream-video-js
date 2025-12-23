@@ -7335,16 +7335,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/codemod@workspace:packages/codemod":
-  version: 0.0.0-use.local
-  resolution: "@stream-io/codemod@workspace:packages/codemod"
-  dependencies:
-    "@types/jscodeshift": "npm:^17.3.0"
-    jscodeshift: "npm:^17.3.0"
-    vitest: "npm:^3.2.4"
-  languageName: unknown
-  linkType: soft
-
 "@stream-io/cookbook-participant-list@workspace:sample-apps/react/cookbook-participant-list":
   version: 0.0.0-use.local
   resolution: "@stream-io/cookbook-participant-list@workspace:sample-apps/react/cookbook-participant-list"
@@ -7608,6 +7598,16 @@ __metadata:
     vitest: "npm:^3.2.4"
     vitest-mock-extended: "npm:^3.1.0"
     webrtc-adapter: "npm:^8.2.4"
+  languageName: unknown
+  linkType: soft
+
+"@stream-io/video-codemod@workspace:packages/codemod":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/video-codemod@workspace:packages/codemod"
+  dependencies:
+    "@types/jscodeshift": "npm:^17.3.0"
+    jscodeshift: "npm:^17.3.0"
+    vitest: "npm:^3.2.4"
   languageName: unknown
   linkType: soft
 

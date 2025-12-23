@@ -19,6 +19,7 @@
 const SDK_PACKAGES = [
   '@stream-io/video-react-sdk',
   '@stream-io/video-react-bindings',
+  '@stream-io/video-react-native-sdk',
 ];
 
 const ORIGINAL_NAME = 'useCallStateHooks';
