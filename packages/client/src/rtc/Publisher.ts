@@ -382,22 +382,28 @@ export class Publisher extends BasePeerConnection {
         await this.pc.setLocalDescription(offer);
 
         const { sdp: baseSdp = '' } = offer;
-        const { dangerouslyForceCodec, fmtpLine } =
-          this.clientPublishOptions || {};
+        const {
+          dangerouslyForceCodec,
+          dangerouslySetStartBitrateFactor,
+          fmtpLine,
+        } = this.clientPublishOptions || {};
         let sdp = dangerouslyForceCodec
           ? removeCodecsExcept(baseSdp, dangerouslyForceCodec, fmtpLine)
           : baseSdp;
-        if (this.clientPublishOptions?.dangerouslySetStartBitrateFactor) {
-          const startBitrateFactor =
-            this.clientPublishOptions.dangerouslySetStartBitrateFactor;
+        if (dangerouslySetStartBitrateFactor) {
           this.transceiverCache.items().forEach((t) => {
             if (t.publishOption.trackType !== TrackType.VIDEO) return;
-            const maxBitrate = t.publishOption.bitrate;
+            const maxBitrateBps = t.publishOption.bitrate;
             const trackId = t.transceiver.sender.track?.id;
             if (!trackId) return;
             const mid = tracks.find((x) => x.trackId === trackId)?.mid;
             if (!mid) return;
-            sdp = setStartBitrate(sdp, maxBitrate, startBitrateFactor, mid);
+            sdp = setStartBitrate(
+              sdp,
+              maxBitrateBps / 1000, // convert to kbps
+              dangerouslySetStartBitrateFactor,
+              mid,
+            );
           });
         }
         const { response } = await this.sfuClient.setPublisher({ sdp, tracks });
