@@ -21,7 +21,7 @@ import {
 } from './layers';
 import { isSvcCodec } from './codecs';
 import { isAudioTrackType } from './helpers/tracks';
-import { extractMid, removeCodecsExcept } from './helpers/sdp';
+import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
 
@@ -382,11 +382,30 @@ export class Publisher extends BasePeerConnection {
         await this.pc.setLocalDescription(offer);
 
         const { sdp: baseSdp = '' } = offer;
-        const { dangerouslyForceCodec, fmtpLine } =
-          this.clientPublishOptions || {};
-        const sdp = dangerouslyForceCodec
+        const {
+          dangerouslyForceCodec,
+          dangerouslySetStartBitrateFactor,
+          fmtpLine,
+        } = this.clientPublishOptions || {};
+        let sdp = dangerouslyForceCodec
           ? removeCodecsExcept(baseSdp, dangerouslyForceCodec, fmtpLine)
           : baseSdp;
+        if (dangerouslySetStartBitrateFactor) {
+          this.transceiverCache.items().forEach((t) => {
+            if (t.publishOption.trackType !== TrackType.VIDEO) return;
+            const maxBitrateBps = t.publishOption.bitrate;
+            const trackId = t.transceiver.sender.track?.id;
+            if (!trackId) return;
+            const mid = tracks.find((x) => x.trackId === trackId)?.mid;
+            if (!mid) return;
+            sdp = setStartBitrate(
+              sdp,
+              maxBitrateBps / 1000, // convert to kbps
+              dangerouslySetStartBitrateFactor,
+              mid,
+            );
+          });
+        }
         const { response } = await this.sfuClient.setPublisher({ sdp, tracks });
         if (response.error) throw new NegotiationError(response.error);
 
