@@ -8,6 +8,7 @@ import {
 
 export const VideoEffectsSettings = () => {
   const {
+    isLoading,
     isSupported,
     backgroundImages,
     backgroundBlurLevel,
@@ -31,6 +32,11 @@ export const VideoEffectsSettings = () => {
     <div className="rd__video-effects">
       <div className="rd__video-effects__preview-container">
         <VideoPreview />
+        {isLoading && (
+          <div className="rd__video-effects__progress-bar">
+            <div className="rd__video-effects__progress-bar__fill" />
+          </div>
+        )}
       </div>
       <div className="rd__video-effects__container">
         <div className="rd__video-effects__card">

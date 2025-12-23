@@ -131,6 +131,11 @@ export type BackgroundFiltersAPI = {
   isReady: boolean;
 
   /**
+   * Indicates whether the background filter is currently being registered.
+   */
+  isLoading: boolean;
+
+  /**
    * Performance information for background filters.
    */
   performance: BackgroundFiltersPerformance;

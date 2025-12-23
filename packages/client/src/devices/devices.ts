@@ -11,7 +11,7 @@ import {
 } from 'rxjs';
 import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
-import { isFirefox } from '../helpers/browsers';
+import { isFirefox, isSafari } from '../helpers/browsers';
 import { dumpStream, Tracer } from '../stats';
 import { getCurrentValue } from '../store/rxUtils';
 import { videoLoggerSystem } from '../logger';
@@ -61,6 +61,8 @@ const getDevices = (
  */
 export const checkIfAudioOutputChangeSupported = () => {
   if (typeof document === 'undefined') return false;
+  // Safari uses WebAudio API for playing audio, so we check the AudioContext prototype
+  if (isSafari()) return 'setSinkId' in AudioContext.prototype;
   const element = document.createElement('audio');
   return 'setSinkId' in element;
 };
