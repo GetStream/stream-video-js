@@ -11,7 +11,6 @@ import ReactAppDependencyProvider
 
 import UserNotifications
 import RNCPushNotificationIOS
-import Callingx
 import PushKit
 import WebRTC
 import RNVoipPushNotification
@@ -94,14 +93,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   //Called when a notification is delivered to a foreground app.
   func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
     completionHandler([.sound, .alert, .badge]) // Use array literal for options
-  }
-  
-  func provider(_ provider: CXProvider, didActivateAudioSession audioSession: AVAudioSession) {
-    RTCAudioSession.sharedInstance().audioSessionDidActivate(AVAudioSession.sharedInstance()) // Use sharedInstance()
-  }
-  
-  func provider(_ provider: CXProvider, didDeactivateAudioSession audioSession: AVAudioSession) {
-    RTCAudioSession.sharedInstance().audioSessionDidDeactivate(AVAudioSession.sharedInstance()) // Use sharedInstance()
   }
 
   func application(
