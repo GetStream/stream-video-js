@@ -1,5 +1,5 @@
 {
-  "name": "react-native-callingx",
+  "name": "@stream-io/react-native-callingx",
   "version": "0.1.0",
   "description": "test",
   "main": "./dist/module/index.js",

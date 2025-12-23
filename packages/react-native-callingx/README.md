@@ -20,9 +20,9 @@ A React Native Turbo Module for seamless native calling integration. This librar
 ## Installation
 
 ```sh
-npm install react-native-callingx
+npm install @stream-io/react-native-callingx
 # or
-yarn add react-native-callingx
+yarn add @stream-io/react-native-callingx
 ```
 
 ### iOS Setup

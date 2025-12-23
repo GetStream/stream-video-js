@@ -65,6 +65,7 @@
     "@react-native-firebase/app": ">=17.5.0",
     "@react-native-firebase/messaging": ">=17.5.0",
     "@stream-io/noise-cancellation-react-native": ">=0.1.0",
+    "@stream-io/react-native-callingx": ">=0.1.0",
     "@stream-io/react-native-webrtc": ">=125.4.4",
     "@stream-io/video-filters-react-native": ">=0.1.0",
     "expo": ">=47.0.0",
@@ -72,7 +73,6 @@
     "expo-notifications": "*",
     "react": ">=17.0.0",
     "react-native": ">=0.73.0",
-    "react-native-callingx": "workspace:^",
     "react-native-gesture-handler": ">=2.8.0",
     "react-native-reanimated": ">=2.7.0",
     "react-native-svg": ">=13.6.0",
@@ -94,6 +94,9 @@
     "@stream-io/noise-cancellation-react-native": {
       "optional": true
     },
+    "@stream-io/react-native-callingx": {
+      "optional": true
+    },
     "@stream-io/video-filters-react-native": {
       "optional": true
     },
@@ -104,9 +107,6 @@
       "optional": true
     },
     "expo-notifications": {
-      "optional": true
-    },
-    "react-native-callingx": {
       "optional": true
     },
     "react-native-gesture-handler": {
@@ -131,6 +131,7 @@
     "@react-native-firebase/messaging": "^23.4.0",
     "@react-native/babel-preset": "^0.81.5",
     "@stream-io/noise-cancellation-react-native": "workspace:^",
+    "@stream-io/react-native-callingx": "workspace:^",
     "@stream-io/react-native-webrtc": "137.0.2",
     "@stream-io/video-filters-react-native": "workspace:^",
     "@testing-library/jest-native": "^5.4.3",
@@ -148,7 +149,6 @@
     "react": "19.1.0",
     "react-native": "^0.81.5",
     "react-native-builder-bob": "~0.23",
-    "react-native-callingx": "workspace:^",
     "react-native-gesture-handler": "^2.28.0",
     "react-native-reanimated": "~4.1.2",
     "react-native-svg": "^15.14.0",

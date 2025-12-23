@@ -1,10 +1,13 @@
-export type RNCallingxType = import('react-native-callingx').ICallingxModule;
-export type EventParams = import('react-native-callingx').EventParams;
+export type RNCallingxType =
+  import('@stream-io/react-native-callingx').ICallingxModule;
+export type EventParams =
+  import('@stream-io/react-native-callingx').EventParams;
+export type Options = import('@stream-io/react-native-callingx').Options;
 
 let callingx: RNCallingxType | undefined;
 
 try {
-  callingx = require('react-native-callingx').CallingxModule;
+  callingx = require('@stream-io/react-native-callingx').CallingxModule;
 } catch {}
 
 export function getCallingxLib() {

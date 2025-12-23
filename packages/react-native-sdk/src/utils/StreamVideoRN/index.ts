@@ -1,4 +1,3 @@
-import { type Options as CallingxOptions } from 'react-native-callingx';
 import type { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
 import newNotificationCallbacks, {
@@ -6,9 +5,11 @@ import newNotificationCallbacks, {
 } from '../internal/newNotificationCallbacks';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
 import { setupCallingExpEvents } from '../push/setupCallingExpEvents';
-import { getCallingxLib } from '../push/libs/callingx';
+import {
+  getCallingxLib,
+  type Options as CallingxOptions,
+} from '../push/libs/callingx';
 import { NativeModules, Platform } from 'react-native';
-import { videoLoggerSystem } from '@stream-io/video-client';
 
 // Utility type for deep partial
 type DeepPartial<T> = {
