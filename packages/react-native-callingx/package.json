@@ -32,7 +32,7 @@
     "!**/.*"
   ],
   "scripts": {
-    "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build dist",
+    "clean": "del-cli android/build dist",
     "prepare": "bob build",
     "build": "bob build",
     "typecheck": "tsc"
@@ -97,13 +97,6 @@
     "ios": {
       "moduleName": "Callingx"
     }
-  },
-  "jest": {
-    "preset": "react-native",
-    "modulePathIgnorePatterns": [
-      "<rootDir>/example/node_modules",
-      "<rootDir>/dist/"
-    ]
   },
   "create-react-native-library": {
     "languages": "kotlin-objc",
