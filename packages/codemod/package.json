@@ -2,10 +2,12 @@
   "name": "@stream-io/video-codemod",
   "version": "0.0.1",
   "license": "See license in LICENSE",
+  "bin": "./bin/cli.js",
   "scripts": {
     "test": "vitest"
   },
   "files": [
+    "bin/*.js",
     "transforms/*.js",
     "package.json",
     "README.md",

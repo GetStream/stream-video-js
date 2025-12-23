@@ -7608,6 +7608,8 @@ __metadata:
     "@types/jscodeshift": "npm:^17.3.0"
     jscodeshift: "npm:^17.3.0"
     vitest: "npm:^3.2.4"
+  bin:
+    video-codemod: ./bin/cli.js
   languageName: unknown
   linkType: soft
 

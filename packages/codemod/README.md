@@ -41,11 +41,10 @@ const MyComponent = () => {
 Please carefully review all generated changes before committing them. Certain edge cases cannot be handled automatically
 and will be reported in the log output.
 
+**Recommended (using the CLI):**
+
 ```bash
-npx jscodeshift ./path/to/src/ \
-  --extensions=ts,tsx \
-  --parser=tsx \
-  --transform=./node_modules/@stream-io/video-codemod/transforms/use-call-state-hooks-transform.js
+npx @stream-io/video-codemod use-call-state-hooks ./path/to/src --extensions=ts,tsx --parser=tsx
 ```
 
 **Note:** Applying the codemod might break your code formatting, so please run Prettier and ESLint after you've applied
