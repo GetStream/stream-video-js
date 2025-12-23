@@ -6,7 +6,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   DefaultParticipantViewUI,
   ParticipantView,
-  ParticipantViewProps,
+  type ParticipantViewProps,
 } from '../ParticipantView';
 import { IconButton } from '../../../components';
 import {
@@ -15,8 +15,8 @@ import {
   useVerticalScrollPosition,
 } from '../../../hooks';
 import {
-  ParticipantFilter,
-  ParticipantPredicate,
+  type ParticipantFilter,
+  type ParticipantPredicate,
   useFilteredParticipants,
   useRawRemoteParticipants,
   useSpeakerLayoutSortPreset,

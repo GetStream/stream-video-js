@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useEffect, useMemo } from 'react';
-import { LayoutChangeEvent } from 'react-native';
+import type { LayoutChangeEvent } from 'react-native';
 import {
   Call,
   CallingState,

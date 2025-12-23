@@ -3,7 +3,7 @@ import { useI18n } from '@stream-io/video-react-bindings';
 
 import { CallStats } from '../CallStats';
 import { CompositeButton } from '../Button/';
-import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
+import { MenuToggle, type ToggleMenuButtonProps } from '../Menu';
 import { Icon } from '../Icon';
 
 export type CallStatsButtonProps = {

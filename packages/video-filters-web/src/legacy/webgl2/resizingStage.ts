@@ -1,4 +1,4 @@
-import { TFLite } from '../tflite';
+import type { TFLite } from '../tflite';
 import {
   compileShader,
   createPipelineStageProgram,
@@ -6,7 +6,7 @@ import {
   glsl,
   readPixelsAsync,
 } from '../helpers/webglHelper';
-import { SegmentationParams } from '../segmentation';
+import type { SegmentationParams } from '../segmentation';
 
 export function buildResizingStage(
   gl: WebGL2RenderingContext,

@@ -6,7 +6,7 @@ import {
   type UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
-import { CompositeButton, IconButtonWithMenuProps } from '../Button';
+import { CompositeButton, type IconButtonWithMenuProps } from '../Button';
 import { DeviceSelectorAudioInput } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
 import { useRequestPermission } from '../../hooks';
@@ -15,7 +15,7 @@ import { WithTooltip } from '../Tooltip';
 import { useState } from 'react';
 import {
   createCallControlHandler,
-  PropsWithErrorHandler,
+  type PropsWithErrorHandler,
 } from '../../utilities/callControlHandler';
 
 export type ToggleAudioPreviewButtonProps = PropsWithErrorHandler<

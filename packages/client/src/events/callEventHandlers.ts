@@ -21,7 +21,7 @@ import {
   watchTrackPublished,
   watchTrackUnpublished,
 } from '../events';
-import {
+import type {
   AllCallEvents,
   AllClientCallEvents,
   CallEventListener,

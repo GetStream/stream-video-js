@@ -1,8 +1,8 @@
-import { forwardRef, MouseEventHandler, useCallback } from 'react';
+import { forwardRef, type MouseEventHandler, useCallback } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useCall, useI18n } from '@stream-io/video-react-bindings';
 
-import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
+import { MenuToggle, type ToggleMenuButtonProps } from '../Menu';
 
 import { IconButton } from '../Button';
 import { Icon } from '../Icon';

@@ -26,8 +26,8 @@ $scope-name: 'str-video__speaker-layout';
     height: 100%;
 
     .str-video__participant-view--speaking:has(
-        .str-video__video--screen-share
-      ) {
+      .str-video__video--screen-share
+    ) {
       outline: none;
     }
 

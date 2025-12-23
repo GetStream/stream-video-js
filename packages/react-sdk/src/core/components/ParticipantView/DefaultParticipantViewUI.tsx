@@ -1,5 +1,5 @@
-import { ComponentType, forwardRef } from 'react';
-import { Placement } from '@floating-ui/react';
+import { type ComponentType, forwardRef } from 'react';
+import { type Placement } from '@floating-ui/react';
 import {
   hasAudio,
   hasPausedTrack,
@@ -15,7 +15,7 @@ import {
   IconButton,
   MenuToggle,
   Notification,
-  ToggleMenuButtonProps,
+  type ToggleMenuButtonProps,
 } from '../../../components';
 import { ParticipantActionsContextMenu as DefaultParticipantActionsContextMenu } from './ParticipantActionsContextMenu';
 import { Reaction } from '../../../components/Reaction';

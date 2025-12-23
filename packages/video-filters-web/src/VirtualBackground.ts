@@ -1,8 +1,8 @@
 import {
   BACKGROUND_BLUR_MAP,
-  BackgroundOptions,
-  SegmenterOptions,
-  VideoTrackProcessorHooks,
+  type BackgroundOptions,
+  type SegmenterOptions,
+  type VideoTrackProcessorHooks,
 } from './types';
 import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision';
 import { WebGLRenderer } from './WebGLRenderer';

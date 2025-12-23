@@ -1,5 +1,5 @@
 import { BasePeerConnection } from './BasePeerConnection';
-import { BasePeerConnectionOpts } from './types';
+import type { BasePeerConnectionOpts } from './types';
 import { NegotiationError } from './NegotiationError';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';

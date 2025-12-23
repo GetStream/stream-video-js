@@ -1,5 +1,5 @@
-import { ComponentProps, useState } from 'react';
-import { Tooltip, TooltipProps } from './Tooltip';
+import { type ComponentProps, useState } from 'react';
+import { Tooltip, type TooltipProps } from './Tooltip';
 import { useEnterLeaveHandlers } from './hooks';
 
 type WithPopupProps = ComponentProps<'div'> &

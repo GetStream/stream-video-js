@@ -11,7 +11,7 @@ import { Icon } from '../Icon';
 import {
   MenuToggle,
   MenuVisualType,
-  ToggleMenuButtonProps,
+  type ToggleMenuButtonProps,
   useMenuContext,
 } from '../Menu';
 import { LoadingIndicator } from '../LoadingIndicator';

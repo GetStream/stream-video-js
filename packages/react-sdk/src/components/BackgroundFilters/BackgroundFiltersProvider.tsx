@@ -1,8 +1,8 @@
 import {
   createContext,
   lazy,
-  PropsWithChildren,
-  ReactNode,
+  type PropsWithChildren,
+  type ReactNode,
   Suspense,
   useContext,
 } from 'react';

@@ -1,7 +1,7 @@
 import {
-  AudioTrackType,
+  type AudioTrackType,
   DebounceType,
-  VideoTrackType,
+  type VideoTrackType,
   VisibilityState,
 } from '../types';
 import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';

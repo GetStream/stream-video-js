@@ -1,4 +1,4 @@
-import { StreamVideoParticipant, VideoTrackType } from '../types';
+import type { StreamVideoParticipant, VideoTrackType } from '../types';
 import { TrackType } from '../gen/video/sfu/models/models';
 
 /**

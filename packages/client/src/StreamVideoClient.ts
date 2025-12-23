@@ -22,14 +22,14 @@ import type {
   QueryCallStatsResponse,
 } from './gen/coordinator';
 import {
-  AllClientEvents,
-  ClientEventListener,
+  type AllClientEvents,
+  type ClientEventListener,
   ErrorFromResponse,
-  StreamClientOptions,
-  TokenOrProvider,
-  TokenProvider,
-  User,
-  UserWithId,
+  type StreamClientOptions,
+  type TokenOrProvider,
+  type TokenProvider,
+  type User,
+  type UserWithId,
 } from './coordinator/connection/types';
 import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
@@ -38,7 +38,7 @@ import {
   getCallInitConcurrencyTag,
   getInstanceKey,
 } from './helpers/clientUtils';
-import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
+import { logToConsole, type ScopedLogger, videoLoggerSystem } from './logger';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
 

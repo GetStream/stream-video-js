@@ -1,7 +1,7 @@
 import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
 import { AudioDeviceManagerState } from './AudioDeviceManagerState';
 import { AudioBitrateProfile } from '../gen/video/sfu/models/models';
-import { ScreenShareSettings } from '../types';
+import type { ScreenShareSettings } from '../types';
 import { RxUtils } from '../store';
 
 export class ScreenShareState extends AudioDeviceManagerState<DisplayMediaStreamOptions> {

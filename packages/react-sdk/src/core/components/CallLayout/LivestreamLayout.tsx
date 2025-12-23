@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import {
-  ComponentType,
-  ReactElement,
+  type ComponentType,
+  type ReactElement,
   useCallback,
   useEffect,
   useState,

@@ -1,8 +1,8 @@
 import {
-  ComponentType,
+  type ComponentType,
   createContext,
-  PropsWithChildren,
-  RefAttributes,
+  type PropsWithChildren,
+  type RefAttributes,
   useContext,
   useEffect,
   useMemo,
@@ -12,9 +12,9 @@ import {
 import {
   FloatingOverlay,
   FloatingPortal,
-  Placement,
-  Strategy,
-  UseFloatingReturn,
+  type Placement,
+  type Strategy,
+  type UseFloatingReturn,
 } from '@floating-ui/react';
 
 import { useFloatingUIPreset } from '../../hooks';

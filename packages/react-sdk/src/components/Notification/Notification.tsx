@@ -1,6 +1,6 @@
-import { PropsWithChildren, ReactNode, useEffect } from 'react';
+import { type PropsWithChildren, type ReactNode, useEffect } from 'react';
 import clsx from 'clsx';
-import { Placement } from '@floating-ui/react';
+import type { Placement } from '@floating-ui/react';
 import { useFloatingUIPreset } from '../../hooks';
 
 export type NotificationProps = {

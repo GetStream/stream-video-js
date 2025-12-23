@@ -1,5 +1,5 @@
 import { SfuEvent } from '../gen/video/sfu/event/events';
-import { DispatchableMessage, SfuEventKinds } from './Dispatcher';
+import type { DispatchableMessage, SfuEventKinds } from './Dispatcher';
 import { Tracer } from '../stats';
 import { videoLoggerSystem } from '../logger';
 

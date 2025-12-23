@@ -4,7 +4,7 @@ import {
   createTexture,
   glsl,
 } from '../helpers/webglHelper';
-import { BackgroundBlurLevel } from '../../types';
+import { type BackgroundBlurLevel } from '../../types';
 
 export type BackgroundBlurStage = {
   render(): void;

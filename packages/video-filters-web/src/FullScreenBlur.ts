@@ -1,4 +1,4 @@
-import { VideoTrackProcessorHooks } from './types';
+import { type VideoTrackProcessorHooks } from './types';
 import { BaseVideoProcessor } from './BaseVideoProcessor';
 import { FullScreenBlurRenderer } from './FullScreenBlurRenderer';
 

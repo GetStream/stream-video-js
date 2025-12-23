@@ -1,5 +1,5 @@
-import { Comparator } from './';
-import { StreamVideoParticipant } from '../types';
+import type { Comparator } from './';
+import type { StreamVideoParticipant } from '../types';
 import { ParticipantSource } from '../gen/video/sfu/models/models';
 import {
   hasAudio,

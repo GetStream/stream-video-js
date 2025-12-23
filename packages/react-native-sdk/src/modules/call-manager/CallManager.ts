@@ -1,5 +1,5 @@
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
-import { AudioDeviceStatus, StreamInCallManagerConfig } from './types';
+import type { AudioDeviceStatus, StreamInCallManagerConfig } from './types';
 
 const NativeManager = NativeModules.StreamInCallManager;
 

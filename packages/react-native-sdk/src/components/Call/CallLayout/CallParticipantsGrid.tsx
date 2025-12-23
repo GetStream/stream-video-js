@@ -11,7 +11,7 @@ import { useTheme } from '../../../contexts/ThemeContext';
 import type { CallContentProps } from '../CallContent';
 import type { ParticipantViewComponentProps } from '../../Participant';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import type { StreamVideoParticipant } from '@stream-io/video-client';
 
 /**
  * Props for the CallParticipantsGrid component.

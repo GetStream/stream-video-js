@@ -16,10 +16,10 @@ $scope-name: 'str-video__paginated-grid-layout';
     gap: 8px;
     justify-content: center;
     // prevents horizontal overflow
-    max-width: 110vh; // TODO: consider applying different limits (2 participants "unset", 4 participants 110vh...) 
+    max-width: 110vh; // TODO: consider applying different limits (2 participants "unset", 4 participants 110vh...)
     padding-inline: 1.25rem;
     margin: auto; // when arrows aren't rendered this element jumps to the left
-    width: 100%; // prevent resizing of placeholders 
+    width: 100%; // prevent resizing of placeholders
 
     .str-video__participant-view {
       flex: 0 1 calc(25% - 6px);

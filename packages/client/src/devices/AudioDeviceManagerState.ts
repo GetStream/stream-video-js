@@ -1,6 +1,9 @@
 import { BehaviorSubject, distinctUntilChanged, Observable } from 'rxjs';
 import { AudioBitrateProfile } from '../gen/video/sfu/models/models';
-import { DeviceManagerState, TrackDisableMode } from './DeviceManagerState';
+import {
+  DeviceManagerState,
+  type TrackDisableMode,
+} from './DeviceManagerState';
 import { RxUtils } from './../store';
 import { BrowserPermission } from './BrowserPermission';
 

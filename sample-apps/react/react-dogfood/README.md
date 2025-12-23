@@ -1,6 +1,7 @@
 # Stream Calls - https://getstream.io/video/demos
 
 ## Configure and Run
+
 1. Clone the repo and install the dependencies - `yarn install`
 2. Create local environment configuration - `cp .env.example .env.local`
 3. Set the secrets (STREAM_API_KEY, STREAM_SECRET_KEY, etc...) in `.env.local`

@@ -1,4 +1,4 @@
-import { ComponentType, isValidElement, ReactElement } from 'react';
+import { type ComponentType, isValidElement, type ReactElement } from 'react';
 
 export const isComponentType = <T extends {}>(
   elementOrComponent?: ComponentType<T> | ReactElement | null,

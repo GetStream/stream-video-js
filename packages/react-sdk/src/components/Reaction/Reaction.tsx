@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { StreamVideoParticipant } from '@stream-io/video-client';
+import type { StreamVideoParticipant } from '@stream-io/video-client';
 import { useCall } from '@stream-io/video-react-bindings';
 
 export type ReactionProps = {

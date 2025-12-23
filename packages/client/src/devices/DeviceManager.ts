@@ -1,12 +1,12 @@
 import { combineLatest, Observable, pairwise } from 'rxjs';
 import { Call } from '../Call';
-import { TrackPublishOptions } from '../rtc';
+import type { TrackPublishOptions } from '../rtc';
 import { CallingState } from '../store';
 import { createSubscription } from '../store/rxUtils';
 import { DeviceManagerState } from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
-import { ScopedLogger, videoLoggerSystem } from '../logger';
+import { type ScopedLogger, videoLoggerSystem } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
 import {
@@ -14,7 +14,7 @@ import {
   withCancellation,
   withoutConcurrency,
 } from '../helpers/concurrency';
-import {
+import type {
   MediaStreamFilter,
   MediaStreamFilterEntry,
   MediaStreamFilterRegistrationResult,

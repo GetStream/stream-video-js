@@ -10,7 +10,7 @@ import {
   createWebSocketSignalChannel,
   Dispatcher,
   IceTrickleBuffer,
-  SfuEventKinds,
+  type SfuEventKinds,
 } from './rtc';
 import {
   JoinRequest,
@@ -28,16 +28,16 @@ import {
 import { ICETrickle } from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
 import { generateUUIDv4 } from './coordinator/connection/utils';
-import { Credentials } from './gen/coordinator';
-import { ScopedLogger, videoLoggerSystem } from './logger';
+import type { Credentials } from './gen/coordinator';
+import { type ScopedLogger, videoLoggerSystem } from './logger';
 import {
   makeSafePromise,
-  PromiseWithResolvers,
+  type PromiseWithResolvers,
   promiseWithResolvers,
-  SafePromise,
+  type SafePromise,
 } from './helpers/promise';
 import { getTimers } from './timers';
-import { Tracer, TraceSlice } from './stats';
+import { Tracer, type TraceSlice } from './stats';
 
 export type StreamSfuClientConstructor = {
   /**

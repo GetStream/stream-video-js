@@ -1,4 +1,4 @@
-import { ElementType, HTMLProps, PropsWithChildren } from 'react';
+import type { ElementType, HTMLProps, PropsWithChildren } from 'react';
 import clsx from 'clsx';
 
 export type StreamThemeProps = HTMLProps<HTMLElement> & {

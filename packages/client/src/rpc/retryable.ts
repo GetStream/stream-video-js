@@ -1,5 +1,5 @@
 import {
-  FinishedUnaryCall,
+  type FinishedUnaryCall,
   RpcError,
   UnaryCall,
 } from '@protobuf-ts/runtime-rpc';

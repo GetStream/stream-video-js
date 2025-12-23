@@ -1,12 +1,12 @@
 import {
-  StreamVideoParticipant,
+  type StreamVideoParticipant,
   videoLoggerSystem,
   type VideoTrackType,
 } from '@stream-io/video-client';
 import React, {
   createContext,
   useContext,
-  RefObject,
+  type RefObject,
   useCallback,
   useMemo,
 } from 'react';

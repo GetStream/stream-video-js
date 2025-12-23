@@ -1,6 +1,6 @@
-import { StreamVideoParticipant } from './types';
+import type { StreamVideoParticipant } from './types';
 import {
-  Comparator,
+  type Comparator,
   defaultSortPreset,
   livestreamOrAudioRoomSortPreset,
 } from './sorting';

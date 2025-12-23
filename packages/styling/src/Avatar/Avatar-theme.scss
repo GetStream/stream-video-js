@@ -1,4 +1,4 @@
-@use "../utils";
+@use '../utils';
 
 .str-video {
   /* The font color applied inside the component */
@@ -9,7 +9,6 @@
 
   /* The border radius used for the borders of the component */
   --str-video__avatar--border-radius: var(--str-video__border-radius-circle);
-
 }
 .str-video__avatar {
   @include utils.component-layer-overrides('avatar');

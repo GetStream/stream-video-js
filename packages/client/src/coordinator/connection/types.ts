@@ -1,6 +1,10 @@
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
-import { AllSfuEvents } from '../../rtc';
+import type { AxiosRequestConfig, AxiosResponse } from 'axios';
+import type {
+  ConnectedEvent,
+  UserRequest,
+  VideoEvent,
+} from '../../gen/coordinator';
+import type { AllSfuEvents } from '../../rtc';
 import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 
 export type UR = Record<string, unknown>;

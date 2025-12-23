@@ -1,7 +1,7 @@
 import {
-  ComponentType,
+  type ComponentType,
   forwardRef,
-  ReactElement,
+  type ReactElement,
   useMemo,
   useState,
 } from 'react';
@@ -10,13 +10,13 @@ import {
   hasAudio,
   hasScreenShareAudio,
   hasVideo,
-  StreamVideoParticipant,
-  VideoTrackType,
+  type StreamVideoParticipant,
+  type VideoTrackType,
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { Audio } from '../Audio';
-import { Video, VideoProps } from '../Video';
+import { Video, type VideoProps } from '../Video';
 import { useTrackElementVisibility } from '../../hooks';
 import { DefaultParticipantViewUI } from './DefaultParticipantViewUI';
 import { applyElementToRef, isComponentType } from '../../../utilities';

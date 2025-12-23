@@ -1,4 +1,4 @@
-import {
+import type {
   StreamVideoParticipant,
   VideoTrackType,
 } from '@stream-io/video-client';

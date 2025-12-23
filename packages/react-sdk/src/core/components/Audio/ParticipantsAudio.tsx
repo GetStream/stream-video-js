@@ -1,8 +1,8 @@
-import { ComponentProps, Fragment } from 'react';
+import { type ComponentProps, Fragment } from 'react';
 import {
   hasAudio,
   hasScreenShareAudio,
-  StreamVideoParticipant,
+  type StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { Audio } from './Audio';
 

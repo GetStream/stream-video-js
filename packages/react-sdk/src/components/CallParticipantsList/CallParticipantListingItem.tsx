@@ -1,14 +1,14 @@
 import clsx from 'clsx';
-import { ComponentProps, ComponentType, forwardRef } from 'react';
+import { type ComponentProps, type ComponentType, forwardRef } from 'react';
 import { useConnectedUser, useI18n } from '@stream-io/video-react-bindings';
 import {
   hasAudio,
   hasVideo,
   isPinned,
-  StreamVideoParticipant,
+  type StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { IconButton } from '../Button';
-import { MenuToggle, ToggleMenuButtonProps } from '../Menu';
+import { MenuToggle, type ToggleMenuButtonProps } from '../Menu';
 import { WithTooltip } from '../Tooltip';
 import { Avatar } from '../Avatar';
 import { ParticipantActionsContextMenu } from '../../core/components/ParticipantView/ParticipantActionsContextMenu';

@@ -1,4 +1,4 @@
-import { PropsWithChildren, useEffect, useState } from 'react';
+import { type PropsWithChildren, useEffect, useState } from 'react';
 import { Call, CallingState } from '@stream-io/video-client';
 import {
   useCall,
@@ -8,9 +8,9 @@ import {
 } from '@stream-io/video-react-bindings';
 import {
   BackstageLayout,
-  BackstageLayoutProps,
+  type BackstageLayoutProps,
   LivestreamLayout,
-  LivestreamLayoutProps,
+  type LivestreamLayoutProps,
   StreamCall,
 } from '../../core';
 

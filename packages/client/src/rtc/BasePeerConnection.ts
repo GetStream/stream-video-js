@@ -1,4 +1,4 @@
-import { ScopedLogger, videoLoggerSystem } from '../logger';
+import { type ScopedLogger, videoLoggerSystem } from '../logger';
 import type { CallEventListener } from '../coordinator/connection/types';
 import { CallingState, CallState } from '../store';
 import { createSafeAsyncSubscription } from '../store/rxUtils';
@@ -10,7 +10,7 @@ import {
 } from '../gen/video/sfu/models/models';
 import { NegotiationError } from './NegotiationError';
 import { StreamSfuClient } from '../StreamSfuClient';
-import { AllSfuEvents, Dispatcher } from './Dispatcher';
+import { type AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
 import type { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';

@@ -1,4 +1,4 @@
-import { MouseEventHandler, useCallback } from 'react';
+import { type MouseEventHandler, useCallback } from 'react';
 import { IconButton } from '../Button';
 import { useCall } from '@stream-io/video-react-bindings';
 

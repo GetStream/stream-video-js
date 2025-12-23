@@ -1,4 +1,4 @@
-import { MouseEventHandler, useCallback, useState } from 'react';
+import { type MouseEventHandler, useCallback, useState } from 'react';
 
 export const useEnterLeaveHandlers = <T extends HTMLElement>({
   onMouseEnter,

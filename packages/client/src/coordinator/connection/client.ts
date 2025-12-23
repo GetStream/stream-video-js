@@ -1,8 +1,8 @@
 import axios, {
   AxiosError,
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
 } from 'axios';
 import https from 'https';
 import { StableWSConnection } from './connection';
@@ -17,26 +17,26 @@ import {
   sleep,
 } from './utils';
 import {
-  AllClientEvents,
-  AllClientEventTypes,
-  APIErrorResponse,
-  ClientEventListener,
-  ConnectAPIResponse,
+  type AllClientEvents,
+  type AllClientEventTypes,
+  type APIErrorResponse,
+  type ClientEventListener,
+  type ConnectAPIResponse,
   ErrorFromResponse,
-  StreamClientOptions,
-  StreamVideoEvent,
-  TokenOrProvider,
-  User,
-  UserWithId,
+  type StreamClientOptions,
+  type StreamVideoEvent,
+  type TokenOrProvider,
+  type User,
+  type UserWithId,
 } from './types';
 import { getLocationHint } from './location';
-import {
+import type {
   ConnectedEvent,
   CreateGuestRequest,
   CreateGuestResponse,
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
-import { ScopedLogger, videoLoggerSystem } from '../../logger';
+import { type ScopedLogger, videoLoggerSystem } from '../../logger';
 
 export class StreamClient {
   _user?: UserWithId;

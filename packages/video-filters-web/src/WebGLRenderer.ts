@@ -1,4 +1,4 @@
-import { BackgroundSource } from './types';
+import { type BackgroundSource } from './types';
 
 type ImageInfo = {
   type: 'image';

@@ -7,11 +7,11 @@ import { ParticipantsAudio } from '../Audio';
 import {
   DefaultParticipantViewUI,
   ParticipantView,
-  ParticipantViewProps,
+  type ParticipantViewProps,
 } from '../ParticipantView';
 import {
-  ParticipantFilter,
-  ParticipantPredicate,
+  type ParticipantFilter,
+  type ParticipantPredicate,
   useFilteredParticipants,
   usePaginatedLayoutSortPreset,
   useRawRemoteParticipants,

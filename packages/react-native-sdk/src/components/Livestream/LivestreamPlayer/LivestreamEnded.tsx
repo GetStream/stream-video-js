@@ -2,7 +2,7 @@ import React from 'react';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { useState, useEffect, useMemo } from 'react';
 import { useTheme } from '../../../contexts';
-import { ListRecordingsResponse } from '@stream-io/video-client';
+import type { ListRecordingsResponse } from '@stream-io/video-client';
 import {
   FlatList,
   Pressable,

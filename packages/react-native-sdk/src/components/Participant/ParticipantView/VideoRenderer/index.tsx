@@ -15,7 +15,7 @@ import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from '../
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useTrackDimensions } from '../../../../hooks/useTrackDimensions';
 import { useScreenshotIosContext } from '../../../../contexts/internal/ScreenshotIosContext';
-import TrackSubscriber, { TrackSubscriberHandle } from './TrackSubscriber';
+import TrackSubscriber, { type TrackSubscriberHandle } from './TrackSubscriber';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,

@@ -1,8 +1,8 @@
 import { CallingState } from '../store';
 import { Call } from '../Call';
 import {
-  CallAcceptedEvent,
-  CallRejectedEvent,
+  type CallAcceptedEvent,
+  type CallRejectedEvent,
   OwnCapability,
 } from '../gen/coordinator';
 import { CallEnded } from '../gen/video/sfu/event/events';

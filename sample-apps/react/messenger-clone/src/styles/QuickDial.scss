@@ -3,11 +3,11 @@
   gap: 5px;
   margin: 0 5px 5px 5px;
   padding-block: 0.5rem;
-   overflow-y: auto;
+  overflow-y: auto;
 
-   &::-webkit-scrollbar {
-     display: none;
-   }
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   &-avatar {
     width: 50px;

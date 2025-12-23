@@ -1,6 +1,7 @@
 # React Native Video Example
 
 ## Setup the environment for React Native
+
 ​
 First things first, make sure you have set up the development environment for React Native. You can find the official guide [here](https://reactnative.dev/docs/environment-setup).
 
@@ -44,7 +45,6 @@ Optional: If you have trouble running the app with iOS, try to reinstall the iOS
 - `bundle exec pod install` to install the iOS dependencies managed by CocoaPods.
 
 5. Run the app
-
    1. `yarn start` to run the Metro development server
    2. `yarn android` or `yarn ios` to run on Android Emulator or iOS simulator respectively.
    3. Optional: To run on a physical device follow the guide [here](https://reactnative.dev/docs/running-on-device).

@@ -1,6 +1,6 @@
 import {
-  Context,
-  PropsWithChildren,
+  type Context,
+  type PropsWithChildren,
   useCallback,
   useEffect,
   useMemo,
@@ -11,15 +11,15 @@ import { flushSync } from 'react-dom';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Call, disposeOfMediaStream } from '@stream-io/video-client';
 import {
-  BackgroundBlurLevel,
+  type BackgroundBlurLevel,
   createRenderer,
   isMediaPipePlatformSupported,
   isPlatformSupported,
   loadMediaPipe,
   loadTFLite,
-  PerformanceStats,
-  Renderer,
-  TFLite,
+  type PerformanceStats,
+  type Renderer,
+  type TFLite,
   VirtualBackground,
 } from '@stream-io/video-filters-web';
 import clsx from 'clsx';
