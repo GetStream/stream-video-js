@@ -2,6 +2,15 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.39.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.1...@stream-io/video-client-1.39.2) (2025-12-23)
+
+- upgrade stream dependencies ([#2065](https://github.com/GetStream/stream-video-js/issues/2065)) ([04ca858](https://github.com/GetStream/stream-video-js/commit/04ca858517072f861c1ddae0876f0b425ca658e2))
+
+### Bug Fixes
+
+- **safari:** verify that AudioContext supports `setSinkId` ([#2069](https://github.com/GetStream/stream-video-js/issues/2069)) ([e7fbe10](https://github.com/GetStream/stream-video-js/commit/e7fbe10d06acce52a2e3f4f7d008882fa23e9c89))
+- slow rampup on vp9/h264 codec ([#2056](https://github.com/GetStream/stream-video-js/issues/2056)) ([b5ad360](https://github.com/GetStream/stream-video-js/commit/b5ad360eab83a139198d05b4f42b777315135ab6))
+
 ## [1.39.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.0...@stream-io/video-client-1.39.1) (2025-12-18)
 
 ### Bug Fixes
