@@ -73,6 +73,12 @@ export type StreamSfuClientConstructor = {
   joinResponseTimeout?: number;
 
   /**
+   * The request timeout in milliseconds for RPC requests.
+   * Defaults to 5000ms.
+   */
+  rpcRequestTimeout?: number;
+
+  /**
    * Callback for when the WebSocket connection is closed.
    */
   onSignalClose?: (reason: string) => void;
@@ -207,6 +213,7 @@ export class StreamSfuClient {
     cid,
     tag,
     joinResponseTimeout = 5000,
+    rpcRequestTimeout = 5000,
     onSignalClose,
     streamClient,
     enableTracing,
@@ -229,7 +236,7 @@ export class StreamSfuClient {
         withHeaders({ Authorization: `Bearer ${token}` }),
         this.tracer && withRequestTracer(this.tracer.trace),
         this.logger.getLogLevel() === 'trace' && withRequestLogger(this.logger),
-        withTimeout(this.joinResponseTimeout, this.tracer?.trace),
+        withTimeout(rpcRequestTimeout, this.tracer?.trace),
       ].filter((v) => !!v),
     });
 
