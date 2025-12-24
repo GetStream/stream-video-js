@@ -1322,7 +1322,10 @@ export class CallState {
     this.setCurrentValue(this.customSubject, call.custom);
     this.setCurrentValue(this.egressSubject, call.egress);
     this.setCurrentValue(this.ingressSubject, call.ingress);
-    this.setCurrentValue(this.recordingSubject, call.recording);
+    this.setCurrentValue(
+      this.recordingSubject,
+      call.recording || !!call.egress?.composite_recording,
+    );
     this.setCurrentValue(
       this.individualRecordingSubject,
       !!call.egress?.individual_recording,

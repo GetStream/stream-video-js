@@ -2093,7 +2093,7 @@ export class Call {
    * Starts recording the call
    */
   startRecording = async (
-    type?: 'all' | 'composite' | 'individual' | 'raw' | undefined,
+    type?: 'composite' | 'individual' | 'raw' | undefined,
     request?: StartRecordingRequest,
   ) => {
     if (type === undefined) {
@@ -2116,7 +2116,7 @@ export class Call {
    * Stops recording the call
    */
   stopRecording = async (
-    type?: 'all' | 'composite' | 'individual' | 'raw' | undefined,
+    type?: 'composite' | 'individual' | 'raw' | undefined,
   ) => {
     if (type === undefined) {
       return this.streamClient.post<StopRecordingResponse>(
