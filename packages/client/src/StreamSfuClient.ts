@@ -229,7 +229,7 @@ export class StreamSfuClient {
         withHeaders({ Authorization: `Bearer ${token}` }),
         this.tracer && withRequestTracer(this.tracer.trace),
         this.logger.getLogLevel() === 'trace' && withRequestLogger(this.logger),
-        withTimeout(this.joinResponseTimeout),
+        withTimeout(this.joinResponseTimeout, this.tracer?.trace),
       ].filter((v) => !!v),
     });
 

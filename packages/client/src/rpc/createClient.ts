@@ -42,13 +42,17 @@ export const withHeaders = (
 
 export const TIMEOUT_SYMBOL = '@@stream-io/timeout';
 
-export const withTimeout = (timeoutMs: number): RpcInterceptor => {
-  const scheduleTimeout = () => {
+export const withTimeout = (
+  timeoutMs: number,
+  trace?: Trace,
+): RpcInterceptor => {
+  const scheduleTimeout = (methodName: string) => {
     const controller = new AbortController();
     // aborts with specially crafted error that can be reliably recognized by
     // @protobuf-ts/twirp-transport and our internal retry logic.
     // https://github.com/timostamm/protobuf-ts/blob/657e64e80009e503e94f608fda423fbcbf4fb5a7/packages/twirp-transport/src/twirp-transport.ts#L102-L107
     const timeoutId = setTimeout(() => {
+      trace?.(`${methodName}Timeout`, [timeoutMs]);
       const error = new Error(TIMEOUT_SYMBOL);
       error.name = 'AbortError';
       controller.abort(error);
@@ -67,7 +71,7 @@ export const withTimeout = (timeoutMs: number): RpcInterceptor => {
       if (options.abort) return next(method, input, options);
 
       // set up a custom abort signal for the RPC call
-      const [signal, cancel] = scheduleTimeout();
+      const [signal, cancel] = scheduleTimeout(method.name);
       const invocation = next(method, input, { ...options, abort: signal });
       invocation.then(cancel, cancel);
 
