@@ -264,6 +264,8 @@ export class Call {
   // maintain the order of publishing tracks to restore them after a reconnection
   // it shouldn't contain duplicates
   private trackPublishOrder: TrackType[] = [];
+  private joinResponseTimeout?: number;
+  private rpcRequestTimeout?: number;
   private joinCallData?: JoinCallData;
   private hasJoinedOnce = false;
   private deviceSettingsAppliedOnce = false;
@@ -873,9 +875,13 @@ export class Call {
    */
   join = async ({
     maxJoinRetries = 3,
+    joinResponseTimeout,
+    rpcRequestTimeout,
     ...data
   }: JoinCallData & {
     maxJoinRetries?: number;
+    joinResponseTimeout?: number;
+    rpcRequestTimeout?: number;
   } = {}): Promise<void> => {
     await this.setup();
     const callingState = this.state.callingState;
@@ -883,6 +889,9 @@ export class Call {
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
+
+    this.joinResponseTimeout = joinResponseTimeout;
+    this.rpcRequestTimeout = rpcRequestTimeout;
 
     // we will count the number of join failures per SFU.
     // once the number of failures reaches 2, we will piggyback on the `migrating_from`
@@ -979,6 +988,8 @@ export class Call {
             credentials: this.credentials,
             streamClient: this.streamClient,
             enableTracing: statsOptions.enable_rtc_stats,
+            joinResponseTimeout: this.joinResponseTimeout,
+            rpcRequestTimeout: this.rpcRequestTimeout,
             // a new session_id is necessary for the REJOIN strategy.
             // we use the previous session_id if available
             sessionId: performingRejoin ? undefined : previousSessionId,
