@@ -7,16 +7,35 @@ export interface ICallingxModule {
 
   get isNotificationsAllowed(): boolean;
 
+  /**
+   /**
+    * Setup the module. This method must be called before any other method.
+    * For iOS, the module will setup CallKit parameters.
+    *    See: {@link iOSOptions}
+    * For Android, the module will create notification channels.
+    *    See: {@link AndroidOptions}
+    * @param options - The options to setup the callingx module. See {@link Options}
+    */
   setup(options: Options): void;
-
+  /**
+   * Set whether to reject calls when the user is busy.
+   * The value is used in iOS native module to prevent calls registration in CallKit when the user is busy.
+   * @param shouldReject - Whether to reject calls when the user is busy.
+   */
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
-
+  /**
+   * Check the permissions.
+   * @returns The permissions result.
+   */
   checkPermissions(): Promise<PermissionsResult>;
 
   requestPermissions(): Promise<PermissionsResult>;
-
-  setCurrentCallActive(callId: string): Promise<void>;
-
+  /**
+   * Get the initial events. This method is used to get the initial events from the app launch.
+   * The events are queued and can be retrieved after the module is setup.
+   * IMPORTANT: After the events are retrieved, new events will be sent to the event listeners.
+   * @returns The initial events.
+   */
   getInitialEvents(): EventData[];
 
   displayIncomingCall(
@@ -24,7 +43,7 @@ export interface ICallingxModule {
     phoneNumber: string,
     callerName: string,
     hasVideo: boolean,
-    displayOptions?: InfoDisplayOptions
+    displayOptions?: InfoDisplayOptions,
   ): Promise<void>;
   answerIncomingCall(callId: string): Promise<void>;
 
@@ -33,20 +52,45 @@ export interface ICallingxModule {
     phoneNumber: string,
     callerName: string,
     hasVideo: boolean,
-    displayOptions?: InfoDisplayOptions
+    displayOptions?: InfoDisplayOptions,
   ): Promise<void>;
+
+  /**
+   * Set the current call active. This method is used to set the current call active.
+   * This method is used to activate the call that was registered with {@link startCall}.
+   * @param callId - The call id.
+   * @returns The promise.
+   */
+  setCurrentCallActive(callId: string): Promise<void>;
 
   updateDisplay(
     callId: string,
     phoneNumber: string,
     callerName: string,
-    displayOptions?: InfoDisplayOptions
+    displayOptions?: InfoDisplayOptions,
   ): Promise<void>;
 
+  /**
+   * Check if the call is registered in CallKit/Telecom.
+   * @param callId - The call id.
+   * @returns The boolean value.
+   */
   isCallRegistered(callId: string): boolean;
 
+  /**
+   * Check if there is a registered call.
+   * @returns The boolean value.
+   */
   hasRegisteredCall(): boolean;
 
+  /**
+   * End the call with a reason. This method is used to end the call with a reason.
+   * Note: In general invoking this method will trigger the call end event.
+   * But, in case of iOS, when the call is ended with the reason 'local', the call end event will not be triggered.
+   * @param callId - The call id.
+   * @param reason - The reason.
+   * @returns The promise.
+   */
   endCallWithReason(callId: string, reason: EndCallReason): Promise<void>;
 
   setMutedCall(callId: string, isMuted: boolean): Promise<void>;
@@ -59,7 +103,7 @@ export interface ICallingxModule {
 
   addEventListener<T extends EventName>(
     eventName: T,
-    callback: EventListener<EventParams[T]>
+    callback: EventListener<EventParams[T]>,
   ): { remove: () => void };
 
   log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): void;
