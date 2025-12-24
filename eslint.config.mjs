@@ -9,7 +9,14 @@ import reactCompiler from 'eslint-plugin-react-compiler';
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   { files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'] },
-  { ignores: ['**/node_modules/**', '**/build/**', '**/dist/**'] },
+  {
+    ignores: [
+      '**/node_modules/**',
+      '**/build/**',
+      '**/dist/**',
+      '**/__testfixtures__/**',
+    ],
+  },
   { languageOptions: { globals: globals.node } },
   { languageOptions: { globals: globals.browser } },
   pluginJs.configs.recommended,
