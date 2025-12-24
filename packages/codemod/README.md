@@ -48,8 +48,8 @@ npx @stream-io/video-codemod use-call-state-hooks ./path/to/src --extensions=ts,
 ```
 
 **Note:** Applying the codemod might break your code formatting, so please run Prettier and ESLint after you've applied
-the codemod.
+the codemod or execute the command with `--run-prettier` to apply Prettier automatically.
 
 ```bash
-npx prettier --write "src/**/*.{ts,tsx}"
+npx @stream-io/video-codemod use-call-state-hooks ./path/to/src --extensions=ts,tsx --parser=tsx --run-prettier
 ```
