@@ -19,6 +19,9 @@
     "url": "https://github.com/GetStream/stream-video-js.git",
     "directory": "packages/codemod"
   },
+  "dependencies": {
+    "jscodeshift": "^17.3.0"
+  },
   "devDependencies": {
     "@types/jscodeshift": "^17.3.0",
     "vitest": "^3.2.4"
