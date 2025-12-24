@@ -59,6 +59,9 @@ export const DevMenu = () => {
         <StartStopBroadcasting />
       </li>
       <li className="rd__dev-menu__item">
+        <StartStopCompositeRecording />
+      </li>
+      <li className="rd__dev-menu__item">
         <StartStopIndividualRecording />
       </li>
       <li className="rd__dev-menu__item">
@@ -266,6 +269,47 @@ const StartStopIndividualRecording = () => {
       {isIndividualRecording
         ? 'Stop Individual Recording'
         : 'Start Individual Recording'}
+    </button>
+  );
+};
+
+const StartStopCompositeRecording = () => {
+  const call = useCall();
+  const { useIsCallRecordingInProgress } = useCallStateHooks();
+  const isRecording = useIsCallRecordingInProgress();
+  return (
+    <button
+      className="rd__button rd__button--align-left"
+      onClick={() => {
+        if (!call) return;
+        if (isRecording) {
+          call
+            .stopRecording('composite')
+            .then(() => {
+              console.log(`Composite recording stopped`);
+            })
+            .catch((err) => {
+              console.error(`Failed to stop composite recording`, err);
+            });
+        } else {
+          call
+            .startRecording('composite')
+            .then(() => {
+              console.log(`Composite recording started`);
+            })
+            .catch((err) => {
+              console.error(`Failed to start composite recording`, err);
+            });
+        }
+      }}
+    >
+      <Icon
+        className="rd__button__icon"
+        icon={isRecording ? 'recording-off' : 'recording-on'}
+      />
+      {isRecording
+        ? 'Stop Composite Recording (new route)'
+        : 'Start Composite Recording (new route)'}
     </button>
   );
 };
