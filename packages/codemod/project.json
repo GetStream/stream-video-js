@@ -6,6 +6,7 @@
       "executor": "@jscutlery/semver:version",
       "options": {
         "dryRun": false,
+        "baseBranch": "main",
         "preset": {
           "name": "conventionalcommits",
           "preMajor": false,
@@ -13,7 +14,7 @@
             { "type": "feat", "section": "Features" },
             { "type": "fix", "section": "Bug Fixes" },
             { "type": "chore", "hidden": true },
-            { "type": "docs", "section": "Documentation" },
+            { "type": "docs", "hidden": true },
             { "type": "style", "hidden": true },
             { "type": "refactor", "hidden": true },
             { "type": "perf", "section": "Features" },
@@ -22,7 +23,7 @@
         },
         "trackDeps": true,
         "push": true,
-        "skipCommitTypes": ["ci", "refactor", "test"],
+        "skipCommitTypes": ["ci", "refactor", "test", "docs"],
         "postTargets": [
           "@stream-io/video-codemod:github",
           "@stream-io/video-codemod:publish"

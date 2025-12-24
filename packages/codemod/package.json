@@ -1,6 +1,7 @@
 {
   "name": "@stream-io/video-codemod",
   "version": "0.0.1",
+  "description": "Stream Video SDK Codemods",
   "license": "See license in LICENSE",
   "bin": "./bin/cli.js",
   "scripts": {
