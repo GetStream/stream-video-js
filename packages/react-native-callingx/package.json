@@ -57,11 +57,11 @@
   },
   "devDependencies": {
     "@react-native-community/cli": "20.0.1",
-    "@react-native/babel-preset": "0.81.5",
+    "@react-native/babel-preset": "^0.81.5",
     "@types/react": "^19.1.0",
     "del-cli": "^6.0.0",
     "react": "19.1.0",
-    "react-native": "0.81.5",
+    "react-native": "^0.81.5",
     "react-native-builder-bob": "^0.40.15",
     "typescript": "^5.9.2"
   },
