@@ -24,8 +24,8 @@
         "push": true,
         "skipCommitTypes": ["ci", "refactor", "test"],
         "postTargets": [
-          "@stream-io/codemod:github",
-          "@stream-io/codemod:publish"
+          "@stream-io/video-codemod:github",
+          "@stream-io/video-codemod:publish"
         ]
       }
     },
