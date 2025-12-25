@@ -1,6 +1,6 @@
 import type {
-  AndroidOptions,
-  iOSOptions,
+  InternalAndroidOptions,
+  InternalIOSOptions,
   EndCallReason,
   TextTransformer,
 } from '../types';
@@ -8,7 +8,7 @@ import type { DeepRequired } from './types';
 
 export const defaultTextTransformer: TextTransformer = (text: string) => text;
 
-export const defaultiOSOptions: Required<iOSOptions> = {
+export const defaultiOSOptions: Required<InternalIOSOptions> = {
   supportsVideo: true,
   maximumCallsPerCallGroup: 1,
   maximumCallGroups: 1,
@@ -16,19 +16,19 @@ export const defaultiOSOptions: Required<iOSOptions> = {
   sound: '',
   imageName: '',
   callsHistory: false,
-  setupAudioSession: true,
+  setupAudioSession: false,
   displayCallTimeout: 60000, // 1 minute
 };
 
-export const defaultAndroidOptions: DeepRequired<AndroidOptions> = {
+export const defaultAndroidOptions: DeepRequired<InternalAndroidOptions> = {
   incomingChannel: {
-    id: 'incoming_calls_channel',
+    id: 'stream_incoming_calls_channel',
     name: 'Incoming calls',
     sound: '',
     vibration: false,
   },
   outgoingChannel: {
-    id: 'ongoing_calls_channel',
+    id: 'stream_ongoing_calls_channel',
     name: 'Ongoing calls',
   },
 };

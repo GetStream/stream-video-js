@@ -6,8 +6,11 @@ import {
   processCallFromPushInBackground,
 } from './internal/utils';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
-import { getCallingxLib, type EventParams } from './libs/callingx';
-import { EventData } from '@stream-io/react-native-callingx';
+import {
+  getCallingxLib,
+  type EventData,
+  type EventParams,
+} from './libs/callingx';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 

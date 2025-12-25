@@ -85,6 +85,14 @@ class CallingxModule implements ICallingxModule {
           ...(outgoingChannel ?? {}),
         },
       };
+
+      if (
+        notificationsConfig.incomingChannel.id ===
+        notificationsConfig.outgoingChannel.id
+      ) {
+        throw new Error('Incoming and outgoing channel IDs cannot be the same');
+      }
+
       NativeCallingModule.setupAndroid(notificationsConfig);
 
       registerHeadlessTask();
@@ -145,7 +153,7 @@ class CallingxModule implements ICallingxModule {
     callId: string,
     phoneNumber: string,
     callerName: string,
-    hasVideo: boolean
+    hasVideo: boolean,
   ): Promise<void> {
     const displayOptions: InfoDisplayOptions = {
       displayTitle: this.titleTransformer(callerName, true),
@@ -156,7 +164,7 @@ class CallingxModule implements ICallingxModule {
       phoneNumber,
       callerName,
       hasVideo,
-      displayOptions
+      displayOptions,
     );
   }
 
@@ -169,7 +177,7 @@ class CallingxModule implements ICallingxModule {
     callId: string,
     phoneNumber: string,
     callerName: string,
-    hasVideo: boolean
+    hasVideo: boolean,
   ): Promise<void> {
     const displayOptions: InfoDisplayOptions = {
       displayTitle: this.titleTransformer(callerName, false),
@@ -180,24 +188,24 @@ class CallingxModule implements ICallingxModule {
       phoneNumber,
       callerName,
       hasVideo,
-      displayOptions
+      displayOptions,
     );
   }
 
   updateDisplay(
     callId: string,
     phoneNumber: string,
-    callerName: string
+    callerName: string,
   ): Promise<void> {
     const displayOptions: InfoDisplayOptions = {
-      displayTitle: this.titleTransformer(callerName, false),
-      displaySubtitle: this.subtitleTransformer?.(phoneNumber, false),
+      displayTitle: this.titleTransformer(callerName, false), //adjust incoming or outgoing call
+      displaySubtitle: this.subtitleTransformer?.(phoneNumber, false), //adjust incoming or outgoing call
     };
     return NativeCallingModule.updateDisplay(
       callId,
       phoneNumber,
       callerName,
-      displayOptions
+      displayOptions,
     );
   }
 
@@ -230,7 +238,6 @@ class CallingxModule implements ICallingxModule {
 
   startBackgroundTask(taskProvider: ManagableTask): Promise<void> {
     const stopTask = () => {
-      NativeCallingModule.log(`stopBackgroundTask`, 'warn');
       NativeCallingModule.stopBackgroundTask(HEADLESS_TASK_NAME);
     };
 
@@ -245,7 +252,7 @@ class CallingxModule implements ICallingxModule {
 
   addEventListener<T extends EventName>(
     eventName: T,
-    callback: EventListener<EventParams[T]>
+    callback: EventListener<EventParams[T]>,
   ): { remove: () => void } {
     this.eventManager.addListener(eventName, callback);
 

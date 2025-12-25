@@ -11,9 +11,9 @@ export interface ICallingxModule {
    /**
     * Setup the module. This method must be called before any other method.
     * For iOS, the module will setup CallKit parameters.
-    *    See: {@link iOSOptions}
+    *    See: {@link InternalIOSOptions}
     * For Android, the module will create notification channels.
-    *    See: {@link AndroidOptions}
+    *    See: {@link InternalAndroidOptions}
     * @param options - The options to setup the callingx module. See {@link Options}
     */
   setup(options: Options): void;
@@ -109,7 +109,7 @@ export interface ICallingxModule {
   log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): void;
 }
 
-export type iOSOptions = {
+export type InternalIOSOptions = {
   supportsVideo?: boolean;
   maximumCallsPerCallGroup?: number;
   maximumCallGroups?: number;
@@ -140,8 +140,15 @@ export type iOSOptions = {
    */
   displayCallTimeout?: number;
 };
+type iOSOptions = Omit<
+  InternalIOSOptions,
+  | 'maximumCallsPerCallGroup'
+  | 'maximumCallGroups'
+  | 'handleType'
+  | 'setupAudioSession'
+>;
 
-export type AndroidOptions = {
+export type InternalAndroidOptions = {
   /**
    * Incoming channel configuration.
    * @default { id: 'incoming_calls_channel', name: 'Incoming calls', sound: '', vibration: false }
@@ -161,6 +168,7 @@ export type AndroidOptions = {
     name?: string;
   };
 };
+type AndroidOptions = InternalAndroidOptions & NotificationTransformers;
 
 export type TextTransformer = (text: string, incoming: boolean) => string;
 export type NotificationTransformers = {
@@ -169,11 +177,8 @@ export type NotificationTransformers = {
 };
 
 export type Options = {
-  ios?: Omit<
-    iOSOptions,
-    'maximumCallsPerCallGroup' | 'maximumCallGroups' | 'handleType'
-  >;
-  android?: AndroidOptions & NotificationTransformers;
+  ios?: iOSOptions;
+  android?: AndroidOptions;
   /**
    * Enable outgoing calls registration
    * @default true
@@ -184,6 +189,11 @@ export type Options = {
    * @default true
    */
   enableAutoPermissions?: boolean;
+  /**
+   * Whether to reject calls when the user is busy.
+   * @default false
+   */
+  shouldRejectCallWhenBusy?: boolean;
 };
 
 export type InfoDisplayOptions = {

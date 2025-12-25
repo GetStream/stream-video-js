@@ -8,7 +8,7 @@
 
   <application>
     <activity
-      android:name=".notifications.NotificationReceiverActivity"
+      android:name="io.getstream.rn.callingx.notifications.NotificationReceiverActivity"
       android:excludeFromRecents="true"
       android:exported="false"
       android:noHistory="true"
@@ -16,11 +16,11 @@
       android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
     <service
-      android:name=".notifications.NotificationReceiverService"
+      android:name="io.getstream.rn.callingx.notifications.NotificationReceiverService"
       android:exported="false" />
 
     <service
-      android:name=".CallService"
+      android:name="io.getstream.rn.callingx.CallService"
       android:enabled="true"
       android:exported="false"
       android:foregroundServiceType="phoneCall"

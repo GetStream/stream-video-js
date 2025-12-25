@@ -1,5 +1,6 @@
 export type RNCallingxType =
   import('@stream-io/react-native-callingx').ICallingxModule;
+export type EventData = import('@stream-io/react-native-callingx').EventData;
 export type EventParams =
   import('@stream-io/react-native-callingx').EventParams;
 export type Options = import('@stream-io/react-native-callingx').Options;
