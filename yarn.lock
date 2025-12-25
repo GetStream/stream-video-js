@@ -7491,11 +7491,11 @@ __metadata:
   resolution: "@stream-io/react-native-callingx@workspace:packages/react-native-callingx"
   dependencies:
     "@react-native-community/cli": "npm:20.0.1"
-    "@react-native/babel-preset": "npm:0.81.5"
+    "@react-native/babel-preset": "npm:^0.81.5"
     "@types/react": "npm:^19.1.0"
     del-cli: "npm:^6.0.0"
     react: "npm:19.1.0"
-    react-native: "npm:0.81.5"
+    react-native: "npm:^0.81.5"
     react-native-builder-bob: "npm:^0.40.15"
     typescript: "npm:^5.9.2"
   peerDependencies:
@@ -20620,7 +20620,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native@npm:0.81.5, react-native@npm:^0.81.5":
+"react-native@npm:^0.81.5":
   version: 0.81.5
   resolution: "react-native@npm:0.81.5"
   dependencies:
