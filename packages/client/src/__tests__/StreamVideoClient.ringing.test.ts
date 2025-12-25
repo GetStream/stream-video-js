@@ -2,7 +2,10 @@ import 'dotenv/config';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { StreamVideoClient } from '../StreamVideoClient';
 import { StreamClient } from '@stream-io/node-sdk';
-import { StreamVideoEvent } from '../coordinator/connection/types';
+import {
+  StreamClientOptions,
+  StreamVideoEvent,
+} from '../coordinator/connection/types';
 import { CallingState } from '../store';
 import { settled } from '../helpers/concurrency';
 import { getCallInitConcurrencyTag } from '../helpers/clientUtils';
@@ -14,35 +17,41 @@ const secret = process.env.STREAM_SECRET!;
 
 describe('StreamVideoClient Ringing', () => {
   const serverClient = new StreamClient(apiKey, secret);
+  const testUserIds = ['oliver', 'sacha', 'marcelo'];
 
   let oliverClient: StreamVideoClient;
   let sachaClient: StreamVideoClient;
   let marceloClient: StreamVideoClient;
 
-  beforeEach(async () => {
+  const createClients = async (
+    userIds: string[],
+    clientOptions?: StreamClientOptions,
+  ) => {
     const makeClient = async (userId: string) => {
-      const client = new StreamVideoClient(apiKey, {
-        // tests run in node, so we have to fake being in browser env
-        browser: true,
-        timeout: 15000,
-      });
+      const client = new StreamVideoClient(apiKey, clientOptions);
       const token = serverClient.generateUserToken({ user_id: userId });
       await client.connectUser({ id: userId }, token);
       return client;
     };
-    [oliverClient, sachaClient, marceloClient] = await Promise.all([
-      makeClient('oliver'),
-      makeClient('sacha'),
-      makeClient('marcelo'),
-    ]);
-  });
 
-  afterEach(async () => {
+    return await Promise.all(userIds.map(makeClient));
+  };
+
+  const disconnectClients = async () => {
     await Promise.all([
       oliverClient.disconnectUser(),
       sachaClient.disconnectUser(),
       marceloClient.disconnectUser(),
     ]);
+  };
+
+  beforeEach(async () => {
+    [oliverClient, sachaClient, marceloClient] =
+      await createClients(testUserIds);
+  });
+
+  afterEach(async () => {
+    await disconnectClients();
   });
 
   describe('standard ringing', async () => {
@@ -211,6 +220,136 @@ describe('StreamVideoClient Ringing', () => {
       expect(oliverClient.state.calls.length).toBe(1);
       expect(oliverClient.state.calls[0]).toBe(call);
       expect(call.ringing).toBe(true);
+    });
+  });
+
+  describe('ringing interruption', () => {
+    const setupInitialCall = async () => {
+      const sachaRing = expectEvent(sachaClient, 'call.ring');
+      const oliverCall = oliverClient.call('default', crypto.randomUUID());
+
+      await oliverCall.create({
+        ring: true,
+        data: {
+          members: [{ user_id: 'oliver' }, { user_id: 'sacha' }],
+        },
+      });
+
+      await expect(sachaRing).resolves.toHaveProperty(
+        'call.cid',
+        oliverCall.cid,
+      );
+
+      const sachaCall = await expectCall(sachaClient, oliverCall.cid);
+      expect(sachaCall).toBeDefined();
+      expect(oliverCall.state.callingState).toBe(CallingState.RINGING);
+      expect(sachaCall.state.callingState).toBe(CallingState.RINGING);
+
+      return { oliverCall, sachaCall };
+    };
+
+    it('should reject the call when the caller is busy', async () => {
+      [oliverClient, sachaClient, marceloClient] = await createClients(
+        testUserIds,
+        {
+          rejectCallWhenBusy: true,
+        },
+      );
+
+      //initiate a call between oliver and sacha
+      await setupInitialCall();
+
+      //marcelo is calling oliver (the caller). call should be automatically rejected
+      const marceloIndividualRing = expectEvent(marceloClient, 'call.rejected');
+
+      const marceloCall = marceloClient.call('default', crypto.randomUUID());
+      await marceloCall.create({
+        ring: true,
+        data: {
+          members: [{ user_id: 'marcelo' }, { user_id: 'oliver' }],
+        },
+      });
+
+      await expect(marceloIndividualRing).resolves.toHaveProperty(
+        'call.cid',
+        marceloCall.cid,
+      );
+      expect(oliverClient.state.calls.length).toBe(1);
+
+      await disconnectClients();
+    });
+
+    it('should reject the call when the callee is busy', async () => {
+      [oliverClient, sachaClient, marceloClient] = await createClients(
+        testUserIds,
+        {
+          rejectCallWhenBusy: true,
+        },
+      );
+
+      //initiate a call between oliver and sacha
+      await setupInitialCall();
+
+      //marcelo is calling sacha (the callee). call should be automatically rejected
+      const marceloIndividualRing = expectEvent(marceloClient, 'call.rejected');
+
+      const marceloCall = marceloClient.call('default', crypto.randomUUID());
+      await marceloCall.create({
+        ring: true,
+        data: {
+          members: [{ user_id: 'marcelo' }, { user_id: 'sacha' }],
+        },
+      });
+
+      await expect(marceloIndividualRing).resolves.toHaveProperty(
+        'call.cid',
+        marceloCall.cid,
+      );
+      expect(sachaClient.state.calls.length).toBe(1);
+
+      await disconnectClients();
+    });
+
+    it('should allow multiple simultaneous calls to the same caller when rejectCallWhenBusy is false', async () => {
+      //initiate a call between oliver and sacha
+      await setupInitialCall();
+
+      //marcelo is calling oliver (the caller)
+      const marceloIndividualRing = expectEvent(marceloClient, 'call.rejected');
+
+      const marceloCall = marceloClient.call('default', crypto.randomUUID());
+      await marceloCall.create({
+        ring: true,
+        data: {
+          members: [{ user_id: 'marcelo' }, { user_id: 'oliver' }],
+        },
+      });
+
+      //call should not be automatically rejected, exception will be thrown by timeout
+      await expect(marceloIndividualRing).rejects.toThrow();
+      //the caller has 2 calls available
+      expect(oliverClient.state.calls.length).toBe(2);
+    });
+
+    it('should allow multiple simultaneous calls to the same callee when rejectCallWhenBusy is false', async () => {
+      //initiate a call between oliver and sacha
+      await setupInitialCall();
+
+      //marcelo is calling sacha (the callee)
+      const marceloIndividualRing = expectEvent(marceloClient, 'call.rejected');
+
+      const marceloCall = marceloClient.call('default', crypto.randomUUID());
+      await marceloCall.create({
+        ring: true,
+        data: {
+          members: [{ user_id: 'marcelo' }, { user_id: 'sacha' }],
+        },
+      });
+
+      //call should not be automatically rejected, exception will be thrown by timeout
+      await expect(marceloIndividualRing).rejects.toThrow();
+      //the callee has 2 calls available
+      expect(sachaClient.state.calls.length).toBe(2);
     });
   });
 });
