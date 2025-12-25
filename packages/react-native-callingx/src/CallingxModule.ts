@@ -59,6 +59,7 @@ class CallingxModule implements ICallingxModule {
     }
 
     this._isOutcomingCallsEnabled = options.enableOutcomingCalls ?? true;
+    this.setShouldRejectCallWhenBusy(options.shouldRejectCallWhenBusy ?? false);
 
     if (Platform.OS === 'ios') {
       NativeCallingModule.setupiOS({ ...defaultiOSOptions, ...options.ios });

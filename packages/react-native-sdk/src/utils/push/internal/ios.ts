@@ -62,15 +62,6 @@ export const onVoipNotificationReceived = async (
     );
     return;
   }
-  const shouldRejectCallWhenBusy = client['rejectCallWhenBusy'] ?? false;
-  if (shouldRejectCallWhenBusy) {
-    // inform the iOS native module that we should reject call when busy
-    callingx.setShouldRejectCallWhenBusy(shouldRejectCallWhenBusy);
-  }
-
-  videoLoggerSystem
-    .getLogger('onVoipNotificationReceived')
-    .debug('shouldRejectCallWhenBusy', shouldRejectCallWhenBusy);
 
   const callFromPush = await client.onRingingCall(call_cid);
 
