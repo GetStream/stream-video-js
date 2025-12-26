@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.6.0...@stream-io/video-filters-web-0.7.0) (2025-12-23)
+
+### Features
+
+- **react:** Implement progress bar when video-filters are being loaded ([#2063](https://github.com/GetStream/stream-video-js/issues/2063)) ([3a6b92e](https://github.com/GetStream/stream-video-js/commit/3a6b92e092805160cbf0e289d70fcccafcb20199))
+
 ## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.5.1...@stream-io/video-filters-web-0.6.0) (2025-12-08)
 
 ### Features

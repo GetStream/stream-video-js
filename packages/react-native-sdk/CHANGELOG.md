@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.26.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.4...@stream-io/video-react-native-sdk-1.26.5) (2025-12-23)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.2`
+- `@stream-io/video-react-bindings` updated to version `1.12.5`
+
+### Bug Fixes
+
+- do not set invalid BT devices as communication device ([#2064](https://github.com/GetStream/stream-video-js/issues/2064)) ([fe41a34](https://github.com/GetStream/stream-video-js/commit/fe41a349df41c11e05b673e6107788203e94fae9))
+
 ## [1.26.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.3...@stream-io/video-react-native-sdk-1.26.4) (2025-12-18)
 
 ### Dependency Updates
