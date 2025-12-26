@@ -62,12 +62,7 @@ export const oniOSExpoNotificationEvent = (event: ExpoNotification) => {
   }
 };
 
-export const oniOSNotifeeEvent = ({
-  event,
-}: {
-  event: Event;
-  isBackground: boolean;
-}) => {
+export const oniOSNotifeeEvent = ({ event }: { event: Event }) => {
   if (Platform.OS !== 'ios') return;
   const pushConfig = StreamVideoRN.getConfig().push;
   const { type, detail } = event;

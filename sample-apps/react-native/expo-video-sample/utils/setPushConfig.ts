@@ -27,16 +27,6 @@ export function setPushConfig() {
         importance: AndroidImportance.HIGH,
         sound: 'default',
       },
-      incomingCallChannel: {
-        id: 'stream_incoming_call_update1',
-        name: 'Incoming call notifications',
-        importance: AndroidImportance.HIGH,
-      },
-      incomingCallNotificationTextGetters: {
-        getTitle: (createdUserName: string) =>
-          `Incoming call from ${createdUserName}`,
-        getBody: () => 'Tap to open the call',
-      },
       callNotificationTextGetters: {
         getTitle(type, createdUserName) {
           if (type === 'call.live_started') {
@@ -68,13 +58,13 @@ export function setPushConfig() {
     // on press handlers of background notifications
     notifee.onBackgroundEvent(async (event) => {
       if (isNotifeeStreamVideoEvent(event)) {
-        await onAndroidNotifeeEvent({ event, isBackground: true });
+        await onAndroidNotifeeEvent({ event });
       }
     });
     // on press handlers of foreground notifications
     notifee.onForegroundEvent((event) => {
       if (isNotifeeStreamVideoEvent(event)) {
-        onAndroidNotifeeEvent({ event, isBackground: false });
+        onAndroidNotifeeEvent({ event });
       }
     });
   }
@@ -96,7 +86,7 @@ export function setPushConfig() {
     // note: used only for non-ringing notifications
     notifee.onForegroundEvent((event) => {
       if (isNotifeeStreamVideoEvent(event)) {
-        oniOSNotifeeEvent({ event, isBackground: false });
+        oniOSNotifeeEvent({ event });
       }
     });
   }

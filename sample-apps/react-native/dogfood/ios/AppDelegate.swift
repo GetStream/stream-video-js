@@ -11,11 +11,11 @@ import ReactAppDependencyProvider
 
 import UserNotifications
 import RNCPushNotificationIOS
-import RNCallKeep
 import PushKit
 import WebRTC
 import RNVoipPushNotification
 import stream_io_noise_cancellation_react_native
+import stream_video_react_native
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, PKPushRegistryDelegate {
@@ -70,59 +70,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   ) {
     
     guard let stream = payload.dictionaryPayload["stream"] as? [String: Any],
-          let createdCallerName = stream["created_by_display_name"] as? String,
+          let _ = stream["created_by_display_name"] as? String,
           let cid = stream["call_cid"] as? String else {
       completion() // Ensure completion handler is called even if parsing fails
       return
     }
-        
+     
     // Check if user is busy BEFORE registering the call
-    let shouldReject = StreamVideoReactNative.shouldRejectCallWhenBusy()
-    let hasAnyActiveCall = StreamVideoReactNative.hasAnyActiveCall()
-        
-    if shouldReject && hasAnyActiveCall {
-        // Complete the VoIP notification without showing CallKit UI
-        completion()
-        return
+    guard StreamVideoReactNative.rejectIncomingCallIfNeeded(completion) else {
+      return
     }
         
-    let uuid = UUID().uuidString
-    let videoIncluded = stream["video"] as? String
-    let hasVideo = videoIncluded == "false" ? false : true
-    
-    StreamVideoReactNative.registerIncomingCall(cid, uuid: uuid)
-    
     // required if you want to call `completion()` on the js side
-    RNVoipPushNotificationManager.addCompletionHandler(uuid, completionHandler: completion)
+    RNVoipPushNotificationManager.addCompletionHandler(cid, completionHandler: completion)
     
     // Process the received push // fire 'notification' event to JS
     RNVoipPushNotificationManager.didReceiveIncomingPush(with: payload, forType: type.rawValue) // type is enum, use rawValue
     
-    RNCallKeep.reportNewIncomingCall(uuid,
-                                     handle: createdCallerName,
-                                     handleType: "generic",
-                                     hasVideo: hasVideo,
-                                     localizedCallerName: createdCallerName,
-                                     supportsHolding: false,
-                                     supportsDTMF: false,
-                                     supportsGrouping: false,
-                                     supportsUngrouping: false,
-                                     fromPushKit: true,
-                                     payload: stream,
-                                     withCompletionHandler: nil) // Completion handler is already handled above
+    StreamVideoReactNative.didReceiveIncomingPush(payload, completionHandler: nil) //for now left completion handler empty
   }
   
   //Called when a notification is delivered to a foreground app.
   func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
     completionHandler([.sound, .alert, .badge]) // Use array literal for options
-  }
-  
-  func provider(_ provider: CXProvider, didActivateAudioSession audioSession: AVAudioSession) {
-    RTCAudioSession.sharedInstance().audioSessionDidActivate(AVAudioSession.sharedInstance()) // Use sharedInstance()
-  }
-  
-  func provider(_ provider: CXProvider, didDeactivateAudioSession audioSession: AVAudioSession) {
-    RTCAudioSession.sharedInstance().audioSessionDidDeactivate(AVAudioSession.sharedInstance()) // Use sharedInstance()
   }
 
   func application(
@@ -131,14 +101,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   ) -> Bool {
     // Uncomment the next line to enable verbose WebRTC logs
     // WebRTCModuleOptions.sharedInstance().loggingSeverity = .verbose
-    
-    let localizedAppName = Bundle.main.localizedInfoDictionary?["CFBundleDisplayName"] as? String
-    let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
-    RNCallKeep.setup([
-      "appName": localizedAppName != nil ? localizedAppName! : appName as Any, // Forced unwrap is safe here due to nil check
-      "supportsVideo": true,
-      "includesCallsInRecents": false,
-    ])
     
     RNVoipPushNotificationManager.voipRegistration()
     
