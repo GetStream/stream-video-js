@@ -1477,6 +1477,12 @@ export interface CallRecording {
    * @type {string}
    * @memberof CallRecording
    */
+  recording_type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecording
+   */
   session_id: string;
   /**
    *
@@ -1516,12 +1522,30 @@ export interface CallRecordingFailedEvent {
    */
   egress_id: string;
   /**
+   * The type of recording
+   * @type {string}
+   * @memberof CallRecordingFailedEvent
+   */
+  recording_type: CallRecordingFailedEventRecordingTypeEnum;
+  /**
    * The type of event: "call.recording_failed" in this case
    * @type {string}
    * @memberof CallRecordingFailedEvent
    */
   type: string;
 }
+
+/**
+ * @export
+ */
+export const CallRecordingFailedEventRecordingTypeEnum = {
+  COMPOSITE: 'composite',
+  INDIVIDUAL: 'individual',
+  RAW: 'raw',
+} as const;
+export type CallRecordingFailedEventRecordingTypeEnum =
+  (typeof CallRecordingFailedEventRecordingTypeEnum)[keyof typeof CallRecordingFailedEventRecordingTypeEnum];
+
 /**
  * This event is sent when call recording is ready
  * @export
@@ -1553,12 +1577,30 @@ export interface CallRecordingReadyEvent {
    */
   egress_id: string;
   /**
+   * The type of recording
+   * @type {string}
+   * @memberof CallRecordingReadyEvent
+   */
+  recording_type: CallRecordingReadyEventRecordingTypeEnum;
+  /**
    * The type of event: "call.recording_ready" in this case
    * @type {string}
    * @memberof CallRecordingReadyEvent
    */
   type: string;
 }
+
+/**
+ * @export
+ */
+export const CallRecordingReadyEventRecordingTypeEnum = {
+  COMPOSITE: 'composite',
+  INDIVIDUAL: 'individual',
+  RAW: 'raw',
+} as const;
+export type CallRecordingReadyEventRecordingTypeEnum =
+  (typeof CallRecordingReadyEventRecordingTypeEnum)[keyof typeof CallRecordingReadyEventRecordingTypeEnum];
+
 /**
  * This event is sent when call recording has started
  * @export
@@ -1584,12 +1626,30 @@ export interface CallRecordingStartedEvent {
    */
   egress_id: string;
   /**
+   * The type of recording
+   * @type {string}
+   * @memberof CallRecordingStartedEvent
+   */
+  recording_type: CallRecordingStartedEventRecordingTypeEnum;
+  /**
    * The type of event: "call.recording_started" in this case
    * @type {string}
    * @memberof CallRecordingStartedEvent
    */
   type: string;
 }
+
+/**
+ * @export
+ */
+export const CallRecordingStartedEventRecordingTypeEnum = {
+  COMPOSITE: 'composite',
+  INDIVIDUAL: 'individual',
+  RAW: 'raw',
+} as const;
+export type CallRecordingStartedEventRecordingTypeEnum =
+  (typeof CallRecordingStartedEventRecordingTypeEnum)[keyof typeof CallRecordingStartedEventRecordingTypeEnum];
+
 /**
  * This event is sent when call recording has stopped
  * @export
@@ -1615,12 +1675,30 @@ export interface CallRecordingStoppedEvent {
    */
   egress_id: string;
   /**
+   * The type of recording
+   * @type {string}
+   * @memberof CallRecordingStoppedEvent
+   */
+  recording_type: CallRecordingStoppedEventRecordingTypeEnum;
+  /**
    * The type of event: "call.recording_stopped" in this case
    * @type {string}
    * @memberof CallRecordingStoppedEvent
    */
   type: string;
 }
+
+/**
+ * @export
+ */
+export const CallRecordingStoppedEventRecordingTypeEnum = {
+  COMPOSITE: 'composite',
+  INDIVIDUAL: 'individual',
+  RAW: 'raw',
+} as const;
+export type CallRecordingStoppedEventRecordingTypeEnum =
+  (typeof CallRecordingStoppedEventRecordingTypeEnum)[keyof typeof CallRecordingStoppedEventRecordingTypeEnum];
+
 /**
  * This event is sent when a user rejects a notification to join a call.
  * @export
@@ -2363,6 +2441,12 @@ export interface CallSettingsRequest {
   geofencing?: GeofenceSettingsRequest;
   /**
    *
+   * @type {IndividualRecordingSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  individual_recording?: IndividualRecordingSettingsRequest;
+  /**
+   *
    * @type {IngressSettingsRequest}
    * @memberof CallSettingsRequest
    */
@@ -2373,6 +2457,12 @@ export interface CallSettingsRequest {
    * @memberof CallSettingsRequest
    */
   limits?: LimitsSettingsRequest;
+  /**
+   *
+   * @type {RawRecordingSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  raw_recording?: RawRecordingSettingsRequest;
   /**
    *
    * @type {RecordSettingsRequest}
@@ -2454,6 +2544,12 @@ export interface CallSettingsResponse {
   geofencing: GeofenceSettingsResponse;
   /**
    *
+   * @type {IndividualRecordingSettingsResponse}
+   * @memberof CallSettingsResponse
+   */
+  individual_recording: IndividualRecordingSettingsResponse;
+  /**
+   *
    * @type {IngressSettingsResponse}
    * @memberof CallSettingsResponse
    */
@@ -2464,6 +2560,12 @@ export interface CallSettingsResponse {
    * @memberof CallSettingsResponse
    */
   limits: LimitsSettingsResponse;
+  /**
+   *
+   * @type {RawRecordingSettingsResponse}
+   * @memberof CallSettingsResponse
+   */
+  raw_recording: RawRecordingSettingsResponse;
   /**
    *
    * @type {RecordSettingsResponse}
@@ -3318,6 +3420,19 @@ export interface CollectUserFeedbackResponse {
 /**
  *
  * @export
+ * @interface CompositeRecordingResponse
+ */
+export interface CompositeRecordingResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof CompositeRecordingResponse
+   */
+  status: string;
+}
+/**
+ *
+ * @export
  * @interface ConnectUserDetailsRequest
  */
 export interface ConnectUserDetailsRequest {
@@ -3953,6 +4068,12 @@ export interface EgressResponse {
   broadcasting: boolean;
   /**
    *
+   * @type {CompositeRecordingResponse}
+   * @memberof EgressResponse
+   */
+  composite_recording?: CompositeRecordingResponse;
+  /**
+   *
    * @type {FrameRecordingResponse}
    * @memberof EgressResponse
    */
@@ -3963,6 +4084,18 @@ export interface EgressResponse {
    * @memberof EgressResponse
    */
   hls?: EgressHLSResponse;
+  /**
+   *
+   * @type {IndividualRecordingResponse}
+   * @memberof EgressResponse
+   */
+  individual_recording?: IndividualRecordingResponse;
+  /**
+   *
+   * @type {RawRecordingResponse}
+   * @memberof EgressResponse
+   */
+  raw_recording?: RawRecordingResponse;
   /**
    *
    * @type {Array<EgressRTMPResponse>}
@@ -4378,7 +4511,25 @@ export interface GoLiveRequest {
    * @type {boolean}
    * @memberof GoLiveRequest
    */
+  start_composite_recording?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
   start_hls?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
+  start_individual_recording?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
+  start_raw_recording?: boolean;
   /**
    *
    * @type {boolean}
@@ -4554,6 +4705,69 @@ export interface ICEServer {
    */
   username: string;
 }
+/**
+ *
+ * @export
+ * @interface IndividualRecordingResponse
+ */
+export interface IndividualRecordingResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof IndividualRecordingResponse
+   */
+  status: string;
+}
+/**
+ *
+ * @export
+ * @interface IndividualRecordingSettingsRequest
+ */
+export interface IndividualRecordingSettingsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof IndividualRecordingSettingsRequest
+   */
+  mode: IndividualRecordingSettingsRequestModeEnum;
+}
+
+/**
+ * @export
+ */
+export const IndividualRecordingSettingsRequestModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type IndividualRecordingSettingsRequestModeEnum =
+  (typeof IndividualRecordingSettingsRequestModeEnum)[keyof typeof IndividualRecordingSettingsRequestModeEnum];
+
+/**
+ *
+ * @export
+ * @interface IndividualRecordingSettingsResponse
+ */
+export interface IndividualRecordingSettingsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof IndividualRecordingSettingsResponse
+   */
+  mode: IndividualRecordingSettingsResponseModeEnum;
+}
+
+/**
+ * @export
+ */
+export const IndividualRecordingSettingsResponseModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type IndividualRecordingSettingsResponseModeEnum =
+  (typeof IndividualRecordingSettingsResponseModeEnum)[keyof typeof IndividualRecordingSettingsResponseModeEnum];
+
 /**
  *
  * @export
@@ -5487,11 +5701,15 @@ export const OwnCapability = {
   START_BROADCAST_CALL: 'start-broadcast-call',
   START_CLOSED_CAPTIONS_CALL: 'start-closed-captions-call',
   START_FRAME_RECORD_CALL: 'start-frame-record-call',
+  START_INDIVIDUAL_RECORD_CALL: 'start-individual-record-call',
+  START_RAW_RECORD_CALL: 'start-raw-record-call',
   START_RECORD_CALL: 'start-record-call',
   START_TRANSCRIPTION_CALL: 'start-transcription-call',
   STOP_BROADCAST_CALL: 'stop-broadcast-call',
   STOP_CLOSED_CAPTIONS_CALL: 'stop-closed-captions-call',
   STOP_FRAME_RECORD_CALL: 'stop-frame-record-call',
+  STOP_INDIVIDUAL_RECORD_CALL: 'stop-individual-record-call',
+  STOP_RAW_RECORD_CALL: 'stop-raw-record-call',
   STOP_RECORD_CALL: 'stop-record-call',
   STOP_TRANSCRIPTION_CALL: 'stop-transcription-call',
   UPDATE_CALL: 'update-call',
@@ -6775,6 +6993,69 @@ export interface RTMPSettingsResponse {
    */
   quality: string;
 }
+/**
+ *
+ * @export
+ * @interface RawRecordingResponse
+ */
+export interface RawRecordingResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof RawRecordingResponse
+   */
+  status: string;
+}
+/**
+ *
+ * @export
+ * @interface RawRecordingSettingsRequest
+ */
+export interface RawRecordingSettingsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof RawRecordingSettingsRequest
+   */
+  mode: RawRecordingSettingsRequestModeEnum;
+}
+
+/**
+ * @export
+ */
+export const RawRecordingSettingsRequestModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type RawRecordingSettingsRequestModeEnum =
+  (typeof RawRecordingSettingsRequestModeEnum)[keyof typeof RawRecordingSettingsRequestModeEnum];
+
+/**
+ *
+ * @export
+ * @interface RawRecordingSettingsResponse
+ */
+export interface RawRecordingSettingsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof RawRecordingSettingsResponse
+   */
+  mode: RawRecordingSettingsResponseModeEnum;
+}
+
+/**
+ * @export
+ */
+export const RawRecordingSettingsResponseModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type RawRecordingSettingsResponseModeEnum =
+  (typeof RawRecordingSettingsResponseModeEnum)[keyof typeof RawRecordingSettingsResponseModeEnum];
+
 /**
  *
  * @export
@@ -8182,7 +8463,25 @@ export interface StopLiveRequest {
    * @type {boolean}
    * @memberof StopLiveRequest
    */
+  continue_composite_recording?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof StopLiveRequest
+   */
   continue_hls?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof StopLiveRequest
+   */
+  continue_individual_recording?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof StopLiveRequest
+   */
+  continue_raw_recording?: boolean;
   /**
    *
    * @type {boolean}

@@ -57,7 +57,9 @@ describe('CallState', () => {
     it(`shouldn't emit when primitive (backstage) values didn't change`, () => {
       const state = new CallState();
       const updateWith = (value: boolean) => {
-        state.updateFromCallResponse(fromPartial({ backstage: value }));
+        state.updateFromCallResponse(
+          fromPartial({ backstage: value, egress: {} }),
+        );
       };
 
       updateWith(false);
@@ -138,7 +140,9 @@ describe('CallState', () => {
     it(`shouldn't emit when string arrays (blockedUserIds) value didn't change`, () => {
       const state = new CallState();
       const updateWith = (value: string[]) => {
-        state.updateFromCallResponse(fromPartial({ blocked_user_ids: value }));
+        state.updateFromCallResponse(
+          fromPartial({ blocked_user_ids: value, egress: {} }),
+        );
       };
 
       updateWith(['a', 'b']);
@@ -387,13 +391,12 @@ describe('CallState', () => {
     describe('call.live and backstage events', () => {
       it('handles call.live_started events', () => {
         const state = new CallState();
-        state.updateFromEvent({
-          type: 'call.live_started',
-          // @ts-expect-error - incomplete data
-          call: {
-            backstage: false,
-          },
-        });
+        state.updateFromEvent(
+          fromPartial({
+            type: 'call.live_started',
+            call: fromPartial({ backstage: false, egress: {} }),
+          }),
+        );
         expect(state.backstage).toBe(false);
       });
     });
@@ -402,17 +405,15 @@ describe('CallState', () => {
       describe('call.updated', () => {
         it(`will update the call's metadata`, () => {
           const state = new CallState();
-          const event: CallUpdatedEvent = {
+          const event: CallUpdatedEvent = fromPartial({
             type: 'call.updated',
             call_cid: 'development:12345',
-            // @ts-expect-error incomplete data
-            call: {
+            call: fromPartial({
               cid: 'development:12345',
-              custom: {
-                test: 'value',
-              },
-            },
-          };
+              egress: {},
+              custom: { test: 'value' },
+            }),
+          });
 
           // @ts-expect-error incomplete data
           state.updateFromEvent(event);
@@ -423,15 +424,10 @@ describe('CallState', () => {
       describe(`call.accepted`, () => {
         it(`will update state`, () => {
           const state = new CallState();
-          const event: CallAcceptedEvent = {
+          const event: CallAcceptedEvent = fromPartial({
             type: 'call.accepted',
-            // @ts-expect-error incomplete data
-            call: {
-              custom: {
-                test: 'value',
-              },
-            },
-          };
+            call: fromPartial({ egress: {}, custom: { test: 'value' } }),
+          });
           // @ts-expect-error incomplete data
           state.updateFromEvent(event);
 
@@ -442,15 +438,10 @@ describe('CallState', () => {
       describe(`call.rejected`, () => {
         it(`will update state`, () => {
           const state = new CallState();
-          const event: CallEndedEvent = {
+          const event: CallEndedEvent = fromPartial({
             type: 'call.rejected',
-            // @ts-expect-error incomplete data
-            call: {
-              custom: {
-                test: 'value',
-              },
-            },
-          };
+            call: fromPartial({ egress: {}, custom: { test: 'value' } }),
+          });
           // @ts-expect-error incomplete data
           state.updateFromEvent(event);
 
@@ -461,15 +452,10 @@ describe('CallState', () => {
       describe(`call.ended`, () => {
         it(`will update state`, () => {
           const state = new CallState();
-          const event: CallEndedEvent = {
+          const event: CallEndedEvent = fromPartial({
             type: 'call.ended',
-            // @ts-expect-error incomplete data
-            call: {
-              custom: {
-                test: 'value',
-              },
-            },
-          };
+            call: fromPartial({ egress: {}, custom: { test: 'value' } }),
+          });
           // @ts-expect-error incomplete data
           state.updateFromEvent(event);
 
@@ -525,7 +511,7 @@ describe('CallState', () => {
           // @ts-expect-error incomplete data
           members: [{ user_id: 'user1' }, { user_id: 'user2' }],
           // @ts-expect-error incomplete data
-          call: {},
+          call: { egress: {} },
         });
 
         const updatedMembers = state.members;
@@ -551,7 +537,7 @@ describe('CallState', () => {
           type: 'call.member_removed',
           members: removedMembers,
           // @ts-expect-error incomplete data
-          call: {},
+          call: { egress: {} },
         });
 
         const updatedMembers = state.members;
@@ -596,7 +582,7 @@ describe('CallState', () => {
             },
           ],
           // @ts-expect-error incomplete data
-          call: {},
+          call: { egress: {} },
         });
 
         const updatedMembers = state.members;
@@ -626,7 +612,7 @@ describe('CallState', () => {
           // @ts-expect-error incomplete data
           members: [{ ...user1, user: { name: 'John' } }],
           // @ts-expect-error incomplete data
-          call: {},
+          call: { egress: {} },
         });
 
         const updatedMembers = state.members;
@@ -691,7 +677,7 @@ describe('CallState', () => {
       it('handles call.hls_broadcasting_stopped events', () => {
         const state = new CallState();
         // @ts-expect-error incomplete data
-        state.updateFromCallResponse({});
+        state.updateFromCallResponse({ egress: {} });
         // @ts-expect-error incomplete data
         state.updateFromEvent({
           type: 'call.hls_broadcasting_stopped',
@@ -709,20 +695,381 @@ describe('CallState', () => {
       });
     });
 
+    describe('updateFromRecordingEvent', () => {
+      describe('COMPOSITE recording type', () => {
+        it('should set recording to true when composite recording starts', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'composite',
+            }),
+          );
+          expect(state.recording).toBe(true);
+          expect(state.individualRecording).toBe(false);
+          expect(state.rawRecording).toBe(false);
+        });
+
+        it('should set recording to false when composite recording stops', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'composite',
+            }),
+          );
+          expect(state.recording).toBe(true);
+
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_stopped',
+              recording_type: 'composite',
+            }),
+          );
+          expect(state.recording).toBe(false);
+        });
+
+        it('should set recording to false when composite recording fails', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'composite',
+            }),
+          );
+          expect(state.recording).toBe(true);
+
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_failed',
+              recording_type: 'composite',
+            }),
+          );
+          expect(state.recording).toBe(false);
+        });
+      });
+
+      describe('INDIVIDUAL recording type', () => {
+        it('should set individualRecording to true when individual recording starts', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'individual',
+            }),
+          );
+          expect(state.individualRecording).toBe(true);
+          expect(state.recording).toBe(false);
+          expect(state.rawRecording).toBe(false);
+        });
+
+        it('should set individualRecording to false when individual recording stops', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'individual',
+            }),
+          );
+          expect(state.individualRecording).toBe(true);
+
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_stopped',
+              recording_type: 'individual',
+            }),
+          );
+          expect(state.individualRecording).toBe(false);
+        });
+
+        it('should set individualRecording to false when individual recording fails', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'individual',
+            }),
+          );
+          expect(state.individualRecording).toBe(true);
+
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_failed',
+              recording_type: 'individual',
+            }),
+          );
+          expect(state.individualRecording).toBe(false);
+        });
+      });
+
+      describe('RAW recording type', () => {
+        it('should set rawRecording to true when raw recording starts', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'raw',
+            }),
+          );
+          expect(state.rawRecording).toBe(true);
+          expect(state.recording).toBe(false);
+          expect(state.individualRecording).toBe(false);
+        });
+
+        it('should set rawRecording to false when raw recording stops', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'raw',
+            }),
+          );
+          expect(state.rawRecording).toBe(true);
+
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_stopped',
+              recording_type: 'raw',
+            }),
+          );
+          expect(state.rawRecording).toBe(false);
+        });
+
+        it('should set rawRecording to false when raw recording fails', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'raw',
+            }),
+          );
+          expect(state.rawRecording).toBe(true);
+
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_failed',
+              recording_type: 'raw',
+            }),
+          );
+          expect(state.rawRecording).toBe(false);
+        });
+      });
+
+      describe('Legacy (undefined) recording type', () => {
+        it('should set recording to true when recording starts with undefined type (legacy)', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: undefined,
+            }),
+          );
+          expect(state.recording).toBe(true);
+          expect(state.individualRecording).toBe(false);
+          expect(state.rawRecording).toBe(false);
+        });
+
+        it('should set recording to false when recording stops with undefined type (legacy)', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: undefined,
+            }),
+          );
+          expect(state.recording).toBe(true);
+
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_stopped',
+              recording_type: undefined,
+            }),
+          );
+          expect(state.recording).toBe(false);
+        });
+
+        it('should set recording to false when recording fails with undefined type (legacy)', () => {
+          const state = new CallState();
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: undefined,
+            }),
+          );
+          expect(state.recording).toBe(true);
+
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_failed',
+              recording_type: undefined,
+            }),
+          );
+          expect(state.recording).toBe(false);
+        });
+      });
+
+      describe('Recording type isolation', () => {
+        it('should not affect other recording types when composite recording changes', () => {
+          const state = new CallState();
+          // Start all three types
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'composite',
+            }),
+          );
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'individual',
+            }),
+          );
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'raw',
+            }),
+          );
+
+          expect(state.recording).toBe(true);
+          expect(state.individualRecording).toBe(true);
+          expect(state.rawRecording).toBe(true);
+
+          // Stop composite recording only
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_stopped',
+              recording_type: 'composite',
+            }),
+          );
+
+          expect(state.recording).toBe(false);
+          expect(state.individualRecording).toBe(true);
+          expect(state.rawRecording).toBe(true);
+        });
+
+        it('should not affect other recording types when individual recording changes', () => {
+          const state = new CallState();
+          // Start all three types
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'composite',
+            }),
+          );
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'individual',
+            }),
+          );
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'raw',
+            }),
+          );
+
+          // Stop individual recording only
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_stopped',
+              recording_type: 'individual',
+            }),
+          );
+
+          expect(state.recording).toBe(true);
+          expect(state.individualRecording).toBe(false);
+          expect(state.rawRecording).toBe(true);
+        });
+
+        it('should not affect other recording types when raw recording changes', () => {
+          const state = new CallState();
+          // Start all three types
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'composite',
+            }),
+          );
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'individual',
+            }),
+          );
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'raw',
+            }),
+          );
+
+          // Stop raw recording only
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_stopped',
+              recording_type: 'raw',
+            }),
+          );
+
+          expect(state.recording).toBe(true);
+          expect(state.individualRecording).toBe(true);
+          expect(state.rawRecording).toBe(false);
+        });
+
+        it('should handle multiple recording types being active simultaneously', () => {
+          const state = new CallState();
+
+          // Start composite and individual
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'composite',
+            }),
+          );
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'individual',
+            }),
+          );
+
+          expect(state.recording).toBe(true);
+          expect(state.individualRecording).toBe(true);
+          expect(state.rawRecording).toBe(false);
+
+          // Add raw recording
+          state.updateFromEvent(
+            fromPartial({
+              type: 'call.recording_started',
+              recording_type: 'raw',
+            }),
+          );
+
+          expect(state.recording).toBe(true);
+          expect(state.individualRecording).toBe(true);
+          expect(state.rawRecording).toBe(true);
+        });
+      });
+    });
+
     describe('call.session events', () => {
       it('should update the call metadata when a session starts', () => {
         const state = new CallState();
-        state.updateFromEvent({
-          type: 'call.session_started',
-          call: {
-            // @ts-expect-error incomplete data
-            session: {
-              id: 'session-id',
-              participants: [],
-              participants_count_by_role: {},
+        state.updateFromEvent(
+          fromPartial({
+            type: 'call.session_started',
+            call: {
+              egress: {},
+              session: fromPartial({
+                id: 'session-id',
+                participants: [],
+                participants_count_by_role: {},
+              }),
             },
-          },
-        });
+          }),
+        );
 
         expect(state.session).toEqual({
           id: 'session-id',
@@ -733,17 +1080,19 @@ describe('CallState', () => {
 
       it('should update the call metadata when a session ends', () => {
         const state = new CallState();
-        state.updateFromEvent({
-          type: 'call.session_ended',
-          call: {
-            // @ts-expect-error incomplete data
-            session: {
-              id: 'session-id',
-              participants: [],
-              participants_count_by_role: {},
+        state.updateFromEvent(
+          fromPartial({
+            type: 'call.session_ended',
+            call: {
+              egress: {},
+              session: fromPartial({
+                id: 'session-id',
+                participants: [],
+                participants_count_by_role: {},
+              }),
             },
-          },
-        });
+          }),
+        );
         expect(state.session).toEqual({
           id: 'session-id',
           participants: [],
@@ -753,13 +1102,12 @@ describe('CallState', () => {
 
       it('should update the call metadata when a participant joins', () => {
         const state = new CallState();
-        state.updateFromCallResponse({
-          // @ts-expect-error incomplete data
-          session: {
-            participants: [],
-            participants_count_by_role: {},
-          },
-        });
+        state.updateFromCallResponse(
+          fromPartial({
+            session: { participants: [], participants_count_by_role: {} },
+            egress: {},
+          }),
+        );
         state.updateFromEvent({
           type: 'call.session_participant_joined',
           participant: {
@@ -781,19 +1129,21 @@ describe('CallState', () => {
 
       it('should update the call metadata when a participant leaves', () => {
         const state = new CallState();
-        state.updateFromCallResponse({
-          session: {
-            participants: [
-              {
-                joined_at: '2021-01-01T00:00:00.000Z',
-                // @ts-expect-error incomplete data
-                user: { id: 'user-id', role: 'user' },
-                user_session_id: '123',
-              },
-            ],
-            participants_count_by_role: { user: 1 },
-          },
-        });
+        state.updateFromCallResponse(
+          fromPartial({
+            egress: {},
+            session: {
+              participants: [
+                {
+                  joined_at: '2021-01-01T00:00:00.000Z',
+                  user: { id: 'user-id', role: 'user' },
+                  user_session_id: '123',
+                },
+              ],
+              participants_count_by_role: { user: 1 },
+            },
+          }),
+        );
         state.updateFromEvent({
           type: 'call.session_participant_left',
           participant: {
@@ -810,18 +1160,20 @@ describe('CallState', () => {
 
       it('should update existing participant', () => {
         const state = new CallState();
-        state.updateFromCallResponse({
-          session: {
-            participants: [
-              {
-                // @ts-expect-error incomplete data
-                user: { id: 'user-id', role: 'user' },
-                user_session_id: '123',
-              },
-            ],
-            participants_count_by_role: { user: 1 },
-          },
-        });
+        state.updateFromCallResponse(
+          fromPartial({
+            egress: {},
+            session: {
+              participants: [
+                {
+                  user: { id: 'user-id', role: 'user' },
+                  user_session_id: '123',
+                },
+              ],
+              participants_count_by_role: { user: 1 },
+            },
+          }),
+        );
         state.updateFromEvent({
           type: 'call.session_participant_joined',
           participant: {
@@ -843,10 +1195,12 @@ describe('CallState', () => {
 
       it('should handle call.session_participant_updated events', () => {
         const state = new CallState();
-        state.updateFromCallResponse({
-          // @ts-expect-error incomplete data
-          session: { participants: [], participants_count_by_role: {} },
-        });
+        state.updateFromCallResponse(
+          fromPartial({
+            session: { participants: [], participants_count_by_role: {} },
+            egress: {},
+          }),
+        );
         // @ts-expect-error incomplete data
         state.updateFromEvent({
           type: 'call.session_participant_count_updated',
@@ -866,10 +1220,12 @@ describe('CallState', () => {
 
       it('should not update the participant counts when call is joined', () => {
         const state = new CallState();
-        state.updateFromCallResponse({
-          // @ts-expect-error incomplete data
-          session: { participants: [], participants_count_by_role: {} },
-        });
+        state.updateFromCallResponse(
+          fromPartial({
+            session: { participants: [], participants_count_by_role: {} },
+            egress: {},
+          }),
+        );
         state.setCallingState(CallingState.JOINED);
 
         // @ts-expect-error incomplete data
