@@ -11,8 +11,13 @@
 #ifdef DEBUG
   NSLog(@"[Settings][setSettings] options = %@", options);
 #endif
-  NSDictionary *settings = [[NSMutableDictionary alloc] initWithDictionary:options];
-  // Store settings in NSUserDefault
+  NSDictionary *currentSettings = [Settings getSettings];
+  NSMutableDictionary *settings = currentSettings ? [currentSettings mutableCopy] : [NSMutableDictionary dictionary];
+  
+  if (options) {
+    [settings addEntriesFromDictionary:options];
+  }
+  
   [[NSUserDefaults standardUserDefaults] setObject:settings forKey:@"CallingxSettings"];
   [[NSUserDefaults standardUserDefaults] synchronize];
 }
@@ -23,6 +28,18 @@
     return [settings[@"autoConfigureAudioSession"] boolValue];
   }
   return NO;
+}
+
++ (BOOL)getShouldRejectCallWhenBusy {
+  NSDictionary *settings = [Settings getSettings];
+  if (settings && settings[@"shouldRejectCallWhenBusy"]) {
+    return [settings[@"shouldRejectCallWhenBusy"] boolValue];
+  }
+  return NO;
+}
+
++ (void)setShouldRejectCallWhenBusy:(BOOL)shouldReject {
+  [Settings setSettings:@{@"shouldRejectCallWhenBusy": @(shouldReject)}];
 }
 
 + (CXProviderConfiguration *)getProviderConfiguration:(NSDictionary *)settings {

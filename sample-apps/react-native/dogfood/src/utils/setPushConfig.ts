@@ -75,7 +75,7 @@ export function setPushConfig() {
   });
 
   StreamVideoRN.setupCallingExp({
-    enableOutcomingCalls: true,
+    shouldRejectCallWhenBusy: true,
   });
 
   setFirebaseListeners();

@@ -39,7 +39,6 @@ static NSString *const CallingxProviderReset = @"providerReset";
 
 static CXProvider *sharedProvider;
 static UUIDStorage *uuidStorage;
-static BOOL _shouldRejectCallWhenBusy = NO;
 
 #pragma mark - Class Methods
 
@@ -135,73 +134,10 @@ static BOOL _shouldRejectCallWhenBusy = NO;
   }];
 }
 
-//+ (BOOL)application:(UIApplication *)application
-//continueUserActivity:(NSUserActivity *)userActivity
-// restorationHandler:(void(^)(NSArray * __nullable restorableObjects))restorationHandler
-//{
-//#ifdef DEBUG
-//    NSLog(@"[Callingx][application:continueUserActivity]");
-//#endif
-//    INInteraction *interaction = userActivity.interaction;
-//    INPerson *contact;
-//    NSString *handle;
-//    BOOL isAudioCall;
-//    BOOL isVideoCall;
-//
-//    // HACK TO AVOID XCODE 10 COMPILE CRASH
-//    // REMOVE ON NEXT MAJOR RELEASE OF RNCALLKIT
-//#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
-//    //XCode 11
-//    // iOS 13 returns an INStartCallIntent userActivity type
-//    if (@available(iOS 13, *)) {
-//        INStartCallIntent *intent = (INStartCallIntent*)interaction.intent;
-//        // callCapability is not available on iOS > 13.2, but it is in 13.1 weirdly...
-//        if ([intent respondsToSelector:@selector(callCapability)]) {
-//            isAudioCall = intent.callCapability == INCallCapabilityAudioCall;
-//            isVideoCall = intent.callCapability == INCallCapabilityVideoCall;
-//        } else {
-//            isAudioCall = [userActivity.activityType isEqualToString:INStartAudioCallIntentIdentifier];
-//            isVideoCall = [userActivity.activityType isEqualToString:INStartVideoCallIntentIdentifier];
-//        }
-//    } else {
-//#endif
-//        // XCode 10 and below
-//        isAudioCall = [userActivity.activityType isEqualToString:INStartAudioCallIntentIdentifier];
-//        isVideoCall = [userActivity.activityType isEqualToString:INStartVideoCallIntentIdentifier];
-//        // HACK TO AVOID XCODE 10 COMPILE CRASH
-//        // REMOVE ON NEXT MAJOR RELEASE OF RNCALLKIT
-//#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 130000
-//    }
-//#endif
-//
-//    if (isAudioCall) {
-//        INStartAudioCallIntent *startAudioCallIntent = (INStartAudioCallIntent *)interaction.intent;
-//        contact = [startAudioCallIntent.contacts firstObject];
-//    } else if (isVideoCall) {
-//        INStartVideoCallIntent *startVideoCallIntent = (INStartVideoCallIntent *)interaction.intent;
-//        contact = [startVideoCallIntent.contacts firstObject];
-//    }
-//
-//    if (contact != nil) {
-//        handle = contact.personHandle.value;
-//    }
-//
-//    if (handle != nil && handle.length > 0 ){
-//        NSDictionary *userInfo = @{
-//            @"handle": handle,
-//            @"video": @(isVideoCall)
-//        };
-//
-//        RNCallKeep *callKeep = [RNCallKeep allocWithZone: nil];
-//        [callKeep sendEventWithNameWrapper:CallingxDidReceiveStartCallAction body:userInfo];
-//        return YES;
-//    }
-//    return NO;
-//}
 + (BOOL)canRegisterCall {
   BOOL hasRegisteredCall = [Callingx hasRegisteredCall];
-  NSLog(@"[Callingx][canRegisterCall] hasRegisteredCall = %@, _shouldRejectCallWhenBusy = %@", hasRegisteredCall ? @"YES" : @"NO", _shouldRejectCallWhenBusy ? @"YES" : @"NO");
-  return !_shouldRejectCallWhenBusy || (_shouldRejectCallWhenBusy && !hasRegisteredCall);
+  BOOL shouldRejectCallWhenBusy = [Settings getShouldRejectCallWhenBusy];
+  return !shouldRejectCallWhenBusy || (shouldRejectCallWhenBusy && !hasRegisteredCall);
 }
 
 + (BOOL)hasRegisteredCall {
@@ -277,7 +213,6 @@ static BOOL _shouldRejectCallWhenBusy = NO;
   }
 
   [uuidStorage removeCid:callId];
-  _shouldRejectCallWhenBusy = NO;
 }
 
 + (BOOL)requiresMainQueueSetup {
@@ -309,7 +244,7 @@ static BOOL _shouldRejectCallWhenBusy = NO;
     // stored our settings
     [Callingx initCallKitProvider];
     [Callingx initUUIDStorage];
-
+    
     self.callKeepProvider = sharedProvider;
     [self.callKeepProvider setDelegate:nil queue:nil];
     [self.callKeepProvider setDelegate:self queue:nil];
@@ -454,7 +389,7 @@ static BOOL _shouldRejectCallWhenBusy = NO;
 }
 
 - (void)setShouldRejectCallWhenBusy:(BOOL)shouldReject {
-  _shouldRejectCallWhenBusy = shouldReject;
+  [Settings setShouldRejectCallWhenBusy:shouldReject];
 }
 
 - (NSArray<NSDictionary *> *)getInitialEvents {
@@ -829,7 +764,6 @@ static BOOL _shouldRejectCallWhenBusy = NO;
                               @"source" : source
                             }];
   _isSelfEnded = false;
-  _shouldRejectCallWhenBusy = NO;
   [uuidStorage removeCid:callId];
   
   [action fulfill];
