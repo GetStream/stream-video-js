@@ -108,9 +108,11 @@ import {
   AudioTrackType,
   CallConstructor,
   CallLeaveOptions,
+  CallRecordingType,
   ClientPublishOptions,
   ClosedCaptionsSettings,
   JoinCallData,
+  StartCallRecordingFnType,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -2092,43 +2094,34 @@ export class Call {
   /**
    * Starts recording the call
    */
-  startRecording = async (
-    type?: 'composite' | 'individual' | 'raw' | undefined,
-    request?: StartRecordingRequest,
-  ) => {
-    if (type === undefined) {
-      return this.streamClient.post<
-        StartRecordingResponse,
-        StartRecordingRequest
-      >(`${this.streamClientBasePath}/start_recording`, request ? request : {});
-    } else {
-      return this.streamClient.post<
-        StartRecordingResponse,
-        StartRecordingRequest
-      >(
-        `${this.streamClientBasePath}/recordings/${type}/start`,
-        request ? request : {},
-      );
-    }
+  startRecording: StartCallRecordingFnType = async (
+    dataOrType?: StartRecordingRequest | CallRecordingType,
+    type?: CallRecordingType,
+  ): Promise<StartRecordingResponse> => {
+    type = typeof dataOrType === 'string' ? dataOrType : type;
+    dataOrType = typeof dataOrType === 'string' ? undefined : dataOrType;
+
+    const endpoint = !type
+      ? `/start_recording`
+      : `/recordings/${encodeURIComponent(type)}/start`;
+
+    return this.streamClient.post<
+      StartRecordingResponse,
+      StartRecordingRequest
+    >(`${this.streamClientBasePath}${endpoint}`, dataOrType);
   };
 
   /**
    * Stops recording the call
    */
-  stopRecording = async (
-    type?: 'composite' | 'individual' | 'raw' | undefined,
-  ) => {
-    if (type === undefined) {
-      return this.streamClient.post<StopRecordingResponse>(
-        `${this.streamClientBasePath}/stop_recording`,
-        {},
-      );
-    } else {
-      return this.streamClient.post<StopRecordingResponse>(
-        `${this.streamClientBasePath}/recordings/${type}/stop`,
-        {},
-      );
-    }
+  stopRecording = async (type?: CallRecordingType) => {
+    const endpoint = !type
+      ? `/stop_recording`
+      : `/recordings/${encodeURIComponent(type)}/stop`;
+
+    return this.streamClient.post<StopRecordingResponse>(
+      `${this.streamClientBasePath}${endpoint}`,
+    );
   };
 
   /**

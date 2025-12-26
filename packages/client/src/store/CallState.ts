@@ -12,6 +12,7 @@ import type { Patch } from './rxUtils';
 import * as RxUtils from './rxUtils';
 import { CallingState } from './CallingState';
 import {
+  type CallRecordingType,
   type ClosedCaptionsSettings,
   type StreamVideoParticipant,
   type StreamVideoParticipantPatch,
@@ -30,9 +31,6 @@ import {
   CallMemberUpdatedEvent,
   CallMemberUpdatedPermissionEvent,
   CallReactionEvent,
-  CallRecordingFailedEventRecordingTypeEnum,
-  CallRecordingStartedEventRecordingTypeEnum,
-  CallRecordingStoppedEventRecordingTypeEnum,
   CallResponse,
   CallSessionParticipantCountsUpdatedEvent,
   CallSessionParticipantJoinedEvent,
@@ -52,12 +50,13 @@ import {
 import { Timestamp } from '../gen/google/protobuf/timestamp';
 import { ReconnectDetails } from '../gen/video/sfu/event/events';
 import {
+  CallGrants,
   CallState as SfuCallState,
   Pin,
   TrackType,
-  CallGrants,
 } from '../gen/video/sfu/models/models';
 import { Comparator, defaultSortPreset } from '../sorting';
+import { ensureExhausted } from '../helpers/ensureExhausted';
 import { hasScreenShare } from '../helpers/participantUtils';
 import { videoLoggerSystem } from '../logger';
 
@@ -548,43 +547,13 @@ export class CallState {
       'call.permissions_updated': this.updateOwnCapabilities,
       'call.reaction_new': this.updateParticipantReaction,
       'call.recording_started': (e) => {
-        switch (e.recording_type) {
-          case CallRecordingStartedEventRecordingTypeEnum.COMPOSITE:
-            this.setCurrentValue(this.recordingSubject, true);
-            break;
-          case CallRecordingStartedEventRecordingTypeEnum.INDIVIDUAL:
-            this.setCurrentValue(this.individualRecordingSubject, true);
-            break;
-          case CallRecordingStartedEventRecordingTypeEnum.RAW:
-            this.setCurrentValue(this.rawRecordingSubject, true);
-            break;
-        }
+        this.updateFromRecordingEvent(e.recording_type, true);
       },
       'call.recording_stopped': (e) => {
-        switch (e.recording_type) {
-          case CallRecordingStoppedEventRecordingTypeEnum.COMPOSITE:
-            this.setCurrentValue(this.recordingSubject, false);
-            break;
-          case CallRecordingStoppedEventRecordingTypeEnum.INDIVIDUAL:
-            this.setCurrentValue(this.individualRecordingSubject, false);
-            break;
-          case CallRecordingStoppedEventRecordingTypeEnum.RAW:
-            this.setCurrentValue(this.rawRecordingSubject, false);
-            break;
-        }
+        this.updateFromRecordingEvent(e.recording_type, false);
       },
       'call.recording_failed': (e) => {
-        switch (e.recording_type) {
-          case CallRecordingFailedEventRecordingTypeEnum.COMPOSITE:
-            this.setCurrentValue(this.recordingSubject, false);
-            break;
-          case CallRecordingFailedEventRecordingTypeEnum.INDIVIDUAL:
-            this.setCurrentValue(this.individualRecordingSubject, false);
-            break;
-          case CallRecordingFailedEventRecordingTypeEnum.RAW:
-            this.setCurrentValue(this.rawRecordingSubject, false);
-            break;
-        }
+        this.updateFromRecordingEvent(e.recording_type, false);
       },
       'call.rejected': (e) => this.updateFromCallResponse(e.call),
       'call.ring': (e) => this.updateFromCallResponse(e.call),
@@ -969,10 +938,24 @@ export class CallState {
   }
 
   /**
-   * Will provide the recording state of this call.
+   * Will provide the composite recording state of this call.
    */
   get recording() {
     return this.getCurrentValue(this.recording$);
+  }
+
+  /**
+   * Will provide the individual recording state of this call.
+   */
+  get individualRecording() {
+    return this.getCurrentValue(this.individualRecording$);
+  }
+
+  /**
+   * Will provide the raw recording state of this call.
+   */
+  get rawRecording() {
+    return this.getCurrentValue(this.rawRecording$);
   }
 
   /**
@@ -1322,17 +1305,19 @@ export class CallState {
     this.setCurrentValue(this.customSubject, call.custom);
     this.setCurrentValue(this.egressSubject, call.egress);
     this.setCurrentValue(this.ingressSubject, call.ingress);
+    const { individual_recording, composite_recording, raw_recording } =
+      call.egress;
     this.setCurrentValue(
       this.recordingSubject,
-      call.recording || !!call.egress?.composite_recording,
+      call.recording || composite_recording?.status === 'running',
     );
     this.setCurrentValue(
       this.individualRecordingSubject,
-      !!call.egress?.individual_recording,
+      individual_recording?.status === 'running',
     );
     this.setCurrentValue(
       this.rawRecordingSubject,
-      !!call.egress?.raw_recording,
+      raw_recording?.status === 'running',
     );
 
     const s = this.setCurrentValue(this.sessionSubject, call.session);
@@ -1423,6 +1408,22 @@ export class CallState {
         status: '',
       },
     }));
+  };
+
+  private updateFromRecordingEvent = (
+    type: CallRecordingType | undefined,
+    running: boolean,
+  ) => {
+    // handle the legacy format, where `type` is absent in the emitted events
+    if (type === undefined || type === 'composite') {
+      this.setCurrentValue(this.recordingSubject, running);
+    } else if (type === 'individual') {
+      this.setCurrentValue(this.individualRecordingSubject, running);
+    } else if (type === 'raw') {
+      this.setCurrentValue(this.rawRecordingSubject, running);
+    } else {
+      ensureExhausted(type, 'Unknown recording type');
+    }
   };
 
   private updateParticipantCountFromSession = (
