@@ -2,6 +2,37 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.39.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.1...@stream-io/video-client-1.39.2) (2025-12-23)
+
+- upgrade stream dependencies ([#2065](https://github.com/GetStream/stream-video-js/issues/2065)) ([04ca858](https://github.com/GetStream/stream-video-js/commit/04ca858517072f861c1ddae0876f0b425ca658e2))
+
+### Bug Fixes
+
+- **safari:** verify that AudioContext supports `setSinkId` ([#2069](https://github.com/GetStream/stream-video-js/issues/2069)) ([e7fbe10](https://github.com/GetStream/stream-video-js/commit/e7fbe10d06acce52a2e3f4f7d008882fa23e9c89))
+- slow rampup on vp9/h264 codec ([#2056](https://github.com/GetStream/stream-video-js/issues/2056)) ([b5ad360](https://github.com/GetStream/stream-video-js/commit/b5ad360eab83a139198d05b4f42b777315135ab6))
+
+## [1.39.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.0...@stream-io/video-client-1.39.1) (2025-12-18)
+
+### Bug Fixes
+
+- **provenance:** add repository info to every package ([4159633](https://github.com/GetStream/stream-video-js/commit/4159633b908afe6542b4be53151da6218175426c))
+
+## [1.39.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.2...@stream-io/video-client-1.39.0) (2025-12-18)
+
+### Features
+
+- **react:** Retryable call watching ([#2046](https://github.com/GetStream/stream-video-js/issues/2046)) ([7205011](https://github.com/GetStream/stream-video-js/commit/7205011a451995585848b89388c91ae9a1b0bc64))
+
+### Bug Fixes
+
+- add response tracing for the SetPublisher RPC ([#2055](https://github.com/GetStream/stream-video-js/issues/2055)) ([a25d9a8](https://github.com/GetStream/stream-video-js/commit/a25d9a89870db47be046f31c85888995e43d44cd))
+
+## [1.38.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.1...@stream-io/video-client-1.38.2) (2025-12-11)
+
+### Bug Fixes
+
+- revert usage of useSyncExternalStore ([#2043](https://github.com/GetStream/stream-video-js/issues/2043)) ([849e896](https://github.com/GetStream/stream-video-js/commit/849e8964ac90d5785a6d608443f80156d1081744)), closes [#1953](https://github.com/GetStream/stream-video-js/issues/1953) [#2034](https://github.com/GetStream/stream-video-js/issues/2034) [#2006](https://github.com/GetStream/stream-video-js/issues/2006) [#2008](https://github.com/GetStream/stream-video-js/issues/2008)
+
 ## [1.38.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.0...@stream-io/video-client-1.38.1) (2025-12-08)
 
 ### Bug Fixes

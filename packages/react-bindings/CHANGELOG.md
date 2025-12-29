@@ -2,6 +2,38 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.4...@stream-io/video-react-bindings-1.12.5) (2025-12-23)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.2`
+
+## [1.12.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.3...@stream-io/video-react-bindings-1.12.4) (2025-12-18)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.1`
+
+### Bug Fixes
+
+- **provenance:** add repository info to every package ([4159633](https://github.com/GetStream/stream-video-js/commit/4159633b908afe6542b4be53151da6218175426c))
+
+## [1.12.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.2...@stream-io/video-react-bindings-1.12.3) (2025-12-18)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.0`
+
+## [1.12.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.1...@stream-io/video-react-bindings-1.12.2) (2025-12-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.2`
+
+### Bug Fixes
+
+- revert usage of useSyncExternalStore ([#2043](https://github.com/GetStream/stream-video-js/issues/2043)) ([849e896](https://github.com/GetStream/stream-video-js/commit/849e8964ac90d5785a6d608443f80156d1081744)), closes [#1953](https://github.com/GetStream/stream-video-js/issues/1953) [#2034](https://github.com/GetStream/stream-video-js/issues/2034) [#2006](https://github.com/GetStream/stream-video-js/issues/2006) [#2008](https://github.com/GetStream/stream-video-js/issues/2008)
+
 ## [1.12.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.0...@stream-io/video-react-bindings-1.12.1) (2025-12-08)
 
 ### Dependency Updates

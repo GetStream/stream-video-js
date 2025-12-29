@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.3...@stream-io/noise-cancellation-react-native-0.4.4) (2025-12-18)
+
+### Bug Fixes
+
+- **provenance:** add repository info to every package ([4159633](https://github.com/GetStream/stream-video-js/commit/4159633b908afe6542b4be53151da6218175426c))
+
+## [0.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.2...@stream-io/noise-cancellation-react-native-0.4.3) (2025-12-18)
+
+### Bug Fixes
+
+- noise cancellation import error in case of no use_frameworks! ([#2048](https://github.com/GetStream/stream-video-js/issues/2048)) ([76eadd1](https://github.com/GetStream/stream-video-js/commit/76eadd1411eb9bf62e1f9ec62a29786c0a7a39cb)), closes [#1962](https://github.com/GetStream/stream-video-js/issues/1962)
+
 ## [0.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.1...@stream-io/noise-cancellation-react-native-0.4.2) (2025-11-25)
 
 ### Bug Fixes

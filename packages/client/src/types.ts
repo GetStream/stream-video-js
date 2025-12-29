@@ -218,6 +218,14 @@ export type ClientPublishOptions = {
    * @internal
    */
   dangerouslyForceCodec?: PreferredCodec;
+  /**
+   * Sets the start bitrate factor to use when publishing a vp9 or av1 or h264 video stream.
+   * Must be between 0 and 1.
+   * By default the start bitrate is set to 300kbps.
+   * This value is used to calculate the start bitrate based on the max bitrate.
+   * For example, if the max bitrate is 1500kbps and the start bitrate factor is 0.5, the start bitrate will be 750kbps.
+   */
+  dangerouslySetStartBitrateFactor?: number;
 };
 
 export type ScreenShareSettings = {

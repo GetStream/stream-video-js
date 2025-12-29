@@ -1,8 +1,7 @@
 import {
-  createContext,
+  Context,
   PropsWithChildren,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -13,19 +12,23 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { Call, disposeOfMediaStream } from '@stream-io/video-client';
 import {
   BackgroundBlurLevel,
-  BackgroundFilter,
   createRenderer,
-  isPlatformSupported,
   isMediaPipePlatformSupported,
-  loadTFLite,
+  isPlatformSupported,
   loadMediaPipe,
-  PlatformSupportFlags,
-  VirtualBackground,
+  loadTFLite,
+  PerformanceStats,
   Renderer,
   TFLite,
-  PerformanceStats,
+  VirtualBackground,
 } from '@stream-io/video-filters-web';
 import clsx from 'clsx';
+import type {
+  BackgroundFiltersPerformance,
+  BackgroundFiltersProps,
+  BackgroundFiltersContextValue,
+  PerformanceDegradationReason,
+} from './types';
 
 /**
  * Constants for FPS warning calculation.
@@ -40,32 +43,6 @@ const DEVIATION_LIMIT = 0.5;
 const OUTLIER_PERSISTENCE = 5;
 
 /**
- * Configuration for performance metric thresholds.
- */
-export type BackgroundFiltersPerformanceThresholds = {
-  /**
-   * The lower FPS threshold for triggering a performance warning.
-   * When the EMA FPS falls below this value, a warning is shown.
-   * @default 23
-   */
-  fpsWarningThresholdLower?: number;
-
-  /**
-   * The upper FPS threshold for clearing a performance warning.
-   * When the EMA FPS rises above this value, the warning is cleared.
-   * @default 25
-   */
-  fpsWarningThresholdUpper?: number;
-
-  /**
-   * The default FPS value used as the initial value for the EMA (Exponential Moving Average)
-   * calculation and when stats are unavailable or when resetting the filter.
-   * @default 30
-   */
-  defaultFps?: number;
-};
-
-/**
  * Represents the available background filter processing engines.
  */
 enum FilterEngine {
@@ -73,160 +50,6 @@ enum FilterEngine {
   MEDIA_PIPE,
   NONE,
 }
-
-/**
- * Represents the possible reasons for background filter performance degradation.
- */
-export enum PerformanceDegradationReason {
-  FRAME_DROP = 'frame-drop',
-  CPU_THROTTLING = 'cpu-throttling',
-}
-
-export type BackgroundFiltersProps = PlatformSupportFlags & {
-  /**
-   * A list of URLs to use as background images.
-   */
-  backgroundImages?: string[];
-
-  /**
-   * The background filter to apply to the video (by default).
-   * @default undefined no filter applied
-   */
-  backgroundFilter?: BackgroundFilter;
-
-  /**
-   * The URL of the image to use as the background (by default).
-   */
-  backgroundImage?: string;
-
-  /**
-   * The level of blur to apply to the background (by default).
-   * @default 'high'.
-   */
-  backgroundBlurLevel?: BackgroundBlurLevel;
-
-  /**
-   * The base path for the TensorFlow Lite files.
-   * @default 'https://unpkg.com/@stream-io/video-filters-web/mediapipe'.
-   */
-  basePath?: string;
-
-  /**
-   * The path to the TensorFlow Lite WebAssembly file.
-   *
-   * Override this prop to use a custom path to the TensorFlow Lite WebAssembly file
-   * (e.g., if you choose to host it yourself).
-   */
-  tfFilePath?: string;
-
-  /**
-   * The path to the MediaPipe model file.
-   * Override this prop to use a custom path to the MediaPipe model file
-   * (e.g., if you choose to host it yourself).
-   */
-  modelFilePath?: string;
-
-  /**
-   * When true, the filter uses the legacy TensorFlow-based segmentation model.
-   * When false, it uses the default MediaPipe Tasks Vision model.
-   *
-   * Only enable this if you need to mimic the behavior of older SDK versions.
-   */
-  useLegacyFilter?: boolean;
-
-  /**
-   * When a started filter encounters an error, this callback will be executed.
-   * The default behavior (not overridable) is unregistering a failed filter.
-   * Use this callback to display UI error message, disable the corresponding stream,
-   * or to try registering the filter again.
-   */
-  onError?: (error: any) => void;
-
-  /**
-   * Configuration for performance metric thresholds.
-   * Use this to customize when performance warnings are triggered.
-   */
-  performanceThresholds?: BackgroundFiltersPerformanceThresholds;
-};
-
-/**
- * Performance degradation information for background filters.
- *
- * Performance is calculated using an Exponential Moving Average (EMA) of FPS values
- * to smooth out quick spikes and provide stable performance warnings.
- */
-export type BackgroundFiltersPerformance = {
-  /**
-   * Whether performance is currently degraded.
-   */
-  degraded: boolean;
-  /**
-   * Reasons for performance degradation.
-   */
-  reason?: Array<PerformanceDegradationReason>;
-};
-
-export type BackgroundFiltersAPI = {
-  /**
-   * Whether the current platform supports the background filters.
-   */
-  isSupported: boolean;
-
-  /**
-   * Indicates whether the background filters engine is loaded and ready.
-   */
-  isReady: boolean;
-
-  /**
-   * Performance information for background filters.
-   */
-  performance: BackgroundFiltersPerformance;
-
-  /**
-   * Disables all background filters applied to the video.
-   */
-  disableBackgroundFilter: () => void;
-
-  /**
-   * Applies a background blur filter to the video.
-   *
-   * @param blurLevel the level of blur to apply to the background.
-   */
-  applyBackgroundBlurFilter: (blurLevel: BackgroundBlurLevel) => void;
-
-  /**
-   * Applies a background image filter to the video.
-   *
-   * @param imageUrl the URL of the image to use as the background.
-   */
-  applyBackgroundImageFilter: (imageUrl: string) => void;
-};
-
-/**
- * The context value for the background filters context.
- */
-export type BackgroundFiltersContextValue = BackgroundFiltersProps &
-  BackgroundFiltersAPI;
-
-/**
- * The context for the background filters.
- */
-const BackgroundFiltersContext = createContext<
-  BackgroundFiltersContextValue | undefined
->(undefined);
-
-/**
- * A hook to access the background filters context API.
- */
-export const useBackgroundFilters = () => {
-  const context = useContext(BackgroundFiltersContext);
-  if (!context) {
-    throw new Error(
-      'useBackgroundFilters must be used within a BackgroundFiltersProvider',
-    );
-  }
-  return context;
-};
 
 /**
  * Determines which filter engine is available.
@@ -239,12 +62,11 @@ const determineEngine = async (
   forceSafariSupport: boolean | undefined,
   forceMobileSupport: boolean | undefined,
 ): Promise<FilterEngine> => {
-  const isTfPlatformSupported = await isPlatformSupported({
-    forceSafariSupport,
-    forceMobileSupport,
-  });
-
   if (useLegacyFilter) {
+    const isTfPlatformSupported = await isPlatformSupported({
+      forceSafariSupport,
+      forceMobileSupport,
+    });
     return isTfPlatformSupported ? FilterEngine.TF : FilterEngine.NONE;
   }
 
@@ -263,9 +85,15 @@ const determineEngine = async (
  * in your project before using this component.
  */
 export const BackgroundFiltersProvider = (
-  props: PropsWithChildren<BackgroundFiltersProps>,
+  props: PropsWithChildren<BackgroundFiltersProps> & {
+    // for code splitting. Prevents circular dependency issues where
+    // this Context needs to be present in the main chunk, but also
+    // imported by the background filters chunk.
+    ContextProvider: Context<BackgroundFiltersContextValue | undefined>;
+  },
 ) => {
   const {
+    ContextProvider,
     children,
     backgroundImages = [],
     backgroundFilter: bgFilterFromProps = undefined,
@@ -291,6 +119,7 @@ export const BackgroundFiltersProvider = (
     useState(bgBlurLevelFromProps);
 
   const [showLowFpsWarning, setShowLowFpsWarning] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const fpsWarningThresholdLower =
     performanceThresholds?.fpsWarningThresholdLower ??
@@ -340,7 +169,7 @@ export const BackgroundFiltersProvider = (
     const reasons: Array<PerformanceDegradationReason> = [];
 
     if (showLowFpsWarning) {
-      reasons.push(PerformanceDegradationReason.FRAME_DROP);
+      reasons.push('frame-drop');
     }
 
     const qualityLimitationReasons =
@@ -351,7 +180,7 @@ export const BackgroundFiltersProvider = (
       qualityLimitationReasons &&
       qualityLimitationReasons?.includes('cpu')
     ) {
-      reasons.push(PerformanceDegradationReason.CPU_THROTTLING);
+      reasons.push('cpu-throttling');
     }
 
     return {
@@ -458,72 +287,83 @@ export const BackgroundFiltersProvider = (
   );
 
   const isReady = useLegacyFilter ? !!tfLite : !!mediaPipe;
+  const contextValue: BackgroundFiltersContextValue = {
+    isSupported,
+    performance,
+    isReady,
+    isLoading,
+    backgroundImage,
+    backgroundBlurLevel,
+    backgroundFilter,
+    disableBackgroundFilter,
+    applyBackgroundBlurFilter,
+    applyBackgroundImageFilter,
+    backgroundImages,
+    tfFilePath,
+    modelFilePath,
+    basePath,
+    onError: handleError,
+  };
   return (
-    <BackgroundFiltersContext.Provider
-      value={{
-        isSupported,
-        performance,
-        isReady,
-        backgroundImage,
-        backgroundBlurLevel,
-        backgroundFilter,
-        disableBackgroundFilter,
-        applyBackgroundBlurFilter,
-        applyBackgroundImageFilter,
-        backgroundImages,
-        tfFilePath,
-        modelFilePath,
-        basePath,
-        onError: handleError,
-      }}
-    >
+    <ContextProvider.Provider value={contextValue}>
       {children}
       {isReady && (
         <BackgroundFilters
+          api={contextValue}
           tfLite={tfLite}
           engine={engine}
           onStats={handleStats}
+          setIsLoading={setIsLoading}
         />
       )}
-    </BackgroundFiltersContext.Provider>
+    </ContextProvider.Provider>
   );
 };
 
 const BackgroundFilters = (props: {
+  api: BackgroundFiltersContextValue;
   tfLite?: TFLite;
   engine: FilterEngine;
   onStats: (stats: PerformanceStats) => void;
+  setIsLoading: (loading: boolean) => void;
 }) => {
   const call = useCall();
-  const { children, start } = useRenderer(props.tfLite, call, props.engine);
-  const { onError, backgroundFilter } = useBackgroundFilters();
+  const { engine, api, tfLite, onStats, setIsLoading } = props;
+  const { children, start } = useRenderer(api, tfLite, call, engine);
+  const { onError, backgroundFilter } = api;
   const handleErrorRef = useRef<((error: any) => void) | undefined>(undefined);
   handleErrorRef.current = onError;
 
   const handleStatsRef = useRef<
     ((stats: PerformanceStats) => void) | undefined
   >(undefined);
-  handleStatsRef.current = props.onStats;
+  handleStatsRef.current = onStats;
 
   useEffect(() => {
     if (!call || !backgroundFilter) return;
 
-    const { unregister } = call.camera.registerFilter((ms) => {
+    setIsLoading(true);
+    const { unregister, registered } = call.camera.registerFilter((ms) => {
       return start(
         ms,
         (error) => handleErrorRef.current?.(error),
         (stats: PerformanceStats) => handleStatsRef.current?.(stats),
       );
     });
+    registered.finally(() => {
+      setIsLoading(false);
+    });
+
     return () => {
       unregister().catch((err) => console.warn(`Can't unregister filter`, err));
     };
-  }, [call, start, backgroundFilter]);
+  }, [call, start, backgroundFilter, setIsLoading]);
 
   return children;
 };
 
 const useRenderer = (
+  api: BackgroundFiltersContextValue,
   tfLite: TFLite | undefined,
   call: Call | undefined,
   engine: FilterEngine,
@@ -534,7 +374,7 @@ const useRenderer = (
     backgroundImage,
     modelFilePath,
     basePath,
-  } = useBackgroundFilters();
+  } = api;
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
