@@ -1,17 +1,11 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CallContent,
   callManager,
   NoiseCancellationProvider,
-  useBackgroundFilters,
   useCall,
   useIsInPiPMode,
+  useModeration,
   useTheme,
   useToggleCallRecording,
 } from '@stream-io/video-react-native-sdk';
@@ -55,8 +49,6 @@ export const ActiveCall = ({
   const currentOrientation = useOrientation();
   const isTablet = DeviceInfo.isTablet();
   const isLandscape = !isTablet && currentOrientation === 'landscape';
-  const { applyVideoBlurFilter, disableAllFilters } = useBackgroundFilters();
-  const blurTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const onOpenCallParticipantsInfo = useCallback(() => {
     setIsCallParticipantsVisible(true);
@@ -82,25 +74,7 @@ export const ActiveCall = ({
     };
   }, []);
 
-  useEffect(() => {
-    const unsub = call?.on('call.moderation_blur', () => {
-      applyVideoBlurFilter('heavy');
-      clearTimeout(blurTimeoutRef.current);
-
-      blurTimeoutRef.current = setTimeout(() => {
-        disableAllFilters();
-        blurTimeoutRef.current = undefined;
-      }, 10000);
-    });
-    return () => {
-      unsub?.();
-      if (blurTimeoutRef.current) {
-        clearTimeout(blurTimeoutRef.current);
-        blurTimeoutRef.current = undefined;
-      }
-      disableAllFilters();
-    };
-  }, [call, applyVideoBlurFilter, disableAllFilters]);
+  useModeration({ duration: 10000 });
 
   useEffect(() => {
     return call?.on('call.ended', (event) => {
