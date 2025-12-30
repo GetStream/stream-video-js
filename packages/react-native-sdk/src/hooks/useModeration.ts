@@ -62,7 +62,6 @@ export const useModeration = (options?: ModerationOptions) => {
     });
     return () => {
       unsubscribe();
-      restoreRef.current?.then(() => clearTimeout(blurTimeoutRef.current));
     };
   }, [
     applyBackgroundBlurFilter,
@@ -74,4 +73,11 @@ export const useModeration = (options?: ModerationOptions) => {
     duration,
     isSupported,
   ]);
+
+  useEffect(
+    () => () => {
+      restoreRef.current?.then(() => clearTimeout(blurTimeoutRef.current));
+    },
+    [],
+  );
 };
