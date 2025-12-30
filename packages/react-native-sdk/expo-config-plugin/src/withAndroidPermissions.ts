@@ -12,7 +12,7 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
   ];
   if (
     props?.androidKeepCallAlive ||
-    props?.ringingPushNotifications ||
+    props?.ringing ||
     props?.enableScreenshare
   ) {
     permissions.push(
@@ -25,14 +25,14 @@ const withStreamVideoReactNativeSDKAndroidPermissions: ConfigPlugin<
       );
     }
   }
-  if (props?.androidKeepCallAlive || props?.ringingPushNotifications) {
+  if (props?.androidKeepCallAlive || props?.ringing) {
     permissions.push(
       'android.permission.FOREGROUND_SERVICE_CAMERA',
       'android.permission.FOREGROUND_SERVICE_MICROPHONE',
       'android.permission.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK',
     );
   }
-  if (props?.ringingPushNotifications?.showWhenLockedAndroid) {
+  if (props?.ringing) {
     permissions.push('android.permission.USE_FULL_SCREEN_INTENT');
   }
   const config = AndroidConfig.Permissions.withPermissions(

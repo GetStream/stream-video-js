@@ -73,11 +73,7 @@
           "addNoiseCancellation": true,
           "androidKeepCallAlive": true,
           "appleTeamId": "EHV7XZLAHA",
-          "ringingPushNotifications": {
-            "disableVideoIos": false,
-            "includesCallsInRecentsIos": false,
-            "showWhenLockedAndroid": true
-          },
+          "ringing": true,
           "enableNonRingingPushNotifications": true,
           "androidPictureInPicture": true,
           "iOSEnableMultitaskingCameraAccess": true

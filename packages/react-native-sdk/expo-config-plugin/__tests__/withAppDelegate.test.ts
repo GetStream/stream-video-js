@@ -111,10 +111,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const props: ConfigProps = {
       iOSEnableMultitaskingCameraAccess: true,
       addNoiseCancellation: true,
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: true,
-      },
+      ringing: true,
     };
 
     const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
@@ -183,10 +180,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const props: ConfigProps = {
       iOSEnableMultitaskingCameraAccess: true,
       addNoiseCancellation: true,
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: true,
-      },
+      ringing: true,
     };
 
     const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
@@ -236,10 +230,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
   it('objc - should not modify config if already added', () => {
     const props: ConfigProps = {
       iOSEnableMultitaskingCameraAccess: true,
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: true,
-      },
+      ringing: true,
     };
 
     const updatedConfig = withAppDelegate(
@@ -256,10 +247,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
   it('swift - should not modify config if already added', () => {
     const props: ConfigProps = {
       iOSEnableMultitaskingCameraAccess: true,
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: true,
-      },
+      ringing: true,
     };
 
     const updatedConfig = withAppDelegate(
@@ -288,10 +276,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       },
     };
     const props: ConfigProps = {
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: false,
-      },
+      ringing: true,
     };
     expect(() => withAppDelegate(config, props)).toThrow();
   });
@@ -311,10 +296,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       },
     };
     const props: ConfigProps = {
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: false,
-      },
+      ringing: true,
     };
     expect(() => withAppDelegate(config, props)).toThrow();
   });
