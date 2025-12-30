@@ -46,7 +46,9 @@ export function getNotifeeLibNoThrowForKeepCallAlive() {
 }
 
 export async function getKeepCallAliveForegroundServiceTypes() {
-  const types: AndroidForegroundServiceType[] = [];
+  const types: AndroidForegroundServiceType[] = [
+    AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
+  ];
   const hasCameraPermission = await PermissionsAndroid.check(
     PermissionsAndroid.PERMISSIONS.CAMERA!,
   );
@@ -58,17 +60,6 @@ export async function getKeepCallAliveForegroundServiceTypes() {
   );
   if (hasMicrophonePermission) {
     types.push(AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_MICROPHONE);
-  }
-  const hasConnectionPermission = await PermissionsAndroid.check(
-    PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT!,
-  );
-  if (hasConnectionPermission) {
-    types.push(
-      AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE,
-    );
-  }
-  if (types.length === 0) {
-    types.push(AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
   }
   return types;
 }
