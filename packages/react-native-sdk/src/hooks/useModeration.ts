@@ -17,34 +17,61 @@ export const useModeration = (options?: ModerationOptions) => {
   // accessing the filters context directly, as it is optional, but our
   // useBackgroundFilters() throws an error if used outside the provider
   const filtersApi = useContext(BackgroundFiltersContext);
-
+  const {
+    isSupported = false,
+    currentBackgroundFilter,
+    applyBackgroundBlurFilter,
+    applyBackgroundImageFilter,
+    applyVideoBlurFilter,
+    disableAllFilters,
+  } = filtersApi || {};
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const restoreRef = useRef<Promise<void>>(undefined);
   useEffect(() => {
     if (!call) return;
     const unsubscribe = call.on('call.moderation_blur', () => {
-      clearTimeout(blurTimeoutRef.current);
-      if (!filtersApi?.isSupported) {
-        call.camera.disable().catch((err) => console.error(err));
-        return; // not scheduling a timeout to enable the camera
-      }
+      const turnCameraOff = () =>
+        call.camera.disable().catch((err) => {
+          console.error(`Failed to disable camera`, err);
+        });
 
-      const { blur, image } = filtersApi.currentBackgroundFilter || {};
-      filtersApi.applyVideoBlurFilter('heavy');
-      if (duration > 0) {
-        blurTimeoutRef.current = setTimeout(() => {
-          if (blur) {
-            filtersApi.applyBackgroundBlurFilter(blur);
-          } else if (image) {
-            filtersApi.applyBackgroundImageFilter(image);
-          } else {
-            filtersApi.disableAllFilters();
-          }
-        }, duration);
-      }
+      // not scheduling a timeout to enable the camera
+      clearTimeout(blurTimeoutRef.current);
+      if (!isSupported) return turnCameraOff();
+
+      restoreRef.current = (restoreRef.current || Promise.resolve()).then(() =>
+        applyVideoBlurFilter?.('heavy').then(() => {
+          if (duration <= 0) return;
+
+          const restore = () => {
+            const { blur, image } = currentBackgroundFilter || {};
+            const action = blur
+              ? applyVideoBlurFilter?.(blur)
+              : image
+                ? applyBackgroundImageFilter?.(image)
+                : Promise.resolve(disableAllFilters?.());
+
+            action?.catch((err) => {
+              console.error(`Failed to restore pre-moderation effect`, err);
+            });
+          };
+
+          blurTimeoutRef.current = setTimeout(restore, duration);
+        }, turnCameraOff),
+      );
     });
     return () => {
       unsubscribe();
-      clearTimeout(blurTimeoutRef.current);
+      restoreRef.current?.then(() => clearTimeout(blurTimeoutRef.current));
     };
-  }, [call, duration, filtersApi]);
+  }, [
+    applyBackgroundBlurFilter,
+    applyBackgroundImageFilter,
+    applyVideoBlurFilter,
+    call,
+    currentBackgroundFilter,
+    disableAllFilters,
+    duration,
+    isSupported,
+  ]);
 };
