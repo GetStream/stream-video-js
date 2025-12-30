@@ -46,7 +46,7 @@ export const useModeration = (options?: ModerationOptions) => {
           const restore = () => {
             const { blur, image } = currentBackgroundFilter || {};
             const action = blur
-              ? applyVideoBlurFilter?.(blur)
+              ? applyBackgroundBlurFilter?.(blur)
               : image
                 ? applyBackgroundImageFilter?.(image)
                 : Promise.resolve(disableAllFilters?.());
