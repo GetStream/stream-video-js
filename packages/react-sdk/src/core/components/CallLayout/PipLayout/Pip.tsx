@@ -2,56 +2,18 @@ import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { useEffect, useState } from 'react';
 
 import { hasScreenShare } from '@stream-io/video-client';
-import { Icon } from '../../../components';
-import { ParticipantsAudio } from '../Audio';
+import { Icon } from '../../../../components';
 import {
   DefaultParticipantViewUI,
   ParticipantView,
-  ParticipantViewProps,
-} from '../ParticipantView';
+} from '../../ParticipantView';
 import {
-  ParticipantFilter,
-  ParticipantPredicate,
   useFilteredParticipants,
   usePaginatedLayoutSortPreset,
-  useRawRemoteParticipants,
-} from './hooks';
+} from '../hooks';
+import { PipLayoutProps } from './types';
 
-export type PipLayoutProps = {
-  /**
-   * Whether to exclude the local participant from the grid.
-   * @default false
-   */
-  excludeLocalParticipant?: boolean;
-
-  /**
-   * Predicate to filter call participants or a filter object.
-   * @example
-   * // With a predicate:
-   * <PipLayout
-   *   filterParticipants={p => p.roles.includes('student')}
-   * />
-   * @example
-   * // With a filter object:
-   * <PipLayout
-   *   filterParticipants={{
-   *     $or: [
-   *       { roles: { $contains: 'student' } },
-   *       { isPinned: true },
-   *     ],
-   *   }}
-   * />
-   */
-  filterParticipants?: ParticipantPredicate | ParticipantFilter;
-
-  /**
-   * When set to `false` disables mirroring of the local partipant's video.
-   * @default true
-   */
-  mirrorLocalParticipantVideo?: boolean;
-} & Pick<ParticipantViewProps, 'ParticipantViewUI' | 'VideoPlaceholder'>;
-
-const Pip = (props: PipLayoutProps) => {
+export const Pip = (props: PipLayoutProps) => {
   const { t } = useI18n();
   const {
     excludeLocalParticipant = false,
@@ -116,12 +78,3 @@ const Pip = (props: PipLayoutProps) => {
 };
 
 Pip.displayName = 'PipLayout.Pip';
-
-const Host = () => {
-  const remoteParticipants = useRawRemoteParticipants();
-  return <ParticipantsAudio participants={remoteParticipants} />;
-};
-
-Host.displayName = 'PipLayout.Host';
-
-export const PipLayout = { Pip, Host };
