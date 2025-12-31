@@ -92,7 +92,7 @@ export const InvitePanel = () => {
     <div className="rd__invite">
       <Invite />
       <div className="rd__invite__qr">
-        {isDemoEnvironment ? (
+        {!isDemoEnvironment ? (
           <>
             <h2
               className="rd__invite__qr-header rd__invite__qr-header--accordion"
