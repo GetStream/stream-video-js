@@ -80,11 +80,9 @@ export const Grid = (props: PipLayoutGridProps) => {
 
   const pageCount = participantGroups.length;
 
-  useEffect(() => {
-    if (page > pageCount - 1) {
-      setPage(Math.max(0, pageCount - 1));
-    }
-  }, [page, pageCount]);
+  if (page > pageCount - 1) {
+    setPage(Math.max(0, pageCount - 1));
+  }
 
   const selectedGroup = participantGroups[page];
   const mirror = mirrorLocalParticipantVideo ? undefined : false;
