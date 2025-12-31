@@ -6,12 +6,48 @@ import { Icon } from '../../../../components';
 import {
   DefaultParticipantViewUI,
   ParticipantView,
+  ParticipantViewProps,
 } from '../../ParticipantView';
 import {
+  ParticipantFilter,
+  ParticipantPredicate,
   useFilteredParticipants,
   usePaginatedLayoutSortPreset,
 } from '../hooks';
-import { PipLayoutProps } from './types';
+
+export type PipLayoutProps = {
+  /**
+   * Whether to exclude the local participant from the grid.
+   * @default false
+   */
+  excludeLocalParticipant?: boolean;
+
+  /**
+   * Predicate to filter call participants or a filter object.
+   * @example
+   * // With a predicate:
+   * <PipLayout
+   *   filterParticipants={p => p.roles.includes('student')}
+   * />
+   * @example
+   * // With a filter object:
+   * <PipLayout
+   *   filterParticipants={{
+   *     $or: [
+   *       { roles: { $contains: 'student' } },
+   *       { isPinned: true },
+   *     ],
+   *   }}
+   * />
+   */
+  filterParticipants?: ParticipantPredicate | ParticipantFilter;
+
+  /**
+   * When set to `false` disables mirroring of the local partipant's video.
+   * @default true
+   */
+  mirrorLocalParticipantVideo?: boolean;
+} & Pick<ParticipantViewProps, 'ParticipantViewUI' | 'VideoPlaceholder'>;
 
 export const Pip = (props: PipLayoutProps) => {
   const { t } = useI18n();

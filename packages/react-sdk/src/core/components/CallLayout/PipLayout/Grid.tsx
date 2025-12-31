@@ -1,24 +1,34 @@
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
-import {
-  hasScreenShare,
-  StreamVideoParticipant,
-} from '@stream-io/video-client';
+import { hasScreenShare } from '@stream-io/video-client';
 import { Icon, IconButton } from '../../../../components';
 import {
   DefaultParticipantViewUI,
   ParticipantView,
-  ParticipantViewProps,
 } from '../../ParticipantView';
 import {
   useFilteredParticipants,
   usePaginatedLayoutSortPreset,
 } from '../hooks';
 import { chunk } from '../../../../utilities';
-import { PipLayoutGridProps } from './types';
+import { PipLayoutProps } from './Pip';
 
 type GridDensity = 'single' | 'small' | 'medium' | 'large' | 'overflow';
+
+export type PipLayoutGridProps = PipLayoutProps & {
+  /**
+   * The number of participants to display per page.
+   * @default 9
+   */
+  groupSize?: number;
+
+  /**
+   * Whether to show pagination arrows when there are multiple pages.
+   * @default true
+   */
+  pageArrowsVisible?: boolean;
+};
 
 const getGridDensity = (count: number): GridDensity => {
   if (count === 1) return 'single';
@@ -27,36 +37,6 @@ const getGridDensity = (count: number): GridDensity => {
   if (count <= 16) return 'large';
   return 'overflow';
 };
-
-type PipGridGroupProps = {
-  group: StreamVideoParticipant[];
-} & Pick<ParticipantViewProps, 'VideoPlaceholder' | 'mirror'> &
-  Required<Pick<ParticipantViewProps, 'ParticipantViewUI'>>;
-
-const PipGridGroup = ({
-  group,
-  mirror,
-  VideoPlaceholder,
-  ParticipantViewUI,
-}: PipGridGroupProps) => (
-  <div
-    className={clsx(
-      'str-video__pip-layout__grid',
-      `str-video__pip-layout__grid--${getGridDensity(group.length)}`,
-    )}
-  >
-    {group.map((participant) => (
-      <ParticipantView
-        key={participant.sessionId}
-        participant={participant}
-        muteAudio
-        mirror={mirror}
-        VideoPlaceholder={VideoPlaceholder}
-        ParticipantViewUI={ParticipantViewUI}
-      />
-    ))}
-  </div>
-);
 
 /**
  * A grid-based PIP layout with pagination support.
@@ -145,12 +125,23 @@ export const Grid = (props: PipLayoutGridProps) => {
           />
         )}
         {selectedGroup && (
-          <PipGridGroup
-            group={selectedGroup}
-            mirror={mirror}
-            VideoPlaceholder={VideoPlaceholder}
-            ParticipantViewUI={ParticipantViewUI}
-          />
+          <div
+            className={clsx(
+              'str-video__pip-layout__grid',
+              `str-video__pip-layout__grid--${getGridDensity(selectedGroup.length)}`,
+            )}
+          >
+            {selectedGroup.map((participant) => (
+              <ParticipantView
+                key={participant.sessionId}
+                participant={participant}
+                muteAudio
+                mirror={mirror}
+                VideoPlaceholder={VideoPlaceholder}
+                ParticipantViewUI={ParticipantViewUI}
+              />
+            ))}
+          </div>
         )}
         {pageArrowsVisible && page < pageCount - 1 && (
           <IconButton
