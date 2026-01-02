@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.27.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.6...@stream-io/video-react-native-sdk-1.27.0) (2025-12-30)
+
+### Features
+
+- **react-native:** expose useModeration hook ([#2073](https://github.com/GetStream/stream-video-js/issues/2073)) ([4105ee7](https://github.com/GetStream/stream-video-js/commit/4105ee7c79aa1a1a35d75b4f5f70594eaa7eb33a)), closes [#1822](https://github.com/GetStream/stream-video-js/issues/1822)
+
+### Bug Fixes
+
+- correctly restore background blur if available ([b16ffc0](https://github.com/GetStream/stream-video-js/commit/b16ffc0ade1b88437b09fe918deea30d314a530b))
+
+## [1.26.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.5...@stream-io/video-react-native-sdk-1.26.6) (2025-12-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.3`
+- `@stream-io/video-react-bindings` updated to version `1.12.6`
+
+### Bug Fixes
+
+- replace non-compliant foreground service types ([#2058](https://github.com/GetStream/stream-video-js/issues/2058)) ([d62ca2b](https://github.com/GetStream/stream-video-js/commit/d62ca2bb6defd58e44ed1ac135b95896b590d307))
+
 ## [1.26.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.4...@stream-io/video-react-native-sdk-1.26.5) (2025-12-23)
 
 ### Dependency Updates

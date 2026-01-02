@@ -26,14 +26,13 @@ object CallAliveServiceChecker {
 
             val expectedForegroundServiceTypes =
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE or
-                        ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC or
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK or
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA or
-                        ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE or
-                        ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
 
-            val actualForegroundServiceType = serviceInfo.foregroundServiceType
+            val actualForegroundServiceTypes = serviceInfo.foregroundServiceType
 
-            if (actualForegroundServiceType == expectedForegroundServiceTypes) {
+            if (actualForegroundServiceTypes == expectedForegroundServiceTypes) {
                 return true
             } else {
                 Log.w(
@@ -42,7 +41,7 @@ object CallAliveServiceChecker {
                         foregroundServiceTypeToString(
                             expectedForegroundServiceTypes
                         )
-                    }, actual=${foregroundServiceTypeToString(actualForegroundServiceType)}"
+                    }, actual=${foregroundServiceTypeToString(actualForegroundServiceTypes)}"
                 )
                 return false
             }

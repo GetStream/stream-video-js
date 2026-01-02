@@ -5,6 +5,8 @@ import {
   withHeaders,
   withRequestLogger,
   withRequestTracer,
+  withTimeout,
+  TIMEOUT_SYMBOL,
 } from '../createClient';
 import { TwirpFetchTransport } from '@protobuf-ts/twirp-transport';
 import { NextUnaryFn, UnaryCall } from '@protobuf-ts/runtime-rpc';
@@ -126,5 +128,83 @@ describe('createClient', () => {
       'UpdateMuteStatesResponse',
       anyObject(),
     );
+  });
+
+  describe('withTimeout', () => {
+    it('should abort the request after the timeout', async () => {
+      vi.useFakeTimers();
+      const timeoutMs = 1000;
+      const interceptor = withTimeout(timeoutMs);
+      const next = vi.fn().mockImplementation(() => {
+        const { promise } = promiseWithResolvers<void>();
+        return promise;
+      });
+
+      const options = { meta: {} };
+      interceptor.interceptUnary(
+        next,
+        // @ts-expect-error - partial data
+        { name: 'TestMethod' },
+        {},
+        options,
+      );
+
+      const abortSignal = next.mock.lastCall.at(-1).abort;
+      expect(abortSignal).toBeDefined();
+      expect(abortSignal.aborted).toBe(false);
+
+      vi.advanceTimersByTime(timeoutMs);
+
+      expect(abortSignal.aborted).toBe(true);
+      expect(abortSignal.reason).toBeInstanceOf(Error);
+      expect(abortSignal.reason.message).toBe(TIMEOUT_SYMBOL);
+
+      vi.useRealTimers();
+    });
+
+    it('should respect external abort signal', () => {
+      const timeoutMs = 1000;
+      const interceptor = withTimeout(timeoutMs);
+      const next = vi.fn();
+      const externalAbort = new AbortController().signal;
+
+      interceptor.interceptUnary(
+        next,
+        // @ts-expect-error - partial data
+        { name: 'TestMethod' },
+        {},
+        { abort: externalAbort },
+      );
+
+      expect(next).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({ abort: externalAbort }),
+      );
+    });
+
+    it('should clear timeout when the call finishes', async () => {
+      vi.useFakeTimers();
+      const spy = vi.spyOn(global, 'clearTimeout');
+      const timeoutMs = 1000;
+      const interceptor = withTimeout(timeoutMs);
+      const { promise, resolve } = promiseWithResolvers<any>();
+      const next = vi.fn().mockReturnValue(promise);
+
+      interceptor.interceptUnary(
+        next,
+        // @ts-expect-error - partial data
+        { name: 'TestMethod' },
+        {},
+        { meta: {} },
+      );
+
+      resolve({});
+      await promise;
+
+      expect(spy).toHaveBeenCalled();
+      vi.useRealTimers();
+      spy.mockRestore();
+    });
   });
 });
