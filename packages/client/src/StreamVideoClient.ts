@@ -630,7 +630,6 @@ export class StreamVideoClient {
       (c) =>
         c.cid !== currentCallId &&
         c.ringing &&
-        !c.isCreatedByMe &&
         c.state.callingState !== CallingState.IDLE &&
         c.state.callingState !== CallingState.LEFT &&
         c.state.callingState !== CallingState.RECONNECTING_FAILED,

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { Icon, IconButton, useI18n } from '@stream-io/video-react-sdk';
+import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
 
 export const InvitePopup = ({
   callId,
@@ -82,25 +83,61 @@ export const Invite = () => {
 };
 
 export const InvitePanel = () => {
+  const isDemoEnvironment = useIsDemoEnvironment();
+  const [expanded, setExpanded] = useState(false);
+
   const qrCodeContent = new URL(window.location.toString());
   qrCodeContent.searchParams.set('from_qr', 'true');
   return (
     <div className="rd__invite">
       <Invite />
       <div className="rd__invite__qr">
-        <h2 className="rd__invite__qr-header">Test on mobile</h2>
-        <p className="rd__invite__qr-description">
-          To test on a mobile device, scan the QR Code below:
-        </p>
-        <div
-          className="rd__invite__qr-container"
-          title={qrCodeContent.toString()}
-        >
-          <QRCodeSVG
-            className="rd__invite__qr-code"
-            value={qrCodeContent.toString()}
-          />
-        </div>
+        {!isDemoEnvironment ? (
+          <>
+            <h2
+              className="rd__invite__qr-header rd__invite__qr-header--accordion"
+              onClick={() => setExpanded((prev) => !prev)}
+            >
+              Test on mobile
+              <Icon
+                className="rd__invite__qr-chevron"
+                icon={expanded ? 'chevron-up' : 'chevron-down'}
+              />
+            </h2>
+            {expanded && (
+              <>
+                <p className="rd__invite__qr-description">
+                  To test on a mobile device, scan the QR Code below:
+                </p>
+                <div
+                  className="rd__invite__qr-container"
+                  title={qrCodeContent.toString()}
+                >
+                  <QRCodeSVG
+                    className="rd__invite__qr-code"
+                    value={qrCodeContent.toString()}
+                  />
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <h2 className="rd__invite__qr-header">Test on mobile</h2>
+            <p className="rd__invite__qr-description">
+              To test on a mobile device, scan the QR Code below:
+            </p>
+            <div
+              className="rd__invite__qr-container"
+              title={qrCodeContent.toString()}
+            >
+              <QRCodeSVG
+                className="rd__invite__qr-code"
+                value={qrCodeContent.toString()}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

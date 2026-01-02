@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.39.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.2...@stream-io/video-client-1.39.3) (2025-12-30)
+
+### Bug Fixes
+
+- adjusted shouldRejectCall implementation ([#2072](https://github.com/GetStream/stream-video-js/issues/2072)) ([2107e3d](https://github.com/GetStream/stream-video-js/commit/2107e3db65309664a7797cacae054aeb7a371f4a))
+- **rpc:** Reliable SFU request timeouts ([#2066](https://github.com/GetStream/stream-video-js/issues/2066)) ([f842b74](https://github.com/GetStream/stream-video-js/commit/f842b74109af02c8454f5ff4f6618baac650ed4e))
+
 ## [1.39.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.1...@stream-io/video-client-1.39.2) (2025-12-23)
 
 - upgrade stream dependencies ([#2065](https://github.com/GetStream/stream-video-js/issues/2065)) ([04ca858](https://github.com/GetStream/stream-video-js/commit/04ca858517072f861c1ddae0876f0b425ca658e2))
