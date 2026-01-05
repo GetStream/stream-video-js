@@ -232,7 +232,7 @@ The prepare release workflow runs automatically on every push to `main`:
 
 ## Troubleshooting
 
-### "No changesets found" error
+### "No changesets found" warning
 
 If CI fails with "No changesets found", you need to create one:
 
@@ -241,6 +241,8 @@ yarn changeset
 ```
 
 Then commit the generated `.changeset/*.md` file.
+
+Keep in mind that not every PR needs a changeset, so this warning might be expected.
 
 ### Forgot to create changeset before pushing
 
@@ -255,16 +257,15 @@ git push
 
 ### Created changeset with wrong version type
 
-Delete the changeset file and create a new one:
-
-```bash
-rm .changeset/old-changeset.md
-yarn changeset  # Create new one with correct version
-```
+Modify the content of the existing changeset file directly.
 
 ### Need to change changeset summary
 
 Edit the `.changeset/*.md` file directly and commit the change.
+
+### Tips
+
+- If you're not sure what packages your changeset/s might affect, run `yarn changeset version` in the root of the monorepo and check all the affected packages. If you're satisfied, revert the changes (_DO NOT PUSH THESE_, the changeset bot will take care of them). Adjust changesets accordingly if not satisfied.
 
 ## Learn More
 

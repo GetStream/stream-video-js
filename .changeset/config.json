@@ -12,18 +12,5 @@
   "prettier": true,
   "bumpVersionsWithWorkspaceProtocolOnly": false,
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "@stream-io/ts-quickstart",
-    "@stream-io/video-react-native-dogfood",
-    "@stream-io/expo-video-sample",
-    "@stream-io/video-react-native-ringing-tutorial",
-    "@stream-io/audio-rooms",
-    "@stream-io/cookbook-participant-list",
-    "@stream-io/egress-composite",
-    "@stream-io/livestream-app",
-    "@stream-io/messenger-clone-react",
-    "@stream-io/video-react-dogfood",
-    "@stream-io/stream-video-react-tutorial",
-    "@stream-io/zoom-clone-react"
-  ]
+  "ignore": []
 }
