@@ -4,10 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Pre-release tag (e.g., beta, alpha, rc)'
-        required: false
-        type: string
-        default: 'beta'
+        description: 'Pre-release tag'
+        required: true
+        type: choice
+        options:
+          - rc
+          - beta
+          - alpha
+        default: rc
 
 permissions:
   contents: write

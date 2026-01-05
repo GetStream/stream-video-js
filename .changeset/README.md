@@ -210,13 +210,12 @@ Pre-releases (beta/alpha/rc) are handled by two separate GitHub Actions workflow
 To publish beta releases:
 
 1. Maintainer triggers "Pre-release" workflow from GitHub Actions
-2. On first run: Workflow automatically enters pre-release mode (default: `beta`)
-3. Versions become: `1.40.0-beta.0`, `1.40.0-beta.1`, etc.
-4. Packages publish to npm with `beta` tag (not `latest`)
-5. For subsequent betas, just run the workflow again - it stays in pre-release mode
-6. Users install with: `yarn add @stream-io/video-client@beta`
-
-**Optional:** Change the pre-release tag (e.g., `alpha`, `rc`) via the workflow input.
+2. Select pre-release tag: `rc` (default), `beta`, or `alpha`
+3. On first run: Workflow automatically enters pre-release mode
+4. Versions become: `1.40.0-rc.0`, `1.40.0-rc.1`, etc.
+5. Packages publish to npm with selected tag (not `latest`)
+6. For subsequent releases, just run the workflow again - it stays in pre-release mode
+7. Users install with: `yarn add @stream-io/video-client@beta`
 
 ### Publishing Stable Release
 
