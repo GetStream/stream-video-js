@@ -110,9 +110,9 @@ All PRs that change published packages **must include a changeset**. CI will fai
 
 ### For Maintainers
 
-**Stable releases:** Run the **Release** workflow from GitHub Actions. It creates a version PR, merge it to publish.
+**Stable releases:** The **Prepare Release** workflow runs automatically on every push to `main` and creates/updates a "Version Packages" PR. It automatically exits pre-release mode if needed. Review and merge the PR to publish.
 
-**Pre-releases:** Run the **Pre-release** workflow. First run publishes `beta.0`, subsequent runs publish `beta.1`, `beta.2`, etc. Change the tag input for `alpha` or `rc` releases.
+**Pre-releases:** Run the **Pre-release** workflow manually. First run publishes `beta.0`, subsequent runs publish `beta.1`, `beta.2`, etc. Change the tag input for `alpha` or `rc` releases.
 
 See [.changeset/README.md](./.changeset/README.md) for detailed workflow documentation.
 

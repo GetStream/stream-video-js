@@ -1,6 +1,9 @@
-name: Release
+name: Prepare Release
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -31,7 +34,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Exit Pre-release Mode (if needed)
+      - name: Exit Pre-release Mode (if in pre-release)
         run: |
           if [ -f .changeset/pre.json ]; then
             echo "📦 Exiting pre-release mode for stable release..."

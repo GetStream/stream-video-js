@@ -220,14 +220,14 @@ To publish beta releases:
 
 ### Publishing Stable Release
 
-**Workflow:** `.github/workflows/release.yml`
+**Workflow:** `.github/workflows/prepare-release.yml` (runs automatically on push to `main`)
 
-When ready to publish a stable release:
+The prepare release workflow runs automatically on every push to `main`:
 
-1. Maintainer triggers "Release" workflow from GitHub Actions
-2. If in pre-release mode, workflow automatically exits it first
-3. Publishes stable version to npm with `latest` tag
-4. Triggers sample app deployment
+1. Automatically exits pre-release mode if currently in one
+2. Creates or updates a "Version Packages" PR with all pending changesets
+3. Review the PR to verify versions and changelogs
+4. Merge the PR to publish to npm with `latest` tag and trigger sample app deployment
 
 **Note:** You don't need to do anything special when creating changesets. The same changesets work for both pre-releases and stable releases.
 
