@@ -1,0 +1,73 @@
+name: Pre-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Pre-release tag (e.g., beta, alpha, rc)'
+        required: false
+        type: string
+        default: 'beta'
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  prerelease:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: yarn install --immutable
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Enter Pre-release Mode (if needed)
+        run: |
+          if [ ! -f .changeset/pre.json ]; then
+            echo "📦 Entering ${{ github.event.inputs.tag }} pre-release mode..."
+            yarn changeset pre enter ${{ github.event.inputs.tag }}
+            git add .changeset/pre.json
+            git commit -m "chore: enter pre-release mode (${{ github.event.inputs.tag }})"
+            git push
+            echo "✅ Entered ${{ github.event.inputs.tag }} pre-release mode"
+          else
+            echo "✅ Already in pre-release mode"
+          fi
+
+      - name: Lint Packages
+        run: yarn lint:ci:packages
+
+      - name: Test Packages
+        run: yarn test:ci:libs
+
+      - name: Build Packages
+        run: NODE_ENV=production yarn build:libs
+
+      - name: Publish Pre-release
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          setupGitUser: false
+          commitMode: 'github-api'
+          commit: 'chore: pre-release version packages'
+          title: 'chore: next pre-release'
+          publish: yarn changeset:publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

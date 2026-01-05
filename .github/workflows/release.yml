@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  release:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: yarn install --immutable
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Exit Pre-release Mode (if needed)
+        run: |
+          if [ -f .changeset/pre.json ]; then
+            echo "📦 Exiting pre-release mode for stable release..."
+            yarn changeset pre exit
+            git add .changeset/pre.json
+            git commit -m "chore: exit pre-release mode"
+            git push
+            echo "✅ Exited pre-release mode"
+          else
+            echo "✅ Not in pre-release mode, proceeding with stable release"
+          fi
+
+      - name: Lint Packages
+        run: yarn lint:ci:packages
+
+      - name: Test Packages
+        run: yarn test:ci:libs
+
+      - name: Build Packages
+        run: NODE_ENV=production yarn build:libs
+
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          setupGitUser: true
+          commitMode: 'github-api'
+          commit: 'chore: version packages'
+          title: 'release: next version'
+          publish: yarn changeset:publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Trigger Sample App Deployment
+        if: steps.changesets.outputs.published == 'true'
+        run: gh workflow run 'Deploy React Sample Apps'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
