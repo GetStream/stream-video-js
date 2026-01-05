@@ -249,7 +249,7 @@ No problem! Create the changeset and push another commit:
 ```bash
 yarn changeset
 git add .changeset/*.md
-git commit -m "chore: add changeset"
+git commit -m "Add missing changeset for PR #XYZ"
 git push
 ```
 
