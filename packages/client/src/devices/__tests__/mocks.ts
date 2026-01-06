@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { CallingState, CallState } from '../../store';
 import {
   NoiseCancellationSettingsModeEnum,
@@ -78,20 +79,21 @@ export const mockCall = (): Partial<Call> => {
     OwnCapability.SEND_VIDEO,
     OwnCapability.ENABLE_NOISE_CANCELLATION,
   ]);
-  callState.updateFromCallResponse({
-    settings: {
-      // @ts-expect-error partial data
-      audio: {
-        noise_cancellation: {
-          mode: NoiseCancellationSettingsModeEnum.AVAILABLE,
+  callState.updateFromCallResponse(
+    fromPartial({
+      egress: {},
+      settings: {
+        audio: {
+          noise_cancellation: {
+            mode: NoiseCancellationSettingsModeEnum.AVAILABLE,
+          },
+        },
+        screensharing: {
+          target_resolution: undefined,
         },
       },
-      // @ts-expect-error partial data
-      screensharing: {
-        target_resolution: undefined,
-      },
-    },
-  });
+    }),
+  );
   return {
     state: callState,
     publish: vi.fn(),
