@@ -64,14 +64,8 @@ jobs:
         run: NODE_ENV=production yarn build:libs
 
       - name: Publish Pre-release
-        id: changesets
-        uses: changesets/action@v1
-        with:
-          setupGitUser: false
-          commitMode: 'github-api'
-          commit: 'chore: pre-release version packages'
-          title: 'chore: next pre-release'
-          publish: yarn changeset:publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          yarn changeset version
+          yarn changeset publish
