@@ -6,10 +6,11 @@ import newNotificationCallbacks, {
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
 import { setupCallingExpEvents } from '../push/setupCallingExpEvents';
 import {
+  extractCallingExpOptions,
   getCallingxLib,
-  type Options as CallingxOptions,
 } from '../push/libs/callingx';
 import { NativeModules, Platform } from 'react-native';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 // Utility type for deep partial
 type DeepPartial<T> = {
@@ -92,31 +93,8 @@ export class StreamVideoRN {
    * import App from './App';
    * // Set push config
    * const pushConfig = {}; // construct your config
-   * StreamVideoRN.setPushConfig(pushConfig);
-   * AppRegistry.registerComponent('app', () => App);
-   */
-  static setPushConfig(pushConfig: NonNullable<StreamVideoConfig['push']>) {
-    if (this.config.push) {
-      // Ignoring this config as push config was already set
-      return;
-    }
-
-    this.config.push = pushConfig;
-
-    setupCallingExpEvents(pushConfig);
-    setupIosVoipPushEvents(pushConfig);
-  }
-
-  /**
-   * Setup the module responsible for integration with CallKit/Android Telecom API.
-   * This function must be called **outside** of your application lifecycle, e.g. alongside your
-   * `AppRegistry.registerComponent()` method call at the entry point of your application code.
-   * @example // in index.js
-   * import { AppRegistry } from 'react-native';
-   * import { StreamVideoRN } from '@stream-io/video-react-native-sdk';
-   * import App from './App';
-   * // Setup callingx module
-   * StreamVideoRN.setupCallingExp({
+   * // Set CallKit/Android Telecom API integration options. All params are optional. If not provided, the default values will be used.
+   * const callingExpOptions = {
    *   ios: {
    *     callsHistory: true,
    *     setupAudioSession: true,
@@ -140,13 +118,33 @@ export class StreamVideoRN {
    *   },
    *   enableOutcomingCalls: true,
    *   enableAutoPermissions: true,
-   * });
+   * };
+   * StreamVideoRN.setPushConfig(pushConfig, callingExpOptions);
    * AppRegistry.registerComponent('app', () => App);
-   * @param options - The options which are used to setup CallKit/Android Telecom API integration.
    */
-  static setupCallingExp(options?: CallingxOptions) {
-    const callingx = getCallingxLib();
-    callingx.setup(options ?? {});
+  static setPushConfig(pushConfig: NonNullable<StreamVideoConfig['push']>) {
+    try {
+      const callingx = getCallingxLib();
+      videoLoggerSystem
+        .getLogger('StreamVideoRN.setPushConfig')
+        .info(JSON.stringify({ pushConfig }));
+      const options = extractCallingExpOptions(pushConfig);
+      callingx.setup(options);
+    } catch (_) {
+      throw new Error(
+        'react-native-callingx library is not installed. Please check the installation instructions: https://getstream.io/video/docs/react-native/incoming-calls/ringing-setup/react-native/.',
+      );
+    }
+
+    if (this.config.push) {
+      // Ignoring this config as push config was already set
+      return;
+    }
+
+    this.config.push = pushConfig;
+
+    setupCallingExpEvents(pushConfig);
+    setupIosVoipPushEvents(pushConfig);
   }
 
   static getConfig() {

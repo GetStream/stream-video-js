@@ -60,6 +60,8 @@ export function setPushConfig() {
         },
       },
     },
+    enableAutoPermissions: true,
+    shouldRejectCallWhenBusy: true,
     createStreamVideoClient,
     onTapNonRingingCallNotification: (call_cid) => {
       const [callType, callId] = call_cid.split(':');
@@ -72,10 +74,6 @@ export function setPushConfig() {
         );
       }
     },
-  });
-
-  StreamVideoRN.setupCallingExp({
-    shouldRejectCallWhenBusy: true,
   });
 
   setFirebaseListeners();

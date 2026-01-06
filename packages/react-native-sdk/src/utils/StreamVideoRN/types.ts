@@ -4,6 +4,7 @@ import {
   type Call,
 } from '@stream-io/video-client';
 import type { AndroidChannel } from '@notifee/react-native';
+import type { CallingExpOptions } from '../push/libs/callingx';
 
 export type NonRingingPushEvent =
   | 'call.live_started'
@@ -32,6 +33,27 @@ export type StreamVideoConfig = {
        * @example "production-apn-video" or "staging-apn-video" based on the environment
        */
       pushProviderName?: string;
+      supportsVideo?: boolean;
+      /**
+       * Sound to play when an incoming call is received. Must be a valid sound resource name in the project.
+       * @default '' (no sound)
+       */
+      sound?: string;
+      /**
+       * Image to display when an incoming call is received. Must be a valid image resource name in the project.
+       * @default '' (no image)
+       */
+      imageName?: string;
+      /**
+       * Enable calls history. When enabled, the call will be added to the calls history.
+       * @default false
+       */
+      callsHistory?: boolean;
+      /**
+       * Timeout to display an incoming call. When the call is displayed for more than the timeout, the call will be rejected.
+       * @default 60000 (1 minute)
+       */
+      displayCallTimeout?: number;
     };
     android: {
       /**
@@ -57,6 +79,34 @@ export type StreamVideoConfig = {
        * }
        */
       callChannel?: AndroidChannel;
+      /**
+       * The notification channel to be used for incoming calls for Android.
+       * @example
+       * {
+       *  id: 'incoming_calls_channel',
+       *  name: 'Incoming calls',
+       *  sound?: string;
+       *  vibration?: boolean;
+       * }
+       */
+      incomingChannel?: {
+        id?: string;
+        name?: string;
+        sound?: string;
+        vibration?: boolean;
+      };
+      /**
+       * The notification channel to be used for outgoing calls for Android.
+       * @example
+       * {
+       *  id: 'outgoing_calls_channel',
+       *  name: 'Outgoing calls',
+       * }
+       */
+      outgoingChannel?: {
+        id?: string;
+        name?: string;
+      };
       /**
        * Functions to create the texts shown in the notification for non ringing calls in Android.
        * @example
@@ -85,6 +135,21 @@ export type StreamVideoConfig = {
         getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
       };
     };
+    /**
+     * Enable outgoing calls registration
+     * @default true
+     */
+    enableOutcomingCalls?: boolean;
+    /**
+     * Enable auto permissions request on setup call
+     * @default true
+     */
+    enableAutoPermissions?: boolean;
+    /**
+     * Whether to reject calls when the user is busy.
+     * @default false
+     */
+    shouldRejectCallWhenBusy?: boolean;
     /**
      * This function is used to create a custom video client.
      * This is used create a video client for incoming calls in the background and inform call events to the server.

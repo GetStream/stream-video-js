@@ -54,10 +54,6 @@ export function setPushConfig() {
 
   setFirebaseListeners();
 
-  StreamVideoRN.setupCallingExp({
-    enableOutcomingCalls: true,
-  });
-
   if (Platform.OS === 'android') {
     // on press handlers of background notifications
     notifee.onBackgroundEvent(async (event) => {

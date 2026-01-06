@@ -19,7 +19,7 @@ import {
   type TextTransformer,
   type EndCallReason,
   type EventData,
-  type Options,
+  type CallingExpOptions,
 } from './types';
 import {
   androidEndCallReasonMap,
@@ -53,7 +53,7 @@ class CallingxModule implements ICallingxModule {
     );
   }
 
-  setup(options: Options): void {
+  setup(options: CallingExpOptions): void {
     if (this._isSetup) {
       return;
     }

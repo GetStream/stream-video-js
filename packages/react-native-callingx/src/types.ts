@@ -14,9 +14,9 @@ export interface ICallingxModule {
     *    See: {@link InternalIOSOptions}
     * For Android, the module will create notification channels.
     *    See: {@link InternalAndroidOptions}
-    * @param options - The options to setup the callingx module. See {@link Options}
+    * @param options - The options to setup the callingx module. See {@link CallingExpOptions}
     */
-  setup(options: Options): void;
+  setup(options: CallingExpOptions): void;
   /**
    * Set whether to reject calls when the user is busy.
    * The value is used in iOS native module to prevent calls registration in CallKit when the user is busy.
@@ -176,7 +176,7 @@ export type NotificationTransformers = {
   subtitleTransformer?: TextTransformer;
 };
 
-export type Options = {
+export type CallingExpOptions = {
   ios?: iOSOptions;
   android?: AndroidOptions;
   /**
