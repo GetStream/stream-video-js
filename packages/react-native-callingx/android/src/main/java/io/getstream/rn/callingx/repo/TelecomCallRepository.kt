@@ -13,7 +13,6 @@ import androidx.core.telecom.CallControlScope
 import androidx.core.telecom.CallsManager
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
-import io.getstream.rn.callingx.repo.CallRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -188,6 +187,20 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
                 _currentCall.value = Call.None
             }
         }
+    }
+
+    override fun updateCall(
+            callId: String,
+            displayName: String,
+            address: Uri,
+            isVideo: Boolean,
+            displayOptions: Bundle?,
+    ) {
+        Log.d(
+                TAG,
+                "[repository] updateCall: Starting update - Name: $displayName, Address: $address, IsVideo: $isVideo"
+        )
+        updateCurrentCall { copy(displayOptions = displayOptions) }
     }
 
     private fun observeCallState(): Job {
@@ -464,10 +477,6 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
             isIncoming: Boolean,
             isVideo: Boolean
     ): CallAttributesCompat {
-        Log.d(
-                TAG,
-                "createCallAttributes: Creating CallAttributes - Direction: ${if (isIncoming) "Incoming" else "Outgoing"}, Type: ${if (isVideo) "Video" else "Audio"}"
-        )
         return CallAttributesCompat(
                 displayName = displayName,
                 address = address,

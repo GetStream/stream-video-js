@@ -236,12 +236,13 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             return
         }
 
+        //for now only display options will be updated, rest of the parameters will be ignored
         startCallService(
                 CallService.ACTION_UPDATE_CALL,
                 callId,
                 callerName,
                 phoneNumber,
-                false,
+                true,
                 displayOptions,
         )
         promise.resolve(true)
@@ -284,8 +285,6 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     override fun startBackgroundTask(taskName: String, timeout: Double, promise: Promise) {
-        Log.d(TAG, "[module] startBackgroundTask: Starting background task: $taskName, $timeout")
-
         Intent(reactApplicationContext, CallService::class.java)
                 .apply {
                     this.action = CallService.ACTION_START_BACKGROUND_TASK
@@ -299,8 +298,6 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     override fun stopBackgroundTask(taskName: String, promise: Promise) {
-        Log.d(TAG, "[module] stopBackgroundTask: Stopping background task: $taskName")
-
         Intent(reactApplicationContext, CallService::class.java)
                 .apply {
                     this.action = CallService.ACTION_STOP_BACKGROUND_TASK
@@ -312,7 +309,6 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     override fun log(message: String, level: String) {
-        Log.d(TAG, "[module] log: $message, $level")
         when (level) {
             "debug" -> Log.d(TAG, "[module] log: $message")
             "info" -> Log.i(TAG, "[module] log: $message")
@@ -495,6 +491,10 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             val action = intent.action
             val callId = intent.getStringExtra(EXTRA_CALL_ID)
 
+            if (action == null) {
+                return
+            }
+
             Log.d(
                     TAG,
                     "[module] onReceive: Received intent: $action callId: $callId callService: ${callService != null}"
@@ -503,11 +503,6 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             if (action == SERVICE_READY_ACTION) {
                 Log.d(TAG, "[module] onReceive: Service is ready, initiating binding")
                 bindToServiceIfNeeded()
-                return
-            }
-
-            if (action == null) {
-                Log.e(TAG, "[module] onReceive: Received intent with null action or callId")
                 return
             }
 

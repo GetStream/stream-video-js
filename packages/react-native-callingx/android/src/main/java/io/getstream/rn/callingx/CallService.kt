@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
+import android.os.Bundle
 import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
@@ -135,8 +136,7 @@ class CallService : Service(), CallRepository.Listener {
                 stopBackgroundTask()
             }
             ACTION_UPDATE_CALL -> {
-                // TODO: update the call details
-                // updateServiceState(telecomRepository.currentCall.value) // not used for now
+              updateCall(intent)
             }
             else -> {
                 Log.e(TAG, "[service] onStartCommand: Unknown action: ${intent.action}")
@@ -301,31 +301,47 @@ class CallService : Service(), CallRepository.Listener {
             return
         }
 
+        val callInfo = extractIntentParams(intent)
+        scope.launch {
+            try {
+                callRepository.registerCall(
+                        callInfo.callId,
+                        callInfo.name,
+                        callInfo.uri,
+                        incoming,
+                        callInfo.isVideo,
+                        callInfo.displayOptions,
+                )
+            } catch (e: Exception) {
+                Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
+            }
+        }
+    }
+
+    private fun updateCall(intent: Intent) {
+        val callInfo = extractIntentParams(intent)
+        callRepository.updateCall(
+                callInfo.callId,
+                callInfo.name,
+                callInfo.uri,
+                callInfo.isVideo,
+                callInfo.displayOptions
+        )
+    }
+
+    private fun extractIntentParams(intent: Intent): CallInfo {
         val callId = intent.getStringExtra(EXTRA_CALL_ID)!!
         val name = intent.getStringExtra(EXTRA_NAME)!!
-        val isVideo = intent.getBooleanExtra(EXTRA_IS_VIDEO, false)
         val uri =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     intent.getParcelableExtra(EXTRA_URI, Uri::class.java)!!
                 } else {
                     @Suppress("DEPRECATION") intent.getParcelableExtra(EXTRA_URI)!!
                 }
+        val isVideo = intent.getBooleanExtra(EXTRA_IS_VIDEO, false)
         val displayOptions = intent.getBundleExtra(EXTRA_DISPLAY_OPTIONS)
 
-        scope.launch {
-            try {
-                callRepository.registerCall(
-                        callId,
-                        name,
-                        uri,
-                        incoming,
-                        isVideo,
-                        displayOptions,
-                )
-            } catch (e: Exception) {
-                Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
-            }
-        }
+        return CallInfo(callId, name, uri, isVideo, displayOptions)
     }
 
     private fun sendBroadcastEvent(action: String, applyParams: Intent.() -> Unit = {}) {
@@ -336,4 +352,12 @@ class CallService : Service(), CallRepository.Listener {
                 }
         sendBroadcast(intent)
     }
+
+    data class CallInfo(
+            val callId: String,
+            val name: String,
+            val uri: Uri,
+            val isVideo: Boolean,
+            val displayOptions: Bundle?,
+    )
 }

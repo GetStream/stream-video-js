@@ -3,7 +3,7 @@ import type { ManagableTask } from './utils/headlessTask';
 import type { PermissionsResult } from './utils/permissions';
 
 export interface ICallingxModule {
-  get isOutcomingCallsEnabled(): boolean;
+  get isOngoingCallsEnabled(): boolean;
 
   get isNotificationsAllowed(): boolean;
 
@@ -43,7 +43,6 @@ export interface ICallingxModule {
     phoneNumber: string,
     callerName: string,
     hasVideo: boolean,
-    displayOptions?: InfoDisplayOptions,
   ): Promise<void>;
   answerIncomingCall(callId: string): Promise<void>;
 
@@ -52,7 +51,6 @@ export interface ICallingxModule {
     phoneNumber: string,
     callerName: string,
     hasVideo: boolean,
-    displayOptions?: InfoDisplayOptions,
   ): Promise<void>;
 
   /**
@@ -67,7 +65,6 @@ export interface ICallingxModule {
     callId: string,
     phoneNumber: string,
     callerName: string,
-    displayOptions?: InfoDisplayOptions,
   ): Promise<void>;
 
   /**
@@ -183,7 +180,7 @@ export type CallingExpOptions = {
    * Enable outgoing calls registration
    * @default true
    */
-  enableOutcomingCalls?: boolean;
+  enableOngoingCalls?: boolean;
   /**
    * Enable auto permissions request on setup call
    * @default true

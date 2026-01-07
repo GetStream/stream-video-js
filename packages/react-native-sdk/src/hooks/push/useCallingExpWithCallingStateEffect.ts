@@ -2,6 +2,7 @@ import {
   CallingState,
   MemberResponse,
   RxUtils,
+  StreamVideoParticipant,
   videoLoggerSystem,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
@@ -74,42 +75,62 @@ const canStartCall = (
   );
 };
 
-function getOutcomingDisplayName(
-  members: MemberResponse[] | undefined,
+function getCallDisplayName(
+  callMembers: MemberResponse[] | undefined,
+  participants: StreamVideoParticipant[] | undefined,
   currentUserId: string | undefined,
 ) {
-  if (!members || !currentUserId) {
-    return 'Unknown';
+  if (!callMembers || !participants || !currentUserId) {
+    return 'Call';
   }
 
-  const names = members
-    .filter((member) => member.user_id !== currentUserId)
-    .map((member) => member.user.name)
-    .filter(Boolean);
+  let names: string[] = [];
 
-  return names.length > 0 ? names.join(', ') : 'Unknown';
+  if (callMembers.length > 0) {
+    names = callMembers
+      .filter((member) => member.user.id !== currentUserId)
+      .map((member) => member.user.name)
+      .filter((name): name is string => name !== undefined);
+  } else if (participants.length > 0) {
+    names = participants
+      .filter((participant) => participant.userId !== currentUserId)
+      .map((participant) => participant.name)
+      .filter(Boolean);
+  }
+
+  return names.length > 0 ? names.sort().join(', ') : 'Call';
 }
 
 /**
  * This hook is used to inform sync call state with CallKit/Telecom (i.e. start call, end call, mute/unmute call).
  */
 export const useCallingExpWithCallingStateEffect = () => {
-  const { useCallCallingState, useMicrophoneState } = useCallStateHooks();
+  const {
+    useCallCallingState,
+    useMicrophoneState,
+    useParticipants,
+    useCallMembers,
+  } = useCallStateHooks();
 
   const activeCall = useCall();
   const callingState = useCallCallingState();
   const { isMute, microphone } = useMicrophoneState();
+  const callMembers = useCallMembers();
+  const participants = useParticipants();
 
   const prevState = useRef<CallingState | undefined>(undefined);
 
+  logger.debug(`callMembers: ${JSON.stringify(callMembers)}`);
+  logger.debug(`participants: ${JSON.stringify(participants)}`);
+
   const activeCallCid = activeCall?.cid;
-  const isOutcomingCall = activeCall?.isCreatedByMe && activeCall?.ringing; //is this reliable??
+  const isIncomingCall = activeCall?.ringing && !activeCall?.isCreatedByMe;
   const currentUserId = activeCall?.currentUserId;
   const isVideoCall = activeCall?.state.settings?.video?.enabled ?? false;
 
-  const outcomingDisplayName = useMemo(
-    () => getOutcomingDisplayName(activeCall?.state.members, currentUserId),
-    [activeCall?.state.members, currentUserId],
+  const callDisplayName = useMemo(
+    () => getCallDisplayName(callMembers, participants, currentUserId),
+    [callMembers, participants, currentUserId],
   );
 
   useEffect(() => {
@@ -148,11 +169,11 @@ export const useCallingExpWithCallingStateEffect = () => {
     //tells if call is registered in CallKit/Telecom
     const isCallRegistered = callingx.isCallRegistered(activeCallCid);
     logger.debug(
-      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered} isOutcomingCall: ${isOutcomingCall} prevState: ${prevState.current}, currentState: ${callingState} isOutcomingCallsEnabled: ${callingx.isOutcomingCallsEnabled}`,
+      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered} isOutcomingCall: ${isIncomingCall} prevState: ${prevState.current}, currentState: ${callingState} isOngoingCallsEnabled: ${callingx.isOngoingCallsEnabled}`,
     );
 
     if (
-      !isOutcomingCall &&
+      isIncomingCall &&
       isCallRegistered &&
       canAcceptIncomingCall(prevState.current, callingState)
     ) {
@@ -164,20 +185,15 @@ export const useCallingExpWithCallingStateEffect = () => {
         );
       });
     } else if (
-      callingx.isOutcomingCallsEnabled &&
-      isOutcomingCall &&
+      callingx.isOngoingCallsEnabled &&
+      !isIncomingCall &&
       !isCallRegistered &&
       canStartCall(prevState.current, callingState)
     ) {
       logger.debug(`Should register call in callkeep: ${activeCallCid}`);
       //we request start call action from CallKit/Telecom, next step is to make call active when we receive call started event
       callingx
-        .startCall(
-          activeCallCid,
-          activeCallCid,
-          outcomingDisplayName,
-          isVideoCall,
-        )
+        .startCall(activeCallCid, activeCallCid, callDisplayName, isVideoCall)
         .catch((error: unknown) => {
           logger.error(
             `Error starting call in calling exp: ${activeCallCid}`,
@@ -205,8 +221,8 @@ export const useCallingExpWithCallingStateEffect = () => {
   }, [
     activeCallCid,
     callingState,
-    isOutcomingCall,
-    outcomingDisplayName,
+    callDisplayName,
+    isIncomingCall,
     isVideoCall,
   ]);
 
@@ -238,6 +254,23 @@ export const useCallingExpWithCallingStateEffect = () => {
       subscription.remove();
     };
   }, [activeCallCid]);
+
+  useEffect(() => {
+    const callingx = getCallingxLibIfAvailable();
+    if (!callingx || !activeCallCid) {
+      return;
+    }
+
+    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
+    if (!isCallRegistered) {
+      logger.debug(
+        `No active call cid to set on hold in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+      );
+      return;
+    }
+
+    callingx.updateDisplay(activeCallCid, activeCallCid, callDisplayName);
+  }, [activeCallCid, callDisplayName]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();

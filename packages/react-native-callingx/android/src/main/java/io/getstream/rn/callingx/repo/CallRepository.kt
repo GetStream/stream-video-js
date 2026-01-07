@@ -39,6 +39,14 @@ interface CallRepository {
     isVideo: Boolean,
     displayOptions: Bundle?,
   )
+
+  fun updateCall(
+    callId: String,
+    displayName: String,
+    address: Uri,
+    isVideo: Boolean,
+    displayOptions: Bundle?,
+  )
 }
 
 object CallRepositoryFactory {

@@ -139,7 +139,7 @@ export type StreamVideoConfig = {
      * Enable outgoing calls registration
      * @default true
      */
-    enableOutcomingCalls?: boolean;
+    enableOngoingCalls?: boolean;
     /**
      * Enable auto permissions request on setup call
      * @default true

@@ -24,6 +24,7 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
   }
 
   public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long) {
+    Log.d(TAG, "[headless] startHeadlessTask: Starting headless task: $taskName, $data, $timeout")
     if (activeTaskId != null) {
       Log.w(TAG, "[headless] startHeadlessTask: Task already starting or active, ignoring new task request")
       return

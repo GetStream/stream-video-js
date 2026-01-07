@@ -91,6 +91,16 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
         }
     }
 
+    override fun updateCall(
+        callId: String,
+        displayName: String,
+        address: Uri,
+        isVideo: Boolean,
+        displayOptions: Bundle?,
+    ) {
+        updateCurrentCall { copy(displayOptions = displayOptions) }
+    }
+
     private fun processActionLegacy(action: CallAction) {
         when (action) {
             is CallAction.Answer -> {
@@ -154,10 +164,6 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
             isIncoming: Boolean,
             isVideo: Boolean
     ): CallAttributesCompat {
-        Log.d(
-                TAG,
-                "createCallAttributes: Creating CallAttributes - Direction: ${if (isIncoming) "Incoming" else "Outgoing"}, Type: ${if (isVideo) "Video" else "Audio"}"
-        )
         return CallAttributesCompat(
                 displayName = displayName,
                 address = address,

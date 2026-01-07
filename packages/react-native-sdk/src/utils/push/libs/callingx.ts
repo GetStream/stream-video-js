@@ -67,8 +67,8 @@ export function extractCallingExpOptions(
     }
   }
 
-  if (pushConfig.enableOutcomingCalls !== undefined) {
-    callingExpOptions.enableOutcomingCalls = pushConfig.enableOutcomingCalls;
+  if (pushConfig.enableOngoingCalls !== undefined) {
+    callingExpOptions.enableOngoingCalls = pushConfig.enableOngoingCalls;
   }
   if (pushConfig.enableAutoPermissions !== undefined) {
     callingExpOptions.enableAutoPermissions = pushConfig.enableAutoPermissions;

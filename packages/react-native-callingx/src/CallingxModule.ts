@@ -31,7 +31,7 @@ import {
 
 class CallingxModule implements ICallingxModule {
   private _isNotificationsAllowed = false;
-  private _isOutcomingCallsEnabled = false;
+  private _isOngoingCallsEnabled = false;
   private _isSetup = false;
 
   private titleTransformer: TextTransformer = (text: string) => text;
@@ -39,8 +39,8 @@ class CallingxModule implements ICallingxModule {
 
   private eventManager: EventManager = new EventManager();
 
-  get isOutcomingCallsEnabled(): boolean {
-    return this._isOutcomingCallsEnabled;
+  get isOngoingCallsEnabled(): boolean {
+    return this._isOngoingCallsEnabled;
   }
 
   get isNotificationsAllowed(): boolean {
@@ -58,7 +58,7 @@ class CallingxModule implements ICallingxModule {
       return;
     }
 
-    this._isOutcomingCallsEnabled = options.enableOutcomingCalls ?? true;
+    this._isOngoingCallsEnabled = options.enableOngoingCalls ?? true;
     this.setShouldRejectCallWhenBusy(options.shouldRejectCallWhenBusy ?? false);
 
     if (Platform.OS === 'ios') {
