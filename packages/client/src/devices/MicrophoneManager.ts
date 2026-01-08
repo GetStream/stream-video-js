@@ -230,25 +230,20 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
    * @param publish whether to publish the stream after applying the settings.
    */
   async apply(settings: AudioSettingsResponse, publish: boolean) {
-    if (!publish) return;
-
-    const hasPublishedAudio = !!this.call.state.localParticipant?.audioStream;
-    const hasPermission = this.call.permissionsContext.hasPermission(
-      OwnCapability.SEND_AUDIO,
-    );
-    if (hasPublishedAudio || !hasPermission) return;
-
     // Wait for any in progress mic operation
     await this.statusChangeSettled();
 
-    // Publish media stream that was set before we joined
+    const canPublish = this.call.permissionsContext.canPublish(this.trackType);
+    // apply server-side settings only when the device state is pristine
+    if (this.state.status === undefined) {
+      if (canPublish && settings.mic_default_on) {
+        await this.enable();
+      }
+    }
+
     const { mediaStream } = this.state;
-    if (this.enabled && mediaStream) {
-      // The mic is already enabled (e.g. lobby screen). Publish the stream
+    if (canPublish && publish && this.enabled && mediaStream) {
       await this.publishStream(mediaStream);
-    } else if (this.state.status === undefined && settings.mic_default_on) {
-      // Start mic if backend config specifies, and there is no local setting
-      await this.enable();
     }
   }
 
