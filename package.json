@@ -23,7 +23,7 @@
     "start:react-native:ios:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run ios",
     "start:react-native:android:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run android",
     "build:styling": "yarn workspace @stream-io/video-styling run build",
-    "build:callingx": "yarn workspace @stream-io/react-native-callingx run build",
+    "build:react-native-callingx": "yarn workspace @stream-io/react-native-callingx run build",
     "start:styling": "yarn workspace @stream-io/video-styling run start",
     "build:client": "yarn workspace @stream-io/video-client run build",
     "start:client": "yarn workspace @stream-io/video-client run start",
@@ -63,7 +63,7 @@
     "release:video-filters-web": "yarn workspace @stream-io/video-filters-web npm publish --access=public --tag=latest",
     "release:video-filters-react-native": "yarn workspace @stream-io/video-filters-react-native npm publish --access=public --tag=latest",
     "release:noise-cancellation-react-native": "yarn workspace @stream-io/noise-cancellation-react-native npm publish --access=public --tag=latest",
-    "release:callingx": "yarn workspace @stream-io/react-native-callingx npm publish --access=public --tag=latest",
+    "release:react-native-callingx": "yarn workspace @stream-io/react-native-callingx npm publish --access=public --tag=latest",
     "release:styling": "yarn workspace @stream-io/video-styling npm publish --access=public --tag=latest",
     "postinstall": "husky"
   },
