@@ -121,8 +121,9 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     await this.selectTargetResolution(settings.target_resolution);
 
     // apply a direction and enable the camera only if in "pristine" state
+    // and server defaults are not deferred to application code
     const canPublish = this.call.permissionsContext.canPublish(this.trackType);
-    if (this.state.status === undefined) {
+    if (this.state.status === undefined && !this.deferServerDefaults) {
       if (!this.state.direction && !this.state.selectedDevice) {
         const direction = settings.camera_facing === 'front' ? 'front' : 'back';
         await this.selectDirection(direction);

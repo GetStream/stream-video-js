@@ -235,7 +235,8 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
     const canPublish = this.call.permissionsContext.canPublish(this.trackType);
     // apply server-side settings only when the device state is pristine
-    if (this.state.status === undefined) {
+    // and server defaults are not deferred to application code
+    if (this.state.status === undefined && !this.deferServerDefaults) {
       if (canPublish && settings.mic_default_on) {
         await this.enable();
       }
