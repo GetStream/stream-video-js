@@ -14,7 +14,7 @@ class EventManager {
 
   addListener<T extends EventName>(
     eventName: T,
-    callback: EventListener<EventParams[T]>
+    callback: EventListener<EventParams[T]>,
   ): void {
     const listeners = this.eventListeners.get(eventName) || [];
     listeners.push(callback as EventListener<EventParams[EventName]>);
@@ -24,11 +24,11 @@ class EventManager {
 
     if (this.subscription === null) {
       this.subscription = NativeCallingModule.onNewEvent((event: EventData) => {
-        console.log('[callingx] NativeCallingModule.onNewEvent', event);
+        console.log('[callingx] onNewEvent:', event);
         const eventListeners =
           this.eventListeners.get(event.eventName as EventName) || [];
         eventListeners.forEach((listener) =>
-          listener(event.params as EventParams[EventName])
+          listener(event.params as EventParams[EventName]),
         );
       });
     }
@@ -36,12 +36,12 @@ class EventManager {
 
   removeListener<T extends EventName>(
     eventName: T,
-    callback: EventListener<EventParams[T]>
+    callback: EventListener<EventParams[T]>,
   ): void {
     const listeners = this.eventListeners.get(eventName) || [];
     this.eventListeners.set(
       eventName,
-      listeners.filter((c) => c !== callback)
+      listeners.filter((c) => c !== callback),
     );
 
     this.listenersCount--;

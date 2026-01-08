@@ -39,25 +39,17 @@ import kotlinx.coroutines.sync.withLock
  * @see registerCall
  */
 @RequiresApi(Build.VERSION_CODES.O)
-class TelecomCallRepository(private val context: Context) : CallRepository {
+class TelecomCallRepository(context: Context) : CallRepository(context) {
 
     companion object {
         private const val TAG = "[Callingx] TelecomCallRepository"
     }
 
-    private var listener: CallRepository.Listener? = null
     private var observeCallStateJob: Job? = null
 
     private val callsManager: CallsManager
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var isSelfAnswered = false
     private var isSelfDisconnected = false
-
-    // Keeps track of the current TelecomCall state
-    private val _currentCall: MutableStateFlow<Call> = MutableStateFlow(Call.None)
-    override val currentCall = _currentCall.asStateFlow()
-
-    private val registrationMutex = Mutex()
 
     init {
         val capabilities =
@@ -70,8 +62,10 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
         Log.d(TAG, "[repository] init: CallsManager created and registered")
     }
 
-    override fun setListener(listener: CallRepository.Listener) {
-        this.listener = listener
+    override fun getTag(): String = TAG
+
+    override fun setListener(listener: Listener?) {
+        this._listener = listener
 
         observeCallStateJob?.cancel()
         observeCallStateJob = observeCallState()
@@ -86,7 +80,7 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
 
         observeCallStateJob?.cancel()
         observeCallStateJob = null
-        listener = null
+        _listener = null
 
         scope.cancel()
     }
@@ -200,7 +194,7 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
                 TAG,
                 "[repository] updateCall: Starting update - Name: $displayName, Address: $address, IsVideo: $isVideo"
         )
-        updateCurrentCall { copy(displayOptions = displayOptions) }
+        super.updateCall(callId, displayName, address, isVideo, displayOptions)
     }
 
     private fun observeCallState(): Job {
@@ -211,8 +205,8 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
                 .onEach { (previous, current) ->
                     when {
                         previous is Call.None && current is Call.Registered -> {
-                            if (!(current as Call.Registered).isIncoming()) {
-                                listener?.onCallRegistered(current.id)
+                            if (!current.isIncoming()) {
+                                _listener?.onCallRegistered(current.id)
                             }
                         }
                         previous is Call.Registered && current is Call.Registered -> {
@@ -221,16 +215,16 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
                                         TAG,
                                         "[repository] observeCallState: Mute changed: ${current.isMuted}"
                                 )
-                                listener?.onMuteCallChanged(current.id, current.isMuted)
+                                _listener?.onMuteCallChanged(current.id, current.isMuted)
                             }
                             if (previous.currentCallEndpoint != current.currentCallEndpoint) {
                                 current.currentCallEndpoint?.let {
-                                    listener?.onCallEndpointChanged(current.id, it.name.toString())
+                                    _listener?.onCallEndpointChanged(current.id, it.name.toString())
                                 }
                             }
                         }
                     }
-                    listener?.onCallStateChanged(current)
+                    _listener?.onCallStateChanged(current)
                 }
                 .launchIn(scope)
     }
@@ -312,33 +306,6 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
         Log.d(TAG, "[repository] processCallActions: Action collection ended")
     }
 
-    /**
-     * Update the current state of our call applying the transform lambda only if the call is
-     * registered. Otherwise keep the current state
-     */
-    private fun updateCurrentCall(transform: Call.Registered.() -> Call) {
-        val currentState = _currentCall.value
-        Log.d(
-                TAG,
-                "[repository] updateCurrentCall: Current call state: ${currentState::class.simpleName}"
-        )
-        _currentCall.update { call ->
-            if (call is Call.Registered) {
-                val updated = call.transform()
-                Log.d(
-                        TAG,
-                        "[repository] updateCurrentCall: Call state updated to: ${updated::class.simpleName}"
-                )
-                updated
-            } else {
-                Log.w(
-                        TAG,
-                        "[repository] updateCurrentCall: Call is not Registered, skipping update"
-                )
-                call
-            }
-        }
-    }
 
     private suspend fun CallControlScope.doSwitchEndpoint(action: CallAction.SwitchAudioEndpoint) {
         Log.d(TAG, "[repository] doSwitchEndpoint: Switching to endpoint: ${action.endpointId}")
@@ -409,10 +376,10 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
 
         val call = _currentCall.value
         val source =
-                if (isSelfAnswered) CallRepository.EventSource.APP
-                else CallRepository.EventSource.SYS
+                if (isSelfAnswered) EventSource.APP
+                else EventSource.SYS
         if (call is Call.Registered) {
-            listener?.onIsCallAnswered(call.id, source)
+            _listener?.onIsCallAnswered(call.id, source)
         }
         isSelfAnswered = false
         Log.d(TAG, "[repository] onIsCallAnswered: Call state updated to active")
@@ -425,15 +392,15 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
                 "[repository] onIsCallDisconnected: Call disconnected, cause: ${it.reason}, description: ${it.description}"
         )
         val source =
-                if (isSelfDisconnected) CallRepository.EventSource.APP
-                else CallRepository.EventSource.SYS
+                if (isSelfDisconnected) EventSource.APP
+                else EventSource.SYS
         var callId: String? = null
         if (_currentCall.value is Call.Registered) {
             callId = (_currentCall.value as Call.Registered).id
         }
 
         updateCurrentCall { Call.Unregistered(id, callAttributes, it) }
-        listener?.onIsCallDisconnected(callId, it, source)
+        _listener?.onIsCallDisconnected(callId, it, source)
         isSelfDisconnected = false
         Log.d(TAG, "[repository] onIsCallDisconnected: Call state updated to Unregistered")
     }
@@ -454,7 +421,7 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
 
         val call = _currentCall.value
         if (call is Call.Registered) {
-            listener?.onIsCallActive(call.id)
+            _listener?.onIsCallActive(call.id)
         }
         Log.d(TAG, "[repository] onIsCallActive: Call state updated")
     }
@@ -466,36 +433,9 @@ class TelecomCallRepository(private val context: Context) : CallRepository {
 
         val call = _currentCall.value
         if (call is Call.Registered) {
-            listener?.onIsCallInactive(call.id)
+            _listener?.onIsCallInactive(call.id)
         }
         Log.d(TAG, "[repository] onIsCallInactive: Call state updated to on hold")
     }
 
-    private fun createCallAttributes(
-            displayName: String,
-            address: Uri,
-            isIncoming: Boolean,
-            isVideo: Boolean
-    ): CallAttributesCompat {
-        return CallAttributesCompat(
-                displayName = displayName,
-                address = address,
-                direction =
-                        if (isIncoming) {
-                            CallAttributesCompat.DIRECTION_INCOMING
-                        } else {
-                            CallAttributesCompat.DIRECTION_OUTGOING
-                        },
-                callType =
-                        if (isVideo) {
-                            CallAttributesCompat.CALL_TYPE_VIDEO_CALL
-                        } else {
-                            CallAttributesCompat.CALL_TYPE_AUDIO_CALL
-                        },
-                callCapabilities =
-                        CallAttributesCompat.SUPPORTS_SET_INACTIVE or
-                                CallAttributesCompat.SUPPORTS_STREAM or
-                                CallAttributesCompat.SUPPORTS_TRANSFER,
-        )
-    }
 }

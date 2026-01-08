@@ -5,11 +5,20 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.telecom.DisconnectCause
+import android.util.Log
+import androidx.core.telecom.CallAttributesCompat
 import io.getstream.rn.callingx.model.Call
-import io.getstream.rn.callingx.repo.TelecomCallRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
 
-interface CallRepository {
+abstract class CallRepository(protected val context: Context) {
 
   enum class EventSource {
     APP, SYS
@@ -26,12 +35,17 @@ interface CallRepository {
     fun onCallEndpointChanged(callId: String, endpoint: String)
   }
 
-  val currentCall: StateFlow<Call>
+  protected val _currentCall: MutableStateFlow<Call> = MutableStateFlow(Call.None)
+  val currentCall: StateFlow<Call> = _currentCall.asStateFlow()
 
-  fun setListener(listener: Listener)
-  fun release()
+  protected var _listener: Listener? = null
+  protected val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+  protected val registrationMutex: Mutex = Mutex()
 
-  suspend fun registerCall(
+  abstract fun setListener(listener: Listener?)
+  abstract fun release()
+
+  abstract suspend fun registerCall(
     callId: String,
     displayName: String,
     address: Uri,
@@ -40,13 +54,74 @@ interface CallRepository {
     displayOptions: Bundle?,
   )
 
-  fun updateCall(
+  open fun updateCall(
     callId: String,
     displayName: String,
     address: Uri,
     isVideo: Boolean,
     displayOptions: Bundle?,
-  )
+  ) {
+    updateCurrentCall { copy(displayOptions = displayOptions) }
+  }
+
+  /**
+   * Update the current state of our call applying the transform lambda only if the call is
+   * registered. Otherwise keep the current state
+   */
+  protected fun updateCurrentCall(transform: Call.Registered.() -> Call) {
+    val currentState = _currentCall.value
+    Log.d(
+      getTag(),
+      "[repository] updateCurrentCall: Current call state: ${currentState::class.simpleName}"
+    )
+
+    _currentCall.update { call ->
+      if (call is Call.Registered) {
+        val updated = call.transform()
+        Log.d(
+          getTag(),
+          "[repository] updateCurrentCall: Call state updated to: ${updated::class.simpleName}"
+        )
+        updated
+      } else {
+        Log.w(
+          getTag(),
+          "[repository] updateCurrentCall: Call is not Registered, skipping update"
+        )
+        call
+      }
+    }
+  }
+
+  protected fun createCallAttributes(
+    displayName: String,
+    address: Uri,
+    isIncoming: Boolean,
+    isVideo: Boolean
+  ): CallAttributesCompat {
+    return CallAttributesCompat(
+      displayName = displayName,
+      address = address,
+      direction =
+        if (isIncoming) {
+          CallAttributesCompat.DIRECTION_INCOMING
+        } else {
+          CallAttributesCompat.DIRECTION_OUTGOING
+        },
+      callType =
+        if (isVideo) {
+          CallAttributesCompat.CALL_TYPE_VIDEO_CALL
+        } else {
+          CallAttributesCompat.CALL_TYPE_AUDIO_CALL
+        },
+      callCapabilities =
+        CallAttributesCompat.SUPPORTS_SET_INACTIVE or
+          CallAttributesCompat.SUPPORTS_STREAM or
+          CallAttributesCompat.SUPPORTS_TRANSFER,
+    )
+  }
+
+  protected abstract fun getTag(): String
 }
 
 object CallRepositoryFactory {

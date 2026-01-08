@@ -7,43 +7,31 @@ import android.util.Log
 import androidx.core.telecom.CallAttributesCompat
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class LegacyCallRepository(private val context: Context) : CallRepository {
+class LegacyCallRepository(context: Context) : CallRepository(context) {
 
     companion object {
         private const val TAG = "[Callingx] LegacyCallRepository"
     }
 
-    private val _currentCall: MutableStateFlow<Call> = MutableStateFlow(Call.None)
-    override val currentCall = _currentCall.asStateFlow()
+    override fun getTag(): String = TAG
 
-    private var listener: CallRepository.Listener? = null
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-
-    private val registrationMutex = Mutex()
-
-    override fun setListener(listener: CallRepository.Listener) {
-        this.listener = listener
+    override fun setListener(listener: Listener?) {
+        this._listener = listener
         // Observe call state changes
-        scope.launch { currentCall.collect { listener.onCallStateChanged(it) } }
+        scope.launch { currentCall.collect { _listener?.onCallStateChanged(it) } }
     }
 
     override fun release() {
         _currentCall.value = Call.None
 
-        listener = null
+        _listener = null
 
         scope.cancel()
     }
@@ -82,7 +70,7 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
                             actionSource = actionSource,
                     )
 
-            listener?.onCallRegistered(callId)
+            _listener?.onCallRegistered(callId)
 
             // Process actions without telecom SDK
             scope.launch {
@@ -98,7 +86,7 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
         isVideo: Boolean,
         displayOptions: Bundle?,
     ) {
-        updateCurrentCall { copy(displayOptions = displayOptions) }
+        super.updateCall(callId, displayName, address, isVideo, displayOptions)
     }
 
     private fun processActionLegacy(action: CallAction) {
@@ -107,7 +95,7 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
                 updateCurrentCall { copy(isActive = true, isOnHold = false) }
                 // In legacy mode, all actions are initiated from the app
                 (currentCall.value as? Call.Registered)?.let {
-                    listener?.onIsCallAnswered(it.id, CallRepository.EventSource.APP)
+                    _listener?.onIsCallAnswered(it.id, EventSource.APP)
                 }
             }
             is CallAction.Disconnect -> {
@@ -116,10 +104,10 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
                     _currentCall.value =
                             Call.Unregistered(call.id, call.callAttributes, action.cause)
                     // In legacy mode, all actions are initiated from the app
-                    listener?.onIsCallDisconnected(
+                    _listener?.onIsCallDisconnected(
                             call.id,
                             action.cause,
-                            CallRepository.EventSource.APP
+                            EventSource.APP
                     )
                 }
             }
@@ -133,56 +121,4 @@ class LegacyCallRepository(private val context: Context) : CallRepository {
         }
     }
 
-    private fun updateCurrentCall(transform: Call.Registered.() -> Call) {
-        val currentState = _currentCall.value
-        Log.d(
-                TAG,
-                "[repository] updateCurrentCall: Current call state: ${currentState::class.simpleName}"
-        )
-
-        _currentCall.update { call ->
-            if (call is Call.Registered) {
-                val updated = call.transform()
-                Log.d(
-                        TAG,
-                        "[repository] updateCurrentCall: Call state updated to: ${updated::class.simpleName}"
-                )
-                updated
-            } else {
-                Log.w(
-                        TAG,
-                        "[repository] updateCurrentCall: Call is not Registered, skipping update"
-                )
-                call
-            }
-        }
-    }
-
-    private fun createCallAttributes(
-            displayName: String,
-            address: Uri,
-            isIncoming: Boolean,
-            isVideo: Boolean
-    ): CallAttributesCompat {
-        return CallAttributesCompat(
-                displayName = displayName,
-                address = address,
-                direction =
-                        if (isIncoming) {
-                            CallAttributesCompat.DIRECTION_INCOMING
-                        } else {
-                            CallAttributesCompat.DIRECTION_OUTGOING
-                        },
-                callType =
-                        if (isVideo) {
-                            CallAttributesCompat.CALL_TYPE_VIDEO_CALL
-                        } else {
-                            CallAttributesCompat.CALL_TYPE_AUDIO_CALL
-                        },
-                callCapabilities =
-                        CallAttributesCompat.SUPPORTS_SET_INACTIVE or
-                                CallAttributesCompat.SUPPORTS_STREAM or
-                                CallAttributesCompat.SUPPORTS_TRANSFER,
-        )
-    }
 }
