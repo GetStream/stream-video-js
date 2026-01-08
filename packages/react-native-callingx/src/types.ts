@@ -3,8 +3,6 @@ import type { ManagableTask } from './utils/headlessTask';
 import type { PermissionsResult } from './utils/permissions';
 
 export interface ICallingxModule {
-  get isOngoingCallsEnabled(): boolean;
-
   get isNotificationsAllowed(): boolean;
 
   /**
@@ -176,16 +174,6 @@ export type NotificationTransformers = {
 export type CallingExpOptions = {
   ios?: iOSOptions;
   android?: AndroidOptions;
-  /**
-   * Enable outgoing calls registration
-   * @default true
-   */
-  enableOngoingCalls?: boolean;
-  /**
-   * Enable auto permissions request on setup call
-   * @default true
-   */
-  enableAutoPermissions?: boolean;
   /**
    * Whether to reject calls when the user is busy.
    * @default false

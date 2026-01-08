@@ -60,7 +60,6 @@ export function setPushConfig() {
         },
       },
     },
-    enableAutoPermissions: true,
     shouldRejectCallWhenBusy: true,
     createStreamVideoClient,
     onTapNonRingingCallNotification: (call_cid) => {

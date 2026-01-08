@@ -120,9 +120,6 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   const prevState = useRef<CallingState | undefined>(undefined);
 
-  logger.debug(`callMembers: ${JSON.stringify(callMembers)}`);
-  logger.debug(`participants: ${JSON.stringify(participants)}`);
-
   const activeCallCid = activeCall?.cid;
   const isIncomingCall = activeCall?.ringing && !activeCall?.isCreatedByMe;
   const currentUserId = activeCall?.currentUserId;
@@ -169,7 +166,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     //tells if call is registered in CallKit/Telecom
     const isCallRegistered = callingx.isCallRegistered(activeCallCid);
     logger.debug(
-      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered} isOutcomingCall: ${isIncomingCall} prevState: ${prevState.current}, currentState: ${callingState} isOngoingCallsEnabled: ${callingx.isOngoingCallsEnabled}`,
+      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered} isIncomingCall: ${isIncomingCall} prevState: ${prevState.current}, currentState: ${callingState}`,
     );
 
     if (
@@ -185,7 +182,6 @@ export const useCallingExpWithCallingStateEffect = () => {
         );
       });
     } else if (
-      callingx.isOngoingCallsEnabled &&
       !isIncomingCall &&
       !isCallRegistered &&
       canStartCall(prevState.current, callingState)

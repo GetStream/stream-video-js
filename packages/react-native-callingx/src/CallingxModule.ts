@@ -31,17 +31,12 @@ import {
 
 class CallingxModule implements ICallingxModule {
   private _isNotificationsAllowed = false;
-  private _isOngoingCallsEnabled = false;
   private _isSetup = false;
 
   private titleTransformer: TextTransformer = (text: string) => text;
   private subtitleTransformer: TextTransformer | undefined = undefined;
 
   private eventManager: EventManager = new EventManager();
-
-  get isOngoingCallsEnabled(): boolean {
-    return this._isOngoingCallsEnabled;
-  }
 
   get isNotificationsAllowed(): boolean {
     if (Platform.OS !== 'android') {
@@ -58,7 +53,6 @@ class CallingxModule implements ICallingxModule {
       return;
     }
 
-    this._isOngoingCallsEnabled = options.enableOngoingCalls ?? true;
     this.setShouldRejectCallWhenBusy(options.shouldRejectCallWhenBusy ?? false);
 
     if (Platform.OS === 'ios') {
@@ -97,17 +91,6 @@ class CallingxModule implements ICallingxModule {
       NativeCallingModule.setupAndroid(notificationsConfig);
 
       registerHeadlessTask();
-    }
-
-    //by default we will request permissions on setup call
-    if (options.enableAutoPermissions ?? true) {
-      this.requestPermissions()
-        .then((result) => {
-          console.log('Permissions result:', result);
-        })
-        .catch((error) => {
-          console.error('Error requesting permissions:', error);
-        });
     }
 
     this._isSetup = true;

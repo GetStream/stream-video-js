@@ -130,7 +130,7 @@ export class StreamVideoRN {
         .info(JSON.stringify({ pushConfig }));
       const options = extractCallingExpOptions(pushConfig);
       callingx.setup(options);
-    } catch (_) {
+    } catch {
       throw new Error(
         'react-native-callingx library is not installed. Please check the installation instructions: https://getstream.io/video/docs/react-native/incoming-calls/ringing-setup/react-native/.',
       );

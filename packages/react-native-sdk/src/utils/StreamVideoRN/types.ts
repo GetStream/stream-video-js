@@ -136,16 +136,6 @@ export type StreamVideoConfig = {
       };
     };
     /**
-     * Enable outgoing calls registration
-     * @default true
-     */
-    enableOngoingCalls?: boolean;
-    /**
-     * Enable auto permissions request on setup call
-     * @default true
-     */
-    enableAutoPermissions?: boolean;
-    /**
      * Whether to reject calls when the user is busy.
      * @default false
      */

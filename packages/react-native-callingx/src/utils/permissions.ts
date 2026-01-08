@@ -27,12 +27,12 @@ export const requestCallPermissions = async (): Promise<PermissionsResult> => {
 
   try {
     const results = await PermissionsAndroid.requestMultiple(
-      permissions as Permission[]
+      permissions as Permission[],
     );
 
     // Check if all permissions are granted
     const allGranted = Object.values(results).every(
-      (status) => status === PermissionsAndroid.RESULTS.GRANTED
+      (status) => status === PermissionsAndroid.RESULTS.GRANTED,
     );
 
     if (!allGranted) {
@@ -64,24 +64,16 @@ export const checkCallPermissions = async (): Promise<PermissionsResult> => {
 
   const permissions: string[] = [PermissionsAndroid.PERMISSIONS.RECORD_AUDIO];
 
-  // if (Platform.Version >= 26) {
-  //   permissions.push(PermissionsAndroid.PERMISSIONS.MANAGE_OWN_CALLS);
-  // }
-
   if (Platform.Version >= 33) {
     permissions.push(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
   }
-
-  // Add WRITE_CALL_LOG for call history (required for Android 6.0+)
-  // Note: PermissionsAndroid doesn't have a constant for this, so we use the string directly
-  // permissions.push('android.permission.WRITE_CALL_LOG');
 
   try {
     const results = await Promise.all(
       permissions.map(async (permission) => ({
         permission,
         granted: await PermissionsAndroid.check(permission as Permission),
-      }))
+      })),
     );
 
     const resultsObject = results.reduce(
@@ -89,7 +81,7 @@ export const checkCallPermissions = async (): Promise<PermissionsResult> => {
         acc[permission as Permission] = granted;
         return acc;
       },
-      {} as { [key in Permission]: boolean }
+      {} as { [key in Permission]: boolean },
     );
 
     return {
@@ -111,7 +103,7 @@ export const requestPostNotificationPermissions =
     }
 
     const results = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
     );
     return (
       results === PermissionsAndroid.RESULTS.GRANTED || allowedPostNotifications
