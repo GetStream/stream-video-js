@@ -324,7 +324,7 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
     // Process the received push // fire 'notification' event to JS
     RNVoipPushNotificationManager.didReceiveIncomingPush(with: payload, forType: type.rawValue)
     
-    StreamVideoReactNative.didReceiveIncomingPush(payload, completionHandler: nil)`;
+    StreamVideoReactNative.didReceiveIncomingPush(payload, completionHandler: completion)`;
   if (
     !contents.includes('RNVoipPushNotificationManager.didReceiveIncomingPush')
   ) {
@@ -377,7 +377,7 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
 
   // display the incoming call notification
-  [StreamVideoReactNative didReceiveIncomingPush:payload completionHandler:nil];
+  [StreamVideoReactNative didReceiveIncomingPush:payload completionHandler:completion];
 `;
   if (
     !contents.includes(

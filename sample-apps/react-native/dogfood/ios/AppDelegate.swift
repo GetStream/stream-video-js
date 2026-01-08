@@ -87,7 +87,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     // Process the received push // fire 'notification' event to JS
     RNVoipPushNotificationManager.didReceiveIncomingPush(with: payload, forType: type.rawValue) // type is enum, use rawValue
     
-    StreamVideoReactNative.didReceiveIncomingPush(payload, completionHandler: nil) //for now left completion handler empty
+    StreamVideoReactNative.didReceiveIncomingPush(payload, completionHandler: completion)
   }
   
   //Called when a notification is delivered to a foreground app.
