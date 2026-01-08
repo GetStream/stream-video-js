@@ -329,7 +329,7 @@ describe('MicrophoneManager', () => {
     beforeEach(() => {
       // @ts-expect-error - read only property
       call.permissionsContext = new PermissionsContext();
-      call.permissionsContext.hasPermission = vi.fn().mockReturnValue(true);
+      call.permissionsContext.canPublish = vi.fn().mockReturnValue(true);
     });
 
     it('should turn the mic on when set on dashboard', async () => {
@@ -346,15 +346,8 @@ describe('MicrophoneManager', () => {
       expect(enable).not.toHaveBeenCalled();
     });
 
-    it('should not turn on the mic when publish is false', async () => {
-      const enable = vi.spyOn(manager, 'enable');
-      // @ts-expect-error - partial data
-      await manager.apply({ mic_default_on: true }, false);
-      expect(enable).not.toHaveBeenCalled();
-    });
-
     it('should not turn on the mic when permission is missing', async () => {
-      call.permissionsContext.hasPermission = vi.fn().mockReturnValue(false);
+      call.permissionsContext.canPublish = vi.fn().mockReturnValue(false);
       const enable = vi.spyOn(manager, 'enable');
       // @ts-expect-error - partial data
       await manager.apply({ mic_default_on: true }, true);
