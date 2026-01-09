@@ -348,6 +348,7 @@ export class Call {
   setup = async () => {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
+      globalThis.streamRNVideoSDK?.callManager.setup();
 
       this.leaveCallHooks.add(
         this.on('all', (event) => {
@@ -662,6 +663,8 @@ export class Call {
       this.cancelAutoDrop();
       this.clientStore.unregisterCall(this);
 
+      globalThis.streamRNVideoSDK?.callManager.stop();
+
       this.camera.dispose();
       this.microphone.dispose();
       this.screenShare.dispose();
@@ -891,6 +894,7 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
+    globalThis.streamRNVideoSDK?.callManager.start();
     this.joinResponseTimeout = joinResponseTimeout;
     this.rpcRequestTimeout = rpcRequestTimeout;
 

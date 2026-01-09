@@ -31,7 +31,6 @@ import com.streamvideo.reactnative.audio.utils.AudioDeviceEndpointUtils
 import com.streamvideo.reactnative.audio.utils.AudioFocusUtil
 import com.streamvideo.reactnative.audio.utils.AudioManagerUtil
 import com.streamvideo.reactnative.audio.utils.AudioManagerUtil.Companion.getAvailableAudioDevices
-import com.streamvideo.reactnative.audio.utils.AudioSetupStoreUtil
 import com.streamvideo.reactnative.audio.utils.CallAudioRole
 import com.streamvideo.reactnative.callmanager.ProximityManager
 import com.streamvideo.reactnative.callmanager.StreamInCallManagerModule
@@ -90,6 +89,8 @@ class AudioDeviceManager(
     @EndpointType
     private var userSelectedAudioDevice: Int? = null
 
+    var enableStereo: Boolean = false
+
     private val mAudioManager =
         mReactContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
@@ -99,7 +100,6 @@ class AudioDeviceManager(
     private var audioFocusLost = false
 
     private var audioFocusUtil = AudioFocusUtil(mAudioManager, this)
-    private var audioSetupStoreUtil = AudioSetupStoreUtil(mReactContext, mAudioManager, this)
 
     var callAudioRole: CallAudioRole = CallAudioRole.Communicator
 
@@ -113,33 +113,38 @@ class AudioDeviceManager(
         mAudioManager.registerAudioDeviceCallback(this, null)
     }
 
+    fun setup() {
+        if (callAudioRole == CallAudioRole.Communicator) {
+            mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+        } else {
+            // Audio routing is handled automatically by the system in normal media mode
+            // and bluetooth microphones may not work on some devices.
+            mAudioManager.mode = AudioManager.MODE_NORMAL
+        }
+        audioFocusUtil.setup(callAudioRole, mReactContext)
+    }
+
     fun start(activity: Activity) {
         runInAudioThread {
+            setup()
             userSelectedAudioDevice = null
             selectedAudioDeviceEndpoint = null
-            audioSetupStoreUtil.storeOriginalAudioSetup()
             if (callAudioRole == CallAudioRole.Communicator) {
                 // Audio routing is manually controlled by the SDK in communication media mode
                 // and local microphone can be published
-                mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
                 activity.volumeControlStream = AudioManager.STREAM_VOICE_CALL
                 bluetoothManager.start()
                 mAudioManager.registerAudioDeviceCallback(this, null)
                 updateAudioDeviceState()
                 proximityManager.start()
             } else {
-                // Audio routing is handled automatically by the system in normal media mode
-                // and bluetooth microphones may not work on some devices.
-                mAudioManager.mode = AudioManager.MODE_NORMAL
                 activity.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
             }
-
-            audioSetupStoreUtil.storeOriginalAudioSetup()
             audioFocusUtil.requestFocus(callAudioRole, mReactContext)
         }
     }
 
-    fun stop() {
+    fun stop(activity: Activity) {
         runInAudioThread {
             if (callAudioRole == CallAudioRole.Communicator) {
                 if (Build.VERSION.SDK_INT >= 31) {
@@ -150,7 +155,7 @@ class AudioDeviceManager(
                 bluetoothManager.stop()
                 proximityManager.stop()
             }
-            audioSetupStoreUtil.restoreOriginalAudioSetup()
+            activity.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
             audioFocusUtil.abandonFocus()
         }
     }
