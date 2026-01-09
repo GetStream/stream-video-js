@@ -8,6 +8,8 @@ import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.telecom.CallAttributesCompat
 import io.getstream.rn.callingx.model.Call
+import io.getstream.rn.callingx.model.CallAction
+import io.getstream.rn.callingx.CallService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,6 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.channels.Channel
 
 abstract class CallRepository(protected val context: Context) {
 
@@ -62,6 +65,29 @@ abstract class CallRepository(protected val context: Context) {
     displayOptions: Bundle?,
   ) {
     updateCurrentCall { copy(displayOptions = displayOptions) }
+  }
+
+  //this call instance is used to display call notification before the call is registered, this is needed to invoke startForeground method on the service
+  public fun getTempCall(callInfo: CallService.CallInfo, incoming: Boolean): Call.Registered {
+    val attributes = createCallAttributes(
+            displayName = callInfo.name,
+            address = callInfo.uri,
+            isIncoming = incoming,
+            isVideo = callInfo.isVideo
+        )
+
+    return Call.Registered(
+        id = callInfo.callId,
+        isActive = false,
+        isOnHold = false,
+        callAttributes = attributes,
+        displayOptions = callInfo.displayOptions,
+        isMuted = false,
+        errorCode = null,
+        currentCallEndpoint = null,
+        availableCallEndpoints = emptyList(),
+        actionSource = Channel<CallAction>() // Temporary channel, will be replaced by actual registration
+    )
   }
 
   /**

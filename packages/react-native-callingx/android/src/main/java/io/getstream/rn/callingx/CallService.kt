@@ -136,7 +136,7 @@ class CallService : Service(), CallRepository.Listener {
                 stopBackgroundTask()
             }
             ACTION_UPDATE_CALL -> {
-              updateCall(intent)
+                updateCall(intent)
             }
             else -> {
                 Log.e(TAG, "[service] onStartCommand: Unknown action: ${intent.action}")
@@ -173,8 +173,9 @@ class CallService : Service(), CallRepository.Listener {
                 } else {
                     Log.d(
                             TAG,
-                            "[service] updateServiceState: Starting foreground for call: ${call.id}"
+                            "[service] updateServiceState: Fallback starting foreground for call: ${call.id}"
                     )
+                    //fallback if for some reason startForeground method is not called in onStartCommand method
                     val notification = notificationManager.createNotification(call)
                     startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
                     isInForeground = true
@@ -302,6 +303,19 @@ class CallService : Service(), CallRepository.Listener {
         }
 
         val callInfo = extractIntentParams(intent)
+        val tempCall = callRepository.getTempCall(callInfo, incoming)
+
+        //it is better to invoke startForeground method synchronously inside onStartCommand method
+        if (!isInForeground) {
+            Log.d(
+                            TAG,
+                            "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
+                    )
+            val notification = notificationManager.createNotification(tempCall)
+            startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
+            isInForeground = true
+        }
+
         scope.launch {
             try {
                 callRepository.registerCall(
@@ -314,6 +328,15 @@ class CallService : Service(), CallRepository.Listener {
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
+
+                if (isInForeground) {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    isInForeground = false
+                }
+
+                notificationManager.cancelNotifications()
+                notificationManager.stopRingtone()
+                stopSelf()
             }
         }
     }
