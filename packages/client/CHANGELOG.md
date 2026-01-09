@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.40.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.3...@stream-io/video-client-1.40.0) (2026-01-09)
+
+### Features
+
+- Call Stats Map ([#2025](https://github.com/GetStream/stream-video-js/issues/2025)) ([6c784f0](https://github.com/GetStream/stream-video-js/commit/6c784f0acacce3d23d0f589ff423d6a0d04c1e95))
+
 ## [1.39.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.2...@stream-io/video-client-1.39.3) (2025-12-30)
 
 ### Bug Fixes
