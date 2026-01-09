@@ -326,50 +326,51 @@ export const firebaseDataHandler = async (
       logger.debug(
         `Notification permission not granted, unable to post ${data.type} notifications`,
       );
-
-      // the other types are call.live_started and call.notification
-      const callChannel = pushConfig.android.callChannel;
-      const callNotificationTextGetters =
-        pushConfig.android.callNotificationTextGetters;
-      if (!callChannel || !callNotificationTextGetters) {
-        logger.debug(
-          "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided",
-        );
-        return;
-      }
-      await notifee.createChannel(callChannel);
-      const channelId = callChannel.id;
-      const { getTitle, getBody } = callNotificationTextGetters;
-      const createdUserName = data.created_by_display_name as string;
-      // we can safely cast to string because the data is from "stream.video"
-      const type = data.type as NonRingingPushEvent;
-
-      const title = getTitle(type, createdUserName);
-      const body = getBody(type, createdUserName);
-
-      logger.debug(
-        `Displaying NonRingingPushEvent ${type} notification with title: ${title} body: ${body}`,
-      );
-      await notifee.displayNotification({
-        title: getTitle(type, createdUserName),
-        body: getBody(type, createdUserName),
-        data,
-        android: {
-          sound: callChannel.sound,
-          smallIcon: pushConfig.android.smallIcon,
-          vibrationPattern: callChannel.vibrationPattern,
-          channelId,
-          importance: 4, // high importance
-          pressAction: {
-            id: 'default',
-            launchActivity: 'default', // open the app when the notification is pressed
-          },
-          timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
-        },
-      });
-      const cid = data.call_cid as string;
-      pushNonRingingCallData$.next({ cid, type });
+      return;
     }
+
+    // the other types are call.live_started and call.notification
+    const callChannel = pushConfig.android.callChannel;
+    const callNotificationTextGetters =
+      pushConfig.android.callNotificationTextGetters;
+    if (!callChannel || !callNotificationTextGetters) {
+      logger.debug(
+        "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided",
+      );
+      return;
+    }
+    await notifee.createChannel(callChannel);
+    const channelId = callChannel.id;
+    const { getTitle, getBody } = callNotificationTextGetters;
+    const createdUserName = data.created_by_display_name as string;
+    // we can safely cast to string because the data is from "stream.video"
+    const type = data.type as NonRingingPushEvent;
+
+    const title = getTitle(type, createdUserName);
+    const body = getBody(type, createdUserName);
+
+    logger.debug(
+      `Displaying NonRingingPushEvent ${type} notification with title: ${title} body: ${body}`,
+    );
+    await notifee.displayNotification({
+      title: getTitle(type, createdUserName),
+      body: getBody(type, createdUserName),
+      data,
+      android: {
+        sound: callChannel.sound,
+        smallIcon: pushConfig.android.smallIcon,
+        vibrationPattern: callChannel.vibrationPattern,
+        channelId,
+        importance: 4, // high importance
+        pressAction: {
+          id: 'default',
+          launchActivity: 'default', // open the app when the notification is pressed
+        },
+        timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
+      },
+    });
+    const cid = data.call_cid as string;
+    pushNonRingingCallData$.next({ cid, type });
   }
 };
 

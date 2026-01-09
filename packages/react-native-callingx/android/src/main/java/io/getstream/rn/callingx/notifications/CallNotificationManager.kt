@@ -44,7 +44,10 @@ class CallNotificationManager(
     private var hasBecameActive = false
 
     fun createNotification(call: Call.Registered): Notification {
-        Log.d(TAG, "[notifications] createNotification: Creating notification for call ID: ${call.id}")
+        Log.d(
+                TAG,
+                "[notifications] createNotification: Creating notification for call ID: ${call.id}"
+        )
 
         val contentIntent =
                 NotificationIntentFactory.getLaunchActivityIntent(
@@ -86,13 +89,19 @@ class CallNotificationManager(
     fun updateCallNotification(call: Call) {
         when (call) {
             Call.None, is Call.Unregistered -> {
-                Log.d(TAG, "[notifications] updateCallNotification: Dismissing notification (call is None or Unregistered)")
+                Log.d(
+                        TAG,
+                        "[notifications] updateCallNotification: Dismissing notification (call is None or Unregistered)"
+                )
                 notificationManager.cancel(NOTIFICATION_ID)
             }
             is Call.Registered -> {
                 val notification = createNotification(call)
                 notificationManager.notify(NOTIFICATION_ID, notification)
-                Log.d(TAG, "[notifications] updateCallNotification: Notification posted successfully")
+                Log.d(
+                        TAG,
+                        "[notifications] updateCallNotification: Notification posted successfully"
+                )
             }
         }
     }
@@ -108,11 +117,16 @@ class CallNotificationManager(
             return
         }
 
-        val soundUri =
-                ResourceUtils.getSoundUri(context, notificationsConfig.incomingChannel.sound)
-                        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        try {
+            val soundUri =
+                    ResourceUtils.getSoundUri(context, notificationsConfig.incomingChannel.sound)
+                            ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
 
-        ringtone = RingtoneManager.getRingtone(context, soundUri)
+            ringtone = RingtoneManager.getRingtone(context, soundUri)
+        } catch (e: Exception) {
+            Log.e(TAG, "[notifications] startRingtone: Error starting ringtone: ${e.message}")
+            return
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             ringtone?.isLooping = true
@@ -153,7 +167,10 @@ class CallNotificationManager(
                                 CallingxModule.EXTRA_DISCONNECT_CAUSE,
                                 getDisconnectCauseString(DisconnectCause(DisconnectCause.REJECTED))
                         )
-                        putExtra(CallingxModule.EXTRA_SOURCE, CallRepository.EventSource.SYS.name.lowercase())
+                        putExtra(
+                                CallingxModule.EXTRA_SOURCE,
+                                CallRepository.EventSource.SYS.name.lowercase()
+                        )
                     },
                     NotificationIntentFactory.getPendingNotificationIntent(
                             context,
@@ -175,7 +192,10 @@ class CallNotificationManager(
                             CallingxModule.EXTRA_DISCONNECT_CAUSE,
                             getDisconnectCauseString(DisconnectCause(DisconnectCause.LOCAL))
                     )
-                    putExtra(CallingxModule.EXTRA_SOURCE, CallRepository.EventSource.SYS.name.lowercase())
+                    putExtra(
+                            CallingxModule.EXTRA_SOURCE,
+                            CallRepository.EventSource.SYS.name.lowercase()
+                    )
                 },
         )
     }

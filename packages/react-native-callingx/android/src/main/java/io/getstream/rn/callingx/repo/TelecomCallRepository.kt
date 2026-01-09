@@ -53,7 +53,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
     init {
         val capabilities =
-                CallsManager.CAPABILITY_SUPPORTS_CALL_STREAMING and
+                CallsManager.CAPABILITY_SUPPORTS_CALL_STREAMING or
                         CallsManager.CAPABILITY_SUPPORTS_VIDEO_CALLING
         callsManager =
                 CallsManager(context.applicationContext).apply {

@@ -26,7 +26,7 @@ import AVFoundation
             }
 
             if let modeString = audioSessionSettings["mode"] as? String {
-                mode = AVAudioSession.Mode(rawValue: modeString)
+              mode = AVAudioSession.Mode(rawValue: modeString) ?? .default
             }
         }
 

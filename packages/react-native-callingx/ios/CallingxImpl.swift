@@ -210,17 +210,15 @@ import AVFoundation
         let endedReason: CXCallEndedReason
         switch reason {
         case 1:
-            endedReason = .failed
-        case 2:
             endedReason = .remoteEnded
-        case 3:
+        case 2:
             endedReason = .unanswered
-        case 4:
+        case 3:
             endedReason = .answeredElsewhere
-        case 5:
+        case 4:
             endedReason = .declinedElsewhere
         default:
-            return
+            endedReason = .failed
         }
         
         sharedProvider?.reportCall(with: uuid, endedAt: Date(), reason: endedReason)

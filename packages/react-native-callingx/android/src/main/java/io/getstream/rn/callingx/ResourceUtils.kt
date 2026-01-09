@@ -52,7 +52,8 @@ object ResourceUtils {
           null
         } else {
           // Use the actual sound name vs the resource ID, to obtain a stable URI, Issue #341
-          "android.resource://${context.packageName}/raw/$sound".toUri()
+          val soundName = context.resources.getResourceEntryName(soundResourceId)
+          "android.resource://${context.packageName}/raw/$soundName".toUri()
         }
       }
     }
