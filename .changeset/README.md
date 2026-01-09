@@ -199,34 +199,45 @@ When reviewing PRs:
 3. **Read the summary** - Will this make sense in the changelog?
 4. **Check packages selected** - Are all affected packages included?
 
-## Pre-release Workflow
+## Release Workflow
 
-Pre-releases (beta/alpha/rc) are handled by two separate GitHub Actions workflows:
+Releases are handled by a single GitHub Actions workflow (`.github/workflows/release.yml`) that supports both stable and pre-release versions.
 
-### Publishing Pre-releases (Beta)
+### Publishing Stable Releases
 
-**Workflow:** `.github/workflows/prerelease.yml`
+**Workflow:** `.github/workflows/release.yml` (runs automatically on push to `main`)
 
-To publish beta releases:
-
-1. Maintainer triggers "Pre-release" workflow from GitHub Actions
-2. Select pre-release tag: `rc` (default), `beta`, or `alpha`
-3. On first run: Workflow automatically enters pre-release mode
-4. Versions become: `1.40.0-rc.0`, `1.40.0-rc.1`, etc.
-5. Packages publish to npm with selected tag (not `latest`)
-6. For subsequent releases, just run the workflow again - it stays in pre-release mode
-7. Users install with: `yarn add @stream-io/video-client@beta`
-
-### Publishing Stable Release
-
-**Workflow:** `.github/workflows/prepare-release.yml` (runs automatically on push to `main`)
-
-The prepare release workflow runs automatically on every push to `main`:
+The release workflow runs automatically on every push to `main`:
 
 1. Automatically exits pre-release mode if currently in one
 2. Creates or updates a "Version Packages" PR with all pending changesets
 3. Review the PR to verify versions and changelogs
 4. Merge the PR to publish to npm with `latest` tag and trigger sample app deployment
+
+### Publishing Pre-releases (Beta/Alpha/RC)
+
+**Workflow:** `.github/workflows/release.yml` (manual trigger)
+
+To publish pre-releases:
+
+1. Go to **Actions** → **Release**
+2. Click **Run workflow**
+3. Select release type: `prerelease`
+4. Select pre-release tag: `rc` (default), `beta`, or `alpha`
+5. Click **Run workflow**
+
+The workflow will:
+
+- On first run: Automatically enter pre-release mode
+- Version packages with pre-release tag (e.g., `1.40.0-beta.0`)
+- Publish directly to npm with selected tag (not `latest`)
+- For subsequent releases, just run the workflow again - it stays in pre-release mode
+
+Users can install pre-releases with:
+
+```bash
+yarn add @stream-io/video-client@beta
+```
 
 **Note:** You don't need to do anything special when creating changesets. The same changesets work for both pre-releases and stable releases.
 
