@@ -60,7 +60,7 @@ Choose the appropriate version bump type:
 
 ```typescript
 // Adding a new method
-call.setMaxVideoBitrate(1000);  ← New feature, backwards compatible
+call.setMaxVideoBitrate(1000); // ← New feature, backwards compatible
 ```
 
 ### Patch (Bug Fixes)
@@ -218,13 +218,17 @@ The release workflow runs automatically on every push to `main`:
 
 **Workflow:** `.github/workflows/release.yml` (manual trigger)
 
+**Important:** Pre-releases can only be published from non-main branches (feature or release branches).
+
 To publish pre-releases:
 
-1. Go to **Actions** → **Release**
-2. Click **Run workflow**
-3. Select release type: `prerelease`
-4. Select pre-release tag: `rc` (default), `beta`, or `alpha`
-5. Click **Run workflow**
+1. Switch to a feature or release branch (not `main`)
+2. Go to **Actions** → **Release**
+3. Click **Run workflow**
+4. Select the current branch
+5. Select release type: `prerelease`
+6. Select pre-release tag: `rc` (default), `beta`, or `alpha`
+7. Click **Run workflow**
 
 The workflow will:
 

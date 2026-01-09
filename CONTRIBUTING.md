@@ -112,7 +112,7 @@ All PRs that change published packages **must include a changeset**. CI will fai
 
 **Stable releases:** The **Release** workflow runs automatically on every push to `main` and creates/updates a "Version Packages" PR. It automatically exits pre-release mode if needed. Review and merge the PR to publish.
 
-**Pre-releases:** Manually trigger the **Release** workflow, select `prerelease` type and choose tag: `rc` (default), `beta`, or `alpha`. First run publishes `rc.0`, subsequent runs publish `rc.1`, `rc.2`, etc.
+**Pre-releases:** From a non-main branch, manually trigger the **Release** workflow, select `prerelease` type and choose tag: `rc` (default), `beta`, or `alpha`. First run publishes `rc.0`, subsequent runs publish `rc.1`, `rc.2`, etc. Note: Pre-releases are restricted to non-main branches only.
 
 See [.changeset/README.md](./.changeset/README.md) for detailed workflow documentation.
 

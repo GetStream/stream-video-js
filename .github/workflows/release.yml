@@ -61,6 +61,17 @@ jobs:
             echo "type=${{ github.event.inputs.release_type }}" >> $GITHUB_OUTPUT
           fi
 
+      - name: Validate Pre-release Branch
+        if: steps.release_type.outputs.type == 'prerelease'
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          if [ "$BRANCH" = "main" ]; then
+            echo "❌ Pre-releases cannot be published from the main branch"
+            echo "💡 Please run pre-releases from a feature or release branch"
+            exit 1
+          fi
+          echo "✅ Running pre-release from branch: $BRANCH"
+
       - name: Exit Pre-release Mode (stable releases only)
         if: steps.release_type.outputs.type == 'stable'
         run: |
