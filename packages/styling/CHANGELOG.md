@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.9.1...@stream-io/video-styling-1.10.0) (2026-01-09)
+
+### Features
+
+- **react:** Add Grid View During PIP ([#2076](https://github.com/GetStream/stream-video-js/issues/2076)) ([be82657](https://github.com/GetStream/stream-video-js/commit/be826575eee9f16c971f907383fff49b31b1384b))
+
 ## [1.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.9.0...@stream-io/video-styling-1.9.1) (2025-12-18)
 
 ### Bug Fixes
