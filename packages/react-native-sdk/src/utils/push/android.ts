@@ -192,114 +192,125 @@ export const firebaseDataHandler = async (
       // note: this will replace the current empty fg service runner
       //we need to start service (e.g. by calling display incoming call) and than launch bg task, consider making those steps independent
       await callingx.startBackgroundTask((_: unknown, stopTask: () => void) => {
-        return new Promise(async (resolve) => {
+        return new Promise((resolve) => {
           const finishBackgroundTask = () => {
             resolve(undefined);
             stopTask();
           };
 
-          const _client = await pushConfig.createStreamVideoClient();
-          if (!_client) {
-            logger.debug(
-              `Closing fg service as there is no client to create from push config`,
-            );
-            finishBackgroundTask();
-            return;
-          }
-
-          const callFromPush = await _client.onRingingCall(call_cid);
-          if (shouldCallBeClosed(callFromPush, data)) {
-            logger.debug(
-              `Closing fg service callCid: ${call_cid} shouldCallBeClosed`,
-            );
-
-            finishBackgroundTask();
-            callingx.log(
-              `Ending call with callCid: ${call_cid} shouldCallBeClosed`,
-              'debug',
-            );
-            //TODO: think about sending appropriate reason for end call
-            callingx.endCallWithReason(call_cid, 'remote');
-            return;
-          }
-
-          const unsubscribeFunctions: Array<() => void> = [];
-          // check if service needs to be closed if accept/decline event was done on another device
-          const unsubscribe = callFromPush.on('all', (event) => {
-            const _canListenToWS = canListenToWS();
-            if (!_canListenToWS) {
-              logger.debug(
-                `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
-                { event },
-              );
-              unsubscribeFunctions.forEach((fn) => fn());
-
-              finishBackgroundTask();
-              return;
-            }
-
-            if (shouldCallBeClosed(callFromPush, data)) {
-              logger.debug(
-                `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS} shouldCallBeClosed`,
-                { event },
-              );
-              unsubscribeFunctions.forEach((fn) => fn());
-
-              finishBackgroundTask();
-              //TODO: think about sending appropriate reason for end call
-              callingx.endCallWithReason(call_cid, 'rejected');
-            }
-          });
-
-          // check if service needs to be closed if call was left
-          const stateSubscription = callFromPush.state.callingState$.subscribe(
-            (callingState) => {
-              if (
-                callingState === CallingState.IDLE ||
-                callingState === CallingState.LEFT
-              ) {
+          (async () => {
+            try {
+              const _client = await pushConfig.createStreamVideoClient();
+              if (!_client) {
                 logger.debug(
-                  `Closing fg service from callingState callCid: ${call_cid} callingState: ${callingState}`,
+                  `Closing fg service as there is no client to create from push config`,
                 );
-                unsubscribeFunctions.forEach((fn) => fn());
+                finishBackgroundTask();
+                return;
+              }
 
+              const callFromPush = await _client.onRingingCall(call_cid);
+              if (shouldCallBeClosed(callFromPush, data)) {
+                logger.debug(
+                  `Closing fg service callCid: ${call_cid} shouldCallBeClosed`,
+                );
+
+                finishBackgroundTask();
+                callingx.log(
+                  `Ending call with callCid: ${call_cid} shouldCallBeClosed`,
+                  'debug',
+                );
                 //TODO: think about sending appropriate reason for end call
-                callingx.log(
-                  `Ending call with callCid: ${call_cid} callingState: ${callingState}`,
-                  'debug',
-                );
-                finishBackgroundTask();
                 callingx.endCallWithReason(call_cid, 'remote');
+                return;
               }
-            },
-          );
 
-          const endCallSubscription = callingx.addEventListener(
-            'endCall',
-            async ({ callId }: { callId: string }) => {
-              unsubscribeFunctions.forEach((fn) => fn());
-              try {
-                await callFromPush.leave({ reject: true, reason: 'decline' });
-              } catch (error) {
-                logger.error(
-                  `Failed to leave call with callCid: ${call_cid} error: ${error}`,
-                );
-              } finally {
-                callingx.log(
-                  `Ending call with callCid: ${call_cid} callId: ${callId}`,
-                  'debug',
-                );
-                finishBackgroundTask();
-                callingx.endCallWithReason(callId, 'rejected');
-              }
-            },
-          );
+              const unsubscribeFunctions: Array<() => void> = [];
+              // check if service needs to be closed if accept/decline event was done on another device
+              const unsubscribe = callFromPush.on('all', (event) => {
+                const _canListenToWS = canListenToWS();
+                if (!_canListenToWS) {
+                  logger.debug(
+                    `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
+                    { event },
+                  );
+                  unsubscribeFunctions.forEach((fn) => fn());
 
-          unsubscribeFunctions.push(unsubscribe);
-          unsubscribeFunctions.push(() => stateSubscription.unsubscribe());
-          unsubscribeFunctions.push(() => endCallSubscription.remove());
-          pushUnsubscriptionCallbacks.get(call_cid)?.forEach((cb) => cb());
-          pushUnsubscriptionCallbacks.set(call_cid, unsubscribeFunctions);
+                  finishBackgroundTask();
+                  return;
+                }
+
+                if (shouldCallBeClosed(callFromPush, data)) {
+                  logger.debug(
+                    `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS} shouldCallBeClosed`,
+                    { event },
+                  );
+                  unsubscribeFunctions.forEach((fn) => fn());
+
+                  finishBackgroundTask();
+                  //TODO: think about sending appropriate reason for end call
+                  callingx.endCallWithReason(call_cid, 'rejected');
+                }
+              });
+
+              // check if service needs to be closed if call was left
+              const stateSubscription =
+                callFromPush.state.callingState$.subscribe((callingState) => {
+                  if (
+                    callingState === CallingState.IDLE ||
+                    callingState === CallingState.LEFT
+                  ) {
+                    logger.debug(
+                      `Closing fg service from callingState callCid: ${call_cid} callingState: ${callingState}`,
+                    );
+                    unsubscribeFunctions.forEach((fn) => fn());
+
+                    //TODO: think about sending appropriate reason for end call
+                    callingx.log(
+                      `Ending call with callCid: ${call_cid} callingState: ${callingState}`,
+                      'debug',
+                    );
+                    finishBackgroundTask();
+                    callingx.endCallWithReason(call_cid, 'remote');
+                  }
+                });
+
+              const endCallSubscription = callingx.addEventListener(
+                'endCall',
+                async ({ callId }: { callId: string }) => {
+                  unsubscribeFunctions.forEach((fn) => fn());
+                  try {
+                    await callFromPush.leave({
+                      reject: true,
+                      reason: 'decline',
+                    });
+                  } catch (error) {
+                    logger.error(
+                      `Failed to leave call with callCid: ${call_cid} error: ${error}`,
+                    );
+                  } finally {
+                    callingx.log(
+                      `Ending call with callCid: ${call_cid} callId: ${callId}`,
+                      'debug',
+                    );
+                    finishBackgroundTask();
+                    callingx.endCallWithReason(callId, 'rejected');
+                  }
+                },
+              );
+
+              unsubscribeFunctions.push(unsubscribe);
+              unsubscribeFunctions.push(() => stateSubscription.unsubscribe());
+              unsubscribeFunctions.push(() => endCallSubscription.remove());
+              pushUnsubscriptionCallbacks.get(call_cid)?.forEach((cb) => cb());
+              pushUnsubscriptionCallbacks.set(call_cid, unsubscribeFunctions);
+            } catch (error) {
+              logger.error(
+                `Failed to start background task with callCid: ${call_cid} error: ${error}`,
+              );
+              finishBackgroundTask();
+            }
+          })();
         });
       });
     }
