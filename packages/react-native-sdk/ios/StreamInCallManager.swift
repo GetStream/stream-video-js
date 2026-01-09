@@ -100,7 +100,7 @@ class StreamInCallManager: RCTEventEmitter {
             }
         } else {
             intendedCategory = .playAndRecord
-            intendedMode = .voiceChat
+            intendedMode = defaultAudioDevice == .speaker ? .videoChat : .voiceChat
             
             // XCode 16 and older don't expose .allowBluetoothHFP
             // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
@@ -109,14 +109,26 @@ class StreamInCallManager: RCTEventEmitter {
             #else
                 let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
             #endif
-            intendedOptions = [bluetoothOption]
+            intendedOptions = defaultAudioDevice == .speaker ? [bluetoothOption, .defaultToSpeaker] : [bluetoothOption]
         }
-
+        log("Setup with category: \(intendedCategory.rawValue), mode: \(intendedMode.rawValue), options: \(String(describing: intendedOptions))")
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
         rtcConfig.category = intendedCategory.rawValue
         rtcConfig.mode = intendedMode.rawValue
         rtcConfig.categoryOptions = intendedOptions
         RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
+        
+        let session = RTCAudioSession.sharedInstance()
+        session.lockForConfiguration()
+        defer {
+            session.unlockForConfiguration()
+        }
+        do {
+            try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
+        } catch {
+            log("Error setting audio session: \(error.localizedDescription)")
+        }
+        
     }
 
     @objc
@@ -126,20 +138,6 @@ class StreamInCallManager: RCTEventEmitter {
                 return
             }
             setup()
-            let session = RTCAudioSession.sharedInstance()
-            session.lockForConfiguration()
-            defer {
-                session.unlockForConfiguration()
-            }
-            do {
-                try session.setActive(true)
-                if (defaultAudioDevice == .speaker) {
-                    setForceSpeakerphoneOn(enable: true)
-                }
-            } catch {
-                log("Error activating audio session: \(error.localizedDescription)")
-            }
-            
             DispatchQueue.main.async {
                 // Enable wake lock to prevent the screen from dimming/locking during a call
                 UIApplication.shared.isIdleTimerDisabled = true
@@ -147,7 +145,20 @@ class StreamInCallManager: RCTEventEmitter {
                 self.registerAudioRouteObserver()
                 self.updateProximityMonitoring()
                 self.log("Wake lock enabled (idle timer disabled)")
+                self.log("defaultAudioDevice: \(self.defaultAudioDevice)")
             }
+            let session = RTCAudioSession.sharedInstance()
+            session.lockForConfiguration()
+            defer {
+                session.unlockForConfiguration()
+            }
+            do {
+                try session.setActive(true)
+                self.log("audio session activated")
+            } catch {
+                log("Error activating audio session: \(error.localizedDescription)")
+            }
+            
             audioManagerActivated = true
         }
     }
@@ -163,7 +174,6 @@ class StreamInCallManager: RCTEventEmitter {
             defer {
                 session.unlockForConfiguration()
             }
-
             do {
                 try session.setActive(false)
             } catch {
@@ -202,16 +212,17 @@ class StreamInCallManager: RCTEventEmitter {
 
     @objc(setForceSpeakerphoneOn:)
     func setForceSpeakerphoneOn(enable: Bool) {
-        audioSessionQueue.async { [self] in
+        audioSessionQueue.async { [weak self] in
             let session = AVAudioSession.sharedInstance()
             do {
                 try session.overrideOutputAudioPort(enable ? .speaker : .none)
                 try session.setActive(true)
             } catch {
-                log("Error setting speakerphone: \(error)")
+                self?.log("Error setting speakerphone: \(error)")
             }
         }
     }
+
 
     @objc(setMicrophoneMute:)
     func setMicrophoneMute(enable: Bool) {
@@ -221,6 +232,16 @@ class StreamInCallManager: RCTEventEmitter {
     @objc
     func logAudioState() {
         let session = AVAudioSession.sharedInstance()
+        let adm = getAudioDeviceModule()
+        
+        // WebRTC wraps AVAudioSession with RTCAudioSession; log its state as well.
+        let rtcSession = RTCAudioSession.sharedInstance()
+        rtcSession.lockForConfiguration()
+        defer {
+            rtcSession.unlockForConfiguration()
+        }
+
+        let rtcAVSession = rtcSession.session
         let logString = """
         Audio State:
           Category: \(session.category.rawValue)
@@ -230,6 +251,19 @@ class StreamInCallManager: RCTEventEmitter {
           Category Options: \(session.categoryOptions)
           InputNumberOfChannels: \(session.inputNumberOfChannels)
           OutputNumberOfChannels: \(session.outputNumberOfChannels)
+          AdmIsPlaying: \(adm.isPlaying)
+          AdmIsRecording: \(adm.isRecording)
+        
+        RTC Audio State:
+          Wrapped Category: \(rtcAVSession.category.rawValue)
+          Wrapped Mode: \(rtcAVSession.mode.rawValue)
+          Wrapped Output Port: \(rtcAVSession.currentRoute.outputs.first?.portName ?? "N/A")
+          Wrapped Input Port: \(rtcAVSession.currentRoute.inputs.first?.portName ?? "N/A")
+          Wrapped Category Options: \(rtcAVSession.categoryOptions)
+          UseManualAudio: \(rtcSession.useManualAudio)
+          IsAudioEnabled: \(rtcSession.isAudioEnabled)
+          IsActive: \(rtcSession.isActive)
+          ActivationCount: \(rtcSession.activationCount)
         """
         log(logString)
     }
@@ -310,17 +344,17 @@ class StreamInCallManager: RCTEventEmitter {
         log("Unregistered AVAudioSession.routeChangeNotification observer")
     }
 
-    @objc private func handleAudioRouteChange(_ notification: Notification) {
+    @objc
+    private func handleAudioRouteChange(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
               let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
               let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
             return
         }
         
-        log("Audio route change reason: \(reason.rawValue)")
+        log("Audio route change reason: \(routeChangeReasonDescription(reason))")
         
         if reason == .routeConfigurationChange {
-            log("Route configuration changed")
             // Cancel any pending debounced refresh
             stereoRefreshWorkItem?.cancel()
             // Create a new debounced work item
@@ -332,6 +366,8 @@ class StreamInCallManager: RCTEventEmitter {
             // Schedule the work item after 2 seconds
             audioSessionQueue.asyncAfter(deadline: .now() + 2.0, execute: workItem)
         }
+
+        logAudioState()
         
         // Route changes can arrive on arbitrary queues; ensure UI-safe work on main
         DispatchQueue.main.async { [weak self] in
@@ -396,6 +432,29 @@ class StreamInCallManager: RCTEventEmitter {
                 .first(where: { $0.isKeyWindow })
         } else {
             return UIApplication.shared.keyWindow
+        }
+    }
+
+    private func routeChangeReasonDescription(_ reason: AVAudioSession.RouteChangeReason) -> String {
+        switch reason {
+        case .unknown:
+            return "unknown"
+        case .newDeviceAvailable:
+            return "newDeviceAvailable"
+        case .oldDeviceUnavailable:
+            return "oldDeviceUnavailable"
+        case .categoryChange:
+            return "categoryChange"
+        case .override:
+            return "override"
+        case .wakeFromSleep:
+            return "wakeFromSleep"
+        case .noSuitableRouteForCategory:
+            return "noSuitableRouteForCategory"
+        case .routeConfigurationChange:
+            return "routeConfigurationChange"
+        @unknown default:
+            return "unknown(\(reason.rawValue))"
         }
     }
 
