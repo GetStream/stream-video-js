@@ -150,7 +150,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     let options = WebRTCModuleOptions.sharedInstance()
     options.enableMultitaskingCameraAccess = true
     //  uncomment below to see native webrtc logs
-      options.loggingSeverity = .verbose // Use enum value directly
+    // options.loggingSeverity = .verbose // Use enum value directly
 
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)

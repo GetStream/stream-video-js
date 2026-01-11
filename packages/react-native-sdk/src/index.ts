@@ -15,8 +15,8 @@ import { registerSDKGlobals } from './utils/internal/registerSDKGlobals';
 // Reference: https://github.com/react-native-webrtc/react-native-webrtc/blob/16cff1523da457dbcc27bb0744ee2bad3a987c41/Documentation/BasicUsage.md#registering-globals
 if (Platform.OS !== 'web') {
   registerGlobals();
+  registerSDKGlobals();
 }
-registerSDKGlobals();
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
