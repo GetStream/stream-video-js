@@ -8,6 +8,7 @@ import type {
   MemberResponse,
   OwnCapability,
   ReactionResponse,
+  AudioSettingsRequestDefaultDeviceEnum,
 } from './gen/coordinator';
 import type { StreamClient } from './coordinator/connection/client';
 import type { Comparator } from './sorting';
@@ -335,7 +336,11 @@ export type StreamRNVideoSDKGlobals = {
     /**
      * Sets up the in call manager.
      */
-    setup(): void;
+    setup({
+      default_device,
+    }: {
+      default_device: AudioSettingsRequestDefaultDeviceEnum;
+    }): void;
 
     /**
      * Starts the in call manager.

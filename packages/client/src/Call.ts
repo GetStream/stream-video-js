@@ -347,7 +347,6 @@ export class Call {
   setup = async () => {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
-      globalThis.streamRNVideoSDK?.callManager.setup();
 
       this.leaveCallHooks.add(
         this.on('all', (event) => {
@@ -893,7 +892,6 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
-    globalThis.streamRNVideoSDK?.callManager.start();
     this.joinResponseTimeout = joinResponseTimeout;
     this.rpcRequestTimeout = rpcRequestTimeout;
 
@@ -1113,6 +1111,7 @@ export class Call {
     // re-apply them on later reconnections or server-side data fetches
     if (!this.deviceSettingsAppliedOnce && this.state.settings) {
       await this.applyDeviceConfig(this.state.settings, true);
+      globalThis.streamRNVideoSDK?.callManager.start();
       this.deviceSettingsAppliedOnce = true;
     }
 
@@ -2655,6 +2654,9 @@ export class Call {
     settings: CallSettingsResponse,
     publish: boolean,
   ) => {
+    globalThis.streamRNVideoSDK?.callManager.setup({
+      default_device: settings.audio.default_device,
+    });
     await this.camera.apply(settings.video, publish).catch((err) => {
       this.logger.warn('Camera init failed', err);
     });
