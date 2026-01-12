@@ -179,11 +179,11 @@ class StreamInCallManager: RCTEventEmitter {
             } catch {
                 log("Error deactivating audio session: \(error.localizedDescription)")
             }
+            // Cancel any pending debounced stereo refresh
+            stereoRefreshWorkItem?.cancel()
+            stereoRefreshWorkItem = nil
             audioManagerActivated = false
         }
-        // Cancel any pending debounced stereo refresh
-        stereoRefreshWorkItem?.cancel()
-        stereoRefreshWorkItem = nil
         // Disable wake lock and proximity when call manager stops so the device can sleep again
         DispatchQueue.main.async {
             // Disable proximity monitoring to disable earpiece detection
