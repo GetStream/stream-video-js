@@ -1,5 +1,4 @@
 import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
-import { callManager } from '../../modules/call-manager';
 import { NativeModules } from 'react-native';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
@@ -17,10 +16,10 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       StreamInCallManagerNativeModule.setup();
     },
     start: () => {
-      callManager.start();
+      StreamInCallManagerNativeModule.start();
     },
     stop: () => {
-      callManager.stop();
+      StreamInCallManagerNativeModule.stop();
     },
   },
 };

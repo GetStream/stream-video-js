@@ -183,6 +183,9 @@ class StreamInCallManager: RCTEventEmitter {
             // Cancel any pending debounced stereo refresh
             stereoRefreshWorkItem?.cancel()
             stereoRefreshWorkItem = nil
+            callAudioRole = .communicator
+            defaultAudioDevice = .speaker
+            enableStereo = false
             audioManagerActivated = false
         }
         // Disable wake lock and proximity when call manager stops so the device can sleep again

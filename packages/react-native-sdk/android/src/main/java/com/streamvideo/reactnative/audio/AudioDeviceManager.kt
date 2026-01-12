@@ -152,6 +152,9 @@ class AudioDeviceManager(
                 } else {
                     mAudioManager.setSpeakerphoneOn(false)
                 }
+                callAudioRole = CallAudioRole.Communicator
+                enableStereo = false
+                defaultAudioDevice = AudioDeviceEndpoint.TYPE_SPEAKER
                 bluetoothManager.stop()
                 proximityManager.stop()
             }
