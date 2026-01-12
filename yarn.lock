@@ -7418,19 +7418,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/react-native-webrtc@file:/Users/santhoshvaiyapuri/Projects/stream-react-native-webrtc/stream-io-react-native-webrtc-v137.1.0-alpha.13.tgz::locator=%40stream-io%2Fvideo-react-native-dogfood%40workspace%3Asample-apps%2Freact-native%2Fdogfood":
-  version: 137.1.0-alpha.13
-  resolution: "@stream-io/react-native-webrtc@file:/Users/santhoshvaiyapuri/Projects/stream-react-native-webrtc/stream-io-react-native-webrtc-v137.1.0-alpha.13.tgz#/Users/santhoshvaiyapuri/Projects/stream-react-native-webrtc/stream-io-react-native-webrtc-v137.1.0-alpha.13.tgz::hash=8819a4&locator=%40stream-io%2Fvideo-react-native-dogfood%40workspace%3Asample-apps%2Freact-native%2Fdogfood"
-  dependencies:
-    base64-js: "npm:1.5.1"
-    debug: "npm:4.3.4"
-    event-target-shim: "npm:6.0.2"
-  peerDependencies:
-    react-native: ">=0.73.0"
-  checksum: 10/440e5128c31e3830c27d0428d255203d33808bc9764b78b10dae0722a842ffe3dd83a423e44d1ab1df4f914f27ff81085ac1d0541ee3a7bc7f44e8b23c593c9a
-  languageName: node
-  linkType: hard
-
 "@stream-io/react-native-webrtc@npm:137.0.2":
   version: 137.0.2
   resolution: "@stream-io/react-native-webrtc@npm:137.0.2"
@@ -7441,6 +7428,19 @@ __metadata:
   peerDependencies:
     react-native: ">=0.73.0"
   checksum: 10/3c7b384692473fc04e42ca4d612a93ed07327e2c906e2d0506751c74648497d4b05c439f64494d1eaa3016cc4a9cc6e19659269cf841d86dbe5696a7c7b7284a
+  languageName: node
+  linkType: hard
+
+"@stream-io/react-native-webrtc@npm:137.1.0-alpha.1":
+  version: 137.1.0-alpha.1
+  resolution: "@stream-io/react-native-webrtc@npm:137.1.0-alpha.1"
+  dependencies:
+    base64-js: "npm:1.5.1"
+    debug: "npm:4.3.4"
+    event-target-shim: "npm:6.0.2"
+  peerDependencies:
+    react-native: ">=0.73.0"
+  checksum: 10/969546edd0b18ab460fbe48b52bd02d9a5f9fcb5ec2d9829328e8bc6f4b9be0853f3a8f2b4561283a512ece21102b501b1e83ef8d3ecd69e07b2985ec0ced657
   languageName: node
   linkType: hard
 
@@ -7670,7 +7670,7 @@ __metadata:
     "@rnx-kit/metro-config": "npm:^2.1.2"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
-    "@stream-io/react-native-webrtc": /Users/santhoshvaiyapuri/Projects/stream-react-native-webrtc/stream-io-react-native-webrtc-v137.1.0-alpha.13.tgz
+    "@stream-io/react-native-webrtc": "npm:137.1.0-alpha.1"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
