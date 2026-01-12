@@ -80,64 +80,65 @@ class StreamInCallManager: RCTEventEmitter {
     
     @objc
     func setup() {
-        let intendedCategory: AVAudioSession.Category!
-        let intendedMode: AVAudioSession.Mode!
-        let intendedOptions: AVAudioSession.CategoryOptions!
-        
-        let adm = getAudioDeviceModule()
-        adm.reset()
-
-        if (callAudioRole == .listener) {
-            // enables high quality audio playback but disables microphone
-            intendedCategory = .playback
-            intendedMode = .default
-            intendedOptions = []
-            // TODO: for stereo we should disallow BluetoothHFP and allow only allowBluetoothA2DP
-            // note: this is the behaviour of iOS native SDK, but fails here with (OSStatus error -50.)
-            // intendedOptions = self.enableStereo ? [.allowBluetoothA2DP] : []
-            if (self.enableStereo) {
-                adm.setStereoPlayoutPreference(true)
-            }
-        } else {
-            intendedCategory = .playAndRecord
-            intendedMode = defaultAudioDevice == .speaker ? .videoChat : .voiceChat
+        audioSessionQueue.async { [self] in
+            let intendedCategory: AVAudioSession.Category!
+            let intendedMode: AVAudioSession.Mode!
+            let intendedOptions: AVAudioSession.CategoryOptions!
             
-            // XCode 16 and older don't expose .allowBluetoothHFP
-            // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
-            #if compiler(>=6.2) // For Xcode 26.0+
-                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
-            #else
-                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
-            #endif
-            intendedOptions = defaultAudioDevice == .speaker ? [bluetoothOption, .defaultToSpeaker] : [bluetoothOption]
+            let adm = getAudioDeviceModule()
+            adm.reset()
+
+            if (callAudioRole == .listener) {
+                // enables high quality audio playback but disables microphone
+                intendedCategory = .playback
+                intendedMode = .default
+                intendedOptions = []
+                // TODO: for stereo we should disallow BluetoothHFP and allow only allowBluetoothA2DP
+                // note: this is the behaviour of iOS native SDK, but fails here with (OSStatus error -50.)
+                // intendedOptions = self.enableStereo ? [.allowBluetoothA2DP] : []
+                if (self.enableStereo) {
+                    adm.setStereoPlayoutPreference(true)
+                }
+            } else {
+                intendedCategory = .playAndRecord
+                intendedMode = defaultAudioDevice == .speaker ? .videoChat : .voiceChat
+                
+                // XCode 16 and older don't expose .allowBluetoothHFP
+                // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
+                #if compiler(>=6.2) // For Xcode 26.0+
+                    let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
+                #else
+                    let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
+                #endif
+                intendedOptions = defaultAudioDevice == .speaker ? [bluetoothOption, .defaultToSpeaker] : [bluetoothOption]
+            }
+            log("Setup with category: \(intendedCategory.rawValue), mode: \(intendedMode.rawValue), options: \(String(describing: intendedOptions))")
+            let rtcConfig = RTCAudioSessionConfiguration.webRTC()
+            rtcConfig.category = intendedCategory.rawValue
+            rtcConfig.mode = intendedMode.rawValue
+            rtcConfig.categoryOptions = intendedOptions
+            RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
+            
+            let session = RTCAudioSession.sharedInstance()
+            session.lockForConfiguration()
+            defer {
+                session.unlockForConfiguration()
+            }
+            do {
+                try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
+            } catch {
+                log("Error setting audio session: \(error.localizedDescription)")
+            }
         }
-        log("Setup with category: \(intendedCategory.rawValue), mode: \(intendedMode.rawValue), options: \(String(describing: intendedOptions))")
-        let rtcConfig = RTCAudioSessionConfiguration.webRTC()
-        rtcConfig.category = intendedCategory.rawValue
-        rtcConfig.mode = intendedMode.rawValue
-        rtcConfig.categoryOptions = intendedOptions
-        RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
-        
-        let session = RTCAudioSession.sharedInstance()
-        session.lockForConfiguration()
-        defer {
-            session.unlockForConfiguration()
-        }
-        do {
-            try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
-        } catch {
-            log("Error setting audio session: \(error.localizedDescription)")
-        }
-        
     }
 
     @objc
     func start() {
+        setup()
         audioSessionQueue.async { [self] in
             if audioManagerActivated {
                 return
             }
-            setup()
             DispatchQueue.main.async {
                 // Enable wake lock to prevent the screen from dimming/locking during a call
                 UIApplication.shared.isIdleTimerDisabled = true
