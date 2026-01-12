@@ -213,10 +213,15 @@ class StreamInCallManager: RCTEventEmitter {
     @objc(setForceSpeakerphoneOn:)
     func setForceSpeakerphoneOn(enable: Bool) {
         audioSessionQueue.async { [weak self] in
-            let session = AVAudioSession.sharedInstance()
+            let session = RTCAudioSession.sharedInstance()
+            session.lockForConfiguration()
+            defer {
+                session.unlockForConfiguration()
+            }
+            let avAudioSession = AVAudioSession.sharedInstance()
             do {
-                try session.overrideOutputAudioPort(enable ? .speaker : .none)
-                try session.setActive(true)
+                try avAudioSession.overrideOutputAudioPort(enable ? .speaker : .none)
+                try avAudioSession.setActive(true)
             } catch {
                 self?.log("Error setting speakerphone: \(error)")
             }
@@ -420,7 +425,14 @@ class StreamInCallManager: RCTEventEmitter {
 
     // MARK: - Helper Methods
     private func getAudioDeviceModule() -> AudioDeviceModule {
-        let webrtcModule = self.bridge.module(forName: "WebRTCModule") as! WebRTCModule
+        guard let bridge = self.bridge else {
+            fatalError("StreamInCallManager: RCTBridge is not available yet.")
+        }
+
+        guard let webrtcModule = bridge.module(forName: "WebRTCModule") as? WebRTCModule else {
+            fatalError("WebRTCModule is required but not registered with the bridge")
+        }
+
         return webrtcModule.audioDeviceModule
     }
 
