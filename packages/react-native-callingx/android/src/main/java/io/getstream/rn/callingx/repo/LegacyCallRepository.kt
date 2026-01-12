@@ -25,7 +25,13 @@ class LegacyCallRepository(context: Context) : CallRepository(context) {
     override fun setListener(listener: Listener?) {
         this._listener = listener
         // Observe call state changes
-        scope.launch { currentCall.collect { _listener?.onCallStateChanged(it) } }
+        scope.launch { 
+            try {
+                currentCall.collect { _listener?.onCallStateChanged(it) }
+            } catch (e: Exception) {
+                Log.e(TAG, "[repository] setListener: Error collecting call state", e)
+            }
+        }
     }
 
     override fun release() {
@@ -74,7 +80,11 @@ class LegacyCallRepository(context: Context) : CallRepository(context) {
 
             // Process actions without telecom SDK
             scope.launch {
-                actionSource.consumeAsFlow().collect { action -> processActionLegacy(action) }
+                try {
+                    actionSource.consumeAsFlow().collect { action -> processActionLegacy(action) }
+                } catch (e: Exception) {
+                    Log.e(TAG, "[repository] registerCall: Error consuming actions", e)
+                }
             }
         }
     }

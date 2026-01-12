@@ -309,9 +309,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
     private suspend fun CallControlScope.doSwitchEndpoint(action: CallAction.SwitchAudioEndpoint) {
         Log.d(TAG, "[repository] doSwitchEndpoint: Switching to endpoint: ${action.endpointId}")
+        if (_currentCall.value !is Call.Registered) {
+            Log.w(TAG, "[repository] doSwitchEndpoint: Call not registered, ignoring")
+            return
+        }
         // TODO once availableCallEndpoints is a state flow we can just get the value
         val endpoints = (_currentCall.value as Call.Registered).availableCallEndpoints
-
         // Switch to the given endpoint or fallback to the best possible one.
         val newEndpoint = endpoints.firstOrNull { it.identifier == action.endpointId }
 

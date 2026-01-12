@@ -90,8 +90,8 @@ import AVFoundation
             print("[Callingx] initUUIDStorage")
         }
         
-        if sharedProvider == nil, let settings = Settings.getSettings() {
-            sharedProvider = CXProvider(configuration: Settings.getProviderConfiguration(settings))
+        if sharedProvider == nil {
+            sharedProvider = CXProvider(configuration: Settings.getProviderConfiguration())
             print("[Callingx] initCallKitProvider")
         }
     }
@@ -300,13 +300,7 @@ import AVFoundation
             "output": output,
             "reason": reasonValue
         ]
-        
-        let dictionary: [String: Any] = [
-            "eventName": CallingxEvents.didChangeAudioRoute,
-            "params": params
-        ]
-        
-        eventEmitter?.emitEvent(dictionary)
+     
         sendEvent(CallingxEvents.didChangeAudioRoute, body: params)
     }
     
@@ -380,7 +374,8 @@ import AVFoundation
             completion: nil
         )
         
-        if let settings = Settings.getSettings(), let timeout = settings["displayCallTimeout"] as? Int {
+        let settings = Settings.getSettings()
+        if let timeout = settings["displayCallTimeout"] as? Int {
             let popTime = DispatchTime.now() + .milliseconds(timeout)
             DispatchQueue.main.asyncAfter(deadline: popTime) { [weak self] in
                 guard let self = self, !self.isSetup else { return }

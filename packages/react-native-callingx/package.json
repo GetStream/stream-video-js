@@ -1,7 +1,7 @@
 {
   "name": "@stream-io/react-native-callingx",
   "version": "0.1.0",
-  "description": "test",
+  "description": "CallKit and Telecom API capabilities for React Native",
   "main": "./dist/module/index.js",
   "types": "./dist/typescript/src/index.d.ts",
   "exports": {

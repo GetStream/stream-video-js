@@ -140,7 +140,8 @@ class CallService : Service(), CallRepository.Listener {
             }
             else -> {
                 Log.e(TAG, "[service] onStartCommand: Unknown action: ${intent.action}")
-                throw IllegalArgumentException("Unknown action")
+                stopSelf()
+                return START_NOT_STICKY
             }
         }
 

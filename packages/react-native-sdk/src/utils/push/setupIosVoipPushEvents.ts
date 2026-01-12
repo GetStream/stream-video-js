@@ -35,10 +35,12 @@ export function setupIosVoipPushEvents(
   voipPushNotification.addEventListener('notification', (notification) => {
     onVoipNotificationReceived(notification, pushConfig);
   });
+
   setPushLogoutCallback(async () => {
     videoLoggerSystem
       .getLogger('setPushLogoutCallback')
       .debug('notification event listener removed');
     voipPushNotification.removeEventListener('notification');
+    voipPushNotification.removeEventListener('didLoadWithEvents');
   });
 }

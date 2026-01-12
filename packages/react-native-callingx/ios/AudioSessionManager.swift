@@ -19,8 +19,9 @@ import AVFoundation
         var categoryOptions: AVAudioSession.CategoryOptions = [.allowBluetooth, .allowBluetoothA2DP]
         var mode: AVAudioSession.Mode = .default
 
-      if let settings = Settings.getSettings(),
-           let audioSessionSettings = settings["audioSession"] as? [String: Any] {
+      let settings = Settings.getSettings()
+      
+      if let audioSessionSettings = settings["audioSession"] as? [String: Any] {
             if let options = audioSessionSettings["categoryOptions"] as? UInt {
                 categoryOptions = AVAudioSession.CategoryOptions(rawValue: options)
             }

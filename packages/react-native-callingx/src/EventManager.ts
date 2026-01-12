@@ -24,7 +24,9 @@ class EventManager {
 
     if (this.subscription === null) {
       this.subscription = NativeCallingModule.onNewEvent((event: EventData) => {
-        console.log('[callingx] onNewEvent:', event);
+        if (__DEV__) {
+          console.log('[Callingx] EventManager: onNewEvent:', event);
+        }
         const eventListeners =
           this.eventListeners.get(event.eventName as EventName) || [];
         eventListeners.forEach((listener) =>
@@ -39,12 +41,12 @@ class EventManager {
     callback: EventListener<EventParams[T]>,
   ): void {
     const listeners = this.eventListeners.get(eventName) || [];
-    this.eventListeners.set(
-      eventName,
-      listeners.filter((c) => c !== callback),
-    );
+    const updatedListeners = listeners.filter((c) => c !== callback);
+    this.eventListeners.set(eventName, updatedListeners);
 
-    this.listenersCount--;
+    if (updatedListeners.length !== listeners.length) {
+      this.listenersCount--;
+    }
 
     if (this.listenersCount === 0) {
       this.subscription?.remove();

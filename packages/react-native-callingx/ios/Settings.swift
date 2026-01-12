@@ -5,8 +5,8 @@ import UIKit
 @objcMembers public class Settings: NSObject {
     private static let settingsKey = "CallingxSettings"
 
-    public static func getSettings() -> [String: Any]? {
-        return UserDefaults.standard.dictionary(forKey: settingsKey)
+    public static func getSettings() -> [String: Any] {
+        return UserDefaults.standard.dictionary(forKey: settingsKey) ?? [:]
     }
 
     public static func setSettings(_ options: [String: Any]?) {
@@ -14,7 +14,7 @@ import UIKit
         print("[Settings][setSettings] options = \(String(describing: options))")
         #endif
 
-        var settings: [String: Any] = getSettings() ?? [:]
+        var settings: [String: Any] = getSettings()
 
         if let options = options {
             for (key, value) in options {
@@ -27,16 +27,14 @@ import UIKit
     }
 
     public static func getAutoConfigureAudioSession() -> Bool {
-        guard let settings = getSettings(),
-              let autoConfig = settings["autoConfigureAudioSession"] as? Bool else {
+        guard let autoConfig = getSettings()["autoConfigureAudioSession"] as? Bool else {
             return false
         }
         return autoConfig
     }
 
     public static func getShouldRejectCallWhenBusy() -> Bool {
-        guard let settings = getSettings(),
-              let shouldReject = settings["shouldRejectCallWhenBusy"] as? Bool else {
+        guard let shouldReject = getSettings()["shouldRejectCallWhenBusy"] as? Bool else {
             return false
         }
         return shouldReject
@@ -46,11 +44,12 @@ import UIKit
         setSettings(["shouldRejectCallWhenBusy": shouldReject])
     }
 
-    public static func getProviderConfiguration(_ settings: [String: Any]) -> CXProviderConfiguration {
+    public static func getProviderConfiguration() -> CXProviderConfiguration {
         #if DEBUG
         print("[Settings][getProviderConfiguration]")
         #endif
-
+      
+        let settings = getSettings()
         let providerConfiguration = CXProviderConfiguration()
         providerConfiguration.supportsVideo = true
         providerConfiguration.maximumCallGroups = 1
@@ -84,7 +83,7 @@ import UIKit
         return providerConfiguration
     }
 
-    public static func getSupportedHandleTypes(_ handleType: Any?) -> Set<CXHandle.HandleType> {
+  public static func getSupportedHandleTypes(_ handleType: Any?) -> Set<CXHandle.HandleType> {
         if let handleTypeArray = handleType as? [String] {
             var types = Set<CXHandle.HandleType>()
             for type in handleTypeArray {
