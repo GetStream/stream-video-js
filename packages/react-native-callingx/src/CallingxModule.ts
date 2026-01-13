@@ -32,6 +32,7 @@ import {
 class CallingxModule implements ICallingxModule {
   private _isNotificationsAllowed = false;
   private _isSetup = false;
+  private _isHeadlessTaskRegistered = false;
 
   private titleTransformer: TextTransformer = (text: string) => text;
   private subtitleTransformer: TextTransformer | undefined = undefined;
@@ -220,17 +221,46 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.setOnHoldCall(callId, isOnHold);
   }
 
-  startBackgroundTask(taskProvider: ManagableTask): Promise<void> {
+  registerBackgroundTask(taskProvider: ManagableTask): void {
     const stopTask = () => {
+      this._isHeadlessTaskRegistered = false;
       NativeCallingModule.stopBackgroundTask(HEADLESS_TASK_NAME);
     };
 
     setHeadlessTask((taskData: any) => taskProvider(taskData, stopTask));
 
+    this._isHeadlessTaskRegistered = true;
+    NativeCallingModule.registerBackgroundTaskAvailable();
+  }
+
+  async startBackgroundTask(taskProvider?: ManagableTask): Promise<void> {
+    // If taskProvider is provided, register it first
+    if (taskProvider) {
+      this.registerBackgroundTask(taskProvider);
+    }
+
+    // Check if task is registered
+    if (!this._isHeadlessTaskRegistered) {
+      throw new Error(
+        'Background task not registered. Call registerBackgroundTask first.',
+      );
+    }
+
+    // Check if service is started (Android only)
+    if (Platform.OS === 'android') {
+      const isServiceStarted = await NativeCallingModule.isServiceStarted();
+      if (!isServiceStarted) {
+        throw new Error(
+          'Service is not started. Call displayIncomingCall or startCall first.',
+        );
+      }
+    }
+
     return NativeCallingModule.startBackgroundTask(HEADLESS_TASK_NAME, 0);
   }
 
   stopBackgroundTask(): Promise<void> {
+    this._isHeadlessTaskRegistered = false;
     return NativeCallingModule.stopBackgroundTask(HEADLESS_TASK_NAME);
   }
 

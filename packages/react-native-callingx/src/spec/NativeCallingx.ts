@@ -56,7 +56,7 @@ export interface Spec extends TurboModule {
     displayOptions?: {
       displayTitle?: string;
       displaySubtitle?: string;
-    }
+    },
   ): Promise<void>;
 
   //use when need to answer an incoming call withing app UI
@@ -70,7 +70,7 @@ export interface Spec extends TurboModule {
     displayOptions?: {
       displayTitle?: string;
       displaySubtitle?: string;
-    }
+    },
   ): Promise<void>;
 
   updateDisplay(
@@ -80,7 +80,7 @@ export interface Spec extends TurboModule {
     displayOptions?: {
       displayTitle?: string;
       displaySubtitle?: string;
-    }
+    },
   ): Promise<void>;
 
   isCallRegistered(callId: string): boolean;
@@ -94,6 +94,10 @@ export interface Spec extends TurboModule {
   setMutedCall(callId: string, isMuted: boolean): Promise<void>;
 
   setOnHoldCall(callId: string, isOnHold: boolean): Promise<void>;
+
+  registerBackgroundTaskAvailable(): void;
+
+  isServiceStarted(): Promise<boolean>;
 
   startBackgroundTask(taskName: string, timeout: number): Promise<void>;
 

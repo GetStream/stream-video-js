@@ -92,7 +92,22 @@ export interface ICallingxModule {
 
   setOnHoldCall(callId: string, isOnHold: boolean): Promise<void>;
 
-  startBackgroundTask(taskProvider: ManagableTask): Promise<void>;
+  /**
+   * Register a background task provider. This method only registers the task and does not start it.
+   * The task will be automatically started when the service starts (via displayIncomingCall or startCall)
+   * if it has been registered.
+   * @param taskProvider - The task provider function that will be executed when the background task starts.
+   */
+  registerBackgroundTask(taskProvider: ManagableTask): void;
+
+  /**
+   * Start the background task. This method will only start the task if:
+   * 1. A background task has been registered via registerBackgroundTask
+   * 2. The service is currently started
+   * @param taskProvider - The task provider function. If not provided, uses the previously registered task.
+   * @returns Promise that resolves when the task is started, or rejects if conditions are not met.
+   */
+  startBackgroundTask(taskProvider?: ManagableTask): Promise<void>;
 
   stopBackgroundTask(taskName: string): Promise<void>;
 

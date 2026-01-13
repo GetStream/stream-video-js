@@ -13,9 +13,6 @@ import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import io.getstream.rn.callingx.model.CallAction
-import io.getstream.rn.callingx.notifications.NotificationChannelsManager
-import io.getstream.rn.callingx.notifications.NotificationsConfig
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
@@ -26,6 +23,9 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.core.DeviceEventManagerModule
+import io.getstream.rn.callingx.model.CallAction
+import io.getstream.rn.callingx.notifications.NotificationChannelsManager
+import io.getstream.rn.callingx.notifications.NotificationsConfig
 
 @ReactModule(name = CallingxModule.NAME)
 class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec(reactContext) {
@@ -49,7 +49,8 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         const val CALL_MUTED_ACTION = "call_muted"
         const val CALL_ENDPOINT_CHANGED_ACTION = "call_endpoint_changed"
         const val CALL_END_ACTION = "call_end"
-
+        // Background task name
+        const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
         const val SERVICE_READY_ACTION = "service_ready"
     }
 
@@ -65,6 +66,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     private var delayedEvents = WritableNativeArray()
     private var isModuleInitialized = false
     private var canSendEvents = false
+    private var isHeadlessTaskRegistered = false
 
     private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
     private val callEventBroadcastReceiver = CallEventBroadcastReceiver()
@@ -135,7 +137,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     override fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
-        //leave empty
+        // leave empty
     }
 
     override fun getInitialEvents(): WritableArray {
@@ -182,6 +184,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 hasVideo,
                 displayOptions
         )
+
         promise.resolve(true)
     }
 
@@ -220,6 +223,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 hasVideo,
                 displayOptions
         )
+
         promise.resolve(true)
     }
 
@@ -236,7 +240,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             return
         }
 
-        //for now only display options will be updated, rest of the parameters will be ignored
+        // for now only display options will be updated, rest of the parameters will be ignored
         startCallService(
                 CallService.ACTION_UPDATE_CALL,
                 callId,
@@ -305,7 +309,22 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 }
                 .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
 
+        isHeadlessTaskRegistered = false
         promise.resolve(true)
+    }
+
+    override fun registerBackgroundTaskAvailable() {
+        Log.d(TAG, "[module] registerBackgroundTaskAvailable: Headless task registered")
+        isHeadlessTaskRegistered = true
+    }
+
+    override fun isServiceStarted(promise: Promise) {
+        val isStarted =
+                bindingState == BindingState.BOUND ||
+                        bindingState == BindingState.BINDING ||
+                        callService?.hasRegisteredCall() == true
+        Log.d(TAG, "[module] isServiceStarted: Service started: $isStarted")
+        promise.resolve(isStarted)
     }
 
     override fun log(message: String, level: String) {
@@ -333,6 +352,25 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     putExtra(CallService.EXTRA_URI, phoneNumber.toUri())
                     putExtra(CallService.EXTRA_IS_VIDEO, hasVideo)
                     putExtra(CallService.EXTRA_DISPLAY_OPTIONS, Arguments.toBundle(displayOptions))
+                }
+                .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+    }
+
+    private fun startBackgroundTaskAutomatically(taskName: String, timeout: Long) {
+        if (!isHeadlessTaskRegistered) {
+            Log.d(
+                    TAG,
+                    "[module] startBackgroundTaskAutomatically: Headless task registered, starting automatically"
+            )
+            return
+        }
+
+        Intent(reactApplicationContext, CallService::class.java)
+                .apply {
+                    this.action = CallService.ACTION_START_BACKGROUND_TASK
+                    putExtra(CallService.EXTRA_TASK_NAME, taskName)
+                    putExtra(CallService.EXTRA_TASK_DATA, Bundle())
+                    putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
                 }
                 .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
     }
@@ -365,7 +403,8 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     private fun sendJSEvent(eventName: String, params: WritableMap? = null) {
-        if (isModuleInitialized && reactApplicationContext.hasActiveReactInstance() && canSendEvents) {
+        if (isModuleInitialized && reactApplicationContext.hasActiveReactInstance() && canSendEvents
+        ) {
             val paramsMap =
                     Arguments.createMap().apply {
                         params?.let {
@@ -501,8 +540,9 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             )
 
             if (action == SERVICE_READY_ACTION) {
-                Log.d(TAG, "[module] onReceive: Service is ready, initiating binding")
+                Log.d(TAG, "[module] onReceive: Service is ready, initiating binding, isHeadlessTaskRegistered: $isHeadlessTaskRegistered")
                 bindToServiceIfNeeded()
+                startBackgroundTaskAutomatically(HEADLESS_TASK_NAME, 0L)
                 return
             }
 

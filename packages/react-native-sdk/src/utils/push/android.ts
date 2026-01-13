@@ -3,7 +3,7 @@ import {
   StreamVideoClient,
   videoLoggerSystem,
 } from '@stream-io/video-client';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import type {
   NonRingingPushEvent,
   StreamVideoConfig,
@@ -177,23 +177,17 @@ export const firebaseDataHandler = async (
     const callerName = data.created_by_display_name as string;
     const hasVideo = data.video === 'true';
 
-    await callingx.displayIncomingCall(
-      call_cid,
-      call_cid,
-      callerName,
-      hasVideo,
-    );
-    logger.debug(
-      `Displaying incoming call notification with callCid: ${call_cid} asForegroundService: ${asForegroundService}`,
-    );
-
     if (asForegroundService) {
       // Listen to call events from WS through fg service
       // note: this will replace the current empty fg service runner
       //we need to start service (e.g. by calling display incoming call) and than launch bg task, consider making those steps independent
-      await callingx.startBackgroundTask((_: unknown, stopTask: () => void) => {
+      callingx.registerBackgroundTask((_: unknown, stopTask: () => void) => {
         return new Promise((resolve) => {
           const finishBackgroundTask = () => {
+            callingx.log(
+              `Finishing background task for callCid: ${call_cid}`,
+              'debug',
+            );
             resolve(undefined);
             stopTask();
           };
@@ -299,14 +293,33 @@ export const firebaseDataHandler = async (
                 },
               );
 
+              //stop background task when app comes to foreground
+              const appStateSubscription = AppState.addEventListener(
+                'change',
+                (nextAppState) => {
+                  const _canListenToWS = canListenToWS();
+                  callingx.log(
+                    `AppState changed to: ${nextAppState} for callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
+                    'debug',
+                  );
+                  if (!_canListenToWS) {
+                    unsubscribeFunctions.forEach((fn) => fn());
+                    finishBackgroundTask();
+                    return;
+                  }
+                },
+              );
+
               unsubscribeFunctions.push(unsubscribe);
               unsubscribeFunctions.push(() => stateSubscription.unsubscribe());
               unsubscribeFunctions.push(() => endCallSubscription.remove());
+              unsubscribeFunctions.push(() => appStateSubscription.remove());
               pushUnsubscriptionCallbacks.get(call_cid)?.forEach((cb) => cb());
               pushUnsubscriptionCallbacks.set(call_cid, unsubscribeFunctions);
             } catch (error) {
-              logger.error(
+              callingx.log(
                 `Failed to start background task with callCid: ${call_cid} error: ${error}`,
+                'error',
               );
               finishBackgroundTask();
             }
@@ -314,6 +327,16 @@ export const firebaseDataHandler = async (
         });
       });
     }
+
+    await callingx.displayIncomingCall(
+      call_cid,
+      call_cid,
+      callerName,
+      hasVideo,
+    );
+    logger.debug(
+      `Displaying incoming call notification with callCid: ${call_cid} asForegroundService: ${asForegroundService}`,
+    );
 
     if (asForegroundService) {
       // no need to check if call has be closed as that will be handled by the fg service

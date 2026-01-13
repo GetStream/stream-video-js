@@ -1,17 +1,17 @@
 import { AppRegistry } from 'react-native';
 
-export const HEADLESS_TASK_NAME = 'HandleIncomingCall';
+export const HEADLESS_TASK_NAME = 'HandleCallBackgroundState';
 
 export type ManagableTask = (
   taskData: any,
-  stopTask: () => void
+  stopTask: () => void,
 ) => Promise<void>;
 
 type HeadlessTask = (taskData: any) => Promise<void>;
 
 export const defaultBackgroundTask: ManagableTask = (
   taskData: any,
-  stopTask: () => void
+  stopTask: () => void,
 ) => {
   return new Promise<void>((resolve) => {
     console.log('Default background task data', taskData);

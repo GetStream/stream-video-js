@@ -20,7 +20,7 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
   private var activeTaskId: Int? = null
 
   companion object {
-    private const val TAG = "TelecomHeadlessJSHelper"
+    private const val TAG = "[Callingx] HeadlessTaskManager"
   }
 
   public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long) {

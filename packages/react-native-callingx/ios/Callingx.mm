@@ -254,6 +254,16 @@
   resolve(@YES);
 }
 
+- (void)registerBackgroundTaskAvailable {
+  // Not implemented on iOS - background tasks work differently on iOS
+}
+
+- (void)isServiceStarted:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject {
+  // iOS doesn't use a service like Android, always return true
+  resolve(@YES);
+}
+
 - (nonnull NSNumber *)canPostNotifications {
   return @YES;
 }
