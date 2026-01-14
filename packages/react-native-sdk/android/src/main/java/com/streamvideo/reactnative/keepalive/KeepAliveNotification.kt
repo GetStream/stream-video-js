@@ -43,8 +43,8 @@ internal object KeepAliveNotification {
     ): Notification {
         val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
         val pendingIntentFlags =
-            (PendingIntent.FLAG_UPDATE_CURRENT) or
-                (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
+            PendingIntent.FLAG_UPDATE_CURRENT or
+               PendingIntent.FLAG_IMMUTABLE
         val contentIntent = if (launchIntent != null) {
             PendingIntent.getActivity(context, 0, launchIntent, pendingIntentFlags)
         } else {

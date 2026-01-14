@@ -15,7 +15,6 @@ import com.facebook.react.jstasks.HeadlessJsTaskConfig
 /**
  * Foreground service that runs a React Native HeadlessJS task to keep a call alive.
  *
- * This replaces the Notifee foreground-service usage for the keep-call-alive feature.
  */
 class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
 
@@ -36,7 +35,7 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
             smallIconName = smallIconName
         )
 
-        startForegroundCompat(NOTIFICATION_ID, notification)
+        startForegroundCompat(notification)
 
         // Ensure HeadlessJS task is started
         return super.onStartCommand(safeIntent, flags, startId)
@@ -80,12 +79,12 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
         return types
     }
 
-    private fun startForegroundCompat(id: Int, notification: android.app.Notification) {
+    private fun startForegroundCompat(notification: android.app.Notification) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val types = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) computeForegroundServiceTypes() else ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-            startForeground(id, notification, types)
+            startForeground(NOTIFICATION_ID, notification, types)
         } else {
-            startForeground(id, notification)
+            startForeground(NOTIFICATION_ID, notification)
         }
     }
 

@@ -26,7 +26,6 @@ import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEm
 import com.oney.WebRTCModule.WebRTCModule
 import com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
-import com.streamvideo.reactnative.util.CallAliveServiceChecker
 import com.streamvideo.reactnative.util.PiPHelper
 import com.streamvideo.reactnative.util.RingtoneUtil
 import com.streamvideo.reactnative.util.YuvFrame
@@ -117,12 +116,9 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             promise.resolve(false)
             return
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            val isForegroundServiceDeclared = CallAliveServiceChecker.isForegroundServiceDeclared(reactApplicationContext)
-            promise.resolve(isForegroundServiceDeclared)
-        } else {
-            promise.resolve(true)
-        }
+        // Service is declared in the SDK's own AndroidManifest and merged by default.
+        // Permissions are expected to be provided by the app (or via Expo config plugin).
+        promise.resolve(true)
     }
 
     /**
