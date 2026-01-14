@@ -43,25 +43,6 @@ function getNotifeeService(isKeepCallAliveEnabled = false) {
   } as ManifestService;
 }
 
-function getKeepCallAliveService() {
-  /* We add this service to the AndroidManifest.xml:
-    <service
-        android:name="com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService"
-        android:stopWithTask="true"
-        android:foregroundServiceType="mediaPlayback|camera|microphone" />
-   */
-  const foregroundServiceType = 'mediaPlayback|camera|microphone' as const;
-  let head = prefixAndroidKeys({
-    name: 'com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService',
-    stopWithTask: 'true',
-    foregroundServiceType,
-  });
-  head = { ...head, 'tools:replace': 'android:foregroundServiceType' };
-  return {
-    $: head,
-  } as ManifestService;
-}
-
 const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
   configuration,
   props,
@@ -81,16 +62,6 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
             service.$['android:name'] !== 'app.notifee.core.ForegroundService',
         );
         services.push(getNotifeeService(false));
-      }
-
-      // Add SDK-owned keep-call-alive headless foreground service.
-      if (props?.androidKeepCallAlive) {
-        services = services.filter(
-          (service) =>
-            service.$['android:name'] !==
-            'com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService',
-        );
-        services.push(getKeepCallAliveService());
       }
 
       mainApplication.service = services;

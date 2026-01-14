@@ -121,12 +121,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         promise.resolve(true)
     }
 
-    /**
-     * Start the SDK-owned keep-call-alive foreground service.
-     *
-     * The service runs a React Native HeadlessJS task (registered by the SDK) to execute the
-     * user-provided keep-alive work.
-     */
+
     @ReactMethod
     fun startKeepCallAliveService(
         callCid: String,
@@ -154,9 +149,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    /**
-     * Stop the SDK-owned keep-call-alive foreground service.
-     */
     @ReactMethod
     fun stopKeepCallAliveService(promise: Promise) {
         try {
