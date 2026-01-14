@@ -1,5 +1,4 @@
 import { lib, type Type } from './lib';
-import { videoLoggerSystem } from '@stream-io/video-client';
 
 export type NotifeeLib = Type;
 
