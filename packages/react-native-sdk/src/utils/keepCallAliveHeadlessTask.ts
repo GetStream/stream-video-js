@@ -8,9 +8,6 @@ export const KEEP_CALL_ALIVE_HEADLESS_TASK_NAME = 'StreamVideoKeepCallAlive';
 /**
  * The keep-alive headless task needs access to the active `Call` instance.
  * The keep-alive hook will set this reference before starting the native service.
- *
- * Note: This does NOT survive process death. If you need killed-state support,
- * we'd need a different API (e.g. taskToRun(callCid) + recreate client/call).
  */
 export const keepCallAliveCallRef: { current: Call | undefined } = {
   current: undefined,
@@ -18,10 +15,6 @@ export const keepCallAliveCallRef: { current: Call | undefined } = {
 
 function registerKeepCallAliveHeadlessTaskOnce() {
   if (Platform.OS !== 'android') return;
-
-  // Registering multiple times can throw in RN; guard with a module-level flag.
-
-  if (hasRegistered) return;
 
   AppRegistry.registerHeadlessTask(
     KEEP_CALL_ALIVE_HEADLESS_TASK_NAME,
@@ -58,6 +51,4 @@ function registerKeepCallAliveHeadlessTaskOnce() {
   );
 }
 
-let hasRegistered = false;
 registerKeepCallAliveHeadlessTaskOnce();
-hasRegistered = true;
