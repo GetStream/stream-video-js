@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.PowerManager
 import android.util.Base64
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -23,6 +24,7 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.oney.WebRTCModule.WebRTCModule
+import com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
 import com.streamvideo.reactnative.util.CallAliveServiceChecker
 import com.streamvideo.reactnative.util.PiPHelper
@@ -120,6 +122,53 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             promise.resolve(isForegroundServiceDeclared)
         } else {
             promise.resolve(true)
+        }
+    }
+
+    /**
+     * Start the SDK-owned keep-call-alive foreground service.
+     *
+     * The service runs a React Native HeadlessJS task (registered by the SDK) to execute the
+     * user-provided keep-alive work.
+     */
+    @ReactMethod
+    fun startKeepCallAliveService(
+        callCid: String,
+        channelId: String,
+        channelName: String,
+        title: String,
+        body: String,
+        smallIconName: String?,
+        promise: Promise
+    ) {
+        try {
+            val intent = StreamCallKeepAliveHeadlessService.buildStartIntent(
+                reactApplicationContext,
+                callCid,
+                channelId,
+                channelName,
+                title,
+                body,
+                smallIconName
+            )
+            ContextCompat.startForegroundService(reactApplicationContext, intent)
+            promise.resolve(true)
+        } catch (e: Exception) {
+            promise.reject(NAME, "Failed to start keep call alive foreground service", e)
+        }
+    }
+
+    /**
+     * Stop the SDK-owned keep-call-alive foreground service.
+     */
+    @ReactMethod
+    fun stopKeepCallAliveService(promise: Promise) {
+        try {
+            val intent = StreamCallKeepAliveHeadlessService.buildStopIntent(reactApplicationContext)
+            val stopped = reactApplicationContext.stopService(intent)
+            promise.resolve(stopped)
+        } catch (e: Exception) {
+            promise.reject(NAME, "Failed to stop keep call alive foreground service", e)
         }
     }
 

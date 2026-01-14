@@ -17,7 +17,7 @@ object CallAliveServiceChecker {
         val packageName = context.packageName // Get the package name of your app
         val componentName = ComponentName(
             packageName,
-            "app.notifee.core.ForegroundService"
+            "com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService"
         ) // Use service name string
 
         try {
@@ -25,8 +25,7 @@ object CallAliveServiceChecker {
                 packageManager.getServiceInfo(componentName, PackageManager.GET_META_DATA)
 
             val expectedForegroundServiceTypes =
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE or
-                        ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK or
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK or
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA or
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
 

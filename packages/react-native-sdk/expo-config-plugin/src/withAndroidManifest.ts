@@ -43,6 +43,25 @@ function getNotifeeService(isKeepCallAliveEnabled = false) {
   } as ManifestService;
 }
 
+function getKeepCallAliveService() {
+  /* We add this service to the AndroidManifest.xml:
+    <service
+        android:name="com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService"
+        android:stopWithTask="true"
+        android:foregroundServiceType="mediaPlayback|camera|microphone" />
+   */
+  const foregroundServiceType = 'mediaPlayback|camera|microphone' as const;
+  let head = prefixAndroidKeys({
+    name: 'com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService',
+    stopWithTask: 'true',
+    foregroundServiceType,
+  });
+  head = { ...head, 'tools:replace': 'android:foregroundServiceType' };
+  return {
+    $: head,
+  } as ManifestService;
+}
+
 const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
   configuration,
   props,
@@ -52,14 +71,28 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
     const mainApplication = getMainApplicationOrThrow(androidManifest);
     if (props?.ringingPushNotifications || props?.androidKeepCallAlive) {
       ensureToolsAvailable(androidManifest);
-      /* Add the notifee foreground Service */
       let services = mainApplication.service ?? [];
-      // we filter out the existing notifee service (if any) so that we can override it
-      services = services.filter(
-        (service) =>
-          service.$['android:name'] !== 'app.notifee.core.ForegroundService',
-      );
-      services.push(getNotifeeService(!!props?.androidKeepCallAlive));
+
+      // Add Notifee foreground service ONLY for ringing push notifications.
+      if (props?.ringingPushNotifications) {
+        // we filter out the existing notifee service (if any) so that we can override it
+        services = services.filter(
+          (service) =>
+            service.$['android:name'] !== 'app.notifee.core.ForegroundService',
+        );
+        services.push(getNotifeeService(false));
+      }
+
+      // Add SDK-owned keep-call-alive headless foreground service.
+      if (props?.androidKeepCallAlive) {
+        services = services.filter(
+          (service) =>
+            service.$['android:name'] !==
+            'com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService',
+        );
+        services.push(getKeepCallAliveService());
+      }
+
       mainApplication.service = services;
     }
 

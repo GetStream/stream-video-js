@@ -48,9 +48,6 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
       channel: {
         id: 'stream_call_foreground_service',
         name: 'To keep calls alive',
-        lights: false,
-        vibration: false,
-        importance: 3,
       },
       notificationTexts: {
         title: 'Call in progress',
