@@ -1,4 +1,3 @@
-import { PermissionsAndroid } from 'react-native';
 import { lib, type Type } from './lib';
 import { videoLoggerSystem } from '@stream-io/video-client';
 
@@ -32,6 +31,10 @@ export function getNotifeeLibThrowIfNotInstalledForPush() {
         INSTALLATION_INSTRUCTION,
     );
   }
+  return lib;
+}
+
+export function getNotifeeLibNoThrowForKeepCallAlive() {
   return lib;
 }
 
