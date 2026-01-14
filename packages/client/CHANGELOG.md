@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.40.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.0...@stream-io/video-client-1.40.1) (2026-01-14)
+
+### Bug Fixes
+
+- ensure proper set up of server-side preferences for mic and camera ([#2080](https://github.com/GetStream/stream-video-js/issues/2080)) ([3529c8f](https://github.com/GetStream/stream-video-js/commit/3529c8fc0233d3f9f8f21c80cffc4ec27334954f))
+
 ## [1.40.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.3...@stream-io/video-client-1.40.0) (2026-01-09)
 
 ### Features
