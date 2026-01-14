@@ -89,10 +89,10 @@ const LoginScreen = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.container]}>
+    <SafeAreaView style={[styles.container, landscapeStyles]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.keyboardContainer]}
+        style={[styles.keyboardContainer, landscapeStyles]}
       >
         {(ENABLE_PRONTO_SWITCH || devMode) && (
           <View style={styles.header}>
