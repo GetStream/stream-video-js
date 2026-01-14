@@ -1,11 +1,12 @@
 package com.streamvideo.reactnative.keepalive
 
 import android.Manifest
-import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import com.facebook.react.HeadlessJsTaskService
 import com.facebook.react.bridge.Arguments
@@ -35,7 +36,7 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
             smallIconName = smallIconName
         )
 
-        startForegroundCompat(NOTIFICATION_ID, notification, computeForegroundServiceType())
+        startForegroundCompat(NOTIFICATION_ID, notification)
 
         // Ensure HeadlessJS task is started
         return super.onStartCommand(safeIntent, flags, startId)
@@ -57,12 +58,11 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        stopForeground(true)
+        stopForeground(STOP_FOREGROUND_REMOVE)
     }
 
-    private fun computeForegroundServiceType(): Int {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return 0
-
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun computeForegroundServiceTypes(): Int {
         var types = ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 
         val hasCameraPermission =
@@ -80,9 +80,10 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
         return types
     }
 
-    private fun startForegroundCompat(id: Int, notification: android.app.Notification, foregroundServiceType: Int) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && foregroundServiceType != 0) {
-            startForeground(id, notification, foregroundServiceType)
+    private fun startForegroundCompat(id: Int, notification: android.app.Notification) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val types = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) computeForegroundServiceTypes() else ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            startForeground(id, notification, types)
         } else {
             startForeground(id, notification)
         }
