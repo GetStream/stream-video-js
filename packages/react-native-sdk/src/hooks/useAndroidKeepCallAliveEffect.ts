@@ -14,11 +14,26 @@ import { getNotifeeLibNoThrowForKeepCallAlive } from '../utils/push/libs/notifee
 
 const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
 
+async function stopForegroundServiceNoThrow() {
+  const logger = videoLoggerSystem.getLogger('stopForegroundServiceNoThrow');
+  try {
+    await NativeModules.StreamVideoReactNative.stopKeepCallAliveService();
+  } catch (e) {
+    logger.warn('Failed to stop keep-call-alive foreground service', e);
+  }
+}
+
 async function startForegroundService(call_cid: string) {
-  const isCallAliveConfigured =
-    await NativeModules.StreamVideoReactNative.isCallAliveConfigured();
+  const logger = videoLoggerSystem.getLogger('startForegroundService');
+  const isCallAliveConfigured = await (async () => {
+    try {
+      return await NativeModules.StreamVideoReactNative.isCallAliveConfigured();
+    } catch (e) {
+      logger.warn('Failed to check whether KeepCallAlive is configured', e);
+      return false;
+    }
+  })();
   if (!isCallAliveConfigured) {
-    const logger = videoLoggerSystem.getLogger('startForegroundService');
     logger.info(
       'KeepCallAlive is not configured. Skipping foreground service setup.',
     );
@@ -31,7 +46,6 @@ async function startForegroundService(call_cid: string) {
       PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
     ));
   if (!hasPostNotificationsPermission) {
-    const logger = videoLoggerSystem.getLogger('startForegroundService');
     logger.info(
       'Notification permission not granted, can not start foreground service to keep the call alive',
     );
@@ -46,15 +60,19 @@ async function startForegroundService(call_cid: string) {
   // NOTE: we use requestAnimationFrame to ensure that the foreground service is started after all the current UI operations are done
   // this is a workaround for the crash - android.app.RemoteServiceException$ForegroundServiceDidNotStartInTimeException: Context.startForegroundService() did not then call Service.startForeground()
   // this crash was reproducible only in some android devices
-  requestAnimationFrame(() => {
-    NativeModules.StreamVideoReactNative.startKeepCallAliveService(
-      call_cid,
-      channel.id,
-      channel.name,
-      notificationTexts.title,
-      notificationTexts.body,
-      smallIconName ?? null,
-    );
+  requestAnimationFrame(async () => {
+    try {
+      await NativeModules.StreamVideoReactNative.startKeepCallAliveService(
+        call_cid,
+        channel.id,
+        channel.name,
+        notificationTexts.title,
+        notificationTexts.body,
+        smallIconName ?? null,
+      );
+    } catch (e) {
+      logger.warn('Failed to start keep-call-alive foreground service', e);
+    }
   });
 }
 
@@ -114,7 +132,6 @@ export const useAndroidKeepCallAliveEffect = () => {
       // ensure that app is active before running the function
       if (AppState.currentState === 'active') {
         run();
-        return undefined;
       }
       const sub = AppState.addEventListener(
         'change',
@@ -143,7 +160,7 @@ export const useAndroidKeepCallAliveEffect = () => {
       if (foregroundServiceStartedRef.current) {
         keepCallAliveCallRef.current = undefined;
         // stop foreground service when the call is not active
-        NativeModules.StreamVideoReactNative.stopKeepCallAliveService();
+        stopForegroundServiceNoThrow();
         foregroundServiceStartedRef.current = false;
       } else {
         if (notifeeLib) {
@@ -169,7 +186,7 @@ export const useAndroidKeepCallAliveEffect = () => {
       // stop foreground service when this effect is unmounted
       if (foregroundServiceStartedRef.current) {
         keepCallAliveCallRef.current = undefined;
-        NativeModules.StreamVideoReactNative.stopKeepCallAliveService();
+        stopForegroundServiceNoThrow();
         foregroundServiceStartedRef.current = false;
       }
     };
