@@ -649,16 +649,12 @@ export class StreamSfuClient {
 
 export class SfuJoinError extends Error {
   errorEvent: SfuErrorEvent;
+  unrecoverable: boolean;
 
   constructor(event: SfuErrorEvent) {
     super(event.error?.message || 'Join Error');
     this.errorEvent = event;
-  }
-
-  get unrecoverable() {
-    return (
-      this.errorEvent.reconnectStrategy ===
-      WebsocketReconnectStrategy.DISCONNECT
-    );
+    this.unrecoverable =
+      event.reconnectStrategy === WebsocketReconnectStrategy.DISCONNECT;
   }
 }
