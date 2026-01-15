@@ -13,7 +13,7 @@
 
 // MARK: - Callingx Turbo Module Interface
 
-@interface Callingx : NativeCallingxSpecBase<NativeCallingxSpec, CallingxEventEmitter>
+@interface Callingx : NativeCallingxSpecBase<NativeCallingxSpec, CallingxEventEmitter, VoipNotificationsEventEmitter>
 
 @property (nonatomic, strong) CXCallController *callKeepCallController;
 @property (nonatomic, strong) CXProvider *callKeepProvider;
@@ -86,6 +86,8 @@
   if (self = [super init]) {
     _moduleImpl = [[CallingxImpl alloc] init];
     _moduleImpl.eventEmitter = self;
+
+    [VoipNotificationsManager shared].eventEmitter = self;
   }
   return self;
 }
@@ -103,6 +105,10 @@
 
 - (void)emitEvent:(NSDictionary *)dictionary {
   [self emitOnNewEvent:dictionary];
+}
+
+- (void)emitVoipEvent:(NSDictionary *)dictionary {
+  [self emitOnNewVoipEvent:dictionary];
 }
 
 #pragma mark - Turbo Module Methods
@@ -134,8 +140,12 @@
   return [_moduleImpl getInitialEvents];
 }
 
-- (void)clearInitialEvents {
-  [_moduleImpl clearInitialEvents];
+- (NSArray<NSDictionary *> *)getInitialVoipEvents {
+  return [[VoipNotificationsManager shared] getInitialEvents];
+}
+
+- (void)registerVoipToken {
+  [[VoipNotificationsManager shared] registerVoipToken];
 }
 
 - (void)answerIncomingCall:(nonnull NSString *)callId

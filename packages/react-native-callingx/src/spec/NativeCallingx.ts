@@ -44,7 +44,34 @@ export interface Spec extends TurboModule {
     };
   }>;
 
-  clearInitialEvents(): void;
+  getInitialVoipEvents(): Array<{
+    eventName: string;
+    params: {
+      token?: string;
+      aps?: {
+        'thread-id': string;
+        'mutable-content': number;
+        alert: {
+          title: string;
+        };
+        category: string;
+        sound: string;
+      };
+      stream?: {
+        sender: string;
+        created_by_id: string;
+        body: string;
+        title: string;
+        call_display_name: string;
+        created_by_display_name: string;
+        version: string;
+        type: string;
+        receiver_id: string;
+        call_cid: string;
+        video: string;
+      };
+    };
+  }>;
 
   setCurrentCallActive(callId: string): Promise<void>;
 
@@ -103,6 +130,8 @@ export interface Spec extends TurboModule {
 
   stopBackgroundTask(taskName: string): Promise<void>;
 
+  registerVoipToken(): void;
+
   readonly onNewEvent: EventEmitter<{
     eventName: string;
     params: {
@@ -110,6 +139,35 @@ export interface Spec extends TurboModule {
       cause?: string;
       muted?: boolean;
       hold?: boolean;
+    };
+  }>;
+
+  readonly onNewVoipEvent: EventEmitter<{
+    eventName: string;
+    params: {
+      token: string;
+      aps: {
+        'thread-id': string;
+        'mutable-content': number;
+        alert: {
+          title: string;
+        };
+        category: string;
+        sound: string;
+      };
+      stream: {
+        sender: string;
+        created_by_id: string;
+        body: string;
+        title: string;
+        call_display_name: string;
+        created_by_display_name: string;
+        version: string;
+        type: string;
+        receiver_id: string;
+        call_cid: string;
+        video: string;
+      };
     };
   }>;
 

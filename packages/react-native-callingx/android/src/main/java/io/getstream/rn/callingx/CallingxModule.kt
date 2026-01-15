@@ -140,6 +140,15 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         // leave empty
     }
 
+    override fun getInitialVoipEvents(): WritableArray {
+       // leave empty
+      return Arguments.createArray()
+    }
+
+    override fun registerVoipToken() {
+        // leave empty
+    }
+
     override fun getInitialEvents(): WritableArray {
         // NOTE: writabel native array can be consumed only once, think of getting rid from clear
         // event and clear eat immidiate after getting initial events
@@ -148,10 +157,6 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         delayedEvents = WritableNativeArray()
         canSendEvents = true
         return events
-    }
-
-    override fun clearInitialEvents() {
-        delayedEvents = WritableNativeArray()
     }
 
     override fun setCurrentCallActive(callId: String, promise: Promise) {

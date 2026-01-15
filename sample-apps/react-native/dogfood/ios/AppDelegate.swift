@@ -13,7 +13,6 @@ import UserNotifications
 import RNCPushNotificationIOS
 import PushKit
 import WebRTC
-import RNVoipPushNotification
 import stream_io_noise_cancellation_react_native
 import stream_video_react_native
 
@@ -58,7 +57,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     didUpdate credentials: PKPushCredentials,
     for type: PKPushType
   ) {
-    RNVoipPushNotificationManager.didUpdate(credentials, forType: type.rawValue)
+    StreamVideoReactNative.didUpdate(credentials, forType: type.rawValue)
   }
   
   // --- Handle incoming pushes
@@ -68,26 +67,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     for type: PKPushType,
     completion: @escaping () -> Void
   ) {
-    
-    guard let stream = payload.dictionaryPayload["stream"] as? [String: Any],
-          let _ = stream["created_by_display_name"] as? String,
-          let cid = stream["call_cid"] as? String else {
-      completion() // Ensure completion handler is called even if parsing fails
-      return
-    }
-     
-    // Check if user is busy BEFORE registering the call
-    guard StreamVideoReactNative.rejectIncomingCallIfNeeded(completion) else {
-      return
-    }
-        
-    // required if you want to call `completion()` on the js side
-    RNVoipPushNotificationManager.addCompletionHandler(cid, completionHandler: completion)
-    
-    // Process the received push // fire 'notification' event to JS
-    RNVoipPushNotificationManager.didReceiveIncomingPush(with: payload, forType: type.rawValue) // type is enum, use rawValue
-    
-    StreamVideoReactNative.didReceiveIncomingPush(payload, completionHandler: completion)
+    StreamVideoReactNative.didReceiveIncomingPush(payload, forType: type.rawValue, completionHandler: completion)
   }
   
   //Called when a notification is delivered to a foreground app.
@@ -102,7 +82,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     // Uncomment the next line to enable verbose WebRTC logs
     // WebRTCModuleOptions.sharedInstance().loggingSeverity = .verbose
     
-    RNVoipPushNotificationManager.voipRegistration()
+    StreamVideoReactNative.voipRegistration()
     
     let center = UNUserNotificationCenter.current()
     center.delegate = self

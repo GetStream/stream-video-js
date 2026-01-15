@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-import { getVoipPushNotificationLib } from '../libs';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canListenToWS, shouldCallBeClosed } from './utils';
 import { StreamVideoConfig } from '../../StreamVideoRN/types';
@@ -71,9 +70,6 @@ export const onVoipNotificationReceived = async (
       logger.debug(`callkeep.reportEndCallWithUUID for call_cid: ${call_cid}`);
       //TODO: think about sending appropriate reason for end call
       callingx.endCallWithReason(call_cid, 'local');
-
-      const voipPushNotification = getVoipPushNotificationLib();
-      voipPushNotification.onVoipNotificationCompleted(call_cid);
       return true;
     }
     return false;

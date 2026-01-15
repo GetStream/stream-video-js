@@ -36,6 +36,14 @@ export interface ICallingxModule {
    */
   getInitialEvents(): EventData[];
 
+  /**
+   * Get the initial voip events. This method is used to get the initial voip events from the app launch.
+   * The events are queued and can be retrieved after the module is setup.
+   * IMPORTANT: After the events are retrieved, new events will be sent to the event listeners.
+   * @returns The initial voip events.
+   */
+  getInitialVoipEvents(): VoipEventData[];
+
   displayIncomingCall(
     callId: string,
     phoneNumber: string,
@@ -111,9 +119,25 @@ export interface ICallingxModule {
 
   stopBackgroundTask(taskName: string): Promise<void>;
 
-  addEventListener<T extends EventName>(
+  registerVoipToken(): void;
+
+  /**
+   * Single entry point for adding event listeners.
+   * Automatically routes to the appropriate manager based on event type.
+   *
+   * @param eventName - The event name (EventName or VoipEventName)
+   * @param callback - The callback function that receives the event parameters
+   * @returns An object with a remove method to unsubscribe from the event
+   */
+  addEventListener<T extends EventName | VoipEventName>(
     eventName: T,
-    callback: EventListener<EventParams[T]>,
+    callback: EventListener<
+      T extends EventName
+        ? EventParams[T]
+        : T extends VoipEventName
+          ? VoipEventParams[T]
+          : never
+    >,
   ): { remove: () => void };
 
   log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): void;
@@ -206,6 +230,11 @@ export type EventData = {
   params: EventParams[EventName];
 };
 
+export type VoipEventData = {
+  eventName: VoipEventName;
+  params: VoipEventParams[VoipEventName];
+};
+
 export type EventName =
   | 'answerCall'
   | 'endCall'
@@ -247,6 +276,40 @@ export type EventParams = {
   };
   didActivateAudioSession: undefined;
   didDeactivateAudioSession: undefined;
+};
+
+export type VoipEventName =
+  | 'voipNotificationsRegistered'
+  | 'voipNotificationReceived';
+
+export type VoipEventParams = {
+  voipNotificationsRegistered: {
+    token: string;
+  };
+  voipNotificationReceived: {
+    aps: {
+      'thread-id': string;
+      'mutable-content': number;
+      alert: {
+        title: string;
+      };
+      category: string;
+      sound: string;
+    };
+    stream: {
+      sender: string;
+      created_by_id: string;
+      body: string;
+      title: string;
+      call_display_name: string;
+      created_by_display_name: string;
+      version: string;
+      type: string;
+      receiver_id: string;
+      call_cid: string;
+      video: string;
+    };
+  };
 };
 
 export type EndCallReason =

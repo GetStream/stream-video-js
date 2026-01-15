@@ -274,7 +274,9 @@ import AVFoundation
     }
     
     @objc public func sendEvent(_ name: String, body: [String: Any]?) {
+        #if DEBUG
         print("[Callingx] sendEventWithNameWrapper: \(name)")
+        #endif
         
         var dictionary: [String: Any] = ["eventName": name]
         if let body = body {
@@ -328,11 +330,7 @@ import AVFoundation
         canSendEvents = true
         return events
     }
-    
-    @objc public func clearInitialEvents() {
-        delayedEvents = []
-    }
-    
+        
     // MARK: - Call Management
     @objc public func answerIncomingCall(_ callId: String) -> Bool {
         #if DEBUG

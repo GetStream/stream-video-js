@@ -17,8 +17,6 @@ NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped"
 
 static dispatch_queue_t _dictionaryQueue = nil;
 
-static BOOL _shouldRejectCallWhenBusy = NO;
-
 void broadcastNotificationCallback(CFNotificationCenterRef center,
                                    void *observer,
                                    CFStringRef name,
@@ -96,13 +94,73 @@ RCT_EXPORT_MODULE();
     return YES;
 }
 
-+(void)didReceiveIncomingPush:(PKPushPayload *)payload completionHandler: (void (^_Nullable)(void)) completion {
++(void)voipRegistration {
+    Class voipManagerClass = NSClassFromString(@"Callingx.VoipNotificationsManager");
+    if (!voipManagerClass) {
+        // Fallback: Try the unmangled name (might work depending on Swift version)
+        voipManagerClass = NSClassFromString(@"VoipNotificationsManager");
+    }
+    
+    if (!voipManagerClass) {
+        NSLog(@"[StreamVideoReactNative][voipRegistration] VoipNotificationsManager not available");
+        return;
+    }
+    
+    SEL selector = @selector(voipRegistration);
+    if (![voipManagerClass respondsToSelector:selector]) {
+        NSLog(@"[StreamVideoReactNative][voipRegistration] VoipNotificationsManager does not respond to voipRegistration");
+        return;
+    }
+    
+    [voipManagerClass voipRegistration];
+}
+
++(void)didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(NSString *)type {
+    Class voipManagerClass = NSClassFromString(@"Callingx.VoipNotificationsManager");
+    if (!voipManagerClass) {
+        // Fallback: Try the unmangled name (might work depending on Swift version)
+        voipManagerClass = NSClassFromString(@"VoipNotificationsManager");
+    }
+    
+    if (!voipManagerClass) {
+        NSLog(@"[StreamVideoReactNative][didUpdatePushCredentials] VoipNotificationsManager not available");
+        return;
+    }
+    
+    SEL selector = @selector(didUpdatePushCredentials:forType:);
+    if (![voipManagerClass respondsToSelector:selector]) {
+        NSLog(@"[StreamVideoReactNative][didUpdatePushCredentials] VoipNotificationsManager does not respond to didUpdatePushCredentials:forType:");
+        return;
+    }
+    
+    [voipManagerClass didUpdatePushCredentials:credentials forType:type];
+}
+
++(void)didReceiveIncomingPush:(PKPushPayload *)payload forType:(NSString *)type completionHandler: (void (^_Nullable)(void)) completion {
     NSDictionary *streamPayload = payload.dictionaryPayload[@"stream"];
     if (!streamPayload) {
         NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Stream payload not found");
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+    
+    NSString *createdCallerName = streamPayload[@"created_by_display_name"];
+    NSString *callCid = streamPayload[@"call_cid"];
+    if (!createdCallerName || !callCid) {
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Missing required fields: created_by_display_name or call_cid");
+        if (completion) {
+            completion();
+        }
         return;
     }
 
+    [StreamVideoReactNative reportNewIncomingCall:streamPayload forType:type completionHandler:completion];
+    [StreamVideoReactNative didReceiveIncomingPushWithPayload:payload forType:type];
+}
+
++(void)reportNewIncomingCall:(NSDictionary *)streamPayload forType:(NSString *)type completionHandler: (void (^_Nullable)(void)) completion {
     Class callingxClass = NSClassFromString(@"Callingx");
     if (!callingxClass) {
         NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Callingx not available");
@@ -112,12 +170,11 @@ RCT_EXPORT_MODULE();
     NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Callingx available");
     
     SEL selector = @selector(reportNewIncomingCall:handle:handleType:hasVideo:localizedCallerName:supportsHolding:supportsDTMF:supportsGrouping:supportsUngrouping:fromPushKit:payload:withCompletionHandler:);
-    
     if (![callingxClass respondsToSelector:selector]) {
         NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Callingx does not respond to selector");
         return;
     }
-
+    
     NSString *callCid = streamPayload[@"call_cid"];
     NSString *createdCallerName = streamPayload[@"created_by_display_name"];
     NSString *videoIncluded = streamPayload[@"video"];
@@ -128,7 +185,7 @@ RCT_EXPORT_MODULE();
     BOOL supportsGrouping = NO;
     BOOL supportsUngrouping = NO;
     BOOL fromPushKit = YES;
-    void (^completionHandler)(void) = nil;
+    void (^completionHandler)(void) = completion;
     
     NSMethodSignature *signature = [callingxClass methodSignatureForSelector:selector];
     NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
@@ -147,6 +204,27 @@ RCT_EXPORT_MODULE();
     [invocation setArgument:&streamPayload atIndex:12];
     [invocation setArgument:&completionHandler atIndex:13];
     [invocation invoke];
+}
+
++(void)didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(NSString *)type {
+    Class voipManagerClass = NSClassFromString(@"Callingx.VoipNotificationsManager");
+    if (!voipManagerClass) {
+        // Fallback: Try the unmangled name (might work depending on Swift version)
+        voipManagerClass = NSClassFromString(@"VoipNotificationsManager");
+    }
+    
+    if (!voipManagerClass) {
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPushWithPayload] VoipNotificationsManager not available");
+        return;
+    }
+    
+    SEL selector = @selector(didReceiveIncomingPushWithPayload:forType:);
+    if (![voipManagerClass respondsToSelector:selector]) {
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPushWithPayload] VoipNotificationsManager does not respond to didReceiveIncomingPushWithPayload:forType:");
+        return;
+    }
+    
+    [voipManagerClass didReceiveIncomingPushWithPayload:payload forType:type];
 }
 
 -(instancetype)init {

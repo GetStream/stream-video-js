@@ -1,44 +1,47 @@
 import type { EventSubscription } from 'react-native';
 import NativeCallingModule from './spec/NativeCallingx';
-import type { EventData, EventName, EventParams } from './types';
+import type {
+  EventData,
+  EventName,
+  VoipEventData,
+  VoipEventName,
+} from './types';
+import { isVoipEvent } from './utils/utils';
 
 type EventListener<T> = (params: T) => void;
 
-class EventManager {
+class EventManager<Name extends EventName | VoipEventName, Params> {
   private listenersCount: number = 0;
-  private eventListeners: Map<
-    EventName,
-    EventListener<EventParams[EventName]>[]
-  > = new Map();
+  private eventListeners: Map<Name, EventListener<Params>[]> = new Map();
   private subscription: EventSubscription | null = null;
 
-  addListener<T extends EventName>(
+  addListener<T extends Name>(
     eventName: T,
-    callback: EventListener<EventParams[T]>,
+    callback: EventListener<Params>,
   ): void {
     const listeners = this.eventListeners.get(eventName) || [];
-    listeners.push(callback as EventListener<EventParams[EventName]>);
+    listeners.push(callback as EventListener<Params>);
     this.eventListeners.set(eventName, listeners);
-
     this.listenersCount++;
 
     if (this.subscription === null) {
-      this.subscription = NativeCallingModule.onNewEvent((event: EventData) => {
-        if (__DEV__) {
-          console.log('[Callingx] EventManager: onNewEvent:', event);
-        }
+      const eventHandler = (event: EventData | VoipEventData) => {
         const eventListeners =
-          this.eventListeners.get(event.eventName as EventName) || [];
-        eventListeners.forEach((listener) =>
-          listener(event.params as EventParams[EventName]),
-        );
-      });
+          this.eventListeners.get(event.eventName as Name) || [];
+        eventListeners.forEach((listener) => listener(event.params as Params));
+      };
+
+      if (isVoipEvent(eventName)) {
+        this.subscription = NativeCallingModule.onNewVoipEvent(eventHandler);
+      } else {
+        this.subscription = NativeCallingModule.onNewEvent(eventHandler);
+      }
     }
   }
 
-  removeListener<T extends EventName>(
+  removeListener<T extends Name>(
     eventName: T,
-    callback: EventListener<EventParams[T]>,
+    callback: EventListener<Params>,
   ): void {
     const listeners = this.eventListeners.get(eventName) || [];
     const updatedListeners = listeners.filter((c) => c !== callback);
@@ -55,4 +58,4 @@ class EventManager {
   }
 }
 
-export { EventManager, type EventName, type EventParams, type EventListener };
+export { EventManager, type EventListener };

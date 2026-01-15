@@ -12,14 +12,19 @@ import {
 } from './utils/headlessTask';
 import type { ManagableTask } from './utils/headlessTask';
 import { EventManager } from './EventManager';
-import type { EventListener, EventName, EventParams } from './EventManager';
+import type { EventListener } from './EventManager';
 import {
   type ICallingxModule,
   type InfoDisplayOptions,
   type TextTransformer,
   type EndCallReason,
   type EventData,
+  type EventName,
+  type EventParams,
   type CallingExpOptions,
+  type VoipEventName,
+  type VoipEventParams,
+  type VoipEventData,
 } from './types';
 import {
   androidEndCallReasonMap,
@@ -28,6 +33,7 @@ import {
   defaultTextTransformer,
   iosEndCallReasonMap,
 } from './utils/constants';
+import { isVoipEvent } from './utils/utils';
 
 class CallingxModule implements ICallingxModule {
   private _isNotificationsAllowed = false;
@@ -37,7 +43,10 @@ class CallingxModule implements ICallingxModule {
   private titleTransformer: TextTransformer = (text: string) => text;
   private subtitleTransformer: TextTransformer | undefined = undefined;
 
-  private eventManager: EventManager = new EventManager();
+  private eventManager: EventManager<EventName, EventParams> =
+    new EventManager();
+  private voipEventManager: EventManager<VoipEventName, VoipEventParams> =
+    new EventManager();
 
   get isNotificationsAllowed(): boolean {
     if (Platform.OS !== 'android') {
@@ -125,8 +134,8 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.getInitialEvents() as EventData[];
   }
 
-  clearInitialEvents(): void {
-    return NativeCallingModule.clearInitialEvents();
+  getInitialVoipEvents(): VoipEventData[] {
+    return NativeCallingModule.getInitialVoipEvents() as VoipEventData[];
   }
 
   //activates call that was registered with the telecom stack
@@ -264,15 +273,31 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.stopBackgroundTask(HEADLESS_TASK_NAME);
   }
 
-  addEventListener<T extends EventName>(
+  registerVoipToken(): void {
+    NativeCallingModule.registerVoipToken();
+  }
+
+  addEventListener<T extends EventName | VoipEventName>(
     eventName: T,
-    callback: EventListener<EventParams[T]>,
+    callback: EventListener<
+      T extends EventName
+        ? EventParams[T]
+        : T extends VoipEventName
+          ? VoipEventParams[T]
+          : never
+    >,
   ): { remove: () => void } {
-    this.eventManager.addListener(eventName, callback);
+    type ManagerType = EventManager<EventName | VoipEventName, any>;
+
+    const manager: ManagerType = (
+      isVoipEvent(eventName) ? this.voipEventManager : this.eventManager
+    ) as ManagerType;
+
+    manager.addListener(eventName, callback as any);
 
     return {
       remove: () => {
-        this.eventManager.removeListener(eventName, callback);
+        manager.removeListener(eventName, callback as any);
       },
     };
   }
