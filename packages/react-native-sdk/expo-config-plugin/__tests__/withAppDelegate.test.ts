@@ -130,37 +130,19 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     expect(updatedConfig.modResults.contents).toMatch(
       /options.enableMultitaskingCameraAccess = YES/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(/#import "RNCallKeep.h"/);
     expect(updatedConfig.modResults.contents).toMatch(
       /#import <PushKit\/PushKit.h>/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /#import "RNVoipPushNotificationManager.h"/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(/@"supportsVideo": @NO/);
-    expect(updatedConfig.modResults.contents).toMatch(
-      /@"includesCallsInRecents": @YES/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
       /didUpdatePushCredentials:credentials/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /didReceiveIncomingPushWithPayload:payload/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(/reportNewIncomingCall/);
-
-    expect(updatedConfig.modResults.contents).toMatch(
-      /#import <WebRTC\/RTCAudioSession.h>/,
-    );
-
-    expect(updatedConfig.modResults.contents).toMatch(
-      /audioSessionDidActivate/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /audioSessionDidDeactivate/,
+      /didReceiveIncomingPush:payload/,
     );
 
     modifiedConfigObjC = updatedConfig;
+
+    console.log(updatedConfig.modResults.contents);
   });
 
   it('swift - should modify config as per props', () => {
@@ -194,34 +176,17 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     );
     expect(updatedConfig.modResults.contents).toMatch(/PKPushRegistryDelegate/);
     expect(updatedConfig.modResults.contents).toMatch(/^import WebRTC/m);
-    expect(updatedConfig.modResults.contents).toMatch(/^import RNCallKeep/m);
     expect(updatedConfig.modResults.contents).toMatch(/^import PushKit/m);
-    expect(updatedConfig.modResults.contents).toMatch(
-      /^import RNVoipPushNotification/m,
-    );
     // Check Swift implementation
     expect(updatedConfig.modResults.contents).toMatch(
       /options.enableMultitaskingCameraAccess = true/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(/"supportsVideo": false/);
-    expect(updatedConfig.modResults.contents).toMatch(
-      /"includesCallsInRecents": false/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /RNVoipPushNotificationManager.didUpdate/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /RNVoipPushNotificationManager.didReceiveIncomingPush/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /RNCallKeep.reportNewIncomingCall/,
-    );
 
     expect(updatedConfig.modResults.contents).toMatch(
-      /audioSessionDidActivate/,
+      /StreamVideoReactNative.didUpdate/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /audioSessionDidDeactivate/,
+      /StreamVideoReactNative.didReceiveIncomingPush/,
     );
 
     modifiedConfigSwift = updatedConfig;

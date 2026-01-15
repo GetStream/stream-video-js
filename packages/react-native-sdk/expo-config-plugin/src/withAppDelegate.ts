@@ -42,11 +42,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
         if (props?.ringing) {
           config.modResults.contents = addObjcImports(
             config.modResults.contents,
-            [
-              '<PushKit/PushKit.h>',
-              '"RNVoipPushNotificationManager.h"',
-              '"StreamVideoReactNative.h"',
-            ],
+            ['<PushKit/PushKit.h>', '"StreamVideoReactNative.h"'],
           );
 
           config.modResults.contents =
@@ -123,7 +119,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
         if (props?.ringing) {
           config.modResults.contents = addSwiftImports(
             config.modResults.contents,
-            ['PushKit', 'RNVoipPushNotification'],
+            ['PushKit'],
           );
           config.modResults.contents =
             addDidFinishLaunchingWithOptionsRingingSwift(
@@ -219,7 +215,7 @@ function addDidFinishLaunchingWithOptionsObjc(
 function addDidFinishLaunchingWithOptionsRingingSwift(contents: string) {
   const functionSelector = 'application(_:didFinishLaunchingWithOptions:)';
   // call the setup of voip push notification
-  const voipSetupMethod = 'RNVoipPushNotificationManager.voipRegistration()';
+  const voipSetupMethod = 'StreamVideoReactNative.voipRegistration()';
   if (!contents.includes(voipSetupMethod)) {
     contents = insertContentsInsideSwiftFunctionBlock(
       contents,
@@ -234,7 +230,7 @@ function addDidFinishLaunchingWithOptionsRingingSwift(contents: string) {
 function addDidFinishLaunchingWithOptionsRingingObjc(contents: string) {
   const functionSelector = 'application:didFinishLaunchingWithOptions:';
   // call the setup of voip push notification
-  const voipSetupMethod = '[RNVoipPushNotificationManager voipRegistration];';
+  const voipSetupMethod = '[StreamVideoReactNative voipRegistration];';
   if (!contents.includes(voipSetupMethod)) {
     contents = insertContentsInsideObjcFunctionBlock(
       contents,
@@ -248,7 +244,7 @@ function addDidFinishLaunchingWithOptionsRingingObjc(contents: string) {
 
 function addDidUpdatePushCredentialsSwift(contents: string) {
   const updatedPushCredentialsMethod =
-    'RNVoipPushNotificationManager.didUpdate(credentials, forType: type.rawValue)';
+    'StreamVideoReactNative.didUpdate(credentials, forType: type.rawValue)';
 
   if (!contents.includes(updatedPushCredentialsMethod)) {
     const functionSelector = 'pushRegistry(_:didUpdate:for:)';
@@ -282,7 +278,7 @@ function addDidUpdatePushCredentialsSwift(contents: string) {
 
 function addDidUpdatePushCredentialsObjc(contents: string) {
   const updatedPushCredentialsMethod =
-    '[RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];';
+    '[StreamVideoReactNative didUpdatePushCredentials:credentials forType: (NSString *) type];';
   if (!contents.includes(updatedPushCredentialsMethod)) {
     const functionSelector = 'pushRegistry:didUpdatePushCredentials:forType:';
     const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
@@ -306,28 +302,8 @@ function addDidUpdatePushCredentialsObjc(contents: string) {
 
 function addDidReceiveIncomingPushCallbackSwift(contents: string) {
   const onIncomingPush = `
-    guard let stream = payload.dictionaryPayload["stream"] as? [String: Any],
-          let _ = stream["created_by_display_name"] as? String,
-          let cid = stream["call_cid"] as? String else {
-      completion()
-      return
-    }
-
-    // Check if user is busy BEFORE registering the call
-    guard StreamVideoReactNative.rejectIncomingCallIfNeeded(completion) else {
-      return
-    }
-        
-    // required if you want to call completion() on the js side
-    RNVoipPushNotificationManager.addCompletionHandler(cid, completionHandler: completion)
-    
-    // Process the received push // fire 'notification' event to JS
-    RNVoipPushNotificationManager.didReceiveIncomingPush(with: payload, forType: type.rawValue)
-    
-    StreamVideoReactNative.didReceiveIncomingPush(payload, completionHandler: completion)`;
-  if (
-    !contents.includes('RNVoipPushNotificationManager.didReceiveIncomingPush')
-  ) {
+    StreamVideoReactNative.didReceiveIncomingPush(payload, forType: type.rawValue, completionHandler: completion)`;
+  if (!contents.includes('StreamVideoReactNative.didReceiveIncomingPush')) {
     const functionSelector =
       'pushRegistry(_:didReceiveIncomingPushWith:for:completion:)';
     const codeblock = findSwiftFunctionCodeBlock(contents, functionSelector);
@@ -361,27 +337,12 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
 
 function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   const onIncomingPush = `
-  // process the payload and store it in the native module's cache
-  NSDictionary *stream = payload.dictionaryPayload[@"stream"];
-  NSString *cid = stream[@"call_cid"];
-  
-  // Check if user is busy BEFORE registering the call
-  BOOL canProceed = [StreamVideoReactNative rejectIncomingCallIfNeeded:completion];
-  if (!canProceed) {
-      return;
-  }
-  
-  [RNVoipPushNotificationManager addCompletionHandler:cid completionHandler:completion];
-
-  // send event to JS - the JS SDK will handle the rest and call the 'completionHandler'
-  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-
-  // display the incoming call notification
-  [StreamVideoReactNative didReceiveIncomingPush:payload completionHandler:completion];
+  // process the payload and display the incoming call notification
+  [StreamVideoReactNative didReceiveIncomingPush:payload forType: (NSString *)type completionHandler:completion];
 `;
   if (
     !contents.includes(
-      '[RNVoipPushNotificationManager didReceiveIncomingPushWithPayload',
+      '[StreamVideoReactNative didReceiveIncomingPushWithPayload',
     )
   ) {
     const functionSelector =
