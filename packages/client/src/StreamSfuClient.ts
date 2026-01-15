@@ -561,6 +561,7 @@ export class StreamSfuClient {
 
     timeoutId = setTimeout(() => {
       unsubscribe();
+      unsubscribeJoinErrorEvents();
       const message = `Waiting for "joinResponse" has timed out after ${this.joinResponseTimeout}ms`;
       this.tracer?.trace('joinRequestTimeout', message);
       current.reject(new Error(message));
