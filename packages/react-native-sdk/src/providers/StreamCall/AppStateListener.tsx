@@ -169,7 +169,7 @@ export const AppStateListener = () => {
       let cancelled = false;
 
       nativeModule
-        .getCurrentAppState?.()
+        .getCurrentAppState()
         .then((initialState: AppStateStatus | null | undefined) => {
           if (cancelled) return;
           if (initialState === 'active' || initialState === 'background') {
