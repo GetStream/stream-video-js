@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.40.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.2...@stream-io/video-client-1.40.3) (2026-01-16)
+
+### Bug Fixes
+
+- **react:** resolve call state race condition when using join with ring ([#2086](https://github.com/GetStream/stream-video-js/issues/2086)) ([6c2d3b3](https://github.com/GetStream/stream-video-js/commit/6c2d3b35ac96dbf7a85cadba47068a0e417d65be)), closes [#1755](https://github.com/GetStream/stream-video-js/issues/1755) [#2035](https://github.com/GetStream/stream-video-js/issues/2035)
+- **react:** resolve call state race condition when using join with ring ([#2084](https://github.com/GetStream/stream-video-js/issues/2084)) ([f9b5946](https://github.com/GetStream/stream-video-js/commit/f9b59465f22b35304dbd01601e3f6166e1d02ea0)), closes [#1755](https://github.com/GetStream/stream-video-js/issues/1755) [#2035](https://github.com/GetStream/stream-video-js/issues/2035)
+
 ## [1.40.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.1...@stream-io/video-client-1.40.2) (2026-01-15)
 
 ### Bug Fixes
