@@ -205,7 +205,9 @@ export const AppStateListener = () => {
             appState.current = initialState;
           }
         })
-        .catch(() => {});
+        .catch(() => {
+          logger.warn('Failed to get current app state from native module');
+        });
 
       const subscription = eventEmitter.addListener(
         ANDROID_APP_STATE_CHANGED_EVENT,
