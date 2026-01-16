@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.27.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.27.3...@stream-io/video-react-native-sdk-1.27.4) (2026-01-16)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.3`
+- `@stream-io/video-react-bindings` updated to version `1.12.10`
+
+### Bug Fixes
+
+- do not disable camera on Android unnecessarily RN-335 ([#2085](https://github.com/GetStream/stream-video-js/issues/2085)) ([e4dfa39](https://github.com/GetStream/stream-video-js/commit/e4dfa39b7a001e60fee73db01d717ed8eb05d9b0))
+
 ## [1.27.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.27.2...@stream-io/video-react-native-sdk-1.27.3) (2026-01-15)
 
 ### Dependency Updates
