@@ -7678,6 +7678,7 @@ __metadata:
     react-native-reanimated: "npm:~4.1.2"
     react-native-safe-area-context: "npm:^5.6.1"
     react-native-screens: "npm:^4.16.0"
+    react-native-share: "npm:^12.2.2"
     react-native-svg: "npm:^15.14.0"
     react-native-toast-message: "npm:^2.3.3"
     react-native-video: "npm:^6.17.0"
@@ -20734,6 +20735,13 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10/f055d37b3abf96f42c15d61645441995884ed69b2a6b35f63a21abeb147b9df7e084447d2a329a424ee3686d703c25817ea588d3be9e6ebc38e5c653ebe5e05b
+  languageName: node
+  linkType: hard
+
+"react-native-share@npm:^12.2.2":
+  version: 12.2.2
+  resolution: "react-native-share@npm:12.2.2"
+  checksum: 10/792417d71c07862e4f471b0dfe1e45f79150cbe64791ec8f755c75c46bfd5006f35cd3caa05d09e00671e5551c8f05627bcfe50348edd187d2f5e11d1ff236bf
   languageName: node
   linkType: hard
 
