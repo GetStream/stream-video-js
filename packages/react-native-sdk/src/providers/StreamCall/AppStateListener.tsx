@@ -80,13 +80,25 @@ export const AppStateListener = () => {
       // ref: https://www.reddit.com/r/reactnative/comments/15kib42/appstate_behavior_in_ios_when_swiping_down_to/
       if (appState.current.match(/background/) && nextAppState === 'active') {
         if (call?.camera?.state.status === 'enabled') {
+          logger.debug(
+            'attempt to Disable and reenable camera as app came to foreground',
+          );
           // Android: when device is locked and resumed, the status isnt made disabled but stays enabled
           // iOS PiP: when local track was replaced by remote track, the local track shown is blank
           // as a workaround we stop the track and enable again if its already in enabled state
-          const renableCamera = () =>
-            call?.camera?.disable(true).then(() => {
-              call?.camera?.enable();
-            });
+          const renableCamera = () => {
+            const camera = call?.camera;
+            if (!camera) return Promise.resolve();
+            return camera
+              .disable(true)
+              .then(() => camera.enable())
+              .catch((e) => {
+                logger.warn(
+                  'Failed to disable+reenable camera as app came to foreground',
+                  e,
+                );
+              });
+          };
           if (Platform.OS === 'android') {
             NativeModules.StreamVideoReactNative.isCallAliveConfigured().then(
               (isCallAliveConfigured: boolean) => {
@@ -98,12 +110,20 @@ export const AppStateListener = () => {
           } else {
             renableCamera();
           }
-          logger.debug('Disable and reenable camera as app came to foreground');
         } else {
           if (cameraDisabledByAppState.current) {
-            call?.camera?.resume();
-            cameraDisabledByAppState.current = false;
-            logger.debug('Resume camera as app came to foreground');
+            call?.camera
+              ?.resume()
+              .then(() => {
+                cameraDisabledByAppState.current = false;
+                logger.debug('Camera resumed as app came to foreground');
+              })
+              .catch((e) => {
+                logger.warn(
+                  'Failed to resume camera as app came to foreground',
+                  e,
+                );
+              });
           }
         }
         appState.current = nextAppState;
@@ -113,9 +133,18 @@ export const AppStateListener = () => {
       ) {
         const disableCameraIfNeeded = () => {
           if (call?.camera?.state.status === 'enabled') {
-            cameraDisabledByAppState.current = true;
-            call?.camera?.disable();
-            logger.debug('Camera disabled by app going to background');
+            call?.camera
+              ?.disable()
+              .then(() => {
+                cameraDisabledByAppState.current = true;
+                logger.debug('Camera disabled by app going to background');
+              })
+              .catch((e) => {
+                logger.warn(
+                  'Failed to disable camera as app went to background',
+                  e,
+                );
+              });
           }
         };
         if (Platform.OS === 'android') {
