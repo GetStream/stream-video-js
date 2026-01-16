@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.31.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.1...@stream-io/video-react-sdk-1.31.2) (2026-01-15)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.2`
+- `@stream-io/video-react-bindings` updated to version `1.12.9`
+
+## [1.31.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.0...@stream-io/video-react-sdk-1.31.1) (2026-01-14)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.1`
+- `@stream-io/video-react-bindings` updated to version `1.12.8`
+
+### Bug Fixes
+
+- ensure proper set up of server-side preferences for mic and camera ([#2080](https://github.com/GetStream/stream-video-js/issues/2080)) ([3529c8f](https://github.com/GetStream/stream-video-js/commit/3529c8fc0233d3f9f8f21c80cffc4ec27334954f))
+
 ## [1.31.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.30.1...@stream-io/video-react-sdk-1.31.0) (2026-01-09)
 
 ### Dependency Updates
