@@ -221,6 +221,32 @@ describe('StreamVideoClient Ringing', () => {
       expect(oliverClient.state.calls[0]).toBe(call);
       expect(call.ringing).toBe(true);
     });
+
+    it('new call instance with doJoinRequest({ ring: true }) should replace old instance in store', async () => {
+      const callId = crypto.randomUUID();
+
+      const call = oliverClient.call('default', callId, {
+        reuseInstance: true,
+      });
+      const callCreatedEvent = expectEvent(oliverClient, 'call.created');
+      const serverCall = serverClient.video.call('default', callId);
+      await serverCall.create({
+        data: {
+          created_by_id: 'oliver',
+          members: [{ user_id: 'oliver' }, { user_id: 'sacha' }],
+        },
+      });
+
+      // the event arrives and since the store is empty registers a new IDLE call
+      await callCreatedEvent;
+
+      // join registers or updates the call
+      await call.doJoinRequest({ ring: true });
+
+      expect(oliverClient.state.calls.length).toBe(1);
+      expect(oliverClient.state.calls[0]).toBe(call);
+      expect(oliverClient.state.calls[0].ringing).toBe(true);
+    });
   });
 
   describe('ringing interruption', () => {
