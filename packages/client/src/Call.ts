@@ -1353,7 +1353,7 @@ export class Call {
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
-      this.clientStore.registerCall(this);
+      this.clientStore.registerOrUpdateCall(this);
     }
 
     return joinResponse;
