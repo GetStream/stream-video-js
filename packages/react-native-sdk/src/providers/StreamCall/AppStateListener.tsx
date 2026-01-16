@@ -112,19 +112,11 @@ export const AppStateListener = () => {
         nextAppState.match(/background/)
       ) {
         const disableCameraIfNeeded = () => {
-          // check if keep call alive is configured
-          // if not, then disable the camera as we are not able to keep the call alive in the background
-          NativeModules.StreamVideoReactNative.isCallAliveConfigured().then(
-            (isCallAliveConfigured: boolean) => {
-              if (!isCallAliveConfigured) {
-                if (call?.camera?.state.status === 'enabled') {
-                  cameraDisabledByAppState.current = true;
-                  call?.camera?.disable();
-                  logger.debug('Camera disabled by app going to background');
-                }
-              }
-            },
-          );
+          if (call?.camera?.state.status === 'enabled') {
+            cameraDisabledByAppState.current = true;
+            call?.camera?.disable();
+            logger.debug('Camera disabled by app going to background');
+          }
         };
         if (Platform.OS === 'android') {
           // in Android, we need to check if we are in PiP mode
@@ -144,7 +136,15 @@ export const AppStateListener = () => {
                     // this happens on foreground push notifications
                     return;
                   }
-                  disableCameraIfNeeded();
+                  // check if keep call alive is configured
+                  // if not, then disable the camera as we are not able to keep the call alive in the background
+                  NativeModules.StreamVideoReactNative.isCallAliveConfigured().then(
+                    (isCallAliveConfigured: boolean) => {
+                      if (!isCallAliveConfigured) {
+                        disableCameraIfNeeded();
+                      }
+                    },
+                  );
                 }
               },
             );
