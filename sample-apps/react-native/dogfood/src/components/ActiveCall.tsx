@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CallContent,
-  callManager,
   NoiseCancellationProvider,
   useCall,
   useIsInPiPMode,
@@ -66,13 +65,6 @@ export const ActiveCall = ({
       });
     });
   }, [call]);
-
-  useEffect(() => {
-    callManager.start();
-    return () => {
-      callManager.stop();
-    };
-  }, []);
 
   useModeration({ duration: 10000 });
 
