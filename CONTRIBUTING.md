@@ -70,14 +70,56 @@ Alternatively you can use the following script `cd stream-video-js/packages/clie
 - Many sample applications are deployed to a preview environment, you can check your changes there as well, check the relevant action's output for links (some applications are internal, and only available to Stream developers)
 - (internal) documentation is deployed to the [staging docs site](https://staging.getstream.io/video/docs/), you can check your changes there as well
 
+## Making Changes
+
+When you make changes to published packages:
+
+1. Create a feature branch
+2. Make your code changes
+3. **Create a changeset:** Run `yarn changeset` and follow the interactive prompts
+4. Commit both your code and the changeset file (`.changeset/*.md`)
+5. Open a PR
+
+### Creating Changesets
+
+We use [Changesets](https://github.com/changesets/changesets) for version management. When you modify any published package (`@stream-io/video-*`), you must create a changeset:
+
+```bash
+yarn changeset
+```
+
+This will:
+
+- Ask which packages changed
+- Ask what type of version bump (major/minor/patch)
+- Ask for a summary of changes
+
+**Version bump guidelines:**
+
+- **Major:** Breaking changes (API changes, removed features)
+- **Minor:** New features, backwards compatible
+- **Patch:** Bug fixes, no new features
+
+See [.changeset/README.md](./.changeset/README.md) for detailed examples and scenarios.
+
 ## Release flow (internal)
 
-Commits to `main` will trigger the following CI steps:
+### For Contributors
 
-- Version and release all changed packages
-  - The new version is calculated for each package automatically based on [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/)
-  - The release configuration for each public package can be found in the `packages/<package name>/project.json` file
-  - For more information checkout the documentation of the [release tool](https://github.com/jscutlery/semver) we are using
-  - [Known issue about the release process](https://getstream.slack.com/archives/C04ATV49DU3/p1687161389232829)
-- Documentation is deployed to the [production site](https://getstream.io/video/docs/). An exception is the Node.js documentation, which needs to be deployed separately ([see Client section](#client) for more details).
-- All relevant sample apps are deployed
+All PRs that change published packages **must include a changeset**. CI will fail if a changeset is missing.
+
+### For Maintainers
+
+**Stable releases:** The **Release** workflow runs automatically on every push to `main` and creates/updates a "Version Packages" PR. It automatically exits pre-release mode if needed. Review and merge the PR to publish.
+
+**Pre-releases:** From a non-main branch, manually trigger the **Release** workflow, select `prerelease` type and choose tag: `rc` (default), `beta`, or `alpha`. First run publishes `rc.0`, subsequent runs publish `rc.1`, `rc.2`, etc. Note: Pre-releases are restricted to non-main branches only.
+
+See [.changeset/README.md](./.changeset/README.md) for detailed workflow documentation.
+
+### After Release
+
+When packages are published:
+
+- Documentation is deployed to the [production site](https://getstream.io/video/docs/)
+- Node.js documentation needs to be deployed separately ([see Client section](#client))
+- Relevant sample apps are automatically deployed
