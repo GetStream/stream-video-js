@@ -3,10 +3,10 @@ package io.getstream.rn.callingx.notifications
 import android.Manifest
 import android.content.Context
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.PermissionChecker
+import io.getstream.rn.callingx.debugLog
 
 class NotificationChannelsManager(
         private val context: Context,
@@ -43,7 +43,7 @@ class NotificationChannelsManager(
                       ongoingChannel,
               ),
       )
-      Log.d(TAG, "createNotificationChannels: Notification channels registered")
+      debugLog(TAG, "createNotificationChannels: Notification channels registered")
     }
   }
 

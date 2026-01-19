@@ -1,10 +1,10 @@
 package io.getstream.rn.callingx.notifications
 
 import android.content.Context
-import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.edit
 import com.facebook.react.bridge.ReadableMap
+import io.getstream.rn.callingx.debugLog
 
 object NotificationsConfig {
   private const val TAG = "[Callingx] NotificationsConfig"
@@ -30,7 +30,7 @@ object NotificationsConfig {
   )
 
   fun saveNotificationsConfig(context: Context, rawConfig: ReadableMap): Channels {
-    Log.d(TAG, "saveNotificationsConfig: Saving notifications config: $rawConfig")
+    debugLog(TAG, "saveNotificationsConfig: Saving notifications config: $rawConfig")
     val config = extractNotificationsConfig(rawConfig)
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     prefs.edit {
@@ -50,7 +50,7 @@ object NotificationsConfig {
 
   fun loadNotificationsConfig(context: Context): Channels {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    Log.d(
+    debugLog(
       TAG,
       "loadNotificationsConfig: Loading notifications config ${
         prefs.getString(

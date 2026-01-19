@@ -1,6 +1,5 @@
 package io.getstream.rn.callingx.model
 
-import android.os.ParcelUuid
 import android.os.Bundle
 import android.telecom.DisconnectCause
 import androidx.core.telecom.CallAttributesCompat

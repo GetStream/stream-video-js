@@ -3,7 +3,6 @@ package io.getstream.rn.callingx
 import android.content.Context
 import android.media.RingtoneManager
 import android.net.Uri
-import android.util.Log
 import androidx.core.net.toUri
 
 
@@ -34,7 +33,7 @@ object ResourceUtils {
   }
 
   fun getSoundUri(context: Context, sound: String?): Uri? {
-    Log.d(TAG, "getSoundUri: Getting sound URI for: $sound")
+    debugLog(TAG, "getSoundUri: Getting sound URI for: $sound")
     return when {
       sound == null -> null
       sound.contains("://") -> sound.toUri()

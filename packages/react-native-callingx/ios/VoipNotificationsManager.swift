@@ -36,10 +36,6 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     @objc public override init() {
         super.init()
 
-        #if DEBUG
-        print("[VoipNotificationsManager][init]")
-        #endif
-
         canSendEvents = false
         delayedEvents = []
 
@@ -49,10 +45,6 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     }
 
      deinit {
-        #if DEBUG
-        print("[VoipNotificationsManager][dealloc]")
-        #endif
-
         NotificationCenter.default.removeObserver(self)
         
         canSendEvents = false

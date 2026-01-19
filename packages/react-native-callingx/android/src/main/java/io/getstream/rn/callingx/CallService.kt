@@ -2,6 +2,7 @@ package io.getstream.rn.callingx
 
 import android.app.Service
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
@@ -73,7 +74,7 @@ class CallService : Service(), CallRepository.Listener {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "[service] onCreate: TelecomCallService created")
+        debugLog(TAG, "[service] onCreate: TelecomCallService created")
 
         notificationManager = CallNotificationManager(applicationContext)
         headlessJSManager = HeadlessTaskManager(applicationContext)
@@ -85,7 +86,7 @@ class CallService : Service(), CallRepository.Listener {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d(TAG, "[service] onDestroy: TelecomCallService destroyed")
+        debugLog(TAG, "[service] onDestroy: TelecomCallService destroyed")
 
         notificationManager.cancelNotifications()
         notificationManager.stopRingtone()
@@ -102,11 +103,11 @@ class CallService : Service(), CallRepository.Listener {
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-        Log.d(TAG, "[service] onTaskRemoved: Task removed")
+        debugLog(TAG, "[service] onTaskRemoved: Task removed")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "[service] onStartCommand: Received intent with action: ${intent?.action}")
+        debugLog(TAG, "[service] onStartCommand: Received intent with action: ${intent?.action}")
 
         if (intent == null || intent.action == null) {
             Log.w(TAG, "[service] onStartCommand: Intent is null, returning START_NOT_STICKY")
@@ -122,7 +123,7 @@ class CallService : Service(), CallRepository.Listener {
             }
             ACTION_START_BACKGROUND_TASK -> {
                 if (!isInForeground) {
-                    Log.d(TAG, "[service] onStartCommand: Starting foreground for background task")
+                    debugLog(TAG, "[service] onStartCommand: Starting foreground for background task")
                     // for now bg task is intended to be used after a call registered and
                     // notification is shown, so we don't need to show a separate notification for
                     // bg task
@@ -151,15 +152,15 @@ class CallService : Service(), CallRepository.Listener {
     override fun onBind(intent: Intent): IBinder? = binder
 
     override fun onUnbind(intent: Intent): Boolean {
-        Log.d(TAG, "[service] onUnbind: Service unbound")
+        debugLog(TAG, "[service] onUnbind: Service unbound")
         return super.onUnbind(intent)
     }
 
     override fun onCallStateChanged(call: Call) {
-        Log.d(TAG, "[service] onCallStateChanged: Call state changed: ${call::class.simpleName}")
+        debugLog(TAG, "[service] onCallStateChanged: Call state changed: ${call::class.simpleName}")
         when (call) {
             is Call.Registered -> {
-                Log.d(
+                debugLog(
                         TAG,
                         "[service] updateServiceState: Call registered - Active: ${call.isActive}, OnHold: ${call.isOnHold}, Muted: ${call.isMuted}"
                 )
@@ -172,7 +173,7 @@ class CallService : Service(), CallRepository.Listener {
                 if (isInForeground) {
                     notificationManager.updateCallNotification(call)
                 } else {
-                    Log.d(
+                    debugLog(
                             TAG,
                             "[service] updateServiceState: Fallback starting foreground for call: ${call.id}"
                     )
@@ -271,7 +272,7 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     public fun processAction(callId: String, action: CallAction) {
-        Log.d(TAG, "[service] processAction: Processing action: ${action::class.simpleName}")
+        debugLog(TAG, "[service] processAction: Processing action: ${action::class.simpleName}")
         val currentCall = callRepository.currentCall.value
         if (currentCall is Call.Registered && currentCall.id == callId) {
             currentCall.processAction(action)
@@ -295,7 +296,7 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     private fun registerCall(intent: Intent, incoming: Boolean) {
-        Log.d(TAG, "[service] registerCall: ${if (incoming) "in" else "out"} call")
+        debugLog(TAG, "[service] registerCall: ${if (incoming) "in" else "out"} call")
 
         // If we have an ongoing call ignore command
         if (callRepository.currentCall.value is Call.Registered) {
@@ -308,7 +309,7 @@ class CallService : Service(), CallRepository.Listener {
 
         //it is better to invoke startForeground method synchronously inside onStartCommand method
         if (!isInForeground) {
-            Log.d(
+            debugLog(
                             TAG,
                             "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
                     )

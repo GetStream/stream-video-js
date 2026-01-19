@@ -1,6 +1,7 @@
 package io.getstream.rn.callingx
 
 import android.telecom.DisconnectCause
+import android.util.Log
 
 fun getDisconnectCauseString(cause: DisconnectCause): String {
   return when (cause.code) {
@@ -12,5 +13,11 @@ fun getDisconnectCauseString(cause: DisconnectCause): String {
     DisconnectCause.MISSED -> "missed"
     DisconnectCause.ERROR -> "error"
     else -> cause.toString()
+  }
+}
+
+fun debugLog(tag: String, message: String) {
+  if (BuildConfig.DEBUG) {
+    Log.d(tag, message)
   }
 }

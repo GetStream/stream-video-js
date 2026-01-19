@@ -78,7 +78,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
 
                 override fun onHostDestroy() {
                     // App destroyed - force unbind
-                    Log.d(TAG, "[module] onHostDestroy: App destroyed")
+                    debugLog(TAG, "[module] onHostDestroy: App destroyed")
                     unbindServiceSafely()
                 }
             }
@@ -104,12 +104,12 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
 
         tryToBindIfNeeded()
 
-        Log.d(TAG, "[module] initialize: Initializing module")
+        debugLog(TAG, "[module] initialize: Initializing module")
     }
 
     override fun invalidate() {
         super.invalidate()
-        Log.d(TAG, "[module] invalidate: Invalidating module")
+        debugLog(TAG, "[module] invalidate: Invalidating module")
 
         unbindServiceSafely()
 
@@ -123,7 +123,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     override fun setupAndroid(options: ReadableMap) {
-        Log.d(TAG, "[module] setupAndroid: Setting up Android: $options")
+        debugLog(TAG, "[module] setupAndroid: Setting up Android: $options")
         val notificationsConfig =
                 NotificationsConfig.saveNotificationsConfig(reactApplicationContext, options)
         notificationChannelsManager.setNotificationsConfig(notificationsConfig)
@@ -153,14 +153,14 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         // NOTE: writabel native array can be consumed only once, think of getting rid from clear
         // event and clear eat immidiate after getting initial events
         val events = delayedEvents
-        Log.d(TAG, "[module] getInitialEvents: Getting initial events: $events")
+        debugLog(TAG, "[module] getInitialEvents: Getting initial events: $events")
         delayedEvents = WritableNativeArray()
         canSendEvents = true
         return events
     }
 
     override fun setCurrentCallActive(callId: String, promise: Promise) {
-        Log.d(TAG, "[module] activateCall: Activating call: $callId")
+        debugLog(TAG, "[module] activateCall: Activating call: $callId")
         executeServiceAction(callId, CallAction.Activate, promise)
     }
 
@@ -172,7 +172,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             displayOptions: ReadableMap?,
             promise: Promise
     ) {
-        Log.d(
+        debugLog(
                 TAG,
                 "[module] displayIncomingCall: Displaying incoming call: $callId, $phoneNumber, $callerName, $hasVideo"
         )
@@ -194,7 +194,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     override fun answerIncomingCall(callId: String, promise: Promise) {
-        Log.d(TAG, "[module] answerIncomingCall: Answering call: $callId")
+        debugLog(TAG, "[module] answerIncomingCall: Answering call: $callId")
         // TODO: get the call type from the call attributes
         val isAudioCall = true // TODO: get the call type from the call attributes
         // registeredCall.callAttributes.callType ==
@@ -211,7 +211,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             displayOptions: ReadableMap?,
             promise: Promise
     ) {
-        Log.d(
+        debugLog(
                 TAG,
                 "[module] startCall: Starting outgoing call: $callId, $phoneNumber, $callerName, $hasVideo, $displayOptions"
         )
@@ -239,7 +239,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             displayOptions: ReadableMap?,
             promise: Promise
     ) {
-        Log.d(TAG, "[module] updateDisplay: Updating display: $callId, $phoneNumber, $callerName")
+        debugLog(TAG, "[module] updateDisplay: Updating display: $callId, $phoneNumber, $callerName")
         if (!notificationChannelsManager.getNotificationStatus().canPost) {
             promise.reject("ERROR", "Notifications are not granted")
             return
@@ -258,37 +258,37 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     override fun endCallWithReason(callId: String, reason: Double, promise: Promise) {
-        Log.d(TAG, "[module] endCallWithReason: Ending call: $callId, $reason")
+        debugLog(TAG, "[module] endCallWithReason: Ending call: $callId, $reason")
         val action = CallAction.Disconnect(DisconnectCause(reason.toInt()))
         executeServiceAction(callId, action, promise)
     }
 
     override fun endCall(callId: String, promise: Promise) {
-        Log.d(TAG, "[module] endCall: Ending call: $callId")
+        debugLog(TAG, "[module] endCall: Ending call: $callId")
         val action = CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL))
         executeServiceAction(callId, action, promise)
     }
 
     override fun isCallRegistered(callId: String): Boolean {
         val isCallRegistered = callService?.isCallRegistered(callId) ?: false
-        Log.d(TAG, "[module] isCallRegistered: Is call registered: $isCallRegistered")
+        debugLog(TAG, "[module] isCallRegistered: Is call registered: $isCallRegistered")
         return isCallRegistered
     }
 
     override fun hasRegisteredCall(): Boolean {
         val hasRegisteredCall = callService?.hasRegisteredCall() ?: false
-        Log.d(TAG, "[module] hasRegisteredCall: Has registered call: $hasRegisteredCall")
+        debugLog(TAG, "[module] hasRegisteredCall: Has registered call: $hasRegisteredCall")
         return hasRegisteredCall
     }
 
     override fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {
-        Log.d(TAG, "[module] setMutedCall: Setting muted call: $callId, $isMuted")
+        debugLog(TAG, "[module] setMutedCall: Setting muted call: $callId, $isMuted")
         val action = CallAction.ToggleMute(isMuted)
         executeServiceAction(callId, action, promise)
     }
 
     override fun setOnHoldCall(callId: String, isOnHold: Boolean, promise: Promise) {
-        Log.d(TAG, "[module] setOnHoldCall: Setting on hold call: $callId, $isOnHold")
+        debugLog(TAG, "[module] setOnHoldCall: Setting on hold call: $callId, $isOnHold")
         val action = if (isOnHold) CallAction.Hold else CallAction.Activate
         executeServiceAction(callId, action, promise)
     }
@@ -319,7 +319,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     override fun registerBackgroundTaskAvailable() {
-        Log.d(TAG, "[module] registerBackgroundTaskAvailable: Headless task registered")
+        debugLog(TAG, "[module] registerBackgroundTaskAvailable: Headless task registered")
         isHeadlessTaskRegistered = true
     }
 
@@ -328,13 +328,13 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 bindingState == BindingState.BOUND ||
                         bindingState == BindingState.BINDING ||
                         callService?.hasRegisteredCall() == true
-        Log.d(TAG, "[module] isServiceStarted: Service started: $isStarted")
+        debugLog(TAG, "[module] isServiceStarted: Service started: $isStarted")
         promise.resolve(isStarted)
     }
 
     override fun log(message: String, level: String) {
         when (level) {
-            "debug" -> Log.d(TAG, "[module] log: $message")
+            "debug" -> debugLog(TAG, "[module] log: $message")
             "info" -> Log.i(TAG, "[module] log: $message")
             "warn" -> Log.w(TAG, "[module] log: $message")
             "error" -> Log.e(TAG, "[module] log: $message")
@@ -363,7 +363,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
 
     private fun startBackgroundTaskAutomatically(taskName: String, timeout: Long) {
         if (!isHeadlessTaskRegistered) {
-            Log.d(
+            debugLog(
                     TAG,
                     "[module] startBackgroundTaskAutomatically: Headless task registered, starting automatically"
             )
@@ -381,7 +381,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     private fun executeServiceAction(callId: String, action: CallAction, promise: Promise) {
-        Log.d(TAG, "[module] executeServiceAction: Executing service action: $action")
+        debugLog(TAG, "[module] executeServiceAction: Executing service action: $action")
         when (bindingState) {
             BindingState.BOUND -> {
                 if (callService != null) {
@@ -392,7 +392,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 }
             }
             BindingState.BINDING -> {
-                Log.d(TAG, "executeServiceAction: Service binding, queueing action")
+                debugLog(TAG, "executeServiceAction: Service binding, queueing action")
                 promise.reject(
                         "SERVICE_BINDING",
                         "Service is connecting, please try again in a moment"
@@ -433,7 +433,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     }
             emitOnNewEvent(value)
         } else {
-            Log.d(TAG, "[module] sendJSEvent: Queueing event: $eventName, $params")
+            debugLog(TAG, "[module] sendJSEvent: Queueing event: $eventName, $params")
             Arguments.createMap()
                     .apply {
                         putString("eventName", eventName)
@@ -458,15 +458,15 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     private fun bindToServiceIfNeeded() {
         when (bindingState) {
             BindingState.BOUND -> {
-                Log.d(TAG, "[module] bindToServiceIfNeeded: Already bound")
+                debugLog(TAG, "[module] bindToServiceIfNeeded: Already bound")
                 return
             }
             BindingState.BINDING -> {
-                Log.d(TAG, "[module] bindToServiceIfNeeded: Already binding")
+                debugLog(TAG, "[module] bindToServiceIfNeeded: Already binding")
                 return
             }
             BindingState.UNBOUND -> {
-                Log.d(TAG, "[module] bindToServiceIfNeeded: Attempting to bind")
+                debugLog(TAG, "[module] bindToServiceIfNeeded: Attempting to bind")
                 val intent = Intent(reactApplicationContext, CallService::class.java)
                 try {
                     val success =
@@ -477,7 +477,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                             )
                     if (success) {
                         bindingState = BindingState.BINDING
-                        Log.d(TAG, "[module] bindToServiceIfNeeded: Bind request successful")
+                        debugLog(TAG, "[module] bindToServiceIfNeeded: Bind request successful")
                     } else {
                         Log.e(TAG, "[module] bindToServiceIfNeeded: Bind request failed")
                         bindingState = BindingState.UNBOUND
@@ -491,11 +491,11 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     private fun unbindServiceSafely() {
-        Log.d(TAG, "[module] unbindServiceSafely: Unbinding service")
+        debugLog(TAG, "[module] unbindServiceSafely: Unbinding service")
         if (bindingState == BindingState.BOUND || bindingState == BindingState.BINDING) {
             try {
                 reactApplicationContext.unbindService(serviceConnection)
-                Log.d(TAG, "[module] unbindServiceSafely: Successfully unbound")
+                debugLog(TAG, "[module] unbindServiceSafely: Successfully unbound")
             } catch (e: IllegalArgumentException) {
                 Log.w(
                         TAG,
@@ -521,9 +521,9 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     )
             if (success) {
                 bindingState = BindingState.BINDING
-                Log.d(TAG, "[module] checkForExistingService: Service exists, binding")
+                debugLog(TAG, "[module] checkForExistingService: Service exists, binding")
             } else {
-                Log.d(TAG, "[module] checkForExistingService: No existing service")
+                debugLog(TAG, "[module] checkForExistingService: No existing service")
             }
         } catch (e: Exception) {
             Log.e(TAG, "[module] checkForExistingService: Error checking for service", e)
@@ -539,13 +539,13 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 return
             }
 
-            Log.d(
+            debugLog(
                     TAG,
                     "[module] onReceive: Received intent: $action callId: $callId callService: ${callService != null}"
             )
 
             if (action == SERVICE_READY_ACTION) {
-                Log.d(TAG, "[module] onReceive: Service is ready, initiating binding, isHeadlessTaskRegistered: $isHeadlessTaskRegistered")
+                debugLog(TAG, "[module] onReceive: Service is ready, initiating binding, isHeadlessTaskRegistered: $isHeadlessTaskRegistered")
                 bindToServiceIfNeeded()
                 startBackgroundTaskAutomatically(HEADLESS_TASK_NAME, 0L)
                 return
@@ -605,14 +605,14 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     private val serviceConnection =
             object : ServiceConnection {
                 override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                    Log.d(TAG, "[module] onServiceConnected: Service connected")
+                    debugLog(TAG, "[module] onServiceConnected: Service connected")
                     val binder = service as? CallService.CallServiceBinder
                     callService = binder?.getService()
                     bindingState = BindingState.BOUND
                 }
 
                 override fun onServiceDisconnected(name: ComponentName?) {
-                    Log.d(TAG, "onServiceDisconnected: Service disconnected unexpectedly")
+                    debugLog(TAG, "onServiceDisconnected: Service disconnected unexpectedly")
                     callService = null
                     bindingState = BindingState.UNBOUND
                 }

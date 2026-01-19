@@ -11,24 +11,18 @@ import androidx.core.telecom.CallAttributesCompat
 import androidx.core.telecom.CallControlResult
 import androidx.core.telecom.CallControlScope
 import androidx.core.telecom.CallsManager
+import io.getstream.rn.callingx.debugLog
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
@@ -59,7 +53,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 CallsManager(context.applicationContext).apply {
                     registerAppWithTelecom(capabilities)
                 }
-        Log.d(TAG, "[repository] init: CallsManager created and registered")
+        debugLog(TAG, "[repository] init: CallsManager created and registered")
     }
 
     override fun getTag(): String = TAG
@@ -97,7 +91,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             isVideo: Boolean,
             displayOptions: Bundle?,
     ) {
-        Log.d(
+        debugLog(
                 TAG,
                 "[repository] registerCall: Starting registration - Name: $displayName, Address: $address, Incoming: $isIncoming"
         )
@@ -111,7 +105,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 )
                 return@withLock
             }
-            Log.d(
+            debugLog(
                     TAG,
                     "[repository] registerCall: No existing call found, proceeding with registration"
             )
@@ -128,7 +122,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                         onIsCallActive,
                         onIsCallInactive
                 ) {
-                    Log.d(
+                    debugLog(
                             TAG,
                             "[repository] registerCall: Inside call scope, setting up call handlers"
                     )
@@ -138,7 +132,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
                     // Update the state to registered with default values while waiting for Telecom
                     // updates
-                    Log.d(
+                    debugLog(
                             TAG,
                             "[repository] registerCall: Creating Registered call state with ID: $callId"
                     )
@@ -155,7 +149,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                                     availableCallEndpoints = emptyList(),
                                     actionSource = actionSource,
                             )
-                    Log.d(TAG, "[repository] registerCall: Call state updated to Registered")
+                    debugLog(TAG, "[repository] registerCall: Call state updated to Registered")
 
                     launch {
                         currentCallEndpoint.collect {
@@ -169,7 +163,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     }
                     launch { isMuted.collect { updateCurrentCall { copy(isMuted = it) } } }
                 }
-                Log.d(
+                debugLog(
                         TAG,
                         "[repository] registerCall: Call successfully registered with Telecom SDK"
                 )
@@ -177,7 +171,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 Log.e(TAG, "[repository] registerCall: Error registering call", e)
                 throw e
             } finally {
-                Log.d(TAG, "[repository] registerCall: Call scope ended, setting state to None")
+                debugLog(TAG, "[repository] registerCall: Call scope ended, setting state to None")
                 _currentCall.value = Call.None
             }
         }
@@ -190,7 +184,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             isVideo: Boolean,
             displayOptions: Bundle?,
     ) {
-        Log.d(
+        debugLog(
                 TAG,
                 "[repository] updateCall: Starting update - Name: $displayName, Address: $address, IsVideo: $isVideo"
         )
@@ -211,7 +205,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                         }
                         previous is Call.Registered && current is Call.Registered -> {
                             if (previous.isMuted != current.isMuted) {
-                                Log.d(
+                                debugLog(
                                         TAG,
                                         "[repository] observeCallState: Mute changed: ${current.isMuted}"
                                 )
@@ -232,7 +226,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     /** Collect the action source to handle client actions inside the call scope */
     private suspend fun CallControlScope.processCallActions(actionSource: Flow<CallAction>) {
         actionSource.collect { action ->
-            Log.d(TAG, "[repository] processCallActions: action: ${action::class.simpleName}")
+            debugLog(TAG, "[repository] processCallActions: action: ${action::class.simpleName}")
             when (action) {
                 is CallAction.Answer -> {
                     doAnswer(action.isAudioCall)
@@ -244,7 +238,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     doSwitchEndpoint(action)
                 }
                 is CallAction.TransferCall -> {
-                    Log.d(
+                    debugLog(
                             TAG,
                             "[repository] processCallActions: Transfer to endpoint: ${action.endpointId}"
                     )
@@ -295,7 +289,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 is CallAction.ToggleMute -> {
                     // We cannot programmatically mute the telecom stack. Instead we just update
                     // the state of the call and this will start/stop audio capturing.
-                    Log.d(TAG, "[repository] processCallActions: Toggling mute: ${action.isMute}")
+                    debugLog(TAG, "[repository] processCallActions: Toggling mute: ${action.isMute}")
                     updateCurrentCall {
                         val newMutedState = action.isMute
                         copy(isMuted = newMutedState)
@@ -303,12 +297,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 }
             }
         }
-        Log.d(TAG, "[repository] processCallActions: Action collection ended")
+        debugLog(TAG, "[repository] processCallActions: Action collection ended")
     }
 
 
     private suspend fun CallControlScope.doSwitchEndpoint(action: CallAction.SwitchAudioEndpoint) {
-        Log.d(TAG, "[repository] doSwitchEndpoint: Switching to endpoint: ${action.endpointId}")
+        debugLog(TAG, "[repository] doSwitchEndpoint: Switching to endpoint: ${action.endpointId}")
         if (_currentCall.value !is Call.Registered) {
             Log.w(TAG, "[repository] doSwitchEndpoint: Call not registered, ignoring")
             return
@@ -319,12 +313,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         val newEndpoint = endpoints.firstOrNull { it.identifier == action.endpointId }
 
         if (newEndpoint != null) {
-            Log.d(
+            debugLog(
                     TAG,
                     "[repository] doSwitchEndpoint: Found endpoint: ${newEndpoint.name}, requesting change"
             )
             requestEndpointChange(newEndpoint).also {
-                Log.d(TAG, "[repository] doSwitchEndpoint: Endpoint change result: $it")
+                debugLog(TAG, "[repository] doSwitchEndpoint: Endpoint change result: $it")
             }
         } else {
             Log.w(TAG, "[repository] doSwitchEndpoint: Endpoint not found in available endpoints")
@@ -333,9 +327,9 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
     private suspend fun CallControlScope.doDisconnect(action: CallAction.Disconnect) {
         isSelfDisconnected = true
-        Log.d(TAG, "[repository] doDisconnect: Disconnecting call with cause: ${action.cause}")
+        debugLog(TAG, "[repository] doDisconnect: Disconnecting call with cause: ${action.cause}")
         disconnect(action.cause)
-        Log.d(TAG, "[repository] doDisconnect: Disconnect called, triggering onIsCallDisconnected")
+        debugLog(TAG, "[repository] doDisconnect: Disconnect called, triggering onIsCallDisconnected")
         onIsCallDisconnected(action.cause)
     }
 
@@ -371,7 +365,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
      * if we can answer a call Example you may need to wait for another call to hold.
      */
     val onIsCallAnswered: suspend (type: Int) -> Unit = {
-        Log.d(
+        debugLog(
                 TAG,
                 "[repository] onIsCallAnswered: Call answered, type: $it, isSelfAnswered: $isSelfAnswered"
         )
@@ -385,12 +379,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             _listener?.onIsCallAnswered(call.id, source)
         }
         isSelfAnswered = false
-        Log.d(TAG, "[repository] onIsCallAnswered: Call state updated to active")
+        debugLog(TAG, "[repository] onIsCallAnswered: Call state updated to active")
     }
 
     /** Can the call perform a disconnect */
     val onIsCallDisconnected: suspend (cause: DisconnectCause) -> Unit = {
-        Log.d(
+        debugLog(
                 TAG,
                 "[repository] onIsCallDisconnected: Call disconnected, cause: ${it.reason}, description: ${it.description}"
         )
@@ -405,7 +399,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         updateCurrentCall { Call.Unregistered(id, callAttributes, it) }
         _listener?.onIsCallDisconnected(callId, it, source)
         isSelfDisconnected = false
-        Log.d(TAG, "[repository] onIsCallDisconnected: Call state updated to Unregistered")
+        debugLog(TAG, "[repository] onIsCallDisconnected: Call state updated to Unregistered")
     }
 
     /**
@@ -413,7 +407,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
      * activating the call
      */
     val onIsCallActive: suspend () -> Unit = {
-        Log.d(TAG, "[repository] onIsCallActive: Call became active")
+        debugLog(TAG, "[repository] onIsCallActive: Call became active")
         updateCurrentCall {
             copy(
                     errorCode = null,
@@ -426,19 +420,19 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         if (call is Call.Registered) {
             _listener?.onIsCallActive(call.id)
         }
-        Log.d(TAG, "[repository] onIsCallActive: Call state updated")
+        debugLog(TAG, "[repository] onIsCallActive: Call state updated")
     }
 
     /** Check to see if we can make the call inactivate */
     val onIsCallInactive: suspend () -> Unit = {
-        Log.d(TAG, "[repository] onIsCallInactive: Call became inactive (on hold)")
+        debugLog(TAG, "[repository] onIsCallInactive: Call became inactive (on hold)")
         updateCurrentCall { copy(errorCode = null, isOnHold = true) }
 
         val call = _currentCall.value
         if (call is Call.Registered) {
             _listener?.onIsCallInactive(call.id)
         }
-        Log.d(TAG, "[repository] onIsCallInactive: Call state updated to on hold")
+        debugLog(TAG, "[repository] onIsCallInactive: Call state updated to on hold")
     }
 
 }

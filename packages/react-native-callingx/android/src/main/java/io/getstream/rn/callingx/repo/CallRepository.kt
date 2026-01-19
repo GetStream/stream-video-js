@@ -10,6 +10,7 @@ import androidx.core.telecom.CallAttributesCompat
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.CallService
+import io.getstream.rn.callingx.debugLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -96,7 +97,7 @@ abstract class CallRepository(protected val context: Context) {
    */
   protected fun updateCurrentCall(transform: Call.Registered.() -> Call) {
     val currentState = _currentCall.value
-    Log.d(
+    debugLog(
       getTag(),
       "[repository] updateCurrentCall: Current call state: ${currentState::class.simpleName}"
     )
@@ -104,7 +105,7 @@ abstract class CallRepository(protected val context: Context) {
     _currentCall.update { call ->
       if (call is Call.Registered) {
         val updated = call.transform()
-        Log.d(
+        debugLog(
           getTag(),
           "[repository] updateCurrentCall: Call state updated to: ${updated::class.simpleName}"
         )

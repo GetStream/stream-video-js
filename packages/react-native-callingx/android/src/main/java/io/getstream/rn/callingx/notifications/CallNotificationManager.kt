@@ -15,6 +15,7 @@ import io.getstream.rn.callingx.CallService
 import io.getstream.rn.callingx.CallingxModule
 import io.getstream.rn.callingx.R
 import io.getstream.rn.callingx.ResourceUtils
+import io.getstream.rn.callingx.debugLog
 import io.getstream.rn.callingx.getDisconnectCauseString
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.repo.CallRepository
@@ -44,7 +45,7 @@ class CallNotificationManager(
     private var hasBecameActive = false
 
     fun createNotification(call: Call.Registered): Notification {
-        Log.d(
+        debugLog(
                 TAG,
                 "[notifications] createNotification: Creating notification for call ID: ${call.id}"
         )
@@ -57,7 +58,7 @@ class CallNotificationManager(
                 )
         val callStyle = createCallStyle(call)
         val channelId = getChannelId(call)
-        Log.d(TAG, "[notifications] createNotification: Channel ID: $channelId")
+        debugLog(TAG, "[notifications] createNotification: Channel ID: $channelId")
 
         val builder =
                 NotificationCompat.Builder(context, channelId)
@@ -70,7 +71,7 @@ class CallNotificationManager(
                         .setOngoing(true)
 
         if (!hasBecameActive && call.isActive) {
-            Log.d(TAG, "[notifications] createNotification: Setting when to current time")
+            debugLog(TAG, "[notifications] createNotification: Setting when to current time")
             builder.setWhen(System.currentTimeMillis())
             builder.setUsesChronometer(true)
             builder.setShowWhen(true)
@@ -89,7 +90,7 @@ class CallNotificationManager(
     fun updateCallNotification(call: Call) {
         when (call) {
             Call.None, is Call.Unregistered -> {
-                Log.d(
+                debugLog(
                         TAG,
                         "[notifications] updateCallNotification: Dismissing notification (call is None or Unregistered)"
                 )
@@ -98,7 +99,7 @@ class CallNotificationManager(
             is Call.Registered -> {
                 val notification = createNotification(call)
                 notificationManager.notify(NOTIFICATION_ID, notification)
-                Log.d(
+                debugLog(
                         TAG,
                         "[notifications] updateCallNotification: Notification posted successfully"
                 )
@@ -113,7 +114,7 @@ class CallNotificationManager(
 
     fun startRingtone() {
         if (ringtone?.isPlaying == true) {
-            Log.d(TAG, "[notifications] startRingtone: Ringtone already playing")
+            debugLog(TAG, "[notifications] startRingtone: Ringtone already playing")
             return
         }
 
@@ -133,13 +134,13 @@ class CallNotificationManager(
         }
 
         ringtone?.play()
-        Log.d(TAG, "[notifications] startRingtone: Ringtone started")
+        debugLog(TAG, "[notifications] startRingtone: Ringtone started")
     }
 
     fun stopRingtone() {
         if (ringtone?.isPlaying == true) {
             ringtone?.stop()
-            Log.d(TAG, "[notifications] stopRingtone: Ringtone stopped")
+            debugLog(TAG, "[notifications] stopRingtone: Ringtone stopped")
         }
         ringtone = null
     }

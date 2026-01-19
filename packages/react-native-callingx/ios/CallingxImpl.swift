@@ -44,11 +44,7 @@ import AVFoundation
     // MARK: - Initialization
     @objc public override init() {
         super.init()
-        
-        #if DEBUG
-        print("[Callingx][init]")
-        #endif
-        
+
         isSetup = false
         delayedEvents = []
         canSendEvents = false
@@ -69,10 +65,6 @@ import AVFoundation
     }
     
     deinit {
-        #if DEBUG
-        print("[Callingx][dealloc]")
-        #endif
-        
         NotificationCenter.default.removeObserver(self)
         
         callKeepProvider?.setDelegate(nil, queue: nil)
@@ -87,12 +79,10 @@ import AVFoundation
     @objc public static func initializeIfNeeded() {
         if uuidStorage == nil {
             uuidStorage = UUIDStorage()
-            print("[Callingx] initUUIDStorage")
         }
         
         if sharedProvider == nil {
             sharedProvider = CXProvider(configuration: Settings.getProviderConfiguration())
-            print("[Callingx] initCallKitProvider")
         }
     }
     
@@ -110,12 +100,6 @@ import AVFoundation
         payload: [String: Any]?,
         completion: (() -> Void)?
     ) {
-        #if DEBUG
-        print("[Callingx][reportNewIncomingCall] callId = \(callId)")
-        print("[Callingx][reportNewIncomingCall] handle = \(handle)")
-        print("[Callingx][reportNewIncomingCall] localizedCallerName = \(localizedCallerName ?? "")")
-        #endif
-        
         initializeIfNeeded()
         
         guard let storage = uuidStorage else { return }
