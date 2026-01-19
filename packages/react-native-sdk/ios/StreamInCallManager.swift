@@ -86,6 +86,8 @@ class StreamInCallManager: RCTEventEmitter {
             let intendedOptions: AVAudioSession.CategoryOptions!
             
             let adm = getAudioDeviceModule()
+            let wasRecording = adm.isRecording
+            let wasPlaying = adm.isPlaying
             adm.reset()
 
             if (callAudioRole == .listener) {
@@ -126,6 +128,12 @@ class StreamInCallManager: RCTEventEmitter {
             }
             do {
                 try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
+                if (wasRecording) {
+                    try adm.setRecording(wasRecording)
+                }
+                if (wasPlaying) {
+                    try adm.setPlayout(wasPlaying)
+                }
             } catch {
                 log("Error setting audio session: \(error.localizedDescription)")
             }
@@ -156,6 +164,9 @@ class StreamInCallManager: RCTEventEmitter {
             do {
                 try session.setActive(true)
                 self.log("audio session activated")
+                let adm = getAudioDeviceModule()
+                try adm.setPlayout(true)
+                self.log("adm.setPlayout(true) done")
             } catch {
                 log("Error activating audio session: \(error.localizedDescription)")
             }
@@ -177,6 +188,8 @@ class StreamInCallManager: RCTEventEmitter {
             }
             do {
                 try session.setActive(false)
+                let adm = getAudioDeviceModule()
+                adm.reset()
             } catch {
                 log("Error deactivating audio session: \(error.localizedDescription)")
             }
