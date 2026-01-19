@@ -109,9 +109,11 @@ import {
   AudioTrackType,
   CallConstructor,
   CallLeaveOptions,
+  CallRecordingType,
   ClientPublishOptions,
   ClosedCaptionsSettings,
   JoinCallData,
+  StartCallRecordingFnType,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -2096,20 +2098,33 @@ export class Call {
   /**
    * Starts recording the call
    */
-  startRecording = async (request?: StartRecordingRequest) => {
+  startRecording: StartCallRecordingFnType = async (
+    dataOrType?: StartRecordingRequest | CallRecordingType,
+    type?: CallRecordingType,
+  ): Promise<StartRecordingResponse> => {
+    type = typeof dataOrType === 'string' ? dataOrType : type;
+    dataOrType = typeof dataOrType === 'string' ? undefined : dataOrType;
+
+    const endpoint = !type
+      ? `/start_recording`
+      : `/recordings/${encodeURIComponent(type)}/start`;
+
     return this.streamClient.post<
       StartRecordingResponse,
       StartRecordingRequest
-    >(`${this.streamClientBasePath}/start_recording`, request ? request : {});
+    >(`${this.streamClientBasePath}${endpoint}`, dataOrType);
   };
 
   /**
    * Stops recording the call
    */
-  stopRecording = async () => {
+  stopRecording = async (type?: CallRecordingType) => {
+    const endpoint = !type
+      ? `/stop_recording`
+      : `/recordings/${encodeURIComponent(type)}/stop`;
+
     return this.streamClient.post<StopRecordingResponse>(
-      `${this.streamClientBasePath}/stop_recording`,
-      {},
+      `${this.streamClientBasePath}${endpoint}`,
     );
   };
 
