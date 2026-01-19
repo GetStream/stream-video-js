@@ -60,16 +60,20 @@ RCT_EXPORT_MODULE();
     });
 }
 
-+(BOOL)rejectIncomingCallIfNeeded:(void (^_Nullable)(void)) completion {
++(BOOL)canRegisterCall {
     Class callingxClass = NSClassFromString(@"Callingx");
     if (!callingxClass) {
-        NSLog(@"[StreamVideoReactNative][rejectIncomingCallIfNeeded] Callingx not available");
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][canRegisterCall] Callingx not available");
+        #endif
         return YES;
     }
     
     SEL selector = @selector(canRegisterCall);
     if (![callingxClass respondsToSelector:selector]) {
-        NSLog(@"[StreamVideoReactNative][rejectIncomingCallIfNeeded] Callingx does not respond to canRegisterCall selector");
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][canRegisterCall] Callingx does not respond to canRegisterCall selector");
+        #endif
         return YES;
     }
     
@@ -82,16 +86,11 @@ RCT_EXPORT_MODULE();
     BOOL canRegister = NO;
     [invocation getReturnValue:&canRegister];
     
-    NSLog(@"[StreamVideoReactNative][rejectIncomingCallIfNeeded] canRegisterCall = %@", canRegister ? @"YES" : @"NO");
+    #if DEBUG
+    NSLog(@"[StreamVideoReactNative][canRegisterCall] canRegisterCall = %@", canRegister ? @"YES" : @"NO");
+    #endif
     
-    if (!canRegister) {
-        if (completion) {
-            completion();
-        }
-        return NO;
-    }
-    
-    return YES;
+    return canRegister;
 }
 
 +(void)voipRegistration {
@@ -102,13 +101,17 @@ RCT_EXPORT_MODULE();
     }
     
     if (!voipManagerClass) {
+        #if DEBUG
         NSLog(@"[StreamVideoReactNative][voipRegistration] VoipNotificationsManager not available");
+        #endif
         return;
     }
     
     SEL selector = @selector(voipRegistration);
     if (![voipManagerClass respondsToSelector:selector]) {
+        #if DEBUG
         NSLog(@"[StreamVideoReactNative][voipRegistration] VoipNotificationsManager does not respond to voipRegistration");
+        #endif
         return;
     }
     
@@ -123,13 +126,17 @@ RCT_EXPORT_MODULE();
     }
     
     if (!voipManagerClass) {
+        #if DEBUG
         NSLog(@"[StreamVideoReactNative][didUpdatePushCredentials] VoipNotificationsManager not available");
+        #endif
         return;
     }
     
     SEL selector = @selector(didUpdatePushCredentials:forType:);
     if (![voipManagerClass respondsToSelector:selector]) {
+        #if DEBUG
         NSLog(@"[StreamVideoReactNative][didUpdatePushCredentials] VoipNotificationsManager does not respond to didUpdatePushCredentials:forType:");
+        #endif
         return;
     }
     
@@ -139,7 +146,9 @@ RCT_EXPORT_MODULE();
 +(void)didReceiveIncomingPush:(PKPushPayload *)payload forType:(NSString *)type completionHandler: (void (^_Nullable)(void)) completion {
     NSDictionary *streamPayload = payload.dictionaryPayload[@"stream"];
     if (!streamPayload) {
+        #if DEBUG
         NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Stream payload not found");
+        #endif
         if (completion) {
             completion();
         }
@@ -149,7 +158,16 @@ RCT_EXPORT_MODULE();
     NSString *createdCallerName = streamPayload[@"created_by_display_name"];
     NSString *callCid = streamPayload[@"call_cid"];
     if (!createdCallerName || !callCid) {
+        #if DEBUG
         NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Missing required fields: created_by_display_name or call_cid");
+        #endif
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+    
+    if (![StreamVideoReactNative canRegisterCall]) {
         if (completion) {
             completion();
         }
@@ -167,11 +185,11 @@ RCT_EXPORT_MODULE();
         return;
     }
     
-    NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Callingx available");
-    
     SEL selector = @selector(reportNewIncomingCall:handle:handleType:hasVideo:localizedCallerName:supportsHolding:supportsDTMF:supportsGrouping:supportsUngrouping:fromPushKit:payload:withCompletionHandler:);
     if (![callingxClass respondsToSelector:selector]) {
+        #if DEBUG
         NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Callingx does not respond to selector");
+        #endif
         return;
     }
     
@@ -214,13 +232,17 @@ RCT_EXPORT_MODULE();
     }
     
     if (!voipManagerClass) {
+        #if DEBUG
         NSLog(@"[StreamVideoReactNative][didReceiveIncomingPushWithPayload] VoipNotificationsManager not available");
+        #endif
         return;
     }
     
     SEL selector = @selector(didReceiveIncomingPushWithPayload:forType:);
     if (![voipManagerClass respondsToSelector:selector]) {
+        #if DEBUG
         NSLog(@"[StreamVideoReactNative][didReceiveIncomingPushWithPayload] VoipNotificationsManager does not respond to didReceiveIncomingPushWithPayload:forType:");
+        #endif
         return;
     }
     

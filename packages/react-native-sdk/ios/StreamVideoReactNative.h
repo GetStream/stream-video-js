@@ -8,8 +8,6 @@
 
 + (void)setup DEPRECATED_MSG_ATTRIBUTE("No need to use setup() anymore");
 
-+ (BOOL)rejectIncomingCallIfNeeded:(void (^_Nullable)(void)) completion;
-
 + (BOOL)hasAnyActiveCall;
 
 + (void)voipRegistration;

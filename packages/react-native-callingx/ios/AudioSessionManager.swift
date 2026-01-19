@@ -16,12 +16,17 @@ import AVFoundation
         print("[Callingx][createAudioSessionIfNeeded] Activating audio session")
         #endif
 
-        var categoryOptions: AVAudioSession.CategoryOptions = [.allowBluetooth, .allowBluetoothA2DP]
-        var mode: AVAudioSession.Mode = .default
+        var categoryOptions: AVAudioSession.CategoryOptions
+        #if compiler(>=6.2) // For Xcode 26.0+
+            categoryOptions = [.allowBluetoothHFP, .defaultToSpeaker]
+        #else
+            categoryOptions = [.allowBluetooth, .defaultToSpeaker]
+        #endif
+        var mode: AVAudioSession.Mode = .videoChat
 
-      let settings = Settings.getSettings()
+        let settings = Settings.getSettings()
       
-      if let audioSessionSettings = settings["audioSession"] as? [String: Any] {
+        if let audioSessionSettings = settings["audioSession"] as? [String: Any] {
             if let options = audioSessionSettings["categoryOptions"] as? UInt {
                 categoryOptions = AVAudioSession.CategoryOptions(rawValue: options)
             }
