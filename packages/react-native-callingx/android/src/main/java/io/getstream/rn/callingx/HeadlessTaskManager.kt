@@ -54,7 +54,6 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
 
   protected fun startTask(taskConfig: HeadlessJsTaskConfig) {
     UiThreadUtil.assertOnUiThread()
-    // acquireWakeLockNow(this)
 
     val context = reactContext
     if (context == null) {
@@ -92,7 +91,6 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
       val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
       headlessJsTaskContext.removeTaskEventListener(this)
     }
-    // wakeLock?.release()
   }
 
   override fun onHeadlessJsTaskStart(taskId: Int) {

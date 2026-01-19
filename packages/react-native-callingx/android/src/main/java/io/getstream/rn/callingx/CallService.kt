@@ -313,7 +313,15 @@ class CallService : Service(), CallRepository.Listener {
                             "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
                     )
             val notification = notificationManager.createNotification(tempCall)
-            startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                    CallNotificationManager.NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
+                )
+            } else {
+                startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
+            }
             isInForeground = true
         }
 
