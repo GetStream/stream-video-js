@@ -52,14 +52,18 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
     const mainApplication = getMainApplicationOrThrow(androidManifest);
     if (props?.ringing || props?.androidKeepCallAlive) {
       ensureToolsAvailable(androidManifest);
-      /* Add the notifee foreground Service */
       let services = mainApplication.service ?? [];
-      // we filter out the existing notifee service (if any) so that we can override it
-      services = services.filter(
-        (service) =>
-          service.$['android:name'] !== 'app.notifee.core.ForegroundService',
-      );
-      services.push(getNotifeeService(!!props?.androidKeepCallAlive));
+
+      // Add Notifee foreground service ONLY for ringing push notifications.
+      if (props?.ringingPushNotifications) {
+        // we filter out the existing notifee service (if any) so that we can override it
+        services = services.filter(
+          (service) =>
+            service.$['android:name'] !== 'app.notifee.core.ForegroundService',
+        );
+        services.push(getNotifeeService(false));
+      }
+
       mainApplication.service = services;
     }
 

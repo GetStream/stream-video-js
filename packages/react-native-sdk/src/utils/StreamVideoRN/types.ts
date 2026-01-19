@@ -6,6 +6,16 @@ import {
 import type { AndroidChannel } from '@notifee/react-native';
 import type { CallingExpOptions } from '../push/libs/callingx';
 
+export type KeepAliveAndroidChannelConfig = {
+  id: string;
+  name: string;
+};
+
+export type KeepAliveAndroidNotificationTexts = {
+  title: string;
+  body: string;
+};
+
 export type NonRingingPushEvent =
   | 'call.live_started'
   | 'call.notification'
@@ -170,14 +180,11 @@ export type StreamVideoConfig = {
       /**
        * The notification channel to keep call alive in the background for Android using a foreground service.
        */
-      channel: AndroidChannel;
+      channel: KeepAliveAndroidChannelConfig;
       /**
        * The texts shown in the notification to keep call alive in the background
        */
-      notificationTexts: {
-        title: string;
-        body: string;
-      };
+      notificationTexts: KeepAliveAndroidNotificationTexts;
       /**
        * The task to run in the foreground service
        * The task must resolve a promise once complete
