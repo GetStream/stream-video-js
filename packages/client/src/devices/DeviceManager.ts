@@ -32,6 +32,20 @@ export abstract class DeviceManager<
 
   state: S;
 
+  /**
+   * When `true`, the `apply()` method will skip automatically enabling/disabling
+   * the device based on server defaults (`mic_default_on`, `camera_default_on`).
+   *
+   * This is useful when application code wants to handle device preferences
+   * (e.g., persisted user preferences) and prevent server defaults from
+   * overriding them.
+   *
+   * @default false
+   *
+   * @internal
+   */
+  deferServerDefaults = false;
+
   protected readonly call: Call;
   protected readonly trackType: TrackType;
   protected subscriptions: Function[] = [];

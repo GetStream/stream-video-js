@@ -2672,6 +2672,12 @@ export interface CallStatsLocation {
   country?: string;
   /**
    *
+   * @type {string}
+   * @memberof CallStatsLocation
+   */
+  country_iso_code?: string;
+  /**
+   *
    * @type {number}
    * @memberof CallStatsLocation
    */
@@ -2688,6 +2694,162 @@ export interface CallStatsLocation {
    * @memberof CallStatsLocation
    */
   subdivision?: string;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapLocation
+ */
+export interface CallStatsMapLocation {
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsMapLocation
+   */
+  count: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsMapLocation
+   */
+  live_count: number;
+  /**
+   *
+   * @type {CallStatsLocation}
+   * @memberof CallStatsMapLocation
+   */
+  location?: CallStatsLocation;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapPublisher
+ */
+export interface CallStatsMapPublisher {
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallStatsMapPublisher
+   */
+  is_live: boolean;
+  /**
+   *
+   * @type {CallStatsLocation}
+   * @memberof CallStatsMapPublisher
+   */
+  location?: CallStatsLocation;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapPublisher
+   */
+  name?: string;
+  /**
+   *
+   * @type {PublishedTrackFlags}
+   * @memberof CallStatsMapPublisher
+   */
+  published_tracks: PublishedTrackFlags;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapPublisher
+   */
+  publisher_type?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapPublisher
+   */
+  user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapPublisher
+   */
+  user_session_id: string;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapPublishers
+ */
+export interface CallStatsMapPublishers {
+  /**
+   *
+   * @type {Array<CallStatsMapPublisher>}
+   * @memberof CallStatsMapPublishers
+   */
+  publishers: Array<CallStatsMapPublisher>;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapSFUs
+ */
+export interface CallStatsMapSFUs {
+  /**
+   *
+   * @type {Array<SFULocationResponse>}
+   * @memberof CallStatsMapSFUs
+   */
+  locations: Array<SFULocationResponse>;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapSubscriber
+ */
+export interface CallStatsMapSubscriber {
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallStatsMapSubscriber
+   */
+  is_live: boolean;
+  /**
+   *
+   * @type {CallStatsLocation}
+   * @memberof CallStatsMapSubscriber
+   */
+  location?: CallStatsLocation;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapSubscriber
+   */
+  name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapSubscriber
+   */
+  user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapSubscriber
+   */
+  user_session_id: string;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapSubscribers
+ */
+export interface CallStatsMapSubscribers {
+  /**
+   *
+   * @type {Array<CallStatsMapLocation>}
+   * @memberof CallStatsMapSubscribers
+   */
+  locations: Array<CallStatsMapLocation>;
+  /**
+   *
+   * @type {Array<CallStatsMapSubscriber>}
+   * @memberof CallStatsMapSubscribers
+   */
+  participants?: Array<CallStatsMapSubscriber>;
 }
 /**
  *
@@ -3544,6 +3706,25 @@ export interface ConnectionErrorEvent {
 /**
  *
  * @export
+ * @interface Coordinates
+ */
+export interface Coordinates {
+  /**
+   *
+   * @type {number}
+   * @memberof Coordinates
+   */
+  latitude: number;
+  /**
+   *
+   * @type {number}
+   * @memberof Coordinates
+   */
+  longitude: number;
+}
+/**
+ *
+ * @export
  * @interface CountByMinuteResponse
  */
 export interface CountByMinuteResponse {
@@ -4115,6 +4296,86 @@ export interface EndCallResponse {
    * @memberof EndCallResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface FeedsPreferencesResponse
+ */
+export interface FeedsPreferencesResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
+  comment?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
+  comment_reaction?: string;
+  /**
+   *
+   * @type {{ [key: string]: string; }}
+   * @memberof FeedsPreferencesResponse
+   */
+  custom_activity_types?: { [key: string]: string };
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
+  follow?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
+  mention?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
+  reaction?: string;
+}
+/**
+ *
+ * @export
+ * @interface FileUploadConfig
+ */
+export interface FileUploadConfig {
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  allowed_file_extensions: Array<string>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  allowed_mime_types: Array<string>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  blocked_file_extensions: Array<string>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  blocked_mime_types: Array<string>;
+  /**
+   *
+   * @type {number}
+   * @memberof FileUploadConfig
+   */
+  size_limit: number;
 }
 /**
  *
@@ -5415,6 +5676,31 @@ export interface ListTranscriptionsResponse {
   transcriptions: Array<CallTranscription>;
 }
 /**
+ *
+ * @export
+ * @interface Location
+ */
+export interface Location {
+  /**
+   *
+   * @type {string}
+   * @memberof Location
+   */
+  continent_code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Location
+   */
+  country_iso_code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Location
+   */
+  subdivision_iso_code: string;
+}
+/**
  * MemberRequest is the payload for adding a member to a call.
  * @export
  * @interface MemberRequest
@@ -5805,10 +6091,10 @@ export interface OwnUserResponse {
   privacy_settings?: object;
   /**
    *
-   * @type {PushPreferences}
+   * @type {PushPreferencesResponse}
    * @memberof OwnUserResponse
    */
-  push_preferences?: PushPreferences;
+  push_preferences?: PushPreferencesResponse;
   /**
    *
    * @type {string}
@@ -6333,27 +6619,39 @@ export interface PublisherStatsResponse {
 /**
  *
  * @export
- * @interface PushPreferences
+ * @interface PushPreferencesResponse
  */
-export interface PushPreferences {
+export interface PushPreferencesResponse {
   /**
    *
    * @type {string}
-   * @memberof PushPreferences
+   * @memberof PushPreferencesResponse
    */
   call_level?: string;
   /**
    *
    * @type {string}
-   * @memberof PushPreferences
+   * @memberof PushPreferencesResponse
    */
   chat_level?: string;
   /**
    *
    * @type {string}
-   * @memberof PushPreferences
+   * @memberof PushPreferencesResponse
    */
   disabled_until?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PushPreferencesResponse
+   */
+  feeds_level?: string;
+  /**
+   *
+   * @type {FeedsPreferencesResponse}
+   * @memberof PushPreferencesResponse
+   */
+  feeds_preferences?: FeedsPreferencesResponse;
 }
 /**
  *
@@ -6724,6 +7022,97 @@ export interface QueryCallSessionParticipantStatsTimelineResponse {
    * @memberof QueryCallSessionParticipantStatsTimelineResponse
    */
   user_session_id: string;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface QueryCallStatsMapResponse
+ */
+export interface QueryCallStatsMapResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  call_ended_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  call_started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  call_type: string;
+  /**
+   *
+   * @type {CallStatsParticipantCounts}
+   * @memberof QueryCallStatsMapResponse
+   */
+  counts: CallStatsParticipantCounts;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  data_source?: string;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  end_time?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  generated_at?: string;
+  /**
+   *
+   * @type {CallStatsMapPublishers}
+   * @memberof QueryCallStatsMapResponse
+   */
+  publishers?: CallStatsMapPublishers;
+  /**
+   *
+   * @type {CallStatsMapSFUs}
+   * @memberof QueryCallStatsMapResponse
+   */
+  sfus?: CallStatsMapSFUs;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  start_time?: string;
+  /**
+   *
+   * @type {CallStatsMapSubscribers}
+   * @memberof QueryCallStatsMapResponse
+   */
+  subscribers?: CallStatsMapSubscribers;
 }
 /**
  *
@@ -7473,6 +7862,37 @@ export interface SDKUsageReportResponse {
 /**
  *
  * @export
+ * @interface SFULocationResponse
+ */
+export interface SFULocationResponse {
+  /**
+   *
+   * @type {Coordinates}
+   * @memberof SFULocationResponse
+   */
+  coordinates: Coordinates;
+  /**
+   *
+   * @type {string}
+   * @memberof SFULocationResponse
+   */
+  datacenter: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SFULocationResponse
+   */
+  id: string;
+  /**
+   *
+   * @type {Location}
+   * @memberof SFULocationResponse
+   */
+  location: Location;
+}
+/**
+ *
+ * @export
  * @interface SFUResponse
  */
 export interface SFUResponse {
@@ -7717,6 +8137,12 @@ export interface SIPInboundRoutingRuleResponse {
    */
   caller_numbers?: Array<string>;
   /**
+   * Creation timestamp
+   * @type {string}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  created_at: string;
+  /**
    *
    * @type {SIPDirectRoutingRuleCallConfigsResponse}
    * @memberof SIPInboundRoutingRuleResponse
@@ -7759,11 +8185,11 @@ export interface SIPInboundRoutingRuleResponse {
    */
   trunk_ids: Array<string>;
   /**
-   *
-   * @type {object}
+   * Last update timestamp
+   * @type {string}
    * @memberof SIPInboundRoutingRuleResponse
    */
-  updated_at: object;
+  updated_at: string;
 }
 /**
  * PIN protection configuration response
@@ -7803,11 +8229,11 @@ export interface SIPPinProtectionConfigsResponse {
  */
 export interface SIPTrunkResponse {
   /**
-   *
-   * @type {object}
+   * Creation timestamp
+   * @type {string}
    * @memberof SIPTrunkResponse
    */
-  created_at: object;
+  created_at: string;
   /**
    * Unique identifier for the SIP trunk
    * @type {string}
@@ -7833,11 +8259,11 @@ export interface SIPTrunkResponse {
    */
   password: string;
   /**
-   *
-   * @type {object}
+   * Last update timestamp
+   * @type {string}
    * @memberof SIPTrunkResponse
    */
-  updated_at: object;
+  updated_at: string;
   /**
    * The URI for the SIP trunk
    * @type {string}

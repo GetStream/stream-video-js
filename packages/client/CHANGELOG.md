@@ -2,6 +2,32 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.40.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.2...@stream-io/video-client-1.40.3) (2026-01-16)
+
+### Bug Fixes
+
+- **react:** resolve call state race condition when using join with ring ([#2086](https://github.com/GetStream/stream-video-js/issues/2086)) ([6c2d3b3](https://github.com/GetStream/stream-video-js/commit/6c2d3b35ac96dbf7a85cadba47068a0e417d65be)), closes [#1755](https://github.com/GetStream/stream-video-js/issues/1755) [#2035](https://github.com/GetStream/stream-video-js/issues/2035)
+- **react:** resolve call state race condition when using join with ring ([#2084](https://github.com/GetStream/stream-video-js/issues/2084)) ([f9b5946](https://github.com/GetStream/stream-video-js/commit/f9b59465f22b35304dbd01601e3f6166e1d02ea0)), closes [#1755](https://github.com/GetStream/stream-video-js/issues/1755) [#2035](https://github.com/GetStream/stream-video-js/issues/2035)
+
+## [1.40.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.1...@stream-io/video-client-1.40.2) (2026-01-15)
+
+### Bug Fixes
+
+- handle unrecoverable SFU join errors ([9b8198d](https://github.com/GetStream/stream-video-js/commit/9b8198d00e901a8eade169495a14d25c8d3bdf1e))
+- handle unrecoverable SFU join errors ([#2083](https://github.com/GetStream/stream-video-js/issues/2083)) ([6ffb576](https://github.com/GetStream/stream-video-js/commit/6ffb5761b3dfb8e649cfa4f16dd30d294475eeae))
+
+## [1.40.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.0...@stream-io/video-client-1.40.1) (2026-01-14)
+
+### Bug Fixes
+
+- ensure proper set up of server-side preferences for mic and camera ([#2080](https://github.com/GetStream/stream-video-js/issues/2080)) ([3529c8f](https://github.com/GetStream/stream-video-js/commit/3529c8fc0233d3f9f8f21c80cffc4ec27334954f))
+
+## [1.40.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.3...@stream-io/video-client-1.40.0) (2026-01-09)
+
+### Features
+
+- Call Stats Map ([#2025](https://github.com/GetStream/stream-video-js/issues/2025)) ([6c784f0](https://github.com/GetStream/stream-video-js/commit/6c784f0acacce3d23d0f589ff423d6a0d04c1e95))
+
 ## [1.39.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.2...@stream-io/video-client-1.39.3) (2025-12-30)
 
 ### Bug Fixes

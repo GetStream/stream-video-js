@@ -7196,14 +7196,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@skooldev/skool-stream-layout@npm:^1.0.9":
-  version: 1.0.9
-  resolution: "@skooldev/skool-stream-layout@npm:1.0.9"
+"@skooldev/skool-stream-layout@npm:^1.0.11":
+  version: 1.0.11
+  resolution: "@skooldev/skool-stream-layout@npm:1.0.11"
   peerDependencies:
     "@stream-io/video-react-sdk": ^1.25.0
     react: ^17 || ^18 || ^19
     react-dom: ^17 || ^18 || ^19
-  checksum: 10/0ff2dcc31481516021c1d5946a09771c64fe82218a8fc93f29fe20b30d52f91ca0eb5be4a4738d1c4971d7c7e9542646c9fa5ed0ebf8874fb5bb974524153d3a
+  checksum: 10/950c96f7e09fed26ffa296b20f66ede7067c8b5384568064537bb6e80a15abbed81675e8e26104a96b9e5def6b672287bc52a4e7aeeefaa587bfdf3e0b83327a
   languageName: node
   linkType: hard
 
@@ -7262,7 +7262,7 @@ __metadata:
     "@playwright/test": "npm:^1.56.0"
     "@sentry/react": "npm:^10.30.0"
     "@sentry/vite-plugin": "npm:^4.6.1"
-    "@skooldev/skool-stream-layout": "npm:^1.0.9"
+    "@skooldev/skool-stream-layout": "npm:^1.0.11"
     "@stream-io/video-react-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
@@ -7607,6 +7607,7 @@ __metadata:
     "@types/react-dom": "npm:~19.1.11"
     "@types/yargs": "npm:^17.0.33"
     axios: "npm:^1.12.2"
+    babel-plugin-react-compiler: "npm:^1.0.0"
     clsx: "npm:^2.0.0"
     dotenv: "npm:^16.6.1"
     framer-motion: "npm:^12.23.24"

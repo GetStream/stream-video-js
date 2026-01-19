@@ -14,6 +14,7 @@ import {
   SfuEventKinds,
 } from './rtc';
 import {
+  Error as SfuErrorEvent,
   JoinRequest,
   JoinResponse,
   SfuRequest,
@@ -26,7 +27,10 @@ import {
   TrackMuteState,
   TrackSubscriptionDetails,
 } from './gen/video/sfu/signal_rpc/signal';
-import { ICETrickle } from './gen/video/sfu/models/models';
+import {
+  ICETrickle,
+  WebsocketReconnectStrategy,
+} from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
 import { generateUUIDv4 } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
@@ -537,15 +541,27 @@ export class StreamSfuClient {
     const current = this.joinResponseTask;
 
     let timeoutId: NodeJS.Timeout | undefined = undefined;
+    const unsubscribeJoinErrorEvents = this.dispatcher.on('error', (event) => {
+      const { error, reconnectStrategy } = event;
+      if (!error) return;
+      if (reconnectStrategy === WebsocketReconnectStrategy.DISCONNECT) {
+        clearTimeout(timeoutId);
+        unsubscribe?.();
+        unsubscribeJoinErrorEvents();
+        current.reject(new SfuJoinError(event));
+      }
+    });
     const unsubscribe = this.dispatcher.on('joinResponse', (joinResponse) => {
       clearTimeout(timeoutId);
       unsubscribe();
+      unsubscribeJoinErrorEvents();
       this.keepAlive();
       current.resolve(joinResponse);
     });
 
     timeoutId = setTimeout(() => {
       unsubscribe();
+      unsubscribeJoinErrorEvents();
       const message = `Waiting for "joinResponse" has timed out after ${this.joinResponseTimeout}ms`;
       this.tracer?.trace('joinRequestTimeout', message);
       current.reject(new Error(message));
@@ -630,4 +646,16 @@ export class StreamSfuClient {
       }
     }, this.unhealthyTimeoutInMs);
   };
+}
+
+export class SfuJoinError extends Error {
+  errorEvent: SfuErrorEvent;
+  unrecoverable: boolean;
+
+  constructor(event: SfuErrorEvent) {
+    super(event.error?.message || 'Join Error');
+    this.errorEvent = event;
+    this.unrecoverable =
+      event.reconnectStrategy === WebsocketReconnectStrategy.DISCONNECT;
+  }
 }
