@@ -3,6 +3,7 @@ import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import {
   mockBrowserPermission,
   mockCall,
@@ -296,21 +297,20 @@ describe('CameraManager', () => {
     });
 
     it('should not enable the camera when the user does not have permission', async () => {
-      call.permissionsContext.hasPermission = vi.fn().mockReturnValue(false);
+      call.permissionsContext.canPublish = vi.fn().mockReturnValue(false);
       vi.spyOn(manager, 'enable');
       await manager.apply(
-        // @ts-expect-error - partial settings
-        {
+        fromPartial({
           target_resolution: { width: 640, height: 480 },
           camera_facing: 'front',
           camera_default_on: true,
-        },
+        }),
         true,
       );
 
-      expect(manager.state.direction).toBe(undefined);
+      expect(manager.state.direction).toBe('front');
       expect(manager.state.status).toBe(undefined);
-      expect(manager['targetResolution']).toEqual({ width: 1280, height: 720 });
+      expect(manager['targetResolution']).toEqual({ width: 640, height: 480 });
       expect(manager.enable).not.toHaveBeenCalled();
     });
 

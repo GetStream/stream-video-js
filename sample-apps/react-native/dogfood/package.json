@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-dogfood",
-  "version": "4.28.5",
+  "version": "4.29.4",
   "private": true,
   "scripts": {
     "android": "react-native run-android",

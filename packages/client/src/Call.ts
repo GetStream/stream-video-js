@@ -1,4 +1,4 @@
-import { StreamSfuClient } from './StreamSfuClient';
+import { SfuJoinError, StreamSfuClient } from './StreamSfuClient';
 import {
   BasePeerConnectionOpts,
   Dispatcher,
@@ -60,6 +60,7 @@ import type {
   QueryCallMembersResponse,
   QueryCallSessionParticipantStatsResponse,
   QueryCallSessionParticipantStatsTimelineResponse,
+  QueryCallStatsMapResponse,
   RejectCallRequest,
   RejectCallResponse,
   RequestPermissionRequest,
@@ -907,7 +908,10 @@ export class Call {
         break;
       } catch (err) {
         this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-        if (err instanceof ErrorFromResponse && err.unrecoverable) {
+        if (
+          (err instanceof ErrorFromResponse && err.unrecoverable) ||
+          (err instanceof SfuJoinError && err.unrecoverable)
+        ) {
           // if the error is unrecoverable, we should not retry as that signals
           // that connectivity is good, but the coordinator doesn't allow the user
           // to join the call due to some reason (e.g., ended call, expired token...)
@@ -1349,7 +1353,7 @@ export class Call {
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
-      this.clientStore.registerCall(this);
+      this.clientStore.registerOrUpdateCall(this);
     }
 
     return joinResponse;
@@ -2628,6 +2632,27 @@ export class Call {
         'x-stream-platform-data': platform,
       },
     });
+  };
+
+  /**
+   * Retrieves the call stats for the current call session in a format suitable
+   * for displaying in map-like UIs.
+   */
+  getCallStatsMap = async (
+    params: {
+      start_time?: Date | string;
+      end_time?: Date | string;
+      exclude_publishers?: boolean;
+      exclude_subscribers?: boolean;
+      exclude_sfus?: boolean;
+    } = {},
+    callSessionId: string | undefined = this.state.session?.id,
+  ): Promise<QueryCallStatsMapResponse> => {
+    if (!callSessionId) throw new Error('callSessionId is required');
+    return this.streamClient.get<QueryCallStatsMapResponse>(
+      `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${callSessionId}/map`,
+      params,
+    );
   };
 
   /**

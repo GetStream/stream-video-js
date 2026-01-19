@@ -2,6 +2,59 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.27.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.27.3...@stream-io/video-react-native-sdk-1.27.4) (2026-01-16)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.3`
+- `@stream-io/video-react-bindings` updated to version `1.12.10`
+
+### Bug Fixes
+
+- do not disable camera on Android unnecessarily RN-335 ([#2085](https://github.com/GetStream/stream-video-js/issues/2085)) ([e4dfa39](https://github.com/GetStream/stream-video-js/commit/e4dfa39b7a001e60fee73db01d717ed8eb05d9b0))
+
+## [1.27.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.27.2...@stream-io/video-react-native-sdk-1.27.3) (2026-01-15)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.2`
+- `@stream-io/video-react-bindings` updated to version `1.12.9`
+
+## [1.27.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.27.1...@stream-io/video-react-native-sdk-1.27.2) (2026-01-14)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.1`
+- `@stream-io/video-react-bindings` updated to version `1.12.8`
+
+## [1.27.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.27.0...@stream-io/video-react-native-sdk-1.27.1) (2026-01-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.0`
+- `@stream-io/video-react-bindings` updated to version `1.12.7`
+
+## [1.27.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.6...@stream-io/video-react-native-sdk-1.27.0) (2025-12-30)
+
+### Features
+
+- **react-native:** expose useModeration hook ([#2073](https://github.com/GetStream/stream-video-js/issues/2073)) ([4105ee7](https://github.com/GetStream/stream-video-js/commit/4105ee7c79aa1a1a35d75b4f5f70594eaa7eb33a)), closes [#1822](https://github.com/GetStream/stream-video-js/issues/1822)
+
+### Bug Fixes
+
+- correctly restore background blur if available ([b16ffc0](https://github.com/GetStream/stream-video-js/commit/b16ffc0ade1b88437b09fe918deea30d314a530b))
+
+## [1.26.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.5...@stream-io/video-react-native-sdk-1.26.6) (2025-12-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.3`
+- `@stream-io/video-react-bindings` updated to version `1.12.6`
+
+### Bug Fixes
+
+- replace non-compliant foreground service types ([#2058](https://github.com/GetStream/stream-video-js/issues/2058)) ([d62ca2b](https://github.com/GetStream/stream-video-js/commit/d62ca2bb6defd58e44ed1ac135b95896b590d307))
+
 ## [1.26.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.26.4...@stream-io/video-react-native-sdk-1.26.5) (2025-12-23)
 
 ### Dependency Updates

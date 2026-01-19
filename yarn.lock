@@ -7330,7 +7330,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@skooldev/skool-stream-layout@npm:^1.0.9":
+"@skooldev/skool-stream-layout@npm:^1.0.11":
   version: 1.0.11
   resolution: "@skooldev/skool-stream-layout@npm:1.0.11"
   peerDependencies:
@@ -7396,7 +7396,7 @@ __metadata:
     "@playwright/test": "npm:^1.56.0"
     "@sentry/react": "npm:^10.30.0"
     "@sentry/vite-plugin": "npm:^4.6.1"
-    "@skooldev/skool-stream-layout": "npm:^1.0.9"
+    "@skooldev/skool-stream-layout": "npm:^1.0.11"
     "@stream-io/video-react-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
@@ -7758,6 +7758,7 @@ __metadata:
     "@types/react-dom": "npm:~19.1.11"
     "@types/yargs": "npm:^17.0.33"
     axios: "npm:^1.12.2"
+    babel-plugin-react-compiler: "npm:^1.0.0"
     clsx: "npm:^2.0.0"
     dotenv: "npm:^16.6.1"
     framer-motion: "npm:^12.23.24"
