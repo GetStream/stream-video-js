@@ -28,14 +28,13 @@ import { withoutConcurrency } from '../helpers/concurrency';
 export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
   private soundDetectorConcurrencyTag = Symbol('soundDetectorConcurrencyTag');
-  private soundDetectorCleanup?: Function;
+  private soundDetectorCleanup?: () => Promise<void>;
   private rnSpeechDetector: RNSpeechDetector | undefined;
   private noiseCancellation: INoiseCancellation | undefined;
   private noiseCancellationChangeUnsubscribe: (() => void) | undefined;
   private noiseCancellationRegistration?: Promise<void>;
   private unregisterNoiseCancellation?: () => Promise<void>;
-  private noAudioDetectorCleanup?: Function;
-  private noAudioDetectorConcurrencyTag = Symbol('noAudioDetectorTag');
+  private noAudioDetectorCleanup?: () => Promise<void>;
   private silenceThresholdMs = 5000;
 
   constructor(call: Call, disableMode: TrackDisableMode = 'stop-tracks') {
@@ -117,29 +116,33 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     );
 
     this.subscriptions.push(
-      createSafeAsyncSubscription(this.state.status$, async (status) => {
-        try {
-          if (status === 'enabled') {
-            await this.stopNoAudioDetection();
-            await this.startNoAudioDetection();
-          } else {
-            await this.stopNoAudioDetection();
+      createSafeAsyncSubscription(
+        combineLatest([this.state.status$, this.state.mediaStream$]),
+        async ([status, mediaStream]) => {
+          if (this.noAudioDetectorCleanup) {
+            const cleanup = this.noAudioDetectorCleanup;
+            this.noAudioDetectorCleanup = undefined;
+            await cleanup().catch((err) => {
+              this.logger.warn('Failed to stop no-audio detector', err);
+            });
           }
-        } catch (err) {
-          this.logger.warn('Could not enable no-audio detection', err);
-        }
-      }),
-    );
 
-    this.subscriptions.push(
-      createSafeAsyncSubscription(this.state.selectedDevice$, async () => {
-        try {
-          await this.stopNoAudioDetection();
-          await this.startNoAudioDetection();
-        } catch (err) {
-          this.logger.warn('Could not restart no-audio detection', err);
-        }
-      }),
+          if (status !== 'enabled' || !mediaStream) return;
+          if (this.silenceThresholdMs <= 0) return;
+
+          this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
+            noAudioThresholdMs: this.silenceThresholdMs,
+            emitIntervalMs: this.silenceThresholdMs,
+            onCaptureStatusChange: (event) => {
+              this.call.tracer.trace('mic.capture_report', event);
+              this.call.streamClient.dispatchEvent({
+                type: 'mic.capture_report',
+                ...event,
+              });
+            },
+          });
+        },
+      ),
     );
   }
 
@@ -332,7 +335,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
         const unsubscribe = await this.rnSpeechDetector.start((event) => {
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
         });
-        this.soundDetectorCleanup = () => {
+        this.soundDetectorCleanup = async () => {
           unsubscribe();
           this.rnSpeechDetector = undefined;
         };
@@ -355,35 +358,6 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.soundDetectorCleanup = undefined;
       this.state.setSpeakingWhileMuted(false);
       await soundDetectorCleanup();
-    });
-  }
-
-  private async startNoAudioDetection() {
-    await withoutConcurrency(this.noAudioDetectorConcurrencyTag, async () => {
-      if (this.silenceThresholdMs <= 0) return;
-
-      const { mediaStream } = this.state;
-      if (!mediaStream) return;
-
-      this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
-        noAudioThresholdMs: this.silenceThresholdMs,
-        emitIntervalMs: this.silenceThresholdMs,
-        onCaptureStatusChange: (event) => {
-          this.call.streamClient.dispatchEvent({
-            type: 'mic.capture_report',
-            ...event,
-          });
-        },
-      });
-    });
-  }
-
-  private async stopNoAudioDetection() {
-    await withoutConcurrency(this.noAudioDetectorConcurrencyTag, async () => {
-      if (!this.noAudioDetectorCleanup) return;
-      const noAudioDetectorCleanup = this.noAudioDetectorCleanup;
-      this.noAudioDetectorCleanup = undefined;
-      await noAudioDetectorCleanup();
     });
   }
 }
