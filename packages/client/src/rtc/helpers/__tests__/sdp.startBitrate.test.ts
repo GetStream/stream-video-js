@@ -109,4 +109,90 @@ a=fmtp:103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001
       'a=fmtp:103 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42001f;x-google-start-bitrate=1050',
     );
   });
+
+  it('clamps to 300kbps when factor is 0', () => {
+    const offerSdp = `v=0
+o=- 123 2 IN IP4 127.0.0.1
+s=-
+t=0 0
+m=video 9 UDP/TLS/RTP/SAVPF 98
+c=IN IP4 0.0.0.0
+a=mid:0
+a=rtpmap:98 VP9/90000
+a=fmtp:98 profile-id=0
+`;
+
+    const result = setStartBitrate(offerSdp, 1500, 0, '0'); // 0 -> clamped to 300
+    expect(result).toContain(
+      'a=fmtp:98 profile-id=0;x-google-start-bitrate=300',
+    );
+  });
+
+  it('uses max bitrate when factor is 1', () => {
+    const offerSdp = `v=0
+o=- 123 2 IN IP4 127.0.0.1
+s=-
+t=0 0
+m=video 9 UDP/TLS/RTP/SAVPF 98
+c=IN IP4 0.0.0.0
+a=mid:0
+a=rtpmap:98 VP9/90000
+a=fmtp:98 profile-id=0
+`;
+
+    const result = setStartBitrate(offerSdp, 1500, 1, '0'); // should be 1500
+    expect(result).toContain(
+      'a=fmtp:98 profile-id=0;x-google-start-bitrate=1500',
+    );
+  });
+
+  it('clamps to max bitrate when factor exceeds 1', () => {
+    const offerSdp = `v=0
+o=- 123 2 IN IP4 127.0.0.1
+s=-
+t=0 0
+m=video 9 UDP/TLS/RTP/SAVPF 98
+c=IN IP4 0.0.0.0
+a=mid:0
+a=rtpmap:98 VP9/90000
+a=fmtp:98 profile-id=0
+`;
+
+    const result = setStartBitrate(offerSdp, 1500, 1.5, '0'); // 2250 -> clamped to 1500
+    expect(result).toContain(
+      'a=fmtp:98 profile-id=0;x-google-start-bitrate=1500',
+    );
+  });
+
+  it('creates fmtp line when none exists for target codec', () => {
+    const offerSdp = `v=0
+o=- 123 2 IN IP4 127.0.0.1
+s=-
+t=0 0
+m=video 9 UDP/TLS/RTP/SAVPF 98
+c=IN IP4 0.0.0.0
+a=mid:0
+a=rtpmap:98 VP9/90000
+`;
+
+    const result = setStartBitrate(offerSdp, 1500, 0.5, '0'); // 750kbps
+    expect(result).toContain('a=fmtp:98 x-google-start-bitrate=750');
+  });
+
+  it('creates fmtp lines for multiple codecs without existing fmtp', () => {
+    const offerSdp = `v=0
+o=- 123 2 IN IP4 127.0.0.1
+s=-
+t=0 0
+m=video 9 UDP/TLS/RTP/SAVPF 98 103
+c=IN IP4 0.0.0.0
+a=mid:0
+a=rtpmap:98 VP9/90000
+a=rtpmap:103 H264/90000
+`;
+
+    const result = setStartBitrate(offerSdp, 1500, 0.5, '0'); // 750kbps
+    expect(result).toContain('a=fmtp:98 x-google-start-bitrate=750');
+    expect(result).toContain('a=fmtp:103 x-google-start-bitrate=750');
+  });
 });
