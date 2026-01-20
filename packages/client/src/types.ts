@@ -4,11 +4,14 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
+  CallRecordingStartedEventRecordingTypeEnum,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
   ReactionResponse,
   AudioSettingsRequestDefaultDeviceEnum,
+  StartRecordingRequest,
+  StartRecordingResponse,
 } from './gen/coordinator';
 import type { StreamClient } from './coordinator/connection/client';
 import type { Comparator } from './sorting';
@@ -329,6 +332,17 @@ export type CallConstructor = {
    * The state store of the client
    */
   clientStore: StreamVideoWriteableStateStore;
+};
+
+export type CallRecordingType = CallRecordingStartedEventRecordingTypeEnum;
+export type StartCallRecordingFnType = {
+  (): Promise<StartRecordingResponse>;
+  (type: CallRecordingType): Promise<StartRecordingResponse>;
+  (request: StartRecordingRequest): Promise<StartRecordingResponse>;
+  (
+    request: StartRecordingRequest,
+    type: CallRecordingType,
+  ): Promise<StartRecordingResponse>;
 };
 
 export type StreamRNVideoSDKGlobals = {

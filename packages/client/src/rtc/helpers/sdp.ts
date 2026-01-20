@@ -29,11 +29,13 @@ export const extractMid = (
   return String(transceiverInitIndex);
 };
 
-/*
- * Sets the start bitrate for the VP9 and H264 codecs in the SDP.
+/**
+ * Sets the start bitrate for the VP9, H264, and AV1 codecs in the SDP.
  *
  * @param offerSdp the offer SDP to modify.
- * @param startBitrate the start bitrate in kbps to set. Default is 1000 kbps.
+ * @param maxBitrateKbps the maximum bitrate in kbps.
+ * @param startBitrateFactor the factor (0-1) to multiply with maxBitrateKbps to get the start bitrate.
+ * @param targetMid the media ID to target.
  */
 export const setStartBitrate = (
   offerSdp: string,
@@ -42,9 +44,10 @@ export const setStartBitrate = (
   targetMid: string,
 ): string => {
   // start bitrate should be between 300kbps and max-bitrate-kbps
-  const startBitrate = Math.max(
-    Math.min(maxBitrateKbps, startBitrateFactor * maxBitrateKbps),
-    300,
+  // Clamp to max first, then ensure minimum of 300 (but never exceed max)
+  const startBitrate = Math.min(
+    maxBitrateKbps,
+    Math.max(300, startBitrateFactor * maxBitrateKbps),
   );
   const parsedSdp = parse(offerSdp);
   const targetCodecs = new Set(['av1', 'vp9', 'h264']);
@@ -56,13 +59,28 @@ export const setStartBitrate = (
     for (const rtp of media.rtp) {
       if (!targetCodecs.has(rtp.codec.toLowerCase())) continue;
 
-      for (const fmtp of media.fmtp) {
-        if (fmtp.payload === rtp.payload) {
-          if (!fmtp.config.includes('x-google-start-bitrate')) {
-            fmtp.config += `;x-google-start-bitrate=${startBitrate}`;
-          }
-          break;
+      // Find existing fmtp entry for this payload
+      // Guard against media.fmtp being undefined when SDP has no a=fmtp lines
+      const fmtpList = media.fmtp ?? (media.fmtp = []);
+      const existingFmtp = fmtpList.find(
+        (fmtp) => fmtp.payload === rtp.payload,
+      );
+
+      if (existingFmtp) {
+        // Append to existing fmtp if not already present
+        // Guard against undefined or empty config from malformed SDP
+        const config = existingFmtp.config ?? '';
+        if (!config.includes('x-google-start-bitrate')) {
+          existingFmtp.config = config
+            ? `${config};x-google-start-bitrate=${startBitrate}`
+            : `x-google-start-bitrate=${startBitrate}`;
         }
+      } else {
+        // Create new fmtp entry if none exists
+        fmtpList.push({
+          payload: rtp.payload,
+          config: `x-google-start-bitrate=${startBitrate}`,
+        });
       }
     }
   }

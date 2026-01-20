@@ -5,7 +5,6 @@ import {
   RefAttributes,
   useContext,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -59,16 +58,13 @@ const MenuPortal = ({
 }: PropsWithChildren<{
   refs: UseFloatingReturn['refs'];
 }>) => {
-  const portalId = useMemo(
-    () => `str-video-portal-${Math.random().toString(36).substring(2, 9)}`,
-    [],
-  );
+  const [portalRoot, setPortalRoot] = useState<HTMLDivElement | null>(null);
 
   return (
     <>
-      <div id={portalId} className="str-video__portal" />
+      <div ref={setPortalRoot} className="str-video__portal" />
       <FloatingOverlay>
-        <FloatingPortal id={portalId}>
+        <FloatingPortal root={portalRoot}>
           <div className="str-video__portal-content" ref={refs.setFloating}>
             {children}
           </div>

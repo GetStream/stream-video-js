@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { NoiseCancellationStub } from './NoiseCancellationStub';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
@@ -263,14 +264,18 @@ describe('MicrophoneManager', () => {
 
     it('should throw when noise cancellation is disabled in call settings', async () => {
       call.state.setOwnCapabilities([OwnCapability.ENABLE_NOISE_CANCELLATION]);
-      call.state.updateFromCallResponse({
-        // @ts-expect-error partial data
-        audio: {
-          noise_cancellation: {
-            mode: NoiseCancellationSettingsModeEnum.DISABLED,
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: {
+              noise_cancellation: {
+                mode: NoiseCancellationSettingsModeEnum.DISABLED,
+              },
+            },
           },
-        },
-      });
+        }),
+      );
       await expect(() =>
         manager.enableNoiseCancellation(new NoiseCancellationStub()),
       ).rejects.toThrow();
@@ -278,16 +283,18 @@ describe('MicrophoneManager', () => {
 
     it('should automatically enable noise noise suppression after joining a call', async () => {
       call.state.setCallingState(CallingState.IDLE); // reset state
-      call.state.updateFromCallResponse({
-        settings: {
-          // @ts-expect-error - partial data
-          audio: {
-            noise_cancellation: {
-              mode: NoiseCancellationSettingsModeEnum.AUTO_ON,
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: {
+            audio: {
+              noise_cancellation: {
+                mode: NoiseCancellationSettingsModeEnum.AUTO_ON,
+              },
             },
           },
-        },
-      });
+        }),
+      );
 
       const noiseCancellation = new NoiseCancellationStub();
       const noiseCancellationEnable = vi.spyOn(noiseCancellation, 'enable');
@@ -329,7 +336,7 @@ describe('MicrophoneManager', () => {
     beforeEach(() => {
       // @ts-expect-error - read only property
       call.permissionsContext = new PermissionsContext();
-      call.permissionsContext.hasPermission = vi.fn().mockReturnValue(true);
+      call.permissionsContext.canPublish = vi.fn().mockReturnValue(true);
     });
 
     it('should turn the mic on when set on dashboard', async () => {
@@ -346,15 +353,8 @@ describe('MicrophoneManager', () => {
       expect(enable).not.toHaveBeenCalled();
     });
 
-    it('should not turn on the mic when publish is false', async () => {
-      const enable = vi.spyOn(manager, 'enable');
-      // @ts-expect-error - partial data
-      await manager.apply({ mic_default_on: true }, false);
-      expect(enable).not.toHaveBeenCalled();
-    });
-
     it('should not turn on the mic when permission is missing', async () => {
-      call.permissionsContext.hasPermission = vi.fn().mockReturnValue(false);
+      call.permissionsContext.canPublish = vi.fn().mockReturnValue(false);
       const enable = vi.spyOn(manager, 'enable');
       // @ts-expect-error - partial data
       await manager.apply({ mic_default_on: true }, true);
@@ -373,10 +373,12 @@ describe('MicrophoneManager', () => {
 
   describe('Hi-Fi Audio', () => {
     it('enables hi-fi audio', async () => {
-      call.state.updateFromCallResponse({
-        // @ts-expect-error partial data
-        settings: { audio: { hifi_audio_enabled: true } },
-      });
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: { audio: { hifi_audio_enabled: true } },
+        }),
+      );
 
       await manager.enable();
 
@@ -395,10 +397,12 @@ describe('MicrophoneManager', () => {
     });
 
     it('throws an error when enabling hi-fi audio if not allowed', async () => {
-      call.state.updateFromCallResponse({
-        // @ts-expect-error partial data
-        settings: { audio: { hifi_audio_enabled: false } },
-      });
+      call.state.updateFromCallResponse(
+        fromPartial({
+          egress: {},
+          settings: { audio: { hifi_audio_enabled: false } },
+        }),
+      );
 
       await manager.enable();
       await expect(() =>

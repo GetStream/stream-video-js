@@ -1477,6 +1477,12 @@ export interface CallRecording {
    * @type {string}
    * @memberof CallRecording
    */
+  recording_type: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallRecording
+   */
   session_id: string;
   /**
    *
@@ -1516,12 +1522,30 @@ export interface CallRecordingFailedEvent {
    */
   egress_id: string;
   /**
+   * The type of recording
+   * @type {string}
+   * @memberof CallRecordingFailedEvent
+   */
+  recording_type: CallRecordingFailedEventRecordingTypeEnum;
+  /**
    * The type of event: "call.recording_failed" in this case
    * @type {string}
    * @memberof CallRecordingFailedEvent
    */
   type: string;
 }
+
+/**
+ * @export
+ */
+export const CallRecordingFailedEventRecordingTypeEnum = {
+  COMPOSITE: 'composite',
+  INDIVIDUAL: 'individual',
+  RAW: 'raw',
+} as const;
+export type CallRecordingFailedEventRecordingTypeEnum =
+  (typeof CallRecordingFailedEventRecordingTypeEnum)[keyof typeof CallRecordingFailedEventRecordingTypeEnum];
+
 /**
  * This event is sent when call recording is ready
  * @export
@@ -1553,12 +1577,30 @@ export interface CallRecordingReadyEvent {
    */
   egress_id: string;
   /**
+   * The type of recording
+   * @type {string}
+   * @memberof CallRecordingReadyEvent
+   */
+  recording_type: CallRecordingReadyEventRecordingTypeEnum;
+  /**
    * The type of event: "call.recording_ready" in this case
    * @type {string}
    * @memberof CallRecordingReadyEvent
    */
   type: string;
 }
+
+/**
+ * @export
+ */
+export const CallRecordingReadyEventRecordingTypeEnum = {
+  COMPOSITE: 'composite',
+  INDIVIDUAL: 'individual',
+  RAW: 'raw',
+} as const;
+export type CallRecordingReadyEventRecordingTypeEnum =
+  (typeof CallRecordingReadyEventRecordingTypeEnum)[keyof typeof CallRecordingReadyEventRecordingTypeEnum];
+
 /**
  * This event is sent when call recording has started
  * @export
@@ -1584,12 +1626,30 @@ export interface CallRecordingStartedEvent {
    */
   egress_id: string;
   /**
+   * The type of recording
+   * @type {string}
+   * @memberof CallRecordingStartedEvent
+   */
+  recording_type: CallRecordingStartedEventRecordingTypeEnum;
+  /**
    * The type of event: "call.recording_started" in this case
    * @type {string}
    * @memberof CallRecordingStartedEvent
    */
   type: string;
 }
+
+/**
+ * @export
+ */
+export const CallRecordingStartedEventRecordingTypeEnum = {
+  COMPOSITE: 'composite',
+  INDIVIDUAL: 'individual',
+  RAW: 'raw',
+} as const;
+export type CallRecordingStartedEventRecordingTypeEnum =
+  (typeof CallRecordingStartedEventRecordingTypeEnum)[keyof typeof CallRecordingStartedEventRecordingTypeEnum];
+
 /**
  * This event is sent when call recording has stopped
  * @export
@@ -1615,12 +1675,30 @@ export interface CallRecordingStoppedEvent {
    */
   egress_id: string;
   /**
+   * The type of recording
+   * @type {string}
+   * @memberof CallRecordingStoppedEvent
+   */
+  recording_type: CallRecordingStoppedEventRecordingTypeEnum;
+  /**
    * The type of event: "call.recording_stopped" in this case
    * @type {string}
    * @memberof CallRecordingStoppedEvent
    */
   type: string;
 }
+
+/**
+ * @export
+ */
+export const CallRecordingStoppedEventRecordingTypeEnum = {
+  COMPOSITE: 'composite',
+  INDIVIDUAL: 'individual',
+  RAW: 'raw',
+} as const;
+export type CallRecordingStoppedEventRecordingTypeEnum =
+  (typeof CallRecordingStoppedEventRecordingTypeEnum)[keyof typeof CallRecordingStoppedEventRecordingTypeEnum];
+
 /**
  * This event is sent when a user rejects a notification to join a call.
  * @export
@@ -2363,6 +2441,12 @@ export interface CallSettingsRequest {
   geofencing?: GeofenceSettingsRequest;
   /**
    *
+   * @type {IndividualRecordingSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  individual_recording?: IndividualRecordingSettingsRequest;
+  /**
+   *
    * @type {IngressSettingsRequest}
    * @memberof CallSettingsRequest
    */
@@ -2373,6 +2457,12 @@ export interface CallSettingsRequest {
    * @memberof CallSettingsRequest
    */
   limits?: LimitsSettingsRequest;
+  /**
+   *
+   * @type {RawRecordingSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  raw_recording?: RawRecordingSettingsRequest;
   /**
    *
    * @type {RecordSettingsRequest}
@@ -2454,6 +2544,12 @@ export interface CallSettingsResponse {
   geofencing: GeofenceSettingsResponse;
   /**
    *
+   * @type {IndividualRecordingSettingsResponse}
+   * @memberof CallSettingsResponse
+   */
+  individual_recording: IndividualRecordingSettingsResponse;
+  /**
+   *
    * @type {IngressSettingsResponse}
    * @memberof CallSettingsResponse
    */
@@ -2464,6 +2560,12 @@ export interface CallSettingsResponse {
    * @memberof CallSettingsResponse
    */
   limits: LimitsSettingsResponse;
+  /**
+   *
+   * @type {RawRecordingSettingsResponse}
+   * @memberof CallSettingsResponse
+   */
+  raw_recording: RawRecordingSettingsResponse;
   /**
    *
    * @type {RecordSettingsResponse}
@@ -2570,6 +2672,12 @@ export interface CallStatsLocation {
   country?: string;
   /**
    *
+   * @type {string}
+   * @memberof CallStatsLocation
+   */
+  country_iso_code?: string;
+  /**
+   *
    * @type {number}
    * @memberof CallStatsLocation
    */
@@ -2586,6 +2694,162 @@ export interface CallStatsLocation {
    * @memberof CallStatsLocation
    */
   subdivision?: string;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapLocation
+ */
+export interface CallStatsMapLocation {
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsMapLocation
+   */
+  count: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsMapLocation
+   */
+  live_count: number;
+  /**
+   *
+   * @type {CallStatsLocation}
+   * @memberof CallStatsMapLocation
+   */
+  location?: CallStatsLocation;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapPublisher
+ */
+export interface CallStatsMapPublisher {
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallStatsMapPublisher
+   */
+  is_live: boolean;
+  /**
+   *
+   * @type {CallStatsLocation}
+   * @memberof CallStatsMapPublisher
+   */
+  location?: CallStatsLocation;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapPublisher
+   */
+  name?: string;
+  /**
+   *
+   * @type {PublishedTrackFlags}
+   * @memberof CallStatsMapPublisher
+   */
+  published_tracks: PublishedTrackFlags;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapPublisher
+   */
+  publisher_type?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapPublisher
+   */
+  user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapPublisher
+   */
+  user_session_id: string;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapPublishers
+ */
+export interface CallStatsMapPublishers {
+  /**
+   *
+   * @type {Array<CallStatsMapPublisher>}
+   * @memberof CallStatsMapPublishers
+   */
+  publishers: Array<CallStatsMapPublisher>;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapSFUs
+ */
+export interface CallStatsMapSFUs {
+  /**
+   *
+   * @type {Array<SFULocationResponse>}
+   * @memberof CallStatsMapSFUs
+   */
+  locations: Array<SFULocationResponse>;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapSubscriber
+ */
+export interface CallStatsMapSubscriber {
+  /**
+   *
+   * @type {boolean}
+   * @memberof CallStatsMapSubscriber
+   */
+  is_live: boolean;
+  /**
+   *
+   * @type {CallStatsLocation}
+   * @memberof CallStatsMapSubscriber
+   */
+  location?: CallStatsLocation;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapSubscriber
+   */
+  name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapSubscriber
+   */
+  user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsMapSubscriber
+   */
+  user_session_id: string;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsMapSubscribers
+ */
+export interface CallStatsMapSubscribers {
+  /**
+   *
+   * @type {Array<CallStatsMapLocation>}
+   * @memberof CallStatsMapSubscribers
+   */
+  locations: Array<CallStatsMapLocation>;
+  /**
+   *
+   * @type {Array<CallStatsMapSubscriber>}
+   * @memberof CallStatsMapSubscribers
+   */
+  participants?: Array<CallStatsMapSubscriber>;
 }
 /**
  *
@@ -3318,6 +3582,19 @@ export interface CollectUserFeedbackResponse {
 /**
  *
  * @export
+ * @interface CompositeRecordingResponse
+ */
+export interface CompositeRecordingResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof CompositeRecordingResponse
+   */
+  status: string;
+}
+/**
+ *
+ * @export
  * @interface ConnectUserDetailsRequest
  */
 export interface ConnectUserDetailsRequest {
@@ -3425,6 +3702,25 @@ export interface ConnectionErrorEvent {
    * @memberof ConnectionErrorEvent
    */
   type: string;
+}
+/**
+ *
+ * @export
+ * @interface Coordinates
+ */
+export interface Coordinates {
+  /**
+   *
+   * @type {number}
+   * @memberof Coordinates
+   */
+  latitude: number;
+  /**
+   *
+   * @type {number}
+   * @memberof Coordinates
+   */
+  longitude: number;
 }
 /**
  *
@@ -3953,6 +4249,12 @@ export interface EgressResponse {
   broadcasting: boolean;
   /**
    *
+   * @type {CompositeRecordingResponse}
+   * @memberof EgressResponse
+   */
+  composite_recording?: CompositeRecordingResponse;
+  /**
+   *
    * @type {FrameRecordingResponse}
    * @memberof EgressResponse
    */
@@ -3963,6 +4265,18 @@ export interface EgressResponse {
    * @memberof EgressResponse
    */
   hls?: EgressHLSResponse;
+  /**
+   *
+   * @type {IndividualRecordingResponse}
+   * @memberof EgressResponse
+   */
+  individual_recording?: IndividualRecordingResponse;
+  /**
+   *
+   * @type {RawRecordingResponse}
+   * @memberof EgressResponse
+   */
+  raw_recording?: RawRecordingResponse;
   /**
    *
    * @type {Array<EgressRTMPResponse>}
@@ -3982,6 +4296,86 @@ export interface EndCallResponse {
    * @memberof EndCallResponse
    */
   duration: string;
+}
+/**
+ *
+ * @export
+ * @interface FeedsPreferencesResponse
+ */
+export interface FeedsPreferencesResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
+  comment?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
+  comment_reaction?: string;
+  /**
+   *
+   * @type {{ [key: string]: string; }}
+   * @memberof FeedsPreferencesResponse
+   */
+  custom_activity_types?: { [key: string]: string };
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
+  follow?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
+  mention?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
+  reaction?: string;
+}
+/**
+ *
+ * @export
+ * @interface FileUploadConfig
+ */
+export interface FileUploadConfig {
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  allowed_file_extensions: Array<string>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  allowed_mime_types: Array<string>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  blocked_file_extensions: Array<string>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof FileUploadConfig
+   */
+  blocked_mime_types: Array<string>;
+  /**
+   *
+   * @type {number}
+   * @memberof FileUploadConfig
+   */
+  size_limit: number;
 }
 /**
  *
@@ -4378,7 +4772,25 @@ export interface GoLiveRequest {
    * @type {boolean}
    * @memberof GoLiveRequest
    */
+  start_composite_recording?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
   start_hls?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
+  start_individual_recording?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GoLiveRequest
+   */
+  start_raw_recording?: boolean;
   /**
    *
    * @type {boolean}
@@ -4554,6 +4966,69 @@ export interface ICEServer {
    */
   username: string;
 }
+/**
+ *
+ * @export
+ * @interface IndividualRecordingResponse
+ */
+export interface IndividualRecordingResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof IndividualRecordingResponse
+   */
+  status: string;
+}
+/**
+ *
+ * @export
+ * @interface IndividualRecordingSettingsRequest
+ */
+export interface IndividualRecordingSettingsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof IndividualRecordingSettingsRequest
+   */
+  mode: IndividualRecordingSettingsRequestModeEnum;
+}
+
+/**
+ * @export
+ */
+export const IndividualRecordingSettingsRequestModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type IndividualRecordingSettingsRequestModeEnum =
+  (typeof IndividualRecordingSettingsRequestModeEnum)[keyof typeof IndividualRecordingSettingsRequestModeEnum];
+
+/**
+ *
+ * @export
+ * @interface IndividualRecordingSettingsResponse
+ */
+export interface IndividualRecordingSettingsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof IndividualRecordingSettingsResponse
+   */
+  mode: IndividualRecordingSettingsResponseModeEnum;
+}
+
+/**
+ * @export
+ */
+export const IndividualRecordingSettingsResponseModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type IndividualRecordingSettingsResponseModeEnum =
+  (typeof IndividualRecordingSettingsResponseModeEnum)[keyof typeof IndividualRecordingSettingsResponseModeEnum];
+
 /**
  *
  * @export
@@ -5201,6 +5676,31 @@ export interface ListTranscriptionsResponse {
   transcriptions: Array<CallTranscription>;
 }
 /**
+ *
+ * @export
+ * @interface Location
+ */
+export interface Location {
+  /**
+   *
+   * @type {string}
+   * @memberof Location
+   */
+  continent_code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Location
+   */
+  country_iso_code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Location
+   */
+  subdivision_iso_code: string;
+}
+/**
  * MemberRequest is the payload for adding a member to a call.
  * @export
  * @interface MemberRequest
@@ -5487,11 +5987,15 @@ export const OwnCapability = {
   START_BROADCAST_CALL: 'start-broadcast-call',
   START_CLOSED_CAPTIONS_CALL: 'start-closed-captions-call',
   START_FRAME_RECORD_CALL: 'start-frame-record-call',
+  START_INDIVIDUAL_RECORD_CALL: 'start-individual-record-call',
+  START_RAW_RECORD_CALL: 'start-raw-record-call',
   START_RECORD_CALL: 'start-record-call',
   START_TRANSCRIPTION_CALL: 'start-transcription-call',
   STOP_BROADCAST_CALL: 'stop-broadcast-call',
   STOP_CLOSED_CAPTIONS_CALL: 'stop-closed-captions-call',
   STOP_FRAME_RECORD_CALL: 'stop-frame-record-call',
+  STOP_INDIVIDUAL_RECORD_CALL: 'stop-individual-record-call',
+  STOP_RAW_RECORD_CALL: 'stop-raw-record-call',
   STOP_RECORD_CALL: 'stop-record-call',
   STOP_TRANSCRIPTION_CALL: 'stop-transcription-call',
   UPDATE_CALL: 'update-call',
@@ -5587,10 +6091,10 @@ export interface OwnUserResponse {
   privacy_settings?: object;
   /**
    *
-   * @type {PushPreferences}
+   * @type {PushPreferencesResponse}
    * @memberof OwnUserResponse
    */
-  push_preferences?: PushPreferences;
+  push_preferences?: PushPreferencesResponse;
   /**
    *
    * @type {string}
@@ -6115,27 +6619,39 @@ export interface PublisherStatsResponse {
 /**
  *
  * @export
- * @interface PushPreferences
+ * @interface PushPreferencesResponse
  */
-export interface PushPreferences {
+export interface PushPreferencesResponse {
   /**
    *
    * @type {string}
-   * @memberof PushPreferences
+   * @memberof PushPreferencesResponse
    */
   call_level?: string;
   /**
    *
    * @type {string}
-   * @memberof PushPreferences
+   * @memberof PushPreferencesResponse
    */
   chat_level?: string;
   /**
    *
    * @type {string}
-   * @memberof PushPreferences
+   * @memberof PushPreferencesResponse
    */
   disabled_until?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PushPreferencesResponse
+   */
+  feeds_level?: string;
+  /**
+   *
+   * @type {FeedsPreferencesResponse}
+   * @memberof PushPreferencesResponse
+   */
+  feeds_preferences?: FeedsPreferencesResponse;
 }
 /**
  *
@@ -6508,6 +7024,97 @@ export interface QueryCallSessionParticipantStatsTimelineResponse {
   user_session_id: string;
 }
 /**
+ * Basic response information
+ * @export
+ * @interface QueryCallStatsMapResponse
+ */
+export interface QueryCallStatsMapResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  call_ended_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  call_started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  call_type: string;
+  /**
+   *
+   * @type {CallStatsParticipantCounts}
+   * @memberof QueryCallStatsMapResponse
+   */
+  counts: CallStatsParticipantCounts;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  data_source?: string;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  end_time?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  generated_at?: string;
+  /**
+   *
+   * @type {CallStatsMapPublishers}
+   * @memberof QueryCallStatsMapResponse
+   */
+  publishers?: CallStatsMapPublishers;
+  /**
+   *
+   * @type {CallStatsMapSFUs}
+   * @memberof QueryCallStatsMapResponse
+   */
+  sfus?: CallStatsMapSFUs;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallStatsMapResponse
+   */
+  start_time?: string;
+  /**
+   *
+   * @type {CallStatsMapSubscribers}
+   * @memberof QueryCallStatsMapResponse
+   */
+  subscribers?: CallStatsMapSubscribers;
+}
+/**
  *
  * @export
  * @interface QueryCallStatsRequest
@@ -6775,6 +7382,69 @@ export interface RTMPSettingsResponse {
    */
   quality: string;
 }
+/**
+ *
+ * @export
+ * @interface RawRecordingResponse
+ */
+export interface RawRecordingResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof RawRecordingResponse
+   */
+  status: string;
+}
+/**
+ *
+ * @export
+ * @interface RawRecordingSettingsRequest
+ */
+export interface RawRecordingSettingsRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof RawRecordingSettingsRequest
+   */
+  mode: RawRecordingSettingsRequestModeEnum;
+}
+
+/**
+ * @export
+ */
+export const RawRecordingSettingsRequestModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type RawRecordingSettingsRequestModeEnum =
+  (typeof RawRecordingSettingsRequestModeEnum)[keyof typeof RawRecordingSettingsRequestModeEnum];
+
+/**
+ *
+ * @export
+ * @interface RawRecordingSettingsResponse
+ */
+export interface RawRecordingSettingsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof RawRecordingSettingsResponse
+   */
+  mode: RawRecordingSettingsResponseModeEnum;
+}
+
+/**
+ * @export
+ */
+export const RawRecordingSettingsResponseModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type RawRecordingSettingsResponseModeEnum =
+  (typeof RawRecordingSettingsResponseModeEnum)[keyof typeof RawRecordingSettingsResponseModeEnum];
+
 /**
  *
  * @export
@@ -7192,6 +7862,37 @@ export interface SDKUsageReportResponse {
 /**
  *
  * @export
+ * @interface SFULocationResponse
+ */
+export interface SFULocationResponse {
+  /**
+   *
+   * @type {Coordinates}
+   * @memberof SFULocationResponse
+   */
+  coordinates: Coordinates;
+  /**
+   *
+   * @type {string}
+   * @memberof SFULocationResponse
+   */
+  datacenter: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SFULocationResponse
+   */
+  id: string;
+  /**
+   *
+   * @type {Location}
+   * @memberof SFULocationResponse
+   */
+  location: Location;
+}
+/**
+ *
+ * @export
  * @interface SFUResponse
  */
 export interface SFUResponse {
@@ -7436,6 +8137,12 @@ export interface SIPInboundRoutingRuleResponse {
    */
   caller_numbers?: Array<string>;
   /**
+   * Creation timestamp
+   * @type {string}
+   * @memberof SIPInboundRoutingRuleResponse
+   */
+  created_at: string;
+  /**
    *
    * @type {SIPDirectRoutingRuleCallConfigsResponse}
    * @memberof SIPInboundRoutingRuleResponse
@@ -7478,11 +8185,11 @@ export interface SIPInboundRoutingRuleResponse {
    */
   trunk_ids: Array<string>;
   /**
-   *
-   * @type {object}
+   * Last update timestamp
+   * @type {string}
    * @memberof SIPInboundRoutingRuleResponse
    */
-  updated_at: object;
+  updated_at: string;
 }
 /**
  * PIN protection configuration response
@@ -7522,11 +8229,11 @@ export interface SIPPinProtectionConfigsResponse {
  */
 export interface SIPTrunkResponse {
   /**
-   *
-   * @type {object}
+   * Creation timestamp
+   * @type {string}
    * @memberof SIPTrunkResponse
    */
-  created_at: object;
+  created_at: string;
   /**
    * Unique identifier for the SIP trunk
    * @type {string}
@@ -7552,11 +8259,11 @@ export interface SIPTrunkResponse {
    */
   password: string;
   /**
-   *
-   * @type {object}
+   * Last update timestamp
+   * @type {string}
    * @memberof SIPTrunkResponse
    */
-  updated_at: object;
+  updated_at: string;
   /**
    * The URI for the SIP trunk
    * @type {string}
@@ -8182,7 +8889,25 @@ export interface StopLiveRequest {
    * @type {boolean}
    * @memberof StopLiveRequest
    */
+  continue_composite_recording?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof StopLiveRequest
+   */
   continue_hls?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof StopLiveRequest
+   */
+  continue_individual_recording?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof StopLiveRequest
+   */
+  continue_raw_recording?: boolean;
   /**
    *
    * @type {boolean}
