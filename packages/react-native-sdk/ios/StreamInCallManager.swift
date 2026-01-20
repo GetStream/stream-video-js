@@ -16,6 +16,19 @@ enum DefaultAudioDevice {
     case earpiece
 }
 
+private enum Constants {
+    /// Debounce interval for refreshing stereo playout state after audio route changes.
+    ///
+    /// When audio routes change rapidly (e.g., connecting/disconnecting Bluetooth devices),
+    /// iOS can fire multiple `routeConfigurationChange` notifications in quick succession.
+    /// This debounce prevents excessive calls to `refreshStereoPlayoutState()` which can
+    /// cause audio glitches or unnecessary reconfiguration overhead.
+    ///
+    /// 500ms provides a good balance: long enough to coalesce rapid route change events,
+    /// but short enough that users won't perceive a delay when switching audio devices.
+    static let stereoRefreshDebounceSeconds: TimeInterval = 0.5
+}
+
 @objc(StreamInCallManager)
 class StreamInCallManager: RCTEventEmitter {
 
@@ -385,8 +398,8 @@ class StreamInCallManager: RCTEventEmitter {
                 self?.log("Executed debounced refreshStereoPlayoutState")
             }
             stereoRefreshWorkItem = workItem
-            // Schedule the work item after 2 seconds
-            audioSessionQueue.asyncAfter(deadline: .now() + 2.0, execute: workItem)
+            // Schedule the work item after debounce interval
+            audioSessionQueue.asyncAfter(deadline: .now() + Constants.stereoRefreshDebounceSeconds, execute: workItem)
         }
 
         logAudioState()
