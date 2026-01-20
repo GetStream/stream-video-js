@@ -108,12 +108,21 @@ export type ConnectionRecoveredEvent = {
   type: 'connection.recovered';
 };
 
+export type MicCaptureReportEvent = {
+  type: 'mic.capture_report';
+  deviceId?: string;
+  label?: string;
+  capturesAudio: boolean;
+  noAudioDurationMs?: number;
+};
+
 export type StreamVideoEvent = (
   | VideoEvent
   | NetworkChangedEvent
   | ConnectionChangedEvent
   | TransportChangedEvent
   | ConnectionRecoveredEvent
+  | MicCaptureReportEvent
 ) & { received_at?: string | Date };
 
 // TODO: we should use WSCallEvent here but that needs fixing

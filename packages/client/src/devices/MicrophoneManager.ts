@@ -10,6 +10,7 @@ import { TrackDisableMode } from './DeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
 import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
+import { createNoAudioDetector } from '../helpers/no-audio-detector';
 import { isReactNative } from '../helpers/platforms';
 import {
   AudioSettingsResponse,
@@ -33,12 +34,16 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   private noiseCancellationChangeUnsubscribe: (() => void) | undefined;
   private noiseCancellationRegistration?: Promise<void>;
   private unregisterNoiseCancellation?: () => Promise<void>;
+  private noAudioDetectorCleanup?: Function;
+  private noAudioDetectorConcurrencyTag = Symbol('noAudioDetectorTag');
+  private silenceThresholdMs = 5000;
 
   constructor(call: Call, disableMode: TrackDisableMode = 'stop-tracks') {
     super(call, new MicrophoneManagerState(disableMode), TrackType.AUDIO);
   }
 
   override setup(): void {
+    if (this.areSubscriptionsSetUp) return;
     super.setup();
     this.subscriptions.push(
       createSafeAsyncSubscription(
@@ -107,6 +112,21 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
             .catch((err) => {
               this.logger.warn(`Failed to disable noise cancellation`, err);
             });
+        }
+      }),
+    );
+
+    this.subscriptions.push(
+      createSafeAsyncSubscription(this.state.status$, async (status) => {
+        try {
+          if (status === 'enabled') {
+            await this.stopNoAudioDetection();
+            await this.startNoAudioDetection();
+          } else {
+            await this.stopNoAudioDetection();
+          }
+        } catch (err) {
+          this.logger.warn('Could not enable no-audio detection', err);
         }
       }),
     );
@@ -225,6 +245,17 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   }
 
   /**
+   * Sets the silence threshold in milliseconds for no-audio detection.
+   * When the microphone is enabled but produces no audio for this duration,
+   * a 'mic.no_audio' event will be emitted.
+   *
+   * @param thresholdMs the threshold in milliseconds (default: 5000).
+   */
+  setSilenceThreshold(thresholdMs: number) {
+    this.silenceThresholdMs = thresholdMs;
+  }
+
+  /**
    * Applies the audio settings to the microphone.
    * @param settings the audio settings to apply.
    * @param publish whether to publish the stream after applying the settings.
@@ -284,7 +315,6 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
     await withoutConcurrency(this.soundDetectorConcurrencyTag, async () => {
-      await this.stopSpeakingWhileMutedDetection();
       if (isReactNative()) {
         this.rnSpeechDetector = new RNSpeechDetector();
         const unsubscribe = await this.rnSpeechDetector.start((event) => {
@@ -313,6 +343,111 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.soundDetectorCleanup = undefined;
       this.state.setSpeakingWhileMuted(false);
       await soundDetectorCleanup();
+    });
+  }
+
+  private async startNoAudioDetection() {
+    await withoutConcurrency(this.noAudioDetectorConcurrencyTag, async () => {
+      const { mediaStream } = this.state;
+      if (!mediaStream) return;
+
+      if (isReactNative()) {
+        // React Native implementation using RNSpeechDetector
+        this.rnSpeechDetector = new RNSpeechDetector();
+        let noAudioStartTime: number | null = null;
+        let lastEmitTime: number | null = null;
+        let checkIntervalId: NodeJS.Timeout | undefined;
+        let shouldStop = false;
+
+        const unsubscribe = await this.rnSpeechDetector.start((event) => {
+          if (shouldStop) return;
+
+          if (!event.isSoundDetected) {
+            // No audio detected
+            if (noAudioStartTime === null) {
+              noAudioStartTime = Date.now();
+              lastEmitTime = null;
+
+              // Start checking periodically if we should emit
+              checkIntervalId = setInterval(() => {
+                if (noAudioStartTime === null || shouldStop) return;
+
+                const elapsed = Date.now() - noAudioStartTime;
+
+                // Check if we should emit (past threshold and enough time since last emit)
+                const shouldEmit =
+                  elapsed >= this.silenceThresholdMs &&
+                  (!lastEmitTime ||
+                    Date.now() - lastEmitTime >= this.silenceThresholdMs);
+
+                if (shouldEmit) {
+                  lastEmitTime = Date.now();
+                  const audioTrack = mediaStream.getAudioTracks()[0];
+                  this.call.streamClient.dispatchEvent({
+                    type: 'mic.capture_report',
+                    capturesAudio: false,
+                    deviceId: this.state.selectedDevice,
+                    label: audioTrack?.label,
+                    noAudioDurationMs: elapsed,
+                  });
+                }
+              }, 500); // Check every 500ms
+            }
+          } else {
+            // Sound detected
+            const wasInNoAudioState = noAudioStartTime !== null;
+
+            if (wasInNoAudioState) {
+              // Emit final event with capturesAudio: true
+              const audioTrack = mediaStream.getAudioTracks()[0];
+              this.call.streamClient.dispatchEvent({
+                type: 'mic.capture_report',
+                capturesAudio: true,
+                deviceId: this.state.selectedDevice,
+                label: audioTrack?.label,
+              });
+
+              // Stop monitoring
+              shouldStop = true;
+            }
+
+            // Reset everything
+            noAudioStartTime = null;
+            lastEmitTime = null;
+            if (checkIntervalId) {
+              clearInterval(checkIntervalId);
+              checkIntervalId = undefined;
+            }
+          }
+        });
+
+        this.noAudioDetectorCleanup = () => {
+          if (checkIntervalId) clearInterval(checkIntervalId);
+          unsubscribe();
+          this.rnSpeechDetector = undefined;
+        };
+      } else {
+        // Browser implementation using no-audio detector helper
+        this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
+          noAudioThresholdMs: this.silenceThresholdMs,
+          emitIntervalMs: this.silenceThresholdMs,
+          onCaptureStatusChange: (event) => {
+            this.call.streamClient.dispatchEvent({
+              type: 'mic.capture_report',
+              ...event,
+            });
+          },
+        });
+      }
+    });
+  }
+
+  private async stopNoAudioDetection() {
+    await withoutConcurrency(this.noAudioDetectorConcurrencyTag, async () => {
+      if (!this.noAudioDetectorCleanup) return;
+      const noAudioDetectorCleanup = this.noAudioDetectorCleanup;
+      this.noAudioDetectorCleanup = undefined;
+      await noAudioDetectorCleanup();
     });
   }
 }
