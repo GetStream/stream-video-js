@@ -68,8 +68,12 @@ export const setStartBitrate = (
 
       if (existingFmtp) {
         // Append to existing fmtp if not already present
-        if (!existingFmtp.config.includes('x-google-start-bitrate')) {
-          existingFmtp.config += `;x-google-start-bitrate=${startBitrate}`;
+        // Guard against undefined or empty config from malformed SDP
+        const config = existingFmtp.config ?? '';
+        if (!config.includes('x-google-start-bitrate')) {
+          existingFmtp.config = config
+            ? `${config};x-google-start-bitrate=${startBitrate}`
+            : `x-google-start-bitrate=${startBitrate}`;
         }
       } else {
         // Create new fmtp entry if none exists
