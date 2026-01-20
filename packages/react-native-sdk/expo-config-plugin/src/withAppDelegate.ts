@@ -119,7 +119,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
         if (props?.ringing) {
           config.modResults.contents = addSwiftImports(
             config.modResults.contents,
-            ['PushKit'],
+            ['PushKit', 'stream_video_react_native'],
           );
           config.modResults.contents =
             addDidFinishLaunchingWithOptionsRingingSwift(

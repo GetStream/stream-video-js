@@ -20,6 +20,7 @@ type ManifestService = Unpacked<
   NonNullable<AndroidConfig.Manifest.ManifestApplication['service']>
 >;
 
+//TODO: Remove after getting rid of Notifee
 function getNotifeeService(isKeepCallAliveEnabled = false) {
   /* We add this service to the AndroidManifest.xml:
     <service
@@ -49,24 +50,6 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
 ) => {
   return withAndroidManifest(configuration, (config) => {
     const androidManifest = config.modResults;
-    const mainApplication = getMainApplicationOrThrow(androidManifest);
-    if (props?.ringing || props?.androidKeepCallAlive) {
-      ensureToolsAvailable(androidManifest);
-      let services = mainApplication.service ?? [];
-
-      // Add Notifee foreground service ONLY for ringing push notifications.
-      if (props?.ringingPushNotifications) {
-        // we filter out the existing notifee service (if any) so that we can override it
-        services = services.filter(
-          (service) =>
-            service.$['android:name'] !== 'app.notifee.core.ForegroundService',
-        );
-        services.push(getNotifeeService(false));
-      }
-
-      mainApplication.service = services;
-    }
-
     if (props?.androidPictureInPicture) {
       const mainActivity = getMainActivityOrThrow(androidManifest);
       const currentConfigChangesArray = mainActivity.$['android:configChanges']
