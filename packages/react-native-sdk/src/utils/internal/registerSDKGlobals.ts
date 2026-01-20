@@ -3,10 +3,6 @@ import { NativeModules } from 'react-native';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
 
-declare global {
-  var streamRNVideoSDK: StreamRNVideoSDKGlobals | undefined;
-}
-
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callManager: {
     setup: ({ default_device }) => {
@@ -24,6 +20,9 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   },
 };
 
+// Note: The global type declaration for `streamRNVideoSDK` is defined in
+// @stream-io/video-client/src/types.ts and is automatically available when
+// importing from the client package.
 export function registerSDKGlobals() {
   if (!global.streamRNVideoSDK) {
     global.streamRNVideoSDK = streamRNVideoSDKGlobals;
