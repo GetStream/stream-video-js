@@ -137,6 +137,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
               this.call.tracer.trace('mic.capture_report', event);
               this.call.streamClient.dispatchEvent({
                 type: 'mic.capture_report',
+                call_cid: this.call.cid,
                 ...event,
               });
             },

@@ -114,6 +114,7 @@ export type MicCaptureReportEvent = {
   label?: string;
   capturesAudio: boolean;
   noAudioDurationMs?: number;
+  call_cid: string;
 };
 
 export type StreamVideoEvent = (
@@ -127,7 +128,7 @@ export type StreamVideoEvent = (
 
 // TODO: we should use WSCallEvent here but that needs fixing
 export type StreamCallEvent = Extract<StreamVideoEvent, { call_cid: string }>;
-export type EventTypes = 'all' | VideoEvent['type'];
+export type EventTypes = 'all' | StreamVideoEvent['type'];
 
 export type AllClientEventTypes = 'all' | StreamVideoEvent['type'];
 export type AllClientEvents = {
@@ -138,7 +139,7 @@ export type ClientEventListener<E extends keyof AllClientEvents> = (
 ) => void;
 
 export type AllClientCallEvents = {
-  [K in EventTypes]: Extract<VideoEvent, { type: K }>;
+  [K in EventTypes]: Extract<StreamVideoEvent, { type: K }>;
 };
 
 export type AllCallEvents = AllClientCallEvents & AllSfuEvents;
