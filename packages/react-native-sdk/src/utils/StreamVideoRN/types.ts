@@ -4,7 +4,6 @@ import {
   type Call,
 } from '@stream-io/video-client';
 import type { AndroidChannel } from '@notifee/react-native';
-import type { CallingExpOptions } from '../push/libs/callingx';
 
 export type KeepAliveAndroidChannelConfig = {
   id: string;

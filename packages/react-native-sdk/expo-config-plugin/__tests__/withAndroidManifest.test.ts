@@ -27,9 +27,6 @@ jest.mock('@expo/config-plugins', () => {
 const readAndroidManifestAsync =
   AndroidConfig.Manifest.readAndroidManifestAsync;
 
-const getMainApplicationOrThrow =
-  AndroidConfig.Manifest.getMainApplicationOrThrow;
-
 const getMainActivityOrThrow = AndroidConfig.Manifest.getMainActivityOrThrow;
 
 const sampleManifestPath = getFixturePath('AndroidManifest.xml');
