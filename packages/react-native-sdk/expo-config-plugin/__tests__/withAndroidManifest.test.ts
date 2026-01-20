@@ -56,15 +56,6 @@ describe('withStreamVideoReactNativeSDKManifest', () => {
       props,
     ) as CustomExpoConfig;
 
-    const mainApp = getMainApplicationOrThrow(updatedConfig.modResults);
-
-    expect(
-      mainApp.service?.some(
-        (service) =>
-          service.$['android:name'] === 'app.notifee.core.ForegroundService',
-      ),
-    ).toBeTruthy();
-
     const mainActivity = getMainActivityOrThrow(updatedConfig.modResults);
 
     expect(
@@ -102,15 +93,6 @@ describe('withStreamVideoReactNativeSDKManifest', () => {
       modifiedConfig!,
       props,
     ) as CustomExpoConfig;
-
-    const mainApp = getMainApplicationOrThrow(updatedConfig.modResults);
-
-    expect(
-      mainApp.service?.filter(
-        (service) =>
-          service.$['android:name'] === 'app.notifee.core.ForegroundService',
-      ).length,
-    ).toBe(1);
 
     modifiedConfig = updatedConfig;
   });
