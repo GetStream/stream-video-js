@@ -391,15 +391,6 @@ export class Publisher extends BasePeerConnection {
           ? removeCodecsExcept(baseSdp, dangerouslyForceCodec, fmtpLine)
           : baseSdp;
         if (dangerouslySetStartBitrateFactor !== undefined) {
-          if (
-            dangerouslySetStartBitrateFactor < 0 ||
-            dangerouslySetStartBitrateFactor > 1
-          ) {
-            this.logger.warn(
-              'dangerouslySetStartBitrateFactor should be between 0 and 1, got:',
-              dangerouslySetStartBitrateFactor,
-            );
-          }
           this.transceiverCache.items().forEach((t) => {
             if (t.publishOption.trackType !== TrackType.VIDEO) return;
             const maxBitrateBps = t.publishOption.bitrate;
