@@ -258,9 +258,10 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   /**
    * Sets the silence threshold in milliseconds for no-audio detection.
    * When the microphone is enabled but produces no audio for this duration,
-   * a 'mic.no_audio' event will be emitted.
+   * a 'mic.capture_report' event will be emitted.
    *
    * @param thresholdMs the threshold in milliseconds (default: 5000).
+   *   Set to 0 or a negative value to disable no-audio detection.
    */
   setSilenceThreshold(thresholdMs: number) {
     this.silenceThresholdMs = thresholdMs;
@@ -359,6 +360,8 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
   private async startNoAudioDetection() {
     await withoutConcurrency(this.noAudioDetectorConcurrencyTag, async () => {
+      if (this.silenceThresholdMs <= 0) return;
+
       const { mediaStream } = this.state;
       if (!mediaStream) return;
 
