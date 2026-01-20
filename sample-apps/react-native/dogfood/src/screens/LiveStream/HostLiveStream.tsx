@@ -1,6 +1,5 @@
 import {
   Call,
-  callManager,
   HostLivestream,
   StreamCall,
   useConnectedUser,
@@ -74,13 +73,6 @@ export const HostLiveStreamScreen = ({
 
     getOrCreateCall();
   }, [call, connectedUser, navigation]);
-
-  useEffect(() => {
-    callManager.start();
-    return () => {
-      callManager.stop();
-    };
-  }, []);
 
   const CustomHostLivestreamMediaControls = useCallback(() => {
     return (

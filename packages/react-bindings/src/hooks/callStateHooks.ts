@@ -58,6 +58,22 @@ export const useIsCallRecordingInProgress = (): boolean => {
 };
 
 /**
+ * Utility hook which provides information whether the raw track recording is running.
+ */
+export const useIsCallRawRecordingInProgress = (): boolean => {
+  const { rawRecording$ } = useCallState();
+  return useObservableValue(rawRecording$);
+};
+
+/**
+ * Utility hook which provides information whether the individual track recording is running.
+ */
+export const useIsCallIndividualRecordingInProgress = (): boolean => {
+  const { individualRecording$ } = useCallState();
+  return useObservableValue(individualRecording$);
+};
+
+/**
  * Utility hook which provides information whether the current call is broadcasting.
  */
 export const useIsCallHLSBroadcastingInProgress = (): boolean => {

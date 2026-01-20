@@ -4,6 +4,7 @@ import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.os.Build
+import androidx.annotation.RequiresApi
 import com.facebook.react.bridge.ReactContext
 import com.oney.WebRTCModule.WebRTCModule
 import org.webrtc.audio.JavaAudioDeviceModule
@@ -25,18 +26,31 @@ class AudioFocusUtil(
     private lateinit var request: AudioFocusRequest
 
 
+    @RequiresApi(26)
+    private fun getAudioAttributes(mode: CallAudioRole): AudioAttributes {
+        return AudioAttributes.Builder()
+            .setUsage(if (mode == CallAudioRole.Communicator) AudioAttributes.USAGE_VOICE_COMMUNICATION else AudioAttributes.USAGE_MEDIA)
+            .setContentType(if (mode == CallAudioRole.Communicator) AudioAttributes.CONTENT_TYPE_SPEECH else AudioAttributes.CONTENT_TYPE_MUSIC)
+            .build()
+    }
+
+    private fun setup(audioAttributes: AudioAttributes, reactContext: ReactContext) {
+        val webRTCModule = reactContext.getNativeModule(WebRTCModule::class.java)!!
+        val adm = webRTCModule.audioDeviceModule as JavaAudioDeviceModule
+        WebRtcAudioTrackHelper.setAudioOutputAttributes(adm, audioAttributes)
+    }
+
+    fun setup(mode: CallAudioRole, reactContext: ReactContext) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val audioAttributes = getAudioAttributes(mode)
+            setup(audioAttributes, reactContext)
+        }
+    }
 
     fun requestFocus(mode: CallAudioRole, reactContext: ReactContext) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val audioAttributes = AudioAttributes.Builder()
-                .setUsage(if (mode == CallAudioRole.Communicator) AudioAttributes.USAGE_VOICE_COMMUNICATION else AudioAttributes.USAGE_MEDIA)
-                .setContentType(if (mode == CallAudioRole.Communicator) AudioAttributes.CONTENT_TYPE_SPEECH else AudioAttributes.CONTENT_TYPE_MUSIC)
-                .build()
-
-            // 1. set audio attributes to webrtc
-            val webRTCModule = reactContext.getNativeModule(WebRTCModule::class.java)!!
-            val adm = webRTCModule.audioDeviceModule as JavaAudioDeviceModule
-            WebRtcAudioTrackHelper.setAudioOutputAttributes(adm, audioAttributes)
+            val audioAttributes = getAudioAttributes(mode)
+            setup(audioAttributes, reactContext)
 
             // 2. request the audio focus with the audio attributes
             request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)

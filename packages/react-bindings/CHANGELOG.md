@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.10...@stream-io/video-react-bindings-1.13.0) (2026-01-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.0`
+
+### Features
+
+- **recording:** Support for Individual, Raw and Composite recording ([#2071](https://github.com/GetStream/stream-video-js/issues/2071)) ([e53269c](https://github.com/GetStream/stream-video-js/commit/e53269ce697121b70dbebaf4a6d2cf875440a2af))
+
 ## [1.12.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.9...@stream-io/video-react-bindings-1.12.10) (2026-01-16)
 
 ### Dependency Updates

@@ -1950,7 +1950,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-video (6.18.0):
+  - react-native-video (6.19.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -1968,7 +1968,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-video/Video (= 6.18.0)
+    - react-native-video/Video (= 6.19.0)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -1979,7 +1979,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-video/Fabric (6.18.0):
+  - react-native-video/Fabric (6.19.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2007,7 +2007,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-video/Video (6.18.0):
+  - react-native-video/Video (6.19.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2755,7 +2755,7 @@ PODS:
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNScreens (4.19.0):
+  - RNScreens (4.20.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2782,10 +2782,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 4.19.0)
+    - RNScreens/common (= 4.20.0)
     - SocketRocket
     - Yoga
-  - RNScreens/common (4.19.0):
+  - RNScreens/common (4.20.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -2990,7 +2990,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - stream-io-noise-cancellation-react-native (0.4.4):
+  - stream-io-noise-cancellation-react-native (0.5.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3020,7 +3020,7 @@ PODS:
     - stream-react-native-webrtc
     - StreamVideoNoiseCancellation
     - Yoga
-  - stream-io-video-filters-react-native (0.9.3):
+  - stream-io-video-filters-react-native (0.10.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3049,10 +3049,10 @@ PODS:
     - SocketRocket
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (137.0.2):
+  - stream-react-native-webrtc (137.1.0):
     - React-Core
-    - StreamWebRTC (~> 137.0.52)
-  - stream-video-react-native (1.26.5):
+    - StreamWebRTC (~> 137.0.54)
+  - stream-video-react-native (1.28.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3438,7 +3438,7 @@ SPEC CHECKSUMS:
   react-native-mmkv: c70c58437c0f5e5fe6992f1de1e350dcdd236332
   react-native-netinfo: f0a9899081c185db1de5bb2fdc1c88c202a059ac
   react-native-safe-area-context: fea29ae0275beaa22f72d0a8be1eb0ab09c3feae
-  react-native-video: f9758cda5b9dd6fd378389002f28f3f19017a406
+  react-native-video: d7c758820331cdbccbc4388d7533680ab2a44320
   React-NativeModulesApple: 8ce162c145e6b9767bb37a090c77d3d28f7d32b5
   React-oscompat: eb0626e8ba1a2c61673c991bf9dc21834898475d
   React-perflogger: d0d0d1b884120fa0a13bd38ac5e9c3c8e8bfe82a
@@ -3477,15 +3477,15 @@ SPEC CHECKSUMS:
   RNPermissions: 0eb55c93f1c19d1b1713e27bce206eee4f34e34c
   RNReactNativeHapticFeedback: 43c09eb41d8321be2e1375cb87ae734e58f677b0
   RNReanimated: b08164c6ffd3e5a32e25006d8cbd45fe3a0e3f87
-  RNScreens: c73f6bcfc19e209736c4e069f62b0f274535214b
+  RNScreens: d61eb089662cb40d69a76e2ab4f428a2a9f32b09
   RNSVG: 46be54b3378a27b412e0c290e41fecd69ffa1171
   RNWorklets: 7009206bd2f62421bf6da0e9c823c1d64e4da634
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   stream-chat-react-native: 554a18e96d367911aa2a8ea4508d547471985c81
-  stream-io-noise-cancellation-react-native: c04f894690636f330251be40629b5de1b1d9b398
-  stream-io-video-filters-react-native: c64fef34a80b464821adad025705e28f16dcfb28
-  stream-react-native-webrtc: 3cd9c4c662a196c7cf3faf968c6caab081283ada
-  stream-video-react-native: 8e3cdf19dddfd957120c9896ed39b2afb14c8890
+  stream-io-noise-cancellation-react-native: 1280dabe0c1498d9d5ef70cf5412456d663979f4
+  stream-io-video-filters-react-native: d2eae40d043afbecb48c81fe8cf6f9f395fbbd55
+  stream-react-native-webrtc: 62578b23cffb2ab8ca14516e7de95c533d9668dd
+  stream-video-react-native: 7ea081924914782db47ee14f0e3475beb1cd34c6
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: 57bd35729bcc46b008de4e741a5b23ac28b8854d
   VisionCamera: 68d40255fa8866e815cbbb063730102d3da276fd

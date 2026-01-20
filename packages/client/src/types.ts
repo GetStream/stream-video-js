@@ -4,10 +4,14 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
+  CallRecordingStartedEventRecordingTypeEnum,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
   ReactionResponse,
+  AudioSettingsRequestDefaultDeviceEnum,
+  StartRecordingRequest,
+  StartRecordingResponse,
 } from './gen/coordinator';
 import type { StreamClient } from './coordinator/connection/client';
 import type { Comparator } from './sorting';
@@ -329,6 +333,44 @@ export type CallConstructor = {
    */
   clientStore: StreamVideoWriteableStateStore;
 };
+
+export type CallRecordingType = CallRecordingStartedEventRecordingTypeEnum;
+export type StartCallRecordingFnType = {
+  (): Promise<StartRecordingResponse>;
+  (type: CallRecordingType): Promise<StartRecordingResponse>;
+  (request: StartRecordingRequest): Promise<StartRecordingResponse>;
+  (
+    request: StartRecordingRequest,
+    type: CallRecordingType,
+  ): Promise<StartRecordingResponse>;
+};
+
+export type StreamRNVideoSDKGlobals = {
+  callManager: {
+    /**
+     * Sets up the in call manager.
+     */
+    setup({
+      default_device,
+    }: {
+      default_device: AudioSettingsRequestDefaultDeviceEnum;
+    }): void;
+
+    /**
+     * Starts the in call manager.
+     */
+    start(): void;
+
+    /**
+     * Stops the in call manager.
+     */
+    stop(): void;
+  };
+};
+
+declare global {
+  var streamRNVideoSDK: StreamRNVideoSDKGlobals | undefined;
+}
 
 /**
  * The options to pass to {@link Call.join} method.

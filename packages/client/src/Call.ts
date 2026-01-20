@@ -109,9 +109,11 @@ import {
   AudioTrackType,
   CallConstructor,
   CallLeaveOptions,
+  CallRecordingType,
   ClientPublishOptions,
   ClosedCaptionsSettings,
   JoinCallData,
+  StartCallRecordingFnType,
   TrackMuteType,
   VideoTrackType,
 } from './types';
@@ -662,6 +664,8 @@ export class Call {
       this.cancelAutoDrop();
       this.clientStore.unregisterCall(this);
 
+      globalThis.streamRNVideoSDK?.callManager.stop();
+
       this.camera.dispose();
       this.microphone.dispose();
       this.screenShare.dispose();
@@ -1113,6 +1117,7 @@ export class Call {
     // re-apply them on later reconnections or server-side data fetches
     if (!this.deviceSettingsAppliedOnce && this.state.settings) {
       await this.applyDeviceConfig(this.state.settings, true);
+      globalThis.streamRNVideoSDK?.callManager.start();
       this.deviceSettingsAppliedOnce = true;
     }
 
@@ -2096,20 +2101,33 @@ export class Call {
   /**
    * Starts recording the call
    */
-  startRecording = async (request?: StartRecordingRequest) => {
+  startRecording: StartCallRecordingFnType = async (
+    dataOrType?: StartRecordingRequest | CallRecordingType,
+    type?: CallRecordingType,
+  ): Promise<StartRecordingResponse> => {
+    type = typeof dataOrType === 'string' ? dataOrType : type;
+    dataOrType = typeof dataOrType === 'string' ? undefined : dataOrType;
+
+    const endpoint = !type
+      ? `/start_recording`
+      : `/recordings/${encodeURIComponent(type)}/start`;
+
     return this.streamClient.post<
       StartRecordingResponse,
       StartRecordingRequest
-    >(`${this.streamClientBasePath}/start_recording`, request ? request : {});
+    >(`${this.streamClientBasePath}${endpoint}`, dataOrType);
   };
 
   /**
    * Stops recording the call
    */
-  stopRecording = async () => {
+  stopRecording = async (type?: CallRecordingType) => {
+    const endpoint = !type
+      ? `/stop_recording`
+      : `/recordings/${encodeURIComponent(type)}/stop`;
+
     return this.streamClient.post<StopRecordingResponse>(
-      `${this.streamClientBasePath}/stop_recording`,
-      {},
+      `${this.streamClientBasePath}${endpoint}`,
     );
   };
 
@@ -2676,6 +2694,9 @@ export class Call {
     settings: CallSettingsResponse,
     publish: boolean,
   ) => {
+    globalThis.streamRNVideoSDK?.callManager.setup({
+      default_device: settings.audio.default_device,
+    });
     await this.camera.apply(settings.video, publish).catch((err) => {
       this.logger.warn('Camera init failed', err);
     });

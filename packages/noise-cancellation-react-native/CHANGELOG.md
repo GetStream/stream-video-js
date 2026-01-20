@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.4...@stream-io/noise-cancellation-react-native-0.5.0) (2026-01-20)
+
+### Features
+
+- stereo audio output support RN-332 ([#2038](https://github.com/GetStream/stream-video-js/issues/2038)) ([2938037](https://github.com/GetStream/stream-video-js/commit/2938037d18e70ccf112a089eb3ec44cb034aed1d))
+
 ## [0.4.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.3...@stream-io/noise-cancellation-react-native-0.4.4) (2025-12-18)
 
 ### Bug Fixes

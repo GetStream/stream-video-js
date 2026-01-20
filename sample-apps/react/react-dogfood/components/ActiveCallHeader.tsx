@@ -40,6 +40,7 @@ const LatencyIndicator = () => {
 const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
   const [elapsed, setElapsed] = useState<string>();
   const startedAtDate = useMemo(
+    // eslint-disable-next-line react-hooks/purity
     () => (startedAt ? new Date(startedAt).getTime() : Date.now()),
     [startedAt],
   );
@@ -88,9 +89,17 @@ export const ActiveCallHeader = ({
   selectedLayout,
   onMenuItemClick,
 }: { onLeave: () => void } & LayoutSelectorProps) => {
-  const { useCallCallingState, useCallSession, useIsCallRecordingInProgress } =
-    useCallStateHooks();
+  const {
+    useCallCallingState,
+    useCallSession,
+    useIsCallRecordingInProgress,
+    useIsCallRawRecordingInProgress,
+    useIsCallIndividualRecordingInProgress,
+  } = useCallStateHooks();
   const isRecordingInProgress = useIsCallRecordingInProgress();
+  const isRawRecordingInProgress = useIsCallRawRecordingInProgress();
+  const isIndividualRecordingInProgress =
+    useIsCallIndividualRecordingInProgress();
   const callingState = useCallCallingState();
   const session = useCallSession();
   const isOffline = callingState === CallingState.OFFLINE;
@@ -125,7 +134,9 @@ export const ActiveCallHeader = ({
         </div>
 
         <div className="rd__call-header__controls-group">
-          {isRecordingInProgress && <RecordingIndicator />}
+          {(isRecordingInProgress ||
+            isRawRecordingInProgress ||
+            isIndividualRecordingInProgress) && <RecordingIndicator />}
           <ParticipantCountIndicator />
           <Elapsed startedAt={session?.started_at} />
           <LatencyIndicator />
