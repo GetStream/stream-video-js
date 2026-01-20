@@ -16,6 +16,19 @@ enum DefaultAudioDevice {
     case earpiece
 }
 
+private enum Constants {
+    /// Debounce interval for refreshing stereo playout state after audio route changes.
+    ///
+    /// When audio routes change rapidly (e.g., connecting/disconnecting Bluetooth devices),
+    /// iOS can fire multiple `routeConfigurationChange` notifications in quick succession.
+    /// This debounce prevents excessive calls to `refreshStereoPlayoutState()` which can
+    /// cause audio glitches or unnecessary reconfiguration overhead.
+    ///
+    /// 500ms provides a good balance: long enough to coalesce rapid route change events,
+    /// but short enough that users won't perceive a delay when switching audio devices.
+    static let stereoRefreshDebounceSeconds: TimeInterval = 0.5
+}
+
 @objc(StreamInCallManager)
 class StreamInCallManager: RCTEventEmitter {
 
@@ -24,6 +37,7 @@ class StreamInCallManager: RCTEventEmitter {
     private var audioManagerActivated = false
     private var callAudioRole: CallAudioRole = .communicator
     private var defaultAudioDevice: DefaultAudioDevice = .speaker
+    private var enableStereo: Bool = false
     private var previousVolume: Float = 0.75
 
     private struct AudioSessionState {
@@ -32,8 +46,8 @@ class StreamInCallManager: RCTEventEmitter {
         let options: AVAudioSession.CategoryOptions
     }
 
-    private var previousAudioSessionState: AudioSessionState?
     private var hasRegisteredRouteObserver = false
+    private var stereoRefreshWorkItem: DispatchWorkItem?
 
     override func invalidate() {
         stop()
@@ -65,21 +79,87 @@ class StreamInCallManager: RCTEventEmitter {
             self.defaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
         }
     }
+    
+    @objc(setEnableStereoAudioOutput:)
+    func setEnableStereoAudioOutput(enabled: Bool) {
+        audioSessionQueue.async { [self] in
+            if audioManagerActivated {
+                log("AudioManager is already activated, enable stereo audio output cannot be changed.")
+                return
+            }
+            self.enableStereo = enabled
+        }
+    }
+    
+    @objc
+    func setup() {
+        audioSessionQueue.async { [self] in
+            let intendedCategory: AVAudioSession.Category!
+            let intendedMode: AVAudioSession.Mode!
+            let intendedOptions: AVAudioSession.CategoryOptions!
+            
+            let adm = getAudioDeviceModule()
+            let wasRecording = adm.isRecording
+            let wasPlaying = adm.isPlaying
+            adm.reset()
+
+            if (callAudioRole == .listener) {
+                // enables high quality audio playback but disables microphone
+                intendedCategory = .playback
+                intendedMode = .default
+                intendedOptions = []
+                // TODO: for stereo we should disallow BluetoothHFP and allow only allowBluetoothA2DP
+                // note: this is the behaviour of iOS native SDK, but fails here with (OSStatus error -50.)
+                // intendedOptions = self.enableStereo ? [.allowBluetoothA2DP] : []
+                if (self.enableStereo) {
+                    adm.setStereoPlayoutPreference(true)
+                }
+            } else {
+                intendedCategory = .playAndRecord
+                intendedMode = defaultAudioDevice == .speaker ? .videoChat : .voiceChat
+                
+                // XCode 16 and older don't expose .allowBluetoothHFP
+                // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
+                #if compiler(>=6.2) // For Xcode 26.0+
+                    let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
+                #else
+                    let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
+                #endif
+                intendedOptions = defaultAudioDevice == .speaker ? [bluetoothOption, .defaultToSpeaker] : [bluetoothOption]
+            }
+            log("Setup with category: \(intendedCategory.rawValue), mode: \(intendedMode.rawValue), options: \(String(describing: intendedOptions))")
+            let rtcConfig = RTCAudioSessionConfiguration.webRTC()
+            rtcConfig.category = intendedCategory.rawValue
+            rtcConfig.mode = intendedMode.rawValue
+            rtcConfig.categoryOptions = intendedOptions
+            RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
+            
+            let session = RTCAudioSession.sharedInstance()
+            session.lockForConfiguration()
+            defer {
+                session.unlockForConfiguration()
+            }
+            do {
+                try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
+                if (wasRecording) {
+                    try adm.setRecording(wasRecording)
+                }
+                if (wasPlaying) {
+                    try adm.setPlayout(wasPlaying)
+                }
+            } catch {
+                log("Error setting audio session: \(error.localizedDescription)")
+            }
+        }
+    }
 
     @objc
     func start() {
+        setup()
         audioSessionQueue.async { [self] in
             if audioManagerActivated {
                 return
             }
-            let session = AVAudioSession.sharedInstance()
-            previousAudioSessionState = AudioSessionState(
-                category: session.category,
-                mode: session.mode,
-                options: session.categoryOptions
-            )
-            configureAudioSession()
-            
             DispatchQueue.main.async {
                 // Enable wake lock to prevent the screen from dimming/locking during a call
                 UIApplication.shared.isIdleTimerDisabled = true
@@ -87,7 +167,23 @@ class StreamInCallManager: RCTEventEmitter {
                 self.registerAudioRouteObserver()
                 self.updateProximityMonitoring()
                 self.log("Wake lock enabled (idle timer disabled)")
+                self.log("defaultAudioDevice: \(self.defaultAudioDevice)")
             }
+            let session = RTCAudioSession.sharedInstance()
+            session.lockForConfiguration()
+            defer {
+                session.unlockForConfiguration()
+            }
+            do {
+                try session.setActive(true)
+                self.log("audio session activated")
+                let adm = getAudioDeviceModule()
+                try adm.setPlayout(true)
+                self.log("adm.setPlayout(true) done")
+            } catch {
+                log("Error activating audio session: \(error.localizedDescription)")
+            }
+            
             audioManagerActivated = true
         }
     }
@@ -103,21 +199,19 @@ class StreamInCallManager: RCTEventEmitter {
             defer {
                 session.unlockForConfiguration()
             }
-
             do {
                 try session.setActive(false)
+                let adm = getAudioDeviceModule()
+                adm.reset()
             } catch {
                 log("Error deactivating audio session: \(error.localizedDescription)")
             }
-            if let prev = previousAudioSessionState {
-                let session = AVAudioSession.sharedInstance()
-                do {
-                    try session.setCategory(prev.category, mode: prev.mode, options: prev.options)
-                } catch {
-                    log("Error restoring previous audio session: \(error.localizedDescription)")
-                }
-                previousAudioSessionState = nil
-            }
+            // Cancel any pending debounced stereo refresh
+            stereoRefreshWorkItem?.cancel()
+            stereoRefreshWorkItem = nil
+            callAudioRole = .communicator
+            defaultAudioDevice = .speaker
+            enableStereo = false
             audioManagerActivated = false
         }
         // Disable wake lock and proximity when call manager stops so the device can sleep again
@@ -129,68 +223,6 @@ class StreamInCallManager: RCTEventEmitter {
             UIApplication.shared.isIdleTimerDisabled = false
             self.log("Wake lock disabled (idle timer enabled)")
         }
-    }
-
-    private func configureAudioSession() {
-        let intendedCategory: AVAudioSession.Category!
-        let intendedMode: AVAudioSession.Mode!
-        let intendedOptions: AVAudioSession.CategoryOptions!
-
-        if (callAudioRole == .listener) {
-            // enables high quality audio playback but disables microphone
-            intendedCategory = .playback
-            intendedMode = .default
-            intendedOptions = []
-        } else {
-            intendedCategory = .playAndRecord
-            intendedMode = .voiceChat
-            
-            // XCode 16 and older don't expose .allowBluetoothHFP
-            // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
-            #if compiler(>=6.2) // For Xcode 26.0+
-                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
-            #else
-                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
-            #endif
-
-            if (defaultAudioDevice == .speaker) {
-                // defaultToSpeaker will route to speaker if nothing else is connected
-                intendedOptions = [bluetoothOption, .defaultToSpeaker]
-            } else {
-                // having no defaultToSpeaker makes sure audio goes to earpiece if nothing is connected
-                intendedOptions = [bluetoothOption]
-            }
-        }
-
-        // START: set the config that webrtc must use when it takes control
-        let rtcConfig = RTCAudioSessionConfiguration.webRTC()
-        rtcConfig.category = intendedCategory.rawValue
-        rtcConfig.mode = intendedMode.rawValue
-        rtcConfig.categoryOptions = intendedOptions
-        RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
-        // END
-
-        // START: activate the webrtc audio session
-        let session = RTCAudioSession.sharedInstance()
-        session.lockForConfiguration()
-        defer {
-            session.unlockForConfiguration()
-        }
-        do {
-            try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
-            try session.setActive(true)
-            log("configureAudioSession: setCategory success \(intendedCategory.rawValue) \(intendedMode.rawValue) \(intendedOptions.rawValue)")
-        } catch {
-            log("configureAudioSession: setCategory failed due to: \(error.localizedDescription)")
-            do {
-                try session.setMode(intendedMode)
-                try session.setActive(true)
-                log("configureAudioSession: setMode success \(intendedMode.rawValue)")
-            } catch {
-                log("configureAudioSession: Error setting mode: \(error.localizedDescription)")
-            }
-        }
-        // END
     }
 
     @objc(showAudioRoutePicker)
@@ -210,14 +242,22 @@ class StreamInCallManager: RCTEventEmitter {
 
     @objc(setForceSpeakerphoneOn:)
     func setForceSpeakerphoneOn(enable: Bool) {
-        let session = AVAudioSession.sharedInstance()
-        do {
-            try session.overrideOutputAudioPort(enable ? .speaker : .none)
-            try session.setActive(true)
-        } catch {
-            log("Error setting speakerphone: \(error)")
+        audioSessionQueue.async { [weak self] in
+            let session = RTCAudioSession.sharedInstance()
+            session.lockForConfiguration()
+            defer {
+                session.unlockForConfiguration()
+            }
+            let avAudioSession = AVAudioSession.sharedInstance()
+            do {
+                try avAudioSession.overrideOutputAudioPort(enable ? .speaker : .none)
+                try avAudioSession.setActive(true)
+            } catch {
+                self?.log("Error setting speakerphone: \(error)")
+            }
         }
     }
+
 
     @objc(setMicrophoneMute:)
     func setMicrophoneMute(enable: Bool) {
@@ -227,6 +267,16 @@ class StreamInCallManager: RCTEventEmitter {
     @objc
     func logAudioState() {
         let session = AVAudioSession.sharedInstance()
+        let adm = getAudioDeviceModule()
+        
+        // WebRTC wraps AVAudioSession with RTCAudioSession; log its state as well.
+        let rtcSession = RTCAudioSession.sharedInstance()
+        rtcSession.lockForConfiguration()
+        defer {
+            rtcSession.unlockForConfiguration()
+        }
+
+        let rtcAVSession = rtcSession.session
         let logString = """
         Audio State:
           Category: \(session.category.rawValue)
@@ -236,6 +286,19 @@ class StreamInCallManager: RCTEventEmitter {
           Category Options: \(session.categoryOptions)
           InputNumberOfChannels: \(session.inputNumberOfChannels)
           OutputNumberOfChannels: \(session.outputNumberOfChannels)
+          AdmIsPlaying: \(adm.isPlaying)
+          AdmIsRecording: \(adm.isRecording)
+        
+        RTC Audio State:
+          Wrapped Category: \(rtcAVSession.category.rawValue)
+          Wrapped Mode: \(rtcAVSession.mode.rawValue)
+          Wrapped Output Port: \(rtcAVSession.currentRoute.outputs.first?.portName ?? "N/A")
+          Wrapped Input Port: \(rtcAVSession.currentRoute.inputs.first?.portName ?? "N/A")
+          Wrapped Category Options: \(rtcAVSession.categoryOptions)
+          UseManualAudio: \(rtcSession.useManualAudio)
+          IsAudioEnabled: \(rtcSession.isAudioEnabled)
+          IsActive: \(rtcSession.isActive)
+          ActivationCount: \(rtcSession.activationCount)
         """
         log(logString)
     }
@@ -316,7 +379,34 @@ class StreamInCallManager: RCTEventEmitter {
         log("Unregistered AVAudioSession.routeChangeNotification observer")
     }
 
-    @objc private func handleAudioRouteChange(_ notification: Notification) {
+    @objc
+    private func handleAudioRouteChange(_ notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let reasonValue = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+              let reason = AVAudioSession.RouteChangeReason(rawValue: reasonValue) else {
+            return
+        }
+        
+        log("Audio route change reason: \(routeChangeReasonDescription(reason))")
+        
+        if reason == .routeConfigurationChange {
+            audioSessionQueue.async { [weak self] in
+                guard let self else { return }
+                // Cancel any pending debounced refresh
+                stereoRefreshWorkItem?.cancel()
+                // Create a new debounced work item
+                let workItem = DispatchWorkItem { [weak self] in
+                    self?.getAudioDeviceModule().refreshStereoPlayoutState()
+                    self?.log("Executed debounced refreshStereoPlayoutState")
+                }
+                stereoRefreshWorkItem = workItem
+                // Schedule the work item after debounce interval
+                audioSessionQueue.asyncAfter(deadline: .now() + Constants.stereoRefreshDebounceSeconds, execute: workItem)
+            }
+        }
+
+        logAudioState()
+        
         // Route changes can arrive on arbitrary queues; ensure UI-safe work on main
         DispatchQueue.main.async { [weak self] in
             self?.updateProximityMonitoring()
@@ -367,6 +457,18 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     // MARK: - Helper Methods
+    private func getAudioDeviceModule() -> AudioDeviceModule {
+        guard let bridge = self.bridge else {
+            fatalError("StreamInCallManager: RCTBridge is not available yet.")
+        }
+
+        guard let webrtcModule = bridge.module(forName: "WebRTCModule") as? WebRTCModule else {
+            fatalError("WebRTCModule is required but not registered with the bridge")
+        }
+
+        return webrtcModule.audioDeviceModule
+    }
+
     private func getCurrentWindow() -> UIWindow? {
         if #available(iOS 13.0, *) {
             return UIApplication.shared.connectedScenes
@@ -375,6 +477,29 @@ class StreamInCallManager: RCTEventEmitter {
                 .first(where: { $0.isKeyWindow })
         } else {
             return UIApplication.shared.keyWindow
+        }
+    }
+
+    private func routeChangeReasonDescription(_ reason: AVAudioSession.RouteChangeReason) -> String {
+        switch reason {
+        case .unknown:
+            return "unknown"
+        case .newDeviceAvailable:
+            return "newDeviceAvailable"
+        case .oldDeviceUnavailable:
+            return "oldDeviceUnavailable"
+        case .categoryChange:
+            return "categoryChange"
+        case .override:
+            return "override"
+        case .wakeFromSleep:
+            return "wakeFromSleep"
+        case .noSuitableRouteForCategory:
+            return "noSuitableRouteForCategory"
+        case .routeConfigurationChange:
+            return "routeConfigurationChange"
+        @unknown default:
+            return "unknown(\(reason.rawValue))"
         }
     }
 

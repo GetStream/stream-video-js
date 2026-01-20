@@ -81,6 +81,24 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun setEnableStereoAudioOutput(enabled: Boolean) {
+        AudioDeviceManager.runInAudioThread {
+            if (audioManagerActivated) {
+                Log.e(TAG, "setEnableStereoAudioOutput(): AudioManager is already activated and so enabling stereo audio output cannot be changed")
+                return@runInAudioThread
+            }
+            mAudioDeviceManager.enableStereo = enabled
+        }
+    }
+
+    @ReactMethod
+    fun setup() {
+        AudioDeviceManager.runInAudioThread {
+            mAudioDeviceManager.setup()
+        }
+    }
+
+    @ReactMethod
     fun start() {
         AudioDeviceManager.runInAudioThread {
             if (!audioManagerActivated) {
@@ -99,10 +117,12 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
                 Log.d(TAG, "stop() mAudioDeviceManager")
-                mAudioDeviceManager.stop()
+                reactApplicationContext.currentActivity?.let {
+                    mAudioDeviceManager.stop(it)
+                    audioManagerActivated = false
+                }
                 setMicrophoneMute(false)
                 setKeepScreenOn(false)
-                audioManagerActivated = false
             }
         }
     }
@@ -124,11 +144,16 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     @ReactMethod
     fun setForceSpeakerphoneOn(enable: Boolean) {
-        if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {
-            Log.e(TAG, "setForceSpeakerphoneOn() is not supported when audio role is not Communicator")
-            return
+        AudioDeviceManager.runInAudioThread {
+            if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {
+                Log.e(
+                    TAG,
+                    "setForceSpeakerphoneOn() is not supported when audio role is not Communicator"
+                )
+                return@runInAudioThread
+            }
+            mAudioDeviceManager.setSpeakerphoneOn(enable)
         }
-        mAudioDeviceManager.setSpeakerphoneOn(enable)
     }
 
     @ReactMethod
@@ -152,23 +177,32 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     @Suppress("unused")
     @ReactMethod
     fun chooseAudioDeviceEndpoint(endpointDeviceName: String) {
-        if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {
-            Log.e(TAG, "chooseAudioDeviceEndpoint() is not supported when audio role is not Communicator")
-            return
+        AudioDeviceManager.runInAudioThread {
+            if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {
+                Log.e(
+                    TAG,
+                    "chooseAudioDeviceEndpoint() is not supported when audio role is not Communicator"
+                )
+                return@runInAudioThread
+            }
+            mAudioDeviceManager.switchDeviceFromDeviceName(
+                endpointDeviceName
+            )
         }
-        mAudioDeviceManager.switchDeviceFromDeviceName(
-            endpointDeviceName
-        )
     }
 
     @ReactMethod
     fun muteAudioOutput() {
-        mAudioDeviceManager.muteAudioOutput()
+        AudioDeviceManager.runInAudioThread {
+            mAudioDeviceManager.muteAudioOutput()
+        }
     }
 
     @ReactMethod
     fun unmuteAudioOutput() {
-        mAudioDeviceManager.unmuteAudioOutput()
+        AudioDeviceManager.runInAudioThread {
+            mAudioDeviceManager.unmuteAudioOutput()
+        }
     }
 
 
