@@ -1,3 +1,6 @@
+import { RNSpeechDetector } from './RNSpeechDetector';
+import { isReactNative } from './platforms';
+
 export type NoAudioDetectorOptions = {
   /**
    * Defines how often the detector should check whether audio is present.
@@ -7,7 +10,8 @@ export type NoAudioDetectorOptions = {
 
   /**
    * Defines the audio level threshold. Values below this are considered no audio.
-   * Defaults to 150. This value should be in the range of 0-255.
+   * Defaults to 5. This value should be in the range of 0-255.
+   * Only applies to browser implementation.
    */
   audioLevelThreshold?: number;
 
@@ -28,6 +32,7 @@ export type NoAudioDetectorOptions = {
    * See https://developer.mozilla.org/en-US/docs/web/api/analysernode/fftsize
    *
    * Defaults to 256.
+   * Only applies to browser implementation.
    */
   fftSize?: number;
 
@@ -66,6 +71,11 @@ type TrackMetadata = {
 type DetectionState = {
   noAudioStartTime: number | null;
   lastEmitTime: number | null;
+};
+
+type RNDetectionState = DetectionState & {
+  checkIntervalId: NodeJS.Timeout | undefined;
+  shouldStop: boolean;
 };
 
 /**
@@ -110,7 +120,7 @@ const shouldEmitNoAudioEvent = (
 };
 
 /**
- * Handles the case when no audio is detected.
+ * Handles the case when no audio is detected (browser version).
  */
 const handleNoAudioDetected = (
   state: DetectionState,
@@ -130,8 +140,39 @@ const handleNoAudioDetected = (
 };
 
 /**
- * Handles the case when audio is detected after a period of no-audio.
- * Returns true if the detector should stop.
+ * Handles the case when no audio is detected (React Native version).
+ */
+const handleNoAudioDetectedRN = (
+  state: RNDetectionState,
+  options: NoAudioDetectorOptions,
+  detectionFrequencyInMs: number,
+): CaptureStatusEvent | undefined => {
+  // Initialize timing if this is the first detection
+  if (state.noAudioStartTime === null) {
+    state.noAudioStartTime = Date.now();
+    state.lastEmitTime = null;
+
+    // Start checking periodically if we should emit
+    state.checkIntervalId = setInterval(() => {
+      if (state.shouldStop) return;
+
+      if (shouldEmitNoAudioEvent(state, options)) {
+        const elapsed = Date.now() - state.noAudioStartTime!;
+        state.lastEmitTime = Date.now();
+
+        options.onCaptureStatusChange({
+          capturesAudio: false,
+          noAudioDurationMs: elapsed,
+        });
+      }
+    }, detectionFrequencyInMs);
+  }
+
+  return undefined;
+};
+
+/**
+ * Handles the case when audio is detected after a period of no-audio (browser version).
  */
 const handleAudioDetected = (
   state: DetectionState,
@@ -145,7 +186,29 @@ const handleAudioDetected = (
   state.noAudioStartTime = null;
   state.lastEmitTime = null;
 
-  // Signal to stop detector if we were in no-audio state
+  return undefined;
+};
+
+/**
+ * Handles the case when audio is detected after a period of no-audio (React Native version).
+ */
+const handleAudioDetectedRN = (
+  state: RNDetectionState,
+): CaptureStatusEvent | undefined => {
+  const wasInNoAudioState = state.noAudioStartTime !== null;
+  if (wasInNoAudioState) {
+    state.shouldStop = true;
+    return { capturesAudio: true };
+  }
+
+  // Reset timing state
+  state.noAudioStartTime = null;
+  state.lastEmitTime = null;
+  if (state.checkIntervalId) {
+    clearInterval(state.checkIntervalId);
+    state.checkIntervalId = undefined;
+  }
+
   return undefined;
 };
 
@@ -164,17 +227,9 @@ const createAudioAnalyzer = (audioStream: MediaStream, fftSize: number) => {
 };
 
 /**
- * Creates a new no-audio detector that monitors continuous absence of audio on an audio stream.
- * Unlike the sound detector which emits on every state change, this detector emits
- * events periodically while no audio is detected after a threshold duration.
- *
- * Useful for detecting broken microphone setups or muted/disconnected audio devices.
- *
- * @param audioStream the audio stream to observe.
- * @param options custom options for the no-audio detector.
- * @returns a cleanup function which once invoked stops the no-audio detector.
+ * Browser implementation using Web Audio API.
  */
-export const createNoAudioDetector = (
+const createBrowserDetector = (
   audioStream: MediaStream,
   options: NoAudioDetectorOptions,
 ) => {
@@ -219,4 +274,68 @@ export const createNoAudioDetector = (
       await audioContext.close();
     }
   };
+};
+
+/**
+ * React Native implementation using RNSpeechDetector.
+ */
+const createReactNativeDetector = (
+  audioStream: MediaStream,
+  options: NoAudioDetectorOptions,
+) => {
+  const { detectionFrequencyInMs = 500, onCaptureStatusChange } = options;
+
+  const speechDetector = new RNSpeechDetector();
+  const state: RNDetectionState = {
+    noAudioStartTime: null,
+    lastEmitTime: null,
+    checkIntervalId: undefined,
+    shouldStop: false,
+  };
+
+  // Main detection loop
+  const unsubscribePromise = speechDetector.start((speechEvent) => {
+    if (state.shouldStop) return;
+
+    const [audioTrack] = audioStream.getAudioTracks();
+
+    const event = speechEvent.isSoundDetected
+      ? handleAudioDetectedRN(state)
+      : handleNoAudioDetectedRN(state, options, detectionFrequencyInMs);
+
+    if (event) {
+      onCaptureStatusChange({ ...event, ...getTrackMetadata(audioTrack) });
+    }
+  });
+
+  return async function stop() {
+    if (state.checkIntervalId) {
+      clearInterval(state.checkIntervalId);
+    }
+    const unsubscribe = await unsubscribePromise;
+    unsubscribe();
+  };
+};
+
+/**
+ * Creates a new no-audio detector that monitors continuous absence of audio on an audio stream.
+ * Unlike the sound detector which emits on every state change, this detector emits
+ * events periodically while no audio is detected after a threshold duration.
+ *
+ * Useful for detecting broken microphone setups or muted/disconnected audio devices.
+ *
+ * Works on both browser (Web Audio API) and React Native (RNSpeechDetector) platforms.
+ *
+ * @param audioStream the audio stream to observe.
+ * @param options custom options for the no-audio detector.
+ * @returns a cleanup function which once invoked stops the no-audio detector.
+ */
+export const createNoAudioDetector = (
+  audioStream: MediaStream,
+  options: NoAudioDetectorOptions,
+) => {
+  if (isReactNative()) {
+    return createReactNativeDetector(audioStream, options);
+  }
+  return createBrowserDetector(audioStream, options);
 };

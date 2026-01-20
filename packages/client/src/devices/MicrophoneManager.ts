@@ -130,6 +130,17 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
         }
       }),
     );
+
+    this.subscriptions.push(
+      createSafeAsyncSubscription(this.state.selectedDevice$, async () => {
+        try {
+          await this.stopNoAudioDetection();
+          await this.startNoAudioDetection();
+        } catch (err) {
+          this.logger.warn('Could not restart no-audio detection', err);
+        }
+      }),
+    );
   }
 
   /**
@@ -351,94 +362,16 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       const { mediaStream } = this.state;
       if (!mediaStream) return;
 
-      if (isReactNative()) {
-        // React Native implementation using RNSpeechDetector
-        this.rnSpeechDetector = new RNSpeechDetector();
-        let noAudioStartTime: number | null = null;
-        let lastEmitTime: number | null = null;
-        let checkIntervalId: NodeJS.Timeout | undefined;
-        let shouldStop = false;
-
-        const unsubscribe = await this.rnSpeechDetector.start((event) => {
-          if (shouldStop) return;
-
-          if (!event.isSoundDetected) {
-            // No audio detected
-            if (noAudioStartTime === null) {
-              noAudioStartTime = Date.now();
-              lastEmitTime = null;
-
-              // Start checking periodically if we should emit
-              checkIntervalId = setInterval(() => {
-                if (noAudioStartTime === null || shouldStop) return;
-
-                const elapsed = Date.now() - noAudioStartTime;
-
-                // Check if we should emit (past threshold and enough time since last emit)
-                const shouldEmit =
-                  elapsed >= this.silenceThresholdMs &&
-                  (!lastEmitTime ||
-                    Date.now() - lastEmitTime >= this.silenceThresholdMs);
-
-                if (shouldEmit) {
-                  lastEmitTime = Date.now();
-                  const audioTrack = mediaStream.getAudioTracks()[0];
-                  this.call.streamClient.dispatchEvent({
-                    type: 'mic.capture_report',
-                    capturesAudio: false,
-                    deviceId: this.state.selectedDevice,
-                    label: audioTrack?.label,
-                    noAudioDurationMs: elapsed,
-                  });
-                }
-              }, 500); // Check every 500ms
-            }
-          } else {
-            // Sound detected
-            const wasInNoAudioState = noAudioStartTime !== null;
-
-            if (wasInNoAudioState) {
-              // Emit final event with capturesAudio: true
-              const audioTrack = mediaStream.getAudioTracks()[0];
-              this.call.streamClient.dispatchEvent({
-                type: 'mic.capture_report',
-                capturesAudio: true,
-                deviceId: this.state.selectedDevice,
-                label: audioTrack?.label,
-              });
-
-              // Stop monitoring
-              shouldStop = true;
-            }
-
-            // Reset everything
-            noAudioStartTime = null;
-            lastEmitTime = null;
-            if (checkIntervalId) {
-              clearInterval(checkIntervalId);
-              checkIntervalId = undefined;
-            }
-          }
-        });
-
-        this.noAudioDetectorCleanup = () => {
-          if (checkIntervalId) clearInterval(checkIntervalId);
-          unsubscribe();
-          this.rnSpeechDetector = undefined;
-        };
-      } else {
-        // Browser implementation using no-audio detector helper
-        this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
-          noAudioThresholdMs: this.silenceThresholdMs,
-          emitIntervalMs: this.silenceThresholdMs,
-          onCaptureStatusChange: (event) => {
-            this.call.streamClient.dispatchEvent({
-              type: 'mic.capture_report',
-              ...event,
-            });
-          },
-        });
-      }
+      this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
+        noAudioThresholdMs: this.silenceThresholdMs,
+        emitIntervalMs: this.silenceThresholdMs,
+        onCaptureStatusChange: (event) => {
+          this.call.streamClient.dispatchEvent({
+            type: 'mic.capture_report',
+            ...event,
+          });
+        },
+      });
     });
   }
 
