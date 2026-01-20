@@ -340,11 +340,7 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   // process the payload and display the incoming call notification
   [StreamVideoReactNative didReceiveIncomingPush:payload forType: (NSString *)type completionHandler:completion];
 `;
-  if (
-    !contents.includes(
-      '[StreamVideoReactNative didReceiveIncomingPushWithPayload',
-    )
-  ) {
+  if (!contents.includes('[StreamVideoReactNative didReceiveIncomingPush')) {
     const functionSelector =
       'pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:';
     const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);

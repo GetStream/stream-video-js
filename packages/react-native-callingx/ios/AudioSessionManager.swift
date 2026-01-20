@@ -42,10 +42,10 @@ import AVFoundation
             try audioSession.setMode(mode)
 
             let sampleRate: Double = 44100.0
-            try audioSession.setPreferredSampleRate(sampleRate)
+            try? audioSession.setPreferredSampleRate(sampleRate)
 
             let bufferDuration: TimeInterval = 0.005
-            try audioSession.setPreferredIOBufferDuration(bufferDuration)
+            try? audioSession.setPreferredIOBufferDuration(bufferDuration)
 
             try audioSession.setActive(true)
         } catch {

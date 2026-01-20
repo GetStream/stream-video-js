@@ -150,7 +150,9 @@ typealias RNVoipPushNotificationCompletion = () -> Void
             eventEmitter?.emitVoipEvent(dictionary)
         } else {
             delayedEvents.append(dictionary)
+            #if DEBUG
             print("[VoipNotificationsManager] delayedEvents: \(delayedEvents)")
+            #endif
         }
     }
 }

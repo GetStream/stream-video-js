@@ -141,8 +141,6 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     );
 
     modifiedConfigObjC = updatedConfig;
-
-    console.log(updatedConfig.modResults.contents);
   });
 
   it('swift - should modify config as per props', () => {

@@ -105,7 +105,9 @@ import AVFoundation
         guard let storage = uuidStorage else { return }
         
         if storage.containsCid(callId) {
+            #if DEBUG
             print("[Callingx][reportNewIncomingCall] callId already exists")
+            #endif
             return
         }
         
@@ -121,7 +123,9 @@ import AVFoundation
         callUpdate.localizedCallerName = localizedCallerName
         
         sharedProvider?.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
+            #if DEBUG
             print("[Callingx][reportNewIncomingCall] callId = \(callId), error = \(String(describing: error))")
+            #endif
             
             let errorCode = error != nil ? CallingxImpl.getIncomingCallErrorCode(error!) : ""
             
@@ -143,7 +147,9 @@ import AVFoundation
             sharedInstance?.sendEvent(CallingxEvents.didDisplayIncomingCall, body: body)
             
             if error == nil {
+                #if DEBUG
                 print("[Callingx][reportNewIncomingCall] success callId = \(callId)")
+                #endif
             }
             
             completion?()
@@ -187,7 +193,9 @@ import AVFoundation
         #endif
         
         guard let uuid = uuidStorage?.getUUID(forCid: callId) else {
+            #if DEBUG
             print("[Callingx][endCall] callId not found")
+            #endif
             return
         }
         
@@ -237,9 +245,13 @@ import AVFoundation
         
         callKeepCallController?.request(transaction) { [weak self] error in
             if let error = error {
+                #if DEBUG
                 print("[Callingx][requestTransaction] Error requesting transaction (\(transaction.actions)): (\(error))")
+                #endif
             } else {
+                #if DEBUG
                 print("[Callingx][requestTransaction] Requested transaction successfully")
+                #endif
                 
                 if let startCallAction = transaction.actions.first as? CXStartCallAction {
                     let callUpdate = CXCallUpdate()
@@ -271,7 +283,9 @@ import AVFoundation
             eventEmitter?.emitEvent(dictionary)
         } else {
             delayedEvents.append(dictionary)
+            #if DEBUG
             print("[Callingx] delayedEvents: \(delayedEvents)")
+            #endif
         }
     }
     
@@ -322,7 +336,9 @@ import AVFoundation
         #endif
         
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+            #if DEBUG
             print("[Callingx][answerIncomingCall] callId not found")
+            #endif
             return false
         }
         
@@ -376,7 +392,9 @@ import AVFoundation
         #endif
         
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+            #if DEBUG
             print("[Callingx][endCall] callId not found")
+            #endif
             return false
         }
         
@@ -390,7 +408,9 @@ import AVFoundation
     
     @objc public func isCallRegistered(_ callId: String) -> Bool {
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+            #if DEBUG
             print("[Callingx][isCallRegistered] callId not found")
+            #endif
             return false
         }
         
@@ -405,7 +425,9 @@ import AVFoundation
     
     @objc public func setCurrentCallActive(_ callId: String) -> Bool {
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+            #if DEBUG
             print("[Callingx][setCurrentCallActive] callId not found")
+            #endif
             return false
         }
         
@@ -421,7 +443,9 @@ import AVFoundation
         #endif
         
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+            #if DEBUG
             print("[Callingx][setMutedCall] callId not found")
+            #endif
             return false
         }
         
@@ -439,7 +463,9 @@ import AVFoundation
         #endif
         
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+            #if DEBUG
             print("[Callingx][setOnHoldCall] callId not found")
+            #endif
             return false
         }
         
@@ -484,10 +510,15 @@ import AVFoundation
         #endif
         
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+            #if DEBUG
+            print("[Callingx][updateDisplay] callId not found")
+            #endif
             return false
         }
         
-        let callHandle = CXHandle(type: .phoneNumber, value: phoneNumber)
+        let handleTypeString = Settings.getSettings()["handleType"] as? String
+        let handleType = Settings.getHandleType(handleTypeString ?? "generic")
+        let callHandle = CXHandle(type: handleType, value: phoneNumber)
         let callUpdate = CXCallUpdate()
         callUpdate.localizedCallerName = callerName
         callUpdate.remoteHandle = callHandle
@@ -502,8 +533,10 @@ import AVFoundation
         print("[Callingx][CXProviderDelegate][provider:performStartCallAction]")
         #endif
         
-        guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
+        guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {    
+            #if DEBUG
             print("[Callingx][CXProviderDelegate][provider:performStartCallAction] callId not found")
+            #endif
             return
         }
         
@@ -523,7 +556,9 @@ import AVFoundation
         #endif
         
         guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
+            #if DEBUG
             print("[Callingx][CXProviderDelegate][provider:performAnswerCallAction] callId not found")
+            #endif
             action.fail()
             return
         }
@@ -546,7 +581,9 @@ import AVFoundation
         #endif
         
         guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
+            #if DEBUG
             print("[Callingx][CXProviderDelegate][provider:performEndCallAction] callId not found")
+            #endif
             action.fail()
             return
         }
@@ -569,7 +606,9 @@ import AVFoundation
         #endif
         
         guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
+            #if DEBUG
             print("[Callingx][CXProviderDelegate][provider:performSetHeldCallAction] callId not found")
+            #endif
             action.fail()
             return
         }
@@ -588,7 +627,9 @@ import AVFoundation
         #endif
         
         guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
+            #if DEBUG
             print("[Callingx][CXProviderDelegate][provider:performSetMutedCallAction] callId not found")
+            #endif
             action.fail()
             return
         }
@@ -607,7 +648,9 @@ import AVFoundation
         #endif
         
         guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
+            #if DEBUG
             print("[Callingx][CXProviderDelegate][provider:performPlayDTMFCallAction] callId not found")
+            #endif
             action.fail()
             return
         }
