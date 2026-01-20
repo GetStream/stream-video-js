@@ -390,16 +390,19 @@ class StreamInCallManager: RCTEventEmitter {
         log("Audio route change reason: \(routeChangeReasonDescription(reason))")
         
         if reason == .routeConfigurationChange {
-            // Cancel any pending debounced refresh
-            stereoRefreshWorkItem?.cancel()
-            // Create a new debounced work item
-            let workItem = DispatchWorkItem { [weak self] in
-                self?.getAudioDeviceModule().refreshStereoPlayoutState()
-                self?.log("Executed debounced refreshStereoPlayoutState")
+            audioSessionQueue.async { [weak self] in
+                guard let self else { return }
+                // Cancel any pending debounced refresh
+                stereoRefreshWorkItem?.cancel()
+                // Create a new debounced work item
+                let workItem = DispatchWorkItem { [weak self] in
+                    self?.getAudioDeviceModule().refreshStereoPlayoutState()
+                    self?.log("Executed debounced refreshStereoPlayoutState")
+                }
+                stereoRefreshWorkItem = workItem
+                // Schedule the work item after debounce interval
+                audioSessionQueue.asyncAfter(deadline: .now() + Constants.stereoRefreshDebounceSeconds, execute: workItem)
             }
-            stereoRefreshWorkItem = workItem
-            // Schedule the work item after debounce interval
-            audioSessionQueue.asyncAfter(deadline: .now() + Constants.stereoRefreshDebounceSeconds, execute: workItem)
         }
 
         logAudioState()
