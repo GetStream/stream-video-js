@@ -1,5 +1,4 @@
-import { css } from '@emotion/css';
-import clsx from 'clsx';
+import { cx, css } from '@emotion/css';
 
 import {
   positionMap,
@@ -28,51 +27,50 @@ export const useParticipantLabelStyles = () => {
   const styles = [
     !participantLabelDisplay &&
       css`
-        & .str-video__participant-details {
-          display: none;
+        @layer overrides-layer {
+          & .str-video__participant-details {
+            display: none;
+          }
         }
       `,
-    participantLabelTextColor &&
-      css`
+    css`
+      @layer overrides-layer {
         & .str-video__participant-details {
           color: ${participantLabelTextColor};
         }
-      `,
-    participantLabelBackgroundColor &&
-      css`
+
         & .str-video__participant-details {
           background-color: ${participantLabelBackgroundColor};
         }
-      `,
-    participantLabelBorderRadius &&
-      css`
+
         & .str-video__participant-details {
           border-radius: ${participantLabelBorderRadius};
         }
-      `,
-    css`
-      & .str-video__participant-details {
-        border: ${participantLabelBorderWidth} solid
-          ${participantLabelBorderColor};
-      }
-    `,
-    css`
-      & .str-video__participant-view {
-        justify-content: ${positionMap.horizontal[
-          participantLabelHorizontalPosition
-        ]};
 
-        .str-video__participant-details {
-          align-self: ${positionMap.vertical[participantLabelVerticalPosition]};
-          margin-inline: ${participantLabelMarginInline};
-          margin-block: ${participantLabelMarginBlock};
+        & .str-video__participant-details {
+          border: ${participantLabelBorderWidth} solid
+            ${participantLabelBorderColor};
+        }
 
-          transition: unset;
-          opacity: unset;
+        & .str-video__participant-view {
+          justify-content: ${positionMap.horizontal[
+            participantLabelHorizontalPosition
+          ]};
+
+          .str-video__participant-details {
+            align-self: ${positionMap.vertical[
+              participantLabelVerticalPosition
+            ]};
+            margin-inline: ${participantLabelMarginInline};
+            margin-block: ${participantLabelMarginBlock};
+
+            transition: unset;
+            opacity: unset;
+          }
         }
       }
     `,
   ];
 
-  return clsx(styles);
+  return cx(styles);
 };
