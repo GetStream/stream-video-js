@@ -44,9 +44,10 @@ export const setStartBitrate = (
   targetMid: string,
 ): string => {
   // start bitrate should be between 300kbps and max-bitrate-kbps
-  const startBitrate = Math.max(
-    Math.min(maxBitrateKbps, startBitrateFactor * maxBitrateKbps),
-    300,
+  // Clamp to max first, then ensure minimum of 300 (but never exceed max)
+  const startBitrate = Math.min(
+    maxBitrateKbps,
+    Math.max(300, startBitrateFactor * maxBitrateKbps),
   );
   const parsedSdp = parse(offerSdp);
   const targetCodecs = new Set(['av1', 'vp9', 'h264']);
@@ -59,7 +60,9 @@ export const setStartBitrate = (
       if (!targetCodecs.has(rtp.codec.toLowerCase())) continue;
 
       // Find existing fmtp entry for this payload
-      const existingFmtp = media.fmtp.find(
+      // Guard against media.fmtp being undefined when SDP has no a=fmtp lines
+      const fmtpList = media.fmtp ?? (media.fmtp = []);
+      const existingFmtp = fmtpList.find(
         (fmtp) => fmtp.payload === rtp.payload,
       );
 
@@ -70,7 +73,7 @@ export const setStartBitrate = (
         }
       } else {
         // Create new fmtp entry if none exists
-        media.fmtp.push({
+        fmtpList.push({
           payload: rtp.payload,
           config: `x-google-start-bitrate=${startBitrate}`,
         });

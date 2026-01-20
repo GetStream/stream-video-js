@@ -195,4 +195,23 @@ a=rtpmap:103 H264/90000
     expect(result).toContain('a=fmtp:98 x-google-start-bitrate=750');
     expect(result).toContain('a=fmtp:103 x-google-start-bitrate=750');
   });
+
+  it('never exceeds maxBitrateKbps even when it is below 300', () => {
+    const offerSdp = `v=0
+o=- 123 2 IN IP4 127.0.0.1
+s=-
+t=0 0
+m=video 9 UDP/TLS/RTP/SAVPF 98
+c=IN IP4 0.0.0.0
+a=mid:0
+a=rtpmap:98 VP9/90000
+a=fmtp:98 profile-id=0
+`;
+
+    // maxBitrateKbps (200) is less than minimum (300), should clamp to maxBitrateKbps
+    const result = setStartBitrate(offerSdp, 200, 1, '0');
+    expect(result).toContain(
+      'a=fmtp:98 profile-id=0;x-google-start-bitrate=200',
+    );
+  });
 });

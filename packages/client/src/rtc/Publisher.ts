@@ -390,7 +390,7 @@ export class Publisher extends BasePeerConnection {
         let sdp = dangerouslyForceCodec
           ? removeCodecsExcept(baseSdp, dangerouslyForceCodec, fmtpLine)
           : baseSdp;
-        if (dangerouslySetStartBitrateFactor) {
+        if (dangerouslySetStartBitrateFactor !== undefined) {
           if (
             dangerouslySetStartBitrateFactor < 0 ||
             dangerouslySetStartBitrateFactor > 1
