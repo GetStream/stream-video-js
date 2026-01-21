@@ -92,7 +92,7 @@ export function setupIosCallKeepEvents(
    * - flaky audio routing (speaker/earpiece/Bluetooth) across subsequent calls
    *
    * We forward CallKeep’s `didActivateAudioSession` / `didDeactivateAudioSession` events to WebRTC’s
-   * `RTCAudioSession.
+   * `RTCAudioSession.audioSessionDidActivate()` / `audioSessionDidDeactivate()` methods.
    */
   function didActivateAudioSession() {
     logger.debug('didActivateAudioSession');
