@@ -248,6 +248,9 @@ import AVFoundation
                 #if DEBUG
                 print("[Callingx][requestTransaction] Error requesting transaction (\(transaction.actions)): (\(error))")
                 #endif
+
+                self?.isSelfAnswered = false
+                self?.isSelfEnded = false
             } else {
                 #if DEBUG
                 print("[Callingx][requestTransaction] Requested transaction successfully")
@@ -319,6 +322,10 @@ import AVFoundation
         callKeepCallController = CXCallController()
         
         Settings.setSettings(options)
+        
+        // we need to recreate the provider so that new config will be applied
+        CallingxImpl.sharedProvider?.invalidate()
+        CallingxImpl.sharedProvider = nil
         CallingxImpl.initializeIfNeeded()
         
         callKeepProvider = CallingxImpl.sharedProvider
@@ -330,7 +337,7 @@ import AVFoundation
     
     @objc public func getInitialEvents() -> [[String: Any]] {
         var events: [[String: Any]] = []
-        DispatchQueue.main.sync {
+        let action = {
             #if DEBUG
             print("[Callingx][getInitialEvents] delayedEvents = \(delayedEvents)")
             #endif
@@ -339,6 +346,15 @@ import AVFoundation
             self.delayedEvents = []
             self.canSendEvents = true
         }
+
+        if (Thread.isMainThread) {
+            action()
+        } else {
+            DispatchQueue.main.sync {
+                action()
+            }
+        }
+            
         return events
     }
         

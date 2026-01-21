@@ -117,7 +117,7 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     // MARK: - React Native Methods
     @objc public func getInitialEvents() -> [[String: Any]] {
         var events: [[String: Any]] = []
-        DispatchQueue.main.sync {
+        let action = {
             #if DEBUG
             print("[VoipNotificationsManager][getInitialEvents] delayedEvents = \(delayedEvents)")
             #endif
@@ -125,6 +125,14 @@ typealias RNVoipPushNotificationCompletion = () -> Void
             events = self.delayedEvents
             self.delayedEvents = []
             self.canSendEvents = true
+        }
+
+        if (Thread.isMainThread) {
+            action()
+        } else {
+            DispatchQueue.main.sync {
+                action()
+            }
         }
         return events
     }
