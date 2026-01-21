@@ -1701,15 +1701,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@config-plugins/react-native-callkeep@npm:^12.0.0":
-  version: 12.0.0
-  resolution: "@config-plugins/react-native-callkeep@npm:12.0.0"
-  peerDependencies:
-    expo: ^54
-  checksum: 10/4f5980f515aed00f8be6350aceb891bd16caac5d0c4be253aec776d3c01351751ae12537c41fbf591dd646ce98ce9b6a55d0181e8f7ca626d7d7c0c169952527
-  languageName: node
-  linkType: hard
-
 "@config-plugins/react-native-webrtc@npm:^13.0.0":
   version: 13.0.0
   resolution: "@config-plugins/react-native-webrtc@npm:13.0.0"
@@ -7535,7 +7526,6 @@ __metadata:
     "@babel/core": "npm:^7.28.4"
     "@babel/preset-env": "npm:^7.28.3"
     "@babel/runtime": "npm:^7.28.4"
-    "@config-plugins/react-native-callkeep": "npm:^12.0.0"
     "@config-plugins/react-native-webrtc": "npm:^13.0.0"
     "@notifee/react-native": "npm:9.1.8"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
@@ -7958,7 +7948,6 @@ __metadata:
     "@babel/core": "npm:^7.28.4"
     "@babel/preset-env": "npm:^7.28.3"
     "@babel/runtime": "npm:^7.28.4"
-    "@config-plugins/react-native-callkeep": "npm:^12.0.0"
     "@config-plugins/react-native-webrtc": "npm:^13.0.0"
     "@expo/vector-icons": "npm:^15.0.2"
     "@notifee/react-native": "npm:9.1.8"

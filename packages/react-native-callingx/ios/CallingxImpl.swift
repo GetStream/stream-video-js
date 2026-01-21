@@ -274,18 +274,28 @@ import AVFoundation
         print("[Callingx] sendEventWithNameWrapper: \(name)")
         #endif
         
-        var dictionary: [String: Any] = ["eventName": name]
-        if let body = body {
-            dictionary["params"] = body
+        let sendEventAction = {
+            var dictionary: [String: Any] = ["eventName": name]
+            if let body = body {
+                dictionary["params"] = body
+            }
+            
+            if self.canSendEvents {
+                self.eventEmitter?.emitEvent(dictionary)
+            } else {
+                self.delayedEvents.append(dictionary)
+                #if DEBUG
+                print("[Callingx] delayedEvents: \(self.delayedEvents)")
+                #endif
+            }
         }
-        
-        if canSendEvents {  
-            eventEmitter?.emitEvent(dictionary)
+
+        if (Thread.isMainThread) {
+            sendEventAction()
         } else {
-            delayedEvents.append(dictionary)
-            #if DEBUG
-            print("[Callingx] delayedEvents: \(delayedEvents)")
-            #endif
+            DispatchQueue.main.async {
+                sendEventAction()
+            }
         }
     }
     
@@ -319,13 +329,16 @@ import AVFoundation
     }
     
     @objc public func getInitialEvents() -> [[String: Any]] {
-        #if DEBUG
-        print("[Callingx][getInitialEvents] delayedEvents = \(delayedEvents)")
-        #endif
-        
-        let events = delayedEvents
-        delayedEvents = []
-        canSendEvents = true
+        var events: [[String: Any]] = []
+        DispatchQueue.main.sync {
+            #if DEBUG
+            print("[Callingx][getInitialEvents] delayedEvents = \(delayedEvents)")
+            #endif
+            
+            events = self.delayedEvents
+            self.delayedEvents = []
+            self.canSendEvents = true
+        }
         return events
     }
         
@@ -537,6 +550,7 @@ import AVFoundation
             #if DEBUG
             print("[Callingx][CXProviderDelegate][provider:performStartCallAction] callId not found")
             #endif
+            action.fail()
             return
         }
         

@@ -12,7 +12,6 @@
     "prebuild": "expo prebuild --clean"
   },
   "dependencies": {
-    "@config-plugins/react-native-callkeep": "^12.0.0",
     "@config-plugins/react-native-webrtc": "^13.0.0",
     "@notifee/react-native": "9.1.8",
     "@react-native-async-storage/async-storage": "2.2.0",

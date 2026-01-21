@@ -53,8 +53,6 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     
     // MARK: - Class Methods
     
-    /// Register delegate for PushKit to delivery credential and remote voip push to your delegate
-    /// This usually register once and ASAP after your app launch
     @objc public static func voipRegistration() {
         if isVoipRegistered {
             #if DEBUG
@@ -63,27 +61,30 @@ typealias RNVoipPushNotificationCompletion = () -> Void
             let voipPushManager = VoipNotificationsManager.shared()
             voipPushManager.sendEventWithNameWrapper(name: VoipNotificationsEvents.registered, body: ["token": lastVoipToken])
         } else {
-            isVoipRegistered = true
             #if DEBUG
             print("[VoipNotificationsManager] voipRegistration enter")
             #endif
             DispatchQueue.main.async {
-                // Create a push registry object
                 let voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
                 // Set the registry's delegate to AppDelegate
                 // Note: The original code casts the delegate, but this should be handled by AppDelegate
                 if let appDelegate = RCTSharedApplication()?.delegate as? PKPushRegistryDelegate {
                     voipRegistry.delegate = appDelegate
+                    // Set the push type to VoIP
+                    // Store the registry to prevent deallocation
+                    voipRegistry.desiredPushTypes = [.voIP]
+                    VoipNotificationsManager.voipRegistry = voipRegistry
+                    
+                    isVoipRegistered = true
+                } else {
+                    #if DEBUG
+                    print("[VoipNotificationsManager] voipRegistration appDelegate not found. return")
+                    #endif
                 }
-                // Set the push type to VoIP
-                voipRegistry.desiredPushTypes = [.voIP]
-                // Store the registry to prevent deallocation
-                VoipNotificationsManager.voipRegistry = voipRegistry
             }
         }
     }
     
-    /// Should be called from `AppDelegate.didUpdatePushCredentials`
     @objc public static func didUpdatePushCredentials(_ credentials: PKPushCredentials, forType type: String) {
         #if DEBUG
         print("[VoipNotificationsManager] didUpdatePushCredentials credentials.token = \(credentials.token), type = \(type)")
@@ -100,14 +101,11 @@ typealias RNVoipPushNotificationCompletion = () -> Void
         voipPushManager.sendEventWithNameWrapper(name: VoipNotificationsEvents.registered, body: ["token": lastVoipToken])
     }
     
-    /// Should be called from `AppDelegate.didReceiveIncomingPushWithPayload`
     @objc public static func didReceiveIncomingPushWithPayload(_ payload: PKPushPayload, forType type: String) {
         #if DEBUG
         print("[VoipNotificationsManager] didReceiveIncomingPushWithPayload payload.dictionaryPayload = \(payload.dictionaryPayload), type = \(type)")
         #endif
         
-        // Convert [AnyHashable: Any] to [String: Any]
-        // PKPushPayload.dictionaryPayload returns [AnyHashable: Any], but we need [String: Any]
         let dictionaryPayload: [String: Any] = Dictionary(uniqueKeysWithValues: payload.dictionaryPayload.map { (key, value) in
             (String(describing: key), value)
         })
@@ -118,13 +116,16 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     
     // MARK: - React Native Methods
     @objc public func getInitialEvents() -> [[String: Any]] {
-        #if DEBUG
-        print("[VoipNotificationsManager][getInitialEvents] delayedEvents = \(delayedEvents)")
-        #endif
-        
-        let events = delayedEvents
-        delayedEvents = []
-        canSendEvents = true
+        var events: [[String: Any]] = []
+        DispatchQueue.main.sync {
+            #if DEBUG
+            print("[VoipNotificationsManager][getInitialEvents] delayedEvents = \(delayedEvents)")
+            #endif
+            
+            events = self.delayedEvents
+            self.delayedEvents = []
+            self.canSendEvents = true
+        }
         return events
     }
 
@@ -142,18 +143,30 @@ typealias RNVoipPushNotificationCompletion = () -> Void
         print("[VoipNotificationsManager] sendEventWithNameWrapper: \(name)")
         #endif
         
-        var dictionary: [String: Any] = ["eventName": name]
-        if let body = body {
-            dictionary["params"] = body
+        let sendEventAction = {
+            var dictionary: [String: Any] = ["eventName": name]
+            if let body = body {
+                dictionary["params"] = body
+            }
+
+            if self.canSendEvents {
+                self.eventEmitter?.emitVoipEvent(dictionary)
+            } else {
+                self.delayedEvents.append(dictionary)
+                #if DEBUG
+                print("[VoipNotificationsManager] delayedEvents: \(self.delayedEvents)")
+                #endif
+            }
         }
-        if canSendEvents {
-            eventEmitter?.emitVoipEvent(dictionary)
+
+        if (Thread.isMainThread) {
+            sendEventAction()
         } else {
-            delayedEvents.append(dictionary)
-            #if DEBUG
-            print("[VoipNotificationsManager] delayedEvents: \(delayedEvents)")
-            #endif
+            DispatchQueue.main.async {
+                sendEventAction()
+            }
         }
+
     }
 }
 
