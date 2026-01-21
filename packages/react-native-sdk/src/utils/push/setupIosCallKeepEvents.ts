@@ -96,6 +96,7 @@ export function setupIosCallKeepEvents(
 
   const { RTCAudioSession } =
     require('@stream-io/react-native-webrtc') as typeof import('@stream-io/react-native-webrtc');
+
   function didActivateAudioSession() {
     logger.debug('didActivateAudioSession');
     RTCAudioSession.audioSessionDidActivate();
