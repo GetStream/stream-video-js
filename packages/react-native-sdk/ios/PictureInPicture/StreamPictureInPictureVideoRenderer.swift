@@ -6,8 +6,41 @@ import Combine
 import Foundation
 
 /// A view that can be used to render an instance of `RTCVideoTrack`
+///
+/// This view manages the display of different content types in the PiP window:
+/// - Video content from a participant's camera or screen share
+/// - Avatar placeholder when video is disabled
+/// - Screen sharing indicator overlay
+/// - Reconnection view during connection recovery
+///
+/// The content can be managed either through individual properties (legacy approach)
+/// or through the unified `content` property using `PictureInPictureContent` enum.
 final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
-    
+
+    // MARK: - Content State (New unified approach)
+
+    /// The current content being displayed, using the unified content enum.
+    /// Setting this property automatically updates all overlay views and the video track.
+    var content: PictureInPictureContent = .inactive {
+        didSet {
+            guard content != oldValue else { return }
+            applyContent(content)
+        }
+    }
+
+    /// The content state manager for reactive state updates.
+    /// When set, the renderer subscribes to content changes automatically.
+    var contentState: PictureInPictureContentState? {
+        didSet {
+            subscribeToContentState()
+        }
+    }
+
+    /// Cancellable for content state subscription
+    private var contentStateCancellable: AnyCancellable?
+
+    // MARK: - Individual Properties (Legacy approach - still supported)
+
     /// The rendering track.
     var track: RTCVideoTrack? {
         didSet {
@@ -19,14 +52,68 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
             prepareForTrackRendering(oldValue)
         }
     }
-    
+
     /// The layer that renders the track's frames.
     var displayLayer: CALayer { contentView.layer }
 
     /// A policy defining how the Picture in Picture window should be resized in order to better fit
     /// the rendering frame size.
     var pictureInPictureWindowSizePolicy: PictureInPictureWindowSizePolicy
-    
+
+    // MARK: - Avatar Placeholder Properties
+
+    /// The participant's name for the avatar and overlay
+    var participantName: String? {
+        didSet {
+            avatarView.participantName = participantName
+            participantOverlayView.participantName = participantName
+        }
+    }
+
+    /// The URL string for the participant's profile image
+    var participantImageURL: String? {
+        didSet {
+            avatarView.imageURL = participantImageURL
+        }
+    }
+
+    /// Whether video is enabled - when false, shows avatar placeholder
+    var isVideoEnabled: Bool = true {
+        didSet {
+            avatarView.isVideoEnabled = isVideoEnabled
+            updateOverlayVisibility()
+        }
+    }
+
+    /// Whether the call is reconnecting - when true, shows reconnection view
+    var isReconnecting: Bool = false {
+        didSet {
+            reconnectionView.isReconnecting = isReconnecting
+            updateOverlayVisibility()
+        }
+    }
+
+    /// Whether screen sharing is active - when true, shows screen share indicator
+    var isScreenSharing: Bool = false {
+        didSet {
+            screenShareIndicatorView.isScreenSharing = isScreenSharing
+        }
+    }
+
+    /// Whether the participant's audio is muted - shown in participant overlay
+    var isMuted: Bool = false {
+        didSet {
+            participantOverlayView.isMuted = isMuted
+        }
+    }
+
+    /// Whether the participant overlay is enabled
+    var isParticipantOverlayEnabled: Bool = true {
+        didSet {
+            participantOverlayView.isOverlayEnabled = isParticipantOverlayEnabled
+        }
+    }
+
     /// The publisher which is used to streamline the frames received from the track.
     private let bufferPublisher: PassthroughSubject<CMSampleBuffer, Never> = .init()
     
@@ -85,7 +172,38 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     
     /// A size ratio threshold used to determine if skipping frames is required.
     private let sizeRatioThreshold: CGFloat = 15
-    
+
+    /// The avatar view shown when video is disabled
+    private lazy var avatarView: PictureInPictureAvatarView = {
+        let view = PictureInPictureAvatarView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true // Initially hidden (video enabled by default)
+        return view
+    }()
+
+    /// The reconnection view shown when connection is being recovered
+    private lazy var reconnectionView: PictureInPictureReconnectionView = {
+        let view = PictureInPictureReconnectionView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true // Initially hidden (not reconnecting by default)
+        return view
+    }()
+
+    /// The screen share indicator view shown when screen sharing is active
+    private lazy var screenShareIndicatorView: PictureInPictureScreenShareIndicatorView = {
+        let view = PictureInPictureScreenShareIndicatorView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true // Initially hidden (not screen sharing by default)
+        return view
+    }()
+
+    /// The participant overlay view showing name and mute status
+    private lazy var participantOverlayView: PictureInPictureParticipantOverlayView = {
+        let view = PictureInPictureParticipantOverlayView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
     // MARK: - Lifecycle
     
     @available(*, unavailable)
@@ -150,12 +268,58 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     /// Set up the view's hierarchy.
     private func setUp() {
         addSubview(contentView)
+        addSubview(avatarView)
+        addSubview(reconnectionView)
+        addSubview(screenShareIndicatorView)
+        addSubview(participantOverlayView)
+
         NSLayoutConstraint.activate([
             contentView.leadingAnchor.constraint(equalTo: leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: trailingAnchor),
             contentView.topAnchor.constraint(equalTo: topAnchor),
-            contentView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            contentView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            avatarView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            avatarView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            avatarView.topAnchor.constraint(equalTo: topAnchor),
+            avatarView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            reconnectionView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            reconnectionView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            reconnectionView.topAnchor.constraint(equalTo: topAnchor),
+            reconnectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            // Screen share indicator is positioned in top-left corner, full width for positioning
+            screenShareIndicatorView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            screenShareIndicatorView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            screenShareIndicatorView.topAnchor.constraint(equalTo: topAnchor),
+            screenShareIndicatorView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            // Participant overlay positioned at bottom
+            participantOverlayView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            participantOverlayView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            participantOverlayView.topAnchor.constraint(equalTo: topAnchor),
+            participantOverlayView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
+    }
+
+    /// Updates the visibility of overlay views based on current state.
+    /// Priority: reconnection view > avatar view > video content
+    /// Participant overlay shows only when video is active (not reconnecting, not showing avatar)
+    private func updateOverlayVisibility() {
+        // Reconnection view takes highest priority
+        if isReconnecting {
+            reconnectionView.isHidden = false
+            avatarView.isHidden = true
+            // Hide participant overlay during reconnection
+            participantOverlayView.isOverlayEnabled = false
+        } else {
+            reconnectionView.isHidden = true
+            // Avatar view shows when video is disabled
+            avatarView.isHidden = isVideoEnabled
+            // Show participant overlay only when video is enabled (not showing avatar)
+            participantOverlayView.isOverlayEnabled = isVideoEnabled
+        }
     }
     
     /// A method used to process the frame's buffer and enqueue on the rendering view.
@@ -246,5 +410,86 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         skippedFrames = 0
         requiresResize = false
         startFrameStreaming(for: track, on: window)
+    }
+
+    // MARK: - Content State System
+
+    /// Subscribes to the content state manager for reactive updates.
+    private func subscribeToContentState() {
+        contentStateCancellable?.cancel()
+        contentStateCancellable = nil
+
+        guard let contentState = contentState else { return }
+
+        contentStateCancellable = contentState.contentPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newContent in
+                self?.content = newContent
+            }
+    }
+
+    /// Applies the given content state to update all view components.
+    /// This method synchronizes the unified content enum with the individual properties
+    /// for backward compatibility while providing a cleaner API.
+    private func applyContent(_ content: PictureInPictureContent) {
+        switch content {
+        case .inactive:
+            // Clear everything
+            track = nil
+            participantName = nil
+            participantImageURL = nil
+            isVideoEnabled = true
+            isReconnecting = false
+            isScreenSharing = false
+
+        case let .video(newTrack, name, imageURL):
+            // Show video content
+            track = newTrack
+            participantName = name
+            participantImageURL = imageURL
+            isVideoEnabled = true
+            isReconnecting = false
+            isScreenSharing = false
+
+        case let .screenSharing(newTrack, name):
+            // Show screen sharing content with indicator
+            track = newTrack
+            participantName = name
+            participantImageURL = nil
+            isVideoEnabled = true
+            isReconnecting = false
+            isScreenSharing = true
+
+        case let .avatar(name, imageURL):
+            // Show avatar placeholder (video disabled)
+            // Keep existing track for potential quick re-enable
+            participantName = name
+            participantImageURL = imageURL
+            isVideoEnabled = false
+            isReconnecting = false
+            isScreenSharing = false
+
+        case .reconnecting:
+            // Show reconnection view
+            // Keep existing track and participant info for recovery
+            isReconnecting = true
+            isScreenSharing = false
+        }
+    }
+
+    /// Returns the current content as a `PictureInPictureContent` enum value.
+    /// This is useful for reading the current state in a unified way.
+    func getCurrentContent() -> PictureInPictureContent {
+        if isReconnecting {
+            return .reconnecting
+        } else if !isVideoEnabled {
+            return .avatar(participantName: participantName, participantImageURL: participantImageURL)
+        } else if isScreenSharing {
+            return .screenSharing(track: track, participantName: participantName)
+        } else if track != nil {
+            return .video(track: track, participantName: participantName, participantImageURL: participantImageURL)
+        } else {
+            return .inactive
+        }
     }
 }

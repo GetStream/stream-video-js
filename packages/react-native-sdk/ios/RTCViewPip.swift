@@ -15,7 +15,57 @@ class RTCViewPip: UIView {
     private var webRtcModule: WebRTCModule?
     
     @objc var onPiPChange: RCTBubblingEventBlock?
-    
+
+    // MARK: - Avatar Placeholder Properties
+
+    /// The participant's name for the avatar placeholder
+    @objc public var participantName: NSString? = nil {
+        didSet {
+            pictureInPictureController?.participantName = participantName as String?
+        }
+    }
+
+    /// The URL string for the participant's profile image
+    @objc public var participantImageURL: NSString? = nil {
+        didSet {
+            pictureInPictureController?.participantImageURL = participantImageURL as String?
+        }
+    }
+
+    /// Whether video is enabled - when false, shows avatar placeholder
+    @objc public var isVideoEnabled: Bool = true {
+        didSet {
+            pictureInPictureController?.isVideoEnabled = isVideoEnabled
+        }
+    }
+
+    // MARK: - Reconnection Properties
+
+    /// Whether the call is reconnecting - when true, shows reconnection view
+    @objc public var isReconnecting: Bool = false {
+        didSet {
+            pictureInPictureController?.isReconnecting = isReconnecting
+        }
+    }
+
+    // MARK: - Screen Sharing Properties
+
+    /// Whether screen sharing is active - when true, shows screen share indicator
+    @objc public var isScreenSharing: Bool = false {
+        didSet {
+            pictureInPictureController?.isScreenSharing = isScreenSharing
+        }
+    }
+
+    // MARK: - Participant Overlay Properties
+
+    /// Whether the participant's audio is muted - shown in participant overlay
+    @objc public var isMuted: Bool = false {
+        didSet {
+            pictureInPictureController?.isMuted = isMuted
+        }
+    }
+
     private func setupNotificationObserver() {
         NotificationCenter.default.addObserver(
             self,

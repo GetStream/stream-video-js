@@ -17,6 +17,18 @@ export type PiPChangeEvent = {
 type RTCViewPipNativeProps = {
   streamURL?: string;
   onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
+  /** The participant's name for the avatar placeholder when video is disabled */
+  participantName?: string;
+  /** The URL string for the participant's profile image */
+  participantImageURL?: string;
+  /** Whether video is enabled - when false, shows avatar placeholder */
+  isVideoEnabled?: boolean;
+  /** Whether the call is reconnecting - when true, shows reconnection view */
+  isReconnecting?: boolean;
+  /** Whether screen sharing is active - when true, shows screen share indicator */
+  isScreenSharing?: boolean;
+  /** Whether the participant's audio is muted - shown in participant overlay */
+  isMuted?: boolean;
 };
 
 const NativeComponent: HostComponent<RTCViewPipNativeProps> =
@@ -56,6 +68,12 @@ export const RTCViewPipNative = React.memo(
     {
       streamURL?: string;
       onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
+      participantName?: string;
+      participantImageURL?: string;
+      isVideoEnabled?: boolean;
+      isReconnecting?: boolean;
+      isScreenSharing?: boolean;
+      isMuted?: boolean;
     }
   >((props, ref) => {
     if (Platform.OS !== 'ios') return null;
@@ -68,6 +86,18 @@ export const RTCViewPipNative = React.memo(
         streamURL={props.streamURL}
         // eslint-disable-next-line react/prop-types
         onPiPChange={props.onPiPChange}
+        // eslint-disable-next-line react/prop-types
+        participantName={props.participantName}
+        // eslint-disable-next-line react/prop-types
+        participantImageURL={props.participantImageURL}
+        // eslint-disable-next-line react/prop-types
+        isVideoEnabled={props.isVideoEnabled}
+        // eslint-disable-next-line react/prop-types
+        isReconnecting={props.isReconnecting}
+        // eslint-disable-next-line react/prop-types
+        isScreenSharing={props.isScreenSharing}
+        // eslint-disable-next-line react/prop-types
+        isMuted={props.isMuted}
         // @ts-expect-error - types issue
         ref={ref}
       />

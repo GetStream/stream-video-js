@@ -1,6 +1,8 @@
 import {
   CallingState,
+  hasAudio,
   hasScreenShare,
+  hasVideo,
   speakerLayoutSortPreset,
   type StreamVideoParticipant,
   videoLoggerSystem,
@@ -32,7 +34,8 @@ type Props = {
 export const RTCViewPipIOS = React.memo((props: Props) => {
   const { includeLocalParticipantVideo, onPiPChange } = props;
   const call = useCall();
-  const { useParticipants } = useCallStateHooks();
+  const { useParticipants, useCallCallingState } = useCallStateHooks();
+  const callingState = useCallCallingState();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });
@@ -121,12 +124,44 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     onPiPChange?.(event.nativeEvent.active);
   };
 
+  // Determine if participant has video enabled
+  // For screen sharing, we check if the screen share stream is available
+  // For regular video, we check if the video stream is available and camera is publishing
+  const isVideoEnabled = useMemo(() => {
+    if (!participantInSpotlight) return false;
+    if (isScreenSharing) {
+      return !!screenShareStream;
+    }
+    return !!videoStream && hasVideo(participantInSpotlight);
+  }, [participantInSpotlight, isScreenSharing, screenShareStream, videoStream]);
+
+  // Get participant info for avatar placeholder
+  const participantName = participantInSpotlight?.name || undefined;
+  const participantImageURL = participantInSpotlight?.image || undefined;
+
+  // Determine if the call is reconnecting
+  const isReconnecting =
+    callingState === CallingState.RECONNECTING ||
+    callingState === CallingState.RECONNECTING_FAILED;
+
+  // Determine if participant's audio is muted
+  const isMuted = useMemo(() => {
+    if (!participantInSpotlight) return false;
+    return !hasAudio(participantInSpotlight);
+  }, [participantInSpotlight]);
+
   return (
     <>
       <RTCViewPipNative
         streamURL={streamURL}
         ref={nativeRef}
         onPiPChange={handlePiPChange}
+        participantName={participantName}
+        participantImageURL={participantImageURL}
+        isVideoEnabled={isVideoEnabled}
+        isReconnecting={isReconnecting}
+        isScreenSharing={isScreenSharing}
+        isMuted={isMuted}
       />
       {participantInSpotlight && (
         <DimensionsUpdatedRenderless
