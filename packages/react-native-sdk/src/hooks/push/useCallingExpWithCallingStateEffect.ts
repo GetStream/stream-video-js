@@ -133,7 +133,7 @@ export const useCallingExpWithCallingStateEffect = () => {
   useEffect(() => {
     return () => {
       const callingx = getCallingxLibIfAvailable();
-      if (!callingx || !activeCallCid) {
+      if (!callingx?.isSetup || !activeCallCid) {
         return;
       }
 
@@ -159,7 +159,11 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
-    if (!callingx || !activeCallCid || prevState.current === callingState) {
+    if (
+      !callingx?.isSetup ||
+      !activeCallCid ||
+      prevState.current === callingState
+    ) {
       return;
     }
 
@@ -224,7 +228,7 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
-    if (!callingx || !activeCallCid) {
+    if (!callingx?.isSetup || !activeCallCid) {
       return;
     }
 
@@ -253,7 +257,7 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
-    if (!callingx || !activeCallCid) {
+    if (!callingx?.isSetup || !activeCallCid) {
       return;
     }
 
@@ -270,7 +274,7 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
-    if (!callingx || !activeCallCid) {
+    if (!callingx?.isSetup || !activeCallCid) {
       return;
     }
 
@@ -287,7 +291,7 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
-    if (!callingx || !activeCallCid) {
+    if (!callingx?.isSetup || !activeCallCid) {
       return;
     }
 

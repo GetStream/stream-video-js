@@ -4,16 +4,16 @@ import type { PermissionsResult } from './utils/permissions';
 
 export interface ICallingxModule {
   get isNotificationsAllowed(): boolean;
+  get isSetup(): boolean;
 
   /**
-   /**
-    * Setup the module. This method must be called before any other method.
-    * For iOS, the module will setup CallKit parameters.
-    *    See: {@link InternalIOSOptions}
-    * For Android, the module will create notification channels.
-    *    See: {@link InternalAndroidOptions}
-    * @param options - The options to setup the callingx module. See {@link CallingExpOptions}
-    */
+   * Setup the module. This method must be called before any other method.
+   * For iOS, the module will setup CallKit parameters.
+   *    See: {@link InternalIOSOptions}
+   * For Android, the module will create notification channels.
+   *    See: {@link InternalAndroidOptions}
+   * @param options - The options to setup the callingx module. See {@link CallingExpOptions}
+   */
   setup(options: CallingExpOptions): void;
   /**
    * Set whether to reject calls when the user is busy.

@@ -11,6 +11,7 @@ import {
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { keepCallAliveCallRef } from '../utils/keepCallAliveHeadlessTask';
 import { getNotifeeLibNoThrowForKeepCallAlive } from '../utils/push/libs/notifee';
+import { getCallingxLibIfAvailable } from '../utils/push/libs';
 
 const notifeeLib = getNotifeeLibNoThrowForKeepCallAlive();
 
@@ -99,7 +100,8 @@ export const useAndroidKeepCallAliveEffect = () => {
     !foregroundServiceStartedRef.current && (isOutgoingCall || isCallJoined);
 
   useEffect((): (() => void) | undefined => {
-    if (Platform.OS === 'ios' || !activeCallCid) {
+    const callingx = getCallingxLibIfAvailable();
+    if (Platform.OS === 'ios' || !activeCallCid || callingx?.isSetup) {
       return undefined;
     }
 

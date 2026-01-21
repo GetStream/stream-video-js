@@ -58,6 +58,10 @@ class CallingxModule implements ICallingxModule {
     );
   }
 
+  get isSetup(): boolean {
+    return this._isSetup;
+  }
+
   setup(options: CallingExpOptions): void {
     if (this._isSetup) {
       return;
