@@ -151,7 +151,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     options.enableMultitaskingCameraAccess = true
     #if DEBUG
     // Native WebRTC logs (debug-only)
-    options.loggingSeverity = .verbose
+//    options.loggingSeverity = .verbose
     #endif
 
     let delegate = ReactNativeDelegate()

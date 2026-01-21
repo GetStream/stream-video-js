@@ -71,14 +71,24 @@ final class PictureInPictureEnforcedStopAdapter {
                 UIApplication.shared.applicationState == .active
             }
             .sink { [weak self] _ in
-                guard let self = self else { return }
+                guard let self = self,
+                      let controller = self.pictureInPictureController else {
+                    self?.stopTimerCancellable?.cancel()
+                    self?.stopTimerCancellable = nil
+                    return
+                }
+
+                // Check if PiP is still active before attempting to stop
+                // Only cancel the timer once PiP has actually stopped
+                guard controller.isPictureInPictureActive else {
+                    NSLog("PiP - Picture-in-Picture has stopped, cancelling enforced stop timer.")
+                    self.stopTimerCancellable?.cancel()
+                    self.stopTimerCancellable = nil
+                    return
+                }
 
                 NSLog("PiP - Attempting to forcefully stop Picture-in-Picture.")
-                self.pictureInPictureController?.stopPictureInPicture()
-
-                // Cancel timer after successful stop attempt
-                self.stopTimerCancellable?.cancel()
-                self.stopTimerCancellable = nil
+                controller.stopPictureInPicture()
             }
     }
 }

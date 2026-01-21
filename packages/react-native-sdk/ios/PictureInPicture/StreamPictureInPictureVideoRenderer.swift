@@ -48,8 +48,12 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
             // - stopFrameStreaming for the old track
             // - startFrameStreaming for the new track and only if we are already
             // in picture-in-picture.
+            NSLog("PiP - Renderer: track changed from \(oldValue?.trackId ?? "nil") to \(track?.trackId ?? "nil")")
             guard oldValue != track else { return }
+            trackSize = .zero
             prepareForTrackRendering(oldValue)
+            // Update overlay visibility when track changes (may need to show avatar if track is nil)
+            updateOverlayVisibility()
         }
     }
 
@@ -65,6 +69,7 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     /// The participant's name for the avatar and overlay
     var participantName: String? {
         didSet {
+            NSLog("PiP - Renderer.participantName didSet: '\(participantName ?? "nil")', forwarding to avatarView")
             avatarView.participantName = participantName
             participantOverlayView.participantName = participantName
         }
@@ -80,7 +85,7 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     /// Whether video is enabled - when false, shows avatar placeholder
     var isVideoEnabled: Bool = true {
         didSet {
-            avatarView.isVideoEnabled = isVideoEnabled
+            NSLog("PiP - Renderer: isVideoEnabled changed from \(oldValue) to \(isVideoEnabled), avatarView.participantName='\(avatarView.participantName ?? "nil")'")
             updateOverlayVisibility()
         }
     }
@@ -93,17 +98,41 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         }
     }
 
-    /// Whether screen sharing is active - when true, shows screen share indicator
-    var isScreenSharing: Bool = false {
+    /// Whether screen sharing is active (used for content state tracking)
+    var isScreenSharing: Bool = false
+
+    /// Whether the participant has audio enabled (shown in participant overlay)
+    var hasAudio: Bool = true {
         didSet {
-            screenShareIndicatorView.isScreenSharing = isScreenSharing
+            participantOverlayView.hasAudio = hasAudio
         }
     }
 
-    /// Whether the participant's audio is muted - shown in participant overlay
-    var isMuted: Bool = false {
+    /// Whether the video track is paused (shown in participant overlay)
+    var isTrackPaused: Bool = false {
         didSet {
-            participantOverlayView.isMuted = isMuted
+            participantOverlayView.isTrackPaused = isTrackPaused
+        }
+    }
+
+    /// Whether the participant is pinned (shown in participant overlay)
+    var isPinned: Bool = false {
+        didSet {
+            participantOverlayView.isPinned = isPinned
+        }
+    }
+
+    /// Whether the participant is currently speaking (shows border highlight)
+    var isSpeaking: Bool = false {
+        didSet {
+            updateSpeakingIndicator()
+        }
+    }
+
+    /// The connection quality level (0: unknown, 1: poor, 2: good, 3: excellent)
+    var connectionQuality: Int = 0 {
+        didSet {
+            connectionQualityIndicator.connectionQuality = PictureInPictureConnectionQualityIndicator.ConnectionQuality(rawValue: connectionQuality) ?? .unspecified
         }
     }
 
@@ -145,7 +174,7 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
             didUpdateTrackSize()
         }
     }
-    
+
     /// A property that defines if the RTCVideoFrame instances that will be rendered need to be resized
     /// to fid the view's contentSize.
     private var requiresResize = false {
@@ -174,10 +203,12 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     private let sizeRatioThreshold: CGFloat = 15
 
     /// The avatar view shown when video is disabled
+    /// Note: Uses alpha=0 for visibility instead of isHidden to match upstream SwiftUI behavior
+    /// and ensure layoutSubviews is always called for proper constraint layout.
     private lazy var avatarView: PictureInPictureAvatarView = {
         let view = PictureInPictureAvatarView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.isHidden = true // Initially hidden (video enabled by default)
+        view.alpha = 0 // Initially invisible (video enabled by default)
         return view
     }()
 
@@ -189,13 +220,6 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         return view
     }()
 
-    /// The screen share indicator view shown when screen sharing is active
-    private lazy var screenShareIndicatorView: PictureInPictureScreenShareIndicatorView = {
-        let view = PictureInPictureScreenShareIndicatorView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.isHidden = true // Initially hidden (not screen sharing by default)
-        return view
-    }()
 
     /// The participant overlay view showing name and mute status
     private lazy var participantOverlayView: PictureInPictureParticipantOverlayView = {
@@ -203,6 +227,32 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
+
+    /// Connection quality indicator view (bottom-right)
+    private lazy var connectionQualityIndicator: PictureInPictureConnectionQualityIndicator = {
+        let view = PictureInPictureConnectionQualityIndicator()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+
+    /// Speaking indicator border layer
+    private lazy var speakingBorderLayer: CAShapeLayer = {
+        let layer = CAShapeLayer()
+        layer.fillColor = UIColor.clear.cgColor
+        layer.strokeColor = UIColor(red: 0.0, green: 0.8, blue: 0.6, alpha: 1.0).cgColor // Teal green
+        layer.lineWidth = 2
+        layer.isHidden = true
+        return layer
+    }()
+
+    /// The speaking indicator corner radius (matches upstream)
+    private var speakingCornerRadius: CGFloat {
+        if #available(iOS 26.0, *) {
+            return 32
+        } else {
+            return 16
+        }
+    }
 
     // MARK: - Lifecycle
     
@@ -220,15 +270,28 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         // Depending on the window we are moving we either start or stop
         // streaming frames from the track.
         if newWindow != nil {
+            NSLog("PiP - Renderer: willMove(toWindow:) - added to window, track=\(track?.trackId ?? "nil"), isVideoEnabled=\(isVideoEnabled)")
+            trackSize = .zero
+            updateOverlayVisibility()
             startFrameStreaming(for: track, on: newWindow)
         } else {
+            NSLog("PiP - Renderer: willMove(toWindow:) - removed from window")
             stopFrameStreaming(for: track)
+            trackSize = .zero
+            updateOverlayVisibility()
         }
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
         contentSize = frame.size
+
+        // Update speaking border frame
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        speakingBorderLayer.frame = bounds
+        speakingBorderLayer.path = UIBezierPath(roundedRect: bounds.insetBy(dx: 1, dy: 1), cornerRadius: speakingCornerRadius).cgPath
+        CATransaction.commit()
     }
     
     // MARK: - Rendering lifecycle
@@ -242,7 +305,12 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         guard let frame = frame else {
             return
         }
-        
+
+        // Ignore empty frames
+        if frame.width <= 0 || frame.height <= 0 {
+            return
+        }
+
         // Update the trackSize and re-calculate rendering properties if the size
         // has changed.
         trackSize = .init(width: Int(frame.width), height: Int(frame.height))
@@ -267,11 +335,14 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     
     /// Set up the view's hierarchy.
     private func setUp() {
+        // Add speaking border layer first (behind everything else)
+        layer.addSublayer(speakingBorderLayer)
+
         addSubview(contentView)
         addSubview(avatarView)
         addSubview(reconnectionView)
-        addSubview(screenShareIndicatorView)
         addSubview(participantOverlayView)
+        addSubview(connectionQualityIndicator)
 
         NSLayoutConstraint.activate([
             contentView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -289,39 +360,71 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
             reconnectionView.topAnchor.constraint(equalTo: topAnchor),
             reconnectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
-            // Screen share indicator is positioned in top-left corner, full width for positioning
-            screenShareIndicatorView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            screenShareIndicatorView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            screenShareIndicatorView.topAnchor.constraint(equalTo: topAnchor),
-            screenShareIndicatorView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
             // Participant overlay positioned at bottom
             participantOverlayView.leadingAnchor.constraint(equalTo: leadingAnchor),
             participantOverlayView.trailingAnchor.constraint(equalTo: trailingAnchor),
             participantOverlayView.topAnchor.constraint(equalTo: topAnchor),
-            participantOverlayView.bottomAnchor.constraint(equalTo: bottomAnchor)
+            participantOverlayView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            // Connection quality indicator at bottom-right
+            connectionQualityIndicator.trailingAnchor.constraint(equalTo: trailingAnchor),
+            connectionQualityIndicator.bottomAnchor.constraint(equalTo: bottomAnchor),
+            connectionQualityIndicator.widthAnchor.constraint(equalToConstant: 28),
+            connectionQualityIndicator.heightAnchor.constraint(equalToConstant: 28)
         ])
     }
 
     /// Updates the visibility of overlay views based on current state.
     /// Priority: reconnection view > avatar view > video content
-    /// Participant overlay shows only when video is active (not reconnecting, not showing avatar)
+    ///
+    /// The avatar view is shown when:
+    /// - Video is explicitly disabled (isVideoEnabled = false), OR
+    /// - Track is nil
+    ///
+    /// IMPORTANT: Participant overlay (name, mic, connection quality) is shown on top of BOTH
+    /// video AND avatar views, matching the upstream stream-video-swift implementation.
+    /// The overlay is only hidden during reconnection.
     private func updateOverlayVisibility() {
         // Reconnection view takes highest priority
         if isReconnecting {
+            NSLog("PiP - updateOverlayVisibility: isReconnecting=true, hiding avatar, showing reconnection")
             reconnectionView.isHidden = false
-            avatarView.isHidden = true
-            // Hide participant overlay during reconnection
+            avatarView.alpha = 0
+            avatarView.isVideoEnabled = true
+            // Hide participant overlay ONLY during reconnection (matches upstream)
             participantOverlayView.isOverlayEnabled = false
         } else {
             reconnectionView.isHidden = true
-            // Avatar view shows when video is disabled
-            avatarView.isHidden = isVideoEnabled
-            // Show participant overlay only when video is enabled (not showing avatar)
-            participantOverlayView.isOverlayEnabled = isVideoEnabled
+            // Avatar view shows when video is disabled OR when we don't have a track
+            let shouldShowVideo = isVideoEnabled && track != nil
+            let shouldShowAvatar = !shouldShowVideo
+            NSLog("PiP - updateOverlayVisibility: isVideoEnabled=\(isVideoEnabled), track=\(track?.trackId ?? "nil"), shouldShowAvatar=\(shouldShowAvatar)")
+
+            // Update avatar visibility - setting isVideoEnabled triggers internal layout
+            avatarView.isVideoEnabled = !shouldShowAvatar
+            avatarView.alpha = shouldShowAvatar ? 1 : 0
+
+            // Force layout when avatar becomes visible to ensure proper sizing
+            if shouldShowAvatar {
+                NSLog("PiP - updateOverlayVisibility: showing avatar, forcing layout. participantName=\(participantName ?? "nil"), avatarView.participantName='\(avatarView.participantName ?? "nil")'")
+                avatarView.setNeedsLayout()
+                avatarView.layoutIfNeeded()
+            }
+
+            // Participant overlay shows on BOTH video and avatar (matches upstream)
+            // Only hide during reconnection
+            participantOverlayView.isOverlayEnabled = true
         }
     }
-    
+
+    /// Updates the speaking indicator border visibility based on isSpeaking state.
+    /// The border is shown when the participant is speaking, on BOTH video and avatar views
+    /// (matching upstream behavior). Only hidden during reconnection.
+    private func updateSpeakingIndicator() {
+        let shouldShowBorder = isSpeaking && !isReconnecting
+        speakingBorderLayer.isHidden = !shouldShowBorder
+    }
+
     /// A method used to process the frame's buffer and enqueue on the rendering view.
     private func process(_ buffer: CMSampleBuffer) {
         guard
@@ -352,14 +455,14 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         on window: UIWindow?
     ) {
         guard window != nil, let track else { return }
-        
+
         bufferUpdatesCancellable = bufferPublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] in self?.process($0) }
-        
+
         track.add(self)
     }
-    
+
     /// A method that stops the frame consumption from the track. Used automatically when the rendering
     /// view move's away from the window or when the track changes.
     private func stopFrameStreaming(for track: RTCVideoTrack?) {
@@ -489,7 +592,7 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         } else if track != nil {
             return .video(track: track, participantName: participantName, participantImageURL: participantImageURL)
         } else {
-            return .inactive
+            return .avatar(participantName: participantName, participantImageURL: participantImageURL)
         }
     }
 }

@@ -18,6 +18,40 @@
   - `shouldDisableIOSLocalVideoOnBackgroundRef` controls whether local video should be disabled when backgrounding
 ---
 
+## Iteration 13 - PiP empty-track regression fixes
+- **Task Status:** Implemented
+- **Verification:** Manual validation (PiP enter twice)
+
+### Implementation Summary:
+Fixed the black PiP window when a track exists but renders no frames, including the regression on the second PiP entry. Also removed the redundant JS `isVideoEnabled` prop and derived video-enabled state from `streamURL` on the native side.
+
+### Files Modified:
+
+**Native iOS (Swift/ObjC):**
+1. **StreamPictureInPictureVideoRenderer.swift**
+   - Track render state (`hasRenderedFrame`) now resets on window attach/detach.
+   - Avatar visibility is driven by actual frame rendering, preventing black frames.
+
+2. **RTCViewPip.swift**
+   - Removed public `isVideoEnabled` prop.
+   - Derived `isVideoEnabled` from `streamURL`/track availability.
+
+3. **RTCViewPipManager.mm**
+   - Removed `isVideoEnabled` export from the bridge.
+
+**TypeScript/React:**
+4. **RTCViewPipIOS.tsx**
+   - Removed `hasVideo` usage and `isVideoEnabled` prop forwarding.
+
+5. **RTCViewPipNative.tsx**
+   - Removed `isVideoEnabled` prop from native component contract.
+
+### Key Design Decisions:
+- Use “has rendered at least one frame” as the gate for video display.
+- Fall back to avatar until the first valid frame arrives, even if a track exists.
+- Avoid duplicated video-enabled logic in JS; compute from `streamURL` in native.
+---
+
 ## Iteration 2 - US-002: PiP renders the correct participant and doesn't go "blank"
 - **Task Status:** Already implemented
 - **Verification:** All tests pass, TypeScript check passes
@@ -69,7 +103,7 @@
 - **Changes Made:**
   - `StreamPictureInPictureController.swift:170-185` - Enhanced `cleanup()` method:
     - Added `cancellableBag.removeAll()` to cancel Combine subscriptions
-    - Added `trackStateAdapter.isEnabled = false` to stop the timer
+    - Added `trackStateAdapter.isEnabled` to false to stop the timer
     - Added `trackStateAdapter.activeTrack = nil` to release track reference
   - `RTCViewPip.swift:91-95` - Added controller recreation logic:
     - When view is added to superview and controller is nil, recreate it
@@ -587,3 +621,444 @@ RTCVideoFrame → StreamBufferTransformer → StreamRTCYUVBuffer → CMSampleBuf
 - Frame skipping threshold of 15x and resize threshold of 1x provide good balance
 - UnfairQueue with os_unfair_lock provides fastest synchronization for pixel buffer access
 ---
+
+## Iteration 14 - Upstream Alignment Review
+- **Task Status:** Implemented
+- **Verification:** Pending iOS build
+
+### Analysis Summary:
+Reviewed the current implementation against upstream `stream-video-swift` to identify unnecessary additions and align behavior.
+
+### Upstream Analysis:
+Fetched and analyzed files from https://github.com/GetStream/stream-video-swift/tree/develop/Sources/StreamVideoSwiftUI/Utils/PictureInPicture:
+- `PictureInPictureVideoRenderer.swift` - No `hasRenderedFrame` tracking, simpler overlay logic
+- `PictureInPictureContent.swift` - States: inactive, participant, screenSharing, reconnecting
+- `PictureInPictureStore.swift` - Centralized state management
+- `PictureInPictureParticipantModifier.swift` - Shows name, connection quality, speaking indicator (NOT mute icon)
+- `PictureInPictureScreenSharingView.swift` - Just video with participant modifier overlay (NO separate indicator)
+
+### Unnecessary Additions Identified and Removed:
+
+1. **`PictureInPictureScreenShareIndicatorView.swift`** - REMOVED
+   - Upstream does NOT have a separate "Screen" label indicator
+   - Upstream just applies participant name overlay to screen share content
+   - Files modified: Deleted file, removed references from renderer
+
+2. **Mute indicator in `PictureInPictureParticipantOverlayView`** - REMOVED
+   - Upstream shows: participant name, connection quality, speaking indicator
+   - Upstream does NOT have a mute icon
+   - PRD states: "No new PiP UI controls beyond upstream"
+   - Files modified: `PictureInPictureParticipantOverlayView.swift`, removed `isMuted` prop chain
+
+3. **`hasRenderedFrame` tracking** - REMOVED
+   - Upstream does NOT track whether frames have been rendered
+   - Content switching in upstream is based on: track != nil AND isVideoEnabled
+   - Our implementation added `hasRenderedFrame` to fix black PiP window issue, but this deviates from upstream
+   - Files modified: `StreamPictureInPictureVideoRenderer.swift`
+
+4. **`updateOverlayVisibility()` simplification** - ALIGNED WITH UPSTREAM
+   - Upstream: Avatar shows when track is nil OR isVideoEnabled is false
+   - Our implementation: Previously also checked `hasRenderedFrame`
+   - Now aligned: `let shouldShowVideo = isVideoEnabled && track != nil`
+
+### Files Modified:
+
+**Deleted:**
+- `PictureInPictureScreenShareIndicatorView.swift`
+
+**Native iOS (Swift):**
+- `StreamPictureInPictureVideoRenderer.swift`:
+  - Removed `hasRenderedFrame` property and all references
+  - Simplified `updateOverlayVisibility()` to match upstream logic
+  - Removed hasRenderedFrame checks from `renderFrame()`, `willMove(toWindow:)`, `startFrameStreaming()`, `stopFrameStreaming()`, `getCurrentContent()`
+
+- `StreamAVPictureInPictureVideoCallViewController.swift`:
+  - Removed `isMuted` property from protocol and implementation
+
+- `StreamPictureInPictureController.swift`:
+  - Removed `isMuted` property
+
+- `RTCViewPip.swift`:
+  - Removed `isMuted` property
+
+- `RTCViewPipManager.mm`:
+  - Removed `isMuted` export
+
+- `PictureInPictureParticipantOverlayView.swift`:
+  - Removed `isMuted` property
+  - Removed mute icon view
+  - Simplified layout to just show participant name
+
+**TypeScript/React:**
+- `RTCViewPipNative.tsx`:
+  - Removed `isMuted` prop from types and component
+
+- `RTCViewPipIOS.tsx`:
+  - Removed `hasAudio` import
+  - Removed `isMuted` computation and prop
+
+### Key Design Decisions:
+- Aligned with upstream to minimize code drift and simplify future updates
+- Removed enhancements that were not in upstream (mute icon, screen share indicator, hasRenderedFrame)
+- Kept `isScreenSharing` property for content state tracking (used internally, no visual indicator)
+
+### Trade-offs:
+- Removing `hasRenderedFrame` may reintroduce the "black PiP window" issue in edge cases where track exists but produces no frames
+- However, this aligns with upstream behavior and the issue should be rare in practice since JS derives `isVideoEnabled` from streamURL availability
+
+### Learnings:
+- Upstream uses SwiftUI declaratively; content switching happens at view level based on store state
+- Our UIKit approach requires explicit visibility management, but should follow same logic
+- PRD clearly states "No new PiP UI controls beyond upstream" - important to follow this guideline
+---
+
+## Iteration 15 - Upstream Alignment: ParticipantInfoView Sound and Video Paused Indicators
+- **Task Status:** Implemented
+- **Verification:** Pending iOS build
+
+### Analysis Summary:
+Upon further investigation of upstream `ParticipantInfoView.swift`, discovered that upstream DOES show audio/video indicators - but different from what was initially implemented:
+- **Sound indicator**: Microphone icon showing on/off state (NOT speaking border)
+- **Video paused indicator**: wifi.slash icon when video track is paused
+
+### Implementation Summary:
+Re-implemented participant overlay to match upstream ParticipantInfoView behavior with sound indicator and video paused indicator.
+
+### Files Modified:
+
+**Native iOS (Swift):**
+1. **PictureInPictureParticipantOverlayView.swift** - Complete rewrite
+   - Added `hasAudio` property: When false, shows `mic.slash.fill` SF Symbol
+   - Added `isTrackPaused` property: When true, shows `wifi.slash` SF Symbol
+   - Horizontal layout: [name label] [spacer] [video paused icon] [audio icon]
+   - Icons use SF Symbols with white color on semi-transparent dark background
+   - Gradient overlay at bottom for text readability
+
+2. **StreamPictureInPictureVideoRenderer.swift**
+   - Added `hasAudio` property forwarding to overlay
+   - Added `isTrackPaused` property forwarding to overlay
+
+3. **StreamAVPictureInPictureVideoCallViewController.swift**
+   - Added `hasAudio` and `isTrackPaused` to protocol
+   - Added computed properties forwarding to contentView
+
+4. **StreamPictureInPictureController.swift**
+   - Added `@objc public var hasAudio: Bool = true`
+   - Added `@objc public var isTrackPaused: Bool = false`
+   - Forwards to contentViewController
+
+5. **RTCViewPip.swift**
+   - Added `@objc public var hasAudio: Bool = true`
+   - Added `@objc public var isTrackPaused: Bool = false`
+   - Forwards to pictureInPictureController
+
+6. **RTCViewPipManager.mm**
+   - Added `RCT_EXPORT_VIEW_PROPERTY(hasAudio, BOOL)`
+   - Added `RCT_EXPORT_VIEW_PROPERTY(isTrackPaused, BOOL)`
+
+**TypeScript/React:**
+7. **RTCViewPipNative.tsx**
+   - Added `hasAudio?: boolean` to props types
+   - Added `isTrackPaused?: boolean` to props types
+   - Forwarded both props to NativeComponent
+
+8. **RTCViewPipIOS.tsx**
+   - Imported `hasAudio` and `hasPausedTrack` from `@stream-io/video-client`
+   - Computed `participantHasAudio` using `hasAudio(participantInSpotlight)`
+   - Computed `isVideoTrackPaused` using `hasPausedTrack(participantInSpotlight, trackType)`
+   - Passed both values to RTCViewPipNative
+
+### Key Design Decisions:
+- `hasAudio`: Shows mic icon state (on when true, mic.slash when false)
+- `isTrackPaused`: Shows wifi.slash icon when video track is paused (bandwidth saving mode)
+- Icons positioned on right side of overlay, name on left
+- Default values: `hasAudio = true`, `isTrackPaused = false` (normal video state)
+- Uses existing `hasAudio()` and `hasPausedTrack()` utilities from video-client
+
+### Difference from Previous Implementation:
+- Previous: Had `isMuted` which was the inverse logic (true = no audio)
+- Current: Uses `hasAudio` which is positive logic (true = audio enabled)
+- Added: `isTrackPaused` for video paused state (wasn't in previous implementation)
+
+### Learnings:
+- Upstream ParticipantInfoView uses SoundIndicator component with hasAudio property
+- Track paused state indicates bandwidth-saving mode, not user-initiated mute
+- Both indicators are important for showing complete participant state in PiP
+---
+
+## Iteration 16 - Avatar View Layout Fix & Overlay Alignment with Upstream
+- **Task Status:** Implemented
+- **Verification:** Pending iOS build
+
+### Root Cause Analysis:
+The avatar view was not showing (black screen instead of blue circle with initials) due to:
+1. **Using `isHidden` instead of `alpha` for visibility** - Upstream SwiftUI uses `opacity` for visibility switching. When using `isHidden = true`, iOS may skip calling `layoutSubviews` on hidden views, causing layout issues when the view becomes visible.
+2. **Overlay visibility was incorrectly hidden when showing avatar** - Upstream shows participant info overlay (name, mic, connection quality, speaking border) on BOTH video AND avatar views.
+
+### Key Upstream Analysis:
+From `PictureInPictureVideoParticipantView.swift`:
+```swift
+var body: some View {
+    PictureInPictureVideoRendererView(...)
+        .opacity(showVideo ? 1 : 0)      // Video uses opacity, not isHidden
+        .overlay(overlayView)             // Avatar overlay
+        .pictureInPictureParticipant(...) // Participant info shown ALWAYS
+}
+```
+
+The `.pictureInPictureParticipant()` modifier adds:
+- ParticipantInfoView (name, pin icon, paused track indicator, sound indicator)
+- ConnectionQualityIndicator
+- Speaking border (via VideoCallParticipantSpeakingModifier)
+
+These are shown on TOP of BOTH video and avatar - only hidden during reconnection.
+
+### Files Modified:
+
+**Native iOS (Swift):**
+1. **PictureInPictureAvatarView.swift**
+   - Changed `updateVisibility()` to use `alpha` instead of `isHidden`
+   - Added `setNeedsLayout()` and `layoutIfNeeded()` when becoming visible
+   - Updated comment to explain why alpha is used (matches upstream SwiftUI opacity)
+
+2. **StreamPictureInPictureVideoRenderer.swift**
+   - Changed avatar view initialization from `isHidden = true` to `alpha = 0`
+   - Updated `updateOverlayVisibility()`:
+     - Avatar now uses `alpha` instead of `isHidden` for visibility
+     - Participant overlay now shows on BOTH video and avatar (was only showing on video)
+     - Speaking border now shows on BOTH video and avatar (was only showing on video)
+   - Updated `updateSpeakingIndicator()`:
+     - Border shows when speaking, on both video and avatar
+     - Only hidden during reconnection (matches upstream)
+
+### Key Design Decisions:
+1. **Use `alpha` instead of `isHidden`** - Ensures `layoutSubviews` is always called for proper Auto Layout constraint resolution. This matches upstream SwiftUI's opacity-based visibility.
+
+2. **Participant overlay always visible (except during reconnection)** - Matches upstream behavior where ParticipantInfoView and ConnectionQualityIndicator appear on both video and avatar content.
+
+3. **Speaking border always visible (except during reconnection)** - Matches upstream's VideoCallParticipantSpeakingModifier behavior.
+
+### Upstream Alignment Summary:
+| Feature | Before | After (Aligned with Upstream) |
+|---------|--------|-------------------------------|
+| Avatar visibility | `isHidden` | `alpha` (matches `opacity`) |
+| Participant info overlay | Only on video | On video AND avatar |
+| Connection quality indicator | Only on video | On video AND avatar |
+| Speaking border | Only on video | On video AND avatar |
+| All overlays during reconnection | Hidden | Hidden (no change) |
+
+### Learnings:
+- SwiftUI's `opacity` keeps views in the layout hierarchy; UIKit's `isHidden` may skip layout
+- Always use `alpha` for visibility when Auto Layout constraints need to be resolved
+- Force layout update with `setNeedsLayout()` + `layoutIfNeeded()` when showing previously invisible views
+- Upstream shows all participant indicators regardless of video/avatar state
+---
+
+## Iteration 17 - Fix Avatar Not Showing on Subsequent PiP Sessions
+- **Task Status:** Implemented
+- **Verification:** Pending iOS build
+
+### Problem:
+Avatar was visible on the FIRST PiP entry but NOT on subsequent entries (second time and later).
+
+### Root Cause:
+When the `pictureInPictureController` is recreated after cleanup (for subsequent calls), the property values (participantName, isVideoEnabled, etc.) were NOT being re-applied to the new controller.
+
+**Why this happens:**
+1. First PiP session works - controller exists, React Native sets properties via didSet
+2. Call ends - `onCallClosed()` sets `pictureInPictureController = nil`
+3. Second PiP session - controller is recreated in `didMoveToSuperview()`
+4. BUT: React Native properties (participantName, etc.) haven't changed
+5. THEREFORE: `didSet` doesn't fire on RTCViewPip properties
+6. RESULT: New controller has nil/default values, avatar doesn't show
+
+### Solution:
+Added `applyCurrentPropertiesToController()` method that explicitly re-applies all current property values to the newly created controller after recreation.
+
+### Files Modified:
+
+**RTCViewPip.swift:**
+- Added `applyCurrentPropertiesToController()` private method
+- Called this method after controller recreation in `didMoveToSuperview()`
+- Re-applies: participantName, participantImageURL, isReconnecting, isScreenSharing, hasAudio, isTrackPaused, isPinned, isSpeaking, connectionQuality
+- Special handling for streamURL to re-trigger track lookup and isVideoEnabled state
+
+### Code Added:
+```swift
+private func applyCurrentPropertiesToController() {
+    NSLog("PiP - Applying current properties to new controller")
+    pictureInPictureController?.participantName = participantName as String?
+    pictureInPictureController?.participantImageURL = participantImageURL as String?
+    pictureInPictureController?.isReconnecting = isReconnecting
+    pictureInPictureController?.isScreenSharing = isScreenSharing
+    pictureInPictureController?.hasAudio = hasAudio
+    pictureInPictureController?.isTrackPaused = isTrackPaused
+    pictureInPictureController?.isPinned = isPinned
+    pictureInPictureController?.isSpeaking = isSpeaking
+    pictureInPictureController?.connectionQuality = connectionQuality
+
+    // Re-apply streamURL to set track and isVideoEnabled
+    if let streamURLString = streamURL as String? {
+        let currentURL = streamURL
+        streamURL = nil
+        streamURL = currentURL
+    } else {
+        pictureInPictureController?.track = nil
+        pictureInPictureController?.isVideoEnabled = false
+    }
+}
+```
+
+### Learnings:
+- When recreating native objects, didSet on wrapper properties won't fire if values haven't changed
+- Always explicitly re-apply state after object recreation
+- This is a common pattern issue in React Native bridges where the native side may be recreated independently
+
+### Update (same iteration):
+Improved the fix by adding a `didSet` observer to `pictureInPictureController` itself:
+- When controller transitions from nil → non-nil, automatically calls `applyCurrentPropertiesToController()`
+- Added detailed logging to trace property flow
+- Clarified that we read from RTCViewPip's own properties (which persist) and write to the new controller
+---
+
+## Iteration 18 - Debug Avatar Not Showing: Trace Property Chain
+- **Task Status:** In Progress (Debugging)
+- **Issue:** Avatar still shows black screen on second PiP entry despite overlays being visible
+
+### Problem Analysis:
+User logs showed:
+- Avatar view has proper bounds (264x198)
+- Avatar view has alpha=1.0 (visible)
+- participantName="Santhosh Vaiyapuri" exists in renderer
+- BUT: No `AvatarView.participantName didSet` or `updateInitials` logs appearing
+
+This suggests the property chain is broken between the renderer and the avatar view.
+
+### Property Chain (should flow):
+1. RTCViewPip.participantName → (didSet) →
+2. StreamPictureInPictureController.participantName → (didSet) →
+3. StreamAVPictureInPictureVideoCallViewController.participantName → (setter) →
+4. StreamPictureInPictureVideoRenderer.participantName → (didSet) →
+5. PictureInPictureAvatarView.participantName → (didSet) → updateInitials()
+
+### Debugging Logs Added:
+1. **RTCViewPip.swift** - Already had logging: `"PiP - RTCViewPip.participantName didSet"`
+2. **StreamPictureInPictureController.swift** - Added: `"PiP - Controller.participantName didSet: '...', contentViewController exists: ..."`
+3. **StreamPictureInPictureVideoRenderer.swift** - Added: `"PiP - Renderer.participantName didSet: '...', forwarding to avatarView"`
+4. **PictureInPictureAvatarView.swift** - Already had logging: `"PiP - AvatarView.participantName didSet: '...'"`
+
+### Additional Logging Added:
+- `Renderer.isVideoEnabled` didSet now logs `avatarView.participantName` state
+- `updateOverlayVisibility()` now logs both `participantName` and `avatarView.participantName`
+- `AvatarView.updateInitials()` now logs `avatarContainerView.frame`
+- `applyCurrentPropertiesToController()` now logs "STARTING" and "COMPLETED"
+
+### Expected Log Output on Second PiP Entry:
+```
+PiP - Recreating pictureInPictureController for new session
+PiP - applyCurrentPropertiesToController STARTING:
+PiP -   participantName: 'Santhosh Vaiyapuri'
+PiP - Controller.participantName didSet: 'Santhosh Vaiyapuri', contentViewController exists: true
+PiP - Renderer.participantName didSet: 'Santhosh Vaiyapuri', forwarding to avatarView
+PiP - AvatarView.participantName didSet: 'Santhosh Vaiyapuri'
+PiP - AvatarView updateInitials: name=Santhosh Vaiyapuri, initials=SV, ...
+PiP - applyCurrentPropertiesToController COMPLETED
+```
+
+If logs show step 3 (Renderer) but NOT step 4 (AvatarView), then the issue is in how the renderer forwards to avatarView. This could indicate:
+- The avatarView reference is stale
+- The lazy var is creating a new instance
+- Some other initialization timing issue
+
+### Root Cause Found:
+The logs revealed that `avatarView.participantName` HAS the correct value, but `updateInitials()` is NEVER called on the second PiP entry. This is because:
+
+1. The RTCViewPip view stays in the hierarchy (never removed from superview)
+2. The controller is NOT recreated (same controller reused)
+3. React Native doesn't re-send unchanged property values
+4. `participantName` didSet doesn't fire (value unchanged)
+5. `updateInitials()` is never called on second entry
+6. `initialsLabel.text` is still nil from initialization (or from a reset)
+
+### Fixes Applied:
+
+**Fix 1: Refresh content when avatar becomes visible**
+Modified `PictureInPictureAvatarView.swift` to call `updateInitials()` when `isVideoEnabled` becomes false:
+
+```swift
+var isVideoEnabled: Bool = true {
+    didSet {
+        updateVisibility()
+        if !isVideoEnabled {
+            updateInitials()  // Refresh content when becoming visible
+        }
+    }
+}
+```
+
+**Fix 2: Force immediate layout after constraint updates**
+The avatar container was being positioned for intermediate large bounds (820x1155) instead of the actual PiP window size (264x198). This happened because constraints set during `layoutSubviews` weren't resolved until the next layout pass.
+
+Modified `updateAvatarSize()` to force immediate layout:
+
+```swift
+private func updateAvatarSize() {
+    NSLayoutConstraint.deactivate(avatarSizeConstraints)
+    // ... calculate avatarSize ...
+    NSLayoutConstraint.activate(avatarSizeConstraints)
+
+    // Force immediate layout to apply the new constraints
+    containerView.setNeedsLayout()
+    containerView.layoutIfNeeded()
+
+    // Update corner radius after layout is complete
+    avatarContainerView.layer.cornerRadius = avatarContainerView.bounds.width / 2
+}
+```
+
+### Result:
+Avatar now shows correctly on all PiP sessions (first, second, and subsequent entries).
+
+### Note on `applyCurrentPropertiesToController()`:
+This function is still needed for the case where RTCViewPip is actually removed from superview and re-added (e.g., navigating away from call screen and back). In normal PiP flow, the view stays in the hierarchy, but for edge cases where it's removed, this function ensures properties are re-applied to the recreated controller.
+---
+
+## Iteration 19 - Fix Reconnection View Not Showing When Offline
+- **Task Status:** Implemented
+- **Verification:** Manual test passed - reconnection view shows when internet is switched off
+- **Implementation Details:**
+  - `RTCViewPipIOS.tsx:131-135` - Added `CallingState.OFFLINE` to `isReconnecting` check
+  - `PictureInPictureReconnectionView.swift` - Replaced spinner with animated dots matching upstream `CallingIndicator`
+
+- **Learnings for future iterations:**
+  - Upstream `stream-video-swift` shows reconnection view for BOTH `reconnectionStatus == .reconnecting` AND `!internetConnectionObserver.isAvailable`
+  - JS client sets `CallingState.OFFLINE` when internet is unavailable (Call.ts:1696), not `RECONNECTING`
+  - `UIView.animate` doesn't work in PiP overlays, but `CABasicAnimation` does
+  - SwiftUI animations translate to Core Animation under the hood, so `CABasicAnimation` is the correct UIKit equivalent
+
+### Root Cause:
+The reconnection view wasn't showing because the JS check only included `RECONNECTING` and `RECONNECTING_FAILED`, but when internet is switched off, the client sets `CallingState.OFFLINE`.
+
+### Files Modified:
+
+**TypeScript/React:**
+1. **RTCViewPipIOS.tsx**
+   - Added `CallingState.OFFLINE` to the `isReconnecting` check to match upstream behavior
+
+**Native iOS (Swift):**
+2. **PictureInPictureReconnectionView.swift**
+   - Replaced `UIActivityIndicatorView` with three pulsing dots matching upstream `CallingIndicator`
+   - Dot size: 4pt, spacing: 2pt (matches upstream)
+   - Animation uses `CABasicAnimation` with opacity pulse (0 → 1)
+   - Timing functions match upstream: `.easeOut`, `.easeInEaseOut`, `.easeIn`
+   - Duration: 1 second, delay: 0.2 seconds, autoreverses with infinite repeat
+
+### Upstream Alignment:
+| Upstream SwiftUI | Our CABasicAnimation |
+|------------------|---------------------|
+| `.easeOut(duration: 1)` | `CAMediaTimingFunction(name: .easeOut)`, `duration = 1.0` |
+| `.easeInOut(duration: 1)` | `CAMediaTimingFunction(name: .easeInEaseOut)`, `duration = 1.0` |
+| `.easeIn(duration: 1)` | `CAMediaTimingFunction(name: .easeIn)`, `duration = 1.0` |
+| `.delay(0.2)` | `beginTime = CACurrentMediaTime() + 0.2` |
+| `.repeatForever(autoreverses: true)` | `repeatCount = .infinity`, `autoreverses = true` |
+| `opacity: 0 → 1` | `fromValue = 0.0`, `toValue = 1.0` |

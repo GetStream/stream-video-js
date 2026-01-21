@@ -21,14 +21,20 @@ type RTCViewPipNativeProps = {
   participantName?: string;
   /** The URL string for the participant's profile image */
   participantImageURL?: string;
-  /** Whether video is enabled - when false, shows avatar placeholder */
-  isVideoEnabled?: boolean;
   /** Whether the call is reconnecting - when true, shows reconnection view */
   isReconnecting?: boolean;
-  /** Whether screen sharing is active - when true, shows screen share indicator */
+  /** Whether screen sharing is active (used for content state tracking) */
   isScreenSharing?: boolean;
-  /** Whether the participant's audio is muted - shown in participant overlay */
-  isMuted?: boolean;
+  /** Whether the participant has audio enabled (shown in participant overlay) */
+  hasAudio?: boolean;
+  /** Whether the video track is paused (shown in participant overlay) */
+  isTrackPaused?: boolean;
+  /** Whether the participant is pinned (shown in participant overlay) */
+  isPinned?: boolean;
+  /** Whether the participant is currently speaking (shows border highlight) */
+  isSpeaking?: boolean;
+  /** The connection quality level (0: unknown, 1: poor, 2: good, 3: excellent) */
+  connectionQuality?: number;
 };
 
 const NativeComponent: HostComponent<RTCViewPipNativeProps> =
@@ -70,10 +76,13 @@ export const RTCViewPipNative = React.memo(
       onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
       participantName?: string;
       participantImageURL?: string;
-      isVideoEnabled?: boolean;
       isReconnecting?: boolean;
       isScreenSharing?: boolean;
-      isMuted?: boolean;
+      hasAudio?: boolean;
+      isTrackPaused?: boolean;
+      isPinned?: boolean;
+      isSpeaking?: boolean;
+      connectionQuality?: number;
     }
   >((props, ref) => {
     if (Platform.OS !== 'ios') return null;
@@ -91,13 +100,19 @@ export const RTCViewPipNative = React.memo(
         // eslint-disable-next-line react/prop-types
         participantImageURL={props.participantImageURL}
         // eslint-disable-next-line react/prop-types
-        isVideoEnabled={props.isVideoEnabled}
-        // eslint-disable-next-line react/prop-types
         isReconnecting={props.isReconnecting}
         // eslint-disable-next-line react/prop-types
         isScreenSharing={props.isScreenSharing}
         // eslint-disable-next-line react/prop-types
-        isMuted={props.isMuted}
+        hasAudio={props.hasAudio}
+        // eslint-disable-next-line react/prop-types
+        isTrackPaused={props.isTrackPaused}
+        // eslint-disable-next-line react/prop-types
+        isPinned={props.isPinned}
+        // eslint-disable-next-line react/prop-types
+        isSpeaking={props.isSpeaking}
+        // eslint-disable-next-line react/prop-types
+        connectionQuality={props.connectionQuality}
         // @ts-expect-error - types issue
         ref={ref}
       />

@@ -107,9 +107,12 @@ final class PictureInPictureContentState: @unchecked Sendable {
                     participantImageURL: self.participantImageURL
                 )
             }
-            // Default: Inactive
+            // Default: Avatar placeholder when video is expected but no track yet
             else {
-                newContent = .inactive
+                newContent = .avatar(
+                    participantName: self.participantName,
+                    participantImageURL: self.participantImageURL
+                )
             }
 
             // Only update if content actually changed

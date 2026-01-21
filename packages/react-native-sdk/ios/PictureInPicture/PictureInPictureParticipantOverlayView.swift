@@ -5,7 +5,9 @@
 import UIKit
 
 /// A view that displays participant information overlay in Picture-in-Picture mode.
-/// Shows participant name and mute status indicator at the bottom of the PiP window.
+/// Shows participant name, pin indicator, sound indicator, and video paused indicator
+/// at the bottom-left of the PiP window.
+/// This aligns with upstream stream-video-swift ParticipantInfoView.
 final class PictureInPictureParticipantOverlayView: UIView {
 
     // MARK: - Properties
@@ -18,10 +20,24 @@ final class PictureInPictureParticipantOverlayView: UIView {
         }
     }
 
-    /// Whether the participant's audio is muted
-    var isMuted: Bool = false {
+    /// Whether the participant is pinned
+    var isPinned: Bool = false {
         didSet {
-            muteIconView.isHidden = !isMuted
+            pinIconView.isHidden = !isPinned
+        }
+    }
+
+    /// Whether the participant has audio enabled (not muted)
+    var hasAudio: Bool = true {
+        didSet {
+            updateSoundIndicator()
+        }
+    }
+
+    /// Whether the video track is paused/disabled
+    var isTrackPaused: Bool = false {
+        didSet {
+            updateVideoPausedIndicator()
         }
     }
 
@@ -52,7 +68,7 @@ final class PictureInPictureParticipantOverlayView: UIView {
         return layer
     }()
 
-    /// Container for the content (name + mute icon)
+    /// Container for the content (name + indicators)
     private lazy var contentStackView: UIStackView = {
         let stack = UIStackView()
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -60,6 +76,22 @@ final class PictureInPictureParticipantOverlayView: UIView {
         stack.spacing = 4
         stack.alignment = .center
         return stack
+    }()
+
+    /// Pin indicator icon (shown when participant is pinned)
+    private lazy var pinIconView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = .white
+
+        // Use SF Symbol for pin
+        let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .medium)
+        imageView.image = UIImage(systemName: "pin.fill", withConfiguration: config)
+        imageView.isHidden = true // Hidden by default
+        imageView.setContentHuggingPriority(.required, for: .horizontal)
+        imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        return imageView
     }()
 
     /// Label showing participant name
@@ -74,19 +106,28 @@ final class PictureInPictureParticipantOverlayView: UIView {
         return label
     }()
 
-    /// Mute indicator icon
-    private lazy var muteIconView: UIImageView = {
+    /// Video paused indicator icon (wifi.slash when track is paused)
+    private lazy var videoPausedIconView: UIImageView = {
         let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
         imageView.tintColor = .white
 
-        // Use SF Symbol for muted microphone
-        if #available(iOS 13.0, *) {
-            let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .medium)
-            imageView.image = UIImage(systemName: "mic.slash.fill", withConfiguration: config)
-        }
+        // Use SF Symbol for video paused (wifi.slash as in upstream)
+        let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .medium)
+        imageView.image = UIImage(systemName: "wifi.slash", withConfiguration: config)
         imageView.isHidden = true // Hidden by default
+        imageView.setContentHuggingPriority(.required, for: .horizontal)
+        imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
+        return imageView
+    }()
+
+    /// Sound indicator icon (microphone on/off)
+    private lazy var soundIndicatorView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = .white
         imageView.setContentHuggingPriority(.required, for: .horizontal)
         imageView.setContentCompressionResistancePriority(.required, for: .horizontal)
         return imageView
@@ -122,8 +163,10 @@ final class PictureInPictureParticipantOverlayView: UIView {
         containerView.layer.insertSublayer(gradientLayer, at: 0)
         containerView.addSubview(contentStackView)
 
+        contentStackView.addArrangedSubview(pinIconView)
         contentStackView.addArrangedSubview(nameLabel)
-        contentStackView.addArrangedSubview(muteIconView)
+        contentStackView.addArrangedSubview(videoPausedIconView)
+        contentStackView.addArrangedSubview(soundIndicatorView)
 
         NSLayoutConstraint.activate([
             // Container positioned at the bottom
@@ -137,15 +180,38 @@ final class PictureInPictureParticipantOverlayView: UIView {
             contentStackView.trailingAnchor.constraint(lessThanOrEqualTo: containerView.trailingAnchor, constant: -8),
             contentStackView.bottomAnchor.constraint(equalTo: containerView.bottomAnchor, constant: -6),
 
-            // Mute icon size
-            muteIconView.widthAnchor.constraint(equalToConstant: 12),
-            muteIconView.heightAnchor.constraint(equalToConstant: 12)
+            // Icon sizes
+            pinIconView.widthAnchor.constraint(equalToConstant: 12),
+            pinIconView.heightAnchor.constraint(equalToConstant: 12),
+            videoPausedIconView.widthAnchor.constraint(equalToConstant: 12),
+            videoPausedIconView.heightAnchor.constraint(equalToConstant: 12),
+            soundIndicatorView.widthAnchor.constraint(equalToConstant: 12),
+            soundIndicatorView.heightAnchor.constraint(equalToConstant: 12)
         ])
+
+        // Initialize indicators
+        updateSoundIndicator()
+        updateVideoPausedIndicator()
     }
 
     private func updateVisibility() {
         // Show overlay only if enabled and we have a participant name
         let hasName = participantName != nil && !(participantName?.isEmpty ?? true)
         isHidden = !isOverlayEnabled || !hasName
+    }
+
+    private func updateSoundIndicator() {
+        let config = UIImage.SymbolConfiguration(pointSize: 10, weight: .medium)
+        if hasAudio {
+            soundIndicatorView.image = UIImage(systemName: "mic.fill", withConfiguration: config)
+            soundIndicatorView.tintColor = .white
+        } else {
+            soundIndicatorView.image = UIImage(systemName: "mic.slash.fill", withConfiguration: config)
+            soundIndicatorView.tintColor = UIColor(white: 0.7, alpha: 1.0) // Slightly dimmed when muted
+        }
+    }
+
+    private func updateVideoPausedIndicator() {
+        videoPausedIconView.isHidden = !isTrackPaused
     }
 }

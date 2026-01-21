@@ -1,12 +1,14 @@
 import {
   CallingState,
+  SfuModels,
   hasAudio,
+  hasPausedTrack,
   hasScreenShare,
-  hasVideo,
   speakerLayoutSortPreset,
   type StreamVideoParticipant,
   videoLoggerSystem,
   type VideoTrackType,
+  hasVideo,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
@@ -112,43 +114,55 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     ? screenShareStream
     : videoStream) as unknown as MediaStream | undefined;
 
-  const streamURL = useMemo(() => {
-    if (!videoStreamToRender) {
-      return undefined;
-    }
-    return videoStreamToRender?.toURL();
-  }, [videoStreamToRender]);
+  const isPublishingTrack =
+    isScreenSharing ||
+    (participantInSpotlight && hasVideo(participantInSpotlight));
+
+  const streamURL = isPublishingTrack
+    ? videoStreamToRender?.toURL()
+    : undefined;
 
   const handlePiPChange = (event: { nativeEvent: { active: boolean } }) => {
     isInPiPMode$.next(event.nativeEvent.active);
     onPiPChange?.(event.nativeEvent.active);
   };
 
-  // Determine if participant has video enabled
-  // For screen sharing, we check if the screen share stream is available
-  // For regular video, we check if the video stream is available and camera is publishing
-  const isVideoEnabled = useMemo(() => {
-    if (!participantInSpotlight) return false;
-    if (isScreenSharing) {
-      return !!screenShareStream;
-    }
-    return !!videoStream && hasVideo(participantInSpotlight);
-  }, [participantInSpotlight, isScreenSharing, screenShareStream, videoStream]);
-
   // Get participant info for avatar placeholder
   const participantName = participantInSpotlight?.name || undefined;
   const participantImageURL = participantInSpotlight?.image || undefined;
 
-  // Determine if the call is reconnecting
+  // Determine if the call is reconnecting or offline
+  // This aligns with upstream stream-video-swift which shows reconnection view when:
+  // 1. reconnectionStatus == .reconnecting (maps to RECONNECTING/RECONNECTING_FAILED)
+  // 2. Internet is not available (maps to OFFLINE)
   const isReconnecting =
     callingState === CallingState.RECONNECTING ||
-    callingState === CallingState.RECONNECTING_FAILED;
+    callingState === CallingState.RECONNECTING_FAILED ||
+    callingState === CallingState.OFFLINE;
 
-  // Determine if participant's audio is muted
-  const isMuted = useMemo(() => {
-    if (!participantInSpotlight) return false;
-    return !hasAudio(participantInSpotlight);
-  }, [participantInSpotlight]);
+  // Determine if the participant has audio enabled
+  const participantHasAudio = participantInSpotlight
+    ? hasAudio(participantInSpotlight)
+    : true;
+
+  // Determine if the video track is paused
+  const trackType: VideoTrackType = isScreenSharing
+    ? 'screenShareTrack'
+    : 'videoTrack';
+  const isVideoTrackPaused = participantInSpotlight
+    ? hasPausedTrack(participantInSpotlight, trackType)
+    : false;
+
+  // Determine if the participant is pinned
+  const participantIsPinned = participantInSpotlight?.pin !== undefined;
+
+  // Determine if the participant is speaking
+  const participantIsSpeaking = participantInSpotlight?.isSpeaking ?? false;
+
+  // Get connection quality (convert enum to number: UNSPECIFIED=0, POOR=1, GOOD=2, EXCELLENT=3)
+  const participantConnectionQuality =
+    participantInSpotlight?.connectionQuality ??
+    SfuModels.ConnectionQuality.UNSPECIFIED;
 
   return (
     <>
@@ -158,10 +172,13 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
         onPiPChange={handlePiPChange}
         participantName={participantName}
         participantImageURL={participantImageURL}
-        isVideoEnabled={isVideoEnabled}
         isReconnecting={isReconnecting}
         isScreenSharing={isScreenSharing}
-        isMuted={isMuted}
+        hasAudio={participantHasAudio}
+        isTrackPaused={isVideoTrackPaused}
+        isPinned={participantIsPinned}
+        isSpeaking={participantIsSpeaking}
+        connectionQuality={participantConnectionQuality}
       />
       {participantInSpotlight && (
         <DimensionsUpdatedRenderless

@@ -5,7 +5,7 @@
 import UIKit
 
 /// A view that displays a reconnection indicator when the call connection is being recovered.
-/// Shows a spinner with a "Reconnecting..." message.
+/// Shows three pulsing dots with a "Reconnecting" message, matching upstream CallingIndicator style.
 final class PictureInPictureReconnectionView: UIView {
 
     // MARK: - Properties
@@ -22,7 +22,7 @@ final class PictureInPictureReconnectionView: UIView {
     private let containerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor(red: 0.12, green: 0.13, blue: 0.15, alpha: 0.85) // Semi-transparent dark background
+        view.backgroundColor = UIColor(red: 0.12, green: 0.13, blue: 0.15, alpha: 0.85)
         return view
     }()
 
@@ -31,33 +31,34 @@ final class PictureInPictureReconnectionView: UIView {
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
         stack.alignment = .center
-        stack.spacing = 12
+        stack.spacing = 8
         return stack
-    }()
-
-    private let activityIndicator: UIActivityIndicatorView = {
-        let indicator: UIActivityIndicatorView
-        if #available(iOS 13.0, *) {
-            indicator = UIActivityIndicatorView(style: .large)
-            indicator.color = .white
-        } else {
-            indicator = UIActivityIndicatorView(style: .whiteLarge)
-        }
-        indicator.translatesAutoresizingMaskIntoConstraints = false
-        indicator.hidesWhenStopped = false
-        return indicator
     }()
 
     private let messageLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Reconnecting..."
+        label.text = "Reconnecting"
         label.textColor = .white
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         label.accessibilityIdentifier = "reconnectingMessage"
         return label
     }()
+
+    /// Three dots indicator matching upstream CallingIndicator style
+    private let dotsStackView: UIStackView = {
+        let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.alignment = .center
+        stack.spacing = 2  // Matches upstream
+        stack.accessibilityIdentifier = "callingIndicator"
+        return stack
+    }()
+
+    private let dotSize: CGFloat = 4  // Matches upstream
+    private var dots: [UIView] = []
 
     // MARK: - Lifecycle
 
@@ -70,13 +71,39 @@ final class PictureInPictureReconnectionView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
+    deinit {
+        stopAnimation()
+    }
+
     // MARK: - Private Helpers
+
+    private func createDot() -> UIView {
+        let dot = UIView()
+        dot.translatesAutoresizingMaskIntoConstraints = false
+        dot.backgroundColor = .white
+        dot.layer.cornerRadius = dotSize / 2
+        dot.alpha = 0  // Start invisible (matches upstream)
+        NSLayoutConstraint.activate([
+            dot.widthAnchor.constraint(equalToConstant: dotSize),
+            dot.heightAnchor.constraint(equalToConstant: dotSize)
+        ])
+        return dot
+    }
 
     private func setUp() {
         addSubview(containerView)
         containerView.addSubview(contentStackView)
-        contentStackView.addArrangedSubview(activityIndicator)
+
+        // Order matches upstream: text first, then dots indicator
         contentStackView.addArrangedSubview(messageLabel)
+        contentStackView.addArrangedSubview(dotsStackView)
+
+        // Add three dots (matches upstream)
+        for _ in 0..<3 {
+            let dot = createDot()
+            dots.append(dot)
+            dotsStackView.addArrangedSubview(dot)
+        }
 
         NSLayoutConstraint.activate([
             containerView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -90,19 +117,77 @@ final class PictureInPictureReconnectionView: UIView {
             contentStackView.trailingAnchor.constraint(lessThanOrEqualTo: containerView.trailingAnchor, constant: -16)
         ])
 
-        // Start spinning the activity indicator
-        activityIndicator.startAnimating()
-
         // Initially hidden
         updateVisibility()
     }
 
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        // Restart animation when view is added to window (animations are removed when view leaves window)
+        if window != nil && isReconnecting && !isHidden {
+            startAnimation()
+        }
+    }
+
     private func updateVisibility() {
         isHidden = !isReconnecting
+
         if isReconnecting {
-            activityIndicator.startAnimating()
+            startAnimation()
         } else {
-            activityIndicator.stopAnimating()
+            stopAnimation()
+        }
+    }
+
+    // MARK: - Animation (matches upstream CallingIndicator)
+
+    /// Starts the pulsing animation matching upstream exactly:
+    /// - All dots animate from alpha 0 → 1
+    /// - Same 0.2s delay for all dots
+    /// - 1 second duration
+    /// - Different easing: easeOut, easeInOut, easeIn
+    /// - Repeat forever with autoreverse
+    private func startAnimation() {
+        // Only animate if we're in a window
+        guard window != nil else {
+            NSLog("PiP - ReconnectionView: startAnimation called but not in window yet")
+            return
+        }
+
+        NSLog("PiP - ReconnectionView: starting dot animation with CABasicAnimation")
+
+        // Stop any existing animations first
+        stopAnimation()
+
+        // Use CABasicAnimation for better compatibility with PiP
+        // Matches upstream: easeOut, easeInOut, easeIn timing functions
+        let timingFunctions: [CAMediaTimingFunction] = [
+            CAMediaTimingFunction(name: .easeOut),
+            CAMediaTimingFunction(name: .easeInEaseOut),
+            CAMediaTimingFunction(name: .easeIn)
+        ]
+
+        for (index, dot) in dots.enumerated() {
+            let animation = CABasicAnimation(keyPath: "opacity")
+            animation.fromValue = 0.0
+            animation.toValue = 1.0
+            animation.duration = 1.0
+            animation.beginTime = CACurrentMediaTime() + 0.2  // 0.2s delay
+            animation.timingFunction = timingFunctions[index]
+            animation.autoreverses = true
+            animation.repeatCount = .infinity
+            animation.fillMode = .forwards
+            animation.isRemovedOnCompletion = false
+
+            dot.layer.add(animation, forKey: "pulseAnimation")
+            dot.alpha = 0  // Set initial state
+        }
+    }
+
+    private func stopAnimation() {
+        dots.forEach { dot in
+            dot.layer.removeAllAnimations()
+            dot.alpha = 0
         }
     }
 }

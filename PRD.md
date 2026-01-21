@@ -8,6 +8,8 @@ Picture in Picture (PiP) is an iOS feature that allows video content to continue
 
 The Stream Video React Native SDK currently includes a PiP implementation for iOS, but it was based on an earlier version of the upstream `stream-video-swift` library (PR #146). Since then, the Swift library has undergone significant improvements (PR #258 and subsequent updates) that address reliability issues, improve performance, and add new features.
 
+The upstream codebase is present at `~/Downloads/stream-video-swift-develop`. Very important: when fetching code for the `stream-video-swift` lib look at the local folder only.
+
 ### Problem Statement
 
 The current React Native SDK PiP implementation has several limitations:

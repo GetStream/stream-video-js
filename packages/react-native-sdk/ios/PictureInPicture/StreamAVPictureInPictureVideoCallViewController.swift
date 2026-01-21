@@ -40,13 +40,25 @@ protocol StreamAVPictureInPictureViewControlling: AnyObject {
 
     // MARK: - Screen Sharing Properties
 
-    /// Whether screen sharing is active - when true, shows screen share indicator
+    /// Whether screen sharing is active (used for content state tracking)
     var isScreenSharing: Bool { get set }
 
     // MARK: - Participant Overlay Properties
 
-    /// Whether the participant's audio is muted
-    var isMuted: Bool { get set }
+    /// Whether the participant has audio enabled (shown in participant overlay)
+    var hasAudio: Bool { get set }
+
+    /// Whether the video track is paused (shown in participant overlay)
+    var isTrackPaused: Bool { get set }
+
+    /// Whether the participant is pinned (shown in participant overlay)
+    var isPinned: Bool { get set }
+
+    /// Whether the participant is currently speaking (shows border highlight)
+    var isSpeaking: Bool { get set }
+
+    /// The connection quality level (0: unknown, 1: poor, 2: good, 3: excellent)
+    var connectionQuality: Int { get set }
 
     // MARK: - Content State System
 
@@ -108,9 +120,29 @@ final class StreamAVPictureInPictureVideoCallViewController: AVPictureInPictureV
 
     // MARK: - Participant Overlay Properties
 
-    var isMuted: Bool {
-        get { contentView.isMuted }
-        set { contentView.isMuted = newValue }
+    var hasAudio: Bool {
+        get { contentView.hasAudio }
+        set { contentView.hasAudio = newValue }
+    }
+
+    var isTrackPaused: Bool {
+        get { contentView.isTrackPaused }
+        set { contentView.isTrackPaused = newValue }
+    }
+
+    var isPinned: Bool {
+        get { contentView.isPinned }
+        set { contentView.isPinned = newValue }
+    }
+
+    var isSpeaking: Bool {
+        get { contentView.isSpeaking }
+        set { contentView.isSpeaking = newValue }
+    }
+
+    var connectionQuality: Int {
+        get { contentView.connectionQuality }
+        set { contentView.connectionQuality = newValue }
     }
 
     // MARK: - Content State System

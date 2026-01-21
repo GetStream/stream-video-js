@@ -49,6 +49,7 @@ import Foundation
     /// The participant's name for the avatar placeholder
     @objc public var participantName: String? {
         didSet {
+            NSLog("PiP - Controller.participantName didSet: '\(participantName ?? "nil")', contentViewController exists: \(contentViewController != nil)")
             contentState.participantName = participantName
             // Also update directly for immediate response (legacy path)
             contentViewController?.participantName = participantName
@@ -82,7 +83,7 @@ import Foundation
         }
     }
 
-    /// Whether screen sharing is active - when true, shows screen share indicator
+    /// Whether screen sharing is active (used for content state tracking)
     @objc public var isScreenSharing: Bool = false {
         didSet {
             contentState.isScreenSharing = isScreenSharing
@@ -91,10 +92,38 @@ import Foundation
         }
     }
 
-    /// Whether the participant's audio is muted - shown in participant overlay
-    @objc public var isMuted: Bool = false {
+    /// Whether the participant has audio enabled (shown in participant overlay)
+    @objc public var hasAudio: Bool = true {
         didSet {
-            contentViewController?.isMuted = isMuted
+            contentViewController?.hasAudio = hasAudio
+        }
+    }
+
+    /// Whether the video track is paused (shown in participant overlay)
+    @objc public var isTrackPaused: Bool = false {
+        didSet {
+            contentViewController?.isTrackPaused = isTrackPaused
+        }
+    }
+
+    /// Whether the participant is pinned (shown in participant overlay)
+    @objc public var isPinned: Bool = false {
+        didSet {
+            contentViewController?.isPinned = isPinned
+        }
+    }
+
+    /// Whether the participant is currently speaking (shows border highlight)
+    @objc public var isSpeaking: Bool = false {
+        didSet {
+            contentViewController?.isSpeaking = isSpeaking
+        }
+    }
+
+    /// The connection quality level (0: unknown, 1: poor, 2: good, 3: excellent)
+    @objc public var connectionQuality: Int = 0 {
+        didSet {
+            contentViewController?.connectionQuality = connectionQuality
         }
     }
 
@@ -159,6 +188,11 @@ import Foundation
         self.canStartPictureInPictureAutomaticallyFromInline = canStartPictureInPictureAutomaticallyFromInline
         super.init()
 
+        // Wire up the content state to the view controller for reactive updates (US-008)
+        // This enables the unified content view system where contentState changes
+        // automatically drive view switching in the renderer
+        contentViewController?.contentState = contentState
+
         // Subscribe to delegate proxy events for reactive PiP state handling
         setupDelegateProxySubscriptions()
 
@@ -196,6 +230,8 @@ import Foundation
             onPiPStateChange?(false)
         case let .failedToStart(_, error):
             NSLog("PiP - failedToStartPictureInPictureWithError: \(error.localizedDescription)")
+            // Notify JS that PiP failed to start so it can update its state accordingly
+            onPiPStateChange?(false)
         case let .restoreUI(_, completionHandler):
             completionHandler(true)
         case .willStart, .willStop:
