@@ -92,7 +92,7 @@ export function setupIosCallKeepEvents(
    * - flaky audio routing (speaker/earpiece/Bluetooth) across subsequent calls
    *
    * We forward CallKeep’s `didActivateAudioSession` / `didDeactivateAudioSession` events to WebRTC’s
-   * `RTCAudioSession` (exported by `@stream-io/react-native-webrtc`, a required peer dependency).
+   * `RTCAudioSession.
    */
   function didActivateAudioSession() {
     logger.debug('didActivateAudioSession');
