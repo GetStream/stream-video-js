@@ -12,6 +12,7 @@ import {
   type EventParams,
 } from './libs/callingx';
 import { RTCAudioSession } from '@stream-io/react-native-webrtc';
+import { Platform } from 'react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -19,9 +20,11 @@ type PushConfig = NonNullable<StreamVideoConfig['push']>;
  * This hook is used to listen to callkeep events and do the necessary actions
  */
 export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
-  if (
-    !(pushConfig.android.pushProviderName && pushConfig.ios.pushProviderName)
-  ) {
+  const hasPushProvider =
+    (Platform.OS === 'android' && pushConfig.android?.pushProviderName) ||
+    (Platform.OS === 'ios' && pushConfig.ios?.pushProviderName);
+
+  if (!hasPushProvider) {
     return;
   }
 

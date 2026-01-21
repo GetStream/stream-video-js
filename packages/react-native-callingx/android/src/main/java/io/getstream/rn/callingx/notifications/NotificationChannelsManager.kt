@@ -25,7 +25,7 @@ class NotificationChannelsManager(
           val hasPermissions: Boolean,
           val areNotificationsEnabled: Boolean,
           val isIncomingChannelEnabled: Boolean,
-          val isOutgoingChannelEnabled: Boolean,
+          val isOngoingChannelEnabled: Boolean,
   )
 
   fun setNotificationsConfig(notificationsConfig: NotificationsConfig.Channels) {
@@ -35,7 +35,7 @@ class NotificationChannelsManager(
   fun createNotificationChannels() {
     notificationsConfig?.let {
       val incomingChannel = createNotificationChannel(it.incomingChannel)
-      val ongoingChannel = createNotificationChannel(it.outgoingChannel)
+      val ongoingChannel = createNotificationChannel(it.ongoingChannel)
 
       notificationManager.createNotificationChannelsCompat(
               listOf(
@@ -51,20 +51,20 @@ class NotificationChannelsManager(
     val areNotificationsEnabled = areNotificationsEnabled()
     val hasPermissions = hasNotificationPermissions()
     val isIncomingChannelEnabled = isChannelEnabled(notificationsConfig?.incomingChannel?.id)
-    val isOutgoingChannelEnabled = isChannelEnabled(notificationsConfig?.outgoingChannel?.id)
+    val isOngoingChannelEnabled = isChannelEnabled(notificationsConfig?.ongoingChannel?.id)
 
     val canPost =
             areNotificationsEnabled &&
                     hasPermissions &&
                     isIncomingChannelEnabled &&
-                    isOutgoingChannelEnabled
+                    isOngoingChannelEnabled
 
     return NotificationStatus(
             canPost,
             hasPermissions,
             areNotificationsEnabled,
             isIncomingChannelEnabled,
-            isOutgoingChannelEnabled
+            isOngoingChannelEnabled
     )
   }
 

@@ -23,7 +23,7 @@ export interface Spec extends TurboModule {
       sound: string;
       vibration: boolean;
     };
-    outgoingChannel: {
+    ongoingChannel: {
       id: string;
       name: string;
     };

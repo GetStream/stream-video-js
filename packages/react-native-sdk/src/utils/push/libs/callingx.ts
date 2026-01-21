@@ -58,8 +58,15 @@ export function extractCallingExpOptions(
     if (pushConfig.android.incomingChannel) {
       androidOptions.incomingChannel = pushConfig.android.incomingChannel;
     }
-    if (pushConfig.android.outgoingChannel) {
-      androidOptions.outgoingChannel = pushConfig.android.outgoingChannel;
+    if (pushConfig.android.ongoingChannel) {
+      androidOptions.ongoingChannel = pushConfig.android.ongoingChannel;
+    }
+    if (pushConfig.android.titleTransformer) {
+      androidOptions.titleTransformer = pushConfig.android.titleTransformer;
+    }
+    if (pushConfig.android.subtitleTransformer) {
+      androidOptions.subtitleTransformer =
+        pushConfig.android.subtitleTransformer;
     }
 
     if (Object.keys(androidOptions).length > 0) {

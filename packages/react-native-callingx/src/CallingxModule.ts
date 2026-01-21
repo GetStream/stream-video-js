@@ -78,7 +78,7 @@ class CallingxModule implements ICallingxModule {
         titleTransformer,
         subtitleTransformer,
         incomingChannel,
-        outgoingChannel,
+        ongoingChannel,
       } = options.android ?? {};
 
       this.titleTransformer = titleTransformer ?? defaultTextTransformer;
@@ -89,15 +89,15 @@ class CallingxModule implements ICallingxModule {
           ...defaultAndroidOptions.incomingChannel,
           ...(incomingChannel ?? {}),
         },
-        outgoingChannel: {
-          ...defaultAndroidOptions.outgoingChannel,
-          ...(outgoingChannel ?? {}),
+        ongoingChannel: {
+          ...defaultAndroidOptions.ongoingChannel,
+          ...(ongoingChannel ?? {}),
         },
       };
 
       if (
         notificationsConfig.incomingChannel.id ===
-        notificationsConfig.outgoingChannel.id
+        notificationsConfig.ongoingChannel.id
       ) {
         throw new Error('Incoming and outgoing channel IDs cannot be the same');
       }

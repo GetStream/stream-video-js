@@ -94,27 +94,24 @@ export class StreamVideoRN {
    * const callingExpOptions = {
    *   ios: {
    *     callsHistory: true,
-   *     setupAudioSession: true,
    *     displayCallTimeout: 60000,
    *     sound: 'ringtone',
    *     imageName: 'callkit_icon',
    *   },
    *   android: {
    *     incomingChannel: {
-   *       id: 'stream_call_notifications',
+   *       id: 'stream_incoming_call_notifications',
    *       name: 'Call notifications',
    *       vibration: true,
    *       sound: 'default',
    *     },
    *     outgoingChannel: {
-   *       id: 'stream_call_notifications',
+   *       id: 'stream_ongoing_call_notifications',
    *       name: 'Call notifications',
    *     },
    *     titleTransformer: (text: string) => text,
    *     subtitleTransformer: (text: string) => text,
    *   },
-   *   enableOutcomingCalls: true,
-   *   enableAutoPermissions: true,
    * };
    * StreamVideoRN.setPushConfig(pushConfig, callingExpOptions);
    * AppRegistry.registerComponent('app', () => App);

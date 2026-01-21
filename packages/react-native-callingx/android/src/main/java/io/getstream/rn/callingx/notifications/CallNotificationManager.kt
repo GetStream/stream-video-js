@@ -149,7 +149,7 @@ class CallNotificationManager(
         return if (call.isIncoming() && !call.isActive) {
             notificationsConfig.incomingChannel.id
         } else {
-            notificationsConfig.outgoingChannel.id
+            notificationsConfig.ongoingChannel.id
         }
     }
 

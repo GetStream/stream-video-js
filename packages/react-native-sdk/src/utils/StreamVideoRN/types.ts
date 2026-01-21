@@ -105,17 +105,19 @@ export type StreamVideoConfig = {
         vibration?: boolean;
       };
       /**
-       * The notification channel to be used for outgoing calls for Android.
+       * The notification channel to be used for ongoing calls for Android.
        * @example
        * {
-       *  id: 'outgoing_calls_channel',
-       *  name: 'Outgoing calls',
+       *  id: 'ongoing_calls_channel',
+       *  name: 'Ongoing calls',
        * }
        */
-      outgoingChannel?: {
+      ongoingChannel?: {
         id?: string;
         name?: string;
       };
+      titleTransformer?: (memberName: string, incoming: boolean) => string;
+      subtitleTransformer?: (call_cid: string, incoming: boolean) => string;
       /**
        * Functions to create the texts shown in the notification for non ringing calls in Android.
        * @example

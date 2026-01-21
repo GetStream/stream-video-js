@@ -27,7 +27,7 @@ export const defaultAndroidOptions: DeepRequired<InternalAndroidOptions> = {
     sound: '',
     vibration: false,
   },
-  outgoingChannel: {
+  ongoingChannel: {
     id: 'stream_ongoing_calls_channel',
     name: 'Ongoing calls',
   },

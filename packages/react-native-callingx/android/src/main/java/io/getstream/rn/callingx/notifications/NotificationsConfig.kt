@@ -10,7 +10,7 @@ object NotificationsConfig {
   private const val TAG = "[Callingx] NotificationsConfig"
   private const val PREFS_NAME = "CallingxPrefs"
   private const val PREFIX_IN = "incoming_"
-  private const val PREFIX_OUT = "outgoing_"
+  private const val PREFIX_OUT = "ongoing_"
   private const val KEY_ID = "id"
   private const val KEY_NAME = "name"
   private const val KEY_SOUND = "sound"
@@ -26,7 +26,7 @@ object NotificationsConfig {
 
   data class Channels(
     val incomingChannel: ChannelParams,
-    val outgoingChannel: ChannelParams,
+    val ongoingChannel: ChannelParams,
   )
 
   fun saveNotificationsConfig(context: Context, rawConfig: ReadableMap): Channels {
@@ -41,8 +41,8 @@ object NotificationsConfig {
       putBoolean(PREFIX_IN + KEY_VIBRATION, config.incomingChannel.vibration)
 
       // Outgoing channel
-      putString(PREFIX_OUT + KEY_ID, config.outgoingChannel.id)
-      putString(PREFIX_OUT + KEY_NAME, config.outgoingChannel.name)
+      putString(PREFIX_OUT + KEY_ID, config.ongoingChannel.id)
+      putString(PREFIX_OUT + KEY_NAME, config.ongoingChannel.name)
     }
 
     return config
@@ -68,7 +68,7 @@ object NotificationsConfig {
           vibration = prefs.getBoolean(PREFIX_IN + KEY_VIBRATION, false),
           importance = NotificationManagerCompat.IMPORTANCE_MAX,
         ),
-      outgoingChannel =
+      ongoingChannel =
         ChannelParams(
           id = prefs.getString(PREFIX_OUT + KEY_ID, "") ?: "",
           name = prefs.getString(PREFIX_OUT + KEY_NAME, "") ?: "",
@@ -86,9 +86,9 @@ object NotificationsConfig {
           config.getMap("incomingChannel"),
           NotificationManagerCompat.IMPORTANCE_MAX
         ),
-      outgoingChannel =
+      ongoingChannel =
         extractChannelConfig(
-          config.getMap("outgoingChannel"),
+          config.getMap("ongoingChannel"),
           NotificationManagerCompat.IMPORTANCE_DEFAULT
         ),
     )

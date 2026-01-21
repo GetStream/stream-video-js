@@ -194,10 +194,10 @@ export type InternalAndroidOptions = {
     vibration?: boolean;
   };
   /**
-   * Outgoing channel configuration.
+   * Ongoing channel configuration.
    * @default { id: 'ongoing_calls_channel', name: 'Ongoing calls' }
    */
-  outgoingChannel?: {
+  ongoingChannel?: {
     id?: string;
     name?: string;
   };
