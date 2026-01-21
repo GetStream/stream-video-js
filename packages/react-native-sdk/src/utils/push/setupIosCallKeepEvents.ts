@@ -150,6 +150,20 @@ export function setupIosCallKeepEvents(
     },
   );
 
+  const { remove: removeDidActivateAudioSession } = callkeep.addEventListener(
+    'didActivateAudioSession',
+    () => {
+      didActivateAudioSession();
+    },
+  );
+
+  const { remove: removeDidDeactivateAudioSession } = callkeep.addEventListener(
+    'didDeactivateAudioSession',
+    () => {
+      didDeactivateAudioSession();
+    },
+  );
+
   const { remove: removeDidLoadWithEvents } = callkeep.addEventListener(
     'didLoadWithEvents',
     (events) => {
@@ -174,27 +188,13 @@ export function setupIosCallKeepEvents(
     },
   );
 
-  const { remove: removeDidActivateAudioSession } = callkeep.addEventListener(
-    'didActivateAudioSession',
-    () => {
-      didActivateAudioSession();
-    },
-  );
-
-  const { remove: removeDidDeactivateAudioSession } = callkeep.addEventListener(
-    'didDeactivateAudioSession',
-    () => {
-      didDeactivateAudioSession();
-    },
-  );
-
   setPushLogoutCallback(async () => {
     removeAnswerCall();
     removeEndCall();
     removeDisplayIncomingCall();
-    removeDidLoadWithEvents();
     removeDidActivateAudioSession();
     removeDidDeactivateAudioSession();
+    removeDidLoadWithEvents();
   });
 }
 
