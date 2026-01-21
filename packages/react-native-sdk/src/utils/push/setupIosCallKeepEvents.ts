@@ -12,6 +12,7 @@ import {
   processCallFromPushInBackground,
 } from './internal/utils';
 import { AppState, NativeModules, Platform } from 'react-native';
+import { RTCAudioSession } from '@stream-io/react-native-webrtc';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
@@ -93,10 +94,6 @@ export function setupIosCallKeepEvents(
    * We forward CallKeep’s `didActivateAudioSession` / `didDeactivateAudioSession` events to WebRTC’s
    * `RTCAudioSession` (exported by `@stream-io/react-native-webrtc`, a required peer dependency).
    */
-
-  const { RTCAudioSession } =
-    require('@stream-io/react-native-webrtc') as typeof import('@stream-io/react-native-webrtc');
-
   function didActivateAudioSession() {
     logger.debug('didActivateAudioSession');
     RTCAudioSession.audioSessionDidActivate();
