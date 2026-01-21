@@ -214,6 +214,10 @@ export const CallStats = (props: CallStatsProps) => {
               comparison={latencyComparison}
             />
             <StatCard
+              label={t('Audio codec')}
+              value={formatAudioCodec(callStatsReport)}
+            />
+            <StatCard
               label={t('Audio bitrate (publish)')}
               value={publishAudioBitrate}
             />
@@ -236,10 +240,6 @@ export const CallStats = (props: CallStatsProps) => {
                 ...audioJitterComparison,
                 value: callStatsReport.subscriberAudioStats.averageJitterInMs,
               }}
-            />
-            <StatCard
-              label={t('Audio codec')}
-              value={formatAudioCodec(callStatsReport)}
             />
           </div>
         </>
