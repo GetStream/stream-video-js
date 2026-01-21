@@ -163,9 +163,9 @@ export function setupIosCallKeepEvents(
         } else if (name === 'RNCallKeepPerformEndCallAction') {
           endCall(data.callUUID);
         } else if (name === 'RNCallKeepDidActivateAudioSession') {
-          RTCAudioSession.audioSessionDidActivate();
+          didActivateAudioSession();
         } else if (name === 'RNCallKeepDidDeactivateAudioSession') {
-          RTCAudioSession.audioSessionDidDeactivate();
+          didDeactivateAudioSession();
         }
       });
     },
