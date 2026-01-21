@@ -339,7 +339,7 @@ import AVFoundation
         var events: [[String: Any]] = []
         let action = {
             #if DEBUG
-            print("[Callingx][getInitialEvents] delayedEvents = \(delayedEvents)")
+            print("[Callingx][getInitialEvents] delayedEvents = \(self.delayedEvents)")
             #endif
             
             events = self.delayedEvents

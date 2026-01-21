@@ -119,7 +119,7 @@ typealias RNVoipPushNotificationCompletion = () -> Void
         var events: [[String: Any]] = []
         let action = {
             #if DEBUG
-            print("[VoipNotificationsManager][getInitialEvents] delayedEvents = \(delayedEvents)")
+            print("[VoipNotificationsManager][getInitialEvents] delayedEvents = \(self.delayedEvents)")
             #endif
             
             events = self.delayedEvents
