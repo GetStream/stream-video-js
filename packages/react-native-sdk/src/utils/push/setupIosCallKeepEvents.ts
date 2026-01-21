@@ -12,6 +12,7 @@ import {
   processCallFromPushInBackground,
 } from './internal/utils';
 import { AppState, NativeModules, Platform } from 'react-native';
+import { RTCAudioSession } from '@stream-io/react-native-webrtc';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
@@ -75,6 +76,34 @@ export function setupIosCallKeepEvents(
     });
   }
 
+  /**
+   * CallKeep / CallKit audio-session events -> WebRTC (iOS)
+   *
+   * iOS CallKit is the authority that *activates* and *deactivates* the underlying `AVAudioSession`
+   * when a call is answered/ended from the system UI (lock screen, Call UI, Bluetooth, etc).
+   *
+   * WebRTC on iOS wraps `AVAudioSession` with `RTCAudioSession` and its AudioDeviceModule relies on
+   * being notified of those lifecycle transitions to correctly start/stop audio I/O and keep its
+   * internal activation state consistent (e.g. activation count, playout/recording start).
+   *
+   * If these callbacks don’t reach WebRTC, answering via the native dialer UI can result in:
+   * - no microphone capture / one-way audio
+   * - silent playout until the app forces an audio reconfiguration
+   * - flaky audio routing (speaker/earpiece/Bluetooth) across subsequent calls
+   *
+   * We forward CallKeep’s `didActivateAudioSession` / `didDeactivateAudioSession` events to WebRTC’s
+   * `RTCAudioSession` (exported by `@stream-io/react-native-webrtc`, a required peer dependency).
+   */
+  function didActivateAudioSession() {
+    logger.debug('didActivateAudioSession');
+    RTCAudioSession.audioSessionDidActivate();
+  }
+
+  function didDeactivateAudioSession() {
+    logger.debug('didDeactivateAudioSession');
+    RTCAudioSession.audioSessionDidDeactivate();
+  }
+
   function didDisplayIncomingCall(callUUID: string, payload: object) {
     const voipPushNotification = getVoipPushNotificationLib();
     // @ts-expect-error - call_cid is not part of RNCallKeepEventPayload
@@ -133,8 +162,26 @@ export function setupIosCallKeepEvents(
           answerCall(data.callUUID);
         } else if (name === 'RNCallKeepPerformEndCallAction') {
           endCall(data.callUUID);
+        } else if (name === 'RNCallKeepDidActivateAudioSession') {
+          RTCAudioSession.audioSessionDidActivate();
+        } else if (name === 'RNCallKeepDidDeactivateAudioSession') {
+          RTCAudioSession.audioSessionDidDeactivate();
         }
       });
+    },
+  );
+
+  const { remove: removeDidActivateAudioSession } = callkeep.addEventListener(
+    'didActivateAudioSession',
+    () => {
+      didActivateAudioSession();
+    },
+  );
+
+  const { remove: removeDidDeactivateAudioSession } = callkeep.addEventListener(
+    'didDeactivateAudioSession',
+    () => {
+      didDeactivateAudioSession();
     },
   );
 
@@ -143,6 +190,8 @@ export function setupIosCallKeepEvents(
     removeEndCall();
     removeDisplayIncomingCall();
     removeDidLoadWithEvents();
+    removeDidActivateAudioSession();
+    removeDidDeactivateAudioSession();
   });
 }
 
