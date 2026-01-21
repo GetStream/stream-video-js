@@ -11,6 +11,7 @@ import {
   type EventData,
   type EventParams,
 } from './libs/callingx';
+import { RTCAudioSession } from '@stream-io/react-native-webrtc';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -107,9 +108,9 @@ const onEndCall =
   };
 
 const onDidActivateAudioSession = () => {
-  //TODO: start audio session here
+  RTCAudioSession.audioSessionDidActivate();
 };
 
 const onDidDeactivateAudioSession = () => {
-  //TODO: end audio session here
+  RTCAudioSession.audioSessionDidDeactivate();
 };
