@@ -91,12 +91,17 @@ export class CallManager {
    * @param config.deviceEndpointType The default audio device endpoint type to set. It can be one of the following:
    * - `'speaker'`: (Default) For normal video or voice calls.
    * - `'earpiece'`: For voice-only mobile call type scenarios.
+   *
+   * @param config.enableStereoAudioOutput Whether to enable stereo audio output. Only supported for listener audio role.
    */
   start = (config?: StreamInCallManagerConfig): void => {
     NativeManager.setAudioRole(config?.audioRole ?? 'communicator');
     if (config?.audioRole === 'communicator') {
       const type = config.deviceEndpointType ?? 'speaker';
       NativeManager.setDefaultAudioDeviceEndpointType(type);
+    }
+    if (config?.audioRole === 'listener' && config.enableStereoAudioOutput) {
+      NativeManager.setEnableStereoAudioOutput(true);
     }
     NativeManager.start();
   };

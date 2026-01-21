@@ -667,6 +667,8 @@ export class Call {
       this.cancelAutoDrop();
       this.clientStore.unregisterCall(this);
 
+      globalThis.streamRNVideoSDK?.callManager.stop();
+
       this.camera.dispose();
       this.microphone.dispose();
       this.screenShare.dispose();
@@ -1118,6 +1120,7 @@ export class Call {
     // re-apply them on later reconnections or server-side data fetches
     if (!this.deviceSettingsAppliedOnce && this.state.settings) {
       await this.applyDeviceConfig(this.state.settings, true);
+      globalThis.streamRNVideoSDK?.callManager.start();
       this.deviceSettingsAppliedOnce = true;
     }
 
@@ -2694,6 +2697,9 @@ export class Call {
     settings: CallSettingsResponse,
     publish: boolean,
   ) => {
+    globalThis.streamRNVideoSDK?.callManager.setup({
+      default_device: settings.audio.default_device,
+    });
     await this.camera.apply(settings.video, publish).catch((err) => {
       this.logger.warn('Camera init failed', err);
     });

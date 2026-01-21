@@ -52,6 +52,11 @@ export interface CallManager extends NativeModule {
   stop: () => void;
 
   /**
+   * Setup the in call manager.
+   */
+  setup: () => void;
+
+  /**
    * Mutes the speaker
    */
   muteAudioOutput: () => void;
@@ -65,6 +70,12 @@ export interface CallManager extends NativeModule {
    * Forces speakerphone on/off.
    */
   setForceSpeakerphoneOn: (boolean) => void;
+
+  /**
+   * Enables or disables stereo audio output.
+   * @param enable - Whether to enable stereo audio output.
+   */
+  setEnableStereoAudioOutput: (enable: boolean) => void;
 
   /**
    * Log the current audio state natively.

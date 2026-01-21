@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.28.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.27.4...@stream-io/video-react-native-sdk-1.28.0) (2026-01-20)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.5.0`
+- `@stream-io/video-filters-react-native` updated to version `0.10.0`
+- `@stream-io/video-client` updated to version `1.41.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.0`
+
+### Features
+
+- stereo audio output support RN-332 ([#2038](https://github.com/GetStream/stream-video-js/issues/2038)) ([2938037](https://github.com/GetStream/stream-video-js/commit/2938037d18e70ccf112a089eb3ec44cb034aed1d))
+
 ## [1.27.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.27.3...@stream-io/video-react-native-sdk-1.27.4) (2026-01-16)
 
 ### Dependency Updates

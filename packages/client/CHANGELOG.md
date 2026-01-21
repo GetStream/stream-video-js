@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.41.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.3...@stream-io/video-client-1.41.0) (2026-01-20)
+
+### Features
+
+- **recording:** Support for Individual, Raw and Composite recording ([#2071](https://github.com/GetStream/stream-video-js/issues/2071)) ([e53269c](https://github.com/GetStream/stream-video-js/commit/e53269ce697121b70dbebaf4a6d2cf875440a2af))
+- stereo audio output support RN-332 ([#2038](https://github.com/GetStream/stream-video-js/issues/2038)) ([2938037](https://github.com/GetStream/stream-video-js/commit/2938037d18e70ccf112a089eb3ec44cb034aed1d))
+
+### Bug Fixes
+
+- add start bitrate even if there is no existing fmtp line ([#2088](https://github.com/GetStream/stream-video-js/issues/2088)) ([ae1f496](https://github.com/GetStream/stream-video-js/commit/ae1f4965a7ab0b00dbdea45090c6aed49eafabb7))
+
 ## [1.40.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.2...@stream-io/video-client-1.40.3) (2026-01-16)
 
 ### Bug Fixes
