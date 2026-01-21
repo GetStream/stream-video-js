@@ -323,13 +323,9 @@ import AVFoundation
         
         Settings.setSettings(options)
         
-        // we need to recreate the provider so that new config will be applied
-        CallingxImpl.sharedProvider?.invalidate()
-        CallingxImpl.sharedProvider = nil
         CallingxImpl.initializeIfNeeded()
         
         callKeepProvider = CallingxImpl.sharedProvider
-        callKeepProvider?.setDelegate(nil, queue: nil)
         callKeepProvider?.setDelegate(self, queue: nil)
         
         isSetup = true
