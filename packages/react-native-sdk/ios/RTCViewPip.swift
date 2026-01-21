@@ -89,6 +89,12 @@ class RTCViewPip: UIView {
             NSLog("PiP - RTCViewPip has been added to a superview.")
             setupNotificationObserver()
             DispatchQueue.main.async {
+                // Recreate controller if it was previously cleaned up
+                // This allows PiP to work again for subsequent calls
+                if self.pictureInPictureController == nil {
+                    NSLog("PiP - Recreating pictureInPictureController for new session")
+                    self.pictureInPictureController = StreamPictureInPictureController()
+                }
                 self.pictureInPictureController?.sourceView = self
                 // Set up PiP state change callback
                 self.pictureInPictureController?.onPiPStateChange = { [weak self] isActive in

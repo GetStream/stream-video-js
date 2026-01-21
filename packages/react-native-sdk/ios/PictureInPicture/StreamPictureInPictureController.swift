@@ -78,13 +78,20 @@ import Foundation
                 return nil
             }
         }()
-        // contentViewController?.preferredContentSize = .init(width: 400, height: 320)
+        // Set a default preferred content size to avoid iOS PGPegasus code:-1003 error
+        // This will be updated later when track dimensions become available
+        contentViewController?.preferredContentSize = .init(width: 640, height: 480)
         self.contentViewController = contentViewController
         self.canStartPictureInPictureAutomaticallyFromInline = canStartPictureInPictureAutomaticallyFromInline
         super.init()
     }
     
     func setPreferredContentSize(_ size: CGSize) {
+        // Guard against setting zero size to avoid iOS PGPegasus code:-1003 error
+        guard size.width > 0, size.height > 0 else {
+            NSLog("PiP - Ignoring setPreferredContentSize with zero dimensions: \(size)")
+            return
+        }
         contentViewController?.preferredContentSize = size
     }
     
@@ -161,6 +168,13 @@ import Foundation
     }
     
     @objc func cleanup() {
+        // Cancel all Combine subscriptions
+        cancellableBag.removeAll()
+
+        // Disable the track state adapter to stop its timer
+        trackStateAdapter.isEnabled = false
+        trackStateAdapter.activeTrack = nil
+
         sourceView = nil
         contentViewController?.track = nil
         contentViewController = nil
@@ -169,7 +183,6 @@ import Foundation
         }
         pictureInPictureController?.delegate = nil
         pictureInPictureController = nil
-        
     }
     
     private func makePictureInPictureController(with sourceView: UIView) {

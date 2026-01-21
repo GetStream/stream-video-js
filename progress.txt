@@ -1,0 +1,87 @@
+# Picture in Picture iOS Improvements Progress
+
+## Iteration 1 - US-001: Auto-start PiP on background (when enabled)
+- **Task Status:** Already implemented
+- **Verification:** All tests pass, TypeScript check passes
+- **Implementation Details:**
+  - `StreamPictureInPictureController.swift:69,83` - Sets `canStartPictureInPictureAutomaticallyFromInline = true` by default
+  - `StreamPictureInPictureController.swift:186-189` - Applies this setting to `AVPictureInPictureController`
+  - `CallContent.tsx:240-244` - Conditionally renders `RTCViewPipIOS` based on `disablePictureInPicture` prop
+  - `RTCViewPipIOS.tsx:119-122` - Handles PiP state changes and updates `isInPiPMode$` RxJS subject
+  - `useIsInPiPMode.tsx` - React hook that subscribes to `isInPiPMode$` subject
+
+- **Learnings for future iterations:**
+  - The current implementation already aligns with upstream `stream-video-swift` PR #258 architecture
+  - PiP controller uses `AVPictureInPictureVideoCallViewController` (iOS 15+) with sample buffer rendering
+  - RxJS subjects (`isInPiPMode$`, `disablePiPMode$`) manage PiP state across JS components
+  - The native PiP controller lifecycle is tied to the `RTCViewPip` UIView superview attachment/detachment
+  - `shouldDisableIOSLocalVideoOnBackgroundRef` controls whether local video should be disabled when backgrounding
+---
+
+## Iteration 2 - US-002: PiP renders the correct participant and doesn't go "blank"
+- **Task Status:** Already implemented
+- **Verification:** All tests pass, TypeScript check passes
+- **Implementation Details:**
+  - `RTCViewPipIOS.tsx:36-52` - Participant selection logic:
+    - Uses `speakerLayoutSortPreset` to sort by speaker activity
+    - Filters based on `includeLocalParticipantVideo` prop
+    - Prefers remote participant when local is dominant and remote exists
+  - `RTCViewPipIOS.tsx:102-110` - Screen share handling:
+    - Checks `hasScreenShare(participant)` to determine if screen sharing
+    - Renders `screenShareStream` when active, otherwise `videoStream`
+  - `StreamPictureInPictureVideoRenderer.swift:12-20` - Track change handling:
+    - `prepareForTrackRendering()` properly stops old stream and starts new
+    - Ensures smooth transition without blank frames
+
+- **Learnings for future iterations:**
+  - Track changes are handled reactively through the `streamURL` prop
+  - `DimensionsUpdatedRenderless` component tracks video dimensions and updates native side
+  - The debouncing (300ms) on participants helps avoid unnecessary rerenders during rapid track subscriptions
+---
+
+## Iteration 3 - US-003: PiP window sizing is stable and configurable
+- **Task Status:** Fixed and implemented
+- **Verification:** All tests pass, build succeeds
+- **Issue Found:** The `preferredContentSize` was not being set by default, which could cause iOS `PGPegasus code:-1003` error
+- **Changes Made:**
+  - `StreamPictureInPictureController.swift:81-83` - Added default `preferredContentSize` of 640x480 on init
+  - `StreamPictureInPictureController.swift:89-95` - Added guard in `setPreferredContentSize()` to prevent setting `.zero`
+- **Existing Implementation Details (already correct):**
+  - `RTCViewPipIOS.tsx:97` - JS validates `width > 0 && height > 0` before sending dimensions
+  - `StreamPictureInPictureAdaptiveWindowSizePolicy.swift:13` - Guards against `.zero` trackSize
+  - `StreamPictureInPictureVideoRenderer.swift:211` - Guards against `.zero` in `didUpdateTrackSize()`
+  - `StreamPictureInPictureVideoRenderer.swift:226` - Updates window size policy when track size changes
+
+- **Learnings for future iterations:**
+  - iOS requires `preferredContentSize` > `.zero` or it throws `PGPegasus code:-1003`
+  - Always set a default size on initialization (640x480 is a safe default)
+  - Multi-layer guards prevent invalid sizes from propagating
+---
+
+## Iteration 4 - US-004: PiP stops and cleans up on call end / leave
+- **Task Status:** Fixed and implemented
+- **Verification:** All tests pass, build succeeds
+- **Issues Found and Fixed:**
+  1. **Combine subscriptions not cancelled:** `cancellableBag` was not cleared on cleanup
+  2. **Track state adapter timer not stopped:** `trackStateAdapter.isEnabled` was not set to false
+  3. **Controller not recreated for subsequent calls:** After cleanup, `pictureInPictureController` was nil but never recreated
+
+- **Changes Made:**
+  - `StreamPictureInPictureController.swift:170-185` - Enhanced `cleanup()` method:
+    - Added `cancellableBag.removeAll()` to cancel Combine subscriptions
+    - Added `trackStateAdapter.isEnabled = false` to stop the timer
+    - Added `trackStateAdapter.activeTrack = nil` to release track reference
+  - `RTCViewPip.swift:91-95` - Added controller recreation logic:
+    - When view is added to superview and controller is nil, recreate it
+    - This enables PiP to work again for subsequent calls
+
+- **Existing Implementation Details (already correct):**
+  - `RTCViewPipIOS.tsx:61-93` - Listens for `call.ended` and `CallingState.LEFT`
+  - `RTCViewPip.swift:67-71` - Native `onCallClosed()` calls cleanup
+  - `StreamPictureInPictureController.swift` - cleanup() releases all resources
+
+- **Learnings for future iterations:**
+  - Always cancel Combine subscriptions in cleanup
+  - Timer-based adapters need explicit disabling
+  - Controllers may need to be recreated after cleanup for view reuse scenarios
+---
