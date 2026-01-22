@@ -36,8 +36,6 @@ import type {
  * and uses two thresholds to avoid flickering near the limit.
  */
 const ALPHA = 0.2;
-const FPS_WARNING_THRESHOLD_LOWER = 23;
-const FPS_WARNING_THRESHOLD_UPPER = 25;
 const DEFAULT_FPS = 30;
 const DEVIATION_LIMIT = 0.5;
 const OUTLIER_PERSISTENCE = 5;
@@ -121,22 +119,25 @@ export const BackgroundFiltersProvider = (
   const [showLowFpsWarning, setShowLowFpsWarning] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const fpsWarningThresholdLower =
-    performanceThresholds?.fpsWarningThresholdLower ??
-    FPS_WARNING_THRESHOLD_LOWER;
-  const fpsWarningThresholdUpper =
-    performanceThresholds?.fpsWarningThresholdUpper ??
-    FPS_WARNING_THRESHOLD_UPPER;
-  const defaultFps = performanceThresholds?.defaultFps ?? DEFAULT_FPS;
+  const sourceFramesPerSecond =
+    callStatsReport?.publisherStats?.sourceFramesPerSecond;
 
-  const emaRef = useRef<number>(defaultFps);
+  const sourceFps =
+    performanceThresholds?.defaultFps || sourceFramesPerSecond || DEFAULT_FPS;
+
+  const fpsWarningThresholdLower =
+    performanceThresholds?.fpsWarningThresholdLower ?? sourceFps * 0.75;
+  const fpsWarningThresholdUpper =
+    performanceThresholds?.fpsWarningThresholdUpper ?? sourceFps * 0.85;
+
+  const emaRef = useRef<number>(sourceFps);
   const outlierStreakRef = useRef<number>(0);
 
   const handleStats = useCallback(
     (stats: PerformanceStats) => {
       const fps = stats?.fps;
       if (fps === undefined || fps === null) {
-        emaRef.current = defaultFps;
+        emaRef.current = sourceFps;
         outlierStreakRef.current = 0;
         setShowLowFpsWarning(false);
         return;
@@ -158,7 +159,7 @@ export const BackgroundFiltersProvider = (
         return prev;
       });
     },
-    [fpsWarningThresholdLower, fpsWarningThresholdUpper, defaultFps],
+    [fpsWarningThresholdLower, fpsWarningThresholdUpper, sourceFps],
   );
 
   const performance: BackgroundFiltersPerformance = useMemo(() => {
@@ -236,10 +237,10 @@ export const BackgroundFiltersProvider = (
     setBackgroundImage(undefined);
     setBackgroundBlurLevel(undefined);
 
-    emaRef.current = defaultFps;
+    emaRef.current = sourceFps;
     outlierStreakRef.current = 0;
     setShowLowFpsWarning(false);
-  }, [defaultFps]);
+  }, [sourceFps]);
 
   const [engine, setEngine] = useState<FilterEngine>(FilterEngine.NONE);
   const [isSupported, setIsSupported] = useState(false);

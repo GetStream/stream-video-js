@@ -9,6 +9,7 @@ export type BaseStats = {
   frameWidth?: number;
   frameHeight?: number;
   framesPerSecond?: number;
+  sourceFramesPerSecond?: number;
   jitter?: number;
   kind?: string;
   mediaSourceId?: string;
@@ -51,6 +52,7 @@ export type AggregatedStatsReport = {
   highestFrameWidth: number;
   highestFrameHeight: number;
   highestFramesPerSecond: number;
+  sourceFramesPerSecond?: number;
   codec: string;
   codecPerTrackType: Partial<Record<TrackType, string>>;
   timestamp: number;
@@ -118,6 +120,7 @@ export interface RTCMediaSourceStats {
   kind: string;
   trackIdentifier: string;
   audioLevel?: number;
+  framesPerSecond?: number;
 }
 
 // shim for RTCCodecStats, not yet available in the standard types

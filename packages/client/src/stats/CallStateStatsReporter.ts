@@ -280,6 +280,7 @@ const transform = (
 
       let trackType: TrackType | undefined;
       let audioLevel: number | undefined;
+      let sourceFramesPerSecond: number | undefined;
       let concealedSamples: number | undefined;
       let concealmentEvents: number | undefined;
       let packetsReceived: number | undefined;
@@ -299,6 +300,9 @@ const transform = (
             typeof mediaSource.audioLevel === 'number'
           ) {
             audioLevel = mediaSource.audioLevel;
+          }
+          if (trackKind === 'video') {
+            sourceFramesPerSecond = mediaSource.framesPerSecond;
           }
         }
       } else if (kind === 'subscriber' && trackKind === 'audio') {
@@ -321,6 +325,7 @@ const transform = (
         frameHeight: rtcStreamStats.frameHeight,
         frameWidth: rtcStreamStats.frameWidth,
         framesPerSecond: rtcStreamStats.framesPerSecond,
+        sourceFramesPerSecond,
         jitter: rtcStreamStats.jitter,
         kind: rtcStreamStats.kind,
         mediaSourceId: rtcStreamStats.mediaSourceId,
@@ -354,6 +359,7 @@ const getEmptyVideoStats = (stats?: StatsReport): AggregatedStatsReport => {
     highestFrameWidth: 0,
     highestFrameHeight: 0,
     highestFramesPerSecond: 0,
+    sourceFramesPerSecond: 0,
     codec: '',
     codecPerTrackType: {},
     timestamp: Date.now(),
@@ -402,6 +408,10 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
       acc.highestFrameHeight = stream.frameHeight || 0;
       acc.highestFramesPerSecond = stream.framesPerSecond || 0;
       maxArea = streamArea;
+    }
+
+    if (stream.trackType === TrackType.VIDEO) {
+      acc.sourceFramesPerSecond = stream.sourceFramesPerSecond;
     }
 
     qualityLimitationReasons.add(stream.qualityLimitationReason || '');
