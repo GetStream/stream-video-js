@@ -694,16 +694,6 @@ import AVFoundation
         print("[Callingx][CXProviderDelegate][provider:didActivateAudioSession]")
         #endif
         
-        let userInfo = [
-            AVAudioSessionInterruptionTypeKey: NSNumber(value: AVAudioSession.InterruptionType.ended.rawValue),
-            AVAudioSessionInterruptionOptionKey: NSNumber(value: AVAudioSession.InterruptionOptions.shouldResume.rawValue)
-        ]
-        
-        NotificationCenter.default.post(
-            name: AVAudioSession.interruptionNotification,
-            object: nil,
-            userInfo: userInfo
-        )
         
         sendEvent(CallingxEvents.didActivateAudioSession, body: nil)
     }
