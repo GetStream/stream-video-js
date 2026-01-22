@@ -5,9 +5,11 @@ import {
 } from '@stream-io/video-client';
 import type { AndroidChannel } from '@notifee/react-native';
 
-export type KeepAliveAndroidChannelConfig = {
+export type AndroidChannelConfig = {
   id: string;
   name: string;
+  sound?: string;
+  vibration?: boolean;
 };
 
 export type KeepAliveAndroidNotificationTexts = {
@@ -98,25 +100,14 @@ export type StreamVideoConfig = {
        *  vibration?: boolean;
        * }
        */
-      incomingChannel?: {
-        id?: string;
-        name?: string;
-        sound?: string;
-        vibration?: boolean;
-      };
+      incomingChannel?: AndroidChannelConfig;
       /**
-       * The notification channel to be used for ongoing calls for Android.
-       * @example
-       * {
-       *  id: 'ongoing_calls_channel',
-       *  name: 'Ongoing calls',
-       * }
+       * The transformer to be used to transform the call title in the notification for ringing and ongoing calls for Android.
        */
-      ongoingChannel?: {
-        id?: string;
-        name?: string;
-      };
       titleTransformer?: (memberName: string, incoming: boolean) => string;
+      /**
+       * The transformer to be used to transform the call subtitle for ringing and ongoing calls for Android.
+       */
       subtitleTransformer?: (call_cid: string, incoming: boolean) => string;
       /**
        * Functions to create the texts shown in the notification for non ringing calls in Android.
@@ -181,7 +172,7 @@ export type StreamVideoConfig = {
       /**
        * The notification channel to keep call alive in the background for Android using a foreground service.
        */
-      channel: KeepAliveAndroidChannelConfig;
+      ongoingChannel: Omit<AndroidChannelConfig, 'sound' | 'vibration'>;
       /**
        * The texts shown in the notification to keep call alive in the background
        */
