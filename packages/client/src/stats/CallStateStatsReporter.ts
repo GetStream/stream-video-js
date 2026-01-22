@@ -2,6 +2,7 @@ import type {
   AggregatedStatsReport,
   AudioAggregatedStats,
   BaseStats,
+  CameraStats,
   ParticipantsStatsReport,
   RTCCodecStats,
   RTCMediaSourceStats,
@@ -238,6 +239,17 @@ export type StatsTransformOpts = {
 };
 
 /**
+ * Extracts camera statistics from a media source.
+ *
+ * @param mediaSource the media source stats to extract camera info from.
+ */
+const getCameraStats = (mediaSource: RTCMediaSourceStats): CameraStats => ({
+  frameRate: mediaSource.framesPerSecond,
+  frameWidth: mediaSource.width,
+  frameHeight: mediaSource.height,
+});
+
+/**
  * Transforms raw RTC stats into a slimmer and uniform across browsers format.
  *
  * @param report the report to transform.
@@ -280,7 +292,7 @@ const transform = (
 
       let trackType: TrackType | undefined;
       let audioLevel: number | undefined;
-      let sourceFramesPerSecond: number | undefined;
+      let camera: CameraStats | undefined;
       let concealedSamples: number | undefined;
       let concealmentEvents: number | undefined;
       let packetsReceived: number | undefined;
@@ -302,7 +314,7 @@ const transform = (
             audioLevel = mediaSource.audioLevel;
           }
           if (trackKind === 'video') {
-            sourceFramesPerSecond = mediaSource.framesPerSecond;
+            camera = getCameraStats(mediaSource);
           }
         }
       } else if (kind === 'subscriber' && trackKind === 'audio') {
@@ -325,7 +337,6 @@ const transform = (
         frameHeight: rtcStreamStats.frameHeight,
         frameWidth: rtcStreamStats.frameWidth,
         framesPerSecond: rtcStreamStats.framesPerSecond,
-        sourceFramesPerSecond,
         jitter: rtcStreamStats.jitter,
         kind: rtcStreamStats.kind,
         mediaSourceId: rtcStreamStats.mediaSourceId,
@@ -338,6 +349,7 @@ const transform = (
         concealmentEvents,
         packetsReceived,
         packetsLost,
+        camera,
       };
     });
 
@@ -359,7 +371,7 @@ const getEmptyVideoStats = (stats?: StatsReport): AggregatedStatsReport => {
     highestFrameWidth: 0,
     highestFrameHeight: 0,
     highestFramesPerSecond: 0,
-    sourceFramesPerSecond: 0,
+    camera: {},
     codec: '',
     codecPerTrackType: {},
     timestamp: Date.now(),
@@ -411,7 +423,7 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
     }
 
     if (stream.trackType === TrackType.VIDEO) {
-      acc.sourceFramesPerSecond = stream.sourceFramesPerSecond;
+      acc.camera = stream.camera;
     }
 
     qualityLimitationReasons.add(stream.qualityLimitationReason || '');

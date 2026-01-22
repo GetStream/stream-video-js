@@ -119,11 +119,10 @@ export const BackgroundFiltersProvider = (
   const [showLowFpsWarning, setShowLowFpsWarning] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const sourceFramesPerSecond =
-    callStatsReport?.publisherStats?.sourceFramesPerSecond;
+  const cameraFrameRate = callStatsReport?.publisherStats?.camera?.frameRate;
 
   const sourceFps =
-    performanceThresholds?.defaultFps || sourceFramesPerSecond || DEFAULT_FPS;
+    performanceThresholds?.defaultFps || cameraFrameRate || DEFAULT_FPS;
 
   const fpsWarningThresholdLower =
     performanceThresholds?.fpsWarningThresholdLower ?? sourceFps * 0.75;
