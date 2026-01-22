@@ -55,7 +55,7 @@ async function startForegroundService(call_cid: string) {
   const videoConfig = StreamVideoRN.getConfig();
   const foregroundServiceConfig = videoConfig.foregroundService;
   const notificationTexts = foregroundServiceConfig.android.notificationTexts;
-  const channel = foregroundServiceConfig.android.ongoingChannel;
+  const channel = foregroundServiceConfig.android.channel;
   const smallIconName = videoConfig.push?.android.smallIcon;
 
   // NOTE: we use requestAnimationFrame to ensure that the foreground service is started after all the current UI operations are done

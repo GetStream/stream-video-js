@@ -69,9 +69,8 @@ export function extractCallingExpOptions(
     }
   }
 
-  if (foregroundServiceConfig.android.ongoingChannel) {
-    androidOptions.ongoingChannel =
-      foregroundServiceConfig.android.ongoingChannel;
+  if (foregroundServiceConfig.android.channel) {
+    androidOptions.ongoingChannel = foregroundServiceConfig.android.channel;
   }
 
   if (Object.keys(androidOptions).length > 0) {

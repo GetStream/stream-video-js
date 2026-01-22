@@ -172,7 +172,7 @@ export type StreamVideoConfig = {
       /**
        * The notification channel to keep call alive in the background for Android using a foreground service.
        */
-      ongoingChannel: Omit<AndroidChannelConfig, 'sound' | 'vibration'>;
+      channel: Omit<AndroidChannelConfig, 'sound' | 'vibration'>;
       /**
        * The texts shown in the notification to keep call alive in the background
        */

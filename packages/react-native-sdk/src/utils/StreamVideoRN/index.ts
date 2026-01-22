@@ -50,7 +50,7 @@ function deepMerge<T extends Record<string, any>>(
 const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
   foregroundService: {
     android: {
-      ongoingChannel: {
+      channel: {
         id: 'stream_call_foreground_service',
         name: 'Ongoing calls',
       },
