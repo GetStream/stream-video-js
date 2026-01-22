@@ -13,7 +13,7 @@ import AVFoundation
         }
 
         #if DEBUG
-        print("[Callingx][createAudioSessionIfNeeded] Activating audio session")
+        print("[Callingx][createAudioSessionIfNeeded] Creating audio session")
         #endif
 
         var categoryOptions: AVAudioSession.CategoryOptions
@@ -47,7 +47,7 @@ import AVFoundation
             let bufferDuration: TimeInterval = 0.005
             try? audioSession.setPreferredIOBufferDuration(bufferDuration)
 
-            try audioSession.setActive(true)
+            // try audioSession.setActive(true)
         } catch {
             #if DEBUG
             print("[Callingx][createAudioSessionIfNeeded] Error configuring audio session: \(error)")
