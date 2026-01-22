@@ -44,8 +44,7 @@ export interface VideoTrackProcessorHooks {
 }
 
 /**
- * Maps blur level names to blur strength values.
- * The strength is converted to shader parameters via `getBlurParams`.
+ * Maps blur level to blur strength values.
  */
 export const BACKGROUND_BLUR_MAP: Record<'low' | 'medium' | 'high', number> = {
   low: 3,
