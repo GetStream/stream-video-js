@@ -164,11 +164,6 @@ export type InternalIOSOptions = {
    */
   callsHistory?: boolean;
   /**
-   * Enable default audio session setup. When enabled, the module will setup the audio session.
-   * @default true
-   */
-  setupAudioSession?: boolean;
-  /**
    * Timeout to display an incoming call. When the call is displayed for more than the timeout, the call will be rejected.
    * @default 60000 (1 minute)
    */

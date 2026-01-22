@@ -26,13 +26,6 @@ import UIKit
         UserDefaults.standard.synchronize()
     }
 
-    public static func getAutoConfigureAudioSession() -> Bool {
-        guard let autoConfig = getSettings()["autoConfigureAudioSession"] as? Bool else {
-            return false
-        }
-        return autoConfig
-    }
-
     public static func getShouldRejectCallWhenBusy() -> Bool {
         guard let shouldReject = getSettings()["shouldRejectCallWhenBusy"] as? Bool else {
             return false

@@ -122,7 +122,6 @@
     @"ringtoneSound" : options.sound(),
     @"imageName" : options.imageName(),
     @"includesCallsInRecents" : @(options.callsHistory()),
-    @"autoConfigureAudioSession" : @(options.setupAudioSession()),
     @"displayCallTimeout" : @(options.displayCallTimeout())
   };
   

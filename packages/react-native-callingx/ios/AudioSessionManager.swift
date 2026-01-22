@@ -4,14 +4,6 @@ import AVFoundation
 @objcMembers public class AudioSessionManager: NSObject {
 
     public static func createAudioSessionIfNeeded() {
-        let autoConfigureAudioSession = Settings.getAutoConfigureAudioSession()
-        if !autoConfigureAudioSession {
-            #if DEBUG
-            print("[Callingx][createAudioSessionIfNeeded] Auto-configuration disabled, user handles audio session")
-            #endif
-            return
-        }
-
         #if DEBUG
         print("[Callingx][createAudioSessionIfNeeded] Creating audio session")
         #endif
@@ -46,8 +38,6 @@ import AVFoundation
 
             let bufferDuration: TimeInterval = 0.005
             try? audioSession.setPreferredIOBufferDuration(bufferDuration)
-
-            // try audioSession.setActive(true)
         } catch {
             #if DEBUG
             print("[Callingx][createAudioSessionIfNeeded] Error configuring audio session: \(error)")

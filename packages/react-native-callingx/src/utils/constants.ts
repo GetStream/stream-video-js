@@ -16,7 +16,6 @@ export const defaultiOSOptions: Required<InternalIOSOptions> = {
   sound: '',
   imageName: '',
   callsHistory: false,
-  setupAudioSession: true, //this should be true by default, as it affects callkit behavior
   displayCallTimeout: 60000, // 1 minute
 };
 
