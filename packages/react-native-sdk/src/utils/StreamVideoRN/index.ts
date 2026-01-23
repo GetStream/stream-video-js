@@ -52,7 +52,7 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
     android: {
       channel: {
         id: 'stream_call_foreground_service',
-        name: 'To keep calls alive',
+        name: 'Ongoing calls',
       },
       notificationTexts: {
         title: 'Call in progress',
@@ -105,10 +105,6 @@ export class StreamVideoRN {
    *       vibration: true,
    *       sound: 'default',
    *     },
-   *     outgoingChannel: {
-   *       id: 'stream_ongoing_call_notifications',
-   *       name: 'Call notifications',
-   *     },
    *     titleTransformer: (text: string) => text,
    *     subtitleTransformer: (text: string) => text,
    *   },
@@ -117,25 +113,25 @@ export class StreamVideoRN {
    * AppRegistry.registerComponent('app', () => App);
    */
   static setPushConfig(pushConfig: NonNullable<StreamVideoConfig['push']>) {
-    try {
-      const callingx = getCallingxLib();
-      videoLoggerSystem
-        .getLogger('StreamVideoRN.setPushConfig')
-        .info(JSON.stringify({ pushConfig }));
-      const options = extractCallingExpOptions(pushConfig);
-      callingx.setup(options);
-    } catch {
-      throw new Error(
-        'react-native-callingx library is not installed. Please check the installation instructions: https://getstream.io/video/docs/react-native/incoming-calls/ringing-setup/react-native/.',
-      );
-    }
-
     if (this.config.push) {
       // Ignoring this config as push config was already set
       return;
     }
 
     this.config.push = pushConfig;
+
+    try {
+      const callingx = getCallingxLib();
+      videoLoggerSystem
+        .getLogger('StreamVideoRN.setPushConfig')
+        .info(JSON.stringify(this.config));
+      const options = extractCallingExpOptions(this.config);
+      callingx.setup(options);
+    } catch {
+      throw new Error(
+        'react-native-callingx library is not installed. Please check the installation instructions: https://getstream.io/video/docs/react-native/incoming-calls/ringing-setup/react-native/.',
+      );
+    }
 
     setupCallingExpEvents(pushConfig);
     setupIosVoipPushEvents(pushConfig);

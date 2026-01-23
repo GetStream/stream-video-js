@@ -26,11 +26,13 @@ export function getCallingxLibIfAvailable() {
 }
 
 export function extractCallingExpOptions(
-  pushConfig: NonNullable<StreamVideoConfig['push']>,
+  config: StreamVideoConfig,
 ): CallingExpOptions {
+  const { push: pushConfig, foregroundService: foregroundServiceConfig } =
+    config;
   const callingExpOptions: CallingExpOptions = {};
 
-  if (pushConfig.ios) {
+  if (pushConfig?.ios) {
     const iosOptions: CallingExpOptions['ios'] = {};
     if (pushConfig.ios.supportsVideo !== undefined) {
       iosOptions.supportsVideo = pushConfig.ios.supportsVideo;
@@ -53,13 +55,10 @@ export function extractCallingExpOptions(
     }
   }
 
-  if (pushConfig.android) {
-    const androidOptions: CallingExpOptions['android'] = {};
+  const androidOptions: CallingExpOptions['android'] = {};
+  if (pushConfig?.android) {
     if (pushConfig.android.incomingChannel) {
       androidOptions.incomingChannel = pushConfig.android.incomingChannel;
-    }
-    if (pushConfig.android.ongoingChannel) {
-      androidOptions.ongoingChannel = pushConfig.android.ongoingChannel;
     }
     if (pushConfig.android.titleTransformer) {
       androidOptions.titleTransformer = pushConfig.android.titleTransformer;
@@ -68,13 +67,17 @@ export function extractCallingExpOptions(
       androidOptions.subtitleTransformer =
         pushConfig.android.subtitleTransformer;
     }
-
-    if (Object.keys(androidOptions).length > 0) {
-      callingExpOptions.android = androidOptions;
-    }
   }
 
-  if (pushConfig.shouldRejectCallWhenBusy !== undefined) {
+  if (foregroundServiceConfig.android.channel) {
+    androidOptions.ongoingChannel = foregroundServiceConfig.android.channel;
+  }
+
+  if (Object.keys(androidOptions).length > 0) {
+    callingExpOptions.android = androidOptions;
+  }
+
+  if (pushConfig?.shouldRejectCallWhenBusy !== undefined) {
     callingExpOptions.shouldRejectCallWhenBusy =
       pushConfig.shouldRejectCallWhenBusy;
   }
