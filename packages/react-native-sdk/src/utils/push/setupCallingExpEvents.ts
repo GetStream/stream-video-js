@@ -98,4 +98,3 @@ const onEndCall =
 
     await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
   };
-
