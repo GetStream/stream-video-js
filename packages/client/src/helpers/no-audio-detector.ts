@@ -1,5 +1,6 @@
 import { RNSpeechDetector } from './RNSpeechDetector';
 import { isReactNative } from './platforms';
+import { videoLoggerSystem } from '../logger';
 
 export type NoAudioDetectorOptions = {
   /**
@@ -234,8 +235,8 @@ const createBrowserDetector = (
   options: NoAudioDetectorOptions,
 ) => {
   const {
-    detectionFrequencyInMs = 500,
-    audioLevelThreshold = 5,
+    detectionFrequencyInMs = 350,
+    audioLevelThreshold = 3,
     fftSize = 256,
     onCaptureStatusChange,
   } = options;
@@ -262,6 +263,12 @@ const createBrowserDetector = (
     if (event) {
       if (event.capturesAudio) {
         clearInterval(detectionIntervalId);
+        if (audioContext.state !== 'closed') {
+          audioContext.close().catch((err) => {
+            const logger = videoLoggerSystem.getLogger('no-audio-detector');
+            logger.error('Failed to close audio context', err);
+          });
+        }
       }
 
       onCaptureStatusChange({ ...event, ...getTrackMetadata(audioTrack) });
@@ -283,9 +290,9 @@ const createReactNativeDetector = (
   audioStream: MediaStream,
   options: NoAudioDetectorOptions,
 ) => {
-  const { detectionFrequencyInMs = 500, onCaptureStatusChange } = options;
+  const { detectionFrequencyInMs = 350, onCaptureStatusChange } = options;
 
-  const speechDetector = new RNSpeechDetector();
+  const noiseDetector = new RNSpeechDetector(audioStream, 'noise');
   const state: RNDetectionState = {
     noAudioStartTime: null,
     lastEmitTime: null,
@@ -293,27 +300,41 @@ const createReactNativeDetector = (
     shouldStop: false,
   };
 
+  let stopPromise: Promise<void> | null = null;
+  const stopDetector = async () => {
+    if (!stopPromise) {
+      state.shouldStop = true;
+      if (state.checkIntervalId) {
+        clearInterval(state.checkIntervalId);
+        state.checkIntervalId = undefined;
+      }
+      stopPromise = unsubscribePromise.then((unsubscribe) => unsubscribe());
+    }
+    await stopPromise;
+  };
+
   // Main detection loop
-  const unsubscribePromise = speechDetector.start((speechEvent) => {
+  const unsubscribePromise = noiseDetector.start((noiseEvent) => {
     if (state.shouldStop) return;
 
-    const [audioTrack] = audioStream.getAudioTracks();
-
-    const event = speechEvent.isSoundDetected
+    const event = noiseEvent.isSoundDetected
       ? handleAudioDetectedRN(state)
       : handleNoAudioDetectedRN(state, options, detectionFrequencyInMs);
 
-    if (event) {
+    const [audioTrack] = audioStream.getAudioTracks();
+    if (event && isAudioTrackActive(audioTrack)) {
       onCaptureStatusChange({ ...event, ...getTrackMetadata(audioTrack) });
+      if (event.capturesAudio) {
+        stopDetector().catch((err) => {
+          const logger = videoLoggerSystem.getLogger('no-audio-detector');
+          logger.error('Failed to stop speech detector', err);
+        });
+      }
     }
   });
 
   return async function stop() {
-    if (state.checkIntervalId) {
-      clearInterval(state.checkIntervalId);
-    }
-    const unsubscribe = await unsubscribePromise;
-    unsubscribe();
+    await stopDetector();
   };
 };
 
