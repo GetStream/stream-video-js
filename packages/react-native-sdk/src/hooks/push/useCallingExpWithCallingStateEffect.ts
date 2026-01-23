@@ -121,7 +121,8 @@ export const useCallingExpWithCallingStateEffect = () => {
   const prevState = useRef<CallingState | undefined>(undefined);
 
   const activeCallCid = activeCall?.cid;
-  const isIncomingCall = activeCall?.ringing && !activeCall?.isCreatedByMe;
+  const isRingingTypeCall = activeCall?.ringing;
+  const isIncomingCall = isRingingTypeCall && !activeCall?.isCreatedByMe;
   const currentUserId = activeCall?.currentUserId;
   const isVideoCall = activeCall?.state.settings?.video?.enabled ?? false;
 
@@ -133,7 +134,7 @@ export const useCallingExpWithCallingStateEffect = () => {
   useEffect(() => {
     return () => {
       const callingx = getCallingxLibIfAvailable();
-      if (!callingx?.isSetup || !activeCallCid) {
+      if (!callingx?.isSetup || !activeCallCid || !isRingingTypeCall) {
         return;
       }
 
@@ -155,13 +156,14 @@ export const useCallingExpWithCallingStateEffect = () => {
           );
         });
     };
-  }, [activeCallCid]);
+  }, [activeCallCid, isRingingTypeCall]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
     if (
       !callingx?.isSetup ||
       !activeCallCid ||
+      !isRingingTypeCall ||
       prevState.current === callingState
     ) {
       return;
@@ -224,11 +226,12 @@ export const useCallingExpWithCallingStateEffect = () => {
     callDisplayName,
     isIncomingCall,
     isVideoCall,
+    isRingingTypeCall,
   ]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
-    if (!callingx?.isSetup || !activeCallCid) {
+    if (!callingx?.isSetup || !activeCallCid || !isRingingTypeCall) {
       return;
     }
 
@@ -253,11 +256,11 @@ export const useCallingExpWithCallingStateEffect = () => {
     return () => {
       subscription.remove();
     };
-  }, [activeCallCid]);
+  }, [activeCallCid, isRingingTypeCall]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
-    if (!callingx?.isSetup || !activeCallCid) {
+    if (!callingx?.isSetup || !activeCallCid || !isRingingTypeCall) {
       return;
     }
 
@@ -270,11 +273,11 @@ export const useCallingExpWithCallingStateEffect = () => {
     }
 
     callingx.updateDisplay(activeCallCid, activeCallCid, callDisplayName);
-  }, [activeCallCid, callDisplayName]);
+  }, [activeCallCid, callDisplayName, isRingingTypeCall]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
-    if (!callingx?.isSetup || !activeCallCid) {
+    if (!callingx?.isSetup || !activeCallCid || !isRingingTypeCall) {
       return;
     }
 
@@ -287,7 +290,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     }
 
     callingx.setMutedCall(activeCallCid, isMute);
-  }, [activeCallCid, isMute]);
+  }, [activeCallCid, isMute, isRingingTypeCall]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
@@ -303,7 +306,8 @@ export const useCallingExpWithCallingStateEffect = () => {
 
         if (callId === activeCallCid) {
           const isCurrentlyMuted =
-            RxUtils.getCurrentValue(microphone.state.status$) === 'disabled';
+            RxUtils.getCurrentValue(microphone.state.optimisticStatus$) ===
+            'disabled';
           if (isCurrentlyMuted === muted) {
             logger.debug(
               `Mic toggle is already in the desired state: ${muted} for call: ${activeCallCid}`,
@@ -313,6 +317,9 @@ export const useCallingExpWithCallingStateEffect = () => {
           }
 
           try {
+            logger.debug(
+              `Mic toggle call from callingexp: isMutedNow:${muted} for call: ${activeCallCid}`,
+            );
             if (muted) {
               await microphone.disable();
             } else {
@@ -331,5 +338,5 @@ export const useCallingExpWithCallingStateEffect = () => {
     return () => {
       subscription.remove();
     };
-  }, [activeCallCid, microphone]);
+  }, [activeCallCid, microphone, isRingingTypeCall]);
 };
