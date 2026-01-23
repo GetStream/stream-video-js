@@ -1,6 +1,8 @@
 import Foundation
 import CallKit
 import AVFoundation
+import UIKit
+import stream_react_native_webrtc
 
 // MARK: - Event Names
 @objcMembers public class CallingxEvents: NSObject {
@@ -691,27 +693,33 @@ import AVFoundation
     
     public func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         #if DEBUG
-        print("[Callingx][CXProviderDelegate][provider:didActivateAudioSession]")
+        print("[Callingx][CXProviderDelegate][provider:didActivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
         #endif
-        
-        let userInfo = [
-            AVAudioSessionInterruptionTypeKey: NSNumber(value: AVAudioSession.InterruptionType.ended.rawValue),
-            AVAudioSessionInterruptionOptionKey: NSNumber(value: AVAudioSession.InterruptionOptions.shouldResume.rawValue)
-        ]
-        
-        NotificationCenter.default.post(
-            name: AVAudioSession.interruptionNotification,
-            object: nil,
-            userInfo: userInfo
-        )
-        
+
+        // When CallKit activates the AVAudioSession, inform WebRTC as well.
+        RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+
+        // Enable wake lock to keep the device awake during the call
+        DispatchQueue.main.async {
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
+
         sendEvent(CallingxEvents.didActivateAudioSession, body: nil)
     }
     
     public func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
         #if DEBUG
-        print("[Callingx][CXProviderDelegate][provider:didDeactivateAudioSession]")
+        print("[Callingx][CXProviderDelegate][provider:didDeactivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
         #endif
+
+        // When CallKit deactivates the AVAudioSession, inform WebRTC as well.
+        RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
+
+        // Disable wake lock when the call ends
+        DispatchQueue.main.async {
+            UIApplication.shared.isIdleTimerDisabled = false
+        }
+
         sendEvent(CallingxEvents.didDeactivateAudioSession, body: nil)
     }
   

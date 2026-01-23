@@ -11,7 +11,6 @@ import {
   type EventData,
   type EventParams,
 } from './libs/callingx';
-import { RTCAudioSession } from '@stream-io/react-native-webrtc';
 import { Platform } from 'react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
@@ -38,14 +37,6 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     'endCall',
     onEndCall(pushConfig),
   );
-  const { remove: removeDidActivateAudioSession } = callingx.addEventListener(
-    'didActivateAudioSession',
-    onDidActivateAudioSession,
-  );
-  const { remove: removeDidDeactivateAudioSession } = callingx.addEventListener(
-    'didDeactivateAudioSession',
-    onDidDeactivateAudioSession,
-  );
 
   //NOTE: until getInitialEvents invocation, events are delayed and won't be sent to event listeners, this is a way to make sure none of required events are missed
   //in most cases there will be no delayed answers or ends, but it we don't want to miss any of them
@@ -68,8 +59,6 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   setPushLogoutCallback(async () => {
     removeAnswerCall();
     removeEndCall();
-    removeDidActivateAudioSession();
-    removeDidDeactivateAudioSession();
   });
 }
 
@@ -110,10 +99,3 @@ const onEndCall =
     await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
   };
 
-const onDidActivateAudioSession = () => {
-  RTCAudioSession.audioSessionDidActivate();
-};
-
-const onDidDeactivateAudioSession = () => {
-  RTCAudioSession.audioSessionDidDeactivate();
-};
