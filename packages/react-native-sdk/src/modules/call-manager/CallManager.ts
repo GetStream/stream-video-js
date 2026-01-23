@@ -1,7 +1,10 @@
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import { AudioDeviceStatus, StreamInCallManagerConfig } from './types';
+import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 const NativeManager = NativeModules.StreamInCallManager;
+const CallingxModule = getCallingxLibIfAvailable();
 
 const invariant = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message);
@@ -72,6 +75,16 @@ class SpeakerManager {
   };
 }
 
+const shouldBypassForCallKit = (): boolean => {
+  if (Platform.OS !== 'ios') {
+    return false;
+  }
+  if (!CallingxModule) {
+    return false;
+  }
+  return CallingxModule.isSetup && CallingxModule.hasRegisteredCall();
+};
+
 export class CallManager {
   android = new AndroidCallManager();
   ios = new IOSCallManager();
@@ -95,6 +108,14 @@ export class CallManager {
    * @param config.enableStereoAudioOutput Whether to enable stereo audio output. Only supported for listener audio role.
    */
   start = (config?: StreamInCallManagerConfig): void => {
+    if (shouldBypassForCallKit()) {
+      videoLoggerSystem
+        .getLogger('CallManager')
+        .debug(
+          'start: skipping start as callkit is handling the audio session',
+        );
+      return;
+    }
     NativeManager.setAudioRole(config?.audioRole ?? 'communicator');
     if (config?.audioRole === 'communicator') {
       const type = config.deviceEndpointType ?? 'speaker';
@@ -110,6 +131,12 @@ export class CallManager {
    * Stops the in call manager.
    */
   stop = (): void => {
+    if (shouldBypassForCallKit()) {
+      videoLoggerSystem
+        .getLogger('CallManager')
+        .debug('stop: skipping stop as callkit is handling the audio session');
+      return;
+    }
     NativeManager.stop();
   };
 

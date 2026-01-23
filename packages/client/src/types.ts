@@ -352,19 +352,21 @@ export type StreamRNVideoSDKGlobals = {
      */
     setup({
       default_device,
+      isRingingTypeCall,
     }: {
       default_device: AudioSettingsRequestDefaultDeviceEnum;
+      isRingingTypeCall: boolean;
     }): void;
 
     /**
      * Starts the in call manager.
      */
-    start(): void;
+    start({ isRingingTypeCall }: { isRingingTypeCall: boolean }): void;
 
     /**
      * Stops the in call manager.
      */
-    stop(): void;
+    stop({ isRingingTypeCall }: { isRingingTypeCall: boolean }): void;
   };
 };
 
