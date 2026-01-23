@@ -58,6 +58,7 @@
   "devDependencies": {
     "@react-native-community/cli": "20.0.1",
     "@react-native/babel-preset": "^0.81.5",
+    "@stream-io/react-native-webrtc": "137.1.0",
     "@types/react": "^19.1.0",
     "del-cli": "^6.0.0",
     "react": "19.1.0",
@@ -66,6 +67,7 @@
     "typescript": "^5.9.2"
   },
   "peerDependencies": {
+    "@stream-io/react-native-webrtc": ">=137.1.0",
     "react": "*",
     "react-native": "*"
   },
