@@ -5,9 +5,9 @@ const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
 
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callManager: {
-    setup: ({ default_device }) => {
+    setup: ({ defaultDevice }) => {
       StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
-        default_device,
+        defaultDevice,
       );
       StreamInCallManagerNativeModule.setup();
     },

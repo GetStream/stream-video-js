@@ -351,9 +351,9 @@ export type StreamRNVideoSDKGlobals = {
      * Sets up the in call manager.
      */
     setup({
-      default_device,
+      defaultDevice,
     }: {
-      default_device: AudioSettingsRequestDefaultDeviceEnum;
+      defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
     }): void;
 
     /**
