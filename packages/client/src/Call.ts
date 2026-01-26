@@ -339,7 +339,11 @@ export class Call {
     this.microphone = new MicrophoneManager(this);
     this.speaker = new SpeakerManager(this);
     this.screenShare = new ScreenShareManager(this);
-    this.dynascaleManager = new DynascaleManager(this.state, this.speaker);
+    this.dynascaleManager = new DynascaleManager(
+      this.state,
+      this.speaker,
+      this.tracer,
+    );
   }
 
   /**

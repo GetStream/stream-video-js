@@ -34,7 +34,11 @@ describe('DynascaleManager', () => {
       clientStore: new StreamVideoWriteableStateStore(),
     });
     call.setSortParticipantsBy(noopComparator());
-    dynascaleManager = new DynascaleManager(call.state, call.speaker);
+    dynascaleManager = new DynascaleManager(
+      call.state,
+      call.speaker,
+      call.tracer,
+    );
   });
 
   afterEach(() => {

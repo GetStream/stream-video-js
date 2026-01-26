@@ -27,6 +27,7 @@ import type { StreamSfuClient } from '../StreamSfuClient';
 import { SpeakerManager } from '../devices';
 import { getCurrentValue, setCurrentValue } from '../store/rxUtils';
 import { videoLoggerSystem } from '../logger';
+import { Tracer } from '../stats';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -69,6 +70,7 @@ export class DynascaleManager {
   private logger = videoLoggerSystem.getLogger('DynascaleManager');
   private callState: CallState;
   private speaker: SpeakerManager;
+  private tracer: Tracer;
   private audioContext: AudioContext | undefined;
   private sfuClient: StreamSfuClient | undefined;
   private pendingSubscriptionsUpdate: NodeJS.Timeout | null = null;
@@ -113,9 +115,10 @@ export class DynascaleManager {
   /**
    * Creates a new DynascaleManager instance.
    */
-  constructor(callState: CallState, speaker: SpeakerManager) {
+  constructor(callState: CallState, speaker: SpeakerManager, tracer: Tracer) {
     this.callState = callState;
     this.speaker = speaker;
+    this.tracer = tracer;
   }
 
   /**
@@ -190,6 +193,10 @@ export class DynascaleManager {
     override: VideoTrackSubscriptionOverride | undefined,
     sessionIds?: string[],
   ) => {
+    this.tracer.trace('setVideoTrackSubscriptionOverrides', [
+      override,
+      sessionIds,
+    ]);
     if (!sessionIds) {
       return setCurrentValue(
         this.videoTrackSubscriptionOverridesSubject,
@@ -618,8 +625,10 @@ export class DynascaleManager {
   };
 
   private getOrCreateAudioContext = (): AudioContext | undefined => {
-    if (this.audioContext || !isSafari()) return this.audioContext;
+    if (!isSafari()) return;
+    if (this.audioContext) return this.audioContext;
     const context = new AudioContext();
+    this.tracer.trace('audioContextCreated', context.state);
     if (context.state === 'suspended') {
       document.addEventListener('click', this.resumeAudioContext);
     }
@@ -634,12 +643,17 @@ export class DynascaleManager {
 
   private resumeAudioContext = () => {
     if (this.audioContext?.state === 'suspended') {
-      this.audioContext
-        .resume()
-        .catch((err) => this.logger.warn(`Can't resume audio context`, err))
-        .then(() => {
+      const tag = 'audioContextResume';
+      this.audioContext.resume().then(
+        () => {
+          this.tracer.trace(tag, this.audioContext?.state);
           document.removeEventListener('click', this.resumeAudioContext);
-        });
+        },
+        (err) => {
+          this.tracer.trace(`${tag}Error`, this.audioContext?.state);
+          this.logger.warn(`Can't resume audio context`, err);
+        },
+      );
     }
   };
 }
