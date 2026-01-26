@@ -34,7 +34,11 @@ describe('DynascaleManager', () => {
       clientStore: new StreamVideoWriteableStateStore(),
     });
     call.setSortParticipantsBy(noopComparator());
-    dynascaleManager = new DynascaleManager(call.state, call.speaker);
+    dynascaleManager = new DynascaleManager(
+      call.state,
+      call.speaker,
+      call.tracer,
+    );
   });
 
   afterEach(() => {
@@ -107,6 +111,8 @@ describe('DynascaleManager', () => {
           isSafari: () => globalThis._isSafari ?? false,
         };
       });
+
+      dynascaleManager.setUseWebAudio(false);
 
       videoElement = document.createElement('video');
 
@@ -189,6 +195,7 @@ describe('DynascaleManager', () => {
 
     it('audio: Safari should use AudioContext for audio playback', () => {
       globalThis._isSafari = true;
+      dynascaleManager.setUseWebAudio(true); // enabled by default on Safari
 
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');
