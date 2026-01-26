@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.31.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.4...@stream-io/video-react-sdk-1.31.5) (2026-01-26)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.7.2`
+- `@stream-io/video-client` updated to version `1.41.1`
+- `@stream-io/video-react-bindings` updated to version `1.13.1`
+
+### Bug Fixes
+
+- **react:** reorganize jitter & bitrate statistics cards ([#2091](https://github.com/GetStream/stream-video-js/issues/2091)) ([599701f](https://github.com/GetStream/stream-video-js/commit/599701fa94c3fd3bc0f9bc08faca1ddfa828d51f))
+
 ## [1.31.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.3...@stream-io/video-react-sdk-1.31.4) (2026-01-20)
 
 ### Dependency Updates
