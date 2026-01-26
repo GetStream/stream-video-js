@@ -1,7 +1,4 @@
-import {
-  StreamRNVideoSDKGlobals,
-  videoLoggerSystem,
-} from '@stream-io/video-client';
+import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
 import { NativeModules, Platform } from 'react-native';
 import { getCallingxLibIfAvailable } from '../push/libs/callingx';
 
@@ -17,57 +14,38 @@ const CallingxModule = getCallingxLibIfAvailable();
  * In this case, StreamInCallManager should not run to avoid conflicting audio
  * session configurations.
  */
-const shouldBypassForCallKit = (isRingingTypeCall: boolean): boolean => {
-  if (Platform.OS !== 'ios' || !isRingingTypeCall) {
+const shouldBypassForCallKit = (): boolean => {
+  if (Platform.OS !== 'ios') {
     return false;
   }
   if (!CallingxModule) {
     return false;
   }
-  return CallingxModule.isSetup;
+  const bypass = CallingxModule.isSetup && CallingxModule.hasRegisteredCall();
+  return bypass;
 };
 
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callManager: {
-    setup: ({ default_device, isRingingTypeCall }) => {
-      if (shouldBypassForCallKit(isRingingTypeCall)) {
-        videoLoggerSystem
-          .getLogger('streamRNVideoSDKGlobals')
-          .debug(`callManager setup: skipping setup for ringing type of call`);
+    setup: ({ default_device }) => {
+      if (shouldBypassForCallKit()) {
         return;
       }
       StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
         default_device,
       );
       StreamInCallManagerNativeModule.setup();
-      videoLoggerSystem
-        .getLogger('streamRNVideoSDKGlobals')
-        .debug(
-          `callManager setup: ${default_device} isRingingTypeCall: ${isRingingTypeCall}`,
-        );
     },
-    start: ({ isRingingTypeCall }) => {
-      if (shouldBypassForCallKit(isRingingTypeCall)) {
-        videoLoggerSystem
-          .getLogger('streamRNVideoSDKGlobals')
-          .debug(`callManager start: skipping start for ringing type of call`);
+    start: () => {
+      if (shouldBypassForCallKit()) {
         return;
       }
-      videoLoggerSystem
-        .getLogger('streamRNVideoSDKGlobals')
-        .debug(`callManager start`);
       StreamInCallManagerNativeModule.start();
     },
-    stop: ({ isRingingTypeCall }) => {
-      if (shouldBypassForCallKit(isRingingTypeCall)) {
-        videoLoggerSystem
-          .getLogger('streamRNVideoSDKGlobals')
-          .debug(`callManager stop: skipping stop for ringing type of call`);
+    stop: () => {
+      if (shouldBypassForCallKit()) {
         return;
       }
-      videoLoggerSystem
-        .getLogger('streamRNVideoSDKGlobals')
-        .debug(`callManager stop`);
       StreamInCallManagerNativeModule.stop();
     },
   },
