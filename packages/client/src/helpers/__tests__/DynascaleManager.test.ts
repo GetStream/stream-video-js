@@ -112,6 +112,8 @@ describe('DynascaleManager', () => {
         };
       });
 
+      dynascaleManager.setUseWebAudio(false);
+
       videoElement = document.createElement('video');
 
       // circumvent happy-dom's extensive validation rules
@@ -193,6 +195,7 @@ describe('DynascaleManager', () => {
 
     it('audio: Safari should use AudioContext for audio playback', () => {
       globalThis._isSafari = true;
+      dynascaleManager.setUseWebAudio(true); // enabled by default on Safari
 
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');
