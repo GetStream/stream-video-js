@@ -122,6 +122,7 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   const activeCallCid = activeCall?.cid;
   const isIncomingCall = activeCall?.ringing && !activeCall?.isCreatedByMe;
+  const isOutcomingCall = activeCall?.ringing && activeCall?.isCreatedByMe;
   const currentUserId = activeCall?.currentUserId;
   const isVideoCall = activeCall?.state.settings?.video?.enabled ?? false;
 
@@ -170,7 +171,10 @@ export const useCallingExpWithCallingStateEffect = () => {
     //tells if call is registered in CallKit/Telecom
     const isCallRegistered = callingx.isCallRegistered(activeCallCid);
     logger.debug(
-      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered} isIncomingCall: ${isIncomingCall} prevState: ${prevState.current}, currentState: ${callingState}`,
+      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered} 
+      isIncomingCall: ${isIncomingCall} isOutcomingCall: ${isOutcomingCall} 
+      prevState: ${prevState.current}, currentState: ${callingState} 
+      isOngoingCallsEnabled: ${callingx.isOngoingCallsEnabled}`,
     );
 
     if (
@@ -186,7 +190,8 @@ export const useCallingExpWithCallingStateEffect = () => {
         );
       });
     } else if (
-      !isIncomingCall &&
+      (isOutcomingCall ||
+        (!isIncomingCall && callingx.isOngoingCallsEnabled)) && //we register call in case if is outcoming ringing call or it is non-ringing call and ongoing calls are enabled
       !isCallRegistered &&
       canStartCall(prevState.current, callingState)
     ) {
@@ -223,6 +228,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     callingState,
     callDisplayName,
     isIncomingCall,
+    isOutcomingCall,
     isVideoCall,
   ]);
 

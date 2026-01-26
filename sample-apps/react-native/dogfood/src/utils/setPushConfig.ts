@@ -32,6 +32,7 @@ export function setPushConfig() {
   StreamVideoRN.setPushConfig({
     ios: {
       pushProviderName: 'rn-apn-video',
+      callsHistory: true,
     },
     android: {
       pushProviderName: 'rn-fcm-video',
@@ -60,6 +61,7 @@ export function setPushConfig() {
         },
       },
     },
+    enableOngoingCalls: true,
     shouldRejectCallWhenBusy: true,
     createStreamVideoClient,
     onTapNonRingingCallNotification: (call_cid) => {

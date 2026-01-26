@@ -4,6 +4,7 @@ import type { PermissionsResult } from './utils/permissions';
 
 export interface ICallingxModule {
   get isNotificationsAllowed(): boolean;
+  get isOngoingCallsEnabled(): boolean;
   get isSetup(): boolean;
 
   /**
@@ -208,6 +209,11 @@ export type NotificationTransformers = {
 export type CallingExpOptions = {
   ios?: iOSOptions;
   android?: AndroidOptions;
+  /**
+   * Whether to enable ongoing calls.
+   * @default false
+   */
+  enableOngoingCalls?: boolean;
   /**
    * Whether to reject calls when the user is busy.
    * @default false
