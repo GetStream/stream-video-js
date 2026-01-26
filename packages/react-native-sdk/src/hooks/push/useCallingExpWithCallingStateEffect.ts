@@ -1,13 +1,13 @@
 import {
   CallingState,
   MemberResponse,
-  RxUtils,
   StreamVideoParticipant,
   videoLoggerSystem,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useMemo, useRef } from 'react';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
+import { AppState } from 'react-native';
 
 const logger = videoLoggerSystem.getLogger(
   'useCallingExpWithCallingStateEffect',
@@ -302,11 +302,9 @@ export const useCallingExpWithCallingStateEffect = () => {
         const { callId, muted } = event;
 
         if (callId === activeCallCid) {
-          const isCurrentlyMuted =
-            RxUtils.getCurrentValue(microphone.state.status$) === 'disabled';
-          if (isCurrentlyMuted === muted) {
+          if (AppState.currentState === 'active') {
             logger.debug(
-              `Mic toggle is already in the desired state: ${muted} for call: ${activeCallCid}`,
+              `Mic toggle event received but app is active, so skipping: ${muted} for call: ${activeCallCid}`,
             );
             //this check prevents mic toggle when state change was initiated from client and not from CallKit/Telecom
             return;
