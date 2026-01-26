@@ -314,6 +314,7 @@ export class DynascaleManager {
    * @param useWebAudio whether to use WebAudio API.
    */
   setUseWebAudio = (useWebAudio: boolean) => {
+    this.tracer.trace('setUseWebAudio', useWebAudio);
     this.useWebAudio = useWebAudio;
   };
 
