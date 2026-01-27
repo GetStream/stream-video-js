@@ -110,10 +110,10 @@ export type ConnectionRecoveredEvent = {
 
 export type MicCaptureReportEvent = {
   type: 'mic.capture_report';
+  call_cid: string;
+  capturesAudio: boolean;
   deviceId?: string;
   label?: string;
-  capturesAudio: boolean;
-  call_cid: string;
 };
 
 export type StreamVideoEvent = (

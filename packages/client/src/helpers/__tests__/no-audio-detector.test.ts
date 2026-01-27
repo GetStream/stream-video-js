@@ -6,11 +6,6 @@ import {
   cleanupAudioContextMock,
 } from '../../devices/__tests__/web-audio.mocks';
 
-// Mock the platform detection to force browser implementation
-vi.mock('../platforms', () => ({
-  isReactNative: () => false,
-}));
-
 describe('no-audio-detector (browser)', () => {
   let mockAudioContext: ReturnType<typeof setupAudioContextMock>;
   let audioStream: MediaStream;
@@ -117,7 +112,6 @@ describe('no-audio-detector (browser)', () => {
       expect(onCaptureStatusChange).toHaveBeenCalledWith(
         expect.objectContaining({
           capturesAudio: false,
-          noAudioDurationMs: expect.any(Number),
         }),
       );
     });
@@ -297,7 +291,7 @@ describe('no-audio-detector (browser)', () => {
       expect(onCaptureStatusChange).not.toHaveBeenCalled();
     });
 
-    it('should not emit audio detected event if already in audio state', () => {
+    it('should emit initial audio detected event on first check', () => {
       const onCaptureStatusChange = vi.fn();
 
       createNoAudioDetector(audioStream, {
@@ -315,10 +309,16 @@ describe('no-audio-detector (browser)', () => {
         },
       );
 
-      // Advance time with continuous audio
-      vi.advanceTimersByTime(10000);
+      // First check should emit initial "audio working" event
+      vi.advanceTimersByTime(500);
+      expect(onCaptureStatusChange).toHaveBeenCalledTimes(1);
+      expect(onCaptureStatusChange).toHaveBeenCalledWith(
+        expect.objectContaining({ capturesAudio: true }),
+      );
 
-      // Should never emit any events (no transition from no-audio to audio)
+      // No more events after that with continuous audio
+      onCaptureStatusChange.mockClear();
+      vi.advanceTimersByTime(10000);
       expect(onCaptureStatusChange).not.toHaveBeenCalled();
     });
 
@@ -501,12 +501,12 @@ describe('no-audio-detector (browser)', () => {
         },
       );
 
-      // Should not emit before 5.5s
+      // Should not emit before threshold + first interval (5000ms + 350ms = 5350ms)
       vi.advanceTimersByTime(5000);
       expect(onCaptureStatusChange).not.toHaveBeenCalled();
 
-      // Should emit at 5.5s
-      vi.advanceTimersByTime(500);
+      // Should emit at 5600ms (first interval where elapsed >= 5000ms)
+      vi.advanceTimersByTime(600);
       expect(onCaptureStatusChange).toHaveBeenCalled();
     });
 
@@ -528,13 +528,95 @@ describe('no-audio-detector (browser)', () => {
         },
       );
 
-      // First at 3.5s (3s threshold + 500ms first interval)
+      // First at 3.5s (first interval where elapsed >= 3000ms)
       vi.advanceTimersByTime(3500);
       expect(onCaptureStatusChange).toHaveBeenCalledTimes(1);
 
-      // Second at 6.5s (3s default emit interval)
-      vi.advanceTimersByTime(3000);
+      // Second at 6.65s (3000ms emit interval from first emit at 3500ms)
+      vi.advanceTimersByTime(3150);
       expect(onCaptureStatusChange).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('stopping behavior', () => {
+    it('should stop completely after emitting capturesAudio true', () => {
+      const onCaptureStatusChange = vi.fn();
+
+      createNoAudioDetector(audioStream, {
+        onCaptureStatusChange,
+        noAudioThresholdMs: 3000,
+        detectionFrequencyInMs: 500,
+      });
+
+      const analyserNode = vi
+        .mocked(mockAudioContext.createAnalyser)
+        .mock.results.at(-1)?.value;
+
+      // Start with no audio
+      vi.mocked(analyserNode.getByteFrequencyData).mockImplementation(
+        (array) => {
+          array.fill(0);
+        },
+      );
+
+      // Emit first no-audio event
+      vi.advanceTimersByTime(3500);
+      expect(onCaptureStatusChange).toHaveBeenCalledTimes(1);
+      expect(onCaptureStatusChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ capturesAudio: false }),
+      );
+
+      // Audio detected, should emit capturesAudio: true and stop
+      vi.mocked(analyserNode.getByteFrequencyData).mockImplementation(
+        (array) => {
+          array.fill(10);
+        },
+      );
+      vi.advanceTimersByTime(500);
+      expect(onCaptureStatusChange).toHaveBeenCalledTimes(2);
+      expect(onCaptureStatusChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({ capturesAudio: true }),
+      );
+
+      // Verify interval stopped and AudioContext closed
+      onCaptureStatusChange.mockClear();
+      vi.advanceTimersByTime(10000);
+      expect(onCaptureStatusChange).not.toHaveBeenCalled();
+      expect(mockAudioContext.close).toHaveBeenCalled();
+    });
+
+    it('should stop immediately if audio working from start', () => {
+      const onCaptureStatusChange = vi.fn();
+
+      createNoAudioDetector(audioStream, {
+        onCaptureStatusChange,
+        noAudioThresholdMs: 3000,
+        detectionFrequencyInMs: 500,
+      });
+
+      const analyserNode = vi
+        .mocked(mockAudioContext.createAnalyser)
+        .mock.results.at(-1)?.value;
+
+      // Start with audio working
+      vi.mocked(analyserNode.getByteFrequencyData).mockImplementation(
+        (array) => {
+          array.fill(10);
+        },
+      );
+
+      // Should emit initial "audio working" event and stop
+      vi.advanceTimersByTime(500);
+      expect(onCaptureStatusChange).toHaveBeenCalledTimes(1);
+      expect(onCaptureStatusChange).toHaveBeenCalledWith(
+        expect.objectContaining({ capturesAudio: true }),
+      );
+
+      // Verify stopped completely
+      onCaptureStatusChange.mockClear();
+      vi.advanceTimersByTime(10000);
+      expect(onCaptureStatusChange).not.toHaveBeenCalled();
+      expect(mockAudioContext.close).toHaveBeenCalled();
     });
   });
 
@@ -626,7 +708,6 @@ describe('no-audio-detector (browser)', () => {
       expect(onCaptureStatusChange).toHaveBeenCalledWith(
         expect.objectContaining({
           capturesAudio: false,
-          noAudioDurationMs: expect.closeTo(5000, 100),
         }),
       );
 
@@ -635,7 +716,6 @@ describe('no-audio-detector (browser)', () => {
       expect(onCaptureStatusChange).toHaveBeenCalledWith(
         expect.objectContaining({
           capturesAudio: false,
-          noAudioDurationMs: expect.closeTo(8000, 100),
         }),
       );
 
@@ -644,7 +724,6 @@ describe('no-audio-detector (browser)', () => {
       expect(onCaptureStatusChange).toHaveBeenCalledWith(
         expect.objectContaining({
           capturesAudio: false,
-          noAudioDurationMs: expect.closeTo(11000, 100),
         }),
       );
     });

@@ -3,29 +3,28 @@ import { videoLoggerSystem } from '../logger';
 export type NoAudioDetectorOptions = {
   /**
    * Defines how often the detector should check whether audio is present.
-   * Defaults to 500ms.
+   * Defaults to 350ms.
    */
   detectionFrequencyInMs?: number;
 
   /**
    * Defines the audio level threshold. Values below this are considered no audio.
-   * Defaults to 5. This value should be in the range of 0-255.
+   * Defaults to 3. This value should be in the range of 0-255.
    * Only applies to browser implementation.
    */
   audioLevelThreshold?: number;
 
   /**
    * Duration of continuous no-audio (in ms) before emitting the first event.
-   * Defaults to 5000ms (5 seconds).
    */
-  noAudioThresholdMs?: number;
+  noAudioThresholdMs: number;
 
   /**
    * How often to emit events while no-audio continues (in ms).
    * After the initial no-audio threshold is met, events will be emitted at this interval.
    * Defaults to the same value as noAudioThresholdMs.
    */
-  emitIntervalMs?: number;
+  emitIntervalMs: number;
 
   /**
    * See https://developer.mozilla.org/en-US/docs/web/api/analysernode/fftsize
@@ -57,21 +56,20 @@ export type CaptureStatusEvent = {
   label?: string;
 };
 
-type TrackMetadata = {
-  deviceId?: string;
-  label?: string;
-};
-
-type DetectionState = {
-  noAudioStartTime: number | null;
-  lastEmitTime: number | null;
-};
+/**
+ * Discriminated union representing the detector's state machine.
+ */
+type DetectorState =
+  | { kind: 'IDLE' } // Initial state - need to do first check
+  | { kind: 'DETECTING'; noAudioStartTime: number } // No audio detected, waiting for threshold
+  | { kind: 'EMITTING'; noAudioStartTime: number; lastEmitTime: number }; // Emitting periodic no-audio events
 
 /**
- * Checks if the audio track is active and ready for analysis.
+ * State transition result - discriminated union ensures capturesAudio is present when emitting.
  */
-const isAudioTrackActive = (audioTrack?: MediaStreamTrack): boolean =>
-  !!(audioTrack?.enabled && audioTrack.readyState !== 'ended');
+type StateTransition =
+  | { shouldEmit: false; nextState: DetectorState }
+  | { shouldEmit: true; nextState: DetectorState; capturesAudio: boolean };
 
 /**
  * Analyzes frequency data to determine if audio is being captured.
@@ -83,65 +81,65 @@ const hasAudio = (analyser: AnalyserNode, threshold: number): boolean => {
 };
 
 /**
- * Extracts device metadata from an audio track.
+ * Creates a complete CaptureStatusEvent with audio status and device metadata.
  */
-const getTrackMetadata = (audioTrack?: MediaStreamTrack): TrackMetadata => ({
+const createCaptureStatusEvent = (
+  capturesAudio: boolean,
+  audioTrack?: MediaStreamTrack,
+): CaptureStatusEvent => ({
+  capturesAudio,
   deviceId: audioTrack?.getSettings().deviceId,
   label: audioTrack?.label,
 });
 
-/**
- * Determines if a no-audio event should be emitted based on elapsed time and timing rules.
- */
-const shouldEmitNoAudioEvent = (
-  state: DetectionState,
-  options: NoAudioDetectorOptions,
-): boolean => {
-  if (state.noAudioStartTime === null) return false;
+/** Helper for "no event" transitions */
+const noEmit = (nextState: DetectorState): StateTransition => ({
+  shouldEmit: false,
+  nextState,
+});
 
-  const elapsed = Date.now() - state.noAudioStartTime;
-  const timeSinceLastEmit = state.lastEmitTime
-    ? Date.now() - state.lastEmitTime
-    : Infinity;
-
-  const { noAudioThresholdMs = 5000, emitIntervalMs = 5000 } = options;
-  return elapsed >= noAudioThresholdMs && timeSinceLastEmit >= emitIntervalMs;
-};
+/** Helper for event-emitting transitions */
+const emit = (
+  capturesAudio: boolean,
+  nextState: DetectorState,
+): StateTransition => ({ shouldEmit: true, nextState, capturesAudio });
 
 /**
- * Handles the case when no audio is detected (browser version).
+ * State transition function - computes next state and whether to emit an event.
  */
-const handleNoAudioDetected = (
-  state: DetectionState,
+const transitionState = (
+  state: DetectorState,
+  audioDetected: boolean,
   options: NoAudioDetectorOptions,
-): CaptureStatusEvent | undefined => {
-  // Initialize timing if this is the first detection
-  if (state.noAudioStartTime === null) {
-    state.noAudioStartTime = Date.now();
-    state.lastEmitTime = null;
+): StateTransition => {
+  if (audioDetected) {
+    return state.kind === 'IDLE' || state.kind === 'EMITTING'
+      ? emit(true, state)
+      : noEmit(state);
   }
 
-  if (!shouldEmitNoAudioEvent(state, options)) return;
-  state.lastEmitTime = Date.now();
-  return { capturesAudio: false };
-};
+  const { noAudioThresholdMs, emitIntervalMs } = options;
+  const now = Date.now();
 
-/**
- * Handles the case when audio is detected after a period of no-audio (browser version).
- */
-const handleAudioDetected = (
-  state: DetectionState,
-): CaptureStatusEvent | undefined => {
-  const wasInNoAudioState = state.noAudioStartTime !== null;
-  if (wasInNoAudioState) {
-    return { capturesAudio: true };
+  switch (state.kind) {
+    case 'IDLE':
+      return noEmit({ kind: 'DETECTING', noAudioStartTime: now });
+
+    case 'DETECTING': {
+      const { noAudioStartTime } = state;
+      const elapsed = now - noAudioStartTime;
+      return elapsed >= noAudioThresholdMs
+        ? emit(false, { kind: 'EMITTING', noAudioStartTime, lastEmitTime: now })
+        : noEmit(state);
+    }
+
+    case 'EMITTING': {
+      const timeSinceLastEmit = now - state.lastEmitTime;
+      return timeSinceLastEmit >= emitIntervalMs
+        ? emit(false, { ...state, lastEmitTime: now })
+        : noEmit(state);
+    }
   }
-
-  // Reset timing state
-  state.noAudioStartTime = null;
-  state.lastEmitTime = null;
-
-  return undefined;
 };
 
 /**
@@ -183,43 +181,39 @@ export const createNoAudioDetector = (
   } = options;
 
   const { audioContext, analyser } = createAudioAnalyzer(audioStream, fftSize);
-  const state: DetectionState = {
-    noAudioStartTime: null,
-    lastEmitTime: null,
-  };
 
-  // Main detection loop
+  let state: DetectorState = { kind: 'IDLE' };
   const detectionIntervalId = setInterval(() => {
     const [audioTrack] = audioStream.getAudioTracks();
-    if (!isAudioTrackActive(audioTrack)) {
-      state.noAudioStartTime = null;
-      state.lastEmitTime = null;
+    if (!audioTrack?.enabled || audioTrack.readyState === 'ended') {
+      state = { kind: 'IDLE' };
       return;
     }
 
-    const event = hasAudio(analyser, audioLevelThreshold)
-      ? handleAudioDetected(state)
-      : handleNoAudioDetected(state, options);
+    const audioDetected = hasAudio(analyser, audioLevelThreshold);
+    const transition = transitionState(state, audioDetected, options);
 
-    if (event) {
-      if (event.capturesAudio) {
-        clearInterval(detectionIntervalId);
-        if (audioContext.state !== 'closed') {
-          audioContext.close().catch((err) => {
-            const logger = videoLoggerSystem.getLogger('no-audio-detector');
-            logger.error('Failed to close audio context', err);
-          });
-        }
-      }
+    state = transition.nextState;
+    if (!transition.shouldEmit) return;
 
-      onCaptureStatusChange({ ...event, ...getTrackMetadata(audioTrack) });
+    const { capturesAudio } = transition;
+    const event = createCaptureStatusEvent(capturesAudio, audioTrack);
+    onCaptureStatusChange(event);
+
+    if (capturesAudio) {
+      stop().catch((err) => {
+        const logger = videoLoggerSystem.getLogger('NoAudioDetector');
+        logger.error('Error stopping no-audio detector', err);
+      });
     }
   }, detectionFrequencyInMs);
 
-  return async function stop() {
+  async function stop() {
     clearInterval(detectionIntervalId);
     if (audioContext.state !== 'closed') {
       await audioContext.close();
     }
-  };
+  }
+
+  return stop;
 };
