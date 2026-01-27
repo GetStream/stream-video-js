@@ -64,11 +64,8 @@ export abstract class BaseVideoProcessor {
             this.canvas.height = frame.displayHeight;
           }
 
-          const start = performance.now();
           const processed = await this.transform(frame);
-          const delay = performance.now() - start;
 
-          this.updateStats(delay);
           controller.enqueue(processed);
         } catch (e) {
           this.hooks.onError?.(e);
@@ -98,7 +95,7 @@ export abstract class BaseVideoProcessor {
     this.onStop();
   }
 
-  private updateStats(delay: number): void {
+  protected updateStats(delay: number): void {
     this.frames++;
     this.delayTotal += delay;
 
