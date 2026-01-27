@@ -339,7 +339,11 @@ export class Call {
     this.microphone = new MicrophoneManager(this);
     this.speaker = new SpeakerManager(this);
     this.screenShare = new ScreenShareManager(this);
-    this.dynascaleManager = new DynascaleManager(this.state, this.speaker);
+    this.dynascaleManager = new DynascaleManager(
+      this.state,
+      this.speaker,
+      this.tracer,
+    );
   }
 
   /**
@@ -2697,9 +2701,7 @@ export class Call {
     settings: CallSettingsResponse,
     publish: boolean,
   ) => {
-    globalThis.streamRNVideoSDK?.callManager.setup({
-      default_device: settings.audio.default_device,
-    });
+    this.speaker.apply(settings);
     await this.camera.apply(settings.video, publish).catch((err) => {
       this.logger.warn('Camera init failed', err);
     });

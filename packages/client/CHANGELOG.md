@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.41.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.0...@stream-io/video-client-1.41.1) (2026-01-26)
+
+### Bug Fixes
+
+- **safari:** Handle interrupted AudioContext and AudioSession states ([#2098](https://github.com/GetStream/stream-video-js/issues/2098)) ([975901f](https://github.com/GetStream/stream-video-js/commit/975901f399b46479928ec1e9f32da7e47bba9ad3))
+- use multiple settings to determine default audio device RN-338 ([#2096](https://github.com/GetStream/stream-video-js/issues/2096)) ([19cf136](https://github.com/GetStream/stream-video-js/commit/19cf13651112b647903587a84a70a555fc68fc9c)), closes [2BSettingsPriority.swift#L19](https://github.com/GetStream/2BSettingsPriority.swift/issues/L19)
+
 ## [1.41.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.3...@stream-io/video-client-1.41.0) (2026-01-20)
 
 ### Features
