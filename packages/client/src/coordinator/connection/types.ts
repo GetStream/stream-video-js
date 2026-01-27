@@ -113,7 +113,6 @@ export type MicCaptureReportEvent = {
   deviceId?: string;
   label?: string;
   capturesAudio: boolean;
-  noAudioDurationMs?: number;
   call_cid: string;
 };
 

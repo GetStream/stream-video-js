@@ -29,12 +29,13 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   private speakingWhileMutedNotificationEnabled = true;
   private soundDetectorConcurrencyTag = Symbol('soundDetectorConcurrencyTag');
   private soundDetectorCleanup?: () => Promise<void>;
+  private noAudioDetectorCleanup?: () => Promise<void>;
   private rnSpeechDetector: RNSpeechDetector | undefined;
   private noiseCancellation: INoiseCancellation | undefined;
   private noiseCancellationChangeUnsubscribe: (() => void) | undefined;
   private noiseCancellationRegistration?: Promise<void>;
   private unregisterNoiseCancellation?: () => Promise<void>;
-  private noAudioDetectorCleanup?: () => Promise<void>;
+
   private silenceThresholdMs = 5000;
 
   constructor(call: Call, disableMode: TrackDisableMode = 'stop-tracks') {
@@ -115,8 +116,8 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       }),
     );
 
-    this.subscriptions.push(
-      createSafeAsyncSubscription(
+    if (!isReactNative()) {
+      const unsubscribe = createSafeAsyncSubscription(
         combineLatest([this.state.status$, this.state.mediaStream$]),
         async ([status, mediaStream]) => {
           if (this.noAudioDetectorCleanup) {
@@ -143,8 +144,9 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
             },
           });
         },
-      ),
-    );
+      );
+      this.subscriptions.push(unsubscribe);
+    }
   }
 
   /**
