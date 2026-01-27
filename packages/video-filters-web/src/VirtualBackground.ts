@@ -49,7 +49,8 @@ export class VirtualBackground extends BaseVideoProcessor {
         `https://unpkg.com/${packageName}@${version}/mediapipe`;
 
       const model =
-        this.options.modelPath || `${basePath}/models/selfie_segmenter.tflite`;
+        this.options.modelPath ||
+        `${basePath}/models/selfie_segmenter_landscape.tflite`;
 
       const fileset = await FilesetResolver.forVisionTasks(`${basePath}/wasm`);
 
