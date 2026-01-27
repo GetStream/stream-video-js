@@ -278,64 +278,64 @@ export const useCallingExpWithCallingStateEffect = () => {
     callingx.updateDisplay(activeCallCid, activeCallCid, callDisplayName);
   }, [activeCallCid, callDisplayName]);
 
-  useEffect(() => {
-    const callingx = getCallingxLibIfAvailable();
-    if (!callingx?.isSetup || !activeCallCid) {
-      return;
-    }
+  // useEffect(() => {
+  //   const callingx = getCallingxLibIfAvailable();
+  //   if (!callingx?.isSetup || !activeCallCid) {
+  //     return;
+  //   }
 
-    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
-    if (!isCallRegistered) {
-      logger.debug(
-        `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
-      );
-      return;
-    }
+  //   const isCallRegistered = callingx.isCallRegistered(activeCallCid);
+  //   if (!isCallRegistered) {
+  //     logger.debug(
+  //       `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+  //     );
+  //     return;
+  //   }
 
-    callingx.setMutedCall(activeCallCid, isMute);
-  }, [activeCallCid, isMute]);
+  //   callingx.setMutedCall(activeCallCid, isMute);
+  // }, [activeCallCid, isMute]);
 
-  useEffect(() => {
-    const callingx = getCallingxLibIfAvailable();
-    if (!callingx?.isSetup || !activeCallCid) {
-      return;
-    }
+  // useEffect(() => {
+  //   const callingx = getCallingxLibIfAvailable();
+  //   if (!callingx?.isSetup || !activeCallCid) {
+  //     return;
+  //   }
 
-    //listen to mic toggle events from CallKit/Telecom and update stream call microphone state
-    const subscription = callingx.addEventListener(
-      'didPerformSetMutedCallAction',
-      async (event: { callId: string; muted: boolean }) => {
-        const { callId, muted } = event;
+  //   //listen to mic toggle events from CallKit/Telecom and update stream call microphone state
+  //   const subscription = callingx.addEventListener(
+  //     'didPerformSetMutedCallAction',
+  //     async (event: { callId: string; muted: boolean }) => {
+  //       const { callId, muted } = event;
 
-        if (callId === activeCallCid) {
-          const isCurrentlyMuted =
-            RxUtils.getCurrentValue(microphone.state.status$) === 'disabled';
-          if (isCurrentlyMuted === muted) {
-            logger.debug(
-              `Mic toggle is already in the desired state: ${muted} for call: ${activeCallCid}`,
-            );
-            //this check prevents mic toggle when state change was initiated from client and not from CallKit/Telecom
-            return;
-          }
+  //       if (callId === activeCallCid) {
+  //         const isCurrentlyMuted =
+  //           RxUtils.getCurrentValue(microphone.state.status$) === 'disabled';
+  //         if (isCurrentlyMuted === muted) {
+  //           logger.debug(
+  //             `Mic toggle is already in the desired state: ${muted} for call: ${activeCallCid}`,
+  //           );
+  //           //this check prevents mic toggle when state change was initiated from client and not from CallKit/Telecom
+  //           return;
+  //         }
 
-          try {
-            if (muted) {
-              await microphone.disable();
-            } else {
-              await microphone.enable();
-            }
-          } catch (error: unknown) {
-            logger.error(
-              `Error toggling mic in calling exp: ${activeCallCid}`,
-              error,
-            );
-          }
-        }
-      },
-    );
+  //         try {
+  //           if (muted) {
+  //             await microphone.disable();
+  //           } else {
+  //             await microphone.enable();
+  //           }
+  //         } catch (error: unknown) {
+  //           logger.error(
+  //             `Error toggling mic in calling exp: ${activeCallCid}`,
+  //             error,
+  //           );
+  //         }
+  //       }
+  //     },
+  //   );
 
-    return () => {
-      subscription.remove();
-    };
-  }, [activeCallCid, microphone]);
+  //   return () => {
+  //     subscription.remove();
+  //   };
+  // }, [activeCallCid, microphone]);
 };
