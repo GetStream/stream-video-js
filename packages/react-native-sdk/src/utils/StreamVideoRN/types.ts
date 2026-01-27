@@ -138,6 +138,11 @@ export type StreamVideoConfig = {
       };
     };
     /**
+     * Whether to enable ongoing calls.
+     * @default false
+     */
+    enableOngoingCalls?: boolean;
+    /**
      * Whether to reject calls when the user is busy.
      * @default false
      */

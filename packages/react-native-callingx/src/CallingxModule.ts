@@ -38,6 +38,7 @@ import { isVoipEvent } from './utils/utils';
 class CallingxModule implements ICallingxModule {
   private _isNotificationsAllowed = false;
   private _isSetup = false;
+  private _isOngoingCallsEnabled = false;
   private _isHeadlessTaskRegistered = false;
 
   private titleTransformer: TextTransformer = (text: string) => text;
@@ -58,6 +59,10 @@ class CallingxModule implements ICallingxModule {
     );
   }
 
+  get isOngoingCallsEnabled(): boolean {
+    return this._isOngoingCallsEnabled;
+  }
+
   get isSetup(): boolean {
     return this._isSetup;
   }
@@ -67,6 +72,7 @@ class CallingxModule implements ICallingxModule {
       return;
     }
 
+    this._isOngoingCallsEnabled = options.enableOngoingCalls ?? false;
     this.setShouldRejectCallWhenBusy(options.shouldRejectCallWhenBusy ?? false);
 
     if (Platform.OS === 'ios') {

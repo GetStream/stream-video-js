@@ -82,5 +82,9 @@ export function extractCallingExpOptions(
       pushConfig.shouldRejectCallWhenBusy;
   }
 
+  if (pushConfig?.enableOngoingCalls !== undefined) {
+    callingExpOptions.enableOngoingCalls = pushConfig?.enableOngoingCalls;
+  }
+
   return callingExpOptions;
 }
