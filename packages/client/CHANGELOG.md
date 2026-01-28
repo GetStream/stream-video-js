@@ -2,6 +2,10 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.41.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.1...@stream-io/video-client-1.41.2) (2026-01-28)
+
+- deduplicate RN compatibility assertions ([#2101](https://github.com/GetStream/stream-video-js/issues/2101)) ([5b9e6bc](https://github.com/GetStream/stream-video-js/commit/5b9e6bc227c55b067eea6345315bca015c8a7ee4))
+
 ## [1.41.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.0...@stream-io/video-client-1.41.1) (2026-01-26)
 
 ### Bug Fixes
