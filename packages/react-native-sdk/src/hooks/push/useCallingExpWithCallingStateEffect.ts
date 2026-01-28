@@ -1,7 +1,6 @@
 import {
   CallingState,
   MemberResponse,
-  RxUtils,
   StreamVideoParticipant,
   videoLoggerSystem,
 } from '@stream-io/video-client';
@@ -107,14 +106,14 @@ function getCallDisplayName(
 export const useCallingExpWithCallingStateEffect = () => {
   const {
     useCallCallingState,
-    useMicrophoneState,
+    // useMicrophoneState,
     useParticipants,
     useCallMembers,
   } = useCallStateHooks();
 
   const activeCall = useCall();
   const callingState = useCallCallingState();
-  const { isMute, microphone } = useMicrophoneState();
+  // const { isMute, microphone } = useMicrophoneState();
   const callMembers = useCallMembers();
   const participants = useParticipants();
 
@@ -235,6 +234,19 @@ export const useCallingExpWithCallingStateEffect = () => {
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
     if (!callingx?.isSetup || !activeCallCid) {
+      logger.debug(
+        `No active call cid to listen to start call action in calling exp: ${activeCallCid} callingx is not setup`,
+      );
+      return;
+    }
+
+    if (
+      !isOutcomingCall &&
+      !(!isIncomingCall && callingx.isOngoingCallsEnabled)
+    ) {
+      logger.debug(
+        `Call is not outcoming or ongoing calls are not enabled for non-ringing calls`,
+      );
       return;
     }
 
@@ -259,7 +271,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     return () => {
       subscription.remove();
     };
-  }, [activeCallCid]);
+  }, [activeCallCid, isOutcomingCall, isIncomingCall]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
@@ -270,7 +282,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     const isCallRegistered = callingx.isCallRegistered(activeCallCid);
     if (!isCallRegistered) {
       logger.debug(
-        `No active call cid to set on hold in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+        `No active call cid to update calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
       );
       return;
     }
@@ -298,6 +310,14 @@ export const useCallingExpWithCallingStateEffect = () => {
   // useEffect(() => {
   //   const callingx = getCallingxLibIfAvailable();
   //   if (!callingx?.isSetup || !activeCallCid) {
+  //     return;
+  //   }
+
+  //   const isCallRegistered = callingx.isCallRegistered(activeCallCid);
+  //   if (!isCallRegistered) {
+  //     logger.debug(
+  //       `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+  //     );
   //     return;
   //   }
 
@@ -337,5 +357,5 @@ export const useCallingExpWithCallingStateEffect = () => {
   //   return () => {
   //     subscription.remove();
   //   };
-  // }, [activeCallCid, microphone]);
+  // }, [activeCallCid, microphone, isOutcomingCall, isIncomingCall]);
 };

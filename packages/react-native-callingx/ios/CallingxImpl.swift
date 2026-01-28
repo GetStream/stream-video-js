@@ -451,6 +451,10 @@ import stream_react_native_webrtc
     }
     
     @objc public func setCurrentCallActive(_ callId: String) -> Bool {
+        #if DEBUG
+        print("[Callingx][setCurrentCallActive] callId = \(callId)")
+        #endif
+      
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
             #if DEBUG
             print("[Callingx][setCurrentCallActive] callId not found")
@@ -651,7 +655,7 @@ import stream_react_native_webrtc
     
     public func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
         #if DEBUG
-        print("[Callingx][CXProviderDelegate][provider:performSetMutedCallAction]")
+        print("[Callingx][CXProviderDelegate][provider:performSetMutedCallAction] \(action.isMuted)")
         #endif
         
         guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
