@@ -132,6 +132,7 @@ class StreamInCallManager: RCTEventEmitter {
             rtcConfig.category = intendedCategory.rawValue
             rtcConfig.mode = intendedMode.rawValue
             rtcConfig.categoryOptions = intendedOptions
+            // This ensures WebRTC's internal state stays consistent during interruptions/route changes
             RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
             
             let session = RTCAudioSession.sharedInstance()
@@ -141,6 +142,9 @@ class StreamInCallManager: RCTEventEmitter {
             }
             do {
                 try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
+                // Apply sample rate and IO buffer duration from WebRTC's config
+                try session.setPreferredSampleRate(rtcConfig.sampleRate)
+                try session.setPreferredIOBufferDuration(rtcConfig.ioBufferDuration)
                 if (wasRecording) {
                     try adm.setRecording(wasRecording)
                 }

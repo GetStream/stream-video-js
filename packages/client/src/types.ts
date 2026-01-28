@@ -345,6 +345,15 @@ export type StartCallRecordingFnType = {
   ): Promise<StartRecordingResponse>;
 };
 
+type StreamRNVideoSDKCallManagerRingingParams = {
+  isRingingTypeCall: boolean;
+};
+
+type StreamRNVideoSDKCallManagerSetupParams =
+  StreamRNVideoSDKCallManagerRingingParams & {
+    defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
+  };
+
 export type StreamRNVideoSDKGlobals = {
   callManager: {
     /**
@@ -352,19 +361,20 @@ export type StreamRNVideoSDKGlobals = {
      */
     setup({
       defaultDevice,
-    }: {
-      defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
-    }): void;
+      isRingingTypeCall,
+    }: StreamRNVideoSDKCallManagerSetupParams): void;
 
     /**
      * Starts the in call manager.
      */
-    start(): void;
+    start({
+      isRingingTypeCall,
+    }: StreamRNVideoSDKCallManagerRingingParams): void;
 
     /**
      * Stops the in call manager.
      */
-    stop(): void;
+    stop({ isRingingTypeCall }: StreamRNVideoSDKCallManagerRingingParams): void;
   };
 };
 

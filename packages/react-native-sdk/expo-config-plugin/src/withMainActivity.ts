@@ -41,7 +41,7 @@ const withStreamVideoReactNativeSDKMainActivity: ConfigPlugin<ConfigProps> = (
       );
     }
 
-    if (props?.ringingPushNotifications?.showWhenLockedAndroid) {
+    if (props?.ringing) {
       config.modResults.contents = addInsideOnCreateLockscreen(
         config.modResults.contents,
         isMainActivityJava,
