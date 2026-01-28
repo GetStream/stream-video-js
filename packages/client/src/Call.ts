@@ -664,7 +664,9 @@ export class Call {
       this.cancelAutoDrop();
       this.clientStore.unregisterCall(this);
 
-      globalThis.streamRNVideoSDK?.callManager.stop();
+      globalThis.streamRNVideoSDK?.callManager.stop({
+        isRingingTypeCall: this.ringing,
+      });
 
       this.camera.dispose();
       this.microphone.dispose();
@@ -1117,7 +1119,9 @@ export class Call {
     // re-apply them on later reconnections or server-side data fetches
     if (!this.deviceSettingsAppliedOnce && this.state.settings) {
       await this.applyDeviceConfig(this.state.settings, true);
-      globalThis.streamRNVideoSDK?.callManager.start();
+      globalThis.streamRNVideoSDK?.callManager.start({
+        isRingingTypeCall: this.ringing,
+      });
       this.deviceSettingsAppliedOnce = true;
     }
 
