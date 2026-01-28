@@ -1,6 +1,5 @@
-import { BaseStats } from '../stats';
+import { BaseStats, flatten } from '../stats';
 import { SoundStateChangeHandler } from './sound-detector';
-import { flatten } from '../stats/utils';
 import { videoLoggerSystem } from '../logger';
 
 export class RNSpeechDetector {
@@ -18,25 +17,17 @@ export class RNSpeechDetector {
    */
   public async start(onSoundDetectedStateChanged: SoundStateChangeHandler) {
     try {
-      let audioStream: MediaStream;
-      if (this.externalAudioStream != null) {
-        audioStream = this.externalAudioStream;
-      } else {
-        audioStream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-        });
-        this.audioStream = audioStream;
-      }
+      const audioStream =
+        this.externalAudioStream != null
+          ? this.externalAudioStream
+          : await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.audioStream = audioStream;
 
       this.pc1.addEventListener('icecandidate', async (e) => {
-        await this.pc2.addIceCandidate(
-          e.candidate as RTCIceCandidateInit | undefined,
-        );
+        await this.pc2.addIceCandidate(e.candidate);
       });
       this.pc2.addEventListener('icecandidate', async (e) => {
-        await this.pc1.addIceCandidate(
-          e.candidate as RTCIceCandidateInit | undefined,
-        );
+        await this.pc1.addIceCandidate(e.candidate);
       });
       this.pc2.addEventListener('track', (e) => {
         e.streams[0].getTracks().forEach((track) => {
@@ -56,11 +47,11 @@ export class RNSpeechDetector {
       const answer = await this.pc2.createAnswer();
       await this.pc1.setRemoteDescription(answer);
       await this.pc2.setLocalDescription(answer);
-      const unsub = this.onSpeakingDetectedStateChange(
+      const unsubscribe = this.onSpeakingDetectedStateChange(
         onSoundDetectedStateChanged,
       );
       return () => {
-        unsub();
+        unsubscribe();
         this.stop();
       };
     } catch (error) {
@@ -104,7 +95,7 @@ export class RNSpeechDetector {
 
     const checkAudioLevel = async () => {
       try {
-        const stats = (await this.pc1.getStats()) as RTCStatsReport;
+        const stats = await this.pc1.getStats();
         const report = flatten(stats);
         // Audio levels are present inside stats of type `media-source` and of kind `audio`
         const audioMediaSourceStats = report.find(
@@ -169,9 +160,7 @@ export class RNSpeechDetector {
       }
     };
 
-    // Call checkAudioLevel periodically (every 100ms)
-    const intervalId = setInterval(checkAudioLevel, 100);
-
+    const intervalId = setInterval(checkAudioLevel, 250);
     return () => {
       clearInterval(intervalId);
       clearTimeout(speechTimer);

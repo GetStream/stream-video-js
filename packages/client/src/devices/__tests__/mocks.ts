@@ -115,6 +115,7 @@ export const mockAudioStream = () => {
     getSettings: () => ({
       deviceId: mockAudioDevices[0].deviceId,
     }),
+    label: mockAudioDevices[0].label,
     enabled: true,
     readyState: 'live',
     stop: () => {

@@ -38,10 +38,6 @@ export type SoundDetectorState = {
 
 export type SoundStateChangeHandler = (state: SoundDetectorState) => void;
 
-const DETECTION_FREQUENCY_IN_MS = 500;
-const AUDIO_LEVEL_THRESHOLD = 150;
-const FFT_SIZE = 128;
-
 /**
  * Creates a new sound detector.
  *
@@ -56,9 +52,9 @@ export const createSoundDetector = (
   options: SoundDetectorOptions = {},
 ) => {
   const {
-    detectionFrequencyInMs = DETECTION_FREQUENCY_IN_MS,
-    audioLevelThreshold = AUDIO_LEVEL_THRESHOLD,
-    fftSize = FFT_SIZE,
+    detectionFrequencyInMs = 500,
+    audioLevelThreshold = 150,
+    fftSize = 128,
     destroyStreamOnStop = true,
   } = options;
 

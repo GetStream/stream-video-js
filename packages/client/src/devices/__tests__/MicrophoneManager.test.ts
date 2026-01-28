@@ -20,6 +20,7 @@ import {
   mockCall,
   mockDeviceIds$,
 } from './mocks';
+import { setupAudioContextMock } from './web-audio.mocks';
 import { getAudioStream } from '../devices';
 import { MicrophoneManager } from '../MicrophoneManager';
 import { of } from 'rxjs';
@@ -64,6 +65,8 @@ describe('MicrophoneManager', () => {
   let call: Call;
 
   beforeEach(() => {
+    setupAudioContextMock();
+
     call = new Call({
       id: '',
       type: '',
@@ -154,7 +157,7 @@ describe('MicrophoneManager', () => {
 
     it(`should stop sound detection if mic is enabled`, async () => {
       manager.state.setSpeakingWhileMuted(true);
-      manager['soundDetectorCleanup'] = () => {};
+      manager['soundDetectorCleanup'] = async () => {};
 
       await manager.enable();
 
