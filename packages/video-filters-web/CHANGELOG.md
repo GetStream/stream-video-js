@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.0...@stream-io/video-filters-web-0.7.1) (2026-01-27)
+
+### Bug Fixes
+
+- **react:** switch selfie segmentation default to landscape model ([#2100](https://github.com/GetStream/stream-video-js/issues/2100)) ([7c5d74d](https://github.com/GetStream/stream-video-js/commit/7c5d74d79ba1eb2f5a04a60a953ea0bd46633f4a))
+
 ## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.6.0...@stream-io/video-filters-web-0.7.0) (2025-12-23)
 
 ### Features

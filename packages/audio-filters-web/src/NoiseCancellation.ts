@@ -295,13 +295,21 @@ export class NoiseCancellation implements INoiseCancellation {
 
   resume = () => {
     // resume if still suspended
-    if (this.audioContext?.state === 'suspended') {
-      this.audioContext.resume().catch((err) => {
-        console.warn(
-          'Failed to resume the audio context. Noise Cancellation may not work correctly',
-          err,
-        );
-      });
+    if (!this.audioContext) return;
+    const state = this.audioContext.state;
+    if (state === 'suspended' || state === 'interrupted') {
+      const tag = 'audioContextResumeNC';
+      this.audioContext.resume().then(
+        () => this.tracer?.trace(tag, this.audioContext?.state),
+        (err) => {
+          const data = [this.audioContext?.state, err?.message];
+          this.tracer?.trace(`${tag}Error`, data);
+          console.warn(
+            'Failed to resume the audio context. Noise Cancellation may not work correctly',
+            err,
+          );
+        },
+      );
     }
   };
 

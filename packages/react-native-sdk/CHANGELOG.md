@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.28.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.28.0...@stream-io/video-react-native-sdk-1.28.1) (2026-01-26)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.1`
+- `@stream-io/video-react-bindings` updated to version `1.13.1`
+
+### Bug Fixes
+
+- always forward callkit audio events to webrtc ([#2089](https://github.com/GetStream/stream-video-js/issues/2089)) ([767041a](https://github.com/GetStream/stream-video-js/commit/767041a54dfaaa87145cbdc931a336dbe4fee821))
+- use multiple settings to determine default audio device RN-338 ([#2096](https://github.com/GetStream/stream-video-js/issues/2096)) ([19cf136](https://github.com/GetStream/stream-video-js/commit/19cf13651112b647903587a84a70a555fc68fc9c)), closes [2BSettingsPriority.swift#L19](https://github.com/GetStream/2BSettingsPriority.swift/issues/L19)
+
 ## [1.28.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.27.4...@stream-io/video-react-native-sdk-1.28.0) (2026-01-20)
 
 ### Dependency Updates
