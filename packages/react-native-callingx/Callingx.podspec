@@ -17,5 +17,7 @@ Pod::Spec.new do |s|
   s.public_header_files = "ios/CallingxPublic.h"
   s.swift_version = "5.0"
 
+  s.dependency "stream-react-native-webrtc"
+
   install_modules_dependencies(s)
 end

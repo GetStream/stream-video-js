@@ -1,20 +1,58 @@
 import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
-import { NativeModules } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
+import { getCallingxLibIfAvailable } from '../push/libs/callingx';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
 
+const CallingxModule = getCallingxLibIfAvailable();
+
+/**
+ * Checks if StreamInCallManager should be bypassed because CallKit is handling
+ * the audio session via CallingX.
+ *
+ * On iOS, when CallingX is set up and has a registered call, the audio session
+ * is managed by CallKit through CallingxImpl.swift.
+ * In this case, StreamInCallManager should not run to avoid conflicting audio
+ * session configurations.
+ */
+const shouldBypassForCallKit = ({
+  isRingingTypeCall,
+}: {
+  isRingingTypeCall: boolean;
+}): boolean => {
+  if (Platform.OS !== 'ios') {
+    return false;
+  }
+  if (!CallingxModule) {
+    return false;
+  }
+  const bypass =
+    CallingxModule.isSetup &&
+    (isRingingTypeCall || CallingxModule.isOngoingCallsEnabled);
+  return bypass;
+};
+
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callManager: {
-    setup: ({ default_device }) => {
+    setup: ({ defaultDevice, isRingingTypeCall }) => {
+      if (shouldBypassForCallKit({ isRingingTypeCall })) {
+        return;
+      }
       StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
-        default_device,
+        defaultDevice,
       );
       StreamInCallManagerNativeModule.setup();
     },
-    start: () => {
+    start: ({ isRingingTypeCall }) => {
+      if (shouldBypassForCallKit({ isRingingTypeCall })) {
+        return;
+      }
       StreamInCallManagerNativeModule.start();
     },
-    stop: () => {
+    stop: ({ isRingingTypeCall }) => {
+      if (shouldBypassForCallKit({ isRingingTypeCall })) {
+        return;
+      }
       StreamInCallManagerNativeModule.stop();
     },
   },

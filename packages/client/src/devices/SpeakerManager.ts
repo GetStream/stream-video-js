@@ -3,17 +3,58 @@ import { Call } from '../Call';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
 import { deviceIds$, getAudioOutputDevices } from './devices';
+import {
+  CallSettingsResponse,
+  AudioSettingsRequestDefaultDeviceEnum,
+} from '../gen/coordinator';
 
 export class SpeakerManager {
   readonly state: SpeakerState;
   private subscriptions: Subscription[] = [];
   private areSubscriptionsSetUp = false;
   private readonly call: Call;
+  private defaultDevice?: AudioSettingsRequestDefaultDeviceEnum;
 
   constructor(call: Call) {
     this.call = call;
     this.state = new SpeakerState(call.tracer);
     this.setup();
+  }
+
+  apply(settings: CallSettingsResponse) {
+    if (!isReactNative()) {
+      return;
+    }
+    /// Determines if the speaker should be enabled based on a priority hierarchy of
+    /// settings.
+    ///
+    /// The priority order is as follows:
+    /// 1. If video camera is set to be on by default, speaker is enabled
+    /// 2. If audio speaker is set to be on by default, speaker is enabled
+    /// 3. If the default audio device is set to speaker, speaker is enabled
+    ///
+    /// This ensures that the speaker state aligns with the most important user
+    /// preference or system requirement.
+    const speakerOnWithSettingsPriority =
+      settings.video.camera_default_on ||
+      settings.audio.speaker_default_on ||
+      settings.audio.default_device ===
+        AudioSettingsRequestDefaultDeviceEnum.SPEAKER;
+
+    const defaultDevice = speakerOnWithSettingsPriority
+      ? AudioSettingsRequestDefaultDeviceEnum.SPEAKER
+      : AudioSettingsRequestDefaultDeviceEnum.EARPIECE;
+
+    if (this.defaultDevice !== defaultDevice) {
+      this.call.logger.debug('SpeakerManager: setting default device', {
+        defaultDevice,
+      });
+      this.defaultDevice = defaultDevice;
+      globalThis.streamRNVideoSDK?.callManager.setup({
+        defaultDevice,
+        isRingingTypeCall: this.call.ringing,
+      });
+    }
   }
 
   setup() {

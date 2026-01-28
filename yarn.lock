@@ -7657,6 +7657,7 @@ __metadata:
   dependencies:
     "@react-native-community/cli": "npm:20.0.1"
     "@react-native/babel-preset": "npm:^0.81.5"
+    "@stream-io/react-native-webrtc": "npm:137.1.0"
     "@types/react": "npm:^19.1.0"
     del-cli: "npm:^6.0.0"
     react: "npm:19.1.0"
@@ -7664,6 +7665,7 @@ __metadata:
     react-native-builder-bob: "npm:^0.40.15"
     typescript: "npm:^5.9.2"
   peerDependencies:
+    "@stream-io/react-native-webrtc": ">=137.1.0"
     react: "*"
     react-native: "*"
   languageName: unknown
