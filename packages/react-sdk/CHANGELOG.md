@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.31.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.6...@stream-io/video-react-sdk-1.31.7) (2026-01-28)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.2`
+
+### Bug Fixes
+
+- **react:** normalize participant names for accent-insensitive matching ([#2102](https://github.com/GetStream/stream-video-js/issues/2102)) ([723c486](https://github.com/GetStream/stream-video-js/commit/723c48681ace8dd37804fe3f35974cf62043b7f8))
+
 ## [1.31.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.5...@stream-io/video-react-sdk-1.31.6) (2026-01-27)
 
 ### Dependency Updates
