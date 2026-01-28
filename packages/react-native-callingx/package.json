@@ -3,10 +3,13 @@
   "version": "0.1.0",
   "description": "CallKit and Telecom API capabilities for React Native",
   "main": "./dist/module/index.js",
+  "module": "./dist/module/index.js",
   "types": "./dist/typescript/src/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
   "exports": {
     ".": {
-      "source": "./src/index.tsx",
+      "source": "./src/index.ts",
       "types": "./dist/typescript/src/index.d.ts",
       "default": "./dist/module/index.js"
     },
