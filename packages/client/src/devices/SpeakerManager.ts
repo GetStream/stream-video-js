@@ -91,11 +91,7 @@ export class SpeakerManager {
    * @returns an Observable that will be updated if a device is connected or disconnected
    */
   listDevices() {
-    if (isReactNative()) {
-      throw new Error(
-        'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
-      );
-    }
+    assertUnsupportedInReactNative();
     return getAudioOutputDevices(this.call.tracer);
   }
 
@@ -107,11 +103,7 @@ export class SpeakerManager {
    * @param deviceId empty string means the system default
    */
   select(deviceId: string) {
-    if (isReactNative()) {
-      throw new Error(
-        'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
-      );
-    }
+    assertUnsupportedInReactNative();
     this.state.setDevice(deviceId);
   }
 
@@ -133,11 +125,7 @@ export class SpeakerManager {
    * Note: This method is not supported in React Native
    */
   setVolume(volume: number) {
-    if (isReactNative()) {
-      throw new Error(
-        'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
-      );
-    }
+    assertUnsupportedInReactNative();
     if (volume && (volume < 0 || volume > 1)) {
       throw new Error('Volume must be between 0 and 1');
     }
@@ -165,3 +153,11 @@ export class SpeakerManager {
     });
   }
 }
+
+const assertUnsupportedInReactNative = () => {
+  if (isReactNative()) {
+    throw new Error(
+      'Unsupported in React Native. See: https://getstream.io/video/docs/react-native/guides/camera-and-microphone/#speaker-management',
+    );
+  }
+};
