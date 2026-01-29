@@ -638,6 +638,8 @@ export class Call {
       this.statsReporter?.stop();
       this.statsReporter = undefined;
 
+      const leaveReason = message ?? reason ?? 'user is leaving the call';
+      this.tracer.trace('call.leaveReason', leaveReason);
       this.sfuStatsReporter?.flush();
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
@@ -648,9 +650,7 @@ export class Call {
       this.publisher?.dispose();
       this.publisher = undefined;
 
-      await this.sfuClient?.leaveAndClose(
-        message ?? reason ?? 'user is leaving the call',
-      );
+      await this.sfuClient?.leaveAndClose(leaveReason);
       this.sfuClient = undefined;
       this.dynascaleManager.setSfuClient(undefined);
       await this.dynascaleManager.dispose();
@@ -1832,12 +1832,6 @@ export class Call {
         await this.publisher.publish(audioTrack, screenShareAudio, options);
         trackTypes.push(screenShareAudio);
       }
-    }
-
-    if (track.kind === 'video') {
-      // schedules calibration report - the SFU will use the performance stats
-      // to adjust the quality thresholds as early as possible
-      this.sfuStatsReporter?.scheduleOne(3000);
     }
 
     await this.updateLocalStreamState(mediaStream, ...trackTypes);
