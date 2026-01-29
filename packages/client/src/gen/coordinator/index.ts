@@ -7479,6 +7479,25 @@ export interface ReactionResponse {
 /**
  *
  * @export
+ * @interface Reconnection
+ */
+export interface Reconnection {
+  /**
+   *
+   * @type {string}
+   * @memberof Reconnection
+   */
+  strategy?: string;
+  /**
+   *
+   * @type {number}
+   * @memberof Reconnection
+   */
+  time_seconds?: number;
+}
+/**
+ *
+ * @export
  * @interface RecordSettingsRequest
  */
 export interface RecordSettingsRequest {
@@ -8413,6 +8432,74 @@ export interface SendReactionResponse {
 /**
  *
  * @export
+ * @interface SendStatsRequest
+ */
+export interface SendStatsRequest {
+  /**
+   * rtcstats-js payload blob
+   * @type {Blob}
+   * @memberof SendStatsRequest
+   */
+  rtc_stats?: Blob;
+  /**
+   * SDK identifier
+   * @type {string}
+   * @memberof SendStatsRequest
+   */
+  sdk?: string;
+  /**
+   * SDK version
+   * @type {string}
+   * @memberof SendStatsRequest
+   */
+  sdk_version?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SendStatsRequest
+   */
+  sfu_id?: string;
+  /**
+   * Optional telemetry metadata
+   * @type {Telemetry}
+   * @memberof SendStatsRequest
+   */
+  telemetry?: Telemetry;
+  /**
+   * Stable user session identifier across reconnects
+   * @type {string}
+   * @memberof SendStatsRequest
+   */
+  unified_session_id: string;
+  /**
+   * WebRTC peer connection session identifier
+   * @type {string}
+   * @memberof SendStatsRequest
+   */
+  user_session_id: string;
+  /**
+   * Browser/WebRTC version used by the client
+   * @type {string}
+   * @memberof SendStatsRequest
+   */
+  webrtc_version?: string;
+}
+/**
+ *
+ * @export
+ * @interface SendStatsResponse
+ */
+export interface SendStatsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof SendStatsResponse
+   */
+  duration: string;
+}
+/**
+ *
+ * @export
  * @interface SessionSettingsRequest
  */
 export interface SessionSettingsRequest {
@@ -9047,6 +9134,25 @@ export interface TargetResolution {
    * @memberof TargetResolution
    */
   width: number;
+}
+/**
+ *
+ * @export
+ * @interface Telemetry
+ */
+export interface Telemetry {
+  /**
+   *
+   * @type {number}
+   * @memberof Telemetry
+   */
+  connection_time_seconds?: number;
+  /**
+   *
+   * @type {Reconnection}
+   * @memberof Telemetry
+   */
+  reconnection?: Reconnection;
 }
 /**
  *
