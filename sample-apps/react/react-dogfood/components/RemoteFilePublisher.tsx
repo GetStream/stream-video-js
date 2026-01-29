@@ -44,10 +44,14 @@ export const publishRemoteFile = async (
 
   const publish = async (...trackTypes: SfuModels.TrackType[]) => {
     if (trackTypes.includes(SfuModels.TrackType.AUDIO)) {
-      await call.publish(stream, SfuModels.TrackType.AUDIO);
+      await call.publish(stream, SfuModels.TrackType.AUDIO).catch((err) => {
+        console.error('Failed to publish audio', err);
+      });
     }
     if (trackTypes.includes(SfuModels.TrackType.VIDEO)) {
-      await call.publish(stream, SfuModels.TrackType.VIDEO);
+      await call.publish(stream, SfuModels.TrackType.VIDEO).catch((err) => {
+        console.error('Failed to publish video', err);
+      });
     }
   };
 
