@@ -16,7 +16,7 @@ export const setFirebaseListeners = () => {
   });
   notifee.onBackgroundEvent(async (event) => {
     if (isNotifeeStreamVideoEvent(event)) {
-      await onAndroidNotifeeEvent({ event, isBackground: true });
+      await onAndroidNotifeeEvent({ event });
     }
   });
   // Set up the foreground message handlers
@@ -27,7 +27,7 @@ export const setFirebaseListeners = () => {
   });
   notifee.onForegroundEvent((event) => {
     if (isNotifeeStreamVideoEvent(event)) {
-      onAndroidNotifeeEvent({ event, isBackground: false });
+      onAndroidNotifeeEvent({ event });
     }
   });
 };

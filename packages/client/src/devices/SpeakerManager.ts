@@ -52,6 +52,7 @@ export class SpeakerManager {
       this.defaultDevice = defaultDevice;
       globalThis.streamRNVideoSDK?.callManager.setup({
         defaultDevice,
+        isRingingTypeCall: this.call.ringing,
       });
     }
   }
