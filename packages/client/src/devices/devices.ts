@@ -274,7 +274,7 @@ export const getAudioStream = async (
           'Failed to get audio stream, will try again with relaxed constraints',
           { error, constraints, relaxedConstraints },
         );
-      return getAudioStream(relaxedConstraints);
+      return getAudioStream(relaxedConstraints, tracer);
     }
 
     videoLoggerSystem.getLogger('devices').error('Failed to get audio stream', {
