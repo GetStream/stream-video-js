@@ -97,6 +97,7 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
 const Stage = (props: { videoFile?: string }) => {
   const { videoFile } = props;
   const call = useCall();
+  const router = useRouter();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const showLobby = [
@@ -111,7 +112,13 @@ const Stage = (props: { videoFile?: string }) => {
           onJoin={async () => {
             if (!call) return;
             try {
-              if (videoFile) return await publishRemoteFile(call, videoFile);
+              if (videoFile) {
+                const videoFileLeaveCallOnEnd =
+                  router.query['video_file_end'] === 'true';
+                return await publishRemoteFile(call, videoFile, {
+                  videoFileLeaveCallOnEnd,
+                });
+              }
 
               await call.join({ create: true });
               console.log('Joined call:', call.cid);
