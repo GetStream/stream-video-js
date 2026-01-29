@@ -95,13 +95,22 @@ export const useAndroidKeepCallAliveEffect = () => {
   const isOutgoingCall =
     callingState === CallingState.RINGING && call?.isCreatedByMe;
   const isCallJoined = callingState === CallingState.JOINED;
+  const isNonRingingCall = !call?.ringing;
 
   const shouldStartForegroundService =
     !foregroundServiceStartedRef.current && (isOutgoingCall || isCallJoined);
 
   useEffect((): (() => void) | undefined => {
+    if (Platform.OS === 'ios' || !activeCallCid) {
+      return undefined;
+    }
+
     const callingx = getCallingxLibIfAvailable();
-    if (Platform.OS === 'ios' || !activeCallCid || callingx?.isSetup) {
+    if (
+      callingx?.isSetup &&
+      isNonRingingCall &&
+      callingx?.isOngoingCallsEnabled
+    ) {
       return undefined;
     }
 
@@ -181,7 +190,12 @@ export const useAndroidKeepCallAliveEffect = () => {
       }
     }
     return undefined;
-  }, [activeCallCid, callingState, shouldStartForegroundService]);
+  }, [
+    activeCallCid,
+    callingState,
+    shouldStartForegroundService,
+    isNonRingingCall,
+  ]);
 
   useEffect(() => {
     return () => {
