@@ -15,8 +15,6 @@
     "@sentry/react": "^10.30.0",
     "@skooldev/skool-stream-layout": "^1.0.11",
     "@stream-io/video-react-sdk": "workspace:^",
-    "clsx": "^2.0.0",
-    "js-base64": "^3.7.8",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
