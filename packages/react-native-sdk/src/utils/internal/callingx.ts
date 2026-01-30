@@ -1,3 +1,7 @@
+/***
+ * Internal utils for callingx library usage from video-client.
+ * See @./registerSDKGlobals.ts for more usage details.
+ */
 import { getCallingxLibIfAvailable } from '../push/libs/callingx';
 import {
   Call,
