@@ -6,6 +6,7 @@ import {
   processCallFromPushInBackground,
 } from './internal/utils';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
+import { resolvePendingAudioSession } from '../internal/audioSessionPromise';
 import {
   getCallingxLib,
   type EventData,
@@ -38,6 +39,15 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     onEndCall(pushConfig),
   );
 
+  const { remove: removeDidActivateAudioSession } = callingx.addEventListener(
+    'didActivateAudioSession',
+    onDidActivateAudioSession,
+  );
+  const { remove: removeDidDeactivateAudioSession } = callingx.addEventListener(
+    'didDeactivateAudioSession',
+    onDidDeactivateAudioSession,
+  );
+
   //NOTE: until getInitialEvents invocation, events are delayed and won't be sent to event listeners, this is a way to make sure none of required events are missed
   //in most cases there will be no delayed answers or ends, but it we don't want to miss any of them
   const events = callingx.getInitialEvents();
@@ -53,14 +63,34 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
         .getLogger('setupCallingExpEvents')
         .debug(`endCall delayed event callId: ${params?.callId}`);
       onEndCall(pushConfig)(params as EventParams['endCall']);
+    } else if (eventName === 'didActivateAudioSession') {
+      onDidActivateAudioSession();
+    } else if (eventName === 'didDeactivateAudioSession') {
+      onDidDeactivateAudioSession();
     }
   });
 
   setPushLogoutCallback(async () => {
     removeAnswerCall();
     removeEndCall();
+    removeDidActivateAudioSession();
+    removeDidDeactivateAudioSession();
   });
 }
+
+const onDidActivateAudioSession = () => {
+  videoLoggerSystem
+    .getLogger('callingExpDidActivateAudioSession')
+    .debug('callingExpDidActivateAudioSession');
+
+  resolvePendingAudioSession();
+};
+
+const onDidDeactivateAudioSession = () => {
+  videoLoggerSystem
+    .getLogger('callingExpDidDeactivateAudioSession')
+    .debug('callingExpDidDeactivateAudioSession');
+};
 
 const onAcceptCall = ({
   callId: call_cid,

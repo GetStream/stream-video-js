@@ -519,6 +519,13 @@ import stream_react_native_webrtc
         #endif
         
         guard let storage = CallingxImpl.uuidStorage else { return }
+      
+        if (storage.containsCid(callId)) {
+          #if DEBUG
+          print("[Callingx][startCall] Call \(callId) is already registered")
+          #endif
+          return
+        }
         
         let handleType = Settings.getHandleType("generic")
         let uuid = storage.getOrCreateUUID(forCid: callId)
