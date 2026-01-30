@@ -900,6 +900,14 @@ export class Call {
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
+    const callingX = globalThis.streamRNVideoSDK?.callingX;
+    if (callingX) {
+      // for Android/iOS, we need to start the call in the callingx library as soon as possible
+      if (data.ring) {
+        this.ringingSubject.next(true);
+      }
+      callingX.startCall(this);
+    }
 
     this.joinResponseTimeout = joinResponseTimeout;
     this.rpcRequestTimeout = rpcRequestTimeout;

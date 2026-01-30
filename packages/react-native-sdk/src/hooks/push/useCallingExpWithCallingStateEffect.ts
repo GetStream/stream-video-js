@@ -1,11 +1,7 @@
-import {
-  CallingState,
-  MemberResponse,
-  StreamVideoParticipant,
-  videoLoggerSystem,
-} from '@stream-io/video-client';
+import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useMemo, useRef } from 'react';
+import { getCallDisplayName } from '../../utils/internal/callingx';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 
 const logger = videoLoggerSystem.getLogger(
@@ -55,50 +51,6 @@ const canEndCall = (
       currentState === CallingState.IDLE)
   );
 };
-
-const canStartCall = (
-  prevState: CallingState | undefined,
-  currentState: CallingState | undefined,
-) => {
-  if (!prevState && !currentState) {
-    return false;
-  }
-
-  return (
-    (!prevState ||
-      prevState === CallingState.IDLE ||
-      prevState === CallingState.UNKNOWN) &&
-    (currentState === CallingState.JOINED ||
-      currentState === CallingState.JOINING ||
-      currentState === CallingState.RINGING)
-  );
-};
-
-function getCallDisplayName(
-  callMembers: MemberResponse[] | undefined,
-  participants: StreamVideoParticipant[] | undefined,
-  currentUserId: string | undefined,
-) {
-  if (!callMembers || !participants || !currentUserId) {
-    return 'Call';
-  }
-
-  let names: string[] = [];
-
-  if (callMembers.length > 0) {
-    names = callMembers
-      .filter((member) => member.user.id !== currentUserId)
-      .map((member) => member.user.name)
-      .filter((name): name is string => name !== undefined);
-  } else if (participants.length > 0) {
-    names = participants
-      .filter((participant) => participant.userId !== currentUserId)
-      .map((participant) => participant.name)
-      .filter(Boolean);
-  }
-
-  return names.length > 0 ? names.sort().join(', ') : 'Call';
-}
 
 /**
  * This hook is used to inform sync call state with CallKit/Telecom (i.e. start call, end call, mute/unmute call).
@@ -188,22 +140,6 @@ export const useCallingExpWithCallingStateEffect = () => {
           error,
         );
       });
-    } else if (
-      (isOutcomingCall ||
-        (!isIncomingCall && callingx.isOngoingCallsEnabled)) && //we register call in case if is outcoming ringing call or it is non-ringing call and ongoing calls are enabled
-      !isCallRegistered &&
-      canStartCall(prevState.current, callingState)
-    ) {
-      logger.debug(`Should register call in callkeep: ${activeCallCid}`);
-      //we request start call action from CallKit/Telecom, next step is to make call active when we receive call started event
-      callingx
-        .startCall(activeCallCid, activeCallCid, callDisplayName, isVideoCall)
-        .catch((error: unknown) => {
-          logger.error(
-            `Error starting call in calling exp: ${activeCallCid}`,
-            error,
-          );
-        });
     } else if (
       isCallRegistered &&
       canEndCall(prevState.current, callingState)

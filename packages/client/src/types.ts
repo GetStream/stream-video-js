@@ -18,6 +18,7 @@ import type { Comparator } from './sorting';
 import type { StreamVideoWriteableStateStore } from './store';
 import { AxiosError } from 'axios';
 import { RejectReason } from './coordinator/connection/types';
+import { Call } from './Call';
 
 export type StreamReaction = Pick<
   ReactionResponse,
@@ -354,7 +355,12 @@ type StreamRNVideoSDKCallManagerSetupParams =
     defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
   };
 
+type StreamRNVideoSDKCallingX = {
+  startCall: (call: Call) => void;
+};
+
 export type StreamRNVideoSDKGlobals = {
+  callingX: StreamRNVideoSDKCallingX;
   callManager: {
     /**
      * Sets up the in call manager.
