@@ -5,6 +5,7 @@ import {
   CancelCallConfirmButton,
   CompositeButton,
   Icon,
+  MicCaptureErrorNotification,
   OwnCapability,
   PermissionRequests,
   PipLayout,
@@ -244,6 +245,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
             hasPermissionsOnly
           >
             <SpeakingWhileMutedNotification />
+            <MicCaptureErrorNotification />
           </Restricted>
         </div>
         <div
@@ -284,7 +286,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
             {remoteFilePublisherAPI && (
               <RemoteVideoControls api={remoteFilePublisherAPI} />
             )}
-
             <ToggleDualMicButton />
             <ToggleDualCameraButton />
             <div className="str-video__call-controls__desktop">

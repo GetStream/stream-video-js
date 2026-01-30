@@ -49,7 +49,7 @@ export abstract class DeviceManager<
   protected readonly call: Call;
   protected readonly trackType: TrackType;
   protected subscriptions: Function[] = [];
-  private areSubscriptionsSetUp = false;
+  protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilterEntry[] = [];
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
@@ -558,7 +558,7 @@ export abstract class DeviceManager<
     );
   }
 
-  private findDevice(devices: MediaDeviceInfo[], deviceId: string) {
+  protected findDevice(devices: MediaDeviceInfo[], deviceId: string) {
     const kind = this.mediaDeviceKind;
     return devices.find((d) => d.deviceId === deviceId && d.kind === kind);
   }

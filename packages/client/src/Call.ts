@@ -372,6 +372,9 @@ export class Call {
       this.registerEffects();
       this.registerReconnectHandlers();
 
+      // Set up the device managers again. Although this is already done
+      // in the DeviceManager's constructor, they'll need to be re-set up
+      // in the cases where a call instance is recycled (join -> leave -> join).
       this.camera.setup();
       this.microphone.setup();
       this.screenShare.setup();

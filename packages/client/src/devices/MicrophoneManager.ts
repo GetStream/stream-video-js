@@ -10,16 +10,19 @@ import { TrackDisableMode } from './DeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
 import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
+import { createNoAudioDetector } from '../helpers/no-audio-detector';
 import { isReactNative } from '../helpers/platforms';
 import {
   AudioSettingsResponse,
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '../gen/coordinator';
+import { type MicCaptureReportEvent } from '../coordinator/connection/types';
 import { CallingState } from '../store';
 import {
   createSafeAsyncSubscription,
   createSubscription,
+  getCurrentValue,
 } from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
@@ -27,18 +30,22 @@ import { withoutConcurrency } from '../helpers/concurrency';
 export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
   private soundDetectorConcurrencyTag = Symbol('soundDetectorConcurrencyTag');
-  private soundDetectorCleanup?: Function;
+  private soundDetectorCleanup?: () => Promise<void>;
+  private noAudioDetectorCleanup?: () => Promise<void>;
   private rnSpeechDetector: RNSpeechDetector | undefined;
   private noiseCancellation: INoiseCancellation | undefined;
   private noiseCancellationChangeUnsubscribe: (() => void) | undefined;
   private noiseCancellationRegistration?: Promise<void>;
   private unregisterNoiseCancellation?: () => Promise<void>;
 
+  private silenceThresholdMs = 5000;
+
   constructor(call: Call, disableMode: TrackDisableMode = 'stop-tracks') {
     super(call, new MicrophoneManagerState(disableMode), TrackType.AUDIO);
   }
 
   override setup(): void {
+    if (this.areSubscriptionsSetUp) return;
     super.setup();
     this.subscriptions.push(
       createSafeAsyncSubscription(
@@ -110,6 +117,45 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
         }
       }),
     );
+
+    if (!isReactNative()) {
+      const unsubscribe = createSafeAsyncSubscription(
+        combineLatest([this.state.status$, this.state.mediaStream$]),
+        async ([status, mediaStream]) => {
+          if (this.noAudioDetectorCleanup) {
+            const cleanup = this.noAudioDetectorCleanup;
+            this.noAudioDetectorCleanup = undefined;
+            await cleanup().catch((err) => {
+              this.logger.warn('Failed to stop no-audio detector', err);
+            });
+          }
+
+          if (status !== 'enabled' || !mediaStream) return;
+          if (this.silenceThresholdMs <= 0) return;
+
+          const deviceId = this.state.selectedDevice;
+          const devices = getCurrentValue(this.listDevices());
+          const label = devices.find((d) => d.deviceId === deviceId)?.label;
+
+          this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
+            noAudioThresholdMs: this.silenceThresholdMs,
+            emitIntervalMs: this.silenceThresholdMs,
+            onCaptureStatusChange: (capturesAudio) => {
+              const event: MicCaptureReportEvent = {
+                type: 'mic.capture_report',
+                call_cid: this.call.cid,
+                capturesAudio,
+                deviceId,
+                label,
+              };
+              this.call.tracer.trace('mic.capture_report', event);
+              this.call.streamClient.dispatchEvent(event);
+            },
+          });
+        },
+      );
+      this.subscriptions.push(unsubscribe);
+    }
   }
 
   /**
@@ -225,6 +271,18 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   }
 
   /**
+   * Sets the silence threshold in milliseconds for no-audio detection.
+   * When the microphone is enabled but produces no audio for this duration,
+   * a 'mic.capture_report' event will be emitted.
+   *
+   * @param thresholdMs the threshold in milliseconds (default: 5000).
+   *   Set to 0 or a negative value to disable no-audio detection.
+   */
+  setSilenceThreshold(thresholdMs: number) {
+    this.silenceThresholdMs = thresholdMs;
+  }
+
+  /**
    * Applies the audio settings to the microphone.
    * @param settings the audio settings to apply.
    * @param publish whether to publish the stream after applying the settings.
@@ -284,13 +342,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
     await withoutConcurrency(this.soundDetectorConcurrencyTag, async () => {
-      await this.stopSpeakingWhileMutedDetection();
       if (isReactNative()) {
         this.rnSpeechDetector = new RNSpeechDetector();
         const unsubscribe = await this.rnSpeechDetector.start((event) => {
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
         });
-        this.soundDetectorCleanup = () => {
+        this.soundDetectorCleanup = async () => {
           unsubscribe();
           this.rnSpeechDetector = undefined;
         };
