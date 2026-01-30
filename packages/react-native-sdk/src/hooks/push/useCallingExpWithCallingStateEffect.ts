@@ -141,7 +141,7 @@ export const useCallingExpWithCallingStateEffect = () => {
         );
       });
     } else if (
-      isOutcomingCall &&
+      (isOutcomingCall || callingx.isOngoingCallsEnabled) &&
       isCallRegistered &&
       canActivateCall(prevState.current, callingState)
     ) {
@@ -173,48 +173,6 @@ export const useCallingExpWithCallingStateEffect = () => {
     isOutcomingCall,
     isVideoCall,
   ]);
-
-  useEffect(() => {
-    const callingx = getCallingxLibIfAvailable();
-    if (!callingx?.isSetup || !activeCallCid) {
-      logger.debug(
-        `No active call cid to listen to start call action in calling exp: ${activeCallCid} callingx is not setup`,
-      );
-      return;
-    }
-
-    if (
-      !isOutcomingCall &&
-      !(!isIncomingCall && callingx.isOngoingCallsEnabled)
-    ) {
-      logger.debug(
-        `Call is not outcoming or ongoing calls are not enabled for non-ringing calls`,
-      );
-      return;
-    }
-
-    //listen to start call action from CallKit/Telecom and set the current call active
-    const subscription = callingx.addEventListener(
-      'didReceiveStartCallAction',
-      ({ callId }: { callId: string }) => {
-        if (callId === activeCallCid) {
-          logger.debug(`Received start call action for call: ${activeCallCid}`);
-          callingx
-            .setCurrentCallActive(activeCallCid)
-            .catch((error: unknown) => {
-              logger.error(
-                `Error answering call in calling exp: ${activeCallCid}`,
-                error,
-              );
-            });
-        }
-      },
-    );
-
-    return () => {
-      subscription.remove();
-    };
-  }, [activeCallCid, isOutcomingCall, isIncomingCall]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
