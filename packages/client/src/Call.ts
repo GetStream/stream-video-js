@@ -638,6 +638,8 @@ export class Call {
       this.statsReporter?.stop();
       this.statsReporter = undefined;
 
+      const leaveReason = message ?? reason ?? 'user is leaving the call';
+      this.tracer.trace('call.leaveReason', leaveReason);
       this.sfuStatsReporter?.flush();
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
@@ -648,9 +650,7 @@ export class Call {
       this.publisher?.dispose();
       this.publisher = undefined;
 
-      await this.sfuClient?.leaveAndClose(
-        message ?? reason ?? 'user is leaving the call',
-      );
+      await this.sfuClient?.leaveAndClose(leaveReason);
       this.sfuClient = undefined;
       this.dynascaleManager.setSfuClient(undefined);
       await this.dynascaleManager.dispose();
@@ -854,6 +854,7 @@ export class Call {
    * Unless you are implementing a custom "ringing" flow, you should not use this method.
    */
   accept = async () => {
+    this.tracer.trace('call.accept', '');
     return this.streamClient.post<AcceptCallResponse>(
       `${this.streamClientBasePath}/accept`,
     );
@@ -871,6 +872,7 @@ export class Call {
   reject = async (
     reason: RejectReason = 'decline',
   ): Promise<RejectCallResponse> => {
+    this.tracer.trace('call.reject', reason);
     return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
       `${this.streamClientBasePath}/reject`,
       { reason: reason },
@@ -1832,12 +1834,6 @@ export class Call {
         await this.publisher.publish(audioTrack, screenShareAudio, options);
         trackTypes.push(screenShareAudio);
       }
-    }
-
-    if (track.kind === 'video') {
-      // schedules calibration report - the SFU will use the performance stats
-      // to adjust the quality thresholds as early as possible
-      this.sfuStatsReporter?.scheduleOne(3000);
     }
 
     await this.updateLocalStreamState(mediaStream, ...trackTypes);
