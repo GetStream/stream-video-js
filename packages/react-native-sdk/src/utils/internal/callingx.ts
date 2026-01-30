@@ -2,12 +2,14 @@
  * Internal utils for callingx library usage from video-client.
  * See @./registerSDKGlobals.ts for more usage details.
  */
+import { Platform } from 'react-native';
 import { getCallingxLibIfAvailable } from '../push/libs/callingx';
 import {
   Call,
   MemberResponse,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
+import { waitForAudioSessionActivation } from './audioSessionPromise';
 
 const CallingxModule = getCallingxLibIfAvailable();
 
@@ -55,7 +57,7 @@ export function getCallDisplayName(
  * Must be called for all outgoing calls
  * and optionally for non-ringing calls when ongoing calls are enabled.
  */
-export const startCallingxCall = (call: Call) => {
+export async function startCallingxCall(call: Call) {
   if (!CallingxModule || CallingxModule.isCallRegistered(call.id)) {
     return;
   }
@@ -66,11 +68,16 @@ export const startCallingxCall = (call: Call) => {
       call.state.participants,
       call.currentUserId,
     );
-    CallingxModule?.startCall(
+    await CallingxModule.startCall(
       call.cid, // unique id for call
       call.id, // phone number for display in dialer (we use call id as phone number)
       callDisplayName, // display name for display in call screen
       call.state.settings?.video?.enabled ?? false, // is video call?
     );
+
+    // Wait for audio session activation on iOS only
+    if (Platform.OS === 'ios') {
+      await waitForAudioSessionActivation();
+    }
   }
-};
+}

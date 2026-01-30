@@ -356,7 +356,7 @@ type StreamRNVideoSDKCallManagerSetupParams =
   };
 
 type StreamRNVideoSDKCallingX = {
-  startCall: (call: Call) => void;
+  startCall: (call: Call) => Promise<void>;
 };
 
 export type StreamRNVideoSDKGlobals = {
