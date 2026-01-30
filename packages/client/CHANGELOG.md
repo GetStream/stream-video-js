@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.41.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.2...@stream-io/video-client-1.41.3) (2026-01-30)
+
+### Bug Fixes
+
+- **react:** improve logic for calculating the lower / upper threshold for video filter degradation ([#2094](https://github.com/GetStream/stream-video-js/issues/2094)) ([5cd2d5c](https://github.com/GetStream/stream-video-js/commit/5cd2d5cb34fc7bbdfaf9529eb9f8d33a40346cab))
+- **stats:** adjust send stats frequency and include "leave reason" ([#2104](https://github.com/GetStream/stream-video-js/issues/2104)) ([0182832](https://github.com/GetStream/stream-video-js/commit/018283299bebe5d5078d4006ec86b6cd56884e77))
+
 ## [1.41.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.1...@stream-io/video-client-1.41.2) (2026-01-28)
 
 - deduplicate RN compatibility assertions ([#2101](https://github.com/GetStream/stream-video-js/issues/2101)) ([5b9e6bc](https://github.com/GetStream/stream-video-js/commit/5b9e6bc227c55b067eea6345315bca015c8a7ee4))
