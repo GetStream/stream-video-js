@@ -24,7 +24,6 @@ export class VirtualBackground extends BaseVideoProcessor {
   private latestCategoryMask: WebGLTexture | undefined = undefined;
   private latestConfidenceMask: WebGLTexture | undefined = undefined;
   private lastFrameTime = -1;
-  private count = 0;
 
   constructor(
     track: MediaStreamVideoTrack,
@@ -71,10 +70,12 @@ export class VirtualBackground extends BaseVideoProcessor {
 
   protected async transform(frame: VideoFrame): Promise<VideoFrame> {
     const currentTime = frame.timestamp;
-    const hasNewFrame = currentTime !== this.lastFrameTime;
+    const hasNewFrame = currentTime - this.lastFrameTime > 1_000;
     this.lastFrameTime = currentTime;
 
     if (hasNewFrame && this.isSegmenterReady && this.segmenter) {
+      const start = performance.now();
+
       await this.runSegmentation(frame);
 
       this.webGlRenderer.render(
@@ -83,6 +84,8 @@ export class VirtualBackground extends BaseVideoProcessor {
         this.latestCategoryMask,
         this.latestConfidenceMask,
       );
+
+      this.updateStats(performance.now() - start);
     }
 
     return new VideoFrame(this.canvas, { timestamp: frame.timestamp });
@@ -125,20 +128,15 @@ export class VirtualBackground extends BaseVideoProcessor {
     }
 
     const blurLevel = this.options.backgroundBlurLevel;
+    const strength =
+      typeof blurLevel === 'string'
+        ? BACKGROUND_BLUR_MAP[blurLevel]
+        : Math.round(blurLevel ?? 5);
 
-    if (typeof blurLevel === 'string') {
-      return {
-        ...BACKGROUND_BLUR_MAP[blurLevel],
-        backgroundSource: undefined,
-        isSelfieMode,
-      };
-    }
-
-    const numeric = blurLevel ?? 5;
     return {
       backgroundSource: undefined,
-      bgBlur: Math.min(numeric * 3, 30),
-      bgBlurRadius: Math.min(numeric, 10),
+      bgBlur: Math.min(strength * 1.5, 20),
+      bgBlurRadius: Math.min(strength, 10),
       isSelfieMode,
     };
   }
