@@ -766,6 +766,12 @@ export class Call {
 
     if (params?.ring) {
       this.ringingSubject.next(true);
+
+      const callingX = globalThis.streamRNVideoSDK?.callingX;
+      if (callingX) {
+        // for Android/iOS, we need to start the call in the callingx library as soon as possible
+        callingX.startCall(this);
+      }
     }
 
     if (this.streamClient._hasConnectionID()) {
@@ -796,6 +802,12 @@ export class Call {
 
     if (data?.ring) {
       this.ringingSubject.next(true);
+
+      const callingX = globalThis.streamRNVideoSDK?.callingX;
+      if (callingX) {
+        // for Android/iOS, we need to start the call in the callingx library as soon as possible
+        callingX.startCall(this);
+      }
     }
 
     if (this.streamClient._hasConnectionID()) {
