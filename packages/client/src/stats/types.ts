@@ -1,5 +1,11 @@
 import { TrackType } from '../gen/video/sfu/models/models';
 
+export type CameraStats = {
+  frameHeight?: number;
+  frameWidth?: number;
+  frameRate?: number;
+};
+
 export type BaseStats = {
   audioLevel?: number;
   bytesSent?: number;
@@ -20,6 +26,7 @@ export type BaseStats = {
   concealmentEvents?: number;
   packetsReceived?: number;
   packetsLost?: number;
+  camera?: CameraStats;
 };
 
 export type StatsReport = {
@@ -51,6 +58,7 @@ export type AggregatedStatsReport = {
   highestFrameWidth: number;
   highestFrameHeight: number;
   highestFramesPerSecond: number;
+  camera?: CameraStats;
   codec: string;
   codecPerTrackType: Partial<Record<TrackType, string>>;
   timestamp: number;
@@ -118,6 +126,9 @@ export interface RTCMediaSourceStats {
   kind: string;
   trackIdentifier: string;
   audioLevel?: number;
+  framesPerSecond?: number;
+  width?: number;
+  height?: number;
 }
 
 // shim for RTCCodecStats, not yet available in the standard types
