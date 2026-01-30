@@ -63,7 +63,7 @@ export const startCallingxCall = (call: Call) => {
       call.currentUserId,
     );
     CallingxModule?.startCall(
-      call.id, // unique id for call
+      call.cid, // unique id for call
       call.id, // phone number for display in dialer (we use call id as phone number)
       callDisplayName, // display name for display in call screen
       call.state.settings?.video?.enabled ?? false, // is video call?
