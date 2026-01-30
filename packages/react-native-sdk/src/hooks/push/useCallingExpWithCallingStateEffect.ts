@@ -9,7 +9,7 @@ const logger = videoLoggerSystem.getLogger(
 );
 
 //calling state methods are not exhaustive, so we need to add more methods to cover different cases
-const canAcceptIncomingCall = (
+const canActivateCall = (
   prevState: CallingState | undefined,
   currentState: CallingState | undefined,
 ) => {
@@ -131,9 +131,9 @@ export const useCallingExpWithCallingStateEffect = () => {
     if (
       isIncomingCall &&
       isCallRegistered &&
-      canAcceptIncomingCall(prevState.current, callingState)
+      canActivateCall(prevState.current, callingState)
     ) {
-      logger.debug(`Should accept call in callkeep: ${activeCallCid}`);
+      logger.debug(`Should accept call in callingx: ${activeCallCid}`);
       callingx.answerIncomingCall(activeCallCid).catch((error: unknown) => {
         logger.error(
           `Error answering call in calling exp: ${activeCallCid}`,
@@ -141,11 +141,18 @@ export const useCallingExpWithCallingStateEffect = () => {
         );
       });
     } else if (
+      isOutcomingCall &&
+      isCallRegistered &&
+      canActivateCall(prevState.current, callingState)
+    ) {
+      logger.debug(`Should set call active in callingx: ${activeCallCid}`);
+      callingx.setCurrentCallActive(activeCallCid);
+    } else if (
       isCallRegistered &&
       canEndCall(prevState.current, callingState)
     ) {
       //in case call was registered as incoming and state changed to "not joined", we need to end the call and clear rxjs subject
-      logger.debug(`Should end call in callkeep: ${activeCallCid}`);
+      logger.debug(`Should end call in callingx: ${activeCallCid}`);
       //TODO: think about sending appropriate reason for end call
       callingx
         .endCallWithReason(activeCallCid, 'local')
