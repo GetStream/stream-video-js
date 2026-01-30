@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.31.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.7...@stream-io/video-react-sdk-1.31.8) (2026-01-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.3`
+- `@stream-io/video-filters-web` updated to version `0.7.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.3`
+
+### Bug Fixes
+
+- **react:** improve logic for calculating the lower / upper threshold for video filter degradation ([#2094](https://github.com/GetStream/stream-video-js/issues/2094)) ([5cd2d5c](https://github.com/GetStream/stream-video-js/commit/5cd2d5cb34fc7bbdfaf9529eb9f8d33a40346cab))
+
 ## [1.31.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.6...@stream-io/video-react-sdk-1.31.7) (2026-01-28)
 
 ### Dependency Updates
