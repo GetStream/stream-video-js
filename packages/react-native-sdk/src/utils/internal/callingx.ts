@@ -81,3 +81,10 @@ export async function startCallingxCall(call: Call) {
     }
   }
 }
+
+export async function endCallingxCall(call: Call) {
+  if (!CallingxModule || !CallingxModule.isCallRegistered(call.cid)) {
+    return;
+  }
+  await CallingxModule.endCallWithReason(call.cid, 'local');
+}

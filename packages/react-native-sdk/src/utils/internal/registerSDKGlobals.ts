@@ -1,7 +1,7 @@
 import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
 import { NativeModules, Platform } from 'react-native';
 import { getCallingxLibIfAvailable } from '../push/libs/callingx';
-import { startCallingxCall } from './callingx';
+import { endCallingxCall, startCallingxCall } from './callingx';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
 
@@ -36,6 +36,7 @@ const shouldBypassForCallKit = ({
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callingX: {
     startCall: startCallingxCall,
+    endCall: endCallingxCall,
   },
   callManager: {
     setup: ({ defaultDevice, isRingingTypeCall }) => {

@@ -763,23 +763,28 @@ export class Call {
       await callingX.startCall(this);
     }
     await this.setup();
-    const response = await this.streamClient.get<GetCallResponse>(
-      this.streamClientBasePath,
-      params,
-    );
 
-    this.state.updateFromCallResponse(response.call);
-    this.state.setMembers(response.members);
-    this.state.setOwnCapabilities(response.own_capabilities);
+    try {
+      const response = await this.streamClient.get<GetCallResponse>(
+        this.streamClientBasePath,
+        params,
+      );
+      this.state.updateFromCallResponse(response.call);
+      this.state.setMembers(response.members);
+      this.state.setOwnCapabilities(response.own_capabilities);
 
-    if (this.streamClient._hasConnectionID()) {
-      this.watching = true;
-      this.clientStore.registerOrUpdateCall(this);
+      if (this.streamClient._hasConnectionID()) {
+        this.watching = true;
+        this.clientStore.registerOrUpdateCall(this);
+      }
+
+      await this.applyDeviceConfig(response.call.settings, false);
+
+      return response;
+    } catch (error) {
+      callingX?.endCall(this);
+      throw error;
     }
-
-    await this.applyDeviceConfig(response.call.settings, false);
-
-    return response;
   };
 
   /**
@@ -797,23 +802,28 @@ export class Call {
       await callingX.startCall(this);
     }
     await this.setup();
-    const response = await this.streamClient.post<
-      GetOrCreateCallResponse,
-      GetOrCreateCallRequest
-    >(this.streamClientBasePath, data);
+    try {
+      const response = await this.streamClient.post<
+        GetOrCreateCallResponse,
+        GetOrCreateCallRequest
+      >(this.streamClientBasePath, data);
 
-    this.state.updateFromCallResponse(response.call);
-    this.state.setMembers(response.members);
-    this.state.setOwnCapabilities(response.own_capabilities);
+      this.state.updateFromCallResponse(response.call);
+      this.state.setMembers(response.members);
+      this.state.setOwnCapabilities(response.own_capabilities);
 
-    if (this.streamClient._hasConnectionID()) {
-      this.watching = true;
-      this.clientStore.registerOrUpdateCall(this);
+      if (this.streamClient._hasConnectionID()) {
+        this.watching = true;
+        this.clientStore.registerOrUpdateCall(this);
+      }
+
+      await this.applyDeviceConfig(response.call.settings, false);
+
+      return response;
+    } catch (error) {
+      callingX?.endCall(this);
+      throw error;
     }
-
-    await this.applyDeviceConfig(response.call.settings, false);
-
-    return response;
   };
 
   /**
@@ -917,46 +927,51 @@ export class Call {
     }
     await this.setup();
 
-    this.joinResponseTimeout = joinResponseTimeout;
-    this.rpcRequestTimeout = rpcRequestTimeout;
+    try {
+      this.joinResponseTimeout = joinResponseTimeout;
+      this.rpcRequestTimeout = rpcRequestTimeout;
 
-    // we will count the number of join failures per SFU.
-    // once the number of failures reaches 2, we will piggyback on the `migrating_from`
-    // field to force the coordinator to provide us another SFU
-    const sfuJoinFailures = new Map<string, number>();
-    const joinData: JoinCallData = data;
-    maxJoinRetries = Math.max(maxJoinRetries, 1);
-    for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-      try {
-        this.logger.trace(`Joining call (${attempt})`, this.cid);
-        await this.doJoin(data);
-        delete joinData.migrating_from;
-        break;
-      } catch (err) {
-        this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-        if (
-          (err instanceof ErrorFromResponse && err.unrecoverable) ||
-          (err instanceof SfuJoinError && err.unrecoverable)
-        ) {
-          // if the error is unrecoverable, we should not retry as that signals
-          // that connectivity is good, but the coordinator doesn't allow the user
-          // to join the call due to some reason (e.g., ended call, expired token...)
-          throw err;
+      // we will count the number of join failures per SFU.
+      // once the number of failures reaches 2, we will piggyback on the `migrating_from`
+      // field to force the coordinator to provide us another SFU
+      const sfuJoinFailures = new Map<string, number>();
+      const joinData: JoinCallData = data;
+      maxJoinRetries = Math.max(maxJoinRetries, 1);
+      for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+        try {
+          this.logger.trace(`Joining call (${attempt})`, this.cid);
+          await this.doJoin(data);
+          delete joinData.migrating_from;
+          break;
+        } catch (err) {
+          this.logger.warn(`Failed to join call (${attempt})`, this.cid);
+          if (
+            (err instanceof ErrorFromResponse && err.unrecoverable) ||
+            (err instanceof SfuJoinError && err.unrecoverable)
+          ) {
+            // if the error is unrecoverable, we should not retry as that signals
+            // that connectivity is good, but the coordinator doesn't allow the user
+            // to join the call due to some reason (e.g., ended call, expired token...)
+            throw err;
+          }
+
+          const sfuId = this.credentials?.server.edge_name || '';
+          const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+          sfuJoinFailures.set(sfuId, failures);
+          if (failures >= 2) {
+            joinData.migrating_from = sfuId;
+          }
+
+          if (attempt === maxJoinRetries - 1) {
+            throw err;
+          }
         }
 
-        const sfuId = this.credentials?.server.edge_name || '';
-        const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-        sfuJoinFailures.set(sfuId, failures);
-        if (failures >= 2) {
-          joinData.migrating_from = sfuId;
-        }
-
-        if (attempt === maxJoinRetries - 1) {
-          throw err;
-        }
+        await sleep(retryInterval(attempt));
       }
-
-      await sleep(retryInterval(attempt));
+    } catch (error) {
+      callingX?.endCall(this);
+      throw error;
     }
   };
 
