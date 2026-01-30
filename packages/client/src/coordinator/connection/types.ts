@@ -111,8 +111,17 @@ export type ConnectionRecoveredEvent = {
 export type MicCaptureReportEvent = {
   type: 'mic.capture_report';
   call_cid: string;
+  /**
+   * Whether the mic is capturing audio.
+   */
   capturesAudio: boolean;
+  /**
+   * The device ID of the mic.
+   */
   deviceId?: string;
+  /**
+   * The human-readable label of the mic.
+   */
   label?: string;
 };
 

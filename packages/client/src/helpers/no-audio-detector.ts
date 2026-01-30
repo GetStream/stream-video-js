@@ -6,26 +6,22 @@ export type NoAudioDetectorOptions = {
    * Defaults to 350ms.
    */
   detectionFrequencyInMs?: number;
-
   /**
    * Defines the audio level threshold. Values below this are considered no audio.
-   * Defaults to 3. This value should be in the range of 0-255.
+   * Defaults to 0. This value should be in the range of 0-255.
    * Only applies to browser implementation.
    */
   audioLevelThreshold?: number;
-
   /**
    * Duration of continuous no-audio (in ms) before emitting the first event.
    */
   noAudioThresholdMs: number;
-
   /**
    * How often to emit events while no-audio continues (in ms).
    * After the initial no-audio threshold is met, events will be emitted at this interval.
    * Defaults to the same value as noAudioThresholdMs.
    */
   emitIntervalMs: number;
-
   /**
    * See https://developer.mozilla.org/en-US/docs/web/api/analysernode/fftsize
    *
@@ -33,27 +29,11 @@ export type NoAudioDetectorOptions = {
    * Only applies to browser implementation.
    */
   fftSize?: number;
-
   /**
    * A callback which is called when the audio capture status changes.
    * Called periodically while no audio is detected, and once when audio is detected.
    */
-  onCaptureStatusChange: (event: CaptureStatusEvent) => void;
-};
-
-export type CaptureStatusEvent = {
-  /**
-   * Whether the microphone is capturing audio.
-   */
-  capturesAudio: boolean;
-  /**
-   * The audio device associated with the audio stream.
-   */
-  deviceId?: string;
-  /**
-   * The label of the audio device associated with the audio stream.
-   */
-  label?: string;
+  onCaptureStatusChange: (capturesAudio: boolean) => void;
 };
 
 /**
@@ -79,18 +59,6 @@ const hasAudio = (analyser: AnalyserNode, threshold: number): boolean => {
   analyser.getByteFrequencyData(data);
   return data.some((value) => value >= threshold);
 };
-
-/**
- * Creates a complete CaptureStatusEvent with audio status and device metadata.
- */
-const createCaptureStatusEvent = (
-  capturesAudio: boolean,
-  audioTrack?: MediaStreamTrack,
-): CaptureStatusEvent => ({
-  capturesAudio,
-  deviceId: audioTrack?.getSettings().deviceId,
-  label: audioTrack?.label,
-});
 
 /** Helper for "no event" transitions */
 const noEmit = (nextState: DetectorState): StateTransition => ({
@@ -158,12 +126,6 @@ const createAudioAnalyzer = (audioStream: MediaStream, fftSize: number) => {
 
 /**
  * Creates a new no-audio detector that monitors continuous absence of audio on an audio stream.
- * Unlike the sound detector which emits on every state change, this detector emits
- * events periodically while no audio is detected after a threshold duration.
- *
- * Useful for detecting broken microphone setups or muted/disconnected audio devices.
- *
- * Works on both browser (Web Audio API) and React Native (RNSpeechDetector) platforms.
  *
  * @param audioStream the audio stream to observe.
  * @param options custom options for the no-audio detector.
@@ -175,14 +137,13 @@ export const createNoAudioDetector = (
 ) => {
   const {
     detectionFrequencyInMs = 350,
-    audioLevelThreshold = 3,
+    audioLevelThreshold = 0,
     fftSize = 256,
     onCaptureStatusChange,
   } = options;
 
-  const { audioContext, analyser } = createAudioAnalyzer(audioStream, fftSize);
-
   let state: DetectorState = { kind: 'IDLE' };
+  const { audioContext, analyser } = createAudioAnalyzer(audioStream, fftSize);
   const detectionIntervalId = setInterval(() => {
     const [audioTrack] = audioStream.getAudioTracks();
     if (!audioTrack?.enabled || audioTrack.readyState === 'ended') {
@@ -197,8 +158,7 @@ export const createNoAudioDetector = (
     if (!transition.shouldEmit) return;
 
     const { capturesAudio } = transition;
-    const event = createCaptureStatusEvent(capturesAudio, audioTrack);
-    onCaptureStatusChange(event);
+    onCaptureStatusChange(capturesAudio);
 
     if (capturesAudio) {
       stop().catch((err) => {

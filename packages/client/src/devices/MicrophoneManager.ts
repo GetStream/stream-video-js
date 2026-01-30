@@ -17,10 +17,12 @@ import {
   NoiseCancellationSettingsModeEnum,
   OwnCapability,
 } from '../gen/coordinator';
+import { type MicCaptureReportEvent } from '../coordinator/connection/types';
 import { CallingState } from '../store';
 import {
   createSafeAsyncSubscription,
   createSubscription,
+  getCurrentValue,
 } from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
@@ -131,16 +133,23 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           if (status !== 'enabled' || !mediaStream) return;
           if (this.silenceThresholdMs <= 0) return;
 
+          const deviceId = this.state.selectedDevice;
+          const devices = getCurrentValue(this.listDevices());
+          const label = devices.find((d) => d.deviceId === deviceId)?.label;
+
           this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
             noAudioThresholdMs: this.silenceThresholdMs,
             emitIntervalMs: this.silenceThresholdMs,
-            onCaptureStatusChange: (event) => {
-              this.call.tracer.trace('mic.capture_report', event);
-              this.call.streamClient.dispatchEvent({
+            onCaptureStatusChange: (capturesAudio) => {
+              const event: MicCaptureReportEvent = {
                 type: 'mic.capture_report',
                 call_cid: this.call.cid,
-                ...event,
-              });
+                capturesAudio,
+                deviceId,
+                label,
+              };
+              this.call.tracer.trace('mic.capture_report', event);
+              this.call.streamClient.dispatchEvent(event);
             },
           });
         },

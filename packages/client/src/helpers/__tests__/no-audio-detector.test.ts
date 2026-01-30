@@ -30,6 +30,7 @@ describe('no-audio-detector (browser)', () => {
       noAudioThresholdMs: 5000,
       emitIntervalMs: 5000,
       detectionFrequencyInMs: 500,
+      audioLevelThreshold: 1, // Use threshold of 1 so level 0 is detected as "no audio"
       ...overrides,
     });
 
@@ -88,13 +89,7 @@ describe('no-audio-detector (browser)', () => {
       // Advance past threshold (threshold + one interval period)
       vi.advanceTimersByTime(5500);
 
-      expect(onCaptureStatusChange).toHaveBeenCalledWith(
-        expect.objectContaining({
-          capturesAudio: false,
-          deviceId: expect.any(String),
-          label: expect.any(String),
-        }),
-      );
+      expect(onCaptureStatusChange).toHaveBeenCalledWith(false);
     });
 
     it('should respect custom emit interval', () => {
@@ -130,9 +125,7 @@ describe('no-audio-detector (browser)', () => {
       setAudioLevel(analyserNode, 10);
       vi.advanceTimersByTime(500);
       expect(onCaptureStatusChange).toHaveBeenCalledTimes(2);
-      expect(onCaptureStatusChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ capturesAudio: true }),
-      );
+      expect(onCaptureStatusChange).toHaveBeenLastCalledWith(true);
 
       // Clear mock to verify no more calls
       onCaptureStatusChange.mockClear();
@@ -150,16 +143,12 @@ describe('no-audio-detector (browser)', () => {
 
       // Should detect as no audio since 15 < 20
       vi.advanceTimersByTime(5500);
-      expect(onCaptureStatusChange).toHaveBeenCalledWith(
-        expect.objectContaining({ capturesAudio: false }),
-      );
+      expect(onCaptureStatusChange).toHaveBeenCalledWith(false);
 
       setAudioLevel(analyserNode, 25);
       vi.advanceTimersByTime(500);
 
-      expect(onCaptureStatusChange).toHaveBeenCalledWith(
-        expect.objectContaining({ capturesAudio: true }),
-      );
+      expect(onCaptureStatusChange).toHaveBeenCalledWith(true);
     });
   });
 
@@ -220,17 +209,13 @@ describe('no-audio-detector (browser)', () => {
       // Emit first no-audio event
       vi.advanceTimersByTime(3500);
       expect(onCaptureStatusChange).toHaveBeenCalledTimes(1);
-      expect(onCaptureStatusChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ capturesAudio: false }),
-      );
+      expect(onCaptureStatusChange).toHaveBeenLastCalledWith(false);
 
       // Audio detected, should emit capturesAudio: true and stop
       setAudioLevel(analyserNode, 10);
       vi.advanceTimersByTime(500);
       expect(onCaptureStatusChange).toHaveBeenCalledTimes(2);
-      expect(onCaptureStatusChange).toHaveBeenLastCalledWith(
-        expect.objectContaining({ capturesAudio: true }),
-      );
+      expect(onCaptureStatusChange).toHaveBeenLastCalledWith(true);
 
       // Verify interval stopped and AudioContext closed
       onCaptureStatusChange.mockClear();
@@ -251,9 +236,7 @@ describe('no-audio-detector (browser)', () => {
       // Should emit initial "audio working" event and stop
       vi.advanceTimersByTime(500);
       expect(onCaptureStatusChange).toHaveBeenCalledTimes(1);
-      expect(onCaptureStatusChange).toHaveBeenCalledWith(
-        expect.objectContaining({ capturesAudio: true }),
-      );
+      expect(onCaptureStatusChange).toHaveBeenCalledWith(true);
 
       // Verify stopped completely
       onCaptureStatusChange.mockClear();

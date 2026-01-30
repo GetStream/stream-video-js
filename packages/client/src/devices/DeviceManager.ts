@@ -558,7 +558,7 @@ export abstract class DeviceManager<
     );
   }
 
-  private findDevice(devices: MediaDeviceInfo[], deviceId: string) {
+  protected findDevice(devices: MediaDeviceInfo[], deviceId: string) {
     const kind = this.mediaDeviceKind;
     return devices.find((d) => d.deviceId === deviceId && d.kind === kind);
   }
