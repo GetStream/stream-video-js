@@ -58,7 +58,7 @@ export function getCallDisplayName(
  * and optionally for non-ringing calls when ongoing calls are enabled.
  */
 export async function startCallingxCall(call: Call) {
-  if (!CallingxModule || CallingxModule.isCallRegistered(call.id)) {
+  if (!CallingxModule || CallingxModule.isCallRegistered(call.cid)) {
     return;
   }
   const isOutcomingCall = call.ringing && call.isCreatedByMe;
