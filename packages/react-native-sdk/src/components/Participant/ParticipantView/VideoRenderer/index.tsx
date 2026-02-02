@@ -111,10 +111,11 @@ export const VideoRenderer = ({
     deregisterIosScreenshot,
   ]);
 
-  const mirror =
-    mirrorOverride === undefined
-      ? isLocalParticipant && !isScreenSharing && direction === 'front'
-      : mirrorOverride;
+  const mirror = isScreenSharing
+    ? false
+    : mirrorOverride !== undefined
+      ? mirrorOverride
+      : isLocalParticipant && direction === 'front';
 
   /**
    * This effect updates the participant's viewportVisibilityState
