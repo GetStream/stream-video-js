@@ -191,6 +191,41 @@ export const useCallingExpWithCallingStateEffect = () => {
     callingx.updateDisplay(activeCallCid, activeCallCid, callDisplayName);
   }, [activeCallCid, callDisplayName]);
 
+  useEffect(() => {
+    const callingx = getCallingxLibIfAvailable();
+    if (!callingx?.isSetup || !activeCallCid || !isIncomingCall) {
+      return;
+    }
+
+    let isUnsubscribed = false;
+    const subscription = callingx.addEventListener(
+      'didDisplayIncomingCall',
+      (event: { callId: string }) => {
+        if (event.callId === activeCallCid) {
+          logger.debug(`Call is already answered in the app: ${activeCallCid}`);
+          callingx
+            .answerIncomingCall(activeCallCid)
+            .catch((error: unknown) => {
+              logger.error(
+                `Error answering call in calling exp: ${activeCallCid}`,
+                error,
+              );
+            })
+            .finally(() => {
+              subscription.remove();
+              isUnsubscribed = true;
+            });
+        }
+      },
+    );
+
+    return () => {
+      if (!isUnsubscribed) {
+        subscription.remove();
+      }
+    };
+  }, [activeCallCid, isIncomingCall]);
+
   // useEffect(() => {
   //   const callingx = getCallingxLibIfAvailable();
   //   if (!callingx?.isSetup || !activeCallCid) {
