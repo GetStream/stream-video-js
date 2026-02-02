@@ -7,14 +7,12 @@ type INoiseCancellation =
  * Hook that lazily loads the noise cancellation module from @stream-io/audio-filters-web.
  * Returns the NoiseCancellation instance when loaded, or undefined while loading.
  */
-export const useNoiseCancellationLoader = (enabled = true) => {
+export const useNoiseCancellationLoader = () => {
   const [noiseCancellation, setNoiseCancellation] =
     useState<INoiseCancellation>();
   const ncLoader = useRef<Promise<void> | undefined>(undefined);
 
   useEffect(() => {
-    if (!enabled) return;
-
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))
       .then(({ NoiseCancellation }) => {
@@ -32,7 +30,7 @@ export const useNoiseCancellationLoader = (enabled = true) => {
     return () => {
       ncLoader.current = load.then(() => setNoiseCancellation(undefined));
     };
-  }, [enabled]);
+  }, []);
 
   return noiseCancellation;
 };

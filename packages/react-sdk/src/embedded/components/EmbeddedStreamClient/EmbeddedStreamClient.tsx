@@ -1,5 +1,9 @@
 import { StreamCall, StreamVideo } from '../../../core';
-import { StreamTheme } from '../../../components';
+import {
+  StreamTheme,
+  BackgroundFiltersProvider,
+  NoiseCancellationProvider,
+} from '../../../components';
 import { LoadingScreen } from '../shared';
 
 import type { EmbeddedStreamClientProps } from '../../types';
@@ -9,10 +13,6 @@ import {
   useNoiseCancellationLoader,
 } from '../../hooks';
 import { CallRouter } from '../CallRouter';
-import {
-  ConditionalBackgroundFiltersProvider,
-  ConditionalNoiseCancellationProvider,
-} from '../providers';
 
 /**
  * EmbeddedStreamClient - A self-contained video calling component.
@@ -21,30 +21,33 @@ import {
 export const EmbeddedStreamClient = ({
   apiKey,
   user,
-  call: callConfig,
+  callId,
+  callType = 'default',
+  token,
   tokenProvider,
+  userType,
   skipLobby = false,
   logLevel,
-  enableNoiseCancellation = true,
-  enableBackgroundFilters = true,
   onError,
 }: EmbeddedStreamClientProps) => {
   const client = useInitializeVideoClient({
     apiKey,
     user,
+    token,
     tokenProvider,
+    userType,
     logLevel,
     onError,
   });
 
   const call = useInitializeCall({
     client,
-    callType: callConfig.type || 'default',
-    callId: callConfig.id,
+    callType,
+    callId,
     onError,
   });
 
-  const noiseCancellation = useNoiseCancellationLoader(enableNoiseCancellation);
+  const noiseCancellation = useNoiseCancellationLoader();
 
   if (!client || !call) {
     return (
@@ -57,19 +60,15 @@ export const EmbeddedStreamClient = ({
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <ConditionalBackgroundFiltersProvider enabled={enableBackgroundFilters}>
-          <ConditionalNoiseCancellationProvider
-            enabled={enableNoiseCancellation}
-            noiseCancellation={noiseCancellation}
-          >
-            <StreamTheme style={{}}>
-              <CallRouter
-                callType={callConfig.type || 'default'}
-                skipLobby={skipLobby}
-              />
-            </StreamTheme>
-          </ConditionalNoiseCancellationProvider>
-        </ConditionalBackgroundFiltersProvider>
+        <BackgroundFiltersProvider>
+          {noiseCancellation && (
+            <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
+              <StreamTheme style={{}}>
+                <CallRouter callType={callType} skipLobby={skipLobby} />
+              </StreamTheme>
+            </NoiseCancellationProvider>
+          )}
+        </BackgroundFiltersProvider>
       </StreamCall>
     </StreamVideo>
   );

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { StreamVideoClient, User } from '@stream-io/video-client';
-import type { EmbeddedUser, LogLevel, TokenProvider } from '../types';
+import type { EmbeddedUser, LogLevel, TokenProvider, UserType } from '../types';
 
 export interface UseInitializeVideoClientProps {
   apiKey: string;
   user: EmbeddedUser;
+  token?: string;
   tokenProvider?: TokenProvider;
+  userType?: UserType;
   logLevel?: LogLevel;
   onError?: (error: Error) => void;
 }
@@ -18,7 +20,9 @@ export interface UseInitializeVideoClientProps {
 export const useInitializeVideoClient = ({
   apiKey,
   user,
+  token,
   tokenProvider,
+  userType,
   logLevel,
   onError,
 }: UseInitializeVideoClientProps): StreamVideoClient | undefined => {
@@ -28,15 +32,18 @@ export const useInitializeVideoClient = ({
   useEffect(() => {
     if (!apiKey) return;
 
-    const streamUser = createUser(user);
+    const effectiveUserType =
+      userType ?? (token || tokenProvider ? 'authenticated' : 'anonymous');
+
+    const streamUser = createUser(user, effectiveUserType);
 
     try {
       const _client = StreamVideoClient.getOrCreateInstance({
         apiKey,
         user: streamUser,
-        token: user?.type === 'authenticated' ? user.token : undefined,
+        token: effectiveUserType === 'authenticated' ? token : undefined,
         tokenProvider:
-          user?.type === 'authenticated' ? tokenProvider : undefined,
+          effectiveUserType === 'authenticated' ? tokenProvider : undefined,
         options: logLevel ? { logLevel } : undefined,
       });
 
@@ -58,23 +65,23 @@ export const useInitializeVideoClient = ({
         setClient(undefined);
       }
     };
-  }, [apiKey, user, tokenProvider, logLevel, onError]);
+  }, [apiKey, user, token, tokenProvider, userType, logLevel, onError]);
 
   return client;
 };
 
-const createUser = (user: EmbeddedUser): User => {
-  const { type, id, name, image } = user;
+const createUser = (user: EmbeddedUser, userType: UserType): User => {
+  const { id, name, image } = user;
 
-  switch (type) {
+  switch (userType) {
     case 'authenticated':
       if (!id) throw new Error('User ID is required for authenticated users');
       return { id, name, image };
     case 'guest':
-      return { type: 'guest', id: id, name, image };
+      return { type: 'guest', id, name, image };
     case 'anonymous':
       return { type: 'anonymous' };
     default:
-      throw new Error(`Unknown user type: ${type}`);
+      throw new Error(`Unknown user type: ${userType}`);
   }
 };

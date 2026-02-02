@@ -20,13 +20,10 @@ export default function EmbeddedPage(props: ServerSideCredentialsProps) {
         id: user.id,
         name: user.name,
         image: user.image,
-        type: 'authenticated',
-        token: userToken,
       }}
-      call={{
-        id: callId,
-        type: callType,
-      }}
+      callId={callId}
+      callType={callType}
+      token={userToken}
       skipLobby={skipLobby}
     />
   );

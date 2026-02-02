@@ -2,10 +2,6 @@ export { EmbeddedStreamClient } from './components';
 export type {
   EmbeddedStreamClientProps,
   EmbeddedUser,
-  EmbeddedCallConfig,
-  LayoutOption,
-  UserType,
-  LivestreamRole,
-  LogLevel,
   TokenProvider,
+  LogLevel,
 } from './types';

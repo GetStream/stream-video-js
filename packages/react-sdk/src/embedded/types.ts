@@ -1,14 +1,10 @@
 /**
  * User type for authentication.
+ * - 'authenticated': Full auth with JWT (default when token/tokenProvider provided)
+ * - 'guest': Server generates credentials via /guest endpoint
+ * - 'anonymous': No WebSocket, limited access (default when no token)
  */
 export type UserType = 'authenticated' | 'guest' | 'anonymous';
-
-/**
- * Role for livestream calls.
- * - 'host': Can create the call and will be assigned host capabilities
- * - 'viewer': Can only join existing calls as a viewer
- */
-export type LivestreamRole = 'host' | 'viewer';
 
 /**
  * Log level for the StreamVideoClient.
@@ -16,7 +12,7 @@ export type LivestreamRole = 'host' | 'viewer';
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
 
 /**
- * Available layout options.
+ * Available layout options (internal use only).
  */
 export type LayoutOption =
   | 'PaginatedGrid'
@@ -26,29 +22,18 @@ export type LayoutOption =
   | 'SpeakerBottom';
 
 /**
+ * Token provider function for automatic token refresh.
+ */
+export type TokenProvider = () => Promise<string>;
+
+/**
  * User configuration for the embedded client.
  */
 export interface EmbeddedUser {
   id: string;
   name?: string;
   image?: string;
-  type?: UserType;
-  token?: string;
 }
-
-/**
- * Call configuration for the embedded client.
- */
-export interface EmbeddedCallConfig {
-  id: string;
-  type?: string;
-  role?: LivestreamRole;
-}
-
-/**
- * Token provider function for automatic token refresh.
- */
-export type TokenProvider = () => Promise<string>;
 
 /**
  * Props for the EmbeddedStreamClient component.
@@ -56,13 +41,12 @@ export type TokenProvider = () => Promise<string>;
 export interface EmbeddedStreamClientProps {
   apiKey: string;
   user: EmbeddedUser;
-  call: EmbeddedCallConfig;
+  callId: string;
+  callType?: string;
+  token?: string;
   tokenProvider?: TokenProvider;
-  skipLobby?: boolean;
-  layout?: LayoutOption;
+  userType?: UserType;
   logLevel?: LogLevel;
-  enableNoiseCancellation?: boolean;
-  enableBackgroundFilters?: boolean;
-  onCallEnded?: () => void;
+  skipLobby?: boolean;
   onError?: (error: Error) => void;
 }
