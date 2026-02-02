@@ -74,6 +74,8 @@
 
   .str-video__embedded-sidebar__container {
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
     padding: var(--str-video__spacing-lg) 0;
   }
 
@@ -89,7 +91,8 @@
   flex-direction: column;
   border-radius: var(--str-video__border-radius-md);
   padding: var(--str-video__spacing-lg);
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   width: 100%;
 }
 
@@ -111,6 +114,7 @@
       max-width: 350px;
       min-width: 350px;
       display: flex;
+      flex-direction: column;
       gap: var(--str-video__spacing-md);
       height: 100%;
       padding: 0;
@@ -120,6 +124,8 @@
   .str-video__embedded-participants {
     margin: 0;
     overflow-y: scroll;
+    flex: 1;
+    min-height: 0;
 
     &::-webkit-scrollbar {
       display: none;
@@ -127,6 +133,11 @@
 
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .str-video__embedded-invite-section {
+    flex-shrink: 0;
+    margin-top: auto;
   }
 }
 
@@ -754,6 +765,50 @@ button.str-video__embedded-button,
     &:disabled {
       background-color: transparent;
       cursor: not-allowed;
+    }
+  }
+}
+
+.str-video__embedded-invite-section {
+  display: flex;
+  flex-direction: column;
+  padding: var(--str-video__spacing-lg);
+  border-radius: var(--str-video__border-radius-md);
+  flex-shrink: 0;
+  margin-top: auto;
+
+  &__title {
+    font-size: var(--str-video__font-size-md);
+    font-weight: 600;
+    margin: 0 0 var(--str-video__spacing-xs) 0;
+  }
+
+  &__description {
+    font-size: var(--str-video__font-size-sm);
+    margin: 0 0 var(--str-video__spacing-md) 0;
+    opacity: 0.8;
+  }
+
+  &__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--str-video__spacing-xs);
+    padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+    border: none;
+    border-radius: var(--str-video__border-radius-md);
+    font-size: var(--str-video__font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+
+    &:hover {
+      opacity: 0.9;
+    }
+
+    .str-video__icon {
+      width: 18px;
+      height: 18px;
     }
   }
 }

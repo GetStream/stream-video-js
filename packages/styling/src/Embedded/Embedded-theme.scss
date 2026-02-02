@@ -270,3 +270,24 @@ button.str-video__embedded-button,
     border-color: var(--str-video__button-default-hover);
   }
 }
+
+.str-video__embedded-invite-section {
+  background-color: var(--str-video__base-color6);
+
+  &__title {
+    color: var(--str-video__text-color1);
+  }
+
+  &__description {
+    color: var(--str-video__text-color2);
+  }
+
+  &__button {
+    background-color: var(--str-video__button-primary-active);
+    color: var(--str-video__text-color1);
+
+    &:hover {
+      background-color: var(--str-video__button-primary-hover);
+    }
+  }
+}

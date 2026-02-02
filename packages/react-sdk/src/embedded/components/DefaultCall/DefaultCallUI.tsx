@@ -54,6 +54,7 @@ const DefaultCallUI = ({ skipLobby = false }: DefaultCallUIProps) => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const [showParticipants, setShowParticipants] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const [hasInitiatedJoin, setHasInitiatedJoin] = useState(false);
   const wasInCallRef = useRef(false);
@@ -114,6 +115,17 @@ const DefaultCallUI = ({ skipLobby = false }: DefaultCallUIProps) => {
     console.log(rating);
   }, []);
 
+  const handleCopyInviteLink = useCallback(async () => {
+    const link = window.location.href;
+    try {
+      await navigator.clipboard.writeText(link);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link:', err);
+    }
+  }, []);
+
   if (view === 'lobby') {
     return <Lobby onJoin={onJoin} skipLobby={skipLobby} />;
   }
@@ -159,6 +171,22 @@ const DefaultCallUI = ({ skipLobby = false }: DefaultCallUIProps) => {
                   <CallParticipantsList
                     onClose={() => setShowParticipants(false)}
                   />
+                </div>
+                <div className="str-video__embedded-invite-section">
+                  <h4 className="str-video__embedded-invite-section__title">
+                    Share the link
+                  </h4>
+                  <p className="str-video__embedded-invite-section__description">
+                    Click the button below to copy the call link:
+                  </p>
+                  <button
+                    type="button"
+                    className="str-video__embedded-invite-section__button"
+                    onClick={handleCopyInviteLink}
+                  >
+                    <Icon icon="link-copy" />
+                    {linkCopied ? 'Link copied!' : 'Copy invite link'}
+                  </button>
                 </div>
               </div>
             )}
