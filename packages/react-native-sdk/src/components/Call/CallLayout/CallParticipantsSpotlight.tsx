@@ -27,7 +27,7 @@ export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
     CallContentProps,
     'supportedReactions' | 'CallParticipantsList' | 'ScreenShareOverlay'
   > &
-  Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
+  Pick<CallParticipantsListComponentProps, 'ParticipantView' | 'mirror'> & {
     /**
      * Check if device is in landscape mode.
      * This will apply the landscape mode styles to the component.
@@ -49,6 +49,7 @@ export const CallParticipantsSpotlight = ({
   ScreenShareOverlay,
   VideoRenderer,
   supportedReactions,
+  mirror,
   landscape,
 }: CallParticipantsSpotlightProps) => {
   const {
@@ -78,6 +79,7 @@ export const CallParticipantsSpotlight = ({
   const callParticipantsListProps: CallParticipantsListComponentProps = {
     ...participantViewProps,
     ParticipantView,
+    mirror,
   };
 
   const landscapeStyles: ViewStyle = {
@@ -126,6 +128,7 @@ export const CallParticipantsSpotlight = ({
               isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
             }
             supportedReactions={supportedReactions}
+            mirror={mirror}
             {...participantViewProps}
           />
         ))}

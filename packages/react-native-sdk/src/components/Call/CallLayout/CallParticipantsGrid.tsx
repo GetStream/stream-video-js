@@ -18,7 +18,7 @@ import { StreamVideoParticipant } from '@stream-io/video-client';
  */
 export type CallParticipantsGridProps = ParticipantViewComponentProps &
   Pick<CallContentProps, 'supportedReactions' | 'CallParticipantsList'> &
-  Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
+  Pick<CallParticipantsListComponentProps, 'ParticipantView' | 'mirror'> & {
     /**
      * Boolean to decide if local participant will be visible in the grid when there is 1:1 call.
      */
@@ -41,6 +41,7 @@ export const CallParticipantsGrid = ({
   ParticipantVideoFallback,
   ParticipantView,
   VideoRenderer,
+  mirror,
   showLocalParticipant = false,
   supportedReactions,
   landscape,
@@ -103,6 +104,7 @@ export const CallParticipantsGrid = ({
     ParticipantReaction,
     ParticipantVideoFallback,
     VideoRenderer,
+    mirror,
   };
 
   return (
