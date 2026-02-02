@@ -62,7 +62,10 @@ export async function startCallingxCall(call: Call) {
     return;
   }
   const isOutcomingCall = call.ringing && call.isCreatedByMe;
-  if (isOutcomingCall || CallingxModule.isOngoingCallsEnabled) {
+  if (
+    isOutcomingCall ||
+    (!call.ringing && CallingxModule.isOngoingCallsEnabled)
+  ) {
     const callDisplayName = getCallDisplayName(
       call.state.members,
       call.state.participants,
