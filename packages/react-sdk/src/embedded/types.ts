@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 /**
  * User type for authentication.
  * - 'authenticated': Full auth with JWT (default when token/tokenProvider provided)
@@ -49,4 +51,5 @@ export interface EmbeddedStreamClientProps {
   logLevel?: LogLevel;
   skipLobby?: boolean;
   onError?: (error: Error) => void;
+  style?: CSSProperties;
 }

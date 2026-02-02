@@ -29,6 +29,7 @@ export const EmbeddedStreamClient = ({
   skipLobby = false,
   logLevel,
   onError,
+  style,
 }: EmbeddedStreamClientProps) => {
   const client = useInitializeVideoClient({
     apiKey,
@@ -51,7 +52,7 @@ export const EmbeddedStreamClient = ({
 
   if (!client || !call) {
     return (
-      <StreamTheme style={{}}>
+      <StreamTheme style={style}>
         <LoadingScreen />
       </StreamTheme>
     );
@@ -63,7 +64,7 @@ export const EmbeddedStreamClient = ({
         <BackgroundFiltersProvider>
           {noiseCancellation && (
             <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
-              <StreamTheme style={{}}>
+              <StreamTheme style={style}>
                 <CallRouter callType={callType} skipLobby={skipLobby} />
               </StreamTheme>
             </NoiseCancellationProvider>
