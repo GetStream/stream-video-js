@@ -16,6 +16,8 @@ import { Platform } from 'react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
+const logger = videoLoggerSystem.getLogger('Callingx');
+
 /**
  * This hook is used to listen to callkeep events and do the necessary actions
  */
@@ -54,14 +56,10 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   events.forEach((event: EventData) => {
     const { eventName, params } = event;
     if (eventName === 'answerCall') {
-      videoLoggerSystem
-        .getLogger('setupCallingExpEvents')
-        .debug(`answerCall delayed event callId: ${params?.callId}`);
+      logger.debug(`answerCall delayed event callId: ${params?.callId}`);
       onAcceptCall(params as EventParams['answerCall']);
     } else if (eventName === 'endCall') {
-      videoLoggerSystem
-        .getLogger('setupCallingExpEvents')
-        .debug(`endCall delayed event callId: ${params?.callId}`);
+      logger.debug(`endCall delayed event callId: ${params?.callId}`);
       onEndCall(pushConfig)(params as EventParams['endCall']);
     } else if (eventName === 'didActivateAudioSession') {
       onDidActivateAudioSession();
@@ -79,17 +77,12 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
 }
 
 const onDidActivateAudioSession = () => {
-  videoLoggerSystem
-    .getLogger('callingExpDidActivateAudioSession')
-    .debug('callingExpDidActivateAudioSession');
-
+  logger.debug('callingExpDidActivateAudioSession');
   resolvePendingAudioSession();
 };
 
 const onDidDeactivateAudioSession = () => {
-  videoLoggerSystem
-    .getLogger('callingExpDidDeactivateAudioSession')
-    .debug('callingExpDidDeactivateAudioSession');
+  logger.debug('callingExpDidDeactivateAudioSession');
 };
 
 const onAcceptCall = ({
@@ -113,11 +106,9 @@ const onAcceptCall = ({
 const onEndCall =
   (pushConfig: PushConfig) =>
   async ({ callId: call_cid, source }: EventParams['endCall']) => {
-    videoLoggerSystem
-      .getLogger('callingExpRejectCall')
-      .debug(
-        `callingExpRejectCall event callId: ${call_cid} source: ${source}`,
-      );
+    logger.debug(
+      `callingExpRejectCall event callId: ${call_cid} source: ${source}`,
+    );
 
     if (source === 'app' || !call_cid) {
       //we only need to process the call if the call was rejected from the system
