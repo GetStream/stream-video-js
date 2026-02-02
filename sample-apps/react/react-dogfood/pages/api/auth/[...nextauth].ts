@@ -1,14 +1,15 @@
 import type { NextAuthOptions, Profile } from 'next-auth';
+import type { Provider } from 'next-auth/providers/index';
 import NextAuth from 'next-auth';
 import GoogleProvider, { GoogleProfile } from 'next-auth/providers/google';
-import { CredentialsConfig, Provider } from 'next-auth/providers';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import { getUserIdFromEmail } from '../../../lib/names';
 import { userId } from '../../../lib/idGenerators';
 
 /**
  * A custom provider that allows users to sign in with Stream Demo Account.
  */
-const StreamDemoAccountProvider: CredentialsConfig = {
+const StreamDemoAccountProvider = CredentialsProvider({
   id: 'stream-demo-login',
   name: 'Stream Demo account',
   type: 'credentials',
@@ -16,7 +17,7 @@ const StreamDemoAccountProvider: CredentialsConfig = {
   authorize: async () => {
     return { id: userId(), stream: false };
   },
-};
+});
 
 const environment = (process.env.NEXT_PUBLIC_APP_ENVIRONMENT as string) || null;
 const isProntoEnvironment =

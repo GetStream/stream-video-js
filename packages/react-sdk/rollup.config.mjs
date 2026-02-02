@@ -1,6 +1,8 @@
 import typescript from '@rollup/plugin-typescript';
 import replace from '@rollup/plugin-replace';
 import json from '@rollup/plugin-json';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 
 import pkg from './package.json' with { type: 'json' };
 
@@ -17,10 +19,20 @@ const chunkFileNames = (chunkInfo) => {
   return '[name]-[hash].[format].js';
 };
 
+const commonPlugins = [
+  json(),
+  replace({
+    preventAssignment: true,
+    'process.env.PKG_NAME': JSON.stringify(pkg.name),
+    'process.env.PKG_VERSION': JSON.stringify(pkg.version),
+  }),
+];
+
 /**
+ * Main SDK configuration - keeps dependencies external
  * @type {import('rollup').RollupOptions}
  */
-const config = {
+const mainConfig = {
   input: 'index.ts',
   output: [
     {
@@ -45,12 +57,7 @@ const config = {
     'react/jsx-dev-runtime',
   ],
   plugins: [
-    json(),
-    replace({
-      preventAssignment: true,
-      'process.env.PKG_NAME': JSON.stringify(pkg.name),
-      'process.env.PKG_VERSION': JSON.stringify(pkg.version),
-    }),
+    ...commonPlugins,
     typescript({
       tsconfig:
         process.env.NODE_ENV === 'production'
@@ -60,4 +67,52 @@ const config = {
   ],
 };
 
-export default [config];
+/**
+ * Embedded entrypoint configuration - bundles video/audio filters
+ */
+const embeddedConfig = {
+  input: 'src/embedded/index.ts',
+  output: [
+    {
+      dir: 'dist',
+      entryFileNames: 'embedded.es.js',
+      format: 'es',
+      sourcemap: true,
+      chunkFileNames: (chunkInfo) =>
+        `embedded-${chunkInfo.name}-[hash].[format].js`,
+    },
+    {
+      dir: 'dist',
+      entryFileNames: 'embedded.cjs.js',
+      format: 'cjs',
+      sourcemap: true,
+      chunkFileNames: (chunkInfo) =>
+        `embedded-${chunkInfo.name}-[hash].[format].js`,
+    },
+  ],
+  external: [
+    ...Object.keys(pkg.dependencies || {}).filter(
+      (dep) => dep !== '@stream-io/video-filters-web',
+    ),
+    ...Object.keys(pkg.peerDependencies || {}),
+    'react/jsx-runtime',
+    'react/jsx-dev-runtime',
+  ],
+  plugins: [
+    ...commonPlugins,
+    nodeResolve({
+      preferBuiltins: false,
+    }),
+    commonjs(),
+    typescript({
+      tsconfig:
+        process.env.NODE_ENV === 'production'
+          ? './tsconfig.production.json'
+          : './tsconfig.json',
+      declaration: true,
+      declarationDir: 'dist',
+    }),
+  ],
+};
+
+export default [mainConfig, embeddedConfig];
