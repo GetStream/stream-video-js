@@ -25,10 +25,7 @@ const canActivateCall = (
     return state === CallingState.JOINING || state === CallingState.JOINED;
   };
 
-  return (
-    (!isJoined(prevState) && isJoined(currentState)) ||
-    (prevState === CallingState.JOINING && currentState === CallingState.JOINED)
-  );
+  return !isJoined(prevState) && isJoined(currentState);
 };
 
 const canEndCall = (
@@ -202,7 +199,20 @@ export const useCallingExpWithCallingStateEffect = () => {
       'didDisplayIncomingCall',
       (event: { callId: string }) => {
         if (event.callId === activeCallCid) {
-          logger.debug(`Call is already answered in the app: ${activeCallCid}`);
+          //we need to report the call as answered only if user accepts the call from the app UI and push notification was delivered after that
+          const _callingState = activeCall?.state.callingState;
+          const shouldSkip =
+            _callingState !== CallingState.JOINING &&
+            _callingState !== CallingState.JOINED &&
+            _callingState !== CallingState.RECONNECTING &&
+            _callingState !== CallingState.MIGRATING;
+          if (shouldSkip) {
+            return;
+          }
+
+          logger.debug(
+            `Reporting call as already answered in the app: ${activeCallCid}`,
+          );
           callingx
             .answerIncomingCall(activeCallCid)
             .catch((error: unknown) => {
@@ -224,7 +234,7 @@ export const useCallingExpWithCallingStateEffect = () => {
         subscription.remove();
       }
     };
-  }, [activeCallCid, isIncomingCall]);
+  }, [activeCall, activeCallCid, isIncomingCall]);
 
   // useEffect(() => {
   //   const callingx = getCallingxLibIfAvailable();

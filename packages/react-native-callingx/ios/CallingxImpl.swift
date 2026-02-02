@@ -110,6 +110,7 @@ import stream_react_native_webrtc
             #if DEBUG
             print("[Callingx][reportNewIncomingCall] callId already exists")
             #endif
+            completion?()
             return
         }
         
