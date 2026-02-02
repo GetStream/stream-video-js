@@ -26,6 +26,8 @@ import {
 } from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
+import { disposeOfMediaStream } from './utils';
+import { promiseWithResolvers } from '../helpers/promise';
 
 export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
@@ -280,6 +282,38 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
    */
   setSilenceThreshold(thresholdMs: number) {
     this.silenceThresholdMs = thresholdMs;
+  }
+
+  /**
+   * Performs audio capture test on a specific microphone.
+   *
+   * This method is only available in browser environments (not React Native).
+   *
+   * @param deviceId The device ID to test.
+   * @param options Optional test configuration.
+   * @returns Promise that resolves with the test result (true or false).
+   */
+  async performTest(
+    deviceId: string,
+    options?: { testDurationMs?: number },
+  ): Promise<boolean> {
+    if (isReactNative()) throw new Error('Not available in React Native');
+
+    const stream = await this.getStream({ deviceId: { exact: deviceId } });
+    const { testDurationMs = 3000 } = options || {};
+    const { promise, resolve } = promiseWithResolvers<boolean>();
+    const cleanup = createNoAudioDetector(stream, {
+      noAudioThresholdMs: testDurationMs,
+      emitIntervalMs: testDurationMs,
+      onCaptureStatusChange: async (capturesAudio) => {
+        resolve(capturesAudio);
+        await cleanup().catch((err) => {
+          this.logger.warn('Failed to stop detector during test', err);
+        });
+        disposeOfMediaStream(stream);
+      },
+    });
+    return promise;
   }
 
   /**

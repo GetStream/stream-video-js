@@ -57,7 +57,7 @@ type StateTransition =
 const hasAudio = (analyser: AnalyserNode, threshold: number): boolean => {
   const data = new Uint8Array(analyser.frequencyBinCount);
   analyser.getByteFrequencyData(data);
-  return data.some((value) => value >= threshold);
+  return data.some((value) => value > threshold);
 };
 
 /** Helper for "no event" transitions */
