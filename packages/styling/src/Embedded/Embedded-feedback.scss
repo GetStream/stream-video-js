@@ -1,0 +1,240 @@
+$feedback-icon-size: 64px;
+$feedback-button-height: 48px;
+$feedback-border-radius: 8px;
+$feedback-transition: 0.15s ease;
+
+$color-success: #22c55e;
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-column-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@mixin circular-icon($size, $bg-color) {
+  @include flex-center;
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  background: $bg-color;
+}
+
+@mixin button-base {
+  border: none;
+  border-radius: $feedback-border-radius;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color $feedback-transition,
+    transform 0.1s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Main container
+.str-video__call-feedback {
+  @include flex-center;
+  min-height: 100%;
+  width: 100%;
+  padding: 2rem;
+  background: var(--str-video__base-color4);
+  animation: str-video__feedback-fade-in 0.3s ease-out;
+
+  &__container {
+    @include flex-column-center;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--str-video__text-color1);
+  }
+
+  &__subtitle {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--str-video__text-color2);
+  }
+
+  // Star Rating
+  &__rating-section {
+    @include flex-column-center;
+    gap: 1rem;
+    padding: 1.5rem 0;
+  }
+
+  &__rating-label {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--str-video__text-color1);
+  }
+
+  &__stars {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__star {
+    @include flex-center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--str-video__text-color3, #6b7280);
+    cursor: pointer;
+    transition: color $feedback-transition;
+
+    svg {
+      width: 28px;
+      height: 28px;
+    }
+
+    &:hover {
+      color: var(--str-video__primary-color, #005fff);
+    }
+
+    &--active {
+      color: var(--str-video__primary-color, #005fff);
+    }
+  }
+
+  // Action buttons
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  &__button {
+    @include flex-center;
+    @include button-base;
+    gap: 0.5rem;
+    width: 100%;
+    height: $feedback-button-height;
+    padding: 0 1.5rem;
+    font-size: 0.9375rem;
+
+    &--primary {
+      background: var(--str-video__button-primary-active, #005fff);
+      color: #fff;
+
+      &:hover:not(:disabled) {
+        background: var(--str-video__button-primary-hover, #0052d9);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: var(
+          --str-video__button-default-disabled,
+          rgba(255, 255, 255, 0.1)
+        );
+      }
+    }
+
+    &--secondary {
+      background: transparent;
+      color: var(--str-video__text-color2);
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--str-video__text-color1);
+      }
+    }
+  }
+
+  // Rejoin link
+  &__rejoin {
+    margin: 0;
+    padding-top: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--str-video__text-color2);
+  }
+
+  &__rejoin-link {
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--str-video__primary-color, #005fff);
+    font-size: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color $feedback-transition;
+
+    &:hover {
+      color: var(--str-video__primary-color-hover, #3d8eff);
+      text-decoration: underline;
+    }
+  }
+
+  // End screens (thank you & call ended)
+  &__thank-you,
+  &__ended {
+    @include flex-column-center;
+    gap: 1rem;
+    animation: str-video__screen-appear 0.4s ease-out;
+  }
+
+  &__checkmark {
+    @include circular-icon($feedback-icon-size, $color-success);
+    color: #fff;
+    animation: str-video__checkmark-pop 0.5s ease-out 0.1s both;
+
+    svg {
+      width: 32px;
+      height: 32px;
+    }
+  }
+}
+
+// Animations
+@keyframes str-video__feedback-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes str-video__screen-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes str-video__checkmark-pop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

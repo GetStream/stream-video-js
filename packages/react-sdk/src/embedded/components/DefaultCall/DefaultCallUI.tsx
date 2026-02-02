@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { CallingState, OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
@@ -31,6 +31,7 @@ import {
   CameraMenuWithBlur,
   MicMenuWithNoiseCancellation,
 } from '../shared';
+import { CallFeedback } from '../CallFeedback';
 import { usePersistedDevicePreferences } from '../../../hooks';
 
 const DEVICE_PREFERENCES_KEY = '@stream-io/embedded-device-preferences';
@@ -39,40 +40,79 @@ type DefaultCallUIProps = {
   skipLobby?: boolean;
 };
 
-type ViewState = 'lobby' | 'loading' | 'active-call';
+/**
+ * Derives the current view from callingState and user intent.
+ * - 'lobby': User hasn't initiated join yet
+ * - 'loading': Join initiated, waiting for JOINED state
+ * - 'active-call': Currently in call (JOINED state)
+ * - 'feedback': Call ended (LEFT state after being in call)
+ */
+type ViewState = 'lobby' | 'loading' | 'active-call' | 'feedback';
 
 const DefaultCallUI = ({ skipLobby = false }: DefaultCallUIProps) => {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const [showParticipants, setShowParticipants] = useState(false);
-  const [view, setView] = useState<ViewState>('lobby');
+
+  const [hasInitiatedJoin, setHasInitiatedJoin] = useState(false);
+  const wasInCallRef = useRef(false);
 
   const { layout, setLayout } = useLayoutSwitcher();
 
   usePersistedDevicePreferences(DEVICE_PREFERENCES_KEY);
   useWakeLock();
 
+  if (callingState === CallingState.JOINED) {
+    wasInCallRef.current = true;
+  }
+
+  const view: ViewState = (() => {
+    if (callingState === CallingState.JOINED) {
+      return 'active-call';
+    }
+    if (callingState === CallingState.LEFT && wasInCallRef.current) {
+      return 'feedback';
+    }
+    if (hasInitiatedJoin) {
+      return 'loading';
+    }
+    return 'lobby';
+  })();
+
   const onJoin = useCallback(async () => {
     if (!call) return;
 
-    setView('loading');
+    setHasInitiatedJoin(true);
 
     try {
       if (call.state.callingState !== CallingState.JOINED) {
         await call.join({ create: true });
       }
-      setView('active-call');
     } catch (err) {
       console.error('Failed to join call:', err);
+      setHasInitiatedJoin(false);
     }
   }, [call]);
 
-  useEffect(() => {
-    if (callingState === CallingState.JOINED) {
-      setView('active-call');
+  const handleRejoin = useCallback(async () => {
+    if (!call) return;
+
+    wasInCallRef.current = false;
+    setHasInitiatedJoin(true);
+
+    try {
+      await call.join();
+    } catch (err) {
+      console.error('Failed to rejoin call:', err);
+      setHasInitiatedJoin(false);
+      wasInCallRef.current = true;
     }
-  }, [callingState]);
+  }, [call]);
+
+  const handleFeedbackSubmit = useCallback((rating: number) => {
+    console.log(rating);
+  }, []);
 
   if (view === 'lobby') {
     return <Lobby onJoin={onJoin} skipLobby={skipLobby} />;
@@ -80,6 +120,12 @@ const DefaultCallUI = ({ skipLobby = false }: DefaultCallUIProps) => {
 
   if (view === 'loading') {
     return <LoadingScreen />;
+  }
+
+  if (view === 'feedback') {
+    return (
+      <CallFeedback onSubmit={handleFeedbackSubmit} onRejoin={handleRejoin} />
+    );
   }
 
   const layoutConfig = Layouts[layout];
