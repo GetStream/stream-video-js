@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import clsx from 'clsx';
 import {
   useCallStateHooks,
@@ -14,11 +14,9 @@ import {
 } from '../../../components';
 import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
-import { LoadingScreen } from '../shared';
 
 export interface LobbyProps {
-  onJoin: (displayName?: string) => void;
-  skipLobby?: boolean;
+  onJoin: (displayName: string) => void;
   title?: string;
   subtitle?: string;
   joinLabel?: string;
@@ -27,13 +25,7 @@ export interface LobbyProps {
 /**
  * Lobby component - Device setup screen before joining a call.
  */
-export const Lobby = ({
-  onJoin,
-  skipLobby = false,
-  title,
-  subtitle,
-  joinLabel,
-}: LobbyProps) => {
+export const Lobby = ({ onJoin, title, subtitle, joinLabel }: LobbyProps) => {
   const { t } = useI18n();
   const user = useConnectedUser();
   const { useCameraState, useMicrophoneState, useCallSession } =
@@ -44,27 +36,16 @@ export const Lobby = ({
 
   const callSession = useCallSession();
   const [isJoining, setIsJoining] = useState(false);
-  const [displayName, setDisplayName] = useState(user?.name || '');
 
-  useEffect(() => {
-    if (!skipLobby) return;
-    const id = setTimeout(() => {
-      onJoin(displayName);
-    }, 500);
-    return () => {
-      clearTimeout(id);
-    };
-  }, [onJoin, skipLobby, displayName]);
+  const [displayNameOverride, setDisplayNameOverride] = useState<string | null>(
+    null,
+  );
 
-  useEffect(() => {
-    if (user?.name) {
-      setDisplayName(user.name);
-    }
-  }, [user?.name]);
+  const displayName = displayNameOverride ?? user?.name ?? '';
 
   const handleJoin = () => {
     setIsJoining(true);
-    onJoin(displayName);
+    onJoin(displayNameOverride ?? '');
   };
 
   const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
@@ -74,10 +55,6 @@ export const Lobby = ({
   const resolvedSubtitle =
     subtitle ??
     t('while our Edge Network is selecting the best server for your call...');
-
-  if (skipLobby) {
-    return <LoadingScreen />;
-  }
 
   return (
     <div className="str-video__embedded-lobby">
@@ -126,13 +103,13 @@ export const Lobby = ({
 
           <div className="str-video__embedded-display-name">
             <div className="str-video__embedded-display-name-label">
-              {t('Choose display name')}
+              {t('Display name')}
             </div>
             <input
               className="str-video__embedded-display-name-input str-video__embedded-input"
               type="text"
               value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
+              onChange={(e) => setDisplayNameOverride(e.target.value)}
               placeholder={t('Enter your name')}
               maxLength={25}
               autoFocus
