@@ -27,6 +27,7 @@ export const DominantSpeakerScreenShare = () => {
   const {
     options: {
       'layout.single-participant.presenter_visible': presenterVisible = true,
+      'layout.forceMirrorParticipants': forceMirrorParticipants,
     },
   } = useConfigurationContext();
 
@@ -47,6 +48,7 @@ export const DominantSpeakerScreenShare = () => {
         <div className="eca__dominant-speaker-screen-share__current-speaker">
           <ParticipantView
             participant={screensharingParticipant}
+            mirror={forceMirrorParticipants}
             muteAudio // audio is handled by <ParticipantsAudio />
             ParticipantViewUI={
               <DefaultParticipantViewUI

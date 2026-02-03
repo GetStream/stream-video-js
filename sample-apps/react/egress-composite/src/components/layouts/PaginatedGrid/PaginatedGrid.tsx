@@ -10,6 +10,7 @@ export const PaginatedGrid = () => {
   const {
     options: {
       'layout.grid.page_size': pageSize = 20,
+      'layout.forceMirrorParticipants': forceMirrorParticipants,
       'participant.filter': filterParticipants,
     },
   } = useConfigurationContext();
@@ -27,6 +28,7 @@ export const PaginatedGrid = () => {
         filterParticipants={filterParticipants}
         pageArrowsVisible={false}
         groupSize={pageSize}
+        mirrorLocalParticipantVideo={forceMirrorParticipants !== false}
       />
     </div>
   );
