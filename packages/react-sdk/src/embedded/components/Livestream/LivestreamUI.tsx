@@ -13,6 +13,7 @@ import { LoadingScreen } from '../shared';
 
 export type LivestreamUIProps = {
   skipLobby?: boolean;
+  onUserNameUpdate?: (name: string) => void;
 };
 
 export const LivestreamUI = ({ skipLobby = false }: LivestreamUIProps) => {

@@ -38,7 +38,7 @@ export const useInitializeVideoClient = ({
     const streamUser = createUser(user, effectiveUserType);
 
     try {
-      const _client = StreamVideoClient.getOrCreateInstance({
+      const _client = new StreamVideoClient({
         apiKey,
         user: streamUser,
         token: effectiveUserType === 'authenticated' ? token : undefined,

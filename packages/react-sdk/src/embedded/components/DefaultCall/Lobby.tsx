@@ -16,7 +16,7 @@ import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
 
 export interface LobbyProps {
-  onJoin: (displayName: string) => void;
+  onJoin: (displayName?: string) => void;
   title?: string;
   subtitle?: string;
   joinLabel?: string;
@@ -45,7 +45,7 @@ export const Lobby = ({ onJoin, title, subtitle, joinLabel }: LobbyProps) => {
 
   const handleJoin = () => {
     setIsJoining(true);
-    onJoin(displayNameOverride ?? '');
+    onJoin(displayName.trim());
   };
 
   const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;

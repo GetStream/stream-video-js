@@ -4,6 +4,7 @@ import {
   Restricted,
   useCall,
   useCallStateHooks,
+  useConnectedUser,
 } from '@stream-io/video-react-bindings';
 import {
   CallParticipantsList,
@@ -25,14 +26,15 @@ import { Layouts } from '../../layouts';
 import { Lobby } from './Lobby';
 import {
   CallHeader,
+  CameraMenuWithBlur,
   ConnectionNotification,
   LoadingScreen,
-  ToggleLayoutButton,
-  CameraMenuWithBlur,
   MicMenuWithNoiseCancellation,
+  ToggleLayoutButton,
 } from '../shared';
 import { CallFeedback } from '../CallFeedback';
 import { usePersistedDevicePreferences } from '../../../hooks';
+import type { CallTypeUIProps } from '../CallRouter';
 
 const DEVICE_PREFERENCES_KEY = '@stream-io/embedded-device-preferences';
 
@@ -45,8 +47,9 @@ const DEVICE_PREFERENCES_KEY = '@stream-io/embedded-device-preferences';
  */
 type ViewState = 'lobby' | 'loading' | 'active-call' | 'feedback';
 
-const DefaultCallUI = () => {
+const DefaultCallUI = ({ onJoin }: CallTypeUIProps) => {
   const call = useCall();
+  const connectedUser = useConnectedUser();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const [showParticipants, setShowParticipants] = useState(false);
@@ -77,20 +80,31 @@ const DefaultCallUI = () => {
     return 'lobby';
   })();
 
-  const onJoin = useCallback(async () => {
-    if (!call) return;
+  const handleJoin = useCallback(
+    async (displayName?: string) => {
+      const trimmedName = displayName?.trim();
+      const nameChanged = trimmedName && trimmedName !== connectedUser?.name;
 
-    setHasInitiatedJoin(true);
-
-    try {
-      if (call.state.callingState !== CallingState.JOINED) {
-        await call.join({ create: true });
+      if (nameChanged && onJoin) {
+        onJoin(trimmedName);
+        return;
       }
-    } catch (err) {
-      console.error('Failed to join call:', err);
-      setHasInitiatedJoin(false);
-    }
-  }, [call]);
+
+      if (!call) return;
+
+      setHasInitiatedJoin(true);
+
+      try {
+        if (call.state.callingState !== CallingState.JOINED) {
+          await call.join({ create: true });
+        }
+      } catch (err) {
+        console.error('Failed to join call:', err);
+        setHasInitiatedJoin(false);
+      }
+    },
+    [call, onJoin, connectedUser?.name],
+  );
 
   const handleRejoin = useCallback(async () => {
     if (!call) return;
@@ -123,7 +137,7 @@ const DefaultCallUI = () => {
   }, []);
 
   if (view === 'lobby') {
-    return <Lobby onJoin={onJoin} />;
+    return <Lobby onJoin={handleJoin} />;
   }
 
   if (view === 'loading') {

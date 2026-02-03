@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { RefObject, useEffect, useState } from 'react';
 import { Call, StreamVideoClient } from '@stream-io/video-client';
 
 export interface UseInitializeCallProps {
@@ -6,6 +6,7 @@ export interface UseInitializeCallProps {
   callType: string;
   callId: string;
   onError?: (error: Error) => void;
+  autoJoin: RefObject<boolean>;
 }
 
 /**
@@ -17,34 +18,28 @@ export const useInitializeCall = ({
   callType,
   callId,
   onError,
+  autoJoin,
 }: UseInitializeCallProps): Call | undefined => {
   const [call, setCall] = useState<Call>();
-  const initRef = useRef(false);
 
   useEffect(() => {
     if (!client || !callId) return;
 
-    if (initRef.current) return;
-    initRef.current = true;
-
     const _call = client.call(callType, callId);
 
-    _call
-      .get()
-      .then(() => {
-        setCall(_call);
-      })
+    const action = autoJoin.current ? _call.join() : _call.get();
+
+    action
+      .then(() => setCall(_call))
       .catch((error: Error) => {
-        console.error('Failed to get or create call:', error);
+        console.error('Failed to initialize call:', error);
         onError?.(error);
       });
-
     return () => {
-      initRef.current = false;
       setCall(undefined);
       _call.leave().catch((err) => console.error('Failed to leave call:', err));
     };
-  }, [client, callType, callId, onError]);
+  }, [client, callType, callId, onError, autoJoin]);
 
   return call;
 };
