@@ -19,6 +19,7 @@ export class ScreenShareManager extends AudioDeviceManager<
   }
 
   override setup(): void {
+    if (this.areSubscriptionsSetUp) return;
     super.setup();
     this.subscriptions.push(
       createSubscription(this.call.state.settings$, (settings) => {
