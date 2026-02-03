@@ -84,12 +84,10 @@ export const LivestreamUI = ({ skipLobby = false }: LivestreamUIProps) => {
     );
   }
 
-  // Joining - show loading
   if (callingState === CallingState.JOINING) {
     return <LoadingScreen message="Joining" />;
   }
 
-  // Joined but not live - show backstage (if host) or waiting (if viewer)
   if (callingState === CallingState.JOINED && !isLive) {
     return hasHostCapabilities ? (
       <HostLiveControls onGoLive={handleGoLive} onLeave={handleLeave} />
@@ -98,16 +96,13 @@ export const LivestreamUI = ({ skipLobby = false }: LivestreamUIProps) => {
     );
   }
 
-  // Joined and live - show the livestream
   if (callingState === CallingState.JOINED && isLive) {
     return <LivestreamView onStopLive={handleStopLive} />;
   }
 
-  // Left - show ended screen
   if (callingState === CallingState.LEFT) {
     return <StreamEndedScreen onRejoin={handleJoin} />;
   }
 
-  // Fallback loading for any other state
   return <LoadingScreen />;
 };
