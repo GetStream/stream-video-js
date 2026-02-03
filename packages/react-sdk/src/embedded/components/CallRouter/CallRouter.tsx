@@ -23,18 +23,17 @@ const CallTypeComponents: Record<string, ComponentType<CallTypeUIProps>> = {
 
 export interface CallRouterProps {
   callType: string;
-  skipLobby?: boolean;
 }
 
 /**
  * Routes to the appropriate UI based on call type.
  */
-export function CallRouter({ callType, skipLobby }: CallRouterProps) {
+export function CallRouter({ callType }: CallRouterProps) {
   const Component = CallTypeComponents[callType] ?? CallTypeComponents.default;
 
   return (
     <Suspense fallback={<LoadingScreen />}>
-      <Component skipLobby={skipLobby} />
+      <Component />
     </Suspense>
   );
 }

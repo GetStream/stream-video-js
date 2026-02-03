@@ -26,7 +26,6 @@ export const EmbeddedStreamClient = ({
   token,
   tokenProvider,
   userType,
-  skipLobby = false,
   logLevel,
   onError,
   style,
@@ -65,7 +64,7 @@ export const EmbeddedStreamClient = ({
           {noiseCancellation && (
             <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
               <StreamTheme style={style}>
-                <CallRouter callType={callType} skipLobby={skipLobby} />
+                <CallRouter callType={callType} />
               </StreamTheme>
             </NoiseCancellationProvider>
           )}

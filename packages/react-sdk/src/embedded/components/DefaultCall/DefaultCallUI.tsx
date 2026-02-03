@@ -36,10 +36,6 @@ import { usePersistedDevicePreferences } from '../../../hooks';
 
 const DEVICE_PREFERENCES_KEY = '@stream-io/embedded-device-preferences';
 
-type DefaultCallUIProps = {
-  skipLobby?: boolean;
-};
-
 /**
  * Derives the current view from callingState and user intent.
  * - 'lobby': User hasn't initiated join yet
@@ -49,7 +45,7 @@ type DefaultCallUIProps = {
  */
 type ViewState = 'lobby' | 'loading' | 'active-call' | 'feedback';
 
-const DefaultCallUI = ({ skipLobby = false }: DefaultCallUIProps) => {
+const DefaultCallUI = () => {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -127,7 +123,7 @@ const DefaultCallUI = ({ skipLobby = false }: DefaultCallUIProps) => {
   }, []);
 
   if (view === 'lobby') {
-    return <Lobby onJoin={onJoin} skipLobby={skipLobby} />;
+    return <Lobby onJoin={onJoin} />;
   }
 
   if (view === 'loading') {
