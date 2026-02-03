@@ -28,11 +28,16 @@ export interface LobbyProps {
 export const Lobby = ({ onJoin, title, subtitle, joinLabel }: LobbyProps) => {
   const { t } = useI18n();
   const user = useConnectedUser();
-  const { useCameraState, useMicrophoneState, useCallSession } =
-    useCallStateHooks();
+  const {
+    useCameraState,
+    useMicrophoneState,
+    useCallSession,
+    useCallSettings,
+  } = useCallStateHooks();
   const { isMute: isCameraMute } = useCameraState();
   const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
   const { hasBrowserPermission: hasCameraPermission } = useCameraState();
+  const settings = useCallSettings();
 
   const callSession = useCallSession();
   const [isJoining, setIsJoining] = useState(false);
@@ -50,6 +55,7 @@ export const Lobby = ({ onJoin, title, subtitle, joinLabel }: LobbyProps) => {
 
   const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
   const hasOtherParticipants = (callSession?.participants?.length || 0) > 0;
+  const isVideoEnabled = settings?.video.enabled ?? true;
 
   const resolvedTitle = title ?? t('Set up your call before joining');
   const resolvedSubtitle =
@@ -89,14 +95,14 @@ export const Lobby = ({ onJoin, title, subtitle, joinLabel }: LobbyProps) => {
               />
               <div className="str-video__embedded-lobby-media-toggle">
                 <ToggleAudioPreviewButton Menu={null} />
-                <ToggleVideoPreviewButton Menu={null} />
+                {isVideoEnabled && <ToggleVideoPreviewButton Menu={null} />}
               </div>
             </div>
 
             <div className="str-video__embedded-lobby-controls">
               <div className="str-video__embedded-lobby-media">
                 <ToggleMicButton />
-                <ToggleCameraButton />
+                {isVideoEnabled && <ToggleCameraButton />}
               </div>
             </div>
           </div>
