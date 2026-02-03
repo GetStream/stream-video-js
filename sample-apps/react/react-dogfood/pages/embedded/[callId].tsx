@@ -9,8 +9,8 @@ export default function EmbeddedPage(props: ServerSideCredentialsProps) {
   const { apiKey, userToken, user } = props;
   const router = useRouter();
 
-  const callId = router.query.callId as string;
-  const callType = (router.query.type as string) || 'default';
+  const callId = router.query.callId;
+  const callType = router.query.type;
   const skipLobby = router.query.skipLobby === 'true';
 
   return (
