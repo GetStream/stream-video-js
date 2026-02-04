@@ -7,7 +7,6 @@ import { HostLiveControls } from './HostLiveControls';
 import { ViewerLobby } from './ViewerLobby';
 import { ViewerWaitingForLive } from './ViewerWaitingForLive';
 import { LivestreamView } from './LivestreamView';
-import { ConnectionErrorScreen } from './ConnectionErrorScreen';
 import { StreamEndedScreen } from './StreamEndedScreen';
 import { LoadingScreen } from '../shared';
 import { useCanJoinEarly } from '../../hooks';
@@ -69,23 +68,6 @@ export const LivestreamUI = () => {
     call?.leave();
   }, [call]);
 
-  const handleRetry = useCallback(() => {
-    handleJoin();
-  }, [handleJoin]);
-
-  if (
-    callingState === CallingState.RECONNECTING ||
-    callingState === CallingState.RECONNECTING_FAILED ||
-    callingState === CallingState.OFFLINE
-  ) {
-    return (
-      <ConnectionErrorScreen
-        callingState={callingState}
-        onRetry={handleRetry}
-      />
-    );
-  }
-
   if (
     callingState === CallingState.IDLE ||
     callingState === CallingState.UNKNOWN
@@ -109,7 +91,7 @@ export const LivestreamUI = () => {
   }
 
   if (callingState === CallingState.JOINING) {
-    return <LoadingScreen message="Joining" />;
+    return <LoadingScreen />;
   }
 
   if (callingState === CallingState.JOINED) {

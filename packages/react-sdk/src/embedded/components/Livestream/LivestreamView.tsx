@@ -19,7 +19,6 @@ export type LivestreamViewProps = {
 
 export const LivestreamView = ({ onStopLive }: LivestreamViewProps) => {
   const { useHasPermissions } = useCallStateHooks();
-  // Hosts have JOIN_BACKSTAGE capability - use this for UI decisions
   const isHost = useHasPermissions(OwnCapability.JOIN_BACKSTAGE);
 
   return (
