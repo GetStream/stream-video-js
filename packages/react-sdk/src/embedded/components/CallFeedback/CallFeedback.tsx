@@ -1,9 +1,8 @@
 import { useCallback, useState } from 'react';
 
 export interface CallFeedbackProps {
-  onSubmit?: (rating: number) => void;
   onSkip?: () => void;
-  onRejoin?: () => void;
+  onJoin?: () => void;
 }
 
 type FeedbackState = 'rating' | 'submitted' | 'skipped';
@@ -157,20 +156,13 @@ const RatingScreen = ({ onSubmit, onSkip, onRejoin }: RatingScreenProps) => {
   );
 };
 
-export const CallFeedback = ({
-  onSubmit,
-  onSkip,
-  onRejoin,
-}: CallFeedbackProps) => {
+export const CallFeedback = ({ onSkip, onJoin }: CallFeedbackProps) => {
   const [state, setState] = useState<FeedbackState>('rating');
 
-  const handleSubmit = useCallback(
-    (rating: number) => {
-      onSubmit?.(rating);
-      setState('submitted');
-    },
-    [onSubmit],
-  );
+  const handleSubmit = useCallback((rating: number) => {
+    console.log(rating);
+    setState('submitted');
+  }, []);
 
   const handleSkip = useCallback(() => {
     onSkip?.();
@@ -181,13 +173,13 @@ export const CallFeedback = ({
     case 'submitted':
       return <ThankYouScreen />;
     case 'skipped':
-      return <CallEndedScreen onRejoin={onRejoin} />;
+      return <CallEndedScreen onRejoin={onJoin} />;
     default:
       return (
         <RatingScreen
           onSubmit={handleSubmit}
           onSkip={handleSkip}
-          onRejoin={onRejoin}
+          onRejoin={onJoin}
         />
       );
   }
