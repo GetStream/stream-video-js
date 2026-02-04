@@ -53,18 +53,12 @@ export const Lobby = ({ onJoin, title, subtitle, joinLabel }: LobbyProps) => {
   const isVideoEnabled = settings?.video.enabled ?? true;
 
   const resolvedTitle = title ?? t('Set up your call before joining');
-  const resolvedSubtitle =
-    subtitle ??
-    t('while our Edge Network is selecting the best server for your call...');
 
   return (
     <div className="str-video__embedded-lobby">
       <div className="str-video__embedded-lobby-container">
         <div className="str-video__embedded-lobby-content">
           <h1 className="str-video__embedded-lobby-heading">{resolvedTitle}</h1>
-          <p className="str-video__embedded-lobby-heading__description">
-            {resolvedSubtitle}
-          </p>
 
           <div
             className={clsx(
@@ -106,9 +100,9 @@ export const Lobby = ({ onJoin, title, subtitle, joinLabel }: LobbyProps) => {
             <div className="str-video__embedded-display-name-label">
               {t('Display name')}
             </div>
-            <div className="str-video__embedded-display-name-input str-video__embedded-input">
+            <span className="str-video__embedded-display-name-value">
               {displayName}
-            </div>
+            </span>
 
             <button
               className={clsx(

@@ -40,8 +40,10 @@
   background-color: #1d29380f;
   border: 1px solid #ffffff08;
 
-  &-label {
+  &-value {
     color: var(--str-video__text-color2);
+    margin-bottom: 10px;
+    display: block;
   }
 
   &-input {

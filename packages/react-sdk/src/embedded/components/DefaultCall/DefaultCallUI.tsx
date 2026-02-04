@@ -51,16 +51,20 @@ const DefaultCallUI = () => {
     }
   }, [call]);
 
-  if (!skipLobby && callingState === CallingState.IDLE) {
+  if (
+    !skipLobby &&
+    (callingState === CallingState.IDLE ||
+      callingState === CallingState.UNKNOWN)
+  ) {
     return <Lobby onJoin={handleJoin} />;
-  }
-
-  if (callingState === CallingState.LEFT) {
-    return <CallFeedback onJoin={handleJoin} />;
   }
 
   if (callingState === CallingState.JOINING && !localParticipant) {
     return <LoadingScreen />;
+  }
+
+  if (callingState === CallingState.LEFT) {
+    return <CallFeedback onJoin={handleJoin} />;
   }
 
   return <ActiveCall />;
