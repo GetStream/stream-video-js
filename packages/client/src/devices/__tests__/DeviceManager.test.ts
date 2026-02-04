@@ -55,6 +55,7 @@ class TestInputMediaDeviceManager extends DeviceManager<TestInputMediaDeviceMana
         mockBrowserPermission,
       ),
       TrackType.VIDEO,
+      { enabled: false, storageKey: '' },
     );
   }
 }

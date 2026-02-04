@@ -61,6 +61,7 @@ vi.mock('../../helpers/RNSpeechDetector.ts', () => {
 describe('MicrophoneManager React Native', () => {
   let manager: MicrophoneManager;
   beforeEach(() => {
+    const devicePersistence = { enabled: false, storageKey: '' };
     manager = new MicrophoneManager(
       new Call({
         id: '',
@@ -68,6 +69,7 @@ describe('MicrophoneManager React Native', () => {
         streamClient: new StreamClient('abc123'),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
+      devicePersistence,
     );
   });
 
@@ -84,7 +86,7 @@ describe('MicrophoneManager React Native', () => {
 
   it(`should stop sound detection if mic is enabled`, async () => {
     manager.state.setSpeakingWhileMuted(true);
-    manager['soundDetectorCleanup'] = () => {};
+    manager['soundDetectorCleanup'] = async () => {};
 
     await manager.enable();
 

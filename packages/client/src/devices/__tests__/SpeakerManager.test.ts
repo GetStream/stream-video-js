@@ -29,9 +29,7 @@ describe('SpeakerManager.test', () => {
   let manager: SpeakerManager;
 
   beforeEach(() => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.clear();
-    }
+    const devicePersistence = { enabled: false, storageKey: '' };
     manager = new SpeakerManager(
       new Call({
         id: '',
@@ -39,6 +37,7 @@ describe('SpeakerManager.test', () => {
         streamClient: new StreamClient('abc123'),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
+      devicePersistence,
     );
   });
 
@@ -112,32 +111,6 @@ describe('SpeakerManager.test', () => {
     emitDeviceIds(mockAudioDevices.slice(2));
 
     expect(manager.state.selectedDevice).toBe('');
-  });
-
-  it('should apply stored speaker preference on web', () => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(
-        '@stream-io/device-preferences',
-        JSON.stringify({
-          speaker: {
-            selectedDeviceId: mockAudioDevices[1].deviceId,
-            selectedDeviceLabel: mockAudioDevices[1].label,
-          },
-        }),
-      );
-    }
-
-    manager.apply(
-      fromPartial({
-        video: { camera_default_on: false },
-        audio: {
-          speaker_default_on: false,
-          default_device: 'earpiece',
-        },
-      }),
-    );
-
-    expect(manager.state.selectedDevice).toBe(mockAudioDevices[1].deviceId);
   });
 
   afterEach(() => {

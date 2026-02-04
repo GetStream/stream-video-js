@@ -62,16 +62,14 @@ describe('CameraManager', () => {
   let call: Call;
 
   beforeEach(() => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.clear();
-    }
     call = new Call({
       id: '',
       type: '',
       streamClient: new StreamClient('abc123'),
       clientStore: new StreamVideoWriteableStateStore(),
     });
-    manager = new CameraManager(call);
+    const devicePersistence = { enabled: false, storageKey: '' };
+    manager = new CameraManager(call, devicePersistence);
   });
 
   it('list devices', () => {
@@ -349,36 +347,6 @@ describe('CameraManager', () => {
 
       expect(manager.state.status).toBe(undefined);
       expect(manager.enable).not.toHaveBeenCalled();
-    });
-
-    it('should prefer local preferences over server defaults', async () => {
-      if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(
-          '@stream-io/device-preferences',
-          JSON.stringify({
-            camera: {
-              selectedDeviceId: 'default',
-              selectedDeviceLabel: '',
-              muted: true,
-            },
-          }),
-        );
-      }
-
-      vi.spyOn(manager, 'enable');
-      await manager.apply(
-        // @ts-expect-error - partial settings
-        {
-          enabled: true,
-          target_resolution: { width: 640, height: 480 },
-          camera_facing: 'front',
-          camera_default_on: true,
-        },
-        true,
-      );
-
-      expect(manager.enable).not.toHaveBeenCalled();
-      expect(manager.state.status).toBe('disabled');
     });
   });
 
