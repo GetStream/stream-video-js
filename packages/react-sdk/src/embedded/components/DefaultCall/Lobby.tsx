@@ -18,14 +18,13 @@ import { ToggleCameraButton } from './ToggleCameraButton';
 export interface LobbyProps {
   onJoin: (displayName?: string) => void;
   title?: string;
-  subtitle?: string;
   joinLabel?: string;
 }
 
 /**
  * Lobby component - Device setup screen before joining a call.
  */
-export const Lobby = ({ onJoin, title, subtitle, joinLabel }: LobbyProps) => {
+export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const { t } = useI18n();
   const user = useConnectedUser();
   const {
@@ -45,7 +44,7 @@ export const Lobby = ({ onJoin, title, subtitle, joinLabel }: LobbyProps) => {
 
   const handleJoin = () => {
     setIsJoining(true);
-    onJoin(displayName.trim());
+    onJoin();
   };
 
   const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;

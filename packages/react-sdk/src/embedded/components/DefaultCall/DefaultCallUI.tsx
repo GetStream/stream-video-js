@@ -14,15 +14,14 @@ import { LoadingScreen } from '../shared';
  * based on calling state and user actions.
  */
 const DefaultCallUI = () => {
-  const { skipLobby } = useEmbeddedConfiguration();
   const call = useCall();
 
+  const { skipLobby } = useEmbeddedConfiguration();
   const { useCallCallingState, useLocalParticipant } = useCallStateHooks();
-  const callingState = useCallCallingState();
   const localParticipant = useLocalParticipant();
+  const callingState = useCallCallingState();
 
   const hasAutoJoinedRef = useRef(false);
-
   useEffect(() => {
     if (!call) return;
 

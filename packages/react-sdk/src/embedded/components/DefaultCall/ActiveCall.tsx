@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted } from '@stream-io/video-react-bindings';
+import { Restricted, useI18n } from '@stream-io/video-react-bindings';
 import {
   CallParticipantsList,
   CancelCallButton,
@@ -30,6 +30,7 @@ import {
  * It handles local UI state (sidebar, link copied).
  */
 export const ActiveCall = () => {
+  const { t } = useI18n();
   const [showParticipants, setShowParticipants] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
 
@@ -80,10 +81,10 @@ export const ActiveCall = () => {
                 </div>
                 <div className="str-video__embedded-invite-section">
                   <h4 className="str-video__embedded-invite-section__title">
-                    Share the link
+                    {t('Share the link')}
                   </h4>
                   <p className="str-video__embedded-invite-section__description">
-                    Click the button below to copy the call link:
+                    {t('Click the button below to copy the call link:')}
                   </p>
                   <button
                     type="button"
@@ -91,7 +92,7 @@ export const ActiveCall = () => {
                     onClick={handleCopyInviteLink}
                   >
                     <Icon icon="link-copy" />
-                    {linkCopied ? 'Link copied!' : 'Copy invite link'}
+                    {linkCopied ? t('Link copied!') : t('Copy invite link')}
                   </button>
                 </div>
               </div>
@@ -139,7 +140,7 @@ export const ActiveCall = () => {
             <CancelCallButton />
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--sidebar">
-            <WithTooltip title="Participants">
+            <WithTooltip title={t('Participants')}>
               <CompositeButton
                 active={showParticipants}
                 onClick={() => setShowParticipants(!showParticipants)}
