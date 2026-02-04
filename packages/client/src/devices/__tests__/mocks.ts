@@ -96,10 +96,6 @@ export const mockCall = (): Partial<Call> => {
   );
   return {
     state: callState,
-    devicePreferences: {
-      enabled: true,
-      storageKey: '@stream-io/device-preferences',
-    },
     publish: vi.fn(),
     stopPublish: vi.fn(),
     notifyNoiseCancellationStarting: vi.fn().mockResolvedValue(undefined),
