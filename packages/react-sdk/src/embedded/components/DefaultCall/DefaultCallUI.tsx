@@ -2,15 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CallingState } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
-import { useWakeLock } from '../../hooks';
 import { Lobby } from './Lobby';
 import { LoadingScreen } from '../shared';
 import { CallFeedback } from '../CallFeedback';
-import { usePersistedDevicePreferences } from '../../../hooks';
 import { useEmbeddedConfiguration } from '../../context';
 import { ActiveCall } from './ActiveCall';
-
-const DEVICE_PREFERENCES_KEY = '@stream-io/embedded-device-preferences';
 
 type ViewState = 'lobby' | 'loading' | 'active-call' | 'feedback';
 
@@ -28,9 +24,6 @@ const DefaultCallUI = () => {
   const [hasInitiatedJoin, setHasInitiatedJoin] = useState(false);
   const wasInCallRef = useRef(false);
   const hasAutoJoinedRef = useRef(false);
-
-  usePersistedDevicePreferences(DEVICE_PREFERENCES_KEY);
-  useWakeLock();
 
   useEffect(() => {
     const canAutoJoin =
