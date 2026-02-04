@@ -33,7 +33,7 @@ import {
 } from '../shared';
 import { CallFeedback } from '../CallFeedback';
 import { usePersistedDevicePreferences } from '../../../hooks';
-import type { CallTypeUIProps } from '../CallRouter';
+import { useEmbeddedConfiguration } from '../../context';
 
 const DEVICE_PREFERENCES_KEY = '@stream-io/embedded-device-preferences';
 
@@ -46,7 +46,8 @@ const DEVICE_PREFERENCES_KEY = '@stream-io/embedded-device-preferences';
  */
 type ViewState = 'lobby' | 'loading' | 'active-call' | 'feedback';
 
-const DefaultCallUI = ({ skipLobby }: CallTypeUIProps) => {
+const DefaultCallUI = () => {
+  const { skipLobby } = useEmbeddedConfiguration();
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();

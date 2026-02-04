@@ -11,12 +11,10 @@ import { ConnectionErrorScreen } from './ConnectionErrorScreen';
 import { StreamEndedScreen } from './StreamEndedScreen';
 import { LoadingScreen } from '../shared';
 import { useCanJoinEarly } from '../../hooks';
+import { useEmbeddedConfiguration } from '../../context';
 
-export type LivestreamUIProps = {
-  skipLobby?: boolean;
-};
-
-export const LivestreamUI = ({ skipLobby = false }: LivestreamUIProps) => {
+export const LivestreamUI = () => {
+  const { skipLobby } = useEmbeddedConfiguration();
   const call = useCall();
   const {
     useCallCallingState,
@@ -93,7 +91,7 @@ export const LivestreamUI = ({ skipLobby = false }: LivestreamUIProps) => {
     callingState === CallingState.UNKNOWN
   ) {
     if (hasHostCapabilities) {
-      return <HostBackstage onJoin={handleJoin} skipLobby={skipLobby} />;
+      return <HostBackstage onJoin={handleJoin} />;
     }
 
     if (skipLobby || isInWaitingRoom) {
@@ -105,7 +103,6 @@ export const LivestreamUI = ({ skipLobby = false }: LivestreamUIProps) => {
     return (
       <ViewerLobby
         onJoin={canViewerJoin ? handleJoin : () => setIsInWaitingRoom(true)}
-        skipLobby={false}
         isLive={isLive}
       />
     );

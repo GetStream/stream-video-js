@@ -12,6 +12,7 @@ import {
   useInitializeCall,
   useNoiseCancellationLoader,
 } from '../../hooks';
+import { ConfigurationProvider } from '../../context';
 import { CallRouter } from '../CallRouter';
 
 /**
@@ -61,15 +62,17 @@ export const EmbeddedStreamClient = ({
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <BackgroundFiltersProvider SuspenseFallback={<LoadingScreen />}>
-          {noiseCancellation && (
-            <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
-              <StreamTheme style={style}>
-                <CallRouter callType={callType} skipLobby={skipLobby} />
-              </StreamTheme>
-            </NoiseCancellationProvider>
-          )}
-        </BackgroundFiltersProvider>
+        <ConfigurationProvider skipLobby={skipLobby}>
+          <BackgroundFiltersProvider SuspenseFallback={<LoadingScreen />}>
+            {noiseCancellation && (
+              <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
+                <StreamTheme style={style}>
+                  <CallRouter callType={callType} />
+                </StreamTheme>
+              </NoiseCancellationProvider>
+            )}
+          </BackgroundFiltersProvider>
+        </ConfigurationProvider>
       </StreamCall>
     </StreamVideo>
   );

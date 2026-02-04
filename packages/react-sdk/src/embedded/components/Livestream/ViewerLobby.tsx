@@ -3,22 +3,13 @@ import { Lobby } from '../DefaultCall/Lobby';
 
 export type ViewerLobbyProps = {
   onJoin: () => void;
-  skipLobby?: boolean;
   isLive?: boolean;
 };
 
-export const ViewerLobby = ({
-  onJoin,
-  skipLobby = false,
-  isLive = false,
-}: ViewerLobbyProps) => {
+export const ViewerLobby = ({ onJoin, isLive = false }: ViewerLobbyProps) => {
   const { t } = useI18n();
   const { useCallStartsAt } = useCallStateHooks();
   const startsAt = useCallStartsAt();
-
-  if (skipLobby) {
-    return null;
-  }
 
   const getSubtitle = () => {
     if (isLive) return t('The stream is live!');

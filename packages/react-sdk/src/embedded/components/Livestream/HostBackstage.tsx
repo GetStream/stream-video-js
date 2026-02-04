@@ -1,17 +1,15 @@
 import { useEffect, useRef } from 'react';
 import { useI18n } from '@stream-io/video-react-bindings';
 import { Lobby } from '../DefaultCall/Lobby';
+import { useEmbeddedConfiguration } from '../../context';
 
 export type HostBackstageProps = {
   onJoin: () => void;
-  skipLobby?: boolean;
 };
 
-export const HostBackstage = ({
-  onJoin,
-  skipLobby = false,
-}: HostBackstageProps) => {
+export const HostBackstage = ({ onJoin }: HostBackstageProps) => {
   const { t } = useI18n();
+  const { skipLobby } = useEmbeddedConfiguration();
   const hasInitiatedJoin = useRef(false);
 
   useEffect(() => {

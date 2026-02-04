@@ -3,29 +3,21 @@ import { LivestreamUI } from '../Livestream';
 import { DefaultCallUI } from '../DefaultCall';
 
 /**
- * Props passed to call type UI components.
- */
-export interface CallTypeUIProps {
-  skipLobby?: boolean;
-}
-
-/**
  * Call UI components mapped by call type.
  */
-const CallTypeComponents: Record<string, ComponentType<CallTypeUIProps>> = {
+const CallTypeComponents: Record<string, ComponentType> = {
   livestream: LivestreamUI,
   default: DefaultCallUI,
 };
 
 export interface CallRouterProps {
   callType: string;
-  skipLobby?: boolean;
 }
 
 /**
  * Routes to the appropriate UI based on call type.
  */
-export function CallRouter({ callType, skipLobby }: CallRouterProps) {
+export function CallRouter({ callType }: CallRouterProps) {
   const Component = CallTypeComponents[callType] ?? CallTypeComponents.default;
-  return <Component skipLobby={skipLobby} />;
+  return <Component />;
 }
