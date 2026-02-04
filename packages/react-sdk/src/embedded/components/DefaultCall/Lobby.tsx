@@ -70,7 +70,10 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
                 DisabledVideoPreview={() => (
                   <div className="str-video__embedded-lobby__no-permission">
                     {hasBrowserMediaPermission ? (
-                      <Avatar name={displayName || user?.id} />
+                      <Avatar
+                        imageSrc={user?.image}
+                        name={displayName || user?.id}
+                      />
                     ) : (
                       <p>
                         {t(
