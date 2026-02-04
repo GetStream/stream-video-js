@@ -8,6 +8,7 @@ import {
   Call,
   MemberResponse,
   StreamVideoParticipant,
+  videoLoggerSystem,
 } from '@stream-io/video-client';
 import { waitForAudioSessionActivation } from './audioSessionPromise';
 
@@ -71,16 +72,23 @@ export async function startCallingxCall(call: Call) {
       call.state.participants,
       call.currentUserId,
     );
-    await CallingxModule.startCall(
-      call.cid, // unique id for call
-      call.id, // phone number for display in dialer (we use call id as phone number)
-      callDisplayName, // display name for display in call screen
-      call.state.settings?.video?.enabled ?? false, // is video call?
-    );
 
-    // Wait for audio session activation on iOS only
-    if (Platform.OS === 'ios') {
-      await waitForAudioSessionActivation();
+    try {
+      await CallingxModule.startCall(
+        call.cid, // unique id for call
+        call.id, // phone number for display in dialer (we use call id as phone number)
+        callDisplayName, // display name for display in call screen
+        call.state.settings?.video?.enabled ?? false, // is video call?
+      );
+
+      // Wait for audio session activation on iOS only
+      if (Platform.OS === 'ios') {
+        await waitForAudioSessionActivation();
+      }
+    } catch (error) {
+      videoLoggerSystem
+        .getLogger('startCallingxCall')
+        .error(`Error starting call in callingx: ${call.cid}`, error);
     }
   }
 }
@@ -89,5 +97,12 @@ export async function endCallingxCall(call: Call) {
   if (!CallingxModule || !CallingxModule.isCallRegistered(call.cid)) {
     return;
   }
-  await CallingxModule.endCallWithReason(call.cid, 'local');
+
+  try {
+    await CallingxModule.endCallWithReason(call.cid, 'local');
+  } catch (error) {
+    videoLoggerSystem
+      .getLogger('endCallingxCall')
+      .error(`Error ending call in callingx: ${call.cid}`, error);
+  }
 }

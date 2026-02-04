@@ -757,19 +757,20 @@ export class Call {
     members_limit?: number;
     video?: boolean;
   }): Promise<GetCallResponse> => {
-    if (params?.ring) {
-      this.ringingSubject.next(true);
-    }
-
     await this.setup();
 
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
       params,
     );
+
     this.state.updateFromCallResponse(response.call);
     this.state.setMembers(response.members);
     this.state.setOwnCapabilities(response.own_capabilities);
+
+    if (params?.ring) {
+      this.ringingSubject.next(true);
+    }
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
@@ -787,10 +788,6 @@ export class Call {
    * @param data the data to create the call with.
    */
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
-    if (data?.ring) {
-      this.ringingSubject.next(true);
-    }
-
     await this.setup();
 
     const response = await this.streamClient.post<
@@ -801,6 +798,10 @@ export class Call {
     this.state.updateFromCallResponse(response.call);
     this.state.setMembers(response.members);
     this.state.setOwnCapabilities(response.own_capabilities);
+
+    if (data?.ring) {
+      this.ringingSubject.next(true);
+    }
 
     if (this.streamClient._hasConnectionID()) {
       this.watching = true;
@@ -905,14 +906,13 @@ export class Call {
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
-    if (data.ring) {
-      this.ringingSubject.next(true);
-    }
+
     const callingX = globalThis.streamRNVideoSDK?.callingX;
     if (callingX) {
       // for Android/iOS, we need to start the call in the callingx library as soon as possible
       await callingX.startCall(this);
     }
+
     await this.setup();
 
     try {

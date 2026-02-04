@@ -366,7 +366,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         if (!isHeadlessTaskRegistered) {
             debugLog(
                     TAG,
-                    "[module] startBackgroundTaskAutomatically: Headless task registered, starting automatically"
+                    "[module] startBackgroundTaskAutomatically: Headless task is not registered"
             )
             return
         }

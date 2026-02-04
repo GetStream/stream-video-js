@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.core.telecom.CallAttributesCompat
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -20,12 +21,15 @@ class LegacyCallRepository(context: Context) : CallRepository(context) {
         private const val TAG = "[Callingx] LegacyCallRepository"
     }
 
+    private var observeCallStateJob: Job? = null
+
     override fun getTag(): String = TAG
 
     override fun setListener(listener: Listener?) {
         this._listener = listener
         // Observe call state changes
-        scope.launch { 
+        observeCallStateJob?.cancel()
+        observeCallStateJob = scope.launch {
             try {
                 currentCall.collect { _listener?.onCallStateChanged(it) }
             } catch (e: Exception) {
@@ -37,6 +41,8 @@ class LegacyCallRepository(context: Context) : CallRepository(context) {
     override fun release() {
         _currentCall.value = Call.None
 
+        observeCallStateJob?.cancel()
+        observeCallStateJob = null
         _listener = null
 
         scope.cancel()
