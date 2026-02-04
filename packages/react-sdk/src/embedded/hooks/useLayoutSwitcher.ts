@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { LayoutOption } from '../types';
+import { useEmbeddedConfiguration } from '../context';
 
 const SETTINGS_KEY = '@stream-io/embedded/layout-settings';
-const DEFAULT_LAYOUT: LayoutOption = 'SpeakerLeft';
 
 const VALID_LAYOUTS: LayoutOption[] = [
   'PaginatedGrid',
@@ -40,14 +40,15 @@ export interface UseLayoutSwitcherProps {
 /**
  * Hook to manage layout selection with localStorage persistence.
  * Automatically switches to Speaker layout when screen share is active.
+ * Uses layout from configuration context as default if no initialLayout is provided.
  */
-export const useLayoutSwitcher = ({
-  initialLayout,
-}: UseLayoutSwitcherProps = {}) => {
+export const useLayoutSwitcher = ({}: UseLayoutSwitcherProps = {}) => {
+  const { layout: defaultLayout } = useEmbeddedConfiguration();
+
   const [layout, setLayoutState] = useState<LayoutOption>(() => {
     const layoutToUse =
-      initialLayout || getLayoutSettings()?.selectedLayout || DEFAULT_LAYOUT;
-    return isValidLayout(layoutToUse) ? layoutToUse : DEFAULT_LAYOUT;
+      defaultLayout || getLayoutSettings()?.selectedLayout || 'SpeakerBottom';
+    return isValidLayout(layoutToUse) ? layoutToUse : 'SpeakerBottom';
   });
 
   const { useHasOngoingScreenShare } = useCallStateHooks();
@@ -63,9 +64,11 @@ export const useLayoutSwitcher = ({
     }
 
     const storedLayout =
-      initialLayout ?? getLayoutSettings()?.selectedLayout ?? DEFAULT_LAYOUT;
-    setLayoutState(isValidLayout(storedLayout) ? storedLayout : DEFAULT_LAYOUT);
-  }, [hasScreenShare, initialLayout]);
+      defaultLayout ?? getLayoutSettings()?.selectedLayout ?? 'SpeakerBottom';
+    setLayoutState(
+      isValidLayout(storedLayout) ? storedLayout : 'SpeakerBottom',
+    );
+  }, [hasScreenShare, defaultLayout]);
 
   const setLayout = useCallback((newLayout: LayoutOption) => {
     setLayoutState(newLayout);

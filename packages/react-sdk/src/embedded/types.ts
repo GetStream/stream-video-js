@@ -50,6 +50,7 @@ export interface EmbeddedStreamClientProps {
   userType?: UserType;
   logLevel?: LogLevel;
   skipLobby?: boolean;
+  layout?: LayoutOption;
   onError?: (error: Error) => void;
   style?: CSSProperties;
 }

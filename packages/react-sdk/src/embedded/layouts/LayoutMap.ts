@@ -35,14 +35,14 @@ export const Layouts: Record<LayoutOption, LayoutConfig> = {
   },
   SpeakerTop: {
     Component: SpeakerLayout,
-    titleKey: 'Speaker (bottom)',
-    icon: 'layout-speaker-bottom',
+    titleKey: 'Speaker (top)',
+    icon: 'layout-speaker-top',
     props: { participantsBarPosition: 'top' },
   },
   SpeakerBottom: {
     Component: SpeakerLayout,
-    titleKey: 'Speaker (top)',
-    icon: 'layout-speaker-top',
+    titleKey: 'Speaker (bottom)',
+    icon: 'layout-speaker-bottom',
     props: { participantsBarPosition: 'bottom' },
   },
 };

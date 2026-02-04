@@ -1,14 +1,17 @@
 import { createContext, useContext, useMemo, PropsWithChildren } from 'react';
+import type { LayoutOption } from '../types';
 
 export interface EmbeddedConfiguration {
   /**
    * Skip the lobby/device setup screen and auto-join.
    */
   skipLobby: boolean;
+  layout: LayoutOption;
 }
 
 const defaultConfiguration: EmbeddedConfiguration = {
   skipLobby: false,
+  layout: 'SpeakerBottom',
 };
 
 const ConfigurationContext =
@@ -16,13 +19,15 @@ const ConfigurationContext =
 
 export interface ConfigurationProviderProps {
   skipLobby?: boolean;
+  layout?: LayoutOption;
 }
 
 export const ConfigurationProvider = ({
   children,
   skipLobby = false,
+  layout = 'SpeakerTop',
 }: PropsWithChildren<ConfigurationProviderProps>) => {
-  const value = useMemo(() => ({ skipLobby }), [skipLobby]);
+  const value = useMemo(() => ({ skipLobby, layout }), [skipLobby, layout]);
 
   return (
     <ConfigurationContext.Provider value={value}>
