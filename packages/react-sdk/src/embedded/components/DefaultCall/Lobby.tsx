@@ -83,6 +83,25 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
                     )}
                   </div>
                 )}
+                NoCameraPreview={() => {
+                  return (
+                    <>
+                      {!hasBrowserMediaPermission ? (
+                        <div className="str-video__embedded-lobby__no-permission">
+                          <p>
+                            {t(
+                              'Please grant your browser permission to access your camera and microphone.',
+                            )}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="str_video__video-preview__no-camera-preview">
+                          {t('No camera found')}
+                        </div>
+                      )}
+                    </>
+                  );
+                }}
               />
               <div className="str-video__embedded-lobby-media-toggle">
                 <ToggleAudioPreviewButton Menu={null} />
@@ -92,8 +111,33 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
 
             <div className="str-video__embedded-lobby-controls">
               <div className="str-video__embedded-lobby-media">
-                <ToggleMicButton />
-                {isVideoEnabled && <ToggleCameraButton />}
+                {hasMicPermission ? (
+                  <ToggleMicButton />
+                ) : (
+                  <div className="str-video__embedded-lobby-device-button str-video__embedded-lobby-device-button--disabled">
+                    <Icon
+                      className="str-video__embedded-lobby-device-button__icon"
+                      icon="mic"
+                    />
+                    <span className="str-video__embedded-lobby-device-button__label">
+                      {t('Permission needed')}
+                    </span>
+                  </div>
+                )}
+                {isVideoEnabled &&
+                  (hasCameraPermission ? (
+                    <ToggleCameraButton />
+                  ) : (
+                    <div className="str-video__embedded-lobby-device-button str-video__embedded-lobby-device-button--disabled">
+                      <Icon
+                        className="str-video__embedded-lobby-device-button__icon"
+                        icon="camera"
+                      />
+                      <span className="str-video__embedded-lobby-device-button__label">
+                        {t('Permission needed')}
+                      </span>
+                    </div>
+                  ))}
               </div>
             </div>
           </div>

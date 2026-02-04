@@ -310,6 +310,15 @@
     text-align: left;
     margin: 0;
   }
+
+  &--disabled {
+    cursor: default;
+    opacity: 0.6;
+
+    &:hover {
+      opacity: 0.6;
+    }
+  }
 }
 
 .str-video__embedded-display-name {
