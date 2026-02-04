@@ -148,4 +148,10 @@ export class CallManager {
    * in the native layer.
    */
   logAudioState = (): void => NativeManager.logAudioState();
+
+  /**
+   * For debugging purposes, returns the current audio state as a string.
+   * @returns A string containing the current audio state information.
+   */
+  getAudioStateLog = (): string => NativeManager.getAudioStateLog();
 }

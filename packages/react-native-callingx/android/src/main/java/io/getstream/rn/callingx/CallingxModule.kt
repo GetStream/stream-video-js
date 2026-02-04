@@ -42,6 +42,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         const val EXTRA_SOURCE = "source"
 
         const val CALL_REGISTERED_ACTION = "call_registered"
+        const val CALL_REGISTERED_INCOMING_ACTION = "call_registered_incoming"
         const val CALL_ANSWERED_ACTION = "call_answered"
         // const val CALL_DISCONNECTED_ACTION = "call_disconnected"
         const val CALL_INACTIVE_ACTION = "call_inactive"
@@ -446,6 +447,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     private fun getReceiverFilter(): IntentFilter =
             IntentFilter().apply {
                 addAction(CALL_REGISTERED_ACTION)
+                addAction(CALL_REGISTERED_INCOMING_ACTION)
                 addAction(CALL_ANSWERED_ACTION)
                 addAction(CALL_ACTIVE_ACTION)
                 addAction(CALL_INACTIVE_ACTION)
@@ -559,6 +561,9 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             when (action) {
                 CALL_REGISTERED_ACTION -> {
                     sendJSEvent("didReceiveStartCallAction", params)
+                }
+                CALL_REGISTERED_INCOMING_ACTION -> {
+                    sendJSEvent("didDisplayIncomingCall", params)
                 }
                 CALL_ANSWERED_ACTION -> {
                     if (intent.hasExtra(EXTRA_SOURCE)) {
