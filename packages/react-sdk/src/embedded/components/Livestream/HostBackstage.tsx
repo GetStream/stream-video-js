@@ -28,7 +28,6 @@ export const HostBackstage = ({ onJoin }: HostBackstageProps) => {
       <Lobby
         onJoin={onJoin}
         title={t('Prepare for your livestream')}
-        subtitle={t('Set up your camera and microphone before going backstage')}
         joinLabel={t('Enter Backstage')}
       />
     </div>
