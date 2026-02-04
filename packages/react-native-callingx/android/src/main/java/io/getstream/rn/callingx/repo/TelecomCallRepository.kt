@@ -199,9 +199,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 .onEach { (previous, current) ->
                     when {
                         previous is Call.None && current is Call.Registered -> {
-                            if (!current.isIncoming()) {
-                                _listener?.onCallRegistered(current.id)
-                            }
+                            _listener?.onCallRegistered(current.id, current.isIncoming())
                         }
                         previous is Call.Registered && current is Call.Registered -> {
                             if (previous.isMuted != current.isMuted) {
@@ -372,9 +370,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         updateCurrentCall { copy(isActive = true, isOnHold = false) }
 
         val call = _currentCall.value
-        val source =
-                if (isSelfAnswered) EventSource.APP
-                else EventSource.SYS
+        val source = if (isSelfAnswered) EventSource.APP else EventSource.SYS
         if (call is Call.Registered) {
             _listener?.onIsCallAnswered(call.id, source)
         }
@@ -388,9 +384,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 TAG,
                 "[repository] onIsCallDisconnected: Call disconnected, cause: ${it.reason}, description: ${it.description}"
         )
-        val source =
-                if (isSelfDisconnected) EventSource.APP
-                else EventSource.SYS
+        val source = if (isSelfDisconnected) EventSource.APP else EventSource.SYS
         var callId: String? = null
         if (_currentCall.value is Call.Registered) {
             callId = (_currentCall.value as Call.Registered).id

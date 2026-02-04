@@ -34,7 +34,7 @@ abstract class CallRepository(protected val context: Context) {
     fun onIsCallDisconnected(callId: String?, cause: DisconnectCause, source: EventSource)
     fun onIsCallInactive(callId: String)
     fun onIsCallActive(callId: String)
-    fun onCallRegistered(callId: String)
+    fun onCallRegistered(callId: String, incoming: Boolean)
     fun onMuteCallChanged(callId: String, isMuted: Boolean)
     fun onCallEndpointChanged(callId: String, endpoint: String)
   }

@@ -241,9 +241,15 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    override fun onCallRegistered(callId: String) {
-        sendBroadcastEvent(CallingxModule.CALL_REGISTERED_ACTION) {
-            putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+    override fun onCallRegistered(callId: String, incoming: Boolean) {
+        if (incoming) {
+            sendBroadcastEvent(CallingxModule.CALL_REGISTERED_INCOMING_ACTION) {
+                putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+            }
+        } else {
+            sendBroadcastEvent(CallingxModule.CALL_REGISTERED_ACTION) {
+                putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+            }
         }
     }
 

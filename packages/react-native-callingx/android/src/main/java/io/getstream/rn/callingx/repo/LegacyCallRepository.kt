@@ -76,7 +76,7 @@ class LegacyCallRepository(context: Context) : CallRepository(context) {
                             actionSource = actionSource,
                     )
 
-            _listener?.onCallRegistered(callId)
+            _listener?.onCallRegistered(callId, isIncoming)
 
             // Process actions without telecom SDK
             scope.launch {
