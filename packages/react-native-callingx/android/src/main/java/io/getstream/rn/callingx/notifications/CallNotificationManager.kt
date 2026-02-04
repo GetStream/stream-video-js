@@ -4,6 +4,7 @@ import android.app.Notification
 import android.content.Context
 import android.media.Ringtone
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.telecom.DisconnectCause
 import android.util.Log
@@ -44,11 +45,35 @@ class CallNotificationManager(
 
     private var hasBecameActive = false
 
+    private var lastPostedSnapshot: NotificationSnapshot? = null
+
+    /**
+     * Snapshot of call state used to detect notification changes.
+     * Using a data class ensures immutable comparison and avoids issues
+     * with mutable Call.Registered objects.
+     */
+    private data class NotificationSnapshot(
+        val id: String,
+        val isActive: Boolean,
+        val isIncoming: Boolean,
+        val displayTitle: String?,
+        val displaySubtitle: String?,
+        val displayName: CharSequence,
+        val address: Uri
+    )
+
+    private fun Call.Registered.toSnapshot() = NotificationSnapshot(
+        id = id,
+        isActive = isActive,
+        isIncoming = isIncoming(),
+        displayTitle = displayOptions?.getString(CallService.EXTRA_DISPLAY_TITLE),
+        displaySubtitle = displayOptions?.getString(CallService.EXTRA_DISPLAY_SUBTITLE),
+        displayName = callAttributes.displayName,
+        address = callAttributes.address
+    )
+
     fun createNotification(call: Call.Registered): Notification {
-        debugLog(
-                TAG,
-                "[notifications] createNotification: Creating notification for call ID: ${call.id}"
-        )
+        debugLog(TAG,"[notifications] createNotification: Creating notification for call ID: ${call.id}")
 
         val contentIntent =
                 NotificationIntentFactory.getLaunchActivityIntent(
@@ -90,19 +115,22 @@ class CallNotificationManager(
     fun updateCallNotification(call: Call) {
         when (call) {
             Call.None, is Call.Unregistered -> {
-                debugLog(
-                        TAG,
-                        "[notifications] updateCallNotification: Dismissing notification (call is None or Unregistered)"
-                )
+                debugLog(TAG, "[notifications] updateCallNotification: Dismissing notification (call is None or Unregistered)")
                 notificationManager.cancel(NOTIFICATION_ID)
+                lastPostedSnapshot = null
+                hasBecameActive = false
             }
             is Call.Registered -> {
+                val newSnapshot = call.toSnapshot()
+                if (newSnapshot == lastPostedSnapshot) {
+                    debugLog(TAG, "[notifications] updateCallNotification: Skipping - no state change")
+                    return
+                }
+
+                lastPostedSnapshot = newSnapshot
                 val notification = createNotification(call)
                 notificationManager.notify(NOTIFICATION_ID, notification)
-                debugLog(
-                        TAG,
-                        "[notifications] updateCallNotification: Notification posted successfully"
-                )
+                debugLog(TAG, "[notifications] updateCallNotification: Notification posted successfully")
             }
         }
     }
@@ -110,6 +138,7 @@ class CallNotificationManager(
     fun cancelNotifications() {
         notificationManager.cancel(NOTIFICATION_ID)
         hasBecameActive = false
+        lastPostedSnapshot = null
     }
 
     fun startRingtone() {
@@ -212,4 +241,5 @@ class CallNotificationManager(
                 .setImportant(true)
                 .build()
     }
+
 }
