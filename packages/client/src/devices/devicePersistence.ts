@@ -25,9 +25,6 @@ export type LocalDevicePreferences = {
   [type in DevicePreferenceKey]?:
     | LocalDevicePreference
     | LocalDevicePreference[];
-} & {
-  // Backwards compatibility for older storage format.
-  mic?: LocalDevicePreference | LocalDevicePreference[];
 };
 
 export const defaultDeviceId = 'default';
@@ -45,15 +42,9 @@ export const normalize = (
 };
 
 export const readPreferences = (storageKey: string): LocalDevicePreferences => {
-  const raw = window.localStorage.getItem(storageKey);
-  if (!raw) return {};
-
   try {
-    const parsed = JSON.parse(raw) as LocalDevicePreferences;
-    if (Object.hasOwn(parsed, 'mic') && !Object.hasOwn(parsed, 'microphone')) {
-      parsed.microphone = parsed.mic;
-    }
-    return parsed;
+    const raw = window.localStorage.getItem(storageKey) || '{}';
+    return JSON.parse(raw) as LocalDevicePreferences;
   } catch {
     return {};
   }
@@ -78,21 +69,18 @@ export const writePreferences = (
           p.selectedDeviceLabel !== selectedDeviceLabel),
     );
 
-  window.localStorage.setItem(
-    storageKey,
-    JSON.stringify({
-      ...preferences,
-      mic: undefined,
-      [deviceKey]: [
-        {
-          selectedDeviceId,
-          selectedDeviceLabel,
-          ...(typeof muted === 'boolean' ? { muted } : {}),
-        } satisfies LocalDevicePreference,
-        ...preferenceHistory,
-      ].slice(0, 3),
-    } satisfies LocalDevicePreferences),
-  );
+  const nextPreferences: LocalDevicePreferences = {
+    ...preferences,
+    [deviceKey]: [
+      {
+        selectedDeviceId,
+        selectedDeviceLabel,
+        ...(typeof muted === 'boolean' ? { muted } : {}),
+      } satisfies LocalDevicePreference,
+      ...preferenceHistory,
+    ].slice(0, 3),
+  };
+  window.localStorage.setItem(storageKey, JSON.stringify(nextPreferences));
 };
 
 export const toPreferenceList = (
