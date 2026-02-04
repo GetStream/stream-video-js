@@ -16,7 +16,7 @@ import { ConfigurationProvider } from '../../context';
 import { CallRouter } from '../CallRouter';
 
 /**
- * EmbeddedStreamClient - A self-contained video calling component.
+ * EmbeddedStreamClient
  *
  */
 export const EmbeddedStreamClient = ({
@@ -52,18 +52,14 @@ export const EmbeddedStreamClient = ({
   const noiseCancellation = useNoiseCancellationLoader();
 
   if (!client || !call) {
-    return (
-      <StreamTheme style={style}>
-        <LoadingScreen />
-      </StreamTheme>
-    );
+    return null;
   }
 
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
         <ConfigurationProvider skipLobby={skipLobby}>
-          <BackgroundFiltersProvider SuspenseFallback={<LoadingScreen />}>
+          <BackgroundFiltersProvider>
             {noiseCancellation && (
               <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
                 <StreamTheme style={style}>
