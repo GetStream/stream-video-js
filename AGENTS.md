@@ -24,6 +24,19 @@ Please find the instructions in `packages/react-sdk/CLAUDE.md`.
 
 Please find the instructions in `packages/react-native-sdk/CLAUDE.md`.
 
+### Android or iOS WebRTC Reference
+
+When answering WebRTC questions, always reference the codebase at: https://github.com/GetStream/webrtc/
+
+The React Native WebRTC Wrapper codebase reference is at: https://github.com/GetStream/react-native-webrtc
+
+Examples:
+
+- iOS `RTCAudioSession` reference is at: https://github.com/GetStream/webrtc/blob/main/sdk/objc/components/audio/RTCAudioSession.mm
+- The native module wrapper for React Native (named `WebRTCModule`) is at:
+  - iOS: https://github.com/GetStream/react-native-webrtc/blob/master/ios/RCTWebRTC/WebRTCModule.m
+  - Android: https://github.com/GetStream/react-native-webrtc/blob/master/android/src/main/java/com/oney/WebRTCModule/WebRTCModule.java
+
 ## Tech & toolchain
 
 - Languages: TypeScript, React (web + native)

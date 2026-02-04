@@ -43,20 +43,11 @@ export interface VideoTrackProcessorHooks {
   onStats?: (stats: PerformanceStats) => void;
 }
 
-export const BACKGROUND_BLUR_MAP: Record<
-  BackgroundBlurLevel,
-  { bgBlur: number; bgBlurRadius: number }
-> = {
-  low: {
-    bgBlur: 5,
-    bgBlurRadius: 3,
-  },
-  medium: {
-    bgBlur: 15,
-    bgBlurRadius: 4,
-  },
-  high: {
-    bgBlur: 30,
-    bgBlurRadius: 5,
-  },
+/**
+ * Maps blur level to blur strength values.
+ */
+export const BACKGROUND_BLUR_MAP: Record<'low' | 'medium' | 'high', number> = {
+  low: 3,
+  medium: 5,
+  high: 7,
 };

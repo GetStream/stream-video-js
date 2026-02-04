@@ -115,6 +115,7 @@ export type ConfigurationValue = {
     'layout.background_size'?: string; // ✅
     'layout.background_position'?: string; // ✅
     'layout.background_repeat'?: string; // ✅
+    'layout.forceMirrorParticipants'?: boolean; // ✅
 
     // grid-specific
     'layout.grid.gap'?: string | number; // ❌

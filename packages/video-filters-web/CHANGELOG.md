@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.1...@stream-io/video-filters-web-0.7.2) (2026-01-30)
+
+### Bug Fixes
+
+- **react:** improve logic for calculating the lower / upper threshold for video filter degradation ([#2094](https://github.com/GetStream/stream-video-js/issues/2094)) ([5cd2d5c](https://github.com/GetStream/stream-video-js/commit/5cd2d5cb34fc7bbdfaf9529eb9f8d33a40346cab))
+
 ## [0.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.0...@stream-io/video-filters-web-0.7.1) (2026-01-27)
 
 ### Bug Fixes

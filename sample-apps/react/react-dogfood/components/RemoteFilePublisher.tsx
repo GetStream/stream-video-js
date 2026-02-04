@@ -25,16 +25,27 @@ export const useRemoteFilePublisher = () => {
 export const publishRemoteFile = async (
   call: Call,
   videoFileUrl: string,
+  options?: { videoFileLeaveCallOnEnd?: boolean },
 ): Promise<RemoteFilePublisher> => {
   const videoElement = document.createElement('video');
   videoElement.crossOrigin = 'anonymous';
   // videoElement.muted = true;
   videoElement.volume = 0.001; // otherwise, it doesn't work with puppeteer
   videoElement.autoplay = true;
-  videoElement.loop = true;
+  videoElement.loop = !options?.videoFileLeaveCallOnEnd;
   videoElement.src = videoFileUrl;
 
   await videoElement.play();
+
+  // Set up event listener to leave the call when video ends
+  if (options?.videoFileLeaveCallOnEnd) {
+    videoElement.addEventListener('ended', async () => {
+      console.log('Video playback ended, ending call');
+      await call.endCall().catch((err) => {
+        console.error('Failed to end call after video ended', err);
+      });
+    });
+  }
 
   await call.microphone.disable();
   await call.camera.disable();
@@ -44,10 +55,14 @@ export const publishRemoteFile = async (
 
   const publish = async (...trackTypes: SfuModels.TrackType[]) => {
     if (trackTypes.includes(SfuModels.TrackType.AUDIO)) {
-      await call.publish(stream, SfuModels.TrackType.AUDIO);
+      await call.publish(stream, SfuModels.TrackType.AUDIO).catch((err) => {
+        console.error('Failed to publish audio', err);
+      });
     }
     if (trackTypes.includes(SfuModels.TrackType.VIDEO)) {
-      await call.publish(stream, SfuModels.TrackType.VIDEO);
+      await call.publish(stream, SfuModels.TrackType.VIDEO).catch((err) => {
+        console.error('Failed to publish video', err);
+      });
     }
   };
 
