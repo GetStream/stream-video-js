@@ -37,7 +37,7 @@ export const normalize = (
   return {
     storageKey: options?.storageKey ?? `@stream-io/device-preferences`,
     enabled:
-      hasLocalStorage && !isReactNative() ? (options?.enabled ?? false) : false,
+      hasLocalStorage && !isReactNative() ? (options?.enabled ?? true) : false,
   };
 };
 
