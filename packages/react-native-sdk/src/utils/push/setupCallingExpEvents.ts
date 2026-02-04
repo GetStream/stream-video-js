@@ -89,9 +89,7 @@ const onAcceptCall = ({
   callId: call_cid,
   source,
 }: EventParams['answerCall']) => {
-  videoLoggerSystem
-    .getLogger('callingExpAcceptCall')
-    .debug(`callingExpAcceptCall event callId: ${call_cid} source: ${source}`);
+  logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
 
   if (source === 'app' || !call_cid) {
     //we only need to process the call if the call was answered from the system
@@ -106,9 +104,7 @@ const onAcceptCall = ({
 const onEndCall =
   (pushConfig: PushConfig) =>
   async ({ callId: call_cid, source }: EventParams['endCall']) => {
-    logger.debug(
-      `callingExpRejectCall event callId: ${call_cid} source: ${source}`,
-    );
+    logger.debug(`onEndCall event callId: ${call_cid} source: ${source}`);
 
     if (source === 'app' || !call_cid) {
       //we only need to process the call if the call was rejected from the system
