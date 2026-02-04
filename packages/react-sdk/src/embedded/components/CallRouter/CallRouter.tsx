@@ -7,7 +7,6 @@ import { DefaultCallUI } from '../DefaultCall';
  */
 export interface CallTypeUIProps {
   skipLobby?: boolean;
-  onJoin?: (name: string) => void;
 }
 
 /**
@@ -20,13 +19,13 @@ const CallTypeComponents: Record<string, ComponentType<CallTypeUIProps>> = {
 
 export interface CallRouterProps {
   callType: string;
-  onJoin?: (name: string) => void;
+  skipLobby?: boolean;
 }
 
 /**
  * Routes to the appropriate UI based on call type.
  */
-export function CallRouter({ callType, onJoin }: CallRouterProps) {
+export function CallRouter({ callType, skipLobby }: CallRouterProps) {
   const Component = CallTypeComponents[callType] ?? CallTypeComponents.default;
-  return <Component onJoin={onJoin} />;
+  return <Component skipLobby={skipLobby} />;
 }

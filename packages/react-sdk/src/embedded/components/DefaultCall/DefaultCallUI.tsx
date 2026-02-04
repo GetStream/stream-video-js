@@ -1,10 +1,9 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { CallingState, OwnCapability } from '@stream-io/video-client';
 import {
   Restricted,
   useCall,
   useCallStateHooks,
-  useConnectedUser,
 } from '@stream-io/video-react-bindings';
 import {
   CallParticipantsList,
@@ -47,9 +46,8 @@ const DEVICE_PREFERENCES_KEY = '@stream-io/embedded-device-preferences';
  */
 type ViewState = 'lobby' | 'loading' | 'active-call' | 'feedback';
 
-const DefaultCallUI = ({ onJoin }: CallTypeUIProps) => {
+const DefaultCallUI = ({ skipLobby }: CallTypeUIProps) => {
   const call = useCall();
-  const connectedUser = useConnectedUser();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const [showParticipants, setShowParticipants] = useState(false);
@@ -57,11 +55,28 @@ const DefaultCallUI = ({ onJoin }: CallTypeUIProps) => {
 
   const [hasInitiatedJoin, setHasInitiatedJoin] = useState(false);
   const wasInCallRef = useRef(false);
+  const hasAutoJoinedRef = useRef(false);
 
   const { layout, setLayout } = useLayoutSwitcher();
 
   usePersistedDevicePreferences(DEVICE_PREFERENCES_KEY);
   useWakeLock();
+
+  useEffect(() => {
+    const canAutoJoin =
+      callingState === CallingState.IDLE ||
+      callingState === CallingState.UNKNOWN;
+
+    if (skipLobby && call && canAutoJoin && !hasAutoJoinedRef.current) {
+      hasAutoJoinedRef.current = true;
+      setHasInitiatedJoin(true);
+      call.join().catch((err) => {
+        console.error('Failed to auto-join call:', err);
+        setHasInitiatedJoin(false);
+        hasAutoJoinedRef.current = false;
+      });
+    }
+  }, [skipLobby, call, callingState]);
 
   if (callingState === CallingState.JOINED) {
     wasInCallRef.current = true;
@@ -80,31 +95,20 @@ const DefaultCallUI = ({ onJoin }: CallTypeUIProps) => {
     return 'lobby';
   })();
 
-  const handleJoin = useCallback(
-    async (displayName?: string) => {
-      const trimmedName = displayName?.trim();
-      const nameChanged = trimmedName && trimmedName !== connectedUser?.name;
+  const handleJoin = useCallback(async () => {
+    if (!call) return;
 
-      if (nameChanged && onJoin) {
-        onJoin(trimmedName);
-        return;
+    setHasInitiatedJoin(true);
+
+    try {
+      if (call.state.callingState !== CallingState.JOINED) {
+        await call.join();
       }
-
-      if (!call) return;
-
-      setHasInitiatedJoin(true);
-
-      try {
-        if (call.state.callingState !== CallingState.JOINED) {
-          await call.join({ create: true });
-        }
-      } catch (err) {
-        console.error('Failed to join call:', err);
-        setHasInitiatedJoin(false);
-      }
-    },
-    [call, onJoin, connectedUser?.name],
-  );
+    } catch (err) {
+      console.error('Failed to join call:', err);
+      setHasInitiatedJoin(false);
+    }
+  }, [call]);
 
   const handleRejoin = useCallback(async () => {
     if (!call) return;

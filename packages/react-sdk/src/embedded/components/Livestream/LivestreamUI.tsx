@@ -1,32 +1,47 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { CallingState, OwnCapability } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { HostBackstage } from './HostBackstage';
 import { HostLiveControls } from './HostLiveControls';
 import { ViewerLobby } from './ViewerLobby';
-import { ViewerWaiting } from './ViewerWaiting';
+import { ViewerWaitingForLive } from './ViewerWaitingForLive';
 import { LivestreamView } from './LivestreamView';
 import { ConnectionErrorScreen } from './ConnectionErrorScreen';
 import { StreamEndedScreen } from './StreamEndedScreen';
 import { LoadingScreen } from '../shared';
+import { useCanJoinEarly } from '../../hooks';
 
 export type LivestreamUIProps = {
   skipLobby?: boolean;
-  onUserNameUpdate?: (name: string) => void;
 };
 
 export const LivestreamUI = ({ skipLobby = false }: LivestreamUIProps) => {
   const call = useCall();
-  const { useCallCallingState, useIsCallLive, useHasPermissions } =
-    useCallStateHooks();
+  const {
+    useCallCallingState,
+    useIsCallLive,
+    useHasPermissions,
+    useCallSettings,
+  } = useCallStateHooks();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
+  const settings = useCallSettings();
+  const isBackstageEnabled = settings?.backstage?.enabled ?? true;
+
+  const [isInWaitingRoom, setIsInWaitingRoom] = useState(false);
 
   const hasHostCapabilities = useHasPermissions(OwnCapability.JOIN_BACKSTAGE);
+  const canJoinEarly = useCanJoinEarly();
+
+  const canViewerJoin = hasHostCapabilities || isLive || canJoinEarly;
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
+    const canJoin =
+      call.state.callingState === CallingState.IDLE ||
+      call.state.callingState === CallingState.UNKNOWN;
+    if (!canJoin) return;
     try {
       await call.join();
     } catch (err) {
@@ -77,10 +92,22 @@ export const LivestreamUI = ({ skipLobby = false }: LivestreamUIProps) => {
     callingState === CallingState.IDLE ||
     callingState === CallingState.UNKNOWN
   ) {
-    return hasHostCapabilities ? (
-      <HostBackstage onJoin={handleJoin} skipLobby={skipLobby} />
-    ) : (
-      <ViewerLobby onJoin={handleJoin} skipLobby={skipLobby} isLive={isLive} />
+    if (hasHostCapabilities) {
+      return <HostBackstage onJoin={handleJoin} skipLobby={skipLobby} />;
+    }
+
+    if (skipLobby || isInWaitingRoom) {
+      return (
+        <ViewerWaitingForLive onJoin={handleJoin} canJoin={canViewerJoin} />
+      );
+    }
+
+    return (
+      <ViewerLobby
+        onJoin={canViewerJoin ? handleJoin : () => setIsInWaitingRoom(true)}
+        skipLobby={false}
+        isLive={isLive}
+      />
     );
   }
 
@@ -88,16 +115,19 @@ export const LivestreamUI = ({ skipLobby = false }: LivestreamUIProps) => {
     return <LoadingScreen message="Joining" />;
   }
 
-  if (callingState === CallingState.JOINED && !isLive) {
-    return hasHostCapabilities ? (
-      <HostLiveControls onGoLive={handleGoLive} onLeave={handleLeave} />
-    ) : (
-      <ViewerWaiting />
-    );
-  }
+  if (callingState === CallingState.JOINED) {
+    if (isLive) {
+      return <LivestreamView onStopLive={handleStopLive} />;
+    }
 
-  if (callingState === CallingState.JOINED && isLive) {
-    return <LivestreamView onStopLive={handleStopLive} />;
+    if (hasHostCapabilities) {
+      if (!isBackstageEnabled) {
+        return <LoadingScreen message="Starting stream..." />;
+      }
+      return <HostLiveControls onGoLive={handleGoLive} onLeave={handleLeave} />;
+    }
+
+    return <ViewerWaitingForLive onJoin={() => {}} canJoin={false} />;
   }
 
   if (callingState === CallingState.LEFT) {

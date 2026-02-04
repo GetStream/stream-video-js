@@ -41,12 +41,7 @@ export const Lobby = ({ onJoin, title, subtitle, joinLabel }: LobbyProps) => {
 
   const callSession = useCallSession();
   const [isJoining, setIsJoining] = useState(false);
-
-  const [displayNameOverride, setDisplayNameOverride] = useState<string | null>(
-    null,
-  );
-
-  const displayName = displayNameOverride ?? user?.name ?? '';
+  const displayName = user?.name ?? '';
 
   const handleJoin = () => {
     setIsJoining(true);
@@ -111,15 +106,9 @@ export const Lobby = ({ onJoin, title, subtitle, joinLabel }: LobbyProps) => {
             <div className="str-video__embedded-display-name-label">
               {t('Display name')}
             </div>
-            <input
-              className="str-video__embedded-display-name-input str-video__embedded-input"
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayNameOverride(e.target.value)}
-              placeholder={t('Enter your name')}
-              maxLength={25}
-              autoFocus
-            />
+            <div className="str-video__embedded-display-name-input str-video__embedded-input">
+              {displayName}
+            </div>
 
             <button
               className={clsx(

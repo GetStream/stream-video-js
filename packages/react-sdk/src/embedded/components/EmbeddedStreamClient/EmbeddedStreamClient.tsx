@@ -1,4 +1,3 @@
-import { useCallback, useRef, useState } from 'react';
 import { StreamCall, StreamVideo } from '../../../core';
 import {
   StreamTheme,
@@ -21,7 +20,7 @@ import { CallRouter } from '../CallRouter';
  */
 export const EmbeddedStreamClient = ({
   apiKey,
-  user: initialUser,
+  user,
   callId,
   callType = 'default',
   token,
@@ -32,9 +31,6 @@ export const EmbeddedStreamClient = ({
   style,
   skipLobby,
 }: EmbeddedStreamClientProps) => {
-  const [user, setUser] = useState(initialUser);
-  const autoJoin = useRef(!!skipLobby);
-
   const client = useInitializeVideoClient({
     apiKey,
     user,
@@ -50,15 +46,9 @@ export const EmbeddedStreamClient = ({
     callType,
     callId,
     onError,
-    autoJoin,
   });
 
   const noiseCancellation = useNoiseCancellationLoader();
-
-  const handleReJoin = useCallback((name: string) => {
-    autoJoin.current = true;
-    setUser((prev) => ({ ...prev, name: name.trim() }));
-  }, []);
 
   if (!client || !call) {
     return (
@@ -75,7 +65,7 @@ export const EmbeddedStreamClient = ({
           {noiseCancellation && (
             <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
               <StreamTheme style={style}>
-                <CallRouter callType={callType} onJoin={handleReJoin} />
+                <CallRouter callType={callType} skipLobby={skipLobby} />
               </StreamTheme>
             </NoiseCancellationProvider>
           )}

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useI18n } from '@stream-io/video-react-bindings';
 import { Lobby } from '../DefaultCall/Lobby';
 
@@ -12,9 +12,11 @@ export const HostBackstage = ({
   skipLobby = false,
 }: HostBackstageProps) => {
   const { t } = useI18n();
+  const hasInitiatedJoin = useRef(false);
 
   useEffect(() => {
-    if (skipLobby) {
+    if (skipLobby && !hasInitiatedJoin.current) {
+      hasInitiatedJoin.current = true;
       onJoin();
     }
   }, [skipLobby, onJoin]);
