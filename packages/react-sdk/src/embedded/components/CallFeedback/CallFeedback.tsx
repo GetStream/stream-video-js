@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useCall } from '@stream-io/video-react-bindings';
+import { useCall, useI18n } from '@stream-io/video-react-bindings';
 
 export interface CallFeedbackProps {
   onSkip?: () => void;
@@ -38,18 +38,21 @@ const StarIcon = ({ filled }: { filled: boolean }) => (
   </svg>
 );
 
-const RejoinLink = ({ onClick }: { onClick: () => void }) => (
-  <p className="str-video__call-feedback__rejoin">
-    Left by mistake?{' '}
-    <button
-      type="button"
-      className="str-video__call-feedback__rejoin-link"
-      onClick={onClick}
-    >
-      Rejoin call
-    </button>
-  </p>
-);
+const RejoinLink = ({ onClick }: { onClick: () => void }) => {
+  const { t } = useI18n();
+  return (
+    <p className="str-video__call-feedback__rejoin">
+      {t('Left by mistake?')}{' '}
+      <button
+        type="button"
+        className="str-video__call-feedback__rejoin-link"
+        onClick={onClick}
+      >
+        {t('Rejoin call')}
+      </button>
+    </p>
+  );
+};
 
 interface StarRatingProps {
   value: number;
@@ -57,13 +60,14 @@ interface StarRatingProps {
 }
 
 const StarRating = ({ value, onChange }: StarRatingProps) => {
+  const { t } = useI18n();
   const [hovered, setHovered] = useState(0);
   const displayValue = hovered || value;
 
   return (
     <div className="str-video__call-feedback__rating-section">
       <p className="str-video__call-feedback__rating-label">
-        How was your call quality?
+        {t('How was your call quality?')}
       </p>
       <div
         className="str-video__call-feedback__stars"
@@ -90,30 +94,36 @@ const StarRating = ({ value, onChange }: StarRatingProps) => {
   );
 };
 
-const ThankYouScreen = () => (
-  <FeedbackLayout>
-    <div className="str-video__call-feedback__thank-you">
-      <div className="str-video__call-feedback__checkmark">
-        <CheckmarkIcon />
+const ThankYouScreen = () => {
+  const { t } = useI18n();
+  return (
+    <FeedbackLayout>
+      <div className="str-video__call-feedback__thank-you">
+        <div className="str-video__call-feedback__checkmark">
+          <CheckmarkIcon />
+        </div>
+        <h2 className="str-video__call-feedback__title">
+          {t('Thanks for your feedback')}
+        </h2>
+        <p className="str-video__call-feedback__subtitle">
+          {t('Your input helps us improve the call experience.')}
+        </p>
       </div>
-      <h2 className="str-video__call-feedback__title">
-        Thanks for your feedback
-      </h2>
-      <p className="str-video__call-feedback__subtitle">
-        Your input helps us improve the call experience.
-      </p>
-    </div>
-  </FeedbackLayout>
-);
+    </FeedbackLayout>
+  );
+};
 
-const CallEndedScreen = ({ onRejoin }: { onRejoin?: () => void }) => (
-  <FeedbackLayout>
-    <div className="str-video__call-feedback__ended">
-      <h2 className="str-video__call-feedback__title">Call ended</h2>
-      {onRejoin && <RejoinLink onClick={onRejoin} />}
-    </div>
-  </FeedbackLayout>
-);
+const CallEndedScreen = ({ onRejoin }: { onRejoin?: () => void }) => {
+  const { t } = useI18n();
+  return (
+    <FeedbackLayout>
+      <div className="str-video__call-feedback__ended">
+        <h2 className="str-video__call-feedback__title">{t('Call ended')}</h2>
+        {onRejoin && <RejoinLink onClick={onRejoin} />}
+      </div>
+    </FeedbackLayout>
+  );
+};
 
 interface RatingScreenProps {
   onSubmit: (rating: number) => void;
@@ -122,6 +132,7 @@ interface RatingScreenProps {
 }
 
 const RatingScreen = ({ onSubmit, onSkip, onRejoin }: RatingScreenProps) => {
+  const { t } = useI18n();
   const [rating, setRating] = useState(0);
 
   const handleSubmit = () => {
@@ -130,7 +141,7 @@ const RatingScreen = ({ onSubmit, onSkip, onRejoin }: RatingScreenProps) => {
 
   return (
     <FeedbackLayout>
-      <h2 className="str-video__call-feedback__title">Call ended</h2>
+      <h2 className="str-video__call-feedback__title">{t('Call ended')}</h2>
 
       <StarRating value={rating} onChange={setRating} />
 
@@ -141,14 +152,14 @@ const RatingScreen = ({ onSubmit, onSkip, onRejoin }: RatingScreenProps) => {
           onClick={handleSubmit}
           disabled={rating === 0}
         >
-          Submit feedback
+          {t('Submit feedback')}
         </button>
         <button
           type="button"
           className="str-video__call-feedback__button str-video__call-feedback__button--secondary"
           onClick={onSkip}
         >
-          Skip
+          {t('Skip')}
         </button>
       </div>
 
