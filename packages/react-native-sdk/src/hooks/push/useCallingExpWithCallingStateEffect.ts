@@ -5,7 +5,7 @@ import { getCallDisplayName } from '../../utils/internal/callingx';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 
 const logger = videoLoggerSystem.getLogger(
-  'useCallingExpWithCallingStateEffect',
+  'Callingx - useCallingExpWithCallingStateEffect',
 );
 
 //calling state methods are not exhaustive, so we need to add more methods to cover different cases
@@ -94,12 +94,12 @@ export const useCallingExpWithCallingStateEffect = () => {
         return;
       }
       //if incoming stream call was unmounted, we need to end the call in CallKit/Telecom
-      logger.debug(`Ending call in calling exp: ${activeCallCid}`);
+      logger.debug(`Ending call in callingx: ${activeCallCid}`);
       callingx
         .endCallWithReason(activeCallCid, 'local')
         .catch((error: unknown) => {
           logger.error(
-            `Error ending call in calling exp: ${activeCallCid}`,
+            `Error ending call in callingx: ${activeCallCid}`,
             error,
           );
         });
@@ -133,7 +133,7 @@ export const useCallingExpWithCallingStateEffect = () => {
       logger.debug(`Should accept call in callingx: ${activeCallCid}`);
       callingx.answerIncomingCall(activeCallCid).catch((error: unknown) => {
         logger.error(
-          `Error answering call in calling exp: ${activeCallCid}`,
+          `Error answering call in callingx: ${activeCallCid}`,
           error,
         );
       });
@@ -155,7 +155,7 @@ export const useCallingExpWithCallingStateEffect = () => {
         .endCallWithReason(activeCallCid, 'local')
         .catch((error: unknown) => {
           logger.error(
-            `Error ending call in calling exp: ${activeCallCid}`,
+            `Error ending call in callingx: ${activeCallCid}`,
             error,
           );
         });
@@ -180,7 +180,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     const isCallRegistered = callingx.isCallRegistered(activeCallCid);
     if (!isCallRegistered) {
       logger.debug(
-        `No active call cid to update calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+        `No active call cid to update callingx: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
       );
       return;
     }
@@ -211,13 +211,13 @@ export const useCallingExpWithCallingStateEffect = () => {
           }
 
           logger.debug(
-            `Reporting call as already answered in the app: ${activeCallCid}`,
+            `Reporting the incoming call as answered in callingx as already join() calledin the app: ${activeCallCid}`,
           );
           callingx
             .answerIncomingCall(activeCallCid)
             .catch((error: unknown) => {
               logger.error(
-                `Error answering call in calling exp: ${activeCallCid}`,
+                `Error answering call in callingx: ${activeCallCid}`,
                 error,
               );
             })
