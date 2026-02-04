@@ -38,9 +38,23 @@ export interface EmbeddedUser {
 }
 
 /**
+ * Configuration props for the embedded client.
+ */
+export interface ConfigurationProviderProps {
+  /**
+   * Skip the lobby/device setup screen and auto-join.
+   */
+  skipLobby?: boolean;
+  /**
+   * Layout option for the call.
+   */
+  layout?: LayoutOption;
+}
+
+/**
  * Props for the EmbeddedStreamClient component.
  */
-export interface EmbeddedStreamClientProps {
+export interface EmbeddedStreamClientProps extends ConfigurationProviderProps {
   apiKey: string;
   user: EmbeddedUser;
   callId: string;
@@ -49,8 +63,6 @@ export interface EmbeddedStreamClientProps {
   tokenProvider?: TokenProvider;
   userType?: UserType;
   logLevel?: LogLevel;
-  skipLobby?: boolean;
-  layout?: LayoutOption;
   onError?: (error: Error) => void;
   style?: CSSProperties;
 }

@@ -4,7 +4,6 @@ import {
   BackgroundFiltersProvider,
   NoiseCancellationProvider,
 } from '../../../components';
-import { LoadingScreen } from '../shared';
 
 import type { EmbeddedStreamClientProps } from '../../types';
 import {
@@ -30,8 +29,7 @@ export const EmbeddedStreamClient = ({
   logLevel,
   onError,
   style,
-  skipLobby,
-  layout,
+  ...configProps
 }: EmbeddedStreamClientProps) => {
   const client = useInitializeVideoClient({
     apiKey,
@@ -59,7 +57,7 @@ export const EmbeddedStreamClient = ({
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <ConfigurationProvider skipLobby={skipLobby} layout={layout}>
+        <ConfigurationProvider {...configProps}>
           <BackgroundFiltersProvider>
             {noiseCancellation && (
               <NoiseCancellationProvider noiseCancellation={noiseCancellation}>

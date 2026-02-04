@@ -1,5 +1,7 @@
 import { createContext, useContext, useMemo, PropsWithChildren } from 'react';
-import type { LayoutOption } from '../types';
+import type { LayoutOption, ConfigurationProviderProps } from '../types';
+
+export type { ConfigurationProviderProps } from '../types';
 
 export interface EmbeddedConfiguration {
   /**
@@ -16,11 +18,6 @@ const defaultConfiguration: EmbeddedConfiguration = {
 
 const ConfigurationContext =
   createContext<EmbeddedConfiguration>(defaultConfiguration);
-
-export interface ConfigurationProviderProps {
-  skipLobby?: boolean;
-  layout?: LayoutOption;
-}
 
 export const ConfigurationProvider = ({
   children,
