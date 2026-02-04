@@ -6,6 +6,7 @@ import {
   CancelCallButton,
   CompositeButton,
   Icon,
+  MicCaptureErrorNotification,
   PermissionRequests,
   ReactionsButton,
   RecordCallConfirmationButton,
@@ -112,12 +113,12 @@ export const ActiveCall = () => {
               requiredGrants={[OwnCapability.SEND_AUDIO]}
               hasPermissionsOnly
             >
-              <div className="str-video__embedded-dual-toggle">
+              <MicCaptureErrorNotification>
                 <ToggleAudioPublishingButton
                   Menu={<MicMenuWithNoiseCancellation />}
                   menuPlacement="top"
                 />
-              </div>
+              </MicCaptureErrorNotification>
             </Restricted>
             <Restricted
               requiredGrants={[OwnCapability.SEND_VIDEO]}
