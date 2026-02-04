@@ -8,6 +8,7 @@ import {
   CallSettingsResponse,
 } from '../gen/coordinator';
 import {
+  createSyntheticDevice,
   defaultDeviceId,
   DevicePersistenceOptions,
   readPreferences,
@@ -189,7 +190,9 @@ export class SpeakerManager {
   private persistSpeakerDevicePreference(selectedDevice: string) {
     const { storageKey } = this.devicePersistence;
     const devices = getCurrentValue(this.listDevices()) || [];
-    const currentDevice = devices.find((d) => d.deviceId === selectedDevice);
+    const currentDevice =
+      devices.find((d) => d.deviceId === selectedDevice) ??
+      createSyntheticDevice(selectedDevice, 'videoinput');
     writePreferences(currentDevice, 'speaker', undefined, storageKey);
   }
 }

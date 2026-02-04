@@ -41,6 +41,13 @@ export const normalize = (
   };
 };
 
+export const createSyntheticDevice = (
+  deviceId: string,
+  kind: MediaDeviceKind,
+): MediaDeviceInfo => {
+  return { deviceId, kind, label: '', groupId: '' } as MediaDeviceInfo;
+};
+
 export const readPreferences = (storageKey: string): LocalDevicePreferences => {
   try {
     const raw = window.localStorage.getItem(storageKey) || '{}';

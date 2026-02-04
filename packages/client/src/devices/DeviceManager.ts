@@ -1,4 +1,4 @@
-import { combineLatest, Observable, pairwise } from 'rxjs';
+import { combineLatest, firstValueFrom, Observable, pairwise } from 'rxjs';
 import { Call } from '../Call';
 import { TrackPublishOptions } from '../rtc';
 import { CallingState } from '../store';
@@ -29,6 +29,7 @@ import {
   readPreferences,
   toPreferenceList,
   writePreferences,
+  createSyntheticDevice,
 } from './devicePersistence';
 
 export abstract class DeviceManager<
@@ -507,14 +508,10 @@ export abstract class DeviceManager<
     }
   }
 
-  private get mediaDeviceKind() {
-    if (this.trackType === TrackType.AUDIO) {
-      return 'audioinput';
-    }
-    if (this.trackType === TrackType.VIDEO) {
-      return 'videoinput';
-    }
-    return '';
+  private get mediaDeviceKind(): MediaDeviceKind {
+    if (this.trackType === TrackType.AUDIO) return 'audioinput';
+    if (this.trackType === TrackType.VIDEO) return 'videoinput';
+    throw new Error('Invalid track type');
   }
 
   private handleDisconnectedOrReplacedDevices() {
@@ -579,7 +576,7 @@ export abstract class DeviceManager<
     selectedDevice: string | undefined,
     status: InputDeviceStatus,
   ) {
-    if (!selectedDevice || !status) return;
+    if (!status) return;
 
     const deviceKind = this.mediaDeviceKind;
     const deviceKey = deviceKind === 'audioinput' ? 'microphone' : 'camera';
@@ -587,8 +584,16 @@ export abstract class DeviceManager<
       status === 'disabled' ? true : status === 'enabled' ? false : undefined;
 
     const { storageKey } = this.devicePersistence;
+    if (!selectedDevice) {
+      writePreferences(undefined, deviceKey, muted, storageKey);
+      return;
+    }
+
     const devices = getCurrentValue(this.listDevices()) || [];
-    const currentDevice = this.findDevice(devices, selectedDevice);
+    const currentDevice =
+      this.findDevice(devices, selectedDevice) ??
+      createSyntheticDevice(selectedDevice, deviceKind);
+
     writePreferences(currentDevice, deviceKey, muted, storageKey);
   }
 
@@ -601,9 +606,11 @@ export abstract class DeviceManager<
 
     if (preferenceList.length === 0) return false;
 
-    const canPublish = this.call.permissionsContext.canPublish(this.trackType);
-    const devices = getCurrentValue(this.listDevices()) || [];
     let muted: boolean | undefined;
+    let appliedDevice = false;
+    let appliedMute = false;
+
+    const devices = await firstValueFrom(this.listDevices());
     for (const preference of preferenceList) {
       muted ??= preference.muted;
       if (preference.selectedDeviceId === defaultDeviceId) break;
@@ -613,6 +620,7 @@ export abstract class DeviceManager<
         devices.find((d) => d.label === preference.selectedDeviceLabel);
 
       if (device) {
+        appliedDevice = true;
         if (!this.state.selectedDevice) {
           await this.select(device.deviceId);
         }
@@ -621,11 +629,13 @@ export abstract class DeviceManager<
       }
     }
 
+    const canPublish = this.call.permissionsContext.canPublish(this.trackType);
     if (typeof muted === 'boolean' && enabledInCallType && canPublish) {
       await this.applyMutedState(muted);
+      appliedMute = true;
     }
 
-    return true;
+    return appliedDevice || appliedMute;
   }
 
   private async applyMutedState(muted: boolean) {
