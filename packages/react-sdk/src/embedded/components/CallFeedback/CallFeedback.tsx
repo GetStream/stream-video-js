@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useCall } from '@stream-io/video-react-bindings';
 
 export interface CallFeedbackProps {
   onSkip?: () => void;
@@ -157,12 +158,21 @@ const RatingScreen = ({ onSubmit, onSkip, onRejoin }: RatingScreenProps) => {
 };
 
 export const CallFeedback = ({ onSkip, onJoin }: CallFeedbackProps) => {
+  const call = useCall();
   const [state, setState] = useState<FeedbackState>('rating');
 
-  const handleSubmit = useCallback((rating: number) => {
-    console.log(rating);
-    setState('submitted');
-  }, []);
+  const handleSubmit = useCallback(
+    async (rating: number) => {
+      const clampedRating = Math.min(Math.max(1, rating), 5);
+      try {
+        await call?.submitFeedback(clampedRating);
+      } catch (err) {
+        console.error('Failed to submit feedback:', err);
+      }
+      setState('submitted');
+    },
+    [call],
+  );
 
   const handleSkip = useCallback(() => {
     onSkip?.();
