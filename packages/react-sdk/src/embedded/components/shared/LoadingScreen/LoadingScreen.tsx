@@ -13,7 +13,6 @@ export type LoadingScreenProps = {
 export const LoadingScreen = ({ message }: LoadingScreenProps) => {
   const { t } = useI18n();
 
-  console.log('LoadingScreen');
   return (
     <div className="str-video__call">
       <div className="str-video__call__loading-screen">
