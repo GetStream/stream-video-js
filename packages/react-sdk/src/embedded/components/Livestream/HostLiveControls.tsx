@@ -2,20 +2,16 @@ import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useI18n } from '@stream-io/video-react-bindings';
 import { PaginatedGridLayout } from '../../../core';
 import {
-  CancelCallButton,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
+  WithTooltip,
 } from '../../../components';
 
 export type HostLiveControlsProps = {
   onGoLive: () => void;
-  onLeave: () => void;
 };
 
-export const HostLiveControls = ({
-  onGoLive,
-  onLeave,
-}: HostLiveControlsProps) => {
+export const HostLiveControls = ({ onGoLive }: HostLiveControlsProps) => {
   const { t } = useI18n();
   return (
     <div className="str-video__embedded-call str-video__embedded-backstage-live">
@@ -32,24 +28,21 @@ export const HostLiveControls = ({
           </div>
         </div>
         <div className="str-video__embedded-call-controls str-video__call-controls">
-          <div className="str-video__call-controls--group">
+          <div className="str-video__call-controls--group str-video__call-controls--media">
             <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
               <ToggleAudioPublishingButton />
             </Restricted>
             <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
               <ToggleVideoPublishingButton />
             </Restricted>
-          </div>
-          <div className="str-video__call-controls--group">
-            <button
-              className="str-video__embedded-button str-video__embedded-button--go-live"
-              onClick={onGoLive}
-            >
-              {t('Go Live')}
-            </button>
-          </div>
-          <div className="str-video__call-controls--group">
-            <CancelCallButton onLeave={onLeave} />
+            <WithTooltip title={t('Start Stream')}>
+              <button
+                className="str-video__embedded-button str-video__embedded-button--go-live"
+                onClick={onGoLive}
+              >
+                {t('Go Live')}
+              </button>
+            </WithTooltip>
           </div>
         </div>
       </div>

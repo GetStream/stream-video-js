@@ -65,10 +65,6 @@ export const LivestreamUI = () => {
     }
   }, [call]);
 
-  const handleLeave = useCallback(() => {
-    call?.leave();
-  }, [call]);
-
   if (
     callingState === CallingState.IDLE ||
     callingState === CallingState.UNKNOWN
@@ -104,7 +100,7 @@ export const LivestreamUI = () => {
       if (!isBackstageEnabled) {
         return <LoadingScreen message="Starting stream..." />;
       }
-      return <HostLiveControls onGoLive={handleGoLive} onLeave={handleLeave} />;
+      return <HostLiveControls onGoLive={handleGoLive} />;
     }
 
     return <ViewerWaitingForLive onJoin={() => {}} canJoin={false} />;
