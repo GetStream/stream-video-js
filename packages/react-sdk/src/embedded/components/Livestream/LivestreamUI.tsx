@@ -35,6 +35,7 @@ export const LivestreamUI = () => {
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
+
     const canJoin =
       call.state.callingState === CallingState.IDLE ||
       call.state.callingState === CallingState.UNKNOWN;
