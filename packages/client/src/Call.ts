@@ -138,13 +138,6 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
-import {
-  CameraManager,
-  MicrophoneManager,
-  ScreenShareManager,
-  SpeakerManager,
-} from './devices';
-import { normalize } from './devices/devicePersistence';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
@@ -158,6 +151,13 @@ import {
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './helpers/client-details';
+import {
+  CameraManager,
+  MicrophoneManager,
+  ScreenShareManager,
+  SpeakerManager,
+} from './devices';
+import { normalize } from './devices/devicePersistence';
 import { hasPending, withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
