@@ -2,8 +2,11 @@ import { combineLatest, Observable, pairwise } from 'rxjs';
 import { Call } from '../Call';
 import { TrackPublishOptions } from '../rtc';
 import { CallingState } from '../store';
-import { createSubscription } from '../store/rxUtils';
-import { DeviceManagerState } from './DeviceManagerState';
+import { createSubscription, getCurrentValue } from '../store/rxUtils';
+import {
+  DeviceManagerState,
+  type InputDeviceStatus,
+} from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 import { ScopedLogger, videoLoggerSystem } from '../logger';
@@ -19,6 +22,14 @@ import {
   MediaStreamFilterEntry,
   MediaStreamFilterRegistrationResult,
 } from './filters';
+import {
+  defaultDeviceId,
+  DevicePreferenceKey,
+  DevicePersistenceOptions,
+  readPreferences,
+  toPreferenceList,
+  writePreferences,
+} from './devicePersistence';
 
 export abstract class DeviceManager<
   S extends DeviceManagerState<C>,
@@ -32,23 +43,10 @@ export abstract class DeviceManager<
 
   state: S;
 
-  /**
-   * When `true`, the `apply()` method will skip automatically enabling/disabling
-   * the device based on server defaults (`mic_default_on`, `camera_default_on`).
-   *
-   * This is useful when application code wants to handle device preferences
-   * (e.g., persisted user preferences) and prevent server defaults from
-   * overriding them.
-   *
-   * @default false
-   *
-   * @internal
-   */
-  deferServerDefaults = false;
-
   protected readonly call: Call;
   protected readonly trackType: TrackType;
-  protected subscriptions: Function[] = [];
+  protected subscriptions: (() => void)[] = [];
+  protected devicePersistence: Required<DevicePersistenceOptions>;
   protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilterEntry[] = [];
@@ -57,10 +55,16 @@ export abstract class DeviceManager<
     'filterRegistrationConcurrencyTag',
   );
 
-  protected constructor(call: Call, state: S, trackType: TrackType) {
+  protected constructor(
+    call: Call,
+    state: S,
+    trackType: TrackType,
+    devicePersistence: Required<DevicePersistenceOptions>,
+  ) {
     this.call = call;
     this.state = state;
     this.trackType = trackType;
+    this.devicePersistence = devicePersistence;
     this.logger = videoLoggerSystem.getLogger(
       `${TrackType[trackType].toLowerCase()} manager`,
     );
@@ -68,10 +72,7 @@ export abstract class DeviceManager<
   }
 
   setup() {
-    if (this.areSubscriptionsSetUp) {
-      return;
-    }
-
+    if (this.areSubscriptionsSetUp) return;
     this.areSubscriptionsSetUp = true;
 
     if (
@@ -80,6 +81,17 @@ export abstract class DeviceManager<
       (this.trackType === TrackType.AUDIO || this.trackType === TrackType.VIDEO)
     ) {
       this.handleDisconnectedOrReplacedDevices();
+    }
+
+    if (this.devicePersistence.enabled) {
+      this.subscriptions.push(
+        createSubscription(
+          combineLatest([this.state.selectedDevice$, this.state.status$]),
+          ([selectedDevice, status]) => {
+            this.persistPreference(selectedDevice, status);
+          },
+        ),
+      );
     }
   }
 
@@ -561,5 +573,67 @@ export abstract class DeviceManager<
   protected findDevice(devices: MediaDeviceInfo[], deviceId: string) {
     const kind = this.mediaDeviceKind;
     return devices.find((d) => d.deviceId === deviceId && d.kind === kind);
+  }
+
+  private persistPreference(
+    selectedDevice: string | undefined,
+    status: InputDeviceStatus,
+  ) {
+    if (!selectedDevice || !status) return;
+
+    const deviceKind = this.mediaDeviceKind;
+    const deviceKey = deviceKind === 'audioinput' ? 'microphone' : 'camera';
+    const muted =
+      status === 'disabled' ? true : status === 'enabled' ? false : undefined;
+
+    const { storageKey } = this.devicePersistence;
+    const devices = getCurrentValue(this.listDevices()) || [];
+    const currentDevice = this.findDevice(devices, selectedDevice);
+    writePreferences(currentDevice, deviceKey, muted, storageKey);
+  }
+
+  protected async applyPersistedPreferences(enabledInCallType: boolean) {
+    const deviceKey: DevicePreferenceKey =
+      this.trackType === TrackType.AUDIO ? 'microphone' : 'camera';
+    const { storageKey } = this.devicePersistence;
+    const preferences = readPreferences(storageKey);
+    const preferenceList = toPreferenceList(preferences[deviceKey]);
+
+    if (preferenceList.length === 0) return false;
+
+    const canPublish = this.call.permissionsContext.canPublish(this.trackType);
+    const devices = getCurrentValue(this.listDevices()) || [];
+    let muted: boolean | undefined;
+    for (const preference of preferenceList) {
+      muted ??= preference.muted;
+      if (preference.selectedDeviceId === defaultDeviceId) break;
+
+      const device =
+        devices.find((d) => d.deviceId === preference.selectedDeviceId) ??
+        devices.find((d) => d.label === preference.selectedDeviceLabel);
+
+      if (device) {
+        if (!this.state.selectedDevice) {
+          await this.select(device.deviceId);
+        }
+        muted = preference.muted;
+        break;
+      }
+    }
+
+    if (typeof muted === 'boolean' && enabledInCallType && canPublish) {
+      await this.applyMutedState(muted);
+    }
+
+    return true;
+  }
+
+  private async applyMutedState(muted: boolean) {
+    if (this.state.status !== undefined) return;
+    if (muted) {
+      await this.disable();
+    } else {
+      await this.enable();
+    }
   }
 }

@@ -138,6 +138,13 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
+import {
+  CameraManager,
+  MicrophoneManager,
+  ScreenShareManager,
+  SpeakerManager,
+} from './devices';
+import { normalize } from './devices/devicePersistence';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
@@ -151,12 +158,6 @@ import {
   StreamCallEvent,
 } from './coordinator/connection/types';
 import { getClientDetails } from './helpers/client-details';
-import {
-  CameraManager,
-  MicrophoneManager,
-  ScreenShareManager,
-  SpeakerManager,
-} from './devices';
 import { hasPending, withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
@@ -335,10 +336,11 @@ export class Call {
       ringing ? CallingState.RINGING : CallingState.IDLE,
     );
 
-    this.camera = new CameraManager(this);
-    this.microphone = new MicrophoneManager(this);
-    this.speaker = new SpeakerManager(this);
-    this.screenShare = new ScreenShareManager(this);
+    const preferences = normalize(streamClient.options.devicePersistence);
+    this.camera = new CameraManager(this, preferences);
+    this.microphone = new MicrophoneManager(this, preferences);
+    this.speaker = new SpeakerManager(this, preferences);
+    this.screenShare = new ScreenShareManager(this, preferences);
     this.dynascaleManager = new DynascaleManager(
       this.state,
       this.speaker,

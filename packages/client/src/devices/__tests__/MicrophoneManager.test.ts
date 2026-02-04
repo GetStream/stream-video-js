@@ -78,6 +78,9 @@ describe('MicrophoneManager', () => {
   beforeEach(() => {
     setupAudioContextMock();
 
+    if (typeof localStorage !== 'undefined') {
+      localStorage.clear();
+    }
     call = new Call({
       id: '',
       type: '',
@@ -382,6 +385,28 @@ describe('MicrophoneManager', () => {
       // @ts-expect-error - partial data
       await manager.apply({ mic_default_on: true }, true);
       expect(manager['publishStream']).toHaveBeenCalled();
+    });
+
+    it('should prefer local preferences over server defaults', async () => {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(
+          '@stream-io/device-preferences',
+          JSON.stringify({
+            microphone: {
+              selectedDeviceId: 'default',
+              selectedDeviceLabel: '',
+              muted: true,
+            },
+          }),
+        );
+      }
+
+      const enable = vi.spyOn(manager, 'enable');
+      // @ts-expect-error - partial data
+      await manager.apply({ mic_default_on: true }, true);
+
+      expect(enable).not.toHaveBeenCalled();
+      expect(manager.state.status).toBe('disabled');
     });
   });
 
