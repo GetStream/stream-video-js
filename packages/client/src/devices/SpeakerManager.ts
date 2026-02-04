@@ -192,7 +192,7 @@ export class SpeakerManager {
     const devices = getCurrentValue(this.listDevices()) || [];
     const currentDevice =
       devices.find((d) => d.deviceId === selectedDevice) ??
-      createSyntheticDevice(selectedDevice, 'videoinput');
+      createSyntheticDevice(selectedDevice, 'audiooutput');
     writePreferences(currentDevice, 'speaker', undefined, storageKey);
   }
 }
