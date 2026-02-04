@@ -62,7 +62,7 @@ const DefaultCallUI = () => {
     return <Lobby onJoin={handleJoin} />;
   }
 
-  if (callingState !== CallingState.JOINED && !localParticipant) {
+  if (callingState === CallingState.JOINING && !localParticipant) {
     return <LoadingScreen />;
   }
 
