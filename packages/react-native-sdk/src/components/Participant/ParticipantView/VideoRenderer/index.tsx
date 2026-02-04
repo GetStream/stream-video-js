@@ -36,6 +36,7 @@ export type VideoRendererProps = Pick<
   | 'isVisible'
   | 'objectFit'
   | 'videoZOrder'
+  | 'mirror'
 >;
 
 /**
@@ -50,6 +51,7 @@ export const VideoRenderer = ({
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
   objectFit,
   videoZOrder = 0,
+  mirror: mirrorOverride,
 }: VideoRendererProps) => {
   const {
     theme: { videoRenderer },
@@ -109,8 +111,11 @@ export const VideoRenderer = ({
     deregisterIosScreenshot,
   ]);
 
-  const mirror =
-    isLocalParticipant && !isScreenSharing && direction === 'front';
+  const mirror = isScreenSharing
+    ? false
+    : mirrorOverride !== undefined
+      ? mirrorOverride
+      : isLocalParticipant && direction === 'front';
 
   /**
    * This effect updates the participant's viewportVisibilityState

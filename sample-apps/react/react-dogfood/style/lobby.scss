@@ -35,11 +35,12 @@
 
     .rd__lobby-media-toggle {
       display: flex;
+      justify-content: center;
       position: absolute;
-      bottom: 0px;
+      bottom: 0;
       gap: var(--str-video__spacing-sm);
-      left: 50%;
-      transform: translate(-50%, -50%);
+      width: 100%;
+      transform: translate(0, -50%);
     }
 
     .rd__lobby-video-preview,
