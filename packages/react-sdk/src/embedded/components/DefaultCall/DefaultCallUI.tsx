@@ -16,7 +16,7 @@ import { LoadingScreen } from '../shared';
 const DefaultCallUI = () => {
   const call = useCall();
 
-  const { skipLobby } = useEmbeddedConfiguration();
+  const { skipLobby, onError } = useEmbeddedConfiguration();
   const { useCallCallingState, useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const callingState = useCallCallingState();
@@ -31,12 +31,14 @@ const DefaultCallUI = () => {
       !hasAutoJoinedRef.current
     ) {
       hasAutoJoinedRef.current = true;
-      call.join().catch((err) => {
-        console.error('Failed to auto-join call:', err);
+      call.join().catch((e) => {
+        const error = e instanceof Error ? e : new Error(String(e));
+        console.error('Failed to auto-join call:', error);
+        onError?.(error);
         hasAutoJoinedRef.current = false;
       });
     }
-  }, [skipLobby, call, callingState]);
+  }, [skipLobby, call, callingState, onError]);
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
@@ -45,10 +47,12 @@ const DefaultCallUI = () => {
       if (call.state.callingState !== CallingState.JOINED) {
         await call.join();
       }
-    } catch (err) {
-      console.error('Failed to join call:', err);
+    } catch (e) {
+      const error = e instanceof Error ? e : new Error(String(e));
+      console.error('Failed to join call:', error);
+      onError?.(error);
     }
-  }, [call]);
+  }, [call, onError]);
 
   if (
     !skipLobby &&

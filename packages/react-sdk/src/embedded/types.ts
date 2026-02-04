@@ -49,6 +49,10 @@ export interface ConfigurationProviderProps {
    * Layout option for the call.
    */
   layout?: LayoutOption;
+  /**
+   * Callback when an error occurs (e.g., join failure).
+   */
+  onError?: (error: Error) => void;
 }
 
 /**

@@ -9,11 +9,13 @@ export interface EmbeddedConfiguration {
    */
   skipLobby: boolean;
   layout: LayoutOption;
+  onError?: (error: Error) => void;
 }
 
 const defaultConfiguration: EmbeddedConfiguration = {
   skipLobby: false,
   layout: 'SpeakerBottom',
+  onError: undefined,
 };
 
 const ConfigurationContext =
@@ -23,8 +25,12 @@ export const ConfigurationProvider = ({
   children,
   skipLobby = false,
   layout = 'SpeakerTop',
+  onError,
 }: PropsWithChildren<ConfigurationProviderProps>) => {
-  const value = useMemo(() => ({ skipLobby, layout }), [skipLobby, layout]);
+  const value = useMemo(
+    () => ({ skipLobby, layout, onError }),
+    [skipLobby, layout, onError],
+  );
 
   return (
     <ConfigurationContext.Provider value={value}>

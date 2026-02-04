@@ -57,7 +57,7 @@ export const EmbeddedStreamClient = ({
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <ConfigurationProvider {...configProps}>
+        <ConfigurationProvider {...configProps} onError={onError}>
           <BackgroundFiltersProvider>
             {noiseCancellation && (
               <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
