@@ -26,8 +26,6 @@ export const useLayout = () => {
     ? configuredLayout!
     : 'SpeakerBottom';
 
-  console.log(configuredLayout);
-  console.log(defaultLayout);
   const [layout, setLayout] = useState<LayoutOption>(defaultLayout);
 
   useEffect(() => {
