@@ -69,7 +69,7 @@
                              supportsUngrouping:supportsUngrouping
                                     fromPushKit:fromPushKit
                                         payload:payload
-                              completionHandler:completion];
+                                     completion:completion];
 }
 
 + (BOOL)canRegisterCall {
