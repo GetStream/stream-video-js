@@ -15,6 +15,7 @@ import type {
   LogLevel,
   LayoutOption,
 } from '../types';
+import { LoadingScreen } from './LoadingScreen';
 
 export interface EmbeddedClientProviderProps {
   apiKey: string;
@@ -105,7 +106,11 @@ export const EmbeddedClientProvider = ({
   });
 
   if (!call || !client || !noiseCancellation) {
-    return null;
+    return (
+      <StreamTheme>
+        <LoadingScreen />
+      </StreamTheme>
+    );
   }
 
   return (
