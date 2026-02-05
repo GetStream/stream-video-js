@@ -4,7 +4,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { useEmbeddedConfiguration } from '../context';
 import { LoadingScreen } from '../shared';
-import { Lobby } from './Lobby';
+import { Lobby } from '../shared/Lobby';
 import { ActiveCall } from './ActiveCall';
 import { CallFeedback } from './CallFeedback';
 

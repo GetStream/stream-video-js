@@ -22,7 +22,6 @@ import { CameraMenuWithBlur, ConnectionNotification, MicMenu } from '../shared';
 
 /**
  * ActiveCall renders the in-call experience with layout, controls, and sidebar.
- * It handles local UI state (sidebar, link copied).
  */
 export const ActiveCall = () => {
   const { t } = useI18n();

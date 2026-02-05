@@ -7,7 +7,7 @@ import {
   MenuVisualType,
   ToggleMenuButtonProps,
 } from '../../components';
-import { MicMenu } from '../shared';
+import { MicMenu } from './index';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
