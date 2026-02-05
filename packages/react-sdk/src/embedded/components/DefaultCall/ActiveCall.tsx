@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useI18n } from '@stream-io/video-react-bindings';
 import {
@@ -18,12 +18,7 @@ import {
 } from '../../../components';
 
 import { useLayout } from '../../hooks';
-import { Layouts } from '../../layouts';
-import {
-  CallHeader,
-  CameraMenuWithBlur,
-  MicMenuWithNoiseCancellation,
-} from '../shared';
+import { CameraMenuWithBlur, ConnectionNotification, MicMenu } from '../shared';
 
 /**
  * ActiveCall renders the in-call experience with layout, controls, and sidebar.
@@ -32,29 +27,13 @@ import {
 export const ActiveCall = () => {
   const { t } = useI18n();
   const [showParticipants, setShowParticipants] = useState(false);
-  const [linkCopied, setLinkCopied] = useState(false);
 
-  const { layout } = useLayout();
-
-  const handleCopyInviteLink = useCallback(async () => {
-    const link = window.location.href;
-    try {
-      await navigator.clipboard.writeText(link);
-      setLinkCopied(true);
-      setTimeout(() => setLinkCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy link:', err);
-    }
-  }, []);
-
-  const layoutConfig = Layouts[layout];
-  const LayoutComponent = layoutConfig.Component;
-  const layoutProps = layoutConfig.props ?? {};
+  const { Component: LayoutComponent, props: layoutProps } = useLayout();
 
   return (
     <div className="str-video__embedded-call">
       <div className="str-video__embedded-main-panel">
-        <CallHeader />
+        <ConnectionNotification />
         <PermissionRequests />
         <div className="str-video__embedded-notifications">
           <Restricted
@@ -79,22 +58,6 @@ export const ActiveCall = () => {
                     onClose={() => setShowParticipants(false)}
                   />
                 </div>
-                <div className="str-video__embedded-invite-section">
-                  <h4 className="str-video__embedded-invite-section__title">
-                    {t('Share the link')}
-                  </h4>
-                  <p className="str-video__embedded-invite-section__description">
-                    {t('Click the button below to copy the call link:')}
-                  </p>
-                  <button
-                    type="button"
-                    className="str-video__embedded-invite-section__button"
-                    onClick={handleCopyInviteLink}
-                  >
-                    <Icon icon="link-copy" />
-                    {linkCopied ? t('Link copied!') : t('Copy invite link')}
-                  </button>
-                </div>
               </div>
             )}
           </div>
@@ -109,7 +72,7 @@ export const ActiveCall = () => {
             >
               <MicCaptureErrorNotification>
                 <ToggleAudioPublishingButton
-                  Menu={<MicMenuWithNoiseCancellation />}
+                  Menu={<MicMenu />}
                   menuPlacement="top"
                 />
               </MicCaptureErrorNotification>

@@ -7,7 +7,7 @@ import {
   MenuVisualType,
   ToggleMenuButtonProps,
 } from '../../../components';
-import { MicMenuWithNoiseCancellation } from '../shared';
+import { MicMenu } from '../shared';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
@@ -38,7 +38,7 @@ export const ToggleMicButton = () => {
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
     >
-      <MicMenuWithNoiseCancellation />
+      <MicMenu />
     </MenuToggle>
   );
 };

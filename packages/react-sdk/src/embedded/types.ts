@@ -42,10 +42,6 @@ export interface EmbeddedUser {
  */
 export interface ConfigurationProviderProps {
   /**
-   * Skip the lobby/device setup screen and auto-join.
-   */
-  skipLobby?: boolean;
-  /**
    * Layout option for the call.
    */
   layout?: LayoutOption;

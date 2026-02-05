@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 import { CallingState } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
@@ -16,29 +16,10 @@ import { LoadingScreen } from '../shared';
 const DefaultCallUI = () => {
   const call = useCall();
 
-  const { skipLobby, onError } = useEmbeddedConfiguration();
+  const { onError } = useEmbeddedConfiguration();
   const { useCallCallingState, useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const callingState = useCallCallingState();
-
-  const hasAutoJoinedRef = useRef(false);
-  useEffect(() => {
-    if (!call) return;
-
-    if (
-      skipLobby &&
-      callingState === CallingState.IDLE &&
-      !hasAutoJoinedRef.current
-    ) {
-      hasAutoJoinedRef.current = true;
-      call.join().catch((e) => {
-        const error = e instanceof Error ? e : new Error(String(e));
-        console.error('Failed to auto-join call:', error);
-        onError?.(error);
-        hasAutoJoinedRef.current = false;
-      });
-    }
-  }, [skipLobby, call, callingState, onError]);
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
@@ -55,9 +36,8 @@ const DefaultCallUI = () => {
   }, [call, onError]);
 
   if (
-    !skipLobby &&
-    (callingState === CallingState.IDLE ||
-      callingState === CallingState.UNKNOWN)
+    callingState === CallingState.IDLE ||
+    callingState === CallingState.UNKNOWN
   ) {
     return <Lobby onJoin={handleJoin} />;
   }

@@ -10,10 +10,8 @@ import { LivestreamView } from './LivestreamView';
 import { StreamEndedScreen } from './StreamEndedScreen';
 import { LoadingScreen } from '../shared';
 import { useCanJoinEarly } from '../../hooks';
-import { useEmbeddedConfiguration } from '../../context';
 
 export const LivestreamUI = () => {
-  const { skipLobby } = useEmbeddedConfiguration();
   const call = useCall();
   const {
     useCallCallingState,
@@ -73,7 +71,7 @@ export const LivestreamUI = () => {
       return <HostBackstage onJoin={handleJoin} />;
     }
 
-    if (skipLobby || isInWaitingRoom) {
+    if (isInWaitingRoom) {
       return (
         <ViewerWaitingForLive onJoin={handleJoin} canJoin={canViewerJoin} />
       );
