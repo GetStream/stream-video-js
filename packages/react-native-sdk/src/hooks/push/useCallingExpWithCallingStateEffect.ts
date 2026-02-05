@@ -8,26 +8,6 @@ const logger = videoLoggerSystem.getLogger(
   'Callingx - useCallingExpWithCallingStateEffect',
 );
 
-//calling state methods are not exhaustive, so we need to add more methods to cover different cases
-const canActivateCall = (
-  prevState: CallingState | undefined,
-  currentState: CallingState | undefined,
-) => {
-  if (!prevState && !currentState) {
-    return false;
-  }
-
-  const isJoined = (state: CallingState | undefined) => {
-    if (!state) {
-      return false;
-    }
-
-    return state === CallingState.JOINING || state === CallingState.JOINED;
-  };
-
-  return !isJoined(prevState) && isJoined(currentState);
-};
-
 const canEndCall = (
   prevState: CallingState | undefined,
   currentState: CallingState | undefined,
