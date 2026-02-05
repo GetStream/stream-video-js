@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useI18n } from '@stream-io/video-react-bindings';
 import {
@@ -29,6 +29,14 @@ export const ActiveCall = () => {
 
   const { Component: LayoutComponent, props: layoutProps } = useLayout();
 
+  const handleCloseParticipants = useCallback(() => {
+    setShowParticipants(false);
+  }, []);
+
+  const handleToggleParticipants = useCallback(() => {
+    setShowParticipants((prev) => !prev);
+  }, []);
+
   return (
     <div className="str-video__embedded-call">
       <div className="str-video__embedded-main-panel">
@@ -53,9 +61,7 @@ export const ActiveCall = () => {
             {showParticipants && (
               <div className="str-video__embedded-sidebar__container">
                 <div className="str-video__embedded-participants">
-                  <CallParticipantsList
-                    onClose={() => setShowParticipants(false)}
-                  />
+                  <CallParticipantsList onClose={handleCloseParticipants} />
                 </div>
               </div>
             )}
@@ -100,7 +106,7 @@ export const ActiveCall = () => {
             <WithTooltip title={t('Participants')}>
               <CompositeButton
                 active={showParticipants}
-                onClick={() => setShowParticipants(!showParticipants)}
+                onClick={handleToggleParticipants}
               >
                 <Icon icon="participants" />
               </CompositeButton>
