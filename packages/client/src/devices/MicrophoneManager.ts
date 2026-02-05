@@ -66,7 +66,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
             if (!this.speakingWhileMutedNotificationEnabled) return;
 
             if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
-              if (status === 'disabled') {
+              if (status !== 'enabled') {
                 await this.startSpeakingWhileMutedDetection(deviceId);
               } else {
                 await this.stopSpeakingWhileMutedDetection();
