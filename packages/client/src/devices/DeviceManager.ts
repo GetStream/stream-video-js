@@ -598,9 +598,11 @@ export abstract class DeviceManager<
   }
 
   protected async applyPersistedPreferences(enabledInCallType: boolean) {
+    const { storageKey, enabled } = this.devicePersistence;
+    if (!enabled) return false;
+
     const deviceKey: DevicePreferenceKey =
       this.trackType === TrackType.AUDIO ? 'microphone' : 'camera';
-    const { storageKey } = this.devicePersistence;
     const preferences = readPreferences(storageKey);
     const preferenceList = toPreferenceList(preferences[deviceKey]);
 

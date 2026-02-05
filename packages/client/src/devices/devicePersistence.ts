@@ -1,4 +1,5 @@
 import { isReactNative } from '../helpers/platforms';
+import { videoLoggerSystem } from '../logger';
 
 export type DevicePersistenceOptions = {
   /**
@@ -29,15 +30,18 @@ export type LocalDevicePreferences = {
 
 export const defaultDeviceId = 'default';
 
+const isLocalStorageAvailable = (): boolean =>
+  typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
+
 export const normalize = (
   options: DevicePersistenceOptions | undefined,
 ): Required<DevicePersistenceOptions> => {
-  const hasLocalStorage =
-    typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
   return {
     storageKey: options?.storageKey ?? `@stream-io/device-preferences`,
     enabled:
-      hasLocalStorage && !isReactNative() ? (options?.enabled ?? true) : false,
+      isLocalStorageAvailable() && !isReactNative()
+        ? (options?.enabled ?? true)
+        : false,
   };
 };
 
@@ -63,6 +67,8 @@ export const writePreferences = (
   muted: boolean | undefined,
   storageKey: string,
 ) => {
+  if (!isLocalStorageAvailable()) return;
+
   const selectedDeviceId = currentDevice?.deviceId ?? defaultDeviceId;
   const selectedDeviceLabel = currentDevice?.label ?? '';
 
@@ -87,7 +93,12 @@ export const writePreferences = (
       ...preferenceHistory,
     ].slice(0, 3),
   };
-  window.localStorage.setItem(storageKey, JSON.stringify(nextPreferences));
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(nextPreferences));
+  } catch (err) {
+    const logger = videoLoggerSystem.getLogger('DevicePersistence');
+    logger.error('failed to save device preferences', err);
+  }
 };
 
 export const toPreferenceList = (
