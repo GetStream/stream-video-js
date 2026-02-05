@@ -14,7 +14,7 @@ export interface EmbeddedConfiguration {
 
 const defaultConfiguration: EmbeddedConfiguration = {
   skipLobby: false,
-  layout: 'SpeakerBottom',
+  layout: 'PaginatedGrid',
   onError: undefined,
 };
 

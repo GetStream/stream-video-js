@@ -17,13 +17,12 @@ import {
   WithTooltip,
 } from '../../../components';
 
-import { useLayoutSwitcher } from '../../hooks';
+import { useLayout } from '../../hooks';
 import { Layouts } from '../../layouts';
 import {
   CallHeader,
   CameraMenuWithBlur,
   MicMenuWithNoiseCancellation,
-  ToggleLayoutButton,
 } from '../shared';
 
 /**
@@ -35,7 +34,7 @@ export const ActiveCall = () => {
   const [showParticipants, setShowParticipants] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
 
-  const { layout, setLayout } = useLayoutSwitcher();
+  const { layout } = useLayout();
 
   const handleCopyInviteLink = useCallback(async () => {
     const link = window.location.href;
@@ -102,12 +101,7 @@ export const ActiveCall = () => {
         </div>
 
         <div className="str-video__embedded-call-controls str-video__call-controls">
-          <div className="str-video__call-controls--group str-video__call-controls--options">
-            <ToggleLayoutButton
-              selectedLayout={layout}
-              onMenuItemClick={setLayout}
-            />
-          </div>
+          <div className="str-video__call-controls--group str-video__call-controls--options" />
           <div className="str-video__call-controls--group str-video__call-controls--media">
             <Restricted
               requiredGrants={[OwnCapability.SEND_AUDIO]}
