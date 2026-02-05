@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import { Icon } from '../../../components';
 
 export interface CallFeedbackProps {
   onSkip?: () => void;
@@ -40,19 +41,22 @@ const StarIcon = ({ filled }: { filled: boolean }) => (
   </svg>
 );
 
-const RejoinLink = ({ onClick }: { onClick: () => void }) => {
+const RejoinSection = ({ onClick }: { onClick: () => void }) => {
   const { t } = useI18n();
   return (
-    <p className="str-video__embedded-call-feedback__rejoin">
-      {t('Left by mistake?')}{' '}
+    <div className="str-video__embedded-call-feedback__rejoin-section">
+      <p className="str-video__embedded-call-feedback__rejoin-text">
+        {t('Left by mistake?')}
+      </p>
       <button
         type="button"
-        className="str-video__embedded-call-feedback__rejoin-link"
+        className="str-video__embedded-call-feedback__rejoin-button"
         onClick={onClick}
       >
+        <Icon icon="login" />
         {t('Rejoin call')}
       </button>
-    </p>
+    </div>
   );
 };
 
@@ -65,6 +69,14 @@ const StarRating = ({ value, onChange }: StarRatingProps) => {
   const { t } = useI18n();
   const [hovered, setHovered] = useState(0);
   const displayValue = hovered || value;
+
+  const getStarClasses = (star: number) => {
+    const classes = ['str-video__embedded-call-feedback__star'];
+    if (star <= displayValue) {
+      classes.push('str-video__embedded-call-feedback__star--active');
+    }
+    return classes.join(' ');
+  };
 
   return (
     <div className="str-video__embedded-call-feedback__rating-section">
@@ -79,11 +91,7 @@ const StarRating = ({ value, onChange }: StarRatingProps) => {
           <button
             key={star}
             type="button"
-            className={`str-video__embedded-call-feedback__star${
-              star <= displayValue
-                ? ' str-video__embedded-call-feedback__star--active'
-                : ''
-            }`}
+            className={getStarClasses(star)}
             onClick={() => onChange(star)}
             onMouseEnter={() => setHovered(star)}
             aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
@@ -105,10 +113,10 @@ const ThankYouScreen = () => {
           <CheckmarkIcon />
         </div>
         <h2 className="str-video__embedded-call-feedback__title">
-          {t('Thanks for your feedback')}
+          {t('Thank you!')}
         </h2>
         <p className="str-video__embedded-call-feedback__subtitle">
-          {t('Your input helps us improve the call experience.')}
+          {t('Your feedback helps improve call quality.')}
         </p>
       </div>
     </FeedbackLayout>
@@ -123,7 +131,7 @@ const CallEndedScreen = ({ onRejoin }: { onRejoin?: () => void }) => {
         <h2 className="str-video__embedded-call-feedback__title">
           {t('Call ended')}
         </h2>
-        {onRejoin && <RejoinLink onClick={onRejoin} />}
+        {onRejoin && <RejoinSection onClick={onRejoin} />}
       </div>
     </FeedbackLayout>
   );
@@ -162,14 +170,14 @@ const RatingScreen = ({ onSubmit, onSkip, onRejoin }: RatingScreenProps) => {
         </button>
         <button
           type="button"
-          className="str-video__embedded-call-feedback__button str-video__embedded-call-feedback__button--secondary"
+          className="str-video__embedded-call-feedback__skip"
           onClick={onSkip}
         >
           {t('Skip')}
         </button>
       </div>
 
-      {onRejoin && <RejoinLink onClick={onRejoin} />}
+      {onRejoin && <RejoinSection onClick={onRejoin} />}
     </FeedbackLayout>
   );
 };

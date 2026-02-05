@@ -1,9 +1,10 @@
 $feedback-icon-size: 64px;
-$feedback-button-height: 48px;
-$feedback-border-radius: 8px;
-$feedback-transition: 0.15s ease;
+$feedback-button-height: 52px;
+$feedback-border-radius: 12px;
 
-$color-success: #22c55e;
+$color-success: #4ade80;
+$color-success-bg: rgba(74, 222, 128, 0.15);
+$color-primary: #3b82f6;
 
 @mixin flex-center {
   display: flex;
@@ -25,28 +26,13 @@ $color-success: #22c55e;
   background: $bg-color;
 }
 
-@mixin button-base {
-  border: none;
-  border-radius: $feedback-border-radius;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background-color $feedback-transition,
-    transform 0.1s ease;
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
 // Main container
 .str-video__embedded-call-feedback {
   @include flex-center;
   min-height: 100%;
   width: 100%;
   padding: 2rem;
-  background: var(--str-video__base-color4);
-  animation: str-video__feedback-fade-in 0.3s ease-out;
+  background: var(--str-video__base-color4, #000);
 
   &__container {
     @include flex-column-center;
@@ -59,58 +45,57 @@ $color-success: #22c55e;
 
   &__title {
     margin: 0;
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     font-weight: 600;
-    color: var(--str-video__text-color1);
+    color: var(--str-video__text-color1, #fff);
   }
 
   &__subtitle {
     margin: 0;
     font-size: 0.9375rem;
-    color: var(--str-video__text-color2);
+    color: var(--str-video__text-color2, #9ca3af);
   }
 
   // Star Rating
   &__rating-section {
     @include flex-column-center;
-    gap: 1rem;
-    padding: 1.5rem 0;
+    gap: 1.25rem;
+    padding: 1rem 0;
   }
 
   &__rating-label {
     margin: 0;
-    font-size: 1rem;
-    font-weight: 500;
-    color: var(--str-video__text-color1);
+    font-size: 1.125rem;
+    font-weight: 400;
+    color: var(--str-video__text-color2, #9ca3af);
   }
 
   &__stars {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.25rem;
   }
 
   &__star {
     @include flex-center;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     padding: 0;
     border: none;
     background: transparent;
-    color: var(--str-video__text-color3, #6b7280);
+    color: var(--str-video__text-color3, #4b5563);
     cursor: pointer;
-    transition: color $feedback-transition;
 
     svg {
-      width: 28px;
-      height: 28px;
+      width: 24px;
+      height: 24px;
     }
 
     &:hover {
-      color: var(--str-video__primary-color, #005fff);
+      color: $color-primary;
     }
 
     &--active {
-      color: var(--str-video__primary-color, #005fff);
+      color: $color-primary;
     }
   }
 
@@ -118,69 +103,94 @@ $color-success: #22c55e;
   &__actions {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    align-items: center;
+    gap: 1rem;
     width: 100%;
+    padding-top: 1rem;
   }
 
   &__button {
     @include flex-center;
-    @include button-base;
     gap: 0.5rem;
     width: 100%;
-    height: $feedback-button-height;
+    height: 34px;
     padding: 0 1.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--str-video__border-radius-md, 8px);
     font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--str-video__text-color1, #fff);
+    background: none;
 
     &--primary {
-      background: var(--str-video__button-primary-active, #005fff);
-      color: #fff;
+      background: var(--str-video__button-primary-active, $color-primary);
 
       &:hover:not(:disabled) {
-        background: var(--str-video__button-primary-hover, #0052d9);
+        background: var(--str-video__button-primary-hover, #2563eb);
       }
 
       &:disabled {
+        background: var(--str-video__button-default-disabled, #374151);
         opacity: 0.5;
         cursor: not-allowed;
-        background: var(
-          --str-video__button-default-disabled,
-          rgba(255, 255, 255, 0.1)
-        );
-      }
-    }
-
-    &--secondary {
-      background: transparent;
-      color: var(--str-video__text-color2);
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--str-video__text-color1);
       }
     }
   }
 
-  // Rejoin link
-  &__rejoin {
-    margin: 0;
-    padding-top: 1.5rem;
-    font-size: 0.875rem;
-    color: var(--str-video__text-color2);
-  }
-
-  &__rejoin-link {
+  // Skip as text link
+  &__skip {
     padding: 0;
     border: none;
     background: transparent;
-    color: var(--str-video__primary-color, #005fff);
-    font-size: inherit;
-    font-weight: 500;
+    color: var(--str-video__text-color2, #9ca3af);
+    font-size: 0.875rem;
+    font-weight: 400;
     cursor: pointer;
-    transition: color $feedback-transition;
 
     &:hover {
-      color: var(--str-video__primary-color-hover, #3d8eff);
-      text-decoration: underline;
+      color: var(--str-video__text-color1, #fff);
+    }
+  }
+
+  // Rejoin section
+  &__rejoin-section {
+    @include flex-column-center;
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: auto;
+    padding-top: 2.5rem;
+  }
+
+  &__rejoin-text {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--str-video__text-color3, #6b7280);
+  }
+
+  &__rejoin-button {
+    @include flex-center;
+    gap: 0.375rem;
+    height: 28px;
+    padding: 0 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--str-video__border-radius-sm, 6px);
+    background: transparent;
+    color: var(--str-video__text-color2, #9ca3af);
+    font-size: 0.8125rem;
+    font-weight: 400;
+    cursor: pointer;
+
+    svg {
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.25);
+      color: var(--str-video__text-color1, #fff);
     }
   }
 
@@ -189,52 +199,15 @@ $color-success: #22c55e;
   &__ended {
     @include flex-column-center;
     gap: 1rem;
-    animation: str-video__screen-appear 0.4s ease-out;
   }
 
   &__checkmark {
-    @include circular-icon($feedback-icon-size, $color-success);
-    color: #fff;
-    animation: str-video__checkmark-pop 0.5s ease-out 0.1s both;
+    @include circular-icon(56px, $color-success-bg);
+    color: $color-success;
 
     svg {
-      width: 32px;
-      height: 32px;
+      width: 24px;
+      height: 24px;
     }
-  }
-}
-
-// Animations
-@keyframes str-video__feedback-fade-in {
-  from {
-    opacity: 0;
-    transform: scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes str-video__screen-appear {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes str-video__checkmark-pop {
-  0% {
-    transform: scale(0);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
   }
 }
