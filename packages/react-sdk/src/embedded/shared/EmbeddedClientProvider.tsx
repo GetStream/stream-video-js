@@ -8,7 +8,7 @@ import {
   NoiseCancellationProvider,
 } from '../../components';
 import { ConfigurationProvider } from '../context';
-import { useEmbeddedClient, useWakeLock } from '../hooks';
+import { useEmbeddedClient } from '../hooks';
 import type {
   EmbeddedUser,
   TokenProvider,
@@ -46,32 +46,6 @@ const NoiseCancellationWrapper = ({
     <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
       {children}
     </NoiseCancellationProvider>
-  );
-};
-
-const InnerProvider = ({
-  noiseCancellation,
-  layout,
-  onError,
-  style,
-  children,
-}: {
-  noiseCancellation?: INoiseCancellation;
-  layout?: LayoutOption;
-  onError?: (error: Error) => void;
-  style?: CSSProperties;
-  children: ReactNode;
-}) => {
-  useWakeLock();
-
-  return (
-    <ConfigurationProvider layout={layout} onError={onError}>
-      <BackgroundFiltersProvider>
-        <NoiseCancellationWrapper noiseCancellation={noiseCancellation}>
-          <StreamTheme style={style}>{children}</StreamTheme>
-        </NoiseCancellationWrapper>
-      </BackgroundFiltersProvider>
-    </ConfigurationProvider>
   );
 };
 
@@ -114,16 +88,15 @@ export const EmbeddedClientProvider = ({
   }
 
   return (
-    <StreamVideo client={client!}>
-      <StreamCall call={call!}>
-        <InnerProvider
-          noiseCancellation={noiseCancellation}
-          layout={layout}
-          onError={onError}
-          style={style}
-        >
-          {children}
-        </InnerProvider>
+    <StreamVideo client={client}>
+      <StreamCall call={call}>
+        <ConfigurationProvider layout={layout} onError={onError}>
+          <BackgroundFiltersProvider>
+            <NoiseCancellationWrapper noiseCancellation={noiseCancellation}>
+              <StreamTheme style={style}>{children}</StreamTheme>
+            </NoiseCancellationWrapper>
+          </BackgroundFiltersProvider>
+        </ConfigurationProvider>
       </StreamCall>
     </StreamVideo>
   );
