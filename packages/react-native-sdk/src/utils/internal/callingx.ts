@@ -14,6 +14,8 @@ import { waitForAudioSessionActivation } from './audioSessionPromise';
 
 const CallingxModule = getCallingxLibIfAvailable();
 
+const logger = videoLoggerSystem.getLogger('Callingx - utils');
+
 /**
  * Gets the call display name. To be used for display in native call screen.
  */
@@ -59,12 +61,18 @@ export function getCallDisplayName(
  * and optionally for non-ringing calls when ongoing calls are enabled.
  */
 export async function startCallingxCall(call: Call) {
-  if (!CallingxModule || CallingxModule.isCallRegistered(call.cid)) {
+  if (!CallingxModule) {
     return;
   }
-
   const isOutcomingCall = call.ringing && call.isCreatedByMe;
   const isIncomingcall = call.ringing && !call.isCreatedByMe;
+
+  if (!isIncomingcall && CallingxModule.isCallRegistered(call.cid)) {
+    logger.debug(
+      `startCallingxCall: Skipping call registration in callingx - Call already registered in callingx: ${call.cid}`,
+    );
+    return;
+  }
 
   const callDisplayName = getCallDisplayName(
     call.state.members,
@@ -75,35 +83,41 @@ export async function startCallingxCall(call: Call) {
     isOutcomingCall ||
     (!call.ringing && CallingxModule.isOngoingCallsEnabled)
   ) {
-    try {
-      await CallingxModule.startCall(
-        call.cid, // unique id for call
-        call.id, // phone number for display in dialer (we use call id as phone number)
-        callDisplayName, // display name for display in call screen
-        call.state.settings?.video?.enabled ?? false, // is video call?
+    logger.debug(`startCallingxCall: Starting call in callingx: ${call.cid}`);
+    await CallingxModule.startCall(
+      call.cid, // unique id for call
+      call.id, // phone number for display in dialer (we use call id as phone number)
+      callDisplayName, // display name for display in call screen
+      call.state.settings?.video?.enabled ?? false, // is video call?
+    );
+
+    // Wait for audio session activation on iOS only
+    if (Platform.OS === 'ios') {
+      await waitForAudioSessionActivation();
+      logger.debug(
+        `startCallingxCall: Audio session activated for call: ${call.cid}`,
       );
-
-      // Wait for audio session activation on iOS only
-      if (Platform.OS === 'ios') {
-        await waitForAudioSessionActivation();
-      }
-
-      CallingxModule.setCurrentCallActive(call.cid);
-    } catch (error) {
-      videoLoggerSystem
-        .getLogger('startCallingxCall')
-        .error(`Error starting call in callingx: ${call.cid}`, error);
     }
+
+    CallingxModule.setCurrentCallActive(call.cid);
+    logger.debug(
+      `startCallingxCall: Set current call active in callingx: ${call.cid}`,
+    );
   } else if (isIncomingcall) {
+    logger.debug(`startCallingxCall: Displaying incoming call: ${call.cid}`);
     await CallingxModule.displayIncomingCall(
       call.cid, // unique id for call
       call.id, // phone number for display in dialer (we use call id as phone number)
       callDisplayName, // display name for display in call screen
       call.state.settings?.video?.enabled ?? false, // is video call?
     );
+    logger.debug(`startCallingxCall: Answering incoming call: ${call.cid}`);
     await CallingxModule.answerIncomingCall(call.cid);
     if (Platform.OS === 'ios') {
       await waitForAudioSessionActivation();
+      logger.debug(
+        `startCallingxCall: Audio session activated for incoming call: ${call.cid}`,
+      );
     }
   }
 }

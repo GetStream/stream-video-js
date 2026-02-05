@@ -99,9 +99,8 @@ import stream_react_native_webrtc
         supportsGrouping: Bool,
         supportsUngrouping: Bool,
         fromPushKit: Bool,
-        payload: [String: Any]?,
-        completion: (() -> Void)?
-    ) {
+        payload: [String: Any]?
+    ) async {
         initializeIfNeeded()
         
         guard let storage = uuidStorage else { return }
@@ -110,7 +109,6 @@ import stream_react_native_webrtc
             #if DEBUG
             print("[Callingx][reportNewIncomingCall] callId already exists")
             #endif
-            completion?()
             return
         }
         
@@ -125,37 +123,46 @@ import stream_react_native_webrtc
         callUpdate.hasVideo = hasVideo
         callUpdate.localizedCallerName = localizedCallerName
         
-        sharedProvider?.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
+        guard let provider = sharedProvider else {
             #if DEBUG
-            print("[Callingx][reportNewIncomingCall] callId = \(callId), error = \(String(describing: error))")
+            print("[Callingx][reportNewIncomingCall] sharedProvider is nil")
             #endif
-            
-            let errorCode = error != nil ? CallingxImpl.getIncomingCallErrorCode(error!) : ""
-            
-            let body = [
-                "error": error?.localizedDescription ?? "",
-                "errorCode": errorCode,
-                "callId": callId,
-                "handle": handle,
-                "localizedCallerName": localizedCallerName ?? "",
-                "hasVideo": hasVideo ? "1" : "0",
-                "supportsHolding": supportsHolding ? "1" : "0",
-                "supportsDTMF": supportsDTMF ? "1" : "0",
-                "supportsGrouping": supportsGrouping ? "1" : "0",
-                "supportsUngrouping": supportsUngrouping ? "1" : "0",
-                "fromPushKit": fromPushKit ? "1" : "0",
-                "payload": payload ?? ""
-            ]
-            
-            sharedInstance?.sendEvent(CallingxEvents.didDisplayIncomingCall, body: body)
-            
-            if error == nil {
+            return
+        }
+        
+        await withCheckedContinuation { continuation in
+            provider.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
                 #if DEBUG
-                print("[Callingx][reportNewIncomingCall] success callId = \(callId)")
+                print("[Callingx][reportNewIncomingCall] callId = \(callId), error = \(String(describing: error))")
                 #endif
+                
+                let errorCode = error != nil ? CallingxImpl.getIncomingCallErrorCode(error!) : ""
+                
+                let body = [
+                    "error": error?.localizedDescription ?? "",
+                    "errorCode": errorCode,
+                    "callId": callId,
+                    "handle": handle,
+                    "localizedCallerName": localizedCallerName ?? "",
+                    "hasVideo": hasVideo ? "1" : "0",
+                    "supportsHolding": supportsHolding ? "1" : "0",
+                    "supportsDTMF": supportsDTMF ? "1" : "0",
+                    "supportsGrouping": supportsGrouping ? "1" : "0",
+                    "supportsUngrouping": supportsUngrouping ? "1" : "0",
+                    "fromPushKit": fromPushKit ? "1" : "0",
+                    "payload": payload ?? ""
+                ]
+                
+                sharedInstance?.sendEvent(CallingxEvents.didDisplayIncomingCall, body: body)
+                
+                if error == nil {
+                    #if DEBUG
+                    print("[Callingx][reportNewIncomingCall] success callId = \(callId)")
+                    #endif
+                }
+                
+                continuation.resume()
             }
-            
-            completion?()
         }
     }
     
@@ -386,20 +393,21 @@ import stream_react_native_webrtc
         hasVideo: Bool
     ) -> Bool {
         let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId)
-        CallingxImpl.reportNewIncomingCall(
-            callId: callId,
-            handle: phoneNumber,
-            handleType: "generic",
-            hasVideo: hasVideo,
-            localizedCallerName: callerName,
-            supportsHolding: false,
-            supportsDTMF: false,
-            supportsGrouping: false,
-            supportsUngrouping: false,
-            fromPushKit: false,
-            payload: nil,
-            completion: nil
-        )
+        Task {
+            await CallingxImpl.reportNewIncomingCall(
+                callId: callId,
+                handle: phoneNumber,
+                handleType: "generic",
+                hasVideo: hasVideo,
+                localizedCallerName: callerName,
+                supportsHolding: false,
+                supportsDTMF: false,
+                supportsGrouping: false,
+                supportsUngrouping: false,
+                fromPushKit: false,
+                payload: nil
+            )
+        }
         let wasAlreadyAnswered = uuid != nil
         if !wasAlreadyAnswered {
             let settings = Settings.getSettings()
