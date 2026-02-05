@@ -22,12 +22,6 @@
   background-color: var(--str-video__base-color7);
 }
 
-.str-video__embedded-lobby-heading {
-  &__description {
-    color: var(--str-video__text-color2);
-  }
-}
-
 .str-video__embedded-lobby__no-permission {
   color: var(--str-video__text-color2);
 }
@@ -45,54 +39,6 @@
     margin-bottom: 10px;
     display: block;
   }
-
-  &-input {
-    color: var(--str-video__text-color1);
-
-    &::placeholder {
-      color: var(--str-video__text-color3);
-    }
-  }
-}
-
-.str-video__embedded-call-header {
-  background-color: var(--str-video__base-color7);
-}
-
-.str-video__embedded-header__recording-indicator {
-  background-color: var(--str-video__brand-color5);
-}
-
-.str-video__embedded-header__elapsed {
-  background-color: var(--str-video__base-color6);
-
-  &-icon {
-    background-color: var(--str-video__alert-success);
-  }
-}
-
-.str-video__embedded-header__latency {
-  background-color: var(--str-video__base-color6);
-
-  &-indicator {
-    background-color: var(--str-video__alert-success);
-
-    &--good {
-      background-color: var(--str-video__alert-success);
-    }
-
-    &--ok {
-      background-color: var(--str-video__alert-caution);
-    }
-
-    &--bad {
-      background-color: var(--str-video__alert-warning);
-    }
-  }
-}
-
-.str-video__embedded-header__participant-count {
-  background-color: var(--str-video__base-color6);
 }
 
 .str-video__embedded-blur-toggle-container {
@@ -113,126 +59,6 @@
     &:hover:not(:disabled) {
       background: rgba(32, 134, 255, 0.3);
     }
-  }
-}
-
-.str-video__embedded-nc-toggle-container {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.str-video__embedded-nc-toggle {
-  color: var(--str-video__text-color, #fff);
-
-  &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  &--active {
-    background: rgba(32, 134, 255, 0.2);
-    color: #2086ff;
-
-    &:hover:not(:disabled) {
-      background: rgba(32, 134, 255, 0.3);
-    }
-  }
-}
-
-.str-video__embedded-badge {
-  background: var(--str-video__base-color6);
-  color: var(--str-video__text-color1);
-
-  &--live {
-    background: #dc433b;
-    color: white;
-    animation: str-video__embedded-pulse 2s infinite;
-  }
-
-  &--waiting {
-    background: var(--str-video__base-color5);
-    color: var(--str-video__text-color2);
-  }
-}
-
-.str-video__embedded-backstage-header {
-  background: var(--str-video__base-color5);
-}
-
-button.str-video__embedded-button--go-live {
-  background: #22c55e !important;
-  color: white !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
-
-  &:hover {
-    background: #16a34a !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
-    transform: translateY(-1px) !important;
-  }
-
-  &:active {
-    transform: translateY(0) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
-  }
-}
-
-.str-video__composite-button--danger {
-  background: var(--str-video__button-default-base, rgba(255, 255, 255, 0.1));
-  color: var(--str-video__text-color1, #fff);
-
-  &:hover {
-    background: var(
-      --str-video__button-default-hover,
-      rgba(255, 255, 255, 0.2)
-    );
-  }
-
-  .str-video__icon {
-    color: #dc433b;
-  }
-}
-
-.str-video__embedded-waiting-screen {
-  h2 {
-    color: var(--str-video__text-color1);
-  }
-
-  p {
-    color: var(--str-video__text-color2);
-  }
-}
-
-.str-video__embedded-connection-error {
-  background: var(--str-video__base-color4);
-
-  &__content {
-    h2 {
-      color: var(--str-video__text-color1);
-    }
-
-    p {
-      color: var(--str-video__text-color2);
-    }
-  }
-
-  &__icon {
-    color: var(--str-video__text-color2);
-  }
-}
-
-.str-video__embedded-stream-ended {
-  background: var(--str-video__base-color4);
-
-  &__content {
-    h2 {
-      color: var(--str-video__text-color1);
-    }
-
-    p {
-      color: var(--str-video__text-color2);
-    }
-  }
-
-  &__icon {
-    color: var(--str-video__text-color2);
   }
 }
 
@@ -270,26 +96,5 @@ button.str-video__embedded-button,
 
   &--secondary {
     border-color: var(--str-video__button-default-hover);
-  }
-}
-
-.str-video__embedded-invite-section {
-  background-color: var(--str-video__base-color6);
-
-  &__title {
-    color: var(--str-video__text-color1);
-  }
-
-  &__description {
-    color: var(--str-video__text-color2);
-  }
-
-  &__button {
-    background-color: var(--str-video__button-primary-active);
-    color: var(--str-video__text-color1);
-
-    &:hover {
-      background-color: var(--str-video__button-primary-hover);
-    }
   }
 }

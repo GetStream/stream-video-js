@@ -39,14 +39,6 @@
   margin: 0;
   margin-bottom: var(--str-video__spacing-xs);
   text-align: center;
-
-  &__description {
-    font-size: var(--str-video__font-size-sm);
-    font-weight: 400;
-    margin: 0;
-    margin-bottom: var(--str-video__spacing-md);
-    text-align: center;
-  }
 }
 
 .str-video__embedded-lobby-camera {
@@ -181,22 +173,6 @@
     text-transform: uppercase;
     margin-bottom: var(--str-video__spacing-md);
     display: block;
-  }
-
-  &-input {
-    text-align: center;
-    width: 100%;
-    padding: var(--str-video__spacing-md);
-    border: 1px solid var(--str-video__base-color3);
-    border-radius: var(--str-video__border-radius-md);
-    background: transparent;
-    font-size: var(--str-video__font-size-md);
-    outline: none;
-    margin-bottom: var(--str-video__spacing-md);
-
-    &:focus {
-      border-color: var(--str-video__primary-color);
-    }
   }
 }
 
