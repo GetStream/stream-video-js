@@ -59,7 +59,7 @@ export function getCallDisplayName(
  * and optionally for non-ringing calls when ongoing calls are enabled.
  */
 export async function startCallingxCall(call: Call) {
-  if (!CallingxModule) {
+  if (!CallingxModule || !CallingxModule.isSetup) {
     return;
   }
 
@@ -71,9 +71,10 @@ export async function startCallingxCall(call: Call) {
     call.state.participants,
     call.currentUserId,
   );
+
   if (
-    (!CallingxModule.isCallRegistered(call.cid) && isOutcomingCall) ||
-    (!call.ringing && CallingxModule.isOngoingCallsEnabled)
+    !CallingxModule.isCallRegistered(call.cid) &&
+    (isOutcomingCall || (!call.ringing && CallingxModule.isOngoingCallsEnabled))
   ) {
     try {
       await CallingxModule.startCall(
@@ -115,7 +116,11 @@ export async function startCallingxCall(call: Call) {
 }
 
 export async function endCallingxCall(call: Call) {
-  if (!CallingxModule || !CallingxModule.isCallRegistered(call.cid)) {
+  if (
+    !CallingxModule ||
+    !CallingxModule.isSetup ||
+    !CallingxModule.isCallRegistered(call.cid)
+  ) {
     return;
   }
 
