@@ -116,7 +116,7 @@ class StreamInCallManager: RCTEventEmitter {
                 }
             } else {
                 intendedCategory = .playAndRecord
-                intendedMode = defaultAudioDevice == .speaker ? .videoChat : .voiceChat
+                intendedMode = .voiceChat
                 
                 // XCode 16 and older don't expose .allowBluetoothHFP
                 // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
@@ -141,10 +141,7 @@ class StreamInCallManager: RCTEventEmitter {
                 session.unlockForConfiguration()
             }
             do {
-                try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
-                // Apply sample rate and IO buffer duration from WebRTC's config
-                try session.setPreferredSampleRate(rtcConfig.sampleRate)
-                try session.setPreferredIOBufferDuration(rtcConfig.ioBufferDuration)
+                try session.setConfiguration(rtcConfig)
                 if (wasRecording) {
                     try adm.setRecording(wasRecording)
                 }
