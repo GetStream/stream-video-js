@@ -385,6 +385,7 @@ import stream_react_native_webrtc
         callerName: String,
         hasVideo: Bool
     ) -> Bool {
+        let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId)
         CallingxImpl.reportNewIncomingCall(
             callId: callId,
             handle: phoneNumber,
@@ -399,16 +400,18 @@ import stream_react_native_webrtc
             payload: nil,
             completion: nil
         )
-        
-        let settings = Settings.getSettings()
-        if let timeout = settings["displayCallTimeout"] as? Int {
-            let popTime = DispatchTime.now() + .milliseconds(timeout)
-            DispatchQueue.main.asyncAfter(deadline: popTime) { [weak self] in
-                guard let self = self, !self.isSetup else { return }
-                #if DEBUG
-                print("[Callingx] Displayed a call without a reachable app, ending the call: \(callId)")
-                #endif
-                CallingxImpl.endCall(callId, reason: CXCallEndedReason.failed.rawValue)
+        let wasAlreadyAnswered = uuid != nil
+        if !wasAlreadyAnswered {
+            let settings = Settings.getSettings()
+            if let timeout = settings["displayCallTimeout"] as? Int {
+                let popTime = DispatchTime.now() + .milliseconds(timeout)
+                DispatchQueue.main.asyncAfter(deadline: popTime) { [weak self] in
+                    guard let self = self, !self.isSetup else { return }
+                    #if DEBUG
+                    print("[Callingx] Displayed a call without a reachable app, ending the call: \(callId)")
+                    #endif
+                    CallingxImpl.endCall(callId, reason: CXCallEndedReason.failed.rawValue)
+                }
             }
         }
         return true

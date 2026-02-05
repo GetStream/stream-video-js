@@ -62,17 +62,19 @@ export async function startCallingxCall(call: Call) {
   if (!CallingxModule || CallingxModule.isCallRegistered(call.cid)) {
     return;
   }
+
   const isOutcomingCall = call.ringing && call.isCreatedByMe;
+  const isIncomingcall = call.ringing && !call.isCreatedByMe;
+
+  const callDisplayName = getCallDisplayName(
+    call.state.members,
+    call.state.participants,
+    call.currentUserId,
+  );
   if (
     isOutcomingCall ||
     (!call.ringing && CallingxModule.isOngoingCallsEnabled)
   ) {
-    const callDisplayName = getCallDisplayName(
-      call.state.members,
-      call.state.participants,
-      call.currentUserId,
-    );
-
     try {
       await CallingxModule.startCall(
         call.cid, // unique id for call
@@ -85,10 +87,23 @@ export async function startCallingxCall(call: Call) {
       if (Platform.OS === 'ios') {
         await waitForAudioSessionActivation();
       }
+
+      CallingxModule.setCurrentCallActive(call.cid);
     } catch (error) {
       videoLoggerSystem
         .getLogger('startCallingxCall')
         .error(`Error starting call in callingx: ${call.cid}`, error);
+    }
+  } else if (isIncomingcall) {
+    await CallingxModule.displayIncomingCall(
+      call.cid, // unique id for call
+      call.id, // phone number for display in dialer (we use call id as phone number)
+      callDisplayName, // display name for display in call screen
+      call.state.settings?.video?.enabled ?? false, // is video call?
+    );
+    await CallingxModule.answerIncomingCall(call.cid);
+    if (Platform.OS === 'ios') {
+      await waitForAudioSessionActivation();
     }
   }
 }

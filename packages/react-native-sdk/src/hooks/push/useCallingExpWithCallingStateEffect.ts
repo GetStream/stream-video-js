@@ -116,6 +116,7 @@ export const useCallingExpWithCallingStateEffect = () => {
       return;
     }
 
+    // TODO: handle in client
     //tells if call is registered in CallKit/Telecom
     const isCallRegistered = callingx.isCallRegistered(activeCallCid);
     logger.debug(
@@ -125,29 +126,7 @@ export const useCallingExpWithCallingStateEffect = () => {
       isOngoingCallsEnabled: ${callingx.isOngoingCallsEnabled}`,
     );
 
-    if (
-      isIncomingCall &&
-      isCallRegistered &&
-      canActivateCall(prevState.current, callingState)
-    ) {
-      logger.debug(`Should accept call in callingx: ${activeCallCid}`);
-      callingx.answerIncomingCall(activeCallCid).catch((error: unknown) => {
-        logger.error(
-          `Error answering call in callingx: ${activeCallCid}`,
-          error,
-        );
-      });
-    } else if (
-      (isOutcomingCall || callingx.isOngoingCallsEnabled) &&
-      isCallRegistered &&
-      canActivateCall(prevState.current, callingState)
-    ) {
-      logger.debug(`Should set call active in callingx: ${activeCallCid}`);
-      callingx.setCurrentCallActive(activeCallCid);
-    } else if (
-      isCallRegistered &&
-      canEndCall(prevState.current, callingState)
-    ) {
+    if (isCallRegistered && canEndCall(prevState.current, callingState)) {
       //in case call was registered as incoming and state changed to "not joined", we need to end the call and clear rxjs subject
       logger.debug(`Should end call in callingx: ${activeCallCid}`);
       //TODO: think about sending appropriate reason for end call
@@ -187,54 +166,6 @@ export const useCallingExpWithCallingStateEffect = () => {
 
     callingx.updateDisplay(activeCallCid, activeCallCid, callDisplayName);
   }, [activeCallCid, callDisplayName]);
-
-  useEffect(() => {
-    const callingx = getCallingxLibIfAvailable();
-    if (!callingx?.isSetup || !activeCallCid || !isIncomingCall) {
-      return;
-    }
-
-    let isUnsubscribed = false;
-    const subscription = callingx.addEventListener(
-      'didDisplayIncomingCall',
-      (event: { callId: string }) => {
-        if (event.callId === activeCallCid) {
-          //we need to report the call as answered only if user accepts the call from the app UI and push notification was delivered after that
-          const _callingState = activeCall?.state.callingState;
-          const shouldSkip =
-            _callingState !== CallingState.JOINING &&
-            _callingState !== CallingState.JOINED &&
-            _callingState !== CallingState.RECONNECTING &&
-            _callingState !== CallingState.MIGRATING;
-          if (shouldSkip) {
-            return;
-          }
-
-          logger.debug(
-            `Reporting the incoming call as answered in callingx as already join() calledin the app: ${activeCallCid}`,
-          );
-          callingx
-            .answerIncomingCall(activeCallCid)
-            .catch((error: unknown) => {
-              logger.error(
-                `Error answering call in callingx: ${activeCallCid}`,
-                error,
-              );
-            })
-            .finally(() => {
-              subscription.remove();
-              isUnsubscribed = true;
-            });
-        }
-      },
-    );
-
-    return () => {
-      if (!isUnsubscribed) {
-        subscription.remove();
-      }
-    };
-  }, [activeCall, activeCallCid, isIncomingCall]);
 
   // useEffect(() => {
   //   const callingx = getCallingxLibIfAvailable();

@@ -907,6 +907,9 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
+    if (data?.ring) {
+      this.ringingSubject.next(true);
+    }
     const callingX = globalThis.streamRNVideoSDK?.callingX;
     if (callingX) {
       // for Android/iOS, we need to start the call in the callingx library as soon as possible
