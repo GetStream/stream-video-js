@@ -1,2 +1,1 @@
-export * from './EmbeddedMeeting';
 export * from './EmbeddedLivestream';

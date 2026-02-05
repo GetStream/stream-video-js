@@ -52,13 +52,12 @@ export interface ConfigurationProviderProps {
 }
 
 /**
- * Props for the EmbeddedStreamClient component.
+ * Base props shared by EmbeddedMeeting and EmbeddedLivestream.
  */
-export interface EmbeddedStreamClientProps extends ConfigurationProviderProps {
+export interface EmbeddedClientBaseProps extends ConfigurationProviderProps {
   apiKey: string;
   user: EmbeddedUser;
   callId: string;
-  callType?: string;
   token?: string;
   tokenProvider?: TokenProvider;
   userType?: UserType;
@@ -66,3 +65,13 @@ export interface EmbeddedStreamClientProps extends ConfigurationProviderProps {
   onError?: (error: Error) => void;
   style?: CSSProperties;
 }
+
+/**
+ * Props for the EmbeddedMeeting component.
+ */
+export interface EmbeddedMeetingProps extends EmbeddedClientBaseProps {}
+
+/**
+ * Props for the EmbeddedLivestream component.
+ */
+export interface EmbeddedLivestreamProps extends EmbeddedClientBaseProps {}

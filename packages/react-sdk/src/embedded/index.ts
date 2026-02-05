@@ -1,11 +1,13 @@
-export { EmbeddedStreamClient } from './components';
+export { EmbeddedMeeting } from './components';
+export { EmbeddedLivestream } from './components';
 export {
   ConfigurationProvider,
   useEmbeddedConfiguration,
   type EmbeddedConfiguration,
 } from './context';
 export type {
-  EmbeddedStreamClientProps,
+  EmbeddedMeetingProps,
+  EmbeddedLivestreamProps,
   EmbeddedUser,
   TokenProvider,
   LogLevel,
