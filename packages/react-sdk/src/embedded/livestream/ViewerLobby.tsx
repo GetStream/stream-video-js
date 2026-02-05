@@ -1,5 +1,5 @@
 import { useI18n } from '@stream-io/video-react-bindings';
-import { Lobby } from '../shared/Lobby';
+import { Lobby } from '../meeting/lobby/Lobby';
 
 export type ViewerLobbyProps = {
   onJoin: () => void;

@@ -4,14 +4,14 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { useEmbeddedConfiguration } from '../context';
 import { LoadingScreen } from '../shared';
-import { Lobby } from '../shared/Lobby';
+import { Lobby } from './lobby/Lobby';
 import { ActiveCall } from './ActiveCall';
-import { CallFeedback } from './CallFeedback';
+import { CallFeedback } from './feedback/CallFeedback';
 
 /**
- * DefaultCallUI is the state decider component that manages view state transitions.
+ * CallStateRouter is the state decider component that manages view state transitions.
  */
-export const DefaultCallUI = () => {
+export const CallStateRouter = () => {
   const call = useCall();
 
   const { onError } = useEmbeddedConfiguration();
