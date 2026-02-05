@@ -15,7 +15,7 @@ import stream_react_native_webrtc
         #else
             categoryOptions = [.allowBluetooth, .defaultToSpeaker]
         #endif
-        let mode: AVAudioSession.Mode = .videoChat
+        let mode: AVAudioSession.Mode = .voiceChat
 
         // Configure RTCAudioSessionConfiguration to match our intended settings
         // This ensures WebRTC's internal state stays consistent during interruptions/route changes
@@ -31,12 +31,7 @@ import stream_react_native_webrtc
         defer { rtcSession.unlockForConfiguration() }
 
         do {
-            try rtcSession.setCategory(.playAndRecord, mode: mode, options: categoryOptions)
-
-            // Apply sample rate and IO buffer duration from WebRTC's config (source of truth)
-            // This keeps CallKit setup aligned with WebRTC's intended tuning (e.g. 48kHz and ~20ms by default)
-            try rtcSession.setPreferredSampleRate(rtcConfig.sampleRate)
-            try rtcSession.setPreferredIOBufferDuration(rtcConfig.ioBufferDuration)
+            try rtcSession.setConfiguration(rtcConfig)
         } catch {
             #if DEBUG
             print("[Callingx][createAudioSessionIfNeeded] Error configuring audio session: \(error)")
