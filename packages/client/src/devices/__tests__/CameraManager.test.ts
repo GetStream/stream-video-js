@@ -259,6 +259,23 @@ describe('CameraManager', () => {
       expect(manager.enable).toHaveBeenCalled();
     });
 
+    it('should enable the camera when enabled is not provided', async () => {
+      vi.spyOn(manager, 'enable');
+      await manager.apply(
+        fromPartial({
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        }),
+        true,
+      );
+
+      expect(manager.state.direction).toBe('front');
+      expect(manager.state.status).toBe('enabled');
+      expect(manager['targetResolution']).toEqual({ width: 640, height: 480 });
+      expect(manager.enable).toHaveBeenCalled();
+    });
+
     it('should not enable the camera when set on the dashboard', async () => {
       vi.spyOn(manager, 'enable');
       await manager.apply(
@@ -275,6 +292,49 @@ describe('CameraManager', () => {
       expect(manager.state.status).toBe(undefined);
       expect(manager['targetResolution']).toEqual({ width: 640, height: 480 });
       expect(manager.enable).not.toHaveBeenCalled();
+    });
+
+    it('should skip defaults when preferences are applied', async () => {
+      const devicePersistence = { enabled: true, storageKey: '' };
+      const persistedManager = new CameraManager(call, devicePersistence);
+      const applySpy = vi
+        .spyOn(persistedManager as never, 'applyPersistedPreferences')
+        .mockResolvedValue(true);
+      const selectDirectionSpy = vi.spyOn(persistedManager, 'selectDirection');
+      const enableSpy = vi.spyOn(persistedManager, 'enable');
+
+      await persistedManager.apply(
+        fromPartial({
+          enabled: true,
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        }),
+        true,
+      );
+
+      expect(applySpy).toHaveBeenCalledWith(true);
+      expect(selectDirectionSpy).not.toHaveBeenCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not apply defaults when device is not pristine', async () => {
+      manager.state.setStatus('enabled');
+      const selectDirectionSpy = vi.spyOn(manager, 'selectDirection');
+      const enableSpy = vi.spyOn(manager, 'enable');
+
+      await manager.apply(
+        fromPartial({
+          enabled: true,
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        }),
+        true,
+      );
+
+      expect(selectDirectionSpy).not.toHaveBeenCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
     });
 
     it('should on the camera but not publish when publish is false', async () => {

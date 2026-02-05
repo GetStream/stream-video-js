@@ -6,6 +6,7 @@ import {
   readPreferences,
   writePreferences,
 } from '../devicePersistence';
+import { createLocalStorageMock, LocalStorageMock } from './mocks';
 
 const storageKey = '@test/device-preferences';
 
@@ -20,29 +21,6 @@ const createDevice = (
     kind,
     groupId: 'group-1',
   }) as MediaDeviceInfo;
-
-type LocalStorageMock = {
-  getItem: (key: string) => string | null;
-  setItem: (key: string, value: string) => void;
-  removeItem: (key: string) => void;
-  clear: () => void;
-};
-
-const createLocalStorageMock = (): LocalStorageMock => {
-  const store = new Map<string, string>();
-  return {
-    getItem: (key) => (store.has(key) ? store.get(key)! : null),
-    setItem: (key, value) => {
-      store.set(key, String(value));
-    },
-    removeItem: (key) => {
-      store.delete(key);
-    },
-    clear: () => {
-      store.clear();
-    },
-  };
-};
 
 describe('devicePersistence', () => {
   let localStorageMock: LocalStorageMock;

@@ -40,9 +40,10 @@ export class SpeakerManager {
   }
 
   private applyWeb() {
-    if (!this.devicePersistence.enabled) return;
+    const { enabled, storageKey } = this.devicePersistence;
+    if (!enabled) return;
 
-    const preferences = readPreferences(this.devicePersistence.storageKey);
+    const preferences = readPreferences(storageKey);
     const preferenceList = toPreferenceList(preferences.speaker);
     if (preferenceList.length === 0) return;
 
