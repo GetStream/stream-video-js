@@ -9,8 +9,10 @@ export interface CallFeedbackProps {
 type FeedbackState = 'rating' | 'submitted' | 'skipped';
 
 const FeedbackLayout = ({ children }: { children: React.ReactNode }) => (
-  <div className="str-video__call-feedback">
-    <div className="str-video__call-feedback__container">{children}</div>
+  <div className="str-video__embedded-call-feedback">
+    <div className="str-video__embedded-call-feedback__container">
+      {children}
+    </div>
   </div>
 );
 
@@ -41,11 +43,11 @@ const StarIcon = ({ filled }: { filled: boolean }) => (
 const RejoinLink = ({ onClick }: { onClick: () => void }) => {
   const { t } = useI18n();
   return (
-    <p className="str-video__call-feedback__rejoin">
+    <p className="str-video__embedded-call-feedback__rejoin">
       {t('Left by mistake?')}{' '}
       <button
         type="button"
-        className="str-video__call-feedback__rejoin-link"
+        className="str-video__embedded-call-feedback__rejoin-link"
         onClick={onClick}
       >
         {t('Rejoin call')}
@@ -65,21 +67,21 @@ const StarRating = ({ value, onChange }: StarRatingProps) => {
   const displayValue = hovered || value;
 
   return (
-    <div className="str-video__call-feedback__rating-section">
-      <p className="str-video__call-feedback__rating-label">
+    <div className="str-video__embedded-call-feedback__rating-section">
+      <p className="str-video__embedded-call-feedback__rating-label">
         {t('How was your call quality?')}
       </p>
       <div
-        className="str-video__call-feedback__stars"
+        className="str-video__embedded-call-feedback__stars"
         onMouseLeave={() => setHovered(0)}
       >
         {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
             type="button"
-            className={`str-video__call-feedback__star${
+            className={`str-video__embedded-call-feedback__star${
               star <= displayValue
-                ? ' str-video__call-feedback__star--active'
+                ? ' str-video__embedded-call-feedback__star--active'
                 : ''
             }`}
             onClick={() => onChange(star)}
@@ -98,14 +100,14 @@ const ThankYouScreen = () => {
   const { t } = useI18n();
   return (
     <FeedbackLayout>
-      <div className="str-video__call-feedback__thank-you">
-        <div className="str-video__call-feedback__checkmark">
+      <div className="str-video__embedded-call-feedback__thank-you">
+        <div className="str-video__embedded-call-feedback__checkmark">
           <CheckmarkIcon />
         </div>
-        <h2 className="str-video__call-feedback__title">
+        <h2 className="str-video__embedded-call-feedback__title">
           {t('Thanks for your feedback')}
         </h2>
-        <p className="str-video__call-feedback__subtitle">
+        <p className="str-video__embedded-call-feedback__subtitle">
           {t('Your input helps us improve the call experience.')}
         </p>
       </div>
@@ -117,8 +119,10 @@ const CallEndedScreen = ({ onRejoin }: { onRejoin?: () => void }) => {
   const { t } = useI18n();
   return (
     <FeedbackLayout>
-      <div className="str-video__call-feedback__ended">
-        <h2 className="str-video__call-feedback__title">{t('Call ended')}</h2>
+      <div className="str-video__embedded-call-feedback__ended">
+        <h2 className="str-video__embedded-call-feedback__title">
+          {t('Call ended')}
+        </h2>
         {onRejoin && <RejoinLink onClick={onRejoin} />}
       </div>
     </FeedbackLayout>
@@ -141,14 +145,16 @@ const RatingScreen = ({ onSubmit, onSkip, onRejoin }: RatingScreenProps) => {
 
   return (
     <FeedbackLayout>
-      <h2 className="str-video__call-feedback__title">{t('Call ended')}</h2>
+      <h2 className="str-video__embedded-call-feedback__title">
+        {t('Call ended')}
+      </h2>
 
       <StarRating value={rating} onChange={setRating} />
 
-      <div className="str-video__call-feedback__actions">
+      <div className="str-video__embedded-call-feedback__actions">
         <button
           type="button"
-          className="str-video__call-feedback__button str-video__call-feedback__button--primary"
+          className="str-video__embedded-call-feedback__button str-video__embedded-call-feedback__button--primary"
           onClick={handleSubmit}
           disabled={rating === 0}
         >
@@ -156,7 +162,7 @@ const RatingScreen = ({ onSubmit, onSkip, onRejoin }: RatingScreenProps) => {
         </button>
         <button
           type="button"
-          className="str-video__call-feedback__button str-video__call-feedback__button--secondary"
+          className="str-video__embedded-call-feedback__button str-video__embedded-call-feedback__button--secondary"
           onClick={onSkip}
         >
           {t('Skip')}
