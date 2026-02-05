@@ -173,7 +173,7 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
 
             <button
               className={clsx(
-                'str-video__embedded-button str-video__embedded-button--primary str-video__embedded-button--large str-video__embedded-lobby-join',
+                'str-video__embedded-button str-video__embedded-button--primary str-video__embedded-lobby-join',
                 isJoining && 'str-video__embedded-button--disabled',
               )}
               onClick={handleJoin}

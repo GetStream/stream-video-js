@@ -3,26 +3,28 @@ button.str-video__embedded-button,
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--str-video__spacing-xs);
   border-radius: var(--str-video__border-radius-md);
-  padding: calc(var(--str-video__spacing-xs) - 1px) var(--str-video__spacing-lg);
+  padding: var(--str-video__spacing-xs) var(--str-video__spacing-lg);
   text-align: center;
   width: 100%;
+  height: 28px;
   font-size: var(--str-video__font-size-sm);
-  line-height: var(--str-video__spacing-lg);
   font-weight: 500;
   border: 1px solid transparent;
-  background: none;
 
   &:hover {
     cursor: pointer;
   }
 
   &__icon {
-    margin-right: var(--str-video__spacing-xs);
+    width: 20px;
+    height: 20px;
   }
 
   &:disabled {
     cursor: not-allowed;
+    opacity: 0.5;
   }
 
   &--align-left {
@@ -31,9 +33,9 @@ button.str-video__embedded-button,
   }
 
   &--large {
+    height: 44px;
     font-size: var(--str-video__font-size-md);
     padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
-    border-radius: var(--str-video__border-radius-md);
   }
 
   &--secondary {
