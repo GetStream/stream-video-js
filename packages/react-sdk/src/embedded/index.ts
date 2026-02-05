@@ -1,5 +1,5 @@
-export { EmbeddedMeeting } from './components';
-export { EmbeddedLivestream } from './components';
+export { EmbeddedMeeting } from './meeting';
+export { EmbeddedLivestream } from './livestream';
 export {
   ConfigurationProvider,
   useEmbeddedConfiguration,

@@ -1,6 +1,3 @@
-@use 'Embedded-layout';
-@use 'Embedded-theme';
-@use 'Embedded-icons';
-@use 'Embedded-call-controls';
-@use 'Embedded-loading-screen';
-@use 'Embedded-feedback';
+@use 'shared';
+@use 'meeting';
+@use 'livestream';
