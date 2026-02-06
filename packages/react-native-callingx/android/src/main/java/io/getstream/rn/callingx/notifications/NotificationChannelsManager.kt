@@ -1,11 +1,9 @@
 package io.getstream.rn.callingx.notifications
 
-import android.Manifest
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.PermissionChecker
 import io.getstream.rn.callingx.debugLog
 
 class NotificationChannelsManager(
@@ -53,14 +51,16 @@ class NotificationChannelsManager(
     val isIncomingChannelEnabled = isChannelEnabled(notificationsConfig?.incomingChannel?.id)
     val isOngoingChannelEnabled = isChannelEnabled(notificationsConfig?.ongoingChannel?.id)
 
-    val canPost =
-            areNotificationsEnabled &&
-                    hasPermissions &&
+    // CallStyle is exempt from notification permission when self-managing calls (Android 13+).
+    // On older versions we require areNotificationsEnabled().
+    val canPostCallStyle =
+            hasPermissions &&
                     isIncomingChannelEnabled &&
-                    isOngoingChannelEnabled
+                    isOngoingChannelEnabled &&
+                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU || areNotificationsEnabled())
 
     return NotificationStatus(
-            canPost,
+            canPostCallStyle,
             hasPermissions,
             areNotificationsEnabled,
             isIncomingChannelEnabled,
@@ -85,17 +85,8 @@ class NotificationChannelsManager(
   }
 
   private fun hasNotificationPermissions(): Boolean {
-    // POST_NOTIFICATIONS permission is only required on Android 13+
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-      return true
-    }
-
-    val permission =
-            PermissionChecker.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS,
-            )
-    return permission == PermissionChecker.PERMISSION_GRANTED
+    // CallStyle is exempt from notification permission when self-managing calls.
+    return true
   }
 
   private fun isChannelEnabled(channelId: String?): Boolean {

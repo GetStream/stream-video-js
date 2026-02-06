@@ -147,11 +147,9 @@ export const firebaseDataHandler = async (
     }
 
     const callingx = getCallingxLib();
-
-    await callingx.checkPermissions();
-    if (!callingx.isNotificationsAllowed) {
-      logger.debug(
-        `Notification permission not granted, unable to post ${data.type} notifications`,
+    if (!callingx.canPostNotifications) {
+      logger.warn(
+        `Cannot post notifications, skipping the call.ring notification`,
       );
       return;
     }

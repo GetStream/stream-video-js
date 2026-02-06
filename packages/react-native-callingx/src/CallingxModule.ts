@@ -1,11 +1,6 @@
 import { Platform } from 'react-native';
 import NativeCallingModule from './spec/NativeCallingx';
 import {
-  checkCallPermissions,
-  requestCallPermissions,
-} from './utils/permissions';
-import type { PermissionsResult } from './utils/permissions';
-import {
   HEADLESS_TASK_NAME,
   registerHeadlessTask,
   setHeadlessTask,
@@ -36,7 +31,6 @@ import {
 import { isVoipEvent } from './utils/utils';
 
 class CallingxModule implements ICallingxModule {
-  private _isNotificationsAllowed = false;
   private _isSetup = false;
   private _isOngoingCallsEnabled = false;
   private _isHeadlessTaskRegistered = false;
@@ -49,14 +43,12 @@ class CallingxModule implements ICallingxModule {
   private voipEventManager: EventManager<VoipEventName, VoipEventParams> =
     new EventManager();
 
-  get isNotificationsAllowed(): boolean {
+  get canPostNotifications(): boolean {
     if (Platform.OS !== 'android') {
       return true;
     }
 
-    return (
-      this._isNotificationsAllowed && NativeCallingModule.canPostNotifications()
-    );
+    return NativeCallingModule.canPostNotifications();
   }
 
   get isOngoingCallsEnabled(): boolean {
@@ -118,26 +110,6 @@ class CallingxModule implements ICallingxModule {
 
   setShouldRejectCallWhenBusy(shouldReject: boolean): void {
     NativeCallingModule.setShouldRejectCallWhenBusy(shouldReject);
-  }
-
-  async requestPermissions(): Promise<PermissionsResult> {
-    const result: {
-      recordAudio: boolean;
-      postNotifications: boolean;
-    } = await requestCallPermissions();
-
-    this._isNotificationsAllowed = result.postNotifications;
-    return result;
-  }
-
-  async checkPermissions(): Promise<PermissionsResult> {
-    const result: {
-      recordAudio: boolean;
-      postNotifications: boolean;
-    } = await checkCallPermissions();
-
-    this._isNotificationsAllowed = result.postNotifications;
-    return result;
   }
 
   getInitialEvents(): EventData[] {

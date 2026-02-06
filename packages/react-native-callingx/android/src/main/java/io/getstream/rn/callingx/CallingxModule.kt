@@ -178,7 +178,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 "[module] displayIncomingCall: Displaying incoming call: $callId, $phoneNumber, $callerName, $hasVideo"
         )
         if (!notificationChannelsManager.getNotificationStatus().canPost) {
-            promise.reject("ERROR", "Notifications are not granted")
+            promise.reject("ERROR", "Cannot post notifications")
             return
         }
 
@@ -217,7 +217,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 "[module] startCall: Starting outgoing call: $callId, $phoneNumber, $callerName, $hasVideo, $displayOptions"
         )
         if (!notificationChannelsManager.getNotificationStatus().canPost) {
-            promise.reject("ERROR", "Notifications are not granted")
+            promise.reject("ERROR", "Cannot post notifications")
             return
         }
 
@@ -242,7 +242,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     ) {
         debugLog(TAG, "[module] updateDisplay: Updating display: $callId, $phoneNumber, $callerName")
         if (!notificationChannelsManager.getNotificationStatus().canPost) {
-            promise.reject("ERROR", "Notifications are not granted")
+            promise.reject("ERROR", "Cannot post notifications")
             return
         }
 

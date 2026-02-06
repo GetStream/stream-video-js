@@ -1,9 +1,17 @@
 import type { EventListener } from './EventManager';
 import type { ManagableTask } from './utils/headlessTask';
-import type { PermissionsResult } from './utils/permissions';
 
 export interface ICallingxModule {
-  get isNotificationsAllowed(): boolean;
+  /**
+   * Whether the module can post call notifications. Android only. iOS always returns true.
+   * Returns true when:
+   * - The incoming notification channel is enabled,
+   * - The ongoing notification channel is enabled,
+   * - And on Android 12 and below: app notifications are enabled in system settings.
+   * CallStyle is exempt from the POST_NOTIFICATIONS permission on Android 13+ when self-managing calls.
+   * @returns The boolean value.
+   */
+  get canPostNotifications(): boolean;
   get isOngoingCallsEnabled(): boolean;
   get isSetup(): boolean;
 
@@ -22,13 +30,6 @@ export interface ICallingxModule {
    * @param shouldReject - Whether to reject calls when the user is busy.
    */
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
-  /**
-   * Check the permissions.
-   * @returns The permissions result.
-   */
-  checkPermissions(): Promise<PermissionsResult>;
-
-  requestPermissions(): Promise<PermissionsResult>;
   /**
    * Get the initial events. This method is used to get the initial events from the app launch.
    * The events are queued and can be retrieved after the module is setup.
