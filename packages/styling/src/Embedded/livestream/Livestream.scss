@@ -90,15 +90,24 @@
   display: inline-flex;
   flex: none;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.625rem 1rem;
+  height: 34px;
+  min-width: 140px;
+  padding: 0 1rem;
   border: none;
   border-radius: 24px;
   font-size: 0.875rem;
   font-weight: 500;
-  line-height: 20px;
   cursor: pointer;
   transition: background 0.15s ease;
+}
+
+.str-video__composite-button--go-live {
+  svg {
+    width: 18px;
+    height: 14px;
+  }
 }
 
 .str-video__composite-button--danger {
@@ -129,7 +138,7 @@
   }
 
   &__title {
-    margin: 1.25rem 0 0;
+    margin: 1.25rem 0 0.5rem;
     font-size: 1.25rem;
     font-weight: 600;
     line-height: 1.3;

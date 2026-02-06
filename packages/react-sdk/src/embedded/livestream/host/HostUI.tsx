@@ -5,6 +5,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { HostLobby } from './HostLobby';
 import { HostView } from './HostView';
 import { LoadingScreen } from '../../shared';
+import { CallFeedback } from '../../meeting/feedback/CallFeedback';
 
 export const HostUI = () => {
   const call = useCall();
@@ -49,6 +50,10 @@ export const HostUI = () => {
     return (
       <HostLobby onJoin={handleJoin} isBackstageEnabled={isBackstageEnabled} />
     );
+  }
+
+  if (callingState === CallingState.LEFT) {
+    return <CallFeedback onJoin={handleJoin} />;
   }
 
   if (callingState === CallingState.JOINED) {

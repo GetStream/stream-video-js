@@ -162,15 +162,16 @@ const CallEndedScreen = ({
 };
 
 interface RatingScreenProps {
-  onSubmit: (rating: number) => void;
+  onSubmit: (rating: number, message: string) => void;
 }
 
 const RatingScreen = ({ onSubmit }: RatingScreenProps) => {
   const { t } = useI18n();
   const [rating, setRating] = useState(0);
+  const [message, setMessage] = useState('');
 
   const handleSubmit = () => {
-    if (rating > 0) onSubmit(rating);
+    if (rating > 0) onSubmit(rating, message);
   };
 
   return (
@@ -180,6 +181,14 @@ const RatingScreen = ({ onSubmit }: RatingScreenProps) => {
       </h2>
 
       <StarRating value={rating} onChange={setRating} />
+
+      <textarea
+        className="str-video__embedded-call-feedback__textarea"
+        placeholder={t('Tell us about your experience...')}
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        rows={3}
+      />
 
       <div className="str-video__embedded-call-feedback__actions">
         <button
@@ -200,10 +209,13 @@ export const CallFeedback = ({ onJoin }: CallFeedbackProps) => {
   const [state, setState] = useState<FeedbackState>('ended');
 
   const handleSubmit = useCallback(
-    async (rating: number) => {
+    async (rating: number, message: string) => {
       const clampedRating = Math.min(Math.max(1, rating), 5);
       try {
-        await call?.submitFeedback(clampedRating);
+        await call?.submitFeedback(clampedRating, {
+          reason: message,
+          custom: { message },
+        });
       } catch (err) {
         console.error('Failed to submit feedback:', err);
       }

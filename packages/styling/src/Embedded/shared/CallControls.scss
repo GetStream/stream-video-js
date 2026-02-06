@@ -1,5 +1,25 @@
 @use '../../utils';
 
+.str-video__embedded-call-duration {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--str-video__text-color2, #9ca3af);
+  white-space: nowrap;
+
+  &__icon {
+    width: 16px;
+    height: 16px;
+    background-color: var(--str-video__alert-success);
+  }
+
+  &__time {
+    font-size: 0.875rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
 .str-video__embedded-call-controls.str-video__call-controls {
   justify-content: flex-start;
   padding: var(--str-video__spacing-lg);

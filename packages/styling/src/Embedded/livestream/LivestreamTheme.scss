@@ -1,9 +1,9 @@
 .str-video__composite-button--go-live {
-  background: #22c55e;
+  background: var(--str-video__button-primary-active);
   color: white;
 
   &:hover {
-    background: #16a34a;
+    background: var(--str-video__button-primary-hover);
   }
 }
 

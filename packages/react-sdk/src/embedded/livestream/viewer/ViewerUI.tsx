@@ -3,9 +3,9 @@ import { CallingState } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { ViewerLobby } from './ViewerLobby';
-import { StreamEndedScreen } from './StreamEndedScreen';
 import { LoadingScreen } from '../../shared';
 import { LivestreamLayout } from '../../../core';
+import { CallFeedback } from '../../meeting/feedback/CallFeedback';
 
 export const ViewerUI = () => {
   const call = useCall();
@@ -45,7 +45,7 @@ export const ViewerUI = () => {
   }
 
   if (callingState === CallingState.LEFT) {
-    return <StreamEndedScreen />;
+    return <CallFeedback onJoin={handleJoin} />;
   }
 
   return <LoadingScreen />;

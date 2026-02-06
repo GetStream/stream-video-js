@@ -99,6 +99,29 @@ $color-primary: #3b82f6;
     }
   }
 
+  // Textarea
+  &__textarea {
+    width: 100%;
+    min-height: 72px;
+    padding: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: var(--str-video__border-radius-md, 8px);
+    background: transparent;
+    color: var(--str-video__text-color1, #fff);
+    font-family: inherit;
+    font-size: 0.875rem;
+    resize: vertical;
+
+    &::placeholder {
+      color: var(--str-video__text-color3, #6b7280);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+
   // Action buttons
   &__actions {
     display: flex;

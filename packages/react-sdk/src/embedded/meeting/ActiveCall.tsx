@@ -18,7 +18,12 @@ import {
 } from '../../components';
 
 import { useLayout } from '../hooks';
-import { CameraMenuWithBlur, ConnectionNotification, MicMenu } from '../shared';
+import {
+  CallDuration,
+  CameraMenuWithBlur,
+  ConnectionNotification,
+  MicMenu,
+} from '../shared';
 
 /**
  * ActiveCall renders the in-call experience with layout, controls, and sidebar.
@@ -69,7 +74,9 @@ export const ActiveCall = () => {
         </div>
 
         <div className="str-video__embedded-call-controls str-video__call-controls">
-          <div className="str-video__call-controls--group str-video__call-controls--options" />
+          <div className="str-video__call-controls--group str-video__call-controls--options">
+            <CallDuration />
+          </div>
           <div className="str-video__call-controls--group str-video__call-controls--media">
             <Restricted
               requiredGrants={[OwnCapability.SEND_AUDIO]}
