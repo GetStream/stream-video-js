@@ -1,39 +1,9 @@
-// Livestream-specific theming
-
-.str-video__embedded-badge {
-  background: var(--str-video__base-color6);
-  color: var(--str-video__text-color1);
-
-  &--live {
-    background: #dc433b;
-    color: white;
-    animation: str-video__embedded-pulse 2s infinite;
-  }
-
-  &--waiting {
-    background: var(--str-video__base-color5);
-    color: var(--str-video__text-color2);
-  }
-}
-
-.str-video__embedded-backstage-header {
-  background: var(--str-video__base-color5);
-}
-
-button.str-video__embedded-button--go-live {
-  background: #22c55e !important;
-  color: white !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+.str-video__composite-button--go-live {
+  background: #22c55e;
+  color: white;
 
   &:hover {
-    background: #16a34a !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
-    transform: translateY(-1px) !important;
-  }
-
-  &:active {
-    transform: translateY(0) !important;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    background: #16a34a;
   }
 }
 
@@ -53,13 +23,35 @@ button.str-video__embedded-button--go-live {
   }
 }
 
-.str-video__embedded-waiting-screen {
-  h2 {
+.str-video__embedded-host-lobby {
+  background: var(--str-video__base-color4);
+}
+
+.str-video__embedded-viewer-lobby {
+  background: var(--str-video__base-color4);
+
+  &__icon {
+    color: var(--str-video__text-color2);
+  }
+
+  &__title {
     color: var(--str-video__text-color1);
   }
 
-  p {
+  &__starts-at {
     color: var(--str-video__text-color2);
+  }
+
+  &__participant-count {
+    color: var(--str-video__text-color2);
+  }
+
+  &__auto-join {
+    color: var(--str-video__text-color2);
+
+    input[type='checkbox'] {
+      accent-color: var(--str-video__button-primary-active);
+    }
   }
 }
 

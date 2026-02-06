@@ -1,20 +1,8 @@
 @use 'sass:map';
 @use '../../utils';
 
-.str-video__embedded-livestream,
-.str-video__embedded-backstage-live,
-.str-video__embedded-viewer-waiting {
+.str-video__embedded-livestream {
   height: 100%;
-}
-
-.str-video__embedded-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-right: 0.5rem;
 }
 
 @keyframes str-video__embedded-pulse {
@@ -27,46 +15,17 @@
   }
 }
 
-.str-video__embedded-backstage-header {
-  display: flex;
+.str-video__composite-button--go-live {
+  display: inline-flex;
   align-items: center;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
-
-  h2 {
-    margin: 0;
-    margin-right: 1rem;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-}
-
-.str-video__embedded-livestream-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
-}
-
-.str-video__call-controls--group:has(.str-video__embedded-button--go-live) {
-  flex: none !important;
-}
-
-button.str-video__embedded-button--go-live {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 0.5rem !important;
-  width: auto !important;
-  height: 40px !important;
-  padding: 0 1.25rem !important;
-  border: none !important;
-  border-radius: 8px !important;
-  font-size: 0.875rem !important;
-  font-weight: 600 !important;
-  cursor: pointer !important;
-  transition: all 0.15s ease !important;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 24px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
 .str-video__composite-button--danger {
@@ -87,14 +46,7 @@ button.str-video__embedded-button--go-live {
   }
 }
 
-.str-video__embedded-viewer-lobby,
-.str-video__embedded-backstage {
-  .str-video__embedded-lobby-content {
-    text-align: center;
-  }
-}
-
-.str-video__embedded-viewer-waiting-for-live {
+.str-video__embedded-viewer-lobby {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -114,11 +66,57 @@ button.str-video__embedded-button--go-live {
     animation: str-video__embedded-pulse 2s ease-in-out infinite;
   }
 
-  &__message {
-    margin-top: 1.5rem;
-    font-size: 1.125rem;
-    font-weight: 500;
+  &__title {
+    margin: 1.25rem 0 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.3;
   }
+
+  &__starts-at {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    opacity: 0.7;
+  }
+
+  &__participant-count {
+    margin: 0.75rem 0 0;
+    font-size: 0.8125rem;
+    opacity: 0.6;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  &__auto-join {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+
+    input[type='checkbox'] {
+      cursor: pointer;
+    }
+  }
+
+  &__join-button {
+    width: auto;
+    min-width: 180px;
+  }
+}
+
+.str-video__embedded-host-lobby {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 2rem;
 }
 
 .str-video__embedded-stream-ended {

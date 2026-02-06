@@ -152,5 +152,15 @@
   "Set up your camera and microphone before going backstage": "Set up your camera and microphone before going backstage",
   "Enter Backstage": "Enter Backstage",
   "End Stream": "End Stream",
-  "{{ count }} viewers": "{{ count }} viewers"
+  "{{ count }} viewers": "{{ count }} viewers",
+  "Stream is ready!": "Stream is ready!",
+  "Waiting for the livestream to start": "Waiting for the livestream to start",
+  "Livestream starts at {{ time }}": "Livestream starts at {{ time }}",
+  "{{ count }} waiting": "{{ count }} waiting",
+  "Join Stream": "Join Stream",
+  "Join automatically when stream starts": "Join automatically when stream starts",
+  "Prepare your livestream": "Prepare your livestream",
+  "Set up your camera and microphone in the backstage": "Set up your camera and microphone in the backstage",
+  "Ready to go live": "Ready to go live",
+  "You will go live as soon as you join": "You will go live as soon as you join"
 }
