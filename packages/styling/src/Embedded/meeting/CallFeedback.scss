@@ -26,7 +26,6 @@ $color-primary: #3b82f6;
   background: $bg-color;
 }
 
-// Main container
 .str-video__embedded-call-feedback {
   @include flex-center;
   min-height: 100%;
@@ -56,7 +55,6 @@ $color-primary: #3b82f6;
     color: var(--str-video__text-color2, #9ca3af);
   }
 
-  // Star Rating
   &__rating-section {
     @include flex-column-center;
     gap: 1.25rem;

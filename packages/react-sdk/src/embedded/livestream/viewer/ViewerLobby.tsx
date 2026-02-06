@@ -65,7 +65,7 @@ export const ViewerLobby = ({ onJoin, isLive }: ViewerLobbyProps) => {
         <div className="str-video__embedded-viewer-lobby__actions">
           {isLive ? (
             <button
-              className="str-video__embedded-button str-video__embedded-button--primary str-video__embedded-button--large str-video__embedded-viewer-lobby__join-button"
+              className="str-video__embedded-button str-video__embedded-button--primary str-video__embedded-viewer-lobby__join-button"
               onClick={handleJoin}
             >
               {t('Join Stream')}
