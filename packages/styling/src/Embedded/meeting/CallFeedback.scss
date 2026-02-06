@@ -153,52 +153,66 @@ $color-primary: #3b82f6;
     }
   }
 
-  // Rejoin section
-  &__rejoin-section {
-    @include flex-column-center;
-    gap: 0.5rem;
-    width: 100%;
-    margin-top: auto;
-    padding-top: 2.5rem;
+  // Call ended action row
+  &__ended-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    justify-content: center;
   }
 
-  &__rejoin-text {
+  &__ended-column {
+    @include flex-column-center;
+    gap: 0.75rem;
+  }
+
+  &__ended-label {
     margin: 0;
-    font-size: 0.8125rem;
+    font-size: 0.9375rem;
     color: var(--str-video__text-color3, #6b7280);
   }
 
-  &__rejoin-button {
+  &__ended-divider {
+    width: 1px;
+    align-self: stretch;
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  &__ended-button {
     @include flex-center;
-    gap: 0.375rem;
-    height: 28px;
-    padding: 0 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: var(--str-video__border-radius-sm, 6px);
+    gap: 0.5rem;
+    height: 44px;
+    padding: 0 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
     background: transparent;
-    color: var(--str-video__text-color2, #9ca3af);
-    font-size: 0.8125rem;
-    font-weight: 400;
+    color: var(--str-video__text-color1, #fff);
+    font-size: 0.9375rem;
+    font-weight: 500;
     cursor: pointer;
+    white-space: nowrap;
 
     svg {
       flex-shrink: 0;
-      width: 14px;
-      height: 14px;
+      width: 18px;
+      height: 18px;
     }
 
     &:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.25);
-      color: var(--str-video__text-color1, #fff);
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.35);
     }
   }
 
   // End screens (thank you & call ended)
-  &__thank-you,
-  &__ended {
+  &__thank-you {
     @include flex-column-center;
     gap: 1rem;
+  }
+
+  &__ended {
+    @include flex-column-center;
+    gap: 1.5rem;
   }
 
   &__checkmark {

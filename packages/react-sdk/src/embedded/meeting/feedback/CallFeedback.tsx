@@ -7,7 +7,7 @@ export interface CallFeedbackProps {
   onJoin?: () => void;
 }
 
-type FeedbackState = 'rating' | 'submitted' | 'skipped';
+type FeedbackState = 'ended' | 'rating' | 'submitted';
 
 const FeedbackLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="str-video__embedded-call-feedback">
@@ -40,25 +40,6 @@ const StarIcon = ({ filled }: { filled: boolean }) => (
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
   </svg>
 );
-
-const RejoinSection = ({ onClick }: { onClick: () => void }) => {
-  const { t } = useI18n();
-  return (
-    <div className="str-video__embedded-call-feedback__rejoin-section">
-      <p className="str-video__embedded-call-feedback__rejoin-text">
-        {t('Left by mistake?')}
-      </p>
-      <button
-        type="button"
-        className="str-video__embedded-call-feedback__rejoin-button"
-        onClick={onClick}
-      >
-        <Icon icon="login" />
-        {t('Rejoin call')}
-      </button>
-    </div>
-  );
-};
 
 interface StarRatingProps {
   value: number;
@@ -123,7 +104,21 @@ const ThankYouScreen = () => {
   );
 };
 
-const CallEndedScreen = ({ onRejoin }: { onRejoin?: () => void }) => {
+const FeedbackIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12zM7 9h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z" />
+  </svg>
+);
+
+interface CallEndedScreenProps {
+  onRejoin?: () => void;
+  onLeaveFeedback: () => void;
+}
+
+const CallEndedScreen = ({
+  onRejoin,
+  onLeaveFeedback,
+}: CallEndedScreenProps) => {
   const { t } = useI18n();
   return (
     <FeedbackLayout>
@@ -131,7 +126,37 @@ const CallEndedScreen = ({ onRejoin }: { onRejoin?: () => void }) => {
         <h2 className="str-video__embedded-call-feedback__title">
           {t('Call ended')}
         </h2>
-        {onRejoin && <RejoinSection onClick={onRejoin} />}
+        <div className="str-video__embedded-call-feedback__ended-actions">
+          {onRejoin && (
+            <div className="str-video__embedded-call-feedback__ended-column">
+              <p className="str-video__embedded-call-feedback__ended-label">
+                {t('Left by mistake?')}
+              </p>
+              <button
+                type="button"
+                className="str-video__embedded-call-feedback__ended-button"
+                onClick={onRejoin}
+              >
+                <Icon icon="login" />
+                {t('Rejoin call')}
+              </button>
+            </div>
+          )}
+          <div className="str-video__embedded-call-feedback__ended-divider" />
+          <div className="str-video__embedded-call-feedback__ended-column">
+            <p className="str-video__embedded-call-feedback__ended-label">
+              {t('Help us improve')}
+            </p>
+            <button
+              type="button"
+              className="str-video__embedded-call-feedback__ended-button"
+              onClick={onLeaveFeedback}
+            >
+              <FeedbackIcon />
+              {t('Leave feedback')}
+            </button>
+          </div>
+        </div>
       </div>
     </FeedbackLayout>
   );
@@ -140,10 +165,9 @@ const CallEndedScreen = ({ onRejoin }: { onRejoin?: () => void }) => {
 interface RatingScreenProps {
   onSubmit: (rating: number) => void;
   onSkip: () => void;
-  onRejoin?: () => void;
 }
 
-const RatingScreen = ({ onSubmit, onSkip, onRejoin }: RatingScreenProps) => {
+const RatingScreen = ({ onSubmit, onSkip }: RatingScreenProps) => {
   const { t } = useI18n();
   const [rating, setRating] = useState(0);
 
@@ -154,7 +178,7 @@ const RatingScreen = ({ onSubmit, onSkip, onRejoin }: RatingScreenProps) => {
   return (
     <FeedbackLayout>
       <h2 className="str-video__embedded-call-feedback__title">
-        {t('Call ended')}
+        {t('Share your feedback')}
       </h2>
 
       <StarRating value={rating} onChange={setRating} />
@@ -168,23 +192,14 @@ const RatingScreen = ({ onSubmit, onSkip, onRejoin }: RatingScreenProps) => {
         >
           {t('Submit feedback')}
         </button>
-        <button
-          type="button"
-          className="str-video__embedded-call-feedback__skip"
-          onClick={onSkip}
-        >
-          {t('Skip')}
-        </button>
       </div>
-
-      {onRejoin && <RejoinSection onClick={onRejoin} />}
     </FeedbackLayout>
   );
 };
 
 export const CallFeedback = ({ onSkip, onJoin }: CallFeedbackProps) => {
   const call = useCall();
-  const [state, setState] = useState<FeedbackState>('rating');
+  const [state, setState] = useState<FeedbackState>('ended');
 
   const handleSubmit = useCallback(
     async (rating: number) => {
@@ -201,20 +216,18 @@ export const CallFeedback = ({ onSkip, onJoin }: CallFeedbackProps) => {
 
   const handleSkip = useCallback(() => {
     onSkip?.();
-    setState('skipped');
   }, [onSkip]);
 
   switch (state) {
     case 'submitted':
       return <ThankYouScreen />;
-    case 'skipped':
-      return <CallEndedScreen onRejoin={onJoin} />;
+    case 'rating':
+      return <RatingScreen onSubmit={handleSubmit} onSkip={handleSkip} />;
     default:
       return (
-        <RatingScreen
-          onSubmit={handleSubmit}
-          onSkip={handleSkip}
+        <CallEndedScreen
           onRejoin={onJoin}
+          onLeaveFeedback={() => setState('rating')}
         />
       );
   }
