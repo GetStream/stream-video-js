@@ -3,7 +3,6 @@ import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { Icon } from '../../../components';
 
 export interface CallFeedbackProps {
-  onSkip?: () => void;
   onJoin?: () => void;
 }
 
@@ -164,10 +163,9 @@ const CallEndedScreen = ({
 
 interface RatingScreenProps {
   onSubmit: (rating: number) => void;
-  onSkip: () => void;
 }
 
-const RatingScreen = ({ onSubmit, onSkip }: RatingScreenProps) => {
+const RatingScreen = ({ onSubmit }: RatingScreenProps) => {
   const { t } = useI18n();
   const [rating, setRating] = useState(0);
 
@@ -197,7 +195,7 @@ const RatingScreen = ({ onSubmit, onSkip }: RatingScreenProps) => {
   );
 };
 
-export const CallFeedback = ({ onSkip, onJoin }: CallFeedbackProps) => {
+export const CallFeedback = ({ onJoin }: CallFeedbackProps) => {
   const call = useCall();
   const [state, setState] = useState<FeedbackState>('ended');
 
@@ -214,15 +212,11 @@ export const CallFeedback = ({ onSkip, onJoin }: CallFeedbackProps) => {
     [call],
   );
 
-  const handleSkip = useCallback(() => {
-    onSkip?.();
-  }, [onSkip]);
-
   switch (state) {
     case 'submitted':
       return <ThankYouScreen />;
     case 'rating':
-      return <RatingScreen onSubmit={handleSubmit} onSkip={handleSkip} />;
+      return <RatingScreen onSubmit={handleSubmit} />;
     default:
       return (
         <CallEndedScreen
