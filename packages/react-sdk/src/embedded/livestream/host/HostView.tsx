@@ -25,7 +25,7 @@ export const HostView = ({ isLive, onGoLive, onStopLive }: HostViewProps) => {
             isLive ? (
               <WithTooltip title={t('End Stream')}>
                 <button
-                  className="str-video__composite-button str-video__composite-button--danger"
+                  className="str-video__composite-button--danger"
                   onClick={onStopLive}
                 >
                   <Icon icon="call-end" />
@@ -35,7 +35,7 @@ export const HostView = ({ isLive, onGoLive, onStopLive }: HostViewProps) => {
             ) : (
               <WithTooltip title={t('Start Stream')}>
                 <button
-                  className="str-video__composite-button str-video__composite-button--go-live"
+                  className="str-video__composite-button--go-live"
                   onClick={onGoLive}
                 >
                   <span>{t('Go Live')}</span>
