@@ -27,7 +27,7 @@ export const HostUI = () => {
   const handleGoLive = useCallback(async () => {
     if (!call) return;
     try {
-      await call.goLive({ start_hls: true });
+      await call.goLive();
     } catch (err) {
       console.error('Failed to go live:', err);
     }
