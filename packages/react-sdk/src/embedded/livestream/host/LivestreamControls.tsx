@@ -5,6 +5,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
 } from '../../../components';
+import { LivestreamDuration } from '../../shared';
 
 export type LivestreamControlsProps = {
   actionButton: ReactNode;
@@ -15,6 +16,7 @@ export const LivestreamControls = ({
 }: LivestreamControlsProps) => {
   return (
     <div className="str-video__embedded-call-controls str-video__call-controls">
+      <LivestreamDuration />
       <div className="str-video__call-controls--group str-video__call-controls--media">
         <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
           <ToggleAudioPublishingButton />
