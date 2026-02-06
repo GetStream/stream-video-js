@@ -173,10 +173,7 @@ export type InternalIOSOptions = {
 };
 type iOSOptions = Omit<
   InternalIOSOptions,
-  | 'maximumCallsPerCallGroup'
-  | 'maximumCallGroups'
-  | 'handleType'
-  | 'setupAudioSession'
+  'maximumCallsPerCallGroup' | 'maximumCallGroups' | 'handleType'
 >;
 
 export type InternalAndroidOptions = {

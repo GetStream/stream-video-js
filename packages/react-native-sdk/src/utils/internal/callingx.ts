@@ -96,21 +96,30 @@ export async function startCallingxCall(call: Call) {
         .error(`Error starting call in callingx: ${call.cid}`, error);
     }
   } else if (isIncomingCall) {
-    if (!CallingxModule.isCallRegistered(call.cid)) {
-      await CallingxModule.displayIncomingCall(
-        call.cid, // unique id for call
-        call.id, // phone number for display in dialer (we use call id as phone number)
-        callDisplayName, // display name for display in call screen
-        call.state.settings?.video?.enabled ?? false, // is video call?
-      );
+    try {
+      if (!CallingxModule.isCallRegistered(call.cid)) {
+        await CallingxModule.displayIncomingCall(
+          call.cid, // unique id for call
+          call.id, // phone number for display in dialer (we use call id as phone number)
+          callDisplayName, // display name for display in call screen
+          call.state.settings?.video?.enabled ?? false, // is video call?
+        );
 
-      await waitForDisplayIncomingCall(call.cid);
-    } else {
-      await CallingxModule.answerIncomingCall(call.cid);
-    }
+        await waitForDisplayIncomingCall(call.cid);
+      } else {
+        await CallingxModule.answerIncomingCall(call.cid);
+      }
 
-    if (Platform.OS === 'ios') {
-      await waitForAudioSessionActivation();
+      if (Platform.OS === 'ios') {
+        await waitForAudioSessionActivation();
+      }
+    } catch (error) {
+      videoLoggerSystem
+        .getLogger('startCallingxCall')
+        .error(
+          `Error displaying incoming call in callingx: ${call.cid}`,
+          error,
+        );
     }
   }
 }

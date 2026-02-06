@@ -385,8 +385,8 @@ export const firebaseDataHandler = async (
       `Displaying NonRingingPushEvent ${type} notification with title: ${title} body: ${body}`,
     );
     await notifee.displayNotification({
-      title: getTitle(type, createdUserName),
-      body: getBody(type, createdUserName),
+      title,
+      body,
       data,
       android: {
         sound: callChannel.sound,
