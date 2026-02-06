@@ -128,7 +128,7 @@
     "@react-native/babel-preset": "^0.81.5",
     "@stream-io/noise-cancellation-react-native": "workspace:^",
     "@stream-io/react-native-callingx": "workspace:^",
-    "@stream-io/react-native-webrtc": "137.1.1",
+    "@stream-io/react-native-webrtc": "137.1.2-alpha.1",
     "@stream-io/video-filters-react-native": "workspace:^",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "13.3.3",

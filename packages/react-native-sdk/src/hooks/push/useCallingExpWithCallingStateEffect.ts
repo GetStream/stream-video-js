@@ -1,4 +1,8 @@
-import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
+import {
+  CallingState,
+  RxUtils,
+  videoLoggerSystem,
+} from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useMemo, useRef } from 'react';
 import { getCallDisplayName } from '../../utils/internal/callingx';
@@ -35,14 +39,14 @@ const canEndCall = (
 export const useCallingExpWithCallingStateEffect = () => {
   const {
     useCallCallingState,
-    // useMicrophoneState,
+    useMicrophoneState,
     useParticipants,
     useCallMembers,
   } = useCallStateHooks();
 
   const activeCall = useCall();
   const callingState = useCallCallingState();
-  // const { isMute, microphone } = useMicrophoneState();
+  const { isMute, microphone } = useMicrophoneState();
   const callMembers = useCallMembers();
   const participants = useParticipants();
 
@@ -147,72 +151,75 @@ export const useCallingExpWithCallingStateEffect = () => {
     callingx.updateDisplay(activeCallCid, activeCallCid, callDisplayName);
   }, [activeCallCid, callDisplayName]);
 
-  // useEffect(() => {
-  //   const callingx = getCallingxLibIfAvailable();
-  //   if (!callingx?.isSetup || !activeCallCid) {
-  //     return;
-  //   }
+  // Sync microphone mute state from app → CallKit
+  useEffect(() => {
+    const callingx = getCallingxLibIfAvailable();
+    if (!callingx?.isSetup || !activeCallCid) {
+      return;
+    }
 
-  //   const isCallRegistered = callingx.isCallRegistered(activeCallCid);
-  //   if (!isCallRegistered) {
-  //     logger.debug(
-  //       `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
-  //     );
-  //     return;
-  //   }
+    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
+    if (!isCallRegistered) {
+      logger.debug(
+        `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+      );
+      return;
+    }
 
-  //   callingx.setMutedCall(activeCallCid, isMute);
-  // }, [activeCallCid, isMute]);
+    callingx.setMutedCall(activeCallCid, isMute);
+  }, [activeCallCid, isMute]);
 
-  // useEffect(() => {
-  //   const callingx = getCallingxLibIfAvailable();
-  //   if (!callingx?.isSetup || !activeCallCid) {
-  //     return;
-  //   }
+  // Sync mute state from CallKit → app (only for system-initiated mute actions)
+  useEffect(() => {
+    const callingx = getCallingxLibIfAvailable();
+    if (!callingx?.isSetup || !activeCallCid) {
+      return;
+    }
 
-  //   const isCallRegistered = callingx.isCallRegistered(activeCallCid);
-  //   if (!isCallRegistered) {
-  //     logger.debug(
-  //       `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
-  //     );
-  //     return;
-  //   }
+    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
+    if (!isCallRegistered) {
+      logger.debug(
+        `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+      );
+      return;
+    }
 
-  //   //listen to mic toggle events from CallKit/Telecom and update stream call microphone state
-  //   const subscription = callingx.addEventListener(
-  //     'didPerformSetMutedCallAction',
-  //     async (event: { callId: string; muted: boolean }) => {
-  //       const { callId, muted } = event;
+    // Listen to mic toggle events from CallKit/Telecom and update stream call microphone state.
+    // Only system-initiated mute actions (e.g. user tapped mute on the native CallKit UI)
+    // are sent here — app-initiated actions are filtered out on the native side to prevent
+    // the feedback loop: app mutes mic → setMutedCall → CallKit delegate → event to JS → loop.
+    const subscription = callingx.addEventListener(
+      'didPerformSetMutedCallAction',
+      async (event: { callId: string; muted: boolean }) => {
+        const { callId, muted } = event;
 
-  //       if (callId === activeCallCid) {
-  //         const isCurrentlyMuted =
-  //           RxUtils.getCurrentValue(microphone.state.status$) === 'disabled';
-  //         if (isCurrentlyMuted === muted) {
-  //           logger.debug(
-  //             `Mic toggle is already in the desired state: ${muted} for call: ${activeCallCid}`,
-  //           );
-  //           //this check prevents mic toggle when state change was initiated from client and not from CallKit/Telecom
-  //           return;
-  //         }
+        if (callId === activeCallCid) {
+          const isCurrentlyMuted = microphone.state.status === 'disabled';
+          if (isCurrentlyMuted === muted) {
+            logger.debug(
+              `Mic toggle is already in the desired state: ${muted} for call: ${activeCallCid}`,
+            );
+            return;
+          }
 
-  //         try {
-  //           if (muted) {
-  //             await microphone.disable();
-  //           } else {
-  //             await microphone.enable();
-  //           }
-  //         } catch (error: unknown) {
-  //           logger.error(
-  //             `Error toggling mic in calling exp: ${activeCallCid}`,
-  //             error,
-  //           );
-  //         }
-  //       }
-  //     },
-  //   );
+          try {
+            if (muted) {
+              await microphone.disable();
+            } else {
+              await microphone.enable();
+            }
+          } catch (error: unknown) {
+            logger.error(
+              `Error toggling mic in calling exp: ${activeCallCid}`,
+              error,
+            );
+          }
+        }
+      },
+    );
 
-  //   return () => {
-  //     subscription.remove();
-  //   };
-  // }, [activeCallCid, microphone, isOutcomingCall, isIncomingCall]);
+    return () => {
+      subscription.remove();
+    };
+  }, [activeCallCid, microphone]);
 };
