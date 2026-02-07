@@ -20,11 +20,8 @@ import {
 } from '../../components';
 
 import { useLayout } from '../hooks';
-import {
-  CallDuration,
-  CameraMenuWithBlur,
-  ConnectionNotification,
-} from '../shared';
+import { CameraMenuWithBlur, ConnectionNotification } from '../shared';
+import { CallDuration } from './CallDuration';
 
 /**
  * ActiveCall renders the in-call experience with layout, controls, and sidebar.

@@ -107,7 +107,7 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
       !hasBrowserMediaPermission ? (
         <PermissionMessage message={permissionMessage} />
       ) : (
-        <div className="str_video__video-preview__no-camera-preview">
+        <div className="str-video__video-preview__no-camera-preview">
           {t('No camera found')}
         </div>
       ),

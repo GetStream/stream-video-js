@@ -50,6 +50,7 @@ export const BlurToggleButton = () => {
       type="button"
       className={`str-video__embedded-blur-toggle ${isBlurred ? 'str-video__embedded-blur-toggle--active' : ''}`}
       disabled={isDisabled}
+      aria-pressed={isBlurred}
       onClick={handleClick}
     >
       <Icon icon="blur-icon" />

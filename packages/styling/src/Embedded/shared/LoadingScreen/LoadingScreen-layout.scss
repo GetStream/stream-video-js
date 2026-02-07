@@ -8,6 +8,7 @@
   .str-video__loading-indicator__icon.spinner {
     width: 4rem;
     height: 4rem;
+    -webkit-mask-size: 4rem;
     mask-size: 4rem;
   }
 }

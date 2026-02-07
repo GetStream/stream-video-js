@@ -1,0 +1,16 @@
+@use '../../../utils';
+
+.str-video__embedded-call-duration {
+  color: var(--str-video__text-color2);
+
+  &__icon {
+    background-color: var(--str-video__alert-success);
+  }
+}
+
+@include utils.respond-above(sm) {
+  .str-video__embedded-call-controls.str-video__call-controls {
+    background-color: var(--str-video__base-color7);
+    border-radius: var(--str-video__border-radius-xxl);
+  }
+}

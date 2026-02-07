@@ -6,9 +6,11 @@ import { ViewerLobby } from './ViewerLobby';
 import { LoadingIndicator } from '../../../components';
 import { LivestreamLayout } from '../../../core';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
+import { useEmbeddedConfiguration } from '../../context';
 
 export const ViewerUI = () => {
   const call = useCall();
+  const { onError } = useEmbeddedConfiguration();
   const { useCallCallingState, useIsCallLive } = useCallStateHooks();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
@@ -18,9 +20,11 @@ export const ViewerUI = () => {
     try {
       await call.join();
     } catch (err) {
-      console.error('Failed to join call:', err);
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error('Failed to join call:', error);
+      onError?.(error);
     }
-  }, [call]);
+  }, [call, onError]);
 
   if (
     callingState === CallingState.IDLE ||

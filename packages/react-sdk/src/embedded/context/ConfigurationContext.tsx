@@ -9,7 +9,7 @@ export interface EmbeddedConfiguration {
 }
 
 const defaultConfiguration: EmbeddedConfiguration = {
-  layout: 'SpeakerBottom',
+  layout: 'SpeakerTop',
   onError: undefined,
 };
 

@@ -1,16 +1,4 @@
 .str-video__livestream-duration {
-  &__time-container {
-    background: rgba(0, 0, 0, 0.6);
-  }
-
-  &__verified-icon {
-    background-color: var(--str-video__alert-success);
-  }
-
-  &__time {
-    color: var(--str-video__text-color1);
-  }
-
   &__live-badge,
   &__backstage-badge {
     color: var(--str-video__text-color1);
@@ -85,14 +73,5 @@
     input[type='checkbox'] {
       accent-color: var(--str-video__button-primary-active);
     }
-  }
-}
-
-.str-video__embedded-stream-ended {
-  background: var(--str-video__base-color4);
-  color: var(--str-video__text-color2);
-
-  &__content h2 {
-    color: var(--str-video__text-color1);
   }
 }

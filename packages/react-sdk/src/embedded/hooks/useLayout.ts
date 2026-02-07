@@ -33,6 +33,7 @@ const Layouts: Record<LayoutOption, LayoutConfig> = {
   },
 };
 
+const EMPTY_PROPS: Record<string, unknown> = {};
 const VALID_LAYOUTS = Object.keys(Layouts) as LayoutOption[];
 
 const isValidLayout = (layout: string): layout is LayoutOption =>
@@ -64,7 +65,7 @@ export const useLayout = () => {
     }
   }, [hasScreenShare, defaultLayout]);
 
-  const { Component, props = {} } = Layouts[layout];
+  const { Component, props = EMPTY_PROPS } = Layouts[layout];
 
   return { Component, props };
 };

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StreamVideoClient, User } from '@stream-io/video-client';
 import type { EmbeddedUser, LogLevel, TokenProvider, UserType } from '../types';
 
@@ -29,13 +29,21 @@ export const useInitializeVideoClient = ({
   const [client, setClient] = useState<StreamVideoClient | undefined>();
   const clientRef = useRef<StreamVideoClient | null>(null);
 
+  // Stabilize user object to prevent re-initialization on every render
+  // when the consumer passes an inline object literal.
+  const stableUser = useMemo(
+    () => user,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user.id, user.name, user.image],
+  );
+
   useEffect(() => {
     if (!apiKey) return;
 
     const effectiveUserType =
       userType ?? (token || tokenProvider ? 'authenticated' : 'anonymous');
 
-    const streamUser = createUser(user, effectiveUserType);
+    const streamUser = createUser(stableUser, effectiveUserType);
 
     try {
       const _client = new StreamVideoClient({
@@ -65,7 +73,7 @@ export const useInitializeVideoClient = ({
         setClient(undefined);
       }
     };
-  }, [apiKey, user, token, tokenProvider, userType, logLevel, onError]);
+  }, [apiKey, stableUser, token, tokenProvider, userType, logLevel, onError]);
 
   return client;
 };

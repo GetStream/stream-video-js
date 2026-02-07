@@ -8,14 +8,14 @@
   }
 
   &__textarea {
-    border-color: rgba(255, 255, 255, 0.15);
+    border-color: var(--str-video__base-color3);
 
     &::placeholder {
       color: var(--str-video__text-color3);
     }
 
     &:focus {
-      border-color: rgba(255, 255, 255, 0.3);
+      border-color: var(--str-video__base-color2);
     }
   }
 
@@ -33,16 +33,16 @@
   }
 
   &__ended-divider {
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--str-video__base-color3);
   }
 
   &__ended-button {
     color: var(--str-video__text-color1);
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: var(--str-video__base-color3);
 
     &:hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 255, 255, 0.35);
+      background: var(--str-video__base-color5);
+      border-color: var(--str-video__base-color2);
     }
   }
 
@@ -55,7 +55,11 @@
   }
 
   &__checkmark {
-    background: rgba(74, 222, 128, 0.15);
-    color: #4ade80;
+    background: color-mix(
+      in srgb,
+      var(--str-video__alert-success) 15%,
+      transparent
+    );
+    color: var(--str-video__alert-success);
   }
 }

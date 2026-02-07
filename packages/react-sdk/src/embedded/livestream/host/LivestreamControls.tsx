@@ -8,7 +8,7 @@ import {
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
 } from '../../../components';
-import { LivestreamDuration } from '../../shared';
+import { LivestreamDuration } from './LivestreamDuration';
 
 export type LivestreamControlsProps = {
   actionButton: ReactNode;

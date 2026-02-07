@@ -6,9 +6,11 @@ import { HostLobby } from './HostLobby';
 import { HostView } from './HostView';
 import { LoadingIndicator } from '../../../components';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
+import { useEmbeddedConfiguration } from '../../context';
 
 export const HostUI = () => {
   const call = useCall();
+  const { onError } = useEmbeddedConfiguration();
   const { useCallCallingState, useIsCallLive, useCallSettings } =
     useCallStateHooks();
   const callingState = useCallCallingState();
@@ -21,27 +23,33 @@ export const HostUI = () => {
     try {
       await call.join();
     } catch (err) {
-      console.error('Failed to join call:', err);
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error('Failed to join call:', error);
+      onError?.(error);
     }
-  }, [call]);
+  }, [call, onError]);
 
   const handleGoLive = useCallback(async () => {
     if (!call) return;
     try {
       await call.goLive();
     } catch (err) {
-      console.error('Failed to go live:', err);
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error('Failed to go live:', error);
+      onError?.(error);
     }
-  }, [call]);
+  }, [call, onError]);
 
   const handleStopLive = useCallback(async () => {
     if (!call) return;
     try {
       await call.stopLive();
     } catch (err) {
-      console.error('Failed to stop live:', err);
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error('Failed to stop live:', error);
+      onError?.(error);
     }
-  }, [call]);
+  }, [call, onError]);
 
   if (
     callingState === CallingState.IDLE ||

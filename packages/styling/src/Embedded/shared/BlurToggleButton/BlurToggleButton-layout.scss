@@ -1,6 +1,5 @@
 .str-video__embedded-blur-toggle-container {
   padding: 18px 24px;
-  border-top: 1px solid var(--str-video__base-color3);
 }
 
 .str-video__embedded-blur-toggle {
@@ -11,28 +10,13 @@
   padding: 8px;
   border: none;
   border-radius: var(--str-video__border-radius-circle);
-  background: transparent;
-  color: var(--str-video__text-color1);
-  cursor: pointer;
   font-size: 0.875rem;
+  cursor: pointer;
   transition: background-color 0.15s ease;
-
-  &:hover:not(:disabled) {
-    background: var(--str-video__button-default-hover);
-  }
 
   &:disabled {
     opacity: 0.6;
     cursor: default;
-  }
-
-  &--active {
-    background: var(--str-video__secondary-color);
-    color: var(--str-video__primary-color);
-
-    &:hover:not(:disabled) {
-      background: var(--str-video__secondary-color);
-    }
   }
 
   .str-video__icon {
