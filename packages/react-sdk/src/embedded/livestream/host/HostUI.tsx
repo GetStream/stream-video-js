@@ -4,7 +4,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { HostLobby } from './HostLobby';
 import { HostView } from './HostView';
-import { LoadingScreen } from '../../shared';
+import { LoadingIndicator } from '../../../components';
 import { CallFeedback } from '../../meeting/feedback/CallFeedback';
 
 export const HostUI = () => {
@@ -66,5 +66,5 @@ export const HostUI = () => {
     );
   }
 
-  return <LoadingScreen />;
+  return <LoadingIndicator className="str-video__embedded-loading" />;
 };

@@ -15,7 +15,7 @@ import type {
   LogLevel,
   LayoutOption,
 } from './types';
-import { LoadingScreen } from './shared/LoadingScreen';
+import { LoadingIndicator } from '../components';
 
 export interface EmbeddedClientProviderProps {
   apiKey: string;
@@ -82,7 +82,7 @@ export const EmbeddedClientProvider = ({
   if (!call || !client || !noiseCancellation) {
     return (
       <StreamTheme>
-        <LoadingScreen />
+        <LoadingIndicator className="str-video__embedded-loading" />
       </StreamTheme>
     );
   }

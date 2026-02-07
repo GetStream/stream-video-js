@@ -4,7 +4,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { useEmbeddedConfiguration } from '../context';
 import { useWakeLock } from '../hooks';
-import { LoadingScreen } from '../shared';
+import { LoadingIndicator } from '../../components';
 import { Lobby } from './lobby/Lobby';
 import { ActiveCall } from './ActiveCall';
 import { CallFeedback } from './feedback/CallFeedback';
@@ -43,7 +43,7 @@ export const CallStateRouter = () => {
   }
 
   if (callingState === CallingState.JOINING && !localParticipant) {
-    return <LoadingScreen />;
+    return <LoadingIndicator className="str-video__embedded-loading" />;
   }
 
   if (callingState === CallingState.LEFT) {

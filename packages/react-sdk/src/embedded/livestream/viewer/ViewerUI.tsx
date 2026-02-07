@@ -3,7 +3,7 @@ import { CallingState } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { ViewerLobby } from './ViewerLobby';
-import { LoadingScreen } from '../../shared';
+import { LoadingIndicator } from '../../../components';
 import { LivestreamLayout } from '../../../core';
 import { CallFeedback } from '../../meeting/feedback/CallFeedback';
 
@@ -30,7 +30,7 @@ export const ViewerUI = () => {
   }
 
   if (callingState === CallingState.JOINING) {
-    return <LoadingScreen />;
+    return <LoadingIndicator className="str-video__embedded-loading" />;
   }
 
   if (callingState === CallingState.JOINED) {
@@ -48,5 +48,5 @@ export const ViewerUI = () => {
     return <CallFeedback onJoin={handleJoin} />;
   }
 
-  return <LoadingScreen />;
+  return <LoadingIndicator className="str-video__embedded-loading" />;
 };
