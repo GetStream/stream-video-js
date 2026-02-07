@@ -1,6 +1,6 @@
 import { CallingState } from '@stream-io/video-client';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
-import { LoadingIndicator, Notification } from '../../components';
+import { LoadingIndicator, Notification } from '../../../components';
 
 export const ConnectionNotification = () => {
   const { t } = useI18n();

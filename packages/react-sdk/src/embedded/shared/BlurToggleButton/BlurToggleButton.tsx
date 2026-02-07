@@ -3,7 +3,7 @@ import {
   DeviceSelectorVideo,
   Icon,
   useBackgroundFilters,
-} from '../../components';
+} from '../../../components';
 import { useCallback } from 'react';
 
 export const BlurToggleButton = () => {
