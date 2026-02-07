@@ -5,6 +5,8 @@ import {
   CallParticipantsList,
   CancelCallButton,
   CompositeButton,
+  DeviceSelectorAudioInput,
+  DeviceSelectorAudioOutput,
   Icon,
   MicCaptureErrorNotification,
   PermissionRequests,
@@ -22,7 +24,6 @@ import {
   CallDuration,
   CameraMenuWithBlur,
   ConnectionNotification,
-  MicMenu,
 } from '../shared';
 
 /**
@@ -84,7 +85,18 @@ export const ActiveCall = () => {
             >
               <MicCaptureErrorNotification>
                 <ToggleAudioPublishingButton
-                  Menu={<MicMenu />}
+                  Menu={
+                    <>
+                      <DeviceSelectorAudioOutput
+                        visualType="list"
+                        title={t('Speaker')}
+                      />
+                      <DeviceSelectorAudioInput
+                        visualType="list"
+                        title={t('Microphone')}
+                      />
+                    </>
+                  }
                   menuPlacement="top"
                 />
               </MicCaptureErrorNotification>

@@ -7,7 +7,7 @@ import {
   MenuVisualType,
   ToggleMenuButtonProps,
 } from '../../../components';
-import { CameraMenuWithBlur } from '../../shared';
+import { CameraMenuWithBlur } from '../index';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {

@@ -2623,7 +2623,7 @@ export class Call {
   };
 
   /**
-   * Submit user feedback for the call
+   * Submit user CallFeedback for the call
    *
    * @param rating Rating between 1 and 5 denoting the experience of the user in the call
    * @param reason The reason/description for the rating

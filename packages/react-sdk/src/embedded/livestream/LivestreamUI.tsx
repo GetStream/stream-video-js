@@ -6,6 +6,7 @@ import { ViewerUI } from './viewer/ViewerUI';
 
 export const LivestreamUI = () => {
   const { useHasPermissions } = useCallStateHooks();
+
   const isHost = useHasPermissions(OwnCapability.JOIN_BACKSTAGE);
 
   if (isHost) {

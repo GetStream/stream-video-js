@@ -5,9 +5,9 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEmbeddedConfiguration } from '../context';
 import { useWakeLock } from '../hooks';
 import { LoadingIndicator } from '../../components';
-import { Lobby } from './lobby/Lobby';
+import { Lobby } from '../shared/Lobby/Lobby';
 import { ActiveCall } from './ActiveCall';
-import { CallFeedback } from './feedback/CallFeedback';
+import { CallFeedback } from '../shared/CallFeedback/CallFeedback';
 
 /**
  * CallStateRouter is the state decider component that manages view state transitions.

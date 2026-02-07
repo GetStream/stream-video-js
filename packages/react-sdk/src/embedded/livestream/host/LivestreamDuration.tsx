@@ -1,6 +1,6 @@
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { humanize } from '@stream-io/video-client';
-import { Icon } from '../../components';
+import { Icon } from '../../../components';
 
 export type LivestreamDurationProps = {
   /**

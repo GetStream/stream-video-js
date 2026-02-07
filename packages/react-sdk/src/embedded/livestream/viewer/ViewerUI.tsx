@@ -5,7 +5,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { ViewerLobby } from './ViewerLobby';
 import { LoadingIndicator } from '../../../components';
 import { LivestreamLayout } from '../../../core';
-import { CallFeedback } from '../../meeting/feedback/CallFeedback';
+import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 
 export const ViewerUI = () => {
   const call = useCall();

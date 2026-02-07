@@ -5,7 +5,7 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { HostLobby } from './HostLobby';
 import { HostView } from './HostView';
 import { LoadingIndicator } from '../../../components';
-import { CallFeedback } from '../../meeting/feedback/CallFeedback';
+import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 
 export const HostUI = () => {
   const call = useCall();

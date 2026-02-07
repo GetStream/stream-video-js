@@ -3344,7 +3344,7 @@ export interface CallUpdatedEvent {
   type: string;
 }
 /**
- * This event is sent when a user submits feedback for a call.
+ * This event is sent when a user submits CallFeedback for a call.
  * @export
  * @interface CallUserFeedbackSubmittedEvent
  */
