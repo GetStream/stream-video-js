@@ -20,7 +20,7 @@ export default function EmbeddedPage(props: ServerSideCredentialsProps) {
         image: user.image,
       }}
       callId={callId}
-      token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiamRpbW92c2thIn0.INlmp-FLyR_3_nW5zWkpnoo4Fa0uY_zQjDPGvuriHeQ"
+      token={userToken}
     />
   );
 }
