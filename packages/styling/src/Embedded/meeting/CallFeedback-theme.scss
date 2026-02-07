@@ -1,0 +1,61 @@
+.str-video__embedded-call-feedback {
+  background: var(--str-video__base-color4);
+  color: var(--str-video__text-color1);
+
+  &__subtitle,
+  &__rating-label {
+    color: var(--str-video__text-color2);
+  }
+
+  &__textarea {
+    border-color: rgba(255, 255, 255, 0.15);
+
+    &::placeholder {
+      color: var(--str-video__text-color3);
+    }
+
+    &:focus {
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+
+  &__star {
+    color: var(--str-video__text-color3);
+
+    &:hover,
+    &--active {
+      color: var(--str-video__button-primary-active);
+    }
+  }
+
+  &__ended-label {
+    color: var(--str-video__text-color3);
+  }
+
+  &__ended-divider {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  &__ended-button {
+    color: var(--str-video__text-color1);
+    border-color: rgba(255, 255, 255, 0.2);
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+  }
+
+  &__actions .str-video__button {
+    background-color: var(--str-video__button-primary-active);
+
+    &:not([disabled]):hover {
+      background-color: var(--str-video__button-primary-hover);
+    }
+  }
+
+  &__checkmark {
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+  }
+}

@@ -1,11 +1,3 @@
-$feedback-icon-size: 64px;
-$feedback-button-height: 52px;
-$feedback-border-radius: 12px;
-
-$color-success: #4ade80;
-$color-success-bg: rgba(74, 222, 128, 0.15);
-$color-primary: #3b82f6;
-
 @mixin flex-center {
   display: flex;
   align-items: center;
@@ -18,20 +10,11 @@ $color-primary: #3b82f6;
   align-items: center;
 }
 
-@mixin circular-icon($size, $bg-color) {
-  @include flex-center;
-  width: $size;
-  height: $size;
-  border-radius: 50%;
-  background: $bg-color;
-}
-
 .str-video__embedded-call-feedback {
   @include flex-center;
   min-height: 100%;
   width: 100%;
   padding: 2rem;
-  background: var(--str-video__base-color4, #000);
 
   &__container {
     @include flex-column-center;
@@ -46,13 +29,11 @@ $color-primary: #3b82f6;
     margin: 0;
     font-size: 1.75rem;
     font-weight: 600;
-    color: var(--str-video__text-color1, #fff);
   }
 
   &__subtitle {
     margin: 0;
     font-size: 0.9375rem;
-    color: var(--str-video__text-color2, #9ca3af);
   }
 
   &__rating-section {
@@ -65,7 +46,6 @@ $color-primary: #3b82f6;
     margin: 0;
     font-size: 1.125rem;
     font-weight: 400;
-    color: var(--str-video__text-color2, #9ca3af);
   }
 
   &__stars {
@@ -80,47 +60,30 @@ $color-primary: #3b82f6;
     padding: 0;
     border: none;
     background: transparent;
-    color: var(--str-video__text-color3, #4b5563);
     cursor: pointer;
 
     svg {
       width: 24px;
       height: 24px;
     }
-
-    &:hover {
-      color: $color-primary;
-    }
-
-    &--active {
-      color: $color-primary;
-    }
   }
 
-  // Textarea
   &__textarea {
     width: 100%;
     min-height: 72px;
     padding: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    border: 1px solid transparent;
     border-radius: var(--str-video__border-radius-md, 8px);
     background: transparent;
-    color: var(--str-video__text-color1, #fff);
     font-family: inherit;
     font-size: 0.875rem;
     resize: vertical;
 
-    &::placeholder {
-      color: var(--str-video__text-color3, #6b7280);
-    }
-
     &:focus {
       outline: none;
-      border-color: rgba(255, 255, 255, 0.3);
     }
   }
 
-  // Action buttons
   &__actions {
     display: flex;
     flex-direction: column;
@@ -128,53 +91,14 @@ $color-primary: #3b82f6;
     gap: 1rem;
     width: 100%;
     padding-top: 1rem;
-  }
 
-  &__button {
-    @include flex-center;
-    gap: 0.5rem;
-    width: 100%;
-    height: 34px;
-    padding: 0 1.5rem;
-    border: 1px solid transparent;
-    border-radius: var(--str-video__border-radius-md, 8px);
-    font-size: 0.9375rem;
-    font-weight: 500;
-    cursor: pointer;
-    color: var(--str-video__text-color1, #fff);
-    background: none;
-
-    &--primary {
-      background: var(--str-video__button-primary-active, $color-primary);
-
-      &:hover:not(:disabled) {
-        background: var(--str-video__button-primary-hover, #2563eb);
-      }
-
+    .str-video__button {
       &:disabled {
-        background: var(--str-video__button-default-disabled, #374151);
         opacity: 0.5;
-        cursor: not-allowed;
       }
     }
   }
 
-  // Skip as text link
-  &__skip {
-    padding: 0;
-    border: none;
-    background: transparent;
-    color: var(--str-video__text-color2, #9ca3af);
-    font-size: 0.875rem;
-    font-weight: 400;
-    cursor: pointer;
-
-    &:hover {
-      color: var(--str-video__text-color1, #fff);
-    }
-  }
-
-  // Call ended action row
   &__ended-actions {
     display: flex;
     align-items: center;
@@ -190,13 +114,11 @@ $color-primary: #3b82f6;
   &__ended-label {
     margin: 0;
     font-size: 0.9375rem;
-    color: var(--str-video__text-color3, #6b7280);
   }
 
   &__ended-divider {
     width: 1px;
     align-self: stretch;
-    background: rgba(255, 255, 255, 0.15);
   }
 
   &__ended-button {
@@ -204,10 +126,9 @@ $color-primary: #3b82f6;
     gap: 0.5rem;
     height: 44px;
     padding: 0 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid transparent;
     border-radius: 999px;
     background: transparent;
-    color: var(--str-video__text-color1, #fff);
     font-size: 0.9375rem;
     font-weight: 500;
     cursor: pointer;
@@ -218,14 +139,8 @@ $color-primary: #3b82f6;
       width: 18px;
       height: 18px;
     }
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 255, 255, 0.35);
-    }
   }
 
-  // End screens (thank you & call ended)
   &__thank-you {
     @include flex-column-center;
     gap: 1rem;
@@ -237,8 +152,10 @@ $color-primary: #3b82f6;
   }
 
   &__checkmark {
-    @include circular-icon(56px, $color-success-bg);
-    color: $color-success;
+    @include flex-center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
 
     svg {
       width: 24px;

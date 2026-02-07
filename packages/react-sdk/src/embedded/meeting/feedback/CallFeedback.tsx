@@ -193,7 +193,7 @@ const RatingScreen = ({ onSubmit }: RatingScreenProps) => {
       <div className="str-video__embedded-call-feedback__actions">
         <button
           type="button"
-          className="str-video__embedded-call-feedback__button str-video__embedded-call-feedback__button--primary"
+          className="str-video__button"
           onClick={handleSubmit}
           disabled={rating === 0}
         >
