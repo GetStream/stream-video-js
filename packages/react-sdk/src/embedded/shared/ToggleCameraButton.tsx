@@ -16,12 +16,12 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
       useCameraState();
 
     return (
-      <button ref={ref} className="str-video__embedded-lobby-device-button">
+      <button ref={ref} className="str-video__embedded-lobby__device-button">
         <Icon
-          className="str-video__embedded-lobby-device-button__icon"
+          className="str-video__embedded-lobby__device-button-icon"
           icon="camera"
         />
-        <span className="str-video__embedded-lobby-device-button__label">
+        <span className="str-video__embedded-lobby__device-button-label">
           {cameras?.find((c: MediaDeviceInfo) => c.deviceId === selectedCamera)
             ?.label || 'Default'}
         </span>

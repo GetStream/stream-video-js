@@ -27,12 +27,12 @@ interface DisabledDeviceButtonProps {
 }
 
 const DisabledDeviceButton = ({ icon, label }: DisabledDeviceButtonProps) => (
-  <div className="str-video__embedded-lobby-device-button str-video__embedded-lobby-device-button--disabled">
+  <div className="str-video__embedded-lobby__device-button str-video__embedded-lobby__device-button--disabled">
     <Icon
-      className="str-video__embedded-lobby-device-button__icon"
+      className="str-video__embedded-lobby__device-button-icon"
       icon={icon}
     />
-    <span className="str-video__embedded-lobby-device-button__label">
+    <span className="str-video__embedded-lobby__device-button-label">
       {label}
     </span>
   </div>
@@ -119,70 +119,60 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
 
   return (
     <div className="str-video__embedded-lobby">
-      <div className="str-video__embedded-lobby-container">
-        <div className="str-video__embedded-lobby-content">
-          <h1 className="str-video__embedded-lobby-heading">{resolvedTitle}</h1>
+      <div className="str-video__embedded-lobby__content">
+        <h1 className="str-video__embedded-lobby__heading">{resolvedTitle}</h1>
 
-          <div
-            className={clsx(
-              'str-video__embedded-lobby-camera',
-              isCameraMute && 'str-video__embedded-lobby-camera--off',
+        <div
+          className={clsx(
+            'str-video__embedded-lobby__camera',
+            isCameraMute && 'str-video__embedded-lobby__camera--off',
+          )}
+        >
+          <div className="str-video__embedded-lobby__video-preview">
+            <VideoPreview
+              DisabledVideoPreview={DisabledVideoPreview}
+              NoCameraPreview={NoCameraPreview}
+            />
+            <div className="str-video__embedded-lobby__media-toggle">
+              <ToggleAudioPreviewButton Menu={null} />
+              {isVideoEnabled && <ToggleVideoPreviewButton Menu={null} />}
+            </div>
+          </div>
+
+          <div className="str-video__embedded-lobby__media">
+            {hasMicPermission ? (
+              <ToggleMicButton />
+            ) : (
+              <DisabledDeviceButton icon="mic" label={t('Permission needed')} />
             )}
+            {isVideoEnabled &&
+              (hasCameraPermission ? (
+                <ToggleCameraButton />
+              ) : (
+                <DisabledDeviceButton
+                  icon="camera"
+                  label={t('Permission needed')}
+                />
+              ))}
+          </div>
+        </div>
+
+        <div className="str-video__embedded-lobby__display-name">
+          <div className="str-video__embedded-lobby__display-name-label">
+            {t('Display name')}
+          </div>
+          <span className="str-video__embedded-lobby__display-name-value">
+            {displayName}
+          </span>
+
+          <button
+            className="str-video__button"
+            onClick={handleJoin}
+            disabled={isJoining || !displayName.trim()}
           >
-            <div className="str-video__embedded-lobby-video-preview">
-              <VideoPreview
-                DisabledVideoPreview={DisabledVideoPreview}
-                NoCameraPreview={NoCameraPreview}
-              />
-              <div className="str-video__embedded-lobby-media-toggle">
-                <ToggleAudioPreviewButton Menu={null} />
-                {isVideoEnabled && <ToggleVideoPreviewButton Menu={null} />}
-              </div>
-            </div>
-
-            <div className="str-video__embedded-lobby-controls">
-              <div className="str-video__embedded-lobby-media">
-                {hasMicPermission ? (
-                  <ToggleMicButton />
-                ) : (
-                  <DisabledDeviceButton
-                    icon="mic"
-                    label={t('Permission needed')}
-                  />
-                )}
-                {isVideoEnabled &&
-                  (hasCameraPermission ? (
-                    <ToggleCameraButton />
-                  ) : (
-                    <DisabledDeviceButton
-                      icon="camera"
-                      label={t('Permission needed')}
-                    />
-                  ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="str-video__embedded-display-name">
-            <div className="str-video__embedded-display-name-label">
-              {t('Display name')}
-            </div>
-            <span className="str-video__embedded-display-name-value">
-              {displayName}
-            </span>
-
-            <button
-              className={clsx(
-                'str-video__embedded-button str-video__embedded-button--primary str-video__embedded-lobby-join',
-                isJoining && 'str-video__embedded-button--disabled',
-              )}
-              onClick={handleJoin}
-              disabled={isJoining || !displayName.trim()}
-            >
-              <Icon className="str-video__embedded-button__icon" icon="login" />
-              {isJoining ? t('Joining') : resolvedJoinLabel}
-            </button>
-          </div>
+            <Icon className="str-video__button__icon" icon="login" />
+            {isJoining ? t('Joining') : resolvedJoinLabel}
+          </button>
         </div>
       </div>
     </div>

@@ -16,12 +16,12 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
       useMicrophoneState();
 
     return (
-      <button ref={ref} className="str-video__embedded-lobby-device-button">
+      <button ref={ref} className="str-video__embedded-lobby__device-button">
         <Icon
-          className="str-video__embedded-lobby-device-button__icon"
+          className="str-video__embedded-lobby__device-button-icon"
           icon="mic"
         />
-        <span className="str-video__embedded-lobby-device-button__label">
+        <span className="str-video__embedded-lobby__device-button-label">
           {microphones?.find((m: MediaDeviceInfo) => m.deviceId === selectedMic)
             ?.label || 'Default'}
         </span>

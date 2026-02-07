@@ -1,0 +1,26 @@
+.str-video__embedded-lobby__no-permission {
+  color: var(--str-video__text-color2);
+}
+
+.str-video__embedded-lobby__device-button {
+  color: var(--str-video__text-color1);
+}
+
+.str-video__embedded-lobby__display-name {
+  background-color: var(--str-video__backdrop1);
+  border: 1px solid var(--str-video__base-color3);
+
+  &-value {
+    color: var(--str-video__text-color2);
+    margin-bottom: var(--str-video__spacing-md);
+    display: block;
+  }
+
+  .str-video__button {
+    background-color: var(--str-video__button-primary-active);
+
+    &:not([disabled]):hover {
+      background-color: var(--str-video__button-primary-hover);
+    }
+  }
+}

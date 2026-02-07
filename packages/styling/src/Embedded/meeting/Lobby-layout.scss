@@ -1,4 +1,3 @@
-@use 'sass:map';
 @use '../../utils';
 
 .str-video__embedded-lobby {
@@ -8,32 +7,21 @@
   left: 0;
   right: 0;
   bottom: 0;
-}
-
-.str-video__embedded-lobby-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  height: 100%;
   padding: var(--str-video__spacing-lg);
-  position: absolute;
-  top: 0;
-  left: 0;
 }
 
-.str-video__embedded-lobby-content {
+.str-video__embedded-lobby__content {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   width: 100%;
 }
 
-.str-video__embedded-lobby-heading {
-  display: flex;
-  flex-direction: column;
+.str-video__embedded-lobby__heading {
   font-size: var(--str-video__font-size-xl);
   font-weight: 500;
   margin: 0;
@@ -41,10 +29,9 @@
   text-align: center;
 }
 
-.str-video__embedded-lobby-camera {
+.str-video__embedded-lobby__camera {
   position: relative;
   width: calc(100vw - var(--str-video__spacing-lg));
-  height: auto;
 
   &--off {
     .str-video__video-preview-container {
@@ -53,7 +40,7 @@
   }
 }
 
-.str-video__embedded-lobby-video-preview {
+.str-video__embedded-lobby__video-preview {
   position: relative;
   height: 320px;
   width: 100%;
@@ -61,29 +48,28 @@
   overflow: hidden;
 }
 
-.str-video__embedded-lobby-camera .str-video__video-preview-container {
+.str-video__embedded-lobby__camera .str-video__video-preview-container {
   height: 100%;
   width: 100%;
-  border-radius: var(--str-video__border-radius-md);
   border-color: transparent;
 }
 
-.str-video__embedded-lobby-camera .str-video__video-preview video {
+.str-video__embedded-lobby__camera .str-video__video-preview video {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.str-video__embedded-lobby-media-toggle {
+.str-video__embedded-lobby__media-toggle {
   display: flex;
   position: absolute;
-  bottom: 0px;
+  bottom: 0;
   gap: var(--str-video__spacing-sm);
   left: 50%;
   transform: translate(-50%, -50%);
 }
 
-.str-video__embedded-lobby-media-toggle .str-video__menu-toggle-button {
+.str-video__embedded-lobby__media-toggle .str-video__menu-toggle-button {
   display: none;
 }
 
@@ -105,22 +91,16 @@
   font-size: 2.5rem;
 }
 
-.str-video__embedded-lobby-controls {
+.str-video__embedded-lobby__media {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
   margin-top: var(--str-video__spacing-md);
   margin-bottom: var(--str-video__spacing-sm);
 }
 
-.str-video__embedded-lobby-media {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.str-video__embedded-lobby-device-button {
+.str-video__embedded-lobby__device-button {
   display: flex;
   align-items: center;
   gap: var(--str-video__spacing-sm);
@@ -135,12 +115,12 @@
     opacity: 0.8;
   }
 
-  &__icon {
+  &-icon {
     width: 20px;
     height: 20px;
   }
 
-  &__label {
+  &-label {
     width: 120px;
     white-space: nowrap;
     overflow: hidden;
@@ -159,7 +139,7 @@
   }
 }
 
-.str-video__embedded-display-name {
+.str-video__embedded-lobby__display-name {
   border-radius: var(--str-video__border-radius-xl);
   padding: var(--str-video__spacing-lg);
   width: 100%;
@@ -174,33 +154,36 @@
     margin-bottom: var(--str-video__spacing-md);
     display: block;
   }
-}
 
-.str-video__embedded-lobby-join {
-  width: 100%;
+  .str-video__button {
+    height: 28px;
+    min-width: unset;
+    gap: var(--str-video__spacing-xs);
+    padding: var(--str-video__spacing-xs) var(--str-video__spacing-lg);
+    font-size: var(--str-video__font-size-sm);
+
+    &:disabled {
+      opacity: 0.5;
+    }
+  }
 }
 
 @include utils.respond-above(sm) {
-  .str-video__embedded-lobby-content {
+  .str-video__embedded-lobby__content {
     max-width: 40vw;
   }
 
-  .str-video__embedded-lobby-camera {
+  .str-video__embedded-lobby__camera {
     width: 600px;
   }
 
-  .str-video__embedded-lobby-video-preview {
-    height: 320px;
-    width: 100%;
-  }
-
-  .str-video__embedded-lobby-device-button__label {
+  .str-video__embedded-lobby__device-button-label {
     width: 150px;
   }
 }
 
 @include utils.respond-above(md) {
-  .str-video__embedded-lobby-content {
+  .str-video__embedded-lobby__content {
     max-width: 25vw;
   }
 }
