@@ -12,8 +12,8 @@ import {
   ToggleVideoPreviewButton,
   VideoPreview,
 } from '../../../components';
-import { ToggleMicButton } from '../../shared/ToggleMicButton';
-import { ToggleCameraButton } from '../../shared/ToggleCameraButton';
+import { ToggleMicButton } from './ToggleMicButton';
+import { ToggleCameraButton } from './ToggleCameraButton';
 
 export interface LobbyProps {
   onJoin: (displayName?: string) => void;

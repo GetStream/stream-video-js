@@ -6,23 +6,23 @@ import {
   MenuToggle,
   MenuVisualType,
   ToggleMenuButtonProps,
-} from '../../components';
-import { CameraMenuWithBlur } from './index';
+} from '../../../components';
+import { MicMenu } from '../../shared';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
-    const { useCameraState } = useCallStateHooks();
-    const { selectedDevice: selectedCamera, devices: cameras } =
-      useCameraState();
+    const { useMicrophoneState } = useCallStateHooks();
+    const { selectedDevice: selectedMic, devices: microphones } =
+      useMicrophoneState();
 
     return (
       <button ref={ref} className="str-video__embedded-lobby__device-button">
         <Icon
           className="str-video__embedded-lobby__device-button-icon"
-          icon="camera"
+          icon="mic"
         />
         <span className="str-video__embedded-lobby__device-button-label">
-          {cameras?.find((c: MediaDeviceInfo) => c.deviceId === selectedCamera)
+          {microphones?.find((m: MediaDeviceInfo) => m.deviceId === selectedMic)
             ?.label || 'Default'}
         </span>
         <Icon icon={props.menuShown ? 'chevron-down' : 'chevron-up'} />
@@ -31,14 +31,14 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   },
 );
 
-export const ToggleCameraButton = () => {
+export const ToggleMicButton = () => {
   return (
     <MenuToggle
       placement="top-start"
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
     >
-      <CameraMenuWithBlur />
+      <MicMenu />
     </MenuToggle>
   );
 };

@@ -1,21 +1,21 @@
 import type { CSSProperties, ReactNode } from 'react';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 
-import { StreamCall, StreamVideo } from '../../core';
+import { StreamCall, StreamVideo } from '../core';
 import {
   StreamTheme,
   BackgroundFiltersProvider,
   NoiseCancellationProvider,
-} from '../../components';
-import { ConfigurationProvider } from '../context';
-import { useEmbeddedClient } from '../hooks';
+} from '../components';
+import { ConfigurationProvider } from './context';
+import { useEmbeddedClient } from './hooks';
 import type {
   EmbeddedUser,
   TokenProvider,
   LogLevel,
   LayoutOption,
-} from '../types';
-import { LoadingScreen } from './LoadingScreen';
+} from './types';
+import { LoadingScreen } from './shared/LoadingScreen';
 
 export interface EmbeddedClientProviderProps {
   apiKey: string;
