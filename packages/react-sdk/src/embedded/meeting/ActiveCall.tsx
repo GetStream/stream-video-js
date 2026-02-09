@@ -19,9 +19,8 @@ import {
   WithTooltip,
 } from '../../components';
 
-import { useLayout } from '../hooks';
+import { useCallDuration, useLayout } from '../hooks';
 import { CameraMenuWithBlur, ConnectionNotification } from '../shared';
-import { CallDuration } from './CallDuration';
 
 /**
  * ActiveCall renders the in-call experience with layout, controls, and sidebar.
@@ -30,6 +29,7 @@ export const ActiveCall = () => {
   const { t } = useI18n();
   const [showParticipants, setShowParticipants] = useState(false);
 
+  const { startedAt, elapsed } = useCallDuration();
   const { Component: LayoutComponent, props: layoutProps } = useLayout();
 
   const handleCloseParticipants = useCallback(() => {
@@ -73,7 +73,17 @@ export const ActiveCall = () => {
 
         <div className="str-video__embedded-call-controls str-video__call-controls">
           <div className="str-video__call-controls--group str-video__call-controls--options">
-            <CallDuration />
+            {startedAt && (
+              <div className="str-video__embedded-call-duration">
+                <Icon
+                  icon="verified"
+                  className="str-video__embedded-call-duration__icon"
+                />
+                <span className="str-video__embedded-call-duration__time">
+                  {elapsed}
+                </span>
+              </div>
+            )}
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--media">
             <Restricted
