@@ -1,6 +1,5 @@
 package com.streamvideo.reactnative
 
-import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -29,7 +28,6 @@ import com.streamvideo.reactnative.util.CallAliveServiceChecker
 import com.streamvideo.reactnative.util.PiPHelper
 import com.streamvideo.reactnative.util.RingtoneUtil
 import com.streamvideo.reactnative.util.YuvFrame
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -352,26 +350,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     fun hasCameraHardware(promise: Promise) {
         val hasCamera = reactApplicationContext.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
         promise.resolve(hasCamera)
-    }
-
-    @ReactMethod
-    fun checkPermission(permission: String, promise: Promise) {
-        val requestedPermission = when (permission.lowercase()) {
-            "camera" -> Manifest.permission.CAMERA
-            "microphone" -> Manifest.permission.RECORD_AUDIO
-            else -> null
-        }
-
-        if (requestedPermission == null) {
-            promise.resolve(false)
-            return
-        }
-
-        promise.resolve(
-            reactApplicationContext.checkSelfPermission(
-                requestedPermission
-            ) == PackageManager.PERMISSION_GRANTED
-        )
     }
 
     private fun getBatteryStatusFromIntent(intent: Intent): WritableMap {
