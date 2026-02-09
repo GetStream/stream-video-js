@@ -1,65 +1,67 @@
 .str-video__embedded-call-feedback {
   background: var(--str-video__base-color4);
   color: var(--str-video__text-color1);
+}
 
-  &__subtitle,
-  &__rating-label {
-    color: var(--str-video__text-color2);
-  }
+.str-video__embedded-call-feedback__container p {
+  color: var(--str-video__text-color2);
+}
 
-  &__textarea {
-    border-color: var(--str-video__base-color3);
+.str-video__embedded-call-feedback__textarea {
+  border-color: var(--str-video__base-color3);
 
-    &::placeholder {
-      color: var(--str-video__text-color3);
-    }
-
-    &:focus {
-      border-color: var(--str-video__base-color2);
-    }
-  }
-
-  &__star {
-    color: var(--str-video__text-color3);
-
-    &:hover,
-    &--active {
-      color: var(--str-video__button-primary-active);
-    }
-  }
-
-  &__ended-label {
+  &::placeholder {
     color: var(--str-video__text-color3);
   }
 
-  &__ended-divider {
-    background: var(--str-video__base-color3);
+  &:focus {
+    border-color: var(--str-video__base-color2);
+  }
+}
+
+.str-video__embedded-call-feedback__star .str-video__icon {
+  background-color: var(--str-video__text-color3);
+}
+
+.str-video__embedded-call-feedback__star:hover .str-video__icon,
+.str-video__embedded-call-feedback__star--active .str-video__icon {
+  background-color: var(--str-video__button-primary-active);
+}
+
+.str-video__embedded-call-feedback__ended-divider {
+  background: var(--str-video__base-color3);
+}
+
+.str-video__embedded-call-feedback__ended-button {
+  color: var(--str-video__text-color1);
+  border-color: var(--str-video__base-color3);
+
+  .str-video__icon {
+    background-color: var(--str-video__text-color1);
   }
 
-  &__ended-button {
-    color: var(--str-video__text-color1);
-    border-color: var(--str-video__base-color3);
-
-    &:hover {
-      background: var(--str-video__base-color5);
-      border-color: var(--str-video__base-color2);
-    }
+  &:hover {
+    background: var(--str-video__base-color5);
+    border-color: var(--str-video__base-color2);
   }
+}
 
-  &__actions .str-video__button {
-    background-color: var(--str-video__button-primary-active);
+.str-video__embedded-call-feedback__actions .str-video__button {
+  background-color: var(--str-video__button-primary-active);
 
-    &:not([disabled]):hover {
-      background-color: var(--str-video__button-primary-hover);
-    }
+  &:not([disabled]):hover {
+    background-color: var(--str-video__button-primary-hover);
   }
+}
 
-  &__checkmark {
-    background: color-mix(
-      in srgb,
-      var(--str-video__alert-success) 15%,
-      transparent
-    );
-    color: var(--str-video__alert-success);
+.str-video__embedded-call-feedback__checkmark {
+  background: color-mix(
+    in srgb,
+    var(--str-video__alert-success) 15%,
+    transparent
+  );
+
+  .str-video__icon {
+    background-color: var(--str-video__alert-success);
   }
 }
