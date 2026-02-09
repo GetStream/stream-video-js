@@ -16,6 +16,7 @@ export type PiPChangeEvent = {
 
 type RTCViewPipNativeProps = {
   streamURL?: string;
+  mirror?: boolean;
   onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
 };
 
@@ -55,6 +56,7 @@ export const RTCViewPipNative = React.memo(
     React.Ref<any>,
     {
       streamURL?: string;
+      mirror?: boolean;
       onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
     }
   >((props, ref) => {
@@ -66,6 +68,8 @@ export const RTCViewPipNative = React.memo(
         pointerEvents={'none'}
         // eslint-disable-next-line react/prop-types
         streamURL={props.streamURL}
+        // eslint-disable-next-line react/prop-types
+        mirror={props.mirror}
         // eslint-disable-next-line react/prop-types
         onPiPChange={props.onPiPChange}
         // @ts-expect-error - types issue
