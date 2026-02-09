@@ -51,7 +51,6 @@ export const useInitializeVideoClient = ({
     };
   }, [isAnonymous, isAuthenticated, user?.id, user?.name, user?.image]);
 
-  console.log(streamUser);
   useEffect(() => {
     if (!apiKey) return;
 
