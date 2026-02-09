@@ -52,14 +52,7 @@ export function onNativeDimensionsUpdated(
 /** Wrapper for the native view
  * meant to stay private and not exposed */
 export const RTCViewPipNative = React.memo(
-  React.forwardRef<
-    React.Ref<any>,
-    {
-      streamURL?: string;
-      mirror?: boolean;
-      onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
-    }
-  >((props, ref) => {
+  React.forwardRef<React.Ref<any>, RTCViewPipNativeProps>((props, ref) => {
     if (Platform.OS !== 'ios') return null;
 
     return (
