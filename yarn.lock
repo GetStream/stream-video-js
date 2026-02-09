@@ -7684,6 +7684,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stream-io/react-native-webrtc@npm:137.1.2-alpha.1":
+  version: 137.1.2-alpha.1
+  resolution: "@stream-io/react-native-webrtc@npm:137.1.2-alpha.1"
+  dependencies:
+    base64-js: "npm:1.5.1"
+    debug: "npm:4.3.4"
+    event-target-shim: "npm:6.0.2"
+  peerDependencies:
+    react-native: ">=0.73.0"
+  checksum: 10/5b5eb73e6ee3c9e4f618531efc0eaa9b677a8d84a912be3b8ad83a84a739bd4b8fdddb30b85ce299f60131014bc454dc5582c23f14873211492d176d2b0e36c9
+  languageName: node
+  linkType: hard
+
 "@stream-io/stream-video-react-tutorial@workspace:sample-apps/react/stream-video-react-tutorial":
   version: 0.0.0-use.local
   resolution: "@stream-io/stream-video-react-tutorial@workspace:sample-apps/react/stream-video-react-tutorial"
@@ -7912,7 +7925,7 @@ __metadata:
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:137.1.1"
+    "@stream-io/react-native-webrtc": "npm:137.1.2-alpha.1"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
@@ -8010,7 +8023,7 @@ __metadata:
     "@react-native/babel-preset": "npm:^0.81.5"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:137.1.1"
+    "@stream-io/react-native-webrtc": "npm:137.1.2-alpha.1"
     "@stream-io/video-client": "workspace:*"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:*"

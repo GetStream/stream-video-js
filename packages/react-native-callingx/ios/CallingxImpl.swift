@@ -41,6 +41,7 @@ import stream_react_native_webrtc
     private var isSetup: Bool = false
     private var isSelfAnswered: Bool = false
     private var isSelfEnded: Bool = false
+    private var isSelfMuted: Bool = false
     private var delayedEvents: [[String: Any]] = []
     
     // MARK: - Initialization
@@ -254,6 +255,7 @@ import stream_react_native_webrtc
 
                 self?.isSelfAnswered = false
                 self?.isSelfEnded = false
+                self?.isSelfMuted = false
             } else {
                 #if DEBUG
                 print("[Callingx][requestTransaction] Requested transaction successfully")
@@ -485,6 +487,7 @@ import stream_react_native_webrtc
             return false
         }
         
+        isSelfMuted = true
         let setMutedAction = CXSetMutedCallAction(call: uuid, muted: isMuted)
         let transaction = CXTransaction()
         transaction.addAction(setMutedAction)
@@ -666,8 +669,11 @@ import stream_react_native_webrtc
     }
     
     public func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
+        let isAppInitiated = isSelfMuted
+        isSelfMuted = false
+        
         #if DEBUG
-        print("[Callingx][CXProviderDelegate][provider:performSetMutedCallAction] \(action.isMuted)")
+        print("[Callingx][CXProviderDelegate][provider:performSetMutedCallAction] \(action.isMuted) isAppInitiated: \(isAppInitiated)")
         #endif
         
         guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
@@ -678,10 +684,16 @@ import stream_react_native_webrtc
             return
         }
         
-        sendEvent(CallingxEvents.didPerformSetMutedCallAction, body: [
-            "muted": action.isMuted,
-            "callId": callId
-        ])
+        // Only send the event to JS when the mute was initiated by the system
+        // (e.g. user tapped mute on the native CallKit UI).
+        // Skip app-initiated actions to prevent the feedback loop:
+        // app mutes mic → setMutedCall → CallKit delegate → event to JS → mic toggle → loop
+        if !isAppInitiated {
+            sendEvent(CallingxEvents.didPerformSetMutedCallAction, body: [
+                "muted": action.isMuted,
+                "callId": callId
+            ])
+        }
         
         action.fulfill()
     }

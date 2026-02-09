@@ -22,7 +22,7 @@
     "@react-navigation/native-stack": "^7.3.27",
     "@stream-io/noise-cancellation-react-native": "workspace:^",
     "@stream-io/react-native-callingx": "workspace:^",
-    "@stream-io/react-native-webrtc": "137.1.1",
+    "@stream-io/react-native-webrtc": "137.1.2-alpha.1",
     "@stream-io/video-filters-react-native": "workspace:^",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "axios": "^1.12.2",
