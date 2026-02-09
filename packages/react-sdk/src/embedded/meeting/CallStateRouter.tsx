@@ -6,7 +6,7 @@ import { useEmbeddedConfiguration } from '../context';
 import { useWakeLock } from '../hooks';
 import { LoadingIndicator } from '../../components';
 import { Lobby } from '../shared/Lobby/Lobby';
-import { ActiveCall } from './ActiveCall';
+import { CallLayout } from './CallLayout';
 import { CallFeedback } from '../shared/CallFeedback/CallFeedback';
 
 /**
@@ -50,5 +50,5 @@ export const CallStateRouter = () => {
     return <CallFeedback onJoin={handleJoin} />;
   }
 
-  return <ActiveCall />;
+  return <CallLayout />;
 };

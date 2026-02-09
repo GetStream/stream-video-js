@@ -11,6 +11,7 @@ import { useEmbeddedConfiguration } from '../../context';
 export const ViewerUI = () => {
   const call = useCall();
   const { onError } = useEmbeddedConfiguration();
+
   const { useCallCallingState, useIsCallLive } = useCallStateHooks();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();

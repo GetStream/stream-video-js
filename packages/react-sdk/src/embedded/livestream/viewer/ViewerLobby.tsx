@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { humanize } from '@stream-io/video-client';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
+import { Icon } from '../../../components';
 
 export type ViewerLobbyProps = {
   onJoin: () => void;
@@ -26,9 +27,11 @@ export const ViewerLobby = ({ onJoin, isLive }: ViewerLobbyProps) => {
 
   const getStartsAtMessage = () => {
     if (!startsAt) return null;
+
     if (startsAt.getTime() < Date.now()) {
       return t('Livestream starts soon');
     }
+
     return t('Livestream starts at {{ time }}', {
       time: startsAt.toLocaleTimeString([], {
         hour: '2-digit',
@@ -41,7 +44,7 @@ export const ViewerLobby = ({ onJoin, isLive }: ViewerLobbyProps) => {
     <div className="str-video__embedded-viewer-lobby">
       <div className="str-video__embedded-viewer-lobby__content">
         <div className="str-video__embedded-viewer-lobby__icon">
-          {isLive ? <PlayIcon /> : <ClockIcon />}
+          <Icon icon={isLive ? 'play' : 'clock'} />
         </div>
 
         <h2 className="str-video__embedded-viewer-lobby__title">
@@ -82,34 +85,3 @@ export const ViewerLobby = ({ onJoin, isLive }: ViewerLobbyProps) => {
     </div>
   );
 };
-
-const ClockIcon = () => (
-  <svg
-    width="56"
-    height="56"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
-    <path
-      d="M12 6v6l4 2"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
-const PlayIcon = () => (
-  <svg
-    width="56"
-    height="56"
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M10 8l6 4-6 4V8z" fill="currentColor" />
-  </svg>
-);

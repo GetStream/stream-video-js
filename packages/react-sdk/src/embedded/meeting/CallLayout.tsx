@@ -23,9 +23,9 @@ import { useCallDuration, useLayout } from '../hooks';
 import { CameraMenuWithBlur, ConnectionNotification } from '../shared';
 
 /**
- * ActiveCall renders the in-call experience with layout, controls, and sidebar.
+ * CallLayout renders the in-call experience with layout, controls, and sidebar.
  */
-export const ActiveCall = () => {
+export const CallLayout = () => {
   const { t } = useI18n();
   const [showParticipants, setShowParticipants] = useState(false);
 

@@ -97,6 +97,11 @@
 
   &__icon {
     animation: str-video__embedded-pulse 2s ease-in-out infinite;
+
+    .str-video__icon {
+      width: 56px;
+      height: 56px;
+    }
   }
 
   &__title {

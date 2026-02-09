@@ -47,12 +47,12 @@ export const useEmbeddedClient = ({
     onError,
   });
 
-  const { noiseCancellation, loaded: ncLoaded } = useNoiseCancellationLoader();
+  const { noiseCancellation, loaded } = useNoiseCancellationLoader();
 
   return {
     client,
     call,
     noiseCancellation,
-    ncLoaded,
+    ncLoaded: loaded,
   };
 };
