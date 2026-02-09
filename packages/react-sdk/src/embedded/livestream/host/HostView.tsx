@@ -3,7 +3,7 @@ import { useI18n } from '@stream-io/video-react-bindings';
 import { PaginatedGridLayout } from '../../../core';
 import {
   CallParticipantsList,
-  CancelCallButton,
+  CancelCallConfirmButton,
   CompositeButton,
   Icon,
   WithTooltip,
@@ -27,11 +27,17 @@ const StartBroadcastIcon = () => (
 
 export type HostViewProps = {
   isLive: boolean;
+  isBackstageEnabled: boolean;
   onGoLive: () => void;
   onStopLive: () => void;
 };
 
-export const HostView = ({ isLive, onGoLive, onStopLive }: HostViewProps) => {
+export const HostView = ({
+  isLive,
+  isBackstageEnabled,
+  onGoLive,
+  onStopLive,
+}: HostViewProps) => {
   const { t } = useI18n();
   const [showParticipants, setShowParticipants] = useState(false);
 
@@ -66,28 +72,29 @@ export const HostView = ({ isLive, onGoLive, onStopLive }: HostViewProps) => {
         <LivestreamControls
           actionButton={
             <>
-              {isLive ? (
-                <WithTooltip title={t('End Stream')}>
-                  <button
-                    className="str-video__composite-button--danger"
-                    onClick={onStopLive}
-                  >
-                    <Icon icon="call-end" />
-                    <span>{t('End Stream')}</span>
-                  </button>
-                </WithTooltip>
-              ) : (
-                <WithTooltip title={t('Start Stream')}>
-                  <button
-                    className="str-video__composite-button--go-live"
-                    onClick={onGoLive}
-                  >
-                    <StartBroadcastIcon />
-                    <span>{t('Go Live')}</span>
-                  </button>
-                </WithTooltip>
-              )}
-              <CancelCallButton />
+              {isBackstageEnabled &&
+                (isLive ? (
+                  <WithTooltip title={t('End Stream')}>
+                    <button
+                      className="str-video__composite-button--danger"
+                      onClick={onStopLive}
+                    >
+                      <Icon icon="call-end" />
+                      <span>{t('End Stream')}</span>
+                    </button>
+                  </WithTooltip>
+                ) : (
+                  <WithTooltip title={t('Start Stream')}>
+                    <button
+                      className="str-video__composite-button--go-live"
+                      onClick={onGoLive}
+                    >
+                      <StartBroadcastIcon />
+                      <span>{t('Go Live')}</span>
+                    </button>
+                  </WithTooltip>
+                ))}
+              <CancelCallConfirmButton />
             </>
           }
           trailingContent={

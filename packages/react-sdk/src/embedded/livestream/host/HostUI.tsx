@@ -68,6 +68,7 @@ export const HostUI = () => {
     return (
       <HostView
         isLive={isLive}
+        isBackstageEnabled={isBackstageEnabled}
         onGoLive={handleGoLive}
         onStopLive={handleStopLive}
       />

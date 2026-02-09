@@ -1,6 +1,10 @@
 import { useCallback } from 'react';
-import { CallingState } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { CallingState, OwnCapability } from '@stream-io/video-client';
+import {
+  useCall,
+  useCallStateHooks,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 
 import { ViewerLobby } from './ViewerLobby';
 import { LoadingIndicator } from '../../../components';
@@ -10,11 +14,19 @@ import { useEmbeddedConfiguration } from '../../context';
 
 export const ViewerUI = () => {
   const call = useCall();
+  const { t } = useI18n();
   const { onError } = useEmbeddedConfiguration();
 
-  const { useCallCallingState, useIsCallLive } = useCallStateHooks();
+  const {
+    useCallCallingState,
+    useIsCallLive,
+    useCallEndedAt,
+    useHasPermissions,
+  } = useCallStateHooks();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
+  const endedAt = useCallEndedAt();
+  const canJoinEndedCall = useHasPermissions(OwnCapability.JOIN_ENDED_CALL);
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
@@ -26,6 +38,18 @@ export const ViewerUI = () => {
       onError?.(error);
     }
   }, [call, onError]);
+
+  if (endedAt && !canJoinEndedCall) {
+    return (
+      <div className="str-video__embedded-call-feedback">
+        <div className="str-video__embedded-call-feedback__container">
+          <h2 className="str-video__embedded-call-feedback__title">
+            {t('The livestream has ended')}
+          </h2>
+        </div>
+      </div>
+    );
+  }
 
   if (
     callingState === CallingState.IDLE ||
