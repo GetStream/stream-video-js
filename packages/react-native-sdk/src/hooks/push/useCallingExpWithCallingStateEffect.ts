@@ -169,13 +169,8 @@ export const useCallingExpWithCallingStateEffect = () => {
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
     if (!callingx?.isSetup || !activeCallCid) {
-      return;
-    }
-
-    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
-    if (!isCallRegistered) {
       logger.debug(
-        `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+        `No active call cid to set muted in calling exp: ${activeCallCid} callingx isSetup: ${callingx?.isSetup}`,
       );
       return;
     }
@@ -189,27 +184,33 @@ export const useCallingExpWithCallingStateEffect = () => {
       async (event: { callId: string; muted: boolean }) => {
         const { callId, muted } = event;
 
-        if (callId === activeCallCid) {
-          const isCurrentlyMuted = microphone.state.status === 'disabled';
-          if (isCurrentlyMuted === muted) {
-            logger.debug(
-              `Mic toggle is already in the desired state: ${muted} for call: ${activeCallCid}`,
-            );
-            return;
-          }
+        const isCallRegistered = callingx.isCallRegistered(activeCallCid);
+        if (!isCallRegistered || callId !== activeCallCid) {
+          logger.debug(
+            `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered} callId: ${callId}`,
+          );
+          return;
+        }
 
-          try {
-            if (muted) {
-              await microphone.disable();
-            } else {
-              await microphone.enable();
-            }
-          } catch (error: unknown) {
-            logger.error(
-              `Error toggling mic in calling exp: ${activeCallCid}`,
-              error,
-            );
+        const isCurrentlyMuted = microphone.state.status === 'disabled';
+        if (isCurrentlyMuted === muted) {
+          logger.debug(
+            `Mic toggle is already in the desired state: ${muted} for call: ${activeCallCid}`,
+          );
+          return;
+        }
+
+        try {
+          if (muted) {
+            await microphone.disable();
+          } else {
+            await microphone.enable();
           }
+        } catch (error: unknown) {
+          logger.error(
+            `Error toggling mic in calling exp: ${activeCallCid}`,
+            error,
+          );
         }
       },
     );
