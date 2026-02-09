@@ -259,47 +259,53 @@ const ParticipantOverlay = (props: {
     <div className="str-video__livestream-layout__overlay">
       {overlayBarVisible && (
         <div className="str-video__livestream-layout__overlay__bar">
-          {showLiveBadge && (
-            <span className="str-video__livestream-layout__live-badge">
-              {t('Live')}
-            </span>
-          )}
-          {showParticipantCount && (
-            <span className="str-video__livestream-layout__viewers-count">
-              {humanizeParticipantCount
-                ? humanize(participantCount)
-                : participantCount}
-            </span>
-          )}
-          {showSpeakerName && (
-            <span
-              className="str-video__livestream-layout__speaker-name"
-              title={participant.name || participant.userId || ''}
-            >
-              {participant.name || participant.userId || ''}
-            </span>
-          )}
-          {showDuration && (
-            <span className="str-video__livestream-layout__duration">
-              {formatDuration(duration)}
-            </span>
-          )}
-          {showMuteButton && (
-            <span
-              className={clsx(
-                'str-video__livestream-layout__mute-button',
-                isSpeakerMuted &&
-                  'str-video__livestream-layout__mute-button--muted',
-              )}
-              onClick={() => speaker.setVolume(isSpeakerMuted ? 1 : 0)}
-            />
-          )}
-          {enableFullScreen && (
-            <span
-              className="str-video__livestream-layout__go-fullscreen"
-              onClick={toggleFullScreen}
-            />
-          )}
+          <div className="str-video__livestream-layout__overlay__bar-left">
+            {showLiveBadge && (
+              <span className="str-video__livestream-layout__live-badge">
+                {t('Live')}
+              </span>
+            )}
+            {showParticipantCount && (
+              <span className="str-video__livestream-layout__viewers-count">
+                {humanizeParticipantCount
+                  ? humanize(participantCount)
+                  : participantCount}
+              </span>
+            )}
+            {showSpeakerName && (
+              <span
+                className="str-video__livestream-layout__speaker-name"
+                title={participant.name || participant.userId || ''}
+              >
+                {participant.name || participant.userId || ''}
+              </span>
+            )}
+          </div>
+          <div className="str-video__livestream-layout__overlay__bar-center">
+            {showDuration && (
+              <span className="str-video__livestream-layout__duration">
+                {formatDuration(duration)}
+              </span>
+            )}
+          </div>
+          <div className="str-video__livestream-layout__overlay__bar-right">
+            {showMuteButton && (
+              <span
+                className={clsx(
+                  'str-video__livestream-layout__mute-button',
+                  isSpeakerMuted &&
+                    'str-video__livestream-layout__mute-button--muted',
+                )}
+                onClick={() => speaker.setVolume(isSpeakerMuted ? 1 : 0)}
+              />
+            )}
+            {enableFullScreen && (
+              <span
+                className="str-video__livestream-layout__go-fullscreen"
+                onClick={toggleFullScreen}
+              />
+            )}
+          </div>
         </div>
       )}
     </div>
