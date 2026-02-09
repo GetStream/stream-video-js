@@ -11,11 +11,10 @@
       "types": "./dist/index.d.ts"
     },
     "./embedded": {
-      "types": "./dist/src/embedded/index.d.ts",
+      "types": "./dist/embedded.d.ts",
       "import": "./dist/embedded.es.js",
       "require": "./dist/embedded.cjs.js"
-    },
-    "./dist/*": "./dist/*"
+    }
   },
   "license": "See license in LICENSE",
   "scripts": {

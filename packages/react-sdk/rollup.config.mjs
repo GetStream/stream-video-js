@@ -71,7 +71,7 @@ const mainConfig = {
  * Embedded entrypoint configuration - bundles video/audio filters
  */
 const embeddedConfig = {
-  input: 'src/embedded/index.ts',
+  input: 'embedded.ts',
   output: [
     {
       dir: 'dist',
@@ -109,8 +109,6 @@ const embeddedConfig = {
         process.env.NODE_ENV === 'production'
           ? './tsconfig.production.json'
           : './tsconfig.json',
-      declaration: true,
-      declarationDir: 'dist',
     }),
   ],
 };
