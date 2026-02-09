@@ -353,6 +353,25 @@ RCT_EXPORT_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
     });
 }
 
+RCT_EXPORT_METHOD(checkPermission:(NSString *)permission
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    NSString *normalizedPermission = [permission lowercaseString];
+    AVMediaType mediaType = nil;
+
+    if ([normalizedPermission isEqualToString:@"camera"]) {
+        mediaType = AVMediaTypeVideo;
+    } else if ([normalizedPermission isEqualToString:@"microphone"]) {
+        mediaType = AVMediaTypeAudio;
+    } else {
+        resolve(@NO);
+        return;
+    }
+
+    AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
+    resolve(@(status == AVAuthorizationStatusAuthorized));
+}
+
 -(void)batteryStateDidChange:(NSNotification *)notification {
     UIDeviceBatteryState batteryState = [UIDevice currentDevice].batteryState;
     BOOL isCharging = (batteryState == UIDeviceBatteryStateCharging ||

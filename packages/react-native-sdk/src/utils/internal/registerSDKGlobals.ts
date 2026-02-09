@@ -1,7 +1,10 @@
-import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
+import type { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
 import { NativeModules } from 'react-native';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
+const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {
+  checkPermission: StreamRNVideoSDKGlobals['permissions']['check'];
+};
 
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callManager: {
@@ -16,6 +19,13 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     },
     stop: () => {
       StreamInCallManagerNativeModule.stop();
+    },
+  },
+  permissions: {
+    check: async (permission) => {
+      return Boolean(
+        await StreamVideoReactNativeModule.checkPermission(permission),
+      );
     },
   },
 };

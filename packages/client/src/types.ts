@@ -366,6 +366,12 @@ export type StreamRNVideoSDKGlobals = {
      */
     stop(): void;
   };
+  permissions: {
+    /**
+     * Checks whether a native device permission has been granted.
+     */
+    check(permission: 'microphone' | 'camera'): Promise<boolean>;
+  };
 };
 
 declare global {
