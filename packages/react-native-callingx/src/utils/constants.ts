@@ -32,24 +32,33 @@ export const defaultAndroidOptions: DeepRequired<InternalAndroidOptions> = {
   },
 };
 
-// See ios/Callingx.mm for native iOS logic and constants mapping.
+// iOS: maps to CXCallEndedReason raw values.
+// See https://developer.apple.com/documentation/callkit/cxcallendedreason
+// CXCallEndedReason: failed=1, remoteEnded=2, unanswered=3, answeredElsewhere=4, declinedElsewhere=5
 export const iosEndCallReasonMap: Record<EndCallReason, number> = {
-  local: -1,
-  remote: 1,
-  rejected: 4,
-  busy: 2,
-  answeredElsewhere: 3,
-  missed: 2,
-  error: 0,
+  local: -1, // special: uses endCall() instead of endCallWithReason()
+  remote: 2, // .remoteEnded
+  rejected: 5, // .declinedElsewhere
+  busy: 3, // .unanswered
+  answeredElsewhere: 4, // .answeredElsewhere
+  missed: 3, // .unanswered
+  error: 1, // .failed
+  canceled: 2, // .remoteEnded (caller canceled before answer)
+  restricted: 1, // .failed (no iOS equivalent)
+  unknown: 1, // .failed (no iOS equivalent)
 };
 
-// https://developer.android.com/reference/android/telecom/DisconnectCause
+// Android: maps to android.telecom.DisconnectCause constants.
+// See https://developer.android.com/reference/android/telecom/DisconnectCause
 export const androidEndCallReasonMap: Record<EndCallReason, number> = {
-  local: 2,
-  remote: 3,
-  rejected: 6,
-  busy: 7,
-  answeredElsewhere: 11,
-  missed: 5,
-  error: 1,
+  local: 2, // LOCAL
+  remote: 3, // REMOTE
+  rejected: 6, // REJECTED
+  busy: 7, // BUSY
+  answeredElsewhere: 11, // ANSWERED_ELSEWHERE
+  missed: 5, // MISSED
+  error: 1, // ERROR
+  canceled: 4, // CANCELED
+  restricted: 8, // RESTRICTED
+  unknown: 0, // UNKNOWN
 };
