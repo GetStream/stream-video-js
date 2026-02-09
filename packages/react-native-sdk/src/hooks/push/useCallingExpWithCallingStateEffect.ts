@@ -8,51 +8,20 @@ const logger = videoLoggerSystem.getLogger(
   'Callingx - useCallingExpWithCallingStateEffect',
 );
 
-const canEndCall = (
-  prevState: CallingState | undefined,
-  currentState: CallingState | undefined,
-) => {
-  if (!prevState && !currentState) {
-    return false;
-  }
-
-  return (
-    (prevState === CallingState.JOINED ||
-      prevState === CallingState.JOINING ||
-      prevState === CallingState.RINGING ||
-      prevState === CallingState.RECONNECTING ||
-      prevState === CallingState.MIGRATING ||
-      prevState === CallingState.OFFLINE) &&
-    (currentState === CallingState.LEFT ||
-      currentState === CallingState.RECONNECTING_FAILED ||
-      currentState === CallingState.IDLE)
-  );
-};
-
 /**
  * This hook is used to inform sync call state with CallKit/Telecom (i.e. start call, end call, mute/unmute call).
  */
 export const useCallingExpWithCallingStateEffect = () => {
-  const {
-    useCallCallingState,
-    useMicrophoneState,
-    useParticipants,
-    useCallMembers,
-  } = useCallStateHooks();
+  const { useMicrophoneState, useParticipants, useCallMembers } =
+    useCallStateHooks();
 
   const activeCall = useCall();
-  const callingState = useCallCallingState();
   const { isMute, microphone } = useMicrophoneState();
   const callMembers = useCallMembers();
   const participants = useParticipants();
 
-  const prevState = useRef<CallingState | undefined>(undefined);
-
   const activeCallCid = activeCall?.cid;
-  const isIncomingCall = activeCall?.ringing && !activeCall?.isCreatedByMe;
-  const isOutcomingCall = activeCall?.ringing && activeCall?.isCreatedByMe;
   const currentUserId = activeCall?.currentUserId;
-  const isVideoCall = activeCall?.state.settings?.video?.enabled ?? false;
 
   const callDisplayName = useMemo(
     () => getCallDisplayName(callMembers, participants, currentUserId),
@@ -85,50 +54,6 @@ export const useCallingExpWithCallingStateEffect = () => {
         });
     };
   }, [activeCallCid]);
-
-  useEffect(() => {
-    const callingx = getCallingxLibIfAvailable();
-    if (
-      !callingx?.isSetup ||
-      !activeCallCid ||
-      prevState.current === callingState
-    ) {
-      return;
-    }
-
-    // TODO: handle in client
-    //tells if call is registered in CallKit/Telecom
-    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
-    logger.debug(
-      `useEffect: ${activeCallCid} isCallRegistered: ${isCallRegistered} 
-      isIncomingCall: ${isIncomingCall} isOutcomingCall: ${isOutcomingCall} 
-      prevState: ${prevState.current}, currentState: ${callingState} 
-      isOngoingCallsEnabled: ${callingx.isOngoingCallsEnabled}`,
-    );
-
-    if (isCallRegistered && canEndCall(prevState.current, callingState)) {
-      //in case call was registered as incoming and state changed to "not joined", we need to end the call and clear rxjs subject
-      logger.debug(`Should end call in callingx: ${activeCallCid}`);
-      //TODO: think about sending appropriate reason for end call
-      callingx
-        .endCallWithReason(activeCallCid, 'local')
-        .catch((error: unknown) => {
-          logger.error(
-            `Error ending call in callingx: ${activeCallCid}`,
-            error,
-          );
-        });
-    }
-
-    prevState.current = callingState;
-  }, [
-    activeCallCid,
-    callingState,
-    callDisplayName,
-    isIncomingCall,
-    isOutcomingCall,
-    isVideoCall,
-  ]);
 
   useEffect(() => {
     const callingx = getCallingxLibIfAvailable();
