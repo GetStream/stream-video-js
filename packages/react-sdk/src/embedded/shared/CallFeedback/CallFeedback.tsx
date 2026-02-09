@@ -127,21 +127,23 @@ const CallEndedScreen = ({
         </h2>
         <div className="str-video__embedded-call-feedback__ended-actions">
           {onRejoin && (
-            <div className="str-video__embedded-call-feedback__ended-column">
-              <p className="str-video__embedded-call-feedback__ended-label">
-                {t('Left by mistake?')}
-              </p>
-              <button
-                type="button"
-                className="str-video__embedded-call-feedback__ended-button"
-                onClick={onRejoin}
-              >
-                <Icon icon="login" />
-                {t('Rejoin call')}
-              </button>
-            </div>
+            <>
+              <div className="str-video__embedded-call-feedback__ended-column">
+                <p className="str-video__embedded-call-feedback__ended-label">
+                  {t('Left by mistake?')}
+                </p>
+                <button
+                  type="button"
+                  className="str-video__embedded-call-feedback__ended-button"
+                  onClick={onRejoin}
+                >
+                  <Icon icon="login" />
+                  {t('Rejoin call')}
+                </button>
+              </div>
+              <div className="str-video__embedded-call-feedback__ended-divider" />
+            </>
           )}
-          <div className="str-video__embedded-call-feedback__ended-divider" />
           <div className="str-video__embedded-call-feedback__ended-column">
             <p className="str-video__embedded-call-feedback__ended-label">
               {t('Help us improve')}

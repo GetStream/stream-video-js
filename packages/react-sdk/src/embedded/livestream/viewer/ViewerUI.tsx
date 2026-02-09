@@ -1,10 +1,6 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CallingState, OwnCapability } from '@stream-io/video-client';
-import {
-  useCall,
-  useCallStateHooks,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { ViewerLobby } from './ViewerLobby';
 import { LoadingIndicator } from '../../../components';
@@ -12,9 +8,40 @@ import { LivestreamLayout } from '../../../core';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 import { useEmbeddedConfiguration } from '../../context';
 
+const checkCanJoinEarly = (
+  startsAt: Date | undefined,
+  joinAheadTimeSeconds: number | undefined,
+) => {
+  if (!startsAt) return false;
+  const now = Date.now();
+  const earliestJoin = +startsAt - (joinAheadTimeSeconds ?? 0) * 1000;
+  return now >= earliestJoin && now < +startsAt;
+};
+
+const useCanJoinEarly = () => {
+  const { useCallStartsAt, useCallSettings } = useCallStateHooks();
+  const startsAt = useCallStartsAt();
+  const settings = useCallSettings();
+  const joinAheadTimeSeconds = settings?.backstage.join_ahead_time_seconds;
+  const [canJoinEarly, setCanJoinEarly] = useState(() =>
+    checkCanJoinEarly(startsAt, joinAheadTimeSeconds),
+  );
+
+  useEffect(() => {
+    if (!canJoinEarly) {
+      const handle = setInterval(() => {
+        setCanJoinEarly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
+      }, 1000);
+
+      return () => clearInterval(handle);
+    }
+  }, [canJoinEarly, startsAt, joinAheadTimeSeconds]);
+
+  return canJoinEarly;
+};
+
 export const ViewerUI = () => {
   const call = useCall();
-  const { t } = useI18n();
   const { onError } = useEmbeddedConfiguration();
 
   const {
@@ -27,6 +54,8 @@ export const ViewerUI = () => {
   const isLive = useIsCallLive();
   const endedAt = useCallEndedAt();
   const canJoinEndedCall = useHasPermissions(OwnCapability.JOIN_ENDED_CALL);
+  const canJoinEarly = useCanJoinEarly();
+  const canJoinAsap = isLive || canJoinEarly;
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
@@ -39,23 +68,13 @@ export const ViewerUI = () => {
     }
   }, [call, onError]);
 
-  if (endedAt && !canJoinEndedCall) {
-    return (
-      <div className="str-video__embedded-call-feedback">
-        <div className="str-video__embedded-call-feedback__container">
-          <h2 className="str-video__embedded-call-feedback__title">
-            {t('The livestream has ended')}
-          </h2>
-        </div>
-      </div>
-    );
-  }
-
   if (
     callingState === CallingState.IDLE ||
     callingState === CallingState.UNKNOWN
   ) {
-    return <ViewerLobby onJoin={handleJoin} isLive={isLive} />;
+    return (
+      <ViewerLobby onJoin={handleJoin} canJoin={canJoinAsap} isLive={isLive} />
+    );
   }
 
   if (callingState === CallingState.JOINING) {
@@ -74,7 +93,8 @@ export const ViewerUI = () => {
   }
 
   if (callingState === CallingState.LEFT) {
-    return <CallFeedback onJoin={handleJoin} />;
+    const canRejoin = canJoinAsap && (!endedAt || canJoinEndedCall);
+    return <CallFeedback onJoin={canRejoin ? handleJoin : undefined} />;
   }
 
   return <LoadingIndicator className="str-video__embedded-loading" />;

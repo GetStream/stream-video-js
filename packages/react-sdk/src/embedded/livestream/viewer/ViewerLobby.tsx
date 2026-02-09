@@ -5,30 +5,47 @@ import { Icon } from '../../../components';
 
 export type ViewerLobbyProps = {
   onJoin: () => void;
+  canJoin: boolean;
   isLive: boolean;
 };
 
-export const ViewerLobby = ({ onJoin, isLive }: ViewerLobbyProps) => {
+export const ViewerLobby = ({ onJoin, canJoin, isLive }: ViewerLobbyProps) => {
   const { t } = useI18n();
   const { useCallStartsAt, useParticipantCount } = useCallStateHooks();
   const startsAt = useCallStartsAt();
   const participantCount = useParticipantCount();
   const [autoJoin, setAutoJoin] = useState(false);
+  const [startsAtPassed, setStartsAtPassed] = useState(
+    () => !!startsAt && startsAt.getTime() < Date.now(),
+  );
 
   const handleJoin = useCallback(() => {
     onJoin?.();
   }, [onJoin]);
 
   useEffect(() => {
-    if (isLive && autoJoin) {
+    if (canJoin && autoJoin) {
       handleJoin();
     }
-  }, [isLive, autoJoin, handleJoin]);
+  }, [canJoin, autoJoin, handleJoin]);
+
+  useEffect(() => {
+    if (!startsAt || startsAtPassed) return;
+
+    const check = () => {
+      if (startsAt.getTime() < Date.now()) {
+        setStartsAtPassed(true);
+      }
+    };
+
+    const interval = setInterval(check, 1000);
+    return () => clearInterval(interval);
+  }, [startsAt, startsAtPassed]);
 
   const getStartsAtMessage = () => {
     if (!startsAt) return null;
 
-    if (startsAt.getTime() < Date.now()) {
+    if (startsAtPassed) {
       return t('Livestream starts soon');
     }
 
@@ -66,7 +83,7 @@ export const ViewerLobby = ({ onJoin, isLive }: ViewerLobbyProps) => {
         )}
 
         <div className="str-video__embedded-viewer-lobby__actions">
-          {isLive ? (
+          {canJoin ? (
             <button className="str-video__button" onClick={handleJoin}>
               {t('Join Stream')}
             </button>
