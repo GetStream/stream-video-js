@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 const formatElapsed = (seconds: number) => {
@@ -10,27 +10,33 @@ const formatElapsed = (seconds: number) => {
 };
 
 /**
- * Returns the call start time and a live-updating formatted elapsed duration string.
+ * Returns the call session start time and a live-updating formatted elapsed duration string.
+ * Uses session.started_at so the timer persists across reconnections.
  */
 export const useCallDuration = () => {
-  const { useCallStartedAt } = useCallStateHooks();
-  const startedAt = useCallStartedAt();
+  const { useCallSession } = useCallStateHooks();
+  const session = useCallSession();
+  const startedAt = session?.started_at;
+
+  const startedAtDate = useMemo(
+    () => (startedAt ? new Date(startedAt).getTime() : undefined),
+    [startedAt],
+  );
+
   const [elapsed, setElapsed] = useState('');
 
   useEffect(() => {
-    if (!startedAt) return;
+    if (!startedAtDate) return;
 
     const update = () => {
-      const seconds = Math.floor(
-        (Date.now() - new Date(startedAt).getTime()) / 1000,
-      );
+      const seconds = Math.floor((Date.now() - startedAtDate) / 1000);
       setElapsed(formatElapsed(seconds));
     };
 
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [startedAt]);
+  }, [startedAtDate]);
 
   return { startedAt, elapsed };
 };
