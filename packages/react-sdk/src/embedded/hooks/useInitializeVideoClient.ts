@@ -37,9 +37,7 @@ export const useInitializeVideoClient = ({
   tokenProviderRef.current = tokenProvider;
 
   const isAnonymous = !user;
-  const hasTokenProvider = !!tokenProvider;
-  const hasToken = !!token || hasTokenProvider;
-  const isAuthenticated = !!user && hasToken;
+  const isAuthenticated = !!user && (!!token || !!tokenProvider);
 
   const streamUser = useMemo<User>(() => {
     if (isAnonymous) return { type: 'anonymous' };
