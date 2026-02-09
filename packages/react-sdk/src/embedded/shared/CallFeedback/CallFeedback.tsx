@@ -96,7 +96,7 @@ const ThankYouScreen = () => {
           {t('Thank you!')}
         </h2>
         <p className="str-video__embedded-call-feedback__subtitle">
-          {t('Your CallFeedback helps improve call quality.')}
+          {t('Your feedback helps improve call quality.')}
         </p>
       </div>
     </FeedbackLayout>
