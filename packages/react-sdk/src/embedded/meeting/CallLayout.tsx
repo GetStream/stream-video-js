@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import clsx from 'clsx';
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useI18n } from '@stream-io/video-react-bindings';
 import {
@@ -59,7 +60,10 @@ export const CallLayout = () => {
           </div>
 
           <div
-            className={`str-video__embedded-sidebar${showParticipants ? ' str-video__embedded-sidebar--open' : ''}`}
+            className={clsx(
+              'str-video__embedded-sidebar',
+              showParticipants && 'str-video__embedded-sidebar--open',
+            )}
           >
             {showParticipants && (
               <div className="str-video__embedded-sidebar__container">

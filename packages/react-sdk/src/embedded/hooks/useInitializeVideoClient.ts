@@ -1,21 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
-import { StreamVideoClient, User } from '@stream-io/video-client';
+import { StreamVideoClient } from '@stream-io/video-client';
 import { useEffectEvent } from '@stream-io/video-react-bindings';
-import type { EmbeddedUser, LogLevel, TokenProvider, UserType } from '../types';
+import type { EmbeddedUser, LogLevel, TokenProvider } from '../types';
 
 export interface UseInitializeVideoClientProps {
   apiKey: string;
-  user: EmbeddedUser;
+  user?: EmbeddedUser;
   token?: string;
   tokenProvider?: TokenProvider;
-  userType?: UserType;
   logLevel?: LogLevel;
   onError?: (error: Error) => void;
 }
 
 /**
  * Hook to initialize and manage a StreamVideoClient instance.
- * Uses getOrCreateInstance to ensure singleton behavior.
  * Handles user connection and cleanup on unmount.
  */
 export const useInitializeVideoClient = ({
@@ -23,7 +21,6 @@ export const useInitializeVideoClient = ({
   user,
   token,
   tokenProvider,
-  userType,
   logLevel,
   onError,
 }: UseInitializeVideoClientProps): StreamVideoClient | undefined => {
@@ -34,21 +31,15 @@ export const useInitializeVideoClient = ({
   useEffect(() => {
     if (!apiKey) return;
 
-    const effectiveUserType =
-      userType ?? (token || tokenProvider ? 'authenticated' : 'anonymous');
-
-    const streamUser = createUser(
-      { id: user.id, name: user.name, image: user.image },
-      effectiveUserType,
-    );
-
     try {
       const _client = new StreamVideoClient({
         apiKey,
-        user: streamUser,
-        token: effectiveUserType === 'authenticated' ? token : undefined,
-        tokenProvider:
-          effectiveUserType === 'authenticated' ? tokenProvider : undefined,
+        user: !user
+          ? { type: 'anonymous' }
+          : user.type === 'guest'
+            ? { type: 'guest', id: user.id, name: user.name, image: user.image }
+            : { id: user.id, name: user.name, image: user.image },
+        ...(user && user.type !== 'guest' && { token, tokenProvider }),
         options: logLevel ? { logLevel } : undefined,
       });
 
@@ -62,6 +53,7 @@ export const useInitializeVideoClient = ({
 
     return () => {
       const currentClient = clientRef.current;
+
       if (currentClient) {
         currentClient
           .disconnectUser()
@@ -72,30 +64,15 @@ export const useInitializeVideoClient = ({
     };
   }, [
     apiKey,
-    user.id,
-    user.name,
-    user.image,
+    user?.id,
+    user?.name,
+    user?.image,
+    user?.type,
     token,
     tokenProvider,
-    userType,
     logLevel,
+    user,
   ]);
 
   return client;
-};
-
-const createUser = (user: EmbeddedUser, userType: UserType): User => {
-  const { id, name, image } = user;
-
-  switch (userType) {
-    case 'authenticated':
-      if (!id) throw new Error('User ID is required for authenticated users');
-      return { id, name, image };
-    case 'guest':
-      return { type: 'guest', id, name, image };
-    case 'anonymous':
-      return { type: 'anonymous' };
-    default:
-      throw new Error(`Unknown user type: ${userType}`);
-  }
 };

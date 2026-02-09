@@ -1,13 +1,13 @@
 .str-video__embedded-blur-toggle-container {
-  padding: 18px 24px;
+  padding: var(--str-video__spacing-xl) var(--str-video__spacing-xl);
 }
 
 .str-video__embedded-blur-toggle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--str-video__spacing-sm);
   width: 100%;
-  padding: 8px;
+  padding: var(--str-video__spacing-sm);
   border: none;
   border-radius: var(--str-video__border-radius-circle);
   font-size: 0.875rem;

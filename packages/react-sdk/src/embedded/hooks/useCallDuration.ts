@@ -29,7 +29,10 @@ export const useCallDuration = () => {
     if (!startedAtDate) return;
 
     const update = () => {
-      const seconds = Math.floor((Date.now() - startedAtDate) / 1000);
+      const seconds = Math.max(
+        0,
+        Math.floor((Date.now() - startedAtDate) / 1000),
+      );
       setElapsed(formatElapsed(seconds));
     };
 

@@ -11,11 +11,18 @@ import { CallStateRouter } from './CallStateRouter';
  *
  * @example
  * ```tsx
+ * // Authenticated user
  * <EmbeddedMeeting
  *   apiKey="YOUR_API_KEY"
  *   user={{ id: 'user-1', name: 'John' }}
  *   callId="my-meeting"
  *   token="user-token"
+ * />
+ *
+ * // Anonymous user
+ * <EmbeddedMeeting
+ *   apiKey="YOUR_API_KEY"
+ *   callId="my-meeting"
  * />
  * ```
  */

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import clsx from 'clsx';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { Icon } from '../../../components';
 
@@ -18,13 +19,11 @@ const StarRating = ({ value, onChange }: StarRatingProps) => {
   const [hovered, setHovered] = useState(0);
   const displayValue = hovered || value;
 
-  const getStarClasses = (star: number) => {
-    const classes = ['str-video__embedded-call-feedback__star'];
-    if (star <= displayValue) {
-      classes.push('str-video__embedded-call-feedback__star--active');
-    }
-    return classes.join(' ');
-  };
+  const getStarClasses = (star: number) =>
+    clsx(
+      'str-video__embedded-call-feedback__star',
+      star <= displayValue && 'str-video__embedded-call-feedback__star--active',
+    );
 
   return (
     <div className="str-video__embedded-call-feedback__rating-section">
@@ -182,10 +181,10 @@ export const CallFeedback = ({ onJoin }: CallFeedbackProps) => {
           reason: message,
           custom: { message },
         });
+        setState('submitted');
       } catch (err) {
         console.error('Failed to submit feedback:', err);
       }
-      setState('submitted');
     },
     [call],
   );

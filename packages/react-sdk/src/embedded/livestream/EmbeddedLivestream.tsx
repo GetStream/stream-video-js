@@ -14,11 +14,18 @@ import { LivestreamUI } from './LivestreamUI';
  *
  * @example
  * ```tsx
+ * // Authenticated host
  * <EmbeddedLivestream
  *   apiKey="YOUR_API_KEY"
  *   user={{ id: 'host-1', name: 'Jane' }}
  *   callId="my-stream"
  *   token="user-token"
+ * />
+ *
+ * // Anonymous viewer
+ * <EmbeddedLivestream
+ *   apiKey="YOUR_API_KEY"
+ *   callId="my-stream"
  * />
  * ```
  */

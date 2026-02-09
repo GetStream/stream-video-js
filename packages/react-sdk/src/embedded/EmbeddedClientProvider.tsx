@@ -19,12 +19,11 @@ import { LoadingIndicator } from '../components';
 
 export interface EmbeddedClientProviderProps {
   apiKey: string;
-  user: EmbeddedUser;
+  user?: EmbeddedUser;
   callId: string;
   callType: string;
   token?: string;
   tokenProvider?: TokenProvider;
-  userType?: 'authenticated' | 'guest' | 'anonymous';
   logLevel?: LogLevel;
   onError?: (error: Error) => void;
   layout?: LayoutOption;
@@ -60,7 +59,6 @@ export const EmbeddedClientProvider = ({
   callType,
   token,
   tokenProvider,
-  userType,
   logLevel,
   onError,
   layout,
@@ -74,7 +72,6 @@ export const EmbeddedClientProvider = ({
     callType,
     token,
     tokenProvider,
-    userType,
     logLevel,
     onError,
   });

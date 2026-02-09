@@ -4,17 +4,17 @@
   justify-content: center;
   min-height: 100%;
   width: 100%;
-  padding: 2rem;
+  padding: var(--str-video__spacing-xl);
 }
 
 .str-video__embedded-call-feedback__container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.5rem;
+  gap: var(--str-video__spacing-xl);
   width: 100%;
   max-width: 400px;
-  padding: 2rem;
+  padding: var(--str-video__spacing-xl);
   font-size: 0.9375rem;
   text-align: center;
 
@@ -33,8 +33,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1.25rem;
-  padding: 1rem 0;
+  gap: var(--str-video__spacing-xl);
+  padding: var(--str-video__spacing-lg) 0;
 }
 
 .str-video__embedded-call-feedback__rating-label {
@@ -43,7 +43,7 @@
 
 .str-video__embedded-call-feedback__stars {
   display: flex;
-  gap: 0.25rem;
+  gap: var(--str-video__spacing-xxs);
 }
 
 .str-video__embedded-call-feedback__star {
@@ -66,7 +66,7 @@
 .str-video__embedded-call-feedback__textarea {
   width: 100%;
   min-height: 72px;
-  padding: 0.75rem;
+  padding: var(--str-video__spacing-md);
   border: 1px solid transparent;
   border-radius: var(--str-video__border-radius-md);
   background: transparent;
@@ -84,9 +84,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: var(--str-video__spacing-lg);
   width: 100%;
-  padding-top: 1rem;
+  padding-top: var(--str-video__spacing-lg);
 
   .str-video__button:disabled {
     opacity: 0.5;
@@ -96,7 +96,7 @@
 .str-video__embedded-call-feedback__ended-actions {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: var(--str-video__spacing-xl);
   justify-content: center;
 }
 
@@ -104,7 +104,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--str-video__spacing-md);
 }
 
 .str-video__embedded-call-feedback__ended-divider {
@@ -116,9 +116,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: var(--str-video__spacing-sm);
   height: 44px;
-  padding: 0 1.5rem;
+  padding: 0 var(--str-video__spacing-xl);
   border: 1px solid transparent;
   border-radius: var(--str-video__border-radius-circle);
   background: transparent;

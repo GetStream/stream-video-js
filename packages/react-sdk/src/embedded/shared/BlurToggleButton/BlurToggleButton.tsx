@@ -1,10 +1,11 @@
+import { useCallback } from 'react';
+import clsx from 'clsx';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import {
   DeviceSelectorVideo,
   Icon,
   useBackgroundFilters,
 } from '../../../components';
-import { useCallback } from 'react';
 
 export const BlurToggleButton = () => {
   const { t } = useI18n();
@@ -48,7 +49,10 @@ export const BlurToggleButton = () => {
   return (
     <button
       type="button"
-      className={`str-video__embedded-blur-toggle ${isBlurred ? 'str-video__embedded-blur-toggle--active' : ''}`}
+      className={clsx(
+        'str-video__embedded-blur-toggle',
+        isBlurred && 'str-video__embedded-blur-toggle--active',
+      )}
       disabled={isDisabled}
       aria-pressed={isBlurred}
       onClick={handleClick}

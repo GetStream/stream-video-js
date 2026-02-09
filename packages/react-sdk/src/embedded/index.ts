@@ -7,6 +7,5 @@ export type {
   EmbeddedUser,
   TokenProvider,
   LogLevel,
-  UserType,
   LayoutOption,
 } from './types';

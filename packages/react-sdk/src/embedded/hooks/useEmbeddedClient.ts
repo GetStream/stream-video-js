@@ -5,12 +5,11 @@ import type { EmbeddedUser, TokenProvider, LogLevel } from '../types';
 
 export interface UseEmbeddedClientProps {
   apiKey: string;
-  user: EmbeddedUser;
+  user?: EmbeddedUser;
   callId: string;
   callType: string;
   token?: string;
   tokenProvider?: TokenProvider;
-  userType?: 'authenticated' | 'guest' | 'anonymous';
   logLevel?: LogLevel;
   onError?: (error: Error) => void;
 }
@@ -26,7 +25,6 @@ export const useEmbeddedClient = ({
   callType,
   token,
   tokenProvider,
-  userType,
   logLevel,
   onError,
 }: UseEmbeddedClientProps) => {
@@ -35,7 +33,6 @@ export const useEmbeddedClient = ({
     user,
     token,
     tokenProvider,
-    userType,
     logLevel,
     onError,
   });

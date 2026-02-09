@@ -1,14 +1,6 @@
 import type { CSSProperties } from 'react';
 
 /**
- * User type for authentication.
- * - 'authenticated': Full auth with JWT (default when token/tokenProvider provided)
- * - 'guest': Server generates credentials via /guest endpoint
- * - 'anonymous': No WebSocket, limited access (default when no token)
- */
-export type UserType = 'authenticated' | 'guest' | 'anonymous';
-
-/**
  * Log level for the StreamVideoClient.
  */
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
@@ -30,12 +22,14 @@ export type TokenProvider = () => Promise<string>;
 
 /**
  * User configuration for the embedded client.
+ *
+ * - Authenticated: `{ id, name?, image? }` — provide with `token` or `tokenProvider`
+ * - Guest: `{ id, name?, image?, type: 'guest' }` — server generates credentials
+ * - Anonymous: omit the `user` prop entirely
  */
-export interface EmbeddedUser {
-  id: string;
-  name?: string;
-  image?: string;
-}
+export type EmbeddedUser =
+  | { id: string; name?: string; image?: string; type?: never }
+  | { id: string; name?: string; image?: string; type: 'guest' };
 
 /**
  * Configuration props for the embedded client.
@@ -56,13 +50,16 @@ export interface ConfigurationProviderProps {
  */
 export interface EmbeddedClientBaseProps extends ConfigurationProviderProps {
   apiKey: string;
-  user: EmbeddedUser;
   callId: string;
+  /**
+   * User to connect as. Omit for anonymous access.
+   * Provide `token` or `tokenProvider` for authenticated users.
+   * Set `type: 'guest'` for guest access.
+   */
+  user?: EmbeddedUser;
   token?: string;
   tokenProvider?: TokenProvider;
-  userType?: UserType;
   logLevel?: LogLevel;
-  onError?: (error: Error) => void;
   style?: CSSProperties;
 }
 

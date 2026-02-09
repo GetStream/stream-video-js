@@ -38,15 +38,58 @@ const DisabledDeviceButton = ({ icon, label }: DisabledDeviceButtonProps) => (
   </div>
 );
 
-interface PermissionMessageProps {
-  message: string;
-}
-
-const PermissionMessage = ({ message }: PermissionMessageProps) => (
+const PermissionMessage = ({ message }: { message: string }) => (
   <div className="str-video__embedded-lobby__no-permission">
     <p>{message}</p>
   </div>
 );
+
+const DisabledVideoPreview = () => {
+  const { t } = useI18n();
+  const user = useConnectedUser();
+  const { useCameraState, useMicrophoneState } = useCallStateHooks();
+  const { hasBrowserPermission: hasCameraPermission } = useCameraState();
+  const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
+  const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
+
+  return (
+    <div className="str-video__embedded-lobby__no-permission">
+      {hasBrowserMediaPermission ? (
+        <Avatar imageSrc={user?.image} name={user?.name || user?.id} />
+      ) : (
+        <p>
+          {t(
+            'Please grant your browser permission to access your camera and microphone.',
+          )}
+        </p>
+      )}
+    </div>
+  );
+};
+
+const NoCameraPreview = () => {
+  const { t } = useI18n();
+  const { useCameraState, useMicrophoneState } = useCallStateHooks();
+  const { hasBrowserPermission: hasCameraPermission } = useCameraState();
+  const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
+  const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
+
+  if (!hasBrowserMediaPermission) {
+    return (
+      <PermissionMessage
+        message={t(
+          'Please grant your browser permission to access your camera and microphone.',
+        )}
+      />
+    );
+  }
+
+  return (
+    <div className="str-video__video-preview__no-camera-preview">
+      {t('No camera found')}
+    </div>
+  );
+};
 
 /**
  * Lobby component - Device setup screen before joining a call.
@@ -70,49 +113,14 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const [isJoining, setIsJoining] = useState(false);
 
   const displayName = user?.name ?? '';
-  const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
   const hasOtherParticipants = (callSession?.participants?.length || 0) > 0;
   const isVideoEnabled = settings?.video.enabled ?? true;
   const resolvedTitle = title ?? t('Set up your call before joining');
-  const permissionMessage = t(
-    'Please grant your browser permission to access your camera and microphone.',
-  );
 
   const handleJoin = useCallback(() => {
     setIsJoining(true);
     onJoin();
   }, [onJoin]);
-
-  const DisabledVideoPreview = useCallback(
-    () => (
-      <div className="str-video__embedded-lobby__no-permission">
-        {hasBrowserMediaPermission ? (
-          <Avatar imageSrc={user?.image} name={displayName || user?.id} />
-        ) : (
-          <p>{permissionMessage}</p>
-        )}
-      </div>
-    ),
-    [
-      hasBrowserMediaPermission,
-      user?.image,
-      user?.id,
-      displayName,
-      permissionMessage,
-    ],
-  );
-
-  const NoCameraPreview = useCallback(
-    () =>
-      !hasBrowserMediaPermission ? (
-        <PermissionMessage message={permissionMessage} />
-      ) : (
-        <div className="str-video__video-preview__no-camera-preview">
-          {t('No camera found')}
-        </div>
-      ),
-    [hasBrowserMediaPermission, permissionMessage, t],
-  );
 
   const resolvedJoinLabel =
     joinLabel ?? (hasOtherParticipants ? t('Join') : t('Start call'));

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import clsx from 'clsx';
 import { useI18n } from '@stream-io/video-react-bindings';
 import { PaginatedGridLayout } from '../../../core';
 import {
@@ -58,7 +59,10 @@ export const HostView = ({
           </div>
 
           <div
-            className={`str-video__embedded-sidebar${showParticipants ? ' str-video__embedded-sidebar--open' : ''}`}
+            className={clsx(
+              'str-video__embedded-sidebar',
+              showParticipants && 'str-video__embedded-sidebar--open',
+            )}
           >
             {showParticipants && (
               <div className="str-video__embedded-sidebar__container">
