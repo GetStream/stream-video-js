@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StreamVideoClient, User } from '@stream-io/video-client';
+import { useEffectEvent } from '@stream-io/video-react-bindings';
 import type { EmbeddedUser, LogLevel, TokenProvider, UserType } from '../types';
 
 export interface UseInitializeVideoClientProps {
@@ -28,14 +29,7 @@ export const useInitializeVideoClient = ({
 }: UseInitializeVideoClientProps): StreamVideoClient | undefined => {
   const [client, setClient] = useState<StreamVideoClient | undefined>();
   const clientRef = useRef<StreamVideoClient | null>(null);
-
-  // Stabilize user object to prevent re-initialization on every render
-  // when the consumer passes an inline object literal.
-  const stableUser = useMemo(
-    () => user,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user.id, user.name, user.image],
-  );
+  const handleError = useEffectEvent(onError ?? (() => {}));
 
   useEffect(() => {
     if (!apiKey) return;
@@ -43,7 +37,10 @@ export const useInitializeVideoClient = ({
     const effectiveUserType =
       userType ?? (token || tokenProvider ? 'authenticated' : 'anonymous');
 
-    const streamUser = createUser(stableUser, effectiveUserType);
+    const streamUser = createUser(
+      { id: user.id, name: user.name, image: user.image },
+      effectiveUserType,
+    );
 
     try {
       const _client = new StreamVideoClient({
@@ -60,7 +57,7 @@ export const useInitializeVideoClient = ({
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       console.error('Failed to initialize StreamVideoClient:', error);
-      onError?.(error);
+      handleError(error);
     }
 
     return () => {
@@ -73,7 +70,16 @@ export const useInitializeVideoClient = ({
         setClient(undefined);
       }
     };
-  }, [apiKey, stableUser, token, tokenProvider, userType, logLevel, onError]);
+  }, [
+    apiKey,
+    user.id,
+    user.name,
+    user.image,
+    token,
+    tokenProvider,
+    userType,
+    logLevel,
+  ]);
 
   return client;
 };
