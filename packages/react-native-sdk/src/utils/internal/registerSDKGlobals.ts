@@ -3,7 +3,7 @@ import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
 const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {
-  checkPermission: StreamRNVideoSDKGlobals['permissions']['check'];
+  checkPermission: StreamRNVideoSDKGlobals['permissions']['check'] | undefined;
 };
 
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
