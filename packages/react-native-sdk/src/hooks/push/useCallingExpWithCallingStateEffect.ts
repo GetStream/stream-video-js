@@ -1,8 +1,4 @@
-import {
-  CallingState,
-  RxUtils,
-  videoLoggerSystem,
-} from '@stream-io/video-client';
+import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useMemo, useRef } from 'react';
 import { getCallDisplayName } from '../../utils/internal/callingx';
