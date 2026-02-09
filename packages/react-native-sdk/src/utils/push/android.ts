@@ -202,18 +202,21 @@ export const firebaseDataHandler = async (
               }
 
               const callFromPush = await _client.onRingingCall(call_cid);
-              if (shouldCallBeClosed(callFromPush, data)) {
+              const { mustEndCall, endCallReason } = shouldCallBeClosed(
+                callFromPush,
+                data,
+              );
+              if (mustEndCall) {
                 logger.debug(
-                  `Closing fg service callCid: ${call_cid} shouldCallBeClosed`,
+                  `Closing fg service callCid: ${call_cid} endCallReason: ${endCallReason}`,
                 );
 
                 finishBackgroundTask();
                 callingx.log(
-                  `Ending call with callCid: ${call_cid} shouldCallBeClosed`,
+                  `Ending call with callCid: ${call_cid} endCallReason: ${endCallReason}`,
                   'debug',
                 );
-                //TODO: think about sending appropriate reason for end call
-                callingx.endCallWithReason(call_cid, 'remote');
+                callingx.endCallWithReason(call_cid, endCallReason);
                 return;
               }
 
@@ -232,7 +235,11 @@ export const firebaseDataHandler = async (
                   return;
                 }
 
-                if (shouldCallBeClosed(callFromPush, data)) {
+                const {
+                  mustEndCall: mustEndCallFromEvent,
+                  endCallReason: endCallReasonFromEvent,
+                } = shouldCallBeClosed(callFromPush, data);
+                if (mustEndCallFromEvent) {
                   logger.debug(
                     `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS} shouldCallBeClosed`,
                     { event },
@@ -240,8 +247,7 @@ export const firebaseDataHandler = async (
                   unsubscribeFunctions.forEach((fn) => fn());
 
                   finishBackgroundTask();
-                  //TODO: think about sending appropriate reason for end call
-                  callingx.endCallWithReason(call_cid, 'rejected');
+                  callingx.endCallWithReason(call_cid, endCallReasonFromEvent);
                 }
               });
 
@@ -343,12 +349,15 @@ export const firebaseDataHandler = async (
 
     const callFromPush = await client.onRingingCall(call_cid);
 
-    if (shouldCallBeClosed(callFromPush, data)) {
+    const { mustEndCall, endCallReason } = shouldCallBeClosed(
+      callFromPush,
+      data,
+    );
+    if (mustEndCall) {
       logger.debug(
         `Removing incoming call notification immediately with callCid: ${call_cid} as it should be closed`,
       );
-      //TODO: think about sending appropriate reason for end call
-      callingx.endCallWithReason(call_cid, 'remote');
+      callingx.endCallWithReason(call_cid, endCallReason);
     }
   } else {
     const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();

@@ -31,7 +31,9 @@ export const onVoipNotificationReceived = async (
         "version": "v2"
       }
     } */
-  const logger = videoLoggerSystem.getLogger('setupIosVoipPushEvents');
+  const logger = videoLoggerSystem.getLogger(
+    'callingx - onVoipNotificationReceived',
+  );
 
   const sender = notification?.stream?.sender;
   const type = notification?.stream?.type;
@@ -65,11 +67,15 @@ export const onVoipNotificationReceived = async (
   const callFromPush = await client.onRingingCall(call_cid);
 
   function closeCallIfNecessary() {
-    const mustEndCall = shouldCallBeClosed(callFromPush, notification?.stream);
+    const { mustEndCall, endCallReason } = shouldCallBeClosed(
+      callFromPush,
+      notification?.stream,
+    );
     if (mustEndCall) {
-      logger.debug(`callkeep.reportEndCallWithUUID for call_cid: ${call_cid}`);
-      //TODO: think about sending appropriate reason for end call
-      callingx.endCallWithReason(call_cid, 'local');
+      logger.debug(
+        `callingx.endCallWithReason for call_cid: ${call_cid} endCallReason: ${endCallReason}`,
+      );
+      callingx.endCallWithReason(call_cid, endCallReason);
       return true;
     }
     return false;

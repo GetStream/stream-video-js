@@ -203,19 +203,8 @@ import stream_react_native_webrtc
             return
         }
         
-        let endedReason: CXCallEndedReason
-        switch reason {
-        case 1:
-            endedReason = .remoteEnded
-        case 2:
-            endedReason = .unanswered
-        case 3:
-            endedReason = .answeredElsewhere
-        case 4:
-            endedReason = .declinedElsewhere
-        default:
-            endedReason = .failed
-        }
+        // CXCallEndedReason raw values: failed=1, remoteEnded=2, unanswered=3, answeredElsewhere=4, declinedElsewhere=5
+        let endedReason = CXCallEndedReason(rawValue: reason) ?? .failed
         
         sharedProvider?.reportCall(with: uuid, endedAt: Date(), reason: endedReason)
         uuidStorage?.removeCid(callId)

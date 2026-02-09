@@ -311,11 +311,33 @@ export type VoipEventParams = {
   };
 };
 
+/**
+ * The reason for ending a call. These values are mapped to platform-specific
+ * constants on each platform:
+ * - iOS: `CXCallEndedReason` (CallKit)
+ * - Android: `DisconnectCause` (Telecom)
+ *
+ * @see https://developer.apple.com/documentation/callkit/cxcallendedreason
+ * @see https://developer.android.com/reference/android/telecom/DisconnectCause
+ */
 export type EndCallReason =
-  | 'local' // when call is ended by the user
+  /** Call ended by the local user (e.g., hanging up). */
+  | 'local'
+  /** Call ended by the remote party, or outgoing call was not answered. */
   | 'remote'
+  /** Call was rejected/declined by the user. */
   | 'rejected'
+  /** Remote party was busy. */
   | 'busy'
+  /** Call was answered on another device. */
   | 'answeredElsewhere'
+  /** No response to an incoming call. */
   | 'missed'
-  | 'error';
+  /** Call failed due to an error (e.g., network issue). */
+  | 'error'
+  /** Call was canceled before the remote party could answer. */
+  | 'canceled'
+  /** Call restricted (e.g., airplane mode, dialing restrictions). */
+  | 'restricted'
+  /** Unknown or unspecified disconnect reason. */
+  | 'unknown';
