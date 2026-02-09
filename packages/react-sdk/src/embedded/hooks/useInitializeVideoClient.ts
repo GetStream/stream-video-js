@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { StreamVideoClient } from '@stream-io/video-client';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { StreamVideoClient, User } from '@stream-io/video-client';
 import { useEffectEvent } from '@stream-io/video-react-bindings';
 import type { EmbeddedUser, LogLevel, TokenProvider } from '../types';
 
@@ -15,6 +15,7 @@ export interface UseInitializeVideoClientProps {
 /**
  * Hook to initialize and manage a StreamVideoClient instance.
  * Handles user connection and cleanup on unmount.
+ *
  */
 export const useInitializeVideoClient = ({
   apiKey,
@@ -25,21 +26,43 @@ export const useInitializeVideoClient = ({
   onError,
 }: UseInitializeVideoClientProps): StreamVideoClient | undefined => {
   const [client, setClient] = useState<StreamVideoClient | undefined>();
-  const clientRef = useRef<StreamVideoClient | null>(null);
   const handleError = useEffectEvent(onError ?? (() => {}));
 
+  const clientRef = useRef<StreamVideoClient | null>(null);
+  const tokenProviderRef = useRef(tokenProvider);
+  tokenProviderRef.current = tokenProvider;
+
+  const isAnonymous = !user;
+  const hasTokenProvider = !!tokenProvider;
+  const hasToken = !!token || hasTokenProvider;
+  const isAuthenticated = !!user && hasToken;
+
+  const streamUser = useMemo<User>(() => {
+    if (isAnonymous) return { type: 'anonymous' };
+
+    if (isAuthenticated)
+      return { id: user.id, name: user?.name, image: user?.image };
+
+    return {
+      type: 'guest',
+      id: user.id,
+      name: user?.name,
+      image: user?.image,
+    };
+  }, [isAnonymous, isAuthenticated, user?.id, user?.name, user?.image]);
+
+  console.log(streamUser);
   useEffect(() => {
     if (!apiKey) return;
 
     try {
       const _client = new StreamVideoClient({
         apiKey,
-        user: !user
-          ? { type: 'anonymous' }
-          : user.type === 'guest'
-            ? { type: 'guest', id: user.id, name: user.name, image: user.image }
-            : { id: user.id, name: user.name, image: user.image },
-        ...(user && user.type !== 'guest' && { token, tokenProvider }),
+        user: streamUser,
+        ...(isAuthenticated && {
+          token,
+          tokenProvider: tokenProviderRef.current,
+        }),
         options: logLevel ? { logLevel } : undefined,
       });
 
@@ -62,17 +85,7 @@ export const useInitializeVideoClient = ({
         setClient(undefined);
       }
     };
-  }, [
-    apiKey,
-    user?.id,
-    user?.name,
-    user?.image,
-    user?.type,
-    token,
-    tokenProvider,
-    logLevel,
-    user,
-  ]);
+  }, [apiKey, streamUser, isAuthenticated, token, logLevel]);
 
   return client;
 };

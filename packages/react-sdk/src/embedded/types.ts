@@ -23,13 +23,15 @@ export type TokenProvider = () => Promise<string>;
 /**
  * User configuration for the embedded client.
  *
- * - Authenticated: `{ id, name?, image? }` — provide with `token` or `tokenProvider`
- * - Guest: `{ id, name?, image?, type: 'guest' }` — server generates credentials
+ * - Authenticated: provide `user` with `token` or `tokenProvider`
+ * - Guest: provide `user` without token (server generates credentials)
  * - Anonymous: omit the `user` prop entirely
  */
-export type EmbeddedUser =
-  | { id: string; name?: string; image?: string; type?: never }
-  | { id: string; name?: string; image?: string; type: 'guest' };
+export interface EmbeddedUser {
+  id: string;
+  name?: string;
+  image?: string;
+}
 
 /**
  * Configuration props for the embedded client.
@@ -53,8 +55,8 @@ export interface EmbeddedClientBaseProps extends ConfigurationProviderProps {
   callId: string;
   /**
    * User to connect as. Omit for anonymous access.
-   * Provide `token` or `tokenProvider` for authenticated users.
-   * Set `type: 'guest'` for guest access.
+   * Provide with `token` or `tokenProvider` for authenticated users.
+   * Provide without token for guest access.
    */
   user?: EmbeddedUser;
   token?: string;
