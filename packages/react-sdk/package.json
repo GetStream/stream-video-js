@@ -33,6 +33,7 @@
     "src",
     "assets",
     "index.ts",
+    "embedded.ts",
     "package.json",
     "README.md",
     "LICENSE",
