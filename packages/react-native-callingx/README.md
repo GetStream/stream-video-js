@@ -171,8 +171,9 @@ End a call with a specific reason:
 ```typescript
 import type { EndCallReason } from 'react-native-callingx';
 
-// Available reasons: 'local' | 'remote' | 'rejected' | 'busy' |
-//                    'answeredElsewhere' | 'missed' | 'error'
+// Available reasons:
+//   'local' | 'remote' | 'rejected' | 'busy' | 'answeredElsewhere' |
+//   'missed' | 'error' | 'canceled' | 'restricted' | 'unknown'
 await CallingxModule.endCallWithReason('unique-call-id', 'remote');
 ```
 
@@ -329,13 +330,16 @@ await CallingxModule.stopBackgroundTask();
 
 ```typescript
 type EndCallReason =
-  | 'local' // Call ended by local user
-  | 'remote' // Call ended by remote party
-  | 'rejected' // Call was rejected
-  | 'busy' // Remote party is busy
+  | 'local' // Call ended by the local user (e.g., hanging up)
+  | 'remote' // Call ended by the remote party, or outgoing not answered
+  | 'rejected' // Call was rejected/declined
+  | 'busy' // Remote party was busy
   | 'answeredElsewhere' // Answered on another device
-  | 'missed' // Call was missed
-  | 'error'; // Call failed due to error
+  | 'missed' // No response to an incoming call
+  | 'error' // Call failed due to an error (e.g., network issue)
+  | 'canceled' // Call canceled before the remote party could answer
+  | 'restricted' // Call restricted (e.g., airplane mode)
+  | 'unknown'; // Unknown or unspecified disconnect reason
 
 type CallingExpiOSOptions = {
   appName: string;

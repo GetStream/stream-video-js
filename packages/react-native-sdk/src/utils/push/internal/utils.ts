@@ -11,6 +11,7 @@ import type {
 import { onNewCallNotification } from '../../internal/newNotificationCallbacks';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { AppState } from 'react-native';
+import type { EndCallReason } from '@stream-io/react-native-callingx';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -25,44 +26,37 @@ export const shouldCallBeEnded = (
   created_by_id: string | undefined,
   receiver_id: string | undefined,
 ) => {
-  /* callkeep reasons for ending a call
-    FAILED: 1,
-    REMOTE_ENDED: 2,
-    UNANSWERED: 3,
-    ANSWERED_ELSEWHERE: 4,
-    DECLINED_ELSEWHERE: 5,
-    MISSED: 6
-  */
   const callSession = callFromPush.state.session;
   const rejected_by = callSession?.rejected_by;
   const accepted_by = callSession?.accepted_by;
   let mustEndCall = false;
-  let callkeepReason = 0;
+  let endCallReason: EndCallReason = 'unknown';
+
   if (created_by_id && rejected_by) {
     if (rejected_by[created_by_id]) {
-      // call was cancelled by the caller
+      // call was cancelled by the caller before the receiver could answer
       mustEndCall = true;
-      callkeepReason = 2;
+      endCallReason = 'canceled';
     }
   } else if (receiver_id && rejected_by) {
     if (rejected_by[receiver_id]) {
       // call was rejected by the receiver in some other device
       mustEndCall = true;
-      callkeepReason = 5;
+      endCallReason = 'rejected';
     }
   } else if (receiver_id && accepted_by) {
     if (accepted_by[receiver_id]) {
       // call was accepted by the receiver in some other device
       mustEndCall = true;
-      callkeepReason = 4;
+      endCallReason = 'answeredElsewhere';
     }
   }
   videoLoggerSystem
     .getLogger('shouldCallBeEnded')
     .debug(
-      `callCid: ${callFromPush.cid} mustEndCall: ${mustEndCall} callkeepReason: ${callkeepReason}`,
+      `callCid: ${callFromPush.cid} mustEndCall: ${mustEndCall} endCallReason: ${endCallReason}`,
     );
-  return { mustEndCall, callkeepReason };
+  return { mustEndCall, endCallReason };
 };
 
 /* An action for the notification or callkeep and app does not have JS context setup yet, so we need to do two steps:
@@ -213,6 +207,10 @@ export const shouldCallBeClosed = (
   const created_by_id = pushData?.created_by_id as string;
   const receiver_id = pushData?.receiver_id as string;
 
-  const { mustEndCall } = shouldCallBeEnded(call, created_by_id, receiver_id);
-  return mustEndCall;
+  const { mustEndCall, endCallReason } = shouldCallBeEnded(
+    call,
+    created_by_id,
+    receiver_id,
+  );
+  return { mustEndCall, endCallReason };
 };
