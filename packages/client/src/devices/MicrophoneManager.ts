@@ -425,6 +425,11 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     const nativePermissions = globalThis.streamRNVideoSDK?.permissions;
     if (!nativePermissions) return true; // assume granted
 
-    return nativePermissions.check('microphone');
+    try {
+      return nativePermissions.check('microphone');
+    } catch (err) {
+      this.logger.warn('Failed to check permission', err);
+      return false;
+    }
   }
 }

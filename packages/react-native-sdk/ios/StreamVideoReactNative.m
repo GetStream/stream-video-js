@@ -364,7 +364,8 @@ RCT_EXPORT_METHOD(checkPermission:(NSString *)permission
     } else if ([normalizedPermission isEqualToString:@"microphone"]) {
         mediaType = AVMediaTypeAudio;
     } else {
-        resolve(@NO);
+        NSString *errorMessage = [NSString stringWithFormat:@"Unsupported media device kind: %@", permission];
+        reject(@"UNSUPPORTED_MEDIA_DEVICE_KIND", errorMessage, nil);
         return;
     }
 
