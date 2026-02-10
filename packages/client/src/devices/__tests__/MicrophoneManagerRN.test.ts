@@ -13,6 +13,7 @@ import { of } from 'rxjs';
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { OwnCapability } from '../../gen/coordinator';
 import { SoundStateChangeHandler } from '../../helpers/sound-detector';
+import { settled, withoutConcurrency } from '../../helpers/concurrency';
 
 let handler: SoundStateChangeHandler = () => {};
 
@@ -84,9 +85,14 @@ describe('MicrophoneManager React Native', () => {
 
   it(`should stop sound detection if mic is enabled`, async () => {
     manager.state.setSpeakingWhileMuted(true);
-    manager['soundDetectorCleanup'] = () => {};
+    manager['soundDetectorCleanup'] = async () => {};
 
     await manager.enable();
+
+    // @ts-expect-error private field
+    const syncTag = manager.soundDetectorConcurrencyTag;
+    await withoutConcurrency(syncTag, () => Promise.resolve());
+    await settled(syncTag);
 
     expect(manager.state.speakingWhileMuted).toBe(false);
   });

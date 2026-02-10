@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.29.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.28.3...@stream-io/video-react-native-sdk-1.29.0) (2026-02-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.4`
+
+### Features
+
+- **layouts:** overridable participant mirroring ([#2106](https://github.com/GetStream/stream-video-js/issues/2106)) ([e1c5f31](https://github.com/GetStream/stream-video-js/commit/e1c5f31f33bce4ab0636f0476263a24220811cb4))
+
 ## [1.28.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.28.2...@stream-io/video-react-native-sdk-1.28.3) (2026-01-30)
 
 ### Dependency Updates

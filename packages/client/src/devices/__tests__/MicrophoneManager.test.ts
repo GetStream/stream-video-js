@@ -34,6 +34,7 @@ import {
 } from '../../helpers/no-audio-detector';
 import { PermissionsContext } from '../../permissions';
 import { Tracer } from '../../stats';
+import { settled, withoutConcurrency } from '../../helpers/concurrency';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -171,6 +172,10 @@ describe('MicrophoneManager', () => {
       manager['soundDetectorCleanup'] = async () => {};
 
       await manager.enable();
+      // @ts-expect-error private field
+      const syncTag = manager.soundDetectorConcurrencyTag;
+      await withoutConcurrency(syncTag, () => Promise.resolve());
+      await settled(syncTag);
 
       expect(manager.state.speakingWhileMuted).toBe(false);
     });
