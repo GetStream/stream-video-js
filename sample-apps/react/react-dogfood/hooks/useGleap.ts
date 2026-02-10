@@ -172,9 +172,9 @@ export const useGleap = (
         try {
           // Gleap stringifies the data internally.
           // Occasionally, this fails because the data contains circular references.
-          // We don't want to crash the CallFeedback submission flow.
+          // We don't want to crash the feedback submission flow.
           // We want to detect this early and include the serialization error
-          // as part of the Gleap CallFeedback item.
+          // as part of the Gleap feedback item.
           JSON.stringify(data);
           Gleap.attachCustomData({
             [call.currentUserId || 'me']: data,

@@ -20,7 +20,7 @@ export const RoomAccessControls = () => {
 
   if (
     !call ||
-    // The controls will not be shown. Instead, a Lobby overlay will be presented.
+    // The controls will not be shown. Instead, a lobby overlay will be presented.
     (callingState !== CallingState.JOINED && isLive) ||
     !!endedAt
   )

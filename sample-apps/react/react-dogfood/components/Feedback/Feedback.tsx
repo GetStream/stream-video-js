@@ -49,7 +49,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
           'X-CSRFToken': getCookie('csrftoken') || '',
         },
         body: JSON.stringify({
-          email: email || 'anonymous-CallFeedback@getstream.io',
+          email: email || 'anonymous-feedback@getstream.io',
           message: message || '<no-message-provided>',
           rating: rating.current,
           page_url: pageUrl.toString(),

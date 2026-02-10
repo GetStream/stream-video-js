@@ -49,8 +49,8 @@ type MeetingUIProps = {
 
 export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [show, setShow] = useState<
-    'Lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call' | 'left'
-  >('Lobby');
+    'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call' | 'left'
+  >('lobby');
   const [lastError, setLastError] = useState<Error>();
   const router = useRouter();
   const call = useCall();
@@ -168,10 +168,10 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         heading={contents[show].heading}
         error={lastError}
         onClickHome={() => router.push(`/`)}
-        onClickLobby={() => setShow('Lobby')}
+        onClickLobby={() => setShow('lobby')}
       />
     );
-  } else if (show === 'Lobby') {
+  } else if (show === 'lobby') {
     childrenToRender = (
       <Lobby onJoin={(displayName) => onJoin({ displayName })} mode={mode} />
     );
@@ -193,7 +193,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       <ErrorPage
         heading={'Lost active call connection'}
         onClickHome={() => router.push(`/`)}
-        onClickLobby={() => setShow('Lobby')}
+        onClickLobby={() => setShow('lobby')}
       />
     );
   } else {
