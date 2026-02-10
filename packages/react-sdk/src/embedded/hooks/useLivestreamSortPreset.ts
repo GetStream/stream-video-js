@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import {
+  CallTypes,
   SfuModels,
   combineComparators,
+  defaultSortPreset,
   withParticipantSource,
   role,
   publishingVideo,
@@ -24,5 +26,12 @@ export const useLivestreamSortPreset = () => {
       publishingAudio,
     );
     call.setSortParticipantsBy(comparator);
+
+    return () => {
+      const callConfig = CallTypes.get(call.type);
+      call.setSortParticipantsBy(
+        callConfig.options.sortParticipantsBy || defaultSortPreset,
+      );
+    };
   }, [call]);
 };

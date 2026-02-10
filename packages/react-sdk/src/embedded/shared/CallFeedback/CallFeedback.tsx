@@ -175,15 +175,18 @@ export const CallFeedback = ({ onJoin }: CallFeedbackProps) => {
 
   const handleSubmit = useCallback(
     async (rating: number, message: string) => {
+      if (!call) return;
+
       const clampedRating = Math.min(Math.max(1, rating), 5);
       try {
-        await call?.submitFeedback(clampedRating, {
+        await call.submitFeedback(clampedRating, {
           reason: message,
           custom: { message },
         });
-        setState('submitted');
       } catch (err) {
         console.error('Failed to submit feedback:', err);
+      } finally {
+        setState('submitted');
       }
     },
     [call],

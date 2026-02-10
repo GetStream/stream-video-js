@@ -24,17 +24,23 @@ export const useInitializeCall = ({
   useEffect(() => {
     if (!client || !callId) return;
 
+    let cancelled = false;
     const _call = client.call(callType, callId);
 
     _call
       .get()
-      .then(() => setCall(_call))
+      .then(() => {
+        if (!cancelled) setCall(_call);
+      })
       .catch((error: Error) => {
+        if (cancelled) return;
+
         console.error('Failed to initialize call:', error);
         handleError(error);
       });
 
     return () => {
+      cancelled = true;
       setCall(undefined);
       if (_call.state.callingState === CallingState.JOINED) {
         _call

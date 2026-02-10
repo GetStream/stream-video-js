@@ -176,7 +176,7 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
           <button
             className="str-video__button"
             onClick={handleJoin}
-            disabled={isJoining || !displayName.trim()}
+            disabled={isJoining}
           >
             <Icon className="str-video__button__icon" icon="login" />
             {isJoining ? t('Joining') : resolvedJoinLabel}
