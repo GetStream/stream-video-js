@@ -5,6 +5,7 @@ import {
   AudioDeviceManager,
   createAudioConstraints,
 } from './AudioDeviceManager';
+import { type BrowserPermissionState } from './BrowserPermission';
 import { MicrophoneManagerState } from './MicrophoneManagerState';
 import { TrackDisableMode } from './DeviceManagerState';
 import { getAudioDevices, getAudioStream } from './devices';
@@ -56,8 +57,15 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           this.call.state.ownCapabilities$,
           this.state.selectedDevice$,
           this.state.status$,
+          this.state.browserPermissionState$,
         ]),
-        async ([callingState, ownCapabilities, deviceId, status]) => {
+        async ([
+          callingState,
+          ownCapabilities,
+          deviceId,
+          status,
+          permissionState,
+        ]) => {
           try {
             if (callingState === CallingState.LEFT) {
               await this.stopSpeakingWhileMutedDetection();
@@ -66,7 +74,8 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
             if (!this.speakingWhileMutedNotificationEnabled) return;
 
             if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
-              if (status !== 'enabled') {
+              const hasPermission = await this.hasPermission(permissionState);
+              if (hasPermission && status !== 'enabled') {
                 await this.startSpeakingWhileMutedDetection(deviceId);
               } else {
                 await this.stopSpeakingWhileMutedDetection();
@@ -406,5 +415,21 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.state.setSpeakingWhileMuted(false);
       await soundDetectorCleanup();
     });
+  }
+
+  private async hasPermission(
+    permissionState: BrowserPermissionState,
+  ): Promise<boolean> {
+    if (!isReactNative()) return permissionState === 'granted';
+
+    const nativePermissions = globalThis.streamRNVideoSDK?.permissions;
+    if (!nativePermissions) return true; // assume granted
+
+    try {
+      return await nativePermissions.check('microphone');
+    } catch (err) {
+      this.logger.warn('Failed to check permission', err);
+      return false;
+    }
   }
 }

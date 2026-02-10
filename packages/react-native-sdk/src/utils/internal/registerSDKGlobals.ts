@@ -1,7 +1,10 @@
-import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
-import { NativeModules } from 'react-native';
+import type { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
+import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
+const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {
+  checkPermission: StreamRNVideoSDKGlobals['permissions']['check'] | undefined;
+};
 
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callManager: {
@@ -16,6 +19,22 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     },
     stop: () => {
       StreamInCallManagerNativeModule.stop();
+    },
+  },
+  permissions: {
+    check: async (permission) => {
+      if (Platform.OS === 'android') {
+        const nativeAndroidPermission =
+          permission === 'camera'
+            ? PermissionsAndroid.PERMISSIONS.CAMERA
+            : PermissionsAndroid.PERMISSIONS.RECORD_AUDIO;
+        return PermissionsAndroid.check(nativeAndroidPermission);
+      }
+
+      // use our own service on iOS
+      return Boolean(
+        await StreamVideoReactNativeModule.checkPermission?.(permission),
+      );
     },
   },
 };

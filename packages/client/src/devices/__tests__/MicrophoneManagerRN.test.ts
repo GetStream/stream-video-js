@@ -61,7 +61,21 @@ vi.mock('../../helpers/RNSpeechDetector.ts', () => {
 
 describe('MicrophoneManager React Native', () => {
   let manager: MicrophoneManager;
+  let checkPermissionMock: ReturnType<typeof vi.fn>;
   beforeEach(() => {
+    checkPermissionMock = vi.fn(async () => true);
+
+    globalThis.streamRNVideoSDK = {
+      callManager: {
+        setup: vi.fn(),
+        start: vi.fn(),
+        stop: vi.fn(),
+      },
+      permissions: {
+        check: checkPermissionMock,
+      },
+    };
+
     manager = new MicrophoneManager(
       new Call({
         id: '',
@@ -83,6 +97,30 @@ describe('MicrophoneManager React Native', () => {
     expect(manager['rnSpeechDetector']?.start).toHaveBeenCalled();
   });
 
+  it('should check native microphone permission before starting detection', async () => {
+    await manager.enable();
+    await manager.disable();
+
+    await vi.waitUntil(() => checkPermissionMock.mock.calls.length > 0, {
+      timeout: 100,
+    });
+    expect(checkPermissionMock).toHaveBeenCalledWith('microphone');
+  });
+
+  it('should not start sound detection if native microphone permission is denied', async () => {
+    checkPermissionMock.mockResolvedValue(false);
+
+    await manager.enable();
+    // @ts-expect-error - private method
+    const fn = vi.spyOn(manager, 'startSpeakingWhileMutedDetection');
+    await manager.disable();
+
+    await vi.waitUntil(() => checkPermissionMock.mock.calls.length > 0, {
+      timeout: 100,
+    });
+    expect(fn).not.toHaveBeenCalled();
+  });
+
   it(`should stop sound detection if mic is enabled`, async () => {
     manager.state.setSpeakingWhileMuted(true);
     manager['soundDetectorCleanup'] = async () => {};
@@ -94,6 +132,9 @@ describe('MicrophoneManager React Native', () => {
     await withoutConcurrency(syncTag, () => Promise.resolve());
     await settled(syncTag);
 
+    await vi.waitUntil(() => manager.state.speakingWhileMuted === false, {
+      timeout: 100,
+    });
     expect(manager.state.speakingWhileMuted).toBe(false);
   });
 
@@ -139,6 +180,7 @@ describe('MicrophoneManager React Native', () => {
   });
 
   afterEach(() => {
+    globalThis.streamRNVideoSDK = undefined;
     vi.clearAllMocks();
     vi.resetModules();
   });
