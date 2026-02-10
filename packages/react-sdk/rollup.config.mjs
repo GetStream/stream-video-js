@@ -1,8 +1,6 @@
 import typescript from '@rollup/plugin-typescript';
 import replace from '@rollup/plugin-replace';
 import json from '@rollup/plugin-json';
-import { nodeResolve } from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
 
 import pkg from './package.json' with { type: 'json' };
 
@@ -29,8 +27,7 @@ const commonPlugins = [
 ];
 
 /**
- * Main SDK configuration - keeps dependencies external
- * @type {import('rollup').RollupOptions}
+ * Main entrypoint configuration
  */
 const mainConfig = {
   input: 'index.ts',
@@ -68,7 +65,7 @@ const mainConfig = {
 };
 
 /**
- * Embedded entrypoint configuration - bundles video/audio filters
+ * Embedded entrypoint configuration
  */
 const embeddedConfig = {
   input: 'embedded.ts',
@@ -91,19 +88,13 @@ const embeddedConfig = {
     },
   ],
   external: [
-    ...Object.keys(pkg.dependencies || {}).filter(
-      (dep) => dep !== '@stream-io/video-filters-web',
-    ),
+    ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.peerDependencies || {}),
     'react/jsx-runtime',
     'react/jsx-dev-runtime',
   ],
   plugins: [
     ...commonPlugins,
-    nodeResolve({
-      preferBuiltins: false,
-    }),
-    commonjs(),
     typescript({
       tsconfig:
         process.env.NODE_ENV === 'production'
