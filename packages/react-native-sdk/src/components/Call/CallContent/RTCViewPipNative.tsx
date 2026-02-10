@@ -16,6 +16,7 @@ export type PiPChangeEvent = {
 
 type RTCViewPipNativeProps = {
   streamURL?: string;
+  mirror?: boolean;
   onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
 };
 
@@ -51,13 +52,7 @@ export function onNativeDimensionsUpdated(
 /** Wrapper for the native view
  * meant to stay private and not exposed */
 export const RTCViewPipNative = React.memo(
-  React.forwardRef<
-    React.Ref<any>,
-    {
-      streamURL?: string;
-      onPiPChange?: (event: { nativeEvent: PiPChangeEvent }) => void;
-    }
-  >((props, ref) => {
+  React.forwardRef<React.Ref<any>, RTCViewPipNativeProps>((props, ref) => {
     if (Platform.OS !== 'ios') return null;
 
     return (
@@ -66,6 +61,8 @@ export const RTCViewPipNative = React.memo(
         pointerEvents={'none'}
         // eslint-disable-next-line react/prop-types
         streamURL={props.streamURL}
+        // eslint-disable-next-line react/prop-types
+        mirror={props.mirror}
         // eslint-disable-next-line react/prop-types
         onPiPChange={props.onPiPChange}
         // @ts-expect-error - types issue

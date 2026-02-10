@@ -34,6 +34,13 @@ import Foundation
     
     /// A closure called when the picture-in-picture state changes.
     public var onPiPStateChange: ((Bool) -> Void)?
+
+    /// Indicates whether the active track should be mirrored.
+    public var isMirrored: Bool = false {
+        didSet {
+            contentViewController?.isMirrored = isMirrored
+        }
+    }
     
     /// A boolean value indicating whether the picture-in-picture session should start automatically when the app enters background.
     public var canStartPictureInPictureAutomaticallyFromInline: Bool
@@ -80,6 +87,7 @@ import Foundation
         }()
         // contentViewController?.preferredContentSize = .init(width: 400, height: 320)
         self.contentViewController = contentViewController
+        self.contentViewController?.isMirrored = isMirrored
         self.canStartPictureInPictureAutomaticallyFromInline = canStartPictureInPictureAutomaticallyFromInline
         super.init()
     }
