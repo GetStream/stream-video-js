@@ -44,14 +44,14 @@ const router = createBrowserRouter([
         loader: ({ params: { callId } }) => {
           const user = getSelectedUser();
 
-          // TODO: add who the invitation came from to filter it out of the list (?next=/call-Lobby/<id>&createdBy=mark)
+          // TODO: add who the invitation came from to filter it out of the list (?next=/call-lobby/<id>&createdBy=mark)
 
           if (!user)
             return redirect(
               `/user-selection${
                 !callId
                   ? ''
-                  : '?next=' + encodeURIComponent('/call/Lobby/' + callId)
+                  : '?next=' + encodeURIComponent('/call/lobby/' + callId)
               }`,
             );
 
@@ -67,7 +67,7 @@ const router = createBrowserRouter([
             },
           },
           {
-            path: 'Lobby/:callId',
+            path: 'lobby/:callId',
             element: <CallLobby />,
             loader: ({ params: { callId } }) => {
               if (!callId) return redirect('/user-selection');
