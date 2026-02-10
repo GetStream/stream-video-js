@@ -11,6 +11,7 @@ import { LoadingIndicator } from '../../../components';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 import { useEmbeddedConfiguration } from '../../context';
 import { Lobby } from '../../shared/Lobby/Lobby';
+import { useLivestreamSortPreset } from '../../hooks';
 
 export const HostUI = () => {
   const call = useCall();
@@ -27,6 +28,8 @@ export const HostUI = () => {
   const localParticipant = useLocalParticipant();
   const settings = useCallSettings();
   const isBackstageEnabled = settings?.backstage?.enabled ?? true;
+
+  useLivestreamSortPreset();
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
