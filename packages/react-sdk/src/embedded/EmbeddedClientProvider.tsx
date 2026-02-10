@@ -78,7 +78,7 @@ export const EmbeddedClientProvider = ({
 
   if (!call || !client || !ncLoaded) {
     return (
-      <StreamTheme>
+      <StreamTheme className="str-video__embedded">
         <LoadingIndicator className="str-video__embedded-loading" />
       </StreamTheme>
     );
@@ -90,7 +90,9 @@ export const EmbeddedClientProvider = ({
         <ConfigurationProvider layout={layout} onError={onError}>
           <BackgroundFiltersProvider>
             <NoiseCancellationWrapper noiseCancellation={noiseCancellation}>
-              <StreamTheme style={style}>{children}</StreamTheme>
+              <StreamTheme className="str-video__embedded" style={style}>
+                {children}
+              </StreamTheme>
             </NoiseCancellationWrapper>
           </BackgroundFiltersProvider>
         </ConfigurationProvider>
