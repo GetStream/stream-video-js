@@ -20,6 +20,7 @@ const AUDIO_SESSION_TIMEOUT_MS = 5000;
  */
 export function waitForAudioSessionActivation(): Promise<void> {
   if (isAudioSessionAlreadyActivated) {
+    isAudioSessionAlreadyActivated = false;
     return Promise.resolve();
   }
 
