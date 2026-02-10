@@ -49,8 +49,10 @@ export const ViewerUI = () => {
     useIsCallLive,
     useCallEndedAt,
     useHasPermissions,
+    useLocalParticipant,
   } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const localParticipant = useLocalParticipant();
   const isLive = useIsCallLive();
   const endedAt = useCallEndedAt();
   const canJoinEndedCall = useHasPermissions(OwnCapability.JOIN_ENDED_CALL);
@@ -77,19 +79,8 @@ export const ViewerUI = () => {
     );
   }
 
-  if (callingState === CallingState.JOINING) {
+  if (callingState === CallingState.JOINING && !localParticipant) {
     return <LoadingIndicator className="str-video__embedded-loading" />;
-  }
-
-  if (callingState === CallingState.JOINED) {
-    return (
-      <LivestreamLayout
-        showParticipantCount
-        showDuration
-        showLiveBadge
-        showSpeakerName
-      />
-    );
   }
 
   if (callingState === CallingState.LEFT) {
@@ -97,5 +88,12 @@ export const ViewerUI = () => {
     return <CallFeedback onJoin={canRejoin ? handleJoin : undefined} />;
   }
 
-  return <LoadingIndicator className="str-video__embedded-loading" />;
+  return (
+    <LivestreamLayout
+      showParticipantCount
+      showDuration
+      showLiveBadge
+      showSpeakerName
+    />
+  );
 };

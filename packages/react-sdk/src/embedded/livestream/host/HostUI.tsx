@@ -11,10 +11,15 @@ import { useEmbeddedConfiguration } from '../../context';
 export const HostUI = () => {
   const call = useCall();
   const { onError } = useEmbeddedConfiguration();
-  const { useCallCallingState, useIsCallLive, useCallSettings } =
-    useCallStateHooks();
+  const {
+    useCallCallingState,
+    useIsCallLive,
+    useCallSettings,
+    useLocalParticipant,
+  } = useCallStateHooks();
   const callingState = useCallCallingState();
   const isLive = useIsCallLive();
+  const localParticipant = useLocalParticipant();
   const settings = useCallSettings();
   const isBackstageEnabled = settings?.backstage?.enabled ?? true;
 
@@ -60,20 +65,20 @@ export const HostUI = () => {
     );
   }
 
+  if (callingState === CallingState.JOINING && !localParticipant) {
+    return <LoadingIndicator className="str-video__embedded-loading" />;
+  }
+
   if (callingState === CallingState.LEFT) {
     return <CallFeedback onJoin={handleJoin} />;
   }
 
-  if (callingState === CallingState.JOINED) {
-    return (
-      <HostView
-        isLive={isLive}
-        isBackstageEnabled={isBackstageEnabled}
-        onGoLive={handleGoLive}
-        onStopLive={handleStopLive}
-      />
-    );
-  }
-
-  return <LoadingIndicator className="str-video__embedded-loading" />;
+  return (
+    <HostView
+      isLive={isLive}
+      isBackstageEnabled={isBackstageEnabled}
+      onGoLive={handleGoLive}
+      onStopLive={handleStopLive}
+    />
+  );
 };

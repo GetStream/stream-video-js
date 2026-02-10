@@ -7,9 +7,11 @@ import {
   CancelCallConfirmButton,
   CompositeButton,
   Icon,
+  PermissionRequests,
   WithTooltip,
 } from '../../../components';
 import { LivestreamControls } from './LivestreamControls';
+import { ConnectionNotification } from '../../shared';
 
 const StartBroadcastIcon = () => (
   <svg
@@ -53,6 +55,8 @@ export const HostView = ({
   return (
     <div className="str-video__embedded-call str-video__embedded-livestream">
       <div className="str-video__embedded-main-panel">
+        <ConnectionNotification />
+        <PermissionRequests />
         <div className="str-video__embedded-layout">
           <div className="str-video__embedded-layout__stage">
             <PaginatedGridLayout />

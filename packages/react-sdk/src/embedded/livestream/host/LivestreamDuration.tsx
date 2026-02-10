@@ -2,16 +2,7 @@ import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { humanize } from '@stream-io/video-client';
 import { Icon } from '../../../components';
 
-export type LivestreamDurationProps = {
-  /**
-   * Whether to humanize the participant count. Defaults to `true`.
-   */
-  humanizeParticipantCount?: boolean;
-};
-
-export const LivestreamDuration = ({
-  humanizeParticipantCount = true,
-}: LivestreamDurationProps) => {
+export const LivestreamDuration = () => {
   const { t } = useI18n();
   const { useIsCallLive, useParticipantCount } = useCallStateHooks();
   const isLive = useIsCallLive();
@@ -31,9 +22,7 @@ export const LivestreamDuration = ({
       <div className="str-video__livestream-duration__viewers">
         <Icon icon="eye" className="str-video__livestream-duration__eye-icon" />
         <span className="str-video__livestream-duration__count">
-          {humanizeParticipantCount
-            ? humanize(participantCount)
-            : participantCount}
+          {humanize(participantCount)}
         </span>
       </div>
     </div>
