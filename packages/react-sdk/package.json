@@ -14,7 +14,8 @@
       "types": "./dist/embedded.d.ts",
       "import": "./dist/embedded.es.js",
       "require": "./dist/embedded.cjs.js"
-    }
+    },
+    "./dist/css/*": "./dist/css/*"
   },
   "license": "See license in LICENSE",
   "scripts": {
