@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.29.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.29.0...@stream-io/video-react-native-sdk-1.29.1) (2026-02-10)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.1`
+- `@stream-io/video-react-bindings` updated to version `1.13.5`
+
+### Bug Fixes
+
+- respect device permissions when detecting speech while muted ([#2115](https://github.com/GetStream/stream-video-js/issues/2115)) ([fe98768](https://github.com/GetStream/stream-video-js/commit/fe98768a9bf695fc5355905939884594c11ac2b9)), closes [#2110](https://github.com/GetStream/stream-video-js/issues/2110)
+- **rn:** expose `mirror` prop for Picture-in-Picture ([#2113](https://github.com/GetStream/stream-video-js/issues/2113)) ([da72e48](https://github.com/GetStream/stream-video-js/commit/da72e4812a0177a1059aeecc54dd88894b99a610)), closes [#2106](https://github.com/GetStream/stream-video-js/issues/2106)
+
 ## [1.29.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.28.3...@stream-io/video-react-native-sdk-1.29.0) (2026-02-06)
 
 ### Dependency Updates
