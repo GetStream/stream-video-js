@@ -34,11 +34,12 @@ export const HostUI = () => {
   const handleJoin = useCallback(async () => {
     if (!call) return;
     try {
-      await call.join();
+      if (call.state.callingState !== CallingState.JOINED) {
+        await call.join();
+      }
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      console.error('Failed to join call:', error);
-      onError?.(error);
+      console.error('Failed to join call:', err);
+      onError?.(err);
     }
   }, [call, onError]);
 
@@ -47,9 +48,8 @@ export const HostUI = () => {
     try {
       await call.goLive();
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      console.error('Failed to go live:', error);
-      onError?.(error);
+      console.error('Failed to go live:', err);
+      onError?.(err);
     }
   }, [call, onError]);
 
@@ -58,9 +58,8 @@ export const HostUI = () => {
     try {
       await call.stopLive();
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      console.error('Failed to stop live:', error);
-      onError?.(error);
+      console.error('Failed to stop live:', err);
+      onError?.(err);
     }
   }, [call, onError]);
 

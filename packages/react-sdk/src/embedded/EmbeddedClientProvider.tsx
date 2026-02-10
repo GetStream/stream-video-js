@@ -25,7 +25,7 @@ export interface EmbeddedClientProviderProps {
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
-  onError?: (error: Error) => void;
+  onError?: (error: any) => void;
   layout?: LayoutOption;
   style?: CSSProperties;
   children: ReactNode;

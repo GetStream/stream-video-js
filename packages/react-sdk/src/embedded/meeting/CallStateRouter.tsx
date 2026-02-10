@@ -28,10 +28,9 @@ export const CallStateRouter = () => {
       if (call.state.callingState !== CallingState.JOINED) {
         await call.join();
       }
-    } catch (e) {
-      const error = e instanceof Error ? e : new Error(String(e));
-      console.error('Failed to join call:', error);
-      onError?.(error);
+    } catch (err) {
+      console.error('Failed to join call:', err);
+      onError?.(err);
     }
   }, [call, onError]);
 

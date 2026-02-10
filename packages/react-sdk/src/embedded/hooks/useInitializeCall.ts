@@ -6,7 +6,7 @@ export interface UseInitializeCallProps {
   client?: StreamVideoClient;
   callType: string;
   callId: string;
-  onError?: (error: Error) => void;
+  onError?: (error: any) => void;
 }
 
 /**
@@ -32,11 +32,11 @@ export const useInitializeCall = ({
       .then(() => {
         if (!cancelled) setCall(_call);
       })
-      .catch((error: Error) => {
+      .catch((err) => {
         if (cancelled) return;
 
-        console.error('Failed to initialize call:', error);
-        handleError(error);
+        console.error('Failed to initialize call:', err);
+        handleError(err);
       });
 
     return () => {

@@ -9,7 +9,7 @@ export interface UseInitializeVideoClientProps {
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
-  onError?: (error: Error) => void;
+  onError?: (error: any) => void;
 }
 
 /**
@@ -70,9 +70,8 @@ export const useInitializeVideoClient = ({
       clientRef.current = _client;
       setClient(_client);
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      console.error('Failed to initialize StreamVideoClient:', error);
-      handleError(error);
+      console.error('Failed to initialize StreamVideoClient:', err);
+      handleError(err);
     }
 
     return () => {

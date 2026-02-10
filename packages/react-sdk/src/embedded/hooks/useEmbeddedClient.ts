@@ -11,7 +11,7 @@ export interface UseEmbeddedClientProps {
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
-  onError?: (error: Error) => void;
+  onError?: (error: any) => void;
 }
 
 /**
@@ -44,12 +44,11 @@ export const useEmbeddedClient = ({
     onError,
   });
 
-  const { noiseCancellation, loaded } = useNoiseCancellationLoader();
+  const { noiseCancellation } = useNoiseCancellationLoader();
 
   return {
     client,
     call,
     noiseCancellation,
-    ncLoaded: loaded,
   };
 };

@@ -61,12 +61,14 @@ export const ViewerUI = () => {
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
+
     try {
-      await call.join();
+      if (call.state.callingState !== CallingState.JOINED) {
+        await call.join();
+      }
     } catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      console.error('Failed to join call:', error);
-      onError?.(error);
+      console.error('Failed to join call:', err);
+      onError?.(err);
     }
   }, [call, onError]);
 

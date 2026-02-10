@@ -5,7 +5,7 @@ export type { ConfigurationProviderProps } from '../types';
 
 export interface EmbeddedConfiguration {
   layout: LayoutOption;
-  onError?: (error: Error) => void;
+  onError?: (error: any) => void;
 }
 
 const defaultConfiguration: EmbeddedConfiguration = {
