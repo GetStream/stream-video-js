@@ -426,7 +426,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     if (!nativePermissions) return true; // assume granted
 
     try {
-      return nativePermissions.check('microphone');
+      return await nativePermissions.check('microphone');
     } catch (err) {
       this.logger.warn('Failed to check permission', err);
       return false;
