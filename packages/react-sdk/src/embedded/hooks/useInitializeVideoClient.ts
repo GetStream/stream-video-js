@@ -82,6 +82,7 @@ export const useInitializeVideoClient = ({
         currentClient
           .disconnectUser()
           .catch((err) => console.error('Failed to disconnect user:', err));
+
         clientRef.current = null;
         setClient(undefined);
       }

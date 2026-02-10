@@ -65,7 +65,7 @@ export const EmbeddedClientProvider = ({
   style,
   children,
 }: EmbeddedClientProviderProps) => {
-  const { client, call, noiseCancellation, ncLoaded } = useEmbeddedClient({
+  const { client, call, noiseCancellation } = useEmbeddedClient({
     apiKey,
     user,
     callId,
@@ -76,7 +76,7 @@ export const EmbeddedClientProvider = ({
     onError,
   });
 
-  if (!call || !client || !ncLoaded) {
+  if (!call || !client) {
     return (
       <StreamTheme className="str-video__embedded">
         <LoadingIndicator className="str-video__embedded-loading" />

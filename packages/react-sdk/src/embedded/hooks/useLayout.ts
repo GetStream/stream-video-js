@@ -50,7 +50,7 @@ export const useLayout = () => {
 
   const defaultLayout = isValidLayout(configuredLayout ?? '')
     ? configuredLayout!
-    : 'SpeakerBottom';
+    : 'SpeakerTop';
 
   const [layout, setLayout] = useState<LayoutOption>(defaultLayout);
 
