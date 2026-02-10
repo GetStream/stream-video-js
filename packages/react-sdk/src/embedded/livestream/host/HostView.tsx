@@ -1,17 +1,29 @@
 import { useCallback, useState } from 'react';
 import clsx from 'clsx';
-import { useI18n } from '@stream-io/video-react-bindings';
+import { OwnCapability, humanize } from '@stream-io/video-client';
+import {
+  Restricted,
+  useCallStateHooks,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 import { PaginatedGridLayout } from '../../../core';
 import {
   CallParticipantsList,
   CancelCallConfirmButton,
   CompositeButton,
+  DeviceSelectorAudioInput,
+  DeviceSelectorAudioOutput,
   Icon,
+  MicCaptureErrorNotification,
   PermissionRequests,
+  ReactionsButton,
+  RecordCallConfirmationButton,
+  ScreenShareButton,
+  ToggleAudioPublishingButton,
+  ToggleVideoPublishingButton,
   WithTooltip,
 } from '../../../components';
-import { LivestreamControls } from './LivestreamControls';
-import { ConnectionNotification } from '../../shared';
+import { CameraMenuWithBlur, ConnectionNotification } from '../../shared';
 
 const StartBroadcastIcon = () => (
   <svg
@@ -42,6 +54,8 @@ export const HostView = ({
   onStopLive,
 }: HostViewProps) => {
   const { t } = useI18n();
+  const { useParticipantCount } = useCallStateHooks();
+  const participantCount = useParticipantCount();
   const [showParticipants, setShowParticipants] = useState(false);
 
   const handleCloseParticipants = useCallback(() => {
@@ -77,35 +91,95 @@ export const HostView = ({
             )}
           </div>
         </div>
-        <LivestreamControls
-          actionButton={
-            <>
-              {isBackstageEnabled &&
-                (isLive ? (
-                  <WithTooltip title={t('End Stream')}>
-                    <button
-                      className="str-video__composite-button--danger"
-                      onClick={onStopLive}
-                    >
-                      <Icon icon="call-end" />
-                      <span>{t('End Stream')}</span>
-                    </button>
-                  </WithTooltip>
-                ) : (
-                  <WithTooltip title={t('Start Stream')}>
-                    <button
-                      className="str-video__composite-button--go-live"
-                      onClick={onGoLive}
-                    >
-                      <StartBroadcastIcon />
-                      <span>{t('Go Live')}</span>
-                    </button>
-                  </WithTooltip>
-                ))}
-              <CancelCallConfirmButton />
-            </>
-          }
-          trailingContent={
+        <div className="str-video__embedded-call-controls str-video__call-controls">
+          <div className="str-video__call-controls--group str-video__call-controls--options">
+            <div className="str-video__livestream-duration">
+              <span
+                className={
+                  isLive
+                    ? 'str-video__livestream-duration__live-badge'
+                    : 'str-video__livestream-duration__backstage-badge'
+                }
+              >
+                {isLive ? t('Live') : t('Backstage')}
+              </span>
+              <div className="str-video__livestream-duration__viewers">
+                <Icon
+                  icon="eye"
+                  className="str-video__livestream-duration__eye-icon"
+                />
+                <span className="str-video__livestream-duration__count">
+                  {humanize(participantCount)}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="str-video__call-controls--group str-video__call-controls--media">
+            <Restricted
+              requiredGrants={[OwnCapability.SEND_AUDIO]}
+              hasPermissionsOnly
+            >
+              <MicCaptureErrorNotification>
+                <ToggleAudioPublishingButton
+                  Menu={
+                    <>
+                      <DeviceSelectorAudioOutput
+                        visualType="list"
+                        title={t('Speaker')}
+                      />
+                      <DeviceSelectorAudioInput
+                        visualType="list"
+                        title={t('Microphone')}
+                      />
+                    </>
+                  }
+                  menuPlacement="top"
+                />
+              </MicCaptureErrorNotification>
+            </Restricted>
+            <Restricted
+              requiredGrants={[OwnCapability.SEND_VIDEO]}
+              hasPermissionsOnly
+            >
+              <div className="str-video__embedded-dual-toggle">
+                <ToggleVideoPublishingButton
+                  Menu={<CameraMenuWithBlur />}
+                  menuPlacement="top"
+                />
+              </div>
+            </Restricted>
+            <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
+              <ReactionsButton />
+            </Restricted>
+            <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
+              <ScreenShareButton />
+            </Restricted>
+            <RecordCallConfirmationButton />
+            {isBackstageEnabled &&
+              (isLive ? (
+                <WithTooltip title={t('End Stream')}>
+                  <button
+                    className="str-video__composite-button--danger"
+                    onClick={onStopLive}
+                  >
+                    <Icon icon="call-end" />
+                    <span>{t('End Stream')}</span>
+                  </button>
+                </WithTooltip>
+              ) : (
+                <WithTooltip title={t('Start Stream')}>
+                  <button
+                    className="str-video__composite-button--go-live"
+                    onClick={onGoLive}
+                  >
+                    <StartBroadcastIcon />
+                    <span>{t('Go Live')}</span>
+                  </button>
+                </WithTooltip>
+              ))}
+            <CancelCallConfirmButton />
+          </div>
+          <div className="str-video__call-controls--group str-video__call-controls--sidebar">
             <WithTooltip title={t('Participants')}>
               <CompositeButton
                 active={showParticipants}
@@ -114,8 +188,8 @@ export const HostView = ({
                 <Icon icon="participants" />
               </CompositeButton>
             </WithTooltip>
-          }
-        />
+          </div>
+        </div>
       </div>
     </div>
   );

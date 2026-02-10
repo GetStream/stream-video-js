@@ -1,15 +1,20 @@
 import { useCallback } from 'react';
 import { CallingState } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallStateHooks,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 
-import { HostLobby } from './HostLobby';
 import { HostView } from './HostView';
 import { LoadingIndicator } from '../../../components';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 import { useEmbeddedConfiguration } from '../../context';
+import { Lobby } from '../../shared/Lobby/Lobby';
 
 export const HostUI = () => {
   const call = useCall();
+  const { t } = useI18n();
   const { onError } = useEmbeddedConfiguration();
   const {
     useCallCallingState,
@@ -61,7 +66,15 @@ export const HostUI = () => {
     callingState === CallingState.UNKNOWN
   ) {
     return (
-      <HostLobby onJoin={handleJoin} isBackstageEnabled={isBackstageEnabled} />
+      <Lobby
+        onJoin={handleJoin}
+        title={
+          isBackstageEnabled
+            ? t('Prepare your livestream')
+            : t('Ready to go live')
+        }
+        joinLabel={isBackstageEnabled ? t('Enter Backstage') : t('Go Live')}
+      />
     );
   }
 
