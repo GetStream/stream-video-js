@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.42.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.42.0...@stream-io/video-client-1.42.1) (2026-02-10)
+
+### Bug Fixes
+
+- respect device permissions when detecting speech while muted ([#2115](https://github.com/GetStream/stream-video-js/issues/2115)) ([fe98768](https://github.com/GetStream/stream-video-js/commit/fe98768a9bf695fc5355905939884594c11ac2b9)), closes [#2110](https://github.com/GetStream/stream-video-js/issues/2110)
+
 ## [1.42.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.3...@stream-io/video-client-1.42.0) (2026-02-06)
 
 ### Features
