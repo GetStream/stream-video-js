@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.32.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.0...@stream-io/video-react-sdk-1.32.1) (2026-02-10)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.1`
+- `@stream-io/video-react-bindings` updated to version `1.13.5`
+
+## [1.32.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.8...@stream-io/video-react-sdk-1.32.0) (2026-02-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.4`
+
+### Features
+
+- Detectors for broken microphone setup ([#2090](https://github.com/GetStream/stream-video-js/issues/2090)) ([552b3f4](https://github.com/GetStream/stream-video-js/commit/552b3f4e3c54e0b6fa67221cd510f4ea1f6f8a61))
+
+### Bug Fixes
+
+- **react:** hide livestream layout fullscreen button when fullscreen is unsupported ([#2112](https://github.com/GetStream/stream-video-js/issues/2112)) ([f436b01](https://github.com/GetStream/stream-video-js/commit/f436b01f28416d2974c278f4059495fea555f305))
+
 ## [1.31.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.7...@stream-io/video-react-sdk-1.31.8) (2026-01-30)
 
 ### Dependency Updates

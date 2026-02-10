@@ -34,6 +34,7 @@ import {
 } from '../../helpers/no-audio-detector';
 import { PermissionsContext } from '../../permissions';
 import { Tracer } from '../../stats';
+import { settled, withoutConcurrency } from '../../helpers/concurrency';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -77,6 +78,9 @@ describe('MicrophoneManager', () => {
 
   beforeEach(() => {
     setupAudioContextMock();
+    vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+      of('granted'),
+    );
 
     call = new Call({
       id: '',
@@ -166,12 +170,31 @@ describe('MicrophoneManager', () => {
       expect(fn).toHaveBeenCalled();
     });
 
+    it('should not start sound detection if browser mic permission is denied', async () => {
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('denied'),
+      );
+      const innerManager = new MicrophoneManager(call, 'disable-tracks');
+      // @ts-expect-error private api
+      const fn = vi.spyOn(innerManager, 'startSpeakingWhileMutedDetection');
+
+      await innerManager.enable();
+
+      await sleep(25);
+      expect(fn).not.toHaveBeenCalled();
+    });
+
     it(`should stop sound detection if mic is enabled`, async () => {
       manager.state.setSpeakingWhileMuted(true);
       manager['soundDetectorCleanup'] = async () => {};
 
       await manager.enable();
+      // @ts-expect-error private field
+      const syncTag = manager.soundDetectorConcurrencyTag;
+      await withoutConcurrency(syncTag, () => Promise.resolve());
+      await settled(syncTag);
 
+      await sleep(25);
       expect(manager.state.speakingWhileMuted).toBe(false);
     });
 
@@ -508,6 +531,7 @@ describe('MicrophoneManager', () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.clearAllMocks();
     vi.resetModules();
   });

@@ -1,9 +1,12 @@
 import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import { getCallingxLibIfAvailable } from '../push/libs/callingx';
 import { endCallingxCall, startCallingxCall } from './callingx';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
+const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {
+  checkPermission: StreamRNVideoSDKGlobals['permissions']['check'] | undefined;
+};
 
 const CallingxModule = getCallingxLibIfAvailable();
 
@@ -59,6 +62,22 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         return;
       }
       StreamInCallManagerNativeModule.stop();
+    },
+  },
+  permissions: {
+    check: async (permission) => {
+      if (Platform.OS === 'android') {
+        const nativeAndroidPermission =
+          permission === 'camera'
+            ? PermissionsAndroid.PERMISSIONS.CAMERA
+            : PermissionsAndroid.PERMISSIONS.RECORD_AUDIO;
+        return PermissionsAndroid.check(nativeAndroidPermission);
+      }
+
+      // use our own service on iOS
+      return Boolean(
+        await StreamVideoReactNativeModule.checkPermission?.(permission),
+      );
     },
   },
 };

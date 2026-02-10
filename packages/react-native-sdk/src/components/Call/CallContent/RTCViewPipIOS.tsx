@@ -23,6 +23,10 @@ import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
 type Props = {
   includeLocalParticipantVideo?: boolean;
   /**
+   * Optional video mirroring override.
+   */
+  mirror?: boolean;
+  /**
    * Callback that is called when the PiP mode state changes.
    * @param active - true when PiP started, false when PiP stopped
    */
@@ -30,12 +34,17 @@ type Props = {
 };
 
 export const RTCViewPipIOS = React.memo((props: Props) => {
-  const { includeLocalParticipantVideo, onPiPChange } = props;
+  const {
+    includeLocalParticipantVideo,
+    mirror: mirrorOverride,
+    onPiPChange,
+  } = props;
   const call = useCall();
-  const { useParticipants } = useCallStateHooks();
+  const { useParticipants, useCameraState } = useCallStateHooks();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });
+  const { direction } = useCameraState();
   const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
 
   const [dominantSpeaker, dominantSpeaker2] = allParticipants.filter(
@@ -109,6 +118,12 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     ? screenShareStream
     : videoStream) as unknown as MediaStream | undefined;
 
+  const mirror = isScreenSharing
+    ? false
+    : mirrorOverride !== undefined
+      ? mirrorOverride
+      : !!participantInSpotlight?.isLocalParticipant && direction === 'front';
+
   const streamURL = useMemo(() => {
     if (!videoStreamToRender) {
       return undefined;
@@ -125,6 +140,7 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     <>
       <RTCViewPipNative
         streamURL={streamURL}
+        mirror={mirror}
         ref={nativeRef}
         onPiPChange={handlePiPChange}
       />

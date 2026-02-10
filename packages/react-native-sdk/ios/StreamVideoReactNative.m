@@ -472,6 +472,26 @@ RCT_EXPORT_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
     });
 }
 
+RCT_EXPORT_METHOD(checkPermission:(NSString *)permission
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    NSString *normalizedPermission = [permission lowercaseString];
+    AVMediaType mediaType = nil;
+
+    if ([normalizedPermission isEqualToString:@"camera"]) {
+        mediaType = AVMediaTypeVideo;
+    } else if ([normalizedPermission isEqualToString:@"microphone"]) {
+        mediaType = AVMediaTypeAudio;
+    } else {
+        NSString *errorMessage = [NSString stringWithFormat:@"Unsupported media device kind: %@", permission];
+        reject(@"UNSUPPORTED_MEDIA_DEVICE_KIND", errorMessage, nil);
+        return;
+    }
+
+    AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
+    resolve(@(status == AVAuthorizationStatusAuthorized));
+}
+
 -(void)batteryStateDidChange:(NSNotification *)notification {
     UIDeviceBatteryState batteryState = [UIDevice currentDevice].batteryState;
     BOOL isCharging = (batteryState == UIDeviceBatteryStateCharging ||
