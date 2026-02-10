@@ -23,6 +23,7 @@ import {
   ToggleVideoPublishingButton,
   WithTooltip,
 } from '../../../components';
+import { useCallDuration } from '../../hooks';
 import { CameraMenuWithBlur, ConnectionNotification } from '../../shared';
 
 const StartBroadcastIcon = () => (
@@ -56,6 +57,7 @@ export const HostView = ({
   const { t } = useI18n();
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
+  const { elapsed } = useCallDuration();
   const [showParticipants, setShowParticipants] = useState(false);
 
   const handleCloseParticipants = useCallback(() => {
@@ -112,6 +114,11 @@ export const HostView = ({
                   {humanize(participantCount)}
                 </span>
               </div>
+              {elapsed && (
+                <span className="str-video__livestream-duration__elapsed">
+                  {elapsed}
+                </span>
+              )}
             </div>
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--media">

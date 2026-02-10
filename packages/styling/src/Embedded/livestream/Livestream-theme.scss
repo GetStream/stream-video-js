@@ -21,6 +21,11 @@
     color: var(--str-video__text-color1);
     opacity: 0.8;
   }
+
+  &__elapsed {
+    color: var(--str-video__text-color1);
+    opacity: 0.8;
+  }
 }
 
 .str-video__composite-button--go-live {

@@ -36,6 +36,11 @@
   &__count {
     font-size: 0.875rem;
   }
+
+  &__elapsed {
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @keyframes str-video__embedded-pulse {
