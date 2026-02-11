@@ -57,7 +57,7 @@ export const HostView = ({
   const { t } = useI18n();
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
-  const { elapsed } = useCallDuration();
+  const { elapsed } = useCallDuration({ source: 'live' });
   const [showParticipants, setShowParticipants] = useState(false);
 
   const handleCloseParticipants = useCallback(() => {
@@ -114,7 +114,7 @@ export const HostView = ({
                   {humanize(participantCount)}
                 </span>
               </div>
-              {elapsed && (
+              {isLive && elapsed && (
                 <span className="str-video__embedded-livestream-duration__elapsed">
                   {elapsed}
                 </span>

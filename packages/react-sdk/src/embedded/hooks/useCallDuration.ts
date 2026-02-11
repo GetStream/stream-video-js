@@ -10,13 +10,18 @@ const formatElapsed = (seconds: number) => {
 };
 
 /**
- * Returns the call session start time and a live-updating formatted elapsed duration string.
- * Uses session.started_at so the timer persists across reconnections.
+ * Returns a live-updating formatted elapsed duration string.
+ * Pass `source: 'live'` for livestreams (counts from going live via live_started_at),
+ * or `source: 'session'` (default) for regular calls (counts from started_at).
  */
-export const useCallDuration = () => {
+export const useCallDuration = (
+  options: { source?: 'live' | 'session' } = {},
+) => {
+  const { source = 'session' } = options;
   const { useCallSession } = useCallStateHooks();
   const session = useCallSession();
-  const startedAt = session?.started_at;
+  const startedAt =
+    source === 'live' ? session?.live_started_at : session?.started_at;
 
   const startedAtDate = useMemo(
     () => (startedAt ? new Date(startedAt).getTime() : undefined),
