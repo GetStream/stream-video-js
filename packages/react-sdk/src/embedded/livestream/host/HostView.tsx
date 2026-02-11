@@ -95,27 +95,27 @@ export const HostView = ({
         </div>
         <div className="str-video__embedded-call-controls str-video__call-controls">
           <div className="str-video__call-controls--group str-video__call-controls--options">
-            <div className="str-video__livestream-duration">
+            <div className="str-video__embedded-livestream-duration">
               <span
                 className={
                   isLive
-                    ? 'str-video__livestream-duration__live-badge'
-                    : 'str-video__livestream-duration__backstage-badge'
+                    ? 'str-video__embedded-livestream-duration__live-badge'
+                    : 'str-video__embedded-livestream-duration__backstage-badge'
                 }
               >
                 {isLive ? t('Live') : t('Backstage')}
               </span>
-              <div className="str-video__livestream-duration__viewers">
+              <div className="str-video__embedded-livestream-duration__viewers">
                 <Icon
                   icon="eye"
-                  className="str-video__livestream-duration__eye-icon"
+                  className="str-video__embedded-livestream-duration__eye-icon"
                 />
-                <span className="str-video__livestream-duration__count">
+                <span className="str-video__embedded-livestream-duration__count">
                   {humanize(participantCount)}
                 </span>
               </div>
               {elapsed && (
-                <span className="str-video__livestream-duration__elapsed">
+                <span className="str-video__embedded-livestream-duration__elapsed">
                   {elapsed}
                 </span>
               )}
@@ -166,7 +166,7 @@ export const HostView = ({
               (isLive ? (
                 <WithTooltip title={t('End Stream')}>
                   <button
-                    className="str-video__composite-button--danger"
+                    className="str-video__embedded-end-stream-button"
                     onClick={onStopLive}
                   >
                     <Icon icon="call-end" />
@@ -176,7 +176,7 @@ export const HostView = ({
               ) : (
                 <WithTooltip title={t('Start Stream')}>
                   <button
-                    className="str-video__composite-button--go-live"
+                    className="str-video__embedded-go-live-button"
                     onClick={onGoLive}
                   >
                     <StartBroadcastIcon />

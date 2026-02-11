@@ -1,4 +1,4 @@
-.str-video__livestream-duration {
+.str-video__embedded-livestream-duration {
   &__live-badge,
   &__backstage-badge {
     color: var(--str-video__text-color1);
@@ -28,7 +28,7 @@
   }
 }
 
-.str-video__composite-button--go-live {
+.str-video__embedded-go-live-button {
   background: var(--str-video__button-primary-active);
   color: var(--str-video__text-color1);
 
@@ -37,7 +37,7 @@
   }
 }
 
-.str-video__composite-button--danger {
+.str-video__embedded-end-stream-button {
   background: var(--str-video__button-default-base);
   color: var(--str-video__text-color1);
 
