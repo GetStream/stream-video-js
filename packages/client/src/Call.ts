@@ -625,6 +625,8 @@ export class Call {
         await waitUntilCallJoined();
       }
 
+      globalThis.streamRNVideoSDK?.callingX?.endCall(this);
+
       if (callingState === CallingState.RINGING && reject !== false) {
         if (reject) {
           await this.reject(reason ?? 'decline');

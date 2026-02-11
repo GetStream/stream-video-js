@@ -247,7 +247,7 @@ const ParticipantOverlay = (props: {
     showLiveBadge ||
     showMuteButton ||
     showSpeakerName;
-  const { participant } = useParticipantViewContext();
+  const { participant, participantViewElement } = useParticipantViewContext();
   const { useParticipantCount, useSpeakerState } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const duration = useUpdateCallDuration();
@@ -294,12 +294,14 @@ const ParticipantOverlay = (props: {
               onClick={() => speaker.setVolume(isSpeakerMuted ? 1 : 0)}
             />
           )}
-          {enableFullScreen && (
-            <span
-              className="str-video__livestream-layout__go-fullscreen"
-              onClick={toggleFullScreen}
-            />
-          )}
+          {enableFullScreen &&
+            participantViewElement &&
+            typeof participantViewElement.requestFullscreen !== 'undefined' && (
+              <span
+                className="str-video__livestream-layout__go-fullscreen"
+                onClick={toggleFullScreen}
+              />
+            )}
         </div>
       )}
     </div>

@@ -5,6 +5,11 @@
 
 let pendingResolve: (() => void) | null = null;
 let pendingTimeout: ReturnType<typeof setTimeout> | null = null;
+/**
+ * Flag to check if the audio session is already activated.
+ * This solves race condition for a cold start case, when the audio session is activated before the promise is created.
+ */
+let isAudioSessionAlreadyActivated = false;
 
 const AUDIO_SESSION_TIMEOUT_MS = 5000;
 
@@ -14,6 +19,11 @@ const AUDIO_SESSION_TIMEOUT_MS = 5000;
  * @returns Promise that resolves when audio session is activated or timeout occurs
  */
 export function waitForAudioSessionActivation(): Promise<void> {
+  if (isAudioSessionAlreadyActivated) {
+    isAudioSessionAlreadyActivated = false;
+    return Promise.resolve();
+  }
+
   return new Promise((resolve) => {
     pendingResolve = resolve;
     pendingTimeout = setTimeout(() => {
@@ -32,8 +42,12 @@ export function resolvePendingAudioSession(): void {
     clearTimeout(pendingTimeout);
     pendingTimeout = null;
   }
+
   if (pendingResolve) {
     pendingResolve();
     pendingResolve = null;
+    isAudioSessionAlreadyActivated = false;
+  } else {
+    isAudioSessionAlreadyActivated = true;
   }
 }

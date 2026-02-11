@@ -10,7 +10,7 @@ import com.facebook.react.ReactNativeHost
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.UiThreadUtil
-import com.facebook.react.internal.featureflags.ReactNativeNewArchitectureFeatureFlags
+import com.facebook.react.internal.featureflags.ReactNativeFeatureFlags
 import com.facebook.react.jstasks.HeadlessJsTaskConfig
 import com.facebook.react.jstasks.HeadlessJsTaskContext
 import com.facebook.react.jstasks.HeadlessJsTaskEventListener
@@ -124,7 +124,7 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
 
   protected val reactContext: ReactContext?
     get() {
-      if (ReactNativeNewArchitectureFeatureFlags.enableBridgelessArchitecture()) {
+      if (ReactNativeFeatureFlags.enableBridgelessArchitecture()) {
         val reactHost =
                 checkNotNull(reactHost) { "ReactHost is not initialized in New Architecture" }
         return reactHost.currentReactContext
@@ -135,7 +135,7 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
     }
 
   private fun createReactContextAndScheduleTask(taskConfig: HeadlessJsTaskConfig) {
-    if (ReactNativeNewArchitectureFeatureFlags.enableBridgelessArchitecture()) {
+    if (ReactNativeFeatureFlags.enableBridgelessArchitecture()) {
       val reactHost = checkNotNull(reactHost)
       reactHost.addReactInstanceEventListener(
               object : ReactInstanceEventListener {

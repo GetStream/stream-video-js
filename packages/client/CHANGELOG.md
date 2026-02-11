@@ -2,6 +2,23 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.42.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.42.0...@stream-io/video-client-1.42.1) (2026-02-10)
+
+### Bug Fixes
+
+- respect device permissions when detecting speech while muted ([#2115](https://github.com/GetStream/stream-video-js/issues/2115)) ([fe98768](https://github.com/GetStream/stream-video-js/commit/fe98768a9bf695fc5355905939884594c11ac2b9)), closes [#2110](https://github.com/GetStream/stream-video-js/issues/2110)
+
+## [1.42.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.3...@stream-io/video-client-1.42.0) (2026-02-06)
+
+### Features
+
+- Detectors for broken microphone setup ([#2090](https://github.com/GetStream/stream-video-js/issues/2090)) ([552b3f4](https://github.com/GetStream/stream-video-js/commit/552b3f4e3c54e0b6fa67221cd510f4ea1f6f8a61))
+
+### Bug Fixes
+
+- **react:** apply defaultConstraints to speaking-while-muted detection stream ([#2103](https://github.com/GetStream/stream-video-js/issues/2103)) ([28b5538](https://github.com/GetStream/stream-video-js/commit/28b55380778723fc308d37396c8095a5a3ef7aa2))
+- start speaking while muted detection in pristine state too ([#2110](https://github.com/GetStream/stream-video-js/issues/2110)) ([bc093bc](https://github.com/GetStream/stream-video-js/commit/bc093bc3ac2451541524b134a9044131a69964af))
+
 ## [1.41.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.2...@stream-io/video-client-1.41.3) (2026-01-30)
 
 ### Bug Fixes

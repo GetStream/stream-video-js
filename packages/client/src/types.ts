@@ -383,6 +383,12 @@ export type StreamRNVideoSDKGlobals = {
      */
     stop({ isRingingTypeCall }: StreamRNVideoSDKCallManagerRingingParams): void;
   };
+  permissions: {
+    /**
+     * Checks whether a native device permission has been granted.
+     */
+    check(permission: 'microphone' | 'camera'): Promise<boolean>;
+  };
 };
 
 declare global {
