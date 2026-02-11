@@ -15,7 +15,7 @@ import {
 import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
 
-export interface LobbyProps {
+interface LobbyProps {
   onJoin: (displayName?: string) => void;
   title?: string;
   joinLabel?: string;
