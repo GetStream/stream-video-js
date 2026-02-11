@@ -6,6 +6,11 @@ import type { CSSProperties } from 'react';
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
 
 /**
+ * Identifies where an error originated during initialization.
+ */
+export type EmbeddedErrorType = 'client' | 'call' | 'join';
+
+/**
  * Available layout options (internal use only).
  */
 export type LayoutOption =
@@ -44,7 +49,7 @@ export interface ConfigurationProviderProps {
   /**
    * Callback when an error occurs (e.g., join failure).
    */
-  onError?: (error: Error) => void;
+  onError?: (error: any) => void;
 }
 
 /**

@@ -7,6 +7,7 @@ import { LoadingIndicator } from '../../../components';
 import { LivestreamLayout } from '../../../core';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 import { useEmbeddedConfiguration } from '../../context';
+import { useLivestreamSortPreset } from '../../hooks';
 
 const checkCanJoinEarly = (
   startsAt: Date | undefined,
@@ -43,6 +44,7 @@ const useCanJoinEarly = () => {
 export const ViewerUI = () => {
   const call = useCall();
   const { onError } = useEmbeddedConfiguration();
+  useLivestreamSortPreset();
 
   const {
     useCallCallingState,
@@ -68,7 +70,7 @@ export const ViewerUI = () => {
       }
     } catch (err) {
       console.error('Failed to join call:', err);
-      onError?.(err);
+      onError?.(err, 'join');
     }
   }, [call, onError]);
 

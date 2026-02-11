@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Call, CallingState, StreamVideoClient } from '@stream-io/video-client';
-import { useEffectEvent } from '@stream-io/video-react-bindings';
+import type { EmbeddedErrorType } from '../types';
 
 export interface UseInitializeCallProps {
   client?: StreamVideoClient;
   callType: string;
   callId: string;
-  onError?: (error: any) => void;
+  onError: (error: any, type: EmbeddedErrorType) => void;
 }
 
 /**
@@ -19,7 +19,6 @@ export const useInitializeCall = ({
   onError,
 }: UseInitializeCallProps): Call | undefined => {
   const [call, setCall] = useState<Call>();
-  const handleError = useEffectEvent(onError ?? (() => {}));
 
   useEffect(() => {
     if (!client || !callId) return;
@@ -36,7 +35,7 @@ export const useInitializeCall = ({
         if (cancelled) return;
 
         console.error('Failed to initialize call:', err);
-        handleError(err);
+        onError(err, 'call');
       });
 
     return () => {
@@ -48,7 +47,7 @@ export const useInitializeCall = ({
           .catch((err) => console.error('Failed to leave call:', err));
       }
     };
-  }, [client, callType, callId]);
+  }, [client, callType, callId, onError]);
 
   return call;
 };

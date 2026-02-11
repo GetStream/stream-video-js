@@ -1,0 +1,16 @@
+.str-video__embedded-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  padding: 1rem;
+  text-align: center;
+
+  &__message {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--str-video__text-color);
+    opacity: 0.7;
+  }
+}

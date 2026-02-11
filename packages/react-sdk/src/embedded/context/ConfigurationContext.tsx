@@ -1,11 +1,9 @@
 import { createContext, useContext, useMemo, PropsWithChildren } from 'react';
-import type { LayoutOption, ConfigurationProviderProps } from '../types';
-
-export type { ConfigurationProviderProps } from '../types';
+import type { LayoutOption, EmbeddedErrorType } from '../types';
 
 export interface EmbeddedConfiguration {
-  layout: LayoutOption;
-  onError?: (error: any) => void;
+  layout?: LayoutOption;
+  onError?: (error: any, type: EmbeddedErrorType) => void;
 }
 
 const defaultConfiguration: EmbeddedConfiguration = {
@@ -20,7 +18,7 @@ export const ConfigurationProvider = ({
   children,
   layout = 'SpeakerTop',
   onError,
-}: PropsWithChildren<ConfigurationProviderProps>) => {
+}: PropsWithChildren<EmbeddedConfiguration>) => {
   const value = useMemo(() => ({ layout, onError }), [layout, onError]);
 
   return (

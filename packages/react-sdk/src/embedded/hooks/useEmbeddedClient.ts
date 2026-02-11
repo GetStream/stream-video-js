@@ -1,7 +1,12 @@
 import { useInitializeVideoClient } from './useInitializeVideoClient';
 import { useInitializeCall } from './useInitializeCall';
 import { useNoiseCancellationLoader } from './useNoiseCancellationLoader';
-import type { EmbeddedUser, TokenProvider, LogLevel } from '../types';
+import type {
+  EmbeddedUser,
+  EmbeddedErrorType,
+  TokenProvider,
+  LogLevel,
+} from '../types';
 
 export interface UseEmbeddedClientProps {
   apiKey: string;
@@ -11,7 +16,7 @@ export interface UseEmbeddedClientProps {
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
-  onError?: (error: any) => void;
+  onError: (error: any, type: EmbeddedErrorType) => void;
 }
 
 /**
