@@ -52,11 +52,11 @@ export const isSfuEvent = (
   return Object.prototype.hasOwnProperty.call(sfuEventKinds, eventName);
 };
 
+type TaggedHandler = { [tag: string]: CallEventListener<any>[] | undefined };
+
 export class Dispatcher {
   private readonly logger = videoLoggerSystem.getLogger('Dispatcher');
-  private subscribers: Partial<
-    Record<SfuEventKinds, CallEventListener<any>[] | undefined>
-  > = {};
+  private subscribers: Partial<Record<SfuEventKinds, TaggedHandler>> = {};
 
   dispatch = <K extends SfuEventKinds>(
     message: DispatchableMessage<K>,
@@ -66,33 +66,41 @@ export class Dispatcher {
     if (!eventKind) return;
     const payload = message.eventPayload[eventKind];
     this.logger.debug(`Dispatching ${eventKind}, tag=${tag}`, payload);
-    const listeners = this.subscribers[eventKind];
-    if (!listeners) return;
-    for (const fn of listeners) {
-      try {
-        fn(payload);
-      } catch (e) {
-        this.logger.warn('Listener failed with error', e);
+    const handlers = this.subscribers[eventKind];
+    if (!handlers) return;
+    const emit = (listeners: CallEventListener<any>[] = []) => {
+      for (const fn of listeners) {
+        try {
+          fn(payload);
+        } catch (e) {
+          this.logger.warn('Listener failed with error', e);
+        }
       }
-    }
+    };
+    emit(handlers[tag]);
+    emit(handlers['*']);
   };
 
   on = <E extends keyof AllSfuEvents>(
     eventName: E,
+    tag: string,
     fn: CallEventListener<E>,
   ) => {
-    (this.subscribers[eventName] ??= []).push(fn as never);
+    const bucket = (this.subscribers[eventName] ??= {} as TaggedHandler);
+    (bucket[tag] ??= []).push(fn);
     return () => {
-      this.off(eventName, fn);
+      this.off(eventName, tag, fn);
     };
   };
 
   off = <E extends keyof AllSfuEvents>(
     eventName: E,
+    tag: string,
     fn: CallEventListener<E>,
   ) => {
-    this.subscribers[eventName] = (this.subscribers[eventName] || []).filter(
-      (f) => f !== fn,
-    );
+    const bucket = this.subscribers[eventName];
+    const listeners = bucket?.[tag];
+    if (!listeners) return;
+    bucket[tag] = listeners.filter((f) => f !== fn);
   };
 }

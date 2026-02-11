@@ -14,7 +14,6 @@ import {
   SfuEventKinds,
 } from './rtc';
 import {
-  Error as SfuErrorEvent,
   JoinRequest,
   JoinResponse,
   SfuRequest,
@@ -27,10 +26,7 @@ import {
   TrackMuteState,
   TrackSubscriptionDetails,
 } from './gen/video/sfu/signal_rpc/signal';
-import {
-  ICETrickle,
-  WebsocketReconnectStrategy,
-} from './gen/video/sfu/models/models';
+import { ICETrickle } from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
 import { generateUUIDv4 } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
@@ -43,6 +39,7 @@ import {
 } from './helpers/promise';
 import { getTimers } from './timers';
 import { Tracer, TraceSlice } from './stats';
+import { SfuJoinError } from './errors/SfuJoinError';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -250,8 +247,8 @@ export class StreamSfuClient {
     // In that case, those events (ICE candidates) need to be buffered
     // and later added to the appropriate PeerConnection
     // once the remoteDescription is known and set.
-    this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', (iceTrickle) => {
-      this.iceTrickleBuffer.push(iceTrickle);
+    this.unsubscribeIceTrickle = dispatcher.on('iceTrickle', tag, (t) => {
+      this.iceTrickleBuffer.push(t);
     });
 
     // listen to network changes to handle offline state
@@ -504,6 +501,7 @@ export class StreamSfuClient {
     const task = (this.migrationTask = promiseWithResolvers());
     const unsubscribe = this.dispatcher.on(
       'participantMigrationComplete',
+      this.tag,
       () => {
         unsubscribe();
         clearTimeout(this.migrateAwayTimeout);
@@ -541,23 +539,29 @@ export class StreamSfuClient {
     const current = this.joinResponseTask;
 
     let timeoutId: NodeJS.Timeout | undefined = undefined;
-    const unsubscribeJoinErrorEvents = this.dispatcher.on('error', (event) => {
-      const { error, reconnectStrategy } = event;
-      if (!error) return;
-      if (reconnectStrategy === WebsocketReconnectStrategy.DISCONNECT) {
+    const unsubscribeJoinErrorEvents = this.dispatcher.on(
+      'error',
+      this.tag,
+      (event) => {
+        if (SfuJoinError.isJoinErrorCode(event)) {
+          clearTimeout(timeoutId);
+          unsubscribe?.();
+          unsubscribeJoinErrorEvents();
+          current.reject(new SfuJoinError(event));
+        }
+      },
+    );
+    const unsubscribe = this.dispatcher.on(
+      'joinResponse',
+      this.tag,
+      (joinResponse) => {
         clearTimeout(timeoutId);
-        unsubscribe?.();
+        unsubscribe();
         unsubscribeJoinErrorEvents();
-        current.reject(new SfuJoinError(event));
-      }
-    });
-    const unsubscribe = this.dispatcher.on('joinResponse', (joinResponse) => {
-      clearTimeout(timeoutId);
-      unsubscribe();
-      unsubscribeJoinErrorEvents();
-      this.keepAlive();
-      current.resolve(joinResponse);
-    });
+        this.keepAlive();
+        current.resolve(joinResponse);
+      },
+    );
 
     timeoutId = setTimeout(() => {
       unsubscribe();
@@ -646,16 +650,4 @@ export class StreamSfuClient {
       }
     }, this.unhealthyTimeoutInMs);
   };
-}
-
-export class SfuJoinError extends Error {
-  errorEvent: SfuErrorEvent;
-  unrecoverable: boolean;
-
-  constructor(event: SfuErrorEvent) {
-    super(event.error?.message || 'Join Error');
-    this.errorEvent = event;
-    this.unrecoverable =
-      event.reconnectStrategy === WebsocketReconnectStrategy.DISCONNECT;
-  }
 }
