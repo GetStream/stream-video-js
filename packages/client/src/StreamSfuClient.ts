@@ -14,7 +14,6 @@ import {
   SfuEventKinds,
 } from './rtc';
 import {
-  Error as SfuErrorEvent,
   JoinRequest,
   JoinResponse,
   SfuRequest,
@@ -43,6 +42,7 @@ import {
 } from './helpers/promise';
 import { getTimers } from './timers';
 import { Tracer, TraceSlice } from './stats';
+import { SfuJoinError } from './errors';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -646,16 +646,4 @@ export class StreamSfuClient {
       }
     }, this.unhealthyTimeoutInMs);
   };
-}
-
-export class SfuJoinError extends Error {
-  errorEvent: SfuErrorEvent;
-  unrecoverable: boolean;
-
-  constructor(event: SfuErrorEvent) {
-    super(event.error?.message || 'Join Error');
-    this.errorEvent = event;
-    this.unrecoverable =
-      event.reconnectStrategy === WebsocketReconnectStrategy.DISCONNECT;
-  }
 }
