@@ -333,6 +333,14 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         promise.resolve(isStarted)
     }
 
+    override fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
+        // iOS-only: Android Telecom API does not require deferred action fulfillment
+    }
+
+    override fun fulfillEndCallAction(callId: String, didFail: Boolean) {
+        // iOS-only: Android Telecom API does not require deferred action fulfillment
+    }
+
     override fun log(message: String, level: String) {
         when (level) {
             "debug" -> debugLog(TAG, "[module] log: $message")

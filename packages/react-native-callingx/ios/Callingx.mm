@@ -240,6 +240,16 @@
   resolve(@(result));
 }
 
+- (void)fulfillAnswerCallAction:(nonnull NSString *)callId
+                        didFail:(BOOL)didFail {
+  [_moduleImpl fulfillAnswerCallAction:callId didFail:didFail];
+}
+
+- (void)fulfillEndCallAction:(nonnull NSString *)callId
+                     didFail:(BOOL)didFail {
+  [_moduleImpl fulfillEndCallAction:callId didFail:didFail];
+}
+
 - (void)log:(NSString *)message level:(NSString *)level {
   NSLog(@"[Callingx][log] %@, %@", message, level);
 }

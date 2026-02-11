@@ -255,6 +255,14 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.stopBackgroundTask(HEADLESS_TASK_NAME);
   }
 
+  fulfillAnswerCallAction(callId: string, didFail: boolean): void {
+    NativeCallingModule.fulfillAnswerCallAction(callId, didFail);
+  }
+
+  fulfillEndCallAction(callId: string, didFail: boolean): void {
+    NativeCallingModule.fulfillEndCallAction(callId, didFail);
+  }
+
   registerVoipToken(): void {
     NativeCallingModule.registerVoipToken();
   }
