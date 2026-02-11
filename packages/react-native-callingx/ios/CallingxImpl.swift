@@ -825,6 +825,13 @@ import stream_react_native_webrtc
         print("[Callingx][providerDidReset]")
         #endif
 
+        // Clear any pending actions to prevent memory leaks.
+        // After a provider reset, all pending CXActions are invalid.
+        pendingActionsQueue.sync {
+            pendingAnswerActions.removeAll()
+            pendingEndActions.removeAll()
+        }
+
         sendEvent(CallingxEvents.providerReset, body: nil)
     }
 }
