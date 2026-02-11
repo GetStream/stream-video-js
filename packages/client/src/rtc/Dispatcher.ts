@@ -68,17 +68,18 @@ export class Dispatcher {
     this.logger.debug(`Dispatching ${eventKind}, tag=${tag}`, payload);
     const handlers = this.subscribers[eventKind];
     if (!handlers) return;
-    const emit = (listeners: CallEventListener<any>[] = []) => {
-      for (const fn of listeners) {
-        try {
-          fn(payload);
-        } catch (e) {
-          this.logger.warn('Listener failed with error', e);
-        }
+    this.emit(payload, handlers[tag]);
+    this.emit(payload, handlers['*']);
+  };
+
+  emit = (payload: any, listeners: CallEventListener<any>[] = []) => {
+    for (const listener of listeners) {
+      try {
+        listener(payload);
+      } catch (e) {
+        this.logger.warn('Listener failed with error', e);
       }
-    };
-    emit(handlers[tag]);
-    emit(handlers['*']);
+    }
   };
 
   on = <E extends keyof AllSfuEvents>(

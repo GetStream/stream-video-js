@@ -36,7 +36,7 @@ describe('Subscriber', () => {
       sessionId: 'sessionId',
       streamClient: new StreamClient('abc'),
       cid: 'test:123',
-      tag: 'logTag',
+      tag: 'test',
       credentials: {
         server: {
           url: 'https://getstream.io/',
@@ -255,6 +255,7 @@ describe('Subscriber', () => {
             subscriberOffer,
           },
         }) as DispatchableMessage<'subscriberOffer'>,
+        'test',
       );
 
       // @ts-expect-error - private method
