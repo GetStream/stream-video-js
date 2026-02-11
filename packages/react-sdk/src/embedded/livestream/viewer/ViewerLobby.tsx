@@ -77,9 +77,15 @@ export const ViewerLobby = ({ onJoin, canJoin, isLive }: ViewerLobbyProps) => {
         )}
 
         {participantCount > 0 && (
-          <p className="str-video__embedded-viewer-lobby__participant-count">
-            {t('{{ count }} waiting', { count: humanize(participantCount) })}
-          </p>
+          <div className="str-video__embedded-livestream-duration__viewers">
+            <Icon
+              icon="eye"
+              className="str-video__embedded-livestream-duration__eye-icon"
+            />
+            <span className="str-video__embedded-livestream-duration__count">
+              {humanize(participantCount)}
+            </span>
+          </div>
         )}
 
         <div className="str-video__embedded-viewer-lobby__actions">
