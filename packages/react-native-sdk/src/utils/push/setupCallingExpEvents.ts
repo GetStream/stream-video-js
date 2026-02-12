@@ -6,7 +6,7 @@ import {
   processCallFromPushInBackground,
 } from './internal/utils';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
-import { resolvePendingAudioSession } from '../internal/audioSessionPromise';
+import { resolvePendingAudioSession } from '../internal/callingx/audioSessionPromise';
 import {
   getCallingxLib,
   type EventData,
@@ -16,7 +16,7 @@ import { Platform } from 'react-native';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
-const logger = videoLoggerSystem.getLogger('Callingx');
+const logger = videoLoggerSystem.getLogger('callingx');
 
 /**
  * This hook is used to listen to callkeep events and do the necessary actions

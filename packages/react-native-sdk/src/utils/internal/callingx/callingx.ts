@@ -3,7 +3,7 @@
  * See @./registerSDKGlobals.ts for more usage details.
  */
 import { Platform } from 'react-native';
-import { getCallingxLibIfAvailable } from '../push/libs/callingx';
+import { getCallingxLibIfAvailable } from '../../push/libs/callingx';
 import {
   Call,
   MemberResponse,
@@ -63,6 +63,7 @@ export async function startCallingxCall(call: Call) {
     return;
   }
 
+  const logger = videoLoggerSystem.getLogger('callingx');
   const isOutcomingCall = call.ringing && call.isCreatedByMe;
   const isIncomingCall = call.ringing && !call.isCreatedByMe;
 
@@ -91,9 +92,10 @@ export async function startCallingxCall(call: Call) {
 
       CallingxModule.setCurrentCallActive(call.cid);
     } catch (error) {
-      videoLoggerSystem
-        .getLogger('startCallingxCall')
-        .error(`Error starting call in callingx: ${call.cid}`, error);
+      logger.error(
+        `startCallingxCall: Error starting call in callingx: ${call.cid}`,
+        error,
+      );
     }
   } else if (isIncomingCall) {
     try {
@@ -113,12 +115,10 @@ export async function startCallingxCall(call: Call) {
         await waitForAudioSessionActivation();
       }
     } catch (error) {
-      videoLoggerSystem
-        .getLogger('startCallingxCall')
-        .error(
-          `Error displaying incoming call in callingx: ${call.cid}`,
-          error,
-        );
+      logger.error(
+        `Error displaying incoming call in callingx: ${call.cid}`,
+        error,
+      );
     }
   }
 }
@@ -136,7 +136,10 @@ export async function endCallingxCall(call: Call) {
     await CallingxModule.endCallWithReason(call.cid, 'local');
   } catch (error) {
     videoLoggerSystem
-      .getLogger('endCallingxCall')
-      .error(`Error ending call in callingx: ${call.cid}`, error);
+      .getLogger('callingx')
+      .error(
+        `endCallingxCall: Error ending call in callingx: ${call.cid}`,
+        error,
+      );
   }
 }
