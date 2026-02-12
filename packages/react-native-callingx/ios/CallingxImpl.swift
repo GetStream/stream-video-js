@@ -45,6 +45,13 @@ import stream_react_native_webrtc
     private var isSelfEnded: Bool = false
     private var isSelfMuted: Bool = false
     
+    // MARK: - Pending CXAction Storage
+    // CXProvider delegate runs on the provider's serial queue, but fulfill/fail
+    // methods are called from the RCT bridge thread. This queue synchronizes access.
+    private let pendingActionsQueue = DispatchQueue(label: "io.getstream.callingx.pendingActions")
+    private var pendingAnswerActions: [String: CXAnswerCallAction] = [:]
+    private var pendingEndActions: [String: CXEndCallAction] = [:]
+    
     // MARK: - Initialization
     @objc public override init() {
         super.init()
@@ -570,6 +577,43 @@ import stream_react_native_webrtc
         callKeepProvider?.reportCall(with: uuid, updated: callUpdate)
         return true
     }
+
+     // MARK: - Deferred CXAction Fulfillment
+    @objc public func fulfillAnswerCallAction(_ callId: String, didFail: Bool) {
+        let action: CXAnswerCallAction? = pendingActionsQueue.sync {
+            pendingAnswerActions.removeValue(forKey: callId)
+        }
+        
+        guard let action else {
+            #if DEBUG
+            print("[Callingx] fulfillAnswerCallAction: no pending action for \(callId)")
+            #endif
+            return
+        }
+       
+        #if DEBUG
+        print("[Callingx] fulfillAnswerCallAction: callId = \(callId), didFail = \(didFail)")
+        #endif
+        didFail ? action.fail() : action.fulfill()
+    }
+    
+    @objc public func fulfillEndCallAction(_ callId: String, didFail: Bool) {
+        let action: CXEndCallAction? = pendingActionsQueue.sync {
+            pendingEndActions.removeValue(forKey: callId)
+        }
+
+        guard let action else {
+            #if DEBUG
+            print("[Callingx] fulfillEndCallAction: no pending action for \(callId)")
+            #endif
+            return
+        }
+        
+        #if DEBUG
+        print("[Callingx] fulfillEndCallAction: callId = \(callId), didFail = \(didFail)")
+        #endif
+        didFail ? action.fail() : action.fulfill()
+    }
     
     // MARK: - CXProviderDelegate
     public func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
@@ -610,6 +654,11 @@ import stream_react_native_webrtc
         
         AudioSessionManager.createAudioSessionIfNeeded()
         
+        // Store the action so JS can fulfill/fail it after processing completes
+        pendingActionsQueue.sync {
+            pendingAnswerActions[callId] = action
+        }
+        
         let source = isSelfAnswered ? "app" : "sys"
         sendEvent(CallingxEvents.performAnswerCallAction, body: [
             "callId": callId,
@@ -617,7 +666,6 @@ import stream_react_native_webrtc
         ])
         
         isSelfAnswered = false
-        action.fulfill()
     }
     
     public func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
@@ -633,6 +681,11 @@ import stream_react_native_webrtc
             return
         }
         
+        // Store the action so JS can fulfill/fail it after processing completes
+        pendingActionsQueue.sync {
+            pendingEndActions[callId] = action
+        }
+        
         let source = isSelfEnded ? "app" : "sys"
         sendEvent(CallingxEvents.performEndCallAction, body: [
             "callId": callId,
@@ -641,8 +694,6 @@ import stream_react_native_webrtc
         
         isSelfEnded = false
         CallingxImpl.uuidStorage?.removeCid(callId)
-        
-        action.fulfill()
     }
     
     public func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
@@ -749,16 +800,49 @@ import stream_react_native_webrtc
         sendEvent(CallingxEvents.didDeactivateAudioSession, body: nil)
     }
   
+    // This method is called if the action is not fulfilled within the timeout period (usually ~10 seconds, iOS system unconfigurable timeout).
+    // usually we will get endCallAction here.
     public func provider(_ provider: CXProvider, timedOutPerforming action: CXAction) {
         #if DEBUG
         print("[Callingx][CXProviderDelegate][provider:timedOutPerformingAction]")
         #endif
+        
+        if let answerAction = action as? CXAnswerCallAction,
+           let callId = CallingxImpl.uuidStorage?.getCid(forUUID: answerAction.callUUID) {
+            let removed: CXAnswerCallAction? = pendingActionsQueue.sync {
+                pendingAnswerActions.removeValue(forKey: callId)
+            }
+            if removed != nil {
+                #if DEBUG
+                print("[Callingx] timedOutPerforming: auto-fulfilling pending answer action for \(callId)")
+                #endif
+                answerAction.fulfill()
+            }
+        } else if let endAction = action as? CXEndCallAction,
+                  let callId = CallingxImpl.uuidStorage?.getCid(forUUID: endAction.callUUID) {
+            let removed: CXEndCallAction? = pendingActionsQueue.sync {
+                pendingEndActions.removeValue(forKey: callId)
+            }
+            if removed != nil {
+                #if DEBUG
+                print("[Callingx] timedOutPerforming: auto-fulfilling pending end action for \(callId)")
+                #endif
+                endAction.fulfill()
+            }
+        }
     }
   
     public func providerDidReset(_ provider: CXProvider) {
         #if DEBUG
         print("[Callingx][providerDidReset]")
         #endif
+
+        // Clear any pending actions to prevent memory leaks.
+        // After a provider reset, all pending CXActions are invalid.
+        pendingActionsQueue.sync {
+            pendingAnswerActions.removeAll()
+            pendingEndActions.removeAll()
+        }
 
         sendEvent(CallingxEvents.providerReset, body: nil)
     }

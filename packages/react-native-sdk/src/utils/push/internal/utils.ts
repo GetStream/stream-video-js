@@ -67,22 +67,22 @@ export const processCallFromPushInBackground = async (
   pushConfig: PushConfig,
   call_cid: string,
   action: Parameters<typeof processCallFromPush>[2],
-) => {
+): Promise<boolean> => {
   let videoClient: StreamVideoClient | undefined;
 
   try {
     videoClient = await pushConfig.createStreamVideoClient();
     if (!videoClient) {
-      return;
+      return false;
     }
   } catch (e) {
     const logger = videoLoggerSystem.getLogger(
       'processCallFromPushInBackground',
     );
     logger.error('failed to create video client', e);
-    return;
+    return false;
   }
-  await processCallFromPush(videoClient, call_cid, action, pushConfig);
+  return await processCallFromPush(videoClient, call_cid, action, pushConfig);
 };
 
 /**
@@ -97,14 +97,14 @@ export const processCallFromPush = async (
   call_cid: string,
   action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
   pushConfig: PushConfig,
-) => {
+): Promise<boolean> => {
   let callFromPush: Call;
   try {
     callFromPush = await client.onRingingCall(call_cid);
   } catch (e) {
     const logger = videoLoggerSystem.getLogger('processCallFromPush');
     logger.error('failed to fetch call from push notification', e);
-    return;
+    return false;
   }
   // note: when action was pressed or delivered, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
   try {
@@ -124,7 +124,7 @@ export const processCallFromPush = async (
           .debug(
             `call already joined from push notification with callCid: ${callFromPush.cid}`,
           );
-        return;
+        return true;
       }
 
       await callFromPush.join();
@@ -141,7 +141,10 @@ export const processCallFromPush = async (
   } catch (e) {
     const logger = videoLoggerSystem.getLogger('processCallFromPush');
     logger.warn(`failed to process ${action} call from push notification`, e);
+    return false;
   }
+
+  return true;
 };
 
 /**

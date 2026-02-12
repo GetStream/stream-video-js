@@ -129,6 +129,10 @@ export interface Spec extends TurboModule {
 
   stopBackgroundTask(taskName: string): Promise<void>;
 
+  fulfillAnswerCallAction(callId: string, didFail: boolean): void;
+
+  fulfillEndCallAction(callId: string, didFail: boolean): void;
+
   registerVoipToken(): void;
 
   readonly onNewEvent: EventEmitter<{
