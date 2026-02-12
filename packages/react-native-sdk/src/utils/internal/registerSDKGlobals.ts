@@ -1,7 +1,7 @@
 import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
 import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import { getCallingxLibIfAvailable } from '../push/libs/callingx';
-import { endCallingxCall, startCallingxCall } from './callingx';
+import { endCallingxCall, startCallingxCall } from './callingx/callingx';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
 const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {

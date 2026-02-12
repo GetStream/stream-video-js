@@ -1,12 +1,10 @@
-import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
+import { videoLoggerSystem } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import { useEffect, useMemo, useRef } from 'react';
-import { getCallDisplayName } from '../../utils/internal/callingx';
+import { useEffect, useMemo } from 'react';
+import { getCallDisplayName } from '../../utils/internal/callingx/callingx';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 
-const logger = videoLoggerSystem.getLogger(
-  'Callingx - useCallingExpWithCallingStateEffect',
-);
+const logger = videoLoggerSystem.getLogger('callingx');
 
 /**
  * This hook is used to inform sync call state with CallKit/Telecom (i.e. start call, end call, mute/unmute call).
@@ -38,17 +36,19 @@ export const useCallingExpWithCallingStateEffect = () => {
       const isCallRegistered = callingx.isCallRegistered(activeCallCid);
       if (!isCallRegistered) {
         logger.debug(
-          `No active call cid to end in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+          `useCallingExpWithCallingStateEffect:No active call cid to end in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
         );
         return;
       }
       //if incoming stream call was unmounted, we need to end the call in CallKit/Telecom
-      logger.debug(`Ending call in callingx: ${activeCallCid}`);
+      logger.debug(
+        `useCallingExpWithCallingStateEffect: Ending call in callingx: ${activeCallCid}`,
+      );
       callingx
         .endCallWithReason(activeCallCid, 'local')
         .catch((error: unknown) => {
           logger.error(
-            `Error ending call in callingx: ${activeCallCid}`,
+            `useCallingExpWithCallingStateEffect: Error ending call in callingx: ${activeCallCid}`,
             error,
           );
         });
@@ -64,7 +64,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     const isCallRegistered = callingx.isCallRegistered(activeCallCid);
     if (!isCallRegistered) {
       logger.debug(
-        `No active call cid to update callingx: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+        `useCallingExpWithCallingStateEffect:No active call cid to update callingx: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
       );
       return;
     }
@@ -82,7 +82,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     const isCallRegistered = callingx.isCallRegistered(activeCallCid);
     if (!isCallRegistered) {
       logger.debug(
-        `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+        `useCallingExpWithCallingStateEffect: No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
       );
       return;
     }
@@ -95,7 +95,7 @@ export const useCallingExpWithCallingStateEffect = () => {
     const callingx = getCallingxLibIfAvailable();
     if (!callingx?.isSetup || !activeCallCid) {
       logger.debug(
-        `No active call cid to set muted in calling exp: ${activeCallCid} callingx isSetup: ${callingx?.isSetup}`,
+        `useCallingExpWithCallingStateEffect: No active call cid to set muted in calling exp: ${activeCallCid} callingx isSetup: ${callingx?.isSetup}`,
       );
       return;
     }
@@ -112,7 +112,7 @@ export const useCallingExpWithCallingStateEffect = () => {
         const isCallRegistered = callingx.isCallRegistered(activeCallCid);
         if (!isCallRegistered || callId !== activeCallCid) {
           logger.debug(
-            `No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered} callId: ${callId}`,
+            `useCallingExpWithCallingStateEffect: No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered} callId: ${callId}`,
           );
           return;
         }
@@ -120,7 +120,7 @@ export const useCallingExpWithCallingStateEffect = () => {
         const isCurrentlyMuted = microphone.state.status === 'disabled';
         if (isCurrentlyMuted === muted) {
           logger.debug(
-            `Mic toggle is already in the desired state: ${muted} for call: ${activeCallCid}`,
+            `useCallingExpWithCallingStateEffect: Mic toggle is already in the desired state: ${muted} for call: ${activeCallCid}`,
           );
           return;
         }
@@ -133,7 +133,7 @@ export const useCallingExpWithCallingStateEffect = () => {
           }
         } catch (error: unknown) {
           logger.error(
-            `Error toggling mic in calling exp: ${activeCallCid}`,
+            `useCallingExpWithCallingStateEffect: Error toggling mic in calling exp: ${activeCallCid}`,
             error,
           );
         }
