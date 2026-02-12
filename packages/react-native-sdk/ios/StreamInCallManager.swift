@@ -155,6 +155,15 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     @objc
+    func reset() {
+        audioSessionQueue.async { [self] in
+            let adm = getAudioDeviceModule()
+            adm.reset()
+            log("Audio device module reset")
+        }
+    }
+
+    @objc
     func start() {
         setup()
         audioSessionQueue.async { [self] in

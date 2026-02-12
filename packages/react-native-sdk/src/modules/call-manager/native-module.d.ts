@@ -52,6 +52,11 @@ export interface CallManager extends NativeModule {
   stop: () => void;
 
   /**
+   * Resets the audio device module.
+   */
+  reset: () => void;
+
+  /**
    * Setup the in call manager.
    */
   setup: () => void;
