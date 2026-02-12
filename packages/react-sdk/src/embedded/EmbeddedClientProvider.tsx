@@ -123,7 +123,7 @@ export const EmbeddedClientProvider = ({
   return (
     <StreamVideo client={client}>
       <StreamCall call={call}>
-        <ConfigurationProvider layout={layout} onError={handleError}>
+        <ConfigurationProvider layout={layout} onError={onErrorStable}>
           <BackgroundFiltersProvider>
             <NoiseCancellationWrapper noiseCancellation={noiseCancellation}>
               <StreamTheme className="str-video__embedded" style={style}>

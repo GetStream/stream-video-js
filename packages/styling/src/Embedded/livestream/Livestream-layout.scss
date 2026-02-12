@@ -137,6 +137,19 @@
       cursor: pointer;
     }
   }
+
+  &__join-error {
+    margin-top: var(--str-video__spacing-md);
+    font-size: var(--str-video__font-size-xs);
+    line-height: 1.3;
+    text-align: center;
+    font-weight: 500;
+    min-height: 1.3em;
+
+    &[data-visible='false'] {
+      visibility: hidden;
+    }
+  }
 }
 
 .str-video__embedded-host-lobby {

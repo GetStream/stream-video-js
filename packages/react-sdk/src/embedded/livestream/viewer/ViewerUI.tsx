@@ -71,8 +71,13 @@ export const ViewerUI = () => {
     } catch (err) {
       console.error('Failed to join call:', err);
       onError?.(err, 'join');
+      throw err;
     }
   }, [call, onError]);
+
+  const handleRejoin = useCallback(() => {
+    void handleJoin().catch(() => {});
+  }, [handleJoin]);
 
   if (
     callingState === CallingState.IDLE ||
@@ -89,7 +94,7 @@ export const ViewerUI = () => {
 
   if (callingState === CallingState.LEFT) {
     const canRejoin = canJoinAsap && (!endedAt || canJoinEndedCall);
-    return <CallFeedback onJoin={canRejoin ? handleJoin : undefined} />;
+    return <CallFeedback onJoin={canRejoin ? handleRejoin : undefined} />;
   }
 
   return (

@@ -40,8 +40,13 @@ export const HostUI = () => {
     } catch (err) {
       console.error('Failed to join call:', err);
       onError?.(err, 'join');
+      throw err;
     }
   }, [call, onError]);
+
+  const handleRejoin = useCallback(() => {
+    void handleJoin().catch(() => {});
+  }, [handleJoin]);
 
   const handleGoLive = useCallback(async () => {
     if (!call) return;
@@ -85,7 +90,7 @@ export const HostUI = () => {
   }
 
   if (callingState === CallingState.LEFT) {
-    return <CallFeedback onJoin={handleJoin} />;
+    return <CallFeedback onJoin={handleRejoin} />;
   }
 
   return (

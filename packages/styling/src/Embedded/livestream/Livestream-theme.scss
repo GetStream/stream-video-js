@@ -79,4 +79,8 @@
       accent-color: var(--str-video__button-primary-active);
     }
   }
+
+  &__join-error {
+    color: var(--str-video__alert-warning);
+  }
 }

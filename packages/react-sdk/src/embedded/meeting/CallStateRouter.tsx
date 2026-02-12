@@ -31,8 +31,13 @@ export const CallStateRouter = () => {
     } catch (err) {
       console.error('Failed to join call:', err);
       onError?.(err, 'join');
+      throw err;
     }
   }, [call, onError]);
+
+  const handleRejoin = useCallback(() => {
+    void handleJoin().catch(() => {});
+  }, [handleJoin]);
 
   if (
     callingState === CallingState.IDLE ||
@@ -46,7 +51,7 @@ export const CallStateRouter = () => {
   }
 
   if (callingState === CallingState.LEFT) {
-    return <CallFeedback onJoin={handleJoin} />;
+    return <CallFeedback onJoin={handleRejoin} />;
   }
 
   return <CallLayout />;

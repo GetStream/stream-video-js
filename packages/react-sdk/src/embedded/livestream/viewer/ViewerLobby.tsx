@@ -4,7 +4,7 @@ import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Icon } from '../../../components';
 
 export type ViewerLobbyProps = {
-  onJoin: () => void;
+  onJoin: () => Promise<void>;
   canJoin: boolean;
   isLive: boolean;
 };
@@ -18,9 +18,14 @@ export const ViewerLobby = ({ onJoin, canJoin, isLive }: ViewerLobbyProps) => {
   const [startsAtPassed, setStartsAtPassed] = useState(
     () => !!startsAt && startsAt.getTime() < Date.now(),
   );
+  const [showError, setShowError] = useState<boolean>(false);
 
-  const handleJoin = useCallback(() => {
-    onJoin?.();
+  const handleJoin = useCallback(async () => {
+    try {
+      await onJoin?.();
+    } catch {
+      setShowError(true);
+    }
   }, [onJoin]);
 
   useEffect(() => {
@@ -104,6 +109,14 @@ export const ViewerLobby = ({ onJoin, canJoin, isLive }: ViewerLobbyProps) => {
             </label>
           )}
         </div>
+        <p
+          className="str-video__embedded-viewer-lobby__join-error"
+          role="status"
+          aria-live="polite"
+          data-visible={showError}
+        >
+          {t('Failed to join. Please try again.')}
+        </p>
       </div>
     </div>
   );

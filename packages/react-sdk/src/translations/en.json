@@ -110,6 +110,7 @@
   "Reconnecting...": "Reconnecting...",
   "You are offline. Check your internet connection.": "You are offline. Check your internet connection.",
   "Failed to restore connection. Please try again.": "Failed to restore connection. Please try again.",
+  "Failed to join. Please try again.": "Failed to join. Please try again.",
   "Set up your call before joining": "Set up your call before joining",
   "Please grant your browser permission to access your camera and microphone.": "Please grant your browser permission to access your camera and microphone.",
   "Start call": "Start call",

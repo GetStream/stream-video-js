@@ -16,7 +16,7 @@ import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
 
 interface LobbyProps {
-  onJoin: (displayName?: string) => void;
+  onJoin: (displayName?: string) => Promise<void>;
   title?: string;
   joinLabel?: string;
 }
@@ -110,17 +110,20 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const settings = useCallSettings();
   const callSession = useCallSession();
 
-  const [isJoining, setIsJoining] = useState(false);
+  const [showError, setShowError] = useState<boolean>(false);
 
   const displayName = user?.name ?? '';
   const hasOtherParticipants = (callSession?.participants?.length || 0) > 0;
   const isVideoEnabled = settings?.video.enabled ?? true;
   const resolvedTitle = title ?? t('Set up your call before joining');
 
-  const handleJoin = useCallback(() => {
-    setIsJoining(true);
-    onJoin();
-  }, [onJoin]);
+  const handleJoin = useCallback(async () => {
+    try {
+      await onJoin();
+    } catch {
+      setShowError(true);
+    }
+  }, [onJoin, setShowError]);
 
   const resolvedJoinLabel =
     joinLabel ?? (hasOtherParticipants ? t('Join') : t('Start call'));
@@ -173,15 +176,20 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
             {displayName}
           </span>
 
-          <button
-            className="str-video__button"
-            onClick={handleJoin}
-            disabled={isJoining}
-          >
+          <button className="str-video__button" onClick={handleJoin}>
             <Icon className="str-video__button__icon" icon="login" />
-            {isJoining ? t('Joining') : resolvedJoinLabel}
+            {resolvedJoinLabel}
           </button>
         </div>
+
+        <p
+          className="str-video__embedded-lobby__join-error"
+          role="status"
+          aria-live="polite"
+          data-visible={showError}
+        >
+          {t('Failed to join. Please try again.')}
+        </p>
       </div>
     </div>
   );

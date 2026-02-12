@@ -34,46 +34,30 @@ export type TokenProvider = () => Promise<string>;
  */
 export interface EmbeddedUser {
   id: string;
-  name?: string;
+  name: string;
   image?: string;
-}
-
-/**
- * Configuration props for the embedded client.
- */
-export interface ConfigurationProviderProps {
-  /**
-   * Layout option for the call.
-   */
-  layout?: LayoutOption;
-  /**
-   * Callback when an error occurs (e.g., join failure).
-   */
-  onError?: (error: any) => void;
 }
 
 /**
  * Base props shared by EmbeddedMeeting and EmbeddedLivestream.
  */
-export interface EmbeddedClientBaseProps extends ConfigurationProviderProps {
+export interface EmbeddedClientBaseProps {
   apiKey: string;
   callId: string;
-  /**
-   * User to connect as. Omit for anonymous access.
-   * Provide with `token` or `tokenProvider` for authenticated users.
-   * Provide without token for guest access.
-   */
   user?: EmbeddedUser;
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
   style?: CSSProperties;
+  onError?: (error: any) => void;
 }
 
 /**
  * Props for the EmbeddedMeeting component.
  */
-export interface EmbeddedMeetingProps extends EmbeddedClientBaseProps {}
+export interface EmbeddedMeetingProps extends EmbeddedClientBaseProps {
+  layout?: LayoutOption;
+}
 
 /**
  * Props for the EmbeddedLivestream component.
