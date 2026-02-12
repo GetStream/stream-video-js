@@ -438,10 +438,10 @@ import stream_react_native_webrtc
         return true
     }
     
-    @objc public func isCallRegistered(_ callId: String) -> Bool {
+    @objc public func isCallTracked(_ callId: String) -> Bool {
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
             #if DEBUG
-            print("[Callingx][isCallRegistered] callId not found")
+            print("[Callingx][isCallTracked] callId not found")
             #endif
             return false
         }

@@ -20,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * This service handles the app call logic (show notification, record mic, display audio, etc..). It
@@ -70,6 +71,7 @@ class CallService : Service(), CallRepository.Listener {
 
     private val binder = CallServiceBinder()
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob())
+    private val trackedCallIds = ConcurrentHashMap.newKeySet<String>()
 
     private var isInForeground = false
 
@@ -99,6 +101,7 @@ class CallService : Service(), CallRepository.Listener {
             isInForeground = false
         }
 
+        trackedCallIds.clear()
         scope.cancel()
     }
 
@@ -184,6 +187,7 @@ class CallService : Service(), CallRepository.Listener {
                 }
             }
             is Call.Unregistered -> {
+                trackedCallIds.remove(call.id)
                 notificationManager.updateCallNotification(call)
 
                 if (isInForeground) {
@@ -195,6 +199,7 @@ class CallService : Service(), CallRepository.Listener {
                 stopSelf()
             }
             is Call.None -> {
+                trackedCallIds.clear()
                 notificationManager.updateCallNotification(call)
 
                 if (isInForeground) {
@@ -218,6 +223,9 @@ class CallService : Service(), CallRepository.Listener {
             cause: DisconnectCause,
             source: CallRepository.EventSource
     ) {
+        if (callId != null) {
+            trackedCallIds.remove(callId)
+        }
         // we're not passing the callId here to prevent infinite loops
         // callEnd event with callId will sent only when after interaction with notification buttons
         sendBroadcastEvent(CallingxModule.CALL_END_ACTION) {
@@ -267,9 +275,8 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    public fun isCallRegistered(callId: String): Boolean {
-        val currentCall = callRepository.currentCall.value
-        return currentCall is Call.Registered && currentCall.id == callId
+    public fun isCallTracked(callId: String): Boolean {
+        return trackedCallIds.contains(callId)
     }
 
     public fun hasRegisteredCall(): Boolean {
@@ -303,14 +310,19 @@ class CallService : Service(), CallRepository.Listener {
 
     private fun registerCall(intent: Intent, incoming: Boolean) {
         debugLog(TAG, "[service] registerCall: ${if (incoming) "in" else "out"} call")
+        val callInfo = extractIntentParams(intent)
+        // Track immediately when registration flow starts, mirroring iOS semantics.
+        trackedCallIds.add(callInfo.callId)
 
         // If we have an ongoing call ignore command
-        if (callRepository.currentCall.value is Call.Registered) {
+        val currentCall = callRepository.currentCall.value
+        if (currentCall is Call.Registered) {
+            if (currentCall.id != callInfo.callId) {
+                trackedCallIds.remove(callInfo.callId)
+            }
             Log.w(TAG, "[service] registerCall: Call already registered, ignoring new call request")
             return
         }
-
-        val callInfo = extractIntentParams(intent)
         val tempCall = callRepository.getTempCall(callInfo, incoming)
 
         //it is better to invoke startForeground method synchronously inside onStartCommand method
@@ -335,6 +347,7 @@ class CallService : Service(), CallRepository.Listener {
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
+                trackedCallIds.remove(callInfo.callId)
 
                 if (isInForeground) {
                     stopForeground(STOP_FOREGROUND_REMOVE)

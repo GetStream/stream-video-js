@@ -48,7 +48,7 @@ export const onVoipNotificationReceived = async (
   }
 
   const callingx = getCallingxLib();
-  if (callingx.isCallRegistered(call_cid)) {
+  if (callingx.isCallTracked(call_cid)) {
     //same call_cid is registered, so we skipping the notification
     logger.debug(
       `the same call_cid ${call_cid} is registered, skipping the call.ring notification`,

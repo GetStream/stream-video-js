@@ -183,8 +183,8 @@
   resolve(@(result));
 }
 
-- (NSNumber *)isCallRegistered:(nonnull NSString *)callId {
-  return @([_moduleImpl isCallRegistered:callId]);
+- (NSNumber *)isCallTracked:(nonnull NSString *)callId {
+  return @([_moduleImpl isCallTracked:callId]);
 }
 
 - (NSNumber *)hasRegisteredCall {
