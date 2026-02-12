@@ -3,7 +3,7 @@
  * See @./registerSDKGlobals.ts for more usage details.
  */
 import { Platform } from 'react-native';
-import { getCallingxLibIfAvailable } from '../push/libs/callingx';
+import { getCallingxLibIfAvailable } from '../../push/libs/callingx';
 import {
   Call,
   MemberResponse,
@@ -11,6 +11,7 @@ import {
   videoLoggerSystem,
 } from '@stream-io/video-client';
 import { waitForAudioSessionActivation } from './audioSessionPromise';
+import { waitForDisplayIncomingCall } from './displayIncomingCallPromise';
 
 const CallingxModule = getCallingxLibIfAvailable();
 
@@ -63,6 +64,7 @@ export async function startCallingxCall(call: Call) {
     return;
   }
 
+  const logger = videoLoggerSystem.getLogger('callingx');
   const isOutcomingCall = call.ringing && call.isCreatedByMe;
   const isIncomingCall = call.ringing && !call.isCreatedByMe;
 
@@ -91,35 +93,32 @@ export async function startCallingxCall(call: Call) {
 
       CallingxModule.setCurrentCallActive(call.cid);
     } catch (error) {
-      videoLoggerSystem
-        .getLogger('startCallingxCall')
-        .error(`Error starting call in callingx: ${call.cid}`, error);
+      logger.error(
+        `startCallingxCall: Error starting call in callingx: ${call.cid}`,
+        error,
+      );
     }
   } else if (isIncomingCall) {
     try {
-      if (!CallingxModule.isCallRegistered(call.cid)) {
-        await CallingxModule.displayIncomingCall(
-          call.cid, // unique id for call
-          call.id, // phone number for display in dialer (we use call id as phone number)
-          callDisplayName, // display name for display in call screen
-          call.state.settings?.video?.enabled ?? false, // is video call?
-        );
+      await CallingxModule.displayIncomingCall(
+        call.cid, // unique id for call
+        call.id, // phone number for display in dialer (we use call id as phone number)
+        callDisplayName, // display name for display in call screen
+        call.state.settings?.video?.enabled ?? false, // is video call?
+      );
 
-        await waitForDisplayIncomingCall(call.cid);
-      } else {
-        await CallingxModule.answerIncomingCall(call.cid);
-      }
+      await waitForDisplayIncomingCall();
+
+      await CallingxModule.answerIncomingCall(call.cid);
 
       if (Platform.OS === 'ios') {
         await waitForAudioSessionActivation();
       }
     } catch (error) {
-      videoLoggerSystem
-        .getLogger('startCallingxCall')
-        .error(
-          `Error displaying incoming call in callingx: ${call.cid}`,
-          error,
-        );
+      logger.error(
+        `Error displaying incoming call in callingx: ${call.cid}`,
+        error,
+      );
     }
   }
 }
@@ -137,56 +136,10 @@ export async function endCallingxCall(call: Call) {
     await CallingxModule.endCallWithReason(call.cid, 'local');
   } catch (error) {
     videoLoggerSystem
-      .getLogger('endCallingxCall')
-      .error(`Error ending call in callingx: ${call.cid}`, error);
+      .getLogger('callingx')
+      .error(
+        `endCallingxCall: Error ending call in callingx: ${call.cid}`,
+        error,
+      );
   }
 }
-
-const waitForDisplayIncomingCall = (
-  callId: string,
-  timeoutMs: number = 5000,
-): Promise<void> => {
-  if (!CallingxModule) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve, reject) => {
-    let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
-    let subscription:
-      | ReturnType<typeof CallingxModule.addEventListener>
-      | undefined = undefined;
-
-    const cleanup = () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      subscription?.remove();
-    };
-
-    subscription = CallingxModule.addEventListener(
-      'didDisplayIncomingCall',
-      async (params) => {
-        videoLoggerSystem
-          .getLogger('waitForDisplayIncomingCall')
-          .debug('didDisplayIncomingCall', params);
-        cleanup();
-
-        try {
-          await CallingxModule.answerIncomingCall(callId);
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      },
-    );
-
-    timeoutId = setTimeout(() => {
-      cleanup();
-      reject(
-        new Error(
-          `Timeout waiting for didDisplayIncomingCall after ${timeoutMs}ms`,
-        ),
-      );
-    }, timeoutMs);
-  });
-};

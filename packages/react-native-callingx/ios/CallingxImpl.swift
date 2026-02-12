@@ -31,6 +31,8 @@ import stream_react_native_webrtc
     @objc public static var sharedProvider: CXProvider?
     @objc public static var uuidStorage: UUIDStorage?
     @objc public static weak var sharedInstance: CallingxImpl?
+    /// Events stored before the module instance exists (e.g. VoIP from killed state). Drained in getInitialEvents().
+    private static var delayedEvents: [[String: Any]] = []
     
     // MARK: - Instance Properties
     @objc public var callKeepCallController: CXCallController?
@@ -42,7 +44,6 @@ import stream_react_native_webrtc
     private var isSelfAnswered: Bool = false
     private var isSelfEnded: Bool = false
     private var isSelfMuted: Bool = false
-    private var delayedEvents: [[String: Any]] = []
     
     // MARK: - Pending CXAction Storage
     // CXProvider delegate runs on the provider's serial queue, but fulfill/fail
@@ -56,7 +57,6 @@ import stream_react_native_webrtc
         super.init()
 
         isSetup = false
-        delayedEvents = []
         canSendEvents = false
         
         NotificationCenter.default.addObserver(
@@ -81,7 +81,6 @@ import stream_react_native_webrtc
         callKeepProvider?.invalidate()
         CallingxImpl.sharedProvider = nil
         canSendEvents = false
-        delayedEvents = []
         isSetup = false
     }
     
@@ -155,7 +154,17 @@ import stream_react_native_webrtc
                 "payload": payload ?? ""
             ]
             
-            sharedInstance?.sendEvent(CallingxEvents.didDisplayIncomingCall, body: body)
+            if let instance = sharedInstance {
+                instance.sendEvent(CallingxEvents.didDisplayIncomingCall, body: body)
+            } else {
+                let dictionary: [String: Any] = [
+                    "eventName": CallingxEvents.didDisplayIncomingCall,
+                    "params": body
+                ]
+                DispatchQueue.main.async {
+                    CallingxImpl.delayedEvents.append(dictionary)
+                }
+            }
             
             if error == nil {
                 #if DEBUG
@@ -287,9 +296,9 @@ import stream_react_native_webrtc
             if self.canSendEvents {
                 self.eventEmitter?.emitEvent(dictionary)
             } else {
-                self.delayedEvents.append(dictionary)
+                CallingxImpl.delayedEvents.append(dictionary)
                 #if DEBUG
-                print("[Callingx] delayedEvents: \(self.delayedEvents)")
+                print("[Callingx] delayedEvents: \(CallingxImpl.delayedEvents)")
                 #endif
             }
         }
@@ -336,11 +345,11 @@ import stream_react_native_webrtc
         var events: [[String: Any]] = []
         let action = {
             #if DEBUG
-            print("[Callingx][getInitialEvents] delayedEvents = \(self.delayedEvents)")
+            print("[Callingx][getInitialEvents] delayedEvents = \(CallingxImpl.delayedEvents)")
             #endif
             
-            events = self.delayedEvents
-            self.delayedEvents = []
+            events = CallingxImpl.delayedEvents
+            CallingxImpl.delayedEvents = []
             self.canSendEvents = true
         }
 
