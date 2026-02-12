@@ -100,14 +100,16 @@ export async function startCallingxCall(call: Call) {
     }
   } else if (isIncomingCall) {
     try {
-      await CallingxModule.displayIncomingCall(
-        call.cid, // unique id for call
-        call.id, // phone number for display in dialer (we use call id as phone number)
-        callDisplayName, // display name for display in call screen
-        call.state.settings?.video?.enabled ?? false, // is video call?
-      );
+      if (!CallingxModule.isCallTracked(call.cid)) {
+        await CallingxModule.displayIncomingCall(
+          call.cid, // unique id for call
+          call.id, // phone number for display in dialer (we use call id as phone number)
+          callDisplayName, // display name for display in call screen
+          call.state.settings?.video?.enabled ?? false, // is video call?
+        );
 
-      await waitForDisplayIncomingCall();
+        await waitForDisplayIncomingCall();
+      }
 
       await CallingxModule.answerIncomingCall(call.cid);
 
