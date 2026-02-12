@@ -1,5 +1,6 @@
 package io.getstream.rn.callingx
 
+import android.app.Notification
 import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
@@ -179,8 +180,7 @@ class CallService : Service(), CallRepository.Listener {
                     )
                     //fallback if for some reason startForeground method is not called in onStartCommand method
                     val notification = notificationManager.createNotification(call)
-                    startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
-                    isInForeground = true
+                    startForegroundSafely(notification)
                 }
             }
             is Call.Unregistered -> {
@@ -316,20 +316,11 @@ class CallService : Service(), CallRepository.Listener {
         //it is better to invoke startForeground method synchronously inside onStartCommand method
         if (!isInForeground) {
             debugLog(
-                            TAG,
-                            "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
-                    )
+                    TAG,
+                    "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
+            )
             val notification = notificationManager.createNotification(tempCall)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(
-                    CallNotificationManager.NOTIFICATION_ID,
-                    notification,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
-                )
-            } else {
-                startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
-            }
-            isInForeground = true
+            startForegroundSafely(notification)
         }
 
         scope.launch {
@@ -354,6 +345,30 @@ class CallService : Service(), CallRepository.Listener {
                 notificationManager.stopRingtone()
                 stopSelf()
             }
+        }
+    }
+
+    private fun startForegroundSafely(notification: Notification) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                        CallNotificationManager.NOTIFICATION_ID,
+                        notification,
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
+                )
+            } else {
+                startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
+            }
+            isInForeground = true
+        } catch (e: Exception) {
+            // If starting the foreground service fails (for example due to background start
+            // restrictions or notification issues), we log the error but avoid crashing the
+            // process so the rest of the call flow can continue and be recovered by Telecom.
+            Log.e(
+                    TAG,
+                    "[service] startForegroundSafely: Failed to start foreground service: ${e.message}",
+                    e
+            )
         }
     }
 

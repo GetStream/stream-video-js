@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
@@ -80,15 +81,29 @@ class StreamCallKeepAliveHeadlessService : HeadlessJsTaskService() {
     }
 
     private fun startForegroundCompat(notification: android.app.Notification) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val types = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) computeForegroundServiceTypes() else ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
-            startForeground(NOTIFICATION_ID, notification, types)
-        } else {
-            startForeground(NOTIFICATION_ID, notification)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val types =
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) computeForegroundServiceTypes()
+                    else ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+                startForeground(NOTIFICATION_ID, notification, types)
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+        } catch (e: Exception) {
+            // Avoid crashing the app if the system rejects starting a foreground service (e.g.
+            // background start restrictions, invalid notification/channel, or permission issues).
+            Log.e(
+                TAG,
+                "startForegroundCompat: Failed to start foreground service: ${e.message}",
+                e
+            )
         }
     }
 
     companion object {
+        private const val TAG = "StreamCallKeepAliveHeadlessService"
+
         const val TASK_NAME = "StreamVideoKeepCallAlive"
 
         const val EXTRA_CALL_CID = "callCid"
