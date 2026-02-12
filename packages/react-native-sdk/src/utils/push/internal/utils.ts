@@ -138,12 +138,13 @@ export const processCallFromPush = async (
         );
       await callFromPush.leave({ reject: canReject, reason: 'decline' });
     }
-    return true;
   } catch (e) {
     const logger = videoLoggerSystem.getLogger('processCallFromPush');
     logger.warn(`failed to process ${action} call from push notification`, e);
     return false;
   }
+
+  return true;
 };
 
 /**

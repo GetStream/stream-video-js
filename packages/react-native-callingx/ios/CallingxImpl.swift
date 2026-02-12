@@ -568,6 +568,43 @@ import stream_react_native_webrtc
         callKeepProvider?.reportCall(with: uuid, updated: callUpdate)
         return true
     }
+
+     // MARK: - Deferred CXAction Fulfillment
+    @objc public func fulfillAnswerCallAction(_ callId: String, didFail: Bool) {
+        let action: CXAnswerCallAction? = pendingActionsQueue.sync {
+            pendingAnswerActions.removeValue(forKey: callId)
+        }
+        
+        guard let action else {
+            #if DEBUG
+            print("[Callingx] fulfillAnswerCallAction: no pending action for \(callId)")
+            #endif
+            return
+        }
+       
+        #if DEBUG
+        print("[Callingx] fulfillAnswerCallAction: callId = \(callId), didFail = \(didFail)")
+        #endif
+        didFail ? action.fail() : action.fulfill()
+    }
+    
+    @objc public func fulfillEndCallAction(_ callId: String, didFail: Bool) {
+        let action: CXEndCallAction? = pendingActionsQueue.sync {
+            pendingEndActions.removeValue(forKey: callId)
+        }
+
+        guard let action else {
+            #if DEBUG
+            print("[Callingx] fulfillEndCallAction: no pending action for \(callId)")
+            #endif
+            return
+        }
+        
+        #if DEBUG
+        print("[Callingx] fulfillEndCallAction: callId = \(callId), didFail = \(didFail)")
+        #endif
+        didFail ? action.fail() : action.fulfill()
+    }
     
     // MARK: - CXProviderDelegate
     public func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
@@ -648,40 +685,6 @@ import stream_react_native_webrtc
         
         isSelfEnded = false
         CallingxImpl.uuidStorage?.removeCid(callId)
-    }
-    
-    // MARK: - Deferred CXAction Fulfillment
-    
-    @objc public func fulfillAnswerCallAction(_ callId: String, didFail: Bool) {
-        let action: CXAnswerCallAction? = pendingActionsQueue.sync {
-            pendingAnswerActions.removeValue(forKey: callId)
-        }
-        guard let action else {
-            #if DEBUG
-            print("[Callingx] fulfillAnswerCallAction: no pending action for \(callId)")
-            #endif
-            return
-        }
-        #if DEBUG
-        print("[Callingx] fulfillAnswerCallAction: callId = \(callId), didFail = \(didFail)")
-        #endif
-        didFail ? action.fail() : action.fulfill()
-    }
-    
-    @objc public func fulfillEndCallAction(_ callId: String, didFail: Bool) {
-        let action: CXEndCallAction? = pendingActionsQueue.sync {
-            pendingEndActions.removeValue(forKey: callId)
-        }
-        guard let action else {
-            #if DEBUG
-            print("[Callingx] fulfillEndCallAction: no pending action for \(callId)")
-            #endif
-            return
-        }
-        #if DEBUG
-        print("[Callingx] fulfillEndCallAction: callId = \(callId), didFail = \(didFail)")
-        #endif
-        didFail ? action.fail() : action.fulfill()
     }
     
     public func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {

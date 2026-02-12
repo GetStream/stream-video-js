@@ -111,9 +111,9 @@ const createCallSubscription = (
     .pipe(distinctUntilChanged(), filter(cidIsNotUndefined))
     .subscribe(async (callCId) => {
       videoLoggerSystem
-        .getLogger('Callingx - useProcessPushCallEffect')
+        .getLogger('callingx')
         .debug(
-          `Processing call from push notification with action: ${action} and callCId: ${callCId}`,
+          `useProcessPushCallEffect: Processing call from push notification with action: ${action} and callCId: ${callCId}`,
         );
       const didFail = !(await processCallFromPush(
         client,
