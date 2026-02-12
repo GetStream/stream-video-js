@@ -19,7 +19,7 @@ type PushConfig = NonNullable<StreamVideoConfig['push']>;
 const logger = videoLoggerSystem.getLogger('callingx');
 
 /**
- * This hook is used to listen to callkeep events and do the necessary actions
+ * Sets up callingx event listeners for handling call actions from the native calling UI.
  */
 export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   const hasPushProvider =
@@ -34,12 +34,20 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
 
   const { remove: removeAnswerCall } = callingx.addEventListener(
     'answerCall',
-    onAcceptCall(pushConfig),
+    (params) => {
+      onAcceptCall(pushConfig)(params).catch((err) => {
+        logger.error('Failed to process answerCall event', err);
+      });
+    },
   );
 
   const { remove: removeEndCall } = callingx.addEventListener(
     'endCall',
-    onEndCall(pushConfig),
+    (params) => {
+      onEndCall(pushConfig)(params).catch((err) => {
+        logger.error('Failed to process endCall event', err);
+      });
+    },
   );
 
   const { remove: removeDidActivateAudioSession } = callingx.addEventListener(
@@ -63,10 +71,16 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     const { eventName, params } = event;
     if (eventName === 'answerCall') {
       logger.debug(`answerCall delayed event callId: ${params?.callId}`);
-      onAcceptCall(pushConfig)(params as EventParams['answerCall']);
+      onAcceptCall(pushConfig)(params as EventParams['answerCall']).catch(
+        (err) => {
+          logger.error('Failed to process delayed answerCall event', err);
+        },
+      );
     } else if (eventName === 'endCall') {
       logger.debug(`endCall delayed event callId: ${params?.callId}`);
-      onEndCall(pushConfig)(params as EventParams['endCall']);
+      onEndCall(pushConfig)(params as EventParams['endCall']).catch((err) => {
+        logger.error('Failed to process delayed endCall event', err);
+      });
     } else if (eventName === 'didActivateAudioSession') {
       onDidActivateAudioSession();
     } else if (eventName === 'didDeactivateAudioSession') {

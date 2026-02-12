@@ -49,9 +49,9 @@ export const onVoipNotificationReceived = async (
 
   const callingx = getCallingxLib();
   if (callingx.isCallTracked(call_cid)) {
-    //same call_cid is registered, so we skipping the notification
+    //same call_cid is already tracked, so we skip the notification
     logger.debug(
-      `the same call_cid ${call_cid} is registered, skipping the call.ring notification`,
+      `the same call_cid ${call_cid} is already tracked, skipping the call.ring notification`,
     );
     return;
   }
@@ -107,8 +107,7 @@ export const onVoipNotificationReceived = async (
     pushUnsubscriptionCallbacks.set(call_cid, [unsubscribe]);
   }
 
-  // send the info to this subject, it is listened by callkeep events
-  // callkeep events will then accept/reject the call
+  // callingx event listeners (setupCallingExpEvents) will handle accept/reject
   logger.debug(
     `call_cid:${call_cid} received and processed from call.ring push notification`,
   );
