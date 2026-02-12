@@ -56,7 +56,7 @@
            supportsUngrouping:(BOOL)supportsUngrouping
                   fromPushKit:(BOOL)fromPushKit
                       payload:(NSDictionary *_Nullable)payload
-        withCompletionHandler:(void (^_Nullable)(void))completion {
+        withCompletionHandler:(void (^_Nullable)(NSError *_Nullable error))completion {
   
   [CallingxImpl reportNewIncomingCallWithCallId:callId
                                          handle:handle
@@ -161,11 +161,17 @@
              displayOptions:(JS::NativeCallingx::SpecDisplayIncomingCallDisplayOptions &)displayOptions
                     resolve:(nonnull RCTPromiseResolveBlock)resolve
                      reject:(nonnull RCTPromiseRejectBlock)reject {
-  BOOL result = [_moduleImpl displayIncomingCallWithCallId:callId
-                                         phoneNumber:phoneNumber
-                                          callerName:callerName
-                                            hasVideo:hasVideo];
-  resolve(@(result));
+  [_moduleImpl displayIncomingCallWithCallId:callId
+                                 phoneNumber:phoneNumber
+                                  callerName:callerName
+                                    hasVideo:hasVideo
+                                  completion:^(NSError *error) {
+    if (error) {
+      reject(@"DISPLAY_INCOMING_CALL_ERROR", error.localizedDescription, error);
+    } else {
+      resolve(@YES);
+    }
+  }];
 }
 
 - (void)endCallWithReason:(nonnull NSString *)callId

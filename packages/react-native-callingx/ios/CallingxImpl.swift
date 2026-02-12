@@ -101,7 +101,7 @@ import stream_react_native_webrtc
         supportsUngrouping: Bool,
         fromPushKit: Bool,
         payload: [String: Any]?,
-        completion: (() -> Void)?
+        completion: ((Error?) -> Void)?
     ) {
         initializeIfNeeded()
         
@@ -111,7 +111,7 @@ import stream_react_native_webrtc
             #if DEBUG
             print("[Callingx][reportNewIncomingCall] callId already exists")
             #endif
-            completion?()
+            completion?(nil)
             return
         }
         
@@ -156,7 +156,7 @@ import stream_react_native_webrtc
                 #endif
             }
             
-            completion?()
+            completion?(error)
         }
     }
     
@@ -374,8 +374,9 @@ import stream_react_native_webrtc
         callId: String,
         phoneNumber: String,
         callerName: String,
-        hasVideo: Bool
-    ) -> Bool {
+        hasVideo: Bool,
+        completion: ((Error?) -> Void)?
+    ) {
         let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId)
         CallingxImpl.reportNewIncomingCall(
             callId: callId,
@@ -389,7 +390,7 @@ import stream_react_native_webrtc
             supportsUngrouping: false,
             fromPushKit: false,
             payload: nil,
-            completion: nil
+            completion: completion
         )
         
         let wasAlreadyAnswered = uuid != nil
@@ -406,7 +407,6 @@ import stream_react_native_webrtc
                 }
             }
         }
-        return true
     }
     
     @objc public func endCall(_ callId: String) -> Bool {

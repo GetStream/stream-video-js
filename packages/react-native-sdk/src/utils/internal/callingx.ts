@@ -97,18 +97,17 @@ export async function startCallingxCall(call: Call) {
     }
   } else if (isIncomingCall) {
     try {
-      if (!CallingxModule.isCallRegistered(call.cid)) {
-        await CallingxModule.displayIncomingCall(
-          call.cid, // unique id for call
-          call.id, // phone number for display in dialer (we use call id as phone number)
-          callDisplayName, // display name for display in call screen
-          call.state.settings?.video?.enabled ?? false, // is video call?
-        );
+      // Awaits native CallKit/Telecom registration before answering.
+      // Safe to call even if the call is already registered (e.g. from VoIP push) --
+      // iOS early-returns with no error, Android sends the registered broadcast.
+      await CallingxModule.displayIncomingCall(
+        call.cid, // unique id for call
+        call.id, // phone number for display in dialer (we use call id as phone number)
+        callDisplayName, // display name for display in call screen
+        call.state.settings?.video?.enabled ?? false, // is video call?
+      );
 
-        await waitForDisplayIncomingCall(call.cid);
-      } else {
-        await CallingxModule.answerIncomingCall(call.cid);
-      }
+      await CallingxModule.answerIncomingCall(call.cid);
 
       if (Platform.OS === 'ios') {
         await waitForAudioSessionActivation();
@@ -141,52 +140,3 @@ export async function endCallingxCall(call: Call) {
       .error(`Error ending call in callingx: ${call.cid}`, error);
   }
 }
-
-const waitForDisplayIncomingCall = (
-  callId: string,
-  timeoutMs: number = 5000,
-): Promise<void> => {
-  if (!CallingxModule) {
-    return Promise.resolve();
-  }
-
-  return new Promise((resolve, reject) => {
-    let timeoutId: ReturnType<typeof setTimeout> | undefined = undefined;
-    let subscription:
-      | ReturnType<typeof CallingxModule.addEventListener>
-      | undefined = undefined;
-
-    const cleanup = () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-      subscription?.remove();
-    };
-
-    subscription = CallingxModule.addEventListener(
-      'didDisplayIncomingCall',
-      async (params) => {
-        videoLoggerSystem
-          .getLogger('waitForDisplayIncomingCall')
-          .debug('didDisplayIncomingCall', params);
-        cleanup();
-
-        try {
-          await CallingxModule.answerIncomingCall(callId);
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      },
-    );
-
-    timeoutId = setTimeout(() => {
-      cleanup();
-      reject(
-        new Error(
-          `Timeout waiting for didDisplayIncomingCall after ${timeoutMs}ms`,
-        ),
-      );
-    }, timeoutMs);
-  });
-};

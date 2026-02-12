@@ -8,7 +8,9 @@ import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -50,6 +52,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         const val CALL_MUTED_ACTION = "call_muted"
         const val CALL_ENDPOINT_CHANGED_ACTION = "call_endpoint_changed"
         const val CALL_END_ACTION = "call_end"
+        const val CALL_REGISTRATION_FAILED_ACTION = "call_registration_failed"
         // Background task name
         const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
         const val SERVICE_READY_ACTION = "service_ready"
@@ -68,6 +71,12 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     private var isModuleInitialized = false
     private var canSendEvents = false
     private var isHeadlessTaskRegistered = false
+
+    // Per-callId pending promises for displayIncomingCall awaiting CALL_REGISTERED_INCOMING_ACTION
+    private val pendingDisplayPromises = mutableMapOf<String, Promise>()
+    private val pendingTimeouts = mutableMapOf<String, Runnable>()
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private val displayTimeoutMs = 10_000L // 10 second safety timeout
 
     private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
     private val callEventBroadcastReceiver = CallEventBroadcastReceiver()
@@ -111,6 +120,13 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     override fun invalidate() {
         super.invalidate()
         debugLog(TAG, "[module] invalidate: Invalidating module")
+
+        // Clean up pending display promises to prevent leaks
+        synchronized(pendingDisplayPromises) {
+            pendingTimeouts.values.forEach { mainHandler.removeCallbacks(it) }
+            pendingTimeouts.clear()
+            pendingDisplayPromises.clear()
+        }
 
         unbindServiceSafely()
 
@@ -182,6 +198,29 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             return
         }
 
+        // Store the promise keyed by callId; it will be resolved when CALL_REGISTERED_INCOMING_ACTION
+        // broadcast is received, or rejected on timeout / registration failure.
+        synchronized(pendingDisplayPromises) {
+            // Cancel any existing timeout for this callId to avoid a stale
+            // runnable rejecting the new promise after it overwrites the old one.
+            pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
+
+            pendingDisplayPromises[callId] = promise
+
+            // Per-call timeout runnable
+            val timeoutRunnable = Runnable {
+                synchronized(pendingDisplayPromises) {
+                    pendingDisplayPromises.remove(callId)?.reject(
+                            "TIMEOUT",
+                            "Timed out waiting for call registration: $callId"
+                    )
+                    pendingTimeouts.remove(callId)
+                }
+            }
+            pendingTimeouts[callId] = timeoutRunnable
+            mainHandler.postDelayed(timeoutRunnable, displayTimeoutMs)
+        }
+
         startCallService(
                 CallService.ACTION_INCOMING_CALL,
                 callId,
@@ -190,8 +229,6 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 hasVideo,
                 displayOptions
         )
-
-        promise.resolve(true)
     }
 
     override fun answerIncomingCall(callId: String, promise: Promise) {
@@ -454,6 +491,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                 addAction(CALL_MUTED_ACTION)
                 addAction(CALL_ENDPOINT_CHANGED_ACTION)
                 addAction(CALL_END_ACTION)
+                addAction(CALL_REGISTRATION_FAILED_ACTION)
                 addAction(SERVICE_READY_ACTION)
             }
 
@@ -563,7 +601,26 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     sendJSEvent("didReceiveStartCallAction", params)
                 }
                 CALL_REGISTERED_INCOMING_ACTION -> {
+                    // Resolve the pending displayIncomingCall promise for this callId
+                    if (callId != null) {
+                        synchronized(pendingDisplayPromises) {
+                            pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
+                            pendingDisplayPromises.remove(callId)?.resolve(true)
+                        }
+                    }
                     sendJSEvent("didDisplayIncomingCall", params)
+                }
+                CALL_REGISTRATION_FAILED_ACTION -> {
+                    // Reject the pending displayIncomingCall promise for this callId
+                    if (callId != null) {
+                        synchronized(pendingDisplayPromises) {
+                            pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
+                            pendingDisplayPromises.remove(callId)?.reject(
+                                    "REGISTRATION_FAILED",
+                                    "Failed to register call with telecom: $callId"
+                            )
+                        }
+                    }
                 }
                 CALL_ANSWERED_ACTION -> {
                     if (intent.hasExtra(EXTRA_SOURCE)) {

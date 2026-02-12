@@ -23,7 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
  *              supportsUngrouping:NO
  *                     fromPushKit:YES
  *                         payload:payload
- *           withCompletionHandler:^{ }];
+ *           withCompletionHandler:^(NSError *error){ }];
  * ```
  */
 @interface Callingx : NSObject
@@ -43,7 +43,7 @@ NS_ASSUME_NONNULL_BEGIN
  * @param supportsUngrouping Whether the call can be ungrouped
  * @param fromPushKit Whether this call is from a PushKit notification
  * @param payload Optional payload data from the push notification
- * @param completion Completion handler called after the call is reported
+ * @param completion Completion handler called after the call is reported, with an error if the call could not be displayed
  */
 + (void)reportNewIncomingCall:(NSString *)callId
                        handle:(NSString *)handle
@@ -56,7 +56,7 @@ NS_ASSUME_NONNULL_BEGIN
            supportsUngrouping:(BOOL)supportsUngrouping
                   fromPushKit:(BOOL)fromPushKit
                       payload:(NSDictionary * _Nullable)payload
-        withCompletionHandler:(void (^_Nullable)(void))completion;
+        withCompletionHandler:(void (^_Nullable)(NSError *_Nullable error))completion;
 
 /**
  * End a call with a specific reason.
