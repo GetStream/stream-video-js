@@ -98,9 +98,10 @@ import stream_react_native_webrtc
         supportsDTMF: Bool,
         supportsGrouping: Bool,
         supportsUngrouping: Bool,
-        fromPushKit: Bool,
         payload: [String: Any]?,
-        completion: ((Error?) -> Void)?
+        completion: (() -> Void)?,
+        resolve: RCTPromiseResolveBlock?,
+        reject: RCTPromiseRejectBlock?
     ) {
         initializeIfNeeded()
         
@@ -110,7 +111,8 @@ import stream_react_native_webrtc
             #if DEBUG
             print("[Callingx][reportNewIncomingCall] callId already exists")
             #endif
-            completion?(nil)
+            completion?()
+            resolve?(true)
             return
         }
         
@@ -143,7 +145,6 @@ import stream_react_native_webrtc
                 "supportsDTMF": supportsDTMF ? "1" : "0",
                 "supportsGrouping": supportsGrouping ? "1" : "0",
                 "supportsUngrouping": supportsUngrouping ? "1" : "0",
-                "fromPushKit": fromPushKit ? "1" : "0",
                 "payload": payload ?? ""
             ]
             
@@ -163,9 +164,12 @@ import stream_react_native_webrtc
                 #if DEBUG
                 print("[Callingx][reportNewIncomingCall] success callId = \(callId)")
                 #endif
+                resolve?(true)
+            } else {
+              reject?("DISPLAY_INCOMING_CALL_ERROR", error?.localizedDescription, error)
             }
             
-            completion?(error)
+            completion?()
         }
     }
     
@@ -384,7 +388,8 @@ import stream_react_native_webrtc
         phoneNumber: String,
         callerName: String,
         hasVideo: Bool,
-        completion: ((Error?) -> Void)?
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
     ) {
         let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId)
         CallingxImpl.reportNewIncomingCall(
@@ -397,9 +402,10 @@ import stream_react_native_webrtc
             supportsDTMF: false,
             supportsGrouping: false,
             supportsUngrouping: false,
-            fromPushKit: false,
             payload: nil,
-            completion: completion
+            completion: nil,
+            resolve: resolve,
+            reject: reject
         )
         
         let wasAlreadyAnswered = uuid != nil

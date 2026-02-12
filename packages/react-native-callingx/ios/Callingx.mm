@@ -54,9 +54,8 @@
                  supportsDTMF:(BOOL)supportsDTMF
              supportsGrouping:(BOOL)supportsGrouping
            supportsUngrouping:(BOOL)supportsUngrouping
-                  fromPushKit:(BOOL)fromPushKit
                       payload:(NSDictionary *_Nullable)payload
-        withCompletionHandler:(void (^_Nullable)(NSError *_Nullable error))completion {
+        withCompletionHandler:(void (^_Nullable)(void))completion {
   
   [CallingxImpl reportNewIncomingCallWithCallId:callId
                                          handle:handle
@@ -67,9 +66,11 @@
                                    supportsDTMF:supportsDTMF
                                supportsGrouping:supportsGrouping
                              supportsUngrouping:supportsUngrouping
-                                    fromPushKit:fromPushKit
                                         payload:payload
-                                     completion:completion];
+                                     completion:completion
+                                        resolve:nil
+                                         reject:nil
+  ];
 }
 
 + (BOOL)canRegisterCall {
@@ -165,13 +166,9 @@
                                  phoneNumber:phoneNumber
                                   callerName:callerName
                                     hasVideo:hasVideo
-                                  completion:^(NSError *error) {
-    if (error) {
-      reject(@"DISPLAY_INCOMING_CALL_ERROR", error.localizedDescription, error);
-    } else {
-      resolve(@YES);
-    }
-  }];
+                                     resolve:resolve
+                                      reject:reject
+  ];
 }
 
 - (void)endCallWithReason:(nonnull NSString *)callId
