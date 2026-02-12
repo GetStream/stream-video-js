@@ -1,4 +1,3 @@
-import { pushAcceptedIncomingCallCId$ } from './internal/rxSubjects';
 import { videoLoggerSystem } from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import {
@@ -35,8 +34,9 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
 
   const { remove: removeAnswerCall } = callingx.addEventListener(
     'answerCall',
-    onAcceptCall,
+    onAcceptCall(pushConfig),
   );
+
   const { remove: removeEndCall } = callingx.addEventListener(
     'endCall',
     onEndCall(pushConfig),
@@ -63,7 +63,7 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     const { eventName, params } = event;
     if (eventName === 'answerCall') {
       logger.debug(`answerCall delayed event callId: ${params?.callId}`);
-      onAcceptCall(params as EventParams['answerCall']);
+      onAcceptCall(pushConfig)(params as EventParams['answerCall']);
     } else if (eventName === 'endCall') {
       logger.debug(`endCall delayed event callId: ${params?.callId}`);
       onEndCall(pushConfig)(params as EventParams['endCall']);
@@ -99,21 +99,20 @@ const onDidDisplayIncomingCall = () => {
   resolveDisplayIncomingCall();
 };
 
-const onAcceptCall = ({
-  callId: call_cid,
-  source,
-}: EventParams['answerCall']) => {
-  logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
+const onAcceptCall =
+  (pushConfig: PushConfig) =>
+  async ({ callId: call_cid, source }: EventParams['answerCall']) => {
+    logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
 
-  if (source === 'app' || !call_cid) {
-    //we only need to process the call if the call was answered from the system
-    return;
-  }
+    if (source === 'app' || !call_cid) {
+      //we only need to process the call if the call was answered from the system
+      return;
+    }
 
-  clearPushWSEventSubscriptions(call_cid);
-  // to process the call in the app
-  pushAcceptedIncomingCallCId$.next(call_cid);
-};
+    clearPushWSEventSubscriptions(call_cid);
+    // to process the call in the app
+    await processCallFromPushInBackground(pushConfig, call_cid, 'accept');
+  };
 
 const onEndCall =
   (pushConfig: PushConfig) =>

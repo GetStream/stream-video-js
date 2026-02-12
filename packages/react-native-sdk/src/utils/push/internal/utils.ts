@@ -99,10 +99,10 @@ export const processCallFromPush = async (
   pushConfig: PushConfig,
 ) => {
   let callFromPush: Call;
+  const logger = videoLoggerSystem.getLogger('Callingx - processCallFromPush');
   try {
     callFromPush = await client.onRingingCall(call_cid);
   } catch (e) {
-    const logger = videoLoggerSystem.getLogger('processCallFromPush');
     logger.error('failed to fetch call from push notification', e);
     return;
   }
@@ -112,18 +112,17 @@ export const processCallFromPush = async (
       if (pushConfig.publishOptions) {
         callFromPush.updatePublishOptions(pushConfig.publishOptions);
       }
-      videoLoggerSystem
-        .getLogger('processCallFromPush')
-        .debug(
-          `joining call from push notification with callCid: ${callFromPush.cid}`,
+      logger.debug(
+        `joining call from push notification with callCid: ${callFromPush.cid}`,
+      );
+      const callingState = callFromPush.state.callingState;
+      if (
+        callingState !== CallingState.RINGING &&
+        callingState !== CallingState.IDLE
+      ) {
+        logger.debug(
+          `skipping join call as it is not in ringing or idle state from push notification. callCid: ${callFromPush.cid}`,
         );
-
-      if (callFromPush.state.callingState === CallingState.JOINED) {
-        videoLoggerSystem
-          .getLogger('processCallFromPush')
-          .debug(
-            `call already joined from push notification with callCid: ${callFromPush.cid}`,
-          );
         return;
       }
 
@@ -131,15 +130,12 @@ export const processCallFromPush = async (
     } else if (action === 'decline') {
       const canReject =
         callFromPush.state.callingState === CallingState.RINGING;
-      videoLoggerSystem
-        .getLogger('processCallFromPush')
-        .debug(
-          `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`,
-        );
+      logger.debug(
+        `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`,
+      );
       await callFromPush.leave({ reject: canReject, reason: 'decline' });
     }
   } catch (e) {
-    const logger = videoLoggerSystem.getLogger('processCallFromPush');
     logger.warn(`failed to process ${action} call from push notification`, e);
   }
 };
