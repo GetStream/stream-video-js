@@ -99,9 +99,10 @@ import stream_react_native_webrtc
         supportsDTMF: Bool,
         supportsGrouping: Bool,
         supportsUngrouping: Bool,
-        fromPushKit: Bool,
         payload: [String: Any]?,
-        completion: (() -> Void)?
+        completion: (() -> Void)?,
+        resolve: RCTPromiseResolveBlock?,
+        reject: RCTPromiseRejectBlock?
     ) {
         initializeIfNeeded()
         
@@ -112,6 +113,7 @@ import stream_react_native_webrtc
             print("[Callingx][reportNewIncomingCall] callId already exists")
             #endif
             completion?()
+            resolve?(true)
             return
         }
         
@@ -144,7 +146,6 @@ import stream_react_native_webrtc
                 "supportsDTMF": supportsDTMF ? "1" : "0",
                 "supportsGrouping": supportsGrouping ? "1" : "0",
                 "supportsUngrouping": supportsUngrouping ? "1" : "0",
-                "fromPushKit": fromPushKit ? "1" : "0",
                 "payload": payload ?? ""
             ]
             
@@ -164,6 +165,9 @@ import stream_react_native_webrtc
                 #if DEBUG
                 print("[Callingx][reportNewIncomingCall] success callId = \(callId)")
                 #endif
+                resolve?(true)
+            } else {
+              reject?("DISPLAY_INCOMING_CALL_ERROR", error?.localizedDescription, error)
             }
             
             completion?()
@@ -384,8 +388,10 @@ import stream_react_native_webrtc
         callId: String,
         phoneNumber: String,
         callerName: String,
-        hasVideo: Bool
-    ) -> Bool {
+        hasVideo: Bool,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
         let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId)
         CallingxImpl.reportNewIncomingCall(
             callId: callId,
@@ -397,9 +403,10 @@ import stream_react_native_webrtc
             supportsDTMF: false,
             supportsGrouping: false,
             supportsUngrouping: false,
-            fromPushKit: false,
             payload: nil,
-            completion: nil
+            completion: nil,
+            resolve: resolve,
+            reject: reject
         )
         
         let wasAlreadyAnswered = uuid != nil
@@ -416,7 +423,6 @@ import stream_react_native_webrtc
                 }
             }
         }
-        return true
     }
     
     @objc public func endCall(_ callId: String) -> Bool {

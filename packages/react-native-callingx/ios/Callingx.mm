@@ -55,7 +55,6 @@
                  supportsDTMF:(BOOL)supportsDTMF
              supportsGrouping:(BOOL)supportsGrouping
            supportsUngrouping:(BOOL)supportsUngrouping
-                  fromPushKit:(BOOL)fromPushKit
                       payload:(NSDictionary *_Nullable)payload
         withCompletionHandler:(void (^_Nullable)(void))completion {
   
@@ -68,9 +67,11 @@
                                    supportsDTMF:supportsDTMF
                                supportsGrouping:supportsGrouping
                              supportsUngrouping:supportsUngrouping
-                                    fromPushKit:fromPushKit
                                         payload:payload
-                                     completion:completion];
+                                     completion:completion
+                                        resolve:nil
+                                         reject:nil
+  ];
 }
 
 + (BOOL)canRegisterCall {
@@ -168,11 +169,13 @@
              displayOptions:(JS::NativeCallingx::SpecDisplayIncomingCallDisplayOptions &)displayOptions
                     resolve:(nonnull RCTPromiseResolveBlock)resolve
                      reject:(nonnull RCTPromiseRejectBlock)reject {
-  BOOL result = [_moduleImpl displayIncomingCallWithCallId:callId
-                                         phoneNumber:phoneNumber
-                                          callerName:callerName
-                                            hasVideo:hasVideo];
-  resolve(@(result));
+  [_moduleImpl displayIncomingCallWithCallId:callId
+                                 phoneNumber:phoneNumber
+                                  callerName:callerName
+                                    hasVideo:hasVideo
+                                     resolve:resolve
+                                      reject:reject
+  ];
 }
 
 - (void)endCallWithReason:(nonnull NSString *)callId

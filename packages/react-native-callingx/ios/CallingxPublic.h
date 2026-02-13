@@ -21,9 +21,8 @@ NS_ASSUME_NONNULL_BEGIN
  *                    supportsDTMF:NO
  *                supportsGrouping:NO
  *              supportsUngrouping:NO
- *                     fromPushKit:YES
  *                         payload:payload
- *           withCompletionHandler:^{ }];
+ *           withCompletionHandler:^(void){ }];
  * ```
  */
 @interface Callingx : NSObject
@@ -41,9 +40,8 @@ NS_ASSUME_NONNULL_BEGIN
  * @param supportsDTMF Whether the call supports DTMF tones
  * @param supportsGrouping Whether the call can be grouped with other calls
  * @param supportsUngrouping Whether the call can be ungrouped
- * @param fromPushKit Whether this call is from a PushKit notification
  * @param payload Optional payload data from the push notification
- * @param completion Completion handler called after the call is reported
+ * @param completion Completion handler called after the call is reported, with an error if the call could not be displayed
  */
 + (void)reportNewIncomingCall:(NSString *)callId
                        handle:(NSString *)handle
@@ -54,7 +52,6 @@ NS_ASSUME_NONNULL_BEGIN
                  supportsDTMF:(BOOL)supportsDTMF
              supportsGrouping:(BOOL)supportsGrouping
            supportsUngrouping:(BOOL)supportsUngrouping
-                  fromPushKit:(BOOL)fromPushKit
                       payload:(NSDictionary * _Nullable)payload
         withCompletionHandler:(void (^_Nullable)(void))completion;
 
