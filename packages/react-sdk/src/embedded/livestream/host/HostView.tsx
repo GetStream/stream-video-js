@@ -6,7 +6,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { PaginatedGridLayout } from '../../../core';
+import { useLayout } from '../../hooks';
 import {
   CallParticipantsList,
   CancelCallConfirmButton,
@@ -58,6 +58,7 @@ export const HostView = ({
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
   const { elapsed } = useCallDuration({ source: 'live' });
+  const { Component: LayoutComponent, props: layoutProps } = useLayout();
   const [showParticipants, setShowParticipants] = useState(false);
 
   const handleCloseParticipants = useCallback(() => {
@@ -75,7 +76,7 @@ export const HostView = ({
         <PermissionRequests />
         <div className="str-video__embedded-layout">
           <div className="str-video__embedded-layout__stage">
-            <PaginatedGridLayout />
+            <LayoutComponent {...layoutProps} />
           </div>
 
           <div
@@ -162,28 +163,31 @@ export const HostView = ({
               <ScreenShareButton />
             </Restricted>
             <RecordCallConfirmationButton />
-            {isBackstageEnabled &&
-              (isLive ? (
-                <WithTooltip title={t('End Stream')}>
-                  <button
-                    className="str-video__embedded-end-stream-button"
-                    onClick={onStopLive}
-                  >
-                    <Icon icon="call-end" />
-                    <span>{t('End Stream')}</span>
-                  </button>
-                </WithTooltip>
-              ) : (
-                <WithTooltip title={t('Start Stream')}>
-                  <button
-                    className="str-video__embedded-go-live-button"
-                    onClick={onGoLive}
-                  >
-                    <StartBroadcastIcon />
-                    <span>{t('Go Live')}</span>
-                  </button>
-                </WithTooltip>
-              ))}
+            {isBackstageEnabled && (
+              <Restricted requiredGrants={[OwnCapability.UPDATE_CALL]}>
+                {isLive ? (
+                  <WithTooltip title={t('End Stream')}>
+                    <button
+                      className="str-video__embedded-end-stream-button"
+                      onClick={onStopLive}
+                    >
+                      <Icon icon="call-end" />
+                      <span>{t('Stop Live')}</span>
+                    </button>
+                  </WithTooltip>
+                ) : (
+                  <WithTooltip title={t('Start Stream')}>
+                    <button
+                      className="str-video__embedded-go-live-button"
+                      onClick={onGoLive}
+                    >
+                      <StartBroadcastIcon />
+                      <span>{t('Go Live')}</span>
+                    </button>
+                  </WithTooltip>
+                )}
+              </Restricted>
+            )}
             <CancelCallConfirmButton />
           </div>
           <div className="str-video__call-controls--group str-video__call-controls--sidebar">

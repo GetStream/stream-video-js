@@ -4,10 +4,9 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { ViewerLobby } from './ViewerLobby';
 import { LoadingIndicator } from '../../../components';
-import { LivestreamLayout } from '../../../core';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 import { useEmbeddedConfiguration } from '../../context';
-import { useLivestreamSortPreset } from '../../hooks';
+import { useLayout, useLivestreamSortPreset } from '../../hooks';
 
 const checkCanJoinEarly = (
   startsAt: Date | undefined,
@@ -44,6 +43,7 @@ const useCanJoinEarly = () => {
 export const ViewerUI = () => {
   const call = useCall();
   const { onError } = useEmbeddedConfiguration();
+  const { Component: LayoutComponent, props: layoutProps } = useLayout();
   useLivestreamSortPreset();
 
   const {
@@ -93,12 +93,5 @@ export const ViewerUI = () => {
     return <CallFeedback onJoin={canRejoin ? handleJoin : undefined} />;
   }
 
-  return (
-    <LivestreamLayout
-      showParticipantCount
-      showDuration
-      showLiveBadge
-      showSpeakerName
-    />
-  );
+  return <LayoutComponent {...layoutProps} />;
 };
