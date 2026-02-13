@@ -109,7 +109,7 @@ export interface Spec extends TurboModule {
     },
   ): Promise<void>;
 
-  isCallRegistered(callId: string): boolean;
+  isCallTracked(callId: string): boolean;
 
   hasRegisteredCall(): boolean;
 

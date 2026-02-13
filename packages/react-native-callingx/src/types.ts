@@ -76,11 +76,11 @@ export interface ICallingxModule {
   ): Promise<void>;
 
   /**
-   * Check if the call is registered in CallKit/Telecom.
+   * Check if the call is tracked in the native calling module.
    * @param callId - The call id.
    * @returns The boolean value.
    */
-  isCallRegistered(callId: string): boolean;
+  isCallTracked(callId: string): boolean;
 
   /**
    * Check if there is a registered call.

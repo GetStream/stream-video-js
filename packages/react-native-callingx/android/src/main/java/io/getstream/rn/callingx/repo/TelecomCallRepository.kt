@@ -19,6 +19,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
@@ -193,9 +194,11 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
     private fun observeCallState(): Job {
         return currentCall
+                .drop(1)
                 .scan(Pair<Call?, Call>(null, currentCall.value)) { (_, prev), next ->
                     Pair(prev, next)
                 }
+                .drop(1)
                 .onEach { (previous, current) ->
                     when {
                         previous is Call.None && current is Call.Registered -> {

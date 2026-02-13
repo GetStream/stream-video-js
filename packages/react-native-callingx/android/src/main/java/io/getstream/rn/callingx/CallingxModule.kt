@@ -307,10 +307,10 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         executeServiceAction(callId, action, promise)
     }
 
-    override fun isCallRegistered(callId: String): Boolean {
-        val isCallRegistered = callService?.isCallRegistered(callId) ?: false
-        debugLog(TAG, "[module] isCallRegistered: Is call registered: $isCallRegistered")
-        return isCallRegistered
+    override fun isCallTracked(callId: String): Boolean {
+        val isCallTracked = callService?.isCallTracked(callId) ?: false
+        debugLog(TAG, "[module] isCallTracked: Is call tracked: $isCallTracked")
+        return isCallTracked
     }
 
     override fun hasRegisteredCall(): Boolean {

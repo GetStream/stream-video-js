@@ -33,10 +33,10 @@ export const useCallingExpWithCallingStateEffect = () => {
         return;
       }
 
-      const isCallRegistered = callingx.isCallRegistered(activeCallCid);
-      if (!isCallRegistered) {
+      const isCallTracked = callingx.isCallTracked(activeCallCid);
+      if (!isCallTracked) {
         logger.debug(
-          `useCallingExpWithCallingStateEffect:No active call cid to end in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+          `useCallingExpWithCallingStateEffect:No active call cid to end in calling exp: ${activeCallCid} isCallTracked: ${isCallTracked}`,
         );
         return;
       }
@@ -61,10 +61,10 @@ export const useCallingExpWithCallingStateEffect = () => {
       return;
     }
 
-    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
-    if (!isCallRegistered) {
+    const isCallTracked = callingx.isCallTracked(activeCallCid);
+    if (!isCallTracked) {
       logger.debug(
-        `useCallingExpWithCallingStateEffect:No active call cid to update callingx: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+        `useCallingExpWithCallingStateEffect:No active call cid to update callingx: ${activeCallCid} isCallTracked: ${isCallTracked}`,
       );
       return;
     }
@@ -79,10 +79,10 @@ export const useCallingExpWithCallingStateEffect = () => {
       return;
     }
 
-    const isCallRegistered = callingx.isCallRegistered(activeCallCid);
-    if (!isCallRegistered) {
+    const isCallTracked = callingx.isCallTracked(activeCallCid);
+    if (!isCallTracked) {
       logger.debug(
-        `useCallingExpWithCallingStateEffect: No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered}`,
+        `useCallingExpWithCallingStateEffect: No active call cid to set muted in calling exp: ${activeCallCid} isCallTracked: ${isCallTracked}`,
       );
       return;
     }
@@ -109,10 +109,10 @@ export const useCallingExpWithCallingStateEffect = () => {
       async (event: { callId: string; muted: boolean }) => {
         const { callId, muted } = event;
 
-        const isCallRegistered = callingx.isCallRegistered(activeCallCid);
-        if (!isCallRegistered || callId !== activeCallCid) {
+        const isCallTracked = callingx.isCallTracked(activeCallCid);
+        if (!isCallTracked || callId !== activeCallCid) {
           logger.debug(
-            `useCallingExpWithCallingStateEffect: No active call cid to set muted in calling exp: ${activeCallCid} isCallRegistered: ${isCallRegistered} callId: ${callId}`,
+            `useCallingExpWithCallingStateEffect: No active call cid to set muted in calling exp: ${activeCallCid} isCallTracked: ${isCallTracked} callId: ${callId}`,
           );
           return;
         }

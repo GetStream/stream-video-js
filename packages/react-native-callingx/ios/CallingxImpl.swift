@@ -42,9 +42,6 @@ import stream_react_native_webrtc
     
     private var canSendEvents: Bool = false
     private var isSetup: Bool = false
-    private var isSelfAnswered: Bool = false
-    private var isSelfEnded: Bool = false
-    private var isSelfMuted: Bool = false
     
     // MARK: - Initialization
     @objc public override init() {
@@ -210,17 +207,19 @@ import stream_react_native_webrtc
         print("[Callingx][endCall] callId = \(callId) reason = \(reason)")
         #endif
         
-        guard let uuid = uuidStorage?.getUUID(forCid: callId) else {
+        guard let call = uuidStorage?.getCall(forCid: callId) else {
             #if DEBUG
             print("[Callingx][endCall] callId not found")
             #endif
             return
         }
         
+        call.markEnded()
+        
         // CXCallEndedReason raw values: failed=1, remoteEnded=2, unanswered=3, answeredElsewhere=4, declinedElsewhere=5
         let endedReason = CXCallEndedReason(rawValue: reason) ?? .failed
         
-        sharedProvider?.reportCall(with: uuid, endedAt: Date(), reason: endedReason)
+        sharedProvider?.reportCall(with: call.uuid, endedAt: call.endedAt ?? Date(), reason: endedReason)
         uuidStorage?.removeCid(callId)
     }
     
@@ -256,9 +255,13 @@ import stream_react_native_webrtc
                 print("[Callingx][requestTransaction] Error requesting transaction (\(transaction.actions)): (\(error))")
                 #endif
 
-                self?.isSelfAnswered = false
-                self?.isSelfEnded = false
-                self?.isSelfMuted = false
+                // Reset per-call action-source flags for all actions in the failed transaction
+                for action in transaction.actions {
+                    if let callAction = action as? CXCallAction,
+                       let call = CallingxImpl.uuidStorage?.getCallByUUID(callAction.callUUID) {
+                        call.resetAllSelfFlags()
+                    }
+                }
             } else {
                 #if DEBUG
                 print("[Callingx][requestTransaction] Requested transaction successfully")
@@ -368,15 +371,25 @@ import stream_react_native_webrtc
         print("[Callingx][answerIncomingCall] callId = \(callId)")
         #endif
         
-        guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+        guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
             #if DEBUG
             print("[Callingx][answerIncomingCall] callId not found")
             #endif
             return false
         }
         
-        isSelfAnswered = true
-        let answerCallAction = CXAnswerCallAction(call: uuid)
+        // Guard: already answered or ended — prevent duplicate CXAnswerCallAction transactions
+        if call.isAnswered || call.hasEnded {
+            #if DEBUG
+            print("[Callingx][answerIncomingCall] callId already answered/ended, skipping")
+            #endif
+            return true
+        }
+        
+        call.markSelfAnswered()
+        call.markStartedConnecting() // internal state: incoming call is now connecting
+        
+        let answerCallAction = CXAnswerCallAction(call: call.uuid)
         let transaction = CXTransaction()
         transaction.addAction(answerCallAction)
         
@@ -430,25 +443,35 @@ import stream_react_native_webrtc
         print("[Callingx][endCall] callId = \(callId)")
         #endif
         
-        guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+        guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
             #if DEBUG
             print("[Callingx][endCall] callId not found")
             #endif
             return false
         }
         
-        isSelfEnded = true
-        let endCallAction = CXEndCallAction(call: uuid)
+        // Guard: already ended — prevent duplicate CXEndCallAction transactions
+        if call.hasEnded {
+            #if DEBUG
+            print("[Callingx][endCall] callId already ended, skipping")
+            #endif
+            return true
+        }
+        
+        call.markSelfEnded()
+        call.markEnded()
+        
+        let endCallAction = CXEndCallAction(call: call.uuid)
         let transaction = CXTransaction(action: endCallAction)
         
         requestTransaction(transaction)
         return true
     }
     
-    @objc public func isCallRegistered(_ callId: String) -> Bool {
+    @objc public func isCallTracked(_ callId: String) -> Bool {
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
             #if DEBUG
-            print("[Callingx][isCallRegistered] callId not found")
+            print("[Callingx][isCallTracked] callId not found")
             #endif
             return false
         }
@@ -467,16 +490,18 @@ import stream_react_native_webrtc
         print("[Callingx][setCurrentCallActive] callId = \(callId)")
         #endif
       
-        guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+        guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
             #if DEBUG
             print("[Callingx][setCurrentCallActive] callId not found")
             #endif
             return false
         }
         
-        //consider to split this into to calls startedConnectingAt with startCall, connectedAt with setCurrentCallActive
-        callKeepProvider?.reportOutgoingCall(with: uuid, startedConnectingAt: Date())
-        callKeepProvider?.reportOutgoingCall(with: uuid, connectedAt: Date())
+        call.markConnected()
+        
+        // Report connected timestamp to CallKit.
+        // startedConnectingAt is reported separately in the CXStartCallAction delegate.
+        callKeepProvider?.reportOutgoingCall(with: call.uuid, connectedAt: call.connectedAt ?? Date())
         return true
     }
     
@@ -485,15 +510,15 @@ import stream_react_native_webrtc
         print("[Callingx][setMutedCall] muted = \(isMuted)")
         #endif
         
-        guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+        guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
             #if DEBUG
             print("[Callingx][setMutedCall] callId not found")
             #endif
             return false
         }
         
-        isSelfMuted = true
-        let setMutedAction = CXSetMutedCallAction(call: uuid, muted: isMuted)
+        call.markSelfMuted()
+        let setMutedAction = CXSetMutedCallAction(call: call.uuid, muted: isMuted)
         let transaction = CXTransaction()
         transaction.addAction(setMutedAction)
         
@@ -540,10 +565,12 @@ import stream_react_native_webrtc
           return
         }
         
+        let call = storage.getOrCreateCall(forCid: callId, isOutgoing: true)
+        call.markStartedConnecting() // outgoing: will be reported via reportOutgoingCall(startedConnectingAt:)
+        
         let handleType = Settings.getHandleType("generic")
-        let uuid = storage.getOrCreateUUID(forCid: callId)
         let callHandle = CXHandle(type: handleType, value: phoneNumber)
-        let startCallAction = CXStartCallAction(call: uuid, handle: callHandle)
+        let startCallAction = CXStartCallAction(call: call.uuid, handle: callHandle)
         startCallAction.isVideo = hasVideo
         startCallAction.contactIdentifier = callerName
         
@@ -584,7 +611,7 @@ import stream_react_native_webrtc
         print("[Callingx][CXProviderDelegate][provider:performStartCallAction]")
         #endif
         
-        guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {    
+        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
             #if DEBUG
             print("[Callingx][CXProviderDelegate][provider:performStartCallAction] callId not found")
             #endif
@@ -596,19 +623,19 @@ import stream_react_native_webrtc
         AudioSessionManager.createAudioSessionIfNeeded()
         
         sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
-            "callId": callId,
+            "callId": call.cid,
             "handle": action.handle.value
         ])
         
         action.fulfill()
+        
+        // Report startedConnectingAt to CallKit now that the action is fulfilled.
+        // The timestamp was set in startCall when the call was created.
+        callKeepProvider?.reportOutgoingCall(with: call.uuid, startedConnectingAt: call.startedConnectingAt ?? Date())
     }
     
     public func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
-        #if DEBUG
-        print("[Callingx][CXProviderDelegate][provider:performAnswerCallAction] isSelfAnswered: \(isSelfAnswered)")
-        #endif
-        
-        guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
+        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
             #if DEBUG
             print("[Callingx][CXProviderDelegate][provider:performAnswerCallAction] callId not found")
             #endif
@@ -616,25 +643,29 @@ import stream_react_native_webrtc
             return
         }
         
+        #if DEBUG
+        print("[Callingx][CXProviderDelegate][provider:performAnswerCallAction] isSelfAnswered: \(call.isSelfAnswered)")
+        #endif
+        
         getAudioDeviceModule()?.reset()
         AudioSessionManager.createAudioSessionIfNeeded()
         
-        let source = isSelfAnswered ? "app" : "sys"
+        let source = call.isSelfAnswered ? "app" : "sys"
         sendEvent(CallingxEvents.performAnswerCallAction, body: [
-            "callId": callId,
+            "callId": call.cid,
             "source": source
         ])
         
-        isSelfAnswered = false
+        call.resetSelfAnswered()
+        call.markConnected() // incoming: call is now connected
+        // TODO: Use action.fulfill(withDateConnected: call.connectedAt ?? Date()) instead of bare
+        // action.fulfill() to give CallKit more accurate call duration tracking in the system call log.
+        // to be done with pending action fulfillment
         action.fulfill()
     }
     
     public func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        #if DEBUG
-        print("[Callingx][CXProviderDelegate][provider:performEndCallAction] isSelfEnded: \(isSelfEnded)")
-        #endif
-        
-        guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
+        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
             #if DEBUG
             print("[Callingx][CXProviderDelegate][provider:performEndCallAction] callId not found")
             #endif
@@ -642,14 +673,19 @@ import stream_react_native_webrtc
             return
         }
         
-        let source = isSelfEnded ? "app" : "sys"
+        #if DEBUG
+        print("[Callingx][CXProviderDelegate][provider:performEndCallAction] isSelfEnded: \(call.isSelfEnded)")
+        #endif
+        
+        let source = call.isSelfEnded ? "app" : "sys"
         sendEvent(CallingxEvents.performEndCallAction, body: [
-            "callId": callId,
+            "callId": call.cid,
             "source": source
         ])
         
-        isSelfEnded = false
-        CallingxImpl.uuidStorage?.removeCid(callId)
+        call.resetSelfEnded()
+        call.markEnded()
+        CallingxImpl.uuidStorage?.removeCid(call.cid)
         
         action.fulfill()
     }
@@ -676,20 +712,20 @@ import stream_react_native_webrtc
     }
     
     public func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
-        let isAppInitiated = isSelfMuted
-        isSelfMuted = false
-        
-        #if DEBUG
-        print("[Callingx][CXProviderDelegate][provider:performSetMutedCallAction] \(action.isMuted) isAppInitiated: \(isAppInitiated)")
-        #endif
-        
-        guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
+        guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
             #if DEBUG
             print("[Callingx][CXProviderDelegate][provider:performSetMutedCallAction] callId not found")
             #endif
             action.fail()
             return
         }
+        
+        let isAppInitiated = call.isSelfMuted
+        call.resetSelfMuted()
+        
+        #if DEBUG
+        print("[Callingx][CXProviderDelegate][provider:performSetMutedCallAction] \(action.isMuted) isAppInitiated: \(isAppInitiated)")
+        #endif
         
         // Only send the event to JS when the mute was initiated by the system
         // (e.g. user tapped mute on the native CallKit UI).
@@ -698,7 +734,7 @@ import stream_react_native_webrtc
         if !isAppInitiated {
             sendEvent(CallingxEvents.didPerformSetMutedCallAction, body: [
                 "muted": action.isMuted,
-                "callId": callId
+                "callId": call.cid
             ])
         }
         

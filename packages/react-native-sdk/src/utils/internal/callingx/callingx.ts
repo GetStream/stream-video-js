@@ -74,7 +74,7 @@ export async function startCallingxCall(call: Call) {
   );
 
   if (
-    !CallingxModule.isCallRegistered(call.cid) &&
+    !CallingxModule.isCallTracked(call.cid) &&
     (isOutcomingCall || (!call.ringing && CallingxModule.isOngoingCallsEnabled))
   ) {
     try {
@@ -90,6 +90,7 @@ export async function startCallingxCall(call: Call) {
         await waitForAudioSessionActivation();
       }
 
+      // TODO: this must be done after join call is complete
       CallingxModule.setCurrentCallActive(call.cid);
     } catch (error) {
       logger.error(
@@ -127,7 +128,7 @@ export async function endCallingxCall(call: Call) {
   if (
     !CallingxModule ||
     !CallingxModule.isSetup ||
-    !CallingxModule.isCallRegistered(call.cid)
+    !CallingxModule.isCallTracked(call.cid)
   ) {
     return;
   }
