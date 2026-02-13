@@ -13,7 +13,6 @@ import {
   type EventParams,
 } from './libs/callingx';
 import { Platform } from 'react-native';
-import { callManager } from '../../modules/call-manager';
 import { resolveDisplayIncomingCall } from '../internal/callingx/displayIncomingCallPromise';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
@@ -93,7 +92,6 @@ const onDidActivateAudioSession = () => {
 
 const onDidDeactivateAudioSession = () => {
   logger.debug('callingExpDidDeactivateAudioSession');
-  callManager.reset();
 };
 
 const onDidDisplayIncomingCall = () => {

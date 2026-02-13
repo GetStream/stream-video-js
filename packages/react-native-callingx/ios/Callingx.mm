@@ -3,6 +3,7 @@
 
 #import <AVFoundation/AVAudioSession.h>
 #import <CallKit/CallKit.h>
+#import "WebRTCModule.h"
 
 // Import Swift generated header
 #if __has_include("Callingx-Swift.h")
@@ -126,6 +127,12 @@
   };
   
   [_moduleImpl setupWithOptions:optionsDict];
+  
+  // Inject WebRTCModule so CallingxImpl can access AudioDeviceModule.
+  // self.bridge is NOT available on TurboModules — use currentBridge instead,
+  // which returns the real RCTBridge or RCTBridgeProxy (bridgeless interop).
+  WebRTCModule *webrtcModule = [[RCTBridge currentBridge] moduleForName:@"WebRTCModule"];
+  _moduleImpl.webRTCModule = webrtcModule;
   
   self.callKeepCallController = _moduleImpl.callKeepCallController;
   self.callKeepProvider = _moduleImpl.callKeepProvider;

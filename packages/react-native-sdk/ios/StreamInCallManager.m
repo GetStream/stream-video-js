@@ -11,8 +11,6 @@ RCT_EXTERN_METHOD(setEnableStereoAudioOutput:(BOOL)enable)
 
 RCT_EXTERN_METHOD(setup)
 
-RCT_EXTERN_METHOD(reset)
-
 RCT_EXTERN_METHOD(start)
 
 RCT_EXTERN_METHOD(stop)

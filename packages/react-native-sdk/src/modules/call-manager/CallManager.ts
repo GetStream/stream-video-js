@@ -144,16 +144,6 @@ export class CallManager {
   };
 
   /**
-   * Resets the audio device module.
-   */
-  reset = (): void => {
-    videoLoggerSystem
-      .getLogger('CallManager')
-      .debug('reset: resetting audio device module');
-    NativeManager.reset();
-  };
-
-  /**
    * For debugging purposes, will emit a log event with the current audio state.
    * in the native layer.
    */
