@@ -1,4 +1,5 @@
 import { StreamSfuClient } from './StreamSfuClient';
+import { SfuJoinError } from './errors';
 import {
   BasePeerConnectionOpts,
   Dispatcher,
@@ -166,7 +167,6 @@ import {
   promiseWithResolvers,
 } from './helpers/promise';
 import { GetCallStatsResponse } from './gen/shims';
-import { SfuJoinError } from './errors/SfuJoinError';
 
 /**
  * An object representation of a `Call`.

@@ -39,7 +39,7 @@ import {
 } from './helpers/promise';
 import { getTimers } from './timers';
 import { Tracer, TraceSlice } from './stats';
-import { SfuJoinError } from './errors/SfuJoinError';
+import { SfuJoinError } from './errors';
 
 export type StreamSfuClientConstructor = {
   /**
