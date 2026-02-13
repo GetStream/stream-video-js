@@ -539,33 +539,40 @@ export class StreamSfuClient {
     const current = this.joinResponseTask;
 
     let timeoutId: NodeJS.Timeout | undefined = undefined;
-    const unsubscribeJoinErrorEvents = this.dispatcher.on(
+    let unsubscribeJoinResponse: (() => void) | undefined = undefined;
+    let unsubscribeJoinErrorEvents: (() => void) | undefined = undefined;
+
+    const cleanupJoinSubscriptions = () => {
+      clearTimeout(timeoutId);
+      timeoutId = undefined;
+      unsubscribeJoinErrorEvents?.();
+      unsubscribeJoinErrorEvents = undefined;
+      unsubscribeJoinResponse?.();
+      unsubscribeJoinResponse = undefined;
+    };
+
+    unsubscribeJoinErrorEvents = this.dispatcher.on(
       'error',
       this.tag,
       (event) => {
         if (SfuJoinError.isJoinErrorCode(event)) {
-          clearTimeout(timeoutId);
-          unsubscribe?.();
-          unsubscribeJoinErrorEvents();
+          cleanupJoinSubscriptions();
           current.reject(new SfuJoinError(event));
         }
       },
     );
-    const unsubscribe = this.dispatcher.on(
+    unsubscribeJoinResponse = this.dispatcher.on(
       'joinResponse',
       this.tag,
       (joinResponse) => {
-        clearTimeout(timeoutId);
-        unsubscribe();
-        unsubscribeJoinErrorEvents();
+        cleanupJoinSubscriptions();
         this.keepAlive();
         current.resolve(joinResponse);
       },
     );
 
     timeoutId = setTimeout(() => {
-      unsubscribe();
-      unsubscribeJoinErrorEvents();
+      cleanupJoinSubscriptions();
       const message = `Waiting for "joinResponse" has timed out after ${this.joinResponseTimeout}ms`;
       this.tracer?.trace('joinRequestTimeout', message);
       current.reject(new Error(message));
