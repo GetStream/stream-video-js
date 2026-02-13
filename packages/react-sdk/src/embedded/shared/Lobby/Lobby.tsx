@@ -17,7 +17,7 @@ import { ToggleCameraButton } from './ToggleCameraButton';
 import { useEmbeddedConfiguration } from '../../context';
 
 interface LobbyProps {
-  onJoin: (displayName?: string) => Promise<void>;
+  onJoin: () => Promise<void>;
   title?: string;
   joinLabel?: string;
 }
@@ -113,6 +113,7 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const { onError } = useEmbeddedConfiguration();
 
   const [showError, setShowError] = useState<boolean>(false);
+  const [isJoining, setIsJoining] = useState(false);
 
   const displayName = user?.name ?? '';
   const hasOtherParticipants = (callSession?.participants?.length || 0) > 0;
@@ -120,11 +121,14 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const resolvedTitle = title ?? t('Set up your call before joining');
 
   const handleJoin = useCallback(async () => {
+    setIsJoining(true);
+    setShowError(false);
     try {
       await onJoin();
     } catch (e) {
       onError?.(e);
       setShowError(true);
+      setIsJoining(false);
     }
   }, [onJoin, onError]);
 
@@ -179,7 +183,11 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
             {displayName}
           </span>
 
-          <button className="str-video__button" onClick={handleJoin}>
+          <button
+            className="str-video__button"
+            onClick={handleJoin}
+            disabled={isJoining}
+          >
             <Icon className="str-video__button__icon" icon="login" />
             {resolvedJoinLabel}
           </button>

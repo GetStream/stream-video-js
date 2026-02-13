@@ -168,6 +168,7 @@ const RatingScreen = ({ onSubmit }: RatingScreenProps) => {
         <StarRating value={rating} onChange={setRating} />
 
         <textarea
+          aria-label={t('Feedback message')}
           className="str-video__embedded-call-feedback__textarea"
           placeholder={t('Tell us about your experience...')}
           value={message}
