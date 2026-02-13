@@ -99,21 +99,20 @@ const onDidDeactivateAudioSession = () => {
   logger.debug('callingExpDidDeactivateAudioSession');
 };
 
-const onAcceptCall = ({
-  callId: call_cid,
-  source,
-}: EventParams['answerCall']) => {
-  logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
+const onAcceptCall =
+  (pushConfig: PushConfig) =>
+  async ({ callId: call_cid, source }: EventParams['answerCall']) => {
+    logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
 
-  if (source === 'app' || !call_cid) {
-    //we only need to process the call if the call was answered from the system
-    return;
-  }
+    if (source === 'app' || !call_cid) {
+      //we only need to process the call if the call was answered from the system
+      return;
+    }
 
-  clearPushWSEventSubscriptions(call_cid);
-  // to process the call in the app
-  await processCallFromPushInBackground(pushConfig, call_cid, 'accept');
-};
+    clearPushWSEventSubscriptions(call_cid);
+    // to process the call in the app
+    await processCallFromPushInBackground(pushConfig, call_cid, 'accept');
+  };
 
 const onEndCall =
   (pushConfig: PushConfig) =>
