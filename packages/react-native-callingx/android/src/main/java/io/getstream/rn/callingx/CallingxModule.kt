@@ -221,14 +221,23 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             mainHandler.postDelayed(timeoutRunnable, displayTimeoutMs)
         }
 
-        startCallService(
-                CallService.ACTION_INCOMING_CALL,
-                callId,
-                callerName,
-                phoneNumber,
-                hasVideo,
-                displayOptions
-        )
+        try {
+            startCallService(
+                    CallService.ACTION_INCOMING_CALL,
+                    callId,
+                    callerName,
+                    phoneNumber,
+                    hasVideo,
+                    displayOptions
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "[module] displayIncomingCall: Failed to start foreground service: ${e.message}", e)
+            synchronized(pendingDisplayPromises) {
+                pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
+                pendingDisplayPromises.remove(callId)
+            }
+            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+        }
     }
 
     override fun answerIncomingCall(callId: String, promise: Promise) {
@@ -258,16 +267,20 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             return
         }
 
-        startCallService(
-                CallService.ACTION_OUTGOING_CALL,
-                callId,
-                callerName,
-                phoneNumber,
-                hasVideo,
-                displayOptions
-        )
-
-        promise.resolve(true)
+        try {
+            startCallService(
+                    CallService.ACTION_OUTGOING_CALL,
+                    callId,
+                    callerName,
+                    phoneNumber,
+                    hasVideo,
+                    displayOptions
+            )
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "[module] startCall: Failed to start foreground service: ${e.message}", e)
+            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+        }
     }
 
     override fun updateDisplay(
@@ -284,15 +297,20 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         }
 
         // for now only display options will be updated, rest of the parameters will be ignored
-        startCallService(
-                CallService.ACTION_UPDATE_CALL,
-                callId,
-                callerName,
-                phoneNumber,
-                true,
-                displayOptions,
-        )
-        promise.resolve(true)
+        try {
+            startCallService(
+                    CallService.ACTION_UPDATE_CALL,
+                    callId,
+                    callerName,
+                    phoneNumber,
+                    true,
+                    displayOptions,
+            )
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "[module] updateDisplay: Failed to start foreground service: ${e.message}", e)
+            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+        }
     }
 
     override fun endCallWithReason(callId: String, reason: Double, promise: Promise) {
@@ -332,28 +350,38 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     }
 
     override fun startBackgroundTask(taskName: String, timeout: Double, promise: Promise) {
-        Intent(reactApplicationContext, CallService::class.java)
-                .apply {
-                    this.action = CallService.ACTION_START_BACKGROUND_TASK
-                    putExtra(CallService.EXTRA_TASK_NAME, taskName)
-                    putExtra(CallService.EXTRA_TASK_DATA, Bundle())
-                    putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
-                }
-                .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+        try {
+            Intent(reactApplicationContext, CallService::class.java)
+                    .apply {
+                        this.action = CallService.ACTION_START_BACKGROUND_TASK
+                        putExtra(CallService.EXTRA_TASK_NAME, taskName)
+                        putExtra(CallService.EXTRA_TASK_DATA, Bundle())
+                        putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
+                    }
+                    .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
 
-        promise.resolve(true)
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "[module] startBackgroundTask: Failed to start foreground service: ${e.message}", e)
+            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+        }
     }
 
     override fun stopBackgroundTask(taskName: String, promise: Promise) {
-        Intent(reactApplicationContext, CallService::class.java)
-                .apply {
-                    this.action = CallService.ACTION_STOP_BACKGROUND_TASK
-                    putExtra(CallService.EXTRA_TASK_NAME, taskName)
-                }
-                .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+        try {
+            Intent(reactApplicationContext, CallService::class.java)
+                    .apply {
+                        this.action = CallService.ACTION_STOP_BACKGROUND_TASK
+                        putExtra(CallService.EXTRA_TASK_NAME, taskName)
+                    }
+                    .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
 
-        isHeadlessTaskRegistered = false
-        promise.resolve(true)
+            isHeadlessTaskRegistered = false
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "[module] stopBackgroundTask: Failed to start foreground service: ${e.message}", e)
+            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+        }
     }
 
     override fun registerBackgroundTaskAvailable() {
@@ -408,14 +436,18 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             return
         }
 
-        Intent(reactApplicationContext, CallService::class.java)
-                .apply {
-                    this.action = CallService.ACTION_START_BACKGROUND_TASK
-                    putExtra(CallService.EXTRA_TASK_NAME, taskName)
-                    putExtra(CallService.EXTRA_TASK_DATA, Bundle())
-                    putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
-                }
-                .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+        try {
+            Intent(reactApplicationContext, CallService::class.java)
+                    .apply {
+                        this.action = CallService.ACTION_START_BACKGROUND_TASK
+                        putExtra(CallService.EXTRA_TASK_NAME, taskName)
+                        putExtra(CallService.EXTRA_TASK_DATA, Bundle())
+                        putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
+                    }
+                    .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+        } catch (e: Exception) {
+            Log.e(TAG, "[module] startBackgroundTaskAutomatically: Failed to start foreground service: ${e.message}", e)
+        }
     }
 
     private fun executeServiceAction(callId: String, action: CallAction, promise: Promise) {
