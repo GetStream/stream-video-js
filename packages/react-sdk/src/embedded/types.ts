@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 /**
  * Log level for the StreamVideoClient.
@@ -84,6 +84,7 @@ export interface EmbeddedClientBaseProps {
   layout?: LayoutOption;
   style?: CSSProperties;
   onError?: (error: any) => void;
+  children?: ReactNode;
 }
 
 /**

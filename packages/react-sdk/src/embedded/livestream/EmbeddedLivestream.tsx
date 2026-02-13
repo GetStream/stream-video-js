@@ -28,10 +28,24 @@ import { LivestreamUI } from './LivestreamUI';
  *   user={{ type: 'anonymous' }}
  *   callId="my-stream"
  * />
+ *
+ * // With additional content alongside the default UI
+ * <EmbeddedLivestream
+ *   apiKey="YOUR_API_KEY"
+ *   user={{ type: 'authenticated', id: 'host-1', name: 'Jane' }}
+ *   callId="my-stream"
+ *   token="user-token"
+ * >
+ *   <MyCustomOverlay />
+ * </EmbeddedLivestream>
  * ```
  */
-export const EmbeddedLivestream = (props: EmbeddedLivestreamProps) => (
+export const EmbeddedLivestream = ({
+  children,
+  ...props
+}: EmbeddedLivestreamProps) => (
   <EmbeddedClientProvider {...props}>
     <LivestreamUI />
+    {children}
   </EmbeddedClientProvider>
 );
