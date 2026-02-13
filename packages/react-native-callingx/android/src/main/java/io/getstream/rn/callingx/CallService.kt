@@ -315,8 +315,6 @@ class CallService : Service(), CallRepository.Listener {
         // Track immediately when registration flow starts, mirroring iOS semantics.
         trackedCallIds.add(callInfo.callId)
 
-        val callInfo = extractIntentParams(intent)
-
         // If we have an ongoing call, notify the module that registration is
         // already done (so the pending promise resolves) and skip re-registration.
         if (callRepository.currentCall.value is Call.Registered) {
