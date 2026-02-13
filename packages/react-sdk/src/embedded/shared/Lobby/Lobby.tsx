@@ -123,7 +123,7 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
     } catch {
       setShowError(true);
     }
-  }, [onJoin, setShowError]);
+  }, [onJoin]);
 
   const resolvedJoinLabel =
     joinLabel ?? (hasOtherParticipants ? t('Join') : t('Start call'));
@@ -186,7 +186,7 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
           className="str-video__embedded-lobby__join-error"
           role="status"
           aria-live="polite"
-          data-visible={showError}
+          data-visible={!showError}
         >
           {t('Failed to join. Please try again.')}
         </p>

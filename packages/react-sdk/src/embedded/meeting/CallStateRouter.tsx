@@ -30,7 +30,7 @@ export const CallStateRouter = () => {
       }
     } catch (err) {
       console.error('Failed to join call:', err);
-      onError?.(err, 'join');
+      onError?.(err);
       throw err;
     }
   }, [call, callingState, onError]);

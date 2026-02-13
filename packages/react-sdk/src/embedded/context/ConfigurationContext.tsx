@@ -1,9 +1,9 @@
 import { createContext, useContext, useMemo, PropsWithChildren } from 'react';
-import type { LayoutOption, EmbeddedErrorType } from '../types';
+import type { LayoutOption } from '../types';
 
 export interface EmbeddedConfiguration {
   layout?: LayoutOption;
-  onError?: (error: any, type: EmbeddedErrorType) => void;
+  onError?: (error: any) => void;
 }
 
 const defaultConfiguration: EmbeddedConfiguration = {

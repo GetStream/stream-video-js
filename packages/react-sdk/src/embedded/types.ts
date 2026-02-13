@@ -6,11 +6,6 @@ import type { CSSProperties, ReactNode } from 'react';
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
 
 /**
- * Identifies where an error originated during initialization.
- */
-export type EmbeddedErrorType = 'client' | 'call' | 'join';
-
-/**
  * Available layout options (internal use only).
  */
 export type LayoutOption =

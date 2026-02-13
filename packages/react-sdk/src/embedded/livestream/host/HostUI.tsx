@@ -40,7 +40,7 @@ export const HostUI = () => {
       }
     } catch (err) {
       console.error('Failed to join call:', err);
-      onError?.(err, 'join');
+      onError?.(err);
       throw err;
     }
   }, [call, onError, callingState]);
@@ -55,7 +55,7 @@ export const HostUI = () => {
       await call.goLive();
     } catch (err) {
       console.error('Failed to go live:', err);
-      onError?.(err, 'join');
+      onError?.(err);
     }
   }, [call, onError]);
 
@@ -65,7 +65,7 @@ export const HostUI = () => {
       await call.stopLive();
     } catch (err) {
       console.error('Failed to stop live:', err);
-      onError?.(err, 'join');
+      onError?.(err);
     }
   }, [call, onError]);
 

@@ -3,7 +3,6 @@ import {
   NoiseCancellationSettingsModeEnum,
   type Call,
 } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 type INoiseCancellation =
   import('@stream-io/audio-filters-web').INoiseCancellation;
@@ -21,9 +20,7 @@ export const useNoiseCancellationLoader = (call?: Call) => {
   const [ready, setReady] = useState(false);
   const ncLoader = useRef<Promise<void> | undefined>(undefined);
 
-  const { useCallSettings } = useCallStateHooks();
-  const settings = useCallSettings();
-  const ncSettings = settings?.audio?.noise_cancellation;
+  const ncSettings = call?.state.settings?.audio?.noise_cancellation;
   const isNoiseCancellationEnabled = !!(
     ncSettings && ncSettings.mode !== NoiseCancellationSettingsModeEnum.DISABLED
   );

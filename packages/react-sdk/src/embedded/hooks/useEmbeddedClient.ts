@@ -1,12 +1,7 @@
 import { useInitializeVideoClient } from './useInitializeVideoClient';
 import { useInitializeCall } from './useInitializeCall';
 import { useNoiseCancellationLoader } from './useNoiseCancellationLoader';
-import type {
-  EmbeddedUser,
-  EmbeddedErrorType,
-  TokenProvider,
-  LogLevel,
-} from '../types';
+import type { EmbeddedUser, TokenProvider, LogLevel } from '../types';
 
 export interface UseEmbeddedClientProps {
   apiKey: string;
@@ -16,7 +11,7 @@ export interface UseEmbeddedClientProps {
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
-  onError: (error: any, type: EmbeddedErrorType) => void;
+  handleError: (error: any) => void;
 }
 
 /**
@@ -31,7 +26,7 @@ export const useEmbeddedClient = ({
   token,
   tokenProvider,
   logLevel,
-  onError,
+  handleError,
 }: UseEmbeddedClientProps) => {
   const client = useInitializeVideoClient({
     apiKey,
@@ -39,14 +34,14 @@ export const useEmbeddedClient = ({
     token,
     tokenProvider,
     logLevel,
-    onError,
+    handleError,
   });
 
   const call = useInitializeCall({
     client,
     callType,
     callId,
-    onError,
+    handleError,
   });
 
   const { noiseCancellation, ready: noiseCancellationReady } =

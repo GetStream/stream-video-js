@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { StreamVideoClient, User } from '@stream-io/video-client';
-import type {
-  EmbeddedErrorType,
-  EmbeddedUser,
-  LogLevel,
-  TokenProvider,
-} from '../types';
+import type { EmbeddedUser, LogLevel, TokenProvider } from '../types';
 
 export interface UseInitializeVideoClientProps {
   apiKey: string;
@@ -13,7 +8,7 @@ export interface UseInitializeVideoClientProps {
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
-  onError: (error: any, type: EmbeddedErrorType) => void;
+  handleError: (error: any) => void;
 }
 
 /**
@@ -31,7 +26,7 @@ export const useInitializeVideoClient = ({
   token,
   tokenProvider,
   logLevel,
-  onError,
+  handleError,
 }: UseInitializeVideoClientProps): StreamVideoClient | undefined => {
   const [client, setClient] = useState<StreamVideoClient | undefined>();
 
@@ -39,9 +34,6 @@ export const useInitializeVideoClient = ({
 
   const tokenProviderRef = useRef(tokenProvider);
   tokenProviderRef.current = tokenProvider;
-
-  const onErrorRef = useRef(onError);
-  onErrorRef.current = onError;
 
   const streamUser = useMemo<User>(() => {
     const base = {
@@ -91,7 +83,7 @@ export const useInitializeVideoClient = ({
       setClient(_client);
     } catch (err) {
       console.error('Failed to initialize StreamVideoClient:', err);
-      onErrorRef.current(err, 'client');
+      handleError(err);
     }
 
     return () => {
@@ -106,7 +98,7 @@ export const useInitializeVideoClient = ({
         setClient(undefined);
       }
     };
-  }, [apiKey, streamUser, token, logLevel]);
+  }, [apiKey, streamUser, token, logLevel, handleError]);
 
   return client;
 };

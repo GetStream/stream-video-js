@@ -5,7 +5,10 @@ import {
   type ReactNode,
 } from 'react';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
-import { useEffectEvent as useEffectEventShim } from '@stream-io/video-react-bindings';
+import {
+  useEffectEvent as useEffectEventShim,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 
 import { StreamCall, StreamVideo } from '../core';
 import {
@@ -17,18 +20,11 @@ import { ConfigurationProvider } from './context';
 import { useEmbeddedClient } from './hooks';
 import type {
   EmbeddedUser,
-  EmbeddedErrorType,
   TokenProvider,
   LogLevel,
   LayoutOption,
 } from './types';
 import { LoadingIndicator } from '../components';
-
-const errorMessages: Record<EmbeddedErrorType, string> = {
-  client: 'Failed to connect. Please check your connection and try again.',
-  call: 'This call is unavailable.',
-  join: 'Failed to join. Please try again.',
-};
 
 export interface EmbeddedClientProviderProps {
   apiKey: string;
@@ -78,12 +74,13 @@ export const EmbeddedClientProvider = ({
   style,
   children,
 }: EmbeddedClientProviderProps) => {
-  const [errorType, setErrorType] = useState<EmbeddedErrorType>();
+  const { t } = useI18n();
+  const [showError, setShowError] = useState<boolean>(false);
 
   const onErrorStable = useEffectEventShim(onError ?? (() => {}));
   const handleError = useCallback(
-    (error: any, type: EmbeddedErrorType) => {
-      setErrorType(type);
+    (error: any) => {
+      setShowError(true);
       onErrorStable(error);
     },
     [onErrorStable],
@@ -98,15 +95,17 @@ export const EmbeddedClientProvider = ({
       token,
       tokenProvider,
       logLevel,
-      onError: handleError,
+      handleError,
     });
 
-  if (errorType) {
+  if (showError) {
     return (
       <StreamTheme className="str-video__embedded">
         <div className="str-video__embedded-error">
           <p className="str-video__embedded-error__message">
-            {errorMessages[errorType]}
+            {t(
+              'An error occurred while initializing the client. Please try again later',
+            )}
           </p>
         </div>
       </StreamTheme>
