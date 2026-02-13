@@ -37,8 +37,10 @@ import Foundation
     public var isConnected: Bool { connectedAt != nil }
     public var hasEnded: Bool { endedAt != nil }
     /// Whether the call has been answered (incoming) or started connecting (outgoing).
+    /// Checks both startedConnectingAt (set by answerIncomingCall from app) and connectedAt
+    /// (set by CXAnswerCallAction delegate, which fires even when answered from system UI).
     /// Used as the primary guard against duplicate answerIncomingCall invocations.
-    public var isAnswered: Bool { startedConnectingAt != nil }
+    public var isAnswered: Bool { startedConnectingAt != nil || connectedAt != nil }
 
     // MARK: - Initialization
 

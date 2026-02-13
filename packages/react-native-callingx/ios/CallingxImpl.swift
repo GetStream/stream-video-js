@@ -459,6 +459,7 @@ import stream_react_native_webrtc
         }
         
         call.markSelfEnded()
+        call.markEnded()
         
         let endCallAction = CXEndCallAction(call: call.uuid)
         let transaction = CXTransaction(action: endCallAction)
