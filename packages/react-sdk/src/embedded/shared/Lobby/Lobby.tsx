@@ -5,16 +5,9 @@ import {
   useConnectedUser,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import {
-  Avatar,
-  Icon,
-  ToggleAudioPreviewButton,
-  ToggleVideoPreviewButton,
-  VideoPreview,
-} from '../../../components';
-import { ToggleMicButton } from './ToggleMicButton';
-import { ToggleCameraButton } from './ToggleCameraButton';
+import { Icon } from '../../../components';
 import { useEmbeddedConfiguration } from '../../context';
+import { DeviceControls } from './DeviceControls';
 
 interface LobbyProps {
   onJoin: () => Promise<void>;
@@ -22,92 +15,16 @@ interface LobbyProps {
   joinLabel?: string;
 }
 
-interface DisabledDeviceButtonProps {
-  icon: string;
-  label: string;
-}
-
-const DisabledDeviceButton = ({ icon, label }: DisabledDeviceButtonProps) => (
-  <div className="str-video__embedded-lobby__device-button str-video__embedded-lobby__device-button--disabled">
-    <Icon
-      className="str-video__embedded-lobby__device-button-icon"
-      icon={icon}
-    />
-    <span className="str-video__embedded-lobby__device-button-label">
-      {label}
-    </span>
-  </div>
-);
-
-const PermissionMessage = ({ message }: { message: string }) => (
-  <div className="str-video__embedded-lobby__no-permission">
-    <p>{message}</p>
-  </div>
-);
-
-const DisabledVideoPreview = () => {
-  const { t } = useI18n();
-  const user = useConnectedUser();
-  const { useCameraState, useMicrophoneState } = useCallStateHooks();
-  const { hasBrowserPermission: hasCameraPermission } = useCameraState();
-  const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
-  const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
-
-  return (
-    <div className="str-video__embedded-lobby__no-permission">
-      {hasBrowserMediaPermission ? (
-        <Avatar imageSrc={user?.image} name={user?.name || user?.id} />
-      ) : (
-        <p>
-          {t(
-            'Please grant your browser permission to access your camera and microphone.',
-          )}
-        </p>
-      )}
-    </div>
-  );
-};
-
-const NoCameraPreview = () => {
-  const { t } = useI18n();
-  const { useCameraState, useMicrophoneState } = useCallStateHooks();
-  const { hasBrowserPermission: hasCameraPermission } = useCameraState();
-  const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
-  const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
-
-  if (!hasBrowserMediaPermission) {
-    return (
-      <PermissionMessage
-        message={t(
-          'Please grant your browser permission to access your camera and microphone.',
-        )}
-      />
-    );
-  }
-
-  return (
-    <div className="str-video__video-preview__no-camera-preview">
-      {t('No camera found')}
-    </div>
-  );
-};
-
 /**
  * Lobby component - Device setup screen before joining a call.
  */
 export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const { t } = useI18n();
   const user = useConnectedUser();
-  const {
-    useCameraState,
-    useMicrophoneState,
-    useCallSession,
-    useCallSettings,
-  } = useCallStateHooks();
+  const { useCameraState, useCallSession, useCallSettings } =
+    useCallStateHooks();
 
-  const { isMute: isCameraMute, hasBrowserPermission: hasCameraPermission } =
-    useCameraState();
-  const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
+  const { isMute: isCameraMute } = useCameraState();
   const settings = useCallSettings();
   const callSession = useCallSession();
   const { onError } = useEmbeddedConfiguration();
@@ -123,6 +40,7 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const handleJoin = useCallback(async () => {
     setIsJoining(true);
     setShowError(false);
+
     try {
       await onJoin();
     } catch (e) {
@@ -146,33 +64,7 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
             isCameraMute && 'str-video__embedded-lobby__camera--off',
           )}
         >
-          <div className="str-video__embedded-lobby__video-preview">
-            <VideoPreview
-              DisabledVideoPreview={DisabledVideoPreview}
-              NoCameraPreview={NoCameraPreview}
-            />
-            <div className="str-video__embedded-lobby__media-toggle">
-              <ToggleAudioPreviewButton Menu={null} />
-              {isVideoEnabled && <ToggleVideoPreviewButton Menu={null} />}
-            </div>
-          </div>
-
-          <div className="str-video__embedded-lobby__media">
-            {hasMicPermission ? (
-              <ToggleMicButton />
-            ) : (
-              <DisabledDeviceButton icon="mic" label={t('Permission needed')} />
-            )}
-            {isVideoEnabled &&
-              (hasCameraPermission ? (
-                <ToggleCameraButton />
-              ) : (
-                <DisabledDeviceButton
-                  icon="camera"
-                  label={t('Permission needed')}
-                />
-              ))}
-          </div>
+          <DeviceControls isVideoEnabled={isVideoEnabled} />
         </div>
 
         <div className="str-video__embedded-lobby__display-name">
