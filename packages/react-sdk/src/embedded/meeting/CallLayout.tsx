@@ -19,10 +19,6 @@ export const CallLayout = () => {
   const [showParticipants, setShowParticipants] = useState(false);
   const { Component: LayoutComponent, props: layoutProps } = useLayout();
 
-  const handleCloseParticipants = useCallback(() => {
-    setShowParticipants(false);
-  }, []);
-
   const handleToggleParticipants = useCallback(() => {
     setShowParticipants((prev) => !prev);
   }, []);
@@ -54,13 +50,12 @@ export const CallLayout = () => {
             {showParticipants && (
               <div className="str-video__embedded-sidebar__container">
                 <div className="str-video__embedded-participants">
-                  <CallParticipantsList onClose={handleCloseParticipants} />
+                  <CallParticipantsList onClose={handleToggleParticipants} />
                 </div>
               </div>
             )}
           </div>
         </div>
-
         <CallControls
           showParticipants={showParticipants}
           onToggleParticipants={handleToggleParticipants}

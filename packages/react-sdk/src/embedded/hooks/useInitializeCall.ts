@@ -41,7 +41,7 @@ export const useInitializeCall = ({
     return () => {
       cancelled = true;
       setCall(undefined);
-      if (_call.state.callingState === CallingState.JOINED) {
+      if (_call.state.callingState !== CallingState.LEFT) {
         _call
           .leave()
           .catch((err) => console.error('Failed to leave call:', err));

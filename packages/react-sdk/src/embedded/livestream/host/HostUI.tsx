@@ -35,7 +35,7 @@ export const HostUI = () => {
     if (!call) return;
 
     try {
-      if (call.state.callingState !== CallingState.JOINED) {
+      if (callingState !== CallingState.JOINED) {
         await call.join();
       }
     } catch (err) {
@@ -43,7 +43,7 @@ export const HostUI = () => {
       onError?.(err, 'join');
       throw err;
     }
-  }, [call, onError]);
+  }, [call, onError, callingState]);
 
   const handleRejoin = useCallback(() => {
     void handleJoin().catch(() => {});

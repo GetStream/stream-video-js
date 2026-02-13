@@ -25,7 +25,7 @@ export const CallStateRouter = () => {
     if (!call) return;
 
     try {
-      if (call.state.callingState !== CallingState.JOINED) {
+      if (callingState !== CallingState.JOINED) {
         await call.join();
       }
     } catch (err) {
@@ -33,7 +33,7 @@ export const CallStateRouter = () => {
       onError?.(err, 'join');
       throw err;
     }
-  }, [call, onError]);
+  }, [call, callingState, onError]);
 
   const handleRejoin = useCallback(() => {
     void handleJoin().catch(() => {});
