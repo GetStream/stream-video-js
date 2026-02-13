@@ -77,7 +77,7 @@ export const EmbeddedClientProvider = ({
   const { t } = useI18n();
   const [showError, setShowError] = useState<boolean>(false);
 
-  const onErrorStable = useEffectEventShim(onError ?? (() => {}));
+  const onErrorStable = useEffectEventShim(onError ?? console.error);
   const handleError = useCallback(
     (error: any) => {
       setShowError(true);

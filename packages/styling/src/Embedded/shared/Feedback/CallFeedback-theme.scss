@@ -54,6 +54,10 @@
   }
 }
 
+.str-video__embedded-call-feedback__rejoin-error {
+  color: var(--str-video__alert-warning);
+}
+
 .str-video__embedded-call-feedback__checkmark {
   background: color-mix(
     in srgb,

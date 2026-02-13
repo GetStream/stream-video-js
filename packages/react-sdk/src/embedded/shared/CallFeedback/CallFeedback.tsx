@@ -2,9 +2,10 @@ import { useCallback, useState } from 'react';
 import clsx from 'clsx';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import { Icon } from '../../../components';
+import { useEmbeddedConfiguration } from '../../context';
 
 export interface CallFeedbackProps {
-  onJoin?: () => void;
+  onJoin?: () => Promise<void>;
 }
 
 type FeedbackState = 'ended' | 'rating' | 'submitted';
@@ -71,23 +72,43 @@ const ThankYouScreen = () => {
 };
 
 interface CallEndedScreenProps {
-  onRejoin?: () => void;
-  onLeaveFeedback: () => void;
+  onJoin?: () => Promise<void>;
+  onFeedback: () => void;
 }
 
-const CallEndedScreen = ({
-  onRejoin,
-  onLeaveFeedback,
-}: CallEndedScreenProps) => {
+const CallEndedScreen = ({ onJoin, onFeedback }: CallEndedScreenProps) => {
   const { t } = useI18n();
+
+  const [error, setError] = useState(false);
+  const { onError } = useEmbeddedConfiguration();
+
+  const handleRejoin = useCallback(async () => {
+    if (!onJoin) return;
+
+    try {
+      await onJoin();
+    } catch (err) {
+      onError?.(err);
+      setError(true);
+    }
+  }, [onJoin, onError]);
+
   return (
     <div className="str-video__embedded-call-feedback">
       <div className="str-video__embedded-call-feedback__container">
         <h2 className="str-video__embedded-call-feedback__title">
           {t('Call ended')}
         </h2>
+        <p
+          className="str-video__embedded-call-feedback__rejoin-error"
+          role="status"
+          aria-live="polite"
+          data-visible={error}
+        >
+          {t('Failed to rejoin. Please try again.')}
+        </p>
         <div className="str-video__embedded-call-feedback__ended-actions">
-          {onRejoin && (
+          {handleRejoin && (
             <>
               <div className="str-video__embedded-call-feedback__ended-column">
                 <p className="str-video__embedded-call-feedback__ended-label">
@@ -96,7 +117,7 @@ const CallEndedScreen = ({
                 <button
                   type="button"
                   className="str-video__embedded-call-feedback__ended-button"
-                  onClick={onRejoin}
+                  onClick={handleRejoin}
                 >
                   <Icon icon="login" />
                   {t('Rejoin call')}
@@ -112,7 +133,7 @@ const CallEndedScreen = ({
             <button
               type="button"
               className="str-video__embedded-call-feedback__ended-button"
-              onClick={onLeaveFeedback}
+              onClick={onFeedback}
             >
               <Icon icon="feedback" />
               {t('Leave feedback')}
@@ -173,6 +194,7 @@ export const CallFeedback = ({ onJoin }: CallFeedbackProps) => {
   const call = useCall();
   const [state, setState] = useState<FeedbackState>('ended');
 
+  const onFeedback = useCallback(() => setState('rating'), []);
   const handleSubmit = useCallback(
     async (rating: number, message: string) => {
       if (!call) return;
@@ -198,11 +220,6 @@ export const CallFeedback = ({ onJoin }: CallFeedbackProps) => {
     case 'rating':
       return <RatingScreen onSubmit={handleSubmit} />;
     default:
-      return (
-        <CallEndedScreen
-          onRejoin={onJoin}
-          onLeaveFeedback={() => setState('rating')}
-        />
-      );
+      return <CallEndedScreen onJoin={onJoin} onFeedback={onFeedback} />;
   }
 };

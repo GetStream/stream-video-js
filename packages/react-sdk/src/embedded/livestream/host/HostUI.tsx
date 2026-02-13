@@ -45,10 +45,6 @@ export const HostUI = () => {
     }
   }, [call, onError, callingState]);
 
-  const handleRejoin = useCallback(() => {
-    void handleJoin().catch(() => {});
-  }, [handleJoin]);
-
   const handleGoLive = useCallback(async () => {
     if (!call) return;
     try {
@@ -91,7 +87,7 @@ export const HostUI = () => {
   }
 
   if (callingState === CallingState.LEFT) {
-    return <CallFeedback onJoin={handleRejoin} />;
+    return <CallFeedback onJoin={handleJoin} />;
   }
 
   return (

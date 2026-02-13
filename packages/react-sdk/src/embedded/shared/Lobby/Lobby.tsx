@@ -14,6 +14,7 @@ import {
 } from '../../../components';
 import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
+import { useEmbeddedConfiguration } from '../../context';
 
 interface LobbyProps {
   onJoin: (displayName?: string) => Promise<void>;
@@ -109,6 +110,7 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
   const settings = useCallSettings();
   const callSession = useCallSession();
+  const { onError } = useEmbeddedConfiguration();
 
   const [showError, setShowError] = useState<boolean>(false);
 
@@ -120,10 +122,11 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const handleJoin = useCallback(async () => {
     try {
       await onJoin();
-    } catch {
+    } catch (e) {
+      onError?.(e);
       setShowError(true);
     }
-  }, [onJoin]);
+  }, [onJoin, onError]);
 
   const resolvedJoinLabel =
     joinLabel ?? (hasOtherParticipants ? t('Join') : t('Start call'));
@@ -181,12 +184,11 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
             {resolvedJoinLabel}
           </button>
         </div>
-
         <p
           className="str-video__embedded-lobby__join-error"
           role="status"
           aria-live="polite"
-          data-visible={!showError}
+          data-visible={showError}
         >
           {t('Failed to join. Please try again.')}
         </p>

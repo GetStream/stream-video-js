@@ -33,7 +33,6 @@ export const useInitializeCall = ({
       .catch((err) => {
         if (cancelled) return;
 
-        console.error('Failed to initialize call:', err);
         handleError(err);
       });
 

@@ -75,10 +75,6 @@ export const ViewerUI = () => {
     }
   }, [call, callingState, onError]);
 
-  const handleRejoin = useCallback(() => {
-    void handleJoin().catch(() => {});
-  }, [handleJoin]);
-
   if (
     callingState === CallingState.IDLE ||
     callingState === CallingState.UNKNOWN
@@ -94,7 +90,7 @@ export const ViewerUI = () => {
 
   if (callingState === CallingState.LEFT) {
     const canRejoin = canJoinAsap && (!endedAt || canJoinEndedCall);
-    return <CallFeedback onJoin={canRejoin ? handleRejoin : undefined} />;
+    return <CallFeedback onJoin={canRejoin ? handleJoin : undefined} />;
   }
 
   return (

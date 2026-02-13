@@ -82,7 +82,6 @@ export const useInitializeVideoClient = ({
       clientRef.current = _client;
       setClient(_client);
     } catch (err) {
-      console.error('Failed to initialize StreamVideoClient:', err);
       handleError(err);
     }
 
