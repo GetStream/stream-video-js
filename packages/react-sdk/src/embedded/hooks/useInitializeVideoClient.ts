@@ -67,7 +67,7 @@ export const useInitializeVideoClient = ({
       case 'authenticated':
         return {
           ...base,
-          id: user.id!,
+          id: user.id,
         };
       default: {
         throw new Error(`Unsupported user type`);

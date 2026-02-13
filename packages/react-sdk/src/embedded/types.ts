@@ -31,7 +31,7 @@ export type TokenProvider = () => Promise<string>;
  */
 export interface EmbeddedAuthenticatedUser {
   type: 'authenticated';
-  id?: string;
+  id: string;
   name: string;
   image?: string;
 }
@@ -52,7 +52,7 @@ export interface EmbeddedGuestUser {
  */
 export interface EmbeddedAnonymousUser {
   type: 'anonymous';
-  id: '!anon';
+  id?: '!anon';
   name?: string;
   image?: string;
 }

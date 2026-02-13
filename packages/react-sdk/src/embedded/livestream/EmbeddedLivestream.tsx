@@ -1,5 +1,5 @@
 import type { EmbeddedLivestreamProps } from '../types';
-import { EmbeddedClientProvider } from '../shared';
+import { EmbeddedClientProvider } from '../EmbeddedClientProvider';
 import { LivestreamUI } from './LivestreamUI';
 
 /**

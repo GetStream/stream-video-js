@@ -1,5 +1,5 @@
 import type { EmbeddedMeetingProps } from '../types';
-import { EmbeddedClientProvider } from '../shared';
+import { EmbeddedClientProvider } from '../EmbeddedClientProvider';
 import { CallStateRouter } from './CallStateRouter';
 
 /**
@@ -16,6 +16,7 @@ import { CallStateRouter } from './CallStateRouter';
  *   apiKey="YOUR_API_KEY"
  *   user={{ type: 'authenticated', id: 'user-1', name: 'John' }}
  *   callId="my-meeting"
+ *   callType="default"
  *   token="user-token"
  * />
  *
@@ -24,6 +25,7 @@ import { CallStateRouter } from './CallStateRouter';
  *   apiKey="YOUR_API_KEY"
  *   user={{ type: 'guest', id: 'guest-1', name: 'Visitor' }}
  *   callId="my-meeting"
+ *   callType="default"
  * />
  *
  * // Anonymous user
@@ -31,6 +33,7 @@ import { CallStateRouter } from './CallStateRouter';
  *   apiKey="YOUR_API_KEY"
  *   user={{ type: 'anonymous' }}
  *   callId="my-meeting"
+ *   callType="default"
  * />
  *
  * // With additional content alongside the default UI
@@ -38,6 +41,7 @@ import { CallStateRouter } from './CallStateRouter';
  *   apiKey="YOUR_API_KEY"
  *   user={{ type: 'authenticated', id: 'user-1', name: 'John' }}
  *   callId="my-meeting"
+ *   callType="default"
  *   token="user-token"
  * >
  *   <MyCustomPanel />
