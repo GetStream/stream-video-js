@@ -46,53 +46,95 @@ const sfuEventKinds: Record<SfuEventKinds, undefined> = {
   inboundStateNotification: undefined,
 };
 
+/**
+ * Determines if a given event name belongs to the category of SFU events.
+ *
+ * @param eventName the name of the event to check.
+ * @returns true if the event name is an SFU event, otherwise false.
+ */
 export const isSfuEvent = (
   eventName: SfuEventKinds | EventTypes,
 ): eventName is SfuEventKinds => {
   return Object.prototype.hasOwnProperty.call(sfuEventKinds, eventName);
 };
 
+type TaggedHandler = { [tag: string]: CallEventListener<any>[] | undefined };
+
 export class Dispatcher {
   private readonly logger = videoLoggerSystem.getLogger('Dispatcher');
-  private subscribers: Partial<
-    Record<SfuEventKinds, CallEventListener<any>[] | undefined>
-  > = {};
+  private subscribers: Partial<Record<SfuEventKinds, TaggedHandler>> = {};
 
+  /**
+   * Dispatch an event to all subscribers.
+   *
+   * @param message the event payload to dispatch.
+   * @param tag for scoping events to a specific tag. Use `*` dispatch to every tag.
+   */
   dispatch = <K extends SfuEventKinds>(
     message: DispatchableMessage<K>,
-    tag: string = '0',
+    tag: string = '*',
   ) => {
     const eventKind = message.eventPayload.oneofKind;
     if (!eventKind) return;
     const payload = message.eventPayload[eventKind];
     this.logger.debug(`Dispatching ${eventKind}, tag=${tag}`, payload);
-    const listeners = this.subscribers[eventKind];
-    if (!listeners) return;
-    for (const fn of listeners) {
+    const handlers = this.subscribers[eventKind];
+    if (!handlers) return;
+    this.emit(payload, handlers[tag]);
+    if (tag !== '*') this.emit(payload, handlers['*']);
+  };
+
+  /**
+   * Emit an event to a list of listeners.
+   *
+   * @param payload the event payload to emit.
+   * @param listeners the list of listeners to emit the event to.
+   */
+  emit = (payload: any, listeners: CallEventListener<any>[] = []) => {
+    for (const listener of listeners) {
       try {
-        fn(payload);
+        listener(payload);
       } catch (e) {
         this.logger.warn('Listener failed with error', e);
       }
     }
   };
 
+  /**
+   * Subscribe to an event.
+   *
+   * @param eventName the name of the event to subscribe to.
+   * @param tag for scoping events to a specific tag. Use `*` dispatch to every tag.
+   * @param fn the callback function to invoke when the event is emitted.
+   * @returns a function that can be called to unsubscribe from the event.
+   */
   on = <E extends keyof AllSfuEvents>(
     eventName: E,
+    tag: string,
     fn: CallEventListener<E>,
   ) => {
-    (this.subscribers[eventName] ??= []).push(fn as never);
+    const bucket = (this.subscribers[eventName] ??= {} as TaggedHandler);
+    (bucket[tag] ??= []).push(fn);
     return () => {
-      this.off(eventName, fn);
+      this.off(eventName, tag, fn);
     };
   };
 
+  /**
+   * Unsubscribe from an event.
+   *
+   * @param eventName the name of the event to unsubscribe from.
+   * @param tag for scoping events to a specific tag. Use `*` dispatch to every tag.
+   * @param fn the callback function to remove from the event listeners.
+   */
   off = <E extends keyof AllSfuEvents>(
     eventName: E,
+    tag: string,
     fn: CallEventListener<E>,
   ) => {
-    this.subscribers[eventName] = (this.subscribers[eventName] || []).filter(
-      (f) => f !== fn,
-    );
+    const bucket = this.subscribers[eventName];
+    const listeners = bucket?.[tag];
+    if (!listeners) return;
+    bucket[tag] = listeners.filter((f) => f !== fn);
   };
 }

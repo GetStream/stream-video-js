@@ -18,7 +18,7 @@ export const watchConnectionQualityChanged = (
   dispatcher: Dispatcher,
   state: CallState,
 ) => {
-  return dispatcher.on('connectionQualityChanged', (e) => {
+  return dispatcher.on('connectionQualityChanged', '*', (e) => {
     const { connectionQualityUpdates } = e;
     if (!connectionQualityUpdates) return;
     state.updateParticipants(
@@ -44,7 +44,7 @@ export const watchParticipantCountChanged = (
   dispatcher: Dispatcher,
   state: CallState,
 ) => {
-  return dispatcher.on('healthCheckResponse', (e) => {
+  return dispatcher.on('healthCheckResponse', '*', (e) => {
     const { participantCount } = e;
     if (participantCount) {
       state.setParticipantCount(participantCount.total);
@@ -54,7 +54,7 @@ export const watchParticipantCountChanged = (
 };
 
 export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
-  return dispatcher.on('error', (e) => {
+  return dispatcher.on('error', '*', (e) => {
     if (e.error && e.error.code !== ErrorCode.LIVE_ENDED) return;
 
     call.state.setBackstage(true);
@@ -70,7 +70,7 @@ export const watchLiveEnded = (dispatcher: Dispatcher, call: Call) => {
  * Watches and logs the errors reported by the currently connected SFU.
  */
 export const watchSfuErrorReports = (dispatcher: Dispatcher) => {
-  return dispatcher.on('error', (e) => {
+  return dispatcher.on('error', '*', (e) => {
     if (!e.error) return;
     const logger = videoLoggerSystem.getLogger('SfuClient');
     const { error, reconnectStrategy } = e;
