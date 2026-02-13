@@ -11,7 +11,6 @@ import {
   videoLoggerSystem,
 } from '@stream-io/video-client';
 import { waitForAudioSessionActivation } from './audioSessionPromise';
-import { waitForDisplayIncomingCall } from './displayIncomingCallPromise';
 
 const CallingxModule = getCallingxLibIfAvailable();
 
@@ -101,16 +100,15 @@ export async function startCallingxCall(call: Call) {
     }
   } else if (isIncomingCall) {
     try {
-      if (!CallingxModule.isCallTracked(call.cid)) {
-        await CallingxModule.displayIncomingCall(
-          call.cid, // unique id for call
-          call.id, // phone number for display in dialer (we use call id as phone number)
-          callDisplayName, // display name for display in call screen
-          call.state.settings?.video?.enabled ?? false, // is video call?
-        );
-
-        await waitForDisplayIncomingCall();
-      }
+      // Awaits native CallKit/Telecom registration before answering.
+      // Safe to call even if the call is already registered (e.g. from VoIP push) --
+      // iOS early-returns with no error, Android sends the registered broadcast.
+      await CallingxModule.displayIncomingCall(
+        call.cid, // unique id for call
+        call.id, // phone number for display in dialer (we use call id as phone number)
+        callDisplayName, // display name for display in call screen
+        call.state.settings?.video?.enabled ?? false, // is video call?
+      );
 
       await CallingxModule.answerIncomingCall(call.cid);
 

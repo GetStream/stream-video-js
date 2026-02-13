@@ -38,6 +38,7 @@ import stream_react_native_webrtc
     @objc public var callKeepCallController: CXCallController?
     @objc public var callKeepProvider: CXProvider?
     @objc public weak var eventEmitter: CallingxEventEmitter?
+    @objc public weak var webRTCModule: WebRTCModule?
     
     private var canSendEvents: Bool = false
     private var isSetup: Bool = false
@@ -95,9 +96,10 @@ import stream_react_native_webrtc
         supportsDTMF: Bool,
         supportsGrouping: Bool,
         supportsUngrouping: Bool,
-        fromPushKit: Bool,
         payload: [String: Any]?,
-        completion: (() -> Void)?
+        completion: (() -> Void)?,
+        resolve: RCTPromiseResolveBlock?,
+        reject: RCTPromiseRejectBlock?
     ) {
         initializeIfNeeded()
         
@@ -108,6 +110,7 @@ import stream_react_native_webrtc
             print("[Callingx][reportNewIncomingCall] callId already exists")
             #endif
             completion?()
+            resolve?(true)
             return
         }
         
@@ -140,7 +143,6 @@ import stream_react_native_webrtc
                 "supportsDTMF": supportsDTMF ? "1" : "0",
                 "supportsGrouping": supportsGrouping ? "1" : "0",
                 "supportsUngrouping": supportsUngrouping ? "1" : "0",
-                "fromPushKit": fromPushKit ? "1" : "0",
                 "payload": payload ?? ""
             ]
             
@@ -160,6 +162,9 @@ import stream_react_native_webrtc
                 #if DEBUG
                 print("[Callingx][reportNewIncomingCall] success callId = \(callId)")
                 #endif
+                resolve?(true)
+            } else {
+              reject?("DISPLAY_INCOMING_CALL_ERROR", error?.localizedDescription, error)
             }
             
             completion?()
@@ -396,8 +401,10 @@ import stream_react_native_webrtc
         callId: String,
         phoneNumber: String,
         callerName: String,
-        hasVideo: Bool
-    ) -> Bool {
+        hasVideo: Bool,
+        resolve: @escaping RCTPromiseResolveBlock,
+        reject: @escaping RCTPromiseRejectBlock
+    ) {
         let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId)
         CallingxImpl.reportNewIncomingCall(
             callId: callId,
@@ -409,9 +416,10 @@ import stream_react_native_webrtc
             supportsDTMF: false,
             supportsGrouping: false,
             supportsUngrouping: false,
-            fromPushKit: false,
             payload: nil,
-            completion: nil
+            completion: nil,
+            resolve: resolve,
+            reject: reject
         )
         
         let wasAlreadyAnswered = uuid != nil
@@ -428,7 +436,6 @@ import stream_react_native_webrtc
                 }
             }
         }
-        return true
     }
     
     @objc public func endCall(_ callId: String) -> Bool {
@@ -611,6 +618,7 @@ import stream_react_native_webrtc
             return
         }
         
+        getAudioDeviceModule()?.reset()
         AudioSessionManager.createAudioSessionIfNeeded()
         
         sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
@@ -638,6 +646,7 @@ import stream_react_native_webrtc
         print("[Callingx][CXProviderDelegate][provider:performAnswerCallAction] isSelfAnswered: \(call.isSelfAnswered)")
         #endif
         
+        getAudioDeviceModule()?.reset()
         AudioSessionManager.createAudioSessionIfNeeded()
         
         let source = call.isSelfAnswered ? "app" : "sys"
@@ -775,6 +784,7 @@ import stream_react_native_webrtc
 
         // When CallKit deactivates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
+        getAudioDeviceModule()?.reset()
 
         // Disable wake lock when the call ends
         DispatchQueue.main.async {
@@ -796,6 +806,17 @@ import stream_react_native_webrtc
         #endif
 
         sendEvent(CallingxEvents.providerReset, body: nil)
+    }
+    
+    // MARK: - Helper Methods
+    private func getAudioDeviceModule() -> AudioDeviceModule? {
+        guard let adm = webRTCModule?.audioDeviceModule else {
+            #if DEBUG
+            print("[Callingx] WebRTCModule is not available. Ensure it was injected from the TurboModule host.")
+            #endif
+            return nil
+        }
+        return adm
     }
 }
 

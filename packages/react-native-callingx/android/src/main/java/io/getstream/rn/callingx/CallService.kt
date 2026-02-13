@@ -59,6 +59,7 @@ class CallService : Service(), CallRepository.Listener {
         internal const val ACTION_START_BACKGROUND_TASK = "start_background_task"
         internal const val ACTION_STOP_BACKGROUND_TASK = "stop_background_task"
         internal const val ACTION_STOP_SERVICE = "stop_service"
+        internal const val ACTION_REGISTRATION_FAILED = "registration_failed"
     }
 
     inner class CallServiceBinder : Binder() {
@@ -314,13 +315,21 @@ class CallService : Service(), CallRepository.Listener {
         // Track immediately when registration flow starts, mirroring iOS semantics.
         trackedCallIds.add(callInfo.callId)
 
-        // If we have an ongoing call ignore command
-        val currentCall = callRepository.currentCall.value
-        if (currentCall is Call.Registered) {
-            if (currentCall.id != callInfo.callId) {
-                trackedCallIds.remove(callInfo.callId)
-            }
+        val callInfo = extractIntentParams(intent)
+
+        // If we have an ongoing call, notify the module that registration is
+        // already done (so the pending promise resolves) and skip re-registration.
+        if (callRepository.currentCall.value is Call.Registered) {
             Log.w(TAG, "[service] registerCall: Call already registered, ignoring new call request")
+            if (incoming) {
+                sendBroadcastEvent(CallingxModule.CALL_REGISTERED_INCOMING_ACTION) {
+                    putExtra(CallingxModule.EXTRA_CALL_ID, callInfo.callId)
+                }
+            } else {
+                sendBroadcastEvent(CallingxModule.CALL_REGISTERED_ACTION) {
+                    putExtra(CallingxModule.EXTRA_CALL_ID, callInfo.callId)
+                }
+            }
             return
         }
         val tempCall = callRepository.getTempCall(callInfo, incoming)
@@ -348,6 +357,10 @@ class CallService : Service(), CallRepository.Listener {
             } catch (e: Exception) {
                 Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
                 trackedCallIds.remove(callInfo.callId)
+
+                sendBroadcastEvent(CallingxModule.CALL_REGISTRATION_FAILED_ACTION) {
+                    putExtra(CallingxModule.EXTRA_CALL_ID, callInfo.callId)
+                }
 
                 if (isInForeground) {
                     stopForeground(STOP_FOREGROUND_REMOVE)

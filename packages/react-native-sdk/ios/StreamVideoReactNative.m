@@ -185,7 +185,7 @@ RCT_EXPORT_MODULE();
         return;
     }
     
-    SEL selector = @selector(reportNewIncomingCall:handle:handleType:hasVideo:localizedCallerName:supportsHolding:supportsDTMF:supportsGrouping:supportsUngrouping:fromPushKit:payload:withCompletionHandler:);
+    SEL selector = @selector(reportNewIncomingCall:handle:handleType:hasVideo:localizedCallerName:supportsHolding:supportsDTMF:supportsGrouping:supportsUngrouping:payload:withCompletionHandler:);
     if (![callingxClass respondsToSelector:selector]) {
         #if DEBUG
         NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Callingx does not respond to selector");
@@ -202,9 +202,8 @@ RCT_EXPORT_MODULE();
     BOOL supportsDTMF = NO;
     BOOL supportsGrouping = NO;
     BOOL supportsUngrouping = NO;
-    BOOL fromPushKit = YES;
     void (^completionHandler)(void) = completion;
-    
+
     NSMethodSignature *signature = [callingxClass methodSignatureForSelector:selector];
     NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
     [invocation setTarget:callingxClass];
@@ -218,9 +217,8 @@ RCT_EXPORT_MODULE();
     [invocation setArgument:&supportsDTMF atIndex:8];
     [invocation setArgument:&supportsGrouping atIndex:9];
     [invocation setArgument:&supportsUngrouping atIndex:10];
-    [invocation setArgument:&fromPushKit atIndex:11];
-    [invocation setArgument:&streamPayload atIndex:12];
-    [invocation setArgument:&completionHandler atIndex:13];
+    [invocation setArgument:&streamPayload atIndex:11];
+    [invocation setArgument:&completionHandler atIndex:12];
     [invocation invoke];
 }
 

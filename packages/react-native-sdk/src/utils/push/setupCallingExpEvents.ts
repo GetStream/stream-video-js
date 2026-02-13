@@ -12,7 +12,6 @@ import {
   type EventParams,
 } from './libs/callingx';
 import { Platform } from 'react-native';
-import { resolveDisplayIncomingCall } from '../internal/callingx/displayIncomingCallPromise';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -59,11 +58,6 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     onDidDeactivateAudioSession,
   );
 
-  const { remove: removeDidDisplayIncomingCall } = callingx.addEventListener(
-    'didDisplayIncomingCall',
-    onDidDisplayIncomingCall,
-  );
-
   //NOTE: until getInitialEvents invocation, events are delayed and won't be sent to event listeners, this is a way to make sure none of required events are missed
   //in most cases there will be no delayed answers or ends, but it we don't want to miss any of them
   const events = callingx.getInitialEvents();
@@ -85,8 +79,6 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
       onDidActivateAudioSession();
     } else if (eventName === 'didDeactivateAudioSession') {
       onDidDeactivateAudioSession();
-    } else if (eventName === 'didDisplayIncomingCall') {
-      onDidDisplayIncomingCall();
     }
   });
 
@@ -95,7 +87,6 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     removeEndCall();
     removeDidActivateAudioSession();
     removeDidDeactivateAudioSession();
-    removeDidDisplayIncomingCall();
   });
 }
 
@@ -108,25 +99,21 @@ const onDidDeactivateAudioSession = () => {
   logger.debug('callingExpDidDeactivateAudioSession');
 };
 
-const onDidDisplayIncomingCall = () => {
-  logger.debug('callingExpDidDisplayIncomingCall');
-  resolveDisplayIncomingCall();
+const onAcceptCall = ({
+  callId: call_cid,
+  source,
+}: EventParams['answerCall']) => {
+  logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
+
+  if (source === 'app' || !call_cid) {
+    //we only need to process the call if the call was answered from the system
+    return;
+  }
+
+  clearPushWSEventSubscriptions(call_cid);
+  // to process the call in the app
+  await processCallFromPushInBackground(pushConfig, call_cid, 'accept');
 };
-
-const onAcceptCall =
-  (pushConfig: PushConfig) =>
-  async ({ callId: call_cid, source }: EventParams['answerCall']) => {
-    logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
-
-    if (source === 'app' || !call_cid) {
-      //we only need to process the call if the call was answered from the system
-      return;
-    }
-
-    clearPushWSEventSubscriptions(call_cid);
-    // to process the call in the app
-    await processCallFromPushInBackground(pushConfig, call_cid, 'accept');
-  };
 
 const onEndCall =
   (pushConfig: PushConfig) =>
