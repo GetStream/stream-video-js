@@ -1,36 +1,22 @@
 import { useCallback, useState } from 'react';
 import clsx from 'clsx';
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useI18n } from '@stream-io/video-react-bindings';
+import { Restricted } from '@stream-io/video-react-bindings';
 import {
   CallParticipantsList,
-  CancelCallButton,
-  CompositeButton,
-  DeviceSelectorAudioInput,
-  DeviceSelectorAudioOutput,
-  Icon,
-  MicCaptureErrorNotification,
   PermissionRequests,
-  ReactionsButton,
-  RecordCallConfirmationButton,
-  ScreenShareButton,
   SpeakingWhileMutedNotification,
-  ToggleAudioPublishingButton,
-  ToggleVideoPublishingButton,
-  WithTooltip,
 } from '../../components';
 
-import { useCallDuration, useLayout } from '../hooks';
-import { CameraMenuWithBlur, ConnectionNotification } from '../shared';
+import { useLayout } from '../hooks';
+import { ConnectionNotification } from '../shared';
+import { CallControls } from './CallControls';
 
 /**
  * CallLayout renders the in-call experience with layout, controls, and sidebar.
  */
 export const CallLayout = () => {
-  const { t } = useI18n();
   const [showParticipants, setShowParticipants] = useState(false);
-
-  const { startedAt, elapsed } = useCallDuration();
   const { Component: LayoutComponent, props: layoutProps } = useLayout();
 
   const handleCloseParticipants = useCallback(() => {
@@ -75,74 +61,10 @@ export const CallLayout = () => {
           </div>
         </div>
 
-        <div className="str-video__embedded-call-controls str-video__call-controls">
-          <div className="str-video__call-controls--group str-video__call-controls--options">
-            {startedAt && (
-              <div className="str-video__embedded-call-duration">
-                <Icon
-                  icon="verified"
-                  className="str-video__embedded-call-duration__icon"
-                />
-                <span className="str-video__embedded-call-duration__time">
-                  {elapsed}
-                </span>
-              </div>
-            )}
-          </div>
-          <div className="str-video__call-controls--group str-video__call-controls--media">
-            <Restricted
-              requiredGrants={[OwnCapability.SEND_AUDIO]}
-              hasPermissionsOnly
-            >
-              <MicCaptureErrorNotification>
-                <ToggleAudioPublishingButton
-                  Menu={
-                    <>
-                      <DeviceSelectorAudioOutput
-                        visualType="list"
-                        title={t('Speaker')}
-                      />
-                      <DeviceSelectorAudioInput
-                        visualType="list"
-                        title={t('Microphone')}
-                      />
-                    </>
-                  }
-                  menuPlacement="top"
-                />
-              </MicCaptureErrorNotification>
-            </Restricted>
-            <Restricted
-              requiredGrants={[OwnCapability.SEND_VIDEO]}
-              hasPermissionsOnly
-            >
-              <div className="str-video__embedded-dual-toggle">
-                <ToggleVideoPublishingButton
-                  Menu={<CameraMenuWithBlur />}
-                  menuPlacement="top"
-                />
-              </div>
-            </Restricted>
-            <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
-              <ReactionsButton />
-            </Restricted>
-            <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
-              <ScreenShareButton />
-            </Restricted>
-            <RecordCallConfirmationButton />
-            <CancelCallButton />
-          </div>
-          <div className="str-video__call-controls--group str-video__call-controls--sidebar">
-            <WithTooltip title={t('Participants')}>
-              <CompositeButton
-                active={showParticipants}
-                onClick={handleToggleParticipants}
-              >
-                <Icon icon="participants" />
-              </CompositeButton>
-            </WithTooltip>
-          </div>
-        </div>
+        <CallControls
+          showParticipants={showParticipants}
+          onToggleParticipants={handleToggleParticipants}
+        />
       </div>
     </div>
   );
