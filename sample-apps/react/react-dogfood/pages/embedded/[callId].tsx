@@ -1,4 +1,4 @@
-import { EmbeddedMeeting } from '@stream-io/video-react-sdk/embedded';
+import { EmbeddedCall } from '@stream-io/video-react-sdk/embedded';
 import { useRouter } from 'next/router';
 import {
   getServerSideCredentialsProps,
@@ -12,7 +12,7 @@ export default function EmbeddedPage(props: ServerSideCredentialsProps) {
   const callId = router.query.callId as string;
 
   return (
-    <EmbeddedMeeting
+    <EmbeddedCall
       apiKey={apiKey}
       user={{
         type: 'authenticated',
