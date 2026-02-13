@@ -1,1 +1,1 @@
-export * from './EmbeddedMeeting';
+export * from './EmbeddedCall';

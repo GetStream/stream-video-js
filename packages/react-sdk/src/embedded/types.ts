@@ -71,7 +71,7 @@ export type EmbeddedUser =
   | EmbeddedAnonymousUser;
 
 /**
- * Base props shared by EmbeddedMeeting and EmbeddedLivestream.
+ * Base props shared by EmbeddedCall and EmbeddedLivestream.
  */
 export interface EmbeddedClientBaseProps {
   apiKey: string;
@@ -88,7 +88,7 @@ export interface EmbeddedClientBaseProps {
 }
 
 /**
- * Props for the EmbeddedMeeting component.
+ * Props for the EmbeddedCall component.
  */
 export interface EmbeddedMeetingProps extends EmbeddedClientBaseProps {}
 

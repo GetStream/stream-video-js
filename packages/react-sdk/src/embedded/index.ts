@@ -1,4 +1,4 @@
-export { EmbeddedMeeting } from './meeting';
+export { EmbeddedCall } from './meeting';
 export { EmbeddedLivestream } from './livestream';
 
 export type {

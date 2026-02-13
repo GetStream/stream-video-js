@@ -12,7 +12,7 @@ import { CallStateRouter } from './CallStateRouter';
  * @example
  * ```tsx
  * // Authenticated user
- * <EmbeddedMeeting
+ * <EmbeddedCall
  *   apiKey="YOUR_API_KEY"
  *   user={{ type: 'authenticated', id: 'user-1', name: 'John' }}
  *   callId="my-meeting"
@@ -20,34 +20,31 @@ import { CallStateRouter } from './CallStateRouter';
  * />
  *
  * // Guest user
- * <EmbeddedMeeting
+ * <EmbeddedCall
  *   apiKey="YOUR_API_KEY"
  *   user={{ type: 'guest', id: 'guest-1', name: 'Visitor' }}
  *   callId="my-meeting"
  * />
  *
  * // Anonymous user
- * <EmbeddedMeeting
+ * <EmbeddedCall
  *   apiKey="YOUR_API_KEY"
  *   user={{ type: 'anonymous' }}
  *   callId="my-meeting"
  * />
  *
  * // With additional content alongside the default UI
- * <EmbeddedMeeting
+ * <EmbeddedCall
  *   apiKey="YOUR_API_KEY"
  *   user={{ type: 'authenticated', id: 'user-1', name: 'John' }}
  *   callId="my-meeting"
  *   token="user-token"
  * >
  *   <MyCustomPanel />
- * </EmbeddedMeeting>
+ * </EmbeddedCall>
  * ```
  */
-export const EmbeddedMeeting = ({
-  children,
-  ...props
-}: EmbeddedMeetingProps) => (
+export const EmbeddedCall = ({ children, ...props }: EmbeddedMeetingProps) => (
   <EmbeddedClientProvider {...props}>
     <CallStateRouter />
     {children}

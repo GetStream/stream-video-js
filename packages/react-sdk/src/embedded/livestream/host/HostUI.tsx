@@ -33,6 +33,7 @@ export const HostUI = () => {
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
+
     try {
       if (call.state.callingState !== CallingState.JOINED) {
         await call.join();
