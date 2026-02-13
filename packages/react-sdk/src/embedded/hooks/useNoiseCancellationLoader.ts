@@ -1,20 +1,38 @@
 import { useEffect, useRef, useState } from 'react';
+import {
+  NoiseCancellationSettingsModeEnum,
+  type Call,
+} from '@stream-io/video-client';
 
 type INoiseCancellation =
   import('@stream-io/audio-filters-web').INoiseCancellation;
 
 /**
  * Hook that lazily loads the noise cancellation module from @stream-io/audio-filters-web.
+ * Skips loading if the server-side noise cancellation setting is disabled.
  * Returns the NoiseCancellation instance when loaded, or undefined if unavailable.
- * The `loaded` flag becomes `true` once loading completes (even on failure).
+ * The `ready` flag becomes `true` once loading completes (even on failure),
+ * or immediately if noise cancellation is disabled by server settings.
  */
-export const useNoiseCancellationLoader = () => {
+export const useNoiseCancellationLoader = (call?: Call) => {
   const [noiseCancellation, setNoiseCancellation] =
     useState<INoiseCancellation>();
-  const [loaded, setLoaded] = useState(false);
+  const [ready, setReady] = useState(false);
   const ncLoader = useRef<Promise<void> | undefined>(undefined);
 
+  const ncSettings = call?.state.settings?.audio.noise_cancellation;
+  const isNoiseCancellationEnabled = !!(
+    ncSettings && ncSettings.mode !== NoiseCancellationSettingsModeEnum.DISABLED
+  );
+
   useEffect(() => {
+    if (!call) return;
+
+    if (!isNoiseCancellationEnabled) {
+      setReady(true);
+      return;
+    }
+
     const load = (ncLoader.current || Promise.resolve())
       .then(() => import('@stream-io/audio-filters-web'))
       .then(({ NoiseCancellation }) => {
@@ -29,16 +47,16 @@ export const useNoiseCancellationLoader = () => {
         );
       })
       .finally(() => {
-        setLoaded(true);
+        setReady(true);
       });
 
     return () => {
       ncLoader.current = load.then(() => {
         setNoiseCancellation(undefined);
-        setLoaded(false);
+        setReady(false);
       });
     };
-  }, []);
+  }, [call, isNoiseCancellationEnabled]);
 
-  return { noiseCancellation, loaded };
+  return { noiseCancellation, ready };
 };

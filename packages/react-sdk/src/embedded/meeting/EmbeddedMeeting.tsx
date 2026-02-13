@@ -14,20 +14,28 @@ import { CallStateRouter } from './CallStateRouter';
  * // Authenticated user
  * <EmbeddedMeeting
  *   apiKey="YOUR_API_KEY"
- *   user={{ id: 'user-1', name: 'John' }}
+ *   user={{ type: 'authenticated', id: 'user-1', name: 'John' }}
  *   callId="my-meeting"
  *   token="user-token"
+ * />
+ *
+ * // Guest user
+ * <EmbeddedMeeting
+ *   apiKey="YOUR_API_KEY"
+ *   user={{ type: 'guest', id: 'guest-1', name: 'Visitor' }}
+ *   callId="my-meeting"
  * />
  *
  * // Anonymous user
  * <EmbeddedMeeting
  *   apiKey="YOUR_API_KEY"
+ *   user={{ type: 'anonymous' }}
  *   callId="my-meeting"
  * />
  * ```
  */
 export const EmbeddedMeeting = (props: EmbeddedMeetingProps) => (
-  <EmbeddedClientProvider callType="default" {...props}>
+  <EmbeddedClientProvider {...props}>
     <CallStateRouter />
   </EmbeddedClientProvider>
 );

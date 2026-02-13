@@ -32,7 +32,7 @@ const errorMessages: Record<EmbeddedErrorType, string> = {
 
 export interface EmbeddedClientProviderProps {
   apiKey: string;
-  user?: EmbeddedUser;
+  user: EmbeddedUser;
   callId: string;
   callType: string;
   token?: string;
@@ -89,16 +89,17 @@ export const EmbeddedClientProvider = ({
     [onErrorStable],
   );
 
-  const { client, call, noiseCancellation } = useEmbeddedClient({
-    apiKey,
-    user,
-    callId,
-    callType,
-    token,
-    tokenProvider,
-    logLevel,
-    onError: handleError,
-  });
+  const { client, call, noiseCancellation, noiseCancellationReady } =
+    useEmbeddedClient({
+      apiKey,
+      user,
+      callId,
+      callType,
+      token,
+      tokenProvider,
+      logLevel,
+      onError: handleError,
+    });
 
   if (errorType) {
     return (
@@ -112,7 +113,7 @@ export const EmbeddedClientProvider = ({
     );
   }
 
-  if (!call || !client) {
+  if (!call || !client || !noiseCancellationReady) {
     return (
       <StreamTheme className="str-video__embedded">
         <LoadingIndicator className="str-video__embedded-loading" />

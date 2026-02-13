@@ -17,7 +17,7 @@ import { LivestreamUI } from './LivestreamUI';
  * // Authenticated host
  * <EmbeddedLivestream
  *   apiKey="YOUR_API_KEY"
- *   user={{ id: 'host-1', name: 'Jane' }}
+ *   user={{ type: 'authenticated', id: 'host-1', name: 'Jane' }}
  *   callId="my-stream"
  *   token="user-token"
  * />
@@ -25,12 +25,13 @@ import { LivestreamUI } from './LivestreamUI';
  * // Anonymous viewer
  * <EmbeddedLivestream
  *   apiKey="YOUR_API_KEY"
+ *   user={{ type: 'anonymous' }}
  *   callId="my-stream"
  * />
  * ```
  */
 export const EmbeddedLivestream = (props: EmbeddedLivestreamProps) => (
-  <EmbeddedClientProvider callType="livestream" {...props}>
+  <EmbeddedClientProvider {...props}>
     <LivestreamUI />
   </EmbeddedClientProvider>
 );

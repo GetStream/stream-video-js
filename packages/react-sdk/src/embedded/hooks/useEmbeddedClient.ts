@@ -10,7 +10,7 @@ import type {
 
 export interface UseEmbeddedClientProps {
   apiKey: string;
-  user?: EmbeddedUser;
+  user: EmbeddedUser;
   callId: string;
   callType: string;
   token?: string;
@@ -49,11 +49,13 @@ export const useEmbeddedClient = ({
     onError,
   });
 
-  const { noiseCancellation } = useNoiseCancellationLoader();
+  const { noiseCancellation, ready: noiseCancellationReady } =
+    useNoiseCancellationLoader(call);
 
   return {
     client,
     call,
     noiseCancellation,
+    noiseCancellationReady,
   };
 };

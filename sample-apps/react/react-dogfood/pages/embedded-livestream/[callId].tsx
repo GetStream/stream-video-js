@@ -15,11 +15,13 @@ export default function EmbeddedPage(props: ServerSideCredentialsProps) {
     <EmbeddedLivestream
       apiKey={apiKey}
       user={{
+        type: 'authenticated',
         id: user.id!,
-        name: user.name,
+        name: user.name!,
         image: user.image,
       }}
       callId={callId}
+      callType="livestream"
       token={userToken}
     />
   );

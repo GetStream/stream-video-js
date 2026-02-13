@@ -26,28 +26,62 @@ export type LayoutOption =
 export type TokenProvider = () => Promise<string>;
 
 /**
- * User configuration for the embedded client.
- *
- * - Authenticated: provide `user` with `token` or `tokenProvider`
- * - Guest: provide `user` without token (server generates credentials)
- * - Anonymous: omit the `user` prop entirely
+ * An authenticated user with a known identity.
+ * Requires a `token` or `tokenProvider` on the component props.
  */
-export interface EmbeddedUser {
+export interface EmbeddedAuthenticatedUser {
+  type: 'authenticated';
+  id?: string;
+  name: string;
+  image?: string;
+}
+
+/**
+ * A guest user — the server generates credentials automatically.
+ */
+export interface EmbeddedGuestUser {
+  type: 'guest';
   id: string;
   name: string;
   image?: string;
 }
 
 /**
+ * An anonymous user with no identity.
+ * May optionally receive a call-scoped token via the `token` prop.
+ */
+export interface EmbeddedAnonymousUser {
+  type: 'anonymous';
+  id: '!anon';
+  name?: string;
+  image?: string;
+}
+
+/**
+ * Discriminated union for embedded user configuration.
+ *
+ * Use the `type` field to specify the connection mode:
+ * - `'authenticated'` — known user, provide `token` or `tokenProvider`
+ * - `'guest'` — server generates credentials
+ * - `'anonymous'` — no identity
+ */
+export type EmbeddedUser =
+  | EmbeddedAuthenticatedUser
+  | EmbeddedGuestUser
+  | EmbeddedAnonymousUser;
+
+/**
  * Base props shared by EmbeddedMeeting and EmbeddedLivestream.
  */
 export interface EmbeddedClientBaseProps {
   apiKey: string;
+  callType: string;
   callId: string;
-  user?: EmbeddedUser;
+  user: EmbeddedUser;
   token?: string;
   tokenProvider?: TokenProvider;
   logLevel?: LogLevel;
+  layout?: LayoutOption;
   style?: CSSProperties;
   onError?: (error: any) => void;
 }
@@ -55,9 +89,7 @@ export interface EmbeddedClientBaseProps {
 /**
  * Props for the EmbeddedMeeting component.
  */
-export interface EmbeddedMeetingProps extends EmbeddedClientBaseProps {
-  layout?: LayoutOption;
-}
+export interface EmbeddedMeetingProps extends EmbeddedClientBaseProps {}
 
 /**
  * Props for the EmbeddedLivestream component.
