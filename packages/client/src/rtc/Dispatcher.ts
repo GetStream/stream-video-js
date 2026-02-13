@@ -86,6 +86,7 @@ export class Dispatcher {
 
   /**
    * Emit an event to a list of listeners.
+   *
    * @param payload the event payload to emit.
    * @param listeners the list of listeners to emit the event to.
    */
