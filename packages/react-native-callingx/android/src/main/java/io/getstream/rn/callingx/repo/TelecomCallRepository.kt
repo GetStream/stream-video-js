@@ -194,6 +194,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
     private fun observeCallState(): Job {
         return currentCall
+                .drop(1)
                 .scan(Pair<Call?, Call>(null, currentCall.value)) { (_, prev), next ->
                     Pair(prev, next)
                 }
