@@ -919,6 +919,7 @@ export class Call {
         this.logger.trace(`Joining call (${attempt})`, this.cid);
         await this.doJoin(data);
         delete joinData.migrating_from;
+        delete joinData.migrating_from_list;
         break;
       } catch (err) {
         this.logger.warn(`Failed to join call (${attempt})`, this.cid);
@@ -942,6 +943,7 @@ export class Call {
         sfuJoinFailures.set(sfuId, failures);
         if (switchSfu || failures >= 2) {
           joinData.migrating_from = sfuId;
+          joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
         }
 
         if (attempt === maxJoinRetries - 1) {
@@ -1617,11 +1619,16 @@ export class Call {
 
     try {
       const currentSfu = currentSfuClient.edgeName;
-      await this.doJoin({ ...this.joinCallData, migrating_from: currentSfu });
+      await this.doJoin({
+        ...this.joinCallData,
+        migrating_from: currentSfu,
+        migrating_from_list: [currentSfu],
+      });
     } finally {
       // cleanup the migration_from field after the migration is complete or failed
       // as we don't want to keep dirty data in the join call data
       delete this.joinCallData?.migrating_from;
+      delete this.joinCallData?.migrating_from_list;
     }
 
     await this.restorePublishedTracks();
