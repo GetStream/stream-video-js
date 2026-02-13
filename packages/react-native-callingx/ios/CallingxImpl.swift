@@ -38,6 +38,7 @@ import stream_react_native_webrtc
     @objc public var callKeepCallController: CXCallController?
     @objc public var callKeepProvider: CXProvider?
     @objc public weak var eventEmitter: CallingxEventEmitter?
+    @objc public weak var webRTCModule: WebRTCModule?
     
     private var canSendEvents: Bool = false
     private var isSetup: Bool = false
@@ -585,6 +586,7 @@ import stream_react_native_webrtc
             return
         }
         
+        getAudioDeviceModule()?.reset()
         AudioSessionManager.createAudioSessionIfNeeded()
         
         sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
@@ -608,6 +610,7 @@ import stream_react_native_webrtc
             return
         }
         
+        getAudioDeviceModule()?.reset()
         AudioSessionManager.createAudioSessionIfNeeded()
         
         let source = isSelfAnswered ? "app" : "sys"
@@ -740,6 +743,7 @@ import stream_react_native_webrtc
 
         // When CallKit deactivates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
+        getAudioDeviceModule()?.reset()
 
         // Disable wake lock when the call ends
         DispatchQueue.main.async {
@@ -761,6 +765,17 @@ import stream_react_native_webrtc
         #endif
 
         sendEvent(CallingxEvents.providerReset, body: nil)
+    }
+    
+    // MARK: - Helper Methods
+    private func getAudioDeviceModule() -> AudioDeviceModule? {
+        guard let adm = webRTCModule?.audioDeviceModule else {
+            #if DEBUG
+            print("[Callingx] WebRTCModule is not available. Ensure it was injected from the TurboModule host.")
+            #endif
+            return nil
+        }
+        return adm
     }
 }
 
