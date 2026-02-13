@@ -46,6 +46,12 @@ const sfuEventKinds: Record<SfuEventKinds, undefined> = {
   inboundStateNotification: undefined,
 };
 
+/**
+ * Determines if a given event name belongs to the category of SFU events.
+ *
+ * @param eventName the name of the event to check.
+ * @returns true if the event name is an SFU event, otherwise false.
+ */
 export const isSfuEvent = (
   eventName: SfuEventKinds | EventTypes,
 ): eventName is SfuEventKinds => {
@@ -58,9 +64,15 @@ export class Dispatcher {
   private readonly logger = videoLoggerSystem.getLogger('Dispatcher');
   private subscribers: Partial<Record<SfuEventKinds, TaggedHandler>> = {};
 
+  /**
+   * Dispatch an event to all subscribers.
+   *
+   * @param message the event payload to dispatch.
+   * @param tag for scoping events to a specific tag. Use `*` dispatch to every tag.
+   */
   dispatch = <K extends SfuEventKinds>(
     message: DispatchableMessage<K>,
-    tag: string = '0',
+    tag: string = '*',
   ) => {
     const eventKind = message.eventPayload.oneofKind;
     if (!eventKind) return;
@@ -69,9 +81,14 @@ export class Dispatcher {
     const handlers = this.subscribers[eventKind];
     if (!handlers) return;
     this.emit(payload, handlers[tag]);
-    this.emit(payload, handlers['*']);
+    if (tag !== '*') this.emit(payload, handlers['*']);
   };
 
+  /**
+   * Emit an event to a list of listeners.
+   * @param payload the event payload to emit.
+   * @param listeners the list of listeners to emit the event to.
+   */
   emit = (payload: any, listeners: CallEventListener<any>[] = []) => {
     for (const listener of listeners) {
       try {
@@ -82,6 +99,14 @@ export class Dispatcher {
     }
   };
 
+  /**
+   * Subscribe to an event.
+   *
+   * @param eventName the name of the event to subscribe to.
+   * @param tag for scoping events to a specific tag. Use `*` dispatch to every tag.
+   * @param fn the callback function to invoke when the event is emitted.
+   * @returns a function that can be called to unsubscribe from the event.
+   */
   on = <E extends keyof AllSfuEvents>(
     eventName: E,
     tag: string,
@@ -94,6 +119,13 @@ export class Dispatcher {
     };
   };
 
+  /**
+   * Unsubscribe from an event.
+   *
+   * @param eventName the name of the event to unsubscribe from.
+   * @param tag for scoping events to a specific tag. Use `*` dispatch to every tag.
+   * @param fn the callback function to remove from the event listeners.
+   */
   off = <E extends keyof AllSfuEvents>(
     eventName: E,
     tag: string,
