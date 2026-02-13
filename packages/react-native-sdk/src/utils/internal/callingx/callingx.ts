@@ -91,6 +91,7 @@ export async function startCallingxCall(call: Call) {
         await waitForAudioSessionActivation();
       }
 
+      // TODO: this must be done after join call is complete
       CallingxModule.setCurrentCallActive(call.cid);
     } catch (error) {
       logger.error(
