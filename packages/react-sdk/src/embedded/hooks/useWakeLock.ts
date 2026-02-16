@@ -22,7 +22,7 @@ export const useWakeLock = () => {
         wakeLockSentinel = wls;
       })
       .catch((error: unknown) =>
-        console.log(`Couldn't setup WakeLock due to: ${error}`),
+        console.debug(`Couldn't setup WakeLock due to: ${error}`),
       );
 
     return () => {

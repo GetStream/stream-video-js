@@ -5,10 +5,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
-import {
-  useEffectEvent as useEffectEventShim,
-  useI18n,
-} from '@stream-io/video-react-bindings';
+import { useEffectEvent as useEffectEventShim } from '@stream-io/video-react-bindings';
 
 import { StreamCall, StreamVideo } from '../core';
 import {
@@ -74,7 +71,6 @@ export const EmbeddedClientProvider = ({
   style,
   children,
 }: EmbeddedClientProviderProps) => {
-  const { t } = useI18n();
   const [showError, setShowError] = useState<boolean>(false);
 
   const onErrorStable = useEffectEventShim(onError ?? console.error);
@@ -103,9 +99,8 @@ export const EmbeddedClientProvider = ({
       <StreamTheme className="str-video__embedded">
         <div className="str-video__embedded-error">
           <p className="str-video__embedded-error__message">
-            {t(
-              'An error occurred while initializing the client. Please try again later',
-            )}
+            An error occurred while initializing the client. Please try again
+            later.
           </p>
         </div>
       </StreamTheme>
