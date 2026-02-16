@@ -67,7 +67,7 @@ export type CancelCallButtonProps = {
   disabled?: boolean;
   caption?: string;
   onClick?: MouseEventHandler<HTMLButtonElement>;
-  onLeave?: () => void;
+  onLeave?: (err?: Error) => void;
 };
 
 export const CancelCallConfirmButton = ({
@@ -81,8 +81,13 @@ export const CancelCallConfirmButton = ({
       if (onClick) {
         onClick(e);
       } else if (call) {
-        await call.leave();
-        onLeave?.();
+        try {
+          await call.leave();
+          onLeave?.();
+        } catch (err) {
+          console.error(`Failed to leave call`, err);
+          onLeave?.(err as Error);
+        }
       }
     },
     [onClick, onLeave, call],
@@ -93,8 +98,13 @@ export const CancelCallConfirmButton = ({
       if (onClick) {
         onClick(e);
       } else if (call) {
-        await call.endCall();
-        onLeave?.();
+        try {
+          await call.endCall();
+          onLeave?.();
+        } catch (err) {
+          console.error(`Failed to end call`, err);
+          onLeave?.(err as Error);
+        }
       }
     },
     [onClick, onLeave, call],
@@ -120,8 +130,13 @@ export const CancelCallButton = ({
       if (onClick) {
         onClick(e);
       } else if (call) {
-        await call.leave();
-        onLeave?.();
+        try {
+          await call.leave();
+          onLeave?.();
+        } catch (err) {
+          console.error(`Failed to leave call`, err);
+          onLeave?.(err as Error);
+        }
       }
     },
     [onClick, onLeave, call],
