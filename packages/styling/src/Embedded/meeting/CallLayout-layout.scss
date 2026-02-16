@@ -16,6 +16,13 @@
   }
 }
 
+.str-video__embedded-call-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--str-video__spacing-sm) var(--str-video__spacing-md);
+}
+
 .str-video__embedded-layout {
   display: flex;
   flex: 1;
@@ -72,6 +79,10 @@
 }
 
 @include utils.respond-above(sm) {
+  .str-video__embedded-call-header {
+    display: none;
+  }
+
   .str-video__embedded-sidebar {
     position: relative;
     width: 0;

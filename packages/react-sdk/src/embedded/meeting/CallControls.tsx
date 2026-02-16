@@ -1,7 +1,7 @@
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted, useI18n } from '@stream-io/video-react-bindings';
 import {
-  CancelCallButton,
+  CancelCallConfirmButton,
   CompositeButton,
   DeviceSelectorAudioInput,
   DeviceSelectorAudioOutput,
@@ -25,6 +25,8 @@ interface CallControlsProps {
 
 /**
  * Renders the in-call control bar: duration, media toggles, and sidebar toggle.
+ * On small screens, reactions appear in the left group and duration/cancel move to the header.
+ * On large screens, duration appears in the left group and reactions/cancel stay in the media group.
  */
 export const CallControls = ({
   showParticipants,
@@ -36,8 +38,13 @@ export const CallControls = ({
   return (
     <div className="str-video__embedded-call-controls str-video__call-controls">
       <div className="str-video__call-controls--group str-video__call-controls--options">
+        <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
+          <div className="str-video__embedded-mobile">
+            <ReactionsButton />
+          </div>
+        </Restricted>
         {startedAt && (
-          <div className="str-video__embedded-call-duration">
+          <div className="str-video__embedded-call-duration str-video__embedded-desktop">
             <Icon
               icon="verified"
               className="str-video__embedded-call-duration__icon"
@@ -81,13 +88,17 @@ export const CallControls = ({
           />
         </Restricted>
         <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
-          <ReactionsButton />
+          <div className="str-video__embedded-desktop">
+            <ReactionsButton />
+          </div>
         </Restricted>
         <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
           <ScreenShareButton />
         </Restricted>
         <RecordCallConfirmationButton />
-        <CancelCallButton />
+        <div className="str-video__embedded-desktop">
+          <CancelCallConfirmButton />
+        </div>
       </div>
       <div className="str-video__call-controls--group str-video__call-controls--sidebar">
         <WithTooltip title={t('Participants')}>

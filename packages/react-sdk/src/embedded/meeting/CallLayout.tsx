@@ -11,6 +11,7 @@ import {
 import { useLayout } from '../hooks';
 import { ConnectionNotification } from '../shared';
 import { CallControls } from './CallControls';
+import { CallHeader } from './CallHeader';
 
 /**
  * CallLayout renders the in-call experience with layout, controls, and sidebar.
@@ -36,6 +37,7 @@ export const CallLayout = () => {
           <SpeakingWhileMutedNotification />
         </Restricted>
       </div>
+      <CallHeader />
       <div className="str-video__embedded-layout">
         <div className="str-video__embedded-layout__stage">
           <LayoutComponent {...layoutProps} />
