@@ -131,8 +131,8 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
-    fun isCallRegistered(callId: String): Boolean {
-        return impl.isCallRegistered(callId)
+    fun isCallTracked(callId: String): Boolean {
+        return impl.isCallTracked(callId)
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)

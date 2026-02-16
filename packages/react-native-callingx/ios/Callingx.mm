@@ -153,6 +153,12 @@ RCT_EXPORT_MODULE(Callingx)
 - (void)_setupiOSWithOptions:(NSDictionary *)optionsDict {
   [_moduleImpl setupWithOptions:optionsDict];
 
+  // Inject WebRTCModule so CallingxImpl can access AudioDeviceModule.
+  // self.bridge is NOT available on TurboModules — use currentBridge instead,
+  // which returns the real RCTBridge or RCTBridgeProxy (bridgeless interop).
+  WebRTCModule *webrtcModule = [[RCTBridge currentBridge] moduleForName:@"WebRTCModule"];
+  _moduleImpl.webRTCModule = webrtcModule;
+
   self.callKeepCallController = _moduleImpl.callKeepCallController;
   self.callKeepProvider = _moduleImpl.callKeepProvider;
 }
@@ -172,16 +178,7 @@ RCT_EXPORT_MODULE(Callingx)
     @"displayCallTimeout" : @(options.displayCallTimeout())
   };
   
-  [_moduleImpl setupWithOptions:optionsDict];
-  
-  // Inject WebRTCModule so CallingxImpl can access AudioDeviceModule.
-  // self.bridge is NOT available on TurboModules — use currentBridge instead,
-  // which returns the real RCTBridge or RCTBridgeProxy (bridgeless interop).
-  WebRTCModule *webrtcModule = [[RCTBridge currentBridge] moduleForName:@"WebRTCModule"];
-  _moduleImpl.webRTCModule = webrtcModule;
-  
-  self.callKeepCallController = _moduleImpl.callKeepCallController;
-  self.callKeepProvider = _moduleImpl.callKeepProvider;
+  [self _setupiOSWithOptions:optionsDict];
 }
 #else
 RCT_EXPORT_METHOD(setupiOS:(NSDictionary *)options) {
@@ -304,11 +301,13 @@ RCT_EXPORT_METHOD(displayIncomingCall:(NSString *)callId
              displayOptions:(NSDictionary *)displayOptions
                     resolve:(RCTPromiseResolveBlock)resolve
                      reject:(RCTPromiseRejectBlock)reject) {
-  BOOL result = [_moduleImpl displayIncomingCallWithCallId:callId
-                                         phoneNumber:phoneNumber
-                                          callerName:callerName
-                                            hasVideo:hasVideo];
-  resolve(@(result));
+  [_moduleImpl displayIncomingCallWithCallId:callId
+                                 phoneNumber:phoneNumber
+                                  callerName:callerName
+                                    hasVideo:hasVideo
+                                     resolve:resolve
+                                      reject:reject
+  ];
 }
 #endif
 
