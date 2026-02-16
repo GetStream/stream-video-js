@@ -93,7 +93,9 @@ export const CallControls = ({
           </div>
         </Restricted>
         <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
-          <ScreenShareButton />
+          <div className="str-video__embedded-desktop">
+            <ScreenShareButton />
+          </div>
         </Restricted>
         <RecordCallConfirmationButton />
         <div className="str-video__embedded-desktop">
