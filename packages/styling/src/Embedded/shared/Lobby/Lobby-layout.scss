@@ -1,12 +1,5 @@
-@use '../../../utils';
-
 .str-video__embedded-lobby {
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -30,8 +23,7 @@
 }
 
 .str-video__embedded-lobby__camera {
-  position: relative;
-  width: calc(100vw - var(--str-video__spacing-lg));
+  width: 100%;
 
   &--off {
     .str-video__video-preview-container {
@@ -181,9 +173,9 @@
   }
 }
 
-@include utils.respond-above(sm) {
+@container (min-width: 600px) {
   .str-video__embedded-lobby__content {
-    max-width: 40vw;
+    max-width: 480px;
   }
 
   .str-video__embedded-lobby__camera {
@@ -192,11 +184,5 @@
 
   .str-video__embedded-lobby__device-button-label {
     width: 150px;
-  }
-}
-
-@include utils.respond-above(md) {
-  .str-video__embedded-lobby__content {
-    max-width: 25vw;
   }
 }
