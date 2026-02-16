@@ -19,7 +19,7 @@ type RejectCallButtonProps = {
    *
    * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
-  onRejectCallHandler?: () => void;
+  onRejectCallHandler?: (err?: Error) => void;
   /**
    * Sets the height, width and border-radius (half the value) of the button.
    */
@@ -60,22 +60,21 @@ export const RejectCallButton = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const rejectCallHandler = async () => {
-    setIsLoading(true);
     if (onPressHandler) {
       onPressHandler();
       return;
     }
+    if (!call || callingState === CallingState.LEFT) {
+      return;
+    }
+    setIsLoading(true);
     try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave({ reject: true, reason: rejectReason });
-      if (onRejectCallHandler) {
-        onRejectCallHandler();
-      }
+      await call.leave({ reject: true, reason: rejectReason });
+      onRejectCallHandler?.();
     } catch (error) {
       const logger = videoLoggerSystem.getLogger('RejectCallButton');
       logger.error('Error rejecting Call', error);
+      onRejectCallHandler?.(error as Error);
     } finally {
       setIsLoading(false);
     }
