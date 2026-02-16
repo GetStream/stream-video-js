@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.32.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.2...@stream-io/video-react-sdk-1.32.3) (2026-02-16)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.3`
+- `@stream-io/video-react-bindings` updated to version `1.13.7`
+
+### Bug Fixes
+
+- guard from parallel accept/reject invocations ([#2127](https://github.com/GetStream/stream-video-js/issues/2127)) ([621218f](https://github.com/GetStream/stream-video-js/commit/621218f4ab6b4623370fd66f1b02b8cb7cb1baad))
+
 ## [1.32.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.1...@stream-io/video-react-sdk-1.32.2) (2026-02-13)
 
 ### Dependency Updates
