@@ -4,6 +4,7 @@ import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { PaginatedGridLayout, SpeakerLayout } from '../../core';
 import type { LayoutOption } from '../types';
 import { useEmbeddedConfiguration } from '../context';
+import { EmbeddedParticipantViewUI } from '../shared';
 
 interface LayoutConfig {
   Component: ComponentType<any>;
@@ -13,23 +14,39 @@ interface LayoutConfig {
 const Layouts: Record<LayoutOption, LayoutConfig> = {
   PaginatedGrid: {
     Component: PaginatedGridLayout,
-    props: { groupSize: 16 },
+    props: { groupSize: 16, ParticipantViewUI: EmbeddedParticipantViewUI },
   },
   SpeakerLeft: {
     Component: SpeakerLayout,
-    props: { participantsBarPosition: 'left' },
+    props: {
+      participantsBarPosition: 'left',
+      ParticipantViewUISpotlight: EmbeddedParticipantViewUI,
+      ParticipantViewUIBar: EmbeddedParticipantViewUI,
+    },
   },
   SpeakerRight: {
     Component: SpeakerLayout,
-    props: { participantsBarPosition: 'right' },
+    props: {
+      participantsBarPosition: 'right',
+      ParticipantViewUISpotlight: EmbeddedParticipantViewUI,
+      ParticipantViewUIBar: EmbeddedParticipantViewUI,
+    },
   },
   SpeakerTop: {
     Component: SpeakerLayout,
-    props: { participantsBarPosition: 'top' },
+    props: {
+      participantsBarPosition: 'top',
+      ParticipantViewUISpotlight: EmbeddedParticipantViewUI,
+      ParticipantViewUIBar: EmbeddedParticipantViewUI,
+    },
   },
   SpeakerBottom: {
     Component: SpeakerLayout,
-    props: { participantsBarPosition: 'bottom' },
+    props: {
+      participantsBarPosition: 'bottom',
+      ParticipantViewUISpotlight: EmbeddedParticipantViewUI,
+      ParticipantViewUIBar: EmbeddedParticipantViewUI,
+    },
   },
 };
 

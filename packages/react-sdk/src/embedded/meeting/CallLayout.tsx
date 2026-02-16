@@ -17,6 +17,7 @@ import { CallControls } from './CallControls';
  */
 export const CallLayout = () => {
   const [showParticipants, setShowParticipants] = useState(false);
+
   const { Component: LayoutComponent, props: layoutProps } = useLayout();
 
   const handleToggleParticipants = useCallback(() => {
@@ -25,42 +26,38 @@ export const CallLayout = () => {
 
   return (
     <div className="str-video__embedded-call">
-      <div className="str-video__embedded-main-panel">
-        <ConnectionNotification />
-        <PermissionRequests />
-        <div className="str-video__embedded-notifications">
-          <Restricted
-            requiredGrants={[OwnCapability.SEND_AUDIO]}
-            hasPermissionsOnly
-          >
-            <SpeakingWhileMutedNotification />
-          </Restricted>
-        </div>
-        <div className="str-video__embedded-layout">
-          <div className="str-video__embedded-layout__stage">
-            <LayoutComponent {...layoutProps} />
-          </div>
-
-          <div
-            className={clsx(
-              'str-video__embedded-sidebar',
-              showParticipants && 'str-video__embedded-sidebar--open',
-            )}
-          >
-            {showParticipants && (
-              <div className="str-video__embedded-sidebar__container">
-                <div className="str-video__embedded-participants">
-                  <CallParticipantsList onClose={handleToggleParticipants} />
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-        <CallControls
-          showParticipants={showParticipants}
-          onToggleParticipants={handleToggleParticipants}
-        />
+      <ConnectionNotification />
+      <PermissionRequests />
+      <div className="str-video__embedded-notifications">
+        <Restricted
+          requiredGrants={[OwnCapability.SEND_AUDIO]}
+          hasPermissionsOnly
+        >
+          <SpeakingWhileMutedNotification />
+        </Restricted>
       </div>
+      <div className="str-video__embedded-layout">
+        <div className="str-video__embedded-layout__stage">
+          <LayoutComponent {...layoutProps} />
+        </div>
+
+        <div
+          className={clsx(
+            'str-video__embedded-sidebar',
+            showParticipants && 'str-video__embedded-sidebar--open',
+          )}
+        >
+          {showParticipants && (
+            <div className="str-video__embedded-participants">
+              <CallParticipantsList onClose={handleToggleParticipants} />
+            </div>
+          )}
+        </div>
+      </div>
+      <CallControls
+        showParticipants={showParticipants}
+        onToggleParticipants={handleToggleParticipants}
+      />
     </div>
   );
 };

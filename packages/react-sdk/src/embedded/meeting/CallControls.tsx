@@ -75,12 +75,10 @@ export const CallControls = ({
           requiredGrants={[OwnCapability.SEND_VIDEO]}
           hasPermissionsOnly
         >
-          <div className="str-video__embedded-dual-toggle">
-            <ToggleVideoPublishingButton
-              Menu={<CameraMenuWithBlur />}
-              menuPlacement="top"
-            />
-          </div>
+          <ToggleVideoPublishingButton
+            Menu={<CameraMenuWithBlur />}
+            menuPlacement="top"
+          />
         </Restricted>
         <Restricted requiredGrants={[OwnCapability.CREATE_REACTION]}>
           <ReactionsButton />

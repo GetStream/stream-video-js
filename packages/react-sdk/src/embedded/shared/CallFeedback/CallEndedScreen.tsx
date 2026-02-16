@@ -29,51 +29,49 @@ export const CallEndedScreen = ({
   }, [onJoin, onError]);
 
   return (
-    <div className="str-video__embedded-call-feedback">
-      <div className="str-video__embedded-call-feedback__container">
-        <h2 className="str-video__embedded-call-feedback__title">
-          {t('Call ended')}
-        </h2>
-        <p
-          className="str-video__embedded-call-feedback__rejoin-error"
-          role="status"
-          aria-live="polite"
-          data-visible={error}
-        >
-          {t('Failed to rejoin. Please try again.')}
-        </p>
-        <div className="str-video__embedded-call-feedback__ended-actions">
-          {handleRejoin && (
-            <>
-              <div className="str-video__embedded-call-feedback__ended-column">
-                <p className="str-video__embedded-call-feedback__ended-label">
-                  {t('Left by mistake?')}
-                </p>
-                <button
-                  type="button"
-                  className="str-video__embedded-call-feedback__ended-button"
-                  onClick={handleRejoin}
-                >
-                  <Icon icon="login" />
-                  {t('Rejoin call')}
-                </button>
-              </div>
-              <div className="str-video__embedded-call-feedback__ended-divider" />
-            </>
-          )}
-          <div className="str-video__embedded-call-feedback__ended-column">
-            <p className="str-video__embedded-call-feedback__ended-label">
-              {t('Help us improve')}
-            </p>
-            <button
-              type="button"
-              className="str-video__embedded-call-feedback__ended-button"
-              onClick={onFeedback}
-            >
-              <Icon icon="feedback" />
-              {t('Leave feedback')}
-            </button>
-          </div>
+    <div className="str-video__embedded-call-feedback__container">
+      <h2 className="str-video__embedded-call-feedback__title">
+        {t('Call ended')}
+      </h2>
+      <p
+        className="str-video__embedded-call-feedback__rejoin-error"
+        role="status"
+        aria-live="polite"
+        data-visible={error}
+      >
+        {t('Failed to rejoin. Please try again.')}
+      </p>
+      <div className="str-video__embedded-call-feedback__ended-actions">
+        {handleRejoin && (
+          <>
+            <div className="str-video__embedded-call-feedback__ended-column">
+              <p className="str-video__embedded-call-feedback__ended-label">
+                {t('Left by mistake?')}
+              </p>
+              <button
+                type="button"
+                className="str-video__embedded-call-feedback__ended-button"
+                onClick={handleRejoin}
+              >
+                <Icon icon="login" />
+                {t('Rejoin call')}
+              </button>
+            </div>
+            <div className="str-video__embedded-call-feedback__ended-divider" />
+          </>
+        )}
+        <div className="str-video__embedded-call-feedback__ended-column">
+          <p className="str-video__embedded-call-feedback__ended-label">
+            {t('Help us improve')}
+          </p>
+          <button
+            type="button"
+            className="str-video__embedded-call-feedback__ended-button"
+            onClick={onFeedback}
+          >
+            <Icon icon="feedback" />
+            {t('Leave feedback')}
+          </button>
         </div>
       </div>
     </div>

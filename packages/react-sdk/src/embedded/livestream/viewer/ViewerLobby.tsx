@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { humanize } from '@stream-io/video-client';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Icon } from '../../../components';
+import { ViewersCount } from '../../shared';
 
 export type ViewerLobbyProps = {
   onJoin: () => Promise<void>;
@@ -81,17 +81,7 @@ export const ViewerLobby = ({ onJoin, canJoin, isLive }: ViewerLobbyProps) => {
           </p>
         )}
 
-        {participantCount > 0 && (
-          <div className="str-video__embedded-livestream-duration__viewers">
-            <Icon
-              icon="eye"
-              className="str-video__embedded-livestream-duration__eye-icon"
-            />
-            <span className="str-video__embedded-livestream-duration__count">
-              {humanize(participantCount)}
-            </span>
-          </div>
-        )}
+        {participantCount > 0 && <ViewersCount count={participantCount} />}
 
         <div className="str-video__embedded-viewer-lobby__actions">
           {canJoin ? (

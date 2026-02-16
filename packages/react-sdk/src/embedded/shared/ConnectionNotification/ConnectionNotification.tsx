@@ -27,9 +27,7 @@ export const ConnectionNotification = () => {
               ? t('You are offline. Check your internet connection.')
               : t('Failed to restore connection. Please try again.')
           }
-        >
-          <span />
-        </Notification>
+        />
       </div>
     );
   }
@@ -52,9 +50,7 @@ export const ConnectionNotification = () => {
               }
             />
           }
-        >
-          <span />
-        </Notification>
+        />
       </div>
     );
   }

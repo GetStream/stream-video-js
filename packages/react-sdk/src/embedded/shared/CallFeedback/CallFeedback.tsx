@@ -34,12 +34,15 @@ export const CallFeedback = ({ onJoin }: CallFeedbackProps) => {
     [call],
   );
 
-  switch (state) {
-    case 'submitted':
-      return <ThankYouScreen />;
-    case 'rating':
-      return <RatingScreen onSubmit={handleSubmit} />;
-    default:
-      return <CallEndedScreen onJoin={onJoin} onFeedback={onFeedback} />;
-  }
+  return (
+    <div className="str-video__embedded-call-feedback">
+      {state === 'submitted' ? (
+        <ThankYouScreen />
+      ) : state === 'rating' ? (
+        <RatingScreen onSubmit={handleSubmit} />
+      ) : (
+        <CallEndedScreen onJoin={onJoin} onFeedback={onFeedback} />
+      )}
+    </div>
+  );
 };

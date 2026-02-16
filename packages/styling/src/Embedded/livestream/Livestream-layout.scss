@@ -39,7 +39,6 @@
 
   &__elapsed {
     font-size: 0.875rem;
-    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -150,12 +149,4 @@
       visibility: hidden;
     }
   }
-}
-
-.str-video__embedded-host-lobby {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: var(--str-video__spacing-xl);
 }
