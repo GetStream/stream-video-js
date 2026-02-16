@@ -23,14 +23,15 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.WritableNativeArray
-import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
 
-@ReactModule(name = CallingxModule.NAME)
-class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec(reactContext) {
+class CallingxModuleImpl(
+        private val reactApplicationContext: ReactApplicationContext,
+        private val eventEmitter: CallingxEventEmitterAdapter
+) {
 
     companion object {
         const val TAG = "[Callingx] CallingxModule"
@@ -95,21 +96,18 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
 
     init {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            reactContext.registerReceiver(
+            reactApplicationContext.registerReceiver(
                     callEventBroadcastReceiver,
                     getReceiverFilter(),
                     Context.RECEIVER_NOT_EXPORTED
             )
         } else {
             @Suppress("UnspecifiedRegisterReceiverFlag")
-            reactContext.registerReceiver(callEventBroadcastReceiver, getReceiverFilter())
+            reactApplicationContext.registerReceiver(callEventBroadcastReceiver, getReceiverFilter())
         }
     }
 
-    override fun getName(): String = NAME
-
-    override fun initialize() {
-        super.initialize()
+    fun initialize() {
         reactApplicationContext.addLifecycleEventListener(appStateListener)
 
         tryToBindIfNeeded()
@@ -117,8 +115,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         debugLog(TAG, "[module] initialize: Initializing module")
     }
 
-    override fun invalidate() {
-        super.invalidate()
+    fun invalidate() {
         debugLog(TAG, "[module] invalidate: Invalidating module")
 
         // Clean up pending display promises to prevent leaks
@@ -135,11 +132,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         isModuleInitialized = false
     }
 
-    override fun setupiOS(options: ReadableMap) {
-        // leave empty
-    }
-
-    override fun setupAndroid(options: ReadableMap) {
+    fun setupAndroid(options: ReadableMap) {
         debugLog(TAG, "[module] setupAndroid: Setting up Android: $options")
         val notificationsConfig =
                 NotificationsConfig.saveNotificationsConfig(reactApplicationContext, options)
@@ -149,24 +142,11 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         isModuleInitialized = true
     }
 
-    override fun canPostNotifications(): Boolean {
+    fun canPostNotifications(): Boolean {
         return notificationChannelsManager.getNotificationStatus().canPost
     }
 
-    override fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
-        // leave empty
-    }
-
-    override fun getInitialVoipEvents(): WritableArray {
-       // leave empty
-      return Arguments.createArray()
-    }
-
-    override fun registerVoipToken() {
-        // leave empty
-    }
-
-    override fun getInitialEvents(): WritableArray {
+    fun getInitialEvents(): WritableArray {
         // NOTE: writabel native array can be consumed only once, think of getting rid from clear
         // event and clear eat immidiate after getting initial events
         val events = delayedEvents
@@ -176,12 +156,12 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         return events
     }
 
-    override fun setCurrentCallActive(callId: String, promise: Promise) {
+    fun setCurrentCallActive(callId: String, promise: Promise) {
         debugLog(TAG, "[module] activateCall: Activating call: $callId")
         executeServiceAction(callId, CallAction.Activate, promise)
     }
 
-    override fun displayIncomingCall(
+    fun displayIncomingCall(
             callId: String,
             phoneNumber: String,
             callerName: String,
@@ -240,7 +220,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         }
     }
 
-    override fun answerIncomingCall(callId: String, promise: Promise) {
+    fun answerIncomingCall(callId: String, promise: Promise) {
         debugLog(TAG, "[module] answerIncomingCall: Answering call: $callId")
         // TODO: get the call type from the call attributes
         val isAudioCall = true // TODO: get the call type from the call attributes
@@ -250,7 +230,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         executeServiceAction(callId, CallAction.Answer(isAudioCall), promise)
     }
 
-    override fun startCall(
+    fun startCall(
             callId: String,
             phoneNumber: String,
             callerName: String,
@@ -283,7 +263,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         }
     }
 
-    override fun updateDisplay(
+    fun updateDisplay(
             callId: String,
             phoneNumber: String,
             callerName: String,
@@ -313,43 +293,43 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         }
     }
 
-    override fun endCallWithReason(callId: String, reason: Double, promise: Promise) {
+    fun endCallWithReason(callId: String, reason: Double, promise: Promise) {
         debugLog(TAG, "[module] endCallWithReason: Ending call: $callId, $reason")
         val action = CallAction.Disconnect(DisconnectCause(reason.toInt()))
         executeServiceAction(callId, action, promise)
     }
 
-    override fun endCall(callId: String, promise: Promise) {
+    fun endCall(callId: String, promise: Promise) {
         debugLog(TAG, "[module] endCall: Ending call: $callId")
         val action = CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL))
         executeServiceAction(callId, action, promise)
     }
 
-    override fun isCallTracked(callId: String): Boolean {
+    fun isCallTracked(callId: String): Boolean {
         val isCallTracked = callService?.isCallTracked(callId) ?: false
         debugLog(TAG, "[module] isCallTracked: Is call tracked: $isCallTracked")
         return isCallTracked
     }
 
-    override fun hasRegisteredCall(): Boolean {
+    fun hasRegisteredCall(): Boolean {
         val hasRegisteredCall = callService?.hasRegisteredCall() ?: false
         debugLog(TAG, "[module] hasRegisteredCall: Has registered call: $hasRegisteredCall")
         return hasRegisteredCall
     }
 
-    override fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {
+    fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {
         debugLog(TAG, "[module] setMutedCall: Setting muted call: $callId, $isMuted")
         val action = CallAction.ToggleMute(isMuted)
         executeServiceAction(callId, action, promise)
     }
 
-    override fun setOnHoldCall(callId: String, isOnHold: Boolean, promise: Promise) {
+    fun setOnHoldCall(callId: String, isOnHold: Boolean, promise: Promise) {
         debugLog(TAG, "[module] setOnHoldCall: Setting on hold call: $callId, $isOnHold")
         val action = if (isOnHold) CallAction.Hold else CallAction.Activate
         executeServiceAction(callId, action, promise)
     }
 
-    override fun startBackgroundTask(taskName: String, timeout: Double, promise: Promise) {
+    fun startBackgroundTask(taskName: String, timeout: Double, promise: Promise) {
         try {
             Intent(reactApplicationContext, CallService::class.java)
                     .apply {
@@ -367,7 +347,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         }
     }
 
-    override fun stopBackgroundTask(taskName: String, promise: Promise) {
+    fun stopBackgroundTask(taskName: String, promise: Promise) {
         try {
             Intent(reactApplicationContext, CallService::class.java)
                     .apply {
@@ -384,12 +364,12 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         }
     }
 
-    override fun registerBackgroundTaskAvailable() {
+    fun registerBackgroundTaskAvailable() {
         debugLog(TAG, "[module] registerBackgroundTaskAvailable: Headless task registered")
         isHeadlessTaskRegistered = true
     }
 
-    override fun isServiceStarted(promise: Promise) {
+    fun isServiceStarted(promise: Promise) {
         val isStarted =
                 bindingState == BindingState.BOUND ||
                         bindingState == BindingState.BINDING ||
@@ -398,7 +378,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
         promise.resolve(isStarted)
     }
 
-    override fun log(message: String, level: String) {
+    fun log(message: String, level: String) {
         when (level) {
             "debug" -> debugLog(TAG, "[module] log: $message")
             "info" -> Log.i(TAG, "[module] log: $message")
@@ -501,7 +481,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                         putString("eventName", eventName)
                         putMap("params", paramsMap)
                     }
-            emitOnNewEvent(value)
+            eventEmitter.emitNewEvent(value)
         } else {
             debugLog(TAG, "[module] sendJSEvent: Queueing event: $eventName, $params")
             Arguments.createMap()

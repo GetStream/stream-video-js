@@ -13,7 +13,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.graphics.drawable.IconCompat
 import io.getstream.rn.callingx.CallService
-import io.getstream.rn.callingx.CallingxModule
+import io.getstream.rn.callingx.CallingxModuleImpl
 import io.getstream.rn.callingx.R
 import io.getstream.rn.callingx.ResourceUtils
 import io.getstream.rn.callingx.debugLog
@@ -78,7 +78,7 @@ class CallNotificationManager(
         val contentIntent =
                 NotificationIntentFactory.getLaunchActivityIntent(
                         context,
-                        CallingxModule.CALL_ANSWERED_ACTION,
+                        CallingxModuleImpl.CALL_ANSWERED_ACTION,
                         call.id
                 )
         val callStyle = createCallStyle(call)
@@ -190,21 +190,21 @@ class CallNotificationManager(
                     caller,
                     NotificationIntentFactory.getPendingBroadcastIntent(
                             context,
-                            CallingxModule.CALL_END_ACTION,
+                            CallingxModuleImpl.CALL_END_ACTION,
                             call.id
                     ) {
                         putExtra(
-                                CallingxModule.EXTRA_DISCONNECT_CAUSE,
+                                CallingxModuleImpl.EXTRA_DISCONNECT_CAUSE,
                                 getDisconnectCauseString(DisconnectCause(DisconnectCause.REJECTED))
                         )
                         putExtra(
-                                CallingxModule.EXTRA_SOURCE,
+                                CallingxModuleImpl.EXTRA_SOURCE,
                                 CallRepository.EventSource.SYS.name.lowercase()
                         )
                     },
                     NotificationIntentFactory.getPendingNotificationIntent(
                             context,
-                            CallingxModule.CALL_ANSWERED_ACTION,
+                            CallingxModuleImpl.CALL_ANSWERED_ACTION,
                             call.id,
                             CallRepository.EventSource.SYS.name.lowercase()
                     )
@@ -215,15 +215,15 @@ class CallNotificationManager(
                 caller,
                 NotificationIntentFactory.getPendingBroadcastIntent(
                         context,
-                        CallingxModule.CALL_END_ACTION,
+                        CallingxModuleImpl.CALL_END_ACTION,
                         call.id
                 ) {
                     putExtra(
-                            CallingxModule.EXTRA_DISCONNECT_CAUSE,
+                            CallingxModuleImpl.EXTRA_DISCONNECT_CAUSE,
                             getDisconnectCauseString(DisconnectCause(DisconnectCause.LOCAL))
                     )
                     putExtra(
-                            CallingxModule.EXTRA_SOURCE,
+                            CallingxModuleImpl.EXTRA_SOURCE,
                             CallRepository.EventSource.SYS.name.lowercase()
                     )
                 },

@@ -4,7 +4,7 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.util.Log
-import io.getstream.rn.callingx.CallingxModule
+import io.getstream.rn.callingx.CallingxModuleImpl
 
 class NotificationReceiverService : Service() {
 
@@ -22,7 +22,7 @@ class NotificationReceiverService : Service() {
     }
 
     when (action) {
-      CallingxModule.CALL_ANSWERED_ACTION -> onCallAnswered(intent)
+      CallingxModuleImpl.CALL_ANSWERED_ACTION -> onCallAnswered(intent)
     }
 
     stopSelf(startId)
@@ -30,20 +30,20 @@ class NotificationReceiverService : Service() {
   }
 
   private fun onCallAnswered(intent: Intent) {
-    val callId = intent.getStringExtra(CallingxModule.EXTRA_CALL_ID)
-    val source = intent.getStringExtra(CallingxModule.EXTRA_SOURCE)
+    val callId = intent.getStringExtra(CallingxModuleImpl.EXTRA_CALL_ID)
+    val source = intent.getStringExtra(CallingxModuleImpl.EXTRA_SOURCE)
     callId?.let {
       try {
         NotificationIntentFactory.getPendingBroadcastIntent(
                         applicationContext,
-                        CallingxModule.CALL_ANSWERED_ACTION,
+                        CallingxModuleImpl.CALL_ANSWERED_ACTION,
                         it
-                ) { putExtra(CallingxModule.EXTRA_SOURCE, source) }
+                ) { putExtra(CallingxModuleImpl.EXTRA_SOURCE, source) }
                 .send()
 
         NotificationIntentFactory.getLaunchActivityIntent(
                         applicationContext,
-                        CallingxModule.CALL_ANSWERED_ACTION,
+                        CallingxModuleImpl.CALL_ANSWERED_ACTION,
                         it,
                         source
                 )
