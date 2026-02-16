@@ -19,7 +19,9 @@ export const AcceptCallButton = ({
       if (onClick) {
         onClick(e);
       } else if (call) {
-        await call.join();
+        await call.join().catch((err) => {
+          console.error(`Failed to accept call`, err);
+        });
         onAccept?.();
       }
     },

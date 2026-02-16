@@ -276,6 +276,7 @@ export class Call {
   private credentials?: Credentials;
 
   private initialized = false;
+  private readonly acceptRejectConcurrencyTag = Symbol('acceptRejectTag');
   private readonly joinLeaveConcurrencyTag = Symbol('joinLeaveConcurrencyTag');
 
   /**
@@ -858,10 +859,12 @@ export class Call {
    * Unless you are implementing a custom "ringing" flow, you should not use this method.
    */
   accept = async () => {
-    this.tracer.trace('call.accept', '');
-    return this.streamClient.post<AcceptCallResponse>(
-      `${this.streamClientBasePath}/accept`,
-    );
+    return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
+      this.tracer.trace('call.accept', '');
+      return this.streamClient.post<AcceptCallResponse>(
+        `${this.streamClientBasePath}/accept`,
+      );
+    });
   };
 
   /**
@@ -876,11 +879,13 @@ export class Call {
   reject = async (
     reason: RejectReason = 'decline',
   ): Promise<RejectCallResponse> => {
-    this.tracer.trace('call.reject', reason);
-    return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
-      `${this.streamClientBasePath}/reject`,
-      { reason: reason },
-    );
+    return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
+      this.tracer.trace('call.reject', reason);
+      return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
+        `${this.streamClientBasePath}/reject`,
+        { reason },
+      );
+    });
   };
 
   /**
