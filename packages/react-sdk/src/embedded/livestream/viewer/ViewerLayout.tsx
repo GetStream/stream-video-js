@@ -20,7 +20,11 @@ import {
   ToggleVideoPublishingButton,
   WithTooltip,
 } from '../../../components';
-import { CameraMenuWithBlur, ViewersCount } from '../../shared';
+import {
+  CameraMenuWithBlur,
+  ConnectionNotification,
+  ViewersCount,
+} from '../../shared';
 
 export const ViewerLayout = () => {
   const { t } = useI18n();
@@ -40,6 +44,7 @@ export const ViewerLayout = () => {
 
   return (
     <div className="str-video__embedded-call str-video__embedded-livestream">
+      <ConnectionNotification />
       <div className="str-video__embedded-call-header">
         <div className="str-video__embedded-livestream-duration">
           <span className="str-video__embedded-livestream-duration__live-badge">
