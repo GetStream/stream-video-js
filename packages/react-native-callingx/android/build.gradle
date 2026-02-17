@@ -26,6 +26,10 @@ def getExtOrIntegerDefault(name) {
   return rootProject.ext.has(name) ? rootProject.ext.get(name) : (project.properties["Callingx_" + name]).toInteger()
 }
 
+def isNewArchitectureEnabled() {
+  return rootProject.hasProperty("newArchEnabled") && rootProject.newArchEnabled == "true"
+}
+
 android {
   namespace "io.getstream.rn.callingx"
 
@@ -63,6 +67,11 @@ android {
         "build/generated/source/codegen/java",
         "build/generated/source/codegen/jni"
       ]
+      if (isNewArchitectureEnabled()) {
+        java.srcDirs += ["src/newarch"]
+      } else {
+        java.srcDirs += ["src/oldarch"]
+      }
     }
   }
 }

@@ -83,7 +83,7 @@ class CallService : Service(), CallRepository.Listener {
         callRepository = CallRepositoryFactory.create(applicationContext)
         callRepository.setListener(this)
 
-        sendBroadcastEvent(CallingxModule.SERVICE_READY_ACTION)
+        sendBroadcastEvent(CallingxModuleImpl.SERVICE_READY_ACTION)
     }
 
     override fun onDestroy() {
@@ -208,9 +208,9 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     override fun onIsCallAnswered(callId: String, source: CallRepository.EventSource) {
-        sendBroadcastEvent(CallingxModule.CALL_ANSWERED_ACTION) {
-            putExtra(CallingxModule.EXTRA_CALL_ID, callId)
-            putExtra(CallingxModule.EXTRA_SOURCE, source.name.lowercase())
+        sendBroadcastEvent(CallingxModuleImpl.CALL_ANSWERED_ACTION) {
+            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
+            putExtra(CallingxModuleImpl.EXTRA_SOURCE, source.name.lowercase())
         }
     }
 
@@ -221,50 +221,50 @@ class CallService : Service(), CallRepository.Listener {
     ) {
         // we're not passing the callId here to prevent infinite loops
         // callEnd event with callId will sent only when after interaction with notification buttons
-        sendBroadcastEvent(CallingxModule.CALL_END_ACTION) {
+        sendBroadcastEvent(CallingxModuleImpl.CALL_END_ACTION) {
             if (callId != null) {
-                putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+                putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
             }
-            putExtra(CallingxModule.EXTRA_DISCONNECT_CAUSE, getDisconnectCauseString(cause))
-            putExtra(CallingxModule.EXTRA_SOURCE, source.name.lowercase())
+            putExtra(CallingxModuleImpl.EXTRA_DISCONNECT_CAUSE, getDisconnectCauseString(cause))
+            putExtra(CallingxModuleImpl.EXTRA_SOURCE, source.name.lowercase())
         }
     }
 
     override fun onIsCallInactive(callId: String) {
-        sendBroadcastEvent(CallingxModule.CALL_INACTIVE_ACTION) {
-            putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+        sendBroadcastEvent(CallingxModuleImpl.CALL_INACTIVE_ACTION) {
+            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
         }
     }
 
     override fun onIsCallActive(callId: String) {
-        sendBroadcastEvent(CallingxModule.CALL_ACTIVE_ACTION) {
-            putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+        sendBroadcastEvent(CallingxModuleImpl.CALL_ACTIVE_ACTION) {
+            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
         }
     }
 
     override fun onCallRegistered(callId: String, incoming: Boolean) {
         if (incoming) {
-            sendBroadcastEvent(CallingxModule.CALL_REGISTERED_INCOMING_ACTION) {
-                putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+            sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTERED_INCOMING_ACTION) {
+                putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
             }
         } else {
-            sendBroadcastEvent(CallingxModule.CALL_REGISTERED_ACTION) {
-                putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+            sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTERED_ACTION) {
+                putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
             }
         }
     }
 
     override fun onMuteCallChanged(callId: String, isMuted: Boolean) {
-        sendBroadcastEvent(CallingxModule.CALL_MUTED_ACTION) {
-            putExtra(CallingxModule.EXTRA_CALL_ID, callId)
-            putExtra(CallingxModule.EXTRA_MUTED, isMuted)
+        sendBroadcastEvent(CallingxModuleImpl.CALL_MUTED_ACTION) {
+            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
+            putExtra(CallingxModuleImpl.EXTRA_MUTED, isMuted)
         }
     }
 
     override fun onCallEndpointChanged(callId: String, endpoint: String) {
-        sendBroadcastEvent(CallingxModule.CALL_ENDPOINT_CHANGED_ACTION) {
-            putExtra(CallingxModule.EXTRA_CALL_ID, callId)
-            putExtra(CallingxModule.EXTRA_AUDIO_ENDPOINT, endpoint)
+        sendBroadcastEvent(CallingxModuleImpl.CALL_ENDPOINT_CHANGED_ACTION) {
+            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
+            putExtra(CallingxModuleImpl.EXTRA_AUDIO_ENDPOINT, endpoint)
         }
     }
 
@@ -306,12 +306,12 @@ class CallService : Service(), CallRepository.Listener {
         if (callRepository.currentCall.value is Call.Registered) {
             Log.w(TAG, "[service] registerCall: Call already registered, ignoring new call request")
             if (incoming) {
-                sendBroadcastEvent(CallingxModule.CALL_REGISTERED_INCOMING_ACTION) {
-                    putExtra(CallingxModule.EXTRA_CALL_ID, callInfo.callId)
+                sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTERED_INCOMING_ACTION) {
+                    putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callInfo.callId)
                 }
             } else {
-                sendBroadcastEvent(CallingxModule.CALL_REGISTERED_ACTION) {
-                    putExtra(CallingxModule.EXTRA_CALL_ID, callInfo.callId)
+                sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTERED_ACTION) {
+                    putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callInfo.callId)
                 }
             }
             return
@@ -341,8 +341,8 @@ class CallService : Service(), CallRepository.Listener {
             } catch (e: Exception) {
                 Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
 
-                sendBroadcastEvent(CallingxModule.CALL_REGISTRATION_FAILED_ACTION) {
-                    putExtra(CallingxModule.EXTRA_CALL_ID, callInfo.callId)
+                sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTRATION_FAILED_ACTION) {
+                    putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callInfo.callId)
                 }
 
                 if (isInForeground) {
