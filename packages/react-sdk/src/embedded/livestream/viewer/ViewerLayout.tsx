@@ -22,7 +22,7 @@ import {
 } from '../../../components';
 import { CameraMenuWithBlur, ViewersCount } from '../../shared';
 
-export const ViewerView = () => {
+export const ViewerLayout = () => {
   const { t } = useI18n();
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();

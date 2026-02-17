@@ -1,8 +1,8 @@
 import { OwnCapability } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
-import { HostUI } from './host/HostUI';
-import { ViewerUI } from './viewer/ViewerUI';
+import { HostStateRouter } from './host/HostStateRouter';
+import { ViewerStateRouter } from './viewer/ViewerStateRouter';
 
 export const LivestreamUI = () => {
   const { useHasPermissions } = useCallStateHooks();
@@ -10,8 +10,8 @@ export const LivestreamUI = () => {
   const isHost = useHasPermissions(OwnCapability.JOIN_BACKSTAGE);
 
   if (isHost) {
-    return <HostUI />;
+    return <HostStateRouter />;
   }
 
-  return <ViewerUI />;
+  return <ViewerStateRouter />;
 };

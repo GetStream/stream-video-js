@@ -6,14 +6,14 @@ import {
   useI18n,
 } from '@stream-io/video-react-bindings';
 
-import { HostView } from './HostView';
+import { HostLayout } from './HostLayout';
 import { LoadingIndicator } from '../../../components';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 import { useEmbeddedConfiguration } from '../../context';
 import { Lobby } from '../../shared/Lobby/Lobby';
 import { useLivestreamSortPreset } from '../../hooks';
 
-export const HostUI = () => {
+export const HostStateRouter = () => {
   const call = useCall();
   const { t } = useI18n();
   const { onError } = useEmbeddedConfiguration();
@@ -91,7 +91,7 @@ export const HostUI = () => {
   }
 
   return (
-    <HostView
+    <HostLayout
       isLive={isLive}
       isBackstageEnabled={isBackstageEnabled}
       onGoLive={handleGoLive}

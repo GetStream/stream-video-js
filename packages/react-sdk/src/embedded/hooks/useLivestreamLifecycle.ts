@@ -25,14 +25,17 @@ export const useLivestreamLifecycle = () => {
 
   useEffect(() => {
     if (!call) return;
+
     const unsubscribeSfuEnded = call.on('callEnded', (e) => {
       if (e.reason === SFU_CALL_ENDED_REASON_LIVE_ENDED) {
         setStatus('ended');
       }
     });
+
     const unsubscribeLiveStarted = call.on('call.live_started', () => {
       setStatus((prev) => (prev === 'ended' ? 'active' : prev));
     });
+
     const unsubscribeCallEnded = call.on('call.ended', () => {
       setStatus('idle');
     });

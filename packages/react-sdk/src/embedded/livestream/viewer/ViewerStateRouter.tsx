@@ -3,7 +3,7 @@ import { CallingState, OwnCapability } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { ViewerLobby } from './ViewerLobby';
-import { ViewerView } from './ViewerView';
+import { ViewerLayout } from './ViewerLayout';
 import { LoadingIndicator } from '../../../components';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 import { useEmbeddedConfiguration } from '../../context';
@@ -41,7 +41,7 @@ const useCanJoinEarly = () => {
   return canJoinEarly;
 };
 
-export const ViewerUI = () => {
+export const ViewerStateRouter = () => {
   const call = useCall();
   const { onError } = useEmbeddedConfiguration();
   useLivestreamSortPreset();
@@ -111,5 +111,5 @@ export const ViewerUI = () => {
     }
   }
 
-  return <ViewerView />;
+  return <ViewerLayout />;
 };

@@ -52,7 +52,7 @@ export type HostViewProps = {
   onStopLive: () => void;
 };
 
-export const HostView = ({
+export const HostLayout = ({
   isLive,
   isBackstageEnabled,
   onGoLive,
