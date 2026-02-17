@@ -3,22 +3,45 @@ import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Icon } from '../../../components';
 import { ViewersCount } from '../../shared';
 
-export type ViewerLobbyProps = {
-  onJoin: () => Promise<void>;
-  canJoin: boolean;
-  isLive: boolean;
+const checkCanJoinEarly = (
+  startsAt: Date | undefined,
+  joinAheadTimeSeconds: number | undefined,
+) => {
+  if (!startsAt) return false;
+  const now = Date.now();
+  const earliestJoin = +startsAt - (joinAheadTimeSeconds ?? 0) * 1000;
+  return now >= earliestJoin && now < +startsAt;
 };
 
-export const ViewerLobby = ({ onJoin, canJoin, isLive }: ViewerLobbyProps) => {
+export type ViewerLobbyProps = {
+  onJoin: () => Promise<void>;
+};
+
+export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
   const { t } = useI18n();
-  const { useCallStartsAt, useParticipantCount } = useCallStateHooks();
+  const {
+    useCallStartsAt,
+    useParticipantCount,
+    useIsCallLive,
+    useCallSettings,
+  } = useCallStateHooks();
+
   const startsAt = useCallStartsAt();
   const participantCount = useParticipantCount();
+  const isLive = useIsCallLive();
+  const settings = useCallSettings();
+  const joinAheadTimeSeconds = settings?.backstage.join_ahead_time_seconds;
+
   const [autoJoin, setAutoJoin] = useState(false);
   const [startsAtPassed, setStartsAtPassed] = useState(
     () => !!startsAt && startsAt.getTime() < Date.now(),
   );
   const [showError, setShowError] = useState<boolean>(false);
+  const [canJoinEarly, setCanJoinEarly] = useState(() =>
+    checkCanJoinEarly(startsAt, joinAheadTimeSeconds),
+  );
+
+  const canJoin = isLive || canJoinEarly;
 
   const handleJoin = useCallback(async () => {
     try {
@@ -33,6 +56,16 @@ export const ViewerLobby = ({ onJoin, canJoin, isLive }: ViewerLobbyProps) => {
       handleJoin();
     }
   }, [canJoin, autoJoin, handleJoin]);
+
+  useEffect(() => {
+    if (!canJoinEarly) {
+      const handle = setInterval(() => {
+        setCanJoinEarly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
+      }, 1000);
+
+      return () => clearInterval(handle);
+    }
+  }, [canJoinEarly, startsAt, joinAheadTimeSeconds]);
 
   useEffect(() => {
     if (!startsAt || startsAtPassed) return;

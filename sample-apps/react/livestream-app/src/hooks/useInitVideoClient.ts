@@ -3,13 +3,9 @@ import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { getUser } from '../utils/getUser';
 import { getURLCredentials } from '../utils/getURLCredentials';
 import { useParams } from 'react-router-dom';
-import { DEFAULT_CALL_TYPE } from '../utils/constants';
 
 const envApiKey =
-  (import.meta.env.VITE_STREAM_API_KEY as string | undefined) || 'mmhfdzb5evj2';
-const tokenProviderUrl =
-  (import.meta.env.VITE_TOKEN_PROVIDER_URL as string | undefined) ||
-  'https://pronto.getstream.io/api/auth/create-token';
+  (import.meta.env.VITE_STREAM_API_KEY as string | undefined) || 'chmxrgmgrjb5';
 
 type VideoClientProviderProps = {
   isAnon?: boolean;
@@ -19,7 +15,7 @@ export const useInitVideoClient = ({
   isAnon,
 }: PropsWithChildren<VideoClientProviderProps>) => {
   const { callId } = useParams<{ callId: string }>();
-  const { api_key, token, type } = getURLCredentials();
+  const { api_key, type } = getURLCredentials();
   const user = useMemo(() => {
     if (isAnon) {
       return { id: '!anon' };
@@ -31,25 +27,13 @@ export const useInitVideoClient = ({
   const [client, setClient] = useState<StreamVideoClient>();
 
   useEffect(() => {
-    const tokenProvider = async () => {
-      const endpoint = new URL(tokenProviderUrl);
-      endpoint.searchParams.set('api_key', apiKey);
-      endpoint.searchParams.set('user_id', isAnon ? '!anon' : user.id);
-
-      if (isAnon) {
-        endpoint.searchParams.set(
-          'call_cids',
-          `${type ?? DEFAULT_CALL_TYPE}:${callId}`,
-        );
-      }
-      const response = await fetch(endpoint).then((res) => res.json());
-      return response.token as string;
-    };
     const _client = new StreamVideoClient({
       apiKey,
-      ...((isAnon || !token) && { tokenProvider }),
-      ...(!isAnon && { token }),
-      user: isAnon ? { type: 'anonymous' } : user,
+      ...(!isAnon && {
+        token:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiamRpbW92c2thIn0.Jaylbpd3g2RLwAT8v4fsYSx-eISZgoiWg287S1yXeN4\n',
+      }),
+      user: isAnon ? { type: 'anonymous' } : { ...user, id: 'jdimovska' },
     });
     setClient(_client);
 
@@ -59,7 +43,7 @@ export const useInitVideoClient = ({
         .catch((error) => console.error(`Unable to disconnect user`, error));
       setClient(undefined);
     };
-  }, [apiKey, callId, isAnon, token, type, user]);
+  }, [apiKey, callId, isAnon, type, user]);
 
   return client;
 };
