@@ -11,7 +11,7 @@ import { useEmbeddedConfiguration } from '../context';
 import { EmbeddedParticipantViewUI } from '../shared';
 
 interface LayoutConfig {
-  Component: ComponentType<any>;
+  Component: ComponentType<Record<string, unknown>>;
   props?: Record<string, unknown>;
 }
 

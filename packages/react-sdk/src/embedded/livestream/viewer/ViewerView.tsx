@@ -138,6 +138,8 @@ export const ViewerView = () => {
           <WithTooltip title={t('Participants')}>
             <CompositeButton
               active={showParticipants}
+              aria-label={t('Participants')}
+              aria-pressed={showParticipants}
               onClick={handleToggleParticipants}
             >
               <Icon icon="participants" />

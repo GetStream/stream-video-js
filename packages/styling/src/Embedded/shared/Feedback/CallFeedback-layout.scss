@@ -78,6 +78,10 @@
   &:focus {
     outline: none;
   }
+
+  &:focus-visible {
+    border-color: var(--str-video__base-color2);
+  }
 }
 
 .str-video__embedded-call-feedback__actions {

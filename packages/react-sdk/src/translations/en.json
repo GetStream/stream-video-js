@@ -127,6 +127,21 @@
   "{{ count }} waiting": "{{ count }} waiting",
   "Join Stream": "Join Stream",
   "Join automatically when stream starts": "Join automatically when stream starts",
+  "Display name": "Display name",
+  "Permission needed": "Permission needed",
+  "Call ended": "Call ended",
+  "Rejoin call": "Rejoin call",
+  "Left by mistake?": "Left by mistake?",
+  "Help us improve": "Help us improve",
+  "Leave feedback": "Leave feedback",
+  "Failed to rejoin. Please try again.": "Failed to rejoin. Please try again.",
+  "Share your feedback": "Share your feedback",
+  "Tell us about your experience...": "Tell us about your experience...",
+  "Submit feedback": "Submit feedback",
+  "Feedback message": "Feedback message",
+  "How was your call quality?": "How was your call quality?",
   "Rate {{ count }} star_one": "Rate {{ count }} star",
-  "Rate {{ count }} star_other": "Rate {{ count }} stars"
+  "Rate {{ count }} star_other": "Rate {{ count }} stars",
+  "Thank you!": "Thank you!",
+  "Your feedback helps improve call quality.": "Your feedback helps improve call quality."
 }
