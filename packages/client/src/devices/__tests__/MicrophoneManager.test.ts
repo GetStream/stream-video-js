@@ -562,6 +562,26 @@ describe('MicrophoneManager', () => {
     });
   });
 
+  describe('no-audio detector configuration', () => {
+    it('applies silence threshold and emit interval in runtime monitoring', async () => {
+      const noAudioDetector = vi.mocked(createNoAudioDetector);
+
+      manager.setSilenceThreshold(3000);
+      manager['call'].state.setCallingState(CallingState.JOINED);
+      await manager.enable();
+
+      await vi.waitFor(() => {
+        expect(noAudioDetector).toHaveBeenCalled();
+      });
+
+      const options = noAudioDetector.mock.calls.at(-1)?.[1];
+      expect(options).toMatchObject({
+        noAudioThresholdMs: 3000,
+        emitIntervalMs: 3000,
+      });
+    });
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
