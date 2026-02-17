@@ -21,20 +21,17 @@ interface LobbyProps {
 export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
   const { t } = useI18n();
   const user = useConnectedUser();
-  const { useCameraState, useCallSession, useCallSettings } =
-    useCallStateHooks();
+  const { useCameraState, useCallSettings } = useCallStateHooks();
 
   const { isMute: isCameraMute } = useCameraState();
   const settings = useCallSettings();
-  const callSession = useCallSession();
   const { onError } = useEmbeddedConfiguration();
 
   const [showError, setShowError] = useState<boolean>(false);
   const [isJoining, setIsJoining] = useState(false);
 
-  const displayName = user?.name ?? '';
-  const hasOtherParticipants = (callSession?.participants?.length || 0) > 0;
   const isVideoEnabled = settings?.video.enabled ?? true;
+  const resolvedJoinLabel = joinLabel ?? t('Join');
   const resolvedTitle = title ?? t('Set up your call before joining');
 
   const handleJoin = useCallback(async () => {
@@ -46,18 +43,15 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
     } catch (e) {
       onError?.(e);
       setShowError(true);
+    } finally {
       setIsJoining(false);
     }
   }, [onJoin, onError]);
-
-  const resolvedJoinLabel =
-    joinLabel ?? (hasOtherParticipants ? t('Join') : t('Start call'));
 
   return (
     <div className="str-video__embedded-lobby">
       <div className="str-video__embedded-lobby__content">
         <h1 className="str-video__embedded-lobby__heading">{resolvedTitle}</h1>
-
         <div
           className={clsx(
             'str-video__embedded-lobby__camera',
@@ -68,12 +62,16 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
         </div>
 
         <div className="str-video__embedded-lobby__display-name">
-          <div className="str-video__embedded-lobby__display-name-label">
-            {t('Display name')}
-          </div>
-          <span className="str-video__embedded-lobby__display-name-value">
-            {displayName}
-          </span>
+          {user?.name && (
+            <>
+              <div className="str-video__embedded-lobby__display-name-label">
+                {t('Display name')}
+              </div>
+              <span className="str-video__embedded-lobby__display-name-value">
+                {user?.name}
+              </span>
+            </>
+          )}
 
           <button
             className="str-video__button"
@@ -84,14 +82,12 @@ export const Lobby = ({ onJoin, title, joinLabel }: LobbyProps) => {
             {resolvedJoinLabel}
           </button>
         </div>
-        <p
+        <div
           className="str-video__embedded-lobby__join-error"
-          role="status"
-          aria-live="polite"
           data-visible={showError}
         >
           {t('Failed to join. Please try again.')}
-        </p>
+        </div>
       </div>
     </div>
   );

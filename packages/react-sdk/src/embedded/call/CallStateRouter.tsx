@@ -21,6 +21,7 @@ export const CallStateRouter = () => {
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
+
     if (callingState !== CallingState.JOINED) {
       await call.join();
     }

@@ -16,6 +16,7 @@ interface DeviceControlsProps {
 export const DeviceControls = ({ isVideoEnabled }: DeviceControlsProps) => {
   const { t } = useI18n();
   const { useCameraState, useMicrophoneState } = useCallStateHooks();
+
   const { hasBrowserPermission: hasCameraPermission } = useCameraState();
   const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
 

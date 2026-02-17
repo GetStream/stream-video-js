@@ -3,9 +3,8 @@ import { EmbeddedClientProvider } from '../EmbeddedClientProvider';
 import { CallStateRouter } from './CallStateRouter';
 
 /**
- * A drop-in video call component that handles the full call lifecycle
- * including lobby, active call, and post-call feedback screens.
- *
+ * Drop-in video call component that renders a lobby, active call,
+ * and post-call feedback screen. Handles client and call setup internally.
  */
 export const EmbeddedCall = ({ children, ...props }: EmbeddedMeetingProps) => (
   <EmbeddedClientProvider {...props}>

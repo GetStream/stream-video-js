@@ -7,10 +7,13 @@ import { Avatar } from '../../../components';
 
 export const DisabledVideoPreview = () => {
   const { t } = useI18n();
+
   const user = useConnectedUser();
   const { useCameraState, useMicrophoneState } = useCallStateHooks();
+
   const { hasBrowserPermission: hasCameraPermission } = useCameraState();
   const { hasBrowserPermission: hasMicPermission } = useMicrophoneState();
+
   const hasBrowserMediaPermission = hasCameraPermission && hasMicPermission;
 
   return (
@@ -18,11 +21,9 @@ export const DisabledVideoPreview = () => {
       {hasBrowserMediaPermission ? (
         <Avatar imageSrc={user?.image} name={user?.name || user?.id} />
       ) : (
-        <p>
-          {t(
-            'Please grant your browser permission to access your camera and microphone.',
-          )}
-        </p>
+        t(
+          'Please grant your browser permission to access your camera and microphone.',
+        )
       )}
     </div>
   );
@@ -39,11 +40,9 @@ export const NoCameraPreview = () => {
   if (!hasBrowserMediaPermission) {
     return (
       <div className="str-video__embedded-lobby__no-permission">
-        <p>
-          {t(
-            'Please grant your browser permission to access your camera and microphone.',
-          )}
-        </p>
+        {t(
+          'Please grant your browser permission to access your camera and microphone.',
+        )}
       </div>
     );
   }
