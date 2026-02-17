@@ -222,6 +222,38 @@ describe('MicrophoneManager', () => {
       }
     });
 
+    it('should not create duplicate sound detectors for the same device', async () => {
+      const detectorMock = vi.mocked(createSoundDetector);
+      const cleanup = vi.fn(async () => {});
+      detectorMock.mockImplementationOnce(() => cleanup);
+
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+
+      expect(detectorMock).toHaveBeenCalledTimes(1);
+
+      await manager['stopSpeakingWhileMutedDetection']();
+      expect(cleanup).toHaveBeenCalledTimes(1);
+    });
+
+    it('should cleanup previous detector before starting a new device detector', async () => {
+      const detectorMock = vi.mocked(createSoundDetector);
+      const cleanupFirst = vi.fn(async () => {});
+      const cleanupSecond = vi.fn(async () => {});
+      detectorMock
+        .mockImplementationOnce(() => cleanupFirst)
+        .mockImplementationOnce(() => cleanupSecond);
+
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+      await manager['startSpeakingWhileMutedDetection']('device-2');
+
+      expect(detectorMock).toHaveBeenCalledTimes(2);
+      expect(cleanupFirst).toHaveBeenCalledTimes(1);
+
+      await manager['stopSpeakingWhileMutedDetection']();
+      expect(cleanupSecond).toHaveBeenCalledTimes(1);
+    });
+
     // --- this ---
     it('should stop speaking while muted notifications if user loses permission to send audio', async () => {
       await manager.enable();
