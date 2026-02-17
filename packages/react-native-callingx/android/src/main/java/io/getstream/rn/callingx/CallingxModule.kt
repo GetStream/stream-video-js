@@ -28,6 +28,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
+import java.util.concurrent.ConcurrentHashMap
 
 @ReactModule(name = CallingxModule.NAME)
 class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec(reactContext) {
@@ -71,6 +72,10 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
     private var isModuleInitialized = false
     private var canSendEvents = false
     private var isHeadlessTaskRegistered = false
+
+    // Synchronous call tracking set, updated before async service start to mirror iOS semantics.
+    // This ensures isCallTracked() returns true immediately after displayIncomingCall/startCall.
+    private val trackedCallIds = ConcurrentHashMap.newKeySet<String>()
 
     // Per-callId pending promises for displayIncomingCall awaiting CALL_REGISTERED_INCOMING_ACTION
     private val pendingDisplayPromises = mutableMapOf<String, Promise>()
@@ -128,6 +133,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             pendingDisplayPromises.clear()
         }
 
+        trackedCallIds.clear()
         unbindServiceSafely()
 
         reactApplicationContext.removeLifecycleEventListener(appStateListener)
@@ -198,6 +204,8 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             return
         }
 
+        trackedCallIds.add(callId)
+
         // Store the promise keyed by callId; it will be resolved when CALL_REGISTERED_INCOMING_ACTION
         // broadcast is received, or rejected on timeout / registration failure.
         synchronized(pendingDisplayPromises) {
@@ -232,6 +240,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             )
         } catch (e: Exception) {
             Log.e(TAG, "[module] displayIncomingCall: Failed to start foreground service: ${e.message}", e)
+            trackedCallIds.remove(callId)
             synchronized(pendingDisplayPromises) {
                 pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
                 pendingDisplayPromises.remove(callId)
@@ -267,6 +276,8 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             return
         }
 
+        trackedCallIds.add(callId)
+
         try {
             startCallService(
                     CallService.ACTION_OUTGOING_CALL,
@@ -279,6 +290,7 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
             promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "[module] startCall: Failed to start foreground service: ${e.message}", e)
+            trackedCallIds.remove(callId)
             promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
         }
     }
@@ -315,20 +327,22 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
 
     override fun endCallWithReason(callId: String, reason: Double, promise: Promise) {
         debugLog(TAG, "[module] endCallWithReason: Ending call: $callId, $reason")
+        trackedCallIds.remove(callId)
         val action = CallAction.Disconnect(DisconnectCause(reason.toInt()))
         executeServiceAction(callId, action, promise)
     }
 
     override fun endCall(callId: String, promise: Promise) {
         debugLog(TAG, "[module] endCall: Ending call: $callId")
+        trackedCallIds.remove(callId)
         val action = CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL))
         executeServiceAction(callId, action, promise)
     }
 
     override fun isCallTracked(callId: String): Boolean {
-        val isCallTracked = callService?.isCallTracked(callId) ?: false
-        debugLog(TAG, "[module] isCallTracked: Is call tracked: $isCallTracked")
-        return isCallTracked
+        val isTracked = trackedCallIds.contains(callId)
+        debugLog(TAG, "[module] isCallTracked: Is call tracked: $isTracked")
+        return isTracked
     }
 
     override fun hasRegisteredCall(): Boolean {
@@ -643,6 +657,9 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     sendJSEvent("didDisplayIncomingCall", params)
                 }
                 CALL_REGISTRATION_FAILED_ACTION -> {
+                    if (callId != null) {
+                        trackedCallIds.remove(callId)
+                    }
                     // Reject the pending displayIncomingCall promise for this callId
                     if (callId != null) {
                         synchronized(pendingDisplayPromises) {
@@ -661,6 +678,9 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     sendJSEvent("answerCall", params)
                 }
                 CALL_END_ACTION -> {
+                    if (callId != null) {
+                        trackedCallIds.remove(callId)
+                    }
                     val source = intent.getStringExtra(EXTRA_SOURCE)
                     if (source != null) {
                         params.putString("source", source)
