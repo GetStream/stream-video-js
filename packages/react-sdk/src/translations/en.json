@@ -15,7 +15,7 @@
 
   "Live": "Live",
   "Livestream starts soon": "Livestream starts soon",
-  "Livestream starts at {{ startsAt }}": "Livestream starts at {{ startsAt, datetime }}",
+  "Livestream starts at {{ time }}": "Livestream starts at {{ time }}",
   "{{ count }} participants joined early_one": "{{ count }} participant joined early",
   "{{ count }} participants joined early_other": "{{ count }} participants joined early",
 
@@ -124,8 +124,9 @@
   "Ready to go live": "Ready to go live",
   "Stream is ready!": "Stream is ready!",
   "Waiting for the livestream to start": "Waiting for the livestream to start",
-  "Livestream starts at {{ time }}": "Livestream starts at {{ time }}",
   "{{ count }} waiting": "{{ count }} waiting",
   "Join Stream": "Join Stream",
-  "Join automatically when stream starts": "Join automatically when stream starts"
+  "Join automatically when stream starts": "Join automatically when stream starts",
+  "Rate {{ count }} star_one": "Rate {{ count }} star",
+  "Rate {{ count }} star_other": "Rate {{ count }} stars"
 }

@@ -35,7 +35,7 @@ export const StarRating = ({ value, onChange }: StarRatingProps) => {
             className={getStarClasses(star)}
             onClick={() => onChange(star)}
             onMouseEnter={() => setHovered(star)}
-            aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+            aria-label={t('Rate {{ count }} star', { count: star })}
           >
             <Icon icon="star-filled" />
           </button>

@@ -203,7 +203,12 @@ export const BackstageLayout = (props: BackstageLayoutProps) => {
           <span className="str-video__livestream-layout__starts-at">
             {startsAt.getTime() < Date.now()
               ? t('Livestream starts soon')
-              : t('Livestream starts at {{ startsAt }}', { startsAt })}
+              : t('Livestream starts at {{ time }}', {
+                  time: startsAt.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }),
+                })}
           </span>
         )}
         {showEarlyParticipantCount && (

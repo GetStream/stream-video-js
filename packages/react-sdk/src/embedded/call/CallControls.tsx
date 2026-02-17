@@ -105,6 +105,8 @@ export const CallControls = ({
         <WithTooltip title={t('Participants')}>
           <CompositeButton
             active={showParticipants}
+            aria-label={t('Participants')}
+            aria-pressed={showParticipants}
             onClick={onToggleParticipants}
           >
             <Icon icon="participants" />
