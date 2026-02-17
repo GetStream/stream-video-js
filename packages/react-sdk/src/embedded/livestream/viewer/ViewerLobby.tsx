@@ -66,7 +66,7 @@ export const ViewerLobby = ({ onJoin, canJoin, isLive }: ViewerLobbyProps) => {
     <div className="str-video__embedded-viewer-lobby">
       <div className="str-video__embedded-viewer-lobby__content">
         <div className="str-video__embedded-viewer-lobby__icon">
-          <Icon icon={isLive ? 'play' : 'clock'} />
+          <Icon icon="streaming" />
         </div>
 
         <h2 className="str-video__embedded-viewer-lobby__title">

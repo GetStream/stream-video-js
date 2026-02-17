@@ -42,7 +42,7 @@ export const CallEndedScreen = ({
         {t('Failed to rejoin. Please try again.')}
       </p>
       <div className="str-video__embedded-call-feedback__ended-actions">
-        {handleRejoin && (
+        {onJoin && (
           <>
             <div className="str-video__embedded-call-feedback__ended-column">
               <p className="str-video__embedded-call-feedback__ended-label">

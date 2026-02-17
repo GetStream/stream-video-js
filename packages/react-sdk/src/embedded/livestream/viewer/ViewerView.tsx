@@ -6,7 +6,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { useLayout } from '../../hooks';
+import { useCallDuration, useLayout } from '../../hooks';
 import {
   CallParticipantsList,
   CancelCallConfirmButton,
@@ -15,49 +15,14 @@ import {
   DeviceSelectorAudioOutput,
   Icon,
   MicCaptureErrorNotification,
-  PermissionRequests,
   ReactionsButton,
-  RecordCallConfirmationButton,
-  ScreenShareButton,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
   WithTooltip,
 } from '../../../components';
-import { useCallDuration } from '../../hooks';
-import {
-  CameraMenuWithBlur,
-  ConnectionNotification,
-  ViewersCount,
-} from '../../shared';
+import { CameraMenuWithBlur, ViewersCount } from '../../shared';
 
-const StartBroadcastIcon = () => (
-  <svg
-    width="20"
-    height="14"
-    viewBox="0 0 25 18"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M7.2 14.3C5.84 12.95 5 11.07 5 9s.84-3.95 2.2-5.3l1.78 1.77A4.97 4.97 0 007.5 9c0 1.38.56 2.62 1.46 3.54L7.2 14.3zM17.8 14.3c1.36-1.35 2.2-3.23 2.2-5.3s-.84-3.95-2.2-5.3l-1.78 1.77A4.97 4.97 0 0117.5 9c0 1.38-.56 2.62-1.46 3.54l1.76 1.76zM12.5 6.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5zM22.5 9c0 2.76-1.13 5.26-2.94 7.06l1.78 1.78A12.44 12.44 0 0025 9c0-3.45-1.4-6.58-3.66-8.84l-1.78 1.78A9.97 9.97 0 0122.5 9zM5.44 1.94L3.66.16A12.44 12.44 0 000 9c0 3.45 1.4 6.58 3.66 8.84l1.78-1.78A9.97 9.97 0 012.5 9c0-2.76 1.13-5.26 2.94-7.06z"
-      fill="currentColor"
-    />
-  </svg>
-);
-
-export type HostViewProps = {
-  isLive: boolean;
-  isBackstageEnabled: boolean;
-  onGoLive: () => void;
-  onStopLive: () => void;
-};
-
-export const HostView = ({
-  isLive,
-  isBackstageEnabled,
-  onGoLive,
-  onStopLive,
-}: HostViewProps) => {
+export const ViewerView = () => {
   const { t } = useI18n();
   const { useParticipantCount } = useCallStateHooks();
   const participantCount = useParticipantCount();
@@ -73,32 +38,20 @@ export const HostView = ({
     setShowParticipants((prev) => !prev);
   }, []);
 
-  const livestreamStatus = (
-    <div className="str-video__embedded-livestream-duration">
-      <span
-        className={
-          isLive
-            ? 'str-video__embedded-livestream-duration__live-badge'
-            : 'str-video__embedded-livestream-duration__backstage-badge'
-        }
-      >
-        {isLive ? t('Live') : t('Backstage')}
-      </span>
-      <ViewersCount count={participantCount} />
-      {isLive && elapsed && (
-        <span className="str-video__embedded-livestream-duration__elapsed">
-          {elapsed}
-        </span>
-      )}
-    </div>
-  );
-
   return (
     <div className="str-video__embedded-call str-video__embedded-livestream">
-      <ConnectionNotification />
-      <PermissionRequests />
       <div className="str-video__embedded-call-header">
-        {livestreamStatus}
+        <div className="str-video__embedded-livestream-duration">
+          <span className="str-video__embedded-livestream-duration__live-badge">
+            {t('Live')}
+          </span>
+          <ViewersCount count={participantCount} />
+          {elapsed && (
+            <span className="str-video__embedded-livestream-duration__elapsed">
+              {elapsed}
+            </span>
+          )}
+        </div>
         <CancelCallConfirmButton />
       </div>
       <div className="str-video__embedded-layout">
@@ -126,7 +79,19 @@ export const HostView = ({
               <ReactionsButton />
             </div>
           </Restricted>
-          <div className="str-video__embedded-desktop">{livestreamStatus}</div>
+          <div className="str-video__embedded-desktop">
+            <div className="str-video__embedded-livestream-duration">
+              <span className="str-video__embedded-livestream-duration__live-badge">
+                {t('Live')}
+              </span>
+              <ViewersCount count={participantCount} />
+              {elapsed && (
+                <span className="str-video__embedded-livestream-duration__elapsed">
+                  {elapsed}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
         <div className="str-video__call-controls--group str-video__call-controls--media">
           <Restricted
@@ -165,37 +130,6 @@ export const HostView = ({
               <ReactionsButton />
             </div>
           </Restricted>
-          <Restricted requiredGrants={[OwnCapability.SCREENSHARE]}>
-            <div className="str-video__embedded-desktop">
-              <ScreenShareButton />
-            </div>
-          </Restricted>
-          <RecordCallConfirmationButton />
-          {isBackstageEnabled && (
-            <Restricted requiredGrants={[OwnCapability.UPDATE_CALL]}>
-              {isLive ? (
-                <WithTooltip title={t('End Stream')}>
-                  <button
-                    className="str-video__embedded-end-stream-button"
-                    onClick={onStopLive}
-                  >
-                    <Icon icon="call-end" />
-                    <span>{t('Stop Live')}</span>
-                  </button>
-                </WithTooltip>
-              ) : (
-                <WithTooltip title={t('Start Stream')}>
-                  <button
-                    className="str-video__embedded-go-live-button"
-                    onClick={onGoLive}
-                  >
-                    <StartBroadcastIcon />
-                    <span>{t('Go Live')}</span>
-                  </button>
-                </WithTooltip>
-              )}
-            </Restricted>
-          )}
           <div className="str-video__embedded-desktop">
             <CancelCallConfirmButton />
           </div>

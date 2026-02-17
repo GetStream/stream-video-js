@@ -18,6 +18,11 @@ interface LayoutConfig {
 const Layouts: Record<LayoutOption, LayoutConfig> = {
   Livestream: {
     Component: LivestreamLayout,
+    props: {
+      showLiveBadge: false,
+      showParticipantCount: false,
+      showDuration: false,
+    },
   },
   PaginatedGrid: {
     Component: PaginatedGridLayout,

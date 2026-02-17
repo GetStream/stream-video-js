@@ -3,10 +3,11 @@ import { CallingState, OwnCapability } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { ViewerLobby } from './ViewerLobby';
+import { ViewerView } from './ViewerView';
 import { LoadingIndicator } from '../../../components';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 import { useEmbeddedConfiguration } from '../../context';
-import { useLayout, useLivestreamSortPreset } from '../../hooks';
+import { useLivestreamLifecycle, useLivestreamSortPreset } from '../../hooks';
 
 const checkCanJoinEarly = (
   startsAt: Date | undefined,
@@ -43,7 +44,6 @@ const useCanJoinEarly = () => {
 export const ViewerUI = () => {
   const call = useCall();
   const { onError } = useEmbeddedConfiguration();
-  const { Component: LayoutComponent, props: layoutProps } = useLayout();
   useLivestreamSortPreset();
 
   const {
@@ -59,11 +59,11 @@ export const ViewerUI = () => {
   const endedAt = useCallEndedAt();
   const canJoinEndedCall = useHasPermissions(OwnCapability.JOIN_ENDED_CALL);
   const canJoinEarly = useCanJoinEarly();
-  const canJoinAsap = isLive || canJoinEarly;
+
+  const livestreamStatus = useLivestreamLifecycle();
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
-
     try {
       if (callingState !== CallingState.JOINED) {
         await call.join();
@@ -75,23 +75,41 @@ export const ViewerUI = () => {
     }
   }, [call, callingState, onError]);
 
-  if (
-    callingState === CallingState.IDLE ||
-    callingState === CallingState.UNKNOWN
-  ) {
-    return (
-      <ViewerLobby onJoin={handleJoin} canJoin={canJoinAsap} isLive={isLive} />
-    );
+  switch (callingState) {
+    case CallingState.IDLE:
+    case CallingState.UNKNOWN:
+      return (
+        <ViewerLobby
+          onJoin={handleJoin}
+          canJoin={isLive || canJoinEarly}
+          isLive={isLive}
+        />
+      );
+
+    case CallingState.JOINING:
+      if (!localParticipant) {
+        return <LoadingIndicator className="str-video__embedded-loading" />;
+      }
+      break;
+
+    case CallingState.LEFT: {
+      if (livestreamStatus !== 'idle') {
+        return (
+          <ViewerLobby
+            onJoin={handleJoin}
+            canJoin={livestreamStatus === 'active'}
+            isLive={livestreamStatus === 'active'}
+          />
+        );
+      }
+
+      return (
+        <CallFeedback
+          onJoin={!endedAt || canJoinEndedCall ? handleJoin : undefined}
+        />
+      );
+    }
   }
 
-  if (callingState === CallingState.JOINING && !localParticipant) {
-    return <LoadingIndicator className="str-video__embedded-loading" />;
-  }
-
-  if (callingState === CallingState.LEFT) {
-    const canRejoin = canJoinAsap && (!endedAt || canJoinEndedCall);
-    return <CallFeedback onJoin={canRejoin ? handleJoin : undefined} />;
-  }
-
-  return <LayoutComponent {...layoutProps} />;
+  return <ViewerView />;
 };
