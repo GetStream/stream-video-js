@@ -678,14 +678,16 @@ class CallingxModule(reactContext: ReactApplicationContext) : NativeCallingxSpec
                     sendJSEvent("answerCall", params)
                 }
                 CALL_END_ACTION -> {
-                    if (callId != null) {
-                        trackedCallIds.remove(callId)
-                    }
                     val source = intent.getStringExtra(EXTRA_SOURCE)
                     if (source != null) {
                         params.putString("source", source)
                     }
                     if (source == "app") {
+                        if (callId != null) {
+                            //we stop tracking the call only when it was handled by the app
+                            //in case source is "sys" we still need to know that call is tracked, otherwise we'll unable to end call from js side
+                            trackedCallIds.remove(callId) 
+                        }
                         // means the call was disconnected, we're ready to unbind the service
                         unbindServiceSafely()
                     }
