@@ -64,7 +64,6 @@ class CallingxModule implements ICallingxModule {
       return;
     }
 
-    console.log('[callingx] isTurboModuleEnabled:', isTurboModuleEnabled);
     this._isOngoingCallsEnabled = options.enableOngoingCalls ?? false;
     this.setShouldRejectCallWhenBusy(options.shouldRejectCallWhenBusy ?? false);
 
