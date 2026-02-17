@@ -138,14 +138,12 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
             </label>
           )}
         </div>
-        <p
+        <div
           className="str-video__embedded-viewer-lobby__join-error"
-          role="status"
-          aria-live="polite"
           data-visible={showError}
         >
           {t('Failed to join. Please try again.')}
-        </p>
+        </div>
       </div>
     </div>
   );
