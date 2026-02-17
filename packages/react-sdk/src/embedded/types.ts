@@ -9,6 +9,7 @@ export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
  * Available layout options (internal use only).
  */
 export type LayoutOption =
+  | 'Livestream'
   | 'PaginatedGrid'
   | 'SpeakerLeft'
   | 'SpeakerRight'

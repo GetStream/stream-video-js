@@ -1,7 +1,11 @@
 import type { ComponentType } from 'react';
 import { useEffect, useState } from 'react';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { PaginatedGridLayout, SpeakerLayout } from '../../core';
+import {
+  LivestreamLayout,
+  PaginatedGridLayout,
+  SpeakerLayout,
+} from '../../core';
 import type { LayoutOption } from '../types';
 import { useEmbeddedConfiguration } from '../context';
 import { EmbeddedParticipantViewUI } from '../shared';
@@ -12,6 +16,9 @@ interface LayoutConfig {
 }
 
 const Layouts: Record<LayoutOption, LayoutConfig> = {
+  Livestream: {
+    Component: LivestreamLayout,
+  },
   PaginatedGrid: {
     Component: PaginatedGridLayout,
     props: { groupSize: 16, ParticipantViewUI: EmbeddedParticipantViewUI },

@@ -24,15 +24,14 @@ interface CallControlsProps {
 }
 
 /**
- * Renders the in-call control bar: duration, media toggles, and sidebar toggle.
- * On small screens, reactions appear in the left group and duration/cancel move to the header.
- * On large screens, duration appears in the left group and reactions/cancel stay in the media group.
+ * Renders the active call control bar
  */
 export const CallControls = ({
   showParticipants,
   onToggleParticipants,
 }: CallControlsProps) => {
   const { t } = useI18n();
+
   const { startedAt, elapsed } = useCallDuration();
 
   return (

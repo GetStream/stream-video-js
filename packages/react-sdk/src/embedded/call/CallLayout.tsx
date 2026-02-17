@@ -14,7 +14,7 @@ import { CallControls } from './CallControls';
 import { CallHeader } from './CallHeader';
 
 /**
- * CallLayout renders the in-call experience with layout, controls, and sidebar.
+ * CallLayout renders the active call experience with layout, controls and sidebar.
  */
 export const CallLayout = () => {
   const [showParticipants, setShowParticipants] = useState(false);

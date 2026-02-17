@@ -15,6 +15,7 @@ export const CallFeedback = ({ onJoin }: CallFeedbackProps) => {
   const [state, setState] = useState<FeedbackState>('ended');
 
   const onFeedback = useCallback(() => setState('rating'), []);
+
   const handleSubmit = useCallback(
     async (rating: number, message: string) => {
       if (!call) return;

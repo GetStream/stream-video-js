@@ -15,10 +15,6 @@ export interface UseInitializeVideoClientProps {
  * Hook that creates a StreamVideoClient and connects the user.
  * Disconnects and cleans up on unmount or when props change.
  *
- * Connection mode is determined by `user.type`:
- * - `'authenticated'` — provide `token` or `tokenProvider`
- * - `'guest'` — server generates credentials
- * - `'anonymous'` — no identity
  */
 export const useInitializeVideoClient = ({
   apiKey,
