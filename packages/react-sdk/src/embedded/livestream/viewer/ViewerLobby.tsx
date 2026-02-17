@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Icon } from '../../../components';
 import { ViewersCount } from '../../shared';
+import { OwnCapability } from '@stream-io/video-client';
 
 const checkCanJoinEarly = (
   startsAt: Date | undefined,
@@ -21,12 +22,17 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
   const { t } = useI18n();
   const {
     useCallStartsAt,
+    useCallEndedAt,
+    useHasPermissions,
     useParticipantCount,
     useIsCallLive,
     useCallSettings,
   } = useCallStateHooks();
 
   const startsAt = useCallStartsAt();
+  const endedAt = useCallEndedAt();
+  const canJoinEndedCall = useHasPermissions(OwnCapability.JOIN_ENDED_CALL);
+
   const participantCount = useParticipantCount();
   const isLive = useIsCallLive();
   const settings = useCallSettings();
@@ -41,7 +47,7 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
     checkCanJoinEarly(startsAt, joinAheadTimeSeconds),
   );
 
-  const canJoin = isLive || canJoinEarly;
+  const canJoin = (isLive || canJoinEarly) && (!endedAt || canJoinEndedCall);
 
   const handleJoin = useCallback(async () => {
     try {
@@ -103,12 +109,12 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
         </div>
 
         <h2 className="str-video__embedded-viewer-lobby__title">
-          {isLive
+          {canJoin
             ? t('Stream is ready!')
             : t('Waiting for the livestream to start')}
         </h2>
 
-        {!isLive && getStartsAtMessage() && (
+        {!canJoin && getStartsAtMessage() && (
           <p className="str-video__embedded-viewer-lobby__starts-at">
             {getStartsAtMessage()}
           </p>
