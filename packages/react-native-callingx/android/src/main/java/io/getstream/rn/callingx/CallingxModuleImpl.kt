@@ -319,7 +319,7 @@ class CallingxModuleImpl(
         executeServiceAction(callId, action, promise)
     }
 
-    override fun isCallTracked(callId: String): Boolean {
+    fun isCallTracked(callId: String): Boolean {
         val isTracked = trackedCallIds.contains(callId)
         debugLog(TAG, "[module] isCallTracked: Is call tracked: $isTracked")
         return isTracked
@@ -666,7 +666,7 @@ class CallingxModuleImpl(
                         if (callId != null) {
                             //we stop tracking the call only when it was handled by the app
                             //in case source is "sys" we still need to know that call is tracked, otherwise we'll unable to end call from js side
-                            trackedCallIds.remove(callId) 
+                            trackedCallIds.remove(callId)
                         }
                         // means the call was disconnected, we're ready to unbind the service
                         unbindServiceSafely()
