@@ -4,12 +4,12 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
+  AudioSettingsRequestDefaultDeviceEnum,
   CallRecordingStartedEventRecordingTypeEnum,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
   ReactionResponse,
-  AudioSettingsRequestDefaultDeviceEnum,
   StartRecordingRequest,
   StartRecordingResponse,
 } from './gen/coordinator';
@@ -18,7 +18,6 @@ import type { Comparator } from './sorting';
 import type { StreamVideoWriteableStateStore } from './store';
 import { AxiosError } from 'axios';
 import { RejectReason } from './coordinator/connection/types';
-import type { DevicePersistenceOptions } from './devices/devicePersistence';
 
 export type StreamReaction = Pick<
   ReactionResponse,
@@ -333,11 +332,6 @@ export type CallConstructor = {
    * The state store of the client
    */
   clientStore: StreamVideoWriteableStateStore;
-
-  /**
-   * Device preference persistence options (web only).
-   */
-  devicePersistence?: DevicePersistenceOptions;
 };
 
 export type CallRecordingType = CallRecordingStartedEventRecordingTypeEnum;
