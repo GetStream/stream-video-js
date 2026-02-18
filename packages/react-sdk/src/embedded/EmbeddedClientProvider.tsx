@@ -33,7 +33,7 @@ export interface EmbeddedClientProviderProps {
   logLevel?: LogLevel;
   onError?: (error: any) => void;
   layout?: LayoutOption;
-  style?: CSSProperties;
+  theme?: Record<string, string>;
   children: ReactNode;
 }
 
@@ -68,7 +68,7 @@ export const EmbeddedClientProvider = ({
   logLevel,
   onError,
   layout,
-  style,
+  theme,
   children,
 }: EmbeddedClientProviderProps) => {
   const [showError, setShowError] = useState<boolean>(false);
@@ -121,7 +121,10 @@ export const EmbeddedClientProvider = ({
         <ConfigurationProvider layout={layout} onError={onErrorStable}>
           <BackgroundFiltersProvider>
             <NoiseCancellationWrapper noiseCancellation={noiseCancellation}>
-              <StreamTheme className="str-video__embedded" style={style}>
+              <StreamTheme
+                className="str-video__embedded"
+                style={theme as CSSProperties}
+              >
                 {children}
               </StreamTheme>
             </NoiseCancellationWrapper>
