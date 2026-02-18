@@ -175,7 +175,12 @@ describe('MicrophoneManager', () => {
       vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
         of('denied'),
       );
-      const innerManager = new MicrophoneManager(call, 'disable-tracks');
+      const devicePersistence = { enabled: false, storageKey: '' };
+      const innerManager = new MicrophoneManager(
+        call,
+        devicePersistence,
+        'disable-tracks',
+      );
       // @ts-expect-error private api
       const fn = vi.spyOn(innerManager, 'startSpeakingWhileMutedDetection');
 
