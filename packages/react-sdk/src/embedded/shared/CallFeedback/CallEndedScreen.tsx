@@ -20,6 +20,7 @@ export const CallEndedScreen = ({
   const handleRejoin = useCallback(async () => {
     if (!onJoin) return;
 
+    setError(false);
     try {
       await onJoin();
     } catch (err) {
