@@ -78,6 +78,9 @@ describe('MicrophoneManager', () => {
 
   beforeEach(() => {
     setupAudioContextMock();
+    vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+      of('granted'),
+    );
 
     call = new Call({
       id: '',
@@ -167,6 +170,20 @@ describe('MicrophoneManager', () => {
       expect(fn).toHaveBeenCalled();
     });
 
+    it('should not start sound detection if browser mic permission is denied', async () => {
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('denied'),
+      );
+      const innerManager = new MicrophoneManager(call, 'disable-tracks');
+      // @ts-expect-error private api
+      const fn = vi.spyOn(innerManager, 'startSpeakingWhileMutedDetection');
+
+      await innerManager.enable();
+
+      await sleep(25);
+      expect(fn).not.toHaveBeenCalled();
+    });
+
     it(`should stop sound detection if mic is enabled`, async () => {
       manager.state.setSpeakingWhileMuted(true);
       manager['soundDetectorCleanup'] = async () => {};
@@ -177,6 +194,7 @@ describe('MicrophoneManager', () => {
       await withoutConcurrency(syncTag, () => Promise.resolve());
       await settled(syncTag);
 
+      await sleep(25);
       expect(manager.state.speakingWhileMuted).toBe(false);
     });
 
@@ -202,6 +220,38 @@ describe('MicrophoneManager', () => {
       } finally {
         mock.mockImplementation(prevMockImplementation!);
       }
+    });
+
+    it('should not create duplicate sound detectors for the same device', async () => {
+      const detectorMock = vi.mocked(createSoundDetector);
+      const cleanup = vi.fn(async () => {});
+      detectorMock.mockImplementationOnce(() => cleanup);
+
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+
+      expect(detectorMock).toHaveBeenCalledTimes(1);
+
+      await manager['stopSpeakingWhileMutedDetection']();
+      expect(cleanup).toHaveBeenCalledTimes(1);
+    });
+
+    it('should cleanup previous detector before starting a new device detector', async () => {
+      const detectorMock = vi.mocked(createSoundDetector);
+      const cleanupFirst = vi.fn(async () => {});
+      const cleanupSecond = vi.fn(async () => {});
+      detectorMock
+        .mockImplementationOnce(() => cleanupFirst)
+        .mockImplementationOnce(() => cleanupSecond);
+
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+      await manager['startSpeakingWhileMutedDetection']('device-2');
+
+      expect(detectorMock).toHaveBeenCalledTimes(2);
+      expect(cleanupFirst).toHaveBeenCalledTimes(1);
+
+      await manager['stopSpeakingWhileMutedDetection']();
+      expect(cleanupSecond).toHaveBeenCalledTimes(1);
     });
 
     // --- this ---
@@ -512,7 +562,28 @@ describe('MicrophoneManager', () => {
     });
   });
 
+  describe('no-audio detector configuration', () => {
+    it('applies silence threshold and emit interval in runtime monitoring', async () => {
+      const noAudioDetector = vi.mocked(createNoAudioDetector);
+
+      manager.setSilenceThreshold(3000);
+      manager['call'].state.setCallingState(CallingState.JOINED);
+      await manager.enable();
+
+      await vi.waitFor(() => {
+        expect(noAudioDetector).toHaveBeenCalled();
+      });
+
+      const options = noAudioDetector.mock.calls.at(-1)?.[1];
+      expect(options).toMatchObject({
+        noAudioThresholdMs: 3000,
+        emitIntervalMs: 3000,
+      });
+    });
+  });
+
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.clearAllMocks();
     vi.resetModules();
   });

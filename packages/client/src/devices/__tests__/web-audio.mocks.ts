@@ -18,8 +18,12 @@ export const createMockAnalyserNode = (
     get frequencyBinCount() {
       return fftSize / 2;
     },
-    // Default implementation fills array with zeros
-    // Tests can override with mockImplementation to simulate different audio levels
+    // Default implementation fills array with midpoint (silence waveform)
+    // Tests can override with mockImplementation to simulate different audio levels.
+    getByteTimeDomainData: vi.fn((array: Uint8Array) => {
+      array.fill(128);
+    }),
+    // Keep frequency-domain API for other helpers that use it.
     getByteFrequencyData: vi.fn((array: Uint8Array) => {
       array.fill(0);
     }),

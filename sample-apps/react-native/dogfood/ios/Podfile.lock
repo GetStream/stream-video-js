@@ -3028,7 +3028,7 @@ PODS:
   - stream-react-native-webrtc (137.1.0):
     - React-Core
     - StreamWebRTC (~> 137.0.54)
-  - stream-video-react-native (1.28.0):
+  - stream-video-react-native (1.28.3):
     - boost
     - DoubleConversion
     - fast_float
@@ -3465,7 +3465,7 @@ SPEC CHECKSUMS:
   stream-io-noise-cancellation-react-native: 56787bb94ff912ee17661f4b24a3c4f9551f38ba
   stream-io-video-filters-react-native: 8fdd1a1fcade0dcd699fd2e5b61b2152c0056219
   stream-react-native-webrtc: dd4bc6e9717e6d90204008c22a44bc1c1f605e3b
-  stream-video-react-native: bf72f6c0ae56f24199b123db55327afae6db2f2a
+  stream-video-react-native: 63ec01f16adaca07717fa2af9d58700a1d1037b8
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: 57bd35729bcc46b008de4e741a5b23ac28b8854d
   VisionCamera: 891edb31806dd3a239c8a9d6090d6ec78e11ee80
@@ -3473,4 +3473,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: aa62ba474533b73121c2068a13a8b909b17efbaa
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

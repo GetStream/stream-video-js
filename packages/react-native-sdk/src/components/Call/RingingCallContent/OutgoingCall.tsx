@@ -30,6 +30,7 @@ export type OutgoingCallProps = OutgoingCallControlsProps & {
  * Used after the user has initiated a call.
  */
 export const OutgoingCall = ({
+  onHangupCallHandler,
   OutgoingCallControls = DefaultOutgoingCallControls,
   landscape,
 }: OutgoingCallProps) => {
@@ -74,7 +75,11 @@ export const OutgoingCall = ({
                 outgoingCall.outgoingCallControls,
               ]}
             >
-              {OutgoingCallControls && <OutgoingCallControls />}
+              {OutgoingCallControls && (
+                <OutgoingCallControls
+                  onHangupCallHandler={onHangupCallHandler}
+                />
+              )}
             </View>
           </View>
         </View>

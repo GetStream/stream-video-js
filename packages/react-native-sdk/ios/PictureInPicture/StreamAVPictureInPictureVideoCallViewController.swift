@@ -18,6 +18,9 @@ protocol StreamAVPictureInPictureViewControlling: AnyObject {
     /// - Important: This should **always** be greater to ``CGSize.zero``. If not, iOS throws
     /// a cryptic error with content `PGPegasus code:-1003`
     var preferredContentSize: CGSize { get set }
+
+    /// Controls whether the rendered video should be mirrored.
+    var isMirrored: Bool { get set }
     
     /// The layer that renders the incoming frames from WebRTC.
     var displayLayer: CALayer { get }
@@ -35,6 +38,11 @@ final class StreamAVPictureInPictureVideoCallViewController: AVPictureInPictureV
     var track: RTCVideoTrack? {
         get { contentView.track }
         set { contentView.track = newValue }
+    }
+
+    var isMirrored: Bool {
+        get { contentView.isMirrored }
+        set { contentView.isMirrored = newValue }
     }
     
     var displayLayer: CALayer { contentView.displayLayer }
