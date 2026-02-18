@@ -1,5 +1,4 @@
-import { css } from '@emotion/css';
-import clsx from 'clsx';
+import { css, cx } from '@emotion/css';
 
 import { useConfigurationContext } from '../../ConfigurationContext';
 
@@ -23,32 +22,20 @@ export const useGenericLayoutStyles = () => {
 
   const styles = [
     css`
-      & .eca__dominant-speaker__container {
-        padding-inline: ${singleParticipantPaddingInline};
-        padding-block: ${singleParticipantPaddingBlock};
+      @layer overrides-layer {
+        & .eca__dominant-speaker__container {
+          padding-inline: ${singleParticipantPaddingInline};
+          padding-block: ${singleParticipantPaddingBlock};
+        }
+
+        background-color: ${layoutBackgroundColor};
+        background-image: ${layoutBackgroundImage};
+        background-size: ${layoutBackgroundSize};
+        background-position: ${layoutBackgroundPosition};
+        background-repeat: ${layoutBackgroundRepeat};
       }
     `,
-    layoutBackgroundColor &&
-      css`
-        background-color: ${layoutBackgroundColor};
-      `,
-    layoutBackgroundImage &&
-      css`
-        background-image: ${layoutBackgroundImage};
-      `,
-    layoutBackgroundSize &&
-      css`
-        background-size: ${layoutBackgroundSize};
-      `,
-    layoutBackgroundPosition &&
-      css`
-        background-position: ${layoutBackgroundPosition};
-      `,
-    layoutBackgroundRepeat &&
-      css`
-        background-repeat: ${layoutBackgroundRepeat};
-      `,
   ];
 
-  return clsx(styles);
+  return cx(styles);
 };

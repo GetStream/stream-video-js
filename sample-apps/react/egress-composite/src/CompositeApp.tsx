@@ -4,7 +4,7 @@ import {
   StreamTheme,
   StreamVideo,
 } from '@stream-io/video-react-sdk';
-import clsx from 'clsx';
+import { cx } from '@emotion/css';
 
 import {
   EgressReadyNotificationProvider,
@@ -29,9 +29,7 @@ import { useConfigurationContext } from './ConfigurationContext';
 export const CompositeApp = () => {
   const { client, call } = useInitializeClientAndCall();
 
-  // @ts-expect-error makes it easy to debug in the browser console
   window.call = call;
-  // @ts-expect-error makes it easy to debug in the browser console
   window.client = client;
 
   const {
@@ -67,7 +65,7 @@ export const StreamThemeWrapper = ({ children }: PropsWithChildren) => {
 
   return (
     <StreamTheme
-      className={clsx(
+      className={cx(
         videoStyles,
         genericLayoutStyles,
         participantStyles,

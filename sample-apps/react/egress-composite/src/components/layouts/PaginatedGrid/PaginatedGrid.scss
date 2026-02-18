@@ -1,15 +1,35 @@
-.paginated-grid {
-  --gap-size: 10px;
+@layer base-layer {
+  .paginated-grid {
+    --gap-size: 10px;
 
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--gap-size);
-  height: 100vh;
-  align-items: center;
-  align-content: center;
-  justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-size);
+    height: 100vh;
+    align-items: center;
+    align-content: center;
+    justify-content: center;
 
-  .str-video__participant-view {
-    transition: width 0.2s ease-in-out;
+    .str-video__paginated-grid-layout__group {
+      .str-video__participant-view {
+        transition: width 0.2s ease-in-out;
+        aspect-ratio: 16/9;
+      }
+
+      max-width: 180vh;
+
+      &.str-video__paginated-grid-layout--one {
+        max-width: 125vh;
+      }
+      &.str-video__paginated-grid-layout--two-four {
+        max-width: 180vh;
+      }
+      &.str-video__paginated-grid-layout--two-four[data-group-size='2'] {
+        max-width: 100%;
+      }
+      &.str-video__paginated-grid-layout--five-nine {
+        max-width: 180vh;
+      }
+    }
   }
 }
