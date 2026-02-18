@@ -15,6 +15,11 @@ class RTCViewPip: UIView {
     private var webRtcModule: WebRTCModule?
     
     @objc var onPiPChange: RCTBubblingEventBlock?
+    @objc public var mirror: Bool = false {
+        didSet {
+            self.pictureInPictureController?.isMirrored = mirror
+        }
+    }
     
     private func setupNotificationObserver() {
         NotificationCenter.default.addObserver(
@@ -90,6 +95,7 @@ class RTCViewPip: UIView {
             setupNotificationObserver()
             DispatchQueue.main.async {
                 self.pictureInPictureController?.sourceView = self
+                self.pictureInPictureController?.isMirrored = self.mirror
                 // Set up PiP state change callback
                 self.pictureInPictureController?.onPiPStateChange = { [weak self] isActive in
                     self?.sendPiPChangeEvent(isActive: isActive)

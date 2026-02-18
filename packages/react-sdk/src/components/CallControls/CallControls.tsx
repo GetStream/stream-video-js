@@ -12,7 +12,7 @@ import { ToggleVideoPublishingButton } from './ToggleVideoButton';
 import { CancelCallButton } from './CancelCallButton';
 
 export type CallControlsProps = {
-  onLeave?: () => void;
+  onLeave?: (err?: Error) => void;
 };
 
 export const CallControls = ({ onLeave }: CallControlsProps) => (

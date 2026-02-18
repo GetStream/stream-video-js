@@ -180,6 +180,7 @@ describe('Publisher', () => {
             },
           },
         }) as DispatchableMessage<'changePublishQuality'>,
+        'test',
       );
       expect(publisher['changePublishQuality']).toHaveBeenCalled();
     });
@@ -193,6 +194,7 @@ describe('Publisher', () => {
             changePublishOptions: { publishOptions: [], reason: 'test' },
           },
         }) as DispatchableMessage<'changePublishOptions'>,
+        'test',
       );
       expect(publisher['syncPublishOptions']).toHaveBeenCalled();
     });
@@ -210,6 +212,7 @@ describe('Publisher', () => {
             },
           },
         }) as DispatchableMessage<'iceRestart'>,
+        'test',
       );
       expect(publisher.restartIce).toHaveBeenCalled();
     });
