@@ -1,5 +1,9 @@
 import { OwnCapability } from '@stream-io/video-client';
-import { Restricted, useI18n } from '@stream-io/video-react-bindings';
+import {
+  Restricted,
+  useCallStateHooks,
+  useI18n,
+} from '@stream-io/video-react-bindings';
 import {
   CancelCallConfirmButton,
   CompositeButton,
@@ -31,8 +35,10 @@ export const CallControls = ({
   onToggleParticipants,
 }: CallControlsProps) => {
   const { t } = useI18n();
-
-  const { startedAt, elapsed } = useCallDuration();
+  const { useCallSession } = useCallStateHooks();
+  const session = useCallSession();
+  const startedAt = session?.started_at;
+  const { elapsed } = useCallDuration(startedAt);
 
   return (
     <div className="str-video__embedded-call-controls str-video__call-controls">

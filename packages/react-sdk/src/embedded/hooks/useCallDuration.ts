@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
 
 const formatElapsed = (seconds: number) => {
   const h = Math.floor(seconds / 3600);
@@ -10,19 +9,10 @@ const formatElapsed = (seconds: number) => {
 };
 
 /**
- * Returns a live-updating formatted elapsed duration string.
- * Pass `source: 'live'` for livestreams (counts from going live via live_started_at),
- * or `source: 'session'` (default) for regular calls (counts from started_at).
+ * Returns a live-updating formatted elapsed duration string
+ * computed from the given start date.
  */
-export const useCallDuration = (
-  options: { source?: 'live' | 'session' } = {},
-) => {
-  const { source = 'session' } = options;
-  const { useCallSession } = useCallStateHooks();
-  const session = useCallSession();
-  const startedAt =
-    source === 'live' ? session?.live_started_at : session?.started_at;
-
+export const useCallDuration = (startedAt?: string) => {
   const startedAtDate = useMemo(
     () => (startedAt ? new Date(startedAt).getTime() : undefined),
     [startedAt],
@@ -46,5 +36,5 @@ export const useCallDuration = (
     return () => clearInterval(interval);
   }, [startedAtDate]);
 
-  return { startedAt, elapsed };
+  return { elapsed };
 };

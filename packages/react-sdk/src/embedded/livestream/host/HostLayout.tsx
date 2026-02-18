@@ -59,9 +59,10 @@ export const HostLayout = ({
   onStopLive,
 }: HostViewProps) => {
   const { t } = useI18n();
-  const { useParticipantCount } = useCallStateHooks();
+  const { useParticipantCount, useCallSession } = useCallStateHooks();
   const participantCount = useParticipantCount();
-  const { elapsed } = useCallDuration({ source: 'live' });
+  const session = useCallSession();
+  const { elapsed } = useCallDuration(session?.live_started_at);
   const { Component: LayoutComponent, props: layoutProps } = useLayout();
   const [showParticipants, setShowParticipants] = useState(false);
 
