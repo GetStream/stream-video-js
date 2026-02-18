@@ -15,12 +15,8 @@ import {
 } from '../components';
 import { ConfigurationProvider } from './context';
 import { useEmbeddedClient } from './hooks';
-import type {
-  EmbeddedUser,
-  TokenProvider,
-  LogLevel,
-  LayoutOption,
-} from './types';
+import type { LogLevel, TokenProvider } from '@stream-io/video-client';
+import type { EmbeddedUser, LayoutOption } from './types';
 import { LoadingIndicator } from '../components';
 
 export interface EmbeddedClientProviderProps {

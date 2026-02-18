@@ -1,9 +1,5 @@
 import type { ReactNode } from 'react';
-
-/**
- * Log level for the StreamVideoClient.
- */
-export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
+import type { LogLevel, TokenProvider } from '@stream-io/video-client';
 
 /**
  * Available layout options (internal use only).
@@ -15,11 +11,6 @@ export type LayoutOption =
   | 'SpeakerRight'
   | 'SpeakerTop'
   | 'SpeakerBottom';
-
-/**
- * Token provider function for automatic token refresh.
- */
-export type TokenProvider = () => Promise<string>;
 
 /**
  * An authenticated user with a known identity.

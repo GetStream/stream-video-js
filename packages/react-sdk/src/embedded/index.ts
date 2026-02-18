@@ -8,7 +8,5 @@ export type {
   EmbeddedAuthenticatedUser,
   EmbeddedGuestUser,
   EmbeddedAnonymousUser,
-  TokenProvider,
-  LogLevel,
   LayoutOption,
 } from './types';
