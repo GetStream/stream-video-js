@@ -88,7 +88,8 @@ describe('MicrophoneManager', () => {
       streamClient: new StreamClient('abc123'),
       clientStore: new StreamVideoWriteableStateStore(),
     });
-    manager = new MicrophoneManager(call, 'disable-tracks');
+    const devicePersistence = { enabled: false, storageKey: '' };
+    manager = new MicrophoneManager(call, devicePersistence, 'disable-tracks');
   });
   it('list devices', () => {
     const spy = vi.fn();
@@ -174,7 +175,12 @@ describe('MicrophoneManager', () => {
       vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
         of('denied'),
       );
-      const innerManager = new MicrophoneManager(call, 'disable-tracks');
+      const devicePersistence = { enabled: false, storageKey: '' };
+      const innerManager = new MicrophoneManager(
+        call,
+        devicePersistence,
+        'disable-tracks',
+      );
       // @ts-expect-error private api
       const fn = vi.spyOn(innerManager, 'startSpeakingWhileMutedDetection');
 
@@ -408,6 +414,13 @@ describe('MicrophoneManager', () => {
       call.permissionsContext.canPublish = vi.fn().mockReturnValue(true);
     });
 
+    it('should apply defaults when mic_default_on is true and enabled is pristine', async () => {
+      const enable = vi.spyOn(manager, 'enable');
+      // @ts-expect-error - partial data
+      await manager.apply({ mic_default_on: true }, true);
+      expect(enable).toHaveBeenCalled();
+    });
+
     it('should turn the mic on when set on dashboard', async () => {
       const enable = vi.spyOn(manager, 'enable');
       // @ts-expect-error - partial data
@@ -437,6 +450,37 @@ describe('MicrophoneManager', () => {
       // @ts-expect-error - partial data
       await manager.apply({ mic_default_on: true }, true);
       expect(manager['publishStream']).toHaveBeenCalled();
+    });
+
+    it('should skip defaults when preferences are applied', async () => {
+      const devicePersistence = { enabled: true, storageKey: '' };
+      const persistedManager = new MicrophoneManager(
+        call,
+        devicePersistence,
+        'disable-tracks',
+      );
+      const applySpy = vi
+        .spyOn(persistedManager as never, 'applyPersistedPreferences')
+        .mockResolvedValue(true);
+      const enableSpy = vi.spyOn(persistedManager, 'enable');
+
+      // @ts-expect-error - partial data
+      await persistedManager.apply({ mic_default_on: true }, true);
+
+      expect(applySpy).toHaveBeenCalledWith(true);
+      expect(enableSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not apply defaults when mic is not pristine', async () => {
+      manager.state.setStatus('enabled');
+      const applySpy = vi.spyOn(manager as never, 'applyPersistedPreferences');
+      const enableSpy = vi.spyOn(manager, 'enable');
+
+      // @ts-expect-error - partial data
+      await manager.apply({ mic_default_on: true }, true);
+
+      expect(applySpy).not.toHaveBeenCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
     });
   });
 

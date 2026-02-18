@@ -7,6 +7,7 @@ import { VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
+import { DevicePersistenceOptions } from './devicePersistence';
 
 export class CameraManager extends DeviceManager<CameraManagerState> {
   private targetResolution = {
@@ -18,9 +19,13 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
    * Constructs a new CameraManager.
    *
    * @param call the call instance.
+   * @param devicePersistence the device persistence preferences to use.
    */
-  constructor(call: Call) {
-    super(call, new CameraManagerState(), TrackType.VIDEO);
+  constructor(
+    call: Call,
+    devicePersistence: Required<DevicePersistenceOptions>,
+  ) {
+    super(call, new CameraManagerState(), TrackType.VIDEO, devicePersistence);
   }
 
   private isDirectionSupportedByDevice() {
@@ -120,16 +125,26 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     await this.statusChangeSettled();
     await this.selectTargetResolution(settings.target_resolution);
 
-    // apply a direction and enable the camera only if in "pristine" state
-    // and server defaults are not deferred to application code
+    const enabledInCallType = settings.enabled ?? true;
+    const shouldApplyDefaults =
+      this.state.status === undefined &&
+      this.state.optimisticStatus === undefined;
+    let persistedPreferencesApplied = false;
+    if (shouldApplyDefaults && this.devicePersistence.enabled) {
+      persistedPreferencesApplied =
+        await this.applyPersistedPreferences(enabledInCallType);
+    }
+
+    // apply a direction and enable the camera only if in "pristine" state,
+    // and there are no persisted preferences
     const canPublish = this.call.permissionsContext.canPublish(this.trackType);
-    if (this.state.status === undefined && !this.deferServerDefaults) {
+    if (shouldApplyDefaults && !persistedPreferencesApplied) {
       if (!this.state.direction && !this.state.selectedDevice) {
         const direction = settings.camera_facing === 'front' ? 'front' : 'back';
         await this.selectDirection(direction);
       }
 
-      if (canPublish && settings.camera_default_on && settings.enabled) {
+      if (canPublish && settings.camera_default_on && enabledInCallType) {
         await this.enable();
       }
     }

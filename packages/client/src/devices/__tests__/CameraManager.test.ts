@@ -62,13 +62,14 @@ describe('CameraManager', () => {
   let call: Call;
 
   beforeEach(() => {
+    const devicePersistence = { enabled: false, storageKey: '' };
     call = new Call({
       id: '',
       type: '',
-      streamClient: new StreamClient('abc123'),
+      streamClient: new StreamClient('abc123', { devicePersistence }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
-    manager = new CameraManager(call);
+    manager = new CameraManager(call, devicePersistence);
   });
 
   it('list devices', () => {
@@ -243,13 +244,29 @@ describe('CameraManager', () => {
     it('should enable the camera when set on the dashboard', async () => {
       vi.spyOn(manager, 'enable');
       await manager.apply(
-        // @ts-expect-error - partial settings
-        {
+        fromPartial({
           enabled: true,
           target_resolution: { width: 640, height: 480 },
           camera_facing: 'front',
           camera_default_on: true,
-        },
+        }),
+        true,
+      );
+
+      expect(manager.state.direction).toBe('front');
+      expect(manager.state.status).toBe('enabled');
+      expect(manager['targetResolution']).toEqual({ width: 640, height: 480 });
+      expect(manager.enable).toHaveBeenCalled();
+    });
+
+    it('should enable the camera when enabled is not provided', async () => {
+      vi.spyOn(manager, 'enable');
+      await manager.apply(
+        fromPartial({
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        }),
         true,
       );
 
@@ -262,13 +279,12 @@ describe('CameraManager', () => {
     it('should not enable the camera when set on the dashboard', async () => {
       vi.spyOn(manager, 'enable');
       await manager.apply(
-        // @ts-expect-error - partial settings
-        {
+        fromPartial({
           enabled: true,
           target_resolution: { width: 640, height: 480 },
           camera_facing: 'front',
           camera_default_on: false,
-        },
+        }),
         true,
       );
 
@@ -278,22 +294,70 @@ describe('CameraManager', () => {
       expect(manager.enable).not.toHaveBeenCalled();
     });
 
-    it('should not turn on the camera when publish is false', async () => {
-      vi.spyOn(manager, 'enable');
-      await manager.apply(
-        // @ts-expect-error - partial settings
-        {
+    it('should skip defaults when preferences are applied', async () => {
+      const devicePersistence = { enabled: true, storageKey: '' };
+      const persistedManager = new CameraManager(call, devicePersistence);
+      const applySpy = vi
+        .spyOn(persistedManager as never, 'applyPersistedPreferences')
+        .mockResolvedValue(true);
+      const selectDirectionSpy = vi.spyOn(persistedManager, 'selectDirection');
+      const enableSpy = vi.spyOn(persistedManager, 'enable');
+
+      await persistedManager.apply(
+        fromPartial({
+          enabled: true,
           target_resolution: { width: 640, height: 480 },
           camera_facing: 'front',
           camera_default_on: true,
-        },
+        }),
+        true,
+      );
+
+      expect(applySpy).toHaveBeenCalledWith(true);
+      expect(selectDirectionSpy).not.toHaveBeenCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not apply defaults when device is not pristine', async () => {
+      manager.state.setStatus('enabled');
+      const selectDirectionSpy = vi.spyOn(manager, 'selectDirection');
+      const enableSpy = vi.spyOn(manager, 'enable');
+
+      await manager.apply(
+        fromPartial({
+          enabled: true,
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        }),
+        true,
+      );
+
+      expect(selectDirectionSpy).not.toHaveBeenCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
+    });
+
+    it('should on the camera but not publish when publish is false', async () => {
+      manager['call'].state.setCallingState(CallingState.IDLE);
+      vi.spyOn(manager, 'enable');
+      // @ts-expect-error - private api
+      vi.spyOn(manager, 'publishStream');
+      await manager.apply(
+        fromPartial({
+          enabled: true,
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        }),
         false,
       );
 
       expect(manager.state.direction).toBe('front');
-      expect(manager.state.status).toBe(undefined);
+      expect(manager.state.status).toBe('enabled');
       expect(manager['targetResolution']).toEqual({ width: 640, height: 480 });
-      expect(manager.enable).not.toHaveBeenCalled();
+      expect(manager.enable).toHaveBeenCalled();
+      // @ts-expect-error - private api
+      expect(manager.publishStream).not.toHaveBeenCalled();
     });
 
     it('should not enable the camera when the user does not have permission', async () => {
@@ -304,6 +368,7 @@ describe('CameraManager', () => {
           target_resolution: { width: 640, height: 480 },
           camera_facing: 'front',
           camera_default_on: true,
+          enabled: true,
         }),
         true,
       );
@@ -319,12 +384,12 @@ describe('CameraManager', () => {
       // @ts-expect-error - private api
       vi.spyOn(manager, 'publishStream');
       await manager.apply(
-        // @ts-expect-error - partial settings
-        {
+        fromPartial({
           target_resolution: { width: 640, height: 480 },
           camera_facing: 'front',
           camera_default_on: true,
-        },
+          enabled: true,
+        }),
         true,
       );
 
@@ -334,13 +399,12 @@ describe('CameraManager', () => {
     it('should not turn on the camera when video is disabled', async () => {
       vi.spyOn(manager, 'enable');
       await manager.apply(
-        // @ts-expect-error - partial settings
-        {
+        fromPartial({
           enabled: false,
           target_resolution: { width: 640, height: 480 },
           camera_facing: 'front',
           camera_default_on: true,
-        },
+        }),
         false,
       );
 

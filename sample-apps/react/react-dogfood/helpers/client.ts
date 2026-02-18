@@ -37,6 +37,10 @@ export const getClient = (
         logger: customSentryLogger(),
         transformRequest: defaultRequestTransformers,
         transformResponse: defaultResponseTransformers,
+        devicePersistence: {
+          enabled: true,
+          storageKey: '@pronto/device-preferences',
+        },
       },
     });
   }

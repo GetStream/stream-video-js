@@ -134,7 +134,7 @@ export const getAudioDevices = lazy((tracer?: Tracer) => {
     getDeviceChangeObserver(tracer),
     getAudioBrowserPermission().asObservable(),
   ).pipe(
-    startWith(undefined),
+    startWith([]),
     concatMap(() =>
       getDevices(getAudioBrowserPermission(), 'audioinput', tracer),
     ),
@@ -153,7 +153,7 @@ export const getVideoDevices = lazy((tracer?: Tracer) => {
     getDeviceChangeObserver(tracer),
     getVideoBrowserPermission().asObservable(),
   ).pipe(
-    startWith(undefined),
+    startWith([]),
     concatMap(() =>
       getDevices(getVideoBrowserPermission(), 'videoinput', tracer),
     ),
@@ -172,7 +172,7 @@ export const getAudioOutputDevices = lazy((tracer?: Tracer) => {
     getDeviceChangeObserver(tracer),
     getAudioBrowserPermission().asObservable(),
   ).pipe(
-    startWith(undefined),
+    startWith([]),
     concatMap(() =>
       getDevices(getAudioBrowserPermission(), 'audiooutput', tracer),
     ),
