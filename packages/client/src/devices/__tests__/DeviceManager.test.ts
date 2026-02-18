@@ -451,6 +451,11 @@ describe('Device Manager', () => {
 
   describe('applyPersistedPreferences', () => {
     beforeEach(() => {
+      manager.dispose();
+      manager = new TestInputMediaDeviceManager(manager['call'], {
+        enabled: true,
+        storageKey,
+      });
       // @ts-expect-error - read only property
       manager['call'].permissionsContext = new PermissionsContext();
       manager['call'].permissionsContext.canPublish = vi
