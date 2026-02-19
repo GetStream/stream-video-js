@@ -34,6 +34,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   private speakingWhileMutedNotificationEnabled = true;
   private soundDetectorConcurrencyTag = Symbol('soundDetectorConcurrencyTag');
   private soundDetectorCleanup?: () => Promise<void>;
+  private soundDetectorDeviceId?: string;
   private noAudioDetectorCleanup?: () => Promise<void>;
   private rnSpeechDetector: RNSpeechDetector | undefined;
   private noiseCancellation: INoiseCancellation | undefined;
@@ -385,6 +386,11 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
   private async startSpeakingWhileMutedDetection(deviceId?: string) {
     await withoutConcurrency(this.soundDetectorConcurrencyTag, async () => {
+      if (this.soundDetectorCleanup && this.soundDetectorDeviceId === deviceId)
+        return;
+
+      await this.teardownSpeakingWhileMutedDetection();
+
       if (isReactNative()) {
         this.rnSpeechDetector = new RNSpeechDetector();
         const unsubscribe = await this.rnSpeechDetector.start((event) => {
@@ -404,16 +410,26 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
         });
       }
+
+      this.soundDetectorDeviceId = deviceId;
     });
   }
 
   private async stopSpeakingWhileMutedDetection() {
     await withoutConcurrency(this.soundDetectorConcurrencyTag, async () => {
-      if (!this.soundDetectorCleanup) return;
-      const soundDetectorCleanup = this.soundDetectorCleanup;
-      this.soundDetectorCleanup = undefined;
-      this.state.setSpeakingWhileMuted(false);
-      await soundDetectorCleanup();
+      return this.teardownSpeakingWhileMutedDetection();
+    });
+  }
+
+  private async teardownSpeakingWhileMutedDetection(): Promise<void> {
+    const soundDetectorCleanup = this.soundDetectorCleanup;
+    this.soundDetectorCleanup = undefined;
+    this.soundDetectorDeviceId = undefined;
+    this.state.setSpeakingWhileMuted(false);
+    if (!soundDetectorCleanup) return;
+
+    await soundDetectorCleanup().catch((err) => {
+      this.logger.warn('Failed to stop speaking while muted detector', err);
     });
   }
 
