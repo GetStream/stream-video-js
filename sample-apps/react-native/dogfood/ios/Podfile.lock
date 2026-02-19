@@ -3025,10 +3025,10 @@ PODS:
     - SocketRocket
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (137.1.0):
+  - stream-react-native-webrtc (137.1.3-alpha.1):
     - React-Core
-    - StreamWebRTC (~> 137.0.54)
-  - stream-video-react-native (1.28.3):
+    - StreamWebRTC (~> 137.0.62)
+  - stream-video-react-native (1.29.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3058,7 +3058,7 @@ PODS:
     - stream-react-native-webrtc
     - Yoga
   - StreamVideoNoiseCancellation (1.0.3)
-  - StreamWebRTC (137.0.54)
+  - StreamWebRTC (137.0.62)
   - VisionCamera (4.7.2):
     - VisionCamera/Core (= 4.7.2)
     - VisionCamera/React (= 4.7.2)
@@ -3164,6 +3164,7 @@ DEPENDENCIES:
   - "stream-io-video-filters-react-native (from `../node_modules/@stream-io/video-filters-react-native`)"
   - "stream-react-native-webrtc (from `../node_modules/@stream-io/react-native-webrtc`)"
   - "stream-video-react-native (from `../node_modules/@stream-io/video-react-native-sdk`)"
+  - StreamWebRTC (from `https://raw.githubusercontent.com/GetStream/stream-video-swift-webrtc/137.0.62/StreamWebRTC.podspec`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -3172,7 +3173,6 @@ SPEC REPOS:
     - React-Codegen
     - SocketRocket
     - StreamVideoNoiseCancellation
-    - StreamWebRTC
 
 EXTERNAL SOURCES:
   boost:
@@ -3364,6 +3364,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@stream-io/react-native-webrtc"
   stream-video-react-native:
     :path: "../node_modules/@stream-io/video-react-native-sdk"
+  StreamWebRTC:
+    :podspec: https://raw.githubusercontent.com/GetStream/stream-video-swift-webrtc/137.0.62/StreamWebRTC.podspec
   VisionCamera:
     :path: "../node_modules/react-native-vision-camera"
   Yoga:
@@ -3464,13 +3466,13 @@ SPEC CHECKSUMS:
   stream-chat-react-native: 2ad28c26fbc0b8cb20d675c6b2674871d78f914f
   stream-io-noise-cancellation-react-native: 56787bb94ff912ee17661f4b24a3c4f9551f38ba
   stream-io-video-filters-react-native: 8fdd1a1fcade0dcd699fd2e5b61b2152c0056219
-  stream-react-native-webrtc: dd4bc6e9717e6d90204008c22a44bc1c1f605e3b
-  stream-video-react-native: 63ec01f16adaca07717fa2af9d58700a1d1037b8
+  stream-react-native-webrtc: 597cb88fd251d388f2629856a80f956a056d4d5e
+  stream-video-react-native: 22132e735e187827809e9ccfe1c6e365691cf38d
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
-  StreamWebRTC: 57bd35729bcc46b008de4e741a5b23ac28b8854d
+  StreamWebRTC: 655de87a633d873dd49f2629da0db0eceaccd0bf
   VisionCamera: 891edb31806dd3a239c8a9d6090d6ec78e11ee80
   Yoga: cc4a6600d61e4e9276e860d4d68eebb834a050ba
 
-PODFILE CHECKSUM: aa62ba474533b73121c2068a13a8b909b17efbaa
+PODFILE CHECKSUM: f9fdd5e502c59d6faf695896851e1819dd97645e
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2

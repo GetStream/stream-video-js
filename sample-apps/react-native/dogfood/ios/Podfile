@@ -10,6 +10,8 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
+pod 'StreamWebRTC', podspec: 'https://raw.githubusercontent.com/GetStream/stream-video-swift-webrtc/137.0.62/StreamWebRTC.podspec'
+
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
