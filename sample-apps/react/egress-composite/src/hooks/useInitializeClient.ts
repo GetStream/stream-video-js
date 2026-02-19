@@ -41,7 +41,7 @@ const useJoinCall = ({
 }) => {
   const { token, user_id: userId } = useConfigurationContext();
 
-  const deinit = useRef<Promise<void>>(undefined);
+  const deinit = useRef<Promise<void> | undefined>(undefined);
   useEffect(() => {
     if (!enabled) return;
 
