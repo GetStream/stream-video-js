@@ -1,4 +1,5 @@
-import { SfuJoinError, StreamSfuClient } from './StreamSfuClient';
+import { StreamSfuClient } from './StreamSfuClient';
+import { SfuJoinError } from './errors';
 import {
   BasePeerConnectionOpts,
   Dispatcher,
@@ -275,6 +276,7 @@ export class Call {
   private credentials?: Credentials;
 
   private initialized = false;
+  private readonly acceptRejectConcurrencyTag = Symbol('acceptRejectTag');
   private readonly joinLeaveConcurrencyTag = Symbol('joinLeaveConcurrencyTag');
 
   /**
@@ -561,7 +563,7 @@ export class Call {
     fn: CallEventListener<E>,
   ) => {
     if (isSfuEvent(eventName)) {
-      return this.dispatcher.on(eventName, fn);
+      return this.dispatcher.on(eventName, '*', fn);
     }
 
     const offHandler = this.streamClient.on(eventName, (e) => {
@@ -589,7 +591,7 @@ export class Call {
     fn: CallEventListener<E>,
   ) => {
     if (isSfuEvent(eventName)) {
-      return this.dispatcher.off(eventName, fn);
+      return this.dispatcher.off(eventName, '*', fn);
     }
 
     // unsubscribe from the stream client event by using the 'off' reference
@@ -863,10 +865,12 @@ export class Call {
    * Unless you are implementing a custom "ringing" flow, you should not use this method.
    */
   accept = async () => {
-    this.tracer.trace('call.accept', '');
-    return this.streamClient.post<AcceptCallResponse>(
-      `${this.streamClientBasePath}/accept`,
-    );
+    return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
+      this.tracer.trace('call.accept', '');
+      return this.streamClient.post<AcceptCallResponse>(
+        `${this.streamClientBasePath}/accept`,
+      );
+    });
   };
 
   /**
@@ -881,11 +885,13 @@ export class Call {
   reject = async (
     reason: RejectReason = 'decline',
   ): Promise<RejectCallResponse> => {
-    this.tracer.trace('call.reject', reason);
-    return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
-      `${this.streamClientBasePath}/reject`,
-      { reason: reason },
-    );
+    return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
+      this.tracer.trace('call.reject', reason);
+      return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
+        `${this.streamClientBasePath}/reject`,
+        { reason },
+      );
+    });
   };
 
   /**
@@ -919,48 +925,47 @@ export class Call {
     }
 
     await this.setup();
-
-    try {
-      this.joinResponseTimeout = joinResponseTimeout;
-      this.rpcRequestTimeout = rpcRequestTimeout;
-
-      // we will count the number of join failures per SFU.
-      // once the number of failures reaches 2, we will piggyback on the `migrating_from`
-      // field to force the coordinator to provide us another SFU
-      const sfuJoinFailures = new Map<string, number>();
-      const joinData: JoinCallData = data;
-      maxJoinRetries = Math.max(maxJoinRetries, 1);
-      for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-        try {
-          this.logger.trace(`Joining call (${attempt})`, this.cid);
-          await this.doJoin(data);
-          delete joinData.migrating_from;
-          break;
-        } catch (err) {
-          this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-          if (
-            (err instanceof ErrorFromResponse && err.unrecoverable) ||
-            (err instanceof SfuJoinError && err.unrecoverable)
-          ) {
-            // if the error is unrecoverable, we should not retry as that signals
-            // that connectivity is good, but the coordinator doesn't allow the user
-            // to join the call due to some reason (e.g., ended call, expired token...)
-            throw err;
-          }
-
-          const sfuId = this.credentials?.server.edge_name || '';
-          const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-          sfuJoinFailures.set(sfuId, failures);
-          if (failures >= 2) {
-            joinData.migrating_from = sfuId;
-          }
-
-          if (attempt === maxJoinRetries - 1) {
-            throw err;
-          }
+    // we will count the number of join failures per SFU.
+    // once the number of failures reaches 2, we will piggyback on the `migrating_from`
+    // field to force the coordinator to provide us another SFU
+    const sfuJoinFailures = new Map<string, number>();
+    const joinData: JoinCallData = data;
+    maxJoinRetries = Math.max(maxJoinRetries, 1);
+    for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+      try {
+        this.logger.trace(`Joining call (${attempt})`, this.cid);
+        await this.doJoin(data);
+        delete joinData.migrating_from;
+        delete joinData.migrating_from_list;
+        break;
+      } catch (err) {
+        this.logger.warn(`Failed to join call (${attempt})`, this.cid);
+        if (
+          (err instanceof ErrorFromResponse && err.unrecoverable) ||
+          (err instanceof SfuJoinError && err.unrecoverable)
+        ) {
+          // if the error is unrecoverable, we should not retry as that signals
+          // that connectivity is good, but the coordinator doesn't allow the user
+          // to join the call due to some reason (e.g., ended call, expired token...)
+          throw err;
         }
 
-        await sleep(retryInterval(attempt));
+        // immediately switch to a different SFU in case of recoverable join error
+        const switchSfu =
+          err instanceof SfuJoinError &&
+          SfuJoinError.isJoinErrorCode(err.errorEvent);
+
+        const sfuId = this.credentials?.server.edge_name || '';
+        const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+        sfuJoinFailures.set(sfuId, failures);
+        if (switchSfu || failures >= 2) {
+          joinData.migrating_from = sfuId;
+          joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
+        }
+
+        if (attempt === maxJoinRetries - 1) {
+          throw err;
+        }
       }
     } catch (error) {
       callingX?.endCall(this);
@@ -1634,11 +1639,16 @@ export class Call {
 
     try {
       const currentSfu = currentSfuClient.edgeName;
-      await this.doJoin({ ...this.joinCallData, migrating_from: currentSfu });
+      await this.doJoin({
+        ...this.joinCallData,
+        migrating_from: currentSfu,
+        migrating_from_list: [currentSfu],
+      });
     } finally {
       // cleanup the migration_from field after the migration is complete or failed
       // as we don't want to keep dirty data in the join call data
       delete this.joinCallData?.migrating_from;
+      delete this.joinCallData?.migrating_from_list;
     }
 
     await this.restorePublishedTracks();
@@ -1683,6 +1693,10 @@ export class Call {
     // handles the "error" event, through which the SFU can request a reconnect
     const unregisterOnError = this.on('error', (e) => {
       const { reconnectStrategy: strategy, error } = e;
+      // SFU_FULL is a join error, and when emitted, although it specifies a
+      // `migrate` strategy, we should actually perform a REJOIN to a new SFU.
+      // This is now handled separately in the `call.join()` method.
+      if (SfuJoinError.isJoinErrorCode(e)) return;
       if (strategy === WebsocketReconnectStrategy.UNSPECIFIED) return;
       if (strategy === WebsocketReconnectStrategy.DISCONNECT) {
         this.leave({ message: 'SFU instructed to disconnect' }).catch((err) => {

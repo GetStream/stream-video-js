@@ -16,6 +16,7 @@ import { SoundStateChangeHandler } from '../../helpers/sound-detector';
 import { settled, withoutConcurrency } from '../../helpers/concurrency';
 
 let handler: SoundStateChangeHandler = () => {};
+let unsubscribeHandlers: ReturnType<typeof vi.fn>[] = [];
 
 vi.mock('../../helpers/platforms.ts', () => {
   return {
@@ -51,7 +52,9 @@ vi.mock('../../helpers/RNSpeechDetector.ts', () => {
     RNSpeechDetector: vi.fn().mockImplementation(() => ({
       start: vi.fn((callback) => {
         handler = callback;
-        return vi.fn();
+        const unsubscribe = vi.fn();
+        unsubscribeHandlers.push(unsubscribe);
+        return unsubscribe;
       }),
       stop: vi.fn(),
       onSpeakingDetectedStateChange: vi.fn(),
@@ -63,6 +66,7 @@ describe('MicrophoneManager React Native', () => {
   let manager: MicrophoneManager;
   let checkPermissionMock: ReturnType<typeof vi.fn>;
   beforeEach(() => {
+    unsubscribeHandlers = [];
     checkPermissionMock = vi.fn(async () => true);
 
     globalThis.streamRNVideoSDK = {
@@ -151,6 +155,27 @@ describe('MicrophoneManager React Native', () => {
     handler!({ isSoundDetected: false, audioLevel: 0 });
 
     expect(manager.state.speakingWhileMuted).toBe(false);
+  });
+
+  it('should not create duplicate speech detectors for the same device', async () => {
+    await manager['startSpeakingWhileMutedDetection']('device-1');
+    await manager['startSpeakingWhileMutedDetection']('device-1');
+
+    expect(unsubscribeHandlers).toHaveLength(1);
+
+    await manager['stopSpeakingWhileMutedDetection']();
+    expect(unsubscribeHandlers[0]).toHaveBeenCalledTimes(1);
+  });
+
+  it('should cleanup previous speech detector before starting a new one', async () => {
+    await manager['startSpeakingWhileMutedDetection']('device-1');
+    await manager['startSpeakingWhileMutedDetection']('device-2');
+
+    expect(unsubscribeHandlers).toHaveLength(2);
+    expect(unsubscribeHandlers[0]).toHaveBeenCalledTimes(1);
+
+    await manager['stopSpeakingWhileMutedDetection']();
+    expect(unsubscribeHandlers[1]).toHaveBeenCalledTimes(1);
   });
 
   it('should stop speaking while muted notifications if user loses permission to send audio', async () => {

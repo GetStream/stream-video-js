@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.42.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.42.2...@stream-io/video-client-1.42.3) (2026-02-16)
+
+### Bug Fixes
+
+- guard from parallel accept/reject invocations ([#2127](https://github.com/GetStream/stream-video-js/issues/2127)) ([621218f](https://github.com/GetStream/stream-video-js/commit/621218f4ab6b4623370fd66f1b02b8cb7cb1baad))
+
+## [1.42.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.42.1...@stream-io/video-client-1.42.2) (2026-02-13)
+
+### Bug Fixes
+
+- improve the handling of join errors and prevent cross-socket event leaking ([#2121](https://github.com/GetStream/stream-video-js/issues/2121)) ([72d0834](https://github.com/GetStream/stream-video-js/commit/72d08343243990f14f29103734eea6f7cb6092c9))
+
 ## [1.42.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.42.0...@stream-io/video-client-1.42.1) (2026-02-10)
 
 ### Bug Fixes
