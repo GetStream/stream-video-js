@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from 'react';
+import * as Sentry from '@sentry/react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   Call,
   StreamVideoClient,
@@ -40,37 +41,42 @@ const useJoinCall = ({
 }) => {
   const { token, user_id: userId } = useConfigurationContext();
 
+  const deinit = useRef<Promise<void>>(undefined);
   useEffect(() => {
     if (!enabled) return;
-    client.connectUser({ id: userId }, token).catch((err) => {
-      console.error('Error connecting user', err);
-    });
-    return () => {
-      client.disconnectUser().catch((err) => {
-        console.error('Error disconnecting user', err);
-      });
+
+    const connectAndJoin = async () => {
+      await client.connectUser({ id: userId }, token);
+
+      // the recorder system doesn't have any device attached
+      await Promise.all([
+        call.camera.disable(),
+        call.microphone.disableSpeakingWhileMutedNotification(),
+        call.microphone.disable(),
+      ]).catch((err) => console.error('Error disabling devices', err));
+
+      await call.join({ maxJoinRetries: 100 });
     };
-  }, [client, enabled, token, userId]);
 
-  useEffect(() => {
-    if (!client || !enabled) return;
-
-    // the recorder system doesn't have any device attached
-    const deviceSetup = Promise.all([
-      call.camera.disable(),
-      call.microphone.disableSpeakingWhileMutedNotification(),
-      call.microphone.disable(),
-    ]);
-
-    const callJoinPromise = deviceSetup
-      .then(() => call.join({ maxJoinRetries: 100 }))
-      .catch((err) => console.error('Error joining call', err));
+    const init = (deinit.current ?? Promise.resolve()).then(() =>
+      connectAndJoin().catch((err) => {
+        Sentry.captureException(err, { extra: { userId, callCid: call.cid } });
+        console.error('Error joining call', err);
+      }),
+    );
     return () => {
-      callJoinPromise
-        .then(() => call.leave())
-        .catch((err) => console.error('Error leaving call', err));
+      deinit.current = init.then(() =>
+        call
+          .leave()
+          .catch((err) => console.error('Error leaving call', err))
+          .then(() =>
+            client
+              .disconnectUser()
+              .catch((err) => console.error('Error disconnecting user', err)),
+          ),
+      );
     };
-  }, [call, client, enabled]);
+  }, [call, client, enabled, token, userId]);
 };
 
 export const useInitializeClientAndCall = () => {
@@ -87,6 +93,7 @@ export const useInitializeClientAndCall = () => {
     return new StreamVideoClient(apiKey, {
       baseURL,
       logLevel,
+      maxConnectUserRetries: 25,
     });
   }, [apiKey, baseURL, logLevel]);
 
@@ -98,11 +105,6 @@ export const useInitializeClientAndCall = () => {
   useVideoStateMocks({ client, call, enabled: !!testEnvironment });
   // join call and proceed normally
   useJoinCall({ client, call, enabled: !testEnvironment });
-
-  // @ts-expect-error expose the client and call for debugging
-  window.client = client;
-  // @ts-expect-error expose the client and call for debugging
-  window.call = call;
 
   return { client, call };
 };
