@@ -28,7 +28,7 @@ import {
   defaultTextTransformer,
   iosEndCallReasonMap,
 } from './utils/constants';
-import { isTurboModuleEnabled, isVoipEvent } from './utils/utils';
+import { isVoipEvent } from './utils/utils';
 
 class CallingxModule implements ICallingxModule {
   private _isSetup = false;
