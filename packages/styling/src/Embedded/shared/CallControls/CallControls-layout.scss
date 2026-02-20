@@ -30,6 +30,7 @@
   gap: var(--str-video__spacing-xxs);
 
   .str-video__call-controls--group {
+    flex: 1;
     display: flex;
     align-items: center;
     gap: var(--str-video__spacing-xxs);
@@ -37,6 +38,10 @@
 
   .str-video__call-controls--options {
     justify-content: flex-start;
+  }
+
+  .str-video__call-controls--media {
+    justify-content: center;
   }
 
   .str-video__call-controls--sidebar {

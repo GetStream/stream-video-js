@@ -1,7 +1,8 @@
 import { useInitializeVideoClient } from './useInitializeVideoClient';
 import { useInitializeCall } from './useInitializeCall';
 import { useNoiseCancellationLoader } from './useNoiseCancellationLoader';
-import type { EmbeddedUser, TokenProvider, LogLevel } from '../types';
+import type { EmbeddedUser } from '../types';
+import { LogLevel, TokenProvider } from '@stream-io/video-client';
 
 export interface UseEmbeddedClientProps {
   apiKey: string;

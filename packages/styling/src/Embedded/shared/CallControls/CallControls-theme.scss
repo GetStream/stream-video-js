@@ -5,3 +5,10 @@
     background-color: var(--str-video__alert-success);
   }
 }
+
+@container (min-width: 700px) {
+  .str-video__embedded-call-controls.str-video__call-controls {
+    background-color: var(--str-video__base-color7);
+    border-radius: var(--str-video__border-radius-xxl);
+  }
+}

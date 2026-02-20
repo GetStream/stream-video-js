@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { StreamVideoClient, User } from '@stream-io/video-client';
-import type { EmbeddedUser, LogLevel, TokenProvider } from '../types';
+import {
+  LogLevel,
+  StreamVideoClient,
+  TokenProvider,
+  User,
+} from '@stream-io/video-client';
+import type { EmbeddedUser } from '../types';
 
 export interface UseInitializeVideoClientProps {
   apiKey: string;
@@ -66,8 +71,9 @@ export const useInitializeVideoClient = ({
   useEffect(() => {
     if (!apiKey) return;
 
+    let _client: StreamVideoClient | undefined;
     try {
-      const _client = new StreamVideoClient({
+      _client = new StreamVideoClient({
         apiKey,
         user: streamUser,
         token,
@@ -82,16 +88,12 @@ export const useInitializeVideoClient = ({
     }
 
     return () => {
-      const currentClient = clientRef.current;
+      _client
+        ?.disconnectUser()
+        .catch((err) => console.error('Failed to disconnect user:', err));
 
-      if (currentClient) {
-        currentClient
-          .disconnectUser()
-          .catch((err) => console.error('Failed to disconnect user:', err));
-
-        clientRef.current = null;
-        setClient(undefined);
-      }
+      clientRef.current = null;
+      setClient(undefined);
     };
   }, [apiKey, streamUser, token, logLevel, handleError]);
 

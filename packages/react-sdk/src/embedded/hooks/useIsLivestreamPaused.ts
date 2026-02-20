@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
-import { CallingState } from '@stream-io/video-client';
+import { CallingState, SfuModels } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-
-const SFU_CALL_ENDED_REASON_LIVE_ENDED = 2;
 
 /**
  * Distinguishes a temporary live pause (host went backstage) from a real
@@ -21,7 +19,7 @@ export const useIsLivestreamPaused = () => {
     if (!call) return;
 
     const unsubSfu = call.on('callEnded', (e) => {
-      if (e.reason === SFU_CALL_ENDED_REASON_LIVE_ENDED) {
+      if (e.reason === SfuModels.CallEndedReason.LIVE_ENDED) {
         setIsPaused(true);
       }
     });
