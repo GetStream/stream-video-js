@@ -931,40 +931,42 @@ export class Call {
     const sfuJoinFailures = new Map<string, number>();
     const joinData: JoinCallData = data;
     maxJoinRetries = Math.max(maxJoinRetries, 1);
-    for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-      try {
-        this.logger.trace(`Joining call (${attempt})`, this.cid);
-        await this.doJoin(data);
-        delete joinData.migrating_from;
-        delete joinData.migrating_from_list;
-        break;
-      } catch (err) {
-        this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-        if (
-          (err instanceof ErrorFromResponse && err.unrecoverable) ||
-          (err instanceof SfuJoinError && err.unrecoverable)
-        ) {
-          // if the error is unrecoverable, we should not retry as that signals
-          // that connectivity is good, but the coordinator doesn't allow the user
-          // to join the call due to some reason (e.g., ended call, expired token...)
-          throw err;
-        }
+    try {
+      for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+        try {
+          this.logger.trace(`Joining call (${attempt})`, this.cid);
+          await this.doJoin(data);
+          delete joinData.migrating_from;
+          delete joinData.migrating_from_list;
+          break;
+        } catch (err) {
+          this.logger.warn(`Failed to join call (${attempt})`, this.cid);
+          if (
+            (err instanceof ErrorFromResponse && err.unrecoverable) ||
+            (err instanceof SfuJoinError && err.unrecoverable)
+          ) {
+            // if the error is unrecoverable, we should not retry as that signals
+            // that connectivity is good, but the coordinator doesn't allow the user
+            // to join the call due to some reason (e.g., ended call, expired token...)
+            throw err;
+          }
 
-        // immediately switch to a different SFU in case of recoverable join error
-        const switchSfu =
-          err instanceof SfuJoinError &&
-          SfuJoinError.isJoinErrorCode(err.errorEvent);
+          // immediately switch to a different SFU in case of recoverable join error
+          const switchSfu =
+            err instanceof SfuJoinError &&
+            SfuJoinError.isJoinErrorCode(err.errorEvent);
 
-        const sfuId = this.credentials?.server.edge_name || '';
-        const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-        sfuJoinFailures.set(sfuId, failures);
-        if (switchSfu || failures >= 2) {
-          joinData.migrating_from = sfuId;
-          joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
-        }
+          const sfuId = this.credentials?.server.edge_name || '';
+          const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+          sfuJoinFailures.set(sfuId, failures);
+          if (switchSfu || failures >= 2) {
+            joinData.migrating_from = sfuId;
+            joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
+          }
 
-        if (attempt === maxJoinRetries - 1) {
-          throw err;
+          if (attempt === maxJoinRetries - 1) {
+            throw err;
+          }
         }
       }
     } catch (error) {
