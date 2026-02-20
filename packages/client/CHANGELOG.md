@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.43.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.42.3...@stream-io/video-client-1.43.0) (2026-02-20)
+
+- **client:** trace updatePublishOptions overrides ([#2136](https://github.com/GetStream/stream-video-js/issues/2136)) ([bcc1e92](https://github.com/GetStream/stream-video-js/commit/bcc1e92ac89374324a57d1df85be38a2661a4c53))
+
+### Features
+
+- **client:** add list recording APIs and deprecate query methods ([#2135](https://github.com/GetStream/stream-video-js/issues/2135)) ([5331cb5](https://github.com/GetStream/stream-video-js/commit/5331cb5205466dc052c729fb07d84209208af362))
+
+### Bug Fixes
+
+- **client:** harden flat-line no-audio detection ([#2131](https://github.com/GetStream/stream-video-js/issues/2131)) ([9c2aa22](https://github.com/GetStream/stream-video-js/commit/9c2aa222b189c5e24510430dfddbf164555abf1c))
+- **client:** prevent stale speaking-while-muted detector ([#2130](https://github.com/GetStream/stream-video-js/issues/2130)) ([e5c408d](https://github.com/GetStream/stream-video-js/commit/e5c408d73de1b8f20e775642b0b19eb0ffd979a8))
+
 ## [1.42.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.42.2...@stream-io/video-client-1.42.3) (2026-02-16)
 
 ### Bug Fixes
