@@ -11,11 +11,11 @@ export type IncomingCallControlsProps = {
   /**
    * Handler to be executed when an incoming call is accepted
    */
-  onAcceptCallHandler?: () => void;
+  onAcceptCallHandler?: (err?: Error) => void;
   /**
    * Handler to be executed when an incoming call is rejected
    */
-  onRejectCallHandler?: () => void;
+  onRejectCallHandler?: (err?: Error) => void;
 };
 
 export const IncomingCallControls = ({
@@ -31,11 +31,11 @@ export const IncomingCallControls = ({
   return (
     <View style={[styles.buttonGroup, incomingCall.buttonGroup]}>
       <RejectCallButton
-        onPressHandler={onRejectCallHandler}
+        onRejectCallHandler={onRejectCallHandler}
         size={buttonSizes.md}
         rejectReason="decline"
       />
-      <AcceptCallButton onPressHandler={onAcceptCallHandler} />
+      <AcceptCallButton onAcceptCallHandler={onAcceptCallHandler} />
     </View>
   );
 };

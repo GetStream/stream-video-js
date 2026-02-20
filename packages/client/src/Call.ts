@@ -39,6 +39,8 @@ import type {
   Credentials,
   DeleteCallRequest,
   DeleteCallResponse,
+  DeleteRecordingResponse,
+  DeleteTranscriptionResponse,
   EndCallResponse,
   GetCallReportResponse,
   GetCallResponse,
@@ -59,6 +61,8 @@ import type {
   PinResponse,
   QueryCallMembersRequest,
   QueryCallMembersResponse,
+  QueryCallParticipantsRequest,
+  QueryCallParticipantsResponse,
   QueryCallSessionParticipantStatsResponse,
   QueryCallSessionParticipantStatsTimelineResponse,
   QueryCallStatsMapResponse,
@@ -280,6 +284,7 @@ export class Call {
 
   private initialized = false;
   private readonly joinConcurrencyTag = Symbol('joinConcurrencyTag');
+  private readonly acceptRejectConcurrencyTag = Symbol('acceptRejectTag');
   private readonly joinLeaveConcurrencyTag = Symbol('joinLeaveConcurrencyTag');
 
   /**
@@ -855,10 +860,12 @@ export class Call {
    * Unless you are implementing a custom "ringing" flow, you should not use this method.
    */
   accept = async () => {
-    this.tracer.trace('call.accept', '');
-    return this.streamClient.post<AcceptCallResponse>(
-      `${this.streamClientBasePath}/accept`,
-    );
+    return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
+      this.tracer.trace('call.accept', '');
+      return this.streamClient.post<AcceptCallResponse>(
+        `${this.streamClientBasePath}/accept`,
+      );
+    });
   };
 
   /**
@@ -873,11 +880,13 @@ export class Call {
   reject = async (
     reason: RejectReason = 'decline',
   ): Promise<RejectCallResponse> => {
-    this.tracer.trace('call.reject', reason);
-    return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
-      `${this.streamClientBasePath}/reject`,
-      { reason: reason },
-    );
+    return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
+      this.tracer.trace('call.reject', reason);
+      return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
+        `${this.streamClientBasePath}/reject`,
+        { reason },
+      );
+    });
   };
 
   /**
@@ -1941,6 +1950,7 @@ export class Call {
         'Updating publish options after joining the call does not have an effect',
       );
     }
+    this.tracer.trace('updatePublishOptions', options);
     this.clientPublishOptions = { ...this.clientPublishOptions, ...options };
   };
 
@@ -2517,6 +2527,22 @@ export class Call {
   };
 
   /**
+   * Query call participants with optional filters.
+   *
+   * @param data the request data.
+   * @param params optional query parameters.
+   */
+  queryParticipants = async (
+    data: QueryCallParticipantsRequest = {},
+    params: { limit?: number } = {},
+  ): Promise<QueryCallParticipantsResponse> => {
+    return this.streamClient.post<
+      QueryCallParticipantsResponse,
+      QueryCallParticipantsRequest
+    >(`${this.streamClientBasePath}/participants`, data, params);
+  };
+
+  /**
    * Will update the call members.
    *
    * @param data the request data.
@@ -2577,8 +2603,23 @@ export class Call {
    * Otherwise, all recordings for the current call will be returned.
    *
    * @param callSessionId the call session id to retrieve recordings for.
+   * @deprecated use {@link listRecordings} instead.
    */
   queryRecordings = async (
+    callSessionId?: string,
+  ): Promise<ListRecordingsResponse> => {
+    return this.listRecordings(callSessionId);
+  };
+
+  /**
+   * Retrieves the list of recordings for the current call or call session.
+   *
+   * If `callSessionId` is provided, it will return the recordings for that call session.
+   * Otherwise, all recordings for the current call will be returned.
+   *
+   * @param callSessionId the call session id to retrieve recordings for.
+   */
+  listRecordings = async (
     callSessionId?: string,
   ): Promise<ListRecordingsResponse> => {
     let endpoint = this.streamClientBasePath;
@@ -2591,11 +2632,51 @@ export class Call {
   };
 
   /**
+   * Deletes a recording for the given call session.
+   *
+   * @param callSessionId the call session id that the recording belongs to.
+   * @param filename the recording filename.
+   */
+  deleteRecording = async (
+    callSessionId: string,
+    filename: string,
+  ): Promise<DeleteRecordingResponse> => {
+    return this.streamClient.delete<DeleteRecordingResponse>(
+      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/recordings/${encodeURIComponent(filename)}`,
+    );
+  };
+
+  /**
+   * Deletes a transcription for the given call session.
+   *
+   * @param callSessionId the call session id that the transcription belongs to.
+   * @param filename the transcription filename.
+   */
+  deleteTranscription = async (
+    callSessionId: string,
+    filename: string,
+  ): Promise<DeleteTranscriptionResponse> => {
+    return this.streamClient.delete<DeleteTranscriptionResponse>(
+      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/transcriptions/${encodeURIComponent(filename)}`,
+    );
+  };
+
+  /**
+   * Retrieves the list of transcriptions for the current call.
+   *
+   * @returns the list of transcriptions.
+   * @deprecated use {@link listTranscriptions} instead.
+   */
+  queryTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
+    return this.listTranscriptions();
+  };
+
+  /**
    * Retrieves the list of transcriptions for the current call.
    *
    * @returns the list of transcriptions.
    */
-  queryTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
+  listTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
     return this.streamClient.get<ListTranscriptionsResponse>(
       `${this.streamClientBasePath}/transcriptions`,
     );
