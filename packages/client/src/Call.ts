@@ -918,13 +918,6 @@ export class Call {
         throw new JoinCanceledError();
       }
     };
-    const waitForRetryOrLeave = (delayInMs: number) =>
-      Promise.race([
-        sleep(delayInMs),
-        joinCancelTask.promise.then(() => {
-          throw new JoinCanceledError();
-        }),
-      ]);
 
     try {
       await this.setup();
@@ -989,7 +982,12 @@ export class Call {
         }
 
         assertNotCanceled();
-        await waitForRetryOrLeave(retryInterval(attempt));
+        await Promise.race([
+          sleep(retryInterval(attempt)),
+          joinCancelTask.promise.then(() => {
+            throw new JoinCanceledError();
+          }),
+        ]);
       }
     } finally {
       joinTask.resolve();
