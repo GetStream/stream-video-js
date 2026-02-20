@@ -1,12 +1,12 @@
 import { StreamCallProvider } from '@stream-io/video-react-bindings';
 import React, { type PropsWithChildren, useEffect } from 'react';
 import { Call } from '@stream-io/video-client';
-import { useIosCallkeepWithCallingStateEffect } from '../../hooks/push/useIosCallkeepWithCallingStateEffect';
 import { canAddPushWSSubscriptionsRef } from '../../utils/push/internal/utils';
 import { useAndroidKeepCallAliveEffect } from '../../hooks/useAndroidKeepCallAliveEffect';
 import { AppStateListener } from './AppStateListener';
 import { DeviceStats } from './DeviceStats';
 import { pushUnsubscriptionCallbacks } from '../../utils/push/internal/constants';
+import { useCallingExpWithCallingStateEffect } from '../../hooks/push/useCallingExpWithCallingStateEffect';
 
 // const PIP_CHANGE_EVENT = 'StreamVideoReactNative_PIP_CHANGE_EVENT';
 
@@ -34,7 +34,7 @@ export const StreamCall = ({
     <StreamCallProvider call={call}>
       <AppStateListener />
       <AndroidKeepCallAlive />
-      <IosInformCallkeepCallEnd />
+      <CallingExpWithCallingState />
       <ClearPushWSSubscriptions />
       <DeviceStats />
       {children}
@@ -52,11 +52,11 @@ const AndroidKeepCallAlive = () => {
 };
 
 /**
- * This is a renderless component to end the call in callkeep for ios.
- * useAndroidKeepCallAliveEffect needs to called inside a child of StreamCallProvider.
+ * This is a renderless component to sync state between stream call and CallKit/Telecom.
+ * useCallingExpWithCallingStateEffect needs to called inside a child of StreamCallProvider.
  */
-const IosInformCallkeepCallEnd = () => {
-  useIosCallkeepWithCallingStateEffect();
+const CallingExpWithCallingState = () => {
+  useCallingExpWithCallingStateEffect();
   return null;
 };
 

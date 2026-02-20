@@ -1,9 +1,8 @@
 export * from './expoNotifications';
 export * from './firebaseMessaging';
 export * from './iosPushNotification';
-export * from './voipPushNotification';
-export * from './callkeep';
 export * from './notifee';
+export * from './callingx';
 
 /*
     NOTE: must keep each libs in different files

@@ -82,6 +82,13 @@ export interface CallManager extends NativeModule {
    * Meant for debugging purposes.
    */
   logAudioState: () => void;
+
+  /**
+   * Get the current audio state as a string.
+   * Meant for debugging purposes.
+   * @returns A string containing the current audio state information.
+   */
+  getAudioStateLog: () => string;
 }
 
 declare module 'react-native' {

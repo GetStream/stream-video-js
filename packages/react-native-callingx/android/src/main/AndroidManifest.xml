@@ -1,0 +1,29 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+  <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+  <application>
+    <activity
+      android:name="io.getstream.rn.callingx.notifications.NotificationReceiverActivity"
+      android:excludeFromRecents="true"
+      android:exported="false"
+      android:noHistory="true"
+      android:taskAffinity=""
+      android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+    <service
+      android:name="io.getstream.rn.callingx.notifications.NotificationReceiverService"
+      android:exported="false" />
+
+    <service
+      android:name="io.getstream.rn.callingx.CallService"
+      android:enabled="true"
+      android:exported="false"
+      android:foregroundServiceType="phoneCall"
+      android:stopWithTask="true" />
+
+  </application>
+</manifest>

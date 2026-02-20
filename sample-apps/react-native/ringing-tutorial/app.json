@@ -79,11 +79,7 @@
       [
         "@stream-io/video-react-native-sdk",
         {
-          "ringingPushNotifications": {
-            "disableVideoIos": false,
-            "includesCallsInRecentsIos": false,
-            "showWhenLockedAndroid": true
-          },
+          "ringing": true,
           "androidKeepCallAlive": true
         }
       ],
@@ -94,7 +90,6 @@
           "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
         }
       ],
-      "@config-plugins/react-native-callkeep",
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
       "expo-font",
