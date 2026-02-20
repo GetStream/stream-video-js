@@ -625,7 +625,7 @@ export class Call {
       const callingState = this.state.callingState;
 
       if (callingState === CallingState.LEFT) {
-        return;
+        throw new Error('Cannot leave call that has already been left.');
       }
 
       if (callingState === CallingState.RINGING && reject !== false) {

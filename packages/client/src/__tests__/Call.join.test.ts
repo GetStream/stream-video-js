@@ -2,8 +2,52 @@ import { describe, expect, it, vi } from 'vitest';
 import { Call } from '../Call';
 import { StreamClient } from '../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../store';
+import { promiseWithResolvers } from '../helpers/promise';
 
 describe('Call.join/leave flow', () => {
+  it('throws when joining an already joined call', async () => {
+    const call = createCall();
+    call.state.setCallingState(CallingState.JOINED);
+
+    await expect(call.join()).rejects.toThrow(
+      'Illegal State: call.join() shall be called only once',
+    );
+  });
+
+  it('throws when joining while call state is joining', async () => {
+    const call = createCall();
+    call.state.setCallingState(CallingState.JOINING);
+
+    await expect(call.join()).rejects.toThrow(
+      'Illegal State: call.join() shall be called only once',
+    );
+  });
+
+  it('retries recoverable join errors up to maxJoinRetries and then throws', async () => {
+    vi.useFakeTimers();
+
+    const call = createCall();
+    const recoverableError = new Error('temporary connectivity issue');
+    const doJoinRequestMock = vi
+      .spyOn(call, 'doJoinRequest')
+      .mockRejectedValue(recoverableError);
+
+    try {
+      const joinPromise = call.join({ maxJoinRetries: 3 });
+      const joinResultPromise = joinPromise.then(
+        () => ({ ok: true as const }),
+        (error) => ({ ok: false as const, error }),
+      );
+      await vi.runAllTimersAsync();
+
+      const joinResult = await joinResultPromise;
+      expect(joinResult).toEqual({ ok: false, error: recoverableError });
+      expect(doJoinRequestMock).toHaveBeenCalledTimes(3);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('stops join retries when leave is called while retry loop is running', async () => {
     vi.useFakeTimers();
 
@@ -108,6 +152,40 @@ describe('Call.join/leave flow', () => {
     expect(doJoinMock).not.toHaveBeenCalled();
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });
+
+  it('throws when leaving an already left call', async () => {
+    const call = createCall();
+    call.state.setCallingState(CallingState.LEFT);
+
+    await expect(call.leave()).rejects.toThrow(
+      'Cannot leave call that has already been left.',
+    );
+  });
+
+  it('throws for queued leave call if a previous leave already left the call', async () => {
+    const call = createCall();
+    const disposeGate = promiseWithResolvers<void>();
+    const disposeSpy = vi
+      .spyOn(call.dynascaleManager, 'dispose')
+      .mockImplementationOnce(async () => {
+        await disposeGate.promise;
+      });
+
+    const firstLeave = call.leave();
+
+    for (let i = 0; i < 20 && disposeSpy.mock.calls.length === 0; i++) {
+      await Promise.resolve();
+    }
+    expect(disposeSpy).toHaveBeenCalledTimes(1);
+
+    const secondLeave = call.leave();
+    disposeGate.resolve();
+
+    await expect(firstLeave).resolves.toBeUndefined();
+    await expect(secondLeave).rejects.toThrow(
+      'Cannot leave call that has already been left.',
+    );
+  });
 });
 
 const createCall = () => {
@@ -129,14 +207,4 @@ const createCall = () => {
     clientStore: store,
     streamClient: new StreamClient('test-api-key'),
   });
-};
-
-const promiseWithResolvers = <T>() => {
-  let resolve!: (value: T | PromiseLike<T>) => void;
-  let reject!: (reason?: unknown) => void;
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
 };
