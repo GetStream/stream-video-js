@@ -23,6 +23,46 @@ describe('Call.join/leave flow', () => {
     );
   });
 
+  it('rejects parallel join calls while one join is in progress', async () => {
+    const call = createCall();
+    const waitForFirstJoin = promiseWithResolvers<void>();
+
+    const doJoinMock = vi
+      .spyOn(
+        call as unknown as { doJoin: (data?: unknown) => Promise<void> },
+        'doJoin',
+      )
+      .mockImplementationOnce(async () => {
+        await waitForFirstJoin.promise;
+      });
+
+    const join1 = call.join({ maxJoinRetries: 1 }).then(
+      () => ({ ok: true as const }),
+      (error) => ({ ok: false as const, error }),
+    );
+
+    for (let i = 0; i < 20 && doJoinMock.mock.calls.length === 0; i++) {
+      await Promise.resolve();
+    }
+    expect(doJoinMock).toHaveBeenCalledTimes(1);
+
+    const join2Result = await call.join({ maxJoinRetries: 1 }).then(
+      () => ({ ok: true as const }),
+      (error) => ({ ok: false as const, error }),
+    );
+    expect(join2Result.ok).toBe(false);
+    if (join2Result.ok === false) {
+      expect(join2Result.error).toMatchObject({
+        message: 'Illegal State: call.join() is already in progress',
+      });
+    }
+    expect(doJoinMock).toHaveBeenCalledTimes(1);
+
+    waitForFirstJoin.resolve();
+    const join1Result = await join1;
+    expect(join1Result.ok).toBe(true);
+  });
+
   it('retries recoverable join errors up to maxJoinRetries and then throws', async () => {
     vi.useFakeTimers();
 
@@ -81,7 +121,7 @@ describe('Call.join/leave flow', () => {
     vi.useRealTimers();
   });
 
-  it('cancels queued join requests that started before leave', async () => {
+  it('leave cancels in-flight join while a parallel join is rejected', async () => {
     const call = createCall();
     const waitForFirstJoin = promiseWithResolvers<void>();
 
@@ -118,6 +158,11 @@ describe('Call.join/leave flow', () => {
     const join2Result = await join2;
     expect(join1Result.ok).toBe(false);
     expect(join2Result.ok).toBe(false);
+    if (join2Result.ok === false) {
+      expect(join2Result.error).toMatchObject({
+        message: 'Illegal State: call.join() is already in progress',
+      });
+    }
     expect(doJoinMock).toHaveBeenCalledTimes(1);
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });

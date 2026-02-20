@@ -171,7 +171,6 @@ import {
   promiseWithResolvers,
 } from './helpers/promise';
 import { GetCallStatsResponse } from './gen/shims';
-import { JoinController } from './helpers/JoinController';
 
 /**
  * An object representation of a `Call`.
@@ -276,14 +275,14 @@ export class Call {
   private joinResponseTimeout?: number;
   private rpcRequestTimeout?: number;
   private joinCallData?: JoinCallData;
-  private leaveRequestId = 0;
   private hasJoinedOnce = false;
   private deviceSettingsAppliedOnce = false;
   private credentials?: Credentials;
-  private readonly joinController = new JoinController();
+  private leaveRequestId = 0;
+  private activeJoinTask?: PromiseWithResolvers<void>;
+  private activeJoinCancelTask?: PromiseWithResolvers<void>;
 
   private initialized = false;
-  private readonly joinConcurrencyTag = Symbol('joinConcurrencyTag');
   private readonly acceptRejectConcurrencyTag = Symbol('acceptRejectTag');
   private readonly joinLeaveConcurrencyTag = Symbol('joinLeaveConcurrencyTag');
 
@@ -617,10 +616,10 @@ export class Call {
       throw new Error('Cannot leave call that has already been left.');
     }
     this.leaveRequestId++;
-    this.joinController.cancel();
+    this.activeJoinCancelTask?.resolve();
 
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
-      await this.joinController.waitForJoinTask();
+      await this.activeJoinTask?.promise.catch(() => undefined);
 
       const callingState = this.state.callingState;
 
@@ -904,32 +903,39 @@ export class Call {
     joinResponseTimeout?: number;
     rpcRequestTimeout?: number;
   } = {}): Promise<void> => {
+    if (this.activeJoinTask) {
+      throw new Error('Illegal State: call.join() is already in progress');
+    }
+
+    const joinTask = promiseWithResolvers<void>();
+    const joinCancelTask = promiseWithResolvers<void>();
+    this.activeJoinTask = joinTask;
+    this.activeJoinCancelTask = joinCancelTask;
+
     const joinRequestLeaveId = this.leaveRequestId;
-    return withoutConcurrency(this.joinConcurrencyTag, async () => {
+    const assertNotCanceled = () => {
       if (joinRequestLeaveId !== this.leaveRequestId) {
         throw new JoinCanceledError();
       }
+    };
+    const waitForRetryOrLeave = (delayInMs: number) =>
+      Promise.race([
+        sleep(delayInMs),
+        joinCancelTask.promise.then(() => {
+          throw new JoinCanceledError();
+        }),
+      ]);
 
+    try {
       await this.setup();
       const callingState = this.state.callingState;
-
       if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
         throw new Error(`Illegal State: call.join() shall be called only once`);
       }
-      if (joinRequestLeaveId !== this.leaveRequestId) {
-        throw new JoinCanceledError();
-      }
+      assertNotCanceled();
 
       this.joinResponseTimeout = joinResponseTimeout;
       this.rpcRequestTimeout = rpcRequestTimeout;
-
-      this.joinController.begin();
-      if (joinRequestLeaveId !== this.leaveRequestId) {
-        this.joinController.cancel();
-        throw new JoinCanceledError();
-      }
-      const joinTask = promiseWithResolvers<void>();
-      this.joinController.setJoinTask(joinTask.promise);
 
       // we will count the number of join failures per SFU.
       // once the number of failures reaches 2, we will piggyback on the `migrating_from`
@@ -937,58 +943,63 @@ export class Call {
       const sfuJoinFailures = new Map<string, number>();
       const joinData: JoinCallData = data;
       maxJoinRetries = Math.max(maxJoinRetries, 1);
-      try {
-        for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-          this.joinController.assertNotCanceled();
-          try {
-            this.logger.trace(`Joining call (${attempt})`, this.cid);
-            await this.doJoin(data);
+      for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+        assertNotCanceled();
+        try {
+          this.logger.trace(`Joining call (${attempt})`, this.cid);
+          await this.doJoin(data);
 
-            // `leave()` can cancel the join while `doJoin()` is still in flight.
-            // In that case, we let `doJoin()` finish and reject here so leave wins.
-            this.joinController.assertNotCanceled();
+          // `leave()` can cancel the join while `doJoin()` is still in flight.
+          // In that case, we let `doJoin()` finish and reject here so leave wins.
+          assertNotCanceled();
 
-            delete joinData.migrating_from;
-            delete joinData.migrating_from_list;
-            break;
-          } catch (err) {
-            if (err instanceof JoinCanceledError) throw err;
-            this.joinController.assertNotCanceled();
+          delete joinData.migrating_from;
+          delete joinData.migrating_from_list;
+          break;
+        } catch (err) {
+          if (err instanceof JoinCanceledError) throw err;
+          assertNotCanceled();
 
-            this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-            if (
-              (err instanceof ErrorFromResponse && err.unrecoverable) ||
-              (err instanceof SfuJoinError && err.unrecoverable)
-            ) {
-              // if the error is unrecoverable, we should not retry as that signals
-              // that connectivity is good, but the coordinator doesn't allow the user
-              // to join the call due to some reason (e.g., ended call, expired token...)
-              throw err;
-            }
-
-            // immediately switch to a different SFU in case of recoverable join error
-            const switchSfu =
-              err instanceof SfuJoinError &&
-              SfuJoinError.isJoinErrorCode(err.errorEvent);
-            const sfuId = this.credentials?.server.edge_name || '';
-            const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-            sfuJoinFailures.set(sfuId, failures);
-            if (switchSfu || failures >= 2) {
-              joinData.migrating_from = sfuId;
-              joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
-            }
-
-            if (attempt === maxJoinRetries - 1) throw err;
+          this.logger.warn(`Failed to join call (${attempt})`, this.cid);
+          if (
+            (err instanceof ErrorFromResponse && err.unrecoverable) ||
+            (err instanceof SfuJoinError && err.unrecoverable)
+          ) {
+            // if the error is unrecoverable, we should not retry as that signals
+            // that connectivity is good, but the coordinator doesn't allow the user
+            // to join the call due to some reason (e.g., ended call, expired token...)
+            throw err;
           }
 
-          this.joinController.assertNotCanceled();
-          await this.joinController.sleep(retryInterval(attempt));
+          // immediately switch to a different SFU in case of recoverable join error
+          const switchSfu =
+            err instanceof SfuJoinError &&
+            SfuJoinError.isJoinErrorCode(err.errorEvent);
+
+          const sfuId = this.credentials?.server.edge_name || '';
+          const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+          sfuJoinFailures.set(sfuId, failures);
+
+          if (switchSfu || failures >= 2) {
+            joinData.migrating_from = sfuId;
+            joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
+          }
+
+          if (attempt === maxJoinRetries - 1) throw err;
         }
-      } finally {
-        joinTask.resolve();
-        this.joinController.finish();
+
+        assertNotCanceled();
+        await waitForRetryOrLeave(retryInterval(attempt));
       }
-    });
+    } finally {
+      joinTask.resolve();
+      if (this.activeJoinTask === joinTask) {
+        this.activeJoinTask = undefined;
+      }
+      if (this.activeJoinCancelTask === joinCancelTask) {
+        this.activeJoinCancelTask = undefined;
+      }
+    }
   };
 
   /**
