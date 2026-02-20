@@ -632,8 +632,6 @@ export class Call {
         await waitUntilCallJoined();
       }
 
-      globalThis.streamRNVideoSDK?.callingX?.endCall(this);
-
       if (callingState === CallingState.RINGING && reject !== false) {
         if (reject) {
           const reasonToEndCallReason = {
@@ -658,9 +656,8 @@ export class Call {
             await this.reject('cancel');
           }
         }
-      } else {
-        globalThis.streamRNVideoSDK?.callingX?.endCall(this);
       }
+      globalThis.streamRNVideoSDK?.callingX?.endCall(this);
 
       this.statsReporter?.stop();
       this.statsReporter = undefined;
