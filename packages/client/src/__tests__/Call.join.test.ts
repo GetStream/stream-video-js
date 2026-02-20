@@ -25,6 +25,7 @@ describe('Call.join/leave flow', () => {
 
   it('rejects parallel join calls while one join is in progress', async () => {
     const call = createCall();
+    const firstJoinStarted = promiseWithResolvers<void>();
     const waitForFirstJoin = promiseWithResolvers<void>();
 
     const doJoinMock = vi
@@ -33,7 +34,8 @@ describe('Call.join/leave flow', () => {
         'doJoin',
       )
       .mockImplementationOnce(async () => {
-        await waitForFirstJoin.promise;
+        firstJoinStarted.resolve();
+        return await waitForFirstJoin.promise;
       });
 
     const join1 = call.join({ maxJoinRetries: 1 }).then(
@@ -41,9 +43,7 @@ describe('Call.join/leave flow', () => {
       (error) => ({ ok: false as const, error }),
     );
 
-    for (let i = 0; i < 20 && doJoinMock.mock.calls.length === 0; i++) {
-      await Promise.resolve();
-    }
+    await firstJoinStarted.promise;
     expect(doJoinMock).toHaveBeenCalledTimes(1);
 
     const join2Result = await call.join({ maxJoinRetries: 1 }).then(
@@ -87,9 +87,14 @@ describe('Call.join/leave flow', () => {
 
     const call = createCall();
     const recoverableError = new Error('temporary connectivity issue');
+    const firstAttemptStarted = promiseWithResolvers<void>();
 
     const doJoinRequestMock = vi
       .spyOn(call, 'doJoinRequest')
+      .mockImplementationOnce(async () => {
+        firstAttemptStarted.resolve();
+        throw recoverableError;
+      })
       .mockRejectedValue(recoverableError);
 
     const joinPromise = call.join({ maxJoinRetries: 10 });
@@ -97,9 +102,7 @@ describe('Call.join/leave flow', () => {
       () => ({ ok: true as const }),
       (error) => ({ ok: false as const, error }),
     );
-    for (let i = 0; i < 10 && doJoinRequestMock.mock.calls.length === 0; i++) {
-      await Promise.resolve();
-    }
+    await firstAttemptStarted.promise;
     expect(doJoinRequestMock).toHaveBeenCalledTimes(1);
 
     await call.leave();
@@ -115,6 +118,7 @@ describe('Call.join/leave flow', () => {
 
   it('leave cancels in-flight join while a parallel join is rejected', async () => {
     const call = createCall();
+    const firstJoinStarted = promiseWithResolvers<void>();
     const waitForFirstJoin = promiseWithResolvers<void>();
 
     const doJoinMock = vi
@@ -123,6 +127,7 @@ describe('Call.join/leave flow', () => {
         'doJoin',
       )
       .mockImplementationOnce(async () => {
+        firstJoinStarted.resolve();
         await waitForFirstJoin.promise;
       })
       .mockResolvedValue(undefined);
@@ -136,9 +141,7 @@ describe('Call.join/leave flow', () => {
       (error) => ({ ok: false as const, error }),
     );
 
-    for (let i = 0; i < 20 && doJoinMock.mock.calls.length === 0; i++) {
-      await Promise.resolve();
-    }
+    await firstJoinStarted.promise;
     expect(doJoinMock).toHaveBeenCalledTimes(1);
 
     const leavePromise = call.leave();
@@ -159,9 +162,11 @@ describe('Call.join/leave flow', () => {
 
   it('cancels join if leave is requested while join is still in setup', async () => {
     const call = createCall();
+    const setupStarted = promiseWithResolvers<void>();
     const setupGate = promiseWithResolvers<void>();
 
     vi.spyOn(call, 'setup').mockImplementation(async () => {
+      setupStarted.resolve();
       await setupGate.promise;
     });
     const doJoinMock = vi
@@ -176,7 +181,7 @@ describe('Call.join/leave flow', () => {
       (error) => ({ ok: false as const, error }),
     );
 
-    await Promise.resolve();
+    await setupStarted.promise;
     const leavePromise = call.leave();
 
     setupGate.resolve();
@@ -197,18 +202,18 @@ describe('Call.join/leave flow', () => {
 
   it('throws for queued leave call if a previous leave already left the call', async () => {
     const call = createCall();
+    const disposeStarted = promiseWithResolvers<void>();
     const disposeGate = promiseWithResolvers<void>();
     const disposeSpy = vi
       .spyOn(call.dynascaleManager, 'dispose')
       .mockImplementationOnce(async () => {
+        disposeStarted.resolve();
         await disposeGate.promise;
       });
 
     const firstLeave = call.leave();
 
-    for (let i = 0; i < 20 && disposeSpy.mock.calls.length === 0; i++) {
-      await Promise.resolve();
-    }
+    await disposeStarted.promise;
     expect(disposeSpy).toHaveBeenCalledTimes(1);
 
     const secondLeave = call.leave();
