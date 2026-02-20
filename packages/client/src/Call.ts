@@ -942,6 +942,9 @@ export class Call {
     }
 
     await this.setup();
+
+    this.joinResponseTimeout = joinResponseTimeout;
+    this.rpcRequestTimeout = rpcRequestTimeout;
     // we will count the number of join failures per SFU.
     // once the number of failures reaches 2, we will piggyback on the `migrating_from`
     // field to force the coordinator to provide us another SFU
@@ -985,9 +988,10 @@ export class Call {
             throw err;
           }
         }
+        await sleep(retryInterval(attempt));
       }
     } catch (error) {
-      callingX?.endCall(this);
+      callingX?.endCall(this, 'error');
       throw error;
     }
   };
