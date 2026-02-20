@@ -3,15 +3,15 @@
  * See @./registerSDKGlobals.ts for more usage details.
  */
 import { Platform } from 'react-native';
+import type { EndCallReason } from '@stream-io/react-native-callingx';
 import { getCallingxLibIfAvailable } from '../../push/libs/callingx';
-import {
+import { waitForAudioSessionActivation } from './audioSessionPromise';
+import type {
   Call,
   MemberResponse,
   StreamVideoParticipant,
-  videoLoggerSystem,
 } from '@stream-io/video-client';
-import { waitForAudioSessionActivation } from './audioSessionPromise';
-
+import { videoLoggerSystem } from '@stream-io/video-client';
 const CallingxModule = getCallingxLibIfAvailable();
 
 /**
@@ -124,7 +124,7 @@ export async function startCallingxCall(call: Call) {
   }
 }
 
-export async function endCallingxCall(call: Call) {
+export async function endCallingxCall(call: Call, reason?: EndCallReason) {
   if (
     !CallingxModule ||
     !CallingxModule.isSetup ||
@@ -134,7 +134,7 @@ export async function endCallingxCall(call: Call) {
   }
 
   try {
-    await CallingxModule.endCallWithReason(call.cid, 'local');
+    await CallingxModule.endCallWithReason(call.cid, reason ?? 'local');
   } catch (error) {
     videoLoggerSystem
       .getLogger('callingx')
