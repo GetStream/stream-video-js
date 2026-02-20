@@ -262,14 +262,11 @@ export const firebaseDataHandler = async (
                       `Closing fg service from callingState callCid: ${call_cid} callingState: ${callingState}`,
                     );
                     unsubscribeFunctions.forEach((fn) => fn());
-
-                    //TODO: think about sending appropriate reason for end call
                     callingx.log(
                       `Ending call with callCid: ${call_cid} callingState: ${callingState}`,
                       'debug',
                     );
                     finishBackgroundTask();
-                    callingx.endCallWithReason(call_cid, 'remote');
                   }
                 });
 
@@ -292,7 +289,6 @@ export const firebaseDataHandler = async (
                       'debug',
                     );
                     finishBackgroundTask();
-                    callingx.endCallWithReason(callId, 'rejected');
                   }
                 },
               );

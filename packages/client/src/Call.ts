@@ -414,6 +414,7 @@ export class Call {
         const currentUserId = this.currentUserId;
         if (currentUserId && blockedUserIds.includes(currentUserId)) {
           this.logger.info('Leaving call because of being blocked');
+          globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'restricted');
           await this.leave({ message: 'user blocked' }).catch((err) => {
             this.logger.error('Error leaving call after being blocked', err);
           });
@@ -458,6 +459,10 @@ export class Call {
           (isAcceptedElsewhere || isRejectedByMe) &&
           !hasPending(this.joinLeaveConcurrencyTag)
         ) {
+          globalThis.streamRNVideoSDK?.callingX?.endCall(
+            this,
+            isAcceptedElsewhere ? 'answeredElsewhere' : 'rejected',
+          );
           this.leave().catch(() => {
             this.logger.error(
               'Could not leave a call that was accepted or rejected elsewhere',
@@ -631,15 +636,30 @@ export class Call {
 
       if (callingState === CallingState.RINGING && reject !== false) {
         if (reject) {
-          await this.reject(reason ?? 'decline');
+          const reasonToEndCallReason = {
+            timeout: 'missed',
+            cancel: 'canceled',
+            busy: 'busy',
+            decline: 'rejected',
+          } as const;
+          const rejectReason = reason ?? 'decline';
+          const endCallReason =
+            reasonToEndCallReason[
+              rejectReason as keyof typeof reasonToEndCallReason
+            ] ?? 'rejected';
+          globalThis.streamRNVideoSDK?.callingX?.endCall(this, endCallReason);
+          await this.reject(rejectReason);
         } else {
           // if reject was undefined, we still have to cancel the call automatically
           // when I am the creator and everyone else left the call
           const hasOtherParticipants = this.state.remoteParticipants.length > 0;
           if (this.isCreatedByMe && !hasOtherParticipants) {
+            globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'canceled');
             await this.reject('cancel');
           }
         }
+      } else {
+        globalThis.streamRNVideoSDK?.callingX?.endCall(this);
       }
 
       this.statsReporter?.stop();
@@ -1701,6 +1721,7 @@ export class Call {
       if (SfuJoinError.isJoinErrorCode(e)) return;
       if (strategy === WebsocketReconnectStrategy.UNSPECIFIED) return;
       if (strategy === WebsocketReconnectStrategy.DISCONNECT) {
+        globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'error');
         this.leave({ message: 'SFU instructed to disconnect' }).catch((err) => {
           this.logger.warn(`Can't leave call after disconnect request`, err);
         });
