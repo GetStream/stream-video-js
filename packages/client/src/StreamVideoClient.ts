@@ -206,6 +206,7 @@ export class StreamVideoClient {
               this.logger.info(
                 `Leaving call with busy reject reason ${call.cid} because user is busy`,
               );
+              globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'busy');
               // remove the instance from the state store
               await call.leave();
               // explicitly reject the call with busy reason as calling state was not ringing before and leave would not call it therefore
