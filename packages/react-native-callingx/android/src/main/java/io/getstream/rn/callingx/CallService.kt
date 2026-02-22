@@ -14,6 +14,7 @@ import android.util.Log
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.CallNotificationManager
+import io.getstream.rn.callingx.notifications.NotificationsConfig
 import io.getstream.rn.callingx.repo.CallRepository
 import io.getstream.rn.callingx.repo.CallRepositoryFactory
 import kotlinx.coroutines.CoroutineScope
@@ -80,7 +81,8 @@ class CallService : Service(), CallRepository.Listener {
 
         notificationManager = CallNotificationManager(applicationContext)
         headlessJSManager = HeadlessTaskManager(applicationContext)
-        callRepository = CallRepositoryFactory.create(applicationContext)
+        val config = NotificationsConfig.loadNotificationsConfig(applicationContext)
+        callRepository = CallRepositoryFactory.create(applicationContext, config.callsHistory)
         callRepository.setListener(this)
 
         sendBroadcastEvent(CallingxModuleImpl.SERVICE_READY_ACTION)

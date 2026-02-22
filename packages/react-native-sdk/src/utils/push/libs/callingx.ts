@@ -67,6 +67,9 @@ export function extractCallingExpOptions(
       androidOptions.subtitleTransformer =
         pushConfig.android.subtitleTransformer;
     }
+    if (pushConfig.android.callsHistory !== undefined) {
+      androidOptions.callsHistory = pushConfig.android.callsHistory;
+    }
   }
 
   if (foregroundServiceConfig.android.channel) {

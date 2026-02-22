@@ -136,6 +136,12 @@ export type StreamVideoConfig = {
         ) => string;
         getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
       };
+      /**
+       * Enable calls history. When enabled, calls will be logged to the system call log.
+       * Uses PhoneAccount.EXTRA_LOG_SELF_MANAGED_CALLS on API 28+.
+       * @default false
+       */
+      callsHistory?: boolean;
     };
     /**
      * Whether to enable ongoing calls.

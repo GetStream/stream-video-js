@@ -195,6 +195,12 @@ export type InternalAndroidOptions = {
     id?: string;
     name?: string;
   };
+  /**
+   * Enable calls history. When enabled, calls will be logged to the system call log.
+   * Uses PhoneAccount.EXTRA_LOG_SELF_MANAGED_CALLS on API 28+.
+   * @default false
+   */
+  callsHistory?: boolean;
 };
 type AndroidOptions = InternalAndroidOptions & NotificationTransformers;
 

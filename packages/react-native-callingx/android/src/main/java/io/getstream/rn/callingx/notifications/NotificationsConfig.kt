@@ -15,6 +15,7 @@ object NotificationsConfig {
   private const val KEY_NAME = "name"
   private const val KEY_SOUND = "sound"
   private const val KEY_VIBRATION = "vibration"
+  private const val KEY_CALLS_HISTORY = "calls_history"
 
   data class ChannelParams(
     val id: String,
@@ -27,12 +28,14 @@ object NotificationsConfig {
   data class Channels(
     val incomingChannel: ChannelParams,
     val ongoingChannel: ChannelParams,
+    val callsHistory: Boolean = false,
   )
 
   fun saveNotificationsConfig(context: Context, rawConfig: ReadableMap): Channels {
     debugLog(TAG, "saveNotificationsConfig: Saving notifications config: $rawConfig")
     val config = extractNotificationsConfig(rawConfig)
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
     prefs.edit {
       // Incoming channel
       putString(PREFIX_IN + KEY_ID, config.incomingChannel.id)
@@ -43,6 +46,8 @@ object NotificationsConfig {
       // Outgoing channel
       putString(PREFIX_OUT + KEY_ID, config.ongoingChannel.id)
       putString(PREFIX_OUT + KEY_NAME, config.ongoingChannel.name)
+
+      putBoolean(KEY_CALLS_HISTORY, config.callsHistory)
     }
 
     return config
@@ -75,7 +80,8 @@ object NotificationsConfig {
           importance = NotificationManagerCompat.IMPORTANCE_DEFAULT,
           vibration = false,
           sound = null,
-        )
+        ),
+      callsHistory = prefs.getBoolean(KEY_CALLS_HISTORY, false),
     )
   }
 
@@ -91,6 +97,7 @@ object NotificationsConfig {
           config.getMap("ongoingChannel"),
           NotificationManagerCompat.IMPORTANCE_DEFAULT
         ),
+      callsHistory = config.hasKey("callsHistory") && config.getBoolean("callsHistory"),
     )
   }
 

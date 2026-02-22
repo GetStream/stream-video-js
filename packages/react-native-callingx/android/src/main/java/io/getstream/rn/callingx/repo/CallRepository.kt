@@ -153,11 +153,11 @@ abstract class CallRepository(protected val context: Context) {
 
 object CallRepositoryFactory {
 
-  fun create(context: Context): CallRepository {
+  fun create(context: Context, callsHistory: Boolean = false): CallRepository {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      TelecomCallRepository(context) // Your current CallRepository renamed
+      TelecomCallRepository(context, callsHistory)
     } else {
-      LegacyCallRepository(context) // Fallback implementation
+      LegacyCallRepository(context)
     }
   }
 }

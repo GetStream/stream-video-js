@@ -30,6 +30,7 @@ export const defaultAndroidOptions: DeepRequired<InternalAndroidOptions> = {
     id: 'stream_ongoing_calls_channel',
     name: 'Ongoing calls',
   },
+  callsHistory: false,
 };
 
 // iOS: maps to CXCallEndedReason raw values.
