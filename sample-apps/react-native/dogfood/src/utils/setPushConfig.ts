@@ -36,6 +36,7 @@ export function setPushConfig() {
     },
     android: {
       pushProviderName: 'rn-fcm-video',
+      callsHistory: true,
       callChannel: {
         id: 'stream_call_notifications',
         name: 'Call notifications',

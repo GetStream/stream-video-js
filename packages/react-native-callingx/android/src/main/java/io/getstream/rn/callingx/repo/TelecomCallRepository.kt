@@ -45,78 +45,101 @@ class TelecomCallRepository(
 
     companion object {
         private const val TAG = "[Callingx] TelecomCallRepository"
+        private const val PHONE_ACCOUNT_LABEL = "Telecom-Jetpack"
+        private const val CORE_TELECOM_PLACEHOLDER_KEY = "isCoreTelecomAccount"
+        private const val JETPACK_CONNECTION_SERVICE =
+            "androidx.core.telecom.internal.JetpackConnectionService"
+        private const val JETPACK_HANDLE_ID = "Jetpack"
     }
 
     private var observeCallStateJob: Job? = null
+
+    private val coreTelecomCapabilities =
+        CallsManager.CAPABILITY_SUPPORTS_CALL_STREAMING or
+            CallsManager.CAPABILITY_SUPPORTS_VIDEO_CALLING
 
     private val callsManager: CallsManager
     private var isSelfAnswered = false
     private var isSelfDisconnected = false
 
     init {
-        val capabilities =
-                CallsManager.CAPABILITY_SUPPORTS_CALL_STREAMING or
-                        CallsManager.CAPABILITY_SUPPORTS_VIDEO_CALLING
         callsManager =
                 CallsManager(context.applicationContext).apply {
-                    registerAppWithTelecom(capabilities)
+                    registerAppWithTelecom(coreTelecomCapabilities)
                 }
         debugLog(TAG, "[repository] init: CallsManager created and registered")
 
         if (callsHistory && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             enableCallsHistoryLogging(context.applicationContext)
+        } else if (callsHistory) {
+            debugLog(TAG, "[repository] init: callsHistory requires API 28+, skipping")
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private fun enableCallsHistoryViaDiscovery(context: Context) {
-        try {
-            val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-            val ownAccounts = telecomManager.ownSelfManagedPhoneAccounts
-            for (handle in ownAccounts) {
-                val account = telecomManager.getPhoneAccount(handle) ?: continue
-                val extras = account.extras ?: Bundle()
-                if (extras.getBoolean(PhoneAccount.EXTRA_LOG_SELF_MANAGED_CALLS, false)) continue
-                extras.putBoolean(PhoneAccount.EXTRA_LOG_SELF_MANAGED_CALLS, true)
-                val updated = account.toBuilder().setExtras(extras).build()
-                telecomManager.registerPhoneAccount(updated)
-                debugLog(TAG, "[repository] enableCallsHistoryViaDiscovery: Updated PhoneAccount for handle: $handle")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "[repository] enableCallsHistoryViaDiscovery: Failed to enable calls history", e)
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.P)
-    private fun enableCallsHistoryViaConstants(context: Context) {
-        try {
-            val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-            val handle = PhoneAccountHandle(
-                ComponentName(
-                    context.packageName,
-                    "androidx.core.telecom.internal.JetpackConnectionService"
-                ),
-                "Jetpack"
-            )
-            val account = telecomManager.getPhoneAccount(handle) ?: return
-            val extras = account.extras ?: Bundle()
-            extras.putBoolean(PhoneAccount.EXTRA_LOG_SELF_MANAGED_CALLS, true)
-            val updated = account.toBuilder().setExtras(extras).build()
-            telecomManager.registerPhoneAccount(updated)
-            debugLog(TAG, "[repository] enableCallsHistoryViaConstants: Updated PhoneAccount for handle: $handle")
-        } catch (e: Exception) {
-            Log.e(TAG, "[repository] enableCallsHistoryViaConstants: Failed to enable calls history", e)
-        }
-    }
-
+    /**
+     * Enables call history logging by re-registering the PhoneAccount(s) with
+     * [PhoneAccount.EXTRA_LOG_SELF_MANAGED_CALLS]. We rebuild the PhoneAccount from scratch
+     * rather than reading it via getPhoneAccount() because that API requires
+     * READ_PHONE_NUMBERS on API 33+.
+     *
+     * On API 33+ we discover handles dynamically via getOwnSelfManagedPhoneAccounts().
+     * On API 28-32 we fallback to the known Core-Telecom handle constants.
+     *
+     * @see <a href="https://github.com/androidx/androidx/blob/androidx-main/core/core-telecom/src/main/java/androidx/core/telecom/CallsManager.kt">CallsManager source</a>
+     */
     @RequiresApi(Build.VERSION_CODES.P)
     private fun enableCallsHistoryLogging(context: Context) {
         debugLog(TAG, "[repository] enableCallsHistoryLogging: Enabling calls history logging")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            enableCallsHistoryViaDiscovery(context)
-        } else {
-            enableCallsHistoryViaConstants(context)
+        try {
+            val telecomManager = context.getSystemService(Context.TELECOM_SERVICE) as TelecomManager
+            val handles =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    telecomManager.ownSelfManagedPhoneAccounts
+                } else {
+                    listOf(
+                        PhoneAccountHandle(
+                            ComponentName(context.packageName, JETPACK_CONNECTION_SERVICE),
+                            JETPACK_HANDLE_ID,
+                        )
+                    )
+                }
+            if (handles.isEmpty()) {
+                debugLog(TAG, "[repository] enableCallsHistoryLogging: No own self-managed PhoneAccounts found")
+                return
+            }
+
+            for (handle in handles) {
+                val extras = Bundle().apply {
+                    // Preserve Core-Telecom OEM compat marker when we upsert the PhoneAccount.
+                    putBoolean(CORE_TELECOM_PLACEHOLDER_KEY, true)
+                    putBoolean(PhoneAccount.EXTRA_LOG_SELF_MANAGED_CALLS, true)
+                }
+                val account = PhoneAccount.builder(handle, PHONE_ACCOUNT_LABEL)
+                    .setCapabilities(buildPhoneAccountCapabilities(coreTelecomCapabilities))
+                    .setExtras(extras)
+                    .build()
+                telecomManager.registerPhoneAccount(account)
+                debugLog(TAG, "[repository] enableCallsHistoryLogging: Updated PhoneAccount for handle: $handle")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "[repository] enableCallsHistoryLogging: Failed to enable calls history", e)
         }
+    }
+
+    private fun buildPhoneAccountCapabilities(jetpackCapabilities: Int): Int {
+        var capabilities = PhoneAccount.CAPABILITY_SELF_MANAGED
+        if ((jetpackCapabilities and CallsManager.CAPABILITY_SUPPORTS_VIDEO_CALLING) != 0) {
+            capabilities = capabilities or
+                PhoneAccount.CAPABILITY_VIDEO_CALLING or
+                PhoneAccount.CAPABILITY_SUPPORTS_VIDEO_CALLING
+        }
+        if ((jetpackCapabilities and CallsManager.CAPABILITY_SUPPORTS_CALL_STREAMING) != 0) {
+            capabilities = capabilities or PhoneAccount.CAPABILITY_SUPPORTS_CALL_STREAMING
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            capabilities = capabilities or PhoneAccount.CAPABILITY_SUPPORTS_TRANSACTIONAL_OPERATIONS
+        }
+        return capabilities
     }
 
     override fun getTag(): String = TAG
