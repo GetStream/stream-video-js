@@ -5,7 +5,7 @@ import { RatingScreen } from './RatingScreen';
 import { ThankYouScreen } from './ThankYouScreen';
 
 export interface CallFeedbackProps {
-  onJoin?: () => Promise<void>;
+  onJoin?: () => void;
 }
 
 type FeedbackState = 'ended' | 'rating' | 'submitted';

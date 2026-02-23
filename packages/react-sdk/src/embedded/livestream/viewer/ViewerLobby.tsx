@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCallStateHooks, useI18n } from '@stream-io/video-react-bindings';
 import { Icon } from '../../../components';
 import { ViewersCount } from '../../shared';
@@ -42,26 +42,17 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
   const [startsAtPassed, setStartsAtPassed] = useState(
     () => !!startsAt && startsAt.getTime() < Date.now(),
   );
-  const [showError, setShowError] = useState<boolean>(false);
   const [canJoinEarly, setCanJoinEarly] = useState(() =>
     checkCanJoinEarly(startsAt, joinAheadTimeSeconds),
   );
 
   const canJoin = (isLive || canJoinEarly) && (!endedAt || canJoinEndedCall);
 
-  const handleJoin = useCallback(async () => {
-    try {
-      await onJoin?.();
-    } catch {
-      setShowError(true);
-    }
-  }, [onJoin]);
-
   useEffect(() => {
     if (canJoin && autoJoin) {
-      handleJoin();
+      onJoin();
     }
-  }, [canJoin, autoJoin, handleJoin]);
+  }, [canJoin, autoJoin, onJoin]);
 
   useEffect(() => {
     if (!canJoinEarly) {
@@ -124,7 +115,7 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
 
         <div className="str-video__embedded-viewer-lobby__actions">
           {canJoin ? (
-            <button className="str-video__button" onClick={handleJoin}>
+            <button className="str-video__button" onClick={onJoin}>
               {t('Join Stream')}
             </button>
           ) : (
@@ -137,12 +128,6 @@ export const ViewerLobby = ({ onJoin }: ViewerLobbyProps) => {
               <span>{t('Join automatically when stream starts')}</span>
             </label>
           )}
-        </div>
-        <div
-          className="str-video__embedded-viewer-lobby__join-error"
-          data-visible={showError}
-        >
-          {t('Failed to join. Please try again.')}
         </div>
       </div>
     </div>

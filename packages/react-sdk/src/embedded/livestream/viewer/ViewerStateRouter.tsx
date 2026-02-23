@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { CallingState, OwnCapability } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
@@ -7,6 +7,7 @@ import { ViewerLayout } from './ViewerLayout';
 import { LoadingIndicator } from '../../../components';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 import { useEmbeddedConfiguration } from '../../context';
+import { JoinError } from '../../shared/JoinError/JoinError';
 import { useIsLivestreamPaused } from '../../hooks';
 
 export const ViewerStateRouter = () => {
@@ -25,17 +26,18 @@ export const ViewerStateRouter = () => {
   const canJoinEndedCall = useHasPermissions(OwnCapability.JOIN_ENDED_CALL);
 
   const isLivestreamPaused = useIsLivestreamPaused();
-
+  const [joinError, setJoinError] = useState(false);
   const handleJoin = useCallback(async () => {
     if (!call) return;
+
+    setJoinError(false);
     try {
       if (callingState !== CallingState.JOINED) {
         await call.join();
       }
-    } catch (err) {
-      console.error('Failed to join call:', err);
-      onError?.(err);
-      throw err;
+    } catch (e) {
+      onError?.(e);
+      setJoinError(true);
     }
   }, [call, callingState, onError]);
 
@@ -48,6 +50,10 @@ export const ViewerStateRouter = () => {
       });
     });
   }, [call, callingState]);
+
+  if (joinError) {
+    return <JoinError onJoin={handleJoin} />;
+  }
 
   switch (callingState) {
     case CallingState.IDLE:

@@ -4,9 +4,11 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useWakeLock } from '../hooks';
 import { LoadingIndicator } from '../../components';
 import { Lobby } from '../shared/Lobby/Lobby';
+import { JoinError } from '../shared/JoinError/JoinError';
 import { CallLayout } from './CallLayout';
 import { CallFeedback } from '../shared/CallFeedback/CallFeedback';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
+import { useEmbeddedConfiguration } from '../context';
 
 /**
  * CallStateRouter is the state decider component that manages view state transitions.
@@ -18,14 +20,26 @@ export const CallStateRouter = () => {
   const { useCallCallingState, useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
   const callingState = useCallCallingState();
+  const { onError } = useEmbeddedConfiguration();
 
+  const [joinError, setJoinError] = useState(false);
   const handleJoin = useCallback(async () => {
     if (!call) return;
 
-    if (callingState !== CallingState.JOINED) {
-      await call.join();
+    setJoinError(false);
+    try {
+      if (callingState !== CallingState.JOINED) {
+        await call.join();
+      }
+    } catch (e) {
+      onError?.(e);
+      setJoinError(true);
     }
-  }, [call, callingState]);
+  }, [call, callingState, onError]);
+
+  if (joinError) {
+    return <JoinError onJoin={handleJoin} />;
+  }
 
   if (
     callingState === CallingState.IDLE ||

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { CallingState } from '@stream-io/video-client';
 import {
   useCall,
@@ -11,6 +11,7 @@ import { LoadingIndicator } from '../../../components';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 import { useEmbeddedConfiguration } from '../../context';
 import { Lobby } from '../../shared/Lobby/Lobby';
+import { JoinError } from '../../shared/JoinError/JoinError';
 
 export const HostStateRouter = () => {
   const call = useCall();
@@ -28,17 +29,18 @@ export const HostStateRouter = () => {
   const settings = useCallSettings();
   const isBackstageEnabled = settings?.backstage?.enabled ?? true;
 
+  const [joinError, setJoinError] = useState(false);
   const handleJoin = useCallback(async () => {
     if (!call) return;
 
+    setJoinError(false);
     try {
       if (callingState !== CallingState.JOINED) {
         await call.join();
       }
     } catch (err) {
-      console.error('Failed to join call:', err);
       onError?.(err);
-      throw err;
+      setJoinError(true);
     }
   }, [call, onError, callingState]);
 
@@ -47,7 +49,6 @@ export const HostStateRouter = () => {
     try {
       await call.goLive();
     } catch (err) {
-      console.error('Failed to go live:', err);
       onError?.(err);
     }
   }, [call, onError]);
@@ -57,10 +58,13 @@ export const HostStateRouter = () => {
     try {
       await call.stopLive();
     } catch (err) {
-      console.error('Failed to stop live:', err);
       onError?.(err);
     }
   }, [call, onError]);
+
+  if (joinError) {
+    return <JoinError onJoin={handleJoin} />;
+  }
 
   if (
     callingState === CallingState.IDLE ||
