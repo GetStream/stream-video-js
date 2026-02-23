@@ -90,6 +90,7 @@ const embeddedConfig = {
   external: [
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.peerDependencies || {}),
+    '@stream-io/audio-filters-web',
     'react/jsx-runtime',
     'react/jsx-dev-runtime',
   ],
