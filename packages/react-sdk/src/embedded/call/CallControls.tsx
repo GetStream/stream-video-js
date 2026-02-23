@@ -69,13 +69,13 @@ export const CallControls = ({
             <ToggleAudioPublishingButton
               Menu={
                 <>
-                  <DeviceSelectorAudioOutput
-                    visualType="list"
-                    title={t('Speaker')}
-                  />
                   <DeviceSelectorAudioInput
                     visualType="list"
                     title={t('Microphone')}
+                  />
+                  <DeviceSelectorAudioOutput
+                    visualType="list"
+                    title={t('Speaker')}
                   />
                 </>
               }
