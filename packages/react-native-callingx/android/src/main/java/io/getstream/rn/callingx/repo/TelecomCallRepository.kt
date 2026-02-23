@@ -414,9 +414,24 @@ class TelecomCallRepository(
     private suspend fun CallControlScope.doDisconnect(action: CallAction.Disconnect) {
         isSelfDisconnected = true
         debugLog(TAG, "[repository] doDisconnect: Disconnecting call with cause: ${action.cause}")
-        disconnect(action.cause)
-        debugLog(TAG, "[repository] doDisconnect: Disconnect called, triggering onIsCallDisconnected")
-        onIsCallDisconnected(action.cause)
+        when (val result = disconnect(action.cause)) {
+            is CallControlResult.Success -> {
+                // For app-initiated hangups, immediately propagate disconnected state locally.
+                debugLog(
+                        TAG,
+                        "[repository] doDisconnect: Disconnect succeeded, triggering onIsCallDisconnected"
+                )
+                onIsCallDisconnected(action.cause)
+            }
+            is CallControlResult.Error -> {
+                isSelfDisconnected = false
+                Log.e(
+                        TAG,
+                        "[repository] doDisconnect: Disconnect failed with error code: ${result.errorCode}"
+                )
+                updateCurrentCall { copy(errorCode = result.errorCode) }
+            }
+        }
     }
 
     private suspend fun CallControlScope.doAnswer(isAudioCall: Boolean) {
@@ -467,21 +482,25 @@ class TelecomCallRepository(
     }
 
     /** Can the call perform a disconnect */
-    val onIsCallDisconnected: suspend (cause: DisconnectCause) -> Unit = {
-        debugLog(
-                TAG,
-                "[repository] onIsCallDisconnected: Call disconnected, cause: ${it.reason}, description: ${it.description}"
-        )
-        val source = if (isSelfDisconnected) EventSource.APP else EventSource.SYS
-        var callId: String? = null
-        if (_currentCall.value is Call.Registered) {
-            callId = (_currentCall.value as Call.Registered).id
+    val onIsCallDisconnected: suspend (cause: DisconnectCause) -> Unit = { cause ->
+        val call = _currentCall.value as? Call.Registered
+        if (call == null) {
+            debugLog(
+                    TAG,
+                    "[repository] onIsCallDisconnected: Ignoring disconnect callback, call already unregistered"
+            )
+            isSelfDisconnected = false
+        } else {
+            debugLog(
+                    TAG,
+                    "[repository] onIsCallDisconnected: Call disconnected, cause: ${cause.reason}, description: ${cause.description}"
+            )
+            val source = if (isSelfDisconnected) EventSource.APP else EventSource.SYS
+            updateCurrentCall { Call.Unregistered(id, callAttributes, cause) }
+            _listener?.onIsCallDisconnected(call.id, cause, source)
+            isSelfDisconnected = false
+            debugLog(TAG, "[repository] onIsCallDisconnected: Call state updated to Unregistered")
         }
-
-        updateCurrentCall { Call.Unregistered(id, callAttributes, it) }
-        _listener?.onIsCallDisconnected(callId, it, source)
-        isSelfDisconnected = false
-        debugLog(TAG, "[repository] onIsCallDisconnected: Call state updated to Unregistered")
     }
 
     /**

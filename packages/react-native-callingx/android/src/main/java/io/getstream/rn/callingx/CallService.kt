@@ -9,6 +9,7 @@ import android.os.Binder
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.telecom.PhoneAccount
 import android.telecom.DisconnectCause
 import android.util.Log
 import io.getstream.rn.callingx.model.Call
@@ -300,8 +301,8 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     private fun registerCall(intent: Intent, incoming: Boolean) {
-        debugLog(TAG, "[service] registerCall: ${if (incoming) "in" else "out"} call")
         val callInfo = extractIntentParams(intent)
+        debugLog(TAG, "[service] registerCall: ${if (incoming) "in" else "out"} call: callInfo: $callInfo")
 
         // If we have an ongoing call, notify the module that registration is
         // already done (so the pending promise resolves) and skip re-registration.
@@ -397,16 +398,34 @@ class CallService : Service(), CallRepository.Listener {
     private fun extractIntentParams(intent: Intent): CallInfo {
         val callId = intent.getStringExtra(EXTRA_CALL_ID)!!
         val name = intent.getStringExtra(EXTRA_NAME)!!
-        val uri =
+        val rawUri =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     intent.getParcelableExtra(EXTRA_URI, Uri::class.java)!!
                 } else {
                     @Suppress("DEPRECATION") intent.getParcelableExtra(EXTRA_URI)!!
                 }
+        val uri = normalizeCallHandleUri(rawUri)
         val isVideo = intent.getBooleanExtra(EXTRA_IS_VIDEO, false)
         val displayOptions = intent.getBundleExtra(EXTRA_DISPLAY_OPTIONS)
 
         return CallInfo(callId, name, uri, isVideo, displayOptions)
+    }
+
+    private fun normalizeCallHandleUri(uri: Uri): Uri {
+        val scheme = uri.scheme?.lowercase()
+        if (scheme == PhoneAccount.SCHEME_TEL || scheme == PhoneAccount.SCHEME_SIP) {
+            return uri
+        }
+
+        // Telecom logs only tel:/sip: handles for self-managed call history.
+        val value =
+                when {
+                    !uri.scheme.isNullOrBlank() && !uri.schemeSpecificPart.isNullOrBlank() ->
+                            uri.schemeSpecificPart
+                    !uri.path.isNullOrBlank() -> uri.path!!
+                    else -> uri.toString()
+                }
+        return Uri.fromParts(PhoneAccount.SCHEME_SIP, value, null)
     }
 
     private fun sendBroadcastEvent(action: String, applyParams: Intent.() -> Unit = {}) {
