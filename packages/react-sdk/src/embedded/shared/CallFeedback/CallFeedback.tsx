@@ -3,6 +3,7 @@ import { useCall } from '@stream-io/video-react-bindings';
 import { CallEndedScreen } from './CallEndedScreen';
 import { RatingScreen } from './RatingScreen';
 import { ThankYouScreen } from './ThankYouScreen';
+import { useEmbeddedConfiguration } from '../../context';
 
 export interface CallFeedbackProps {
   onJoin?: () => void;
@@ -12,6 +13,7 @@ type FeedbackState = 'ended' | 'rating' | 'submitted';
 
 export const CallFeedback = ({ onJoin }: CallFeedbackProps) => {
   const call = useCall();
+  const { onError } = useEmbeddedConfiguration();
   const [state, setState] = useState<FeedbackState>('ended');
 
   const onFeedback = useCallback(() => setState('rating'), []);
@@ -27,12 +29,12 @@ export const CallFeedback = ({ onJoin }: CallFeedbackProps) => {
           custom: { message },
         });
       } catch (err) {
-        console.error('Failed to submit feedback:', err);
+        onError?.(err);
       } finally {
         setState('submitted');
       }
     },
-    [call],
+    [call, onError],
   );
 
   return (

@@ -51,7 +51,7 @@ export const useInitializeVideoClient = ({
       case 'guest':
         return {
           ...base,
-          id: user.id!,
+          id: user.id,
           type: 'guest',
         };
 

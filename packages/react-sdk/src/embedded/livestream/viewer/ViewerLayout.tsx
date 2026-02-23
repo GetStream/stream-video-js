@@ -6,7 +6,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-bindings';
-import { useCallDuration, useLayout } from '../../hooks';
+import { useCallDuration, useLayout, useWakeLock } from '../../hooks';
 import {
   CallParticipantsList,
   CancelCallConfirmButton,
@@ -27,6 +27,7 @@ import {
 } from '../../shared';
 
 export const ViewerLayout = () => {
+  useWakeLock();
   const { t } = useI18n();
 
   const { useParticipantCount, useCallSession } = useCallStateHooks();

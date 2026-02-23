@@ -32,24 +32,24 @@ export const ViewerStateRouter = () => {
 
     setJoinError(false);
     try {
-      if (callingState !== CallingState.JOINED) {
+      if (call.state.callingState !== CallingState.JOINED) {
         await call.join();
       }
     } catch (e) {
       onError?.(e);
       setJoinError(true);
     }
-  }, [call, callingState, onError]);
+  }, [call, onError]);
 
   useEffect(() => {
     if (!call || callingState !== CallingState.LEFT) return;
 
     return call.on('call.live_started', () => {
       call.get().catch((e) => {
-        console.error('Failed to restore call state', e);
+        onError?.(e);
       });
     });
-  }, [call, callingState]);
+  }, [call, callingState, onError]);
 
   if (joinError) {
     return <JoinError onJoin={handleJoin} />;

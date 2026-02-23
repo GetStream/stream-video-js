@@ -8,7 +8,7 @@ import {
   SpeakingWhileMutedNotification,
 } from '../../components';
 
-import { useLayout } from '../hooks';
+import { useLayout, useWakeLock } from '../hooks';
 import { ConnectionNotification } from '../shared';
 import { CallControls } from './CallControls';
 import { CallHeader } from './CallHeader';
@@ -17,6 +17,7 @@ import { CallHeader } from './CallHeader';
  * CallLayout renders the active call experience with layout, controls and sidebar.
  */
 export const CallLayout = () => {
+  useWakeLock();
   const [showParticipants, setShowParticipants] = useState(false);
 
   const { Component: LayoutComponent, props: layoutProps } = useLayout();

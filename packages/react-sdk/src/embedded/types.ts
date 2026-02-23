@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import type { LogLevel, TokenProvider } from '@stream-io/video-client';
 
 /**
- * Available layout options (internal use only).
+ * Available layout options.
  */
 export type LayoutOption =
   | 'Livestream'
@@ -19,7 +19,7 @@ export type LayoutOption =
 export interface EmbeddedAuthenticatedUser {
   type: 'authenticated';
   id: string;
-  name: string;
+  name?: string;
   image?: string;
 }
 
@@ -29,7 +29,7 @@ export interface EmbeddedAuthenticatedUser {
 export interface EmbeddedGuestUser {
   type: 'guest';
   id: string;
-  name: string;
+  name?: string;
   image?: string;
 }
 
@@ -46,11 +46,6 @@ export interface EmbeddedAnonymousUser {
 
 /**
  * Discriminated union for embedded user configuration.
- *
- * Use the `type` field to specify the connection mode:
- * - `'authenticated'` — known user, provide `token` or `tokenProvider`
- * - `'guest'` — server generates credentials
- * - `'anonymous'` — no identity
  */
 export type EmbeddedUser =
   | EmbeddedAuthenticatedUser

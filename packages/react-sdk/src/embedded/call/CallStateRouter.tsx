@@ -1,7 +1,6 @@
 import { CallingState } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
-import { useWakeLock } from '../hooks';
 import { LoadingIndicator } from '../../components';
 import { Lobby } from '../shared/Lobby/Lobby';
 import { JoinError } from '../shared/JoinError/JoinError';
@@ -15,7 +14,6 @@ import { useEmbeddedConfiguration } from '../context';
  */
 export const CallStateRouter = () => {
   const call = useCall();
-  useWakeLock();
 
   const { useCallCallingState, useLocalParticipant } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
@@ -28,14 +26,14 @@ export const CallStateRouter = () => {
 
     setJoinError(false);
     try {
-      if (callingState !== CallingState.JOINED) {
+      if (call.state.callingState !== CallingState.JOINED) {
         await call.join();
       }
     } catch (e) {
       onError?.(e);
       setJoinError(true);
     }
-  }, [call, callingState, onError]);
+  }, [call, onError]);
 
   if (joinError) {
     return <JoinError onJoin={handleJoin} />;
