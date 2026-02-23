@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useState,
-  type CSSProperties,
-  type ReactNode,
-} from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { useEffectEvent as useEffectEventShim } from '@stream-io/video-react-bindings';
 
@@ -43,6 +38,7 @@ const NoiseCancellationWrapper = ({
   if (!noiseCancellation) {
     return <>{children}</>;
   }
+
   return (
     <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
       {children}
@@ -117,10 +113,7 @@ export const EmbeddedClientProvider = ({
         <ConfigurationProvider layout={layout} onError={onErrorStable}>
           <BackgroundFiltersProvider>
             <NoiseCancellationWrapper noiseCancellation={noiseCancellation}>
-              <StreamTheme
-                className="str-video__embedded"
-                style={theme as CSSProperties}
-              >
+              <StreamTheme className="str-video__embedded" style={theme}>
                 {children}
               </StreamTheme>
             </NoiseCancellationWrapper>
