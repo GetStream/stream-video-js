@@ -7,12 +7,11 @@ import { ViewerLayout } from './ViewerLayout';
 import { LoadingIndicator } from '../../../components';
 import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
 import { useEmbeddedConfiguration } from '../../context';
-import { useIsLivestreamPaused, useLivestreamSortPreset } from '../../hooks';
+import { useIsLivestreamPaused } from '../../hooks';
 
 export const ViewerStateRouter = () => {
   const call = useCall();
   const { onError } = useEmbeddedConfiguration();
-  useLivestreamSortPreset();
 
   const {
     useCallCallingState,

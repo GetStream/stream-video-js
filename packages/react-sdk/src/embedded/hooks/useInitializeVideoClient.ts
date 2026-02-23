@@ -31,8 +31,6 @@ export const useInitializeVideoClient = ({
 }: UseInitializeVideoClientProps): StreamVideoClient | undefined => {
   const [client, setClient] = useState<StreamVideoClient | undefined>();
 
-  const clientRef = useRef<StreamVideoClient | null>(null);
-
   const tokenProviderRef = useRef(tokenProvider);
   tokenProviderRef.current = tokenProvider;
 
@@ -81,7 +79,6 @@ export const useInitializeVideoClient = ({
         options: logLevel ? { logLevel } : undefined,
       });
 
-      clientRef.current = _client;
       setClient(_client);
     } catch (err) {
       handleError(err);
@@ -92,7 +89,6 @@ export const useInitializeVideoClient = ({
         ?.disconnectUser()
         .catch((err) => console.error('Failed to disconnect user:', err));
 
-      clientRef.current = null;
       setClient(undefined);
     };
   }, [apiKey, streamUser, token, logLevel, handleError]);
