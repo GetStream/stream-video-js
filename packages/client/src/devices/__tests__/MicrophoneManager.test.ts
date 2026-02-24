@@ -14,12 +14,15 @@ import {
 } from '../../gen/video/sfu/models/models';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import {
+  createLocalStorageMock,
+  emitDeviceIds,
   mockAudioDevices,
   mockAudioStream,
   mockBrowserPermission,
   mockCall,
   mockDeviceIds$,
 } from './mocks';
+import { createAudioStreamForDevice } from './mediaStreamTestHelpers';
 import { setupAudioContextMock } from './web-audio.mocks';
 import { getAudioStream } from '../devices';
 import { MicrophoneManager } from '../MicrophoneManager';
@@ -35,6 +38,11 @@ import {
 import { PermissionsContext } from '../../permissions';
 import { Tracer } from '../../stats';
 import { settled, withoutConcurrency } from '../../helpers/concurrency';
+import {
+  defaultDeviceId,
+  readPreferences,
+  toPreferenceList,
+} from '../devicePersistence';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -623,6 +631,98 @@ describe('MicrophoneManager', () => {
         noAudioThresholdMs: 3000,
         emitIntervalMs: 3000,
       });
+    });
+  });
+
+  describe('Device Persistence Stress', () => {
+    it('persists the final microphone and muted state after rapid toggles, switches, and unplug', async () => {
+      const storageKey = '@test/device-preferences-microphone-stress';
+      const localStorageMock = createLocalStorageMock();
+      const originalWindow = globalThis.window;
+      Object.defineProperty(globalThis, 'window', {
+        configurable: true,
+        value: { localStorage: localStorageMock },
+      });
+
+      const getAudioStreamMock = vi.mocked(getAudioStream);
+      getAudioStreamMock.mockImplementation((constraints) => {
+        const requestedDeviceId = (constraints?.deviceId as { exact?: string })
+          ?.exact;
+        const selectedDevice =
+          mockAudioDevices.find((d) => d.deviceId === requestedDeviceId) ??
+          mockAudioDevices[0];
+        return Promise.resolve(
+          createAudioStreamForDevice(
+            selectedDevice.deviceId,
+            selectedDevice.label,
+          ),
+        );
+      });
+
+      const stressManager = new MicrophoneManager(
+        call,
+        { enabled: true, storageKey },
+        'disable-tracks',
+      );
+
+      try {
+        const finalDevice = mockAudioDevices[2];
+        emitDeviceIds(mockAudioDevices);
+
+        await Promise.allSettled([
+          stressManager.enable(),
+          stressManager.select(mockAudioDevices[1].deviceId),
+          stressManager.toggle(),
+          stressManager.select(finalDevice.deviceId),
+          stressManager.toggle(),
+          stressManager.enable(),
+        ]);
+        await stressManager.statusChangeSettled();
+        await stressManager.select(finalDevice.deviceId);
+        await stressManager.enable();
+        await stressManager.statusChangeSettled();
+
+        expect(stressManager.state.selectedDevice).toBe(finalDevice.deviceId);
+        expect(stressManager.state.status).toBe('enabled');
+
+        const persistedBeforeUnplug = toPreferenceList(
+          readPreferences(storageKey).microphone,
+        );
+        expect(persistedBeforeUnplug[0]).toEqual({
+          selectedDeviceId: finalDevice.deviceId,
+          selectedDeviceLabel: finalDevice.label,
+          muted: false,
+        });
+
+        emitDeviceIds(
+          mockAudioDevices.filter((d) => d.deviceId !== finalDevice.deviceId),
+        );
+
+        await vi.waitFor(() => {
+          expect(stressManager.state.selectedDevice).toBe(undefined);
+          expect(stressManager.state.status).toBe('disabled');
+        });
+
+        const persistedAfterUnplug = toPreferenceList(
+          readPreferences(storageKey).microphone,
+        );
+        expect(persistedAfterUnplug[0]).toEqual({
+          selectedDeviceId: defaultDeviceId,
+          selectedDeviceLabel: '',
+          muted: true,
+        });
+        expect(persistedAfterUnplug).toContainEqual({
+          selectedDeviceId: finalDevice.deviceId,
+          selectedDeviceLabel: finalDevice.label,
+          muted: true,
+        });
+      } finally {
+        stressManager.dispose();
+        Object.defineProperty(globalThis, 'window', {
+          configurable: true,
+          value: originalWindow,
+        });
+      }
     });
   });
 

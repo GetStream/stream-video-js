@@ -5,20 +5,30 @@ import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
 import {
+  createLocalStorageMock,
+  emitDeviceIds,
   mockBrowserPermission,
   mockCall,
   mockDeviceIds$,
   mockVideoDevices,
   mockVideoStream,
 } from './mocks';
+import { createVideoStreamForDevice } from './mediaStreamTestHelpers';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { CameraManager } from '../CameraManager';
 import { of } from 'rxjs';
 import { PermissionsContext } from '../../permissions';
 import { Tracer } from '../../stats';
+import {
+  defaultDeviceId,
+  readPreferences,
+  toPreferenceList,
+} from '../devicePersistence';
 
 const getVideoStream = vi.hoisted(() =>
-  vi.fn(() => Promise.resolve(mockVideoStream())),
+  vi.fn((_trackConstraints?: MediaTrackConstraints, _tracer?: Tracer) =>
+    Promise.resolve(mockVideoStream()),
+  ),
 );
 
 vi.mock('../devices.ts', () => {
@@ -410,6 +420,94 @@ describe('CameraManager', () => {
 
       expect(manager.state.status).toBe(undefined);
       expect(manager.enable).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Device Persistence Stress', () => {
+    it('persists the final camera and muted state after rapid toggles, switches, and unplug', async () => {
+      const storageKey = '@test/device-preferences-camera-stress';
+      const localStorageMock = createLocalStorageMock();
+      const originalWindow = globalThis.window;
+      Object.defineProperty(globalThis, 'window', {
+        configurable: true,
+        value: { localStorage: localStorageMock },
+      });
+
+      const getVideoStreamMock = vi.mocked(getVideoStream);
+      getVideoStreamMock.mockImplementation((constraints) => {
+        const requestedDeviceId = (constraints?.deviceId as { exact?: string })
+          ?.exact;
+        const selectedDevice =
+          mockVideoDevices.find((d) => d.deviceId === requestedDeviceId) ??
+          mockVideoDevices[0];
+        return Promise.resolve(
+          createVideoStreamForDevice(selectedDevice.deviceId),
+        );
+      });
+
+      const stressManager = new CameraManager(call, {
+        enabled: true,
+        storageKey,
+      });
+
+      try {
+        const finalDevice = mockVideoDevices[2];
+        emitDeviceIds(mockVideoDevices);
+
+        await Promise.allSettled([
+          stressManager.enable(),
+          stressManager.select(mockVideoDevices[1].deviceId),
+          stressManager.toggle(),
+          stressManager.select(finalDevice.deviceId),
+          stressManager.toggle(),
+          stressManager.enable(),
+        ]);
+        await stressManager.statusChangeSettled();
+        await stressManager.select(finalDevice.deviceId);
+        await stressManager.enable();
+        await stressManager.statusChangeSettled();
+
+        expect(stressManager.state.selectedDevice).toBe(finalDevice.deviceId);
+        expect(stressManager.state.status).toBe('enabled');
+
+        const persistedBeforeUnplug = toPreferenceList(
+          readPreferences(storageKey).camera,
+        );
+        expect(persistedBeforeUnplug[0]).toEqual({
+          selectedDeviceId: finalDevice.deviceId,
+          selectedDeviceLabel: finalDevice.label,
+          muted: false,
+        });
+
+        emitDeviceIds(
+          mockVideoDevices.filter((d) => d.deviceId !== finalDevice.deviceId),
+        );
+
+        await vi.waitFor(() => {
+          expect(stressManager.state.selectedDevice).toBe(undefined);
+          expect(stressManager.state.status).toBe('disabled');
+        });
+
+        const persistedAfterUnplug = toPreferenceList(
+          readPreferences(storageKey).camera,
+        );
+        expect(persistedAfterUnplug[0]).toEqual({
+          selectedDeviceId: defaultDeviceId,
+          selectedDeviceLabel: '',
+          muted: true,
+        });
+        expect(persistedAfterUnplug).toContainEqual({
+          selectedDeviceId: finalDevice.deviceId,
+          selectedDeviceLabel: finalDevice.label,
+          muted: true,
+        });
+      } finally {
+        stressManager.dispose();
+        Object.defineProperty(globalThis, 'window', {
+          configurable: true,
+          value: originalWindow,
+        });
+      }
     });
   });
 
