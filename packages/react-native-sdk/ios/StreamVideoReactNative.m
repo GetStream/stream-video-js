@@ -626,22 +626,22 @@ RCT_EXPORT_METHOD(stopBusyTone:(RCTPromiseResolveBlock)resolve rejecter:(RCTProm
 
 - (void)audioSessionInterrupted:(NSNotification *)notification {
     AVAudioSessionInterruptionType interruptionType = [notification.userInfo[AVAudioSessionInterruptionTypeKey] unsignedIntegerValue];
-    
+
     switch (interruptionType) {
         case AVAudioSessionInterruptionTypeBegan:
             if (_busyTonePlayer && _busyTonePlayer.isPlaying) {
                 [_busyTonePlayer pause];
             }
             break;
-            
+
         case AVAudioSessionInterruptionTypeEnded: {
             AVAudioSessionInterruptionOptions options = [notification.userInfo[AVAudioSessionInterruptionOptionKey] unsignedIntegerValue];
-            
+
             if (options & AVAudioSessionInterruptionOptionShouldResume) {
                 // Reactivate audio session
                 NSError *error = nil;
                 [[AVAudioSession sharedInstance] setActive:YES error:&error];
-                
+
                 if (!error && _busyTonePlayer) {
                     [_busyTonePlayer play];
                 } else if (error) {
@@ -651,6 +651,27 @@ RCT_EXPORT_METHOD(stopBusyTone:(RCTPromiseResolveBlock)resolve rejecter:(RCTProm
             break;
         }
     }
+}
+
+#pragma mark - In-App Screen Capture
+
+RCT_EXPORT_METHOD(startInAppScreenCapture:(BOOL)includeAudio
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+    options.useInAppScreenCapture = YES;
+    options.includeScreenShareAudio = includeAudio;
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(stopInAppScreenCapture:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+    options.useInAppScreenCapture = NO;
+    options.includeScreenShareAudio = NO;
+    resolve(nil);
 }
 
 @end
