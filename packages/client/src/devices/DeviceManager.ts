@@ -23,13 +23,13 @@ import {
   MediaStreamFilterRegistrationResult,
 } from './filters';
 import {
+  createSyntheticDevice,
   defaultDeviceId,
-  DevicePreferenceKey,
   DevicePersistenceOptions,
+  DevicePreferenceKey,
   readPreferences,
   toPreferenceList,
   writePreferences,
-  createSyntheticDevice,
 } from './devicePersistence';
 
 export abstract class DeviceManager<
@@ -89,6 +89,7 @@ export abstract class DeviceManager<
         createSubscription(
           combineLatest([this.state.selectedDevice$, this.state.status$]),
           ([selectedDevice, status]) => {
+            if (!status) return;
             this.persistPreference(selectedDevice, status);
           },
         ),
@@ -576,8 +577,6 @@ export abstract class DeviceManager<
     selectedDevice: string | undefined,
     status: InputDeviceStatus,
   ) {
-    if (!status) return;
-
     const deviceKind = this.mediaDeviceKind;
     const deviceKey = deviceKind === 'audioinput' ? 'microphone' : 'camera';
     const muted =
@@ -598,12 +597,9 @@ export abstract class DeviceManager<
   }
 
   protected async applyPersistedPreferences(enabledInCallType: boolean) {
-    const { storageKey, enabled } = this.devicePersistence;
-    if (!enabled) return false;
-
     const deviceKey: DevicePreferenceKey =
       this.trackType === TrackType.AUDIO ? 'microphone' : 'camera';
-    const preferences = readPreferences(storageKey);
+    const preferences = readPreferences(this.devicePersistence.storageKey);
     const preferenceList = toPreferenceList(preferences[deviceKey]);
 
     if (preferenceList.length === 0) return false;
