@@ -36,8 +36,12 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
    * Select the camera direction.
    *
    * @param direction the direction of the camera to select.
+   * @param options additional direction selection options.
    */
-  async selectDirection(direction: Exclude<CameraDirection, undefined>) {
+  async selectDirection(
+    direction: Exclude<CameraDirection, undefined>,
+    options: { enableCamera?: boolean } = {},
+  ) {
     if (!this.isDirectionSupportedByDevice()) {
       this.logger.warn('Setting direction is not supported on this device');
       return;
@@ -52,9 +56,10 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     // providing both device id and direction doesn't work, so we deselect the device
     this.state.setDirection(direction);
     this.state.setDevice(undefined);
-    if (isReactNative()) {
-      return;
-    }
+
+    const { enableCamera = true } = options;
+    if (isReactNative() || !enableCamera) return;
+
     this.getTracks().forEach((track) => track.stop());
     try {
       await this.unmuteStream();
@@ -141,7 +146,7 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     if (shouldApplyDefaults && !persistedPreferencesApplied) {
       if (!this.state.direction && !this.state.selectedDevice) {
         const direction = settings.camera_facing === 'front' ? 'front' : 'back';
-        await this.selectDirection(direction);
+        await this.selectDirection(direction, { enableCamera: false });
       }
 
       if (canPublish && settings.camera_default_on && enabledInCallType) {
