@@ -352,7 +352,6 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.state.optimisticStatus === undefined;
     let persistedPreferencesApplied = false;
     if (shouldApplyDefaults && this.devicePersistence.enabled) {
-      // enabledInCallType
       persistedPreferencesApplied = await this.applyPersistedPreferences(true);
     }
 
