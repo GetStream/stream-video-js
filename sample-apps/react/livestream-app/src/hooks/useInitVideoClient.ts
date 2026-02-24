@@ -47,9 +47,9 @@ export const useInitVideoClient = ({
     };
     const _client = new StreamVideoClient({
       apiKey,
-      ...((isAnon || !token) && { tokenProvider }),
-      ...(!isAnon && { token }),
-      user: isAnon ? { type: 'anonymous' } : user,
+      token,
+      tokenProvider,
+      user,
     });
     setClient(_client);
 
