@@ -1,4 +1,4 @@
-import { StreamVideoClient } from '@stream-io/video-react-sdk';
+import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
 import { PropsWithChildren, useEffect, useMemo, useState } from 'react';
 import { getUser } from '../utils/getUser';
 import { getURLCredentials } from '../utils/getURLCredentials';
@@ -20,11 +20,8 @@ export const useInitVideoClient = ({
 }: PropsWithChildren<VideoClientProviderProps>) => {
   const { callId } = useParams<{ callId: string }>();
   const { api_key, token, type } = getURLCredentials();
-  const user = useMemo(() => {
-    if (isAnon) {
-      return { id: '!anon' };
-    }
-    return getUser();
+  const user = useMemo<User>(() => {
+    return isAnon ? { id: '!anon', type: 'anonymous' } : getUser();
   }, [isAnon]);
   const apiKey = api_key ?? envApiKey;
 
@@ -34,7 +31,7 @@ export const useInitVideoClient = ({
     const tokenProvider = async () => {
       const endpoint = new URL(tokenProviderUrl);
       endpoint.searchParams.set('api_key', apiKey);
-      endpoint.searchParams.set('user_id', isAnon ? '!anon' : user.id);
+      endpoint.searchParams.set('user_id', isAnon ? '!anon' : user.id!);
 
       if (isAnon) {
         endpoint.searchParams.set(
@@ -47,9 +44,9 @@ export const useInitVideoClient = ({
     };
     const _client = new StreamVideoClient({
       apiKey,
+      user,
       token,
       tokenProvider,
-      user,
     });
     setClient(_client);
 
