@@ -19,25 +19,41 @@ let client: StreamVideoClient | undefined;
 export const getClient = (
   creds: {
     apiKey: string;
-    user?: User;
+    user: User;
     userToken?: string;
     coordinatorUrl?: string;
   },
   environment: AppEnvironment,
 ) => {
   if (!client) {
+    const options = {
+      baseURL: creds.coordinatorUrl || process.env.NEXT_PUBLIC_STREAM_API_URL,
+      logLevel: 'debug' as const,
+      logger: customSentryLogger(),
+      transformRequest: defaultRequestTransformers,
+      transformResponse: defaultResponseTransformers,
+    };
+    const tokenProvider = createTokenProvider(creds.user.id, environment);
+    const authOptions = creds.userToken
+      ? {
+          token: creds.userToken,
+          tokenProvider,
+        }
+      : tokenProvider
+        ? { tokenProvider }
+        : undefined;
+
+    if (!authOptions) {
+      throw new Error(
+        'Cannot initialize StreamVideoClient with a user without token or tokenProvider',
+      );
+    }
+
     client = new StreamVideoClient({
       apiKey: creds.apiKey,
       user: creds.user,
-      token: creds.userToken,
-      tokenProvider: createTokenProvider(creds.user?.id, environment),
-      options: {
-        baseURL: creds.coordinatorUrl || process.env.NEXT_PUBLIC_STREAM_API_URL,
-        logLevel: 'debug',
-        logger: customSentryLogger(),
-        transformRequest: defaultRequestTransformers,
-        transformResponse: defaultResponseTransformers,
-      },
+      ...authOptions,
+      options,
     });
   }
 
