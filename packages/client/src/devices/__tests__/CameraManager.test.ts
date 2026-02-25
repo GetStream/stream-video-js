@@ -26,6 +26,7 @@ import {
 } from '../devicePersistence';
 
 const getVideoStream = vi.hoisted(() =>
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   vi.fn((_trackConstraints?: MediaTrackConstraints, _tracer?: Tracer) =>
     Promise.resolve(mockVideoStream()),
   ),
