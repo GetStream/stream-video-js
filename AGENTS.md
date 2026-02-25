@@ -14,15 +14,15 @@ Goals: API stability, backward compatibility, predictable releases, strong test 
 
 ## Low-Level (Core) SDK
 
-Please find the instructions in `packages/client/CLAUDE.md`.
+Please find the instructions in @packages/client/CLAUDE.md.
 
 ## React SDK
 
-Please find the instructions in `packages/react-sdk/CLAUDE.md`.
+Please find the instructions in @packages/react-sdk/CLAUDE.md.
 
 ## React Native SDK
 
-Please find the instructions in `packages/react-native-sdk/CLAUDE.md`.
+Please find the instructions in @packages/react-native-sdk/CLAUDE.md.
 
 ### Android or iOS WebRTC Reference
 
@@ -55,8 +55,8 @@ Examples:
 1. `nvm use`
 2. `yarn install`
 3. (Optional) Verify: `node -v` matches `.nvmrc`
-4. Run initial full build: `yarn build:all`
-5. Run tests: `yarn test:ci:all`
+4. For package-scoped work, run only affected package commands first (example: `yarn build:client && yarn test:ci:client`)
+5. Before finalizing cross-package changes, run CI-parity checks: `yarn lint:ci:all && yarn test:ci:all && NODE_ENV=production yarn build:all`
 
 ## Project layout (high-level)
 
@@ -71,20 +71,27 @@ Examples:
 - Config roots: linting, tsconfig, playwright, babel
 - Do not edit generated output (`dist/`, build artifacts)
 
+## Agent execution strategy
+
+- Start from the most specific package instructions first (`packages/*/CLAUDE.md`), then apply this root guide.
+- Prefer workspace-scoped commands while iterating; run full-monorepo commands only for final verification.
+- Match CI commands and Node version before considering work complete.
+
 ## Core commands (Runbook)
 
-| Action                              | Command                                    |
-| ----------------------------------- | ------------------------------------------ |
-| Install deps                        | `yarn install`                             |
-| Full build                          | `yarn build:all`                           |
-| Watch (if available)                | `yarn dev` or `yarn start` (add if absent) |
-| Lint                                | `yarn lint:all`                            |
-| Fix lint (if separate)              | `yarn lint:all --fix`                      |
-| Unit/Integration tests (CI profile) | `yarn test:ci:all`                         |
-| Local fast tests                    | `yarn test`                                |
-| E2E (Playwright)                    | `yarn test:e2e`                            |
-| Coverage                            | `yarn test:coverage`                       |
-| Clean                               | `yarn clean:all`                           |
+| Action                               | Command                                                                                  |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Install deps                         | `yarn install` (CI uses `yarn install --immutable`)                                      |
+| Full build (all workspaces)          | `yarn build:all`                                                                         |
+| Build core client only               | `yarn build:client`                                                                      |
+| Watch core client                    | `yarn start:client`                                                                      |
+| Lint (local autofix)                 | `yarn lint:all`                                                                          |
+| Lint (CI strict)                     | `yarn lint:ci:all`                                                                       |
+| Tests (all workspaces, CI profile)   | `yarn test:ci:all`                                                                       |
+| Tests (core client only, CI profile) | `yarn test:ci:client`                                                                    |
+| Tests (React Native SDK)             | `yarn test:react-native:sdk`                                                             |
+| E2E                                  | package-specific (for example `yarn workspace @stream-io/egress-composite run test:e2e`) |
+| Clean                                | `yarn clean:all`                                                                         |
 
 ## API design principles
 
@@ -145,8 +152,8 @@ Examples:
 
 ## CI expectations
 
-- Mandatory: build, lint, type check, unit/integration tests, (optionally) E2E smoke
-- Node versions: those listed in matrix (see workflow YAML)
+- Mandatory in primary workflow (`.github/workflows/test.yml`): `yarn lint:ci:all`, `yarn test:ci:all`, `NODE_ENV=production yarn build:all`, and `yarn test:react-native:sdk`
+- Node version: `24.x` in CI (align with `.nvmrc` / `v24`)
 - Failing or flaky tests: fix or quarantine with justification PR comment (temporary)
 - Zero new warnings
 
@@ -175,7 +182,7 @@ Examples:
 
 ## React Native specifics
 
-- Clear Metro cache if module resolution issues: `yarn react-native start --reset-cache`
+- Clear Metro cache if module resolution issues (dogfood app): `cd sample-apps/react-native/dogfood && yarn start --reset-cache`
 - Test on iOS + Android for native module or platform-specific UI changes
 - Avoid unguarded web-only APIs in shared code
 
@@ -187,10 +194,11 @@ Examples:
 
 ## Commit / PR conventions
 
-- Small, focused PRs
+- Small, focused PRs, follow the @.github/pull_request_template.md template
+- Never commit directly to the `main` branch, always create a feature branch
+- Use conventional commits (fix, feat, chore)
 - Include tests for changes
-- Screenshot or video for UI changes (before/after)
-- Label breaking changes clearly in description
+- Label breaking changes clearly in the description
 - Document public API changes
 
 ## Security
@@ -209,7 +217,7 @@ Examples:
 
 - Build succeeds
 - Lint clean
-- Type check clean
+- Type check clean when the touched package has a `typecheck` script
 - Tests (unit/integration) green
 - Coverage not reduced
 - Public API docs updated if changed

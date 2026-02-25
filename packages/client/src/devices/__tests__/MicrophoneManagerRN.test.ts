@@ -80,6 +80,7 @@ describe('MicrophoneManager React Native', () => {
       },
     };
 
+    const devicePersistence = { enabled: false, storageKey: '' };
     manager = new MicrophoneManager(
       new Call({
         id: '',
@@ -87,6 +88,7 @@ describe('MicrophoneManager React Native', () => {
         streamClient: new StreamClient('abc123'),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
+      devicePersistence,
     );
   });
 
