@@ -49,12 +49,14 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
             // - stopFrameStreaming for the old track
             // - startFrameStreaming for the new track and only if we are already
             // in picture-in-picture.
-            NSLog("PiP - Renderer: track changed from \(oldValue?.trackId ?? "nil") to \(track?.trackId ?? "nil")")
+            pipLog("Renderer: track changed from \(oldValue?.trackId ?? "nil") to \(track?.trackId ?? "nil")")
             guard oldValue != track else { return }
             trackSize = .zero
             prepareForTrackRendering(oldValue)
             // Update overlay visibility when track changes (may need to show avatar if track is nil)
-            updateOverlayVisibility()
+            if !isApplyingContent {
+                updateOverlayVisibility()
+            }
         }
     }
 
@@ -79,7 +81,7 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     /// The participant's name for the avatar and overlay
     var participantName: String? {
         didSet {
-            NSLog("PiP - Renderer.participantName didSet: '\(participantName ?? "nil")', forwarding to avatarView")
+            pipLog("Renderer.participantName didSet: '\(participantName ?? "nil")', forwarding to avatarView")
             avatarView.participantName = participantName
             participantOverlayView.participantName = participantName
         }
@@ -95,8 +97,10 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     /// Whether video is enabled - when false, shows avatar placeholder
     var isVideoEnabled: Bool = true {
         didSet {
-            NSLog("PiP - Renderer: isVideoEnabled changed from \(oldValue) to \(isVideoEnabled), avatarView.participantName='\(avatarView.participantName ?? "nil")'")
-            updateOverlayVisibility()
+            pipLog("Renderer: isVideoEnabled changed from \(oldValue) to \(isVideoEnabled), avatarView.participantName='\(avatarView.participantName ?? "nil")'")
+            if !isApplyingContent {
+                updateOverlayVisibility()
+            }
         }
     }
 
@@ -104,7 +108,9 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     var isReconnecting: Bool = false {
         didSet {
             reconnectionView.isReconnecting = isReconnecting
-            updateOverlayVisibility()
+            if !isApplyingContent {
+                updateOverlayVisibility()
+            }
         }
     }
 
@@ -230,7 +236,6 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         return view
     }()
 
-
     /// The participant overlay view showing name and mute status
     private lazy var participantOverlayView: PictureInPictureParticipantOverlayView = {
         let view = PictureInPictureParticipantOverlayView()
@@ -254,6 +259,10 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         layer.isHidden = true
         return layer
     }()
+
+    /// Indicates batch content application is in progress.
+    /// Used to suppress redundant overlay recalculations while applying content.
+    private var isApplyingContent = false
 
     /// The speaking indicator corner radius (matches upstream)
     private var speakingCornerRadius: CGFloat {
@@ -280,12 +289,12 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         // Depending on the window we are moving we either start or stop
         // streaming frames from the track.
         if newWindow != nil {
-            NSLog("PiP - Renderer: willMove(toWindow:) - added to window, track=\(track?.trackId ?? "nil"), isVideoEnabled=\(isVideoEnabled)")
+            pipLog("Renderer: willMove(toWindow:) - added to window, track=\(track?.trackId ?? "nil"), isVideoEnabled=\(isVideoEnabled)")
             trackSize = .zero
             updateOverlayVisibility()
             startFrameStreaming(for: track, on: newWindow)
         } else {
-            NSLog("PiP - Renderer: willMove(toWindow:) - removed from window")
+            pipLog("Renderer: willMove(toWindow:) - removed from window")
             stopFrameStreaming(for: track)
             trackSize = .zero
             updateOverlayVisibility()
@@ -397,7 +406,7 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     private func updateOverlayVisibility() {
         // Reconnection view takes highest priority
         if isReconnecting {
-            NSLog("PiP - updateOverlayVisibility: isReconnecting=true, hiding avatar, showing reconnection")
+            pipLog("updateOverlayVisibility: isReconnecting=true, hiding avatar, showing reconnection")
             reconnectionView.isHidden = false
             avatarView.alpha = 0
             avatarView.isVideoEnabled = true
@@ -408,7 +417,7 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
             // Avatar view shows when video is disabled OR when we don't have a track
             let shouldShowVideo = isVideoEnabled && track != nil
             let shouldShowAvatar = !shouldShowVideo
-            NSLog("PiP - updateOverlayVisibility: isVideoEnabled=\(isVideoEnabled), track=\(track?.trackId ?? "nil"), shouldShowAvatar=\(shouldShowAvatar)")
+            pipLog("updateOverlayVisibility: isVideoEnabled=\(isVideoEnabled), track=\(track?.trackId ?? "nil"), shouldShowAvatar=\(shouldShowAvatar)")
 
             // Update avatar visibility - setting isVideoEnabled triggers internal layout
             avatarView.isVideoEnabled = !shouldShowAvatar
@@ -416,7 +425,7 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
 
             // Force layout when avatar becomes visible to ensure proper sizing
             if shouldShowAvatar {
-                NSLog("PiP - updateOverlayVisibility: showing avatar, forcing layout. participantName=\(participantName ?? "nil"), avatarView.participantName='\(avatarView.participantName ?? "nil")'")
+                pipLog("updateOverlayVisibility: showing avatar, forcing layout. participantName=\(participantName ?? "nil"), avatarView.participantName='\(avatarView.participantName ?? "nil")'")
                 avatarView.setNeedsLayout()
                 avatarView.layoutIfNeeded()
             }
@@ -545,6 +554,7 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     /// This method synchronizes the unified content enum with the individual properties
     /// for backward compatibility while providing a cleaner API.
     private func applyContent(_ content: PictureInPictureContent) {
+        isApplyingContent = true
         switch content {
         case .inactive:
             // Clear everything
@@ -588,6 +598,9 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
             isReconnecting = true
             isScreenSharing = false
         }
+        isApplyingContent = false
+        updateOverlayVisibility()
+        updateSpeakingIndicator()
     }
 
     /// Returns the current content as a `PictureInPictureContent` enum value.

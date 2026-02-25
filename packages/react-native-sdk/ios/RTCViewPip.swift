@@ -21,7 +21,7 @@ class RTCViewPip: UIView {
     /// The participant's name for the avatar placeholder
     @objc public var participantName: NSString? = nil {
         didSet {
-            NSLog("PiP - RTCViewPip.participantName didSet: \(participantName as String? ?? "nil"), controller exists: \(pictureInPictureController != nil)")
+            pipLog("RTCViewPip.participantName didSet: \(participantName as String? ?? "nil"), controller exists: \(pictureInPictureController != nil)")
             pictureInPictureController?.participantName = participantName as String?
         }
     }
@@ -29,7 +29,7 @@ class RTCViewPip: UIView {
     /// The URL string for the participant's profile image
     @objc public var participantImageURL: NSString? = nil {
         didSet {
-            NSLog("PiP - RTCViewPip.participantImageURL didSet: \(participantImageURL as String? ?? "nil"), controller exists: \(pictureInPictureController != nil)")
+            pipLog("RTCViewPip.participantImageURL didSet: \(participantImageURL as String? ?? "nil"), controller exists: \(pictureInPictureController != nil)")
             pictureInPictureController?.participantImageURL = participantImageURL as String?
         }
     }
@@ -112,7 +112,7 @@ class RTCViewPip: UIView {
         didSet {
             // https://github.com/react-native-webrtc/react-native-webrtc/blob/8dfc9c394b4bf627c0214255466ebd3b160ca563/ios/RCTWebRTC/RTCVideoViewManager.m#L405-L418
             guard let streamURLString = streamURL as String? else {
-                NSLog("PiP - No streamURL set, clearing track")
+                pipLog("No streamURL set, clearing track")
                 DispatchQueue.main.async {
                     self.pictureInPictureController?.track = nil
                     self.pictureInPictureController?.isVideoEnabled = false
@@ -121,7 +121,7 @@ class RTCViewPip: UIView {
             }
 
             guard let stream = self.webRtcModule?.stream(forReactTag: streamURLString) else {
-                NSLog("PiP - No stream for streamURL: -\(streamURLString), clearing track")
+                pipLog("No stream for streamURL: -\(streamURLString), clearing track")
                 DispatchQueue.main.async {
                     self.pictureInPictureController?.track = nil
                     self.pictureInPictureController?.isVideoEnabled = false
@@ -130,7 +130,7 @@ class RTCViewPip: UIView {
             }
 
             guard let videoTrack = stream.videoTracks.first else {
-                NSLog("PiP - No video track for streamURL: -\(streamURLString), clearing track")
+                pipLog("No video track for streamURL: -\(streamURLString), clearing track")
                 DispatchQueue.main.async {
                     self.pictureInPictureController?.track = nil
                     self.pictureInPictureController?.isVideoEnabled = false
@@ -138,12 +138,12 @@ class RTCViewPip: UIView {
                 return
             }
             if (self.pictureInPictureController?.track == videoTrack) {
-                NSLog("PiP - Skipping video track for streamURL: -\(streamURLString)")
+                pipLog("Skipping video track for streamURL: -\(streamURLString)")
                 return
             }
 
             DispatchQueue.main.async {
-                NSLog("PiP - Setting video track for streamURL: -\(streamURLString) trackId: \(videoTrack.trackId)")
+                pipLog("Setting video track for streamURL: -\(streamURLString) trackId: \(videoTrack.trackId)")
                 self.pictureInPictureController?.track = videoTrack
                 self.pictureInPictureController?.isVideoEnabled = true
             }
@@ -157,35 +157,35 @@ class RTCViewPip: UIView {
     
     @objc
     func onCallClosed() {
-        NSLog("PiP - pictureInPictureController cleanup called")
+        pipLog("pictureInPictureController cleanup called")
         self.pictureInPictureController?.cleanup()
         self.pictureInPictureController = nil
     }
     
     @objc
     func setPreferredContentSize(_ size: CGSize) {
-        NSLog("PiP - RTCViewPip setPreferredContentSize \(size)")
+        pipLog("RTCViewPip setPreferredContentSize \(size)")
         self.pictureInPictureController?.setPreferredContentSize(size)
     }
     
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
         if self.superview == nil {
-            NSLog("PiP - RTCViewPip has been removed from its superview.")
+            pipLog("RTCViewPip has been removed from its superview.")
             NotificationCenter.default.removeObserver(self)
             DispatchQueue.main.async {
-                NSLog("PiP - onCallClosed called due to view detaching")
+                pipLog("onCallClosed called due to view detaching")
                 self.onCallClosed()
             }
         } else {
-            NSLog("PiP - RTCViewPip has been added to a superview.")
+            pipLog("RTCViewPip has been added to a superview.")
             setupNotificationObserver()
             DispatchQueue.main.async {
                 // Recreate controller if it was previously cleaned up
                 // This allows PiP to work again for subsequent calls
                 let wasNil = self.pictureInPictureController == nil
                 if wasNil {
-                    NSLog("PiP - Recreating pictureInPictureController for new session")
+                    pipLog("Recreating pictureInPictureController for new session")
                     self.pictureInPictureController = StreamPictureInPictureController()
                     // Re-apply all current properties to the new controller
                     // This is necessary because React Native may have set props while controller was nil
@@ -200,7 +200,7 @@ class RTCViewPip: UIView {
                 if let reactTag = self.reactTag, let bridge = self.webRtcModule?.bridge {
                     if let manager = bridge.module(for: RTCViewPipManager.self) as? RTCViewPipManager,
                        let size = manager.getCachedSize(for: reactTag) {
-                        NSLog("PiP - Applying cached size \(size) for reactTag \(reactTag)")
+                        pipLog("Applying cached size \(size) for reactTag \(reactTag)")
                         self.setPreferredContentSize(size)
                     }
                 }
@@ -216,14 +216,14 @@ class RTCViewPip: UIView {
     /// which retain their values even after controller cleanup.
     private func applyCurrentPropertiesToController() {
         guard let controller = pictureInPictureController else {
-            NSLog("PiP - applyCurrentPropertiesToController: controller is nil, skipping")
+            pipLog("applyCurrentPropertiesToController: controller is nil, skipping")
             return
         }
 
-        NSLog("PiP - applyCurrentPropertiesToController STARTING:")
-        NSLog("PiP -   participantName: '\(participantName as String? ?? "nil")'")
-        NSLog("PiP -   participantImageURL: '\(participantImageURL as String? ?? "nil")'")
-        NSLog("PiP -   streamURL: '\(streamURL as String? ?? "nil")'")
+        pipLog("applyCurrentPropertiesToController STARTING:")
+        pipLog("  participantName: '\(participantName as String? ?? "nil")'")
+        pipLog("  participantImageURL: '\(participantImageURL as String? ?? "nil")'")
+        pipLog("  streamURL: '\(streamURL as String? ?? "nil")'")
 
         controller.participantName = participantName as String?
         controller.participantImageURL = participantImageURL as String?
@@ -239,16 +239,16 @@ class RTCViewPip: UIView {
         if let streamURLString = streamURL as String?,
            let stream = webRtcModule?.stream(forReactTag: streamURLString),
            let videoTrack = stream.videoTracks.first {
-            NSLog("PiP - Re-applying track from streamURL: \(streamURLString), trackId: \(videoTrack.trackId)")
+            pipLog("Re-applying track from streamURL: \(streamURLString), trackId: \(videoTrack.trackId)")
             controller.track = videoTrack
             controller.isVideoEnabled = true
         } else {
             // No stream URL or no track means video is disabled - show avatar
-            NSLog("PiP - No valid stream/track, setting isVideoEnabled=false for avatar")
+            pipLog("No valid stream/track, setting isVideoEnabled=false for avatar")
             controller.track = nil
             controller.isVideoEnabled = false
         }
-        NSLog("PiP - applyCurrentPropertiesToController COMPLETED")
+        pipLog("applyCurrentPropertiesToController COMPLETED")
     }
     
     private func sendPiPChangeEvent(isActive: Bool) {
@@ -256,7 +256,7 @@ class RTCViewPip: UIView {
             return
         }
         
-        NSLog("PiP - Sending PiP state change event: \(isActive)")
+        pipLog("Sending PiP state change event: \(isActive)")
         onPiPChange(["active": isActive])
     }
 }

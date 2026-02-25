@@ -34,38 +34,42 @@ final class PictureInPictureContentState: @unchecked Sendable {
 
     /// The current video track
     var track: RTCVideoTrack? {
-        didSet { updateContent() }
+        didSet { scheduleContentUpdate() }
     }
 
     /// The participant's name
     var participantName: String? {
-        didSet { updateContent() }
+        didSet { scheduleContentUpdate() }
     }
 
     /// The participant's profile image URL
     var participantImageURL: String? {
-        didSet { updateContent() }
+        didSet { scheduleContentUpdate() }
     }
 
     /// Whether video is enabled for the participant
     var isVideoEnabled: Bool = true {
-        didSet { updateContent() }
+        didSet { scheduleContentUpdate() }
     }
 
     /// Whether screen sharing is active
     var isScreenSharing: Bool = false {
-        didSet { updateContent() }
+        didSet { scheduleContentUpdate() }
     }
 
     /// Whether the call is reconnecting
     var isReconnecting: Bool = false {
-        didSet { updateContent() }
+        didSet { scheduleContentUpdate() }
     }
 
     // MARK: - Private
 
     /// Serial queue for thread-safe state updates
     private let stateQueue = DispatchQueue(label: "io.getstream.pip.content.state", qos: .userInteractive)
+    /// Indicates whether a content update is already scheduled.
+    private var isUpdateScheduled = false
+    /// Indicates batched updates are in progress (to avoid redundant scheduling).
+    private var isBatching = false
 
     // MARK: - Initialization
 
@@ -73,55 +77,65 @@ final class PictureInPictureContentState: @unchecked Sendable {
 
     // MARK: - State Update
 
-    /// Updates the content based on current state properties.
-    /// Priority order: reconnecting > avatar (video disabled) > screen sharing > video > inactive
-    private func updateContent() {
+    /// Schedules a coalesced content recalculation on the state queue.
+    /// Priority order: reconnecting > avatar (video disabled) > screen sharing > video > inactive.
+    private func scheduleContentUpdate() {
         stateQueue.async { [weak self] in
             guard let self = self else { return }
+            self.scheduleContentUpdateLocked()
+        }
+    }
 
-            let newContent: PictureInPictureContent
+    /// Runs on the serial queue to ensure a single update per burst of changes.
+    private func scheduleContentUpdateLocked() {
+        guard !isBatching else { return }
+        guard !isUpdateScheduled else { return }
+        isUpdateScheduled = true
 
-            // Priority 1: Reconnection takes precedence
-            if self.isReconnecting {
-                newContent = .reconnecting
-            }
-            // Priority 2: Avatar when video is disabled
-            else if !self.isVideoEnabled {
-                newContent = .avatar(
-                    participantName: self.participantName,
-                    participantImageURL: self.participantImageURL
-                )
-            }
-            // Priority 3: Screen sharing
-            else if self.isScreenSharing {
-                newContent = .screenSharing(
-                    track: self.track,
-                    participantName: self.participantName
-                )
-            }
-            // Priority 4: Video when track is available
-            else if self.track != nil {
-                newContent = .video(
-                    track: self.track,
-                    participantName: self.participantName,
-                    participantImageURL: self.participantImageURL
-                )
-            }
-            // Default: Avatar placeholder when video is expected but no track yet
-            else {
-                newContent = .avatar(
-                    participantName: self.participantName,
-                    participantImageURL: self.participantImageURL
-                )
-            }
+        let newContent = calculateContent()
 
-            // Only update if content actually changed
-            if self.content != newContent {
-                DispatchQueue.main.async {
-                    self.content = newContent
-                }
+        if content != newContent {
+            DispatchQueue.main.async { [weak self] in
+                self?.content = newContent
             }
         }
+
+        isUpdateScheduled = false
+    }
+
+    /// Pure computation of the current content based on raw properties.
+    private func calculateContent() -> PictureInPictureContent {
+        // Priority 1: Reconnection takes precedence
+        if isReconnecting {
+            return .reconnecting
+        }
+        // Priority 2: Avatar when video is disabled
+        if !isVideoEnabled {
+            return .avatar(
+                participantName: participantName,
+                participantImageURL: participantImageURL
+            )
+        }
+        // Priority 3: Screen sharing
+        if isScreenSharing {
+            return .screenSharing(
+                track: track,
+                participantName: participantName
+            )
+        }
+        // Priority 4: Video when track is available
+        if track != nil {
+            return .video(
+                track: track,
+                participantName: participantName,
+                participantImageURL: participantImageURL
+            )
+        }
+        // Default: Avatar placeholder when video is expected but no track yet
+        return .avatar(
+            participantName: participantName,
+            participantImageURL: participantImageURL
+        )
     }
 
     /// Resets all state to defaults.
@@ -129,12 +143,14 @@ final class PictureInPictureContentState: @unchecked Sendable {
     func reset() {
         stateQueue.async { [weak self] in
             guard let self = self else { return }
+            self.isBatching = true
             self.track = nil
             self.participantName = nil
             self.participantImageURL = nil
             self.isVideoEnabled = true
             self.isScreenSharing = false
             self.isReconnecting = false
+            self.isBatching = false
 
             DispatchQueue.main.async {
                 self.content = .inactive
@@ -159,6 +175,7 @@ extension PictureInPictureContentState {
     ) {
         stateQueue.async { [weak self] in
             guard let self = self else { return }
+            self.isBatching = true
 
             // Update all provided properties
             if let track = track {
@@ -179,9 +196,10 @@ extension PictureInPictureContentState {
             if let reconnecting = isReconnecting {
                 self.isReconnecting = reconnecting
             }
+            self.isBatching = false
 
             // Single content update after all properties are set
-            self.updateContent()
+            self.scheduleContentUpdateLocked()
         }
     }
 }

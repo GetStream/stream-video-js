@@ -13,7 +13,7 @@ final class PictureInPictureAvatarView: UIView {
     /// The participant's name, used to generate initials
     var participantName: String? {
         didSet {
-            NSLog("PiP - AvatarView.participantName didSet: '\(participantName ?? "nil")'")
+            pipLog("AvatarView.participantName didSet: '\(participantName ?? "nil")'")
             updateInitials()
         }
     }
@@ -34,7 +34,7 @@ final class PictureInPictureAvatarView: UIView {
             // When becoming visible (video disabled), refresh content to ensure initials are shown
             // This is needed when the same avatarView instance is reused across PiP sessions
             if !isVideoEnabled {
-                NSLog("PiP - AvatarView isVideoEnabled=false, refreshing content")
+                pipLog("AvatarView isVideoEnabled=false, refreshing content")
                 updateInitials()
             }
         }
@@ -106,7 +106,7 @@ final class PictureInPictureAvatarView: UIView {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        NSLog("PiP - AvatarView layoutSubviews: bounds=\(bounds), isHidden=\(isHidden)")
+        pipLog("AvatarView layoutSubviews: bounds=\(bounds), isHidden=\(isHidden)")
         updateAvatarSize()
     }
 
@@ -158,7 +158,7 @@ final class PictureInPictureAvatarView: UIView {
         let minDimension = min(bounds.width, bounds.height)
         let avatarSize = max(minDimension * 0.4, 60) // Minimum 60pt
 
-        NSLog("PiP - AvatarView updateAvatarSize: bounds=\(bounds), minDimension=\(minDimension), avatarSize=\(avatarSize)")
+        pipLog("AvatarView updateAvatarSize: bounds=\(bounds), minDimension=\(minDimension), avatarSize=\(avatarSize)")
 
         avatarSizeConstraints = [
             avatarContainerView.widthAnchor.constraint(equalToConstant: avatarSize),
@@ -175,7 +175,7 @@ final class PictureInPictureAvatarView: UIView {
         // Update corner radius after layout is complete
         avatarContainerView.layer.cornerRadius = avatarContainerView.bounds.width / 2
 
-        NSLog("PiP - AvatarView updateAvatarSize FINAL: avatarContainer.frame=\(avatarContainerView.frame)")
+        pipLog("AvatarView updateAvatarSize FINAL: avatarContainer.frame=\(avatarContainerView.frame)")
     }
 
     private func updateVisibility() {
@@ -184,12 +184,12 @@ final class PictureInPictureAvatarView: UIView {
         // which is critical for proper constraint-based layout. This matches
         // upstream SwiftUI's opacity-based visibility switching.
         let newAlpha: CGFloat = isVideoEnabled ? 0 : 1
-        NSLog("PiP - AvatarView updateVisibility: isVideoEnabled=\(isVideoEnabled), setting alpha=\(newAlpha)")
+        pipLog("AvatarView updateVisibility: isVideoEnabled=\(isVideoEnabled), setting alpha=\(newAlpha)")
         alpha = newAlpha
 
         // Force layout update when becoming visible to ensure proper sizing
         if !isVideoEnabled {
-            NSLog("PiP - AvatarView updateVisibility: becoming visible, forcing layout")
+            pipLog("AvatarView updateVisibility: becoming visible, forcing layout")
             setNeedsLayout()
             layoutIfNeeded()
         }
@@ -197,7 +197,7 @@ final class PictureInPictureAvatarView: UIView {
 
     private func updateInitials() {
         guard let name = participantName, !name.isEmpty else {
-            NSLog("PiP - AvatarView updateInitials: no name, showing placeholder. avatarContainer.frame=\(avatarContainerView.frame)")
+            pipLog("AvatarView updateInitials: no name, showing placeholder. avatarContainer.frame=\(avatarContainerView.frame)")
             initialsLabel.text = nil
             initialsLabel.isHidden = true
             // Show placeholder when there's no image loaded
@@ -206,7 +206,7 @@ final class PictureInPictureAvatarView: UIView {
         }
 
         let initials = generateInitials(from: name)
-        NSLog("PiP - AvatarView updateInitials: name=\(name), initials=\(initials), imageView.image=\(imageView.image != nil ? "loaded" : "nil"), avatarContainer.frame=\(avatarContainerView.frame)")
+        pipLog("AvatarView updateInitials: name=\(name), initials=\(initials), imageView.image=\(imageView.image != nil ? "loaded" : "nil"), avatarContainer.frame=\(avatarContainerView.frame)")
         initialsLabel.text = initials
         initialsLabel.isHidden = imageView.image != nil
         placeholderImageView.isHidden = true

@@ -1062,3 +1062,25 @@ The reconnection view wasn't showing because the JS check only included `RECONNE
 | `.delay(0.2)` | `beginTime = CACurrentMediaTime() + 0.2` |
 | `.repeatForever(autoreverses: true)` | `repeatCount = .infinity`, `autoreverses = true` |
 | `opacity: 0 → 1` | `fromValue = 0.0`, `toValue = 1.0` |
+---
+
+## Iteration 20 - Reduce PiP state churn and enforced stop loop
+- **Task Status:** In progress
+- **Focus:** Remove redundant PiP state updates, batch renderer updates, and align enforced stop behavior with upstream
+
+### Planned Changes:
+- **`PictureInPictureContentState.swift`**
+  - Coalesce state updates to avoid repeated content recomputation
+  - Fix `update(...)` and `reset()` to compute content once
+- **`StreamPictureInPictureController.swift`**
+  - Use `contentState` as the single source of truth for content properties
+  - Remove duplicate direct view updates for content state-backed fields
+- **`PictureInPictureEnforcedStopAdapter.swift`**
+  - Replace hard-coded 60 FPS loop with refresh-rate-based timer
+  - Start/stop enforcement based on app foreground + PiP active state
+- **`StreamPictureInPictureVideoRenderer.swift`**
+  - Batch `applyContent(...)` to avoid multiple overlay updates per transition
+
+### Validation Plan:
+1. `yarn build:react-native:deps`
+2. iOS dogfood build after `bundle exec pod install --project-directory=ios`
