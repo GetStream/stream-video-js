@@ -9,21 +9,18 @@ import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { getScreenShareStream } from './devices';
 import { ScreenShareSettings } from '../types';
 import { createSubscription } from '../store/rxUtils';
-import { DevicePersistenceOptions } from './devicePersistence';
+import { normalize } from './devicePersistence';
 
 export class ScreenShareManager extends AudioDeviceManager<
   ScreenShareState,
   DisplayMediaStreamOptions
 > {
-  constructor(
-    call: Call,
-    devicePersistence: Required<DevicePersistenceOptions>,
-  ) {
+  constructor(call: Call) {
     super(
       call,
       new ScreenShareState(),
       TrackType.SCREEN_SHARE,
-      devicePersistence,
+      normalize({ enabled: false }),
     );
   }
 

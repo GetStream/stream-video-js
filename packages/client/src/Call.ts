@@ -346,7 +346,7 @@ export class Call {
     this.camera = new CameraManager(this, preferences);
     this.microphone = new MicrophoneManager(this, preferences);
     this.speaker = new SpeakerManager(this, preferences);
-    this.screenShare = new ScreenShareManager(this, preferences);
+    this.screenShare = new ScreenShareManager(this);
     this.dynascaleManager = new DynascaleManager(
       this.state,
       this.speaker,
