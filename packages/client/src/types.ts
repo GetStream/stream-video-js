@@ -4,12 +4,12 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
+  AudioSettingsRequestDefaultDeviceEnum,
   CallRecordingStartedEventRecordingTypeEnum,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
   ReactionResponse,
-  AudioSettingsRequestDefaultDeviceEnum,
   StartRecordingRequest,
   StartRecordingResponse,
 } from './gen/coordinator';

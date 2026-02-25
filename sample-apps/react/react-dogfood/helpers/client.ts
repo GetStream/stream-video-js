@@ -1,4 +1,5 @@
 import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import { isRecentDeviceSelectionEnabled } from '../hooks/useDeviceSelectionPreference';
 import type { AppEnvironment } from '../lib/environmentConfig';
 import {
   CreateJwtTokenRequest,
@@ -32,6 +33,10 @@ export const getClient = (
       logger: customSentryLogger(),
       transformRequest: defaultRequestTransformers,
       transformResponse: defaultResponseTransformers,
+      devicePersistence: {
+        enabled: isRecentDeviceSelectionEnabled(),
+        storageKey: '@pronto/device-preferences',
+      },
     };
     const tokenProvider = createTokenProvider(creds.user.id, environment);
     const authOptions = creds.userToken
