@@ -131,12 +131,17 @@ export const getDeviceState = () => {
 };
 
 export const getClientDetails = async (): Promise<ClientDetails> => {
+  // use the WebRTC version if set by the SDK (React Native) otherwise,
+  // use the browser version as a fallback
+  const webRTCInfo = getWebRTCInfo();
+
   if (isReactNative()) {
     // Since RN doesn't support web, sharing browser info is not required
     return {
       sdk: sdkInfo,
       os: osInfo,
       device: deviceInfo,
+      webrtcVersion: webRTCInfo?.version || 'N/A',
     };
   }
 
@@ -190,5 +195,9 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
         .join(' '),
       version: '',
     },
+    webrtcVersion:
+      webRTCInfo?.version ||
+      `${browser?.name || ''}-${browser?.version || ''}` ||
+      'N/A',
   };
 };
