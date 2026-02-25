@@ -1,6 +1,9 @@
 import { OwnCapability } from '@stream-io/video-client';
 import { Restricted } from '@stream-io/video-react-bindings';
-import { SpeakingWhileMutedNotification } from '../Notification';
+import {
+  SpeakingWhileMutedNotification,
+  MicCaptureErrorNotification,
+} from '../Notification';
 import { RecordCallButton } from './RecordCallButton';
 import { ReactionsButton } from './ReactionsButton';
 import { ScreenShareButton } from './ScreenShareButton';
@@ -9,15 +12,17 @@ import { ToggleVideoPublishingButton } from './ToggleVideoButton';
 import { CancelCallButton } from './CancelCallButton';
 
 export type CallControlsProps = {
-  onLeave?: () => void;
+  onLeave?: (err?: Error) => void;
 };
 
 export const CallControls = ({ onLeave }: CallControlsProps) => (
   <div className="str-video__call-controls">
     <Restricted requiredGrants={[OwnCapability.SEND_AUDIO]}>
-      <SpeakingWhileMutedNotification>
-        <ToggleAudioPublishingButton />
-      </SpeakingWhileMutedNotification>
+      <MicCaptureErrorNotification>
+        <SpeakingWhileMutedNotification>
+          <ToggleAudioPublishingButton />
+        </SpeakingWhileMutedNotification>
+      </MicCaptureErrorNotification>
     </Restricted>
     <Restricted requiredGrants={[OwnCapability.SEND_VIDEO]}>
       <ToggleVideoPublishingButton />

@@ -21,6 +21,7 @@ import {
 
 import { useSpotlightParticipant } from './useSpotlightParticipant';
 import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
+import { useConfigurationContext } from '../../../ConfigurationContext';
 
 import './DominantSpeaker.scss';
 
@@ -30,6 +31,9 @@ export const DominantSpeaker = () => {
   const lastSpeakerInSpotlight = useRef<StreamVideoParticipant | null>(null);
   const { useRemoteParticipants } = useCallStateHooks();
   const remoteParticipants = useRemoteParticipants();
+  const {
+    options: { 'layout.forceMirrorParticipants': forceMirrorParticipants },
+  } = useConfigurationContext();
   const { setVideoElement, setVideoPlaceholderElement } =
     useEgressReadyWhenAnyParticipantMounts(
       speakerInSpotlight!,
@@ -78,6 +82,7 @@ export const DominantSpeaker = () => {
       {speakerInSpotlight && (
         <ParticipantView
           participant={speakerInSpotlight}
+          mirror={forceMirrorParticipants}
           refs={{ setVideoElement, setVideoPlaceholderElement }}
           muteAudio // audio is handled by <ParticipantsAudio />
           ParticipantViewUI={

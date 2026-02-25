@@ -88,6 +88,11 @@ export type ParticipantViewProps = ParticipantViewComponentProps &
      * In the fashion of https://www.w3.org/TR/html5/embedded-content-0.html#dom-video-videowidth and https://www.w3.org/TR/html5/rendering.html#video-object-fit, resembles the CSS style object-fit.
      */
     objectFit?: 'contain' | 'cover';
+    /**
+     * Forces a participant's video to be mirrored or unmirrored. By default, the video track
+     * from the local participant is mirrored, and all other videos are not mirrored.
+     */
+    mirror?: boolean;
   };
 
 /**
@@ -107,6 +112,7 @@ export const ParticipantView = ({
   ParticipantVideoFallback = DefaultParticipantVideoFallback,
   objectFit,
   videoZOrder = 0,
+  mirror,
   supportedReactions,
 }: ParticipantViewProps) => {
   const {
@@ -144,6 +150,7 @@ export const ParticipantView = ({
           ParticipantVideoFallback={ParticipantVideoFallback}
           objectFit={objectFit}
           videoZOrder={videoZOrder}
+          mirror={mirror}
         />
       )}
       <View

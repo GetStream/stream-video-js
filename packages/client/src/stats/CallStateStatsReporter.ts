@@ -2,6 +2,7 @@ import type {
   AggregatedStatsReport,
   AudioAggregatedStats,
   BaseStats,
+  CameraStats,
   ParticipantsStatsReport,
   RTCCodecStats,
   RTCMediaSourceStats,
@@ -238,6 +239,17 @@ export type StatsTransformOpts = {
 };
 
 /**
+ * Extracts camera statistics from a media source.
+ *
+ * @param mediaSource the media source stats to extract camera info from.
+ */
+const getCameraStats = (mediaSource: RTCMediaSourceStats): CameraStats => ({
+  frameRate: mediaSource.framesPerSecond,
+  frameWidth: mediaSource.width,
+  frameHeight: mediaSource.height,
+});
+
+/**
  * Transforms raw RTC stats into a slimmer and uniform across browsers format.
  *
  * @param report the report to transform.
@@ -280,6 +292,7 @@ const transform = (
 
       let trackType: TrackType | undefined;
       let audioLevel: number | undefined;
+      let camera: CameraStats | undefined;
       let concealedSamples: number | undefined;
       let concealmentEvents: number | undefined;
       let packetsReceived: number | undefined;
@@ -299,6 +312,9 @@ const transform = (
             typeof mediaSource.audioLevel === 'number'
           ) {
             audioLevel = mediaSource.audioLevel;
+          }
+          if (trackKind === 'video') {
+            camera = getCameraStats(mediaSource);
           }
         }
       } else if (kind === 'subscriber' && trackKind === 'audio') {
@@ -333,6 +349,7 @@ const transform = (
         concealmentEvents,
         packetsReceived,
         packetsLost,
+        camera,
       };
     });
 
@@ -354,6 +371,7 @@ const getEmptyVideoStats = (stats?: StatsReport): AggregatedStatsReport => {
     highestFrameWidth: 0,
     highestFrameHeight: 0,
     highestFramesPerSecond: 0,
+    camera: {},
     codec: '',
     codecPerTrackType: {},
     timestamp: Date.now(),
@@ -402,6 +420,10 @@ const aggregate = (stats: StatsReport): AggregatedStatsReport => {
       acc.highestFrameHeight = stream.frameHeight || 0;
       acc.highestFramesPerSecond = stream.framesPerSecond || 0;
       maxArea = streamArea;
+    }
+
+    if (stream.trackType === TrackType.VIDEO) {
+      acc.camera = stream.camera;
     }
 
     qualityLimitationReasons.add(stream.qualityLimitationReason || '');

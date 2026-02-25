@@ -27,6 +27,10 @@ import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
 type Props = {
   includeLocalParticipantVideo?: boolean;
   /**
+   * Optional video mirroring override.
+   */
+  mirror?: boolean;
+  /**
    * Callback that is called when the PiP mode state changes.
    * @param active - true when PiP started, false when PiP stopped
    */
@@ -34,13 +38,20 @@ type Props = {
 };
 
 export const RTCViewPipIOS = React.memo((props: Props) => {
-  const { includeLocalParticipantVideo, onPiPChange } = props;
+  const {
+    includeLocalParticipantVideo,
+    mirror: mirrorOverride,
+    onPiPChange,
+  } = props;
   const call = useCall();
-  const { useParticipants, useCallCallingState } = useCallStateHooks();
+  const { useParticipants, useCameraState, useCallCallingState } =
+    useCallStateHooks();
+
   const callingState = useCallCallingState();
   const _allParticipants = useParticipants({
     sortBy: speakerLayoutSortPreset,
   });
+  const { direction } = useCameraState();
   const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
 
   const [dominantSpeaker, dominantSpeaker2] = allParticipants.filter(
@@ -122,6 +133,12 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     ? videoStreamToRender?.toURL()
     : undefined;
 
+  const mirror = isScreenSharing
+    ? false
+    : mirrorOverride !== undefined
+      ? mirrorOverride
+      : !!participantInSpotlight?.isLocalParticipant && direction === 'front';
+
   const handlePiPChange = (event: { nativeEvent: { active: boolean } }) => {
     isInPiPMode$.next(event.nativeEvent.active);
     onPiPChange?.(event.nativeEvent.active);
@@ -168,6 +185,7 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     <>
       <RTCViewPipNative
         streamURL={streamURL}
+        mirror={mirror}
         ref={nativeRef}
         onPiPChange={handlePiPChange}
         participantName={participantName}

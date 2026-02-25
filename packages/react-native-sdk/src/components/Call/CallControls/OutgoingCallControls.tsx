@@ -12,7 +12,7 @@ export type OutgoingCallControlsProps = {
   /**
    * Handler to be executed when the outgoing call is cancelled or hanged up.
    */
-  onHangupCallHandler?: () => void;
+  onHangupCallHandler?: (err?: Error) => void;
 };
 
 export const OutgoingCallControls = ({
@@ -33,7 +33,7 @@ export const OutgoingCallControls = ({
         <ToggleVideoPreviewButton />
       </View>
       <RejectCallButton
-        onPressHandler={onHangupCallHandler}
+        onRejectCallHandler={onHangupCallHandler}
         size={buttonSizes.md}
         rejectReason="cancel"
       />

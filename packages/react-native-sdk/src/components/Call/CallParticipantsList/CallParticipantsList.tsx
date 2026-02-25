@@ -43,6 +43,11 @@ export type CallParticipantsListComponentProps =
      * Component to customize the participant view.
      */
     ParticipantView?: React.ComponentType<ParticipantViewProps> | null;
+    /**
+     * Forces a participant's video to be mirrored or unmirrored. By default, the video track
+     * from the local participant is mirrored, and all other videos are not mirrored.
+     */
+    mirror?: boolean;
   };
 
 /**
@@ -88,6 +93,7 @@ export const CallParticipantsList = ({
   VideoRenderer,
   supportedReactions,
   landscape,
+  mirror,
 }: CallParticipantsListProps) => {
   const styles = useStyles();
   const [containerLayout, setContainerLayout] = useState({
@@ -210,6 +216,7 @@ export const CallParticipantsList = ({
               trackType="videoTrack"
               isVisible={isVisible}
               supportedReactions={supportedReactions}
+              mirror={mirror}
               {...participantProps}
             />
           )}
@@ -236,6 +243,7 @@ export const CallParticipantsList = ({
                 trackType="videoTrack"
                 key={keyExtractor(participant, index)}
                 supportedReactions={supportedReactions}
+                mirror={mirror}
                 {...participantProps}
               />
             )

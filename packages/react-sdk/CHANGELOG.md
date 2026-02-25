@@ -2,6 +2,94 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.32.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.3...@stream-io/video-react-sdk-1.32.4) (2026-02-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.43.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.8`
+
+## [1.32.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.2...@stream-io/video-react-sdk-1.32.3) (2026-02-16)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.3`
+- `@stream-io/video-react-bindings` updated to version `1.13.7`
+
+### Bug Fixes
+
+- guard from parallel accept/reject invocations ([#2127](https://github.com/GetStream/stream-video-js/issues/2127)) ([621218f](https://github.com/GetStream/stream-video-js/commit/621218f4ab6b4623370fd66f1b02b8cb7cb1baad))
+
+## [1.32.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.1...@stream-io/video-react-sdk-1.32.2) (2026-02-13)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.6`
+
+## [1.32.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.0...@stream-io/video-react-sdk-1.32.1) (2026-02-10)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.1`
+- `@stream-io/video-react-bindings` updated to version `1.13.5`
+
+## [1.32.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.8...@stream-io/video-react-sdk-1.32.0) (2026-02-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.4`
+
+### Features
+
+- Detectors for broken microphone setup ([#2090](https://github.com/GetStream/stream-video-js/issues/2090)) ([552b3f4](https://github.com/GetStream/stream-video-js/commit/552b3f4e3c54e0b6fa67221cd510f4ea1f6f8a61))
+
+### Bug Fixes
+
+- **react:** hide livestream layout fullscreen button when fullscreen is unsupported ([#2112](https://github.com/GetStream/stream-video-js/issues/2112)) ([f436b01](https://github.com/GetStream/stream-video-js/commit/f436b01f28416d2974c278f4059495fea555f305))
+
+## [1.31.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.7...@stream-io/video-react-sdk-1.31.8) (2026-01-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.3`
+- `@stream-io/video-filters-web` updated to version `0.7.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.3`
+
+### Bug Fixes
+
+- **react:** improve logic for calculating the lower / upper threshold for video filter degradation ([#2094](https://github.com/GetStream/stream-video-js/issues/2094)) ([5cd2d5c](https://github.com/GetStream/stream-video-js/commit/5cd2d5cb34fc7bbdfaf9529eb9f8d33a40346cab))
+
+## [1.31.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.6...@stream-io/video-react-sdk-1.31.7) (2026-01-28)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.2`
+
+### Bug Fixes
+
+- **react:** normalize participant names for accent-insensitive matching ([#2102](https://github.com/GetStream/stream-video-js/issues/2102)) ([723c486](https://github.com/GetStream/stream-video-js/commit/723c48681ace8dd37804fe3f35974cf62043b7f8))
+
+## [1.31.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.5...@stream-io/video-react-sdk-1.31.6) (2026-01-27)
+
+### Dependency Updates
+
+- `@stream-io/video-filters-web` updated to version `0.7.1`
+
+## [1.31.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.4...@stream-io/video-react-sdk-1.31.5) (2026-01-26)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.7.2`
+- `@stream-io/video-client` updated to version `1.41.1`
+- `@stream-io/video-react-bindings` updated to version `1.13.1`
+
+### Bug Fixes
+
+- **react:** reorganize jitter & bitrate statistics cards ([#2091](https://github.com/GetStream/stream-video-js/issues/2091)) ([599701f](https://github.com/GetStream/stream-video-js/commit/599701fa94c3fd3bc0f9bc08faca1ddfa828d51f))
+
 ## [1.31.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.3...@stream-io/video-react-sdk-1.31.4) (2026-01-20)
 
 ### Dependency Updates

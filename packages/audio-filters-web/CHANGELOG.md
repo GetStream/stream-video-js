@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.7.1...@stream-io/audio-filters-web-0.7.2) (2026-01-26)
+
+### Bug Fixes
+
+- **safari:** Handle interrupted AudioContext and AudioSession states ([#2098](https://github.com/GetStream/stream-video-js/issues/2098)) ([975901f](https://github.com/GetStream/stream-video-js/commit/975901f399b46479928ec1e9f32da7e47bba9ad3))
+
 ## [0.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.7.0...@stream-io/audio-filters-web-0.7.1) (2025-12-18)
 
 ### Bug Fixes

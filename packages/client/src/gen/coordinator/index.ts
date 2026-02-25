@@ -5363,6 +5363,12 @@ export interface JoinCallRequest {
    */
   migrating_from?: string;
   /**
+   * List of SFU IDs to exclude when picking a new SFU for the participant
+   * @type {Array<string>}
+   * @memberof JoinCallRequest
+   */
+  migrating_from_list?: Array<string>;
+  /**
    *
    * @type {boolean}
    * @memberof JoinCallRequest

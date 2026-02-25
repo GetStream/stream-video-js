@@ -11,6 +11,7 @@ export const Spotlight = () => {
     options: {
       'layout.spotlight.participants_bar_position': position = 'bottom',
       'layout.spotlight.participants_bar_limit': limit = 'dynamic',
+      'layout.forceMirrorParticipants': forceMirrorParticipants,
       'participant.filter': filterParticipants,
     },
   } = useConfigurationContext();
@@ -23,6 +24,7 @@ export const Spotlight = () => {
         excludeLocalParticipant
         filterParticipants={filterParticipants}
         pageArrowsVisible={false}
+        mirrorLocalParticipantVideo={forceMirrorParticipants !== false}
         ParticipantViewUIBar={
           <DefaultParticipantViewUI
             indicatorsVisible={false}

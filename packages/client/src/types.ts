@@ -14,10 +14,15 @@ import type {
   StartRecordingResponse,
 } from './gen/coordinator';
 import type { StreamClient } from './coordinator/connection/client';
+import type {
+  RejectReason,
+  StreamClientOptions,
+  TokenProvider,
+  User,
+} from './coordinator/connection/types';
 import type { Comparator } from './sorting';
 import type { StreamVideoWriteableStateStore } from './store';
 import { AxiosError } from 'axios';
-import { RejectReason } from './coordinator/connection/types';
 
 export type StreamReaction = Pick<
   ReactionResponse,
@@ -334,6 +339,28 @@ export type CallConstructor = {
   clientStore: StreamVideoWriteableStateStore;
 };
 
+type StreamVideoClientBaseOptions = {
+  apiKey: string;
+  options?: StreamClientOptions;
+};
+
+type StreamVideoClientOptionsWithoutUser = StreamVideoClientBaseOptions & {
+  user?: undefined;
+  token?: never;
+  tokenProvider?: never;
+};
+
+type StreamVideoClientOptionsWithUser = StreamVideoClientBaseOptions & {
+  user: User;
+} & (
+    | { token: string; tokenProvider?: TokenProvider }
+    | { token?: string; tokenProvider: TokenProvider }
+  );
+
+export type StreamVideoClientOptions =
+  | StreamVideoClientOptionsWithoutUser
+  | StreamVideoClientOptionsWithUser;
+
 export type CallRecordingType = CallRecordingStartedEventRecordingTypeEnum;
 export type StartCallRecordingFnType = {
   (): Promise<StartRecordingResponse>;
@@ -351,9 +378,9 @@ export type StreamRNVideoSDKGlobals = {
      * Sets up the in call manager.
      */
     setup({
-      default_device,
+      defaultDevice,
     }: {
-      default_device: AudioSettingsRequestDefaultDeviceEnum;
+      defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
     }): void;
 
     /**
@@ -365,6 +392,12 @@ export type StreamRNVideoSDKGlobals = {
      * Stops the in call manager.
      */
     stop(): void;
+  };
+  permissions: {
+    /**
+     * Checks whether a native device permission has been granted.
+     */
+    check(permission: 'microphone' | 'camera'): Promise<boolean>;
   };
 };
 

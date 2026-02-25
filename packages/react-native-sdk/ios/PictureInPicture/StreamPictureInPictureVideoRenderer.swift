@@ -4,6 +4,7 @@
 
 import Combine
 import Foundation
+import UIKit
 
 /// A view that can be used to render an instance of `RTCVideoTrack`
 ///
@@ -59,6 +60,15 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
 
     /// The layer that renders the track's frames.
     var displayLayer: CALayer { contentView.layer }
+
+    /// Indicates whether the rendered video should be mirrored.
+    var isMirrored: Bool = false {
+        didSet {
+            contentView.transform = isMirrored
+                ? CGAffineTransform(scaleX: -1, y: 1)
+                : .identity
+        }
+    }
 
     /// A policy defining how the Picture in Picture window should be resized in order to better fit
     /// the rendering frame size.

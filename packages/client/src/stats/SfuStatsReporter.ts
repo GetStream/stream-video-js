@@ -44,6 +44,7 @@ export class SfuStatsReporter {
 
   private intervalId: NodeJS.Timeout | undefined;
   private timeoutId: NodeJS.Timeout | undefined;
+  private reportCount: number = 0;
   private unsubscribeDevicePermissionsSubscription?: () => void;
   private unsubscribeListDevicesSubscription?: () => void;
   private readonly sdkName: string;
@@ -208,18 +209,33 @@ export class SfuStatsReporter {
     }
   };
 
+  private scheduleNextReport = () => {
+    const intervals = [1500, 3000, 3000, 5000];
+    if (this.reportCount < intervals.length) {
+      this.timeoutId = setTimeout(() => {
+        this.flush();
+        this.reportCount++;
+        this.scheduleNextReport();
+      }, intervals[this.reportCount]);
+    } else {
+      clearInterval(this.intervalId);
+      this.intervalId = setInterval(() => {
+        this.flush();
+      }, this.options.reporting_interval_ms);
+    }
+  };
+
   start = () => {
     if (this.options.reporting_interval_ms <= 0) return;
 
     this.observeDevice(this.microphone, 'mic');
     this.observeDevice(this.camera, 'camera');
 
+    this.reportCount = 0;
     clearInterval(this.intervalId);
-    this.intervalId = setInterval(() => {
-      this.run().catch((err) => {
-        this.logger.warn('Failed to report stats', err);
-      });
-    }, this.options.reporting_interval_ms);
+    clearTimeout(this.timeoutId);
+
+    this.scheduleNextReport();
   };
 
   stop = () => {
@@ -233,20 +249,12 @@ export class SfuStatsReporter {
     this.intervalId = undefined;
     clearTimeout(this.timeoutId);
     this.timeoutId = undefined;
+    this.reportCount = 0;
   };
 
   flush = () => {
     this.run().catch((err) => {
       this.logger.warn('Failed to flush report stats', err);
     });
-  };
-
-  scheduleOne = (timeout: number) => {
-    clearTimeout(this.timeoutId);
-    this.timeoutId = setTimeout(() => {
-      this.run().catch((err) => {
-        this.logger.warn('Failed to report stats', err);
-      });
-    }, timeout);
   };
 }

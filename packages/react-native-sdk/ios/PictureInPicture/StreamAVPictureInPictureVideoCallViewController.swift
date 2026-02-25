@@ -19,6 +19,9 @@ protocol StreamAVPictureInPictureViewControlling: AnyObject {
     /// a cryptic error with content `PGPegasus code:-1003`
     var preferredContentSize: CGSize { get set }
 
+    /// Controls whether the rendered video should be mirrored.
+    var isMirrored: Bool { get set }
+    
     /// The layer that renders the incoming frames from WebRTC.
     var displayLayer: CALayer { get }
 
@@ -85,6 +88,11 @@ final class StreamAVPictureInPictureVideoCallViewController: AVPictureInPictureV
         set { contentView.track = newValue }
     }
 
+    var isMirrored: Bool {
+        get { contentView.isMirrored }
+        set { contentView.isMirrored = newValue }
+    }
+    
     var displayLayer: CALayer { contentView.displayLayer }
 
     // MARK: - Avatar Placeholder Properties

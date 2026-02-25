@@ -27,6 +27,7 @@ import type { StreamSfuClient } from '../StreamSfuClient';
 import { SpeakerManager } from '../devices';
 import { getCurrentValue, setCurrentValue } from '../store/rxUtils';
 import { videoLoggerSystem } from '../logger';
+import { Tracer } from '../stats';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -69,6 +70,8 @@ export class DynascaleManager {
   private logger = videoLoggerSystem.getLogger('DynascaleManager');
   private callState: CallState;
   private speaker: SpeakerManager;
+  private tracer: Tracer;
+  private useWebAudio = isSafari();
   private audioContext: AudioContext | undefined;
   private sfuClient: StreamSfuClient | undefined;
   private pendingSubscriptionsUpdate: NodeJS.Timeout | null = null;
@@ -113,9 +116,10 @@ export class DynascaleManager {
   /**
    * Creates a new DynascaleManager instance.
    */
-  constructor(callState: CallState, speaker: SpeakerManager) {
+  constructor(callState: CallState, speaker: SpeakerManager, tracer: Tracer) {
     this.callState = callState;
     this.speaker = speaker;
+    this.tracer = tracer;
   }
 
   /**
@@ -190,6 +194,10 @@ export class DynascaleManager {
     override: VideoTrackSubscriptionOverride | undefined,
     sessionIds?: string[],
   ) => {
+    this.tracer.trace('setVideoTrackSubscriptionOverrides', [
+      override,
+      sessionIds,
+    ]);
     if (!sessionIds) {
       return setCurrentValue(
         this.videoTrackSubscriptionOverridesSubject,
@@ -295,6 +303,19 @@ export class DynascaleManager {
    */
   setViewport = <T extends HTMLElement>(element: T) => {
     return this.viewportTracker.setViewport(element);
+  };
+
+  /**
+   * Sets whether to use WebAudio API for audio playback.
+   * Must be set before joining the call.
+   *
+   * @internal
+   *
+   * @param useWebAudio whether to use WebAudio API.
+   */
+  setUseWebAudio = (useWebAudio: boolean) => {
+    this.tracer.trace('setUseWebAudio', useWebAudio);
+    this.useWebAudio = useWebAudio;
   };
 
   /**
@@ -580,6 +601,7 @@ export class DynascaleManager {
             // we will play audio directly through the audio element in other browsers
             audioElement.muted = false;
             audioElement.play().catch((e) => {
+              this.tracer.trace('audioPlaybackError', e.message);
               this.logger.warn(`Failed to play audio stream`, e);
             });
           }
@@ -618,28 +640,54 @@ export class DynascaleManager {
   };
 
   private getOrCreateAudioContext = (): AudioContext | undefined => {
-    if (this.audioContext || !isSafari()) return this.audioContext;
+    if (!this.useWebAudio) return;
+    if (this.audioContext) return this.audioContext;
     const context = new AudioContext();
+    this.tracer.trace('audioContext.create', context.state);
     if (context.state === 'suspended') {
       document.addEventListener('click', this.resumeAudioContext);
     }
-    // @ts-expect-error audioSession is available in Safari only
+    context.addEventListener('statechange', () => {
+      this.tracer.trace('audioContext.state', context.state);
+      if (context.state === 'interrupted') {
+        this.resumeAudioContext();
+      }
+    });
+
     const audioSession = navigator.audioSession;
     if (audioSession) {
       // https://github.com/w3c/audio-session/blob/main/explainer.md
       audioSession.type = 'play-and-record';
+
+      let isSessionInterrupted = false;
+      audioSession.addEventListener('statechange', () => {
+        this.tracer.trace('audioSession.state', audioSession.state);
+        if (audioSession.state === 'interrupted') {
+          isSessionInterrupted = true;
+        } else if (isSessionInterrupted) {
+          this.resumeAudioContext();
+          isSessionInterrupted = false;
+        }
+      });
     }
     return (this.audioContext = context);
   };
 
   private resumeAudioContext = () => {
-    if (this.audioContext?.state === 'suspended') {
-      this.audioContext
-        .resume()
-        .catch((err) => this.logger.warn(`Can't resume audio context`, err))
-        .then(() => {
+    if (!this.audioContext) return;
+    const { state } = this.audioContext;
+    if (state === 'suspended' || state === 'interrupted') {
+      const tag = 'audioContext.resume';
+      this.audioContext.resume().then(
+        () => {
+          this.tracer.trace(tag, this.audioContext?.state);
           document.removeEventListener('click', this.resumeAudioContext);
-        });
+        },
+        (err) => {
+          this.tracer.trace(`${tag}Error`, this.audioContext?.state);
+          this.logger.warn(`Can't resume audio context`, err);
+        },
+      );
     }
   };
 }

@@ -49,7 +49,7 @@ export type StreamReactionType = StreamReaction & {
 };
 
 type CallContentComponentProps = ParticipantViewComponentProps &
-  Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
+  Pick<CallParticipantsListComponentProps, 'ParticipantView' | 'mirror'> & {
     /**
      * Component to customize the CallControls component.
      */
@@ -117,6 +117,7 @@ export const CallContent = ({
   ParticipantVideoFallback,
   ParticipantView,
   VideoRenderer,
+  mirror,
   layout = 'grid',
   landscape = false,
   supportedReactions,
@@ -218,6 +219,7 @@ export const CallContent = ({
     landscape,
     showLocalParticipant: isRemoteParticipantInFloatingView,
     ParticipantView,
+    mirror,
     CallParticipantsList,
     supportedReactions,
   };
@@ -226,6 +228,7 @@ export const CallContent = ({
     ...participantViewProps,
     landscape,
     ParticipantView,
+    mirror,
     CallParticipantsList,
     ScreenShareOverlay,
     supportedReactions,
@@ -240,6 +243,7 @@ export const CallContent = ({
       {!disablePictureInPicture && (
         <RTCViewPipIOS
           includeLocalParticipantVideo={iOSPiPIncludeLocalParticipantVideo}
+          mirror={mirror}
         />
       )}
       <View style={[styles.container, landscapeStyles, callContent.container]}>
@@ -260,6 +264,7 @@ export const CallContent = ({
                 onPressHandler={handleFloatingViewParticipantSwitch}
                 supportedReactions={supportedReactions}
                 objectFit="cover"
+                mirror={mirror}
                 {...participantViewProps}
               />
             )}

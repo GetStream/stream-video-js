@@ -69,20 +69,24 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!options.fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
-        const { videoFile } = applyQueryConfigParams(call, router.query);
+        const { videoFile, videoFileLeaveCallOnEnd } = applyQueryConfigParams(
+          call,
+          router.query,
+        );
         if (call.state.callingState !== CallingState.JOINED) {
           if (typeof options.displayName === 'string') {
             const name = options.displayName || getRandomName();
             const id = chatClient?.user?.id ?? sanitizeUserId(name);
-            await chatClient?.upsertUser({
-              id,
-              name,
-              email: (chatClient?.user as any)?.email,
-            } as any);
+            const email = chatClient?.user?.email;
+            await chatClient
+              ?.partialUpdateUser({ id, set: { name, email } })
+              .catch((err) => console.error(`Failed to update user`, err));
           }
 
           if (videoFile) {
-            const api = await publishRemoteFile(call, videoFile);
+            const api = await publishRemoteFile(call, videoFile, {
+              videoFileLeaveCallOnEnd,
+            });
             setRemoteFilePublisherAPI(api);
           } else {
             await call.join({ create: !isRestricted });

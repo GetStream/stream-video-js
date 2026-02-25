@@ -20,6 +20,7 @@ import {
   mockCall,
   mockDeviceIds$,
 } from './mocks';
+import { setupAudioContextMock } from './web-audio.mocks';
 import { getAudioStream } from '../devices';
 import { MicrophoneManager } from '../MicrophoneManager';
 import { of } from 'rxjs';
@@ -27,8 +28,13 @@ import {
   createSoundDetector,
   SoundStateChangeHandler,
 } from '../../helpers/sound-detector';
+import {
+  createNoAudioDetector,
+  NoAudioDetectorOptions,
+} from '../../helpers/no-audio-detector';
 import { PermissionsContext } from '../../permissions';
 import { Tracer } from '../../stats';
+import { settled, withoutConcurrency } from '../../helpers/concurrency';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -52,6 +58,13 @@ vi.mock('../../helpers/sound-detector.ts', () => {
   };
 });
 
+vi.mock('../../helpers/no-audio-detector.ts', () => {
+  console.log('MOCKING no-audio detector');
+  return {
+    createNoAudioDetector: vi.fn(() => async () => {}),
+  };
+});
+
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
   return {
@@ -64,6 +77,11 @@ describe('MicrophoneManager', () => {
   let call: Call;
 
   beforeEach(() => {
+    setupAudioContextMock();
+    vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+      of('granted'),
+    );
+
     call = new Call({
       id: '',
       type: '',
@@ -152,12 +170,31 @@ describe('MicrophoneManager', () => {
       expect(fn).toHaveBeenCalled();
     });
 
+    it('should not start sound detection if browser mic permission is denied', async () => {
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('denied'),
+      );
+      const innerManager = new MicrophoneManager(call, 'disable-tracks');
+      // @ts-expect-error private api
+      const fn = vi.spyOn(innerManager, 'startSpeakingWhileMutedDetection');
+
+      await innerManager.enable();
+
+      await sleep(25);
+      expect(fn).not.toHaveBeenCalled();
+    });
+
     it(`should stop sound detection if mic is enabled`, async () => {
       manager.state.setSpeakingWhileMuted(true);
-      manager['soundDetectorCleanup'] = () => {};
+      manager['soundDetectorCleanup'] = async () => {};
 
       await manager.enable();
+      // @ts-expect-error private field
+      const syncTag = manager.soundDetectorConcurrencyTag;
+      await withoutConcurrency(syncTag, () => Promise.resolve());
+      await settled(syncTag);
 
+      await sleep(25);
       expect(manager.state.speakingWhileMuted).toBe(false);
     });
 
@@ -183,6 +220,38 @@ describe('MicrophoneManager', () => {
       } finally {
         mock.mockImplementation(prevMockImplementation!);
       }
+    });
+
+    it('should not create duplicate sound detectors for the same device', async () => {
+      const detectorMock = vi.mocked(createSoundDetector);
+      const cleanup = vi.fn(async () => {});
+      detectorMock.mockImplementationOnce(() => cleanup);
+
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+
+      expect(detectorMock).toHaveBeenCalledTimes(1);
+
+      await manager['stopSpeakingWhileMutedDetection']();
+      expect(cleanup).toHaveBeenCalledTimes(1);
+    });
+
+    it('should cleanup previous detector before starting a new device detector', async () => {
+      const detectorMock = vi.mocked(createSoundDetector);
+      const cleanupFirst = vi.fn(async () => {});
+      const cleanupSecond = vi.fn(async () => {});
+      detectorMock
+        .mockImplementationOnce(() => cleanupFirst)
+        .mockImplementationOnce(() => cleanupSecond);
+
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+      await manager['startSpeakingWhileMutedDetection']('device-2');
+
+      expect(detectorMock).toHaveBeenCalledTimes(2);
+      expect(cleanupFirst).toHaveBeenCalledTimes(1);
+
+      await manager['stopSpeakingWhileMutedDetection']();
+      expect(cleanupSecond).toHaveBeenCalledTimes(1);
     });
 
     // --- this ---
@@ -411,7 +480,110 @@ describe('MicrophoneManager', () => {
     });
   });
 
+  describe('performTest', () => {
+    it('should return true when microphone captures audio', async () => {
+      const mock = vi.mocked(createNoAudioDetector);
+
+      mock.mockImplementationOnce((_stream, options) => {
+        // Simulate audio detected immediately
+        setImmediate(() => options.onCaptureStatusChange(true));
+        return async () => {};
+      });
+
+      const capturesAudio = await manager.performTest('test-device-id');
+      expect(capturesAudio).toBe(true);
+    });
+
+    it('should return false when microphone does not capture audio', async () => {
+      const mock = vi.mocked(createNoAudioDetector);
+
+      mock.mockImplementationOnce((_stream, options) => {
+        // Simulate no audio detected after test duration
+        setImmediate(() => options.onCaptureStatusChange(false));
+        return async () => {};
+      });
+
+      const capturesAudio = await manager.performTest('test-device-id');
+      expect(capturesAudio).toBe(false);
+    });
+
+    it('should use custom testDurationMs when provided', async () => {
+      const mock = vi.mocked(createNoAudioDetector);
+      let capturedOptions: NoAudioDetectorOptions;
+
+      mock.mockImplementationOnce((_stream, options) => {
+        capturedOptions = options;
+        setTimeout(() => options.onCaptureStatusChange(true), 50);
+        return async () => {};
+      });
+
+      const customDuration = 5000;
+      await manager.performTest('test-device-id', {
+        testDurationMs: customDuration,
+      });
+
+      expect(capturedOptions.noAudioThresholdMs).toBe(customDuration);
+      expect(capturedOptions.emitIntervalMs).toBe(customDuration);
+    });
+
+    it('should call getStream with exact deviceId', async () => {
+      const mock = vi.mocked(createNoAudioDetector);
+      mock.mockImplementationOnce((_stream, options) => {
+        setTimeout(() => options.onCaptureStatusChange(true), 50);
+        return async () => {};
+      });
+
+      const deviceId = 'specific-device-id';
+      await manager.performTest(deviceId);
+
+      expect(getAudioStream).toHaveBeenCalledWith(
+        { deviceId: { exact: deviceId } },
+        expect.any(Tracer),
+      );
+    });
+
+    it('should cleanup detector and dispose stream after test completes', async () => {
+      const mock = vi.mocked(createNoAudioDetector);
+      const cleanupFn = vi.fn(async () => {});
+      let onCaptureStatusChange: ((capturesAudio: boolean) => void) | undefined;
+
+      mock.mockImplementationOnce((_stream, options) => {
+        onCaptureStatusChange = options.onCaptureStatusChange;
+        setTimeout(() => onCaptureStatusChange?.(true), 50);
+        return cleanupFn;
+      });
+
+      await manager.performTest('test-device-id');
+
+      // Wait for cleanup to be called
+      await vi.waitFor(() => {
+        expect(cleanupFn).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('no-audio detector configuration', () => {
+    it('applies silence threshold and emit interval in runtime monitoring', async () => {
+      const noAudioDetector = vi.mocked(createNoAudioDetector);
+
+      manager.setSilenceThreshold(3000);
+      manager['call'].state.setCallingState(CallingState.JOINED);
+      await manager.enable();
+
+      await vi.waitFor(() => {
+        expect(noAudioDetector).toHaveBeenCalled();
+      });
+
+      const options = noAudioDetector.mock.calls.at(-1)?.[1];
+      expect(options).toMatchObject({
+        noAudioThresholdMs: 3000,
+        emitIntervalMs: 3000,
+      });
+    });
+  });
+
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.clearAllMocks();
     vi.resetModules();
   });
