@@ -350,16 +350,28 @@ type StreamVideoClientOptionsWithoutUser = StreamVideoClientBaseOptions & {
   tokenProvider?: never;
 };
 
-type StreamVideoClientOptionsWithUser = StreamVideoClientBaseOptions & {
-  user: User;
-} & (
-    | { token: string; tokenProvider?: TokenProvider }
-    | { token?: string; tokenProvider: TokenProvider }
-  );
+type GuestOrAnonymousUser = Extract<User, { type: 'guest' | 'anonymous' }>;
+type AuthenticatedUser = Exclude<User, GuestOrAnonymousUser>;
+
+type StreamVideoClientOptionsWithGuestOrAnonymousUser =
+  StreamVideoClientBaseOptions & {
+    user: GuestOrAnonymousUser;
+    token?: never;
+    tokenProvider?: never;
+  };
+
+type StreamVideoClientOptionsWithAuthenticatedUser =
+  StreamVideoClientBaseOptions & {
+    user: AuthenticatedUser;
+  } & (
+      | { token: string; tokenProvider?: TokenProvider }
+      | { token?: string; tokenProvider: TokenProvider }
+    );
 
 export type StreamVideoClientOptions =
   | StreamVideoClientOptionsWithoutUser
-  | StreamVideoClientOptionsWithUser;
+  | StreamVideoClientOptionsWithGuestOrAnonymousUser
+  | StreamVideoClientOptionsWithAuthenticatedUser;
 
 export type CallRecordingType = CallRecordingStartedEventRecordingTypeEnum;
 export type StartCallRecordingFnType = {

@@ -45,22 +45,16 @@ export const GuestMeetingScreen = (props: Props) => {
   useEffect(() => {
     let _videoClient: StreamVideoClient | undefined;
     const run = async () => {
-      const fetchAuthDetails = async () => {
-        return await createToken(
-          {
-            user_id: userToConnect.id ?? '!anon',
-            call_cids:
-              mode === 'anonymous' ? `${callType}:${callId}` : undefined,
-          },
-          appEnvironment,
-        );
-      };
-      const { apiKey } = await fetchAuthDetails();
-      const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
+      const { apiKey } = await createToken(
+        {
+          user_id: userToConnect.id ?? '!anon',
+          call_cids: mode === 'anonymous' ? `${callType}:${callId}` : undefined,
+        },
+        appEnvironment,
+      );
       _videoClient = StreamVideoClient.getOrCreateInstance({
         apiKey,
         user: userToConnect,
-        tokenProvider,
         options: { logLevel: 'warn', rejectCallWhenBusy: true },
       });
       setVideoClient(_videoClient);
