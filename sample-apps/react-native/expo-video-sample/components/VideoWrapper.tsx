@@ -15,20 +15,31 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   useEffect(() => {
     let _videoClient: StreamVideoClient | undefined;
     const run = async () => {
-      const user_id = user?.id;
+      if (!user) return;
+      const user_id = user.type === 'anonymous' ? '!anon' : user.id;
       if (!user_id) return;
       const fetchAuthDetails = async () => {
         return await createToken({ user_id });
       };
       const { apiKey, token } = await fetchAuthDetails();
-      const tokenProvider = () => fetchAuthDetails().then((auth) => auth.token);
-      _videoClient = StreamVideoClient.getOrCreateInstance({
-        apiKey,
-        user,
-        token,
-        tokenProvider,
-        options: { logLevel: 'warn' },
-      });
+
+      if (user.type === 'guest' || user.type === 'anonymous') {
+        _videoClient = StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user,
+          options: { logLevel: 'warn' },
+        });
+      } else {
+        const tokenProvider = () =>
+          fetchAuthDetails().then((auth) => auth.token);
+        _videoClient = StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user,
+          token,
+          tokenProvider,
+          options: { logLevel: 'warn' },
+        });
+      }
       setVideoClient(_videoClient);
     };
     run();
