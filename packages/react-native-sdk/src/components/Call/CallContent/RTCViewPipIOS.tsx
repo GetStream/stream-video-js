@@ -149,10 +149,8 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   const participantImageURL = participantInSpotlight?.image || undefined;
 
   // Determine if the call is reconnecting or offline
-  // This aligns with upstream stream-video-swift which shows reconnection view when:
-  // 1. reconnectionStatus == .reconnecting (maps to RECONNECTING/RECONNECTING_FAILED)
-  // 2. Internet is not available (maps to OFFLINE)
   const isReconnecting =
+    callingState === CallingState.MIGRATING ||
     callingState === CallingState.RECONNECTING ||
     callingState === CallingState.RECONNECTING_FAILED ||
     callingState === CallingState.OFFLINE;
@@ -166,6 +164,7 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
   const trackType: VideoTrackType = isScreenSharing
     ? 'screenShareTrack'
     : 'videoTrack';
+
   const isVideoTrackPaused = participantInSpotlight
     ? hasPausedTrack(participantInSpotlight, trackType)
     : false;
