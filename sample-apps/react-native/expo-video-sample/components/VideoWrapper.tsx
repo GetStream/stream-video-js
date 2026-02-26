@@ -23,10 +23,17 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
       };
       const { apiKey, token } = await fetchAuthDetails();
 
-      if (user.type === 'guest' || user.type === 'anonymous') {
+      if (user.type === 'guest') {
         _videoClient = StreamVideoClient.getOrCreateInstance({
           apiKey,
           user,
+          options: { logLevel: 'warn' },
+        });
+      } else if (user.type === 'anonymous') {
+        _videoClient = StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user,
+          token,
           options: { logLevel: 'warn' },
         });
       } else {
