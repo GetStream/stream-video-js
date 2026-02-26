@@ -39,6 +39,7 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
 
     /// Cancellable for content state subscription
     private var contentStateCancellable: AnyCancellable?
+    private var isApplyingContentBatch = false
 
     // MARK: - Individual Properties (Legacy approach - still supported)
 
@@ -53,8 +54,10 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
             guard oldValue != track else { return }
             trackSize = .zero
             prepareForTrackRendering(oldValue)
-            // Update overlay visibility when track changes (may need to show avatar if track is nil)
-            updateOverlayVisibility()
+            if !isApplyingContentBatch {
+                // Track changes coming from non-content flows should still refresh overlays immediately.
+                updateOverlayVisibility()
+            }
         }
     }
 
@@ -96,7 +99,9 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     var isVideoEnabled: Bool = true {
         didSet {
             NSLog("PiP - Renderer: isVideoEnabled changed from \(oldValue) to \(isVideoEnabled), avatarView.participantName='\(avatarView.participantName ?? "nil")'")
-            updateOverlayVisibility()
+            if !isApplyingContentBatch {
+                updateOverlayVisibility()
+            }
         }
     }
 
@@ -104,7 +109,9 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     var isReconnecting: Bool = false {
         didSet {
             reconnectionView.isReconnecting = isReconnecting
-            updateOverlayVisibility()
+            if !isApplyingContentBatch {
+                updateOverlayVisibility()
+            }
         }
     }
 
@@ -545,6 +552,12 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
     /// This method synchronizes the unified content enum with the individual properties
     /// for backward compatibility while providing a cleaner API.
     private func applyContent(_ content: PictureInPictureContent) {
+        isApplyingContentBatch = true
+        defer {
+            isApplyingContentBatch = false
+            updateOverlayVisibility()
+        }
+
         switch content {
         case .inactive:
             // Clear everything
