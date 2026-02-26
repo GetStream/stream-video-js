@@ -114,8 +114,7 @@ class RTCViewPip: UIView {
             guard let streamURLString = streamURL as String? else {
                 NSLog("PiP - No streamURL set, clearing track")
                 DispatchQueue.main.async {
-                    self.pictureInPictureController?.track = nil
-                    self.pictureInPictureController?.isVideoEnabled = false
+                    self.applyTrackStateToController(track: nil, isVideoEnabled: false)
                 }
                 return
             }
@@ -123,8 +122,7 @@ class RTCViewPip: UIView {
             guard let stream = self.webRtcModule?.stream(forReactTag: streamURLString) else {
                 NSLog("PiP - No stream for streamURL: -\(streamURLString), clearing track")
                 DispatchQueue.main.async {
-                    self.pictureInPictureController?.track = nil
-                    self.pictureInPictureController?.isVideoEnabled = false
+                    self.applyTrackStateToController(track: nil, isVideoEnabled: false)
                 }
                 return
             }
@@ -132,8 +130,7 @@ class RTCViewPip: UIView {
             guard let videoTrack = stream.videoTracks.first else {
                 NSLog("PiP - No video track for streamURL: -\(streamURLString), clearing track")
                 DispatchQueue.main.async {
-                    self.pictureInPictureController?.track = nil
-                    self.pictureInPictureController?.isVideoEnabled = false
+                    self.applyTrackStateToController(track: nil, isVideoEnabled: false)
                 }
                 return
             }
@@ -144,8 +141,7 @@ class RTCViewPip: UIView {
 
             DispatchQueue.main.async {
                 NSLog("PiP - Setting video track for streamURL: -\(streamURLString) trackId: \(videoTrack.trackId)")
-                self.pictureInPictureController?.track = videoTrack
-                self.pictureInPictureController?.isVideoEnabled = true
+                self.applyTrackStateToController(track: videoTrack, isVideoEnabled: true)
             }
         }
     }
@@ -225,30 +221,49 @@ class RTCViewPip: UIView {
         NSLog("PiP -   participantImageURL: '\(participantImageURL as String? ?? "nil")'")
         NSLog("PiP -   streamURL: '\(streamURL as String? ?? "nil")'")
 
-        controller.participantName = participantName as String?
-        controller.participantImageURL = participantImageURL as String?
-        controller.isReconnecting = isReconnecting
-        controller.isScreenSharing = isScreenSharing
+        let resolvedTrack: RTCVideoTrack?
+        let isVideoEnabled: Bool
+        if let streamURLString = streamURL as String?,
+           let stream = webRtcModule?.stream(forReactTag: streamURLString),
+           let videoTrack = stream.videoTracks.first {
+            NSLog("PiP - Re-applying track from streamURL: \(streamURLString), trackId: \(videoTrack.trackId)")
+            resolvedTrack = videoTrack
+            isVideoEnabled = true
+        } else {
+            // No stream URL or no track means video is disabled - show avatar
+            NSLog("PiP - No valid stream/track, setting isVideoEnabled=false for avatar")
+            resolvedTrack = nil
+            isVideoEnabled = false
+        }
+
+        // Keep PiP content transitions store-driven with one snapshot update.
+        controller.applyContentSnapshot(
+            track: resolvedTrack,
+            participantName: participantName as String?,
+            participantImageURL: participantImageURL as String?,
+            isVideoEnabled: isVideoEnabled,
+            isScreenSharing: isScreenSharing,
+            isReconnecting: isReconnecting
+        )
+
         controller.hasAudio = hasAudio
         controller.isTrackPaused = isTrackPaused
         controller.isPinned = isPinned
         controller.isSpeaking = isSpeaking
         controller.connectionQuality = connectionQuality
-
-        // Handle streamURL to set track and isVideoEnabled
-        if let streamURLString = streamURL as String?,
-           let stream = webRtcModule?.stream(forReactTag: streamURLString),
-           let videoTrack = stream.videoTracks.first {
-            NSLog("PiP - Re-applying track from streamURL: \(streamURLString), trackId: \(videoTrack.trackId)")
-            controller.track = videoTrack
-            controller.isVideoEnabled = true
-        } else {
-            // No stream URL or no track means video is disabled - show avatar
-            NSLog("PiP - No valid stream/track, setting isVideoEnabled=false for avatar")
-            controller.track = nil
-            controller.isVideoEnabled = false
-        }
         NSLog("PiP - applyCurrentPropertiesToController COMPLETED")
+    }
+
+    /// Applies track/video availability without splitting a single change into multiple setters.
+    private func applyTrackStateToController(track: RTCVideoTrack?, isVideoEnabled: Bool) {
+        pictureInPictureController?.applyContentSnapshot(
+            track: track,
+            participantName: participantName as String?,
+            participantImageURL: participantImageURL as String?,
+            isVideoEnabled: isVideoEnabled,
+            isScreenSharing: isScreenSharing,
+            isReconnecting: isReconnecting
+        )
     }
     
     private func sendPiPChangeEvent(isActive: Bool) {

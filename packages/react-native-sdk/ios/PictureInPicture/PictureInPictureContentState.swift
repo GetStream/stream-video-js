@@ -19,53 +19,40 @@ import Foundation
 /// State changes are published via Combine to allow reactive updates in the view layer.
 final class PictureInPictureContentState: @unchecked Sendable {
 
+    /// A full state snapshot that can be applied atomically.
+    struct Snapshot: Sendable {
+        var track: RTCVideoTrack?
+        var participantName: String?
+        var participantImageURL: String?
+        var isVideoEnabled: Bool
+        var isScreenSharing: Bool
+        var isReconnecting: Bool
+
+        static let `default` = Snapshot(
+            track: nil,
+            participantName: nil,
+            participantImageURL: nil,
+            isVideoEnabled: true,
+            isScreenSharing: false,
+            isReconnecting: false
+        )
+    }
+
     // MARK: - Published State
 
-    /// The current content being displayed in the PiP window
+    /// The current content being displayed in the PiP window.
     @Published private(set) var content: PictureInPictureContent = .inactive
 
-    /// Publisher for observing content changes
+    /// Publisher for observing content changes.
     var contentPublisher: AnyPublisher<PictureInPictureContent, Never> {
         $content.eraseToAnyPublisher()
     }
 
-    // MARK: - Raw State Properties
-    // These properties are set from the React Native bridge
-
-    /// The current video track
-    var track: RTCVideoTrack? {
-        didSet { updateContent() }
-    }
-
-    /// The participant's name
-    var participantName: String? {
-        didSet { updateContent() }
-    }
-
-    /// The participant's profile image URL
-    var participantImageURL: String? {
-        didSet { updateContent() }
-    }
-
-    /// Whether video is enabled for the participant
-    var isVideoEnabled: Bool = true {
-        didSet { updateContent() }
-    }
-
-    /// Whether screen sharing is active
-    var isScreenSharing: Bool = false {
-        didSet { updateContent() }
-    }
-
-    /// Whether the call is reconnecting
-    var isReconnecting: Bool = false {
-        didSet { updateContent() }
-    }
-
     // MARK: - Private
 
-    /// Serial queue for thread-safe state updates
+    /// Serial queue for thread-safe state updates.
     private let stateQueue = DispatchQueue(label: "io.getstream.pip.content.state", qos: .userInteractive)
+    private var snapshot: Snapshot = .default
 
     // MARK: - Initialization
 
@@ -73,54 +60,12 @@ final class PictureInPictureContentState: @unchecked Sendable {
 
     // MARK: - State Update
 
-    /// Updates the content based on current state properties.
-    /// Priority order: reconnecting > avatar (video disabled) > screen sharing > video > inactive
-    private func updateContent() {
+    /// Applies all content inputs in one step to avoid parallel update paths.
+    func apply(_ snapshot: Snapshot) {
         stateQueue.async { [weak self] in
-            guard let self = self else { return }
-
-            let newContent: PictureInPictureContent
-
-            // Priority 1: Reconnection takes precedence
-            if self.isReconnecting {
-                newContent = .reconnecting
-            }
-            // Priority 2: Avatar when video is disabled
-            else if !self.isVideoEnabled {
-                newContent = .avatar(
-                    participantName: self.participantName,
-                    participantImageURL: self.participantImageURL
-                )
-            }
-            // Priority 3: Screen sharing
-            else if self.isScreenSharing {
-                newContent = .screenSharing(
-                    track: self.track,
-                    participantName: self.participantName
-                )
-            }
-            // Priority 4: Video when track is available
-            else if self.track != nil {
-                newContent = .video(
-                    track: self.track,
-                    participantName: self.participantName,
-                    participantImageURL: self.participantImageURL
-                )
-            }
-            // Default: Avatar placeholder when video is expected but no track yet
-            else {
-                newContent = .avatar(
-                    participantName: self.participantName,
-                    participantImageURL: self.participantImageURL
-                )
-            }
-
-            // Only update if content actually changed
-            if self.content != newContent {
-                DispatchQueue.main.async {
-                    self.content = newContent
-                }
-            }
+            guard let self else { return }
+            self.snapshot = snapshot
+            self.publishIfNeeded(for: snapshot)
         }
     }
 
@@ -128,60 +73,49 @@ final class PictureInPictureContentState: @unchecked Sendable {
     /// Called when cleaning up after a call ends.
     func reset() {
         stateQueue.async { [weak self] in
-            guard let self = self else { return }
-            self.track = nil
-            self.participantName = nil
-            self.participantImageURL = nil
-            self.isVideoEnabled = true
-            self.isScreenSharing = false
-            self.isReconnecting = false
+            guard let self else { return }
+            self.snapshot = .default
 
-            DispatchQueue.main.async {
-                self.content = .inactive
+            DispatchQueue.main.async { [weak self] in
+                self?.content = .inactive
             }
         }
     }
-}
 
-// MARK: - Content State Convenience Extension
+    /// Computes and publishes content based on the latest snapshot.
+    private func publishIfNeeded(for snapshot: Snapshot) {
+        let newContent: PictureInPictureContent
 
-extension PictureInPictureContentState {
+        // Priority order: reconnecting > avatar (video disabled) > screen sharing > video > avatar fallback
+        if snapshot.isReconnecting {
+            newContent = .reconnecting
+        } else if !snapshot.isVideoEnabled {
+            newContent = .avatar(
+                participantName: snapshot.participantName,
+                participantImageURL: snapshot.participantImageURL
+            )
+        } else if snapshot.isScreenSharing {
+            newContent = .screenSharing(
+                track: snapshot.track,
+                participantName: snapshot.participantName
+            )
+        } else if snapshot.track != nil {
+            newContent = .video(
+                track: snapshot.track,
+                participantName: snapshot.participantName,
+                participantImageURL: snapshot.participantImageURL
+            )
+        } else {
+            newContent = .avatar(
+                participantName: snapshot.participantName,
+                participantImageURL: snapshot.participantImageURL
+            )
+        }
 
-    /// Convenience method to update multiple properties at once.
-    /// This batches the state update to avoid multiple content recalculations.
-    func update(
-        track: RTCVideoTrack? = nil,
-        participantName: String? = nil,
-        participantImageURL: String? = nil,
-        isVideoEnabled: Bool? = nil,
-        isScreenSharing: Bool? = nil,
-        isReconnecting: Bool? = nil
-    ) {
-        stateQueue.async { [weak self] in
-            guard let self = self else { return }
-
-            // Update all provided properties
-            if let track = track {
-                self.track = track
-            }
-            if let name = participantName {
-                self.participantName = name
-            }
-            if let imageURL = participantImageURL {
-                self.participantImageURL = imageURL
-            }
-            if let videoEnabled = isVideoEnabled {
-                self.isVideoEnabled = videoEnabled
-            }
-            if let screenSharing = isScreenSharing {
-                self.isScreenSharing = screenSharing
-            }
-            if let reconnecting = isReconnecting {
-                self.isReconnecting = reconnecting
-            }
-
-            // Single content update after all properties are set
-            self.updateContent()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            guard self.content != newContent else { return }
+            self.content = newContent
         }
     }
 }

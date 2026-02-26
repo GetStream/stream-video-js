@@ -56,46 +56,35 @@ import Foundation
     /// The participant's name for the avatar placeholder
     @objc public var participantName: String? {
         didSet {
-            NSLog("PiP - Controller.participantName didSet: '\(participantName ?? "nil")', contentViewController exists: \(contentViewController != nil)")
-            contentState.participantName = participantName
-            // Also update directly for immediate response (legacy path)
-            contentViewController?.participantName = participantName
+            syncContentStateIfNeeded()
         }
     }
 
     /// The URL string for the participant's profile image
     @objc public var participantImageURL: String? {
         didSet {
-            contentState.participantImageURL = participantImageURL
-            // Also update directly for immediate response (legacy path)
-            contentViewController?.participantImageURL = participantImageURL
+            syncContentStateIfNeeded()
         }
     }
 
     /// Whether video is enabled - when false, shows avatar placeholder
     @objc public var isVideoEnabled: Bool = true {
         didSet {
-            contentState.isVideoEnabled = isVideoEnabled
-            // Also update directly for immediate response (legacy path)
-            contentViewController?.isVideoEnabled = isVideoEnabled
+            syncContentStateIfNeeded()
         }
     }
 
     /// Whether the call is reconnecting - when true, shows reconnection view
     @objc public var isReconnecting: Bool = false {
         didSet {
-            contentState.isReconnecting = isReconnecting
-            // Also update directly for immediate response (legacy path)
-            contentViewController?.isReconnecting = isReconnecting
+            syncContentStateIfNeeded()
         }
     }
 
     /// Whether screen sharing is active (used for content state tracking)
     @objc public var isScreenSharing: Bool = false {
         didSet {
-            contentState.isScreenSharing = isScreenSharing
-            // Also update directly for immediate response (legacy path)
-            contentViewController?.isScreenSharing = isScreenSharing
+            syncContentStateIfNeeded()
         }
     }
 
@@ -158,6 +147,9 @@ import Foundation
     /// A `StreamPictureInPictureTrackStateAdapter` object that manages the state of the
     /// active track.
     private let trackStateAdapter: StreamPictureInPictureTrackStateAdapter = .init()
+
+    /// When true, multiple content fields are being updated as one transition.
+    private var isApplyingContentSnapshot = false
     
     // MARK: - Content State Access
 
@@ -200,6 +192,7 @@ import Foundation
         // This enables the unified content view system where contentState changes
         // automatically drive view switching in the renderer
         contentViewController?.contentState = contentState
+        syncContentState()
 
         // Subscribe to delegate proxy events for reactive PiP state handling
         setupDelegateProxySubscriptions()
@@ -260,11 +253,48 @@ import Foundation
     // MARK: - Private helpers
 
     private func didUpdate(_ track: RTCVideoTrack?) {
-        // Update content state with new track
-        contentState.track = track
-        // Also update directly for immediate response (legacy path)
-        contentViewController?.track = track
         trackStateAdapter.activeTrack = track
+        syncContentStateIfNeeded()
+    }
+
+    private func syncContentStateIfNeeded() {
+        guard !isApplyingContentSnapshot else { return }
+        syncContentState()
+    }
+
+    private func syncContentState() {
+        let snapshot = PictureInPictureContentState.Snapshot(
+            track: track,
+            participantName: participantName,
+            participantImageURL: participantImageURL,
+            isVideoEnabled: isVideoEnabled,
+            isScreenSharing: isScreenSharing,
+            isReconnecting: isReconnecting
+        )
+        contentState.apply(snapshot)
+    }
+
+    /// Applies all content-driving fields as a single state transition.
+    func applyContentSnapshot(
+        track: RTCVideoTrack?,
+        participantName: String?,
+        participantImageURL: String?,
+        isVideoEnabled: Bool,
+        isScreenSharing: Bool,
+        isReconnecting: Bool
+    ) {
+        isApplyingContentSnapshot = true
+        defer {
+            isApplyingContentSnapshot = false
+            syncContentState()
+        }
+
+        self.track = track
+        self.participantName = participantName
+        self.participantImageURL = participantImageURL
+        self.isVideoEnabled = isVideoEnabled
+        self.isScreenSharing = isScreenSharing
+        self.isReconnecting = isReconnecting
     }
     
     @objc private func didUpdate(_ sourceView: UIView?) {
