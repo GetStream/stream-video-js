@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { hasScreenShare, videoLoggerSystem } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
+  cleanupScreenShareAudioMixing,
+  prepareScreenShareAudioMixing,
   startScreenShareAudioMixing,
   stopScreenShareAudioMixing,
 } from '../native/ScreenShareAudioModule';
@@ -66,6 +68,18 @@ export const useScreenShareAudioMixing = () => {
 
   const isMixingActiveRef = useRef(false);
   const ncWasEnabledRef = useRef(false);
+
+  // Prepare the audio mixer early (iOS only) so the audio graph is
+  // configured during engine setup, before the engine starts rendering.
+  // This enables safe AVAudioPlayerNode attachment.
+  useEffect(() => {
+    prepareScreenShareAudioMixing().catch((e) =>
+      logger.warn('Failed to prepare screen share audio mixing', e),
+    );
+    return () => {
+      cleanupScreenShareAudioMixing().catch(() => {});
+    };
+  }, []);
 
   // Subscribe to the audioEnabled state on ScreenShareManager.
   // This observable is not exposed by a react-bindings hook,

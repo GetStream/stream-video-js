@@ -7,8 +7,16 @@
 #import "StreamVideoReactNative.h"
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
+#import "InAppScreenCapturer.h"
 #import <AVFoundation/AVFoundation.h>
 #import <AudioToolbox/AudioToolbox.h>
+
+// Import Swift-generated header for ScreenShareAudioMixer
+#if __has_include(<stream_react_native_webrtc/stream_react_native_webrtc-Swift.h>)
+#import <stream_react_native_webrtc/stream_react_native_webrtc-Swift.h>
+#elif __has_include("stream_react_native_webrtc-Swift.h")
+#import "stream_react_native_webrtc-Swift.h"
+#endif
 
 // Do not change these consts, it is what is used react-native-webrtc
 NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
@@ -671,6 +679,141 @@ RCT_EXPORT_METHOD(stopInAppScreenCapture:(RCTPromiseResolveBlock)resolve
     WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
     options.useInAppScreenCapture = NO;
     options.includeScreenShareAudio = NO;
+    resolve(nil);
+}
+
+#pragma mark - Screen Share Audio Mixing
+
+RCT_EXPORT_METHOD(prepareScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+
+    // The mixer is created eagerly at factory init time (in WebRTCModule.m)
+    // with the delegate set at APM creation. We just verify it exists here.
+    ScreenShareAudioMixer *mixer = options.screenShareAudioMixer;
+    if (!mixer) {
+        // Fallback: create mixer when NC provides its own APM.
+        // Do NOT set capturePostProcessingDelegate yet — NC may still be active.
+        // The delegate is set later in startScreenShareAudioMixing (after NC is disabled).
+        RTCDefaultAudioProcessingModule *apm = options.defaultAudioProcessingModule;
+        if (!apm) {
+            reject(@"MIXER_ERROR", @"Neither mixer nor APM available", nil);
+            return;
+        }
+        mixer = [[ScreenShareAudioMixer alloc] init];
+        options.screenShareAudioMixer = mixer;
+    }
+
+    NSLog(@"[StreamVideoReactNative] Screen share audio mixer prepared");
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(cleanupScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+
+    // Stop mixing if active
+    ScreenShareAudioMixer *mixer = options.screenShareAudioMixer;
+    if (mixer) {
+        [mixer stopMixing];
+    }
+
+    // Restore voice processing in case it was left bypassed
+    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
+    if (webrtcModule.audioDeviceModule) {
+        [webrtcModule.audioDeviceModule setVoiceProcessingBypassed:NO];
+    }
+
+    // Clear the capture post-processing delegate
+    RTCDefaultAudioProcessingModule *apm = options.defaultAudioProcessingModule;
+    if (apm) {
+        apm.capturePostProcessingDelegate = nil;
+    }
+
+    // Clear the audio buffer handler on the capturer
+    InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
+    if (capturer) {
+        capturer.audioBufferHandler = nil;
+    }
+
+    // Clear the mixer reference
+    options.screenShareAudioMixer = nil;
+
+    NSLog(@"[StreamVideoReactNative] Screen share audio mixer cleaned up");
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(startScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+
+    ScreenShareAudioMixer *mixer = options.screenShareAudioMixer;
+    if (!mixer) {
+        reject(@"MIXER_ERROR", @"Mixer not prepared — call prepareScreenShareAudioMixing first", nil);
+        return;
+    }
+
+    // Ensure mixer is wired as capturePostProcessingDelegate.
+    // When no custom APM is provided, this was set at factory init time.
+    // When NC provides its own APM, prepare only created the mixer without
+    // setting the delegate (to avoid replacing NC's delegate while still active).
+    // NC should be disabled by now (JS calls disableNoiseCancellation first).
+    RTCDefaultAudioProcessingModule *apm = options.defaultAudioProcessingModule;
+    if (apm) {
+        apm.capturePostProcessingDelegate = mixer;
+    }
+
+    // Bypass voice processing (AEC/AGC/NS) so screen audio isn't filtered as echo
+    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
+    if (webrtcModule.audioDeviceModule) {
+        [webrtcModule.audioDeviceModule setVoiceProcessingBypassed:YES];
+    }
+
+    // Enable audio buffer processing
+    [mixer startMixing];
+
+    // Wire audio buffer handler on the active capturer → mixer.enqueue
+    InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
+    if (capturer) {
+        capturer.audioBufferHandler = ^(CMSampleBufferRef sampleBuffer) {
+            ScreenShareAudioMixer *currentMixer = [WebRTCModuleOptions sharedInstance].screenShareAudioMixer;
+            if (currentMixer) {
+                [currentMixer enqueue:sampleBuffer];
+            }
+        };
+    }
+
+    NSLog(@"[StreamVideoReactNative] Screen share audio mixing started (VP bypassed)");
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(stopScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+
+    // Stop audio buffer processing
+    ScreenShareAudioMixer *mixer = options.screenShareAudioMixer;
+    if (mixer) {
+        [mixer stopMixing];
+    }
+
+    // Restore voice processing (AEC/AGC/NS)
+    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
+    if (webrtcModule.audioDeviceModule) {
+        [webrtcModule.audioDeviceModule setVoiceProcessingBypassed:NO];
+    }
+
+    // Clear the audio buffer handler on the capturer
+    InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
+    if (capturer) {
+        capturer.audioBufferHandler = nil;
+    }
+
+    NSLog(@"[StreamVideoReactNative] Screen share audio mixing stopped (VP restored)");
     resolve(nil);
 }
 
