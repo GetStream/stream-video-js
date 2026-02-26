@@ -12,14 +12,14 @@ import {
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { findNodeHandle } from 'react-native';
 import {
   onNativeCallClosed,
   onNativeDimensionsUpdated,
   RTCViewPipNative,
 } from './RTCViewPipNative';
-import { useDebouncedValue } from '../../../utils/hooks';
+import { debounceTime, map } from 'rxjs';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
 import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
@@ -44,15 +44,26 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     onPiPChange,
   } = props;
   const call = useCall();
-  const { useParticipants, useCameraState, useCallCallingState } =
-    useCallStateHooks();
-
+  const { useCameraState, useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
-  const _allParticipants = useParticipants({
-    sortBy: speakerLayoutSortPreset,
-  });
   const { direction } = useCameraState();
-  const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+
+  const [allParticipants, setAllParticipants] = useState<
+    StreamVideoParticipant[]
+  >([]);
+
+  // we debounce the participants to avoid unnecessary rerenders
+  // that happen when participant tracks are all subscribed simultaneously
+  useEffect(() => {
+    if (!call) return;
+    const subscription = call.state.participants$
+      .pipe(
+        debounceTime(300),
+        map((ps) => [...ps].sort(speakerLayoutSortPreset)),
+      )
+      .subscribe(setAllParticipants);
+    return () => subscription.unsubscribe();
+  }, [call]);
 
   const [dominantSpeaker, dominantSpeaker2] = allParticipants.filter(
     (participant) =>
