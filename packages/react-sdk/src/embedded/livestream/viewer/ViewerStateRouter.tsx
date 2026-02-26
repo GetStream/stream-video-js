@@ -5,9 +5,8 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { ViewerLobby } from './ViewerLobby';
 import { ViewerLayout } from './ViewerLayout';
 import { LoadingIndicator } from '../../../components';
-import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
+import { CallFeedback, JoinError } from '../../shared';
 import { useEmbeddedConfiguration } from '../../context';
-import { JoinError } from '../../shared/JoinError/JoinError';
 import { useIsLivestreamPaused } from '../../hooks';
 
 export const ViewerStateRouter = () => {

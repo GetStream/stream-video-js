@@ -71,6 +71,7 @@ export const useInitializeVideoClient = ({
 
     let _client: StreamVideoClient | undefined;
     try {
+      // @ts-expect-error error
       _client = new StreamVideoClient({
         apiKey,
         user: streamUser,

@@ -8,10 +8,8 @@ import {
 
 import { HostLayout } from './HostLayout';
 import { LoadingIndicator } from '../../../components';
-import { CallFeedback } from '../../shared/CallFeedback/CallFeedback';
+import { CallFeedback, JoinError, Lobby } from '../../shared';
 import { useEmbeddedConfiguration } from '../../context';
-import { Lobby } from '../../shared/Lobby/Lobby';
-import { JoinError } from '../../shared/JoinError/JoinError';
 
 export const HostStateRouter = () => {
   const call = useCall();

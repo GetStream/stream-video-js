@@ -2,10 +2,8 @@ import { CallingState } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 import { LoadingIndicator } from '../../components';
-import { Lobby } from '../shared/Lobby/Lobby';
-import { JoinError } from '../shared/JoinError/JoinError';
+import { CallFeedback, JoinError, Lobby } from '../shared';
 import { CallLayout } from './CallLayout';
-import { CallFeedback } from '../shared/CallFeedback/CallFeedback';
 import { useCallback, useState } from 'react';
 import { useEmbeddedConfiguration } from '../context';
 
