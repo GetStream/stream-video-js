@@ -356,8 +356,8 @@ type AuthenticatedUser = Exclude<User, GuestOrAnonymousUser>;
 type StreamVideoClientOptionsWithGuestOrAnonymousUser =
   StreamVideoClientBaseOptions & {
     user: GuestOrAnonymousUser;
-    token?: string;
-    tokenProvider?: TokenProvider;
+    token?: never;
+    tokenProvider?: never;
   };
 
 type StreamVideoClientOptionsWithAuthenticatedUser =
