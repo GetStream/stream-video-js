@@ -38,28 +38,32 @@ export const getClient = (
         storageKey: '@pronto/device-preferences',
       },
     };
-    const tokenProvider = createTokenProvider(creds.user.id, environment);
-    const authOptions = creds.userToken
-      ? {
-          token: creds.userToken,
-          tokenProvider,
-        }
-      : tokenProvider
-        ? { tokenProvider }
-        : undefined;
+    if (creds.user.type === 'guest' || creds.user.type === 'anonymous') {
+      client = new StreamVideoClient({
+        apiKey: creds.apiKey,
+        user: creds.user,
+        options,
+      });
+    } else {
+      const tokenProvider = createTokenProvider(creds.user.id, environment);
+      if (!creds.userToken && !tokenProvider) {
+        throw new Error(
+          'Cannot initialize StreamVideoClient with an authenticated user without token or tokenProvider',
+        );
+      }
 
-    if (!authOptions) {
-      throw new Error(
-        'Cannot initialize StreamVideoClient with a user without token or tokenProvider',
-      );
+      client = new StreamVideoClient({
+        apiKey: creds.apiKey,
+        user: creds.user,
+        ...(creds.userToken
+          ? {
+              token: creds.userToken,
+              ...(tokenProvider ? { tokenProvider } : {}),
+            }
+          : { tokenProvider: tokenProvider! }),
+        options,
+      });
     }
-
-    client = new StreamVideoClient({
-      apiKey: creds.apiKey,
-      user: creds.user,
-      ...authOptions,
-      options,
-    });
   }
 
   return client;
