@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   hasScreenShare,
-  speakerLayoutSortPreset,
   type StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useCall } from '@stream-io/video-react-bindings';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
-import { debounceTime, map } from 'rxjs';
+import { debounceTime } from 'rxjs';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
@@ -60,19 +59,14 @@ export const CallParticipantsSpotlight = ({
   const call = useCall();
   const [allParticipants, setAllParticipants] = useState<
     StreamVideoParticipant[]
-  >(() =>
-    call ? [...call.state.participants].sort(speakerLayoutSortPreset) : [],
-  );
+  >(() => call?.state.participants ?? []);
   useEffect(() => {
     if (!call) {
       setAllParticipants([]);
       return;
     }
     const sub = call.state.participants$
-      .pipe(
-        debounceTime(300),
-        map((ps) => [...ps].sort(speakerLayoutSortPreset)),
-      )
+      .pipe(debounceTime(300))
       .subscribe(setAllParticipants);
     return () => sub.unsubscribe();
   }, [call]);

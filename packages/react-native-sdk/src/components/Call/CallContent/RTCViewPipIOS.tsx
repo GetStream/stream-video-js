@@ -4,7 +4,6 @@ import {
   hasAudio,
   hasPausedTrack,
   hasScreenShare,
-  speakerLayoutSortPreset,
   type StreamVideoParticipant,
   videoLoggerSystem,
   type VideoTrackType,
@@ -20,7 +19,7 @@ import {
   onNativeDimensionsUpdated,
   RTCViewPipNative,
 } from './RTCViewPipNative';
-import { debounceTime, map } from 'rxjs';
+import { debounceTime } from 'rxjs';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
 import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
@@ -51,17 +50,17 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
 
   const [allParticipants, setAllParticipants] = useState<
     StreamVideoParticipant[]
-  >([]);
+  >(call?.state.participants ?? []);
 
   // we debounce the participants to avoid unnecessary rerenders
   // that happen when participant tracks are all subscribed simultaneously
   useEffect(() => {
-    if (!call) return;
+    if (!call) {
+      setAllParticipants([]);
+      return;
+    }
     const subscription = call.state.participants$
-      .pipe(
-        debounceTime(300),
-        map((ps) => [...ps].sort(speakerLayoutSortPreset)),
-      )
+      .pipe(debounceTime(300))
       .subscribe(setAllParticipants);
     return () => subscription.unsubscribe();
   }, [call]);
