@@ -55,12 +55,16 @@ export const CallParticipantsGrid = ({
   const dominantSpeaker = useDominantSpeaker();
   const [remoteParticipants, setRemoteParticipants] = useState<
     StreamVideoParticipant[]
-  >([]);
+  >(() => call?.state.remoteParticipants ?? []);
   const [allParticipants, setAllParticipants] = useState<
     StreamVideoParticipant[]
-  >([]);
+  >(() => call?.state.participants ?? []);
   useEffect(() => {
-    if (!call) return;
+    if (!call) {
+      setRemoteParticipants([]);
+      setAllParticipants([]);
+      return;
+    }
     const sub1 = call.state.remoteParticipants$
       .pipe(debounceTime(300))
       .subscribe(setRemoteParticipants);

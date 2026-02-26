@@ -60,9 +60,14 @@ export const CallParticipantsSpotlight = ({
   const call = useCall();
   const [allParticipants, setAllParticipants] = useState<
     StreamVideoParticipant[]
-  >([]);
+  >(() =>
+    call ? [...call.state.participants].sort(speakerLayoutSortPreset) : [],
+  );
   useEffect(() => {
-    if (!call) return;
+    if (!call) {
+      setAllParticipants([]);
+      return;
+    }
     const sub = call.state.participants$
       .pipe(
         debounceTime(300),

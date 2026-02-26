@@ -141,9 +141,12 @@ export const CallContent = ({
 
   const [remoteParticipants, setRemoteParticipants] = useState<
     StreamVideoParticipant[]
-  >([]);
+  >(() => call?.state.remoteParticipants ?? []);
   useEffect(() => {
-    if (!call) return;
+    if (!call) {
+      setRemoteParticipants([]);
+      return;
+    }
     const sub = call.state.remoteParticipants$
       .pipe(debounceTime(300))
       .subscribe(setRemoteParticipants);
