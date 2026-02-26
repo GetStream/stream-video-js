@@ -17,7 +17,7 @@ export type LayoutOption =
  * Requires a `token` or `tokenProvider` on the component props.
  */
 export interface EmbeddedAuthenticatedUser {
-  type: 'authenticated';
+  type?: 'authenticated';
   id: string;
   name?: string;
   image?: string;
