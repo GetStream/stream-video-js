@@ -15,6 +15,8 @@ const DEPENDENCY_FIELDS = [
 const RN_PIN_FIELDS = ['dependencies', 'devDependencies'];
 const DEFAULT_BASE_REF = 'origin/main';
 const DEFAULT_TAG = 'beta';
+const VERIFY_ATTEMPTS = 15;
+const VERIFY_DELAY_MS = 4000;
 
 // Parse CLI flags and apply defaults.
 function parseArgs(argv) {
@@ -423,16 +425,44 @@ function verifyPublishedVersion(packageName, version, dryRun) {
   if (dryRun) {
     return;
   }
-  const published = run('npm', [
-    'view',
-    `${packageName}@${version}`,
-    'version',
-  ]);
-  if (published !== version) {
-    throw new Error(
-      `Publish verification failed for ${packageName}. Expected ${version}, got ${published}.`,
-    );
+
+  let lastError = null;
+  for (let attempt = 1; attempt <= VERIFY_ATTEMPTS; attempt += 1) {
+    try {
+      const published = run('npm', [
+        'view',
+        `${packageName}@${version}`,
+        'version',
+      ]);
+      if (published === version) {
+        return;
+      }
+
+      lastError = new Error(
+        `Expected ${packageName}@${version}, but npm returned version "${published}".`,
+      );
+    } catch (error) {
+      lastError = error;
+    }
+
+    if (attempt < VERIFY_ATTEMPTS) {
+      console.log(
+        `Waiting for npm metadata propagation (${attempt}/${VERIFY_ATTEMPTS}) for ${packageName}@${version}...`,
+      );
+      sleep(VERIFY_DELAY_MS);
+    }
   }
+
+  throw new Error(
+    `Publish verification failed for ${packageName}@${version} after ${VERIFY_ATTEMPTS} attempts.\n${
+      lastError instanceof Error ? lastError.message : String(lastError)
+    }`,
+  );
+}
+
+// Block synchronously for simple retry backoff.
+function sleep(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 
 // Restore all files modified by this script.
