@@ -236,26 +236,38 @@ final class PictureInPictureAvatarView: UIView {
             return
         }
 
-        // Load image asynchronously
-        let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            guard let self = self, error == nil, let data = data, let image = UIImage(data: data) else {
-                DispatchQueue.main.async { [weak self] in
-                    self?.imageView.image = nil
-                    self?.imageView.isHidden = true
-                    self?.updateInitials()
-                }
-                return
-            }
+        let requestURLString = urlString
 
+        // Load image asynchronously
+        var requestTask: URLSessionDataTask?
+        let task = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
+                guard let requestTask else { return }
+                guard self.currentImageLoadTask === requestTask else { return }
+                defer { self.currentImageLoadTask = nil }
+
+                // Ignore stale/cancelled responses so only the latest request can mutate UI.
+                if let nsError = error as NSError?, nsError.code == NSURLErrorCancelled {
+                    return
+                }
+                guard self.imageURL == requestURLString else { return }
+
+                guard error == nil, let data = data, let image = UIImage(data: data) else {
+                    self.imageView.image = nil
+                    self.imageView.isHidden = true
+                    self.updateInitials()
+                    return
+                }
+
                 self.imageView.image = image
                 self.imageView.isHidden = false
                 self.initialsLabel.isHidden = true
                 self.placeholderImageView.isHidden = true
             }
         }
-        task.resume()
+        requestTask = task
         currentImageLoadTask = task
+        task.resume()
     }
 }
