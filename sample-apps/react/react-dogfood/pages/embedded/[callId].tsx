@@ -15,7 +15,6 @@ export default function EmbeddedPage(props: ServerSideCredentialsProps) {
     <EmbeddedCall
       apiKey={apiKey}
       user={{
-        type: 'authenticated',
         id: user.id!,
         name: user.name,
         image: user.image,
