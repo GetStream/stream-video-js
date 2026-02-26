@@ -1,7 +1,7 @@
 import React, {
   useCallback,
+  useEffect,
   useMemo,
-  useReducer,
   useRef,
   useState,
 } from 'react';
@@ -17,7 +17,7 @@ import {
   type StreamVideoParticipantPatches,
   VisibilityState,
 } from '@stream-io/video-client';
-import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
+import { Subject, debounceTime } from 'rxjs';
 import { useCall } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
@@ -105,8 +105,15 @@ export const CallParticipantsList = ({
   // and a separate force update state to rerender the component to inform that the HashSet has changed
   // NOTE: we use set instead of array or object for O(1) lookup, add and delete
   const viewableParticipantSessionIds = useRef<Set<string>>(new Set());
-  const [_forceUpdateValue, forceUpdate] = useReducer((x) => x + 1, 0);
-  const forceUpdateValue = useDebouncedValue(_forceUpdateValue, 500); // we debounce forced value to avoid multiple viewability change continuous rerenders due to callbacks that occurs simultaneously during a large list scroll or when scrolling is completed
+  const forceUpdate$ = useRef(new Subject<void>()).current;
+  const [forceUpdateValue, setForceUpdateValue] = useState(0);
+  useEffect(() => {
+    const sub = forceUpdate$.pipe(debounceTime(500)).subscribe(() => {
+      setForceUpdateValue((v) => v + 1);
+    });
+    return () => sub.unsubscribe();
+  }, [forceUpdate$]);
+  const forceUpdate = useCallback(() => forceUpdate$.next(), [forceUpdate$]);
 
   // we use a ref to store the active call object
   // so that it can be used in the onViewableItemsChanged callback

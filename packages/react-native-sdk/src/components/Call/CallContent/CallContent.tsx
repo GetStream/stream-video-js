@@ -21,11 +21,12 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import {
   CallingState,
   type StreamReaction,
+  type StreamVideoParticipant,
   videoLoggerSystem,
 } from '@stream-io/video-client';
+import { debounceTime } from 'rxjs';
 
 import { Z_INDEX } from '../../../constants';
-import { useDebouncedValue } from '../../../utils/hooks';
 import {
   FloatingParticipantView as DefaultFloatingParticipantView,
   type FloatingParticipantViewProps,
@@ -134,16 +135,20 @@ export const CallContent = ({
     theme: { callContent },
   } = useTheme();
   const call = useCall();
-  const {
-    useHasOngoingScreenShare,
-    useRemoteParticipants,
-    useLocalParticipant,
-  } = useCallStateHooks();
+  const { useHasOngoingScreenShare, useLocalParticipant } = useCallStateHooks();
 
   useAutoEnterPiPEffect(disablePictureInPicture);
 
-  const _remoteParticipants = useRemoteParticipants();
-  const remoteParticipants = useDebouncedValue(_remoteParticipants, 300); // we debounce the remote participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+  const [remoteParticipants, setRemoteParticipants] = useState<
+    StreamVideoParticipant[]
+  >([]);
+  useEffect(() => {
+    if (!call) return;
+    const sub = call.state.remoteParticipants$
+      .pipe(debounceTime(300))
+      .subscribe(setRemoteParticipants);
+    return () => sub.unsubscribe();
+  }, [call]);
   const localParticipant = useLocalParticipant();
   const isInPiPMode = useIsInPiPMode();
   const hasScreenShare = useHasOngoingScreenShare();
