@@ -29,20 +29,13 @@ final class PictureInPictureEnforcedStopAdapter {
     /// - Parameter pictureInPictureController: The PiP controller to manage.
     init(_ pictureInPictureController: StreamPictureInPictureControllerProtocol) {
         self.pictureInPictureController = pictureInPictureController
-        let appActivePublisher = Publishers.Merge(
-            NotificationCenter.default
-                .publisher(for: UIApplication.didBecomeActiveNotification)
-                .map { _ in true },
-            NotificationCenter.default
-                .publisher(for: UIApplication.willResignActiveNotification)
-                .map { _ in false }
-        )
-        .prepend(UIApplication.shared.applicationState == .active)
 
-        appActivePublisher
+        // Observe app becoming active (foreground)
+        NotificationCenter.default
+            .publisher(for: UIApplication.didBecomeActiveNotification)
             .combineLatest(pictureInPictureController.isPictureInPictureActivePublisher)
-            .sink { [weak self] isAppActive, isPiPActive in
-                self?.handleStateUpdate(isAppActive: isAppActive, isPictureInPictureActive: isPiPActive)
+            .sink { [weak self] _, isActive in
+                self?.handleAppBecameActive(isPictureInPictureActive: isActive)
             }
             .store(in: &cancellables)
     }
@@ -58,21 +51,25 @@ final class PictureInPictureEnforcedStopAdapter {
     /// Handles the app becoming active while PiP may be active.
     ///
     /// - Parameter isPictureInPictureActive: Whether PiP is currently active.
-    private func handleStateUpdate(isAppActive: Bool, isPictureInPictureActive: Bool) {
-        guard isAppActive, isPictureInPictureActive else {
-            stopTimerCancellable?.cancel()
-            stopTimerCancellable = nil
+    private func handleAppBecameActive(isPictureInPictureActive: Bool) {
+        // Cancel any existing timer
+        stopTimerCancellable?.cancel()
+        stopTimerCancellable = nil
+
+        guard isPictureInPictureActive else {
             return
         }
 
-        guard stopTimerCancellable == nil else { return }
-
-        /// Use the screen refresh rate to match upstream enforcement cadence.
-        let refreshRate = max(1, UIScreen.main.maximumFramesPerSecond)
-        let interval = 1.0 / TimeInterval(refreshRate)
+        // Use a timer to repeatedly attempt to stop PiP
+        // This handles cases where the stop might not take effect immediately
+        let screenRefreshRate: TimeInterval = 1.0 / 60.0 // ~60 FPS
         stopTimerCancellable = Timer
-            .publish(every: interval, on: .main, in: .common)
+            .publish(every: screenRefreshRate, on: .main, in: .common)
             .autoconnect()
+            .filter { [weak self] _ in
+                // Only continue if app is still in foreground
+                UIApplication.shared.applicationState == .active
+            }
             .sink { [weak self] _ in
                 guard let self = self,
                       let controller = self.pictureInPictureController else {
@@ -81,20 +78,16 @@ final class PictureInPictureEnforcedStopAdapter {
                     return
                 }
 
-                guard UIApplication.shared.applicationState == .active else {
-                    self.stopTimerCancellable?.cancel()
-                    self.stopTimerCancellable = nil
-                    return
-                }
-
+                // Check if PiP is still active before attempting to stop
+                // Only cancel the timer once PiP has actually stopped
                 guard controller.isPictureInPictureActive else {
-                    pipLog("Picture-in-Picture has stopped, cancelling enforced stop timer.")
+                    NSLog("PiP - Picture-in-Picture has stopped, cancelling enforced stop timer.")
                     self.stopTimerCancellable?.cancel()
                     self.stopTimerCancellable = nil
                     return
                 }
 
-                pipLog("Attempting to forcefully stop Picture-in-Picture.")
+                NSLog("PiP - Attempting to forcefully stop Picture-in-Picture.")
                 controller.stopPictureInPicture()
             }
     }

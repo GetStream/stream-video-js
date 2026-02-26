@@ -150,11 +150,11 @@ final class PictureInPictureReconnectionView: UIView {
     private func startAnimation() {
         // Only animate if we're in a window
         guard window != nil else {
-            pipLog("ReconnectionView: startAnimation called but not in window yet")
+            NSLog("PiP - ReconnectionView: startAnimation called but not in window yet")
             return
         }
 
-        pipLog("ReconnectionView: starting dot animation with CABasicAnimation")
+        NSLog("PiP - ReconnectionView: starting dot animation with CABasicAnimation")
 
         // Stop any existing animations first
         stopAnimation()

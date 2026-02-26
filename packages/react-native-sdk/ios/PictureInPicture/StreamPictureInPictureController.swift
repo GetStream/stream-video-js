@@ -56,8 +56,10 @@ import Foundation
     /// The participant's name for the avatar placeholder
     @objc public var participantName: String? {
         didSet {
-            pipLog("Controller.participantName didSet: '\(participantName ?? "nil")', contentViewController exists: \(contentViewController != nil)")
+            NSLog("PiP - Controller.participantName didSet: '\(participantName ?? "nil")', contentViewController exists: \(contentViewController != nil)")
             contentState.participantName = participantName
+            // Also update directly for immediate response (legacy path)
+            contentViewController?.participantName = participantName
         }
     }
 
@@ -65,6 +67,8 @@ import Foundation
     @objc public var participantImageURL: String? {
         didSet {
             contentState.participantImageURL = participantImageURL
+            // Also update directly for immediate response (legacy path)
+            contentViewController?.participantImageURL = participantImageURL
         }
     }
 
@@ -72,6 +76,8 @@ import Foundation
     @objc public var isVideoEnabled: Bool = true {
         didSet {
             contentState.isVideoEnabled = isVideoEnabled
+            // Also update directly for immediate response (legacy path)
+            contentViewController?.isVideoEnabled = isVideoEnabled
         }
     }
 
@@ -79,6 +85,8 @@ import Foundation
     @objc public var isReconnecting: Bool = false {
         didSet {
             contentState.isReconnecting = isReconnecting
+            // Also update directly for immediate response (legacy path)
+            contentViewController?.isReconnecting = isReconnecting
         }
     }
 
@@ -86,6 +94,8 @@ import Foundation
     @objc public var isScreenSharing: Bool = false {
         didSet {
             contentState.isScreenSharing = isScreenSharing
+            // Also update directly for immediate response (legacy path)
+            contentViewController?.isScreenSharing = isScreenSharing
         }
     }
 
@@ -214,7 +224,7 @@ import Foundation
         contentState.contentPublisher
             .removeDuplicates()
             .sink { [weak self] content in
-                pipLog("Content state changed to: \(content)")
+                NSLog("PiP - Content state changed to: \(content)")
             }
             .store(in: &cancellableBag)
     }
@@ -227,7 +237,7 @@ import Foundation
         case .didStop:
             onPiPStateChange?(false)
         case let .failedToStart(_, error):
-            pipLog("failedToStartPictureInPictureWithError: \(error.localizedDescription)")
+            NSLog("PiP - failedToStartPictureInPictureWithError: \(error.localizedDescription)")
             // Notify JS that PiP failed to start so it can update its state accordingly
             onPiPStateChange?(false)
         case let .restoreUI(_, completionHandler):
@@ -241,7 +251,7 @@ import Foundation
     func setPreferredContentSize(_ size: CGSize) {
         // Guard against setting zero size to avoid iOS PGPegasus code:-1003 error
         guard size.width > 0, size.height > 0 else {
-            pipLog("Ignoring setPreferredContentSize with zero dimensions: \(size)")
+            NSLog("PiP - Ignoring setPreferredContentSize with zero dimensions: \(size)")
             return
         }
         contentViewController?.preferredContentSize = size
@@ -250,7 +260,10 @@ import Foundation
     // MARK: - Private helpers
 
     private func didUpdate(_ track: RTCVideoTrack?) {
+        // Update content state with new track
         contentState.track = track
+        // Also update directly for immediate response (legacy path)
+        contentViewController?.track = track
         trackStateAdapter.activeTrack = track
     }
     
@@ -262,7 +275,7 @@ import Foundation
                 
                 pictureInPictureController?
                     .publisher(for: \.isPictureInPicturePossible)
-                    .sink { pipLog("isPictureInPicturePossible:\($0)") }
+                    .sink { NSLog("PiP - isPictureInPicturePossible:\($0)") }
                     .store(in: &cancellableBag)
                 
                 pictureInPictureController?
