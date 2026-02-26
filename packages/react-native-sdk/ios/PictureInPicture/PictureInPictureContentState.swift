@@ -17,25 +17,20 @@ import Foundation
 /// from the JavaScript layer.
 ///
 /// State changes are published via Combine to allow reactive updates in the view layer.
-final class PictureInPictureContentState: @unchecked Sendable {
+///
+/// Concurrency model:
+/// - This state container is main-thread confined.
+/// - `RTCVideoTrack` references are never sent across queues.
+final class PictureInPictureContentState {
 
     /// A full state snapshot that can be applied atomically.
-    struct Snapshot: Sendable {
+    struct Snapshot {
         var track: RTCVideoTrack?
         var participantName: String?
         var participantImageURL: String?
         var isVideoEnabled: Bool
         var isScreenSharing: Bool
         var isReconnecting: Bool
-
-        static let `default` = Snapshot(
-            track: nil,
-            participantName: nil,
-            participantImageURL: nil,
-            isVideoEnabled: true,
-            isScreenSharing: false,
-            isReconnecting: false
-        )
     }
 
     // MARK: - Published State
@@ -50,9 +45,7 @@ final class PictureInPictureContentState: @unchecked Sendable {
 
     // MARK: - Private
 
-    /// Serial queue for thread-safe state updates.
-    private let stateQueue = DispatchQueue(label: "io.getstream.pip.content.state", qos: .userInteractive)
-    private var snapshot: Snapshot = .default
+    private var snapshot: Snapshot = makeDefaultSnapshot()
 
     // MARK: - Initialization
 
@@ -62,23 +55,18 @@ final class PictureInPictureContentState: @unchecked Sendable {
 
     /// Applies all content inputs in one step to avoid parallel update paths.
     func apply(_ snapshot: Snapshot) {
-        stateQueue.async { [weak self] in
-            guard let self else { return }
-            self.snapshot = snapshot
-            self.publishIfNeeded(for: snapshot)
-        }
+        ensureMainThread()
+        self.snapshot = snapshot
+        publishIfNeeded(for: snapshot)
     }
 
     /// Resets all state to defaults.
     /// Called when cleaning up after a call ends.
     func reset() {
-        stateQueue.async { [weak self] in
-            guard let self else { return }
-            self.snapshot = .default
-
-            DispatchQueue.main.async { [weak self] in
-                self?.content = .inactive
-            }
+        ensureMainThread()
+        snapshot = Self.makeDefaultSnapshot()
+        if content != .inactive {
+            content = .inactive
         }
     }
 
@@ -112,10 +100,24 @@ final class PictureInPictureContentState: @unchecked Sendable {
             )
         }
 
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            guard self.content != newContent else { return }
-            self.content = newContent
+        if content != newContent {
+            content = newContent
         }
+    }
+
+    /// PiP content state is expected to be mutated on the main thread only.
+    private func ensureMainThread() {
+        dispatchPrecondition(condition: .onQueue(.main))
+    }
+
+    private static func makeDefaultSnapshot() -> Snapshot {
+        Snapshot(
+            track: nil,
+            participantName: nil,
+            participantImageURL: nil,
+            isVideoEnabled: true,
+            isScreenSharing: false,
+            isReconnecting: false
+        )
     }
 }
