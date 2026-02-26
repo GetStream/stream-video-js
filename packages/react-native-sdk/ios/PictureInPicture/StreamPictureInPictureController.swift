@@ -216,8 +216,8 @@ import Foundation
     private func setupContentStateSubscriptions() {
         contentState.contentPublisher
             .removeDuplicates()
-            .sink { [weak self] content in
-                NSLog("PiP - Content state changed to: \(content)")
+            .sink { content in
+                PictureInPictureLogger.log("Content state changed to: \(content)")
             }
             .store(in: &cancellableBag)
     }
@@ -230,7 +230,7 @@ import Foundation
         case .didStop:
             onPiPStateChange?(false)
         case let .failedToStart(_, error):
-            NSLog("PiP - failedToStartPictureInPictureWithError: \(error.localizedDescription)")
+            PictureInPictureLogger.log("failedToStartPictureInPictureWithError: \(error.localizedDescription)")
             // Notify JS that PiP failed to start so it can update its state accordingly
             onPiPStateChange?(false)
         case let .restoreUI(_, completionHandler):
@@ -244,7 +244,7 @@ import Foundation
     func setPreferredContentSize(_ size: CGSize) {
         // Guard against setting zero size to avoid iOS PGPegasus code:-1003 error
         guard size.width > 0, size.height > 0 else {
-            NSLog("PiP - Ignoring setPreferredContentSize with zero dimensions: \(size)")
+            PictureInPictureLogger.log("Ignoring setPreferredContentSize with zero dimensions: \(size)")
             return
         }
         contentViewController?.preferredContentSize = size
@@ -305,7 +305,7 @@ import Foundation
                 
                 pictureInPictureController?
                     .publisher(for: \.isPictureInPicturePossible)
-                    .sink { NSLog("PiP - isPictureInPicturePossible:\($0)") }
+                    .sink { PictureInPictureLogger.log("isPictureInPicturePossible:\($0)") }
                     .store(in: &cancellableBag)
                 
                 pictureInPictureController?
