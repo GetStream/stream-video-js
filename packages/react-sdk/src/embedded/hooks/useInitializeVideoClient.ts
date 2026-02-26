@@ -75,17 +75,18 @@ export const useInitializeVideoClient = ({
           image: user.image,
         };
 
-        if (!token || !tokenProviderRef.current) {
-          throw new Error(
-            'Cannot initialize StreamVideoClient with an authenticated user without token or tokenProvider',
-          );
-        }
-
+        const currentTokenProvider = tokenProviderRef.current;
         _client = new StreamVideoClient({
           apiKey,
           user: streamUser,
-          token,
-          tokenProvider: tokenProviderRef.current,
+          ...(token
+            ? {
+                token,
+                ...(currentTokenProvider
+                  ? { tokenProvider: currentTokenProvider }
+                  : {}),
+              }
+            : { tokenProvider: currentTokenProvider! }),
           options,
         });
       }
