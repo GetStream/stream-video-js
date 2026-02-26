@@ -12,7 +12,7 @@ import {
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { findNodeHandle } from 'react-native';
 import {
   onNativeCallClosed,

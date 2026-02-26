@@ -68,17 +68,30 @@ enum PictureInPictureContent: Equatable, CustomStringConvertible {
         case (.inactive, .inactive):
             return true
         case let (.video(lhsTrack, lhsName, lhsImage), .video(rhsTrack, rhsName, rhsImage)):
-            return lhsTrack?.trackId == rhsTrack?.trackId
+            return isSameTrackInstance(lhsTrack, rhsTrack)
                 && lhsName == rhsName
                 && lhsImage == rhsImage
         case let (.screenSharing(lhsTrack, lhsName), .screenSharing(rhsTrack, rhsName)):
-            return lhsTrack?.trackId == rhsTrack?.trackId
+            return isSameTrackInstance(lhsTrack, rhsTrack)
                 && lhsName == rhsName
         case let (.avatar(lhsName, lhsImage), .avatar(rhsName, rhsImage)):
             return lhsName == rhsName
                 && lhsImage == rhsImage
         case (.reconnecting, .reconnecting):
             return true
+        default:
+            return false
+        }
+    }
+
+    /// Track identity must be reference-based so reconnect-created tracks
+    /// with reused `trackId` still propagate through content updates.
+    private static func isSameTrackInstance(_ lhs: RTCVideoTrack?, _ rhs: RTCVideoTrack?) -> Bool {
+        switch (lhs, rhs) {
+        case (nil, nil):
+            return true
+        case let (lhsTrack?, rhsTrack?):
+            return lhsTrack === rhsTrack
         default:
             return false
         }

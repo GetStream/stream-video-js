@@ -51,7 +51,7 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
             // - startFrameStreaming for the new track and only if we are already
             // in picture-in-picture.
             NSLog("PiP - Renderer: track changed from \(oldValue?.trackId ?? "nil") to \(track?.trackId ?? "nil")")
-            guard oldValue != track else { return }
+            guard !isSameTrackInstance(oldValue, track) else { return }
             trackSize = .zero
             prepareForTrackRendering(oldValue)
             if !isApplyingContentBatch {
@@ -530,6 +530,17 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
         skippedFrames = 0
         requiresResize = false
         startFrameStreaming(for: track, on: window)
+    }
+
+    private func isSameTrackInstance(_ lhs: RTCVideoTrack?, _ rhs: RTCVideoTrack?) -> Bool {
+        switch (lhs, rhs) {
+        case (nil, nil):
+            return true
+        case let (lhsTrack?, rhsTrack?):
+            return lhsTrack === rhsTrack
+        default:
+            return false
+        }
     }
 
     // MARK: - Content State System

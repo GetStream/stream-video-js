@@ -134,7 +134,7 @@ class RTCViewPip: UIView {
                 }
                 return
             }
-            if (self.pictureInPictureController?.track == videoTrack) {
+            if isSameTrackInstance(self.pictureInPictureController?.track, videoTrack) {
                 NSLog("PiP - Skipping video track for streamURL: -\(streamURLString)")
                 return
             }
@@ -264,6 +264,17 @@ class RTCViewPip: UIView {
             isScreenSharing: isScreenSharing,
             isReconnecting: isReconnecting
         )
+    }
+
+    private func isSameTrackInstance(_ lhs: RTCVideoTrack?, _ rhs: RTCVideoTrack?) -> Bool {
+        switch (lhs, rhs) {
+        case (nil, nil):
+            return true
+        case let (lhsTrack?, rhsTrack?):
+            return lhsTrack === rhsTrack
+        default:
+            return false
+        }
     }
     
     private func sendPiPChangeEvent(isActive: Bool) {
