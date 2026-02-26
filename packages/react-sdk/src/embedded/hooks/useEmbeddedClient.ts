@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useInitializeVideoClient } from './useInitializeVideoClient';
 import { useInitializeCall } from './useInitializeCall';
 import { useNoiseCancellationLoader } from './useNoiseCancellationLoader';
@@ -44,6 +45,12 @@ export const useEmbeddedClient = ({
     callId,
     handleError,
   });
+
+  useEffect(() => {
+    if (!call) return;
+
+    call.tracer.trace('embedded.initialized', { callType });
+  }, [call, callType]);
 
   const { noiseCancellation, ready: noiseCancellationReady } =
     useNoiseCancellationLoader(call);
