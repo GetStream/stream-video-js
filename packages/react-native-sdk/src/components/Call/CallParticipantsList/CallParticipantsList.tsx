@@ -104,8 +104,16 @@ export const CallParticipantsList = ({
   // we use a HashSet to track the currently viewable participants
   // and a separate force update state to rerender the component to inform that the HashSet has changed
   // NOTE: we use set instead of array or object for O(1) lookup, add and delete
-  const viewableParticipantSessionIds = useRef<Set<string>>(new Set());
-  const forceUpdate$ = useRef(new Subject<void>()).current;
+  // Lazy ref init: avoids recreating instances on every render (useRef doesn't support initializer fns)
+  const viewableParticipantSessionIds = useRef<Set<string>>(null!);
+  if (!viewableParticipantSessionIds.current) {
+    viewableParticipantSessionIds.current = new Set();
+  }
+  const forceUpdate$Ref = useRef<Subject<void>>(null!);
+  if (!forceUpdate$Ref.current) {
+    forceUpdate$Ref.current = new Subject<void>();
+  }
+  const forceUpdate$ = forceUpdate$Ref.current;
   const [forceUpdateValue, setForceUpdateValue] = useState(0);
   useEffect(() => {
     const sub = forceUpdate$.pipe(debounceTime(500)).subscribe(() => {
