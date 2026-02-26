@@ -5,7 +5,6 @@ import {
   StreamCall,
   StreamVideo,
   StreamVideoClient,
-  User,
 } from '@stream-io/video-react-native-sdk';
 import { MeetingStackParamList } from '../../../types';
 import { MeetingUI } from '../../components/MeetingUI';
@@ -29,34 +28,33 @@ export const GuestMeetingScreen = (props: Props) => {
   } = props.route;
   const callType = 'default';
 
-  const userToConnect: User = useMemo(
-    () =>
-      mode === 'guest'
-        ? {
-            id: guestUserId,
-            type: 'guest',
-          }
-        : {
-            type: 'anonymous',
-          },
-    [mode, guestUserId],
-  );
-
   useEffect(() => {
     let _videoClient: StreamVideoClient | undefined;
     const run = async () => {
-      const { apiKey } = await createToken(
+      const { apiKey, token } = await createToken(
         {
-          user_id: userToConnect.id ?? '!anon',
+          user_id: mode === 'guest' ? guestUserId : '!anon',
           call_cids: mode === 'anonymous' ? `${callType}:${callId}` : undefined,
         },
         appEnvironment,
       );
-      _videoClient = StreamVideoClient.getOrCreateInstance({
-        apiKey,
-        user: userToConnect,
-        options: { logLevel: 'warn', rejectCallWhenBusy: true },
-      });
+
+      const options = { logLevel: 'warn', rejectCallWhenBusy: true } as const;
+      if (mode === 'guest') {
+        _videoClient = StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user: { id: guestUserId, type: 'guest' },
+          options,
+        });
+      } else {
+        _videoClient = StreamVideoClient.getOrCreateInstance({
+          apiKey,
+          user: { type: 'anonymous' },
+          token,
+          options,
+        });
+      }
+
       setVideoClient(_videoClient);
     };
 
@@ -66,7 +64,7 @@ export const GuestMeetingScreen = (props: Props) => {
       _videoClient?.disconnectUser();
       setVideoClient(undefined);
     };
-  }, [userToConnect, mode, callId, appEnvironment]);
+  }, [mode, guestUserId, callId, appEnvironment]);
 
   const call = useMemo<Call | undefined>(() => {
     if (!videoClient) {
