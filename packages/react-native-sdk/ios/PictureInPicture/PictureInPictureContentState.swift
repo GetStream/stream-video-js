@@ -74,20 +74,20 @@ final class PictureInPictureContentState {
     private func publishIfNeeded(for snapshot: Snapshot) {
         let newContent: PictureInPictureContent
 
-        // Priority order: reconnecting > avatar (video disabled) > screen sharing > video > avatar fallback
+        // Priority order: reconnecting > screen sharing > avatar (video disabled) > video > avatar fallback
         if snapshot.isReconnecting {
             newContent = .reconnecting
-        } else if !snapshot.isVideoEnabled {
-            newContent = .avatar(
-                participantName: snapshot.participantName,
-                participantImageURL: snapshot.participantImageURL
-            )
         } else if snapshot.isScreenSharing {
             newContent = .screenSharing(
                 track: snapshot.track,
                 participantName: snapshot.participantName
             )
-        } else if snapshot.track != nil {
+        } else if !snapshot.isVideoEnabled {
+            newContent = .avatar(
+                participantName: snapshot.participantName,
+                participantImageURL: snapshot.participantImageURL
+            )
+        } else if snapshot.isVideoEnabled, snapshot.track != nil {
             newContent = .video(
                 track: snapshot.track,
                 participantName: snapshot.participantName,
