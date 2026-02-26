@@ -9,6 +9,7 @@ import {
   videoLoggerSystem,
   type VideoTrackType,
   hasVideo,
+  isPinned,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
@@ -181,7 +182,9 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     : false;
 
   // Determine if the participant is pinned
-  const participantIsPinned = participantInSpotlight?.pin !== undefined;
+  const participantIsPinned = participantInSpotlight
+    ? isPinned(participantInSpotlight)
+    : false;
 
   // Determine if the participant is speaking
   const participantIsSpeaking = participantInSpotlight?.isSpeaking ?? false;
