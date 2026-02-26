@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   LogLevel,
   StreamVideoClient,
@@ -34,51 +34,61 @@ export const useInitializeVideoClient = ({
   const tokenProviderRef = useRef(tokenProvider);
   tokenProviderRef.current = tokenProvider;
 
-  const streamUser = useMemo<User>(() => {
-    const base = {
-      name: user.name,
-      image: user.image,
-    };
-
-    switch (user.type) {
-      case 'anonymous':
-        return {
-          ...base,
-          id: '!anon',
-          type: 'anonymous',
-        };
-
-      case 'guest':
-        return {
-          ...base,
-          id: user.id,
-          type: 'guest',
-        };
-
-      case 'authenticated':
-        return {
-          ...base,
-          id: user.id,
-        };
-      default: {
-        throw new Error(`Unsupported user type`);
-      }
-    }
-  }, [user.type, user.id, user.name, user.image]);
-
   useEffect(() => {
     if (!apiKey) return;
 
+    const options = logLevel ? { logLevel } : undefined;
     let _client: StreamVideoClient | undefined;
     try {
-      // @ts-expect-error error
-      _client = new StreamVideoClient({
-        apiKey,
-        user: streamUser,
-        token,
-        tokenProvider: tokenProviderRef.current,
-        options: logLevel ? { logLevel } : undefined,
-      });
+      if (user?.type === 'guest') {
+        const streamUser: User = {
+          id: user.id,
+          type: 'guest',
+          name: user.name,
+          image: user.image,
+        };
+
+        _client = new StreamVideoClient({
+          apiKey,
+          user: streamUser,
+          options,
+        });
+      } else if (user?.type === 'anonymous') {
+        const streamUser: User = {
+          id: '!anon',
+          type: 'anonymous',
+          name: user.name,
+          image: user.image,
+        };
+
+        _client = new StreamVideoClient({
+          apiKey,
+          user: streamUser,
+          token,
+          tokenProvider: tokenProviderRef.current,
+          options,
+        });
+      } else {
+        const streamUser: User = {
+          id: user.id,
+          name: user.name,
+          image: user.image,
+        };
+
+        if (!token || !tokenProviderRef.current) {
+          throw new Error(
+            'Cannot initialize StreamVideoClient with an authenticated user without token or tokenProvider',
+          );
+        }
+
+        _client = new StreamVideoClient({
+          apiKey,
+          user: streamUser,
+          token,
+          tokenProvider: tokenProviderRef.current,
+          options,
+        });
+      }
 
       setClient(_client);
     } catch (err) {
@@ -92,7 +102,16 @@ export const useInitializeVideoClient = ({
 
       setClient(undefined);
     };
-  }, [apiKey, streamUser, token, logLevel, handleError]);
+  }, [
+    apiKey,
+    user.id,
+    user.type,
+    user.name,
+    user.image,
+    token,
+    logLevel,
+    handleError,
+  ]);
 
   return client;
 };
