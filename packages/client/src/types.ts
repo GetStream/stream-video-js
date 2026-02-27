@@ -23,7 +23,6 @@ import type {
 import type { Comparator } from './sorting';
 import type { StreamVideoWriteableStateStore } from './store';
 import { AxiosError } from 'axios';
-import { RejectReason } from './coordinator/connection/types';
 import type { Call } from './Call';
 
 export type StreamReaction = Pick<
