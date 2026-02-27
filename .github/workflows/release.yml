@@ -1,0 +1,142 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        type: choice
+        options:
+          - stable
+          - prerelease
+        default: stable
+      prerelease_tag:
+        description: 'Pre-release tag (only used when release_type is prerelease)'
+        required: false
+        type: choice
+        options:
+          - rc
+          - beta
+          - alpha
+        default: rc
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  release:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+          cache: 'yarn'
+          registry-url: 'https://registry.npmjs.org'
+
+      - run: yarn install --immutable
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Determine Release Type
+        id: release_type
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "type=stable" >> $GITHUB_OUTPUT
+          else
+            echo "type=${{ github.event.inputs.release_type }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate Pre-release Branch
+        if: steps.release_type.outputs.type == 'prerelease'
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          if [ "$BRANCH" = "main" ]; then
+            echo "❌ Pre-releases cannot be published from the main branch"
+            echo "💡 Please run pre-releases from a feature or release branch"
+            exit 1
+          fi
+          echo "✅ Running pre-release from branch: $BRANCH"
+
+      - name: Exit Pre-release Mode (stable releases only)
+        if: steps.release_type.outputs.type == 'stable'
+        run: |
+          if [ -f .changeset/pre.json ]; then
+            echo "📦 Exiting pre-release mode for stable release..."
+            yarn changeset pre exit
+            git add .changeset/pre.json
+            git commit -m "chore: exit pre-release mode"
+            git push
+            echo "✅ Exited pre-release mode"
+          else
+            echo "✅ Not in pre-release mode, proceeding with stable release"
+          fi
+
+      - name: Enter Pre-release Mode (prerelease only, if needed)
+        if: steps.release_type.outputs.type == 'prerelease'
+        run: |
+          if [ ! -f .changeset/pre.json ]; then
+            echo "📦 Entering ${{ github.event.inputs.prerelease_tag }} pre-release mode..."
+            yarn changeset pre enter ${{ github.event.inputs.prerelease_tag }}
+            git add .changeset/pre.json
+            git commit -m "chore: enter pre-release mode (${{ github.event.inputs.prerelease_tag }})"
+            git push
+            echo "✅ Entered ${{ github.event.inputs.prerelease_tag }} pre-release mode"
+          else
+            echo "✅ Already in pre-release mode"
+          fi
+
+      - name: Lint Packages
+        run: yarn lint:ci:packages
+
+      - name: Test Packages
+        run: yarn test:ci:libs
+
+      - name: Build Packages
+        run: NODE_ENV=production yarn build:libs
+
+      - name: Create Release Pull Request or Publish (stable)
+        if: steps.release_type.outputs.type == 'stable'
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          setupGitUser: false
+          commitMode: 'github-api'
+          commit: 'chore: version packages'
+          title: 'release: next version'
+          publish: yarn changeset:publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Version and Publish (prerelease)
+        if: steps.release_type.outputs.type == 'prerelease'
+        id: prerelease
+        run: |
+          yarn changeset version
+          yarn changeset publish
+          echo "published=true" >> $GITHUB_OUTPUT
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Trigger Sample App Deployment
+        if: |
+          (steps.release_type.outputs.type == 'stable' && steps.changesets.outputs.published == 'true') ||
+          (steps.release_type.outputs.type == 'prerelease' && steps.prerelease.outputs.published == 'true')
+        run: gh workflow run 'Deploy React Sample Apps'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

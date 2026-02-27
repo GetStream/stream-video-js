@@ -58,7 +58,7 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
@@ -80,7 +80,7 @@ jobs:
     if: ${{ github.event_name != 'workflow_dispatch' || !github.event.inputs.platform || github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both' }}
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Select XCode version
         run: sudo xcode-select --switch /Applications/Xcode_26.1.1.app
@@ -97,7 +97,7 @@ jobs:
         run: bundle exec fastlane build_ios
 
       - name: Upload .ipa
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ipa
           path: |
@@ -111,7 +111,7 @@ jobs:
     if: ${{ (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (!github.event.inputs.platform || github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both')) }}
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Select XCode version
         run: sudo xcode-select --switch /Applications/Xcode_26.1.1.app
@@ -120,7 +120,7 @@ jobs:
         timeout-minutes: 15
 
       - name: Download .ipa
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: ipa
 
@@ -135,7 +135,7 @@ jobs:
     if: ${{ github.event_name != 'workflow_dispatch' || !github.event.inputs.platform || github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
@@ -167,13 +167,13 @@ jobs:
         run: bundle exec fastlane build_android_play_store
 
       - name: Upload .apk
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: apk
           path: '**/dist/*.apk'
 
       - name: Upload .aab
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: aab
           path: '**/dist/*.aab'
@@ -185,13 +185,13 @@ jobs:
     if: ${{ (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (!github.event.inputs.platform || github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both')) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
 
       - name: Download .aab
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: aab
 

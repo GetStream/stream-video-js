@@ -1,0 +1,16 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3/schema.json",
+  "changelog": [
+    "@changesets/changelog-github",
+    { "repo": "GetStream/stream-video-js" }
+  ],
+  "commit": false,
+  "fixed": [],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "prettier": true,
+  "bumpVersionsWithWorkspaceProtocolOnly": false,
+  "updateInternalDependencies": "patch",
+  "ignore": []
+}

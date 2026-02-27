@@ -63,9 +63,12 @@
     "release:video-filters-react-native": "yarn workspace @stream-io/video-filters-react-native npm publish --access=public --tag=latest",
     "release:noise-cancellation-react-native": "yarn workspace @stream-io/noise-cancellation-react-native npm publish --access=public --tag=latest",
     "release:styling": "yarn workspace @stream-io/video-styling npm publish --access=public --tag=latest",
+    "changeset:publish": "changeset publish",
     "postinstall": "husky"
   },
   "devDependencies": {
+    "@changesets/changelog-github": "^0.5.2",
+    "@changesets/cli": "^2.29.8",
     "@eslint/js": "^9.37.0",
     "@jscutlery/semver": "^5.7.1",
     "@nx/devkit": "^21.6.4",

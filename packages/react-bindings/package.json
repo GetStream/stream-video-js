@@ -26,16 +26,15 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
+    "@stream-io/video-client": "workspace:*",
     "i18next": "^25.6.0",
     "rxjs": "~7.8.2"
   },
   "peerDependencies": {
-    "@stream-io/video-client": "workspace:^",
     "react": "^17 || ^18 || ^19"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^12.1.4",
-    "@stream-io/video-client": "workspace:^",
     "@types/react": "~19.1.17",
     "react": "19.1.0",
     "rimraf": "^6.0.1",
