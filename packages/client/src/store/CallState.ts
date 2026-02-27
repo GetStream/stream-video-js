@@ -1042,7 +1042,7 @@ export class CallState {
   ) => {
     const participant = this.findParticipantBySessionId(sessionId);
     if (!participant) {
-      this.logger.warn(`Participant with sessionId ${sessionId} not found`);
+      this.logger.debug(`Participant with sessionId ${sessionId} not found`);
       return;
     }
 
