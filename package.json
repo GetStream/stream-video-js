@@ -59,6 +59,7 @@
     "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public --tag=latest",
     "release:react-sdk": "yarn workspace @stream-io/video-react-sdk npm publish --access=public --tag=latest",
     "release:react-native-sdk": "yarn workspace @stream-io/video-react-native-sdk npm publish --access=public --tag=latest",
+    "release:react-native-sdk:beta": "node scripts/release-rn-sdk-beta.mjs",
     "release:audio-filters-web": "yarn workspace @stream-io/audio-filters-web npm publish --access=public --tag=latest",
     "release:video-filters-web": "yarn workspace @stream-io/video-filters-web npm publish --access=public --tag=latest",
     "release:video-filters-react-native": "yarn workspace @stream-io/video-filters-react-native npm publish --access=public --tag=latest",
