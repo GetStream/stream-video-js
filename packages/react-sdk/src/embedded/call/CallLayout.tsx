@@ -1,0 +1,66 @@
+import { useCallback, useState } from 'react';
+import clsx from 'clsx';
+import { OwnCapability } from '@stream-io/video-client';
+import { Restricted } from '@stream-io/video-react-bindings';
+import {
+  CallParticipantsList,
+  PermissionRequests,
+  SpeakingWhileMutedNotification,
+} from '../../components';
+
+import { useLayout, useWakeLock } from '../hooks';
+import { ConnectionNotification } from '../shared';
+import { CallControls } from './CallControls';
+import { CallHeader } from './CallHeader';
+
+/**
+ * CallLayout renders the active call experience with layout, controls and sidebar.
+ */
+export const CallLayout = () => {
+  useWakeLock();
+  const [showParticipants, setShowParticipants] = useState(false);
+
+  const { Component: LayoutComponent, props: layoutProps } = useLayout();
+
+  const handleToggleParticipants = useCallback(() => {
+    setShowParticipants((prev) => !prev);
+  }, []);
+
+  return (
+    <div className="str-video__embedded-call">
+      <ConnectionNotification />
+      <PermissionRequests />
+      <div className="str-video__embedded-notifications">
+        <Restricted
+          requiredGrants={[OwnCapability.SEND_AUDIO]}
+          hasPermissionsOnly
+        >
+          <SpeakingWhileMutedNotification />
+        </Restricted>
+      </div>
+      <CallHeader />
+      <div className="str-video__embedded-layout">
+        <div className="str-video__embedded-layout__stage">
+          <LayoutComponent {...layoutProps} />
+        </div>
+
+        <div
+          className={clsx(
+            'str-video__embedded-sidebar',
+            showParticipants && 'str-video__embedded-sidebar--open',
+          )}
+        >
+          {showParticipants && (
+            <div className="str-video__embedded-participants">
+              <CallParticipantsList onClose={handleToggleParticipants} />
+            </div>
+          )}
+        </div>
+      </div>
+      <CallControls
+        showParticipants={showParticipants}
+        onToggleParticipants={handleToggleParticipants}
+      />
+    </div>
+  );
+};

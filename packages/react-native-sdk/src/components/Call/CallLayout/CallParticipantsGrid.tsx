@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
+import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { debounceTime } from 'rxjs';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
   type CallParticipantsListComponentProps,
@@ -49,19 +49,33 @@ export const CallParticipantsGrid = ({
   const {
     theme: { colors, callParticipantsGrid },
   } = useTheme();
-  const {
-    useRemoteParticipants,
-    useParticipants,
-    useLocalParticipant,
-    useDominantSpeaker,
-  } = useCallStateHooks();
-  const _remoteParticipants = useRemoteParticipants();
+  const call = useCall();
+  const { useLocalParticipant, useDominantSpeaker } = useCallStateHooks();
   const localParticipant = useLocalParticipant();
-  const _allParticipants = useParticipants();
   const dominantSpeaker = useDominantSpeaker();
-  // we debounce the participants arrays to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
-  const remoteParticipants = useDebouncedValue(_remoteParticipants, 300);
-  const allParticipants = useDebouncedValue(_allParticipants, 300);
+  const [remoteParticipants, setRemoteParticipants] = useState<
+    StreamVideoParticipant[]
+  >(() => call?.state.remoteParticipants ?? []);
+  const [allParticipants, setAllParticipants] = useState<
+    StreamVideoParticipant[]
+  >(() => call?.state.participants ?? []);
+  useEffect(() => {
+    if (!call) {
+      setRemoteParticipants([]);
+      setAllParticipants([]);
+      return;
+    }
+    const sub1 = call.state.remoteParticipants$
+      .pipe(debounceTime(300))
+      .subscribe(setRemoteParticipants);
+    const sub2 = call.state.participants$
+      .pipe(debounceTime(300))
+      .subscribe(setAllParticipants);
+    return () => {
+      sub1.unsubscribe();
+      sub2.unsubscribe();
+    };
+  }, [call]);
   const landscapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };

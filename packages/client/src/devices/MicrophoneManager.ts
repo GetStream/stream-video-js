@@ -1,4 +1,4 @@
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, firstValueFrom, Observable } from 'rxjs';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
 import {
@@ -23,12 +23,12 @@ import { CallingState } from '../store';
 import {
   createSafeAsyncSubscription,
   createSubscription,
-  getCurrentValue,
 } from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { disposeOfMediaStream } from './utils';
 import { promiseWithResolvers } from '../helpers/promise';
+import { DevicePersistenceOptions } from './devicePersistence';
 
 export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
@@ -44,8 +44,17 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
   private silenceThresholdMs = 5000;
 
-  constructor(call: Call, disableMode: TrackDisableMode = 'stop-tracks') {
-    super(call, new MicrophoneManagerState(disableMode), TrackType.AUDIO);
+  constructor(
+    call: Call,
+    devicePersistence: Required<DevicePersistenceOptions>,
+    disableMode: TrackDisableMode = 'stop-tracks',
+  ) {
+    super(
+      call,
+      new MicrophoneManagerState(disableMode),
+      TrackType.AUDIO,
+      devicePersistence,
+    );
   }
 
   override setup(): void {
@@ -146,7 +155,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           if (this.silenceThresholdMs <= 0) return;
 
           const deviceId = this.state.selectedDevice;
-          const devices = getCurrentValue(this.listDevices());
+          const devices = await firstValueFrom(this.listDevices());
           const label = devices.find((d) => d.deviceId === deviceId)?.label;
 
           this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
@@ -160,6 +169,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
                 deviceId,
                 label,
               };
+              console.log(event);
               this.call.tracer.trace('mic.capture_report', event);
               this.call.streamClient.dispatchEvent(event);
             },
@@ -335,10 +345,18 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     // Wait for any in progress mic operation
     await this.statusChangeSettled();
 
-    const canPublish = this.call.permissionsContext.canPublish(this.trackType);
     // apply server-side settings only when the device state is pristine
-    // and server defaults are not deferred to application code
-    if (this.state.status === undefined && !this.deferServerDefaults) {
+    // and there are no persisted preferences
+    const shouldApplyDefaults =
+      this.state.status === undefined &&
+      this.state.optimisticStatus === undefined;
+    let persistedPreferencesApplied = false;
+    if (shouldApplyDefaults && this.devicePersistence.enabled) {
+      persistedPreferencesApplied = await this.applyPersistedPreferences(true);
+    }
+
+    const canPublish = this.call.permissionsContext.canPublish(this.trackType);
+    if (shouldApplyDefaults && !persistedPreferencesApplied) {
       if (canPublish && settings.mic_default_on) {
         await this.enable();
       }

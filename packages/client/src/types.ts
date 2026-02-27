@@ -4,16 +4,22 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
+  AudioSettingsRequestDefaultDeviceEnum,
   CallRecordingStartedEventRecordingTypeEnum,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
   ReactionResponse,
-  AudioSettingsRequestDefaultDeviceEnum,
   StartRecordingRequest,
   StartRecordingResponse,
 } from './gen/coordinator';
 import type { StreamClient } from './coordinator/connection/client';
+import type {
+  RejectReason,
+  StreamClientOptions,
+  TokenProvider,
+  User,
+} from './coordinator/connection/types';
 import type { Comparator } from './sorting';
 import type { StreamVideoWriteableStateStore } from './store';
 import { AxiosError } from 'axios';
@@ -334,6 +340,48 @@ export type CallConstructor = {
    */
   clientStore: StreamVideoWriteableStateStore;
 };
+
+type StreamVideoClientBaseOptions = {
+  apiKey: string;
+  options?: StreamClientOptions;
+};
+
+type StreamVideoClientOptionsWithoutUser = StreamVideoClientBaseOptions & {
+  user?: undefined;
+  token?: never;
+  tokenProvider?: never;
+};
+
+type GuestUser = Extract<User, { type: 'guest' }>;
+type AnonymousUser = Extract<User, { type: 'anonymous' }>;
+type AuthenticatedUser = Exclude<User, GuestUser | AnonymousUser>;
+
+type StreamVideoClientOptionsWithGuestUser = StreamVideoClientBaseOptions & {
+  user: GuestUser;
+  token?: never;
+  tokenProvider?: never;
+};
+
+type StreamVideoClientOptionsWithAnonymousUser =
+  StreamVideoClientBaseOptions & {
+    user: AnonymousUser;
+    token?: string;
+    tokenProvider?: TokenProvider;
+  };
+
+type StreamVideoClientOptionsWithAuthenticatedUser =
+  StreamVideoClientBaseOptions & {
+    user: AuthenticatedUser;
+  } & (
+      | { token: string; tokenProvider?: TokenProvider }
+      | { token?: string; tokenProvider: TokenProvider }
+    );
+
+export type StreamVideoClientOptions =
+  | StreamVideoClientOptionsWithoutUser
+  | StreamVideoClientOptionsWithGuestUser
+  | StreamVideoClientOptionsWithAnonymousUser
+  | StreamVideoClientOptionsWithAuthenticatedUser;
 
 export type CallRecordingType = CallRecordingStartedEventRecordingTypeEnum;
 export type StartCallRecordingFnType = {

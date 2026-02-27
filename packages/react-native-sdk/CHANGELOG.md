@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.30.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.29.4...@stream-io/video-react-native-sdk-1.30.0) (2026-02-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.9`
+
+### Features
+
+- Enhanced Picture-in-Picture for iOS ([#2139](https://github.com/GetStream/stream-video-js/issues/2139)) ([2111607](https://github.com/GetStream/stream-video-js/commit/211160797c6e50a4d548da617cb9a57ee7825c4e))
+
+## [1.29.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.29.3...@stream-io/video-react-native-sdk-1.29.4) (2026-02-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.43.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.8`
+
 ## [1.29.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.29.2...@stream-io/video-react-native-sdk-1.29.3) (2026-02-16)
 
 ### Dependency Updates

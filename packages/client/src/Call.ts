@@ -39,6 +39,8 @@ import type {
   Credentials,
   DeleteCallRequest,
   DeleteCallResponse,
+  DeleteRecordingResponse,
+  DeleteTranscriptionResponse,
   EndCallResponse,
   GetCallReportResponse,
   GetCallResponse,
@@ -59,6 +61,8 @@ import type {
   PinResponse,
   QueryCallMembersRequest,
   QueryCallMembersResponse,
+  QueryCallParticipantsRequest,
+  QueryCallParticipantsResponse,
   QueryCallSessionParticipantStatsResponse,
   QueryCallSessionParticipantStatsTimelineResponse,
   QueryCallStatsMapResponse,
@@ -158,6 +162,7 @@ import {
   ScreenShareManager,
   SpeakerManager,
 } from './devices';
+import { normalize } from './devices/devicePersistence';
 import { hasPending, withoutConcurrency } from './helpers/concurrency';
 import { ensureExhausted } from './helpers/ensureExhausted';
 import { pushToIfMissing } from './helpers/array';
@@ -337,9 +342,10 @@ export class Call {
       ringing ? CallingState.RINGING : CallingState.IDLE,
     );
 
-    this.camera = new CameraManager(this);
-    this.microphone = new MicrophoneManager(this);
-    this.speaker = new SpeakerManager(this);
+    const preferences = normalize(streamClient.options.devicePersistence);
+    this.camera = new CameraManager(this, preferences);
+    this.microphone = new MicrophoneManager(this, preferences);
+    this.speaker = new SpeakerManager(this, preferences);
     this.screenShare = new ScreenShareManager(this);
     this.dynascaleManager = new DynascaleManager(
       this.state,
@@ -1958,6 +1964,7 @@ export class Call {
         'Updating publish options after joining the call does not have an effect',
       );
     }
+    this.tracer.trace('updatePublishOptions', options);
     this.clientPublishOptions = { ...this.clientPublishOptions, ...options };
   };
 
@@ -2534,6 +2541,22 @@ export class Call {
   };
 
   /**
+   * Query call participants with optional filters.
+   *
+   * @param data the request data.
+   * @param params optional query parameters.
+   */
+  queryParticipants = async (
+    data: QueryCallParticipantsRequest = {},
+    params: { limit?: number } = {},
+  ): Promise<QueryCallParticipantsResponse> => {
+    return this.streamClient.post<
+      QueryCallParticipantsResponse,
+      QueryCallParticipantsRequest
+    >(`${this.streamClientBasePath}/participants`, data, params);
+  };
+
+  /**
    * Will update the call members.
    *
    * @param data the request data.
@@ -2594,8 +2617,23 @@ export class Call {
    * Otherwise, all recordings for the current call will be returned.
    *
    * @param callSessionId the call session id to retrieve recordings for.
+   * @deprecated use {@link listRecordings} instead.
    */
   queryRecordings = async (
+    callSessionId?: string,
+  ): Promise<ListRecordingsResponse> => {
+    return this.listRecordings(callSessionId);
+  };
+
+  /**
+   * Retrieves the list of recordings for the current call or call session.
+   *
+   * If `callSessionId` is provided, it will return the recordings for that call session.
+   * Otherwise, all recordings for the current call will be returned.
+   *
+   * @param callSessionId the call session id to retrieve recordings for.
+   */
+  listRecordings = async (
     callSessionId?: string,
   ): Promise<ListRecordingsResponse> => {
     let endpoint = this.streamClientBasePath;
@@ -2608,11 +2646,51 @@ export class Call {
   };
 
   /**
+   * Deletes a recording for the given call session.
+   *
+   * @param callSessionId the call session id that the recording belongs to.
+   * @param filename the recording filename.
+   */
+  deleteRecording = async (
+    callSessionId: string,
+    filename: string,
+  ): Promise<DeleteRecordingResponse> => {
+    return this.streamClient.delete<DeleteRecordingResponse>(
+      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/recordings/${encodeURIComponent(filename)}`,
+    );
+  };
+
+  /**
+   * Deletes a transcription for the given call session.
+   *
+   * @param callSessionId the call session id that the transcription belongs to.
+   * @param filename the transcription filename.
+   */
+  deleteTranscription = async (
+    callSessionId: string,
+    filename: string,
+  ): Promise<DeleteTranscriptionResponse> => {
+    return this.streamClient.delete<DeleteTranscriptionResponse>(
+      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/transcriptions/${encodeURIComponent(filename)}`,
+    );
+  };
+
+  /**
+   * Retrieves the list of transcriptions for the current call.
+   *
+   * @returns the list of transcriptions.
+   * @deprecated use {@link listTranscriptions} instead.
+   */
+  queryTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
+    return this.listTranscriptions();
+  };
+
+  /**
    * Retrieves the list of transcriptions for the current call.
    *
    * @returns the list of transcriptions.
    */
-  queryTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
+  listTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
     return this.streamClient.get<ListTranscriptionsResponse>(
       `${this.streamClientBasePath}/transcriptions`,
     );
