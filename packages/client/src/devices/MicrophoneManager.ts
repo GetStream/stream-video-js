@@ -1,4 +1,4 @@
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, firstValueFrom, Observable } from 'rxjs';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
 import {
@@ -23,7 +23,6 @@ import { CallingState } from '../store';
 import {
   createSafeAsyncSubscription,
   createSubscription,
-  getCurrentValue,
 } from '../store/rxUtils';
 import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
@@ -156,7 +155,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           if (this.silenceThresholdMs <= 0) return;
 
           const deviceId = this.state.selectedDevice;
-          const devices = getCurrentValue(this.listDevices());
+          const devices = await firstValueFrom(this.listDevices());
           const label = devices.find((d) => d.deviceId === deviceId)?.label;
 
           this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
@@ -170,6 +169,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
                 deviceId,
                 label,
               };
+              console.log(event);
               this.call.tracer.trace('mic.capture_report', event);
               this.call.streamClient.dispatchEvent(event);
             },

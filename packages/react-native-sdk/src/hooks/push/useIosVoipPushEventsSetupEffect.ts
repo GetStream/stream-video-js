@@ -1,6 +1,4 @@
 import { type MutableRefObject, useEffect, useRef, useState } from 'react';
-import { getVoipPushNotificationLib } from '../../utils/push/libs';
-
 import { Platform } from 'react-native';
 import { StreamVideoRN } from '../../utils';
 import { onVoipNotificationReceived } from '../../utils/push/internal/ios';
@@ -10,6 +8,7 @@ import {
 } from '@stream-io/video-react-bindings';
 import { setPushLogoutCallback } from '../../utils/internal/pushLogoutCallback';
 import { StreamVideoClient, videoLoggerSystem } from '@stream-io/video-client';
+import { getCallingxLibIfAvailable } from '../../utils/push/libs';
 
 const logger = videoLoggerSystem.getLogger('useIosVoipPushEventsSetupEffect');
 
@@ -28,6 +27,7 @@ function setLogoutCallback(
     lastVoipTokenRef.current = { token: '', userId: '' };
     try {
       await client.removeDevice(token);
+      logger.debug('PushLogoutCallback - Removed voip token', token);
     } catch (err) {
       logger.warn('PushLogoutCallback - Failed to remove voip token', err);
     }
@@ -89,23 +89,11 @@ export const useIosVoipPushEventsSetupEffect = () => {
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
     const pushProviderName = pushConfig?.ios.pushProviderName;
-    if (Platform.OS !== 'ios' || !client || !pushProviderName) {
+    const callingx = getCallingxLibIfAvailable();
+
+    if (Platform.OS !== 'ios' || !client || !pushProviderName || !callingx) {
       return;
     }
-    if (!pushConfig.android.incomingCallChannel) {
-      // TODO: remove this check and find a better way once we have telecom integration for android
-      logger.debug(
-        'android incomingCallChannel is not defined, so skipping the useIosVoipPushEventsSetupEffect',
-      );
-      return;
-    }
-
-    const voipPushNotification = getVoipPushNotificationLib();
-
-    // even though we do this natively, we have to still register here again
-    // natively this will make sure "register" event for JS is sent with the last push token
-    // Necessary if client changed before we got the event here or user logged out and logged in again
-    voipPushNotification.registerVoipToken();
 
     const onTokenReceived = (token: string) => {
       const userId = client.streamClient._user?.id ?? '';
@@ -145,24 +133,24 @@ export const useIosVoipPushEventsSetupEffect = () => {
         });
     };
     // fired when PushKit give us the latest token
-    voipPushNotification.addEventListener('register', (token) => {
-      onTokenReceived(token);
+    const voipRegisterListener = callingx.addEventListener(
+      'voipNotificationsRegistered',
+      ({ token }) => {
+        onTokenReceived(token);
+      },
+    );
+
+    // this will return events that were fired before js bridge initialized
+    callingx.getInitialVoipEvents().forEach(({ eventName, params }) => {
+      if (eventName === 'voipNotificationsRegistered' && 'token' in params) {
+        onTokenReceived(params.token);
+      } else if (eventName === 'voipNotificationReceived') {
+        onVoipNotificationReceived(params, pushConfig);
+      }
     });
 
-    // this will fire when there are events occured before js bridge initialized
-    voipPushNotification.addEventListener('didLoadWithEvents', (events) => {
-      if (!events || !Array.isArray(events) || events.length < 1) {
-        return;
-      }
-      for (const voipPushEvent of events) {
-        const { name, data } = voipPushEvent;
-        if (name === 'RNVoipPushRemoteNotificationsRegisteredEvent') {
-          onTokenReceived(data);
-        } else if (name === 'RNVoipPushRemoteNotificationReceivedEvent') {
-          onVoipNotificationReceived(data, pushConfig);
-        }
-      }
-    });
+    callingx.registerVoipToken();
+
     lastListener.count += 1;
     const currentListenerCount = lastListener.count;
 
@@ -175,8 +163,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
         return;
       }
       logger.debug(`Voip event listeners are removed for user: ${userId}`);
-      voipPushNotification.removeEventListener('didLoadWithEvents');
-      voipPushNotification.removeEventListener('register');
+      voipRegisterListener.remove();
     };
   }, [client]);
 };

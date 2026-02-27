@@ -22,16 +22,6 @@ export function setPushConfig() {
         importance: AndroidImportance.HIGH,
         sound: 'default',
       },
-      incomingCallChannel: {
-        id: 'stream_incoming_call',
-        name: 'Incoming call notifications',
-        importance: AndroidImportance.HIGH,
-      },
-      incomingCallNotificationTextGetters: {
-        getTitle: (createdUserName: string) =>
-          `Incoming call from ${createdUserName}`,
-        getBody: () => 'Tap to open the call',
-      },
     },
     createStreamVideoClient,
   });

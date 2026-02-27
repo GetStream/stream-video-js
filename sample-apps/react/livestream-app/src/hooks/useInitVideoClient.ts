@@ -21,7 +21,7 @@ export const useInitVideoClient = ({
   const { callId } = useParams<{ callId: string }>();
   const { api_key, token, type } = getURLCredentials();
   const user = useMemo<User>(() => {
-    return isAnon ? { id: '!anon', type: 'anonymous' } : getUser();
+    return isAnon ? { type: 'anonymous' } : getUser();
   }, [isAnon]);
   const apiKey = api_key ?? envApiKey;
 
@@ -31,9 +31,12 @@ export const useInitVideoClient = ({
     const tokenProvider = async () => {
       const endpoint = new URL(tokenProviderUrl);
       endpoint.searchParams.set('api_key', apiKey);
-      endpoint.searchParams.set('user_id', isAnon ? '!anon' : user.id!);
+      endpoint.searchParams.set(
+        'user_id',
+        user.type === 'anonymous' ? '!anon' : user.id!,
+      );
 
-      if (isAnon) {
+      if (user.type === 'anonymous') {
         endpoint.searchParams.set(
           'call_cids',
           `${type ?? DEFAULT_CALL_TYPE}:${callId}`,
@@ -42,12 +45,14 @@ export const useInitVideoClient = ({
       const response = await fetch(endpoint).then((res) => res.json());
       return response.token as string;
     };
-    const _client = new StreamVideoClient({
-      apiKey,
-      user,
-      token,
-      tokenProvider,
-    });
+    const _client =
+      user.type === 'anonymous' || user.type === 'guest'
+        ? new StreamVideoClient({ apiKey, user })
+        : new StreamVideoClient({
+            apiKey,
+            user,
+            ...(token ? { token, tokenProvider } : { tokenProvider }),
+          });
     setClient(_client);
 
     return () => {
@@ -56,7 +61,7 @@ export const useInitVideoClient = ({
         .catch((error) => console.error(`Unable to disconnect user`, error));
       setClient(undefined);
     };
-  }, [apiKey, callId, isAnon, token, type, user]);
+  }, [apiKey, callId, token, type, user]);
 
   return client;
 };

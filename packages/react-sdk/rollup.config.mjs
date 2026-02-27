@@ -17,10 +17,19 @@ const chunkFileNames = (chunkInfo) => {
   return '[name]-[hash].[format].js';
 };
 
+const commonPlugins = [
+  json(),
+  replace({
+    preventAssignment: true,
+    'process.env.PKG_NAME': JSON.stringify(pkg.name),
+    'process.env.PKG_VERSION': JSON.stringify(pkg.version),
+  }),
+];
+
 /**
- * @type {import('rollup').RollupOptions}
+ * Main entrypoint configuration
  */
-const config = {
+const mainConfig = {
   input: 'index.ts',
   output: [
     {
@@ -45,12 +54,7 @@ const config = {
     'react/jsx-dev-runtime',
   ],
   plugins: [
-    json(),
-    replace({
-      preventAssignment: true,
-      'process.env.PKG_NAME': JSON.stringify(pkg.name),
-      'process.env.PKG_VERSION': JSON.stringify(pkg.version),
-    }),
+    ...commonPlugins,
     typescript({
       tsconfig:
         process.env.NODE_ENV === 'production'
@@ -60,4 +64,45 @@ const config = {
   ],
 };
 
-export default [config];
+/**
+ * Embedded entrypoint configuration
+ */
+const embeddedConfig = {
+  input: 'embedded.ts',
+  output: [
+    {
+      dir: 'dist',
+      entryFileNames: 'embedded.es.js',
+      format: 'es',
+      sourcemap: true,
+      chunkFileNames: (chunkInfo) =>
+        `embedded-${chunkInfo.name}-[hash].[format].js`,
+    },
+    {
+      dir: 'dist',
+      entryFileNames: 'embedded.cjs.js',
+      format: 'cjs',
+      sourcemap: true,
+      chunkFileNames: (chunkInfo) =>
+        `embedded-${chunkInfo.name}-[hash].[format].js`,
+    },
+  ],
+  external: [
+    ...Object.keys(pkg.dependencies || {}),
+    ...Object.keys(pkg.peerDependencies || {}),
+    '@stream-io/audio-filters-web',
+    'react/jsx-runtime',
+    'react/jsx-dev-runtime',
+  ],
+  plugins: [
+    ...commonPlugins,
+    typescript({
+      tsconfig:
+        process.env.NODE_ENV === 'production'
+          ? './tsconfig.production.json'
+          : './tsconfig.json',
+    }),
+  ],
+};
+
+export default [mainConfig, embeddedConfig];
