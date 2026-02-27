@@ -18,6 +18,15 @@ const DEFAULT_TAG = 'beta';
 const VERIFY_ATTEMPTS = 15;
 const VERIFY_DELAY_MS = 4000;
 
+// Read a required value for a flag and validate shape.
+function readFlagValue(argv, index, flagName) {
+  const value = argv[index + 1];
+  if (!value || value.startsWith('-')) {
+    printHelpAndExit(1, `Missing or invalid value for ${flagName}.`);
+  }
+  return value;
+}
+
 // Parse CLI flags and apply defaults.
 function parseArgs(argv) {
   const options = {
@@ -31,10 +40,10 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--base-ref') {
-      options.baseRef = argv[i + 1];
+      options.baseRef = readFlagValue(argv, i, '--base-ref');
       i += 1;
     } else if (arg === '--tag') {
-      options.tag = argv[i + 1];
+      options.tag = readFlagValue(argv, i, '--tag');
       i += 1;
     } else if (arg === '--dry-run') {
       options.dryRun = true;
