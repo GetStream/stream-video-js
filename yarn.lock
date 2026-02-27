@@ -8136,7 +8136,6 @@ __metadata:
     "@testing-library/react-native": "npm:13.3.3"
     "@tsconfig/node18": "npm:^18.2.4"
     "@types/jest": "npm:^29.5.14"
-    "@types/lodash.merge": "npm:^4.6.9"
     "@types/react": "npm:~19.1.17"
     "@types/react-test-renderer": "npm:^19.1.0"
     expo: "npm:~54.0.12"
@@ -8145,7 +8144,6 @@ __metadata:
     expo-notifications: "npm:~0.32.12"
     intl-pluralrules: "npm:2.0.1"
     jest: "npm:^29.7.0"
-    lodash.merge: "npm:^4.6.2"
     react: "npm:19.1.0"
     react-native: "npm:^0.81.5"
     react-native-builder-bob: "npm:~0.23"
@@ -8619,22 +8617,6 @@ __metadata:
     "@types/ms": "npm:*"
     "@types/node": "npm:*"
   checksum: 10/ef4dc05ae5ae78e3d2e20c364437e4afb788017cc80dd8a23a3eb17a3fcecb41e6abba254aba974d45a71307dd375aba4fda73cec358923aaaf8dff4667bea09
-  languageName: node
-  linkType: hard
-
-"@types/lodash.merge@npm:^4.6.9":
-  version: 4.6.9
-  resolution: "@types/lodash.merge@npm:4.6.9"
-  dependencies:
-    "@types/lodash": "npm:*"
-  checksum: 10/d0dd6654547c9d8d905184d14aa5c2a37a1ed1c3204f5ab20b7d591a05f34859ef09d3b72c065e94ca1989abf9109eb8230f67c4d64a5768b1d65b9ed8baf8e7
-  languageName: node
-  linkType: hard
-
-"@types/lodash@npm:*":
-  version: 4.14.197
-  resolution: "@types/lodash@npm:4.14.197"
-  checksum: 10/a09f6c9308089e02ffb16da7b557c680ca38d3af9591455a0a257e5a7a78febd3d6da615c4f738ac9a575e68b0de81f399f13058cab1691a0737d552d3d02971
   languageName: node
   linkType: hard
 

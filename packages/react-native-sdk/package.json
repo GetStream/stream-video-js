@@ -53,7 +53,6 @@
     "@stream-io/video-client": "workspace:*",
     "@stream-io/video-react-bindings": "workspace:*",
     "intl-pluralrules": "2.0.1",
-    "lodash.merge": "^4.6.2",
     "react-native-url-polyfill": "^3.0.0",
     "rxjs": "~7.8.2",
     "text-encoding-polyfill": "0.6.7"
@@ -137,7 +136,6 @@
     "@testing-library/react-native": "13.3.3",
     "@tsconfig/node18": "^18.2.4",
     "@types/jest": "^29.5.14",
-    "@types/lodash.merge": "^4.6.9",
     "@types/react": "~19.1.17",
     "@types/react-test-renderer": "^19.1.0",
     "expo": "~54.0.12",
