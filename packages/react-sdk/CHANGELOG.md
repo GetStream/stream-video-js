@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.33.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.4...@stream-io/video-react-sdk-1.33.0) (2026-02-27)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.11.0`
+- `@stream-io/video-client` updated to version `1.44.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.9`
+
+### Features
+
+- **react:** Deprecate usePersistedDevicePreferences and move the logic to the SDK core ([#2108](https://github.com/GetStream/stream-video-js/issues/2108)) ([7bbbd93](https://github.com/GetStream/stream-video-js/commit/7bbbd93bdd93dd4ebed02c089b6a4ab8423135fd))
+- **react:** Embeddable/pre-built video components ([#2117](https://github.com/GetStream/stream-video-js/issues/2117)) ([11b4b9f](https://github.com/GetStream/stream-video-js/commit/11b4b9f0438877a5917c95117474cedc1f693907))
+
 ## [1.32.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.3...@stream-io/video-react-sdk-1.32.4) (2026-02-20)
 
 ### Dependency Updates
