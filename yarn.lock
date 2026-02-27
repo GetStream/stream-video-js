@@ -5341,14 +5341,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.58.2":
-  version: 1.58.2
-  resolution: "@playwright/test@npm:1.58.2"
+"@playwright/test@npm:^1.56.0":
+  version: 1.56.0
+  resolution: "@playwright/test@npm:1.56.0"
   dependencies:
-    playwright: "npm:1.58.2"
+    playwright: "npm:1.56.0"
   bin:
     playwright: cli.js
-  checksum: 10/58bf90139280a0235eeeb6049e9fb4db6425e98be1bf0cc17913b068eef616cf67be57bfb36dc4cb56bcf116f498ffd0225c4916e85db404b343ea6c5efdae13
+  checksum: 10/9ccfe7962f0e7b14b2a60d2db89fc6a21165957512b87fe8b1cf496683680468aecbbd0e41238c6d02c880ab10c5263bea2483b8d0f964e830d652504c31ece8
   languageName: node
   linkType: hard
 
@@ -7628,7 +7628,7 @@ __metadata:
   resolution: "@stream-io/egress-composite@workspace:sample-apps/react/egress-composite"
   dependencies:
     "@emotion/css": "npm:^11.13.5"
-    "@playwright/test": "npm:^1.58.2"
+    "@playwright/test": "npm:^1.56.0"
     "@sentry/react": "npm:^10.30.0"
     "@sentry/vite-plugin": "npm:^4.6.1"
     "@skooldev/skool-stream-layout": "npm:1.0.12"
@@ -20454,27 +20454,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.58.2":
-  version: 1.58.2
-  resolution: "playwright-core@npm:1.58.2"
+"playwright-core@npm:1.56.0":
+  version: 1.56.0
+  resolution: "playwright-core@npm:1.56.0"
   bin:
     playwright-core: cli.js
-  checksum: 10/8a98fcf122167e8703d525db2252de0e3da4ab9110ab6ea9951247e52d846310eb25ea2c805e1b7ccb54b4010c44e5adc3a76aae6da02f34324ccc3e76683bb1
+  checksum: 10/4859f49952f3cf1fc1cab01e4edd1df971eca0f4d49fb4287c65a234c47ec6fa51bfebd3946adca5af70a47faa8e97c7ef568c67100d7bec7c4a23639299b7f8
   languageName: node
   linkType: hard
 
-"playwright@npm:1.58.2":
-  version: 1.58.2
-  resolution: "playwright@npm:1.58.2"
+"playwright@npm:1.56.0":
+  version: 1.56.0
+  resolution: "playwright@npm:1.56.0"
   dependencies:
     fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.58.2"
+    playwright-core: "npm:1.56.0"
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: 10/d89d6c8a32388911b9aff9ee0f1a90076219f15c804f2b287db048b9e9cde182aea3131fac1959051d25189ed4218ec4272b137c83cd7f9cd24781cbc77edd86
+  checksum: 10/1b6bc464f281007e912a726bbf13b88c90afaef8ccf07690b2148a9a3ab832eac21259b93c47a8538838f74c1f2fd8bc591c49f0e081746de7282adff86786d4
   languageName: node
   linkType: hard
 
