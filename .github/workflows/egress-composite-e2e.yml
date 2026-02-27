@@ -38,7 +38,8 @@ jobs:
       - name: Resolve Playwright version
         id: playwright-version
         run: |
-          echo "version=$(yarn workspace @stream-io/egress-composite exec node -p \"require('@playwright/test/package.json').version\")" >> "$GITHUB_OUTPUT"
+          PLAYWRIGHT_VERSION=$(yarn workspace @stream-io/egress-composite exec node -p 'require("@playwright/test/package.json").version')
+          echo "version=$PLAYWRIGHT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Build packages
         env:
