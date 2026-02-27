@@ -1,5 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const runAgainstProduction = process.env.PLAYWRIGHT_MODE === 'production';
+const webServerCommand = runAgainstProduction
+  ? 'yarn build && yarn preview'
+  : 'yarn dev';
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -27,7 +32,9 @@ export default defineConfig({
         headless: true, // use --headed when debugging
         trace: 'on-first-retry',
         viewport: { width: 1920, height: 1080 },
-        baseURL: 'http://localhost:5173',
+        baseURL: runAgainstProduction
+          ? 'http://localhost:4173'
+          : 'http://localhost:5173',
         launchOptions: {
           args: [
             '--font-render-hinting=none',
@@ -50,9 +57,9 @@ export default defineConfig({
     // },
     {
       timeout: 10000,
-      command: 'yarn dev',
+      command: webServerCommand,
       reuseExistingServer: false,
-      port: 5173,
+      port: runAgainstProduction ? 4173 : 5173,
     },
   ],
 });

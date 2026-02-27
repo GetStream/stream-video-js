@@ -8,7 +8,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:dev": "PLAYWRIGHT_MODE=development playwright test",
+    "test:e2e:prod": "PLAYWRIGHT_MODE=production playwright test"
   },
   "dependencies": {
     "@emotion/css": "^11.13.5",
@@ -21,7 +23,7 @@
     "react-dom": "19.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.56.0",
+    "@playwright/test": "^1.58.2",
     "@sentry/vite-plugin": "^4.6.1",
     "@types/react": "~19.1.17",
     "@types/react-dom": "~19.1.11",
