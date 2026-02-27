@@ -1,5 +1,5 @@
 import { StreamSfuClient } from './StreamSfuClient';
-import { SfuJoinError } from './errors';
+import { JoinCanceledError, SfuJoinError } from './errors';
 import {
   BasePeerConnectionOpts,
   Dispatcher,
@@ -122,7 +122,7 @@ import {
   TrackMuteType,
   VideoTrackType,
 } from './types';
-import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
   ClientCapability,
@@ -279,6 +279,9 @@ export class Call {
   private hasJoinedOnce = false;
   private deviceSettingsAppliedOnce = false;
   private credentials?: Credentials;
+  private leaveRequestId = 0;
+  private activeJoinTask?: PromiseWithResolvers<void>;
+  private activeJoinCancelTask?: PromiseWithResolvers<void>;
 
   private initialized = false;
   private readonly acceptRejectConcurrencyTag = Symbol('acceptRejectTag');
@@ -614,23 +617,16 @@ export class Call {
     if (this.state.callingState === CallingState.LEFT) {
       throw new Error('Cannot leave call that has already been left.');
     }
+    this.leaveRequestId++;
+    this.activeJoinCancelTask?.resolve();
 
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
+      await this.activeJoinTask?.promise.catch(() => undefined);
+
       const callingState = this.state.callingState;
 
       if (callingState === CallingState.LEFT) {
-        return;
-      }
-
-      if (callingState === CallingState.JOINING) {
-        const waitUntilCallJoined = () => {
-          return new Promise<void>((resolve) => {
-            this.state.callingState$
-              .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
-              .subscribe(() => resolve());
-          });
-        };
-        await waitUntilCallJoined();
+        throw new Error('Cannot leave call that has already been left.');
       }
 
       if (callingState === CallingState.RINGING && reject !== false) {
@@ -909,60 +905,100 @@ export class Call {
     joinResponseTimeout?: number;
     rpcRequestTimeout?: number;
   } = {}): Promise<void> => {
-    await this.setup();
-    const callingState = this.state.callingState;
-
-    if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
-      throw new Error(`Illegal State: call.join() shall be called only once`);
+    if (this.activeJoinTask) {
+      throw new Error('Illegal State: call.join() is already in progress');
     }
 
-    this.joinResponseTimeout = joinResponseTimeout;
-    this.rpcRequestTimeout = rpcRequestTimeout;
+    const joinTask = promiseWithResolvers<void>();
+    const joinCancelTask = promiseWithResolvers<void>();
+    this.activeJoinTask = joinTask;
+    this.activeJoinCancelTask = joinCancelTask;
 
-    // we will count the number of join failures per SFU.
-    // once the number of failures reaches 2, we will piggyback on the `migrating_from`
-    // field to force the coordinator to provide us another SFU
-    const sfuJoinFailures = new Map<string, number>();
-    const joinData: JoinCallData = data;
-    maxJoinRetries = Math.max(maxJoinRetries, 1);
-    for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-      try {
-        this.logger.trace(`Joining call (${attempt})`, this.cid);
-        await this.doJoin(data);
-        delete joinData.migrating_from;
-        delete joinData.migrating_from_list;
-        break;
-      } catch (err) {
-        this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-        if (
-          (err instanceof ErrorFromResponse && err.unrecoverable) ||
-          (err instanceof SfuJoinError && err.unrecoverable)
-        ) {
-          // if the error is unrecoverable, we should not retry as that signals
-          // that connectivity is good, but the coordinator doesn't allow the user
-          // to join the call due to some reason (e.g., ended call, expired token...)
-          throw err;
-        }
-
-        // immediately switch to a different SFU in case of recoverable join error
-        const switchSfu =
-          err instanceof SfuJoinError &&
-          SfuJoinError.isJoinErrorCode(err.errorEvent);
-
-        const sfuId = this.credentials?.server.edge_name || '';
-        const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-        sfuJoinFailures.set(sfuId, failures);
-        if (switchSfu || failures >= 2) {
-          joinData.migrating_from = sfuId;
-          joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
-        }
-
-        if (attempt === maxJoinRetries - 1) {
-          throw err;
-        }
+    const joinRequestLeaveId = this.leaveRequestId;
+    const assertNotCanceled = () => {
+      if (joinRequestLeaveId !== this.leaveRequestId) {
+        throw new JoinCanceledError();
       }
+    };
 
-      await sleep(retryInterval(attempt));
+    try {
+      await this.setup();
+      const callingState = this.state.callingState;
+      if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
+        throw new Error(`Illegal State: call.join() shall be called only once`);
+      }
+      assertNotCanceled();
+
+      this.joinResponseTimeout = joinResponseTimeout;
+      this.rpcRequestTimeout = rpcRequestTimeout;
+
+      // we will count the number of join failures per SFU.
+      // once the number of failures reaches 2, we will piggyback on the `migrating_from`
+      // field to force the coordinator to provide us another SFU
+      const sfuJoinFailures = new Map<string, number>();
+      const joinData: JoinCallData = data;
+      maxJoinRetries = Math.max(maxJoinRetries, 1);
+      for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+        assertNotCanceled();
+        try {
+          this.logger.trace(`Joining call (${attempt})`, this.cid);
+          await this.doJoin(data);
+
+          // `leave()` can cancel the join while `doJoin()` is still in flight.
+          // In that case, we let `doJoin()` finish and reject here so leave wins.
+          assertNotCanceled();
+
+          delete joinData.migrating_from;
+          delete joinData.migrating_from_list;
+          break;
+        } catch (err) {
+          if (err instanceof JoinCanceledError) throw err;
+          assertNotCanceled();
+
+          this.logger.warn(`Failed to join call (${attempt})`, this.cid);
+          if (
+            (err instanceof ErrorFromResponse && err.unrecoverable) ||
+            (err instanceof SfuJoinError && err.unrecoverable)
+          ) {
+            // if the error is unrecoverable, we should not retry as that signals
+            // that connectivity is good, but the coordinator doesn't allow the user
+            // to join the call due to some reason (e.g., ended call, expired token...)
+            throw err;
+          }
+
+          // immediately switch to a different SFU in case of recoverable join error
+          const switchSfu =
+            err instanceof SfuJoinError &&
+            SfuJoinError.isJoinErrorCode(err.errorEvent);
+
+          const sfuId = this.credentials?.server.edge_name || '';
+          const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+          sfuJoinFailures.set(sfuId, failures);
+
+          if (switchSfu || failures >= 2) {
+            joinData.migrating_from = sfuId;
+            joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
+          }
+
+          if (attempt === maxJoinRetries - 1) throw err;
+        }
+
+        assertNotCanceled();
+        await Promise.race([
+          sleep(retryInterval(attempt)),
+          joinCancelTask.promise.then(() => {
+            throw new JoinCanceledError();
+          }),
+        ]);
+      }
+    } finally {
+      joinTask.resolve();
+      if (this.activeJoinTask === joinTask) {
+        this.activeJoinTask = undefined;
+      }
+      if (this.activeJoinCancelTask === joinCancelTask) {
+        this.activeJoinCancelTask = undefined;
+      }
     }
   };
 
