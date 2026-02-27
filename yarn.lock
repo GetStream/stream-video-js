@@ -3435,9 +3435,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gorhom/bottom-sheet@npm:^5.1.8":
-  version: 5.2.6
-  resolution: "@gorhom/bottom-sheet@npm:5.2.6"
+"@gorhom/bottom-sheet@npm:5.1.8":
+  version: 5.1.8
+  resolution: "@gorhom/bottom-sheet@npm:5.1.8"
   dependencies:
     "@gorhom/portal": "npm:1.0.14"
     invariant: "npm:^2.2.4"
@@ -3453,7 +3453,7 @@ __metadata:
       optional: true
     "@types/react-native":
       optional: true
-  checksum: 10/bca8cf14a7627d2fb2b5e6ed75e5fa79be373ee1d227941e0a3c1b33b3385b04a24353b0c48c00b8aeea72a17a4612eefd31ac1b38ab66f5b3103d3d4eb9fef2
+  checksum: 10/16c0de9d0902c994bb099dc173c0d0cf984fd0b47f823e05186b090bd46d885d5b271682dddd0aad1b76d80509c23dddba559d1dc3c39afa0673e5c8ff08d9a1
   languageName: node
   linkType: hard
 
@@ -7747,8 +7747,8 @@ __metadata:
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
     sass: "npm:^1.93.2"
-    stream-chat: "npm:^9.27.2"
-    stream-chat-react: "npm:^13.13.1"
+    stream-chat: "npm:^9.33.0"
+    stream-chat-react: "npm:^13.14.0"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
   languageName: unknown
@@ -7994,8 +7994,8 @@ __metadata:
     react-dom: "npm:19.1.0"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.93.2"
-    stream-chat: "npm:^9.27.2"
-    stream-chat-react: "npm:^13.13.1"
+    stream-chat: "npm:^9.33.0"
+    stream-chat-react: "npm:^13.14.0"
     swr: "npm:^2.3.6"
     yargs: "npm:^18.0.0"
   languageName: unknown
@@ -8054,8 +8054,8 @@ __metadata:
     react-native-voip-push-notification: "npm:~3.3.3"
     react-native-worklets: "npm:^0.7.3"
     rxjs: "npm:~7.8.2"
-    stream-chat: "npm:^9.27.2"
-    stream-chat-react-native: "npm:^8.12.0"
+    stream-chat: "npm:^9.33.0"
+    stream-chat-react-native: "npm:^8.13.0"
     typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
@@ -8271,8 +8271,8 @@ __metadata:
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
-    stream-chat: "npm:^9.27.2"
-    stream-chat-react: "npm:^13.13.1"
+    stream-chat: "npm:^9.33.0"
+    stream-chat-react: "npm:^13.14.0"
     tailwindcss: "npm:^3.4.18"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
@@ -16946,7 +16946,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"linkifyjs@npm:^4.3.1, linkifyjs@npm:^4.3.2":
+"linkifyjs@npm:^4.3.2":
   version: 4.3.2
   resolution: "linkifyjs@npm:4.3.2"
   checksum: 10/b03477486658d1e5531bf65ee1fdc0f79423594e689184c67b8a63c75d9f35d1cd0344edd97d5799502cde4f3163d620e2cbd9e72ad718c6a95084177c004386
@@ -17035,10 +17035,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash-es@npm:4.17.21":
-  version: 4.17.21
-  resolution: "lodash-es@npm:4.17.21"
-  checksum: 10/03f39878ea1e42b3199bd3f478150ab723f93cc8730ad86fec1f2804f4a07c6e30deaac73cad53a88e9c3db33348bb8ceeb274552390e7a75d7849021c02df43
+"lodash-es@npm:4.17.23":
+  version: 4.17.23
+  resolution: "lodash-es@npm:4.17.23"
+  checksum: 10/1feae200df22eb0bd93ca86d485e77784b8a9fb1d13e91b66e9baa7a7e5e04be088c12a7e20c2250fc0bd3db1bc0ef0affc7d9e3810b6af2455a3c6bf6dde59e
   languageName: node
   linkType: hard
 
@@ -17060,13 +17060,6 @@ __metadata:
   version: 4.1.0
   resolution: "lodash.deburr@npm:4.1.0"
   checksum: 10/165ce8f8a051360f98ce977f12bd645fe3faf3cc2452aa36f5a8849e3e69463e2252ff952ed6b7cc33c8f608fcbe56e7d13baf524818da95cb53849d366b62be
-  languageName: node
-  linkType: hard
-
-"lodash.defaultsdeep@npm:^4.6.1":
-  version: 4.6.1
-  resolution: "lodash.defaultsdeep@npm:4.6.1"
-  checksum: 10/e335d56e88b7b14d95c0466f901a14580f26f7dd8257d85b736735b633bdce5f545fadd3c6f0294f0317bbe6acb3a2756001733c46c5228a4401fb2191bd0544
   languageName: node
   linkType: hard
 
@@ -23374,23 +23367,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react-native-core@npm:8.12.0":
-  version: 8.12.0
-  resolution: "stream-chat-react-native-core@npm:8.12.0"
+"stream-chat-react-native-core@npm:8.13.0":
+  version: 8.13.0
+  resolution: "stream-chat-react-native-core@npm:8.13.0"
   dependencies:
-    "@gorhom/bottom-sheet": "npm:^5.1.8"
+    "@gorhom/bottom-sheet": "npm:5.1.8"
     "@ungap/structured-clone": "npm:^1.3.0"
     dayjs: "npm:1.11.13"
     emoji-regex: "npm:^10.4.0"
     i18next: "npm:^25.2.1"
     intl-pluralrules: "npm:^2.0.1"
-    linkifyjs: "npm:^4.3.1"
-    lodash-es: "npm:4.17.21"
+    linkifyjs: "npm:^4.3.2"
+    lodash-es: "npm:4.17.23"
     mime-types: "npm:^2.1.35"
     path: "npm:0.12.7"
     react-native-markdown-package: "npm:1.8.2"
     react-native-url-polyfill: "npm:^2.0.0"
-    stream-chat: "npm:^9.27.2"
+    stream-chat: "npm:^9.33.0"
     use-sync-external-store: "npm:^1.5.0"
   peerDependencies:
     "@emoji-mart/data": ">=1.1.0"
@@ -23412,17 +23405,17 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: 10/7f82912bf05c50a74d8bb934655b6ac1ca647449d2ab6dc75bcd4e9c5aab5c1c83a3753af49205c14f1acd585195f2073090f99e7a1c1269c723cea1e8295d2b
+  checksum: 10/f7e93dec84c77d65c13dae509b890d0a46b13ab69b6a047d1f0d48c6b23cfdaaf1252aa62f36766b23fe0ddf41c0709563a998ff05f3cb8d22c9a898f1dc5c6e
   languageName: node
   linkType: hard
 
-"stream-chat-react-native@npm:^8.12.0":
-  version: 8.12.0
-  resolution: "stream-chat-react-native@npm:8.12.0"
+"stream-chat-react-native@npm:^8.13.0":
+  version: 8.13.0
+  resolution: "stream-chat-react-native@npm:8.13.0"
   dependencies:
     es6-symbol: "npm:^3.1.3"
     mime: "npm:^4.0.7"
-    stream-chat-react-native-core: "npm:8.12.0"
+    stream-chat-react-native-core: "npm:8.13.0"
   peerDependencies:
     "@react-native-camera-roll/camera-roll": ">=7.8.0"
     "@react-native-clipboard/clipboard": ">=1.14.1"
@@ -23459,13 +23452,13 @@ __metadata:
       optional: true
     react-native-video:
       optional: true
-  checksum: 10/1226a5756abc31c735788a5b246809f5e62a29511c09b117225b41b614eac9b18d45fc6a41ca5bd05524aca3f5d5e37ee586a913dbd3819486440f2e77c9e58f
+  checksum: 10/3f4e96d96591513094fb4c05e3ec0377b6e1fc97633885477980c0fe78d7320c554aab1d80ee67058284eee8907d499019b2143710ea729871a2c53868ee82d9
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:^13.13.1":
-  version: 13.13.1
-  resolution: "stream-chat-react@npm:13.13.1"
+"stream-chat-react@npm:^13.14.0":
+  version: 13.14.0
+  resolution: "stream-chat-react@npm:13.14.0"
   dependencies:
     "@braintree/sanitize-url": "npm:^6.0.4"
     "@floating-ui/react": "npm:^0.27.2"
@@ -23479,7 +23472,6 @@ __metadata:
     i18next: "npm:^25.2.1"
     linkifyjs: "npm:^4.3.2"
     lodash.debounce: "npm:^4.0.8"
-    lodash.defaultsdeep: "npm:^4.6.1"
     lodash.mergewith: "npm:^4.6.2"
     lodash.throttle: "npm:^4.1.1"
     lodash.uniqby: "npm:^4.7.0"
@@ -23516,13 +23508,13 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: 10/83e1798c3b70a8067e5a1db6201886db3aa5cfb34a5afee362a666895731789b8bd87cfac58c95a0ffb322eca96ef6b6f0a7887596bd3fee8598c93685de7e97
+  checksum: 10/cd985fc8dc43bac2b2d038ee4a566e68eb70893e0bff769466c4279ef10db97e6c1d5a4b3748a5d175f7501e5fb6e71df50616c73ed7e08a74c7a1e87347e470
   languageName: node
   linkType: hard
 
-"stream-chat@npm:^9.27.2":
-  version: 9.27.2
-  resolution: "stream-chat@npm:9.27.2"
+"stream-chat@npm:^9.33.0":
+  version: 9.33.0
+  resolution: "stream-chat@npm:9.33.0"
   dependencies:
     "@types/jsonwebtoken": "npm:^9.0.8"
     "@types/ws": "npm:^8.5.14"
@@ -23533,7 +23525,7 @@ __metadata:
     jsonwebtoken: "npm:^9.0.3"
     linkifyjs: "npm:^4.3.2"
     ws: "npm:^8.18.1"
-  checksum: 10/6c54fdb790784735c0976c3c8918f868363d56193602100f2f420459158411554b3ed0609ffdfb2813c8a6de5eb145931d28c25d5b034a30e4d5ee0b965fd568
+  checksum: 10/51bc7c179651a55feda8beba8da12d72770a9b04283c084570328c6b3b3407be4bd6ede8c54d8aad38f904b85e8244755fe85592660d760c5b9974264b6d3cbf
   languageName: node
   linkType: hard
 

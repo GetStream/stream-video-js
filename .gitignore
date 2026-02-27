@@ -20,6 +20,7 @@ dist
 .env
 .nx
 .eslintcache
+.cursor
 
 coverage
 

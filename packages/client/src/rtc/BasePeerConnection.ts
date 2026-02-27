@@ -27,6 +27,7 @@ export abstract class BasePeerConnection {
   protected readonly state: CallState;
   protected readonly dispatcher: Dispatcher;
   protected readonly clientPublishOptions?: ClientPublishOptions;
+  protected readonly tag: string;
   protected sfuClient: StreamSfuClient;
 
   private onReconnectionNeeded?: OnReconnectionNeeded;
@@ -67,6 +68,7 @@ export abstract class BasePeerConnection {
     this.dispatcher = dispatcher;
     this.iceRestartDelay = iceRestartDelay;
     this.clientPublishOptions = clientPublishOptions;
+    this.tag = tag;
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.logger = videoLoggerSystem.getLogger(
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
@@ -162,7 +164,7 @@ export abstract class BasePeerConnection {
     fn: CallEventListener<E>,
   ): void => {
     this.subscriptions.push(
-      this.dispatcher.on(event, (e) => {
+      this.dispatcher.on(event, this.tag, (e) => {
         const lockKey = `pc.${this.lock}.${event}`;
         withoutConcurrency(lockKey, async () => fn(e)).catch((err) => {
           if (this.isDisposed) return;

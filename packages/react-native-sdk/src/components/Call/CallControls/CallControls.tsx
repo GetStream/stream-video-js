@@ -52,7 +52,7 @@ export const CallControls = ({
       <ToggleVideoPublishingButton />
       <ToggleAudioPublishingButton />
       <ToggleCameraFaceButton />
-      <HangUpCallButton onPressHandler={onHangupCallHandler} />
+      <HangUpCallButton onHangupCallHandler={onHangupCallHandler} />
     </View>
   );
 };

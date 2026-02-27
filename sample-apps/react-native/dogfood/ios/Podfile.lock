@@ -3133,7 +3133,7 @@ PODS:
     - SocketRocket
     - Yoga
   - SocketRocket (0.7.1)
-  - stream-chat-react-native (8.12.0):
+  - stream-chat-react-native (8.13.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3224,7 +3224,7 @@ PODS:
   - stream-react-native-webrtc (137.1.0):
     - React-Core
     - StreamWebRTC (~> 137.0.54)
-  - stream-video-react-native (1.29.1):
+  - stream-video-react-native (1.30.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3590,7 +3590,7 @@ SPEC CHECKSUMS:
   FBLazyVector: f1200e6ef6cf24885501668bdbb9eff4cf48843f
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
-  hermes-engine: c28bdcbad21e4e6dc89b091fb15863b4798aaf5f
+  hermes-engine: 79258df51fb2de8c52574d7678c0aeb338e65c3b
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: 3b915a7b166f7d04eaeb4ae30aaf24236a016551
   RCTRequired: fcfec6ba532cfe4e53c49e0a4061b5eff87f8c64
@@ -3681,11 +3681,11 @@ SPEC CHECKSUMS:
   RNVoipPushNotification: 4998fe6724d421da616dca765da7dc421ff54c4e
   RNWorklets: 944dddd0eef13006b658e653abbb3ee8365c3809
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stream-chat-react-native: 2ad28c26fbc0b8cb20d675c6b2674871d78f914f
+  stream-chat-react-native: 362e74c743dd34d750e1878f9e479707e9edc794
   stream-io-noise-cancellation-react-native: 56787bb94ff912ee17661f4b24a3c4f9551f38ba
   stream-io-video-filters-react-native: 8fdd1a1fcade0dcd699fd2e5b61b2152c0056219
   stream-react-native-webrtc: dd4bc6e9717e6d90204008c22a44bc1c1f605e3b
-  stream-video-react-native: 22132e735e187827809e9ccfe1c6e365691cf38d
+  stream-video-react-native: 68b9318fd73565de75ca25f35922b4c843d0227b
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: 57bd35729bcc46b008de4e741a5b23ac28b8854d
   VisionCamera: 891edb31806dd3a239c8a9d6090d6ec78e11ee80
@@ -3693,4 +3693,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 40ce52e159cfdb7fd419e1127f09742de1db1cd5
 
-COCOAPODS: 1.16.2
+COCOAPODS: 1.15.2

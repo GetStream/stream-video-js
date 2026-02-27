@@ -30,7 +30,9 @@ describe('DynascaleManager', () => {
     call = new Call({
       id: 'id',
       type: 'default',
-      streamClient: new StreamClient('api-key'),
+      streamClient: new StreamClient('api-key', {
+        devicePersistence: { enabled: false },
+      }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
     call.setSortParticipantsBy(noopComparator());

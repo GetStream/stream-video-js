@@ -47,6 +47,11 @@ describe('CallParticipantsGrid', () => {
       },
     );
 
+    // Advance timers to allow RxJS debounceTime subscriptions to emit
+    await act(() => {
+      jest.advanceTimersByTime(300);
+    });
+
     expect(
       await screen.findByTestId(ComponentTestIds.CALL_PARTICIPANTS_GRID),
     ).toBeVisible();
@@ -104,6 +109,11 @@ describe('CallParticipantsGrid', () => {
       },
     );
 
+    // Advance timers to allow RxJS debounceTime subscriptions to emit
+    await act(() => {
+      jest.advanceTimersByTime(300);
+    });
+
     const visibleParticipantsItems = call.state.participants.map((p) => ({
       key: p.sessionId,
       item: 'some-item',
@@ -147,7 +157,7 @@ const simulateOnViewableItemsChanged = async (
       viewableItems,
     });
     // Advance pending timers to allow the FlatList to rerender
-    // This is needed because of useDebouncedValue we use in
+    // This is needed because of RxJS debounceTime we use in
     // forceUpdateValue to force rerender the FlatList
     jest.advanceTimersByTime(500);
   });
