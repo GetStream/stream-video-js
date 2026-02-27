@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.10.0...@stream-io/video-styling-1.11.0) (2026-02-27)
+
+### Features
+
+- **react:** Embeddable/pre-built video components ([#2117](https://github.com/GetStream/stream-video-js/issues/2117)) ([11b4b9f](https://github.com/GetStream/stream-video-js/commit/11b4b9f0438877a5917c95117474cedc1f693907))
+
 ## [1.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.9.1...@stream-io/video-styling-1.10.0) (2026-01-09)
 
 ### Features
