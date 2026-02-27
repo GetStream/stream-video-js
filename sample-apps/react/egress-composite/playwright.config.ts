@@ -56,7 +56,7 @@ export default defineConfig({
     //   port: 4567,
     // },
     {
-      timeout: 25000,
+      timeout: 60000,
       command: webServerCommand,
       reuseExistingServer: false,
       port: runAgainstProduction ? 4173 : 5173,
