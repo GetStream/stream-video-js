@@ -66,5 +66,4 @@ import cssUrl from '../public/example/custom.css?url';
 
 ## Run Playwright tests
 
-- run `yarn test:e2e:dev` to execute tests against the Vite dev server
 - run `yarn test:e2e:prod` to execute tests against the production build served by `vite preview`
