@@ -1,5 +1,4 @@
 import { createRoot } from 'react-dom/client';
-import * as Sentry from '@sentry/react';
 
 import {
   applyConfigurationDefaults,
@@ -12,23 +11,6 @@ import '@stream-io/video-react-sdk/dist/css/styles.css';
 import '@skooldev/skool-stream-layout/dist/styles.css';
 // Uncomment this line to test your own custom CSS
 // import cssUrl from '../public/example/custom.css?url';
-
-if (import.meta.env.MODE === 'production') {
-  Sentry.init({
-    dsn: import.meta.env.VITE_EGRESS_SENTRY_DNS,
-    tracePropagationTargets: ['video-layout.getstream.io'],
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration(),
-      // Sentry.captureConsoleIntegration(),
-    ],
-    tracesSampleRate: 0.9,
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
-    attachStacktrace: true,
-    maxBreadcrumbs: 10,
-  });
-}
 
 // @ts-expect-error TODO: this is a global function, we need to declare it
 window.setupLayout = (configuration: ConfigurationValue) => {
