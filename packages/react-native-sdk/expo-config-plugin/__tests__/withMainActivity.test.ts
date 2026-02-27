@@ -43,9 +43,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const props: ConfigProps = {
       androidPictureInPicture: true,
       enableScreenshare: true,
-      ringingPushNotifications: {
-        showWhenLockedAndroid: true,
-      },
+      ringing: true,
     };
 
     const updatedConfig = withMainActivity(config, props) as CustomExpoConfig;

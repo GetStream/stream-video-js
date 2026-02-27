@@ -25,8 +25,8 @@ export const KnownUsers = [
     image: 'https://ca.slack-edge.com/T02RM6X6B-U02CA8MV9D1-8631020b96bf-512',
   },
   {
-    id: 'kristian',
-    name: 'Kristian Martinoski',
-    image: 'https://ca.slack-edge.com/T02RM6X6B-U07L58DPSHG-0f665ede711c-512',
+    id: 'artem',
+    name: 'Artem Grintsevich',
+    image: 'https://ca.slack-edge.com/T02RM6X6B-U09P8U0KYLB-15f84a2f4367-512',
   },
 ];

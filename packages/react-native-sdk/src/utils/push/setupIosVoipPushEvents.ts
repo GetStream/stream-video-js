@@ -1,10 +1,11 @@
-import { getVoipPushNotificationLib } from './libs';
+// import { getVoipPushNotificationLib } from './libs';
 
 import { Platform } from 'react-native';
 import { onVoipNotificationReceived } from './internal/ios';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import { StreamVideoConfig } from '../StreamVideoRN/types';
 import { videoLoggerSystem } from '@stream-io/video-client';
+import { getCallingxLib } from './libs';
 
 export function setupIosVoipPushEvents(
   pushConfig: NonNullable<StreamVideoConfig['push']>,
@@ -20,16 +21,19 @@ export function setupIosVoipPushEvents(
     );
     return;
   }
-  const voipPushNotification = getVoipPushNotificationLib();
 
-  logger.debug('notification event listener added');
-  voipPushNotification.addEventListener('notification', (notification) => {
-    onVoipNotificationReceived(notification, pushConfig);
-  });
+  const callingx = getCallingxLib();
+  const voipNotificationReceivedListener = callingx.addEventListener(
+    'voipNotificationReceived',
+    (params) => {
+      onVoipNotificationReceived(params, pushConfig);
+    },
+  );
+
   setPushLogoutCallback(async () => {
     videoLoggerSystem
       .getLogger('setPushLogoutCallback')
       .debug('notification event listener removed');
-    voipPushNotification.removeEventListener('notification');
+    voipNotificationReceivedListener.remove();
   });
 }

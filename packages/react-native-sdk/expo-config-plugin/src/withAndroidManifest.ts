@@ -5,43 +5,7 @@ import {
 } from '@expo/config-plugins';
 import { type ConfigProps } from './common/types';
 
-const {
-  prefixAndroidKeys,
-  getMainApplicationOrThrow,
-  getMainActivityOrThrow,
-  ensureToolsAvailable,
-} = AndroidConfig.Manifest;
-
-// extract the type from array
-type Unpacked<T> =
-  T extends Array<infer U> ? U : T extends ReadonlyArray<infer U> ? U : T;
-// extract the service type
-type ManifestService = Unpacked<
-  NonNullable<AndroidConfig.Manifest.ManifestApplication['service']>
->;
-
-function getNotifeeService(isKeepCallAliveEnabled = false) {
-  /* We add this service to the AndroidManifest.xml:
-    <service
-        android:name="app.notifee.core.ForegroundService"
-        android:stopWithTask="true"
-        android:foregroundServiceType="shortService" />
- */
-  let foregroundServiceType = 'shortService';
-  if (isKeepCallAliveEnabled) {
-    foregroundServiceType =
-      'mediaPlayback|camera|microphone|' + foregroundServiceType;
-  }
-  let head = prefixAndroidKeys({
-    name: 'app.notifee.core.ForegroundService',
-    stopWithTask: 'true',
-    foregroundServiceType,
-  });
-  head = { ...head, 'tools:replace': 'android:foregroundServiceType' };
-  return {
-    $: head,
-  } as ManifestService;
-}
+const { getMainActivityOrThrow } = AndroidConfig.Manifest;
 
 const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
   configuration,
@@ -49,20 +13,6 @@ const withStreamVideoReactNativeSDKManifest: ConfigPlugin<ConfigProps> = (
 ) => {
   return withAndroidManifest(configuration, (config) => {
     const androidManifest = config.modResults;
-    const mainApplication = getMainApplicationOrThrow(androidManifest);
-    if (props?.ringingPushNotifications || props?.androidKeepCallAlive) {
-      ensureToolsAvailable(androidManifest);
-      /* Add the notifee foreground Service */
-      let services = mainApplication.service ?? [];
-      // we filter out the existing notifee service (if any) so that we can override it
-      services = services.filter(
-        (service) =>
-          service.$['android:name'] !== 'app.notifee.core.ForegroundService',
-      );
-      services.push(getNotifeeService(!!props?.androidKeepCallAlive));
-      mainApplication.service = services;
-    }
-
     if (props?.androidPictureInPicture) {
       const mainActivity = getMainActivityOrThrow(androidManifest);
       const currentConfigChangesArray = mainActivity.$['android:configChanges']

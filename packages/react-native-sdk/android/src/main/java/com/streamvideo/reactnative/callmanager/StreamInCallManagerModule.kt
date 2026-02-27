@@ -168,10 +168,12 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun logAudioState() {
-        WebRtcAudioUtils.logAudioState(
-            TAG,
-            reactApplicationContext,
-        )
+        Log.d(TAG, getAudioStateLog())
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun getAudioStateLog(): String {
+        return WebRtcAudioUtils.getAudioStateLog(reactApplicationContext)
     }
 
     @Suppress("unused")

@@ -1,5 +1,34 @@
 PODS:
   - boost (1.84.0)
+  - Callingx (0.1.0):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - stream-react-native-webrtc
+    - Yoga
   - DoubleConversion (1.1.6)
   - fast_float (8.0.0)
   - FBLazyVector (0.83.2)
@@ -2709,8 +2738,6 @@ PODS:
     - React-perflogger (= 0.83.2)
     - React-utils (= 0.83.2)
     - SocketRocket
-  - RNCallKeep (4.3.16):
-    - React
   - RNCClipboard (1.16.3):
     - boost
     - DoubleConversion
@@ -3041,8 +3068,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNVoipPushNotification (3.3.3):
-    - React-Core
   - RNWorklets (0.7.3):
     - boost
     - DoubleConversion
@@ -3221,7 +3246,7 @@ PODS:
     - SocketRocket
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (137.1.0):
+  - stream-react-native-webrtc (137.1.2):
     - React-Core
     - StreamWebRTC (~> 137.0.54)
   - stream-video-react-native (1.30.0):
@@ -3265,6 +3290,7 @@ PODS:
 
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
+  - "Callingx (from `../node_modules/@stream-io/react-native-callingx`)"
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
@@ -3347,7 +3373,6 @@ DEPENDENCIES:
   - ReactAppDependencyProvider (from `build/generated/ios/ReactAppDependencyProvider`)
   - ReactCodegen (from `build/generated/ios/ReactCodegen`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
-  - RNCallKeep (from `../node_modules/react-native-callkeep`)
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNCPushNotificationIOS (from `../node_modules/@react-native-community/push-notification-ios`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
@@ -3358,7 +3383,6 @@ DEPENDENCIES:
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
-  - RNVoipPushNotification (from `../node_modules/react-native-voip-push-notification`)
   - RNWorklets (from `../node_modules/react-native-worklets`)
   - SocketRocket (~> 0.7.1)
   - stream-chat-react-native (from `../node_modules/stream-chat-react-native`)
@@ -3379,6 +3403,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   boost:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
+  Callingx:
+    :path: "../node_modules/@stream-io/react-native-callingx"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
   fast_float:
@@ -3542,8 +3568,6 @@ EXTERNAL SOURCES:
     :path: build/generated/ios/ReactCodegen
   ReactCommon:
     :path: "../node_modules/react-native/ReactCommon"
-  RNCallKeep:
-    :path: "../node_modules/react-native-callkeep"
   RNCClipboard:
     :path: "../node_modules/@react-native-clipboard/clipboard"
   RNCPushNotificationIOS:
@@ -3564,8 +3588,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNSVG:
     :path: "../node_modules/react-native-svg"
-  RNVoipPushNotification:
-    :path: "../node_modules/react-native-voip-push-notification"
   RNWorklets:
     :path: "../node_modules/react-native-worklets"
   stream-chat-react-native:
@@ -3585,6 +3607,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
+  Callingx: 509e3924c64821ef1b42fae50934def0b987b9ff
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: f1200e6ef6cf24885501668bdbb9eff4cf48843f
@@ -3667,7 +3690,6 @@ SPEC CHECKSUMS:
   ReactAppDependencyProvider: d69159b417e8c9d82b8fe4d0a27def4c3e8f767f
   ReactCodegen: 38a7e572859b574c88edd9f194aee7658033191f
   ReactCommon: d86bdfcf07cfd551be3f83831ede1b7680dfd4e7
-  RNCallKeep: 1930a01d8caf48f018be4f2db0c9f03405c2f977
   RNCClipboard: e560338bf6cc4656a09ff90610b62ddc0dbdad65
   RNCPushNotificationIOS: 6c4ca3388c7434e4a662b92e4dfeeee858e6f440
   RNDeviceInfo: bcce8752b5043a623fe3c26789679b473f705d3c
@@ -3678,13 +3700,12 @@ SPEC CHECKSUMS:
   RNReanimated: fbcb7fd8da5b0b088401542c58fb5d266388f1cf
   RNScreens: 2e9c41cd099b1ca50136af8d57c3594214d0086a
   RNSVG: d9938e7f6ea1616124dd2d64b933322ac2059e05
-  RNVoipPushNotification: 4998fe6724d421da616dca765da7dc421ff54c4e
   RNWorklets: 944dddd0eef13006b658e653abbb3ee8365c3809
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   stream-chat-react-native: 362e74c743dd34d750e1878f9e479707e9edc794
   stream-io-noise-cancellation-react-native: 56787bb94ff912ee17661f4b24a3c4f9551f38ba
   stream-io-video-filters-react-native: 8fdd1a1fcade0dcd699fd2e5b61b2152c0056219
-  stream-react-native-webrtc: dd4bc6e9717e6d90204008c22a44bc1c1f605e3b
+  stream-react-native-webrtc: 272f70f23c5ed288bc67c01232a1cc18c5bca073
   stream-video-react-native: 68b9318fd73565de75ca25f35922b4c843d0227b
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: 57bd35729bcc46b008de4e741a5b23ac28b8854d

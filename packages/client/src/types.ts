@@ -23,6 +23,7 @@ import type {
 import type { Comparator } from './sorting';
 import type { StreamVideoWriteableStateStore } from './store';
 import { AxiosError } from 'axios';
+import type { Call } from './Call';
 
 export type StreamReaction = Pick<
   ReactionResponse,
@@ -392,26 +393,67 @@ export type StartCallRecordingFnType = {
   ): Promise<StartRecordingResponse>;
 };
 
+type StreamRNVideoSDKCallManagerRingingParams = {
+  isRingingTypeCall: boolean;
+};
+
+type StreamRNVideoSDKCallManagerSetupParams =
+  StreamRNVideoSDKCallManagerRingingParams & {
+    defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
+  };
+
+type StreamRNVideoSDKEndCallReason =
+  /** Call ended by the local user (e.g., hanging up). */
+  | 'local'
+  /** Call ended by the remote party, or outgoing call was not answered. */
+  | 'remote'
+  /** Call was rejected/declined by the user. */
+  | 'rejected'
+  /** Remote party was busy. */
+  | 'busy'
+  /** Call was answered on another device. */
+  | 'answeredElsewhere'
+  /** No response to an incoming call. */
+  | 'missed'
+  /** Call failed due to an error (e.g., network issue). */
+  | 'error'
+  /** Call was canceled before the remote party could answer. */
+  | 'canceled'
+  /** Call restricted (e.g., airplane mode, dialing restrictions). */
+  | 'restricted'
+  /** Unknown or unspecified disconnect reason. */
+  | 'unknown';
+
+type StreamRNVideoSDKCallingX = {
+  startCall: (call: Call) => Promise<void>;
+  endCall: (
+    call: Call,
+    reason?: StreamRNVideoSDKEndCallReason,
+  ) => Promise<void>;
+};
+
 export type StreamRNVideoSDKGlobals = {
+  callingX: StreamRNVideoSDKCallingX;
   callManager: {
     /**
      * Sets up the in call manager.
      */
     setup({
       defaultDevice,
-    }: {
-      defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
-    }): void;
+      isRingingTypeCall,
+    }: StreamRNVideoSDKCallManagerSetupParams): void;
 
     /**
      * Starts the in call manager.
      */
-    start(): void;
+    start({
+      isRingingTypeCall,
+    }: StreamRNVideoSDKCallManagerRingingParams): void;
 
     /**
      * Stops the in call manager.
      */
-    stop(): void;
+    stop({ isRingingTypeCall }: StreamRNVideoSDKCallManagerRingingParams): void;
   };
   permissions: {
     /**
