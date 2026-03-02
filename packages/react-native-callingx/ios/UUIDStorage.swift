@@ -18,7 +18,7 @@ import Foundation
         return queue.sync {
             if let existing = callsByCid[cid] {
                 #if DEBUG
-                print("[UUIDStorage] getOrCreateCall: found existing \(existing)")
+                NSLog("%@","[UUIDStorage] getOrCreateCall: found existing \(existing)")
                 #endif
                 return existing
             }
@@ -29,7 +29,7 @@ import Foundation
             callsByCid[cid] = call
             callsByUUID[uuidString] = call
             #if DEBUG
-            print("[UUIDStorage] getOrCreateCall: created \(call)")
+            NSLog("%@","[UUIDStorage] getOrCreateCall: created \(call)")
             #endif
             return call
         }
@@ -63,7 +63,7 @@ import Foundation
         return queue.sync {
             if let existing = callsByCid[cid] {
                 #if DEBUG
-                print("[UUIDStorage] getUUIDForCid: found existing UUID \(existing.uuid.uuidString.lowercased()) for cid \(cid)")
+                NSLog("%@","[UUIDStorage] getUUIDForCid: found existing UUID \(existing.uuid.uuidString.lowercased()) for cid \(cid)")
                 #endif
                 return existing.uuid
             }
@@ -74,7 +74,7 @@ import Foundation
             callsByCid[cid] = call
             callsByUUID[uuidString] = call
             #if DEBUG
-            print("[UUIDStorage] getUUIDForCid: created new UUID \(uuidString) for cid \(cid)")
+            NSLog("%@","[UUIDStorage] getUUIDForCid: created new UUID \(uuidString) for cid \(cid)")
             #endif
             return uuid
         }
@@ -91,7 +91,7 @@ import Foundation
             let uuidString = uuid.uuidString.lowercased()
             let cid = callsByUUID[uuidString]?.cid
             #if DEBUG
-            print("[UUIDStorage] getCidForUUID: UUID \(uuidString) -> cid \(cid ?? "(not found)")")
+            NSLog("%@","[UUIDStorage] getCidForUUID: UUID \(uuidString) -> cid \(cid ?? "(not found)")")
             #endif
             return cid
         }
@@ -104,11 +104,11 @@ import Foundation
                 callsByCid.removeValue(forKey: call.cid)
                 callsByUUID.removeValue(forKey: uuidString)
                 #if DEBUG
-                print("[UUIDStorage] removeCidForUUID: removed cid \(call.cid) for UUID \(uuidString)")
+                NSLog("%@","[UUIDStorage] removeCidForUUID: removed cid \(call.cid) for UUID \(uuidString)")
                 #endif
             } else {
                 #if DEBUG
-                print("[UUIDStorage] removeCidForUUID: no cid found for UUID \(uuidString)")
+                NSLog("%@","[UUIDStorage] removeCidForUUID: no cid found for UUID \(uuidString)")
                 #endif
             }
         }
@@ -121,11 +121,11 @@ import Foundation
                 callsByUUID.removeValue(forKey: uuidString)
                 callsByCid.removeValue(forKey: cid)
                 #if DEBUG
-                print("[UUIDStorage] removeCid: removed cid \(cid) with UUID \(uuidString)")
+                NSLog("%@","[UUIDStorage] removeCid: removed cid \(cid) with UUID \(uuidString)")
                 #endif
             } else {
                 #if DEBUG
-                print("[UUIDStorage] removeCid: no UUID found for cid \(cid)")
+                NSLog("%@","[UUIDStorage] removeCid: no UUID found for cid \(cid)")
                 #endif
             }
         }
@@ -137,7 +137,7 @@ import Foundation
             callsByCid.removeAll()
             callsByUUID.removeAll()
             #if DEBUG
-            print("[UUIDStorage] removeAllObjects: cleared \(count) entries")
+            NSLog("%@","[UUIDStorage] removeAllObjects: cleared \(count) entries")
             #endif
         }
     }

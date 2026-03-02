@@ -11,7 +11,7 @@ import UIKit
 
     public static func setSettings(_ options: [String: Any]?) {
         #if DEBUG
-        print("[Settings][setSettings] options = \(String(describing: options))")
+        NSLog("%@","[Settings][setSettings] options = \(String(describing: options))")
         #endif
 
         var settings: [String: Any] = getSettings()
@@ -39,7 +39,7 @@ import UIKit
 
     public static func getProviderConfiguration() -> CXProviderConfiguration {
         #if DEBUG
-        print("[Settings][getProviderConfiguration]")
+        NSLog("%@","[Settings][getProviderConfiguration]")
         #endif
       
         let settings = getSettings()
