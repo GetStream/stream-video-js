@@ -337,6 +337,7 @@ import stream_react_native_webrtc
         
         // This is mostly needed for very first setup, as we need to override the default
         // provider configuration which is set in the constructor.
+        // IMPORTANT: We override CXProvider instance only if there is no registered call, otherwise we may lose corrsponding call state/events from CallKit
         if !CallingxImpl.hasRegisteredCall() {
             let oldProvider = CallingxImpl.sharedProvider
             let newProvider = CXProvider(configuration: Settings.getProviderConfiguration())
