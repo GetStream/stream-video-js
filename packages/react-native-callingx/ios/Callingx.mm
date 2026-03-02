@@ -101,7 +101,7 @@ RCT_EXPORT_MODULE(Callingx)
 
 - (instancetype)init {
   if (self = [super init]) {
-    _moduleImpl = [[CallingxImpl alloc] init];
+    _moduleImpl = [CallingxImpl getSharedInstance];
     _moduleImpl.eventEmitter = self;
 
     [VoipNotificationsManager shared].eventEmitter = self;
