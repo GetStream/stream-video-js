@@ -123,6 +123,8 @@ export interface ICallingxModule {
 
   registerVoipToken(): void;
 
+  stopService(): Promise<void>;
+
   /**
    * Single entry point for adding event listeners.
    * Automatically routes to the appropriate manager based on event type.

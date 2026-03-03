@@ -139,18 +139,14 @@ export const firebaseDataHandler = async (
 
   if (data.type === 'call.ring') {
     const call_cid = data.call_cid as string;
-    if (!call_cid) {
-      logger.debug(
-        `call_cid is not provided, skipping the call.ring notification`,
-      );
-      return;
-    }
 
     const callingx = getCallingxLib();
+
     if (!callingx.canPostNotifications) {
       logger.warn(
         `Cannot post notifications, skipping the call.ring notification`,
       );
+      await callingx.stopService();
       return;
     }
 
@@ -159,6 +155,7 @@ export const firebaseDataHandler = async (
       logger.debug(
         `video client not found, skipping the call.ring notification`,
       );
+      await callingx.stopService();
       return;
     }
 
@@ -211,12 +208,12 @@ export const firebaseDataHandler = async (
                   `Closing fg service callCid: ${call_cid} endCallReason: ${endCallReason}`,
                 );
 
-                finishBackgroundTask();
                 callingx.log(
                   `Ending call with callCid: ${call_cid} endCallReason: ${endCallReason}`,
                   'debug',
                 );
                 callingx.endCallWithReason(call_cid, endCallReason);
+                resolve(undefined);
                 return;
               }
 
@@ -246,8 +243,8 @@ export const firebaseDataHandler = async (
                   );
                   unsubscribeFunctions.forEach((fn) => fn());
 
-                  finishBackgroundTask();
                   callingx.endCallWithReason(call_cid, endCallReasonFromEvent);
+                  resolve(undefined);
                 }
               });
 
@@ -266,7 +263,7 @@ export const firebaseDataHandler = async (
                       `Ending call with callCid: ${call_cid} callingState: ${callingState}`,
                       'debug',
                     );
-                    finishBackgroundTask();
+                    resolve(undefined);
                   }
                 });
 
@@ -288,7 +285,7 @@ export const firebaseDataHandler = async (
                       `Ending call with callCid: ${call_cid} callId: ${callId}`,
                       'debug',
                     );
-                    finishBackgroundTask();
+                    resolve(undefined);
                   }
                 },
               );

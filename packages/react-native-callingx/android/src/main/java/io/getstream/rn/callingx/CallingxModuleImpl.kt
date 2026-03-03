@@ -152,6 +152,20 @@ class CallingxModuleImpl(
         return notificationChannelsManager.getNotificationStatus().canPost
     }
 
+    fun stopService(promise: Promise) {
+        debugLog(TAG, "[module] stopService: Stopping CallService explicitly from JS")
+        try {
+            Intent(reactApplicationContext, CallService::class.java)
+                    .apply { action = CallService.ACTION_STOP_SERVICE }
+                    .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "[module] stopService: Failed to stop service: ${e.message}", e)
+            promise.reject("STOP_SERVICE_ERROR", e.message, e)
+        }
+    }
+
     fun getInitialEvents(): WritableArray {
         // NOTE: writabel native array can be consumed only once, think of getting rid from clear
         // event and clear eat immidiate after getting initial events
@@ -352,12 +366,12 @@ class CallingxModuleImpl(
                         putExtra(CallService.EXTRA_TASK_DATA, Bundle())
                         putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
                     }
-                    .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+                    .also { reactApplicationContext.startService(it) }
 
             promise.resolve(true)
         } catch (e: Exception) {
-            Log.e(TAG, "[module] startBackgroundTask: Failed to start foreground service: ${e.message}", e)
-            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+            Log.e(TAG, "[module] startBackgroundTask: Failed to start service: ${e.message}", e)
+            promise.reject("START_SERVICE_ERROR", e.message, e)
         }
     }
 
@@ -368,13 +382,13 @@ class CallingxModuleImpl(
                         this.action = CallService.ACTION_STOP_BACKGROUND_TASK
                         putExtra(CallService.EXTRA_TASK_NAME, taskName)
                     }
-                    .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+                    .also { reactApplicationContext.startService(it) }
 
             isHeadlessTaskRegistered = false
             promise.resolve(true)
         } catch (e: Exception) {
-            Log.e(TAG, "[module] stopBackgroundTask: Failed to start foreground service: ${e.message}", e)
-            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+            Log.e(TAG, "[module] stopBackgroundTask: Failed to start service: ${e.message}", e)
+            promise.reject("START_SERVICE_ERROR", e.message, e)
         }
     }
 
@@ -438,9 +452,9 @@ class CallingxModuleImpl(
                         putExtra(CallService.EXTRA_TASK_DATA, Bundle())
                         putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
                     }
-                    .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+                    .also { reactApplicationContext.startService(it) }
         } catch (e: Exception) {
-            Log.e(TAG, "[module] startBackgroundTaskAutomatically: Failed to start foreground service: ${e.message}", e)
+            Log.e(TAG, "[module] startBackgroundTaskAutomatically: Failed to start service: ${e.message}", e)
         }
     }
 

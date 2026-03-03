@@ -174,4 +174,9 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
     fun log(message: String, level: String) {
         impl.log(message, level)
     }
+
+    @ReactMethod
+    fun stopService(promise: Promise) {
+        impl.stopService(promise)
+    }
 }

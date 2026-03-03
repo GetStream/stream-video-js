@@ -259,6 +259,10 @@ class CallingxModule implements ICallingxModule {
     NativeCallingModule.registerVoipToken();
   }
 
+  stopService(): Promise<void> {
+    return NativeCallingModule.stopService();
+  }
+
   addEventListener<T extends EventName | VoipEventName>(
     eventName: T,
     callback: EventListener<

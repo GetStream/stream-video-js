@@ -1,8 +1,6 @@
 package io.getstream.rn.callingx
 
-import android.util.Log
 import com.google.firebase.messaging.RemoteMessage
-import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService
 
 /**
@@ -20,10 +18,6 @@ class StreamMessagingService : ReactNativeFirebaseMessagingService() {
     const val TAG = "[Callingx] StreamMessagingService"
   }
 
-  private val notificationChannelsManager by lazy {
-    NotificationChannelsManager(applicationContext)
-  }
-  
   override fun onNewToken(token: String) {
     super.onNewToken(token)
   }
@@ -32,15 +26,15 @@ class StreamMessagingService : ReactNativeFirebaseMessagingService() {
     val data = remoteMessage.data
     debugLog(TAG, "onMessageReceived data = $data")
 
-    val canPostNotification = notificationChannelsManager.getNotificationStatus().canPost
-    if (!canPostNotification || data["sender"] != "stream.video" || data["type"] != "call.ring") {
+    if (data["sender"] != "stream.video" || data["type"] != "call.ring") {
+      debugLog(TAG, "sender or type is not supported, skipping CallService start")
       super.onMessageReceived(remoteMessage)
       return
     }
 
     val callCid = data["call_cid"]
     if (callCid.isNullOrEmpty()) {
-      Log.d(
+      debugLog(
         TAG,
         "missing call_cid for call.ring, skipping CallService start",
       )

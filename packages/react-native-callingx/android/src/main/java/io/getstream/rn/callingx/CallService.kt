@@ -9,7 +9,9 @@ import android.net.Uri
 import android.os.Binder
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -42,6 +44,7 @@ class CallService : Service(), CallRepository.Listener {
 
     companion object {
         private const val TAG = "[Callingx] CallService"
+        private const val PRE_WARM_TIMEOUT_MS = 60_000L
 
         internal const val EXTRA_CALL_ID = "extra_call_id"
         internal const val EXTRA_NAME = "extra_name"
@@ -93,6 +96,9 @@ class CallService : Service(), CallRepository.Listener {
 
     private var isInForeground = false
 
+    private val preWarmHandler = Handler(Looper.getMainLooper())
+    private var preWarmTimeoutRunnable: Runnable? = null
+
     override fun onCreate() {
         super.onCreate()
         debugLog(TAG, "[service] onCreate: TelecomCallService created")
@@ -137,9 +143,7 @@ class CallService : Service(), CallRepository.Listener {
 
         when (intent.action) {
             ACTION_START_CALL_SERVICE -> {
-                extractIntentParams(intent).let {
-                    startForegroundForCall(it, true)
-                }
+                startWarmupIfNeeded(intent)
             }
             ACTION_INCOMING_CALL -> {
                 registerCall(intent, true)
@@ -149,7 +153,10 @@ class CallService : Service(), CallRepository.Listener {
             }
             ACTION_START_BACKGROUND_TASK -> {
                 if (!isInForeground) {
-                    debugLog(TAG, "[service] onStartCommand: Starting foreground for background task")
+                    debugLog(
+                            TAG,
+                            "[service] onStartCommand: Starting foreground for background task"
+                    )
                     // for now bg task is intended to be used after a call registered and
                     // notification is shown, so we don't need to show a separate notification for
                     // bg task
@@ -158,12 +165,24 @@ class CallService : Service(), CallRepository.Listener {
                 }
 
                 startBackgroundTask(intent)
+                return START_NOT_STICKY
             }
             ACTION_STOP_BACKGROUND_TASK -> {
                 stopBackgroundTask()
+                return START_NOT_STICKY
             }
             ACTION_UPDATE_CALL -> {
                 updateCall(intent)
+            }
+            ACTION_STOP_SERVICE -> {
+                stopWarmupTimeout()
+                if (isInForeground) {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    isInForeground = false
+                }
+                notificationManager.cancelNotifications()
+                notificationManager.stopRingtone()
+                stopSelf()
             }
             else -> {
                 Log.e(TAG, "[service] onStartCommand: Unknown action: ${intent.action}")
@@ -203,7 +222,8 @@ class CallService : Service(), CallRepository.Listener {
                             TAG,
                             "[service] updateServiceState: Fallback starting foreground for call: ${call.id}"
                     )
-                    //fallback if for some reason startForeground method is not called in onStartCommand method
+                    // fallback if for some reason startForeground method is not called in
+                    // onStartCommand method
                     val notification = notificationManager.createNotification(call)
                     startForegroundSafely(notification)
                 }
@@ -323,6 +343,11 @@ class CallService : Service(), CallRepository.Listener {
 
     private fun registerCall(intent: Intent, incoming: Boolean) {
         debugLog(TAG, "[service] registerCall: ${if (incoming) "in" else "out"} call")
+
+        // If we were started in pre-warm mode, cancel the timeout now that a real call registration
+        // is happening
+        stopWarmupTimeout()
+
         val callInfo = extractIntentParams(intent)
 
         // If we have an ongoing call, notify the module that registration is
@@ -372,6 +397,25 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
+    private fun startWarmupIfNeeded(intent: Intent) {
+        if (isInForeground) {
+            Log.w(
+                    TAG,
+                    "[service] preWarm: Service is already in foreground, ignoring pre-warm request"
+            )
+            return
+        }
+
+        if (callRepository.currentCall.value is Call.Registered) {
+            Log.w(TAG, "[service] preWarm: Call already registered, ignoring pre-warm request")
+            return
+        }
+
+        val callInfo = extractIntentParams(intent)
+        startForegroundForCall(callInfo, true)
+        startWarmupTimeout(callInfo)
+    }
+
     private fun startForegroundSafely(notification: Notification) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -401,8 +445,8 @@ class CallService : Service(), CallRepository.Listener {
         // it is better to invoke startForeground method synchronously inside onStartCommand method
         if (!isInForeground) {
             debugLog(
-              TAG,
-              "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
+                    TAG,
+                    "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
             )
             val notification = notificationManager.createNotification(tempCall)
             startForegroundSafely(notification)
@@ -442,6 +486,30 @@ class CallService : Service(), CallRepository.Listener {
                     applyParams(this)
                 }
         sendBroadcast(intent)
+    }
+
+    private fun startWarmupTimeout(callInfo: CallInfo) {
+        // Schedule a timeout to stop the pre-warmed service if no call registration happens.
+        preWarmTimeoutRunnable?.let { preWarmHandler.removeCallbacks(it) }
+        preWarmTimeoutRunnable = Runnable {
+            debugLog(
+                    TAG,
+                    "[service] pre-warm timeout: no call registration for callId=${callInfo.callId}, stopping service"
+            )
+            if (isInForeground) {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                isInForeground = false
+            }
+            notificationManager.cancelNotifications()
+            notificationManager.stopRingtone()
+            stopSelf()
+        }
+        preWarmHandler.postDelayed(preWarmTimeoutRunnable!!, PRE_WARM_TIMEOUT_MS)
+    }
+
+    private fun stopWarmupTimeout() {
+        preWarmTimeoutRunnable?.let { preWarmHandler.removeCallbacks(it) }
+        preWarmTimeoutRunnable = null
     }
 
     data class CallInfo(
