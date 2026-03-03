@@ -95,13 +95,7 @@ export class Dispatcher {
     const { byTag, dynamic } = handlers;
     this.emit(payload, byTag.get(tag));
     if (tag !== '*') this.emit(payload, byTag.get('*'));
-
-    for (const { tagSelector, listener } of dynamic) {
-      const dynamicTag = tagSelector();
-      if (dynamicTag === tag || (tag !== '*' && dynamicTag === '*')) {
-        this.emitOne(payload, listener);
-      }
-    }
+    this.emitDynamic(payload, tag, dynamic);
   };
 
   /**
@@ -116,6 +110,24 @@ export class Dispatcher {
     }
   };
 
+  /**
+   * Emit an event to a list of listeners.
+   *
+   */
+  emitDynamic = (payload: any, tag: string, dynamic: DynamicHandler[]) => {
+    for (const { tagSelector, listener } of dynamic) {
+      const dynamicTag = tagSelector();
+      if (dynamicTag === tag || (tag !== '*' && dynamicTag === '*')) {
+        this.emitOne(payload, listener);
+      }
+    }
+  };
+
+  /**
+   * Emit an event to a single listener.
+   * @param payload the event payload to emit.
+   * @param listener the listener to emit the event to.
+   */
   private emitOne = (payload: any, listener: AnyListener) => {
     try {
       listener(payload);
