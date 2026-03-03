@@ -2,6 +2,7 @@ package io.getstream.rn.callingx
 
 import android.app.Notification
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.net.Uri
@@ -11,6 +12,8 @@ import android.os.Bundle
 import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.CallNotificationManager
@@ -52,6 +55,7 @@ class CallService : Service(), CallRepository.Listener {
         internal const val EXTRA_TASK_DATA = "task_data"
         internal const val EXTRA_TASK_TIMEOUT = "task_timeout"
 
+        internal const val ACTION_START_CALL_SERVICE = "start_call_service"
         internal const val ACTION_INCOMING_CALL = "incoming_call"
         internal const val ACTION_OUTGOING_CALL = "outgoing_call"
         internal const val ACTION_UPDATE_CALL = "update_call"
@@ -59,6 +63,21 @@ class CallService : Service(), CallRepository.Listener {
         internal const val ACTION_STOP_BACKGROUND_TASK = "stop_background_task"
         internal const val ACTION_STOP_SERVICE = "stop_service"
         internal const val ACTION_REGISTRATION_FAILED = "registration_failed"
+
+        fun startCallService(context: Context, data: Map<String, String>) {
+            debugLog(TAG, "[service] startCallService: Starting call service warmup")
+
+            val intent =
+                    Intent(context, CallService::class.java).apply {
+                        action = ACTION_START_CALL_SERVICE
+                        putExtra(EXTRA_CALL_ID, data["call_cid"])
+                        putExtra(EXTRA_URI, data["call_cid"]?.toUri())
+                        putExtra(EXTRA_NAME, data["created_by_display_name"])
+                        putExtra(EXTRA_IS_VIDEO, data["video"] == "true")
+                    }
+
+            ContextCompat.startForegroundService(context, intent)
+        }
     }
 
     inner class CallServiceBinder : Binder() {
@@ -117,6 +136,11 @@ class CallService : Service(), CallRepository.Listener {
         }
 
         when (intent.action) {
+            ACTION_START_CALL_SERVICE -> {
+                extractIntentParams(intent).let {
+                    startForegroundForCall(it, true)
+                }
+            }
             ACTION_INCOMING_CALL -> {
                 registerCall(intent, true)
             }
@@ -316,17 +340,8 @@ class CallService : Service(), CallRepository.Listener {
             }
             return
         }
-        val tempCall = callRepository.getTempCall(callInfo, incoming)
 
-        //it is better to invoke startForeground method synchronously inside onStartCommand method
-        if (!isInForeground) {
-            debugLog(
-                    TAG,
-                    "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
-            )
-            val notification = notificationManager.createNotification(tempCall)
-            startForegroundSafely(notification)
-        }
+        startForegroundForCall(callInfo, incoming)
 
         scope.launch {
             try {
@@ -378,6 +393,19 @@ class CallService : Service(), CallRepository.Listener {
                     "[service] startForegroundSafely: Failed to start foreground service: ${e.message}",
                     e
             )
+        }
+    }
+
+    private fun startForegroundForCall(callInfo: CallInfo, incoming: Boolean) {
+        val tempCall = callRepository.getTempCall(callInfo, incoming)
+        // it is better to invoke startForeground method synchronously inside onStartCommand method
+        if (!isInForeground) {
+            debugLog(
+              TAG,
+              "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
+            )
+            val notification = notificationManager.createNotification(tempCall)
+            startForegroundSafely(notification)
         }
     }
 
