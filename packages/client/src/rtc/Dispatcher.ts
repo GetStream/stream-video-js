@@ -96,12 +96,10 @@ export class Dispatcher {
     this.emit(payload, byTag.get(tag));
     if (tag !== '*') this.emit(payload, byTag.get('*'));
 
-    if (dynamic.length > 0) {
-      for (const { tagSelector, listener } of dynamic) {
-        const dynamicTag = tagSelector();
-        if (dynamicTag === tag || (tag !== '*' && dynamicTag === '*')) {
-          this.emitOne(payload, listener);
-        }
+    for (const { tagSelector, listener } of dynamic) {
+      const dynamicTag = tagSelector();
+      if (dynamicTag === tag || (tag !== '*' && dynamicTag === '*')) {
+        this.emitOne(payload, listener);
       }
     }
   };
