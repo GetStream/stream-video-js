@@ -9,7 +9,7 @@ export const watchDominantSpeakerChanged = (
   dispatcher: Dispatcher,
   state: CallState,
 ) => {
-  return dispatcher.on('dominantSpeakerChanged', (e) => {
+  return dispatcher.on('dominantSpeakerChanged', '*', (e) => {
     const { sessionId } = e;
     if (sessionId === state.dominantSpeaker?.sessionId) return;
     state.setParticipants((participants) =>
@@ -41,7 +41,7 @@ export const watchAudioLevelChanged = (
   dispatcher: Dispatcher,
   state: CallState,
 ) => {
-  return dispatcher.on('audioLevelChanged', (e) => {
+  return dispatcher.on('audioLevelChanged', '*', (e) => {
     const { audioLevels } = e;
     state.updateParticipants(
       audioLevels.reduce<StreamVideoParticipantPatches>((patches, current) => {

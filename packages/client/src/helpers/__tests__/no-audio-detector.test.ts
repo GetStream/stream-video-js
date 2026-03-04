@@ -12,7 +12,7 @@ describe('no-audio-detector (browser)', () => {
   let mockAudioContext: ReturnType<typeof setupAudioContextMock>;
   let audioStream: MediaStream;
   type MockAnalyserNode = ReturnType<typeof createMockAnalyserNode> & {
-    getByteFrequencyData: ReturnType<typeof vi.fn>;
+    getByteTimeDomainData: ReturnType<typeof vi.fn>;
   };
 
   const getAnalyserNode = () => {
@@ -30,7 +30,6 @@ describe('no-audio-detector (browser)', () => {
       noAudioThresholdMs: 5000,
       emitIntervalMs: 5000,
       detectionFrequencyInMs: 500,
-      audioLevelThreshold: 1, // Use threshold of 1 so level 0 is detected as "no audio"
       ...overrides,
     });
 
@@ -38,9 +37,19 @@ describe('no-audio-detector (browser)', () => {
   };
 
   const setAudioLevel = (analyserNode: MockAnalyserNode, level: number) => {
-    vi.mocked(analyserNode.getByteFrequencyData).mockImplementation((array) => {
-      array.fill(level);
-    });
+    const amplitude = Math.min(Math.max(level, 0), 127);
+    vi.mocked(analyserNode.getByteTimeDomainData).mockImplementation(
+      (array) => {
+        if (amplitude === 0) {
+          array.fill(128);
+          return;
+        }
+
+        for (let i = 0; i < array.length; i++) {
+          array[i] = i % 2 === 0 ? 128 + amplitude : 128 - amplitude;
+        }
+      },
+    );
   };
 
   beforeEach(() => {
@@ -92,6 +101,16 @@ describe('no-audio-detector (browser)', () => {
       expect(onCaptureStatusChange).toHaveBeenCalledWith(false);
     });
 
+    it('should treat tiny 127/128 jitter as no audio', () => {
+      const { onCaptureStatusChange, analyserNode } = createDetector();
+      setAudioLevel(analyserNode, 1);
+
+      vi.advanceTimersByTime(5500);
+
+      expect(onCaptureStatusChange).toHaveBeenCalledTimes(1);
+      expect(onCaptureStatusChange).toHaveBeenLastCalledWith(false);
+    });
+
     it('should respect custom emit interval', () => {
       const { onCaptureStatusChange, analyserNode } = createDetector({
         noAudioThresholdMs: 3000,
@@ -114,6 +133,27 @@ describe('no-audio-detector (browser)', () => {
   });
 
   describe('audio detection', () => {
+    it('should stop and emit audio detected when sound appears before threshold', () => {
+      const { onCaptureStatusChange, analyserNode } = createDetector();
+      setAudioLevel(analyserNode, 0);
+
+      // Start in no-audio detecting mode but stay below threshold.
+      vi.advanceTimersByTime(3000);
+      expect(onCaptureStatusChange).not.toHaveBeenCalled();
+
+      // Audio appears before no-audio threshold is reached.
+      setAudioLevel(analyserNode, 10);
+      vi.advanceTimersByTime(500);
+
+      expect(onCaptureStatusChange).toHaveBeenCalledTimes(1);
+      expect(onCaptureStatusChange).toHaveBeenLastCalledWith(true);
+
+      // Detector should be stopped.
+      onCaptureStatusChange.mockClear();
+      vi.advanceTimersByTime(10000);
+      expect(onCaptureStatusChange).not.toHaveBeenCalled();
+    });
+
     it('should stop checking after audio is detected', () => {
       const { onCaptureStatusChange, analyserNode } = createDetector();
       setAudioLevel(analyserNode, 0);
@@ -133,22 +173,6 @@ describe('no-audio-detector (browser)', () => {
       // Advance time significantly - no more events should be emitted
       vi.advanceTimersByTime(10000);
       expect(onCaptureStatusChange).not.toHaveBeenCalled();
-    });
-
-    it('should respect custom audio level threshold', () => {
-      const { onCaptureStatusChange, analyserNode } = createDetector({
-        audioLevelThreshold: 20, // Custom threshold
-      });
-      setAudioLevel(analyserNode, 15);
-
-      // Should detect as no audio since 15 < 20
-      vi.advanceTimersByTime(5500);
-      expect(onCaptureStatusChange).toHaveBeenCalledWith(false);
-
-      setAudioLevel(analyserNode, 25);
-      vi.advanceTimersByTime(500);
-
-      expect(onCaptureStatusChange).toHaveBeenCalledWith(true);
     });
   });
 
@@ -176,7 +200,7 @@ describe('no-audio-detector (browser)', () => {
       expect(onCaptureStatusChange).toHaveBeenCalledTimes(1);
     });
 
-    it('should reset state when track ends', () => {
+    it('should emit no-audio when track ends', () => {
       const [track] = audioStream.getAudioTracks() as Array<
         Omit<MediaStreamTrack, 'readyState'> & { readyState: string }
       >;
@@ -191,9 +215,10 @@ describe('no-audio-detector (browser)', () => {
       // Advance detection cycle
       vi.advanceTimersByTime(500);
 
-      // Should not emit (track ended)
+      // Ended track should be treated as no-audio and eventually emit.
       vi.advanceTimersByTime(5000);
-      expect(onCaptureStatusChange).not.toHaveBeenCalled();
+      expect(onCaptureStatusChange).toHaveBeenCalledTimes(1);
+      expect(onCaptureStatusChange).toHaveBeenCalledWith(false);
     });
   });
 
@@ -247,7 +272,7 @@ describe('no-audio-detector (browser)', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle empty audio tracks array', () => {
+    it('should emit no-audio when stream has no audio tracks', async () => {
       const onCaptureStatusChange = vi.fn();
       const emptyStream = {
         getAudioTracks: () => [],
@@ -260,12 +285,13 @@ describe('no-audio-detector (browser)', () => {
         detectionFrequencyInMs: 500,
       });
 
-      // Should not crash or emit events
+      // Missing track should be treated as no-audio and eventually emit.
       vi.advanceTimersByTime(10000);
-      expect(onCaptureStatusChange).not.toHaveBeenCalled();
+      expect(onCaptureStatusChange).toHaveBeenCalledTimes(1);
+      expect(onCaptureStatusChange).toHaveBeenCalledWith(false);
 
       // Cleanup should work
-      expect(() => stop()).not.toThrow();
+      await expect(stop()).resolves.toBeUndefined();
     });
   });
 });

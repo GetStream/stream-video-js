@@ -14,12 +14,15 @@ import {
 } from '../../gen/video/sfu/models/models';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import {
+  createLocalStorageMock,
+  emitDeviceIds,
   mockAudioDevices,
   mockAudioStream,
   mockBrowserPermission,
   mockCall,
   mockDeviceIds$,
 } from './mocks';
+import { createAudioStreamForDevice } from './mediaStreamTestHelpers';
 import { setupAudioContextMock } from './web-audio.mocks';
 import { getAudioStream } from '../devices';
 import { MicrophoneManager } from '../MicrophoneManager';
@@ -35,6 +38,11 @@ import {
 import { PermissionsContext } from '../../permissions';
 import { Tracer } from '../../stats';
 import { settled, withoutConcurrency } from '../../helpers/concurrency';
+import {
+  defaultDeviceId,
+  readPreferences,
+  toPreferenceList,
+} from '../devicePersistence';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -88,7 +96,8 @@ describe('MicrophoneManager', () => {
       streamClient: new StreamClient('abc123'),
       clientStore: new StreamVideoWriteableStateStore(),
     });
-    manager = new MicrophoneManager(call, 'disable-tracks');
+    const devicePersistence = { enabled: false, storageKey: '' };
+    manager = new MicrophoneManager(call, devicePersistence, 'disable-tracks');
   });
   it('list devices', () => {
     const spy = vi.fn();
@@ -174,7 +183,12 @@ describe('MicrophoneManager', () => {
       vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
         of('denied'),
       );
-      const innerManager = new MicrophoneManager(call, 'disable-tracks');
+      const devicePersistence = { enabled: false, storageKey: '' };
+      const innerManager = new MicrophoneManager(
+        call,
+        devicePersistence,
+        'disable-tracks',
+      );
       // @ts-expect-error private api
       const fn = vi.spyOn(innerManager, 'startSpeakingWhileMutedDetection');
 
@@ -220,6 +234,38 @@ describe('MicrophoneManager', () => {
       } finally {
         mock.mockImplementation(prevMockImplementation!);
       }
+    });
+
+    it('should not create duplicate sound detectors for the same device', async () => {
+      const detectorMock = vi.mocked(createSoundDetector);
+      const cleanup = vi.fn(async () => {});
+      detectorMock.mockImplementationOnce(() => cleanup);
+
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+
+      expect(detectorMock).toHaveBeenCalledTimes(1);
+
+      await manager['stopSpeakingWhileMutedDetection']();
+      expect(cleanup).toHaveBeenCalledTimes(1);
+    });
+
+    it('should cleanup previous detector before starting a new device detector', async () => {
+      const detectorMock = vi.mocked(createSoundDetector);
+      const cleanupFirst = vi.fn(async () => {});
+      const cleanupSecond = vi.fn(async () => {});
+      detectorMock
+        .mockImplementationOnce(() => cleanupFirst)
+        .mockImplementationOnce(() => cleanupSecond);
+
+      await manager['startSpeakingWhileMutedDetection']('device-1');
+      await manager['startSpeakingWhileMutedDetection']('device-2');
+
+      expect(detectorMock).toHaveBeenCalledTimes(2);
+      expect(cleanupFirst).toHaveBeenCalledTimes(1);
+
+      await manager['stopSpeakingWhileMutedDetection']();
+      expect(cleanupSecond).toHaveBeenCalledTimes(1);
     });
 
     // --- this ---
@@ -376,6 +422,13 @@ describe('MicrophoneManager', () => {
       call.permissionsContext.canPublish = vi.fn().mockReturnValue(true);
     });
 
+    it('should apply defaults when mic_default_on is true and enabled is pristine', async () => {
+      const enable = vi.spyOn(manager, 'enable');
+      // @ts-expect-error - partial data
+      await manager.apply({ mic_default_on: true }, true);
+      expect(enable).toHaveBeenCalled();
+    });
+
     it('should turn the mic on when set on dashboard', async () => {
       const enable = vi.spyOn(manager, 'enable');
       // @ts-expect-error - partial data
@@ -405,6 +458,37 @@ describe('MicrophoneManager', () => {
       // @ts-expect-error - partial data
       await manager.apply({ mic_default_on: true }, true);
       expect(manager['publishStream']).toHaveBeenCalled();
+    });
+
+    it('should skip defaults when preferences are applied', async () => {
+      const devicePersistence = { enabled: true, storageKey: '' };
+      const persistedManager = new MicrophoneManager(
+        call,
+        devicePersistence,
+        'disable-tracks',
+      );
+      const applySpy = vi
+        .spyOn(persistedManager as never, 'applyPersistedPreferences')
+        .mockResolvedValue(true);
+      const enableSpy = vi.spyOn(persistedManager, 'enable');
+
+      // @ts-expect-error - partial data
+      await persistedManager.apply({ mic_default_on: true }, true);
+
+      expect(applySpy).toHaveBeenCalledWith(true);
+      expect(enableSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not apply defaults when mic is not pristine', async () => {
+      manager.state.setStatus('enabled');
+      const applySpy = vi.spyOn(manager as never, 'applyPersistedPreferences');
+      const enableSpy = vi.spyOn(manager, 'enable');
+
+      // @ts-expect-error - partial data
+      await manager.apply({ mic_default_on: true }, true);
+
+      expect(applySpy).not.toHaveBeenCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -527,6 +611,118 @@ describe('MicrophoneManager', () => {
       await vi.waitFor(() => {
         expect(cleanupFn).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('no-audio detector configuration', () => {
+    it('applies silence threshold and emit interval in runtime monitoring', async () => {
+      const noAudioDetector = vi.mocked(createNoAudioDetector);
+
+      manager.setSilenceThreshold(3000);
+      manager['call'].state.setCallingState(CallingState.JOINED);
+      await manager.enable();
+
+      await vi.waitFor(() => {
+        expect(noAudioDetector).toHaveBeenCalled();
+      });
+
+      const options = noAudioDetector.mock.calls.at(-1)?.[1];
+      expect(options).toMatchObject({
+        noAudioThresholdMs: 3000,
+        emitIntervalMs: 3000,
+      });
+    });
+  });
+
+  describe('Device Persistence Stress', () => {
+    it('persists the final microphone and muted state after rapid toggles, switches, and unplug', async () => {
+      const storageKey = '@test/device-preferences-microphone-stress';
+      const localStorageMock = createLocalStorageMock();
+      const originalWindow = globalThis.window;
+      Object.defineProperty(globalThis, 'window', {
+        configurable: true,
+        value: { localStorage: localStorageMock },
+      });
+
+      const getAudioStreamMock = vi.mocked(getAudioStream);
+      getAudioStreamMock.mockImplementation((constraints) => {
+        const requestedDeviceId = (constraints?.deviceId as { exact?: string })
+          ?.exact;
+        const selectedDevice =
+          mockAudioDevices.find((d) => d.deviceId === requestedDeviceId) ??
+          mockAudioDevices[0];
+        return Promise.resolve(
+          createAudioStreamForDevice(
+            selectedDevice.deviceId,
+            selectedDevice.label,
+          ),
+        );
+      });
+
+      const stressManager = new MicrophoneManager(
+        call,
+        { enabled: true, storageKey },
+        'disable-tracks',
+      );
+
+      try {
+        const finalDevice = mockAudioDevices[2];
+        emitDeviceIds(mockAudioDevices);
+
+        await Promise.allSettled([
+          stressManager.enable(),
+          stressManager.select(mockAudioDevices[1].deviceId),
+          stressManager.toggle(),
+          stressManager.select(finalDevice.deviceId),
+          stressManager.toggle(),
+          stressManager.enable(),
+        ]);
+        await stressManager.statusChangeSettled();
+        await stressManager.select(finalDevice.deviceId);
+        await stressManager.enable();
+        await stressManager.statusChangeSettled();
+
+        expect(stressManager.state.selectedDevice).toBe(finalDevice.deviceId);
+        expect(stressManager.state.status).toBe('enabled');
+
+        const persistedBeforeUnplug = toPreferenceList(
+          readPreferences(storageKey).microphone,
+        );
+        expect(persistedBeforeUnplug[0]).toEqual({
+          selectedDeviceId: finalDevice.deviceId,
+          selectedDeviceLabel: finalDevice.label,
+          muted: false,
+        });
+
+        emitDeviceIds(
+          mockAudioDevices.filter((d) => d.deviceId !== finalDevice.deviceId),
+        );
+
+        await vi.waitFor(() => {
+          expect(stressManager.state.selectedDevice).toBe(undefined);
+          expect(stressManager.state.status).toBe('disabled');
+        });
+
+        const persistedAfterUnplug = toPreferenceList(
+          readPreferences(storageKey).microphone,
+        );
+        expect(persistedAfterUnplug[0]).toEqual({
+          selectedDeviceId: defaultDeviceId,
+          selectedDeviceLabel: '',
+          muted: true,
+        });
+        expect(persistedAfterUnplug).toContainEqual({
+          selectedDeviceId: finalDevice.deviceId,
+          selectedDeviceLabel: finalDevice.label,
+          muted: true,
+        });
+      } finally {
+        stressManager.dispose();
+        Object.defineProperty(globalThis, 'window', {
+          configurable: true,
+          value: originalWindow,
+        });
+      }
     });
   });
 

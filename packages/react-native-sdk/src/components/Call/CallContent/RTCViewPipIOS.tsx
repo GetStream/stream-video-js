@@ -1,21 +1,25 @@
 import {
   CallingState,
+  SfuModels,
+  hasAudio,
+  hasPausedTrack,
   hasScreenShare,
-  speakerLayoutSortPreset,
   type StreamVideoParticipant,
   videoLoggerSystem,
   type VideoTrackType,
+  hasVideo,
+  isPinned,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { findNodeHandle } from 'react-native';
 import {
   onNativeCallClosed,
   onNativeDimensionsUpdated,
   RTCViewPipNative,
 } from './RTCViewPipNative';
-import { useDebouncedValue } from '../../../utils/hooks';
+import { debounceTime } from 'rxjs';
 import { shouldDisableIOSLocalVideoOnBackgroundRef } from '../../../utils/internal/shouldDisableIOSLocalVideoOnBackground';
 import { useTrackDimensions } from '../../../hooks/useTrackDimensions';
 import { isInPiPMode$ } from '../../../utils/internal/rxSubjects';
@@ -40,12 +44,26 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     onPiPChange,
   } = props;
   const call = useCall();
-  const { useParticipants, useCameraState } = useCallStateHooks();
-  const _allParticipants = useParticipants({
-    sortBy: speakerLayoutSortPreset,
-  });
+  const { useCameraState, useCallCallingState } = useCallStateHooks();
+  const callingState = useCallCallingState();
   const { direction } = useCameraState();
-  const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+
+  const [allParticipants, setAllParticipants] = useState<
+    StreamVideoParticipant[]
+  >(call?.state.participants ?? []);
+
+  // we debounce the participants to avoid unnecessary rerenders
+  // that happen when participant tracks are all subscribed simultaneously
+  useEffect(() => {
+    if (!call) {
+      setAllParticipants([]);
+      return;
+    }
+    const subscription = call.state.participants$
+      .pipe(debounceTime(300))
+      .subscribe(setAllParticipants);
+    return () => subscription.unsubscribe();
+  }, [call]);
 
   const [dominantSpeaker, dominantSpeaker2] = allParticipants.filter(
     (participant) =>
@@ -118,23 +136,62 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
     ? screenShareStream
     : videoStream) as unknown as MediaStream | undefined;
 
+  const isPublishingTrack =
+    isScreenSharing ||
+    (participantInSpotlight && hasVideo(participantInSpotlight));
+
+  const streamURL = isPublishingTrack
+    ? videoStreamToRender?.toURL()
+    : undefined;
+
   const mirror = isScreenSharing
     ? false
     : mirrorOverride !== undefined
       ? mirrorOverride
       : !!participantInSpotlight?.isLocalParticipant && direction === 'front';
 
-  const streamURL = useMemo(() => {
-    if (!videoStreamToRender) {
-      return undefined;
-    }
-    return videoStreamToRender?.toURL();
-  }, [videoStreamToRender]);
-
   const handlePiPChange = (event: { nativeEvent: { active: boolean } }) => {
     isInPiPMode$.next(event.nativeEvent.active);
     onPiPChange?.(event.nativeEvent.active);
   };
+
+  // Get participant info for avatar placeholder
+  const participantName = participantInSpotlight?.name || undefined;
+  const participantImageURL = participantInSpotlight?.image || undefined;
+
+  // Determine if the call is reconnecting or offline
+  const isReconnecting =
+    callingState === CallingState.MIGRATING ||
+    callingState === CallingState.RECONNECTING ||
+    callingState === CallingState.RECONNECTING_FAILED ||
+    callingState === CallingState.OFFLINE;
+
+  // Determine if the participant has audio enabled
+  const participantHasAudio = participantInSpotlight
+    ? hasAudio(participantInSpotlight)
+    : true;
+
+  // Determine if the video track is paused
+  const trackType: VideoTrackType = isScreenSharing
+    ? 'screenShareTrack'
+    : 'videoTrack';
+
+  const isVideoTrackPaused = participantInSpotlight
+    ? hasPausedTrack(participantInSpotlight, trackType)
+    : false;
+
+  // Determine if the participant is pinned
+  const participantIsPinned = participantInSpotlight
+    ? isPinned(participantInSpotlight)
+    : false;
+
+  // Determine if the participant is speaking
+  const participantIsSpeaking = participantInSpotlight?.isSpeaking ?? false;
+
+  // Get connection quality (convert enum to number: UNSPECIFIED=0, POOR=1, GOOD=2, EXCELLENT=3)
+  const participantConnectionQuality =
+    participantInSpotlight?.connectionQuality ??
+    SfuModels.ConnectionQuality.UNSPECIFIED;
 
   return (
     <>
@@ -143,6 +200,15 @@ export const RTCViewPipIOS = React.memo((props: Props) => {
         mirror={mirror}
         ref={nativeRef}
         onPiPChange={handlePiPChange}
+        participantName={participantName}
+        participantImageURL={participantImageURL}
+        isReconnecting={isReconnecting}
+        isScreenSharing={isScreenSharing}
+        hasAudio={participantHasAudio}
+        isTrackPaused={isVideoTrackPaused}
+        isPinned={participantIsPinned}
+        isSpeaking={participantIsSpeaking}
+        connectionQuality={participantConnectionQuality}
       />
       {participantInSpotlight && (
         <DimensionsUpdatedRenderless

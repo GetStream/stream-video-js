@@ -196,8 +196,8 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.endCallWithReason(callId, reasons[reason]);
   }
 
-  isCallRegistered(callId: string): boolean {
-    return NativeCallingModule.isCallRegistered(callId);
+  isCallTracked(callId: string): boolean {
+    return NativeCallingModule.isCallTracked(callId);
   }
 
   hasRegisteredCall(): boolean {

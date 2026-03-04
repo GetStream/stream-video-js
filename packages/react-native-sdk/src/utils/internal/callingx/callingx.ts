@@ -3,16 +3,15 @@
  * See @./registerSDKGlobals.ts for more usage details.
  */
 import { Platform } from 'react-native';
+import type { EndCallReason } from '@stream-io/react-native-callingx';
 import { getCallingxLibIfAvailable } from '../../push/libs/callingx';
-import {
+import { waitForAudioSessionActivation } from './audioSessionPromise';
+import type {
   Call,
   MemberResponse,
   StreamVideoParticipant,
-  videoLoggerSystem,
 } from '@stream-io/video-client';
-import { waitForAudioSessionActivation } from './audioSessionPromise';
-import { waitForDisplayIncomingCall } from './displayIncomingCallPromise';
-
+import { videoLoggerSystem } from '@stream-io/video-client';
 const CallingxModule = getCallingxLibIfAvailable();
 
 /**
@@ -75,7 +74,7 @@ export async function startCallingxCall(call: Call) {
   );
 
   if (
-    !CallingxModule.isCallRegistered(call.cid) &&
+    !CallingxModule.isCallTracked(call.cid) &&
     (isOutcomingCall || (!call.ringing && CallingxModule.isOngoingCallsEnabled))
   ) {
     try {
@@ -91,6 +90,7 @@ export async function startCallingxCall(call: Call) {
         await waitForAudioSessionActivation();
       }
 
+      // TODO: this must be done after join call is complete
       CallingxModule.setCurrentCallActive(call.cid);
     } catch (error) {
       logger.error(
@@ -100,14 +100,15 @@ export async function startCallingxCall(call: Call) {
     }
   } else if (isIncomingCall) {
     try {
+      // Awaits native CallKit/Telecom registration before answering.
+      // Safe to call even if the call is already registered (e.g. from VoIP push) --
+      // iOS early-returns with no error, Android sends the registered broadcast.
       await CallingxModule.displayIncomingCall(
         call.cid, // unique id for call
         call.id, // phone number for display in dialer (we use call id as phone number)
         callDisplayName, // display name for display in call screen
         call.state.settings?.video?.enabled ?? false, // is video call?
       );
-
-      await waitForDisplayIncomingCall();
 
       await CallingxModule.answerIncomingCall(call.cid);
 
@@ -123,17 +124,17 @@ export async function startCallingxCall(call: Call) {
   }
 }
 
-export async function endCallingxCall(call: Call) {
+export async function endCallingxCall(call: Call, reason?: EndCallReason) {
   if (
     !CallingxModule ||
     !CallingxModule.isSetup ||
-    !CallingxModule.isCallRegistered(call.cid)
+    !CallingxModule.isCallTracked(call.cid)
   ) {
     return;
   }
 
   try {
-    await CallingxModule.endCallWithReason(call.cid, 'local');
+    await CallingxModule.endCallWithReason(call.cid, reason ?? 'local');
   } catch (error) {
     videoLoggerSystem
       .getLogger('callingx')

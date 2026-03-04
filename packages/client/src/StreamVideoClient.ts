@@ -27,10 +27,10 @@ import {
   ErrorFromResponse,
   StreamClientOptions,
   TokenOrProvider,
-  TokenProvider,
   User,
   UserWithId,
 } from './coordinator/connection/types';
+import type { StreamVideoClientOptions } from './types';
 import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   createCoordinatorClient,
@@ -41,14 +41,6 @@ import {
 import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
-
-export type StreamVideoClientOptions = {
-  apiKey: string;
-  options?: StreamClientOptions;
-  user?: User;
-  token?: string;
-  tokenProvider?: TokenProvider;
-};
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.

@@ -68,7 +68,6 @@ withCompletionHandler:(void (^)(void))completion {
                        supportsDTMF:NO
                    supportsGrouping:NO
                  supportsUngrouping:NO
-                        fromPushKit:YES
                             payload:payload.dictionaryPayload
               withCompletionHandler:completion];
 }

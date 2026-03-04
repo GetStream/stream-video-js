@@ -7,6 +7,7 @@ import {
   MockInstance,
   vi,
 } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { StreamVideoClient } from '../StreamVideoClient';
 import 'dotenv/config';
 import { StreamClient } from '@stream-io/node-sdk';
@@ -63,18 +64,22 @@ it('stops reacting to events when not watching', async () => {
   const call = client.call('default', generateUUIDv4());
   await call.getOrCreate();
   expect(call.state.transcribing).toBeFalsy();
-  call.streamClient.dispatchEvent({
-    type: 'call.transcription_started',
-    call_cid: call.cid,
-    created_at: new Date().toISOString(),
-  });
+  call.streamClient.dispatchEvent(
+    fromPartial({
+      type: 'call.transcription_started',
+      call_cid: call.cid,
+      created_at: new Date().toISOString(),
+    }),
+  );
   expect(call.state.transcribing).toBeTruthy();
   await call.leave();
-  call.streamClient.dispatchEvent({
-    type: 'call.transcription_stopped',
-    call_cid: call.cid,
-    created_at: new Date().toISOString(),
-  });
+  call.streamClient.dispatchEvent(
+    fromPartial({
+      type: 'call.transcription_stopped',
+      call_cid: call.cid,
+      created_at: new Date().toISOString(),
+    }),
+  );
   expect(call.state.transcribing).toBeTruthy();
 });
 
@@ -94,11 +99,13 @@ it('keeps user handlers for SFU and coordinator events', async () => {
       },
     },
   });
-  call.streamClient.dispatchEvent({
-    type: 'call.transcription_started',
-    call_cid: call.cid,
-    created_at: new Date().toISOString(),
-  });
+  call.streamClient.dispatchEvent(
+    fromPartial({
+      type: 'call.transcription_started',
+      call_cid: call.cid,
+      created_at: new Date().toISOString(),
+    }),
+  );
   expect(sfuEventHandler).toBeCalled();
   expect(coordinatorEventHandler).toBeCalled();
 });

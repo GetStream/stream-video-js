@@ -18,7 +18,7 @@ type AcceptCallButtonProps = {
    *
    * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
-  onAcceptCallHandler?: () => void;
+  onAcceptCallHandler?: (err?: Error) => void;
 };
 
 /**
@@ -41,19 +41,19 @@ export const AcceptCallButton = ({
   const [isLoading, setIsLoading] = useState(false);
 
   const acceptCallHandler = async () => {
-    setIsLoading(true);
     if (onPressHandler) {
       onPressHandler();
       return;
     }
+    if (!call) return;
+    setIsLoading(true);
     try {
-      await call?.join();
-      if (onAcceptCallHandler) {
-        onAcceptCallHandler();
-      }
+      await call.join();
+      onAcceptCallHandler?.();
     } catch (error) {
       const logger = videoLoggerSystem.getLogger('AcceptCallButton');
       logger.error('Error joining Call', error);
+      onAcceptCallHandler?.(error as Error);
     } finally {
       setIsLoading(false);
     }

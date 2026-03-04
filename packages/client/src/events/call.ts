@@ -69,6 +69,7 @@ export const watchCallRejected = (call: Call) => {
     } else {
       if (rejectedBy[eventCall.created_by.id]) {
         call.logger.info('call creator rejected, leaving call');
+        globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
         await call.leave({ message: 'ring: creator rejected' });
       }
     }
@@ -85,6 +86,7 @@ export const watchCallEnded = (call: Call) => {
       callingState !== CallingState.IDLE &&
       callingState !== CallingState.LEFT
     ) {
+      globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
       call
         .leave({ message: 'call.ended event received', reject: false })
         .catch((err) => {
@@ -113,6 +115,7 @@ export const watchSfuCallEnded = (call: Call) => {
       // update the call state to reflect the call has ended.
       call.state.setEndedAt(new Date());
       const reason = CallEndedReason[e.reason];
+      globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
       await call.leave({ message: `callEnded received: ${reason}` });
     } catch (err) {
       call.logger.error(

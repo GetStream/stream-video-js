@@ -34,8 +34,8 @@
     "raw-body": "^3.0.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "stream-chat": "^9.27.2",
-    "stream-chat-react": "^13.13.1",
+    "stream-chat": "^9.33.0",
+    "stream-chat-react": "^13.14.0",
     "swr": "^2.3.6",
     "yargs": "^18.0.0"
   },

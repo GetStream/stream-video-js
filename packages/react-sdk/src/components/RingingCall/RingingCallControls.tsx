@@ -20,7 +20,9 @@ export const RingingCallControls = () => {
           <CancelCallButton
             onClick={() => {
               const reason = call.isCreatedByMe ? 'cancel' : 'decline';
-              call.leave({ reject: true, reason });
+              call.leave({ reject: true, reason }).catch((err) => {
+                console.error(`Failed to reject`, err);
+              });
             }}
             disabled={buttonsDisabled}
           />

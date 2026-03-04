@@ -1,11 +1,11 @@
 {
   "name": "@stream-io/video-styling",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
-    "start": "sass --watch index.scss ./dist/css/styles.css",
-    "build": "sass --embed-sources index.scss ./dist/css/styles.css"
+    "start": "sass --watch index.scss:./dist/css/styles.css embedded.scss:./dist/css/embedded.css",
+    "build": "sass --embed-sources index.scss:./dist/css/styles.css embedded.scss:./dist/css/embedded.css"
   },
   "repository": {
     "type": "git",

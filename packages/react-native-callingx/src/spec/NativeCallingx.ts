@@ -1,7 +1,12 @@
-import { TurboModuleRegistry, type TurboModule } from 'react-native';
+import {
+  TurboModuleRegistry,
+  NativeModules,
+  type TurboModule,
+} from 'react-native';
 
 // @ts-expect-error - CodegenTypes is not properly typed
 import type { EventEmitter } from 'react-native/Libraries/Types/CodegenTypes';
+import { isTurboModuleEnabled } from '../utils/utils';
 
 export interface Spec extends TurboModule {
   setupiOS(options: {
@@ -109,7 +114,7 @@ export interface Spec extends TurboModule {
     },
   ): Promise<void>;
 
-  isCallRegistered(callId: string): boolean;
+  isCallTracked(callId: string): boolean;
 
   hasRegisteredCall(): boolean;
 
@@ -177,4 +182,8 @@ export interface Spec extends TurboModule {
   log(message: string, level: 'debug' | 'info' | 'warn' | 'error'): void;
 }
 
-export default TurboModuleRegistry.getEnforcing<Spec>('Callingx');
+const CallingxModule: Spec = isTurboModuleEnabled
+  ? TurboModuleRegistry.getEnforcing<Spec>('Callingx')
+  : (NativeModules.Callingx as Spec);
+
+export default CallingxModule;

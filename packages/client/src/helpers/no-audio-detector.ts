@@ -7,12 +7,6 @@ export type NoAudioDetectorOptions = {
    */
   detectionFrequencyInMs?: number;
   /**
-   * Defines the audio level threshold. Values below this are considered no audio.
-   * Defaults to 0. This value should be in the range of 0-255.
-   * Only applies to browser implementation.
-   */
-  audioLevelThreshold?: number;
-  /**
    * Duration of continuous no-audio (in ms) before emitting the first event.
    */
   noAudioThresholdMs: number;
@@ -25,7 +19,7 @@ export type NoAudioDetectorOptions = {
   /**
    * See https://developer.mozilla.org/en-US/docs/web/api/analysernode/fftsize
    *
-   * Defaults to 256.
+   * Defaults to 512.
    * Only applies to browser implementation.
    */
   fftSize?: number;
@@ -52,12 +46,23 @@ type StateTransition =
   | { shouldEmit: true; nextState: DetectorState; capturesAudio: boolean };
 
 /**
- * Analyzes frequency data to determine if audio is being captured.
+ * Analyzes time-domain waveform data to determine if audio is being captured.
+ * Uses the waveform RMS around the 128 midpoint for robust silence detection.
  */
-const hasAudio = (analyser: AnalyserNode, threshold: number): boolean => {
-  const data = new Uint8Array(analyser.frequencyBinCount);
-  analyser.getByteFrequencyData(data);
-  return data.some((value) => value > threshold);
+const hasAudio = (analyser: AnalyserNode): boolean => {
+  const data = new Uint8Array(analyser.fftSize);
+  analyser.getByteTimeDomainData(data);
+
+  let squareSum = 0;
+  for (const sample of data) {
+    const centered = sample - 128;
+    // Ignore tiny quantization/jitter around midpoint (e.g. 127/128 samples).
+    const signal = Math.abs(centered) <= 1 ? 0 : centered;
+    squareSum += signal * signal;
+  }
+
+  const rms = Math.sqrt(squareSum / data.length);
+  return rms > 0;
 };
 
 /** Helper for "no event" transitions */
@@ -81,9 +86,9 @@ const transitionState = (
   options: NoAudioDetectorOptions,
 ): StateTransition => {
   if (audioDetected) {
-    return state.kind === 'IDLE' || state.kind === 'EMITTING'
-      ? emit(true, state)
-      : noEmit(state);
+    // Any observed audio means the microphone is capturing.
+    // Emit recovery/success and let the caller stop the detector.
+    return emit(true, { kind: 'IDLE' });
   }
 
   const { noAudioThresholdMs, emitIntervalMs } = options;
@@ -137,21 +142,21 @@ export const createNoAudioDetector = (
 ) => {
   const {
     detectionFrequencyInMs = 350,
-    audioLevelThreshold = 0,
-    fftSize = 256,
+    fftSize = 512,
     onCaptureStatusChange,
   } = options;
 
   let state: DetectorState = { kind: 'IDLE' };
   const { audioContext, analyser } = createAudioAnalyzer(audioStream, fftSize);
   const detectionIntervalId = setInterval(() => {
-    const [audioTrack] = audioStream.getAudioTracks();
-    if (!audioTrack?.enabled || audioTrack.readyState === 'ended') {
+    const [track] = audioStream.getAudioTracks();
+    if (track && !track.enabled) {
       state = { kind: 'IDLE' };
       return;
     }
 
-    const audioDetected = hasAudio(analyser, audioLevelThreshold);
+    // Missing or ended track is treated as no-audio to surface abrupt capture loss.
+    const audioDetected = track?.readyState === 'live' && hasAudio(analyser);
     const transition = transitionState(state, audioDetected, options);
 
     state = transition.nextState;

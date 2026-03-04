@@ -6,7 +6,7 @@ import stream_react_native_webrtc
 
     public static func createAudioSessionIfNeeded() {
         #if DEBUG
-        print("[Callingx][createAudioSessionIfNeeded] Creating audio session")
+        NSLog("%@","[Callingx][createAudioSessionIfNeeded] Creating audio session")
         #endif
 
         let categoryOptions: AVAudioSession.CategoryOptions
@@ -34,7 +34,7 @@ import stream_react_native_webrtc
             try rtcSession.setConfiguration(rtcConfig)
         } catch {
             #if DEBUG
-            print("[Callingx][createAudioSessionIfNeeded] Error configuring audio session: \(error)")
+            NSLog("%@","[Callingx][createAudioSessionIfNeeded] Error configuring audio session: \(error)")
             #endif
         }
     }

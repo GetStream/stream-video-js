@@ -14,6 +14,7 @@ export * from './src/CallType';
 export * from './src/StreamVideoClient';
 export * from './src/StreamSfuClient';
 export * from './src/devices';
+export * from './src/errors';
 export * from './src/store';
 export * from './src/sorting';
 export * from './src/helpers/client-details';

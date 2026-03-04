@@ -21,7 +21,7 @@ export type HangUpCallButtonProps = {
    *
    * Note: If the `onPressHandler` is passed this handler will not be executed.
    */
-  onHangupCallHandler?: () => void;
+  onHangupCallHandler?: (err?: Error) => void;
   /**
    * Sets the height, width and border-radius (half the value) of the button.
    */
@@ -50,17 +50,16 @@ export const HangUpCallButton = ({
       onPressHandler();
       return;
     }
+    if (!call || callingState === CallingState.LEFT) {
+      return;
+    }
     try {
-      if (callingState === CallingState.LEFT) {
-        return;
-      }
-      await call?.leave();
-      if (onHangupCallHandler) {
-        onHangupCallHandler();
-      }
+      await call.leave();
+      onHangupCallHandler?.();
     } catch (error) {
       const logger = videoLoggerSystem.getLogger('HangUpCallButton');
       logger.error('Error leaving Call', error);
+      onHangupCallHandler?.(error as Error);
     }
   };
 

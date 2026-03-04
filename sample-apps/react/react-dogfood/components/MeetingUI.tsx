@@ -6,7 +6,6 @@ import {
   useCall,
   useCallStateHooks,
   useModeration,
-  usePersistedDevicePreferences,
 } from '@stream-io/video-react-sdk';
 import Gleap from 'gleap';
 import { useRouter } from 'next/router';
@@ -14,13 +13,11 @@ import { JSX, useCallback, useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
 
 import { useIsRestrictedEnvironment } from '../context/AppEnvironmentContext';
-import { useSettings } from '../context/SettingsContext';
 import {
   useKeyboardShortcuts,
   usePersistedVideoFilter,
   useWakeLock,
 } from '../hooks';
-import { DEVICE_PREFERENCE_KEY } from '../hooks/useDeviceSelectionPreference';
 import { ActiveCall } from './ActiveCall';
 import { DefaultAppHeader } from './DefaultAppHeader';
 import { Feedback } from './Feedback/Feedback';
@@ -56,9 +53,6 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
-  const {
-    settings: { deviceSelectionPreference },
-  } = useSettings();
   useModeration();
   const isRestricted = useIsRestrictedEnvironment();
   const [remoteFilePublisherAPI, setRemoteFilePublisherAPI] =
@@ -209,14 +203,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     );
   }
 
-  return (
-    <>
-      {childrenToRender}
-      {deviceSelectionPreference === 'recent' && (
-        <PersistedDevicePreferencesHelper />
-      )}
-    </>
-  );
+  return <>{childrenToRender}</>;
 };
 
 type ErrorPageProps = {
@@ -291,8 +278,3 @@ export const LoadingScreen = () => {
     </div>
   );
 };
-
-function PersistedDevicePreferencesHelper() {
-  usePersistedDevicePreferences(DEVICE_PREFERENCE_KEY);
-  return null;
-}

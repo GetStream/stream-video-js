@@ -1,9 +1,22 @@
 {
   "name": "@stream-io/video-react-sdk",
-  "version": "1.32.1",
+  "version": "1.33.0",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./embedded": {
+      "types": "./dist/embedded.d.ts",
+      "import": "./dist/embedded.es.js",
+      "require": "./dist/embedded.cjs.js"
+    },
+    "./dist/css/*": "./dist/css/*"
+  },
   "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
@@ -21,6 +34,7 @@
     "src",
     "assets",
     "index.ts",
+    "embedded.ts",
     "package.json",
     "README.md",
     "LICENSE",

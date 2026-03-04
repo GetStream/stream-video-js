@@ -13,8 +13,8 @@ export const ToggleDualMicButton = () => {
         <ToggleAudioPublishingButton
           Menu={
             <>
-              <DeviceSelectorAudioOutput visualType="list" title="Speaker" />
               <DeviceSelectorAudioInput visualType="list" title="Microphone" />
+              <DeviceSelectorAudioOutput visualType="list" title="Speaker" />
             </>
           }
           menuPlacement="top"

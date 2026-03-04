@@ -2,6 +2,42 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.30.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.29.4...@stream-io/video-react-native-sdk-1.30.0) (2026-02-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.9`
+
+### Features
+
+- Enhanced Picture-in-Picture for iOS ([#2139](https://github.com/GetStream/stream-video-js/issues/2139)) ([2111607](https://github.com/GetStream/stream-video-js/commit/211160797c6e50a4d548da617cb9a57ee7825c4e))
+
+## [1.29.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.29.3...@stream-io/video-react-native-sdk-1.29.4) (2026-02-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.43.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.8`
+
+## [1.29.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.29.2...@stream-io/video-react-native-sdk-1.29.3) (2026-02-16)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.3`
+- `@stream-io/video-react-bindings` updated to version `1.13.7`
+
+### Bug Fixes
+
+- guard from parallel accept/reject invocations ([#2127](https://github.com/GetStream/stream-video-js/issues/2127)) ([621218f](https://github.com/GetStream/stream-video-js/commit/621218f4ab6b4623370fd66f1b02b8cb7cb1baad))
+
+## [1.29.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.29.1...@stream-io/video-react-native-sdk-1.29.2) (2026-02-13)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.6`
+
 ## [1.29.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.29.0...@stream-io/video-react-native-sdk-1.29.1) (2026-02-10)
 
 ### Dependency Updates

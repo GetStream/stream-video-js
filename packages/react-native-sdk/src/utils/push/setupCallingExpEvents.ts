@@ -1,4 +1,3 @@
-import { pushAcceptedIncomingCallCId$ } from './internal/rxSubjects';
 import { videoLoggerSystem } from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import {
@@ -13,28 +12,13 @@ import {
   type EventParams,
 } from './libs/callingx';
 import { Platform } from 'react-native';
-import { resolveDisplayIncomingCall } from '../internal/callingx/displayIncomingCallPromise';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
 const logger = videoLoggerSystem.getLogger('callingx');
 
-const onDidActivateAudioSession = () => {
-  logger.debug('callingExpDidActivateAudioSession');
-  resolvePendingAudioSession();
-};
-
-const onDidDeactivateAudioSession = () => {
-  logger.debug('callingExpDidDeactivateAudioSession');
-};
-
-const onDidDisplayIncomingCall = () => {
-  logger.debug('callingExpDidDisplayIncomingCall');
-  resolveDisplayIncomingCall();
-};
-
 /**
- * This hook is used to listen to callkeep events and do the necessary actions
+ * Sets up callingx event listeners for handling call actions from the native calling UI.
  */
 export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   const hasPushProvider =
@@ -47,58 +31,22 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
 
   const callingx = getCallingxLib();
 
-  // Defined inside setupCallingExpEvents so closures capture `callingx`
-  const onAcceptCall = ({
-    callId: call_cid,
-    source,
-  }: EventParams['answerCall']) => {
-    logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
-
-    if (source === 'app' || !call_cid) {
-      // App initiated this action -- no downstream processing needed.
-      // Fulfill immediately so CallKit completes the action.
-      if (call_cid) {
-        callingx.fulfillAnswerCallAction(call_cid, false);
-      }
-      return;
-    }
-
-    clearPushWSEventSubscriptions(call_cid);
-    // Downstream: useProcessPushCallEffect subscribes, calls processCallFromPush('accept'),
-    // and fulfills/fails the action after call.join() completes or errors.
-    pushAcceptedIncomingCallCId$.next(call_cid);
-  };
-
-  const onEndCall = async ({
-    callId: call_cid,
-    source,
-  }: EventParams['endCall']) => {
-    logger.debug(`onEndCall event callId: ${call_cid} source: ${source}`);
-
-    if (source === 'app' || !call_cid) {
-      // App initiated this action -- fulfill immediately.
-      if (call_cid) {
-        callingx.fulfillEndCallAction(call_cid, false);
-      }
-      return;
-    }
-
-    clearPushWSEventSubscriptions(call_cid);
-    const didFail = !(await processCallFromPushInBackground(
-      pushConfig,
-      call_cid,
-      'decline',
-    ));
-    callingx.fulfillEndCallAction(call_cid, didFail);
-  };
-
   const { remove: removeAnswerCall } = callingx.addEventListener(
     'answerCall',
-    onAcceptCall,
+    (params) => {
+      onAcceptCall(pushConfig)(params).catch((err) => {
+        logger.error('Failed to process answerCall event', err);
+      });
+    },
   );
+
   const { remove: removeEndCall } = callingx.addEventListener(
     'endCall',
-    onEndCall,
+    (params) => {
+      onEndCall(pushConfig)(params).catch((err) => {
+        logger.error('Failed to process endCall event', err);
+      });
+    },
   );
 
   const { remove: removeDidActivateAudioSession } = callingx.addEventListener(
@@ -110,11 +58,6 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     onDidDeactivateAudioSession,
   );
 
-  const { remove: removeDidDisplayIncomingCall } = callingx.addEventListener(
-    'didDisplayIncomingCall',
-    onDidDisplayIncomingCall,
-  );
-
   //NOTE: until getInitialEvents invocation, events are delayed and won't be sent to event listeners, this is a way to make sure none of required events are missed
   //in most cases there will be no delayed answers or ends, but it we don't want to miss any of them
   const events = callingx.getInitialEvents();
@@ -122,16 +65,20 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     const { eventName, params } = event;
     if (eventName === 'answerCall') {
       logger.debug(`answerCall delayed event callId: ${params?.callId}`);
-      onAcceptCall(params as EventParams['answerCall']);
+      onAcceptCall(pushConfig)(params as EventParams['answerCall']).catch(
+        (err) => {
+          logger.error('Failed to process delayed answerCall event', err);
+        },
+      );
     } else if (eventName === 'endCall') {
       logger.debug(`endCall delayed event callId: ${params?.callId}`);
-      onEndCall(params as EventParams['endCall']);
+      onEndCall(pushConfig)(params as EventParams['endCall']).catch((err) => {
+        logger.error('Failed to process delayed endCall event', err);
+      });
     } else if (eventName === 'didActivateAudioSession') {
       onDidActivateAudioSession();
     } else if (eventName === 'didDeactivateAudioSession') {
       onDidDeactivateAudioSession();
-    } else if (eventName === 'didDisplayIncomingCall') {
-      onDidDisplayIncomingCall();
     }
   });
 
@@ -140,6 +87,44 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     removeEndCall();
     removeDidActivateAudioSession();
     removeDidDeactivateAudioSession();
-    removeDidDisplayIncomingCall();
   });
 }
+
+const onDidActivateAudioSession = () => {
+  logger.debug('callingExpDidActivateAudioSession');
+  resolvePendingAudioSession();
+};
+
+const onDidDeactivateAudioSession = () => {
+  logger.debug('callingExpDidDeactivateAudioSession');
+};
+
+const onAcceptCall =
+  (pushConfig: PushConfig) =>
+  async ({ callId: call_cid, source }: EventParams['answerCall']) => {
+    logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
+
+    if (source === 'app' || !call_cid) {
+      //we only need to process the call if the call was answered from the system
+      return;
+    }
+
+    clearPushWSEventSubscriptions(call_cid);
+    // to process the call in the app
+    await processCallFromPushInBackground(pushConfig, call_cid, 'accept');
+  };
+
+const onEndCall =
+  (pushConfig: PushConfig) =>
+  async ({ callId: call_cid, source }: EventParams['endCall']) => {
+    logger.debug(`onEndCall event callId: ${call_cid} source: ${source}`);
+
+    if (source === 'app' || !call_cid) {
+      //we only need to process the call if the call was rejected from the system
+      return;
+    }
+
+    clearPushWSEventSubscriptions(call_cid);
+
+    await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
+  };

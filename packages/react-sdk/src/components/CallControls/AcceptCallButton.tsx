@@ -5,7 +5,7 @@ import { useCall } from '@stream-io/video-react-bindings';
 export type AcceptCallButtonProps = {
   disabled?: boolean;
   onClick?: MouseEventHandler<HTMLButtonElement>;
-  onAccept?: () => void;
+  onAccept?: (err?: Error) => void;
 };
 
 export const AcceptCallButton = ({
@@ -19,8 +19,13 @@ export const AcceptCallButton = ({
       if (onClick) {
         onClick(e);
       } else if (call) {
-        await call.join();
-        onAccept?.();
+        try {
+          await call.join();
+          onAccept?.();
+        } catch (err) {
+          console.error(`Failed to accept call`, err);
+          onAccept?.(err as Error);
+        }
       }
     },
     [onClick, onAccept, call],

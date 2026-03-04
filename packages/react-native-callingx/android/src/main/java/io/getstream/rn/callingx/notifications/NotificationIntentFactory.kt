@@ -4,7 +4,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import io.getstream.rn.callingx.CallingxModule
+import io.getstream.rn.callingx.CallingxModuleImpl
 
 object NotificationIntentFactory {
   // Stable request codes for PendingIntents
@@ -29,8 +29,8 @@ object NotificationIntentFactory {
     val intent =
       Intent(context, NotificationReceiverService::class.java).apply {
         this.action = action
-        putExtra(CallingxModule.EXTRA_CALL_ID, callId)
-        putExtra(CallingxModule.EXTRA_SOURCE, source)
+        putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
+        putExtra(CallingxModuleImpl.EXTRA_SOURCE, source)
       }
 
     return PendingIntent.getService(
@@ -45,8 +45,8 @@ object NotificationIntentFactory {
     val receiverIntent =
       Intent(context, NotificationReceiverActivity::class.java).apply {
         this.action = action
-        putExtra(CallingxModule.EXTRA_CALL_ID, callId)
-        putExtra(CallingxModule.EXTRA_SOURCE, source)
+        putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
+        putExtra(CallingxModuleImpl.EXTRA_SOURCE, source)
       }
 
     val launchActivity = context.packageManager.getLaunchIntentForPackage(context.packageName)
@@ -68,8 +68,8 @@ object NotificationIntentFactory {
     val callIntent =
       Intent(launchIntent).apply {
         this.action = action
-        putExtra(CallingxModule.EXTRA_CALL_ID, callId)
-        source?.let { putExtra(CallingxModule.EXTRA_SOURCE, it) }
+        putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
+        source?.let { putExtra(CallingxModuleImpl.EXTRA_SOURCE, it) }
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
       }
 
@@ -90,7 +90,7 @@ object NotificationIntentFactory {
     val intent =
       Intent(action).apply {
         setPackage(context.packageName)
-        putExtra(CallingxModule.EXTRA_CALL_ID, callId)
+        putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
         addExtras(this)
       }
 
