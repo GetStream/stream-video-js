@@ -1,5 +1,6 @@
 package io.getstream.rn.callingx
 
+import android.annotation.SuppressLint
 import com.google.firebase.messaging.RemoteMessage
 import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService
 
@@ -12,14 +13,11 @@ import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService
  * as dependencies. The app must remove the default [ReactNativeFirebaseMessagingService] from
  * the merged manifest so this service is the single FCM handler
  */
+@SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class StreamMessagingService : ReactNativeFirebaseMessagingService() {
 
   companion object {
     const val TAG = "[Callingx] StreamMessagingService"
-  }
-
-  override fun onNewToken(token: String) {
-    super.onNewToken(token)
   }
 
   override fun onMessageReceived(remoteMessage: RemoteMessage) {
