@@ -8,9 +8,7 @@ import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -74,16 +72,6 @@ class CallingxModuleImpl(
     private var canSendEvents = false
     private var isHeadlessTaskRegistered = false
 
-    // Synchronous call tracking set, updated before async service start to mirror iOS semantics.
-    // This ensures isCallTracked() returns true immediately after displayIncomingCall/startCall.
-    private val trackedCallIds = ConcurrentHashMap.newKeySet<String>()
-
-    // Per-callId pending promises for displayIncomingCall awaiting CALL_REGISTERED_INCOMING_ACTION
-    private val pendingDisplayPromises = mutableMapOf<String, Promise>()
-    private val pendingTimeouts = mutableMapOf<String, Runnable>()
-    private val mainHandler = Handler(Looper.getMainLooper())
-    private val displayTimeoutMs = 10_000L // 10 second safety timeout
-
     private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
     private val serviceReadyBroadcastReceiver = ServiceReadyBroadcastReceiver()
     private val appStateListener =
@@ -128,14 +116,7 @@ class CallingxModuleImpl(
     fun invalidate() {
         debugLog(TAG, "[module] invalidate: Invalidating module")
 
-        // Clean up pending display promises to prevent leaks
-        synchronized(pendingDisplayPromises) {
-            pendingTimeouts.values.forEach { mainHandler.removeCallbacks(it) }
-            pendingTimeouts.clear()
-            pendingDisplayPromises.clear()
-        }
-
-        trackedCallIds.clear()
+        CallRegistrationStore.clearAll()
         unbindServiceSafely()
 
         CallEventBus.unsubscribe(this)
@@ -208,30 +189,7 @@ class CallingxModuleImpl(
             return
         }
 
-        trackedCallIds.add(callId)
-
-        // Store the promise keyed by callId; it will be resolved when CALL_REGISTERED_INCOMING_ACTION
-        // broadcast is received, or rejected on timeout / registration failure.
-        synchronized(pendingDisplayPromises) {
-            // Cancel any existing timeout for this callId to avoid a stale
-            // runnable rejecting the new promise after it overwrites the old one.
-            pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-
-            pendingDisplayPromises[callId] = promise
-
-            // Per-call timeout runnable
-            val timeoutRunnable = Runnable {
-                synchronized(pendingDisplayPromises) {
-                    pendingDisplayPromises.remove(callId)?.reject(
-                            "TIMEOUT",
-                            "Timed out waiting for call registration: $callId"
-                    )
-                    pendingTimeouts.remove(callId)
-                }
-            }
-            pendingTimeouts[callId] = timeoutRunnable
-            mainHandler.postDelayed(timeoutRunnable, displayTimeoutMs)
-        }
+        CallRegistrationStore.trackIncomingDisplay(callId, promise)
 
         try {
             startCallService(
@@ -244,12 +202,12 @@ class CallingxModuleImpl(
             )
         } catch (e: Exception) {
             Log.e(TAG, "[module] displayIncomingCall: Failed to start foreground service: ${e.message}", e)
-            trackedCallIds.remove(callId)
-            synchronized(pendingDisplayPromises) {
-                pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-                pendingDisplayPromises.remove(callId)
-            }
-            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+            CallRegistrationStore.failDisplay(
+                    callId,
+                    "START_FOREGROUND_SERVICE_ERROR",
+                    e.message,
+                    e
+            )
         }
     }
 
@@ -280,7 +238,7 @@ class CallingxModuleImpl(
             return
         }
 
-        trackedCallIds.add(callId)
+        CallRegistrationStore.addTrackedCall(callId)
 
         try {
             startCallService(
@@ -294,7 +252,7 @@ class CallingxModuleImpl(
             promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "[module] startCall: Failed to start foreground service: ${e.message}", e)
-            trackedCallIds.remove(callId)
+            CallRegistrationStore.removeTrackedCall(callId)
             promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
         }
     }
@@ -331,28 +289,24 @@ class CallingxModuleImpl(
 
     fun endCallWithReason(callId: String, reason: Double, promise: Promise) {
         debugLog(TAG, "[module] endCallWithReason: Ending call: $callId, $reason")
-        trackedCallIds.remove(callId)
+        CallRegistrationStore.removeTrackedCall(callId)
         val action = CallAction.Disconnect(DisconnectCause(reason.toInt()))
         executeServiceAction(callId, action, promise)
     }
 
     fun endCall(callId: String, promise: Promise) {
         debugLog(TAG, "[module] endCall: Ending call: $callId")
-        trackedCallIds.remove(callId)
+        CallRegistrationStore.removeTrackedCall(callId)
         val action = CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL))
         executeServiceAction(callId, action, promise)
     }
 
     fun isCallTracked(callId: String): Boolean {
-        val isTracked = trackedCallIds.contains(callId)
-        debugLog(TAG, "[module] isCallTracked: Is call tracked: $isTracked")
-        return isTracked
+        return CallRegistrationStore.isCallTracked(callId)
     }
 
     fun hasRegisteredCall(): Boolean {
-        val hasRegisteredCall = callService?.hasRegisteredCall() ?: false
-        debugLog(TAG, "[module] hasRegisteredCall: Has registered call: $hasRegisteredCall")
-        return hasRegisteredCall
+        return CallRegistrationStore.hasRegisteredCall()
     }
 
     fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {
@@ -632,25 +586,13 @@ class CallingxModuleImpl(
             }
             CALL_REGISTERED_INCOMING_ACTION -> {
                 if (callId != null) {
-                    synchronized(pendingDisplayPromises) {
-                        pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-                        pendingDisplayPromises.remove(callId)?.resolve(true)
-                    }
+                    CallRegistrationStore.onDisplayRegistrationSuccess(callId)
                 }
                 sendJSEvent("didDisplayIncomingCall", params)
             }
             CALL_REGISTRATION_FAILED_ACTION -> {
                 if (callId != null) {
-                    trackedCallIds.remove(callId)
-                }
-                if (callId != null) {
-                    synchronized(pendingDisplayPromises) {
-                        pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-                        pendingDisplayPromises.remove(callId)?.reject(
-                                "REGISTRATION_FAILED",
-                                "Failed to register call with telecom: $callId"
-                        )
-                    }
+                    CallRegistrationStore.onRegistrationFailed(callId)
                 }
             }
             CALL_ANSWERED_ACTION -> {
@@ -666,7 +608,7 @@ class CallingxModuleImpl(
                 }
                 if (source == "app") {
                     if (callId != null) {
-                        trackedCallIds.remove(callId)
+                        CallRegistrationStore.removeTrackedCall(callId)
                     }
                     unbindServiceSafely()
                 }

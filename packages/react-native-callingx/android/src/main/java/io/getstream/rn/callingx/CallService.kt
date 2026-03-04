@@ -9,9 +9,7 @@ import android.net.Uri
 import android.os.Binder
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -44,7 +42,6 @@ class CallService : Service(), CallRepository.Listener {
 
     companion object {
         private const val TAG = "[Callingx] CallService"
-        private const val PRE_WARM_TIMEOUT_MS = 60_000L
 
         internal const val EXTRA_CALL_ID = "extra_call_id"
         internal const val EXTRA_NAME = "extra_name"
@@ -58,7 +55,6 @@ class CallService : Service(), CallRepository.Listener {
         internal const val EXTRA_TASK_DATA = "task_data"
         internal const val EXTRA_TASK_TIMEOUT = "task_timeout"
 
-        internal const val ACTION_START_CALL_SERVICE = "start_call_service"
         internal const val ACTION_INCOMING_CALL = "incoming_call"
         internal const val ACTION_OUTGOING_CALL = "outgoing_call"
         internal const val ACTION_UPDATE_CALL = "update_call"
@@ -67,20 +63,26 @@ class CallService : Service(), CallRepository.Listener {
         internal const val ACTION_STOP_SERVICE = "stop_service"
         internal const val ACTION_REGISTRATION_FAILED = "registration_failed"
 
-        fun startCallService(context: Context, data: Map<String, String>) {
-            debugLog(TAG, "[service] startCallService: Starting call service warmup")
+        fun startIncomingCallFromPush(context: Context, data: Map<String, String>) {
+            debugLog(TAG, "[service] startIncomingCallFromPush: Starting incoming call from push")
 
             val callCid = data["call_cid"]
             if (callCid.isNullOrEmpty()) {
-                debugLog(TAG, "[service] startCallService: Call CID is null or empty, skipping")
+                debugLog(
+                        TAG,
+                        "[service] startIncomingCallFromPush: Call CID is null or empty, skipping"
+                )
                 return
             }
 
             val callName = data["created_by_display_name"].orEmpty()
             val isVideo = data["video"] == "true"
+
+            CallRegistrationStore.trackIncomingDisplay(callCid, null)
+
             val intent =
                     Intent(context, CallService::class.java).apply {
-                        action = ACTION_START_CALL_SERVICE
+                        action = ACTION_INCOMING_CALL
                         putExtra(EXTRA_CALL_ID, callCid)
                         putExtra(EXTRA_URI, callCid.toUri())
                         putExtra(EXTRA_NAME, callName)
@@ -103,9 +105,6 @@ class CallService : Service(), CallRepository.Listener {
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob())
 
     private var isInForeground = false
-
-    private val preWarmHandler = Handler(Looper.getMainLooper())
-    private var preWarmTimeoutRunnable: Runnable? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -150,9 +149,6 @@ class CallService : Service(), CallRepository.Listener {
         }
 
         when (intent.action) {
-            ACTION_START_CALL_SERVICE -> {
-                startWarmupIfNeeded(intent)
-            }
             ACTION_INCOMING_CALL -> {
                 registerCall(intent, true)
             }
@@ -183,7 +179,6 @@ class CallService : Service(), CallRepository.Listener {
                 updateCall(intent)
             }
             ACTION_STOP_SERVICE -> {
-                stopWarmupTimeout()
                 if (isInForeground) {
                     stopForeground(STOP_FOREGROUND_REMOVE)
                     isInForeground = false
@@ -217,6 +212,16 @@ class CallService : Service(), CallRepository.Listener {
                         TAG,
                         "[service] updateServiceState: Call registered - Active: ${call.isActive}, OnHold: ${call.isOnHold}, Muted: ${call.isMuted}"
                 )
+
+                val pendingCauseCode = CallRegistrationStore.takePendingDisconnect(call.id)
+                if (pendingCauseCode != null) {
+                    debugLog(
+                            TAG,
+                            "[service] onCallStateChanged: Executing pending disconnect for ${call.id}"
+                    )
+                    processAction(call.id, CallAction.Disconnect(DisconnectCause(pendingCauseCode)))
+                    return
+                }
 
                 if (call.isIncoming()) {
                     if (!call.isActive) notificationManager.startRingtone()
@@ -331,6 +336,12 @@ class CallService : Service(), CallRepository.Listener {
         if (currentCall is Call.Registered && currentCall.id == callId) {
             currentCall.processAction(action)
         } else {
+            // this solves race condition, when end call action is requested before the call is
+            // registered in Telecom
+            if (action is CallAction.Disconnect) {
+                debugLog(TAG, "[service] early exit: storing pending disconnect for $callId")
+                CallRegistrationStore.setPendingDisconnect(callId, action.cause.code)
+            }
             Log.e(
                     TAG,
                     "[service] processAction: Call not registered or not the current call, ignoring action"
@@ -351,10 +362,6 @@ class CallService : Service(), CallRepository.Listener {
 
     private fun registerCall(intent: Intent, incoming: Boolean) {
         debugLog(TAG, "[service] registerCall: ${if (incoming) "in" else "out"} call")
-
-        // If we were started in pre-warm mode, cancel the timeout now that a real call registration
-        // is happening
-        stopWarmupTimeout()
 
         val callInfo = extractIntentParams(intent)
 
@@ -405,29 +412,6 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    /**
-     * We want to start the warmup only if service was not previously started. 
-     * This prevents race condition, when PN arrives after WS event which started the service.
-     */
-    private fun startWarmupIfNeeded(intent: Intent) {
-        if (isInForeground) {
-            Log.w(
-                    TAG,
-                    "[service] preWarm: Service is already in foreground, ignoring pre-warm request"
-            )
-            return
-        }
-
-        if (callRepository.currentCall.value is Call.Registered) {
-            Log.w(TAG, "[service] preWarm: Call already registered, ignoring pre-warm request")
-            return
-        }
-
-        val callInfo = extractIntentParams(intent)
-        startForegroundForCall(callInfo, true)
-        startWarmupTimeout(callInfo)
-    }
-
     private fun startForegroundSafely(notification: Notification) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -439,6 +423,7 @@ class CallService : Service(), CallRepository.Listener {
             } else {
                 startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
             }
+            debugLog(TAG, "[service] startForegroundSafely")
             isInForeground = true
         } catch (e: Exception) {
             // If starting the foreground service fails (for example due to background start
@@ -498,30 +483,6 @@ class CallService : Service(), CallRepository.Listener {
                     applyParams(this)
                 }
         sendBroadcast(intent)
-    }
-
-    private fun startWarmupTimeout(callInfo: CallInfo) {
-        // Schedule a timeout to stop the pre-warmed service if no call registration happens.
-        preWarmTimeoutRunnable?.let { preWarmHandler.removeCallbacks(it) }
-        preWarmTimeoutRunnable = Runnable {
-            debugLog(
-                    TAG,
-                    "[service] pre-warm timeout: no call registration for callId=${callInfo.callId}, stopping service"
-            )
-            if (isInForeground) {
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                isInForeground = false
-            }
-            notificationManager.cancelNotifications()
-            notificationManager.stopRingtone()
-            stopSelf()
-        }
-        preWarmHandler.postDelayed(preWarmTimeoutRunnable!!, PRE_WARM_TIMEOUT_MS)
-    }
-
-    private fun stopWarmupTimeout() {
-        preWarmTimeoutRunnable?.let { preWarmHandler.removeCallbacks(it) }
-        preWarmTimeoutRunnable = null
     }
 
     data class CallInfo(

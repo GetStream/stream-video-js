@@ -10,7 +10,7 @@ import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService
  * parent so setBackgroundMessageHandler() still runs in JS.
  *
  * Only compiled when the app has @react-native-firebase/app and @react-native-firebase/messaging
- * as dependencies. The app must remove the default [ReactNativeFirebaseMessagingService] from
+ * as dependencies. The app must remove the default [io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService] from
  * the merged manifest so this service is the single FCM handler
  */
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
@@ -35,7 +35,7 @@ class StreamMessagingService : ReactNativeFirebaseMessagingService() {
           "missing call_cid for call.ring, skipping CallService start",
         )
       } else {
-        CallService.startCallService(applicationContext, data)
+        CallService.startIncomingCallFromPush(applicationContext, data)
       }
     } else {
       debugLog(TAG, "sender or type is not supported, skipping CallService start")

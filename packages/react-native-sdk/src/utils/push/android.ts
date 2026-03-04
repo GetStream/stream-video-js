@@ -169,9 +169,6 @@ export const firebaseDataHandler = async (
 
     const asForegroundService = canListenToWS();
 
-    const callerName = data.created_by_display_name as string;
-    const hasVideo = data.video === 'true';
-
     if (asForegroundService) {
       // Listen to call events from WS through fg service
       // note: this will replace the current empty fg service runner
@@ -324,16 +321,6 @@ export const firebaseDataHandler = async (
         });
       });
     }
-
-    await callingx.displayIncomingCall(
-      call_cid,
-      call_cid,
-      callerName,
-      hasVideo,
-    );
-    logger.debug(
-      `Displaying incoming call notification with callCid: ${call_cid} asForegroundService: ${asForegroundService}`,
-    );
 
     if (asForegroundService) {
       // no need to check if call has be closed as that will be handled by the fg service
