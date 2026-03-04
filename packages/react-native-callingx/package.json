@@ -70,8 +70,8 @@
     "typescript": "^5.9.2"
   },
   "peerDependencies": {
-    "@react-native-firebase/app": "~23.0.0",
-    "@react-native-firebase/messaging": "~23.0.0",
+    "@react-native-firebase/app": ">=23.0.0",
+    "@react-native-firebase/messaging": ">=23.0.0",
     "@stream-io/react-native-webrtc": ">=137.1.2",
     "react": "*",
     "react-native": "*"
