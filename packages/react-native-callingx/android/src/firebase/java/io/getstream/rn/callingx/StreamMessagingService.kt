@@ -26,23 +26,22 @@ class StreamMessagingService : ReactNativeFirebaseMessagingService() {
     val data = remoteMessage.data
     debugLog(TAG, "onMessageReceived data = $data")
 
-    if (data["sender"] != "stream.video" || data["type"] != "call.ring") {
+    val isSupportedStreamVideoCallRing =
+      data["sender"] == "stream.video" && data["type"] == "call.ring"
+
+    if (isSupportedStreamVideoCallRing) {
+      val callCid = data["call_cid"]
+      if (callCid.isNullOrEmpty()) {
+        debugLog(
+          TAG,
+          "missing call_cid for call.ring, skipping CallService start",
+        )
+      } else {
+        CallService.startCallService(applicationContext, data)
+      }
+    } else {
       debugLog(TAG, "sender or type is not supported, skipping CallService start")
-      super.onMessageReceived(remoteMessage)
-      return
     }
-
-    val callCid = data["call_cid"]
-    if (callCid.isNullOrEmpty()) {
-      debugLog(
-        TAG,
-        "missing call_cid for call.ring, skipping CallService start",
-      )
-      super.onMessageReceived(remoteMessage)
-      return
-    }
-
-    CallService.startCallService(applicationContext, data)
 
     // Let React Native Firebase continue its normal processing so
     // setBackgroundMessageHandler() still runs in JS.
