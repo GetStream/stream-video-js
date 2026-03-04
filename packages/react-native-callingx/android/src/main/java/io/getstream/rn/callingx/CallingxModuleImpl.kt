@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap
 class CallingxModuleImpl(
         private val reactApplicationContext: ReactApplicationContext,
         private val eventEmitter: CallingxEventEmitterAdapter
-) {
+) : CallEventBus.Listener {
 
     companion object {
         const val TAG = "[Callingx] CallingxModule"
@@ -85,7 +85,7 @@ class CallingxModuleImpl(
     private val displayTimeoutMs = 10_000L // 10 second safety timeout
 
     private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
-    private val callEventBroadcastReceiver = CallEventBroadcastReceiver()
+    private val serviceReadyBroadcastReceiver = ServiceReadyBroadcastReceiver()
     private val appStateListener =
             object : LifecycleEventListener {
                 override fun onHostResume() {}
@@ -100,15 +100,20 @@ class CallingxModuleImpl(
             }
 
     init {
+        CallEventBus.subscribe(this)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             reactApplicationContext.registerReceiver(
-                    callEventBroadcastReceiver,
-                    getReceiverFilter(),
+                    serviceReadyBroadcastReceiver,
+                    getServiceReadyReceiverFilter(),
                     Context.RECEIVER_NOT_EXPORTED
             )
         } else {
             @Suppress("UnspecifiedRegisterReceiverFlag")
-            reactApplicationContext.registerReceiver(callEventBroadcastReceiver, getReceiverFilter())
+            reactApplicationContext.registerReceiver(
+                    serviceReadyBroadcastReceiver,
+                    getServiceReadyReceiverFilter()
+            )
         }
     }
 
@@ -134,7 +139,7 @@ class CallingxModuleImpl(
         unbindServiceSafely()
 
         reactApplicationContext.removeLifecycleEventListener(appStateListener)
-        reactApplicationContext.unregisterReceiver(callEventBroadcastReceiver)
+        reactApplicationContext.unregisterReceiver(serviceReadyBroadcastReceiver)
         isModuleInitialized = false
     }
 
@@ -167,12 +172,15 @@ class CallingxModuleImpl(
     }
 
     fun getInitialEvents(): WritableArray {
-        // NOTE: writabel native array can be consumed only once, think of getting rid from clear
-        // event and clear eat immidiate after getting initial events
+        CallEventBus.drainPendingEvents().forEach { onCallEvent(it) }
+
+        // NOTE: writable native array can be consumed only once, think of getting rid from clear
+        // event and clear it immediately after getting initial events
         val events = delayedEvents
         debugLog(TAG, "[module] getInitialEvents: Getting initial events: $events")
         delayedEvents = WritableNativeArray()
         canSendEvents = true
+        CallEventBus.markJsReady()
         return events
     }
 
@@ -521,17 +529,8 @@ class CallingxModuleImpl(
         }
     }
 
-    private fun getReceiverFilter(): IntentFilter =
+    private fun getServiceReadyReceiverFilter(): IntentFilter =
             IntentFilter().apply {
-                addAction(CALL_REGISTERED_ACTION)
-                addAction(CALL_REGISTERED_INCOMING_ACTION)
-                addAction(CALL_ANSWERED_ACTION)
-                addAction(CALL_ACTIVE_ACTION)
-                addAction(CALL_INACTIVE_ACTION)
-                addAction(CALL_MUTED_ACTION)
-                addAction(CALL_ENDPOINT_CHANGED_ACTION)
-                addAction(CALL_END_ACTION)
-                addAction(CALL_REGISTRATION_FAILED_ACTION)
                 addAction(SERVICE_READY_ACTION)
             }
 
@@ -610,104 +609,102 @@ class CallingxModuleImpl(
         }
     }
 
-    private inner class CallEventBroadcastReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-            val callId = intent.getStringExtra(EXTRA_CALL_ID)
+    override fun onCallEvent(event: CallEvent) {
+        val action = event.action
+        val extras = event.extras
+        val callId = extras.getString(EXTRA_CALL_ID)
 
-            if (action == null) {
-                return
+        debugLog(
+                TAG,
+                "[module] onCallEvent: Received event: $action callId: $callId callService: ${callService != null}"
+        )
+
+        val params = Arguments.createMap()
+        if (callId != null) {
+            params.putString("callId", callId)
+        }
+
+        when (action) {
+            CALL_REGISTERED_ACTION -> {
+                sendJSEvent("didReceiveStartCallAction", params)
             }
-
-            debugLog(
-                    TAG,
-                    "[module] onReceive: Received intent: $action callId: $callId callService: ${callService != null}"
-            )
-
-            if (action == SERVICE_READY_ACTION) {
-                debugLog(TAG, "[module] onReceive: Service is ready, initiating binding, isHeadlessTaskRegistered: $isHeadlessTaskRegistered")
-                bindToServiceIfNeeded()
-                startBackgroundTaskAutomatically(HEADLESS_TASK_NAME, 0L)
-                return
-            }
-
-            val params = Arguments.createMap()
-            if (callId != null) {
-                params.putString("callId", callId)
-            }
-
-            when (action) {
-                CALL_REGISTERED_ACTION -> {
-                    sendJSEvent("didReceiveStartCallAction", params)
-                }
-                CALL_REGISTERED_INCOMING_ACTION -> {
-                    // Resolve the pending displayIncomingCall promise for this callId
-                    if (callId != null) {
-                        synchronized(pendingDisplayPromises) {
-                            pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-                            pendingDisplayPromises.remove(callId)?.resolve(true)
-                        }
+            CALL_REGISTERED_INCOMING_ACTION -> {
+                if (callId != null) {
+                    synchronized(pendingDisplayPromises) {
+                        pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
+                        pendingDisplayPromises.remove(callId)?.resolve(true)
                     }
-                    sendJSEvent("didDisplayIncomingCall", params)
                 }
-                CALL_REGISTRATION_FAILED_ACTION -> {
+                sendJSEvent("didDisplayIncomingCall", params)
+            }
+            CALL_REGISTRATION_FAILED_ACTION -> {
+                if (callId != null) {
+                    trackedCallIds.remove(callId)
+                }
+                if (callId != null) {
+                    synchronized(pendingDisplayPromises) {
+                        pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
+                        pendingDisplayPromises.remove(callId)?.reject(
+                                "REGISTRATION_FAILED",
+                                "Failed to register call with telecom: $callId"
+                        )
+                    }
+                }
+            }
+            CALL_ANSWERED_ACTION -> {
+                if (extras.containsKey(EXTRA_SOURCE)) {
+                    params.putString("source", extras.getString(EXTRA_SOURCE))
+                }
+                sendJSEvent("answerCall", params)
+            }
+            CALL_END_ACTION -> {
+                val source = extras.getString(EXTRA_SOURCE)
+                if (source != null) {
+                    params.putString("source", source)
+                }
+                if (source == "app") {
                     if (callId != null) {
                         trackedCallIds.remove(callId)
                     }
-                    // Reject the pending displayIncomingCall promise for this callId
-                    if (callId != null) {
-                        synchronized(pendingDisplayPromises) {
-                            pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-                            pendingDisplayPromises.remove(callId)?.reject(
-                                    "REGISTRATION_FAILED",
-                                    "Failed to register call with telecom: $callId"
-                            )
-                        }
-                    }
+                    unbindServiceSafely()
                 }
-                CALL_ANSWERED_ACTION -> {
-                    if (intent.hasExtra(EXTRA_SOURCE)) {
-                        params.putString("source", intent.getStringExtra(EXTRA_SOURCE))
-                    }
-                    sendJSEvent("answerCall", params)
+                params.putString("cause", extras.getString(EXTRA_DISCONNECT_CAUSE))
+                sendJSEvent("endCall", params)
+            }
+            CALL_INACTIVE_ACTION -> {
+                params.putBoolean("hold", true)
+                sendJSEvent("didToggleHoldCallAction", params)
+            }
+            CALL_ACTIVE_ACTION -> {
+                params.putBoolean("hold", false)
+                sendJSEvent("didToggleHoldCallAction", params)
+            }
+            CALL_MUTED_ACTION -> {
+                if (extras.containsKey(EXTRA_MUTED)) {
+                    params.putBoolean("muted", extras.getBoolean(EXTRA_MUTED, false))
                 }
-                CALL_END_ACTION -> {
-                    val source = intent.getStringExtra(EXTRA_SOURCE)
-                    if (source != null) {
-                        params.putString("source", source)
-                    }
-                    if (source == "app") {
-                        if (callId != null) {
-                            //we stop tracking the call only when it was handled by the app
-                            //in case source is "sys" we still need to know that call is tracked, otherwise we'll unable to end call from js side
-                            trackedCallIds.remove(callId)
-                        }
-                        // means the call was disconnected, we're ready to unbind the service
-                        unbindServiceSafely()
-                    }
-                    params.putString("cause", intent.getStringExtra(EXTRA_DISCONNECT_CAUSE))
-                    sendJSEvent("endCall", params)
+                sendJSEvent("didPerformSetMutedCallAction", params)
+            }
+            CALL_ENDPOINT_CHANGED_ACTION -> {
+                if (extras.containsKey(EXTRA_AUDIO_ENDPOINT)) {
+                    params.putString("output", extras.getString(EXTRA_AUDIO_ENDPOINT))
                 }
-                CALL_INACTIVE_ACTION -> {
-                    params.putBoolean("hold", true)
-                    sendJSEvent("didToggleHoldCallAction", params)
-                }
-                CALL_ACTIVE_ACTION -> {
-                    params.putBoolean("hold", false)
-                    sendJSEvent("didToggleHoldCallAction", params)
-                }
-                CALL_MUTED_ACTION -> {
-                    if (intent.hasExtra(EXTRA_MUTED)) {
-                        params.putBoolean("muted", intent.getBooleanExtra(EXTRA_MUTED, false))
-                    }
-                    sendJSEvent("didPerformSetMutedCallAction", params)
-                }
-                CALL_ENDPOINT_CHANGED_ACTION -> {
-                    if (intent.hasExtra(EXTRA_AUDIO_ENDPOINT)) {
-                        params.putString("output", intent.getStringExtra(EXTRA_AUDIO_ENDPOINT))
-                    }
-                    sendJSEvent("didChangeAudioRoute", params)
-                }
+                sendJSEvent("didChangeAudioRoute", params)
+            }
+        }
+    }
+
+    private inner class ServiceReadyBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+          val action = intent.action ?: return
+
+          if (action == SERVICE_READY_ACTION) {
+                debugLog(
+                        TAG,
+                        "[module] ServiceReadyBroadcastReceiver: Service is ready, initiating binding, isHeadlessTaskRegistered: $isHeadlessTaskRegistered"
+                )
+                bindToServiceIfNeeded()
+                startBackgroundTaskAutomatically(HEADLESS_TASK_NAME, 0L)
             }
         }
     }

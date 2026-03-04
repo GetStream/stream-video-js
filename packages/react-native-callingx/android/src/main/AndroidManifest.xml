@@ -34,6 +34,22 @@
       </intent-filter>
     </service>
 
+    <receiver
+      android:name="io.getstream.rn.callingx.CallEventBroadcastReceiver"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="call_registered" />
+        <action android:name="call_registered_incoming" />
+        <action android:name="call_answered" />
+        <action android:name="call_inactive" />
+        <action android:name="call_active" />
+        <action android:name="call_muted" />
+        <action android:name="call_endpoint_changed" />
+        <action android:name="call_end" />
+        <action android:name="call_registration_failed" />
+      </intent-filter>
+    </receiver>
+
     <!-- Remove default FCM service so StreamMessagingService is the single handler -->
     <service
       android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService"
