@@ -209,8 +209,9 @@ export class NoiseCancellation implements INoiseCancellation {
    * Enables the noise cancellation.
    */
   enable = async () => {
-    if (!this.filterNode) return;
     await this.initializing;
+
+    if (!this.filterNode) return;
     this.filterNode.enable();
     this.dispatch('change', true);
   };
@@ -219,8 +220,9 @@ export class NoiseCancellation implements INoiseCancellation {
    * Disables the noise cancellation.
    */
   disable = async () => {
-    if (!this.filterNode) return;
     await this.initializing;
+
+    if (!this.filterNode) return;
     this.filterNode.disable();
     this.dispatch('change', false);
   };
