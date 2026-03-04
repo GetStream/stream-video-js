@@ -33,6 +33,16 @@ object CallEventBus {
 
     @JvmStatic
     @Synchronized
+    fun unsubscribe(listener: Listener) {
+        if (this.listener === listener) {
+            this.listener = null
+            isJsReady = false
+            pendingEvents.clear()
+        }
+    }
+
+    @JvmStatic
+    @Synchronized
     fun drainPendingEvents(): List<CallEvent> {
         if (pendingEvents.isEmpty()) {
             return emptyList()

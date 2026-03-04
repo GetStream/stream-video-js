@@ -138,6 +138,8 @@ class CallingxModuleImpl(
         trackedCallIds.clear()
         unbindServiceSafely()
 
+        CallEventBus.unsubscribe(this)
+        
         reactApplicationContext.removeLifecycleEventListener(appStateListener)
         reactApplicationContext.unregisterReceiver(serviceReadyBroadcastReceiver)
         isModuleInitialized = false
@@ -162,7 +164,7 @@ class CallingxModuleImpl(
         try {
             Intent(reactApplicationContext, CallService::class.java)
                     .apply { action = CallService.ACTION_STOP_SERVICE }
-                    .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+                    .also { reactApplicationContext.startService(it) }
 
             promise.resolve(true)
         } catch (e: Exception) {

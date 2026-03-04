@@ -70,13 +70,21 @@ class CallService : Service(), CallRepository.Listener {
         fun startCallService(context: Context, data: Map<String, String>) {
             debugLog(TAG, "[service] startCallService: Starting call service warmup")
 
+            val callCid = data["call_cid"]
+            if (callCid.isNullOrEmpty()) {
+                debugLog(TAG, "[service] startCallService: Call CID is null or empty, skipping")
+                return
+            }
+
+            val callName = data["created_by_display_name"].orEmpty()
+            val isVideo = data["video"] == "true"
             val intent =
                     Intent(context, CallService::class.java).apply {
                         action = ACTION_START_CALL_SERVICE
-                        putExtra(EXTRA_CALL_ID, data["call_cid"])
-                        putExtra(EXTRA_URI, data["call_cid"]?.toUri())
-                        putExtra(EXTRA_NAME, data["created_by_display_name"])
-                        putExtra(EXTRA_IS_VIDEO, data["video"] == "true")
+                        putExtra(EXTRA_CALL_ID, callCid)
+                        putExtra(EXTRA_URI, callCid.toUri())
+                        putExtra(EXTRA_NAME, callName)
+                        putExtra(EXTRA_IS_VIDEO, isVideo)
                     }
 
             ContextCompat.startForegroundService(context, intent)
@@ -397,6 +405,10 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
+    /**
+     * We want to start the warmup only if service was not previously started. 
+     * This prevents race condition, when PN arrives after WS event which started the service.
+     */
     private fun startWarmupIfNeeded(intent: Intent) {
         if (isInForeground) {
             Log.w(

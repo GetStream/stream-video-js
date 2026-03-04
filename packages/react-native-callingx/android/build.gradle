@@ -65,17 +65,13 @@ android {
         "generated/java",
         "generated/jni",
         "build/generated/source/codegen/java",
-        "build/generated/source/codegen/jni"
+        "build/generated/source/codegen/jni",
+        "src/firebase/java"
       ]
       if (isNewArchitectureEnabled()) {
         java.srcDirs += ["src/newarch"]
       } else {
         java.srcDirs += ["src/oldarch"]
-      }
-      // Firebase messaging override: only include Firebase-specific Java code when the
-      // consuming app has react-native-firebase/messaging on the classpath (peer).
-      if (rootProject.findProject(':react-native-firebase_messaging') != null) {
-        java.srcDirs += "src/firebase/java"
       }
     }
   }
@@ -96,10 +92,6 @@ dependencies {
   // The consuming app (via @react-native-firebase/messaging) must provide the actual runtime version.
   compileOnly "com.google.firebase:firebase-messaging-ktx:24.1.2"
   // Optional: use Firebase native code when the app has react-native-firebase installed (peer deps)
-  if (rootProject.findProject(':react-native-firebase_app') != null) {
-    implementation project(':react-native-firebase_app')
-  }
-  if (rootProject.findProject(':react-native-firebase_messaging') != null) {
-    implementation project(':react-native-firebase_messaging')
-  }
+  implementation project(':react-native-firebase_app')
+  implementation project(':react-native-firebase_messaging')
 }

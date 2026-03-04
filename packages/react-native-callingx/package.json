@@ -76,14 +76,6 @@
     "react": "*",
     "react-native": "*"
   },
-  "peerDependenciesMeta": {
-    "@react-native-firebase/app": {
-      "optional": true
-    },
-    "@react-native-firebase/messaging": {
-      "optional": true
-    }
-  },
   "react-native-builder-bob": {
     "source": "src",
     "output": "dist",
