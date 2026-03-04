@@ -43,19 +43,19 @@ class CallingxModuleImpl(
         const val EXTRA_AUDIO_ENDPOINT = "audio_endpoint"
         const val EXTRA_SOURCE = "source"
 
-        const val CALL_REGISTERED_ACTION = "call_registered"
-        const val CALL_REGISTERED_INCOMING_ACTION = "call_registered_incoming"
-        const val CALL_ANSWERED_ACTION = "call_answered"
-        // const val CALL_DISCONNECTED_ACTION = "call_disconnected"
-        const val CALL_INACTIVE_ACTION = "call_inactive"
-        const val CALL_ACTIVE_ACTION = "call_active"
-        const val CALL_MUTED_ACTION = "call_muted"
-        const val CALL_ENDPOINT_CHANGED_ACTION = "call_endpoint_changed"
-        const val CALL_END_ACTION = "call_end"
-        const val CALL_REGISTRATION_FAILED_ACTION = "call_registration_failed"
+        // Action names must match intent-filter entries in AndroidManifest.xml
+        const val CALL_REGISTERED_ACTION = "io.getstream.CALL_REGISTERED"
+        const val CALL_REGISTERED_INCOMING_ACTION = "io.getstream.CALL_REGISTERED_INCOMING"
+        const val CALL_ANSWERED_ACTION = "io.getstream.CALL_ANSWERED"
+        const val CALL_INACTIVE_ACTION = "io.getstream.CALL_INACTIVE"
+        const val CALL_ACTIVE_ACTION = "io.getstream.CALL_ACTIVE"
+        const val CALL_MUTED_ACTION = "io.getstream.CALL_MUTED"
+        const val CALL_ENDPOINT_CHANGED_ACTION = "io.getstream.CALL_ENDPOINT_CHANGED"
+        const val CALL_END_ACTION = "io.getstream.CALL_END"
+        const val CALL_REGISTRATION_FAILED_ACTION = "io.getstream.CALL_REGISTRATION_FAILED"
         // Background task name
         const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
-        const val SERVICE_READY_ACTION = "service_ready"
+        const val SERVICE_READY_ACTION = "io.getstream.SERVICE_READY"
     }
 
     private enum class BindingState {

@@ -34,19 +34,20 @@
       </intent-filter>
     </service>
 
+    <!-- Action values must match constants in CallingxModuleImpl.kt -->
     <receiver
       android:name="io.getstream.rn.callingx.CallEventBroadcastReceiver"
       android:exported="false">
       <intent-filter>
-        <action android:name="call_registered" />
-        <action android:name="call_registered_incoming" />
-        <action android:name="call_answered" />
-        <action android:name="call_inactive" />
-        <action android:name="call_active" />
-        <action android:name="call_muted" />
-        <action android:name="call_endpoint_changed" />
-        <action android:name="call_end" />
-        <action android:name="call_registration_failed" />
+        <action android:name="io.getstream.CALL_REGISTERED" />
+        <action android:name="io.getstream.CALL_REGISTERED_INCOMING" />
+        <action android:name="io.getstream.CALL_ANSWERED" />
+        <action android:name="io.getstream.CALL_INACTIVE" />
+        <action android:name="io.getstream.CALL_ACTIVE" />
+        <action android:name="io.getstream.CALL_MUTED" />
+        <action android:name="io.getstream.CALL_ENDPOINT_CHANGED" />
+        <action android:name="io.getstream.CALL_END" />
+        <action android:name="io.getstream.CALL_REGISTRATION_FAILED" />
       </intent-filter>
     </receiver>
 
