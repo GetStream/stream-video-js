@@ -46,7 +46,7 @@ class CallingxModule(reactContext: ReactApplicationContext) :
     }
 
     override fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
-        // leave empty
+        impl.setShouldRejectCallWhenBusy(shouldReject)
     }
 
     override fun getInitialVoipEvents(): WritableArray {

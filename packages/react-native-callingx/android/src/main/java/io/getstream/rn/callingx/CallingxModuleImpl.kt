@@ -25,6 +25,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
+import io.getstream.rn.callingx.utils.SettingsStore
 
 class CallingxModuleImpl(
         private val reactApplicationContext: ReactApplicationContext,
@@ -123,6 +124,14 @@ class CallingxModuleImpl(
         reactApplicationContext.removeLifecycleEventListener(appStateListener)
         reactApplicationContext.unregisterReceiver(serviceReadyBroadcastReceiver)
         isModuleInitialized = false
+    }
+
+    fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
+        debugLog(
+                TAG,
+                "[module] setShouldRejectCallWhenBusy: Updating rejectCallWhenBusy to $shouldReject"
+        )
+        SettingsStore.setShouldRejectCallWhenBusy(reactApplicationContext, shouldReject)
     }
 
     fun setupAndroid(options: ReadableMap) {

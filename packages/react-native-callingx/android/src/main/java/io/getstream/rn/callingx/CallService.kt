@@ -19,6 +19,7 @@ import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.CallNotificationManager
 import io.getstream.rn.callingx.repo.CallRepository
 import io.getstream.rn.callingx.repo.CallRepositoryFactory
+import io.getstream.rn.callingx.utils.SettingsStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -65,6 +66,15 @@ class CallService : Service(), CallRepository.Listener {
 
         fun startIncomingCallFromPush(context: Context, data: Map<String, String>) {
             debugLog(TAG, "[service] startIncomingCallFromPush: Starting incoming call from push")
+
+            val shouldRejectCallWhenBusy = SettingsStore.shouldRejectCallWhenBusy(context)
+            if (shouldRejectCallWhenBusy && CallRegistrationStore.hasRegisteredCall()) {
+                debugLog(
+                        TAG,
+                        "[service] startIncomingCallFromPush: Registered call found and rejectCallWhenBusy is enabled, skipping incoming call"
+                )
+                return
+            }
 
             val callCid = data["call_cid"]
             if (callCid.isNullOrEmpty()) {

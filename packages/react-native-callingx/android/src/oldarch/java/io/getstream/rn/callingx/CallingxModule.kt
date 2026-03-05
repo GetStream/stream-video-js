@@ -56,7 +56,7 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
-        // leave empty
+        impl.setShouldRejectCallWhenBusy(shouldReject)
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)

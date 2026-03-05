@@ -159,14 +159,6 @@ export const firebaseDataHandler = async (
       return;
     }
 
-    const shouldRejectCallWhenBusy = client['rejectCallWhenBusy'] ?? false;
-    if (callingx.hasRegisteredCall() && shouldRejectCallWhenBusy) {
-      logger.debug(
-        `registered call found, skipping the call.ring notification`,
-      );
-      return;
-    }
-
     const asForegroundService = canListenToWS();
 
     if (asForegroundService) {
