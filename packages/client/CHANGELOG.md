@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.44.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.0...@stream-io/video-client-1.44.1) (2026-03-04)
+
+### Bug Fixes
+
+- **client:** handle SFU tag changes during reconnect ([#2149](https://github.com/GetStream/stream-video-js/issues/2149)) ([5aa89d3](https://github.com/GetStream/stream-video-js/commit/5aa89d378a73d33d8e46a6eb40e688bd0f50cca9)), closes [#2121](https://github.com/GetStream/stream-video-js/issues/2121)
+
 ## [1.44.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.43.0...@stream-io/video-client-1.44.0) (2026-02-27)
 
 - update agent instructions [skip ci] ([9cec4c6](https://github.com/GetStream/stream-video-js/commit/9cec4c6431ff51549fcfc870a0df935b0b8aa850))
