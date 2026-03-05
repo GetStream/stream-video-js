@@ -1,0 +1,112 @@
+{
+  "name": "@stream-io/react-native-callingx",
+  "version": "0.1.0",
+  "description": "CallKit and Telecom API capabilities for React Native",
+  "main": "./dist/module/index.js",
+  "module": "./dist/module/index.js",
+  "types": "./dist/typescript/src/index.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/typescript/src/index.d.ts",
+      "default": "./dist/module/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "src",
+    "dist",
+    "android",
+    "ios",
+    "cpp",
+    "*.podspec",
+    "react-native.config.js",
+    "!ios/build",
+    "!android/build",
+    "!android/gradle",
+    "!android/gradlew",
+    "!android/gradlew.bat",
+    "!android/local.properties",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__",
+    "!**/.*"
+  ],
+  "scripts": {
+    "clean": "del-cli android/build dist",
+    "prepare": "bob build",
+    "build": "bob build",
+    "typecheck": "tsc"
+  },
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GetStream/stream-video-js.git"
+  },
+  "author": "https://getstream.io <support@getstream.io> (https://github.com/GetStream)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/GetStream/stream-video-js/issues"
+  },
+  "homepage": "https://github.com/GetStream/stream-video-js#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "devDependencies": {
+    "@react-native-community/cli": "20.0.1",
+    "@react-native/babel-preset": "^0.81.5",
+    "@stream-io/react-native-webrtc": "137.1.2",
+    "@types/react": "^19.1.0",
+    "del-cli": "^6.0.0",
+    "react": "19.1.0",
+    "react-native": "^0.81.5",
+    "react-native-builder-bob": "^0.40.15",
+    "typescript": "^5.9.2"
+  },
+  "peerDependencies": {
+    "@stream-io/react-native-webrtc": ">=137.1.2",
+    "react": "*",
+    "react-native": "*"
+  },
+  "react-native-builder-bob": {
+    "source": "src",
+    "output": "dist",
+    "targets": [
+      [
+        "module",
+        {
+          "esm": true
+        }
+      ],
+      [
+        "typescript",
+        {
+          "project": "tsconfig.build.json"
+        }
+      ]
+    ]
+  },
+  "codegenConfig": {
+    "name": "CallingxSpec",
+    "type": "modules",
+    "jsSrcsDir": "src/spec",
+    "android": {
+      "javaPackageName": "io.getstream.rn.callingx"
+    },
+    "ios": {
+      "moduleName": "Callingx"
+    }
+  },
+  "create-react-native-library": {
+    "languages": "kotlin-objc",
+    "type": "turbo-module",
+    "tools": [],
+    "version": "0.55.0"
+  }
+}

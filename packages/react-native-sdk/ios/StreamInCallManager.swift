@@ -116,7 +116,7 @@ class StreamInCallManager: RCTEventEmitter {
                 }
             } else {
                 intendedCategory = .playAndRecord
-                intendedMode = defaultAudioDevice == .speaker ? .videoChat : .voiceChat
+                intendedMode = .voiceChat
                 
                 // XCode 16 and older don't expose .allowBluetoothHFP
                 // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
@@ -132,6 +132,7 @@ class StreamInCallManager: RCTEventEmitter {
             rtcConfig.category = intendedCategory.rawValue
             rtcConfig.mode = intendedMode.rawValue
             rtcConfig.categoryOptions = intendedOptions
+            // This ensures WebRTC's internal state stays consistent during interruptions/route changes
             RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
             
             let session = RTCAudioSession.sharedInstance()
@@ -140,7 +141,7 @@ class StreamInCallManager: RCTEventEmitter {
                 session.unlockForConfiguration()
             }
             do {
-                try session.setCategory(intendedCategory, mode: intendedMode, options: intendedOptions)
+                try session.setConfiguration(rtcConfig)
                 if (wasRecording) {
                     try adm.setRecording(wasRecording)
                 }
@@ -266,6 +267,11 @@ class StreamInCallManager: RCTEventEmitter {
 
     @objc
     func logAudioState() {
+        log(getAudioStateLog())
+    }
+    
+    @objc(getAudioStateLog)
+    func getAudioStateLog() -> String {
         let session = AVAudioSession.sharedInstance()
         let adm = getAudioDeviceModule()
         
@@ -278,7 +284,7 @@ class StreamInCallManager: RCTEventEmitter {
 
         let rtcAVSession = rtcSession.session
         let logString = """
-        Audio State:
+        AVAudioSession State:
           Category: \(session.category.rawValue)
           Mode: \(session.mode.rawValue)
           Output Port: \(session.currentRoute.outputs.first?.portName ?? "N/A")
@@ -286,10 +292,16 @@ class StreamInCallManager: RCTEventEmitter {
           Category Options: \(session.categoryOptions)
           InputNumberOfChannels: \(session.inputNumberOfChannels)
           OutputNumberOfChannels: \(session.outputNumberOfChannels)
-          AdmIsPlaying: \(adm.isPlaying)
-          AdmIsRecording: \(adm.isRecording)
+
+        AudioDeviceModule State:
+          IsPlaying: \(adm.isPlaying)
+          IsRecording: \(adm.isRecording)
+          IsVoiceProcessingAGCEnabled: \(adm.isVoiceProcessingAGCEnabled)
+          IsVoiceProcessingBypassed: \(adm.isVoiceProcessingBypassed)
+          IsVoiceProcessingEnabled: \(adm.isVoiceProcessingEnabled)
+          IsStereoPlayoutEnabled: \(adm.isStereoPlayoutEnabled)
         
-        RTC Audio State:
+        RTCAudioSession State:
           Wrapped Category: \(rtcAVSession.category.rawValue)
           Wrapped Mode: \(rtcAVSession.mode.rawValue)
           Wrapped Output Port: \(rtcAVSession.currentRoute.outputs.first?.portName ?? "N/A")
@@ -300,7 +312,7 @@ class StreamInCallManager: RCTEventEmitter {
           IsActive: \(rtcSession.isActive)
           ActivationCount: \(rtcSession.activationCount)
         """
-        log(logString)
+        return logString
     }
 
     @objc(muteAudioOutput)

@@ -14,6 +14,7 @@ config.watchFolders = [
   path.join(workspaceRoot, 'packages/react-native-sdk'),
   path.join(workspaceRoot, 'packages/video-filters-react-native'),
   path.join(workspaceRoot, 'packages/noise-cancellation-react-native'),
+  path.join(workspaceRoot, 'packages/react-native-callingx'),
 ];
 
 // find what all modules need to be unique for the app

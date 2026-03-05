@@ -420,6 +420,7 @@ export class Call {
         const currentUserId = this.currentUserId;
         if (currentUserId && blockedUserIds.includes(currentUserId)) {
           this.logger.info('Leaving call because of being blocked');
+          globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'restricted');
           await this.leave({ message: 'user blocked' }).catch((err) => {
             this.logger.error('Error leaving call after being blocked', err);
           });
@@ -464,6 +465,10 @@ export class Call {
           (isAcceptedElsewhere || isRejectedByMe) &&
           !hasPending(this.joinLeaveConcurrencyTag)
         ) {
+          globalThis.streamRNVideoSDK?.callingX?.endCall(
+            this,
+            isAcceptedElsewhere ? 'answeredElsewhere' : 'rejected',
+          );
           this.leave().catch(() => {
             this.logger.error(
               'Could not leave a call that was accepted or rejected elsewhere',
@@ -635,16 +640,30 @@ export class Call {
 
       if (callingState === CallingState.RINGING && reject !== false) {
         if (reject) {
-          await this.reject(reason ?? 'decline');
+          const reasonToEndCallReason = {
+            timeout: 'missed',
+            cancel: 'canceled',
+            busy: 'busy',
+            decline: 'rejected',
+          } as const;
+          const rejectReason = reason ?? 'decline';
+          const endCallReason =
+            reasonToEndCallReason[
+              rejectReason as keyof typeof reasonToEndCallReason
+            ] ?? 'rejected';
+          globalThis.streamRNVideoSDK?.callingX?.endCall(this, endCallReason);
+          await this.reject(rejectReason);
         } else {
           // if reject was undefined, we still have to cancel the call automatically
           // when I am the creator and everyone else left the call
           const hasOtherParticipants = this.state.remoteParticipants.length > 0;
           if (this.isCreatedByMe && !hasOtherParticipants) {
+            globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'canceled');
             await this.reject('cancel');
           }
         }
       }
+      globalThis.streamRNVideoSDK?.callingX?.endCall(this);
 
       this.statsReporter?.stop();
       this.statsReporter = undefined;
@@ -679,7 +698,9 @@ export class Call {
       this.cancelAutoDrop();
       this.clientStore.unregisterCall(this);
 
-      globalThis.streamRNVideoSDK?.callManager.stop();
+      globalThis.streamRNVideoSDK?.callManager.stop({
+        isRingingTypeCall: this.ringing,
+      });
 
       this.camera.dispose();
       this.microphone.dispose();
@@ -764,6 +785,7 @@ export class Call {
     video?: boolean;
   }): Promise<GetCallResponse> => {
     await this.setup();
+
     const response = await this.streamClient.get<GetCallResponse>(
       this.streamClientBasePath,
       params,
@@ -794,6 +816,7 @@ export class Call {
    */
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
     await this.setup();
+
     const response = await this.streamClient.post<
       GetOrCreateCallResponse,
       GetOrCreateCallRequest
@@ -909,60 +932,73 @@ export class Call {
     joinResponseTimeout?: number;
     rpcRequestTimeout?: number;
   } = {}): Promise<void> => {
-    await this.setup();
     const callingState = this.state.callingState;
 
     if ([CallingState.JOINED, CallingState.JOINING].includes(callingState)) {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
+    if (data?.ring) {
+      this.ringingSubject.next(true);
+    }
+    const callingX = globalThis.streamRNVideoSDK?.callingX;
+    if (callingX) {
+      // for Android/iOS, we need to start the call in the callingx library as soon as possible
+      await callingX.startCall(this);
+    }
+
+    await this.setup();
+
     this.joinResponseTimeout = joinResponseTimeout;
     this.rpcRequestTimeout = rpcRequestTimeout;
-
     // we will count the number of join failures per SFU.
     // once the number of failures reaches 2, we will piggyback on the `migrating_from`
     // field to force the coordinator to provide us another SFU
     const sfuJoinFailures = new Map<string, number>();
     const joinData: JoinCallData = data;
     maxJoinRetries = Math.max(maxJoinRetries, 1);
-    for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-      try {
-        this.logger.trace(`Joining call (${attempt})`, this.cid);
-        await this.doJoin(data);
-        delete joinData.migrating_from;
-        delete joinData.migrating_from_list;
-        break;
-      } catch (err) {
-        this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-        if (
-          (err instanceof ErrorFromResponse && err.unrecoverable) ||
-          (err instanceof SfuJoinError && err.unrecoverable)
-        ) {
-          // if the error is unrecoverable, we should not retry as that signals
-          // that connectivity is good, but the coordinator doesn't allow the user
-          // to join the call due to some reason (e.g., ended call, expired token...)
-          throw err;
-        }
+    try {
+      for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+        try {
+          this.logger.trace(`Joining call (${attempt})`, this.cid);
+          await this.doJoin(data);
+          delete joinData.migrating_from;
+          delete joinData.migrating_from_list;
+          break;
+        } catch (err) {
+          this.logger.warn(`Failed to join call (${attempt})`, this.cid);
+          if (
+            (err instanceof ErrorFromResponse && err.unrecoverable) ||
+            (err instanceof SfuJoinError && err.unrecoverable)
+          ) {
+            // if the error is unrecoverable, we should not retry as that signals
+            // that connectivity is good, but the coordinator doesn't allow the user
+            // to join the call due to some reason (e.g., ended call, expired token...)
+            throw err;
+          }
 
-        // immediately switch to a different SFU in case of recoverable join error
-        const switchSfu =
-          err instanceof SfuJoinError &&
-          SfuJoinError.isJoinErrorCode(err.errorEvent);
+          // immediately switch to a different SFU in case of recoverable join error
+          const switchSfu =
+            err instanceof SfuJoinError &&
+            SfuJoinError.isJoinErrorCode(err.errorEvent);
 
-        const sfuId = this.credentials?.server.edge_name || '';
-        const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-        sfuJoinFailures.set(sfuId, failures);
-        if (switchSfu || failures >= 2) {
-          joinData.migrating_from = sfuId;
-          joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
-        }
+          const sfuId = this.credentials?.server.edge_name || '';
+          const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+          sfuJoinFailures.set(sfuId, failures);
+          if (switchSfu || failures >= 2) {
+            joinData.migrating_from = sfuId;
+            joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
+          }
 
-        if (attempt === maxJoinRetries - 1) {
-          throw err;
+          if (attempt === maxJoinRetries - 1) {
+            throw err;
+          }
         }
+        await sleep(retryInterval(attempt));
       }
-
-      await sleep(retryInterval(attempt));
+    } catch (error) {
+      callingX?.endCall(this, 'error');
+      throw error;
     }
   };
 
@@ -1145,7 +1181,9 @@ export class Call {
     // re-apply them on later reconnections or server-side data fetches
     if (!this.deviceSettingsAppliedOnce && this.state.settings) {
       await this.applyDeviceConfig(this.state.settings, true);
-      globalThis.streamRNVideoSDK?.callManager.start();
+      globalThis.streamRNVideoSDK?.callManager.start({
+        isRingingTypeCall: this.ringing,
+      });
       this.deviceSettingsAppliedOnce = true;
     }
 
@@ -1690,6 +1728,7 @@ export class Call {
       if (SfuJoinError.isJoinErrorCode(e)) return;
       if (strategy === WebsocketReconnectStrategy.UNSPECIFIED) return;
       if (strategy === WebsocketReconnectStrategy.DISCONNECT) {
+        globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'error');
         this.leave({ message: 'SFU instructed to disconnect' }).catch((err) => {
           this.logger.warn(`Can't leave call after disconnect request`, err);
         });

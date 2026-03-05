@@ -129,10 +129,7 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
       },
     };
     const props: ConfigProps = {
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: true,
-      },
+      ringing: true,
     };
     const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
       config,
