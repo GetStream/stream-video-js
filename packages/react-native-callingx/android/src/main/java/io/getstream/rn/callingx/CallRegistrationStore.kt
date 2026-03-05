@@ -17,26 +17,26 @@ object CallRegistrationStore {
     private val pendingDisconnectCauseByCallId = ConcurrentHashMap<String, Int>()
 
     // Per-callId pending promises for displayIncomingCall awaiting CALL_REGISTERED_INCOMING_ACTION
-    private val pendingDisplayPromises = mutableMapOf<String, Promise>()
+    private val pendingPromises = mutableMapOf<String, Promise>()
     private val pendingTimeouts = mutableMapOf<String, Runnable>()
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    fun trackIncomingDisplay(callId: String, promise: Promise?) {
-        debugLog(TAG, "[store] trackIncomingDisplay: Tracking incoming display for callId: $callId")
+    fun trackCallRegistration(callId: String, promise: Promise?) {
+        debugLog(TAG, "[store] trackCallRegistration: Tracking call registration for callId: $callId")
         trackedCallIds.add(callId)
 
         if (promise == null) return
 
-        synchronized(pendingDisplayPromises) {
+        synchronized(pendingPromises) {
             // Cancel any existing timeout for this callId to avoid a stale runnable
             // rejecting the new promise after it overwrites the old one.
             pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
 
-            pendingDisplayPromises[callId] = promise
+            pendingPromises[callId] = promise
 
             val timeoutRunnable = Runnable {
-                synchronized(pendingDisplayPromises) {
-                    pendingDisplayPromises.remove(callId)?.reject(
+                synchronized(pendingPromises) {
+                    pendingPromises.remove(callId)?.reject(
                         "TIMEOUT",
                         "Timed out waiting for call registration: $callId"
                     )
@@ -48,15 +48,15 @@ object CallRegistrationStore {
         }
     }
 
-    fun onDisplayRegistrationSuccess(callId: String) {
-        synchronized(pendingDisplayPromises) {
+    fun onRegistrationSuccess(callId: String) {
+        synchronized(pendingPromises) {
             pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-            pendingDisplayPromises.remove(callId)?.resolve(true)
+            pendingPromises.remove(callId)?.resolve(true)
         }
     }
 
     fun onRegistrationFailed(callId: String) {
-        failDisplay(
+        reportRegistrationFail(
             callId,
             "REGISTRATION_FAILED",
             "Failed to register call with telecom: $callId",
@@ -64,7 +64,7 @@ object CallRegistrationStore {
         )
     }
 
-    fun failDisplay(
+    fun reportRegistrationFail(
         callId: String,
         code: String,
         message: String?,
@@ -72,9 +72,9 @@ object CallRegistrationStore {
     ) {
         trackedCallIds.remove(callId)
 
-        synchronized(pendingDisplayPromises) {
+        synchronized(pendingPromises) {
             pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-            val promise = pendingDisplayPromises.remove(callId)
+            val promise = pendingPromises.remove(callId)
             if (promise != null) {
                 if (throwable != null) {
                     promise.reject(code, message, throwable)
@@ -129,10 +129,10 @@ object CallRegistrationStore {
     }
 
     fun clearAll() {
-        synchronized(pendingDisplayPromises) {
+        synchronized(pendingPromises) {
             pendingTimeouts.values.forEach { mainHandler.removeCallbacks(it) }
             pendingTimeouts.clear()
-            pendingDisplayPromises.clear()
+            pendingPromises.clear()
         }
         trackedCallIds.clear()
         pendingDisconnectCauseByCallId.clear()

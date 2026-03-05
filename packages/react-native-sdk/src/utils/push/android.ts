@@ -173,7 +173,7 @@ export const firebaseDataHandler = async (
       // Listen to call events from WS through fg service
       // note: this will replace the current empty fg service runner
       //we need to start service (e.g. by calling display incoming call) and than launch bg task, consider making those steps independent
-      callingx.registerBackgroundTask((_: unknown, stopTask: () => void) => {
+      await callingx.startBackgroundTask((_: unknown, stopTask: () => void) => {
         return new Promise((resolve) => {
           const finishBackgroundTask = () => {
             callingx.log(

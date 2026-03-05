@@ -25,7 +25,6 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
-import java.util.concurrent.ConcurrentHashMap
 
 class CallingxModuleImpl(
         private val reactApplicationContext: ReactApplicationContext,
@@ -120,7 +119,7 @@ class CallingxModuleImpl(
         unbindServiceSafely()
 
         CallEventBus.unsubscribe(this)
-        
+
         reactApplicationContext.removeLifecycleEventListener(appStateListener)
         reactApplicationContext.unregisterReceiver(serviceReadyBroadcastReceiver)
         isModuleInitialized = false
@@ -189,7 +188,7 @@ class CallingxModuleImpl(
             return
         }
 
-        CallRegistrationStore.trackIncomingDisplay(callId, promise)
+        CallRegistrationStore.trackCallRegistration(callId, promise)
 
         try {
             startCallService(
@@ -202,7 +201,7 @@ class CallingxModuleImpl(
             )
         } catch (e: Exception) {
             Log.e(TAG, "[module] displayIncomingCall: Failed to start foreground service: ${e.message}", e)
-            CallRegistrationStore.failDisplay(
+            CallRegistrationStore.reportRegistrationFail(
                     callId,
                     "START_FOREGROUND_SERVICE_ERROR",
                     e.message,
@@ -238,7 +237,7 @@ class CallingxModuleImpl(
             return
         }
 
-        CallRegistrationStore.addTrackedCall(callId)
+        CallRegistrationStore.trackCallRegistration(callId, promise)
 
         try {
             startCallService(
@@ -249,11 +248,14 @@ class CallingxModuleImpl(
                     hasVideo,
                     displayOptions
             )
-            promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "[module] startCall: Failed to start foreground service: ${e.message}", e)
-            CallRegistrationStore.removeTrackedCall(callId)
-            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+            CallRegistrationStore.reportRegistrationFail(
+              callId,
+              "START_FOREGROUND_SERVICE_ERROR",
+              e.message,
+              e
+          )
         }
     }
 
@@ -583,10 +585,13 @@ class CallingxModuleImpl(
         when (action) {
             CALL_REGISTERED_ACTION -> {
                 sendJSEvent("didReceiveStartCallAction", params)
+                if (callId != null) {
+                  CallRegistrationStore.onRegistrationSuccess(callId)
+                }
             }
             CALL_REGISTERED_INCOMING_ACTION -> {
                 if (callId != null) {
-                    CallRegistrationStore.onDisplayRegistrationSuccess(callId)
+                    CallRegistrationStore.onRegistrationSuccess(callId)
                 }
                 sendJSEvent("didDisplayIncomingCall", params)
             }

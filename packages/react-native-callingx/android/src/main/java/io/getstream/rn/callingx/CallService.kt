@@ -78,7 +78,7 @@ class CallService : Service(), CallRepository.Listener {
             val callName = data["created_by_display_name"].orEmpty()
             val isVideo = data["video"] == "true"
 
-            CallRegistrationStore.trackIncomingDisplay(callCid, null)
+            CallRegistrationStore.trackCallRegistration(callCid, null)
 
             val intent =
                     Intent(context, CallService::class.java).apply {
