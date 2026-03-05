@@ -128,11 +128,17 @@ export const processCallFromPush = async (
 
       await callFromPush.join();
     } else if (action === 'decline') {
-      const canReject =
+      const isRinging =
         callFromPush.state.callingState === CallingState.RINGING;
+      const currentUserId = callFromPush.currentUserId;
+      const hasMember = callFromPush.state.members.some(
+        (member) => member.user_id === currentUserId,
+      );
+      const canReject = isRinging && hasMember;
       logger.debug(
         `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`,
       );
+
       await callFromPush.leave({ reject: canReject, reason: 'decline' });
     }
   } catch (e) {
