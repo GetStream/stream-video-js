@@ -196,6 +196,7 @@ Examples:
 
 - Small, focused PRs, follow the @.github/pull_request_template.md template
 - Never commit directly to the `main` branch, always create a feature branch
+- Never commit or push unless instructed to do so
 - Use conventional commits (fix, feat, chore)
 - Include tests for changes
 - Label breaking changes clearly in the description
