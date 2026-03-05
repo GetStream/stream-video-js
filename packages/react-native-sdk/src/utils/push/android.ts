@@ -139,16 +139,7 @@ export const firebaseDataHandler = async (
 
   if (data.type === 'call.ring') {
     const call_cid = data.call_cid as string;
-
     const callingx = getCallingxLib();
-
-    if (!callingx.canPostNotifications) {
-      logger.warn(
-        `Cannot post notifications, skipping the call.ring notification`,
-      );
-      await callingx.stopService();
-      return;
-    }
 
     const client = await pushConfig.createStreamVideoClient();
     if (!client) {

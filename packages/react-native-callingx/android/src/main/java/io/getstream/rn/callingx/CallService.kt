@@ -17,6 +17,8 @@ import androidx.core.net.toUri
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.CallNotificationManager
+import io.getstream.rn.callingx.notifications.NotificationChannelsManager
+import io.getstream.rn.callingx.notifications.NotificationsConfig
 import io.getstream.rn.callingx.repo.CallRepository
 import io.getstream.rn.callingx.repo.CallRepositoryFactory
 import io.getstream.rn.callingx.utils.SettingsStore
@@ -66,6 +68,20 @@ class CallService : Service(), CallRepository.Listener {
 
         fun startIncomingCallFromPush(context: Context, data: Map<String, String>) {
             debugLog(TAG, "[service] startIncomingCallFromPush: Starting incoming call from push")
+
+            // Check if we are allowed to post call notifications (moved from JS layer).
+            val notificationsConfig = NotificationsConfig.loadNotificationsConfig(context)
+            val notificationChannelsManager = NotificationChannelsManager(context).apply {
+                setNotificationsConfig(notificationsConfig)
+            }
+            val notificationStatus = notificationChannelsManager.getNotificationStatus()
+            if (!notificationStatus.canPost) {
+                debugLog(
+                        TAG,
+                        "[service] startIncomingCallFromPush: Cannot post notifications, skipping incoming call"
+                )
+                return
+            }
 
             val shouldRejectCallWhenBusy = SettingsStore.shouldRejectCallWhenBusy(context)
             if (shouldRejectCallWhenBusy && CallRegistrationStore.hasRegisteredCall()) {
