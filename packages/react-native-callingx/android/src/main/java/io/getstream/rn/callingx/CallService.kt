@@ -475,7 +475,6 @@ class CallService : Service(), CallRepository.Listener {
             } else {
                 startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
             }
-            debugLog(TAG, "[service] startForegroundSafely")
             isInForeground = true
         } catch (e: Exception) {
             // If starting the foreground service fails (for example due to background start
