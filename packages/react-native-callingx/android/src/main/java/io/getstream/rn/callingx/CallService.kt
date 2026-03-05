@@ -71,9 +71,10 @@ class CallService : Service(), CallRepository.Listener {
 
             // Check if we are allowed to post call notifications (moved from JS layer).
             val notificationsConfig = NotificationsConfig.loadNotificationsConfig(context)
-            val notificationChannelsManager = NotificationChannelsManager(context).apply {
-                setNotificationsConfig(notificationsConfig)
-            }
+            val notificationChannelsManager =
+                    NotificationChannelsManager(context).apply {
+                        setNotificationsConfig(notificationsConfig)
+                    }
             val notificationStatus = notificationChannelsManager.getNotificationStatus()
             if (!notificationStatus.canPost) {
                 debugLog(
@@ -129,6 +130,7 @@ class CallService : Service(), CallRepository.Listener {
 
     private val binder = CallServiceBinder()
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob())
+    private val actionProcessingLock = Object()
 
     private var isInForeground = false
 
@@ -182,18 +184,6 @@ class CallService : Service(), CallRepository.Listener {
                 registerCall(intent, false)
             }
             ACTION_START_BACKGROUND_TASK -> {
-                if (!isInForeground) {
-                    debugLog(
-                            TAG,
-                            "[service] onStartCommand: Starting foreground for background task"
-                    )
-                    // for now bg task is intended to be used after a call registered and
-                    // notification is shown, so we don't need to show a separate notification for
-                    // bg task
-                    // startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
-                    // isInForeground = true
-                }
-
                 startBackgroundTask(intent)
                 return START_NOT_STICKY
             }
@@ -239,13 +229,8 @@ class CallService : Service(), CallRepository.Listener {
                         "[service] updateServiceState: Call registered - Active: ${call.isActive}, OnHold: ${call.isOnHold}, Muted: ${call.isMuted}"
                 )
 
-                val pendingCauseCode = CallRegistrationStore.takePendingDisconnect(call.id)
-                if (pendingCauseCode != null) {
-                    debugLog(
-                            TAG,
-                            "[service] onCallStateChanged: Executing pending disconnect for ${call.id}"
-                    )
-                    processAction(call.id, CallAction.Disconnect(DisconnectCause(pendingCauseCode)))
+                val shouldStopExecution = processPendingActions(call)
+                if (shouldStopExecution) {
                     return
                 }
 
@@ -358,20 +343,29 @@ class CallService : Service(), CallRepository.Listener {
 
     public fun processAction(callId: String, action: CallAction) {
         debugLog(TAG, "[service] processAction: Processing action: ${action::class.simpleName}")
-        val currentCall = callRepository.currentCall.value
-        if (currentCall is Call.Registered && currentCall.id == callId) {
-            currentCall.processAction(action)
-        } else {
-            // this solves race condition, when end call action is requested before the call is
-            // registered in Telecom
-            if (action is CallAction.Disconnect) {
-                debugLog(TAG, "[service] early exit: storing pending disconnect for $callId")
-                CallRegistrationStore.setPendingDisconnect(callId, action.cause.code)
+        synchronized(actionProcessingLock) {
+            val currentCall = callRepository.currentCall.value
+            if (currentCall is Call.Registered && currentCall.id == callId) {
+                currentCall.processAction(action)
+            } else {
+                // this solves race condition, when action is requested before the call is
+                // registered in Telecom
+                if (action is CallAction.Disconnect) {
+                    debugLog(TAG, "[service] storing pending disconnect for $callId")
+                    CallRegistrationStore.setPendingDisconnect(callId, action.cause.code)
+                } else if (action is CallAction.Answer) {
+                    debugLog(TAG, "[service] storing pending answer for $callId")
+                    CallRegistrationStore.setPendingAnswer(callId, action.isAudioCall)
+                } else if (action is CallAction.ToggleMute) {
+                    debugLog(TAG, "[service] storing pending mute for $callId")
+                    CallRegistrationStore.setPendingMute(callId, action.isMute)
+                } else {
+                    Log.w(
+                            TAG,
+                            "[service] processAction: Call not registered or not the current call, ignoring action"
+                    )
+                }
             }
-            Log.e(
-                    TAG,
-                    "[service] processAction: Call not registered or not the current call, ignoring action"
-            )
         }
     }
 
@@ -435,6 +429,38 @@ class CallService : Service(), CallRepository.Listener {
                 notificationManager.stopRingtone()
                 stopSelf()
             }
+        }
+    }
+
+    private fun processPendingActions(call: Call.Registered): Boolean {
+        synchronized(actionProcessingLock) {
+            val pendingCauseCode = CallRegistrationStore.takePendingDisconnect(call.id)
+            val pendingAnswer = CallRegistrationStore.takePendingAnswer(call.id)
+            val pendingMute = CallRegistrationStore.takePendingMute(call.id)
+
+            if (pendingCauseCode != null) {
+                debugLog(
+                        TAG,
+                        "[service] onCallStateChanged: Executing pending disconnect for ${call.id}"
+                )
+                call.processAction(CallAction.Disconnect(DisconnectCause(pendingCauseCode)))
+                return true
+            }
+
+            if (pendingAnswer != null) {
+                debugLog(
+                        TAG,
+                        "[service] onCallStateChanged: Executing pending answer for ${call.id}"
+                )
+                call.processAction(CallAction.Answer(pendingAnswer))
+            }
+
+            if (pendingMute != null) {
+                debugLog(TAG, "[service] onCallStateChanged: Executing pending mute for ${call.id}")
+                call.processAction(CallAction.ToggleMute(pendingMute))
+            }
+
+            return false
         }
     }
 

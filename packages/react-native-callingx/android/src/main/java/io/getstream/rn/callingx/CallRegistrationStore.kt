@@ -15,6 +15,8 @@ object CallRegistrationStore {
 
     /** Pending disconnect cause code (android.telecom.DisconnectCause code) per callId. */
     private val pendingDisconnectCauseByCallId = ConcurrentHashMap<String, Int>()
+    private val pendingAnswerByCallId = ConcurrentHashMap<String, Boolean>()
+    private val pendingMuteByCallId = ConcurrentHashMap<String, Boolean>()
 
     // Per-callId pending promises for displayIncomingCall awaiting CALL_REGISTERED_INCOMING_ACTION
     private val pendingPromises = mutableMapOf<String, Promise>()
@@ -116,6 +118,16 @@ object CallRegistrationStore {
         pendingDisconnectCauseByCallId[callId] = disconnectCauseCode
     }
 
+    fun setPendingAnswer(callId: String, isAudioCall: Boolean) {
+        debugLog(TAG, "[store] setPendingAnswer: callId=$callId")
+        pendingAnswerByCallId[callId] = isAudioCall
+    }
+
+    fun setPendingMute(callId: String, isMute: Boolean) {
+        debugLog(TAG, "[store] setPendingMute: callId=$callId isMute=$isMute")
+        pendingMuteByCallId[callId] = isMute
+    }
+
     /**
      * Returns and removes the pending disconnect cause code for this call, if any.
      * Used when the call has just become registered so the service can run the disconnect action.
@@ -128,6 +140,22 @@ object CallRegistrationStore {
         return code
     }
 
+    fun takePendingAnswer(callId: String): Boolean? {
+        val isAudioCall = pendingAnswerByCallId.remove(callId)
+        if (isAudioCall != null) {
+            debugLog(TAG, "[store] takePendingAnswer: callId=$callId isAudioCall=$isAudioCall")
+        }
+        return isAudioCall
+    }
+
+    fun takePendingMute(callId: String): Boolean? {
+        val isMute = pendingMuteByCallId.remove(callId)
+        if (isMute != null) {
+            debugLog(TAG, "[store] takePendingMute: callId=$callId isMute=$isMute")
+        }
+        return isMute
+    }
+
     fun clearAll() {
         synchronized(pendingPromises) {
             pendingTimeouts.values.forEach { mainHandler.removeCallbacks(it) }
@@ -136,6 +164,8 @@ object CallRegistrationStore {
         }
         trackedCallIds.clear()
         pendingDisconnectCauseByCallId.clear()
+        pendingAnswerByCallId.clear()
+        pendingMuteByCallId.clear()
     }
 
     private fun debugLog(tag: String, message: String) {
