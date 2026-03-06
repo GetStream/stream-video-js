@@ -44,6 +44,7 @@ export const retryable = async <
   let result: FinishedUnaryCall<I, O> | undefined = undefined;
   do {
     if (attempt > 0) await sleep(retryInterval(attempt));
+    signal?.throwIfAborted();
     try {
       result = await rpc({ attempt });
     } catch (err) {

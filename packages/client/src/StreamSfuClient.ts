@@ -37,6 +37,7 @@ import {
   promiseWithResolvers,
   SafePromise,
 } from './helpers/promise';
+import { withoutConcurrency } from './helpers/concurrency';
 import { getTimers } from './timers';
 import { Tracer, TraceSlice } from './stats';
 import { SfuJoinError } from './errors';
@@ -164,6 +165,9 @@ export class StreamSfuClient {
   private readonly credentials: Credentials;
   private readonly dispatcher: Dispatcher;
   private readonly joinResponseTimeout: number;
+  private readonly subscriptionsConcurrencyTag = Symbol(
+    'subscriptionsConcurrencyTag',
+  );
   private networkAvailableTask: PromiseWithResolvers<void> | undefined;
   /**
    * Promise that resolves when the JoinResponse is received.
@@ -391,15 +395,17 @@ export class StreamSfuClient {
   };
 
   updateSubscriptions = async (tracks: TrackSubscriptionDetails[]) => {
-    await this.joinTask;
-    return retryable(
-      (invocationMeta) =>
-        this.rpc.updateSubscriptions(
-          { sessionId: this.sessionId, tracks },
-          { invocationMeta },
-        ),
-      this.abortController.signal,
-    );
+    return withoutConcurrency(this.subscriptionsConcurrencyTag, async () => {
+      await this.joinTask;
+      return retryable(
+        (invocationMeta) =>
+          this.rpc.updateSubscriptions(
+            { sessionId: this.sessionId, tracks },
+            { invocationMeta },
+          ),
+        this.abortController.signal,
+      );
+    });
   };
 
   setPublisher = async (data: Omit<SetPublisherRequest, 'sessionId'>) => {
