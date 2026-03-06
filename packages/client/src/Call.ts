@@ -747,7 +747,7 @@ export class Call {
     // const calls = useCalls().filter((c) => c.ringing);
     const calls = this.clientStore.calls.filter((c) => c.cid !== this.cid);
     this.clientStore.setCalls([this, ...calls]);
-    const skipSpeakerApply = isReactNative() && true;
+    const skipSpeakerApply = isReactNative();
     await this.applyDeviceConfig(settings, false, skipSpeakerApply);
   };
 
