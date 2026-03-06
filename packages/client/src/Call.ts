@@ -783,8 +783,11 @@ export class Call {
       this.watching = true;
       this.clientStore.registerOrUpdateCall(this);
     }
+    // Skip speaker setup on RN if ringing was requested or the call is already ringing
     const skipSpeakerApply = isReactNative()
-      ? (params?.ring ?? this.ringing)
+      ? params?.ring === true
+        ? true
+        : this.ringing
       : false;
     await this.applyDeviceConfig(
       response.call.settings,
@@ -820,8 +823,11 @@ export class Call {
       this.clientStore.registerOrUpdateCall(this);
     }
 
+    // Skip speaker setup on RN if ringing was requested or the call is already ringing
     const skipSpeakerApply = isReactNative()
-      ? (data?.ring ?? this.ringing)
+      ? data?.ring === true
+        ? true
+        : this.ringing
       : false;
     await this.applyDeviceConfig(
       response.call.settings,
