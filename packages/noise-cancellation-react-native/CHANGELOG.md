@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.5.0...@stream-io/noise-cancellation-react-native-0.5.1) (2026-03-06)
+
+### Bug Fixes
+
+- support prebuilt RN iOS app ([#2151](https://github.com/GetStream/stream-video-js/issues/2151)) ([372488c](https://github.com/GetStream/stream-video-js/commit/372488ce5d03a715d6670723ae593c940c3bff07))
+
 ## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.4...@stream-io/noise-cancellation-react-native-0.5.0) (2026-01-20)
 
 ### Features
