@@ -39,6 +39,7 @@ import {
   getInstanceKey,
 } from './helpers/clientUtils';
 import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
+import { isReactNative } from './helpers/platforms';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
 
@@ -455,7 +456,7 @@ export class StreamVideoClient {
         clientStore: this.writeableStateStore,
       });
       call.state.updateFromCallResponse(c.call);
-      await call.applyDeviceConfig(c.call.settings, false);
+      await call.applyDeviceConfig(c.call.settings, false, isReactNative());
       if (data.watch) {
         await call.setup();
         this.writeableStateStore.registerCall(call);
