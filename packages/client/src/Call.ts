@@ -1159,7 +1159,7 @@ export class Call {
     // device settings should be applied only once, we don't have to
     // re-apply them on later reconnections or server-side data fetches
     if (!this.deviceSettingsAppliedOnce && this.state.settings) {
-      await this.applyDeviceConfig(this.state.settings, true);
+      await this.applyDeviceConfig(this.state.settings, true, false);
       globalThis.streamRNVideoSDK?.callManager.start();
       this.deviceSettingsAppliedOnce = true;
     }
@@ -2811,7 +2811,7 @@ export class Call {
   applyDeviceConfig = async (
     settings: CallSettingsResponse,
     publish: boolean,
-    skipSpeakerApply: boolean = false,
+    skipSpeakerApply: boolean,
   ) => {
     if (!skipSpeakerApply) {
       this.speaker.apply(settings);
