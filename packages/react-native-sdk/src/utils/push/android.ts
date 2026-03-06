@@ -139,47 +139,24 @@ export const firebaseDataHandler = async (
 
   if (data.type === 'call.ring') {
     const call_cid = data.call_cid as string;
-    if (!call_cid) {
-      logger.debug(
-        `call_cid is not provided, skipping the call.ring notification`,
-      );
-      return;
-    }
-
     const callingx = getCallingxLib();
-    if (!callingx.canPostNotifications) {
-      logger.warn(
-        `Cannot post notifications, skipping the call.ring notification`,
-      );
-      return;
-    }
 
     const client = await pushConfig.createStreamVideoClient();
     if (!client) {
       logger.debug(
         `video client not found, skipping the call.ring notification`,
       );
-      return;
-    }
-
-    const shouldRejectCallWhenBusy = client['rejectCallWhenBusy'] ?? false;
-    if (callingx.hasRegisteredCall() && shouldRejectCallWhenBusy) {
-      logger.debug(
-        `registered call found, skipping the call.ring notification`,
-      );
+      await callingx.stopService();
       return;
     }
 
     const asForegroundService = canListenToWS();
 
-    const callerName = data.created_by_display_name as string;
-    const hasVideo = data.video === 'true';
-
     if (asForegroundService) {
       // Listen to call events from WS through fg service
       // note: this will replace the current empty fg service runner
       //we need to start service (e.g. by calling display incoming call) and than launch bg task, consider making those steps independent
-      callingx.registerBackgroundTask((_: unknown, stopTask: () => void) => {
+      await callingx.startBackgroundTask((_: unknown, stopTask: () => void) => {
         return new Promise((resolve) => {
           const finishBackgroundTask = () => {
             callingx.log(
@@ -211,12 +188,12 @@ export const firebaseDataHandler = async (
                   `Closing fg service callCid: ${call_cid} endCallReason: ${endCallReason}`,
                 );
 
-                finishBackgroundTask();
                 callingx.log(
                   `Ending call with callCid: ${call_cid} endCallReason: ${endCallReason}`,
                   'debug',
                 );
                 callingx.endCallWithReason(call_cid, endCallReason);
+                resolve(undefined);
                 return;
               }
 
@@ -246,8 +223,8 @@ export const firebaseDataHandler = async (
                   );
                   unsubscribeFunctions.forEach((fn) => fn());
 
-                  finishBackgroundTask();
                   callingx.endCallWithReason(call_cid, endCallReasonFromEvent);
+                  resolve(undefined);
                 }
               });
 
@@ -266,7 +243,7 @@ export const firebaseDataHandler = async (
                       `Ending call with callCid: ${call_cid} callingState: ${callingState}`,
                       'debug',
                     );
-                    finishBackgroundTask();
+                    resolve(undefined);
                   }
                 });
 
@@ -288,7 +265,7 @@ export const firebaseDataHandler = async (
                       `Ending call with callCid: ${call_cid} callId: ${callId}`,
                       'debug',
                     );
-                    finishBackgroundTask();
+                    resolve(undefined);
                   }
                 },
               );
@@ -327,16 +304,6 @@ export const firebaseDataHandler = async (
         });
       });
     }
-
-    await callingx.displayIncomingCall(
-      call_cid,
-      call_cid,
-      callerName,
-      hasVideo,
-    );
-    logger.debug(
-      `Displaying incoming call notification with callCid: ${call_cid} asForegroundService: ${asForegroundService}`,
-    );
 
     if (asForegroundService) {
       // no need to check if call has be closed as that will be handled by the fg service

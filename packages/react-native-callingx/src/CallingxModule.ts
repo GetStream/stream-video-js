@@ -237,16 +237,6 @@ class CallingxModule implements ICallingxModule {
       );
     }
 
-    // Check if service is started (Android only)
-    if (Platform.OS === 'android') {
-      const isServiceStarted = await NativeCallingModule.isServiceStarted();
-      if (!isServiceStarted) {
-        throw new Error(
-          'Service is not started. Call displayIncomingCall or startCall first.',
-        );
-      }
-    }
-
     return NativeCallingModule.startBackgroundTask(HEADLESS_TASK_NAME, 0);
   }
 
@@ -257,6 +247,10 @@ class CallingxModule implements ICallingxModule {
 
   registerVoipToken(): void {
     NativeCallingModule.registerVoipToken();
+  }
+
+  stopService(): Promise<void> {
+    return NativeCallingModule.stopService();
   }
 
   addEventListener<T extends EventName | VoipEventName>(

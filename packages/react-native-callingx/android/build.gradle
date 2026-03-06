@@ -65,7 +65,7 @@ android {
         "generated/java",
         "generated/jni",
         "build/generated/source/codegen/java",
-        "build/generated/source/codegen/jni"
+        "build/generated/source/codegen/jni",
       ]
       if (isNewArchitectureEnabled()) {
         java.srcDirs += ["src/newarch"]
@@ -87,4 +87,10 @@ dependencies {
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation "androidx.core:core-telecom:1.0.1"
+  // Compile-time only dependency so StreamMessagingService can reference RemoteMessage.
+  // The consuming app (via @react-native-firebase/messaging) must provide the actual runtime version.
+  compileOnly "com.google.firebase:firebase-messaging-ktx:24.1.2"
+  // Optional: use Firebase native code when the app has react-native-firebase installed (peer deps)
+  implementation project(':react-native-firebase_app')
+  implementation project(':react-native-firebase_messaging')
 }

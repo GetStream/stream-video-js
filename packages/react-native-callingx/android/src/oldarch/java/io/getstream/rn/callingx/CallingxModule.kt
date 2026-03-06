@@ -56,7 +56,7 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
-        // leave empty
+        impl.setShouldRejectCallWhenBusy(shouldReject)
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
@@ -173,5 +173,10 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
     @ReactMethod
     fun log(message: String, level: String) {
         impl.log(message, level)
+    }
+
+    @ReactMethod
+    fun stopService(promise: Promise) {
+        impl.stopService(promise)
     }
 }

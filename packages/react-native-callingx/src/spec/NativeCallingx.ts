@@ -136,6 +136,8 @@ export interface Spec extends TurboModule {
 
   registerVoipToken(): void;
 
+  stopService(): Promise<void>;
+
   readonly onNewEvent: EventEmitter<{
     eventName: string;
     params: {
