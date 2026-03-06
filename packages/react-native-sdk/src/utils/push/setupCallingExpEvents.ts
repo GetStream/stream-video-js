@@ -34,18 +34,14 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   const { remove: removeAnswerCall } = callingx.addEventListener(
     'answerCall',
     (params) => {
-      onAcceptCall(pushConfig)(params).catch((err) => {
-        logger.error('Failed to process answerCall event', err);
-      });
+      onAcceptCall(pushConfig)(params);
     },
   );
 
   const { remove: removeEndCall } = callingx.addEventListener(
     'endCall',
     (params) => {
-      onEndCall(pushConfig)(params).catch((err) => {
-        logger.error('Failed to process endCall event', err);
-      });
+      onEndCall(pushConfig)(params);
     },
   );
 
@@ -104,14 +100,26 @@ const onAcceptCall =
   async ({ callId: call_cid, source }: EventParams['answerCall']) => {
     logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
 
+    const callingx = getCallingxLib();
+
     if (source === 'app' || !call_cid) {
-      //we only need to process the call if the call was answered from the system
+      // App initiated this action -- no downstream processing needed.
+      // Fulfill immediately so CallKit completes the action.
+      if (call_cid) {
+        callingx.fulfillAnswerCallAction(call_cid, false);
+      }
       return;
     }
 
     clearPushWSEventSubscriptions(call_cid);
-    // to process the call in the app
-    await processCallFromPushInBackground(pushConfig, call_cid, 'accept');
+    let didFail = false;
+    try {
+      await processCallFromPushInBackground(pushConfig, call_cid, 'accept');
+    } catch (err) {
+      didFail = true;
+      logger.error('Failed to process answerCall event', err);
+    }
+    callingx.fulfillAnswerCallAction(call_cid, didFail);
   };
 
 const onEndCall =
@@ -119,12 +127,24 @@ const onEndCall =
   async ({ callId: call_cid, source }: EventParams['endCall']) => {
     logger.debug(`onEndCall event callId: ${call_cid} source: ${source}`);
 
+    const callingx = getCallingxLib();
+
     if (source === 'app' || !call_cid) {
-      //we only need to process the call if the call was rejected from the system
+      // App initiated this action -- no downstream processing needed.
+      // Fulfill immediately so CallKit completes the action.
+      if (call_cid) {
+        callingx.fulfillEndCallAction(call_cid, false);
+      }
       return;
     }
 
     clearPushWSEventSubscriptions(call_cid);
-
-    await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
+    try {
+      await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
+    } catch (err) {
+      logger.error('Failed to process endCall event', err);
+    }
+    // Always fulfill (never fail) end actions: user intent is to close call UI,
+    // and failing end actions can surface misleading "Call Failed" UX in CallKit.
+    callingx.fulfillEndCallAction(call_cid, false);
   };

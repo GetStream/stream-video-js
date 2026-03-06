@@ -43,6 +43,11 @@ import stream_react_native_webrtc
     private var canSendEvents: Bool = false
     private var isSetup: Bool = false
 
+    // Pending CXActions awaiting JS fulfillment
+    private var pendingAnswerActions: [String: CXAnswerCallAction] = [:]
+    private var pendingEndActions: [String: CXEndCallAction] = [:]
+    private let pendingActionsQueue = DispatchQueue(label: "io.getstream.callingx.pendingActions")
+
     @objc public static func getSharedInstance() -> CallingxImpl {
         if sharedInstance == nil {
             sharedInstance = CallingxImpl()
@@ -669,36 +674,59 @@ import stream_react_native_webrtc
         
         call.resetSelfAnswered()
         call.markConnected() // incoming: call is now connected
-        // TODO: Use action.fulfill(withDateConnected: call.connectedAt ?? Date()) instead of bare
-        // action.fulfill() to give CallKit more accurate call duration tracking in the system call log.
-        // to be done with pending action fulfillment
-        action.fulfill()
+
+        // Defer action fulfillment until JS reports back via fulfillAnswerCallAction
+        let cid = call.cid
+        pendingActionsQueue.sync {
+            self.pendingAnswerActions[cid] = action
+        }
+        // Safety timer: auto-fail after 10s if JS never responds
+        // Answer timeout = call never connected, don't fake success
+        pendingActionsQueue.asyncAfter(deadline: .now() + 10) { [weak self] in
+            // removeValue returns nil if JS already fulfilled → no-op
+            if let pending = self?.pendingAnswerActions.removeValue(forKey: cid) {
+                pending.fail()
+            }
+        }
     }
-    
+
     public func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
             #if DEBUG
             NSLog("%@","[Callingx][CXProviderDelegate][provider:performEndCallAction] callId not found")
             #endif
-            action.fail()
+            // End actions represent explicit user intent to close call UI.
+            // Fulfill stale/duplicate end actions to avoid "Call Failed" UX.
+            action.fulfill()
             return
         }
-        
+
         #if DEBUG
         NSLog("%@","[Callingx][CXProviderDelegate][provider:performEndCallAction] isSelfEnded: \(call.isSelfEnded)")
         #endif
-        
+
         let source = call.isSelfEnded ? "app" : "sys"
         sendEvent(CallingxEvents.performEndCallAction, body: [
             "callId": call.cid,
             "source": source
         ])
-        
+
         call.resetSelfEnded()
         call.markEnded()
         CallingxImpl.uuidStorage?.removeCid(call.cid)
-        
-        action.fulfill()
+
+        // Defer action fulfillment until JS reports back via fulfillEndCallAction
+        let cid = call.cid
+        pendingActionsQueue.sync {
+            self.pendingEndActions[cid] = action
+        }
+        // Safety timer: auto-fulfill after 10s if JS never responds
+        pendingActionsQueue.asyncAfter(deadline: .now() + 10) { [weak self] in
+            // removeValue returns nil if JS already fulfilled → no-op
+            if let pending = self?.pendingEndActions.removeValue(forKey: cid) {
+                pending.fulfill()
+            }
+        }
     }
     
     public func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
@@ -818,9 +846,32 @@ import stream_react_native_webrtc
         NSLog("%@","[Callingx][providerDidReset]")
         #endif
 
+        // Clear any pending actions to prevent memory leaks.
+        // After a provider reset, all pending CXActions are invalid.
+        pendingActionsQueue.sync {
+            pendingAnswerActions.removeAll()
+            pendingEndActions.removeAll()
+        }
+
         sendEvent(CallingxEvents.providerReset, body: nil)
     }
     
+    // MARK: - Pending Action Fulfillment
+
+    @objc public func fulfillAnswerCallAction(_ callId: String, didFail: Bool) {
+        pendingActionsQueue.async { [weak self] in
+            guard let action = self?.pendingAnswerActions.removeValue(forKey: callId) else { return }
+            if didFail { action.fail() } else { action.fulfill() }
+        }
+    }
+
+    @objc public func fulfillEndCallAction(_ callId: String, didFail: Bool) {
+        pendingActionsQueue.async { [weak self] in
+            guard let action = self?.pendingEndActions.removeValue(forKey: callId) else { return }
+            if didFail { action.fail() } else { action.fulfill() }
+        }
+    }
+
     // MARK: - Helper Methods
     private func getAudioDeviceModule() -> AudioDeviceModule? {
         guard let adm = webRTCModule?.audioDeviceModule else {

@@ -73,14 +73,14 @@ export const processCallFromPushInBackground = async (
   try {
     videoClient = await pushConfig.createStreamVideoClient();
     if (!videoClient) {
-      return;
+      throw new Error('createStreamVideoClient returned null');
     }
   } catch (e) {
     const logger = videoLoggerSystem.getLogger(
       'processCallFromPushInBackground',
     );
     logger.error('failed to create video client', e);
-    return;
+    throw e;
   }
   await processCallFromPush(videoClient, call_cid, action, pushConfig);
 };
@@ -104,7 +104,7 @@ export const processCallFromPush = async (
     callFromPush = await client.onRingingCall(call_cid);
   } catch (e) {
     logger.error('failed to fetch call from push notification', e);
-    return;
+    throw e;
   }
   // note: when action was pressed or delivered, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
   try {
@@ -143,6 +143,7 @@ export const processCallFromPush = async (
     }
   } catch (e) {
     logger.warn(`failed to process ${action} call from push notification`, e);
+    throw e;
   }
 };
 
