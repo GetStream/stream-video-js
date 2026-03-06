@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.44.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.1...@stream-io/video-client-1.44.2) (2026-03-06)
+
+### Bug Fixes
+
+- do not setup speaker early for ringing type calls ([#2154](https://github.com/GetStream/stream-video-js/issues/2154)) ([57adb90](https://github.com/GetStream/stream-video-js/commit/57adb90f03cfaceb4e6d3c050feaea239b80b1d9))
+
 ## [1.44.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.0...@stream-io/video-client-1.44.1) (2026-03-04)
 
 ### Bug Fixes
