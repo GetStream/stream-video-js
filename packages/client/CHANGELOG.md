@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.44.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.2...@stream-io/video-client-1.44.3) (2026-03-06)
+
+### Bug Fixes
+
+- **client:** prevent concurrent SFU updateSubscriptions during reconnects ([#2155](https://github.com/GetStream/stream-video-js/issues/2155)) ([1ac32d2](https://github.com/GetStream/stream-video-js/commit/1ac32d261c9a54aa8e3636a60e3c8f3e1407ae16))
+
 ## [1.44.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.1...@stream-io/video-client-1.44.2) (2026-03-06)
 
 ### Bug Fixes
