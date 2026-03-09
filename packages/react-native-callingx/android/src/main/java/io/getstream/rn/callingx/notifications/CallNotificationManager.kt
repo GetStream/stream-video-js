@@ -39,12 +39,18 @@ class CallNotificationManager(
         const val NOTIFICATION_ID = 200
     }
 
+    enum class OptimisticState { NONE, ACCEPTING, REJECTING }
+
+    private val lock = Any()
+
     private var notificationsConfig = NotificationsConfig.loadNotificationsConfig(context)
 
     private var ringtone: Ringtone? = null
 
+    // Guarded by [lock]
     private var hasBecameActive = false
-
+    private var activeWhen: Long = 0L
+    private var optimisticState = OptimisticState.NONE
     private var lastPostedSnapshot: NotificationSnapshot? = null
 
     /**
@@ -56,6 +62,7 @@ class CallNotificationManager(
         val id: String,
         val isActive: Boolean,
         val isIncoming: Boolean,
+        val optimisticState: OptimisticState,
         val displayTitle: String?,
         val displaySubtitle: String?,
         val displayName: CharSequence,
@@ -66,13 +73,21 @@ class CallNotificationManager(
         id = id,
         isActive = isActive,
         isIncoming = isIncoming(),
+        optimisticState = optimisticState,
         displayTitle = displayOptions?.getString(CallService.EXTRA_DISPLAY_TITLE),
         displaySubtitle = displayOptions?.getString(CallService.EXTRA_DISPLAY_SUBTITLE),
         displayName = callAttributes.displayName,
         address = callAttributes.address
     )
 
-    fun createNotification(call: Call.Registered): Notification {
+    fun setOptimisticState(state: OptimisticState) = synchronized(lock) {
+        optimisticState = state
+        if (state != OptimisticState.NONE) {
+            lastPostedSnapshot = null
+        }
+    }
+
+    fun createNotification(call: Call.Registered): Notification = synchronized(lock) {
         debugLog(TAG,"[notifications] createNotification: Creating notification for call ID: ${call.id}")
 
         val contentIntent =
@@ -89,42 +104,63 @@ class CallNotificationManager(
                 NotificationCompat.Builder(context, channelId)
                         .setContentIntent(contentIntent)
                         .setFullScreenIntent(contentIntent, true)
-                        .setStyle(callStyle)
                         .setSmallIcon(R.drawable.ic_round_call_24)
                         .setCategory(NotificationCompat.CATEGORY_CALL)
                         .setPriority(NotificationCompat.PRIORITY_MAX)
                         .setOngoing(true)
 
-        if (!hasBecameActive && call.isActive) {
-            debugLog(TAG, "[notifications] createNotification: Setting when to current time")
-            builder.setWhen(System.currentTimeMillis())
-            builder.setUsesChronometer(true)
-            builder.setShowWhen(true)
-            hasBecameActive = true
+        if (callStyle != null) {
+            builder.setStyle(callStyle)
         }
 
-        call.displayOptions?.let {
-            if (it.containsKey(CallService.EXTRA_DISPLAY_SUBTITLE)) {
-                builder.setContentText(it.getString(CallService.EXTRA_DISPLAY_SUBTITLE))
+        if (call.isActive && optimisticState == OptimisticState.NONE) {
+            if (!hasBecameActive) {
+                debugLog(TAG, "[notifications] createNotification: Setting when to current time")
+                activeWhen = System.currentTimeMillis()
+                hasBecameActive = true
+            }
+            builder.setWhen(activeWhen)
+            builder.setUsesChronometer(true)
+            builder.setShowWhen(true)
+        }
+
+        if (optimisticState != OptimisticState.NONE && !call.isActive) {
+            val text = when (optimisticState) {
+                OptimisticState.ACCEPTING -> "Connecting..."
+                OptimisticState.REJECTING -> "Declining..."
+                else -> null
+            }
+            if (text != null) builder.setContentText(text)
+        } else {
+            call.displayOptions?.let {
+                if (it.containsKey(CallService.EXTRA_DISPLAY_SUBTITLE)) {
+                    builder.setContentText(it.getString(CallService.EXTRA_DISPLAY_SUBTITLE))
+                }
             }
         }
 
         return builder.build()
     }
 
-    fun updateCallNotification(call: Call) {
+    fun updateCallNotification(call: Call) = synchronized(lock) {
         when (call) {
             Call.None, is Call.Unregistered -> {
                 debugLog(TAG, "[notifications] updateCallNotification: Dismissing notification (call is None or Unregistered)")
                 notificationManager.cancel(NOTIFICATION_ID)
                 lastPostedSnapshot = null
                 hasBecameActive = false
+                activeWhen = 0L
+                optimisticState = OptimisticState.NONE
             }
             is Call.Registered -> {
+                if (call.isActive && optimisticState != OptimisticState.NONE) {
+                    optimisticState = OptimisticState.NONE
+                }
+
                 val newSnapshot = call.toSnapshot()
                 if (newSnapshot == lastPostedSnapshot) {
                     debugLog(TAG, "[notifications] updateCallNotification: Skipping - no state change")
-                    return
+                    return@synchronized
                 }
 
                 lastPostedSnapshot = newSnapshot
@@ -135,9 +171,11 @@ class CallNotificationManager(
         }
     }
 
-    fun cancelNotifications() {
+    fun cancelNotifications() = synchronized(lock) {
         notificationManager.cancel(NOTIFICATION_ID)
         hasBecameActive = false
+        activeWhen = 0L
+        optimisticState = OptimisticState.NONE
         lastPostedSnapshot = null
     }
 
@@ -174,18 +212,28 @@ class CallNotificationManager(
         ringtone = null
     }
 
+    fun resetOptimisticState() = synchronized(lock) {
+        debugLog(TAG, "[notifications] resetOptimisticState: Resetting optimistic state")
+        optimisticState = OptimisticState.NONE
+        lastPostedSnapshot = null
+    }
+
     private fun getChannelId(call: Call.Registered): String {
-        return if (call.isIncoming() && !call.isActive) {
+        return if (call.isIncoming() && !call.isActive && optimisticState == OptimisticState.NONE) {
             notificationsConfig.incomingChannel.id
         } else {
             notificationsConfig.ongoingChannel.id
         }
     }
 
-    private fun createCallStyle(call: Call.Registered): NotificationCompat.CallStyle {
+    private fun createCallStyle(call: Call.Registered): NotificationCompat.CallStyle? {
+        // in case of optimistic reject we don't want any ui elements to by displayed,
+        // so that user couldn't interact while call is disconnecting
+        if (optimisticState == OptimisticState.REJECTING) return null
+
         val caller = createPerson(call)
 
-        if (call.isIncoming() && !call.isActive) {
+        if (call.isIncoming() && !call.isActive && optimisticState == OptimisticState.NONE) {
             return NotificationCompat.CallStyle.forIncomingCall(
                     caller,
                     NotificationIntentFactory.getPendingBroadcastIntent(

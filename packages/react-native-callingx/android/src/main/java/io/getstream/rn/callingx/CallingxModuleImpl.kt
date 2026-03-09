@@ -53,6 +53,7 @@ class CallingxModuleImpl(
         const val CALL_ENDPOINT_CHANGED_ACTION = "io.getstream.CALL_ENDPOINT_CHANGED"
         const val CALL_END_ACTION = "io.getstream.CALL_END"
         const val CALL_REGISTRATION_FAILED_ACTION = "io.getstream.CALL_REGISTRATION_FAILED"
+        const val CALL_OPTIMISTIC_ACCEPT_ACTION = "io.getstream.ACCEPT_CALL_OPTIMISTIC"
         // Background task name
         const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
         const val SERVICE_READY_ACTION = "io.getstream.SERVICE_READY"

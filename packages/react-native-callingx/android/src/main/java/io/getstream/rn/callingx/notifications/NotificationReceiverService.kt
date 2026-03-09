@@ -34,6 +34,13 @@ class NotificationReceiverService : Service() {
     val source = intent.getStringExtra(CallingxModuleImpl.EXTRA_SOURCE)
     callId?.let {
       try {
+        Intent(CallingxModuleImpl.CALL_OPTIMISTIC_ACCEPT_ACTION)
+                .apply {
+                    setPackage(packageName)
+                    putExtra(CallingxModuleImpl.EXTRA_CALL_ID, it)
+                }
+                .also { it -> sendBroadcast(it) }
+
         NotificationIntentFactory.getPendingBroadcastIntent(
                         applicationContext,
                         CallingxModuleImpl.CALL_ANSWERED_ACTION,
