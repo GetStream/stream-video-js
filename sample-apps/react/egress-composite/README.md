@@ -63,3 +63,7 @@ import cssUrl from '../public/example/custom.css?url';
 - run `docker compose up generate-screenshots`
 - check the generated screenshots in `./tests/__screenshots__/`
 - push the changes to the repo
+
+## Run Playwright tests
+
+- run `yarn test:e2e:prod` to execute tests against the production build served by `vite preview`
