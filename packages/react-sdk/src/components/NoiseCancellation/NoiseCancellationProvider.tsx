@@ -31,6 +31,10 @@ export type NoiseCancellationAPI = {
    */
   isSupported: boolean | undefined;
   /**
+   * Provides information whether Noise Cancellation is initialized and ready.
+   */
+  isReady: boolean;
+  /**
    * Provides information whether Noise Cancellation is active or not.
    */
   isEnabled: boolean;
@@ -105,6 +109,8 @@ export const NoiseCancellationProvider = (
     isSupportedByBrowser && hasCapability && noiseCancellationAllowed;
 
   const [isEnabled, setIsEnabled] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+
   const deinit = useRef<Promise<void>>(undefined);
   useEffect(() => {
     if (!call || !isSupported) return;
@@ -112,20 +118,26 @@ export const NoiseCancellationProvider = (
     const unsubscribe = noiseCancellation.on('change', (v) => setIsEnabled(v));
     const init = (deinit.current || Promise.resolve())
       .then(() => noiseCancellation.init({ tracer: call.tracer }))
-      .then(() => call.microphone.enableNoiseCancellation(noiseCancellation))
+      .then(() => {
+        setIsReady(true);
+        return call.microphone.enableNoiseCancellation(noiseCancellation);
+      })
       .catch((e) => console.error(`Can't initialize noise cancellation`, e));
 
     return () => {
       deinit.current = init
         .then(() => call.microphone.disableNoiseCancellation())
         .then(() => noiseCancellation.dispose())
-        .then(() => unsubscribe());
+        .then(() => unsubscribe())
+        .catch((e) => console.error("Can't clean up noise cancellation", e))
+        .finally(() => setIsReady(false));
     };
   }, [call, isSupported, noiseCancellation]);
 
   const contextValue = useMemo<NoiseCancellationAPI>(
     () => ({
       isSupported,
+      isReady,
       isEnabled,
       setSuppressionLevel: (level) => {
         if (!noiseCancellation) return;
@@ -148,7 +160,7 @@ export const NoiseCancellationProvider = (
         }
       },
     }),
-    [isEnabled, isSupported, noiseCancellation],
+    [isEnabled, isReady, isSupported, noiseCancellation],
   );
   return (
     <NoiseCancellationContext.Provider value={contextValue}>
