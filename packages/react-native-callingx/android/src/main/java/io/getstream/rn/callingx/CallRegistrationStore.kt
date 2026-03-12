@@ -43,6 +43,7 @@ object CallRegistrationStore {
                         "Timed out waiting for call registration: $callId"
                     )
                     pendingTimeouts.remove(callId)
+                    trackedCallIds.remove(callId)
                 }
             }
             pendingTimeouts[callId] = timeoutRunnable

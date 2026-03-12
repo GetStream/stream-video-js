@@ -148,11 +148,12 @@ class CallService : Service(), CallRepository.Listener {
                             )
                             notificationManager.stopRingtone()
                             notificationManager.setOptimisticState(
+                                    callId,
                                     CallNotificationManager.OptimisticState.ACCEPTING
                             )
-                            val currentCall = callRepository.currentCall.value
-                            if (currentCall is Call.Registered && currentCall.id == callId) {
-                                notificationManager.updateCallNotification(currentCall)
+                            val call = callRepository.getCall(callId)
+                            if (call != null) {
+                                notificationManager.updateCallNotification(callId, call)
                             }
                         }
                         CallingxModuleImpl.CALL_END_ACTION -> {
@@ -163,7 +164,7 @@ class CallService : Service(), CallRepository.Listener {
                                     getDisconnectCauseString(
                                             DisconnectCause(DisconnectCause.REJECTED)
                                     )
-                            val currentCall = callRepository.currentCall.value
+                            val call = callRepository.getCall(callId)
 
                             val isSysSource =
                                     source == CallRepository.EventSource.SYS.name.lowercase()
@@ -171,10 +172,9 @@ class CallService : Service(), CallRepository.Listener {
                             // we skip optimistic reject if the call is registered
                             if (!isSysSource ||
                                             cause != rejectedCause ||
-                                            currentCall !is Call.Registered ||
-                                            !currentCall.isIncoming() ||
-                                            currentCall.isActive ||
-                                            currentCall.id != callId
+                                            call == null ||
+                                            !call.isIncoming() ||
+                                            call.isActive
                             ) {
                                 return
                             }
@@ -185,9 +185,10 @@ class CallService : Service(), CallRepository.Listener {
                             )
                             notificationManager.stopRingtone()
                             notificationManager.setOptimisticState(
+                                    callId,
                                     CallNotificationManager.OptimisticState.REJECTING
                             )
-                            notificationManager.updateCallNotification(currentCall)
+                            notificationManager.updateCallNotification(callId, call)
                         }
                     }
                 }
@@ -223,7 +224,7 @@ class CallService : Service(), CallRepository.Listener {
 
         unregisterReceiver(optimisticNotificationReceiver)
 
-        notificationManager.cancelNotifications()
+        notificationManager.cancelAllNotifications()
         notificationManager.stopRingtone()
         callRepository.release()
         headlessJSManager.release()
@@ -272,7 +273,7 @@ class CallService : Service(), CallRepository.Listener {
                     stopForeground(STOP_FOREGROUND_REMOVE)
                     isInForeground = false
                 }
-                notificationManager.cancelNotifications()
+                notificationManager.cancelAllNotifications()
                 notificationManager.stopRingtone()
                 stopSelf()
             }
@@ -293,13 +294,16 @@ class CallService : Service(), CallRepository.Listener {
         return super.onUnbind(intent)
     }
 
-    override fun onCallStateChanged(call: Call) {
-        debugLog(TAG, "[service] onCallStateChanged: Call state changed: ${call::class.simpleName}")
+    override fun onCallStateChanged(callId: String, call: Call) {
+        debugLog(
+                TAG,
+                "[service] onCallStateChanged[$callId]: Call state changed: ${call::class.simpleName}"
+        )
         when (call) {
             is Call.Registered -> {
                 debugLog(
                         TAG,
-                        "[service] updateServiceState: Call registered - Active: ${call.isActive}, OnHold: ${call.isOnHold}, Muted: ${call.isMuted}"
+                        "[service] onCallStateChanged[$callId]: Call registered - Active: ${call.isActive}, OnHold: ${call.isOnHold}, Muted: ${call.isMuted}"
                 )
 
                 val shouldStopExecution = processPendingActions(call)
@@ -308,44 +312,60 @@ class CallService : Service(), CallRepository.Listener {
                 }
 
                 if (call.isIncoming()) {
-                    if (!call.isActive) notificationManager.startRingtone()
-                    else notificationManager.stopRingtone()
+                    // Play ringtone only if there is no active call
+                    if (!call.isActive && !callRepository.hasActiveCall(excludeCallId = callId)) {
+                        notificationManager.startRingtone()
+                    } else {
+                        notificationManager.stopRingtone()
+                    }
                 }
-                // Update the call state.
+                // Update the call notification
+                val notificationId = notificationManager.getOrCreateNotificationId(callId)
                 if (isInForeground) {
-                    notificationManager.updateCallNotification(call)
+                    notificationManager.updateCallNotification(callId, call)
                 } else {
                     debugLog(
                             TAG,
-                            "[service] updateServiceState: Fallback starting foreground for call: ${call.id}"
+                            "[service] onCallStateChanged[$callId]: Starting foreground for call"
                     )
-                    // we need this call to reset optimistic state
-                    notificationManager.resetOptimisticState()
-                    // fallback if for some reason startForeground method is not called in
-                    // onStartCommand method
-                    val notification = notificationManager.createNotification(call)
-                    startForegroundSafely(notification)
+                    notificationManager.resetOptimisticState(callId)
+                    val notification = notificationManager.createNotification(callId, call)
+                    startForegroundSafely(notificationId, notification)
+                }
+            }
+            is Call.None -> {
+                notificationManager.cancelNotification(callId)
+                if (!callRepository.hasRingingCall()) notificationManager.stopRingtone()
+
+                // Stop service only when no calls remain
+                if (!callRepository.hasAnyCalls()) {
+                    debugLog(
+                            TAG,
+                            "[service] onCallStateChanged[$callId]: No more calls, stopping service"
+                    )
+                    if (isInForeground) {
+                        stopForeground(STOP_FOREGROUND_REMOVE)
+                        isInForeground = false
+                    }
+                    stopSelf()
                 }
             }
             is Call.Unregistered -> {
-                notificationManager.updateCallNotification(call)
+                notificationManager.cancelNotification(callId)
+                if (!callRepository.hasRingingCall()) notificationManager.stopRingtone()
 
-                if (isInForeground) {
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                    isInForeground = false
+                // Stop service only when no calls remain
+                if (!callRepository.hasAnyCalls()) {
+                    debugLog(
+                            TAG,
+                            "[service] onCallStateChanged[$callId]: No more calls after unregistered, stopping service"
+                    )
+                    if (isInForeground) {
+                        stopForeground(STOP_FOREGROUND_REMOVE)
+                        isInForeground = false
+                    }
+                    stopSelf()
                 }
-
-                notificationManager.stopRingtone()
-                stopSelf()
-            }
-            is Call.None -> {
-                notificationManager.updateCallNotification(call)
-
-                if (isInForeground) {
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                    isInForeground = false
-                }
-                notificationManager.stopRingtone()
             }
         }
     }
@@ -362,8 +382,6 @@ class CallService : Service(), CallRepository.Listener {
             cause: DisconnectCause,
             source: CallRepository.EventSource
     ) {
-        // we're not passing the callId here to prevent infinite loops
-        // callEnd event with callId will sent only when after interaction with notification buttons
         sendBroadcastEvent(CallingxModuleImpl.CALL_END_ACTION) {
             if (callId != null) {
                 putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
@@ -412,16 +430,18 @@ class CallService : Service(), CallRepository.Listener {
     }
 
     public fun hasRegisteredCall(): Boolean {
-        val currentCall = callRepository.currentCall.value
-        return currentCall is Call.Registered
+        return callRepository.hasAnyCalls()
     }
 
     public fun processAction(callId: String, action: CallAction) {
-        debugLog(TAG, "[service] processAction: Processing action: ${action::class.simpleName}")
+        debugLog(
+                TAG,
+                "[service] processAction[$callId]: Processing action: ${action::class.simpleName}"
+        )
         synchronized(actionProcessingLock) {
-            val currentCall = callRepository.currentCall.value
-            if (currentCall is Call.Registered && currentCall.id == callId) {
-                currentCall.processAction(action)
+            val call = callRepository.getCall(callId)
+            if (call != null) {
+                call.processAction(action)
             } else {
                 // this solves race condition, when action is requested before the call is
                 // registered in Telecom
@@ -437,7 +457,7 @@ class CallService : Service(), CallRepository.Listener {
                 } else {
                     Log.w(
                             TAG,
-                            "[service] processAction: Call not registered or not the current call, ignoring action"
+                            "[service] processAction[$callId]: Call not registered, ignoring action"
                     )
                 }
             }
@@ -460,10 +480,13 @@ class CallService : Service(), CallRepository.Listener {
 
         val callInfo = extractIntentParams(intent)
 
-        // If we have an ongoing call, notify the module that registration is
-        // already done (so the pending promise resolves) and skip re-registration.
-        if (callRepository.currentCall.value is Call.Registered) {
-            Log.w(TAG, "[service] registerCall: Call already registered, ignoring new call request")
+        // If this specific call is already registered, just notify
+        val existingCall = callRepository.getCall(callInfo.callId)
+        if (existingCall != null) {
+            Log.w(
+                    TAG,
+                    "[service] registerCall: Call ${callInfo.callId} already registered, notifying"
+            )
             if (incoming) {
                 sendBroadcastEvent(CallingxModuleImpl.CALL_REGISTERED_INCOMING_ACTION) {
                     putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callInfo.callId)
@@ -495,14 +518,17 @@ class CallService : Service(), CallRepository.Listener {
                     putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callInfo.callId)
                 }
 
-                if (isInForeground) {
-                    stopForeground(STOP_FOREGROUND_REMOVE)
-                    isInForeground = false
-                }
+                notificationManager.cancelNotification(callInfo.callId)
 
-                notificationManager.cancelNotifications()
-                notificationManager.stopRingtone()
-                stopSelf()
+                // Only stop foreground/service when no other calls remain
+                if (!callRepository.hasAnyCalls()) {
+                    if (isInForeground) {
+                        stopForeground(STOP_FOREGROUND_REMOVE)
+                        isInForeground = false
+                    }
+                    notificationManager.stopRingtone()
+                    stopSelf()
+                }
             }
         }
     }
@@ -539,22 +565,19 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    private fun startForegroundSafely(notification: Notification) {
+    private fun startForegroundSafely(notificationId: Int, notification: Notification) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 startForeground(
-                        CallNotificationManager.NOTIFICATION_ID,
+                        notificationId,
                         notification,
                         ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
                 )
             } else {
-                startForeground(CallNotificationManager.NOTIFICATION_ID, notification)
+                startForeground(notificationId, notification)
             }
             isInForeground = true
         } catch (e: Exception) {
-            // If starting the foreground service fails (for example due to background start
-            // restrictions or notification issues), we log the error but avoid crashing the
-            // process so the rest of the call flow can continue and be recovered by Telecom.
             Log.e(
                     TAG,
                     "[service] startForegroundSafely: Failed to start foreground service: ${e.message}",
@@ -565,14 +588,18 @@ class CallService : Service(), CallRepository.Listener {
 
     private fun startForegroundForCall(callInfo: CallInfo, incoming: Boolean) {
         val tempCall = callRepository.getTempCall(callInfo, incoming)
-        // it is better to invoke startForeground method synchronously inside onStartCommand method
+        val notificationId = notificationManager.getOrCreateNotificationId(callInfo.callId)
         if (!isInForeground) {
             debugLog(
                     TAG,
                     "[service] registerCall: Starting foreground for call: ${callInfo.callId}"
             )
-            val notification = notificationManager.createNotification(tempCall)
-            startForegroundSafely(notification)
+            val notification = notificationManager.createNotification(callInfo.callId, tempCall)
+            startForegroundSafely(notificationId, notification)
+        } else {
+            // Already in foreground from another call — just post the notification
+            val notification = notificationManager.createNotification(callInfo.callId, tempCall)
+            notificationManager.postNotification(callInfo.callId, notification)
         }
     }
 

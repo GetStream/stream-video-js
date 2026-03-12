@@ -29,7 +29,7 @@ abstract class CallRepository(protected val context: Context) {
   }
 
   interface Listener {
-    fun onCallStateChanged(call: Call)
+    fun onCallStateChanged(callId: String, call: Call)
     fun onIsCallAnswered(callId: String, source: EventSource)
     fun onIsCallDisconnected(callId: String?, cause: DisconnectCause, source: EventSource)
     fun onIsCallInactive(callId: String)
@@ -39,8 +39,8 @@ abstract class CallRepository(protected val context: Context) {
     fun onCallEndpointChanged(callId: String, endpoint: String)
   }
 
-  protected val _currentCall: MutableStateFlow<Call> = MutableStateFlow(Call.None)
-  val currentCall: StateFlow<Call> = _currentCall.asStateFlow()
+  protected val _calls: MutableStateFlow<Map<String, Call.Registered>> = MutableStateFlow(emptyMap())
+  val calls: StateFlow<Map<String, Call.Registered>> = _calls.asStateFlow()
 
   protected var _listener: Listener? = null
   protected val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -65,8 +65,18 @@ abstract class CallRepository(protected val context: Context) {
     isVideo: Boolean,
     displayOptions: Bundle?,
   ) {
-    updateCurrentCall { copy(displayOptions = displayOptions) }
+    updateCallById(callId) { copy(displayOptions = displayOptions) }
   }
+
+  fun getCall(callId: String): Call.Registered? = _calls.value[callId]
+
+  fun hasAnyCalls(): Boolean = _calls.value.isNotEmpty()
+
+  fun hasRingingCall(excludeCallId: String? = null): Boolean =
+    _calls.value.any { (id, c) -> id != excludeCallId && c.isIncoming() && !c.isActive }
+
+  fun hasActiveCall(excludeCallId: String? = null): Boolean =
+    _calls.value.any { (id, c) -> id != excludeCallId && c.isActive }
 
   //this call instance is used to display call notification before the call is registered, this is needed to invoke startForeground method on the service
   public fun getTempCall(callInfo: CallService.CallInfo, incoming: Boolean): Call.Registered {
@@ -92,32 +102,40 @@ abstract class CallRepository(protected val context: Context) {
   }
 
   /**
-   * Update the current state of our call applying the transform lambda only if the call is
-   * registered. Otherwise keep the current state
+   * Update the state of a specific call applying the transform lambda only if the call is
+   * found in the map. Otherwise keep the current state.
    */
-  protected fun updateCurrentCall(transform: Call.Registered.() -> Call) {
-    val currentState = _currentCall.value
-    debugLog(
-      getTag(),
-      "[repository] updateCurrentCall: Current call state: ${currentState::class.simpleName}"
-    )
-
-    _currentCall.update { call ->
-      if (call is Call.Registered) {
+  protected fun updateCallById(callId: String, transform: Call.Registered.() -> Call) {
+    _calls.update { currentMap ->
+      val call = currentMap[callId]
+      if (call != null) {
         val updated = call.transform()
         debugLog(
           getTag(),
-          "[repository] updateCurrentCall: Call state updated to: ${updated::class.simpleName}"
+          "[repository] updateCallById: Call $callId state updated to: ${updated::class.simpleName}"
         )
-        updated
+        if (updated is Call.Registered) {
+          currentMap + (callId to updated)
+        } else {
+          // Call transitioned to non-Registered state (e.g. Unregistered) — remove from map
+          currentMap - callId
+        }
       } else {
         Log.w(
           getTag(),
-          "[repository] updateCurrentCall: Call is not Registered, skipping update"
+          "[repository] updateCallById: Call $callId not found in map, skipping update"
         )
-        call
+        currentMap
       }
     }
+  }
+
+  protected fun addCall(callId: String, call: Call.Registered) {
+    _calls.update { it + (callId to call) }
+  }
+
+  protected fun removeCall(callId: String) {
+    _calls.update { it - callId }
   }
 
   protected fun createCallAttributes(
