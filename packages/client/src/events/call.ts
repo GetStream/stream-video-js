@@ -21,7 +21,9 @@ export const watchCallAccepted = (call: Call) => {
       event.call.created_by.id === call.currentUserId &&
       state.callingState === CallingState.RINGING
     ) {
-      await call.join();
+      await call.join().catch((err) => {
+        call.logger.error('Failed to join call after call.accepted', err);
+      });
     }
   };
 };
@@ -49,7 +51,7 @@ export const watchCallRejected = (call: Call) => {
     const { members, callingState } = call.state;
     if (callingState !== CallingState.RINGING) {
       call.logger.info(
-        'Call is not in ringing mode (it is either accepted or rejected already). Ignoring call.rejected event.',
+        'Call is not in ringing mode. Ignoring call.rejected event.',
         event,
       );
       return;
@@ -60,16 +62,22 @@ export const watchCallRejected = (call: Call) => {
         .every((m) => rejectedBy[m.user_id]);
       if (everyoneElseRejected) {
         call.logger.info('everyone rejected, leaving the call');
-        await call.leave({
-          reject: true,
-          reason: 'cancel',
-          message: 'ring: everyone rejected',
-        });
+        await call
+          .leave({
+            reject: true,
+            reason: 'cancel',
+            message: 'ring: everyone rejected',
+          })
+          .catch((err) => {
+            call.logger.error('Failed to leave call after call.rejected', err);
+          });
       }
     } else {
       if (rejectedBy[eventCall.created_by.id]) {
         call.logger.info('call creator rejected, leaving call');
-        await call.leave({ message: 'ring: creator rejected' });
+        await call.leave({ message: 'ring: creator rejected' }).catch((err) => {
+          call.logger.error('Failed to leave call after call.rejected', err);
+        });
       }
     }
   };
