@@ -6,6 +6,7 @@ export * from './useIsIosScreenshareBroadcastStarted';
 export * from './useIsInPiPMode';
 export * from './useAutoEnterPiPEffect';
 export * from './useScreenShareButton';
+export * from './useScreenShareAudioMixing';
 export * from './useTrackDimensions';
 export * from './useScreenshot';
 export * from './useSpeechDetection';

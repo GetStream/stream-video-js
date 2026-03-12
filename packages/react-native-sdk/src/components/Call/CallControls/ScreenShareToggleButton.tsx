@@ -5,7 +5,10 @@ import { ScreenShare } from '../../../icons/ScreenShare';
 import { StopScreenShare } from '../../../icons/StopScreenShare';
 import { CallControlsButton } from './CallControlsButton';
 import { useTheme } from '../../../contexts/ThemeContext';
-import { useScreenShareButton } from '../../../hooks/useScreenShareButton';
+import {
+  useScreenShareButton,
+  type ScreenShareOptions,
+} from '../../../hooks/useScreenShareButton';
 import { IconWrapper } from '../../../icons';
 
 /**
@@ -22,6 +25,10 @@ export type ScreenShareToggleButtonProps = {
    *
    */
   onScreenShareStoppedHandler?: () => void;
+  /**
+   * Options for screen share behavior (type, includeAudio).
+   */
+  screenShareOptions?: ScreenShareOptions;
 };
 
 /**
@@ -31,6 +38,7 @@ export type ScreenShareToggleButtonProps = {
 export const ScreenShareToggleButton = ({
   onScreenShareStartedHandler,
   onScreenShareStoppedHandler,
+  screenShareOptions,
 }: ScreenShareToggleButtonProps) => {
   const {
     theme: { colors, screenShareToggleButton, variants },
@@ -42,6 +50,8 @@ export const ScreenShareToggleButton = ({
     screenCapturePickerViewiOSRef,
     onScreenShareStartedHandler,
     onScreenShareStoppedHandler,
+    undefined,
+    screenShareOptions,
   );
 
   if (!onPress) return null;
