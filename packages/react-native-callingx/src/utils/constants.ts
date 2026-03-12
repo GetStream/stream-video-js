@@ -11,7 +11,7 @@ export const defaultTextTransformer: TextTransformer = (text: string) => text;
 export const defaultiOSOptions: Required<InternalIOSOptions> = {
   supportsVideo: true,
   maximumCallsPerCallGroup: 1,
-  maximumCallGroups: 1,
+  maximumCallGroups: 2,
   handleType: 'generic',
   sound: '',
   imageName: '',

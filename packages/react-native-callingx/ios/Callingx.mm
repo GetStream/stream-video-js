@@ -185,7 +185,7 @@ RCT_EXPORT_METHOD(setupiOS:(NSDictionary *)options) {
   NSDictionary *optionsDict = @{
     @"supportsVideo" : options[@"supportsVideo"] ?: @(NO),
     @"maximumCallsPerCallGroup" : options[@"maximumCallsPerCallGroup"] ?: @(1),
-    @"maximumCallGroups" : options[@"maximumCallGroups"] ?: @(1),
+    @"maximumCallGroups" : options[@"maximumCallGroups"] ?: @(2),
     @"handleType" : options[@"handleType"] ?: @"generic",
     @"ringtoneSound" : options[@"sound"] ?: @"",
     @"imageName" : options[@"imageName"] ?: @"",

@@ -45,7 +45,7 @@ import UIKit
         let settings = getSettings()
         let providerConfiguration = CXProviderConfiguration()
         providerConfiguration.supportsVideo = true
-        providerConfiguration.maximumCallGroups = 1
+        providerConfiguration.maximumCallGroups = 2
         providerConfiguration.maximumCallsPerCallGroup = 1
         providerConfiguration.supportedHandleTypes = getSupportedHandleTypes(settings["handleType"])
 
