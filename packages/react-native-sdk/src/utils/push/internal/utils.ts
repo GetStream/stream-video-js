@@ -126,6 +126,18 @@ export const processCallFromPush = async (
         return;
       }
 
+      // Leave any existing active calls before joining the new one
+      const activeCalls = client.state.calls.filter(
+        (c) =>
+          c.cid !== call_cid && c.state.callingState === CallingState.JOINED,
+      );
+      for (const activeCall of activeCalls) {
+        logger.debug(
+          `leaving active call ${activeCall.cid} before joining ${call_cid}`,
+        );
+        await activeCall.leave({ reason: 'cancel' });
+      }
+
       await callFromPush.join();
     } else if (action === 'decline') {
       const isRinging =

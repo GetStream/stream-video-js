@@ -637,7 +637,10 @@ class CallingxModuleImpl(
                     if (callId != null) {
                         CallRegistrationStore.removeTrackedCall(callId)
                     }
-                    unbindServiceSafely()
+                    // Only unbind when no more calls are tracked
+                    if (!CallRegistrationStore.hasRegisteredCall()) {
+                        unbindServiceSafely()
+                    }
                 }
                 params.putString("cause", extras.getString(EXTRA_DISCONNECT_CAUSE))
                 sendJSEvent("endCall", params)
