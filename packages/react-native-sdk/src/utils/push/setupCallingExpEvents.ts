@@ -100,17 +100,12 @@ const onAcceptCall =
   async ({ callId: call_cid, source }: EventParams['answerCall']) => {
     logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
 
-    const callingx = getCallingxLib();
-
     if (source === 'app' || !call_cid) {
-      // App initiated this action -- no downstream processing needed.
-      // Fulfill immediately so CallKit completes the action.
-      if (call_cid) {
-        callingx.fulfillAnswerCallAction(call_cid, false);
-      }
+      // App-initiated actions are fulfilled on the native side immediately — nothing to do here
       return;
     }
 
+    const callingx = getCallingxLib();
     clearPushWSEventSubscriptions(call_cid);
     let didFail = false;
     try {
@@ -127,17 +122,12 @@ const onEndCall =
   async ({ callId: call_cid, source }: EventParams['endCall']) => {
     logger.debug(`onEndCall event callId: ${call_cid} source: ${source}`);
 
-    const callingx = getCallingxLib();
-
     if (source === 'app' || !call_cid) {
-      // App initiated this action -- no downstream processing needed.
-      // Fulfill immediately so CallKit completes the action.
-      if (call_cid) {
-        callingx.fulfillEndCallAction(call_cid, false);
-      }
+      // App-initiated actions are fulfilled on the native side immediately — nothing to do here
       return;
     }
 
+    const callingx = getCallingxLib();
     clearPushWSEventSubscriptions(call_cid);
     try {
       await processCallFromPushInBackground(pushConfig, call_cid, 'decline');

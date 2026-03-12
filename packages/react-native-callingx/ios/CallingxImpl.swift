@@ -675,17 +675,21 @@ import stream_react_native_webrtc
         call.resetSelfAnswered()
         call.markConnected() // incoming: call is now connected
 
-        // Defer action fulfillment until JS reports back via fulfillAnswerCallAction
-        let cid = call.cid
-        pendingActionsQueue.sync {
-            self.pendingAnswerActions[cid] = action
-        }
-        // Safety timer: auto-fail after 10s if JS never responds
-        // Answer timeout = call never connected, don't fake success
-        pendingActionsQueue.asyncAfter(deadline: .now() + 10) { [weak self] in
-            // removeValue returns nil if JS already fulfilled → no-op
-            if let pending = self?.pendingAnswerActions.removeValue(forKey: cid) {
-                pending.fail()
+        if source == "app" {
+            // App initiated this answer — no need to wait for JS, fulfill immediately
+            action.fulfill()
+        } else {
+            // System initiated — defer fulfillment until JS reports back via fulfillAnswerCallAction
+            let cid = call.cid
+            pendingActionsQueue.sync {
+                self.pendingAnswerActions[cid] = action
+            }
+            // Safety timer: auto-fail after 10s if JS never responds
+            // Answer timeout = call never connected
+            pendingActionsQueue.asyncAfter(deadline: .now() + 10) { [weak self] in
+                if let pending = self?.pendingAnswerActions.removeValue(forKey: cid) {
+                    pending.fail()
+                }
             }
         }
     }
@@ -715,16 +719,19 @@ import stream_react_native_webrtc
         call.markEnded()
         CallingxImpl.uuidStorage?.removeCid(call.cid)
 
-        // Defer action fulfillment until JS reports back via fulfillEndCallAction
-        let cid = call.cid
-        pendingActionsQueue.sync {
-            self.pendingEndActions[cid] = action
-        }
-        // Safety timer: auto-fulfill after 10s if JS never responds
-        pendingActionsQueue.asyncAfter(deadline: .now() + 10) { [weak self] in
-            // removeValue returns nil if JS already fulfilled → no-op
-            if let pending = self?.pendingEndActions.removeValue(forKey: cid) {
-                pending.fulfill()
+        if source == "app" {
+            // App initiated this end — no need to wait for JS, fulfill immediately
+            action.fulfill()
+        } else {
+            // System initiated — defer fulfillment until JS reports back via fulfillEndCallAction
+            let cid = call.cid
+            pendingActionsQueue.sync {
+                self.pendingEndActions[cid] = action
+            }
+            // Safety timer: auto-fulfill after 10s if JS never responds
+            pendingActionsQueue.asyncAfter(deadline: .now() + 10) { [weak self] in
+                if let pending = self?.pendingEndActions.removeValue(forKey: cid) {
+                    pending.fulfill()
             }
         }
     }
