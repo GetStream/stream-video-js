@@ -20,6 +20,7 @@ import io.getstream.rn.callingx.debugLog
 import io.getstream.rn.callingx.getDisconnectCauseString
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.repo.CallRepository
+import io.getstream.rn.callingx.utils.SettingsStore
 
 /**
  * Handles call status changes and updates the notification accordingly. For more guidance around
@@ -126,8 +127,8 @@ class CallNotificationManager(
 
         if (optimisticState != OptimisticState.NONE && !call.isActive) {
             val text = when (optimisticState) {
-                OptimisticState.ACCEPTING -> "Connecting..."
-                OptimisticState.REJECTING -> "Declining..."
+                OptimisticState.ACCEPTING -> SettingsStore.getOptimisticAcceptingText(context)
+                OptimisticState.REJECTING -> SettingsStore.getOptimisticRejectingText(context)
                 else -> null
             }
             if (text != null) builder.setContentText(text)
@@ -155,6 +156,7 @@ class CallNotificationManager(
             is Call.Registered -> {
                 if (call.isActive && optimisticState != OptimisticState.NONE) {
                     optimisticState = OptimisticState.NONE
+                    debugLog(TAG, "[notifications] updateCallNotification: Resetting optimistic state")
                 }
 
                 val newSnapshot = call.toSnapshot()

@@ -102,6 +102,19 @@ export type StreamVideoConfig = {
        */
       incomingChannel?: AndroidChannelConfig;
       /**
+       * Texts used for call state notifications while the system is connecting or declining the call.
+       * If not provided, platform defaults will be used.
+       * @example
+       * {
+       *  accepting: 'Connecting...',
+       *  rejecting: 'Declining...',
+       * }
+       */
+      notificationTexts?: {
+        accepting?: string;
+        rejecting?: string;
+      };
+      /**
        * The transformer to be used to transform the call title in the notification for ringing and ongoing calls for Android.
        */
       titleTransformer?: (memberName: string, incoming: boolean) => string;

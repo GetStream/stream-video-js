@@ -19,7 +19,10 @@ export const defaultiOSOptions: Required<InternalIOSOptions> = {
   displayCallTimeout: 60000, // 1 minute
 };
 
-export const defaultAndroidOptions: DeepRequired<InternalAndroidOptions> = {
+export const defaultAndroidOptions: Omit<
+  DeepRequired<InternalAndroidOptions>,
+  'notificationTexts'
+> = {
   incomingChannel: {
     id: 'stream_incoming_calls_channel',
     name: 'Incoming calls',

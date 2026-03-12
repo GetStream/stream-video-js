@@ -142,6 +142,18 @@ class CallingxModuleImpl(
         notificationChannelsManager.setNotificationsConfig(notificationsConfig)
         notificationChannelsManager.createNotificationChannels()
 
+        val notificationTexts = options.getMap("notificationTexts")
+        if (notificationTexts != null) {
+            val acceptingText = notificationTexts.getString("accepting")
+            val rejectingText = notificationTexts.getString("rejecting")
+            debugLog(TAG, "[module] $acceptingText $rejectingText")
+            SettingsStore.setOptimisticTexts(
+                    reactApplicationContext,
+                    acceptingText,
+                    rejectingText,
+            )
+        }
+
         isModuleInitialized = true
     }
 
