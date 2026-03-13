@@ -31,6 +31,10 @@ export interface Spec extends TurboModule {
       id: string;
       name: string;
     };
+    notificationTexts?: {
+      accepting?: string;
+      rejecting?: string;
+    };
   }): void;
 
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;

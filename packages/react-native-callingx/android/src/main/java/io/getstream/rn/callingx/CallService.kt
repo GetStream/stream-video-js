@@ -2,8 +2,10 @@ package io.getstream.rn.callingx
 
 import android.app.Notification
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Binder
@@ -134,6 +136,63 @@ class CallService : Service(), CallRepository.Listener {
 
     private var isInForeground = false
 
+    private val optimisticNotificationReceiver =
+            object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    val callId = intent.getStringExtra(CallingxModuleImpl.EXTRA_CALL_ID) ?: return
+                    when (intent.action) {
+                        CallingxModuleImpl.CALL_OPTIMISTIC_ACCEPT_ACTION -> {
+                            debugLog(
+                                    TAG,
+                                    "[service] optimisticReceiver: Optimistic accept for $callId"
+                            )
+                            notificationManager.stopRingtone()
+                            notificationManager.setOptimisticState(
+                                    CallNotificationManager.OptimisticState.ACCEPTING
+                            )
+                            val currentCall = callRepository.currentCall.value
+                            if (currentCall is Call.Registered && currentCall.id == callId) {
+                                notificationManager.updateCallNotification(currentCall)
+                            }
+                        }
+                        CallingxModuleImpl.CALL_END_ACTION -> {
+                            val source = intent.getStringExtra(CallingxModuleImpl.EXTRA_SOURCE)
+                            val cause =
+                                    intent.getStringExtra(CallingxModuleImpl.EXTRA_DISCONNECT_CAUSE)
+                            val rejectedCause =
+                                    getDisconnectCauseString(
+                                            DisconnectCause(DisconnectCause.REJECTED)
+                                    )
+                            val currentCall = callRepository.currentCall.value
+
+                            val isSysSource =
+                                    source == CallRepository.EventSource.SYS.name.lowercase()
+
+                            // we skip optimistic reject if the call is registered
+                            if (!isSysSource ||
+                                            cause != rejectedCause ||
+                                            currentCall !is Call.Registered ||
+                                            !currentCall.isIncoming() ||
+                                            currentCall.isActive ||
+                                            currentCall.id != callId
+                            ) {
+                                return
+                            }
+
+                            debugLog(
+                                    TAG,
+                                    "[service] optimisticReceiver: Optimistic reject for $callId"
+                            )
+                            notificationManager.stopRingtone()
+                            notificationManager.setOptimisticState(
+                                    CallNotificationManager.OptimisticState.REJECTING
+                            )
+                            notificationManager.updateCallNotification(currentCall)
+                        }
+                    }
+                }
+            }
+
     override fun onCreate() {
         super.onCreate()
         debugLog(TAG, "[service] onCreate: TelecomCallService created")
@@ -143,12 +202,26 @@ class CallService : Service(), CallRepository.Listener {
         callRepository = CallRepositoryFactory.create(applicationContext)
         callRepository.setListener(this)
 
+        val filter =
+                IntentFilter().apply {
+                    addAction(CallingxModuleImpl.CALL_OPTIMISTIC_ACCEPT_ACTION)
+                    addAction(CallingxModuleImpl.CALL_END_ACTION)
+                }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(optimisticNotificationReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(optimisticNotificationReceiver, filter)
+        }
+
         sendBroadcastEvent(CallingxModuleImpl.SERVICE_READY_ACTION)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         debugLog(TAG, "[service] onDestroy: TelecomCallService destroyed")
+
+        unregisterReceiver(optimisticNotificationReceiver)
 
         notificationManager.cancelNotifications()
         notificationManager.stopRingtone()
@@ -246,6 +319,8 @@ class CallService : Service(), CallRepository.Listener {
                             TAG,
                             "[service] updateServiceState: Fallback starting foreground for call: ${call.id}"
                     )
+                    // we need this call to reset optimistic state
+                    notificationManager.resetOptimisticState()
                     // fallback if for some reason startForeground method is not called in
                     // onStartCommand method
                     val notification = notificationManager.createNotification(call)

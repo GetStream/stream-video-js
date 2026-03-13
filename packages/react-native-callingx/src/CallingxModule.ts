@@ -77,6 +77,7 @@ class CallingxModule implements ICallingxModule {
         subtitleTransformer,
         incomingChannel,
         ongoingChannel,
+        notificationTexts,
       } = options.android ?? {};
 
       this.titleTransformer = titleTransformer ?? defaultTextTransformer;
@@ -91,6 +92,7 @@ class CallingxModule implements ICallingxModule {
           ...defaultAndroidOptions.ongoingChannel,
           ...(ongoingChannel ?? {}),
         },
+        notificationTexts,
       };
 
       if (

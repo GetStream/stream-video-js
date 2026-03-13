@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import io.getstream.rn.callingx.CallingxModuleImpl
+import io.getstream.rn.callingx.debugLog
 
 // For Android 12+
 class NotificationReceiverActivity : Activity() {
@@ -26,10 +27,20 @@ class NotificationReceiverActivity : Activity() {
       return
     }
 
-    //we need it only for answered call event, as for cold start case we need to send broadcast event and to launch the app
     if (intent.action == CallingxModuleImpl.CALL_ANSWERED_ACTION) {
+      debugLog("[Callingx] NotificationReceiverActivity", "[receiver] answered call action")
       val callId = intent.getStringExtra(CallingxModuleImpl.EXTRA_CALL_ID)
       val source = intent.getStringExtra(CallingxModuleImpl.EXTRA_SOURCE)
+
+      if (callId != null) {
+        Intent(CallingxModuleImpl.CALL_OPTIMISTIC_ACCEPT_ACTION)
+          .apply {
+            setPackage(packageName)
+            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
+          }
+          .also { sendBroadcast(it) }
+      }
+
       Intent(CallingxModuleImpl.CALL_ANSWERED_ACTION)
         .apply {
           setPackage(packageName)

@@ -20,6 +20,8 @@ import io.getstream.rn.callingx.debugLog
 import io.getstream.rn.callingx.getDisconnectCauseString
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.repo.CallRepository
+import io.getstream.rn.callingx.utils.SettingsStore
+import androidx.core.graphics.toColorInt
 
 /**
  * Handles call status changes and updates the notification accordingly. For more guidance around
@@ -35,16 +37,23 @@ class CallNotificationManager(
 
     internal companion object {
         private const val TAG = "[Callingx] CallNotificationManager"
+        private const val DISABLED_COLOR = "#757575" // NOTE: hint color might be ignored by OS
 
         const val NOTIFICATION_ID = 200
     }
+
+    enum class OptimisticState { NONE, ACCEPTING, REJECTING }
+
+    private val lock = Any()
 
     private var notificationsConfig = NotificationsConfig.loadNotificationsConfig(context)
 
     private var ringtone: Ringtone? = null
 
+    // Guarded by [lock]
     private var hasBecameActive = false
-
+    private var activeWhen: Long = 0L
+    private var optimisticState = OptimisticState.NONE
     private var lastPostedSnapshot: NotificationSnapshot? = null
 
     /**
@@ -56,23 +65,47 @@ class CallNotificationManager(
         val id: String,
         val isActive: Boolean,
         val isIncoming: Boolean,
+        val optimisticState: OptimisticState,
         val displayTitle: String?,
         val displaySubtitle: String?,
         val displayName: CharSequence,
         val address: Uri
     )
 
+    /**
+     * Creates a snapshot of the call state used to detect notification changes.
+     * @return NotificationSnapshot
+     */
     private fun Call.Registered.toSnapshot() = NotificationSnapshot(
         id = id,
         isActive = isActive,
         isIncoming = isIncoming(),
+        optimisticState = optimisticState,
         displayTitle = displayOptions?.getString(CallService.EXTRA_DISPLAY_TITLE),
         displaySubtitle = displayOptions?.getString(CallService.EXTRA_DISPLAY_SUBTITLE),
         displayName = callAttributes.displayName,
         address = callAttributes.address
     )
 
-    fun createNotification(call: Call.Registered): Notification {
+    /**
+     * Sets the optimistic state of the call notification.
+     * Optimistic state is used to update the notification text while the app is connecting or declining the call.
+     * @param state The optimistic state to set.
+     */
+    fun setOptimisticState(state: OptimisticState) = synchronized(lock) {
+        optimisticState = state
+        if (state != OptimisticState.NONE) {
+            lastPostedSnapshot = null
+        }
+    }
+
+    /**
+     * Creates a notification for the call.
+     * Notification is created based on the call state and optimistic state.
+     * @param call The call to create a notification for.
+     * @return The notification.
+     */
+    fun createNotification(call: Call.Registered): Notification = synchronized(lock) {
         debugLog(TAG,"[notifications] createNotification: Creating notification for call ID: ${call.id}")
 
         val contentIntent =
@@ -89,42 +122,76 @@ class CallNotificationManager(
                 NotificationCompat.Builder(context, channelId)
                         .setContentIntent(contentIntent)
                         .setFullScreenIntent(contentIntent, true)
-                        .setStyle(callStyle)
                         .setSmallIcon(R.drawable.ic_round_call_24)
                         .setCategory(NotificationCompat.CATEGORY_CALL)
                         .setPriority(NotificationCompat.PRIORITY_MAX)
-                        .setOngoing(true)
+                        .setOngoing(optimisticState != OptimisticState.REJECTING)
 
-        if (!hasBecameActive && call.isActive) {
-            debugLog(TAG, "[notifications] createNotification: Setting when to current time")
-            builder.setWhen(System.currentTimeMillis())
+        builder.setStyle(callStyle)
+
+        // When call becomes active we need to set the when to current time and show the chronometer
+        if (call.isActive && optimisticState == OptimisticState.NONE) {
+            // We need to set the activation time once when call becomes active
+            if (!hasBecameActive) {
+                debugLog(TAG, "[notifications] createNotification: Setting when to current time")
+                activeWhen = System.currentTimeMillis()
+                hasBecameActive = true
+            }
+            builder.setWhen(activeWhen)
             builder.setUsesChronometer(true)
             builder.setShowWhen(true)
-            hasBecameActive = true
         }
 
-        call.displayOptions?.let {
-            if (it.containsKey(CallService.EXTRA_DISPLAY_SUBTITLE)) {
-                builder.setContentText(it.getString(CallService.EXTRA_DISPLAY_SUBTITLE))
+        // If the call is not active and the optimistic state is not none, we need to set the notification text
+        // based on exact action that is being taken (accepting or rejecting)
+        if (optimisticState != OptimisticState.NONE && !call.isActive) {
+            val text = when (optimisticState) {
+                OptimisticState.ACCEPTING -> SettingsStore.getOptimisticAcceptingText(context)
+                OptimisticState.REJECTING -> SettingsStore.getOptimisticRejectingText(context)
+                else -> null
+            }
+            if (text != null) builder.setContentText(text)
+        } else {
+            // If the call is active, we need to set the notification text
+            // based on the call display options (defined on js side)
+            call.displayOptions?.let {
+                if (it.containsKey(CallService.EXTRA_DISPLAY_SUBTITLE)) {
+                    builder.setContentText(it.getString(CallService.EXTRA_DISPLAY_SUBTITLE))
+                }
             }
         }
 
         return builder.build()
     }
 
-    fun updateCallNotification(call: Call) {
+    /**
+     * Updates the call notification.
+     * If the call is None or Unregistered, we need to dismiss the notification.
+     * If the call is active and the optimistic state is not none, we need to reset the optimistic state.
+     * If the call is active and the optimistic state is none, we need to create a new notification.
+     * @param call The call to update the notification for.
+     */
+    fun updateCallNotification(call: Call) = synchronized(lock) {
         when (call) {
             Call.None, is Call.Unregistered -> {
                 debugLog(TAG, "[notifications] updateCallNotification: Dismissing notification (call is None or Unregistered)")
                 notificationManager.cancel(NOTIFICATION_ID)
                 lastPostedSnapshot = null
                 hasBecameActive = false
+                activeWhen = 0L
+                optimisticState = OptimisticState.NONE
             }
             is Call.Registered -> {
+                if (call.isActive && optimisticState != OptimisticState.NONE) {
+                    optimisticState = OptimisticState.NONE
+                    debugLog(TAG, "[notifications] updateCallNotification: Resetting optimistic state")
+                }
+
+                // If the new snapshot is the same as the last posted snapshot, we need to skip the update
                 val newSnapshot = call.toSnapshot()
                 if (newSnapshot == lastPostedSnapshot) {
                     debugLog(TAG, "[notifications] updateCallNotification: Skipping - no state change")
-                    return
+                    return@synchronized
                 }
 
                 lastPostedSnapshot = newSnapshot
@@ -135,9 +202,11 @@ class CallNotificationManager(
         }
     }
 
-    fun cancelNotifications() {
+    fun cancelNotifications() = synchronized(lock) {
         notificationManager.cancel(NOTIFICATION_ID)
         hasBecameActive = false
+        activeWhen = 0L
+        optimisticState = OptimisticState.NONE
         lastPostedSnapshot = null
     }
 
@@ -174,8 +243,14 @@ class CallNotificationManager(
         ringtone = null
     }
 
+    fun resetOptimisticState() = synchronized(lock) {
+        debugLog(TAG, "[notifications] resetOptimisticState: Resetting optimistic state")
+        optimisticState = OptimisticState.NONE
+        lastPostedSnapshot = null
+    }
+
     private fun getChannelId(call: Call.Registered): String {
-        return if (call.isIncoming() && !call.isActive) {
+        return if (call.isIncoming() && !call.isActive && optimisticState == OptimisticState.NONE) {
             notificationsConfig.incomingChannel.id
         } else {
             notificationsConfig.ongoingChannel.id
@@ -185,7 +260,7 @@ class CallNotificationManager(
     private fun createCallStyle(call: Call.Registered): NotificationCompat.CallStyle {
         val caller = createPerson(call)
 
-        if (call.isIncoming() && !call.isActive) {
+        if (call.isIncoming() && !call.isActive && optimisticState == OptimisticState.NONE) {
             return NotificationCompat.CallStyle.forIncomingCall(
                     caller,
                     NotificationIntentFactory.getPendingBroadcastIntent(
@@ -209,6 +284,17 @@ class CallNotificationManager(
                             CallRepository.EventSource.SYS.name.lowercase()
                     )
             )
+        }
+
+        if (optimisticState == OptimisticState.REJECTING) {
+            return NotificationCompat.CallStyle.forOngoingCall(
+                    caller,
+                    NotificationIntentFactory.getPendingBroadcastIntent(
+                            context,
+                            "io.getstream.CALL_END_NOOP",
+                            call.id
+                    ) ,
+            ).setDeclineButtonColorHint(DISABLED_COLOR.toColorInt())
         }
 
         return NotificationCompat.CallStyle.forOngoingCall(
