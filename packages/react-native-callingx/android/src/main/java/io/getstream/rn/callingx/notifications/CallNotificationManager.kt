@@ -125,10 +125,7 @@ class CallNotificationManager(
                         .setPriority(NotificationCompat.PRIORITY_MAX)
                         .setOngoing(true)
 
-        // Call style is null for optimistic reject state, so that user couldn't interact while call is disconnecting
-        if (callStyle != null) {
-            builder.setStyle(callStyle)
-        }
+        builder.setStyle(callStyle)
 
         // When call becomes active we need to set the when to current time and show the chronometer
         if (call.isActive && optimisticState == OptimisticState.NONE) {
@@ -258,11 +255,7 @@ class CallNotificationManager(
         }
     }
 
-    private fun createCallStyle(call: Call.Registered): NotificationCompat.CallStyle? {
-        // in case of optimistic reject we don't want any ui elements to by displayed,
-        // so that user couldn't interact while call is disconnecting
-        if (optimisticState == OptimisticState.REJECTING) return null
-
+    private fun createCallStyle(call: Call.Registered): NotificationCompat.CallStyle {
         val caller = createPerson(call)
 
         if (call.isIncoming() && !call.isActive && optimisticState == OptimisticState.NONE) {
@@ -288,6 +281,17 @@ class CallNotificationManager(
                             call.id,
                             CallRepository.EventSource.SYS.name.lowercase()
                     )
+            )
+        }
+
+        if (optimisticState == OptimisticState.REJECTING) {
+            return NotificationCompat.CallStyle.forOngoingCall(
+                    caller,
+                    NotificationIntentFactory.getPendingBroadcastIntent(
+                            context,
+                            "io.getstream.CALL_END_NOOP",
+                            call.id
+                    ),
             )
         }
 
