@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.telecom.DisconnectCause
 import android.util.Log
+import android.graphics.Color
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -291,8 +292,8 @@ class CallNotificationManager(
                             context,
                             "io.getstream.CALL_END_NOOP",
                             call.id
-                    ),
-            )
+                    ) ,
+            ).setDeclineButtonColorHint(Color.GRAY)
         }
 
         return NotificationCompat.CallStyle.forOngoingCall(
