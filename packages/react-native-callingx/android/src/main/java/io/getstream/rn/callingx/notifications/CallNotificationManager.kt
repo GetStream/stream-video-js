@@ -198,7 +198,7 @@ class CallNotificationManager(
             optimisticStates[callId] = OptimisticState.NONE
             debugLog(TAG, "[notifications] updateCallNotification[$callId]: Resetting optimistic state")
         }
-        
+
         // If the new snapshot is the same as the last posted snapshot, we need to skip the update
         val newSnapshot = call.toSnapshot(callId)
         if (newSnapshot == lastPostedSnapshots[callId]) {
@@ -218,7 +218,12 @@ class CallNotificationManager(
         notificationManager.notify(notificationId, notification)
     }
 
-    fun cancelNotification(callId: String) = synchronized(lock) {
+    /**
+     * Returns a new foreground notification ID if the caller needs to call startForeground()
+     * to re-promote the service, or null if no action is needed.
+     */
+    fun cancelNotification(callId: String): Int? = synchronized(lock) {
+        debugLog(TAG, "[notifications] cancelNotification[$callId]")
         val notificationId = callNotificationIds.remove(callId)
         if (notificationId != null) {
             notificationManager.cancel(notificationId)
@@ -231,8 +236,15 @@ class CallNotificationManager(
 
         if (foregroundCallId == callId) {
             foregroundCallId = callNotificationIds.keys.firstOrNull()
+            // Return the new foreground notification ID so the service can re-promote
+            if (foregroundCallId != null) {
+                return@synchronized callNotificationIds[foregroundCallId]
+            }
         }
+        return@synchronized null
     }
+
+    fun getForegroundCallId(): String? = synchronized(lock) { foregroundCallId }
 
     fun cancelAllNotifications() = synchronized(lock) {
         for ((_, notificationId) in callNotificationIds) {
