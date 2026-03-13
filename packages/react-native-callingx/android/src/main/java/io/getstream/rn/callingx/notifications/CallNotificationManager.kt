@@ -8,7 +8,6 @@ import android.net.Uri
 import android.os.Build
 import android.telecom.DisconnectCause
 import android.util.Log
-import android.graphics.Color
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -22,6 +21,7 @@ import io.getstream.rn.callingx.getDisconnectCauseString
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.repo.CallRepository
 import io.getstream.rn.callingx.utils.SettingsStore
+import androidx.core.graphics.toColorInt
 
 /**
  * Handles call status changes and updates the notification accordingly. For more guidance around
@@ -37,6 +37,7 @@ class CallNotificationManager(
 
     internal companion object {
         private const val TAG = "[Callingx] CallNotificationManager"
+        private const val DISABLED_COLOR = "#757575" // NOTE: hint color might be ignored by OS
 
         const val NOTIFICATION_ID = 200
     }
@@ -124,7 +125,7 @@ class CallNotificationManager(
                         .setSmallIcon(R.drawable.ic_round_call_24)
                         .setCategory(NotificationCompat.CATEGORY_CALL)
                         .setPriority(NotificationCompat.PRIORITY_MAX)
-                        .setOngoing(true)
+                        .setOngoing(optimisticState != OptimisticState.REJECTING)
 
         builder.setStyle(callStyle)
 
@@ -293,7 +294,7 @@ class CallNotificationManager(
                             "io.getstream.CALL_END_NOOP",
                             call.id
                     ) ,
-            ).setDeclineButtonColorHint(Color.GRAY)
+            ).setDeclineButtonColorHint(DISABLED_COLOR.toColorInt())
         }
 
         return NotificationCompat.CallStyle.forOngoingCall(
