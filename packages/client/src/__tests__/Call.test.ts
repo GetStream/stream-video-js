@@ -195,6 +195,23 @@ describe('state updates in reponse to coordinator API', () => {
     expect(call.state.members[0].role).toBe('admin');
   });
 
+  it('should not clear members when updating custom data', async () => {
+    await call.getOrCreate({
+      data: {
+        members: [{ user_id: 'sara' }, { user_id: 'jane' }],
+      },
+    });
+
+    expect(call.state.members.length).toBe(2);
+
+    await call.update({
+      custom: { messageId: 'test-message-id' },
+    });
+
+    expect(call.state.members.length).toBe(2);
+    expect(call.state.custom.messageId).toBe('test-message-id');
+  });
+
   it('should get and update state', async () => {
     await serverClient.video.call(call.type, call.id).create({
       data: {
