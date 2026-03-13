@@ -55,8 +55,11 @@ export function getCallDisplayName(
 
 /**
  * Starts the call in the callingx library.
- * Must be called for all outgoing calls
- * and optionally for non-ringing calls when ongoing calls are enabled.
+ * It is done by client on every join
+ * Does either of the following:
+ * 1. Sets the state for outgoing calls in the callingx library
+ * 2. Displays the incoming call in the callingx library
+ * 3. Optionally for non-ringing calls also when ongoing calls are enabled.
  */
 export async function startCallingxCall(call: Call) {
   if (!CallingxModule || !CallingxModule.isSetup) {
