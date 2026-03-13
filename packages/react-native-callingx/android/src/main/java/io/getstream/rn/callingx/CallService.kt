@@ -169,13 +169,17 @@ class CallService : Service(), CallRepository.Listener {
                             val isSysSource =
                                     source == CallRepository.EventSource.SYS.name.lowercase()
 
-                            // we skip optimistic reject if the call is registered
+                            // we handle optimistic updates only if incoming call (non-answered) was rejected within notification action
                             if (!isSysSource ||
                                             cause != rejectedCause ||
                                             call == null ||
                                             !call.isIncoming() ||
                                             call.isActive
                             ) {
+                              debugLog(
+                                TAG,
+                                "[service] optimisticReceiver: Skipping optimistic reject for $callId"
+                              )
                                 return
                             }
 
@@ -333,8 +337,8 @@ class CallService : Service(), CallRepository.Listener {
                     startForegroundSafely(notificationId, notification)
                 }
             }
-            is Call.None -> {
-                notificationManager.cancelNotification(callId)
+            is Call.None, is Call.Unregistered -> {
+                repromoteForegroundIfNeeded(callId)
                 if (!callRepository.hasRingingCall()) notificationManager.stopRingtone()
 
                 // Stop service only when no calls remain
@@ -342,23 +346,6 @@ class CallService : Service(), CallRepository.Listener {
                     debugLog(
                             TAG,
                             "[service] onCallStateChanged[$callId]: No more calls, stopping service"
-                    )
-                    if (isInForeground) {
-                        stopForeground(STOP_FOREGROUND_REMOVE)
-                        isInForeground = false
-                    }
-                    stopSelf()
-                }
-            }
-            is Call.Unregistered -> {
-                notificationManager.cancelNotification(callId)
-                if (!callRepository.hasRingingCall()) notificationManager.stopRingtone()
-
-                // Stop service only when no calls remain
-                if (!callRepository.hasAnyCalls()) {
-                    debugLog(
-                            TAG,
-                            "[service] onCallStateChanged[$callId]: No more calls after unregistered, stopping service"
                     )
                     if (isInForeground) {
                         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -518,7 +505,7 @@ class CallService : Service(), CallRepository.Listener {
                     putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callInfo.callId)
                 }
 
-                notificationManager.cancelNotification(callInfo.callId)
+                repromoteForegroundIfNeeded(callInfo.callId)
 
                 // Only stop foreground/service when no other calls remain
                 if (!callRepository.hasAnyCalls()) {
@@ -583,6 +570,23 @@ class CallService : Service(), CallRepository.Listener {
                     "[service] startForegroundSafely: Failed to start foreground service: ${e.message}",
                     e
             )
+        }
+    }
+
+    /**
+     * Cancels the notification for [callId]. If that notification was the foreground one
+     * and other calls remain, re-promotes the service with the next call's notification.
+     */
+    private fun repromoteForegroundIfNeeded(callId: String) {
+        val newForegroundNotificationId = notificationManager.cancelNotification(callId)
+        if (newForegroundNotificationId != null && isInForeground) {
+            val newForegroundCallId = notificationManager.getForegroundCallId()
+            val call = if (newForegroundCallId != null) callRepository.getCall(newForegroundCallId) else null
+            if (call != null && newForegroundCallId != null) {
+                debugLog(TAG, "[service] repromoteForegroundIfNeeded: Re-promoting with call $newForegroundCallId (notificationId=$newForegroundNotificationId)")
+                val notification = notificationManager.createNotification(newForegroundCallId, call)
+                startForegroundSafely(newForegroundNotificationId, notification)
+            }
         }
     }
 
