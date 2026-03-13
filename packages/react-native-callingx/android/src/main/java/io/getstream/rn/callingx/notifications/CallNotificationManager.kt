@@ -70,6 +70,10 @@ class CallNotificationManager(
         val address: Uri
     )
 
+    /**
+     * Creates a snapshot of the call state used to detect notification changes.
+     * @return NotificationSnapshot
+     */
     private fun Call.Registered.toSnapshot() = NotificationSnapshot(
         id = id,
         isActive = isActive,
@@ -81,6 +85,11 @@ class CallNotificationManager(
         address = callAttributes.address
     )
 
+    /**
+     * Sets the optimistic state of the call notification.
+     * Optimistic state is used to update the notification text while the app is connecting or declining the call.
+     * @param state The optimistic state to set.
+     */
     fun setOptimisticState(state: OptimisticState) = synchronized(lock) {
         optimisticState = state
         if (state != OptimisticState.NONE) {
@@ -88,6 +97,12 @@ class CallNotificationManager(
         }
     }
 
+    /**
+     * Creates a notification for the call.
+     * Notification is created based on the call state and optimistic state.
+     * @param call The call to create a notification for.
+     * @return The notification.
+     */
     fun createNotification(call: Call.Registered): Notification = synchronized(lock) {
         debugLog(TAG,"[notifications] createNotification: Creating notification for call ID: ${call.id}")
 
@@ -110,11 +125,14 @@ class CallNotificationManager(
                         .setPriority(NotificationCompat.PRIORITY_MAX)
                         .setOngoing(true)
 
+        // Call style is null for optimistic reject state, so that user couldn't interact while call is disconnecting
         if (callStyle != null) {
             builder.setStyle(callStyle)
         }
 
+        // When call becomes active we need to set the when to current time and show the chronometer
         if (call.isActive && optimisticState == OptimisticState.NONE) {
+            // We need to set the activation time once when call becomes active
             if (!hasBecameActive) {
                 debugLog(TAG, "[notifications] createNotification: Setting when to current time")
                 activeWhen = System.currentTimeMillis()
@@ -125,6 +143,8 @@ class CallNotificationManager(
             builder.setShowWhen(true)
         }
 
+        // If the call is not active and the optimistic state is not none, we need to set the notification text
+        // based on exact action that is being taken (accepting or rejecting)
         if (optimisticState != OptimisticState.NONE && !call.isActive) {
             val text = when (optimisticState) {
                 OptimisticState.ACCEPTING -> SettingsStore.getOptimisticAcceptingText(context)
@@ -133,6 +153,8 @@ class CallNotificationManager(
             }
             if (text != null) builder.setContentText(text)
         } else {
+            // If the call is active, we need to set the notification text
+            // based on the call display options (defined on js side)
             call.displayOptions?.let {
                 if (it.containsKey(CallService.EXTRA_DISPLAY_SUBTITLE)) {
                     builder.setContentText(it.getString(CallService.EXTRA_DISPLAY_SUBTITLE))
@@ -143,6 +165,13 @@ class CallNotificationManager(
         return builder.build()
     }
 
+    /**
+     * Updates the call notification.
+     * If the call is None or Unregistered, we need to dismiss the notification.
+     * If the call is active and the optimistic state is not none, we need to reset the optimistic state.
+     * If the call is active and the optimistic state is none, we need to create a new notification.
+     * @param call The call to update the notification for.
+     */
     fun updateCallNotification(call: Call) = synchronized(lock) {
         when (call) {
             Call.None, is Call.Unregistered -> {
@@ -159,6 +188,7 @@ class CallNotificationManager(
                     debugLog(TAG, "[notifications] updateCallNotification: Resetting optimistic state")
                 }
 
+                // If the new snapshot is the same as the last posted snapshot, we need to skip the update
                 val newSnapshot = call.toSnapshot()
                 if (newSnapshot == lastPostedSnapshot) {
                     debugLog(TAG, "[notifications] updateCallNotification: Skipping - no state change")
