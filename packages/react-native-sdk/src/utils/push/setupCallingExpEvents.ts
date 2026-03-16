@@ -98,7 +98,7 @@ const onDidDeactivateAudioSession = () => {
 const onAcceptCall =
   (pushConfig: PushConfig) =>
   async ({ callId: call_cid, source }: EventParams['answerCall']) => {
-    logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
+    logger.debug(`onAcceptCall event call_cid: ${call_cid} source: ${source}`);
 
     if (source === 'app' || !call_cid) {
       // App-initiated actions are fulfilled on the native side immediately — nothing to do here
@@ -120,7 +120,7 @@ const onAcceptCall =
 const onEndCall =
   (pushConfig: PushConfig) =>
   async ({ callId: call_cid, source }: EventParams['endCall']) => {
-    logger.debug(`onEndCall event callId: ${call_cid} source: ${source}`);
+    logger.debug(`onEndCall event call_cid: ${call_cid} source: ${source}`);
 
     if (source === 'app' || !call_cid) {
       // App-initiated actions are fulfilled on the native side immediately — nothing to do here

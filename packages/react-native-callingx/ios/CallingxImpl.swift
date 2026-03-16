@@ -44,9 +44,11 @@ import stream_react_native_webrtc
     private var isSetup: Bool = false
 
     // Pending CXActions awaiting JS fulfillment
-    private var pendingAnswerActions: [String: CXAnswerCallAction] = [:]
-    private var pendingEndActions: [String: CXEndCallAction] = [:]
+    private var pendingAnswerActions: [String: (action: CXAnswerCallAction, enqueuedAt: DispatchTime)] = [:]
+    private var pendingEndActions: [String: (action: CXEndCallAction, enqueuedAt: DispatchTime)] = [:]
     private let pendingActionsQueue = DispatchQueue(label: "io.getstream.callingx.pendingActions")
+    // a large timeout to accomodate for cold start + metro server load time
+    private let pendingActionTimeoutSeconds = 30
 
     @objc public static func getSharedInstance() -> CallingxImpl {
         if sharedInstance == nil {
@@ -682,13 +684,17 @@ import stream_react_native_webrtc
             // System initiated — defer fulfillment until JS reports back via fulfillAnswerCallAction
             let cid = call.cid
             pendingActionsQueue.sync {
-                self.pendingAnswerActions[cid] = action
+                self.pendingAnswerActions[cid] = (action: action, enqueuedAt: DispatchTime.now())
             }
-            // Safety timer: auto-fail after 5s if JS never responds
+            // Safety timer: auto-fail if JS never responds.
             // Answer timeout = call never connected
-            pendingActionsQueue.asyncAfter(deadline: .now() + .seconds(5)) { [weak self] in
+            let timeout = DispatchTime.now() + DispatchTimeInterval.seconds(pendingActionTimeoutSeconds)
+            pendingActionsQueue.asyncAfter(deadline: timeout) { [weak self] in
                 if let pending = self?.pendingAnswerActions.removeValue(forKey: cid) {
-                    pending.fail()
+                    #if DEBUG
+                    NSLog("%@","[Callingx][CXProviderDelegate][provider:performAnswerCallAction] answer timeout for callId: \(cid)")
+                    #endif
+                    pending.action.fail()
                 }
             }
         }
@@ -726,12 +732,16 @@ import stream_react_native_webrtc
             // System initiated — defer fulfillment until JS reports back via fulfillEndCallAction
             let cid = call.cid
             pendingActionsQueue.sync {
-                self.pendingEndActions[cid] = action
+                self.pendingEndActions[cid] = (action: action, enqueuedAt: DispatchTime.now())
             }
-            // Safety timer: auto-fulfill after 5s if JS never responds
-            pendingActionsQueue.asyncAfter(deadline: .now() + .seconds(5)) { [weak self] in
+            // Safety timer: auto-fulfill if JS never responds.
+            let timeout = DispatchTime.now() + DispatchTimeInterval.seconds(pendingActionTimeoutSeconds)
+            pendingActionsQueue.asyncAfter(deadline: timeout) { [weak self] in
                 if let pending = self?.pendingEndActions.removeValue(forKey: cid) {
-                    pending.fulfill()
+                    #if DEBUG
+                    NSLog("%@","[Callingx][CXProviderDelegate][provider:performEndCallAction] end timeout for callId: \(cid)")
+                    #endif
+                    pending.action.fulfill()
                 }
             }
         }
@@ -844,9 +854,34 @@ import stream_react_native_webrtc
     }
   
     public func provider(_ provider: CXProvider, timedOutPerforming action: CXAction) {
+        // note: in practice we should never be getting this callback as we already have a pending timeout set.
+        // in our tests callkit timesout and exectutes this method in approximately 60 seconds.
         #if DEBUG
         NSLog("%@","[Callingx][CXProviderDelegate][provider:timedOutPerformingAction]")
         #endif
+
+        guard let callAction = action as? CXCallAction else {
+            return
+        }
+
+        pendingActionsQueue.sync {
+            // cid mapping as soon as end is initiated, so cleanup by matching callUUID.
+            if let answerEntry = pendingAnswerActions.first(where: { $0.value.action.callUUID == callAction.callUUID }) {
+                pendingAnswerActions.removeValue(forKey: answerEntry.key)
+                let elapsedMs = elapsedMilliseconds(since: answerEntry.value.enqueuedAt)
+                #if DEBUG
+                NSLog("%@","[Callingx][CXProviderDelegate][provider:timedOutPerformingAction] removed pending answer action for callId: \(answerEntry.key), elapsedMs=\(elapsedMs)")
+                #endif
+            }
+
+            if let endEntry = pendingEndActions.first(where: { $0.value.action.callUUID == callAction.callUUID }) {
+                pendingEndActions.removeValue(forKey: endEntry.key)
+                let elapsedMs = elapsedMilliseconds(since: endEntry.value.enqueuedAt)
+                #if DEBUG
+                NSLog("%@","[Callingx][CXProviderDelegate][provider:timedOutPerformingAction] removed pending end action for callId: \(endEntry.key), elapsedMs=\(elapsedMs)")
+                #endif
+            }
+        }
     }
   
     public func providerDidReset(_ provider: CXProvider) {
@@ -867,20 +902,45 @@ import stream_react_native_webrtc
     // MARK: - Pending Action Fulfillment
 
     @objc public func fulfillAnswerCallAction(_ callId: String, didFail: Bool) {
-        pendingActionsQueue.async { [weak self] in
-            guard let action = self?.pendingAnswerActions.removeValue(forKey: callId) else { return }
-            if didFail { action.fail() } else { action.fulfill() }
+        pendingActionsQueue.sync { [weak self] in
+            guard let pending = self?.pendingAnswerActions.removeValue(forKey: callId) else {
+                #if DEBUG
+                NSLog("%@","[Callingx][fulfillAnswerCallAction] action not found for callId: \(callId)")
+                #endif
+                return
+            }
+            let elapsedMs = elapsedMilliseconds(since: pending.enqueuedAt)
+            #if DEBUG
+            NSLog("%@","[Callingx][fulfillAnswerCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
+            #endif
+            if didFail { pending.action.fail() } else { pending.action.fulfill() }
         }
     }
 
     @objc public func fulfillEndCallAction(_ callId: String, didFail: Bool) {
-        pendingActionsQueue.async { [weak self] in
-            guard let action = self?.pendingEndActions.removeValue(forKey: callId) else { return }
-            if didFail { action.fail() } else { action.fulfill() }
+        pendingActionsQueue.sync { [weak self] in
+            guard let pending = self?.pendingEndActions.removeValue(forKey: callId) else {
+                #if DEBUG
+                NSLog("%@","[Callingx][fulfillEndCallAction] action not found for callId: \(callId)")
+                #endif
+                return
+            }
+            let elapsedMs = elapsedMilliseconds(since: pending.enqueuedAt)
+            #if DEBUG
+            NSLog("%@","[Callingx][fulfillEndCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
+            #endif
+            if didFail { pending.action.fail() } else { pending.action.fulfill() }
         }
     }
 
     // MARK: - Helper Methods
+    private func elapsedMilliseconds(since start: DispatchTime) -> Int {
+        let nowNs = DispatchTime.now().uptimeNanoseconds
+        let startNs = start.uptimeNanoseconds
+        guard nowNs >= startNs else { return 0 }
+        return Int((nowNs - startNs) / 1_000_000)
+    }
+
     private func getAudioDeviceModule() -> AudioDeviceModule? {
         guard let adm = webRTCModule?.audioDeviceModule else {
             #if DEBUG
