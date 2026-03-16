@@ -684,9 +684,9 @@ import stream_react_native_webrtc
             pendingActionsQueue.sync {
                 self.pendingAnswerActions[cid] = action
             }
-            // Safety timer: auto-fail after 10s if JS never responds
+            // Safety timer: auto-fail after 5s if JS never responds
             // Answer timeout = call never connected
-            pendingActionsQueue.asyncAfter(deadline: .now() + 10) { [weak self] in
+            pendingActionsQueue.asyncAfter(deadline: .now() + .seconds(5)) { [weak self] in
                 if let pending = self?.pendingAnswerActions.removeValue(forKey: cid) {
                     pending.fail()
                 }
@@ -728,10 +728,11 @@ import stream_react_native_webrtc
             pendingActionsQueue.sync {
                 self.pendingEndActions[cid] = action
             }
-            // Safety timer: auto-fulfill after 10s if JS never responds
-            pendingActionsQueue.asyncAfter(deadline: .now() + 10) { [weak self] in
+            // Safety timer: auto-fulfill after 5s if JS never responds
+            pendingActionsQueue.asyncAfter(deadline: .now() + .seconds(5)) { [weak self] in
                 if let pending = self?.pendingEndActions.removeValue(forKey: cid) {
                     pending.fulfill()
+                }
             }
         }
     }
