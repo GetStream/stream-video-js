@@ -416,10 +416,6 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    public fun hasRegisteredCall(): Boolean {
-        return callRepository.hasAnyCalls()
-    }
-
     public fun processAction(callId: String, action: CallAction) {
         debugLog(
                 TAG,

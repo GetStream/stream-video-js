@@ -569,22 +569,6 @@ RCT_EXPORT_METHOD(registerBackgroundTaskAvailable) {
 }
 #endif
 
-#pragma mark - isServiceStarted
-
-#ifdef RCT_NEW_ARCH_ENABLED
-- (void)isServiceStarted:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject {
-  // iOS doesn't use a service like Android, always return true
-  resolve(@YES);
-}
-#else
-RCT_EXPORT_METHOD(isServiceStarted:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject) {
-  // iOS doesn't use a service like Android, always return true
-  resolve(@YES);
-}
-#endif
-
 #pragma mark - canPostNotifications
 
 #ifdef RCT_NEW_ARCH_ENABLED

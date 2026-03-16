@@ -166,11 +166,6 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun isServiceStarted(promise: Promise) {
-        impl.isServiceStarted(promise)
-    }
-
-    @ReactMethod
     fun log(message: String, level: String) {
         impl.log(message, level)
     }

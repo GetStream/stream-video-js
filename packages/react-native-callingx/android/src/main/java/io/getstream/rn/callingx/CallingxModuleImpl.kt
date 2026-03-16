@@ -385,15 +385,6 @@ class CallingxModuleImpl(
         isHeadlessTaskRegistered = true
     }
 
-    fun isServiceStarted(promise: Promise) {
-        val isStarted =
-                bindingState == BindingState.BOUND ||
-                        bindingState == BindingState.BINDING ||
-                        callService?.hasRegisteredCall() == true
-        debugLog(TAG, "[module] isServiceStarted: Service started: $isStarted")
-        promise.resolve(isStarted)
-    }
-
     fun log(message: String, level: String) {
         when (level) {
             "debug" -> debugLog(TAG, "[module] log: $message")

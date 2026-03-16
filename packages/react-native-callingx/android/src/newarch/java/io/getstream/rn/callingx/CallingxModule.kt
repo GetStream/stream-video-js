@@ -138,10 +138,6 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         impl.registerBackgroundTaskAvailable()
     }
 
-    override fun isServiceStarted(promise: Promise) {
-        impl.isServiceStarted(promise)
-    }
-
     override fun log(message: String, level: String) {
         impl.log(message, level)
     }
