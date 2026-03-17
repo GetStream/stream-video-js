@@ -51,17 +51,28 @@ export const iosEndCallReasonMap: Record<EndCallReason, number> = {
   unknown: 1, // .failed (no iOS equivalent)
 };
 
-// Android: maps to android.telecom.DisconnectCause constants.
-// See https://developer.android.com/reference/android/telecom/DisconnectCause
+// Android: maps to a limited subset of android.telecom.DisconnectCause constants
+// that are allowed when using the CallControl / core-telecom APIs.
+//
+// Per platform docs, only the following codes are valid when disconnecting a call:
+// - DisconnectCause.LOCAL
+// - DisconnectCause.REMOTE
+// - DisconnectCause.REJECTED
+// - DisconnectCause.MISSED
+//
+// Numeric values (from android.telecom.DisconnectCause):
+// UNKNOWN = 0, ERROR = 1, LOCAL = 2, REMOTE = 3, REJECTED = 4, MISSED = 5
+//
+// We therefore collapse all high-level EndCallReason variants to this allowed set.
 export const androidEndCallReasonMap: Record<EndCallReason, number> = {
   local: 2, // LOCAL
   remote: 3, // REMOTE
-  rejected: 6, // REJECTED
-  busy: 7, // BUSY
-  answeredElsewhere: 11, // ANSWERED_ELSEWHERE
+  rejected: 4, // REJECTED
+  busy: 4, // map busy -> REJECTED
+  answeredElsewhere: 3, // map answeredElsewhere -> REMOTE
   missed: 5, // MISSED
-  error: 1, // ERROR
-  canceled: 4, // CANCELED
-  restricted: 8, // RESTRICTED
-  unknown: 0, // UNKNOWN
+  error: 2, // map error -> LOCAL
+  canceled: 2, // map canceled -> LOCAL
+  restricted: 4, // map restricted -> REJECTED
+  unknown: 2, // map unknown -> LOCAL
 };
