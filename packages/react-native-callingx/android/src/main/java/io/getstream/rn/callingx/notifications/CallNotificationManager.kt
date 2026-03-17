@@ -53,14 +53,20 @@ class CallNotificationManager(
 
     private var ringtone: Ringtone? = null
 
-    // Per-call state, all guarded by [lock]
-    private val callNotificationIds = mutableMapOf<String, Int>()
-    private var nextNotificationId = BASE_NOTIFICATION_ID
+    /**
+     * Per-call notification state. Consolidates all per-call tracking into a single struct.
+     */
+    private data class CallNotificationState(
+        val notificationId: Int,
+        val optimisticState: OptimisticState = OptimisticState.NONE,
+        val lastSnapshot: NotificationSnapshot? = null,
+        val activeWhen: Long? = null,
+        val hasBecameActive: Boolean = false,
+    )
 
-    private val optimisticStates = mutableMapOf<String, OptimisticState>()
-    private val lastPostedSnapshots = mutableMapOf<String, NotificationSnapshot>()
-    private val activeWhenMap = mutableMapOf<String, Long>()
-    private val hasBecameActiveMap = mutableMapOf<String, Boolean>()
+    // Per-call state, all guarded by [lock]
+    private val notificationsState = mutableMapOf<String, CallNotificationState>()
+    private var nextNotificationId = BASE_NOTIFICATION_ID
 
     /** The callId whose notification was used for startForeground(). */
     private var foregroundCallId: String? = null
@@ -87,7 +93,7 @@ class CallNotificationManager(
         id = id,
         isActive = isActive,
         isIncoming = isIncoming(),
-        optimisticState = optimisticStates[callId] ?: OptimisticState.NONE,
+        optimisticState = notificationsState[callId]?.optimisticState ?: OptimisticState.NONE,
         displayTitle = displayOptions?.getString(CallService.EXTRA_DISPLAY_TITLE),
         displaySubtitle = displayOptions?.getString(CallService.EXTRA_DISPLAY_SUBTITLE),
         displayName = callAttributes.displayName,
@@ -95,14 +101,17 @@ class CallNotificationManager(
     )
 
     fun getOrCreateNotificationId(callId: String): Int = synchronized(lock) {
-        callNotificationIds.getOrPut(callId) {
-            val id = nextNotificationId
-            nextNotificationId++
-            if (foregroundCallId == null) {
-                foregroundCallId = callId
-            }
-            id
+        val existing = notificationsState[callId]
+        if (existing != null) {
+            return@synchronized existing.notificationId
         }
+        val id = nextNotificationId
+        nextNotificationId++
+        notificationsState[callId] = CallNotificationState(notificationId = id)
+        if (foregroundCallId == null) {
+            foregroundCallId = callId
+        }
+        id
     }
 
     /**
@@ -111,9 +120,11 @@ class CallNotificationManager(
      * @param state The optimistic state to set.
      */
     fun setOptimisticState(callId: String, state: OptimisticState) = synchronized(lock) {
-        optimisticStates[callId] = state
-        if (state != OptimisticState.NONE) {
-            lastPostedSnapshots.remove(callId)
+        val current = notificationsState[callId] ?: return@synchronized
+        notificationsState[callId] = if (state != OptimisticState.NONE) {
+            current.copy(optimisticState = state, lastSnapshot = null)
+        } else {
+            current.copy(optimisticState = state)
         }
     }
 
@@ -126,7 +137,8 @@ class CallNotificationManager(
     fun createNotification(callId: String, call: Call.Registered): Notification = synchronized(lock) {
         debugLog(TAG,"[notifications] createNotification: Creating notification for call ID: ${call.id}")
 
-        val optimisticState = optimisticStates[callId] ?: OptimisticState.NONE
+        val state = notificationsState[callId]
+        val optimisticState = state?.optimisticState ?: OptimisticState.NONE
 
         val contentIntent =
                 NotificationIntentFactory.getLaunchActivityIntent(
@@ -150,15 +162,14 @@ class CallNotificationManager(
         builder.setStyle(callStyle)
 
         // When call becomes active we need to set the when to current time and show the chronometer
-        val hasBecameActive = hasBecameActiveMap[callId] ?: false
-        if (call.isActive && optimisticState == OptimisticState.NONE) {
+        if (call.isActive && optimisticState == OptimisticState.NONE && state != null) {
             // We need to set the activation time once when call becomes active
-            if (!hasBecameActive) {
+            if (!state.hasBecameActive) {
                 debugLog(TAG, "[notifications] createNotification: Setting when to current time for $callId")
-                activeWhenMap[callId] = System.currentTimeMillis()
-                hasBecameActiveMap[callId] = true
+                val now = System.currentTimeMillis()
+                notificationsState[callId] = state.copy(activeWhen = now, hasBecameActive = true)
             }
-            builder.setWhen(activeWhenMap[callId] ?: System.currentTimeMillis())
+            builder.setWhen(notificationsState[callId]?.activeWhen ?: System.currentTimeMillis())
             builder.setUsesChronometer(true)
             builder.setShowWhen(true)
         }
@@ -193,21 +204,23 @@ class CallNotificationManager(
      * @param call The call to update the notification for.
      */
     fun updateCallNotification(callId: String, call: Call.Registered) = synchronized(lock) {
-        val optimisticState = optimisticStates[callId] ?: OptimisticState.NONE
-        if (call.isActive && optimisticState != OptimisticState.NONE) {
-            optimisticStates[callId] = OptimisticState.NONE
+        val state = notificationsState[callId]
+        val optimisticState = state?.optimisticState ?: OptimisticState.NONE
+        if (call.isActive && optimisticState != OptimisticState.NONE && state != null) {
+            notificationsState[callId] = state.copy(optimisticState = OptimisticState.NONE)
             debugLog(TAG, "[notifications] updateCallNotification[$callId]: Resetting optimistic state")
         }
 
         // If the new snapshot is the same as the last posted snapshot, we need to skip the update
         val newSnapshot = call.toSnapshot(callId)
-        if (newSnapshot == lastPostedSnapshots[callId]) {
+        if (newSnapshot == notificationsState[callId]?.lastSnapshot) {
             debugLog(TAG, "[notifications] updateCallNotification[$callId]: Skipping - no state change")
             return@synchronized
         }
 
-        lastPostedSnapshots[callId] = newSnapshot
         val notificationId = getOrCreateNotificationId(callId)
+        notificationsState[callId] = notificationsState[callId]?.copy(lastSnapshot = newSnapshot)
+            ?: CallNotificationState(notificationId = notificationId, lastSnapshot = newSnapshot)
         val notification = createNotification(callId, call)
         notificationManager.notify(notificationId, notification)
         debugLog(TAG, "[notifications] updateCallNotification[$callId]: Notification posted (id=$notificationId)")
@@ -224,21 +237,17 @@ class CallNotificationManager(
      */
     fun cancelNotification(callId: String): Int? = synchronized(lock) {
         debugLog(TAG, "[notifications] cancelNotification[$callId]")
-        val notificationId = callNotificationIds.remove(callId)
-        if (notificationId != null) {
-            notificationManager.cancel(notificationId)
-            debugLog(TAG, "[notifications] cancelNotification[$callId]: Cancelled (id=$notificationId)")
+        val state = notificationsState.remove(callId)
+        if (state != null) {
+            notificationManager.cancel(state.notificationId)
+            debugLog(TAG, "[notifications] cancelNotification[$callId]: Cancelled (id=${state.notificationId})")
         }
-        lastPostedSnapshots.remove(callId)
-        optimisticStates.remove(callId)
-        hasBecameActiveMap.remove(callId)
-        activeWhenMap.remove(callId)
 
         if (foregroundCallId == callId) {
-            foregroundCallId = callNotificationIds.keys.firstOrNull()
+            foregroundCallId = notificationsState.keys.firstOrNull()
             // Return the new foreground notification ID so the service can re-promote
             if (foregroundCallId != null) {
-                return@synchronized callNotificationIds[foregroundCallId]
+                return@synchronized notificationsState[foregroundCallId]?.notificationId
             }
         }
         return@synchronized null
@@ -247,14 +256,10 @@ class CallNotificationManager(
     fun getForegroundCallId(): String? = synchronized(lock) { foregroundCallId }
 
     fun cancelAllNotifications() = synchronized(lock) {
-        for ((_, notificationId) in callNotificationIds) {
-            notificationManager.cancel(notificationId)
+        for ((_, state) in notificationsState) {
+            notificationManager.cancel(state.notificationId)
         }
-        callNotificationIds.clear()
-        lastPostedSnapshots.clear()
-        optimisticStates.clear()
-        hasBecameActiveMap.clear()
-        activeWhenMap.clear()
+        notificationsState.clear()
         foregroundCallId = null
         nextNotificationId = BASE_NOTIFICATION_ID
     }
@@ -294,8 +299,8 @@ class CallNotificationManager(
 
     fun resetOptimisticState(callId: String) = synchronized(lock) {
         debugLog(TAG, "[notifications] resetOptimisticState[$callId]: Resetting optimistic state")
-        optimisticStates[callId] = OptimisticState.NONE
-        lastPostedSnapshots.remove(callId)
+        val current = notificationsState[callId] ?: return@synchronized
+        notificationsState[callId] = current.copy(optimisticState = OptimisticState.NONE, lastSnapshot = null)
     }
 
     private fun getChannelId(call: Call.Registered, optimisticState: OptimisticState): String {
