@@ -135,7 +135,9 @@ export const processCallFromPush = async (
         logger.debug(
           `leaving active call ${activeCall.cid} before joining ${call_cid}`,
         );
-        await activeCall.leave({ reason: 'cancel' });
+        await activeCall.leave({ reason: 'cancel' }).catch((e) => {
+          logger.error(`failed to leave active call ${activeCall.cid}`, e);
+        });
       }
 
       await callFromPush.join();
