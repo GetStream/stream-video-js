@@ -423,7 +423,7 @@ class CallService : Service(), CallRepository.Listener {
         )
         synchronized(actionProcessingLock) {
             val call = callRepository.getCall(callId)
-            if (call != null) {
+            if (call != null && !call.isPending) {
                 call.processAction(action)
             } else {
                 // this solves race condition, when action is requested before the call is
@@ -578,7 +578,7 @@ class CallService : Service(), CallRepository.Listener {
         if (newForegroundNotificationId != null && isInForeground) {
             val newForegroundCallId = notificationManager.getForegroundCallId()
             val call = if (newForegroundCallId != null) callRepository.getCall(newForegroundCallId) else null
-            if (call != null && newForegroundCallId != null) {
+            if (call != null && !call.isPending && newForegroundCallId != null) {
                 debugLog(TAG, "[service] repromoteForegroundIfNeeded: Re-promoting with call $newForegroundCallId (notificationId=$newForegroundNotificationId)")
                 val notification = notificationManager.createNotification(newForegroundCallId, call)
                 startForegroundSafely(newForegroundNotificationId, notification)

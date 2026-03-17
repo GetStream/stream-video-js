@@ -73,10 +73,10 @@ abstract class CallRepository(protected val context: Context) {
   fun hasAnyCalls(): Boolean = _calls.value.isNotEmpty()
 
   fun hasRingingCall(excludeCallId: String? = null): Boolean =
-    _calls.value.any { (id, c) -> id != excludeCallId && c.isIncoming() && !c.isActive }
+    _calls.value.any { (id, c) -> id != excludeCallId && !c.isPending && c.isIncoming() && !c.isActive }
 
   fun hasActiveCall(excludeCallId: String? = null): Boolean =
-    _calls.value.any { (id, c) -> id != excludeCallId && c.isActive }
+    _calls.value.any { (id, c) -> id != excludeCallId && !c.isPending && c.isActive }
 
   //this call instance is used to display call notification before the call is registered, this is needed to invoke startForeground method on the service
   public fun getTempCall(callInfo: CallService.CallInfo, incoming: Boolean): Call.Registered {
@@ -89,6 +89,7 @@ abstract class CallRepository(protected val context: Context) {
 
     return Call.Registered(
         id = callInfo.callId,
+        isPending = true,
         isActive = false,
         isOnHold = false,
         callAttributes = attributes,

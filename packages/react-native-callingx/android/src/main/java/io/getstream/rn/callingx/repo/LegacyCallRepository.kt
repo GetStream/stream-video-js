@@ -81,6 +81,7 @@ class LegacyCallRepository(context: Context) : CallRepository(context) {
 
         val registeredCall = Call.Registered(
                 id = callId,
+                isPending = false,
                 isActive = false,
                 isOnHold = false,
                 callAttributes = attributes,

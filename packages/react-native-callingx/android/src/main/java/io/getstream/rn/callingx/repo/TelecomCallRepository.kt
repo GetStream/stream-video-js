@@ -114,7 +114,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     "[repository] registerCall: Starting registration - CallId: $callId, Name: $displayName, Address: $address, Incoming: $isIncoming"
             )
 
-            // Check if this specific call is already registered
+            // Check if this specific call is already registered or registration is in progress
             if (_calls.value.containsKey(callId)) {
                 Log.w(
                         TAG,
@@ -132,9 +132,28 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             actionSource = Channel<CallAction>()
             flags = CallActionFlags()
             actionFlags[callId] = flags
+
+            // Add call to the map early so that duplicate registrations are rejected
+            // and listeners are notified immediately. Actions are buffered in the channel
+            // until the call scope starts processing them.
+            val registeredCall = Call.Registered(
+                    id = callId,
+                    isPending = true,
+                    isActive = false,
+                    isOnHold = false,
+                    callAttributes = attributes,
+                    displayOptions = displayOptions,
+                    isMuted = false,
+                    errorCode = null,
+                    currentCallEndpoint = null,
+                    availableCallEndpoints = emptyList(),
+                    actionSource = actionSource,
+            )
+            addCall(callId, registeredCall)
+            debugLog(TAG, "[repository] registerCall: Call $callId added to map in pending state")
         }
 
-        // Register the call and handle actions in the scope (mutex released)
+        // Register the call with Telecom and handle actions in the scope (mutex released)
         try {
             callsManager.addCall(
                     attributes,
@@ -148,28 +167,11 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                         "[repository] registerCall: Inside call scope for $callId, setting up call handlers"
                 )
 
+                // Call is now registered in Telecom — mark as no longer pending
+                updateCallById(callId) { copy(isPending = false) }
+
                 // Consume the actions to interact with the call inside the scope
                 launch { processCallActions(callId, flags, actionSource.consumeAsFlow()) }
-
-                // Update the state to registered
-                debugLog(
-                        TAG,
-                        "[repository] registerCall: Creating Registered call state with ID: $callId"
-                )
-                val registeredCall = Call.Registered(
-                        id = callId,
-                        isActive = false,
-                        isOnHold = false,
-                        callAttributes = attributes,
-                        displayOptions = displayOptions,
-                        isMuted = false,
-                        errorCode = null,
-                        currentCallEndpoint = null,
-                        availableCallEndpoints = emptyList(),
-                        actionSource = actionSource,
-                )
-                addCall(callId, registeredCall)
-                debugLog(TAG, "[repository] registerCall: Call $callId added to map")
 
                 launch {
                     currentCallEndpoint.collect {
@@ -216,11 +218,14 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     }
 
     private fun observeCalls(): Job {
-        // Track previous state per call for diffing
+        // Track previous state per call for diffing (only non-pending calls)
         var previousCalls: Map<String, Call.Registered> = emptyMap()
 
         return calls
-                .onEach { currentCalls ->
+                .onEach { allCalls ->
+                    // Filter out pending calls — they are not yet registered in Telecom
+                    val currentCalls = allCalls.filter { (_, call) -> !call.isPending }
+
                     // Detect new calls
                     for ((callId, call) in currentCalls) {
                         val previous = previousCalls[callId]

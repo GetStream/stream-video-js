@@ -27,6 +27,7 @@ sealed class Call {
         val isActive: Boolean,
         val isOnHold: Boolean,
         val isMuted: Boolean,
+        val isPending: Boolean,
         val errorCode: Int?,
         val currentCallEndpoint: CallEndpointCompat?,
         val availableCallEndpoints: List<CallEndpointCompat>,
