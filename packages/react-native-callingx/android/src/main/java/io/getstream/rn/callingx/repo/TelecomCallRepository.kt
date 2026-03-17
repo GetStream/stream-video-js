@@ -24,13 +24,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Per-call flags tracking whether an action was initiated by the app (self) or by the system.
  */
 private data class CallActionFlags(
-    var isSelfAnswered: Boolean = false,
-    var isSelfDisconnected: Boolean = false,
+    val isSelfAnswered: AtomicBoolean = AtomicBoolean(false),
+    val isSelfDisconnected: AtomicBoolean = AtomicBoolean(false),
 )
 
 /**
@@ -197,6 +198,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             Log.e(TAG, "[repository] registerCall: Error registering call $callId", e)
             throw e
         } finally {
+            // Call lifecycle cleanup:
+            // - processCallActions(...) is launched in the CallControlScope, so its collector is
+            //   cancelled automatically when the Telecom call scope finishes.
+            // - We then remove the call from the repository map and clear per-call flags.
+            // - The Call.actionSource channel is no longer referenced and can be garbage-collected;
+            //   we do not explicitly close it because callers use trySend(), which never suspends.
             debugLog(TAG, "[repository] registerCall: Cleaning up call $callId")
             removeCall(callId)
             actionFlags.remove(callId)
@@ -362,7 +369,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     }
 
     private suspend fun CallControlScope.doDisconnect(callId: String, flags: CallActionFlags, action: CallAction.Disconnect) {
-        flags.isSelfDisconnected = true
+        flags.isSelfDisconnected.set(true)
         debugLog(TAG, "[repository] doDisconnect[$callId]: Disconnecting call with cause: ${action.cause}")
         disconnect(action.cause)
         debugLog(TAG, "[repository] doDisconnect[$callId]: Disconnect called, triggering onIsCallDisconnected")
@@ -370,7 +377,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     }
 
     private suspend fun CallControlScope.doAnswer(callId: String, flags: CallActionFlags, isAudioCall: Boolean) {
-        flags.isSelfAnswered = true
+        flags.isSelfAnswered.set(true)
         val callType =
                 if (isAudioCall) CallAttributesCompat.CALL_TYPE_AUDIO_CALL
                 else CallAttributesCompat.CALL_TYPE_VIDEO_CALL
@@ -384,7 +391,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                         TAG,
                         "[repository] doAnswer[$callId]: Answer failed with error code: ${result.errorCode}"
                 )
-                flags.isSelfAnswered = false
+                flags.isSelfAnswered.set(false)
                 val call = _calls.value[callId]
                 if (call != null) {
                     removeCall(callId)
@@ -401,15 +408,15 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     private fun onIsCallAnswered(callId: String, flags: CallActionFlags): suspend (type: Int) -> Unit = {
         debugLog(
                 TAG,
-                "[repository] onIsCallAnswered[$callId]: Call answered, type: $it, isSelfAnswered: ${flags.isSelfAnswered}"
+                "[repository] onIsCallAnswered[$callId]: Call answered, type: $it, isSelfAnswered: ${flags.isSelfAnswered.get()}"
         )
         updateCallById(callId) { copy(isActive = true, isOnHold = false) }
 
-        val source = if (flags.isSelfAnswered) EventSource.APP else EventSource.SYS
+        val source = if (flags.isSelfAnswered.get()) EventSource.APP else EventSource.SYS
         if (_calls.value.containsKey(callId)) {
             _listener?.onIsCallAnswered(callId, source)
         }
-        flags.isSelfAnswered = false
+        flags.isSelfAnswered.set(false)
         debugLog(TAG, "[repository] onIsCallAnswered[$callId]: Call state updated to active")
     }
 
@@ -418,11 +425,11 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                 TAG,
                 "[repository] onIsCallDisconnected[$callId]: Call disconnected, cause: ${cause.reason}, description: ${cause.description}"
         )
-        val source = if (flags.isSelfDisconnected) EventSource.APP else EventSource.SYS
+        val source = if (flags.isSelfDisconnected.get()) EventSource.APP else EventSource.SYS
 
         removeCall(callId)
         _listener?.onIsCallDisconnected(callId, cause, source)
-        flags.isSelfDisconnected = false
+        flags.isSelfDisconnected.set(false)
         debugLog(TAG, "[repository] onIsCallDisconnected[$callId]: Call removed from map")
     }
 
