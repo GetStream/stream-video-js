@@ -49,6 +49,9 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         private const val TAG = "[Callingx] TelecomCallRepository"
     }
 
+    @Volatile
+    private var isReleased: Boolean = false
+
     private var observeCallsJob: Job? = null
 
     private val callsManager: CallsManager
@@ -77,6 +80,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     }
 
     override fun release() {
+        if (isReleased) {
+            debugLog(TAG, "[repository] release: Already released, ignoring")
+            return
+        }
+        isReleased = true
+
         // Disconnect all active calls
         val currentCalls = _calls.value
         for ((callId, call) in currentCalls) {
@@ -104,6 +113,14 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             isVideo: Boolean,
             displayOptions: Bundle?,
     ) {
+        if (isReleased) {
+            Log.w(
+                    TAG,
+                    "[repository] registerCall: Repository already released, ignoring registration for $callId"
+            )
+            return
+        }
+
         // Hold the mutex only for the dedup check — release before entering the long-lived call scope
         val attributes: CallAttributesCompat
         val actionSource: Channel<CallAction>
@@ -135,8 +152,10 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             actionFlags[callId] = flags
 
             // Add call to the map early so that duplicate registrations are rejected
-            // and listeners are notified immediately. Actions are buffered in the channel
-            // until the call scope starts processing them.
+            // and listeners are notified immediately. Actions sent via trySend() may arrive
+            // before the call scope starts collecting; in that case, they are dropped
+            // rather than buffered, which is acceptable because we explicitly handle
+            // pending actions in CallService/CallRegistrationStore.
             val registeredCall = Call.Registered(
                     id = callId,
                     isPending = true,
