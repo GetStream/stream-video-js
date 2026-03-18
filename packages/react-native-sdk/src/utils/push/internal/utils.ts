@@ -74,7 +74,7 @@ export const processCallFromPushInBackground = async (
    * as per ios docs "Instead, wait until you establish a connection and then fulfill the object."
    * This means we wait until call.get() is done and call.join() or call.leave() is invoked (not completed) to fulfill the action
    */
-  onConnectionEstablishedToServer: (didFail: boolean) => void
+  onConnectionEstablishedToServer: (didFail: boolean) => void,
 ) => {
   let videoClient: StreamVideoClient | undefined;
 
@@ -84,20 +84,25 @@ export const processCallFromPushInBackground = async (
       throw new Error('createStreamVideoClient returned null');
     }
   } catch (e) {
-    logger.error('processCallFromPushInBackground: failed to create video client', e);
+    logger.error(
+      'processCallFromPushInBackground: failed to create video client',
+      e,
+    );
     onConnectionEstablishedToServer(true);
     return;
   }
 
   try {
     const callFromPush = await videoClient.onRingingCall(call_cid);
-    processCallFromPush(callFromPush, action, pushConfig)
+    processCallFromPush(callFromPush, action, pushConfig);
     onConnectionEstablishedToServer(false);
   } catch (e) {
-    logger.error('processCallFromPushInBackground: failed to fetch call from push notification', e);
+    logger.error(
+      'processCallFromPushInBackground: failed to fetch call from push notification',
+      e,
+    );
     onConnectionEstablishedToServer(true);
   }
-
 };
 
 /**
@@ -112,7 +117,6 @@ const processCallFromPush = async (
   action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
   pushConfig: PushConfig,
 ) => {
-
   // note: when action was pressed or delivered, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
   try {
     if (action === 'accept') {
@@ -136,14 +140,18 @@ const processCallFromPush = async (
       await callFromPush.join();
     } else if (action === 'decline') {
       const canReject =
-        callFromPush.state.callingState === CallingState.RINGING || callFromPush.state.callingState === CallingState.IDLE;
+        callFromPush.state.callingState === CallingState.RINGING ||
+        callFromPush.state.callingState === CallingState.IDLE;
       logger.debug(
         `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`,
       );
       await callFromPush.leave({ reject: canReject, reason: 'decline' });
     }
   } catch (e) {
-    logger.warn(`processCallFromPush: failed to process ${action} call from push notification`, e);
+    logger.warn(
+      `processCallFromPush: failed to process ${action} call from push notification`,
+      e,
+    );
   }
 };
 
@@ -171,10 +179,13 @@ export const processNonIncomingCallFromPush = async (
       await callFromPush.get();
     }
   } catch (e) {
-    const logger = videoLoggerSystem.getLogger(
+    const nonRingingCallLogger = videoLoggerSystem.getLogger(
       'processNonIncomingCallFromPush',
     );
-    logger.error('failed to fetch call from push notification', e);
+    nonRingingCallLogger.error(
+      'failed to fetch call from push notification',
+      e,
+    );
     return;
   }
   onNewCallNotification(callFromPush, nonRingingNotificationType);
