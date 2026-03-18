@@ -15,8 +15,8 @@ import java.nio.ByteBuffer
  * Captures system media audio using [AudioPlaybackCaptureConfiguration].
  *
  * Uses the given [MediaProjection] to set up an [AudioRecord] that captures
- * audio from media playback (e.g., YouTube, music apps) but not notifications
- * or system sounds.
+ * audio from media playback, games, and other apps (USAGE_MEDIA, USAGE_GAME,
+ * USAGE_UNKNOWN) but not notifications, alarms, or system sounds.
  *
  * Audio is captured in a pull-based manner via [getScreenAudioBytes], which
  * reads exactly the requested number of bytes using [AudioRecord.READ_BLOCKING].
@@ -43,6 +43,8 @@ class ScreenAudioCapture(private val mediaProjection: MediaProjection) {
     fun start() {
         val playbackConfig = AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
             .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+            .addMatchingUsage(AudioAttributes.USAGE_GAME)
+            .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN)
             .build()
 
         val audioFormat = AudioFormat.Builder()
