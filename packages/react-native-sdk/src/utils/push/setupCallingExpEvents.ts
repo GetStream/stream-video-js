@@ -61,16 +61,10 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     const { eventName, params } = event;
     if (eventName === 'answerCall') {
       logger.debug(`answerCall delayed event callId: ${params?.callId}`);
-      onAcceptCall(pushConfig)(params as EventParams['answerCall']).catch(
-        (err) => {
-          logger.error('Failed to process delayed answerCall event', err);
-        },
-      );
+      onAcceptCall(pushConfig)(params as EventParams['answerCall'])
     } else if (eventName === 'endCall') {
       logger.debug(`endCall delayed event callId: ${params?.callId}`);
-      onEndCall(pushConfig)(params as EventParams['endCall']).catch((err) => {
-        logger.error('Failed to process delayed endCall event', err);
-      });
+      onEndCall(pushConfig)(params as EventParams['endCall']);
     } else if (eventName === 'didActivateAudioSession') {
       onDidActivateAudioSession();
     } else if (eventName === 'didDeactivateAudioSession') {
@@ -97,44 +91,35 @@ const onDidDeactivateAudioSession = () => {
 
 const onAcceptCall =
   (pushConfig: PushConfig) =>
-  async ({ callId: call_cid, source }: EventParams['answerCall']) => {
-    logger.debug(`onAcceptCall event call_cid: ${call_cid} source: ${source}`);
+    ({ callId: call_cid, source }: EventParams['answerCall']) => {
+      logger.debug(`onAcceptCall event call_cid: ${call_cid} source: ${source}`);
 
-    if (source === 'app' || !call_cid) {
-      // App-initiated actions are fulfilled on the native side immediately — nothing to do here
-      return;
-    }
+      if (source === 'app' || !call_cid) {
+        // App-initiated actions are fulfilled on the native side immediately — nothing to do here
+        return;
+      }
 
-    const callingx = getCallingxLib();
-    clearPushWSEventSubscriptions(call_cid);
-    let didFail = false;
-    try {
-      await processCallFromPushInBackground(pushConfig, call_cid, 'accept');
-    } catch (err) {
-      didFail = true;
-      logger.error('Failed to process answerCall event', err);
-    }
-    callingx.fulfillAnswerCallAction(call_cid, didFail);
-  };
+      const callingx = getCallingxLib();
+      clearPushWSEventSubscriptions(call_cid);
+
+      processCallFromPushInBackground(pushConfig, call_cid, 'accept', (didFail) => {
+        callingx.fulfillAnswerCallAction(call_cid, didFail);
+      });
+    };
 
 const onEndCall =
   (pushConfig: PushConfig) =>
-  async ({ callId: call_cid, source }: EventParams['endCall']) => {
-    logger.debug(`onEndCall event call_cid: ${call_cid} source: ${source}`);
+    ({ callId: call_cid, source }: EventParams['endCall']) => {
+      logger.debug(`onEndCall event call_cid: ${call_cid} source: ${source}`);
 
-    if (source === 'app' || !call_cid) {
-      // App-initiated actions are fulfilled on the native side immediately — nothing to do here
-      return;
-    }
+      if (source === 'app' || !call_cid) {
+        // App-initiated actions are fulfilled on the native side immediately — nothing to do here
+        return;
+      }
 
-    const callingx = getCallingxLib();
-    clearPushWSEventSubscriptions(call_cid);
-    try {
-      await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
-    } catch (err) {
-      logger.error('Failed to process endCall event', err);
-    }
-    // Always fulfill (never fail) end actions: user intent is to close call UI,
-    // and failing end actions can surface misleading "Call Failed" UX in CallKit.
-    callingx.fulfillEndCallAction(call_cid, false);
-  };
+      const callingx = getCallingxLib();
+      clearPushWSEventSubscriptions(call_cid);
+      processCallFromPushInBackground(pushConfig, call_cid, 'decline', (didFail) => {
+        callingx.fulfillEndCallAction(call_cid, didFail);
+      });
+    };

@@ -15,6 +15,7 @@ import type { EndCallReason } from '@stream-io/react-native-callingx';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
+const logger = videoLoggerSystem.getLogger('callingx');
 type CanAddPushWSSubscriptionsRef = { current: boolean };
 
 /**
@@ -66,7 +67,14 @@ export const shouldCallBeEnded = (
 export const processCallFromPushInBackground = async (
   pushConfig: PushConfig,
   call_cid: string,
-  action: Parameters<typeof processCallFromPush>[2],
+  action: Parameters<typeof processCallFromPush>[1],
+  /**
+   * Callback to inform the app that the connection to the server was established
+   * Needed for iOS CallKit fullfillment of action
+   * as per ios docs "Instead, wait until you establish a connection and then fulfill the object."
+   * This means we wait until call.get() is done and call.join() or call.leave() is invoked (not completed) to fulfill the action
+   */
+  onConnectionEstablishedToServer: (didFail: boolean) => void
 ) => {
   let videoClient: StreamVideoClient | undefined;
 
@@ -76,13 +84,20 @@ export const processCallFromPushInBackground = async (
       throw new Error('createStreamVideoClient returned null');
     }
   } catch (e) {
-    const logger = videoLoggerSystem.getLogger(
-      'processCallFromPushInBackground',
-    );
-    logger.error('failed to create video client', e);
-    throw e;
+    logger.error('processCallFromPushInBackground: failed to create video client', e);
+    onConnectionEstablishedToServer(true);
+    return;
   }
-  await processCallFromPush(videoClient, call_cid, action, pushConfig);
+
+  try {
+    const callFromPush = await videoClient.onRingingCall(call_cid);
+    processCallFromPush(callFromPush, action, pushConfig)
+    onConnectionEstablishedToServer(false);
+  } catch (e) {
+    logger.error('processCallFromPushInBackground: failed to fetch call from push notification', e);
+    onConnectionEstablishedToServer(true);
+  }
+
 };
 
 /**
@@ -92,20 +107,12 @@ export const processCallFromPushInBackground = async (
  * 2. Fetch the latest state of the call from the server if its not already in ringing state
  * 3. Join or leave the call based on the user's action.
  */
-export const processCallFromPush = async (
-  client: StreamVideoClient,
-  call_cid: string,
+const processCallFromPush = async (
+  callFromPush: Call,
   action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
   pushConfig: PushConfig,
 ) => {
-  let callFromPush: Call;
-  const logger = videoLoggerSystem.getLogger('Callingx - processCallFromPush');
-  try {
-    callFromPush = await client.onRingingCall(call_cid);
-  } catch (e) {
-    logger.error('failed to fetch call from push notification', e);
-    throw e;
-  }
+
   // note: when action was pressed or delivered, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
   try {
     if (action === 'accept') {
@@ -129,15 +136,14 @@ export const processCallFromPush = async (
       await callFromPush.join();
     } else if (action === 'decline') {
       const canReject =
-        callFromPush.state.callingState === CallingState.RINGING;
+        callFromPush.state.callingState === CallingState.RINGING || callFromPush.state.callingState === CallingState.IDLE;
       logger.debug(
         `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`,
       );
       await callFromPush.leave({ reject: canReject, reason: 'decline' });
     }
   } catch (e) {
-    logger.warn(`failed to process ${action} call from push notification`, e);
-    throw e;
+    logger.warn(`processCallFromPush: failed to process ${action} call from push notification`, e);
   }
 };
 

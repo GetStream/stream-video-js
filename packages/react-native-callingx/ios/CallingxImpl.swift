@@ -828,8 +828,7 @@ import stream_react_native_webrtc
         RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
 
         // Enable wake lock to keep the device awake during the call
-
-      DispatchQueue.main.async {
+        DispatchQueue.main.async {
             UIApplication.shared.isIdleTimerDisabled = true
         }
 
