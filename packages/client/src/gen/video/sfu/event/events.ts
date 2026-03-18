@@ -670,6 +670,10 @@ export interface SubscriberOffer {
    * @generated from protobuf field: string sdp = 2;
    */
   sdp: string;
+  /**
+   * @generated from protobuf field: uint32 negotiation_id = 3;
+   */
+  negotiationId: number;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.PublisherAnswer
@@ -1596,6 +1600,12 @@ class SubscriberOffer$Type extends MessageType<SubscriberOffer> {
     super('stream.video.sfu.event.SubscriberOffer', [
       { no: 1, name: 'ice_restart', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 2, name: 'sdp', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 3,
+        name: 'negotiation_id',
+        kind: 'scalar',
+        T: 13 /*ScalarType.UINT32*/,
+      },
     ]);
   }
 }

@@ -168,6 +168,7 @@ export class Subscriber extends BasePeerConnection {
     await this.sfuClient.sendAnswer({
       peerType: PeerType.SUBSCRIBER,
       sdp: answer.sdp || '',
+      negotiationId: subscriberOffer.negotiationId,
     });
 
     this.isIceRestarting = false;
