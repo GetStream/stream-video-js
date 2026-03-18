@@ -46,6 +46,7 @@ void broadcastNotificationCallback(CFNotificationCenterRef center,
     bool hasListeners;
     CFNotificationCenterRef _notificationCenter;
     AVAudioPlayer *_busyTonePlayer; // Instance variable
+    BOOL _vpBypassedBeforeMixing; // VP bypass state before screen share audio mixing
 }
 
 // necessary for addUIBlock usage https://github.com/facebook/react-native/issues/50800#issuecomment-2823327307
@@ -684,52 +685,6 @@ RCT_EXPORT_METHOD(stopInAppScreenCapture:(RCTPromiseResolveBlock)resolve
 
 #pragma mark - Screen Share Audio Mixing
 
-RCT_EXPORT_METHOD(prepareScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject)
-{
-    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
-
-    // The mixer is created eagerly at factory init time (in WebRTCModule.m)
-    // and wired as audioGraphDelegate on the ADM. Just verify it exists.
-    ScreenShareAudioMixer *mixer = options.screenShareAudioMixer;
-    if (!mixer) {
-        reject(@"MIXER_ERROR", @"Mixer not available — WebRTCModule may not have initialized", nil);
-        return;
-    }
-
-    resolve(nil);
-}
-
-RCT_EXPORT_METHOD(cleanupScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
-                  reject:(RCTPromiseRejectBlock)reject)
-{
-    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
-
-    // Stop mixing if active
-    ScreenShareAudioMixer *mixer = options.screenShareAudioMixer;
-    if (mixer) {
-        [mixer stopMixing];
-    }
-
-    // Restore voice processing in case it was left bypassed
-    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
-    if (webrtcModule.audioDeviceModule) {
-        [webrtcModule.audioDeviceModule setVoiceProcessingBypassed:NO];
-    }
-
-    // Clear the audio buffer handler on the capturer
-    InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
-    if (capturer) {
-        capturer.audioBufferHandler = nil;
-    }
-
-    // NOTE: Do NOT clear options.screenShareAudioMixer — the ADM holds a weak
-    // reference to it via audioGraphDelegate. Clearing it would deallocate
-    // the mixer and break future screen share sessions.
-
-    resolve(nil);
-}
-
 RCT_EXPORT_METHOD(startScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 {
@@ -746,11 +701,14 @@ RCT_EXPORT_METHOD(startScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
     // callback, so it must be true before the reconfiguration fires.
     [mixer startMixing];
 
-    // Bypass voice processing (AEC/AGC/NS) so screen audio isn't filtered as echo.
-    // This triggers a stop/reconfigure/start cycle, during which onConfigureInputFromSource
-    // fires and the mixer wires its playerNode + mixerNode into the graph.
+    // Save current VP bypass state so we can restore it when mixing stops.
+    // VP may already be bypassed (e.g. stereo playout mode).
     WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
     if (webrtcModule.audioDeviceModule) {
+        _vpBypassedBeforeMixing = webrtcModule.audioDeviceModule.isVoiceProcessingBypassed;
+        // Bypass voice processing (AEC/AGC/NS) so screen audio isn't filtered as echo.
+        // This triggers a stop/reconfigure/start cycle, during which onConfigureInputFromSource
+        // fires and the mixer wires its playerNode + mixerNode into the graph.
         [webrtcModule.audioDeviceModule setVoiceProcessingBypassed:YES];
     }
 
@@ -779,10 +737,10 @@ RCT_EXPORT_METHOD(stopScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
         [mixer stopMixing];
     }
 
-    // Restore voice processing (AEC/AGC/NS)
+    // Restore voice processing bypass to its previous state
     WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
     if (webrtcModule.audioDeviceModule) {
-        [webrtcModule.audioDeviceModule setVoiceProcessingBypassed:NO];
+        [webrtcModule.audioDeviceModule setVoiceProcessingBypassed:_vpBypassedBeforeMixing];
     }
 
     // Clear the audio buffer handler on the capturer

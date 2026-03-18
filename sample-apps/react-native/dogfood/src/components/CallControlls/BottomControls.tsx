@@ -51,7 +51,7 @@ export const BottomControls = ({
           <ToggleAudioPublishingButton />
           <ToggleVideoPublishingButton />
           <ScreenShareToggleButton
-            screenShareOptions={{ includeAudio: true }}
+            screenShareOptions={{ type: 'inApp', includeAudio: true }}
           />
           <RecordCallButton
             toggleCallRecording={toggleCallRecording}

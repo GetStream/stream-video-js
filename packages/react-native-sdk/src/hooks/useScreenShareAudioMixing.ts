@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { hasScreenShare, videoLoggerSystem } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
-import {
-  cleanupScreenShareAudioMixing,
-  prepareScreenShareAudioMixing,
-  startScreenShareAudioMixing,
-  stopScreenShareAudioMixing,
-} from '../native/ScreenShareAudioModule';
+import { screenShareAudioMixingManager } from '../modules/ScreenShareAudioManager';
 import { NoiseCancellationWrapper } from '../providers/NoiseCancellation/lib';
 
 const logger = videoLoggerSystem.getLogger('useScreenShareAudioMixing');
@@ -69,21 +64,6 @@ export const useScreenShareAudioMixing = () => {
   const isMixingActiveRef = useRef(false);
   const ncWasEnabledRef = useRef(false);
 
-  // Prepare the audio mixer early (iOS only) so the audio graph is
-  // configured during engine setup, before the engine starts rendering.
-  // This enables safe AVAudioPlayerNode attachment.
-  useEffect(() => {
-    prepareScreenShareAudioMixing().catch((e) =>
-      logger.warn('Failed to prepare screen share audio mixing', e),
-    );
-    return () => {
-      cleanupScreenShareAudioMixing().catch(() => {});
-    };
-  }, []);
-
-  // Subscribe to the audioEnabled state on ScreenShareManager.
-  // This observable is not exposed by a react-bindings hook,
-  // so we subscribe to it directly via the call object.
   useEffect(() => {
     if (!call) return;
     const sub = call.screenShare.state.audioEnabled$.subscribe(setAudioEnabled);
@@ -97,11 +77,10 @@ export const useScreenShareAudioMixing = () => {
       ncWasEnabledRef.current = await disableNoiseCancellation();
 
       logger.info('Starting screen share audio mixing');
-      await startScreenShareAudioMixing();
+      await screenShareAudioMixingManager.startScreenShareAudioMixing();
       isMixingActiveRef.current = true;
     } catch (error) {
       logger.warn('Failed to start screen share audio mixing', error);
-      // Restore NC if we disabled it but mixing failed
       if (ncWasEnabledRef.current) {
         restoreNoiseCancellation().catch(() => {});
         ncWasEnabledRef.current = false;
@@ -113,10 +92,9 @@ export const useScreenShareAudioMixing = () => {
     if (!isMixingActiveRef.current) return;
     try {
       logger.info('Stopping screen share audio mixing');
-      await stopScreenShareAudioMixing();
+      await screenShareAudioMixingManager.stopScreenShareAudioMixing();
       isMixingActiveRef.current = false;
 
-      // Restore NC if we disabled it
       if (ncWasEnabledRef.current) {
         await restoreNoiseCancellation();
         ncWasEnabledRef.current = false;
@@ -135,11 +113,12 @@ export const useScreenShareAudioMixing = () => {
     }
   }, [isScreenSharing, audioEnabled, startMixing, stopMixing]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (isMixingActiveRef.current) {
-        stopScreenShareAudioMixing().catch(() => {});
+        screenShareAudioMixingManager
+          .stopScreenShareAudioMixing()
+          .catch(() => {});
         isMixingActiveRef.current = false;
         if (ncWasEnabledRef.current) {
           restoreNoiseCancellation().catch(() => {});

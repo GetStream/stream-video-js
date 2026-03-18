@@ -506,14 +506,10 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
                 return
             }
 
-            val webRTCModule = reactApplicationContext.getNativeModule(WebRTCModule::class.java)
-            if (webRTCModule == null) {
-                promise.reject("WEBRTC_ERROR", "WebRTCModule not found")
-                return
-            }
+            val module = reactApplicationContext.getNativeModule(WebRTCModule::class.java)!!
 
             // Get the MediaProjection permission result Intent from WebRTC
-            val permissionIntent = webRTCModule.userMediaImpl?.mediaProjectionPermissionResultData
+            val permissionIntent = module.userMediaImpl?.mediaProjectionPermissionResultData
             if (permissionIntent == null) {
                 promise.reject("NO_PROJECTION", "No MediaProjection permission available. Start screen sharing first.")
                 return
@@ -531,17 +527,14 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
                 return
             }
 
-            // Create and start screen audio capture
-            val capture = ScreenAudioCapture(mediaProjection)
-            capture.start()
-            screenAudioCapture = capture
+            screenAudioCapture = ScreenAudioCapture(mediaProjection).also { it.start() }
 
             // Register the screen audio bytes provider so the AudioBufferCallback
             // in WebRTCModule mixes screen audio into the mic buffer.
             WebRTCModuleOptions.getInstance().screenAudioBytesProvider =
                 WebRTCModuleOptions.ScreenAudioBytesProvider { bytesRequested ->
-                    capture.getScreenAudioBytes(bytesRequested)
-                }
+                screenAudioCapture?.getScreenAudioBytes(bytesRequested)
+            }
 
             Log.d(NAME, "Screen share audio mixing started")
             promise.resolve(null)
@@ -567,7 +560,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             // Clear the provider so the AudioBufferCallback stops mixing
             WebRTCModuleOptions.getInstance().screenAudioBytesProvider = null
 
-            // Stop and release the audio capture
             screenAudioCapture?.stop()
             screenAudioCapture = null
 

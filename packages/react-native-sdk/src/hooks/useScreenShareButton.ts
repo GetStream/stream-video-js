@@ -8,10 +8,7 @@ import React, { useEffect, useRef } from 'react';
 import { findNodeHandle, NativeModules, Platform } from 'react-native';
 import { usePrevious } from '../utils/hooks';
 import { useIsIosScreenshareBroadcastStarted } from './useIsIosScreenshareBroadcastStarted';
-import {
-  startInAppScreenCapture,
-  stopInAppScreenCapture,
-} from '../native/ScreenShareAudioModule';
+import { screenShareAudioMixingManager } from '../modules/ScreenShareAudioManager';
 
 /**
  * The type of screen sharing to use on iOS.
@@ -40,7 +37,7 @@ export type ScreenShareOptions = {
    * (e.g., YouTube video audio) mixed with the user's microphone.
    *
    * - iOS in-app: Audio captured from RPScreenRecorder `.audioApp` buffers.
-   * - iOS broadcast: Audio captured from the broadcast extension via socket.
+   * - iOS broadcast: Audio mixing is **not** currently supported.
    * - Android: Audio captured via AudioPlaybackCaptureConfiguration (API 29+).
    *
    * Default: `false`.
@@ -159,7 +156,9 @@ export const useScreenShareButton = (
       if (Platform.OS === 'ios' && screenShareType === 'inApp') {
         // In-app screen sharing on iOS — uses RPScreenRecorder directly
         try {
-          await startInAppScreenCapture(includeAudio);
+          await screenShareAudioMixingManager.startInAppScreenCapture(
+            includeAudio,
+          );
           await call?.screenShare.enable();
           onScreenShareStartedHandler?.();
         } catch (error) {
@@ -190,7 +189,7 @@ export const useScreenShareButton = (
       onScreenShareStoppedHandler?.();
       // Stop in-app screen capture if it was active (iOS only)
       if (Platform.OS === 'ios' && screenShareType === 'inApp') {
-        await stopInAppScreenCapture();
+        await screenShareAudioMixingManager.stopInAppScreenCapture();
       }
       await call?.screenShare.disable(true);
     }
