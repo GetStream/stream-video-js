@@ -172,6 +172,7 @@ import {
   promiseWithResolvers,
 } from './helpers/promise';
 import { GetCallStatsResponse } from './gen/shims';
+import { isReactNative } from './helpers/platforms';
 
 /**
  * An object representation of a `Call`.
@@ -746,7 +747,8 @@ export class Call {
     // const calls = useCalls().filter((c) => c.ringing);
     const calls = this.clientStore.calls.filter((c) => c.cid !== this.cid);
     this.clientStore.setCalls([this, ...calls]);
-    await this.applyDeviceConfig(settings, false);
+    const skipSpeakerApply = isReactNative();
+    await this.applyDeviceConfig(settings, false, skipSpeakerApply);
   };
 
   /**
@@ -781,8 +783,17 @@ export class Call {
       this.watching = true;
       this.clientStore.registerOrUpdateCall(this);
     }
-
-    await this.applyDeviceConfig(response.call.settings, false);
+    // Skip speaker setup on RN if ringing was requested or the call is already ringing
+    const skipSpeakerApply = isReactNative()
+      ? params?.ring === true
+        ? true
+        : this.ringing
+      : false;
+    await this.applyDeviceConfig(
+      response.call.settings,
+      false,
+      skipSpeakerApply,
+    );
 
     return response;
   };
@@ -812,7 +823,17 @@ export class Call {
       this.clientStore.registerOrUpdateCall(this);
     }
 
-    await this.applyDeviceConfig(response.call.settings, false);
+    // Skip speaker setup on RN if ringing was requested or the call is already ringing
+    const skipSpeakerApply = isReactNative()
+      ? data?.ring === true
+        ? true
+        : this.ringing
+      : false;
+    await this.applyDeviceConfig(
+      response.call.settings,
+      false,
+      skipSpeakerApply,
+    );
 
     return response;
   };
@@ -1144,7 +1165,7 @@ export class Call {
     // device settings should be applied only once, we don't have to
     // re-apply them on later reconnections or server-side data fetches
     if (!this.deviceSettingsAppliedOnce && this.state.settings) {
-      await this.applyDeviceConfig(this.state.settings, true);
+      await this.applyDeviceConfig(this.state.settings, true, false);
       globalThis.streamRNVideoSDK?.callManager.start();
       this.deviceSettingsAppliedOnce = true;
     }
@@ -2795,8 +2816,11 @@ export class Call {
   applyDeviceConfig = async (
     settings: CallSettingsResponse,
     publish: boolean,
+    skipSpeakerApply: boolean,
   ) => {
-    this.speaker.apply(settings);
+    if (!skipSpeakerApply) {
+      this.speaker.apply(settings);
+    }
     await this.camera.apply(settings.video, publish).catch((err) => {
       this.logger.warn('Camera init failed', err);
     });

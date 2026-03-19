@@ -169,7 +169,6 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
                 deviceId,
                 label,
               };
-              console.log(event);
               this.call.tracer.trace('mic.capture_report', event);
               this.call.streamClient.dispatchEvent(event);
             },

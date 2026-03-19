@@ -5,7 +5,6 @@ import {
   CancelCallConfirmButton,
   CompositeButton,
   Icon,
-  MicCaptureErrorNotification,
   OwnCapability,
   PermissionRequests,
   PipLayout,
@@ -245,7 +244,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
             hasPermissionsOnly
           >
             <SpeakingWhileMutedNotification />
-            <MicCaptureErrorNotification />
           </Restricted>
         </div>
         <div

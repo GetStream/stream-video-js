@@ -2,6 +2,37 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.33.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.3...@stream-io/video-react-sdk-1.33.4) (2026-03-09)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.7.3`
+
+### Bug Fixes
+
+- **react:** await initialization before enabling / disabling noise cancellation ([#2153](https://github.com/GetStream/stream-video-js/issues/2153)) ([3455a0e](https://github.com/GetStream/stream-video-js/commit/3455a0e597245af6c34332424b4b7029abf7c675))
+
+## [1.33.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.2...@stream-io/video-react-sdk-1.33.3) (2026-03-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.3`
+- `@stream-io/video-react-bindings` updated to version `1.13.12`
+
+## [1.33.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.1...@stream-io/video-react-sdk-1.33.2) (2026-03-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.11`
+
+## [1.33.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.0...@stream-io/video-react-sdk-1.33.1) (2026-03-04)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.1`
+- `@stream-io/video-react-bindings` updated to version `1.13.10`
+
 ## [1.33.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.4...@stream-io/video-react-sdk-1.33.0) (2026-02-27)
 
 ### Dependency Updates
