@@ -55,13 +55,13 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   );
 
   //NOTE: until getInitialEvents invocation, events are delayed and won't be sent to event listeners, this is a way to make sure none of required events are missed
-  //in most cases there will be no delayed answers or ends, but it we don't want to miss any of them
+  //in most cases there will be no delayed answers or ends, but if so we don't want to miss any of them
   const events = callingx.getInitialEvents();
   events.forEach((event: EventData) => {
     const { eventName, params } = event;
     if (eventName === 'answerCall') {
       logger.debug(`answerCall delayed event callId: ${params?.callId}`);
-      onAcceptCall(pushConfig)(params as EventParams['answerCall'])
+      onAcceptCall(pushConfig)(params as EventParams['answerCall']);
     } else if (eventName === 'endCall') {
       logger.debug(`endCall delayed event callId: ${params?.callId}`);
       onEndCall(pushConfig)(params as EventParams['endCall']);
@@ -91,35 +91,45 @@ const onDidDeactivateAudioSession = () => {
 
 const onAcceptCall =
   (pushConfig: PushConfig) =>
-    ({ callId: call_cid, source }: EventParams['answerCall']) => {
-      logger.debug(`onAcceptCall event call_cid: ${call_cid} source: ${source}`);
+  ({ callId: call_cid, source }: EventParams['answerCall']) => {
+    logger.debug(`onAcceptCall event call_cid: ${call_cid} source: ${source}`);
 
-      if (source === 'app' || !call_cid) {
-        // App-initiated actions are fulfilled on the native side immediately — nothing to do here
-        return;
-      }
+    if (source === 'app' || !call_cid) {
+      // App-initiated actions are fulfilled on the native side immediately — nothing to do here
+      return;
+    }
 
-      const callingx = getCallingxLib();
-      clearPushWSEventSubscriptions(call_cid);
+    const callingx = getCallingxLib();
+    clearPushWSEventSubscriptions(call_cid);
 
-      processCallFromPushInBackground(pushConfig, call_cid, 'accept', (didFail) => {
+    processCallFromPushInBackground(
+      pushConfig,
+      call_cid,
+      'accept',
+      (didFail) => {
         callingx.fulfillAnswerCallAction(call_cid, didFail);
-      });
-    };
+      },
+    );
+  };
 
 const onEndCall =
   (pushConfig: PushConfig) =>
-    ({ callId: call_cid, source }: EventParams['endCall']) => {
-      logger.debug(`onEndCall event call_cid: ${call_cid} source: ${source}`);
+  ({ callId: call_cid, source }: EventParams['endCall']) => {
+    logger.debug(`onEndCall event call_cid: ${call_cid} source: ${source}`);
 
-      if (source === 'app' || !call_cid) {
-        // App-initiated actions are fulfilled on the native side immediately — nothing to do here
-        return;
-      }
+    if (source === 'app' || !call_cid) {
+      // App-initiated actions are fulfilled on the native side immediately — nothing to do here
+      return;
+    }
 
-      const callingx = getCallingxLib();
-      clearPushWSEventSubscriptions(call_cid);
-      processCallFromPushInBackground(pushConfig, call_cid, 'decline', (didFail) => {
+    const callingx = getCallingxLib();
+    clearPushWSEventSubscriptions(call_cid);
+    processCallFromPushInBackground(
+      pushConfig,
+      call_cid,
+      'decline',
+      (didFail) => {
         callingx.fulfillEndCallAction(call_cid, didFail);
-      });
-    };
+      },
+    );
+  };
