@@ -139,11 +139,15 @@ export const processCallFromPushInBackground = async (
     const canReject =
       callFromPush.state.callingState === CallingState.RINGING ||
       callFromPush.state.callingState === CallingState.IDLE;
+    const isCurrentUserMember = callFromPush.state.members.some(
+      (member) => member.user_id === callFromPush.currentUserId,
+    );
+    const reject = canReject && isCurrentUserMember;
     logger.debug(
-      `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`,
+      `declining call from push notification with callCid: ${callFromPush.cid} reject: ${reject}`,
     );
     try {
-      await callFromPush.leave({ reject: canReject, reason: 'decline' });
+      await callFromPush.leave({ reject, reason: 'decline' });
       onIOSActionCanBeFulfilled(false);
     } catch (e) {
       logger.warn(
