@@ -34,18 +34,14 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   const { remove: removeAnswerCall } = callingx.addEventListener(
     'answerCall',
     (params) => {
-      onAcceptCall(pushConfig)(params).catch((err) => {
-        logger.error('Failed to process answerCall event', err);
-      });
+      onAcceptCall(pushConfig)(params);
     },
   );
 
   const { remove: removeEndCall } = callingx.addEventListener(
     'endCall',
     (params) => {
-      onEndCall(pushConfig)(params).catch((err) => {
-        logger.error('Failed to process endCall event', err);
-      });
+      onEndCall(pushConfig)(params);
     },
   );
 
@@ -59,22 +55,16 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   );
 
   //NOTE: until getInitialEvents invocation, events are delayed and won't be sent to event listeners, this is a way to make sure none of required events are missed
-  //in most cases there will be no delayed answers or ends, but it we don't want to miss any of them
+  //in most cases there will be no delayed answers or ends, but if so we don't want to miss any of them
   const events = callingx.getInitialEvents();
   events.forEach((event: EventData) => {
     const { eventName, params } = event;
     if (eventName === 'answerCall') {
       logger.debug(`answerCall delayed event callId: ${params?.callId}`);
-      onAcceptCall(pushConfig)(params as EventParams['answerCall']).catch(
-        (err) => {
-          logger.error('Failed to process delayed answerCall event', err);
-        },
-      );
+      onAcceptCall(pushConfig)(params as EventParams['answerCall']);
     } else if (eventName === 'endCall') {
       logger.debug(`endCall delayed event callId: ${params?.callId}`);
-      onEndCall(pushConfig)(params as EventParams['endCall']).catch((err) => {
-        logger.error('Failed to process delayed endCall event', err);
-      });
+      onEndCall(pushConfig)(params as EventParams['endCall']);
     } else if (eventName === 'didActivateAudioSession') {
       onDidActivateAudioSession();
     } else if (eventName === 'didDeactivateAudioSession') {
@@ -101,30 +91,45 @@ const onDidDeactivateAudioSession = () => {
 
 const onAcceptCall =
   (pushConfig: PushConfig) =>
-  async ({ callId: call_cid, source }: EventParams['answerCall']) => {
-    logger.debug(`onAcceptCall event callId: ${call_cid} source: ${source}`);
+  ({ callId: call_cid, source }: EventParams['answerCall']) => {
+    logger.debug(`onAcceptCall event call_cid: ${call_cid} source: ${source}`);
 
     if (source === 'app' || !call_cid) {
-      //we only need to process the call if the call was answered from the system
+      // App-initiated actions are fulfilled on the native side immediately — nothing to do here
       return;
     }
 
+    const callingx = getCallingxLib();
     clearPushWSEventSubscriptions(call_cid);
-    // to process the call in the app
-    await processCallFromPushInBackground(pushConfig, call_cid, 'accept');
+
+    processCallFromPushInBackground(
+      pushConfig,
+      call_cid,
+      'accept',
+      (didFail) => {
+        callingx.fulfillAnswerCallAction(call_cid, didFail);
+      },
+    );
   };
 
 const onEndCall =
   (pushConfig: PushConfig) =>
-  async ({ callId: call_cid, source }: EventParams['endCall']) => {
-    logger.debug(`onEndCall event callId: ${call_cid} source: ${source}`);
+  ({ callId: call_cid, source }: EventParams['endCall']) => {
+    logger.debug(`onEndCall event call_cid: ${call_cid} source: ${source}`);
 
     if (source === 'app' || !call_cid) {
-      //we only need to process the call if the call was rejected from the system
+      // App-initiated actions are fulfilled on the native side immediately — nothing to do here
       return;
     }
 
+    const callingx = getCallingxLib();
     clearPushWSEventSubscriptions(call_cid);
-
-    await processCallFromPushInBackground(pushConfig, call_cid, 'decline');
+    processCallFromPushInBackground(
+      pushConfig,
+      call_cid,
+      'decline',
+      (didFail) => {
+        callingx.fulfillEndCallAction(call_cid, didFail);
+      },
+    );
   };

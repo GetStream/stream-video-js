@@ -3,8 +3,13 @@
  * Used to wait for iOS CallKit's didActivateAudioSession event after starting a call.
  */
 
+import { videoLoggerSystem } from "@stream-io/video-client";
+
+const logger = videoLoggerSystem.getLogger('callingx');
+
 let pendingResolve: (() => void) | null = null;
 let pendingTimeout: ReturnType<typeof setTimeout> | null = null;
+let resolveSetTime: number | null = null;
 /**
  * Flag to check if the audio session is already activated.
  * This solves race condition for a cold start case, when the audio session is activated before the promise is created.
@@ -24,10 +29,12 @@ export function waitForAudioSessionActivation(): Promise<void> {
     return Promise.resolve();
   }
 
+  resolveSetTime = Date.now();
   return new Promise((resolve) => {
     pendingResolve = resolve;
     pendingTimeout = setTimeout(() => {
       // Resolve on timeout to prevent hanging
+      logger.debug('audioSessionPromise timed out');
       resolvePendingAudioSession();
     }, AUDIO_SESSION_TIMEOUT_MS);
   });
@@ -45,6 +52,11 @@ export function resolvePendingAudioSession(): void {
 
   if (pendingResolve) {
     pendingResolve();
+    if (resolveSetTime) {
+      const elapsedTime = Date.now() - resolveSetTime;
+      resolveSetTime = null;
+      logger.debug(`audioSessionPromise resolved in ${elapsedTime}ms`);
+    }
     pendingResolve = null;
     isAudioSessionAlreadyActivated = false;
   } else {
