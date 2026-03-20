@@ -316,7 +316,7 @@ export const getVideoStream = async (
         'Failed to get video stream, will try again with relaxed constraints',
         { error, constraints, relaxedConstraints },
       );
-      return getVideoStream(relaxedConstraints);
+      return getVideoStream(relaxedConstraints, tracer);
     }
 
     logger.error('Failed to get video stream', { error, constraints });
