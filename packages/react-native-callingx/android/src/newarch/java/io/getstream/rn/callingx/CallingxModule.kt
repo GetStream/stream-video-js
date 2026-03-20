@@ -138,6 +138,15 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         impl.registerBackgroundTaskAvailable()
     }
 
+
+    override fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
+        impl.fulfillAnswerCallAction(callId, didFail)
+    }
+
+    override fun fulfillEndCallAction(callId: String, didFail: Boolean) {
+        impl.fulfillEndCallAction(callId, didFail)
+    }
+
     override fun log(message: String, level: String) {
         impl.log(message, level)
     }

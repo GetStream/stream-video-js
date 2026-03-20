@@ -507,6 +507,30 @@ RCT_EXPORT_METHOD(updateDisplay:(NSString *)callId
 }
 #endif
 
+#pragma mark - fulfillAnswerCallAction
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)fulfillAnswerCallAction:(NSString *)callId didFail:(BOOL)didFail {
+  [_moduleImpl fulfillAnswerCallAction:callId didFail:didFail];
+}
+#else
+RCT_EXPORT_METHOD(fulfillAnswerCallAction:(NSString *)callId didFail:(BOOL)didFail) {
+  [_moduleImpl fulfillAnswerCallAction:callId didFail:didFail];
+}
+#endif
+
+#pragma mark - fulfillEndCallAction
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)fulfillEndCallAction:(NSString *)callId didFail:(BOOL)didFail {
+  [_moduleImpl fulfillEndCallAction:callId didFail:didFail];
+}
+#else
+RCT_EXPORT_METHOD(fulfillEndCallAction:(NSString *)callId didFail:(BOOL)didFail) {
+  [_moduleImpl fulfillEndCallAction:callId didFail:didFail];
+}
+#endif
+
 #pragma mark - log
 
 #ifdef RCT_NEW_ARCH_ENABLED

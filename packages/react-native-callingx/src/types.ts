@@ -121,6 +121,22 @@ export interface ICallingxModule {
 
   stopBackgroundTask(taskName: string): Promise<void>;
 
+  /**
+   * Fulfill or fail a pending CXAnswerCallAction on iOS.
+   * Must be called after starting the JS-side joining process (e.g: without awaiting for call.join() to complete)
+   * @param callId - The call id.
+   * @param didFail - If true, calls action.fail(); otherwise calls action.fulfill().
+   */
+  fulfillAnswerCallAction(callId: string, didFail: boolean): void;
+
+  /**
+   * Fulfill or fail a pending CXEndCallAction on iOS.
+   * Must be called after completetion of the JS-side processing (e.g: after call.leave() is done).
+   * @param callId - The call id.
+   * @param didFail - If true, calls action.fail(); otherwise calls action.fulfill().
+   */
+  fulfillEndCallAction(callId: string, didFail: boolean): void;
+
   registerVoipToken(): void;
 
   stopService(): Promise<void>;

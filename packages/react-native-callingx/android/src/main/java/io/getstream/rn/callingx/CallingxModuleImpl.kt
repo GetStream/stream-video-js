@@ -385,6 +385,15 @@ class CallingxModuleImpl(
         isHeadlessTaskRegistered = true
     }
 
+
+    fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
+        // no-op: Android Telecom doesn't require explicit action fulfillment
+    }
+
+    fun fulfillEndCallAction(callId: String, didFail: Boolean) {
+        // no-op: Android Telecom doesn't require explicit action fulfillment
+    }
+
     fun log(message: String, level: String) {
         when (level) {
             "debug" -> debugLog(TAG, "[module] log: $message")

@@ -166,6 +166,16 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
+        impl.fulfillAnswerCallAction(callId, didFail)
+    }
+
+    @ReactMethod
+    fun fulfillEndCallAction(callId: String, didFail: Boolean) {
+        impl.fulfillEndCallAction(callId, didFail)
+    }
+
+    @ReactMethod
     fun log(message: String, level: String) {
         impl.log(message, level)
     }
