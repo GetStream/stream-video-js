@@ -145,7 +145,7 @@ export const ParticipantDetails = ({
   return (
     <>
       <div className="str-video__participant-details">
-        <span className="str-video__participant-details__name">
+        <div className="str-video__participant-details__name">
           {name || userId}
           {indicatorsVisible && isAudioConnecting && (
             <LoadingIndicator className="str-video__participant-details__name--audio-connecting" />
@@ -171,7 +171,7 @@ export const ParticipantDetails = ({
             />
           )}
           {indicatorsVisible && <SpeechIndicator />}
-        </span>
+        </div>
       </div>
       {indicatorsVisible && (
         <Notification
