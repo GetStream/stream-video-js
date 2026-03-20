@@ -25,7 +25,12 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     call: Call,
     devicePersistence: Required<DevicePersistenceOptions>,
   ) {
-    super(call, new CameraManagerState(), TrackType.VIDEO, devicePersistence);
+    super(
+      call,
+      new CameraManagerState(call.tracer),
+      TrackType.VIDEO,
+      devicePersistence,
+    );
   }
 
   private isDirectionSupportedByDevice() {

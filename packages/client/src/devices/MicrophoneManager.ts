@@ -51,7 +51,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   ) {
     super(
       call,
-      new MicrophoneManagerState(disableMode),
+      new MicrophoneManagerState(disableMode, call.tracer),
       TrackType.AUDIO,
       devicePersistence,
     );
