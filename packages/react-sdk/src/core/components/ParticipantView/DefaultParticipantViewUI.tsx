@@ -148,7 +148,10 @@ export const ParticipantDetails = ({
         <div className="str-video__participant-details__name">
           {name || userId}
           {indicatorsVisible && isAudioConnecting && (
-            <LoadingIndicator className="str-video__participant-details__name--audio-connecting" />
+            <LoadingIndicator
+              className="str-video__participant-details__name--audio-connecting"
+              tooltip={t('Audio is connecting...')}
+            />
           )}
           {indicatorsVisible && !hasAudioTrack && (
             <span className="str-video__participant-details__name--audio-muted" />
