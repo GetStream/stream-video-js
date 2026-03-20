@@ -1,4 +1,4 @@
-import { ComponentType, forwardRef } from 'react';
+import { ComponentType, forwardRef, useEffect, useState } from 'react';
 import { Placement } from '@floating-ui/react';
 import {
   hasAudio,
@@ -6,6 +6,7 @@ import {
   hasScreenShare,
   hasVideo,
   SfuModels,
+  StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useCall, useI18n } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
@@ -13,6 +14,7 @@ import clsx from 'clsx';
 import {
   Icon,
   IconButton,
+  LoadingIndicator,
   MenuToggle,
   Notification,
   ToggleMenuButtonProps,
@@ -137,12 +139,20 @@ export const ParticipantDetails = ({
   const isTrackPaused =
     trackType !== 'none' ? hasPausedTrack(participant, trackType) : false;
 
+  const isAudioTrackUnmuted = useIsTrackUnmuted(participant);
+  const isAudioConnecting = hasAudioTrack && !isAudioTrackUnmuted;
+
   return (
     <>
       <div className="str-video__participant-details">
-        <span className="str-video__participant-details__name">
+        <div className="str-video__participant-details__name">
           {name || userId}
-
+          {indicatorsVisible && isAudioConnecting && (
+            <LoadingIndicator
+              className="str-video__participant-details__name--audio-connecting"
+              tooltip={t('Audio is connecting...')}
+            />
+          )}
           {indicatorsVisible && !hasAudioTrack && (
             <span className="str-video__participant-details__name--audio-muted" />
           )}
@@ -164,7 +174,7 @@ export const ParticipantDetails = ({
             />
           )}
           {indicatorsVisible && <SpeechIndicator />}
-        </span>
+        </div>
       </div>
       {indicatorsVisible && (
         <Notification
@@ -205,4 +215,34 @@ export const SpeechIndicator = () => {
       <span className="str-video__speech-indicator__bar" />
     </span>
   );
+};
+
+const useIsTrackUnmuted = (participant: StreamVideoParticipant) => {
+  const audioStream = participant.audioStream;
+
+  const [unmuted, setUnmuted] = useState(() => {
+    const track = audioStream?.getAudioTracks()[0];
+    return !!track && !track.muted;
+  });
+
+  useEffect(() => {
+    const track = audioStream?.getAudioTracks()[0];
+    if (!track) return;
+
+    setUnmuted(!track.muted);
+
+    const handler = () => {
+      setUnmuted(!track.muted);
+    };
+
+    track.addEventListener('mute', handler);
+    track.addEventListener('unmute', handler);
+
+    return () => {
+      track.removeEventListener('mute', handler);
+      track.removeEventListener('unmute', handler);
+    };
+  }, [audioStream]);
+
+  return unmuted;
 };
