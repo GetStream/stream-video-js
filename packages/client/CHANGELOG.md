@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.44.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.3...@stream-io/video-client-1.44.4) (2026-03-20)
+
+- trace device permission state transitions ([#2168](https://github.com/GetStream/stream-video-js/issues/2168)) ([e4203a3](https://github.com/GetStream/stream-video-js/commit/e4203a34cad1c90d1bc5612fc379dd1f0f0ebe5d))
+
+### Bug Fixes
+
+- **react:** remove default broken microphone notification from call controls ([#2158](https://github.com/GetStream/stream-video-js/issues/2158)) ([4a95b9c](https://github.com/GetStream/stream-video-js/commit/4a95b9c29e9d2728ae7eea764f07ec8507aa0f5a))
+
 ## [1.44.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.2...@stream-io/video-client-1.44.3) (2026-03-06)
 
 ### Bug Fixes
