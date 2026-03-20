@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.34.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.4...@stream-io/video-react-sdk-1.34.0) (2026-03-20)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.12.0`
+- `@stream-io/video-client` updated to version `1.44.4`
+- `@stream-io/video-react-bindings` updated to version `1.13.13`
+
+### Features
+
+- **react:** display loading indicator while participant audio is connecting ([#2167](https://github.com/GetStream/stream-video-js/issues/2167)) ([bb2e273](https://github.com/GetStream/stream-video-js/commit/bb2e2733a3e88fd60220118f267d74d952f16ed8))
+
+### Bug Fixes
+
+- **react:** remove default broken microphone notification from call controls ([#2158](https://github.com/GetStream/stream-video-js/issues/2158)) ([4a95b9c](https://github.com/GetStream/stream-video-js/commit/4a95b9c29e9d2728ae7eea764f07ec8507aa0f5a))
+
 ## [1.33.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.3...@stream-io/video-react-sdk-1.33.4) (2026-03-09)
 
 ### Dependency Updates
