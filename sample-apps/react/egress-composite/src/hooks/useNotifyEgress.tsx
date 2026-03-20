@@ -31,8 +31,10 @@ export const EgressReadyNotificationProvider = (props: PropsWithChildren) => {
   }, [isReady]);
 
   const spyIsReady = useCallback((value: boolean) => {
-    console.log('Egress is ready');
-    setIsReady(value);
+    setIsReady((current) => {
+      if (current !== value) console.log('Egress is ready', value);
+      return value;
+    });
   }, []);
 
   return (
