@@ -11,7 +11,7 @@ import type {
   MemberResponse,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { videoLoggerSystem } from '@stream-io/video-client';
+import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 const CallingxModule = getCallingxLibIfAvailable();
 
 /**
@@ -61,7 +61,7 @@ export function getCallDisplayName(
  * 2. Displays the incoming call in the callingx library
  * 3. Optionally for non-ringing calls also when ongoing calls are enabled.
  */
-export async function startCallingxCall(call: Call) {
+export async function startCallingxCall(call: Call, activeCalls: Call[]) {
   if (!CallingxModule || !CallingxModule.isSetup) {
     return;
   }
@@ -103,20 +103,36 @@ export async function startCallingxCall(call: Call) {
     }
   } else if (isIncomingCall) {
     try {
-      // Awaits native CallKit/Telecom registration before answering.
-      // Safe to call even if the call is already registered (e.g. from VoIP push) --
-      // iOS early-returns with no error, Android sends the registered broadcast.
-      await CallingxModule.displayIncomingCall(
-        call.cid, // unique id for call
-        call.id, // phone number for display in dialer (we use call id as phone number)
-        callDisplayName, // display name for display in call screen
-        call.state.settings?.video?.enabled ?? false, // is video call?
+      // Leave any existing active ringing calls before joining a new ringing call
+      const activeCallsToLeave = activeCalls.filter(
+        (c) =>
+          c.cid !== call.cid &&
+          c.ringing &&
+          c.state.callingState !== CallingState.LEFT,
       );
+      for (const activeCall of activeCallsToLeave) {
+        logger.debug(
+          `leaving active call ${activeCall.cid} before joining ${call.cid}`,
+        );
+        await activeCall.leave({ reason: 'cancel' }).catch((e) => {
+          logger.error(`failed to leave active call ${activeCall.cid}`, e);
+        });
 
-      await CallingxModule.answerIncomingCall(call.cid);
+        // Awaits native CallKit/Telecom registration before answering.
+        // Safe to call even if the call is already registered (e.g. from VoIP push) --
+        // iOS early-returns with no error, Android sends the registered broadcast.
+        await CallingxModule.displayIncomingCall(
+          call.cid, // unique id for call
+          call.id, // phone number for display in dialer (we use call id as phone number)
+          callDisplayName, // display name for display in call screen
+          call.state.settings?.video?.enabled ?? false, // is video call?
+        );
 
-      if (Platform.OS === 'ios') {
-        await waitForAudioSessionActivation();
+        await CallingxModule.answerIncomingCall(call.cid);
+
+        if (Platform.OS === 'ios') {
+          await waitForAudioSessionActivation();
+        }
       }
     } catch (error) {
       logger.error(
