@@ -62,7 +62,7 @@ export function setPushConfig() {
       },
     },
     enableOngoingCalls: true,
-    shouldRejectCallWhenBusy: true,
+    shouldRejectCallWhenBusy: false,
     createStreamVideoClient,
     onTapNonRingingCallNotification: (call_cid) => {
       const [callType, callId] = call_cid.split(':');
