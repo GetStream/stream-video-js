@@ -578,7 +578,7 @@ class CallService : Service(), CallRepository.Listener {
         if (newForegroundNotificationId != null && isInForeground) {
             val newForegroundCallId = notificationManager.getForegroundCallId()
             val call = if (newForegroundCallId != null) callRepository.getCall(newForegroundCallId) else null
-            if (call != null && !call.isPending && newForegroundCallId != null) {
+            if (call != null && newForegroundCallId != null) {
                 debugLog(TAG, "[service] repromoteForegroundIfNeeded: Re-promoting with call $newForegroundCallId (notificationId=$newForegroundNotificationId)")
                 val notification = notificationManager.createNotification(newForegroundCallId, call)
                 startForegroundSafely(newForegroundNotificationId, notification)

@@ -40,9 +40,6 @@ class CallNotificationManager(
     internal companion object {
         private const val TAG = "[Callingx] CallNotificationManager"
         private const val DISABLED_COLOR = "#757575" // NOTE: hint color might be ignored by OS
-
-        /** Base notification ID. Per-call IDs start from this value. */
-        private const val BASE_NOTIFICATION_ID = 200
     }
 
     enum class OptimisticState { NONE, ACCEPTING, REJECTING }
@@ -57,7 +54,6 @@ class CallNotificationManager(
      * Per-call notification state. Consolidates all per-call tracking into a single struct.
      */
     private data class CallNotificationState(
-        val notificationId: Int,
         val optimisticState: OptimisticState = OptimisticState.NONE,
         val lastSnapshot: NotificationSnapshot? = null,
         val activeWhen: Long? = null,
@@ -66,10 +62,20 @@ class CallNotificationManager(
 
     // Per-call state, all guarded by [lock]
     private val notificationsState = mutableMapOf<String, CallNotificationState>()
-    private var nextNotificationId = BASE_NOTIFICATION_ID
 
     /** The callId whose notification was used for startForeground(). */
     private var foregroundCallId: String? = null
+
+    /**
+     * Deterministic per-call notification ID.
+     *
+     * `NotificationManager.notify()`/`cancel()` require a stable integer id for updates/cancels.
+     * We derive it from `callId` so we don't need to allocate/store ids.
+     */
+    private fun getNotificationId(callId: String): Int {
+        // Keep the value non-negative (defensive for Android-side expectations).
+        return callId.hashCode() and 0x7fffffff
+    }
 
     /**
      * Snapshot of call state used to detect notification changes.
@@ -101,17 +107,13 @@ class CallNotificationManager(
     )
 
     fun getOrCreateNotificationId(callId: String): Int = synchronized(lock) {
-        val existing = notificationsState[callId]
-        if (existing != null) {
-            return@synchronized existing.notificationId
+        if (!notificationsState.containsKey(callId)) {
+            notificationsState[callId] = CallNotificationState()
         }
-        val id = nextNotificationId
-        nextNotificationId++
-        notificationsState[callId] = CallNotificationState(notificationId = id)
         if (foregroundCallId == null) {
             foregroundCallId = callId
         }
-        id
+        return@synchronized getNotificationId(callId)
     }
 
     /**
@@ -120,7 +122,14 @@ class CallNotificationManager(
      * @param state The optimistic state to set.
      */
     fun setOptimisticState(callId: String, state: OptimisticState) = synchronized(lock) {
-        val current = notificationsState[callId] ?: return@synchronized
+        // Be resilient to races where we receive optimistic actions before a notification state entry exists.
+        val current =
+            notificationsState[callId]
+                ?: CallNotificationState().also {
+                    if (foregroundCallId == null) {
+                        foregroundCallId = callId
+                    }
+                }
         notificationsState[callId] = if (state != OptimisticState.NONE) {
             current.copy(optimisticState = state, lastSnapshot = null)
         } else {
@@ -219,8 +228,9 @@ class CallNotificationManager(
         }
 
         val notificationId = getOrCreateNotificationId(callId)
-        notificationsState[callId] = notificationsState[callId]?.copy(lastSnapshot = newSnapshot)
-            ?: CallNotificationState(notificationId = notificationId, lastSnapshot = newSnapshot)
+        notificationsState[callId] =
+            notificationsState[callId]?.copy(lastSnapshot = newSnapshot)
+                ?: CallNotificationState(lastSnapshot = newSnapshot)
         val notification = createNotification(callId, call)
         notificationManager.notify(notificationId, notification)
         debugLog(TAG, "[notifications] updateCallNotification[$callId]: Notification posted (id=$notificationId)")
@@ -238,16 +248,17 @@ class CallNotificationManager(
     fun cancelNotification(callId: String): Int? = synchronized(lock) {
         debugLog(TAG, "[notifications] cancelNotification[$callId]")
         val state = notificationsState.remove(callId)
+        val notificationId = getNotificationId(callId)
+        notificationManager.cancel(notificationId)
         if (state != null) {
-            notificationManager.cancel(state.notificationId)
-            debugLog(TAG, "[notifications] cancelNotification[$callId]: Cancelled (id=${state.notificationId})")
+            debugLog(TAG, "[notifications] cancelNotification[$callId]: Cancelled (id=$notificationId)")
         }
 
         if (foregroundCallId == callId) {
             foregroundCallId = notificationsState.keys.firstOrNull()
             // Return the new foreground notification ID so the service can re-promote
             if (foregroundCallId != null) {
-                return@synchronized notificationsState[foregroundCallId]?.notificationId
+                return@synchronized getNotificationId(foregroundCallId!!)
             }
         }
         return@synchronized null
@@ -256,12 +267,11 @@ class CallNotificationManager(
     fun getForegroundCallId(): String? = synchronized(lock) { foregroundCallId }
 
     fun cancelAllNotifications() = synchronized(lock) {
-        for ((_, state) in notificationsState) {
-            notificationManager.cancel(state.notificationId)
+        for (callId in notificationsState.keys) {
+            notificationManager.cancel(getNotificationId(callId))
         }
         notificationsState.clear()
         foregroundCallId = null
-        nextNotificationId = BASE_NOTIFICATION_ID
     }
 
     fun startRingtone() {
