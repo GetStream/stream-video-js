@@ -117,22 +117,22 @@ export async function startCallingxCall(call: Call, activeCalls: Call[]) {
         await activeCall.leave({ reason: 'cancel' }).catch((e) => {
           logger.error(`failed to leave active call ${activeCall.cid}`, e);
         });
+      }
 
-        // Awaits native CallKit/Telecom registration before answering.
-        // Safe to call even if the call is already registered (e.g. from VoIP push) --
-        // iOS early-returns with no error, Android sends the registered broadcast.
-        await CallingxModule.displayIncomingCall(
-          call.cid, // unique id for call
-          call.id, // phone number for display in dialer (we use call id as phone number)
-          callDisplayName, // display name for display in call screen
-          call.state.settings?.video?.enabled ?? false, // is video call?
-        );
+      // Awaits native CallKit/Telecom registration before answering.
+      // Safe to call even if the call is already registered (e.g. from VoIP push) --
+      // iOS early-returns with no error, Android sends the registered broadcast.
+      await CallingxModule.displayIncomingCall(
+        call.cid, // unique id for call
+        call.id, // phone number for display in dialer (we use call id as phone number)
+        callDisplayName, // display name for display in call screen
+        call.state.settings?.video?.enabled ?? false, // is video call?
+      );
 
-        await CallingxModule.answerIncomingCall(call.cid);
+      await CallingxModule.answerIncomingCall(call.cid);
 
-        if (Platform.OS === 'ios') {
-          await waitForAudioSessionActivation();
-        }
+      if (Platform.OS === 'ios') {
+        await waitForAudioSessionActivation();
       }
     } catch (error) {
       logger.error(

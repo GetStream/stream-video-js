@@ -135,6 +135,6 @@ const createStreamVideoClient = async () => {
     user,
     token,
     tokenProvider,
-    options: { logLevel: 'warn', rejectCallWhenBusy: true },
+    options: { logLevel: 'warn', rejectCallWhenBusy: false },
   });
 };
