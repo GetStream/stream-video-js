@@ -25,7 +25,7 @@ const Calls = () => {
   const { top } = useSafeAreaInsets();
   const orientation = useOrientation();
 
-  const firstCall = calls[0];
+  const firstCall = calls.at(-1);
 
   if (!firstCall) {
     return null;

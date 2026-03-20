@@ -3,7 +3,7 @@
  * Used to wait for iOS CallKit's didActivateAudioSession event after starting a call.
  */
 
-import { videoLoggerSystem } from "@stream-io/video-client";
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 const logger = videoLoggerSystem.getLogger('callingx');
 

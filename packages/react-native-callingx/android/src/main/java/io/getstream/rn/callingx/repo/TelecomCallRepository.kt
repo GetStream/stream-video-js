@@ -19,17 +19,26 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * The central repository that keeps track of the current call and allows to register new calls.
+ * Per-call flags tracking whether an action was initiated by the app (self) or by the system.
+ */
+private data class CallActionFlags(
+    val isSelfAnswered: AtomicBoolean = AtomicBoolean(false),
+    val isSelfDisconnected: AtomicBoolean = AtomicBoolean(false),
+)
+
+/**
+ * The central repository that keeps track of calls and allows to register new ones.
  *
  * This class contains the main logic to integrate with Telecom SDK.
+ * Multiple calls can be registered simultaneously — each gets its own [CallControlScope].
  *
  * @see registerCall
  */
@@ -40,11 +49,15 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         private const val TAG = "[Callingx] TelecomCallRepository"
     }
 
-    private var observeCallStateJob: Job? = null
+    @Volatile
+    private var isReleased: Boolean = false
+
+    private var observeCallsJob: Job? = null
 
     private val callsManager: CallsManager
-    private var isSelfAnswered = false
-    private var isSelfDisconnected = false
+
+    /** Per-call action-source flags, keyed by callId. */
+    private val actionFlags = ConcurrentHashMap<String, CallActionFlags>()
 
     init {
         val capabilities =
@@ -62,26 +75,34 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     override fun setListener(listener: Listener?) {
         this._listener = listener
 
-        observeCallStateJob?.cancel()
-        observeCallStateJob = observeCallState()
+        observeCallsJob?.cancel()
+        observeCallsJob = observeCalls()
     }
 
     override fun release() {
-        val currentCall = currentCall.value
-        if (currentCall is Call.Registered) {
-            currentCall.processAction(CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL)))
+        if (isReleased) {
+            debugLog(TAG, "[repository] release: Already released, ignoring")
+            return
         }
-        _currentCall.value = Call.None
+        isReleased = true
 
-        observeCallStateJob?.cancel()
-        observeCallStateJob = null
+        // Disconnect all active calls
+        val currentCalls = _calls.value
+        for ((callId, call) in currentCalls) {
+            call.processAction(CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL)))
+        }
+        _calls.value = emptyMap()
+        actionFlags.clear()
+
+        observeCallsJob?.cancel()
+        observeCallsJob = null
         _listener = null
 
         scope.cancel()
     }
 
     /**
-     * Register a new call with the provided attributes. Use the [currentCall] StateFlow to receive
+     * Register a new call with the provided attributes. Use the [calls] StateFlow to receive
      * status updates and process call related actions.
      */
     override suspend fun registerCall(
@@ -92,89 +113,119 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             isVideo: Boolean,
             displayOptions: Bundle?,
     ) {
-        debugLog(
-                TAG,
-                "[repository] registerCall: Starting registration - Name: $displayName, Address: $address, Incoming: $isIncoming"
-        )
+        if (isReleased) {
+            Log.w(
+                    TAG,
+                    "[repository] registerCall: Repository already released, ignoring registration for $callId"
+            )
+            return
+        }
+
+        // Hold the mutex only for the dedup check — release before entering the long-lived call scope
+        val attributes: CallAttributesCompat
+        val actionSource: Channel<CallAction>
+        val flags: CallActionFlags
 
         registrationMutex.withLock {
-            // For simplicity we don't support multiple calls
-            if (_currentCall.value is Call.Registered) {
+            debugLog(
+                    TAG,
+                    "[repository] registerCall: Starting registration - CallId: $callId, Name: $displayName, Address: $address, Incoming: $isIncoming"
+            )
+
+            // Check if this specific call is already registered or registration is in progress
+            if (_calls.value.containsKey(callId)) {
                 Log.w(
                         TAG,
-                        "[repository] registerCall: Call already registered, ignoring new call request"
+                        "[repository] registerCall: Call $callId already registered, ignoring duplicate"
                 )
-                return@withLock
+                return
+            }
+
+            debugLog(
+                    TAG,
+                    "[repository] registerCall: Call $callId not found in map, proceeding with registration"
+            )
+
+            attributes = createCallAttributes(displayName, address, isIncoming, isVideo)
+            actionSource = Channel<CallAction>()
+            flags = CallActionFlags()
+            actionFlags[callId] = flags
+
+            // Add call to the map early so that duplicate registrations are rejected
+            // and listeners are notified immediately. Actions sent via trySend() may arrive
+            // before the call scope starts collecting; in that case, they are dropped
+            // rather than buffered, which is acceptable because we explicitly handle
+            // pending actions in CallService/CallRegistrationStore.
+            val registeredCall = Call.Registered(
+                    id = callId,
+                    isPending = true,
+                    isActive = false,
+                    isOnHold = false,
+                    callAttributes = attributes,
+                    displayOptions = displayOptions,
+                    isMuted = false,
+                    errorCode = null,
+                    currentCallEndpoint = null,
+                    availableCallEndpoints = emptyList(),
+                    actionSource = actionSource,
+            )
+            addCall(callId, registeredCall)
+            debugLog(TAG, "[repository] registerCall: Call $callId added to map in pending state")
+        }
+
+        // Register the call with Telecom and handle actions in the scope (mutex released)
+        try {
+            callsManager.addCall(
+                    attributes,
+                    onIsCallAnswered(callId, flags),
+                    onIsCallDisconnected(callId, flags),
+                    onIsCallActive(callId),
+                    onIsCallInactive(callId)
+            ) {
+                debugLog(
+                        TAG,
+                        "[repository] registerCall: Inside call scope for $callId, setting up call handlers"
+                )
+
+                // Call is now registered in Telecom — mark as no longer pending
+                updateCallById(callId) { copy(isPending = false) }
+
+                // Consume the actions to interact with the call inside the scope
+                launch { processCallActions(callId, flags, actionSource.consumeAsFlow()) }
+
+                launch {
+                    currentCallEndpoint.collect {
+                        updateCallById(callId) { copy(currentCallEndpoint = it) }
+                    }
+                }
+                launch {
+                    availableEndpoints.collect {
+                        updateCallById(callId) { copy(availableCallEndpoints = it) }
+                    }
+                }
+                launch {
+                    isMuted.collect {
+                        updateCallById(callId) { copy(isMuted = it) }
+                    }
+                }
             }
             debugLog(
                     TAG,
-                    "[repository] registerCall: No existing call found, proceeding with registration"
+                    "[repository] registerCall: Call $callId scope ended normally"
             )
-
-            val attributes = createCallAttributes(displayName, address, isIncoming, isVideo)
-            val actionSource = Channel<CallAction>()
-
-            // Register the call and handle actions in the scope
-            try {
-                callsManager.addCall(
-                        attributes,
-                        onIsCallAnswered, // Watch needs to know if it can answer the call
-                        onIsCallDisconnected,
-                        onIsCallActive,
-                        onIsCallInactive
-                ) {
-                    debugLog(
-                            TAG,
-                            "[repository] registerCall: Inside call scope, setting up call handlers"
-                    )
-
-                    // Consume the actions to interact with the call inside the scope
-                    launch { processCallActions(actionSource.consumeAsFlow()) }
-
-                    // Update the state to registered with default values while waiting for Telecom
-                    // updates
-                    debugLog(
-                            TAG,
-                            "[repository] registerCall: Creating Registered call state with ID: $callId"
-                    )
-                    _currentCall.value =
-                            Call.Registered(
-                                    id = callId,
-                                    isActive = false, // can we just register the call as active?
-                                    isOnHold = false,
-                                    callAttributes = attributes,
-                                    displayOptions = displayOptions,
-                                    isMuted = false,
-                                    errorCode = null,
-                                    currentCallEndpoint = null,
-                                    availableCallEndpoints = emptyList(),
-                                    actionSource = actionSource,
-                            )
-                    debugLog(TAG, "[repository] registerCall: Call state updated to Registered")
-
-                    launch {
-                        currentCallEndpoint.collect {
-                            updateCurrentCall { copy(currentCallEndpoint = it) }
-                        }
-                    }
-                    launch {
-                        availableEndpoints.collect {
-                            updateCurrentCall { copy(availableCallEndpoints = it) }
-                        }
-                    }
-                    launch { isMuted.collect { updateCurrentCall { copy(isMuted = it) } } }
-                }
-                debugLog(
-                        TAG,
-                        "[repository] registerCall: Call successfully registered with Telecom SDK"
-                )
-            } catch (e: Exception) {
-                Log.e(TAG, "[repository] registerCall: Error registering call", e)
-                throw e
-            } finally {
-                debugLog(TAG, "[repository] registerCall: Call scope ended, setting state to None")
-                _currentCall.value = Call.None
-            }
+        } catch (e: Exception) {
+            Log.e(TAG, "[repository] registerCall: Error registering call $callId", e)
+            throw e
+        } finally {
+            // Call lifecycle cleanup:
+            // - processCallActions(...) is launched in the CallControlScope, so its collector is
+            //   cancelled automatically when the Telecom call scope finishes.
+            // - We then remove the call from the repository map and clear per-call flags.
+            // - The Call.actionSource channel is no longer referenced and can be garbage-collected;
+            //   we do not explicitly close it because callers use trySend(), which never suspends.
+            debugLog(TAG, "[repository] registerCall: Cleaning up call $callId")
+            removeCall(callId)
+            actionFlags.remove(callId)
         }
     }
 
@@ -187,63 +238,77 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
     ) {
         debugLog(
                 TAG,
-                "[repository] updateCall: Starting update - Name: $displayName, Address: $address, IsVideo: $isVideo"
+                "[repository] updateCall: Starting update - CallId: $callId, Name: $displayName, Address: $address, IsVideo: $isVideo"
         )
         super.updateCall(callId, displayName, address, isVideo, displayOptions)
     }
 
-    private fun observeCallState(): Job {
-        return currentCall
-                .drop(1)
-                .scan(Pair<Call?, Call>(null, currentCall.value)) { (_, prev), next ->
-                    Pair(prev, next)
-                }
-                .drop(1)
-                .onEach { (previous, current) ->
-                    when {
-                        previous is Call.None && current is Call.Registered -> {
-                            _listener?.onCallRegistered(current.id, current.isIncoming())
-                        }
-                        previous is Call.Registered && current is Call.Registered -> {
-                            if (previous.isMuted != current.isMuted) {
-                                debugLog(
-                                        TAG,
-                                        "[repository] observeCallState: Mute changed: ${current.isMuted}"
-                                )
-                                _listener?.onMuteCallChanged(current.id, current.isMuted)
+    private fun observeCalls(): Job {
+        // Track previous state per call for diffing (only non-pending calls)
+        var previousCalls: Map<String, Call.Registered> = emptyMap()
+
+        return calls
+                .onEach { allCalls ->
+                    // Filter out pending calls — they are not yet registered in Telecom
+                    val currentCalls = allCalls.filter { (_, call) -> !call.isPending }
+
+                    // Detect new calls
+                    for ((callId, call) in currentCalls) {
+                        val previous = previousCalls[callId]
+                        if (previous == null) {
+                            // New call added
+                            _listener?.onCallRegistered(callId, call.isIncoming())
+                        } else {
+                            // Existing call changed
+                            if (previous.isMuted != call.isMuted) {
+                                debugLog(TAG, "[repository] observeCalls: Mute changed for $callId: ${call.isMuted}")
+                                _listener?.onMuteCallChanged(callId, call.isMuted)
                             }
-                            if (previous.currentCallEndpoint != current.currentCallEndpoint) {
-                                current.currentCallEndpoint?.let {
-                                    _listener?.onCallEndpointChanged(current.id, it.name.toString())
+                            if (previous.currentCallEndpoint != call.currentCallEndpoint) {
+                                call.currentCallEndpoint?.let {
+                                    _listener?.onCallEndpointChanged(callId, it.name.toString())
                                 }
                             }
                         }
+                        _listener?.onCallStateChanged(callId, call)
                     }
-                    _listener?.onCallStateChanged(current)
+
+                    // Detect removed calls
+                    for ((callId, _) in previousCalls) {
+                        if (!currentCalls.containsKey(callId)) {
+                            _listener?.onCallStateChanged(callId, Call.None)
+                        }
+                    }
+
+                    previousCalls = currentCalls
                 }
                 .launchIn(scope)
     }
 
     /** Collect the action source to handle client actions inside the call scope */
-    private suspend fun CallControlScope.processCallActions(actionSource: Flow<CallAction>) {
+    private suspend fun CallControlScope.processCallActions(
+            callId: String,
+            flags: CallActionFlags,
+            actionSource: Flow<CallAction>
+    ) {
         actionSource.collect { action ->
-            debugLog(TAG, "[repository] processCallActions: action: ${action::class.simpleName}")
+            debugLog(TAG, "[repository] processCallActions[$callId]: action: ${action::class.simpleName}")
             when (action) {
                 is CallAction.Answer -> {
-                    doAnswer(action.isAudioCall)
+                    doAnswer(callId, flags, action.isAudioCall)
                 }
                 is CallAction.Disconnect -> {
-                    doDisconnect(action)
+                    doDisconnect(callId, flags, action)
                 }
                 is CallAction.SwitchAudioEndpoint -> {
-                    doSwitchEndpoint(action)
+                    doSwitchEndpoint(callId, action)
                 }
                 is CallAction.TransferCall -> {
                     debugLog(
                             TAG,
-                            "[repository] processCallActions: Transfer to endpoint: ${action.endpointId}"
+                            "[repository] processCallActions[$callId]: Transfer to endpoint: ${action.endpointId}"
                     )
-                    val call = _currentCall.value as? Call.Registered
+                    val call = _calls.value[callId]
                     val endpoints =
                             call?.availableCallEndpoints?.firstOrNull {
                                 it.identifier == action.endpointId
@@ -255,157 +320,141 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     } else {
                         Log.w(
                                 TAG,
-                                "[repository] processCallActions: Endpoint not found for transfer, ignoring"
+                                "[repository] processCallActions[$callId]: Endpoint not found for transfer, ignoring"
                         )
                     }
                 }
                 CallAction.Hold -> {
                     when (val result = setInactive()) {
                         is CallControlResult.Success -> {
-                            onIsCallInactive()
+                            onIsCallInactive(callId)()
                         }
                         is CallControlResult.Error -> {
                             Log.e(
                                     TAG,
-                                    "[repository] processCallActions: Hold action failed with error code: ${result.errorCode}"
+                                    "[repository] processCallActions[$callId]: Hold action failed with error code: ${result.errorCode}"
                             )
-                            updateCurrentCall { copy(errorCode = result.errorCode) }
+                            updateCallById(callId) { copy(errorCode = result.errorCode) }
                         }
                     }
                 }
                 CallAction.Activate -> {
                     when (val result = setActive()) {
                         is CallControlResult.Success -> {
-                            onIsCallActive()
+                            onIsCallActive(callId)()
                         }
                         is CallControlResult.Error -> {
                             Log.e(
                                     TAG,
-                                    "[repository] processCallActions: Activate action failed with error code: ${result.errorCode}"
+                                    "[repository] processCallActions[$callId]: Activate action failed with error code: ${result.errorCode}"
                             )
-                            updateCurrentCall { copy(errorCode = result.errorCode) }
+                            updateCallById(callId) { copy(errorCode = result.errorCode) }
                         }
                     }
                 }
                 is CallAction.ToggleMute -> {
-                    // We cannot programmatically mute the telecom stack. Instead we just update
-                    // the state of the call and this will start/stop audio capturing.
-                    debugLog(TAG, "[repository] processCallActions: Toggling mute: ${action.isMute}")
-                    updateCurrentCall {
-                        val newMutedState = action.isMute
-                        copy(isMuted = newMutedState)
+                    debugLog(TAG, "[repository] processCallActions[$callId]: Toggling mute: ${action.isMute}")
+                    updateCallById(callId) {
+                        copy(isMuted = action.isMute)
                     }
                 }
             }
         }
-        debugLog(TAG, "[repository] processCallActions: Action collection ended")
+        debugLog(TAG, "[repository] processCallActions[$callId]: Action collection ended")
     }
 
 
-    private suspend fun CallControlScope.doSwitchEndpoint(action: CallAction.SwitchAudioEndpoint) {
-        debugLog(TAG, "[repository] doSwitchEndpoint: Switching to endpoint: ${action.endpointId}")
-        if (_currentCall.value !is Call.Registered) {
-            Log.w(TAG, "[repository] doSwitchEndpoint: Call not registered, ignoring")
+    private suspend fun CallControlScope.doSwitchEndpoint(callId: String, action: CallAction.SwitchAudioEndpoint) {
+        debugLog(TAG, "[repository] doSwitchEndpoint[$callId]: Switching to endpoint: ${action.endpointId}")
+        val call = _calls.value[callId]
+        if (call == null) {
+            Log.w(TAG, "[repository] doSwitchEndpoint[$callId]: Call not found, ignoring")
             return
         }
-        // TODO once availableCallEndpoints is a state flow we can just get the value
-        val endpoints = (_currentCall.value as Call.Registered).availableCallEndpoints
-        // Switch to the given endpoint or fallback to the best possible one.
+        val endpoints = call.availableCallEndpoints
         val newEndpoint = endpoints.firstOrNull { it.identifier == action.endpointId }
 
         if (newEndpoint != null) {
             debugLog(
                     TAG,
-                    "[repository] doSwitchEndpoint: Found endpoint: ${newEndpoint.name}, requesting change"
+                    "[repository] doSwitchEndpoint[$callId]: Found endpoint: ${newEndpoint.name}, requesting change"
             )
             requestEndpointChange(newEndpoint).also {
-                debugLog(TAG, "[repository] doSwitchEndpoint: Endpoint change result: $it")
+                debugLog(TAG, "[repository] doSwitchEndpoint[$callId]: Endpoint change result: $it")
             }
         } else {
-            Log.w(TAG, "[repository] doSwitchEndpoint: Endpoint not found in available endpoints")
+            Log.w(TAG, "[repository] doSwitchEndpoint[$callId]: Endpoint not found in available endpoints")
         }
     }
 
-    private suspend fun CallControlScope.doDisconnect(action: CallAction.Disconnect) {
-        isSelfDisconnected = true
-        debugLog(TAG, "[repository] doDisconnect: Disconnecting call with cause: ${action.cause}")
+    private suspend fun CallControlScope.doDisconnect(callId: String, flags: CallActionFlags, action: CallAction.Disconnect) {
+        flags.isSelfDisconnected.set(true)
+        debugLog(TAG, "[repository] doDisconnect[$callId]: Disconnecting call with cause: ${action.cause}")
         disconnect(action.cause)
-        debugLog(TAG, "[repository] doDisconnect: Disconnect called, triggering onIsCallDisconnected")
-        onIsCallDisconnected(action.cause)
+        debugLog(TAG, "[repository] doDisconnect[$callId]: Disconnect called, triggering onIsCallDisconnected")
+        onIsCallDisconnected(callId, flags)(action.cause)
     }
 
-    private suspend fun CallControlScope.doAnswer(isAudioCall: Boolean) {
-        isSelfAnswered = true
+    private suspend fun CallControlScope.doAnswer(callId: String, flags: CallActionFlags, isAudioCall: Boolean) {
+        flags.isSelfAnswered.set(true)
         val callType =
                 if (isAudioCall) CallAttributesCompat.CALL_TYPE_AUDIO_CALL
                 else CallAttributesCompat.CALL_TYPE_VIDEO_CALL
 
         when (val result = answer(callType)) {
             is CallControlResult.Success -> {
-                onIsCallAnswered(callType)
+                onIsCallAnswered(callId, flags)(callType)
             }
             is CallControlResult.Error -> {
                 Log.e(
                         TAG,
-                        "[repository] doAnswer: Answer failed with error code: ${result.errorCode}"
+                        "[repository] doAnswer[$callId]: Answer failed with error code: ${result.errorCode}"
                 )
-                isSelfAnswered = false
-                updateCurrentCall {
-                    Call.Unregistered(
-                            id = id,
-                            callAttributes = callAttributes,
-                            disconnectCause = DisconnectCause(DisconnectCause.BUSY),
+                flags.isSelfAnswered.set(false)
+                val call = _calls.value[callId]
+                if (call != null) {
+                    removeCall(callId)
+                    _listener?.onIsCallDisconnected(
+                            callId,
+                            DisconnectCause(DisconnectCause.BUSY),
+                            EventSource.APP
                     )
                 }
             }
         }
     }
 
-    /**
-     * Can the call be successfully answered?? TIP: We would check the connection/call state to see
-     * if we can answer a call Example you may need to wait for another call to hold.
-     */
-    val onIsCallAnswered: suspend (type: Int) -> Unit = {
+    private fun onIsCallAnswered(callId: String, flags: CallActionFlags): suspend (type: Int) -> Unit = {
         debugLog(
                 TAG,
-                "[repository] onIsCallAnswered: Call answered, type: $it, isSelfAnswered: $isSelfAnswered"
+                "[repository] onIsCallAnswered[$callId]: Call answered, type: $it, isSelfAnswered: ${flags.isSelfAnswered.get()}"
         )
-        updateCurrentCall { copy(isActive = true, isOnHold = false) }
+        updateCallById(callId) { copy(isActive = true, isOnHold = false) }
 
-        val call = _currentCall.value
-        val source = if (isSelfAnswered) EventSource.APP else EventSource.SYS
-        if (call is Call.Registered) {
-            _listener?.onIsCallAnswered(call.id, source)
+        val source = if (flags.isSelfAnswered.get()) EventSource.APP else EventSource.SYS
+        if (_calls.value.containsKey(callId)) {
+            _listener?.onIsCallAnswered(callId, source)
         }
-        isSelfAnswered = false
-        debugLog(TAG, "[repository] onIsCallAnswered: Call state updated to active")
+        flags.isSelfAnswered.set(false)
+        debugLog(TAG, "[repository] onIsCallAnswered[$callId]: Call state updated to active")
     }
 
-    /** Can the call perform a disconnect */
-    val onIsCallDisconnected: suspend (cause: DisconnectCause) -> Unit = {
+    private fun onIsCallDisconnected(callId: String, flags: CallActionFlags): suspend (cause: DisconnectCause) -> Unit = { cause ->
         debugLog(
                 TAG,
-                "[repository] onIsCallDisconnected: Call disconnected, cause: ${it.reason}, description: ${it.description}"
+                "[repository] onIsCallDisconnected[$callId]: Call disconnected, cause: ${cause.reason}, description: ${cause.description}"
         )
-        val source = if (isSelfDisconnected) EventSource.APP else EventSource.SYS
-        var callId: String? = null
-        if (_currentCall.value is Call.Registered) {
-            callId = (_currentCall.value as Call.Registered).id
-        }
+        val source = if (flags.isSelfDisconnected.get()) EventSource.APP else EventSource.SYS
 
-        updateCurrentCall { Call.Unregistered(id, callAttributes, it) }
-        _listener?.onIsCallDisconnected(callId, it, source)
-        isSelfDisconnected = false
-        debugLog(TAG, "[repository] onIsCallDisconnected: Call state updated to Unregistered")
+        removeCall(callId)
+        _listener?.onIsCallDisconnected(callId, cause, source)
+        flags.isSelfDisconnected.set(false)
+        debugLog(TAG, "[repository] onIsCallDisconnected[$callId]: Call removed from map")
     }
 
-    /**
-     * Check is see if we can make the call active. Other calls and state might stop us from
-     * activating the call
-     */
-    val onIsCallActive: suspend () -> Unit = {
-        debugLog(TAG, "[repository] onIsCallActive: Call became active")
-        updateCurrentCall {
+    private fun onIsCallActive(callId: String): suspend () -> Unit = {
+        debugLog(TAG, "[repository] onIsCallActive[$callId]: Call became active")
+        updateCallById(callId) {
             copy(
                     errorCode = null,
                     isActive = true,
@@ -413,23 +462,20 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             )
         }
 
-        val call = _currentCall.value
-        if (call is Call.Registered) {
-            _listener?.onIsCallActive(call.id)
+        if (_calls.value.containsKey(callId)) {
+            _listener?.onIsCallActive(callId)
         }
-        debugLog(TAG, "[repository] onIsCallActive: Call state updated")
+        debugLog(TAG, "[repository] onIsCallActive[$callId]: Call state updated")
     }
 
-    /** Check to see if we can make the call inactivate */
-    val onIsCallInactive: suspend () -> Unit = {
-        debugLog(TAG, "[repository] onIsCallInactive: Call became inactive (on hold)")
-        updateCurrentCall { copy(errorCode = null, isOnHold = true) }
+    private fun onIsCallInactive(callId: String): suspend () -> Unit = {
+        debugLog(TAG, "[repository] onIsCallInactive[$callId]: Call became inactive (on hold)")
+        updateCallById(callId) { copy(errorCode = null, isOnHold = true) }
 
-        val call = _currentCall.value
-        if (call is Call.Registered) {
-            _listener?.onIsCallInactive(call.id)
+        if (_calls.value.containsKey(callId)) {
+            _listener?.onIsCallInactive(callId)
         }
-        debugLog(TAG, "[repository] onIsCallInactive: Call state updated to on hold")
+        debugLog(TAG, "[repository] onIsCallInactive[$callId]: Call state updated to on hold")
     }
 
 }

@@ -131,9 +131,6 @@ export interface Spec extends TurboModule {
   setOnHoldCall(callId: string, isOnHold: boolean): Promise<void>;
 
   registerBackgroundTaskAvailable(): void;
-
-  isServiceStarted(): Promise<boolean>;
-
   startBackgroundTask(taskName: string, timeout: number): Promise<void>;
 
   stopBackgroundTask(taskName: string): Promise<void>;

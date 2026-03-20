@@ -944,7 +944,7 @@ export class Call {
     const callingX = globalThis.streamRNVideoSDK?.callingX;
     if (callingX) {
       // for Android/iOS, we need to start the call in the callingx library as soon as possible
-      await callingX.startCall(this);
+      await callingX.startCall(this, this.clientStore.calls);
     }
 
     await this.setup();

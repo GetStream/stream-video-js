@@ -61,18 +61,18 @@ export const iosEndCallReasonMap: Record<EndCallReason, number> = {
 // - DisconnectCause.MISSED
 //
 // Numeric values (from android.telecom.DisconnectCause):
-// UNKNOWN = 0, ERROR = 1, LOCAL = 2, REMOTE = 3, REJECTED = 4, MISSED = 5
+// LOCAL = 2, REMOTE = 3, REJECTED = 6, MISSED = 5
 //
 // We therefore collapse all high-level EndCallReason variants to this allowed set.
 export const androidEndCallReasonMap: Record<EndCallReason, number> = {
   local: 2, // LOCAL
   remote: 3, // REMOTE
-  rejected: 4, // REJECTED
-  busy: 4, // map busy -> REJECTED
+  rejected: 6, // REJECTED
+  busy: 6, // map busy -> REJECTED
   answeredElsewhere: 3, // map answeredElsewhere -> REMOTE
   missed: 5, // MISSED
   error: 2, // map error -> LOCAL
   canceled: 2, // map canceled -> LOCAL
-  restricted: 4, // map restricted -> REJECTED
+  restricted: 6, // map restricted -> REJECTED
   unknown: 2, // map unknown -> LOCAL
 };

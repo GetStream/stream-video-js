@@ -385,14 +385,6 @@ class CallingxModuleImpl(
         isHeadlessTaskRegistered = true
     }
 
-    fun isServiceStarted(promise: Promise) {
-        val isStarted =
-                bindingState == BindingState.BOUND ||
-                        bindingState == BindingState.BINDING ||
-                        callService?.hasRegisteredCall() == true
-        debugLog(TAG, "[module] isServiceStarted: Service started: $isStarted")
-        promise.resolve(isStarted)
-    }
 
     fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         // no-op: Android Telecom doesn't require explicit action fulfillment
@@ -645,7 +637,10 @@ class CallingxModuleImpl(
                     if (callId != null) {
                         CallRegistrationStore.removeTrackedCall(callId)
                     }
-                    unbindServiceSafely()
+                    // Only unbind when no more calls are tracked
+                    if (!CallRegistrationStore.hasRegisteredCall()) {
+                        unbindServiceSafely()
+                    }
                 }
                 params.putString("cause", extras.getString(EXTRA_DISCONNECT_CAUSE))
                 sendJSEvent("endCall", params)

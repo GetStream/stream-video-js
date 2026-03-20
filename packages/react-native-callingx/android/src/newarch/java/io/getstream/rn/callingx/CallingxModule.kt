@@ -138,9 +138,6 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         impl.registerBackgroundTaskAvailable()
     }
 
-    override fun isServiceStarted(promise: Promise) {
-        impl.isServiceStarted(promise)
-    }
 
     override fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         impl.fulfillAnswerCallAction(callId, didFail)
