@@ -209,6 +209,22 @@ RCT_EXPORT_METHOD(setupAndroid:(NSDictionary *)options) {
 }
 #endif
 
+#pragma mark - stopService
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)stopService:(RCTPromiseResolveBlock)resolve
+              reject:(RCTPromiseRejectBlock)reject {
+  // Not implemented on iOS
+  resolve(@YES);
+}
+#else
+RCT_EXPORT_METHOD(stopService:(RCTPromiseResolveBlock)resolve
+              reject:(RCTPromiseRejectBlock)reject) {
+  // Not implemented on iOS
+  resolve(@YES);
+}
+
+#endif
 #pragma mark - setShouldRejectCallWhenBusy
 
 #ifdef RCT_NEW_ARCH_ENABLED

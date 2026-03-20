@@ -31,6 +31,10 @@ export interface Spec extends TurboModule {
       id: string;
       name: string;
     };
+    notificationTexts?: {
+      accepting?: string;
+      rejecting?: string;
+    };
   }): void;
 
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
@@ -139,6 +143,8 @@ export interface Spec extends TurboModule {
   fulfillEndCallAction(callId: string, didFail: boolean): void;
 
   registerVoipToken(): void;
+
+  stopService(): Promise<void>;
 
   readonly onNewEvent: EventEmitter<{
     eventName: string;

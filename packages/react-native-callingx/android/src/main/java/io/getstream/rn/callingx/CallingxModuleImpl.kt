@@ -8,9 +8,7 @@ import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -27,12 +25,12 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
-import java.util.concurrent.ConcurrentHashMap
+import io.getstream.rn.callingx.utils.SettingsStore
 
 class CallingxModuleImpl(
         private val reactApplicationContext: ReactApplicationContext,
         private val eventEmitter: CallingxEventEmitterAdapter
-) {
+) : CallEventBus.Listener {
 
     companion object {
         const val TAG = "[Callingx] CallingxModule"
@@ -45,19 +43,20 @@ class CallingxModuleImpl(
         const val EXTRA_AUDIO_ENDPOINT = "audio_endpoint"
         const val EXTRA_SOURCE = "source"
 
-        const val CALL_REGISTERED_ACTION = "call_registered"
-        const val CALL_REGISTERED_INCOMING_ACTION = "call_registered_incoming"
-        const val CALL_ANSWERED_ACTION = "call_answered"
-        // const val CALL_DISCONNECTED_ACTION = "call_disconnected"
-        const val CALL_INACTIVE_ACTION = "call_inactive"
-        const val CALL_ACTIVE_ACTION = "call_active"
-        const val CALL_MUTED_ACTION = "call_muted"
-        const val CALL_ENDPOINT_CHANGED_ACTION = "call_endpoint_changed"
-        const val CALL_END_ACTION = "call_end"
-        const val CALL_REGISTRATION_FAILED_ACTION = "call_registration_failed"
+        // Action names must match intent-filter entries in AndroidManifest.xml
+        const val CALL_REGISTERED_ACTION = "io.getstream.CALL_REGISTERED"
+        const val CALL_REGISTERED_INCOMING_ACTION = "io.getstream.CALL_REGISTERED_INCOMING"
+        const val CALL_ANSWERED_ACTION = "io.getstream.CALL_ANSWERED"
+        const val CALL_INACTIVE_ACTION = "io.getstream.CALL_INACTIVE"
+        const val CALL_ACTIVE_ACTION = "io.getstream.CALL_ACTIVE"
+        const val CALL_MUTED_ACTION = "io.getstream.CALL_MUTED"
+        const val CALL_ENDPOINT_CHANGED_ACTION = "io.getstream.CALL_ENDPOINT_CHANGED"
+        const val CALL_END_ACTION = "io.getstream.CALL_END"
+        const val CALL_REGISTRATION_FAILED_ACTION = "io.getstream.CALL_REGISTRATION_FAILED"
+        const val CALL_OPTIMISTIC_ACCEPT_ACTION = "io.getstream.ACCEPT_CALL_OPTIMISTIC"
         // Background task name
         const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
-        const val SERVICE_READY_ACTION = "service_ready"
+        const val SERVICE_READY_ACTION = "io.getstream.SERVICE_READY"
     }
 
     private enum class BindingState {
@@ -74,18 +73,8 @@ class CallingxModuleImpl(
     private var canSendEvents = false
     private var isHeadlessTaskRegistered = false
 
-    // Synchronous call tracking set, updated before async service start to mirror iOS semantics.
-    // This ensures isCallTracked() returns true immediately after displayIncomingCall/startCall.
-    private val trackedCallIds = ConcurrentHashMap.newKeySet<String>()
-
-    // Per-callId pending promises for displayIncomingCall awaiting CALL_REGISTERED_INCOMING_ACTION
-    private val pendingDisplayPromises = mutableMapOf<String, Promise>()
-    private val pendingTimeouts = mutableMapOf<String, Runnable>()
-    private val mainHandler = Handler(Looper.getMainLooper())
-    private val displayTimeoutMs = 10_000L // 10 second safety timeout
-
     private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
-    private val callEventBroadcastReceiver = CallEventBroadcastReceiver()
+    private val serviceReadyBroadcastReceiver = ServiceReadyBroadcastReceiver()
     private val appStateListener =
             object : LifecycleEventListener {
                 override fun onHostResume() {}
@@ -100,15 +89,20 @@ class CallingxModuleImpl(
             }
 
     init {
+        CallEventBus.subscribe(this)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             reactApplicationContext.registerReceiver(
-                    callEventBroadcastReceiver,
-                    getReceiverFilter(),
+                    serviceReadyBroadcastReceiver,
+                    getServiceReadyReceiverFilter(),
                     Context.RECEIVER_NOT_EXPORTED
             )
         } else {
             @Suppress("UnspecifiedRegisterReceiverFlag")
-            reactApplicationContext.registerReceiver(callEventBroadcastReceiver, getReceiverFilter())
+            reactApplicationContext.registerReceiver(
+                    serviceReadyBroadcastReceiver,
+                    getServiceReadyReceiverFilter()
+            )
         }
     }
 
@@ -123,19 +117,22 @@ class CallingxModuleImpl(
     fun invalidate() {
         debugLog(TAG, "[module] invalidate: Invalidating module")
 
-        // Clean up pending display promises to prevent leaks
-        synchronized(pendingDisplayPromises) {
-            pendingTimeouts.values.forEach { mainHandler.removeCallbacks(it) }
-            pendingTimeouts.clear()
-            pendingDisplayPromises.clear()
-        }
-
-        trackedCallIds.clear()
+        CallRegistrationStore.clearAll()
         unbindServiceSafely()
 
+        CallEventBus.unsubscribe(this)
+
         reactApplicationContext.removeLifecycleEventListener(appStateListener)
-        reactApplicationContext.unregisterReceiver(callEventBroadcastReceiver)
+        reactApplicationContext.unregisterReceiver(serviceReadyBroadcastReceiver)
         isModuleInitialized = false
+    }
+
+    fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
+        debugLog(
+                TAG,
+                "[module] setShouldRejectCallWhenBusy: Updating rejectCallWhenBusy to $shouldReject"
+        )
+        SettingsStore.setShouldRejectCallWhenBusy(reactApplicationContext, shouldReject)
     }
 
     fun setupAndroid(options: ReadableMap) {
@@ -145,6 +142,18 @@ class CallingxModuleImpl(
         notificationChannelsManager.setNotificationsConfig(notificationsConfig)
         notificationChannelsManager.createNotificationChannels()
 
+        val notificationTexts = options.getMap("notificationTexts")
+        if (notificationTexts != null) {
+            val acceptingText = notificationTexts.getString("accepting")
+            val rejectingText = notificationTexts.getString("rejecting")
+            debugLog(TAG, "[module] $acceptingText $rejectingText")
+            SettingsStore.setOptimisticTexts(
+                    reactApplicationContext,
+                    acceptingText,
+                    rejectingText,
+            )
+        }
+
         isModuleInitialized = true
     }
 
@@ -152,13 +161,30 @@ class CallingxModuleImpl(
         return notificationChannelsManager.getNotificationStatus().canPost
     }
 
+    fun stopService(promise: Promise) {
+        debugLog(TAG, "[module] stopService: Stopping CallService explicitly from JS")
+        try {
+            Intent(reactApplicationContext, CallService::class.java)
+                    .apply { action = CallService.ACTION_STOP_SERVICE }
+                    .also { reactApplicationContext.startService(it) }
+
+            promise.resolve(true)
+        } catch (e: Exception) {
+            Log.e(TAG, "[module] stopService: Failed to stop service: ${e.message}", e)
+            promise.reject("STOP_SERVICE_ERROR", e.message, e)
+        }
+    }
+
     fun getInitialEvents(): WritableArray {
-        // NOTE: writabel native array can be consumed only once, think of getting rid from clear
-        // event and clear eat immidiate after getting initial events
+        CallEventBus.drainPendingEvents().forEach { onCallEvent(it) }
+
+        // NOTE: writable native array can be consumed only once, think of getting rid from clear
+        // event and clear it immediately after getting initial events
         val events = delayedEvents
         debugLog(TAG, "[module] getInitialEvents: Getting initial events: $events")
         delayedEvents = WritableNativeArray()
         canSendEvents = true
+        CallEventBus.markJsReady()
         return events
     }
 
@@ -184,30 +210,7 @@ class CallingxModuleImpl(
             return
         }
 
-        trackedCallIds.add(callId)
-
-        // Store the promise keyed by callId; it will be resolved when CALL_REGISTERED_INCOMING_ACTION
-        // broadcast is received, or rejected on timeout / registration failure.
-        synchronized(pendingDisplayPromises) {
-            // Cancel any existing timeout for this callId to avoid a stale
-            // runnable rejecting the new promise after it overwrites the old one.
-            pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-
-            pendingDisplayPromises[callId] = promise
-
-            // Per-call timeout runnable
-            val timeoutRunnable = Runnable {
-                synchronized(pendingDisplayPromises) {
-                    pendingDisplayPromises.remove(callId)?.reject(
-                            "TIMEOUT",
-                            "Timed out waiting for call registration: $callId"
-                    )
-                    pendingTimeouts.remove(callId)
-                }
-            }
-            pendingTimeouts[callId] = timeoutRunnable
-            mainHandler.postDelayed(timeoutRunnable, displayTimeoutMs)
-        }
+        CallRegistrationStore.trackCallRegistration(callId, promise)
 
         try {
             startCallService(
@@ -220,12 +223,12 @@ class CallingxModuleImpl(
             )
         } catch (e: Exception) {
             Log.e(TAG, "[module] displayIncomingCall: Failed to start foreground service: ${e.message}", e)
-            trackedCallIds.remove(callId)
-            synchronized(pendingDisplayPromises) {
-                pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-                pendingDisplayPromises.remove(callId)
-            }
-            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+            CallRegistrationStore.reportRegistrationFail(
+                    callId,
+                    "START_FOREGROUND_SERVICE_ERROR",
+                    e.message,
+                    e
+            )
         }
     }
 
@@ -256,7 +259,7 @@ class CallingxModuleImpl(
             return
         }
 
-        trackedCallIds.add(callId)
+        CallRegistrationStore.trackCallRegistration(callId, promise)
 
         try {
             startCallService(
@@ -267,11 +270,14 @@ class CallingxModuleImpl(
                     hasVideo,
                     displayOptions
             )
-            promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "[module] startCall: Failed to start foreground service: ${e.message}", e)
-            trackedCallIds.remove(callId)
-            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+            CallRegistrationStore.reportRegistrationFail(
+              callId,
+              "START_FOREGROUND_SERVICE_ERROR",
+              e.message,
+              e
+          )
         }
     }
 
@@ -307,28 +313,24 @@ class CallingxModuleImpl(
 
     fun endCallWithReason(callId: String, reason: Double, promise: Promise) {
         debugLog(TAG, "[module] endCallWithReason: Ending call: $callId, $reason")
-        trackedCallIds.remove(callId)
+        CallRegistrationStore.removeTrackedCall(callId)
         val action = CallAction.Disconnect(DisconnectCause(reason.toInt()))
         executeServiceAction(callId, action, promise)
     }
 
     fun endCall(callId: String, promise: Promise) {
         debugLog(TAG, "[module] endCall: Ending call: $callId")
-        trackedCallIds.remove(callId)
+        CallRegistrationStore.removeTrackedCall(callId)
         val action = CallAction.Disconnect(DisconnectCause(DisconnectCause.LOCAL))
         executeServiceAction(callId, action, promise)
     }
 
     fun isCallTracked(callId: String): Boolean {
-        val isTracked = trackedCallIds.contains(callId)
-        debugLog(TAG, "[module] isCallTracked: Is call tracked: $isTracked")
-        return isTracked
+        return CallRegistrationStore.isCallTracked(callId)
     }
 
     fun hasRegisteredCall(): Boolean {
-        val hasRegisteredCall = callService?.hasRegisteredCall() ?: false
-        debugLog(TAG, "[module] hasRegisteredCall: Has registered call: $hasRegisteredCall")
-        return hasRegisteredCall
+        return CallRegistrationStore.hasRegisteredCall()
     }
 
     fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {
@@ -352,12 +354,12 @@ class CallingxModuleImpl(
                         putExtra(CallService.EXTRA_TASK_DATA, Bundle())
                         putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
                     }
-                    .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+                    .also { reactApplicationContext.startService(it) }
 
             promise.resolve(true)
         } catch (e: Exception) {
-            Log.e(TAG, "[module] startBackgroundTask: Failed to start foreground service: ${e.message}", e)
-            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+            Log.e(TAG, "[module] startBackgroundTask: Failed to start service: ${e.message}", e)
+            promise.reject("START_SERVICE_ERROR", e.message, e)
         }
     }
 
@@ -368,13 +370,13 @@ class CallingxModuleImpl(
                         this.action = CallService.ACTION_STOP_BACKGROUND_TASK
                         putExtra(CallService.EXTRA_TASK_NAME, taskName)
                     }
-                    .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+                    .also { reactApplicationContext.startService(it) }
 
             isHeadlessTaskRegistered = false
             promise.resolve(true)
         } catch (e: Exception) {
-            Log.e(TAG, "[module] stopBackgroundTask: Failed to start foreground service: ${e.message}", e)
-            promise.reject("START_FOREGROUND_SERVICE_ERROR", e.message, e)
+            Log.e(TAG, "[module] stopBackgroundTask: Failed to start service: ${e.message}", e)
+            promise.reject("START_SERVICE_ERROR", e.message, e)
         }
     }
 
@@ -446,9 +448,9 @@ class CallingxModuleImpl(
                         putExtra(CallService.EXTRA_TASK_DATA, Bundle())
                         putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
                     }
-                    .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
+                    .also { reactApplicationContext.startService(it) }
         } catch (e: Exception) {
-            Log.e(TAG, "[module] startBackgroundTaskAutomatically: Failed to start foreground service: ${e.message}", e)
+            Log.e(TAG, "[module] startBackgroundTaskAutomatically: Failed to start service: ${e.message}", e)
         }
     }
 
@@ -515,17 +517,8 @@ class CallingxModuleImpl(
         }
     }
 
-    private fun getReceiverFilter(): IntentFilter =
+    private fun getServiceReadyReceiverFilter(): IntentFilter =
             IntentFilter().apply {
-                addAction(CALL_REGISTERED_ACTION)
-                addAction(CALL_REGISTERED_INCOMING_ACTION)
-                addAction(CALL_ANSWERED_ACTION)
-                addAction(CALL_ACTIVE_ACTION)
-                addAction(CALL_INACTIVE_ACTION)
-                addAction(CALL_MUTED_ACTION)
-                addAction(CALL_ENDPOINT_CHANGED_ACTION)
-                addAction(CALL_END_ACTION)
-                addAction(CALL_REGISTRATION_FAILED_ACTION)
                 addAction(SERVICE_READY_ACTION)
             }
 
@@ -604,104 +597,93 @@ class CallingxModuleImpl(
         }
     }
 
-    private inner class CallEventBroadcastReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-            val callId = intent.getStringExtra(EXTRA_CALL_ID)
+    override fun onCallEvent(event: CallEvent) {
+        val action = event.action
+        val extras = event.extras
+        val callId = extras.getString(EXTRA_CALL_ID)
 
-            if (action == null) {
-                return
+        debugLog(
+                TAG,
+                "[module] onCallEvent: Received event: $action callId: $callId callService: ${callService != null}"
+        )
+
+        val params = Arguments.createMap()
+        if (callId != null) {
+            params.putString("callId", callId)
+        }
+
+        when (action) {
+            CALL_REGISTERED_ACTION -> {
+                sendJSEvent("didReceiveStartCallAction", params)
+                if (callId != null) {
+                  CallRegistrationStore.onRegistrationSuccess(callId)
+                }
             }
+            CALL_REGISTERED_INCOMING_ACTION -> {
+                if (callId != null) {
+                    CallRegistrationStore.onRegistrationSuccess(callId)
+                }
+                sendJSEvent("didDisplayIncomingCall", params)
+            }
+            CALL_REGISTRATION_FAILED_ACTION -> {
+                if (callId != null) {
+                    CallRegistrationStore.onRegistrationFailed(callId)
+                }
+            }
+            CALL_ANSWERED_ACTION -> {
+                if (extras.containsKey(EXTRA_SOURCE)) {
+                    params.putString("source", extras.getString(EXTRA_SOURCE))
+                }
+                sendJSEvent("answerCall", params)
+            }
+            CALL_END_ACTION -> {
+                val source = extras.getString(EXTRA_SOURCE)
+                if (source != null) {
+                    params.putString("source", source)
+                }
+                if (source == "app") {
+                    if (callId != null) {
+                        CallRegistrationStore.removeTrackedCall(callId)
+                    }
+                    unbindServiceSafely()
+                }
+                params.putString("cause", extras.getString(EXTRA_DISCONNECT_CAUSE))
+                sendJSEvent("endCall", params)
+            }
+            CALL_INACTIVE_ACTION -> {
+                params.putBoolean("hold", true)
+                sendJSEvent("didToggleHoldCallAction", params)
+            }
+            CALL_ACTIVE_ACTION -> {
+                params.putBoolean("hold", false)
+                sendJSEvent("didToggleHoldCallAction", params)
+            }
+            CALL_MUTED_ACTION -> {
+                if (extras.containsKey(EXTRA_MUTED)) {
+                    params.putBoolean("muted", extras.getBoolean(EXTRA_MUTED, false))
+                }
+                sendJSEvent("didPerformSetMutedCallAction", params)
+            }
+            CALL_ENDPOINT_CHANGED_ACTION -> {
+                if (extras.containsKey(EXTRA_AUDIO_ENDPOINT)) {
+                    params.putString("output", extras.getString(EXTRA_AUDIO_ENDPOINT))
+                }
+                sendJSEvent("didChangeAudioRoute", params)
+            }
+        }
+    }
 
-            debugLog(
-                    TAG,
-                    "[module] onReceive: Received intent: $action callId: $callId callService: ${callService != null}"
-            )
+    private inner class ServiceReadyBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+          val action = intent.action ?: return
 
-            if (action == SERVICE_READY_ACTION) {
-                debugLog(TAG, "[module] onReceive: Service is ready, initiating binding, isHeadlessTaskRegistered: $isHeadlessTaskRegistered")
+          if (action == SERVICE_READY_ACTION) {
+                debugLog(
+                        TAG,
+                        "[module] ServiceReadyBroadcastReceiver: Service is ready, initiating binding, isHeadlessTaskRegistered: $isHeadlessTaskRegistered"
+                )
                 bindToServiceIfNeeded()
                 startBackgroundTaskAutomatically(HEADLESS_TASK_NAME, 0L)
-                return
-            }
-
-            val params = Arguments.createMap()
-            if (callId != null) {
-                params.putString("callId", callId)
-            }
-
-            when (action) {
-                CALL_REGISTERED_ACTION -> {
-                    sendJSEvent("didReceiveStartCallAction", params)
-                }
-                CALL_REGISTERED_INCOMING_ACTION -> {
-                    // Resolve the pending displayIncomingCall promise for this callId
-                    if (callId != null) {
-                        synchronized(pendingDisplayPromises) {
-                            pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-                            pendingDisplayPromises.remove(callId)?.resolve(true)
-                        }
-                    }
-                    sendJSEvent("didDisplayIncomingCall", params)
-                }
-                CALL_REGISTRATION_FAILED_ACTION -> {
-                    if (callId != null) {
-                        trackedCallIds.remove(callId)
-                    }
-                    // Reject the pending displayIncomingCall promise for this callId
-                    if (callId != null) {
-                        synchronized(pendingDisplayPromises) {
-                            pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-                            pendingDisplayPromises.remove(callId)?.reject(
-                                    "REGISTRATION_FAILED",
-                                    "Failed to register call with telecom: $callId"
-                            )
-                        }
-                    }
-                }
-                CALL_ANSWERED_ACTION -> {
-                    if (intent.hasExtra(EXTRA_SOURCE)) {
-                        params.putString("source", intent.getStringExtra(EXTRA_SOURCE))
-                    }
-                    sendJSEvent("answerCall", params)
-                }
-                CALL_END_ACTION -> {
-                    val source = intent.getStringExtra(EXTRA_SOURCE)
-                    if (source != null) {
-                        params.putString("source", source)
-                    }
-                    if (source == "app") {
-                        if (callId != null) {
-                            //we stop tracking the call only when it was handled by the app
-                            //in case source is "sys" we still need to know that call is tracked, otherwise we'll unable to end call from js side
-                            trackedCallIds.remove(callId)
-                        }
-                        // means the call was disconnected, we're ready to unbind the service
-                        unbindServiceSafely()
-                    }
-                    params.putString("cause", intent.getStringExtra(EXTRA_DISCONNECT_CAUSE))
-                    sendJSEvent("endCall", params)
-                }
-                CALL_INACTIVE_ACTION -> {
-                    params.putBoolean("hold", true)
-                    sendJSEvent("didToggleHoldCallAction", params)
-                }
-                CALL_ACTIVE_ACTION -> {
-                    params.putBoolean("hold", false)
-                    sendJSEvent("didToggleHoldCallAction", params)
-                }
-                CALL_MUTED_ACTION -> {
-                    if (intent.hasExtra(EXTRA_MUTED)) {
-                        params.putBoolean("muted", intent.getBooleanExtra(EXTRA_MUTED, false))
-                    }
-                    sendJSEvent("didPerformSetMutedCallAction", params)
-                }
-                CALL_ENDPOINT_CHANGED_ACTION -> {
-                    if (intent.hasExtra(EXTRA_AUDIO_ENDPOINT)) {
-                        params.putString("output", intent.getStringExtra(EXTRA_AUDIO_ENDPOINT))
-                    }
-                    sendJSEvent("didChangeAudioRoute", params)
-                }
             }
         }
     }

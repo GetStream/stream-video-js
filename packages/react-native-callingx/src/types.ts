@@ -139,6 +139,8 @@ export interface ICallingxModule {
 
   registerVoipToken(): void;
 
+  stopService(): Promise<void>;
+
   /**
    * Single entry point for adding event listeners.
    * Automatically routes to the appropriate manager based on event type.
@@ -210,6 +212,22 @@ export type InternalAndroidOptions = {
   ongoingChannel?: {
     id?: string;
     name?: string;
+  };
+  /**
+   * Texts used for call state notifications while the system is connecting or declining the call.
+   * If not provided, platform defaults will be used.
+   */
+  notificationTexts?: {
+    /**
+     * Text shown while optimistically accepting a call.
+     * @default "Connecting..."
+     */
+    accepting?: string;
+    /**
+     * Text shown while optimistically rejecting a call.
+     * @default "Declining..."
+     */
+    rejecting?: string;
   };
 };
 type AndroidOptions = InternalAndroidOptions & NotificationTransformers;

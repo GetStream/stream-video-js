@@ -46,7 +46,7 @@ class CallingxModule(reactContext: ReactApplicationContext) :
     }
 
     override fun setShouldRejectCallWhenBusy(shouldReject: Boolean) {
-        // leave empty
+        impl.setShouldRejectCallWhenBusy(shouldReject)
     }
 
     override fun getInitialVoipEvents(): WritableArray {
@@ -152,5 +152,9 @@ class CallingxModule(reactContext: ReactApplicationContext) :
 
     override fun log(message: String, level: String) {
         impl.log(message, level)
+    }
+
+    override fun stopService(promise: Promise) {
+        impl.stopService(promise)
     }
 }
