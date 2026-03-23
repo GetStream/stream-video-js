@@ -46,7 +46,6 @@ void broadcastNotificationCallback(CFNotificationCenterRef center,
     bool hasListeners;
     CFNotificationCenterRef _notificationCenter;
     AVAudioPlayer *_busyTonePlayer; // Instance variable
-    BOOL _vpBypassedBeforeMixing; // VP bypass state before screen share audio mixing
 }
 
 // necessary for addUIBlock usage https://github.com/facebook/react-native/issues/50800#issuecomment-2823327307
@@ -689,33 +688,27 @@ RCT_EXPORT_METHOD(startScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 {
     WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
 
-    ScreenShareAudioMixer *mixer = [[ScreenShareAudioMixer alloc] init];
-    webrtcModule.audioDeviceModule.audioGraphDelegate = mixer;
+    ScreenShareAudioMixer *mixer = webrtcModule.audioDeviceModule.screenShareAudioMixer;
 
-    // Important: enable mixing first — VP bypass below triggers an engine reconfiguration
-    // which calls onConfigureInputFromSource. The mixer checks isMixing in that
-    // callback, so it must be true before the reconfiguration fires.
-    [mixer startMixing];
-
-    // Save current VP bypass state, then bypass voice processing (AEC/AGC/NS)
-    // so screen audio isn't filtered as echo. This also triggers an engine
-    // stop/reconfigure/start cycle that fires onConfigureInputFromSource,
-    // allowing the mixer to wire its nodes into the graph.
-    if (webrtcModule.audioDeviceModule) {
-        _vpBypassedBeforeMixing = webrtcModule.audioDeviceModule.isVoiceProcessingBypassed;
-        [webrtcModule.audioDeviceModule setVoiceProcessingBypassed:YES];
+    // Wire mixer as capturePostProcessingDelegate on the audio processing module.
+    id<RTCAudioProcessingModule> apmId = options.audioProcessingModule;
+    if (apmId && [apmId isKindOfClass:[RTCDefaultAudioProcessingModule class]]) {
+        RTCDefaultAudioProcessingModule *apm = (RTCDefaultAudioProcessingModule *)apmId;
+        apm.capturePostProcessingDelegate = mixer;
+        NSLog(@"[SSAMixer] Set capturePostProcessingDelegate on APM");
+    } else {
+        NSLog(@"[SSAMixer] WARNING: No RTCDefaultAudioProcessingModule available, mixing will not work");
     }
 
+    [mixer startMixing];
+
     // Wire audio buffer handler on the active capturer → mixer.enqueue
-    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
     InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
     if (capturer) {
         capturer.audioBufferHandler = ^(CMSampleBufferRef sampleBuffer) {
-            ScreenShareAudioMixer *currentMixer = (ScreenShareAudioMixer *)webrtcModule.audioDeviceModule.audioGraphDelegate;
-            if (currentMixer) {
-                [currentMixer enqueue:sampleBuffer];
-            }
+            [mixer enqueue:sampleBuffer];
         };
     }
 
@@ -726,22 +719,24 @@ RCT_EXPORT_METHOD(stopScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 {
     WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
-
-    ScreenShareAudioMixer *mixer = (ScreenShareAudioMixer *)webrtcModule.audioDeviceModule.audioGraphDelegate;
-    if (mixer) {
-        [mixer stopMixing];
-    }
-    webrtcModule.audioDeviceModule.audioGraphDelegate = nil;
-
-    // Restore voice processing bypass to its previous state
-    if (webrtcModule.audioDeviceModule) {
-        [webrtcModule.audioDeviceModule setVoiceProcessingBypassed:_vpBypassedBeforeMixing];
-    }
-
     WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+
+    // Stop feeding audio to the mixer
     InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
     if (capturer) {
         capturer.audioBufferHandler = nil;
+    }
+
+    // Stop mixing
+    ScreenShareAudioMixer *mixer = webrtcModule.audioDeviceModule.screenShareAudioMixer;
+    [mixer stopMixing];
+
+    // Clear capturePostProcessingDelegate
+    id<RTCAudioProcessingModule> apmId = options.audioProcessingModule;
+    if (apmId && [apmId isKindOfClass:[RTCDefaultAudioProcessingModule class]]) {
+        RTCDefaultAudioProcessingModule *apm = (RTCDefaultAudioProcessingModule *)apmId;
+        apm.capturePostProcessingDelegate = nil;
+        NSLog(@"[SSAMixer] Cleared capturePostProcessingDelegate on APM");
     }
 
     resolve(nil);
