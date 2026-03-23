@@ -688,35 +688,31 @@ RCT_EXPORT_METHOD(stopInAppScreenCapture:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(startScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 {
-    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
 
-    ScreenShareAudioMixer *mixer = options.screenShareAudioMixer;
-    if (!mixer) {
-        reject(@"MIXER_ERROR", @"Mixer not prepared — call prepareScreenShareAudioMixing first", nil);
-        return;
-    }
+    ScreenShareAudioMixer *mixer = [[ScreenShareAudioMixer alloc] init];
+    webrtcModule.audioDeviceModule.audioGraphDelegate = mixer;
 
-    // Enable mixing FIRST — VP bypass below triggers an engine reconfiguration
+    // Important: enable mixing first — VP bypass below triggers an engine reconfiguration
     // which calls onConfigureInputFromSource. The mixer checks isMixing in that
     // callback, so it must be true before the reconfiguration fires.
     [mixer startMixing];
 
-    // Save current VP bypass state so we can restore it when mixing stops.
-    // VP may already be bypassed (e.g. stereo playout mode).
-    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
+    // Save current VP bypass state, then bypass voice processing (AEC/AGC/NS)
+    // so screen audio isn't filtered as echo. This also triggers an engine
+    // stop/reconfigure/start cycle that fires onConfigureInputFromSource,
+    // allowing the mixer to wire its nodes into the graph.
     if (webrtcModule.audioDeviceModule) {
         _vpBypassedBeforeMixing = webrtcModule.audioDeviceModule.isVoiceProcessingBypassed;
-        // Bypass voice processing (AEC/AGC/NS) so screen audio isn't filtered as echo.
-        // This triggers a stop/reconfigure/start cycle, during which onConfigureInputFromSource
-        // fires and the mixer wires its playerNode + mixerNode into the graph.
         [webrtcModule.audioDeviceModule setVoiceProcessingBypassed:YES];
     }
 
     // Wire audio buffer handler on the active capturer → mixer.enqueue
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
     InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
     if (capturer) {
         capturer.audioBufferHandler = ^(CMSampleBufferRef sampleBuffer) {
-            ScreenShareAudioMixer *currentMixer = [WebRTCModuleOptions sharedInstance].screenShareAudioMixer;
+            ScreenShareAudioMixer *currentMixer = (ScreenShareAudioMixer *)webrtcModule.audioDeviceModule.audioGraphDelegate;
             if (currentMixer) {
                 [currentMixer enqueue:sampleBuffer];
             }
@@ -729,21 +725,20 @@ RCT_EXPORT_METHOD(startScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(stopScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 {
-    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
 
-    // Stop audio buffer processing
-    ScreenShareAudioMixer *mixer = options.screenShareAudioMixer;
+    ScreenShareAudioMixer *mixer = (ScreenShareAudioMixer *)webrtcModule.audioDeviceModule.audioGraphDelegate;
     if (mixer) {
         [mixer stopMixing];
     }
+    webrtcModule.audioDeviceModule.audioGraphDelegate = nil;
 
     // Restore voice processing bypass to its previous state
-    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
     if (webrtcModule.audioDeviceModule) {
         [webrtcModule.audioDeviceModule setVoiceProcessingBypassed:_vpBypassedBeforeMixing];
     }
 
-    // Clear the audio buffer handler on the capturer
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
     InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
     if (capturer) {
         capturer.audioBufferHandler = nil;
