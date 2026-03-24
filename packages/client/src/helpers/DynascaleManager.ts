@@ -71,7 +71,7 @@ export class DynascaleManager {
   private callState: CallState;
   private speaker: SpeakerManager;
   private tracer: Tracer;
-  private useWebAudio = isSafari();
+  private useWebAudio = false;
   private audioContext: AudioContext | undefined;
   private sfuClient: StreamSfuClient | undefined;
   private pendingSubscriptionsUpdate: NodeJS.Timeout | null = null;
@@ -447,6 +447,7 @@ export class DynascaleManager {
         });
     resizeObserver?.observe(videoElement);
 
+    const isVideoTrack = trackType === 'videoTrack';
     // element renders and gets bound - track subscription gets
     // triggered first other ones get skipped on initial subscriptions
     const publishedTracksSubscription = boundParticipant.isLocalParticipant
@@ -454,9 +455,7 @@ export class DynascaleManager {
       : participant$
           .pipe(
             distinctUntilKeyChanged('publishedTracks'),
-            map((p) =>
-              trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
-            ),
+            map((p) => (isVideoTrack ? hasVideo(p) : hasScreenShare(p))),
             distinctUntilChanged(),
           )
           .subscribe((isPublishing) => {
@@ -480,15 +479,11 @@ export class DynascaleManager {
     // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
     videoElement.muted = true;
 
+    const trackKey = isVideoTrack ? 'videoStream' : 'screenShareStream';
     const streamSubscription = participant$
-      .pipe(
-        distinctUntilKeyChanged(
-          trackType === 'videoTrack' ? 'videoStream' : 'screenShareStream',
-        ),
-      )
+      .pipe(distinctUntilKeyChanged(trackKey))
       .subscribe((p) => {
-        const source =
-          trackType === 'videoTrack' ? p.videoStream : p.screenShareStream;
+        const source = isVideoTrack ? p.videoStream : p.screenShareStream;
         if (videoElement.srcObject === source) return;
         videoElement.srcObject = source ?? null;
         if (isSafari() || isFirefox()) {
