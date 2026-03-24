@@ -42,7 +42,8 @@ export const useCallingExpWithCallingStateEffect = () => {
             callingState === CallingState.JOINED &&
             callingx.isCallTracked(activeCall.cid),
         ),
-        take(1), // only need to capture the first joined state for outgoing calls then subscription can be unsubscribtion completes
+        take(1), // only need to capture the first joined state for outgoing calls
+        // then subscription completes and is automatically unsubscribed
       )
       .subscribe(() => {
         callingx.setCurrentCallActive(activeCall.cid);

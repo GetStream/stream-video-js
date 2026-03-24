@@ -22,10 +22,6 @@ export function getCallDisplayName(
   participants: StreamVideoParticipant[] | undefined,
   currentUserId: string | undefined,
 ): string {
-  // const callMembers = call.state.members;
-  // const participants = call.state.participants;
-  // const currentUserId = call.currentUserId;
-
   if (!callMembers || !participants || !currentUserId) {
     return 'Call';
   }
