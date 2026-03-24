@@ -7488,17 +7488,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shopify/flash-list@npm:^2.1.0":
-  version: 2.3.0
-  resolution: "@shopify/flash-list@npm:2.3.0"
-  peerDependencies:
-    "@babel/runtime": "*"
-    react: "*"
-    react-native: "*"
-  checksum: 10/056e75590c599a5182e0e71042feeae63753e3256b6354503298bca366f30244c92f8f10182239b29b2f9cf111d589980b7c245d3d5eb44f375c3a9937d7b0b4
-  languageName: node
-  linkType: hard
-
 "@sideway/address@npm:^4.1.3":
   version: 4.1.4
   resolution: "@sideway/address@npm:4.1.4"
@@ -8015,7 +8004,6 @@ __metadata:
     "@rnx-kit/babel-preset-metro-react-native": "npm:^3.0.0"
     "@rnx-kit/metro-config": "npm:^2.1.2"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
-    "@shopify/flash-list": "npm:^2.1.0"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:137.1.0"
     "@stream-io/video-filters-react-native": "workspace:^"
@@ -8046,7 +8034,7 @@ __metadata:
     react-native-worklets: "npm:^0.7.3"
     rxjs: "npm:~7.8.2"
     stream-chat: "npm:^9.38.0"
-    stream-chat-react-native: "npm:^9.0.0-beta.1"
+    stream-chat-react-native: "npm:9.0.0-beta.6"
     typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
@@ -23351,9 +23339,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react-native-core@npm:9.0.0-beta.1":
-  version: 9.0.0-beta.1
-  resolution: "stream-chat-react-native-core@npm:9.0.0-beta.1"
+"stream-chat-react-native-core@npm:9.0.0-beta.6":
+  version: 9.0.0-beta.6
+  resolution: "stream-chat-react-native-core@npm:9.0.0-beta.6"
   dependencies:
     "@gorhom/bottom-sheet": "npm:5.1.8"
     "@ungap/structured-clone": "npm:^1.3.0"
@@ -23393,17 +23381,17 @@ __metadata:
       optional: true
     react-native-keyboard-controller:
       optional: true
-  checksum: 10/88bb6373992547078de749e1ee3a31955993a27db5a80242e650130f5c8bbbe6b236aae2f47ab97a372e0250d192619afe8b579ce4d01ea1eedbfa90dd19839e
+  checksum: 10/889aa9b9592f938e75860ca18b15c4a5a326ae9a0a2c3be7c0a70d0eaf0fe78f88d7424a58e035cb63690d9a848c7ac4f82806edf2b557a131a03f926319b5fe
   languageName: node
   linkType: hard
 
-"stream-chat-react-native@npm:^9.0.0-beta.1":
-  version: 9.0.0-beta.1
-  resolution: "stream-chat-react-native@npm:9.0.0-beta.1"
+"stream-chat-react-native@npm:9.0.0-beta.6":
+  version: 9.0.0-beta.6
+  resolution: "stream-chat-react-native@npm:9.0.0-beta.6"
   dependencies:
     es6-symbol: "npm:^3.1.3"
     mime: "npm:^4.0.7"
-    stream-chat-react-native-core: "npm:9.0.0-beta.1"
+    stream-chat-react-native-core: "npm:9.0.0-beta.6"
   peerDependencies:
     "@react-native-camera-roll/camera-roll": ">=7.8.0"
     "@react-native-clipboard/clipboard": ">=1.14.1"
@@ -23440,7 +23428,7 @@ __metadata:
       optional: true
     react-native-video:
       optional: true
-  checksum: 10/46891050b21cec744daaab6b01825fcd688e66b3b84f5935ccba20efcb6ea48a431f883564f54258278a1b58ed2ee28118805ce1895f31972cc6aba8ad7c632e
+  checksum: 10/8ec9393aa5647614ee7adbebf3a1556780c03f9dd8dca645d3b2215c76d4a695fed1acef8758c496ebe448e7e41cb03bf699d5e01496d7b768f7c5d64572a153
   languageName: node
   linkType: hard
 
