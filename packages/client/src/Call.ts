@@ -484,6 +484,10 @@ export class Call {
     const receiver_id = this.clientStore.connectedUser?.id;
     const ended_at = callSession?.ended_at;
     const created_by_id = this.state.createdBy?.id;
+
+    if (created_by_id === this.currentUserId) {
+      globalThis.streamRNVideoSDK?.callingX?.registerOutgoingCall(this);
+    }
     const rejected_by = callSession?.rejected_by;
     const accepted_by = callSession?.accepted_by;
     let leaveCallIdle = false;
@@ -944,7 +948,7 @@ export class Call {
     const callingX = globalThis.streamRNVideoSDK?.callingX;
     if (callingX) {
       // for Android/iOS, we need to start the call in the callingx library as soon as possible
-      await callingX.startCall(this, this.clientStore.calls);
+      await callingX.joinCall(this, this.clientStore.calls);
     }
 
     await this.setup();

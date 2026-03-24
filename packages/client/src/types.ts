@@ -425,11 +425,12 @@ type StreamRNVideoSDKEndCallReason =
   | 'unknown';
 
 type StreamRNVideoSDKCallingX = {
-  startCall: (call: Call, activeCalls: Call[]) => Promise<void>;
+  joinCall: (call: Call, activeCalls: Call[]) => Promise<void>;
   endCall: (
     call: Call,
     reason?: StreamRNVideoSDKEndCallReason,
   ) => Promise<void>;
+  registerOutgoingCall: (call: Call) => Promise<void>;
 };
 
 export type StreamRNVideoSDKGlobals = {

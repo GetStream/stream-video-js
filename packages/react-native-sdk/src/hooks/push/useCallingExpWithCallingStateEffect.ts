@@ -1,6 +1,7 @@
-import { videoLoggerSystem } from '@stream-io/video-client';
+import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useMemo } from 'react';
+import { filter, take } from 'rxjs/operators';
 import { getCallDisplayName } from '../../utils/internal/callingx/callingx';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 
@@ -25,6 +26,31 @@ export const useCallingExpWithCallingStateEffect = () => {
     () => getCallDisplayName(callMembers, participants, currentUserId),
     [callMembers, participants, currentUserId],
   );
+
+  useEffect(() => {
+    const callingx = getCallingxLibIfAvailable();
+    if (!callingx?.isSetup || !activeCall) {
+      return;
+    }
+    // need to capture RINGING -> Joining -> Joined state change for the first time
+    // and inform callingx that the outgoing call is active
+    const subscription = activeCall.state.callingState$
+      .pipe(
+        filter(
+          (callingState) =>
+            activeCall.isCreatedByMe &&
+            callingState === CallingState.JOINED &&
+            callingx.isCallTracked(activeCall.cid),
+        ),
+        take(1), // only need to capture the first joined state for outgoing calls then subscription can be unsubscribtion completes
+      )
+      .subscribe(() => {
+        callingx.setCurrentCallActive(activeCall.cid);
+      });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [activeCall]);
 
   useEffect(() => {
     return () => {
