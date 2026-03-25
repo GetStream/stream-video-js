@@ -5,7 +5,8 @@ import { decodeBase64 } from 'stream-chat';
  * The maximum validity of a token, in seconds.
  * Defaults to 7 days.
  */
-export const maxTokenValidityInSeconds: number = 60;
+export const maxTokenValidityInSeconds: number =
+  Number(process.env.MAX_TOKEN_EXP_IN_SECONDS) || 7 * 24 * 60 * 60; // 7 days
 
 export const createToken = async (
   userId: string,
