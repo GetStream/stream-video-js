@@ -61,8 +61,6 @@ const getDevices = (
  */
 export const checkIfAudioOutputChangeSupported = () => {
   if (typeof document === 'undefined') return false;
-  // Safari uses WebAudio API for playing audio, so we check the AudioContext prototype
-  if (isSafari()) return 'setSinkId' in AudioContext.prototype;
   const element = document.createElement('audio');
   return 'setSinkId' in element;
 };
