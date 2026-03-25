@@ -60,6 +60,7 @@ export class StableWSConnection {
   totalFailures: number;
   ws?: WebSocket;
   wsID: number;
+  private _connectTimeout?: ReturnType<typeof setTimeout>;
 
   client: StreamClient;
 
@@ -210,6 +211,26 @@ export class StableWSConnection {
   };
 
   /**
+   * _sayHi - Fire-and-forget HTTP probe to warm up the TCP connection
+   * before opening the WebSocket.
+   */
+  _sayHi = () => {
+    console.log(
+      `[WS_DEBUG] _sayHi: navigator.onLine=${typeof navigator !== 'undefined' ? navigator.onLine : 'N/A'}`,
+    );
+    const token = this.client._getToken();
+    fetch(`https://video.stream-io-api.com/hi?api_key=${this.client.key}`, {
+      method: 'GET',
+      headers: {
+        'stream-auth-type': this.client.getAuthType(),
+        ...(token ? { Authorization: token } : {}),
+      },
+    }).catch(() => {
+      // fire-and-forget
+    });
+  };
+
+  /**
    * disconnect - Disconnect the connection and doesn't recover...
    *
    */
@@ -223,6 +244,7 @@ export class StableWSConnection {
     this.isDisconnected = true;
 
     // start by removing all the listeners
+    clearTimeout(this._connectTimeout);
     if (this.healthCheckTimeoutRef) {
       getTimers().clearInterval(this.healthCheckTimeoutRef);
     }
@@ -306,27 +328,61 @@ export class StableWSConnection {
         this.client._setupConnectionIdPromise();
       }
       this._setupConnectionPromise();
+      this._sayHi();
       const wsURL = this._buildUrl();
       this._log(`_connect() - Connecting to ${wsURL}`);
+      console.log(
+        `[WS_DEBUG] _connect: wsID=${this.wsID} navigator.onLine=${typeof navigator !== 'undefined' ? navigator.onLine : 'N/A'}`,
+      );
       const WS = this.client.options.WebSocketImpl ?? WebSocket;
       this.ws = new WS(wsURL);
       this.ws.onopen = this.onopen.bind(this, this.wsID);
       this.ws.onclose = this.onclose.bind(this, this.wsID);
       this.ws.onerror = this.onerror.bind(this, this.wsID);
       this.ws.onmessage = this.onmessage.bind(this, this.wsID);
+
+      const wsIDAtConnect = this.wsID;
+      this._connectTimeout = setTimeout(() => {
+        if (
+          this.ws &&
+          this.ws.readyState === WebSocket.CONNECTING &&
+          this.wsID === wsIDAtConnect
+        ) {
+          this._log(
+            '_connect() - connect attempt timed out, closing hanging WebSocket',
+          );
+          console.log(
+            `[WS_DEBUG] _connect: closing hanging WS | wsID=${wsIDAtConnect} readyState=${this.ws.readyState}`,
+          );
+          const error = new Error('WS connect timeout after 5s') as Error & {
+            isWSFailure?: boolean;
+          };
+          error.isWSFailure = true;
+          this.rejectConnectionOpen?.(error);
+          this._destroyCurrentWSConnection();
+        }
+      }, 5_000);
+
       const response = await this.connectionOpen;
+      clearTimeout(this._connectTimeout);
       this.isConnecting = false;
 
       if (response) {
         this.connectionID = response.connection_id;
         this.client.resolveConnectionId?.(this.connectionID);
+        console.log(
+          `[WS_DEBUG] _connect: SUCCESS | connectionID=${this.connectionID} wsID=${this.wsID}`,
+        );
         return response;
       }
-    } catch (err) {
+    } catch (err: any) {
+      clearTimeout(this._connectTimeout);
       this.client._setupConnectionIdPromise();
       this.isConnecting = false;
-      // @ts-expect-error type issue
       this._log(`_connect() - Error - `, err);
+      console.log(
+        `[WS_DEBUG] _connect: ERROR | code=${err?.code} isWSFailure=${err?.isWSFailure} message=${err?.message}`,
+      );
       this.client.rejectConnectionId?.(err);
       throw err;
     }
@@ -535,6 +591,9 @@ export class StableWSConnection {
   onclose = (wsID: number, event: CloseEvent) => {
     if (this.wsID !== wsID) return;
 
+    console.log(
+      `[WS_DEBUG] onclose: wsID=${wsID} code=${event.code} wasClean=${event.wasClean} reason="${event.reason}" readyState=${this.ws?.readyState} navigator.onLine=${typeof navigator !== 'undefined' ? navigator.onLine : 'N/A'}`,
+    );
     this._log('onclose() - onclose callback - ' + event.code, { event, wsID });
 
     if (event.code === KnownCodes.WS_CLOSED_SUCCESS) {
@@ -581,6 +640,9 @@ export class StableWSConnection {
     this.totalFailures += 1;
     this._setHealth(false);
     this.isConnecting = false;
+    console.log(
+      `[WS_DEBUG] onerror: wsID=${wsID} readyState=${this.ws?.readyState} consecutiveFailures=${this.consecutiveFailures} totalFailures=${this.totalFailures} isHealthy=${this.isHealthy} isDisconnected=${this.isDisconnected} isConnecting=${this.isConnecting} navigator.onLine=${typeof navigator !== 'undefined' ? navigator.onLine : 'N/A'} event.type=${event?.type} event.message=${(event as any)?.message ?? 'N/A'}`,
+    );
     this._log(`onerror() - WS connection resulted into error`, { event });
 
     this._reconnect();
