@@ -8,11 +8,41 @@ export type BackgroundSource = {
 export type BackgroundFilter = 'blur' | 'image';
 export type BackgroundBlurLevel = 'low' | 'medium' | 'high' | number;
 
+/**
+ * Options for controlling the segmentation mask smoothing.
+ * These values are passed to the WebGL shader that blends
+ * consecutive segmentation masks over time.
+ */
+export interface SegmentationOptions {
+  /**
+   * Controls how fast the mask adapts to new segmentation results.
+   * Higher values make the mask react faster but may cause flickering.
+   * Lower values produce smoother transitions but increase latency.
+   * @default 0.8
+   */
+  smoothingFactor?: number;
+
+  /**
+   * Lower edge of the smoothstep function applied to the confidence mask.
+   * Confidence values below this are mapped to 0 (background).
+   * @default 0.6
+   */
+  smoothstepMin?: number;
+
+  /**
+   * Upper edge of the smoothstep function applied to the confidence mask.
+   * Confidence values above this are mapped to 1 (foreground).
+   * @default 0.9
+   */
+  smoothstepMax?: number;
+}
+
 export interface SegmenterOptions {
   backgroundSource?: BackgroundSource | null;
   bgBlur: number;
   bgBlurRadius: number;
   isSelfieMode: boolean;
+  segmentationOptions?: SegmentationOptions;
 }
 /**
  * Static configuration for the processor, defining which background
@@ -24,6 +54,7 @@ export interface BackgroundOptions {
   backgroundFilter?: BackgroundFilter;
   backgroundBlurLevel?: BackgroundBlurLevel;
   backgroundImage?: string | undefined;
+  segmentationOptions?: SegmentationOptions;
 }
 
 /**

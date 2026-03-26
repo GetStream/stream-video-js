@@ -18,6 +18,7 @@ import { TranslationLanguages } from 'stream-chat';
 import { MeetingUI } from '../../components';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { useSettings } from '../../context/SettingsContext';
+import { getSegmentationModelUrl } from '../../context/SettingsContext';
 import { TourProvider } from '../../context/TourContext';
 import { getClient } from '../../helpers/client';
 import { useCreateStreamChatClient } from '../../hooks';
@@ -46,7 +47,7 @@ const HeadComponent = ({ callId }: { callId: string }) => {
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
   const {
-    settings: { language, fallbackLanguage },
+    settings: { language, fallbackLanguage, segmentationModel },
   } = useSettings();
   const callId = router.query['callId'] as string;
   const callType = (router.query['type'] as string) || 'default';
@@ -195,6 +196,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
             <BackgroundFiltersProvider
               forceSafariSupport
               useLegacyFilter={useLegacyFilters}
+              modelFilePath={getSegmentationModelUrl(segmentationModel)}
               backgroundImages={[
                 `${basePath}/backgrounds/amsterdam-1.jpg`,
                 `${basePath}/backgrounds/amsterdam-2.jpg`,

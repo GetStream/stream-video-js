@@ -4,11 +4,14 @@ import {
   BackgroundBlurLevel,
   BackgroundFilter,
 } from '@stream-io/video-filters-web';
+import { useSettings } from '../context/SettingsContext';
+import { SegmentationModel } from '../context/SettingsContext';
 
 type PersistedVideoFilter = {
   backgroundFilter: BackgroundFilter | null;
   backgroundImage: string | null;
   backgroundBlurLevel: BackgroundBlurLevel;
+  segmentationModel?: SegmentationModel;
 };
 
 const loadVideoFilter = (storageKey: string): PersistedVideoFilter | null => {
@@ -39,9 +42,17 @@ export const usePersistedVideoFilter = (storageKey: string) => {
     applyBackgroundImageFilter,
   } = useBackgroundFilters();
 
+  const {
+    settings: { segmentationModel, setSegmentationModel },
+  } = useSettings();
+
   useEffect(() => {
     const filter = loadVideoFilter(storageKey);
     if (!filter || !isReady) return;
+
+    if (filter.segmentationModel) {
+      setSegmentationModel(filter.segmentationModel);
+    }
 
     if (filter.backgroundFilter === 'blur') {
       applyBackgroundBlurFilter(filter.backgroundBlurLevel);
@@ -54,6 +65,7 @@ export const usePersistedVideoFilter = (storageKey: string) => {
     applyBackgroundBlurFilter,
     applyBackgroundImageFilter,
     disableBackgroundFilter,
+    setSegmentationModel,
     isReady,
     storageKey,
   ]);
@@ -64,11 +76,13 @@ export const usePersistedVideoFilter = (storageKey: string) => {
       backgroundFilter: backgroundFilter ?? null,
       backgroundImage: backgroundImage ?? null,
       backgroundBlurLevel: backgroundBlurLevel ?? 'high',
+      segmentationModel,
     });
   }, [
     backgroundBlurLevel,
     backgroundFilter,
     backgroundImage,
+    segmentationModel,
     isReady,
     storageKey,
   ]);
