@@ -18,6 +18,7 @@ export interface SegmentationOptions {
    * Controls how fast the mask adapts to new segmentation results.
    * Higher values make the mask react faster but may cause flickering.
    * Lower values produce smoother transitions but increase latency.
+   * Value should be between 0 and 1.
    * @default 0.8
    */
   smoothingFactor?: number;
@@ -25,6 +26,7 @@ export interface SegmentationOptions {
   /**
    * Lower edge of the smoothstep function applied to the confidence mask.
    * Confidence values below this are mapped to 0 (background).
+   * Value should be between 0 and 1, and less than smoothstepMax.
    * @default 0.6
    */
   smoothstepMin?: number;
@@ -32,6 +34,7 @@ export interface SegmentationOptions {
   /**
    * Upper edge of the smoothstep function applied to the confidence mask.
    * Confidence values above this are mapped to 1 (foreground).
+   * Value should be between 0 and 1, and greater than smoothstepMin.
    * @default 0.9
    */
   smoothstepMax?: number;
