@@ -124,7 +124,7 @@ describe('AudioBindingsWatchdog', () => {
 
     warnSpy.mockClear();
 
-    call.state.setCallingState(CallingState.LEFT);
+    call.state.setCallingState(CallingState.IDLE);
     vi.advanceTimersByTime(6000);
 
     expect(warnSpy).not.toHaveBeenCalled();
