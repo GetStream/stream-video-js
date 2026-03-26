@@ -71,7 +71,7 @@ class CallingxModuleImpl(
     private var delayedEvents = WritableNativeArray()
     private var isModuleInitialized = false
     private var canSendEvents = false
-    private var isHeadlessTaskRegistered = false
+
 
     private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
     private val serviceReadyBroadcastReceiver = ServiceReadyBroadcastReceiver()
@@ -372,7 +372,6 @@ class CallingxModuleImpl(
                     }
                     .also { reactApplicationContext.startService(it) }
 
-            isHeadlessTaskRegistered = false
             promise.resolve(true)
         } catch (e: Exception) {
             Log.e(TAG, "[module] stopBackgroundTask: Failed to start service: ${e.message}", e)
@@ -382,7 +381,6 @@ class CallingxModuleImpl(
 
     fun registerBackgroundTaskAvailable() {
         debugLog(TAG, "[module] registerBackgroundTaskAvailable: Headless task registered")
-        isHeadlessTaskRegistered = true
     }
 
 
@@ -421,29 +419,6 @@ class CallingxModuleImpl(
                     putExtra(CallService.EXTRA_DISPLAY_OPTIONS, Arguments.toBundle(displayOptions))
                 }
                 .also { ContextCompat.startForegroundService(reactApplicationContext, it) }
-    }
-
-    private fun startBackgroundTaskAutomatically(taskName: String, timeout: Long) {
-        if (!isHeadlessTaskRegistered) {
-            debugLog(
-                    TAG,
-                    "[module] startBackgroundTaskAutomatically: Headless task is not registered"
-            )
-            return
-        }
-
-        try {
-            Intent(reactApplicationContext, CallService::class.java)
-                    .apply {
-                        this.action = CallService.ACTION_START_BACKGROUND_TASK
-                        putExtra(CallService.EXTRA_TASK_NAME, taskName)
-                        putExtra(CallService.EXTRA_TASK_DATA, Bundle())
-                        putExtra(CallService.EXTRA_TASK_TIMEOUT, timeout.toLong())
-                    }
-                    .also { reactApplicationContext.startService(it) }
-        } catch (e: Exception) {
-            Log.e(TAG, "[module] startBackgroundTaskAutomatically: Failed to start service: ${e.message}", e)
-        }
     }
 
     private fun executeServiceAction(callId: String, action: CallAction, promise: Promise) {
@@ -675,10 +650,9 @@ class CallingxModuleImpl(
           if (action == SERVICE_READY_ACTION) {
                 debugLog(
                         TAG,
-                        "[module] ServiceReadyBroadcastReceiver: Service is ready, initiating binding, isHeadlessTaskRegistered: $isHeadlessTaskRegistered"
+                        "[module] ServiceReadyBroadcastReceiver: Service is ready, initiating binding"
                 )
                 bindToServiceIfNeeded()
-                startBackgroundTaskAutomatically(HEADLESS_TASK_NAME, 0L)
             }
         }
     }
