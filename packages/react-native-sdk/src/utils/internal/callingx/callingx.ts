@@ -21,7 +21,7 @@ export function getCallDisplayName(
   callMembers: MemberResponse[] | undefined,
   participants: StreamVideoParticipant[] | undefined,
   currentUserId: string | undefined,
-) {
+): string {
   if (!callMembers || !participants || !currentUserId) {
     return 'Call';
   }
@@ -53,6 +53,42 @@ export function getCallDisplayName(
   return names.sort().join(', ');
 }
 
+function getCallDisplayNameFromCall(call: Call): string {
+  return getCallDisplayName(
+    call.state.members,
+    call.state.participants,
+    call.currentUserId,
+  );
+}
+
+export async function registerOutgoingCall(call: Call) {
+  if (!CallingxModule || !CallingxModule.isSetup) {
+    return;
+  }
+
+  const isOutcomingCall = call.ringing && call.isCreatedByMe;
+  if (!isOutcomingCall) {
+    return;
+  }
+
+  const logger = videoLoggerSystem.getLogger('callingx');
+
+  try {
+    logger.debug(`registerOutgoingCall: Registering outgoing call ${call.cid}`);
+    await CallingxModule.startCall(
+      call.cid, // unique id for call
+      call.id, // phone number for display in dialer (we use call id as phone number)
+      getCallDisplayNameFromCall(call), // display name for display in call screen
+      call.state.settings?.video?.enabled ?? false, // is video call?
+    );
+  } catch (error) {
+    logger.error(
+      `registerOutgoingCall: Error registering outgoing call in callingx: ${call.cid}`,
+      error,
+    );
+  }
+}
+
 /**
  * Starts the call in the callingx library.
  * It is done by client on every join
@@ -61,7 +97,7 @@ export function getCallDisplayName(
  * 2. Displays the incoming call in the callingx library
  * 3. Optionally for non-ringing calls also when ongoing calls are enabled.
  */
-export async function startCallingxCall(call: Call, activeCalls: Call[]) {
+export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
   if (!CallingxModule || !CallingxModule.isSetup) {
     return;
   }
@@ -70,21 +106,16 @@ export async function startCallingxCall(call: Call, activeCalls: Call[]) {
   const isOutcomingCall = call.ringing && call.isCreatedByMe;
   const isIncomingCall = call.ringing && !call.isCreatedByMe;
 
-  const callDisplayName = getCallDisplayName(
-    call.state.members,
-    call.state.participants,
-    call.currentUserId,
-  );
-
   if (
-    !CallingxModule.isCallTracked(call.cid) &&
-    (isOutcomingCall || (!call.ringing && CallingxModule.isOngoingCallsEnabled))
+    isOutcomingCall ||
+    (!call.ringing && CallingxModule.isOngoingCallsEnabled)
   ) {
+    logger.debug(`joinCallingxCall: Joining call ${call.cid}`);
     try {
       await CallingxModule.startCall(
         call.cid, // unique id for call
         call.id, // phone number for display in dialer (we use call id as phone number)
-        callDisplayName, // display name for display in call screen
+        getCallDisplayNameFromCall(call), // display name for display in call screen
         call.state.settings?.video?.enabled ?? false, // is video call?
       );
 
@@ -92,9 +123,6 @@ export async function startCallingxCall(call: Call, activeCalls: Call[]) {
       if (Platform.OS === 'ios') {
         await waitForAudioSessionActivation();
       }
-
-      // TODO: this must be done after join call is complete
-      CallingxModule.setCurrentCallActive(call.cid);
     } catch (error) {
       logger.error(
         `startCallingxCall: Error starting call in callingx: ${call.cid}`,
@@ -102,6 +130,7 @@ export async function startCallingxCall(call: Call, activeCalls: Call[]) {
       );
     }
   } else if (isIncomingCall) {
+    logger.debug(`joinCallingxCall: Joining incoming call ${call.cid}`);
     try {
       // Leave any existing active ringing calls before joining a new ringing call
       const activeCallsToLeave = activeCalls.filter(
@@ -125,7 +154,7 @@ export async function startCallingxCall(call: Call, activeCalls: Call[]) {
       await CallingxModule.displayIncomingCall(
         call.cid, // unique id for call
         call.id, // phone number for display in dialer (we use call id as phone number)
-        callDisplayName, // display name for display in call screen
+        getCallDisplayNameFromCall(call), // display name for display in call screen
         call.state.settings?.video?.enabled ?? false, // is video call?
       );
 
@@ -152,14 +181,14 @@ export async function endCallingxCall(call: Call, reason?: EndCallReason) {
     return;
   }
 
+  const logger = videoLoggerSystem.getLogger('callingx');
   try {
+    logger.debug(`endCallingxCall: Ending call ${call.cid}`);
     await CallingxModule.endCallWithReason(call.cid, reason ?? 'local');
   } catch (error) {
-    videoLoggerSystem
-      .getLogger('callingx')
-      .error(
-        `endCallingxCall: Error ending call in callingx: ${call.cid}`,
-        error,
-      );
+    logger.error(
+      `endCallingxCall: Error ending call in callingx: ${call.cid}`,
+      error,
+    );
   }
 }
