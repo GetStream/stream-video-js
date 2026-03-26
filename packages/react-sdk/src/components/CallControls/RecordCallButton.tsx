@@ -48,7 +48,10 @@ const RecordEndConfirmation = (props: PropsWithErrorHandler) => {
         <CompositeButton variant="secondary" onClick={close}>
           {t('Cancel')}
         </CompositeButton>
-        <CompositeButton variant="primary" onClick={handleClick}>
+        <CompositeButton
+          variant="primary"
+          onClick={isAwaitingResponse ? undefined : handleClick}
+        >
           {isAwaitingResponse ? <LoadingIndicator /> : t('End recording')}
         </CompositeButton>
       </div>
