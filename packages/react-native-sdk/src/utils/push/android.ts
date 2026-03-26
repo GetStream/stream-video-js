@@ -253,7 +253,9 @@ export const firebaseDataHandler = async (
                   unsubscribeFunctions.forEach((fn) => fn());
                   try {
                     await callFromPush.leave({
-                      reject: true,
+                      reject:
+                        callFromPush.state.callingState ===
+                        CallingState.RINGING,
                       reason: 'decline',
                     });
                   } catch (error) {

@@ -33,7 +33,10 @@ export const shouldCallBeEnded = (
   let mustEndCall = false;
   let endCallReason: EndCallReason = 'unknown';
 
-  if (created_by_id && rejected_by) {
+  if (callFromPush.state.endedAt) {
+    mustEndCall = true;
+    endCallReason = 'remote';
+  } else if (created_by_id && rejected_by) {
     if (rejected_by[created_by_id]) {
       // call was cancelled by the caller before the receiver could answer
       mustEndCall = true;
