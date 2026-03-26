@@ -16,16 +16,22 @@ import {
 } from '../Menu';
 import { LoadingIndicator } from '../LoadingIndicator';
 import { WithTooltip } from '../Tooltip';
+import {
+  createCallControlHandler,
+  PropsWithErrorHandler,
+} from '../../utilities/callControlHandler';
 
-export type RecordCallButtonProps = {
+export type RecordCallButtonProps = PropsWithErrorHandler<{
   caption?: string;
-};
+}>;
 
-const RecordEndConfirmation = () => {
+const RecordEndConfirmation = (props: PropsWithErrorHandler) => {
   const { t } = useI18n();
   const { toggleCallRecording, isAwaitingResponse } = useToggleCallRecording();
 
   const { close } = useMenuContext();
+
+  const handleClick = createCallControlHandler(props, toggleCallRecording);
 
   return (
     <div className="str-video__end-recording__confirmation">
@@ -42,7 +48,7 @@ const RecordEndConfirmation = () => {
         <CompositeButton variant="secondary" onClick={close}>
           {t('Cancel')}
         </CompositeButton>
-        <CompositeButton variant="primary" onClick={toggleCallRecording}>
+        <CompositeButton variant="primary" onClick={handleClick}>
           {isAwaitingResponse ? <LoadingIndicator /> : t('End recording')}
         </CompositeButton>
       </div>
@@ -66,14 +72,15 @@ const ToggleEndRecordingMenuButton = forwardRef<
   );
 });
 
-export const RecordCallConfirmationButton = ({
-  caption,
-}: {
-  caption?: string;
-}) => {
+export const RecordCallConfirmationButton = (
+  props: PropsWithErrorHandler<{ caption?: string }>,
+) => {
+  const { caption } = props;
   const { t } = useI18n();
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
+
+  const handleClick = createCallControlHandler(props, toggleCallRecording);
 
   if (isCallRecordingInProgress) {
     return (
@@ -87,7 +94,7 @@ export const RecordCallConfirmationButton = ({
           ToggleButton={ToggleEndRecordingMenuButton}
           visualType={MenuVisualType.PORTAL}
         >
-          <RecordEndConfirmation />
+          <RecordEndConfirmation onError={props.onError} />
         </MenuToggle>
       </Restricted>
     );
@@ -110,7 +117,7 @@ export const RecordCallConfirmationButton = ({
           caption={caption}
           variant="secondary"
           data-testid="recording-start-button"
-          onClick={isAwaitingResponse ? undefined : toggleCallRecording}
+          onClick={isAwaitingResponse ? undefined : handleClick}
         >
           {isAwaitingResponse ? (
             <LoadingIndicator />
@@ -123,10 +130,13 @@ export const RecordCallConfirmationButton = ({
   );
 };
 
-export const RecordCallButton = ({ caption }: RecordCallButtonProps) => {
+export const RecordCallButton = (props: RecordCallButtonProps) => {
+  const { caption } = props;
   const { t } = useI18n();
   const { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress } =
     useToggleCallRecording();
+
+  const handleClick = createCallControlHandler(props, toggleCallRecording);
 
   let title = caption ?? t('Record call');
 
@@ -153,7 +163,7 @@ export const RecordCallButton = ({ caption }: RecordCallButtonProps) => {
             : 'recording-start-button'
         }
         title={title}
-        onClick={isAwaitingResponse ? undefined : toggleCallRecording}
+        onClick={isAwaitingResponse ? undefined : handleClick}
       >
         {isAwaitingResponse ? (
           <LoadingIndicator />
