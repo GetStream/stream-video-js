@@ -183,7 +183,6 @@ export async function endCallingxCall(call: Call, reason?: EndCallReason) {
 
   const logger = videoLoggerSystem.getLogger('callingx');
   try {
-    console.log('callingx: Ending call', call.cid);
     logger.debug(`endCallingxCall: Ending call ${call.cid}`);
     await CallingxModule.endCallWithReason(call.cid, reason ?? 'local');
   } catch (error) {
