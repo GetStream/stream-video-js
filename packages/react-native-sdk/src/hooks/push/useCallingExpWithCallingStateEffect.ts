@@ -1,4 +1,4 @@
-import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
+import { Call, CallingState, videoLoggerSystem } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useEffect, useMemo } from 'react';
 import { filter, take } from 'rxjs/operators';
@@ -33,12 +33,20 @@ export const useCallingExpWithCallingStateEffect = () => {
       return;
     }
     // need to capture RINGING -> Joining -> Joined state change for the first time
-    // and inform callingx that the outgoing call is active
+    // and inform callingx that the call is active
+    const shouldMakeCallActive = (call: Call): boolean => {
+      // only for outgoing calls or non-ringing ongoing calls in callingx
+      // Note: incoming calls are handled by callingx pending states instead
+      return (
+        (call.ringing && call.isCreatedByMe) ||
+        (!call.ringing && callingx.isOngoingCallsEnabled)
+      );
+    };
     const subscription = activeCall.state.callingState$
       .pipe(
         filter(
           (callingState) =>
-            activeCall.isCreatedByMe &&
+            shouldMakeCallActive(activeCall) &&
             callingState === CallingState.JOINED &&
             callingx.isCallTracked(activeCall.cid),
         ),
