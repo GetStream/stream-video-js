@@ -103,6 +103,7 @@ export class AudioBindingsWatchdog {
         }
       }
       if (danglingUserIds.length > 0) {
+        this.tracer.trace('audioBinding.danglingWarning', danglingUserIds);
         this.logger.warn(
           `Dangling audio bindings detected. Did you forget to bind the audio element? user_ids: ${danglingUserIds}.`,
         );
