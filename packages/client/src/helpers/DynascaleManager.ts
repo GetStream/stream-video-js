@@ -15,14 +15,16 @@ import {
   takeWhile,
 } from 'rxjs';
 import { ViewportTracker } from './ViewportTracker';
+import { AudioBindingsWatchdog } from './AudioBindingsWatchdog';
 import { isFirefox, isSafari } from './browsers';
+import { isReactNative } from './platforms';
 import {
   hasScreenShare,
   hasScreenShareAudio,
   hasVideo,
 } from './participantUtils';
 import type { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
-import type { CallState } from '../store';
+import { CallState } from '../store';
 import type { StreamSfuClient } from '../StreamSfuClient';
 import { SpeakerManager } from '../devices';
 import { getCurrentValue, setCurrentValue } from '../store/rxUtils';
@@ -75,6 +77,7 @@ export class DynascaleManager {
   private audioContext: AudioContext | undefined;
   private sfuClient: StreamSfuClient | undefined;
   private pendingSubscriptionsUpdate: NodeJS.Timeout | null = null;
+  readonly audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
 
   private videoTrackSubscriptionOverridesSubject =
     new BehaviorSubject<VideoTrackSubscriptionOverrides>({});
@@ -120,6 +123,9 @@ export class DynascaleManager {
     this.callState = callState;
     this.speaker = speaker;
     this.tracer = tracer;
+    if (!isReactNative()) {
+      this.audioBindingsWatchdog = new AudioBindingsWatchdog(callState, tracer);
+    }
   }
 
   /**
@@ -129,7 +135,8 @@ export class DynascaleManager {
     if (this.pendingSubscriptionsUpdate) {
       clearTimeout(this.pendingSubscriptionsUpdate);
     }
-    const context = this.getOrCreateAudioContext();
+    this.audioBindingsWatchdog?.dispose();
+    const context = this.audioContext;
     if (context && context.state !== 'closed') {
       document.removeEventListener('click', this.resumeAudioContext);
       await context.close();
@@ -527,6 +534,8 @@ export class DynascaleManager {
     const participant = this.callState.findParticipantBySessionId(sessionId);
     if (!participant || participant.isLocalParticipant) return;
 
+    this.audioBindingsWatchdog?.register(audioElement, sessionId, trackType);
+
     const participant$ = this.callState.participants$.pipe(
       map((ps) => ps.find((p) => p.sessionId === sessionId)),
       takeWhile((p) => !!p),
@@ -556,19 +565,12 @@ export class DynascaleManager {
     let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
     let gainNode: GainNode | undefined = undefined;
 
+    const isAudioTrack = trackType === 'audioTrack';
+    const trackKey = isAudioTrack ? 'audioStream' : 'screenShareAudioStream';
     const updateMediaStreamSubscription = participant$
-      .pipe(
-        distinctUntilKeyChanged(
-          trackType === 'screenShareAudioTrack'
-            ? 'screenShareAudioStream'
-            : 'audioStream',
-        ),
-      )
+      .pipe(distinctUntilKeyChanged(trackKey))
       .subscribe((p) => {
-        const source =
-          trackType === 'screenShareAudioTrack'
-            ? p.screenShareAudioStream
-            : p.audioStream;
+        const source = isAudioTrack ? p.audioStream : p.screenShareAudioStream;
         if (audioElement.srcObject === source) return;
 
         setTimeout(() => {
@@ -625,6 +627,7 @@ export class DynascaleManager {
     audioElement.autoplay = true;
 
     return () => {
+      this.audioBindingsWatchdog?.unregister(sessionId, trackType);
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
