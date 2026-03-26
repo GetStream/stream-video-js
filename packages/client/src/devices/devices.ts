@@ -11,7 +11,7 @@ import {
 } from 'rxjs';
 import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
-import { isFirefox, isSafari } from '../helpers/browsers';
+import { isFirefox } from '../helpers/browsers';
 import { dumpStream, Tracer } from '../stats';
 import { getCurrentValue } from '../store/rxUtils';
 import { videoLoggerSystem } from '../logger';
