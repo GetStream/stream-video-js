@@ -19,7 +19,7 @@ import { MeetingUI } from '../../../components';
 import { type UserMode } from '../../../components/Lobby';
 import { useAppEnvironment } from '../../../context/AppEnvironmentContext';
 import { useSettings } from '../../../context/SettingsContext';
-import { getSegmentationModelUrl } from '../../../context/SettingsContext';
+import { getSegmentationModelUrl } from '../../../hooks';
 import { getClient } from '../../../helpers/client';
 import { createToken } from '../../../helpers/jwt';
 import { useGleap } from '../../../hooks/useGleap';

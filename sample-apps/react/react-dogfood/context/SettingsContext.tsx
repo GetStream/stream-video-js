@@ -4,22 +4,17 @@ import {
   DeviceSelectionPreference,
   useDeviceSelectionPreference,
 } from '../hooks/useDeviceSelectionPreference';
+
 export type SegmentationModel =
   | 'selfie_segmenter_landscape'
   | 'selfie_multiclass_256x256'
   | 'selfie_segmenter';
 
-const SEGMENTATION_MODEL_URLS: Record<SegmentationModel, string> = {
-  selfie_segmenter_landscape:
-    'https://unpkg.com/@stream-io/video-filters-web@latest/mediapipe/models/selfie_segmenter_landscape.tflite',
-  selfie_multiclass_256x256:
-    'https://unpkg.com/@stream-io/video-filters-web@latest/mediapipe/models/selfie_multiclass_256x256.tflite',
-  selfie_segmenter:
-    'https://unpkg.com/@stream-io/video-filters-web@latest/mediapipe/models/selfie_segmenter.tflite',
-};
-
-export const getSegmentationModelUrl = (model: SegmentationModel) =>
-  SEGMENTATION_MODEL_URLS[model];
+const VALID_SEGMENTATION_MODELS: SegmentationModel[] = [
+  'selfie_segmenter_landscape',
+  'selfie_multiclass_256x256',
+  'selfie_segmenter',
+];
 
 const defaultState: Settings = {
   deviceSelectionPreference: 'recent',
@@ -52,7 +47,17 @@ export const SettingsProvider = ({ children }: PropsWithChildren) => {
     useDeviceSelectionPreference();
 
   const [segmentationModel, setSegmentationModel] = useState<SegmentationModel>(
-    defaultState.segmentationModel,
+    () => {
+      try {
+        const stored = JSON.parse(
+          localStorage.getItem('@pronto/video-filter')!,
+        );
+        const model = stored?.segmentationModel;
+        if (VALID_SEGMENTATION_MODELS.includes(model)) return model;
+      } catch {}
+
+      return defaultState.segmentationModel;
+    },
   );
 
   const settings: Settings = {

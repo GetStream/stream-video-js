@@ -55,11 +55,7 @@ export const VideoEffectsSettings = () => {
   const selectedModelIndex = SEGMENTATION_MODEL_OPTIONS.findIndex(
     (model) => model.value === segmentationModel,
   );
-  const defaultModel = SEGMENTATION_MODEL_OPTIONS.find(
-    (model) => model.value === 'selfie_segmenter_landscape',
-  )!;
-  const selectedModel =
-    SEGMENTATION_MODEL_OPTIONS[selectedModelIndex] ?? defaultModel;
+  const selectedModel = SEGMENTATION_MODEL_OPTIONS[selectedModelIndex];
 
   if (!isSupported) {
     return (
@@ -130,7 +126,8 @@ export const VideoEffectsSettings = () => {
               defaultSelectedIndex={selectedModelIndex}
               defaultSelectedLabel={selectedModel?.label}
               handleSelect={(index) => {
-                setSegmentationModel(SEGMENTATION_MODEL_OPTIONS[index]?.value);
+                const option = SEGMENTATION_MODEL_OPTIONS[index];
+                if (option) setSegmentationModel(option.value);
               }}
             >
               {SEGMENTATION_MODEL_OPTIONS.map((option) => (

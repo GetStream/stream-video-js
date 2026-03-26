@@ -4,8 +4,19 @@ import {
   BackgroundBlurLevel,
   BackgroundFilter,
 } from '@stream-io/video-filters-web';
-import { useSettings } from '../context/SettingsContext';
-import { SegmentationModel } from '../context/SettingsContext';
+import { useSettings, SegmentationModel } from '../context/SettingsContext';
+
+const SEGMENTATION_MODEL_URLS: Record<SegmentationModel, string> = {
+  selfie_segmenter_landscape:
+    'https://unpkg.com/@stream-io/video-filters-web@latest/mediapipe/models/selfie_segmenter_landscape.tflite',
+  selfie_multiclass_256x256:
+    'https://unpkg.com/@stream-io/video-filters-web@latest/mediapipe/models/selfie_multiclass_256x256.tflite',
+  selfie_segmenter:
+    'https://unpkg.com/@stream-io/video-filters-web@latest/mediapipe/models/selfie_segmenter.tflite',
+};
+
+export const getSegmentationModelUrl = (model: SegmentationModel) =>
+  SEGMENTATION_MODEL_URLS[model];
 
 type PersistedVideoFilter = {
   backgroundFilter: BackgroundFilter | null;
@@ -49,10 +60,6 @@ export const usePersistedVideoFilter = (storageKey: string) => {
   useEffect(() => {
     const filter = loadVideoFilter(storageKey);
     if (!filter || !isReady) return;
-
-    if (filter.segmentationModel) {
-      setSegmentationModel(filter.segmentationModel);
-    }
 
     if (filter.backgroundFilter === 'blur') {
       applyBackgroundBlurFilter(filter.backgroundBlurLevel);

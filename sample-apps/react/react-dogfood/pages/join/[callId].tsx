@@ -18,7 +18,7 @@ import { TranslationLanguages } from 'stream-chat';
 import { MeetingUI } from '../../components';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { useSettings } from '../../context/SettingsContext';
-import { getSegmentationModelUrl } from '../../context/SettingsContext';
+import { getSegmentationModelUrl } from '../../hooks';
 import { TourProvider } from '../../context/TourContext';
 import { getClient } from '../../helpers/client';
 import { useCreateStreamChatClient } from '../../hooks';
@@ -181,6 +181,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     );
   }
 
+  console.log('MODEL: ', segmentationModel);
   return (
     <>
       <StreamVideo
