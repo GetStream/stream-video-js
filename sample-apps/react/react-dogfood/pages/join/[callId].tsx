@@ -181,7 +181,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     );
   }
 
-  console.log('MODEL: ', segmentationModel);
   return (
     <>
       <StreamVideo
