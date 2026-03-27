@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.2...@stream-io/video-filters-web-0.7.3) (2026-03-27)
+
+### Bug Fixes
+
+- **react:** expose segmentation smoothing options and add model picker in video effects settings ([#2176](https://github.com/GetStream/stream-video-js/issues/2176)) ([edee6bf](https://github.com/GetStream/stream-video-js/commit/edee6bf8d9aacdfb2ae49fb202ba7f7d1140063f))
+
 ## [0.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.1...@stream-io/video-filters-web-0.7.2) (2026-01-30)
 
 ### Bug Fixes
