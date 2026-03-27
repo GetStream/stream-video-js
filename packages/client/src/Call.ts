@@ -744,7 +744,9 @@ export class Call {
    * A flag indicating whether the call was created by the current user.
    */
   get isCreatedByMe() {
-    return this.state.createdBy?.id === this.currentUserId;
+    return (
+      this.currentUserId && this.state.createdBy?.id === this.currentUserId
+    );
   }
 
   /**
