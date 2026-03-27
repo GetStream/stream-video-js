@@ -152,7 +152,12 @@ export const useScreenShareButton = (
       if (includeAudio) {
         call?.screenShare.enableScreenShareAudio();
       } else {
-        call?.screenShare.disableScreenShareAudio();
+        try {
+          await call?.screenShare.disableScreenShareAudio();
+        } catch (error) {
+          const logger = videoLoggerSystem.getLogger('useScreenShareButton');
+          logger.warn('Failed to disable screen share audio', error);
+        }
       }
 
       if (Platform.OS === 'ios' && screenShareType === 'inApp') {
