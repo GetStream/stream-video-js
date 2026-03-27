@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.44.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.4...@stream-io/video-client-1.44.5) (2026-03-27)
+
+### Bug Fixes
+
+- make WebAudio opt-in, add AudioBindingsWatchdog ([#2171](https://github.com/GetStream/stream-video-js/issues/2171)) ([8d00f48](https://github.com/GetStream/stream-video-js/commit/8d00f485a37fec23dca340d32738a3cb1f7f325a))
+
 ## [1.44.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.3...@stream-io/video-client-1.44.4) (2026-03-20)
 
 - trace device permission state transitions ([#2168](https://github.com/GetStream/stream-video-js/issues/2168)) ([e4203a3](https://github.com/GetStream/stream-video-js/commit/e4203a34cad1c90d1bc5612fc379dd1f0f0ebe5d))
