@@ -55,6 +55,7 @@ class CallService : Service(), CallRepository.Listener {
         internal const val EXTRA_DISPLAY_TITLE = "displayTitle"
         internal const val EXTRA_DISPLAY_SUBTITLE = "displaySubtitle"
         internal const val EXTRA_DISPLAY_OPTIONS = "display_options"
+        internal const val EXTRA_ACTION = "action_name"
         // Background task extras
         internal const val EXTRA_TASK_NAME = "task_name"
         internal const val EXTRA_TASK_DATA = "task_data"
@@ -66,6 +67,7 @@ class CallService : Service(), CallRepository.Listener {
         internal const val ACTION_START_BACKGROUND_TASK = "start_background_task"
         internal const val ACTION_STOP_BACKGROUND_TASK = "stop_background_task"
         internal const val ACTION_STOP_SERVICE = "stop_service"
+        internal const val ACTION_PROCESS_ACTION = "execute_action"
         internal const val ACTION_REGISTRATION_FAILED = "registration_failed"
 
         fun startIncomingCallFromPush(context: Context, data: Map<String, String>) {
@@ -272,6 +274,9 @@ class CallService : Service(), CallRepository.Listener {
             ACTION_UPDATE_CALL -> {
                 updateCall(intent)
             }
+            ACTION_PROCESS_ACTION -> {
+                processAction(intent)
+            }
             ACTION_STOP_SERVICE -> {
                 if (isInForeground) {
                     stopForeground(STOP_FOREGROUND_REMOVE)
@@ -416,7 +421,18 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    public fun processAction(callId: String, action: CallAction) {
+    fun processAction(intent: Intent) {
+        val callId = intent.getStringExtra(EXTRA_CALL_ID) ?: return
+        val action = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+          intent.getParcelableExtra(EXTRA_ACTION, CallAction::class.java)
+        } else {
+          @Suppress("DEPRECATION") intent.getParcelableExtra(EXTRA_ACTION)
+        } ?: return
+
+        processAction(callId, action)
+    }
+
+    fun processAction(callId: String, action: CallAction) {
         debugLog(
                 TAG,
                 "[service] processAction[$callId]: Processing action: ${action::class.simpleName}"
@@ -428,33 +444,23 @@ class CallService : Service(), CallRepository.Listener {
             } else {
                 // this solves race condition, when action is requested before the call is
                 // registered in Telecom
-                if (action is CallAction.Disconnect) {
-                    debugLog(TAG, "[service] storing pending disconnect for $callId")
-                    CallRegistrationStore.setPendingDisconnect(callId, action.cause.code)
-                } else if (action is CallAction.Answer) {
-                    debugLog(TAG, "[service] storing pending answer for $callId")
-                    CallRegistrationStore.setPendingAnswer(callId, action.isAudioCall)
-                } else if (action is CallAction.ToggleMute) {
-                    debugLog(TAG, "[service] storing pending mute for $callId")
-                    CallRegistrationStore.setPendingMute(callId, action.isMute)
-                } else {
-                    Log.w(
-                            TAG,
-                            "[service] processAction[$callId]: Call not registered, ignoring action"
-                    )
-                }
+              debugLog(
+                             TAG,
+                             "[service] processAction: Add pending action for ${call?.id} to queue"
+                     )
+                CallRegistrationStore.addPendingAction(callId, action)
             }
         }
     }
 
-    public fun startBackgroundTask(intent: Intent) {
+    fun startBackgroundTask(intent: Intent) {
         val taskName = intent.getStringExtra(EXTRA_TASK_NAME)!!
         val data = intent.getBundleExtra(EXTRA_TASK_DATA)!!
         val timeout = intent.getLongExtra(EXTRA_TASK_TIMEOUT, 0)
         headlessJSManager.startHeadlessTask(taskName, data, timeout)
     }
 
-    public fun stopBackgroundTask() {
+    fun stopBackgroundTask() {
         headlessJSManager.stopHeadlessTask()
     }
 
@@ -518,30 +524,23 @@ class CallService : Service(), CallRepository.Listener {
 
     private fun processPendingActions(call: Call.Registered): Boolean {
         synchronized(actionProcessingLock) {
-            val pendingCauseCode = CallRegistrationStore.takePendingDisconnect(call.id)
-            val pendingAnswer = CallRegistrationStore.takePendingAnswer(call.id)
-            val pendingMute = CallRegistrationStore.takePendingMute(call.id)
+            val pendingActions = CallRegistrationStore.takePendingActions(call.id)
 
-            if (pendingCauseCode != null) {
-                debugLog(
-                        TAG,
-                        "[service] onCallStateChanged: Executing pending disconnect for ${call.id}"
-                )
-                call.processAction(CallAction.Disconnect(DisconnectCause(pendingCauseCode)))
+            val disconnectAction = pendingActions.find { it is CallAction.Disconnect }
+            if (disconnectAction != null) {
+                // if queue contains Disconnect, execute it and ignore rest of the queue
+                debugLog(TAG, "[service] processPendingActions: Executing pending disconnect for ${call.id}")
+                call.processAction(disconnectAction)
                 return true
             }
 
-            if (pendingAnswer != null) {
+            // process pending actions in the order they were added
+            for (action in pendingActions) {
+                call.processAction(action)
                 debugLog(
-                        TAG,
-                        "[service] onCallStateChanged: Executing pending answer for ${call.id}"
-                )
-                call.processAction(CallAction.Answer(pendingAnswer))
-            }
-
-            if (pendingMute != null) {
-                debugLog(TAG, "[service] onCallStateChanged: Executing pending mute for ${call.id}")
-                call.processAction(CallAction.ToggleMute(pendingMute))
+                             TAG,
+                             "[service] processPendingActions: Executing pending action: $action for ${call.id}"
+                     )
             }
 
             return false
