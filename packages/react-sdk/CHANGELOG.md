@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.34.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.0...@stream-io/video-react-sdk-1.34.1) (2026-03-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.5`
+- `@stream-io/video-filters-web` updated to version `0.7.3`
+- `@stream-io/video-react-bindings` updated to version `1.13.14`
+
+### Bug Fixes
+
+- **react:** expose segmentation smoothing options and add model picker in video effects settings ([#2176](https://github.com/GetStream/stream-video-js/issues/2176)) ([edee6bf](https://github.com/GetStream/stream-video-js/commit/edee6bf8d9aacdfb2ae49fb202ba7f7d1140063f))
+- **react:** reset recording toggle state and expose record button errors ([#2174](https://github.com/GetStream/stream-video-js/issues/2174)) ([2af6347](https://github.com/GetStream/stream-video-js/commit/2af63478ad9050bf339212537a6cb424f97387b8))
+
 ## [1.34.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.4...@stream-io/video-react-sdk-1.34.0) (2026-03-20)
 
 ### Dependency Updates
