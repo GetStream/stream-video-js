@@ -422,6 +422,7 @@ const useRenderer = (
             backgroundBlurLevel,
             backgroundImage,
             engine,
+            modelFilePath,
           });
 
           if (!videoEl) {
