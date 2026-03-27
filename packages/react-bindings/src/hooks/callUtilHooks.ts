@@ -35,7 +35,7 @@ export const useToggleCallRecording = () => {
         await call?.startRecording();
       }
     } catch (e) {
-      console.error(`Failed start recording`, e);
+      setIsAwaitingResponse(false);
       throw e;
     }
   }, [call, isCallRecordingInProgress]);
