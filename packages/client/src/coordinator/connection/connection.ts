@@ -60,8 +60,6 @@ export class StableWSConnection {
   totalFailures: number;
   ws?: WebSocket;
   wsID: number;
-  private _connectTimeout?: ReturnType<typeof setTimeout>;
-
   client: StreamClient;
 
   constructor(client: StreamClient) {
@@ -211,23 +209,35 @@ export class StableWSConnection {
   };
 
   /**
-   * _sayHi - Fire-and-forget HTTP probe to warm up the TCP connection
-   * before opening the WebSocket.
+   * _probeDNS - Fire-and-forget DNS diagnostic probes.
+   * Logs which domains resolve and which fail when the WS connection fails.
    */
-  _sayHi = () => {
-    console.log(
-      `[WS_DEBUG] _sayHi: navigator.onLine=${typeof navigator !== 'undefined' ? navigator.onLine : 'N/A'}`,
-    );
+  _probeDNS = () => {
     const token = this.client._getToken();
-    fetch(`https://video.stream-io-api.com/hi?api_key=${this.client.key}`, {
-      method: 'GET',
-      headers: {
-        'stream-auth-type': this.client.getAuthType(),
-        ...(token ? { Authorization: token } : {}),
+    const authHeaders = {
+      'stream-auth-type': this.client.getAuthType(),
+      ...(token ? { Authorization: token } : {}),
+    };
+    const probes: Array<{
+      url: string;
+      method?: string;
+      headers?: HeadersInit;
+    }> = [
+      { url: `https://hint.stream-io-video.com/`, method: 'HEAD' },
+      {
+        url: `https://chat.stream-io-api.com/hi?api_key=${this.client.key}`,
+        headers: authHeaders,
       },
-    }).catch(() => {
-      // fire-and-forget
-    });
+      {
+        url: `https://video.stream-io-api.com/hi?api_key=${this.client.key}`,
+        headers: authHeaders,
+      },
+    ];
+    for (const { url, method, headers } of probes) {
+      fetch(url, { method: method ?? 'GET', headers })
+        .then(() => this._log(`[DNS-PROBE] ${url}: OK`))
+        .catch((e) => this._log(`[DNS-PROBE] ${url}: FAILED - ${e.message}`));
+    }
   };
 
   /**
@@ -244,7 +254,6 @@ export class StableWSConnection {
     this.isDisconnected = true;
 
     // start by removing all the listeners
-    clearTimeout(this._connectTimeout);
     if (this.healthCheckTimeoutRef) {
       getTimers().clearInterval(this.healthCheckTimeoutRef);
     }
@@ -307,6 +316,7 @@ export class StableWSConnection {
   async _connect() {
     if (this.isConnecting) return; // ignore _connect if it's currently trying to connect
     this.isConnecting = true;
+    this._probeDNS();
     let isTokenReady = false;
     try {
       this._log(`_connect() - waiting for token`);
@@ -328,61 +338,28 @@ export class StableWSConnection {
         this.client._setupConnectionIdPromise();
       }
       this._setupConnectionPromise();
-      this._sayHi();
       const wsURL = this._buildUrl();
       this._log(`_connect() - Connecting to ${wsURL}`);
-      console.log(
-        `[WS_DEBUG] _connect: wsID=${this.wsID} navigator.onLine=${typeof navigator !== 'undefined' ? navigator.onLine : 'N/A'}`,
-      );
       const WS = this.client.options.WebSocketImpl ?? WebSocket;
       this.ws = new WS(wsURL);
       this.ws.onopen = this.onopen.bind(this, this.wsID);
       this.ws.onclose = this.onclose.bind(this, this.wsID);
       this.ws.onerror = this.onerror.bind(this, this.wsID);
       this.ws.onmessage = this.onmessage.bind(this, this.wsID);
-
-      const wsIDAtConnect = this.wsID;
-      this._connectTimeout = setTimeout(() => {
-        if (
-          this.ws &&
-          this.ws.readyState === WebSocket.CONNECTING &&
-          this.wsID === wsIDAtConnect
-        ) {
-          this._log(
-            '_connect() - connect attempt timed out, closing hanging WebSocket',
-          );
-          console.log(
-            `[WS_DEBUG] _connect: closing hanging WS | wsID=${wsIDAtConnect} readyState=${this.ws.readyState}`,
-          );
-          const error = new Error('WS connect timeout after 5s') as Error & {
-            isWSFailure?: boolean;
-          };
-          error.isWSFailure = true;
-          this.rejectConnectionOpen?.(error);
-          this._destroyCurrentWSConnection();
-        }
-      }, 5_000);
-
       const response = await this.connectionOpen;
-      clearTimeout(this._connectTimeout);
       this.isConnecting = false;
 
       if (response) {
         this.connectionID = response.connection_id;
         this.client.resolveConnectionId?.(this.connectionID);
-        console.log(
-          `[WS_DEBUG] _connect: SUCCESS | connectionID=${this.connectionID} wsID=${this.wsID}`,
-        );
         return response;
       }
-    } catch (err: any) {
-      clearTimeout(this._connectTimeout);
+    } catch (err) {
       this.client._setupConnectionIdPromise();
       this.isConnecting = false;
+      // @ts-expect-error type issue
       this._log(`_connect() - Error - `, err);
-      console.log(
-        `[WS_DEBUG] _connect: ERROR | code=${err?.code} isWSFailure=${err?.isWSFailure} message=${err?.message}`,
-      );
+      this._probeDNS();
       this.client.rejectConnectionId?.(err);
       throw err;
     }
@@ -400,6 +377,7 @@ export class StableWSConnection {
     options: { interval?: number; refreshToken?: boolean } = {},
   ): Promise<void> {
     this._log('_reconnect() - Initiating the reconnect');
+    this._probeDNS();
 
     // only allow 1 connection at the time
     if (this.isConnecting || this.isHealthy) {
@@ -591,9 +569,6 @@ export class StableWSConnection {
   onclose = (wsID: number, event: CloseEvent) => {
     if (this.wsID !== wsID) return;
 
-    console.log(
-      `[WS_DEBUG] onclose: wsID=${wsID} code=${event.code} wasClean=${event.wasClean} reason="${event.reason}" readyState=${this.ws?.readyState} navigator.onLine=${typeof navigator !== 'undefined' ? navigator.onLine : 'N/A'}`,
-    );
     this._log('onclose() - onclose callback - ' + event.code, { event, wsID });
 
     if (event.code === KnownCodes.WS_CLOSED_SUCCESS) {
@@ -640,9 +615,6 @@ export class StableWSConnection {
     this.totalFailures += 1;
     this._setHealth(false);
     this.isConnecting = false;
-    console.log(
-      `[WS_DEBUG] onerror: wsID=${wsID} readyState=${this.ws?.readyState} consecutiveFailures=${this.consecutiveFailures} totalFailures=${this.totalFailures} isHealthy=${this.isHealthy} isDisconnected=${this.isDisconnected} isConnecting=${this.isConnecting} navigator.onLine=${typeof navigator !== 'undefined' ? navigator.onLine : 'N/A'} event.type=${event?.type} event.message=${(event as any)?.message ?? 'N/A'}`,
-    );
     this._log(`onerror() - WS connection resulted into error`, { event });
 
     this._reconnect();
