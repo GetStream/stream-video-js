@@ -593,8 +593,11 @@ export class StreamVideoClient {
           type: callType,
           id: callId,
           clientStore: this.writeableStateStore,
+          ringing: true,
         });
-        await call.get({ ring: true });
+        // wait for connect user to be established
+        await this.streamClient.connectionIdPromise;
+        await call.get();
       }
       return call;
     });
