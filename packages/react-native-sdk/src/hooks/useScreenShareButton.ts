@@ -144,7 +144,9 @@ export const useScreenShareButton = (
         'User does not have permissions to stream the screen share media, calling onMissingScreenShareStreamPermission handler if present',
       );
       onMissingScreenShareStreamPermission?.();
+      return;
     }
+
     if (!hasPublishedScreenShare) {
       // Set audio mixing preference before starting screen share
       if (includeAudio) {
