@@ -164,6 +164,7 @@ export const useScreenShareButton = (
           await call?.screenShare.enable();
           onScreenShareStartedHandler?.();
         } catch (error) {
+          await screenShareAudioMixingManager.stopInAppScreenCapture();
           const logger = videoLoggerSystem.getLogger('useScreenShareButton');
           logger.warn('Failed to start in-app screen capture', error);
         }
