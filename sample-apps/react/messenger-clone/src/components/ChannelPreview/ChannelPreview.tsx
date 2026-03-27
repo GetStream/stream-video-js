@@ -1,16 +1,12 @@
 import React, { useMemo, useRef } from 'react';
 import clsx from 'clsx';
-import {
-  Avatar as DefaultAvatar,
-  ChannelPreviewUIComponentProps,
-} from 'stream-chat-react';
+import { Avatar, ChannelListItemUIProps } from 'stream-chat-react';
 import { StreamCall, useCalls } from '@stream-io/video-react-sdk';
 import { ChannelPreviewCallControls } from './ChannelPreviewCallControls';
 
-const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
+const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
   const {
     active,
-    Avatar = DefaultAvatar,
     channel,
     className: customClassName = '',
     displayImage,
@@ -58,7 +54,7 @@ const UnMemoizedChannelPreview = (props: ChannelPreviewUIComponentProps) => {
       role="option"
     >
       <div className="str-chat__channel-preview-messenger--left">
-        <Avatar image={displayImage} name={avatarName} />
+        <Avatar imageUrl={displayImage} userName={avatarName} size="md" />
       </div>
       <div className="str-chat__channel-preview-messenger--right str-chat__channel-preview-end">
         <div className="str-chat__channel-preview-end-first-row">
