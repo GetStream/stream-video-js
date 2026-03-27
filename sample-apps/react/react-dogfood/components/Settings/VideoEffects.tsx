@@ -1,10 +1,39 @@
 import clsx from 'clsx';
 import {
   CompositeButton,
+  DropDownSelect,
+  DropDownSelectOption,
   Icon,
   useBackgroundFilters,
   VideoPreview,
+  WithTooltip,
 } from '@stream-io/video-react-sdk';
+import { useSettings } from '../../context/SettingsContext';
+import { SegmentationModel } from '../../context/SettingsContext';
+
+const SEGMENTATION_MODEL_OPTIONS: {
+  value: SegmentationModel;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: 'selfie_segmenter_landscape',
+    label: 'Landscape (default)',
+    description:
+      'Optimized for landscape webcam feeds. Recommended for most video calls.',
+  },
+  {
+    value: 'selfie_multiclass_256x256',
+    label: 'Multiclass',
+    description:
+      'Multi-class segmentation with square input (256x256). Higher accuracy but slower.',
+  },
+  {
+    value: 'selfie_segmenter',
+    label: 'General purpose',
+    description: 'General-purpose segmentation with square input (256x256).',
+  },
+];
 
 export const VideoEffectsSettings = () => {
   const {
@@ -18,6 +47,15 @@ export const VideoEffectsSettings = () => {
     applyBackgroundBlurFilter,
     applyBackgroundImageFilter,
   } = useBackgroundFilters();
+
+  const {
+    settings: { segmentationModel, setSegmentationModel },
+  } = useSettings();
+
+  const selectedModelIndex = SEGMENTATION_MODEL_OPTIONS.findIndex(
+    (model) => model.value === segmentationModel,
+  );
+  const selectedModel = SEGMENTATION_MODEL_OPTIONS[selectedModelIndex];
 
   if (!isSupported) {
     return (
@@ -80,6 +118,27 @@ export const VideoEffectsSettings = () => {
               <Icon icon="blur-icon" className="rd__video-effects__blur--low" />
             </CompositeButton>
           </div>
+        </div>
+        <div className="rd__video-effects__card">
+          <h4>Segmentation model</h4>
+          <WithTooltip title={selectedModel?.description}>
+            <DropDownSelect
+              defaultSelectedIndex={selectedModelIndex}
+              defaultSelectedLabel={selectedModel?.label}
+              handleSelect={(index) => {
+                const option = SEGMENTATION_MODEL_OPTIONS[index];
+                if (option) setSegmentationModel(option.value);
+              }}
+            >
+              {SEGMENTATION_MODEL_OPTIONS.map((option) => (
+                <DropDownSelectOption
+                  key={option?.value}
+                  label={option?.label}
+                  selected={option?.value === segmentationModel}
+                />
+              ))}
+            </DropDownSelect>
+          </WithTooltip>
         </div>
         {backgroundImages && backgroundImages.length > 0 && (
           <div className="rd__video-effects__card">
