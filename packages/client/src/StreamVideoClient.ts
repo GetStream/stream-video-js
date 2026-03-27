@@ -593,9 +593,8 @@ export class StreamVideoClient {
           type: callType,
           id: callId,
           clientStore: this.writeableStateStore,
-          ringing: true,
         });
-        await call.get();
+        await call.get({ ring: true });
       }
       return call;
     });
