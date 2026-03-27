@@ -49,94 +49,6 @@
   }
 }
 
-.str-chat__channel {
-  border-radius: 8px;
-}
-
-.str-chat__attachment-list-scroll-container,
-.str-chat__list {
-  --scrollbar-color-thumb: var(--str-chat__disabled-color);
-  --scrollbar-color-track: transparent;
-  --scrollbar-width: thin;
-  --scrollbar-width-legacy: 8px;
-
-  /* Modern browsers with `scrollbar-*` support */
-  @supports (scrollbar-width: auto) {
-    & {
-      scrollbar-color: var(--scrollbar-color-thumb) var(--scrollbar-color-track);
-      scrollbar-width: var(--scrollbar-width);
-    }
-  }
-
-  /* Legacy browsers with `::-webkit-scrollbar-*` support */
-  @supports selector(::-webkit-scrollbar) {
-    &::-webkit-scrollbar-thumb {
-      background: var(--scrollbar-color-thumb);
-    }
-    &::-webkit-scrollbar-track {
-      background: var(--scrollbar-color-track);
-    }
-    &::-webkit-scrollbar {
-      max-width: var(--scrollbar-width-legacy);
-      max-height: var(--scrollbar-width-legacy);
-    }
-  }
-}
-.str-chat__message-input {
-  border-bottom-left-radius: var(--str-video__border-radius-md);
-  border-bottom-right-radius: var(--str-video__border-radius-md);
-  background-color: var(--str-video__base-color7);
-  margin-bottom: var(--str-video__spacing-xs);
-}
-
-.str-chat__message-reaction-count {
-  color: var(--str-chat__text-color);
-}
-
-.str-chat__custom-channel-header__warning {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  padding: 2px 0.75rem;
-  gap: 10px;
-}
-
-.str-chat__chat-button__wrapper {
-  position: relative;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-}
-
-.str-chat__chat-button__unread-count-bubble {
-  font-size: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--str-video__border-radius-circle);
-
-  position: absolute;
-  bottom: 23px;
-  background: var(--str-video__brand-color3);
-  color: var(--str-video__base-color4);
-  padding: 5px;
-  height: 16px;
-  width: 16px;
-  margin-left: 20px;
-}
-
-.str-chat__new-message-notification {
-  display: flex;
-  flex-direction: column;
-  max-width: 200px;
-}
-
-.str-chat__utility-ellipsis {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
 .str-chat {
   --str-chat__primary-color: var(--str-video__primary-color);
   --str-chat__active-primary-color: var(--str-video__secondary-color);
@@ -146,37 +58,14 @@
     --str-video__background-color2
   );
   --str-chat__secondary-background-color: var(--str-video__background-color4);
-  --str-chat__subtitle-text: 'Inter';
-}
+  --str-chat__channel-border-radius: 8px;
 
-/* custom overwrites */
-
-.str-chat__message-input .str-chat__message-input-inner {
-  align-items: center;
-}
-.str-chat__message-textarea-emoji-picker {
-  display: none !important;
-}
-
-.str-chat__message-textarea-with-emoji-picker {
-  background-color: var(--str-video__base-color4);
-  border-radius: var(--str-video__border-radius-md);
-}
-
-.str-chat {
   .str-video__icon {
     height: 18px;
     width: 18px;
   }
 }
 
-.str-chat__message-input
-  .str-chat__message-textarea-container
-  .str-chat__message-textarea {
-  font-size: var(--str-video__font-size-sm);
-}
-
-.button.str-chat__send-button {
-  display: flex;
-  justify-content: flex-end;
+.str-chat__channel {
+  overflow: hidden;
 }

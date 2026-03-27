@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import {
   Channel,
   MessageComposer,
-  SendButtonProps,
   useChannelStateContext,
   useChatContext,
   VirtualizedMessageList,
@@ -48,23 +47,6 @@ const NoMessages = () => {
   return null;
 };
 
-const ChatSendButton = ({ sendMessage, ...rest }: SendButtonProps) => {
-  return (
-    <div className="str-chat__send-button-container">
-      <button
-        aria-label="ArrowRightIcon"
-        className="str-chat__send-button"
-        data-testid="send-button"
-        onClick={sendMessage}
-        type="button"
-        {...rest}
-      >
-        <Icon icon="chevron-right" />
-      </button>
-    </div>
-  );
-};
-
 const PaperClipIcon = () => <Icon icon="paperclip" />;
 
 export const ChatUI = ({
@@ -90,7 +72,6 @@ export const ChatUI = ({
     <WithComponents
       overrides={{
         EmptyStateIndicator: NoMessages,
-        SendButton: ChatSendButton,
         AttachmentSelectorInitiationButtonContents: PaperClipIcon,
       }}
     >
