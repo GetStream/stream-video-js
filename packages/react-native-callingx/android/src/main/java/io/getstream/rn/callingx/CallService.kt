@@ -220,8 +220,6 @@ class CallService : Service(), CallRepository.Listener {
             @Suppress("UnspecifiedRegisterReceiverFlag")
             registerReceiver(optimisticNotificationReceiver, filter)
         }
-
-        sendBroadcastEvent(CallingxModuleImpl.SERVICE_READY_ACTION)
     }
 
     override fun onDestroy() {

@@ -54,7 +54,6 @@ class CallingxModuleImpl(
         const val CALL_OPTIMISTIC_ACCEPT_ACTION = "io.getstream.ACCEPT_CALL_OPTIMISTIC"
         // Background task name
         const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
-        const val SERVICE_READY_ACTION = "io.getstream.SERVICE_READY"
     }
 
     private var delayedEvents = WritableNativeArray()
@@ -62,40 +61,12 @@ class CallingxModuleImpl(
     private var canSendEvents = false
 
     private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
-    private val serviceReadyBroadcastReceiver = ServiceReadyBroadcastReceiver()
-    private val appStateListener =
-            object : LifecycleEventListener {
-                override fun onHostResume() {}
-
-                override fun onHostPause() {}
-
-                override fun onHostDestroy() {
-                    // App destroyed - force unbind
-                    debugLog(TAG, "[module] onHostDestroy: App destroyed")
-                }
-            }
 
     init {
         CallEventBus.subscribe(this)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            reactApplicationContext.registerReceiver(
-                    serviceReadyBroadcastReceiver,
-                    getServiceReadyReceiverFilter(),
-                    Context.RECEIVER_NOT_EXPORTED
-            )
-        } else {
-            @Suppress("UnspecifiedRegisterReceiverFlag")
-            reactApplicationContext.registerReceiver(
-                    serviceReadyBroadcastReceiver,
-                    getServiceReadyReceiverFilter()
-            )
-        }
     }
 
     fun initialize() {
-        reactApplicationContext.addLifecycleEventListener(appStateListener)
-
         debugLog(TAG, "[module] initialize: Initializing module")
     }
 
@@ -103,11 +74,8 @@ class CallingxModuleImpl(
         debugLog(TAG, "[module] invalidate: Invalidating module")
 
         CallRegistrationStore.clearAll()
-
         CallEventBus.unsubscribe(this)
 
-        reactApplicationContext.removeLifecycleEventListener(appStateListener)
-        reactApplicationContext.unregisterReceiver(serviceReadyBroadcastReceiver)
         isModuleInitialized = false
     }
 
@@ -453,11 +421,6 @@ class CallingxModuleImpl(
         }
     }
 
-    private fun getServiceReadyReceiverFilter(): IntentFilter =
-            IntentFilter().apply {
-                addAction(SERVICE_READY_ACTION)
-            }
-
     override fun onCallEvent(event: CallEvent) {
         val action = event.action
         val extras = event.extras
@@ -524,19 +487,6 @@ class CallingxModuleImpl(
                     params.putString("output", extras.getString(EXTRA_AUDIO_ENDPOINT))
                 }
                 sendJSEvent("didChangeAudioRoute", params)
-            }
-        }
-    }
-
-    private inner class ServiceReadyBroadcastReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-          val action = intent.action ?: return
-
-          if (action == SERVICE_READY_ACTION) {
-                debugLog(
-                        TAG,
-                        "[module] ServiceReadyBroadcastReceiver: Service is ready"
-                )
             }
         }
     }
