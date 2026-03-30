@@ -127,6 +127,9 @@ export const mockAudioStream = () => {
     ) => {
       track.eventHandlers[event] = handler;
     },
+    removeEventListener(type: string) {
+      delete track.eventHandlers[type];
+    },
   };
   return {
     getTracks: () => [track],
@@ -156,6 +159,9 @@ export const mockVideoStream = (
     ) => {
       track.eventHandlers[event] = handler;
     },
+    removeEventListener(type: string) {
+      delete track.eventHandlers[type];
+    },
   };
   return {
     getTracks: () => [track],
@@ -180,6 +186,9 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
     ) => {
       track.eventHandlers[event] = handler;
     },
+    removeEventListener(type: string) {
+      delete track.eventHandlers[type];
+    },
   };
 
   const tracks = [track];
@@ -200,6 +209,9 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
       ) => {
         audioTrack.eventHandlers[event] = handler;
       },
+      removeEventListener(type: string) {
+        delete track.eventHandlers[type];
+      },
     };
     tracks.push(audioTrack);
   }
@@ -209,6 +221,29 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
     getVideoTracks: () => tracks,
     getAudioTracks: () => tracks,
   } as any as MediaStream;
+};
+
+export type LocalStorageMock = {
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
+  removeItem: (key: string) => void;
+  clear: () => void;
+};
+
+export const createLocalStorageMock = (): LocalStorageMock => {
+  const store = new Map<string, string>();
+  return {
+    getItem: (key) => (store.has(key) ? store.get(key)! : null),
+    setItem: (key, value) => {
+      store.set(key, String(value));
+    },
+    removeItem: (key) => {
+      store.delete(key);
+    },
+    clear: () => {
+      store.clear();
+    },
+  };
 };
 
 let deviceIds: Subject<MediaDeviceInfo[]>;

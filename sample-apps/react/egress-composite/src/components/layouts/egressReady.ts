@@ -1,4 +1,4 @@
-import { useNotifyEgressReady } from '../../hooks/useNotifyEgress';
+import { useNotifyEgressReady } from '../../hooks';
 import { useEffect, useState } from 'react';
 import { SfuModels, StreamVideoParticipant } from '@stream-io/video-react-sdk';
 
@@ -20,6 +20,11 @@ export const useEgressReadyWhenAnyParticipantMounts = (
 
     if (isPublishingVideoTrack && videoElement) {
       // video element for participants with video
+      const isAlreadyPlaying =
+        videoElement.currentTime > 0 &&
+        !videoElement.paused &&
+        !videoElement.ended;
+      if (isAlreadyPlaying) notifyEgressReady(true);
       const onPlay = () => notifyEgressReady(true);
       videoElement.addEventListener('play', onPlay, { once: true });
       return () => videoElement.removeEventListener('play', onPlay);

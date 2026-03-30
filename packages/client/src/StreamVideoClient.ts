@@ -27,10 +27,10 @@ import {
   ErrorFromResponse,
   StreamClientOptions,
   TokenOrProvider,
-  TokenProvider,
   User,
   UserWithId,
 } from './coordinator/connection/types';
+import type { StreamVideoClientOptions } from './types';
 import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   createCoordinatorClient,
@@ -39,16 +39,9 @@ import {
   getInstanceKey,
 } from './helpers/clientUtils';
 import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
+import { isReactNative } from './helpers/platforms';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
-
-export type StreamVideoClientOptions = {
-  apiKey: string;
-  options?: StreamClientOptions;
-  user?: User;
-  token?: string;
-  tokenProvider?: TokenProvider;
-};
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -463,7 +456,7 @@ export class StreamVideoClient {
         clientStore: this.writeableStateStore,
       });
       call.state.updateFromCallResponse(c.call);
-      await call.applyDeviceConfig(c.call.settings, false);
+      await call.applyDeviceConfig(c.call.settings, false, isReactNative());
       if (data.watch) {
         await call.setup();
         this.writeableStateStore.registerCall(call);

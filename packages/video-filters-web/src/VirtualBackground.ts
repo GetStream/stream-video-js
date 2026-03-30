@@ -124,6 +124,7 @@ export class VirtualBackground extends BaseVideoProcessor {
         bgBlur: 0,
         bgBlurRadius: 0,
         isSelfieMode,
+        segmentationOptions: this.options.segmentationOptions,
       };
     }
 
@@ -138,6 +139,7 @@ export class VirtualBackground extends BaseVideoProcessor {
       bgBlur: Math.min(strength * 1.5, 20),
       bgBlurRadius: Math.min(strength, 10),
       isSelfieMode,
+      segmentationOptions: this.options.segmentationOptions,
     };
   }
 

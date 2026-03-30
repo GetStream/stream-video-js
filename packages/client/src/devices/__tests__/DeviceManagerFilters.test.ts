@@ -28,6 +28,7 @@ class TestInputMediaDeviceManager extends DeviceManager<TestInputMediaDeviceMana
   public getTracks = () => this.state.mediaStream?.getTracks() ?? [];
 
   constructor(call: Call) {
+    const devicePersistence = { enabled: false, storageKey: '' };
     super(
       call,
       new TestInputMediaDeviceManagerState(
@@ -35,6 +36,7 @@ class TestInputMediaDeviceManager extends DeviceManager<TestInputMediaDeviceMana
         mockBrowserPermission,
       ),
       TrackType.VIDEO,
+      devicePersistence,
     );
   }
 }

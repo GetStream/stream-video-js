@@ -3,10 +3,12 @@ import { isReactNative } from '../helpers/platforms';
 import { disposeOfMediaStream } from './utils';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { videoLoggerSystem } from '../logger';
+import { Tracer } from '../stats';
 
 interface BrowserPermissionConfig {
   constraints: DisplayMediaStreamOptions;
   queryName: PermissionName;
+  tracer: Tracer | undefined;
 }
 
 export type BrowserPermissionState = PermissionState | 'prompting';
@@ -162,6 +164,9 @@ export class BrowserPermission {
 
   private setState(state: BrowserPermissionState) {
     if (this.state !== state) {
+      const { tracer, queryName } = this.permission;
+      const traceKey = `navigator.mediaDevices.${queryName}.permission`;
+      tracer?.trace(traceKey, { previous: this.state, state });
       this.state = state;
       this.listeners.forEach((listener) => listener(state));
     }

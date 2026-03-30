@@ -2,6 +2,7 @@ import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
 import { AllSfuEvents } from '../../rtc';
 import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
+import type { DevicePersistenceOptions } from '../../devices/devicePersistence';
 
 export type UR = Record<string, unknown>;
 
@@ -258,6 +259,11 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * When set to true, the incoming calls are rejected when the user is busy in an another call.
    */
   rejectCallWhenBusy?: boolean;
+
+  /**
+   * Device persistence preference options (web only).
+   */
+  devicePersistence?: DevicePersistenceOptions;
 };
 
 export type ClientAppIdentifier = {

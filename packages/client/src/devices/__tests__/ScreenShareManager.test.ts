@@ -34,6 +34,7 @@ describe('ScreenShareManager', () => {
   let manager: ScreenShareManager;
 
   beforeEach(() => {
+    const devicePersistence = { enabled: false, storageKey: '' };
     manager = new ScreenShareManager(
       new Call({
         id: '',
@@ -41,6 +42,7 @@ describe('ScreenShareManager', () => {
         streamClient: new StreamClient('abc123'),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
+      devicePersistence,
     );
   });
 
