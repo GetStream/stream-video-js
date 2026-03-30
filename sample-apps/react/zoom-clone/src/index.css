@@ -49,16 +49,7 @@ body,
   width: unset;
 }
 
-.str-chat__channel-header .str-chat__channel-header-end {
-  row-gap: unset;
-}
-
-.str-chat__channel-header {
-  @apply p-3;
-}
-
 .str-video__video-preview-container {
   width: 100%;
   border: none;
 }
-

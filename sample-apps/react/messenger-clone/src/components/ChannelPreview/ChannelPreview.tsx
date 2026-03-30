@@ -39,47 +39,46 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
   };
 
   return (
-    <button
-      aria-label={`Select Channel: ${displayTitle || ''}`}
-      aria-selected={active}
-      className={clsx(
-        `str-chat__channel-preview-messenger str-chat__channel-preview`,
-        active && 'str-chat__channel-preview-messenger--active',
-        unread && unread >= 1 && 'str-chat__channel-preview-messenger--unread',
-        customClassName,
-      )}
-      data-testid="channel-preview-button"
-      onClick={onSelectChannel}
-      ref={channelPreviewButton}
-      role="option"
-    >
-      <div className="str-chat__channel-preview-messenger--left">
-        <Avatar imageUrl={displayImage} userName={avatarName} size="md" />
-      </div>
-      <div className="str-chat__channel-preview-messenger--right str-chat__channel-preview-end">
-        <div className="str-chat__channel-preview-end-first-row">
-          <div className="str-chat__channel-preview-messenger--name">
-            <span>{displayTitle}</span>
-          </div>
-          {callToChannel && (
-            <StreamCall call={callToChannel}>
-              <ChannelPreviewCallControls />
-            </StreamCall>
-          )}
-          {!!unread && (
-            <div
-              className="str-chat__channel-preview-unread-badge"
-              data-testid="unread-badge"
-            >
-              {unread}
+    <div className="str-chat__channel-list-item-container">
+      <button
+        aria-label={`Select Channel: ${displayTitle || ''}`}
+        aria-pressed={active}
+        className={clsx(
+          'str-chat__channel-list-item',
+          unread && unread >= 1 && 'str-chat__channel-list-item--unread',
+          customClassName,
+        )}
+        data-testid="channel-list-item-button"
+        onClick={onSelectChannel}
+        ref={channelPreviewButton}
+        role="option"
+      >
+        <Avatar imageUrl={displayImage} userName={avatarName} size="xl" />
+        <div className="str-chat__channel-list-item-data">
+          <div className="str-chat__channel-list-item-data__first-row">
+            <div className="str-chat__channel-list-item-data__title">
+              <span>{displayTitle}</span>
             </div>
-          )}
+            {callToChannel && (
+              <StreamCall call={callToChannel}>
+                <ChannelPreviewCallControls />
+              </StreamCall>
+            )}
+            {!!unread && (
+              <div
+                className="str-chat__channel-list-item-data__timestamp-and-badge"
+                data-testid="unread-badge"
+              >
+                {unread}
+              </div>
+            )}
+          </div>
+          <div className="str-chat__channel-list-item-data__second-row">
+            {latestMessage}
+          </div>
         </div>
-        <div className="str-chat__channel-preview-messenger--last-message">
-          {latestMessage}
-        </div>
-      </div>
-    </button>
+      </button>
+    </div>
   );
 };
 

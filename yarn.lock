@@ -7726,7 +7726,7 @@ __metadata:
     react-router-dom: "npm:^6.30.1"
     sass: "npm:^1.93.2"
     stream-chat: "npm:^9.38.0"
-    stream-chat-react: "npm:14.0.0-beta.3"
+    stream-chat-react: "npm:14.0.0-beta.4"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
   languageName: unknown
@@ -7973,7 +7973,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.93.2"
     stream-chat: "npm:^9.38.0"
-    stream-chat-react: "npm:14.0.0-beta.3"
+    stream-chat-react: "npm:14.0.0-beta.4"
     swr: "npm:^2.3.6"
     yargs: "npm:^18.0.0"
   languageName: unknown
@@ -8034,7 +8034,7 @@ __metadata:
     react-native-worklets: "npm:^0.7.3"
     rxjs: "npm:~7.8.2"
     stream-chat: "npm:^9.38.0"
-    stream-chat-react-native: "npm:9.0.0-beta.11"
+    stream-chat-react-native: "npm:9.0.0-beta.12"
     typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
@@ -8249,7 +8249,7 @@ __metadata:
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
     stream-chat: "npm:^9.38.0"
-    stream-chat-react: "npm:14.0.0-beta.3"
+    stream-chat-react: "npm:14.0.0-beta.4"
     tailwindcss: "npm:^3.4.18"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
@@ -23337,9 +23337,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react-native-core@npm:9.0.0-beta.11":
-  version: 9.0.0-beta.11
-  resolution: "stream-chat-react-native-core@npm:9.0.0-beta.11"
+"stream-chat-react-native-core@npm:9.0.0-beta.12":
+  version: 9.0.0-beta.12
+  resolution: "stream-chat-react-native-core@npm:9.0.0-beta.12"
   dependencies:
     "@gorhom/bottom-sheet": "npm:5.1.8"
     "@ungap/structured-clone": "npm:^1.3.0"
@@ -23379,17 +23379,17 @@ __metadata:
       optional: true
     react-native-keyboard-controller:
       optional: true
-  checksum: 10/46754a0e8cc70f7fb0685920fa4049a2009e53c88910a3f68fbaf4ebe3a790fed7c73225f40f6f371474b26561e4107a15d7f4f9b2e39ea48a84872d42927985
+  checksum: 10/21703809c69dc09584dafc150fce71063f0145d965815be21e7e69913a9e36bd30269a717b70a2e558631630c8d030d1e70d36256e82c5d026916db1cc480aed
   languageName: node
   linkType: hard
 
-"stream-chat-react-native@npm:9.0.0-beta.11":
-  version: 9.0.0-beta.11
-  resolution: "stream-chat-react-native@npm:9.0.0-beta.11"
+"stream-chat-react-native@npm:9.0.0-beta.12":
+  version: 9.0.0-beta.12
+  resolution: "stream-chat-react-native@npm:9.0.0-beta.12"
   dependencies:
     es6-symbol: "npm:^3.1.3"
     mime: "npm:^4.0.7"
-    stream-chat-react-native-core: "npm:9.0.0-beta.11"
+    stream-chat-react-native-core: "npm:9.0.0-beta.12"
   peerDependencies:
     "@react-native-camera-roll/camera-roll": ">=7.8.0"
     "@react-native-clipboard/clipboard": ">=1.14.1"
@@ -23426,13 +23426,13 @@ __metadata:
       optional: true
     react-native-video:
       optional: true
-  checksum: 10/c15ad0e3d5062b5fdb66b9d2dbd40c05fe86e785c1e1c961bbecae35070899c334a85626f4a11f702dca06d88a38ecaf64b298d113c4bc9aa71f6e89e4338c1a
+  checksum: 10/0236c2c801b77e1f6cf319905df91f96b8abea0de8f8f09053aaf2fa610528f8b1be746924bcf48cef6a8b1adc8e9834cd415bd7789b28b1a3de0ffb7ec469a4
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:14.0.0-beta.3":
-  version: 14.0.0-beta.3
-  resolution: "stream-chat-react@npm:14.0.0-beta.3"
+"stream-chat-react@npm:14.0.0-beta.4":
+  version: 14.0.0-beta.4
+  resolution: "stream-chat-react@npm:14.0.0-beta.4"
   dependencies:
     "@braintree/sanitize-url": "npm:^6.0.4"
     "@floating-ui/react": "npm:^0.27.2"
@@ -23483,7 +23483,7 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: 10/c3b4562c164da9ca8b60bb7daaa4bb227db2ec7ce70abf7905ec3aee2f146370f92bdce852a1c5c45f82f04e01e6062297d159c0a5ecc0269238820d38a52aca
+  checksum: 10/8507bb2f0fb7c14463c5cee0bcf103ba66922f9b08446d34fc6f8b74fa9ce9f119738d389da228d367dd8639b8834bbf6524289b509714b0a2e1ab179312a5e9
   languageName: node
   linkType: hard
 

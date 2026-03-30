@@ -35,7 +35,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "stream-chat": "^9.38.0",
-    "stream-chat-react": "14.0.0-beta.3",
+    "stream-chat-react": "14.0.0-beta.4",
     "swr": "^2.3.6",
     "yargs": "^18.0.0"
   },

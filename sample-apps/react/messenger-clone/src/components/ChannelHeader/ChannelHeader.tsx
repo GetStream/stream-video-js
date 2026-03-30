@@ -34,7 +34,7 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
   const { member_count, subtitle } = channel?.data || {};
 
   return (
-    <div className="str-chat__header-livestream str-chat__channel-header">
+    <div className="str-chat__channel-header">
       <button
         aria-label="Menu"
         className="str-chat__header-hamburger"
@@ -43,21 +43,19 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
         <MenuIcon />
       </button>
       <Avatar imageUrl={displayImage} userName={displayTitle} size="md" />
-      <div className="str-chat__header-livestream-left str-chat__channel-header-end">
-        <p className="str-chat__header-livestream-left--title str-chat__channel-header-title">
+      <div className="str-chat__channel-header__data">
+        <p className="str-chat__channel-header__data__title">
           {displayTitle}{' '}
           {live && (
-            <span className="str-chat__header-livestream-left--livelabel">
+            <span className="str-chat__channel-header__data__livelabel">
               {t('live')}
             </span>
           )}
         </p>
         {subtitle && (
-          <p className="str-chat__header-livestream-left--subtitle">
-            {subtitle}
-          </p>
+          <p className="str-chat__channel-header__data__subtitle">{subtitle}</p>
         )}
-        <p className="str-chat__header-livestream-left--members str-chat__channel-header-info">
+        <p className="str-chat__channel-header__data__subtitle">
           {!live && !!member_count && (member_count as number) > 0 && (
             <>
               {t('{{ memberCount }} members', {

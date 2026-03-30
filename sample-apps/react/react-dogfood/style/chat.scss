@@ -37,16 +37,6 @@
     font-size: var(--str-video__font-size-sm);
     font-weight: 500;
   }
-
-  .rd__chat-header__close-button--icon {
-    display: block;
-    height: 1rem;
-    width: 1rem;
-    > span {
-      height: 15px;
-      width: 15px;
-    }
-  }
 }
 
 .str-chat {
