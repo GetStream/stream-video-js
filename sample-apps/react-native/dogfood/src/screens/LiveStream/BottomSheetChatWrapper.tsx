@@ -32,7 +32,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import {
   Channel,
-  MessageInput,
+  MessageComposer,
   MessageList,
   useChatContext,
 } from 'stream-chat-react-native';
@@ -259,7 +259,7 @@ const LivestreamChat = ({
          */}
         {/* @ts-expect-error typing error is expected and can be ignored */}
         <MessageList FlatList={GestureHandlerFlatlist} />
-        <MessageInput InputButtons={undefined} />
+        <MessageComposer InputButtons={undefined} />
       </Channel>
     </View>
   );

@@ -1,6 +1,6 @@
 import { LogoutButton } from './LogoutButton';
 import { CustomChannelSearch } from '../CustomChannelSearch';
-import { ChannelList } from 'stream-chat-react';
+import { ChannelList, WithComponents } from 'stream-chat-react';
 import {
   ChannelFilters,
   ChannelOptions,
@@ -26,14 +26,19 @@ export const Sidebar = ({ user }: SidebarProps) => {
 
   return (
     <div id="sidebar" className="str-chat">
-      <ChannelList
-        filters={filters}
-        options={options}
-        showChannelSearch
-        sort={sort}
-        ChannelSearch={CustomChannelSearch}
-        Preview={ChannelPreview}
-      />
+      <WithComponents
+        overrides={{
+          Search: CustomChannelSearch,
+          ChannelListItemUI: ChannelPreview,
+        }}
+      >
+        <ChannelList
+          filters={filters}
+          options={options}
+          showChannelSearch
+          sort={sort}
+        />
+      </WithComponents>
       <div id="sidebar-footer">
         <LogoutButton />
       </div>

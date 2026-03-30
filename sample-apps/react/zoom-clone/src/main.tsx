@@ -14,7 +14,7 @@ import { CallLobby } from './components/CallLobby';
 
 import { getSelectedUser } from './utils';
 
-import 'stream-chat-react/dist/css/v2/index.css';
+import 'stream-chat-react/dist/css/index.css';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './index.css';
 
