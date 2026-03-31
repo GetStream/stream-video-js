@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.31.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.30.5...@stream-io/video-react-native-sdk-1.31.0) (2026-03-31)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.6.0`
+- `@stream-io/video-filters-react-native` updated to version `0.11.0`
+
+### Features
+
+- screen share audio ([#2157](https://github.com/GetStream/stream-video-js/issues/2157)) ([ba3b9d8](https://github.com/GetStream/stream-video-js/commit/ba3b9d8c2168d7c1cd66050524a5dc0a0f7e3e6e))
+
 ## [1.30.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.30.4...@stream-io/video-react-native-sdk-1.30.5) (2026-03-27)
 
 ### Dependency Updates
