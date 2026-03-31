@@ -2,11 +2,8 @@ import type {
   InternalAndroidOptions,
   InternalIOSOptions,
   EndCallReason,
-  TextTransformer,
 } from '../types';
 import type { DeepRequired } from './types';
-
-export const defaultTextTransformer: TextTransformer = (text: string) => text;
 
 export const defaultiOSOptions: Required<InternalIOSOptions> = {
   supportsVideo: true,

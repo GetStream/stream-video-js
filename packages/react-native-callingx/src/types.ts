@@ -73,6 +73,7 @@ export interface ICallingxModule {
     callId: string,
     phoneNumber: string,
     callerName: string,
+    incoming: boolean,
   ): Promise<void>;
 
   /**
@@ -232,10 +233,8 @@ export type InternalAndroidOptions = {
 };
 type AndroidOptions = InternalAndroidOptions & NotificationTransformers;
 
-export type TextTransformer = (text: string, incoming: boolean) => string;
 export type NotificationTransformers = {
-  titleTransformer?: TextTransformer;
-  subtitleTransformer?: TextTransformer;
+  titleTransformer?: (memberName: string, incoming: boolean) => string;
 };
 
 export type CallingExpOptions = {
@@ -255,7 +254,6 @@ export type CallingExpOptions = {
 
 export type InfoDisplayOptions = {
   displayTitle?: string;
-  displaySubtitle?: string;
 };
 
 export type EventData = {

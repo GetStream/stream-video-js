@@ -53,7 +53,6 @@ class CallService : Service(), CallRepository.Listener {
         internal const val EXTRA_URI = "extra_uri"
         internal const val EXTRA_IS_VIDEO = "extra_is_video"
         internal const val EXTRA_DISPLAY_TITLE = "displayTitle"
-        internal const val EXTRA_DISPLAY_SUBTITLE = "displaySubtitle"
         internal const val EXTRA_DISPLAY_OPTIONS = "display_options"
         // Background task extras
         internal const val EXTRA_TASK_NAME = "task_name"

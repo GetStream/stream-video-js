@@ -119,10 +119,6 @@ export type StreamVideoConfig = {
        */
       titleTransformer?: (memberName: string, incoming: boolean) => string;
       /**
-       * The transformer to be used to transform the call subtitle for ringing and ongoing calls for Android.
-       */
-      subtitleTransformer?: (call_cid: string, incoming: boolean) => string;
-      /**
        * Functions to create the texts shown in the notification for non ringing calls in Android.
        * @example
        *  getTitle(type, createdUserName) {
