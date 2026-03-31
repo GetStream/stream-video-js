@@ -81,12 +81,12 @@ export const watchCallRejected = (call: Call) => {
  */
 export const watchCallEnded = (call: Call) => {
   return function onCallEnded() {
+    globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
     const { callingState } = call.state;
     if (
       callingState !== CallingState.IDLE &&
       callingState !== CallingState.LEFT
     ) {
-      globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
       call
         .leave({ message: 'call.ended event received', reject: false })
         .catch((err) => {
