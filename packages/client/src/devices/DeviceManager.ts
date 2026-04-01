@@ -580,6 +580,9 @@ export abstract class DeviceManager<
     const event: DeviceDisconnectedEvent = {
       type: 'device.disconnected',
       call_cid: this.call.cid,
+      status: this.isTrackStoppedDueToTrackEnd
+        ? this.state.prevStatus
+        : this.state.status,
       deviceId: device.deviceId,
       label: device.label,
       kind: device.kind,

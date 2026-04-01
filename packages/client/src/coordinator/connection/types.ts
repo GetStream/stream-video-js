@@ -3,6 +3,7 @@ import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
 import { AllSfuEvents } from '../../rtc';
 import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 import type { DevicePersistenceOptions } from '../../devices/devicePersistence';
+import { InputDeviceStatus } from '../../devices';
 
 export type UR = Record<string, unknown>;
 
@@ -129,6 +130,10 @@ export type MicCaptureReportEvent = {
 export type DeviceDisconnectedEvent = {
   type: 'device.disconnected';
   call_cid: string;
+  /**
+   * The device status at the time it was disconnected.
+   */
+  status: InputDeviceStatus;
   /**
    * The disconnected device ID.
    */
