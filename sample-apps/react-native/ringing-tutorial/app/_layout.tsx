@@ -5,15 +5,8 @@ import { setPushConfig } from '../utils/setPushConfig';
 import { setFirebaseListeners } from '../utils/setFirebaseListeners';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-let isInitialized = false;
-
-if (!isInitialized) {
-  setPushConfig();
-  setFirebaseListeners();
-  isInitialized = true;
-} else {
-  console.warn('Push config and firebase listeners already initialized');
-}
+setPushConfig();
+setFirebaseListeners();
 
 export default function Root() {
   return (
