@@ -380,6 +380,13 @@ describe('Device Manager', () => {
 
     expect(manager.state.selectedDevice).toBe(undefined);
     expect(manager.state.status).toBe('disabled');
+    expect(manager['call'].streamClient.dispatchEvent).toHaveBeenCalledWith({
+      type: 'device.disconnected',
+      call_cid: manager['call'].cid,
+      deviceId: device.deviceId,
+      label: device.label,
+      kind: device.kind,
+    });
 
     vi.useRealTimers();
   });

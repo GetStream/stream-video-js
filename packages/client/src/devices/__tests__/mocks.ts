@@ -95,9 +95,13 @@ export const mockCall = (): Partial<Call> => {
     }),
   );
   return {
+    cid: 'default:test-call',
     state: callState,
     publish: vi.fn(),
     stopPublish: vi.fn(),
+    streamClient: fromPartial({
+      dispatchEvent: vi.fn(),
+    }),
     notifyNoiseCancellationStarting: vi.fn().mockResolvedValue(undefined),
     notifyNoiseCancellationStopped: vi.fn().mockResolvedValue(undefined),
     tracer: new Tracer('tests'),

@@ -1,5 +1,6 @@
 import { combineLatest, firstValueFrom, Observable, pairwise } from 'rxjs';
 import { Call } from '../Call';
+import type { DeviceDisconnectedEvent } from '../coordinator/connection/types';
 import { TrackPublishOptions } from '../rtc';
 import { CallingState } from '../store';
 import { createSubscription, getCurrentValue } from '../store/rxUtils';
@@ -13,6 +14,7 @@ import { ScopedLogger, videoLoggerSystem } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
 import {
+  hasPending,
   settled,
   withCancellation,
   withoutConcurrency,
@@ -543,6 +545,7 @@ export abstract class DeviceManager<
             }
 
             if (isDeviceDisconnected) {
+              this.dispatchDeviceDisconnectedEvent(prevDevice!);
               await this.disable();
               await this.select(undefined);
             }
@@ -553,7 +556,7 @@ export abstract class DeviceManager<
               ) {
                 await this.enable();
                 this.isTrackStoppedDueToTrackEnd = false;
-              } else {
+              } else if (!hasPending(this.statusChangeConcurrencyTag)) {
                 await this.applySettingsToStream();
               }
             }
@@ -571,6 +574,19 @@ export abstract class DeviceManager<
   protected findDevice(devices: MediaDeviceInfo[], deviceId: string) {
     const kind = this.mediaDeviceKind;
     return devices.find((d) => d.deviceId === deviceId && d.kind === kind);
+  }
+
+  private dispatchDeviceDisconnectedEvent(device: MediaDeviceInfo) {
+    const event: DeviceDisconnectedEvent = {
+      type: 'device.disconnected',
+      call_cid: this.call.cid,
+      deviceId: device.deviceId,
+      label: device.label,
+      kind: device.kind,
+    };
+
+    this.call.tracer.trace('device.disconnected', event);
+    this.call.streamClient.dispatchEvent(event);
   }
 
   private persistPreference(

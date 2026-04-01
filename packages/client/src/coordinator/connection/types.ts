@@ -126,6 +126,23 @@ export type MicCaptureReportEvent = {
   label?: string;
 };
 
+export type DeviceDisconnectedEvent = {
+  type: 'device.disconnected';
+  call_cid: string;
+  /**
+   * The disconnected device ID.
+   */
+  deviceId: string;
+  /**
+   * The human-readable label of the disconnected device.
+   */
+  label?: string;
+  /**
+   * The disconnected device kind.
+   */
+  kind: MediaDeviceKind;
+};
+
 export type StreamVideoEvent = (
   | VideoEvent
   | NetworkChangedEvent
@@ -133,6 +150,7 @@ export type StreamVideoEvent = (
   | TransportChangedEvent
   | ConnectionRecoveredEvent
   | MicCaptureReportEvent
+  | DeviceDisconnectedEvent
 ) & { received_at?: string | Date };
 
 // TODO: we should use WSCallEvent here but that needs fixing
