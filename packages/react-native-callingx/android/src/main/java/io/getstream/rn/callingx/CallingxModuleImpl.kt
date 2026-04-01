@@ -1,14 +1,11 @@
 package io.getstream.rn.callingx
 
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.ServiceConnection
 import android.os.Build
 import android.os.Bundle
-import android.os.IBinder
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -42,6 +39,7 @@ class CallingxModuleImpl(
         const val EXTRA_DISCONNECT_CAUSE = "disconnect_cause"
         const val EXTRA_AUDIO_ENDPOINT = "audio_endpoint"
         const val EXTRA_SOURCE = "source"
+        const val EXTRA_ACTION = "action_name"
 
         // Action names must match intent-filter entries in AndroidManifest.xml
         const val CALL_REGISTERED_ACTION = "io.getstream.CALL_REGISTERED"
@@ -56,61 +54,19 @@ class CallingxModuleImpl(
         const val CALL_OPTIMISTIC_ACCEPT_ACTION = "io.getstream.ACCEPT_CALL_OPTIMISTIC"
         // Background task name
         const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
-        const val SERVICE_READY_ACTION = "io.getstream.SERVICE_READY"
     }
-
-    private enum class BindingState {
-        UNBOUND,
-        BINDING,
-        BOUND
-    }
-
-    private var callService: CallService? = null
-    private var bindingState = BindingState.UNBOUND
 
     private var delayedEvents = WritableNativeArray()
     private var isModuleInitialized = false
     private var canSendEvents = false
 
-
     private val notificationChannelsManager = NotificationChannelsManager(reactApplicationContext)
-    private val serviceReadyBroadcastReceiver = ServiceReadyBroadcastReceiver()
-    private val appStateListener =
-            object : LifecycleEventListener {
-                override fun onHostResume() {}
-
-                override fun onHostPause() {}
-
-                override fun onHostDestroy() {
-                    // App destroyed - force unbind
-                    debugLog(TAG, "[module] onHostDestroy: App destroyed")
-                    unbindServiceSafely()
-                }
-            }
 
     init {
         CallEventBus.subscribe(this)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            reactApplicationContext.registerReceiver(
-                    serviceReadyBroadcastReceiver,
-                    getServiceReadyReceiverFilter(),
-                    Context.RECEIVER_NOT_EXPORTED
-            )
-        } else {
-            @Suppress("UnspecifiedRegisterReceiverFlag")
-            reactApplicationContext.registerReceiver(
-                    serviceReadyBroadcastReceiver,
-                    getServiceReadyReceiverFilter()
-            )
-        }
     }
 
     fun initialize() {
-        reactApplicationContext.addLifecycleEventListener(appStateListener)
-
-        tryToBindIfNeeded()
-
         debugLog(TAG, "[module] initialize: Initializing module")
     }
 
@@ -118,12 +74,8 @@ class CallingxModuleImpl(
         debugLog(TAG, "[module] invalidate: Invalidating module")
 
         CallRegistrationStore.clearAll()
-        unbindServiceSafely()
-
         CallEventBus.unsubscribe(this)
 
-        reactApplicationContext.removeLifecycleEventListener(appStateListener)
-        reactApplicationContext.unregisterReceiver(serviceReadyBroadcastReceiver)
         isModuleInitialized = false
     }
 
@@ -423,29 +375,14 @@ class CallingxModuleImpl(
 
     private fun executeServiceAction(callId: String, action: CallAction, promise: Promise) {
         debugLog(TAG, "[module] executeServiceAction: Executing service action: $action")
-        when (bindingState) {
-            BindingState.BOUND -> {
-                if (callService != null) {
-                    callService?.processAction(callId, action)
-                    promise.resolve(true)
-                } else {
-                    promise.reject("ERROR", "Service reference lost")
+        Intent(reactApplicationContext, CallService::class.java)
+                .apply {
+                    this.action = CallService.ACTION_PROCESS_ACTION
+                    putExtra(CallService.EXTRA_CALL_ID, callId)
+                    putExtra(CallService.EXTRA_ACTION, action)
                 }
-            }
-            BindingState.BINDING -> {
-                debugLog(TAG, "executeServiceAction: Service binding, queueing action")
-                promise.reject(
-                        "SERVICE_BINDING",
-                        "Service is connecting, please try again in a moment"
-                )
-            }
-            BindingState.UNBOUND -> {
-                promise.reject(
-                        "SERVICE_NOT_CONNECTED",
-                        "Service not connected. Call may not be active."
-                )
-            }
-        }
+                .also { reactApplicationContext.startService(it) }
+                .also { promise.resolve(true) }
     }
 
     private fun sendJSEvent(eventName: String, params: WritableMap? = null) {
@@ -484,95 +421,10 @@ class CallingxModuleImpl(
         }
     }
 
-    private fun getServiceReadyReceiverFilter(): IntentFilter =
-            IntentFilter().apply {
-                addAction(SERVICE_READY_ACTION)
-            }
-
-    private fun bindToServiceIfNeeded() {
-        when (bindingState) {
-            BindingState.BOUND -> {
-                debugLog(TAG, "[module] bindToServiceIfNeeded: Already bound")
-                return
-            }
-            BindingState.BINDING -> {
-                debugLog(TAG, "[module] bindToServiceIfNeeded: Already binding")
-                return
-            }
-            BindingState.UNBOUND -> {
-                debugLog(TAG, "[module] bindToServiceIfNeeded: Attempting to bind")
-                val intent = Intent(reactApplicationContext, CallService::class.java)
-                try {
-                    val success =
-                            reactApplicationContext.bindService(
-                                    intent,
-                                    serviceConnection,
-                                    Context.BIND_AUTO_CREATE or Context.BIND_IMPORTANT
-                            )
-                    if (success) {
-                        bindingState = BindingState.BINDING
-                        debugLog(TAG, "[module] bindToServiceIfNeeded: Bind request successful")
-                    } else {
-                        Log.e(TAG, "[module] bindToServiceIfNeeded: Bind request failed")
-                        bindingState = BindingState.UNBOUND
-                    }
-                } catch (e: Exception) {
-                    Log.e(TAG, "[module] bindToServiceIfNeeded: Exception during bind", e)
-                    bindingState = BindingState.UNBOUND
-                }
-            }
-        }
-    }
-
-    private fun unbindServiceSafely() {
-        debugLog(TAG, "[module] unbindServiceSafely: Unbinding service")
-        if (bindingState == BindingState.BOUND || bindingState == BindingState.BINDING) {
-            try {
-                reactApplicationContext.unbindService(serviceConnection)
-                debugLog(TAG, "[module] unbindServiceSafely: Successfully unbound")
-            } catch (e: IllegalArgumentException) {
-                Log.w(
-                        TAG,
-                        "[module] unbindServiceSafely: Service not registered or already unbound"
-                )
-            } catch (e: Exception) {
-                Log.e(TAG, "[module] unbindServiceSafely: Error unbinding service", e)
-            } finally {
-                bindingState = BindingState.UNBOUND
-                callService = null
-            }
-        }
-    }
-
-    private fun tryToBindIfNeeded() {
-        val intent = Intent(reactApplicationContext, CallService::class.java)
-        try {
-            val success =
-                    reactApplicationContext.bindService(
-                            intent,
-                            serviceConnection,
-                            0 // No flags - only bind if service exists
-                    )
-            if (success) {
-                bindingState = BindingState.BINDING
-                debugLog(TAG, "[module] checkForExistingService: Service exists, binding")
-            } else {
-                debugLog(TAG, "[module] checkForExistingService: No existing service")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "[module] checkForExistingService: Error checking for service", e)
-        }
-    }
-
     override fun onCallEvent(event: CallEvent) {
         val action = event.action
         val extras = event.extras
         val callId = extras.getString(EXTRA_CALL_ID)
-
-        debugLog(
-                TAG,
-                "[module] onCallEvent: Received event: $action callId: $callId callService: ${callService != null}"
-        )
 
         val params = Arguments.createMap()
         if (callId != null) {
@@ -612,10 +464,6 @@ class CallingxModuleImpl(
                     if (callId != null) {
                         CallRegistrationStore.removeTrackedCall(callId)
                     }
-                    // Only unbind when no more calls are tracked
-                    if (!CallRegistrationStore.hasRegisteredCall()) {
-                        unbindServiceSafely()
-                    }
                 }
                 params.putString("cause", extras.getString(EXTRA_DISCONNECT_CAUSE))
                 sendJSEvent("endCall", params)
@@ -642,53 +490,4 @@ class CallingxModuleImpl(
             }
         }
     }
-
-    private inner class ServiceReadyBroadcastReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-          val action = intent.action ?: return
-
-          if (action == SERVICE_READY_ACTION) {
-                debugLog(
-                        TAG,
-                        "[module] ServiceReadyBroadcastReceiver: Service is ready, initiating binding"
-                )
-                bindToServiceIfNeeded()
-            }
-        }
-    }
-
-    private val serviceConnection =
-            object : ServiceConnection {
-                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                    debugLog(TAG, "[module] onServiceConnected: Service connected")
-                    val binder = service as? CallService.CallServiceBinder
-                    callService = binder?.getService()
-                    bindingState = BindingState.BOUND
-                }
-
-                override fun onServiceDisconnected(name: ComponentName?) {
-                    debugLog(TAG, "onServiceDisconnected: Service disconnected unexpectedly")
-                    callService = null
-                    bindingState = BindingState.UNBOUND
-                }
-
-                override fun onBindingDied(name: ComponentName?) {
-                    Log.e(TAG, "[module] onBindingDied: Service binding died")
-                    callService = null
-                    bindingState = BindingState.UNBOUND
-
-                    // Must unbind to clean up the dead binding
-                    try {
-                        reactApplicationContext.unbindService(this)
-                    } catch (e: Exception) {
-                        Log.w(TAG, "[module] onBindingDied: Error unbinding dead connection", e)
-                    }
-                }
-
-                override fun onNullBinding(name: ComponentName?) {
-                    Log.e(TAG, "[module] onNullBinding: Service returned null binding")
-                    bindingState = BindingState.UNBOUND
-                    callService = null
-                }
-            }
 }
