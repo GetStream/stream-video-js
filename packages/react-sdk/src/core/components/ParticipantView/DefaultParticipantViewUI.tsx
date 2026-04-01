@@ -165,11 +165,10 @@ export const ParticipantDetails = ({
               className="str-video__participant-details__name--track-paused"
             />
           )}
-          {indicatorsVisible && canUnpin && (
-            // TODO: remove this monstrosity once we have a proper design
+          {indicatorsVisible && pin && (
             <span
-              title={t('Unpin')}
-              onClick={() => call?.unpin(sessionId)}
+              title={canUnpin ? t('Unpin') : t('Pinned')}
+              onClick={canUnpin ? () => call?.unpin(sessionId) : undefined}
               className="str-video__participant-details__name--pinned"
             />
           )}
