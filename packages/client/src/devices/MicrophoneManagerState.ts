@@ -4,6 +4,7 @@ import { TrackDisableMode } from './DeviceManagerState';
 import { AudioDeviceManagerState } from './AudioDeviceManagerState';
 import { getAudioBrowserPermission, resolveDeviceId } from './devices';
 import { AudioBitrateProfile } from '../gen/video/sfu/models/models';
+import { Tracer } from '../stats';
 
 export class MicrophoneManagerState extends AudioDeviceManagerState<MediaTrackConstraints> {
   private speakingWhileMutedSubject = new BehaviorSubject<boolean>(false);
@@ -15,10 +16,10 @@ export class MicrophoneManagerState extends AudioDeviceManagerState<MediaTrackCo
     .asObservable()
     .pipe(distinctUntilChanged());
 
-  constructor(disableMode: TrackDisableMode) {
+  constructor(disableMode: TrackDisableMode, tracer: Tracer | undefined) {
     super(
       disableMode,
-      getAudioBrowserPermission(),
+      getAudioBrowserPermission(tracer),
       AudioBitrateProfile.VOICE_STANDARD_UNSPECIFIED,
     );
   }

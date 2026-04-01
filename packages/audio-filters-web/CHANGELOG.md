@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.7.2...@stream-io/audio-filters-web-0.7.3) (2026-03-09)
+
+### Bug Fixes
+
+- **react:** await initialization before enabling / disabling noise cancellation ([#2153](https://github.com/GetStream/stream-video-js/issues/2153)) ([3455a0e](https://github.com/GetStream/stream-video-js/commit/3455a0e597245af6c34332424b4b7029abf7c675))
+
 ## [0.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.7.1...@stream-io/audio-filters-web-0.7.2) (2026-01-26)
 
 ### Bug Fixes

@@ -3,6 +3,7 @@ import React, { type PropsWithChildren, useEffect } from 'react';
 import { Call } from '@stream-io/video-client';
 import { canAddPushWSSubscriptionsRef } from '../../utils/push/internal/utils';
 import { useAndroidKeepCallAliveEffect } from '../../hooks/useAndroidKeepCallAliveEffect';
+import { useScreenShareAudioMixing } from '../../hooks/useScreenShareAudioMixing';
 import { AppStateListener } from './AppStateListener';
 import { DeviceStats } from './DeviceStats';
 import { pushUnsubscriptionCallbacks } from '../../utils/push/internal/constants';
@@ -36,6 +37,7 @@ export const StreamCall = ({
       <AndroidKeepCallAlive />
       <CallingExpWithCallingState />
       <ClearPushWSSubscriptions />
+      <ScreenShareAudioMixer />
       <DeviceStats />
       {children}
     </StreamCallProvider>
@@ -57,6 +59,15 @@ const AndroidKeepCallAlive = () => {
  */
 const CallingExpWithCallingState = () => {
   useCallingExpWithCallingStateEffect();
+  return null;
+};
+
+/**
+ * This is a renderless component to manage screen share audio mixing lifecycle.
+ * It starts/stops native audio mixing based on screen share status and audio preference.
+ */
+const ScreenShareAudioMixer = () => {
+  useScreenShareAudioMixing();
   return null;
 };
 

@@ -11,7 +11,6 @@ import type { EventListener } from './EventManager';
 import {
   type ICallingxModule,
   type InfoDisplayOptions,
-  type TextTransformer,
   type EndCallReason,
   type EventData,
   type EventName,
@@ -25,7 +24,6 @@ import {
   androidEndCallReasonMap,
   defaultAndroidOptions,
   defaultiOSOptions,
-  defaultTextTransformer,
   iosEndCallReasonMap,
 } from './utils/constants';
 import { isVoipEvent } from './utils/utils';
@@ -35,8 +33,8 @@ class CallingxModule implements ICallingxModule {
   private _isOngoingCallsEnabled = false;
   private _isHeadlessTaskRegistered = false;
 
-  private titleTransformer: TextTransformer = (text: string) => text;
-  private subtitleTransformer: TextTransformer | undefined = undefined;
+  private titleTransformer: (memberName: string, incoming: boolean) => string =
+    (memberName: string) => memberName;
 
   private eventManager: EventManager<EventName, EventParams> =
     new EventManager();
@@ -74,14 +72,13 @@ class CallingxModule implements ICallingxModule {
     if (Platform.OS === 'android') {
       const {
         titleTransformer,
-        subtitleTransformer,
         incomingChannel,
         ongoingChannel,
         notificationTexts,
       } = options.android ?? {};
 
-      this.titleTransformer = titleTransformer ?? defaultTextTransformer;
-      this.subtitleTransformer = subtitleTransformer;
+      this.titleTransformer =
+        titleTransformer ?? ((memberName: string) => memberName);
 
       const notificationsConfig = {
         incomingChannel: {
@@ -135,7 +132,6 @@ class CallingxModule implements ICallingxModule {
   ): Promise<void> {
     const displayOptions: InfoDisplayOptions = {
       displayTitle: this.titleTransformer(callerName, true),
-      displaySubtitle: this.subtitleTransformer?.(phoneNumber, true),
     };
     return NativeCallingModule.displayIncomingCall(
       callId,
@@ -159,7 +155,6 @@ class CallingxModule implements ICallingxModule {
   ): Promise<void> {
     const displayOptions: InfoDisplayOptions = {
       displayTitle: this.titleTransformer(callerName, false),
-      displaySubtitle: this.subtitleTransformer?.(phoneNumber, false),
     };
     return NativeCallingModule.startCall(
       callId,
@@ -174,10 +169,10 @@ class CallingxModule implements ICallingxModule {
     callId: string,
     phoneNumber: string,
     callerName: string,
+    incoming: boolean,
   ): Promise<void> {
     const displayOptions: InfoDisplayOptions = {
-      displayTitle: this.titleTransformer(callerName, false), //adjust incoming or outgoing call
-      displaySubtitle: this.subtitleTransformer?.(phoneNumber, false), //adjust incoming or outgoing call
+      displayTitle: this.titleTransformer(callerName, incoming),
     };
     return NativeCallingModule.updateDisplay(
       callId,

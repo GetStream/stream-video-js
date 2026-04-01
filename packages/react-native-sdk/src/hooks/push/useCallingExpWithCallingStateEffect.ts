@@ -21,6 +21,8 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   const activeCallCid = activeCall?.cid;
   const currentUserId = activeCall?.currentUserId;
+  const isIncoming =
+    (activeCall?.ringing && !activeCall?.isCreatedByMe) || false;
 
   const callDisplayName = useMemo(
     () => getCallDisplayName(callMembers, participants, currentUserId),
@@ -104,8 +106,13 @@ export const useCallingExpWithCallingStateEffect = () => {
       return;
     }
 
-    callingx.updateDisplay(activeCallCid, activeCallCid, callDisplayName);
-  }, [activeCallCid, callDisplayName]);
+    callingx.updateDisplay(
+      activeCallCid,
+      activeCallCid,
+      callDisplayName,
+      isIncoming,
+    );
+  }, [activeCallCid, callDisplayName, isIncoming]);
 
   // Sync microphone mute state from app → CallKit
   useEffect(() => {

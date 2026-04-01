@@ -2,6 +2,40 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.13.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.13...@stream-io/video-react-bindings-1.13.14) (2026-03-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.5`
+
+### Bug Fixes
+
+- **react:** reset recording toggle state and expose record button errors ([#2174](https://github.com/GetStream/stream-video-js/issues/2174)) ([2af6347](https://github.com/GetStream/stream-video-js/commit/2af63478ad9050bf339212537a6cb424f97387b8))
+
+## [1.13.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.12...@stream-io/video-react-bindings-1.13.13) (2026-03-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.4`
+
+## [1.13.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.11...@stream-io/video-react-bindings-1.13.12) (2026-03-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.3`
+
+## [1.13.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.10...@stream-io/video-react-bindings-1.13.11) (2026-03-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.2`
+
+## [1.13.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.9...@stream-io/video-react-bindings-1.13.10) (2026-03-04)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.1`
+
 ## [1.13.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.8...@stream-io/video-react-bindings-1.13.9) (2026-02-27)
 
 ### Dependency Updates

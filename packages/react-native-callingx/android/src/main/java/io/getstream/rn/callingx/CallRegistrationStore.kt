@@ -2,9 +2,11 @@ package io.getstream.rn.callingx
 
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import com.facebook.react.bridge.Promise
+import io.getstream.rn.callingx.model.CallAction
+import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.emptyList
 
 object CallRegistrationStore {
 
@@ -13,10 +15,8 @@ object CallRegistrationStore {
 
     private val trackedCallIds: MutableSet<String> = ConcurrentHashMap.newKeySet()
 
-    /** Pending disconnect cause code (android.telecom.DisconnectCause code) per callId. */
-    private val pendingDisconnectCauseByCallId = ConcurrentHashMap<String, Int>()
-    private val pendingAnswerByCallId = ConcurrentHashMap<String, Boolean>()
-    private val pendingMuteByCallId = ConcurrentHashMap<String, Boolean>()
+    /** Pending actions per callId, queued until the call is registered in Telecom. */
+    private val pendingActionsByCallId = ConcurrentHashMap<String, MutableList<CallAction>>()
 
     // Per-callId pending promises for displayIncomingCall awaiting CALL_REGISTERED_INCOMING_ACTION
     private val pendingPromises = mutableMapOf<String, Promise>()
@@ -24,7 +24,10 @@ object CallRegistrationStore {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     fun trackCallRegistration(callId: String, promise: Promise?) {
-        debugLog(TAG, "[store] trackCallRegistration: Tracking call registration for callId: $callId")
+        debugLog(
+                TAG,
+                "[store] trackCallRegistration: Tracking call registration for callId: $callId"
+        )
         trackedCallIds.add(callId)
 
         if (promise == null) return
@@ -38,10 +41,9 @@ object CallRegistrationStore {
 
             val timeoutRunnable = Runnable {
                 synchronized(pendingPromises) {
-                    pendingPromises.remove(callId)?.reject(
-                        "TIMEOUT",
-                        "Timed out waiting for call registration: $callId"
-                    )
+                    pendingPromises
+                            .remove(callId)
+                            ?.reject("TIMEOUT", "Timed out waiting for call registration: $callId")
                     pendingTimeouts.remove(callId)
                     trackedCallIds.remove(callId)
                 }
@@ -60,24 +62,25 @@ object CallRegistrationStore {
 
     fun onRegistrationFailed(callId: String) {
         reportRegistrationFail(
-            callId,
-            "REGISTRATION_FAILED",
-            "Failed to register call with telecom: $callId",
-            null
+                callId,
+                "REGISTRATION_FAILED",
+                "Failed to register call with telecom: $callId",
+                null
         )
     }
 
     fun reportRegistrationFail(
-        callId: String,
-        code: String,
-        message: String?,
-        throwable: Throwable?
+            callId: String,
+            code: String,
+            message: String?,
+            throwable: Throwable?
     ) {
         trackedCallIds.remove(callId)
 
         synchronized(pendingPromises) {
             pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
             val promise = pendingPromises.remove(callId)
+            pendingActionsByCallId.remove(callId)
             if (promise != null) {
                 if (throwable != null) {
                     promise.reject(code, message, throwable)
@@ -111,50 +114,23 @@ object CallRegistrationStore {
     }
 
     /**
-     * Records that a disconnect was requested for this call before it was registered.
-     * When the call becomes registered, the service should take this and run the disconnect action.
+     * Queues an action for a call that is not yet registered.
+     * Pending actions are drained and executed once registration completes.
      */
-    fun setPendingDisconnect(callId: String, disconnectCauseCode: Int) {
-        debugLog(TAG, "[store] setPendingDisconnect: callId=$callId causeCode=$disconnectCauseCode")
-        pendingDisconnectCauseByCallId[callId] = disconnectCauseCode
-    }
-
-    fun setPendingAnswer(callId: String, isAudioCall: Boolean) {
-        debugLog(TAG, "[store] setPendingAnswer: callId=$callId")
-        pendingAnswerByCallId[callId] = isAudioCall
-    }
-
-    fun setPendingMute(callId: String, isMute: Boolean) {
-        debugLog(TAG, "[store] setPendingMute: callId=$callId isMute=$isMute")
-        pendingMuteByCallId[callId] = isMute
+    fun addPendingAction(callId: String, action: CallAction) {
+        debugLog(TAG, "[store] addPendingAction: callId=$callId action=${action::class.simpleName}")
+        pendingActionsByCallId
+                .computeIfAbsent(callId) { Collections.synchronizedList(mutableListOf()) }
+                .add(action)
     }
 
     /**
-     * Returns and removes the pending disconnect cause code for this call, if any.
-     * Used when the call has just become registered so the service can run the disconnect action.
+     * Returns and removes all queued actions for this call.
+     * Used once a call is registered so the service can replay pending actions.
      */
-    fun takePendingDisconnect(callId: String): Int? {
-        val code = pendingDisconnectCauseByCallId.remove(callId)
-        if (code != null) {
-            debugLog(TAG, "[store] takePendingDisconnect: callId=$callId causeCode=$code")
-        }
-        return code
-    }
-
-    fun takePendingAnswer(callId: String): Boolean? {
-        val isAudioCall = pendingAnswerByCallId.remove(callId)
-        if (isAudioCall != null) {
-            debugLog(TAG, "[store] takePendingAnswer: callId=$callId isAudioCall=$isAudioCall")
-        }
-        return isAudioCall
-    }
-
-    fun takePendingMute(callId: String): Boolean? {
-        val isMute = pendingMuteByCallId.remove(callId)
-        if (isMute != null) {
-            debugLog(TAG, "[store] takePendingMute: callId=$callId isMute=$isMute")
-        }
-        return isMute
+    fun takePendingActions(callId: String): List<CallAction> {
+        val list = pendingActionsByCallId.remove(callId) ?: return emptyList()
+        synchronized(list) { return list.toList() }
     }
 
     fun clearAll() {
@@ -164,13 +140,6 @@ object CallRegistrationStore {
             pendingPromises.clear()
         }
         trackedCallIds.clear()
-        pendingDisconnectCauseByCallId.clear()
-        pendingAnswerByCallId.clear()
-        pendingMuteByCallId.clear()
-    }
-
-    private fun debugLog(tag: String, message: String) {
-        Log.d(tag, message)
+        pendingActionsByCallId.clear()
     }
 }
-

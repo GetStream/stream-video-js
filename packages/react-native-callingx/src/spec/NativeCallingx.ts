@@ -90,7 +90,6 @@ export interface Spec extends TurboModule {
     hasVideo: boolean,
     displayOptions?: {
       displayTitle?: string;
-      displaySubtitle?: string;
     },
   ): Promise<void>;
 
@@ -104,7 +103,6 @@ export interface Spec extends TurboModule {
     hasVideo: boolean,
     displayOptions?: {
       displayTitle?: string;
-      displaySubtitle?: string;
     },
   ): Promise<void>;
 
@@ -114,7 +112,6 @@ export interface Spec extends TurboModule {
     callerName: string,
     displayOptions?: {
       displayTitle?: string;
-      displaySubtitle?: string;
     },
   ): Promise<void>;
 

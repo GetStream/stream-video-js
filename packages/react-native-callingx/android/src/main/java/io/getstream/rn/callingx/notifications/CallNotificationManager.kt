@@ -86,7 +86,6 @@ class CallNotificationManager(
         val isIncoming: Boolean,
         val optimisticState: OptimisticState,
         val displayTitle: String?,
-        val displaySubtitle: String?,
         val displayName: CharSequence,
         val address: Uri
     )
@@ -101,7 +100,6 @@ class CallNotificationManager(
         isIncoming = isIncoming(),
         optimisticState = notificationsState[callId]?.optimisticState ?: OptimisticState.NONE,
         displayTitle = displayOptions?.getString(CallService.EXTRA_DISPLAY_TITLE),
-        displaySubtitle = displayOptions?.getString(CallService.EXTRA_DISPLAY_SUBTITLE),
         displayName = callAttributes.displayName,
         address = callAttributes.address
     )
@@ -192,14 +190,6 @@ class CallNotificationManager(
                 else -> null
             }
             if (text != null) builder.setContentText(text)
-        } else {
-            // If the call is active, we need to set the notification text
-            // based on the call display options (defined on js side)
-            call.displayOptions?.let {
-                if (it.containsKey(CallService.EXTRA_DISPLAY_SUBTITLE)) {
-                    builder.setContentText(it.getString(CallService.EXTRA_DISPLAY_SUBTITLE))
-                }
-            }
         }
 
         return builder.build()

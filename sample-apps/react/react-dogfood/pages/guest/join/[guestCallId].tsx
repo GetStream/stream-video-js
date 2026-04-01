@@ -18,6 +18,8 @@ import { useEffect, useRef, useState } from 'react';
 import { MeetingUI } from '../../../components';
 import { type UserMode } from '../../../components/Lobby';
 import { useAppEnvironment } from '../../../context/AppEnvironmentContext';
+import { useSettings } from '../../../context/SettingsContext';
+import { getSegmentationModelUrl } from '../../../hooks';
 import { getClient } from '../../../helpers/client';
 import { createToken } from '../../../helpers/jwt';
 import { useGleap } from '../../../hooks/useGleap';
@@ -46,6 +48,9 @@ const HeadComponent = ({ callId }: { callId: string }) => {
 export default function GuestCallRoom(props: GuestCallRoomProps) {
   const { apiKey, user, token, gleapApiKey } = props;
   const environment = useAppEnvironment();
+  const {
+    settings: { segmentationModel },
+  } = useSettings();
 
   const router = useRouter();
   const callId = router.query['guestCallId'] as string;
@@ -127,6 +132,7 @@ export default function GuestCallRoom(props: GuestCallRoomProps) {
           <HeadComponent callId={callId} />
           <BackgroundFiltersProvider
             useLegacyFilter={useLegacyFilters}
+            modelFilePath={getSegmentationModelUrl(segmentationModel)}
             backgroundImages={[
               `${basePath}/backgrounds/amsterdam-1.jpg`,
               `${basePath}/backgrounds/amsterdam-2.jpg`,

@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.11.0...@stream-io/video-styling-1.12.0) (2026-03-20)
+
+### Features
+
+- **react:** display loading indicator while participant audio is connecting ([#2167](https://github.com/GetStream/stream-video-js/issues/2167)) ([bb2e273](https://github.com/GetStream/stream-video-js/commit/bb2e2733a3e88fd60220118f267d74d952f16ed8))
+
 ## [1.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.10.0...@stream-io/video-styling-1.11.0) (2026-02-27)
 
 ### Features

@@ -63,10 +63,6 @@ export function extractCallingExpOptions(
     if (pushConfig.android.titleTransformer) {
       androidOptions.titleTransformer = pushConfig.android.titleTransformer;
     }
-    if (pushConfig.android.subtitleTransformer) {
-      androidOptions.subtitleTransformer =
-        pushConfig.android.subtitleTransformer;
-    }
     if (pushConfig.android.notificationTexts) {
       androidOptions.notificationTexts = pushConfig.android.notificationTexts;
     }

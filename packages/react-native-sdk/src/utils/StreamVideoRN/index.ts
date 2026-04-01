@@ -105,8 +105,10 @@ export class StreamVideoRN {
    *       vibration: true,
    *       sound: 'default',
    *     },
-   *     titleTransformer: (text: string) => text,
-   *     subtitleTransformer: (text: string) => text,
+   *     titleTransformer: (memberName: string, incoming: boolean) =>
+   *       incoming
+   *         ? `${memberName} is calling you`
+   *         : `You are calling ${memberName}`,
    *   },
    * };
    * StreamVideoRN.setPushConfig(pushConfig, callingExpOptions);
