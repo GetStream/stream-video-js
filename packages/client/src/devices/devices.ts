@@ -11,7 +11,7 @@ import {
 } from 'rxjs';
 import { BrowserPermission } from './BrowserPermission';
 import { lazy } from '../helpers/lazy';
-import { isFirefox, isSafari } from '../helpers/browsers';
+import { isFirefox } from '../helpers/browsers';
 import { dumpStream, Tracer } from '../stats';
 import { getCurrentValue } from '../store/rxUtils';
 import { videoLoggerSystem } from '../logger';
@@ -61,8 +61,6 @@ const getDevices = (
  */
 export const checkIfAudioOutputChangeSupported = () => {
   if (typeof document === 'undefined') return false;
-  // Safari uses WebAudio API for playing audio, so we check the AudioContext prototype
-  if (isSafari()) return 'setSinkId' in AudioContext.prototype;
   const element = document.createElement('audio');
   return 'setSinkId' in element;
 };
@@ -93,10 +91,11 @@ const videoDeviceConstraints = {
  * affects an ability to enumerate audio devices.
  */
 export const getAudioBrowserPermission = lazy(
-  () =>
+  (tracer: Tracer | undefined) =>
     new BrowserPermission({
       constraints: audioDeviceConstraints,
       queryName: 'microphone' as PermissionName,
+      tracer,
     }),
 );
 
@@ -105,10 +104,11 @@ export const getAudioBrowserPermission = lazy(
  * affects an ability to enumerate video devices.
  */
 export const getVideoBrowserPermission = lazy(
-  () =>
+  (tracer: Tracer | undefined) =>
     new BrowserPermission({
       constraints: videoDeviceConstraints,
       queryName: 'camera' as PermissionName,
+      tracer,
     }),
 );
 
@@ -132,11 +132,11 @@ const getDeviceChangeObserver = lazy((tracer: Tracer | undefined) => {
 export const getAudioDevices = lazy((tracer?: Tracer) => {
   return merge(
     getDeviceChangeObserver(tracer),
-    getAudioBrowserPermission().asObservable(),
+    getAudioBrowserPermission(tracer).asObservable(),
   ).pipe(
     startWith([]),
     concatMap(() =>
-      getDevices(getAudioBrowserPermission(), 'audioinput', tracer),
+      getDevices(getAudioBrowserPermission(tracer), 'audioinput', tracer),
     ),
     shareReplay(1),
   );
@@ -151,11 +151,11 @@ export const getAudioDevices = lazy((tracer?: Tracer) => {
 export const getVideoDevices = lazy((tracer?: Tracer) => {
   return merge(
     getDeviceChangeObserver(tracer),
-    getVideoBrowserPermission().asObservable(),
+    getVideoBrowserPermission(tracer).asObservable(),
   ).pipe(
     startWith([]),
     concatMap(() =>
-      getDevices(getVideoBrowserPermission(), 'videoinput', tracer),
+      getDevices(getVideoBrowserPermission(tracer), 'videoinput', tracer),
     ),
     shareReplay(1),
   );
@@ -170,11 +170,11 @@ export const getVideoDevices = lazy((tracer?: Tracer) => {
 export const getAudioOutputDevices = lazy((tracer?: Tracer) => {
   return merge(
     getDeviceChangeObserver(tracer),
-    getAudioBrowserPermission().asObservable(),
+    getAudioBrowserPermission(tracer).asObservable(),
   ).pipe(
     startWith([]),
     concatMap(() =>
-      getDevices(getAudioBrowserPermission(), 'audiooutput', tracer),
+      getDevices(getAudioBrowserPermission(tracer), 'audiooutput', tracer),
     ),
     shareReplay(1),
   );
@@ -259,28 +259,24 @@ export const getAudioStream = async (
   };
 
   try {
-    await getAudioBrowserPermission().prompt({
+    await getAudioBrowserPermission(tracer).prompt({
       throwOnNotAllowed: true,
       forcePrompt: true,
     });
     return await getStream(constraints, tracer);
   } catch (error) {
+    const logger = videoLoggerSystem.getLogger('devices');
     if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { deviceId, ...relaxedConstraints } = trackConstraints;
-      videoLoggerSystem
-        .getLogger('devices')
-        .warn(
-          'Failed to get audio stream, will try again with relaxed constraints',
-          { error, constraints, relaxedConstraints },
-        );
+      logger.warn(
+        'Failed to get audio stream, will try again with relaxed constraints',
+        { error, constraints, relaxedConstraints },
+      );
       return getAudioStream(relaxedConstraints, tracer);
     }
 
-    videoLoggerSystem.getLogger('devices').error('Failed to get audio stream', {
-      error,
-      constraints,
-    });
+    logger.error('Failed to get audio stream', { error, constraints });
     throw error;
   }
 };
@@ -304,28 +300,24 @@ export const getVideoStream = async (
     },
   };
   try {
-    await getVideoBrowserPermission().prompt({
+    await getVideoBrowserPermission(tracer).prompt({
       throwOnNotAllowed: true,
       forcePrompt: true,
     });
     return await getStream(constraints, tracer);
   } catch (error) {
+    const logger = videoLoggerSystem.getLogger('devices');
     if (isNotFoundOrOverconstrainedError(error) && trackConstraints?.deviceId) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { deviceId, ...relaxedConstraints } = trackConstraints;
-      videoLoggerSystem
-        .getLogger('devices')
-        .warn(
-          'Failed to get video stream, will try again with relaxed constraints',
-          { error, constraints, relaxedConstraints },
-        );
-      return getVideoStream(relaxedConstraints);
+      logger.warn(
+        'Failed to get video stream, will try again with relaxed constraints',
+        { error, constraints, relaxedConstraints },
+      );
+      return getVideoStream(relaxedConstraints, tracer);
     }
 
-    videoLoggerSystem.getLogger('devices').error('Failed to get video stream', {
-      error,
-      constraints,
-    });
+    logger.error('Failed to get video stream', { error, constraints });
     throw error;
   }
 };

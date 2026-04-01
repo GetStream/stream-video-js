@@ -1,5 +1,6 @@
 package com.streamvideo.reactnative
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -9,6 +10,7 @@ import android.graphics.Bitmap
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
+import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
@@ -24,6 +26,8 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEmitter
 import com.oney.WebRTCModule.WebRTCModule
+import com.oney.WebRTCModule.WebRTCModuleOptions
+import com.streamvideo.reactnative.screenshare.ScreenAudioCapture
 import com.streamvideo.reactnative.keepalive.StreamCallKeepAliveHeadlessService
 import com.streamvideo.reactnative.util.CallAlivePermissionsHelper
 import com.streamvideo.reactnative.util.PiPHelper
@@ -52,6 +56,9 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     // Instance variables for busy tone (not static)
     private var busyToneAudioTrack: AudioTrack? = null
     private var busyToneJob: Job? = null
+
+    // Screen share audio mixing
+    private var screenAudioCapture: ScreenAudioCapture? = null
 
     private var thermalStatusListener: PowerManager.OnThermalStatusChangedListener? = null
 
@@ -185,6 +192,7 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         reactApplicationContext.unregisterReceiver(batteryChargingStateReceiver)
         stopThermalStatusUpdates()
         stopBusyToneInternal() // Clean up busy tone on invalidate
+        stopScreenShareAudioMixingInternal() // Clean up screen share audio on invalidate
         super.invalidate()
     }
 
@@ -519,6 +527,83 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     private fun generateSilenceBuffer(durationSeconds: Double): ShortArray {
         val totalSamples = (durationSeconds * SAMPLE_RATE).toInt()
         return ShortArray(totalSamples)
+    }
+
+    @ReactMethod
+    fun startScreenShareAudioMixing(promise: Promise) {
+        try {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                promise.reject("API_LEVEL", "Screen audio capture requires Android 10 (API 29)+")
+                return
+            }
+
+            if (screenAudioCapture != null) {
+                Log.w(NAME, "Screen share audio mixing is already active")
+                promise.resolve(null)
+                return
+            }
+
+            val module = reactApplicationContext.getNativeModule(WebRTCModule::class.java)!!
+
+            // Get the MediaProjection permission result Intent from WebRTC
+            val permissionIntent = module.userMediaImpl?.mediaProjectionPermissionResultData
+            if (permissionIntent == null) {
+                promise.reject("NO_PROJECTION", "No MediaProjection permission available. Start screen sharing first.")
+                return
+            }
+
+            // Create a MediaProjection for audio capture
+            val mediaProjectionManager = reactApplicationContext.getSystemService(
+                Context.MEDIA_PROJECTION_SERVICE
+            ) as MediaProjectionManager
+            val mediaProjection = mediaProjectionManager.getMediaProjection(
+                Activity.RESULT_OK, permissionIntent
+            )
+            if (mediaProjection == null) {
+                promise.reject("PROJECTION_ERROR", "Failed to create MediaProjection for audio capture")
+                return
+            }
+
+            screenAudioCapture = ScreenAudioCapture(mediaProjection).also { it.start() }
+
+            // Register the screen audio bytes provider so the AudioBufferCallback
+            // in WebRTCModule mixes screen audio into the mic buffer.
+            WebRTCModuleOptions.getInstance().screenAudioBytesProvider =
+                WebRTCModuleOptions.ScreenAudioBytesProvider { bytesRequested ->
+                screenAudioCapture?.getScreenAudioBytes(bytesRequested)
+            }
+
+            Log.d(NAME, "Screen share audio mixing started")
+            promise.resolve(null)
+        } catch (e: Exception) {
+            Log.e(NAME, "Error starting screen share audio mixing: ${e.message}")
+            promise.reject("ERROR", e.message, e)
+        }
+    }
+
+    @ReactMethod
+    fun stopScreenShareAudioMixing(promise: Promise) {
+        try {
+            stopScreenShareAudioMixingInternal()
+            promise.resolve(null)
+        } catch (e: Exception) {
+            Log.e(NAME, "Error stopping screen share audio mixing: ${e.message}")
+            promise.reject("ERROR", e.message, e)
+        }
+    }
+
+    private fun stopScreenShareAudioMixingInternal() {
+        try {
+            // Clear the provider so the AudioBufferCallback stops mixing
+            WebRTCModuleOptions.getInstance().screenAudioBytesProvider = null
+
+            screenAudioCapture?.stop()
+            screenAudioCapture = null
+
+            Log.d(NAME, "Screen share audio mixing stopped")
+        } catch (e: Exception) {
+            Log.e(NAME, "Error in stopScreenShareAudioMixingInternal: ${e.message}")
+        }
     }
 
     companion object {

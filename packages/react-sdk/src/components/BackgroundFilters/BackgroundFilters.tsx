@@ -105,6 +105,7 @@ export const BackgroundFiltersProvider = (
     performanceThresholds,
     forceSafariSupport,
     forceMobileSupport,
+    segmentationOptions,
   } = props;
 
   const call = useCall();
@@ -303,6 +304,7 @@ export const BackgroundFiltersProvider = (
     modelFilePath,
     basePath,
     onError: handleError,
+    segmentationOptions,
   };
   return (
     <ContextProvider.Provider value={contextValue}>
@@ -374,6 +376,7 @@ const useRenderer = (
     backgroundImage,
     modelFilePath,
     basePath,
+    segmentationOptions,
   } = api;
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -419,6 +422,7 @@ const useRenderer = (
             backgroundBlurLevel,
             backgroundImage,
             engine,
+            modelFilePath,
           });
 
           if (!videoEl) {
@@ -442,6 +446,7 @@ const useRenderer = (
               backgroundBlurLevel,
               backgroundImage,
               backgroundFilter,
+              segmentationOptions,
             },
             { onError, onStats },
           );
@@ -531,6 +536,7 @@ const useRenderer = (
       engine,
       modelFilePath,
       basePath,
+      segmentationOptions,
     ],
   );
 
