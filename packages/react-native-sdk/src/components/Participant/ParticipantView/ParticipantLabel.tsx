@@ -52,14 +52,9 @@ export const ParticipantLabel = ({
   const participantName = name ?? userId;
 
   const participantLabel = isLocalParticipant ? t('You') : participantName;
-  const isPinningEnabled = pin?.isLocalPin;
   const isAudioMuted = !hasAudio(participant);
   const isVideoMuted = !hasVideo(participant);
   const isTrackPaused = trackType && hasPausedTrack(participant, trackType);
-
-  const unPinParticipantHandler = () => {
-    call?.unpin(sessionId);
-  };
 
   if (trackType === 'screenShareTrack') {
     const screenShareText = isLocalParticipant
@@ -133,10 +128,10 @@ export const ParticipantLabel = ({
             <BadNetwork color={colors.iconPrimary} size={iconSizes.sm} />
           </View>
         )}
-        {isPinningEnabled && (
+        {pin && (
           <Pressable
             style={[styles.pinIconContainer, pinIconContainer]}
-            onPress={unPinParticipantHandler}
+            onPress={pin.isLocalPin ? () => call?.unpin(sessionId) : undefined}
           >
             <PinVertical color={colors.iconPrimary} size={iconSizes.sm} />
           </Pressable>
