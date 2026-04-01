@@ -4,4 +4,5 @@ import { setFirebaseListeners } from './utils/setFirebaseListeners';
 setPushConfig();
 setFirebaseListeners();
 
-require('expo-router/entry');
+// always import expo-router/entry at the end of the file
+import 'expo-router/entry';

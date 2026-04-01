@@ -7,10 +7,10 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useAuthentication } from '../contexts/authentication-provider';
-import { Users } from '../constants/Users';
-import { UserButton } from '../components/user-button';
-import { ActionButton } from '../components/action-button';
+import { useAuthentication } from '../../contexts/authentication-provider';
+import { Users } from '../../constants/Users';
+import { UserButton } from '../../components/user-button';
+import { ActionButton } from '../../components/action-button';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useCalls,
@@ -18,7 +18,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { Redirect } from 'expo-router';
 
-export default function Home() {
+export default function Index() {
   const { signOut, userWithToken } = useAuthentication();
   const client = useStreamVideoClient();
   const [selectedUsers, setSelectedUsers] = React.useState<string[]>([]);
@@ -50,11 +50,12 @@ export default function Home() {
   };
 
   if (ringingCall) {
-    return <Redirect href="/ringing" />;
+    return <Redirect href="/(app)/ringing" />;
   }
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Ringing Tutorial</Text>
         <Pressable onPress={signOut} style={styles.signOutButton}>
@@ -62,6 +63,7 @@ export default function Home() {
         </Pressable>
       </View>
 
+      {/* Main Content */}
       <View style={styles.content}>
         <Text style={styles.greeting}>Hello {userWithToken?.name}!</Text>
 
@@ -103,6 +105,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
+    backgroundColor: 'white',
   },
   header: {
     flexDirection: 'row',

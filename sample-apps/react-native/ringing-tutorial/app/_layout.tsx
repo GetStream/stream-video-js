@@ -3,14 +3,24 @@ import { Slot } from 'expo-router';
 import { AuthenticationProvider } from '../contexts/authentication-provider';
 import { setPushConfig } from '../utils/setPushConfig';
 import { setFirebaseListeners } from '../utils/setFirebaseListeners';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-setPushConfig();
-setFirebaseListeners();
+let isInitialized = false;
+
+if (!isInitialized) {
+  setPushConfig();
+  setFirebaseListeners();
+  isInitialized = true;
+} else {
+  console.warn('Push config and firebase listeners already initialized');
+}
 
 export default function Root() {
   return (
     <AuthenticationProvider>
-      <Slot />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Slot />
+      </GestureHandlerRootView>
     </AuthenticationProvider>
   );
 }
