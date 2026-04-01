@@ -14,7 +14,7 @@ export default function Ringing() {
 
   useEffect(() => {
     if (!call) {
-      // redirect to the main app, when the call is removed from the client's call list
+      // Redirect to the landing route when no ringing call remains.
       router.replace('/');
     }
   }, [call]);
