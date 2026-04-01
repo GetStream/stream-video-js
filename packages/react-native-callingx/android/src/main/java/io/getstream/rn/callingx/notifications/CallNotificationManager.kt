@@ -317,25 +317,19 @@ class CallNotificationManager(
         if (call.isIncoming() && !call.isActive && optimisticState == OptimisticState.NONE) {
             return NotificationCompat.CallStyle.forIncomingCall(
                     caller,
-                    NotificationIntentFactory.getPendingBroadcastIntent(
-                            context,
-                            CallingxModuleImpl.CALL_END_ACTION,
-                            call.id
-                    ) {
-                        putExtra(
-                                CallingxModuleImpl.EXTRA_DISCONNECT_CAUSE,
-                                getDisconnectCauseString(DisconnectCause(DisconnectCause.REJECTED))
-                        )
-                        putExtra(
-                                CallingxModuleImpl.EXTRA_SOURCE,
-                                CallRepository.EventSource.SYS.name.lowercase()
-                        )
-                    },
+                    NotificationIntentFactory.getPendingNotificationIntent(
+                        context,
+                        CallingxModuleImpl.CALL_END_ACTION,
+                        call.id,
+                        CallRepository.EventSource.SYS.name.lowercase(),
+                        false
+                    ),
                     NotificationIntentFactory.getPendingNotificationIntent(
                             context,
                             CallingxModuleImpl.CALL_ANSWERED_ACTION,
                             call.id,
-                            CallRepository.EventSource.SYS.name.lowercase()
+                            CallRepository.EventSource.SYS.name.lowercase(),
+                            true
                     )
             )
         }
