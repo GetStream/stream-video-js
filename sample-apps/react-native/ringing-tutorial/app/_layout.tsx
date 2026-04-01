@@ -5,8 +5,8 @@ import { setPushConfig } from '../utils/setPushConfig';
 import { setFirebaseListeners } from '../utils/setFirebaseListeners';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-setPushConfig();
-setFirebaseListeners();
+// setPushConfig();
+// setFirebaseListeners();
 
 export default function Root() {
   return (
