@@ -23,11 +23,15 @@ export class RNSpeechDetector {
           : await navigator.mediaDevices.getUserMedia({ audio: true });
       this.audioStream = audioStream;
 
-      this.pc1.addEventListener('icecandidate', async (e) => {
-        await this.pc2.addIceCandidate(e.candidate);
+      this.pc1.addEventListener('icecandidate', (e) => {
+        this.pc2.addIceCandidate(e.candidate).catch(() => {
+          // do nothing
+        });
       });
       this.pc2.addEventListener('icecandidate', async (e) => {
-        await this.pc1.addIceCandidate(e.candidate);
+        this.pc1.addIceCandidate(e.candidate).catch(() => {
+          // do nothing
+        });
       });
       this.pc2.addEventListener('track', (e) => {
         e.streams[0].getTracks().forEach((track) => {
