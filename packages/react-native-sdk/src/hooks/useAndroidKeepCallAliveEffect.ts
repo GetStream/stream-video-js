@@ -81,7 +81,7 @@ async function startForegroundService(call_cid: string) {
  * This hook is used to keep the call alive in the background for Android.
  * It starts a foreground service to keep the call alive as soon as the call is joined
  * and stops the foreground Service when the call is left.
- * Additionally: also responsible for cancelling any notifee displayed notification when the call has transitioned out of ringing
+ * Additionally (if not using callingx): also responsible for cancelling any notifee displayed notification when the call has transitioned out of ringing
  */
 export const useAndroidKeepCallAliveEffect = () => {
   const foregroundServiceStartedRef = useRef(false);
@@ -112,6 +112,7 @@ export const useAndroidKeepCallAliveEffect = () => {
     ) {
       return undefined;
     }
+    const isCallingxUsed = !!callingx?.isSetup;
 
     // start foreground service as soon as the call is joined
     if (shouldStartForegroundService) {
@@ -121,7 +122,7 @@ export const useAndroidKeepCallAliveEffect = () => {
         }
         // Optional compatibility cleanup: if the app uses Notifee for ringing push,
         // we might have an incoming call notification running as a foreground service.
-        if (notifeeLib) {
+        if (!isCallingxUsed && notifeeLib) {
           const notifee = notifeeLib.default;
           const displayedNotifications =
             await notifee.getDisplayedNotifications();
@@ -159,7 +160,7 @@ export const useAndroidKeepCallAliveEffect = () => {
       return () => {
         // cancel any notifee displayed notification when the call has transitioned out of ringing
         // NOTE: cancels only the non fg service notifications
-        if (notifeeLib) {
+        if (!isCallingxUsed && notifeeLib) {
           notifeeLib.default.cancelDisplayedNotification(activeCallCid);
         }
       };
@@ -173,7 +174,7 @@ export const useAndroidKeepCallAliveEffect = () => {
         stopForegroundServiceNoThrow();
         foregroundServiceStartedRef.current = false;
       } else {
-        if (notifeeLib) {
+        if (!isCallingxUsed && notifeeLib) {
           notifeeLib.default
             .getDisplayedNotifications()
             .then((displayedNotifications) => {
