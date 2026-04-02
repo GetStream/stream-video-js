@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.45.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.5...@stream-io/video-client-1.45.0) (2026-04-02)
+
+### Features
+
+- **client:** Disconnected device event ([#2178](https://github.com/GetStream/stream-video-js/issues/2178)) ([5017ca0](https://github.com/GetStream/stream-video-js/commit/5017ca0fd53f5d203167d55227cb7fddc055705a))
+
+### Bug Fixes
+
+- **client:** warn about dangling audio bindings only for published audio tracks ([#2183](https://github.com/GetStream/stream-video-js/issues/2183)) ([ff47662](https://github.com/GetStream/stream-video-js/commit/ff47662484cd666cf321b61d9b49dd4eb161192f))
+
 ## [1.44.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.4...@stream-io/video-client-1.44.5) (2026-03-27)
 
 ### Bug Fixes
