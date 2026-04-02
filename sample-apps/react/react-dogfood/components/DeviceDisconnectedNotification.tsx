@@ -40,9 +40,9 @@ export const DeviceDisconnectedNotification = ({
 }: PropsWithChildren<DeviceDisconnectedNotificationProps>) => {
   const call = useCall();
   const { t } = useI18n();
-  const [disconnectedDevices, setDisconnectedDevices] = useState<
-    Set<MediaDeviceKind>
-  >(new Set());
+  const [disconnectedDevices, setDisconnectedDevices] = useState(
+    () => new Set<MediaDeviceKind>(),
+  );
 
   useEffect(() => {
     if (!call) return;

@@ -81,7 +81,7 @@ function useForceSubscriptions() {
     [participants],
   );
   const [subscribedParticipants, setSubscribedParticipants] = useState(
-    new Set<string>(),
+    () => new Set<string>(),
   );
   const subscribedParticipantCount = useMemo(
     () =>
