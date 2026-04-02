@@ -4,6 +4,7 @@ import { ChangeEventHandler, PropsWithChildren, useCallback } from 'react';
 import { useDeviceList } from '../../hooks';
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
 import { useMenuContext } from '../Menu';
+import { DeviceLevelIndicator } from './DeviceLevelIndicator';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -14,6 +15,7 @@ type DeviceSelectorOptionProps = {
   disabled?: boolean;
   defaultChecked?: boolean;
   onChange?: ChangeEventHandler<HTMLInputElement>;
+  showLevelIndicator?: boolean;
 };
 
 const DeviceSelectorOption = ({
@@ -25,6 +27,7 @@ const DeviceSelectorOption = ({
   selected,
   defaultChecked,
   value,
+  showLevelIndicator,
 }: DeviceSelectorOptionProps) => {
   return (
     <label
@@ -45,6 +48,7 @@ const DeviceSelectorOption = ({
         disabled={disabled}
       />
       {label}
+      {showLevelIndicator && <DeviceLevelIndicator deviceId={value} />}
     </label>
   );
 };
@@ -58,6 +62,7 @@ const DeviceSelectorList = (
     selectedDeviceId?: string;
     title?: string;
     onChange?: (deviceId: string) => void;
+    showDeviceLevelIndicator?: boolean;
   }>,
 ) => {
   const {
@@ -67,6 +72,7 @@ const DeviceSelectorList = (
     type,
     onChange,
     children,
+    showDeviceLevelIndicator,
   } = props;
   const { close } = useMenuContext();
   const { deviceList } = useDeviceList(devices, selectedDeviceId);
@@ -94,6 +100,9 @@ const DeviceSelectorList = (
             }}
             name={type}
             selected={device.isSelected}
+            showLevelIndicator={
+              device.deviceId !== 'default' && showDeviceLevelIndicator
+            }
           />
         );
       })}
@@ -158,12 +167,23 @@ export const DeviceSelector = (
     title?: string;
     onChange?: (deviceId: string) => void;
     visualType?: 'list' | 'dropdown';
+    showDeviceLevelIndicator?: boolean;
   }>,
 ) => {
-  const { visualType = 'list', icon, ...rest } = props;
+  const {
+    visualType = 'list',
+    icon,
+    showDeviceLevelIndicator,
+    ...rest
+  } = props;
 
   if (visualType === 'list') {
-    return <DeviceSelectorList {...rest} />;
+    return (
+      <DeviceSelectorList
+        {...rest}
+        showDeviceLevelIndicator={showDeviceLevelIndicator}
+      />
+    );
   }
   return <DeviceSelectorDropdown {...rest} icon={icon} />;
 };

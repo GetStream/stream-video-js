@@ -7,12 +7,14 @@ export type DeviceSelectorAudioInputProps = {
   title?: string;
   visualType?: 'list' | 'dropdown';
   volumeIndicatorVisible?: boolean;
+  showDeviceLevelIndicator?: boolean;
 };
 
 export const DeviceSelectorAudioInput = ({
   title,
   visualType,
   volumeIndicatorVisible = true,
+  showDeviceLevelIndicator = false,
 }: DeviceSelectorAudioInputProps) => {
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, selectedDevice, devices } = useMicrophoneState();
@@ -28,6 +30,7 @@ export const DeviceSelectorAudioInput = ({
       title={title}
       visualType={visualType}
       icon="mic"
+      showDeviceLevelIndicator={showDeviceLevelIndicator}
     >
       {volumeIndicatorVisible && (
         <>

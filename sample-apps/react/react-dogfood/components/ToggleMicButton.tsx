@@ -41,7 +41,11 @@ export const ToggleMicButton = () => {
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
     >
-      <DeviceSelectorAudioInput visualType="list" title="Microphone" />
+      <DeviceSelectorAudioInput
+        visualType="list"
+        title="Microphone"
+        showDeviceLevelIndicator
+      />
       <DeviceSelectorAudioOutput visualType="list" title="Speaker" />
     </MenuToggle>
   );
