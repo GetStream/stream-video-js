@@ -656,15 +656,15 @@ export class Call {
             reasonToEndCallReason[
               rejectReason as keyof typeof reasonToEndCallReason
             ] ?? 'rejected';
-          globalThis.streamRNVideoSDK?.callingX?.endCall(this, endCallReason);
           await this.reject(rejectReason);
+          globalThis.streamRNVideoSDK?.callingX?.endCall(this, endCallReason);
         } else {
           // if reject was undefined, we still have to cancel the call automatically
           // when I am the creator and everyone else left the call
           const hasOtherParticipants = this.state.remoteParticipants.length > 0;
           if (this.isCreatedByMe && !hasOtherParticipants) {
-            globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'canceled');
             await this.reject('cancel');
+            globalThis.streamRNVideoSDK?.callingX?.endCall(this, 'canceled');
           }
         }
       }

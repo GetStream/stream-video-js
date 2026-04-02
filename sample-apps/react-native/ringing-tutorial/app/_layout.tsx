@@ -1,18 +1,14 @@
 import React from 'react';
 import { Slot } from 'expo-router';
 import { AuthenticationProvider } from '../contexts/authentication-provider';
-// import { setPushConfig } from '../utils/setPushConfig';
-// import { setFirebaseListeners } from '../utils/setFirebaseListeners';
-
-// // Set push config
-// setPushConfig();
-// // Set the firebase listeners
-// setFirebaseListeners();
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function Root() {
   return (
     <AuthenticationProvider>
-      <Slot />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Slot />
+      </GestureHandlerRootView>
     </AuthenticationProvider>
   );
 }

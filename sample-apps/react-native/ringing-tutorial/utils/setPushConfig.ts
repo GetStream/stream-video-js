@@ -2,12 +2,10 @@ import {
   StreamVideoClient,
   StreamVideoRN,
 } from '@stream-io/video-react-native-sdk';
-import { AndroidImportance } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Users } from '../constants/Users';
 
 const API_KEY = 'par8f5s3gn2j';
-
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
     isExpo: true,
@@ -16,12 +14,6 @@ export function setPushConfig() {
     },
     android: {
       pushProviderName: 'expo-fcm-video',
-      callChannel: {
-        id: 'stream_call_notifications',
-        name: 'Call notifications',
-        importance: AndroidImportance.HIGH,
-        sound: 'default',
-      },
     },
     createStreamVideoClient,
   });

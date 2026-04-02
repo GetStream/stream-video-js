@@ -22,10 +22,11 @@ object NotificationIntentFactory {
     context: Context,
     action: String,
     callId: String,
-    source: String
+    source: String,
+    includeLaunchActivity: Boolean
   ): PendingIntent {
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      getReceiverActivityIntent(context, action, callId, source)
+      getReceiverActivityIntent(context, action, callId, source, includeLaunchActivity)
     } else {
       getPendingServiceIntent(context, action, callId, source)
     }
@@ -47,7 +48,7 @@ object NotificationIntentFactory {
     )
   }
 
-  fun getReceiverActivityIntent(context: Context, action: String, callId: String, source: String): PendingIntent {
+  fun getReceiverActivityIntent(context: Context, action: String, callId: String, source: String, includeLaunchActivity: Boolean): PendingIntent {
     val receiverIntent =
       Intent(context, NotificationReceiverActivity::class.java).apply {
         this.action = action
@@ -57,14 +58,25 @@ object NotificationIntentFactory {
 
     val launchActivity = context.packageManager.getLaunchIntentForPackage(context.packageName)
     val launchActivityIntent =
-      Intent(launchActivity).apply {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+      launchActivity?.let { base ->
+        Intent(base).apply {
+          addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+      }
+
+    // intents are started in order and build a synthetic back stack
+    // the last intent is the one on top, so the launch activity should come first
+    val intents =
+      if (includeLaunchActivity && launchActivityIntent != null) {
+        arrayOf(launchActivityIntent, receiverIntent)
+      } else {
+        arrayOf(receiverIntent)
       }
 
     return PendingIntent.getActivities(
       context,
       requestCodeFor(callId, REQUEST_CODE_RECEIVER_ACTIVITY),
-      arrayOf(launchActivityIntent, receiverIntent),
+      intents,
       PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     )
   }

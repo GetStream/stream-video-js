@@ -38,6 +38,7 @@ export default function Index() {
     const myCall = client!.call('oliver', callId);
     myCall.getOrCreate({
       ring: true,
+      video: true,
       data: {
         members: [
           // include self
@@ -105,6 +106,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 24,
+    backgroundColor: 'white',
   },
   header: {
     flexDirection: 'row',

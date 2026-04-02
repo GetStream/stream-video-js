@@ -13,10 +13,12 @@
 #import <AudioToolbox/AudioToolbox.h>
 
 // Import Swift-generated header for ScreenShareAudioMixer
-#if __has_include(<stream_react_native_webrtc/stream_react_native_webrtc-Swift.h>)
-#import <stream_react_native_webrtc/stream_react_native_webrtc-Swift.h>
+#if __has_feature(modules)
+@import stream_react_native_webrtc.Swift;
 #elif __has_include("stream_react_native_webrtc-Swift.h")
 #import "stream_react_native_webrtc-Swift.h"
+#elif __has_include(<stream_react_native_webrtc/stream_react_native_webrtc-Swift.h>)
+#import <stream_react_native_webrtc/stream_react_native_webrtc-Swift.h>
 #endif
 
 // Do not change these consts, it is what is used react-native-webrtc
