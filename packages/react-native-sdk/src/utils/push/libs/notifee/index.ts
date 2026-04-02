@@ -33,10 +33,6 @@ export function getNotifeeLibThrowIfNotInstalledForPush() {
   return lib;
 }
 
-export function getNotifeeLibNoThrowForKeepCallAlive() {
-  return lib;
-}
-
 export function getIncomingCallForegroundServiceTypes() {
   const types: AndroidForegroundServiceType[] = [
     AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE,
