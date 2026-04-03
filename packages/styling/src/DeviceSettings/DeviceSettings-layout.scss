@@ -40,6 +40,12 @@
 
     padding-bottom: 0.5rem;
     margin-bottom: var(--str-video__spacing-sm);
+
+    &--truncate {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 
   .str-video__option,
@@ -149,6 +155,38 @@
     &--active {
       background-color: var(--str-video__primary-color);
     }
+  }
+}
+
+.str-video__device-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  max-width: 12rem;
+  cursor: pointer;
+
+  .str-video__device-preview__label {
+    padding: var(--str-video__spacing-xs) 0;
+    font-size: var(--str-video__font-size-xs);
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .str-video__device-video-preview__video {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-radius: var(--str-video__border-radius-sm);
+    border: 2px solid var(--str-video__base-color3);
+    background-color: var(--str-video__base-color5);
+    transform: scaleX(-1);
+  }
+
+  &--selected .str-video__device-video-preview__video {
+    border-color: var(--str-video__primary-color);
   }
 }
 

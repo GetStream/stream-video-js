@@ -1,6 +1,8 @@
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import type { DeviceListItem } from '../../hooks';
 import { DeviceSelector } from './DeviceSelector';
 import { AudioVolumeIndicator } from './AudioVolumeIndicator';
+import { DeviceLevelIndicator } from './DeviceLevelIndicator';
 import { SpeakerTest } from './SpeakerTest';
 
 export type DeviceSelectorAudioInputProps = {
@@ -8,6 +10,11 @@ export type DeviceSelectorAudioInputProps = {
   visualType?: 'list' | 'dropdown';
   volumeIndicatorVisible?: boolean;
   showDeviceLevelIndicator?: boolean;
+};
+
+const renderDeviceLevelIndicator = ({ deviceId }: DeviceListItem) => {
+  if (deviceId === 'default') return null;
+  return <DeviceLevelIndicator deviceId={deviceId} />;
 };
 
 export const DeviceSelectorAudioInput = ({
@@ -30,7 +37,9 @@ export const DeviceSelectorAudioInput = ({
       title={title}
       visualType={visualType}
       icon="mic"
-      showDeviceLevelIndicator={showDeviceLevelIndicator}
+      renderOptionTrailing={
+        showDeviceLevelIndicator ? renderDeviceLevelIndicator : undefined
+      }
     >
       {volumeIndicatorVisible && (
         <>

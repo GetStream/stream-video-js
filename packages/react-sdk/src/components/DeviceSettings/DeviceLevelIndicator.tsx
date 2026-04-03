@@ -20,7 +20,6 @@ export const DeviceLevelIndicator = ({
   const [audioLevel, setAudioLevel] = useState(0);
 
   useEffect(() => {
-    console.log('mount: ', deviceId);
     let cancelled = false;
     let dispose: (() => Promise<void>) | undefined;
     let stream: MediaStream | undefined;
@@ -47,7 +46,6 @@ export const DeviceLevelIndicator = ({
       });
 
     return () => {
-      console.log('unmount: ', deviceId);
       cancelled = true;
       dispose?.().catch(console.error);
       stream?.getTracks().forEach((t) => t.stop());

@@ -1,10 +1,15 @@
 import clsx from 'clsx';
-import { ChangeEventHandler, PropsWithChildren, useCallback } from 'react';
+import {
+  ChangeEventHandler,
+  PropsWithChildren,
+  ReactNode,
+  useCallback,
+} from 'react';
 
 import { useDeviceList } from '../../hooks';
+import type { DeviceListItem } from '../../hooks';
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
 import { useMenuContext } from '../Menu';
-import { DeviceLevelIndicator } from './DeviceLevelIndicator';
 
 type DeviceSelectorOptionProps = {
   id: string;
@@ -15,7 +20,7 @@ type DeviceSelectorOptionProps = {
   disabled?: boolean;
   defaultChecked?: boolean;
   onChange?: ChangeEventHandler<HTMLInputElement>;
-  showLevelIndicator?: boolean;
+  trailingContent?: ReactNode;
 };
 
 const DeviceSelectorOption = ({
@@ -27,7 +32,7 @@ const DeviceSelectorOption = ({
   selected,
   defaultChecked,
   value,
-  showLevelIndicator,
+  trailingContent,
 }: DeviceSelectorOptionProps) => {
   return (
     <label
@@ -48,7 +53,7 @@ const DeviceSelectorOption = ({
         disabled={disabled}
       />
       {label}
-      {showLevelIndicator && <DeviceLevelIndicator deviceId={value} />}
+      {trailingContent}
     </label>
   );
 };
@@ -62,7 +67,7 @@ const DeviceSelectorList = (
     selectedDeviceId?: string;
     title?: string;
     onChange?: (deviceId: string) => void;
-    showDeviceLevelIndicator?: boolean;
+    renderOptionTrailing?: (device: DeviceListItem) => ReactNode;
   }>,
 ) => {
   const {
@@ -72,7 +77,7 @@ const DeviceSelectorList = (
     type,
     onChange,
     children,
-    showDeviceLevelIndicator,
+    renderOptionTrailing,
   } = props;
   const { close } = useMenuContext();
   const { deviceList } = useDeviceList(devices, selectedDeviceId);
@@ -80,7 +85,7 @@ const DeviceSelectorList = (
   return (
     <div className="str-video__device-settings__device-kind">
       {title && (
-        <div className="str-video__device-settings__device-selector-title">
+        <div className="str-video__device-settings__device-selector-title str-video__device-settings__device-selector-title--truncate">
           {title}
         </div>
       )}
@@ -100,9 +105,7 @@ const DeviceSelectorList = (
             }}
             name={type}
             selected={device.isSelected}
-            showLevelIndicator={
-              device.deviceId !== 'default' && showDeviceLevelIndicator
-            }
+            trailingContent={renderOptionTrailing?.(device)}
           />
         );
       })}
@@ -136,7 +139,7 @@ const DeviceSelectorDropdown = (props: {
 
   return (
     <div className="str-video__device-settings__device-kind">
-      <div className="str-video__device-settings__device-selector-title">
+      <div className="str-video__device-settings__device-selector-title str-video__device-settings__device-selector-title--truncate">
         {title}
       </div>
       <DropDownSelect
@@ -167,23 +170,13 @@ export const DeviceSelector = (
     title?: string;
     onChange?: (deviceId: string) => void;
     visualType?: 'list' | 'dropdown';
-    showDeviceLevelIndicator?: boolean;
+    renderOptionTrailing?: (device: DeviceListItem) => ReactNode;
   }>,
 ) => {
-  const {
-    visualType = 'list',
-    icon,
-    showDeviceLevelIndicator,
-    ...rest
-  } = props;
+  const { visualType = 'list', icon, ...rest } = props;
 
   if (visualType === 'list') {
-    return (
-      <DeviceSelectorList
-        {...rest}
-        showDeviceLevelIndicator={showDeviceLevelIndicator}
-      />
-    );
+    return <DeviceSelectorList {...rest} />;
   }
   return <DeviceSelectorDropdown {...rest} icon={icon} />;
 };

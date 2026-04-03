@@ -40,7 +40,7 @@ export const ToggleCameraButton = () => {
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
     >
-      <DeviceSelectorVideo visualType="list" />
+      <DeviceSelectorVideo visualType="preview" />
     </MenuToggle>
   );
 };
