@@ -1,3 +1,4 @@
+import { PropsWithChildren } from 'react';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
 import { useDeviceList } from '../../hooks';
 import { useMenuContext } from '../Menu';
@@ -20,6 +21,13 @@ export const DeviceSelectorAudioInput = ({
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, selectedDevice, devices } = useMicrophoneState();
 
+  const volumeIndicator = volumeIndicatorVisible && (
+    <>
+      <hr className="str-video__device-settings__separator" />
+      <AudioVolumeIndicator />
+    </>
+  );
+
   if (visualType === 'preview') {
     return (
       <DeviceSelectorAudioPreview
@@ -29,7 +37,9 @@ export const DeviceSelectorAudioInput = ({
         onChange={async (deviceId) => {
           await microphone.select(deviceId);
         }}
-      />
+      >
+        {volumeIndicator}
+      </DeviceSelectorAudioPreview>
     );
   }
 
@@ -45,23 +55,20 @@ export const DeviceSelectorAudioInput = ({
       visualType={visualType}
       icon="mic"
     >
-      {volumeIndicatorVisible && (
-        <>
-          <hr className="str-video__device-settings__separator" />
-          <AudioVolumeIndicator />
-        </>
-      )}
+      {volumeIndicator}
     </DeviceSelector>
   );
 };
 
-const DeviceSelectorAudioPreview = (props: {
-  devices: MediaDeviceInfo[];
-  selectedDeviceId?: string;
-  title?: string;
-  onChange?: (deviceId: string) => void;
-}) => {
-  const { devices = [], selectedDeviceId, title, onChange } = props;
+const DeviceSelectorAudioPreview = (
+  props: PropsWithChildren<{
+    devices: MediaDeviceInfo[];
+    selectedDeviceId?: string;
+    title?: string;
+    onChange?: (deviceId: string) => void;
+  }>,
+) => {
+  const { devices = [], selectedDeviceId, title, onChange, children } = props;
   const { close } = useMenuContext();
   const { deviceList } = useDeviceList(devices, selectedDeviceId);
 
@@ -97,6 +104,7 @@ const DeviceSelectorAudioPreview = (props: {
           </label>
         );
       })}
+      {children}
     </div>
   );
 };
