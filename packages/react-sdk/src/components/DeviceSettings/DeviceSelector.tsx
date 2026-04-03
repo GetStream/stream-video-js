@@ -1,7 +1,13 @@
 import clsx from 'clsx';
-import { ChangeEventHandler, PropsWithChildren, useCallback } from 'react';
+import {
+  ChangeEventHandler,
+  Fragment,
+  PropsWithChildren,
+  ReactNode,
+  useCallback,
+} from 'react';
 
-import { useDeviceList } from '../../hooks';
+import { DeviceListItem, useDeviceList } from '../../hooks';
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
 import { useMenuContext } from '../Menu';
 
@@ -102,6 +108,54 @@ const DeviceSelectorList = (
   );
 };
 
+const DeviceSelectorPreview = (
+  props: PropsWithChildren<{
+    devices: MediaDeviceInfo[];
+    selectedDeviceId?: string;
+    title?: string;
+    onChange?: (deviceId: string) => void;
+    renderItem?: (
+      device: DeviceListItem,
+      onSelect: (deviceId: string) => void,
+    ) => ReactNode;
+  }>,
+) => {
+  const {
+    devices = [],
+    selectedDeviceId,
+    title,
+    onChange,
+    children,
+    renderItem,
+  } = props;
+  const { close } = useMenuContext();
+  const { deviceList } = useDeviceList(devices, selectedDeviceId);
+
+  const onSelect = useCallback(
+    (deviceId: string) => {
+      onChange?.(deviceId);
+      close?.();
+    },
+    [onChange, close],
+  );
+
+  return (
+    <div className="str-video__device-settings__device-kind">
+      {title && (
+        <div className="str-video__device-settings__device-selector-title">
+          {title}
+        </div>
+      )}
+      {deviceList.map((device) => (
+        <Fragment key={device.deviceId}>
+          {renderItem?.(device, onSelect)}
+        </Fragment>
+      ))}
+      {children}
+    </div>
+  );
+};
+
 const DeviceSelectorDropdown = (props: {
   devices: MediaDeviceInfo[];
   selectedDeviceId?: string;
@@ -157,13 +211,20 @@ export const DeviceSelector = (
     selectedDeviceId?: string;
     title?: string;
     onChange?: (deviceId: string) => void;
-    visualType?: 'list' | 'dropdown';
+    visualType?: 'list' | 'dropdown' | 'preview';
+    renderItem?: (
+      device: DeviceListItem,
+      onSelect: (deviceId: string) => void,
+    ) => ReactNode;
   }>,
 ) => {
-  const { visualType = 'list', icon, ...rest } = props;
+  const { visualType = 'list', icon, renderItem, ...rest } = props;
 
   if (visualType === 'list') {
     return <DeviceSelectorList {...rest} />;
+  }
+  if (visualType === 'preview') {
+    return <DeviceSelectorPreview {...rest} renderItem={renderItem} />;
   }
   return <DeviceSelectorDropdown {...rest} icon={icon} />;
 };

@@ -1,16 +1,8 @@
 import { useEffect, useRef } from 'react';
+import clsx from 'clsx';
+import { DeviceListItem } from '../../hooks';
 
-export type DeviceVideoPreviewProps = {
-  deviceId: string;
-};
-
-/**
- * Renders a live camera preview for the given video device.
- *
- * Opens an independent `getUserMedia` stream for the given device and
- * displays it in a `<video>` element. Cleans up on unmount or device change.
- */
-export const DeviceVideoPreview = ({ deviceId }: DeviceVideoPreviewProps) => {
+const DeviceVideoPreview = ({ deviceId }: { deviceId: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -27,14 +19,13 @@ export const DeviceVideoPreview = ({ deviceId }: DeviceVideoPreviewProps) => {
           mediaStream.getTracks().forEach((t) => t.stop());
           return;
         }
+
         stream = mediaStream;
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
         }
       })
-      .catch((e) => {
-        console.error(e);
-      });
+      .catch(console.error);
 
     return () => {
       cancelled = true;
@@ -51,6 +42,30 @@ export const DeviceVideoPreview = ({ deviceId }: DeviceVideoPreviewProps) => {
         muted
         className="str-video__device-video-preview__video"
       />
+    </div>
+  );
+};
+
+export type DeviceVideoPreviewItemProps = {
+  device: DeviceListItem;
+  onSelect: (deviceId: string) => void;
+};
+
+export const DeviceVideoPreviewItem = ({
+  device,
+  onSelect,
+}: DeviceVideoPreviewItemProps) => {
+  if (device.deviceId === 'default') return null;
+
+  return (
+    <div
+      className={clsx('str-video__device-preview', {
+        'str-video__device-preview--selected': device.isSelected,
+      })}
+      onClick={() => onSelect(device.deviceId)}
+    >
+      <DeviceVideoPreview deviceId={device.deviceId} />
+      <span className="str-video__device-preview__label">{device.label}</span>
     </div>
   );
 };

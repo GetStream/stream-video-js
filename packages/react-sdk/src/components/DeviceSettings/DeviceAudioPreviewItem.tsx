@@ -1,22 +1,11 @@
 import { useEffect, useState } from 'react';
 import { createSoundDetector } from '@stream-io/video-client';
 import clsx from 'clsx';
+import { DeviceListItem } from '../../hooks';
 
 const LEVEL_BARS = 5;
 
-export type DeviceLevelIndicatorProps = {
-  deviceId: string;
-};
-
-/**
- * Renders a per-device audio level meter as a row of bars.
- *
- * Opens an independent `getUserMedia` stream for the given device and
- * uses `createSoundDetector` to display the current audio level.
- */
-export const DeviceLevelIndicator = ({
-  deviceId,
-}: DeviceLevelIndicatorProps) => {
+const DeviceLevelIndicator = ({ deviceId }: { deviceId: string }) => {
   const [audioLevel, setAudioLevel] = useState(0);
 
   useEffect(() => {
@@ -60,5 +49,35 @@ export const DeviceLevelIndicator = ({
         />
       ))}
     </div>
+  );
+};
+
+export type DeviceAudioPreviewItemProps = {
+  device: DeviceListItem;
+  onSelect: (deviceId: string) => void;
+};
+
+export const DeviceAudioPreviewItem = ({
+  device,
+  onSelect,
+}: DeviceAudioPreviewItemProps) => {
+  if (device.deviceId === 'default') return null;
+
+  return (
+    <label
+      className={`str-video__device-settings__option${device.isSelected ? ' str-video__device-settings__option--selected' : ''}`}
+      htmlFor={`audioinput--${device.deviceId}`}
+    >
+      <input
+        type="radio"
+        name="audioinput"
+        value={device.deviceId}
+        id={`audioinput--${device.deviceId}`}
+        checked={device.isSelected}
+        onChange={(e) => onSelect(e.target.value)}
+      />
+      {device.label}
+      <DeviceLevelIndicator deviceId={device.deviceId} />
+    </label>
   );
 };

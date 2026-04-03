@@ -1,11 +1,14 @@
-import { PropsWithChildren } from 'react';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { useDeviceList } from '../../hooks';
-import { useMenuContext } from '../Menu';
+import { DeviceListItem } from '../../hooks';
+import { DeviceAudioPreviewItem } from './DeviceAudioPreviewItem';
 import { DeviceSelector } from './DeviceSelector';
 import { AudioVolumeIndicator } from './AudioVolumeIndicator';
-import { DeviceLevelIndicator } from './DeviceLevelIndicator';
 import { SpeakerTest } from './SpeakerTest';
+
+const renderAudioPreviewItem = (
+  device: DeviceListItem,
+  onSelect: (deviceId: string) => void,
+) => <DeviceAudioPreviewItem device={device} onSelect={onSelect} />;
 
 export type DeviceSelectorAudioInputProps = {
   title?: string;
@@ -21,28 +24,6 @@ export const DeviceSelectorAudioInput = ({
   const { useMicrophoneState } = useCallStateHooks();
   const { microphone, selectedDevice, devices } = useMicrophoneState();
 
-  const volumeIndicator = volumeIndicatorVisible && (
-    <>
-      <hr className="str-video__device-settings__separator" />
-      <AudioVolumeIndicator />
-    </>
-  );
-
-  if (visualType === 'preview') {
-    return (
-      <DeviceSelectorAudioPreview
-        devices={devices || []}
-        selectedDeviceId={selectedDevice}
-        title={title}
-        onChange={async (deviceId) => {
-          await microphone.select(deviceId);
-        }}
-      >
-        {volumeIndicator}
-      </DeviceSelectorAudioPreview>
-    );
-  }
-
   return (
     <DeviceSelector
       devices={devices || []}
@@ -54,58 +35,15 @@ export const DeviceSelectorAudioInput = ({
       title={title}
       visualType={visualType}
       icon="mic"
+      renderItem={renderAudioPreviewItem}
     >
-      {volumeIndicator}
-    </DeviceSelector>
-  );
-};
-
-const DeviceSelectorAudioPreview = (
-  props: PropsWithChildren<{
-    devices: MediaDeviceInfo[];
-    selectedDeviceId?: string;
-    title?: string;
-    onChange?: (deviceId: string) => void;
-  }>,
-) => {
-  const { devices = [], selectedDeviceId, title, onChange, children } = props;
-  const { close } = useMenuContext();
-  const { deviceList } = useDeviceList(devices, selectedDeviceId);
-
-  return (
-    <div className="str-video__device-settings__device-kind">
-      {title && (
-        <div className="str-video__device-settings__device-selector-title str-video__device-settings__device-selector-title--truncate">
-          {title}
-        </div>
+      {volumeIndicatorVisible && (
+        <>
+          <hr className="str-video__device-settings__separator" />
+          <AudioVolumeIndicator />
+        </>
       )}
-      {deviceList.map((device) => {
-        if (device.deviceId === 'default') return null;
-
-        return (
-          <label
-            key={device.deviceId}
-            className={`str-video__device-settings__option${device.isSelected ? ' str-video__device-settings__option--selected' : ''}`}
-            htmlFor={`audioinput--${device.deviceId}`}
-          >
-            <input
-              type="radio"
-              name="audioinput"
-              value={device.deviceId}
-              id={`audioinput--${device.deviceId}`}
-              checked={device.isSelected}
-              onChange={(e) => {
-                onChange?.(e.target.value);
-                close?.();
-              }}
-            />
-            {device.label}
-            <DeviceLevelIndicator deviceId={device.deviceId} />
-          </label>
-        );
-      })}
-      {children}
-    </div>
+    </DeviceSelector>
   );
 };
 
