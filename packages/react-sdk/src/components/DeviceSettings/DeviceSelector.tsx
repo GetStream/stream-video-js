@@ -134,6 +134,7 @@ const DeviceSelectorPreview = (
 
   const onSelect = useCallback(
     (deviceId: string) => {
+      if (deviceId === 'default') return;
       onChange?.(deviceId);
       close?.();
     },
