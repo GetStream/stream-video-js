@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 export type DeviceVideoPreviewProps = {
   deviceId: string;
@@ -12,13 +12,10 @@ export type DeviceVideoPreviewProps = {
  */
 export const DeviceVideoPreview = ({ deviceId }: DeviceVideoPreviewProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     let stream: MediaStream | undefined;
-
-    setError(false);
 
     navigator.mediaDevices
       .getUserMedia({
@@ -35,10 +32,8 @@ export const DeviceVideoPreview = ({ deviceId }: DeviceVideoPreviewProps) => {
           videoRef.current.srcObject = mediaStream;
         }
       })
-      .catch(() => {
-        if (!cancelled) {
-          setError(true);
-        }
+      .catch((e) => {
+        console.error(e);
       });
 
     return () => {
@@ -46,8 +41,6 @@ export const DeviceVideoPreview = ({ deviceId }: DeviceVideoPreviewProps) => {
       stream?.getTracks().forEach((t) => t.stop());
     };
   }, [deviceId]);
-
-  if (error) return null;
 
   return (
     <div className="str-video__device-video-preview">
