@@ -74,7 +74,7 @@ const DeviceSelectorList = (
   return (
     <div className="str-video__device-settings__device-kind">
       {title && (
-        <div className="str-video__device-settings__device-selector-title str-video__device-settings__device-selector-title--truncate">
+        <div className="str-video__device-settings__device-selector-title">
           {title}
         </div>
       )}
@@ -127,7 +127,7 @@ const DeviceSelectorDropdown = (props: {
 
   return (
     <div className="str-video__device-settings__device-kind">
-      <div className="str-video__device-settings__device-selector-title str-video__device-settings__device-selector-title--truncate">
+      <div className="str-video__device-settings__device-selector-title">
         {title}
       </div>
       <DropDownSelect
