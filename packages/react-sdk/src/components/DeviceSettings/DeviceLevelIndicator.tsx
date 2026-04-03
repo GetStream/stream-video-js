@@ -22,7 +22,6 @@ export const DeviceLevelIndicator = ({
   useEffect(() => {
     let cancelled = false;
     let dispose: (() => Promise<void>) | undefined;
-    let stream: MediaStream | undefined;
 
     navigator.mediaDevices
       .getUserMedia({
@@ -34,21 +33,17 @@ export const DeviceLevelIndicator = ({
           mediaStream.getTracks().forEach((t) => t.stop());
           return;
         }
-        stream = mediaStream;
         dispose = createSoundDetector(
           mediaStream,
           ({ audioLevel: al }) => setAudioLevel(al),
-          { detectionFrequencyInMs: 80, destroyStreamOnStop: false },
+          { detectionFrequencyInMs: 80 },
         );
       })
-      .catch((e) => {
-        console.error(e);
-      });
+      .catch(console.error);
 
     return () => {
       cancelled = true;
       dispose?.().catch(console.error);
-      stream?.getTracks().forEach((t) => t.stop());
     };
   }, [deviceId]);
 
