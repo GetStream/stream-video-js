@@ -1,9 +1,8 @@
 import clsx from 'clsx';
 import {
   ChangeEventHandler,
-  Fragment,
+  ComponentType,
   PropsWithChildren,
-  ReactNode,
   useCallback,
 } from 'react';
 
@@ -108,16 +107,18 @@ const DeviceSelectorList = (
   );
 };
 
+export type PreviewItemProps = {
+  device: DeviceListItem;
+  onSelect: (deviceId: string) => void;
+};
+
 const DeviceSelectorPreview = (
   props: PropsWithChildren<{
     devices: MediaDeviceInfo[];
     selectedDeviceId?: string;
     title?: string;
     onChange?: (deviceId: string) => void;
-    renderItem?: (
-      device: DeviceListItem,
-      onSelect: (deviceId: string) => void,
-    ) => ReactNode;
+    PreviewItem: ComponentType<PreviewItemProps>;
   }>,
 ) => {
   const {
@@ -126,7 +127,7 @@ const DeviceSelectorPreview = (
     title,
     onChange,
     children,
-    renderItem,
+    PreviewItem,
   } = props;
   const { close } = useMenuContext();
   const { deviceList } = useDeviceList(devices, selectedDeviceId);
@@ -147,9 +148,11 @@ const DeviceSelectorPreview = (
         </div>
       )}
       {deviceList.map((device) => (
-        <Fragment key={device.deviceId}>
-          {renderItem?.(device, onSelect)}
-        </Fragment>
+        <PreviewItem
+          key={device.deviceId}
+          device={device}
+          onSelect={onSelect}
+        />
       ))}
       {children}
     </div>
@@ -211,20 +214,20 @@ export const DeviceSelector = (
     selectedDeviceId?: string;
     title?: string;
     onChange?: (deviceId: string) => void;
-    visualType?: 'list' | 'dropdown' | 'preview';
-    renderItem?: (
-      device: DeviceListItem,
-      onSelect: (deviceId: string) => void,
-    ) => ReactNode;
-  }>,
+  }> &
+    (
+      | { visualType?: 'list' | 'dropdown' }
+      | { visualType: 'preview'; PreviewItem: ComponentType<PreviewItemProps> }
+    ),
 ) => {
-  const { visualType = 'list', icon, renderItem, ...rest } = props;
+  if (props.visualType === 'preview') {
+    const { PreviewItem, ...rest } = props;
+    return <DeviceSelectorPreview {...rest} PreviewItem={PreviewItem} />;
+  }
 
+  const { visualType = 'list', icon, ...rest } = props;
   if (visualType === 'list') {
     return <DeviceSelectorList {...rest} />;
-  }
-  if (visualType === 'preview') {
-    return <DeviceSelectorPreview {...rest} renderItem={renderItem} />;
   }
   return <DeviceSelectorDropdown {...rest} icon={icon} />;
 };

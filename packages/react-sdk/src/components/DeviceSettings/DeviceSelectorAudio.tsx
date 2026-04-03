@@ -1,14 +1,8 @@
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { DeviceListItem } from '../../hooks';
 import { DeviceAudioPreviewItem } from './DeviceAudioPreviewItem';
 import { DeviceSelector } from './DeviceSelector';
 import { AudioVolumeIndicator } from './AudioVolumeIndicator';
 import { SpeakerTest } from './SpeakerTest';
-
-const renderAudioPreviewItem = (
-  device: DeviceListItem,
-  onSelect: (deviceId: string) => void,
-) => <DeviceAudioPreviewItem device={device} onSelect={onSelect} />;
 
 export type DeviceSelectorAudioInputProps = {
   title?: string;
@@ -35,7 +29,7 @@ export const DeviceSelectorAudioInput = ({
       title={title}
       visualType={visualType}
       icon="mic"
-      renderItem={renderAudioPreviewItem}
+      PreviewItem={DeviceAudioPreviewItem}
     >
       {volumeIndicatorVisible && (
         <>

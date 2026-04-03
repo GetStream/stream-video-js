@@ -1,13 +1,7 @@
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
-import { DeviceListItem } from '../../hooks';
 
 import { DeviceSelector } from './DeviceSelector';
 import { DeviceVideoPreviewItem } from './DeviceVideoPreviewItem';
-
-const renderVideoPreviewItem = (
-  device: DeviceListItem,
-  onSelect: (deviceId: string) => void,
-) => <DeviceVideoPreviewItem device={device} onSelect={onSelect} />;
 
 export type DeviceSelectorVideoProps = {
   title?: string;
@@ -32,7 +26,7 @@ export const DeviceSelectorVideo = ({
       title={title}
       visualType={visualType}
       icon="camera"
-      renderItem={renderVideoPreviewItem}
+      PreviewItem={DeviceVideoPreviewItem}
     />
   );
 };
