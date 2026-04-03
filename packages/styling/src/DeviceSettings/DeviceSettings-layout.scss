@@ -40,12 +40,6 @@
 
     padding-bottom: 0.5rem;
     margin-bottom: var(--str-video__spacing-sm);
-
-    &--truncate {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
   }
 
   .str-video__option,
