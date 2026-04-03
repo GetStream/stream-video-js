@@ -1,13 +1,7 @@
 import clsx from 'clsx';
-import {
-  ChangeEventHandler,
-  PropsWithChildren,
-  ReactNode,
-  useCallback,
-} from 'react';
+import { ChangeEventHandler, PropsWithChildren, useCallback } from 'react';
 
 import { useDeviceList } from '../../hooks';
-import type { DeviceListItem } from '../../hooks';
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
 import { useMenuContext } from '../Menu';
 
@@ -20,7 +14,6 @@ type DeviceSelectorOptionProps = {
   disabled?: boolean;
   defaultChecked?: boolean;
   onChange?: ChangeEventHandler<HTMLInputElement>;
-  trailingContent?: ReactNode;
 };
 
 const DeviceSelectorOption = ({
@@ -32,7 +25,6 @@ const DeviceSelectorOption = ({
   selected,
   defaultChecked,
   value,
-  trailingContent,
 }: DeviceSelectorOptionProps) => {
   return (
     <label
@@ -53,7 +45,6 @@ const DeviceSelectorOption = ({
         disabled={disabled}
       />
       {label}
-      {trailingContent}
     </label>
   );
 };
@@ -67,7 +58,6 @@ const DeviceSelectorList = (
     selectedDeviceId?: string;
     title?: string;
     onChange?: (deviceId: string) => void;
-    renderOptionTrailing?: (device: DeviceListItem) => ReactNode;
   }>,
 ) => {
   const {
@@ -77,7 +67,6 @@ const DeviceSelectorList = (
     type,
     onChange,
     children,
-    renderOptionTrailing,
   } = props;
   const { close } = useMenuContext();
   const { deviceList } = useDeviceList(devices, selectedDeviceId);
@@ -105,7 +94,6 @@ const DeviceSelectorList = (
             }}
             name={type}
             selected={device.isSelected}
-            trailingContent={renderOptionTrailing?.(device)}
           />
         );
       })}
@@ -170,7 +158,6 @@ export const DeviceSelector = (
     title?: string;
     onChange?: (deviceId: string) => void;
     visualType?: 'list' | 'dropdown';
-    renderOptionTrailing?: (device: DeviceListItem) => ReactNode;
   }>,
 ) => {
   const { visualType = 'list', icon, ...rest } = props;
