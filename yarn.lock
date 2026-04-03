@@ -7726,7 +7726,7 @@ __metadata:
     react-router-dom: "npm:^6.30.1"
     sass: "npm:^1.93.2"
     stream-chat: "npm:^9.38.0"
-    stream-chat-react: "npm:14.0.0-beta.5"
+    stream-chat-react: "npm:14.0.0-beta.6"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
   languageName: unknown
@@ -7973,7 +7973,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.93.2"
     stream-chat: "npm:^9.38.0"
-    stream-chat-react: "npm:14.0.0-beta.5"
+    stream-chat-react: "npm:14.0.0-beta.6"
     swr: "npm:^2.3.6"
     yargs: "npm:^18.0.0"
   languageName: unknown
@@ -8249,7 +8249,7 @@ __metadata:
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
     stream-chat: "npm:^9.38.0"
-    stream-chat-react: "npm:14.0.0-beta.5"
+    stream-chat-react: "npm:14.0.0-beta.6"
     tailwindcss: "npm:^3.4.18"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
@@ -23430,9 +23430,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:14.0.0-beta.5":
-  version: 14.0.0-beta.5
-  resolution: "stream-chat-react@npm:14.0.0-beta.5"
+"stream-chat-react@npm:14.0.0-beta.6":
+  version: 14.0.0-beta.6
+  resolution: "stream-chat-react@npm:14.0.0-beta.6"
   dependencies:
     "@braintree/sanitize-url": "npm:^6.0.4"
     "@floating-ui/react": "npm:^0.27.2"
@@ -23483,7 +23483,7 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: 10/9d606096f1357dc7ae6fb29bafa9d3512920934fe3fae3b9c54f8b652a18cd315825f326b0592a57aa143c3529b619f20caa889009e625d0bacc352212d22f45
+  checksum: 10/24b429ab1f1cb5fe92bf1dfdbabf3b08b39e8c29e57fd50641b92eccb157d09c293467afd170f5d456b1afce0ca544c393c2069cd329f0100ab7a49031d350bb
   languageName: node
   linkType: hard
 
