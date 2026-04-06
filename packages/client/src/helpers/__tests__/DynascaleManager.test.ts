@@ -647,6 +647,128 @@ describe('DynascaleManager', () => {
       expect(unregisterSpy).toHaveBeenCalledWith('session-id', 'audioTrack');
     });
 
+    it('audio: should track blocked audio elements on NotAllowedError', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      const notAllowedError = new DOMException('', 'NotAllowedError');
+      vi.spyOn(audioElement, 'play').mockRejectedValue(notAllowedError);
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        audioStream: mediaStream,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(dynascaleManager.blockedAudioElements.size).toBe(1);
+      expect(dynascaleManager.blockedAudioElements.has(audioElement)).toBe(
+        true,
+      );
+
+      cleanup?.();
+      expect(dynascaleManager.blockedAudioElements.size).toBe(0);
+    });
+
+    it('audio: should unblock audio elements on explicit resumeAudio call', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      const playSpy = vi
+        .spyOn(audioElement, 'play')
+        .mockRejectedValueOnce(new DOMException('', 'NotAllowedError'))
+        .mockResolvedValue(undefined);
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        audioStream: mediaStream,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(dynascaleManager.blockedAudioElements.size).toBe(1);
+
+      await dynascaleManager.resumeAudio();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(playSpy).toHaveBeenCalledTimes(2);
+      expect(dynascaleManager.blockedAudioElements.size).toBe(0);
+
+      cleanup?.();
+    });
+
+    it('audio: should clear blocked state when the audio stream is removed', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      vi.spyOn(audioElement, 'play').mockRejectedValue(
+        new DOMException('', 'NotAllowedError'),
+      );
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        audioStream: mediaStream,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(dynascaleManager.blockedAudioElements.size).toBe(1);
+
+      call.state.updateParticipant('session-id', {
+        audioStream: undefined,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(audioElement.srcObject).toBeNull();
+      expect(dynascaleManager.blockedAudioElements.size).toBe(0);
+
+      cleanup?.();
+    });
+
     it('audio: should warn when binding an already-bound session', () => {
       const watchdog = dynascaleManager.audioBindingsWatchdog!;
       // @ts-expect-error private property
