@@ -638,6 +638,7 @@ export class DynascaleManager {
             audioElement.play().catch((e) => {
               this.tracer.trace('audioPlaybackError', e.message);
               if (e.name === 'NotAllowedError') {
+                this.tracer.trace('audioPlaybackBlocked', null);
                 this.addBlockedAudioElement(audioElement);
               }
               this.logger.warn(`Failed to play audio stream`, e);
@@ -686,6 +687,7 @@ export class DynascaleManager {
    * @returns a promise that resolves when all blocked elements have been retried.
    */
   resumeAudio = async () => {
+    this.tracer.trace('resumeAudio', null);
     const blocked = new Set<HTMLAudioElement>();
     await Promise.all(
       Array.from(
