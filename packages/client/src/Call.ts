@@ -2923,6 +2923,13 @@ export class Call {
   };
 
   /**
+   * Plays all audio elements blocked by the browser's autoplay policy.
+   */
+  resumeAudio = () => {
+    return this.dynascaleManager.resumeAudio();
+  };
+
+  /**
    * Binds a DOM <img> element to this call's thumbnail (if enabled in settings).
    *
    * @param imageElement the image element to bind to.
