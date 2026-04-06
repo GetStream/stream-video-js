@@ -18,6 +18,7 @@ import { DynascaleManager } from '../DynascaleManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { StreamVideoWriteableStateStore } from '../../store';
+import { getCurrentValue } from '../../store/rxUtils';
 import { VisibilityState } from '../../types';
 import { noopComparator } from '../../sorting';
 import { TrackType } from '../../gen/video/sfu/models/models';
@@ -675,13 +676,10 @@ describe('DynascaleManager', () => {
       vi.runAllTimers();
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(dynascaleManager.blockedAudioElements.size).toBe(1);
-      expect(dynascaleManager.blockedAudioElements.has(audioElement)).toBe(
-        true,
-      );
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
 
       cleanup?.();
-      expect(dynascaleManager.blockedAudioElements.size).toBe(0);
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
     });
 
     it('audio: should unblock audio elements on explicit resumeAudio call', async () => {
@@ -714,13 +712,13 @@ describe('DynascaleManager', () => {
       vi.runAllTimers();
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(dynascaleManager.blockedAudioElements.size).toBe(1);
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
 
       await dynascaleManager.resumeAudio();
       await vi.advanceTimersByTimeAsync(0);
 
       expect(playSpy).toHaveBeenCalledTimes(2);
-      expect(dynascaleManager.blockedAudioElements.size).toBe(0);
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
 
       cleanup?.();
     });
@@ -754,7 +752,7 @@ describe('DynascaleManager', () => {
       vi.runAllTimers();
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(dynascaleManager.blockedAudioElements.size).toBe(1);
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
 
       call.state.updateParticipant('session-id', {
         audioStream: undefined,
@@ -764,7 +762,7 @@ describe('DynascaleManager', () => {
       await vi.advanceTimersByTimeAsync(0);
 
       expect(audioElement.srcObject).toBeNull();
-      expect(dynascaleManager.blockedAudioElements.size).toBe(0);
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
 
       cleanup?.();
     });

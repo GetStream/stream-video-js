@@ -27,7 +27,7 @@ import type { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signa
 import { CallState } from '../store';
 import type { StreamSfuClient } from '../StreamSfuClient';
 import { SpeakerManager } from '../devices';
-import { getCurrentValue, Patch, setCurrentValue } from '../store/rxUtils';
+import { getCurrentValue, setCurrentValue } from '../store/rxUtils';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 
@@ -87,28 +87,18 @@ export class DynascaleManager {
     Set<HTMLAudioElement>
   >(new Set());
 
-  blockedAudioElements$ = this.blockedAudioElementsSubject.asObservable();
-
   /**
    * Whether the browser's autoplay policy is blocking audio playback.
    * Will be `true` when the browser blocks autoplay (e.g., no prior user interaction).
    * Use `resumeAudio()` within a user gesture to unblock.
    */
-  autoplayBlocked$ = this.blockedAudioElements$.pipe(
+  autoplayBlocked$ = this.blockedAudioElementsSubject.pipe(
     map((elements) => elements.size > 0),
     distinctUntilChanged(),
   );
 
-  get blockedAudioElements() {
-    return getCurrentValue(this.blockedAudioElements$);
-  }
-
-  private setBlockedAudioElements = (update: Patch<Set<HTMLAudioElement>>) => {
-    return setCurrentValue(this.blockedAudioElementsSubject, update);
-  };
-
   private addBlockedAudioElement = (audioElement: HTMLAudioElement) => {
-    this.setBlockedAudioElements((elements) => {
+    setCurrentValue(this.blockedAudioElementsSubject, (elements) => {
       const next = new Set(elements);
       next.add(audioElement);
       return next;
@@ -116,7 +106,7 @@ export class DynascaleManager {
   };
 
   private removeBlockedAudioElement = (audioElement: HTMLAudioElement) => {
-    this.setBlockedAudioElements((elements) => {
+    setCurrentValue(this.blockedAudioElementsSubject, (elements) => {
       const nextElements = new Set(elements);
       nextElements.delete(audioElement);
       return nextElements;
@@ -180,7 +170,7 @@ export class DynascaleManager {
       clearTimeout(this.pendingSubscriptionsUpdate);
     }
     this.audioBindingsWatchdog?.dispose();
-    this.setBlockedAudioElements(new Set());
+    setCurrentValue(this.blockedAudioElementsSubject, new Set());
     const context = this.audioContext;
     if (context && context.state !== 'closed') {
       document.removeEventListener('click', this.resumeAudioContext);
@@ -698,19 +688,22 @@ export class DynascaleManager {
   resumeAudio = async () => {
     const blocked = new Set<HTMLAudioElement>();
     await Promise.all(
-      Array.from(this.blockedAudioElements, async (el) => {
-        try {
-          if (el.srcObject) {
-            await el.play();
+      Array.from(
+        getCurrentValue(this.blockedAudioElementsSubject),
+        async (el) => {
+          try {
+            if (el.srcObject) {
+              await el.play();
+            }
+          } catch {
+            this.logger.warn(`Can't resume audio for element: `, el);
+            blocked.add(el);
           }
-        } catch {
-          this.logger.warn(`Can't resume audio for element: `, el);
-          blocked.add(el);
-        }
-      }),
+        },
+      ),
     );
 
-    this.setBlockedAudioElements(blocked);
+    setCurrentValue(this.blockedAudioElementsSubject, blocked);
   };
 
   private getOrCreateAudioContext = (): AudioContext | undefined => {
