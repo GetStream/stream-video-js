@@ -146,7 +146,7 @@ export class VirtualBackground extends BaseVideoProcessor {
 
   private async loadBackground(url?: string) {
     if (!url) return null;
-    const result = await fetch(url);
+    const result = await fetch(url, { signal: this.abortController.signal });
     if (!result.ok) {
       throw new Error(
         `[virtual-background] Failed to load background image: ${result.status} ${result.statusText}`,
