@@ -4289,10 +4289,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mediapipe/tasks-vision@npm:^0.10.22-rc.20250304":
-  version: 0.10.22-rc.20250304
-  resolution: "@mediapipe/tasks-vision@npm:0.10.22-rc.20250304"
-  checksum: 10/8bf7fff086dbdbe8b22c66c1344f2a2c8697831c89fd96a655611fc3c89969e2c290829c1195d64f4f6dbea8fabe40143154ee2027c256d6cb35c62921bff53d
+"@mediapipe/tasks-vision@npm:^0.10.34":
+  version: 0.10.34
+  resolution: "@mediapipe/tasks-vision@npm:0.10.34"
+  checksum: 10/d085377a4d60ecf30c9f27dc1ba8d21ffafdd320d20a4ce0fc82e79a57c69a8c600d3478c8348b089a7393bf5c095d02745931c37663a61939a0985065c06261
   languageName: node
   linkType: hard
 
@@ -7902,7 +7902,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-filters-web@workspace:packages/video-filters-web"
   dependencies:
-    "@mediapipe/tasks-vision": "npm:^0.10.22-rc.20250304"
+    "@mediapipe/tasks-vision": "npm:^0.10.34"
     "@rollup/plugin-replace": "npm:^6.0.2"
     "@rollup/plugin-typescript": "npm:^12.1.4"
     "@stream-io/worker-timer": "npm:^1.2.5"
