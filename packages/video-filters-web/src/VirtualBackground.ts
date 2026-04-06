@@ -63,7 +63,6 @@ export class VirtualBackground extends BaseVideoProcessor {
 
       this.isSegmenterReady = true;
     } catch (error) {
-      console.error('[virtual-background] Segmenter init failed:', error);
       this.isSegmenterReady = false;
       this.hooks.onError?.(error);
       throw error;
