@@ -105,7 +105,9 @@ class CallService : Service(), CallRepository.Listener {
                 return
             }
 
-            val callName = data["created_by_display_name"].orEmpty()
+            val callName =
+                    data["call_display_name"].takeUnless { it.isNullOrBlank() }
+                            ?: data["created_by_display_name"].orEmpty()
             val isVideo = data["video"] == "true"
 
             CallRegistrationStore.trackCallRegistration(callCid, null)
