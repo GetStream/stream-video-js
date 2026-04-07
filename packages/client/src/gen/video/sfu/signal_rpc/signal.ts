@@ -776,12 +776,6 @@ class SendAnswerRequest$Type extends MessageType<SendAnswerRequest> {
       },
       { no: 2, name: 'sdp', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 3, name: 'session_id', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
-      {
-        no: 4,
-        name: 'negotiation_id',
-        kind: 'scalar',
-        T: 13 /*ScalarType.UINT32*/,
-      },
     ]);
   }
 }
