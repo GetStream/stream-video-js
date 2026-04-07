@@ -58,14 +58,16 @@ export const DeviceVideoPreviewItem = ({
   if (device.deviceId === 'default') return null;
 
   return (
-    <div
+    <button
+      type="button"
       className={clsx('str-video__device-preview', {
         'str-video__device-preview--selected': device.isSelected,
       })}
       onClick={() => onSelect(device.deviceId)}
+      aria-pressed={device.isSelected}
     >
       <DeviceVideoPreview deviceId={device.deviceId} />
       <span className="str-video__device-preview__label">{device.label}</span>
-    </div>
+    </button>
   );
 };

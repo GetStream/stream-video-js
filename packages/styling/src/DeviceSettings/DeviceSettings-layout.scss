@@ -153,6 +153,13 @@
 }
 
 .str-video__device-preview {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
   display: flex;
   flex-direction: column;
   align-items: stretch;
