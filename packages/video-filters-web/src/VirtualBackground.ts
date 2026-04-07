@@ -63,8 +63,9 @@ export class VirtualBackground extends BaseVideoProcessor {
 
       this.isSegmenterReady = true;
     } catch (error) {
-      console.error('[virtual-background] Segmenter init failed:', error);
       this.isSegmenterReady = false;
+      this.hooks.onError?.(error);
+      throw error;
     }
   }
 
@@ -145,8 +146,12 @@ export class VirtualBackground extends BaseVideoProcessor {
 
   private async loadBackground(url?: string) {
     if (!url) return null;
-    const result = await fetch(url);
-    if (!result.ok) return null;
+    const result = await fetch(url, { signal: this.abortController.signal });
+    if (!result.ok) {
+      throw new Error(
+        `[virtual-background] Failed to load background image: ${result.status} ${result.statusText}`,
+      );
+    }
 
     return {
       type: 'image',
