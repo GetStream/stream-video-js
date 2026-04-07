@@ -1,11 +1,12 @@
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { DeviceAudioPreviewItem } from './DeviceAudioPreviewItem';
 import { DeviceSelector } from './DeviceSelector';
 import { AudioVolumeIndicator } from './AudioVolumeIndicator';
 import { SpeakerTest } from './SpeakerTest';
 
 export type DeviceSelectorAudioInputProps = {
   title?: string;
-  visualType?: 'list' | 'dropdown';
+  visualType?: 'list' | 'dropdown' | 'preview';
   volumeIndicatorVisible?: boolean;
 };
 
@@ -28,6 +29,7 @@ export const DeviceSelectorAudioInput = ({
       title={title}
       visualType={visualType}
       icon="mic"
+      PreviewItem={DeviceAudioPreviewItem}
     >
       {volumeIndicatorVisible && (
         <>

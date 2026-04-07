@@ -1,9 +1,11 @@
-import { DeviceSelector } from './DeviceSelector';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
+
+import { DeviceSelector } from './DeviceSelector';
+import { DeviceVideoPreviewItem } from './DeviceVideoPreviewItem';
 
 export type DeviceSelectorVideoProps = {
   title?: string;
-  visualType?: 'list' | 'dropdown';
+  visualType?: 'list' | 'dropdown' | 'preview';
 };
 
 export const DeviceSelectorVideo = ({
@@ -24,6 +26,7 @@ export const DeviceSelectorVideo = ({
       title={title}
       visualType={visualType}
       icon="camera"
+      PreviewItem={DeviceVideoPreviewItem}
     />
   );
 };
