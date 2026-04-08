@@ -170,7 +170,7 @@ RCT_EXPORT_MODULE();
     NSString *callCid = streamPayload[@"call_cid"];
     if (!callCid) {
         #if DEBUG
-        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Missing required fields: created_by_display_name or call_cid");
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Missing required field: call_cid");
         #endif
         if (completion) {
             completion();
@@ -225,7 +225,7 @@ RCT_EXPORT_MODULE();
     [invocation setTarget:callingxClass];
     [invocation setSelector:selector];
     [invocation setArgument:&callCid atIndex:2];
-    [invocation setArgument:&createdById atIndex:3];
+    [invocation setArgument:&handle atIndex:3];
     [invocation setArgument:&handleType atIndex:4];
     [invocation setArgument:&hasVideo atIndex:5];
     [invocation setArgument:&localizedCallerName atIndex:6];
