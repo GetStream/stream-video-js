@@ -165,7 +165,9 @@ RCT_EXPORT_MODULE();
         return;
     }
     
-    NSString *createdCallerName = streamPayload[@"created_by_display_name"];
+    NSString *callDisplayName = streamPayload[@"call_display_name"];
+    NSString *createdByDisplayName = streamPayload[@"created_by_display_name"];
+    NSString *createdCallerName = callDisplayName.length > 0 ? callDisplayName : createdByDisplayName;
     NSString *callCid = streamPayload[@"call_cid"];
     if (!createdCallerName || !callCid) {
         #if DEBUG
@@ -204,7 +206,11 @@ RCT_EXPORT_MODULE();
     }
     
     NSString *callCid = streamPayload[@"call_cid"];
-    NSString *createdCallerName = streamPayload[@"created_by_display_name"];
+    NSString *createdById = streamPayload[@"created_by_id"];
+    NSString *callDisplayName = streamPayload[@"call_display_name"];
+    NSString *createdByDisplayName = streamPayload[@"created_by_display_name"];
+    NSString *createdCallerName = callDisplayName.length > 0 ? callDisplayName : createdByDisplayName;
+    NSString *localizedCallerName = createdCallerName.length > 0 ? createdCallerName : @"Unknown Caller";
     NSString *videoIncluded = streamPayload[@"video"];
     BOOL hasVideo = [videoIncluded isEqualToString:@"false"] ? NO : YES;
     NSString *handleType = @"generic";
@@ -219,10 +225,10 @@ RCT_EXPORT_MODULE();
     [invocation setTarget:callingxClass];
     [invocation setSelector:selector];
     [invocation setArgument:&callCid atIndex:2];
-    [invocation setArgument:&createdCallerName atIndex:3];
+    [invocation setArgument:&createdById atIndex:3];
     [invocation setArgument:&handleType atIndex:4];
     [invocation setArgument:&hasVideo atIndex:5];
-    [invocation setArgument:&createdCallerName atIndex:6];
+    [invocation setArgument:&localizedCallerName atIndex:6];
     [invocation setArgument:&supportsHolding atIndex:7];
     [invocation setArgument:&supportsDTMF atIndex:8];
     [invocation setArgument:&supportsGrouping atIndex:9];

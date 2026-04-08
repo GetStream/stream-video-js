@@ -77,7 +77,7 @@ export async function registerOutgoingCall(call: Call) {
     logger.debug(`registerOutgoingCall: Registering outgoing call ${call.cid}`);
     await CallingxModule.startCall(
       call.cid, // unique id for call
-      call.id, // phone number for display in dialer (we use call id as phone number)
+      call.state.createdBy?.id ?? call.id, // handle for native call UI (prefer createdBy user id, fallback to call id)
       getCallDisplayNameFromCall(call), // display name for display in call screen
       call.state.settings?.video?.enabled ?? false, // is video call?
     );
@@ -110,11 +110,11 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
     isOutcomingCall ||
     (!call.ringing && CallingxModule.isOngoingCallsEnabled)
   ) {
-    logger.debug(`joinCallingxCall: Joining call ${call.cid}`);
     try {
+      logger.debug(`joinCallingxCall: Joining call ${call.cid}`);
       await CallingxModule.startCall(
         call.cid, // unique id for call
-        call.id, // phone number for display in dialer (we use call id as phone number)
+        call.state.createdBy?.id ?? call.id, // handle for native call UI (prefer createdBy user id, fallback to call id)
         getCallDisplayNameFromCall(call), // display name for display in call screen
         call.state.settings?.video?.enabled ?? false, // is video call?
       );
@@ -153,7 +153,7 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
       // iOS early-returns with no error, Android sends the registered broadcast.
       await CallingxModule.displayIncomingCall(
         call.cid, // unique id for call
-        call.id, // phone number for display in dialer (we use call id as phone number)
+        call.state.createdBy?.id ?? call.id, // handle for native call UI (prefer createdBy user id, fallback to call id)
         getCallDisplayNameFromCall(call), // display name for display in call screen
         call.state.settings?.video?.enabled ?? false, // is video call?
       );
