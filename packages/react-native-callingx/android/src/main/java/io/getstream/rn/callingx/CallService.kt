@@ -107,9 +107,10 @@ class CallService : Service(), CallRepository.Listener {
                 return
             }
             
-            val createdById = data["created_by_id"] ?: callCid
+            val createdById = data["created_by_id"]
             val createdName = data["created_by_display_name"].orEmpty()
             val displayName = data["call_display_name"].orEmpty()
+            val callDisplayName = displayName.ifEmpty { createdName.ifEmpty { DEFAULT_DISPLAY_NAME } }
 
             val isVideo = data["video"] == "true"
 
@@ -119,8 +120,8 @@ class CallService : Service(), CallRepository.Listener {
                     Intent(context, CallService::class.java).apply {
                         action = ACTION_INCOMING_CALL
                         putExtra(EXTRA_CALL_ID, callCid)
-                        putExtra(EXTRA_URI, createdById.toUri())
-                        putExtra(EXTRA_NAME, displayName.ifEmpty { createdName.ifEmpty { DEFAULT_DISPLAY_NAME } })
+                        putExtra(EXTRA_URI, createdById?.toUri() ?: callDisplayName.toUri())
+                        putExtra(EXTRA_NAME, callDisplayName)
                         putExtra(EXTRA_IS_VIDEO, isVideo)
                     }
 

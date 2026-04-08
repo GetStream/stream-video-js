@@ -205,12 +205,12 @@ RCT_EXPORT_MODULE();
     }
     
     NSString *callCid = streamPayload[@"call_cid"];
-    NSString *createdById = streamPayload[@"created_by_id"];
-    NSString *handle = createdById.length > 0 ? createdById : callCid;
     NSString *callDisplayName = streamPayload[@"call_display_name"];
     NSString *createdByDisplayName = streamPayload[@"created_by_display_name"];
     NSString *createdCallerName = callDisplayName.length > 0 ? callDisplayName : createdByDisplayName;
     NSString *localizedCallerName = createdCallerName.length > 0 ? createdCallerName : DEFAULT_DISPLAY_NAME;
+    NSString *createdById = streamPayload[@"created_by_id"];
+    NSString *handle = createdById.length > 0 ? createdById : localizedCallerName;
     NSString *videoIncluded = streamPayload[@"video"];
     BOOL hasVideo = [videoIncluded isEqualToString:@"false"] ? NO : YES;
     NSString *handleType = @"generic";

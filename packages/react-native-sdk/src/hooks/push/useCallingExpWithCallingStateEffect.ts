@@ -112,7 +112,7 @@ export const useCallingExpWithCallingStateEffect = () => {
 
     callingx.updateDisplay(
       activeCallCid,
-      createdByUserId ?? activeCallCid,
+      createdByUserId ?? callDisplayName,
       callDisplayName,
       isIncoming,
     );

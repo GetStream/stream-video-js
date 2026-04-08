@@ -80,7 +80,7 @@ export async function registerOutgoingCall(call: Call) {
     logger.debug(`registerOutgoingCall: Registering outgoing call ${call.cid}`);
     await CallingxModule.startCall(
       call.cid, // unique id for call
-      call.state.createdBy?.id ?? call.id, // handle for native call UI (prefer createdBy user id, fallback to call id)
+      call.state.createdBy?.id ?? getCallDisplayNameFromCall(call), // handle for native call UI (prefer createdBy user id, fallback to call display name)
       getCallDisplayNameFromCall(call), // display name for display in call screen
       call.state.settings?.video?.enabled ?? false, // is video call?
     );
@@ -117,7 +117,7 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
       logger.debug(`joinCallingxCall: Joining call ${call.cid}`);
       await CallingxModule.startCall(
         call.cid, // unique id for call
-        call.state.createdBy?.id ?? call.id, // handle for native call UI (prefer createdBy user id, fallback to call id)
+        call.state.createdBy?.id ?? getCallDisplayNameFromCall(call), // handle for native call UI (prefer createdBy user id, fallback to call display name)
         getCallDisplayNameFromCall(call), // display name for display in call screen
         call.state.settings?.video?.enabled ?? false, // is video call?
       );
@@ -156,7 +156,7 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
       // iOS early-returns with no error, Android sends the registered broadcast.
       await CallingxModule.displayIncomingCall(
         call.cid, // unique id for call
-        call.state.createdBy?.id ?? call.id, // handle for native call UI (prefer createdBy user id, fallback to call id)
+        call.state.createdBy?.id ?? getCallDisplayNameFromCall(call), // handle for native call UI (prefer createdBy user id, fallback to call display name)
         getCallDisplayNameFromCall(call), // display name for display in call screen
         call.state.settings?.video?.enabled ?? false, // is video call?
       );
