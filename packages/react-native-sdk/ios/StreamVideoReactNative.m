@@ -25,6 +25,8 @@
 NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
 NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped";
 
+static NSString *const DEFAULT_DISPLAY_NAME = @"Unknown Caller";
+
 static dispatch_queue_t _dictionaryQueue = nil;
 
 void broadcastNotificationCallback(CFNotificationCenterRef center,
@@ -165,11 +167,8 @@ RCT_EXPORT_MODULE();
         return;
     }
     
-    NSString *callDisplayName = streamPayload[@"call_display_name"];
-    NSString *createdByDisplayName = streamPayload[@"created_by_display_name"];
-    NSString *createdCallerName = callDisplayName.length > 0 ? callDisplayName : createdByDisplayName;
     NSString *callCid = streamPayload[@"call_cid"];
-    if (!createdCallerName || !callCid) {
+    if (!callCid) {
         #if DEBUG
         NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Missing required fields: created_by_display_name or call_cid");
         #endif
@@ -207,10 +206,11 @@ RCT_EXPORT_MODULE();
     
     NSString *callCid = streamPayload[@"call_cid"];
     NSString *createdById = streamPayload[@"created_by_id"];
+    NSString *handle = createdById.length > 0 ? createdById : callCid;
     NSString *callDisplayName = streamPayload[@"call_display_name"];
     NSString *createdByDisplayName = streamPayload[@"created_by_display_name"];
     NSString *createdCallerName = callDisplayName.length > 0 ? callDisplayName : createdByDisplayName;
-    NSString *localizedCallerName = createdCallerName.length > 0 ? createdCallerName : @"Unknown Caller";
+    NSString *localizedCallerName = createdCallerName.length > 0 ? createdCallerName : DEFAULT_DISPLAY_NAME;
     NSString *videoIncluded = streamPayload[@"video"];
     BOOL hasVideo = [videoIncluded isEqualToString:@"false"] ? NO : YES;
     NSString *handleType = @"generic";

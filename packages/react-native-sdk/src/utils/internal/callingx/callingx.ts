@@ -54,10 +54,13 @@ export function getCallDisplayName(
 }
 
 function getCallDisplayNameFromCall(call: Call): string {
-  return getCallDisplayName(
-    call.state.members,
-    call.state.participants,
-    call.currentUserId,
+  return (
+    call.state.custom?.display_name ??
+    getCallDisplayName(
+      call.state.members,
+      call.state.participants,
+      call.currentUserId,
+    )
   );
 }
 

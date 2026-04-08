@@ -48,6 +48,8 @@ class CallService : Service(), CallRepository.Listener {
     companion object {
         private const val TAG = "[Callingx] CallService"
 
+        internal const val DEFAULT_DISPLAY_NAME = "Unknown Caller"
+
         internal const val EXTRA_CALL_ID = "extra_call_id"
         internal const val EXTRA_NAME = "extra_name"
         internal const val EXTRA_URI = "extra_uri"
@@ -108,7 +110,6 @@ class CallService : Service(), CallRepository.Listener {
             val createdById = data["created_by_id"] ?: callCid
             val createdName = data["created_by_display_name"].orEmpty()
             val displayName = data["call_display_name"].orEmpty()
-            val defaultCallText = "Unknown Caller"
 
             val isVideo = data["video"] == "true"
 
@@ -119,7 +120,7 @@ class CallService : Service(), CallRepository.Listener {
                         action = ACTION_INCOMING_CALL
                         putExtra(EXTRA_CALL_ID, callCid)
                         putExtra(EXTRA_URI, createdById.toUri())
-                        putExtra(EXTRA_NAME, displayName.ifEmpty { createdName.ifEmpty { defaultCallText } })
+                        putExtra(EXTRA_NAME, displayName.ifEmpty { createdName.ifEmpty { DEFAULT_DISPLAY_NAME } })
                         putExtra(EXTRA_IS_VIDEO, isVideo)
                     }
 

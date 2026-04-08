@@ -21,13 +21,16 @@ export const useCallingExpWithCallingStateEffect = () => {
 
   const activeCallCid = activeCall?.cid;
   const createdByUserId = activeCall?.state.createdBy?.id;
+  const callCustomDisplayName = activeCall?.state.custom?.display_name;
   const currentUserId = activeCall?.currentUserId;
   const isIncoming =
     (activeCall?.ringing && !activeCall?.isCreatedByMe) || false;
 
   const callDisplayName = useMemo(
-    () => getCallDisplayName(callMembers, participants, currentUserId),
-    [callMembers, participants, currentUserId],
+    () =>
+      callCustomDisplayName ??
+      getCallDisplayName(callMembers, participants, currentUserId),
+    [callMembers, participants, currentUserId, callCustomDisplayName],
   );
 
   useEffect(() => {
