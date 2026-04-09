@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.3...@stream-io/video-filters-web-0.7.4) (2026-04-09)
+
+### Bug Fixes
+
+- **video-filters-web:** propagate background image load errors to prevent black frames ([#2188](https://github.com/GetStream/stream-video-js/issues/2188)) ([5dd6a4b](https://github.com/GetStream/stream-video-js/commit/5dd6a4b5768f39df411999dd64968c86c33c4967))
+
 ## [0.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.2...@stream-io/video-filters-web-0.7.3) (2026-03-27)
 
 ### Bug Fixes
