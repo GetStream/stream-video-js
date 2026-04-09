@@ -3,10 +3,11 @@ import { SoundStateChangeHandler } from './sound-detector';
 import { videoLoggerSystem } from '../logger';
 
 export class RNSpeechDetector {
-  private pc1 = new RTCPeerConnection({});
-  private pc2 = new RTCPeerConnection({});
+  private readonly pc1 = new RTCPeerConnection({});
+  private readonly pc2 = new RTCPeerConnection({});
   private audioStream: MediaStream | undefined;
   private externalAudioStream: MediaStream | undefined;
+  private isStopped = false;
 
   constructor(externalAudioStream?: MediaStream) {
     this.externalAudioStream = externalAudioStream;
@@ -17,30 +18,31 @@ export class RNSpeechDetector {
    */
   public async start(onSoundDetectedStateChanged: SoundStateChangeHandler) {
     try {
+      this.isStopped = false;
       const audioStream =
         this.externalAudioStream != null
           ? this.externalAudioStream
           : await navigator.mediaDevices.getUserMedia({ audio: true });
       this.audioStream = audioStream;
 
-      this.pc1.addEventListener('icecandidate', (e) => {
-        this.pc2.addIceCandidate(e.candidate).catch(() => {
-          // do nothing
-        });
-      });
-      this.pc2.addEventListener('icecandidate', async (e) => {
-        this.pc1.addIceCandidate(e.candidate).catch(() => {
-          // do nothing
-        });
-      });
-      this.pc2.addEventListener('track', (e) => {
+      const onPc1IceCandidate = (e: RTCPeerConnectionIceEvent) => {
+        this.forwardIceCandidate(this.pc2, e.candidate);
+      };
+      const onPc2IceCandidate = (e: RTCPeerConnectionIceEvent) => {
+        this.forwardIceCandidate(this.pc1, e.candidate);
+      };
+      const onTrackPc2 = (e: RTCTrackEvent) => {
         e.streams[0].getTracks().forEach((track) => {
           // In RN, the remote track is automatically added to the audio output device
           // so we need to mute it to avoid hearing the audio back
           // @ts-expect-error _setVolume is a private method in react-native-webrtc
           track._setVolume(0);
         });
-      });
+      };
+
+      this.pc1.addEventListener('icecandidate', onPc1IceCandidate);
+      this.pc2.addEventListener('icecandidate', onPc2IceCandidate);
+      this.pc2.addEventListener('track', onTrackPc2);
 
       audioStream
         .getTracks()
@@ -55,6 +57,9 @@ export class RNSpeechDetector {
         onSoundDetectedStateChanged,
       );
       return () => {
+        this.pc1.removeEventListener('icecandidate', onPc1IceCandidate);
+        this.pc2.removeEventListener('icecandidate', onPc2IceCandidate);
+        this.pc2.removeEventListener('track', onTrackPc2);
         unsubscribe();
         this.stop();
       };
@@ -69,6 +74,9 @@ export class RNSpeechDetector {
    * Stops the speech detection and releases all allocated resources.
    */
   private stop() {
+    if (this.isStopped) return;
+    this.isStopped = true;
+
     this.pc1.close();
     this.pc2.close();
 
@@ -184,5 +192,23 @@ export class RNSpeechDetector {
       // @ts-expect-error called to dispose the stream in RN
       this.audioStream.release();
     }
+  }
+
+  private forwardIceCandidate(
+    destination: RTCPeerConnection,
+    candidate: RTCIceCandidate | null,
+  ) {
+    if (
+      this.isStopped ||
+      !candidate ||
+      destination.signalingState === 'closed'
+    ) {
+      return;
+    }
+    destination.addIceCandidate(candidate).catch(() => {
+      // silently ignore the error
+      const logger = videoLoggerSystem.getLogger('RNSpeechDetector');
+      logger.info('cannot add ice candidate - ignoring');
+    });
   }
 }
