@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.12.0...@stream-io/video-styling-1.13.0) (2026-04-09)
+
+### Features
+
+- **react-sdk:** Device preview and level indicators to device settings ([#2186](https://github.com/GetStream/stream-video-js/issues/2186)) ([65787d2](https://github.com/GetStream/stream-video-js/commit/65787d222d01f784766e0a7eb757cb3169e08435))
+
 ## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.11.0...@stream-io/video-styling-1.12.0) (2026-03-20)
 
 ### Features
