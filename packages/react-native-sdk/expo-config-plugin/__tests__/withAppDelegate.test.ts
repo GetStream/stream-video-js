@@ -111,10 +111,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const props: ConfigProps = {
       iOSEnableMultitaskingCameraAccess: true,
       addNoiseCancellation: true,
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: true,
-      },
+      ringing: true,
     };
 
     const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
@@ -133,34 +130,14 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     expect(updatedConfig.modResults.contents).toMatch(
       /options.enableMultitaskingCameraAccess = YES/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(/#import "RNCallKeep.h"/);
     expect(updatedConfig.modResults.contents).toMatch(
       /#import <PushKit\/PushKit.h>/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /#import "RNVoipPushNotificationManager.h"/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(/@"supportsVideo": @NO/);
-    expect(updatedConfig.modResults.contents).toMatch(
-      /@"includesCallsInRecents": @YES/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
       /didUpdatePushCredentials:credentials/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /didReceiveIncomingPushWithPayload:payload/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(/reportNewIncomingCall/);
-
-    expect(updatedConfig.modResults.contents).toMatch(
-      /#import <WebRTC\/RTCAudioSession.h>/,
-    );
-
-    expect(updatedConfig.modResults.contents).toMatch(
-      /audioSessionDidActivate/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /audioSessionDidDeactivate/,
+      /didReceiveIncomingPush:payload/,
     );
 
     modifiedConfigObjC = updatedConfig;
@@ -183,10 +160,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     const props: ConfigProps = {
       iOSEnableMultitaskingCameraAccess: true,
       addNoiseCancellation: true,
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: true,
-      },
+      ringing: true,
     };
 
     const updatedConfig = withAppDelegate(config, props) as CustomExpoConfig;
@@ -200,34 +174,17 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     );
     expect(updatedConfig.modResults.contents).toMatch(/PKPushRegistryDelegate/);
     expect(updatedConfig.modResults.contents).toMatch(/^import WebRTC/m);
-    expect(updatedConfig.modResults.contents).toMatch(/^import RNCallKeep/m);
     expect(updatedConfig.modResults.contents).toMatch(/^import PushKit/m);
-    expect(updatedConfig.modResults.contents).toMatch(
-      /^import RNVoipPushNotification/m,
-    );
     // Check Swift implementation
     expect(updatedConfig.modResults.contents).toMatch(
       /options.enableMultitaskingCameraAccess = true/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(/"supportsVideo": false/);
-    expect(updatedConfig.modResults.contents).toMatch(
-      /"includesCallsInRecents": false/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /RNVoipPushNotificationManager.didUpdate/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /RNVoipPushNotificationManager.didReceiveIncomingPush/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /RNCallKeep.reportNewIncomingCall/,
-    );
 
     expect(updatedConfig.modResults.contents).toMatch(
-      /audioSessionDidActivate/,
+      /StreamVideoReactNative.didUpdate/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /audioSessionDidDeactivate/,
+      /StreamVideoReactNative.didReceiveIncomingPush/,
     );
 
     modifiedConfigSwift = updatedConfig;
@@ -236,10 +193,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
   it('objc - should not modify config if already added', () => {
     const props: ConfigProps = {
       iOSEnableMultitaskingCameraAccess: true,
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: true,
-      },
+      ringing: true,
     };
 
     const updatedConfig = withAppDelegate(
@@ -256,10 +210,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
   it('swift - should not modify config if already added', () => {
     const props: ConfigProps = {
       iOSEnableMultitaskingCameraAccess: true,
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: true,
-      },
+      ringing: true,
     };
 
     const updatedConfig = withAppDelegate(
@@ -288,10 +239,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       },
     };
     const props: ConfigProps = {
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: false,
-      },
+      ringing: true,
     };
     expect(() => withAppDelegate(config, props)).toThrow();
   });
@@ -311,10 +259,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       },
     };
     const props: ConfigProps = {
-      ringingPushNotifications: {
-        disableVideoIos: true,
-        includesCallsInRecentsIos: false,
-      },
+      ringing: true,
     };
     expect(() => withAppDelegate(config, props)).toThrow();
   });
