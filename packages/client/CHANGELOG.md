@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.46.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.45.0...@stream-io/video-client-1.46.0) (2026-04-09)
+
+### Features
+
+- callkit/telecom integration ([#2028](https://github.com/GetStream/stream-video-js/issues/2028)) ([d579acd](https://github.com/GetStream/stream-video-js/commit/d579acd1975fb4945e40452b27e372694c737628))
+- **client:** expose blocked autoplay audio state and explicit resume API ([#2187](https://github.com/GetStream/stream-video-js/issues/2187)) ([adbec63](https://github.com/GetStream/stream-video-js/commit/adbec63a23d47cf7c1002897e242c3f2a6a7007c))
+
+### Bug Fixes
+
+- **client:** deduplicate mic.capture_report trace emissions ([#2189](https://github.com/GetStream/stream-video-js/issues/2189)) ([152ae90](https://github.com/GetStream/stream-video-js/commit/152ae907910616e79bc20321bc56df4cfe0dcc4a))
+- **client:** support server-side pinning on participant join ([#2190](https://github.com/GetStream/stream-video-js/issues/2190)) ([2c354a4](https://github.com/GetStream/stream-video-js/commit/2c354a4b05f688766663bd13e0da7da601c8971d))
+
 ## [1.45.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.5...@stream-io/video-client-1.45.0) (2026-04-02)
 
 ### Features
