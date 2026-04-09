@@ -17,6 +17,9 @@ export class RNSpeechDetector {
    * Starts the speech detection.
    */
   public async start(onSoundDetectedStateChanged: SoundStateChangeHandler) {
+    let detachListeners: (() => void) | undefined;
+    let unsubscribe: (() => void) | undefined;
+
     try {
       this.isStopped = false;
       const audioStream =
@@ -43,6 +46,11 @@ export class RNSpeechDetector {
       this.pc1.addEventListener('icecandidate', onPc1IceCandidate);
       this.pc2.addEventListener('icecandidate', onPc2IceCandidate);
       this.pc2.addEventListener('track', onTrackPc2);
+      detachListeners = () => {
+        this.pc1.removeEventListener('icecandidate', onPc1IceCandidate);
+        this.pc2.removeEventListener('icecandidate', onPc2IceCandidate);
+        this.pc2.removeEventListener('track', onTrackPc2);
+      };
 
       audioStream
         .getTracks()
@@ -53,17 +61,19 @@ export class RNSpeechDetector {
       const answer = await this.pc2.createAnswer();
       await this.pc1.setRemoteDescription(answer);
       await this.pc2.setLocalDescription(answer);
-      const unsubscribe = this.onSpeakingDetectedStateChange(
+      unsubscribe = this.onSpeakingDetectedStateChange(
         onSoundDetectedStateChanged,
       );
       return () => {
-        this.pc1.removeEventListener('icecandidate', onPc1IceCandidate);
-        this.pc2.removeEventListener('icecandidate', onPc2IceCandidate);
-        this.pc2.removeEventListener('track', onTrackPc2);
-        unsubscribe();
+        detachListeners?.();
+        unsubscribe?.();
         this.stop();
       };
     } catch (error) {
+      detachListeners?.();
+      unsubscribe?.();
+      this.stop();
+
       const logger = videoLoggerSystem.getLogger('RNSpeechDetector');
       logger.error('error handling permissions: ', error);
       return () => {};
