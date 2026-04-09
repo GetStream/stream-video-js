@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.46.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.46.0...@stream-io/video-client-1.46.1) (2026-04-09)
+
+- remove listeners and stop even on permission error - rn speech detector ([f4fdd9e](https://github.com/GetStream/stream-video-js/commit/f4fdd9e1a008b52011ef18562152aad60a1f7936))
+
+### Bug Fixes
+
+- ignore late ICE candidates after cleanup for RN speech detector ([#2193](https://github.com/GetStream/stream-video-js/issues/2193)) ([f8735d6](https://github.com/GetStream/stream-video-js/commit/f8735d604d86fc476b9b7e01eed0af03176625be))
+
 ## [1.46.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.45.0...@stream-io/video-client-1.46.0) (2026-04-09)
 
 ### Features
