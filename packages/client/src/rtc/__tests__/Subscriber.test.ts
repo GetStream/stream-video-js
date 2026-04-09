@@ -224,7 +224,10 @@ describe('Subscriber', () => {
         .mockResolvedValue({ sdp: 'answer-sdp' });
       vi.spyOn(subscriber['pc'], 'setRemoteDescription').mockResolvedValue();
 
-      const offer = SubscriberOffer.create({ sdp: 'offer-sdp' });
+      const offer = SubscriberOffer.create({
+        sdp: 'offer-sdp',
+        negotiationId: 42,
+      });
       // @ts-expect-error - private method
       await subscriber.negotiate(offer);
       expect(subscriber['pc'].setRemoteDescription).toHaveBeenCalledWith({
@@ -236,6 +239,7 @@ describe('Subscriber', () => {
       expect(sfuClient.sendAnswer).toHaveBeenCalledWith({
         peerType: PeerType.SUBSCRIBER,
         sdp: 'answer-sdp',
+        negotiationId: 42,
       });
     });
   });
