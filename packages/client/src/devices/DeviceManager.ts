@@ -97,7 +97,7 @@ export abstract class DeviceManager<
           ([selectedDevice, status, browserPermissionState]) => {
             if (
               !status ||
-              this.isTrackStoppedDueToTrackEnd ||
+              (this.isTrackStoppedDueToTrackEnd && status === 'disabled') ||
               browserPermissionState !== 'granted'
             )
               return;
