@@ -74,6 +74,47 @@ describe('Participant events', () => {
 
       expect(state.participants).toEqual([]);
     });
+
+    it('sets a server-side pin when isPinned is true', () => {
+      const state = new CallState();
+      state.setSortParticipantsBy(noopComparator());
+
+      const onParticipantJoined = watchParticipantJoined(state);
+      const now = Date.now();
+
+      onParticipantJoined({
+        // @ts-expect-error incomplete data
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+        },
+        isPinned: true,
+      });
+
+      const participant = state.findParticipantBySessionId('session-id');
+      expect(participant?.pin).toBeDefined();
+      expect(participant?.pin?.isLocalPin).toBe(false);
+      expect(participant?.pin?.pinnedAt).toBeGreaterThanOrEqual(now);
+    });
+
+    it('does not set a pin when isPinned is false', () => {
+      const state = new CallState();
+      state.setSortParticipantsBy(noopComparator());
+
+      const onParticipantJoined = watchParticipantJoined(state);
+
+      onParticipantJoined({
+        // @ts-expect-error incomplete data
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+        },
+        isPinned: false,
+      });
+
+      const participant = state.findParticipantBySessionId('session-id');
+      expect(participant?.pin).toBeUndefined();
+    });
   });
 
   describe('orphaned tracks reconciliation', () => {
