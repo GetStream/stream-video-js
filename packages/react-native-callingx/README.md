@@ -32,10 +32,6 @@ CallingxModule.setup({
       id: 'incoming_calls_channel',
       name: 'Incoming calls',
     },
-    ongoingChannel: {
-      id: 'ongoing_calls_channel',
-      name: 'Ongoing calls',
-    },
   },
 });
 
