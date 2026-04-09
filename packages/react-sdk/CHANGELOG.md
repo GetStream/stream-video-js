@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.35.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.2...@stream-io/video-react-sdk-1.35.0) (2026-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.13.0`
+- `@stream-io/video-client` updated to version `1.46.0`
+- `@stream-io/video-filters-web` updated to version `0.7.4`
+- `@stream-io/video-react-bindings` updated to version `1.14.0`
+
+### Features
+
+- **react-sdk:** Device preview and level indicators to device settings ([#2186](https://github.com/GetStream/stream-video-js/issues/2186)) ([65787d2](https://github.com/GetStream/stream-video-js/commit/65787d222d01f784766e0a7eb757cb3169e08435))
+
 ## [1.34.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.1...@stream-io/video-react-sdk-1.34.2) (2026-04-02)
 
 ### Dependency Updates
