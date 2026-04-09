@@ -356,7 +356,14 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.state.status === undefined &&
       this.state.optimisticStatus === undefined;
     let persistedPreferencesApplied = false;
-    if (shouldApplyDefaults && this.devicePersistence.enabled) {
+    const permissionState = await firstValueFrom(
+      this.state.browserPermissionState$,
+    );
+    if (
+      shouldApplyDefaults &&
+      this.devicePersistence.enabled &&
+      permissionState === 'granted'
+    ) {
       persistedPreferencesApplied = await this.applyPersistedPreferences(true);
     }
 

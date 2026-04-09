@@ -89,9 +89,19 @@ export abstract class DeviceManager<
     if (this.devicePersistence.enabled) {
       this.subscriptions.push(
         createSubscription(
-          combineLatest([this.state.selectedDevice$, this.state.status$]),
-          ([selectedDevice, status]) => {
-            if (!status) return;
+          combineLatest([
+            this.state.selectedDevice$,
+            this.state.status$,
+            this.state.browserPermissionState$,
+          ]),
+          ([selectedDevice, status, browserPermissionState]) => {
+            if (
+              !status ||
+              this.isTrackStoppedDueToTrackEnd ||
+              browserPermissionState !== 'granted'
+            )
+              return;
+
             this.persistPreference(selectedDevice, status);
           },
         ),
