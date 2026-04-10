@@ -1,9 +1,7 @@
 /**
- * E2EE via WebRTC Encoded Transforms.
+ * E2EE worker source and lifecycle management.
  *
- * Uses RTCRtpScriptTransform (W3C standard) when available,
- * falls back to Insertable Streams (createEncodedStreams) on Chrome
- * where RTCRtpScriptTransform support is incomplete.
+ * The worker handles frame encryption/decryption using WebRTC Encoded Transforms.
  *
  * Codec-specific clear-byte rules preserve frame headers so the SFU
  * can still detect keyframes and select layers:
@@ -21,25 +19,6 @@
  * @see https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_Encoded_Transforms
  * @see https://github.com/webrtc/samples/blob/gh-pages/src/content/insertable-streams/endtoend-encryption/js/worker.js
  */
-
-import { isChrome } from '../../helpers/browsers';
-
-/**
- * Checks whether the browser supports Encoded Transforms for E2EE.
- */
-export const supportsE2EE = (): boolean =>
-  typeof RTCRtpScriptTransform !== 'undefined' ||
-  (typeof RTCRtpSender !== 'undefined' &&
-    'createEncodedStreams' in RTCRtpSender.prototype);
-
-/**
- * Chrome exposes RTCRtpScriptTransform, but it doesn't seem to work reliably.
- * Use Insertable Streams (createEncodedStreams) there instead.
- */
-const shouldUseInsertableStreams = (): boolean =>
-  isChrome() &&
-  typeof RTCRtpSender !== 'undefined' &&
-  'createEncodedStreams' in RTCRtpSender.prototype;
 
 const WORKER_SOURCE = `
 'use strict';
@@ -125,7 +104,6 @@ function rbspUnescape(data) {
   }
   return result.subarray(0, j);
 }
-
 
 function getClearByteCount(codec, frameType, data) {
   if (frameType === undefined) return 1; // audio
@@ -242,12 +220,10 @@ addEventListener('rtctransform', ({ transformer: { readable, writable, options }
 addEventListener('message', ({ data }) => handleTransform(data));
 `;
 
-/** Tracks senders/receivers that already have encoded streams piped. */
-let piped: Set<RTCRtpSender | RTCRtpReceiver> | undefined;
 let worker: Worker | undefined;
 let workerUrl: string | undefined;
 
-const getWorker = () => {
+export const getWorker = () => {
   if (!worker) {
     if (!workerUrl) {
       const blob = new Blob([WORKER_SOURCE], {
@@ -259,38 +235,3 @@ const getWorker = () => {
   }
   return worker;
 };
-
-const attachTransform = (
-  target: RTCRtpSender | RTCRtpReceiver,
-  key: string,
-  operation: 'encode' | 'decode',
-  codec?: string,
-) => {
-  const w = getWorker();
-  if (!shouldUseInsertableStreams()) {
-    target.transform = new RTCRtpScriptTransform(w, {
-      operation,
-      key,
-      codec,
-    });
-    return;
-  }
-
-  if ((piped ??= new Set()).has(target)) return;
-  piped.add(target);
-  // @ts-expect-error createEncodedStreams is not in the standard typedefs
-  const { readable, writable } = target.createEncodedStreams();
-  w.postMessage({ operation, readable, writable, key, codec }, [
-    readable,
-    writable,
-  ]);
-};
-
-export const createEncryptor = (
-  sender: RTCRtpSender,
-  key: string,
-  codec?: string,
-) => attachTransform(sender, key, 'encode', codec);
-
-export const createDecryptor = (receiver: RTCRtpReceiver, key: string) =>
-  attachTransform(receiver, key, 'decode');

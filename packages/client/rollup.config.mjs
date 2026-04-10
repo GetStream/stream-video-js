@@ -30,9 +30,11 @@ const external = [
 const browserConfig = {
   input: 'index.ts',
   output: {
-    file: 'dist/index.browser.es.js',
+    dir: 'dist',
     format: 'esm',
     sourcemap: true,
+    entryFileNames: 'index.browser.es.js',
+    chunkFileNames: '[name].browser.es.js',
   },
   external: external.filter((dep) => !browserIgnoredModules.includes(dep)),
   plugins: [
@@ -55,6 +57,7 @@ const createNodeConfig = (outputFile, format) => ({
     file: outputFile,
     format: format,
     sourcemap: true,
+    inlineDynamicImports: true,
   },
   external,
   plugins: [

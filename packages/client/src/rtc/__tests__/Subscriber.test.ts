@@ -215,7 +215,7 @@ describe('Subscriber', () => {
       expect(baseStream.removeTrack).toHaveBeenCalledWith(baseTrack);
     });
 
-    it('should attach a decryptor when an encryption key is provided', () => {
+    it('should attach a decryptor when an encryption key is provided', async () => {
       subscriber.dispose();
       subscriber = new Subscriber({
         sfuClient,
@@ -238,6 +238,9 @@ describe('Subscriber', () => {
       const onTrack = subscriber['handleOnTrack'];
       // @ts-expect-error - incomplete mock
       onTrack({ streams: [mediaStream], track: mediaStreamTrack, receiver });
+
+      // decryptor is attached via dynamic import, flush the microtask queue
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(receiver.transform).toMatchObject({
         options: expect.objectContaining({

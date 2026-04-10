@@ -20,7 +20,7 @@ import {
   toVideoLayers,
 } from './layers';
 import { isSvcCodec } from './codecs';
-import { createEncryptor, supportsE2EE } from './e2ee';
+import { supportsE2EE } from './e2ee/compatibility';
 import { isAudioTrackType } from './helpers/tracks';
 import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
@@ -141,6 +141,7 @@ export class Publisher extends BasePeerConnection {
     const { encryptionKey } = this.clientPublishOptions || {};
     if (encryptionKey) {
       if (supportsE2EE()) {
+        const { createEncryptor } = await import('./e2ee/e2ee');
         createEncryptor(
           transceiver.sender,
           encryptionKey,

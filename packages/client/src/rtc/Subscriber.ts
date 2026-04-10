@@ -3,7 +3,7 @@ import { BasePeerConnectionOpts } from './types';
 import { NegotiationError } from './NegotiationError';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
-import { createDecryptor, supportsE2EE } from './e2ee';
+import { supportsE2EE } from './e2ee/compatibility';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { enableStereo, removeCodecsExcept } from './helpers/sdp';
 
@@ -97,8 +97,10 @@ export class Subscriber extends BasePeerConnection {
     const { encryptionKey } = this.clientPublishOptions || {};
     if (encryptionKey) {
       if (supportsE2EE()) {
-        createDecryptor(e.receiver, encryptionKey);
-        this.logger.debug('E2EE decryptor attached to receiver');
+        import('./e2ee/e2ee').then(({ createDecryptor }) => {
+          createDecryptor(e.receiver, encryptionKey);
+          this.logger.debug('E2EE decryptor attached to receiver');
+        });
       } else {
         this.logger.warn(`E2EE requested but not supported`);
       }
