@@ -37,6 +37,9 @@ describe('SpeakerManager.test', () => {
   beforeEach(() => {
     storageKey = '@test/speaker-preferences';
     localStorageMock = createLocalStorageMock();
+    vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+      of('granted'),
+    );
     Object.defineProperty(window, 'localStorage', {
       configurable: true,
       value: localStorageMock,
@@ -123,6 +126,31 @@ describe('SpeakerManager.test', () => {
     emitDeviceIds(mockAudioDevices.slice(2));
 
     expect(manager.state.selectedDevice).toBe('');
+  });
+
+  it('persists speaker selection when permission is granted', async () => {
+    const persistedManager = new SpeakerManager(
+      new Call({
+        id: '',
+        type: '',
+        streamClient: new StreamClient('abc123'),
+        clientStore: new StreamVideoWriteableStateStore(),
+      }),
+      { enabled: true, storageKey },
+    );
+    const listDevicesSpy = vi.spyOn(persistedManager, 'listDevices');
+    const audioOutputDevice = {
+      deviceId: 'speaker-1',
+      kind: 'audiooutput',
+      label: 'Speaker 1',
+      groupId: 'speaker-group',
+    } as MediaDeviceInfo;
+
+    emitDeviceIds([audioOutputDevice]);
+    persistedManager.select(audioOutputDevice.deviceId);
+
+    expect(listDevicesSpy).toHaveBeenCalled();
+    expect(persistedManager.state.selectedDevice).toBe('speaker-1');
   });
 
   describe('apply (web)', () => {

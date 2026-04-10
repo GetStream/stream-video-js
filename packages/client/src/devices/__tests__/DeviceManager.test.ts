@@ -76,6 +76,9 @@ describe('Device Manager', () => {
   beforeEach(() => {
     storageKey = '@test/device-preferences';
     localStorageMock = createLocalStorageMock();
+    vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+      of('granted'),
+    );
     Object.defineProperty(window, 'localStorage', {
       configurable: true,
       value: localStorageMock,
@@ -448,6 +451,74 @@ describe('Device Manager', () => {
           selectedDeviceLabel: mockVideoDevices[1].label,
           muted: false,
         },
+        {
+          selectedDeviceId: mockVideoDevices[0].deviceId,
+          selectedDeviceLabel: mockVideoDevices[0].label,
+          muted: false,
+        },
+      ]);
+    });
+
+    it('stores preferences when permission is granted', async () => {
+      const persistenceEnabledManager = new TestInputMediaDeviceManager(
+        manager['call'],
+        { enabled: true, storageKey },
+      );
+      const listDevicesSpy = vi.spyOn(persistenceEnabledManager, 'listDevices');
+
+      emitDeviceIds(mockVideoDevices);
+      persistenceEnabledManager.state.setDevice(mockVideoDevices[0].deviceId);
+      persistenceEnabledManager.state.setStatus('enabled');
+
+      expect(readPreferences(storageKey).camera).toBeDefined();
+      expect(listDevicesSpy).toHaveBeenCalled();
+      expect(readPreferences(storageKey).camera).toEqual([
+        {
+          selectedDeviceId: mockVideoDevices[0].deviceId,
+          selectedDeviceLabel: mockVideoDevices[0].label,
+          muted: false,
+        },
+      ]);
+    });
+
+    it('does not store preferences when permission is not granted', async () => {
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('prompt'),
+      );
+      const persistenceEnabledManager = new TestInputMediaDeviceManager(
+        manager['call'],
+        { enabled: true, storageKey },
+      );
+      const listDevicesSpy = vi.spyOn(persistenceEnabledManager, 'listDevices');
+
+      emitDeviceIds(mockVideoDevices);
+      persistenceEnabledManager.state.setDevice(mockVideoDevices[0].deviceId);
+      persistenceEnabledManager.state.setStatus('enabled');
+
+      expect(readPreferences(storageKey).camera).toBeUndefined();
+      expect(listDevicesSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not overwrite preferences when track ends unexpectedly', async () => {
+      const persistenceEnabledManager = new TestInputMediaDeviceManager(
+        manager['call'],
+        { enabled: true, storageKey },
+      );
+
+      await persistenceEnabledManager.enable();
+
+      expect(readPreferences(storageKey).camera).toEqual([
+        {
+          selectedDeviceId: mockVideoDevices[0].deviceId,
+          selectedDeviceLabel: mockVideoDevices[0].label,
+          muted: false,
+        },
+      ]);
+
+      const [track] = persistenceEnabledManager.state.mediaStream!.getTracks();
+      await ((track as MockTrack).eventHandlers['ended'] as Function)();
+
+      expect(readPreferences(storageKey).camera).toEqual([
         {
           selectedDeviceId: mockVideoDevices[0].deviceId,
           selectedDeviceLabel: mockVideoDevices[0].label,

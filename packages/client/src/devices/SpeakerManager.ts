@@ -2,7 +2,11 @@ import { combineLatest } from 'rxjs';
 import { Call } from '../Call';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
-import { deviceIds$, getAudioOutputDevices } from './devices';
+import {
+  deviceIds$,
+  getAudioBrowserPermission,
+  getAudioOutputDevices,
+} from './devices';
 import {
   AudioSettingsRequestDefaultDeviceEnum,
   CallSettingsResponse,
@@ -111,9 +115,17 @@ export class SpeakerManager {
 
     if (!isReactNative() && this.devicePersistence.enabled) {
       this.subscriptions.push(
-        createSubscription(this.state.selectedDevice$, (selectedDevice) => {
-          this.persistSpeakerDevicePreference(selectedDevice);
-        }),
+        createSubscription(
+          combineLatest([
+            this.state.selectedDevice$,
+            getAudioBrowserPermission(this.call.tracer).asStateObservable(),
+          ]),
+          ([selectedDevice, browserPermissionState]) => {
+            if (!selectedDevice || browserPermissionState !== 'granted') return;
+
+            this.persistSpeakerDevicePreference(selectedDevice);
+          },
+        ),
       );
     }
   }
