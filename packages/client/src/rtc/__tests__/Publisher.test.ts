@@ -133,6 +133,51 @@ describe('Publisher', () => {
       expect(negotiateSpy).toHaveBeenCalled();
     });
 
+    it('should attach an encryptor when an encryption key is provided', async () => {
+      publisher.dispose();
+      publisher = new Publisher(
+        {
+          sfuClient,
+          dispatcher,
+          state,
+          tag: 'test',
+          enableTracing: false,
+          clientPublishOptions: {
+            encryptionKey: 'shared-secret',
+          },
+        },
+        [
+          {
+            id: 1,
+            trackType: TrackType.VIDEO,
+            bitrate: 1000,
+            // @ts-expect-error - incomplete data
+            codec: { name: 'vp9' },
+            fps: 30,
+            maxTemporalLayers: 3,
+            maxSpatialLayers: 3,
+          },
+        ],
+      );
+
+      const track = new MediaStreamTrack();
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
+      // @ts-expect-error - private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+
+      await publisher.publish(track, TrackType.VIDEO);
+
+      const transceiver = vi.mocked(publisher['pc'].addTransceiver).mock
+        .results[0]?.value;
+      expect(transceiver.sender.transform).toMatchObject({
+        options: expect.objectContaining({
+          operation: 'encode',
+          key: 'shared-secret',
+        }),
+      });
+    });
+
     it('should update an existing transceiver for a new track', async () => {
       const track = new MediaStreamTrack();
       const clone = new MediaStreamTrack();

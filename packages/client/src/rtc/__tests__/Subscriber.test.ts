@@ -214,6 +214,38 @@ describe('Subscriber', () => {
       expect(baseTrack.stop).toHaveBeenCalled();
       expect(baseStream.removeTrack).toHaveBeenCalledWith(baseTrack);
     });
+
+    it('should attach a decryptor when an encryption key is provided', () => {
+      subscriber.dispose();
+      subscriber = new Subscriber({
+        sfuClient,
+        dispatcher,
+        state,
+        connectionConfig: { iceServers: [] },
+        tag: 'test',
+        enableTracing: true,
+        clientPublishOptions: {
+          encryptionKey: 'shared-secret',
+        },
+      });
+
+      const mediaStream = new MediaStream();
+      const mediaStreamTrack = new MediaStreamTrack();
+      const receiver = { transform: null };
+      // @ts-expect-error - mock
+      mediaStream.id = '123:TRACK_TYPE_VIDEO';
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track: mediaStreamTrack, receiver });
+
+      expect(receiver.transform).toMatchObject({
+        options: expect.objectContaining({
+          operation: 'decode',
+          key: 'shared-secret',
+        }),
+      });
+    });
   });
 
   describe('Negotiation', () => {

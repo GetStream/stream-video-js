@@ -16,6 +16,7 @@ export const getQueryConfigParams = (query: NextRouter['query']) => {
     forceCodec: query['force_codec'] as PreferredCodec | undefined,
     cameraOverride: query['camera'] as string | undefined,
     microphoneOverride: query['mic'] as string | undefined,
+    encryptionKey: query['encryption_key'] as string | undefined,
   };
 };
 
@@ -34,6 +35,7 @@ export const applyQueryConfigParams = (
     maxSimulcastLayers,
     cameraOverride,
     microphoneOverride,
+    encryptionKey,
   } = config;
 
   if (cameraOverride != null) {
@@ -74,6 +76,7 @@ export const applyQueryConfigParams = (
     maxSimulcastLayers: maxSimulcastLayers
       ? parseInt(maxSimulcastLayers, 10)
       : undefined,
+    encryptionKey,
   });
 
   return config;

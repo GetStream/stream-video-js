@@ -20,6 +20,7 @@ import {
   toVideoLayers,
 } from './layers';
 import { isSvcCodec } from './codecs';
+import { createEncryptor, supportsE2EE } from './e2ee';
 import { isAudioTrackType } from './helpers/tracks';
 import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
@@ -137,6 +138,15 @@ export class Publisher extends BasePeerConnection {
     const params = transceiver.sender.getParameters();
     params.degradationPreference = 'maintain-framerate';
     await transceiver.sender.setParameters(params);
+    const { encryptionKey } = this.clientPublishOptions || {};
+    if (encryptionKey) {
+      if (supportsE2EE()) {
+        createEncryptor(transceiver.sender, encryptionKey);
+        this.logger.debug('E2EE encryptor attached to sender');
+      } else {
+        this.logger.warn(`E2EE requested but not supported`);
+      }
+    }
 
     const trackType = publishOption.trackType;
     this.logger.debug(`Added ${TrackType[trackType]} transceiver`);

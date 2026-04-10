@@ -11,6 +11,7 @@ import {
 import { NegotiationError } from './NegotiationError';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
+import { isChrome } from '../helpers/browsers';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
 import type { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
@@ -89,7 +90,13 @@ export abstract class BasePeerConnection {
   }
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
-    const pc = new RTCPeerConnection(connectionConfig);
+    const config: RTCConfiguration = { ...connectionConfig };
+    // Chrome needs encodedInsertableStreams for the Insertable Streams path.
+    if (this.clientPublishOptions?.encryptionKey && isChrome()) {
+      // @ts-expect-error not part of the standard lib yet
+      config.encodedInsertableStreams = true;
+    }
+    const pc = new RTCPeerConnection(config);
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('icecandidateerror', this.onIceCandidateError);
     pc.addEventListener(
