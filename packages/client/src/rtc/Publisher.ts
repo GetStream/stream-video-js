@@ -141,7 +141,11 @@ export class Publisher extends BasePeerConnection {
     const { encryptionKey } = this.clientPublishOptions || {};
     if (encryptionKey) {
       if (supportsE2EE()) {
-        createEncryptor(transceiver.sender, encryptionKey);
+        createEncryptor(
+          transceiver.sender,
+          encryptionKey,
+          publishOption.codec?.name.toLowerCase(),
+        );
         this.logger.debug('E2EE encryptor attached to sender');
       } else {
         this.logger.warn(`E2EE requested but not supported`);
