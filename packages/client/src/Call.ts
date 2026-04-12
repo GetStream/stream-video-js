@@ -2481,9 +2481,8 @@ export class Call {
       UpdateCallRequest
     >(`${this.streamClientBasePath}`, updates);
 
-    const { call, members, own_capabilities } = response;
+    const { call, own_capabilities } = response;
     this.state.updateFromCallResponse(call);
-    this.state.setMembers(members);
     this.state.setOwnCapabilities(own_capabilities);
 
     return response;
