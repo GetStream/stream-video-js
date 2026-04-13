@@ -49,11 +49,6 @@
       [
         "expo-build-properties",
         {
-          "android": {
-            "extraMavenRepos": [
-              "$rootDir/../../../node_modules/@notifee/react-native/android/libs"
-            ]
-          },
           "ios": {
             "useFrameworks": "static",
             "forceStaticLinking": [

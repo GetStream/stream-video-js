@@ -62,10 +62,5 @@
                 <data android:pathPrefix="/video/demos/join" />
             </intent-filter>
         </activity>
-        <service
-            android:name="app.notifee.core.ForegroundService"
-            tools:replace="android:foregroundServiceType"
-            android:stopWithTask="true"
-            android:foregroundServiceType="shortService|camera|microphone|mediaPlayback" />
     </application>
 </manifest>

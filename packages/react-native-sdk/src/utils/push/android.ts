@@ -4,20 +4,12 @@ import {
   videoLoggerSystem,
 } from '@stream-io/video-client';
 import { AppState, Platform } from 'react-native';
-import type {
-  NonRingingPushEvent,
-  StreamVideoConfig,
-} from '../StreamVideoRN/types';
+import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import {
   type FirebaseMessagingTypes,
-  getExpoNotificationsLib,
-  getExpoNotificationsLibNoThrow,
   getFirebaseMessagingLib,
   getFirebaseMessagingLibNoThrow,
-  getNotifeeLibThrowIfNotInstalledForPush,
-  type NotifeeLib,
 } from './libs';
-import { pushNonRingingCallData$ } from './internal/rxSubjects';
 import { pushUnsubscriptionCallbacks } from './internal/constants';
 import { canListenToWS, shouldCallBeClosed } from './internal/utils';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
@@ -25,12 +17,6 @@ import { StreamVideoRN } from '../StreamVideoRN';
 import { getCallingxLib } from './libs/callingx';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
-
-type onBackgroundEventFunctionParams = Parameters<
-  NotifeeLib['default']['onBackgroundEvent']
->[0];
-
-type Event = Parameters<onBackgroundEventFunctionParams>[0];
 
 let lastFirebaseToken = { token: '', userId: '' };
 
@@ -73,24 +59,6 @@ export async function initAndroidPushToken(
     logger.debug(`sending firebase token: ${token} for userId: ${userId}`);
     await client.addDevice(token, 'firebase', push_provider_name);
   };
-  if (pushConfig.isExpo) {
-    const expoNotificationsLib = pushConfig.onTapNonRingingCallNotification
-      ? getExpoNotificationsLib()
-      : getExpoNotificationsLibNoThrow();
-    if (expoNotificationsLib) {
-      logger.debug(`setting expo notification token listeners`);
-      const subscription = expoNotificationsLib.addPushTokenListener(
-        (devicePushToken) => {
-          setDeviceToken(devicePushToken.data);
-        },
-      );
-      setUnsubscribeListener(() => subscription.remove());
-      const devicePushToken =
-        await expoNotificationsLib.getDevicePushTokenAsync();
-      const token = devicePushToken.data;
-      await setDeviceToken(token);
-    }
-  }
 
   const messaging = pushConfig.isExpo
     ? getFirebaseMessagingLibNoThrow(true)
@@ -324,89 +292,5 @@ export const firebaseDataHandler = async (
       );
       callingx.endCallWithReason(call_cid, endCallReason);
     }
-  } else {
-    const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
-    const notifee = notifeeLib.default;
-    const settings = await notifee.getNotificationSettings();
-    if (settings.authorizationStatus !== 1) {
-      logger.debug(
-        `Notification permission not granted, unable to post ${data.type} notifications`,
-      );
-      return;
-    }
-
-    // the other types are call.live_started and call.notification
-    const callChannel = pushConfig.android.callChannel;
-    const callNotificationTextGetters =
-      pushConfig.android.callNotificationTextGetters;
-    if (!callChannel || !callNotificationTextGetters) {
-      logger.debug(
-        "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided",
-      );
-      return;
-    }
-    await notifee.createChannel(callChannel);
-    const channelId = callChannel.id;
-    const { getTitle, getBody } = callNotificationTextGetters;
-    const createdUserName = data.created_by_display_name as string;
-    // we can safely cast to string because the data is from "stream.video"
-    const type = data.type as NonRingingPushEvent;
-
-    const title = getTitle(type, createdUserName);
-    const body = getBody(type, createdUserName);
-
-    logger.debug(
-      `Displaying NonRingingPushEvent ${type} notification with title: ${title} body: ${body}`,
-    );
-    await notifee.displayNotification({
-      title,
-      body,
-      data,
-      android: {
-        sound: callChannel.sound,
-        smallIcon: pushConfig.android.smallIcon,
-        vibrationPattern: callChannel.vibrationPattern,
-        channelId,
-        importance: 4, // high importance
-        pressAction: {
-          id: 'default',
-          launchActivity: 'default', // open the app when the notification is pressed
-        },
-        timeoutAfter: 60000, // 60 seconds, after which the notification will be dismissed automatically
-      },
-    });
-    const cid = data.call_cid as string;
-    pushNonRingingCallData$.next({ cid, type });
-  }
-};
-
-export const onAndroidNotifeeEvent = async ({ event }: { event: Event }) => {
-  if (Platform.OS !== 'android') return;
-  const { type, detail } = event;
-  const { notification } = detail;
-  const notificationId = notification?.id;
-  const data = notification?.data;
-  const pushConfig = StreamVideoRN.getConfig().push;
-  if (
-    !pushConfig ||
-    !data ||
-    !notificationId ||
-    data.sender !== 'stream.video'
-  ) {
-    return;
-  }
-
-  // we can safely cast to string because the data is from "stream.video"
-  const call_cid = data.call_cid as string;
-
-  const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
-  if (type === notifeeLib.EventType.PRESS) {
-    videoLoggerSystem
-      .getLogger('onAndroidNotifeeEvent')
-      .debug(`onTapNonRingingCallNotification with callCId: ${call_cid}`);
-    pushConfig.onTapNonRingingCallNotification?.(
-      call_cid,
-      data.type as NonRingingPushEvent,
-    );
   }
 };

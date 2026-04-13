@@ -3,7 +3,6 @@ import {
   StreamVideoClient,
   type Call,
 } from '@stream-io/video-client';
-import type { AndroidChannel } from '@notifee/react-native';
 
 export type AndroidChannelConfig = {
   id: string;
@@ -80,17 +79,6 @@ export type StreamVideoConfig = {
        */
       pushProviderName?: string;
       /**
-       * The notification channel to be used for non ringing calls for Android.
-       * @example
-       * {
-       *  id: 'stream_call_notifications',
-       *  name: 'Call notifications',
-       *  importance: AndroidImportance.HIGH,
-       *  sound: 'default',
-       * }
-       */
-      callChannel?: AndroidChannel;
-      /**
        * The notification channel to be used for incoming calls for Android.
        * @example
        * {
@@ -118,33 +106,6 @@ export type StreamVideoConfig = {
        * The transformer to be used to transform the call title in the notification for ringing and ongoing calls for Android.
        */
       titleTransformer?: (memberName: string, incoming: boolean) => string;
-      /**
-       * Functions to create the texts shown in the notification for non ringing calls in Android.
-       * @example
-       *  getTitle(type, createdUserName) {
-            if (type === 'call.live_started') {
-              return `Call went live, it was started by ${createdUserName}`;
-            } else if (type === 'call.missed') {
-              return `Missed call from ${createdUserName}`;
-            } else {
-              return `${createdUserName} is notifying you about a call`;
-            }
-          },
-          getBody(type, _createdUserName) {
-            if (type === 'call.missed') {
-              return 'Missed call!';
-            } else {
-              return 'Tap to open the call';
-            }
-          },
-       */
-      callNotificationTextGetters?: {
-        getTitle: (
-          type: NonRingingPushEvent,
-          createdUserName: string,
-        ) => string;
-        getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
-      };
     };
     /**
      * Whether to enable ongoing calls.
@@ -175,11 +136,6 @@ export type StreamVideoConfig = {
      * }
      */
     createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;
-    /** Callback that is called when a non ringing push notification was tapped */
-    onTapNonRingingCallNotification?: (
-      call_cid: string,
-      type: NonRingingPushEvent,
-    ) => void;
   };
   foregroundService: {
     android: {

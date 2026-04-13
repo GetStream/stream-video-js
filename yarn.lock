@@ -4870,15 +4870,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@notifee/react-native@npm:9.1.8":
-  version: 9.1.8
-  resolution: "@notifee/react-native@npm:9.1.8"
-  peerDependencies:
-    react-native: "*"
-  checksum: 10/7c5237fba99906d8da02146afbfe8ff6de9f4047eecd806dea889bfd76b1cfe7ad3c181881bf2729aa348b83e035f4d02cfc3ac8eb8c4ba3a4415b445b439c38
-  languageName: node
-  linkType: hard
-
 "@npmcli/fs@npm:^2.1.0":
   version: 2.1.2
   resolution: "@npmcli/fs@npm:2.1.2"
@@ -6574,30 +6565,6 @@ __metadata:
     react: "*"
     react-native: ">=0.59"
   checksum: 10/0c388e1beb61d0135eb9303b18d7d953b0f777af15e34a8c0ab03f428669a987d658ead645a37b410afae7844374d07e7ab947897d5720b1e7fee5525fffd5b5
-  languageName: node
-  linkType: hard
-
-"@react-native-community/push-notification-ios@npm:1.11.0":
-  version: 1.11.0
-  resolution: "@react-native-community/push-notification-ios@npm:1.11.0"
-  dependencies:
-    invariant: "npm:^2.2.4"
-  peerDependencies:
-    react: ">=16.6.3"
-    react-native: ">=0.58.4"
-  checksum: 10/5a43b69cb75090ff771acc44c9a081f2000f5e2c91484eed1e2f8749f98f7d37a7ce6e63d60caadf372ad204c9a1b3dc5d99cec576f5e751a45a89cdde0a6b96
-  languageName: node
-  linkType: hard
-
-"@react-native-community/push-notification-ios@npm:^1.11.0":
-  version: 1.12.0
-  resolution: "@react-native-community/push-notification-ios@npm:1.12.0"
-  dependencies:
-    invariant: "npm:^2.2.4"
-  peerDependencies:
-    react: ">=16.6.3"
-    react-native: ">=0.58.4"
-  checksum: 10/c1eb786cf548fd559f779d3af75ab47eee62d74b3f8affeb4032a9891ba5f0f53df280299d0506623a04b375a2c6c4903e1ed5b55377c0a478e2e3af4248f02c
   languageName: node
   linkType: hard
 
@@ -8355,7 +8322,6 @@ __metadata:
     "@babel/preset-env": "npm:^7.28.3"
     "@babel/runtime": "npm:^7.28.4"
     "@config-plugins/react-native-webrtc": "npm:^13.0.0"
-    "@notifee/react-native": "npm:9.1.8"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native-community/netinfo": "npm:11.4.1"
     "@react-native-firebase/app": "npm:~23.7.0"
@@ -8723,13 +8689,11 @@ __metadata:
     "@babel/preset-env": "npm:^7.28.3"
     "@babel/runtime": "npm:^7.28.4"
     "@gorhom/bottom-sheet": "npm:5.1.6"
-    "@notifee/react-native": "npm:9.1.8"
     "@react-native-clipboard/clipboard": "npm:^1.16.3"
     "@react-native-community/cli": "npm:20.0.0"
     "@react-native-community/cli-platform-android": "npm:20.0.0"
     "@react-native-community/cli-platform-ios": "npm:20.0.0"
     "@react-native-community/netinfo": "npm:^11.4.1"
-    "@react-native-community/push-notification-ios": "npm:^1.11.0"
     "@react-native-firebase/app": "npm:~23.7.0"
     "@react-native-firebase/messaging": "npm:~23.7.0"
     "@react-native/babel-preset": "npm:^0.83.2"
@@ -8831,9 +8795,7 @@ __metadata:
     "@expo/config-plugins": "npm:54.0.2"
     "@expo/config-types": "npm:^54.0.8"
     "@expo/plist": "npm:^0.4.7"
-    "@notifee/react-native": "npm:9.1.8"
     "@react-native-community/netinfo": "npm:11.4.1"
-    "@react-native-community/push-notification-ios": "npm:1.11.0"
     "@react-native-firebase/app": "npm:^23.4.0"
     "@react-native-firebase/messaging": "npm:^23.4.0"
     "@react-native/babel-preset": "npm:^0.81.5"
@@ -8869,9 +8831,7 @@ __metadata:
     text-encoding-polyfill: "npm:0.6.7"
     typescript: "npm:^5.9.3"
   peerDependencies:
-    "@notifee/react-native": ">=9.0.0"
     "@react-native-community/netinfo": ">=9.0.0"
-    "@react-native-community/push-notification-ios": ">=1.11.0"
     "@react-native-firebase/app": ">=17.5.0"
     "@react-native-firebase/messaging": ">=17.5.0"
     "@stream-io/noise-cancellation-react-native": ">=0.1.0"
@@ -8887,10 +8847,6 @@ __metadata:
     react-native-reanimated: ">=2.7.0"
     react-native-svg: ">=13.6.0"
   peerDependenciesMeta:
-    "@notifee/react-native":
-      optional: true
-    "@react-native-community/push-notification-ios":
-      optional: true
     "@react-native-firebase/app":
       optional: true
     "@react-native-firebase/messaging":
