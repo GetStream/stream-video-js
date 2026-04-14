@@ -232,6 +232,7 @@ export class Call {
 
   subscriber?: Subscriber;
   publisher?: Publisher;
+  e2eeManager?: EncryptionManager;
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -252,7 +253,6 @@ export class Call {
   private readonly dispatcher = new Dispatcher();
 
   private clientPublishOptions?: ClientPublishOptions;
-  e2eeManager?: EncryptionManager;
   private currentPublishOptions?: PublishOption[];
   private statsReportingIntervalInMs: number = 2000;
   private statsReporter?: StatsReporter;
