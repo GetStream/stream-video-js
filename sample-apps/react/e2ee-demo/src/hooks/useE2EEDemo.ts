@@ -14,7 +14,7 @@ import {
 } from '../config';
 import {
   initializeKey,
-  exchangeKeys,
+  distributeKey,
   rotateKey as rotateE2EEKey,
   setKeyFromInput as setE2EEKeyFromInput,
   revokeKeys,
@@ -181,9 +181,27 @@ export const useE2EEDemo = () => {
         decryptionFailed: false,
       };
 
-      // Cross-distribute keys between new and existing participants
+      // Cross-distribute keys between new and existing participants.
+      // We can't use exchangeKeys() here because the demo's sendKey
+      // looks up recipients in participantsRef, and B isn't in state yet.
+      // So we handle the two directions separately:
       const existing = participantsRef.current;
-      exchangeKeys(newParticipant, existing, sendKey);
+
+      // 1. Send B's key to all existing participants (they're in state, sendKey works)
+      distributeKey(newParticipant, existing, sendKey);
+
+      // 2. Give B each existing participant's key directly (B isn't in state yet)
+      for (const other of existing) {
+        e2eeManager.setKey(
+          other.userId,
+          other.keyIndex,
+          other.currentKey.slice(0),
+        );
+        logEvent(
+          `Distributed ${other.name}'s key to ${name}`,
+          'key-distribute',
+        );
+      }
 
       // Pure state update — no side effects
       setParticipants((prev) => [...prev, newParticipant]);
