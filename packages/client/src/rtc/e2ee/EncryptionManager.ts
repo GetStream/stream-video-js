@@ -31,6 +31,16 @@ export class EncryptionManager {
   private disposed = false;
   private piped?: WeakSet<RTCRtpSender | RTCRtpReceiver>;
 
+  /**
+   * Called when the worker fails to decrypt a frame from a remote participant.
+   * This indicates a key mismatch, key rotation in progress, or tampered frame.
+   *
+   * Throttled to at most once per second per remote user in the worker.
+   *
+   * @param userId - The remote user's ID whose frames failed to decrypt.
+   */
+  onDecryptionFailed?: (userId: string) => void;
+
   private readonly userId: string;
   private readonly worker: Worker;
   private readonly workerUrl: string;
@@ -242,8 +252,12 @@ export class EncryptionManager {
   };
 
   private handleWorkerMessage = (e: MessageEvent) => {
-    if (e.data?.type === 'error') {
+    const { type } = e.data ?? {};
+    if (type === 'error') {
       this.logger.error(e.data.message);
+    } else if (type === 'decryptionFailed') {
+      this.logger.warn(`Decryption failed for user: ${e.data.userId}`);
+      this.onDecryptionFailed?.(e.data.userId);
     }
   };
 

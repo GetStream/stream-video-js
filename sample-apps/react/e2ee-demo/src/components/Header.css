@@ -1,0 +1,76 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.header__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.header__title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.header__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header__call-id {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.header__call-id code {
+  font-family: var(--font-mono);
+  color: var(--color-text-mono);
+}
+
+.header__badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.header__badge--ok {
+  background: rgba(0, 179, 104, 0.15);
+  color: #00b368;
+}
+
+.header__badge--no {
+  background: rgba(217, 45, 32, 0.15);
+  color: #d92d20;
+}
+
+.header__add-btn {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  background: #005fff;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.header__add-btn:hover {
+  opacity: 0.85;
+}
+
+.header__add-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

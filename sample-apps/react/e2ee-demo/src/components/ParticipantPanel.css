@@ -1,0 +1,131 @@
+.participant-panel {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border-top: 3px solid transparent;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.participant-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--color-surface-elevated);
+}
+
+.participant-panel__identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.participant-panel__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.participant-panel__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.participant-panel__user-id {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.participant-panel__remove {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.participant-panel__remove:hover {
+  background: rgba(217, 45, 32, 0.15);
+  color: #d92d20;
+}
+
+.participant-panel__video {
+  flex: 1;
+  min-height: 0;
+  background: var(--color-bg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.participant-panel__video .str-video {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.participant-panel__video .str-video__paginated-grid-layout {
+  flex: 1;
+  min-height: 0;
+}
+
+.participant-panel__toast {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(217, 45, 32, 0.9);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius-sm);
+  z-index: 2;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.participant-panel__toast-dismiss {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+
+.participant-panel__toast-dismiss:hover {
+  color: #fff;
+}
+
+.participant-panel__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}

@@ -1,0 +1,120 @@
+.key-controls {
+  padding: 10px 12px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.key-controls__current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.key-controls__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.key-controls__hex {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--color-text-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.key-controls__index {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  padding: 1px 6px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.key-controls__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.key-controls__input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.key-controls__input:focus {
+  border-color: var(--color-text-secondary);
+}
+
+.key-controls__input::placeholder {
+  color: var(--color-text-secondary);
+  font-family: inherit;
+}
+
+.key-controls__btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+
+.key-controls__btn:hover {
+  opacity: 0.85;
+}
+
+.key-controls__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.key-controls__btn--set {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.key-controls__btn--rotate {
+  background: #005fff;
+  color: #fff;
+}
+
+.key-controls__local-only {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.key-controls__local-only input[type='checkbox'] {
+  accent-color: #d92d20;
+  cursor: pointer;
+}
+
+.key-controls__local-only-hint {
+  color: #d92d20;
+  font-style: italic;
+}

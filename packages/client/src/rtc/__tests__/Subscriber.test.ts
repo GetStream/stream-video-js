@@ -242,7 +242,46 @@ describe('Subscriber', () => {
       // @ts-expect-error - incomplete mock
       onTrack({ streams: [mediaStream], track: mediaStreamTrack, receiver });
 
+      // Falls back to trackId when participant is not found (orphaned track)
       expect(e2eeMock.decrypt).toHaveBeenCalledWith(receiver, '123');
+    });
+
+    it('should decrypt with userId when participant is found', () => {
+      const e2eeMock = {
+        encrypt: vi.fn(),
+        decrypt: vi.fn(),
+      };
+      subscriber.dispose();
+      subscriber = new Subscriber({
+        sfuClient,
+        dispatcher,
+        state,
+        connectionConfig: { iceServers: [] },
+        tag: 'test',
+        enableTracing: true,
+        // @ts-expect-error - partial mock
+        e2ee: e2eeMock,
+      });
+
+      // Register a participant whose trackLookupPrefix matches the stream
+      state.updateOrAddParticipant('session-id', {
+        sessionId: 'session-id',
+        userId: 'real-user-id',
+        trackLookupPrefix: '123',
+      });
+
+      const mediaStream = new MediaStream();
+      const mediaStreamTrack = new MediaStreamTrack();
+      const receiver = {};
+      // @ts-expect-error - mock
+      mediaStream.id = '123:TRACK_TYPE_VIDEO';
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track: mediaStreamTrack, receiver });
+
+      // Uses the participant's userId (not trackLookupPrefix) for key lookup
+      expect(e2eeMock.decrypt).toHaveBeenCalledWith(receiver, 'real-user-id');
     });
   });
 

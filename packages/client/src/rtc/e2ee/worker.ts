@@ -284,6 +284,18 @@ function encodeTransform(userId, codec) {
 }
 
 function decodeTransform(userId) {
+  // Throttle failure notifications to avoid flooding the main thread.
+  let lastFailureNotification = 0;
+  const FAILURE_THROTTLE_MS = 1000;
+
+  function notifyFailure() {
+    const now = Date.now();
+    if (now - lastFailureNotification > FAILURE_THROTTLE_MS) {
+      lastFailureNotification = now;
+      self.postMessage({ type: 'decryptionFailed', userId });
+    }
+  }
+
   return new TransformStream({
     async transform(frame, controller) {
       const src = new Uint8Array(frame.data);
@@ -299,8 +311,8 @@ function decodeTransform(userId) {
       const cryptoKey = getKey(userId, keyIndex);
 
       if (!cryptoKey) {
-        // Key not available yet — drop frame to avoid feeding
-        // ciphertext to the decoder (would produce garbled output)
+        // Key not available yet — drop frame and notify
+        notifyFailure();
         return;
       }
 
@@ -329,8 +341,10 @@ function decodeTransform(userId) {
         frame.data = dst.buffer;
         controller.enqueue(frame);
       } catch {
-        // Decryption failed (wrong key, tampered frame) — drop frame.
-        // The decoder handles missing frames gracefully (freeze/last-good-frame).
+        // Decryption failed (wrong key, tampered frame) — drop frame and notify.
+        // The decoder freezes on the last good frame; the app can show a
+        // warning via EncryptionManager.onDecryptionFailed.
+        notifyFailure();
       }
     },
   });

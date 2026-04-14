@@ -94,7 +94,11 @@ export class Subscriber extends BasePeerConnection {
     });
 
     if (this.e2ee) {
-      this.e2ee.decrypt(e.receiver, trackId);
+      // Use the participant's userId for key lookup when available.
+      // Falls back to trackLookupPrefix for orphaned tracks (frames will
+      // be dropped until the participant is registered and keys are set).
+      const decryptUserId = participantToUpdate?.userId ?? trackId;
+      this.e2ee.decrypt(e.receiver, decryptUserId);
       this.logger.debug('E2EE decryptor attached to receiver');
     }
 
