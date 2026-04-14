@@ -4,20 +4,25 @@ import type {
   EncryptionManager,
 } from '@stream-io/video-react-sdk';
 
-export interface ParticipantState {
+export interface ParticipantSession {
+  // Identity
   userId: string;
   name: string;
   color: string;
+
+  // SDK handles (set once per session)
   client: StreamVideoClient;
   call: Call;
-  e2ee: EncryptionManager;
+  e2eeManager: EncryptionManager;
+
+  // E2EE key state (changes on rotation / manual set)
   currentKey: ArrayBuffer;
   keyIndex: number;
+
+  // UI state
   joined: boolean;
   /** True when this participant's worker reports decryption failures. */
   decryptionFailed: boolean;
-  /** Dismiss the decryption error toast. Set by App. */
-  onDismissError?: () => void;
 }
 
 export interface EventLogEntry {

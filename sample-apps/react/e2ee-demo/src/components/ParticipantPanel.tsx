@@ -1,3 +1,4 @@
+import { memo, useCallback } from 'react';
 import {
   CallingState,
   CallControls,
@@ -7,15 +8,16 @@ import {
   StreamVideo,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import type { ParticipantState } from '../types';
+import type { ParticipantSession } from '../types';
 import { KeyControls } from './KeyControls';
 import './ParticipantPanel.css';
 
 interface ParticipantPanelProps {
-  participant: ParticipantState;
+  participant: ParticipantSession;
   onRemove: (userId: string) => void;
   onRotateKey: (userId: string, localOnly: boolean) => void;
   onSetKey: (userId: string, input: string, localOnly: boolean) => void;
+  onDismissError: (userId: string) => void;
 }
 
 const CallUI = () => {
@@ -34,14 +36,29 @@ const CallUI = () => {
   );
 };
 
-export const ParticipantPanel = ({
+export const ParticipantPanel = memo(function ParticipantPanel({
   participant,
   onRemove,
   onRotateKey,
   onSetKey,
-}: ParticipantPanelProps) => {
+  onDismissError,
+}: ParticipantPanelProps) {
   const { userId, name, color, client, call, currentKey, keyIndex } =
     participant;
+
+  const handleRemove = useCallback(() => onRemove(userId), [onRemove, userId]);
+  const handleRotate = useCallback(
+    (localOnly: boolean) => onRotateKey(userId, localOnly),
+    [onRotateKey, userId],
+  );
+  const handleSetKey = useCallback(
+    (input: string, localOnly: boolean) => onSetKey(userId, input, localOnly),
+    [onSetKey, userId],
+  );
+  const handleDismiss = useCallback(
+    () => onDismissError(userId),
+    [onDismissError, userId],
+  );
 
   return (
     <div className="participant-panel" style={{ borderTopColor: color }}>
@@ -58,7 +75,7 @@ export const ParticipantPanel = ({
         </div>
         <button
           className="participant-panel__remove"
-          onClick={() => onRemove(userId)}
+          onClick={handleRemove}
           title="Remove participant"
         >
           &times;
@@ -76,7 +93,7 @@ export const ParticipantPanel = ({
             <span>⚠️ Decryption failed — key mismatch</span>
             <button
               className="participant-panel__toast-dismiss"
-              onClick={() => participant.onDismissError?.()}
+              onClick={handleDismiss}
             >
               &times;
             </button>
@@ -88,9 +105,9 @@ export const ParticipantPanel = ({
         currentKey={currentKey}
         keyIndex={keyIndex}
         color={color}
-        onRotate={(localOnly) => onRotateKey(userId, localOnly)}
-        onSetKey={(input, localOnly) => onSetKey(userId, input, localOnly)}
+        onRotate={handleRotate}
+        onSetKey={handleSetKey}
       />
     </div>
   );
-};
+});

@@ -252,7 +252,7 @@ export class Call {
   private readonly dispatcher = new Dispatcher();
 
   private clientPublishOptions?: ClientPublishOptions;
-  private e2eeManager?: EncryptionManager;
+  e2eeManager?: EncryptionManager;
   private currentPublishOptions?: PublishOption[];
   private statsReportingIntervalInMs: number = 2000;
   private statsReporter?: StatsReporter;

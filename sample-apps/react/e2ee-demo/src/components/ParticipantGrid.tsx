@@ -1,12 +1,13 @@
-import type { ParticipantState } from '../types';
+import type { ParticipantSession } from '../types';
 import { ParticipantPanel } from './ParticipantPanel';
 import './ParticipantGrid.css';
 
 interface ParticipantGridProps {
-  participants: ParticipantState[];
+  participants: ParticipantSession[];
   onRemove: (userId: string) => void;
   onRotateKey: (userId: string, localOnly: boolean) => void;
   onSetKey: (userId: string, input: string, localOnly: boolean) => void;
+  onDismissError: (userId: string) => void;
 }
 
 export const ParticipantGrid = ({
@@ -14,6 +15,7 @@ export const ParticipantGrid = ({
   onRemove,
   onRotateKey,
   onSetKey,
+  onDismissError,
 }: ParticipantGridProps) => {
   if (participants.length === 0) {
     return (
@@ -35,6 +37,7 @@ export const ParticipantGrid = ({
           onRemove={onRemove}
           onRotateKey={onRotateKey}
           onSetKey={onSetKey}
+          onDismissError={onDismissError}
         />
       ))}
     </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toHex } from '../crypto';
+import { toHex } from '../e2ee/keys';
 import './KeyControls.css';
 
 interface KeyControlsProps {
