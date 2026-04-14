@@ -93,15 +93,6 @@ export class Subscriber extends BasePeerConnection {
       this.state.removeOrphanedTrack(primaryStream.id);
     });
 
-    if (this.e2ee) {
-      // Use the participant's userId for key lookup when available.
-      // Falls back to trackLookupPrefix for orphaned tracks (frames will
-      // be dropped until the participant is registered and keys are set).
-      const decryptUserId = participantToUpdate?.userId ?? trackId;
-      this.e2ee.decrypt(e.receiver, decryptUserId);
-      this.logger.debug('E2EE decryptor attached to receiver');
-    }
-
     const trackType = toTrackType(rawTrackType);
     if (!trackType) {
       return this.logger.error(`Unknown track type: ${rawTrackType}`);
@@ -119,8 +110,13 @@ export class Subscriber extends BasePeerConnection {
         trackLookupPrefix: trackId,
         track: primaryStream,
         trackType,
+        receiver: this.e2ee ? e.receiver : undefined,
       });
       return;
+    } else if (this.e2ee) {
+      const { userId } = participantToUpdate;
+      this.e2ee.decrypt(e.receiver, userId);
+      this.logger.debug('E2EE decryptor attached to receiver', userId);
     }
 
     const streamKindProp = trackTypeToParticipantStreamKey(trackType);

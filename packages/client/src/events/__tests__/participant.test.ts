@@ -1,5 +1,5 @@
 import '../../rtc/__tests__/mocks/webrtc.mocks';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { CallState } from '../../store';
 import { VisibilityState } from '../../types';
 import { TrackType } from '../../gen/video/sfu/models/models';
@@ -191,6 +191,135 @@ describe('Participant events', () => {
       expect(p).toBeDefined();
       expect(p?.screenShareStream).toBe(mediaStream);
       expect(state.takeOrphanedTracks('track-lookup-prefix')).toHaveLength(0);
+    });
+
+    it('participantJoined should attach E2EE decryptor to orphaned track receiver', () => {
+      const state = new CallState();
+      const mediaStream = new MediaStream();
+      const receiver = {} as RTCRtpReceiver;
+      const e2ee = { decrypt: vi.fn() };
+      state.registerOrphanedTrack({
+        trackLookupPrefix: 'track-lookup-prefix',
+        trackType: TrackType.VIDEO,
+        track: mediaStream,
+        id: mediaStream.id,
+        receiver,
+      });
+      // @ts-expect-error partial mock
+      const onParticipantJoined = watchParticipantJoined(state, e2ee);
+      onParticipantJoined({
+        // @ts-expect-error incomplete data
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          trackLookupPrefix: 'track-lookup-prefix',
+        },
+      });
+
+      expect(e2ee.decrypt).toHaveBeenCalledWith(receiver, 'user-id');
+    });
+
+    it('trackPublished should attach E2EE decryptor to orphaned track receiver', () => {
+      const state = new CallState();
+      const mediaStream = new MediaStream();
+      const receiver = {} as RTCRtpReceiver;
+      const e2ee = { decrypt: vi.fn() };
+      state.registerOrphanedTrack({
+        trackLookupPrefix: 'track-lookup-prefix',
+        trackType: TrackType.AUDIO,
+        track: mediaStream,
+        id: mediaStream.id,
+        receiver,
+      });
+      // @ts-expect-error partial mock
+      const onTrackPublished = watchTrackPublished(state, e2ee);
+      onTrackPublished({
+        // @ts-expect-error incomplete data
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          trackLookupPrefix: 'track-lookup-prefix',
+        },
+      });
+
+      expect(e2ee.decrypt).toHaveBeenCalledWith(receiver, 'user-id');
+    });
+
+    it('trackUnpublished should attach E2EE decryptor to orphaned track receiver', () => {
+      const state = new CallState();
+      const mediaStream = new MediaStream();
+      const receiver = {} as RTCRtpReceiver;
+      const e2ee = { decrypt: vi.fn() };
+      state.registerOrphanedTrack({
+        trackLookupPrefix: 'track-lookup-prefix',
+        trackType: TrackType.SCREEN_SHARE,
+        track: mediaStream,
+        id: mediaStream.id,
+        receiver,
+      });
+      // @ts-expect-error partial mock
+      const onTrackUnPublished = watchTrackUnpublished(state, e2ee);
+      onTrackUnPublished({
+        // @ts-expect-error incomplete data
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          trackLookupPrefix: 'track-lookup-prefix',
+        },
+      });
+
+      expect(e2ee.decrypt).toHaveBeenCalledWith(receiver, 'user-id');
+    });
+
+    it('should not call decrypt when no E2EE manager is provided', () => {
+      const state = new CallState();
+      const mediaStream = new MediaStream();
+      const receiver = {} as RTCRtpReceiver;
+      state.registerOrphanedTrack({
+        trackLookupPrefix: 'track-lookup-prefix',
+        trackType: TrackType.VIDEO,
+        track: mediaStream,
+        id: mediaStream.id,
+        receiver,
+      });
+      const onParticipantJoined = watchParticipantJoined(state);
+      onParticipantJoined({
+        // @ts-expect-error incomplete data
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          trackLookupPrefix: 'track-lookup-prefix',
+        },
+      });
+
+      const p = state.findParticipantBySessionId('session-id');
+      expect(p?.videoStream).toBe(mediaStream);
+    });
+
+    it('should not call decrypt when orphaned track has no receiver', () => {
+      const state = new CallState();
+      const mediaStream = new MediaStream();
+      const e2ee = { decrypt: vi.fn() };
+      state.registerOrphanedTrack({
+        trackLookupPrefix: 'track-lookup-prefix',
+        trackType: TrackType.VIDEO,
+        track: mediaStream,
+        id: mediaStream.id,
+      });
+      // @ts-expect-error partial mock
+      const onParticipantJoined = watchParticipantJoined(state, e2ee);
+      onParticipantJoined({
+        // @ts-expect-error incomplete data
+        participant: {
+          userId: 'user-id',
+          sessionId: 'session-id',
+          trackLookupPrefix: 'track-lookup-prefix',
+        },
+      });
+
+      expect(e2ee.decrypt).not.toHaveBeenCalled();
+      const p = state.findParticipantBySessionId('session-id');
+      expect(p?.videoStream).toBe(mediaStream);
     });
   });
 

@@ -15,6 +15,7 @@ import {
 import { NegotiationError } from '../NegotiationError';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
+import { fromPartial } from '@total-typescript/shoehorn';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
@@ -215,16 +216,17 @@ describe('Subscriber', () => {
       expect(baseStream.removeTrack).toHaveBeenCalledWith(baseTrack);
     });
 
-    it('should attach a decryptor when E2EE manager is provided', () => {
+    it('should store receiver in orphaned track when E2EE is enabled', () => {
       const e2eeMock = {
         encrypt: vi.fn(),
         decrypt: vi.fn(),
       };
       subscriber.dispose();
+      const e2eeState = new CallState();
       subscriber = new Subscriber({
         sfuClient,
         dispatcher,
-        state,
+        state: e2eeState,
         connectionConfig: { iceServers: [] },
         tag: 'test',
         enableTracing: true,
@@ -236,14 +238,26 @@ describe('Subscriber', () => {
       const mediaStreamTrack = new MediaStreamTrack();
       const receiver = {};
       // @ts-expect-error - mock
-      mediaStream.id = '123:TRACK_TYPE_VIDEO';
+      mediaStream.id = 'orphan-prefix:TRACK_TYPE_VIDEO';
 
+      const registerOrphanedTrackSpy = vi.spyOn(
+        e2eeState,
+        'registerOrphanedTrack',
+      );
       const onTrack = subscriber['handleOnTrack'];
       // @ts-expect-error - incomplete mock
       onTrack({ streams: [mediaStream], track: mediaStreamTrack, receiver });
 
-      // Falls back to trackId when participant is not found (orphaned track)
-      expect(e2eeMock.decrypt).toHaveBeenCalledWith(receiver, '123');
+      // Decrypt is NOT called immediately for orphaned tracks
+      expect(e2eeMock.decrypt).not.toHaveBeenCalled();
+      // Receiver is stored with the orphaned track for later reconciliation
+      expect(registerOrphanedTrackSpy).toHaveBeenCalledWith({
+        id: mediaStream.id,
+        trackLookupPrefix: 'orphan-prefix',
+        track: mediaStream,
+        trackType: TrackType.VIDEO,
+        receiver,
+      });
     });
 
     it('should decrypt with userId when participant is found', () => {
@@ -252,10 +266,11 @@ describe('Subscriber', () => {
         decrypt: vi.fn(),
       };
       subscriber.dispose();
+      const e2eeState = new CallState();
       subscriber = new Subscriber({
         sfuClient,
         dispatcher,
-        state,
+        state: e2eeState,
         connectionConfig: { iceServers: [] },
         tag: 'test',
         enableTracing: true,
@@ -264,11 +279,14 @@ describe('Subscriber', () => {
       });
 
       // Register a participant whose trackLookupPrefix matches the stream
-      state.updateOrAddParticipant('session-id', {
-        sessionId: 'session-id',
-        userId: 'real-user-id',
-        trackLookupPrefix: '123',
-      });
+      e2eeState.updateOrAddParticipant(
+        'session-id',
+        fromPartial({
+          sessionId: 'session-id',
+          userId: 'real-user-id',
+          trackLookupPrefix: '123',
+        }),
+      );
 
       const mediaStream = new MediaStream();
       const mediaStreamTrack = new MediaStreamTrack();
