@@ -19,16 +19,16 @@
  * - VP9: 0 bytes (descriptor is in RTP header)
  * - H264: NALU-aware — clear up to first slice NALU start + 2, then
  *   RBSP-escape the encrypted tail to prevent fake start codes
- * - AV1: not supported (frames pass through unencrypted)
+ * - AV1: not supported (blocked at the EncryptionManager level)
  *
- * Encrypted frames carry a 10-byte trailer:
- *   [4 bytes frameCounter][1 byte keyIndex][1 byte clearBytes|flags][4 bytes 0xDEADBEEF]
+ * Encrypted frames carry an 11-byte trailer:
+ *   [4 bytes frameCounter][1 byte keyIndex][2 bytes clearBytes|flags][4 bytes 0xDEADBEEF]
  *
  * The AES-GCM ciphertext includes a 16-byte authentication tag.
  * Clear bytes are passed as Additional Authenticated Data (AAD),
  * so the SFU can read them but tampering is detected on decrypt.
  *
- * Total overhead per frame: 26 bytes (16 GCM tag + 10 trailer).
+ * Total overhead per frame: 27 bytes (16 GCM tag + 11 trailer).
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_Encoded_Transforms
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#aes-gcm
@@ -37,9 +37,9 @@ export const WORKER_SOURCE = `
 'use strict';
 
 const MAGIC = 0xDEADBEEF;
-const TRAILER_LEN = 10; // 4 frameCounter + 1 keyIndex + 1 clearBytes + 4 magic
+const TRAILER_LEN = 11; // 4 frameCounter + 1 keyIndex + 2 clearBytes + 4 magic
 const IV_LEN = 12;
-const RBSP_FLAG = 0x80; // bit 7 of the clearBytes byte signals RBSP escaping
+const RBSP_FLAG = 0x8000; // bit 15 of the 2-byte clearBytes field signals RBSP escaping
 
 // ---- Key Store ----
 
@@ -52,23 +52,29 @@ const frameCounters = new Map();
 // Shared fallback: used when no per-user key is set for a given userId.
 // Enables the simple "everyone uses the same key" scenario.
 let sharedKey = null; // { key: CryptoKey, keyIndex: number } | null
-let sharedKeyIndex = 0;
 
 async function importKey(userId, keyIndex, rawKey) {
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw', rawKey, { name: 'AES-GCM', length: 128 }, false, ['encrypt', 'decrypt']
-  );
-  if (!keyStore.has(userId)) keyStore.set(userId, new Map());
-  keyStore.get(userId).set(keyIndex, cryptoKey);
-  latestKeyIndex.set(userId, keyIndex);
+  try {
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw', rawKey, { name: 'AES-GCM', length: 128 }, false, ['encrypt', 'decrypt']
+    );
+    if (!keyStore.has(userId)) keyStore.set(userId, new Map());
+    keyStore.get(userId).set(keyIndex, cryptoKey);
+    latestKeyIndex.set(userId, keyIndex);
+  } catch (e) {
+    self.postMessage({ type: 'error', message: 'Failed to import key for user ' + userId + ': ' + e.message });
+  }
 }
 
 async function importSharedKey(keyIndex, rawKey) {
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw', rawKey, { name: 'AES-GCM', length: 128 }, false, ['encrypt', 'decrypt']
-  );
-  sharedKey = { key: cryptoKey, keyIndex };
-  sharedKeyIndex = keyIndex;
+  try {
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw', rawKey, { name: 'AES-GCM', length: 128 }, false, ['encrypt', 'decrypt']
+    );
+    sharedKey = { key: cryptoKey, keyIndex };
+  } catch (e) {
+    self.postMessage({ type: 'error', message: 'Failed to import shared key: ' + e.message });
+  }
 }
 
 function removeKeys(userId) {
@@ -97,7 +103,7 @@ function getLatestKey(userId) {
 }
 
 // IV = [8 zero bytes][4-byte frame counter big-endian]
-// Unique per (key, counter) pair — safe because each participant has their own key
+// Unique per (key, counter) pair — each user has their own key
 // and the counter is monotonically increasing.
 function buildIV(frameCounter) {
   const iv = new ArrayBuffer(IV_LEN);
@@ -202,23 +208,27 @@ function getClearByteCount(codec, frameType, data) {
 
 // ---- Trailer read/write ----
 
+// Trailer layout (11 bytes):
+// [4B frameCounter][1B keyIndex][2B clearBytes|flags][4B magic]
+// clearBytes uses 15 bits (max 32767), bit 15 is the RBSP flag.
 function writeTrailer(dst, offset, frameCounter, keyIndex, clearBytes, isRbsp) {
   const view = new DataView(dst.buffer, dst.byteOffset, dst.byteLength);
   view.setUint32(offset, frameCounter);
   dst[offset + 4] = keyIndex;
-  dst[offset + 5] = isRbsp ? (clearBytes | RBSP_FLAG) : clearBytes;
-  view.setUint32(offset + 6, MAGIC);
+  view.setUint16(offset + 5, isRbsp ? (clearBytes | RBSP_FLAG) : clearBytes);
+  view.setUint32(offset + 7, MAGIC);
 }
 
 function readTrailer(src) {
   if (src.length < TRAILER_LEN) return null;
   const view = new DataView(src.buffer, src.byteOffset, src.byteLength);
   if (view.getUint32(src.length - 4) !== MAGIC) return null;
+  const raw = view.getUint16(src.length - 6);
   return {
     frameCounter: view.getUint32(src.length - TRAILER_LEN),
-    keyIndex: src[src.length - 6],
-    clearBytes: src[src.length - 5] & 0x7F,
-    isRbsp: (src[src.length - 5] & RBSP_FLAG) !== 0,
+    keyIndex: src[src.length - 7],
+    clearBytes: raw & 0x7FFF,
+    isRbsp: (raw & RBSP_FLAG) !== 0,
   };
 }
 
@@ -226,20 +236,11 @@ function readTrailer(src) {
 
 function encodeTransform(userId, codec) {
   const isNalu = codec === 'h264';
-
   return new TransformStream({
     async transform(frame, controller) {
-      // https://groups.google.com/g/discuss-webrtc/c/5CMOZ4JtERo
-      // https://issues.chromium.org/issues/40287616
-      if (codec === 'av1') {
-        controller.enqueue(frame);
-        return;
-      }
-
       const entry = getLatestKey(userId);
       if (!entry) {
-        // No key set yet — pass through unencrypted
-        controller.enqueue(frame);
+        // No key set yet — drop frame to avoid leaking plaintext
         return;
       }
 
@@ -274,11 +275,10 @@ function encodeTransform(userId, codec) {
           writeTrailer(dst, clearBytes + ciphertext.length, counter, keyIndex, clearBytes, false);
           frame.data = dst.buffer;
         }
+        controller.enqueue(frame);
       } catch {
-        // Encryption failed — pass through unencrypted
+        // Encryption failed — drop frame to avoid sending plaintext
       }
-
-      controller.enqueue(frame);
     },
   });
 }
@@ -299,8 +299,8 @@ function decodeTransform(userId) {
       const cryptoKey = getKey(userId, keyIndex);
 
       if (!cryptoKey) {
-        // Key not available yet — pass through
-        controller.enqueue(frame);
+        // Key not available yet — drop frame to avoid feeding
+        // ciphertext to the decoder (would produce garbled output)
         return;
       }
 
@@ -327,11 +327,11 @@ function decodeTransform(userId) {
         if (clearBytes > 0) dst.set(src.subarray(0, clearBytes), 0);
         dst.set(plaintext, clearBytes);
         frame.data = dst.buffer;
+        controller.enqueue(frame);
       } catch {
-        // Decryption failed (wrong key, corrupted) — pass through as-is
+        // Decryption failed (wrong key, tampered frame) — drop frame.
+        // The decoder handles missing frames gracefully (freeze/last-good-frame).
       }
-
-      controller.enqueue(frame);
     },
   });
 }

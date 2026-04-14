@@ -1,4 +1,13 @@
 import { isChrome } from '../../helpers/browsers';
+import { type ScopedLogger, videoLoggerSystem } from '../../logger';
+
+const validateKeyLength = (rawKey: ArrayBuffer) => {
+  if (rawKey.byteLength !== 16) {
+    throw new Error(
+      `Key must be exactly 16 bytes (AES-128), got ${rawKey.byteLength}`,
+    );
+  }
+};
 
 /**
  * End-to-end encryption manager for WebRTC media tracks.
@@ -11,13 +20,15 @@ import { isChrome } from '../../helpers/browsers';
  * import { EncryptionManager } from '@stream-io/video-react-sdk';
  *
  * if (EncryptionManager.isSupported()) {
- *   const e2ee = await EncryptionManager.create();
+ *   const e2ee = await EncryptionManager.create(call.currentUserId);
  *   call.setE2EEManager(e2ee);
  *   e2ee.setSharedKey(0, rawKeyBytes);
  * }
  * ```
  */
 export class EncryptionManager {
+  private readonly logger: ScopedLogger;
+  private disposed = false;
   private piped?: WeakSet<RTCRtpSender | RTCRtpReceiver>;
 
   private readonly userId: string;
@@ -32,9 +43,12 @@ export class EncryptionManager {
    * @param workerUrl the blob URL to revoke on dispose.
    */
   private constructor(userId: string, worker: Worker, workerUrl: string) {
+    this.logger = videoLoggerSystem.getLogger('EncryptionManager');
     this.userId = userId;
     this.worker = worker;
     this.workerUrl = workerUrl;
+    this.worker.addEventListener('message', this.handleWorkerMessage);
+    this.worker.addEventListener('error', this.handleWorkerError);
   }
 
   /**
@@ -91,17 +105,39 @@ export class EncryptionManager {
   };
 
   /**
+   * Terminate the worker and release all resources.
+   *
+   * After calling this, the manager instance is no longer usable.
+   * Call {@link create} to obtain a new one if needed.
+   * Safe to call multiple times.
+   */
+  dispose = (): void => {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.cleanup();
+    this.worker.removeEventListener('message', this.handleWorkerMessage);
+    this.worker.removeEventListener('error', this.handleWorkerError);
+    this.worker.terminate();
+    URL.revokeObjectURL(this.workerUrl);
+  };
+
+  /**
    * Set a per-user AES-128-GCM encryption key in the worker's key store.
    *
    * Use this when each participant has their own key, distributed by a
    * central authority. The receiver identifies the correct key via the
    * `keyIndex` embedded in each encrypted frame's trailer.
    *
-   * @param userId - The user's ID (matches the `trackLookupPrefix` on the receiver side).
+   * @param userId - The user's ID. For per-user keys, this must match the
+   *         `trackLookupPrefix` that appears in the remote participant's stream ID
+   *         (format: `trackLookupPrefix:TRACK_TYPE_*`). The subscriber uses this
+   *         prefix for key lookup during decryption. With shared keys this doesn't
+   *         matter since the shared key is used as a fallback for all users.
    * @param keyIndex - Monotonically increasing index for key rotation.
    * @param rawKey - 16-byte raw AES-128 key material. Transferred to the worker (zero-copy).
    */
   setKey = (userId: string, keyIndex: number, rawKey: ArrayBuffer): void => {
+    validateKeyLength(rawKey);
     this.worker.postMessage({ type: 'setKey', userId, keyIndex, rawKey }, [
       rawKey,
     ]);
@@ -118,6 +154,7 @@ export class EncryptionManager {
    * @param rawKey - 16-byte raw AES-128 key material. Transferred to the worker (zero-copy).
    */
   setSharedKey = (keyIndex: number, rawKey: ArrayBuffer): void => {
+    validateKeyLength(rawKey);
     this.worker.postMessage({ type: 'setSharedKey', keyIndex, rawKey }, [
       rawKey,
     ]);
@@ -144,11 +181,8 @@ export class EncryptionManager {
    * @internal
    */
   encrypt = (sender: RTCRtpSender, codec?: string): void => {
-    this.pipe(sender, {
-      operation: 'encode',
-      userId: this.userId,
-      codec,
-    });
+    if (codec === 'av1') throw new Error(`AV1 is unsupported`);
+    this.pipe(sender, { operation: 'encode', userId: this.userId, codec });
   };
 
   /**
@@ -201,22 +235,19 @@ export class EncryptionManager {
 
   /**
    * Clear all keys from the worker and reset internal state.
-   * Called automatically when the call ends (registered via {@link bind}).
    */
   private cleanup = (): void => {
     this.worker.postMessage({ type: 'dispose' });
     this.piped = undefined;
   };
 
-  /**
-   * Terminate the worker and release all resources.
-   *
-   * After calling this, the manager instance is no longer usable.
-   * Call {@link create} to obtain a new one if needed.
-   */
-  dispose = (): void => {
-    this.cleanup();
-    this.worker.terminate();
-    URL.revokeObjectURL(this.workerUrl);
+  private handleWorkerMessage = (e: MessageEvent) => {
+    if (e.data?.type === 'error') {
+      this.logger.error(e.data.message);
+    }
+  };
+
+  private handleWorkerError = (e: ErrorEvent) => {
+    this.logger.error('Unhandled worker error:', e.message);
   };
 }

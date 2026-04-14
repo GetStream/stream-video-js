@@ -25,19 +25,32 @@ export const getQueryConfigParams = (query: NextRouter['query']) => {
 };
 
 /**
- * Derive a 128-bit (16-byte) AES key from an arbitrary passphrase
- * by cyclically mapping its UTF-8 bytes into a 16-byte buffer.
+ * Derive a 128-bit (16-byte) AES key from a passphrase using PBKDF2.
  */
-const deriveKeyFromPassphrase = (passphrase: string): ArrayBuffer => {
-  const bytes = new TextEncoder().encode(passphrase);
-  const key = new Uint8Array(16);
-  for (let i = 0; i < key.length; i++) {
-    key[i] = bytes[i % bytes.length];
-  }
-  return key.buffer;
+const deriveKeyFromPassphrase = async (
+  passphrase: string,
+): Promise<ArrayBuffer> => {
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(passphrase),
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  );
+  return crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: enc.encode('stream-e2ee'),
+      iterations: 100_000,
+      hash: 'SHA-256',
+    },
+    baseKey,
+    128,
+  );
 };
 
-export const applyQueryConfigParams = (
+export const applyQueryConfigParams = async (
   call: Call,
   query: NextRouter['query'],
 ) => {
@@ -83,11 +96,13 @@ export const applyQueryConfigParams = (
     ? parseInt(bitrateOverride, 10)
     : undefined;
 
+  // E2EE must be fully initialized before join() so the RTCPeerConnection
+  // is configured with encodedInsertableStreams on Chromium.
   if (encryptionKey && call.currentUserId && EncryptionManager.isSupported()) {
-    EncryptionManager.create(call.currentUserId).then((e2ee) => {
-      call.setE2EEManager(e2ee);
-      e2ee.setSharedKey(0, deriveKeyFromPassphrase(encryptionKey));
-    });
+    const rawKey = await deriveKeyFromPassphrase(encryptionKey);
+    const e2ee = await EncryptionManager.create(call.currentUserId);
+    e2ee.setSharedKey(0, rawKey);
+    call.setE2EEManager(e2ee);
   }
 
   call.updatePublishOptions({
