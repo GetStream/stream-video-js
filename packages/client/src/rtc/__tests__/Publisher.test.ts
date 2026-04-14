@@ -133,7 +133,11 @@ describe('Publisher', () => {
       expect(negotiateSpy).toHaveBeenCalled();
     });
 
-    it('should attach an encryptor when an encryption key is provided', async () => {
+    it('should attach an encryptor when E2EE manager is provided', async () => {
+      const e2eeMock = {
+        encrypt: vi.fn(),
+        decrypt: vi.fn(),
+      };
       publisher.dispose();
       publisher = new Publisher(
         {
@@ -142,9 +146,8 @@ describe('Publisher', () => {
           state,
           tag: 'test',
           enableTracing: false,
-          clientPublishOptions: {
-            encryptionKey: 'shared-secret',
-          },
+          // @ts-expect-error - partial mock
+          e2ee: e2eeMock,
         },
         [
           {
@@ -168,14 +171,10 @@ describe('Publisher', () => {
 
       await publisher.publish(track, TrackType.VIDEO);
 
-      const transceiver = vi.mocked(publisher['pc'].addTransceiver).mock
-        .results[0]?.value;
-      expect(transceiver.sender.transform).toMatchObject({
-        options: expect.objectContaining({
-          operation: 'encode',
-          key: 'shared-secret',
-        }),
-      });
+      expect(e2eeMock.encrypt).toHaveBeenCalledWith(
+        expect.anything(), // sender
+        'vp9',
+      );
     });
 
     it('should update an existing transceiver for a new track', async () => {

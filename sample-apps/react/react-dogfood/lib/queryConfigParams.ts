@@ -1,5 +1,9 @@
 import { NextRouter } from 'next/router';
-import { Call, PreferredCodec } from '@stream-io/video-react-sdk';
+import {
+  Call,
+  PreferredCodec,
+  EncryptionManager,
+} from '@stream-io/video-react-sdk';
 
 export const getQueryConfigParams = (query: NextRouter['query']) => {
   return {
@@ -18,6 +22,19 @@ export const getQueryConfigParams = (query: NextRouter['query']) => {
     microphoneOverride: query['mic'] as string | undefined,
     encryptionKey: query['encryption_key'] as string | undefined,
   };
+};
+
+/**
+ * Derive a 128-bit (16-byte) AES key from an arbitrary passphrase
+ * by cyclically mapping its UTF-8 bytes into a 16-byte buffer.
+ */
+const deriveKeyFromPassphrase = (passphrase: string): ArrayBuffer => {
+  const bytes = new TextEncoder().encode(passphrase);
+  const key = new Uint8Array(16);
+  for (let i = 0; i < key.length; i++) {
+    key[i] = bytes[i % bytes.length];
+  }
+  return key.buffer;
 };
 
 export const applyQueryConfigParams = (
@@ -66,6 +83,13 @@ export const applyQueryConfigParams = (
     ? parseInt(bitrateOverride, 10)
     : undefined;
 
+  if (encryptionKey && call.currentUserId && EncryptionManager.isSupported()) {
+    EncryptionManager.create(call.currentUserId).then((e2ee) => {
+      call.setE2EEManager(e2ee);
+      e2ee.setSharedKey(0, deriveKeyFromPassphrase(encryptionKey));
+    });
+  }
+
   call.updatePublishOptions({
     dangerouslyForceCodec: forceCodec,
     preferredCodec: videoCodecOverride,
@@ -76,7 +100,6 @@ export const applyQueryConfigParams = (
     maxSimulcastLayers: maxSimulcastLayers
       ? parseInt(maxSimulcastLayers, 10)
       : undefined,
-    encryptionKey,
   });
 
   return config;

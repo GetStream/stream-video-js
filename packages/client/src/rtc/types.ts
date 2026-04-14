@@ -9,6 +9,7 @@ import { CallState } from '../store';
 import { Dispatcher } from './Dispatcher';
 import type { OptimalVideoLayer } from './layers';
 import type { ClientPublishOptions } from '../types';
+import type { EncryptionManager } from './e2ee/EncryptionManager';
 
 export type OnReconnectionNeeded = (
   kind: WebsocketReconnectStrategy,
@@ -26,6 +27,7 @@ export type BasePeerConnectionOpts = {
   enableTracing: boolean;
   iceRestartDelay?: number;
   clientPublishOptions?: ClientPublishOptions;
+  e2ee?: EncryptionManager;
 };
 
 export type TrackPublishOptions = {

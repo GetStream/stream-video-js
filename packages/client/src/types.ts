@@ -236,12 +236,6 @@ export type ClientPublishOptions = {
    * For example, if the max bitrate is 1500kbps and the start bitrate factor is 0.5, the start bitrate will be 750kbps.
    */
   dangerouslySetStartBitrateFactor?: number;
-
-  /**
-   * Optional E2EE key to use for published media tracks in browsers that
-   * support WebRTC encoded transforms.
-   */
-  encryptionKey?: string;
 };
 
 export type ScreenShareSettings = {

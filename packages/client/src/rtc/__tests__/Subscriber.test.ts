@@ -215,7 +215,11 @@ describe('Subscriber', () => {
       expect(baseStream.removeTrack).toHaveBeenCalledWith(baseTrack);
     });
 
-    it('should attach a decryptor when an encryption key is provided', async () => {
+    it('should attach a decryptor when E2EE manager is provided', () => {
+      const e2eeMock = {
+        encrypt: vi.fn(),
+        decrypt: vi.fn(),
+      };
       subscriber.dispose();
       subscriber = new Subscriber({
         sfuClient,
@@ -224,14 +228,13 @@ describe('Subscriber', () => {
         connectionConfig: { iceServers: [] },
         tag: 'test',
         enableTracing: true,
-        clientPublishOptions: {
-          encryptionKey: 'shared-secret',
-        },
+        // @ts-expect-error - partial mock
+        e2ee: e2eeMock,
       });
 
       const mediaStream = new MediaStream();
       const mediaStreamTrack = new MediaStreamTrack();
-      const receiver = { transform: null };
+      const receiver = {};
       // @ts-expect-error - mock
       mediaStream.id = '123:TRACK_TYPE_VIDEO';
 
@@ -239,15 +242,7 @@ describe('Subscriber', () => {
       // @ts-expect-error - incomplete mock
       onTrack({ streams: [mediaStream], track: mediaStreamTrack, receiver });
 
-      // decryptor is attached via dynamic import, flush the microtask queue
-      await new Promise((resolve) => setTimeout(resolve, 0));
-
-      expect(receiver.transform).toMatchObject({
-        options: expect.objectContaining({
-          operation: 'decode',
-          key: 'shared-secret',
-        }),
-      });
+      expect(e2eeMock.decrypt).toHaveBeenCalledWith(receiver, '123');
     });
   });
 
