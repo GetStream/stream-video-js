@@ -5,7 +5,8 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
-import { setFirebaseListeners } from './setFirebaseListeners';
+import { setNotificationListeners } from './setNotificationListeners';
+import { registerNonRingingNotificationHandler } from './registerNonRingingNotifications';
 
 export function setPushConfig() {
   StreamVideoRN.updateConfig({
@@ -35,7 +36,8 @@ export function setPushConfig() {
     createStreamVideoClient,
   });
 
-  setFirebaseListeners();
+  setNotificationListeners();
+  registerNonRingingNotificationHandler();
 }
 
 /**

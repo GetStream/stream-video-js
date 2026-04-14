@@ -80,6 +80,13 @@
           "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "sounds": []
+        }
+      ],
       "expo-router",
       [
         "expo-splash-screen",

@@ -6,7 +6,8 @@ import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createToken } from './createToken';
-import { setFirebaseListeners } from './setFirebaseListeners';
+import { setNotificationListeners } from './setNotificationListeners';
+import { registerNonRingingNotificationHandler } from './registerNonRingingNotifications';
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
@@ -20,19 +21,36 @@ export function setPushConfig() {
     createStreamVideoClient,
   });
 
-  setFirebaseListeners();
+  setNotificationListeners();
+  registerNonRingingNotificationHandler();
 
   if (Platform.OS === 'ios') {
     // show notification on foreground
     // https://docs.expo.dev/push-notifications/receiving-notifications/#foreground-notification-behavior
     Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowBanner: true,
-        shouldShowList: false,
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-      }),
+      handleNotification: async (notification) => {
+        // Suppress native banner for Stream non-ringing notifications
+        // (aps.alert is empty — we display via notifee instead)
+        const stream = notification.request.content.data?.stream as
+          | Record<string, string>
+          | undefined;
+        if (stream?.sender === 'stream.video' && stream?.type !== 'call.ring') {
+          return {
+            shouldShowBanner: false,
+            shouldShowList: false,
+            shouldShowAlert: false,
+            shouldPlaySound: false,
+            shouldSetBadge: false,
+          };
+        }
+        return {
+          shouldShowBanner: true,
+          shouldShowList: false,
+          shouldShowAlert: true,
+          shouldPlaySound: true,
+          shouldSetBadge: false,
+        };
+      },
     });
   }
 }
