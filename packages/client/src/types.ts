@@ -462,6 +462,15 @@ export type StreamRNVideoSDKGlobals = {
      */
     check(permission: 'microphone' | 'camera'): Promise<boolean>;
   };
+  nativeEvents: {
+    speechActivity: {
+      /**
+       * Subscribes to native speech activity events.
+       * Returns an unsubscribe function.
+       */
+      subscribe(cb: (state: { isSoundDetected: boolean }) => void): () => void;
+    };
+  };
 };
 
 declare global {

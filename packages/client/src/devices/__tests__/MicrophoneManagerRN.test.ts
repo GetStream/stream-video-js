@@ -12,11 +12,12 @@ import {
 import { of } from 'rxjs';
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { OwnCapability } from '../../gen/coordinator';
-import { SoundStateChangeHandler } from '../../helpers/sound-detector';
 import { settled, withoutConcurrency } from '../../helpers/concurrency';
 
-let handler: SoundStateChangeHandler = () => {};
-let unsubscribeHandlers: ReturnType<typeof vi.fn>[] = [];
+let speechActivityCallback:
+  | ((state: { isSoundDetected: boolean }) => void)
+  | null = null;
+let unsubscribeMocks: ReturnType<typeof vi.fn>[] = [];
 
 vi.mock('../../helpers/platforms.ts', () => {
   return {
@@ -46,28 +47,21 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
-vi.mock('../../helpers/RNSpeechDetector.ts', () => {
-  console.log('MOCKING RNSpeechDetector');
-  return {
-    RNSpeechDetector: vi.fn().mockImplementation(() => ({
-      start: vi.fn((callback) => {
-        handler = callback;
-        const unsubscribe = vi.fn();
-        unsubscribeHandlers.push(unsubscribe);
-        return unsubscribe;
-      }),
-      stop: vi.fn(),
-      onSpeakingDetectedStateChange: vi.fn(),
-    })),
-  };
-});
-
 describe('MicrophoneManager React Native', () => {
   let manager: MicrophoneManager;
   let checkPermissionMock: ReturnType<typeof vi.fn>;
+  let subscribeMock: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
-    unsubscribeHandlers = [];
+    speechActivityCallback = null;
+    unsubscribeMocks = [];
     checkPermissionMock = vi.fn(async () => true);
+    subscribeMock = vi.fn((cb) => {
+      speechActivityCallback = cb;
+      const unsub = vi.fn();
+      unsubscribeMocks.push(unsub);
+      return unsub;
+    });
 
     globalThis.streamRNVideoSDK = {
       callManager: {
@@ -77,6 +71,11 @@ describe('MicrophoneManager React Native', () => {
       },
       permissions: {
         check: checkPermissionMock,
+      },
+      nativeEvents: {
+        speechActivity: {
+          subscribe: subscribeMock,
+        },
       },
     };
 
@@ -100,7 +99,7 @@ describe('MicrophoneManager React Native', () => {
 
     await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
     expect(fn).toHaveBeenCalled();
-    expect(manager['rnSpeechDetector']?.start).toHaveBeenCalled();
+    expect(subscribeMock).toHaveBeenCalled();
   });
 
   it('should check native microphone permission before starting detection', async () => {
@@ -146,15 +145,15 @@ describe('MicrophoneManager React Native', () => {
 
   it('should update speaking while muted state', async () => {
     await manager['startSpeakingWhileMutedDetection']();
-    expect(manager['rnSpeechDetector']?.start).toHaveBeenCalled();
+    expect(subscribeMock).toHaveBeenCalled();
 
     expect(manager.state.speakingWhileMuted).toBe(false);
 
-    handler!({ isSoundDetected: true, audioLevel: 2 });
+    speechActivityCallback!({ isSoundDetected: true });
 
     expect(manager.state.speakingWhileMuted).toBe(true);
 
-    handler!({ isSoundDetected: false, audioLevel: 0 });
+    speechActivityCallback!({ isSoundDetected: false });
 
     expect(manager.state.speakingWhileMuted).toBe(false);
   });
@@ -163,21 +162,21 @@ describe('MicrophoneManager React Native', () => {
     await manager['startSpeakingWhileMutedDetection']('device-1');
     await manager['startSpeakingWhileMutedDetection']('device-1');
 
-    expect(unsubscribeHandlers).toHaveLength(1);
+    expect(unsubscribeMocks).toHaveLength(1);
 
     await manager['stopSpeakingWhileMutedDetection']();
-    expect(unsubscribeHandlers[0]).toHaveBeenCalledTimes(1);
+    expect(unsubscribeMocks[0]).toHaveBeenCalledTimes(1);
   });
 
   it('should cleanup previous speech detector before starting a new one', async () => {
     await manager['startSpeakingWhileMutedDetection']('device-1');
     await manager['startSpeakingWhileMutedDetection']('device-2');
 
-    expect(unsubscribeHandlers).toHaveLength(2);
-    expect(unsubscribeHandlers[0]).toHaveBeenCalledTimes(1);
+    expect(unsubscribeMocks).toHaveLength(2);
+    expect(unsubscribeMocks[0]).toHaveBeenCalledTimes(1);
 
     await manager['stopSpeakingWhileMutedDetection']();
-    expect(unsubscribeHandlers[1]).toHaveBeenCalledTimes(1);
+    expect(unsubscribeMocks[1]).toHaveBeenCalledTimes(1);
   });
 
   it('should stop speaking while muted notifications if user loses permission to send audio', async () => {
