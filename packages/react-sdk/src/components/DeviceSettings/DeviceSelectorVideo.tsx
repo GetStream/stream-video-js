@@ -5,6 +5,12 @@ import { DeviceVideoPreviewItem } from './DeviceVideoPreviewItem';
 
 export type DeviceSelectorVideoProps = {
   title?: string;
+  /**
+   * The visual style used to render the device selector.
+   *
+   * Note: `'preview'` is not reliable on mobile browsers. Use `'list'` or
+   * `'dropdown'` on mobile devices.
+   */
   visualType?: 'list' | 'dropdown' | 'preview';
 };
 
