@@ -48,6 +48,26 @@ const TRAILER_LEN = 12; // 4 frameCounter + 1 keyIndex + 2 clearBytes + 1 versio
 const IV_LEN = 12;
 const RBSP_FLAG = 0x8000; // bit 15 of the 2-byte clearBytes field signals RBSP escaping
 const EMPTY_AAD = new Uint8Array(0);
+const FAILURE_TOLERANCE = 10; // mark key invalid after this many consecutive decrypt failures
+
+// ---- Async Queue ----
+// Serializes key operations with transform setup to prevent races
+// (e.g. setKey arriving while ensureIVPrefix is in-flight).
+
+const msgQueue = [];
+let msgQueueRunning = false;
+async function enqueue(fn) {
+  msgQueue.push(fn);
+  if (msgQueueRunning) return;
+  msgQueueRunning = true;
+  while (msgQueue.length > 0) {
+    const task = msgQueue.shift();
+    try { await task(); } catch (e) {
+      self.postMessage({ type: 'error', message: 'Queue task error: ' + (e && e.message || e) });
+    }
+  }
+  msgQueueRunning = false;
+}
 
 // ---- Key Store ----
 
@@ -71,6 +91,32 @@ const ivPrefixes = new Map();
 // Raw bytes of the shared key, kept for lazy IV prefix computation
 // (the userId is only known when the transform runs, not at import time).
 let sharedRawKeyBytes = null; // Uint8Array | null
+
+// ---- Decryption failure tracking ----
+// Map<"userId:keyIndex", number> — consecutive failure count.
+// After FAILURE_TOLERANCE failures, the key is marked invalid and
+// frames are dropped immediately without attempting crypto.subtle.decrypt(),
+// saving 0.5-2ms of blocking time per frame.
+const decryptionFailureCounts = new Map();
+
+function isKeyInvalid(userId, keyIndex) {
+  return (decryptionFailureCounts.get(userId + ':' + keyIndex) || 0) > FAILURE_TOLERANCE;
+}
+
+function recordDecryptionFailure(userId, keyIndex) {
+  const k = userId + ':' + keyIndex;
+  decryptionFailureCounts.set(k, (decryptionFailureCounts.get(k) || 0) + 1);
+}
+
+function resetDecryptionFailures(userId, keyIndex) {
+  decryptionFailureCounts.delete(userId + ':' + keyIndex);
+}
+
+function clearDecryptionFailures(userId) {
+  for (const key of decryptionFailureCounts.keys()) {
+    if (key.startsWith(userId + ':')) decryptionFailureCounts.delete(key);
+  }
+}
 
 async function computeIVPrefix(rawKeyBytes, userId) {
   const userIdBytes = new TextEncoder().encode(userId);
@@ -111,6 +157,8 @@ async function importKey(userId, keyIndex, rawKey) {
 
     const prefix = await computeIVPrefix(rawKeyBytes, userId);
     ivPrefixes.set(userId + ':' + keyIndex, prefix);
+    // New key = fresh start for failure tracking
+    resetDecryptionFailures(userId, keyIndex);
   } catch (e) {
     self.postMessage({ type: 'error', message: 'Failed to import key for user ' + userId + ': ' + e.message });
   }
@@ -128,6 +176,8 @@ async function importSharedKey(keyIndex, rawKey) {
     for (const key of ivPrefixes.keys()) {
       if (!keyStore.has(key.split(':')[0])) ivPrefixes.delete(key);
     }
+    // New shared key = reset all failure counts (shared key is fallback for everyone)
+    decryptionFailureCounts.clear();
   } catch (e) {
     self.postMessage({ type: 'error', message: 'Failed to import shared key: ' + e.message });
   }
@@ -140,6 +190,7 @@ function removeKeys(userId) {
   for (const key of ivPrefixes.keys()) {
     if (key.startsWith(userId + ':')) ivPrefixes.delete(key);
   }
+  clearDecryptionFailures(userId);
 }
 
 function getKey(userId, keyIndex) {
@@ -349,7 +400,8 @@ async function encodeTransform(userId, codec) {
 
   return new TransformStream({
     async transform(frame, controller) {
-      if (!e2eeActive) {
+      // Empty frames (DTX silence, zero-byte video) skip the crypto path entirely
+      if (!e2eeActive || frame.data.byteLength === 0) {
         controller.enqueue(frame);
         if (perfEnabled) encodeFrameCount++;
         return;
@@ -432,6 +484,13 @@ async function decodeTransform(userId) {
 
   return new TransformStream({
     async transform(frame, controller) {
+      // Empty frames (DTX silence, zero-byte video) skip the crypto path entirely
+      if (frame.data.byteLength === 0) {
+        controller.enqueue(frame);
+        if (perfEnabled) decodeFrameCounts.set(userId, (decodeFrameCounts.get(userId) || 0) + 1);
+        return;
+      }
+
       const src = new Uint8Array(frame.data);
       const trailer = readTrailer(src);
 
@@ -445,15 +504,19 @@ async function decodeTransform(userId) {
       const { frameCounter, keyIndex, clearBytes, isRbsp, version } = trailer;
 
       if (version !== E2EE_VERSION) {
-        // Unsupported frame version — drop and notify
         notifyFailure();
+        return;
+      }
+
+      // Skip crypto for keys known to be invalid — avoids burning 0.5-2ms
+      // on doomed crypto.subtle.decrypt() calls that block the pipeline.
+      if (isKeyInvalid(userId, keyIndex)) {
         return;
       }
 
       const cryptoKey = getKey(userId, keyIndex);
 
       if (!cryptoKey) {
-        // Key not available yet — drop frame and notify
         notifyFailure();
         return;
       }
@@ -487,17 +550,25 @@ async function decodeTransform(userId) {
           if (dt > decodeMaxCryptoMs) decodeMaxCryptoMs = dt;
         }
 
-        const plaintext = new Uint8Array(decrypted);
-        const dst = new Uint8Array(clearBytes + plaintext.length);
-        if (clearBytes > 0) dst.set(src.subarray(0, clearBytes), 0);
-        dst.set(plaintext, clearBytes);
-        frame.data = dst.buffer;
+        // Success — reset failure count for this key
+        resetDecryptionFailures(userId, keyIndex);
+
+        if (clearBytes === 0) {
+          // VP9 fast path: crypto.subtle.decrypt() already returned the
+          // exact plaintext — assign directly, no copy needed.
+          frame.data = decrypted;
+        } else {
+          const plaintext = new Uint8Array(decrypted);
+          const dst = new Uint8Array(clearBytes + plaintext.length);
+          dst.set(src.subarray(0, clearBytes), 0);
+          dst.set(plaintext, clearBytes);
+          frame.data = dst.buffer;
+        }
         controller.enqueue(frame);
         if (perfEnabled) decodeFrameCounts.set(userId, (decodeFrameCounts.get(userId) || 0) + 1);
       } catch {
         // Decryption failed (wrong key, tampered frame) — drop frame and notify.
-        // The decoder freezes on the last good frame; the app can show a
-        // warning via EncryptionManager.onDecryptionFailed.
+        recordDecryptionFailure(userId, keyIndex);
         notifyFailure();
       }
     },
@@ -525,38 +596,41 @@ addEventListener('rtctransform', ({ transformer: { readable, writable, options }
 });
 
 addEventListener('message', ({ data }) => {
-  switch (data.type) {
-    case 'setKey':
-      importKey(data.userId, data.keyIndex, data.rawKey);
-      break;
-    case 'setSharedKey':
-      importSharedKey(data.keyIndex, data.rawKey);
-      break;
-    case 'removeKeys':
-      removeKeys(data.userId);
-      break;
-    case 'e2ee-enabled':
-      e2eeActive = !!data.enabled;
-      break;
-    case 'perf-report':
-      if (data.enabled) startPerfReport();
-      else stopPerfReport();
-      break;
-    case 'dispose':
-      stopPerfReport();
-      keyStore.clear();
-      latestKeyIndex.clear();
-      frameCounters.clear();
-      ivPrefixes.clear();
-      sharedRawKeyBytes = null;
-      sharedKey = null;
-      break;
-    default:
-      // Transform setup (Insertable Streams fallback path)
-      setupTransform(data).catch((err) => {
-        self.postMessage({ type: 'error', message: 'Transform setup failed: ' + (err && err.message || err) });
-      });
-      break;
-  }
+  enqueue(async () => {
+    switch (data.type) {
+      case 'setKey':
+        await importKey(data.userId, data.keyIndex, data.rawKey);
+        break;
+      case 'setSharedKey':
+        await importSharedKey(data.keyIndex, data.rawKey);
+        break;
+      case 'removeKeys':
+        removeKeys(data.userId);
+        break;
+      case 'e2ee-enabled':
+        e2eeActive = !!data.enabled;
+        break;
+      case 'perf-report':
+        if (data.enabled) startPerfReport();
+        else stopPerfReport();
+        break;
+      case 'dispose':
+        stopPerfReport();
+        keyStore.clear();
+        latestKeyIndex.clear();
+        frameCounters.clear();
+        ivPrefixes.clear();
+        decryptionFailureCounts.clear();
+        sharedRawKeyBytes = null;
+        sharedKey = null;
+        break;
+      default:
+        // Transform setup (Insertable Streams fallback path)
+        await setupTransform(data);
+        break;
+    }
+  }).catch((err) => {
+    self.postMessage({ type: 'error', message: 'Message handler error: ' + (err && err.message || err) });
+  });
 });
 `;
