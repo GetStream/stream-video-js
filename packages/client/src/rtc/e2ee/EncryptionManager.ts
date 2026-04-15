@@ -2,8 +2,9 @@ import { isChrome } from '../../helpers/browsers';
 import { type ScopedLogger, videoLoggerSystem } from '../../logger';
 
 export type PerfReport = {
-  encode: { fps: number };
+  encode: { fps: number; maxCryptoMs: number };
   decode: { userId: string; fps: number }[];
+  decodeMaxCryptoMs: number;
 };
 
 const validateKeyLength = (rawKey: ArrayBuffer) => {
@@ -297,12 +298,13 @@ export class EncryptionManager {
       const report: PerfReport = {
         encode: e.data.encode,
         decode: e.data.decode,
+        decodeMaxCryptoMs: e.data.decodeMaxCryptoMs,
       };
       const decodeInfo = report.decode
         .map((d) => `${d.userId}: ${d.fps}`)
         .join(', ');
       this.logger.info(
-        `[perf] encode: ${report.encode.fps} fps | decode: [${decodeInfo}]`,
+        `[perf] encode: ${report.encode.fps} fps (max crypto: ${report.encode.maxCryptoMs.toFixed(1)}ms) | decode: [${decodeInfo}] (max crypto: ${report.decodeMaxCryptoMs.toFixed(1)}ms)`,
       );
       this.onPerfReport?.(report);
     }

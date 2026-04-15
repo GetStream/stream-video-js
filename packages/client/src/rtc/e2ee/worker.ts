@@ -47,6 +47,7 @@ const E2EE_VERSION = 1;
 const TRAILER_LEN = 12; // 4 frameCounter + 1 keyIndex + 2 clearBytes + 1 version + 4 magic
 const IV_LEN = 12;
 const RBSP_FLAG = 0x8000; // bit 15 of the 2-byte clearBytes field signals RBSP escaping
+const EMPTY_AAD = new Uint8Array(0);
 
 // ---- Key Store ----
 
@@ -160,14 +161,11 @@ function getLatestKey(userId) {
   return null;
 }
 
-// IV = [8-byte prefix from SHA-256(rawKey + userId)][4-byte frame counter big-endian]
-// The prefix ensures unique IVs across users and key rotations.
-// The counter ensures unique IVs within a session.
-function buildIV(prefix, frameCounter) {
-  const iv = new Uint8Array(IV_LEN);
+// Fill a pre-allocated IV buffer: [8-byte prefix][4-byte frame counter big-endian].
+// Called per-frame; the iv/ivView are allocated once per transform to reduce GC pressure.
+function fillIV(iv, ivView, prefix, frameCounter) {
   iv.set(prefix, 0);
-  new DataView(iv.buffer).setUint32(8, frameCounter);
-  return iv.buffer;
+  ivView.setUint32(8, frameCounter);
 }
 
 function nextFrameCounter(userId) {
@@ -299,6 +297,8 @@ let e2eeActive = true;
 let perfEnabled = false;
 let perfInterval = null;
 let encodeFrameCount = 0;
+let encodeMaxCryptoMs = 0;
+let decodeMaxCryptoMs = 0;
 // Map<userId, number>
 const decodeFrameCounts = new Map();
 
@@ -312,10 +312,13 @@ function startPerfReport() {
     }
     self.postMessage({
       type: 'perf-report',
-      encode: { fps: encodeFrameCount },
+      encode: { fps: encodeFrameCount, maxCryptoMs: encodeMaxCryptoMs },
       decode,
+      decodeMaxCryptoMs,
     });
     encodeFrameCount = 0;
+    encodeMaxCryptoMs = 0;
+    decodeMaxCryptoMs = 0;
   }, 1000);
 }
 
@@ -326,16 +329,23 @@ function stopPerfReport() {
     perfInterval = null;
   }
   encodeFrameCount = 0;
+  encodeMaxCryptoMs = 0;
+  decodeMaxCryptoMs = 0;
   decodeFrameCounts.clear();
 }
 
 // ---- Transforms ----
 
-function encodeTransform(userId, codec) {
+async function encodeTransform(userId, codec) {
   const isNalu = codec === 'h264';
-  // Pre-compute shared key IV prefix at transform creation (not per-frame)
+  // Await IV prefix computation so the first frames aren't silently dropped
   const latestEntry = getLatestKey(userId);
-  if (latestEntry && sharedKey) ensureIVPrefix(userId, latestEntry.keyIndex);
+  if (latestEntry && sharedKey) await ensureIVPrefix(userId, latestEntry.keyIndex);
+
+  // Pre-allocate reusable IV buffer — safe because TransformStream
+  // processes frames sequentially (next transform call waits for await).
+  const iv = new Uint8Array(IV_LEN);
+  const ivView = new DataView(iv.buffer);
 
   return new TransformStream({
     async transform(frame, controller) {
@@ -358,16 +368,21 @@ function encodeTransform(userId, codec) {
       const src = new Uint8Array(frame.data);
       const clearBytes = getClearByteCount(codec, frame.type, src);
       const counter = nextFrameCounter(userId);
-      const iv = buildIV(prefix, counter);
-      const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : new Uint8Array(0);
-      const plaintext = src.subarray(clearBytes);
+      fillIV(iv, ivView, prefix, counter);
+      const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : EMPTY_AAD;
+      const plaintext = clearBytes > 0 ? src.subarray(clearBytes) : src;
 
       try {
+        const t0 = perfEnabled ? performance.now() : 0;
         const encrypted = await crypto.subtle.encrypt(
           { name: 'AES-GCM', iv, additionalData: aad },
           cryptoKey,
           plaintext,
         );
+        if (perfEnabled) {
+          const dt = performance.now() - t0;
+          if (dt > encodeMaxCryptoMs) encodeMaxCryptoMs = dt;
+        }
         const ciphertext = new Uint8Array(encrypted);
 
         if (isNalu && clearBytes > 0) {
@@ -394,7 +409,7 @@ function encodeTransform(userId, codec) {
   });
 }
 
-function decodeTransform(userId) {
+async function decodeTransform(userId) {
   // Throttle failure notifications to avoid flooding the main thread.
   let lastFailureNotification = 0;
   const FAILURE_THROTTLE_MS = 1000;
@@ -407,8 +422,13 @@ function decodeTransform(userId) {
     }
   }
 
-  // Pre-compute shared key IV prefix at transform creation (not per-frame)
-  if (sharedKey) ensureIVPrefix(userId, sharedKey.keyIndex);
+  // Await IV prefix computation so the first frames aren't silently dropped
+  if (sharedKey) await ensureIVPrefix(userId, sharedKey.keyIndex);
+
+  // Pre-allocate reusable IV buffer — safe because TransformStream
+  // processes frames sequentially (next transform call waits for await).
+  const iv = new Uint8Array(IV_LEN);
+  const ivView = new DataView(iv.buffer);
 
   return new TransformStream({
     async transform(frame, controller) {
@@ -445,8 +465,8 @@ function decodeTransform(userId) {
       }
 
       const bodyEnd = src.length - TRAILER_LEN;
-      const iv = buildIV(prefix, frameCounter);
-      const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : new Uint8Array(0);
+      fillIV(iv, ivView, prefix, frameCounter);
+      const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : EMPTY_AAD;
 
       try {
         let ciphertext;
@@ -456,11 +476,16 @@ function decodeTransform(userId) {
           ciphertext = src.subarray(clearBytes, bodyEnd);
         }
 
+        const t0 = perfEnabled ? performance.now() : 0;
         const decrypted = await crypto.subtle.decrypt(
           { name: 'AES-GCM', iv, additionalData: aad },
           cryptoKey,
           ciphertext,
         );
+        if (perfEnabled) {
+          const dt = performance.now() - t0;
+          if (dt > decodeMaxCryptoMs) decodeMaxCryptoMs = dt;
+        }
 
         const plaintext = new Uint8Array(decrypted);
         const dst = new Uint8Array(clearBytes + plaintext.length);
@@ -481,15 +506,22 @@ function decodeTransform(userId) {
 
 // ---- Message handling ----
 
-function setupTransform({ readable, writable, operation, userId, codec }) {
+async function setupTransform({ readable, writable, operation, userId, codec }) {
   const transform = operation === 'encode'
-    ? encodeTransform(userId, codec)
-    : decodeTransform(userId);
-  readable.pipeThrough(transform).pipeTo(writable);
+    ? await encodeTransform(userId, codec)
+    : await decodeTransform(userId);
+  readable.pipeThrough(transform).pipeTo(writable).catch((err) => {
+    self.postMessage({
+      type: 'error',
+      message: 'Transform pipeline error (' + operation + ', ' + userId + '): ' + (err && err.message || err),
+    });
+  });
 }
 
 addEventListener('rtctransform', ({ transformer: { readable, writable, options } }) => {
-  setupTransform({ readable, writable, ...options });
+  setupTransform({ readable, writable, ...options }).catch((err) => {
+    self.postMessage({ type: 'error', message: 'Transform setup failed: ' + (err && err.message || err) });
+  });
 });
 
 addEventListener('message', ({ data }) => {
@@ -521,7 +553,9 @@ addEventListener('message', ({ data }) => {
       break;
     default:
       // Transform setup (Insertable Streams fallback path)
-      setupTransform(data);
+      setupTransform(data).catch((err) => {
+        self.postMessage({ type: 'error', message: 'Transform setup failed: ' + (err && err.message || err) });
+      });
       break;
   }
 });
