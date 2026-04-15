@@ -10,9 +10,12 @@
     align-content: center;
     justify-content: center;
 
-    .str-video__paginated-grid-layout__group {
+    .str-video__participant-view {
+      transition: width 0.2s ease-in-out;
+    }
+
+    &--size-constrained .str-video__paginated-grid-layout__group {
       .str-video__participant-view {
-        transition: width 0.2s ease-in-out;
         aspect-ratio: 16/9;
       }
 

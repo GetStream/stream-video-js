@@ -119,6 +119,7 @@ export type ConfigurationValue = {
     // grid-specific
     'layout.grid.gap'?: string | number; // ❌
     'layout.grid.page_size'?: number; // ✅
+    'layout.grid.size_constraints'?: boolean; // ✅
 
     // dominant_speaker-specific (single-participant)
     'layout.single-participant.mode'?: 'shuffle' | 'default'; // ✅
