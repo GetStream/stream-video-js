@@ -44,7 +44,22 @@ internal class AudioDeviceEndpointUtils {
             val endpoints: MutableList<AudioDeviceEndpoint> = mutableListOf()
             var foundWiredHeadset = false
             val omittedDevices = StringBuilder("omitting devices =[")
-            adiArr.toList().forEach { audioDeviceInfo ->
+            adiArr.forEach { audioDeviceInfo ->
+                /**
+                 * Only devices in a sink role can be selected via AudioManager#setCommunicationDevice
+                 * (API 31+). We enforce this at the endpoint construction level as a safety net
+                 * because AudioDeviceCallback can surface devices that aren't valid call endpoints.
+                 */
+                val isInvalidCallEndpoint = !audioDeviceInfo.isSink
+
+                if (isInvalidCallEndpoint) {
+                    omittedDevices.append(
+                        "(type=[${audioDeviceInfo.type}]," +
+                            " name=[${audioDeviceInfo.productName}]),"
+                    )
+                    return@forEach
+                }
+
                 val endpoint = getEndpointFromAudioDeviceInfo(audioDeviceInfo)
                 if (endpoint.type != AudioDeviceEndpoint.TYPE_UNKNOWN) {
                     if (endpoint.type == AudioDeviceEndpoint.TYPE_WIRED_HEADSET) {
@@ -115,11 +130,8 @@ internal class AudioDeviceEndpointUtils {
                 AudioDeviceInfo.TYPE_USB_HEADSET -> AudioDeviceEndpoint.TYPE_WIRED_HEADSET
                 // Bluetooth Devices
                 AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
-                AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
                 AudioDeviceInfo.TYPE_HEARING_AID,
-                AudioDeviceInfo.TYPE_BLE_HEADSET,
-                AudioDeviceInfo.TYPE_BLE_SPEAKER,
-                AudioDeviceInfo.TYPE_BLE_BROADCAST -> AudioDeviceEndpoint.TYPE_BLUETOOTH
+                AudioDeviceInfo.TYPE_BLE_HEADSET -> AudioDeviceEndpoint.TYPE_BLUETOOTH
                 // Everything else is defaulted to TYPE_UNKNOWN
                 else -> AudioDeviceEndpoint.TYPE_UNKNOWN
             }

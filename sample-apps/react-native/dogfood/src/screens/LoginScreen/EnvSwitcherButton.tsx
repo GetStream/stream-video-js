@@ -13,7 +13,7 @@ const appEnvironments: AppEnvironment[] = [
   'video-moderation',
   'demo',
   'pronto-staging',
-  'livestream',
+  'stream-benchmark',
 ];
 export default function EnvSwitcherButton() {
   const [modalVisible, setModalVisible] = useState(false);

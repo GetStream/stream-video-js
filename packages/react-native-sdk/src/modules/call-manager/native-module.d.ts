@@ -52,6 +52,11 @@ export interface CallManager extends NativeModule {
   stop: () => void;
 
   /**
+   * Setup the in call manager.
+   */
+  setup: () => void;
+
+  /**
    * Mutes the speaker
    */
   muteAudioOutput: () => void;
@@ -67,10 +72,23 @@ export interface CallManager extends NativeModule {
   setForceSpeakerphoneOn: (boolean) => void;
 
   /**
+   * Enables or disables stereo audio output.
+   * @param enable - Whether to enable stereo audio output.
+   */
+  setEnableStereoAudioOutput: (enable: boolean) => void;
+
+  /**
    * Log the current audio state natively.
    * Meant for debugging purposes.
    */
   logAudioState: () => void;
+
+  /**
+   * Get the current audio state as a string.
+   * Meant for debugging purposes.
+   * @returns A string containing the current audio state information.
+   */
+  getAudioStateLog: () => string;
 }
 
 declare module 'react-native' {

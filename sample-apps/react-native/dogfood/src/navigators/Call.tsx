@@ -7,7 +7,6 @@ import {
   RingingCallContent,
   StreamCall,
   useCalls,
-  callManager,
 } from '@stream-io/video-react-native-sdk';
 import { StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -26,7 +25,7 @@ const Calls = () => {
   const { top } = useSafeAreaInsets();
   const orientation = useOrientation();
 
-  const firstCall = calls[0];
+  const firstCall = calls.at(-1);
 
   if (!firstCall) {
     return null;
@@ -44,12 +43,7 @@ const Calls = () => {
 
 const CallLeaveOnUnmount = ({ call }: { call: StreamCallType }) => {
   useEffect(() => {
-    callManager.start({
-      audioRole: 'communicator',
-      deviceEndpointType: 'speaker',
-    });
     return () => {
-      callManager.stop();
       if (call && call.state.callingState !== CallingState.LEFT) {
         call.leave();
       }

@@ -5,8 +5,6 @@ import React, {
   useMemo,
 } from 'react';
 
-import merge from 'lodash.merge';
-
 import { defaultTheme, type Theme } from '../theme/theme';
 
 export type DeepPartial<T> = {
@@ -30,6 +28,26 @@ export type MergedThemesParams = {
 
 export type ThemeContextValue = {
   theme: Theme;
+};
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const merge = <T extends Record<string, unknown>>(
+  target: T,
+  source: DeepPartial<T>,
+) => {
+  for (const key in source) {
+    const sourceValue = source[key];
+    if (sourceValue === undefined) continue;
+
+    const targetValue = target[key as keyof T];
+    if (isObject(sourceValue) && isObject(targetValue)) {
+      merge(targetValue, sourceValue as DeepPartial<Record<string, unknown>>);
+    } else {
+      target[key as keyof T] = sourceValue as T[keyof T];
+    }
+  }
 };
 
 export const mergeThemes = (params: MergedThemesParams) => {

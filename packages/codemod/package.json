@@ -1,0 +1,30 @@
+{
+  "name": "@stream-io/video-codemod",
+  "version": "0.0.1",
+  "description": "Stream Video SDK Codemods",
+  "license": "See license in LICENSE",
+  "bin": "./bin/cli.js",
+  "scripts": {
+    "test": "vitest"
+  },
+  "files": [
+    "bin/*.js",
+    "transforms/*.js",
+    "package.json",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GetStream/stream-video-js.git",
+    "directory": "packages/codemod"
+  },
+  "dependencies": {
+    "jscodeshift": "^17.3.0"
+  },
+  "devDependencies": {
+    "@types/jscodeshift": "^17.3.0",
+    "vitest": "^3.2.4"
+  }
+}

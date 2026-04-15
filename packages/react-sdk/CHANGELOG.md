@@ -2,6 +2,335 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.35.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.1...@stream-io/video-react-sdk-1.35.2) (2026-04-15)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.47.0`
+- `@stream-io/video-react-bindings` updated to version `1.14.2`
+
+### Bug Fixes
+
+- **pronto:** use list visualType for device selection mobile devices ([#2202](https://github.com/GetStream/stream-video-js/issues/2202)) ([f6b6cd2](https://github.com/GetStream/stream-video-js/commit/f6b6cd2eeef3e776167cae515cc7beb2d566ccde))
+
+## [1.35.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.0...@stream-io/video-react-sdk-1.35.1) (2026-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.46.1`
+- `@stream-io/video-react-bindings` updated to version `1.14.1`
+
+## [1.35.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.2...@stream-io/video-react-sdk-1.35.0) (2026-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.13.0`
+- `@stream-io/video-client` updated to version `1.46.0`
+- `@stream-io/video-filters-web` updated to version `0.7.4`
+- `@stream-io/video-react-bindings` updated to version `1.14.0`
+
+### Features
+
+- **react-sdk:** Device preview and level indicators to device settings ([#2186](https://github.com/GetStream/stream-video-js/issues/2186)) ([65787d2](https://github.com/GetStream/stream-video-js/commit/65787d222d01f784766e0a7eb757cb3169e08435))
+
+## [1.34.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.1...@stream-io/video-react-sdk-1.34.2) (2026-04-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.45.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.15`
+
+### Bug Fixes
+
+- **pins:** render the "pin" indicator regardless of "unpin" capabilities ([#2179](https://github.com/GetStream/stream-video-js/issues/2179)) ([f78cf41](https://github.com/GetStream/stream-video-js/commit/f78cf4115f7fb3f3eb799ac406c3f56cc691c942))
+
+## [1.34.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.0...@stream-io/video-react-sdk-1.34.1) (2026-03-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.5`
+- `@stream-io/video-filters-web` updated to version `0.7.3`
+- `@stream-io/video-react-bindings` updated to version `1.13.14`
+
+### Bug Fixes
+
+- **react:** expose segmentation smoothing options and add model picker in video effects settings ([#2176](https://github.com/GetStream/stream-video-js/issues/2176)) ([edee6bf](https://github.com/GetStream/stream-video-js/commit/edee6bf8d9aacdfb2ae49fb202ba7f7d1140063f))
+- **react:** reset recording toggle state and expose record button errors ([#2174](https://github.com/GetStream/stream-video-js/issues/2174)) ([2af6347](https://github.com/GetStream/stream-video-js/commit/2af63478ad9050bf339212537a6cb424f97387b8))
+
+## [1.34.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.4...@stream-io/video-react-sdk-1.34.0) (2026-03-20)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.12.0`
+- `@stream-io/video-client` updated to version `1.44.4`
+- `@stream-io/video-react-bindings` updated to version `1.13.13`
+
+### Features
+
+- **react:** display loading indicator while participant audio is connecting ([#2167](https://github.com/GetStream/stream-video-js/issues/2167)) ([bb2e273](https://github.com/GetStream/stream-video-js/commit/bb2e2733a3e88fd60220118f267d74d952f16ed8))
+
+### Bug Fixes
+
+- **react:** remove default broken microphone notification from call controls ([#2158](https://github.com/GetStream/stream-video-js/issues/2158)) ([4a95b9c](https://github.com/GetStream/stream-video-js/commit/4a95b9c29e9d2728ae7eea764f07ec8507aa0f5a))
+
+## [1.33.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.3...@stream-io/video-react-sdk-1.33.4) (2026-03-09)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.7.3`
+
+### Bug Fixes
+
+- **react:** await initialization before enabling / disabling noise cancellation ([#2153](https://github.com/GetStream/stream-video-js/issues/2153)) ([3455a0e](https://github.com/GetStream/stream-video-js/commit/3455a0e597245af6c34332424b4b7029abf7c675))
+
+## [1.33.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.2...@stream-io/video-react-sdk-1.33.3) (2026-03-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.3`
+- `@stream-io/video-react-bindings` updated to version `1.13.12`
+
+## [1.33.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.1...@stream-io/video-react-sdk-1.33.2) (2026-03-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.11`
+
+## [1.33.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.0...@stream-io/video-react-sdk-1.33.1) (2026-03-04)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.1`
+- `@stream-io/video-react-bindings` updated to version `1.13.10`
+
+## [1.33.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.4...@stream-io/video-react-sdk-1.33.0) (2026-02-27)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.11.0`
+- `@stream-io/video-client` updated to version `1.44.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.9`
+
+### Features
+
+- **react:** Deprecate usePersistedDevicePreferences and move the logic to the SDK core ([#2108](https://github.com/GetStream/stream-video-js/issues/2108)) ([7bbbd93](https://github.com/GetStream/stream-video-js/commit/7bbbd93bdd93dd4ebed02c089b6a4ab8423135fd))
+- **react:** Embeddable/pre-built video components ([#2117](https://github.com/GetStream/stream-video-js/issues/2117)) ([11b4b9f](https://github.com/GetStream/stream-video-js/commit/11b4b9f0438877a5917c95117474cedc1f693907))
+
+## [1.32.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.3...@stream-io/video-react-sdk-1.32.4) (2026-02-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.43.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.8`
+
+## [1.32.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.2...@stream-io/video-react-sdk-1.32.3) (2026-02-16)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.3`
+- `@stream-io/video-react-bindings` updated to version `1.13.7`
+
+### Bug Fixes
+
+- guard from parallel accept/reject invocations ([#2127](https://github.com/GetStream/stream-video-js/issues/2127)) ([621218f](https://github.com/GetStream/stream-video-js/commit/621218f4ab6b4623370fd66f1b02b8cb7cb1baad))
+
+## [1.32.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.1...@stream-io/video-react-sdk-1.32.2) (2026-02-13)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.6`
+
+## [1.32.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.0...@stream-io/video-react-sdk-1.32.1) (2026-02-10)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.1`
+- `@stream-io/video-react-bindings` updated to version `1.13.5`
+
+## [1.32.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.8...@stream-io/video-react-sdk-1.32.0) (2026-02-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.4`
+
+### Features
+
+- Detectors for broken microphone setup ([#2090](https://github.com/GetStream/stream-video-js/issues/2090)) ([552b3f4](https://github.com/GetStream/stream-video-js/commit/552b3f4e3c54e0b6fa67221cd510f4ea1f6f8a61))
+
+### Bug Fixes
+
+- **react:** hide livestream layout fullscreen button when fullscreen is unsupported ([#2112](https://github.com/GetStream/stream-video-js/issues/2112)) ([f436b01](https://github.com/GetStream/stream-video-js/commit/f436b01f28416d2974c278f4059495fea555f305))
+
+## [1.31.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.7...@stream-io/video-react-sdk-1.31.8) (2026-01-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.3`
+- `@stream-io/video-filters-web` updated to version `0.7.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.3`
+
+### Bug Fixes
+
+- **react:** improve logic for calculating the lower / upper threshold for video filter degradation ([#2094](https://github.com/GetStream/stream-video-js/issues/2094)) ([5cd2d5c](https://github.com/GetStream/stream-video-js/commit/5cd2d5cb34fc7bbdfaf9529eb9f8d33a40346cab))
+
+## [1.31.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.6...@stream-io/video-react-sdk-1.31.7) (2026-01-28)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.2`
+
+### Bug Fixes
+
+- **react:** normalize participant names for accent-insensitive matching ([#2102](https://github.com/GetStream/stream-video-js/issues/2102)) ([723c486](https://github.com/GetStream/stream-video-js/commit/723c48681ace8dd37804fe3f35974cf62043b7f8))
+
+## [1.31.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.5...@stream-io/video-react-sdk-1.31.6) (2026-01-27)
+
+### Dependency Updates
+
+- `@stream-io/video-filters-web` updated to version `0.7.1`
+
+## [1.31.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.4...@stream-io/video-react-sdk-1.31.5) (2026-01-26)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.7.2`
+- `@stream-io/video-client` updated to version `1.41.1`
+- `@stream-io/video-react-bindings` updated to version `1.13.1`
+
+### Bug Fixes
+
+- **react:** reorganize jitter & bitrate statistics cards ([#2091](https://github.com/GetStream/stream-video-js/issues/2091)) ([599701f](https://github.com/GetStream/stream-video-js/commit/599701fa94c3fd3bc0f9bc08faca1ddfa828d51f))
+
+## [1.31.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.3...@stream-io/video-react-sdk-1.31.4) (2026-01-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.0`
+
+## [1.31.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.2...@stream-io/video-react-sdk-1.31.3) (2026-01-16)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.3`
+- `@stream-io/video-react-bindings` updated to version `1.12.10`
+
+## [1.31.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.1...@stream-io/video-react-sdk-1.31.2) (2026-01-15)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.2`
+- `@stream-io/video-react-bindings` updated to version `1.12.9`
+
+## [1.31.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.31.0...@stream-io/video-react-sdk-1.31.1) (2026-01-14)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.1`
+- `@stream-io/video-react-bindings` updated to version `1.12.8`
+
+### Bug Fixes
+
+- ensure proper set up of server-side preferences for mic and camera ([#2080](https://github.com/GetStream/stream-video-js/issues/2080)) ([3529c8f](https://github.com/GetStream/stream-video-js/commit/3529c8fc0233d3f9f8f21c80cffc4ec27334954f))
+
+## [1.31.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.30.1...@stream-io/video-react-sdk-1.31.0) (2026-01-09)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.10.0`
+- `@stream-io/video-client` updated to version `1.40.0`
+- `@stream-io/video-react-bindings` updated to version `1.12.7`
+
+### Features
+
+- **react:** Add Grid View During PIP ([#2076](https://github.com/GetStream/stream-video-js/issues/2076)) ([be82657](https://github.com/GetStream/stream-video-js/commit/be826575eee9f16c971f907383fff49b31b1384b))
+
+### Bug Fixes
+
+- **react:** React Compiler strips memoization and causes MenuPortal to re-mount ([#2077](https://github.com/GetStream/stream-video-js/issues/2077)) ([9ea702f](https://github.com/GetStream/stream-video-js/commit/9ea702f3a4280e2782f07c54fcb16077094a187b))
+
+## [1.30.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.30.0...@stream-io/video-react-sdk-1.30.1) (2025-12-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.3`
+- `@stream-io/video-react-bindings` updated to version `1.12.6`
+
+## [1.30.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.29.2...@stream-io/video-react-sdk-1.30.0) (2025-12-23)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.2`
+- `@stream-io/video-filters-web` updated to version `0.7.0`
+- `@stream-io/video-react-bindings` updated to version `1.12.5`
+
+### Features
+
+- **react:** Implement progress bar when video-filters are being loaded ([#2063](https://github.com/GetStream/stream-video-js/issues/2063)) ([3a6b92e](https://github.com/GetStream/stream-video-js/commit/3a6b92e092805160cbf0e289d70fcccafcb20199))
+
+## [1.29.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.29.1...@stream-io/video-react-sdk-1.29.2) (2025-12-18)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.7.1`
+
+## [1.29.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.29.0...@stream-io/video-react-sdk-1.29.1) (2025-12-18)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.9.1`
+- `@stream-io/video-client` updated to version `1.39.1`
+- `@stream-io/video-react-bindings` updated to version `1.12.4`
+
+## [1.29.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.28.2...@stream-io/video-react-sdk-1.29.0) (2025-12-18)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.7.0`
+- `@stream-io/video-client` updated to version `1.39.0`
+- `@stream-io/video-react-bindings` updated to version `1.12.3`
+
+### Features
+
+- **react:** Drag scroll on the participants list in the default layouts ([#2042](https://github.com/GetStream/stream-video-js/issues/2042)) ([b0f3f37](https://github.com/GetStream/stream-video-js/commit/b0f3f37ef45967625dca81af04ee5eb44df9d485))
+
+## [1.28.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.28.1...@stream-io/video-react-sdk-1.28.2) (2025-12-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.2`
+- `@stream-io/video-react-bindings` updated to version `1.12.2`
+
+### Bug Fixes
+
+- **perf:** Chunk and lazy load BackgroundFiltersProvider ([#2040](https://github.com/GetStream/stream-video-js/issues/2040)) ([21164f1](https://github.com/GetStream/stream-video-js/commit/21164f156ca6426baefcf1207d7d6cbfa69fc74a)), closes [#1977](https://github.com/GetStream/stream-video-js/issues/1977)
+
+## [1.28.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.28.0...@stream-io/video-react-sdk-1.28.1) (2025-12-08)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.1`
+- `@stream-io/video-react-bindings` updated to version `1.12.1`
+
+## [1.28.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.27.2...@stream-io/video-react-sdk-1.28.0) (2025-12-08)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.9.0`
+- `@stream-io/video-client` updated to version `1.38.0`
+- `@stream-io/video-filters-web` updated to version `0.6.0`
+- `@stream-io/video-react-bindings` updated to version `1.12.0`
+
+### Features
+
+- **LivestreamLayout:** Enrich with mute option and humanized participant count ([#2027](https://github.com/GetStream/stream-video-js/issues/2027)) ([cdc0c4f](https://github.com/GetStream/stream-video-js/commit/cdc0c4f985ab15a6c2e184b73432911510b43f99))
+- **react:** Extend the statistics report with audio stats ([#2020](https://github.com/GetStream/stream-video-js/issues/2020)) ([0f4df3c](https://github.com/GetStream/stream-video-js/commit/0f4df3ce5f3b865c8ef09766dd72bc33f65539f3))
+- **react:** Video Call moderation for React SDK ([#2007](https://github.com/GetStream/stream-video-js/issues/2007)) ([e242d35](https://github.com/GetStream/stream-video-js/commit/e242d35cc619d1ad0fc55d01944e97269af60cdf))
+
 ## [1.27.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.27.1...@stream-io/video-react-sdk-1.27.2) (2025-11-25)
 
 ### Dependency Updates

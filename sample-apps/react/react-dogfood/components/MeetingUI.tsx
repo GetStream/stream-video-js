@@ -5,7 +5,7 @@ import {
   noopComparator,
   useCall,
   useCallStateHooks,
-  usePersistedDevicePreferences,
+  useModeration,
 } from '@stream-io/video-react-sdk';
 import Gleap from 'gleap';
 import { useRouter } from 'next/router';
@@ -13,19 +13,21 @@ import { JSX, useCallback, useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
 
 import { useIsRestrictedEnvironment } from '../context/AppEnvironmentContext';
-import { useSettings } from '../context/SettingsContext';
 import {
   useKeyboardShortcuts,
   usePersistedVideoFilter,
   useWakeLock,
 } from '../hooks';
-import { DEVICE_PREFERENCE_KEY } from '../hooks/useDeviceSelectionPreference';
 import { ActiveCall } from './ActiveCall';
 import { DefaultAppHeader } from './DefaultAppHeader';
 import { Feedback } from './Feedback/Feedback';
 import { Lobby, UserMode } from './Lobby';
 import { getRandomName, sanitizeUserId } from '../lib/names';
-import { publishRemoteFile } from '../lib/remoteFilePublisher';
+import {
+  publishRemoteFile,
+  RemoteFilePublisher,
+  RemoteFilePublisherContext,
+} from './RemoteFilePublisher';
 import { applyQueryConfigParams } from '../lib/queryConfigParams';
 
 const contents = {
@@ -41,6 +43,7 @@ type MeetingUIProps = {
   chatClient?: StreamChat | null;
   mode?: UserMode;
 };
+
 export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [show, setShow] = useState<
     'lobby' | 'error-join' | 'error-leave' | 'loading' | 'active-call' | 'left'
@@ -50,30 +53,35 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
-  const {
-    settings: { deviceSelectionPreference },
-  } = useSettings();
+  useModeration();
   const isRestricted = useIsRestrictedEnvironment();
+  const [remoteFilePublisherAPI, setRemoteFilePublisherAPI] =
+    useState<RemoteFilePublisher>();
 
   const onJoin = useCallback(
     async (options: { fastJoin?: boolean; displayName?: string } = {}) => {
       if (!options.fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
-        const { videoFile } = applyQueryConfigParams(call, router.query);
+        const { videoFile, videoFileLeaveCallOnEnd } = applyQueryConfigParams(
+          call,
+          router.query,
+        );
         if (call.state.callingState !== CallingState.JOINED) {
           if (typeof options.displayName === 'string') {
             const name = options.displayName || getRandomName();
             const id = chatClient?.user?.id ?? sanitizeUserId(name);
-            await chatClient?.upsertUser({
-              id,
-              name,
-              email: (chatClient?.user as any)?.email,
-            } as any);
+            const email = chatClient?.user?.email;
+            await chatClient
+              ?.partialUpdateUser({ id, set: { name, email } })
+              .catch((err) => console.error(`Failed to update user`, err));
           }
 
           if (videoFile) {
-            await publishRemoteFile(call, videoFile);
+            const api = await publishRemoteFile(call, videoFile, {
+              videoFileLeaveCallOnEnd,
+            });
+            setRemoteFilePublisherAPI(api);
           } else {
             await call.join({ create: !isRestricted });
           }
@@ -184,23 +192,18 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
     );
   } else {
     childrenToRender = (
-      <ActiveCall
-        activeCall={call}
-        chatClient={chatClient}
-        onLeave={onLeave}
-        onJoin={() => onJoin()}
-      />
+      <RemoteFilePublisherContext.Provider value={remoteFilePublisherAPI}>
+        <ActiveCall
+          activeCall={call}
+          chatClient={chatClient}
+          onLeave={onLeave}
+          onJoin={() => onJoin()}
+        />
+      </RemoteFilePublisherContext.Provider>
     );
   }
 
-  return (
-    <>
-      {childrenToRender}
-      {deviceSelectionPreference === 'recent' && (
-        <PersistedDevicePreferencesHelper />
-      )}
-    </>
-  );
+  return <>{childrenToRender}</>;
 };
 
 type ErrorPageProps = {
@@ -275,8 +278,3 @@ export const LoadingScreen = () => {
     </div>
   );
 };
-
-function PersistedDevicePreferencesHelper() {
-  usePersistedDevicePreferences(DEVICE_PREFERENCE_KEY);
-  return null;
-}

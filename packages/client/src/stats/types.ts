@@ -1,5 +1,11 @@
 import { TrackType } from '../gen/video/sfu/models/models';
 
+export type CameraStats = {
+  frameHeight?: number;
+  frameWidth?: number;
+  frameRate?: number;
+};
+
 export type BaseStats = {
   audioLevel?: number;
   bytesSent?: number;
@@ -16,12 +22,31 @@ export type BaseStats = {
   rid?: string;
   ssrc?: number;
   trackType?: TrackType;
+  concealedSamples?: number;
+  concealmentEvents?: number;
+  packetsReceived?: number;
+  packetsLost?: number;
+  camera?: CameraStats;
 };
 
 export type StatsReport = {
   rawStats?: RTCStatsReport;
   streams: BaseStats[];
   timestamp: number;
+};
+
+export type AudioAggregatedStats = {
+  totalBytesSent: number;
+  totalBytesReceived: number;
+  averageJitterInMs: number;
+  averageRoundTripTimeInMs: number;
+  codec: string;
+  codecPerTrackType: Partial<Record<TrackType, string>>;
+  timestamp: number;
+  totalConcealedSamples: number;
+  totalConcealmentEvents: number;
+  totalPacketsReceived: number;
+  totalPacketsLost: number;
 };
 
 export type AggregatedStatsReport = {
@@ -33,6 +58,7 @@ export type AggregatedStatsReport = {
   highestFrameWidth: number;
   highestFrameHeight: number;
   highestFramesPerSecond: number;
+  camera?: CameraStats;
   codec: string;
   codecPerTrackType: Partial<Record<TrackType, string>>;
   timestamp: number;
@@ -50,18 +76,30 @@ export type CallStatsReport = {
    */
   datacenter: string;
   /**
-   * Aggregated stats for the publisher, which is the local participant.
+   * Aggregated video stats for the publisher, which is the local participant.
+   * Note: For audio stats, see publisherAudioStats.
    */
   publisherStats: AggregatedStatsReport;
+  /**
+   * Aggregated audio stats for the publisher, which is the local participant.
+   * Includes bandwidth, latency, jitter, and codec information.
+   */
+  publisherAudioStats: AudioAggregatedStats;
   /**
    * Raw stats for the publisher, which is the local participant.
    * Holds the raw RTCStatsReport object provided by the WebRTC API.
    */
   publisherRawStats?: RTCStatsReport;
   /**
-   * Aggregated stats for the subscribers, which are all remote participants.
+   * Aggregated video stats for the subscribers, which are all remote participants.
+   * Note: For audio stats, see subscriberAudioStats.
    */
   subscriberStats: AggregatedStatsReport;
+  /**
+   * Aggregated audio stats for the subscribers, which are all remote participants.
+   * Includes bandwidth, latency, jitter, and codec information.
+   */
+  subscriberAudioStats: AudioAggregatedStats;
   /**
    * Raw stats for the subscribers, which are all remote participants.
    * Holds the raw RTCStatsReport object provided by the WebRTC API.
@@ -87,6 +125,10 @@ export interface RTCMediaSourceStats {
   timestamp: number;
   kind: string;
   trackIdentifier: string;
+  audioLevel?: number;
+  framesPerSecond?: number;
+  width?: number;
+  height?: number;
 }
 
 // shim for RTCCodecStats, not yet available in the standard types

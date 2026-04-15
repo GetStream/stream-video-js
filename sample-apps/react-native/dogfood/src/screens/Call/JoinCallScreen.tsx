@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -36,6 +37,7 @@ const JoinCallScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const startCallHandler = useCallback(async () => {
+    Keyboard.dismiss();
     setIsLoading(true);
     let ringingUserIds = !ringingUserIdsText
       ? ringingUsers

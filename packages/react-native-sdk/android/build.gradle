@@ -97,4 +97,5 @@ dependencies {
     implementation project(':stream-io_react-native-webrtc')
     implementation "io.github.crow-misia.libyuv:libyuv-android:0.36.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    implementation "androidx.lifecycle:lifecycle-process:2.10.0"
 }

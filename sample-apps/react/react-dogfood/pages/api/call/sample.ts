@@ -2,23 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { meetingId } from '../../../lib/idGenerators';
 import { createToken } from '../../../helpers/jwt';
 import { getRandomName } from '../../../lib/names';
-
-export type AppConfig = {
-  apiKey?: string;
-  secret?: string;
-  // a link to the app that can be opened in a browser:
-  // https://sample.app/rooms/join/{type}/{id}?user_id={userId}&user_name={user_name}&token={token}&api_key={api_key}
-  // supported replacements:
-  // - {type}, {id},
-  // - {userId}, {user_name}, {token},
-  // - {api_key}
-  deepLink?: string;
-  defaultCallType?: string;
-};
-
-export type SampleAppCallConfig = {
-  [appType: string]: AppConfig | undefined;
-};
+import { getEnvironmentConfig } from '../../../lib/environmentConfig';
 
 type CreateSampleAppCallResponse = {
   apiKey: string;
@@ -38,14 +22,20 @@ type CreateSampleAppCallRequest = {
   call_type?: string;
 };
 
-const config: SampleAppCallConfig = JSON.parse(
-  process.env.SAMPLE_APP_CALL_CONFIG || '{}',
-);
-
-export default async function createSampleAppCall(
+export default async function createSampleAppCallApi(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  try {
+    return await createSampleAppCall(req, res);
+  } catch (e) {
+    return res.status(400).json({
+      error: (e as Error).message,
+    });
+  }
+}
+
+async function createSampleAppCall(req: NextApiRequest, res: NextApiResponse) {
   if (!req.query['app_type']) {
     return res.status(400).json({
       error: 'app_type is a mandatory query parameter.',
@@ -53,23 +43,12 @@ export default async function createSampleAppCall(
   }
 
   const data = req.query as CreateSampleAppCallRequest;
-  const appConfig = config[data.app_type];
-  if (!appConfig) {
-    return res.status(400).json({
-      error: `app_type '${
-        data.app_type
-      }' is not supported. Supported types: ${Object.keys(config).join(', ')}`,
-    });
-  }
-
-  if (!appConfig.apiKey || !appConfig.secret) {
-    return res.status(400).json({
-      error: `app_type '${data.app_type}' is not configured properly.`,
-    });
-  }
+  const appConfig = getEnvironmentConfig(data.app_type);
 
   const userName = getRandomName();
-  const userId = toUserId(userName);
+  // Feeds tutorial needs unique user ids (we use user id as feed id)
+  const userId =
+    data.app_type === 'feedsv3' ? crypto.randomUUID() : toUserId(userName);
   const token = await createToken(userId, appConfig.apiKey, appConfig.secret);
   const buddyUserName = getBuddyUserName(userName);
   const buddyUserId = toUserId(buddyUserName);

@@ -313,6 +313,8 @@ button.rd__copy-button {
 }
 
 .rd__inspector-device {
+  display: flex;
+  flex-direction: row;
   &_active {
     cursor: pointer;
   }

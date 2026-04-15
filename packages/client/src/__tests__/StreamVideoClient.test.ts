@@ -275,3 +275,109 @@ describe('StreamVideoClient.connectUser retries', () => {
     await client.disconnectUser();
   });
 });
+
+describe('StreamVideoClient.watchCalls retries', () => {
+  it('should retry queryCalls up to 3 times after reconnecting', async () => {
+    vi.useFakeTimers();
+    const client = new StreamVideoClient(apiKey, {
+      browser: true,
+    });
+
+    const user = { id: 'jane' };
+    const token = serverClient.generateUserToken({ user_id: user.id });
+    await client.connectUser(user, token);
+
+    const call = client.call('default', generateUUIDv4());
+    await call.getOrCreate();
+
+    const queryCallsSpy = vi
+      .spyOn(client, 'queryCalls')
+      .mockRejectedValueOnce(new Error('fail 1'))
+      .mockRejectedValueOnce(new Error('fail 2'))
+      .mockResolvedValue({
+        calls: [],
+        duration: '0ms',
+      });
+
+    client.streamClient.dispatchEvent({
+      type: 'connection.changed',
+      online: true,
+    });
+
+    await vi.runAllTimersAsync();
+
+    expect(queryCallsSpy).toHaveBeenCalledTimes(3);
+
+    await client.disconnectUser();
+
+    vi.useRealTimers();
+  });
+
+  it('should stop retrying after 3 failures on reconnect', async () => {
+    vi.useFakeTimers();
+
+    const client = new StreamVideoClient(apiKey, {
+      browser: true,
+    });
+
+    const user = { id: 'jane' };
+    const token = serverClient.generateUserToken({ user_id: user.id });
+    await client.connectUser(user, token);
+
+    const call = client.call('default', generateUUIDv4());
+    await call.getOrCreate();
+
+    const queryCallsSpy = vi
+      .spyOn(client, 'queryCalls')
+      .mockRejectedValueOnce(new Error('fail 1'))
+      .mockRejectedValueOnce(new Error('fail 2'))
+      .mockRejectedValueOnce(new Error('fail 3'))
+      .mockResolvedValue({
+        calls: [],
+        duration: '0ms',
+      });
+
+    client.streamClient.dispatchEvent({
+      type: 'connection.changed',
+      online: true,
+    });
+
+    await vi.runAllTimersAsync();
+
+    expect(queryCallsSpy).toHaveBeenCalledTimes(3);
+
+    await client.disconnectUser();
+    vi.useRealTimers();
+  });
+
+  it('should call only once when no errors occur', async () => {
+    vi.useFakeTimers();
+    const client = new StreamVideoClient(apiKey, {
+      browser: true,
+    });
+
+    const user = { id: 'jane' };
+    const token = serverClient.generateUserToken({ user_id: user.id });
+    await client.connectUser(user, token);
+
+    const call = client.call('default', generateUUIDv4());
+    await call.getOrCreate();
+
+    const queryCallsSpy = vi.spyOn(client, 'queryCalls').mockResolvedValue({
+      calls: [],
+      duration: '0ms',
+    });
+
+    client.streamClient.dispatchEvent({
+      type: 'connection.changed',
+      online: true,
+    });
+
+    await vi.runAllTimersAsync();
+
+    expect(queryCallsSpy).toHaveBeenCalledTimes(1);
+
+    await client.disconnectUser();
+    vi.useRealTimers();
+  });
+});

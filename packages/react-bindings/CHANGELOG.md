@@ -2,6 +2,210 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.14.1...@stream-io/video-react-bindings-1.14.2) (2026-04-15)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.47.0`
+
+## [1.14.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.14.0...@stream-io/video-react-bindings-1.14.1) (2026-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.46.1`
+
+## [1.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.15...@stream-io/video-react-bindings-1.14.0) (2026-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.46.0`
+
+### Features
+
+- **client:** expose blocked autoplay audio state and explicit resume API ([#2187](https://github.com/GetStream/stream-video-js/issues/2187)) ([adbec63](https://github.com/GetStream/stream-video-js/commit/adbec63a23d47cf7c1002897e242c3f2a6a7007c))
+
+## [1.13.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.14...@stream-io/video-react-bindings-1.13.15) (2026-04-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.45.0`
+
+## [1.13.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.13...@stream-io/video-react-bindings-1.13.14) (2026-03-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.5`
+
+### Bug Fixes
+
+- **react:** reset recording toggle state and expose record button errors ([#2174](https://github.com/GetStream/stream-video-js/issues/2174)) ([2af6347](https://github.com/GetStream/stream-video-js/commit/2af63478ad9050bf339212537a6cb424f97387b8))
+
+## [1.13.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.12...@stream-io/video-react-bindings-1.13.13) (2026-03-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.4`
+
+## [1.13.12](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.11...@stream-io/video-react-bindings-1.13.12) (2026-03-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.3`
+
+## [1.13.11](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.10...@stream-io/video-react-bindings-1.13.11) (2026-03-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.2`
+
+## [1.13.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.9...@stream-io/video-react-bindings-1.13.10) (2026-03-04)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.1`
+
+## [1.13.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.8...@stream-io/video-react-bindings-1.13.9) (2026-02-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.0`
+
+## [1.13.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.7...@stream-io/video-react-bindings-1.13.8) (2026-02-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.43.0`
+
+## [1.13.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.6...@stream-io/video-react-bindings-1.13.7) (2026-02-16)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.3`
+
+## [1.13.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.5...@stream-io/video-react-bindings-1.13.6) (2026-02-13)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.2`
+
+## [1.13.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.4...@stream-io/video-react-bindings-1.13.5) (2026-02-10)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.1`
+
+## [1.13.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.3...@stream-io/video-react-bindings-1.13.4) (2026-02-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.42.0`
+
+## [1.13.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.2...@stream-io/video-react-bindings-1.13.3) (2026-01-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.3`
+
+## [1.13.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.1...@stream-io/video-react-bindings-1.13.2) (2026-01-28)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.2`
+
+## [1.13.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.0...@stream-io/video-react-bindings-1.13.1) (2026-01-26)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.1`
+
+## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.10...@stream-io/video-react-bindings-1.13.0) (2026-01-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.41.0`
+
+### Features
+
+- **recording:** Support for Individual, Raw and Composite recording ([#2071](https://github.com/GetStream/stream-video-js/issues/2071)) ([e53269c](https://github.com/GetStream/stream-video-js/commit/e53269ce697121b70dbebaf4a6d2cf875440a2af))
+
+## [1.12.10](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.9...@stream-io/video-react-bindings-1.12.10) (2026-01-16)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.3`
+
+## [1.12.9](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.8...@stream-io/video-react-bindings-1.12.9) (2026-01-15)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.2`
+
+## [1.12.8](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.7...@stream-io/video-react-bindings-1.12.8) (2026-01-14)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.1`
+
+## [1.12.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.6...@stream-io/video-react-bindings-1.12.7) (2026-01-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.40.0`
+
+## [1.12.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.5...@stream-io/video-react-bindings-1.12.6) (2025-12-30)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.3`
+
+## [1.12.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.4...@stream-io/video-react-bindings-1.12.5) (2025-12-23)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.2`
+
+## [1.12.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.3...@stream-io/video-react-bindings-1.12.4) (2025-12-18)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.1`
+
+### Bug Fixes
+
+- **provenance:** add repository info to every package ([4159633](https://github.com/GetStream/stream-video-js/commit/4159633b908afe6542b4be53151da6218175426c))
+
+## [1.12.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.2...@stream-io/video-react-bindings-1.12.3) (2025-12-18)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.39.0`
+
+## [1.12.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.1...@stream-io/video-react-bindings-1.12.2) (2025-12-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.2`
+
+### Bug Fixes
+
+- revert usage of useSyncExternalStore ([#2043](https://github.com/GetStream/stream-video-js/issues/2043)) ([849e896](https://github.com/GetStream/stream-video-js/commit/849e8964ac90d5785a6d608443f80156d1081744)), closes [#1953](https://github.com/GetStream/stream-video-js/issues/1953) [#2034](https://github.com/GetStream/stream-video-js/issues/2034) [#2006](https://github.com/GetStream/stream-video-js/issues/2006) [#2008](https://github.com/GetStream/stream-video-js/issues/2008)
+
+## [1.12.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.12.0...@stream-io/video-react-bindings-1.12.1) (2025-12-08)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.1`
+
+## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.11.4...@stream-io/video-react-bindings-1.12.0) (2025-12-08)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.38.0`
+
+### Features
+
+- **LivestreamLayout:** Enrich with mute option and humanized participant count ([#2027](https://github.com/GetStream/stream-video-js/issues/2027)) ([cdc0c4f](https://github.com/GetStream/stream-video-js/commit/cdc0c4f985ab15a6c2e184b73432911510b43f99))
+
 ## [1.11.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.11.3...@stream-io/video-react-bindings-1.11.4) (2025-11-25)
 
 ### Dependency Updates

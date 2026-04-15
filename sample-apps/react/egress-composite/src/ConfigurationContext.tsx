@@ -114,6 +114,7 @@ export type ConfigurationValue = {
     'layout.background_size'?: string; // ✅
     'layout.background_position'?: string; // ✅
     'layout.background_repeat'?: string; // ✅
+    'layout.forceMirrorParticipants'?: boolean; // ✅
 
     // grid-specific
     'layout.grid.gap'?: string | number; // ❌
@@ -139,6 +140,10 @@ export type ConfigurationValue = {
     // them by specifying their identifier in call recording's advanced options.
     custom_layout_override?: Layout;
     custom_screen_share_layout_override?: ScreenshareLayout;
+
+    // for debugging purposes, will render a high-precision timestamp overlay
+    // over the video element. Useful for measuring the time between video frames.
+    'debug.show_timestamp'?: boolean;
   };
 } & {
   setOptionsOverride: Dispatch<

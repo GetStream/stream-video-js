@@ -1,5 +1,4 @@
 import React, {
-  createContext,
   type PropsWithChildren,
   useCallback,
   useContext,
@@ -10,15 +9,19 @@ import React, {
 import { MediaStream } from '@stream-io/react-native-webrtc';
 import { useCall } from '@stream-io/video-react-bindings';
 import { Image, Platform } from 'react-native';
+import {
+  BackgroundFiltersContext,
+  type BlurIntensity,
+  type CurrentBackgroundFilter,
+  type ImageSourceType,
+} from './internal/BackgroundFiltersContext';
 
-const isSupported = (function () {
-  if (Platform.OS === 'ios') {
-    // only supported on ios 15 and above
-    const currentVersion = parseInt(Platform.Version, 10);
-    return currentVersion >= 15;
-  }
-  return Platform.OS === 'android';
-})();
+// for maintaining backwards compatibility
+export type {
+  BlurIntensity,
+  CurrentBackgroundFilter,
+  BackgroundFiltersAPI,
+} from './internal/BackgroundFiltersContext';
 
 type VideoFiltersModuleType =
   typeof import('@stream-io/video-filters-react-native');
@@ -29,62 +32,15 @@ try {
   videoFiltersModule = require('@stream-io/video-filters-react-native');
 } catch {}
 
-const resolveAssetSourceFunc = Image.resolveAssetSource;
-
-// excluding array of images and only allow one image
-type ImageSourceType = Exclude<
-  Parameters<typeof resolveAssetSourceFunc>[0],
-  Array<any>
->;
-
-export type BlurIntensity = 'light' | 'medium' | 'heavy';
-
-export type BackgroundFilterType = 'blur' | 'image';
-
-export type CurrentBackgroundFilter = {
-  blur?: BlurIntensity;
-  image?: ImageSourceType;
-};
-
-export type BackgroundFiltersAPI = {
-  /**
-   * The currently applied background filter. Undefined value indicates that no filter is applied.
-   */
-  currentBackgroundFilter: CurrentBackgroundFilter | undefined;
-  /**
-   * Whether the current device supports the background filters.
-   */
-  isSupported: boolean;
-  /**
-   * Applies a background image filter to the video.
-   *
-   * @param imageSource the URL of the image to use as the background.
-   */
-  applyBackgroundImageFilter: (imageSource: ImageSourceType) => void;
-  /**
-   * Applies a background blur filter to the video.
-   *
-   * @param blurLevel the level of blur to apply to the background.
-   */
-  applyBackgroundBlurFilter: (blurIntensity: BlurIntensity) => void;
-  /**
-   * Applies a video blur filter to the video.
-   *
-   * @param blurIntensity the level of blur to apply to the video.
-   */
-  applyVideoBlurFilter: (blurIntensity: BlurIntensity) => void;
-  /**
-   * Disables all filters applied to the video.
-   */
-  disableAllFilters: () => void;
-};
-
-/**
- * The context for the background filters.
- */
-const BackgroundFiltersContext = createContext<
-  BackgroundFiltersAPI | undefined
->(undefined);
+const isSupported = (function () {
+  if (!videoFiltersModule) return false;
+  if (Platform.OS === 'ios') {
+    // only supported on ios 15 and above
+    const currentVersion = parseInt(Platform.Version, 10);
+    return currentVersion >= 15;
+  }
+  return Platform.OS === 'android';
+})();
 
 /**
  * A hook to access the background filters context API.
@@ -165,7 +121,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       } else if (blurIntensity === 'light') {
         filterName = 'BlurLight';
       }
-      call?.tracer.trace('backgroundFilters.apply', filterName);
+      call?.tracer.trace('videoFilters.apply', filterName);
       (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
@@ -181,7 +137,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       if (!isSupported) {
         return;
       }
-      const source = resolveAssetSourceFunc(imageSource);
+      const source = Image.resolveAssetSource(imageSource);
       const imageUri = source.uri;
       const registeredImageFiltersSet = registeredImageFiltersSetRef.current;
       if (!registeredImageFiltersSet.has(imageUri)) {

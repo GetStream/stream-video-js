@@ -1,5 +1,13 @@
 import React from 'react';
-import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppContext } from '../context/AppContext';
 
@@ -28,28 +36,37 @@ export const NavigationHeader = () => {
   };
 
   return (
-    <View style={[styles.header, { top }]}>
-      <Pressable onPress={logout}>
+    <View style={[styles.header, { paddingTop: top }]}>
+      <TouchableOpacity style={styles.user} onPress={logout}>
         <Image
           source={{
             uri: user?.image,
           }}
           style={styles.avatar}
         />
-      </Pressable>
+        <Text style={styles.userName}>{user?.name}</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: 'white',
     paddingHorizontal: 16,
+  },
+  user: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   avatar: {
     height: 50,
     width: 50,
     borderRadius: 50,
     marginVertical: 10,
+  },
+  userName: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

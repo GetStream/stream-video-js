@@ -36,7 +36,7 @@ describe('Subscriber', () => {
       sessionId: 'sessionId',
       streamClient: new StreamClient('abc'),
       cid: 'test:123',
-      tag: 'logTag',
+      tag: 'test',
       credentials: {
         server: {
           url: 'https://getstream.io/',
@@ -255,8 +255,48 @@ describe('Subscriber', () => {
             subscriberOffer,
           },
         }) as DispatchableMessage<'subscriberOffer'>,
+        'test',
       );
 
+      // @ts-expect-error - private method
+      expect(subscriber.negotiate).toHaveBeenCalledWith(subscriberOffer);
+    });
+
+    it('handles SubscriberOffer when SFU tag changes', () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi.fn();
+      const subscriberOffer = SubscriberOffer.create({
+        sdp: 'offer-sdp',
+        iceRestart: true,
+      });
+
+      const nextSfuClient = {
+        ...sfuClient,
+        tag: 'next-tag',
+      } as StreamSfuClient;
+      subscriber.setSfuClient(nextSfuClient);
+
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'subscriberOffer',
+            subscriberOffer,
+          },
+        }) as DispatchableMessage<'subscriberOffer'>,
+        'test',
+      );
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'subscriberOffer',
+            subscriberOffer,
+          },
+        }) as DispatchableMessage<'subscriberOffer'>,
+        'next-tag',
+      );
+
+      // @ts-expect-error - private method
+      expect(subscriber.negotiate).toHaveBeenCalledTimes(1);
       // @ts-expect-error - private method
       expect(subscriber.negotiate).toHaveBeenCalledWith(subscriberOffer);
     });

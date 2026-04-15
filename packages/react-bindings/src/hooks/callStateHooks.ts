@@ -58,6 +58,22 @@ export const useIsCallRecordingInProgress = (): boolean => {
 };
 
 /**
+ * Utility hook which provides information whether the raw track recording is running.
+ */
+export const useIsCallRawRecordingInProgress = (): boolean => {
+  const { rawRecording$ } = useCallState();
+  return useObservableValue(rawRecording$);
+};
+
+/**
+ * Utility hook which provides information whether the individual track recording is running.
+ */
+export const useIsCallIndividualRecordingInProgress = (): boolean => {
+  const { individualRecording$ } = useCallState();
+  return useObservableValue(individualRecording$);
+};
+
+/**
  * Utility hook which provides information whether the current call is broadcasting.
  */
 export const useIsCallHLSBroadcastingInProgress = (): boolean => {
@@ -429,7 +445,7 @@ export const useMicrophoneState = ({
 export const useSpeakerState = () => {
   if (isReactNative()) {
     throw new Error(
-      'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
+      'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/react-native/guides/camera-and-microphone/#speaker-management for more details',
     );
   }
   const call = useCall();
@@ -437,9 +453,11 @@ export const useSpeakerState = () => {
 
   const { getDevices } = useLazyDeviceList(speaker);
   const selectedDevice = useObservableValue(speaker.state.selectedDevice$);
+  const volume = useObservableValue(speaker.state.volume$);
 
   return {
     speaker,
+    volume,
     get devices() {
       return getDevices();
     },
@@ -476,6 +494,18 @@ export const useScreenShareState = ({
 export const useIncomingVideoSettings = () => {
   const call = useCall() as Call;
   return useObservableValue(call.dynascaleManager.incomingVideoSettings$);
+};
+
+/**
+ * Returns whether the browser's autoplay policy is blocking audio playback.
+ *
+ * When the browser blocks audio autoplay (e.g., no prior user interaction),
+ * this hook returns `true`. Use `call.resumeAudio()` inside a click handler
+ * to unblock audio playback.
+ */
+export const useIsAutoplayBlocked = (): boolean => {
+  const call = useCall() as Call;
+  return useObservableValue(call.dynascaleManager.autoplayBlocked$);
 };
 
 /**

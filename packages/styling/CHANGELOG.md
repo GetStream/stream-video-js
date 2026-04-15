@@ -2,6 +2,42 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.12.0...@stream-io/video-styling-1.13.0) (2026-04-09)
+
+### Features
+
+- **react-sdk:** Device preview and level indicators to device settings ([#2186](https://github.com/GetStream/stream-video-js/issues/2186)) ([65787d2](https://github.com/GetStream/stream-video-js/commit/65787d222d01f784766e0a7eb757cb3169e08435))
+
+## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.11.0...@stream-io/video-styling-1.12.0) (2026-03-20)
+
+### Features
+
+- **react:** display loading indicator while participant audio is connecting ([#2167](https://github.com/GetStream/stream-video-js/issues/2167)) ([bb2e273](https://github.com/GetStream/stream-video-js/commit/bb2e2733a3e88fd60220118f267d74d952f16ed8))
+
+## [1.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.10.0...@stream-io/video-styling-1.11.0) (2026-02-27)
+
+### Features
+
+- **react:** Embeddable/pre-built video components ([#2117](https://github.com/GetStream/stream-video-js/issues/2117)) ([11b4b9f](https://github.com/GetStream/stream-video-js/commit/11b4b9f0438877a5917c95117474cedc1f693907))
+
+## [1.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.9.1...@stream-io/video-styling-1.10.0) (2026-01-09)
+
+### Features
+
+- **react:** Add Grid View During PIP ([#2076](https://github.com/GetStream/stream-video-js/issues/2076)) ([be82657](https://github.com/GetStream/stream-video-js/commit/be826575eee9f16c971f907383fff49b31b1384b))
+
+## [1.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.9.0...@stream-io/video-styling-1.9.1) (2025-12-18)
+
+### Bug Fixes
+
+- **provenance:** add repository info to every package ([4159633](https://github.com/GetStream/stream-video-js/commit/4159633b908afe6542b4be53151da6218175426c))
+
+## [1.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.8.0...@stream-io/video-styling-1.9.0) (2025-12-08)
+
+### Features
+
+- **LivestreamLayout:** Enrich with mute option and humanized participant count ([#2027](https://github.com/GetStream/stream-video-js/issues/2027)) ([cdc0c4f](https://github.com/GetStream/stream-video-js/commit/cdc0c4f985ab15a6c2e184b73432911510b43f99))
+
 ## [1.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.7.0...@stream-io/video-styling-1.8.0) (2025-11-17)
 
 ### Features

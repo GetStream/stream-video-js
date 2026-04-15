@@ -1,41 +1,129 @@
-import { combineLatest, Subscription } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import { Call } from '../Call';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
-import { deviceIds$, getAudioOutputDevices } from './devices';
+import {
+  deviceIds$,
+  getAudioBrowserPermission,
+  getAudioOutputDevices,
+} from './devices';
+import {
+  AudioSettingsRequestDefaultDeviceEnum,
+  CallSettingsResponse,
+} from '../gen/coordinator';
+import {
+  createSyntheticDevice,
+  defaultDeviceId,
+  DevicePersistenceOptions,
+  readPreferences,
+  toPreferenceList,
+  writePreferences,
+} from './devicePersistence';
+import { createSubscription, getCurrentValue } from '../store/rxUtils';
 
 export class SpeakerManager {
   readonly state: SpeakerState;
-  private subscriptions: Subscription[] = [];
+  private subscriptions: (() => void)[] = [];
   private areSubscriptionsSetUp = false;
   private readonly call: Call;
+  private defaultDevice?: AudioSettingsRequestDefaultDeviceEnum;
+  private readonly devicePersistence: Required<DevicePersistenceOptions>;
 
-  constructor(call: Call) {
+  constructor(
+    call: Call,
+    devicePreferences: Required<DevicePersistenceOptions>,
+  ) {
     this.call = call;
     this.state = new SpeakerState(call.tracer);
+    this.devicePersistence = devicePreferences;
     this.setup();
   }
 
-  setup() {
-    if (this.areSubscriptionsSetUp) {
-      return;
-    }
+  apply(settings: CallSettingsResponse) {
+    return isReactNative() ? this.applyRN(settings) : this.applyWeb();
+  }
 
+  private applyWeb() {
+    const { enabled, storageKey } = this.devicePersistence;
+    if (!enabled) return;
+
+    const preferences = readPreferences(storageKey);
+    const preferenceList = toPreferenceList(preferences.speaker);
+    if (preferenceList.length === 0) return;
+
+    const preference = preferenceList[0];
+    const nextDeviceId =
+      preference.selectedDeviceId === defaultDeviceId
+        ? ''
+        : preference.selectedDeviceId;
+    if (this.state.selectedDevice !== nextDeviceId) {
+      this.select(nextDeviceId);
+    }
+  }
+
+  private applyRN(settings: CallSettingsResponse) {
+    /// Determines if the speaker should be enabled based on a priority hierarchy of
+    /// settings.
+    ///
+    /// The priority order is as follows:
+    /// 1. If video camera is set to be on by default, speaker is enabled
+    /// 2. If audio speaker is set to be on by default, speaker is enabled
+    /// 3. If the default audio device is set to speaker, speaker is enabled
+    ///
+    /// This ensures that the speaker state aligns with the most important user
+    /// preference or system requirement.
+    const speakerOnWithSettingsPriority =
+      settings.video.camera_default_on ||
+      settings.audio.speaker_default_on ||
+      settings.audio.default_device ===
+        AudioSettingsRequestDefaultDeviceEnum.SPEAKER;
+
+    const defaultDevice = speakerOnWithSettingsPriority
+      ? AudioSettingsRequestDefaultDeviceEnum.SPEAKER
+      : AudioSettingsRequestDefaultDeviceEnum.EARPIECE;
+
+    if (this.defaultDevice !== defaultDevice) {
+      this.call.logger.debug('SpeakerManager: setting default device', {
+        defaultDevice,
+      });
+      this.defaultDevice = defaultDevice;
+      globalThis.streamRNVideoSDK?.callManager.setup({
+        defaultDevice,
+        isRingingTypeCall: this.call.ringing,
+      });
+    }
+  }
+
+  setup() {
+    if (this.areSubscriptionsSetUp) return;
     this.areSubscriptionsSetUp = true;
 
     if (deviceIds$ && !isReactNative()) {
       this.subscriptions.push(
-        combineLatest([deviceIds$!, this.state.selectedDevice$]).subscribe(
+        createSubscription(
+          combineLatest([deviceIds$, this.state.selectedDevice$]),
           ([devices, deviceId]) => {
-            if (!deviceId) {
-              return;
-            }
+            if (!deviceId) return;
             const device = devices.find(
               (d) => d.deviceId === deviceId && d.kind === 'audiooutput',
             );
-            if (!device) {
-              this.select('');
-            }
+            if (!device) this.select('');
+          },
+        ),
+      );
+    }
+
+    if (!isReactNative() && this.devicePersistence.enabled) {
+      this.subscriptions.push(
+        createSubscription(
+          combineLatest([
+            this.state.selectedDevice$,
+            getAudioBrowserPermission(this.call.tracer).asStateObservable(),
+          ]),
+          ([selectedDevice, browserPermissionState]) => {
+            if (!selectedDevice || browserPermissionState !== 'granted') return;
+
+            this.persistSpeakerDevicePreference(selectedDevice);
           },
         ),
       );
@@ -51,11 +139,7 @@ export class SpeakerManager {
    * @returns an Observable that will be updated if a device is connected or disconnected
    */
   listDevices() {
-    if (isReactNative()) {
-      throw new Error(
-        'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
-      );
-    }
+    assertUnsupportedInReactNative();
     return getAudioOutputDevices(this.call.tracer);
   }
 
@@ -67,11 +151,7 @@ export class SpeakerManager {
    * @param deviceId empty string means the system default
    */
   select(deviceId: string) {
-    if (isReactNative()) {
-      throw new Error(
-        'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
-      );
-    }
+    assertUnsupportedInReactNative();
     this.state.setDevice(deviceId);
   }
 
@@ -81,7 +161,7 @@ export class SpeakerManager {
    * @internal
    */
   dispose = () => {
-    this.subscriptions.forEach((s) => s.unsubscribe());
+    this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
   };
@@ -93,11 +173,7 @@ export class SpeakerManager {
    * Note: This method is not supported in React Native
    */
   setVolume(volume: number) {
-    if (isReactNative()) {
-      throw new Error(
-        'This feature is not supported in React Native. Please visit https://getstream.io/video/docs/reactnative/core/camera-and-microphone/#speaker-management for more details',
-      );
-    }
+    assertUnsupportedInReactNative();
     if (volume && (volume < 0 || volume > 1)) {
       throw new Error('Volume must be between 0 and 1');
     }
@@ -106,8 +182,6 @@ export class SpeakerManager {
 
   /**
    * Set the volume of a participant.
-   *
-   * Note: This method is not supported in React Native.
    *
    * @param sessionId the participant's session id.
    * @param volume a number between 0 and 1. Set it to `undefined` to use the default volume.
@@ -126,4 +200,21 @@ export class SpeakerManager {
       return { audioVolume: volume };
     });
   }
+
+  private persistSpeakerDevicePreference(selectedDevice: string) {
+    const { storageKey } = this.devicePersistence;
+    const devices = getCurrentValue(this.listDevices()) || [];
+    const currentDevice =
+      devices.find((d) => d.deviceId === selectedDevice) ??
+      createSyntheticDevice(selectedDevice, 'audiooutput');
+    writePreferences(currentDevice, 'speaker', undefined, storageKey);
+  }
 }
+
+const assertUnsupportedInReactNative = () => {
+  if (isReactNative()) {
+    throw new Error(
+      'Unsupported in React Native. See: https://getstream.io/video/docs/react-native/guides/camera-and-microphone/#speaker-management',
+    );
+  }
+};

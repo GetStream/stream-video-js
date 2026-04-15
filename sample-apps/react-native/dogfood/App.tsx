@@ -183,30 +183,17 @@ const StackNavigator = () => {
 };
 
 /**
- * This component is used to watch for incoming calls and set the app mode to 'Call'
+ * This component is used to watch for ringing calls and set the app mode to 'Call'
  */
 const RingingWatcher = () => {
   const setState = useAppGlobalStoreSetState();
-  const calls = useCalls().filter((c) => c.ringing);
+  const hasRingingCall = useCalls().some((c) => c.ringing);
 
   useEffect(() => {
-    if (calls.length > 1) {
-      const lastCallCreatedBy = calls.at(-1)?.state.createdBy;
-      Alert.alert(
-        `Incoming call from ${
-          lastCallCreatedBy?.name ?? lastCallCreatedBy?.id
-        }, only 1 call at a time is supported`,
-      );
-    }
-  }, [calls]);
-
-  const firstCall = calls[0];
-
-  useEffect(() => {
-    if (firstCall) {
+    if (hasRingingCall) {
       setState({ appMode: 'Call' });
     }
-  }, [firstCall, setState]);
+  }, [hasRingingCall, setState]);
 
   return null;
 };

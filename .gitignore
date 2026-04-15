@@ -13,12 +13,14 @@
 .DS_Store
 node_modules
 dist
+!**/krispai/dist
 .vercel
 .vscode
 .idea
 .env
 .nx
 .eslintcache
+.cursor
 
 coverage
 

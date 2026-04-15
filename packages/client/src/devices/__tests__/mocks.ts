@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { CallingState, CallState } from '../../store';
 import {
   NoiseCancellationSettingsModeEnum,
@@ -78,24 +79,29 @@ export const mockCall = (): Partial<Call> => {
     OwnCapability.SEND_VIDEO,
     OwnCapability.ENABLE_NOISE_CANCELLATION,
   ]);
-  callState.updateFromCallResponse({
-    settings: {
-      // @ts-expect-error partial data
-      audio: {
-        noise_cancellation: {
-          mode: NoiseCancellationSettingsModeEnum.AVAILABLE,
+  callState.updateFromCallResponse(
+    fromPartial({
+      egress: {},
+      settings: {
+        audio: {
+          noise_cancellation: {
+            mode: NoiseCancellationSettingsModeEnum.AVAILABLE,
+          },
+        },
+        screensharing: {
+          target_resolution: undefined,
         },
       },
-      // @ts-expect-error partial data
-      screensharing: {
-        target_resolution: undefined,
-      },
-    },
-  });
+    }),
+  );
   return {
+    cid: 'default:test-call',
     state: callState,
     publish: vi.fn(),
     stopPublish: vi.fn(),
+    streamClient: fromPartial({
+      dispatchEvent: vi.fn(),
+    }),
     notifyNoiseCancellationStarting: vi.fn().mockResolvedValue(undefined),
     notifyNoiseCancellationStopped: vi.fn().mockResolvedValue(undefined),
     tracer: new Tracer('tests'),
@@ -113,6 +119,7 @@ export const mockAudioStream = () => {
     getSettings: () => ({
       deviceId: mockAudioDevices[0].deviceId,
     }),
+    label: mockAudioDevices[0].label,
     enabled: true,
     readyState: 'live',
     stop: () => {
@@ -123,6 +130,9 @@ export const mockAudioStream = () => {
       handler: EventListenerOrEventListenerObject,
     ) => {
       track.eventHandlers[event] = handler;
+    },
+    removeEventListener(type: string) {
+      delete track.eventHandlers[type];
     },
   };
   return {
@@ -153,6 +163,9 @@ export const mockVideoStream = (
     ) => {
       track.eventHandlers[event] = handler;
     },
+    removeEventListener(type: string) {
+      delete track.eventHandlers[type];
+    },
   };
   return {
     getTracks: () => [track],
@@ -177,6 +190,9 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
     ) => {
       track.eventHandlers[event] = handler;
     },
+    removeEventListener(type: string) {
+      delete track.eventHandlers[type];
+    },
   };
 
   const tracks = [track];
@@ -197,6 +213,9 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
       ) => {
         audioTrack.eventHandlers[event] = handler;
       },
+      removeEventListener(type: string) {
+        delete track.eventHandlers[type];
+      },
     };
     tracks.push(audioTrack);
   }
@@ -206,6 +225,29 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
     getVideoTracks: () => tracks,
     getAudioTracks: () => tracks,
   } as any as MediaStream;
+};
+
+export type LocalStorageMock = {
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
+  removeItem: (key: string) => void;
+  clear: () => void;
+};
+
+export const createLocalStorageMock = (): LocalStorageMock => {
+  const store = new Map<string, string>();
+  return {
+    getItem: (key) => (store.has(key) ? store.get(key)! : null),
+    setItem: (key, value) => {
+      store.set(key, String(value));
+    },
+    removeItem: (key) => {
+      store.delete(key);
+    },
+    clear: () => {
+      store.clear();
+    },
+  };
 };
 
 let deviceIds: Subject<MediaDeviceInfo[]>;

@@ -1,6 +1,4 @@
-import { PermissionsAndroid } from 'react-native';
 import { lib, type Type } from './lib';
-import { videoLoggerSystem } from '@stream-io/video-client';
 
 export type NotifeeLib = Type;
 
@@ -33,44 +31,6 @@ export function getNotifeeLibThrowIfNotInstalledForPush() {
     );
   }
   return lib;
-}
-
-export function getNotifeeLibNoThrowForKeepCallAlive() {
-  if (!lib) {
-    const logger = videoLoggerSystem.getLogger('getNotifeeLibNoThrow');
-    logger.info(
-      `${'@notifee/react-native library not installed. It is required to keep call alive in the background for Android. '}${INSTALLATION_INSTRUCTION}`,
-    );
-  }
-  return lib;
-}
-
-export async function getKeepCallAliveForegroundServiceTypes() {
-  const types: AndroidForegroundServiceType[] = [];
-  const hasCameraPermission = await PermissionsAndroid.check(
-    PermissionsAndroid.PERMISSIONS.CAMERA!,
-  );
-  if (hasCameraPermission) {
-    types.push(AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_CAMERA);
-  }
-  const hasMicrophonePermission = await PermissionsAndroid.check(
-    PermissionsAndroid.PERMISSIONS.RECORD_AUDIO!,
-  );
-  if (hasMicrophonePermission) {
-    types.push(AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_MICROPHONE);
-  }
-  const hasConnectionPermission = await PermissionsAndroid.check(
-    PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT!,
-  );
-  if (hasConnectionPermission) {
-    types.push(
-      AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE,
-    );
-  }
-  if (types.length === 0) {
-    types.push(AndroidForegroundServiceType.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
-  }
-  return types;
 }
 
 export function getIncomingCallForegroundServiceTypes() {

@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-filters-web",
-  "version": "0.5.1",
+  "version": "0.7.4",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
@@ -28,7 +28,7 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
-    "@mediapipe/tasks-vision": "^0.10.22-rc.20250304",
+    "@mediapipe/tasks-vision": "^0.10.34",
     "@stream-io/worker-timer": "^1.2.5",
     "wasm-feature-detect": "^1.8.0"
   },

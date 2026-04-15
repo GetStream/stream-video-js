@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../pages/api/auth/[...nextauth]';
 import { createToken, decodeToken } from '../helpers/jwt';
 import type { User } from '@stream-io/video-react-sdk';
+import { getEnvironmentConfig } from './environmentConfig';
+import { getRandomName, sanitizeUserId } from './names';
 
 export type ServerSideCredentialOptions = {
   signInAutomatically?: boolean;
@@ -19,6 +21,7 @@ type QueryParams = {
   api_key?: string;
   token?: string;
   user_id?: string;
+  environment?: string;
 };
 
 export const getServerSideCredentialsPropsWithOptions =
@@ -46,13 +49,18 @@ export const getServerSideCredentialsPropsWithOptions =
 
     const query = context.query as QueryParams;
 
-    const apiKey = query.api_key || (process.env.STREAM_API_KEY as string);
-    const secretKey = process.env.STREAM_SECRET_KEY as string;
+    const environment = query.environment || 'pronto';
+    const appConfig = getEnvironmentConfig(environment);
+
+    const apiKey =
+      query.api_key ||
+      appConfig.apiKey ||
+      (process.env.STREAM_API_KEY as string);
+    const secretKey =
+      appConfig.secret || (process.env.STREAM_SECRET_KEY as string);
     const gleapApiKey = (process.env.GLEAP_API_KEY as string) || null;
 
-    const userIdOverride =
-      query.token &&
-      (decodeToken(query.token)['user_id'] as string | undefined);
+    const userIdOverride = query.token && decodeToken(query.token)['user_id'];
     const userId =
       userIdOverride || query.user_id || session.user?.streamUserId;
 
@@ -66,8 +74,10 @@ export const getServerSideCredentialsPropsWithOptions =
     }
 
     // Chat does not allow for Id's to include special characters
-    const streamUserId = userId.replace(/[^_\-0-9a-zA-Z@]/g, '_');
+    const streamUserId = sanitizeUserId(userId);
 
+    const isProntoSales =
+      process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'pronto-sales';
     const token =
       query.token ||
       (await createToken(
@@ -76,9 +86,7 @@ export const getServerSideCredentialsPropsWithOptions =
         secretKey,
         session.user?.stream
           ? {
-              ...(process.env.NEXT_PUBLIC_APP_ENVIRONMENT === 'pronto-sales'
-                ? { role: 'stream' }
-                : {}),
+              ...(isProntoSales ? { role: 'stream' } : {}),
               name: session.user?.name,
               image: session.user?.image,
               email: session.user?.email,
@@ -92,7 +100,9 @@ export const getServerSideCredentialsPropsWithOptions =
         userToken: token,
         user: {
           id: streamUserId,
-          ...(session.user?.name ? { name: session.user.name } : {}),
+          ...(session.user?.name
+            ? { name: session.user.name }
+            : { name: isProntoSales ? '' : getRandomName() }),
           ...(session.user?.image ? { image: session.user.image } : {}),
         },
         gleapApiKey,

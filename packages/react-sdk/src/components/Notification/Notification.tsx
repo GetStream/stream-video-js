@@ -43,7 +43,7 @@ export const Notification = (props: PropsWithChildren<NotificationProps>) => {
   }, [isVisible, resetIsVisible, visibilityTimeout]);
 
   return (
-    <div ref={refs.setReference}>
+    <div className="str-video__notification-wrapper" ref={refs.setReference}>
       {isVisible && (
         <div
           className={clsx('str-video__notification', className)}

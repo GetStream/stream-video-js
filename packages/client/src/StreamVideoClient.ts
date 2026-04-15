@@ -24,12 +24,13 @@ import type {
 import {
   AllClientEvents,
   ClientEventListener,
+  ErrorFromResponse,
   StreamClientOptions,
   TokenOrProvider,
-  TokenProvider,
   User,
   UserWithId,
 } from './coordinator/connection/types';
+import type { StreamVideoClientOptions } from './types';
 import { retryInterval, sleep } from './coordinator/connection/utils';
 import {
   createCoordinatorClient,
@@ -38,16 +39,9 @@ import {
   getInstanceKey,
 } from './helpers/clientUtils';
 import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
+import { isReactNative } from './helpers/platforms';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
-
-export type StreamVideoClientOptions = {
-  apiKey: string;
-  options?: StreamClientOptions;
-  user?: User;
-  token?: string;
-  tokenProvider?: TokenProvider;
-};
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -180,12 +174,7 @@ export class StreamVideoClient {
           .map((call) => call.cid);
         if (callsToReWatch.length <= 0) return;
 
-        this.logger.info(`Rewatching calls ${callsToReWatch.join(', ')}`);
-        this.queryCalls({
-          watch: true,
-          filter_conditions: { cid: { $in: callsToReWatch } },
-          sort: [{ field: 'cid', direction: 1 }],
-        }).catch((err) => {
+        this.rewatchCalls(callsToReWatch).catch((err) => {
           this.logger.error('Failed to re-watch calls', err);
         });
       }),
@@ -249,6 +238,44 @@ export class StreamVideoClient {
       });
     } catch (err) {
       this.logger.error(`Failed to init call from event ${e.type}`, err);
+    }
+  };
+
+  /**
+   * Rewatches the given calls with retry logic.
+   * @param callsToReWatch array of call IDs to rewatch
+   */
+  private rewatchCalls = async (callsToReWatch: string[]): Promise<void> => {
+    this.logger.info(`Rewatching calls ${callsToReWatch.join(', ')}`);
+    const maxRetries = 3;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        this.logger.info(
+          `Rewatching calls ${callsToReWatch.join(', ')} attempt ${attempt + 1}`,
+        );
+
+        await this.queryCalls({
+          watch: true,
+          filter_conditions: { cid: { $in: callsToReWatch } },
+        });
+
+        return;
+      } catch (err) {
+        if (err instanceof ErrorFromResponse && err.unrecoverable) {
+          throw err;
+        }
+
+        this.logger.warn(
+          `Failed to re-watch calls (attempt ${attempt + 1}/${maxRetries}), retrying.`,
+          err,
+        );
+
+        if (attempt === maxRetries - 1) {
+          throw err;
+        }
+      }
+
+      await sleep(retryInterval(attempt));
     }
   };
 
@@ -429,7 +456,7 @@ export class StreamVideoClient {
         clientStore: this.writeableStateStore,
       });
       call.state.updateFromCallResponse(c.call);
-      await call.applyDeviceConfig(c.call.settings, false);
+      await call.applyDeviceConfig(c.call.settings, false, isReactNative());
       if (data.watch) {
         await call.setup();
         this.writeableStateStore.registerCall(call);
@@ -596,7 +623,6 @@ export class StreamVideoClient {
       (c) =>
         c.cid !== currentCallId &&
         c.ringing &&
-        !c.isCreatedByMe &&
         c.state.callingState !== CallingState.IDLE &&
         c.state.callingState !== CallingState.LEFT &&
         c.state.callingState !== CallingState.RECONNECTING_FAILED,

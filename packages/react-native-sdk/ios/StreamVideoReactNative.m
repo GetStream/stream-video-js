@@ -4,21 +4,30 @@
 #import <React/RCTUIManagerUtils.h>
 #import <UIKit/UIKit.h>
 #import <CallKit/CallKit.h>
+#import <PushKit/PushKit.h>
 #import "StreamVideoReactNative.h"
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
+#import "InAppScreenCapturer.h"
 #import <AVFoundation/AVFoundation.h>
 #import <AudioToolbox/AudioToolbox.h>
+
+// Import Swift-generated header for ScreenShareAudioMixer
+#if __has_feature(modules)
+@import stream_react_native_webrtc.Swift;
+#elif __has_include("stream_react_native_webrtc-Swift.h")
+#import "stream_react_native_webrtc-Swift.h"
+#elif __has_include(<stream_react_native_webrtc/stream_react_native_webrtc-Swift.h>)
+#import <stream_react_native_webrtc/stream_react_native_webrtc-Swift.h>
+#endif
 
 // Do not change these consts, it is what is used react-native-webrtc
 NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
 NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped";
 
-static NSMutableDictionary *_incomingCallUUIDsByCallID = nil;
-static NSMutableDictionary *_incomingCallCidsByUUID = nil;
-static dispatch_queue_t _dictionaryQueue = nil;
+static NSString *const DEFAULT_DISPLAY_NAME = @"Unknown Caller";
 
-static BOOL _shouldRejectCallWhenBusy = NO;
+static dispatch_queue_t _dictionaryQueue = nil;
 
 void broadcastNotificationCallback(CFNotificationCenterRef center,
                                    void *observer,
@@ -60,9 +69,198 @@ RCT_EXPORT_MODULE();
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _dictionaryQueue = dispatch_queue_create("com.stream.video.dictionary", DISPATCH_QUEUE_SERIAL);
-        _incomingCallUUIDsByCallID = [NSMutableDictionary dictionary];
-        _incomingCallCidsByUUID = [NSMutableDictionary dictionary];
     });
+}
+
++(BOOL)canRegisterCall {
+    Class callingxClass = NSClassFromString(@"Callingx");
+    if (!callingxClass) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][canRegisterCall] Callingx not available");
+        #endif
+        return YES;
+    }
+    
+    SEL selector = @selector(canRegisterCall);
+    if (![callingxClass respondsToSelector:selector]) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][canRegisterCall] Callingx does not respond to canRegisterCall selector");
+        #endif
+        return YES;
+    }
+    
+    NSMethodSignature *signature = [callingxClass methodSignatureForSelector:selector];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+    [invocation setTarget:callingxClass];
+    [invocation setSelector:selector];
+    [invocation invoke];
+    
+    BOOL canRegister = NO;
+    [invocation getReturnValue:&canRegister];
+    
+    #if DEBUG
+    NSLog(@"[StreamVideoReactNative][canRegisterCall] canRegisterCall = %@", canRegister ? @"YES" : @"NO");
+    #endif
+    
+    return canRegister;
+}
+
++(void)voipRegistration {
+    Class voipManagerClass = NSClassFromString(@"Callingx.VoipNotificationsManager");
+    if (!voipManagerClass) {
+        // Fallback: Try the unmangled name (might work depending on Swift version)
+        voipManagerClass = NSClassFromString(@"VoipNotificationsManager");
+    }
+    
+    if (!voipManagerClass) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][voipRegistration] VoipNotificationsManager not available");
+        #endif
+        return;
+    }
+    
+    SEL selector = @selector(voipRegistration);
+    if (![voipManagerClass respondsToSelector:selector]) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][voipRegistration] VoipNotificationsManager does not respond to voipRegistration");
+        #endif
+        return;
+    }
+    
+    [voipManagerClass voipRegistration];
+}
+
++(void)didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(NSString *)type {
+    Class voipManagerClass = NSClassFromString(@"Callingx.VoipNotificationsManager");
+    if (!voipManagerClass) {
+        // Fallback: Try the unmangled name (might work depending on Swift version)
+        voipManagerClass = NSClassFromString(@"VoipNotificationsManager");
+    }
+    
+    if (!voipManagerClass) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][didUpdatePushCredentials] VoipNotificationsManager not available");
+        #endif
+        return;
+    }
+    
+    SEL selector = @selector(didUpdatePushCredentials:forType:);
+    if (![voipManagerClass respondsToSelector:selector]) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][didUpdatePushCredentials] VoipNotificationsManager does not respond to didUpdatePushCredentials:forType:");
+        #endif
+        return;
+    }
+    
+    [voipManagerClass didUpdatePushCredentials:credentials forType:type];
+}
+
++(void)didReceiveIncomingPush:(PKPushPayload *)payload forType:(NSString *)type completionHandler: (void (^_Nullable)(void)) completion {
+    NSDictionary *streamPayload = payload.dictionaryPayload[@"stream"];
+    if (!streamPayload) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Stream payload not found");
+        #endif
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+    
+    NSString *callCid = streamPayload[@"call_cid"];
+    if (!callCid) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Missing required field: call_cid");
+        #endif
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+    
+    if (![StreamVideoReactNative canRegisterCall]) {
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+
+    [StreamVideoReactNative reportNewIncomingCall:streamPayload forType:type completionHandler:completion];
+    [StreamVideoReactNative didReceiveIncomingPushWithPayload:payload forType:type];
+}
+
++(void)reportNewIncomingCall:(NSDictionary *)streamPayload forType:(NSString *)type completionHandler: (void (^_Nullable)(void)) completion {
+    Class callingxClass = NSClassFromString(@"Callingx");
+    if (!callingxClass) {
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Callingx not available");
+        return;
+    }
+    
+    SEL selector = @selector(reportNewIncomingCall:handle:handleType:hasVideo:localizedCallerName:supportsHolding:supportsDTMF:supportsGrouping:supportsUngrouping:payload:withCompletionHandler:);
+    if (![callingxClass respondsToSelector:selector]) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPush] Callingx does not respond to selector");
+        #endif
+        return;
+    }
+    
+    NSString *callCid = streamPayload[@"call_cid"];
+    NSString *callDisplayName = streamPayload[@"call_display_name"];
+    NSString *createdByDisplayName = streamPayload[@"created_by_display_name"];
+    NSString *createdCallerName = callDisplayName.length > 0 ? callDisplayName : createdByDisplayName;
+    NSString *localizedCallerName = createdCallerName.length > 0 ? createdCallerName : DEFAULT_DISPLAY_NAME;
+    NSString *createdById = streamPayload[@"created_by_id"];
+    NSString *handle = createdById.length > 0 ? createdById : localizedCallerName;
+    NSString *videoIncluded = streamPayload[@"video"];
+    BOOL hasVideo = [videoIncluded isEqualToString:@"false"] ? NO : YES;
+    NSString *handleType = @"generic";
+    BOOL supportsHolding = NO;
+    BOOL supportsDTMF = NO;
+    BOOL supportsGrouping = NO;
+    BOOL supportsUngrouping = NO;
+    void (^completionHandler)(void) = completion;
+
+    NSMethodSignature *signature = [callingxClass methodSignatureForSelector:selector];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+    [invocation setTarget:callingxClass];
+    [invocation setSelector:selector];
+    [invocation setArgument:&callCid atIndex:2];
+    [invocation setArgument:&handle atIndex:3];
+    [invocation setArgument:&handleType atIndex:4];
+    [invocation setArgument:&hasVideo atIndex:5];
+    [invocation setArgument:&localizedCallerName atIndex:6];
+    [invocation setArgument:&supportsHolding atIndex:7];
+    [invocation setArgument:&supportsDTMF atIndex:8];
+    [invocation setArgument:&supportsGrouping atIndex:9];
+    [invocation setArgument:&supportsUngrouping atIndex:10];
+    [invocation setArgument:&streamPayload atIndex:11];
+    [invocation setArgument:&completionHandler atIndex:12];
+    [invocation invoke];
+}
+
++(void)didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(NSString *)type {
+    Class voipManagerClass = NSClassFromString(@"Callingx.VoipNotificationsManager");
+    if (!voipManagerClass) {
+        // Fallback: Try the unmangled name (might work depending on Swift version)
+        voipManagerClass = NSClassFromString(@"VoipNotificationsManager");
+    }
+    
+    if (!voipManagerClass) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPushWithPayload] VoipNotificationsManager not available");
+        #endif
+        return;
+    }
+    
+    SEL selector = @selector(didReceiveIncomingPushWithPayload:forType:);
+    if (![voipManagerClass respondsToSelector:selector]) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingPushWithPayload] VoipNotificationsManager does not respond to didReceiveIncomingPushWithPayload:forType:");
+        #endif
+        return;
+    }
+    
+    [voipManagerClass didReceiveIncomingPushWithPayload:payload forType:type];
 }
 
 -(instancetype)init {
@@ -191,71 +389,6 @@ RCT_EXPORT_METHOD(currentThermalState:(RCTPromiseResolveBlock)resolve rejecter:(
     }
 }
 
-+(void)registerIncomingCall:(NSString *)cid uuid:(NSString *)uuid {
-    [StreamVideoReactNative initializeSharedDictionaries];
-    dispatch_sync(_dictionaryQueue, ^{
-        
-#ifdef DEBUG
-        NSLog(@"registerIncomingCall cid:%@ -> uuid:%@",cid,uuid);
-#endif
-        NSString *lowercaseUUID = [uuid lowercaseString];
-        _incomingCallUUIDsByCallID[cid] = lowercaseUUID;
-        _incomingCallCidsByUUID[lowercaseUUID] = cid;
-    });
-}
-
-RCT_EXPORT_METHOD(getIncomingCallUUid:(NSString *)cid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-    dispatch_sync(_dictionaryQueue, ^{
-        NSString *uuid = _incomingCallUUIDsByCallID[cid];
-        if (uuid) {
-            resolve(uuid);
-        } else {
-            NSString *errorString = [NSString stringWithFormat:@"requested incoming call not found for cid: %@", cid];
-            reject(@"access_failure", errorString, nil);
-        }
-    });
-}
-
-RCT_EXPORT_METHOD(getIncomingCallCid:(NSString *)uuid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-    dispatch_sync(_dictionaryQueue, ^{
-        NSString *lowercaseUUID = [uuid lowercaseString];
-        NSString *foundCid = _incomingCallCidsByUUID[lowercaseUUID];
-        
-        if (foundCid) {
-            resolve(foundCid);
-        } else {
-            NSString *errorString = [NSString stringWithFormat:@"requested incoming call not found for uuid: %@", uuid];
-            reject(@"access_failure", errorString, nil);
-        }
-    });
-}
-
-RCT_EXPORT_METHOD(removeIncomingCall:(NSString *)cid
-                  resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-    dispatch_sync(_dictionaryQueue, ^{
-        NSString *uuid = _incomingCallUUIDsByCallID[cid];
-        if (uuid) {
-#ifdef DEBUG
-            NSLog(@"removeIncomingCall cid:%@ -> uuid:%@",cid,uuid);
-#endif
-            
-            [_incomingCallUUIDsByCallID removeObjectForKey:cid];
-            [_incomingCallCidsByUUID removeObjectForKey:uuid];
-            resolve(@YES);
-        } else {
-            resolve(@NO);
-        }
-    });
-}
-
 RCT_EXPORT_METHOD(captureRef:(nonnull NSNumber *)reactTag
                   options:(NSDictionary *)options
                   resolver:(RCTPromiseResolveBlock)resolve
@@ -353,6 +486,26 @@ RCT_EXPORT_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
     });
 }
 
+RCT_EXPORT_METHOD(checkPermission:(NSString *)permission
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    NSString *normalizedPermission = [permission lowercaseString];
+    AVMediaType mediaType = nil;
+
+    if ([normalizedPermission isEqualToString:@"camera"]) {
+        mediaType = AVMediaTypeVideo;
+    } else if ([normalizedPermission isEqualToString:@"microphone"]) {
+        mediaType = AVMediaTypeAudio;
+    } else {
+        NSString *errorMessage = [NSString stringWithFormat:@"Unsupported media device kind: %@", permission];
+        reject(@"UNSUPPORTED_MEDIA_DEVICE_KIND", errorMessage, nil);
+        return;
+    }
+
+    AVAuthorizationStatus status = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
+    resolve(@(status == AVAuthorizationStatusAuthorized));
+}
+
 -(void)batteryStateDidChange:(NSNotification *)notification {
     UIDeviceBatteryState batteryState = [UIDevice currentDevice].batteryState;
     BOOL isCharging = (batteryState == UIDeviceBatteryStateCharging ||
@@ -373,17 +526,7 @@ RCT_EXPORT_METHOD(getBatteryState:(RCTPromiseResolveBlock)resolve
     ];
 }
 
-+(BOOL)shouldRejectCallWhenBusy {
-    return _shouldRejectCallWhenBusy;
-}
-
-RCT_EXPORT_METHOD(setShouldRejectCallWhenBusy:(BOOL)shouldReject) {
-    _shouldRejectCallWhenBusy = shouldReject;
-#ifdef DEBUG
-    NSLog(@"setShouldRejectCallWhenBusy: %@", shouldReject ? @"YES" : @"NO");
-#endif
-}
-
+//current implementation will return any registered calls not only stream calls
 + (BOOL)hasAnyActiveCall
 {
     CXCallObserver *callObserver = [[CXCallObserver alloc] init];
@@ -606,22 +749,22 @@ RCT_EXPORT_METHOD(stopBusyTone:(RCTPromiseResolveBlock)resolve rejecter:(RCTProm
 
 - (void)audioSessionInterrupted:(NSNotification *)notification {
     AVAudioSessionInterruptionType interruptionType = [notification.userInfo[AVAudioSessionInterruptionTypeKey] unsignedIntegerValue];
-    
+
     switch (interruptionType) {
         case AVAudioSessionInterruptionTypeBegan:
             if (_busyTonePlayer && _busyTonePlayer.isPlaying) {
                 [_busyTonePlayer pause];
             }
             break;
-            
+
         case AVAudioSessionInterruptionTypeEnded: {
             AVAudioSessionInterruptionOptions options = [notification.userInfo[AVAudioSessionInterruptionOptionKey] unsignedIntegerValue];
-            
+
             if (options & AVAudioSessionInterruptionOptionShouldResume) {
                 // Reactivate audio session
                 NSError *error = nil;
                 [[AVAudioSession sharedInstance] setActive:YES error:&error];
-                
+
                 if (!error && _busyTonePlayer) {
                     [_busyTonePlayer play];
                 } else if (error) {
@@ -631,6 +774,87 @@ RCT_EXPORT_METHOD(stopBusyTone:(RCTPromiseResolveBlock)resolve rejecter:(RCTProm
             break;
         }
     }
+}
+
+#pragma mark - In-App Screen Capture
+
+RCT_EXPORT_METHOD(startInAppScreenCapture:(BOOL)includeAudio
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+    options.useInAppScreenCapture = YES;
+    options.includeScreenShareAudio = includeAudio;
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(stopInAppScreenCapture:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+    options.useInAppScreenCapture = NO;
+    options.includeScreenShareAudio = NO;
+    resolve(nil);
+}
+
+#pragma mark - Screen Share Audio Mixing
+
+RCT_EXPORT_METHOD(startScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+
+    ScreenShareAudioMixer *mixer = webrtcModule.audioDeviceModule.screenShareAudioMixer;
+
+    // Wire mixer as capturePostProcessingDelegate on the audio processing module.
+    id<RTCAudioProcessingModule> apmId = options.audioProcessingModule;
+    if (apmId && [apmId isKindOfClass:[RTCDefaultAudioProcessingModule class]]) {
+        RTCDefaultAudioProcessingModule *apm = (RTCDefaultAudioProcessingModule *)apmId;
+        apm.capturePostProcessingDelegate = mixer;
+        NSLog(@"[SSAMixer] Set capturePostProcessingDelegate on APM");
+    } else {
+        NSLog(@"[SSAMixer] WARNING: No RTCDefaultAudioProcessingModule available, mixing will not work");
+    }
+
+    [mixer startMixing];
+
+    // Wire audio buffer handler on the active capturer → mixer.enqueue
+    InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
+    if (capturer) {
+        capturer.audioBufferHandler = ^(CMSampleBufferRef sampleBuffer) {
+            [mixer enqueue:sampleBuffer];
+        };
+    }
+
+    resolve(nil);
+}
+
+RCT_EXPORT_METHOD(stopScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject)
+{
+    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
+    WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
+
+    // Stop feeding audio to the mixer
+    InAppScreenCapturer *capturer = options.activeInAppScreenCapturer;
+    if (capturer) {
+        capturer.audioBufferHandler = nil;
+    }
+
+    // Stop mixing
+    ScreenShareAudioMixer *mixer = webrtcModule.audioDeviceModule.screenShareAudioMixer;
+    [mixer stopMixing];
+
+    // Clear capturePostProcessingDelegate
+    id<RTCAudioProcessingModule> apmId = options.audioProcessingModule;
+    if (apmId && [apmId isKindOfClass:[RTCDefaultAudioProcessingModule class]]) {
+        RTCDefaultAudioProcessingModule *apm = (RTCDefaultAudioProcessingModule *)apmId;
+        apm.capturePostProcessingDelegate = nil;
+        NSLog(@"[SSAMixer] Cleared capturePostProcessingDelegate on APM");
+    }
+
+    resolve(nil);
 }
 
 @end

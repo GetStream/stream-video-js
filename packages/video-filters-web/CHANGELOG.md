@@ -2,6 +2,46 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.3...@stream-io/video-filters-web-0.7.4) (2026-04-09)
+
+### Bug Fixes
+
+- **video-filters-web:** propagate background image load errors to prevent black frames ([#2188](https://github.com/GetStream/stream-video-js/issues/2188)) ([5dd6a4b](https://github.com/GetStream/stream-video-js/commit/5dd6a4b5768f39df411999dd64968c86c33c4967))
+
+## [0.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.2...@stream-io/video-filters-web-0.7.3) (2026-03-27)
+
+### Bug Fixes
+
+- **react:** expose segmentation smoothing options and add model picker in video effects settings ([#2176](https://github.com/GetStream/stream-video-js/issues/2176)) ([edee6bf](https://github.com/GetStream/stream-video-js/commit/edee6bf8d9aacdfb2ae49fb202ba7f7d1140063f))
+
+## [0.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.1...@stream-io/video-filters-web-0.7.2) (2026-01-30)
+
+### Bug Fixes
+
+- **react:** improve logic for calculating the lower / upper threshold for video filter degradation ([#2094](https://github.com/GetStream/stream-video-js/issues/2094)) ([5cd2d5c](https://github.com/GetStream/stream-video-js/commit/5cd2d5cb34fc7bbdfaf9529eb9f8d33a40346cab))
+
+## [0.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.0...@stream-io/video-filters-web-0.7.1) (2026-01-27)
+
+### Bug Fixes
+
+- **react:** switch selfie segmentation default to landscape model ([#2100](https://github.com/GetStream/stream-video-js/issues/2100)) ([7c5d74d](https://github.com/GetStream/stream-video-js/commit/7c5d74d79ba1eb2f5a04a60a953ea0bd46633f4a))
+
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.6.0...@stream-io/video-filters-web-0.7.0) (2025-12-23)
+
+### Features
+
+- **react:** Implement progress bar when video-filters are being loaded ([#2063](https://github.com/GetStream/stream-video-js/issues/2063)) ([3a6b92e](https://github.com/GetStream/stream-video-js/commit/3a6b92e092805160cbf0e289d70fcccafcb20199))
+
+## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.5.1...@stream-io/video-filters-web-0.6.0) (2025-12-08)
+
+### Features
+
+- **react:** Video Call moderation for React SDK ([#2007](https://github.com/GetStream/stream-video-js/issues/2007)) ([e242d35](https://github.com/GetStream/stream-video-js/commit/e242d35cc619d1ad0fc55d01944e97269af60cdf))
+
+### Bug Fixes
+
+- **react:** Prevent frame exhaustion in fallback MediaStreamTrackProcessor ([#2019](https://github.com/GetStream/stream-video-js/issues/2019)) ([b06e130](https://github.com/GetStream/stream-video-js/commit/b06e1301c2d5a8bdcb2a75389b4b39fafec6c7b2))
+
 ## [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.5.0...@stream-io/video-filters-web-0.5.1) (2025-11-25)
 
 ### Bug Fixes

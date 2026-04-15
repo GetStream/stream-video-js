@@ -36,7 +36,7 @@ export type FloatingParticipantViewAlignment =
 export type FloatingParticipantViewProps = ParticipantViewComponentProps &
   Pick<CallParticipantsListComponentProps, 'ParticipantView'> &
   Pick<CallContentProps, 'supportedReactions'> &
-  Pick<ParticipantViewProps, 'objectFit' | 'videoZOrder'> & {
+  Pick<ParticipantViewProps, 'objectFit' | 'videoZOrder' | 'mirror'> & {
     /**
      * Determines where the floating participant video will be placed.
      */
@@ -103,6 +103,7 @@ export const FloatingParticipantView = ({
   supportedReactions,
   videoZOrder = 1,
   objectFit,
+  mirror,
 }: FloatingParticipantViewProps) => {
   const {
     theme: {
@@ -195,6 +196,7 @@ export const FloatingParticipantView = ({
                 // (which uses the default: 0)
                 videoZOrder={videoZOrder}
                 objectFit={objectFit}
+                mirror={mirror}
                 supportedReactions={supportedReactions}
                 {...participantViewProps}
               />

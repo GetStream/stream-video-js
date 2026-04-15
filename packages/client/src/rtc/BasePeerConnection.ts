@@ -27,6 +27,7 @@ export abstract class BasePeerConnection {
   protected readonly state: CallState;
   protected readonly dispatcher: Dispatcher;
   protected readonly clientPublishOptions?: ClientPublishOptions;
+  protected tag: string;
   protected sfuClient: StreamSfuClient;
 
   private onReconnectionNeeded?: OnReconnectionNeeded;
@@ -40,7 +41,7 @@ export abstract class BasePeerConnection {
   readonly tracer?: Tracer;
   readonly stats: StatsTracer;
 
-  private readonly subscriptions: (() => void)[] = [];
+  private subscriptions: (() => void)[] = [];
   private unsubscribeIceTrickle?: () => void;
   protected readonly lock = Math.random().toString(36).slice(2);
 
@@ -67,6 +68,7 @@ export abstract class BasePeerConnection {
     this.dispatcher = dispatcher;
     this.iceRestartDelay = iceRestartDelay;
     this.clientPublishOptions = clientPublishOptions;
+    this.tag = tag;
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.logger = videoLoggerSystem.getLogger(
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
@@ -128,6 +130,7 @@ export abstract class BasePeerConnection {
     pc.removeEventListener('icegatheringstatechange', this.onIceGatherChange);
     this.unsubscribeIceTrickle?.();
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
+    this.subscriptions = [];
   }
 
   /**
@@ -161,8 +164,9 @@ export abstract class BasePeerConnection {
     event: E,
     fn: CallEventListener<E>,
   ): void => {
+    const getTag = () => this.tag;
     this.subscriptions.push(
-      this.dispatcher.on(event, (e) => {
+      this.dispatcher.on(event, getTag, (e) => {
         const lockKey = `pc.${this.lock}.${event}`;
         withoutConcurrency(lockKey, async () => fn(e)).catch((err) => {
           if (this.isDisposed) return;
@@ -201,6 +205,7 @@ export abstract class BasePeerConnection {
    */
   setSfuClient = (sfuClient: StreamSfuClient) => {
     this.sfuClient = sfuClient;
+    this.tag = sfuClient.tag;
   };
 
   /**

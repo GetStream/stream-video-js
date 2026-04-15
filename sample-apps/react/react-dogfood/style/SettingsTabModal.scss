@@ -126,9 +126,32 @@
         flex-direction: column;
         min-height: 320px;
         max-width: 480px;
+        position: relative;
 
         .str-video__video-preview-container {
           width: 100%;
+        }
+
+        .rd__video-effects__progress-bar {
+          width: 100%;
+          height: 4px;
+          background-color: var(--str-video__base-color6);
+          border-radius: 0 0 var(--str-video__border-radius-xs);
+          overflow: hidden;
+          position: absolute;
+          bottom: -10px;
+          left: 50%;
+          transform: translateX(-50%);
+
+          &__fill {
+            height: 100%;
+            width: 20%;
+            background-color: var(--str-video__brand-color1);
+            border-radius: var(--str-video__border-radius-xs);
+            position: absolute;
+            animation: rd__video-effects__progress-bar__animation 1.5s
+              ease-in-out infinite;
+          }
         }
       }
 
@@ -244,5 +267,14 @@
     &__tabmodal-container {
       width: 45vw;
     }
+  }
+}
+
+@keyframes rd__video-effects__progress-bar__animation {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(500%);
   }
 }

@@ -21,3 +21,118 @@
     height: 1rem;
   }
 }
+
+.str-video__pip-layout--grid {
+  flex-wrap: nowrap;
+}
+
+.str-video__pip-layout__grid-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.str-video__pip-layout__pagination-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  padding: var(--str-video__spacing-xxs);
+  min-width: auto;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+
+  &:hover:not(:disabled) {
+    opacity: 1;
+  }
+
+  .str-video__icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  &--left {
+    left: 0;
+  }
+
+  &--right {
+    right: 0;
+  }
+}
+
+.str-video__pip-layout__grid {
+  display: grid;
+  grid-template-columns: repeat(var(--pip-cols), 1fr);
+  gap: var(--str-video__spacing-xxs);
+  width: 100%;
+  max-height: 100%;
+  flex: 1 1 auto;
+
+  .str-video__participant-view {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+
+    &--speaking {
+      outline: none;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border: 2px solid var(--str-video__primary-color);
+        border-radius: var(--str-video__border-radius-sm);
+        pointer-events: none;
+        z-index: 1;
+      }
+    }
+
+    .str-video__notification {
+      display: none;
+    }
+  }
+
+  @mixin pip-avatar-size($size, $font-size) {
+    .str-video__video-placeholder__avatar,
+    .str-video__video-placeholder__initials-fallback {
+      width: $size;
+      height: $size;
+      font-size: $font-size;
+    }
+  }
+
+  @include pip-avatar-size(32px, var(--str-video__font-size-sm));
+
+  &.str-video__pip-layout__grid--single {
+    --pip-cols: 1;
+    @include pip-avatar-size(80px, var(--str-video__font-size-xxl));
+  }
+
+  &.str-video__pip-layout__grid--small {
+    --pip-cols: 2;
+    @include pip-avatar-size(60px, var(--str-video__font-size-xl));
+  }
+
+  &.str-video__pip-layout__grid--medium {
+    --pip-cols: 3;
+    @include pip-avatar-size(45px, var(--str-video__font-size-md));
+  }
+
+  &.str-video__pip-layout__grid--large {
+    --pip-cols: 4;
+    @include pip-avatar-size(35px, var(--str-video__font-size-sm));
+  }
+
+  &.str-video__pip-layout__grid--overflow {
+    --pip-cols: 5;
+    overflow-y: auto;
+    @include pip-avatar-size(25px, var(--str-video__font-size-xs));
+  }
+}

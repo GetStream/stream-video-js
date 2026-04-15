@@ -25,6 +25,39 @@ internal class AudioManagerUtil {
             }
         }
 
+        /**
+         * Safe wrapper around [AudioManager.setCommunicationDevice] to avoid crashing the app on
+         * OEM-specific edge cases. On API 31+, Android requires that:
+         * - the device is a sink (output), and
+         * - the device is among [AudioManager.availableCommunicationDevices].
+         */
+        @RequiresApi(31)
+        fun setCommunicationDeviceSafely(
+            audioManager: AudioManager,
+            deviceInfo: AudioDeviceInfo,
+        ): Boolean {
+
+            if (!deviceInfo.isSink) {
+                Log.w(TAG, "setCommunicationDeviceSafely: rejecting non-sink device type=${deviceInfo.type}, id=${deviceInfo.id}")
+                return false
+            }
+
+            val available = audioManager.availableCommunicationDevices
+            val isAvailable = available.any { it.id == deviceInfo.id }
+            if (!isAvailable) {
+                Log.w(TAG, "setCommunicationDeviceSafely: device not in availableCommunicationDevices type=${deviceInfo.type}, id=${deviceInfo.id}")
+                return false
+            }
+
+            return try {
+                audioManager.setCommunicationDevice(deviceInfo)
+                true
+            } catch (e: IllegalArgumentException) {
+                Log.w(TAG, "setCommunicationDeviceSafely: failed type=${deviceInfo.type}, id=${deviceInfo.id}", e)
+                false
+            }
+        }
+
         fun isSpeakerphoneOn(audioManager: AudioManager): Boolean {
             return if (Build.VERSION.SDK_INT >= 31) {
                 AudioManager31PlusImpl.isSpeakerphoneOn(audioManager)
@@ -83,7 +116,7 @@ internal class AudioManagerUtil {
                     endpointMaps.nonBluetoothEndpoints.values.firstOrNull {
                         it.type == deviceType
                     }?.let {
-                        audioManager.setCommunicationDevice(it.deviceInfo)
+                        setCommunicationDeviceSafely(audioManager, it.deviceInfo)
                         bluetoothManager.updateDevice()
                         return endpointMaps.nonBluetoothEndpoints[deviceType]
                     }
@@ -92,7 +125,7 @@ internal class AudioManagerUtil {
                 AudioDeviceEndpoint.TYPE_SPEAKER -> {
                     val speakerDevice = endpointMaps.nonBluetoothEndpoints[AudioDeviceEndpoint.TYPE_SPEAKER]
                     speakerDevice?.let {
-                        audioManager.setCommunicationDevice(it.deviceInfo)
+                        setCommunicationDeviceSafely(audioManager, it.deviceInfo)
                         bluetoothManager.updateDevice()
                         return speakerDevice
                     }

@@ -18,6 +18,7 @@ import { DynascaleManager } from '../DynascaleManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { StreamVideoWriteableStateStore } from '../../store';
+import { getCurrentValue } from '../../store/rxUtils';
 import { VisibilityState } from '../../types';
 import { noopComparator } from '../../sorting';
 import { TrackType } from '../../gen/video/sfu/models/models';
@@ -30,11 +31,17 @@ describe('DynascaleManager', () => {
     call = new Call({
       id: 'id',
       type: 'default',
-      streamClient: new StreamClient('api-key'),
+      streamClient: new StreamClient('api-key', {
+        devicePersistence: { enabled: false },
+      }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
     call.setSortParticipantsBy(noopComparator());
-    dynascaleManager = new DynascaleManager(call.state, call.speaker);
+    dynascaleManager = new DynascaleManager(
+      call.state,
+      call.speaker,
+      call.tracer,
+    );
   });
 
   afterEach(() => {
@@ -107,6 +114,8 @@ describe('DynascaleManager', () => {
           isSafari: () => globalThis._isSafari ?? false,
         };
       });
+
+      dynascaleManager.setUseWebAudio(false);
 
       videoElement = document.createElement('video');
 
@@ -189,6 +198,7 @@ describe('DynascaleManager', () => {
 
     it('audio: Safari should use AudioContext for audio playback', () => {
       globalThis._isSafari = true;
+      dynascaleManager.setUseWebAudio(true); // enabled by default on Safari
 
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');
@@ -607,6 +617,189 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenLastCalledWith('videoTrack', {
         'session-id': { dimension: undefined },
       });
+    });
+
+    it('audio: should register and unregister watchdog binding', () => {
+      const watchdog = dynascaleManager.audioBindingsWatchdog!;
+      const registerSpy = vi.spyOn(watchdog, 'register');
+      const unregisterSpy = vi.spyOn(watchdog, 'unregister');
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        document.createElement('audio'),
+        'session-id',
+        'audioTrack',
+      );
+
+      expect(registerSpy).toHaveBeenCalledWith(
+        expect.any(HTMLAudioElement),
+        'session-id',
+        'audioTrack',
+      );
+
+      cleanup?.();
+
+      expect(unregisterSpy).toHaveBeenCalledWith('session-id', 'audioTrack');
+    });
+
+    it('audio: should track blocked audio elements on NotAllowedError', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      const notAllowedError = new DOMException('', 'NotAllowedError');
+      vi.spyOn(audioElement, 'play').mockRejectedValue(notAllowedError);
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        audioStream: mediaStream,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
+
+      cleanup?.();
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
+    });
+
+    it('audio: should unblock audio elements on explicit resumeAudio call', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      const playSpy = vi
+        .spyOn(audioElement, 'play')
+        .mockRejectedValueOnce(new DOMException('', 'NotAllowedError'))
+        .mockResolvedValue(undefined);
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        audioStream: mediaStream,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
+
+      await dynascaleManager.resumeAudio();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(playSpy).toHaveBeenCalledTimes(2);
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
+
+      cleanup?.();
+    });
+
+    it('audio: should clear blocked state when the audio stream is removed', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      vi.spyOn(audioElement, 'play').mockRejectedValue(
+        new DOMException('', 'NotAllowedError'),
+      );
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        audioStream: mediaStream,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
+
+      call.state.updateParticipant('session-id', {
+        audioStream: undefined,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(audioElement.srcObject).toBeNull();
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
+
+      cleanup?.();
+    });
+
+    it('audio: should warn when binding an already-bound session', () => {
+      const watchdog = dynascaleManager.audioBindingsWatchdog!;
+      // @ts-expect-error private property
+      const warnSpy = vi.spyOn(watchdog.logger, 'warn');
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const audioElement1 = document.createElement('audio');
+      const audioElement2 = document.createElement('audio');
+
+      const cleanup1 = dynascaleManager.bindAudioElement(
+        audioElement1,
+        'session-id',
+        'audioTrack',
+      );
+
+      const cleanup2 = dynascaleManager.bindAudioElement(
+        audioElement2,
+        'session-id',
+        'audioTrack',
+      );
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Audio element already bound'),
+      );
+
+      cleanup1?.();
+      cleanup2?.();
     });
 
     it('video: should unsubscribe when element dimensions are zero', () => {

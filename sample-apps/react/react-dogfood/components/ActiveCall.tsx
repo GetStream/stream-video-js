@@ -26,6 +26,7 @@ import { ActiveCallHeader } from './ActiveCallHeader';
 import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
 import { ChatUI } from './ChatUI';
 import { ChatWrapper } from './ChatWrapper';
+import { DeviceDisconnectedNotification } from './DeviceDisconnectedNotification';
 import {
   ClosedCaptions,
   ClosedCaptionsSidebar,
@@ -59,6 +60,11 @@ import { StepNames, useTourContext } from '../context/TourContext';
 import { useNotificationSounds } from '../hooks/useNotificationSounds';
 import { usePipWindow } from '../hooks/usePipWindow';
 import { StagePip } from './StagePip';
+import {
+  RemoteVideoControls,
+  useRemoteFilePublisher,
+} from './RemoteFilePublisher';
+import { ModerationNotification } from './ModerationNotification';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -152,6 +158,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
   } = usePipWindow('@pronto/pip');
   useNotificationSounds();
 
+  const remoteFilePublisherAPI = useRemoteFilePublisher();
+
   return (
     <div className="rd__call">
       {isDemoEnvironment && <TourPanel highlightClass="rd__highlight" />}
@@ -230,6 +238,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
             )}
           </div>
         </div>
+        <ModerationNotification />
         <div className="rd__notifications">
           <Restricted
             requiredGrants={[OwnCapability.SEND_AUDIO]}
@@ -272,7 +281,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
               <ToggleMoreOptionsListButton />
             </div>
           </div>
+          <DeviceDisconnectedNotification className="rd__call-controls__notification" />
           <div className="str-video__call-controls--group str-video__call-controls--media">
+            {remoteFilePublisherAPI && (
+              <RemoteVideoControls api={remoteFilePublisherAPI} />
+            )}
             <ToggleDualMicButton />
             <ToggleDualCameraButton />
             <div className="str-video__call-controls__desktop">

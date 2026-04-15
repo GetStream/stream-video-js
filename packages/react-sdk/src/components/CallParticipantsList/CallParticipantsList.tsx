@@ -31,6 +31,7 @@ import {
   MenuToggle,
   ToggleMenuButtonProps,
 } from '../Menu';
+import { normalizeString } from '../../utilities';
 
 type CallParticipantListProps = {
   /** Click event listener function to be invoked in order to dismiss/hide the CallParticipantsList from the UI */
@@ -151,8 +152,11 @@ const ActiveUsersSearchResults = ({
 
   const activeUsersSearchFn = useCallback(
     async (queryString: string) => {
-      const queryRegExp = new RegExp(queryString, 'i');
-      return participants.filter((p) => p.name.match(queryRegExp));
+      const normalizedQuery = normalizeString(queryString);
+      const queryRegExp = new RegExp(normalizedQuery, 'i');
+      return participants.filter((p) =>
+        normalizeString(p.name).match(queryRegExp),
+      );
     },
     [participants],
   );

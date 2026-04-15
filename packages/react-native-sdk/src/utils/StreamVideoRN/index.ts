@@ -3,9 +3,14 @@ import pushLogoutCallbacks from '../internal/pushLogoutCallback';
 import newNotificationCallbacks, {
   type NewCallNotificationCallback,
 } from '../internal/newNotificationCallbacks';
-import { setupIosCallKeepEvents } from '../push/setupIosCallKeepEvents';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
-import { NativeModules } from 'react-native';
+import { setupCallingExpEvents } from '../push/setupCallingExpEvents';
+import {
+  extractCallingExpOptions,
+  getCallingxLib,
+} from '../push/libs/callingx';
+import { NativeModules, Platform } from 'react-native';
+import { videoLoggerSystem } from '@stream-io/video-client';
 
 // Utility type for deep partial
 type DeepPartial<T> = {
@@ -47,10 +52,7 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
     android: {
       channel: {
         id: 'stream_call_foreground_service',
-        name: 'To keep calls alive',
-        lights: false,
-        vibration: false,
-        importance: 3,
+        name: 'Ongoing calls',
       },
       notificationTexts: {
         title: 'Call in progress',
@@ -76,20 +78,6 @@ export class StreamVideoRN {
     this.config = deepMerge(this.config, updateConfig);
   }
 
-  static updateAndroidIncomingCallChannel(
-    updateChannel: Partial<
-      NonNullable<StreamVideoConfig['push']>['android']['incomingCallChannel']
-    >,
-  ) {
-    const prevChannel = this.config.push?.android?.incomingCallChannel;
-    if (prevChannel) {
-      this.config.push!.android.incomingCallChannel = {
-        ...prevChannel,
-        ...updateChannel,
-      };
-    }
-  }
-
   /**
    * Set the push config for StreamVideoRN.
    * This method must be called **outside** of your application lifecycle, e.g. alongside your
@@ -102,7 +90,28 @@ export class StreamVideoRN {
    * import App from './App';
    * // Set push config
    * const pushConfig = {}; // construct your config
-   * StreamVideoRN.setPushConfig(pushConfig);
+   * // Set CallKit/Android Telecom API integration options. All params are optional. If not provided, the default values will be used.
+   * const callingExpOptions = {
+   *   ios: {
+   *     callsHistory: true,
+   *     displayCallTimeout: 60000,
+   *     sound: 'ringtone',
+   *     imageName: 'callkit_icon',
+   *   },
+   *   android: {
+   *     incomingChannel: {
+   *       id: 'stream_incoming_call_notifications',
+   *       name: 'Call notifications',
+   *       vibration: true,
+   *       sound: 'default',
+   *     },
+   *     titleTransformer: (memberName: string, incoming: boolean) =>
+   *       incoming
+   *         ? `${memberName} is calling you`
+   *         : `You are calling ${memberName}`,
+   *   },
+   * };
+   * StreamVideoRN.setPushConfig(pushConfig, callingExpOptions);
    * AppRegistry.registerComponent('app', () => App);
    */
   static setPushConfig(pushConfig: NonNullable<StreamVideoConfig['push']>) {
@@ -110,20 +119,23 @@ export class StreamVideoRN {
       // Ignoring this config as push config was already set
       return;
     }
-    if (
-      __DEV__ &&
-      (pushConfig.navigateAcceptCall || pushConfig.navigateToIncomingCall)
-    ) {
-      throw new Error(
-        `Support for navigateAcceptCall or navigateToIncomingCall in pushConfig has been removed.
-        Please watch for incoming and outgoing calls in the root component of your app.
-        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information.`,
-      );
-    }
 
     this.config.push = pushConfig;
 
-    setupIosCallKeepEvents(pushConfig);
+    try {
+      const callingx = getCallingxLib();
+      videoLoggerSystem
+        .getLogger('StreamVideoRN.setPushConfig')
+        .info(JSON.stringify(this.config));
+      const options = extractCallingExpOptions(this.config);
+      callingx.setup(options);
+    } catch {
+      throw new Error(
+        'react-native-callingx library is not installed. Please check our migration instructions: https://getstream.io/video/docs/react-native/migration-guides/1.32.0/.',
+      );
+    }
+
+    setupCallingExpEvents(pushConfig);
     setupIosVoipPushEvents(pushConfig);
   }
 
@@ -171,13 +183,49 @@ export class StreamVideoRN {
    * Play native busy tone for call rejection
    */
   static async playBusyTone() {
-    return NativeModules.StreamVideoReactNative?.playBusyTone();
+    return NativeModules.StreamVideoReactNative.playBusyTone();
   }
 
   /**
    * Stop native busy tone
    */
   static async stopBusyTone() {
-    return NativeModules.StreamVideoReactNative?.stopBusyTone();
+    return NativeModules.StreamVideoReactNative.stopBusyTone();
+  }
+
+  /**
+   * Check if the device has audio output hardware
+   * @returns True if the device has audio output hardware
+   */
+  static async androidHasAudioOutputHardware(): Promise<boolean> {
+    if (Platform.OS !== 'android')
+      throw new Error(
+        'androidHasAudioOutputHardware function is only available on Android',
+      );
+    return NativeModules.StreamVideoReactNative.hasAudioOutputHardware();
+  }
+
+  /**
+   * Check if the device has microphone hardware
+   * @returns True if the device has microphone hardware
+   */
+  static async androidHasMicrophoneHardware(): Promise<boolean> {
+    if (Platform.OS !== 'android')
+      throw new Error(
+        'androidHasMicrophoneHardware function is only available on Android',
+      );
+    return NativeModules.StreamVideoReactNative.hasMicrophoneHardware();
+  }
+
+  /**
+   * Check if the device has camera hardware
+   * @returns True if the device has camera hardware
+   */
+  static async androidHasCameraHardware(): Promise<boolean> {
+    if (Platform.OS !== 'android')
+      throw new Error(
+        'androidHasCameraHardware function is only available on Android',
+      );
+    return NativeModules.StreamVideoReactNative.hasCameraHardware();
   }
 }

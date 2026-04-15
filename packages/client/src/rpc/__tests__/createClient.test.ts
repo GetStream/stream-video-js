@@ -1,9 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
+import { anyObject } from 'vitest-mock-extended';
 import {
   createSignalClient,
   withHeaders,
   withRequestLogger,
   withRequestTracer,
+  withTimeout,
+  TIMEOUT_SYMBOL,
 } from '../createClient';
 import { TwirpFetchTransport } from '@protobuf-ts/twirp-transport';
 import { NextUnaryFn, UnaryCall } from '@protobuf-ts/runtime-rpc';
@@ -85,5 +88,123 @@ describe('createClient', () => {
       { msg: 'err' },
       { param: 'value' },
     ]);
+  });
+
+  it('withRequestTracer should trace the response of SetPublisher', async () => {
+    const trace = vi.fn();
+    const interceptor = withRequestTracer(trace);
+    const { promise, resolve } = promiseWithResolvers<UnaryCall['then']>();
+    // @ts-expect-error - partial implementation
+    const next: NextUnaryFn = vi.fn(() => ({
+      then: (...args) => promise.then(...args),
+    }));
+    interceptor.interceptUnary(
+      next,
+      // @ts-expect-error - invalid name
+      { name: 'SetPublisher' },
+      { param: 'value' },
+      { meta: {} },
+    );
+
+    // @ts-expect-error - partial data
+    resolve({ response: { data: 'response data' } });
+
+    interceptor.interceptUnary(
+      next,
+      // @ts-expect-error - invalid name
+      { name: 'UpdateMuteStates' },
+      { data: 'data' },
+      { meta: {} },
+    );
+    await promise;
+
+    expect(next).toHaveBeenCalled();
+    expect(trace).toHaveBeenCalledWith('SetPublisher', { param: 'value' });
+    expect(trace).toHaveBeenCalledWith('UpdateMuteStates', { data: 'data' });
+    expect(trace).toHaveBeenCalledWith('SetPublisherResponse', {
+      data: 'response data',
+    });
+    expect(trace).not.toHaveBeenCalledWith(
+      'UpdateMuteStatesResponse',
+      anyObject(),
+    );
+  });
+
+  describe('withTimeout', () => {
+    it('should abort the request after the timeout', async () => {
+      vi.useFakeTimers();
+      const timeoutMs = 1000;
+      const interceptor = withTimeout(timeoutMs);
+      const next = vi.fn().mockImplementation(() => {
+        const { promise } = promiseWithResolvers<void>();
+        return promise;
+      });
+
+      const options = { meta: {} };
+      interceptor.interceptUnary(
+        next,
+        // @ts-expect-error - partial data
+        { name: 'TestMethod' },
+        {},
+        options,
+      );
+
+      const abortSignal = next.mock.lastCall.at(-1).abort;
+      expect(abortSignal).toBeDefined();
+      expect(abortSignal.aborted).toBe(false);
+
+      vi.advanceTimersByTime(timeoutMs);
+
+      expect(abortSignal.aborted).toBe(true);
+      expect(abortSignal.reason).toBeInstanceOf(Error);
+      expect(abortSignal.reason.message).toBe(TIMEOUT_SYMBOL);
+
+      vi.useRealTimers();
+    });
+
+    it('should respect external abort signal', () => {
+      const timeoutMs = 1000;
+      const interceptor = withTimeout(timeoutMs);
+      const next = vi.fn();
+      const externalAbort = new AbortController().signal;
+
+      interceptor.interceptUnary(
+        next,
+        // @ts-expect-error - partial data
+        { name: 'TestMethod' },
+        {},
+        { abort: externalAbort },
+      );
+
+      expect(next).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.anything(),
+        expect.objectContaining({ abort: externalAbort }),
+      );
+    });
+
+    it('should clear timeout when the call finishes', async () => {
+      vi.useFakeTimers();
+      const spy = vi.spyOn(global, 'clearTimeout');
+      const timeoutMs = 1000;
+      const interceptor = withTimeout(timeoutMs);
+      const { promise, resolve } = promiseWithResolvers<any>();
+      const next = vi.fn().mockReturnValue(promise);
+
+      interceptor.interceptUnary(
+        next,
+        // @ts-expect-error - partial data
+        { name: 'TestMethod' },
+        {},
+        { meta: {} },
+      );
+
+      resolve({});
+      await promise;
+
+      expect(spy).toHaveBeenCalled();
+      vi.useRealTimers();
+      spy.mockRestore();
+    });
   });
 });

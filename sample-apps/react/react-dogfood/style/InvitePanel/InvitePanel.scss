@@ -7,11 +7,27 @@
     &-header {
       font-size: var(--str-video__font-size-md);
       font-weight: 500;
+
+      &--accordion {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+
+        &:hover {
+          opacity: 0.8;
+        }
+      }
     }
 
     &-description {
       font-size: var(--str-video__font-size-xs);
       color: var(--str-video__text-color2);
+    }
+
+    &-chevron {
+      width: 1rem;
+      height: 1rem;
     }
 
     &-container {

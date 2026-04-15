@@ -2,6 +2,242 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.47.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.46.1...@stream-io/video-client-1.47.0) (2026-04-15)
+
+### Features
+
+- **client:** JoinCall with hints for high scale livestream ([#2199](https://github.com/GetStream/stream-video-js/issues/2199)) ([704681a](https://github.com/GetStream/stream-video-js/commit/704681ad9ce7a0013325b6db91644e1907d0db0b))
+
+### Bug Fixes
+
+- **client:** align device preference persistence with permission and track end events ([#2196](https://github.com/GetStream/stream-video-js/issues/2196)) ([b4ed7c2](https://github.com/GetStream/stream-video-js/commit/b4ed7c2c6bc6fb6777a411b69747ccc36aa82f44))
+
+## [1.46.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.46.0...@stream-io/video-client-1.46.1) (2026-04-09)
+
+- remove listeners and stop even on permission error - rn speech detector ([f4fdd9e](https://github.com/GetStream/stream-video-js/commit/f4fdd9e1a008b52011ef18562152aad60a1f7936))
+
+### Bug Fixes
+
+- ignore late ICE candidates after cleanup for RN speech detector ([#2193](https://github.com/GetStream/stream-video-js/issues/2193)) ([f8735d6](https://github.com/GetStream/stream-video-js/commit/f8735d604d86fc476b9b7e01eed0af03176625be))
+
+## [1.46.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.45.0...@stream-io/video-client-1.46.0) (2026-04-09)
+
+### Features
+
+- callkit/telecom integration ([#2028](https://github.com/GetStream/stream-video-js/issues/2028)) ([d579acd](https://github.com/GetStream/stream-video-js/commit/d579acd1975fb4945e40452b27e372694c737628))
+- **client:** expose blocked autoplay audio state and explicit resume API ([#2187](https://github.com/GetStream/stream-video-js/issues/2187)) ([adbec63](https://github.com/GetStream/stream-video-js/commit/adbec63a23d47cf7c1002897e242c3f2a6a7007c))
+
+### Bug Fixes
+
+- **client:** deduplicate mic.capture_report trace emissions ([#2189](https://github.com/GetStream/stream-video-js/issues/2189)) ([152ae90](https://github.com/GetStream/stream-video-js/commit/152ae907910616e79bc20321bc56df4cfe0dcc4a))
+- **client:** support server-side pinning on participant join ([#2190](https://github.com/GetStream/stream-video-js/issues/2190)) ([2c354a4](https://github.com/GetStream/stream-video-js/commit/2c354a4b05f688766663bd13e0da7da601c8971d))
+
+## [1.45.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.5...@stream-io/video-client-1.45.0) (2026-04-02)
+
+### Features
+
+- **client:** Disconnected device event ([#2178](https://github.com/GetStream/stream-video-js/issues/2178)) ([5017ca0](https://github.com/GetStream/stream-video-js/commit/5017ca0fd53f5d203167d55227cb7fddc055705a))
+
+### Bug Fixes
+
+- **client:** warn about dangling audio bindings only for published audio tracks ([#2183](https://github.com/GetStream/stream-video-js/issues/2183)) ([ff47662](https://github.com/GetStream/stream-video-js/commit/ff47662484cd666cf321b61d9b49dd4eb161192f))
+
+## [1.44.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.4...@stream-io/video-client-1.44.5) (2026-03-27)
+
+### Bug Fixes
+
+- make WebAudio opt-in, add AudioBindingsWatchdog ([#2171](https://github.com/GetStream/stream-video-js/issues/2171)) ([8d00f48](https://github.com/GetStream/stream-video-js/commit/8d00f485a37fec23dca340d32738a3cb1f7f325a))
+
+## [1.44.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.3...@stream-io/video-client-1.44.4) (2026-03-20)
+
+- trace device permission state transitions ([#2168](https://github.com/GetStream/stream-video-js/issues/2168)) ([e4203a3](https://github.com/GetStream/stream-video-js/commit/e4203a34cad1c90d1bc5612fc379dd1f0f0ebe5d))
+
+### Bug Fixes
+
+- **react:** remove default broken microphone notification from call controls ([#2158](https://github.com/GetStream/stream-video-js/issues/2158)) ([4a95b9c](https://github.com/GetStream/stream-video-js/commit/4a95b9c29e9d2728ae7eea764f07ec8507aa0f5a))
+
+## [1.44.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.2...@stream-io/video-client-1.44.3) (2026-03-06)
+
+### Bug Fixes
+
+- **client:** prevent concurrent SFU updateSubscriptions during reconnects ([#2155](https://github.com/GetStream/stream-video-js/issues/2155)) ([1ac32d2](https://github.com/GetStream/stream-video-js/commit/1ac32d261c9a54aa8e3636a60e3c8f3e1407ae16))
+
+## [1.44.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.1...@stream-io/video-client-1.44.2) (2026-03-06)
+
+### Bug Fixes
+
+- do not setup speaker early for ringing type calls ([#2154](https://github.com/GetStream/stream-video-js/issues/2154)) ([57adb90](https://github.com/GetStream/stream-video-js/commit/57adb90f03cfaceb4e6d3c050feaea239b80b1d9))
+
+## [1.44.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.44.0...@stream-io/video-client-1.44.1) (2026-03-04)
+
+### Bug Fixes
+
+- **client:** handle SFU tag changes during reconnect ([#2149](https://github.com/GetStream/stream-video-js/issues/2149)) ([5aa89d3](https://github.com/GetStream/stream-video-js/commit/5aa89d378a73d33d8e46a6eb40e688bd0f50cca9)), closes [#2121](https://github.com/GetStream/stream-video-js/issues/2121)
+
+## [1.44.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.43.0...@stream-io/video-client-1.44.0) (2026-02-27)
+
+- update agent instructions [skip ci] ([9cec4c6](https://github.com/GetStream/stream-video-js/commit/9cec4c6431ff51549fcfc870a0df935b0b8aa850))
+
+### Features
+
+- **react:** Deprecate usePersistedDevicePreferences and move the logic to the SDK core ([#2108](https://github.com/GetStream/stream-video-js/issues/2108)) ([7bbbd93](https://github.com/GetStream/stream-video-js/commit/7bbbd93bdd93dd4ebed02c089b6a4ab8423135fd))
+- **react:** Embeddable/pre-built video components ([#2117](https://github.com/GetStream/stream-video-js/issues/2117)) ([11b4b9f](https://github.com/GetStream/stream-video-js/commit/11b4b9f0438877a5917c95117474cedc1f693907))
+
+### Bug Fixes
+
+- allow anonymous StreamVideoClientOptions to accept token fields ([#2142](https://github.com/GetStream/stream-video-js/issues/2142)) ([165a9c3](https://github.com/GetStream/stream-video-js/commit/165a9c305dda6cae0fde78c446825a7da11f302c)), closes [#2138](https://github.com/GetStream/stream-video-js/issues/2138)
+- Allow guest and anonymous users without auth options ([#2140](https://github.com/GetStream/stream-video-js/issues/2140)) ([12749ae](https://github.com/GetStream/stream-video-js/commit/12749ae2552a2b8c0442cb8beaa34e13f66cc7e6)), closes [#2138](https://github.com/GetStream/stream-video-js/issues/2138)
+- Strengthen StreamVideoClientOptions types and align React sample apps ([#2138](https://github.com/GetStream/stream-video-js/issues/2138)) ([915f990](https://github.com/GetStream/stream-video-js/commit/915f9904e045f61593c7328f790cd54516c80213))
+
+## [1.43.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.42.3...@stream-io/video-client-1.43.0) (2026-02-20)
+
+- **client:** trace updatePublishOptions overrides ([#2136](https://github.com/GetStream/stream-video-js/issues/2136)) ([bcc1e92](https://github.com/GetStream/stream-video-js/commit/bcc1e92ac89374324a57d1df85be38a2661a4c53))
+
+### Features
+
+- **client:** add list recording APIs and deprecate query methods ([#2135](https://github.com/GetStream/stream-video-js/issues/2135)) ([5331cb5](https://github.com/GetStream/stream-video-js/commit/5331cb5205466dc052c729fb07d84209208af362))
+
+### Bug Fixes
+
+- **client:** harden flat-line no-audio detection ([#2131](https://github.com/GetStream/stream-video-js/issues/2131)) ([9c2aa22](https://github.com/GetStream/stream-video-js/commit/9c2aa222b189c5e24510430dfddbf164555abf1c))
+- **client:** prevent stale speaking-while-muted detector ([#2130](https://github.com/GetStream/stream-video-js/issues/2130)) ([e5c408d](https://github.com/GetStream/stream-video-js/commit/e5c408d73de1b8f20e775642b0b19eb0ffd979a8))
+
+## [1.42.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.42.2...@stream-io/video-client-1.42.3) (2026-02-16)
+
+### Bug Fixes
+
+- guard from parallel accept/reject invocations ([#2127](https://github.com/GetStream/stream-video-js/issues/2127)) ([621218f](https://github.com/GetStream/stream-video-js/commit/621218f4ab6b4623370fd66f1b02b8cb7cb1baad))
+
+## [1.42.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.42.1...@stream-io/video-client-1.42.2) (2026-02-13)
+
+### Bug Fixes
+
+- improve the handling of join errors and prevent cross-socket event leaking ([#2121](https://github.com/GetStream/stream-video-js/issues/2121)) ([72d0834](https://github.com/GetStream/stream-video-js/commit/72d08343243990f14f29103734eea6f7cb6092c9))
+
+## [1.42.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.42.0...@stream-io/video-client-1.42.1) (2026-02-10)
+
+### Bug Fixes
+
+- respect device permissions when detecting speech while muted ([#2115](https://github.com/GetStream/stream-video-js/issues/2115)) ([fe98768](https://github.com/GetStream/stream-video-js/commit/fe98768a9bf695fc5355905939884594c11ac2b9)), closes [#2110](https://github.com/GetStream/stream-video-js/issues/2110)
+
+## [1.42.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.3...@stream-io/video-client-1.42.0) (2026-02-06)
+
+### Features
+
+- Detectors for broken microphone setup ([#2090](https://github.com/GetStream/stream-video-js/issues/2090)) ([552b3f4](https://github.com/GetStream/stream-video-js/commit/552b3f4e3c54e0b6fa67221cd510f4ea1f6f8a61))
+
+### Bug Fixes
+
+- **react:** apply defaultConstraints to speaking-while-muted detection stream ([#2103](https://github.com/GetStream/stream-video-js/issues/2103)) ([28b5538](https://github.com/GetStream/stream-video-js/commit/28b55380778723fc308d37396c8095a5a3ef7aa2))
+- start speaking while muted detection in pristine state too ([#2110](https://github.com/GetStream/stream-video-js/issues/2110)) ([bc093bc](https://github.com/GetStream/stream-video-js/commit/bc093bc3ac2451541524b134a9044131a69964af))
+
+## [1.41.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.2...@stream-io/video-client-1.41.3) (2026-01-30)
+
+### Bug Fixes
+
+- **react:** improve logic for calculating the lower / upper threshold for video filter degradation ([#2094](https://github.com/GetStream/stream-video-js/issues/2094)) ([5cd2d5c](https://github.com/GetStream/stream-video-js/commit/5cd2d5cb34fc7bbdfaf9529eb9f8d33a40346cab))
+- **stats:** adjust send stats frequency and include "leave reason" ([#2104](https://github.com/GetStream/stream-video-js/issues/2104)) ([0182832](https://github.com/GetStream/stream-video-js/commit/018283299bebe5d5078d4006ec86b6cd56884e77))
+
+## [1.41.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.1...@stream-io/video-client-1.41.2) (2026-01-28)
+
+- deduplicate RN compatibility assertions ([#2101](https://github.com/GetStream/stream-video-js/issues/2101)) ([5b9e6bc](https://github.com/GetStream/stream-video-js/commit/5b9e6bc227c55b067eea6345315bca015c8a7ee4))
+
+## [1.41.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.41.0...@stream-io/video-client-1.41.1) (2026-01-26)
+
+### Bug Fixes
+
+- **safari:** Handle interrupted AudioContext and AudioSession states ([#2098](https://github.com/GetStream/stream-video-js/issues/2098)) ([975901f](https://github.com/GetStream/stream-video-js/commit/975901f399b46479928ec1e9f32da7e47bba9ad3))
+- use multiple settings to determine default audio device RN-338 ([#2096](https://github.com/GetStream/stream-video-js/issues/2096)) ([19cf136](https://github.com/GetStream/stream-video-js/commit/19cf13651112b647903587a84a70a555fc68fc9c)), closes [2BSettingsPriority.swift#L19](https://github.com/GetStream/2BSettingsPriority.swift/issues/L19)
+
+## [1.41.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.3...@stream-io/video-client-1.41.0) (2026-01-20)
+
+### Features
+
+- **recording:** Support for Individual, Raw and Composite recording ([#2071](https://github.com/GetStream/stream-video-js/issues/2071)) ([e53269c](https://github.com/GetStream/stream-video-js/commit/e53269ce697121b70dbebaf4a6d2cf875440a2af))
+- stereo audio output support RN-332 ([#2038](https://github.com/GetStream/stream-video-js/issues/2038)) ([2938037](https://github.com/GetStream/stream-video-js/commit/2938037d18e70ccf112a089eb3ec44cb034aed1d))
+
+### Bug Fixes
+
+- add start bitrate even if there is no existing fmtp line ([#2088](https://github.com/GetStream/stream-video-js/issues/2088)) ([ae1f496](https://github.com/GetStream/stream-video-js/commit/ae1f4965a7ab0b00dbdea45090c6aed49eafabb7))
+
+## [1.40.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.2...@stream-io/video-client-1.40.3) (2026-01-16)
+
+### Bug Fixes
+
+- **react:** resolve call state race condition when using join with ring ([#2086](https://github.com/GetStream/stream-video-js/issues/2086)) ([6c2d3b3](https://github.com/GetStream/stream-video-js/commit/6c2d3b35ac96dbf7a85cadba47068a0e417d65be)), closes [#1755](https://github.com/GetStream/stream-video-js/issues/1755) [#2035](https://github.com/GetStream/stream-video-js/issues/2035)
+- **react:** resolve call state race condition when using join with ring ([#2084](https://github.com/GetStream/stream-video-js/issues/2084)) ([f9b5946](https://github.com/GetStream/stream-video-js/commit/f9b59465f22b35304dbd01601e3f6166e1d02ea0)), closes [#1755](https://github.com/GetStream/stream-video-js/issues/1755) [#2035](https://github.com/GetStream/stream-video-js/issues/2035)
+
+## [1.40.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.1...@stream-io/video-client-1.40.2) (2026-01-15)
+
+### Bug Fixes
+
+- handle unrecoverable SFU join errors ([9b8198d](https://github.com/GetStream/stream-video-js/commit/9b8198d00e901a8eade169495a14d25c8d3bdf1e))
+- handle unrecoverable SFU join errors ([#2083](https://github.com/GetStream/stream-video-js/issues/2083)) ([6ffb576](https://github.com/GetStream/stream-video-js/commit/6ffb5761b3dfb8e649cfa4f16dd30d294475eeae))
+
+## [1.40.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.40.0...@stream-io/video-client-1.40.1) (2026-01-14)
+
+### Bug Fixes
+
+- ensure proper set up of server-side preferences for mic and camera ([#2080](https://github.com/GetStream/stream-video-js/issues/2080)) ([3529c8f](https://github.com/GetStream/stream-video-js/commit/3529c8fc0233d3f9f8f21c80cffc4ec27334954f))
+
+## [1.40.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.3...@stream-io/video-client-1.40.0) (2026-01-09)
+
+### Features
+
+- Call Stats Map ([#2025](https://github.com/GetStream/stream-video-js/issues/2025)) ([6c784f0](https://github.com/GetStream/stream-video-js/commit/6c784f0acacce3d23d0f589ff423d6a0d04c1e95))
+
+## [1.39.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.2...@stream-io/video-client-1.39.3) (2025-12-30)
+
+### Bug Fixes
+
+- adjusted shouldRejectCall implementation ([#2072](https://github.com/GetStream/stream-video-js/issues/2072)) ([2107e3d](https://github.com/GetStream/stream-video-js/commit/2107e3db65309664a7797cacae054aeb7a371f4a))
+- **rpc:** Reliable SFU request timeouts ([#2066](https://github.com/GetStream/stream-video-js/issues/2066)) ([f842b74](https://github.com/GetStream/stream-video-js/commit/f842b74109af02c8454f5ff4f6618baac650ed4e))
+
+## [1.39.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.1...@stream-io/video-client-1.39.2) (2025-12-23)
+
+- upgrade stream dependencies ([#2065](https://github.com/GetStream/stream-video-js/issues/2065)) ([04ca858](https://github.com/GetStream/stream-video-js/commit/04ca858517072f861c1ddae0876f0b425ca658e2))
+
+### Bug Fixes
+
+- **safari:** verify that AudioContext supports `setSinkId` ([#2069](https://github.com/GetStream/stream-video-js/issues/2069)) ([e7fbe10](https://github.com/GetStream/stream-video-js/commit/e7fbe10d06acce52a2e3f4f7d008882fa23e9c89))
+- slow rampup on vp9/h264 codec ([#2056](https://github.com/GetStream/stream-video-js/issues/2056)) ([b5ad360](https://github.com/GetStream/stream-video-js/commit/b5ad360eab83a139198d05b4f42b777315135ab6))
+
+## [1.39.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.39.0...@stream-io/video-client-1.39.1) (2025-12-18)
+
+### Bug Fixes
+
+- **provenance:** add repository info to every package ([4159633](https://github.com/GetStream/stream-video-js/commit/4159633b908afe6542b4be53151da6218175426c))
+
+## [1.39.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.2...@stream-io/video-client-1.39.0) (2025-12-18)
+
+### Features
+
+- **react:** Retryable call watching ([#2046](https://github.com/GetStream/stream-video-js/issues/2046)) ([7205011](https://github.com/GetStream/stream-video-js/commit/7205011a451995585848b89388c91ae9a1b0bc64))
+
+### Bug Fixes
+
+- add response tracing for the SetPublisher RPC ([#2055](https://github.com/GetStream/stream-video-js/issues/2055)) ([a25d9a8](https://github.com/GetStream/stream-video-js/commit/a25d9a89870db47be046f31c85888995e43d44cd))
+
+## [1.38.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.1...@stream-io/video-client-1.38.2) (2025-12-11)
+
+### Bug Fixes
+
+- revert usage of useSyncExternalStore ([#2043](https://github.com/GetStream/stream-video-js/issues/2043)) ([849e896](https://github.com/GetStream/stream-video-js/commit/849e8964ac90d5785a6d608443f80156d1081744)), closes [#1953](https://github.com/GetStream/stream-video-js/issues/1953) [#2034](https://github.com/GetStream/stream-video-js/issues/2034) [#2006](https://github.com/GetStream/stream-video-js/issues/2006) [#2008](https://github.com/GetStream/stream-video-js/issues/2008)
+
+## [1.38.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.38.0...@stream-io/video-client-1.38.1) (2025-12-08)
+
+### Bug Fixes
+
+- added call state update for handling case when call.ring event as not triggered ([#2035](https://github.com/GetStream/stream-video-js/issues/2035)) ([3c79665](https://github.com/GetStream/stream-video-js/commit/3c79665323ad5172d3af35e9ee2f86655ac11670))
+- **state:** ensure stable empty array for participant predicates ([#2036](https://github.com/GetStream/stream-video-js/issues/2036)) ([1aa72c8](https://github.com/GetStream/stream-video-js/commit/1aa72c8daf482bd157866960b4b9a92e272ac90b)), closes [#2034](https://github.com/GetStream/stream-video-js/issues/2034) [#2008](https://github.com/GetStream/stream-video-js/issues/2008)
+
+## [1.38.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.3...@stream-io/video-client-1.38.0) (2025-12-08)
+
+### Features
+
+- **LivestreamLayout:** Enrich with mute option and humanized participant count ([#2027](https://github.com/GetStream/stream-video-js/issues/2027)) ([cdc0c4f](https://github.com/GetStream/stream-video-js/commit/cdc0c4f985ab15a6c2e184b73432911510b43f99))
+- **react:** Extend the statistics report with audio stats ([#2020](https://github.com/GetStream/stream-video-js/issues/2020)) ([0f4df3c](https://github.com/GetStream/stream-video-js/commit/0f4df3ce5f3b865c8ef09766dd72bc33f65539f3))
+
 ## [1.37.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.37.2...@stream-io/video-client-1.37.3) (2025-11-25)
 
 - instructions for Claude and other coding agents ([#2012](https://github.com/GetStream/stream-video-js/issues/2012)) ([08a3459](https://github.com/GetStream/stream-video-js/commit/08a345954f7cb5b1fae5a4b39b5b585bf1f631ec))

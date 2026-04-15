@@ -2,7 +2,6 @@ import { PropsWithChildren, useMemo } from 'react';
 import { Placement } from '@floating-ui/react';
 import {
   Notification,
-  PerformanceDegradationReason,
   useBackgroundFilters,
   useI18n,
 } from '@stream-io/video-react-sdk';
@@ -29,12 +28,8 @@ export const DegradedPerformanceNotification = ({
     }
 
     const reasons = performance?.reason || [];
-    const hasFrameDrop = reasons.includes(
-      PerformanceDegradationReason.FRAME_DROP,
-    );
-    const hasCpuThrottling = reasons.includes(
-      PerformanceDegradationReason.CPU_THROTTLING,
-    );
+    const hasFrameDrop = reasons.includes('frame-drop');
+    const hasCpuThrottling = reasons.includes('cpu-throttling');
 
     if (hasFrameDrop && hasCpuThrottling) {
       return t(

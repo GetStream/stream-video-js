@@ -14,6 +14,7 @@ export {
   useRequestPermission,
   usePersistedDevicePreferences,
   useDeviceList,
+  useModeration,
 } from './src/hooks';
 export { applyFilter, type Filter } from './src/utilities/filter';
 

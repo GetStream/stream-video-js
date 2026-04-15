@@ -9,7 +9,11 @@ import com.streamvideo.reactnative.callmanager.StreamInCallManagerModule
 
 class StreamVideoReactNativePackage : ReactPackage {
     override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
-        return listOf(StreamVideoReactNativeModule(reactContext), StreamInCallManagerModule(reactContext))
+        return listOf(
+            StreamVideoReactNativeModule(reactContext),
+            StreamVideoAppLifecycleModule(reactContext),
+            StreamInCallManagerModule(reactContext),
+        )
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext): List<ViewManager<*, *>> {

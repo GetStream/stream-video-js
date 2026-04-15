@@ -74,7 +74,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: 'yarn'
 
       - name: Install Dependencies
@@ -91,7 +91,7 @@ jobs:
 
       ### Vercel deployment (Preview) ###
       - name: Vercel Pull/Build/Deploy (Preview)
-        if: ${{ github.ref_name != 'main' && matrix.application.manual-only != true }}
+        if: ${{ github.ref_name != 'main' }}
         env:
           NEXT_PUBLIC_BASE_PATH: ${{ matrix.application.base-path || '' }}
         run: >

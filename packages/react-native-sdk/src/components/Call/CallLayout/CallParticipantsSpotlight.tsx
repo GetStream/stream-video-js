@@ -1,11 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   hasScreenShare,
-  speakerLayoutSortPreset,
+  type StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCallStateHooks } from '@stream-io/video-react-bindings';
+import { useCall } from '@stream-io/video-react-bindings';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
-import { useDebouncedValue } from '../../../utils/hooks/useDebouncedValue';
+import { debounceTime } from 'rxjs';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
   CallParticipantsList as DefaultCallParticipantsList,
@@ -27,7 +27,7 @@ export type CallParticipantsSpotlightProps = ParticipantViewComponentProps &
     CallContentProps,
     'supportedReactions' | 'CallParticipantsList' | 'ScreenShareOverlay'
   > &
-  Pick<CallParticipantsListComponentProps, 'ParticipantView'> & {
+  Pick<CallParticipantsListComponentProps, 'ParticipantView' | 'mirror'> & {
     /**
      * Check if device is in landscape mode.
      * This will apply the landscape mode styles to the component.
@@ -49,21 +49,31 @@ export const CallParticipantsSpotlight = ({
   ScreenShareOverlay,
   VideoRenderer,
   supportedReactions,
+  mirror,
   landscape,
 }: CallParticipantsSpotlightProps) => {
   const {
     theme: { callParticipantsSpotlight, variants },
   } = useTheme();
   const styles = useStyles();
-  const { useParticipants } = useCallStateHooks();
-  const _allParticipants = useParticipants({
-    sortBy: speakerLayoutSortPreset,
-  });
-  const allParticipants = useDebouncedValue(_allParticipants, 300); // we debounce the participants to avoid unnecessary rerenders that happen when participant tracks are all subscribed simultaneously
+  const call = useCall();
+  const [allParticipants, setAllParticipants] = useState<
+    StreamVideoParticipant[]
+  >(() => call?.state.participants ?? []);
+  useEffect(() => {
+    if (!call) {
+      setAllParticipants([]);
+      return;
+    }
+    const sub = call.state.participants$
+      .pipe(debounceTime(300))
+      .subscribe(setAllParticipants);
+    return () => sub.unsubscribe();
+  }, [call]);
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight =
     participantInSpotlight && hasScreenShare(participantInSpotlight);
-  const isUserAloneInCall = _allParticipants?.length === 1;
+  const isUserAloneInCall = allParticipants.length === 1;
 
   const isInPiP = useIsInPiPMode();
 
@@ -78,6 +88,7 @@ export const CallParticipantsSpotlight = ({
   const callParticipantsListProps: CallParticipantsListComponentProps = {
     ...participantViewProps,
     ParticipantView,
+    mirror,
   };
 
   const landscapeStyles: ViewStyle = {
@@ -126,6 +137,7 @@ export const CallParticipantsSpotlight = ({
               isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
             }
             supportedReactions={supportedReactions}
+            mirror={mirror}
             {...participantViewProps}
           />
         ))}

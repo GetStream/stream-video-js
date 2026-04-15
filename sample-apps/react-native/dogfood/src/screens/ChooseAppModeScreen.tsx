@@ -31,7 +31,7 @@ export const ChooseAppModeScreen = () => {
   };
 
   const onLiveStreamSelect = () => {
-    setState({ appMode: 'LiveStream', appEnvironment: 'livestream' });
+    setState({ appMode: 'LiveStream' });
   };
 
   const onRingingSelect = () => {

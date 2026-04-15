@@ -57,6 +57,7 @@ describe('retryable', () => {
 
   it('stops retrying when the aborted via signal', async () => {
     const controller = new AbortController();
+    // @ts-expect-error incomplete unary call
     const rpc = vi.fn<any[], UnaryCall<{}, TestResponseWithError>>(() => {
       if (rpc.mock.calls.length <= 1) {
         throw new Error('Generic error, should retry');
@@ -68,5 +69,16 @@ describe('retryable', () => {
     const result = retryable(rpc, controller.signal);
     await expect(result).rejects.toThrow('Request aborted, should not retry');
     expect(rpc).toHaveBeenCalledTimes(2);
+  });
+
+  it('stops retrying when retry budget is exhausted', async () => {
+    // @ts-expect-error incomplete unary call
+    const rpc = vi.fn<any[], UnaryCall<{}, TestResponseWithError>>(() => {
+      throw new Error('error payload');
+    });
+
+    const result = retryable(rpc, undefined, 3);
+    await expect(result).rejects.toThrow('error payload');
+    expect(rpc).toHaveBeenCalledTimes(3);
   });
 });

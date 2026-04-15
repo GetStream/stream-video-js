@@ -59,7 +59,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
         token,
         tokenProvider,
         options: {
-          rejectCallWhenBusy: true,
+          rejectCallWhenBusy: false,
           logLevel: 'debug',
           logger: (level, message, ...args) => {
             if (

@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { CallingState, useCallStateHooks } from '@stream-io/video-react-sdk';
 
 const EgressReadyNotificationContext = createContext((isReady: boolean) => {
   // no-op
@@ -14,10 +15,13 @@ const EgressReadyNotificationContext = createContext((isReady: boolean) => {
 
 export const EgressReadyNotificationProvider = (props: PropsWithChildren) => {
   const [isReady, setIsReady] = useState(false);
+  const { useCallCallingState } = useCallStateHooks();
+  const callingState = useCallCallingState();
   useEffect(() => {
-    if (isReady) return;
+    if (isReady || callingState !== CallingState.JOINED) return;
     // it could happen that components won't notify us that they are ready
     // in that case, we start recording anyway after 4 seconds.
+    console.log('Egress: Started waiting for components to notify readiness');
     const timeout = setTimeout(() => {
       if (!isReady) {
         console.log('Timeout: Egress is ready');
@@ -28,11 +32,13 @@ export const EgressReadyNotificationProvider = (props: PropsWithChildren) => {
     return () => {
       clearTimeout(timeout);
     };
-  }, [isReady]);
+  }, [callingState, isReady]);
 
   const spyIsReady = useCallback((value: boolean) => {
-    console.log('Egress is ready');
-    setIsReady(value);
+    setIsReady((current) => {
+      if (current !== value) console.log('Egress is ready', value);
+      return value;
+    });
   }, []);
 
   return (

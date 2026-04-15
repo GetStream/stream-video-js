@@ -1,12 +1,13 @@
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { Call } from '../Call';
 import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { DeviceManager } from './DeviceManager';
 import { getVideoDevices, getVideoStream } from './devices';
-import { OwnCapability, VideoSettingsResponse } from '../gen/coordinator';
+import { VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
+import { DevicePersistenceOptions } from './devicePersistence';
 
 export class CameraManager extends DeviceManager<CameraManagerState> {
   private targetResolution = {
@@ -18,9 +19,18 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
    * Constructs a new CameraManager.
    *
    * @param call the call instance.
+   * @param devicePersistence the device persistence preferences to use.
    */
-  constructor(call: Call) {
-    super(call, new CameraManagerState(), TrackType.VIDEO);
+  constructor(
+    call: Call,
+    devicePersistence: Required<DevicePersistenceOptions>,
+  ) {
+    super(
+      call,
+      new CameraManagerState(call.tracer),
+      TrackType.VIDEO,
+      devicePersistence,
+    );
   }
 
   private isDirectionSupportedByDevice() {
@@ -31,8 +41,12 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
    * Select the camera direction.
    *
    * @param direction the direction of the camera to select.
+   * @param options additional direction selection options.
    */
-  async selectDirection(direction: Exclude<CameraDirection, undefined>) {
+  async selectDirection(
+    direction: Exclude<CameraDirection, undefined>,
+    options: { enableCamera?: boolean } = {},
+  ) {
     if (!this.isDirectionSupportedByDevice()) {
       this.logger.warn('Setting direction is not supported on this device');
       return;
@@ -47,9 +61,10 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     // providing both device id and direction doesn't work, so we deselect the device
     this.state.setDirection(direction);
     this.state.setDevice(undefined);
-    if (isReactNative()) {
-      return;
-    }
+
+    const { enableCamera = true } = options;
+    if (isReactNative() || !enableCamera) return;
+
     this.getTracks().forEach((track) => track.stop());
     try {
       await this.unmuteStream();
@@ -79,8 +94,15 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
    * @internal
    */
   async selectTargetResolution(resolution: { width: number; height: number }) {
-    this.targetResolution.height = resolution.height;
-    this.targetResolution.width = resolution.width;
+    // normalize target resolution to landscape format.
+    // on mobile devices, the device itself adjusts the resolution to portrait or landscape
+    // depending on the orientation of the device. using portrait resolution
+    // will result in falling back to the default resolution (640x480).
+    let { width, height } = resolution;
+    if (width < height) [width, height] = [height, width];
+    this.targetResolution.height = height;
+    this.targetResolution.width = width;
+
     if (this.state.optimisticStatus === 'enabled') {
       try {
         await this.statusChangeSettled();
@@ -92,11 +114,8 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     if (this.enabled && this.state.mediaStream) {
       const [videoTrack] = this.state.mediaStream.getVideoTracks();
       if (!videoTrack) return;
-      const { width, height } = videoTrack.getSettings();
-      if (
-        width !== this.targetResolution.width ||
-        height !== this.targetResolution.height
-      ) {
+      const { width: w, height: h } = videoTrack.getSettings();
+      if (w !== width || h !== height) {
         await this.applySettingsToStream();
         this.logger.debug(
           `${width}x${height} target resolution applied to media stream`,
@@ -112,43 +131,44 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
    * @param publish whether to publish the stream after applying the settings.
    */
   async apply(settings: VideoSettingsResponse, publish: boolean) {
-    const hasPublishedVideo = !!this.call.state.localParticipant?.videoStream;
-    const hasPermission = this.call.permissionsContext.hasPermission(
-      OwnCapability.SEND_AUDIO,
-    );
-    if (hasPublishedVideo || !hasPermission) return;
-
     // Wait for any in progress camera operation
     await this.statusChangeSettled();
+    await this.selectTargetResolution(settings.target_resolution);
 
-    const { target_resolution, camera_facing, camera_default_on, enabled } =
-      settings;
-    // normalize target resolution to landscape format.
-    // on mobile devices, the device itself adjusts the resolution to portrait or landscape
-    // depending on the orientation of the device. using portrait resolution
-    // will result in falling back to the default resolution (640x480).
-    let { width, height } = target_resolution;
-    if (width < height) [width, height] = [height, width];
-    await this.selectTargetResolution({ width, height });
-
-    // Set camera direction if it's not yet set
-    if (!this.state.direction && !this.state.selectedDevice) {
-      this.state.setDirection(camera_facing === 'front' ? 'front' : 'back');
+    const enabledInCallType = settings.enabled ?? true;
+    const shouldApplyDefaults =
+      this.state.status === undefined &&
+      this.state.optimisticStatus === undefined;
+    let persistedPreferencesApplied = false;
+    const permissionState = await firstValueFrom(
+      this.state.browserPermissionState$,
+    );
+    if (
+      shouldApplyDefaults &&
+      this.devicePersistence.enabled &&
+      permissionState === 'granted'
+    ) {
+      persistedPreferencesApplied =
+        await this.applyPersistedPreferences(enabledInCallType);
     }
 
-    if (!publish) return;
+    // apply a direction and enable the camera only if in "pristine" state,
+    // and there are no persisted preferences
+    const canPublish = this.call.permissionsContext.canPublish(this.trackType);
+    if (shouldApplyDefaults && !persistedPreferencesApplied) {
+      if (!this.state.direction && !this.state.selectedDevice) {
+        const direction = settings.camera_facing === 'front' ? 'front' : 'back';
+        await this.selectDirection(direction, { enableCamera: false });
+      }
+
+      if (canPublish && settings.camera_default_on && enabledInCallType) {
+        await this.enable();
+      }
+    }
 
     const { mediaStream } = this.state;
-    if (this.enabled && mediaStream) {
-      // The camera is already enabled (e.g. lobby screen). Publish the stream
+    if (canPublish && publish && this.enabled && mediaStream) {
       await this.publishStream(mediaStream);
-    } else if (
-      this.state.status === undefined &&
-      camera_default_on &&
-      enabled
-    ) {
-      // Start camera if backend config specifies, and there is no local setting
-      await this.enable();
     }
   }
 

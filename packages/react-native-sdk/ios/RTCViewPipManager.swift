@@ -32,7 +32,7 @@ class RTCViewPipManager: RCTViewManager {
                     pipView.onCallClosed()
                 }
             } else {
-                NSLog("PiP - onCallClosed cant be called, Invalid view returned from registry, expecting RTCViewPip")
+                PictureInPictureLogger.log("onCallClosed cant be called, Invalid view returned from registry, expecting RTCViewPip")
             }
         })
     }
@@ -51,7 +51,7 @@ class RTCViewPipManager: RCTViewManager {
             } else {
                 // If the view is not found, cache the size.
                 // this happens when this method is called before the view can attach react super view
-                NSLog("PiP - View not found for reactTag \(reactTag), caching size.")
+                PictureInPictureLogger.log("View not found for reactTag \(reactTag), caching size.")
                 self.cachedSizes[reactTag] = size
             }
         })
@@ -60,7 +60,7 @@ class RTCViewPipManager: RCTViewManager {
     func getCachedSize(for reactTag: NSNumber) -> CGSize? {
         let size = self.cachedSizes.removeValue(forKey: reactTag)
         if size != nil {
-            NSLog("PiP - Found and removed cached size for reactTag \(reactTag).")
+            PictureInPictureLogger.log("Found and removed cached size for reactTag \(reactTag).")
         }
         return size
     }

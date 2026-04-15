@@ -2,6 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.7.2...@stream-io/audio-filters-web-0.7.3) (2026-03-09)
+
+### Bug Fixes
+
+- **react:** await initialization before enabling / disabling noise cancellation ([#2153](https://github.com/GetStream/stream-video-js/issues/2153)) ([3455a0e](https://github.com/GetStream/stream-video-js/commit/3455a0e597245af6c34332424b4b7029abf7c675))
+
+## [0.7.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.7.1...@stream-io/audio-filters-web-0.7.2) (2026-01-26)
+
+### Bug Fixes
+
+- **safari:** Handle interrupted AudioContext and AudioSession states ([#2098](https://github.com/GetStream/stream-video-js/issues/2098)) ([975901f](https://github.com/GetStream/stream-video-js/commit/975901f399b46479928ec1e9f32da7e47bba9ad3))
+
+## [0.7.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.7.0...@stream-io/audio-filters-web-0.7.1) (2025-12-18)
+
+### Bug Fixes
+
+- **audio:** Ensure KrispAI filters are included in the package ([7d8ef51](https://github.com/GetStream/stream-video-js/commit/7d8ef5183a9d319226f4f8b0152b9fed2cd6044a))
+
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.6.1...@stream-io/audio-filters-web-0.7.0) (2025-12-18)
+
+### Features
+
+- **audio-filters-web:** upgrade Krisp.ai & move build process from Rollup to Vite ([#1960](https://github.com/GetStream/stream-video-js/issues/1960)) ([7c3de2f](https://github.com/GetStream/stream-video-js/commit/7c3de2fedf534cc914213a9c6f493c25c27f13cb))
+
 ## [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.6.0...@stream-io/audio-filters-web-0.6.1) (2025-11-25)
 
 ### Bug Fixes

@@ -15,17 +15,26 @@ import {
   useParticipantLabelStyles,
   useVideoStyles,
 } from './hooks';
-import { LogoAndTitleOverlay, UIDispatcher } from './components';
+import {
+  DebugTimestamp,
+  LogoAndTitleOverlay,
+  UIDispatcher,
+} from './components';
 
 import './CompositeApp.scss';
 import { useParticipantStyles } from './hooks/options/useParticipantStyles';
 import { WithCustomActions } from './components/CustomActionsContext';
+import { useConfigurationContext } from './ConfigurationContext';
 
 export const CompositeApp = () => {
   const { client, call } = useInitializeClientAndCall();
 
   window.call = call;
   window.client = client;
+
+  const {
+    options: { 'debug.show_timestamp': showDebugTimestamp = false },
+  } = useConfigurationContext();
 
   return (
     <StreamVideo client={client}>
@@ -35,6 +44,7 @@ export const CompositeApp = () => {
             <EgressReadyNotificationProvider>
               <UIDispatcher />
               <LogoAndTitleOverlay />
+              {showDebugTimestamp && <DebugTimestamp />}
             </EgressReadyNotificationProvider>
             {/* <StyleComponent /> */}
           </StreamThemeWrapper>

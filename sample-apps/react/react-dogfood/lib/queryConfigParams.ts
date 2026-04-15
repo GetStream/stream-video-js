@@ -4,6 +4,7 @@ import { Call, PreferredCodec } from '@stream-io/video-react-sdk';
 export const getQueryConfigParams = (query: NextRouter['query']) => {
   return {
     videoFile: query['video_file'] as string | undefined,
+    videoFileLeaveCallOnEnd: query['video_file_end_call'] === 'true',
     videoCodecOverride: (query['video_encoder'] || query['video_codec']) as
       | PreferredCodec
       | undefined,

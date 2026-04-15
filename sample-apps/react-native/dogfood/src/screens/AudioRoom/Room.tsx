@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import {
   CallingState,
-  callManager,
   OwnCapability,
   SfuModels,
   useCall,
@@ -18,11 +17,6 @@ export default function Room({ onClose }: { onClose: () => void }) {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
   const call = useCall();
-
-  useEffect(() => {
-    callManager.start();
-    return () => callManager.stop();
-  }, []);
 
   // when the component unmounts, leave the call
   useEffect(() => {

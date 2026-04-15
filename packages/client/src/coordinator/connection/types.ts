@@ -2,6 +2,8 @@ import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
 import { AllSfuEvents } from '../../rtc';
 import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
+import type { DevicePersistenceOptions } from '../../devices/devicePersistence';
+import { InputDeviceStatus } from '../../devices';
 
 export type UR = Record<string, unknown>;
 
@@ -108,17 +110,57 @@ export type ConnectionRecoveredEvent = {
   type: 'connection.recovered';
 };
 
+export type MicCaptureReportEvent = {
+  type: 'mic.capture_report';
+  call_cid: string;
+  /**
+   * Whether the mic is capturing audio.
+   */
+  capturesAudio: boolean;
+  /**
+   * The device ID of the mic.
+   */
+  deviceId?: string;
+  /**
+   * The human-readable label of the mic.
+   */
+  label?: string;
+};
+
+export type DeviceDisconnectedEvent = {
+  type: 'device.disconnected';
+  call_cid: string;
+  /**
+   * The device status at the time it was disconnected.
+   */
+  status: InputDeviceStatus;
+  /**
+   * The disconnected device ID.
+   */
+  deviceId: string;
+  /**
+   * The human-readable label of the disconnected device.
+   */
+  label?: string;
+  /**
+   * The disconnected device kind.
+   */
+  kind: MediaDeviceKind;
+};
+
 export type StreamVideoEvent = (
   | VideoEvent
   | NetworkChangedEvent
   | ConnectionChangedEvent
   | TransportChangedEvent
   | ConnectionRecoveredEvent
+  | MicCaptureReportEvent
+  | DeviceDisconnectedEvent
 ) & { received_at?: string | Date };
 
 // TODO: we should use WSCallEvent here but that needs fixing
 export type StreamCallEvent = Extract<StreamVideoEvent, { call_cid: string }>;
-export type EventTypes = 'all' | VideoEvent['type'];
+export type EventTypes = 'all' | StreamVideoEvent['type'];
 
 export type AllClientEventTypes = 'all' | StreamVideoEvent['type'];
 export type AllClientEvents = {
@@ -129,7 +171,7 @@ export type ClientEventListener<E extends keyof AllClientEvents> = (
 ) => void;
 
 export type AllClientCallEvents = {
-  [K in EventTypes]: Extract<VideoEvent, { type: K }>;
+  [K in EventTypes]: Extract<StreamVideoEvent, { type: K }>;
 };
 
 export type AllCallEvents = AllClientCallEvents & AllSfuEvents;
@@ -240,6 +282,11 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * When set to true, the incoming calls are rejected when the user is busy in an another call.
    */
   rejectCallWhenBusy?: boolean;
+
+  /**
+   * Device persistence preference options (web only).
+   */
+  devicePersistence?: DevicePersistenceOptions;
 };
 
 export type ClientAppIdentifier = {

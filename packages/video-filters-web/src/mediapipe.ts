@@ -10,7 +10,7 @@ export const loadMediaPipe = async (
 ): Promise<ArrayBuffer> => {
   const {
     basePath = `https://unpkg.com/${packageName}@${version}/mediapipe`,
-    modelPath = `${basePath}/models/selfie_segmenter.tflite`,
+    modelPath = `${basePath}/models/selfie_segmenter_landscape.tflite`,
   } = options;
 
   const model =

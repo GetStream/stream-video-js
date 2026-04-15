@@ -1,16 +1,15 @@
-// RollupError: @rollup/plugin-typescript TS7016: Could not find a declaration file for module './krispai/krispsdk.mjs'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore - issues with typescript on CI
-import KrispSDK from './krispai/krispsdk.mjs';
+import KrispSDK from './krispai';
 import type {
   IAudioFilterNode,
   IKrispSDK,
   ISDKPartialOptions,
-} from './krispai/krispsdk';
+} from './krispai';
 import { packageName, packageVersion } from './version';
 import { promiseWithResolvers } from './withResolvers';
 import { simd } from 'wasm-feature-detect';
 import type { Tracer } from './tracer';
+
+const MODEL_FILENAME = 'krisp-nc-o-med-v7.kef';
 
 /**
  * Options to pass to the NoiseCancellation instance.
@@ -149,7 +148,7 @@ export class NoiseCancellation implements INoiseCancellation {
         useSharedArrayBuffer: false,
         models: {
           // https://sdk-docs.krisp.ai/docs/krisp-audio-sdk-model-selection-guide
-          modelNC: `${this.basePath}/c6.f.s.da1785.kef`,
+          modelNC: `${this.basePath}/${MODEL_FILENAME}`,
         },
         ...this.krispSDKParams,
       },
@@ -212,6 +211,7 @@ export class NoiseCancellation implements INoiseCancellation {
   enable = async () => {
     if (!this.filterNode) return;
     await this.initializing;
+
     this.filterNode.enable();
     this.dispatch('change', true);
   };
@@ -222,6 +222,7 @@ export class NoiseCancellation implements INoiseCancellation {
   disable = async () => {
     if (!this.filterNode) return;
     await this.initializing;
+
     this.filterNode.disable();
     this.dispatch('change', false);
   };
@@ -296,13 +297,21 @@ export class NoiseCancellation implements INoiseCancellation {
 
   resume = () => {
     // resume if still suspended
-    if (this.audioContext?.state === 'suspended') {
-      this.audioContext.resume().catch((err) => {
-        console.warn(
-          'Failed to resume the audio context. Noise Cancellation may not work correctly',
-          err,
-        );
-      });
+    if (!this.audioContext) return;
+    const state = this.audioContext.state;
+    if (state === 'suspended' || state === 'interrupted') {
+      const tag = 'audioContextResumeNC';
+      this.audioContext.resume().then(
+        () => this.tracer?.trace(tag, this.audioContext?.state),
+        (err) => {
+          const data = [this.audioContext?.state, err?.message];
+          this.tracer?.trace(`${tag}Error`, data);
+          console.warn(
+            'Failed to resume the audio context. Noise Cancellation may not work correctly',
+            err,
+          );
+        },
+      );
     }
   };
 

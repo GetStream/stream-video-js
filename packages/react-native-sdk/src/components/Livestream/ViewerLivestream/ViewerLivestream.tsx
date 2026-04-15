@@ -127,21 +127,15 @@ export const ViewerLivestream = ({
   };
 
   useEffect(() => {
-    const handleJoinCall = async () => {
-      try {
-        await call?.join();
-      } catch (error) {
-        console.error('Failed to join call', error);
-      }
-    };
-
     const canJoinAsap = canJoinLive || canJoinEarly || canJoinBackstage;
     const join = joinBehavior ?? 'asap';
     const canJoin =
       (join === 'asap' && canJoinAsap) || (join === 'live' && canJoinLive);
 
     if (call && callingState === CallingState.IDLE && canJoin && !hasLeft) {
-      handleJoinCall();
+      call.join().catch((error) => {
+        console.error('Failed to join call', error);
+      });
     }
   }, [
     canJoinLive,

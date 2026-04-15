@@ -23,7 +23,8 @@ import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
 
 export const DebugParticipantViewUI = () => {
   const call = useCall();
-  const { participant, participantViewElement } = useParticipantViewContext();
+  const { participant, participantViewElement, trackType } =
+    useParticipantViewContext();
   const { sessionId, userId } = participant;
 
   const isDemoEnvironment = useIsDemoEnvironment();
@@ -42,13 +43,14 @@ export const DebugParticipantViewUI = () => {
   }, [participantViewElement]);
 
   const isDebug = useIsDebugMode();
-  const screenShare = hasScreenShare(participant);
+  const isScreenShareTrackView = trackType === 'screenShareTrack';
+
   if (!isDebug) {
     return (
       <div
         className={clsx(
           'rd__debug__participant-view',
-          screenShare && 'rd__debug__participant-view--screen-share',
+          isScreenShareTrackView && 'rd__debug__participant-view--screen-share',
           isDemoEnvironment && 'rd__debug__participant-view--hide-elements',
         )}
         onDoubleClick={enterFullScreen}

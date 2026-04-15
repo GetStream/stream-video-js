@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import {
   watchCallAccepted,
@@ -376,17 +377,16 @@ const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
 };
 
 const fakeMetadata = (): CallResponse => {
-  return {
+  return fromPartial({
     id: '12345',
     type: 'development',
     cid: 'development:12345',
 
-    // @ts-expect-error type issue
     created_by: {
       id: 'test-user-id',
     },
-    own_capabilities: [],
     blocked_user_ids: [],
+    egress: {},
 
     settings: {
       ring: {
@@ -394,10 +394,9 @@ const fakeMetadata = (): CallResponse => {
         incoming_call_timeout_ms: 30000,
         missed_call_timeout_ms: 30000,
       },
-      // @ts-expect-error type issue
       screensharing: {
         target_resolution: undefined,
       },
     },
-  };
+  });
 };

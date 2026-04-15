@@ -3,9 +3,35 @@
 This is `@stream-io/video-client`, the low-level JavaScript/TypeScript client for Stream Video SDK.
 It provides WebRTC-based video calling functionality for both browser and Node.js environments, serving as the foundation for the React and React Native SDKs in this monorepo.
 
+## Agent Fast Path
+
+Use this workflow for efficient iteration:
+
+1. Scope the change to one subsystem first (`src/rtc`, `src/events`, `src/devices`, `src/store`, etc.).
+2. Run package-local commands while iterating (`yarn test <pattern>`, `yarn build`).
+3. Run root CI-parity checks for this package before finishing (`yarn lint:ci:client`, `yarn test:ci:client`, `yarn build:client`).
+4. Run full-monorepo checks only when the change crosses package boundaries.
+
+## Core Code Pointers
+
+- `index.ts` - public surface/re-exports; start here for API exposure changes.
+- `src/StreamVideoClient.ts` - client auth, connection lifecycle, call initialization from coordinator events.
+- `src/Call.ts` - main call lifecycle (`setup`, `join`, `leave`), peer setup, reconnect, and teardown.
+- `src/events/callEventHandlers.ts` - default event wiring between coordinator/SFU events and state updates.
+- `src/store/CallState.ts` - canonical reactive call state and derived observables.
+- `src/store/rxUtils.ts` - subscription helpers (`createSafeAsyncSubscription`, `setCurrentValue`) used across state updates.
+- `src/helpers/concurrency.ts` - serialization/cancellation primitives (`withoutConcurrency`, `withCancellation`).
+- `src/devices/DeviceManager.ts` - device enable/disable/select flow, filter registration, and cancellation behavior.
+- `src/helpers/DynascaleManager.ts` - viewport-driven subscription calculation and SFU `updateSubscriptions`.
+- `src/rtc/helpers/sdp.ts` - SDP munging helpers (`removeCodecsExcept`, `enableStereo`).
+- `src/stats/SfuStatsReporter.ts` - telemetry/stats pipeline and flush/start/stop behavior.
+- `src/permissions/PermissionsContext.ts` - capability checks for publish/request flows.
+
 ## Build & Development Commands
 
 ```bash
+# From packages/client
+
 # Build the client
 yarn build
 
@@ -20,13 +46,19 @@ yarn test-ci
 
 # Clean build artifacts
 yarn clean
+
+# From repo root (CI parity for this package)
+yarn lint:ci:client
+yarn test:ci:client
+yarn build:client
 ```
 
 ### Running Tests
 
-- Single test file: `yarn test <file-pattern>`
+- Single test file: `yarn test --run <file-pattern>`
 - Watch mode (default): `yarn test` runs in watch mode
 - CI mode: `yarn test-ci` runs once with coverage
+- Integration-heavy tests are mostly in `src/__tests__/` and require `STREAM_API_KEY` + `STREAM_SECRET`
 
 ### Monorepo Commands
 
@@ -198,14 +230,14 @@ Sorting is **visibility-aware**: only applies sorting logic to invisible partici
 
 All state is exposed through RxJS observables. When updating state:
 
-```typescript
+```ts
 // Update a BehaviorSubject
 this.participantsSubject.next(updatedParticipants);
 ```
 
 Consumers subscribe to changes:
 
-```typescript
+```ts
 callState.participants$.subscribe((participants) => {
   // Update UI
 });
@@ -217,7 +249,7 @@ callState.participants$.subscribe((participants) => {
 
 1. **withoutConcurrency** - Serial execution without cancellation:
 
-```typescript
+```ts
 await withoutConcurrency(this.connectionConcurrencyTag, async () => {
   // Operations run one after another
   // Previous operation completes before next starts
@@ -227,7 +259,7 @@ await withoutConcurrency(this.connectionConcurrencyTag, async () => {
 
 2. **withCancellation** - Serial execution with automatic cancellation:
 
-```typescript
+```ts
 await withCancellation(this.deviceToggleTag, async (signal) => {
   // If a new operation is queued, previous one is aborted via signal
   // Check signal.aborted to stop work early
@@ -257,7 +289,7 @@ await withCancellation(this.deviceToggleTag, async (signal) => {
 
 **PromiseWithResolvers pattern:**
 
-```typescript
+```ts
 const { promise, resolve, reject, isResolved } = promiseWithResolvers<T>();
 // Allows external resolution/rejection of promises
 // Useful for coordinating async operations
@@ -301,7 +333,7 @@ Critical helpers for WebRTC negotiation:
 
 Scoped logger system with configurable log levels:
 
-```typescript
+```ts
 this.logger.debug('message', metadata);
 this.logger.warn('warning', error);
 this.logger.error('error', error);
@@ -336,16 +368,17 @@ src/
 ├── sorting/                   # Participant sorting
 └── gen/                       # Generated code (do not edit)
     ├── coordinator/           # OpenAPI generated models
-    └── video/sfu/             # Protobuf generated code
+    ├── video/sfu/             # Protobuf generated code
+    └── google/protobuf/       # Protobuf runtime models
 ```
 
 ## Testing
 
-- Tests use Vitest with happy-dom for browser environment simulation
-- Test files live in `src/__tests__/`
-- Coverage excludes generated code (`src/gen/`)
-- Mock helpers in `__tests__/clientTestUtils.ts`
-- Requires `STREAM_API_KEY` and `STREAM_SECRET` in `.env` for integration tests
+- Tests use Vitest; browser-like behavior is enabled in specific files via `@vitest-environment happy-dom`
+- Tests are colocated across many `__tests__` folders (not only `src/__tests__/`)
+- `src/__tests__/clientTestUtils.ts` provides shared integration helpers
+- Coverage config includes `src/**` and excludes `**/__tests__/**` plus `src/gen/**`
+- Integration tests require `STREAM_API_KEY` and `STREAM_SECRET` in `.env` (see `.env-example`)
 
 ## Build System
 
@@ -380,10 +413,14 @@ src/
 
 ### Generated Code
 
-- `src/gen/` directory contains auto-generated code from OpenAPI and Protocol Buffers
+- `src/gen/` directory contains auto-generated code from OpenAPI and Protocol Buffers (`coordinator/`, `video/sfu/`, and `google/protobuf/`)
 - Do not manually edit these files
 - Regenerate using `./generate-openapi.sh protocol`
 - Types from generated code are re-exported through `index.ts`
+
+### Build Artifacts
+
+- Do not manually edit `dist/` or `coverage/`; regenerate them using scripts
 
 ## Common Workflows & Architectural Decisions
 
@@ -467,7 +504,7 @@ When tracks arrive before participant join events:
 
 ### Enable Verbose Logging
 
-```typescript
+```ts
 const client = new StreamVideoClient({
   apiKey: 'key',
   options: {

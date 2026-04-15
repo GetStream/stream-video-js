@@ -42,7 +42,7 @@ export class StreamVideoWriteableStateStore {
    * The currently connected user.
    */
   get connectedUser(): OwnUserResponse | undefined {
-    return RxUtils.getCurrentValue(this.connectedUserSubject);
+    return this.connectedUserSubject.getValue();
   }
 
   /**
@@ -78,6 +78,21 @@ export class StreamVideoWriteableStateStore {
   registerCall = (call: Call) => {
     if (!this.calls.find((c) => c.cid === call.cid)) {
       this.setCalls((calls) => [...calls, call]);
+    }
+  };
+
+  /**
+   * Registers a {@link Call} object if it doesn't exist, otherwise updates it.
+   *
+   * @param call the call to register or update.
+   */
+  registerOrUpdateCall = (call: Call) => {
+    if (this.calls.find((c) => c.cid === call.cid)) {
+      return this.setCalls((calls) =>
+        calls.map((c) => (c.cid === call.cid ? call : c)),
+      );
+    } else {
+      return this.registerCall(call);
     }
   };
 

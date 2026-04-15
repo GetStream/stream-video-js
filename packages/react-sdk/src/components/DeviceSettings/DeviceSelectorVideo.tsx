@@ -1,9 +1,17 @@
-import { DeviceSelector } from './DeviceSelector';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
+
+import { DeviceSelector } from './DeviceSelector';
+import { DeviceVideoPreviewItem } from './DeviceVideoPreviewItem';
 
 export type DeviceSelectorVideoProps = {
   title?: string;
-  visualType?: 'list' | 'dropdown';
+  /**
+   * The visual style used to render the device selector.
+   *
+   * Note: `'preview'` is not reliable on mobile browsers. Use `'list'` or
+   * `'dropdown'` on mobile devices.
+   */
+  visualType?: 'list' | 'dropdown' | 'preview';
 };
 
 export const DeviceSelectorVideo = ({
@@ -24,6 +32,7 @@ export const DeviceSelectorVideo = ({
       title={title}
       visualType={visualType}
       icon="camera"
+      PreviewItem={DeviceVideoPreviewItem}
     />
   );
 };

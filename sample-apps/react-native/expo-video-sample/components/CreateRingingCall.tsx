@@ -15,7 +15,6 @@ import {
   MemberRequest,
   useStreamVideoClient,
 } from '@stream-io/video-react-native-sdk';
-import { router } from 'expo-router';
 
 export default function CreateRingingCall() {
   const [ringingUsers, setRingingUsers] = useState<string[]>([]);
@@ -45,7 +44,6 @@ export default function CreateRingingCall() {
           }),
         },
       });
-      router.push('/ringing');
     } catch (error) {
       if (error instanceof Error) {
         Alert.alert('Error calling users', error.message);

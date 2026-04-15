@@ -32,8 +32,7 @@
         "android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION",
         "android.permission.FOREGROUND_SERVICE_CAMERA",
         "android.permission.FOREGROUND_SERVICE_MICROPHONE",
-        "android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE",
-        "android.permission.FOREGROUND_SERVICE_DATA_SYNC",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
         "android.permission.USE_FULL_SCREEN_INTENT",
         "android.permission.BIND_TELECOM_CONNECTION_SERVICE",
         "android.permission.READ_PHONE_STATE",
@@ -66,7 +65,6 @@
           }
         }
       ],
-      "@react-native-firebase/app",
       [
         "@stream-io/video-react-native-sdk",
         {
@@ -74,17 +72,12 @@
           "addNoiseCancellation": true,
           "androidKeepCallAlive": true,
           "appleTeamId": "EHV7XZLAHA",
-          "ringingPushNotifications": {
-            "disableVideoIos": false,
-            "includesCallsInRecentsIos": false,
-            "showWhenLockedAndroid": true
-          },
+          "ringing": true,
           "enableNonRingingPushNotifications": true,
           "androidPictureInPicture": true,
           "iOSEnableMultitaskingCameraAccess": true
         }
       ],
-      "@config-plugins/react-native-callkeep",
       [
         "@config-plugins/react-native-webrtc",
         {

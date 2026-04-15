@@ -9,7 +9,7 @@ runs:
     - uses: actions/setup-node@v4
       if: ${{ env.INSTALL_NODE == 'true' }}
       with:
-        node-version: 22.x
+        node-version: 24.x
         cache: 'yarn'
 
     - name: Install Yarn Dependencies
@@ -33,7 +33,7 @@ runs:
 
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 3.1
+        ruby-version: 3.4
         working-directory: sample-apps/react-native/dogfood
         bundler-cache: true
 

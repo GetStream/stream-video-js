@@ -118,6 +118,7 @@ const AudioContextMock = vi.fn((): Partial<AudioContext> => {
     setSinkId: vi.fn(async function (sinkId: string) {
       this.sinkId = sinkId;
     }),
+    addEventListener: vi.fn(),
   };
 });
 vi.stubGlobal('AudioContext', AudioContextMock);

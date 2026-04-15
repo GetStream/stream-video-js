@@ -7,6 +7,10 @@ RCT_EXTERN_METHOD(setAudioRole:(NSString *)audioRole)
 
 RCT_EXTERN_METHOD(setDefaultAudioDeviceEndpointType:(NSString *)endpointType)
 
+RCT_EXTERN_METHOD(setEnableStereoAudioOutput:(BOOL)enable)
+
+RCT_EXTERN_METHOD(setup)
+
 RCT_EXTERN_METHOD(start)
 
 RCT_EXTERN_METHOD(stop)
@@ -18,6 +22,8 @@ RCT_EXTERN_METHOD(setForceSpeakerphoneOn:(BOOL)enable)
 RCT_EXTERN_METHOD(setMicrophoneMute:(BOOL)enable)
 
 RCT_EXTERN_METHOD(logAudioState)
+
+RCT_EXTERN__BLOCKING_SYNCHRONOUS_METHOD(getAudioStateLog)
 
 RCT_EXTERN_METHOD(muteAudioOutput)
 

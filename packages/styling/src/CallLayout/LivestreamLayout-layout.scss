@@ -70,6 +70,22 @@
       padding: 0 20px;
     }
 
+    .str-video__livestream-layout__overlay__bar-left,
+    .str-video__livestream-layout__overlay__bar-center,
+    .str-video__livestream-layout__overlay__bar-right {
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .str-video__livestream-layout__overlay__bar-center {
+      justify-content: center;
+    }
+
+    .str-video__livestream-layout__overlay__bar-right {
+      justify-content: flex-end;
+    }
+
     .str-video__livestream-layout__live-badge {
       padding: 4px 8px;
       border-radius: var(--str-video__border-radius-xxs);
@@ -88,7 +104,6 @@
     }
 
     .str-video__livestream-layout__speaker-name {
-      flex: 1;
       font-size: 13px;
       text-overflow: ellipsis;
       overflow: hidden;
@@ -96,8 +111,23 @@
     }
 
     .str-video__livestream-layout__duration {
-      flex: 1;
       text-align: center;
+    }
+
+    .str-video__livestream-layout__mute-button {
+      background: var(--str-video__icon--speaker) center no-repeat;
+      border-radius: var(--str-video__border-radius-xxs);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+
+      &.str-video__livestream-layout__mute-button--muted {
+        background: var(--str-video__icon--speaker-off) center no-repeat;
+      }
+
+      &:hover {
+        background-color: var(--str-video__overlay-color);
+      }
     }
 
     .str-video__livestream-layout__go-fullscreen {

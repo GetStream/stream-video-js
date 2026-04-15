@@ -2,6 +2,42 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.6.0...@stream-io/noise-cancellation-react-native-0.7.0) (2026-04-09)
+
+### Features
+
+- callkit/telecom integration ([#2028](https://github.com/GetStream/stream-video-js/issues/2028)) ([d579acd](https://github.com/GetStream/stream-video-js/commit/d579acd1975fb4945e40452b27e372694c737628))
+
+## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.5.1...@stream-io/noise-cancellation-react-native-0.6.0) (2026-03-31)
+
+### Features
+
+- screen share audio ([#2157](https://github.com/GetStream/stream-video-js/issues/2157)) ([ba3b9d8](https://github.com/GetStream/stream-video-js/commit/ba3b9d8c2168d7c1cd66050524a5dc0a0f7e3e6e))
+
+## [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.5.0...@stream-io/noise-cancellation-react-native-0.5.1) (2026-03-06)
+
+### Bug Fixes
+
+- support prebuilt RN iOS app ([#2151](https://github.com/GetStream/stream-video-js/issues/2151)) ([372488c](https://github.com/GetStream/stream-video-js/commit/372488ce5d03a715d6670723ae593c940c3bff07))
+
+## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.4...@stream-io/noise-cancellation-react-native-0.5.0) (2026-01-20)
+
+### Features
+
+- stereo audio output support RN-332 ([#2038](https://github.com/GetStream/stream-video-js/issues/2038)) ([2938037](https://github.com/GetStream/stream-video-js/commit/2938037d18e70ccf112a089eb3ec44cb034aed1d))
+
+## [0.4.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.3...@stream-io/noise-cancellation-react-native-0.4.4) (2025-12-18)
+
+### Bug Fixes
+
+- **provenance:** add repository info to every package ([4159633](https://github.com/GetStream/stream-video-js/commit/4159633b908afe6542b4be53151da6218175426c))
+
+## [0.4.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.2...@stream-io/noise-cancellation-react-native-0.4.3) (2025-12-18)
+
+### Bug Fixes
+
+- noise cancellation import error in case of no use_frameworks! ([#2048](https://github.com/GetStream/stream-video-js/issues/2048)) ([76eadd1](https://github.com/GetStream/stream-video-js/commit/76eadd1411eb9bf62e1f9ec62a29786c0a7a39cb)), closes [#1962](https://github.com/GetStream/stream-video-js/issues/1962)
+
 ## [0.4.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.4.1...@stream-io/noise-cancellation-react-native-0.4.2) (2025-11-25)
 
 ### Bug Fixes
