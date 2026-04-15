@@ -72,36 +72,10 @@ body {
   }
 }
 
-.str-chat__channel-header .str-chat__header-hamburger {
-  width: 30px;
-  height: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-
-  svg {
-    width: 25px;
-    height: 25px;
-  }
-
-  &:hover {
-    svg path {
-      fill: var(--primary-color);
-    }
-  }
-}
-
 @media screen and (min-width: 768px) {
   #sidebar {
     width: 30%;
     position: initial;
     z-index: 0;
-  }
-
-  .str-chat__channel-header .str-chat__header-hamburger {
-    display: none;
   }
 }

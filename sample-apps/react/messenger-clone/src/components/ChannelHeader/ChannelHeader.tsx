@@ -3,11 +3,9 @@ import {
   Avatar,
   useChannelPreviewInfo,
   useChannelStateContext,
-  useChatContext,
   useTranslationContext,
 } from 'stream-chat-react';
 
-import { MenuIcon } from './icons';
 import { CreateCallButton } from '../CreateCallButton';
 
 export type ChannelHeaderProps = {
@@ -23,7 +21,6 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
   const { image: overrideImage, live, title: overrideTitle } = props;
 
   const { channel, watcher_count } = useChannelStateContext('ChannelHeader');
-  const { openMobileNav } = useChatContext('ChannelHeader');
   const { t } = useTranslationContext('ChannelHeader');
   const { displayImage, displayTitle } = useChannelPreviewInfo({
     channel,
@@ -35,13 +32,6 @@ const UnMemoizedChannelHeader = (props: ChannelHeaderProps) => {
 
   return (
     <div className="str-chat__channel-header">
-      <button
-        aria-label="Menu"
-        className="str-chat__header-hamburger"
-        onClick={openMobileNav}
-      >
-        <MenuIcon />
-      </button>
       <Avatar imageUrl={displayImage} userName={displayTitle} size="md" />
       <div className="str-chat__channel-header__data">
         <p className="str-chat__channel-header__data__title">

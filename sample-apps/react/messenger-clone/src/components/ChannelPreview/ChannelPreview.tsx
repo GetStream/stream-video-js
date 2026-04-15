@@ -11,7 +11,7 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
     className: customClassName = '',
     displayImage,
     displayTitle,
-    latestMessage,
+    latestMessagePreview,
     onSelect: customOnSelectChannel,
     setActiveChannel,
     unread,
@@ -74,7 +74,7 @@ const UnMemoizedChannelPreview = (props: ChannelListItemUIProps) => {
             )}
           </div>
           <div className="str-chat__channel-list-item-data__second-row">
-            {latestMessage}
+            {latestMessagePreview}
           </div>
         </div>
       </button>
