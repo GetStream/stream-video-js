@@ -80,18 +80,22 @@ async function computeIVPrefix(rawKeyBytes, userId) {
   return new Uint8Array(hash, 0, 8);
 }
 
-async function getIVPrefix(userId, keyIndex) {
-  const cacheKey = userId + ':' + keyIndex;
-  const cached = ivPrefixes.get(cacheKey);
-  if (cached) return cached;
+// Synchronous hot-path lookup — returns cached prefix or null.
+// All prefixes are pre-computed at key import time (per-user keys)
+// or at transform creation time (shared keys via ensureIVPrefix).
+function getIVPrefix(userId, keyIndex) {
+  return ivPrefixes.get(userId + ':' + keyIndex) || null;
+}
 
-  // Shared key path: compute lazily since userId wasn't known at import time
+// Pre-compute and cache the IV prefix for a (userId, keyIndex) pair.
+// Called once when a transform is created and a shared key is active.
+async function ensureIVPrefix(userId, keyIndex) {
+  const cacheKey = userId + ':' + keyIndex;
+  if (ivPrefixes.has(cacheKey)) return;
   if (sharedKey && keyIndex === sharedKey.keyIndex && sharedRawKeyBytes) {
     const prefix = await computeIVPrefix(sharedRawKeyBytes, userId);
     ivPrefixes.set(cacheKey, prefix);
-    return prefix;
   }
-  return null;
 }
 
 async function importKey(userId, keyIndex, rawKey) {
@@ -205,25 +209,22 @@ function h264ClearBytes(data) {
 
 // Insert emulation-prevention bytes (0x03) after 0x00 0x00 when followed
 // by 0x00-0x03, preventing fake Annex B start codes in encrypted data.
+// Single-pass: writes to a worst-case buffer (1.5x) and returns a subarray.
 function rbspEscape(data) {
-  let extra = 0;
-  for (let i = 0; i < data.length - 2; ++i) {
-    if (data[i] === 0 && data[i + 1] === 0 && data[i + 2] <= 3) {
-      extra++;
-      i++;
-    }
-  }
-  if (extra === 0) return data;
-  const result = new Uint8Array(data.length + extra);
+  // Worst case: every pair of bytes is 00 00 xx (xx <= 03),
+  // adding one 03 per pair → ~50% expansion.
+  const result = new Uint8Array(data.length + (data.length >> 1) + 1);
   let j = 0;
+  let needsEscape = false;
   for (let i = 0; i < data.length; ++i) {
     result[j++] = data[i];
     if (i < data.length - 2 && data[i] === 0 && data[i + 1] === 0 && data[i + 2] <= 3) {
       result[j++] = data[++i]; // copy second 0x00
       result[j++] = 3; // insert emulation-prevention byte
+      needsEscape = true;
     }
   }
-  return result.subarray(0, j);
+  return needsEscape ? result.subarray(0, j) : data;
 }
 
 // Reverse of rbspEscape: strip 0x03 after 0x00 0x00 before 0x00-0x03.
@@ -289,6 +290,10 @@ function readTrailer(src) {
   };
 }
 
+// ---- Runtime toggle ----
+
+let e2eeActive = true;
+
 // ---- Perf reporting ----
 
 let perfEnabled = false;
@@ -328,8 +333,18 @@ function stopPerfReport() {
 
 function encodeTransform(userId, codec) {
   const isNalu = codec === 'h264';
+  // Pre-compute shared key IV prefix at transform creation (not per-frame)
+  const latestEntry = getLatestKey(userId);
+  if (latestEntry && sharedKey) ensureIVPrefix(userId, latestEntry.keyIndex);
+
   return new TransformStream({
     async transform(frame, controller) {
+      if (!e2eeActive) {
+        controller.enqueue(frame);
+        if (perfEnabled) encodeFrameCount++;
+        return;
+      }
+
       const entry = getLatestKey(userId);
       if (!entry) {
         // No key set yet — drop frame to avoid leaking plaintext
@@ -337,14 +352,14 @@ function encodeTransform(userId, codec) {
       }
 
       const { key: cryptoKey, keyIndex } = entry;
-      const prefix = await getIVPrefix(userId, keyIndex);
+      const prefix = getIVPrefix(userId, keyIndex);
       if (!prefix) return;
 
       const src = new Uint8Array(frame.data);
       const clearBytes = getClearByteCount(codec, frame.type, src);
       const counter = nextFrameCounter(userId);
       const iv = buildIV(prefix, counter);
-      const aad = clearBytes > 0 ? src.slice(0, clearBytes) : new Uint8Array(0);
+      const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : new Uint8Array(0);
       const plaintext = src.subarray(clearBytes);
 
       try {
@@ -392,6 +407,9 @@ function decodeTransform(userId) {
     }
   }
 
+  // Pre-compute shared key IV prefix at transform creation (not per-frame)
+  if (sharedKey) ensureIVPrefix(userId, sharedKey.keyIndex);
+
   return new TransformStream({
     async transform(frame, controller) {
       const src = new Uint8Array(frame.data);
@@ -400,6 +418,7 @@ function decodeTransform(userId) {
       if (!trailer) {
         // No valid trailer — unencrypted frame, pass through
         controller.enqueue(frame);
+        if (perfEnabled) decodeFrameCounts.set(userId, (decodeFrameCounts.get(userId) || 0) + 1);
         return;
       }
 
@@ -419,7 +438,7 @@ function decodeTransform(userId) {
         return;
       }
 
-      const prefix = await getIVPrefix(userId, keyIndex);
+      const prefix = getIVPrefix(userId, keyIndex);
       if (!prefix) {
         notifyFailure();
         return;
@@ -427,7 +446,7 @@ function decodeTransform(userId) {
 
       const bodyEnd = src.length - TRAILER_LEN;
       const iv = buildIV(prefix, frameCounter);
-      const aad = clearBytes > 0 ? src.slice(0, clearBytes) : new Uint8Array(0);
+      const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : new Uint8Array(0);
 
       try {
         let ciphertext;
@@ -483,6 +502,9 @@ addEventListener('message', ({ data }) => {
       break;
     case 'removeKeys':
       removeKeys(data.userId);
+      break;
+    case 'e2ee-enabled':
+      e2eeActive = !!data.enabled;
       break;
     case 'perf-report':
       if (data.enabled) startPerfReport();

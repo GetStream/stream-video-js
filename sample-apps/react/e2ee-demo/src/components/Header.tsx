@@ -24,7 +24,6 @@ export const Header = ({
     participantCount < MAX_PARTICIPANTS &&
     (!e2eeEnabled || isSupported) &&
     !loading;
-  const canToggle = participantCount === 0 && !loading;
 
   return (
     <header className="header">
@@ -44,14 +43,12 @@ export const Header = ({
         </div>
       </div>
       <div className="header__actions">
-        <label
-          className={`header__toggle ${!canToggle ? 'header__toggle--disabled' : ''}`}
-        >
+        <label className="header__toggle">
           <input
             type="checkbox"
             checked={e2eeEnabled}
             onChange={(e) => onToggleE2EE(e.target.checked)}
-            disabled={!canToggle}
+            disabled={loading}
           />
           E2EE
         </label>

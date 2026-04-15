@@ -15,6 +15,7 @@ import './ParticipantPanel.css';
 interface ParticipantPanelProps {
   participant: ParticipantSession;
   onRemove: (userId: string) => void;
+  onToggleE2EE: (userId: string, enabled: boolean) => void;
   onRotateKey: (userId: string, localOnly: boolean) => void;
   onSetKey: (userId: string, input: string, localOnly: boolean) => void;
   onDismissError: (userId: string) => void;
@@ -39,14 +40,27 @@ const CallUI = () => {
 export const ParticipantPanel = memo(function ParticipantPanel({
   participant,
   onRemove,
+  onToggleE2EE,
   onRotateKey,
   onSetKey,
   onDismissError,
 }: ParticipantPanelProps) {
-  const { userId, name, color, client, call, currentKey, keyIndex } =
-    participant;
+  const {
+    userId,
+    name,
+    color,
+    client,
+    call,
+    currentKey,
+    keyIndex,
+    e2eeActive,
+  } = participant;
 
   const handleRemove = useCallback(() => onRemove(userId), [onRemove, userId]);
+  const handleToggleE2EE = useCallback(
+    (enabled: boolean) => onToggleE2EE(userId, enabled),
+    [onToggleE2EE, userId],
+  );
   const handleRotate = useCallback(
     (localOnly: boolean) => onRotateKey(userId, localOnly),
     [onRotateKey, userId],
@@ -73,13 +87,23 @@ export const ParticipantPanel = memo(function ParticipantPanel({
             {userId.slice(0, 24)}...
           </span>
         </div>
-        <button
-          className="participant-panel__remove"
-          onClick={handleRemove}
-          title="Remove participant"
-        >
-          &times;
-        </button>
+        <div className="participant-panel__actions">
+          <label className="participant-panel__e2ee-toggle" title="Toggle E2EE">
+            <input
+              type="checkbox"
+              checked={e2eeActive}
+              onChange={(e) => handleToggleE2EE(e.target.checked)}
+            />
+            E2EE
+          </label>
+          <button
+            className="participant-panel__remove"
+            onClick={handleRemove}
+            title="Remove participant"
+          >
+            &times;
+          </button>
+        </div>
       </div>
 
       <div className="participant-panel__video">

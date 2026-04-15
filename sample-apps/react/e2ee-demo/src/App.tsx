@@ -13,7 +13,8 @@ const App = () => {
     events,
     loading,
     e2eeEnabled,
-    setE2eeEnabled,
+    toggleE2EE,
+    toggleParticipantE2EE,
     addParticipant,
     removeParticipant,
     rotateKey,
@@ -27,13 +28,14 @@ const App = () => {
         callId={callId}
         participantCount={participants.length}
         e2eeEnabled={e2eeEnabled}
-        onToggleE2EE={setE2eeEnabled}
+        onToggleE2EE={toggleE2EE}
         onAddParticipant={addParticipant}
         loading={loading}
       />
       <ParticipantGrid
         participants={participants}
         onRemove={removeParticipant}
+        onToggleE2EE={toggleParticipantE2EE}
         onRotateKey={rotateKey}
         onSetKey={setKeyFromInput}
         onDismissError={dismissError}

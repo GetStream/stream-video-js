@@ -5,6 +5,7 @@ import './ParticipantGrid.css';
 interface ParticipantGridProps {
   participants: ParticipantSession[];
   onRemove: (userId: string) => void;
+  onToggleE2EE: (userId: string, enabled: boolean) => void;
   onRotateKey: (userId: string, localOnly: boolean) => void;
   onSetKey: (userId: string, input: string, localOnly: boolean) => void;
   onDismissError: (userId: string) => void;
@@ -13,6 +14,7 @@ interface ParticipantGridProps {
 export const ParticipantGrid = ({
   participants,
   onRemove,
+  onToggleE2EE,
   onRotateKey,
   onSetKey,
   onDismissError,
@@ -33,6 +35,7 @@ export const ParticipantGrid = ({
           key={p.userId}
           participant={p}
           onRemove={onRemove}
+          onToggleE2EE={onToggleE2EE}
           onRotateKey={onRotateKey}
           onSetKey={onSetKey}
           onDismissError={onDismissError}

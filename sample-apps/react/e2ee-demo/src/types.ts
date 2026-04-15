@@ -13,7 +13,7 @@ export interface ParticipantSession {
   // SDK handles (set once per session)
   client: StreamVideoClient;
   call: Call;
-  e2eeManager?: EncryptionManager;
+  e2eeManager: EncryptionManager;
 
   // E2EE key state (changes on rotation / manual set)
   currentKey?: ArrayBuffer;
@@ -21,6 +21,8 @@ export interface ParticipantSession {
 
   // UI state
   joined: boolean;
+  /** Whether this participant's worker is actively encrypting/decrypting. */
+  e2eeActive: boolean;
   /** True when this participant's worker reports decryption failures. */
   decryptionFailed: boolean;
 }

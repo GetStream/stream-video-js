@@ -114,8 +114,7 @@ export class EncryptionManager {
   static create = async (userId: string): Promise<EncryptionManager> => {
     if (!EncryptionManager.isSupported()) {
       throw new Error(
-        'E2EE is not supported in this browser. ' +
-          'Check EncryptionManager.isSupported() before calling create().',
+        `E2EE is not supported in this browser. Check EncryptionManager.isSupported() before calling create().`,
       );
     }
     const { WORKER_SOURCE } = await import('./worker');
@@ -216,6 +215,19 @@ export class EncryptionManager {
    */
   decrypt = (receiver: RTCRtpReceiver, userId: string): void => {
     this.pipe(receiver, { operation: 'decode', userId });
+  };
+
+  /**
+   * Enable or disable E2EE at runtime.
+   *
+   * When disabled, the worker passes frames through without
+   * encryption/decryption. Transforms remain attached so toggling
+   * back on works without reconnecting.
+   *
+   * @param enabled - Whether E2EE should be active.
+   */
+  setEnabled = (enabled: boolean): void => {
+    this.worker.postMessage({ type: 'e2ee-enabled', enabled });
   };
 
   /**

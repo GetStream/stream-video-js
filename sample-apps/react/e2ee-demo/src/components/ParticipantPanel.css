@@ -46,6 +46,23 @@
   white-space: nowrap;
 }
 
+.participant-panel__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.participant-panel__e2ee-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
 .participant-panel__remove {
   background: none;
   border: none;
