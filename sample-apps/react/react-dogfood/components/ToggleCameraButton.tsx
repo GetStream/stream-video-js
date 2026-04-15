@@ -9,6 +9,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
+import { isMobile } from '../helpers/isMobile';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
@@ -34,13 +35,14 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 );
 
 export const ToggleCameraButton = () => {
+  const visualType = isMobile() ? 'list' : 'preview';
   return (
     <MenuToggle
       placement="top-start"
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
     >
-      <DeviceSelectorVideo visualType="preview" />
+      <DeviceSelectorVideo visualType={visualType} />
     </MenuToggle>
   );
 };
