@@ -259,7 +259,7 @@ const LivestreamChat = ({
          */}
         {/* @ts-expect-error typing error is expected and can be ignored */}
         <MessageList FlatList={GestureHandlerFlatlist} />
-        <MessageComposer InputButtons={undefined} />
+        <MessageComposer />
       </Channel>
     </View>
   );

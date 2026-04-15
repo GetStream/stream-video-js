@@ -7747,7 +7747,7 @@ __metadata:
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
     sass: "npm:^1.93.2"
-    stream-chat: "npm:^9.38.0"
+    stream-chat: "npm:^9.41.0"
     stream-chat-react: "npm:14.0.0-beta.7"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
@@ -7994,7 +7994,7 @@ __metadata:
     react-dom: "npm:19.1.0"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.93.2"
-    stream-chat: "npm:^9.38.0"
+    stream-chat: "npm:^9.41.0"
     stream-chat-react: "npm:14.0.0-beta.7"
     swr: "npm:^2.3.6"
     yargs: "npm:^18.0.0"
@@ -8055,7 +8055,7 @@ __metadata:
     react-native-voip-push-notification: "npm:~3.3.3"
     react-native-worklets: "npm:^0.7.3"
     rxjs: "npm:~7.8.2"
-    stream-chat: "npm:^9.38.0"
+    stream-chat: "npm:^9.41.0"
     stream-chat-react-native: "npm:9.0.0-beta.33"
     typescript: "npm:^5.9.3"
   languageName: unknown
@@ -8270,7 +8270,7 @@ __metadata:
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
-    stream-chat: "npm:^9.38.0"
+    stream-chat: "npm:^9.41.0"
     stream-chat-react: "npm:14.0.0-beta.7"
     tailwindcss: "npm:^3.4.18"
     typescript: "npm:^5.9.3"
@@ -23509,24 +23509,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat@npm:^9.38.0":
-  version: 9.38.0
-  resolution: "stream-chat@npm:9.38.0"
-  dependencies:
-    "@types/jsonwebtoken": "npm:^9.0.8"
-    "@types/ws": "npm:^8.5.14"
-    axios: "npm:^1.12.2"
-    base64-js: "npm:^1.5.1"
-    form-data: "npm:^4.0.4"
-    isomorphic-ws: "npm:^5.0.0"
-    jsonwebtoken: "npm:^9.0.3"
-    linkifyjs: "npm:^4.3.2"
-    ws: "npm:^8.18.1"
-  checksum: 10/c93f011bae499e50d71fc02a2fcf5827dd6da74dec9a05f9b74747b0b50d7c689ee68984100a376a524f03fe95aafe4ecdf48511c472b1eaf0838166d246e756
-  languageName: node
-  linkType: hard
-
-"stream-chat@npm:^9.40.0":
+"stream-chat@npm:^9.40.0, stream-chat@npm:^9.41.0":
   version: 9.41.0
   resolution: "stream-chat@npm:9.41.0"
   dependencies:
