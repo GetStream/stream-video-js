@@ -192,6 +192,7 @@ export const useE2EEDemo = () => {
       }
 
       // Join the call
+      call.updatePublishOptions({ preferredCodec: 'vp8' });
       await call.join({ create: true });
       logEvent(
         `${name} joined the call${e2eeEnabled ? '' : ' (no E2EE)'}`,

@@ -79,7 +79,7 @@ export type SendKeyFn = (
 /** Key state for a participant — pure data, no SDK references. */
 export interface E2EEParticipant {
   userId: string;
-  currentKey: ArrayBuffer;
+  currentKey?: ArrayBuffer;
   keyIndex: number;
 }
 
@@ -183,6 +183,7 @@ export const distributeKey = (
   recipients: Array<{ userId: string }>,
   sendKey: SendKeyFn,
 ): void => {
+  if (!from.currentKey) return;
   for (const recipient of recipients) {
     if (recipient.userId === from.userId) continue;
     sendKey(
@@ -216,6 +217,7 @@ export const exchangeKeys = (
 
   // Give the new participant each existing participant's key
   for (const existing of existingParticipants) {
+    if (!existing.currentKey) continue;
     sendKey(
       newParticipant.userId,
       existing.userId,
