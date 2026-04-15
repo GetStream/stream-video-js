@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.47.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.46.1...@stream-io/video-client-1.47.0) (2026-04-15)
+
+### Features
+
+- **client:** JoinCall with hints for high scale livestream ([#2199](https://github.com/GetStream/stream-video-js/issues/2199)) ([704681a](https://github.com/GetStream/stream-video-js/commit/704681ad9ce7a0013325b6db91644e1907d0db0b))
+
+### Bug Fixes
+
+- **client:** align device preference persistence with permission and track end events ([#2196](https://github.com/GetStream/stream-video-js/issues/2196)) ([b4ed7c2](https://github.com/GetStream/stream-video-js/commit/b4ed7c2c6bc6fb6777a411b69747ccc36aa82f44))
+
 ## [1.46.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.46.0...@stream-io/video-client-1.46.1) (2026-04-09)
 
 - remove listeners and stop even on permission error - rn speech detector ([f4fdd9e](https://github.com/GetStream/stream-video-js/commit/f4fdd9e1a008b52011ef18562152aad60a1f7936))
