@@ -21,9 +21,7 @@ export const ParticipantGrid = ({
     return (
       <div className="participant-grid__empty">
         <p>No participants yet.</p>
-        <p>
-          Click &quot;Add Participant&quot; to join the call with E2EE enabled.
-        </p>
+        <p>Click &quot;Add Participant&quot; to join the call.</p>
       </div>
     );
   }

@@ -12,6 +12,8 @@ const App = () => {
     participants,
     events,
     loading,
+    e2eeEnabled,
+    setE2eeEnabled,
     addParticipant,
     removeParticipant,
     rotateKey,
@@ -24,6 +26,8 @@ const App = () => {
       <Header
         callId={callId}
         participantCount={participants.length}
+        e2eeEnabled={e2eeEnabled}
+        onToggleE2EE={setE2eeEnabled}
         onAddParticipant={addParticipant}
         loading={loading}
       />

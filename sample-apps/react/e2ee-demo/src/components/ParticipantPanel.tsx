@@ -101,13 +101,15 @@ export const ParticipantPanel = memo(function ParticipantPanel({
         )}
       </div>
 
-      <KeyControls
-        currentKey={currentKey}
-        keyIndex={keyIndex}
-        color={color}
-        onRotate={handleRotate}
-        onSetKey={handleSetKey}
-      />
+      {currentKey && (
+        <KeyControls
+          currentKey={currentKey}
+          keyIndex={keyIndex}
+          color={color}
+          onRotate={handleRotate}
+          onSetKey={handleSetKey}
+        />
+      )}
     </div>
   );
 });

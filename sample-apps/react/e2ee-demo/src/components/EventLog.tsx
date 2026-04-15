@@ -9,6 +9,7 @@ const TYPE_LABELS: Record<EventLogEntry['type'], string> = {
   join: '✅',
   leave: '👋',
   error: '❌',
+  perf: '📊',
 };
 
 export const EventLog = ({ entries }: { entries: EventLogEntry[] }) => {

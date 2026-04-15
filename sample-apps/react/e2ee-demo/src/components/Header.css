@@ -54,6 +54,28 @@
   color: #d92d20;
 }
 
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header__toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.header__toggle--disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .header__add-btn {
   padding: 8px 16px;
   font-size: 13px;

@@ -1,6 +1,11 @@
 import { isChrome } from '../../helpers/browsers';
 import { type ScopedLogger, videoLoggerSystem } from '../../logger';
 
+export type PerfReport = {
+  encode: { fps: number };
+  decode: { userId: string; fps: number }[];
+};
+
 const validateKeyLength = (rawKey: ArrayBuffer) => {
   if (rawKey.byteLength !== 16) {
     throw new Error(
@@ -40,6 +45,12 @@ export class EncryptionManager {
    * @param userId - The remote user's ID whose frames failed to decrypt.
    */
   onDecryptionFailed?: (userId: string) => void;
+
+  /**
+   * Called every second when perf reporting is enabled via {@link setPerfReport}.
+   * Reports encode/decode frames per second for monitoring throughput.
+   */
+  onPerfReport?: (report: PerfReport) => void;
 
   private readonly userId: string;
   private readonly worker: Worker;
@@ -244,6 +255,18 @@ export class EncryptionManager {
   };
 
   /**
+   * Toggle periodic performance reports from the E2EE worker.
+   *
+   * When enabled, the worker logs encode/decode FPS to the console
+   * every second. Useful for debugging throughput issues.
+   *
+   * @param enabled - Whether to enable or disable perf reporting.
+   */
+  setPerfReport = (enabled: boolean): void => {
+    this.worker.postMessage({ type: 'perf-report', enabled });
+  };
+
+  /**
    * Clear all keys from the worker and reset internal state.
    */
   private cleanup = (): void => {
@@ -258,6 +281,18 @@ export class EncryptionManager {
     } else if (type === 'decryptionFailed') {
       this.logger.warn(`Decryption failed for user: ${e.data.userId}`);
       this.onDecryptionFailed?.(e.data.userId);
+    } else if (type === 'perf-report') {
+      const report: PerfReport = {
+        encode: e.data.encode,
+        decode: e.data.decode,
+      };
+      const decodeInfo = report.decode
+        .map((d) => `${d.userId}: ${d.fps}`)
+        .join(', ');
+      this.logger.info(
+        `[perf] encode: ${report.encode.fps} fps | decode: [${decodeInfo}]`,
+      );
+      this.onPerfReport?.(report);
     }
   };
 

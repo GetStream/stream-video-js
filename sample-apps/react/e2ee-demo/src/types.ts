@@ -13,10 +13,10 @@ export interface ParticipantSession {
   // SDK handles (set once per session)
   client: StreamVideoClient;
   call: Call;
-  e2eeManager: EncryptionManager;
+  e2eeManager?: EncryptionManager;
 
   // E2EE key state (changes on rotation / manual set)
-  currentKey: ArrayBuffer;
+  currentKey?: ArrayBuffer;
   keyIndex: number;
 
   // UI state
@@ -35,5 +35,6 @@ export interface EventLogEntry {
     | 'key-distribute'
     | 'join'
     | 'leave'
-    | 'error';
+    | 'error'
+    | 'perf';
 }

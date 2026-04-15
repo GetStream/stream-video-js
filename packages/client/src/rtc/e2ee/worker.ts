@@ -21,14 +21,20 @@
  *   RBSP-escape the encrypted tail to prevent fake start codes
  * - AV1: not supported (blocked at the EncryptionManager level)
  *
- * Encrypted frames carry an 11-byte trailer:
- *   [4 bytes frameCounter][1 byte keyIndex][2 bytes clearBytes|flags][4 bytes 0xDEADBEEF]
+ * Encrypted frames carry a 12-byte trailer:
+ *   [4 bytes frameCounter][1 byte keyIndex][2 bytes clearBytes|flags][1 byte version][4 bytes 0xDEADBEEF]
+ *
+ * The 12-byte AES-GCM IV is constructed as:
+ *   [8 bytes SHA-256(rawKey + userId)][4 bytes frameCounter]
+ * The prefix is derived once per (key, user) pair, ensuring unique
+ * IVs across users (even with shared keys) and across key rotations,
+ * without adding bytes to the trailer.
  *
  * The AES-GCM ciphertext includes a 16-byte authentication tag.
  * Clear bytes are passed as Additional Authenticated Data (AAD),
  * so the SFU can read them but tampering is detected on decrypt.
  *
- * Total overhead per frame: 27 bytes (16 GCM tag + 11 trailer).
+ * Total overhead per frame: 28 bytes (16 GCM tag + 12 trailer).
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_Encoded_Transforms
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#aes-gcm
@@ -37,7 +43,8 @@ export const WORKER_SOURCE = `
 'use strict';
 
 const MAGIC = 0xDEADBEEF;
-const TRAILER_LEN = 11; // 4 frameCounter + 1 keyIndex + 2 clearBytes + 4 magic
+const E2EE_VERSION = 1;
+const TRAILER_LEN = 12; // 4 frameCounter + 1 keyIndex + 2 clearBytes + 1 version + 4 magic
 const IV_LEN = 12;
 const RBSP_FLAG = 0x8000; // bit 15 of the 2-byte clearBytes field signals RBSP escaping
 
@@ -53,14 +60,52 @@ const frameCounters = new Map();
 // Enables the simple "everyone uses the same key" scenario.
 let sharedKey = null; // { key: CryptoKey, keyIndex: number } | null
 
+// ---- IV prefix derivation ----
+// The first 8 bytes of the 12-byte AES-GCM IV are derived from
+// SHA-256(rawKey + userId). This ensures unique IVs across users
+// (even with a shared key) and across key rotations, without
+// increasing the trailer size.
+// Map<"userId:keyIndex", Uint8Array(8)> — cached IV prefixes
+const ivPrefixes = new Map();
+// Raw bytes of the shared key, kept for lazy IV prefix computation
+// (the userId is only known when the transform runs, not at import time).
+let sharedRawKeyBytes = null; // Uint8Array | null
+
+async function computeIVPrefix(rawKeyBytes, userId) {
+  const userIdBytes = new TextEncoder().encode(userId);
+  const combined = new Uint8Array(rawKeyBytes.length + userIdBytes.length);
+  combined.set(rawKeyBytes, 0);
+  combined.set(userIdBytes, rawKeyBytes.length);
+  const hash = await crypto.subtle.digest('SHA-256', combined);
+  return new Uint8Array(hash, 0, 8);
+}
+
+async function getIVPrefix(userId, keyIndex) {
+  const cacheKey = userId + ':' + keyIndex;
+  const cached = ivPrefixes.get(cacheKey);
+  if (cached) return cached;
+
+  // Shared key path: compute lazily since userId wasn't known at import time
+  if (sharedKey && keyIndex === sharedKey.keyIndex && sharedRawKeyBytes) {
+    const prefix = await computeIVPrefix(sharedRawKeyBytes, userId);
+    ivPrefixes.set(cacheKey, prefix);
+    return prefix;
+  }
+  return null;
+}
+
 async function importKey(userId, keyIndex, rawKey) {
   try {
+    const rawKeyBytes = new Uint8Array(rawKey);
     const cryptoKey = await crypto.subtle.importKey(
       'raw', rawKey, { name: 'AES-GCM', length: 128 }, false, ['encrypt', 'decrypt']
     );
     if (!keyStore.has(userId)) keyStore.set(userId, new Map());
     keyStore.get(userId).set(keyIndex, cryptoKey);
     latestKeyIndex.set(userId, keyIndex);
+
+    const prefix = await computeIVPrefix(rawKeyBytes, userId);
+    ivPrefixes.set(userId + ':' + keyIndex, prefix);
   } catch (e) {
     self.postMessage({ type: 'error', message: 'Failed to import key for user ' + userId + ': ' + e.message });
   }
@@ -68,10 +113,16 @@ async function importKey(userId, keyIndex, rawKey) {
 
 async function importSharedKey(keyIndex, rawKey) {
   try {
+    sharedRawKeyBytes = new Uint8Array(rawKey);
     const cryptoKey = await crypto.subtle.importKey(
       'raw', rawKey, { name: 'AES-GCM', length: 128 }, false, ['encrypt', 'decrypt']
     );
     sharedKey = { key: cryptoKey, keyIndex };
+    // Clear cached prefixes for the old shared key — they'll be
+    // recomputed lazily with the new raw bytes.
+    for (const key of ivPrefixes.keys()) {
+      if (!keyStore.has(key.split(':')[0])) ivPrefixes.delete(key);
+    }
   } catch (e) {
     self.postMessage({ type: 'error', message: 'Failed to import shared key: ' + e.message });
   }
@@ -81,6 +132,9 @@ function removeKeys(userId) {
   keyStore.delete(userId);
   latestKeyIndex.delete(userId);
   frameCounters.delete(userId);
+  for (const key of ivPrefixes.keys()) {
+    if (key.startsWith(userId + ':')) ivPrefixes.delete(key);
+  }
 }
 
 function getKey(userId, keyIndex) {
@@ -102,13 +156,14 @@ function getLatestKey(userId) {
   return null;
 }
 
-// IV = [8 zero bytes][4-byte frame counter big-endian]
-// Unique per (key, counter) pair — each user has their own key
-// and the counter is monotonically increasing.
-function buildIV(frameCounter) {
-  const iv = new ArrayBuffer(IV_LEN);
-  new DataView(iv).setUint32(8, frameCounter);
-  return iv;
+// IV = [8-byte prefix from SHA-256(rawKey + userId)][4-byte frame counter big-endian]
+// The prefix ensures unique IVs across users and key rotations.
+// The counter ensures unique IVs within a session.
+function buildIV(prefix, frameCounter) {
+  const iv = new Uint8Array(IV_LEN);
+  iv.set(prefix, 0);
+  new DataView(iv.buffer).setUint32(8, frameCounter);
+  return iv.buffer;
 }
 
 function nextFrameCounter(userId) {
@@ -208,28 +263,65 @@ function getClearByteCount(codec, frameType, data) {
 
 // ---- Trailer read/write ----
 
-// Trailer layout (11 bytes):
-// [4B frameCounter][1B keyIndex][2B clearBytes|flags][4B magic]
+// Trailer layout (12 bytes):
+// [4B frameCounter][1B keyIndex][2B clearBytes|flags][1B version][4B magic]
 // clearBytes uses 15 bits (max 32767), bit 15 is the RBSP flag.
 function writeTrailer(dst, offset, frameCounter, keyIndex, clearBytes, isRbsp) {
   const view = new DataView(dst.buffer, dst.byteOffset, dst.byteLength);
   view.setUint32(offset, frameCounter);
   dst[offset + 4] = keyIndex;
   view.setUint16(offset + 5, isRbsp ? (clearBytes | RBSP_FLAG) : clearBytes);
-  view.setUint32(offset + 7, MAGIC);
+  dst[offset + 7] = E2EE_VERSION;
+  view.setUint32(offset + 8, MAGIC);
 }
 
 function readTrailer(src) {
   if (src.length < TRAILER_LEN) return null;
   const view = new DataView(src.buffer, src.byteOffset, src.byteLength);
   if (view.getUint32(src.length - 4) !== MAGIC) return null;
-  const raw = view.getUint16(src.length - 6);
+  const raw = view.getUint16(src.length - 7);
   return {
     frameCounter: view.getUint32(src.length - TRAILER_LEN),
-    keyIndex: src[src.length - 7],
+    keyIndex: src[src.length - 8],
     clearBytes: raw & 0x7FFF,
     isRbsp: (raw & RBSP_FLAG) !== 0,
+    version: src[src.length - 5],
   };
+}
+
+// ---- Perf reporting ----
+
+let perfEnabled = false;
+let perfInterval = null;
+let encodeFrameCount = 0;
+// Map<userId, number>
+const decodeFrameCounts = new Map();
+
+function startPerfReport() {
+  perfEnabled = true;
+  perfInterval = setInterval(() => {
+    const decode = [];
+    for (const [userId, count] of decodeFrameCounts) {
+      decode.push({ userId, fps: count });
+      decodeFrameCounts.set(userId, 0);
+    }
+    self.postMessage({
+      type: 'perf-report',
+      encode: { fps: encodeFrameCount },
+      decode,
+    });
+    encodeFrameCount = 0;
+  }, 1000);
+}
+
+function stopPerfReport() {
+  perfEnabled = false;
+  if (perfInterval) {
+    clearInterval(perfInterval);
+    perfInterval = null;
+  }
+  encodeFrameCount = 0;
+  decodeFrameCounts.clear();
 }
 
 // ---- Transforms ----
@@ -245,10 +337,13 @@ function encodeTransform(userId, codec) {
       }
 
       const { key: cryptoKey, keyIndex } = entry;
+      const prefix = await getIVPrefix(userId, keyIndex);
+      if (!prefix) return;
+
       const src = new Uint8Array(frame.data);
       const clearBytes = getClearByteCount(codec, frame.type, src);
       const counter = nextFrameCounter(userId);
-      const iv = buildIV(counter);
+      const iv = buildIV(prefix, counter);
       const aad = clearBytes > 0 ? src.slice(0, clearBytes) : new Uint8Array(0);
       const plaintext = src.subarray(clearBytes);
 
@@ -276,6 +371,7 @@ function encodeTransform(userId, codec) {
           frame.data = dst.buffer;
         }
         controller.enqueue(frame);
+        if (perfEnabled) encodeFrameCount++;
       } catch {
         // Encryption failed — drop frame to avoid sending plaintext
       }
@@ -307,7 +403,14 @@ function decodeTransform(userId) {
         return;
       }
 
-      const { frameCounter, keyIndex, clearBytes, isRbsp } = trailer;
+      const { frameCounter, keyIndex, clearBytes, isRbsp, version } = trailer;
+
+      if (version !== E2EE_VERSION) {
+        // Unsupported frame version — drop and notify
+        notifyFailure();
+        return;
+      }
+
       const cryptoKey = getKey(userId, keyIndex);
 
       if (!cryptoKey) {
@@ -316,8 +419,14 @@ function decodeTransform(userId) {
         return;
       }
 
+      const prefix = await getIVPrefix(userId, keyIndex);
+      if (!prefix) {
+        notifyFailure();
+        return;
+      }
+
       const bodyEnd = src.length - TRAILER_LEN;
-      const iv = buildIV(frameCounter);
+      const iv = buildIV(prefix, frameCounter);
       const aad = clearBytes > 0 ? src.slice(0, clearBytes) : new Uint8Array(0);
 
       try {
@@ -340,6 +449,7 @@ function decodeTransform(userId) {
         dst.set(plaintext, clearBytes);
         frame.data = dst.buffer;
         controller.enqueue(frame);
+        if (perfEnabled) decodeFrameCounts.set(userId, (decodeFrameCounts.get(userId) || 0) + 1);
       } catch {
         // Decryption failed (wrong key, tampered frame) — drop frame and notify.
         // The decoder freezes on the last good frame; the app can show a
@@ -374,10 +484,17 @@ addEventListener('message', ({ data }) => {
     case 'removeKeys':
       removeKeys(data.userId);
       break;
+    case 'perf-report':
+      if (data.enabled) startPerfReport();
+      else stopPerfReport();
+      break;
     case 'dispose':
+      stopPerfReport();
       keyStore.clear();
       latestKeyIndex.clear();
       frameCounters.clear();
+      ivPrefixes.clear();
+      sharedRawKeyBytes = null;
       sharedKey = null;
       break;
     default:
