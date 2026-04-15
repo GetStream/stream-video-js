@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.35.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.1...@stream-io/video-react-sdk-1.35.2) (2026-04-15)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.47.0`
+- `@stream-io/video-react-bindings` updated to version `1.14.2`
+
+### Bug Fixes
+
+- **pronto:** use list visualType for device selection mobile devices ([#2202](https://github.com/GetStream/stream-video-js/issues/2202)) ([f6b6cd2](https://github.com/GetStream/stream-video-js/commit/f6b6cd2eeef3e776167cae515cc7beb2d566ccde))
+
 ## [1.35.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.0...@stream-io/video-react-sdk-1.35.1) (2026-04-09)
 
 ### Dependency Updates
