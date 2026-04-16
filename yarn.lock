@@ -8259,14 +8259,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@skooldev/skool-stream-layout@npm:1.0.14":
-  version: 1.0.14
-  resolution: "@skooldev/skool-stream-layout@npm:1.0.14"
+"@skooldev/skool-stream-layout@npm:1.0.17":
+  version: 1.0.17
+  resolution: "@skooldev/skool-stream-layout@npm:1.0.17"
   peerDependencies:
-    "@stream-io/video-react-sdk": ^1.25.0
+    "@stream-io/video-react-sdk": ^1.34.2
     react: ^17 || ^18 || ^19
     react-dom: ^17 || ^18 || ^19
-  checksum: 10/8d458f4c1e7bae7975f2599914b4c985c9819591a9f8cb04d18b74318e74d3b1f68a3a9e59bb26696bd0171f4c2b76d939b26731372d2cd6b7eb36908bbf129c
+  checksum: 10/5669407f8e64b36e7f56dea14ac486415a267a28d93b31ba3572be466359cb5c0448439edfdf18efcd0eb53bf7cc9c3db6d4b6346205257e0a209506758e1e36
   languageName: node
   linkType: hard
 
@@ -8325,7 +8325,7 @@ __metadata:
     "@playwright/test": "npm:^1.56.0"
     "@sentry/react": "npm:^10.30.0"
     "@sentry/vite-plugin": "npm:^4.6.1"
-    "@skooldev/skool-stream-layout": "npm:1.0.14"
+    "@skooldev/skool-stream-layout": "npm:1.0.17"
     "@stream-io/video-react-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
