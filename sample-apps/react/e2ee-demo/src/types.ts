@@ -4,6 +4,8 @@ import type {
   EncryptionManager,
 } from '@stream-io/video-react-sdk';
 
+export type PreferredCodec = 'vp8' | 'vp9' | 'h264' | 'av1';
+
 export interface ParticipantSession {
   // Identity
   userId: string;

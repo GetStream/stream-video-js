@@ -13,6 +13,10 @@ const App = () => {
     events,
     loading,
     e2eeEnabled,
+    preferredCodec,
+    setPreferredCodec,
+    sharedPassphrase,
+    setSharedKey,
     toggleE2EE,
     toggleParticipantE2EE,
     addParticipant,
@@ -28,7 +32,11 @@ const App = () => {
         callId={callId}
         participantCount={participants.length}
         e2eeEnabled={e2eeEnabled}
+        preferredCodec={preferredCodec}
+        sharedPassphrase={sharedPassphrase}
         onToggleE2EE={toggleE2EE}
+        onCodecChange={setPreferredCodec}
+        onSetSharedKey={setSharedKey}
         onAddParticipant={addParticipant}
         loading={loading}
       />

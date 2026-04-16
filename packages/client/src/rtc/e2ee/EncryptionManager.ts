@@ -1,10 +1,16 @@
 import { isChrome } from '../../helpers/browsers';
+import { promiseWithResolvers } from '../../helpers/promise';
 import { type ScopedLogger, videoLoggerSystem } from '../../logger';
 
 export type PerfReport = {
   encode: { fps: number; maxCryptoMs: number };
   decode: { userId: string; fps: number }[];
   decodeMaxCryptoMs: number;
+};
+
+export type KeyStateReport = {
+  perUserKeys: Array<{ userId: string; keyIndex: number; keyHex: string }>;
+  sharedKey: { keyIndex: number; keyHex: string } | null;
 };
 
 const validateKeyLength = (rawKey: ArrayBuffer) => {
@@ -48,10 +54,23 @@ export class EncryptionManager {
   onDecryptionFailed?: (userId: string) => void;
 
   /**
+   * Called when decryption resumes successfully for a remote participant
+   * after previously reported failures. This indicates the key mismatch
+   * has been resolved (e.g., after key rotation completes).
+   *
+   * @param userId - The remote user's ID whose frames are decrypting again.
+   */
+  onDecryptionResumed?: (userId: string) => void;
+
+  /**
    * Called every second when perf reporting is enabled via {@link setPerfReport}.
    * Reports encode/decode frames per second for monitoring throughput.
    */
   onPerfReport?: (report: PerfReport) => void;
+
+  private pendingKeyDump?: ReturnType<
+    typeof promiseWithResolvers<KeyStateReport>
+  >;
 
   private readonly userId: string;
   private readonly worker: Worker;
@@ -282,6 +301,17 @@ export class EncryptionManager {
   };
 
   /**
+   * Request a snapshot of all keys held by the worker.
+   * Returns per-user keys and the shared key (if set) with hex-encoded raw bytes.
+   */
+  requestKeyDump = (): Promise<KeyStateReport> => {
+    if (this.pendingKeyDump) return this.pendingKeyDump.promise;
+    this.pendingKeyDump = promiseWithResolvers<KeyStateReport>();
+    this.worker.postMessage({ type: 'dumpKeyState' });
+    return this.pendingKeyDump.promise;
+  };
+
+  /**
    * Clear all keys from the worker and reset internal state.
    */
   private cleanup = (): void => {
@@ -296,6 +326,15 @@ export class EncryptionManager {
     } else if (type === 'decryptionFailed') {
       this.logger.warn(`Decryption failed for user: ${e.data.userId}`);
       this.onDecryptionFailed?.(e.data.userId);
+    } else if (type === 'decryptionResumed') {
+      this.logger.info(`Decryption resumed for user: ${e.data.userId}`);
+      this.onDecryptionResumed?.(e.data.userId);
+    } else if (type === 'keyState') {
+      this.pendingKeyDump?.resolve({
+        perUserKeys: e.data.perUserKeys,
+        sharedKey: e.data.sharedKey,
+      });
+      this.pendingKeyDump = undefined;
     } else if (type === 'perf-report') {
       const report: PerfReport = {
         encode: e.data.encode,

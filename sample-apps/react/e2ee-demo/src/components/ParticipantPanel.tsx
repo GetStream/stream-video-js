@@ -10,6 +10,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import type { ParticipantSession } from '../types';
 import { KeyControls } from './KeyControls';
+import { KeyStateDump } from './KeyStateDump';
 import './ParticipantPanel.css';
 
 interface ParticipantPanelProps {
@@ -134,6 +135,8 @@ export const ParticipantPanel = memo(function ParticipantPanel({
           onSetKey={handleSetKey}
         />
       )}
+
+      {e2eeActive && <KeyStateDump e2eeManager={participant.e2eeManager} />}
     </div>
   );
 });

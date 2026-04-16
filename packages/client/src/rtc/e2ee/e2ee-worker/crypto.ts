@@ -7,6 +7,8 @@ const toKey = (userId: string, keyIndex: number): string =>
 
 /** Map<userId, Map<keyIndex, CryptoKey>> */
 const keyStore = new Map<string, Map<number, CryptoKey>>();
+/** Map<userId, Map<keyIndex, Uint8Array>> — raw bytes for debug introspection */
+const rawKeyStore = new Map<string, Map<number, Uint8Array>>();
 /** Map<userId, number> — latest key index for encoding */
 const latestKeyIndex = new Map<string, number>();
 /** Map<userId, number> — monotonic frame counter for encoding */
@@ -135,6 +137,8 @@ export const importKey = async (
     );
     if (!keyStore.has(userId)) keyStore.set(userId, new Map());
     keyStore.get(userId)!.set(keyIndex, cryptoKey);
+    if (!rawKeyStore.has(userId)) rawKeyStore.set(userId, new Map());
+    rawKeyStore.get(userId)!.set(keyIndex, rawKeyBytes);
     latestKeyIndex.set(userId, keyIndex);
 
     const prefix = await computeIVPrefix(rawKeyBytes, userId);
@@ -176,6 +180,7 @@ export const importSharedKey = async (
 
 export const removeKeys = (userId: string) => {
   keyStore.delete(userId);
+  rawKeyStore.delete(userId);
   latestKeyIndex.delete(userId);
   frameCounters.delete(userId);
   for (const key of ivPrefixes.keys()) {
@@ -184,9 +189,35 @@ export const removeKeys = (userId: string) => {
   clearDecryptionFailures(userId);
 };
 
+const toHex = (bytes: Uint8Array): string =>
+  Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+
+/** Dump all key state for debug introspection. */
+export const dumpKeyState = () => {
+  const perUserKeys: Array<{
+    userId: string;
+    keyIndex: number;
+    keyHex: string;
+  }> = [];
+  for (const [userId, keys] of rawKeyStore) {
+    for (const [keyIndex, rawBytes] of keys) {
+      perUserKeys.push({ userId, keyIndex, keyHex: toHex(rawBytes) });
+    }
+  }
+  return {
+    perUserKeys,
+    sharedKey: sharedRawKeyBytes
+      ? { keyIndex: sharedKey!.keyIndex, keyHex: toHex(sharedRawKeyBytes) }
+      : null,
+  };
+};
+
 /** Clear all state — called on worker dispose. */
 export const dispose = () => {
   keyStore.clear();
+  rawKeyStore.clear();
   latestKeyIndex.clear();
   frameCounters.clear();
   ivPrefixes.clear();

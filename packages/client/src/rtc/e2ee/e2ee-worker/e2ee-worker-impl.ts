@@ -49,6 +49,7 @@ import { getClearByteCount, rbspEscape, rbspUnescape } from './codec';
 import { enqueue, readTrailer, writeTrailer } from './utils';
 import {
   dispose as disposeCrypto,
+  dumpKeyState,
   ensureIVPrefix,
   fillIV,
   getIVPrefix,
@@ -134,8 +135,12 @@ const encodeTransform = async (userId: string, codec: string | undefined) => {
       if (!entry) return;
 
       const { key: cryptoKey, keyIndex } = entry;
-      const prefix = getIVPrefix(userId, keyIndex);
-      if (!prefix) return;
+      let prefix = getIVPrefix(userId, keyIndex);
+      if (!prefix) {
+        await ensureIVPrefix(userId, keyIndex);
+        prefix = getIVPrefix(userId, keyIndex);
+        if (!prefix) return;
+      }
 
       const src = new Uint8Array(frame.data);
       const clearBytes = getClearByteCount(codec, frame.type, src);
@@ -246,10 +251,14 @@ const decodeTransform = async (userId: string) => {
         return;
       }
 
-      const prefix = getIVPrefix(userId, keyIndex);
+      let prefix = getIVPrefix(userId, keyIndex);
       if (!prefix) {
-        notifyFailure();
-        return;
+        await ensureIVPrefix(userId, keyIndex);
+        prefix = getIVPrefix(userId, keyIndex);
+        if (!prefix) {
+          notifyFailure();
+          return;
+        }
       }
 
       const bodyEnd = src.length - TRAILER_LEN;
@@ -277,6 +286,7 @@ const decodeTransform = async (userId: string) => {
 
         if (hasDecryptionFailures(userId, keyIndex)) {
           resetDecryptionFailures(userId, keyIndex);
+          self.postMessage({ type: 'decryptionResumed', userId });
         }
 
         if (clearBytes === 0) {
@@ -354,6 +364,9 @@ addEventListener('message', ({ data }: MessageEvent) => {
       case 'perf-report':
         if (data.enabled) startPerfReport();
         else stopPerfReport();
+        break;
+      case 'dumpKeyState':
+        self.postMessage({ type: 'keyState', ...dumpKeyState() });
         break;
       case 'dispose':
         stopPerfReport();

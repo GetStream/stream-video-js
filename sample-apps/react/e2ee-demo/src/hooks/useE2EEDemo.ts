@@ -19,9 +19,14 @@ import {
   setKeyFromInput as setE2EEKeyFromInput,
   revokeKeys,
   toHex,
+  parseKeyInput,
   type SendKeyFn,
 } from '../e2ee/keys';
-import type { ParticipantSession, EventLogEntry } from '../types';
+import type {
+  ParticipantSession,
+  EventLogEntry,
+  PreferredCodec,
+} from '../types';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -44,15 +49,28 @@ export const useE2EEDemo = () => {
   const [events, setEvents] = useState<EventLogEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [e2eeEnabled, setE2eeEnabled] = useState(true);
+  const [preferredCodec, setPreferredCodec] = useState<PreferredCodec>('vp8');
+  const [sharedPassphrase, setSharedPassphrase] = useState<string | null>(null);
 
   const callIdRef = useRef(`e2ee-demo-${crypto.randomUUID().slice(0, 8)}`);
   const eventIdRef = useRef(0);
   const participantsRef = useRef<ParticipantSession[]>([]);
+  const preferredCodecRef = useRef(preferredCodec);
+  const sharedPassphraseRef = useRef(sharedPassphrase);
+  const sharedKeyIndexRef = useRef(0); // next index to use
+  const activeSharedKeyIndexRef = useRef(-1); // last-set index (-1 = none)
+  const sharedKeyBytesRef = useRef<ArrayBuffer | null>(null); // derived key bytes for display
 
-  // Keep ref in sync with state (for use in async callbacks and cleanup)
+  // Keep refs in sync with state (for use in async callbacks and cleanup)
   useEffect(() => {
     participantsRef.current = participants;
   }, [participants]);
+  useEffect(() => {
+    preferredCodecRef.current = preferredCodec;
+  }, [preferredCodec]);
+  useEffect(() => {
+    sharedPassphraseRef.current = sharedPassphrase;
+  }, [sharedPassphrase]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -164,6 +182,22 @@ export const useE2EEDemo = () => {
         );
       };
 
+      // Auto-clear decryption error when decryption resumes
+      e2eeManager.onDecryptionResumed = (remoteUserId) => {
+        const remoteName =
+          participantsRef.current.find((p) => p.userId === remoteUserId)
+            ?.name ?? remoteUserId;
+        logEvent(
+          `${name} can now decrypt frames from ${remoteName} — key resolved`,
+          'join',
+        );
+        setParticipants((prev) =>
+          prev.map((p) =>
+            p.userId === userId ? { ...p, decryptionFailed: false } : p,
+          ),
+        );
+      };
+
       // Listen for perf reports (encode/decode FPS)
       e2eeManager.onPerfReport = (report) => {
         const decodeInfo = report.decode
@@ -181,21 +215,38 @@ export const useE2EEDemo = () => {
       };
       e2eeManager.setPerfReport(true);
 
-      // Initialize keys only when E2EE is active
+      const useSharedKey = !!sharedPassphraseRef.current;
+
+      // Apply shared key if one is set
+      if (useSharedKey) {
+        const sharedKey = await parseKeyInput(sharedPassphraseRef.current!);
+        e2eeManager.setSharedKey(
+          activeSharedKeyIndexRef.current,
+          sharedKey.slice(0),
+        );
+        logEvent(`Distributed shared key to ${name}`, 'key-distribute');
+      }
+
+      // Initialize per-user keys only when E2EE is active and no shared key
       let initialKey: ArrayBuffer | undefined;
-      if (e2eeEnabled) {
+      let initialKeyIndex = 0;
+      if (e2eeEnabled && !useSharedKey) {
         initialKey = initializeKey(e2eeManager, userId);
         logEvent(
           `${name} set key: ${toHex(initialKey).slice(0, 16)}...`,
           'key-set',
         );
+      } else if (useSharedKey && sharedKeyBytesRef.current) {
+        // Show the shared key in KeyControls (per-user overrides still allowed)
+        initialKey = sharedKeyBytesRef.current;
+        initialKeyIndex = activeSharedKeyIndexRef.current;
       }
 
       // Join the call
-      call.updatePublishOptions({ preferredCodec: 'vp8' });
+      call.updatePublishOptions({ preferredCodec: preferredCodecRef.current });
       await call.join({ create: true });
       logEvent(
-        `${name} joined the call${e2eeEnabled ? '' : ' (no E2EE)'}`,
+        `${name} joined the call${e2eeEnabled ? (useSharedKey ? ' (shared key)' : '') : ' (no E2EE)'}`,
         'join',
       );
 
@@ -207,14 +258,14 @@ export const useE2EEDemo = () => {
         call,
         e2eeManager,
         currentKey: initialKey,
-        keyIndex: 0,
+        keyIndex: initialKeyIndex,
         joined: true,
         e2eeActive: e2eeEnabled,
         decryptionFailed: false,
       };
 
-      if (e2eeEnabled) {
-        // Cross-distribute keys between new and existing participants.
+      if (e2eeEnabled && !useSharedKey) {
+        // Cross-distribute per-user keys between new and existing participants.
         const existing = participantsRef.current;
 
         // 1. Send B's key to all existing participants
@@ -357,20 +408,28 @@ export const useE2EEDemo = () => {
       }
 
       if (enabled) {
-        for (const p of all) {
-          if (!p.currentKey) {
-            const key = initializeKey(p.e2eeManager, p.userId);
-            p.currentKey = key;
-            p.keyIndex = 0;
-            logEvent(
-              `${p.name} set key: ${toHex(key).slice(0, 16)}...`,
-              'key-set',
-            );
+        if (!sharedPassphraseRef.current) {
+          // Per-user key mode: generate and distribute keys
+          for (const p of all) {
+            if (!p.currentKey) {
+              const key = initializeKey(p.e2eeManager, p.userId);
+              p.currentKey = key;
+              p.keyIndex = 0;
+              logEvent(
+                `${p.name} set key: ${toHex(key).slice(0, 16)}...`,
+                'key-set',
+              );
+            }
+            distributeKey(p, all, sendKey);
           }
-          distributeKey(p, all, sendKey);
         }
         setParticipants((prev) =>
-          prev.map((p) => ({ ...p, e2eeActive: true })),
+          prev.map((p) => ({
+            ...p,
+            e2eeActive: true,
+            // Restore shared key display if no per-user key
+            currentKey: p.currentKey ?? sharedKeyBytesRef.current ?? undefined,
+          })),
         );
       } else {
         // Revoke all keys so decoders don't freeze on encrypted frames
@@ -383,8 +442,16 @@ export const useE2EEDemo = () => {
           p.currentKey = undefined;
         }
         setParticipants((prev) =>
-          prev.map((p) => ({ ...p, e2eeActive: false, currentKey: undefined })),
+          prev.map((p) => ({
+            ...p,
+            e2eeActive: false,
+            currentKey: undefined,
+            decryptionFailed: false,
+          })),
         );
+        sharedPassphraseRef.current = null;
+        setSharedPassphrase(null);
+        sharedKeyBytesRef.current = null;
       }
       logEvent(
         `E2EE ${enabled ? 'enabled' : 'disabled'} for all`,
@@ -414,7 +481,8 @@ export const useE2EEDemo = () => {
           others.map((p) => p.e2eeManager),
         );
         newKey = undefined;
-      } else if (!target.currentKey) {
+      } else if (!target.currentKey && !sharedPassphraseRef.current) {
+        // Per-user key mode: generate and distribute keys
         const key = initializeKey(target.e2eeManager, target.userId);
         newKey = key;
         newKeyIndex = 0;
@@ -445,6 +513,7 @@ export const useE2EEDemo = () => {
                 e2eeActive: enabled,
                 currentKey: newKey,
                 keyIndex: newKeyIndex,
+                decryptionFailed: enabled ? p.decryptionFailed : false,
               }
             : p,
         ),
@@ -455,6 +524,49 @@ export const useE2EEDemo = () => {
       );
     },
     [logEvent, sendKey],
+  );
+
+  // ---------------------------------------------------------------------------
+  // Shared key
+  // ---------------------------------------------------------------------------
+
+  const setSharedKey = useCallback(
+    async (passphrase: string) => {
+      const key = await parseKeyInput(passphrase);
+      const keyIndex = sharedKeyIndexRef.current++;
+      activeSharedKeyIndexRef.current = keyIndex;
+      sharedKeyBytesRef.current = key;
+
+      const all = participantsRef.current;
+
+      // Set shared key on all participants
+      for (const p of all) {
+        p.e2eeManager.setSharedKey(keyIndex, key.slice(0));
+      }
+
+      // Revoke all per-user keys so the shared key is used as baseline
+      // (participants can still set custom per-user keys via KeyControls)
+      for (const p of all) {
+        const others = all.filter((o) => o.userId !== p.userId);
+        revokeKeys(
+          p.userId,
+          others.map((o) => o.e2eeManager),
+        );
+        p.e2eeManager.removeKeys(p.userId);
+        p.currentKey = key;
+      }
+
+      sharedPassphraseRef.current = passphrase;
+      setSharedPassphrase(passphrase);
+      setParticipants((prev) =>
+        prev.map((p) => ({ ...p, currentKey: key, keyIndex })),
+      );
+      logEvent(
+        `Shared key set from "${passphrase.length > 12 ? passphrase.slice(0, 12) + '...' : passphrase}" — per-user keys revoked`,
+        'key-set',
+      );
+    },
+    [logEvent],
   );
 
   // ---------------------------------------------------------------------------
@@ -475,6 +587,10 @@ export const useE2EEDemo = () => {
     events,
     loading,
     e2eeEnabled,
+    preferredCodec,
+    setPreferredCodec,
+    sharedPassphrase,
+    setSharedKey,
     toggleE2EE,
     toggleParticipantE2EE,
     addParticipant,

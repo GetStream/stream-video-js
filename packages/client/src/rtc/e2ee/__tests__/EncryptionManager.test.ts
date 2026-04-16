@@ -209,6 +209,28 @@ describe('EncryptionManager', () => {
         messageHandler({ data: { type: 'decryptionFailed', userId: 'bob' } }),
       ).not.toThrow();
     });
+
+    it('invokes onDecryptionResumed callback', () => {
+      const callback = vi.fn();
+      manager.onDecryptionResumed = callback;
+
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+      messageHandler({ data: { type: 'decryptionResumed', userId: 'bob' } });
+
+      expect(callback).toHaveBeenCalledWith('bob');
+    });
+
+    it('does not throw when onDecryptionResumed is not set', () => {
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+
+      expect(() =>
+        messageHandler({
+          data: { type: 'decryptionResumed', userId: 'bob' },
+        }),
+      ).not.toThrow();
+    });
   });
 
   describe('dispose', () => {

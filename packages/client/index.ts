@@ -24,7 +24,7 @@ export * from './src/helpers/ViewportTracker';
 export * from './src/helpers/sound-detector';
 export * from './src/helpers/participantUtils';
 export * from './src/helpers/RNSpeechDetector';
-export { EncryptionManager } from './src/rtc/e2ee/EncryptionManager';
+export * from './src/rtc/e2ee/EncryptionManager';
 export * as Browsers from './src/helpers/browsers';
 
 export * from './src/logger';
