@@ -60,7 +60,6 @@ export class StableWSConnection {
   totalFailures: number;
   ws?: WebSocket;
   wsID: number;
-
   client: StreamClient;
 
   constructor(client: StreamClient) {
@@ -210,6 +209,38 @@ export class StableWSConnection {
   };
 
   /**
+   * _probeDNS - Fire-and-forget DNS diagnostic probes.
+   * Logs which domains resolve and which fail when the WS connection fails.
+   */
+  _probeDNS = () => {
+    const token = this.client._getToken();
+    const authHeaders = {
+      'stream-auth-type': this.client.getAuthType(),
+      ...(token ? { Authorization: token } : {}),
+    };
+    const probes: Array<{
+      url: string;
+      method?: string;
+      headers?: HeadersInit;
+    }> = [
+      { url: `https://hint.stream-io-video.com/`, method: 'HEAD' },
+      {
+        url: `https://chat.stream-io-api.com/hi?api_key=${this.client.key}`,
+        headers: authHeaders,
+      },
+      {
+        url: `https://video.stream-io-api.com/hi?api_key=${this.client.key}`,
+        headers: authHeaders,
+      },
+    ];
+    for (const { url, method, headers } of probes) {
+      fetch(url, { method: method ?? 'GET', headers })
+        .then(() => this._log(`[DNS-PROBE] ${url}: OK`))
+        .catch((e) => this._log(`[DNS-PROBE] ${url}: FAILED - ${e.message}`));
+    }
+  };
+
+  /**
    * disconnect - Disconnect the connection and doesn't recover...
    *
    */
@@ -285,6 +316,7 @@ export class StableWSConnection {
   async _connect() {
     if (this.isConnecting) return; // ignore _connect if it's currently trying to connect
     this.isConnecting = true;
+    this._probeDNS();
     let isTokenReady = false;
     try {
       this._log(`_connect() - waiting for token`);
@@ -327,6 +359,7 @@ export class StableWSConnection {
       this.isConnecting = false;
       // @ts-expect-error type issue
       this._log(`_connect() - Error - `, err);
+      this._probeDNS();
       this.client.rejectConnectionId?.(err);
       throw err;
     }
@@ -344,6 +377,7 @@ export class StableWSConnection {
     options: { interval?: number; refreshToken?: boolean } = {},
   ): Promise<void> {
     this._log('_reconnect() - Initiating the reconnect');
+    this._probeDNS();
 
     // only allow 1 connection at the time
     if (this.isConnecting || this.isHealthy) {

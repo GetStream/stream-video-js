@@ -83,7 +83,7 @@ export const createTokenProvider = (
     const params = new URLSearchParams({
       user_id: userId || '!anon',
       environment,
-      exp: String(4 * 60 * 60), // 4 hours
+      exp: String(60),
     } satisfies CreateJwtTokenRequest);
 
     const res = await fetch(`${basePath}/api/auth/create-token?${params}`);
