@@ -3,9 +3,11 @@ import '../../__tests__/mocks/webrtc.mocks';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EncryptionManager } from '../EncryptionManager';
 
-// Mock the worker module so create() doesn't need the real source
-vi.mock('../worker', () => ({
-  WORKER_SOURCE: 'self.onmessage = () => {}',
+// Mock the worker module so create() doesn't need the real bundled function
+vi.mock('../e2ee-worker', () => ({
+  e2eeWorker: function () {
+    self.onmessage = () => {};
+  },
 }));
 
 // Default to non-Chrome so pipe() uses RTCRtpScriptTransform path
@@ -155,6 +157,7 @@ describe('EncryptionManager', () => {
       await withChromePath(() => {
         manager.decrypt(receiver, 'remote-user');
 
+        // @ts-expect-error not present in the standard lib
         expect(receiver.createEncodedStreams).toHaveBeenCalled();
         const worker = getWorker(manager);
         expect(worker.postMessage).toHaveBeenCalledWith(
@@ -180,6 +183,7 @@ describe('EncryptionManager', () => {
         manager.decrypt(receiver, 'user-a');
         manager.decrypt(receiver, 'user-b');
 
+        // @ts-expect-error not present in the standard lib
         expect(receiver.createEncodedStreams).toHaveBeenCalledTimes(1);
       });
     });

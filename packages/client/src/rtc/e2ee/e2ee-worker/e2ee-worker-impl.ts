@@ -37,9 +37,9 @@
  * Total overhead per frame: 28 bytes (16 GCM tag + 12 trailer).
  *
  * Bundled at build time by rollup-plugin-inline-worker into a
- * self-contained IIFE string exported from `../worker.ts`.
+ * self-contained function exported from `../e2ee-worker.ts`.
  *
- * @see ../worker.ts — the generated export consumed by EncryptionManager
+ * @see ../e2ee-worker.ts — the generated export consumed by EncryptionManager
  * @see https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_Encoded_Transforms
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#aes-gcm
  */

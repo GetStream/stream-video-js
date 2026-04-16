@@ -18,6 +18,6 @@
     "sourceMap": true,
     "inlineSources": true
   },
-  "exclude": ["**/__tests__/**", "**/e2ee/worker/**"],
+  "exclude": ["**/__tests__/**"],
   "include": ["./src", "index.ts"]
 }

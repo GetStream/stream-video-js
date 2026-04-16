@@ -39,7 +39,7 @@ const browserConfig = {
   },
   external: external.filter((dep) => !browserIgnoredModules.includes(dep)),
   plugins: [
-    inlineWorker({ include: ['worker.ts'] }),
+    inlineWorker({ include: ['e2ee-worker.ts'] }),
     replace({
       preventAssignment: true,
       'process.env.PKG_VERSION': JSON.stringify(pkg.version),

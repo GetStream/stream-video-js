@@ -118,8 +118,10 @@ export class EncryptionManager {
         `E2EE is not supported in this browser. Check EncryptionManager.isSupported() before calling create().`,
       );
     }
-    const { WORKER_SOURCE } = await import('./worker');
-    const blob = new Blob([WORKER_SOURCE], { type: 'application/javascript' });
+    const { e2eeWorker } = await import('./e2ee-worker');
+    const blob = new Blob([`(${e2eeWorker.toString()})()`], {
+      type: 'application/javascript',
+    });
     const url = URL.createObjectURL(blob);
     const worker = new Worker(url, { name: 'stream-video-e2ee' });
     return new EncryptionManager(userId, worker, url);

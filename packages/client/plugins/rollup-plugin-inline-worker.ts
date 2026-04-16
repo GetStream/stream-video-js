@@ -10,7 +10,7 @@ interface InlineWorkerOptions {
 }
 
 /**
- * Rollup plugin that bundles worker TypeScript files into inline strings.
+ * Rollup plugin that bundles worker TypeScript files into inline functions.
  *
  * Only files whose path ends with one of the provided `include` patterns
  * are processed — all other modules are skipped with zero overhead.
@@ -18,7 +18,11 @@ interface InlineWorkerOptions {
  * For each matched file, the plugin:
  * 1. Finds the corresponding `-impl.ts` entry (e.g. `worker.ts` → `worker/worker-impl.ts`)
  * 2. Bundles it with a nested Rollup + TypeScript build
- * 3. Formats with prettier, then exports as a `WORKER_SOURCE` template literal string
+ * 3. Wraps the result in an exported function and formats with prettier
+ *
+ * The consumer creates a Worker from the function via:
+ *   `new Worker(\`data:text/javascript,(\${fn.toString()})()\`)`
+ * or via a Blob URL.
  */
 export default function inlineWorker({ include }: InlineWorkerOptions): Plugin {
   const fileNames = new Set(include);
@@ -30,7 +34,7 @@ export default function inlineWorker({ include }: InlineWorkerOptions): Plugin {
       const fileName = id.split('/').pop();
       if (!fileNames.has(fileName!)) return null;
 
-      // worker.ts → worker/worker-impl.ts
+      // e2ee-worker.ts → e2ee-worker/e2ee-worker-impl.ts
       const dir = dirname(id);
       const name = fileName!.replace(/\.ts$/, '');
       const implPath = resolve(dir, name, `${name}-impl.ts`);
@@ -59,19 +63,14 @@ export default function inlineWorker({ include }: InlineWorkerOptions): Plugin {
       });
       await bundle.close();
 
-      // Format with prettier to match project coding style, then escape
-      // for safe embedding inside a template literal.
-      const formatted = await format(output[0].code, {
-        parser: 'babel',
-        ...(await resolveConfig(implPath)),
-        printWidth: 120,
-      });
-      const escaped = formatted
-        .replace(/\\/g, '\\\\')
-        .replace(/`/g, '\\`')
-        .replace(/\$/g, '\\$');
-
-      return `export const WORKER_SOURCE = \`${escaped}\`;\n`;
+      // Wrap bundled code in an exported function, then format with prettier.
+      return await format(
+        `export function e2eeWorker() {\n${output[0].code}\n}\n`,
+        {
+          parser: 'babel',
+          ...(await resolveConfig(implPath)),
+        },
+      );
     },
   };
 }
