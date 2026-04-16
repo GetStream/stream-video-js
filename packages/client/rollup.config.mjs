@@ -1,6 +1,6 @@
 import typescript from '@rollup/plugin-typescript';
 import replace from '@rollup/plugin-replace';
-import inlineWorker from './plugins/rollup-plugin-inline-worker.ts';
+import inlineWorker from './plugins/rollup-plugin-inline-worker.mts';
 
 import pkg from './package.json' with { type: 'json' };
 

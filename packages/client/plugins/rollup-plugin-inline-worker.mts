@@ -1,5 +1,4 @@
-import type { Plugin } from 'rollup';
-import { rollup } from 'rollup';
+import { rollup, type Plugin } from 'rollup';
 import typescript from '@rollup/plugin-typescript';
 import { format, resolveConfig } from 'prettier';
 import { dirname, resolve } from 'path';
@@ -47,11 +46,13 @@ export default function inlineWorker({ include }: InlineWorkerOptions): Plugin {
             compilerOptions: {
               target: 'ES2020',
               module: 'ES2020',
+              lib: ['ES2020', 'WebWorker'],
               moduleResolution: 'node',
               strict: true,
               declaration: false,
               sourceMap: false,
             },
+            exclude: ['**/node_modules/**', '**/__tests__/**'],
           }),
         ],
       });
@@ -65,7 +66,7 @@ export default function inlineWorker({ include }: InlineWorkerOptions): Plugin {
 
       // Wrap bundled code in an exported function, then format with prettier.
       return await format(
-        `export function e2eeWorker() {\n${output[0].code}\n}\n`,
+        `export function e2eeWorker() { ${output[0].code} }`,
         {
           parser: 'babel',
           ...(await resolveConfig(implPath)),
