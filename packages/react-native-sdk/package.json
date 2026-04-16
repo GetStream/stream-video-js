@@ -58,9 +58,7 @@
     "text-encoding-polyfill": "0.6.7"
   },
   "peerDependencies": {
-    "@notifee/react-native": ">=9.0.0",
     "@react-native-community/netinfo": ">=9.0.0",
-    "@react-native-community/push-notification-ios": ">=1.11.0",
     "@react-native-firebase/app": ">=17.5.0",
     "@react-native-firebase/messaging": ">=17.5.0",
     "@stream-io/noise-cancellation-react-native": ">=0.1.0",
@@ -77,12 +75,6 @@
     "react-native-svg": ">=13.6.0"
   },
   "peerDependenciesMeta": {
-    "@notifee/react-native": {
-      "optional": true
-    },
-    "@react-native-community/push-notification-ios": {
-      "optional": true
-    },
     "@react-native-firebase/app": {
       "optional": true
     },
@@ -119,9 +111,7 @@
     "@expo/config-plugins": "54.0.2",
     "@expo/config-types": "^54.0.8",
     "@expo/plist": "^0.4.7",
-    "@notifee/react-native": "9.1.8",
     "@react-native-community/netinfo": "11.4.1",
-    "@react-native-community/push-notification-ios": "1.11.0",
     "@react-native-firebase/app": "^23.4.0",
     "@react-native-firebase/messaging": "^23.4.0",
     "@react-native/babel-preset": "^0.81.5",

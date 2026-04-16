@@ -49,11 +49,6 @@
       [
         "expo-build-properties",
         {
-          "android": {
-            "extraMavenRepos": [
-              "$rootDir/../../../node_modules/@notifee/react-native/android/libs"
-            ]
-          },
           "ios": {
             "useFrameworks": "static",
             "forceStaticLinking": [
@@ -83,6 +78,13 @@
         {
           "cameraPermission": "$(PRODUCT_NAME) requires camera access in order to capture and transmit video",
           "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "sounds": []
         }
       ],
       "expo-router",

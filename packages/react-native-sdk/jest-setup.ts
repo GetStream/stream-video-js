@@ -35,11 +35,6 @@ jest.mock('react-native/Libraries/Utilities/Platform', () => ({
   },
 }));
 
-// Mock the notifee module using the mock provided by @notifee/react-native itself
-jest.mock('@notifee/react-native', () =>
-  require('@notifee/react-native/jest-mock'),
-);
-
 jest.mock('react-native-reanimated', () => {
   const RNReanimatedmock = require('react-native-reanimated/mock');
   return { ...RNReanimatedmock, runOnUI: (fn: any) => fn };

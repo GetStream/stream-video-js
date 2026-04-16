@@ -1,18 +1,12 @@
 import {
-  isNotifeeStreamVideoEvent,
-  onAndroidNotifeeEvent,
-  oniOSNotifeeEvent,
   StreamVideoClient,
   StreamVideoRN,
   type Call,
 } from '@stream-io/video-react-native-sdk';
-import notifee, { AndroidImportance } from '@notifee/react-native';
-import { staticNavigate } from './staticNavigationUtils';
 import { mmkvStorage } from '../contexts/createStoreContext';
 import { createToken } from '../modules/helpers/createToken';
-import { deeplinkCallId$ } from '../hooks/useDeepLinkEffect';
-import { Platform } from 'react-native';
-import { setFirebaseListeners } from './setFirebaseListeners';
+import { setNotificationListeners } from './setNotificationListeners';
+import { registerNonRingingNotificationHandler } from './registerNonRingingNotifications';
 
 export function setPushConfig() {
   StreamVideoRN.updateConfig({
@@ -36,71 +30,14 @@ export function setPushConfig() {
     },
     android: {
       pushProviderName: 'rn-fcm-video',
-      callChannel: {
-        id: 'stream_call_notifications',
-        name: 'Call notifications',
-        importance: AndroidImportance.HIGH,
-        sound: 'default',
-      },
-      callNotificationTextGetters: {
-        getTitle(type, createdUserName) {
-          if (type === 'call.live_started') {
-            return `Call went live, it was started by ${createdUserName}`;
-          } else if (type === 'call.missed') {
-            return `Missed call from ${createdUserName}`;
-          } else {
-            return `${createdUserName} is notifying you about a call`;
-          }
-        },
-        getBody(type) {
-          if (type === 'call.missed') {
-            return 'Missed call!';
-          } else {
-            return 'Tap to open the call';
-          }
-        },
-      },
     },
     enableOngoingCalls: true,
     shouldRejectCallWhenBusy: false,
     createStreamVideoClient,
-    onTapNonRingingCallNotification: (call_cid) => {
-      const [callType, callId] = call_cid.split(':');
-      if (callType === 'default') {
-        deeplinkCallId$.next(callId); // reusing the deeplink logic for non ringing calls s
-        staticNavigate({ name: 'Meeting', params: undefined });
-      } else {
-        console.error(
-          `call type: ${callType}, not supported yet in this app!!`,
-        );
-      }
-    },
   });
 
-  setFirebaseListeners();
-  if (Platform.OS === 'android') {
-    // on press handlers of background notifications
-    notifee.onBackgroundEvent(async (event) => {
-      if (isNotifeeStreamVideoEvent(event)) {
-        await onAndroidNotifeeEvent({ event });
-      }
-    });
-    // on press handlers of foreground notifications
-    notifee.onForegroundEvent((event) => {
-      if (isNotifeeStreamVideoEvent(event)) {
-        onAndroidNotifeeEvent({ event });
-      }
-    });
-  }
-  if (Platform.OS === 'ios') {
-    // on press handlers of foreground notifications for iOS
-    // note: used only for non-ringing notifications
-    notifee.onForegroundEvent((event) => {
-      if (isNotifeeStreamVideoEvent(event)) {
-        oniOSNotifeeEvent({ event });
-      }
-    });
-  }
+  setNotificationListeners();
+  registerNonRingingNotificationHandler();
 }
 
 /**

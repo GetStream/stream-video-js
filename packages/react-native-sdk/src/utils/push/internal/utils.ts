@@ -4,11 +4,7 @@ import {
   StreamVideoClient,
   videoLoggerSystem,
 } from '@stream-io/video-client';
-import type {
-  NonRingingPushEvent,
-  StreamVideoConfig,
-} from '../../StreamVideoRN/types';
-import { onNewCallNotification } from '../../internal/newNotificationCallbacks';
+import type { StreamVideoConfig } from '../../StreamVideoRN/types';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { AppState } from 'react-native';
 import type { EndCallReason } from '@stream-io/react-native-callingx';
@@ -160,42 +156,6 @@ export const processCallFromPushInBackground = async (
       onIOSActionCanBeFulfilled(true);
     }
   }
-};
-
-/**
- * This function is used process the call from push notifications due to non ringing calls
- * It does the following steps:
- * 1. Get the call from the client if present or create a new call
- * 2. Fetch the latest state of the call from the server
- * 3. Call all the callbacks to inform the app about the call
- */
-export const processNonIncomingCallFromPush = async (
-  client: StreamVideoClient,
-  call_cid: string,
-  nonRingingNotificationType: NonRingingPushEvent,
-) => {
-  let callFromPush: Call;
-  try {
-    const _callFromPush = client.state.calls.find((c) => c.cid === call_cid);
-    if (_callFromPush) {
-      callFromPush = _callFromPush;
-    } else {
-      // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
-      const [callType, callId] = call_cid.split(':');
-      callFromPush = client.call(callType as string, callId as string);
-      await callFromPush.get();
-    }
-  } catch (e) {
-    const nonRingingCallLogger = videoLoggerSystem.getLogger(
-      'processNonIncomingCallFromPush',
-    );
-    nonRingingCallLogger.error(
-      'failed to fetch call from push notification',
-      e,
-    );
-    return;
-  }
-  onNewCallNotification(callFromPush, nonRingingNotificationType);
 };
 
 /**

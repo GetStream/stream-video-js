@@ -10,9 +10,9 @@ import React_RCTAppDelegate
 import ReactAppDependencyProvider
 
 import UserNotifications
-import RNCPushNotificationIOS
 import PushKit
 import WebRTC
+import RNCPushNotificationIOS
 import stream_io_noise_cancellation_react_native
 import stream_video_react_native
 
@@ -27,24 +27,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     return RCTLinkingManager.application(application, open: url, options: options)
   }
   
-  // Required for the register event.
+  // Forward device token to push-notification-ios
   func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     RNCPushNotificationIOS.didRegisterForRemoteNotifications(withDeviceToken: deviceToken)
   }
-  
-  // Required for the notification event. You must call the completion handler after handling the remote notification.
-  func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-    RNCPushNotificationIOS.didReceiveRemoteNotification(userInfo, fetchCompletionHandler: completionHandler)
-  }
-  
-  // Required for the registrationError event.
+
+
   func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
     RNCPushNotificationIOS.didFailToRegisterForRemoteNotificationsWithError(error)
-  }
-  
-  // Required for localNotification event
-  func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-    RNCPushNotificationIOS.didReceive(response)
   }
   
   func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
@@ -70,9 +60,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     StreamVideoReactNative.didReceiveIncomingPush(payload, forType: type.rawValue, completionHandler: completion)
   }
   
-  //Called when a notification is delivered to a foreground app.
   func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-    completionHandler([.sound, .alert, .badge]) // Use array literal for options
+    let userInfo = notification.request.content.userInfo
+
+    if let stream = userInfo[AnyHashable("stream")] as? [String: Any],
+       let sender = stream["sender"] as? String,
+       sender == "stream.video" {
+      RNCPushNotificationIOS.didReceiveRemoteNotification(userInfo) { _ in }
+      completionHandler([])
+      return
+    }
+
+    // Notifee-created local notifications: notifee handles display itself.
+    if notification.request.trigger is UNPushNotificationTrigger == false {
+      completionHandler([])
+      return
+    }
+
+    // All other remote notifications: show natively
+    completionHandler([.sound, .alert, .badge])
+  }
+
+  // Forward notification tap to push-notification-ios
+  func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+    RNCPushNotificationIOS.didReceive(response)
+    completionHandler()
   }
 
   func application(
