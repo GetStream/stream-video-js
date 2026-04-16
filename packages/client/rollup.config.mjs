@@ -1,5 +1,6 @@
 import typescript from '@rollup/plugin-typescript';
 import replace from '@rollup/plugin-replace';
+import inlineWorker from './plugins/rollup-plugin-inline-worker.ts';
 
 import pkg from './package.json' with { type: 'json' };
 
@@ -38,6 +39,7 @@ const browserConfig = {
   },
   external: external.filter((dep) => !browserIgnoredModules.includes(dep)),
   plugins: [
+    inlineWorker({ include: ['worker.ts'] }),
     replace({
       preventAssignment: true,
       'process.env.PKG_VERSION': JSON.stringify(pkg.version),
