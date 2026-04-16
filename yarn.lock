@@ -8514,16 +8514,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/react-native-webrtc@npm:137.1.4-alpha.5":
-  version: 137.1.4-alpha.5
-  resolution: "@stream-io/react-native-webrtc@npm:137.1.4-alpha.5"
+"@stream-io/react-native-webrtc@npm:137.1.4-alpha.8":
+  version: 137.1.4-alpha.8
+  resolution: "@stream-io/react-native-webrtc@npm:137.1.4-alpha.8"
   dependencies:
     base64-js: "npm:1.5.1"
     debug: "npm:4.3.4"
     event-target-shim: "npm:6.0.2"
   peerDependencies:
     react-native: ">=0.73.0"
-  checksum: 10/8b31f8f3a988a941587dd30f069b74055b0e4f4fe424f333cb1c8fe88055b39419d9298a480dd4e84ab4d340e4b32b49da1159980348455d17a1caf3a41da9ca
+  checksum: 10/af9ab39a04be10ae7f1ec356ff65e2aba970c2186197ae335f9d76594de3879d5540e54df8c180460c133e6ba9eff96c8e484be27bfd3b6574a1c8919d378d35
+  languageName: node
+  linkType: hard
+
+"@stream-io/react-native-webrtc@npm:137.1.4-alpha.9":
+  version: 137.1.4-alpha.9
+  resolution: "@stream-io/react-native-webrtc@npm:137.1.4-alpha.9"
+  dependencies:
+    base64-js: "npm:1.5.1"
+    debug: "npm:4.3.4"
+  peerDependencies:
+    react-native: ">=0.73.0"
+  checksum: 10/10e3e6bb4ab9eb46210411a7956a8fa43afd3f04ff129dac86115636efa138de309b5350a511c2d1f53359066d3bf3ecb10a5b25eccd46103241ab0268e1e10b
   languageName: node
   linkType: hard
 
@@ -8755,7 +8767,7 @@ __metadata:
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:137.1.4-alpha.5"
+    "@stream-io/react-native-webrtc": "npm:137.1.4-alpha.8"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:^19.2.0"
@@ -8852,7 +8864,7 @@ __metadata:
     "@react-native/babel-preset": "npm:^0.81.5"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:137.1.4-alpha.5"
+    "@stream-io/react-native-webrtc": "npm:137.1.4-alpha.9"
     "@stream-io/video-client": "workspace:*"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:*"
