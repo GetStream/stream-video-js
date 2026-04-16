@@ -2065,7 +2065,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-video (6.17.0):
+  - react-native-video (6.19.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -2083,7 +2083,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-video/Video (= 6.17.0)
+    - react-native-video/Video (= 6.19.1)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -2094,7 +2094,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-video/Fabric (6.17.0):
+  - react-native-video/Fabric (6.19.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -2122,7 +2122,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-video/Video (6.17.0):
+  - react-native-video/Video (6.19.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3132,7 +3132,7 @@ PODS:
     - SocketRocket
     - Yoga
   - SocketRocket (0.7.1)
-  - stream-chat-react-native (9.0.0-beta.12):
+  - stream-chat-react-native (9.0.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3647,7 +3647,7 @@ SPEC CHECKSUMS:
   FBLazyVector: f1200e6ef6cf24885501668bdbb9eff4cf48843f
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
-  hermes-engine: 439ec2137ac9376f08fd396565cb2a32323b781b
+  hermes-engine: 0e3a9e48a838b913a3f5cadce1be93c489cfbb05
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: 3b915a7b166f7d04eaeb4ae30aaf24236a016551
   RCTRequired: fcfec6ba532cfe4e53c49e0a4061b5eff87f8c64
@@ -3689,7 +3689,7 @@ SPEC CHECKSUMS:
   react-native-mmkv: 7b9c7469fa0a7e463f9411ad3e4fe273bd5ff030
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-safe-area-context: ee1e8e2a7abf737a8d4d9d1a5686a7f2e7466236
-  react-native-video: d9d12aa2325ae06222e97e8bd801bbc31df2675d
+  react-native-video: e6d6557fe7d997e7ceeb60c995d1e1da7a4120c2
   React-NativeModulesApple: b5abec3c13cec8436c802b09cde04fbf70fa3a7b
   React-networking: 7868e362186628f01f12674e550933736d96f017
   React-oscompat: 173f032a95ee30e92bbd28cd9b4626de0977f828
@@ -3737,7 +3737,7 @@ SPEC CHECKSUMS:
   RNVoipPushNotification: 4998fe6724d421da616dca765da7dc421ff54c4e
   RNWorklets: 944dddd0eef13006b658e653abbb3ee8365c3809
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stream-chat-react-native: 82c42c8e3aa1eb49b500a4176a7c9db1ee4c08a2
+  stream-chat-react-native: 844a30f9e7b616402bb45c5bea6b71209049fa00
   stream-io-noise-cancellation-react-native: c175e436469ee525319cc909c76a8599958ac671
   stream-io-video-filters-react-native: 48dcf138877985bd0b59fd15d8e22ea910340c53
   stream-react-native-webrtc: dd4bc6e9717e6d90204008c22a44bc1c1f605e3b
