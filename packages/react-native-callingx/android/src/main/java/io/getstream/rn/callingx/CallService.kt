@@ -24,6 +24,7 @@ import io.getstream.rn.callingx.notifications.NotificationsConfig
 import io.getstream.rn.callingx.repo.CallRepository
 import io.getstream.rn.callingx.repo.CallRepositoryFactory
 import io.getstream.rn.callingx.utils.SettingsStore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -502,6 +503,12 @@ class CallService : Service(), CallRepository.Listener {
                         incoming,
                         callInfo.isVideo,
                         callInfo.displayOptions,
+                )
+            } catch (e: CancellationException) {
+                // Swallow cancellation: nothing runs after this catch, and nobody awaits this launch.
+                debugLog(
+                        TAG,
+                        "[service] registerCall: Registration canceled for ${callInfo.callId} during teardown"
                 )
             } catch (e: Exception) {
                 Log.e(TAG, "[service] registerCall: Error registering call: ${e.message}")
