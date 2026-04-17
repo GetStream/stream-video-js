@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { clsx as concatStrings } from 'clsx';
+import { cx as concatStrings } from '@emotion/css';
 
 import { testWithCallId as test } from './baseTests';
 import {
@@ -17,6 +17,7 @@ type TestCase<T extends Layout | ScreenshareLayout> = {
   name?: T | 'unknown';
   participantCountPerWindow: number;
   extraMessage?: string;
+  options?: Record<string, unknown>;
 };
 
 test.describe('Layouts', () => {
@@ -35,6 +36,12 @@ test.describe('Layouts', () => {
       { name: 'spotlight', participantCountPerWindow: 5 },
       { name: 'single-participant', participantCountPerWindow: 1 },
       { name: 'grid', participantCountPerWindow: 5 },
+      {
+        name: 'grid',
+        participantCountPerWindow: 5,
+        extraMessage: '(with size constraints)',
+        options: { 'layout.grid.size_constraints': true },
+      },
     ] satisfies TestCase<Layout>[]
   ).forEach((tc) => {
     test(
@@ -51,6 +58,7 @@ test.describe('Layouts', () => {
             test_environment: {
               participants,
             },
+            ...(tc.options && { options: tc.options }),
           }),
         });
 

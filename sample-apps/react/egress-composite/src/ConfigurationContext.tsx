@@ -7,7 +7,6 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { decode } from 'js-base64';
 import {
   LogLevel,
   ParticipantFilter,
@@ -120,6 +119,7 @@ export type ConfigurationValue = {
     // grid-specific
     'layout.grid.gap'?: string | number; // ❌
     'layout.grid.page_size'?: number; // ✅
+    'layout.grid.size_constraints'?: boolean; // ✅
 
     // dominant_speaker-specific (single-participant)
     'layout.single-participant.mode'?: 'shuffle' | 'default'; // ✅
@@ -189,7 +189,7 @@ export const extractPayloadFromToken = (
   if (!payload) throw new Error('Malformed token, missing payload');
 
   try {
-    return JSON.parse(decode(payload)) ?? {};
+    return JSON.parse(atob(payload)) ?? {};
   } catch (e) {
     console.log('Error parsing token payload', e);
     return {};
