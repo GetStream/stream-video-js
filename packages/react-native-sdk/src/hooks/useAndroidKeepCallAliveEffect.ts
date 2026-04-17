@@ -53,7 +53,7 @@ async function startForegroundService(call_cid: string) {
   const foregroundServiceConfig = videoConfig.foregroundService;
   const notificationTexts = foregroundServiceConfig.android.notificationTexts;
   const channel = foregroundServiceConfig.android.channel;
-  const smallIconName = videoConfig.push?.android.smallIcon;
+  const smallIconName = videoConfig.push?.android?.smallIcon;
 
   // NOTE: we use requestAnimationFrame to ensure that the foreground service is started after all the current UI operations are done
   // this is a workaround for the crash - android.app.RemoteServiceException$ForegroundServiceDidNotStartInTimeException: Context.startForegroundService() did not then call Service.startForeground()

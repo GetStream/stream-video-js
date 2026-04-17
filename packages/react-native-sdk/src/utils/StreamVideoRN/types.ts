@@ -37,7 +37,7 @@ export type StreamVideoConfig = {
      */
     publishOptions?: ClientPublishOptions;
 
-    ios: {
+    ios?: {
       /**
        * The name for the alias of push provider used for iOS
        * Pass undefined if you will not be using stream's push notifications but still want to use the functionality of the SDK
@@ -66,7 +66,7 @@ export type StreamVideoConfig = {
        */
       displayCallTimeout?: number;
     };
-    android: {
+    android?: {
       /**
        * The small icon to be used for push notifications for Android
        * Reference the name created (Optional, defaults to 'ic_launcher')

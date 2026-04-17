@@ -120,6 +120,30 @@ describe('withStreamVideoReactNativeSDKiOSInfoPList', () => {
     ]);
   });
 
+  it('should add audio and voip for iosKeepCallAlive', async () => {
+    const config: CustomExpoConfig = {
+      name: 'test-app',
+      slug: 'test-app',
+      modResults: {
+        UIBackgroundModes: undefined,
+      },
+    };
+    const props: ConfigProps = {
+      iosKeepCallAlive: true,
+    };
+    const modifiedConfig = withStreamVideoReactNativeSDKiOSInfoPList(
+      config,
+      props,
+    ) as CustomExpoConfig;
+
+    expect(modifiedConfig.modResults.UIBackgroundModes).toContain('audio');
+    expect(modifiedConfig.modResults.UIBackgroundModes).toContain('voip');
+    expect(modifiedConfig.modResults.UIBackgroundModes).not.toContain('fetch');
+    expect(modifiedConfig.modResults.UIBackgroundModes).not.toContain(
+      'processing',
+    );
+  });
+
   it('should add multiple modes for ringing notifications', async () => {
     const config: CustomExpoConfig = {
       name: 'test-app',
