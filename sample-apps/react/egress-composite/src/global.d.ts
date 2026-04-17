@@ -1,4 +1,5 @@
 import { Call, StreamVideoClient } from '@stream-io/video-react-sdk';
+import { ConfigurationValue } from './ConfigurationContext';
 
 declare global {
   interface Window {
