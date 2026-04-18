@@ -1,6 +1,6 @@
 PODS:
   - boost (1.84.0)
-  - Callingx (0.1.0):
+  - Callingx (0.1.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3213,7 +3213,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - stream-io-noise-cancellation-react-native (0.6.0):
+  - stream-io-noise-cancellation-react-native (0.7.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3243,7 +3243,7 @@ PODS:
     - stream-react-native-webrtc
     - StreamVideoNoiseCancellation
     - Yoga
-  - stream-io-video-filters-react-native (0.11.0):
+  - stream-io-video-filters-react-native (0.12.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3272,10 +3272,10 @@ PODS:
     - SocketRocket
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (137.1.3):
+  - stream-react-native-webrtc (137.1.4-alpha.8):
     - React-Core
     - StreamWebRTC (~> 137.0.54)
-  - stream-video-react-native (1.31.0):
+  - stream-video-react-native (1.32.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -3633,7 +3633,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
-  Callingx: 509e3924c64821ef1b42fae50934def0b987b9ff
+  Callingx: 29285fe9e6d19be1ba3b321859b71b01942e13b0
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 82d1d7996af4c5850242966eb81e73f9a6dfab1e
@@ -3729,10 +3729,10 @@ SPEC CHECKSUMS:
   RNWorklets: 944dddd0eef13006b658e653abbb3ee8365c3809
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   stream-chat-react-native: 362e74c743dd34d750e1878f9e479707e9edc794
-  stream-io-noise-cancellation-react-native: 3ad4c3df18d6048f5dc107a93e875184959ee59c
-  stream-io-video-filters-react-native: 9b5f1c93ccbed9b3a8dfec557bfead7282dff949
-  stream-react-native-webrtc: 98f68f17acc6bd95b5cc417dfdc0953e0120e696
-  stream-video-react-native: f180cac19f111a38d55ef8a42047d2803a37c280
+  stream-io-noise-cancellation-react-native: ea8ca1d50e305f2a0ffa027ff36c345aa5278237
+  stream-io-video-filters-react-native: 43d4e9901cf478a1340a599242226d024c2eb1a5
+  stream-react-native-webrtc: d51b263d7b8214589c7aeee526675c0b7b7b0c0d
+  stream-video-react-native: 8ff5e47e91d89cb1219a340dd4df4d66521ad056
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: 57bd35729bcc46b008de4e741a5b23ac28b8854d
   VisionCamera: 891edb31806dd3a239c8a9d6090d6ec78e11ee80

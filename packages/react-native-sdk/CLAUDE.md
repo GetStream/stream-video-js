@@ -353,7 +353,6 @@ Observable streams for push events:
 - `useScreenShareButton` - Screen share button logic
 - `useScreenshot` - Screenshot detection (iOS)
 - `usePaginatedLayoutSortPreset` - Participant sorting for paginated layouts
-- `useSpeechDetection` - Audio level detection
 - `useTrackDimensions` - Track video dimensions
 - `usePermissionRequest` - Media permission requests
 - `usePermissionNotification` - Permission request notifications

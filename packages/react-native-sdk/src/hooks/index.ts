@@ -9,5 +9,4 @@ export * from './useScreenShareButton';
 export * from './useScreenShareAudioMixing';
 export * from './useTrackDimensions';
 export * from './useScreenshot';
-export * from './useSpeechDetection';
 export * from './useModeration';
