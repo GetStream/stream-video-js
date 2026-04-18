@@ -110,8 +110,13 @@ export class Subscriber extends BasePeerConnection {
         trackLookupPrefix: trackId,
         track: primaryStream,
         trackType,
+        receiver: this.e2ee ? e.receiver : undefined,
       });
       return;
+    } else if (this.e2ee) {
+      const { userId } = participantToUpdate;
+      this.e2ee.decrypt(e.receiver, userId);
+      this.logger.debug('E2EE decryptor attached to receiver', userId);
     }
 
     const streamKindProp = trackTypeToParticipantStreamKey(trackType);

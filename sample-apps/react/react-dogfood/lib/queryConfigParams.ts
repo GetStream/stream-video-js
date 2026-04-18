@@ -1,5 +1,9 @@
 import { NextRouter } from 'next/router';
-import { Call, PreferredCodec } from '@stream-io/video-react-sdk';
+import {
+  Call,
+  PreferredCodec,
+  EncryptionManager,
+} from '@stream-io/video-react-sdk';
 
 export const getQueryConfigParams = (query: NextRouter['query']) => {
   return {
@@ -16,10 +20,37 @@ export const getQueryConfigParams = (query: NextRouter['query']) => {
     forceCodec: query['force_codec'] as PreferredCodec | undefined,
     cameraOverride: query['camera'] as string | undefined,
     microphoneOverride: query['mic'] as string | undefined,
+    encryptionKey: query['encryption_key'] as string | undefined,
   };
 };
 
-export const applyQueryConfigParams = (
+/**
+ * Derive a 128-bit (16-byte) AES key from a passphrase using PBKDF2.
+ */
+const deriveKeyFromPassphrase = async (
+  passphrase: string,
+): Promise<ArrayBuffer> => {
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(passphrase),
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  );
+  return crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: enc.encode('stream-e2ee'),
+      iterations: 100_000,
+      hash: 'SHA-256',
+    },
+    baseKey,
+    128,
+  );
+};
+
+export const applyQueryConfigParams = async (
   call: Call,
   query: NextRouter['query'],
 ) => {
@@ -34,6 +65,7 @@ export const applyQueryConfigParams = (
     maxSimulcastLayers,
     cameraOverride,
     microphoneOverride,
+    encryptionKey,
   } = config;
 
   if (cameraOverride != null) {
@@ -63,6 +95,15 @@ export const applyQueryConfigParams = (
   const preferredBitrate = bitrateOverride
     ? parseInt(bitrateOverride, 10)
     : undefined;
+
+  // E2EE must be fully initialized before join() so the RTCPeerConnection
+  // is configured with encodedInsertableStreams on Chromium.
+  if (encryptionKey && call.currentUserId && EncryptionManager.isSupported()) {
+    const rawKey = await deriveKeyFromPassphrase(encryptionKey);
+    const e2ee = await EncryptionManager.create(call.currentUserId);
+    e2ee.setSharedKey(0, rawKey);
+    call.setE2EEManager(e2ee);
+  }
 
   call.updatePublishOptions({
     dangerouslyForceCodec: forceCodec,

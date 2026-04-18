@@ -63,10 +63,8 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!options.fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
-        const { videoFile, videoFileLeaveCallOnEnd } = applyQueryConfigParams(
-          call,
-          router.query,
-        );
+        const { videoFile, videoFileLeaveCallOnEnd } =
+          await applyQueryConfigParams(call, router.query);
         if (call.state.callingState !== CallingState.JOINED) {
           if (typeof options.displayName === 'string') {
             const name = options.displayName || getRandomName();

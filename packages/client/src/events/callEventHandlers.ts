@@ -40,6 +40,7 @@ type RingCallEvents = Extract<
  */
 export const registerEventHandlers = (call: Call, dispatcher: Dispatcher) => {
   const state = call.state;
+  const e2ee = call.e2eeManager;
   const eventHandlers = [
     call.on('call.ended', watchCallEnded(call)),
     watchSfuCallEnded(call),
@@ -49,12 +50,12 @@ export const registerEventHandlers = (call: Call, dispatcher: Dispatcher) => {
     watchConnectionQualityChanged(dispatcher, state),
     watchParticipantCountChanged(dispatcher, state),
 
-    call.on('participantJoined', watchParticipantJoined(state)),
+    call.on('participantJoined', watchParticipantJoined(state, e2ee)),
     call.on('participantLeft', watchParticipantLeft(state)),
     call.on('participantUpdated', watchParticipantUpdated(state)),
 
-    call.on('trackPublished', watchTrackPublished(state)),
-    call.on('trackUnpublished', watchTrackUnpublished(state)),
+    call.on('trackPublished', watchTrackPublished(state, e2ee)),
+    call.on('trackUnpublished', watchTrackUnpublished(state, e2ee)),
 
     watchAudioLevelChanged(dispatcher, state),
     watchDominantSpeakerChanged(dispatcher, state),

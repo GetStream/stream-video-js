@@ -8,9 +8,11 @@ import {
   TrackType,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
+import { EncryptionManager } from './e2ee/EncryptionManager';
 import { NegotiationError } from './NegotiationError';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
+import { isChrome } from '../helpers/browsers';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
 import type { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
@@ -27,6 +29,7 @@ export abstract class BasePeerConnection {
   protected readonly state: CallState;
   protected readonly dispatcher: Dispatcher;
   protected readonly clientPublishOptions?: ClientPublishOptions;
+  protected readonly e2ee?: EncryptionManager;
   protected tag: string;
   protected sfuClient: StreamSfuClient;
 
@@ -59,6 +62,7 @@ export abstract class BasePeerConnection {
       tag,
       enableTracing,
       clientPublishOptions,
+      e2ee,
       iceRestartDelay = 2500,
     }: BasePeerConnectionOpts,
   ) {
@@ -68,6 +72,7 @@ export abstract class BasePeerConnection {
     this.dispatcher = dispatcher;
     this.iceRestartDelay = iceRestartDelay;
     this.clientPublishOptions = clientPublishOptions;
+    this.e2ee = e2ee;
     this.tag = tag;
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.logger = videoLoggerSystem.getLogger(
@@ -89,7 +94,13 @@ export abstract class BasePeerConnection {
   }
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
-    const pc = new RTCPeerConnection(connectionConfig);
+    const config: RTCConfiguration = { ...connectionConfig };
+    // Chrome needs encodedInsertableStreams for the Insertable Streams path.
+    if (this.e2ee && isChrome()) {
+      // @ts-expect-error not part of the standard lib yet
+      config.encodedInsertableStreams = true;
+    }
+    const pc = new RTCPeerConnection(config);
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('icecandidateerror', this.onIceCandidateError);
     pc.addEventListener(

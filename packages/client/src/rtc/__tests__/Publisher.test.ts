@@ -133,6 +133,50 @@ describe('Publisher', () => {
       expect(negotiateSpy).toHaveBeenCalled();
     });
 
+    it('should attach an encryptor when E2EE manager is provided', async () => {
+      const e2eeMock = {
+        encrypt: vi.fn(),
+        decrypt: vi.fn(),
+      };
+      publisher.dispose();
+      publisher = new Publisher(
+        {
+          sfuClient,
+          dispatcher,
+          state,
+          tag: 'test',
+          enableTracing: false,
+          // @ts-expect-error - partial mock
+          e2ee: e2eeMock,
+        },
+        [
+          {
+            id: 1,
+            trackType: TrackType.VIDEO,
+            bitrate: 1000,
+            // @ts-expect-error - incomplete data
+            codec: { name: 'vp9' },
+            fps: 30,
+            maxTemporalLayers: 3,
+            maxSpatialLayers: 3,
+          },
+        ],
+      );
+
+      const track = new MediaStreamTrack();
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
+      // @ts-expect-error - private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+
+      await publisher.publish(track, TrackType.VIDEO);
+
+      expect(e2eeMock.encrypt).toHaveBeenCalledWith(
+        expect.anything(), // sender
+        'vp9',
+      );
+    });
+
     it('should update an existing transceiver for a new track', async () => {
       const track = new MediaStreamTrack();
       const clone = new MediaStreamTrack();

@@ -13,6 +13,7 @@ import {
   TrackPublishOptions,
   trackTypeToParticipantStreamKey,
 } from './rtc';
+import { EncryptionManager } from './rtc/e2ee/EncryptionManager';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -231,6 +232,7 @@ export class Call {
 
   subscriber?: Subscriber;
   publisher?: Publisher;
+  e2eeManager?: EncryptionManager;
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -1369,6 +1371,7 @@ export class Call {
       tag: sfuClient.tag,
       enableTracing,
       clientPublishOptions: this.clientPublishOptions,
+      e2ee: this.e2eeManager,
       onReconnectionNeeded: (kind, reason, peerType) => {
         this.reconnect(kind, reason).catch((err) => {
           const message = `[Reconnect] Error reconnecting, after a ${PeerType[peerType]} error: ${reason}`;
@@ -1993,6 +1996,18 @@ export class Call {
     }
     this.tracer.trace('updatePublishOptions', options);
     this.clientPublishOptions = { ...this.clientPublishOptions, ...options };
+  };
+
+  /**
+   * Set the E2EE (end-to-end encryption) manager for this call.
+   *
+   * Must be called before {@link join} so the RTCPeerConnection is
+   * configured with `encodedInsertableStreams` on Chrome.
+   *
+   * @param e2ee - An EncryptionManager created via `EncryptionManager.create()`.
+   */
+  setE2EEManager = (e2ee: EncryptionManager) => {
+    this.e2eeManager = e2ee;
   };
 
   /**

@@ -74,6 +74,7 @@ type OrphanedTrack = {
   trackLookupPrefix: string;
   trackType: TrackType;
   track: MediaStream;
+  receiver?: RTCRtpReceiver;
 };
 
 /**
