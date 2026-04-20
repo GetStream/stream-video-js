@@ -158,6 +158,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           const devices = await firstValueFrom(this.listDevices());
           const label = devices.find((d) => d.deviceId === deviceId)?.label;
 
+          let lastCapturesAudio: boolean | undefined;
           this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
             noAudioThresholdMs: this.silenceThresholdMs,
             emitIntervalMs: this.silenceThresholdMs,
@@ -169,7 +170,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
                 deviceId,
                 label,
               };
-              this.call.tracer.trace('mic.capture_report', event);
+
+              if (capturesAudio !== lastCapturesAudio) {
+                lastCapturesAudio = capturesAudio;
+                this.call.tracer.trace('mic.capture_report', event);
+              }
+
               this.call.streamClient.dispatchEvent(event);
             },
           });
@@ -350,7 +356,14 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.state.status === undefined &&
       this.state.optimisticStatus === undefined;
     let persistedPreferencesApplied = false;
-    if (shouldApplyDefaults && this.devicePersistence.enabled) {
+    const permissionState = await firstValueFrom(
+      this.state.browserPermissionState$,
+    );
+    if (
+      shouldApplyDefaults &&
+      this.devicePersistence.enabled &&
+      permissionState === 'granted'
+    ) {
       persistedPreferencesApplied = await this.applyPersistedPreferences(true);
     }
 

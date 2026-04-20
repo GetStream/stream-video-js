@@ -2,6 +2,44 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.14.1...@stream-io/video-react-bindings-1.14.2) (2026-04-15)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.47.0`
+
+## [1.14.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.14.0...@stream-io/video-react-bindings-1.14.1) (2026-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.46.1`
+
+## [1.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.15...@stream-io/video-react-bindings-1.14.0) (2026-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.46.0`
+
+### Features
+
+- **client:** expose blocked autoplay audio state and explicit resume API ([#2187](https://github.com/GetStream/stream-video-js/issues/2187)) ([adbec63](https://github.com/GetStream/stream-video-js/commit/adbec63a23d47cf7c1002897e242c3f2a6a7007c))
+
+## [1.13.15](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.14...@stream-io/video-react-bindings-1.13.15) (2026-04-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.45.0`
+
+## [1.13.14](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.13...@stream-io/video-react-bindings-1.13.14) (2026-03-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.5`
+
+### Bug Fixes
+
+- **react:** reset recording toggle state and expose record button errors ([#2174](https://github.com/GetStream/stream-video-js/issues/2174)) ([2af6347](https://github.com/GetStream/stream-video-js/commit/2af63478ad9050bf339212537a6cb424f97387b8))
+
 ## [1.13.13](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.13.12...@stream-io/video-react-bindings-1.13.13) (2026-03-20)
 
 ### Dependency Updates

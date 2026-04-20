@@ -6,6 +6,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Alert,
+  View,
 } from 'react-native';
 import {
   isExpoNotificationStreamVideoEvent,
@@ -75,12 +76,10 @@ export default function CreateCallScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <NavigationHeader />
-      <SafeAreaView style={styles.createCallContainer}>
-        <ScrollView>
-          <CreateMeetingCall />
-          <CreateRingingCall />
-        </ScrollView>
-      </SafeAreaView>
+      <ScrollView style={styles.createCallContainer}>
+        <CreateMeetingCall />
+        <CreateRingingCall />
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

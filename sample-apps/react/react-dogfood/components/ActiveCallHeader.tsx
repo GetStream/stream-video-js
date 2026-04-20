@@ -40,6 +40,7 @@ const LatencyIndicator = () => {
 const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
   const [elapsed, setElapsed] = useState<string>();
   const startedAtDate = useMemo(
+    // eslint-disable-next-line react-hooks/purity
     () => (startedAt ? new Date(startedAt).getTime() : Date.now()),
     [startedAt],
   );

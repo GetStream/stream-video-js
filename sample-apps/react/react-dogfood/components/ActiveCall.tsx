@@ -26,6 +26,7 @@ import { ActiveCallHeader } from './ActiveCallHeader';
 import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
 import { ChatUI } from './ChatUI';
 import { ChatWrapper } from './ChatWrapper';
+import { DeviceDisconnectedNotification } from './DeviceDisconnectedNotification';
 import {
   ClosedCaptions,
   ClosedCaptionsSidebar,
@@ -280,6 +281,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
               <ToggleMoreOptionsListButton />
             </div>
           </div>
+          <DeviceDisconnectedNotification className="rd__call-controls__notification" />
           <div className="str-video__call-controls--group str-video__call-controls--media">
             {remoteFilePublisherAPI && (
               <RemoteVideoControls api={remoteFilePublisherAPI} />

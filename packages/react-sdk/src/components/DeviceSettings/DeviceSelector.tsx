@@ -1,7 +1,12 @@
 import clsx from 'clsx';
-import { ChangeEventHandler, PropsWithChildren, useCallback } from 'react';
+import {
+  ChangeEventHandler,
+  ComponentType,
+  PropsWithChildren,
+  useCallback,
+} from 'react';
 
-import { useDeviceList } from '../../hooks';
+import { DeviceListItem, useDeviceList } from '../../hooks';
 import { DropDownSelect, DropDownSelectOption } from '../DropdownSelect';
 import { useMenuContext } from '../Menu';
 
@@ -102,6 +107,59 @@ const DeviceSelectorList = (
   );
 };
 
+export type PreviewItemProps = {
+  device: DeviceListItem;
+  onSelect: (deviceId: string) => void;
+};
+
+const DeviceSelectorPreview = (
+  props: PropsWithChildren<{
+    devices: MediaDeviceInfo[];
+    selectedDeviceId?: string;
+    title?: string;
+    onChange?: (deviceId: string) => void;
+    PreviewItem: ComponentType<PreviewItemProps>;
+  }>,
+) => {
+  const {
+    devices = [],
+    selectedDeviceId,
+    title,
+    onChange,
+    children,
+    PreviewItem,
+  } = props;
+  const { close } = useMenuContext();
+  const { deviceList } = useDeviceList(devices, selectedDeviceId);
+
+  const onSelect = useCallback(
+    (deviceId: string) => {
+      if (deviceId === 'default') return;
+      onChange?.(deviceId);
+      close?.();
+    },
+    [onChange, close],
+  );
+
+  return (
+    <div className="str-video__device-settings__device-kind">
+      {title && (
+        <div className="str-video__device-settings__device-selector-title">
+          {title}
+        </div>
+      )}
+      {deviceList.map((device) => (
+        <PreviewItem
+          key={device.deviceId}
+          device={device}
+          onSelect={onSelect}
+        />
+      ))}
+      {children}
+    </div>
+  );
+};
+
 const DeviceSelectorDropdown = (props: {
   devices: MediaDeviceInfo[];
   selectedDeviceId?: string;
@@ -157,11 +215,18 @@ export const DeviceSelector = (
     selectedDeviceId?: string;
     title?: string;
     onChange?: (deviceId: string) => void;
-    visualType?: 'list' | 'dropdown';
-  }>,
+  }> &
+    (
+      | { visualType?: 'list' | 'dropdown' }
+      | { visualType: 'preview'; PreviewItem: ComponentType<PreviewItemProps> }
+    ),
 ) => {
-  const { visualType = 'list', icon, ...rest } = props;
+  if (props.visualType === 'preview') {
+    const { PreviewItem, ...rest } = props;
+    return <DeviceSelectorPreview {...rest} PreviewItem={PreviewItem} />;
+  }
 
+  const { visualType = 'list', icon, ...rest } = props;
   if (visualType === 'list') {
     return <DeviceSelectorList {...rest} />;
   }

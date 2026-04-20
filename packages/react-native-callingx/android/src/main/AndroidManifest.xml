@@ -1,0 +1,59 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+  <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+  <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+  <application>
+    <activity
+      android:name="io.getstream.rn.callingx.notifications.NotificationReceiverActivity"
+      android:excludeFromRecents="true"
+      android:exported="false"
+      android:noHistory="true"
+      android:taskAffinity=""
+      android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+    <service
+      android:name="io.getstream.rn.callingx.notifications.NotificationReceiverService"
+      android:exported="false" />
+
+    <service
+      android:name="io.getstream.rn.callingx.CallService"
+      android:enabled="true"
+      android:exported="false"
+      android:foregroundServiceType="phoneCall"
+      android:stopWithTask="true" />
+
+    <service
+      android:name="io.getstream.rn.callingx.StreamMessagingService"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+      </intent-filter>
+    </service>
+
+    <!-- Action values must match constants in CallingxModuleImpl.kt -->
+    <receiver
+      android:name="io.getstream.rn.callingx.CallEventBroadcastReceiver"
+      android:exported="false">
+      <intent-filter>
+        <action android:name="io.getstream.CALL_REGISTERED" />
+        <action android:name="io.getstream.CALL_REGISTERED_INCOMING" />
+        <action android:name="io.getstream.CALL_ANSWERED" />
+        <action android:name="io.getstream.CALL_INACTIVE" />
+        <action android:name="io.getstream.CALL_ACTIVE" />
+        <action android:name="io.getstream.CALL_MUTED" />
+        <action android:name="io.getstream.CALL_ENDPOINT_CHANGED" />
+        <action android:name="io.getstream.CALL_END" />
+        <action android:name="io.getstream.CALL_REGISTRATION_FAILED" />
+      </intent-filter>
+    </receiver>
+
+    <!-- Remove default FCM service so StreamMessagingService is the single handler -->
+    <service
+      android:name="io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService"
+      tools:node="remove" />
+  </application>
+</manifest>

@@ -625,6 +625,10 @@ export interface ParticipantJoined {
    * @generated from protobuf field: stream.video.sfu.models.Participant participant = 2;
    */
   participant?: Participant;
+  /**
+   * @generated from protobuf field: bool is_pinned = 3;
+   */
+  isPinned: boolean;
 }
 /**
  * ParticipantJoined is fired when a user leaves a call
@@ -1557,6 +1561,7 @@ class ParticipantJoined$Type extends MessageType<ParticipantJoined> {
     super('stream.video.sfu.event.ParticipantJoined', [
       { no: 1, name: 'call_cid', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'participant', kind: 'message', T: () => Participant },
+      { no: 3, name: 'is_pinned', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
   }
 }

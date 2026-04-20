@@ -18,6 +18,7 @@ import { DynascaleManager } from '../DynascaleManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { StreamVideoWriteableStateStore } from '../../store';
+import { getCurrentValue } from '../../store/rxUtils';
 import { VisibilityState } from '../../types';
 import { noopComparator } from '../../sorting';
 import { TrackType } from '../../gen/video/sfu/models/models';
@@ -645,6 +646,125 @@ describe('DynascaleManager', () => {
       cleanup?.();
 
       expect(unregisterSpy).toHaveBeenCalledWith('session-id', 'audioTrack');
+    });
+
+    it('audio: should track blocked audio elements on NotAllowedError', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      const notAllowedError = new DOMException('', 'NotAllowedError');
+      vi.spyOn(audioElement, 'play').mockRejectedValue(notAllowedError);
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        audioStream: mediaStream,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
+
+      cleanup?.();
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
+    });
+
+    it('audio: should unblock audio elements on explicit resumeAudio call', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      const playSpy = vi
+        .spyOn(audioElement, 'play')
+        .mockRejectedValueOnce(new DOMException('', 'NotAllowedError'))
+        .mockResolvedValue(undefined);
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        audioStream: mediaStream,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
+
+      await dynascaleManager.resumeAudio();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(playSpy).toHaveBeenCalledTimes(2);
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
+
+      cleanup?.();
+    });
+
+    it('audio: should clear blocked state when the audio stream is removed', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      vi.spyOn(audioElement, 'play').mockRejectedValue(
+        new DOMException('', 'NotAllowedError'),
+      );
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        audioStream: mediaStream,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
+
+      call.state.updateParticipant('session-id', {
+        audioStream: undefined,
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(audioElement.srcObject).toBeNull();
+      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
+
+      cleanup?.();
     });
 
     it('audio: should warn when binding an already-bound session', () => {

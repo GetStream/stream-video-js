@@ -2,6 +2,61 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.35.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.1...@stream-io/video-react-sdk-1.35.2) (2026-04-15)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.47.0`
+- `@stream-io/video-react-bindings` updated to version `1.14.2`
+
+### Bug Fixes
+
+- **pronto:** use list visualType for device selection mobile devices ([#2202](https://github.com/GetStream/stream-video-js/issues/2202)) ([f6b6cd2](https://github.com/GetStream/stream-video-js/commit/f6b6cd2eeef3e776167cae515cc7beb2d566ccde))
+
+## [1.35.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.0...@stream-io/video-react-sdk-1.35.1) (2026-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.46.1`
+- `@stream-io/video-react-bindings` updated to version `1.14.1`
+
+## [1.35.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.2...@stream-io/video-react-sdk-1.35.0) (2026-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.13.0`
+- `@stream-io/video-client` updated to version `1.46.0`
+- `@stream-io/video-filters-web` updated to version `0.7.4`
+- `@stream-io/video-react-bindings` updated to version `1.14.0`
+
+### Features
+
+- **react-sdk:** Device preview and level indicators to device settings ([#2186](https://github.com/GetStream/stream-video-js/issues/2186)) ([65787d2](https://github.com/GetStream/stream-video-js/commit/65787d222d01f784766e0a7eb757cb3169e08435))
+
+## [1.34.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.1...@stream-io/video-react-sdk-1.34.2) (2026-04-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.45.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.15`
+
+### Bug Fixes
+
+- **pins:** render the "pin" indicator regardless of "unpin" capabilities ([#2179](https://github.com/GetStream/stream-video-js/issues/2179)) ([f78cf41](https://github.com/GetStream/stream-video-js/commit/f78cf4115f7fb3f3eb799ac406c3f56cc691c942))
+
+## [1.34.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.0...@stream-io/video-react-sdk-1.34.1) (2026-03-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.5`
+- `@stream-io/video-filters-web` updated to version `0.7.3`
+- `@stream-io/video-react-bindings` updated to version `1.13.14`
+
+### Bug Fixes
+
+- **react:** expose segmentation smoothing options and add model picker in video effects settings ([#2176](https://github.com/GetStream/stream-video-js/issues/2176)) ([edee6bf](https://github.com/GetStream/stream-video-js/commit/edee6bf8d9aacdfb2ae49fb202ba7f7d1140063f))
+- **react:** reset recording toggle state and expose record button errors ([#2174](https://github.com/GetStream/stream-video-js/issues/2174)) ([2af6347](https://github.com/GetStream/stream-video-js/commit/2af63478ad9050bf339212537a6cb424f97387b8))
+
 ## [1.34.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.4...@stream-io/video-react-sdk-1.34.0) (2026-03-20)
 
 ### Dependency Updates

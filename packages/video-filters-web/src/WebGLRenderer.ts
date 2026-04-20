@@ -754,6 +754,11 @@ export class WebGLRenderer {
       bgBlur: number;
       bgBlurRadius: number;
       isSelfieMode: boolean;
+      segmentationOptions?: {
+        smoothingFactor?: number;
+        smoothstepMin?: number;
+        smoothstepMax?: number;
+      };
     },
     categoryTexture?: WebGLTexture,
     confidenceTexture?: WebGLTexture,
@@ -864,9 +869,18 @@ export class WebGLRenderer {
     gl.bindTexture(gl.TEXTURE_2D, prevStateTexture);
     gl.uniform1i(stateUpdateLocations.prevStateTexture, 2);
 
-    gl.uniform1f(stateUpdateLocations.smoothingFactor, 0.8);
-    gl.uniform1f(stateUpdateLocations.smoothstepMin, 0.6);
-    gl.uniform1f(stateUpdateLocations.smoothstepMax, 0.9);
+    gl.uniform1f(
+      stateUpdateLocations.smoothingFactor,
+      options.segmentationOptions?.smoothingFactor ?? 0.8,
+    );
+    gl.uniform1f(
+      stateUpdateLocations.smoothstepMin,
+      options.segmentationOptions?.smoothstepMin ?? 0.6,
+    );
+    gl.uniform1f(
+      stateUpdateLocations.smoothstepMax,
+      options.segmentationOptions?.smoothstepMax ?? 0.9,
+    );
 
     gl.uniform1i(
       stateUpdateLocations.selfieModel,

@@ -79,6 +79,40 @@ export class DynascaleManager {
   private pendingSubscriptionsUpdate: NodeJS.Timeout | null = null;
   readonly audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
 
+  /**
+   * Audio elements that were blocked by the browser's autoplay policy.
+   * These can be retried by calling `resumeAudio()` from a user gesture.
+   */
+  private blockedAudioElementsSubject = new BehaviorSubject<
+    Set<HTMLAudioElement>
+  >(new Set());
+
+  /**
+   * Whether the browser's autoplay policy is blocking audio playback.
+   * Will be `true` when the browser blocks autoplay (e.g., no prior user interaction).
+   * Use `resumeAudio()` within a user gesture to unblock.
+   */
+  autoplayBlocked$ = this.blockedAudioElementsSubject.pipe(
+    map((elements) => elements.size > 0),
+    distinctUntilChanged(),
+  );
+
+  private addBlockedAudioElement = (audioElement: HTMLAudioElement) => {
+    setCurrentValue(this.blockedAudioElementsSubject, (elements) => {
+      const next = new Set(elements);
+      next.add(audioElement);
+      return next;
+    });
+  };
+
+  private removeBlockedAudioElement = (audioElement: HTMLAudioElement) => {
+    setCurrentValue(this.blockedAudioElementsSubject, (elements) => {
+      const nextElements = new Set(elements);
+      nextElements.delete(audioElement);
+      return nextElements;
+    });
+  };
+
   private videoTrackSubscriptionOverridesSubject =
     new BehaviorSubject<VideoTrackSubscriptionOverrides>({});
 
@@ -136,6 +170,7 @@ export class DynascaleManager {
       clearTimeout(this.pendingSubscriptionsUpdate);
     }
     this.audioBindingsWatchdog?.dispose();
+    setCurrentValue(this.blockedAudioElementsSubject, new Set());
     const context = this.audioContext;
     if (context && context.state !== 'closed') {
       document.removeEventListener('click', this.resumeAudioContext);
@@ -575,7 +610,10 @@ export class DynascaleManager {
 
         setTimeout(() => {
           audioElement.srcObject = source ?? null;
-          if (!source) return;
+          if (!source) {
+            this.removeBlockedAudioElement(audioElement);
+            return;
+          }
 
           // Safari has a special quirk that prevents playing audio until the user
           // interacts with the page or focuses on the tab where the call happens.
@@ -599,6 +637,10 @@ export class DynascaleManager {
             audioElement.muted = false;
             audioElement.play().catch((e) => {
               this.tracer.trace('audioPlaybackError', e.message);
+              if (e.name === 'NotAllowedError') {
+                this.tracer.trace('audioPlaybackBlocked', null);
+                this.addBlockedAudioElement(audioElement);
+              }
               this.logger.warn(`Failed to play audio stream`, e);
             });
           }
@@ -628,6 +670,7 @@ export class DynascaleManager {
 
     return () => {
       this.audioBindingsWatchdog?.unregister(sessionId, trackType);
+      this.removeBlockedAudioElement(audioElement);
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
@@ -635,6 +678,34 @@ export class DynascaleManager {
       sourceNode?.disconnect();
       gainNode?.disconnect();
     };
+  };
+
+  /**
+   * Plays all audio elements blocked by the browser's autoplay policy.
+   * Must be called from within a user gesture (e.g., click handler).
+   *
+   * @returns a promise that resolves when all blocked elements have been retried.
+   */
+  resumeAudio = async () => {
+    this.tracer.trace('resumeAudio', null);
+    const blocked = new Set<HTMLAudioElement>();
+    await Promise.all(
+      Array.from(
+        getCurrentValue(this.blockedAudioElementsSubject),
+        async (el) => {
+          try {
+            if (el.srcObject) {
+              await el.play();
+            }
+          } catch {
+            this.logger.warn(`Can't resume audio for element: `, el);
+            blocked.add(el);
+          }
+        },
+      ),
+    );
+
+    setCurrentValue(this.blockedAudioElementsSubject, blocked);
   };
 
   private getOrCreateAudioContext = (): AudioContext | undefined => {

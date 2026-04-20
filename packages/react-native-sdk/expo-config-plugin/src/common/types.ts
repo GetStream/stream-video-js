@@ -1,12 +1,6 @@
-export type RingingPushNotifications = {
-  disableVideoIos?: boolean;
-  includesCallsInRecentsIos?: boolean;
-  showWhenLockedAndroid?: boolean;
-};
-
 export type ConfigProps =
   | {
-      ringingPushNotifications?: RingingPushNotifications;
+      ringing?: boolean;
       enableNonRingingPushNotifications?: boolean;
       androidPictureInPicture?: boolean;
       androidKeepCallAlive?: boolean;

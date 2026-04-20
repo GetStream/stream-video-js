@@ -11,6 +11,7 @@ import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import { noopComparator } from '../../sorting';
 import { fromPartial } from '@total-typescript/shoehorn';
+import { TrackType } from '../../gen/video/sfu/models/models';
 
 describe('AudioBindingsWatchdog', () => {
   let watchdog: AudioBindingsWatchdog;
@@ -44,12 +45,17 @@ describe('AudioBindingsWatchdog', () => {
       screenShareAudioStream?: MediaStream;
     },
   ) => {
+    const publishedTracks = [];
+    if (streams?.audioStream) publishedTracks.push(TrackType.AUDIO);
+    if (streams?.screenShareAudioStream) {
+      publishedTracks.push(TrackType.SCREEN_SHARE_AUDIO);
+    }
     call.state.updateOrAddParticipant(
       sessionId,
       fromPartial({
         userId,
         sessionId,
-        publishedTracks: [],
+        publishedTracks,
         ...streams,
       }),
     );
@@ -231,6 +237,26 @@ describe('AudioBindingsWatchdog', () => {
       expect.stringContaining('Dangling audio bindings detected'),
     );
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('user-1'));
+  });
+
+  it('should not warn when audioStream exists but audio is not published', () => {
+    // @ts-expect-error private property
+    const warnSpy = vi.spyOn(watchdog.logger, 'warn');
+
+    call.state.updateOrAddParticipant(
+      'session-1',
+      fromPartial({
+        userId: 'user-1',
+        sessionId: 'session-1',
+        publishedTracks: [],
+        audioStream: new MediaStream(),
+      }),
+    );
+
+    call.state.setCallingState(CallingState.JOINED);
+    vi.advanceTimersByTime(3000);
+
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   it('should not warn when screenShareAudio element is bound', () => {

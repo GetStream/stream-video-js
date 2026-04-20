@@ -2,6 +2,7 @@ import type {
   BackgroundBlurLevel,
   BackgroundFilter,
   PlatformSupportFlags,
+  SegmentationOptions,
 } from '@stream-io/video-filters-web';
 
 /**
@@ -95,6 +96,12 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
    * Use this to customize when performance warnings are triggered.
    */
   performanceThresholds?: BackgroundFiltersPerformanceThresholds;
+
+  /**
+   * Options for controlling the segmentation mask smoothing in the WebGL shader.
+   * Use this to tune the trade-off between mask responsiveness and visual stability.
+   */
+  segmentationOptions?: SegmentationOptions;
 };
 
 /**

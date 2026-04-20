@@ -497,6 +497,18 @@ export const useIncomingVideoSettings = () => {
 };
 
 /**
+ * Returns whether the browser's autoplay policy is blocking audio playback.
+ *
+ * When the browser blocks audio autoplay (e.g., no prior user interaction),
+ * this hook returns `true`. Use `call.resumeAudio()` inside a click handler
+ * to unblock audio playback.
+ */
+export const useIsAutoplayBlocked = (): boolean => {
+  const call = useCall() as Call;
+  return useObservableValue(call.dynascaleManager.autoplayBlocked$);
+};
+
+/**
  * Returns the current call's closed captions queue.
  */
 export const useCallClosedCaptions = (): CallClosedCaption[] => {

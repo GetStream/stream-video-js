@@ -3,6 +3,7 @@ import { CallingState, CallState } from '../store';
 import { createSubscription } from '../store/rxUtils';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
+import { TrackType } from '../gen/video/sfu/models/models';
 
 const toBindingKey = (
   sessionId: string,
@@ -91,12 +92,23 @@ export class AudioBindingsWatchdog {
       const danglingUserIds: string[] = [];
       for (const p of this.state.participants) {
         if (p.isLocalParticipant) continue;
-        const { audioStream, screenShareAudioStream, sessionId, userId } = p;
-        if (audioStream && !this.bindings.has(toBindingKey(sessionId))) {
+        const {
+          audioStream,
+          screenShareAudioStream,
+          sessionId,
+          userId,
+          publishedTracks,
+        } = p;
+        if (
+          audioStream &&
+          publishedTracks.includes(TrackType.AUDIO) &&
+          !this.bindings.has(toBindingKey(sessionId))
+        ) {
           danglingUserIds.push(userId);
         }
         if (
           screenShareAudioStream &&
+          publishedTracks.includes(TrackType.SCREEN_SHARE_AUDIO) &&
           !this.bindings.has(toBindingKey(sessionId, 'screenShareAudioTrack'))
         ) {
           danglingUserIds.push(userId);
