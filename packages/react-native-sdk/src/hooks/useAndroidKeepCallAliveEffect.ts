@@ -89,13 +89,12 @@ export const useAndroidKeepCallAliveEffect = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
-  const isOutgoingCall =
-    callingState === CallingState.RINGING && call?.isCreatedByMe;
   const isCallJoined = callingState === CallingState.JOINED;
   const isRingingCall = call?.ringing;
+  const isLivestreamCall = call?.type === 'livestream';
 
   const shouldStartForegroundService =
-    !foregroundServiceStartedRef.current && (isOutgoingCall || isCallJoined);
+    !foregroundServiceStartedRef.current && isCallJoined;
 
   useEffect((): (() => void) | undefined => {
     if (Platform.OS === 'ios' || !activeCallCid) {
@@ -105,7 +104,10 @@ export const useAndroidKeepCallAliveEffect = () => {
     const callingx = getCallingxLibIfAvailable();
     if (
       callingx?.isSetup &&
-      (isRingingCall || (!isRingingCall && callingx?.isOngoingCallsEnabled))
+      (isRingingCall ||
+        (!isRingingCall &&
+          callingx?.isOngoingCallsEnabled &&
+          !isLivestreamCall))
     ) {
       return undefined;
     }
@@ -154,6 +156,7 @@ export const useAndroidKeepCallAliveEffect = () => {
     callingState,
     shouldStartForegroundService,
     isRingingCall,
+    isLivestreamCall,
   ]);
 
   useEffect(() => {

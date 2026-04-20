@@ -64,6 +64,7 @@ function getCallDisplayNameFromCall(call: Call): string {
   );
 }
 
+// currently this method is called only for handling outgoing ringing calls, so this logic won't be applied for livestream calls
 export async function registerOutgoingCall(call: Call) {
   if (!CallingxModule || !CallingxModule.isSetup) {
     return;
@@ -102,6 +103,12 @@ export async function registerOutgoingCall(call: Call) {
  */
 export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
   if (!CallingxModule || !CallingxModule.isSetup) {
+    return;
+  }
+
+  const isLivestreamCall = call.type === 'livestream';
+  if (isLivestreamCall && Platform.OS === 'android') {
+    // we don't want to register call in callingx for Android livestream calls
     return;
   }
 
