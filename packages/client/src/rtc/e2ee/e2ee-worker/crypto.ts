@@ -1,21 +1,83 @@
-import { FAILURE_TOLERANCE } from './constants';
+import {
+  COUNTER_HARD_LIMIT,
+  COUNTER_REKEY_THRESHOLD,
+  FAILURE_TOLERANCE,
+  IV_PREFIX_LEN,
+  REPLAY_WINDOW,
+} from './constants';
 import type { ResolvedKey } from './types';
 
-const textEncoder = new TextEncoder();
-const toKey = (userId: string, keyIndex: number): string =>
-  `${userId}:${keyIndex}`;
+/**
+ * Nested map, indexed as `map.get(userId)?.get(keyIndex)`. Replaces the
+ * earlier `"userId:keyIndex"` string composite, which was ambiguous when
+ * `userId` contained a colon.
+ */
+type UserKeyMap<V> = Map<string, Map<number, V>>;
 
-/** Map<userId, Map<keyIndex, CryptoKey>> */
-const keyStore = new Map<string, Map<number, CryptoKey>>();
-/** Map<userId, Map<keyIndex, Uint8Array>> — raw bytes for debug introspection */
-const rawKeyStore = new Map<string, Map<number, Uint8Array>>();
-/** Map<userId, number> — latest key index for encoding */
+const getOrCreate = <V>(map: UserKeyMap<V>, userId: string): Map<number, V> => {
+  let inner = map.get(userId);
+  if (!inner) {
+    inner = new Map();
+    map.set(userId, inner);
+  }
+  return inner;
+};
+
+/** Imported CryptoKey, not extractable. */
+const keyStore: UserKeyMap<CryptoKey> = new Map();
+
+/**
+ * Sender-side random IV prefix (8 bytes), freshly generated per key import.
+ * Receivers read the prefix from the frame trailer and do NOT consult this
+ * map. Keeping it per (userId, keyIndex) ensures that repeated imports of
+ * the *same raw key* get distinct prefixes → no IV reuse.
+ */
+const senderIvPrefixes: UserKeyMap<Uint8Array> = new Map();
+
+/**
+ * 8-byte SHA-256 prefix of the raw key, kept only for debug/introspection
+ * via `dumpKeyState`. Non-reversible, so exposing it does not leak key
+ * material.
+ */
+const keyFingerprints: UserKeyMap<Uint8Array> = new Map();
+
+/** Consecutive-failure counter per (userId, keyIndex). */
+const decryptionFailureCounts: UserKeyMap<number> = new Map();
+
+interface ReplayState {
+  highest: number;
+  seen: Set<number>;
+}
+const replayWindows: UserKeyMap<ReplayState> = new Map();
+
+/** Map<userId, latest keyIndex>. */
 const latestKeyIndex = new Map<string, number>();
-/** Map<userId, number> — monotonic frame counter for encoding */
+
+/**
+ * Monotonic frame counter per encoder userId.
+ *
+ * Deliberately persistent across `removeKeys`: if the same raw key is ever
+ * re-imported for a user later in this worker's lifetime, the counter keeps
+ * climbing so we cannot reuse an (ivPrefix, counter) pair. Combined with a
+ * fresh random `senderIvPrefixes` entry per import, this gives two
+ * independent guards against AES-GCM IV reuse.
+ */
 const frameCounters = new Map<string, number>();
 
-/** Shared fallback: used when no per-user key is set for a given userId. */
 let sharedKey: ResolvedKey | null = null;
+let sharedSenderIvPrefix: Uint8Array | null = null;
+let sharedKeyFingerprint: Uint8Array | null = null;
+
+const randomBytes = (n: number): Uint8Array => {
+  const bytes = new Uint8Array(n);
+  crypto.getRandomValues(bytes);
+  return bytes;
+};
+
+const fingerprint = async (rawKey: ArrayBuffer): Promise<Uint8Array> => {
+  const hash = await crypto.subtle.digest('SHA-256', rawKey);
+  return new Uint8Array(hash, 0, 8);
+};
 
 export const getKey = (
   userId: string,
@@ -36,42 +98,19 @@ export const getLatestKey = (userId: string): ResolvedKey | null => {
   return sharedKey;
 };
 
-export const getSharedKey = () => sharedKey;
-
 /**
- * Cached IV prefixes — Map<"userId:keyIndex", Uint8Array(8)>.
- * The first 8 bytes of the 12-byte AES-GCM IV are derived from
- * SHA-256(rawKey + userId). Cached per (userId, keyIndex) pair.
+ * Returns the sender IV prefix for a given (userId, keyIndex) — used only
+ * on the ENCODE path. Falls back to the shared-key prefix if no per-user
+ * key is registered at that index.
  */
-const ivPrefixes = new Map<string, Uint8Array>();
-let sharedRawKeyBytes: Uint8Array | null = null;
-
-const computeIVPrefix = async (
-  rawKeyBytes: Uint8Array,
-  userId: string,
-): Promise<Uint8Array> => {
-  const userIdBytes = textEncoder.encode(userId);
-  const combined = new Uint8Array(rawKeyBytes.length + userIdBytes.length);
-  combined.set(rawKeyBytes, 0);
-  combined.set(userIdBytes, rawKeyBytes.length);
-  const hash = await crypto.subtle.digest('SHA-256', combined);
-  return new Uint8Array(hash, 0, 8);
-};
-
-export const getIVPrefix = (
+export const getSenderIvPrefix = (
   userId: string,
   keyIndex: number,
 ): Uint8Array | null => {
-  return ivPrefixes.get(toKey(userId, keyIndex)) || null;
-};
-
-export const ensureIVPrefix = async (userId: string, keyIndex: number) => {
-  const cacheKey = toKey(userId, keyIndex);
-  if (ivPrefixes.has(cacheKey)) return;
-  if (sharedKey && keyIndex === sharedKey.keyIndex && sharedRawKeyBytes) {
-    const prefix = await computeIVPrefix(sharedRawKeyBytes, userId);
-    ivPrefixes.set(cacheKey, prefix);
-  }
+  const perUser = senderIvPrefixes.get(userId)?.get(keyIndex);
+  if (perUser) return perUser;
+  if (sharedKey && keyIndex === sharedKey.keyIndex) return sharedSenderIvPrefix;
+  return null;
 };
 
 /** Fill a pre-allocated IV buffer: [8-byte prefix][4-byte frame counter BE]. */
@@ -82,44 +121,100 @@ export const fillIV = (
   frameCounter: number,
 ) => {
   iv.set(prefix, 0);
-  ivView.setUint32(8, frameCounter);
+  ivView.setUint32(IV_PREFIX_LEN, frameCounter);
+};
+
+/**
+ * Tracks which (userId) we've already nagged about rekeying in this worker
+ * session, so one threshold crossing yields one message — not one per frame.
+ */
+const rekeyRequested = new Set<string>();
+
+/**
+ * @internal Test-only seam to position the per-user frame counter without
+ * spinning 2^31 iterations in unit tests. Not used in production.
+ */
+export const __setFrameCounterForTest = (userId: string, value: number) => {
+  frameCounters.set(userId, value);
 };
 
 export const nextFrameCounter = (userId: string): number => {
   const c = (frameCounters.get(userId) || 0) + 1;
+  if (c > COUNTER_HARD_LIMIT) {
+    // Fail closed. One past the 32-bit ceiling would fold into a previously
+    // used (ivPrefix, counter) pair under AES-GCM.
+    throw new Error(
+      `frame counter exhausted for user ${userId} — rekey required before further encryption`,
+    );
+  }
+  if (c >= COUNTER_REKEY_THRESHOLD && !rekeyRequested.has(userId)) {
+    rekeyRequested.add(userId);
+    self.postMessage({ type: 'rekeyRequested', userId });
+  }
   frameCounters.set(userId, c);
   return c;
 };
 
-/** Map<"userId:keyIndex", number> — consecutive failure count */
-const decryptionFailureCounts = new Map<string, number>();
-
-export const isKeyInvalid = (userId: string, keyIndex: number): boolean => {
-  return (
-    (decryptionFailureCounts.get(toKey(userId, keyIndex)) || 0) >
-    FAILURE_TOLERANCE
-  );
-};
+export const isKeyInvalid = (userId: string, keyIndex: number): boolean =>
+  (decryptionFailureCounts.get(userId)?.get(keyIndex) || 0) > FAILURE_TOLERANCE;
 
 export const recordDecryptionFailure = (userId: string, keyIndex: number) => {
-  const k = toKey(userId, keyIndex);
-  decryptionFailureCounts.set(k, (decryptionFailureCounts.get(k) || 0) + 1);
+  const inner = getOrCreate(decryptionFailureCounts, userId);
+  inner.set(keyIndex, (inner.get(keyIndex) || 0) + 1);
 };
 
 export const hasDecryptionFailures = (
   userId: string,
   keyIndex: number,
-): boolean => decryptionFailureCounts.has(toKey(userId, keyIndex));
+): boolean => (decryptionFailureCounts.get(userId)?.get(keyIndex) || 0) > 0;
 
 export const resetDecryptionFailures = (userId: string, keyIndex: number) => {
-  decryptionFailureCounts.delete(toKey(userId, keyIndex));
+  decryptionFailureCounts.get(userId)?.delete(keyIndex);
 };
 
-const clearDecryptionFailures = (userId: string) => {
-  for (const key of decryptionFailureCounts.keys()) {
-    if (key.startsWith(`${userId}:`)) decryptionFailureCounts.delete(key);
+/**
+ * Sliding-window replay guard. Returns true if the frame counter is
+ * acceptable (new, or within the window and not previously seen); false if
+ * the frame is a replay or older than the window.
+ */
+export const checkReplayWindow = (
+  userId: string,
+  keyIndex: number,
+  counter: number,
+): boolean => {
+  const inner = getOrCreate(replayWindows, userId);
+  const state = inner.get(keyIndex);
+  if (!state) {
+    inner.set(keyIndex, { highest: counter, seen: new Set([counter]) });
+    return true;
   }
+  if (counter > state.highest) {
+    state.highest = counter;
+    const cutoff = counter - REPLAY_WINDOW;
+    if (cutoff > 0) {
+      for (const c of state.seen) {
+        if (c <= cutoff) state.seen.delete(c);
+      }
+    }
+    state.seen.add(counter);
+    return true;
+  }
+  if (counter <= state.highest - REPLAY_WINDOW) return false;
+  if (state.seen.has(counter)) return false;
+  state.seen.add(counter);
+  return true;
 };
+
+/**
+ * AES-GCM accepts 128/192/256-bit keys. We let the raw buffer length pick
+ * the variant — the EncryptionManager has already validated it at the main
+ * thread boundary (16 or 32 bytes). Passing `length` explicitly keeps the
+ * WebCrypto contract unambiguous across browser implementations.
+ */
+const aesGcmParams = (rawKey: ArrayBuffer): AesKeyAlgorithm => ({
+  name: 'AES-GCM',
+  length: rawKey.byteLength * 8,
+});
 
 export const importKey = async (
   userId: string,
@@ -127,27 +222,27 @@ export const importKey = async (
   rawKey: ArrayBuffer,
 ) => {
   try {
-    const rawKeyBytes = new Uint8Array(rawKey);
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      rawKey,
-      { name: 'AES-GCM', length: 128 },
-      false,
-      ['encrypt', 'decrypt'],
+    const [cryptoKey, fp] = await Promise.all([
+      crypto.subtle.importKey('raw', rawKey, aesGcmParams(rawKey), false, [
+        'encrypt',
+        'decrypt',
+      ]),
+      fingerprint(rawKey),
+    ]);
+    getOrCreate(keyStore, userId).set(keyIndex, cryptoKey);
+    getOrCreate(keyFingerprints, userId).set(keyIndex, fp);
+    getOrCreate(senderIvPrefixes, userId).set(
+      keyIndex,
+      randomBytes(IV_PREFIX_LEN),
     );
-    if (!keyStore.has(userId)) keyStore.set(userId, new Map());
-    keyStore.get(userId)!.set(keyIndex, cryptoKey);
-    if (!rawKeyStore.has(userId)) rawKeyStore.set(userId, new Map());
-    rawKeyStore.get(userId)!.set(keyIndex, rawKeyBytes);
     latestKeyIndex.set(userId, keyIndex);
-
-    const prefix = await computeIVPrefix(rawKeyBytes, userId);
-    ivPrefixes.set(toKey(userId, keyIndex), prefix);
     resetDecryptionFailures(userId, keyIndex);
+    // Fresh key instance → fresh replay window.
+    replayWindows.get(userId)?.delete(keyIndex);
   } catch (e: any) {
     self.postMessage({
       type: 'error',
-      message: `Failed to import key for user ${userId}: ${e.message}`,
+      message: `Failed to import key for user ${userId}: ${e?.message || e}`,
     });
   }
 };
@@ -157,36 +252,42 @@ export const importSharedKey = async (
   rawKey: ArrayBuffer,
 ) => {
   try {
-    sharedRawKeyBytes = new Uint8Array(rawKey);
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      rawKey,
-      { name: 'AES-GCM', length: 128 },
-      false,
-      ['encrypt', 'decrypt'],
-    );
+    const [cryptoKey, fp] = await Promise.all([
+      crypto.subtle.importKey('raw', rawKey, aesGcmParams(rawKey), false, [
+        'encrypt',
+        'decrypt',
+      ]),
+      fingerprint(rawKey),
+    ]);
     sharedKey = { key: cryptoKey, keyIndex };
-    for (const key of ivPrefixes.keys()) {
-      if (!keyStore.has(key.split(':')[0])) ivPrefixes.delete(key);
-    }
-    decryptionFailureCounts.clear();
+    sharedKeyFingerprint = fp;
+    sharedSenderIvPrefix = randomBytes(IV_PREFIX_LEN);
+    // The shared keyIndex now refers to a fresh key → reset replay state
+    // and decryption-failure state tied to that slot for every user.
+    for (const inner of replayWindows.values()) inner.delete(keyIndex);
+    for (const inner of decryptionFailureCounts.values())
+      inner.delete(keyIndex);
   } catch (e: any) {
     self.postMessage({
       type: 'error',
-      message: `Failed to import shared key: ${e.message}`,
+      message: `Failed to import shared key: ${e?.message || e}`,
     });
   }
 };
 
+/**
+ * Remove all per-user key state for the given userId. Deliberately leaves
+ * `frameCounters` intact: resetting the encoder's counter would cause IV
+ * reuse if the same raw key is imported again later in this worker.
+ */
 export const removeKeys = (userId: string) => {
   keyStore.delete(userId);
-  rawKeyStore.delete(userId);
+  senderIvPrefixes.delete(userId);
+  keyFingerprints.delete(userId);
   latestKeyIndex.delete(userId);
-  frameCounters.delete(userId);
-  for (const key of ivPrefixes.keys()) {
-    if (key.startsWith(`${userId}:`)) ivPrefixes.delete(key);
-  }
-  clearDecryptionFailures(userId);
+  decryptionFailureCounts.delete(userId);
+  replayWindows.delete(userId);
+  rekeyRequested.delete(userId);
 };
 
 const toHex = (bytes: Uint8Array): string =>
@@ -194,34 +295,46 @@ const toHex = (bytes: Uint8Array): string =>
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 
-/** Dump all key state for debug introspection. */
+/**
+ * Dump a non-sensitive snapshot of key state for debug. Returns only the
+ * 8-byte SHA-256 prefix ("fingerprint") of each raw key — enough to verify
+ * that sender and receiver hold matching key material, without ever
+ * exposing the key itself.
+ */
 export const dumpKeyState = () => {
   const perUserKeys: Array<{
     userId: string;
     keyIndex: number;
-    keyHex: string;
+    fingerprint: string;
   }> = [];
-  for (const [userId, keys] of rawKeyStore) {
-    for (const [keyIndex, rawBytes] of keys) {
-      perUserKeys.push({ userId, keyIndex, keyHex: toHex(rawBytes) });
+  for (const [userId, keys] of keyFingerprints) {
+    for (const [keyIndex, fp] of keys) {
+      perUserKeys.push({ userId, keyIndex, fingerprint: toHex(fp) });
     }
   }
   return {
     perUserKeys,
-    sharedKey: sharedRawKeyBytes
-      ? { keyIndex: sharedKey!.keyIndex, keyHex: toHex(sharedRawKeyBytes) }
-      : null,
+    sharedKey:
+      sharedKeyFingerprint && sharedKey
+        ? {
+            keyIndex: sharedKey.keyIndex,
+            fingerprint: toHex(sharedKeyFingerprint),
+          }
+        : null,
   };
 };
 
 /** Clear all state — called on worker dispose. */
 export const dispose = () => {
   keyStore.clear();
-  rawKeyStore.clear();
+  senderIvPrefixes.clear();
+  keyFingerprints.clear();
   latestKeyIndex.clear();
   frameCounters.clear();
-  ivPrefixes.clear();
   decryptionFailureCounts.clear();
-  sharedRawKeyBytes = null;
+  replayWindows.clear();
+  rekeyRequested.clear();
   sharedKey = null;
+  sharedSenderIvPrefix = null;
+  sharedKeyFingerprint = null;
 };

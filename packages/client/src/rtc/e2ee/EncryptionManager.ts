@@ -8,17 +8,49 @@ export type PerfReport = {
   decodeMaxCryptoMs: number;
 };
 
-export type KeyStateReport = {
-  perUserKeys: Array<{ userId: string; keyIndex: number; keyHex: string }>;
-  sharedKey: { keyIndex: number; keyHex: string } | null;
+/**
+ * AES-GCM variant used for media frame encryption.
+ *
+ * - `'AES-128-GCM'` (default) — 16-byte keys. Matches BSI TR-02102-1 §3.2.
+ * - `'AES-256-GCM'` — 32-byte keys. Use when a compliance reviewer (e.g. a
+ *    KBV Anlage 31b certifier) explicitly requires 256-bit strength.
+ */
+export type E2EEAlgorithm = 'AES-128-GCM' | 'AES-256-GCM';
+
+/**
+ * Fired when the local sender's frame counter is approaching the 32-bit
+ * ceiling. If ignored, encryption will fail closed at the hard limit.
+ */
+export type RotationEvent = {
+  /** The local sender whose counter is running out. */
+  userId: string;
 };
 
-const validateKeyLength = (rawKey: ArrayBuffer) => {
-  if (rawKey.byteLength !== 16) {
-    throw new Error(
-      `Key must be exactly 16 bytes (AES-128), got ${rawKey.byteLength}`,
-    );
-  }
+export type E2EEBrokenEvent = {
+  /** Remote user whose frames can no longer be decrypted. */
+  userId: string;
+  /** The keyIndex that crossed the failure tolerance. */
+  keyIndex: number;
+};
+
+type CreateOptions = {
+  /** Defaults to `'AES-128-GCM'` */
+  algorithm?: E2EEAlgorithm;
+};
+
+/**
+ * Snapshot of key state returned by {@link EncryptionManager.requestKeyDump}.
+ *
+ * `fingerprint` is the hex of the first 8 bytes of SHA-256(rawKey) — a
+ * non-reversible identifier safe to log. Raw key material is never returned.
+ */
+export type KeyStateReport = {
+  perUserKeys: Array<{
+    userId: string;
+    keyIndex: number;
+    fingerprint: string;
+  }>;
+  sharedKey: { keyIndex: number; fingerprint: string } | null;
 };
 
 /**
@@ -40,6 +72,7 @@ const validateKeyLength = (rawKey: ArrayBuffer) => {
  */
 export class EncryptionManager {
   private readonly logger: ScopedLogger;
+  private readonly algorithm: E2EEAlgorithm;
   private disposed = false;
   private piped?: WeakSet<RTCRtpSender | RTCRtpReceiver>;
 
@@ -68,6 +101,43 @@ export class EncryptionManager {
    */
   onPerfReport?: (report: PerfReport) => void;
 
+  /**
+   * Called at most once per worker session if an outgoing frame fails to
+   * encrypt (e.g. unexpected WebCrypto error, clearBytes exceeding trailer
+   * capacity). When this fires, the sender is effectively publishing
+   * nothing — surface it in the UI and consider re-initializing the call.
+   */
+  onEncryptionFailed?: (reason: string) => void;
+
+  /**
+   * Called when the SDK detects that the E2EE session is broken for a remote
+   * user — decryption has failed repeatedly past the internal tolerance.
+   *
+   * For compliance deployments (e.g. KBV Anlage 31b), the host application
+   * MUST treat this as session-terminating or show a blocking warning.
+   * Silent passthrough is non-compliant: at this point the remote frames
+   * either use a key you do not hold, or are being actively tampered with.
+   *
+   * Fires once per (userId, keyIndex) transition into the invalid state.
+   */
+  onE2EEBroken?: (event: E2EEBrokenEvent) => void;
+
+  /**
+   * Called when the SDK determines that fresh key material must be
+   * distributed for cryptographic correctness — the local sender's frame
+   * counter is approaching the 32-bit ceiling. If ignored, encryption will
+   * fail closed at the hard limit.
+   *
+   * Rotation on participant join/leave is a policy decision owned by the
+   * integrator and is NOT signalled here — subscribe to
+   * `call.state.remoteParticipants$` if you want that behaviour.
+   *
+   * Respond by minting a new `keyIndex`, distributing the raw key through
+   * your secure channel, and calling {@link setKey} / {@link setSharedKey}
+   * with the new index.
+   */
+  onRotationNeeded?: (event: RotationEvent) => void;
+
   private pendingKeyDump?: ReturnType<
     typeof promiseWithResolvers<KeyStateReport>
   >;
@@ -82,12 +152,19 @@ export class EncryptionManager {
    * @param userId the currentUserId bound to this manager.
    * @param worker the worker implementation to use.
    * @param workerUrl the blob URL to revoke on dispose.
+   * @param algorithm the AES-GCM variant expected by this manager.
    */
-  private constructor(userId: string, worker: Worker, workerUrl: string) {
+  private constructor(
+    userId: string,
+    worker: Worker,
+    workerUrl: string,
+    algorithm: E2EEAlgorithm,
+  ) {
     this.logger = videoLoggerSystem.getLogger('EncryptionManager');
     this.userId = userId;
     this.worker = worker;
     this.workerUrl = workerUrl;
+    this.algorithm = algorithm;
     this.worker.addEventListener('message', this.handleWorkerMessage);
     this.worker.addEventListener('error', this.handleWorkerError);
   }
@@ -119,6 +196,7 @@ export class EncryptionManager {
    *
    * @param userId - The local user's ID (typically `call.currentUserId`),
    *         used for encryption key lookup when attaching encryptors.
+   * @param options - Options that can be used to override certain defaults.
    * @throws {Error} If the browser does not support Encoded Transforms.
    *         Call {@link isSupported} first to check.
    *
@@ -130,8 +208,18 @@ export class EncryptionManager {
    *   e2ee.setSharedKey(0, keyBytes);
    * }
    * ```
+   *
+   * @example Opt into AES-256-GCM (32-byte keys)
+   * ```ts
+   * const e2ee = await EncryptionManager.create(userId, {
+   *   algorithm: 'AES-256-GCM',
+   * });
+   * ```
    */
-  static create = async (userId: string): Promise<EncryptionManager> => {
+  static create = async (
+    userId: string,
+    options?: CreateOptions,
+  ): Promise<EncryptionManager> => {
     if (!EncryptionManager.isSupported()) {
       throw new Error(
         `E2EE is not supported in this browser. Check EncryptionManager.isSupported() before calling create().`,
@@ -143,7 +231,8 @@ export class EncryptionManager {
     });
     const url = URL.createObjectURL(blob);
     const worker = new Worker(url, { name: 'stream-video-e2ee' });
-    return new EncryptionManager(userId, worker, url);
+    const algorithm = options?.algorithm ?? 'AES-128-GCM';
+    return new EncryptionManager(userId, worker, url, algorithm);
   };
 
   /**
@@ -164,11 +253,18 @@ export class EncryptionManager {
   };
 
   /**
-   * Set a per-user AES-128-GCM encryption key in the worker's key store.
+   * Set a per-user AES-GCM encryption key in the worker's key store.
    *
    * Use this when each participant has their own key, distributed by a
    * central authority. The receiver identifies the correct key via the
    * `keyIndex` embedded in each encrypted frame's trailer.
+   *
+   * @remarks
+   * Each call generates a fresh random 8-byte IV prefix on the sender side,
+   * which means callers can safely re-import the same raw key material
+   * without risking AES-GCM IV reuse. Nevertheless, keys should be rotated
+   * (with a new `keyIndex`) when participants join or leave — that's
+   * orthogonal to IV uniqueness and is about forward/backward secrecy.
    *
    * @param userId - The user's ID. For per-user keys, this must match the
    *         `trackLookupPrefix` that appears in the remote participant's stream ID
@@ -176,27 +272,29 @@ export class EncryptionManager {
    *         prefix for key lookup during decryption. With shared keys this doesn't
    *         matter since the shared key is used as a fallback for all users.
    * @param keyIndex - Monotonically increasing index for key rotation.
-   * @param rawKey - 16-byte raw AES-128 key material. Transferred to the worker (zero-copy).
+   * @param rawKey - Raw AES key material: 16 bytes for AES-128-GCM (default)
+   *         or 32 bytes for AES-256-GCM. Transferred to the worker (zero-copy).
    */
   setKey = (userId: string, keyIndex: number, rawKey: ArrayBuffer): void => {
-    validateKeyLength(rawKey);
+    this.validateKeyLength(rawKey);
     this.worker.postMessage({ type: 'setKey', userId, keyIndex, rawKey }, [
       rawKey,
     ]);
   };
 
   /**
-   * Set a shared AES-128-GCM key used as a fallback for any user
+   * Set a shared AES-GCM key used as a fallback for any user
    * without a per-user key.
    *
    * This is the simplest E2EE mode: all participants use the same
    * passphrase-derived key. No per-user key distribution needed.
    *
    * @param keyIndex - Key rotation index.
-   * @param rawKey - 16-byte raw AES-128 key material. Transferred to the worker (zero-copy).
+   * @param rawKey - Raw AES key material: 16 bytes for AES-128-GCM (default)
+   *         or 32 bytes for AES-256-GCM. Transferred to the worker (zero-copy).
    */
   setSharedKey = (keyIndex: number, rawKey: ArrayBuffer): void => {
-    validateKeyLength(rawKey);
+    this.validateKeyLength(rawKey);
     this.worker.postMessage({ type: 'setSharedKey', keyIndex, rawKey }, [
       rawKey,
     ]);
@@ -321,37 +419,62 @@ export class EncryptionManager {
 
   private handleWorkerMessage = (e: MessageEvent) => {
     const { type } = e.data ?? {};
-    if (type === 'error') {
-      this.logger.error(e.data.message);
-    } else if (type === 'decryptionFailed') {
-      this.logger.warn(`Decryption failed for user: ${e.data.userId}`);
-      this.onDecryptionFailed?.(e.data.userId);
-    } else if (type === 'decryptionResumed') {
-      this.logger.info(`Decryption resumed for user: ${e.data.userId}`);
-      this.onDecryptionResumed?.(e.data.userId);
-    } else if (type === 'keyState') {
-      this.pendingKeyDump?.resolve({
-        perUserKeys: e.data.perUserKeys,
-        sharedKey: e.data.sharedKey,
-      });
-      this.pendingKeyDump = undefined;
-    } else if (type === 'perf-report') {
-      const report: PerfReport = {
-        encode: e.data.encode,
-        decode: e.data.decode,
-        decodeMaxCryptoMs: e.data.decodeMaxCryptoMs,
-      };
-      const decodeInfo = report.decode
-        .map((d) => `${d.userId}: ${d.fps}`)
-        .join(', ');
-      this.logger.info(
-        `[perf] encode: ${report.encode.fps} fps (max crypto: ${report.encode.maxCryptoMs.toFixed(1)}ms) | decode: [${decodeInfo}] (max crypto: ${report.decodeMaxCryptoMs.toFixed(1)}ms)`,
-      );
-      this.onPerfReport?.(report);
+    switch (type) {
+      case 'error':
+        this.logger.error(e.data.message);
+        break;
+      case 'decryptionFailed':
+        this.logger.warn(`Decryption failed for user: ${e.data.userId}`);
+        this.onDecryptionFailed?.(e.data.userId);
+        break;
+      case 'decryptionResumed':
+        this.logger.info(`Decryption resumed for user: ${e.data.userId}`);
+        this.onDecryptionResumed?.(e.data.userId);
+        break;
+      case 'encryptionFailed':
+        this.logger.error(`Encryption failed: ${e.data.reason}`);
+        this.onEncryptionFailed?.(e.data.reason);
+        break;
+      case 'rekeyRequested':
+        this.logger.warn(
+          `Rekey requested (counter-threshold) for user: ${e.data.userId}`,
+        );
+        this.onRotationNeeded?.({ userId: e.data.userId });
+        break;
+      case 'e2eeBroken':
+        this.logger.error(
+          `E2EE broken for user ${e.data.userId} at keyIndex ${e.data.keyIndex}`,
+        );
+        this.onE2EEBroken?.({
+          userId: e.data.userId,
+          keyIndex: e.data.keyIndex,
+        });
+        break;
+      case 'keyState':
+        this.pendingKeyDump?.resolve({
+          perUserKeys: e.data.perUserKeys,
+          sharedKey: e.data.sharedKey,
+        });
+        this.pendingKeyDump = undefined;
+        break;
+      case 'perf-report':
+        this.onPerfReport?.({
+          encode: e.data.encode,
+          decode: e.data.decode,
+          decodeMaxCryptoMs: e.data.decodeMaxCryptoMs,
+        });
+        break;
     }
   };
 
   private handleWorkerError = (e: ErrorEvent) => {
     this.logger.error('Unhandled worker error:', e.message);
+  };
+
+  private validateKeyLength = (rawKey: ArrayBuffer) => {
+    const expected = this.algorithm === 'AES-256-GCM' ? 32 : 16;
+    if (rawKey.byteLength !== expected) {
+      throw new Error(`Key must be exactly ${expected} bytes`);
+    }
   };
 }

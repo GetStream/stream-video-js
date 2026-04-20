@@ -1,61 +1,110 @@
-import { E2EE_VERSION, MAGIC, RBSP_FLAG, TRAILER_LEN } from './constants';
+import {
+  E2EE_VERSION,
+  FRAME_COUNTER_LEN,
+  IV_PREFIX_LEN,
+  MAGIC,
+  MAX_CLEAR_BYTES,
+  RBSP_FLAG,
+  TRAILER_LEN,
+} from './constants';
 import type { Trailer } from './types';
 
 const msgQueue: Array<() => Promise<void>> = [];
 let msgQueueRunning = false;
 
-/**
- * Serialize async tasks to prevent races between key operations and
- * transform setup (e.g. `setKey` arriving while `ensureIVPrefix` is in-flight).
- */
-export const enqueue = async (fn: () => Promise<void>) => {
-  msgQueue.push(fn);
+const drain = async () => {
   if (msgQueueRunning) return;
   msgQueueRunning = true;
-  while (msgQueue.length > 0) {
-    const task = msgQueue.shift()!;
-    try {
+  try {
+    while (msgQueue.length > 0) {
+      const task = msgQueue.shift()!;
       await task();
-    } catch (e: any) {
-      self.postMessage({
-        type: 'error',
-        message: `Queue task error: ${e?.message || e}`,
-      });
     }
+  } finally {
+    msgQueueRunning = false;
   }
-  msgQueueRunning = false;
 };
 
 /**
- * Trailer layout (12 bytes):
- * [4B frameCounter][1B keyIndex][2B clearBytes|flags][1B version][4B magic]
+ * Serialize async tasks to prevent races between key operations and
+ * transform setup (e.g. `setKey` arriving while a transform is being wired
+ * up). Returns a promise that resolves/rejects with the task's own outcome.
+ */
+export const enqueue = <T>(fn: () => Promise<T>): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    msgQueue.push(async () => {
+      try {
+        resolve(await fn());
+      } catch (e) {
+        reject(e);
+      }
+    });
+    drain();
+  });
+
+// Offsets inside the 20-byte trailer.
+const OFF_IV_PREFIX = FRAME_COUNTER_LEN; // 4
+const OFF_KEY_INDEX = OFF_IV_PREFIX + IV_PREFIX_LEN; // 12
+const OFF_CLEAR_BYTES = OFF_KEY_INDEX + 1; // 13
+const OFF_VERSION = OFF_CLEAR_BYTES + 2; // 15
+const OFF_MAGIC = OFF_VERSION + 1; // 16
+
+/**
+ * Trailer layout (20 bytes, v2):
+ * [4B frameCounter][8B ivPrefix][1B keyIndex][2B clearBytes|flags]
+ * [1B version][4B magic]
  */
 export const writeTrailer = (
   dst: Uint8Array,
   offset: number,
   frameCounter: number,
+  ivPrefix: Uint8Array,
   keyIndex: number,
   clearBytes: number,
   isRbsp: boolean,
 ) => {
+  if (clearBytes > MAX_CLEAR_BYTES) {
+    throw new Error(
+      `clearBytes ${clearBytes} exceeds 15-bit max ${MAX_CLEAR_BYTES}`,
+    );
+  }
+  if (ivPrefix.length !== IV_PREFIX_LEN) {
+    throw new Error(
+      `ivPrefix must be ${IV_PREFIX_LEN} bytes, got ${ivPrefix.length}`,
+    );
+  }
   const view = new DataView(dst.buffer, dst.byteOffset, dst.byteLength);
   view.setUint32(offset, frameCounter);
-  dst[offset + 4] = keyIndex;
-  view.setUint16(offset + 5, isRbsp ? clearBytes | RBSP_FLAG : clearBytes);
-  dst[offset + 7] = E2EE_VERSION;
-  view.setUint32(offset + 8, MAGIC);
+  dst.set(ivPrefix, offset + OFF_IV_PREFIX);
+  dst[offset + OFF_KEY_INDEX] = keyIndex;
+  view.setUint16(
+    offset + OFF_CLEAR_BYTES,
+    isRbsp ? clearBytes | RBSP_FLAG : clearBytes,
+  );
+  dst[offset + OFF_VERSION] = E2EE_VERSION;
+  view.setUint32(offset + OFF_MAGIC, MAGIC);
 };
 
 export const readTrailer = (src: Uint8Array): Trailer | null => {
   if (src.length < TRAILER_LEN) return null;
   const view = new DataView(src.buffer, src.byteOffset, src.byteLength);
-  if (view.getUint32(src.length - 4) !== MAGIC) return null;
-  const raw = view.getUint16(src.length - 7);
+  const start = src.length - TRAILER_LEN;
+  if (view.getUint32(start + OFF_MAGIC) !== MAGIC) return null;
+  const version = src[start + OFF_VERSION];
+  // Treat unknown versions as "not our trailer" to avoid spurious
+  // decryption attempts on unrelated frames that happen to end in MAGIC.
+  if (version !== E2EE_VERSION) return null;
+  const raw = view.getUint16(start + OFF_CLEAR_BYTES);
+  const clearBytes = raw & MAX_CLEAR_BYTES;
+  // Defensive consistency check — decryption would fail anyway, but this
+  // lets us bail out before allocating / calling crypto.subtle.
+  if (clearBytes > src.length - TRAILER_LEN) return null;
   return {
-    frameCounter: view.getUint32(src.length - TRAILER_LEN),
-    keyIndex: src[src.length - 8],
-    clearBytes: raw & 0x7fff,
+    frameCounter: view.getUint32(start),
+    ivPrefix: src.subarray(start + OFF_IV_PREFIX, start + OFF_KEY_INDEX),
+    keyIndex: src[start + OFF_KEY_INDEX],
+    clearBytes,
     isRbsp: (raw & RBSP_FLAG) !== 0,
-    version: src[src.length - 5],
+    version,
   };
 };

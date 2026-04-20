@@ -32,8 +32,11 @@ export const KeyStateDump = ({ e2eeManager }: KeyStateDumpProps) => {
           {report.sharedKey && (
             <div className="key-dump__section">
               <span className="key-dump__label">Shared</span>
-              <code className="key-dump__hex" title={report.sharedKey.keyHex}>
-                #{report.sharedKey.keyIndex} {report.sharedKey.keyHex}
+              <code
+                className="key-dump__hex"
+                title={report.sharedKey.fingerprint}
+              >
+                #{report.sharedKey.keyIndex} {report.sharedKey.fingerprint}
               </code>
             </div>
           )}
@@ -46,8 +49,8 @@ export const KeyStateDump = ({ e2eeManager }: KeyStateDumpProps) => {
                 <span className="key-dump__label" title={k.userId}>
                   {k.userId.slice(0, 16)}...
                 </span>
-                <code className="key-dump__hex" title={k.keyHex}>
-                  #{k.keyIndex} {k.keyHex}
+                <code className="key-dump__hex" title={k.fingerprint}>
+                  #{k.keyIndex} {k.fingerprint}
                 </code>
               </div>
             ))

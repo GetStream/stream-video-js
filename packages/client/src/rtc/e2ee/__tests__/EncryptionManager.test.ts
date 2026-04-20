@@ -189,6 +189,41 @@ describe('EncryptionManager', () => {
     });
   });
 
+  describe('AES-256-GCM opt-in', () => {
+    it('rejects 16-byte keys when created with algorithm AES-256-GCM', async () => {
+      const mgr = await EncryptionManager.create('user', {
+        algorithm: 'AES-256-GCM',
+      });
+      try {
+        expect(() => mgr.setKey('remote', 0, new ArrayBuffer(16))).toThrow(
+          /32 bytes \(AES-256\)/,
+        );
+      } finally {
+        mgr.dispose();
+      }
+    });
+
+    it('accepts 32-byte keys when created with algorithm AES-256-GCM', async () => {
+      const mgr = await EncryptionManager.create('user', {
+        algorithm: 'AES-256-GCM',
+      });
+      try {
+        expect(() =>
+          mgr.setKey('remote', 0, new ArrayBuffer(32)),
+        ).not.toThrow();
+        expect(() => mgr.setSharedKey(0, new ArrayBuffer(32))).not.toThrow();
+      } finally {
+        mgr.dispose();
+      }
+    });
+
+    it('still enforces 16 bytes for the default (AES-128-GCM) manager', () => {
+      expect(() => manager.setKey('remote', 0, new ArrayBuffer(32))).toThrow(
+        /16 bytes \(AES-128\)/,
+      );
+    });
+  });
+
   describe('worker message handling', () => {
     it('invokes onDecryptionFailed callback', () => {
       const callback = vi.fn();
@@ -207,6 +242,47 @@ describe('EncryptionManager', () => {
 
       expect(() =>
         messageHandler({ data: { type: 'decryptionFailed', userId: 'bob' } }),
+      ).not.toThrow();
+    });
+
+    it('invokes onRotationNeeded on rekeyRequested', () => {
+      const callback = vi.fn();
+      manager.onRotationNeeded = callback;
+
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+      messageHandler({
+        data: { type: 'rekeyRequested', userId: 'local-user' },
+      });
+
+      expect(callback).toHaveBeenCalledWith({ userId: 'local-user' });
+    });
+
+    it('invokes onE2EEBroken on e2eeBroken message', () => {
+      const callback = vi.fn();
+      manager.onE2EEBroken = callback;
+
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+      messageHandler({
+        data: { type: 'e2eeBroken', userId: 'bob', keyIndex: 3 },
+      });
+
+      expect(callback).toHaveBeenCalledWith({ userId: 'bob', keyIndex: 3 });
+    });
+
+    it('does not throw when new callbacks are not set', () => {
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+      expect(() =>
+        messageHandler({
+          data: { type: 'rekeyRequested', userId: 'local-user' },
+        }),
+      ).not.toThrow();
+      expect(() =>
+        messageHandler({
+          data: { type: 'e2eeBroken', userId: 'bob', keyIndex: 1 },
+        }),
       ).not.toThrow();
     });
 

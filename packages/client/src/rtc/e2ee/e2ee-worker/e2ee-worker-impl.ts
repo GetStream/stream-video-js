@@ -19,22 +19,24 @@
  * - VP9: 0 bytes (descriptor is in RTP header)
  * - H264: NALU-aware — clear up to first slice NALU start + 2, then
  *   RBSP-escape the encrypted tail to prevent fake start codes
- * - AV1: not supported (blocked at the EncryptionManager level)
+ * - AV1: not supported
  *
- * Encrypted frames carry a 12-byte trailer:
- *   [4 bytes frameCounter][1 byte keyIndex][2 bytes clearBytes|flags][1 byte version][4 bytes 0xDEADBEEF]
+ * Encrypted frames carry a 20-byte trailer:
+ *   [4B frameCounter][8B ivPrefix][1B keyIndex][2B clearBytes|flags]
+ *   [1B version][4B 0xDEADBEEF]
  *
  * The 12-byte AES-GCM IV is constructed as:
- *   [8 bytes SHA-256(rawKey + userId)][4 bytes frameCounter]
- * The prefix is derived once per (key, user) pair, ensuring unique
- * IVs across users (even with shared keys) and across key rotations,
- * without adding bytes to the trailer.
+ *   [8 bytes ivPrefix][4 bytes frameCounter]
+ * `ivPrefix` is a random 8-byte value chosen fresh per key import on the
+ * sender side, and transmitted inline in every frame's trailer. This
+ * guarantees IV uniqueness even when the same raw key material happens to
+ * be imported more than once (either in the same worker or across worker
+ * sessions), without relying on the host to never reuse keys.
  *
- * The AES-GCM ciphertext includes a 16-byte authentication tag.
- * Clear bytes are passed as Additional Authenticated Data (AAD),
- * so the SFU can read them but tampering is detected on decrypt.
+ * Clear bytes are passed as Additional Authenticated Data (AAD) so the SFU
+ * can read them but tampering is detected on decrypt.
  *
- * Total overhead per frame: 28 bytes (16 GCM tag + 12 trailer).
+ * Total overhead per frame: 36 bytes (16 GCM tag + 20 trailer).
  *
  * Bundled at build time by rollup-plugin-inline-worker into a
  * self-contained function exported from `../e2ee-worker.ts`.
@@ -44,18 +46,28 @@
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#aes-gcm
  */
 
-import { E2EE_VERSION, EMPTY_AAD, IV_LEN, TRAILER_LEN } from './constants';
-import { getClearByteCount, rbspEscape, rbspUnescape } from './codec';
+import {
+  E2EE_VERSION,
+  EMPTY_AAD,
+  IV_LEN,
+  MAX_CLEAR_BYTES,
+  TRAILER_LEN,
+} from './constants';
+import {
+  getClearByteCount,
+  isSupportedCodec,
+  rbspEscape,
+  rbspUnescape,
+} from './codec';
 import { enqueue, readTrailer, writeTrailer } from './utils';
 import {
+  checkReplayWindow,
   dispose as disposeCrypto,
   dumpKeyState,
-  ensureIVPrefix,
   fillIV,
-  getIVPrefix,
   getKey,
   getLatestKey,
-  getSharedKey,
+  getSenderIvPrefix,
   hasDecryptionFailures,
   importKey,
   importSharedKey,
@@ -66,10 +78,25 @@ import {
   resetDecryptionFailures,
 } from './crypto';
 
+/** Minimal shape of an RTCEncodedVideoFrame / RTCEncodedAudioFrame. */
+interface EncodedFrame {
+  data: ArrayBuffer;
+  type?: 'key' | 'delta' | 'empty';
+  timestamp: number;
+}
+
+type FrameController = {
+  enqueue(frame: EncodedFrame): void;
+  terminate(): void;
+};
+
 let e2eeActive = true;
+
+// --- Perf reporter state --------------------------------------------------
 
 let perfEnabled = false;
 let perfInterval: ReturnType<typeof setInterval> | null = null;
+let perfLastTick = 0;
 let encodeFrameCount = 0;
 let encodeMaxCryptoMs = 0;
 let decodeMaxCryptoMs = 0;
@@ -81,16 +108,21 @@ const bumpDecodeCount = (userId: string) => {
 };
 
 const startPerfReport = () => {
+  if (perfInterval) return; // already running — avoid leaking a second interval
   perfEnabled = true;
+  perfLastTick = performance.now();
   perfInterval = setInterval(() => {
+    const now = performance.now();
+    const dtSec = Math.max(0.001, (now - perfLastTick) / 1000);
+    perfLastTick = now;
     const decode: Array<{ userId: string; fps: number }> = [];
     for (const [userId, count] of decodeFrameCounts) {
-      decode.push({ userId, fps: count });
+      decode.push({ userId, fps: count / dtSec });
       decodeFrameCounts.set(userId, 0);
     }
     self.postMessage({
       type: 'perf-report',
-      encode: { fps: encodeFrameCount, maxCryptoMs: encodeMaxCryptoMs },
+      encode: { fps: encodeFrameCount / dtSec, maxCryptoMs: encodeMaxCryptoMs },
       decode,
       decodeMaxCryptoMs,
     });
@@ -112,17 +144,28 @@ const stopPerfReport = () => {
   decodeFrameCounts.clear();
 };
 
-const encodeTransform = async (userId: string, codec: string | undefined) => {
-  const isNalu = codec === 'h264';
-  const latestEntry = getLatestKey(userId);
-  if (latestEntry && getSharedKey())
-    await ensureIVPrefix(userId, latestEntry.keyIndex);
+// --- Transform lifecycle --------------------------------------------------
 
+/**
+ * Track in-flight pipelines so `dispose` can tear them down cleanly instead
+ * of leaving them to fail per-frame after crypto state has been cleared.
+ */
+const activePipelines = new Set<AbortController>();
+
+let encodeFailureSignaled = false;
+const signalEncodeFailure = (reason: string) => {
+  if (encodeFailureSignaled) return;
+  encodeFailureSignaled = true;
+  self.postMessage({ type: 'encryptionFailed', reason });
+};
+
+const encodeTransform = (userId: string, codec: string | undefined) => {
+  const isNalu = codec === 'h264';
   const iv = new Uint8Array(IV_LEN);
   const ivView = new DataView(iv.buffer);
 
-  return new TransformStream({
-    async transform(frame: any, controller: any) {
+  return new TransformStream<EncodedFrame, EncodedFrame>({
+    async transform(frame, controller: FrameController) {
       // e2eeActive only gates encoding — the decoder always accepts both
       // encrypted (trailer present) and unencrypted frames from peers.
       if (!e2eeActive || frame.data.byteLength === 0) {
@@ -135,21 +178,27 @@ const encodeTransform = async (userId: string, codec: string | undefined) => {
       if (!entry) return;
 
       const { key: cryptoKey, keyIndex } = entry;
-      let prefix = getIVPrefix(userId, keyIndex);
-      if (!prefix) {
-        await ensureIVPrefix(userId, keyIndex);
-        prefix = getIVPrefix(userId, keyIndex);
-        if (!prefix) return;
-      }
+      const prefix = getSenderIvPrefix(userId, keyIndex);
+      if (!prefix) return;
 
       const src = new Uint8Array(frame.data);
       const clearBytes = getClearByteCount(codec, frame.type, src);
-      const counter = nextFrameCounter(userId);
-      fillIV(iv, ivView, prefix, counter);
-      const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : EMPTY_AAD;
-      const plaintext = clearBytes > 0 ? src.subarray(clearBytes) : src;
+      if (clearBytes > MAX_CLEAR_BYTES) {
+        // Impossibly large clear header — drop instead of corrupting the
+        // trailer by overflowing the RBSP flag bit.
+        signalEncodeFailure('clearBytes exceeds trailer capacity');
+        return;
+      }
 
       try {
+        // nextFrameCounter throws at the 32-bit ceiling; catching here keeps
+        // the sender fail-closed if the integrator ignored the earlier
+        // rekeyRequested signal.
+        const counter = nextFrameCounter(userId);
+        fillIV(iv, ivView, prefix, counter);
+        const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : EMPTY_AAD;
+        const plaintext = clearBytes > 0 ? src.subarray(clearBytes) : src;
+
         const t0 = perfEnabled ? performance.now() : 0;
         const encrypted = await crypto.subtle.encrypt(
           { name: 'AES-GCM', iv, additionalData: aad as BufferSource },
@@ -171,6 +220,7 @@ const encodeTransform = async (userId: string, codec: string | undefined) => {
             dst,
             clearBytes + escaped.length,
             counter,
+            prefix,
             keyIndex,
             clearBytes,
             true,
@@ -186,6 +236,7 @@ const encodeTransform = async (userId: string, codec: string | undefined) => {
             dst,
             clearBytes + ciphertext.length,
             counter,
+            prefix,
             keyIndex,
             clearBytes,
             false,
@@ -194,14 +245,17 @@ const encodeTransform = async (userId: string, codec: string | undefined) => {
         }
         controller.enqueue(frame);
         if (perfEnabled) encodeFrameCount++;
-      } catch {
-        // Encryption failed — drop frame to avoid sending plaintext
+      } catch (err: any) {
+        // Dropping the frame here avoids leaking plaintext, but the host
+        // needs to know — otherwise the sender publishes nothing with no
+        // surfaced error.
+        signalEncodeFailure(err?.message || String(err));
       }
     },
   });
 };
 
-const decodeTransform = async (userId: string) => {
+const decodeTransform = (userId: string) => {
   let lastFailureNotification = 0;
   const FAILURE_THROTTLE_MS = 1000;
 
@@ -213,14 +267,11 @@ const decodeTransform = async (userId: string) => {
     }
   };
 
-  const sk = getSharedKey();
-  if (sk) await ensureIVPrefix(userId, sk.keyIndex);
-
   const iv = new Uint8Array(IV_LEN);
   const ivView = new DataView(iv.buffer);
 
-  return new TransformStream({
-    async transform(frame: any, controller: any) {
+  return new TransformStream<EncodedFrame, EncodedFrame>({
+    async transform(frame, controller: FrameController) {
       if (frame.data.byteLength === 0) {
         controller.enqueue(frame);
         bumpDecodeCount(userId);
@@ -231,14 +282,19 @@ const decodeTransform = async (userId: string) => {
       const trailer = readTrailer(src);
 
       if (!trailer) {
+        // Unencrypted frame (or version mismatch); pass through untouched.
         controller.enqueue(frame);
         bumpDecodeCount(userId);
         return;
       }
 
-      const { frameCounter, keyIndex, clearBytes, isRbsp, version } = trailer;
+      const { frameCounter, ivPrefix, keyIndex, clearBytes, isRbsp, version } =
+        trailer;
 
       if (version !== E2EE_VERSION) {
+        // readTrailer already filters wrong versions, but keep the explicit
+        // branch so future bumps surface via notifyFailure rather than
+        // silently dropping as "not our trailer".
         notifyFailure();
         return;
       }
@@ -251,18 +307,14 @@ const decodeTransform = async (userId: string) => {
         return;
       }
 
-      let prefix = getIVPrefix(userId, keyIndex);
-      if (!prefix) {
-        await ensureIVPrefix(userId, keyIndex);
-        prefix = getIVPrefix(userId, keyIndex);
-        if (!prefix) {
-          notifyFailure();
-          return;
-        }
+      if (!checkReplayWindow(userId, keyIndex, frameCounter)) {
+        // Frame is a replay or older than the sliding window. Drop it
+        // silently — these are not true decryption failures.
+        return;
       }
 
       const bodyEnd = src.length - TRAILER_LEN;
-      fillIV(iv, ivView, prefix, frameCounter);
+      fillIV(iv, ivView, ivPrefix, frameCounter);
       const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : EMPTY_AAD;
 
       try {
@@ -301,14 +353,20 @@ const decodeTransform = async (userId: string) => {
         controller.enqueue(frame);
         bumpDecodeCount(userId);
       } catch {
+        // Only fire `e2eeBroken` on the transition — otherwise the host
+        // would receive one notification per frame once tolerance is hit.
+        const wasInvalid = isKeyInvalid(userId, keyIndex);
         recordDecryptionFailure(userId, keyIndex);
         notifyFailure();
+        if (!wasInvalid && isKeyInvalid(userId, keyIndex)) {
+          self.postMessage({ type: 'e2eeBroken', userId, keyIndex });
+        }
       }
     },
   });
 };
 
-const setupTransform = async ({
+const setupTransform = ({
   readable,
   writable,
   operation,
@@ -321,24 +379,68 @@ const setupTransform = async ({
   userId: string;
   codec?: string;
 }) => {
+  if (operation === 'encode') {
+    if (codec === 'av1') {
+      // Defence in depth: EncryptionManager also blocks this, but any
+      // caller that bypasses it would otherwise silently produce frames
+      // with `clearBytes = 0` and break SFU layer selection.
+      self.postMessage({
+        type: 'error',
+        message: 'AV1 is not supported for E2EE',
+      });
+      return;
+    }
+    if (!isSupportedCodec(codec)) {
+      self.postMessage({
+        type: 'error',
+        message: `Unsupported codec for E2EE: ${codec}`,
+      });
+      return;
+    }
+  }
+
   const transform =
     operation === 'encode'
-      ? await encodeTransform(userId, codec)
-      : await decodeTransform(userId);
+      ? encodeTransform(userId, codec)
+      : decodeTransform(userId);
+
+  const abort = new AbortController();
+  activePipelines.add(abort);
   readable
     .pipeThrough(transform)
-    .pipeTo(writable)
+    .pipeTo(writable, { signal: abort.signal })
     .catch((err: any) => {
+      if (abort.signal.aborted) return; // clean shutdown, not an error
       self.postMessage({
         type: 'error',
         message: `Transform pipeline error (${operation}, ${userId}): ${err?.message || err}`,
       });
+    })
+    .finally(() => {
+      activePipelines.delete(abort);
     });
 };
 
-addEventListener('rtctransform', ((event: any) => {
-  const { readable, writable, options } = event.transformer;
-  setupTransform({ readable, writable, ...options }).catch((err: any) => {
+const teardownAllTransforms = () => {
+  for (const abort of activePipelines) abort.abort();
+  activePipelines.clear();
+};
+
+addEventListener('rtctransform', ((event: Event) => {
+  const { readable, writable, options } = (
+    event as unknown as {
+      transformer: {
+        readable: ReadableStream;
+        writable: WritableStream;
+        options: { operation: string; userId: string; codec?: string };
+      };
+    }
+  ).transformer;
+  // Route through the same queue as message-based setup so that any
+  // in-flight key import completes before we wire up the transform.
+  enqueue(async () => {
+    setupTransform({ readable, writable, ...options });
+  }).catch((err: any) => {
     self.postMessage({
       type: 'error',
       message: `Transform setup failed: ${err?.message || err}`,
@@ -357,6 +459,7 @@ addEventListener('message', ({ data }: MessageEvent) => {
         break;
       case 'removeKeys':
         removeKeys(data.userId);
+        decodeFrameCounts.delete(data.userId);
         break;
       case 'e2ee-enabled':
         e2eeActive = !!data.enabled;
@@ -370,13 +473,14 @@ addEventListener('message', ({ data }: MessageEvent) => {
         break;
       case 'dispose':
         stopPerfReport();
+        teardownAllTransforms();
         disposeCrypto();
         break;
       default:
-        // Insertable Streams fallback: Chrome sends transform setup
-        // as untyped messages with {readable, writable, operation, ...}
+        // Insertable Streams fallback: Chrome sends transform setup as
+        // untyped messages with {readable, writable, operation, ...}.
         if (data.readable && data.writable) {
-          await setupTransform(data);
+          setupTransform(data);
         } else {
           self.postMessage({
             type: 'error',
