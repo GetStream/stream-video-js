@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import {
   Channel,
   ChannelHeader,
-  MessageInput,
+  MessageComposer,
   MessageList,
   useChatContext,
   Window,
@@ -29,7 +29,7 @@ export const ChatSidebar = () => {
         <Window>
           <ChannelHeader />
           <MessageList />
-          <MessageInput focus />
+          <MessageComposer focus />
         </Window>
       </Channel>
     </div>

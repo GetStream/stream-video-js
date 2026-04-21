@@ -24,7 +24,7 @@ export const UserList = () => {
               }}
             >
               <div className="user-list-item--avatar-name">
-                <Avatar user={u} image={u.image} name={u.name} />
+                <Avatar imageUrl={u.image} userName={u.name} size="md" />
                 {u.name}
               </div>
               <span>{'►'}</span>
