@@ -92,8 +92,8 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
   onError?: (error: any) => void;
 
   /**
-   * Configuration for performance metric thresholds.
-   * Use this to customize when performance warnings are triggered.
+   * @deprecated Performance tuning is now handled internally by the SDK.
+   * Degradation is derived from the processed/source FPS ratio.
    */
   performanceThresholds?: BackgroundFiltersPerformanceThresholds;
 
@@ -112,8 +112,8 @@ export type PerformanceDegradationReason = 'frame-drop' | 'cpu-throttling';
 /**
  * Performance degradation information for background filters.
  *
- * Performance is calculated using an Exponential Moving Average (EMA) of FPS values
- * to smooth out quick spikes and provide stable performance warnings.
+ * Performance is calculated from a smoothed processed/source FPS ratio to
+ * provide stable performance warnings.
  */
 export type BackgroundFiltersPerformance = {
   /**
