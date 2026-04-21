@@ -115,7 +115,7 @@ const QuickDialButton = ({ user }: QuickDialButtonProps) => {
         away: !user.online,
       })}
     >
-      <Avatar image={user.image as string} name={user.name} user={user} />
+      <Avatar imageUrl={user.image as string} userName={user.name} size="md" />
     </button>
   );
 };
