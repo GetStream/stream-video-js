@@ -92,8 +92,9 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
   onError?: (error: any) => void;
 
   /**
-   * @deprecated Performance tuning is now handled internally by the SDK.
-   * Degradation is derived from the processed/source FPS ratio.
+   * `@deprecated` Performance tuning is now handled internally by the SDK, so
+   * this prop is ignored. Remove this prop; there is no replacement
+   * configuration. Degradation is derived from the processed/source FPS ratio.
    */
   performanceThresholds?: BackgroundFiltersPerformanceThresholds;
 

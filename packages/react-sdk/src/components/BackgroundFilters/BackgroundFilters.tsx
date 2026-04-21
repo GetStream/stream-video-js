@@ -94,7 +94,10 @@ const determineEngine = async (
  * `MediaStreamTrack.stats` (currently Chromium-only).
  */
 const useTrackFramesPerSecond = (call: Call | undefined) => {
+  const { useCameraState } = useCallStateHooks();
+  const { rootMediaStream } = useCameraState();
   const [fps, setFps] = useState<number | undefined>(undefined);
+  const trackId = rootMediaStream?.getVideoTracks()[0]?.id;
 
   useEffect(() => {
     if (!call) {
@@ -108,7 +111,7 @@ const useTrackFramesPerSecond = (call: Call | undefined) => {
     let previousTrackId: string | undefined;
 
     const intervalId = setInterval(() => {
-      const track = call.camera.state.rootMediaStream?.getVideoTracks()[0] as
+      const track = rootMediaStream?.getVideoTracks()[0] as
         | MediaStreamTrackWithStats
         | undefined;
 
@@ -149,7 +152,7 @@ const useTrackFramesPerSecond = (call: Call | undefined) => {
       clearInterval(intervalId);
       setFps(undefined);
     };
-  }, [call]);
+  }, [call, rootMediaStream, trackId]);
 
   return fps;
 };
