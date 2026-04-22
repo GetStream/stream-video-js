@@ -1,13 +1,14 @@
 import {
-  DefaultParticipantViewUI,
   hasScreenShare,
   ParticipantsAudio,
   ParticipantView,
-  SfuModels,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
-import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
+import {
+  EgressReadinessProbe,
+  EgressReadyParticipantViewUI,
+} from '../EgressReadyParticipantViewUI';
 import { useConfigurationContext } from '../../../ConfigurationContext';
 
 import './DominantSpeakerScreenShare.scss';
@@ -17,12 +18,6 @@ export const DominantSpeakerScreenShare = () => {
   const participants = useRemoteParticipants();
 
   const screensharingParticipant = participants.find((p) => hasScreenShare(p))!;
-
-  const { setVideoElement, setVideoPlaceholderElement } =
-    useEgressReadyWhenAnyParticipantMounts(
-      screensharingParticipant!,
-      SfuModels.TrackType.SCREEN_SHARE,
-    );
 
   const {
     options: {
@@ -40,9 +35,8 @@ export const DominantSpeakerScreenShare = () => {
       <ParticipantView
         participant={screensharingParticipant}
         trackType="screenShareTrack"
-        refs={{ setVideoElement, setVideoPlaceholderElement }}
         muteAudio // audio is handled by <ParticipantsAudio />
-        ParticipantViewUI={null}
+        ParticipantViewUI={<EgressReadinessProbe />}
       />
       {presenterVisible && (
         <div className="eca__dominant-speaker-screen-share__current-speaker">
@@ -51,7 +45,7 @@ export const DominantSpeakerScreenShare = () => {
             mirror={forceMirrorParticipants}
             muteAudio // audio is handled by <ParticipantsAudio />
             ParticipantViewUI={
-              <DefaultParticipantViewUI
+              <EgressReadyParticipantViewUI
                 indicatorsVisible={false}
                 showMenuButton={false}
               />

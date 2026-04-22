@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import {
   CallTypes,
   combineComparators,
-  DefaultParticipantViewUI,
   defaultSortPreset,
   dominantSpeaker,
   ParticipantsAudio,
@@ -12,7 +11,6 @@ import {
   publishingVideo,
   reactionType,
   screenSharing,
-  SfuModels,
   speaking,
   StreamVideoParticipant,
   useCall,
@@ -20,7 +18,7 @@ import {
 } from '@stream-io/video-react-sdk';
 
 import { useSpotlightParticipant } from './useSpotlightParticipant';
-import { useEgressReadyWhenAnyParticipantMounts } from '../egressReady';
+import { EgressReadyParticipantViewUI } from '../EgressReadyParticipantViewUI';
 import { useConfigurationContext } from '../../../ConfigurationContext';
 
 import './DominantSpeaker.scss';
@@ -34,11 +32,6 @@ export const DominantSpeaker = () => {
   const {
     options: { 'layout.forceMirrorParticipants': forceMirrorParticipants },
   } = useConfigurationContext();
-  const { setVideoElement, setVideoPlaceholderElement } =
-    useEgressReadyWhenAnyParticipantMounts(
-      speakerInSpotlight!,
-      SfuModels.TrackType.VIDEO,
-    );
 
   useEffect(() => {
     if (!call) return;
@@ -83,10 +76,9 @@ export const DominantSpeaker = () => {
         <ParticipantView
           participant={speakerInSpotlight}
           mirror={forceMirrorParticipants}
-          refs={{ setVideoElement, setVideoPlaceholderElement }}
           muteAudio // audio is handled by <ParticipantsAudio />
           ParticipantViewUI={
-            <DefaultParticipantViewUI
+            <EgressReadyParticipantViewUI
               indicatorsVisible={false}
               showMenuButton={false}
             />

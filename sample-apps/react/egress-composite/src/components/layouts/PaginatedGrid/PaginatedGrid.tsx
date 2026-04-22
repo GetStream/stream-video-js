@@ -1,8 +1,7 @@
-import {
-  DefaultParticipantViewUI,
-  PaginatedGridLayout,
-} from '@stream-io/video-react-sdk';
+import { PaginatedGridLayout } from '@stream-io/video-react-sdk';
+
 import { useConfigurationContext } from '../../../ConfigurationContext';
+import { EgressReadyParticipantViewUI } from '../EgressReadyParticipantViewUI';
 
 import './PaginatedGrid.scss';
 
@@ -19,7 +18,7 @@ export const PaginatedGrid = () => {
     <div className="paginated-grid" data-testid="grid">
       <PaginatedGridLayout
         ParticipantViewUI={
-          <DefaultParticipantViewUI
+          <EgressReadyParticipantViewUI
             indicatorsVisible={false}
             showMenuButton={false}
           />
