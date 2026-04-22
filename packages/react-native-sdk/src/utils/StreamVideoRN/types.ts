@@ -145,6 +145,12 @@ export type StreamVideoConfig = {
         ) => string;
         getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
       };
+      /**
+       * When true, incoming call push notifications (call.ring) be displayed
+       * as a notification when the app is in the foreground.
+       * @default false
+       */
+      skipIncomingPushInForeground?: boolean;
     };
     /**
      * Whether to enable ongoing calls.

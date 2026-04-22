@@ -2,6 +2,8 @@ package io.getstream.rn.callingx
 
 import android.annotation.SuppressLint
 import com.google.firebase.messaging.RemoteMessage
+import io.getstream.rn.callingx.utils.LifecycleListener
+import io.getstream.rn.callingx.utils.SettingsStore
 import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService
 
 /**
@@ -33,6 +35,14 @@ class StreamMessagingService : ReactNativeFirebaseMessagingService() {
         debugLog(
           TAG,
           "missing call_cid for call.ring, skipping CallService start",
+        )
+      } else if (
+        SettingsStore.shouldSkipIncomingPushInForeground(applicationContext) &&
+        LifecycleListener.isInForeground
+      ) {
+        debugLog(
+          TAG,
+          "app is in foreground and skipIncomingPushInForeground=true, letting JS handle call.ring — skipping CallService start",
         )
       } else {
         CallService.startIncomingCallFromPush(applicationContext, data)

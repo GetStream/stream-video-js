@@ -66,6 +66,10 @@ export function extractCallingExpOptions(
     if (pushConfig.android.notificationTexts) {
       androidOptions.notificationTexts = pushConfig.android.notificationTexts;
     }
+    if (pushConfig.android.skipIncomingPushInForeground !== undefined) {
+      androidOptions.skipIncomingPushInForeground =
+        pushConfig.android.skipIncomingPushInForeground;
+    }
   }
 
   if (foregroundServiceConfig.android.channel) {

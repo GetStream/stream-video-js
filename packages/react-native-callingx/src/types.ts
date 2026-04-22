@@ -230,6 +230,12 @@ export type InternalAndroidOptions = {
      */
     rejecting?: string;
   };
+  /**
+   * When true, incoming call push notifications (call.ring) will not be displayed
+   * as a notification when the app is in the foreground.
+   * @default false
+   */
+  skipIncomingPushInForeground?: boolean;
 };
 type AndroidOptions = InternalAndroidOptions & NotificationTransformers;
 

@@ -35,6 +35,7 @@ export interface Spec extends TurboModule {
       accepting?: string;
       rejecting?: string;
     };
+    skipIncomingPushInForeground: boolean;
   }): void;
 
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;

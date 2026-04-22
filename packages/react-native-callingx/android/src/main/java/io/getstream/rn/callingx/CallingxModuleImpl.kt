@@ -1,17 +1,12 @@
 package io.getstream.rn.callingx
 
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.os.Build
 import android.os.Bundle
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.facebook.react.bridge.Arguments
-import com.facebook.react.bridge.LifecycleEventListener
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReadableMap
@@ -22,6 +17,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.getstream.rn.callingx.model.CallAction
 import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
+import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
 
 class CallingxModuleImpl(
@@ -68,6 +64,7 @@ class CallingxModuleImpl(
 
     fun initialize() {
         debugLog(TAG, "[module] initialize: Initializing module")
+        LifecycleListener.register(reactApplicationContext)
     }
 
     fun invalidate() {
@@ -105,6 +102,14 @@ class CallingxModuleImpl(
                     rejectingText,
             )
         }
+
+        val skipIncomingPushInForeground =
+                options.hasKey("skipIncomingPushInForeground") &&
+                        options.getBoolean("skipIncomingPushInForeground")
+        SettingsStore.setSkipIncomingPushInForeground(
+                reactApplicationContext,
+                skipIncomingPushInForeground,
+        )
 
         isModuleInitialized = true
     }
