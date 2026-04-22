@@ -1,4 +1,7 @@
-import { SpeakerLayout } from '@stream-io/video-react-sdk';
+import {
+  DefaultParticipantViewUI,
+  SpeakerLayout,
+} from '@stream-io/video-react-sdk';
 
 import { useConfigurationContext } from '../../../ConfigurationContext';
 import { EgressReadyParticipantViewUI } from '../EgressReadyParticipantViewUI';
@@ -25,7 +28,7 @@ export const Spotlight = () => {
         pageArrowsVisible={false}
         mirrorLocalParticipantVideo={forceMirrorParticipants !== false}
         ParticipantViewUIBar={
-          <EgressReadyParticipantViewUI
+          <DefaultParticipantViewUI
             indicatorsVisible={false}
             showMenuButton={false}
           />
