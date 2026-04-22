@@ -1,14 +1,12 @@
 import {
+  DefaultParticipantViewUI,
   hasScreenShare,
   ParticipantsAudio,
   ParticipantView,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
 
-import {
-  EgressReadinessProbe,
-  EgressReadyParticipantViewUI,
-} from '../EgressReadyParticipantViewUI';
+import { EgressReadinessProbe } from '../EgressReadyParticipantViewUI';
 import { useConfigurationContext } from '../../../ConfigurationContext';
 
 import './DominantSpeakerScreenShare.scss';
@@ -45,7 +43,7 @@ export const DominantSpeakerScreenShare = () => {
             mirror={forceMirrorParticipants}
             muteAudio // audio is handled by <ParticipantsAudio />
             ParticipantViewUI={
-              <EgressReadyParticipantViewUI
+              <DefaultParticipantViewUI
                 indicatorsVisible={false}
                 showMenuButton={false}
               />
