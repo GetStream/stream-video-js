@@ -83,7 +83,9 @@ final class ImageBackgroundVideoFrameProcessor: VideoFilter {
                 if let data = try? Data(contentsOf: url) {
                     bgUIImage = UIImage(data: data)
                 } else {
-                    NSLog("Failed to convert uri to image: -\(backgroundImageUrl)")
+                    // URLs may carry signed-access query tokens; log only the host.
+                    let host = url.host ?? "local"
+                    NSLog("Failed to load virtual-background image (host=\(host))")
                 }
             }
         }

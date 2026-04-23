@@ -78,11 +78,18 @@ private class VirtualBackgroundVideoFilter(
                     .getResourceDrawableId(reactContext, backgroundImageUrlString)
                 BitmapFactory.decodeResource(reactContext.resources, drawableId)
             } else {
-                val url = URL(backgroundImageUrlString)
-                BitmapFactory.decodeStream(url.openConnection().getInputStream())
+                val connection = URL(backgroundImageUrlString).openConnection().apply {
+                    connectTimeout = REMOTE_IMAGE_TIMEOUT_MS
+                    readTimeout = REMOTE_IMAGE_TIMEOUT_MS
+                }
+                connection.getInputStream().use { stream ->
+                    BitmapFactory.decodeStream(stream)
+                }
             }
         } catch (e: IOException) {
-            Log.e(TAG, "cant get bitmap for image url: $backgroundImageUrlString", e)
+            // URLs may carry signed-access query tokens; log only the host.
+            val host = Uri.parse(backgroundImageUrlString).host ?: "local"
+            Log.e(TAG, "cant get bitmap for image (host=$host)", e)
             null
         }
     }
@@ -263,6 +270,7 @@ private class VirtualBackgroundVideoFilter(
 
     companion object {
         private const val TAG = "VirtualBackgroundVideoFilter"
+        private const val REMOTE_IMAGE_TIMEOUT_MS = 10_000
     }
 }
 

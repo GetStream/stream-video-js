@@ -80,6 +80,10 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
   // Holds the exact native filter name so we can reapply on track replacement
   // (camera flip, enable-after-disable). State alone can't distinguish
   // `BackgroundBlur*` from `Blur*` — both use `{ blur: intensity }`.
+  //
+  // Also doubles as an invalidation signal for in-flight async apply calls: we
+  // set it before any await and check it still matches after, so a later
+  // apply/disable that mutates the ref causes the stale call to bail out.
   const lastAppliedFilterNameRef = useRef<string | null>(null);
 
   const [currentBackgroundFilter, setCurrentBackgroundFilter] =
@@ -90,18 +94,21 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       if (!isSupported) {
         return;
       }
-      if (!isBackgroundBlurRegisteredRef.current) {
-        await videoFiltersModule?.registerBackgroundBlurVideoFilters();
-        isBackgroundBlurRegisteredRef.current = true;
-      }
       let filterName = 'BackgroundBlurMedium';
       if (blurIntensity === 'heavy') {
         filterName = 'BackgroundBlurHeavy';
       } else if (blurIntensity === 'light') {
         filterName = 'BackgroundBlurLight';
       }
-      call?.tracer.trace('backgroundFilters.apply', filterName);
+      // Set intent before awaiting so a concurrent apply/disable that mutates
+      // the ref supersedes this call; we bail after the await if stale.
       lastAppliedFilterNameRef.current = filterName;
+      if (!isBackgroundBlurRegisteredRef.current) {
+        await videoFiltersModule?.registerBackgroundBlurVideoFilters();
+        if (lastAppliedFilterNameRef.current !== filterName) return;
+        isBackgroundBlurRegisteredRef.current = true;
+      }
+      call?.tracer.trace('backgroundFilters.apply', filterName);
       (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
@@ -117,18 +124,19 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       if (!isSupported) {
         return;
       }
-      if (!isVideoBlurRegisteredRef.current) {
-        await videoFiltersModule?.registerBlurVideoFilters();
-        isVideoBlurRegisteredRef.current = true;
-      }
       let filterName = 'BlurMedium';
       if (blurIntensity === 'heavy') {
         filterName = 'BlurHeavy';
       } else if (blurIntensity === 'light') {
         filterName = 'BlurLight';
       }
-      call?.tracer.trace('videoFilters.apply', filterName);
       lastAppliedFilterNameRef.current = filterName;
+      if (!isVideoBlurRegisteredRef.current) {
+        await videoFiltersModule?.registerBlurVideoFilters();
+        if (lastAppliedFilterNameRef.current !== filterName) return;
+        isVideoBlurRegisteredRef.current = true;
+      }
+      call?.tracer.trace('videoFilters.apply', filterName);
       (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
@@ -146,14 +154,15 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       }
       const source = Image.resolveAssetSource(imageSource);
       const imageUri = source.uri;
+      const filterName = `VirtualBackground-${imageUri}`;
+      lastAppliedFilterNameRef.current = filterName;
       const registeredImageFiltersSet = registeredImageFiltersSetRef.current;
       if (!registeredImageFiltersSet.has(imageUri)) {
         await videoFiltersModule?.registerVirtualBackgroundFilter(imageSource);
+        if (lastAppliedFilterNameRef.current !== filterName) return;
         registeredImageFiltersSetRef.current.add(imageUri);
       }
-      const filterName = `VirtualBackground-${imageUri}`;
       call?.tracer.trace('backgroundFilters.apply', filterName);
-      lastAppliedFilterNameRef.current = filterName;
       (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
@@ -169,6 +178,9 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       return;
     }
     call?.tracer.trace('backgroundFilters.disableAll', null);
+    // Clearing the ref also invalidates any in-flight apply call: its
+    // post-await stale check (`lastAppliedFilterNameRef.current !== filterName`)
+    // will then bail before re-applying a filter the user just turned off.
     lastAppliedFilterNameRef.current = null;
     (call?.camera.state.mediaStream as MediaStream | undefined)
       ?.getVideoTracks()
@@ -178,8 +190,9 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
     setCurrentBackgroundFilter(undefined);
   }, [call]);
 
-  // Reapply the active filter on track replacement (camera flip, enable-after-disable)
-  // and release native filter state when the provider unmounts or the call changes.
+  // Reapply the active filter on track replacement (camera flip, enable-after-
+  // disable) and release native filter state when the provider unmounts or the
+  // call changes.
   useEffect(() => {
     if (!call || !isSupported) return;
     const registeredImageFiltersSet = registeredImageFiltersSetRef.current;
