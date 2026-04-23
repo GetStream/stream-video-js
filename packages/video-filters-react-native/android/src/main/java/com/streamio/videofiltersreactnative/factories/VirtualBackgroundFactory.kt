@@ -44,14 +44,8 @@ class VirtualBackgroundFactory(
 
     override fun build(): VideoFrameProcessor {
         return VideoFrameProcessorWithBitmapFilter {
-            VirtualBackgroundVideoFilter(
-                reactContext, backgroundImageUrlString, foregroundThreshold
-            )
+            VirtualBackgroundVideoFilter(reactContext, backgroundImageUrlString, foregroundThreshold)
         }
-    }
-
-    companion object {
-        private const val TAG = "VirtualBackgroundFactory"
     }
 }
 
@@ -63,10 +57,36 @@ class VirtualBackgroundFactory(
  */
 @Keep
 private class VirtualBackgroundVideoFilter(
-    reactContext: ReactApplicationContext,
-    backgroundImageUrlString: String,
+    private val reactContext: ReactApplicationContext,
+    private val backgroundImageUrlString: String,
     foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
 ) : BitmapVideoFilter() {
+    // Loaded asynchronously to avoid blocking the WebRTC capture thread on URL I/O.
+    // Frames arriving before the load completes fall through unfiltered.
+    @Volatile
+    private var virtualBackgroundBitmap: Bitmap? = null
+
+    init {
+        Thread { loadBackgroundImage() }.start()
+    }
+
+    private fun loadBackgroundImage() {
+        virtualBackgroundBitmap = try {
+            val uri = Uri.parse(backgroundImageUrlString)
+            if (uri.scheme == null) { // this is a local image
+                val drawableId = ResourceDrawableIdHelper.getInstance()
+                    .getResourceDrawableId(reactContext, backgroundImageUrlString)
+                BitmapFactory.decodeResource(reactContext.resources, drawableId)
+            } else {
+                val url = URL(backgroundImageUrlString)
+                BitmapFactory.decodeStream(url.openConnection().getInputStream())
+            }
+        } catch (e: IOException) {
+            Log.e(TAG, "cant get bitmap for image url: $backgroundImageUrlString", e)
+            null
+        }
+    }
+
     private val options =
         SelfieSegmenterOptions.Builder().setDetectorMode(SelfieSegmenterOptions.STREAM_MODE)
             .enableRawSizeMask().build()
@@ -92,23 +112,6 @@ private class VirtualBackgroundVideoFilter(
         }
     }
 
-
-    private val virtualBackgroundBitmap by lazy {
-        try {
-            val uri = Uri.parse(backgroundImageUrlString)
-            if (uri.scheme == null) { // this is a local image
-                val drawableId = ResourceDrawableIdHelper.getInstance()
-                    .getResourceDrawableId(reactContext, backgroundImageUrlString)
-                BitmapFactory.decodeResource(reactContext.resources, drawableId)
-            } else {
-                val url = URL(backgroundImageUrlString)
-                BitmapFactory.decodeStream(url.openConnection().getInputStream())
-            }
-        } catch (e: IOException) {
-            Log.e(TAG, "cant get bitmap for image url: $backgroundImageUrlString", e)
-            null
-        }
-    }
 
     private val foregroundPaint by lazy {
         // destination - video frame

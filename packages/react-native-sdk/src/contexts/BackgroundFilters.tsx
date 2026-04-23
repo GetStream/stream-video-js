@@ -2,6 +2,7 @@ import React, {
   type PropsWithChildren,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -76,6 +77,10 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
   const isBackgroundBlurRegisteredRef = useRef(false);
   const isVideoBlurRegisteredRef = useRef(false);
   const registeredImageFiltersSetRef = useRef(new Set<string>());
+  // Holds the exact native filter name so we can reapply on track replacement
+  // (camera flip, enable-after-disable). State alone can't distinguish
+  // `BackgroundBlur*` from `Blur*` — both use `{ blur: intensity }`.
+  const lastAppliedFilterNameRef = useRef<string | null>(null);
 
   const [currentBackgroundFilter, setCurrentBackgroundFilter] =
     useState<CurrentBackgroundFilter>();
@@ -96,6 +101,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
         filterName = 'BackgroundBlurLight';
       }
       call?.tracer.trace('backgroundFilters.apply', filterName);
+      lastAppliedFilterNameRef.current = filterName;
       (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
@@ -122,6 +128,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
         filterName = 'BlurLight';
       }
       call?.tracer.trace('videoFilters.apply', filterName);
+      lastAppliedFilterNameRef.current = filterName;
       (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
@@ -146,6 +153,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       }
       const filterName = `VirtualBackground-${imageUri}`;
       call?.tracer.trace('backgroundFilters.apply', filterName);
+      lastAppliedFilterNameRef.current = filterName;
       (call?.camera.state.mediaStream as MediaStream | undefined)
         ?.getVideoTracks()
         .forEach((track) => {
@@ -161,12 +169,41 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       return;
     }
     call?.tracer.trace('backgroundFilters.disableAll', null);
+    lastAppliedFilterNameRef.current = null;
     (call?.camera.state.mediaStream as MediaStream | undefined)
       ?.getVideoTracks()
       .forEach((track) => {
         track._setVideoEffect(null);
       });
     setCurrentBackgroundFilter(undefined);
+  }, [call]);
+
+  // Reapply the active filter on track replacement (camera flip, enable-after-disable)
+  // and release native filter state when the provider unmounts or the call changes.
+  useEffect(() => {
+    if (!call || !isSupported) return;
+    const registeredImageFiltersSet = registeredImageFiltersSetRef.current;
+    const subscription = call.camera.state.mediaStream$.subscribe(() => {
+      const name = lastAppliedFilterNameRef.current;
+      if (!name) return;
+      (call.camera.state.mediaStream as MediaStream | undefined)
+        ?.getVideoTracks()
+        .forEach((track) => {
+          track._setVideoEffect(name);
+        });
+    });
+    return () => {
+      subscription.unsubscribe();
+      (call.camera.state.mediaStream as MediaStream | undefined)
+        ?.getVideoTracks()
+        .forEach((track) => {
+          track._setVideoEffect(null);
+        });
+      lastAppliedFilterNameRef.current = null;
+      isBackgroundBlurRegisteredRef.current = false;
+      isVideoBlurRegisteredRef.current = false;
+      registeredImageFiltersSet.clear();
+    };
   }, [call]);
 
   const value = useMemo(

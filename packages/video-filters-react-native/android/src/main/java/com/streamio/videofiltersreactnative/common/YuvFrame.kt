@@ -9,9 +9,7 @@ import io.github.crow_misia.libyuv.RotateMode
 import io.github.crow_misia.libyuv.RowStride
 import org.webrtc.VideoFrame
 
-object YuvFrame {
-  private const val TAG = "YuvFrame"
-
+class YuvFrame {
   private lateinit var webRtcI420Buffer: VideoFrame.I420Buffer
   private lateinit var libYuvI420Buffer: I420Buffer
   private var libYuvRotatedI420Buffer: I420Buffer? = null
@@ -93,5 +91,9 @@ object YuvFrame {
     libYuvI420Buffer.close()
     webRtcI420Buffer.release()
     // Rest of buffers are closed in the methods above
+  }
+
+  companion object {
+    private const val TAG = "YuvFrame"
   }
 }

@@ -18,6 +18,7 @@ import org.webrtc.YuvConverter
 class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVideoFilter) :
   VideoFrameProcessor {
   private val yuvConverter = YuvConverter()
+  private val yuvFrame = YuvFrame()
   private var inputWidth = 0
   private var inputHeight = 0
   private var inputBuffer: VideoFrame.TextureBuffer? = null
@@ -35,7 +36,7 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
 
   override fun process(frame: VideoFrame, surfaceTextureHelper: SurfaceTextureHelper): VideoFrame {
     // Step 1: Video Frame to Bitmap
-    val inputFrameBitmap = YuvFrame.bitmapFromVideoFrame(frame) ?: return frame
+    val inputFrameBitmap = yuvFrame.bitmapFromVideoFrame(frame) ?: return frame
 
     // Prepare helpers (runs only once or if the dimensions change)
     initialize(
@@ -66,9 +67,6 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
   }
 
   private fun initialize(width: Int, height: Int, textureHelper: SurfaceTextureHelper) {
-    // TODO: temporarily disabled due to crash: java.lang.IllegalStateException: release() called on an object with refcount < 1
-//     yuvBuffer?.release()
-
     if (this.inputWidth != width || this.inputHeight != height) {
       Log.d(TAG, "initialize - width: $width height: $height")
       this.inputWidth = width

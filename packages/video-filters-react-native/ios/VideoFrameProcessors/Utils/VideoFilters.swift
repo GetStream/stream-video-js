@@ -79,7 +79,11 @@ open class VideoFilter: NSObject, VideoFrameProcessorDelegate {
         )
         updateRotation()
     }
-    
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+
     @objc private func updateRotation() {
         DispatchQueue.main.async {
             self.sceneOrientation = UIApplication.shared.windows.first?.windowScene?.interfaceOrientation ?? .unknown

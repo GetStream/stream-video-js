@@ -27,16 +27,59 @@ final class ImageBackgroundVideoFrameProcessor: VideoFilter {
 
     private var cachedValue: CacheValue?
     private var backgroundImageUrl: String
-    
+
     private lazy var backgroundImageFilterProcessor = { return BackgroundImageFilterProcessor() }()
-    
-    private lazy var backgroundCIImage: CIImage? = {
+
+    // Background-loaded off the capture thread; `Data(contentsOf:)` on a remote URL
+    // would otherwise block the first frame(s) for the full network fetch duration.
+    // Guarded by an NSLock because Swift's `lazy var` is not thread-safe for class
+    // instances and the property is written from a background queue but read from
+    // the WebRTC capture thread.
+    private let backgroundImageLock = NSLock()
+    private var _backgroundCIImage: CIImage?
+
+    private var backgroundCIImage: CIImage? {
+        backgroundImageLock.lock()
+        defer { backgroundImageLock.unlock() }
+        return _backgroundCIImage
+    }
+
+    @available(*, unavailable)
+    override public init(
+        filter: @escaping (Input) -> CIImage
+    ) { fatalError() }
+
+    init(_ backgroundImageUrl: String) {
+        self.backgroundImageUrl = backgroundImageUrl
+        super.init(
+            filter: { input in input.originalImage }
+        )
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.loadBackgroundImage()
+        }
+
+        self.filter = { [weak self] input in
+            // `self.filter` is stored on `self`; capture weakly to avoid a retain cycle
+            // that would otherwise leak the processor for the lifetime of the app.
+            guard let self = self, let bgImage = self.backgroundCIImage else { return input.originalImage }
+            let cachedBackgroundImage = self.backgroundImage(image: bgImage, originalImage: input.originalImage, originalImageOrientation: input.originalImageOrientation)
+
+            let outputImage: CIImage = self.backgroundImageFilterProcessor
+                .applyFilter(
+                    input.originalPixelBuffer,
+                    backgroundImage: cachedBackgroundImage
+                ) ?? input.originalImage
+
+            return outputImage
+        }
+    }
+
+    private func loadBackgroundImage() {
         var bgUIImage: UIImage?
         if let url = URL(string: backgroundImageUrl) {
-            // check if its a local asset
             bgUIImage = RCTImageFromLocalAssetURL(url)
-            if (bgUIImage == nil) {
-                // if its not a local asset, then try to get it as a remote asset
+            if bgUIImage == nil {
                 if let data = try? Data(contentsOf: url) {
                     bgUIImage = UIImage(data: data)
                 } else {
@@ -44,35 +87,10 @@ final class ImageBackgroundVideoFrameProcessor: VideoFilter {
                 }
             }
         }
-        if (bgUIImage != nil) {
-            return CIImage.init(image: bgUIImage!)
-        }
-        return nil
-    }()
-    
-    @available(*, unavailable)
-    override public init(
-        filter: @escaping (Input) -> CIImage
-    ) { fatalError() }
-    
-    init(_ backgroundImageUrl: String) {
-        self.backgroundImageUrl = backgroundImageUrl
-        super.init(
-            filter: { input in input.originalImage }
-        )
-        
-        self.filter = { input in
-            guard let bgImage = self.backgroundCIImage else { return input.originalImage }
-            let cachedBackgroundImage = self.backgroundImage(image: bgImage, originalImage: input.originalImage, originalImageOrientation: input.originalImageOrientation)
-            
-            let outputImage: CIImage = self.backgroundImageFilterProcessor
-                .applyFilter(
-                    input.originalPixelBuffer,
-                    backgroundImage: cachedBackgroundImage
-                ) ?? input.originalImage
-            
-            return outputImage
-        }
+        guard let bgUIImage = bgUIImage else { return }
+        backgroundImageLock.lock()
+        _backgroundCIImage = CIImage(image: bgUIImage)
+        backgroundImageLock.unlock()
     }
     
     /// Returns the cached or processed background image for a given original image (frame image).
