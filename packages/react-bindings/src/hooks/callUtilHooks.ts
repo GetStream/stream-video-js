@@ -52,9 +52,12 @@ export const useToggleCallRecording = () => {
  * @param participant the participant to check.
  * @returns true if the audio track is connecting, false otherwise.
  */
-export const useIsAudioConnecting = (participant: StreamVideoParticipant) => {
+export const useIsAudioConnecting = (
+  participant: StreamVideoParticipant,
+): boolean => {
   const audioStream = participant.audioStream;
   const hasAudioTrack = hasAudio(participant);
+  const trackId = audioStream?.getAudioTracks()[0]?.id;
 
   const [unmuted, setUnmuted] = useState(() => {
     const track = audioStream?.getAudioTracks()[0];
@@ -63,7 +66,10 @@ export const useIsAudioConnecting = (participant: StreamVideoParticipant) => {
 
   useEffect(() => {
     const track = audioStream?.getAudioTracks()[0];
-    if (!track) return;
+    if (!track) {
+      setUnmuted(false);
+      return;
+    }
 
     setUnmuted(!track.muted);
 
@@ -78,7 +84,7 @@ export const useIsAudioConnecting = (participant: StreamVideoParticipant) => {
       track.removeEventListener('mute', handler);
       track.removeEventListener('unmute', handler);
     };
-  }, [audioStream]);
+  }, [audioStream, trackId]);
 
   return hasAudioTrack && !unmuted;
 };
