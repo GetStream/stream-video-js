@@ -39,8 +39,8 @@ test.describe('Layouts', () => {
       {
         name: 'grid',
         participantCountPerWindow: 5,
-        extraMessage: '(with size constraints)',
-        options: { 'layout.grid.size_constraints': true },
+        extraMessage: '(with expanded tiles)',
+        options: { 'layout.grid.expand_tiles': true },
       },
     ] satisfies TestCase<Layout>[]
   ).forEach((tc) => {

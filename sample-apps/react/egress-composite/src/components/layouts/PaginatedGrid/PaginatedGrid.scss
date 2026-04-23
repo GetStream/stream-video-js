@@ -14,7 +14,7 @@
       transition: width 0.2s ease-in-out;
     }
 
-    &--size-constrained .str-video__paginated-grid-layout__group {
+    &--expanded .str-video__paginated-grid-layout__group {
       .str-video__participant-view {
         aspect-ratio: 16/9;
       }

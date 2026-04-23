@@ -9,7 +9,7 @@ export const PaginatedGrid = () => {
   const {
     options: {
       'layout.grid.page_size': pageSize = 20,
-      'layout.grid.size_constraints': sizeConstraints = false,
+      'layout.grid.expand_tiles': expandTiles = false,
       'layout.forceMirrorParticipants': forceMirrorParticipants,
       'participant.filter': filterParticipants,
     },
@@ -19,7 +19,7 @@ export const PaginatedGrid = () => {
     <div
       className={cx(
         'paginated-grid',
-        sizeConstraints && 'paginated-grid--size-constrained',
+        expandTiles && 'paginated-grid--expanded',
       )}
       data-testid="grid"
     >
