@@ -1,7 +1,4 @@
-import {
-  DefaultParticipantViewUI,
-  PaginatedGridLayout,
-} from '@stream-io/video-react-sdk';
+import { PaginatedGridLayout } from '@stream-io/video-react-sdk';
 import { cx } from '@emotion/css';
 import { useConfigurationContext } from '../../../ConfigurationContext';
 import { EgressReadyParticipantViewUI } from '../EgressReadyParticipantViewUI';
