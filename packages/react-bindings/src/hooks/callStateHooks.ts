@@ -494,7 +494,9 @@ export const useScreenShareState = ({
  */
 export const useIncomingVideoSettings = () => {
   const call = useCall() as Call;
-  return useObservableValue(call.dynascaleManager.incomingVideoSettings$);
+  return useObservableValue(
+    call.dynascaleManager.trackSubscriptionManager.incomingVideoSettings$,
+  );
 };
 
 /**

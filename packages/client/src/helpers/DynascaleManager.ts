@@ -4,9 +4,8 @@ import {
   VideoTrackType,
   VisibilityState,
 } from '../types';
-import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';
+import { VideoDimension } from '../gen/video/sfu/models/models';
 import {
-  BehaviorSubject,
   combineLatest,
   distinctUntilChanged,
   distinctUntilKeyChanged,
@@ -17,18 +16,13 @@ import {
 import { ViewportTracker } from './ViewportTracker';
 import { AudioBindingsWatchdog } from './AudioBindingsWatchdog';
 import { AudioHealthMonitor } from './AudioHealthMonitor';
+import { TrackSubscriptionManager } from './TrackSubscriptionManager';
 import { isFirefox, isSafari } from './browsers';
 import { isReactNative } from './platforms';
-import {
-  hasScreenShare,
-  hasScreenShareAudio,
-  hasVideo,
-} from './participantUtils';
-import type { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
+import { hasScreenShare, hasVideo } from './participantUtils';
 import { CallState } from '../store';
 import type { StreamSfuClient } from '../StreamSfuClient';
 import { SpeakerManager } from '../devices';
-import { getCurrentValue, setCurrentValue } from '../store/rxUtils';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 
@@ -40,83 +34,30 @@ const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   screenShareTrack: VisibilityState.UNKNOWN,
 } as const;
 
-type VideoTrackSubscriptionOverride =
-  | {
-      enabled: true;
-      dimension: VideoDimension;
-    }
-  | { enabled: false };
-
-const globalOverrideKey = Symbol('globalOverrideKey');
-
-interface VideoTrackSubscriptionOverrides {
-  [sessionId: string]: VideoTrackSubscriptionOverride | undefined;
-  [globalOverrideKey]?: VideoTrackSubscriptionOverride;
-}
-
 /**
  * A manager class that handles dynascale related tasks like:
  *
  * - binding video elements to session ids
  * - binding audio elements to session ids
  * - tracking element visibility
- * - updating subscriptions based on viewport visibility
- * - updating subscriptions based on video element dimensions
- * - updating subscriptions based on published tracks
+ *
+ * SFU-side subscription state lives in {@link TrackSubscriptionManager};
+ * audio-health detection in {@link AudioHealthMonitor}; the
+ * dangling-binding watchdog in {@link AudioBindingsWatchdog}. All three
+ * are owned by this class and reachable via readonly fields.
  */
 export class DynascaleManager {
-  /**
-   * The viewport tracker instance.
-   */
-  readonly viewportTracker = new ViewportTracker();
-
   private logger = videoLoggerSystem.getLogger('DynascaleManager');
   private callState: CallState;
   private speaker: SpeakerManager;
   private tracer: Tracer;
   private useWebAudio = false;
   private audioContext: AudioContext | undefined;
-  private sfuClient: StreamSfuClient | undefined;
-  private pendingSubscriptionsUpdate: NodeJS.Timeout | null = null;
+
+  readonly viewportTracker = new ViewportTracker();
+  readonly trackSubscriptionManager: TrackSubscriptionManager;
   readonly audioHealthMonitor: AudioHealthMonitor | undefined;
   readonly audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
-
-  private videoTrackSubscriptionOverridesSubject =
-    new BehaviorSubject<VideoTrackSubscriptionOverrides>({});
-
-  videoTrackSubscriptionOverrides$ =
-    this.videoTrackSubscriptionOverridesSubject.asObservable();
-
-  incomingVideoSettings$ = this.videoTrackSubscriptionOverrides$.pipe(
-    map((overrides) => {
-      const { [globalOverrideKey]: globalSettings, ...participants } =
-        overrides;
-      return {
-        enabled: globalSettings?.enabled !== false,
-        preferredResolution: globalSettings?.enabled
-          ? globalSettings.dimension
-          : undefined,
-        participants: Object.fromEntries(
-          Object.entries(participants).map(
-            ([sessionId, participantOverride]) => [
-              sessionId,
-              {
-                enabled: participantOverride?.enabled !== false,
-                preferredResolution: participantOverride?.enabled
-                  ? participantOverride.dimension
-                  : undefined,
-              },
-            ],
-          ),
-        ),
-        isParticipantVideoEnabled: (sessionId: string) =>
-          overrides[sessionId]?.enabled ??
-          overrides[globalOverrideKey]?.enabled ??
-          true,
-      };
-    }),
-    shareReplay(1),
-  );
 
   /**
    * Creates a new DynascaleManager instance.
@@ -125,6 +66,10 @@ export class DynascaleManager {
     this.callState = callState;
     this.speaker = speaker;
     this.tracer = tracer;
+    this.trackSubscriptionManager = new TrackSubscriptionManager(
+      callState,
+      tracer,
+    );
     if (!isReactNative()) {
       this.audioHealthMonitor = new AudioHealthMonitor(tracer);
       this.audioBindingsWatchdog = new AudioBindingsWatchdog(callState, tracer);
@@ -135,9 +80,7 @@ export class DynascaleManager {
    * Disposes the allocated resources and closes the audio context if it was created.
    */
   dispose = async () => {
-    if (this.pendingSubscriptionsUpdate) {
-      clearTimeout(this.pendingSubscriptionsUpdate);
-    }
+    this.trackSubscriptionManager.dispose();
     this.audioBindingsWatchdog?.dispose();
     // Clears the blocked-elements set as part of the monitor's teardown.
     await this.audioHealthMonitor?.stop();
@@ -151,7 +94,7 @@ export class DynascaleManager {
   };
 
   setSfuClient(sfuClient: StreamSfuClient | undefined) {
-    this.sfuClient = sfuClient;
+    this.trackSubscriptionManager.setSfuClient(sfuClient);
     // Start the audio-health monitor the first time a call actually has an
     // SFU connection. `start()` is idempotent — safe across SFU migration /
     // reconnection where this may fire more than once.
@@ -159,105 +102,6 @@ export class DynascaleManager {
       this.audioHealthMonitor?.start();
     }
   }
-
-  get trackSubscriptions() {
-    const subscriptions: TrackSubscriptionDetails[] = [];
-    // Use getParticipantsSnapshot() to bypass the observable pipeline
-    // and avoid stale data caused by shareReplay with no active subscribers
-    const participants = this.callState.getParticipantsSnapshot();
-    const videoTrackSubscriptionOverrides =
-      this.videoTrackSubscriptionOverridesSubject.getValue();
-    for (const p of participants) {
-      if (p.isLocalParticipant) continue;
-      // NOTE: audio tracks don't have to be requested explicitly
-      // as the SFU will implicitly subscribe us to all of them,
-      // once they become available.
-      if (p.videoDimension && hasVideo(p)) {
-        const override =
-          videoTrackSubscriptionOverrides[p.sessionId] ??
-          videoTrackSubscriptionOverrides[globalOverrideKey];
-
-        if (override?.enabled !== false) {
-          subscriptions.push({
-            userId: p.userId,
-            sessionId: p.sessionId,
-            trackType: TrackType.VIDEO,
-            dimension: override?.dimension ?? p.videoDimension,
-          });
-        }
-      }
-      if (p.screenShareDimension && hasScreenShare(p)) {
-        subscriptions.push({
-          userId: p.userId,
-          sessionId: p.sessionId,
-          trackType: TrackType.SCREEN_SHARE,
-          dimension: p.screenShareDimension,
-        });
-      }
-      if (hasScreenShareAudio(p)) {
-        subscriptions.push({
-          userId: p.userId,
-          sessionId: p.sessionId,
-          trackType: TrackType.SCREEN_SHARE_AUDIO,
-        });
-      }
-    }
-    return subscriptions;
-  }
-
-  get videoTrackSubscriptionOverrides() {
-    return getCurrentValue(this.videoTrackSubscriptionOverrides$);
-  }
-
-  setVideoTrackSubscriptionOverrides = (
-    override: VideoTrackSubscriptionOverride | undefined,
-    sessionIds?: string[],
-  ) => {
-    this.tracer.trace('setVideoTrackSubscriptionOverrides', [
-      override,
-      sessionIds,
-    ]);
-    if (!sessionIds) {
-      return setCurrentValue(
-        this.videoTrackSubscriptionOverridesSubject,
-        override ? { [globalOverrideKey]: override } : {},
-      );
-    }
-
-    return setCurrentValue(
-      this.videoTrackSubscriptionOverridesSubject,
-      (overrides) => ({
-        ...overrides,
-        ...Object.fromEntries(sessionIds.map((id) => [id, override])),
-      }),
-    );
-  };
-
-  applyTrackSubscriptions = (
-    debounceType: DebounceType = DebounceType.SLOW,
-  ) => {
-    if (this.pendingSubscriptionsUpdate) {
-      clearTimeout(this.pendingSubscriptionsUpdate);
-    }
-
-    const updateSubscriptions = () => {
-      this.pendingSubscriptionsUpdate = null;
-      this.sfuClient
-        ?.updateSubscriptions(this.trackSubscriptions)
-        .catch((err: unknown) => {
-          this.logger.debug(`Failed to update track subscriptions`, err);
-        });
-    };
-
-    if (debounceType) {
-      this.pendingSubscriptionsUpdate = setTimeout(
-        updateSubscriptions,
-        debounceType,
-      );
-    } else {
-      updateSubscriptions();
-    }
-  };
 
   /**
    * Will begin tracking the given element for visibility changes within the
@@ -376,7 +220,7 @@ export class DynascaleManager {
       this.callState.updateParticipantTracks(trackType, {
         [sessionId]: { dimension },
       });
-      this.applyTrackSubscriptions(debounceType);
+      this.trackSubscriptionManager.apply(debounceType);
     };
 
     const participant$ = this.callState.participants$.pipe(

@@ -1242,7 +1242,8 @@ export class Call {
     return {
       strategy,
       announcedTracks,
-      subscriptions: this.dynascaleManager.trackSubscriptions,
+      subscriptions:
+        this.dynascaleManager.trackSubscriptionManager.subscriptions,
       reconnectAttempt: this.reconnectAttempts,
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
@@ -1856,7 +1857,7 @@ export class Call {
   private restoreSubscribedTracks = () => {
     const { remoteParticipants } = this.state;
     if (remoteParticipants.length <= 0) return;
-    this.dynascaleManager.applyTrackSubscriptions(undefined);
+    this.dynascaleManager.trackSubscriptionManager.apply(undefined);
   };
 
   /**
@@ -3028,7 +3029,7 @@ export class Call {
     resolution: VideoDimension | undefined,
     sessionIds?: string[],
   ) => {
-    this.dynascaleManager.setVideoTrackSubscriptionOverrides(
+    this.dynascaleManager.trackSubscriptionManager.setOverrides(
       resolution
         ? {
             enabled: true,
@@ -3037,7 +3038,7 @@ export class Call {
         : undefined,
       sessionIds,
     );
-    this.dynascaleManager.applyTrackSubscriptions();
+    this.dynascaleManager.trackSubscriptionManager.apply();
   };
 
   /**
@@ -3045,10 +3046,10 @@ export class Call {
    * and removes any preference for preferred resolution.
    */
   setIncomingVideoEnabled = (enabled: boolean) => {
-    this.dynascaleManager.setVideoTrackSubscriptionOverrides(
+    this.dynascaleManager.trackSubscriptionManager.setOverrides(
       enabled ? undefined : { enabled: false },
     );
-    this.dynascaleManager.applyTrackSubscriptions();
+    this.dynascaleManager.trackSubscriptionManager.apply();
   };
 
   /**
