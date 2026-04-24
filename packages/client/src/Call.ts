@@ -143,6 +143,9 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
+import { AudioHealthMonitor } from './helpers/AudioHealthMonitor';
+import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
+import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
@@ -228,6 +231,29 @@ export class Call {
    * The DynascaleManager instance.
    */
   readonly dynascaleManager: DynascaleManager;
+
+  /**
+   * Owns the SFU-side video-subscription state (per-session and global
+   * overrides). Used by `bindVideoElement` for resolution/visibility-driven
+   * subscription updates and by `getReconnectDetails` for restoring state
+   * on reconnect. Exposes `incomingVideoSettings$` for the React hook.
+   */
+  readonly trackSubscriptionManager: TrackSubscriptionManager;
+
+  /**
+   * Detects audio-pipeline failure signals (OS audio-session interruption
+   * on Safari, browser autoplay blocks) and owns recovery via
+   * `resumeAudio()`. Undefined on React Native — RN surfaces audio
+   * interruption through the native bridge instead.
+   */
+  readonly audioHealthMonitor: AudioHealthMonitor | undefined;
+
+  /**
+   * Warns periodically when a remote participant is publishing audio but no
+   * `<audio>` element has been bound for them. Undefined on React Native
+   * (no DOM audio elements).
+   */
+  readonly audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
 
   subscriber?: Subscriber;
   publisher?: Publisher;
@@ -348,10 +374,24 @@ export class Call {
     this.microphone = new MicrophoneManager(this, preferences);
     this.speaker = new SpeakerManager(this, preferences);
     this.screenShare = new ScreenShareManager(this);
+    this.trackSubscriptionManager = new TrackSubscriptionManager(
+      this.state,
+      this.tracer,
+    );
+    if (!isReactNative()) {
+      this.audioHealthMonitor = new AudioHealthMonitor(this.tracer);
+      this.audioBindingsWatchdog = new AudioBindingsWatchdog(
+        this.state,
+        this.tracer,
+      );
+    }
     this.dynascaleManager = new DynascaleManager(
       this.state,
       this.speaker,
       this.tracer,
+      this.trackSubscriptionManager,
+      this.audioHealthMonitor,
+      this.audioBindingsWatchdog,
     );
   }
 
@@ -687,7 +727,10 @@ export class Call {
 
       await this.sfuClient?.leaveAndClose(leaveReason);
       this.sfuClient = undefined;
-      this.dynascaleManager.setSfuClient(undefined);
+      this.trackSubscriptionManager.setSfuClient(undefined);
+      this.trackSubscriptionManager.dispose();
+      this.audioBindingsWatchdog?.dispose();
+      await this.audioHealthMonitor?.stop();
       await this.dynascaleManager.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
@@ -1098,7 +1141,11 @@ export class Call {
         : previousSfuClient;
     this.sfuClient = sfuClient;
     this.unifiedSessionId ??= sfuClient.sessionId;
-    this.dynascaleManager.setSfuClient(sfuClient);
+    this.trackSubscriptionManager.setSfuClient(sfuClient);
+    // Start the audio-health monitor the first time a call actually has an
+    // SFU connection. `start()` is idempotent — safe across SFU migration /
+    // reconnection where this may fire more than once.
+    this.audioHealthMonitor?.start();
 
     const clientDetails = await getClientDetails();
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
@@ -1242,8 +1289,7 @@ export class Call {
     return {
       strategy,
       announcedTracks,
-      subscriptions:
-        this.dynascaleManager.trackSubscriptionManager.subscriptions,
+      subscriptions: this.trackSubscriptionManager.subscriptions,
       reconnectAttempt: this.reconnectAttempts,
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
@@ -1857,7 +1903,7 @@ export class Call {
   private restoreSubscribedTracks = () => {
     const { remoteParticipants } = this.state;
     if (remoteParticipants.length <= 0) return;
-    this.dynascaleManager.trackSubscriptionManager.apply(undefined);
+    this.trackSubscriptionManager.apply(undefined);
   };
 
   /**
@@ -2974,7 +3020,7 @@ export class Call {
    * the browser to permit playback.
    */
   resumeAudio = async () => {
-    await this.dynascaleManager.audioHealthMonitor?.resumeAudio();
+    await this.audioHealthMonitor?.resumeAudio();
   };
 
   /**
@@ -3029,7 +3075,7 @@ export class Call {
     resolution: VideoDimension | undefined,
     sessionIds?: string[],
   ) => {
-    this.dynascaleManager.trackSubscriptionManager.setOverrides(
+    this.trackSubscriptionManager.setOverrides(
       resolution
         ? {
             enabled: true,
@@ -3038,7 +3084,7 @@ export class Call {
         : undefined,
       sessionIds,
     );
-    this.dynascaleManager.trackSubscriptionManager.apply();
+    this.trackSubscriptionManager.apply();
   };
 
   /**
@@ -3046,10 +3092,10 @@ export class Call {
    * and removes any preference for preferred resolution.
    */
   setIncomingVideoEnabled = (enabled: boolean) => {
-    this.dynascaleManager.trackSubscriptionManager.setOverrides(
+    this.trackSubscriptionManager.setOverrides(
       enabled ? undefined : { enabled: false },
     );
-    this.dynascaleManager.trackSubscriptionManager.apply();
+    this.trackSubscriptionManager.apply();
   };
 
   /**

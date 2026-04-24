@@ -14,14 +14,12 @@ import {
   takeWhile,
 } from 'rxjs';
 import { ViewportTracker } from './ViewportTracker';
-import { AudioBindingsWatchdog } from './AudioBindingsWatchdog';
-import { AudioHealthMonitor } from './AudioHealthMonitor';
-import { TrackSubscriptionManager } from './TrackSubscriptionManager';
+import type { AudioBindingsWatchdog } from './AudioBindingsWatchdog';
+import type { AudioHealthMonitor } from './AudioHealthMonitor';
+import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
 import { isFirefox, isSafari } from './browsers';
-import { isReactNative } from './platforms';
 import { hasScreenShare, hasVideo } from './participantUtils';
 import { CallState } from '../store';
-import type { StreamSfuClient } from '../StreamSfuClient';
 import { SpeakerManager } from '../devices';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
@@ -41,10 +39,9 @@ const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
  * - binding audio elements to session ids
  * - tracking element visibility
  *
- * SFU-side subscription state lives in {@link TrackSubscriptionManager};
- * audio-health detection in {@link AudioHealthMonitor}; the
- * dangling-binding watchdog in {@link AudioBindingsWatchdog}. All three
- * are owned by this class and reachable via readonly fields.
+ * Receives {@link TrackSubscriptionManager}, {@link AudioHealthMonitor}
+ * and {@link AudioBindingsWatchdog} by injection. `Call` owns their
+ * lifecycles; this class uses them during element bind/unbind.
  */
 export class DynascaleManager {
   private logger = videoLoggerSystem.getLogger('DynascaleManager');
@@ -55,36 +52,35 @@ export class DynascaleManager {
   private audioContext: AudioContext | undefined;
 
   readonly viewportTracker = new ViewportTracker();
-  readonly trackSubscriptionManager: TrackSubscriptionManager;
-  readonly audioHealthMonitor: AudioHealthMonitor | undefined;
-  readonly audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
+  private trackSubscriptionManager: TrackSubscriptionManager;
+  private audioHealthMonitor: AudioHealthMonitor | undefined;
+  private audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
 
   /**
    * Creates a new DynascaleManager instance.
    */
-  constructor(callState: CallState, speaker: SpeakerManager, tracer: Tracer) {
+  constructor(
+    callState: CallState,
+    speaker: SpeakerManager,
+    tracer: Tracer,
+    trackSubscriptionManager: TrackSubscriptionManager,
+    audioHealthMonitor: AudioHealthMonitor | undefined,
+    audioBindingsWatchdog: AudioBindingsWatchdog | undefined,
+  ) {
     this.callState = callState;
     this.speaker = speaker;
     this.tracer = tracer;
-    this.trackSubscriptionManager = new TrackSubscriptionManager(
-      callState,
-      tracer,
-    );
-    if (!isReactNative()) {
-      this.audioHealthMonitor = new AudioHealthMonitor(tracer);
-      this.audioBindingsWatchdog = new AudioBindingsWatchdog(callState, tracer);
-    }
+    this.trackSubscriptionManager = trackSubscriptionManager;
+    this.audioHealthMonitor = audioHealthMonitor;
+    this.audioBindingsWatchdog = audioBindingsWatchdog;
   }
 
   /**
-   * Disposes the allocated resources and closes the audio context if it was created.
+   * Closes the audio context if it was created. The three injected helpers
+   * (`TrackSubscriptionManager`, `AudioHealthMonitor`, `AudioBindingsWatchdog`)
+   * are owned by `Call` and disposed there.
    */
   dispose = async () => {
-    this.trackSubscriptionManager.dispose();
-    this.audioBindingsWatchdog?.dispose();
-    // Clears the blocked-elements set as part of the monitor's teardown.
-    await this.audioHealthMonitor?.stop();
-
     const context = this.audioContext;
     if (context && context.state !== 'closed') {
       document.removeEventListener('click', this.resumeAudioContext);
@@ -92,16 +88,6 @@ export class DynascaleManager {
       this.audioContext = undefined;
     }
   };
-
-  setSfuClient(sfuClient: StreamSfuClient | undefined) {
-    this.trackSubscriptionManager.setSfuClient(sfuClient);
-    // Start the audio-health monitor the first time a call actually has an
-    // SFU connection. `start()` is idempotent — safe across SFU migration /
-    // reconnection where this may fire more than once.
-    if (sfuClient) {
-      this.audioHealthMonitor?.start();
-    }
-  }
 
   /**
    * Will begin tracking the given element for visibility changes within the

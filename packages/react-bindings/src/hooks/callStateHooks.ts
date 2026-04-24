@@ -495,7 +495,7 @@ export const useScreenShareState = ({
 export const useIncomingVideoSettings = () => {
   const call = useCall() as Call;
   return useObservableValue(
-    call.dynascaleManager.trackSubscriptionManager.incomingVideoSettings$,
+    call.trackSubscriptionManager.incomingVideoSettings$,
   );
 };
 
@@ -516,8 +516,7 @@ const AUTOPLAY_UNBLOCKED$ = of(false);
 export const useIsAutoplayBlocked = (): boolean => {
   const call = useCall() as Call;
   return useObservableValue(
-    call.dynascaleManager.audioHealthMonitor?.autoplayBlocked$ ??
-      AUTOPLAY_UNBLOCKED$,
+    call.audioHealthMonitor?.autoplayBlocked$ ?? AUTOPLAY_UNBLOCKED$,
   );
 };
 
@@ -541,7 +540,7 @@ const UNKNOWN_AUDIO_HEALTH$ = of<AudioHealthInfo>({
  */
 export const useAudioHealth = (): AudioHealthInfo => {
   const call = useCall() as Call;
-  const monitor = call.dynascaleManager.audioHealthMonitor;
+  const monitor = call.audioHealthMonitor;
   return useObservableValue(monitor?.audioHealth$ ?? UNKNOWN_AUDIO_HEALTH$);
 };
 

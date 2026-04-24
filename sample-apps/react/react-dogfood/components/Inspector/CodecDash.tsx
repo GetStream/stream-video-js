@@ -103,7 +103,7 @@ function useForceSubscriptions() {
       };
     }
     call.state.updateParticipantTracks('videoTrack', changes);
-    call.dynascaleManager.trackSubscriptionManager.apply();
+    call.trackSubscriptionManager.apply();
     setSubscribedParticipants(new Set(Object.keys(changes)));
   }, []);
 
