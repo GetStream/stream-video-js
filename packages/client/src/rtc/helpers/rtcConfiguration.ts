@@ -8,5 +8,6 @@ export const toRtcConfiguration = (config: ICEServer[]): RTCConfiguration => {
       username: ice.username,
       credential: ice.password,
     })),
+    iceTransportPolicy: 'relay',
   };
 };
