@@ -90,13 +90,9 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
     }
   }
 
-  // Upstream `VideoEffectProcessor.dispose()` posts to the capturer's handler,
-  // so this runs on the GL thread serialized with `onFrameCaptured` →
-  // `process()`. All cleanup can be inline: no in-flight `process()` can race,
-  // and GL ops have the correct context / thread. The texture is deleted
-  // regardless of whether `initialize()` ever ran (enable-then-disable before
-  // first frame would otherwise leak it on drivers where the no-context
-  // `glGenTextures` in `init` still produced a valid id).
+  // Runs on the GL thread, serialized with `process()` — inline cleanup is safe.
+  // The texture is always deleted: `glGenTextures` in `init` can return a valid id
+  // even if `initialize()` never ran, so enable-then-disable would otherwise leak it.
   override fun dispose() {
     yuvFrame.close()
     inputFrameBitmap?.recycle()

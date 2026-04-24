@@ -61,8 +61,8 @@ private class VirtualBackgroundVideoFilter(
     private val backgroundImageUrlString: String,
     foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
 ) : BitmapVideoFilter() {
-    // Loaded asynchronously to avoid blocking the WebRTC capture thread on URL I/O.
-    // Frames arriving before the load completes fall through unfiltered.
+    // Loaded off-thread so a slow URL doesn't block the capture thread.
+    // Frames arriving before the load finishes fall through unfiltered.
     @Volatile
     private var virtualBackgroundBitmap: Bitmap? = null
 

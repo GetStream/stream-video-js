@@ -49,11 +49,8 @@ final class BackgroundImageFilterProcessor {
         do {
             let originalImage = CIImage(cvPixelBuffer: buffer)
 
-            // Vision's segmentation cost scales with input resolution. Running at
-            // ~540p (vs. 1080p) is 2–4× faster end-to-end, and the existing
-            // mask-upscale step below rescales whatever mask size Vision returns
-            // back to the frame — so no other code has to change. Edge softness
-            // is hidden by the blend-with-mask step that follows.
+            // Run segmentation at ~540p — Vision's cost scales with input size.
+            // The mask-upscale step below already handles whatever size Vision returns.
             let segInput: CIImage
             if originalImage.extent.height > Self.segmentationTargetHeight {
                 let scale = Self.segmentationTargetHeight / originalImage.extent.height

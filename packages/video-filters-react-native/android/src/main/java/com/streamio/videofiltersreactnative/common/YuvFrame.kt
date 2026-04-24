@@ -93,11 +93,7 @@ class YuvFrame {
     // Rest of buffers are closed in the methods above
   }
 
-  /**
-   * Releases the size-dependent native buffers held across frames. libyuv-android
-   * buffers are backed by direct ByteBuffers whose off-heap memory is only freed
-   * when `close()` is called — GC alone will not reclaim it. Idempotent.
-   */
+  /** Frees the libyuv buffers. GC alone won't reclaim their off-heap memory. Idempotent. */
   fun close() {
     libYuvRotatedI420Buffer?.close()
     libYuvRotatedI420Buffer = null

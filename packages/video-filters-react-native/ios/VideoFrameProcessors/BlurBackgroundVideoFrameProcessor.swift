@@ -20,16 +20,11 @@ final class BlurBackgroundVideoFrameProcessor: VideoFilter {
         )
         
         self.filter = { [weak self] input in
-            // `self.filter` is stored on `self`; capture weakly to avoid a retain cycle
-            // that would otherwise leak the processor (including its CIContext, Vision
-            // handler, and NotificationCenter observer) for the lifetime of the app.
+            // `[weak self]`: the closure is stored on `self` — a strong capture would leak the processor.
             guard let self = self else { return input.originalImage }
-            // Blur at half-resolution (4× cheaper) then upscale, mirroring the Android path.
-            // `clampedToExtent` avoids transparent edges from the blur kernel sampling
-            // past the image border; `cropped(to:)` undoes the extent expansion that
-            // CIGaussianBlur applies, so the upscale maps the background 1:1 back onto
-            // the original frame — without it the background slides relative to the
-            // foreground mask.
+            // Blur at half resolution for speed.
+            // `clampedToExtent` + `cropped(to:)` keep the blurred image at the input's
+            // extent; without it the upscaled background drifts relative to the foreground.
             let originalExtent = input.originalImage.extent
             let halfSize = CGSize(width: originalExtent.width / 2, height: originalExtent.height / 2)
             let downscaled = input.originalImage.resize(halfSize) ?? input.originalImage

@@ -30,11 +30,8 @@ final class ImageBackgroundVideoFrameProcessor: VideoFilter {
 
     private lazy var backgroundImageFilterProcessor = { return BackgroundImageFilterProcessor() }()
 
-    // Background-loaded off the capture thread; `Data(contentsOf:)` on a remote URL
-    // would otherwise block the first frame(s) for the full network fetch duration.
-    // Guarded by an NSLock because Swift's `lazy var` is not thread-safe for class
-    // instances and the property is written from a background queue but read from
-    // the WebRTC capture thread.
+    // Loaded on a background queue so a slow URL doesn't block the capture thread.
+    // NSLock because the load thread writes it and the capture thread reads it.
     private let backgroundImageLock = NSLock()
     private var _backgroundCIImage: CIImage?
 
@@ -60,8 +57,7 @@ final class ImageBackgroundVideoFrameProcessor: VideoFilter {
         }
 
         self.filter = { [weak self] input in
-            // `self.filter` is stored on `self`; capture weakly to avoid a retain cycle
-            // that would otherwise leak the processor for the lifetime of the app.
+            // `[weak self]`: the closure is stored on `self` — a strong capture would leak the processor.
             guard let self = self, let bgImage = self.backgroundCIImage else { return input.originalImage }
             let cachedBackgroundImage = self.backgroundImage(image: bgImage, originalImage: input.originalImage, originalImageOrientation: input.originalImageOrientation)
 
