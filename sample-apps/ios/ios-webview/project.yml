@@ -1,0 +1,53 @@
+name: IOSWebView
+options:
+  deploymentTarget:
+    iOS: "15.0"
+  bundleIdPrefix: io.getstream.samples
+  createIntermediateGroups: true
+  defaultConfig: Debug
+configs:
+  Debug: debug
+  Release: release
+targets:
+  IOSWebView:
+    type: application
+    platform: iOS
+    sources:
+      - path: IOSWebView
+        excludes:
+          - "Info.plist"
+    resources:
+      - path: IOSWebView/Resources
+    info:
+      path: IOSWebView/Info.plist
+      properties:
+        CFBundleDisplayName: IOSWebView
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        LSRequiresIPhoneOS: true
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSCameraUsageDescription: This sample embeds the Stream Video React SDK, which needs camera access for calls.
+        NSMicrophoneUsageDescription: This sample embeds the Stream Video React SDK, which needs microphone access for calls.
+        UIBackgroundModes:
+          - audio
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.getstream.samples.ios-webview
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.9"
+        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: NO
+        ENABLE_PREVIEWS: YES
