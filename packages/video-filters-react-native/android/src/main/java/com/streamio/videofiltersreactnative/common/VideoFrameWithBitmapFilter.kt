@@ -90,6 +90,26 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
     }
   }
 
+  // Upstream `VideoEffectProcessor.dispose()` posts to the capturer's handler,
+  // so this runs on the GL thread serialized with `onFrameCaptured` →
+  // `process()`. All cleanup can be inline: no in-flight `process()` can race,
+  // and GL ops have the correct context / thread. The texture is deleted
+  // regardless of whether `initialize()` ever ran (enable-then-disable before
+  // first frame would otherwise leak it on drivers where the no-context
+  // `glGenTextures` in `init` still produced a valid id).
+  override fun dispose() {
+    yuvFrame.close()
+    inputFrameBitmap?.recycle()
+    inputFrameBitmap = null
+    yuvConverter.release()
+    inputBuffer?.release()
+    inputBuffer = null
+    if (textures[0] != 0) {
+      GLES20.glDeleteTextures(1, intArrayOf(textures[0]), 0)
+      textures[0] = 0
+    }
+  }
+
   companion object {
     private const val TAG = "VideoFrameProcessorWithBitmapFilter"
   }
