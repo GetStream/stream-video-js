@@ -109,6 +109,16 @@ const AudioContextMock = vi.fn((): Partial<AudioContext> => {
         gain: { value: 1 },
       } as unknown as GainNode;
     }),
+    // Silent keep-alive node used by DynascaleManager's probe AudioContext.
+    createConstantSource: vi.fn(() => {
+      return {
+        offset: { value: 0 },
+        connect: vi.fn((v) => v),
+        disconnect: vi.fn(),
+        start: vi.fn(),
+        stop: vi.fn(),
+      } as unknown as ConstantSourceNode;
+    }),
     close: vi.fn(async function () {
       this.state = 'closed';
     }),
@@ -119,6 +129,7 @@ const AudioContextMock = vi.fn((): Partial<AudioContext> => {
       this.sinkId = sinkId;
     }),
     addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
   };
 });
 vi.stubGlobal('AudioContext', AudioContextMock);

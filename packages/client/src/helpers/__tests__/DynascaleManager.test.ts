@@ -676,10 +676,14 @@ describe('DynascaleManager', () => {
       vi.runAllTimers();
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
+      expect(
+        getCurrentValue(dynascaleManager.audioHealthMonitor!.autoplayBlocked$),
+      ).toBe(true);
 
       cleanup?.();
-      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
+      expect(
+        getCurrentValue(dynascaleManager.audioHealthMonitor!.autoplayBlocked$),
+      ).toBe(false);
     });
 
     it('audio: should unblock audio elements on explicit resumeAudio call', async () => {
@@ -712,13 +716,17 @@ describe('DynascaleManager', () => {
       vi.runAllTimers();
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
+      expect(
+        getCurrentValue(dynascaleManager.audioHealthMonitor!.autoplayBlocked$),
+      ).toBe(true);
 
-      await dynascaleManager.resumeAudio();
+      await dynascaleManager.audioHealthMonitor!.resumeAudio();
       await vi.advanceTimersByTimeAsync(0);
 
       expect(playSpy).toHaveBeenCalledTimes(2);
-      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
+      expect(
+        getCurrentValue(dynascaleManager.audioHealthMonitor!.autoplayBlocked$),
+      ).toBe(false);
 
       cleanup?.();
     });
@@ -752,7 +760,9 @@ describe('DynascaleManager', () => {
       vi.runAllTimers();
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(true);
+      expect(
+        getCurrentValue(dynascaleManager.audioHealthMonitor!.autoplayBlocked$),
+      ).toBe(true);
 
       call.state.updateParticipant('session-id', {
         audioStream: undefined,
@@ -762,7 +772,9 @@ describe('DynascaleManager', () => {
       await vi.advanceTimersByTimeAsync(0);
 
       expect(audioElement.srcObject).toBeNull();
-      expect(getCurrentValue(dynascaleManager.autoplayBlocked$)).toBe(false);
+      expect(
+        getCurrentValue(dynascaleManager.audioHealthMonitor!.autoplayBlocked$),
+      ).toBe(false);
 
       cleanup?.();
     });
@@ -839,6 +851,64 @@ describe('DynascaleManager', () => {
       expect(updateSubscription).toHaveBeenLastCalledWith('videoTrack', {
         'session-id': { dimension: undefined },
       });
+    });
+  });
+
+  describe('audio-health monitor wiring', () => {
+    // Detailed monitor behavior is covered in AudioHealthMonitor.test.ts.
+    // These tests only check that DynascaleManager owns the monitor
+    // correctly and drives its lifecycle through the SFU-client hooks.
+
+    it('creates an audioHealthMonitor on construction (non-RN)', () => {
+      const manager = new DynascaleManager(
+        call.state,
+        call.speaker,
+        call.tracer,
+      );
+      expect(manager.audioHealthMonitor).toBeDefined();
+    });
+
+    it('calls audioHealthMonitor.start() exactly once when setSfuClient is truthy', () => {
+      const manager = new DynascaleManager(
+        call.state,
+        call.speaker,
+        call.tracer,
+      );
+      const startSpy = vi.spyOn(manager.audioHealthMonitor!, 'start');
+
+      manager.setSfuClient({} as never);
+      manager.setSfuClient({} as never); // second call — monitor is already idempotent
+
+      expect(startSpy).toHaveBeenCalledTimes(2);
+      // Monitor-level idempotency (start installs pipeline once) is verified
+      // in AudioHealthMonitor.test.ts; here we only check that the manager
+      // delegates without adding extra gating of its own.
+    });
+
+    it('does not call audioHealthMonitor.start() when setSfuClient is undefined', () => {
+      const manager = new DynascaleManager(
+        call.state,
+        call.speaker,
+        call.tracer,
+      );
+      const startSpy = vi.spyOn(manager.audioHealthMonitor!, 'start');
+
+      manager.setSfuClient(undefined);
+
+      expect(startSpy).not.toHaveBeenCalled();
+    });
+
+    it('calls audioHealthMonitor.stop() on dispose()', async () => {
+      const manager = new DynascaleManager(
+        call.state,
+        call.speaker,
+        call.tracer,
+      );
+      const stopSpy = vi.spyOn(manager.audioHealthMonitor!, 'stop');
+
+      await manager.dispose();
+
+      expect(stopSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

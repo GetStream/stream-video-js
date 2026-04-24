@@ -1,4 +1,5 @@
 import {
+  AudioHealthInfo,
   Call,
   CallClosedCaption,
   CallIngressResponse,
@@ -497,15 +498,49 @@ export const useIncomingVideoSettings = () => {
 };
 
 /**
+ * Static fallback emitted on React Native and any environment where
+ * `AudioHealthMonitor` isn't constructed. Module-scope so the
+ * `useObservableValue` dep reference stays stable across renders.
+ */
+const AUTOPLAY_UNBLOCKED$ = of(false);
+
+/**
  * Returns whether the browser's autoplay policy is blocking audio playback.
  *
  * When the browser blocks audio autoplay (e.g., no prior user interaction),
  * this hook returns `true`. Use `call.resumeAudio()` inside a click handler
- * to unblock audio playback.
+ * to unblock audio playback. Returns `false` on React Native.
  */
 export const useIsAutoplayBlocked = (): boolean => {
   const call = useCall() as Call;
-  return useObservableValue(call.dynascaleManager.autoplayBlocked$);
+  return useObservableValue(
+    call.dynascaleManager.audioHealthMonitor?.autoplayBlocked$ ??
+      AUTOPLAY_UNBLOCKED$,
+  );
+};
+
+/**
+ * Static fallback emitted on React Native (and any environment where
+ * `AudioHealthMonitor` isn't constructed). Declared at module scope so the
+ * `useObservableValue` dep reference stays stable across renders.
+ */
+const UNKNOWN_AUDIO_HEALTH$ = of<AudioHealthInfo>({
+  status: 'unknown',
+  reason: 'unsupported',
+});
+
+/**
+ * Returns the current audio-pipeline health of the call.
+ *
+ * The return value is a `{ status, reason }` object where `status` is the
+ * coarse bucket (`'healthy' | 'unhealthy' | 'unknown'`) consumers bind to
+ * for UX state, and `reason` identifies the specific cause for targeted
+ * messaging or recovery.
+ */
+export const useAudioHealth = (): AudioHealthInfo => {
+  const call = useCall() as Call;
+  const monitor = call.dynascaleManager.audioHealthMonitor;
+  return useObservableValue(monitor?.audioHealth$ ?? UNKNOWN_AUDIO_HEALTH$);
 };
 
 /**

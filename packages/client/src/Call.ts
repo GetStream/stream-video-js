@@ -2969,9 +2969,11 @@ export class Call {
 
   /**
    * Plays all audio elements blocked by the browser's autoplay policy.
+   * Must be called from within a user gesture (e.g., a click handler) for
+   * the browser to permit playback.
    */
-  resumeAudio = () => {
-    return this.dynascaleManager.resumeAudio();
+  resumeAudio = async () => {
+    await this.dynascaleManager.audioHealthMonitor?.resumeAudio();
   };
 
   /**
