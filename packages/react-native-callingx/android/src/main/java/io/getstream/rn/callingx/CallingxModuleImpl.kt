@@ -70,6 +70,7 @@ class CallingxModuleImpl(
     fun invalidate() {
         debugLog(TAG, "[module] invalidate: Invalidating module")
 
+        LifecycleListener.unregister()
         CallRegistrationStore.clearAll()
         CallEventBus.unsubscribe(this)
 
