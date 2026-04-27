@@ -223,17 +223,17 @@ describe('Device Manager', () => {
 
   it('should use a virtual device stream factory instead of requesting a real device stream', async () => {
     const virtualStream = mockVideoStream();
-    const acquireVirtualStream = vi.fn(() => ({ stream: virtualStream }));
+    const getUserMedia = vi.fn(() => ({ stream: virtualStream }));
 
     const { deviceId } = manager.registerVirtualDevice({
-      acquire: acquireVirtualStream,
       label: 'Virtual camera',
+      getUserMedia,
     });
 
     await manager.select(deviceId);
     await manager.enable();
 
-    expect(acquireVirtualStream).toHaveBeenCalledOnce();
+    expect(getUserMedia).toHaveBeenCalledOnce();
     expect(manager.getStream).not.toHaveBeenCalled();
     expect(manager.state.mediaStream).toBe(virtualStream);
     expect(manager.state.selectedDevice).toBe(deviceId);
@@ -244,8 +244,8 @@ describe('Device Manager', () => {
     const virtualStream = mockVideoStream();
 
     const { deviceId } = manager.registerVirtualDevice({
-      acquire: vi.fn(() => ({ stream: virtualStream, stop })),
       label: 'Virtual camera',
+      getUserMedia: vi.fn(() => ({ stream: virtualStream, stop })),
     });
 
     await manager.select(deviceId);

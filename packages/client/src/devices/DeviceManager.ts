@@ -46,8 +46,8 @@ import {
 } from './devicePersistence';
 import {
   ActiveVirtualSession,
-  RegisterVirtualDeviceOptions,
   VIRTUAL_DEVICE_PREFIX,
+  VirtualDevice,
   VirtualDeviceEntry,
   VirtualDeviceHandle,
 } from './VirtualDevice';
@@ -157,9 +157,7 @@ export abstract class DeviceManager<
    * Only supported for camera and microphone managers; calling on any other
    * manager throws.
    */
-  registerVirtualDevice(
-    options: RegisterVirtualDeviceOptions,
-  ): VirtualDeviceHandle {
+  registerVirtualDevice(virtualDevice: VirtualDevice): VirtualDeviceHandle {
     if (
       this.trackType !== TrackType.AUDIO &&
       this.trackType !== TrackType.VIDEO
@@ -169,11 +167,12 @@ export abstract class DeviceManager<
       );
     }
 
-    const { label, acquire } = options;
-    const deviceId = `${VIRTUAL_DEVICE_PREFIX}${generateUUIDv4()}`;
-    const kind = this.mediaDeviceKind;
-
-    const entry: VirtualDeviceEntry = { deviceId, label, kind, acquire };
+    const entry: VirtualDeviceEntry = {
+      deviceId: `${VIRTUAL_DEVICE_PREFIX}${generateUUIDv4()}`,
+      kind: this.mediaDeviceKind,
+      ...virtualDevice,
+    };
+    const { deviceId } = entry;
     setCurrentValue(this.virtualDevicesSubject, (current) => [
       ...current,
       entry,
@@ -238,9 +237,10 @@ export abstract class DeviceManager<
       }
 
       await this.stopActiveVirtualSession();
-      const session = await virtualDevice.acquire();
-      this.activeVirtualSession = { deviceId, stop: session.stop };
-      return this.sanitizeVirtualStream(session.stream);
+      const { stream, stop } = await virtualDevice.getUserMedia();
+      this.activeVirtualSession = { deviceId, stop };
+
+      return this.sanitizeVirtualStream(stream);
     });
   }
 

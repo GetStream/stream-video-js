@@ -1,36 +1,42 @@
 /**
- * A MediaStream acquired for a virtual device session, along with an optional
- * cleanup callback. Returned by {@link RegisterVirtualDeviceOptions.acquire}.
+ * A MediaStream produced for a virtual device session, along with an optional
+ * cleanup callback. Returned by {@link VirtualDevice.getUserMedia}.
  */
 export interface VirtualDeviceSession {
   readonly stream: MediaStream;
   readonly stop?: () => void | Promise<void>;
 }
 
-export interface ActiveVirtualSession {
-  deviceId: string;
-  stop?: () => void | Promise<void>;
-}
-
-export interface VirtualDeviceEntry {
-  readonly deviceId: string;
-  readonly label: string;
-  readonly kind: 'audioinput' | 'videoinput';
-  readonly acquire: () => VirtualDeviceSession | Promise<VirtualDeviceSession>;
-}
-
-export interface RegisterVirtualDeviceOptions {
-  /**
-   * Acquires the MediaStream to publish when this device is selected and
-   * optionally returns cleanup that should run when that acquired stream is
-   * stopped or replaced.
-   */
-  acquire: () => VirtualDeviceSession | Promise<VirtualDeviceSession>;
-
+/**
+ * A virtual camera or microphone definition supplied by the integrator.
+ *
+ * Pass this to `camera.registerVirtualDevice()` /
+ * `microphone.registerVirtualDevice()` to make it appear in the device list
+ * and become selectable.
+ */
+export interface VirtualDevice {
   /**
    * Human-readable label shown in device dropdowns.
    */
   label: string;
+
+  /**
+   * Called when the virtual device is selected and the SDK needs media.
+   * Returns the MediaStream to publish along with an optional `stop`
+   * callback that runs when the session is replaced, the tracks end, or
+   * the device is unregistered.
+   */
+  getUserMedia: () => VirtualDeviceSession | Promise<VirtualDeviceSession>;
+}
+
+export interface VirtualDeviceEntry extends VirtualDevice {
+  readonly deviceId: string;
+  readonly kind: 'audioinput' | 'videoinput';
+}
+
+export interface ActiveVirtualSession {
+  deviceId: string;
+  stop?: () => void | Promise<void>;
 }
 
 export interface VirtualDeviceHandle {
