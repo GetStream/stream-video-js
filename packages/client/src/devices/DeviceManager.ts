@@ -166,20 +166,20 @@ export abstract class DeviceManager<
         'Virtual devices are only supported for camera and microphone.',
       );
     }
-
+    const deviceId = `${VIRTUAL_DEVICE_PREFIX}${generateUUIDv4()}`;
     const entry: VirtualDeviceEntry = {
-      deviceId: `${VIRTUAL_DEVICE_PREFIX}${generateUUIDv4()}`,
+      deviceId,
       kind: this.mediaDeviceKind,
       ...virtualDevice,
     };
-    const { deviceId } = entry;
+
     setCurrentValue(this.virtualDevicesSubject, (current) => [
       ...current,
       entry,
     ]);
 
     return {
-      deviceId,
+      deviceId: entry.deviceId,
       unregister: async () => {
         if (this.state.selectedDevice === deviceId) {
           await this.select(undefined);
