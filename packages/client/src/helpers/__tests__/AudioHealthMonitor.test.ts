@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { AudioHealthInfo, AudioHealthMonitor } from '../AudioHealthMonitor';
 import { Tracer } from '../../stats';
 import { getCurrentValue } from '../../store/rxUtils';
+import { HOST_AUDIO_SESSION_EVENT, type HostAudioSessionEvent } from '../types';
 
 describe('AudioHealthMonitor', () => {
   // Stub a minimal `navigator.audioSession` so the browser-only detection
@@ -52,16 +53,27 @@ describe('AudioHealthMonitor', () => {
     delete globalThis.navigator.audioSession;
   };
 
+  const createdMonitors: AudioHealthMonitor[] = [];
+
   beforeEach(() => {
     installAudioSession();
     tracer = new Tracer('test');
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Stop any monitor a test forgot about so its `window` listeners
+    // don't bleed into the next test's log assertions.
+    while (createdMonitors.length > 0) {
+      await createdMonitors.pop()!.stop();
+    }
     uninstallAudioSession();
   });
 
-  const newMonitor = () => new AudioHealthMonitor(tracer);
+  const newMonitor = () => {
+    const monitor = new AudioHealthMonitor(tracer);
+    createdMonitors.push(monitor);
+    return monitor;
+  };
 
   /**
    * Tiny factory for a blocked audio element with a settable `srcObject` and
@@ -361,6 +373,162 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'healthy',
       reason: 'audio-session-active',
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Host audio-session bridge
+  // -------------------------------------------------------------------------
+
+  const makeHostEvent = (
+    overrides: Partial<HostAudioSessionEvent['state']> = {},
+    eventOverrides: Partial<HostAudioSessionEvent> = {},
+  ): HostAudioSessionEvent => ({
+    schemaVersion: 1,
+    source: 'ios',
+    timestamp: 1_700_000_000_000,
+    state: {
+      category: 'AVAudioSessionCategoryPlayAndRecord',
+      mode: 'AVAudioSessionModeVideoChat',
+      categoryOptions: 0,
+      interruption: null,
+      routeChangeReason: null,
+      ...overrides,
+    },
+    ...eventOverrides,
+  });
+
+  const dispatchHostEvent = (detail: unknown) => {
+    window.dispatchEvent(new CustomEvent(HOST_AUDIO_SESSION_EVENT, { detail }));
+  };
+
+  it('flips to host-audio-session-interrupted on an `interruption: began` event', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unhealthy',
+      reason: 'host-audio-session-interrupted',
+    });
+  });
+
+  it('flips to host-audio-session-active on an event with no interruption', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(makeHostEvent());
+
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'healthy',
+      reason: 'host-audio-session-active',
+    });
+  });
+
+  it('returns to host-audio-session-active after a began/ended pair', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'host-audio-session-interrupted',
+    );
+
+    dispatchHostEvent(makeHostEvent({ interruption: { type: 'ended' } }));
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'healthy',
+      reason: 'host-audio-session-active',
+    });
+  });
+
+  it('ignores events with unknown schemaVersion and does not spam the log', () => {
+    const monitor = newMonitor();
+    monitor.start();
+    // @ts-expect-error private property
+    const warnSpy = vi.spyOn(monitor.logger, 'warn');
+
+    const baseline = getCurrentValue(monitor.audioHealth$);
+    dispatchHostEvent({ ...makeHostEvent(), schemaVersion: 999 });
+    dispatchHostEvent({ ...makeHostEvent(), schemaVersion: 999 });
+    dispatchHostEvent({ ...makeHostEvent(), schemaVersion: 999 });
+
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual(baseline);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores malformed payloads without throwing', () => {
+    const monitor = newMonitor();
+    monitor.start();
+    const baseline = getCurrentValue(monitor.audioHealth$);
+
+    expect(() => dispatchHostEvent(undefined)).not.toThrow();
+    expect(() => dispatchHostEvent({ schemaVersion: 1 })).not.toThrow();
+    expect(() =>
+      dispatchHostEvent({ schemaVersion: 1, state: 'not an object' }),
+    ).not.toThrow();
+
+    // None of the above should change health state.
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual(baseline);
+  });
+
+  it('prefers the host-bridge reason when both host and W3C signal interrupted', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    audioSessionStub.state = 'interrupted';
+    audioSessionStub.emitStateChange();
+    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'host-audio-session-interrupted',
+    );
+  });
+
+  it('lets W3C unhealthy win over host-healthy (any unhealthy beats any healthy)', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(makeHostEvent()); // host says active
+    audioSessionStub.state = 'interrupted';
+    audioSessionStub.emitStateChange();
+
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unhealthy',
+      reason: 'audio-session-interrupted',
+    });
+  });
+
+  it('stop() detaches the host-bridge listener', async () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'host-audio-session-interrupted',
+    );
+
+    await monitor.stop();
+    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+
+    // After stop(), health is reset and host events don't re-flip it.
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unknown',
+      reason: 'not-started',
+    });
+  });
+
+  it('start() after stop() re-attaches the host-bridge listener', async () => {
+    const monitor = newMonitor();
+    monitor.start();
+    await monitor.stop();
+    monitor.start();
+
+    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unhealthy',
+      reason: 'host-audio-session-interrupted',
     });
   });
 });
