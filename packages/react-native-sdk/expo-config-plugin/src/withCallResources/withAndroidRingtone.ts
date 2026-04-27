@@ -18,6 +18,21 @@ function normalizeAndroidResourceName(fileName: string): string {
     .toLowerCase()
     .replace(/-/g, '_')
     .replace(/[^a-z0-9_]/g, '');
+
+  if (normalized.length === 0) {
+    throw new Error(
+      `[StreamVideo] Android ringtone name "${fileName}" contains no valid characters after normalization. ` +
+        `The name must contain at least one lowercase letter, digit, or underscore.`,
+    );
+  }
+
+  if (/^\d/.test(normalized)) {
+    throw new Error(
+      `[StreamVideo] Android ringtone name "${fileName}" starts with a digit after normalization ("${normalized}"). ` +
+        `Android resource names must start with a letter or underscore.`,
+    );
+  }
+
   return normalized + ext.toLowerCase();
 }
 
