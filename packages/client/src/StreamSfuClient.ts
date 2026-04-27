@@ -105,6 +105,21 @@ type SfuWebSocketParams = {
 };
 
 /**
+ * Creates a fresh `joinResponseTask` with a no-op rejection handler attached
+ * to the underlying promise. The handler marks the rejection path as handled
+ * so a teardown-time reject (e.g., from `close()` during disposal) does not
+ * surface as an `UnhandledPromiseRejection`. Explicit awaiters of
+ * `StreamSfuClient.joinTask` still observe the rejection through their own
+ * `then`/`catch` chain. `.catch()` returns a new promise; the original is
+ * unchanged.
+ */
+const makeJoinResponseTask = (): PromiseWithResolvers<JoinResponse> => {
+  const task = promiseWithResolvers<JoinResponse>();
+  task.promise.catch(() => {}); // see the comment above
+  return task;
+};
+
+/**
  * The client used for exchanging information with the SFU.
  */
 export class StreamSfuClient {
@@ -171,9 +186,10 @@ export class StreamSfuClient {
   private networkAvailableTask: PromiseWithResolvers<void> | undefined;
   /**
    * Promise that resolves when the JoinResponse is received.
-   * Rejects after a certain threshold if the response is not received.
+   * Rejects after a certain threshold if the response is not received,
+   * or when the SFU client is disposed before a join completes.
    */
-  private joinResponseTask = promiseWithResolvers<JoinResponse>();
+  private joinResponseTask = makeJoinResponseTask();
 
   /**
    * Promise that resolves when the migration is complete.
@@ -358,15 +374,24 @@ export class StreamSfuClient {
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
     this.isClosingClean = code !== StreamSfuClient.ERROR_CONNECTION_UNHEALTHY;
-    if (this.signalWs.readyState === WebSocket.OPEN) {
+    // Close the WebSocket whether it has fully opened (`OPEN`) or is still
+    // mid-handshake (`CONNECTING`). The WebSocket spec aborts the handshake
+    // when `close()` is called on a CONNECTING socket. Without this, an
+    // SFU socket that opens just after teardown would dispatch events into
+    // a Call instance that has already moved on.
+    const ws = this.signalWs;
+    if (
+      ws.readyState === WebSocket.OPEN ||
+      ws.readyState === WebSocket.CONNECTING
+    ) {
       this.logger.debug(`Closing SFU WS connection: ${code} - ${reason}`);
-      this.signalWs.close(code, `js-client: ${reason}`);
-      this.signalWs.removeEventListener('close', this.handleWebSocketClose);
+      ws.close(code, `js-client: ${reason}`);
+      ws.removeEventListener('close', this.handleWebSocketClose);
     }
-    this.dispose();
+    this.dispose(reason);
   };
 
-  private dispose = () => {
+  private dispose = (reason?: string) => {
     this.logger.debug('Disposing SFU client');
     this.unsubscribeIceTrickle();
     this.unsubscribeNetworkChanged();
@@ -375,6 +400,19 @@ export class StreamSfuClient {
     clearTimeout(this.migrateAwayTimeout);
     this.abortController.abort();
     this.migrationTask?.resolve();
+    // Settle a pending `joinResponseTask` so `leaveAndClose`, `join()`, and
+    // any other awaiters (`await this.joinTask`) don't hang indefinitely
+    // when the SFU client is torn down before the SFU sent a JoinResponse.
+    if (
+      !this.joinResponseTask.isResolved() &&
+      !this.joinResponseTask.isRejected()
+    ) {
+      this.joinResponseTask.reject(
+        new Error(
+          `SFU client disposed before join completed${reason ? `: ${reason}` : ''}`,
+        ),
+      );
+    }
     this.iceTrickleBuffer.dispose();
   };
 
@@ -385,8 +423,10 @@ export class StreamSfuClient {
   leaveAndClose = async (reason: string) => {
     try {
       this.isLeaving = true;
-      await this.joinTask;
-      await this.notifyLeave(reason);
+      // Only attempt to notify the SFU if the join handshake actually completed
+      if (this.joinResponseTask.isResolved()) {
+        await this.notifyLeave(reason);
+      }
     } catch (err) {
       this.logger.debug('Error notifying SFU about leaving call', err);
     }
@@ -535,9 +575,9 @@ export class StreamSfuClient {
     ) {
       // we need to lock the RPC requests until we receive a JoinResponse.
       // that's why we have this primitive lock mechanism.
-      // the client starts with already initialized joinResponseTask,
+      // the client starts with an already initialized joinResponseTask,
       // and this code creates a new one for the next join request.
-      this.joinResponseTask = promiseWithResolvers<JoinResponse>();
+      this.joinResponseTask = makeJoinResponseTask();
     }
 
     // capture a reference to the current joinResponseTask as it might

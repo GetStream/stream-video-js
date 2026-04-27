@@ -226,6 +226,36 @@ Sorting is **visibility-aware**: only applies sorting logic to invisible partici
 
 ## Key Patterns
 
+### Class Style
+
+- All class methods (including `private`/`protected`) are **arrow-function class fields**, not method syntax. This preserves `this` binding automatically across callbacks and observable subscriptions that pull methods off instances (`call.leave`, dispatcher listeners, RxJS operators, etc.) and matches existing code throughout `src/`.
+
+  ```ts
+  // good (matches the codebase)
+  class Publisher extends BasePeerConnection {
+    restartIce = async (): Promise<void> => {
+      /* ... */
+    };
+    private negotiate = async (options?: RTCOfferOptions): Promise<void> => {
+      /* ... */
+    };
+  }
+
+  // bad
+  class Publisher extends BasePeerConnection {
+    async restartIce(): Promise<void> {
+      /* ... */
+    }
+    private async negotiate(options?: RTCOfferOptions): Promise<void> {
+      /* ... */
+    }
+  }
+  ```
+
+- Declare state as explicit class fields at the body level (not TypeScript parameter-property shorthand) and assign from the constructor body. Initialize constants inline.
+
+  See the root `AGENTS.md` "Class style" section for the full rule and rationale.
+
 ### Reactive State
 
 All state is exposed through RxJS observables. When updating state:
