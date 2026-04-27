@@ -164,7 +164,10 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   ) {
     RxUtils.setCurrentValue(this.mediaStreamSubject, stream);
     if (rootStream) {
-      this.setDevice(this.getDeviceIdFromStream(rootStream));
+      const derived = this.getDeviceIdFromStream(rootStream);
+      if (derived) {
+        this.setDevice(derived);
+      }
     }
   }
 

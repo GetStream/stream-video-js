@@ -221,6 +221,40 @@ describe('Device Manager', () => {
     expect(spy.mock.calls.length).toBe(1);
   });
 
+  it('should use a virtual device stream factory instead of requesting a real device stream', async () => {
+    const virtualStream = mockVideoStream();
+    const acquireVirtualStream = vi.fn(() => ({ stream: virtualStream }));
+
+    const { deviceId } = manager.registerVirtualDevice({
+      acquire: acquireVirtualStream,
+      label: 'Virtual camera',
+    });
+
+    await manager.select(deviceId);
+    await manager.enable();
+
+    expect(acquireVirtualStream).toHaveBeenCalledOnce();
+    expect(manager.getStream).not.toHaveBeenCalled();
+    expect(manager.state.mediaStream).toBe(virtualStream);
+    expect(manager.state.selectedDevice).toBe(deviceId);
+  });
+
+  it('should call virtual device stop when switching away from it', async () => {
+    const stop = vi.fn();
+    const virtualStream = mockVideoStream();
+
+    const { deviceId } = manager.registerVirtualDevice({
+      acquire: vi.fn(() => ({ stream: virtualStream, stop })),
+      label: 'Virtual camera',
+    });
+
+    await manager.select(deviceId);
+    await manager.enable();
+    await manager.select(mockVideoDevices[1].deviceId);
+
+    expect(stop).toHaveBeenCalledTimes(1);
+  });
+
   it('should resume previously enabled state', async () => {
     vi.spyOn(manager, 'enable');
 

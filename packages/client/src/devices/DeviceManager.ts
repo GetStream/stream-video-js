@@ -1,9 +1,20 @@
-import { combineLatest, firstValueFrom, Observable, pairwise } from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  firstValueFrom,
+  map,
+  Observable,
+  pairwise,
+} from 'rxjs';
 import { Call } from '../Call';
 import type { DeviceDisconnectedEvent } from '../coordinator/connection/types';
 import { TrackPublishOptions } from '../rtc';
 import { CallingState } from '../store';
-import { createSubscription, getCurrentValue } from '../store/rxUtils';
+import {
+  createSubscription,
+  getCurrentValue,
+  setCurrentValue,
+} from '../store/rxUtils';
 import {
   DeviceManagerState,
   type InputDeviceStatus,
@@ -33,6 +44,14 @@ import {
   toPreferenceList,
   writePreferences,
 } from './devicePersistence';
+import {
+  ActiveVirtualSession,
+  RegisterVirtualDeviceOptions,
+  VIRTUAL_DEVICE_PREFIX,
+  VirtualDeviceEntry,
+  VirtualDeviceHandle,
+} from './VirtualDevice';
+import { generateUUIDv4 } from '../coordinator/connection/utils';
 
 export abstract class DeviceManager<
   S extends DeviceManagerState<C>,
@@ -53,6 +72,8 @@ export abstract class DeviceManager<
   protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilterEntry[] = [];
+  private virtualDevicesSubject = new BehaviorSubject<VirtualDeviceEntry[]>([]);
+  private activeVirtualSession: ActiveVirtualSession | undefined;
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
   private filterRegistrationConcurrencyTag = Symbol(
     'filterRegistrationConcurrencyTag',
@@ -116,8 +137,106 @@ export abstract class DeviceManager<
    *
    * @returns an Observable that will be updated if a device is connected or disconnected
    */
-  listDevices() {
-    return this.getDevices();
+  listDevices(): Observable<MediaDeviceInfo[]> {
+    return combineLatest([this.getDevices(), this.virtualDevicesSubject]).pipe(
+      map(([real, virtual]) => [
+        ...real,
+        ...virtual.map((d) =>
+          createSyntheticDevice(d.deviceId, d.kind, d.label),
+        ),
+      ]),
+    );
+  }
+
+  /**
+   * Registers a virtual camera or microphone backed by a caller-supplied
+   * stream factory. The device appears in `listDevices()` and can be selected
+   * via `select()` like any real device.
+   *
+   * Only supported for camera and microphone managers; calling on any other
+   * manager throws.
+   */
+  registerVirtualDevice(
+    options: RegisterVirtualDeviceOptions,
+  ): VirtualDeviceHandle {
+    if (
+      this.trackType !== TrackType.AUDIO &&
+      this.trackType !== TrackType.VIDEO
+    ) {
+      throw new Error(
+        'Virtual devices are only supported for camera and microphone.',
+      );
+    }
+
+    const { label, acquire } = options;
+    const deviceId = `${VIRTUAL_DEVICE_PREFIX}${generateUUIDv4()}`;
+    const kind = this.mediaDeviceKind;
+
+    const entry: VirtualDeviceEntry = { deviceId, label, kind, acquire };
+    setCurrentValue(this.virtualDevicesSubject, (current) => [
+      ...current,
+      entry,
+    ]);
+
+    return {
+      deviceId,
+      unregister: async () => {
+        await settled(this.statusChangeConcurrencyTag);
+        if (this.state.selectedDevice === deviceId) {
+          await this.select(undefined);
+        }
+        if (this.activeVirtualSession?.deviceId === deviceId) {
+          const session = this.activeVirtualSession;
+          this.activeVirtualSession = undefined;
+          await session.stop?.();
+        }
+        setCurrentValue(this.virtualDevicesSubject, (current) =>
+          current.filter((d) => d !== entry),
+        );
+      },
+    };
+  }
+
+  protected sanitizeVirtualStream(stream: MediaStream): MediaStream {
+    stream.getTracks().forEach((track) => {
+      const originalGetSettings = track.getSettings.bind(track);
+      track.getSettings = () => {
+        const settings = originalGetSettings();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { deviceId, ...rest } = settings;
+        return rest;
+      };
+    });
+
+    return stream;
+  }
+
+  protected findVirtualDevice(deviceId: string | undefined) {
+    if (!deviceId) return undefined;
+
+    return this.virtualDevicesSubject
+      .getValue()
+      .find((d) => d.deviceId === deviceId);
+  }
+
+  protected async getSelectedStream(constraints: C): Promise<MediaStream> {
+    const deviceId = this.state.selectedDevice;
+    if (!deviceId?.startsWith(VIRTUAL_DEVICE_PREFIX)) {
+      return this.getStream(constraints);
+    }
+
+    const virtualDevice = this.findVirtualDevice(deviceId);
+    if (!virtualDevice) {
+      throw new Error(`Virtual device is not registered: ${deviceId}`);
+    }
+
+    const session = await virtualDevice.acquire();
+    this.activeVirtualSession = {
+      deviceId,
+      stop: session.stop,
+    };
+
+    return this.sanitizeVirtualStream(session.stream);
   }
 
   /**
@@ -295,6 +414,7 @@ export abstract class DeviceManager<
     this.subscriptions.forEach((s) => s());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
+    this.virtualDevicesSubject.next([]);
   };
 
   protected async applySettingsToStream() {
@@ -348,6 +468,9 @@ export abstract class DeviceManager<
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
     if (allEnded) {
+      const activeVirtualSession = this.activeVirtualSession;
+      this.activeVirtualSession = undefined;
+      await activeVirtualSession?.stop?.();
       // @ts-expect-error release() is present in react-native-webrtc
       if (typeof mediaStream.release === 'function') {
         // @ts-expect-error called to dispose the stream in RN
@@ -463,10 +586,8 @@ export abstract class DeviceManager<
           return filterStream;
         };
 
-      // the rootStream represents the stream coming from the actual device
-      // e.g. camera or microphone stream
-      rootStream = this.getStream(constraints as C);
-      // we publish the last MediaStream of the chain
+      rootStream = this.getSelectedStream(constraints as C);
+
       stream = await this.filters.reduce(
         (parent, entry) =>
           parent
@@ -521,7 +642,7 @@ export abstract class DeviceManager<
     }
   }
 
-  private get mediaDeviceKind(): MediaDeviceKind {
+  private get mediaDeviceKind(): 'audioinput' | 'videoinput' {
     if (this.trackType === TrackType.AUDIO) return 'audioinput';
     if (this.trackType === TrackType.VIDEO) return 'videoinput';
     throw new Error('Invalid track type');
