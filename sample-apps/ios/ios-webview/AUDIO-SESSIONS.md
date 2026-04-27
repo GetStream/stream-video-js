@@ -198,10 +198,13 @@ The client SDK (`@stream-io/video-client`, surfaced via
 - **`audioHealth$` observable + `useAudioHealth()` React hook** returning
   `AudioHealthInfo = { status, reason }`:
   - `status: 'healthy' | 'unhealthy' | 'unknown'` — bind UX to this.
-  - `reason` classifies the cause: `'audio-session-interrupted'` or
-    `'audio-context-interrupted'` (Safari OS interruption),
+  - `reason` classifies the cause:
+    `'host-audio-session-interrupted'` / `'host-audio-session-active'`
+    (ground truth from a native iOS host bridge when present — see below),
+    `'audio-session-interrupted'` / `'audio-context-interrupted'`
+    (Safari OS interruption),
     `'autoplay-blocked'` (any browser),
-    `'audio-session-active'` (the positive healthy signal),
+    `'audio-session-active'` (the positive W3C healthy signal),
     `'not-started'` / `'unsupported'` (pre-start or no usable API).
 - **`call.resumeAudio()`** — iterates every `<audio>` element the SDK
   tracked as autoplay-blocked and retries `.play()` on each. Must be
@@ -230,11 +233,93 @@ function AudioHealthBadge({ call }) {
 }
 ```
 
+### Host audio-session bridge (iOS hosts)
+
+The detection pipeline above is blind to a specific hostile-host pattern:
+when the embedding iOS app silently clobbers the shared `AVAudioSession`
+(forces `.playback`, strips `.videoChat`, deactivates without
+`.notifyOthersOnDeactivation`), WebKit doesn't fire a W3C interruption —
+from its perspective nothing changed. The only way to learn about it in
+the page is a native → JS bridge where the host reports `AVAudioSession`
+notifications directly.
+
+The SDK consumes a `CustomEvent` on `window`:
+
+```ts
+// The SDK re-exports the event name + payload type:
+import {
+  HOST_AUDIO_SESSION_EVENT, // 'stream-video:host-audio-session'
+  type HostAudioSessionEvent,
+} from '@stream-io/video-client';
+```
+
+Payload (`schemaVersion: 1`):
+
+```ts
+interface HostAudioSessionEvent {
+  schemaVersion: 1;
+  source: 'ios';
+  timestamp: number; // epoch ms, when the native snapshot was captured
+  state: {
+    category: string; // AVAudioSession.Category rawValue
+    mode: string; // AVAudioSession.Mode rawValue
+    categoryOptions: number; // AVAudioSession.CategoryOptions rawValue
+    interruption: {
+      type: 'began' | 'ended';
+      reason?: number; // AVAudioSessionInterruptionReasonKey, iOS 14.5+
+    } | null;
+    routeChangeReason: number | null;
+  };
+}
+```
+
+**Contract:**
+
+- **Host side** fires on every interruption notification, every route
+  change, and once at page-load. `AudioHealthMonitor` ignores events with
+  an unknown `schemaVersion` or malformed payload, so bumping the version
+  is the safe way to evolve the shape.
+- **SDK side** treats each event as ground truth for the moment it
+  captures: `interruption.type === 'began'` (without a later `'ended'`)
+  → `{ status: 'unhealthy', reason: 'host-audio-session-interrupted' }`;
+  otherwise → `{ status: 'healthy', reason: 'host-audio-session-active' }`.
+  These beat the W3C reason codes at the same healthy/unhealthy tier,
+  because the native observer sees transitions WebKit silently ignores.
+
+The precedence inside `computeAudioHealthInfo` is:
+
+1. `host-audio-session-interrupted` (native ground truth)
+2. `audio-session-interrupted` (W3C)
+3. `audio-context-interrupted`
+4. `autoplay-blocked`
+5. `host-audio-session-active` (native ground truth)
+6. `audio-session-active` (W3C)
+7. `unsupported`
+
+Any unhealthy reason still beats any healthy reason — that's why a W3C
+interruption is trusted even when the host bridge reports active.
+
+**Reference host implementation:**
+[`sample-apps/ios/ios-webview/IOSWebView/WebView/AudioSessionBridge.swift`](./IOSWebView/WebView/AudioSessionBridge.swift)
+wires `NotificationCenter.publisher(for:)` to
+`webView.evaluateJavaScript(...)`. It also re-publishes each snapshot on a
+Combine publisher so the **Lifecycle** tab in the debug overlay logs
+every native transition alongside SDK-reported health — flip between the
+Console tab (for `audioHealth` transitions from a React
+`useAudioHealth()` logger) and the Lifecycle tab (for the native
+snapshots that drove them) to correlate cause and effect.
+
+Third-party iOS WebView hosts embedding the SDK can copy
+`AudioSessionBridge.swift` verbatim or reimplement the contract — the JS
+event name and payload are the stable part, the Swift class is
+illustrative.
+
 ### Still open
 
-Detection is Safari-biased today — on Chrome/Firefox `audioHealth$` only
-flips `unhealthy` via `autoplay-blocked` (no OS-interruption signal
-exists there). Two browser-agnostic enhancements are planned; see the
+Detection is Safari-biased today on hosts that don't implement the
+bridge — on Chrome/Firefox `audioHealth$` only flips `unhealthy` via
+`autoplay-blocked` (no OS-interruption signal exists there). Two
+browser-agnostic enhancements are planned; see the
 `TODO (chrome-coverage)` block in
 `packages/client/src/helpers/AudioHealthMonitor.ts` for the integration
 plan:
@@ -332,6 +417,17 @@ mute event fired.
 
 ### From the host side
 
+> ℹ️ If you can afford a host bridge, forward what you observe here into
+> the page via the `stream-video:host-audio-session` `CustomEvent`
+> contract documented above. The SDK consumes it as a first-class signal
+> (`host-audio-session-interrupted` / `host-audio-session-active`), which
+> makes correlation unnecessary — the SDK's own `audioHealth$` already
+> reflects native ground truth.
+>
+> See
+> [`AudioSessionBridge.swift`](./IOSWebView/WebView/AudioSessionBridge.swift)
+> for the reference implementation.
+
 **1. Interruption-notification observer** — log every `began` and `ended`
 with the reason. If the ratio isn't 1:1, you have a bug.
 
@@ -362,13 +458,16 @@ arrives, line up:
 ```
 12:34:56.789 [native] setCategory .playback options=[]
 12:34:56.793 [native] setActive true
+12:34:56.795 [bridge] category=AVAudioSessionCategoryPlayback interruption=began
 12:34:56.801 [web]    AudioContext.state: running → interrupted
-12:34:56.802 [web]    audioHealth: healthy → unhealthy (audio-session-interrupted)
+12:34:56.802 [web]    audioHealth: healthy → unhealthy (host-audio-session-interrupted)
 12:34:56.805 [web]    track.mute recv audio "default" MUTED by browser
 12:34:56.812 [web]    getStats inbound-rtp audio audioLevel=0
 ```
 
-Cause and effect are unambiguous.
+If the host bridge is in place, the `[bridge]` line and the
+`host-audio-session-interrupted` reason code make cause and effect
+unambiguous without any manual timestamp alignment.
 
 ## Hazards checklist
 

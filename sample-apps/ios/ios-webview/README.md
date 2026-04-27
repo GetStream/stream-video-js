@@ -89,13 +89,26 @@ On the phone:
   - **Errors** — captures `window.onerror`, `unhandledrejection`, and
     `getUserMedia` failures.
   - **Lifecycle** — audio route changes and interruption notifications.
+    Native `AVAudioSession` transitions from `AudioSessionBridge.swift`
+    land here too (tagged `bridge`), so you can see the host-side ground
+    truth that the SDK consumes via the
+    `stream-video:host-audio-session` `CustomEvent`.
+- **Host audio-session bridge** —
+  [`AudioSessionBridge.swift`](./IOSWebView/WebView/AudioSessionBridge.swift)
+  observes `AVAudioSession` notifications and forwards each snapshot into
+  the page. The SDK's `AudioHealthMonitor` consumes those events and
+  emits the `host-audio-session-interrupted` /
+  `host-audio-session-active` reason codes. See
+  [`AUDIO-SESSIONS.md`](./AUDIO-SESSIONS.md) for the protocol contract.
 
 The client SDK exposes audio-health transitions via the `useAudioHealth()`
 React hook (and `call.dynascaleManager.audioHealthMonitor?.audioHealth$`
-directly). The React tutorial doesn't render it by default; to correlate
-transitions with the native scenarios here, add a one-line `useEffect`
-that logs `useAudioHealth()` results in your React consumer — `console.*`
-calls are mirrored into the **Console** tab via `console-mirror.js`.
+directly). With the bridge in place, `useAudioHealth()` sees native
+ground-truth signals here that pure in-page detection would miss. The
+React tutorial doesn't render it by default; to correlate transitions
+with the native scenarios here, add a one-line `useEffect` that logs
+`useAudioHealth()` results in your React consumer — `console.*` calls
+are mirrored into the **Console** tab via `console-mirror.js`.
 
 ## Scenarios reference
 

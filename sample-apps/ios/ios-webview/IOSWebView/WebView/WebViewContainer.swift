@@ -1,3 +1,4 @@
+import Combine
 import UIKit
 import WebKit
 
@@ -8,6 +9,8 @@ final class WebViewContainer: UIView {
     let navigationInterceptor = NavigationInterceptor()
     let consoleBridge = ConsoleBridge()
     let errorBridge = ErrorBridge()
+    private var audioSessionBridge: AudioSessionBridge?
+    private var audioSessionBridgeCancellable: AnyCancellable?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -15,6 +18,8 @@ final class WebViewContainer: UIView {
     }
 
     required init?(coder: NSCoder) { fatalError() }
+
+    deinit { audioSessionBridge?.stop() }
 
     private func build() {
         let config = WKWebViewConfiguration()
@@ -51,6 +56,37 @@ final class WebViewContainer: UIView {
             wv.leadingAnchor.constraint(equalTo: leadingAnchor),
             wv.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
+
+        // Start pushing native AVAudioSession state into the page so the
+        // SDK's AudioHealthMonitor sees ground-truth interruptions. Also
+        // mirror each snapshot into the Lifecycle tab for correlation.
+        let bridge = AudioSessionBridge(webView: wv)
+        audioSessionBridgeCancellable = bridge.snapshotPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { snapshot in
+                AppState.shared.log(.lifecycle, "bridge", Self.format(snapshot))
+            }
+        bridge.start()
+        self.audioSessionBridge = bridge
+    }
+
+    private static func format(_ snapshot: AudioSessionBridge.Snapshot) -> String {
+        var parts: [String] = [
+            "category=\(snapshot.state.category)",
+            "mode=\(snapshot.state.mode)",
+            "options=\(snapshot.state.categoryOptions)",
+        ]
+        if let interruption = snapshot.state.interruption {
+            if let reason = interruption.reason {
+                parts.append("interruption=\(interruption.type)(reason=\(reason))")
+            } else {
+                parts.append("interruption=\(interruption.type)")
+            }
+        }
+        if let reason = snapshot.state.routeChangeReason {
+            parts.append("routeChangeReason=\(reason)")
+        }
+        return parts.joined(separator: " ")
     }
 
     static func loadScript(_ name: String) -> String? {
