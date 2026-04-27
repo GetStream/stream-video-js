@@ -29,11 +29,19 @@ export interface VirtualDevice {
   getUserMedia: () => VirtualDeviceSession | Promise<VirtualDeviceSession>;
 }
 
+/**
+ * @internal Internal entry stored in the device manager's registry.
+ */
 export interface VirtualDeviceEntry extends VirtualDevice {
   readonly deviceId: string;
   readonly kind: 'audioinput' | 'videoinput';
 }
 
+/**
+ * @internal Tracks the currently active virtual device session inside the
+ * device manager so its `stop` callback can be invoked when the session is
+ * replaced or torn down.
+ */
 export interface ActiveVirtualSession {
   deviceId: string;
   stop?: () => void | Promise<void>;
@@ -53,4 +61,4 @@ export interface VirtualDeviceHandle {
   unregister: () => Promise<void>;
 }
 
-export const VIRTUAL_DEVICE_PREFIX = 'virtual:';
+export const VIRTUAL_DEVICE_PREFIX = 'stream-virtual:';

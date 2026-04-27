@@ -212,10 +212,9 @@ export abstract class DeviceManager<
 
   protected findVirtualDevice(deviceId: string | undefined) {
     if (!deviceId) return undefined;
-
-    return this.virtualDevicesSubject
-      .getValue()
-      .find((d) => d.deviceId === deviceId);
+    return getCurrentValue(this.virtualDevicesSubject).find(
+      (d) => d.deviceId === deviceId,
+    );
   }
 
   private async stopActiveVirtualSession() {
