@@ -17,7 +17,7 @@ import {
 } from './mocks';
 import { DeviceManager } from '../DeviceManager';
 import { DeviceManagerState } from '../DeviceManagerState';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { PermissionsContext } from '../../permissions';
 import { readPreferences } from '../devicePersistence';
@@ -330,12 +330,7 @@ describe('Device Manager', () => {
       getUserMedia: vi.fn(() => ({ stream: mockVideoStream() })),
     });
 
-    const devices = await new Promise<MediaDeviceInfo[]>((resolve) => {
-      const sub = manager.listDevices().subscribe((value) => {
-        resolve(value);
-        sub.unsubscribe();
-      });
-    });
+    const devices = await firstValueFrom(manager.listDevices());
 
     expect(devices.length).toBe(mockVideoDevices.length + 1);
     const virtual = devices.find((d) => d.label === 'My virtual camera');
