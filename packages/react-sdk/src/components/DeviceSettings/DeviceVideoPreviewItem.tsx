@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react';
 import clsx from 'clsx';
+import { VIRTUAL_DEVICE_PREFIX } from '@stream-io/video-client';
 import { DeviceListItem } from '../../hooks';
 
 const DeviceVideoPreview = ({ deviceId }: { deviceId: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    if (deviceId.startsWith(VIRTUAL_DEVICE_PREFIX)) return;
+
     let cancelled = false;
     let stream: MediaStream | undefined;
 
