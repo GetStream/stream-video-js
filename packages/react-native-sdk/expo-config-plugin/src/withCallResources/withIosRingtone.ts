@@ -52,7 +52,6 @@ const withIosRingtone: ConfigPlugin<ConfigProps> = (config, props) => {
       });
       if (file) {
         file.uuid = proj.generateUuid();
-        file.target = proj.getFirstTarget().uuid;
         proj.addToPbxBuildFileSection(file);
         proj.addToPbxResourcesBuildPhase(file);
       }
