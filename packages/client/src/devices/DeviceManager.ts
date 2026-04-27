@@ -74,6 +74,7 @@ export abstract class DeviceManager<
   private filters: MediaStreamFilterEntry[] = [];
   private virtualDevicesSubject = new BehaviorSubject<VirtualDeviceEntry[]>([]);
   private activeVirtualSession: ActiveVirtualSession | undefined;
+  private virtualDeviceConcurrencyTag = Symbol('virtualDeviceConcurrencyTag');
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
   private filterRegistrationConcurrencyTag = Symbol(
     'filterRegistrationConcurrencyTag',
@@ -181,18 +182,17 @@ export abstract class DeviceManager<
     return {
       deviceId,
       unregister: async () => {
-        await settled(this.statusChangeConcurrencyTag);
         if (this.state.selectedDevice === deviceId) {
           await this.select(undefined);
         }
-        if (this.activeVirtualSession?.deviceId === deviceId) {
-          const session = this.activeVirtualSession;
-          this.activeVirtualSession = undefined;
-          await session.stop?.();
-        }
-        setCurrentValue(this.virtualDevicesSubject, (current) =>
-          current.filter((d) => d !== entry),
-        );
+        await withoutConcurrency(this.virtualDeviceConcurrencyTag, async () => {
+          setCurrentValue(this.virtualDevicesSubject, (current) =>
+            current.filter((d) => d !== entry),
+          );
+          if (this.activeVirtualSession?.deviceId === deviceId) {
+            await this.stopActiveVirtualSession();
+          }
+        });
       },
     };
   }
@@ -219,24 +219,29 @@ export abstract class DeviceManager<
       .find((d) => d.deviceId === deviceId);
   }
 
+  private async stopActiveVirtualSession() {
+    const session = this.activeVirtualSession;
+    this.activeVirtualSession = undefined;
+    await session?.stop?.();
+  }
+
   protected async getSelectedStream(constraints: C): Promise<MediaStream> {
     const deviceId = this.state.selectedDevice;
     if (!deviceId?.startsWith(VIRTUAL_DEVICE_PREFIX)) {
       return this.getStream(constraints);
     }
 
-    const virtualDevice = this.findVirtualDevice(deviceId);
-    if (!virtualDevice) {
-      throw new Error(`Virtual device is not registered: ${deviceId}`);
-    }
+    return withoutConcurrency(this.virtualDeviceConcurrencyTag, async () => {
+      const virtualDevice = this.findVirtualDevice(deviceId);
+      if (!virtualDevice) {
+        throw new Error(`Virtual device is not registered: ${deviceId}`);
+      }
 
-    const session = await virtualDevice.acquire();
-    this.activeVirtualSession = {
-      deviceId,
-      stop: session.stop,
-    };
-
-    return this.sanitizeVirtualStream(session.stream);
+      await this.stopActiveVirtualSession();
+      const session = await virtualDevice.acquire();
+      this.activeVirtualSession = { deviceId, stop: session.stop };
+      return this.sanitizeVirtualStream(session.stream);
+    });
   }
 
   /**
@@ -468,9 +473,7 @@ export abstract class DeviceManager<
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
     if (allEnded) {
-      const activeVirtualSession = this.activeVirtualSession;
-      this.activeVirtualSession = undefined;
-      await activeVirtualSession?.stop?.();
+      await this.stopActiveVirtualSession();
       // @ts-expect-error release() is present in react-native-webrtc
       if (typeof mediaStream.release === 'function') {
         // @ts-expect-error called to dispose the stream in RN
