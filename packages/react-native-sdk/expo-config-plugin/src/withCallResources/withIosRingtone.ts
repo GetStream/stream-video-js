@@ -17,7 +17,7 @@ const withIosRingtone: ConfigPlugin<ConfigProps> = (config, props) => {
     if (!fs.existsSync(sourcePath)) {
       throw new Error(
         `[StreamVideo] iOS ringtone file not found: ${sourcePath}. ` +
-          `Check that the "iosCallkitRingtone" path in your plugin config is correct.`,
+          `Check that the "iosRingtone" path in your plugin config is correct.`,
       );
     }
 

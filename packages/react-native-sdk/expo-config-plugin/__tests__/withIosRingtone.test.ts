@@ -66,7 +66,7 @@ describe('withIosRingtone', () => {
     mockedFs.existsSync.mockReturnValue(true);
   });
 
-  it('should skip when iosCallkitRingtone is not set', () => {
+  it('should skip when iosRingtone is not set', () => {
     const config = createConfig();
     const props: ConfigProps = {};
     const result = withIosRingtone(config, props);
