@@ -77,7 +77,7 @@ describe('withIosRingtone', () => {
   it('should copy ringtone and add to Xcode project', () => {
     const config = createConfig();
     const props: ConfigProps = {
-      iosCallkitRingtone: './assets/ringtone.caf',
+      iosRingtone: './assets/ringtone.caf',
     };
 
     withIosRingtone(config, props);
@@ -106,7 +106,7 @@ describe('withIosRingtone', () => {
       hasFile: jest.fn().mockReturnValue(true),
     });
     const props: ConfigProps = {
-      iosCallkitRingtone: './assets/ringtone.caf',
+      iosRingtone: './assets/ringtone.caf',
     };
 
     withIosRingtone(config, props);
@@ -119,7 +119,7 @@ describe('withIosRingtone', () => {
     mockedFs.existsSync.mockReturnValue(false);
     const config = createConfig();
     const props: ConfigProps = {
-      iosCallkitRingtone: './assets/missing.caf',
+      iosRingtone: './assets/missing.caf',
     };
 
     expect(() => withIosRingtone(config, props)).toThrow(
@@ -130,7 +130,7 @@ describe('withIosRingtone', () => {
   it('should throw on invalid extension', () => {
     const config = createConfig();
     const props: ConfigProps = {
-      iosCallkitRingtone: './assets/ringtone.mp3',
+      iosRingtone: './assets/ringtone.mp3',
     };
 
     expect(() => withIosRingtone(config, props)).toThrow(
@@ -141,7 +141,7 @@ describe('withIosRingtone', () => {
   it('should accept .aiff extension', () => {
     const config = createConfig();
     const props: ConfigProps = {
-      iosCallkitRingtone: './assets/ringtone.aiff',
+      iosRingtone: './assets/ringtone.aiff',
     };
 
     withIosRingtone(config, props);

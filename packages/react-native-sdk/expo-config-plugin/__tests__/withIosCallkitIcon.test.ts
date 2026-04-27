@@ -40,7 +40,7 @@ describe('withIosCallkitIcon', () => {
     mockedFs.existsSync.mockReturnValue(true);
   });
 
-  it('should skip when iosCallkitIcon is not set', () => {
+  it('should skip when iosCallKitIcon is not set', () => {
     const props: ConfigProps = {};
     const result = withIosCallkitIcon(baseConfig, props);
     expect(result).toBe(baseConfig);
@@ -49,7 +49,7 @@ describe('withIosCallkitIcon', () => {
 
   it('should create imageset directory and copy icon', () => {
     const props: ConfigProps = {
-      iosCallkitIcon: './assets/callkit_icon.png',
+      iosCallKitIcon: './assets/callkit_icon.png',
     };
 
     withIosCallkitIcon(baseConfig, props);
@@ -66,7 +66,7 @@ describe('withIosCallkitIcon', () => {
 
   it('should write Contents.json with template rendering intent', () => {
     const props: ConfigProps = {
-      iosCallkitIcon: './assets/callkit_icon.png',
+      iosCallKitIcon: './assets/callkit_icon.png',
     };
 
     withIosCallkitIcon(baseConfig, props);
@@ -91,7 +91,7 @@ describe('withIosCallkitIcon', () => {
   it('should throw when file does not exist', () => {
     mockedFs.existsSync.mockReturnValue(false);
     const props: ConfigProps = {
-      iosCallkitIcon: './assets/missing.png',
+      iosCallKitIcon: './assets/missing.png',
     };
 
     expect(() => withIosCallkitIcon(baseConfig, props)).toThrow(
@@ -101,7 +101,7 @@ describe('withIosCallkitIcon', () => {
 
   it('should throw on non-PNG file', () => {
     const props: ConfigProps = {
-      iosCallkitIcon: './assets/icon.jpg',
+      iosCallKitIcon: './assets/icon.jpg',
     };
 
     expect(() => withIosCallkitIcon(baseConfig, props)).toThrow(

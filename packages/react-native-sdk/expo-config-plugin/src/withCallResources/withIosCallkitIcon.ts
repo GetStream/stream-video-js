@@ -30,7 +30,7 @@ const withIosCallkitIcon: ConfigPlugin<ConfigProps> = (config, props) => {
       if (!fs.existsSync(sourcePath)) {
         throw new Error(
           `[StreamVideo] iOS CallKit icon file not found: ${sourcePath}. ` +
-            `Check that the "iosCallkitIcon" path in your plugin config is correct.`,
+            `Check that the "iosCallKitIcon" path in your plugin config is correct.`,
         );
       }
 
