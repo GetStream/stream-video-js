@@ -10,7 +10,8 @@ export const setNotificationListeners = () => {
     if (
       stream &&
       stream.sender === 'stream.video' &&
-      stream.type !== 'call.ring'
+      stream.type !== 'call.ring' &&
+      stream.call_cid
     ) {
       displayNonRingingNotification(stream);
     }

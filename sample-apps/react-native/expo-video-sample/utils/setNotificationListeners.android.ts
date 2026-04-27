@@ -19,7 +19,7 @@ async function handleNonRingingMessage(
   }
 
   const data = msg.data;
-  if (!data || data.sender !== 'stream.video') {
+  if (!data || data.sender !== 'stream.video' || !data.call_cid) {
     return;
   }
 
@@ -41,7 +41,7 @@ export const setNotificationListeners = () => {
   // Foreground message handler
   messaging().onMessage(async (msg) => {
     if (isFirebaseStreamVideoMessage(msg)) {
-      firebaseDataHandler(msg.data);
+      await firebaseDataHandler(msg.data);
       await handleNonRingingMessage(msg);
     }
   });

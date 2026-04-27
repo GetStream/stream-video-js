@@ -981,7 +981,7 @@ npx expo prebuild --clean
 - `@react-native-community/netinfo` - Network status
 - `@stream-io/video-filters-react-native` - Video filters (background blur)
 - `@stream-io/noise-cancellation-react-native` - Noise cancellation
-- `expo`, `expo-notifications`, `expo-build-properties` - Expo support
+- `expo`, `expo-build-properties` - Expo support
 
 **Not part of the SDK (app-level for non-ringing notifications):**
 
