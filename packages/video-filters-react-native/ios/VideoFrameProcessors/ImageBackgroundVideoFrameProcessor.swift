@@ -76,7 +76,19 @@ final class ImageBackgroundVideoFrameProcessor: VideoFilter {
         if let url = URL(string: backgroundImageUrl) {
             bgUIImage = RCTImageFromLocalAssetURL(url)
             if bgUIImage == nil {
-                if let data = try? Data(contentsOf: url) {
+                // Bounded timeout (matches Android's 10s) so a hanging remote URL
+                // doesn't keep this background thread alive for the OS-default ~75s.
+                var request = URLRequest(url: url)
+                request.timeoutInterval = 10
+                let semaphore = DispatchSemaphore(value: 0)
+                var fetchedData: Data?
+                let task = URLSession.shared.dataTask(with: request) { data, _, _ in
+                    fetchedData = data
+                    semaphore.signal()
+                }
+                task.resume()
+                semaphore.wait()
+                if let data = fetchedData {
                     bgUIImage = UIImage(data: data)
                 } else {
                     // URLs may carry signed-access query tokens; log only the host.
