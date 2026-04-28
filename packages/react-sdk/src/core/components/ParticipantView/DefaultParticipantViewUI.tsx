@@ -1,4 +1,4 @@
-import { ComponentType, forwardRef, useEffect, useState } from 'react';
+import { ComponentType, forwardRef } from 'react';
 import { Placement } from '@floating-ui/react';
 import {
   hasAudio,
@@ -6,9 +6,12 @@ import {
   hasScreenShare,
   hasVideo,
   SfuModels,
-  StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useI18n,
+  useIsAudioConnecting,
+} from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
 
 import {
@@ -139,8 +142,7 @@ export const ParticipantDetails = ({
   const isTrackPaused =
     trackType !== 'none' ? hasPausedTrack(participant, trackType) : false;
 
-  const isAudioTrackUnmuted = useIsTrackUnmuted(participant);
-  const isAudioConnecting = hasAudioTrack && !isAudioTrackUnmuted;
+  const isAudioConnecting = useIsAudioConnecting(participant);
 
   return (
     <>
@@ -214,34 +216,4 @@ export const SpeechIndicator = () => {
       <span className="str-video__speech-indicator__bar" />
     </span>
   );
-};
-
-const useIsTrackUnmuted = (participant: StreamVideoParticipant) => {
-  const audioStream = participant.audioStream;
-
-  const [unmuted, setUnmuted] = useState(() => {
-    const track = audioStream?.getAudioTracks()[0];
-    return !!track && !track.muted;
-  });
-
-  useEffect(() => {
-    const track = audioStream?.getAudioTracks()[0];
-    if (!track) return;
-
-    setUnmuted(!track.muted);
-
-    const handler = () => {
-      setUnmuted(!track.muted);
-    };
-
-    track.addEventListener('mute', handler);
-    track.addEventListener('unmute', handler);
-
-    return () => {
-      track.removeEventListener('mute', handler);
-      track.removeEventListener('unmute', handler);
-    };
-  }, [audioStream]);
-
-  return unmuted;
 };
