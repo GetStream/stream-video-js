@@ -66,12 +66,16 @@ private class VirtualBackgroundVideoFilter(
     @Volatile
     private var virtualBackgroundBitmap: Bitmap? = null
 
+    // Guards against the load thread writing virtualBackgroundBitmap after close().
+    @Volatile
+    private var isClosed = false
+
     init {
         Thread { loadBackgroundImage() }.start()
     }
 
     private fun loadBackgroundImage() {
-        virtualBackgroundBitmap = try {
+        val bitmap: Bitmap? = try {
             val uri = Uri.parse(backgroundImageUrlString)
             if (uri.scheme == null) { // this is a local image
                 val drawableId = ResourceDrawableIdHelper.getInstance()
@@ -91,6 +95,14 @@ private class VirtualBackgroundVideoFilter(
             val host = Uri.parse(backgroundImageUrlString).host ?: "local"
             Log.e(TAG, "cant get bitmap for image (host=$host)", e)
             null
+        }
+
+        synchronized(this) {
+            if (isClosed) {
+                bitmap?.recycle()
+                return
+            }
+            virtualBackgroundBitmap = bitmap
         }
     }
 
@@ -196,9 +208,12 @@ private class VirtualBackgroundVideoFilter(
 
     // Free the ML Kit segmenter and cached bitmaps held by the filter.
     override fun close() {
+        synchronized(this) {
+            isClosed = true
+            virtualBackgroundBitmap?.recycle()
+            virtualBackgroundBitmap = null
+        }
         segmenter.close()
-        virtualBackgroundBitmap?.recycle()
-        virtualBackgroundBitmap = null
         scaledVirtualBackgroundBitmap?.recycle()
         scaledVirtualBackgroundBitmap = null
         foregroundMaskBitmap?.recycle()
