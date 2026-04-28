@@ -531,4 +531,236 @@ describe('AudioHealthMonitor', () => {
       reason: 'host-audio-session-interrupted',
     });
   });
+
+  // -------------------------------------------------------------------------
+  // Chrome-coverage: remote-tracks-muted
+  // -------------------------------------------------------------------------
+
+  /**
+   * happy-dom doesn't model `MediaStreamTrack` mute semantics precisely,
+   * so we use a plain object cast to MediaStreamTrack — the monitor only
+   * uses the reference as a Map key, never reads `.muted` itself.
+   */
+  const fakeTrack = (): MediaStreamTrack => ({}) as unknown as MediaStreamTrack;
+
+  it('flips to unhealthy/remote-tracks-muted when every registered track is muted (>= 2 tracks)', () => {
+    // Force the Chrome path: no W3C audioSession stub, so the healthy
+    // tiers below the new signal are deterministic.
+    uninstallAudioSession();
+    const monitor = newMonitor();
+    monitor.start();
+
+    const a = fakeTrack();
+    const b = fakeTrack();
+    monitor.handleRemoteAudioTrackChange(a, 'unmuted');
+    monitor.handleRemoteAudioTrackChange(b, 'unmuted');
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'playback-verified',
+    );
+
+    // Mute the first only — still healthy via the second.
+    monitor.handleRemoteAudioTrackChange(a, 'muted');
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'playback-verified',
+    );
+
+    // Mute both — minimum threshold satisfied (size === 2, all muted).
+    monitor.handleRemoteAudioTrackChange(b, 'muted');
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unhealthy',
+      reason: 'remote-tracks-muted',
+    });
+  });
+
+  it('does not flip on remote-tracks-muted when only some tracks are muted', () => {
+    uninstallAudioSession();
+    const monitor = newMonitor();
+    monitor.start();
+
+    const a = fakeTrack();
+    const b = fakeTrack();
+    monitor.handleRemoteAudioTrackChange(a, 'muted');
+    monitor.handleRemoteAudioTrackChange(b, 'unmuted');
+
+    // One muted out of two → playback-verified is correct, not unhealthy.
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'healthy',
+      reason: 'playback-verified',
+    });
+  });
+
+  it('removes ended tracks from the aggregation (remote leaving while muted edge case)', () => {
+    uninstallAudioSession();
+    const monitor = newMonitor();
+    monitor.start();
+
+    const a = fakeTrack();
+    const b = fakeTrack();
+    const c = fakeTrack();
+    monitor.handleRemoteAudioTrackChange(a, 'muted');
+    monitor.handleRemoteAudioTrackChange(b, 'muted');
+    monitor.handleRemoteAudioTrackChange(c, 'unmuted');
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'playback-verified',
+    );
+
+    // The unmuted track ends → two muted ones remain → flips
+    // unhealthy. Without `'ended'` removing the track from the map,
+    // the stale unmuted-but-gone entry would mask the muted condition.
+    monitor.handleRemoteAudioTrackChange(c, 'ended');
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unhealthy',
+      reason: 'remote-tracks-muted',
+    });
+  });
+
+  it('does NOT fire remote-tracks-muted when only a single track is registered (1:1 calls)', () => {
+    uninstallAudioSession();
+    const monitor = newMonitor();
+    monitor.start();
+
+    monitor.handleRemoteAudioTrackChange(fakeTrack(), 'muted');
+
+    // Single tracked track muted: per-sender hiccup is indistinguishable
+    // from a client-wide problem, so the reducer falls through to
+    // `unsupported` rather than reporting `remote-tracks-muted`.
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unknown',
+      reason: 'unsupported',
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Chrome-coverage: element-paused
+  // -------------------------------------------------------------------------
+
+  it('flips to unhealthy/element-paused on registerPausedAudioElement', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    const el = document.createElement('audio');
+    monitor.registerPausedAudioElement(el);
+
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unhealthy',
+      reason: 'element-paused',
+    });
+  });
+
+  it('clears element-paused when the last paused element unregisters', () => {
+    uninstallAudioSession();
+    const monitor = newMonitor();
+    monitor.start();
+    const el = document.createElement('audio');
+    monitor.registerPausedAudioElement(el);
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe('element-paused');
+
+    monitor.unregisterPausedAudioElement(el);
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unknown',
+      reason: 'unsupported',
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Reducer priority for the new signals
+  // -------------------------------------------------------------------------
+
+  it('autoplay-blocked beats remote-tracks-muted (user-actionable wins within tier 4)', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    const t = fakeTrack();
+    monitor.handleRemoteAudioTrackChange(t, 'muted');
+    monitor.registerBlockedAudioElement(makeBlockedElement());
+
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'autoplay-blocked',
+    );
+  });
+
+  it('any *-interrupted reason beats both new unhealthy reasons', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    const a = fakeTrack();
+    const b = fakeTrack();
+    monitor.handleRemoteAudioTrackChange(a, 'muted');
+    monitor.handleRemoteAudioTrackChange(b, 'muted');
+    monitor.registerPausedAudioElement(document.createElement('audio'));
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'remote-tracks-muted',
+    );
+
+    audioSessionStub.state = 'interrupted';
+    audioSessionStub.emitStateChange();
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'audio-session-interrupted',
+    );
+  });
+
+  // -------------------------------------------------------------------------
+  // playback-verified
+  // -------------------------------------------------------------------------
+
+  it('does not promote to playback-verified before any remote audio track is registered', () => {
+    uninstallAudioSession();
+    const monitor = newMonitor();
+    monitor.start();
+    // Chrome/Firefox baseline: no audioSession, no host bridge, no
+    // remote tracks yet → unsupported.
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unknown',
+      reason: 'unsupported',
+    });
+  });
+
+  it('promotes to playback-verified when a remote audio track is registered as unmuted (Chrome/Firefox path)', () => {
+    uninstallAudioSession();
+    const monitor = newMonitor();
+    monitor.start();
+
+    monitor.handleRemoteAudioTrackChange(fakeTrack(), 'unmuted');
+
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'healthy',
+      reason: 'playback-verified',
+    });
+  });
+
+  it('host-audio-session-active still beats playback-verified (host is more authoritative)', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    monitor.handleRemoteAudioTrackChange(fakeTrack(), 'unmuted');
+    dispatchHostEvent(makeHostEvent());
+
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'host-audio-session-active',
+    );
+  });
+
+  it('stop() clears remote-track and paused-element collections', async () => {
+    const monitor = newMonitor();
+    monitor.start();
+    const a = fakeTrack();
+    const b = fakeTrack();
+    const el = document.createElement('audio');
+    monitor.handleRemoteAudioTrackChange(a, 'muted');
+    monitor.handleRemoteAudioTrackChange(b, 'muted');
+    monitor.registerPausedAudioElement(el);
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'remote-tracks-muted',
+    );
+
+    await monitor.stop();
+    monitor.start();
+    // Fresh start: stale state must not leak through.
+    expect(getCurrentValue(monitor.audioHealth$).reason).not.toBe(
+      'remote-tracks-muted',
+    );
+    expect(getCurrentValue(monitor.audioHealth$).reason).not.toBe(
+      'element-paused',
+    );
+  });
 });

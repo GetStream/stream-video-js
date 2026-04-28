@@ -28,7 +28,9 @@ describe('AudioBindingsWatchdog', () => {
       clientStore: new StreamVideoWriteableStateStore(),
     });
     call.setSortParticipantsBy(noopComparator());
-    watchdog = new AudioBindingsWatchdog(call.state, call.tracer);
+    // No-op callback: the original suite tests dangling-binding
+    // diagnostics, not pause/play forwarding (covered separately below).
+    watchdog = new AudioBindingsWatchdog(call.state, call.tracer, () => {});
   });
 
   afterEach(() => {
@@ -347,5 +349,96 @@ describe('AudioBindingsWatchdog', () => {
     vi.advanceTimersByTime(6000);
 
     expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  describe('pause/play forwarding', () => {
+    let onElementPausedChange: ReturnType<typeof vi.fn>;
+    let watchdogWithCallback: AudioBindingsWatchdog;
+
+    beforeEach(() => {
+      onElementPausedChange = vi.fn();
+      watchdogWithCallback = new AudioBindingsWatchdog(
+        call.state,
+        call.tracer,
+        onElementPausedChange,
+      );
+    });
+
+    afterEach(() => {
+      watchdogWithCallback.dispose();
+    });
+
+    /** Element whose `srcObject` is a `MediaStream` with one live track. */
+    const elementWithLiveStream = (): HTMLAudioElement => {
+      const el = document.createElement('audio');
+      const stream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // MediaStreamTrack mock defaults `readyState: 'live'` already.
+      vi.spyOn(stream, 'getTracks').mockReturnValue([track]);
+      Object.defineProperty(el, 'srcObject', { writable: true });
+      el.srcObject = stream;
+      return el;
+    };
+
+    it('emits paused=true on `pause` when srcObject is a live MediaStream', () => {
+      const el = elementWithLiveStream();
+      watchdogWithCallback.register(el, 'session-1', 'audioTrack');
+      el.dispatchEvent(new Event('pause'));
+      expect(onElementPausedChange).toHaveBeenCalledWith(el, true);
+      expect(onElementPausedChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('does NOT emit on `pause` when srcObject is null (benign unbind)', () => {
+      const el = document.createElement('audio');
+      Object.defineProperty(el, 'srcObject', { writable: true });
+      el.srcObject = null;
+      watchdogWithCallback.register(el, 'session-1', 'audioTrack');
+      el.dispatchEvent(new Event('pause'));
+      expect(onElementPausedChange).not.toHaveBeenCalled();
+    });
+
+    it('does NOT emit on `pause` when every track in srcObject is ended', () => {
+      const el = document.createElement('audio');
+      const stream = new MediaStream();
+      const endedTrack = new MediaStreamTrack();
+      // @ts-expect-error - mocked override
+      endedTrack.readyState = 'ended';
+      vi.spyOn(stream, 'getTracks').mockReturnValue([endedTrack]);
+      Object.defineProperty(el, 'srcObject', { writable: true });
+      el.srcObject = stream;
+
+      watchdogWithCallback.register(el, 'session-1', 'audioTrack');
+      el.dispatchEvent(new Event('pause'));
+      expect(onElementPausedChange).not.toHaveBeenCalled();
+    });
+
+    it('emits paused=false on `play`', () => {
+      const el = elementWithLiveStream();
+      watchdogWithCallback.register(el, 'session-1', 'audioTrack');
+
+      el.dispatchEvent(new Event('pause'));
+      expect(onElementPausedChange).toHaveBeenLastCalledWith(el, true);
+
+      el.dispatchEvent(new Event('play'));
+      expect(onElementPausedChange).toHaveBeenLastCalledWith(el, false);
+    });
+
+    it('unregister detaches listeners and emits a final paused=false', () => {
+      const el = elementWithLiveStream();
+      watchdogWithCallback.register(el, 'session-1', 'audioTrack');
+      el.dispatchEvent(new Event('pause'));
+      expect(onElementPausedChange).toHaveBeenLastCalledWith(el, true);
+
+      watchdogWithCallback.unregister('session-1', 'audioTrack');
+      // Defensive emit on the way out so a downstream consumer can't
+      // stay stuck holding a paused-state report for an element that's
+      // no longer bound.
+      expect(onElementPausedChange).toHaveBeenLastCalledWith(el, false);
+
+      // Listeners detached: subsequent pause does not fire forwarding.
+      onElementPausedChange.mockClear();
+      el.dispatchEvent(new Event('pause'));
+      expect(onElementPausedChange).not.toHaveBeenCalled();
+    });
   });
 });

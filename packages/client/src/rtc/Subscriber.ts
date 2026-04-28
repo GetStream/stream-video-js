@@ -1,5 +1,5 @@
 import { BasePeerConnection } from './BasePeerConnection';
-import { BasePeerConnectionOpts } from './types';
+import { BasePeerConnectionOpts, OnRemoteAudioTrackChange } from './types';
 import { NegotiationError } from './NegotiationError';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
@@ -13,11 +13,14 @@ import { enableStereo, removeCodecsExcept } from './helpers/sdp';
  * @internal
  */
 export class Subscriber extends BasePeerConnection {
+  private readonly onRemoteAudioTrackChange: OnRemoteAudioTrackChange;
+
   /**
    * Constructs a new `Subscriber` instance.
    */
   constructor(opts: BasePeerConnectionOpts) {
     super(PeerType.SUBSCRIBER, opts);
+    this.onRemoteAudioTrackChange = opts.onRemoteAudioTrackChange;
     this.pc.addEventListener('track', this.handleOnTrack);
 
     this.on('subscriberOffer', async (subscriberOffer) => {
@@ -35,6 +38,11 @@ export class Subscriber extends BasePeerConnection {
   detachEventHandlers() {
     super.detachEventHandlers();
     this.pc.removeEventListener('track', this.handleOnTrack);
+    for (const { track } of this.pc.getReceivers()) {
+      if (track && track.kind === 'audio') {
+        this.onRemoteAudioTrackChange(track, 'ended');
+      }
+    }
   }
 
   /**
@@ -80,17 +88,21 @@ export class Subscriber extends BasePeerConnection {
     );
 
     const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
+    const isAudio = e.track.kind === 'audio';
     e.track.addEventListener('mute', () => {
       this.logger.info(`[onTrack]: Track muted: ${trackDebugInfo}`);
+      if (isAudio) this.onRemoteAudioTrackChange(e.track, 'muted');
     });
 
     e.track.addEventListener('unmute', () => {
       this.logger.info(`[onTrack]: Track unmuted: ${trackDebugInfo}`);
+      if (isAudio) this.onRemoteAudioTrackChange(e.track, 'unmuted');
     });
 
     e.track.addEventListener('ended', () => {
       this.logger.info(`[onTrack]: Track ended: ${trackDebugInfo}`);
       this.state.removeOrphanedTrack(primaryStream.id);
+      if (isAudio) this.onRemoteAudioTrackChange(e.track, 'ended');
     });
 
     const trackType = toTrackType(rawTrackType);
@@ -136,6 +148,11 @@ export class Subscriber extends BasePeerConnection {
         `[onTrack]: Cleaning up previous remote ${e.track.kind} tracks for userId: ${participantToUpdate.userId}`,
       );
       previousStream.getTracks().forEach((t) => {
+        // `track.stop()` does not dispatch the `'ended'` event, so the
+        // listener attached above won't fire for replaced tracks.
+        if (t.kind === 'audio') {
+          this.onRemoteAudioTrackChange(t, 'ended');
+        }
         t.stop();
         previousStream.removeTrack(t);
       });

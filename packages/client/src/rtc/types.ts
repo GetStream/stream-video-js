@@ -16,12 +16,20 @@ export type OnReconnectionNeeded = (
   peerType: PeerType,
 ) => void;
 
+export type RemoteAudioTrackChange = 'muted' | 'unmuted' | 'ended';
+
+export type OnRemoteAudioTrackChange = (
+  track: MediaStreamTrack,
+  change: RemoteAudioTrackChange,
+) => void;
+
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
   connectionConfig?: RTCConfiguration;
   dispatcher: Dispatcher;
   onReconnectionNeeded?: OnReconnectionNeeded;
+  onRemoteAudioTrackChange: OnRemoteAudioTrackChange;
   tag: string;
   enableTracing: boolean;
   iceRestartDelay?: number;

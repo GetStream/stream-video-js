@@ -23,6 +23,10 @@ declare global {
      */
     audioSession?: AudioSession;
   }
+
+  interface WindowEventMap {
+    'stream-video:host-audio-session': CustomEvent<HostAudioSessionEvent>;
+  }
 }
 
 /**
@@ -82,17 +86,8 @@ export interface HostAudioSessionEvent {
      * currently interrupted. `reason` is the raw value of
      * `AVAudioSessionInterruptionReasonKey` (iOS 14.5+).
      */
-    interruption: {
-      type: 'began' | 'ended';
-      reason?: number;
-    } | null;
+    interruption: { type: 'began' | 'ended'; reason?: number } | null;
     /** Raw value of the last `AVAudioSessionRouteChangeReasonKey`, if any. */
     routeChangeReason: number | null;
   };
-}
-
-declare global {
-  interface WindowEventMap {
-    'stream-video:host-audio-session': CustomEvent<HostAudioSessionEvent>;
-  }
 }

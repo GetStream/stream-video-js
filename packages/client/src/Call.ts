@@ -380,18 +380,28 @@ export class Call {
     );
     if (!isReactNative()) {
       this.audioHealthMonitor = new AudioHealthMonitor(this.tracer);
+      const monitor = this.audioHealthMonitor;
       this.audioBindingsWatchdog = new AudioBindingsWatchdog(
         this.state,
         this.tracer,
+        (element, paused) => {
+          if (paused) monitor.registerPausedAudioElement(element);
+          else monitor.unregisterPausedAudioElement(element);
+        },
       );
     }
+    const audioMonitor = this.audioHealthMonitor;
     this.dynascaleManager = new DynascaleManager(
       this.state,
       this.speaker,
       this.tracer,
       this.trackSubscriptionManager,
-      this.audioHealthMonitor,
-      this.audioBindingsWatchdog,
+      audioMonitor
+        ? (element, blocked) => {
+            if (blocked) audioMonitor.registerBlockedAudioElement(element);
+            else audioMonitor.unregisterBlockedAudioElement(element);
+          }
+        : () => {},
     );
   }
 
@@ -1416,6 +1426,9 @@ export class Call {
       tag: sfuClient.tag,
       enableTracing,
       clientPublishOptions: this.clientPublishOptions,
+      onRemoteAudioTrackChange: (track, change) => {
+        this.audioHealthMonitor?.handleRemoteAudioTrackChange(track, change);
+      },
       onReconnectionNeeded: (kind, reason, peerType) => {
         this.reconnect(kind, reason).catch((err) => {
           const message = `[Reconnect] Error reconnecting, after a ${PeerType[peerType]} error: ${reason}`;
@@ -3007,10 +3020,15 @@ export class Call {
     );
 
     if (!unbind) return;
-    this.leaveCallHooks.add(unbind);
-    return () => {
-      this.leaveCallHooks.delete(unbind);
+    this.audioBindingsWatchdog?.register(audioElement, sessionId, trackType);
+    const cleanup = () => {
       unbind();
+      this.audioBindingsWatchdog?.unregister(sessionId, trackType);
+    };
+    this.leaveCallHooks.add(cleanup);
+    return () => {
+      this.leaveCallHooks.delete(cleanup);
+      cleanup();
     };
   };
 

@@ -204,8 +204,15 @@ The client SDK (`@stream-io/video-client`, surfaced via
     `'audio-session-interrupted'` / `'audio-context-interrupted'`
     (Safari OS interruption),
     `'autoplay-blocked'` (any browser),
-    `'audio-session-active'` (the positive W3C healthy signal),
-    `'not-started'` / `'unsupported'` (pre-start or no usable API).
+    `'remote-tracks-muted'` (cross-browser: every remote audio track muted
+    by the browser/OS),
+    `'element-paused'` (cross-browser: a bound `<audio>` auto-paused while
+    its `srcObject` was a live `MediaStream`),
+    `'audio-session-active'` (the positive W3C healthy signal on Safari),
+    `'playback-verified'` (cross-browser positive: at least one remote
+    audio track is unmuted and no bound element is paused — flips
+    Chrome/Firefox out of `'unsupported'`),
+    `'not-started'` / `'unsupported'` (pre-start or no usable signal yet).
 - **`call.resumeAudio()`** — iterates every `<audio>` element the SDK
   tracked as autoplay-blocked and retries `.play()` on each. Must be
   called from within a user gesture. Wire to a "tap to enable audio"
@@ -316,34 +323,22 @@ illustrative.
 
 ### Still open
 
-Detection is Safari-biased today on hosts that don't implement the
-bridge — on Chrome/Firefox `audioHealth$` only flips `unhealthy` via
-`autoplay-blocked` (no OS-interruption signal exists there). Two
-browser-agnostic enhancements are planned; see the
-`TODO (chrome-coverage)` block in
-`packages/client/src/helpers/AudioHealthMonitor.ts` for the integration
-plan:
-
-1. Aggregate `MediaStreamTrack.muted` across remote audio tracks → new
-   reason `'remote-tracks-muted'`.
-2. Watch `HTMLMediaElement.paused` with a live `srcObject` → new reason
-   `'element-paused'`.
-
-Once both land, Chrome/Firefox gain a positive `'healthy'` signal
-(`'playback-verified'`) as well.
-
-Other open items on the backlog:
+Open items on the backlog:
 
 - **`getStats()`-based anomaly logs** — detect `audioLevel=0` on all
   inbound streams while connection state is `connected`, for cases the
-  three signals above miss.
+  six signals above miss.
 - **Configurable auto-retry** — a background loop that calls
   `replaceTrack` periodically while health is `unhealthy`. Needs product
   input on aggression vs. race-condition risk.
 - **Unified public `recoverAudio()`** — today `call.resumeAudio()`
   handles only autoplay. A single method that also triggers
   `navigator.audioSession.type` writes + `getUserMedia` + `replaceTrack`
-  would simplify customer code once the track-mute signal exists.
+  would simplify customer code.
+- **React Native parity** for the cross-browser `'remote-tracks-muted'`
+  / `'element-paused'` signals. RN already has native-level access via
+  `stream-video-react-native-sdk`; the JS-layer signals are scoped to
+  the WebView path.
 
 ### What the SDK _can't_ do
 

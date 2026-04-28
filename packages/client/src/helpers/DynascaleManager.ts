@@ -14,8 +14,6 @@ import {
   takeWhile,
 } from 'rxjs';
 import { ViewportTracker } from './ViewportTracker';
-import type { AudioBindingsWatchdog } from './AudioBindingsWatchdog';
-import type { AudioHealthMonitor } from './AudioHealthMonitor';
 import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
 import { isFirefox, isSafari } from './browsers';
 import { hasScreenShare, hasVideo } from './participantUtils';
@@ -33,15 +31,24 @@ const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
 } as const;
 
 /**
+ * Callback the manager emits whenever `audioElement.play()` is refused
+ * with `NotAllowedError` (autoplay policy block; `blocked === true`) or
+ * the binding's `srcObject` is cleared so the autoplay-blocked state no
+ * longer applies (`blocked === false`). `Call` provides this at
+ * construction time to route the signal into `AudioHealthMonitor`
+ * without coupling `DynascaleManager` to the monitor's API.
+ */
+export type OnAutoplayBlockedChange = (
+  audioElement: HTMLAudioElement,
+  blocked: boolean,
+) => void;
+
+/**
  * A manager class that handles dynascale related tasks like:
  *
  * - binding video elements to session ids
  * - binding audio elements to session ids
  * - tracking element visibility
- *
- * Receives {@link TrackSubscriptionManager}, {@link AudioHealthMonitor}
- * and {@link AudioBindingsWatchdog} by injection. `Call` owns their
- * lifecycles; this class uses them during element bind/unbind.
  */
 export class DynascaleManager {
   private logger = videoLoggerSystem.getLogger('DynascaleManager');
@@ -53,8 +60,7 @@ export class DynascaleManager {
 
   readonly viewportTracker = new ViewportTracker();
   private trackSubscriptionManager: TrackSubscriptionManager;
-  private audioHealthMonitor: AudioHealthMonitor | undefined;
-  private audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
+  private readonly onAutoplayBlockedChange: OnAutoplayBlockedChange;
 
   /**
    * Creates a new DynascaleManager instance.
@@ -64,21 +70,17 @@ export class DynascaleManager {
     speaker: SpeakerManager,
     tracer: Tracer,
     trackSubscriptionManager: TrackSubscriptionManager,
-    audioHealthMonitor: AudioHealthMonitor | undefined,
-    audioBindingsWatchdog: AudioBindingsWatchdog | undefined,
+    onAutoplayBlockedChange: OnAutoplayBlockedChange,
   ) {
     this.callState = callState;
     this.speaker = speaker;
     this.tracer = tracer;
     this.trackSubscriptionManager = trackSubscriptionManager;
-    this.audioHealthMonitor = audioHealthMonitor;
-    this.audioBindingsWatchdog = audioBindingsWatchdog;
+    this.onAutoplayBlockedChange = onAutoplayBlockedChange;
   }
 
   /**
-   * Closes the audio context if it was created. The three injected helpers
-   * (`TrackSubscriptionManager`, `AudioHealthMonitor`, `AudioBindingsWatchdog`)
-   * are owned by `Call` and disposed there.
+   * Closes the audio context if it was created.
    */
   dispose = async () => {
     const context = this.audioContext;
@@ -376,8 +378,6 @@ export class DynascaleManager {
     const participant = this.callState.findParticipantBySessionId(sessionId);
     if (!participant || participant.isLocalParticipant) return;
 
-    this.audioBindingsWatchdog?.register(audioElement, sessionId, trackType);
-
     const participant$ = this.callState.participants$.pipe(
       map((ps) => ps.find((p) => p.sessionId === sessionId)),
       takeWhile((p) => !!p),
@@ -418,9 +418,7 @@ export class DynascaleManager {
         setTimeout(() => {
           audioElement.srcObject = source ?? null;
           if (!source) {
-            this.audioHealthMonitor?.unregisterBlockedAudioElement(
-              audioElement,
-            );
+            this.onAutoplayBlockedChange(audioElement, false);
             return;
           }
 
@@ -448,9 +446,7 @@ export class DynascaleManager {
               this.tracer.trace('audioPlaybackError', e.message);
               if (e.name === 'NotAllowedError') {
                 this.tracer.trace('audioPlaybackBlocked', null);
-                this.audioHealthMonitor?.registerBlockedAudioElement(
-                  audioElement,
-                );
+                this.onAutoplayBlockedChange(audioElement, true);
               }
               this.logger.warn(`Failed to play audio stream`, e);
             });
@@ -480,8 +476,7 @@ export class DynascaleManager {
     audioElement.autoplay = true;
 
     return () => {
-      this.audioBindingsWatchdog?.unregister(sessionId, trackType);
-      this.audioHealthMonitor?.unregisterBlockedAudioElement(audioElement);
+      this.onAutoplayBlockedChange(audioElement, false);
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();

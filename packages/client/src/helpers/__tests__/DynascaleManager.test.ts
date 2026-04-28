@@ -627,7 +627,7 @@ describe('DynascaleManager', () => {
         publishedTracks: [],
       });
 
-      const cleanup = dynascaleManager.bindAudioElement(
+      const cleanup = call.bindAudioElement(
         document.createElement('audio'),
         'session-id',
         'audioTrack',
@@ -658,7 +658,7 @@ describe('DynascaleManager', () => {
         publishedTracks: [],
       });
 
-      const cleanup = dynascaleManager.bindAudioElement(
+      const cleanup = call.bindAudioElement(
         audioElement,
         'session-id',
         'audioTrack',
@@ -698,7 +698,7 @@ describe('DynascaleManager', () => {
         publishedTracks: [],
       });
 
-      const cleanup = dynascaleManager.bindAudioElement(
+      const cleanup = call.bindAudioElement(
         audioElement,
         'session-id',
         'audioTrack',
@@ -742,7 +742,7 @@ describe('DynascaleManager', () => {
         publishedTracks: [],
       });
 
-      const cleanup = dynascaleManager.bindAudioElement(
+      const cleanup = call.bindAudioElement(
         audioElement,
         'session-id',
         'audioTrack',
@@ -790,13 +790,13 @@ describe('DynascaleManager', () => {
       const audioElement1 = document.createElement('audio');
       const audioElement2 = document.createElement('audio');
 
-      const cleanup1 = dynascaleManager.bindAudioElement(
+      const cleanup1 = call.bindAudioElement(
         audioElement1,
         'session-id',
         'audioTrack',
       );
 
-      const cleanup2 = dynascaleManager.bindAudioElement(
+      const cleanup2 = call.bindAudioElement(
         audioElement2,
         'session-id',
         'audioTrack',

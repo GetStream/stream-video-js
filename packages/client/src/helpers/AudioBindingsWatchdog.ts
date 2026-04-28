@@ -10,21 +10,40 @@ const toBindingKey = (
   trackType: AudioTrackType = 'audioTrack',
 ) => `${sessionId}/${trackType}`;
 
+type Binding = {
+  element: HTMLAudioElement;
+  onPause: () => void;
+  onPlay: () => void;
+};
+
+export type OnElementPausedChange = (
+  audioElement: HTMLAudioElement,
+  paused: boolean,
+) => void;
+
 /**
  * Tracks audio element bindings and periodically warns about
  * remote participants whose audio streams have no bound element.
  */
 export class AudioBindingsWatchdog {
-  private bindings = new Map<string, HTMLAudioElement>();
+  private bindings = new Map<string, Binding>();
   private enabled = true;
   private watchdogInterval?: NodeJS.Timeout;
   private readonly unsubscribeCallingState: () => void;
   private logger = videoLoggerSystem.getLogger('AudioBindingsWatchdog');
 
+  private readonly state: CallState;
+  private readonly tracer: Tracer;
+  private readonly onElementPausedChange: OnElementPausedChange;
+
   constructor(
-    private state: CallState,
-    private tracer: Tracer,
+    state: CallState,
+    tracer: Tracer,
+    onElementPausedChange: OnElementPausedChange,
   ) {
+    this.tracer = tracer;
+    this.state = state;
+    this.onElementPausedChange = onElementPausedChange;
     this.unsubscribeCallingState = createSubscription(
       state.callingState$,
       (callingState) => {
@@ -49,20 +68,45 @@ export class AudioBindingsWatchdog {
   ) => {
     const key = toBindingKey(sessionId, trackType);
     const existing = this.bindings.get(key);
-    if (existing && existing !== audioElement) {
+    if (existing && existing.element !== audioElement) {
       this.logger.warn(
         `Audio element already bound to ${sessionId} and ${trackType}`,
       );
       this.tracer.trace('audioBinding.alreadyBoundWarning', trackType);
+      this.detachPlaybackListeners(existing);
+    } else if (existing && existing.element === audioElement) {
+      // Same element re-registered — drop stale listeners before re-binding.
+      this.detachPlaybackListeners(existing);
     }
-    this.bindings.set(key, audioElement);
+    const onPause = () => {
+      // Benign pauses (unbind sets `srcObject = null`, end-of-stream
+      // leaves only ended tracks) shouldn't reach the consumer.
+      // They would cause a brief unhealthy flap that immediately
+      // gets cleared by the subsequent `unregister`.
+      const srcObject = audioElement.srcObject as MediaStream | null;
+      const tracks = srcObject?.getTracks();
+      if (!tracks?.some((t) => t.readyState === 'live')) return;
+      this.onElementPausedChange(audioElement, true);
+    };
+    const onPlay = () => {
+      this.onElementPausedChange(audioElement, false);
+    };
+    audioElement.addEventListener('pause', onPause);
+    audioElement.addEventListener('play', onPlay);
+    this.bindings.set(key, { element: audioElement, onPause, onPlay });
   };
 
   /**
    * Removes the audio element binding for the given session and track type.
    */
   unregister = (sessionId: string, trackType: AudioTrackType) => {
-    this.bindings.delete(toBindingKey(sessionId, trackType));
+    const key = toBindingKey(sessionId, trackType);
+    const existing = this.bindings.get(key);
+    if (existing) {
+      this.detachPlaybackListeners(existing);
+      this.onElementPausedChange(existing.element, false);
+    }
+    this.bindings.delete(key);
   };
 
   /**
@@ -83,7 +127,18 @@ export class AudioBindingsWatchdog {
    */
   dispose = () => {
     this.stop();
+    for (const binding of this.bindings.values()) {
+      this.detachPlaybackListeners(binding);
+      this.onElementPausedChange(binding.element, false);
+    }
+    this.bindings.clear();
     this.unsubscribeCallingState();
+  };
+
+  private detachPlaybackListeners = (binding: Binding) => {
+    const { onPause, element, onPlay } = binding;
+    element.removeEventListener('pause', onPause);
+    element.removeEventListener('play', onPlay);
   };
 
   private start = () => {
