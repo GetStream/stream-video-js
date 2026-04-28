@@ -30,6 +30,9 @@ struct ScenariosMenu {
         let sounds = UIMenu(title: "", options: .displayInline, children: [
             UIAction(title: "Play ding (mix)") { _ in audio.playDing(mixWithOthers: true) },
             UIAction(title: "Play ding (exclusive)") { _ in audio.playDing(mixWithOthers: false) },
+            UIAction(title: "Play ding (exclusive, auto-restore)") { _ in
+                audio.playDingWithAutoRestore()
+            },
             UIAction(title: "Start ringtone") { _ in audio.playRingtone() },
             UIAction(title: "Stop ringtone") { _ in audio.stopRingtone() },
             UIAction(title: "Local notification") { _ in audio.fireNotificationSound() },

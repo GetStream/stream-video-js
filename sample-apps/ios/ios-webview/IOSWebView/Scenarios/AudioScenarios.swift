@@ -8,6 +8,7 @@ import UserNotifications
 final class AudioScenarios: NSObject {
     private var soundPlayer: AVAudioPlayer?
     private var ringPlayer: AVAudioPlayer?
+    private var autoRestoringDingPlayer: AVAudioPlayer?
     private var toneEngine: AVAudioEngine?
     private var toneNode: AVAudioSourceNode?
     private let webEval: (String, String?) -> Void
@@ -43,6 +44,47 @@ final class AudioScenarios: NSObject {
         playResource("ding", into: &soundPlayer, loops: 0)
         if soundPlayer == nil {
             AudioServicesPlaySystemSound(1005) // fallback
+        }
+    }
+
+    /// "Right way" companion to `playDing(mixWithOthers: false)`.
+    ///
+    /// Same exclusive `.playback` claim, but releases the session via
+    /// `setActive(false, .notifyOthersOnDeactivation)` from
+    /// `AVAudioPlayerDelegate.audioPlayerDidFinishPlaying`. That single line is
+    /// what makes WebKit's `RTCAudioSession` reactivate WebRTC automatically;
+    /// the broken `playDing(false)` scenario skips it on purpose so the tester
+    /// can see the difference.
+    ///
+    /// Use this to demonstrate point (2) from the AUDIO-SESSIONS.md
+    /// host-app guidance: "If you must play exclusively, restore afterward."
+    func playDingWithAutoRestore() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .default, options: [])
+            try session.setActive(true, options: [])
+            AppState.shared.audioSessionActive = true
+        } catch {
+            AppState.shared.log(.errors, "audio",
+                "auto-restore ding setCategory failed: \(error)")
+            return
+        }
+        guard let url = Bundle.main.url(forResource: "ding", withExtension: "caf") else {
+            AppState.shared.log(.errors, "audio", "missing Resources/ding.caf")
+            return
+        }
+        do {
+            let p = try AVAudioPlayer(contentsOf: url)
+            p.delegate = self
+            p.numberOfLoops = 0
+            p.prepareToPlay()
+            p.play()
+            autoRestoringDingPlayer = p
+            AppState.shared.log(.scenarios, "audio",
+                "▶︎ play ding (exclusive) — will release session on finish")
+        } catch {
+            AppState.shared.log(.errors, "audio",
+                "auto-restore ding play failed: \(error)")
         }
     }
 
@@ -517,6 +559,45 @@ final class AudioScenarios: NSObject {
                                         object: AVAudioSession.sharedInstance(),
                                         userInfo: info)
         AppState.shared.log(.scenarios, "audio", "simulated interruption=\(began ? "began" : "ended")")
+    }
+}
+
+extension AudioScenarios: AVAudioPlayerDelegate {
+    /// Only one player sets `delegate = self` today: the auto-restore ding
+    /// (`playDingWithAutoRestore`). Identity check guards against accidental
+    /// future reuse triggering the release on unrelated playback finishes.
+    ///
+    /// Empirically the single `setActive(false, .notifyOthersOnDeactivation)`
+    /// the AUDIO-SESSIONS.md doc once recommended is *not* enough when
+    /// embedding WebRTC: iOS often only posts `interruption=began` (no
+    /// matching `.ended`) for category-conflict interruptions, and WKWebView's
+    /// `RTCAudioSession` does not re-assert `.playAndRecord` on its own. The
+    /// session ends up "deactivated but still .playback," and the page-side
+    /// `host-audio-session-interrupted` reason gets stuck.
+    ///
+    /// The reliably-recovering pattern is the same 3-step we use in
+    /// `restoreForWebRTC()`: deactivate (with notify), re-set the WebRTC
+    /// category, reactivate. That's what this delegate now runs.
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully: Bool) {
+        guard player === autoRestoringDingPlayer else { return }
+        autoRestoringDingPlayer = nil
+        AppState.shared.log(.scenarios, "audio",
+            "ding finished (success=\(successfully)) — restoring session for WebRTC")
+        let s = AVAudioSession.sharedInstance()
+        do {
+            try s.setActive(false, options: [.notifyOthersOnDeactivation])
+            AppState.shared.audioSessionActive = false
+            try s.setCategory(.playAndRecord,
+                              mode: .videoChat,
+                              options: [.allowBluetoothHFP, .allowBluetoothA2DP, .defaultToSpeaker])
+            try s.setActive(true, options: [])
+            AppState.shared.audioSessionActive = true
+            AppState.shared.log(.scenarios, "audio",
+                "restored → .playAndRecord/.videoChat + active(true)")
+        } catch {
+            AppState.shared.log(.errors, "audio",
+                "release-on-finish restore failed: \(error)")
+        }
     }
 }
 

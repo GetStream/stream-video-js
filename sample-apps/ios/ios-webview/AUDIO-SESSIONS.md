@@ -85,7 +85,8 @@ func playChime(url: URL) throws {
 ### If you must play exclusively, restore afterward
 
 For sounds that genuinely need to silence WebRTC (e.g., a full-screen native
-ringtone UI), you must tell the OS your work is done so WebRTC can come back:
+ringtone UI), you must tell the OS your work is done **and** put the
+session back into the configuration WebRTC wants:
 
 ```swift
 final class Chime: NSObject, AVAudioPlayerDelegate {
@@ -99,16 +100,50 @@ final class Chime: NSObject, AVAudioPlayerDelegate {
   }
 
   func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully: Bool) {
-    // THIS is the line most apps forget. Without it, WebRTC stays dead.
-    try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+    // All three lines matter when embedding WebRTC. See the note below.
+    let s = AVAudioSession.sharedInstance()
+    try? s.setActive(false, options: [.notifyOthersOnDeactivation])
+    try? s.setCategory(.playAndRecord,
+                       mode: .videoChat,
+                       options: [.allowBluetoothHFP, .allowBluetoothA2DP, .defaultToSpeaker])
+    try? s.setActive(true)
   }
 }
 ```
 
-The single call that matters is `setActive(false, options:
-.notifyOthersOnDeactivation)`. That's what fires
-`AVAudioSession.interruptionNotification(.ended + .shouldResume)`, which is
-what WebKit's `RTCAudioSession` listens for.
+#### Why the single `setActive(false)` isn't enough for embedded WebRTC
+
+Outside a `WKWebView` you'll see guidance that
+`setActive(false, options: .notifyOthersOnDeactivation)` is sufficient —
+it's what fires `AVAudioSession.interruptionNotification(.ended +
+.shouldResume)` to whoever was interrupted. In the WKWebView case that
+**isn't reliable**:
+
+- iOS frequently only posts `interruption=began` to other sessions for
+  category-conflict interruptions and never delivers a matching `.ended`.
+  Reproducible from `ios-webview`'s **Play ding (exclusive,
+  auto-restore)** scenario — the bridge sees `.began` from the
+  `setCategory(.playback)` claim but no `.ended` after the deactivation.
+- `setActive(false)` does not change the session category. So even if
+  the session is deactivated, `AVAudioSession.category` stays at
+  `.playback`. WKWebView's `RTCAudioSession` is conservative and does
+  _not_ re-assert `.playAndRecord` on its own without the `.ended`
+  trigger above, so audio stays dead.
+
+The pattern that recovers reliably is the 3-step explicit restore
+above: release with `.notifyOthersOnDeactivation`, set the category back
+to `.playAndRecord/.videoChat` with the WebRTC-friendly options, and
+reactivate. The `restoreForWebRTC()` action and the **Play ding
+(exclusive, auto-restore)** scenario in `ios-webview` both use this
+exact sequence.
+
+> 🧪 The `ios-webview` sample exposes both variants side-by-side as
+> scenarios so you can see the difference in `audioHealth$` live:
+> **Play ding (exclusive)** clobbers the session and never releases
+> (audio stays dead, bridge stuck at `interruption=began`, until you tap
+> **Restore audio (native)**); **Play ding (exclusive, auto-restore)**
+> runs the 3-step from the delegate above, and `audioHealth$` recovers
+> when the ding finishes.
 
 ### Use CallKit correctly
 
