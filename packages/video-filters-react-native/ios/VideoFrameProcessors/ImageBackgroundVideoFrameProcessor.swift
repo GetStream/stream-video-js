@@ -34,6 +34,7 @@ final class ImageBackgroundVideoFrameProcessor: VideoFilter {
     // NSLock because the load thread writes it and the capture thread reads it.
     private let backgroundImageLock = NSLock()
     private var _backgroundCIImage: CIImage?
+    private var backgroundImageTask: URLSessionDataTask?
 
     private var backgroundCIImage: CIImage? {
         backgroundImageLock.lock()
@@ -72,35 +73,39 @@ final class ImageBackgroundVideoFrameProcessor: VideoFilter {
     }
 
     private func loadBackgroundImage() {
-        var bgUIImage: UIImage?
-        if let url = URL(string: backgroundImageUrl) {
-            bgUIImage = RCTImageFromLocalAssetURL(url)
-            if bgUIImage == nil {
-                // Bounded timeout (matches Android's 10s) so a hanging remote URL
-                // doesn't keep this background thread alive for the OS-default ~75s.
-                var request = URLRequest(url: url)
-                request.timeoutInterval = 10
-                let semaphore = DispatchSemaphore(value: 0)
-                var fetchedData: Data?
-                let task = URLSession.shared.dataTask(with: request) { data, _, _ in
-                    fetchedData = data
-                    semaphore.signal()
-                }
-                task.resume()
-                semaphore.wait()
-                if let data = fetchedData {
-                    bgUIImage = UIImage(data: data)
-                } else {
-                    // URLs may carry signed-access query tokens; log only the host.
-                    let host = url.host ?? "local"
-                    NSLog("Failed to load virtual-background image (host=\(host))")
-                }
-            }
+        guard let url = URL(string: backgroundImageUrl) else { return }
+        if let bgUIImage = RCTImageFromLocalAssetURL(url) {
+            setBackgroundImage(bgUIImage)
+            return
         }
-        guard let bgUIImage = bgUIImage else { return }
+        // Bounded timeout (matches Android's 10s) so a hanging remote URL
+        // doesn't keep this processor alive for the OS-default ~75s.
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 10
+        let task = URLSession.shared.dataTask(with: request) { [weak self] data, _, _ in
+            // `[weak self]`: if the processor is released while the task is in flight
+            // (deinit calls cancel()), the closure no-ops and the task is freed.
+            guard let self = self else { return }
+            guard let data = data, let bgUIImage = UIImage(data: data) else {
+                // URLs may carry signed-access query tokens; log only the host.
+                let host = url.host ?? "local"
+                NSLog("Failed to load virtual-background image (host=\(host))")
+                return
+            }
+            self.setBackgroundImage(bgUIImage)
+        }
+        backgroundImageTask = task
+        task.resume()
+    }
+
+    private func setBackgroundImage(_ image: UIImage) {
         backgroundImageLock.lock()
-        _backgroundCIImage = CIImage(image: bgUIImage)
+        _backgroundCIImage = CIImage(image: image)
         backgroundImageLock.unlock()
+    }
+
+    deinit {
+        backgroundImageTask?.cancel()
     }
     
     /// Returns the cached or processed background image for a given original image (frame image).
