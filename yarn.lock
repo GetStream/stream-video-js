@@ -3655,28 +3655,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gorhom/bottom-sheet@npm:5.1.6":
-  version: 5.1.6
-  resolution: "@gorhom/bottom-sheet@npm:5.1.6"
-  dependencies:
-    "@gorhom/portal": "npm:1.0.14"
-    invariant: "npm:^2.2.4"
-  peerDependencies:
-    "@types/react": "*"
-    "@types/react-native": "*"
-    react: "*"
-    react-native: "*"
-    react-native-gesture-handler: ">=2.16.1"
-    react-native-reanimated: ">=3.16.0"
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-    "@types/react-native":
-      optional: true
-  checksum: 10/321d85abac24cfab5ce6c77623381c73d95a09d8b1d95c0e7e968540af5c9d1bd3369b669459df483a962f65a363ea929940f006a1b4f3acf8f4b31500c4863f
-  languageName: node
-  linkType: hard
-
 "@gorhom/bottom-sheet@npm:5.1.8":
   version: 5.1.8
   resolution: "@gorhom/bottom-sheet@npm:5.1.8"
@@ -3696,6 +3674,28 @@ __metadata:
     "@types/react-native":
       optional: true
   checksum: 10/16c0de9d0902c994bb099dc173c0d0cf984fd0b47f823e05186b090bd46d885d5b271682dddd0aad1b76d80509c23dddba559d1dc3c39afa0673e5c8ff08d9a1
+  languageName: node
+  linkType: hard
+
+"@gorhom/bottom-sheet@npm:5.2.9":
+  version: 5.2.9
+  resolution: "@gorhom/bottom-sheet@npm:5.2.9"
+  dependencies:
+    "@gorhom/portal": "npm:1.0.14"
+    invariant: "npm:^2.2.4"
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-native": "*"
+    react: "*"
+    react-native: "*"
+    react-native-gesture-handler: ">=2.16.1"
+    react-native-reanimated: "*"
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-native":
+      optional: true
+  checksum: 10/49c48d58c33be2d0d7d4d2ef2deb96cb5c4b1c5b9f633b7db242318d15f7abc567bc2ca89980af573b3d2b0bea2a0a4f4fbc91b81ca23984a4c19a254e8af0a9
   languageName: node
   linkType: hard
 
@@ -8330,8 +8330,6 @@ __metadata:
     "@types/react": "npm:~19.1.17"
     "@types/react-dom": "npm:~19.1.11"
     "@vitejs/plugin-react": "npm:^5.0.4"
-    clsx: "npm:^2.0.0"
-    js-base64: "npm:^3.7.8"
     nanoid: "npm:^5.1.6"
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
@@ -8364,7 +8362,7 @@ __metadata:
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:137.1.3"
+    "@stream-io/react-native-webrtc": "npm:137.2.0"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~19.1.17"
@@ -8439,8 +8437,8 @@ __metadata:
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
     sass: "npm:^1.93.2"
-    stream-chat: "npm:^9.33.0"
-    stream-chat-react: "npm:^13.14.0"
+    stream-chat: "npm:^9.41.1"
+    stream-chat-react: "npm:^14.0.1"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
   languageName: unknown
@@ -8511,6 +8509,18 @@ __metadata:
   peerDependencies:
     react-native: ">=0.73.0"
   checksum: 10/9744ea89079a27a3b771ef24f774e24023053cbf8c97fc468abbe609d7341835c025c2452b8dab690294adb891bb96028236c557d794b2b5832336183d488bb3
+  languageName: node
+  linkType: hard
+
+"@stream-io/react-native-webrtc@npm:137.2.0":
+  version: 137.2.0
+  resolution: "@stream-io/react-native-webrtc@npm:137.2.0"
+  dependencies:
+    base64-js: "npm:1.5.1"
+    debug: "npm:4.3.4"
+  peerDependencies:
+    react-native: ">=0.73.0"
+  checksum: 10/d9aa189f0602ee4a6d503d735345af846647f0265df8a5ed5f54bc1f034536d294ed0ab8ec2af30bacc73c1b7526d5fca6da539648b938ce33ea97d058a279be
   languageName: node
   linkType: hard
 
@@ -8607,7 +8617,7 @@ __metadata:
     rimraf: "npm:^6.0.1"
     typescript: "npm:^5.9.3"
   peerDependencies:
-    "@stream-io/react-native-webrtc": ">=137.1.2"
+    "@stream-io/react-native-webrtc": ">=137.2.0"
     react-native: "*"
   languageName: unknown
   linkType: soft
@@ -8708,8 +8718,8 @@ __metadata:
     react-dom: "npm:19.1.0"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.93.2"
-    stream-chat: "npm:^9.33.0"
-    stream-chat-react: "npm:^13.14.0"
+    stream-chat: "npm:^9.41.1"
+    stream-chat-react: "npm:^14.0.1"
     swr: "npm:^2.3.6"
     yargs: "npm:^18.0.0"
   languageName: unknown
@@ -8722,7 +8732,7 @@ __metadata:
     "@babel/core": "npm:^7.28.4"
     "@babel/preset-env": "npm:^7.28.3"
     "@babel/runtime": "npm:^7.28.4"
-    "@gorhom/bottom-sheet": "npm:5.1.6"
+    "@gorhom/bottom-sheet": "npm:5.1.8"
     "@notifee/react-native": "npm:9.1.8"
     "@react-native-clipboard/clipboard": "npm:^1.16.3"
     "@react-native-community/cli": "npm:20.0.0"
@@ -8742,7 +8752,7 @@ __metadata:
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:137.1.3"
+    "@stream-io/react-native-webrtc": "npm:137.2.0"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:^19.2.0"
@@ -8762,13 +8772,14 @@ __metadata:
     react-native-safe-area-context: "npm:^5.6.1"
     react-native-screens: "npm:^4.16.0"
     react-native-svg: "npm:^15.14.0"
+    react-native-teleport: "npm:^0.5.4"
     react-native-toast-message: "npm:^2.3.3"
-    react-native-video: "npm:^6.17.0"
+    react-native-video: "npm:^6.19.1"
     react-native-vision-camera: "npm:^4.7.2"
     react-native-worklets: "npm:^0.7.3"
     rxjs: "npm:~7.8.2"
-    stream-chat: "npm:^9.33.0"
-    stream-chat-react-native: "npm:^8.13.0"
+    stream-chat: "npm:^9.41.1"
+    stream-chat-react-native: "npm:^9.0.1"
     typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
@@ -8791,7 +8802,7 @@ __metadata:
     "@rnx-kit/metro-config": "npm:^2.1.2"
     "@rnx-kit/metro-resolver-symlinks": "npm:^0.2.6"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:137.1.3"
+    "@stream-io/react-native-webrtc": "npm:137.2.0"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:~19.2.10"
     expo: "npm:^55.0.0"
@@ -8839,7 +8850,7 @@ __metadata:
     "@react-native/babel-preset": "npm:^0.81.5"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:137.1.3"
+    "@stream-io/react-native-webrtc": "npm:137.2.0"
     "@stream-io/video-client": "workspace:*"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-bindings": "workspace:*"
@@ -8876,7 +8887,7 @@ __metadata:
     "@react-native-firebase/messaging": ">=17.5.0"
     "@stream-io/noise-cancellation-react-native": ">=0.1.0"
     "@stream-io/react-native-callingx": ">=0.1.0"
-    "@stream-io/react-native-webrtc": ">=137.1.3"
+    "@stream-io/react-native-webrtc": ">=137.2.0"
     "@stream-io/video-filters-react-native": ">=0.1.0"
     expo: ">=47.0.0"
     expo-build-properties: "*"
@@ -8975,8 +8986,8 @@ __metadata:
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
-    stream-chat: "npm:^9.33.0"
-    stream-chat-react: "npm:^13.14.0"
+    stream-chat: "npm:^9.41.1"
+    stream-chat-react: "npm:^14.0.1"
     tailwindcss: "npm:^3.4.18"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
@@ -17899,13 +17910,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-base64@npm:^3.7.8":
-  version: 3.7.8
-  resolution: "js-base64@npm:3.7.8"
-  checksum: 10/4baa9a222bc094b072933e4894735653b59992477c731879784e3112f21862b08dd5c56b8b23b0b8e43bc5bb514d957621d1892a6c58950f29e12b731fe087b6
-  languageName: node
-  linkType: hard
-
 "js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
@@ -20688,6 +20692,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"modern-normalize@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "modern-normalize@npm:3.0.1"
+  checksum: 10/1c7b85ddd34f73e063d6cac01936f3a02efc8126b3f28cc28d123d8ff7ee5d49e6875574ce57ba13400c4ebc5f5913fd5f7be6a682a4c474ce0a81f786beea4e
+  languageName: node
+  linkType: hard
+
 "module-details-from-path@npm:^1.0.3, module-details-from-path@npm:^1.0.4":
   version: 1.0.4
   resolution: "module-details-from-path@npm:1.0.4"
@@ -22630,15 +22641,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-image-gallery@npm:1.2.12":
-  version: 1.2.12
-  resolution: "react-image-gallery@npm:1.2.12"
-  peerDependencies:
-    react: ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: 10/b0a29397ef0d4e45f2c10af5e0f5a6f118b78fe2f0685ae28806467d0277f1aa7005908ead001d7dd3c2233abcead8603100e2fc54ea662ced98f14427bdceca
-  languageName: node
-  linkType: hard
-
 "react-is@npm:^16.13.1, react-is@npm:^16.7.0":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
@@ -23009,6 +23011,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-teleport@npm:^0.5.4":
+  version: 0.5.6
+  resolution: "react-native-teleport@npm:0.5.6"
+  peerDependencies:
+    react: "*"
+    react-dom: "*"
+    react-native: "*"
+  checksum: 10/cf53f37287fd9becaecb57dc50961b56f5623f86a3490f61b082f5267a65acdd9d06cd5b318d1e6ec183f87fdaddc768ca6f0082670f1c50ca5786dc3957a6f1
+  languageName: node
+  linkType: hard
+
 "react-native-toast-message@npm:^2.3.3":
   version: 2.3.3
   resolution: "react-native-toast-message@npm:2.3.3"
@@ -23041,13 +23054,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-video@npm:^6.17.0":
-  version: 6.17.0
-  resolution: "react-native-video@npm:6.17.0"
+"react-native-video@npm:^6.19.1":
+  version: 6.19.1
+  resolution: "react-native-video@npm:6.19.1"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/57a41492e2db49e91bad8d7c4ca9022d5c95343a945b1d7bb49bb152a1f740f86f6196ada32b120efcc769b479a85449ecd84f2890ec5fe96412b70489f058a2
+  checksum: 10/9b5fad2d9966d0f9d95bc2232492a7d6741235b008d0ee539c2a3f7363749deb0546c6710bb87ca60a07bdd52460e0544c399f96c4cecec375b9512dec62d45f
   languageName: node
   linkType: hard
 
@@ -24995,11 +25008,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react-native-core@npm:8.13.0":
-  version: 8.13.0
-  resolution: "stream-chat-react-native-core@npm:8.13.0"
+"stream-chat-react-native-core@npm:9.0.1":
+  version: 9.0.1
+  resolution: "stream-chat-react-native-core@npm:9.0.1"
   dependencies:
-    "@gorhom/bottom-sheet": "npm:5.1.8"
+    "@gorhom/bottom-sheet": "npm:5.2.9"
     "@ungap/structured-clone": "npm:^1.3.0"
     dayjs: "npm:1.11.13"
     emoji-regex: "npm:^10.4.0"
@@ -25011,7 +25024,7 @@ __metadata:
     path: "npm:0.12.7"
     react-native-markdown-package: "npm:1.8.2"
     react-native-url-polyfill: "npm:^2.0.0"
-    stream-chat: "npm:^9.33.0"
+    stream-chat: "npm:^9.41.1"
     use-sync-external-store: "npm:^1.5.0"
   peerDependencies:
     "@emoji-mart/data": ">=1.1.0"
@@ -25021,9 +25034,11 @@ __metadata:
     emoji-mart: ">=5.4.0"
     react-native: ">=0.73.0"
     react-native-gesture-handler: ">=2.18.0"
+    react-native-keyboard-controller: ">=1.20.2"
     react-native-reanimated: ">=3.16.0"
     react-native-safe-area-context: ">=5.4.1"
     react-native-svg: ">=15.8.0"
+    react-native-teleport: ">=0.5.4"
   peerDependenciesMeta:
     "@emoji-mart/data":
       optional: true
@@ -25033,38 +25048,37 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: 10/f7e93dec84c77d65c13dae509b890d0a46b13ab69b6a047d1f0d48c6b23cfdaaf1252aa62f36766b23fe0ddf41c0709563a998ff05f3cb8d22c9a898f1dc5c6e
+    react-native-keyboard-controller:
+      optional: true
+  checksum: 10/21271b1e7886e65754fd4e3e1e3b8458820edd066be13b9af855fc880fb10f2df5bdd557ef944db6f0864a9d896dfc2e93edd9587b2e6a16fbf2e1458bc20a68
   languageName: node
   linkType: hard
 
-"stream-chat-react-native@npm:^8.13.0":
-  version: 8.13.0
-  resolution: "stream-chat-react-native@npm:8.13.0"
+"stream-chat-react-native@npm:^9.0.1":
+  version: 9.0.1
+  resolution: "stream-chat-react-native@npm:9.0.1"
   dependencies:
     es6-symbol: "npm:^3.1.3"
     mime: "npm:^4.0.7"
-    stream-chat-react-native-core: "npm:8.13.0"
+    stream-chat-react-native-core: "npm:9.0.1"
   peerDependencies:
-    "@react-native-camera-roll/camera-roll": ">=7.8.0"
-    "@react-native-clipboard/clipboard": ">=1.14.1"
+    "@react-native-camera-roll/camera-roll": ">=7.9.0"
+    "@react-native-clipboard/clipboard": ">=1.16.0"
     "@react-native-documents/picker": ">=10.1.1"
-    "@stream-io/flat-list-mvcp": ">=0.10.3"
-    react-native: ">=0.73.0"
+    react-native: ">=0.76.0"
     react-native-audio-recorder-player: ">=3.6.13"
-    react-native-blob-util: ">=0.21.1"
+    react-native-blob-util: ">=0.22.0"
     react-native-haptic-feedback: ">=2.3.0"
     react-native-image-picker: ">=7.1.2"
     react-native-nitro-sound: ">=0.2.9"
     react-native-share: ">=11.0.0"
-    react-native-video: ">=6.4.2"
+    react-native-video: ">=6.18.0"
   peerDependenciesMeta:
     "@react-native-camera-roll/camera-roll":
       optional: true
     "@react-native-clipboard/clipboard":
       optional: true
     "@react-native-documents/picker":
-      optional: true
-    "@stream-io/flat-list-mvcp":
       optional: true
     react-native-audio-recorder-player:
       optional: true
@@ -25080,13 +25094,13 @@ __metadata:
       optional: true
     react-native-video:
       optional: true
-  checksum: 10/3f4e96d96591513094fb4c05e3ec0377b6e1fc97633885477980c0fe78d7320c554aab1d80ee67058284eee8907d499019b2143710ea729871a2c53868ee82d9
+  checksum: 10/7eb67f098848aeff9b8969b5739d962e5fc4377432b6098e7eed95267902695326af44791adab9fbc7456f7739544bace5aaa3c3edf56c91960bbed0b6c13718
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:^13.14.0":
-  version: 13.14.0
-  resolution: "stream-chat-react@npm:13.14.0"
+"stream-chat-react@npm:^14.0.1":
+  version: 14.0.1
+  resolution: "stream-chat-react@npm:14.0.1"
   dependencies:
     "@braintree/sanitize-url": "npm:^6.0.4"
     "@floating-ui/react": "npm:^0.27.2"
@@ -25103,15 +25117,16 @@ __metadata:
     lodash.mergewith: "npm:^4.6.2"
     lodash.throttle: "npm:^4.1.1"
     lodash.uniqby: "npm:^4.7.0"
+    modern-normalize: "npm:^3.0.1"
     nanoid: "npm:^3.3.4"
     react-dropzone: "npm:^14.2.3"
     react-fast-compare: "npm:^3.2.2"
-    react-image-gallery: "npm:1.2.12"
     react-markdown: "npm:^9.0.3"
     react-player: "npm:2.10.1"
     react-textarea-autosize: "npm:^8.3.0"
     react-virtuoso: "npm:^2.16.5"
     remark-gfm: "npm:^4.0.1"
+    ts-pattern: "npm:^5.9.0"
     tslib: "npm:^2.6.2"
     unist-builder: "npm:^4.0.0"
     unist-util-visit: "npm:^5.0.0"
@@ -25123,7 +25138,7 @@ __metadata:
     emoji-mart: ^5.4.0
     react: ^19.0.0 || ^18.0.0 || ^17.0.0
     react-dom: ^19.0.0 || ^18.0.0 || ^17.0.0
-    stream-chat: ^9.27.2
+    stream-chat: ^9.41.0
   dependenciesMeta:
     "@stream-io/transliterate":
       optional: true
@@ -25136,13 +25151,13 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-  checksum: 10/cd985fc8dc43bac2b2d038ee4a566e68eb70893e0bff769466c4279ef10db97e6c1d5a4b3748a5d175f7501e5fb6e71df50616c73ed7e08a74c7a1e87347e470
+  checksum: 10/8800ccec9a283a4c95767a188bbf83017a6e3b67219a62dd9f9b22584518c18b3213e3ad3346387e57e37460eb958d036234da75e54238ffb9b8edbd5db03b07
   languageName: node
   linkType: hard
 
-"stream-chat@npm:^9.33.0":
-  version: 9.39.0
-  resolution: "stream-chat@npm:9.39.0"
+"stream-chat@npm:^9.41.1":
+  version: 9.41.1
+  resolution: "stream-chat@npm:9.41.1"
   dependencies:
     "@types/jsonwebtoken": "npm:^9.0.8"
     "@types/ws": "npm:^8.5.14"
@@ -25153,7 +25168,7 @@ __metadata:
     jsonwebtoken: "npm:^9.0.3"
     linkifyjs: "npm:^4.3.2"
     ws: "npm:^8.18.1"
-  checksum: 10/123bd6b3a898003feb39631160b88e5734c65d10dbef3a54f463ea2cfc9f90297e894871e6d88140d848ba1976f9d78eb501c637f2901e7a781e73769daeea55
+  checksum: 10/2ddc3293e494c881d4dfe8434ac274c0eb905280704d26986eb370f59f2f40b71db9009c47990b54db7f7ab802941311e73a28ce554a13a476b3343cdcc653a2
   languageName: node
   linkType: hard
 
@@ -26032,6 +26047,13 @@ __metadata:
   bin:
     ts-jest: cli.js
   checksum: 10/59d7122ea1a861aec510b19d30517df81c09ce89b9c2e6d40425c97bd2006a437f169bd6ec965b5b239b82a0ad773ca8fc40cc51f956b380ffc3a964682e9260
+  languageName: node
+  linkType: hard
+
+"ts-pattern@npm:^5.9.0":
+  version: 5.9.0
+  resolution: "ts-pattern@npm:5.9.0"
+  checksum: 10/0df8cc63d731a596f3541a305eff10f055c9a761d1a8b3776781dc6d6430c6bd8be8cd333fac62138c5d88e1209b4d8dccf1f40041091b634e5018908281417b
   languageName: node
   linkType: hard
 

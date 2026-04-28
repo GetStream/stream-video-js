@@ -1,12 +1,13 @@
-.eca__logo-and-title-overlay {
+@layer base-layer {
+  .eca__logo-and-title-overlay {
     position: absolute;
     display: grid;
     top: 0;
     right: 0;
-  
+
     width: 100%;
     height: 100%;
-  
+
     &__logo {
       position: absolute;
     }
@@ -14,4 +15,4 @@
       position: absolute;
     }
   }
-  
+}

@@ -4,7 +4,6 @@ import {
   clearPushWSEventSubscriptions,
   processCallFromPushInBackground,
 } from './internal/utils';
-import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
 import { resolvePendingAudioSession } from '../internal/callingx/audioSessionPromise';
 import {
   getCallingxLib,
@@ -31,25 +30,19 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
 
   const callingx = getCallingxLib();
 
-  const { remove: removeAnswerCall } = callingx.addEventListener(
-    'answerCall',
-    (params) => {
-      onAcceptCall(pushConfig)(params);
-    },
-  );
+  callingx.addEventListener('answerCall', (params) => {
+    onAcceptCall(pushConfig)(params);
+  });
 
-  const { remove: removeEndCall } = callingx.addEventListener(
-    'endCall',
-    (params) => {
-      onEndCall(pushConfig)(params);
-    },
-  );
+  callingx.addEventListener('endCall', (params) => {
+    onEndCall(pushConfig)(params);
+  });
 
-  const { remove: removeDidActivateAudioSession } = callingx.addEventListener(
+  callingx.addEventListener(
     'didActivateAudioSession',
     onDidActivateAudioSession,
   );
-  const { remove: removeDidDeactivateAudioSession } = callingx.addEventListener(
+  callingx.addEventListener(
     'didDeactivateAudioSession',
     onDidDeactivateAudioSession,
   );
@@ -70,13 +63,6 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     } else if (eventName === 'didDeactivateAudioSession') {
       onDidDeactivateAudioSession();
     }
-  });
-
-  setPushLogoutCallback(async () => {
-    removeAnswerCall();
-    removeEndCall();
-    removeDidActivateAudioSession();
-    removeDidDeactivateAudioSession();
   });
 }
 

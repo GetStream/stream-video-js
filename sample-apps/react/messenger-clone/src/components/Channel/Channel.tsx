@@ -1,20 +1,23 @@
 import {
   Channel as StreamChatChannel,
-  MessageInput,
+  MessageComposer,
   MessageList,
   Thread,
   Window,
+  WithComponents,
 } from 'stream-chat-react';
 import { CustomEventComponent } from '../CustomEventComponent';
 import { ChannelHeader } from '../ChannelHeader';
 
 export const Channel = () => (
-  <StreamChatChannel MessageSystem={CustomEventComponent}>
-    <Window>
-      <ChannelHeader />
-      <MessageList />
-      <MessageInput focus />
-    </Window>
-    <Thread />
-  </StreamChatChannel>
+  <WithComponents overrides={{ MessageSystem: CustomEventComponent }}>
+    <StreamChatChannel>
+      <Window>
+        <ChannelHeader />
+        <MessageList />
+        <MessageComposer focus />
+      </Window>
+      <Thread />
+    </StreamChatChannel>
+  </WithComponents>
 );
