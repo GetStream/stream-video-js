@@ -200,9 +200,8 @@ export abstract class DeviceManager<
 
         if (this.state.selectedDevice === deviceId) {
           await this.statusChangeSettled();
-          if (this.enabled) {
-            await this.disable({ forceStop: true });
-          }
+
+          await this.disable({ forceStop: true });
           await this.select(undefined);
         }
       },
