@@ -77,12 +77,9 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
   const isBackgroundBlurRegisteredRef = useRef(false);
   const isVideoBlurRegisteredRef = useRef(false);
   const registeredImageFiltersSetRef = useRef(new Set<string>());
-  // Native filter name for reapply on track replacement (camera flip,
-  // enable-after-disable). State alone can't distinguish `BackgroundBlur*`
-  // from `Blur*` — both hold `{ blur: intensity }`.
-  //
-  // Also used as a staleness signal: apply sets it before awaiting and bails
-  // if a later apply/disable changed it.
+  // The currently applied native filter name. Used to reapply on track
+  // replacement, and as a staleness signal so a later apply/disable can
+  // invalidate an in-flight apply() call.
   const lastAppliedFilterNameRef = useRef<string | null>(null);
 
   const [currentBackgroundFilter, setCurrentBackgroundFilter] =
@@ -99,7 +96,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       } else if (blurIntensity === 'light') {
         filterName = 'BackgroundBlurLight';
       }
-      // Mark intent before awaiting so a later apply/disable can invalidate us.
+      // Set before awaiting so a later apply/disable can mark this call stale.
       lastAppliedFilterNameRef.current = filterName;
       if (!isBackgroundBlurRegisteredRef.current) {
         await videoFiltersModule?.registerBackgroundBlurVideoFilters();
@@ -207,8 +204,8 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
         .forEach((track) => {
           track._setVideoEffect(null);
         });
-      // Drop native processor refs so they can be deallocated — without this,
-      // the ProcessorProvider registry pins them for the app's lifetime.
+      // Drop native processor refs so they can be deallocated. Otherwise the
+      // ProcessorProvider registry holds them for the app's lifetime.
       videoFiltersModule?.unregisterAllFilters?.().catch(() => {});
       lastAppliedFilterNameRef.current = null;
       isBackgroundBlurRegisteredRef.current = false;

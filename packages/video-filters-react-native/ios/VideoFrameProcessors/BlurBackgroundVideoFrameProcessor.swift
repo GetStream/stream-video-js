@@ -22,9 +22,9 @@ final class BlurBackgroundVideoFrameProcessor: VideoFilter {
         self.filter = { [weak self] input in
             // `[weak self]`: the closure is stored on `self` — a strong capture would leak the processor.
             guard let self = self else { return input.originalImage }
-            // Blur at half resolution for speed.
-            // `clampedToExtent` + `cropped(to:)` keep the blurred image at the input's
-            // extent; without it the upscaled background drifts relative to the foreground.
+            // Blur at half resolution for speed. clampedToExtent + cropped(to:)
+            // keep the result at the original extent; without them the background
+            // drifts relative to the foreground.
             let originalExtent = input.originalImage.extent
             let halfSize = CGSize(width: originalExtent.width / 2, height: originalExtent.height / 2)
             let downscaled = input.originalImage.resize(halfSize) ?? input.originalImage

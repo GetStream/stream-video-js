@@ -1,9 +1,8 @@
 @objc(VideoFiltersReactNative)
 class VideoFiltersReactNative: NSObject {
 
-    // Names added to the global `ProcessorProvider` registry, so we can drop them
-    // on `unregisterAllFilters` — otherwise the processors (with their CIContext,
-    // Vision handler, and NotificationCenter observer) live for the app's lifetime.
+    // Names we add to the global ProcessorProvider, so unregisterAllFilters can
+    // release them. Otherwise the processors live for the app's lifetime.
     private static var registeredNames = Set<String>()
 
     @available(iOS 15.0, *)

@@ -10,9 +10,8 @@ import com.streamio.videofiltersreactnative.factories.*
 class VideoFiltersReactNativeModule(reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
-  // Tracks names registered with the global `ProcessorProvider` so we can drop
-  // them on `unregisterAllFilters`. Without this, factories accumulate for the
-  // life of the app.
+  // Names we add to the global ProcessorProvider, so unregisterAllFilters can
+  // release them. Otherwise factories accumulate for the app's lifetime.
   private val registeredNames = mutableSetOf<String>()
 
   override fun getName(): String {

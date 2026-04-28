@@ -90,9 +90,9 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
     }
   }
 
-  // Runs on the GL thread, serialized with `process()` — inline cleanup is safe.
-  // The texture is always deleted: `glGenTextures` in `init` can return a valid id
-  // even if `initialize()` never ran, so enable-then-disable would otherwise leak it.
+  // Runs on the GL thread serialized with process() — inline cleanup is safe.
+  // Always delete the texture: glGenTextures in init can return a valid id even
+  // before initialize() runs, so enable-then-disable would leak it otherwise.
   override fun dispose() {
     yuvFrame.close()
     inputFrameBitmap?.recycle()
