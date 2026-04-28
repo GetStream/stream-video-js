@@ -211,6 +211,7 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
       isBackgroundBlurRegisteredRef.current = false;
       isVideoBlurRegisteredRef.current = false;
       registeredImageFiltersSet.clear();
+      setCurrentBackgroundFilter(undefined);
     };
   }, [call]);
 
