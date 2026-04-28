@@ -56,3 +56,12 @@ export async function registerVirtualBackgroundFilter(
 export async function registerBlurVideoFilters(): Promise<boolean> {
   return await VideoFiltersReactNative.registerBlurVideoFilters();
 }
+
+/**
+ * Unregisters all filters that were previously registered via this module,
+ * allowing the native processor instances to be released. Safe to call even
+ * if no filters were registered.
+ */
+export async function unregisterAllFilters(): Promise<boolean> {
+  return await VideoFiltersReactNative.unregisterAllFilters();
+}

@@ -106,18 +106,14 @@
           }
         }
 
-        .rd__video-effects__blur--medium {
-          .str-video__icon {
-            width: 1.7rem;
-            height: 1.7rem;
-          }
+        .str-video__icon.rd__video-effects__blur--medium {
+          width: 1.7rem;
+          height: 1.7rem;
         }
 
-        .rd__video-effects__blur--low {
-          .str-video__icon {
-            width: 1.25rem;
-            height: 1.25rem;
-          }
+        .str-video__icon.rd__video-effects__blur--low {
+          width: 1.25rem;
+          height: 1.25rem;
         }
       }
 

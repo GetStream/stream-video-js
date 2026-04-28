@@ -1,5 +1,4 @@
-import { css } from '@emotion/css';
-import clsx from 'clsx';
+import { css, cx } from '@emotion/css';
 
 import {
   positionMap,
@@ -26,26 +25,27 @@ export const useLogoAndTitleStyles = () => {
 
   const styles = [
     css`
-      & .eca__logo-and-title-overlay__logo {
-        justify-self: ${positionMap.horizontal[logoHorizontalPosition]};
-        align-self: ${positionMap.vertical[logoVerticalPosition]};
-        margin-block: ${logoMarginBlock};
-        margin-inline: ${logoMarginInline};
-        width: ${logoWidth};
-        height: ${logoHeight};
-      }
-    `,
-    css`
-      & .eca__logo-and-title-overlay__title {
-        color: ${titleColor};
-        font-size: ${titleFontSize};
-        justify-self: ${positionMap.horizontal[titleHorizontalPosition]};
-        align-self: ${positionMap.vertical[titleVerticalPosition]};
-        margin-block: ${titleMarginBlock};
-        margin-inline: ${titleMarginInline};
+      @layer overrides-layer {
+        & .eca__logo-and-title-overlay__logo {
+          justify-self: ${positionMap.horizontal[logoHorizontalPosition]};
+          align-self: ${positionMap.vertical[logoVerticalPosition]};
+          margin-block: ${logoMarginBlock};
+          margin-inline: ${logoMarginInline};
+          width: ${logoWidth};
+          height: ${logoHeight};
+        }
+
+        & .eca__logo-and-title-overlay__title {
+          color: ${titleColor};
+          font-size: ${titleFontSize};
+          justify-self: ${positionMap.horizontal[titleHorizontalPosition]};
+          align-self: ${positionMap.vertical[titleVerticalPosition]};
+          margin-block: ${titleMarginBlock};
+          margin-inline: ${titleMarginInline};
+        }
       }
     `,
   ];
 
-  return clsx(styles);
+  return cx(styles);
 };

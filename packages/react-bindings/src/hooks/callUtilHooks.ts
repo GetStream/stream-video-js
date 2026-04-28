@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useCall } from '../contexts';
 import { useIsCallRecordingInProgress } from './callStateHooks';
+import { hasAudio, StreamVideoParticipant } from '@stream-io/video-client';
 
 /**
  * Custom hook for toggling call recording in a video call.
@@ -41,4 +42,49 @@ export const useToggleCallRecording = () => {
   }, [call, isCallRecordingInProgress]);
 
   return { toggleCallRecording, isAwaitingResponse, isCallRecordingInProgress };
+};
+
+/**
+ * Custom hook for checking if an audio track is connecting.
+ *
+ * This hook checks if the participant has an audio track and if the audio track is unmuted.
+ *
+ * @param participant the participant to check.
+ * @returns true if the audio track is connecting, false otherwise.
+ */
+export const useIsAudioConnecting = (
+  participant: StreamVideoParticipant,
+): boolean => {
+  const audioStream = participant.audioStream;
+  const hasAudioTrack = hasAudio(participant);
+  const trackId = audioStream?.getAudioTracks()[0]?.id;
+
+  const [unmuted, setUnmuted] = useState(() => {
+    const track = audioStream?.getAudioTracks()[0];
+    return !!track && !track.muted;
+  });
+
+  useEffect(() => {
+    const track = audioStream?.getAudioTracks()[0];
+    if (!track) {
+      setUnmuted(false);
+      return;
+    }
+
+    setUnmuted(!track.muted);
+
+    const handler = () => {
+      setUnmuted(!track.muted);
+    };
+
+    track.addEventListener('mute', handler);
+    track.addEventListener('unmute', handler);
+
+    return () => {
+      track.removeEventListener('mute', handler);
+      track.removeEventListener('unmute', handler);
+    };
+  }, [audioStream, trackId]);
+
+  return hasAudioTrack && !unmuted;
 };

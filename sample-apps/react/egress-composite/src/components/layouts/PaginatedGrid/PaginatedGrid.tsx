@@ -1,8 +1,7 @@
-import {
-  DefaultParticipantViewUI,
-  PaginatedGridLayout,
-} from '@stream-io/video-react-sdk';
+import { PaginatedGridLayout } from '@stream-io/video-react-sdk';
+import { cx } from '@emotion/css';
 import { useConfigurationContext } from '../../../ConfigurationContext';
+import { EgressReadyParticipantViewUI } from '../EgressReadyParticipantViewUI';
 
 import './PaginatedGrid.scss';
 
@@ -10,16 +9,23 @@ export const PaginatedGrid = () => {
   const {
     options: {
       'layout.grid.page_size': pageSize = 20,
+      'layout.grid.expand_tiles': expandTiles = false,
       'layout.forceMirrorParticipants': forceMirrorParticipants,
       'participant.filter': filterParticipants,
     },
   } = useConfigurationContext();
 
   return (
-    <div className="paginated-grid" data-testid="grid">
+    <div
+      className={cx(
+        'paginated-grid',
+        expandTiles && 'paginated-grid--expanded',
+      )}
+      data-testid="grid"
+    >
       <PaginatedGridLayout
         ParticipantViewUI={
-          <DefaultParticipantViewUI
+          <EgressReadyParticipantViewUI
             indicatorsVisible={false}
             showMenuButton={false}
           />

@@ -14,6 +14,7 @@ import androidx.core.telecom.CallsManager
 import io.getstream.rn.callingx.debugLog
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
@@ -213,6 +214,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     TAG,
                     "[repository] registerCall: Call $callId scope ended normally"
             )
+        } catch (e: CancellationException) {
+            debugLog(
+                    TAG,
+                    "[repository] registerCall: Registration canceled for $callId during teardown"
+            )
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "[repository] registerCall: Error registering call $callId", e)
             throw e

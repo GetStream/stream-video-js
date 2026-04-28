@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.32.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.32.3...@stream-io/video-react-native-sdk-1.32.4) (2026-04-23)
+
+### Bug Fixes
+
+- callingx listeners did not work on relogin ([#2215](https://github.com/GetStream/stream-video-js/issues/2215)) ([2bc02b9](https://github.com/GetStream/stream-video-js/commit/2bc02b916ba5d4143d38890b9afa9f55b943836f))
+
+## [1.32.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.32.2...@stream-io/video-react-native-sdk-1.32.3) (2026-04-15)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.47.0`
+- `@stream-io/video-react-bindings` updated to version `1.14.2`
+
 ## [1.32.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.32.1...@stream-io/video-react-native-sdk-1.32.2) (2026-04-09)
 
 ### Dependency Updates

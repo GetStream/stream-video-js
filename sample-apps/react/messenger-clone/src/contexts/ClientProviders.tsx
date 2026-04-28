@@ -10,13 +10,14 @@ export const ClientProviders = ({
 }: PropsWithChildren<{ user: User }>) => {
   const { apiKey, token, tokenProvider } = useUserContext();
   const chatClient = useCreateChatClient({
-    apiKey,
+    apiKey: apiKey ?? '',
     tokenOrProvider: token || tokenProvider,
     userData: user,
   });
   const [videoClient, setVideoClient] = useState<StreamVideoClient>();
 
   useEffect(() => {
+    if (!apiKey) return;
     const client = new StreamVideoClient({
       apiKey,
       user,

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import {
   Channel,
-  MessageInput,
+  MessageComposer,
   MessageList,
   useChatContext,
 } from 'stream-chat-react-native';
@@ -76,7 +76,7 @@ export const ChatScreen = ({ route }: ChatScreenProps) => {
       <Channel channel={channel} keyboardVerticalOffset={120}>
         <ChannelHeader />
         <MessageList />
-        <MessageInput />
+        <MessageComposer />
       </Channel>
     </View>
   );
