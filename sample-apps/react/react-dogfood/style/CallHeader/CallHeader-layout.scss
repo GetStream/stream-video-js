@@ -145,6 +145,27 @@
   gap: var(--str-video__spacing-xs);
 }
 
+.rd__header__audio-health {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--str-video__border-radius-circle);
+  background-color: var(--str-video__alert-warning);
+  color: var(--str-video__text-color1);
+
+  .str-video__icon {
+    width: 16px;
+    height: 16px;
+    background-color: var(--str-video__text-color1);
+  }
+
+  &--hidden {
+    visibility: hidden;
+  }
+}
+
 .rd__call-header__notifications {
   display: flex;
   justify-content: center;

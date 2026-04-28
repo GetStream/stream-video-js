@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  AudioHealthReason,
   CallingState,
   CancelCallConfirmButton,
   humanize,
@@ -64,6 +65,47 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
       <Icon className="rd__header__elapsed-icon" icon="verified" />
       <div className="rd__header__elapsed-time">{elapsed}</div>
     </div>
+  );
+};
+
+const AUDIO_HEALTH_MESSAGE: Partial<Record<AudioHealthReason, string>> = {
+  'host-audio-session-interrupted': 'Audio session interrupted by the host.',
+  'audio-session-interrupted': 'Audio session interrupted.',
+  'audio-context-interrupted': 'Audio context interrupted.',
+  'autoplay-blocked':
+    'Audio autoplay is blocked. Tap anywhere to enable sound.',
+  'remote-tracks-muted': 'Remote audio tracks are muted.',
+  'element-paused': 'Audio playback is paused.',
+};
+
+const AudioHealthIndicator = () => {
+  const { useAudioHealth } = useCallStateHooks();
+  const { status, reason } = useAudioHealth();
+  useEffect(() => {
+    console.info('[dogfood] audioHealth →', status, reason);
+  }, [status, reason]);
+
+  const isUnhealthy = status === 'unhealthy';
+  const message = AUDIO_HEALTH_MESSAGE[reason] ?? `Audio issue (${reason}).`;
+
+  return (
+    <Notification
+      isVisible={isUnhealthy}
+      message={message}
+      placement="bottom"
+      iconClassName={null}
+    >
+      <div
+        className={clsx('rd__header__audio-health', {
+          'rd__header__audio-health--hidden': !isUnhealthy,
+        })}
+        aria-live="polite"
+        aria-hidden={!isUnhealthy}
+        data-testid="audio-health-badge"
+      >
+        <Icon icon="no-audio" />
+      </div>
+    </Notification>
   );
 };
 
@@ -134,6 +176,7 @@ export const ActiveCallHeader = ({
         </div>
 
         <div className="rd__call-header__controls-group">
+          <AudioHealthIndicator />
           {(isRecordingInProgress ||
             isRawRecordingInProgress ||
             isIndividualRecordingInProgress) && <RecordingIndicator />}
