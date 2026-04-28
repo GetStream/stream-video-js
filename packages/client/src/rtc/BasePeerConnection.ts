@@ -40,6 +40,7 @@ export abstract class BasePeerConnection {
   private readonly iceRestartDelay: number;
   private iceHasEverConnected = false;
   private iceRestartTimeout?: NodeJS.Timeout;
+  private preConnectStuckTimeout?: NodeJS.Timeout;
   protected isIceRestarting = false;
   private isDisposed = false;
 
@@ -117,6 +118,8 @@ export abstract class BasePeerConnection {
   dispose() {
     clearTimeout(this.iceRestartTimeout);
     this.iceRestartTimeout = undefined;
+    clearTimeout(this.preConnectStuckTimeout);
+    this.preConnectStuckTimeout = undefined;
     this.onReconnectionNeeded = undefined;
     this.onIceConnected = undefined;
     this.isDisposed = true;
@@ -360,6 +363,8 @@ export abstract class BasePeerConnection {
     if (!this.iceHasEverConnected) {
       if (state === 'failed') {
         this.logger.info('ICE failed before connected, escalating to REJOIN');
+        clearTimeout(this.preConnectStuckTimeout);
+        this.preConnectStuckTimeout = undefined;
         this.onReconnectionNeeded?.(
           WebsocketReconnectStrategy.REJOIN,
           ReconnectReason.ICE_NEVER_CONNECTED,
@@ -369,6 +374,26 @@ export abstract class BasePeerConnection {
       }
       if (state === 'disconnected') {
         this.logger.info('ICE disconnected before connected, wait to recover');
+        // Watchdog: if the browser stays in `disconnected` without ever
+        // reaching `connected` or transitioning to `failed`, escalate to
+        // REJOIN ourselves so we don't wait silently forever. Rare but
+        // observed on flaky mobile networks.
+        clearTimeout(this.preConnectStuckTimeout);
+        this.preConnectStuckTimeout = setTimeout(() => {
+          if (
+            !this.iceHasEverConnected &&
+            this.pc.iceConnectionState === 'disconnected'
+          ) {
+            this.logger.info(
+              'ICE stuck in pre-connect disconnected, escalating to REJOIN',
+            );
+            this.onReconnectionNeeded?.(
+              WebsocketReconnectStrategy.REJOIN,
+              ReconnectReason.ICE_NEVER_CONNECTED,
+              this.peerType,
+            );
+          }
+        }, this.iceRestartDelay * 2);
         return;
       }
     }
@@ -409,6 +434,9 @@ export abstract class BasePeerConnection {
           clearTimeout(this.iceRestartTimeout);
           this.iceRestartTimeout = undefined;
         }
+        // clear the pre-connect watchdog if it was armed
+        clearTimeout(this.preConnectStuckTimeout);
+        this.preConnectStuckTimeout = undefined;
         break;
     }
   };

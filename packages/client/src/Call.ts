@@ -1551,7 +1551,9 @@ export class Call {
    * @internal
    *
    * @param strategy the reconnection strategy to use.
-   * @param reason the reason for the reconnection.
+   * @param reason the reason for the reconnection. Pass a `ReconnectReason.*`
+   *   constant when the SDK should react to it (e.g.
+   *   `ICE_NEVER_CONNECTED` increments the unsupported-network counter).
    */
   private reconnect = async (
     strategy: WebsocketReconnectStrategy,
@@ -3176,9 +3178,13 @@ export class Call {
    * `rejoin_attempt_limit_exceeded` leave message.
    *
    * Defaults: 10 attempts per 120 seconds (aligned with the Swift SDK).
+   * Both arguments are clamped to a minimum of 1.
    */
   setRejoinAttemptLimit = (maxAttempts: number, windowSeconds: number) => {
-    this.rejoinRateLimiter.setLimits(maxAttempts, windowSeconds * 1000);
+    this.rejoinRateLimiter.setLimits(
+      Math.max(1, maxAttempts),
+      Math.max(1, windowSeconds) * 1000,
+    );
   };
 
   /**
@@ -3187,10 +3193,10 @@ export class Call {
    * current network cannot support WebRTC and transitions the call to
    * `LEFT` with the `webrtc_unsupported_network` leave message.
    *
-   * Default: 2.
+   * Default: 2. Clamped to a minimum of 1.
    */
   setMaxIceFailuresWithoutConnect = (n: number) => {
-    this.maxIceFailuresWithoutConnect = n;
+    this.maxIceFailuresWithoutConnect = Math.max(1, n);
   };
 
   /**
@@ -3198,10 +3204,10 @@ export class Call {
    * before the SDK stops retrying and transitions the call to `LEFT` with
    * the `repeated_negotiation_failures` leave message.
    *
-   * Default: 3.
+   * Default: 3. Clamped to a minimum of 1.
    */
   setMaxConsecutiveNegotiationFailures = (n: number) => {
-    this.maxConsecutiveNegotiationFailures = n;
+    this.maxConsecutiveNegotiationFailures = Math.max(1, n);
   };
 
   /**

@@ -439,20 +439,62 @@ describe('Publisher', () => {
       );
     });
 
-    it(`pre-connect 'disconnected' is transient — does NOT restart and does NOT escalate`, () => {
+    it(`pre-connect 'disconnected' does not restart or escalate immediately`, () => {
       // ICE has never reached `connected`. A `disconnected` transition at
       // this point is just the browser's checking phase wobbling; the
       // browser may yet move back to checking/connected. The SDK should
-      // wait it out (no restart, no REJOIN). Only a terminal `failed`
-      // before connect should escalate via `ICE_NEVER_CONNECTED`.
+      // wait it out — no synchronous restart, no synchronous REJOIN. Only
+      // a terminal `failed` before connect, or the pre-connect watchdog
+      // expiring, should escalate via `ICE_NEVER_CONNECTED`.
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
       publisher['onReconnectionNeeded'] = vi.fn();
-      vi.useFakeTimers();
       // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'disconnected';
       publisher['onIceConnectionStateChange']();
-      vi.runOnlyPendingTimers();
       expect(publisher.restartIce).not.toHaveBeenCalled();
+      expect(publisher['onReconnectionNeeded']).not.toHaveBeenCalled();
+    });
+
+    it(`pre-connect 'disconnected' watchdog escalates to REJOIN if state stays stuck`, () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      publisher['onReconnectionNeeded'] = vi.fn();
+      vi.useFakeTimers();
+      const watchdogMs = publisher['iceRestartDelay'] * 2;
+
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      // before the watchdog fires, no escalation
+      vi.advanceTimersByTime(watchdogMs - 1);
+      expect(publisher['onReconnectionNeeded']).not.toHaveBeenCalled();
+
+      // watchdog fires; still stuck in disconnected → escalate
+      vi.advanceTimersByTime(2);
+      expect(publisher.restartIce).not.toHaveBeenCalled();
+      expect(publisher['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.ICE_NEVER_CONNECTED,
+        PeerType.PUBLISHER_UNSPECIFIED,
+      );
+    });
+
+    it(`pre-connect 'disconnected' watchdog is canceled when ICE recovers to 'connected'`, () => {
+      publisher['onReconnectionNeeded'] = vi.fn();
+      vi.useFakeTimers();
+      const watchdogMs = publisher['iceRestartDelay'] * 2;
+
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      // recover before the watchdog window expires
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      publisher['onIceConnectionStateChange']();
+
+      // advance past the original watchdog window — must NOT fire now
+      vi.advanceTimersByTime(watchdogMs + 100);
+
+      expect(publisher['iceHasEverConnected']).toBe(true);
       expect(publisher['onReconnectionNeeded']).not.toHaveBeenCalled();
     });
 

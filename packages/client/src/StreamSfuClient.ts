@@ -28,7 +28,7 @@ import {
 } from './gen/video/sfu/signal_rpc/signal';
 import { ICETrickle } from './gen/video/sfu/models/models';
 import { StreamClient } from './coordinator/connection/client';
-import { generateUUIDv4 } from './coordinator/connection/utils';
+import { generateUUIDv4, sleep } from './coordinator/connection/utils';
 import { Credentials } from './gen/coordinator';
 import { ScopedLogger, videoLoggerSystem } from './logger';
 import {
@@ -223,6 +223,12 @@ export class StreamSfuClient {
    * The close code used when the client fails to join the call (on the SFU).
    */
   static JOIN_FAILED = 4101;
+  /**
+   * Best-effort grace period in `leaveAndClose` for an in-flight join to
+   * complete before we give up and close without sending `leaveCallRequest`.
+   * Bounded so a stuck join can never hang the leave path.
+   */
+  static LEAVE_NOTIFY_GRACE_MS = 1000;
 
   /**
    * Constructs a new SFU client.
@@ -423,9 +429,26 @@ export class StreamSfuClient {
   leaveAndClose = async (reason: string) => {
     try {
       this.isLeaving = true;
-      // Only attempt to notify the SFU if the join handshake actually completed
+      // Best-effort: give an in-flight join a short grace period to complete
+      // so we can send a graceful `leaveCallRequest`. Bounded so we never hang
+      // here if the SFU is unresponsive. If the task settles either way during
+      // the wait, the re-check below decides whether to notify.
+      if (
+        !this.joinResponseTask.isResolved() &&
+        !this.joinResponseTask.isRejected()
+      ) {
+        await Promise.race([
+          // swallow rejection — we re-check `isResolved()` below to decide
+          this.joinResponseTask.promise.catch(() => {}),
+          sleep(StreamSfuClient.LEAVE_NOTIFY_GRACE_MS),
+        ]);
+      }
       if (this.joinResponseTask.isResolved()) {
         await this.notifyLeave(reason);
+      } else {
+        this.logger.debug(
+          '[leaveAndClose] join not completed within grace period, skipping notifyLeave',
+        );
       }
     } catch (err) {
       this.logger.debug('Error notifying SFU about leaving call', err);

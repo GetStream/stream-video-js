@@ -13,8 +13,11 @@ import type { ClientPublishOptions } from '../types';
 /**
  * Canonical reasons the SDK uses to trigger a reconnection. Free-form strings
  * are still accepted at the callback boundary (e.g. when forwarding an SFU
- * error message), but the members below name the cases the SDK itself raises
- * and the cases consumers like `Call.reconnect` inspect programmatically.
+ * error message), but only the members below influence reconnect-loop
+ * behavior. In particular, `Call.reconnect` programmatically inspects
+ * `ICE_NEVER_CONNECTED` to drive the unsupported-network detector — pass a
+ * canonical member when you want the SDK to react to the reason; pass a
+ * free-form string when the value is purely diagnostic.
  */
 export const ReconnectReason = {
   /** ICE never reached `connected`/`completed`, escalate to REJOIN. */

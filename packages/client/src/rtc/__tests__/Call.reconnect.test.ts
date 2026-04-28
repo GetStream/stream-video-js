@@ -376,6 +376,31 @@ describe('Call reconnect stopping conditions', () => {
         message: 'repeated_negotiation_failures',
       });
     });
+
+    it('clamps zero/negative inputs to a floor of 1', () => {
+      // Without clamping, n=0 would trip immediately on the first event
+      // (1 >= 0 is true), turning the setter into an instant kill switch.
+      call.setMaxIceFailuresWithoutConnect(0);
+      expect(
+        (call as unknown as { maxIceFailuresWithoutConnect: number })
+          .maxIceFailuresWithoutConnect,
+      ).toBe(1);
+
+      call.setMaxConsecutiveNegotiationFailures(-5);
+      expect(
+        (call as unknown as { maxConsecutiveNegotiationFailures: number })
+          .maxConsecutiveNegotiationFailures,
+      ).toBe(1);
+
+      call.setRejoinAttemptLimit(0, 0);
+      const limiter = (
+        call as unknown as {
+          rejoinRateLimiter: { maxAttempts: number; windowMs: number };
+        }
+      ).rejoinRateLimiter;
+      expect(limiter.maxAttempts).toBe(1);
+      expect(limiter.windowMs).toBe(1000);
+    });
   });
 });
 
