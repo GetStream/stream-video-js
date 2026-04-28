@@ -188,9 +188,6 @@ export abstract class DeviceManager<
     return {
       deviceId: entry.deviceId,
       unregister: async () => {
-        if (this.state.selectedDevice === deviceId) {
-          await this.select(undefined);
-        }
         await withoutConcurrency(this.virtualDeviceConcurrencyTag, async () => {
           setCurrentValue(this.virtualDevicesSubject, (current) =>
             current.filter((d) => d !== entry),
@@ -199,6 +196,14 @@ export abstract class DeviceManager<
             await this.stopActiveVirtualSession();
           }
         });
+
+        if (this.state.selectedDevice === deviceId) {
+          await this.statusChangeSettled();
+          if (this.enabled) {
+            await this.disable({ forceStop: true });
+          }
+          await this.select(undefined);
+        }
       },
     };
   }
