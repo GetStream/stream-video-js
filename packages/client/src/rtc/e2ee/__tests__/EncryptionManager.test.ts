@@ -225,87 +225,163 @@ describe('EncryptionManager', () => {
   });
 
   describe('worker message handling', () => {
-    it('invokes onDecryptionFailed callback', () => {
+    it('emits e2ee.decryption_failed', () => {
       const callback = vi.fn();
-      manager.onDecryptionFailed = callback;
-
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-      messageHandler({ data: { type: 'decryptionFailed', userId: 'bob' } });
-
-      expect(callback).toHaveBeenCalledWith('bob');
-    });
-
-    it('does not throw when onDecryptionFailed is not set', () => {
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-
-      expect(() =>
-        messageHandler({ data: { type: 'decryptionFailed', userId: 'bob' } }),
-      ).not.toThrow();
-    });
-
-    it('invokes onRotationNeeded on rekeyRequested', () => {
-      const callback = vi.fn();
-      manager.onRotationNeeded = callback;
+      manager.on('e2ee.decryption_failed', callback);
 
       const worker = getWorker(manager);
       const messageHandler = getEventHandler(worker, 'message');
       messageHandler({
-        data: { type: 'rekeyRequested', userId: 'local-user' },
+        data: { type: 'e2ee.decryption_failed', userId: 'bob' },
+      });
+
+      expect(callback).toHaveBeenCalledWith('bob');
+    });
+
+    it('does not throw when no e2ee.decryption_failed listener is subscribed', () => {
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+
+      expect(() =>
+        messageHandler({
+          data: { type: 'e2ee.decryption_failed', userId: 'bob' },
+        }),
+      ).not.toThrow();
+    });
+
+    it('emits e2ee.rotation_needed on rekeyRequested', () => {
+      const callback = vi.fn();
+      manager.on('e2ee.rotation_needed', callback);
+
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+      messageHandler({
+        data: { type: 'e2ee.rotation_needed', userId: 'local-user' },
       });
 
       expect(callback).toHaveBeenCalledWith({ userId: 'local-user' });
     });
 
-    it('invokes onE2EEBroken on e2eeBroken message', () => {
+    it('emits e2ee.broken', () => {
       const callback = vi.fn();
-      manager.onE2EEBroken = callback;
+      manager.on('e2ee.broken', callback);
 
       const worker = getWorker(manager);
       const messageHandler = getEventHandler(worker, 'message');
       messageHandler({
-        data: { type: 'e2eeBroken', userId: 'bob', keyIndex: 3 },
+        data: { type: 'e2ee.broken', userId: 'bob', keyIndex: 3 },
       });
 
       expect(callback).toHaveBeenCalledWith({ userId: 'bob', keyIndex: 3 });
     });
 
-    it('does not throw when new callbacks are not set', () => {
+    it('does not throw when no e2ee.rotation_needed / e2ee.broken listeners are subscribed', () => {
       const worker = getWorker(manager);
       const messageHandler = getEventHandler(worker, 'message');
       expect(() =>
         messageHandler({
-          data: { type: 'rekeyRequested', userId: 'local-user' },
+          data: { type: 'e2ee.rotation_needed', userId: 'local-user' },
         }),
       ).not.toThrow();
       expect(() =>
         messageHandler({
-          data: { type: 'e2eeBroken', userId: 'bob', keyIndex: 1 },
+          data: { type: 'e2ee.broken', userId: 'bob', keyIndex: 1 },
         }),
       ).not.toThrow();
     });
 
-    it('invokes onDecryptionResumed callback', () => {
+    it('emits e2ee.decryption_resumed', () => {
       const callback = vi.fn();
-      manager.onDecryptionResumed = callback;
+      manager.on('e2ee.decryption_resumed', callback);
 
       const worker = getWorker(manager);
       const messageHandler = getEventHandler(worker, 'message');
-      messageHandler({ data: { type: 'decryptionResumed', userId: 'bob' } });
+      messageHandler({
+        data: { type: 'e2ee.decryption_resumed', userId: 'bob' },
+      });
 
       expect(callback).toHaveBeenCalledWith('bob');
     });
 
-    it('does not throw when onDecryptionResumed is not set', () => {
+    it('does not throw when no e2ee.decryption_resumed listener is subscribed', () => {
       const worker = getWorker(manager);
       const messageHandler = getEventHandler(worker, 'message');
 
       expect(() =>
         messageHandler({
-          data: { type: 'decryptionResumed', userId: 'bob' },
+          data: { type: 'e2ee.decryption_resumed', userId: 'bob' },
         }),
       ).not.toThrow();
+    });
+
+    it('emits e2ee.encryption_failed', () => {
+      const callback = vi.fn();
+      manager.on('e2ee.encryption_failed', callback);
+
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+      messageHandler({
+        data: {
+          type: 'e2ee.encryption_failed',
+          reason: 'clear-bytes-too-large',
+        },
+      });
+
+      expect(callback).toHaveBeenCalledWith('clear-bytes-too-large');
+    });
+
+    it('emits e2ee.perf_report', () => {
+      const callback = vi.fn();
+      manager.on('e2ee.perf_report', callback);
+
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+      const encode = { fps: 30, maxCryptoMs: 2 };
+      const decode = [{ userId: 'bob', fps: 29 }];
+      messageHandler({
+        data: {
+          type: 'e2ee.perf_report',
+          encode,
+          decode,
+          decodeMaxCryptoMs: 3,
+        },
+      });
+
+      expect(callback).toHaveBeenCalledWith({
+        encode,
+        decode,
+        decodeMaxCryptoMs: 3,
+      });
+    });
+
+    it('supports multiple listeners per event', () => {
+      const a = vi.fn();
+      const b = vi.fn();
+      manager.on('e2ee.decryption_failed', a);
+      manager.on('e2ee.decryption_failed', b);
+
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+      messageHandler({
+        data: { type: 'e2ee.decryption_failed', userId: 'bob' },
+      });
+
+      expect(a).toHaveBeenCalledWith('bob');
+      expect(b).toHaveBeenCalledWith('bob');
+    });
+
+    it('supports unsubscribe via the returned function', () => {
+      const callback = vi.fn();
+      const unsubscribe = manager.on('e2ee.decryption_failed', callback);
+      unsubscribe();
+
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+      messageHandler({
+        data: { type: 'e2ee.decryption_failed', userId: 'bob' },
+      });
+
+      expect(callback).not.toHaveBeenCalled();
     });
   });
 

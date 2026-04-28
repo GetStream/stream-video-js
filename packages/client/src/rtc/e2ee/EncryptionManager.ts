@@ -1,12 +1,15 @@
 import { isChrome } from '../../helpers/browsers';
 import { promiseWithResolvers } from '../../helpers/promise';
+import { TypedEventEmitter } from '../../helpers/TypedEventEmitter';
 import { type ScopedLogger, videoLoggerSystem } from '../../logger';
+import type { E2EEEventMap } from './events';
 
-export type PerfReport = {
-  encode: { fps: number; maxCryptoMs: number };
-  decode: { userId: string; fps: number }[];
-  decodeMaxCryptoMs: number;
-};
+export type {
+  E2EEEventMap,
+  E2EEBrokenEvent,
+  PerfReport,
+  RotationEvent,
+} from './events';
 
 /**
  * AES-GCM variant used for media frame encryption.
@@ -16,22 +19,6 @@ export type PerfReport = {
  *    KBV Anlage 31b certifier) explicitly requires 256-bit strength.
  */
 export type E2EEAlgorithm = 'AES-128-GCM' | 'AES-256-GCM';
-
-/**
- * Fired when the local sender's frame counter is approaching the 32-bit
- * ceiling. If ignored, encryption will fail closed at the hard limit.
- */
-export type RotationEvent = {
-  /** The local sender whose counter is running out. */
-  userId: string;
-};
-
-export type E2EEBrokenEvent = {
-  /** Remote user whose frames can no longer be decrypted. */
-  userId: string;
-  /** The keyIndex that crossed the failure tolerance. */
-  keyIndex: number;
-};
 
 type CreateOptions = {
   /** Defaults to `'AES-128-GCM'` */
@@ -70,73 +57,11 @@ export type KeyStateReport = {
  * }
  * ```
  */
-export class EncryptionManager {
+export class EncryptionManager extends TypedEventEmitter<E2EEEventMap> {
   private readonly logger: ScopedLogger;
   private readonly algorithm: E2EEAlgorithm;
   private disposed = false;
   private piped?: WeakSet<RTCRtpSender | RTCRtpReceiver>;
-
-  /**
-   * Called when the worker fails to decrypt a frame from a remote participant.
-   * This indicates a key mismatch, key rotation in progress, or tampered frame.
-   *
-   * Throttled to at most once per second per remote user in the worker.
-   *
-   * @param userId - The remote user's ID whose frames failed to decrypt.
-   */
-  onDecryptionFailed?: (userId: string) => void;
-
-  /**
-   * Called when decryption resumes successfully for a remote participant
-   * after previously reported failures. This indicates the key mismatch
-   * has been resolved (e.g., after key rotation completes).
-   *
-   * @param userId - The remote user's ID whose frames are decrypting again.
-   */
-  onDecryptionResumed?: (userId: string) => void;
-
-  /**
-   * Called every second when perf reporting is enabled via {@link setPerfReport}.
-   * Reports encode/decode frames per second for monitoring throughput.
-   */
-  onPerfReport?: (report: PerfReport) => void;
-
-  /**
-   * Called at most once per worker session if an outgoing frame fails to
-   * encrypt (e.g. unexpected WebCrypto error, clearBytes exceeding trailer
-   * capacity). When this fires, the sender is effectively publishing
-   * nothing — surface it in the UI and consider re-initializing the call.
-   */
-  onEncryptionFailed?: (reason: string) => void;
-
-  /**
-   * Called when the SDK detects that the E2EE session is broken for a remote
-   * user — decryption has failed repeatedly past the internal tolerance.
-   *
-   * For compliance deployments (e.g. KBV Anlage 31b), the host application
-   * MUST treat this as session-terminating or show a blocking warning.
-   * Silent passthrough is non-compliant: at this point the remote frames
-   * either use a key you do not hold, or are being actively tampered with.
-   *
-   * Fires once per (userId, keyIndex) transition into the invalid state.
-   */
-  onE2EEBroken?: (event: E2EEBrokenEvent) => void;
-
-  /**
-   * Called when the SDK determines that fresh key material must be
-   * distributed for cryptographic correctness — the local sender's frame
-   * counter is approaching the 32-bit ceiling. If ignored, encryption will
-   * fail closed at the hard limit.
-   *
-   * Rotation on participant join/leave is a policy decision owned by the
-   * integrator and is NOT signalled here — subscribe to
-   * `call.state.remoteParticipants$` if you want that behaviour.
-   *
-   * Respond by minting a new `keyIndex`, distributing the raw key through
-   * your secure channel, and calling {@link setKey} / {@link setSharedKey}
-   * with the new index.
-   */
-  onRotationNeeded?: (event: RotationEvent) => void;
 
   private pendingKeyDump?: ReturnType<
     typeof promiseWithResolvers<KeyStateReport>
@@ -160,6 +85,7 @@ export class EncryptionManager {
     workerUrl: string,
     algorithm: E2EEAlgorithm,
   ) {
+    super('EncryptionManager');
     this.logger = videoLoggerSystem.getLogger('EncryptionManager');
     this.userId = userId;
     this.worker = worker;
@@ -250,6 +176,7 @@ export class EncryptionManager {
     this.worker.removeEventListener('error', this.handleWorkerError);
     this.worker.terminate();
     URL.revokeObjectURL(this.workerUrl);
+    this.removeAllListeners();
   };
 
   /**
@@ -423,29 +350,29 @@ export class EncryptionManager {
       case 'error':
         this.logger.error(e.data.message);
         break;
-      case 'decryptionFailed':
+      case 'e2ee.decryption_failed':
         this.logger.warn(`Decryption failed for user: ${e.data.userId}`);
-        this.onDecryptionFailed?.(e.data.userId);
+        this.emit('e2ee.decryption_failed', e.data.userId);
         break;
-      case 'decryptionResumed':
+      case 'e2ee.decryption_resumed':
         this.logger.info(`Decryption resumed for user: ${e.data.userId}`);
-        this.onDecryptionResumed?.(e.data.userId);
+        this.emit('e2ee.decryption_resumed', e.data.userId);
         break;
-      case 'encryptionFailed':
+      case 'e2ee.encryption_failed':
         this.logger.error(`Encryption failed: ${e.data.reason}`);
-        this.onEncryptionFailed?.(e.data.reason);
+        this.emit('e2ee.encryption_failed', e.data.reason);
         break;
-      case 'rekeyRequested':
+      case 'e2ee.rotation_needed':
         this.logger.warn(
           `Rekey requested (counter-threshold) for user: ${e.data.userId}`,
         );
-        this.onRotationNeeded?.({ userId: e.data.userId });
+        this.emit('e2ee.rotation_needed', { userId: e.data.userId });
         break;
-      case 'e2eeBroken':
+      case 'e2ee.broken':
         this.logger.error(
           `E2EE broken for user ${e.data.userId} at keyIndex ${e.data.keyIndex}`,
         );
-        this.onE2EEBroken?.({
+        this.emit('e2ee.broken', {
           userId: e.data.userId,
           keyIndex: e.data.keyIndex,
         });
@@ -457,8 +384,8 @@ export class EncryptionManager {
         });
         this.pendingKeyDump = undefined;
         break;
-      case 'perf-report':
-        this.onPerfReport?.({
+      case 'e2ee.perf_report':
+        this.emit('e2ee.perf_report', {
           encode: e.data.encode,
           decode: e.data.decode,
           decodeMaxCryptoMs: e.data.decodeMaxCryptoMs,

@@ -121,7 +121,7 @@ const startPerfReport = () => {
       decodeFrameCounts.set(userId, 0);
     }
     self.postMessage({
-      type: 'perf-report',
+      type: 'e2ee.perf_report',
       encode: { fps: encodeFrameCount / dtSec, maxCryptoMs: encodeMaxCryptoMs },
       decode,
       decodeMaxCryptoMs,
@@ -156,7 +156,7 @@ let encodeFailureSignaled = false;
 const signalEncodeFailure = (reason: string) => {
   if (encodeFailureSignaled) return;
   encodeFailureSignaled = true;
-  self.postMessage({ type: 'encryptionFailed', reason });
+  self.postMessage({ type: 'e2ee.encryption_failed', reason });
 };
 
 const encodeTransform = (userId: string, codec: string | undefined) => {
@@ -263,7 +263,7 @@ const decodeTransform = (userId: string) => {
     const now = Date.now();
     if (now - lastFailureNotification > FAILURE_THROTTLE_MS) {
       lastFailureNotification = now;
-      self.postMessage({ type: 'decryptionFailed', userId });
+      self.postMessage({ type: 'e2ee.decryption_failed', userId });
     }
   };
 
@@ -338,7 +338,7 @@ const decodeTransform = (userId: string) => {
 
         if (hasDecryptionFailures(userId, keyIndex)) {
           resetDecryptionFailures(userId, keyIndex);
-          self.postMessage({ type: 'decryptionResumed', userId });
+          self.postMessage({ type: 'e2ee.decryption_resumed', userId });
         }
 
         if (clearBytes === 0) {
@@ -353,13 +353,13 @@ const decodeTransform = (userId: string) => {
         controller.enqueue(frame);
         bumpDecodeCount(userId);
       } catch {
-        // Only fire `e2eeBroken` on the transition — otherwise the host
+        // Only fire `e2ee.broken` on the transition — otherwise the host
         // would receive one notification per frame once tolerance is hit.
         const wasInvalid = isKeyInvalid(userId, keyIndex);
         recordDecryptionFailure(userId, keyIndex);
         notifyFailure();
         if (!wasInvalid && isKeyInvalid(userId, keyIndex)) {
-          self.postMessage({ type: 'e2eeBroken', userId, keyIndex });
+          self.postMessage({ type: 'e2ee.broken', userId, keyIndex });
         }
       }
     },

@@ -149,7 +149,7 @@ export const nextFrameCounter = (userId: string): number => {
   }
   if (c >= COUNTER_REKEY_THRESHOLD && !rekeyRequested.has(userId)) {
     rekeyRequested.add(userId);
-    self.postMessage({ type: 'rekeyRequested', userId });
+    self.postMessage({ type: 'e2ee.rotation_needed', userId });
   }
   frameCounters.set(userId, c);
   return c;

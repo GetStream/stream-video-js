@@ -104,11 +104,11 @@ describe('nextFrameCounter', () => {
     expect(nextFrameCounter('alice')).toBe(COUNTER_REKEY_THRESHOLD);
 
     const rekeyCalls = postMessage.mock.calls.filter(
-      ([msg]) => msg?.type === 'rekeyRequested',
+      ([msg]) => msg?.type === 'e2ee.rotation_needed',
     );
     expect(rekeyCalls).toHaveLength(1);
     expect(rekeyCalls[0][0]).toEqual({
-      type: 'rekeyRequested',
+      type: 'e2ee.rotation_needed',
       userId: 'alice',
     });
 
@@ -117,7 +117,7 @@ describe('nextFrameCounter', () => {
     nextFrameCounter('alice');
     nextFrameCounter('alice');
     const rekeyCallsAfter = postMessage.mock.calls.filter(
-      ([msg]) => msg?.type === 'rekeyRequested',
+      ([msg]) => msg?.type === 'e2ee.rotation_needed',
     );
     expect(rekeyCallsAfter).toHaveLength(1);
   });
@@ -138,7 +138,7 @@ describe('nextFrameCounter', () => {
     __setFrameCounterForTest('alice', COUNTER_REKEY_THRESHOLD - 1);
     nextFrameCounter('alice');
     const rekeyCalls = postMessage.mock.calls.filter(
-      ([msg]) => msg?.type === 'rekeyRequested',
+      ([msg]) => msg?.type === 'e2ee.rotation_needed',
     );
     expect(rekeyCalls).toHaveLength(2);
   });

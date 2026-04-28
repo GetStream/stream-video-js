@@ -167,7 +167,7 @@ export const useE2EEDemo = () => {
       e2eeManager.setEnabled(e2eeEnabled);
 
       // Listen for decryption failures (key mismatch, rotation in progress)
-      e2eeManager.onDecryptionFailed = (remoteUserId) => {
+      e2eeManager.on('e2ee.decryption_failed', (remoteUserId) => {
         const remoteName =
           participantsRef.current.find((p) => p.userId === remoteUserId)
             ?.name ?? remoteUserId;
@@ -180,10 +180,10 @@ export const useE2EEDemo = () => {
             p.userId === userId ? { ...p, decryptionFailed: true } : p,
           ),
         );
-      };
+      });
 
       // Auto-clear decryption error when decryption resumes
-      e2eeManager.onDecryptionResumed = (remoteUserId) => {
+      e2eeManager.on('e2ee.decryption_resumed', (remoteUserId) => {
         const remoteName =
           participantsRef.current.find((p) => p.userId === remoteUserId)
             ?.name ?? remoteUserId;
@@ -196,10 +196,10 @@ export const useE2EEDemo = () => {
             p.userId === userId ? { ...p, decryptionFailed: false } : p,
           ),
         );
-      };
+      });
 
       // Listen for perf reports (encode/decode FPS)
-      e2eeManager.onPerfReport = (report) => {
+      e2eeManager.on('e2ee.perf_report', (report) => {
         const decodeInfo = report.decode
           .map((d) => {
             const pName =
@@ -212,7 +212,7 @@ export const useE2EEDemo = () => {
           `${name} — encode: ${report.encode.fps} fps | decode: [${decodeInfo}]`,
           'perf',
         );
-      };
+      });
       e2eeManager.setPerfReport(true);
 
       const useSharedKey = !!sharedPassphraseRef.current;
