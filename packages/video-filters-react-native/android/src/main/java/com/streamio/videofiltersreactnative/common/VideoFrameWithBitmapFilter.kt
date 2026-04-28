@@ -26,9 +26,8 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
   private val textures = IntArray(1)
   private var inputFrameBitmap: Bitmap? = null
 
-  private val bitmapVideoFilter by lazy {
-    bitmapVideoFilterFunc.invoke()
-  }
+  private val bitmapVideoFilterLazy = lazy { bitmapVideoFilterFunc.invoke() }
+  private val bitmapVideoFilter: BitmapVideoFilter by bitmapVideoFilterLazy
 
   init {
     GLES20.glGenTextures(1, textures, 0)
@@ -94,6 +93,9 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
   // Always delete the texture: glGenTextures in init can return a valid id even
   // before initialize() runs, so enable-then-disable would leak it otherwise.
   override fun dispose() {
+    if (bitmapVideoFilterLazy.isInitialized()) {
+      bitmapVideoFilter.close()
+    }
     yuvFrame.close()
     inputFrameBitmap?.recycle()
     inputFrameBitmap = null

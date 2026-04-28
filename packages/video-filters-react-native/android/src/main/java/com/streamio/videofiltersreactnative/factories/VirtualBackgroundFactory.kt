@@ -194,6 +194,19 @@ private class VirtualBackgroundVideoFilter(
         canvas.drawBitmap(scaledVirtualBackgroundBitmap!!, 0f, 0f, backgroundPaint)
     }
 
+    // Free the ML Kit segmenter and cached bitmaps held by the filter.
+    override fun close() {
+        segmenter.close()
+        virtualBackgroundBitmap?.recycle()
+        virtualBackgroundBitmap = null
+        scaledVirtualBackgroundBitmap?.recycle()
+        scaledVirtualBackgroundBitmap = null
+        foregroundMaskBitmap?.recycle()
+        foregroundMaskBitmap = null
+        scaledForegroundBitmap?.recycle()
+        scaledForegroundBitmap = null
+    }
+
     private fun scaleVirtualBackgroundBitmap(bitmap: Bitmap, targetHeight: Int): Bitmap {
         val scale = targetHeight.toFloat() / bitmap.height
         return ensureAlpha(
