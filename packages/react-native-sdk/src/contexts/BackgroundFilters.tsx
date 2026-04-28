@@ -207,6 +207,9 @@ export const BackgroundFiltersProvider = ({ children }: PropsWithChildren) => {
         .forEach((track) => {
           track._setVideoEffect(null);
         });
+      // Drop native processor refs so they can be deallocated — without this,
+      // the ProcessorProvider registry pins them for the app's lifetime.
+      videoFiltersModule?.unregisterAllFilters?.().catch(() => {});
       lastAppliedFilterNameRef.current = null;
       isBackgroundBlurRegisteredRef.current = false;
       isVideoBlurRegisteredRef.current = false;
