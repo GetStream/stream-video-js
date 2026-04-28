@@ -234,6 +234,9 @@ describe('Device Manager', () => {
     await manager.enable();
 
     expect(getUserMedia).toHaveBeenCalledOnce();
+    expect(getUserMedia).toHaveBeenCalledWith({
+      deviceId: { exact: deviceId },
+    });
     expect(manager.getStream).not.toHaveBeenCalled();
     expect(manager.state.mediaStream).toBe(virtualStream);
     expect(manager.state.selectedDevice).toBe(deviceId);

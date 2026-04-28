@@ -72,7 +72,9 @@ export abstract class DeviceManager<
   protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilterEntry[] = [];
-  private virtualDevicesSubject = new BehaviorSubject<VirtualDeviceEntry[]>([]);
+  private virtualDevicesSubject = new BehaviorSubject<VirtualDeviceEntry<C>[]>(
+    [],
+  );
   private activeVirtualSession: ActiveVirtualSession | undefined;
   private virtualDeviceConcurrencyTag = Symbol('virtualDeviceConcurrencyTag');
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
@@ -159,7 +161,7 @@ export abstract class DeviceManager<
    * Only supported for camera and microphone managers; calling on any other
    * manager throws.
    */
-  registerVirtualDevice(virtualDevice: VirtualDevice): VirtualDeviceHandle {
+  registerVirtualDevice(virtualDevice: VirtualDevice<C>): VirtualDeviceHandle {
     if (isReactNative()) {
       throw new Error('Virtual devices are not supported on React Native.');
     }
@@ -172,7 +174,7 @@ export abstract class DeviceManager<
       );
     }
     const deviceId = `${VIRTUAL_DEVICE_PREFIX}${generateUUIDv4()}`;
-    const entry: VirtualDeviceEntry = {
+    const entry: VirtualDeviceEntry<C> = {
       deviceId,
       kind: this.mediaDeviceKind,
       ...virtualDevice,
@@ -241,7 +243,7 @@ export abstract class DeviceManager<
       }
 
       await this.stopActiveVirtualSession();
-      const { stream, stop } = await virtualDevice.getUserMedia();
+      const { stream, stop } = await virtualDevice.getUserMedia(constraints);
       this.activeVirtualSession = { deviceId, stop };
 
       return this.sanitizeVirtualStream(stream);
@@ -450,6 +452,10 @@ export abstract class DeviceManager<
 
   protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
 
+  protected getResolvedConstraints(constraints: C): C {
+    return constraints;
+  }
+
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 
   protected publishStream(
@@ -529,12 +535,12 @@ export abstract class DeviceManager<
       this.enableTracks();
     } else {
       const defaultConstraints = this.state.defaultConstraints;
-      const constraints: MediaTrackConstraints = {
+      const constraints = this.getResolvedConstraints({
         ...defaultConstraints,
         deviceId: this.state.selectedDevice
           ? { exact: this.state.selectedDevice }
           : undefined,
-      };
+      } as C);
 
       /**
        * Chains two media streams together.
@@ -593,7 +599,7 @@ export abstract class DeviceManager<
           return filterStream;
         };
 
-      rootStream = this.getSelectedStream(constraints as C);
+      rootStream = this.getSelectedStream(constraints);
 
       stream = await this.filters.reduce(
         (parent, entry) =>

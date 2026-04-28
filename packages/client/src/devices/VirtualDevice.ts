@@ -14,7 +14,7 @@ export interface VirtualDeviceSession {
  * `microphone.registerVirtualDevice()` to make it appear in the device list
  * and become selectable.
  */
-export interface VirtualDevice {
+export interface VirtualDevice<C = MediaTrackConstraints> {
   /**
    * Human-readable label shown in device dropdowns.
    */
@@ -25,14 +25,20 @@ export interface VirtualDevice {
    * Returns the MediaStream to publish along with an optional `stop`
    * callback that runs when the session is replaced, the tracks end, or
    * the device is unregistered.
+   *
+   * `constraints` is the resolved set the SDK would otherwise pass to
+   * `getUserMedia` for a real device.
    */
-  getUserMedia: () => VirtualDeviceSession | Promise<VirtualDeviceSession>;
+  getUserMedia: (
+    constraints: C,
+  ) => VirtualDeviceSession | Promise<VirtualDeviceSession>;
 }
 
 /**
  * @internal Internal entry stored in the device manager's registry.
  */
-export interface VirtualDeviceEntry extends VirtualDevice {
+export interface VirtualDeviceEntry<C = MediaTrackConstraints>
+  extends VirtualDevice<C> {
   readonly deviceId: string;
   readonly kind: 'audioinput' | 'videoinput';
 }
