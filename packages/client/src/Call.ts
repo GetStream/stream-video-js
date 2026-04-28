@@ -1600,11 +1600,12 @@ export class Call {
       // connection that never reached `connected`/`completed`.
       if (reason === ReconnectReason.ICE_NEVER_CONNECTED) {
         this.iceFailuresWithoutConnect++;
-      }
-
-      if (this.iceFailuresWithoutConnect >= this.maxIceFailuresWithoutConnect) {
-        await giveUpAndLeave('webrtc_unsupported_network');
-        return;
+        if (
+          this.iceFailuresWithoutConnect >= this.maxIceFailuresWithoutConnect
+        ) {
+          await giveUpAndLeave('webrtc_unsupported_network');
+          return;
+        }
       }
 
       let attempt = 0;
