@@ -12,6 +12,7 @@ import {
 import clsx from 'clsx';
 
 import { CallHeaderTitle } from './CallHeaderTitle';
+import { InviteVisionAgentButton } from './InviteVisionAgentButton';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleDocumentationButton } from './ToggleDocumentationButton';
 import { LayoutSelectorProps } from './LayoutSelector';
@@ -134,6 +135,7 @@ export const ActiveCallHeader = ({
         </div>
 
         <div className="rd__call-header__controls-group">
+          <InviteVisionAgentButton />
           {(isRecordingInProgress ||
             isRawRecordingInProgress ||
             isIndividualRecordingInProgress) && <RecordingIndicator />}

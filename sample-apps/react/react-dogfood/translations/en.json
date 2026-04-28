@@ -33,5 +33,7 @@
   "quality/short/144p": "144p",
   "quality/short/off": "Video off",
   "device-selection/system": "Use system default",
-  "device-selection/recent": "Most recently used"
+  "device-selection/recent": "Most recently used",
+  "Vision Agent": "Vision Agent",
+  "Inviting…": "Inviting…"
 }
