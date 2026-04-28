@@ -154,10 +154,15 @@ export abstract class DeviceManager<
    * stream factory. The device appears in `listDevices()` and can be selected
    * via `select()` like any real device.
    *
+   * Web only. React Native is not supported.
+   *
    * Only supported for camera and microphone managers; calling on any other
    * manager throws.
    */
   registerVirtualDevice(virtualDevice: VirtualDevice): VirtualDeviceHandle {
+    if (isReactNative()) {
+      throw new Error('Virtual devices are not supported on React Native.');
+    }
     if (
       this.trackType !== TrackType.AUDIO &&
       this.trackType !== TrackType.VIDEO
