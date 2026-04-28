@@ -122,7 +122,8 @@ export abstract class DeviceManager<
             if (
               !status ||
               (this.isTrackStoppedDueToTrackEnd && status === 'disabled') ||
-              browserPermissionState !== 'granted'
+              browserPermissionState !== 'granted' ||
+              selectedDevice?.startsWith(VIRTUAL_DEVICE_PREFIX)
             )
               return;
 
