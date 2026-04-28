@@ -321,10 +321,63 @@ Third-party iOS WebView hosts embedding the SDK can copy
 event name and payload are the stable part, the Swift class is
 illustrative.
 
+### Host → page lifecycle bridge (iOS hosts)
+
+`AVAudioSession` interruption events are not enough to triage every
+audio bug. A common customer-reported pattern: a phone call interrupts a
+live call, ends, and the
+`AVAudioSession.interruptionNotification(.ended + .shouldResume)` fires
+_while the host app is still in the background_. WebKit's
+`RTCAudioSession` reactivates correctly, but the in-page SDK has no way
+to know "the user just returned to the app" and trigger any recovery it
+might owe (autoplay retries, `replaceTrack`, mic permission re-checks).
+
+To bridge that gap, the iOS host can forward UIApplication transitions
+into the page as a parallel `CustomEvent`:
+
+```ts
+// 'stream-video:host-lifecycle'
+interface HostLifecycleEvent {
+  schemaVersion: 1;
+  source: 'ios';
+  timestamp: number; // epoch ms
+  state: {
+    transition:
+      | 'didBecomeActive'
+      | 'willResignActive'
+      | 'didEnterBackground'
+      | 'willEnterForeground';
+  };
+}
+```
+
+**Contract:**
+
+- **Host side** fires once per `UIApplication.*Notification` it observes.
+  The four notifications above are sufficient — `applicationProtectedDataWillBecomeUnavailable`
+  and friends are not currently bridged.
+- **SDK side** does not yet consume this event as a first-class signal
+  (no reason code is derived from it). It is exposed today purely for
+  correlation in support logs and as a hook customers can listen to from
+  their React app to drive their own recovery flows. Wiring it into
+  `AudioHealthMonitor` is tracked under "Still open" below.
+
+**Reference host implementation:**
+[`sample-apps/ios/ios-webview/IOSWebView/WebView/LifecycleBridge.swift`](./IOSWebView/WebView/LifecycleBridge.swift).
+Same shape and dispatch path as `AudioSessionBridge.swift`. The Lifecycle
+tab in the debug overlay shows every transition tagged `lifecycle`,
+adjacent to the `bridge`-tagged audio-session snapshots.
+
 ### Still open
 
 Open items on the backlog:
 
+- **Promote `host-lifecycle` to a first-class signal in
+  `AudioHealthMonitor`** — today the bridge is exposed but the monitor
+  ignores it. Good candidate trigger: on `transition === 'didBecomeActive'`
+  while `interruption.type === 'ended'` was the last audio-session event,
+  re-run the autoplay/playback verification path proactively instead of
+  waiting for the next user-driven event.
 - **`getStats()`-based anomaly logs** — detect `audioLevel=0` on all
   inbound streams while connection state is `connected`, for cases the
   six signals above miss.

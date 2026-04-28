@@ -37,6 +37,12 @@ struct ScenariosMenu {
         let callKit = UIMenu(title: "", options: .displayInline, children: [
             UIAction(title: "CallKit incoming") { _ in audio.simulateCallKitIncoming() },
             UIAction(title: "End CallKit call") { _ in audio.endCallKitCall() },
+            UIAction(title: "Sim phone call (auto-end 5s)") { _ in
+                audio.simulatePhoneCallInterruption(holdSeconds: 5)
+            },
+            UIAction(title: "Sim phone call (auto-end 15s)") { _ in
+                audio.simulatePhoneCallInterruption(holdSeconds: 15)
+            },
             UIAction(title: "Toggle route") { _ in audio.toggleRoute() },
         ])
         let diagnostics = UIMenu(title: "🔍 Diagnostics", children: [

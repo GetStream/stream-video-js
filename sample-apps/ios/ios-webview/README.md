@@ -92,7 +92,11 @@ On the phone:
     Native `AVAudioSession` transitions from `AudioSessionBridge.swift`
     land here too (tagged `bridge`), so you can see the host-side ground
     truth that the SDK consumes via the
-    `stream-video:host-audio-session` `CustomEvent`.
+    `stream-video:host-audio-session` `CustomEvent`. UIApplication
+    transitions (`didBecomeActive`, `willResignActive`,
+    `didEnterBackground`, `willEnterForeground`) from
+    `LifecycleBridge.swift` are tagged `lifecycle` and forwarded into the
+    page as `stream-video:host-lifecycle`.
 - **Host audio-session bridge** —
   [`AudioSessionBridge.swift`](./IOSWebView/WebView/AudioSessionBridge.swift)
   observes `AVAudioSession` notifications and forwards each snapshot into
@@ -124,6 +128,7 @@ Single nav-bar menu (`🔊 Audio & session`):
 |                | Ringtone loop / stop                                                                | App-owned audio overlapping WebRTC for an extended period.                                                                                                                                                                                                                                                                   |
 |                | Local notification (2s)                                                             | Schedules a notification with `.default` sound — fires a few seconds later and interrupts.                                                                                                                                                                                                                                   |
 | CallKit        | Incoming / End                                                                      | Full audio-session hijack and recovery via CallKit's normal lifecycle.                                                                                                                                                                                                                                                       |
+|                | Sim phone call (auto-end 5s / 15s)                                                  | Composite repro for the "phone call received during a live call" customer scenario. Logs a pre-snapshot, fires CallKit incoming, auto-ends after the chosen hold, then logs post-snapshots at +0.5s and +3s for comparison.                                                                                                  |
 |                | Toggle route                                                                        | `overrideOutputAudioPort(.speaker / .none)` — verify speaker vs. earpiece routing.                                                                                                                                                                                                                                           |
 | 🔍 Diagnostics | Dump session state                                                                  | One-tap diagnostic of category/mode/options/route to the Lifecycle tab.                                                                                                                                                                                                                                                      |
 |                | Mic meter start / stop                                                              | Streams `AVAudioRecorder.averagePower(forChannel:)` samples to the log. Proves mic hardware works outside WebRTC.                                                                                                                                                                                                            |
@@ -132,6 +137,49 @@ Single nav-bar menu (`🔊 Audio & session`):
 |                | Force `mode=.default`                                                               | Strips `.voiceChat` / `.videoChat` mode — AEC + noise suppression off.                                                                                                                                                                                                                                                       |
 |                | `setActive(false)`                                                                  | Silent deactivation with no `.notifyOthersOnDeactivation`. Hostile: other audio sessions don't know to resume.                                                                                                                                                                                                               |
 |                | 440 Hz tone start / stop                                                            | `AVAudioEngine` sine source routed to the mixer — AEC test tone.                                                                                                                                                                                                                                                             |
+
+## Customer test scenarios — crosswalk
+
+A customer-supplied test plan covers Live Calls (and, separately, Webinars
+— deferred). Where each item maps in this app:
+
+| Customer scenario                                                              | How to exercise it                                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Phone call received during a live call**                                     | `Scenarios → Sim phone call (auto-end 5s)` (or 15s). Confirms WebRTC audio survives the interruption-began and recovers on interruption-ended.                                                                                             |
+| **BUG: ending the phone call leaves user in bugged audio state**               | Same scenario as above — see the "Bug A repro" section below for the read.                                                                                                                                                                 |
+| **External notification with sound during a call (notif audio plays quietly)** | `Scenarios → Local notification`. Watch the Console + Lifecycle tabs for `bridge` snapshots; the audio should keep flowing.                                                                                                                |
+| **Screen locked while unmuted (member should auto-mute)**                      | Manual — physically lock the device. Lifecycle tab will log `transition=willResignActive` (and route changes if the lock removes the headset). The page receives the same via `stream-video:host-lifecycle`.                               |
+| **Switching apps / minimized while unmuted**                                   | Manual — Cmd+H (or swipe up on physical device). Lifecycle tab logs `transition=didEnterBackground` followed by `transition=willEnterForeground` + `transition=didBecomeActive` on return.                                                 |
+| **Force-quit app**                                                             | Manual — swipe up from app switcher. Audio cuts immediately for the local member; other participants observe the WebSocket-disconnect timeout. Not directly observable from the app itself (the process is killed); rely on web-side logs. |
+| **Members can hear remote audio / mute/unmute**                                | Use the running React tutorial in the WKWebView. `Scenarios → 🔍 Diagnostics → Mic meter` proves mic hardware is alive outside of WebRTC for sanity-checks.                                                                                |
+| **Toggle additional microphone / audio outputs**                               | `Scenarios → Toggle route` (speaker ↔ earpiece). Other inputs are exposed by iOS Control Center / Settings.                                                                                                                               |
+| **Hi-fi audio toggle / noise cancellation toggle**                             | Web-side responsibility (`@stream-io/video-react-sdk` settings); not exposed from the native side.                                                                                                                                         |
+
+### Bug A — repro instructions (live call, post-phone-call audio drift)
+
+The customer's confirmed bug: after a phone call interrupts a live call
+and ends, the live-call audio stays in a "bugged" state.
+
+1. Paste a Cloudflare tunnel URL pointing at the React tutorial → **Load**
+   → wait for auto-join. Confirm two-way audio with a second participant
+   on the web.
+2. Open the debug overlay → **Lifecycle** tab. (Optional but useful:
+   `Scenarios → 🔍 Diagnostics → Start mic meter` so you have a live mic
+   level alongside the snapshots.)
+3. Tap `Scenarios → Sim phone call (auto-end 5s)`.
+4. Compare the `pre-interruption` snapshot with the
+   `post-recovery-window +3s` snapshot at the bottom of the timeline.
+   - **No bug**: same `category=AVAudioSessionCategoryPlayAndRecord`,
+     `mode=AVAudioSessionModeVideoChat`, `otherAudio=false`. Mic meter
+     keeps registering voice activity.
+   - **Bug A reproduced**: any drift — `category` reverts (commonly to
+     `.playback`), `otherAudio` flips to `true`, or the mic meter goes
+     flat after the call ends.
+5. Repeat with the 15s variant to confirm the bug isn't timing-sensitive.
+
+When you file a ticket, paste the entire Lifecycle-tab transcript (it
+already contains `audio-session[…]:` snapshots, `bridge` events, and the
+new `lifecycle` transitions in chronological order).
 
 ## Debugging tips
 

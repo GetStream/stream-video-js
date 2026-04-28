@@ -11,6 +11,8 @@ final class WebViewContainer: UIView {
     let errorBridge = ErrorBridge()
     private var audioSessionBridge: AudioSessionBridge?
     private var audioSessionBridgeCancellable: AnyCancellable?
+    private var lifecycleBridge: LifecycleBridge?
+    private var lifecycleBridgeCancellable: AnyCancellable?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -19,7 +21,10 @@ final class WebViewContainer: UIView {
 
     required init?(coder: NSCoder) { fatalError() }
 
-    deinit { audioSessionBridge?.stop() }
+    deinit {
+        audioSessionBridge?.stop()
+        lifecycleBridge?.stop()
+    }
 
     private func build() {
         let config = WKWebViewConfiguration()
@@ -68,6 +73,20 @@ final class WebViewContainer: UIView {
             }
         bridge.start()
         self.audioSessionBridge = bridge
+
+        // Forward UIApplication lifecycle transitions into the page so the
+        // SDK can correlate "the user came back to the app" with any audio
+        // recovery it needs to attempt after an interruption ended in the
+        // background.
+        let lifecycle = LifecycleBridge(webView: wv)
+        lifecycleBridgeCancellable = lifecycle.snapshotPublisher
+            .receive(on: DispatchQueue.main)
+            .sink { snapshot in
+                AppState.shared.log(.lifecycle, "lifecycle",
+                    "transition=\(snapshot.state.transition)")
+            }
+        lifecycle.start()
+        self.lifecycleBridge = lifecycle
     }
 
     private static func format(_ snapshot: AudioSessionBridge.Snapshot) -> String {

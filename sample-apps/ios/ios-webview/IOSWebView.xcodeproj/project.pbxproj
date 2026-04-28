@@ -21,12 +21,14 @@
 		651FD5B731584E0524C3748E /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0B61D4F85004B9D8C6A2357 /* AppState.swift */; };
 		92FA665D6C543D4078839233 /* ConsoleBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8C95C0317F57AE066E511D3 /* ConsoleBridge.swift */; };
 		954B8D2BFE3631E88902F1EF /* ErrorBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF05510E92C48ACB89A6860 /* ErrorBridge.swift */; };
+		B3634A4F1B26E4771873EE32 /* LifecycleBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06BBE633A9755C57EBDDD765 /* LifecycleBridge.swift */; };
 		CD63E4DA58F02B5F4BA19BDF /* AudioSessionBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E076529A2258BEC33B2903E9 /* AudioSessionBridge.swift */; };
 		D103BE82D7F108B09B3CFE60 /* console-mirror.js in Resources */ = {isa = PBXBuildFile; fileRef = BAF6B45004224C7276B8AE68 /* console-mirror.js */; };
 		E339C51CBDC5C3906FA25F90 /* ding.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4D602AF2903F25E1E5512ED9 /* ding.caf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		06BBE633A9755C57EBDDD765 /* LifecycleBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleBridge.swift; sourceTree = "<group>"; };
 		1CF2A9C79CFD3A01CE387626 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		35429890281B5750745E6CA0 /* error-capture.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "error-capture.js"; sourceTree = "<group>"; };
 		387DBD1A5444E4EB9B9877CE /* IOSWebView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IOSWebView.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -54,6 +56,7 @@
 				E076529A2258BEC33B2903E9 /* AudioSessionBridge.swift */,
 				A8C95C0317F57AE066E511D3 /* ConsoleBridge.swift */,
 				6BF05510E92C48ACB89A6860 /* ErrorBridge.swift */,
+				06BBE633A9755C57EBDDD765 /* LifecycleBridge.swift */,
 				8AC518543C212E9F5C3BD223 /* NavigationInterceptor.swift */,
 				E013F718BC75F5AD6E4F3178 /* PermissionCoordinator.swift */,
 				50F32530F1BA97B4090DEF14 /* WebViewContainer.swift */,
@@ -208,6 +211,7 @@
 				92FA665D6C543D4078839233 /* ConsoleBridge.swift in Sources */,
 				4AC5715D54F6FA1DA943DAFB /* DebugOverlayView.swift in Sources */,
 				954B8D2BFE3631E88902F1EF /* ErrorBridge.swift in Sources */,
+				B3634A4F1B26E4771873EE32 /* LifecycleBridge.swift in Sources */,
 				6225026E87FB6C90353547FA /* NavigationInterceptor.swift in Sources */,
 				3B8798B8AEEC33480469EFC8 /* PermissionCoordinator.swift in Sources */,
 				33719CC1D6D7FC882065074A /* ScenariosMenu.swift in Sources */,

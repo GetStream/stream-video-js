@@ -202,6 +202,40 @@ final class AudioScenarios: NSObject {
         AppState.shared.log(.scenarios, "audio", "callkit ended uuid=\(uuid)")
     }
 
+    /// Composite repro for the customer "phone call received during a live
+    /// call" scenario.
+    ///
+    /// Sequence:
+    ///   1. Pre-snapshot at t=0 (label: "pre-interruption").
+    ///   2. `simulateCallKitIncoming()` — CallKit hijacks AVAudioSession.
+    ///   3. After `holdSeconds`, `endCallKitCall()` — releases the session.
+    ///   4. Post-snapshot at +0.5s and +3s after end — "did the session
+    ///      come back to .playAndRecord/.videoChat the way WebRTC needs?"
+    ///
+    /// The two post-snapshots make the delayed-restore window visible:
+    /// WebKit's `RTCAudioSession` reactivates on
+    /// `interruptionNotification(.ended + .shouldResume)`, which usually
+    /// arrives within ~100ms but can take longer. If the +3s snapshot still
+    /// shows drift from the pre-snapshot, that's the bug.
+    func simulatePhoneCallInterruption(holdSeconds: TimeInterval = 5) {
+        AppState.shared.log(.scenarios, "audio",
+            "▶︎ phone-call interruption scenario (hold=\(holdSeconds)s)")
+        dumpSessionState(label: "pre-interruption")
+        simulateCallKitIncoming()
+        DispatchQueue.main.asyncAfter(deadline: .now() + holdSeconds) { [weak self] in
+            guard let self else { return }
+            self.endCallKitCall()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.dumpSessionState(label: "post-interruption +0.5s")
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+                self?.dumpSessionState(label: "post-recovery-window +3s")
+                AppState.shared.log(.scenarios, "audio",
+                    "▶︎ phone-call interruption scenario complete — compare snapshots")
+            }
+        }
+    }
+
     // MARK: Category picker
 
     /// The full set of `AVAudioSession.Category` values, with short display
