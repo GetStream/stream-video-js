@@ -88,6 +88,7 @@ describe('Publisher', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
     vi.resetModules();
     publisher.dispose();

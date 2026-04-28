@@ -64,6 +64,7 @@ describe('Subscriber', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
     vi.resetModules();
     subscriber.dispose();
