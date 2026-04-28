@@ -209,7 +209,7 @@ export const BackgroundFiltersProvider = (
   const handleStats = useCallback(
     (stats: PerformanceStats) => {
       const fps = stats?.fps;
-      if (fps == null || sourceFps == null) {
+      if (fps == null || !sourceFps) {
         fpsRatioEmaRef.current = undefined;
         setShowLowFpsWarning(false);
         return;
