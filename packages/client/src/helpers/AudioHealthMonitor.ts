@@ -468,8 +468,8 @@ export class AudioHealthMonitor {
       }
       return;
     }
-    if (!detail.state || typeof detail.state !== 'object') {
-      this.logger.warn('Host audio-session event missing `state` field');
+    if (!detail.session || typeof detail.session !== 'object') {
+      this.logger.warn('Host audio-session event missing `session` field');
       return;
     }
     this.hostAudioSession = detail;
@@ -551,7 +551,7 @@ export class AudioHealthMonitor {
     // 1. Host bridge reports an active `AVAudioSession` interruption.
     //    Ground truth on iOS: the host sees hostile category/mode
     //    changes WebKit silently ignores.
-    if (this.hostAudioSession?.state.interruption?.type === 'began') {
+    if (this.hostAudioSession?.interruption?.type === 'began') {
       return { status: 'unhealthy', reason: 'host-audio-session-interrupted' };
     }
     // 2. Explicit OS interruption via W3C (Safari native).

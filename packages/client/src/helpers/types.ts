@@ -40,6 +40,73 @@ declare global {
 export const HOST_AUDIO_SESSION_EVENT = 'stream-video:host-audio-session';
 
 /**
+ * Normalized `AVAudioSession.Category`. The host-side bridge maps Apple's
+ * `AVAudioSessionCategory*` raw values to these short names so the
+ * payload is platform-agnostic and self-describing in console logs.
+ */
+export type HostAudioSessionCategory =
+  | 'ambient'
+  | 'soloAmbient'
+  | 'playback'
+  | 'record'
+  | 'playAndRecord'
+  | 'multiRoute';
+
+/**
+ * Normalized `AVAudioSession.Mode`. Same normalization rules as
+ * {@link HostAudioSessionCategory}.
+ */
+export type HostAudioSessionMode =
+  | 'default'
+  | 'voiceChat'
+  | 'gameChat'
+  | 'videoRecording'
+  | 'measurement'
+  | 'moviePlayback'
+  | 'videoChat'
+  | 'spokenAudio'
+  | 'voicePrompt';
+
+/**
+ * Normalized `AVAudioSession.CategoryOptions` flag names. The host-side
+ * bridge decomposes the raw bitmask into a list of these strings.
+ */
+export type HostAudioSessionCategoryOption =
+  | 'mixWithOthers'
+  | 'duckOthers'
+  | 'allowBluetooth'
+  | 'allowBluetoothA2DP'
+  | 'allowAirPlay'
+  | 'defaultToSpeaker'
+  | 'interruptSpokenAudioAndMixWithOthers'
+  | 'overrideMutedMicrophoneInterruption'
+  | 'allowBluetoothHFP';
+
+/**
+ * Normalized `AVAudioSession.InterruptionReason`. Available iOS 14.5+;
+ * older iOS versions report `null`. Some values are version-gated by
+ * Apple (e.g. `builtInMicMuted` is iOS 17+).
+ */
+export type HostAudioSessionInterruptionReason =
+  | 'default'
+  | 'appWasSuspended'
+  | 'builtInMicMuted'
+  | 'routeDisconnected';
+
+/**
+ * Normalized `AVAudioSession.RouteChangeReason`.
+ */
+export type HostAudioSessionRouteChangeReason =
+  | 'unknown'
+  | 'newDeviceAvailable'
+  | 'oldDeviceUnavailable'
+  | 'categoryChange'
+  | 'override'
+  | 'wakeFromSleep'
+  | 'noSuitableRouteForCategory'
+  | 'routeConfigurationChange';
+
+/**
  * Payload carried by the {@link HOST_AUDIO_SESSION_EVENT} `CustomEvent`.
  *
  * iOS WebView hosts embedding the SDK can implement a native bridge that
@@ -68,26 +135,30 @@ export const HOST_AUDIO_SESSION_EVENT = 'stream-video:host-audio-session';
 export interface HostAudioSessionEvent {
   /** Schema version. Increment when required fields change shape. */
   schemaVersion: 1;
-  /** Host platform identifier. iOS-only today; more may be added later. */
-  source: 'ios';
   /** Epoch milliseconds when the native snapshot was captured. */
   timestamp: number;
-  /** Native audio-session snapshot at `timestamp`. */
-  state: {
-    /** `AVAudioSession.Category` raw value (e.g. `'AVAudioSessionCategoryPlayAndRecord'`). */
-    category: string;
-    /** `AVAudioSession.Mode` raw value (e.g. `'AVAudioSessionModeVideoChat'`). */
-    mode: string;
-    /** `AVAudioSession.CategoryOptions` raw value (bitmask). */
-    categoryOptions: number;
-    /**
-     * Latest interruption event, or `null` if no interruption is active.
-     * `type: 'began'` without a later `'ended'` means the session is
-     * currently interrupted. `reason` is the raw value of
-     * `AVAudioSessionInterruptionReasonKey` (iOS 14.5+).
-     */
-    interruption: { type: 'began' | 'ended'; reason?: number } | null;
-    /** Raw value of the last `AVAudioSessionRouteChangeReasonKey`, if any. */
-    routeChangeReason: number | null;
+  /** Snapshot of the native audio session at `timestamp`. */
+  session: {
+    category: HostAudioSessionCategory;
+    mode: HostAudioSessionMode;
+    /** Active category options as a list of names (empty array if none). */
+    options: HostAudioSessionCategoryOption[];
   };
+  /**
+   * Latest interruption event, or `null` if no interruption is active.
+   * `type: 'began'` without a later `'ended'` means the session is
+   * currently interrupted. `reason` is `null` on iOS < 14.5 or when the
+   * system did not provide one.
+   */
+  interruption: {
+    type: 'began' | 'ended';
+    reason: HostAudioSessionInterruptionReason | null;
+  } | null;
+  /**
+   * Most recent route change, or `null` if no route change has been
+   * observed since the bridge started.
+   */
+  routeChange: {
+    reason: HostAudioSessionRouteChangeReason;
+  } | null;
 }

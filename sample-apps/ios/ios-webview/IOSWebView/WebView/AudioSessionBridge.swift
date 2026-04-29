@@ -25,21 +25,24 @@ final class AudioSessionBridge {
     /// JSON payload that matches the SDK's `HostAudioSessionEvent` contract.
     struct Snapshot: Encodable, Equatable {
         let schemaVersion: Int
-        let source: String
         let timestamp: Int64
-        let state: State
+        let session: Session
+        let interruption: Interruption?
+        let routeChange: RouteChange?
 
-        struct State: Encodable, Equatable {
+        struct Session: Encodable, Equatable {
             let category: String
             let mode: String
-            let categoryOptions: UInt
-            let interruption: Interruption?
-            let routeChangeReason: UInt?
+            let options: [String]
         }
 
         struct Interruption: Encodable, Equatable {
             let type: String  // "began" | "ended"
-            let reason: UInt?
+            let reason: String?
+        }
+
+        struct RouteChange: Encodable, Equatable {
+            let reason: String
         }
     }
 
@@ -53,7 +56,7 @@ final class AudioSessionBridge {
     private let subject = PassthroughSubject<Snapshot, Never>()
     private var cancellables = Set<AnyCancellable>()
     private var latestInterruption: Snapshot.Interruption?
-    private var latestRouteChangeReason: UInt?
+    private var latestRouteChange: Snapshot.RouteChange?
     private var started = false
 
     init(
@@ -92,7 +95,7 @@ final class AudioSessionBridge {
         started = false
         cancellables.removeAll()
         latestInterruption = nil
-        latestRouteChangeReason = nil
+        latestRouteChange = nil
     }
 
     // MARK: - Notification handlers
@@ -111,21 +114,24 @@ final class AudioSessionBridge {
         @unknown default: return
         }
 
-        var reason: UInt?
-        if #available(iOS 14.5, *) {
-            reason = userInfo[AVAudioSessionInterruptionReasonKey] as? UInt
+        var reasonString: String?
+        if #available(iOS 14.5, *),
+           let raw = userInfo[AVAudioSessionInterruptionReasonKey] as? UInt,
+           let reason = AVAudioSession.InterruptionReason(rawValue: raw) {
+            reasonString = Self.describe(interruptionReason: reason)
         }
 
-        latestInterruption = .init(type: typeString, reason: reason)
+        latestInterruption = .init(type: typeString, reason: reasonString)
         dispatch()
     }
 
     private func handleRouteChange(_ notification: Notification) {
         guard
             let userInfo = notification.userInfo,
-            let raw = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt
+            let raw = userInfo[AVAudioSessionRouteChangeReasonKey] as? UInt,
+            let reason = AVAudioSession.RouteChangeReason(rawValue: raw)
         else { return }
-        latestRouteChangeReason = raw
+        latestRouteChange = .init(reason: Self.describe(routeChangeReason: reason))
         dispatch()
     }
 
@@ -134,15 +140,14 @@ final class AudioSessionBridge {
     private func dispatch() {
         let snapshot = Snapshot(
             schemaVersion: 1,
-            source: "ios",
             timestamp: Int64(Date().timeIntervalSince1970 * 1000),
-            state: .init(
-                category: audioSession.category.rawValue,
-                mode: audioSession.mode.rawValue,
-                categoryOptions: audioSession.categoryOptions.rawValue,
-                interruption: latestInterruption,
-                routeChangeReason: latestRouteChangeReason
-            )
+            session: .init(
+                category: Self.describe(category: audioSession.category),
+                mode: Self.describe(mode: audioSession.mode),
+                options: Self.describe(options: audioSession.categoryOptions)
+            ),
+            interruption: latestInterruption,
+            routeChange: latestRouteChange
         )
         subject.send(snapshot)
         forwardToWebView(snapshot)
@@ -165,6 +170,92 @@ final class AudioSessionBridge {
         """
         DispatchQueue.main.async { [weak webView] in
             webView?.evaluateJavaScript(script, completionHandler: nil)
+        }
+    }
+
+    // MARK: - String mappers
+    //
+    // Switch-based for predictability and stability across iOS versions:
+    // a `default` fallback to the raw value means an Apple-added enum
+    // case still produces a sensible (if non-normalized) string instead
+    // of dropping the snapshot.
+
+    private static func describe(category: AVAudioSession.Category) -> String {
+        switch category {
+        case .ambient: return "ambient"
+        case .soloAmbient: return "soloAmbient"
+        case .playback: return "playback"
+        case .record: return "record"
+        case .playAndRecord: return "playAndRecord"
+        case .multiRoute: return "multiRoute"
+        default: return category.rawValue
+        }
+    }
+
+    private static func describe(mode: AVAudioSession.Mode) -> String {
+        switch mode {
+        case .default: return "default"
+        case .voiceChat: return "voiceChat"
+        case .gameChat: return "gameChat"
+        case .videoRecording: return "videoRecording"
+        case .measurement: return "measurement"
+        case .moviePlayback: return "moviePlayback"
+        case .videoChat: return "videoChat"
+        case .spokenAudio: return "spokenAudio"
+        case .voicePrompt: return "voicePrompt"
+        default: return mode.rawValue
+        }
+    }
+
+    private static func describe(options: AVAudioSession.CategoryOptions) -> [String] {
+        var parts: [String] = []
+        if options.contains(.mixWithOthers) { parts.append("mixWithOthers") }
+        if options.contains(.duckOthers) { parts.append("duckOthers") }
+        if options.contains(.allowBluetoothA2DP) { parts.append("allowBluetoothA2DP") }
+        if options.contains(.allowAirPlay) { parts.append("allowAirPlay") }
+        if options.contains(.defaultToSpeaker) { parts.append("defaultToSpeaker") }
+        if options.contains(.interruptSpokenAudioAndMixWithOthers) {
+            parts.append("interruptSpokenAudioAndMixWithOthers")
+        }
+        if #available(iOS 14.5, *),
+           options.contains(.overrideMutedMicrophoneInterruption) {
+            parts.append("overrideMutedMicrophoneInterruption")
+        }
+        // `.allowBluetoothHFP` is iOS 17+, but the underlying bit (1 << 2)
+        // is the same as the legacy `.allowBluetooth`. We always emit the
+        // new name; check the bit directly to avoid the deprecation
+        // warning on the legacy case while still working back to iOS 15.
+        let bluetoothHFPBit = AVAudioSession.CategoryOptions(rawValue: 1 << 2)
+        if options.contains(bluetoothHFPBit) { parts.append("allowBluetoothHFP") }
+        return parts
+    }
+
+    @available(iOS 14.5, *)
+    private static func describe(
+        interruptionReason reason: AVAudioSession.InterruptionReason
+    ) -> String {
+        switch reason {
+        case .default: return "default"
+        case .appWasSuspended: return "appWasSuspended"
+        case .builtInMicMuted: return "builtInMicMuted"
+        case .routeDisconnected: return "routeDisconnected"
+        @unknown default: return "default"
+        }
+    }
+
+    private static func describe(
+        routeChangeReason reason: AVAudioSession.RouteChangeReason
+    ) -> String {
+        switch reason {
+        case .unknown: return "unknown"
+        case .newDeviceAvailable: return "newDeviceAvailable"
+        case .oldDeviceUnavailable: return "oldDeviceUnavailable"
+        case .categoryChange: return "categoryChange"
+        case .override: return "override"
+        case .wakeFromSleep: return "wakeFromSleep"
+        case .noSuitableRouteForCategory: return "noSuitableRouteForCategory"
+        case .routeConfigurationChange: return "routeConfigurationChange"
+        @unknown default: return "unknown"
         }
     }
 }

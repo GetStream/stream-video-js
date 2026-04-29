@@ -114,20 +114,23 @@ final class WebController: ObservableObject {
     }
 
     private static func format(_ snapshot: AudioSessionBridge.Snapshot) -> String {
+        let optionsList = snapshot.session.options.isEmpty
+            ? "[]"
+            : "[\(snapshot.session.options.joined(separator: "|"))]"
         var parts: [String] = [
-            "category=\(snapshot.state.category)",
-            "mode=\(snapshot.state.mode)",
-            "options=\(snapshot.state.categoryOptions)",
+            "category=\(snapshot.session.category)",
+            "mode=\(snapshot.session.mode)",
+            "options=\(optionsList)",
         ]
-        if let interruption = snapshot.state.interruption {
+        if let interruption = snapshot.interruption {
             if let reason = interruption.reason {
                 parts.append("interruption=\(interruption.type)(reason=\(reason))")
             } else {
                 parts.append("interruption=\(interruption.type)")
             }
         }
-        if let reason = snapshot.state.routeChangeReason {
-            parts.append("routeChangeReason=\(reason)")
+        if let routeChange = snapshot.routeChange {
+            parts.append("routeChange=\(routeChange.reason)")
         }
         return parts.joined(separator: " ")
     }

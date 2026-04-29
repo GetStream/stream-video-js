@@ -381,21 +381,18 @@ describe('AudioHealthMonitor', () => {
   // -------------------------------------------------------------------------
 
   const makeHostEvent = (
-    overrides: Partial<HostAudioSessionEvent['state']> = {},
-    eventOverrides: Partial<HostAudioSessionEvent> = {},
+    overrides: Partial<HostAudioSessionEvent> = {},
   ): HostAudioSessionEvent => ({
     schemaVersion: 1,
-    source: 'ios',
     timestamp: 1_700_000_000_000,
-    state: {
-      category: 'AVAudioSessionCategoryPlayAndRecord',
-      mode: 'AVAudioSessionModeVideoChat',
-      categoryOptions: 0,
-      interruption: null,
-      routeChangeReason: null,
-      ...overrides,
+    session: {
+      category: 'playAndRecord',
+      mode: 'videoChat',
+      options: [],
     },
-    ...eventOverrides,
+    interruption: null,
+    routeChange: null,
+    ...overrides,
   });
 
   const dispatchHostEvent = (detail: unknown) => {
@@ -406,7 +403,9 @@ describe('AudioHealthMonitor', () => {
     const monitor = newMonitor();
     monitor.start();
 
-    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+    dispatchHostEvent(
+      makeHostEvent({ interruption: { type: 'began', reason: null } }),
+    );
 
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
@@ -430,12 +429,16 @@ describe('AudioHealthMonitor', () => {
     const monitor = newMonitor();
     monitor.start();
 
-    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+    dispatchHostEvent(
+      makeHostEvent({ interruption: { type: 'began', reason: null } }),
+    );
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
       'host-audio-session-interrupted',
     );
 
-    dispatchHostEvent(makeHostEvent({ interruption: { type: 'ended' } }));
+    dispatchHostEvent(
+      makeHostEvent({ interruption: { type: 'ended', reason: null } }),
+    );
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'healthy',
       reason: 'host-audio-session-active',
@@ -465,7 +468,7 @@ describe('AudioHealthMonitor', () => {
     expect(() => dispatchHostEvent(undefined)).not.toThrow();
     expect(() => dispatchHostEvent({ schemaVersion: 1 })).not.toThrow();
     expect(() =>
-      dispatchHostEvent({ schemaVersion: 1, state: 'not an object' }),
+      dispatchHostEvent({ schemaVersion: 1, session: 'not an object' }),
     ).not.toThrow();
 
     // None of the above should change health state.
@@ -478,7 +481,9 @@ describe('AudioHealthMonitor', () => {
 
     audioSessionStub.state = 'interrupted';
     audioSessionStub.emitStateChange();
-    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+    dispatchHostEvent(
+      makeHostEvent({ interruption: { type: 'began', reason: null } }),
+    );
 
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
       'host-audio-session-interrupted',
@@ -503,13 +508,17 @@ describe('AudioHealthMonitor', () => {
     const monitor = newMonitor();
     monitor.start();
 
-    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+    dispatchHostEvent(
+      makeHostEvent({ interruption: { type: 'began', reason: null } }),
+    );
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
       'host-audio-session-interrupted',
     );
 
     await monitor.stop();
-    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+    dispatchHostEvent(
+      makeHostEvent({ interruption: { type: 'began', reason: null } }),
+    );
 
     // After stop(), health is reset and host events don't re-flip it.
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
@@ -524,7 +533,9 @@ describe('AudioHealthMonitor', () => {
     await monitor.stop();
     monitor.start();
 
-    dispatchHostEvent(makeHostEvent({ interruption: { type: 'began' } }));
+    dispatchHostEvent(
+      makeHostEvent({ interruption: { type: 'began', reason: null } }),
+    );
 
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
