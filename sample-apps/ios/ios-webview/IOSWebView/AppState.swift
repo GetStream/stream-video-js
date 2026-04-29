@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 enum LogTab: String {
@@ -7,49 +8,54 @@ enum LogTab: String {
     case scenarios
 }
 
-struct LogEntry {
+struct LogEntry: Identifiable {
+    let id = UUID()
     let timestamp: Date
     let tab: LogTab
     let level: String
     let message: String
 }
 
-final class AppState {
+/// Observable log + audio-session state shared between the SwiftUI views and
+/// the headless bridges (`AudioSessionBridge`, `LifecycleBridge`,
+/// `AudioScenarios`, etc.). `@Published` mutations are bounced to the main
+/// thread so that off-thread callers (e.g. CallKit / NotificationCenter) can
+/// safely call `log(_:_:_:)`.
+final class AppState: ObservableObject {
     static let shared = AppState()
     private init() {}
 
-    // Log storage
-    private var entries: [LogEntry] = []
-    private let entriesLock = NSLock()
+    @Published private(set) var entries: [LogEntry] = []
     private let maxEntries = 1000
 
-    var onLogAppended: ((LogEntry) -> Void)?
+    /// Audio-session "active" state, tracked client-side since AVAudioSession
+    /// doesn't expose whether setActive(true) has been called. Only reflects
+    /// activations/deactivations initiated by our own code.
+    @Published var audioSessionActive: Bool = false
 
     func log(_ tab: LogTab, _ level: String = "info", _ message: String) {
         let entry = LogEntry(timestamp: Date(), tab: tab, level: level, message: message)
-        entriesLock.lock()
-        entries.append(entry)
-        if entries.count > maxEntries { entries.removeFirst(entries.count - maxEntries) }
-        entriesLock.unlock()
-        DispatchQueue.main.async { [weak self] in
-            self?.onLogAppended?(entry)
+        if Thread.isMainThread {
+            append(entry)
+        } else {
+            DispatchQueue.main.async { [weak self] in self?.append(entry) }
         }
     }
 
-    func entries(for tab: LogTab) -> [LogEntry] {
-        entriesLock.lock()
-        defer { entriesLock.unlock() }
-        return entries.filter { $0.tab == tab }
-    }
-
     func clear(tab: LogTab) {
-        entriesLock.lock()
-        entries.removeAll { $0.tab == tab }
-        entriesLock.unlock()
+        if Thread.isMainThread {
+            entries.removeAll { $0.tab == tab }
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.entries.removeAll { $0.tab == tab }
+            }
+        }
     }
 
-    // Audio-session "active" state, tracked client-side since AVAudioSession
-    // doesn't expose whether setActive(true) has been called. Only reflects
-    // activations/deactivations initiated by our own code.
-    var audioSessionActive: Bool = false
+    private func append(_ entry: LogEntry) {
+        entries.append(entry)
+        if entries.count > maxEntries {
+            entries.removeFirst(entries.count - maxEntries)
+        }
+    }
 }

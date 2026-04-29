@@ -1,114 +1,128 @@
 import AVFAudio
-import UIKit
+import SwiftUI
 
-/// Builds the audio-scenarios `UIMenu` presented by the nav bar's Scenarios
-/// button. Keeps menu construction out of ViewController.
-struct ScenariosMenu {
+/// SwiftUI replacement for the UIKit `UIMenu`-based scenarios menu. Bridges
+/// nav-bar taps into `AudioScenarios`. The live-state rows are re-read each
+/// time SwiftUI re-evaluates the `Menu` body, matching the
+/// `UIDeferredMenuElement.uncached` behavior of the old menu.
+struct ScenariosMenuView: View {
     let audio: AudioScenarios
 
-    func build() -> UIMenu {
-        let liveState = UIMenu(title: "", options: .displayInline, children: [
-            UIDeferredMenuElement.uncached { completion in
-                completion(Self.audioSessionStateRows())
-            },
-        ])
-        let recovery = UIMenu(title: "", options: .displayInline, children: [
-            UIAction(title: "Restore audio (native)") { _ in audio.restoreForWebRTC() },
-            UIAction(title: "Restore audio (JS-only)") { _ in audio.attemptJSRecovery() },
-        ])
-        // Generic category switcher: any AVAudioSession.Category + .default
-        // mode + no options. For hostile single-knob changes, use the
-        // "Dangerous" submenu below.
-        let categoryChildren: [UIMenuElement] = AudioScenarios.allCategories.map { entry in
-            UIAction(title: entry.label) { _ in audio.setCategory(entry.category) }
+    var body: some View {
+        Menu {
+            liveStateSection
+            Divider()
+            recoverySection
+            Divider()
+            categorySwitcher
+            Divider()
+            soundsSection
+            Divider()
+            callKitSection
+            diagnosticsSubmenu
+            dangerousSubmenu
+        } label: {
+            Text("Scenarios")
         }
-        let categorySwitcher = UIMenu(
-            title: "🎛 Set category",
-            subtitle: "mode=.default, options=[]",
-            children: categoryChildren,
-        )
-        let sounds = UIMenu(title: "", options: .displayInline, children: [
-            UIAction(title: "Play ding (mix)") { _ in audio.playDing(mixWithOthers: true) },
-            UIAction(title: "Play ding (exclusive)") { _ in audio.playDing(mixWithOthers: false) },
-            UIAction(title: "Play ding (exclusive, auto-restore)") { _ in
-                audio.playDingWithAutoRestore()
-            },
-            UIAction(title: "Start ringtone") { _ in audio.playRingtone() },
-            UIAction(title: "Stop ringtone") { _ in audio.stopRingtone() },
-            UIAction(title: "Local notification") { _ in audio.fireNotificationSound() },
-        ])
-        let callKit = UIMenu(title: "", options: .displayInline, children: [
-            UIAction(title: "CallKit incoming") { _ in audio.simulateCallKitIncoming() },
-            UIAction(title: "End CallKit call") { _ in audio.endCallKitCall() },
-            UIAction(title: "Sim phone call (auto-end 5s)") { _ in
-                audio.simulatePhoneCallInterruption(holdSeconds: 5)
-            },
-            UIAction(title: "Sim phone call (auto-end 15s)") { _ in
-                audio.simulatePhoneCallInterruption(holdSeconds: 15)
-            },
-            UIAction(title: "Toggle route") { _ in audio.toggleRoute() },
-        ])
-        let diagnostics = UIMenu(title: "🔍 Diagnostics", children: [
-            UIAction(title: "Dump session state") { _ in audio.dumpSessionState(label: "manual") },
-            UIAction(title: "Start mic meter") { _ in audio.startMicMeter() },
-            UIAction(title: "Stop mic meter") { _ in audio.stopMicMeter() },
-            UIAction(title: "Record + play 3s") { _ in audio.recordAndPlayback(seconds: 3) },
-        ])
-        let dangerous = UIMenu(title: "🔊 Dangerous", children: [
-            UIMenu(title: "", options: .displayInline, children: [
-                UIAction(title: "Force .playback", attributes: .destructive) { _ in audio.forcePlaybackCategory() },
-                UIAction(title: "Force mode=.default", attributes: .destructive) { _ in audio.forceDefaultMode() },
-                UIAction(title: "setActive(false)", attributes: .destructive) { _ in audio.silentDeactivation() },
-            ]),
-            UIMenu(title: "", options: .displayInline, children: [
-                UIAction(title: "Start 440 Hz tone", attributes: .destructive) { _ in audio.startTone(frequency: 440) },
-                UIAction(title: "Stop tone") { _ in audio.stopTone() },
-            ]),
-        ])
-        return UIMenu(
-            title: "🔊 Audio & session",
-            children: [
-                liveState,
-                recovery,
-                UIMenu(title: "", options: .displayInline, children: [categorySwitcher]),
-                sounds,
-                callKit,
-                diagnostics,
-                dangerous,
-            ],
-        )
     }
 
-    // MARK: Live audio-session state rows (re-read on every menu open)
+    // MARK: Sections
 
-    static func audioSessionStateRows() -> [UIMenuElement] {
+    @ViewBuilder
+    private var liveStateSection: some View {
         let s = AVAudioSession.sharedInstance()
         let cat = s.category.rawValue
             .replacingOccurrences(of: "AVAudioSessionCategory", with: "")
         let mode = s.mode.rawValue
             .replacingOccurrences(of: "AVAudioSessionMode", with: "")
-        let opts: String = {
-            var parts: [String] = []
-            let o = s.categoryOptions
-            if o.contains(.mixWithOthers) { parts.append("mix") }
-            if o.contains(.duckOthers) { parts.append("duck") }
-            if o.contains(.allowBluetooth) { parts.append("bt") }
-            if o.contains(.allowBluetoothA2DP) { parts.append("btA2DP") }
-            if o.contains(.allowAirPlay) { parts.append("airplay") }
-            if o.contains(.defaultToSpeaker) { parts.append("speaker") }
-            return parts.isEmpty ? "none" : parts.joined(separator: "|")
-        }()
+        let opts = describeOptions(s.categoryOptions)
         let routeOut = s.currentRoute.outputs.map(\.portName).joined(separator: ",")
         let routeIn = s.currentRoute.inputs.map(\.portName).joined(separator: ",")
         let active = AppState.shared.audioSessionActive
-        // Disabled UIActions render as non-interactive rows — good for inline status.
-        return [
-            UIAction(title: "📊 \(cat) / \(mode)",
-                     attributes: .disabled, handler: { _ in }),
-            UIAction(title: "  active=\(active ? "true" : "false/unknown")  opts=\(opts)",
-                     attributes: .disabled, handler: { _ in }),
-            UIAction(title: "  route in=[\(routeIn)] out=[\(routeOut)]",
-                     attributes: .disabled, handler: { _ in }),
-        ]
+
+        // Disabled buttons render as non-interactive info rows, mirroring the
+        // UIKit menu's `attributes: .disabled` actions.
+        Button("📊 \(cat) / \(mode)") {}.disabled(true)
+        Button("  active=\(active ? "true" : "false/unknown")  opts=\(opts)") {}
+            .disabled(true)
+        Button("  route in=[\(routeIn)] out=[\(routeOut)]") {}.disabled(true)
+    }
+
+    @ViewBuilder
+    private var recoverySection: some View {
+        Button("Restore audio (native)") { audio.restoreForWebRTC() }
+        Button("Restore audio (JS-only)") { audio.attemptJSRecovery() }
+    }
+
+    private var categorySwitcher: some View {
+        Menu("🎛 Set category") {
+            ForEach(AudioScenarios.allCategories, id: \.label) { entry in
+                Button(entry.label) { audio.setCategory(entry.category) }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var soundsSection: some View {
+        Button("Play ding (mix)") { audio.playDing(mixWithOthers: true) }
+        Button("Play ding (exclusive)") { audio.playDing(mixWithOthers: false) }
+        Button("Play ding (exclusive, auto-restore)") { audio.playDingWithAutoRestore() }
+        Button("Start ringtone") { audio.playRingtone() }
+        Button("Stop ringtone") { audio.stopRingtone() }
+        Button("Local notification") { audio.fireNotificationSound() }
+    }
+
+    @ViewBuilder
+    private var callKitSection: some View {
+        Button("CallKit incoming") { audio.simulateCallKitIncoming() }
+        Button("End CallKit call") { audio.endCallKitCall() }
+        Button("Sim phone call (auto-end 5s)") {
+            audio.simulatePhoneCallInterruption(holdSeconds: 5)
+        }
+        Button("Sim phone call (auto-end 15s)") {
+            audio.simulatePhoneCallInterruption(holdSeconds: 15)
+        }
+        Button("Toggle route") { audio.toggleRoute() }
+    }
+
+    private var diagnosticsSubmenu: some View {
+        Menu("🔍 Diagnostics") {
+            Button("Dump session state") { audio.dumpSessionState(label: "manual") }
+            Button("Start mic meter") { audio.startMicMeter() }
+            Button("Stop mic meter") { audio.stopMicMeter() }
+            Button("Record + play 3s") { audio.recordAndPlayback(seconds: 3) }
+        }
+    }
+
+    private var dangerousSubmenu: some View {
+        Menu("🔊 Dangerous") {
+            Button(role: .destructive) { audio.forcePlaybackCategory() } label: {
+                Text("Force .playback")
+            }
+            Button(role: .destructive) { audio.forceDefaultMode() } label: {
+                Text("Force mode=.default")
+            }
+            Button(role: .destructive) { audio.silentDeactivation() } label: {
+                Text("setActive(false)")
+            }
+            Divider()
+            Button(role: .destructive) { audio.startTone(frequency: 440) } label: {
+                Text("Start 440 Hz tone")
+            }
+            Button("Stop tone") { audio.stopTone() }
+        }
+    }
+
+    // MARK: Helpers
+
+    private func describeOptions(_ opts: AVAudioSession.CategoryOptions) -> String {
+        var parts: [String] = []
+        if opts.contains(.mixWithOthers) { parts.append("mix") }
+        if opts.contains(.duckOthers) { parts.append("duck") }
+        if opts.contains(.allowBluetooth) { parts.append("bt") }
+        if opts.contains(.allowBluetoothA2DP) { parts.append("btA2DP") }
+        if opts.contains(.allowAirPlay) { parts.append("airplay") }
+        if opts.contains(.defaultToSpeaker) { parts.append("speaker") }
+        return parts.isEmpty ? "none" : parts.joined(separator: "|")
     }
 }

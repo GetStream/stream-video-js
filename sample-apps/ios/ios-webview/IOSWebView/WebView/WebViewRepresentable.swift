@@ -1,32 +1,27 @@
 import Combine
-import UIKit
+import SwiftUI
 import WebKit
 
-/// Owns the WKWebView + its configuration, delegates, and injected scripts.
-final class WebViewContainer: UIView {
-    private(set) var webView: WKWebView!
+/// Owns the `WKWebView` and the bridges that wire it into `AppState`. Held by
+/// `ContentView` as a `@StateObject` so the same `WKWebView` instance survives
+/// SwiftUI body re-evaluations.
+final class WebController: ObservableObject {
+    let webView: WKWebView
     let permissionCoordinator = PermissionCoordinator()
     let navigationInterceptor = NavigationInterceptor()
     let consoleBridge = ConsoleBridge()
     let errorBridge = ErrorBridge()
+
     private var audioSessionBridge: AudioSessionBridge?
     private var audioSessionBridgeCancellable: AnyCancellable?
     private var lifecycleBridge: LifecycleBridge?
     private var lifecycleBridgeCancellable: AnyCancellable?
 
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        build()
+    lazy var audioScenarios: AudioScenarios = AudioScenarios { [weak self] script, label in
+        self?.eval(script, label: label)
     }
 
-    required init?(coder: NSCoder) { fatalError() }
-
-    deinit {
-        audioSessionBridge?.stop()
-        lifecycleBridge?.stop()
-    }
-
-    private func build() {
+    init() {
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
@@ -47,24 +42,15 @@ final class WebViewContainer: UIView {
         }
         config.userContentController = controller
 
-        let wv = WKWebView(frame: bounds, configuration: config)
-        wv.translatesAutoresizingMaskIntoConstraints = false
+        let wv = WKWebView(frame: .zero, configuration: config)
         wv.allowsBackForwardNavigationGestures = true
         wv.uiDelegate = permissionCoordinator
         wv.navigationDelegate = navigationInterceptor
         if #available(iOS 16.4, *) { wv.isInspectable = true }
         self.webView = wv
-        addSubview(wv)
-        NSLayoutConstraint.activate([
-            wv.topAnchor.constraint(equalTo: topAnchor),
-            wv.bottomAnchor.constraint(equalTo: bottomAnchor),
-            wv.leadingAnchor.constraint(equalTo: leadingAnchor),
-            wv.trailingAnchor.constraint(equalTo: trailingAnchor),
-        ])
 
-        // Start pushing native AVAudioSession state into the page so the
-        // SDK's AudioHealthMonitor sees ground-truth interruptions. Also
-        // mirror each snapshot into the Lifecycle tab for correlation.
+        // Native AVAudioSession ground truth → page (consumed by the SDK's
+        // AudioHealthMonitor) and into the Lifecycle tab for correlation.
         let bridge = AudioSessionBridge(webView: wv)
         audioSessionBridgeCancellable = bridge.snapshotPublisher
             .receive(on: DispatchQueue.main)
@@ -74,10 +60,8 @@ final class WebViewContainer: UIView {
         bridge.start()
         self.audioSessionBridge = bridge
 
-        // Forward UIApplication lifecycle transitions into the page so the
-        // SDK can correlate "the user came back to the app" with any audio
-        // recovery it needs to attempt after an interruption ended in the
-        // background.
+        // UIApplication lifecycle transitions → page, so the SDK can correlate
+        // "user came back to the app" with any pending audio recovery.
         let lifecycle = LifecycleBridge(webView: wv)
         lifecycleBridgeCancellable = lifecycle.snapshotPublisher
             .receive(on: DispatchQueue.main)
@@ -89,33 +73,9 @@ final class WebViewContainer: UIView {
         self.lifecycleBridge = lifecycle
     }
 
-    private static func format(_ snapshot: AudioSessionBridge.Snapshot) -> String {
-        var parts: [String] = [
-            "category=\(snapshot.state.category)",
-            "mode=\(snapshot.state.mode)",
-            "options=\(snapshot.state.categoryOptions)",
-        ]
-        if let interruption = snapshot.state.interruption {
-            if let reason = interruption.reason {
-                parts.append("interruption=\(interruption.type)(reason=\(reason))")
-            } else {
-                parts.append("interruption=\(interruption.type)")
-            }
-        }
-        if let reason = snapshot.state.routeChangeReason {
-            parts.append("routeChangeReason=\(reason)")
-        }
-        return parts.joined(separator: " ")
-    }
-
-    static func loadScript(_ name: String) -> String? {
-        // First try the subdirectory (preserved via XcodeGen "path" resource)
-        if let url = Bundle.main.url(forResource: name, withExtension: "js",
-                                     subdirectory: "WebScripts") ?? Bundle.main.url(
-                                        forResource: name, withExtension: "js") {
-            return try? String(contentsOf: url, encoding: .utf8)
-        }
-        return nil
+    deinit {
+        audioSessionBridge?.stop()
+        lifecycleBridge?.stop()
     }
 
     func load(_ url: URL) {
@@ -143,4 +103,39 @@ final class WebViewContainer: UIView {
         }
         return true
     }
+
+    static func loadScript(_ name: String) -> String? {
+        if let url = Bundle.main.url(forResource: name, withExtension: "js",
+                                     subdirectory: "WebScripts")
+            ?? Bundle.main.url(forResource: name, withExtension: "js") {
+            return try? String(contentsOf: url, encoding: .utf8)
+        }
+        return nil
+    }
+
+    private static func format(_ snapshot: AudioSessionBridge.Snapshot) -> String {
+        var parts: [String] = [
+            "category=\(snapshot.state.category)",
+            "mode=\(snapshot.state.mode)",
+            "options=\(snapshot.state.categoryOptions)",
+        ]
+        if let interruption = snapshot.state.interruption {
+            if let reason = interruption.reason {
+                parts.append("interruption=\(interruption.type)(reason=\(reason))")
+            } else {
+                parts.append("interruption=\(interruption.type)")
+            }
+        }
+        if let reason = snapshot.state.routeChangeReason {
+            parts.append("routeChangeReason=\(reason)")
+        }
+        return parts.joined(separator: " ")
+    }
+}
+
+struct WebViewRepresentable: UIViewRepresentable {
+    let controller: WebController
+
+    func makeUIView(context: Context) -> WKWebView { controller.webView }
+    func updateUIView(_ uiView: WKWebView, context: Context) {}
 }
