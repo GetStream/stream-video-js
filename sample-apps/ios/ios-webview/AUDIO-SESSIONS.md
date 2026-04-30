@@ -8,7 +8,7 @@ early.
 ## TL;DR
 
 - iOS `AVAudioSession` is a **process-global singleton**. A `WKWebView` hosted
-  inside a native app shares one session with the host — there is no
+  inside a native app shares one session with the host - there is no
   isolation.
 - When a native host changes the session (`setCategory`, `setMode`,
   `setActive`, `overrideOutputAudioPort`), it affects WebRTC audio inside the
@@ -22,7 +22,7 @@ early.
   / `.videoChat` modes for voice calls, and treats CallKit as the one
   legitimate "take over the audio" API.
 
-## Primer — how iOS audio sessions work
+## Primer - how iOS audio sessions work
 
 Every iOS process has one audio session:
 
@@ -47,13 +47,13 @@ configuration, everything works.
 
 Everything the host does flows through the same session:
 
-1. **Direct calls** — `session.setCategory(.playback)` reconfigures _the_
+1. **Direct calls** - `session.setCategory(.playback)` reconfigures _the_
    session, not a per-webview session. WebRTC sees it immediately.
-2. **Transitive claims** — `AVAudioPlayer`, `AVAudioRecorder`,
+2. **Transitive claims** - `AVAudioPlayer`, `AVAudioRecorder`,
    `AVSpeechSynthesizer`, `AVPlayer`, `CallKit`, and more will call
    `setCategory` / `setActive` on the host's behalf. The host didn't write
    the offending line; a dependency did.
-3. **System events** — phone calls, Siri, alarms, AirPods handoff — all
+3. **System events** - phone calls, Siri, alarms, AirPods handoff - all
    interrupt the session whether or not the host code does anything wrong.
 
 ## Responsibility split
@@ -68,8 +68,8 @@ Everything the host does flows through the same session:
 
 ### Prefer mixing over exclusivity
 
-For ambient sounds, notification chimes, UI feedback — anything that doesn't
-require silencing WebRTC — use a category that mixes:
+For ambient sounds, notification chimes, UI feedback - anything that doesn't
+require silencing WebRTC - use a category that mixes:
 
 ```swift
 func playChime(url: URL) throws {
@@ -78,7 +78,7 @@ func playChime(url: URL) throws {
   try s.setActive(true)
   let player = try AVAudioPlayer(contentsOf: url)
   player.play()
-  // No explicit restore needed — .ambient + .mixWithOthers doesn't interrupt.
+  // No explicit restore needed - .ambient + .mixWithOthers doesn't interrupt.
 }
 ```
 
@@ -114,7 +114,7 @@ final class Chime: NSObject, AVAudioPlayerDelegate {
 #### Why the single `setActive(false)` isn't enough for embedded WebRTC
 
 Outside a `WKWebView` you'll see guidance that
-`setActive(false, options: .notifyOthersOnDeactivation)` is sufficient —
+`setActive(false, options: .notifyOthersOnDeactivation)` is sufficient -
 it's what fires `AVAudioSession.interruptionNotification(.ended +
 .shouldResume)` to whoever was interrupted. In the WKWebView case that
 **isn't reliable**:
@@ -122,7 +122,7 @@ it's what fires `AVAudioSession.interruptionNotification(.ended +
 - iOS frequently only posts `interruption=began` to other sessions for
   category-conflict interruptions and never delivers a matching `.ended`.
   Reproducible from `ios-webview`'s **Play ding (exclusive,
-  auto-restore)** scenario — the bridge sees `.began` from the
+  auto-restore)** scenario - the bridge sees `.began` from the
   `setCategory(.playback)` claim but no `.ended` after the deactivation.
 - `setActive(false)` does not change the session category. So even if
   the session is deactivated, `AVAudioSession.category` stays at
@@ -151,11 +151,11 @@ CallKit is the one legitimate "take over the audio" API. It's the right tool
 when you actually have an incoming call.
 
 ```swift
-// Good — real incoming VoIP call
+// Good - real incoming VoIP call
 provider.reportNewIncomingCall(with: uuid, update: update) { ... }
 // CallKit handles session activation / deactivation cleanly.
 
-// Bad — using CallKit for UI-state calls (voicemail, tutorials, reminders)
+// Bad - using CallKit for UI-state calls (voicemail, tutorials, reminders)
 // This hijacks audio for the duration of the "call" and often misbehaves.
 ```
 
@@ -166,7 +166,7 @@ When the host does need `.playAndRecord`, match what WebRTC uses:
 ```swift
 try session.setCategory(
   .playAndRecord,
-  mode: .voiceChat,     // critical — enables AEC, AGC, NS
+  mode: .voiceChat,     // critical - enables AEC, AGC, NS
   options: [.allowBluetooth, .allowBluetoothA2DP, .defaultToSpeaker]
 )
 ```
@@ -192,13 +192,13 @@ rg -n 'GADMobileAds|FBAdSettings|AppLovinSDK|AVPlayerViewController|SPTSession' 
 
 Common offenders:
 
-- **Ad SDKs** — AdMob, Meta Audience, AppLovin video ads claim audio during
+- **Ad SDKs** - AdMob, Meta Audience, AppLovin video ads claim audio during
   playback.
-- **Video player SDKs** — Brightcove, JW Player, Bitmovin configure their
+- **Video player SDKs** - Brightcove, JW Player, Bitmovin configure their
   own sessions.
-- **Voice/dictation SDKs** — Deepgram, AssemblyAI native wrappers.
-- **Music SDKs** — Apple Music, Spotify.
-- **TTS features** — any `AVSpeechSynthesizer` usage ducks audio by default.
+- **Voice/dictation SDKs** - Deepgram, AssemblyAI native wrappers.
+- **Music SDKs** - Apple Music, Spotify.
+- **TTS features** - any `AVSpeechSynthesizer` usage ducks audio by default.
 
 ### Info.plist essentials
 
@@ -221,7 +221,7 @@ Common offenders:
 - WebKit's `RTCAudioSession` listens for
   `AVAudioSession.interruptionNotification` with `.ended + .shouldResume`
   and reactivates automatically.
-- The SDK doesn't aggressively self-reactivate — doing so would fight
+- The SDK doesn't aggressively self-reactivate - doing so would fight
   legitimate interruptions (phone calls, Siri).
 
 ### What the SDK provides for detection & recovery
@@ -232,10 +232,10 @@ The client SDK (`@stream-io/video-client`, surfaced via
 
 - **`audioHealth$` observable + `useAudioHealth()` React hook** returning
   `AudioHealthInfo = { status, reason }`:
-  - `status: 'healthy' | 'unhealthy' | 'unknown'` — bind UX to this.
+  - `status: 'healthy' | 'unhealthy' | 'unknown'` - bind UX to this.
   - `reason` classifies the cause:
     `'host-audio-session-interrupted'` / `'host-audio-session-active'`
-    (ground truth from a native iOS host bridge when present — see below),
+    (ground truth from a native iOS host bridge when present - see below),
     `'audio-session-interrupted'` / `'audio-context-interrupted'`
     (Safari OS interruption),
     `'autoplay-blocked'` (any browser),
@@ -245,14 +245,14 @@ The client SDK (`@stream-io/video-client`, surfaced via
     its `srcObject` was a live `MediaStream`),
     `'audio-session-active'` (the positive W3C healthy signal on Safari),
     `'playback-verified'` (cross-browser positive: at least one remote
-    audio track is unmuted and no bound element is paused — flips
+    audio track is unmuted and no bound element is paused - flips
     Chrome/Firefox out of `'unsupported'`),
     `'not-started'` / `'unsupported'` (pre-start or no usable signal yet).
-- **`call.resumeAudio()`** — iterates every `<audio>` element the SDK
+- **`call.resumeAudio()`** - iterates every `<audio>` element the SDK
   tracked as autoplay-blocked and retries `.play()` on each. Must be
   called from within a user gesture. Wire to a "tap to enable audio"
   button.
-- **Automatic `navigator.audioSession.type = 'play-and-record'` hint** —
+- **Automatic `navigator.audioSession.type = 'play-and-record'` hint** -
   the monitor writes this on call-join and restores the original on
   leave, nudging WebKit toward a WebRTC-friendly `AVAudioSession`
   category. No action needed from customer code.
@@ -270,7 +270,7 @@ function AudioHealthBadge({ call }) {
     );
   }
   if (status === 'unhealthy')
-    return <span>Audio interrupted — reconnecting…</span>;
+    return <span>Audio interrupted - reconnecting…</span>;
   return null;
 }
 ```
@@ -280,19 +280,26 @@ function AudioHealthBadge({ call }) {
 The detection pipeline above is blind to a specific hostile-host pattern:
 when the embedding iOS app silently clobbers the shared `AVAudioSession`
 (forces `.playback`, strips `.videoChat`, deactivates without
-`.notifyOthersOnDeactivation`), WebKit doesn't fire a W3C interruption —
+`.notifyOthersOnDeactivation`), WebKit doesn't fire a W3C interruption -
 from its perspective nothing changed. The only way to learn about it in
 the page is a native → JS bridge where the host reports `AVAudioSession`
 notifications directly.
 
-The SDK consumes a `CustomEvent` on `window`:
+The SDK consumes a `CustomEvent` on `window`. Event name:
+
+```
+stream-video:host-audio-session
+```
+
+The SDK augments `WindowEventMap` so a typed listener works without
+importing anything:
 
 ```ts
-// The SDK re-exports the event name + payload type:
-import {
-  HOST_AUDIO_SESSION_EVENT, // 'stream-video:host-audio-session'
-  type HostAudioSessionEvent,
-} from '@stream-io/video-client';
+window.addEventListener('stream-video:host-audio-session', (event) => {
+  // event.detail is typed as HostAudioSessionEvent via the augmented
+  // WindowEventMap shipped by `@stream-io/video-client`.
+  console.log(event.detail.session.category);
+});
 ```
 
 Payload (`schemaVersion: 1`):
@@ -300,18 +307,62 @@ Payload (`schemaVersion: 1`):
 ```ts
 interface HostAudioSessionEvent {
   schemaVersion: 1;
-  source: 'ios';
   timestamp: number; // epoch ms, when the native snapshot was captured
-  state: {
-    category: string; // AVAudioSession.Category rawValue
-    mode: string; // AVAudioSession.Mode rawValue
-    categoryOptions: number; // AVAudioSession.CategoryOptions rawValue
-    interruption: {
-      type: 'began' | 'ended';
-      reason?: number; // AVAudioSessionInterruptionReasonKey, iOS 14.5+
-    } | null;
-    routeChangeReason: number | null;
+  session: {
+    /** Normalized AVAudioSession.Category - e.g. 'playAndRecord'. */
+    category:
+      | 'ambient'
+      | 'soloAmbient'
+      | 'playback'
+      | 'record'
+      | 'playAndRecord'
+      | 'multiRoute';
+    /** Normalized AVAudioSession.Mode - e.g. 'videoChat'. */
+    mode:
+      | 'default'
+      | 'voiceChat'
+      | 'gameChat'
+      | 'videoRecording'
+      | 'measurement'
+      | 'moviePlayback'
+      | 'videoChat'
+      | 'spokenAudio'
+      | 'voicePrompt';
+    /** Active AVAudioSession.CategoryOptions decomposed into a list of names. */
+    options: Array<
+      | 'mixWithOthers'
+      | 'duckOthers'
+      | 'allowBluetoothA2DP'
+      | 'allowAirPlay'
+      | 'defaultToSpeaker'
+      | 'interruptSpokenAudioAndMixWithOthers'
+      | 'overrideMutedMicrophoneInterruption'
+      | 'allowBluetoothHFP'
+    >;
   };
+  /** Latest interruption event; null if none observed. */
+  interruption: {
+    type: 'began' | 'ended';
+    /** Normalized AVAudioSessionInterruptionReason; null on iOS < 14.5. */
+    reason:
+      | 'default'
+      | 'appWasSuspended'
+      | 'builtInMicMuted'
+      | 'routeDisconnected'
+      | null;
+  } | null;
+  /** Most recent route change; null if none observed. */
+  routeChange: {
+    reason:
+      | 'unknown'
+      | 'newDeviceAvailable'
+      | 'oldDeviceUnavailable'
+      | 'categoryChange'
+      | 'override'
+      | 'wakeFromSleep'
+      | 'noSuitableRouteForCategory'
+      | 'routeConfigurationChange';
+  } | null;
 }
 ```
 
@@ -338,7 +389,7 @@ The precedence inside `computeAudioHealthInfo` is:
 6. `audio-session-active` (W3C)
 7. `unsupported`
 
-Any unhealthy reason still beats any healthy reason — that's why a W3C
+Any unhealthy reason still beats any healthy reason - that's why a W3C
 interruption is trusted even when the host bridge reports active.
 
 **Reference host implementation:**
@@ -346,13 +397,13 @@ interruption is trusted even when the host bridge reports active.
 wires `NotificationCenter.publisher(for:)` to
 `webView.evaluateJavaScript(...)`. It also re-publishes each snapshot on a
 Combine publisher so the **Lifecycle** tab in the debug overlay logs
-every native transition alongside SDK-reported health — flip between the
+every native transition alongside SDK-reported health - flip between the
 Console tab (for `audioHealth` transitions from a React
 `useAudioHealth()` logger) and the Lifecycle tab (for the native
 snapshots that drove them) to correlate cause and effect.
 
 Third-party iOS WebView hosts embedding the SDK can copy
-`AudioSessionBridge.swift` verbatim or reimplement the contract — the JS
+`AudioSessionBridge.swift` verbatim or reimplement the contract - the JS
 event name and payload are the stable part, the Swift class is
 illustrative.
 
@@ -389,7 +440,7 @@ interface HostLifecycleEvent {
 **Contract:**
 
 - **Host side** fires once per `UIApplication.*Notification` it observes.
-  The four notifications above are sufficient — `applicationProtectedDataWillBecomeUnavailable`
+  The four notifications above are sufficient - `applicationProtectedDataWillBecomeUnavailable`
   and friends are not currently bridged.
 - **SDK side** does not yet consume this event as a first-class signal
   (no reason code is derived from it). It is exposed today purely for
@@ -408,18 +459,18 @@ adjacent to the `bridge`-tagged audio-session snapshots.
 Open items on the backlog:
 
 - **Promote `host-lifecycle` to a first-class signal in
-  `AudioHealthMonitor`** — today the bridge is exposed but the monitor
+  `AudioHealthMonitor`** - today the bridge is exposed but the monitor
   ignores it. Good candidate trigger: on `transition === 'didBecomeActive'`
   while `interruption.type === 'ended'` was the last audio-session event,
   re-run the autoplay/playback verification path proactively instead of
   waiting for the next user-driven event.
-- **`getStats()`-based anomaly logs** — detect `audioLevel=0` on all
+- **`getStats()`-based anomaly logs** - detect `audioLevel=0` on all
   inbound streams while connection state is `connected`, for cases the
   six signals above miss.
-- **Configurable auto-retry** — a background loop that calls
+- **Configurable auto-retry** - a background loop that calls
   `replaceTrack` periodically while health is `unhealthy`. Needs product
   input on aggression vs. race-condition risk.
-- **Unified public `recoverAudio()`** — today `call.resumeAudio()`
+- **Unified public `recoverAudio()`** - today `call.resumeAudio()`
   handles only autoplay. A single method that also triggers
   `navigator.audioSession.type` writes + `getUserMedia` + `replaceTrack`
   would simplify customer code.
@@ -434,7 +485,7 @@ No matter how sophisticated the SDK, it cannot:
 
 - Force a host's session to deactivate. Only the host can release its
   exclusive claim.
-- See what `AVAudioSession.category` is currently set to — the Web Audio
+- See what `AVAudioSession.category` is currently set to - the Web Audio
   Session API is read-only-ish for inspection.
 - Distinguish the _cause_ of an interruption (phone call vs ad SDK vs
   `setCategory(.playback)`) from the web side.
@@ -443,13 +494,13 @@ No matter how sophisticated the SDK, it cannot:
 
 ### From the web side (applies inside the SDK or on top of it)
 
-> ℹ️ Customers of the React Video SDK should prefer `useAudioHealth()` —
+> ℹ️ Customers of the React Video SDK should prefer `useAudioHealth()` -
 > it aggregates the strategies below into a single `{status, reason}`
 > signal with a tested classification. The patterns here document the
 > underlying mechanisms and are useful if you're building outside of
 > `@stream-io/video-react-sdk` or extending the monitor.
 
-**1. `AudioContext` state — the cleanest single signal**
+**1. `AudioContext` state - the cleanest single signal**
 
 This is exactly what `AudioHealthMonitor`'s probe `AudioContext` does
 internally. Use it directly only if you need the raw transition events.
@@ -468,12 +519,12 @@ probe.addEventListener('statechange', () => {
 });
 ```
 
-The probe context doesn't need to own any audio — iOS interrupts _every_
+The probe context doesn't need to own any audio - iOS interrupts _every_
 live `AudioContext` in the process when the session is disrupted.
 
 **2. Per-track mute events**
 
-Not yet aggregated by `AudioHealthMonitor` — tracked in the
+Not yet aggregated by `AudioHealthMonitor` - tracked in the
 chrome-coverage TODO as the future `'remote-tracks-muted'` reason code.
 Today it's a useful DIY signal on Chrome / Firefox where the probe
 `AudioContext` has no `'interrupted'` state.
@@ -488,7 +539,7 @@ pc.getReceivers().forEach((r) => {
 ```
 
 `mute` means "can't produce samples temporarily." `ended` means "permanently
-dead — renegotiate." Different. Key on `track.muted` (browser/OS-imposed)
+dead - renegotiate." Different. Key on `track.muted` (browser/OS-imposed)
 not `track.enabled` (user-toggled).
 
 **3. `getStats()` anomaly detection**
@@ -504,14 +555,14 @@ mute event fired.
 > the page via the `stream-video:host-audio-session` `CustomEvent`
 > contract documented above. The SDK consumes it as a first-class signal
 > (`host-audio-session-interrupted` / `host-audio-session-active`), which
-> makes correlation unnecessary — the SDK's own `audioHealth$` already
+> makes correlation unnecessary - the SDK's own `audioHealth$` already
 > reflects native ground truth.
 >
 > See
 > [`AudioSessionBridge.swift`](./IOSWebView/WebView/AudioSessionBridge.swift)
 > for the reference implementation.
 
-**1. Interruption-notification observer** — log every `began` and `ended`
+**1. Interruption-notification observer** - log every `began` and `ended`
 with the reason. If the ratio isn't 1:1, you have a bug.
 
 ```swift
@@ -524,11 +575,11 @@ NotificationCenter.default.addObserver(
 }
 ```
 
-**2. Route-change observer** — logs `newDeviceAvailable`,
+**2. Route-change observer** - logs `newDeviceAvailable`,
 `oldDeviceUnavailable`, `categoryChange`, `override`,
 `noSuitableRouteForCategory`. Every abnormal category change appears here.
 
-**3. Periodic state snapshots** — dump `category`, `mode`, `categoryOptions`,
+**3. Periodic state snapshots** - dump `category`, `mode`, `categoryOptions`,
 `currentRoute`, `isOtherAudioPlaying`, `outputVolume` every N seconds during
 an active call. Cheap, incredibly useful in a support ticket.
 
@@ -541,7 +592,7 @@ arrives, line up:
 ```
 12:34:56.789 [native] setCategory .playback options=[]
 12:34:56.793 [native] setActive true
-12:34:56.795 [bridge] category=AVAudioSessionCategoryPlayback interruption=began
+12:34:56.795 [bridge] category=playback mode=default options=[] interruption=began
 12:34:56.801 [web]    AudioContext.state: running → interrupted
 12:34:56.802 [web]    audioHealth: healthy → unhealthy (host-audio-session-interrupted)
 12:34:56.805 [web]    track.mute recv audio "default" MUTED by browser
@@ -558,21 +609,21 @@ Audit any iOS host embedding the SDK:
 
 **Direct AVAudioSession calls**
 
-- [ ] Every `setCategory` call reviewed — does it need to be exclusive?
-- [ ] Every `setMode` call reviewed — is `.voiceChat` preserved during voice
+- [ ] Every `setCategory` call reviewed - does it need to be exclusive?
+- [ ] Every `setMode` call reviewed - is `.voiceChat` preserved during voice
       work?
 - [ ] Every `setActive(false, ...)` includes `.notifyOthersOnDeactivation`
 - [ ] `overrideOutputAudioPort` is only used deliberately
 
 **APIs that transitively claim the session**
 
-- [ ] `AVAudioPlayer` usage — mixes or interrupts?
-- [ ] `AVAudioRecorder` — do you actually need the mic exclusively?
-- [ ] `AVAudioEngine` — configured with `.voiceChat`?
-- [ ] `AVSpeechSynthesizer` — TTS ducks by default; intentional?
-- [ ] `AVPlayer` video — session config reviewed?
-- [ ] `UNNotificationSound` — how often does it fire during calls?
-- [ ] `CallKit` — only for real VoIP calls, not UI-state?
+- [ ] `AVAudioPlayer` usage - mixes or interrupts?
+- [ ] `AVAudioRecorder` - do you actually need the mic exclusively?
+- [ ] `AVAudioEngine` - configured with `.voiceChat`?
+- [ ] `AVSpeechSynthesizer` - TTS ducks by default; intentional?
+- [ ] `AVPlayer` video - session config reviewed?
+- [ ] `UNNotificationSound` - how often does it fire during calls?
+- [ ] `CallKit` - only for real VoIP calls, not UI-state?
 
 **Third-party SDKs**
 
@@ -601,7 +652,7 @@ Audit any iOS host embedding the SDK:
 | Mic stops after user revokes+grants permission in Settings | SDK doesn't retry the track after status change                                          | Observe app-foregrounded, re-query `AVCaptureDevice.authorizationStatus`, recreate track if changed | `track.onmute` followed by `getUserMedia` error                               |
 | Audio drops briefly every few seconds                      | Route changes (BT reconnect, speaker/earpiece switching)                                 | Check headset hardware; verify `.allowBluetooth` options                                            | Rapid route-change notifications with reason `routeConfigurationChange`       |
 | Audio vanishes when native plays a ringtone UI             | Ringtone set `.playback` exclusively                                                     | Use `.ambient` + `.mixWithOthers` for UI sounds, or properly restore                                | Interruption-began on category change to `.playback`                          |
-| Video freezes but audio keeps working                      | Likely network / bitrate, not session — check `qualityLimitationReason` in `getStats`    | Reduce simulcast layers / bitrate                                                                   | `getStats` outbound-rtp `qualityLimitationReason !== 'none'`                  |
+| Video freezes but audio keeps working                      | Likely network / bitrate, not session - check `qualityLimitationReason` in `getStats`    | Reduce simulcast layers / bitrate                                                                   | `getStats` outbound-rtp `qualityLimitationReason !== 'none'`                  |
 
 ## Reference implementation
 
@@ -609,7 +660,7 @@ The [`sample-apps/ios/ios-webview`](./README.md) sample in this repo
 exercises every scenario in this doc. It provides:
 
 - A live `AVAudioSession` state panel in the Scenarios menu.
-- Native-side session manipulation actions — both well-behaved
+- Native-side session manipulation actions - both well-behaved
   (`Restore audio (native)`) and hostile (`Play ding (exclusive)`, `Force
 .playback`, etc.).
 - JS-side interruption detection via the SDK's `AudioHealthMonitor`, which
@@ -617,7 +668,7 @@ exercises every scenario in this doc. It provides:
   color-coded badge. The hook's `status` + `reason` flip through
   `healthy → unhealthy (audio-session-interrupted)` and back during the
   scenarios above.
-- JS-side recovery via `AudioScenarios.attemptJSRecovery()` —
+- JS-side recovery via `AudioScenarios.attemptJSRecovery()` -
   demonstrates the `navigator.audioSession.type = 'play-and-record'`
   write. The SDK owns the probe `AudioContext` and a
   `getUserMedia` + `replaceTrack` recovery path via `call.resumeAudio()`.
@@ -636,5 +687,5 @@ customer app.
 - [W3C: Audio Session API](https://www.w3.org/TR/audio-session/) (what
   `navigator.audioSession` implements)
 - [WebKit blog: Web Audio Session](https://webkit.org/blog/15162/web-audio-session/)
-- [WebRTC for the curious](https://webrtcforthecurious.com/) — background
+- [WebRTC for the curious](https://webrtcforthecurious.com/) - background
   on how `RTCPeerConnection` interacts with the OS audio pipeline

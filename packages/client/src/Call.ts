@@ -144,6 +144,10 @@ import {
   Tracer,
 } from './stats';
 import { AudioHealthMonitor } from './helpers/AudioHealthMonitor';
+import {
+  AudioHealthAutoRecovery,
+  type AudioHealthAutoRecoveryConfig,
+} from './helpers/AudioHealthAutoRecovery';
 import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
@@ -243,10 +247,16 @@ export class Call {
   /**
    * Detects audio-pipeline failure signals (OS audio-session interruption
    * on Safari, browser autoplay blocks) and owns recovery via
-   * `resumeAudio()`. Undefined on React Native — RN surfaces audio
+   * `resumeAudio()`. Undefined on React Native - RN surfaces audio
    * interruption through the native bridge instead.
    */
   readonly audioHealthMonitor: AudioHealthMonitor | undefined;
+
+  /**
+   * Optional reactor that mutes the mic on audio-health degradation and
+   * cycles devices on recovery.
+   */
+  private audioHealthAutoRecovery: AudioHealthAutoRecovery | undefined;
 
   /**
    * Warns periodically when a remote participant is publishing audio but no
@@ -740,6 +750,7 @@ export class Call {
       this.trackSubscriptionManager.setSfuClient(undefined);
       this.trackSubscriptionManager.dispose();
       this.audioBindingsWatchdog?.dispose();
+      this.audioHealthAutoRecovery?.stop();
       await this.audioHealthMonitor?.stop();
       await this.dynascaleManager.dispose();
 
@@ -1153,9 +1164,10 @@ export class Call {
     this.unifiedSessionId ??= sfuClient.sessionId;
     this.trackSubscriptionManager.setSfuClient(sfuClient);
     // Start the audio-health monitor the first time a call actually has an
-    // SFU connection. `start()` is idempotent — safe across SFU migration /
+    // SFU connection. `start()` is idempotent - safe across SFU migration /
     // reconnection where this may fire more than once.
     this.audioHealthMonitor?.start();
+    this.audioHealthAutoRecovery?.start();
 
     const clientDetails = await getClientDetails();
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
@@ -3039,6 +3051,30 @@ export class Call {
    */
   resumeAudio = async () => {
     await this.audioHealthMonitor?.resumeAudio();
+  };
+
+  /**
+   * Enables automatic mic-mute on audio-health degradation and an optional
+   * mic/camera cycle on recovery.
+   *
+   * @experimental
+   */
+  enableAudioAutoRecovery = (config?: AudioHealthAutoRecoveryConfig) => {
+    if (!this.audioHealthMonitor) return;
+    if (this.audioHealthAutoRecovery) {
+      this.audioHealthAutoRecovery.updateConfig(config ?? {});
+      return;
+    }
+    this.audioHealthAutoRecovery = new AudioHealthAutoRecovery(
+      this.audioHealthMonitor.audioHealth$,
+      this.microphone,
+      this.camera,
+      this.tracer,
+      config ?? {},
+    );
+    if (this.sfuClient) {
+      this.audioHealthAutoRecovery.start();
+    }
   };
 
   /**

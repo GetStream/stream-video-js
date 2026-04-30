@@ -14,14 +14,14 @@ import {
 /**
  * Coarse audio-pipeline status.
  *
- * - `'healthy'` — we have a positive signal that audio is working
+ * - `'healthy'` - we have a positive signal that audio is working
  *   (`navigator.audioSession.state === 'active'` on Safari 16.4+).
- * - `'unhealthy'` — we have a specific failure signal: OS audio-session
+ * - `'unhealthy'` - we have a specific failure signal: OS audio-session
  *   interruption or browser autoplay block.
- * - `'unknown'` — no confident signal either way. Normal on Chrome/Firefox
+ * - `'unknown'` - no confident signal either way. Normal on Chrome/Firefox
  *   (no audio-session API to confirm healthy) and before `start()` runs.
  *
- * Consumers should treat `'unknown'` as "no actionable signal" — don't show
+ * Consumers should treat `'unknown'` as "no actionable signal" - don't show
  * failure UX, but also don't show a green "all clear" indicator.
  */
 export type AudioHealthStatus = 'healthy' | 'unhealthy' | 'unknown';
@@ -32,40 +32,40 @@ export type AudioHealthStatus = 'healthy' | 'unhealthy' | 'unknown';
  * for autoplay blocks vs. "another app is using your audio" for session
  * interruption).
  *
- * - `'host-audio-session-interrupted'` — an iOS WebView host reported a
+ * - `'host-audio-session-interrupted'` - an iOS WebView host reported a
  *   native `AVAudioSession` interruption via the
  *   {@link HOST_AUDIO_SESSION_EVENT} bridge. Ground truth on iOS when
  *   the bridge is present; beats the W3C reason below.
- * - `'audio-session-interrupted'` — `navigator.audioSession.state` is
+ * - `'audio-session-interrupted'` - `navigator.audioSession.state` is
  *   `'interrupted'` (Safari/iOS WebView; another app took the session).
- * - `'audio-context-interrupted'` — probe `AudioContext.state` is
+ * - `'audio-context-interrupted'` - probe `AudioContext.state` is
  *   `'interrupted'`. Same root cause as above on Safari; listed separately
  *   so we don't lose the signal if the two probes ever diverge.
- * - `'autoplay-blocked'` — browser refused `<audio>.play()` without a
+ * - `'autoplay-blocked'` - browser refused `<audio>.play()` without a
  *   prior user gesture. Recoverable by `call.resumeAudio()` inside a click
  *   handler.
- * - `'remote-tracks-muted'` — **two or more** remote audio tracks
+ * - `'remote-tracks-muted'` - **two or more** remote audio tracks
  *   reported `muted: true` simultaneously (browser/OS-imposed silence,
  *   not user toggling). Cross-browser proxy for "client-wide audio
- *   pipeline broken" — single-track mutes (1:1 calls, per-sender
+ *   pipeline broken" - single-track mutes (1:1 calls, per-sender
  *   hiccups) are deliberately ignored because they can't be
  *   distinguished from a remote sender's own problem.
- * - `'element-paused'` — at least one bound `<audio>` element fired a
+ * - `'element-paused'` - at least one bound `<audio>` element fired a
  *   `'pause'` event while its `srcObject` was still a live `MediaStream`.
  *   Cross-browser proxy for "renderer auto-paused on us."
- * - `'host-audio-session-active'` — an iOS WebView host reported no
+ * - `'host-audio-session-active'` - an iOS WebView host reported no
  *   active interruption via the {@link HOST_AUDIO_SESSION_EVENT} bridge.
  *   Strongest healthy signal on iOS when the bridge is present.
- * - `'audio-session-active'` — Safari positively confirms the audio
+ * - `'audio-session-active'` - Safari positively confirms the audio
  *   session is active. The strongest "healthy" signal we can observe in
  *   the page when no native bridge is available.
- * - `'playback-verified'` — Chrome/Firefox positive-healthy signal: at
+ * - `'playback-verified'` - Chrome/Firefox positive-healthy signal: at
  *   least one remote audio track is known and not muted, and no bound
  *   element is paused. Derived from the same inputs as
  *   `'remote-tracks-muted'` and `'element-paused'`, only fires when no
  *   other signal claimed the slot first.
- * - `'not-started'` — monitor hasn't been started (or has been stopped).
- * - `'unsupported'` — monitor is running, but no browser API gives a
+ * - `'not-started'` - monitor hasn't been started (or has been stopped).
+ * - `'unsupported'` - monitor is running, but no browser API gives a
  *   positive health signal (Chrome / Firefox before any remote audio
  *   track has been registered, older Safari, or transient
  *   pre-activation state on Safari).
@@ -109,13 +109,13 @@ const UNKNOWN_NOT_STARTED: AudioHealthInfo = {
  * The detection pipeline merges six signal sources:
  *
  * 1. The {@link HOST_AUDIO_SESSION_EVENT} host bridge (iOS WebView
- *    embedders only) — ground truth from native `AVAudioSession`
+ *    embedders only) - ground truth from native `AVAudioSession`
  *    notifications. `interruption.type === 'began'` → unhealthy,
  *    otherwise → healthy. Beats the in-page W3C signal when both are
  *    available (the host sees hostile category/mode changes WebKit
  *    silently ignores). See `HostAudioSessionEvent` in `./types` for the
  *    protocol contract.
- * 2. `navigator.audioSession.state` transitions (Safari 16.4+) — the
+ * 2. `navigator.audioSession.state` transitions (Safari 16.4+) - the
  *    primary in-page signal. `'interrupted'` → unhealthy, `'active'` →
  *    healthy.
  * 3. A probe `AudioContext` kept alive by a silent `ConstantSourceNode`
@@ -126,18 +126,18 @@ const UNKNOWN_NOT_STARTED: AudioHealthInfo = {
  *    (`NotAllowedError` on `.play()`). Registered by `DynascaleManager`'s
  *    `bindAudioElement` via `registerBlockedAudioElement()`; cleared on
  *    `unregisterBlockedAudioElement()` or a successful `resumeAudio()`.
- * 5. Aggregated `MediaStreamTrack.muted` across remote audio tracks —
+ * 5. Aggregated `MediaStreamTrack.muted` across remote audio tracks -
  *    cross-browser proxy for "client-wide audio pipeline broken."
  *    Forwarded by `Subscriber` via `handleRemoteAudioTrackChange()`.
  *    Fires only when **two or more** remote audio tracks are tracked
  *    AND every one is muted simultaneously. A single muted track
- *    (1:1 calls, per-sender hiccups) is deliberately ignored — it
+ *    (1:1 calls, per-sender hiccups) is deliberately ignored - it
  *    can't be distinguished from a remote sender's own problem, so
  *    treating it as client-wide failure produces false positives.
- *    Keys on `track.muted` only — `track.enabled === false` is
+ *    Keys on `track.muted` only - `track.enabled === false` is
  *    user-toggled silence and must NOT flip health.
  * 6. Bound `<audio>` elements that fire `'pause'` while their
- *    `srcObject` is still a live `MediaStream` — cross-browser proxy
+ *    `srcObject` is still a live `MediaStream` - cross-browser proxy
  *    for "renderer auto-paused on us." Forwarded by
  *    `AudioBindingsWatchdog` via `registerPausedAudioElement()` /
  *    `unregisterPausedAudioElement()`. Benign pauses (no `srcObject`,
@@ -181,11 +181,6 @@ export class AudioHealthMonitor {
    * the `host-audio-session-*` reasons.
    */
   private hostAudioSession?: HostAudioSessionEvent;
-  /**
-   * Whether we've already warned about an unknown `schemaVersion`. Used
-   * to throttle the log so a misconfigured host doesn't spam the console.
-   */
-  private hostAudioSessionSchemaWarned = false;
 
   private remoteAudioMutedSubject = new BehaviorSubject(
     new Map<MediaStreamTrack, boolean>(),
@@ -269,9 +264,10 @@ export class AudioHealthMonitor {
       );
     }
     this.hostAudioSession = undefined;
-    this.hostAudioSessionSchemaWarned = false;
 
-    document.removeEventListener('click', this.resumeAudioContext);
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('click', this.resumeAudioContext);
+    }
     this.silentSource?.stop();
     this.silentSource?.disconnect();
     this.silentSource = undefined;
@@ -372,7 +368,7 @@ export class AudioHealthMonitor {
    * from the blocked set; those that still reject stay blocked.
    */
   resumeAudio = async () => {
-    this.tracer.trace('resumeAudio', null);
+    this.tracer.trace('audioHealth.resumeAudio', null);
     const stillBlocked = new Set<HTMLAudioElement>();
     await Promise.all(
       Array.from(
@@ -408,9 +404,9 @@ export class AudioHealthMonitor {
     try {
       this.originalAudioSessionType = audioSession.type;
       audioSession.type = 'play-and-record';
-      this.tracer.trace('audioSession.type', audioSession.type);
+      this.tracer.trace('audioHealth.audioSession.type', audioSession.type);
     } catch (err) {
-      this.tracer.trace('audioSession.typeError', String(err));
+      this.tracer.trace('audioHealth.audioSession.typeError', String(err));
     }
   };
 
@@ -427,7 +423,7 @@ export class AudioHealthMonitor {
     const audioSession = this.audioSession;
     if (!audioSession) return;
     this.audioSessionState = audioSession.state;
-    this.tracer.trace('audioSession.state', audioSession.state);
+    this.tracer.trace('audioHealth.audioSession.state', audioSession.state);
     this.updateAudioHealth();
   };
 
@@ -448,32 +444,18 @@ export class AudioHealthMonitor {
    * Handles a single host-bridge event. Validates the schema version and
    * required fields, then stores the payload as the latest native
    * snapshot. Unknown schema versions warn once; malformed payloads warn
-   * every time (they should never occur in practice — the host owns the
+   * every time (they should never occur in practice - the host owns the
    * shape).
    */
   private onHostAudioSessionEvent = (
-    event: WindowEventMap[typeof HOST_AUDIO_SESSION_EVENT],
+    customEvent: WindowEventMap[typeof HOST_AUDIO_SESSION_EVENT],
   ) => {
-    const detail = event.detail;
-    if (!detail || typeof detail !== 'object') {
-      this.logger.warn('Host audio-session event had no detail payload');
-      return;
-    }
-    if (detail.schemaVersion !== 1) {
-      if (!this.hostAudioSessionSchemaWarned) {
-        this.hostAudioSessionSchemaWarned = true;
-        this.logger.warn(
-          `Host audio-session event has unknown schemaVersion: ${detail.schemaVersion}`,
-        );
-      }
-      return;
-    }
-    if (!detail.session || typeof detail.session !== 'object') {
-      this.logger.warn('Host audio-session event missing `session` field');
-      return;
-    }
+    const detail = customEvent.detail;
+    if (!detail || typeof detail !== 'object') return;
+    if (detail.schemaVersion !== 1) return;
+    if (!detail.session || typeof detail.session !== 'object') return;
     this.hostAudioSession = detail;
-    this.tracer.trace('hostAudioSession', detail);
+    this.tracer.trace('audioHealth.hostAudioSession', detail);
     this.updateAudioHealth();
   };
 
@@ -490,7 +472,7 @@ export class AudioHealthMonitor {
     if (typeof AudioContext === 'undefined') return;
     try {
       const probe = new AudioContext();
-      this.tracer.trace('probeAudioContext.create', probe.state);
+      this.tracer.trace('audioHealth.probeAudioContext.create', probe.state);
       const source = probe.createConstantSource();
       source.offset.value = 0;
       source.connect(probe.destination);
@@ -503,14 +485,17 @@ export class AudioHealthMonitor {
       this.silentSource = source;
       this.updateAudioHealth();
     } catch (err) {
-      this.tracer.trace('probeAudioContext.createError', String(err));
+      this.tracer.trace(
+        'audioHealth.probeAudioContext.createError',
+        String(err),
+      );
       this.logger.warn(`Failed to create probe AudioContext`, err);
     }
   };
 
   private onAudioContextStateChange = () => {
     const state = this.audioContext?.state;
-    this.tracer.trace('probeAudioContext.state', state);
+    this.tracer.trace('audioHealth.probeAudioContext.state', state);
     this.updateAudioHealth();
   };
 
@@ -520,11 +505,14 @@ export class AudioHealthMonitor {
     if (probe.state !== 'suspended' && probe.state !== 'interrupted') return;
     probe.resume().then(
       () => {
-        this.tracer.trace('probeAudioContext.resume', probe.state);
+        this.tracer.trace('audioHealth.probeAudioContext.resume', probe.state);
         document.removeEventListener('click', this.resumeAudioContext);
       },
       (err) => {
-        this.tracer.trace('probeAudioContext.resumeError', probe.state);
+        this.tracer.trace(
+          'audioHealth.probeAudioContext.resumeError',
+          probe.state,
+        );
         this.logger.warn(`Can't resume probe audio context`, err);
       },
     );
@@ -538,7 +526,7 @@ export class AudioHealthMonitor {
     const next = this.computeAudioHealthInfo();
     const prev = this.audioHealthSubject.getValue();
     if (next.status === prev.status && next.reason === prev.reason) return;
-    this.tracer.trace('audioHealth', next);
+    this.tracer.trace('audioHealth.update', next);
     this.audioHealthSubject.next(next);
   };
 
@@ -584,11 +572,11 @@ export class AudioHealthMonitor {
       return { status: 'unhealthy', reason: 'remote-tracks-muted' };
     }
     // 6. Any bound `<audio>` element auto-paused while its srcObject
-    //    is a live MediaStream — renderer-side stall.
+    //    is a live MediaStream - renderer-side stall.
     if (this.pausedAudioElementsSubject.getValue().size > 0) {
       return { status: 'unhealthy', reason: 'element-paused' };
     }
-    // 7. Positive healthy signal from the host bridge — ground truth
+    // 7. Positive healthy signal from the host bridge - ground truth
     //    (native confirms the session is not interrupted).
     if (this.hostAudioSession) {
       return { status: 'healthy', reason: 'host-audio-session-active' };

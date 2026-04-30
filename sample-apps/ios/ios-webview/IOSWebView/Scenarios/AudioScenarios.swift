@@ -81,7 +81,7 @@ final class AudioScenarios: NSObject {
             p.play()
             autoRestoringDingPlayer = p
             AppState.shared.log(.scenarios, "audio",
-                "▶︎ play ding (exclusive) — will release session on finish")
+                "▶︎ play ding (exclusive) - will release session on finish")
         } catch {
             AppState.shared.log(.errors, "audio",
                 "auto-restore ding play failed: \(error)")
@@ -249,9 +249,9 @@ final class AudioScenarios: NSObject {
     ///
     /// Sequence:
     ///   1. Pre-snapshot at t=0 (label: "pre-interruption").
-    ///   2. `simulateCallKitIncoming()` — CallKit hijacks AVAudioSession.
-    ///   3. After `holdSeconds`, `endCallKitCall()` — releases the session.
-    ///   4. Post-snapshot at +0.5s and +3s after end — "did the session
+    ///   2. `simulateCallKitIncoming()` - CallKit hijacks AVAudioSession.
+    ///   3. After `holdSeconds`, `endCallKitCall()` - releases the session.
+    ///   4. Post-snapshot at +0.5s and +3s after end - "did the session
     ///      come back to .playAndRecord/.videoChat the way WebRTC needs?"
     ///
     /// The two post-snapshots make the delayed-restore window visible:
@@ -273,7 +273,7 @@ final class AudioScenarios: NSObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
                 self?.dumpSessionState(label: "post-recovery-window +3s")
                 AppState.shared.log(.scenarios, "audio",
-                    "▶︎ phone-call interruption scenario complete — compare snapshots")
+                    "▶︎ phone-call interruption scenario complete - compare snapshots")
             }
         }
     }
@@ -285,7 +285,7 @@ final class AudioScenarios: NSObject {
     ///
     /// Use this to put the session into any category on demand, to observe
     /// how WebRTC, `navigator.audioSession`, and the debug overlay react.
-    /// Applies `mode: .default` and no options — a clean switch. If you want
+    /// Applies `mode: .default` and no options - a clean switch. If you want
     /// options (`.mixWithOthers`, `.defaultToSpeaker`, etc.) or a specific
     /// mode, combine with the existing "Force mode=.default" / "Toggle route"
     /// actions afterward, or use "Restore audio (native)" to go back to
@@ -364,7 +364,7 @@ final class AudioScenarios: NSObject {
     /// `restoreForWebRTC()` path to see how far a webview-only customer can get.
     ///
     /// Just writes `navigator.audioSession.type = 'play-and-record'` (iOS
-    /// 16.4+ WKWebView) — the closest JS equivalent to `setCategory`.
+    /// 16.4+ WKWebView) - the closest JS equivalent to `setCategory`.
     /// The SDK's `AudioHealthMonitor` already owns the probe `AudioContext`
     /// and a `getUserMedia` + `replaceTrack` recovery path lives in
     /// `call.resumeAudio()`; both are reachable through the tutorial's
@@ -392,15 +392,15 @@ final class AudioScenarios: NSObject {
     /// Hands the audio session back to WebRTC after a hostile change.
     ///
     /// Sequence:
-    ///   1. `setActive(false, .notifyOthersOnDeactivation)` — posts the
+    ///   1. `setActive(false, .notifyOthersOnDeactivation)` - posts the
     ///      `AVAudioSession.interruptionNotification` `.ended + .shouldResume`
     ///      event that WebKit's embedded `RTCAudioSession` is listening for.
-    ///   2. `setCategory(.playAndRecord, mode: .videoChat, options: …)` —
+    ///   2. `setCategory(.playAndRecord, mode: .videoChat, options: …)` -
     ///      puts the session in the state WebRTC wants before it re-asserts.
-    ///   3. `setActive(true)` — re-activates so input+output are live again.
+    ///   3. `setActive(true)` - re-activates so input+output are live again.
     ///
     /// Use this after running **Play ding (no mixWithOthers)**, **Force .playback**,
-    /// **Force mode=.default**, or **setActive(false)** — or any time WebRTC audio
+    /// **Force mode=.default**, or **setActive(false)** - or any time WebRTC audio
     /// seems stuck after a native-side session change.
     func restoreForWebRTC() {
         let s = AVAudioSession.sharedInstance()
@@ -582,7 +582,7 @@ extension AudioScenarios: AVAudioPlayerDelegate {
         guard player === autoRestoringDingPlayer else { return }
         autoRestoringDingPlayer = nil
         AppState.shared.log(.scenarios, "audio",
-            "ding finished (success=\(successfully)) — restoring session for WebRTC")
+            "ding finished (success=\(successfully)) - restoring session for WebRTC")
         let s = AVAudioSession.sharedInstance()
         do {
             try s.setActive(false, options: [.notifyOthersOnDeactivation])

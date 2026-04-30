@@ -15,7 +15,7 @@ import WebKit
 /// "what just happened to AVAudioSession"; this one tells the page "the user
 /// switched apps / locked the screen / came back." Some customer-reported
 /// audio bugs (e.g., webinar audio failing to resume after a phone-call
-/// interruption ends) need *both* signals to triage — the
+/// interruption ends) need *both* signals to triage - the
 /// `interruption=ended` snapshot can fire while the app is still in the
 /// background, and the page only knows the user is back when
 /// `didBecomeActive` arrives.

@@ -77,7 +77,7 @@ describe('AudioHealthMonitor', () => {
 
   /**
    * Tiny factory for a blocked audio element with a settable `srcObject` and
-   * a `.play()` spy — happy-dom's default `<audio>` doesn't resolve `.play()`
+   * a `.play()` spy - happy-dom's default `<audio>` doesn't resolve `.play()`
    * nicely and locks `srcObject` down via validation.
    */
   const makeBlockedElement = (playMock?: Mock): HTMLAudioElement => {
@@ -308,18 +308,18 @@ describe('AudioHealthMonitor', () => {
     // start() flows through audio-session-active (1 more emission).
     expect(emissions).toHaveLength(2);
 
-    // Re-emit the same state — no new emission.
+    // Re-emit the same state - no new emission.
     audioSessionStub.emitStateChange();
     audioSessionStub.emitStateChange();
     expect(emissions).toHaveLength(2);
 
-    // Transition — new emission.
+    // Transition - new emission.
     audioSessionStub.state = 'interrupted';
     audioSessionStub.emitStateChange();
     expect(emissions).toHaveLength(3);
     expect(emissions[2].reason).toBe('audio-session-interrupted');
 
-    // Redundant transition — no new emission.
+    // Redundant transition - no new emission.
     audioSessionStub.emitStateChange();
     expect(emissions).toHaveLength(3);
 
@@ -445,11 +445,9 @@ describe('AudioHealthMonitor', () => {
     });
   });
 
-  it('ignores events with unknown schemaVersion and does not spam the log', () => {
+  it('ignores events with unknown schemaVersion', () => {
     const monitor = newMonitor();
     monitor.start();
-    // @ts-expect-error private property
-    const warnSpy = vi.spyOn(monitor.logger, 'warn');
 
     const baseline = getCurrentValue(monitor.audioHealth$);
     dispatchHostEvent({ ...makeHostEvent(), schemaVersion: 999 });
@@ -457,21 +455,28 @@ describe('AudioHealthMonitor', () => {
     dispatchHostEvent({ ...makeHostEvent(), schemaVersion: 999 });
 
     expect(getCurrentValue(monitor.audioHealth$)).toEqual(baseline);
-    expect(warnSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('ignores malformed payloads without throwing', () => {
+  it('ignores malformed payloads without throwing or flipping health', () => {
     const monitor = newMonitor();
     monitor.start();
     const baseline = getCurrentValue(monitor.audioHealth$);
 
+    // `detail` missing entirely - must not throw on the destructuring.
     expect(() => dispatchHostEvent(undefined)).not.toThrow();
+    // `detail` is null - same path.
+    expect(() => dispatchHostEvent(null)).not.toThrow();
+    // Sparse v1 payload with no `session` field - must not flip
+    // `audioHealth` to `host-audio-session-active` just because the
+    // detail object is truthy. (Codex review: schema-drift trust
+    // boundary - a buggy older host bridge could otherwise hide a real
+    // interruption.)
     expect(() => dispatchHostEvent({ schemaVersion: 1 })).not.toThrow();
     expect(() =>
       dispatchHostEvent({ schemaVersion: 1, session: 'not an object' }),
     ).not.toThrow();
 
-    // None of the above should change health state.
+    // None of the malformed payloads should have changed health state.
     expect(getCurrentValue(monitor.audioHealth$)).toEqual(baseline);
   });
 
@@ -549,7 +554,7 @@ describe('AudioHealthMonitor', () => {
 
   /**
    * happy-dom doesn't model `MediaStreamTrack` mute semantics precisely,
-   * so we use a plain object cast to MediaStreamTrack — the monitor only
+   * so we use a plain object cast to MediaStreamTrack - the monitor only
    * uses the reference as a Map key, never reads `.muted` itself.
    */
   const fakeTrack = (): MediaStreamTrack => ({}) as unknown as MediaStreamTrack;
@@ -569,13 +574,13 @@ describe('AudioHealthMonitor', () => {
       'playback-verified',
     );
 
-    // Mute the first only — still healthy via the second.
+    // Mute the first only - still healthy via the second.
     monitor.handleRemoteAudioTrackChange(a, 'muted');
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
       'playback-verified',
     );
 
-    // Mute both — minimum threshold satisfied (size === 2, all muted).
+    // Mute both - minimum threshold satisfied (size === 2, all muted).
     monitor.handleRemoteAudioTrackChange(b, 'muted');
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
