@@ -711,9 +711,16 @@ export class Call {
       // Reset reconnect-related accumulators so a future `call.join()` on the
       // same instance starts with a fresh budget. The `Call` may be reused
       // (see `Call.test.ts` "can reuse call instance") so this is required.
+      // Strategy/reason/attempts must also be cleared: when `leave()` is
+      // reached via `giveUpAndLeave()` the success-path reset at the end of
+      // `joinFlow` never runs, leaving stale values that would make the next
+      // fresh `join()` send a stale `ReconnectDetails` to the SFU.
       this.rejoinRateLimiter.reset();
       this.iceFailuresWithoutConnect = 0;
       this.consecutiveNegotiationFailures = 0;
+      this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
+      this.reconnectReason = '';
+      this.reconnectAttempts = 0;
 
       // Call all leave call hooks, e.g. to clean up global event handlers
       this.leaveCallHooks.forEach((hook) => hook());

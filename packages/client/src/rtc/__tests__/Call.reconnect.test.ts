@@ -728,3 +728,34 @@ describe('Call reconnect wiring (PC event → leave)', () => {
     );
   });
 });
+
+/**
+ * `leave()` runs after both the success path (end of `joinFlow`) and the
+ * giveUpAndLeave path. Only the success path resets `reconnectStrategy` /
+ * `reconnectReason`. Without resetting them in `leave()` itself, a Call
+ * instance reused after a failed-reconnect terminal leave would still see
+ * `reconnectStrategy != UNSPECIFIED` on the next `join()` and would send
+ * a stale `ReconnectDetails` to the SFU.
+ */
+describe('Call.leave() reconnect-state reset', () => {
+  it('clears reconnectStrategy, reconnectReason, and reconnectAttempts', async () => {
+    const call = makeCall();
+    call.state.setCallingState(CallingState.JOINED);
+
+    call['reconnectStrategy'] = WebsocketReconnectStrategy.REJOIN;
+    call['reconnectReason'] = ReconnectReason.ICE_NEVER_CONNECTED;
+    call['reconnectAttempts'] = 3;
+    call['iceFailuresWithoutConnect'] = 2;
+    call['consecutiveNegotiationFailures'] = 1;
+
+    await call.leave();
+
+    expect(call['reconnectStrategy']).toBe(
+      WebsocketReconnectStrategy.UNSPECIFIED,
+    );
+    expect(call['reconnectReason']).toBe('');
+    expect(call['reconnectAttempts']).toBe(0);
+    expect(call['iceFailuresWithoutConnect']).toBe(0);
+    expect(call['consecutiveNegotiationFailures']).toBe(0);
+  });
+});
