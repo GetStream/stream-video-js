@@ -34,6 +34,7 @@ export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
   private readonly clonedTracks = new Set<MediaStreamTrack>();
   private publishOptions: PublishOption[];
+  private readonly selfSubEnabled: boolean;
 
   /**
    * Constructs a new `Publisher` instance.
@@ -41,9 +42,11 @@ export class Publisher extends BasePeerConnection {
   constructor(
     baseOptions: BasePeerConnectionOpts,
     publishOptions: PublishOption[],
+    opts: { selfSubEnabled?: boolean } = {},
   ) {
     super(PeerType.PUBLISHER_UNSPECIFIED, baseOptions);
     this.publishOptions = publishOptions;
+    this.selfSubEnabled = opts.selfSubEnabled ?? false;
 
     this.on('iceRestart', (iceRestart) => {
       if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
@@ -499,6 +502,7 @@ export class Publisher extends BasePeerConnection {
       muted: !isTrackLive,
       codec: publishOption.codec,
       publishOptionId: publishOption.id,
+      selfSubAudioVideo: this.selfSubEnabled,
     };
   };
 

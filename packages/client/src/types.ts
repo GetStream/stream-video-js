@@ -96,6 +96,24 @@ export interface StreamVideoParticipant extends Participant {
   isLocalParticipant?: boolean;
 
   /**
+   * The loopback video stream received back from the SFU when
+   * self-subscription is enabled via `call.join({ selfSubEnabled: true })`.
+   * Only set on the local participant. Represents the round-trip video path
+   * (captured → SFU → subscriber) and is intentionally separate from
+   * `videoStream` which holds the locally captured device stream.
+   */
+  loopbackVideoStream?: MediaStream;
+
+  /**
+   * The loopback audio stream received back from the SFU when
+   * self-subscription is enabled via `call.join({ selfSubEnabled: true })`.
+   * Only set on the local participant. Represents the round-trip audio path
+   * (captured → SFU → subscriber) and is intentionally separate from
+   * `audioStream` which holds the locally captured device stream.
+   */
+  loopbackAudioStream?: MediaStream;
+
+  /**
    * The pin state of the participant.
    */
   pin?: ParticipantPin;

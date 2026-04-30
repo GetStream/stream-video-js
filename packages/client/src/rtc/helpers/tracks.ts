@@ -60,3 +60,16 @@ export const toTrackType = (trackType: string): TrackType | undefined => {
 
 export const isAudioTrackType = (trackType: TrackType): boolean =>
   trackType === TrackType.AUDIO || trackType === TrackType.SCREEN_SHARE_AUDIO;
+
+export const trackTypeToLoopbackStreamKey = (
+  trackType: TrackType,
+): 'loopbackVideoStream' | 'loopbackAudioStream' | undefined => {
+  switch (trackType) {
+    case TrackType.VIDEO:
+      return 'loopbackVideoStream';
+    case TrackType.AUDIO:
+      return 'loopbackAudioStream';
+    default:
+      return undefined;
+  }
+};

@@ -3,7 +3,11 @@ import { BasePeerConnectionOpts } from './types';
 import { NegotiationError } from './NegotiationError';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
-import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
+import {
+  toTrackType,
+  trackTypeToLoopbackStreamKey,
+  trackTypeToParticipantStreamKey,
+} from './helpers/tracks';
 import { enableStereo, removeCodecsExcept } from './helpers/sdp';
 
 /**
@@ -73,6 +77,7 @@ export class Subscriber extends BasePeerConnection {
     const participantToUpdate = this.state.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
+    const isSelfSub = !!participantToUpdate?.isLocalParticipant;
     this.logger.debug(
       `[onTrack]: Got remote ${rawTrackType} track for userId: ${participantToUpdate?.userId}`,
       e.track.id,
@@ -117,6 +122,31 @@ export class Subscriber extends BasePeerConnection {
     const streamKindProp = trackTypeToParticipantStreamKey(trackType);
     if (!streamKindProp) {
       this.logger.error(`Unknown track type: ${rawTrackType}`);
+      return;
+    }
+
+    // Self-sub: the SFU is sending back our own track as a loopback stream.
+    // Store it in the dedicated loopback fields on the local participant rather
+    // than overwriting the locally captured device streams (videoStream /
+    // audioStream). Clean up the previous loopback stream if one existed
+    // (relevant on reconnect / SFU migration).
+    if (isSelfSub) {
+      const loopbackKey = trackTypeToLoopbackStreamKey(trackType);
+      if (loopbackKey) {
+        const previousLoopback = participantToUpdate[loopbackKey];
+        this.state.updateParticipant(participantToUpdate.sessionId, {
+          [loopbackKey]: primaryStream,
+        });
+        if (previousLoopback) {
+          this.logger.info(
+            `[onTrack]: Cleaning up previous loopback ${e.track.kind} stream`,
+          );
+          previousLoopback.getTracks().forEach((t) => {
+            t.stop();
+            previousLoopback.removeTrack(t);
+          });
+        }
+      }
       return;
     }
 

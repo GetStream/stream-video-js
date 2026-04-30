@@ -277,6 +277,7 @@ export class Call {
   private joinResponseTimeout?: number;
   private rpcRequestTimeout?: number;
   private joinCallData?: JoinCallData;
+  private selfSubEnabled = false;
   private hasJoinedOnce = false;
   private deviceSettingsAppliedOnce = false;
   private credentials?: Credentials;
@@ -742,6 +743,13 @@ export class Call {
   }
 
   /**
+   * A flag indicating whether self-subscription is enabled for the call.
+   */
+  get isSelfSubEnabled() {
+    return this.selfSubEnabled;
+  }
+
+  /**
    * A flag indicating whether the call was created by the current user.
    */
   get isCreatedByMe() {
@@ -953,11 +961,13 @@ export class Call {
     maxJoinRetries = 3,
     joinResponseTimeout,
     rpcRequestTimeout,
+    selfSubEnabled = false,
     ...data
   }: JoinCallData & {
     maxJoinRetries?: number;
     joinResponseTimeout?: number;
     rpcRequestTimeout?: number;
+    selfSubEnabled?: boolean;
   } = {}): Promise<void> => {
     const callingState = this.state.callingState;
 
@@ -978,6 +988,7 @@ export class Call {
 
     this.joinResponseTimeout = joinResponseTimeout;
     this.rpcRequestTimeout = rpcRequestTimeout;
+    this.selfSubEnabled = selfSubEnabled;
     // we will count the number of join failures per SFU.
     // once the number of failures reaches 2, we will piggyback on the `migrating_from`
     // field to force the coordinator to provide us another SFU
@@ -1386,7 +1397,13 @@ export class Call {
       if (closePreviousInstances && this.publisher) {
         this.publisher.dispose();
       }
-      this.publisher = new Publisher(basePeerConnectionOptions, publishOptions);
+      this.publisher = new Publisher(
+        basePeerConnectionOptions,
+        publishOptions,
+        {
+          selfSubEnabled: this.selfSubEnabled,
+        },
+      );
     }
 
     this.statsReporter?.stop();
