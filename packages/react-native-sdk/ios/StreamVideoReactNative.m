@@ -21,6 +21,13 @@
 #import <stream_react_native_webrtc/stream_react_native_webrtc-Swift.h>
 #endif
 
+// Import Swift-generated header for TracksRecorderManager and friends.
+#if __has_include("stream_video_react_native-Swift.h")
+#import "stream_video_react_native-Swift.h"
+#elif __has_include(<stream_video_react_native/stream_video_react_native-Swift.h>)
+#import <stream_video_react_native/stream_video_react_native-Swift.h>
+#endif
+
 // Do not change these consts, it is what is used react-native-webrtc
 NSNotificationName const kBroadcastStartedNotification = @"iOS_BroadcastStarted";
 NSNotificationName const kBroadcastStoppedNotification = @"iOS_BroadcastStopped";
@@ -855,6 +862,84 @@ RCT_EXPORT_METHOD(stopScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
     }
 
     resolve(nil);
+}
+
+#pragma mark - Track Recording
+
+RCT_EXPORT_METHOD(startTrackRecording:(NSDictionary *)options
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
+    if (!webrtcModule) {
+        reject(@"recording_error", @"WebRTCModule not available", nil);
+        return;
+    }
+
+    NSString *videoTrackId = options[@"videoTrackId"];
+    NSString *audioTrackId = options[@"audioTrackId"];
+    if (![videoTrackId isKindOfClass:[NSString class]]) videoTrackId = nil;
+    if (![audioTrackId isKindOfClass:[NSString class]]) audioTrackId = nil;
+
+    NSNumber *maxDuration = options[@"maxDurationMs"];
+    NSInteger maxDurationMs = ([maxDuration isKindOfClass:[NSNumber class]])
+        ? [maxDuration integerValue] : 5000;
+
+    // Defaults to YES — for the v1 self-sub pre-call test the desired
+    // behaviour is "record the loopback, don't play it through the
+    // speaker". Consumers can opt out by passing `muteLoopbackPlayback:
+    // false` in JS.
+    id muteRaw = options[@"muteLoopbackPlayback"];
+    BOOL muteLoopbackPlayback = YES;
+    if ([muteRaw isKindOfClass:[NSNumber class]]) {
+        muteLoopbackPlayback = [muteRaw boolValue];
+    }
+
+    [[TracksRecorderManager shared]
+        startRecordingWithVideoTrackId:videoTrackId
+                          audioTrackId:audioTrackId
+                         maxDurationMs:maxDurationMs
+                  muteLoopbackPlayback:muteLoopbackPlayback
+                          webRTCModule:webrtcModule
+                            completion:^(NSURL * _Nullable fileURL, NSError * _Nullable err) {
+        if (err) {
+            reject(@"recording_error", err.localizedDescription, err);
+        } else {
+            resolve(fileURL ? fileURL.absoluteString : [NSNull null]);
+        }
+    }];
+}
+
+RCT_EXPORT_METHOD(stopTrackRecording:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [[TracksRecorderManager shared] stopRecordingWithCompletion:^{
+        resolve(nil);
+    }];
+}
+
+RCT_EXPORT_METHOD(clearStreamRecordings:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    [[TracksRecorderManager shared] clearRecordingsDirectoryWithCompletion:^(NSError * _Nullable err) {
+        if (err) {
+            reject(@"clear_error", err.localizedDescription, err);
+        } else {
+            resolve(nil);
+        }
+    }];
+}
+
+RCT_EXPORT_METHOD(getStreamRecordings:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    NSArray<NSURL *> *urls = [[TracksRecorderManager shared] listRecordings];
+    NSMutableArray<NSString *> *result = [NSMutableArray arrayWithCapacity:urls.count];
+    for (NSURL *url in urls) {
+        NSString *abs = url.absoluteString;
+        if (abs) [result addObject:abs];
+    }
+    resolve(result);
 }
 
 @end
