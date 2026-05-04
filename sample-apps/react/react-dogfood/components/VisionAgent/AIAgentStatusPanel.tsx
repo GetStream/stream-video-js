@@ -22,7 +22,7 @@ export const AIAgentStatusPanel = ({
   const [isRemoving, setIsRemoving] = useState(false);
 
   const agentParticipant = participants.find((p) =>
-    p.userId?.startsWith('agent-'),
+    p.userId?.startsWith('agent'),
   );
   if (!call || !agentParticipant) return null;
 

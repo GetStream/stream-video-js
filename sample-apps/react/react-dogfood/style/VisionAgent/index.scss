@@ -122,17 +122,18 @@ $ai-gradient: linear-gradient(135deg, #005fff 0%, #7f5af0 100%);
 
   &__invite {
     appearance: none;
-    border: 1px solid var(--str-video__base-color5);
-    background: transparent;
-    color: inherit;
+    border: none;
+    color: #fff;
+    background: $ai-gradient;
     padding: 0.5rem 1rem;
     border-radius: 999px;
     cursor: pointer;
     font-size: var(--str-video__font-size-sm);
     font-weight: 600;
+    transition: box-shadow 0.15s ease;
 
     &:hover:not(:disabled) {
-      background-color: var(--str-video__base-color6);
+      box-shadow: 0 4px 14px rgba(127, 90, 240, 0.35);
     }
 
     &:disabled {
