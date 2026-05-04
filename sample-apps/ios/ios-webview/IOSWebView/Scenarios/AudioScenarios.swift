@@ -415,10 +415,43 @@ final class AudioScenarios: NSObject {
             AppState.shared.audioSessionActive = true
             AppState.shared.log(.scenarios, "audio",
                 "restored → .playAndRecord/.videoChat + active(true) (notifyOthersOnDeactivation fired)")
+            synthesizeInterruptionEnded()
         } catch {
             AppState.shared.log(.errors, "audio", "restore failed: \(error)")
         }
         dumpSessionState(label: "after restore")
+    }
+
+    /// Posts a synthetic `AVAudioSession.interruptionNotification(.ended)`.
+    ///
+    /// iOS does not reliably deliver `.ended` to in-process observers after a
+    /// host-initiated self-restore: `setActive(false, .notifyOthersOnDeactivation)`
+    /// signals other processes, and `setCategory(.playAndRecord, ...)` may or may
+    /// not fire a `routeChangeNotification(.categoryChange)` depending on iOS
+    /// version, timing, and whether the system coalesces it with the prior
+    /// `.began`. Without an `.ended`, `AudioSessionBridge.latestInterruption`
+    /// stays at `began` and the page-side `AudioHealthMonitor` keeps reading
+    /// `host-audio-session-interrupted` even after the session is healthy again.
+    ///
+    /// Posting one ourselves at the end of a successful self-restore makes the
+    /// recovery deterministic: the bridge runs `handleInterruption`, updates
+    /// `latestInterruption` to `ended`, and dispatches a fresh snapshot. Any
+    /// other in-process observer (WebKit's `RTCAudioSession` included) treats
+    /// it as a normal `.ended + .shouldResume`, which is consistent with the
+    /// state we just put the session in.
+    private func synthesizeInterruptionEnded() {
+        let info: [AnyHashable: Any] = [
+            AVAudioSessionInterruptionTypeKey:
+                AVAudioSession.InterruptionType.ended.rawValue,
+            AVAudioSessionInterruptionOptionKey:
+                AVAudioSession.InterruptionOptions.shouldResume.rawValue,
+        ]
+        NotificationCenter.default.post(
+            name: AVAudioSession.interruptionNotification,
+            object: AVAudioSession.sharedInstance(),
+            userInfo: info)
+        AppState.shared.log(.lifecycle, "audio",
+            "synthesized interruption=ended (host self-restore)")
     }
 
     // MARK: Test tone
@@ -594,6 +627,7 @@ extension AudioScenarios: AVAudioPlayerDelegate {
             AppState.shared.audioSessionActive = true
             AppState.shared.log(.scenarios, "audio",
                 "restored → .playAndRecord/.videoChat + active(true)")
+            synthesizeInterruptionEnded()
         } catch {
             AppState.shared.log(.errors, "audio",
                 "release-on-finish restore failed: \(error)")

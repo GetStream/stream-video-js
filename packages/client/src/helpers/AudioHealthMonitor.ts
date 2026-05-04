@@ -27,6 +27,23 @@ import {
 export type AudioHealthStatus = 'healthy' | 'unhealthy' | 'unknown';
 
 /**
+ * Which direction(s) of the audio pipeline a signal speaks to.
+ *
+ * - `'capture'` - the local mic / outgoing audio path is broken; the user
+ *   can still hear remote participants.
+ * - `'playback'` - the local renderer / incoming audio path is broken;
+ *   the user can still talk.
+ * - `'both'` - the underlying signal does not separate the two
+ *   directions (most OS-level interruptions, healthy reasons, and the
+ *   pre-start state).
+ *
+ * Consumers that want differentiated UX (e.g. "your mic is interrupted,
+ * you can still hear the call") branch on this. Consumers that just
+ * render a generic banner can ignore it.
+ */
+export type AudioHealthDirection = 'capture' | 'playback' | 'both';
+
+/**
  * Specific cause of the current {@link AudioHealthStatus}. Lets consumers
  * dispatch on the reason for tailored UX (e.g. "click to enable audio"
  * for autoplay blocks vs. "another app is using your audio" for session
@@ -88,16 +105,19 @@ export type AudioHealthReason =
  * {@link AudioHealthMonitor.audioHealth$}. `status` is the coarse bucket
  * consumers bind to for UX state; `reason` identifies the specific cause
  * so they can render targeted messaging or choose an appropriate recovery
- * action.
+ * action; `direction` says which side of the audio pipeline the failure
+ * affects (or `'both'` when the signal is bidirectional / healthy).
  */
 export interface AudioHealthInfo {
   status: AudioHealthStatus;
   reason: AudioHealthReason;
+  direction: AudioHealthDirection;
 }
 
 const UNKNOWN_NOT_STARTED: AudioHealthInfo = {
   status: 'unknown',
   reason: 'not-started',
+  direction: 'both',
 };
 
 /**
@@ -538,24 +558,57 @@ export class AudioHealthMonitor {
     //
     // 1. Host bridge reports an active `AVAudioSession` interruption.
     //    Ground truth on iOS: the host sees hostile category/mode
-    //    changes WebKit silently ignores.
+    //    changes WebKit silently ignores. Direction is `'both'`: when
+    //    iOS posts `interruption.began`, WebKit's `RTCAudioSession`
+    //    stops the audio device entirely until the session is restored,
+    //    so neither direction of WebRTC audio is alive. The host-claimed
+    //    category (`.playback`, `.record`, etc.) signals the host's
+    //    intent but does NOT keep WebRTC's other direction working - the
+    //    audio unit is fully stopped for the duration of the
+    //    interruption. Mapping by category was an early mistake; see
+    //    `sample-apps/ios/ios-webview/AUDIO-SESSIONS.md` ("audio stays
+    //    dead until restore").
     if (this.hostAudioSession?.interruption?.type === 'began') {
-      return { status: 'unhealthy', reason: 'host-audio-session-interrupted' };
+      return {
+        status: 'unhealthy',
+        reason: 'host-audio-session-interrupted',
+        direction: 'both',
+      };
     }
-    // 2. Explicit OS interruption via W3C (Safari native).
+    // 2. Explicit OS interruption via W3C (Safari native). The W3C
+    //    `navigator.audioSession.state === 'interrupted'` is explicitly
+    //    bidirectional ("the user agent has lost permission to produce
+    //    or capture audio"), so direction is `'both'`.
     if (this.audioSessionState === 'interrupted') {
-      return { status: 'unhealthy', reason: 'audio-session-interrupted' };
+      return {
+        status: 'unhealthy',
+        reason: 'audio-session-interrupted',
+        direction: 'both',
+      };
     }
-    // 3. Probe AudioContext interrupted (same root cause as (2) on Safari;
-    //    listed separately so we don't lose the signal if they diverge).
+    // 3. Probe AudioContext interrupted. `AudioContext` is an output-side
+    //    API per W3C ("can't produce sound to its destination"), so the
+    //    direct signal is playback-only. Practically correlates with
+    //    capture breakage on Safari/iOS (same root cause as (2)) but
+    //    we report what the signal actually measures; the W3C
+    //    `audio-session-interrupted` above will catch the bidirectional
+    //    case on iOS 16.4+.
     if (this.audioContext?.state === 'interrupted') {
-      return { status: 'unhealthy', reason: 'audio-context-interrupted' };
+      return {
+        status: 'unhealthy',
+        reason: 'audio-context-interrupted',
+        direction: 'playback',
+      };
     }
     // 4. Browser autoplay policy block, fires on all browsers. Goes first
     // within the cross-browser tier because it's the only user-recoverable reason in the group
     // ("click to enable audio" is more actionable UX than "audio interrupted").
     if (this.blockedAudioElementsSubject.getValue().size > 0) {
-      return { status: 'unhealthy', reason: 'autoplay-blocked' };
+      return {
+        status: 'unhealthy',
+        reason: 'autoplay-blocked',
+        direction: 'playback',
+      };
     }
     // 5. Two or more remote audio tracks all muted by browser/OS.
     //    Threshold is `> 1` not `> 0`: with a single tracked track
@@ -569,21 +622,37 @@ export class AudioHealthMonitor {
       remoteAudioMuted.size > 1 &&
       Array.from(remoteAudioMuted.values()).every(Boolean)
     ) {
-      return { status: 'unhealthy', reason: 'remote-tracks-muted' };
+      return {
+        status: 'unhealthy',
+        reason: 'remote-tracks-muted',
+        direction: 'playback',
+      };
     }
     // 6. Any bound `<audio>` element auto-paused while its srcObject
     //    is a live MediaStream - renderer-side stall.
     if (this.pausedAudioElementsSubject.getValue().size > 0) {
-      return { status: 'unhealthy', reason: 'element-paused' };
+      return {
+        status: 'unhealthy',
+        reason: 'element-paused',
+        direction: 'playback',
+      };
     }
     // 7. Positive healthy signal from the host bridge - ground truth
     //    (native confirms the session is not interrupted).
     if (this.hostAudioSession) {
-      return { status: 'healthy', reason: 'host-audio-session-active' };
+      return {
+        status: 'healthy',
+        reason: 'host-audio-session-active',
+        direction: 'both',
+      };
     }
     // 8. Positive healthy signal: Safari confirms the session is active.
     if (this.audioSessionState === 'active') {
-      return { status: 'healthy', reason: 'audio-session-active' };
+      return {
+        status: 'healthy',
+        reason: 'audio-session-active',
+        direction: 'both',
+      };
     }
     // 9. Cross-browser positive healthy signal: at least one remote
     //    audio track is known and not muted, and no bound element is
@@ -591,11 +660,15 @@ export class AudioHealthMonitor {
     //    once playback is verified.
     const someUnmuted = Array.from(remoteAudioMuted.values()).some((m) => !m);
     if (someUnmuted) {
-      return { status: 'healthy', reason: 'playback-verified' };
+      return {
+        status: 'healthy',
+        reason: 'playback-verified',
+        direction: 'both',
+      };
     }
     // 10. Fallback: no failure, no positive confirmation. Normal on
     //     Chrome/Firefox before any remote audio track is registered,
     //     and during transient pre-activation states on Safari.
-    return { status: 'unknown', reason: 'unsupported' };
+    return { status: 'unknown', reason: 'unsupported', direction: 'both' };
   };
 }

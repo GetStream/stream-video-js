@@ -99,6 +99,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unknown',
       reason: 'not-started',
+      direction: 'both',
     });
     // @ts-expect-error private property
     expect(monitor.audioContext).toBeUndefined();
@@ -149,6 +150,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unknown',
       reason: 'not-started',
+      direction: 'both',
     });
     // @ts-expect-error private property
     expect(monitor.started).toBe(false);
@@ -209,6 +211,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unknown',
       reason: 'not-started',
+      direction: 'both',
     });
   });
 
@@ -235,6 +238,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'healthy',
       reason: 'audio-session-active',
+      direction: 'both',
     });
   });
 
@@ -246,6 +250,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
       reason: 'audio-session-interrupted',
+      direction: 'both',
     });
   });
 
@@ -261,6 +266,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
       reason: 'autoplay-blocked',
+      direction: 'playback',
     });
 
     // Unregistering clears the block.
@@ -268,6 +274,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'healthy',
       reason: 'audio-session-active',
+      direction: 'both',
     });
   });
 
@@ -284,6 +291,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
       reason: 'audio-session-interrupted',
+      direction: 'both',
     });
   });
 
@@ -294,6 +302,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unknown',
       reason: 'unsupported',
+      direction: 'both',
     });
   });
 
@@ -373,6 +382,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'healthy',
       reason: 'audio-session-active',
+      direction: 'both',
     });
   });
 
@@ -410,6 +420,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
       reason: 'host-audio-session-interrupted',
+      direction: 'both',
     });
   });
 
@@ -422,6 +433,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'healthy',
       reason: 'host-audio-session-active',
+      direction: 'both',
     });
   });
 
@@ -442,6 +454,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'healthy',
       reason: 'host-audio-session-active',
+      direction: 'both',
     });
   });
 
@@ -506,6 +519,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
       reason: 'audio-session-interrupted',
+      direction: 'both',
     });
   });
 
@@ -529,6 +543,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unknown',
       reason: 'not-started',
+      direction: 'both',
     });
   });
 
@@ -545,6 +560,74 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
       reason: 'host-audio-session-interrupted',
+      direction: 'both',
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Host audio-session bridge: direction
+  // -------------------------------------------------------------------------
+  //
+  // `host-audio-session-interrupted` always emits `direction: 'both'`
+  // regardless of the host-claimed category. When iOS posts
+  // `interruption.began`, WebKit's `RTCAudioSession` stops the audio
+  // device entirely until the session is restored, so neither WebRTC
+  // direction is alive while the interruption is in effect. The
+  // category in the snapshot reflects the host's intent (output-only,
+  // input-only, etc.) but does not keep WebRTC's other direction
+  // working. See AUDIO-SESSIONS.md "audio stays dead until restore".
+
+  it('emits direction=both for `host-audio-session-interrupted` with category=playback', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(
+      makeHostEvent({
+        session: { category: 'playback', mode: 'default', options: [] },
+        interruption: { type: 'began', reason: null },
+      }),
+    );
+
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unhealthy',
+      reason: 'host-audio-session-interrupted',
+      direction: 'both',
+    });
+  });
+
+  it('emits direction=both for `host-audio-session-interrupted` with category=record', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(
+      makeHostEvent({
+        session: { category: 'record', mode: 'default', options: [] },
+        interruption: { type: 'began', reason: null },
+      }),
+    );
+
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unhealthy',
+      reason: 'host-audio-session-interrupted',
+      direction: 'both',
+    });
+  });
+
+  it('emits direction=both for `host-audio-session-interrupted` with category=playAndRecord', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(
+      makeHostEvent({
+        session: { category: 'playAndRecord', mode: 'videoChat', options: [] },
+        interruption: { type: 'began', reason: 'appWasSuspended' },
+      }),
+    );
+
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'unhealthy',
+      reason: 'host-audio-session-interrupted',
+      direction: 'both',
     });
   });
 
@@ -585,6 +668,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
       reason: 'remote-tracks-muted',
+      direction: 'playback',
     });
   });
 
@@ -602,6 +686,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'healthy',
       reason: 'playback-verified',
+      direction: 'both',
     });
   });
 
@@ -627,6 +712,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
       reason: 'remote-tracks-muted',
+      direction: 'playback',
     });
   });
 
@@ -643,6 +729,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unknown',
       reason: 'unsupported',
+      direction: 'both',
     });
   });
 
@@ -660,6 +747,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
       reason: 'element-paused',
+      direction: 'playback',
     });
   });
 
@@ -675,6 +763,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unknown',
       reason: 'unsupported',
+      direction: 'both',
     });
   });
 
@@ -728,6 +817,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unknown',
       reason: 'unsupported',
+      direction: 'both',
     });
   });
 
@@ -741,6 +831,7 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'healthy',
       reason: 'playback-verified',
+      direction: 'both',
     });
   });
 

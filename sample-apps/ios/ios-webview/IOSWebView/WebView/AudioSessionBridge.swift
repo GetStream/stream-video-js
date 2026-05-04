@@ -132,6 +132,22 @@ final class AudioSessionBridge {
             let reason = AVAudioSession.RouteChangeReason(rawValue: raw)
         else { return }
         latestRouteChange = .init(reason: Self.describe(routeChangeReason: reason))
+
+        // iOS does not reliably post `interruption.ended` after a
+        // category-conflict interruption, even when the host runs the
+        // 3-step restore (`setActive(false, .notifyOthersOnDeactivation)`,
+        // `setCategory(.playAndRecord, ...)`, `setActive(true)`). Without
+        // this, `latestInterruption` stays at `began` forever and the
+        // SDK's `AudioHealthMonitor` keeps the page at
+        // `host-audio-session-interrupted` after the session is healthy
+        // again. Treat a categoryChange back to `.playAndRecord` as
+        // ground truth that the interruption is over.
+        if reason == .categoryChange,
+           audioSession.category == .playAndRecord,
+           latestInterruption?.type == "began" {
+            latestInterruption = .init(type: "ended", reason: nil)
+        }
+
         dispatch()
     }
 

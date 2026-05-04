@@ -6,12 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { BehaviorSubject } from 'rxjs';
 import { AudioHealthAutoRecovery } from '../AudioHealthAutoRecovery';
 import type {
+  AudioHealthDirection,
   AudioHealthInfo,
   AudioHealthReason,
   AudioHealthStatus,
 } from '../AudioHealthMonitor';
-import { CameraManager } from '../../devices/CameraManager';
-import { MicrophoneManager } from '../../devices/MicrophoneManager';
+import { CameraManager, MicrophoneManager } from '../../devices';
 import { Tracer } from '../../stats';
 
 describe('AudioHealthAutoRecovery', () => {
@@ -31,6 +31,7 @@ describe('AudioHealthAutoRecovery', () => {
     audioHealth$ = new BehaviorSubject<AudioHealthInfo>({
       status: 'unknown',
       reason: 'not-started',
+      direction: 'both',
     });
     mic = makeDevice('enabled');
     cam = makeDevice('enabled');
@@ -55,8 +56,33 @@ describe('AudioHealthAutoRecovery', () => {
     return r;
   };
 
-  const emit = (status: AudioHealthStatus, reason: AudioHealthReason) => {
-    audioHealth$.next({ status, reason });
+  /**
+   * Default `direction` mirrors the production mapping: `'playback'` for
+   * the playback-only reasons (autoplay-blocked, remote-tracks-muted,
+   * element-paused, audio-context-interrupted), `'both'` otherwise.
+   * Tests that exercise the capture-vs-playback split pass `direction`
+   * explicitly.
+   */
+  const emit = (
+    status: AudioHealthStatus,
+    reason: AudioHealthReason,
+    direction: AudioHealthDirection = defaultDirectionFor(reason),
+  ) => {
+    audioHealth$.next({ status, reason, direction });
+  };
+
+  const defaultDirectionFor = (
+    reason: AudioHealthReason,
+  ): AudioHealthDirection => {
+    switch (reason) {
+      case 'autoplay-blocked':
+      case 'remote-tracks-muted':
+      case 'element-paused':
+      case 'audio-context-interrupted':
+        return 'playback';
+      default:
+        return 'both';
+    }
   };
 
   /**
@@ -93,6 +119,28 @@ describe('AudioHealthAutoRecovery', () => {
     await flushMicrotasks();
 
     expect(mic.disable).not.toHaveBeenCalled();
+  });
+
+  it('skips auto-mute on `audio-context-interrupted` (direction=playback)', async () => {
+    const r = newRecovery();
+    r.start();
+
+    emit('healthy', 'host-audio-session-active');
+    emit('unhealthy', 'audio-context-interrupted');
+    await flushMicrotasks();
+
+    expect(mic.disable).not.toHaveBeenCalled();
+  });
+
+  it("auto-mutes when direction is 'capture' (capture-only failure)", async () => {
+    const r = newRecovery();
+    r.start();
+
+    emit('healthy', 'host-audio-session-active');
+    emit('unhealthy', 'host-audio-session-interrupted', 'capture');
+    await flushMicrotasks();
+
+    expect(mic.disable).toHaveBeenCalledTimes(1);
   });
 
   it('skips auto-mute when the mic is already disabled (respects user mute)', async () => {

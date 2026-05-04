@@ -314,6 +314,18 @@ final class AudioSessionBridge {
             let reason = AVAudioSession.RouteChangeReason(rawValue: raw)
         else { return }
         latestRouteChange = .init(reason: Self.describe(routeChangeReason: reason))
+
+        // iOS does not reliably post `interruption.ended` after a
+        // category-conflict interruption. Treat a categoryChange back to
+        // `.playAndRecord` as ground truth that the interruption is over,
+        // otherwise `latestInterruption` stays at `began` and the SDK
+        // keeps the page at `host-audio-session-interrupted` forever.
+        if reason == .categoryChange,
+           audioSession.category == .playAndRecord,
+           latestInterruption?.type == "began" {
+            latestInterruption = .init(type: "ended", reason: nil)
+        }
+
         dispatch()
     }
 
@@ -578,15 +590,95 @@ loads, the bridge isn't reaching the SDK. Common causes:
 
 ---
 
+## Recovering from host-initiated interruptions
+
+The bridge subscribes to exactly two `NotificationCenter` events:
+`AVAudioSession.interruptionNotification` and
+`AVAudioSession.routeChangeNotification`. That covers most things iOS
+posts on its own, but **not every state mutation triggers one of them**.
+In particular, after a host self-restore the bridge can stay silent:
+
+- `setActive(false, .notifyOthersOnDeactivation)` notifies _other_
+  processes' sessions; it does not post `.ended` on the same-process
+  session.
+- `setActive(true)` is silent.
+- `setMode()` alone may post a `routeChangeNotification(.routeConfigurationChange)`
+  but is not guaranteed across iOS versions.
+- `setCategory()` to a new value should post
+  `routeChangeNotification(.categoryChange)`, but iOS sometimes
+  coalesces it with the prior `.began` or skips it entirely if the
+  underlying routing graph didn't change.
+
+The practical result: a host that runs the documented 3-step restore
+(`setActive(false, .notifyOthersOnDeactivation)` ->
+`setCategory(.playAndRecord, ...)` -> `setActive(true)`) often finishes
+with the bridge's `latestInterruption` still set to `began`, and the
+page stuck at `host-audio-session-interrupted` even though the session
+is healthy. The bridge has nothing new to dispatch because it never
+saw an event.
+
+### Make the recovery deterministic: synthesize `.ended`
+
+After a successful self-restore, post
+`AVAudioSession.interruptionNotification` with
+`interruptionType = .ended` and
+`interruptionOption = .shouldResume` to the local
+`NotificationCenter`. Every in-process observer (the bridge, WebKit's
+`RTCAudioSession`, anything else listening) treats it as a normal
+end-of-interruption. Because the session is already in
+`.playAndRecord/.videoChat + active=true` at this point, no observer's
+reactivation path has anything left to do; the only practical effect
+is that the bridge runs `handleInterruption`, sets `latestInterruption`
+to `ended`, and dispatches a fresh snapshot.
+
+```swift
+/// Call at the end of every successful host-initiated restore (3-step
+/// pattern, AVAudioPlayerDelegate finish, ringtone-finish, etc).
+func synthesizeInterruptionEnded() {
+    let info: [AnyHashable: Any] = [
+        AVAudioSessionInterruptionTypeKey:
+            AVAudioSession.InterruptionType.ended.rawValue,
+        AVAudioSessionInterruptionOptionKey:
+            AVAudioSession.InterruptionOptions.shouldResume.rawValue,
+    ]
+    NotificationCenter.default.post(
+        name: AVAudioSession.interruptionNotification,
+        object: AVAudioSession.sharedInstance(),
+        userInfo: info)
+}
+```
+
+The reference implementation lives in
+[`AudioScenarios.swift`](./IOSWebView/Scenarios/AudioScenarios.swift):
+`restoreForWebRTC()` and the `audioPlayerDidFinishPlaying` delegate
+both call `synthesizeInterruptionEnded()` after the 3-step.
+
+> ⚠️ Only synthesize `.ended` when **you** know the session is back to
+> a WebRTC-friendly state. Posting it speculatively (without actually
+> running the 3-step first) lies to the bridge and any other observer.
+
+### Belt-and-suspenders inside the bridge
+
+Some recovery paths are not under your control: a third-party SDK
+might do its own session work and never call your synthesize helper.
+The reference bridge's `handleRouteChange` therefore _also_ clears
+`latestInterruption` when a real
+`routeChangeNotification(reason: .categoryChange)` brings the category
+back to `.playAndRecord`. That covers OS-driven recoveries where iOS
+does post the route change; the synthesize call above covers the
+cases where it doesn't.
+
+---
+
 ## Common pitfalls
 
-| Symptom                                                                | Likely cause                                                                                                   | Fix                                                                                                                                                                                                                                                                                                                     |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `audioHealth` stuck at `host-audio-session-interrupted` after recovery | Bridge received `.began` but iOS never posted a matching `.ended` (common for category-conflict interruptions) | Either restore the session yourself with the 3-step pattern (`setActive(false, .notifyOthersOnDeactivation)` → reset category → `setActive(true)`), or - if you control the bridge - clear `latestInterruption` when a `routeChangeNotification(reason: .categoryChange)` brings the category back to `.playAndRecord`. |
-| No events firing at all                                                | Listener attached before page loaded                                                                           | Attach the page-side listener inside the React app (the SDK does this automatically); native bridge dispatch queues the JS until the page is ready.                                                                                                                                                                     |
-| Events fire but `audioHealth` doesn't react                            | Wrong event name or `schemaVersion !== 1`                                                                      | Use exactly `'stream-video:host-audio-session'` and `schemaVersion: 1`. The SDK silently drops anything else.                                                                                                                                                                                                           |
-| Bridge crashes after webview teardown                                  | Strong reference to the WebView                                                                                | Always `weak var webView` + remove observers in `deinit` or a `stop()` method called from the owning view controller / coordinator.                                                                                                                                                                                     |
-| Interruption reason is missing on iOS < 14.5                           | `AVAudioSessionInterruptionReasonKey` wasn't added until iOS 14.5                                              | Gate the read behind `#available(iOS 14.5, *)`; the field is optional in the payload.                                                                                                                                                                                                                                   |
+| Symptom                                                                | Likely cause                                                                                                                                             | Fix                                                                                                                                                                                                                                                                                                                                             |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `audioHealth` stuck at `host-audio-session-interrupted` after recovery | Bridge received `.began` but iOS never posted a matching `.ended`, and `setCategory(.playAndRecord, ...)` doesn't reliably fire `.categoryChange` either | Run the 3-step restore (`setActive(false, .notifyOthersOnDeactivation)` → `setCategory(.playAndRecord, ...)` → `setActive(true)`) and synthesize `.ended` afterward via `NotificationCenter.default.post(...interruptionNotification, ...)`. See [Recovering from host-initiated interruptions](#recovering-from-host-initiated-interruptions). |
+| No events firing at all                                                | Listener attached before page loaded                                                                                                                     | Attach the page-side listener inside the React app (the SDK does this automatically); native bridge dispatch queues the JS until the page is ready.                                                                                                                                                                                             |
+| Events fire but `audioHealth` doesn't react                            | Wrong event name or `schemaVersion !== 1`                                                                                                                | Use exactly `'stream-video:host-audio-session'` and `schemaVersion: 1`. The SDK silently drops anything else.                                                                                                                                                                                                                                   |
+| Bridge crashes after webview teardown                                  | Strong reference to the WebView                                                                                                                          | Always `weak var webView` + remove observers in `deinit` or a `stop()` method called from the owning view controller / coordinator.                                                                                                                                                                                                             |
+| Interruption reason is missing on iOS < 14.5                           | `AVAudioSessionInterruptionReasonKey` wasn't added until iOS 14.5                                                                                        | Gate the read behind `#available(iOS 14.5, *)`; the field is optional in the payload.                                                                                                                                                                                                                                                           |
 
 ## References
 

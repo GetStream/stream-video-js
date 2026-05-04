@@ -16,11 +16,13 @@ import type {
  */
 export interface AudioHealthAutoRecoveryConfig {
   /**
-   * Auto-mute the local mic on `healthy → unhealthy` transitions caused
-   * by a *local-capture* reason (`host-audio-session-interrupted`,
-   * `audio-session-interrupted`, `audio-context-interrupted`). Surfaces
-   * a real mute signal to the SFU so remote participants see the user
-   * as explicitly muted instead of broken.
+   * Auto-mute the local mic on `healthy → unhealthy` transitions whose
+   * `direction` includes the capture path (`'capture'` or `'both'`).
+   * Surfaces a real mute signal to the SFU so remote participants see
+   * the user as explicitly muted instead of broken. Skipped on
+   * `'playback'`-only failures (autoplay-blocked, remote-tracks muted,
+   * AudioContext interruption, host bridge reporting `.record`
+   * category) because muting in those cases actively hurts UX.
    *
    * Default `true`.
    */
@@ -59,19 +61,6 @@ export interface AudioHealthAutoRecoveryConfig {
 }
 
 /**
- * Reasons for which auto-mute is sensible - i.e., the *local mic* is the
- * thing that's broken. Other unhealthy reasons (autoplay-blocked,
- * remote-tracks-muted, element-paused) describe remote-side or
- * renderer-side issues; muting the local mic in response would actively
- * hurt UX.
- */
-const LOCAL_CAPTURE_REASONS: ReadonlySet<AudioHealthReason> = new Set([
-  'host-audio-session-interrupted',
-  'audio-session-interrupted',
-  'audio-context-interrupted',
-]);
-
-/**
  * Reacts to `AudioHealthMonitor.audioHealth$` transitions and applies
  * recovery actions to the local mic and camera.
  *
@@ -79,9 +68,11 @@ const LOCAL_CAPTURE_REASONS: ReadonlySet<AudioHealthReason> = new Set([
  *
  * Two transition triggers:
  *
- * - `healthy → unhealthy` with a *local-capture* reason and mic
- *   currently enabled → `microphone.disable()`. Debounced to avoid
- *   flapping. Respects user mute (skips if mic was already disabled).
+ * - `healthy → unhealthy` with a `direction` of `'capture'` or `'both'`
+ *   and mic currently enabled → `microphone.disable()`. Debounced to
+ *   avoid flapping. Respects user mute (skips if mic was already
+ *   disabled). `'playback'`-only failures don't trigger auto-mute
+ *   because muting in response to a renderer-side issue hurts UX.
  * - `unhealthy → healthy` → for each enabled device whose cycle flag
  *   is set, run `disable() → enable()` to force fresh `MediaStreamTrack`
  *   acquisition. Skips disabled devices so a previously auto-muted user
@@ -182,15 +173,16 @@ export class AudioHealthAutoRecovery {
     }
 
     if (prev === 'healthy' && info.status === 'unhealthy') {
-      await this.handleDegraded(info.reason);
+      await this.handleDegraded(info);
     } else if (prev === 'unhealthy' && info.status === 'healthy') {
       await this.handleRecovered(info.reason);
     }
   };
 
-  private handleDegraded = async (reason: AudioHealthReason): Promise<void> => {
+  private handleDegraded = async (info: AudioHealthInfo): Promise<void> => {
     if (!this.config.autoMuteOnInterruption) return;
-    if (!LOCAL_CAPTURE_REASONS.has(reason)) return;
+    const { direction, reason } = info;
+    if (direction !== 'capture' && direction !== 'both') return;
     if (this.microphone.state.status !== 'enabled') return;
 
     const now = Date.now();

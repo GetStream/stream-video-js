@@ -528,15 +528,18 @@ export const useIsAutoplayBlocked = (): boolean => {
 const UNKNOWN_AUDIO_HEALTH$ = of<AudioHealthInfo>({
   status: 'unknown',
   reason: 'unsupported',
+  direction: 'both',
 });
 
 /**
- * Returns the current audio-pipeline health of the call.
+ * Reactive audio-pipeline health for the current {@link Call}.
  *
- * The return value is a `{ status, reason }` object where `status` is the
- * coarse bucket (`'healthy' | 'unhealthy' | 'unknown'`) consumers bind to
- * for UX state, and `reason` identifies the specific cause for targeted
- * messaging or recovery.
+ * Subscribes to {@link AudioHealthMonitor.audioHealth$} and re-renders on
+ * each emission. When no monitor is attached (React Native, or before the
+ * call is fully constructed), returns a static
+ * `{ status: 'unknown', reason: 'unsupported', direction: 'both' }`.
+ *
+ * See {@link AudioHealthInfo} for the shape of the returned value.
  */
 export const useAudioHealth = (): AudioHealthInfo => {
   const call = useCall() as Call;
