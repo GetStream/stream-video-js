@@ -100,36 +100,6 @@
   }
 }
 
-.rd__header__vision-agent {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--str-video__base-color6);
-  border: none;
-  color: inherit;
-  padding: var(--str-video__spacing-xxs) var(--str-video__spacing-md);
-  border-radius: var(--str-video__border-radius-md);
-  font-size: var(--str-video__font-size-xs);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-
-  &:hover:not(:disabled) {
-    background-color: var(--str-video__base-color5);
-  }
-
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-
-  &-icon {
-    margin-right: var(--str-video__spacing-xxs);
-    height: 16px;
-    width: 16px;
-  }
-}
-
 .rd__header__latency {
   display: none;
   justify-content: center;
