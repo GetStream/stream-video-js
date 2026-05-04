@@ -65,6 +65,11 @@ export type StreamVideoConfig = {
        * @default 60000 (1 minute)
        */
       displayCallTimeout?: number;
+      /**
+       * Whether to enable ongoing calls.
+       * @default false
+       */
+      enableOngoingCalls?: boolean;
     };
     android?: {
       /**
@@ -145,12 +150,12 @@ export type StreamVideoConfig = {
         ) => string;
         getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
       };
+      /**
+       * Whether to enable ongoing calls.
+       * @default false
+       */
+      enableOngoingCalls?: boolean;
     };
-    /**
-     * Whether to enable ongoing calls.
-     * @default false
-     */
-    enableOngoingCalls?: boolean;
     /**
      * Whether to reject calls when the user is busy.
      * @default false

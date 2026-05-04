@@ -91,7 +91,6 @@ export const useAndroidKeepCallAliveEffect = () => {
 
   const isCallJoined = callingState === CallingState.JOINED;
   const isRingingCall = call?.ringing;
-  const isLivestreamCall = call?.type === 'livestream';
 
   const shouldStartForegroundService =
     !foregroundServiceStartedRef.current && isCallJoined;
@@ -104,10 +103,7 @@ export const useAndroidKeepCallAliveEffect = () => {
     const callingx = getCallingxLibIfAvailable();
     if (
       callingx?.isSetup &&
-      (isRingingCall ||
-        (!isRingingCall &&
-          callingx?.isOngoingCallsEnabled &&
-          !isLivestreamCall))
+      (isRingingCall || (!isRingingCall && callingx?.isOngoingCallsEnabled))
     ) {
       return undefined;
     }
@@ -156,7 +152,6 @@ export const useAndroidKeepCallAliveEffect = () => {
     callingState,
     shouldStartForegroundService,
     isRingingCall,
-    isLivestreamCall,
   ]);
 
   useEffect(() => {
