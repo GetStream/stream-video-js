@@ -93,9 +93,9 @@ export class StableWSConnection {
   /**
    * connect - Connect to the WS URL
    * the default 15s timeout allows between 2~3 tries
-   * @return {ConnectAPIResponse<ConnectedEvent>} Promise that completes once the first health check message is received
+   * @return Promise that completes once the first health check message is received
    */
-  async connect(timeout = 15000) {
+  connect = async (timeout = 15000): Promise<ConnectedEvent | undefined> => {
     if (this.isConnecting) {
       throw Error(
         `You've called connect twice, can only attempt 1 connection at the time`,
@@ -105,7 +105,7 @@ export class StableWSConnection {
     this.isDisconnected = false;
 
     try {
-      const healthCheck = await this._connect();
+      const healthCheck = await this._connect(timeout);
       this.consecutiveFailures = 0;
 
       this._log(
@@ -124,30 +124,36 @@ export class StableWSConnection {
           'connect() - WS failure due to expired token, so going to try to reload token and reconnect',
         );
         this._reconnect({ refreshToken: true });
+      } else if (!error.isWSFailure) {
+        // API rejected the connection and we should not retry
+        throw new Error(
+          JSON.stringify({
+            code: error.code,
+            StatusCode: error.StatusCode,
+            message: error.message,
+            isWSFailure: error.isWSFailure,
+          }),
+        );
       } else {
-        if (!error.isWSFailure) {
-          // API rejected the connection and we should not retry
-          throw new Error(
-            JSON.stringify({
-              code: error.code,
-              StatusCode: error.StatusCode,
-              message: error.message,
-              isWSFailure: error.isWSFailure,
-            }),
-          );
-        }
+        // Transient WS failure (e.g., handshake watchdog). Kick off a
+        // reconnect chain so _waitForHealthy(timeout) below has something
+        // to poll for. Owning the trigger here (rather than inside
+        // _connect()'s catch) keeps a single failure from spawning two
+        // parallel chains - one from this catch and one from _reconnect's
+        // own catch when _connect was called from there.
+        this._reconnect();
       }
     }
 
     return await this._waitForHealthy(timeout);
-  }
+  };
 
   /**
    * _waitForHealthy polls the promise connection to see if its resolved until it times out
    * the default 15s timeout allows between 2~3 tries
    * @param timeout duration(ms)
    */
-  async _waitForHealthy(timeout = 15000) {
+  _waitForHealthy = async (timeout = 15000) => {
     return Promise.race([
       (async () => {
         const interval = 50; // ms
@@ -183,7 +189,7 @@ export class StableWSConnection {
         );
       })(),
     ]);
-  }
+  };
 
   /**
    * Builds and returns the url for websocket.
@@ -202,7 +208,7 @@ export class StableWSConnection {
   /**
    * disconnect - Disconnect the connection and doesn't recover...
    */
-  disconnect(timeout?: number) {
+  disconnect = (timeout?: number) => {
     this._log(
       `disconnect() - Closing the websocket connection for wsID ${this.wsID}`,
     );
@@ -264,14 +270,19 @@ export class StableWSConnection {
     delete this.ws;
 
     return isClosedPromise;
-  }
+  };
 
   /**
    * _connect - Connect to the WS endpoint
    *
+   * @param timeoutMs handshake watchdog deadline in ms. Defaults to
+   *   `client.defaultWSTimeout` when not provided. Top-level `connect(timeout)`
+   *   passes its own timeout through so caller-supplied deadlines are honored.
    * @return Promise that completes once the first health check message is received
    */
-  async _connect(): Promise<ConnectedEvent | undefined> {
+  _connect = async (
+    timeoutMs?: number,
+  ): Promise<ConnectedEvent | undefined> => {
     if (this.isConnecting) return; // ignore _connect if it's currently trying to connect
     this.isConnecting = true;
     let isTokenReady = false;
@@ -306,7 +317,7 @@ export class StableWSConnection {
 
       // race the WS handshake against an explicit deadline so a silent
       // network drop (e.g., carrier NAT or firewall) cannot wedge _connect()
-      const { defaultWSTimeout } = this.client;
+      const handshakeTimeout = timeoutMs ?? this.client.defaultWSTimeout;
       const timers = getTimers();
       let handshakeTimeoutId: number | undefined;
       let response: ConnectedEvent | undefined;
@@ -316,11 +327,11 @@ export class StableWSConnection {
           new Promise<never>((_, reject) => {
             handshakeTimeoutId = timers.setTimeout(() => {
               const err: WSConnectionError = new Error(
-                `WS handshake timed out after ${defaultWSTimeout}ms`,
+                `WS handshake timed out after ${handshakeTimeout}ms`,
               );
               err.isWSFailure = true;
               reject(err);
-            }, defaultWSTimeout);
+            }, handshakeTimeout);
           }),
         ]);
       } finally {
@@ -358,13 +369,9 @@ export class StableWSConnection {
       if (this.ws && this.ws.readyState !== this.ws.CLOSED) {
         this._destroyCurrentWSConnection();
       }
-      // for transient WS failures (e.g., handshake watchdog) kick off a reconnect
-      if (err?.isWSFailure) {
-        this._reconnect();
-      }
       throw err;
     }
-  }
+  };
 
   /**
    * _reconnect - Retry the connection to WS endpoint

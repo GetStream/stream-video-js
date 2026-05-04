@@ -28,11 +28,11 @@ class StuckWebSocket {
     StuckWebSocket.instances.push(this);
   }
 
-  close() {
+  close = () => {
     this.readyState = StuckWebSocket.CLOSED;
-  }
+  };
 
-  send() {}
+  send = () => {};
 }
 
 // A drivable mock that lets the test fire onopen / onmessage / onclose
@@ -77,13 +77,13 @@ class ManualWebSocket {
     } as MessageEvent);
   };
 
-  close() {
+  close = () => {
     this.readyState = ManualWebSocket.CLOSED;
-  }
+  };
 
-  send(data: string) {
+  send = (data: string) => {
     this.sentMessages.push(data);
-  }
+  };
 }
 
 const buildClient = () => {
