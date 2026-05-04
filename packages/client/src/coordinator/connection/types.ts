@@ -42,6 +42,21 @@ export type APIErrorResponse = {
   unrecoverable?: boolean;
 };
 
+/**
+ * A standard `Error` augmented with the metadata that the coordinator
+ * WebSocket connection layer attaches to rejection causes.
+ * `isWSFailure: true` marks transient/retriable failures; absent or `false`
+ * indicates a permanent failure that should not be retried.
+ */
+export type WSConnectionError = Error & {
+  code?: string | number;
+  isWSFailure?: boolean;
+  StatusCode?: string | number;
+  reason?: string;
+  wasClean?: boolean;
+  target?: EventTarget | null;
+};
+
 export class ErrorFromResponse<T> extends Error {
   public code: number | null;
   public status: number;
