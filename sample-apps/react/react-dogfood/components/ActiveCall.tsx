@@ -48,11 +48,7 @@ import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { TourPanel } from './TourPanel';
 import { UnreadCountBadge } from './UnreadCountBadge';
-import {
-  AIAgentStatusPanel,
-  AskAIAgentButton,
-  AskAIAgentModal,
-} from './VisionAgent';
+import { AIAgentStatusPanel, AskAIAgentButton } from './VisionAgent';
 
 import {
   useIsDemoEnvironment,
@@ -113,7 +109,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const [showInvitePopup, setShowInvitePopup] = useState(
     isDemoEnvironment && !isTourActive,
   );
-  const [showAskAgentModal, setShowAskAgentModal] = useState(false);
   const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
   const [sidebarContent, setSidebarContent] = useState<SidebarContent>(null);
   const showSidebar = sidebarContent != null;
@@ -169,12 +164,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   return (
     <div className="rd__call">
-      {showAskAgentModal && (
-        <AskAIAgentModal
-          onClose={() => setShowAskAgentModal(false)}
-          onSessionCreated={setAgentSessionId}
-        />
-      )}
       {isDemoEnvironment && <TourPanel highlightClass="rd__highlight" />}
       <div className="rd__main-call-panel">
         <ActiveCallHeader
@@ -340,10 +329,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
             )}
             <RecordCallConfirmationButton />
             <div className="str-video__call-controls__desktop">
-              <AskAIAgentButton
-                active={showAskAgentModal}
-                onClick={() => setShowAskAgentModal(true)}
-              />
+              <AskAIAgentButton onSessionCreated={setAgentSessionId} />
             </div>
             <div className="str-video__call-controls__desktop">
               <CancelCallConfirmButton onLeave={onLeave} />

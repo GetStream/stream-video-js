@@ -1,5 +1,7 @@
-import clsx from 'clsx';
-import { useI18n, WithTooltip } from '@stream-io/video-react-sdk';
+import { useState } from 'react';
+import { useCall, useI18n, WithTooltip } from '@stream-io/video-react-sdk';
+
+const VISION_AGENTS_API_BASE = 'https://api.demo.visionagents.ai';
 
 const SparkleIcon = () => (
   <svg
@@ -18,24 +20,52 @@ const SparkleIcon = () => (
 );
 
 export const AskAIAgentButton = ({
-  active,
-  onClick,
+  onSessionCreated,
 }: {
-  active: boolean;
-  onClick: () => void;
+  onSessionCreated: (sessionId: string | null) => void;
 }) => {
+  const call = useCall();
   const { t } = useI18n();
+  const [isInviting, setIsInviting] = useState(false);
+
+  const onClick = async () => {
+    if (!call?.id || isInviting) return;
+    setIsInviting(true);
+    try {
+      const response = await fetch(
+        `${VISION_AGENTS_API_BASE}/calls/${call.id}/sessions`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ call_type: call.type ?? 'default' }),
+        },
+      );
+      if (!response.ok) {
+        throw new Error(
+          `Vision Agents responded with ${response.status} ${response.statusText}`,
+        );
+      }
+      const data = await response.json();
+      onSessionCreated(data.session_id ?? null);
+    } catch (err) {
+      console.error('Failed to invite vision agent', err);
+    } finally {
+      setIsInviting(false);
+    }
+  };
+
   return (
     <WithTooltip title={t('Ask AI Agent')}>
       <button
         type="button"
-        className={clsx('rd__ask-ai-agent', {
-          'rd__ask-ai-agent--active': active,
-        })}
+        className="rd__ask-ai-agent"
         onClick={onClick}
+        disabled={!call?.id || isInviting}
       >
         <SparkleIcon />
-        <span className="rd__ask-ai-agent__label">{t('Ask AI Agent')}</span>
+        <span className="rd__ask-ai-agent__label">
+          {isInviting ? t('Inviting…') : t('Ask AI Agent')}
+        </span>
       </button>
     </WithTooltip>
   );
