@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import { useCall, useI18n, WithTooltip } from '@stream-io/video-react-sdk';
+import {
+  useCall,
+  useCallStateHooks,
+  useI18n,
+  WithTooltip,
+} from '@stream-io/video-react-sdk';
 
 const VISION_AGENTS_API_BASE = 'https://api.demo.visionagents.ai';
 
@@ -26,10 +31,14 @@ export const AskAIAgentButton = ({
 }) => {
   const call = useCall();
   const { t } = useI18n();
+  const { useParticipants } = useCallStateHooks();
+  const participants = useParticipants();
   const [isInviting, setIsInviting] = useState(false);
 
+  const isAgentInCall = participants.some((p) => p.userId?.startsWith('agent'));
+
   const onClick = async () => {
-    if (!call?.id || isInviting) return;
+    if (!call?.id || isInviting || isAgentInCall) return;
     setIsInviting(true);
     try {
       const response = await fetch(
@@ -60,7 +69,7 @@ export const AskAIAgentButton = ({
         type="button"
         className="rd__ask-ai-agent"
         onClick={onClick}
-        disabled={!call?.id || isInviting}
+        disabled={!call?.id || isInviting || isAgentInCall}
       >
         <SparkleIcon />
         <span className="rd__ask-ai-agent__label">
