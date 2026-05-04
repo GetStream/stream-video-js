@@ -4,6 +4,8 @@ $ai-gradient: linear-gradient(135deg, #005fff 0%, #7f5af0 100%);
   display: inline-flex;
   align-items: center;
   gap: var(--str-video__spacing-xs);
+  flex-shrink: 0;
+  white-space: nowrap;
   padding: 0.5rem 0.875rem;
   border: none;
   border-radius: 999px;
@@ -11,6 +13,7 @@ $ai-gradient: linear-gradient(135deg, #005fff 0%, #7f5af0 100%);
   color: #fff;
   font-size: var(--str-video__font-size-sm);
   font-weight: 600;
+  line-height: 1;
   background: $ai-gradient;
   transition:
     transform 0.1s ease,
