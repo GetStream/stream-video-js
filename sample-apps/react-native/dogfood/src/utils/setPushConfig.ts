@@ -33,6 +33,7 @@ export function setPushConfig() {
     ios: {
       pushProviderName: 'rn-apn-video',
       callsHistory: true,
+      enableOngoingCalls: true,
     },
     android: {
       pushProviderName: 'rn-fcm-video',
@@ -60,8 +61,8 @@ export function setPushConfig() {
           }
         },
       },
+      enableOngoingCalls: true,
     },
-    enableOngoingCalls: true,
     shouldRejectCallWhenBusy: false,
     createStreamVideoClient,
     onTapNonRingingCallNotification: (call_cid) => {
