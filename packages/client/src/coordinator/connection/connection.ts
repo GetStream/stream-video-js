@@ -36,49 +36,48 @@ import { APIErrorCodes } from './errors';
  * - if the servers fails to publish a message to the client, the WS connection is destroyed
  */
 export class StableWSConnection {
-  // local vars
+  // Parent client reference.
+  client: StreamClient;
+
+  // Underlying WebSocket. wsID is bumped on each new connection so stale
+  // event handlers from previous sockets can be ignored.
+  ws?: WebSocket;
+  /** Incremented when a new WS connection is made */
+  wsID = 1;
+
+  // Connection lifecycle flags.
+  /** We only make 1 attempt to reconnect at the same time.. */
+  isConnecting = false;
+  /** To avoid reconnect if client is disconnected */
+  isDisconnected = false;
+  /** Boolean that indicates if we have a working connection to the server */
+  isHealthy = false;
+
+  // Open-connection promise: resolves on `connection.ok`, rejects on close/error.
   connectionID?: string;
   private connectionOpenSafe?: SafePromise<ConnectedEvent>;
-  consecutiveFailures: number;
-  pingInterval: number;
-  healthCheckTimeoutRef?: number;
-  isConnecting: boolean;
-  isDisconnected: boolean;
-  isHealthy: boolean;
-  isConnectionOpenResolved?: boolean;
-  lastEvent: Date | null;
-  connectionCheckTimeout: number;
-  connectionCheckTimeoutRef?: NodeJS.Timeout;
-  rejectConnectionOpen?: (reason?: WSConnectionError) => void;
   resolveConnectionOpen?: (value: ConnectedEvent) => void;
-  totalFailures: number;
-  ws?: WebSocket;
-  wsID: number;
+  rejectConnectionOpen?: (reason?: WSConnectionError) => void;
+  /** Boolean that indicates if the connection promise is resolved */
+  isConnectionOpenResolved?: boolean = false;
 
-  client: StreamClient;
+  // Failure counters (drive retry/backoff scheduling).
+  /** consecutive failures influence the duration of the timeout */
+  consecutiveFailures = 0;
+  /** keep track of the total number of failures */
+  totalFailures = 0;
+
+  // Health-check pings + connection-staleness check.
+  /** Send a health check message every 25 seconds */
+  pingInterval = 25 * 1000;
+  healthCheckTimeoutRef?: number;
+  connectionCheckTimeout = this.pingInterval + 10 * 1000;
+  connectionCheckTimeoutRef?: NodeJS.Timeout;
+  /** Store the last event time for health checks */
+  lastEvent: Date | null = null;
 
   constructor(client: StreamClient) {
     this.client = client;
-    /** consecutive failures influence the duration of the timeout */
-    this.consecutiveFailures = 0;
-    /** keep track of the total number of failures */
-    this.totalFailures = 0;
-    /** We only make 1 attempt to reconnect at the same time.. */
-    this.isConnecting = false;
-    /** To avoid reconnect if client is disconnected */
-    this.isDisconnected = false;
-    /** Boolean that indicates if the connection promise is resolved */
-    this.isConnectionOpenResolved = false;
-    /** Boolean that indicates if we have a working connection to the server */
-    this.isHealthy = false;
-    /** Incremented when a new WS connection is made */
-    this.wsID = 1;
-    /** Store the last event time for health checks */
-    this.lastEvent = null;
-    /** Send a health check message every 25 seconds */
-    this.pingInterval = 25 * 1000;
-    this.connectionCheckTimeout = this.pingInterval + 10 * 1000;
-
     addConnectionEventListeners(this.onlineStatusChanged);
   }
 
@@ -458,7 +457,6 @@ export class StableWSConnection {
    * onlineStatusChanged - this function is called when the browser connects or disconnects from the internet.
    *
    * @param {Event} event Event with type online or offline
-   *
    */
   onlineStatusChanged = (event: Event) => {
     if (event.type === 'offline') {
