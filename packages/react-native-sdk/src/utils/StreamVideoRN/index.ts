@@ -145,12 +145,12 @@ export class StreamVideoRN {
    * Typically used on user logout.
    */
   static onPushLogout() {
-    if (pushLogoutCallbacks.current) {
-      return Promise.all(
-        pushLogoutCallbacks.current.map((callback) => callback()),
-      ).then(() => {});
+    const callbacks = pushLogoutCallbacks.current;
+    if (!callbacks) {
+      return Promise.resolve();
     }
-    return Promise.resolve();
+    pushLogoutCallbacks.current = [];
+    return Promise.all(callbacks.map((callback) => callback())).then(() => {});
   }
 
   static clearPushLogoutCallbacks() {

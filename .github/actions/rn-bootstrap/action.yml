@@ -6,7 +6,7 @@ runs:
     - run: echo "IMAGE=${ImageOS}-${ImageVersion}" >> $GITHUB_ENV
       shell: bash
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v6
       if: ${{ env.INSTALL_NODE == 'true' }}
       with:
         node-version: 24.x
@@ -23,7 +23,7 @@ runs:
       shell: bash
 
     - name: Cache pods
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       if: ${{ env.INSTALL_PODS == 'true' }}
       with:
         path: sample-apps/react-native/dogfood/ios/Pods
@@ -39,7 +39,7 @@ runs:
 
     - name: Cache Gradle
       if: ${{ env.INSTALL_JAVA == 'true' }}
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         path: |
           ~/.gradle/caches
@@ -48,7 +48,7 @@ runs:
         restore-keys: |
           ${{ runner.os }}-gradle-
 
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v5
       if: ${{ env.INSTALL_JAVA == 'true' }}
       with:
         distribution: 'zulu'
@@ -62,7 +62,7 @@ runs:
       shell: bash
 
     # Retrieve the cached emulator snapshot
-    - uses: actions/cache@v4
+    - uses: actions/cache@v5
       if: ${{ env.INSTALL_ANDROID_EMULATOR == 'true' }}
       id: avd-cache
       with:

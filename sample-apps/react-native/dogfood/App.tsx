@@ -32,7 +32,7 @@ import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { LogBox } from 'react-native';
+import { Alert, Appearance, LogBox } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
 import {
   defaultTheme,
@@ -68,6 +68,10 @@ const StackNavigator = () => {
     themeMode === 'light'
       ? appTheme.colors.static_white
       : defaultTheme.colors.sheetPrimary;
+
+  useEffect(() => {
+    Appearance.setColorScheme(themeMode);
+  }, [themeMode]);
 
   useDeepLinkEffect();
   useSyncPermissions();

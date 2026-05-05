@@ -1,10 +1,10 @@
-import { ChannelSearchProps, ChannelSearch } from 'stream-chat-react';
+import { Search } from 'stream-chat-react';
 import { QuickDial } from '../QuickDial';
 
-export const CustomChannelSearch = (props: ChannelSearchProps) => {
+export const CustomChannelSearch = () => {
   return (
     <>
-      <ChannelSearch {...props} />
+      <Search />
       {/* TODO: add call stuff */}
       <QuickDial />
     </>
