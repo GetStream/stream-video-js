@@ -85,10 +85,19 @@ $ai-remove-gradient: linear-gradient(135deg, #ff3858 0%, #7f5af0 100%);
 
   &__close {
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     width: 24px;
     height: 24px;
+    min-width: 0;
     padding: 0;
     border-radius: 50%;
+
+    .str-video__icon {
+      width: 14px;
+      height: 14px;
+    }
   }
 
   &__build {
