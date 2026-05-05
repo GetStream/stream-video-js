@@ -1,11 +1,14 @@
 $ai-gradient: linear-gradient(135deg, #005fff 0%, #7f5af0 100%);
+$ai-remove-gradient: linear-gradient(135deg, #ff3858 0%, #7f5af0 100%);
 
 .rd__ask-ai-agent {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--str-video__spacing-xs);
   flex-shrink: 0;
   white-space: nowrap;
+  min-width: 9.5rem;
   padding: 0.5rem 0.875rem;
   border: none;
   border-radius: 999px;
@@ -24,6 +27,15 @@ $ai-gradient: linear-gradient(135deg, #005fff 0%, #7f5af0 100%);
   &:disabled {
     cursor: not-allowed;
     opacity: 0.6;
+  }
+
+  &--remove {
+    background: $ai-remove-gradient;
+    box-shadow: 0 4px 14px rgba(192, 16, 69, 0.35);
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 6px 20px rgba(255, 56, 88, 0.55);
+    }
   }
 
   &__label {

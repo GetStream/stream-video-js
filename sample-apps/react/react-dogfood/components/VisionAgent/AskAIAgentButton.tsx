@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import clsx from 'clsx';
 import {
   useCall,
   useCallStateHooks,
@@ -120,7 +121,9 @@ export const AskAIAgentButton = ({
     <WithTooltip title={label}>
       <button
         type="button"
-        className="rd__ask-ai-agent"
+        className={clsx('rd__ask-ai-agent', {
+          'rd__ask-ai-agent--remove': isAgentInCall,
+        })}
         onClick={onClick}
         disabled={!call?.id || isBusy}
       >
