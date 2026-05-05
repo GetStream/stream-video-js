@@ -358,7 +358,7 @@ export const getScreenShareStream = async (
               channelCount: { ideal: 2 },
               // @ts-expect-error not yet present in the types
               restrictOwnAudio: true,
-              echoCancellation: true,
+              echoCancellation: false,
               autoGainControl: false,
               noiseSuppression: false,
               ...options?.audio,

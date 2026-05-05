@@ -26,7 +26,7 @@ export class ScreenShareState extends AudioDeviceManagerState<DisplayMediaStream
    * Constructs a new ScreenShareState instance.
    */
   constructor() {
-    super('stop-tracks', undefined, AudioBitrateProfile.VOICE_HIGH_QUALITY);
+    super('stop-tracks', undefined, AudioBitrateProfile.MUSIC_HIGH_QUALITY);
   }
 
   /**

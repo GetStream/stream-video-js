@@ -34,7 +34,6 @@ describe('ScreenShareManager', () => {
   let manager: ScreenShareManager;
 
   beforeEach(() => {
-    const devicePersistence = { enabled: false, storageKey: '' };
     manager = new ScreenShareManager(
       new Call({
         id: '',
@@ -42,7 +41,6 @@ describe('ScreenShareManager', () => {
         streamClient: new StreamClient('abc123'),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
-      devicePersistence,
     );
   });
 
@@ -126,7 +124,7 @@ describe('ScreenShareManager', () => {
     expect(call.publish).toHaveBeenCalledWith(
       manager.state.mediaStream,
       TrackType.SCREEN_SHARE,
-      { audioBitrateProfile: AudioBitrateProfile.VOICE_HIGH_QUALITY },
+      { audioBitrateProfile: AudioBitrateProfile.MUSIC_HIGH_QUALITY },
     );
   });
 
