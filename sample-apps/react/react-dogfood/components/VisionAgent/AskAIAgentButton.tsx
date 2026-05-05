@@ -25,20 +25,29 @@ const SparkleIcon = () => (
 );
 
 export const AskAIAgentButton = ({
+  sessionId,
   onSessionCreated,
+  onSessionCleared,
 }: {
+  sessionId: string | null;
   onSessionCreated: (sessionId: string | null) => void;
+  onSessionCleared: () => void;
 }) => {
   const call = useCall();
   const { t } = useI18n();
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants();
   const [isInviting, setIsInviting] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
 
-  const isAgentInCall = participants.some((p) => p.userId?.startsWith('agent'));
+  const agentParticipant = participants.find((p) =>
+    p.userId?.startsWith('agent'),
+  );
+  const isAgentInCall = !!agentParticipant;
+  const isBusy = isInviting || isRemoving;
 
-  const onClick = async () => {
-    if (!call?.id || isInviting || isAgentInCall) return;
+  const invite = async () => {
+    if (!call?.id) return;
     setIsInviting(true);
     try {
       const response = await fetch(
@@ -63,18 +72,60 @@ export const AskAIAgentButton = ({
     }
   };
 
+  const remove = async () => {
+    if (!call || !agentParticipant) return;
+    setIsRemoving(true);
+    try {
+      let removed = false;
+      if (sessionId) {
+        try {
+          const response = await fetch(
+            `${VISION_AGENTS_API_BASE}/calls/${call.id}/sessions/${sessionId}`,
+            { method: 'DELETE' },
+          );
+          if (response.ok) removed = true;
+        } catch (err) {
+          console.error(
+            'Vision Agents DELETE failed, falling back to kickUser',
+            err,
+          );
+        }
+      }
+      if (!removed) {
+        await call.kickUser({ user_id: agentParticipant.userId });
+      }
+      onSessionCleared();
+    } catch (err) {
+      console.error('Failed to remove vision agent', err);
+    } finally {
+      setIsRemoving(false);
+    }
+  };
+
+  const onClick = () => {
+    if (!call?.id || isBusy) return;
+    if (isAgentInCall) return remove();
+    return invite();
+  };
+
+  const label = isInviting
+    ? t('Inviting…')
+    : isRemoving
+      ? t('Removing…')
+      : isAgentInCall
+        ? t('Remove Agent')
+        : t('Ask AI Agent');
+
   return (
-    <WithTooltip title={t('Ask AI Agent')}>
+    <WithTooltip title={label}>
       <button
         type="button"
         className="rd__ask-ai-agent"
         onClick={onClick}
-        disabled={!call?.id || isInviting || isAgentInCall}
+        disabled={!call?.id || isBusy}
       >
         <SparkleIcon />
-        <span className="rd__ask-ai-agent__label">
-          {isInviting ? t('Inviting…') : t('Ask AI Agent')}
-        </span>
+        <span className="rd__ask-ai-agent__label">{label}</span>
       </button>
     </WithTooltip>
   );

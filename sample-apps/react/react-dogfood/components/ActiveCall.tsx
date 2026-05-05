@@ -329,7 +329,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
             )}
             <RecordCallConfirmationButton />
             <div className="str-video__call-controls__desktop">
-              <AskAIAgentButton onSessionCreated={setAgentSessionId} />
+              <AskAIAgentButton
+                sessionId={agentSessionId}
+                onSessionCreated={setAgentSessionId}
+                onSessionCleared={() => setAgentSessionId(null)}
+              />
             </div>
             <div className="str-video__call-controls__desktop">
               <CancelCallConfirmButton onLeave={onLeave} />

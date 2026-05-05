@@ -35,9 +35,11 @@
   "device-selection/system": "Use system default",
   "device-selection/recent": "Most recently used",
   "Ask AI Agent": "Ask AI Agent",
+  "Remove Agent": "Remove Agent",
   "Build your own AI Agent": "Build your own AI Agent",
   "Powered by Vision Agents": "Powered by Vision Agents",
   "AI agent in call": "AI agent in call",
   "Remove": "Remove",
-  "Inviting…": "Inviting…"
+  "Inviting…": "Inviting…",
+  "Removing…": "Removing…"
 }

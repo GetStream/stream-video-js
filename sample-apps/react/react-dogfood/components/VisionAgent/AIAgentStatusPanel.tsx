@@ -5,7 +5,7 @@ import {
   useI18n,
 } from '@stream-io/video-react-sdk';
 
-const VISION_AGENTS_BUILD_URL = 'https://visionagents.ai/';
+const VISION_AGENTS_BUILD_URL = 'https://getstream.io/vision-agents/';
 const VISION_AGENTS_API_BASE = 'https://api.demo.visionagents.ai';
 
 export const AIAgentStatusPanel = ({
