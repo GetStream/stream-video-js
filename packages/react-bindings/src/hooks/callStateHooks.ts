@@ -373,6 +373,7 @@ export const useCameraState = ({
   const { state } = camera;
   const direction = useObservableValue(state.direction$);
   const mediaStream = useObservableValue(state.mediaStream$);
+  const rootMediaStream = useObservableValue(state.rootMediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
   const { getDevices } = useLazyDeviceList(camera);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
@@ -384,6 +385,7 @@ export const useCameraState = ({
     camera,
     direction,
     mediaStream,
+    rootMediaStream,
     get devices() {
       return getDevices();
     },

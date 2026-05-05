@@ -19,6 +19,9 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   protected mediaStreamSubject = new BehaviorSubject<MediaStream | undefined>(
     undefined,
   );
+  protected rootMediaStreamSubject = new BehaviorSubject<
+    MediaStream | undefined
+  >(undefined);
   protected selectedDeviceSubject = new BehaviorSubject<string | undefined>(
     undefined,
   );
@@ -36,6 +39,13 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
    *
    */
   mediaStream$ = this.mediaStreamSubject.asObservable();
+
+  /**
+   * An Observable that emits the raw device media stream (before any filters are applied),
+   * or `undefined` if the device is currently disabled. When no filters are active, this
+   * emits the same stream as `mediaStream$`.
+   */
+  rootMediaStream$ = this.rootMediaStreamSubject.asObservable();
 
   /**
    * An Observable that emits the currently selected device
@@ -135,6 +145,15 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   }
 
   /**
+   * The raw device media stream (before any filters are applied), or `undefined`
+   * if the device is currently disabled. When no filters are active, this is the
+   * same as `mediaStream`.
+   */
+  get rootMediaStream() {
+    return RxUtils.getCurrentValue(this.rootMediaStream$);
+  }
+
+  /**
    * @internal
    * @param status
    */
@@ -163,6 +182,7 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
     rootStream: MediaStream | undefined,
   ) {
     RxUtils.setCurrentValue(this.mediaStreamSubject, stream);
+    RxUtils.setCurrentValue(this.rootMediaStreamSubject, rootStream);
     if (rootStream) {
       this.setDevice(this.getDeviceIdFromStream(rootStream));
     }
