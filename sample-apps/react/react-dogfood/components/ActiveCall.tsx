@@ -324,14 +324,16 @@ export const ActiveCall = (props: ActiveCallProps) => {
               </WithTooltip>
             )}
             <RecordCallConfirmationButton />
-            <div className="str-video__call-controls__desktop rd__ai-agent-anchor">
-              <AskAIAgentButton
-                sessionId={agentSessionId}
-                onSessionCreated={setAgentSessionId}
-                onSessionCleared={() => setAgentSessionId(null)}
-              />
-              <AIAgentStatusPanel />
-            </div>
+            {isDemoEnvironment && (
+              <div className="str-video__call-controls__desktop rd__ai-agent-anchor">
+                <AskAIAgentButton
+                  sessionId={agentSessionId}
+                  onSessionCreated={setAgentSessionId}
+                  onSessionCleared={() => setAgentSessionId(null)}
+                />
+                <AIAgentStatusPanel />
+              </div>
+            )}
             <div className="str-video__call-controls__desktop">
               <CancelCallConfirmButton onLeave={onLeave} />
             </div>
