@@ -9,9 +9,9 @@ import type {
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
-  ReactionResponse,
   StartRecordingRequest,
   StartRecordingResponse,
+  VideoReactionResponse,
 } from './gen/coordinator';
 import type { StreamClient } from './coordinator/connection/client';
 import type {
@@ -26,7 +26,7 @@ import { AxiosError } from 'axios';
 import type { Call } from './Call';
 
 export type StreamReaction = Pick<
-  ReactionResponse,
+  VideoReactionResponse,
   'type' | 'emoji_code' | 'custom'
 >;
 

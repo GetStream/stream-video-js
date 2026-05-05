@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { OwnCapability } from '@stream-io/video-client';
+import {
+  OwnCapability,
+  type RequestPermissionRequestPermissionsEnum,
+} from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 export const useRequestPermission = (permission: OwnCapability) => {
@@ -25,7 +28,7 @@ export const useRequestPermission = (permission: OwnCapability) => {
 
     try {
       await call?.requestPermissions({
-        permissions: [permission],
+        permissions: [permission as RequestPermissionRequestPermissionsEnum],
       });
     } catch (error) {
       setIsAwaitingPermission(false);

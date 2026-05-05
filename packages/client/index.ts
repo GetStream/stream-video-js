@@ -1,6 +1,7 @@
 import 'webrtc-adapter';
 
 export * from './src/gen/coordinator';
+export * from './src/gen/legacy-aliases';
 export * from './src/coordinator/connection/types';
 
 export * as SfuEvents from './src/gen/video/sfu/event/events';

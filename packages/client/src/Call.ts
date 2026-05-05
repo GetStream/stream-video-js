@@ -76,8 +76,8 @@ import type {
   RingCallResponse,
   SendCallEventRequest,
   SendCallEventResponse,
-  SendReactionRequest,
-  SendReactionResponse,
+  SendVideoReactionRequest,
+  SendVideoReactionResponse,
   StartClosedCaptionsRequest,
   StartClosedCaptionsResponse,
   StartFrameRecordingRequest,
@@ -109,6 +109,8 @@ import type {
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
+  UpdateUserPermissionsRequestGrantPermissionsEnum,
+  UpdateUserPermissionsRequestRevokePermissionsEnum,
   UpdateUserPermissionsResponse,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
@@ -2206,12 +2208,12 @@ export class Call {
    * @param reaction the reaction to send.
    */
   sendReaction = async (
-    reaction: SendReactionRequest,
-  ): Promise<SendReactionResponse> => {
-    return this.streamClient.post<SendReactionResponse, SendReactionRequest>(
-      `${this.streamClientBasePath}/reaction`,
-      reaction,
-    );
+    reaction: SendVideoReactionRequest,
+  ): Promise<SendVideoReactionResponse> => {
+    return this.streamClient.post<
+      SendVideoReactionResponse,
+      SendVideoReactionRequest
+    >(`${this.streamClientBasePath}/reaction`, reaction);
   };
 
   /**
@@ -2455,7 +2457,8 @@ export class Call {
   grantPermissions = async (userId: string, permissions: string[]) => {
     return this.updateUserPermissions({
       user_id: userId,
-      grant_permissions: permissions,
+      grant_permissions:
+        permissions as UpdateUserPermissionsRequestGrantPermissionsEnum[],
     });
   };
 
@@ -2474,7 +2477,8 @@ export class Call {
   revokePermissions = async (userId: string, permissions: string[]) => {
     return this.updateUserPermissions({
       user_id: userId,
-      revoke_permissions: permissions,
+      revoke_permissions:
+        permissions as UpdateUserPermissionsRequestRevokePermissionsEnum[],
     });
   };
 

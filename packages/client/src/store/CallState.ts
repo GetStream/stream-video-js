@@ -483,6 +483,8 @@ export class CallState {
 
     this.eventHandlers = {
       // these events are not updating the call state:
+      'app.updated': undefined,
+      'call.dtmf': undefined,
       'call.frame_recording_ready': undefined,
       'call.kicked_user': undefined,
       'call.moderation_blur': undefined,
@@ -499,6 +501,15 @@ export class CallState {
       'connection.error': undefined,
       'connection.ok': undefined,
       'health.check': undefined,
+      'ingress.error': undefined,
+      'ingress.started': undefined,
+      'ingress.stopped': undefined,
+      'user.banned': undefined,
+      'user.deactivated': undefined,
+      'user.deleted': undefined,
+      'user.presence.changed': undefined,
+      'user.reactivated': undefined,
+      'user.unbanned': undefined,
       'user.updated': undefined,
       custom: undefined,
 

@@ -6,6 +6,8 @@ import {
   hasScreenShareAudio,
   hasVideo,
   OwnCapability,
+  type UpdateUserPermissionsRequestGrantPermissionsEnum,
+  type UpdateUserPermissionsRequestRevokePermissionsEnum,
 } from '@stream-io/video-client';
 import { useParticipantViewContext } from './ParticipantViewContext';
 import {
@@ -44,14 +46,18 @@ export const ParticipantActionsContextMenu = () => {
   const grantPermission = (permission: string) => () => {
     call?.updateUserPermissions({
       user_id: userId,
-      grant_permissions: [permission],
+      grant_permissions: [
+        permission as UpdateUserPermissionsRequestGrantPermissionsEnum,
+      ],
     });
   };
 
   const revokePermission = (permission: string) => () => {
     call?.updateUserPermissions({
       user_id: userId,
-      revoke_permissions: [permission],
+      revoke_permissions: [
+        permission as UpdateUserPermissionsRequestRevokePermissionsEnum,
+      ],
     });
   };
 
