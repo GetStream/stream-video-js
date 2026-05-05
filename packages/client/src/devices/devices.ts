@@ -340,7 +340,6 @@ export const getScreenShareStream = async (
   const tag = `navigator.mediaDevices.getDisplayMedia.${getDisplayMediaExecId++}.`;
   try {
     const constraints: DisplayMediaStreamOptions = {
-      // @ts-expect-error - not present in types yet
       systemAudio: 'include',
       ...options,
       video:
@@ -357,7 +356,9 @@ export const getScreenShareStream = async (
           ? options.audio
           : {
               channelCount: { ideal: 2 },
-              echoCancellation: false,
+              // @ts-expect-error not yet present in the types
+              restrictOwnAudio: true,
+              echoCancellation: true,
               autoGainControl: false,
               noiseSuppression: false,
               ...options?.audio,
