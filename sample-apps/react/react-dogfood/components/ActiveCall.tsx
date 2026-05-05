@@ -198,10 +198,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                 close={() => setShowInvitePopup(false)}
               />
             )}
-            <AIAgentStatusPanel
-              sessionId={agentSessionId}
-              onSessionCleared={() => setAgentSessionId(null)}
-            />
+            <AIAgentStatusPanel />
             {isPronto && <ClosedCaptions />}
           </div>
 
