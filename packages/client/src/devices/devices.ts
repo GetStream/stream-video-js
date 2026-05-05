@@ -357,7 +357,10 @@ export const getScreenShareStream = async (
           ? options.audio
           : {
               channelCount: { ideal: 2 },
-              echoCancellation: false,
+              // AEC on the captured system audio uses the local render path
+              // as reference, which removes remote participants' voices that
+              // would otherwise loop back to them through the screen share.
+              echoCancellation: true,
               autoGainControl: false,
               noiseSuppression: false,
               ...options?.audio,
