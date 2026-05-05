@@ -43,16 +43,22 @@ $ai-remove-gradient: linear-gradient(135deg, #ff3858 0%, #7f5af0 100%);
   }
 }
 
+.rd__ai-agent-anchor {
+  position: relative;
+}
+
 .rd__ai-agent-status {
   position: absolute;
-  bottom: var(--str-video__spacing-lg);
-  right: var(--str-video__spacing-lg);
+  bottom: calc(100% + 1.5rem);
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 5;
   display: flex;
   flex-direction: column;
   gap: var(--str-video__spacing-md);
   padding: var(--str-video__spacing-md);
-  max-width: 280px;
+  width: 280px;
+  max-width: 90vw;
   background-color: var(--str-video__base-color7);
   border: 1px solid var(--str-video__base-color5);
   border-radius: var(--str-video__border-radius-md);
