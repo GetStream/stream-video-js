@@ -340,7 +340,6 @@ export const getScreenShareStream = async (
   const tag = `navigator.mediaDevices.getDisplayMedia.${getDisplayMediaExecId++}.`;
   try {
     const constraints: DisplayMediaStreamOptions = {
-      // @ts-expect-error - not present in types yet
       systemAudio: 'include',
       ...options,
       video:
@@ -357,9 +356,8 @@ export const getScreenShareStream = async (
           ? options.audio
           : {
               channelCount: { ideal: 2 },
-              // AEC on the captured system audio uses the local render path
-              // as reference, which removes remote participants' voices that
-              // would otherwise loop back to them through the screen share.
+              // @ts-expect-error not yet present in the types
+              restrictOwnAudio: true,
               echoCancellation: true,
               autoGainControl: false,
               noiseSuppression: false,
