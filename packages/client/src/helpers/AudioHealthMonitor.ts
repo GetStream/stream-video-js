@@ -547,6 +547,9 @@ export class AudioHealthMonitor {
     const prev = this.audioHealthSubject.getValue();
     if (next.status === prev.status && next.reason === prev.reason) return;
     this.tracer.trace('audioHealth.update', next);
+    this.logger.info(
+      `audioHealth: ${prev.status}/${prev.reason} → ${next.status}/${next.reason} (direction: ${next.direction})`,
+    );
     this.audioHealthSubject.next(next);
   };
 
