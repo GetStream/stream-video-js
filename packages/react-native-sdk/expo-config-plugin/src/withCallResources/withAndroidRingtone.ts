@@ -26,10 +26,10 @@ function normalizeAndroidResourceName(fileName: string): string {
     );
   }
 
-  if (/^\d/.test(normalized)) {
+  if (!/^[a-z]/.test(normalized)) {
     throw new Error(
-      `[StreamVideo] Android ringtone name "${fileName}" starts with a digit after normalization ("${normalized}"). ` +
-        `Android resource names must start with a letter or underscore.`,
+      `[StreamVideo] Android ringtone name "${fileName}" starts with a non-letter after normalization ("${normalized}"). ` +
+        `Android resource names must start with a lowercase letter.`,
     );
   }
 

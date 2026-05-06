@@ -119,4 +119,16 @@ describe('normalizeAndroidResourceName', () => {
   it('should handle already valid names', () => {
     expect(normalizeAndroidResourceName('ringtone.mp3')).toBe('ringtone.mp3');
   });
+
+  it('should throw when normalized name starts with digit', () => {
+    expect(() => normalizeAndroidResourceName('1ringtone.mp3')).toThrow(
+      /must start with a lowercase letter/,
+    );
+  });
+
+  it('should throw when normalized name starts with underscore', () => {
+    expect(() => normalizeAndroidResourceName('_ringtone.mp3')).toThrow(
+      /must start with a lowercase letter/,
+    );
+  });
 });
