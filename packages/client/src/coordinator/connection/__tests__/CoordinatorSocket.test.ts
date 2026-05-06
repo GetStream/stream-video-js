@@ -13,6 +13,7 @@ import { createFakeWorkerTimer } from './helpers/fakeTimers';
 const setupSocket = (overrides?: {
   WebSocketImpl?: typeof WebSocket;
   authMessage?: string;
+  authMessageBuilder?: () => string;
   staticToken?: boolean;
   authHandshakeTimeoutMs?: number;
   defaultWsTimeoutMs?: number;
@@ -47,7 +48,9 @@ const setupSocket = (overrides?: {
 
   const socket = new CoordinatorSocket({
     urlBuilder: () => 'wss://coordinator/connect',
-    authMessageBuilder: () => overrides?.authMessage ?? '{"auth":"msg"}',
+    authMessageBuilder:
+      overrides?.authMessageBuilder ??
+      (() => overrides?.authMessage ?? '{"auth":"msg"}'),
     tokenManager,
     eventDispatcher,
     gate,
@@ -390,5 +393,311 @@ describe('CoordinatorSocket', () => {
     });
     await vi.advanceTimersByTimeAsync(6000);
     expect(loadTokenSpy).toHaveBeenCalled();
+  });
+
+  it('mid-stream connection.error code 40 with isStatic() does NOT trigger reconnect', async () => {
+    const { socket, gate, tokenManager } = setupSocket({ staticToken: true });
+    gate.arm();
+    const promise = socket.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = MockWebSocket.instances[0];
+    ws.fireOpen();
+    ws.fireMessage(connectedEvent('conn-1'));
+    await promise;
+
+    const loadTokenSpy = vi.spyOn(tokenManager, 'loadToken');
+    // Two mid-stream errors (per F13: first is silently consumed).
+    ws.fireMessage({
+      type: 'connection.error',
+      connection_id: 'x',
+      created_at: new Date().toISOString(),
+      error: { code: 40, message: 'expired', StatusCode: 0 },
+    });
+    ws.fireMessage({
+      type: 'connection.error',
+      connection_id: 'x',
+      created_at: new Date().toISOString(),
+      error: { code: 40, message: 'expired', StatusCode: 0 },
+    });
+    await vi.advanceTimersByTimeAsync(6000);
+    expect(loadTokenSpy).not.toHaveBeenCalled();
+  });
+
+  it('health.check is sent every pingIntervalMs after connection.ok', async () => {
+    const { socket, gate } = setupSocket({
+      pingIntervalMs: 1000,
+      healthTimeoutMs: 60000,
+    });
+    gate.arm();
+    const promise = socket.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = MockWebSocket.instances[0];
+    ws.fireOpen();
+    ws.fireMessage(connectedEvent('conn-1'));
+    await promise;
+
+    // The first ping fires pingIntervalMs after connection.ok.
+    expect(ws.send).toHaveBeenCalledTimes(1); // auth message
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(ws.send).toHaveBeenCalledTimes(2);
+    const payload = ws.send.mock.calls[1][0];
+    const parsed = JSON.parse(payload as string);
+    expect(parsed[0]).toMatchObject({
+      type: 'health.check',
+      client_id: 'client-1',
+    });
+  });
+
+  it('watchdog firing dispatches connection.changed:false after unhealthyDispatchDelayMs', async () => {
+    const { socket, eventDispatcher, gate } = setupSocket({
+      pingIntervalMs: 60000,
+      healthTimeoutMs: 100,
+      unhealthyDispatchDelayMs: 5000,
+    });
+    gate.arm();
+    const promise = socket.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = MockWebSocket.instances[0];
+    ws.fireOpen();
+    ws.fireMessage(connectedEvent('conn-1'));
+    await promise;
+
+    const onChanged = vi.fn();
+    eventDispatcher.on('connection.changed', onChanged);
+
+    // Trigger the watchdog: advance past healthTimeoutMs (100 ms) of silence.
+    await vi.advanceTimersByTimeAsync(150);
+    // Watchdog set health to false but the dispatch is deferred 5 s.
+    expect(onChanged).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(4900);
+    expect(onChanged).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(150);
+    expect(onChanged).toHaveBeenCalledWith({
+      type: 'connection.changed',
+      online: false,
+    });
+  });
+
+  it('stale onclose from a prior transport is dropped via wsId guard', async () => {
+    const { socket, eventDispatcher, gate } = setupSocket();
+    gate.arm();
+    const promise = socket.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    const firstWs = MockWebSocket.instances[0];
+    firstWs.fireOpen();
+    firstWs.fireMessage(connectedEvent('conn-1'));
+    await promise;
+
+    // Bump wsId by triggering disconnect (does not reject the gate).
+    await socket.disconnect();
+    const onChanged = vi.fn();
+    eventDispatcher.on('connection.changed', onChanged);
+
+    // Fire an "old" onclose against the first ws AFTER disconnect bumped wsId.
+    // The new wsId guard must drop it: setHealth must not run, no new
+    // connection.changed dispatch, no scheduled reconnect.
+    firstWs.onclose?.({
+      code: 1006,
+      reason: '',
+      wasClean: false,
+    } as CloseEvent);
+    expect(onChanged).not.toHaveBeenCalled();
+  });
+
+  it('received_at is stamped on the event before dispatch', async () => {
+    const { socket, eventDispatcher, gate } = setupSocket();
+    gate.arm();
+    const promise = socket.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = MockWebSocket.instances[0];
+    ws.fireOpen();
+    let captured: { received_at?: Date | string } | undefined;
+    eventDispatcher.on('connection.ok', (event) => {
+      captured = event as unknown as { received_at?: Date | string };
+    });
+    ws.fireMessage(connectedEvent('conn-1'));
+    await promise;
+    expect(captured?.received_at).toBeInstanceOf(Date);
+  });
+
+  it('onOpen does not crash when the auth message builder throws (user/token missing)', async () => {
+    const builder = vi.fn(() => {
+      throw new Error('user or token missing');
+    });
+    const { socket, gate } = setupSocket({ authMessageBuilder: builder });
+    gate.arm();
+    // The connect promise hangs in this scenario because no event ever
+    // settles the in-flight handshake. We only assert the synchronous
+    // contract: fireOpen exercises onOpen, the builder throws inside, the
+    // socket logs + returns without sending the auth message.
+    void socket.connect().catch(() => {});
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = MockWebSocket.instances[0];
+    expect(() => ws.fireOpen()).not.toThrow();
+    expect(builder).toHaveBeenCalled();
+    expect(ws.send).not.toHaveBeenCalled();
+  });
+
+  it('connect() after disconnect() succeeds with a fresh transport', async () => {
+    const { socket, gate } = setupSocket();
+    gate.arm();
+    const first = socket.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    MockWebSocket.instances[0].fireOpen();
+    MockWebSocket.instances[0].fireMessage(connectedEvent('conn-A'));
+    await first;
+    await socket.disconnect();
+    expect(socket.isDisconnected()).toBe(true);
+
+    // Re-arm the gate (the StreamClient facade does this in openConnection).
+    gate.arm();
+    const second = socket.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(MockWebSocket.instances).toHaveLength(2);
+    MockWebSocket.instances[1].fireOpen();
+    MockWebSocket.instances[1].fireMessage(connectedEvent('conn-B'));
+    const result = await second;
+    expect(result?.connection_id).toBe('conn-B');
+    expect(socket.isDisconnected()).toBe(false);
+  });
+
+  it('concurrent close + REST: gate rejects on close, then resolves on next handshake', async () => {
+    const { socket, gate } = setupSocket();
+    gate.arm();
+    const first = socket.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    const ws1 = MockWebSocket.instances[0];
+    ws1.fireOpen();
+    ws1.fireMessage(connectedEvent('conn-A'));
+    await first;
+    expect(await gate.await()).toBe('conn-A');
+
+    // Abnormal close: invalidates the gate (rotates settled -> fresh rejected).
+    ws1.fireClose(1006, 'abnormal');
+    await expect(gate.await()).rejects.toBeInstanceOf(WebSocketConnectionError);
+
+    // Drive the inline reconnect cycle by advancing fake timers (the random
+    // retryInterval for failures=1 falls in [250 ms, 2500 ms]), then drive
+    // the new transport to connection.ok. The next handshake's gate.arm()
+    // rotates the rejected state to fresh pending; gate.resolve sets new id.
+    await vi.advanceTimersByTimeAsync(3000);
+    const ws2 = MockWebSocket.instances[1];
+    expect(ws2).toBeDefined();
+    ws2.fireOpen();
+    ws2.fireMessage(connectedEvent('conn-B'));
+    expect(await gate.await()).toBe('conn-B');
+  });
+
+  it('auth-handshake watchdog is cleared on a handshake-time connection.error', async () => {
+    const { socket, gate } = setupSocket({ authHandshakeTimeoutMs: 200 });
+    gate.arm();
+    const promise = socket.connect();
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = MockWebSocket.instances[0];
+    ws.fireOpen();
+    ws.fireMessage({
+      type: 'connection.error',
+      connection_id: 'x',
+      created_at: new Date().toISOString(),
+      error: { code: 4, message: 'auth failed', StatusCode: 0 },
+    });
+    await expect(promise).rejects.toBeInstanceOf(WebSocketConnectionError);
+    // Past the watchdog window: must not fire (rejection.error already
+    // surfaced; double-reject would be a regression).
+    await vi.advanceTimersByTimeAsync(500);
+    // gate is rejected with the connection.error, NOT AUTH_HANDSHAKE_TIMEOUT.
+    await expect(gate.await()).rejects.not.toMatchObject({
+      code: 'AUTH_HANDSHAKE_TIMEOUT',
+    });
+  });
+
+  it('auth-handshake watchdog is cleared on onClose', async () => {
+    const { socket, gate } = setupSocket({ authHandshakeTimeoutMs: 200 });
+    gate.arm();
+    const promise = socket.connect().catch((e) => e);
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = MockWebSocket.instances[0];
+    ws.fireOpen();
+    // Fire close BEFORE the watchdog deadline.
+    ws.fireClose(1006, 'abnormal');
+    // Past the watchdog window: must not fire AUTH_HANDSHAKE_TIMEOUT.
+    await vi.advanceTimersByTimeAsync(500);
+    await expect(gate.await()).rejects.not.toMatchObject({
+      code: 'AUTH_HANDSHAKE_TIMEOUT',
+    });
+    await vi.advanceTimersByTimeAsync(2000);
+    await promise;
+  });
+
+  it('connect() with handshake-time code 40 schedules a refreshToken reconnect', async () => {
+    const { socket, gate, tokenManager } = setupSocket({
+      staticToken: false,
+      authHandshakeTimeoutMs: 60000,
+      defaultWsTimeoutMs: 600,
+    });
+    gate.arm();
+    const loadTokenSpy = vi.spyOn(tokenManager, 'loadToken');
+    const promise = socket.connect().catch((e) => e);
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = MockWebSocket.instances[0];
+    ws.fireOpen();
+    ws.fireMessage({
+      type: 'connection.error',
+      connection_id: 'x',
+      created_at: new Date().toISOString(),
+      error: { code: 40, message: 'expired', StatusCode: 0 },
+    });
+    // The handshake-time refresh path is fire-and-forget; advancing past the
+    // random retryInterval for failures=1 ([250, 2500] ms) drives the reconnect.
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(loadTokenSpy).toHaveBeenCalled();
+    // Drain the outer poll timeout so the connect promise settles.
+    await vi.advanceTimersByTimeAsync(700);
+    await promise;
+  });
+
+  it('auth send failure does NOT arm the watchdog', async () => {
+    const { socket, gate } = setupSocket({ authHandshakeTimeoutMs: 200 });
+    gate.arm();
+    void socket.connect().catch(() => {});
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = MockWebSocket.instances[0];
+    ws.send.mockImplementationOnce(() => {
+      throw new Error('send failed');
+    });
+    ws.fireOpen();
+    // Past the watchdog deadline: gate must NOT have an AUTH_HANDSHAKE_TIMEOUT
+    // rejection because onOpen returned early and never armed the watchdog.
+    await vi.advanceTimersByTimeAsync(500);
+    expect(gate.isPending()).toBe(true);
+  });
+
+  it('stale auth watchdog from a prior transport is a no-op (wsId guard)', async () => {
+    const { socket, gate } = setupSocket({
+      WebSocketImpl: ManualWebSocket as unknown as typeof WebSocket,
+      authHandshakeTimeoutMs: 200,
+      defaultWsTimeoutMs: 60000,
+    });
+    gate.arm();
+    void socket.connect().catch(() => {});
+    await vi.advanceTimersByTimeAsync(0);
+    const firstWs = ManualWebSocket.instances[0];
+    firstWs.fireOpen();
+    // The watchdog is now armed for wsId=1. Bump wsId via disconnect; the
+    // watchdog body checks `myWsId !== this.wsId` and must early-return.
+    // Don't await disconnect: ManualWebSocket.close() does not auto-fire
+    // onclose, so the awaited promise depends on the graceful-close timer.
+    void socket.disconnect();
+    // Drain the disconnect's graceful timer (100 ms) plus advance past the
+    // original auth watchdog deadline (200 ms). The stale watchdog body
+    // runs but no-ops because of the wsId guard.
+    await vi.advanceTimersByTimeAsync(500);
+    expect(socket.isDisconnected()).toBe(true);
+    // gate must NOT carry an AUTH_HANDSHAKE_TIMEOUT rejection.
+    if (gate.isSettled()) {
+      await expect(gate.await()).rejects.not.toMatchObject({
+        code: 'AUTH_HANDSHAKE_TIMEOUT',
+      });
+    }
   });
 });
