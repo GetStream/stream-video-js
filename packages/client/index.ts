@@ -20,6 +20,19 @@ export * from './src/sorting';
 export * from './src/helpers/client-details';
 export * from './src/helpers/humanize';
 export * from './src/helpers/AudioHealthMonitor';
+export {
+  HOST_AUDIO_SESSION_EVENT,
+  type AudioSessionState,
+  type AudioSessionType,
+  type HostAudioSessionCategory,
+  type HostAudioSessionCategoryOption,
+  type HostAudioSessionEvent,
+  type HostAudioSessionInterruptionReason,
+  type HostAudioSessionMode,
+  type HostAudioSessionPort,
+  type HostAudioSessionRoute,
+  type HostAudioSessionRouteChangeReason,
+} from './src/helpers/types';
 export * from './src/helpers/AudioHealthAutoRecovery';
 export * from './src/helpers/DynascaleManager';
 export * from './src/helpers/ViewportTracker';

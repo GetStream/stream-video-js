@@ -9,6 +9,8 @@ import {
   type AudioSessionState,
   type AudioSessionType,
   type HostAudioSessionEvent,
+  type HostAudioSessionPort,
+  type HostAudioSessionRoute,
 } from './types';
 
 /**
@@ -120,6 +122,22 @@ const UNKNOWN_NOT_STARTED: AudioHealthInfo = {
   direction: 'both',
 };
 
+const portsEqual = (
+  a: HostAudioSessionPort[],
+  b: HostAudioSessionPort[],
+): boolean =>
+  a.length === b.length &&
+  a.every((p, i) => p.name === b[i].name && p.type === b[i].type);
+
+const routesEqual = (
+  a: HostAudioSessionRoute | undefined,
+  b: HostAudioSessionRoute | undefined,
+): boolean => {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return portsEqual(a.inputs, b.inputs) && portsEqual(a.outputs, b.outputs);
+};
+
 /**
  * Detects OS-level audio-session interruption, browser autoplay blocks,
  * and cross-browser remote-audio-pipeline failures for a call, and
@@ -228,6 +246,21 @@ export class AudioHealthMonitor {
   /** The main public API: exposes structured audio health to consumers. */
   audioHealth$ = this.audioHealthSubject.asObservable();
 
+  private hostAudioRouteSubject = new BehaviorSubject<
+    HostAudioSessionRoute | undefined
+  >(undefined);
+  /**
+   * Latest active audio route reported by the iOS host bridge. Lists the
+   * input (capture) and output (playback) ports `AVAudioSession` reports
+   * as currently active so consumers can render a label like
+   * `mic: AirPods, spk: AirPods`. Emits `undefined` when no host event
+   * has arrived yet (non-iOS / older host build / before `start()`).
+   * Deduped on the (name, type) tuples of both port lists.
+   */
+  audioRoute$ = this.hostAudioRouteSubject.pipe(
+    distinctUntilChanged(routesEqual),
+  );
+
   /**
    * Constructs a new AudioHealthMonitor instance.
    * @param tracer the tracer instance to use.
@@ -284,6 +317,7 @@ export class AudioHealthMonitor {
       );
     }
     this.hostAudioSession = undefined;
+    this.hostAudioRouteSubject.next(undefined);
 
     if (typeof document !== 'undefined') {
       document.removeEventListener('click', this.resumeAudioContext);
@@ -475,6 +509,7 @@ export class AudioHealthMonitor {
     if (detail.schemaVersion !== 1) return;
     if (!detail.session || typeof detail.session !== 'object') return;
     this.hostAudioSession = detail;
+    this.hostAudioRouteSubject.next(detail.route);
     this.tracer.trace('audioHealth.hostAudioSession', detail);
     this.updateAudioHealth();
   };

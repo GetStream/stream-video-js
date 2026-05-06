@@ -37,6 +37,7 @@ final class AudioSessionBridge: @unchecked Sendable {
         let session: Session
         let interruption: Interruption?
         let routeChange: RouteChange?
+        let route: Route?
 
         struct Session: Encodable, Equatable {
             let category: String
@@ -51,6 +52,25 @@ final class AudioSessionBridge: @unchecked Sendable {
 
         struct RouteChange: Encodable, Equatable {
             let reason: String
+        }
+
+        /// Snapshot of `audioSession.currentRoute` so the page can label
+        /// which device is actively capturing / playing back. Optional on
+        /// the wire (older host builds may omit it); the SDK reads it
+        /// opportunistically.
+        struct Route: Encodable, Equatable {
+            let inputs: [Port]
+            let outputs: [Port]
+
+            struct Port: Encodable, Equatable {
+                /// Human-readable device name from
+                /// `AVAudioSessionPortDescription.portName`
+                /// (e.g. "OL AirPods Pro 3", "iPhone Microphone").
+                let name: String
+                /// `AVAudioSession.Port` raw value (e.g. "BluetoothHFP",
+                /// "MicrophoneBuiltIn", "Receiver", "Speaker").
+                let type: String
+            }
         }
     }
 
@@ -366,10 +386,20 @@ final class AudioSessionBridge: @unchecked Sendable {
                 options: Self.describe(options: audioSession.categoryOptions)
             ),
             interruption: latestInterruption,
-            routeChange: latestRouteChange
+            routeChange: latestRouteChange,
+            route: Self.snapshotRoute(audioSession.currentRoute)
         )
         subject.send(snapshot)
         forwardToWebView(snapshot)
+    }
+
+    private static func snapshotRoute(
+        _ route: AVAudioSessionRouteDescription
+    ) -> Snapshot.Route {
+        .init(
+            inputs: route.inputs.map { .init(name: $0.portName, type: $0.portType.rawValue) },
+            outputs: route.outputs.map { .init(name: $0.portName, type: $0.portType.rawValue) }
+        )
     }
 
     private func forwardToWebView(_ snapshot: Snapshot) {

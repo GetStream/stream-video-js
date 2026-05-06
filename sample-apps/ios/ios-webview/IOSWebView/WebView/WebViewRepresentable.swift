@@ -127,6 +127,10 @@ final class WebController: ObservableObject {
             "mode=\(snapshot.session.mode)",
             "options=\(optionsList)",
         ]
+        if let route = snapshot.route {
+            parts.append("in=\(formatPorts(route.inputs))")
+            parts.append("out=\(formatPorts(route.outputs))")
+        }
         if let interruption = snapshot.interruption {
             if let reason = interruption.reason {
                 parts.append("interruption=\(interruption.type)(reason=\(reason))")
@@ -138,6 +142,11 @@ final class WebController: ObservableObject {
             parts.append("routeChange=\(routeChange.reason)")
         }
         return parts.joined(separator: " ")
+    }
+
+    private static func formatPorts(_ ports: [AudioSessionBridge.Snapshot.Route.Port]) -> String {
+        if ports.isEmpty { return "[]" }
+        return "[" + ports.map { "\($0.type)[\($0.name)]" }.joined(separator: "|") + "]"
     }
 }
 

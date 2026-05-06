@@ -9,6 +9,7 @@ import {
   CallStatsReport,
   Comparator,
   EgressResponse,
+  HostAudioSessionRoute,
   InputDeviceStatus,
   MemberResponse,
   OwnCapability,
@@ -545,6 +546,30 @@ export const useAudioHealth = (): AudioHealthInfo => {
   const call = useCall() as Call;
   const monitor = call.audioHealthMonitor;
   return useObservableValue(monitor?.audioHealth$ ?? UNKNOWN_AUDIO_HEALTH$);
+};
+
+/**
+ * Static fallback emitted on React Native (and any environment where
+ * `AudioHealthMonitor` isn't constructed, or before an iOS WebView host
+ * dispatches its first `stream-video:host-audio-session` event). Module-
+ * scope so the `useObservableValue` dep reference stays stable.
+ */
+const NO_AUDIO_ROUTE$ = of<HostAudioSessionRoute | undefined>(undefined);
+
+/**
+ * Reactive snapshot of the active iOS `AVAudioSession.currentRoute`,
+ * forwarded by an iOS WebView host bridge. Each emission lists the
+ * input (capture) and output (playback) ports the OS reports as
+ * currently driving mic / speaker, so consumers can render labels like
+ * `mic: AirPods, spk: AirPods`.
+ *
+ * Returns `undefined` when no host event has arrived yet (older host
+ * build, non-iOS platforms, before `start()`).
+ */
+export const useAudioRoute = (): HostAudioSessionRoute | undefined => {
+  const call = useCall() as Call;
+  const monitor = call.audioHealthMonitor;
+  return useObservableValue(monitor?.audioRoute$ ?? NO_AUDIO_ROUTE$);
 };
 
 /**

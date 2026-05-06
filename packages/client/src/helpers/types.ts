@@ -94,6 +94,37 @@ export type HostAudioSessionInterruptionReason =
   | 'routeDisconnected';
 
 /**
+ * One leg of `AVAudioSession.currentRoute`. The host bridge reports
+ * inputs (active capture devices) and outputs (active playback devices)
+ * as parallel lists so the page can label which device is currently
+ * driving mic / speaker.
+ *
+ * `name` is `AVAudioSessionPortDescription.portName` (human-readable,
+ * e.g. "OL AirPods Pro 3", "iPhone Microphone"). `type` is
+ * `AVAudioSession.Port` raw value (well-known values include
+ * `BluetoothHFP`, `BluetoothA2DPOutput`, `MicrophoneBuiltIn`,
+ * `Receiver`, `Speaker`, `Headphones`, `HeadsetMicrophone`,
+ * `LineIn`, `LineOut`, `USBAudio`, `HDMI`, `AirPlay`, `CarAudio`,
+ * `BluetoothLE`).
+ */
+export interface HostAudioSessionPort {
+  name: string;
+  type: string;
+}
+
+/**
+ * Snapshot of `AVAudioSession.currentRoute` carried by
+ * {@link HostAudioSessionEvent}. Lists the active capture and playback
+ * ports the OS reports for the call. Empty arrays are valid mid-
+ * transition; consumers should treat both lists as "what the device is
+ * driving right now" rather than as enumerations of available devices.
+ */
+export interface HostAudioSessionRoute {
+  inputs: HostAudioSessionPort[];
+  outputs: HostAudioSessionPort[];
+}
+
+/**
  * Normalized `AVAudioSession.RouteChangeReason`.
  */
 export type HostAudioSessionRouteChangeReason =
@@ -161,4 +192,15 @@ export interface HostAudioSessionEvent {
   routeChange: {
     reason: HostAudioSessionRouteChangeReason;
   } | null;
+  /**
+   * Snapshot of the active route at `timestamp`. Lists the input
+   * (capture) and output (playback) ports `AVAudioSession` reports as
+   * currently active, so the page can label them in the UI (e.g.
+   * `mic: AirPods`, `spk: Earpiece`).
+   *
+   * Optional on the wire: older host builds predate this field and
+   * will omit it. New host builds always populate it (empty arrays if
+   * the route is momentarily empty, e.g. between transitions).
+   */
+  route?: HostAudioSessionRoute;
 }

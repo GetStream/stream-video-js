@@ -595,6 +595,83 @@ describe('AudioHealthMonitor', () => {
   });
 
   // -------------------------------------------------------------------------
+  // Host audio-session bridge: route
+  // -------------------------------------------------------------------------
+
+  it('exposes the active host audio route via audioRoute$', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    expect(getCurrentValue(monitor.audioRoute$)).toBeUndefined();
+
+    dispatchHostEvent(
+      makeHostEvent({
+        route: {
+          inputs: [{ name: 'AirPods Pro', type: 'BluetoothHFP' }],
+          outputs: [{ name: 'AirPods Pro', type: 'BluetoothHFP' }],
+        },
+      }),
+    );
+
+    expect(getCurrentValue(monitor.audioRoute$)).toEqual({
+      inputs: [{ name: 'AirPods Pro', type: 'BluetoothHFP' }],
+      outputs: [{ name: 'AirPods Pro', type: 'BluetoothHFP' }],
+    });
+  });
+
+  it('audioRoute$ dedupes consecutive identical routes', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    const emissions: Array<unknown> = [];
+    const sub = monitor.audioRoute$.subscribe((r) => emissions.push(r));
+
+    const route = {
+      inputs: [{ name: 'iPhone Microphone', type: 'MicrophoneBuiltIn' }],
+      outputs: [{ name: 'Receiver', type: 'Receiver' }],
+    };
+    dispatchHostEvent(makeHostEvent({ route }));
+    dispatchHostEvent(
+      makeHostEvent({ route: JSON.parse(JSON.stringify(route)) }),
+    );
+    dispatchHostEvent(
+      makeHostEvent({
+        route: {
+          inputs: [{ name: 'AirPods Pro', type: 'BluetoothHFP' }],
+          outputs: [{ name: 'AirPods Pro', type: 'BluetoothHFP' }],
+        },
+      }),
+    );
+
+    sub.unsubscribe();
+    // initial undefined + first route + new route = 3 emissions, no dup
+    expect(emissions).toHaveLength(3);
+  });
+
+  it('audioRoute$ resets to undefined on stop()', async () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(
+      makeHostEvent({
+        route: { inputs: [], outputs: [{ name: 'Speaker', type: 'Speaker' }] },
+      }),
+    );
+    expect(getCurrentValue(monitor.audioRoute$)).toBeDefined();
+
+    await monitor.stop();
+    expect(getCurrentValue(monitor.audioRoute$)).toBeUndefined();
+  });
+
+  it('audioRoute$ stays undefined when host events omit the route field', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(makeHostEvent());
+    expect(getCurrentValue(monitor.audioRoute$)).toBeUndefined();
+  });
+
+  // -------------------------------------------------------------------------
   // Host audio-session bridge: direction
   // -------------------------------------------------------------------------
   //
