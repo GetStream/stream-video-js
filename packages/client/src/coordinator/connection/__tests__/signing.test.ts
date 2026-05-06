@@ -60,4 +60,43 @@ describe('getUserFromToken', () => {
     expect(segment.includes('-')).toBe(true);
     expect(getUserFromToken(token)).toBe('>>>');
   });
+
+  it('decodes correctly when neither atob nor Buffer globals are present (RN 0.73 floor)', () => {
+    // Hermes shipped atob in RN 0.74 (Jan 2024 commit). Users on the project
+    // peer-dep floor (RN >= 0.73) do not have atob, and React Native does not
+    // ship Buffer either. The decoder is self-contained, but verify here that
+    // a call still succeeds when both globals are stripped.
+    const g = globalThis as { atob?: unknown; Buffer?: unknown };
+    const originalAtob = g.atob;
+    const originalBuffer = g.Buffer;
+    try {
+      delete g.atob;
+      delete g.Buffer;
+      const token = buildJwt({ user_id: 'jane', sub: 'jane' });
+      expect(getUserFromToken(token)).toBe('jane');
+    } finally {
+      g.atob = originalAtob;
+      g.Buffer = originalBuffer;
+    }
+  });
+
+  it('signing.ts code (excluding comments) contains no atob/Buffer reference (regression guard)', async () => {
+    // If a future change reintroduces a runtime dependency on atob or Buffer,
+    // this test catches it before users on RN 0.73 hit the silent failure
+    // mode. Comments may mention either name freely; only executable code
+    // is checked.
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const raw = await fs.readFile(
+      path.resolve(__dirname, '../signing.ts'),
+      'utf8',
+    );
+    const codeOnly = raw
+      // strip /* ... */ block comments
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      // strip // line comments
+      .replace(/\/\/[^\n]*/g, '');
+    expect(codeOnly).not.toMatch(/\batob\b/);
+    expect(codeOnly).not.toMatch(/\bBuffer\b/);
+  });
 });
