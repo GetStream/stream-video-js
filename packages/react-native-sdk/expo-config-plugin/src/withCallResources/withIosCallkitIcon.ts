@@ -11,7 +11,8 @@ import type { ConfigProps } from '../common/types';
 function deriveImageSetName(fileName: string): string {
   const baseName = path.basename(fileName, path.extname(fileName));
   return baseName
-    .split(/[-_]/)
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
     .join('');
 }

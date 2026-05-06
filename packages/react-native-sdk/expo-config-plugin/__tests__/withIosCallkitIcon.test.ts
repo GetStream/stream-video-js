@@ -126,4 +126,8 @@ describe('deriveImageSetName', () => {
   it('should handle mixed separators', () => {
     expect(deriveImageSetName('my_app-icon.png')).toBe('MyAppIcon');
   });
+
+  it('should sanitize dot-separated names', () => {
+    expect(deriveImageSetName('my.icon.png')).toBe('MyIcon');
+  });
 });
