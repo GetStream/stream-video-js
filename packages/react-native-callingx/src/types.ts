@@ -189,6 +189,11 @@ export type InternalIOSOptions = {
    * @default 60000 (1 minute)
    */
   displayCallTimeout?: number;
+  /**
+   * Whether to enable ongoing calls.
+   * @default false
+   */
+  enableOngoingCalls?: boolean;
 };
 type iOSOptions = Omit<
   InternalIOSOptions,
@@ -230,6 +235,11 @@ export type InternalAndroidOptions = {
      */
     rejecting?: string;
   };
+  /**
+   * Whether to enable ongoing calls.
+   * @default false
+   */
+  enableOngoingCalls?: boolean;
 };
 type AndroidOptions = InternalAndroidOptions & NotificationTransformers;
 
@@ -240,11 +250,6 @@ export type NotificationTransformers = {
 export type CallingExpOptions = {
   ios?: iOSOptions;
   android?: AndroidOptions;
-  /**
-   * Whether to enable ongoing calls.
-   * @default false
-   */
-  enableOngoingCalls?: boolean;
   /**
    * Whether to reject calls when the user is busy.
    * @default false

@@ -23,8 +23,11 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
   const hasPushProvider =
     (Platform.OS === 'android' && pushConfig.android?.pushProviderName) ||
     (Platform.OS === 'ios' && pushConfig.ios?.pushProviderName);
+  const hasOngoingCalls =
+    (Platform.OS === 'android' && pushConfig.android?.enableOngoingCalls) ||
+    (Platform.OS === 'ios' && pushConfig.ios?.enableOngoingCalls);
 
-  if (!hasPushProvider) {
+  if (!hasPushProvider && !hasOngoingCalls) {
     return;
   }
 
