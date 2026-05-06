@@ -423,7 +423,7 @@ export class StreamClient {
     return this.connectionIdPromiseSafe?.();
   }
 
-  get isConnectionIsPromisePending() {
+  get isConnectionIdPromisePending() {
     return this.connectionIdPromiseSafe?.checkPending() ?? false;
   }
 

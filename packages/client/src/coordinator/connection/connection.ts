@@ -284,6 +284,15 @@ export class StableWSConnection {
   ): Promise<ConnectedEvent | undefined> => {
     if (this.isConnecting) return; // ignore _connect if it's currently trying to connect
     this.isConnecting = true;
+    // Snapshot of the connection-id reject closure owned by THIS attempt.
+    // Captured at function entry so that even early failures (e.g.,
+    // tokenManager.loadToken throwing before we reach the WS phase) can
+    // settle the promise the caller is awaiting. Re-captured below if
+    // _connect itself sets up a fresh promise. If a concurrent
+    // openConnection() rotates `client.rejectConnectionId` later, our
+    // captured closure still settles only the original promise (P1) and
+    // never poisons the newer one (P2).
+    let ownRejectConnectionId = this.client.rejectConnectionId;
     let isTokenReady = false;
     try {
       this._log(`_connect() - waiting for token`);
@@ -301,8 +310,11 @@ export class StableWSConnection {
         await this.client.tokenManager.loadToken();
       }
 
-      if (!this.client.isConnectionIsPromisePending) {
+      if (!this.client.isConnectionIdPromisePending) {
         this.client._setupConnectionIdPromise();
+        // recapture: we just rotated the resolver ourselves, the new
+        // closure is the one bound to the promise this attempt owns.
+        ownRejectConnectionId = this.client.rejectConnectionId;
       }
       this._setupConnectionPromise();
       const wsURL = this._buildUrl();
@@ -340,14 +352,19 @@ export class StableWSConnection {
 
       // If we were disconnected during the handshake (e.g. closeConnection()
       // ran while a background _reconnect's _connect was in flight), tear
-      // down the new WS and skip resolveConnectionId so we do not write a
-      // stale connection_id into a connectionIdPromise owned by a newer
-      // StableWSConnection instance.
+      // down the new WS and throw so the caller of connect() does not get
+      // a misleading "success" for a connection that has already been
+      // aborted. We must NOT skip the throw and just return undefined: the
+      // outer connect() would otherwise fall through to _waitForHealthy(),
+      // which would observe the already-resolved connectionOpen promise
+      // and resolve with a ConnectedEvent for a torn-down connection.
       if (this.isDisconnected) {
         if (this.ws && this.ws.readyState !== this.ws.CLOSED) {
           this._destroyCurrentWSConnection();
         }
-        return;
+        throw new Error(
+          'WS handshake aborted: disconnect() ran while connecting',
+        );
       }
 
       if (response) {
@@ -359,10 +376,15 @@ export class StableWSConnection {
       const err = caught as WSConnectionError;
       this.isConnecting = false;
       this._log(`_connect() - Error - `, err);
-      // reject the in-flight connectionIdPromise so any awaiter is unblocked
-      // instead of being orphaned
-      this.client.rejectConnectionId?.(err);
-      // settle connectionOpen too so the SafePromise does not linger pending
+      // Reject THIS attempt's connection-id promise (P1) directly via the
+      // captured closure. Whether or not a concurrent openConnection() has
+      // since rotated client.rejectConnectionId to a newer promise (P2),
+      // calling ownRejectConnectionId only settles P1 - P2 is untouched.
+      // P1's awaiters (e.g., doAxiosRequest awaiting connectionIdPromise)
+      // therefore fail fast instead of being orphaned.
+      ownRejectConnectionId?.(err);
+      // connectionOpen is per-instance and not subject to rotation, so
+      // calling it unconditionally is safe (and a no-op if already settled).
       this.rejectConnectionOpen?.(err);
       // tear down a half-open WS so it does not linger and fire a stale wsID later
       if (this.ws && this.ws.readyState !== this.ws.CLOSED) {

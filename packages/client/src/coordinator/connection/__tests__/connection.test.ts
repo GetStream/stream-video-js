@@ -184,7 +184,7 @@ describe('StableWSConnection - silent handshake hang', () => {
     // between the catch and the _reconnect's retry interval fails fast
     // instead of silently capturing a never-settling P2. _reconnect's
     // entry guard (in _connect) will recreate it on the next attempt.
-    expect(client.isConnectionIsPromisePending).toBe(false);
+    expect(client.isConnectionIdPromisePending).toBe(false);
 
     // drain the outer connect()'s _waitForHealthy(5000) and assert it
     // bubbles up an isWSFailure rejection (rather than hanging forever)
@@ -250,7 +250,7 @@ describe('StableWSConnection - silent handshake hang', () => {
     // pending one for permanent (non-isWSFailure) errors. Otherwise, a
     // doAxiosRequest issued in this window would capture a P that nothing
     // ever settles and would hang indefinitely.
-    expect(client.isConnectionIsPromisePending).toBe(false);
+    expect(client.isConnectionIdPromisePending).toBe(false);
 
     // and crucially, no reconnect chain was launched - the catch's
     // _reconnect() call is gated on err.isWSFailure, which is absent here.
@@ -321,7 +321,161 @@ describe('StableWSConnection - silent handshake hang', () => {
     // and the new ws must be torn down by the guard's destroy call
     expect(ws.readyState).toBe(ManualWebSocket.CLOSED);
 
-    // drain any outer connect()/_waitForHealthy bookkeeping
+    // The post-handshake guard must surface the abort to the caller of
+    // connect() instead of silently returning. Otherwise _waitForHealthy
+    // would observe the already-resolved connectionOpen and resolve with
+    // a ConnectedEvent for a torn-down connection.
+    await vi.advanceTimersByTimeAsync(20000);
+    const outcome = await connectAttemptOutcome;
+    expect(outcome.kind).toBe('rejected');
+    if (outcome.kind === 'rejected') {
+      expect(outcome.error.message).toMatch(
+        /disconnect\(\) ran while connecting/,
+      );
+    }
+  });
+
+  it('rejects the captured client.connectionIdPromise when disconnect aborts a handshake (no reopen)', async () => {
+    const client = new StreamClient('test-key', {
+      browser: false,
+      defaultWsTimeout: 5000,
+      WebSocketImpl: ManualWebSocket as unknown as typeof WebSocket,
+      timeout: 1000,
+    });
+    vi.spyOn(client.tokenManager, 'tokenReady').mockResolvedValue('fake-token');
+    vi.spyOn(client.tokenManager, 'loadToken').mockResolvedValue('fake-token');
+    vi.spyOn(client.tokenManager, 'getToken').mockReturnValue('fake-token');
+
+    client._setUser({ id: 'test-user' });
+    client.userID = 'test-user';
+    client.clientID = 'test-user--abcdef';
+    client._setupConnectionIdPromise();
+
+    // capture the connection-id promise BEFORE the handshake races against
+    // disconnect. doAxiosRequest awaits this same promise before sending
+    // non-public REST calls, so if it never settles those callers hang
+    // forever (the regression Codex flagged).
+    const capturedPromise = client.connectionIdPromise!;
+    expect(capturedPromise).toBeDefined();
+    let capturedResolved = false;
+    let capturedRejected: Error | undefined;
+    capturedPromise.then(
+      () => {
+        capturedResolved = true;
+      },
+      (error: Error) => {
+        capturedRejected = error;
+      },
+    );
+
+    const wsConnection = new StableWSConnection(client);
+    client.wsConnection = wsConnection;
+    const connectAttempt = wsConnection.connect(5000);
+    const connectAttemptOutcome = connectAttempt.then(
+      () => ({ kind: 'resolved' as const }),
+      (error: Error) => ({ kind: 'rejected' as const, error }),
+    );
+
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = ManualWebSocket.instances.at(-1)!;
+
+    // successful handshake then synchronous disconnect (closeConnection
+    // path - does NOT touch client.connectionIdPromise)
+    ws.fireOpen();
+    ws.fireConnectionOk('stale-conn-id');
+    wsConnection.disconnect();
+
+    await vi.advanceTimersByTimeAsync(0);
+
+    // The captured connection-id promise must be rejected (not stuck
+    // pending), so any in-flight doAxiosRequest fails fast.
+    expect(capturedResolved).toBe(false);
+    expect(capturedRejected).toBeInstanceOf(Error);
+    expect(capturedRejected?.message).toMatch(
+      /disconnect\(\) ran while connecting/,
+    );
+
+    // drain outer connect() bookkeeping
+    await vi.advanceTimersByTimeAsync(20000);
+    await connectAttemptOutcome;
+  });
+
+  it('rejects only the original promise when openConnection rotates resolvers mid-abort', async () => {
+    const client = new StreamClient('test-key', {
+      browser: false,
+      defaultWsTimeout: 5000,
+      WebSocketImpl: ManualWebSocket as unknown as typeof WebSocket,
+      timeout: 1000,
+    });
+    vi.spyOn(client.tokenManager, 'tokenReady').mockResolvedValue('fake-token');
+    vi.spyOn(client.tokenManager, 'loadToken').mockResolvedValue('fake-token');
+    vi.spyOn(client.tokenManager, 'getToken').mockReturnValue('fake-token');
+
+    client._setUser({ id: 'test-user' });
+    client.userID = 'test-user';
+    client.clientID = 'test-user--abcdef';
+    client._setupConnectionIdPromise();
+
+    // P1: the promise the in-flight _connect attempt is supposed to settle.
+    const promiseP1 = client.connectionIdPromise!;
+    let p1Resolved = false;
+    let p1Rejected: Error | undefined;
+    promiseP1.then(
+      () => {
+        p1Resolved = true;
+      },
+      (error: Error) => {
+        p1Rejected = error;
+      },
+    );
+
+    const wsConnection = new StableWSConnection(client);
+    client.wsConnection = wsConnection;
+    const connectAttempt = wsConnection.connect(5000);
+    const connectAttemptOutcome = connectAttempt.then(
+      () => ({ kind: 'resolved' as const }),
+      (error: Error) => ({ kind: 'rejected' as const, error }),
+    );
+
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = ManualWebSocket.instances.at(-1)!;
+
+    // synchronous chain: handshake completes, disconnect runs, and then
+    // a concurrent openConnection() rotates the client-level resolvers
+    // to a fresh P2 - all BEFORE the _connect catch runs.
+    ws.fireOpen();
+    ws.fireConnectionOk('stale-conn-id');
+    wsConnection.disconnect();
+    client._setupConnectionIdPromise();
+
+    // P2: the rotated promise that the (hypothetical) follow-up
+    // openConnection would own. The stale attempt's catch must NOT
+    // settle this one.
+    const promiseP2 = client.connectionIdPromise!;
+    let p2Resolved = false;
+    let p2Rejected: Error | undefined;
+    promiseP2.then(
+      () => {
+        p2Resolved = true;
+      },
+      (error: Error) => {
+        p2Rejected = error;
+      },
+    );
+
+    // microtask flush -> _connect catch runs -> ownRejectConnectionId
+    // (closure captured BEFORE rotation) settles P1. P2 is untouched.
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(p1Resolved).toBe(false);
+    expect(p1Rejected).toBeInstanceOf(Error);
+    expect(p1Rejected?.message).toMatch(/disconnect\(\) ran while connecting/);
+
+    // P2 must still be pending - rotation isolation is the whole point
+    // of capturing the reject closure per attempt.
+    expect(p2Resolved).toBe(false);
+    expect(p2Rejected).toBeUndefined();
+
     await vi.advanceTimersByTimeAsync(20000);
     await connectAttemptOutcome;
   });
