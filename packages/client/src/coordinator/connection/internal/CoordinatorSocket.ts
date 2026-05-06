@@ -434,6 +434,12 @@ export class CoordinatorSocket {
     }
 
     if (data && data.type === 'connection.ok') {
+      // Mark the handshake phase as resolved so any subsequent
+      // connection.error takes the mid-stream branch (and triggers reconnect
+      // / token refresh on code 40) instead of falling into the
+      // handshake-error guard. This deliberately deviates from the legacy
+      // "first mid-stream connection.error is silently consumed" quirk.
+      this.isConnectionOpenResolved = true;
       this.clearAuthHandshakeWatchdog();
       this.resolveConnectionOpen?.(data);
       this.setHealth(true);

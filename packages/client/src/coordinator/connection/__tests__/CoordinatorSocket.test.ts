@@ -230,30 +230,20 @@ describe('CoordinatorSocket', () => {
     // Spy: provider invocation count on tokenManager.loadToken
     const loadTokenSpy = vi.spyOn(tokenManager, 'loadToken');
 
-    // Mid-stream connection.error (code 40) expected to fire refresh.
-    // Note: today's quirk (F13) means the FIRST mid-stream connection.error is
-    // silently consumed by the handshake-error guard (because
-    // isConnectionOpenResolved is still false after connection.ok). Send TWO
-    // errors to exercise the reconnect path.
+    // Single mid-stream connection.error (code 40) MUST trigger a token
+    // refresh + reconnect. Regression test for the legacy "first mid-stream
+    // error is silently consumed" quirk that this rewrite removes.
     ws.fireMessage({
       type: 'connection.error',
       connection_id: 'x',
       created_at: new Date().toISOString(),
       error: { code: 40, message: 'expired', StatusCode: 0 },
     });
-    ws.fireMessage({
-      type: 'connection.error',
-      connection_id: 'x',
-      created_at: new Date().toISOString(),
-      error: { code: 40, message: 'expired', StatusCode: 0 },
-    });
-    // F7 log message wording check.
     expect(logger.info).toHaveBeenCalledWith(
       expect.stringContaining(
         'onMessage(): WS failure due to expired token, scheduling reconnect with refreshed token',
       ),
     );
-    // Allow the scheduled reconnect to fire (random retryInterval; cap 5s).
     await vi.advanceTimersByTimeAsync(6000);
     expect(loadTokenSpy).toHaveBeenCalled();
     expect(eventDispatcher).toBeDefined();
@@ -361,7 +351,13 @@ describe('CoordinatorSocket', () => {
     expect(socket.isHealthy()).toBe(true);
   });
 
-  it('F13 quirk: first mid-stream connection.error is silently consumed; second triggers reconnect', async () => {
+  it('regression: first mid-stream connection.error after connection.ok takes the mid-stream branch', async () => {
+    // Inverts the legacy F13 quirk: in the legacy implementation,
+    // isConnectionOpenResolved was never set on connection.ok, so the FIRST
+    // mid-stream connection.error was silently consumed by the handshake-error
+    // guard. The new implementation marks the handshake resolved on
+    // connection.ok, so a single mid-stream code-40 error correctly triggers
+    // a token refresh + reconnect.
     const { socket, gate, tokenManager } = setupSocket({ staticToken: false });
     gate.arm();
     const promise = socket.connect();
@@ -372,19 +368,6 @@ describe('CoordinatorSocket', () => {
     await promise;
 
     const loadTokenSpy = vi.spyOn(tokenManager, 'loadToken');
-
-    // First mid-stream error: handshake-error guard fires (isConnectionOpenResolved
-    // was still false), early-return. No reconnect scheduled.
-    ws.fireMessage({
-      type: 'connection.error',
-      connection_id: 'x',
-      created_at: new Date().toISOString(),
-      error: { code: 40, message: 'expired', StatusCode: 0 },
-    });
-    expect(loadTokenSpy).not.toHaveBeenCalled();
-
-    // Second mid-stream error: now isConnectionOpenResolved=true, falls through
-    // to the reconnect-handler branch.
     ws.fireMessage({
       type: 'connection.error',
       connection_id: 'x',
@@ -393,6 +376,7 @@ describe('CoordinatorSocket', () => {
     });
     await vi.advanceTimersByTimeAsync(6000);
     expect(loadTokenSpy).toHaveBeenCalled();
+    expect(socket.isHealthy()).toBe(false);
   });
 
   it('mid-stream connection.error code 40 with isStatic() does NOT trigger reconnect', async () => {
@@ -406,13 +390,6 @@ describe('CoordinatorSocket', () => {
     await promise;
 
     const loadTokenSpy = vi.spyOn(tokenManager, 'loadToken');
-    // Two mid-stream errors (per F13: first is silently consumed).
-    ws.fireMessage({
-      type: 'connection.error',
-      connection_id: 'x',
-      created_at: new Date().toISOString(),
-      error: { code: 40, message: 'expired', StatusCode: 0 },
-    });
     ws.fireMessage({
       type: 'connection.error',
       connection_id: 'x',
