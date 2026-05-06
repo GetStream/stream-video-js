@@ -60,6 +60,7 @@ const withIosCallkitIcon: ConfigPlugin<ConfigProps> = (config, props) => {
           {
             filename: destFileName,
             idiom: 'universal',
+            scale: '2x',
           },
         ],
         info: {

@@ -80,7 +80,7 @@ describe('withIosCallkitIcon', () => {
       (mockedFs.writeFileSync as jest.Mock).mock.calls[0][1],
     );
     expect(writtenJson.images).toEqual([
-      { filename: 'callkit_icon.png', idiom: 'universal' },
+      { filename: 'callkit_icon.png', idiom: 'universal', scale: '2x' },
     ]);
     expect(writtenJson.info).toEqual({ author: 'expo', version: 1 });
     expect(writtenJson.properties).toEqual({
