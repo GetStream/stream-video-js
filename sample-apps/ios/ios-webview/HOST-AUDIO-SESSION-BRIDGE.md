@@ -142,9 +142,14 @@ correctly.
 
 ## What the bridge must observe
 
-Subscribe to **two** `NotificationCenter` notifications and re-snapshot
+Subscribe to **four** `NotificationCenter` notifications and re-snapshot
 the session on each. Send an additional snapshot at startup so the page
 has ground truth before any event fires.
+
+The first two are the primary signal sources. The last two exist solely
+to recover from the case where iOS does not deliver `.ended` after a
+category-conflict interruption (see "When iOS does not deliver `.ended`"
+below).
 
 ### 1. `AVAudioSession.interruptionNotification`
 
@@ -160,7 +165,9 @@ another app/session activating with a conflicting category, etc.
   `interruption.type === 'began'` for every subsequent dispatch until
   an `.ended` arrives. The SDK relies on this to know the session is
   _still_ interrupted between events. Don't overwrite with `null` on
-  unrelated dispatches.
+  unrelated dispatches. iOS does not always deliver `.ended`; see
+  ["When iOS does not deliver `.ended`"](#when-ios-does-not-deliver-ended)
+  below for the required recovery behavior.
 
 ### 2. `AVAudioSession.routeChangeNotification`
 
@@ -172,13 +179,72 @@ category itself changes (`reason = .categoryChange`).
   Forward as `state.routeChangeReason`. The SDK uses this to detect
   category changes that don't surface as interruptions.
 
-### 3. Initial snapshot at startup
+### 3. `AVAudioSession.silenceSecondaryAudioHintNotification`
+
+Fires when the OS-level "another session should silence me" hint
+flips. This is a recovery trigger only: the bridge clears a stale
+`began` (see below) when this notification arrives with
+`secondaryAudioShouldBeSilencedHint == false` and the session is
+back on a record-capable category. No new `routeChange` field is
+written from this handler - the snapshot still carries the most
+recent route change observed.
+
+### 4. `UIApplication.didBecomeActiveNotification`
+
+Last-chance verification when the user returns to the app. iOS
+coalesces or drops some notifications while the app is suspended,
+so the bridge may have missed the terminal event for an
+interruption that resolved in the background. Same recovery rules
+as (3); fires once on every foreground transition.
+
+### 5. Initial snapshot at startup
 
 Dispatch one snapshot after the bridge starts (with `interruption: null`,
 `routeChange: null`, but the current `session.category` / `session.mode` /
 `session.options`). This gives the SDK ground truth at page load - useful
 for the audio-health UI to show a healthy signal immediately rather than
 waiting for the first event.
+
+## When iOS does not deliver `.ended`
+
+The "Stickiness" rule above keeps `interruption.type === 'began'` until
+`.ended` arrives. iOS does not always deliver `.ended` for
+category-conflict interruptions (another app activates `.playback`
+exclusive, then goes away without the host running an explicit restore).
+Without a recovery path the page would stay at
+`host-audio-session-interrupted` forever even though audio is back.
+
+Hosts implementing this contract MUST synthesize `.ended` (i.e., set
+`latestInterruption = nil`, then dispatch a fresh snapshot) when **all**
+of these are true:
+
+1. `latestInterruption?.type == "began"`.
+2. The current `audioSession.category` is record-capable -
+   `.playAndRecord` or `.record`.
+3. `audioSession.secondaryAudioShouldBeSilencedHint == false` (no
+   conflicting session is currently asking us to be silenced).
+
+Run the check on these triggers, in addition to dispatching on
+interruption / route-change events:
+
+- Every `routeChangeNotification`, regardless of `reason` - any of
+  `.categoryChange`, `.override`, `.oldDeviceUnavailable`,
+  `.routeConfigurationChange`, `.newDeviceAvailable` can correlate
+  with the conflicting session releasing audio.
+- Every `silenceSecondaryAudioHintNotification` (the hint flipping
+  false directly indicates the conflict resolved).
+- Every `UIApplication.didBecomeActiveNotification` (recovery for
+  events the OS dropped while the app was suspended).
+
+To avoid noise, only dispatch a fresh snapshot from the hint and
+foreground triggers if the helper actually cleared a stale `began`.
+Route-change handlers always dispatch (the route change itself is
+worth surfacing).
+
+The SDK reducer treats absence of `interruption` (or
+`interruption: null`) as the terminal signal. Sending a fresh
+snapshot with `interruption` cleared is sufficient - no other
+side-effects on the bridge are required.
 
 ## Required supporting setup
 
@@ -212,17 +278,24 @@ for a reference implementation of the permission delegate.
 
 ## UIKit reference implementation
 
-Drop-in. Mirrors
+Drop-in minimal version of the bridge. The sample's
 [`AudioSessionBridge.swift`](./IOSWebView/WebView/AudioSessionBridge.swift)
-in the sample.
+adds a few sample-app-only extras on top of this skeleton: a Combine
+`snapshotPublisher` so the SwiftUI debug overlay can mirror native
+transitions, DI-friendly init parameters (`audioSession`,
+`notificationCenter`) for unit tests, `Equatable` conformance on the
+snapshot types, and `JSONEncoder.outputFormatting = .withoutEscapingSlashes`
+for readable console payloads. None of those are required for a host
+integration - the version below is everything the SDK needs.
 
 ```swift
 import AVFoundation
 import Combine
 import Foundation
+import UIKit
 import WebKit
 
-final class AudioSessionBridge {
+final class AudioSessionBridge: @unchecked Sendable {
     struct Snapshot: Encodable {
         let schemaVersion: Int
         let timestamp: Int64
@@ -253,6 +326,8 @@ final class AudioSessionBridge {
     private var latestInterruption: Snapshot.Interruption?
     private var latestRouteChange: Snapshot.RouteChange?
     private var started = false
+    private let processingQueue = DispatchQueue(label: "com.streamvideo.audioSessionObserver")
+    private let encoder = JSONEncoder()
 
     init(webView: WKWebView) { self.webView = webView }
     deinit { stop() }
@@ -262,11 +337,24 @@ final class AudioSessionBridge {
         started = true
 
         notificationCenter.publisher(for: AVAudioSession.interruptionNotification)
+            .receive(on: processingQueue)
             .sink { [weak self] in self?.handleInterruption($0) }
             .store(in: &cancellables)
 
         notificationCenter.publisher(for: AVAudioSession.routeChangeNotification)
+            .receive(on: processingQueue)
             .sink { [weak self] in self?.handleRouteChange($0) }
+            .store(in: &cancellables)
+
+        // Recovery triggers: see `clearStaleInterruptionIfRecovered()`.
+        notificationCenter.publisher(for: AVAudioSession.silenceSecondaryAudioHintNotification)
+            .receive(on: processingQueue)
+            .sink { [weak self] _ in self?.handleSecondaryAudioHintChange() }
+            .store(in: &cancellables)
+
+        notificationCenter.publisher(for: UIApplication.didBecomeActiveNotification)
+            .receive(on: processingQueue)
+            .sink { [weak self] _ in self?.handleAppDidBecomeActive() }
             .store(in: &cancellables)
 
         // Initial snapshot - gives the SDK ground truth at page load,
@@ -277,6 +365,7 @@ final class AudioSessionBridge {
     func stop() {
         guard started else { return }
         started = false
+        cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
         latestInterruption = nil
         latestRouteChange = nil
@@ -314,19 +403,35 @@ final class AudioSessionBridge {
             let reason = AVAudioSession.RouteChangeReason(rawValue: raw)
         else { return }
         latestRouteChange = .init(reason: Self.describe(routeChangeReason: reason))
-
-        // iOS does not reliably post `interruption.ended` after a
-        // category-conflict interruption. Treat a categoryChange back to
-        // `.playAndRecord` as ground truth that the interruption is over,
-        // otherwise `latestInterruption` stays at `began` and the SDK
-        // keeps the page at `host-audio-session-interrupted` forever.
-        if reason == .categoryChange,
-           audioSession.category == .playAndRecord,
-           latestInterruption?.type == "began" {
-            latestInterruption = .init(type: "ended", reason: nil)
-        }
-
+        _ = clearStaleInterruptionIfRecovered()
         dispatch()
+    }
+
+    private func handleSecondaryAudioHintChange() {
+        // Dispatch only if this resolves a stale `began`, to avoid
+        // spamming the page on healthy hint flips.
+        guard clearStaleInterruptionIfRecovered() else { return }
+        dispatch()
+    }
+
+    private func handleAppDidBecomeActive() {
+        // Last-chance verification when the user returns to the app.
+        guard clearStaleInterruptionIfRecovered() else { return }
+        dispatch()
+    }
+
+    /// Synthesizes `interruption.ended` when the audio session is
+    /// observably back: category is record-capable AND no secondary
+    /// session asks us to be silenced. Returns `true` if the stale
+    /// `began` was cleared so callers can decide whether to dispatch.
+    @discardableResult
+    private func clearStaleInterruptionIfRecovered() -> Bool {
+        guard latestInterruption?.type == "began" else { return false }
+        let category = audioSession.category
+        guard category == .playAndRecord || category == .record else { return false }
+        guard !audioSession.secondaryAudioShouldBeSilencedHint else { return false }
+        latestInterruption = .init(type: "ended", reason: nil)
+        return true
     }
 
     // MARK: dispatch
@@ -344,14 +449,15 @@ final class AudioSessionBridge {
             routeChange: latestRouteChange
         )
         guard let webView,
-              let data = try? JSONEncoder().encode(snapshot),
+              let data = try? encoder.encode(snapshot),
               let json = String(data: data, encoding: .utf8) else { return }
 
         let script = """
         window.dispatchEvent(new CustomEvent('stream-video:host-audio-session', { detail: \(json) }));
         """
-        DispatchQueue.main.async { [weak webView] in
-            webView?.evaluateJavaScript(script, completionHandler: nil)
+
+        Task { @MainActor [weak webView] in
+            try await webView?.evaluateJavaScript(script)
         }
     }
 
@@ -443,6 +549,9 @@ final class AudioSessionBridge {
 
 ### Wiring into a UIKit view controller
 
+The sample app itself is SwiftUI-only (see the next section), but for
+hosts that embed the WebView in a UIKit view controller, the wiring is:
+
 ```swift
 final class WebViewController: UIViewController {
     private var webView: WKWebView!
@@ -473,8 +582,16 @@ final class WebViewController: UIViewController {
 ## SwiftUI reference implementation
 
 `WKWebView` isn't natively SwiftUI - wrap it in a `UIViewRepresentable`.
-The bridge lifecycle is owned by the `Coordinator`, which is created
-once per representable instance and torn down with the view.
+The sample app's pattern (and the recommended one) is to hold the
+`WKWebView` and the bridges in an `ObservableObject` controller owned
+by the parent view as a `@StateObject`. That keeps the same `WKWebView`
+instance alive across SwiftUI body re-evaluations and gives the bridge
+a stable lifetime.
+
+See [`WebViewRepresentable.swift`](./IOSWebView/WebView/WebViewRepresentable.swift)
+for the version used by the sample (which also wires a debug-overlay
+log subscriber via `snapshotPublisher`). A minimal host-only version
+looks like:
 
 ```swift
 import AVFoundation
@@ -482,69 +599,74 @@ import Combine
 import SwiftUI
 import WebKit
 
-struct WebView: UIViewRepresentable {
-    let url: URL
+/// Owns the WKWebView and the audio bridge. Held by the parent view as
+/// `@StateObject` so the same WKWebView survives SwiftUI body
+/// re-evaluations and the bridge's lifetime tracks the view.
+final class WebController: ObservableObject {
+    let webView: WKWebView
+    let permissionCoordinator = PermissionCoordinator()
+    private var audioBridge: AudioSessionBridge?
 
-    func makeCoordinator() -> Coordinator { Coordinator() }
-
-    func makeUIView(context: Context) -> WKWebView {
+    init() {
         let config = WKWebViewConfiguration()
         config.allowsInlineMediaPlayback = true
         config.mediaTypesRequiringUserActionForPlayback = []
 
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.uiDelegate = context.coordinator
+        let wv = WKWebView(frame: .zero, configuration: config)
+        wv.uiDelegate = permissionCoordinator
+        self.webView = wv
 
-        // Start the bridge once we have the WKWebView.
-        context.coordinator.startAudioBridge(on: webView)
-
-        webView.load(URLRequest(url: url))
-        return webView
+        let bridge = AudioSessionBridge(webView: wv)
+        bridge.start()
+        self.audioBridge = bridge
     }
 
-    func updateUIView(_ webView: WKWebView, context: Context) {
-        // No reactive props in this minimal example. Pass new URLs / state
-        // through here if you need to drive the WebView from SwiftUI state.
+    deinit { audioBridge?.stop() }
+
+    func load(_ url: URL) { webView.load(URLRequest(url: url)) }
+}
+
+/// Auto-grants mic/camera so the SDK's getUserMedia call succeeds without
+/// the WebKit-internal permission prompt firing.
+final class PermissionCoordinator: NSObject, WKUIDelegate {
+    func webView(_ webView: WKWebView,
+                 requestMediaCapturePermissionFor origin: WKSecurityOrigin,
+                 initiatedByFrame frame: WKFrameInfo,
+                 type: WKMediaCaptureType,
+                 decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+        decisionHandler(.grant)
     }
+}
 
-    /// Owns the bridge so its lifetime tracks the SwiftUI view.
-    final class Coordinator: NSObject, WKUIDelegate {
-        private var audioBridge: AudioSessionBridge?
+struct WebViewRepresentable: UIViewRepresentable {
+    let controller: WebController
 
-        func startAudioBridge(on webView: WKWebView) {
-            let bridge = AudioSessionBridge(webView: webView)
-            bridge.start()
-            self.audioBridge = bridge
-        }
-
-        deinit { audioBridge?.stop() }
-
-        // Auto-grant mic/camera so the SDK's getUserMedia call succeeds.
-        func webView(_ webView: WKWebView,
-                     requestMediaCapturePermissionFor origin: WKSecurityOrigin,
-                     initiatedByFrame frame: WKFrameInfo,
-                     type: WKMediaCaptureType,
-                     decisionHandler: @escaping (WKPermissionDecision) -> Void) {
-            decisionHandler(.grant)
-        }
-    }
+    func makeUIView(context: Context) -> WKWebView { controller.webView }
+    func updateUIView(_ uiView: WKWebView, context: Context) {}
 }
 
 @main
 struct MyApp: App {
     var body: some Scene {
-        WindowGroup {
-            WebView(url: URL(string: "https://your.app/")!)
-                .ignoresSafeArea()
-        }
+        WindowGroup { ContentView() }
+    }
+}
+
+struct ContentView: View {
+    @StateObject private var web = WebController()
+
+    var body: some View {
+        WebViewRepresentable(controller: web)
+            .ignoresSafeArea()
+            .onAppear { web.load(URL(string: "https://your.app/")!) }
     }
 }
 ```
 
-The bridge code (`AudioSessionBridge` class) is identical to the UIKit
-version - copy it verbatim. The only thing that changes between hosting
-styles is _who owns the bridge_: a UIViewController in UIKit, a
-Coordinator in SwiftUI.
+The bridge code (`AudioSessionBridge` class) is the same in both
+hosting styles - copy it verbatim. The only thing that changes is
+_who owns the bridge_: a `UIViewController` in UIKit, an
+`ObservableObject` controller (held as `@StateObject`) in SwiftUI.
 
 ---
 
@@ -584,7 +706,8 @@ loads, the bridge isn't reaching the SDK. Common causes:
 
 - Bridge `start()` never called, or called before the page navigates.
 - `evaluateJavaScript` running on a non-main thread (the snippet above
-  hops to `DispatchQueue.main` to be safe).
+  hops to `@MainActor` via `Task { @MainActor in try await … }` to
+  guarantee main-thread delivery).
 - Page-side error swallowed the `dispatchEvent` call - check the
   WebView's console.
 
@@ -650,8 +773,15 @@ func synthesizeInterruptionEnded() {
 
 The reference implementation lives in
 [`AudioScenarios.swift`](./IOSWebView/Scenarios/AudioScenarios.swift):
-`restoreForWebRTC()` and the `audioPlayerDidFinishPlaying` delegate
-both call `synthesizeInterruptionEnded()` after the 3-step.
+both `restoreForWebRTC()` and `handleAutoRestoreDingFinished()` (the
+`AVAudioPlayerDelegate` finish handler for the auto-restoring ding)
+run the 3-step and then call `synthesizeInterruptionEnded()`. A
+sibling scenario, `handleNoRestoreDingFinished()`, deliberately omits
+both the re-set to `.playAndRecord` and the synthesize call so the
+"Play ding (exclusive, NO restore)" menu entry can demonstrate the
+bridge's belt-and-suspenders recovery triggers (route-change,
+secondary-audio hint flip, foreground) clearing the stale `began` on
+their own.
 
 > ⚠️ Only synthesize `.ended` when **you** know the session is back to
 > a WebRTC-friendly state. Posting it speculatively (without actually
@@ -660,13 +790,16 @@ both call `synthesizeInterruptionEnded()` after the 3-step.
 ### Belt-and-suspenders inside the bridge
 
 Some recovery paths are not under your control: a third-party SDK
-might do its own session work and never call your synthesize helper.
-The reference bridge's `handleRouteChange` therefore _also_ clears
-`latestInterruption` when a real
-`routeChangeNotification(reason: .categoryChange)` brings the category
-back to `.playAndRecord`. That covers OS-driven recoveries where iOS
-does post the route change; the synthesize call above covers the
-cases where it doesn't.
+might do its own session work and never call your synthesize helper,
+or the conflicting session may simply go away without an in-app
+trigger. The reference bridge therefore runs
+`clearStaleInterruptionIfRecovered()` from three additional triggers
+(see ["When iOS does not deliver `.ended`"](#when-ios-does-not-deliver-ended)
+above): every route-change regardless of `reason`, every
+`silenceSecondaryAudioHintNotification`, and every
+`UIApplication.didBecomeActiveNotification`. Together these cover the
+common OS-driven recoveries; the explicit `synthesizeInterruptionEnded()`
+call above covers the cases where you control the restore yourself.
 
 ---
 

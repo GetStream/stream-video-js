@@ -137,6 +137,13 @@ reactivate. The `restoreForWebRTC()` action and the **Play ding
 (exclusive, auto-restore)** scenario in `ios-webview` both use this
 exact sequence.
 
+If the host can't run the 3-step restore (e.g., the conflicting session
+goes away on its own without an in-app trigger), the bridge itself
+recovers the page-side health signal by synthesizing
+`interruption.ended` once the audio session is observably back. See
+[`HOST-AUDIO-SESSION-BRIDGE.md` → "When iOS does not deliver `.ended`"](./HOST-AUDIO-SESSION-BRIDGE.md#when-ios-does-not-deliver-ended)
+for the recovery contract third-party hosts must implement.
+
 > 🧪 The `ios-webview` sample exposes both variants side-by-side as
 > scenarios so you can see the difference in `audioHealth$` live:
 > **Play ding (exclusive)** clobbers the session and never releases

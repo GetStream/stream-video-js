@@ -9,6 +9,7 @@ final class AudioScenarios: NSObject {
     private var soundPlayer: AVAudioPlayer?
     private var ringPlayer: AVAudioPlayer?
     private var autoRestoringDingPlayer: AVAudioPlayer?
+    private var noRestoreDingPlayer: AVAudioPlayer?
     private var toneEngine: AVAudioEngine?
     private var toneNode: AVAudioSourceNode?
     private let webEval: (String, String?) -> Void
@@ -85,6 +86,47 @@ final class AudioScenarios: NSObject {
         } catch {
             AppState.shared.log(.errors, "audio",
                 "auto-restore ding play failed: \(error)")
+        }
+    }
+
+    /// Repro for the "stuck red audio-health badge" bug: claims `.playback`
+    /// exclusively, plays the ding to completion, releases with
+    /// `setActive(false, .notifyOthersOnDeactivation)` ONLY - does NOT
+    /// re-set `.playAndRecord` and does NOT synthesize `.ended`. The
+    /// host-bridge `latestInterruption` would stay at `began` indefinitely
+    /// without the bridge's broader `clearStaleInterruptionIfRecovered()`
+    /// triggers (route-change of any reason, secondary-audio hint flip,
+    /// app foreground). With those triggers in place, the page-side
+    /// `audioHealth$` should return to healthy within ~1 second of the
+    /// ding finishing. Pre-fix: indicator stayed red until the user
+    /// manually triggered another scenario.
+    func playDingExclusiveNoRestore() {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, mode: .default, options: [])
+            try session.setActive(true, options: [])
+            AppState.shared.audioSessionActive = true
+        } catch {
+            AppState.shared.log(.errors, "audio",
+                "no-restore ding setCategory failed: \(error)")
+            return
+        }
+        guard let url = Bundle.main.url(forResource: "ding", withExtension: "caf") else {
+            AppState.shared.log(.errors, "audio", "missing Resources/ding.caf")
+            return
+        }
+        do {
+            let p = try AVAudioPlayer(contentsOf: url)
+            p.delegate = self
+            p.numberOfLoops = 0
+            p.prepareToPlay()
+            p.play()
+            noRestoreDingPlayer = p
+            AppState.shared.log(.scenarios, "audio",
+                "▶︎ play ding (exclusive, NO restore) - will deactivate only on finish")
+        } catch {
+            AppState.shared.log(.errors, "audio",
+                "no-restore ding play failed: \(error)")
         }
     }
 
@@ -596,9 +638,10 @@ final class AudioScenarios: NSObject {
 }
 
 extension AudioScenarios: AVAudioPlayerDelegate {
-    /// Only one player sets `delegate = self` today: the auto-restore ding
-    /// (`playDingWithAutoRestore`). Identity check guards against accidental
-    /// future reuse triggering the release on unrelated playback finishes.
+    /// Two players set `delegate = self`: the auto-restore ding
+    /// (`playDingWithAutoRestore`) and the no-restore ding
+    /// (`playDingExclusiveNoRestore`). Identity check routes each to the
+    /// correct finish handler and guards against accidental future reuse.
     ///
     /// Empirically the single `setActive(false, .notifyOthersOnDeactivation)`
     /// the AUDIO-SESSIONS.md doc once recommended is *not* enough when
@@ -610,10 +653,24 @@ extension AudioScenarios: AVAudioPlayerDelegate {
     ///
     /// The reliably-recovering pattern is the same 3-step we use in
     /// `restoreForWebRTC()`: deactivate (with notify), re-set the WebRTC
-    /// category, reactivate. That's what this delegate now runs.
+    /// category, reactivate. That's what the auto-restore branch runs. The
+    /// no-restore branch deliberately stops at the deactivate step so we can
+    /// verify the bridge's recovery triggers (route-change, secondary-audio
+    /// hint, foreground) clear the stale `began` on their own.
     func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully: Bool) {
-        guard player === autoRestoringDingPlayer else { return }
-        autoRestoringDingPlayer = nil
+        if player === autoRestoringDingPlayer {
+            autoRestoringDingPlayer = nil
+            handleAutoRestoreDingFinished(successfully: successfully)
+            return
+        }
+        if player === noRestoreDingPlayer {
+            noRestoreDingPlayer = nil
+            handleNoRestoreDingFinished(successfully: successfully)
+            return
+        }
+    }
+
+    private func handleAutoRestoreDingFinished(successfully: Bool) {
         AppState.shared.log(.scenarios, "audio",
             "ding finished (success=\(successfully)) - restoring session for WebRTC")
         let s = AVAudioSession.sharedInstance()
@@ -631,6 +688,21 @@ extension AudioScenarios: AVAudioPlayerDelegate {
         } catch {
             AppState.shared.log(.errors, "audio",
                 "release-on-finish restore failed: \(error)")
+        }
+    }
+
+    private func handleNoRestoreDingFinished(successfully: Bool) {
+        AppState.shared.log(.scenarios, "audio",
+            "ding finished (success=\(successfully)) - deactivating only, NO restore")
+        let s = AVAudioSession.sharedInstance()
+        do {
+            try s.setActive(false, options: [.notifyOthersOnDeactivation])
+            AppState.shared.audioSessionActive = false
+            AppState.shared.log(.scenarios, "audio",
+                "deactivated; category=\(s.category.rawValue) (NOT restored)")
+        } catch {
+            AppState.shared.log(.errors, "audio",
+                "no-restore deactivation failed: \(error)")
         }
     }
 }

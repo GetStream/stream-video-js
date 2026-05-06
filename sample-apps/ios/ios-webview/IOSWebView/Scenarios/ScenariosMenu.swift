@@ -67,6 +67,7 @@ struct ScenariosMenuView: View {
         Button("Play ding (mix)") { audio.playDing(mixWithOthers: true) }
         Button("Play ding (exclusive)") { audio.playDing(mixWithOthers: false) }
         Button("Play ding (exclusive, auto-restore)") { audio.playDingWithAutoRestore() }
+        Button("Play ding (exclusive, NO restore)") { audio.playDingExclusiveNoRestore() }
         Button("Start ringtone") { audio.playRingtone() }
         Button("Stop ringtone") { audio.stopRingtone() }
         Button("Local notification") { audio.fireNotificationSound() }

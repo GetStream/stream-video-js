@@ -1,6 +1,7 @@
 import AVFoundation
 import Combine
 import Foundation
+import UIKit
 import WebKit
 
 /// Reference implementation of the host → page audio-session bridge the
@@ -20,7 +21,14 @@ import WebKit
 ///
 /// Also re-publishes each snapshot on `snapshotPublisher` so the debug
 /// overlay can log native transitions alongside SDK-reported health.
-final class AudioSessionBridge {
+///
+/// Mutable state (`latestInterruption`, `latestRouteChange`, `started`,
+/// `cancellables`) is only touched from the dedicated `processingQueue`
+/// — Combine subscriptions hop onto it via `.receive(on:)` and the
+/// `evaluateJavaScript` call hops to `@MainActor` with an already-built
+/// snapshot. `@unchecked Sendable` is asserted on that contract so the
+/// bridge can be retained across actor boundaries.
+final class AudioSessionBridge: @unchecked Sendable {
 
     /// JSON payload that matches the SDK's `HostAudioSessionEvent` contract.
     struct Snapshot: Encodable, Equatable {
@@ -59,6 +67,21 @@ final class AudioSessionBridge {
     private var latestRouteChange: Snapshot.RouteChange?
     private var started = false
 
+    /// Serial queue every notification handler hops onto via
+    /// `.receive(on:)`. Keeps the mutable state above off the main
+    /// thread and serialises updates regardless of which thread
+    /// `NotificationCenter` happens to deliver on.
+    private let processingQueue = DispatchQueue(
+        label: "io.getstream.AudioSessionBridge"
+    )
+    /// Cached encoder (configured once) so `dispatch` doesn't allocate
+    /// a fresh `JSONEncoder` per snapshot.
+    private let encoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .withoutEscapingSlashes
+        return encoder
+    }()
+
     init(
         webView: WKWebView,
         audioSession: AVAudioSession = .sharedInstance(),
@@ -77,12 +100,28 @@ final class AudioSessionBridge {
 
         notificationCenter
             .publisher(for: AVAudioSession.interruptionNotification)
+            .receive(on: processingQueue)
             .sink { [weak self] in self?.handleInterruption($0) }
             .store(in: &cancellables)
 
         notificationCenter
             .publisher(for: AVAudioSession.routeChangeNotification)
+            .receive(on: processingQueue)
             .sink { [weak self] in self?.handleRouteChange($0) }
+            .store(in: &cancellables)
+
+        // Recovery triggers for the case iOS never delivers
+        // `interruption.ended`. See `clearStaleInterruptionIfRecovered()`.
+        notificationCenter
+            .publisher(for: AVAudioSession.silenceSecondaryAudioHintNotification)
+            .receive(on: processingQueue)
+            .sink { [weak self] _ in self?.handleSecondaryAudioHintChange() }
+            .store(in: &cancellables)
+
+        notificationCenter
+            .publisher(for: UIApplication.didBecomeActiveNotification)
+            .receive(on: processingQueue)
+            .sink { [weak self] _ in self?.handleAppDidBecomeActive() }
             .store(in: &cancellables)
 
         // Initial snapshot so the page sees ground truth at page load,
@@ -93,6 +132,10 @@ final class AudioSessionBridge {
     func stop() {
         guard started else { return }
         started = false
+        // Cancel each subscription explicitly before dropping the set —
+        // ensures any in-flight `processingQueue` delivery sees the
+        // cancellation immediately rather than waiting for ARC.
+        cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
         latestInterruption = nil
         latestRouteChange = nil
@@ -132,23 +175,54 @@ final class AudioSessionBridge {
             let reason = AVAudioSession.RouteChangeReason(rawValue: raw)
         else { return }
         latestRouteChange = .init(reason: Self.describe(routeChangeReason: reason))
-
-        // iOS does not reliably post `interruption.ended` after a
-        // category-conflict interruption, even when the host runs the
-        // 3-step restore (`setActive(false, .notifyOthersOnDeactivation)`,
-        // `setCategory(.playAndRecord, ...)`, `setActive(true)`). Without
-        // this, `latestInterruption` stays at `began` forever and the
-        // SDK's `AudioHealthMonitor` keeps the page at
-        // `host-audio-session-interrupted` after the session is healthy
-        // again. Treat a categoryChange back to `.playAndRecord` as
-        // ground truth that the interruption is over.
-        if reason == .categoryChange,
-           audioSession.category == .playAndRecord,
-           latestInterruption?.type == "began" {
-            latestInterruption = .init(type: "ended", reason: nil)
-        }
-
+        _ = clearStaleInterruptionIfRecovered()
         dispatch()
+    }
+
+    private func handleSecondaryAudioHintChange() {
+        // The OS-level "another session should silence me" hint just
+        // changed. When it flips false while we hold a record-capable
+        // category, the conflicting session has released audio. Dispatch
+        // only if this resolves a stale `began` so we don't spam the page
+        // with redundant snapshots on healthy hint flips.
+        guard clearStaleInterruptionIfRecovered() else { return }
+        dispatch()
+    }
+
+    private func handleAppDidBecomeActive() {
+        // Last-chance verification when the user returns to the app. iOS
+        // can drop / coalesce notifications while suspended, so the
+        // bridge may have missed the `.ended` (or its synthesized
+        // equivalent) for an interruption that resolved in the
+        // background. Dispatch only if this resolves a stale `began`.
+        guard clearStaleInterruptionIfRecovered() else { return }
+        dispatch()
+    }
+
+    /// iOS does not reliably post `interruption.ended` after a
+    /// category-conflict interruption, even when the host runs the
+    /// 3-step restore (`setActive(false, .notifyOthersOnDeactivation)`,
+    /// `setCategory(.playAndRecord, ...)`, `setActive(true)`). Without a
+    /// terminal event, `latestInterruption` stays at `began` forever and
+    /// the SDK's `AudioHealthMonitor` keeps the page at
+    /// `host-audio-session-interrupted` after the session is healthy
+    /// again. This helper synthesizes `.ended` whenever the audio
+    /// session is observably back: category is record-capable AND no
+    /// secondary session is asking us to be silenced. Returns `true` if
+    /// the stale `began` was cleared so the caller can decide whether
+    /// to dispatch a fresh snapshot.
+    @discardableResult
+    private func clearStaleInterruptionIfRecovered() -> Bool {
+        guard latestInterruption?.type == "began" else { return false }
+        let category = audioSession.category
+        guard category == .playAndRecord || category == .record else {
+            return false
+        }
+        guard !audioSession.secondaryAudioShouldBeSilencedHint else {
+            return false
+        }
+        latestInterruption = .init(type: "ended", reason: nil)
+        return true
     }
 
     // MARK: - Dispatch
@@ -171,8 +245,6 @@ final class AudioSessionBridge {
 
     private func forwardToWebView(_ snapshot: Snapshot) {
         guard let webView else { return }
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .withoutEscapingSlashes
         guard
             let data = try? encoder.encode(snapshot),
             let json = String(data: data, encoding: .utf8)
@@ -180,12 +252,13 @@ final class AudioSessionBridge {
 
         // JSON is a valid JS expression → safe to interpolate directly
         // as the `detail` of a CustomEvent. `evaluateJavaScript` must run
-        // on the main thread.
+        // on the main thread; hop via `Task { @MainActor }` so the
+        // call is awaited rather than fire-and-forgotten.
         let script = """
         window.dispatchEvent(new CustomEvent('stream-video:host-audio-session', { detail: \(json) }));
         """
-        DispatchQueue.main.async { [weak webView] in
-            webView?.evaluateJavaScript(script, completionHandler: nil)
+        Task { @MainActor [weak webView] in
+            try await webView?.evaluateJavaScript(script)
         }
     }
 
