@@ -27,11 +27,11 @@ export function setPushConfig() {
     ios: {
       pushProviderName: 'rn-apn-video',
       callsHistory: true,
+      enableOngoingCalls: true,
     },
     android: {
       pushProviderName: 'rn-fcm-video',
     },
-    enableOngoingCalls: true,
     shouldRejectCallWhenBusy: false,
     createStreamVideoClient,
   });

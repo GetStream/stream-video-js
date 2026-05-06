@@ -36,7 +36,7 @@ export type StreamVideoConfig = {
      */
     publishOptions?: ClientPublishOptions;
 
-    ios: {
+    ios?: {
       /**
        * The name for the alias of push provider used for iOS
        * Pass undefined if you will not be using stream's push notifications but still want to use the functionality of the SDK
@@ -64,8 +64,13 @@ export type StreamVideoConfig = {
        * @default 60000 (1 minute)
        */
       displayCallTimeout?: number;
+      /**
+       * Whether to enable ongoing calls.
+       * @default false
+       */
+      enableOngoingCalls?: boolean;
     };
-    android: {
+    android?: {
       /**
        * The small icon to be used for push notifications for Android
        * Reference the name created (Optional, defaults to 'ic_launcher')
@@ -106,12 +111,8 @@ export type StreamVideoConfig = {
        * The transformer to be used to transform the call title in the notification for ringing and ongoing calls for Android.
        */
       titleTransformer?: (memberName: string, incoming: boolean) => string;
+      enableOngoingCalls?: boolean;
     };
-    /**
-     * Whether to enable ongoing calls.
-     * @default false
-     */
-    enableOngoingCalls?: boolean;
     /**
      * Whether to reject calls when the user is busy.
      * @default false

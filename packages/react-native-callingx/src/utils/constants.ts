@@ -14,6 +14,7 @@ export const defaultiOSOptions: Required<InternalIOSOptions> = {
   imageName: '',
   callsHistory: false,
   displayCallTimeout: 60000, // 1 minute
+  enableOngoingCalls: false,
 };
 
 export const defaultAndroidOptions: Omit<
@@ -30,6 +31,7 @@ export const defaultAndroidOptions: Omit<
     id: 'stream_ongoing_calls_channel',
     name: 'Ongoing calls',
   },
+  enableOngoingCalls: false,
 };
 
 // iOS: maps to CXCallEndedReason raw values.

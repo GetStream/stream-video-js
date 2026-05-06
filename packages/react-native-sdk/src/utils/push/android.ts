@@ -26,7 +26,7 @@ export async function initAndroidPushToken(
   pushConfig: PushConfig,
   setUnsubscribeListener: (unsubscribe: () => void) => void,
 ) {
-  if (Platform.OS !== 'android' || !pushConfig.android.pushProviderName) {
+  if (Platform.OS !== 'android' || !pushConfig.android?.pushProviderName) {
     return;
   }
   const logger = videoLoggerSystem.getLogger('initAndroidPushToken');
@@ -55,7 +55,7 @@ export async function initAndroidPushToken(
         logger.warn('Failed to remove firebase token from stream', err);
       }
     });
-    const push_provider_name = pushConfig.android.pushProviderName;
+    const push_provider_name = pushConfig.android?.pushProviderName;
     logger.debug(`sending firebase token: ${token} for userId: ${userId}`);
     await client.addDevice(token, 'firebase', push_provider_name);
   };
