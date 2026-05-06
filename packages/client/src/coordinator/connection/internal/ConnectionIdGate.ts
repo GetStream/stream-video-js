@@ -30,6 +30,10 @@ export class ConnectionIdGate {
       resolve = res;
       reject = rej;
     });
+    // Suppress unhandled-rejection warnings when reject() lands before any
+    // caller has attached a handler. The runtime still surfaces the rejection
+    // to subsequent `await()` callers via the state.promise chain.
+    promise.catch(() => {});
     this.state = { promise, resolve, reject, settled: false };
   };
 
