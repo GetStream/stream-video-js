@@ -1,4 +1,5 @@
 import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import * as Sentry from '@sentry/nextjs';
 import { isRecentDeviceSelectionEnabled } from '../hooks/useDeviceSelectionPreference';
 import type { AppEnvironment } from '../lib/environmentConfig';
 import {
@@ -12,6 +13,14 @@ import {
 import { customSentryLogger } from './logger';
 
 let client: StreamVideoClient | undefined;
+
+type CoordinatorMode = 'legacy' | 'new';
+
+const getCoordinatorMode = (): CoordinatorMode => {
+  if (typeof window === 'undefined') return 'new';
+  const param = new URL(window.location.href).searchParams.get('coordinator');
+  return param === 'legacy' ? 'legacy' : 'new';
+};
 
 /**
  * Lazily initializes video client. Credentials are captured on the first
@@ -27,6 +36,7 @@ export const getClient = (
   environment: AppEnvironment,
 ) => {
   if (!client) {
+    const mode = getCoordinatorMode();
     const options = {
       baseURL: creds.coordinatorUrl || process.env.NEXT_PUBLIC_STREAM_API_URL,
       logLevel: 'debug' as const,
@@ -37,7 +47,10 @@ export const getClient = (
         enabled: isRecentDeviceSelectionEnabled(),
         storageKey: '@pronto/device-preferences',
       },
+      useLegacyCoordinator: mode === 'legacy',
     };
+    console.info(`[stream-video] coordinator mode: ${mode}`);
+    Sentry.setTag('coordinator_mode', mode);
     if (creds.user.type === 'guest' || creds.user.type === 'anonymous') {
       client = new StreamVideoClient({
         apiKey: creds.apiKey,
