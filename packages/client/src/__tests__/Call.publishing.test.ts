@@ -290,6 +290,31 @@ describe('Publishing and Unpublishing tracks', () => {
       expect(participant!.screenShareStream).toBeUndefined();
       expect(participant!.screenShareAudioStream).toBeUndefined();
     });
+
+    it('does not throw if sfuClient is cleared while the mute-state RPC is in flight', async () => {
+      let releaseMuteUpdate!: () => void;
+      let signalMuteUpdateEntered!: () => void;
+      const muteUpdateEntered = new Promise<void>(
+        (resolve) => (signalMuteUpdateEntered = resolve),
+      );
+      sfuClient.updateMuteStates = vi.fn().mockImplementation(() => {
+        signalMuteUpdateEntered();
+        return new Promise<void>((resolve) => (releaseMuteUpdate = resolve));
+      });
+
+      const track = new MediaStreamTrack() as MediaStreamAudioTrack;
+      const mediaStream = new MediaStream();
+      vi.spyOn(mediaStream, 'getAudioTracks').mockReturnValue([track]);
+
+      const inflight = call.publish(mediaStream, TrackType.AUDIO);
+
+      await muteUpdateEntered;
+
+      call['sfuClient'] = undefined;
+      releaseMuteUpdate();
+
+      await inflight;
+    });
   });
 
   describe('Deprecated methods', () => {
