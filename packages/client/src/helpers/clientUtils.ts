@@ -4,7 +4,8 @@ import type {
   TokenOrProvider,
   User,
 } from '../coordinator/connection/types';
-import { StreamClient } from '../coordinator/connection/client';
+import { StreamClient as LegacyStreamClient } from '../coordinator/connection/client';
+import { StreamClient as NewStreamClient } from '../coordinator/connection/coordinator-client';
 import { getSdkInfo } from './client-details';
 import { SdkType } from '../gen/video/sfu/models/models';
 import type { StreamVideoClientOptions } from '../types';
@@ -43,18 +44,33 @@ const getClientAppIdentifier = (
 
 /**
  * Creates a coordinator client.
+ *
+ * Returns a {@link LegacyStreamClient}-typed value so existing call sites
+ * (Call.ts, StreamSfuClient.ts, StreamVideoClient.ts) keep their type
+ * annotations unchanged. During the F15 validation window the new client at
+ * `coordinator-client.ts` is structurally assignable to the legacy class
+ * because (a) the public surface matches and (b) the F11 deprecated aliases
+ * are kept on the new class. The `as unknown` cast is the single TS gymnastic
+ * required to land both implementations behind one factory.
  */
 export const createCoordinatorClient = (
   apiKey: string,
   options: StreamClientOptions | undefined,
-) => {
+): LegacyStreamClient => {
   const clientAppIdentifier = getClientAppIdentifier(options);
-
-  return new StreamClient(apiKey, {
+  const baseOptions: StreamClientOptions = {
     persistUserOnConnectionFailure: true,
     ...options,
     clientAppIdentifier,
-  });
+  };
+
+  if (options?.useLegacyCoordinator) {
+    return new LegacyStreamClient(apiKey, baseOptions);
+  }
+  return new NewStreamClient(
+    apiKey,
+    baseOptions,
+  ) as unknown as LegacyStreamClient;
 };
 
 /**
