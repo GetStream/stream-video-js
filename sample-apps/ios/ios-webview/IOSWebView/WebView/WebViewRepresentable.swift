@@ -57,6 +57,11 @@ final class WebController: ObservableObject {
             .sink { snapshot in
                 AppState.shared.log(.lifecycle, "bridge", Self.format(snapshot))
             }
+        bridge.onDiagnostic = { line in
+            DispatchQueue.main.async {
+                AppState.shared.log(.lifecycle, "bridge", line)
+            }
+        }
         bridge.start()
         self.audioSessionBridge = bridge
 

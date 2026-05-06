@@ -36,6 +36,7 @@ targets:
         NSMicrophoneUsageDescription: This sample embeds the Stream Video React SDK, which needs microphone access for calls.
         UIBackgroundModes:
           - audio
+          - voip
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
     settings:

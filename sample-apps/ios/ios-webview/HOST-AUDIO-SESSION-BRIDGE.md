@@ -142,14 +142,14 @@ correctly.
 
 ## What the bridge must observe
 
-Subscribe to **four** `NotificationCenter` notifications and re-snapshot
+Subscribe to **five** `NotificationCenter` notifications and re-snapshot
 the session on each. Send an additional snapshot at startup so the page
 has ground truth before any event fires.
 
-The first two are the primary signal sources. The last two exist solely
-to recover from the case where iOS does not deliver `.ended` after a
-category-conflict interruption (see "When iOS does not deliver `.ended`"
-below).
+The first two are the primary signal sources. The last three exist
+solely to recover from the case where iOS does not deliver `.ended`
+after a category-conflict interruption (see "When iOS does not deliver
+`.ended`" below).
 
 ### 1. `AVAudioSession.interruptionNotification`
 
@@ -197,7 +197,18 @@ so the bridge may have missed the terminal event for an
 interruption that resolved in the background. Same recovery rules
 as (3); fires once on every foreground transition.
 
-### 5. Initial snapshot at startup
+### 5. `AVAudioSession.mediaServicesWereResetNotification`
+
+Fires when `mediaserverd` resets — coincides with WebKit's internal
+`RTCAudioSession` reactivating its category after a category-conflict
+interruption. WebKit's `setCategory(.playAndRecord, ...)` during that
+reactivation does not always post `routeChangeNotification` the bridge
+can observe, leaving the bridge stuck on `category=playback /
+interruption=began` long after the session is observably back. This
+notification fills the gap. Same recovery rules as (3); fires only on
+actual media-services resets, so dispatching from it is safe.
+
+### 6. Initial snapshot at startup
 
 Dispatch one snapshot after the bridge starts (with `interruption: null`,
 `routeChange: null`, but the current `session.category` / `session.mode` /
@@ -235,11 +246,23 @@ interruption / route-change events:
   false directly indicates the conflict resolved).
 - Every `UIApplication.didBecomeActiveNotification` (recovery for
   events the OS dropped while the app was suspended).
+- Every `mediaServicesWereResetNotification` (covers WebKit's silent
+  category reactivation, which `routeChangeNotification` does not
+  always surface).
+- A periodic 1s timer that arms while `latestInterruption?.type ==
+"began"` and disarms on a successful clear or after a 30s budget.
+  Final safety net for cases where none of the notification triggers
+  above fire — the most common one observed in practice is WebKit's
+  internal `RTCAudioSession` reactivation completing after every
+  in-process notification has already been delivered, leaving the
+  bridge sitting on `category=playback / began`.
 
-To avoid noise, only dispatch a fresh snapshot from the hint and
-foreground triggers if the helper actually cleared a stale `began`.
-Route-change handlers always dispatch (the route change itself is
-worth surfacing).
+To avoid noise, only dispatch a fresh snapshot from the hint,
+foreground, and media-services-reset triggers if the helper actually
+cleared a stale `began`. Route-change handlers always dispatch (the
+route change itself is worth surfacing). The periodic timer is
+self-disarming: it runs at most once per second for 30s and stops as
+soon as the stale `began` clears, so it doesn't add ongoing wakeups.
 
 The SDK reducer treats absence of `interruption` (or
 `interruption: null`) as the terminal signal. Sending a fresh
@@ -329,6 +352,12 @@ final class AudioSessionBridge: @unchecked Sendable {
     private let processingQueue = DispatchQueue(label: "com.streamvideo.audioSessionObserver")
     private let encoder = JSONEncoder()
 
+    // Periodic resnapshot timer — see `armRecoveryTimer()`.
+    private var recoveryTimer: DispatchSourceTimer?
+    private var recoveryTicks = 0
+    private let maxRecoveryTicks = 30
+    private let recoveryTickInterval: DispatchTimeInterval = .seconds(1)
+
     init(webView: WKWebView) { self.webView = webView }
     deinit { stop() }
 
@@ -357,6 +386,13 @@ final class AudioSessionBridge: @unchecked Sendable {
             .sink { [weak self] _ in self?.handleAppDidBecomeActive() }
             .store(in: &cancellables)
 
+        // Catches WebKit's silent `RTCAudioSession` reactivation that
+        // doesn't post `routeChangeNotification`.
+        notificationCenter.publisher(for: AVAudioSession.mediaServicesWereResetNotification)
+            .receive(on: processingQueue)
+            .sink { [weak self] _ in self?.handleMediaServicesWereReset() }
+            .store(in: &cancellables)
+
         // Initial snapshot - gives the SDK ground truth at page load,
         // before any interruption or route-change event happens.
         dispatch()
@@ -367,6 +403,7 @@ final class AudioSessionBridge: @unchecked Sendable {
         started = false
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
+        disarmRecoveryTimer()
         latestInterruption = nil
         latestRouteChange = nil
     }
@@ -394,6 +431,11 @@ final class AudioSessionBridge: @unchecked Sendable {
         }
 
         latestInterruption = .init(type: typeString, reason: reasonString)
+        if typeString == "began" {
+            armRecoveryTimer()
+        } else {
+            disarmRecoveryTimer()
+        }
         dispatch()
     }
 
@@ -420,6 +462,17 @@ final class AudioSessionBridge: @unchecked Sendable {
         dispatch()
     }
 
+    private func handleMediaServicesWereReset() {
+        // mediaserverd reset coincides with WebKit's `RTCAudioSession`
+        // reactivating its category after a category-conflict
+        // interruption. Bridge can be sitting on a stale `began` with
+        // `category=playback` because WebKit's internal `setCategory`
+        // doesn't always post `routeChangeNotification`. Dispatch only
+        // if recovery actually clears the stale `began`.
+        guard clearStaleInterruptionIfRecovered() else { return }
+        dispatch()
+    }
+
     /// Synthesizes `interruption.ended` when the audio session is
     /// observably back: category is record-capable AND no secondary
     /// session asks us to be silenced. Returns `true` if the stale
@@ -431,7 +484,51 @@ final class AudioSessionBridge: @unchecked Sendable {
         guard category == .playAndRecord || category == .record else { return false }
         guard !audioSession.secondaryAudioShouldBeSilencedHint else { return false }
         latestInterruption = .init(type: "ended", reason: nil)
+        disarmRecoveryTimer()
         return true
+    }
+
+    // MARK: recovery timer
+
+    /// Periodic resnapshot timer. Armed in `handleInterruption` when a
+    /// fresh `began` arrives; disarmed on any successful clear, on
+    /// `interruption.ended`, on `stop()`, and after `maxRecoveryTicks`.
+    /// Catches the silent `RTCAudioSession` reactivation case where no
+    /// `routeChangeNotification` fires after WebKit returns the
+    /// session to `.playAndRecord`.
+    private func armRecoveryTimer() {
+        recoveryTicks = 0
+        if recoveryTimer != nil { return }
+        let timer = DispatchSource.makeTimerSource(queue: processingQueue)
+        timer.schedule(
+            deadline: .now() + recoveryTickInterval,
+            repeating: recoveryTickInterval
+        )
+        timer.setEventHandler { [weak self] in self?.tickRecoveryTimer() }
+        recoveryTimer = timer
+        timer.resume()
+    }
+
+    private func disarmRecoveryTimer() {
+        recoveryTimer?.cancel()
+        recoveryTimer = nil
+        recoveryTicks = 0
+    }
+
+    private func tickRecoveryTimer() {
+        guard latestInterruption?.type == "began" else {
+            disarmRecoveryTimer()
+            return
+        }
+        recoveryTicks += 1
+        if clearStaleInterruptionIfRecovered() {
+            // `clearStaleInterruptionIfRecovered()` already disarmed.
+            dispatch()
+            return
+        }
+        if recoveryTicks >= maxRecoveryTicks {
+            disarmRecoveryTimer()
+        }
     }
 
     // MARK: dispatch
@@ -793,13 +890,17 @@ Some recovery paths are not under your control: a third-party SDK
 might do its own session work and never call your synthesize helper,
 or the conflicting session may simply go away without an in-app
 trigger. The reference bridge therefore runs
-`clearStaleInterruptionIfRecovered()` from three additional triggers
-(see ["When iOS does not deliver `.ended`"](#when-ios-does-not-deliver-ended)
-above): every route-change regardless of `reason`, every
-`silenceSecondaryAudioHintNotification`, and every
-`UIApplication.didBecomeActiveNotification`. Together these cover the
-common OS-driven recoveries; the explicit `synthesizeInterruptionEnded()`
-call above covers the cases where you control the restore yourself.
+`clearStaleInterruptionIfRecovered()` from four additional notification
+triggers (see ["When iOS does not deliver
+`.ended`"](#when-ios-does-not-deliver-ended) above) plus a periodic
+1-second timer that arms while `latestInterruption?.type == "began"`
+and self-disarms on a successful clear or after a 30-second budget.
+The notification triggers cover the common OS-driven recoveries; the
+periodic timer covers WebKit's `RTCAudioSession` reactivation that
+silently transitions the category back to `.playAndRecord` without
+posting any of those notifications. The explicit
+`synthesizeInterruptionEnded()` call above covers the cases where you
+control the restore yourself.
 
 ---
 

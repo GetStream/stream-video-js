@@ -41,6 +41,10 @@ struct DebugOverlay: View {
             .pickerStyle(.segmented)
             .frame(maxWidth: .infinity)
 
+            Button("Copy") { copyVisibleEntries() }
+                .font(.system(size: 13))
+                .foregroundColor(.white)
+
             Button("Clear") { appState.clear(tab: selectedTab) }
                 .font(.system(size: 13))
                 .foregroundColor(.white)
@@ -59,6 +63,7 @@ struct DebugOverlay: View {
                             .font(.system(size: 11, design: .monospaced))
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity, alignment: .leading)
+                            .textSelection(.enabled)
                             .id(entry.id)
                     }
                 }
@@ -76,6 +81,12 @@ struct DebugOverlay: View {
                 }
             }
         }
+    }
+
+    private func copyVisibleEntries() {
+        let visible = appState.entries.filter { $0.tab == selectedTab }
+        let text = visible.map(Self.format).joined(separator: "\n")
+        UIPasteboard.general.string = text
     }
 
     private static let timeFormatter: DateFormatter = {

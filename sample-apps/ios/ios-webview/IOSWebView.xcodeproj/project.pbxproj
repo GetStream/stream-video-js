@@ -31,15 +31,15 @@
 		06BBE633A9755C57EBDDD765 /* LifecycleBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleBridge.swift; sourceTree = "<group>"; };
 		319B6F992B4602D9A571E884 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		35429890281B5750745E6CA0 /* error-capture.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "error-capture.js"; sourceTree = "<group>"; };
-		387DBD1A5444E4EB9B9877CE /* IOSWebView.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = IOSWebView.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		4D602AF2903F25E1E5512ED9 /* ding.caf */ = {isa = PBXFileReference; path = ding.caf; sourceTree = "<group>"; };
+		387DBD1A5444E4EB9B9877CE /* IOSWebView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IOSWebView.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4D602AF2903F25E1E5512ED9 /* ding.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ding.caf; sourceTree = "<group>"; };
 		61B4AF4E42F84875AF1AC245 /* WebViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewRepresentable.swift; sourceTree = "<group>"; };
 		6BF05510E92C48ACB89A6860 /* ErrorBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorBridge.swift; sourceTree = "<group>"; };
 		7D6FDAC9A0FE1C6690D7B350 /* DebugOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugOverlay.swift; sourceTree = "<group>"; };
 		8AC518543C212E9F5C3BD223 /* NavigationInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationInterceptor.swift; sourceTree = "<group>"; };
 		A8C95C0317F57AE066E511D3 /* ConsoleBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConsoleBridge.swift; sourceTree = "<group>"; };
 		BAF6B45004224C7276B8AE68 /* console-mirror.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "console-mirror.js"; sourceTree = "<group>"; };
-		BCCF451A612F7C857AD81978 /* ringtone.caf */ = {isa = PBXFileReference; path = ringtone.caf; sourceTree = "<group>"; };
+		BCCF451A612F7C857AD81978 /* ringtone.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ringtone.caf; sourceTree = "<group>"; };
 		C4E71B2A1BECA28F7F3E3AD7 /* AudioScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioScenarios.swift; sourceTree = "<group>"; };
 		CB5BA7910C4FCACFA90C66A3 /* ScenariosMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenariosMenu.swift; sourceTree = "<group>"; };
 		E013F718BC75F5AD6E4F3178 /* PermissionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionCoordinator.swift; sourceTree = "<group>"; };
@@ -226,6 +226,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = EHV7XZLAHA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = IOSWebView/Info.plist;
@@ -247,6 +248,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = EHV7XZLAHA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = IOSWebView/Info.plist;

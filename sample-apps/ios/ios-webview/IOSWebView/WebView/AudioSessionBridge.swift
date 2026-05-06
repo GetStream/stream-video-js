@@ -58,6 +58,12 @@ final class AudioSessionBridge: @unchecked Sendable {
         subject.eraseToAnyPublisher()
     }
 
+    /// Optional sink for per-tick diagnostics from the recovery timer.
+    /// Set this once at construction; the bridge invokes it from
+    /// `processingQueue`, so the consumer is responsible for hopping to
+    /// the main queue if needed.
+    var onDiagnostic: ((String) -> Void)?
+
     private weak var webView: WKWebView?
     private let audioSession: AVAudioSession
     private let notificationCenter: NotificationCenter
@@ -66,6 +72,28 @@ final class AudioSessionBridge: @unchecked Sendable {
     private var latestInterruption: Snapshot.Interruption?
     private var latestRouteChange: Snapshot.RouteChange?
     private var started = false
+
+    /// Timer armed while `latestInterruption?.type == "began"`. Polls
+    /// `clearStaleInterruptionIfRecovered()` every second to catch the
+    /// case where iOS / WebKit silently transitions the audio session
+    /// back to a record-capable category without posting a notification
+    /// the bridge can observe. Disarmed on any successful clear, on
+    /// `interruption.ended`, on `stop()`, and after `maxRecoveryTicks`
+    /// attempts so it can't run forever.
+    private var recoveryTimer: DispatchSourceTimer?
+    private var recoveryTicks = 0
+    private let maxRecoveryTicks = 30
+    private let recoveryTickInterval: DispatchTimeInterval = .seconds(1)
+    /// After this many ticks, force-synthesize `interruption=ended`
+    /// even if `clearStaleInterruptionIfRecovered()` still rejects:
+    /// WebKit's internal RTCAudioSession reactivation can leave
+    /// `AVAudioSession.sharedInstance()` reporting `category=playback`
+    /// + `hint=true` + `otherAudio=true` indefinitely while WebRTC's
+    /// own audio path keeps working. Without this escape hatch, the
+    /// bridge stays pinned on `began` and the SDK keeps the page at
+    /// `host-audio-session-interrupted` for the full
+    /// `maxRecoveryTicks` window even though audio is observably alive.
+    private let forceClearAfterTicks = 5
 
     /// Serial queue every notification handler hops onto via
     /// `.receive(on:)`. Keeps the mutable state above off the main
@@ -124,6 +152,18 @@ final class AudioSessionBridge: @unchecked Sendable {
             .sink { [weak self] _ in self?.handleAppDidBecomeActive() }
             .store(in: &cancellables)
 
+        // mediaservicesWereReset coincides with WebKit's `RTCAudioSession`
+        // reactivating after a category-conflict interruption. The
+        // category transition WebKit performs internally doesn't always
+        // post a `routeChangeNotification` the bridge sees, but the
+        // media-services reset does — so we treat it as another
+        // recovery trigger.
+        notificationCenter
+            .publisher(for: AVAudioSession.mediaServicesWereResetNotification)
+            .receive(on: processingQueue)
+            .sink { [weak self] _ in self?.handleMediaServicesWereReset() }
+            .store(in: &cancellables)
+
         // Initial snapshot so the page sees ground truth at page load,
         // even before any interruption or route change happens.
         dispatch()
@@ -137,6 +177,7 @@ final class AudioSessionBridge: @unchecked Sendable {
         // cancellation immediately rather than waiting for ARC.
         cancellables.forEach { $0.cancel() }
         cancellables.removeAll()
+        disarmRecoveryTimer()
         latestInterruption = nil
         latestRouteChange = nil
     }
@@ -165,6 +206,11 @@ final class AudioSessionBridge: @unchecked Sendable {
         }
 
         latestInterruption = .init(type: typeString, reason: reasonString)
+        if typeString == "began" {
+            armRecoveryTimer()
+        } else {
+            disarmRecoveryTimer()
+        }
         dispatch()
     }
 
@@ -185,6 +231,19 @@ final class AudioSessionBridge: @unchecked Sendable {
         // category, the conflicting session has released audio. Dispatch
         // only if this resolves a stale `began` so we don't spam the page
         // with redundant snapshots on healthy hint flips.
+        guard clearStaleInterruptionIfRecovered() else { return }
+        dispatch()
+    }
+
+    private func handleMediaServicesWereReset() {
+        // mediaserverd reset typically pairs with WebKit's
+        // `RTCAudioSession` reactivating its category after a
+        // category-conflict interruption. WebKit's internal
+        // `setCategory(.playAndRecord, ...)` during reactivation does
+        // not always post `routeChangeNotification`, so the bridge can
+        // be sitting on a stale `began` snapshot with `category=playback`
+        // long after the session is observably back. Dispatch only if
+        // recovery actually clears the stale `began`.
         guard clearStaleInterruptionIfRecovered() else { return }
         dispatch()
     }
@@ -222,7 +281,77 @@ final class AudioSessionBridge: @unchecked Sendable {
             return false
         }
         latestInterruption = .init(type: "ended", reason: nil)
+        disarmRecoveryTimer()
         return true
+    }
+
+    // MARK: - Recovery timer
+
+    /// Arms the periodic resnapshot timer if not already armed.
+    /// Resets the tick counter so each fresh `began` gets the full
+    /// `maxRecoveryTicks` budget. Runs on `processingQueue`, so timer
+    /// events serialise with notification handlers.
+    private func armRecoveryTimer() {
+        recoveryTicks = 0
+        if recoveryTimer != nil { return }
+        let timer = DispatchSource.makeTimerSource(queue: processingQueue)
+        timer.schedule(
+            deadline: .now() + recoveryTickInterval,
+            repeating: recoveryTickInterval
+        )
+        timer.setEventHandler { [weak self] in self?.tickRecoveryTimer() }
+        recoveryTimer = timer
+        timer.resume()
+    }
+
+    private func disarmRecoveryTimer() {
+        recoveryTimer?.cancel()
+        recoveryTimer = nil
+        recoveryTicks = 0
+    }
+
+    /// One tick of the resnapshot timer. Runs `clearStaleInterruptionIfRecovered()`;
+    /// dispatches a fresh snapshot if the stale `began` actually cleared,
+    /// disarms after `maxRecoveryTicks` if not. Always emits a diagnostic
+    /// log line so the lifecycle tab shows the timer is alive and which
+    /// guard is failing.
+    private func tickRecoveryTimer() {
+        // Defensive: if `began` is already gone (some other path cleared
+        // it without calling `disarmRecoveryTimer()`), stop ticking.
+        guard latestInterruption?.type == "began" else {
+            disarmRecoveryTimer()
+            return
+        }
+        recoveryTicks += 1
+        let category = audioSession.category
+        let hint = audioSession.secondaryAudioShouldBeSilencedHint
+        let otherAudio = audioSession.isOtherAudioPlaying
+        let cleared = clearStaleInterruptionIfRecovered()
+        onDiagnostic?(
+            "recovery tick=\(recoveryTicks)/\(maxRecoveryTicks)"
+            + " category=\(Self.describe(category: category))"
+            + " hint=\(hint) otherAudio=\(otherAudio)"
+            + " cleared=\(cleared)"
+        )
+        if cleared {
+            // `clearStaleInterruptionIfRecovered()` already disarmed.
+            dispatch()
+            return
+        }
+        if recoveryTicks >= forceClearAfterTicks {
+            onDiagnostic?(
+                "recovery force-clear after \(recoveryTicks) ticks"
+                + " (category=\(Self.describe(category: category))"
+                + " hint=\(hint) otherAudio=\(otherAudio))"
+            )
+            latestInterruption = .init(type: "ended", reason: nil)
+            disarmRecoveryTimer()
+            dispatch()
+            return
+        }
+        if recoveryTicks >= maxRecoveryTicks {
+            disarmRecoveryTimer()
+        }
     }
 
     // MARK: - Dispatch
