@@ -53,8 +53,8 @@ export class TokenManager {
 
   /**
    * Resolves when token is ready. Returns the in-flight promise (or null when no
-   * load is in progress). Callers may `await` the return value directly — `await null`
-   * resolves to null, which preserves the legacy contract.
+   * load is in progress). Callers may `await` the return value directly:
+   * `await null` resolves to null, which preserves the legacy contract.
    */
   tokenReady = (): Promise<string | undefined> | null => this.loadInFlight;
 

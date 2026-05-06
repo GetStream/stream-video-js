@@ -112,7 +112,7 @@ describe('WebSocketTransport', () => {
     }
   });
 
-  it('close() is idempotent — second call returns the same promise', async () => {
+  it('close() is idempotent: second call returns the same promise', async () => {
     const t = new WebSocketTransport({
       url: 'wss://x',
       WebSocketImpl: MockWebSocket as unknown as typeof WebSocket,
@@ -141,7 +141,7 @@ describe('WebSocketTransport', () => {
       onClose: vi.fn(),
       onError: vi.fn(),
     });
-    // never fired open — readyState stays CONNECTING
+    // never fired open: readyState stays CONNECTING
     await expect(t.close(1000, 'manual')).resolves.toBeUndefined();
   });
 

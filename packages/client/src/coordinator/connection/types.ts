@@ -44,7 +44,7 @@ export type APIErrorResponse = {
 
 /**
  * Typed WebSocket connection error. Replaces the legacy practice of
- * JSON-stringifying connection metadata into Error.message — consumers can now
+ * JSON-stringifying connection metadata into Error.message: consumers can now
  * read `code`, `StatusCode`, `isWSFailure`, etc. directly from the error.
  */
 export class WebSocketConnectionError extends Error {
@@ -322,7 +322,7 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   /**
    * When true, route coordinator traffic through the legacy
    * StreamClient/StableWSConnection implementation instead of the rewritten
-   * coordinator-client. Temporary flag used during the parallel rollout — will
+   * coordinator-client. Temporary flag used during the parallel rollout; will
    * be removed once the new implementation is validated.
    *
    * @internal

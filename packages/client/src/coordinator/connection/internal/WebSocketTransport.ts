@@ -43,7 +43,7 @@ export class WebSocketTransport {
 
   /**
    * Closes the underlying socket and resolves when the close completes (or
-   * after `gracefulTimeoutMs` if the server never replies). Idempotent — a
+   * after `gracefulTimeoutMs` if the server never replies). Idempotent: a
    * second call returns the same promise.
    */
   close = (
@@ -64,7 +64,7 @@ export class WebSocketTransport {
       try {
         ws.close(code, reason);
       } catch {
-        // already closed — fall through
+        // already closed: fall through
       }
     });
     return this.closePromise;

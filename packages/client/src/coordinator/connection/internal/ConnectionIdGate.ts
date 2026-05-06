@@ -11,7 +11,7 @@ type GateState = {
  * Lifecycle owners (CoordinatorSocket, StreamClient.openConnection,
  * StreamClient.connectAnonymousUser) call `arm()` to start a new gate cycle.
  * The handshake calls `resolve()` on success or `reject()` on failure. REST
- * callers only ever call `await()` — they MUST NOT call `arm()` so they can
+ * callers only ever call `await()`; they MUST NOT call `arm()` so they can
  * never rotate the gate into a fresh pending state with no one to resolve it.
  *
  * F1 fix: `reject()` settles the in-flight promise BEFORE a subsequent

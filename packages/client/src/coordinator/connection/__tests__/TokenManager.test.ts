@@ -138,7 +138,7 @@ describe('TokenManager', () => {
     providerResolve(validToken);
     await ready;
     await setupP;
-    // Settled — slot is cleared.
+    // Settled: slot is cleared.
     expect(tm.tokenReady()).toBeNull();
   });
 });
