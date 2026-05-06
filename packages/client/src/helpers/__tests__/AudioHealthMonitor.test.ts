@@ -458,6 +458,36 @@ describe('AudioHealthMonitor', () => {
     });
   });
 
+  it('clears `began` when a later event drops `interruption` even if the route changed', () => {
+    // iOS does not reliably post `interruption.ended` for category-conflict
+    // interruptions. Hosts recover by re-dispatching a snapshot with
+    // `interruption: null` once they observe audio is back, typically
+    // alongside a route-change. The SDK reducer must treat the cleared
+    // `interruption` field as the terminal signal regardless of which other
+    // fields the host updated in the same dispatch.
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(
+      makeHostEvent({ interruption: { type: 'began', reason: null } }),
+    );
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'host-audio-session-interrupted',
+    );
+
+    dispatchHostEvent(
+      makeHostEvent({
+        interruption: null,
+        routeChange: { reason: 'override' },
+      }),
+    );
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'healthy',
+      reason: 'host-audio-session-active',
+      direction: 'both',
+    });
+  });
+
   it('ignores events with unknown schemaVersion', () => {
     const monitor = newMonitor();
     monitor.start();
