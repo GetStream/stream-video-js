@@ -15,7 +15,7 @@ jest.mock('fs');
 
 jest.mock('@expo/config-plugins', () => {
   return {
-    withDangerousMod: jest.fn((config, [_platform, callback]) => {
+    withDangerousMod: jest.fn((config, [, callback]) => {
       return callback(config as CustomExpoConfig);
     }),
   };
