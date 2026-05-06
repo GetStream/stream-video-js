@@ -42,6 +42,37 @@ export type APIErrorResponse = {
   unrecoverable?: boolean;
 };
 
+/**
+ * Typed WebSocket connection error. Replaces the legacy practice of
+ * JSON-stringifying connection metadata into Error.message — consumers can now
+ * read `code`, `StatusCode`, `isWSFailure`, etc. directly from the error.
+ */
+export class WebSocketConnectionError extends Error {
+  public readonly code: string | number;
+  /** Capital-S preserved for parity with the backend payload field name. */
+  public readonly StatusCode: string | number;
+  public readonly isWSFailure: boolean;
+  public readonly reason?: string;
+  public readonly wasClean?: boolean;
+  public name = 'WebSocketConnectionError';
+
+  constructor(input: {
+    code: string | number;
+    StatusCode: string | number;
+    message: string;
+    isWSFailure: boolean;
+    reason?: string;
+    wasClean?: boolean;
+  }) {
+    super(input.message);
+    this.code = input.code;
+    this.StatusCode = input.StatusCode;
+    this.isWSFailure = input.isWSFailure;
+    this.reason = input.reason;
+    this.wasClean = input.wasClean;
+  }
+}
+
 export class ErrorFromResponse<T> extends Error {
   public code: number | null;
   public status: number;
@@ -287,6 +318,38 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
    * Device persistence preference options (web only).
    */
   devicePersistence?: DevicePersistenceOptions;
+
+  /**
+   * When true, route coordinator traffic through the legacy
+   * StreamClient/StableWSConnection implementation instead of the rewritten
+   * coordinator-client. Temporary flag used during the parallel rollout — will
+   * be removed once the new implementation is validated.
+   *
+   * @internal
+   */
+  useLegacyCoordinator?: boolean;
+
+  /**
+   * Maximum time (ms) the coordinator socket waits between transport-open and
+   * the first `connection.ok` / `connection.error` server reply before giving
+   * up on the auth handshake. Defaults to `defaultWsTimeout` (15s).
+   */
+  authHandshakeTimeoutMs?: number;
+
+  /**
+   * End-to-end deadline (ms) for the auth-gating phase of a non-public REST
+   * request. Wraps both `gate.await()` calls and the optional
+   * `socket.waitForHealthy()` fallback under a single budget. Defaults to
+   * `defaultWsTimeout` (15s) so today's effective behaviour is preserved.
+   */
+  restConnectionIdTimeoutMs?: number;
+
+  /**
+   * Maximum number of times a single REST request will retry after the
+   * coordinator returns `code: 40` (token expired). Each retry refreshes the
+   * token via the configured token provider. Defaults to 2.
+   */
+  tokenExpiryRetryLimit?: number;
 };
 
 export type ClientAppIdentifier = {
