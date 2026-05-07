@@ -6,32 +6,36 @@ import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 /** @internal */
 const { StreamVideoReactNative } = NativeModules;
 
+const RECORDING_DURATION = 10 * 1000;
+
 export interface StartLoopbackRecordingOptions {
   /**
-   * Which kinds to record. Defaults to `['video', 'audio']`. Specifying a
-   * subset is useful when only one of the loopback streams is available.
+   * Whether to include the loopback video track in the recording.
+   * Defaults to `true`. Set to `false` for an audio-only recording.
+   * Audio is always recorded — there is no video-only mode.
    */
-  tracks?: ('video' | 'audio')[];
-  /** Recording ceiling in milliseconds. Defaults to 5000. */
-  maxDurationMs?: number;
+  includeVideo?: boolean;
   /**
-   * iOS only. When `true` (default), silences the speaker output for the
-   * post-mix decoded audio while recording is active. Prevents the SFU
-   * loopback echo from being played through the speaker and re-captured
-   * by the mic, which would create an audible feedback loop.
-   *
-   * The recording itself is unaffected — audio bytes are copied into the
-   * recorder *before* the buffer is silenced for the speaker.
+   * When `true` (default), silences the speaker while recording so the
+   * SFU loopback echo can't be re-captured by the mic and form a
+   * feedback loop. The recording itself captures full audio — bytes
+   * are taken from the pipeline before the mute takes effect.
    *
    * Defaults to `true` because the v1 use case is the self-sub pre-call
-   * test, where post-mix audio is exactly the loopback echo and silencing
-   * it is the desired behaviour. Set to `false` if you need to hear
-   * remote audio while recording — note that this also silences any
-   * other remote participants on the speaker, since the tap point is
-   * post-mix and we cannot mute one track without muting all of them.
+   * test, where post-mix audio is exactly the loopback echo and
+   * silencing it is the desired behaviour.
    *
-   * Has no effect on Android — that platform's recorder uses per-track
-   * audio sinks and does not interact with the playback path.
+   * Caveat: the mute is applied at a post-mix point on both platforms,
+   * so any other remote participants on the call are also silenced for
+   * the duration of the recording. Set to `false` if you need to hear
+   * remote audio while recording.
+   *
+   * Implementation differs per platform but the behaviour is the same:
+   *  - iOS zeros the audio buffer in the APM render-pre delegate after
+   *    copying bytes for recording.
+   *  - Android sets the system `AudioTrack`'s volume to 0; the JADM
+   *    audio thread keeps running so our playback-samples callback
+   *    still receives real PCM for the recording.
    */
   muteLoopbackPlayback?: boolean;
 }
@@ -111,23 +115,21 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
 
   const startRecording = useCallback(
     async ({
-      tracks = ['video', 'audio'],
-      maxDurationMs,
+      includeVideo = true,
       muteLoopbackPlayback = true,
     }: StartLoopbackRecordingOptions = {}): Promise<string | null> => {
       if (!call) {
         throw new Error('useLoopbackRecording: no active call in context');
       }
+
       if (isRecordingRef.current) {
         throw new Error('useLoopbackRecording: a recording is already running');
       }
       const lp = call.state.localParticipant;
-      const videoTrackId = tracks.includes('video')
+      const videoTrackId = includeVideo
         ? lp?.loopbackVideoStream?.getVideoTracks()[0]?.id
         : undefined;
-      const audioTrackId = tracks.includes('audio')
-        ? lp?.loopbackAudioStream?.getAudioTracks()[0]?.id
-        : undefined;
+      const audioTrackId = lp?.loopbackAudioStream?.getAudioTracks()[0]?.id;
 
       if (!videoTrackId && !audioTrackId) {
         throw new Error(
@@ -149,7 +151,7 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
           await StreamVideoReactNative.startTrackRecording({
             videoTrackId,
             audioTrackId,
-            maxDurationMs,
+            maxDurationMs: Math.round(RECORDING_DURATION),
             muteLoopbackPlayback,
           });
         return uri;

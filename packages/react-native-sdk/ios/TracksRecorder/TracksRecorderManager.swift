@@ -443,6 +443,16 @@ import WebRTC
                 self.maybeStartSession()
             }
 
+            // First buffer of any kind establishes the recording's
+            // origin so PTS=0 maps to the first delivery. Without
+            // this, an audio-only recording would never set the
+            // origin (the video path is the only other writer) and
+            // every audio buffer would be dropped at the guard
+            // below — yielding a 0-second file.
+            if self.recordingStartHostTimeNs == nil {
+                self.recordingStartHostTimeNs = captureTimeNs
+            }
+
             guard writer.status == .writing,
                   let audioInput = self.audioInput,
                   audioInput.isReadyForMoreMediaData,
