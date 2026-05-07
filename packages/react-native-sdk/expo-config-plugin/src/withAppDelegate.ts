@@ -57,6 +57,11 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           config.modResults.contents = addDidReceiveIncomingPushCallbackObjc(
             config.modResults.contents,
           );
+
+          config.modResults.contents =
+            addDidReceiveIncomingVoIPPushMetadataCallbackObjc(
+              config.modResults.contents,
+            );
         }
         return config;
       } catch (error: any) {
@@ -133,6 +138,11 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           config.modResults.contents = addDidReceiveIncomingPushCallbackSwift(
             config.modResults.contents,
           );
+
+          config.modResults.contents =
+            addDidReceiveIncomingVoIPPushMetadataCallbackSwift(
+              config.modResults.contents,
+            );
         }
         return config;
       } catch (error: any) {
@@ -347,6 +357,75 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
     if (!codeblock) {
       return addNewLinesToAppDelegateObjc(contents, [
         '- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {',
+        ...onIncomingPush.trim().split('\n'),
+        '}',
+      ]);
+    } else {
+      return insertContentsInsideObjcFunctionBlock(
+        contents,
+        functionSelector,
+        onIncomingPush,
+        { position: 'tail' },
+      );
+    }
+  }
+  return contents;
+}
+
+// Injects the iOS 26.4+ VoIP push delegate.
+// - AnyObject + @objc: builds on Xcode older than the iOS 26.4 SDK.
+// - private: silences the iOS 26.4 SDK protocol-conformance warning.
+function addDidReceiveIncomingVoIPPushMetadataCallbackSwift(contents: string) {
+  // Match the unique @objc annotation, not the function name: the legacy and
+  // new delegates are both 4-arg `pushRegistry(...)` methods, so
+  // findSwiftFunctionCodeBlock would confuse them.
+  const idempotencyMarker =
+    '@objc(pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:)';
+  if (contents.includes(idempotencyMarker)) {
+    return contents;
+  }
+  return insertContentsInsideSwiftClassBlock(
+    contents,
+    'class AppDelegate',
+    `
+  ${idempotencyMarker}
+  private func pushRegistry(
+    _ registry: PKPushRegistry,
+    didReceiveIncomingVoIPPushWithPayload payload: PKPushPayload,
+    metadata: AnyObject,
+    withCompletionHandler completion: @escaping () -> Void
+  ) {
+    let mustReport = StreamVideoReactNative.readMustReport(fromMetadata: metadata)
+    StreamVideoReactNative.didReceiveIncomingVoIPPush(
+      payload,
+      mustReport: mustReport,
+      completionHandler: completion
+    )
+  }
+        `,
+    { position: 'tail' },
+  );
+}
+
+// ObjC counterpart of the Swift helper. Uses `id` for the metadata so it
+// builds on Xcode older than the iOS 26.4 SDK. The new selector is different
+// from the legacy one, so findObjcFunctionCodeBlock is safe to use here.
+function addDidReceiveIncomingVoIPPushMetadataCallbackObjc(contents: string) {
+  const onIncomingPush = `
+  BOOL mustReport = [StreamVideoReactNative readMustReportFromMetadata:metadata];
+  [StreamVideoReactNative didReceiveIncomingVoIPPush:payload mustReport:mustReport completionHandler:completion];
+`;
+  if (
+    !contents.includes(
+      '[StreamVideoReactNative didReceiveIncomingVoIPPush:payload',
+    )
+  ) {
+    const functionSelector =
+      'pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:';
+    const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
+    if (!codeblock) {
+      return addNewLinesToAppDelegateObjc(contents, [
+        '- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingVoIPPushWithPayload:(PKPushPayload *)payload metadata:(id)metadata withCompletionHandler:(void (^)(void))completion {',
         ...onIncomingPush.trim().split('\n'),
         '}',
       ]);

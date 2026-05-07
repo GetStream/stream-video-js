@@ -140,6 +140,21 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       /didReceiveIncomingPush:payload/,
     );
 
+    // iOS 26.4+ VoIP push delegate
+    expect(updatedConfig.modResults.contents).toMatch(
+      /didReceiveIncomingVoIPPushWithPayload:\(PKPushPayload \*\)payload metadata:\(id\)metadata withCompletionHandler/,
+    );
+    expect(updatedConfig.modResults.contents).toMatch(
+      /readMustReportFromMetadata:metadata/,
+    );
+    expect(updatedConfig.modResults.contents).toMatch(
+      /\[StreamVideoReactNative didReceiveIncomingVoIPPush:payload mustReport:mustReport completionHandler:completion\]/,
+    );
+    // Must not name PKVoIPPushMetadata (would break older-Xcode consumers).
+    expect(updatedConfig.modResults.contents).not.toContain(
+      'PKVoIPPushMetadata',
+    );
+
     modifiedConfigObjC = updatedConfig;
   });
 
@@ -185,6 +200,26 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     );
     expect(updatedConfig.modResults.contents).toMatch(
       /StreamVideoReactNative.didReceiveIncomingPush/,
+    );
+
+    // iOS 26.4+ VoIP push delegate, pinned by @objc selector
+    expect(updatedConfig.modResults.contents).toContain(
+      '@objc(pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:)',
+    );
+    expect(updatedConfig.modResults.contents).toMatch(/metadata: AnyObject/);
+    expect(updatedConfig.modResults.contents).toMatch(
+      /StreamVideoReactNative\.readMustReport\(fromMetadata: metadata\)/,
+    );
+    expect(updatedConfig.modResults.contents).toMatch(
+      /StreamVideoReactNative\.didReceiveIncomingVoIPPush\(/,
+    );
+    // Must not name PKVoIPPushMetadata (would break older-Xcode consumers).
+    expect(updatedConfig.modResults.contents).not.toContain(
+      'PKVoIPPushMetadata',
+    );
+    // `private` silences the iOS 26.4 SDK protocol-conformance warning.
+    expect(updatedConfig.modResults.contents).toMatch(
+      /private func pushRegistry\(\s+_ registry: PKPushRegistry,\s+didReceiveIncomingVoIPPushWithPayload payload: PKPushPayload,\s+metadata: AnyObject,/,
     );
 
     modifiedConfigSwift = updatedConfig;

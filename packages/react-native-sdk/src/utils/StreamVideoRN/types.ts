@@ -65,6 +65,14 @@ export type StreamVideoConfig = {
        * @default 60000 (1 minute)
        */
       displayCallTimeout?: number;
+      /**
+       * When true, ringing pushes that arrive while the app is in the
+       * foreground are not shown by CallKit. The push is still delivered to
+       * JS, so the app must show its own ringing UI. Background pushes are unaffected.
+       * Requires iOS 26.4 or newer version of iOS.
+       * @default false
+       */
+      skipIncomingPushInForeground?: boolean;
     };
     android: {
       /**

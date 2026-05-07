@@ -69,6 +69,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   ) {
     StreamVideoReactNative.didReceiveIncomingPush(payload, forType: type.rawValue, completionHandler: completion)
   }
+
+  // Handle incoming VoIP pushes on iOS 26.4+. AnyObject + @objc keep this
+  // building on older Xcode; private silences the iOS 26.4 SDK warning.
+  @objc(pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:)
+  private func pushRegistry(
+    _ registry: PKPushRegistry,
+    didReceiveIncomingVoIPPushWithPayload payload: PKPushPayload,
+    metadata: AnyObject,
+    withCompletionHandler completion: @escaping () -> Void
+  ) {
+    let mustReport = StreamVideoReactNative.readMustReport(fromMetadata: metadata)
+    StreamVideoReactNative.didReceiveIncomingVoIPPush(
+      payload,
+      mustReport: mustReport,
+      completionHandler: completion
+    )
+  }
   
   //Called when a notification is delivered to a foreground app.
   func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {

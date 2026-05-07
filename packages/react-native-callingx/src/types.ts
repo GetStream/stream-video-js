@@ -189,6 +189,15 @@ export type InternalIOSOptions = {
    * @default 60000 (1 minute)
    */
   displayCallTimeout?: number;
+  /**
+   * When true, ringing pushes that arrive while the app is in the foreground
+   * are not shown by CallKit. The push is still delivered to JS via
+   * `voipNotificationReceived`, so the app must show its own ringing UI.
+   * Background pushes are unaffected. Requires iOS 26.4+; no-op on older
+   * versions.
+   * @default false
+   */
+  skipIncomingPushInForeground?: boolean;
 };
 type iOSOptions = Omit<
   InternalIOSOptions,

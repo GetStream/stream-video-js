@@ -18,6 +18,7 @@ export interface Spec extends TurboModule {
     imageName: string | null;
     callsHistory: boolean;
     displayCallTimeout: number;
+    skipIncomingPushInForeground: boolean;
   }): void;
 
   setupAndroid(options: {

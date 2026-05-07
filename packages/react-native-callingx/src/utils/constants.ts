@@ -14,6 +14,7 @@ export const defaultiOSOptions: Required<InternalIOSOptions> = {
   imageName: '',
   callsHistory: false,
   displayCallTimeout: 60000, // 1 minute
+  skipIncomingPushInForeground: false,
 };
 
 export const defaultAndroidOptions: Omit<

@@ -49,6 +49,10 @@ export function extractCallingExpOptions(
     if (pushConfig.ios.displayCallTimeout !== undefined) {
       iosOptions.displayCallTimeout = pushConfig.ios.displayCallTimeout;
     }
+    if (pushConfig.ios.skipIncomingPushInForeground !== undefined) {
+      iosOptions.skipIncomingPushInForeground =
+        pushConfig.ios.skipIncomingPushInForeground;
+    }
 
     if (Object.keys(iosOptions).length > 0) {
       callingExpOptions.ios = iosOptions;
