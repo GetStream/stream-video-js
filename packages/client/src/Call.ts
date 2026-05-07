@@ -2078,10 +2078,12 @@ export class Call {
     mediaStream: MediaStream | undefined,
     ...trackTypes: TrackType[]
   ) => {
-    if (!this.sfuClient || !this.sfuClient.sessionId) return;
-    await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    const sessionId = this.sfuClient?.sessionId;
+    if (!sessionId) return;
 
-    const { sessionId } = this.sfuClient;
+    await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    if (this.sfuClient?.sessionId !== sessionId) return;
+
     for (const trackType of trackTypes) {
       const streamStateProp = trackTypeToParticipantStreamKey(trackType);
       if (!streamStateProp) continue;
