@@ -675,10 +675,6 @@ exercises every scenario in this doc. It provides:
   color-coded badge. The hook's `status` + `reason` flip through
   `healthy → unhealthy (audio-session-interrupted)` and back during the
   scenarios above.
-- JS-side recovery via `AudioScenarios.attemptJSRecovery()` -
-  demonstrates the `navigator.audioSession.type = 'play-and-record'`
-  write. The SDK owns the probe `AudioContext` and a
-  `getUserMedia` + `replaceTrack` recovery path via `call.resumeAudio()`.
 - Correlated logging across native `AVAudioSession` events and the
   tutorial's `console.*` output (mirrored into the native Console tab).
 

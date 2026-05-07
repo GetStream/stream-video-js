@@ -17,9 +17,7 @@ final class WebController: ObservableObject {
     private var lifecycleBridge: LifecycleBridge?
     private var lifecycleBridgeCancellable: AnyCancellable?
 
-    lazy var audioScenarios: AudioScenarios = AudioScenarios { [weak self] script, label in
-        self?.eval(script, label: label)
-    }
+    lazy var audioScenarios: AudioScenarios = AudioScenarios()
 
     init() {
         let config = WKWebViewConfiguration()

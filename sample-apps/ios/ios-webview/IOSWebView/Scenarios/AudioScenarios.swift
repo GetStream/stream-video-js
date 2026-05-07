@@ -12,14 +12,12 @@ final class AudioScenarios: NSObject {
     private var noRestoreDingPlayer: AVAudioPlayer?
     private var toneEngine: AVAudioEngine?
     private var toneNode: AVAudioSourceNode?
-    private let webEval: (String, String?) -> Void
 
     // CallKit
     private var provider: CXProvider?
     private var currentCallUUID: UUID?
 
-    init(eval: @escaping (String, String?) -> Void) {
-        self.webEval = eval
+    override init() {
         super.init()
         NotificationCenter.default.addObserver(self, selector: #selector(routeChanged(_:)),
                                                name: AVAudioSession.routeChangeNotification, object: nil)
@@ -397,36 +395,6 @@ final class AudioScenarios: NSObject {
         } catch {
             AppState.shared.log(.errors, "audio", "setActive(false): \(error)")
         }
-    }
-
-    // MARK: JS-only recovery
-
-    /// Asks the webview to nudge its audio through pure JS APIs, without any
-    /// native AVAudioSession changes. Compare the result with the native
-    /// `restoreForWebRTC()` path to see how far a webview-only customer can get.
-    ///
-    /// Just writes `navigator.audioSession.type = 'play-and-record'` (iOS
-    /// 16.4+ WKWebView) - the closest JS equivalent to `setCategory`.
-    /// The SDK's `AudioHealthMonitor` already owns the probe `AudioContext`
-    /// and a `getUserMedia` + `replaceTrack` recovery path lives in
-    /// `call.resumeAudio()`; both are reachable through the tutorial's
-    /// React surface, so we don't reach inside the webview for them here.
-    func attemptJSRecovery() {
-        let js = """
-        (function() {
-          try {
-            if (!navigator.audioSession) {
-              return 'navigator.audioSession unavailable (iOS <16.4?)';
-            }
-            var was = navigator.audioSession.type;
-            navigator.audioSession.type = 'play-and-record';
-            return 'navigator.audioSession.type: ' + was + ' → ' + navigator.audioSession.type;
-          } catch(e) {
-            return 'audioSession.type error: ' + (e && e.message);
-          }
-        })();
-        """
-        webEval(js, "JS-only audio recovery")
     }
 
     // MARK: Session restore

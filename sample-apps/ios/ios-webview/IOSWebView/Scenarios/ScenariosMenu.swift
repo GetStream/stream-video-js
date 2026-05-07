@@ -2,11 +2,13 @@ import AVFAudio
 import SwiftUI
 
 /// SwiftUI replacement for the UIKit `UIMenu`-based scenarios menu. Bridges
-/// nav-bar taps into `AudioScenarios`. The live-state rows are re-read each
-/// time SwiftUI re-evaluates the `Menu` body, matching the
-/// `UIDeferredMenuElement.uncached` behavior of the old menu.
+/// nav-bar taps into `AudioScenarios`. The live-state rows reactively
+/// re-render when `AppState.audioSessionActive` flips or
+/// `AVAudioSession.routeChangeNotification` fires (tracked via
+/// `audioRouteVersion`).
 struct ScenariosMenuView: View {
     let audio: AudioScenarios
+    @EnvironmentObject private var appState: AppState
 
     var body: some View {
         Menu {
@@ -38,7 +40,7 @@ struct ScenariosMenuView: View {
         let opts = describeOptions(s.categoryOptions)
         let routeOut = s.currentRoute.outputs.map(\.portName).joined(separator: ",")
         let routeIn = s.currentRoute.inputs.map(\.portName).joined(separator: ",")
-        let active = AppState.shared.audioSessionActive
+        let active = appState.audioSessionActive
 
         // Disabled buttons render as non-interactive info rows, mirroring the
         // UIKit menu's `attributes: .disabled` actions.
@@ -51,7 +53,6 @@ struct ScenariosMenuView: View {
     @ViewBuilder
     private var recoverySection: some View {
         Button("Restore audio (native)") { audio.restoreForWebRTC() }
-        Button("Restore audio (JS-only)") { audio.attemptJSRecovery() }
     }
 
     private var categorySwitcher: some View {
