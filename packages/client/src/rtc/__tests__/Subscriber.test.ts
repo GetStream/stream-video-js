@@ -26,10 +26,11 @@ vi.mock('../../StreamSfuClient', () => {
 describe('Subscriber', () => {
   let sfuClient: StreamSfuClient;
   let subscriber: Subscriber;
-  const state = new CallState();
+  let state: CallState;
   let dispatcher: Dispatcher;
 
   beforeEach(() => {
+    state = new CallState();
     dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,

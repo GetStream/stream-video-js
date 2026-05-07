@@ -440,5 +440,20 @@ describe('AudioBindingsWatchdog', () => {
       el.dispatchEvent(new Event('pause'));
       expect(onElementPausedChange).not.toHaveBeenCalled();
     });
+
+    it('rebinding a different element clears the old element paused-state', () => {
+      const oldEl = elementWithLiveStream();
+      watchdogWithCallback.register(oldEl, 'session-1', 'audioTrack');
+      oldEl.dispatchEvent(new Event('pause'));
+      expect(onElementPausedChange).toHaveBeenLastCalledWith(oldEl, true);
+
+      const newEl = elementWithLiveStream();
+      onElementPausedChange.mockClear();
+      watchdogWithCallback.register(newEl, 'session-1', 'audioTrack');
+
+      // Old element's stale paused=true must be cleared so downstream
+      // audio-health doesn't stay unhealthy waiting for newEl to fire `play`.
+      expect(onElementPausedChange).toHaveBeenCalledWith(oldEl, false);
+    });
   });
 });

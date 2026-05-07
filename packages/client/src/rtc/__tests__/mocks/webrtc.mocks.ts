@@ -16,8 +16,8 @@ const RTCPeerConnectionMock = vi.fn((): Partial<RTCPeerConnection> => {
     close: vi.fn(),
     connectionState: 'connected',
     signalingState: 'stable',
-    getReceivers: vi.fn(),
-    getSenders: vi.fn(),
+    getReceivers: vi.fn().mockReturnValue([]),
+    getSenders: vi.fn().mockReturnValue([]),
     removeTrack: vi.fn(),
   };
 });

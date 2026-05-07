@@ -165,6 +165,48 @@ describe('AudioHealthMonitor', () => {
     expect(audioSessionStub.type).toBe('auto');
   });
 
+  it('serializes start() that arrives during a still-pending stop()', async () => {
+    const monitor = newMonitor();
+    monitor.start();
+    // @ts-expect-error private property
+    const firstProbe = monitor.audioContext as AudioContext;
+    expect(firstProbe).toBeDefined();
+
+    // Hold probe.close() open so stop() is stuck mid-await.
+    let releaseClose!: () => void;
+    const closeBlocker = new Promise<void>((resolve) => {
+      releaseClose = resolve;
+    });
+    vi.spyOn(firstProbe, 'close').mockReturnValueOnce(
+      closeBlocker as Promise<void>,
+    );
+
+    const stopPromise = monitor.stop();
+    const startPromise = monitor.start();
+
+    // While stop() is still awaiting close(), start() must not have run yet:
+    // it's queued on lifecycleTag behind stop().
+    // @ts-expect-error private property
+    expect(monitor.audioContext).toBe(firstProbe);
+
+    releaseClose();
+    await stopPromise;
+    await startPromise;
+
+    // After both settle: stop fully tore down, then start built a fresh probe.
+    // @ts-expect-error private property
+    expect(monitor.started).toBe(true);
+    // @ts-expect-error private property
+    expect(monitor.audioContext).toBeDefined();
+    // @ts-expect-error private property
+    expect(monitor.audioContext).not.toBe(firstProbe);
+    expect(getCurrentValue(monitor.audioHealth$)).not.toEqual({
+      status: 'unknown',
+      reason: 'not-started',
+      direction: 'both',
+    });
+  });
+
   it('start → stop → start produces a fresh pipeline (no duplicate listeners)', async () => {
     audioSessionStub.type = 'playback';
     const monitor = newMonitor();

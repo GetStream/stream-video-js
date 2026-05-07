@@ -74,6 +74,10 @@ export class AudioBindingsWatchdog {
       );
       this.tracer.trace('audioBinding.alreadyBoundWarning', trackType);
       this.detachPlaybackListeners(existing);
+      // The replaced element may have last reported paused=true; clear it so
+      // downstream audio-health doesn't stay stuck until the new element
+      // happens to fire `play`.
+      this.onElementPausedChange(existing.element, false);
     } else if (existing && existing.element === audioElement) {
       // Same element re-registered — drop stale listeners before re-binding.
       this.detachPlaybackListeners(existing);

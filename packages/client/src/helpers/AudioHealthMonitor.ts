@@ -3,6 +3,7 @@ import { videoLoggerSystem } from '../logger';
 import type { RemoteAudioTrackChange } from '../rtc';
 import { Tracer } from '../stats';
 import { setCurrentValue } from '../store/rxUtils';
+import { withoutConcurrency } from './concurrency';
 import {
   HOST_AUDIO_SESSION_EVENT,
   type AudioSession,
@@ -204,6 +205,8 @@ export class AudioHealthMonitor {
   private tracer: Tracer;
   private started = false;
 
+  private readonly lifecycleTag = Symbol();
+
   /** Probe context kept live via a silent `ConstantSourceNode`. */
   private audioContext?: AudioContext;
   private silentSource?: ConstantSourceNode;
@@ -279,13 +282,15 @@ export class AudioHealthMonitor {
    * mutate page-global audio state unnecessarily.
    */
   start = () => {
-    if (this.started) return;
-    this.started = true;
-    this.declarePlayAndRecordAudioSession();
-    this.installAudioSessionObserver();
-    this.installHostAudioSessionObserver();
-    this.setupProbeAudioContext();
-    this.updateAudioHealth();
+    return withoutConcurrency(this.lifecycleTag, async () => {
+      if (this.started) return;
+      this.started = true;
+      this.declarePlayAndRecordAudioSession();
+      this.installAudioSessionObserver();
+      this.installHostAudioSessionObserver();
+      this.setupProbeAudioContext();
+      this.updateAudioHealth();
+    });
   };
 
   /**
@@ -296,49 +301,61 @@ export class AudioHealthMonitor {
    * the blocked-elements set, and resets `audioHealth$` to
    * `{ status: 'unknown', reason: 'not-started' }`.
    */
-  stop = async () => {
-    if (!this.started) return;
-    this.started = false;
+  stop = () => {
+    return withoutConcurrency(this.lifecycleTag, async () => {
+      if (!this.started) return;
+      this.started = false;
 
-    const audioSession = this.audioSession;
-    if (audioSession) {
-      audioSession.removeEventListener('statechange', this.onAudioStateChange);
-      if (this.originalAudioSessionType !== undefined) {
-        audioSession.type = this.originalAudioSessionType;
+      const audioSession = this.audioSession;
+      if (audioSession) {
+        audioSession.removeEventListener(
+          'statechange',
+          this.onAudioStateChange,
+        );
+        if (this.originalAudioSessionType !== undefined) {
+          audioSession.type = this.originalAudioSessionType;
+        }
       }
-    }
-    this.originalAudioSessionType = undefined;
-    this.audioSessionState = undefined;
+      this.originalAudioSessionType = undefined;
+      this.audioSessionState = undefined;
 
-    if (typeof window !== 'undefined') {
-      window.removeEventListener(
-        HOST_AUDIO_SESSION_EVENT,
-        this.onHostAudioSessionEvent,
-      );
-    }
-    this.hostAudioSession = undefined;
-    this.hostAudioRouteSubject.next(undefined);
-
-    if (typeof document !== 'undefined') {
-      document.removeEventListener('click', this.resumeAudioContext);
-    }
-    this.silentSource?.stop();
-    this.silentSource?.disconnect();
-    this.silentSource = undefined;
-
-    const probe = this.audioContext;
-    if (probe) {
-      probe.removeEventListener('statechange', this.onAudioContextStateChange);
-      if (probe.state !== 'closed') {
-        await probe.close();
+      if (typeof window !== 'undefined') {
+        window.removeEventListener(
+          HOST_AUDIO_SESSION_EVENT,
+          this.onHostAudioSessionEvent,
+        );
       }
-    }
-    this.audioContext = undefined;
+      this.hostAudioSession = undefined;
+      this.hostAudioRouteSubject.next(undefined);
 
-    setCurrentValue(this.blockedAudioElementsSubject, new Set());
-    setCurrentValue(this.remoteAudioMutedSubject, new Map());
-    setCurrentValue(this.pausedAudioElementsSubject, new Set());
-    this.audioHealthSubject.next(UNKNOWN_NOT_STARTED);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('click', this.resumeAudioContext);
+      }
+      this.silentSource?.stop();
+      this.silentSource?.disconnect();
+      this.silentSource = undefined;
+
+      const probe = this.audioContext;
+      if (probe) {
+        probe.removeEventListener(
+          'statechange',
+          this.onAudioContextStateChange,
+        );
+        if (probe.state !== 'closed') {
+          try {
+            await probe.close();
+          } catch (err) {
+            this.logger.warn('Failed to close probe AudioContext', err);
+          }
+        }
+      }
+      this.audioContext = undefined;
+
+      setCurrentValue(this.blockedAudioElementsSubject, new Set());
+      setCurrentValue(this.remoteAudioMutedSubject, new Map());
+      setCurrentValue(this.pausedAudioElementsSubject, new Set());
+      this.audioHealthSubject.next(UNKNOWN_NOT_STARTED);
+    });
   };
 
   /**

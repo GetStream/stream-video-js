@@ -727,6 +727,50 @@ describe('DynascaleManager', () => {
       cleanup?.();
     });
 
+    it('audio: does not register a detached element if play() rejects after cleanup', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      // Hold play()'s rejection until we explicitly trigger it, so cleanup
+      // can run while the .catch handler is still pending.
+      let rejectPlay!: (err: unknown) => void;
+      vi.spyOn(audioElement, 'play').mockReturnValue(
+        new Promise<void>((_, reject) => {
+          rejectPlay = reject;
+        }),
+      );
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = call.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        audioStream: mediaStream,
+      });
+      vi.runAllTimers();
+
+      // Tear down the binding before play() rejects.
+      cleanup?.();
+
+      // Now let play() reject. The .catch must NOT register the
+      // already-detached element back into the blocked set.
+      rejectPlay(new DOMException('', 'NotAllowedError'));
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(getCurrentValue(call.audioHealthMonitor!.autoplayBlocked$)).toBe(
+        false,
+      );
+    });
+
     it('audio: should clear blocked state when the audio stream is removed', async () => {
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');

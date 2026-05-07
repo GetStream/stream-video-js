@@ -406,6 +406,11 @@ export class DynascaleManager {
 
     let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
     let gainNode: GainNode | undefined = undefined;
+    // Captured by every async handler below so a `play().catch` arriving
+    // after cleanup can't re-register the now-detached element as
+    // autoplay-blocked. Without this guard the element gets stuck in
+    // `AudioHealthMonitor.blockedAudioElementsSubject` forever.
+    let isDisposed = false;
 
     const isAudioTrack = trackType === 'audioTrack';
     const trackKey = isAudioTrack ? 'audioStream' : 'screenShareAudioStream';
@@ -443,6 +448,7 @@ export class DynascaleManager {
             // we will play audio directly through the audio element in other browsers
             audioElement.muted = false;
             audioElement.play().catch((e) => {
+              if (isDisposed) return;
               this.tracer.trace('audioPlaybackError', e.message);
               if (e.name === 'NotAllowedError') {
                 this.tracer.trace('audioPlaybackBlocked', null);
@@ -476,6 +482,7 @@ export class DynascaleManager {
     audioElement.autoplay = true;
 
     return () => {
+      isDisposed = true;
       this.onAutoplayBlockedChange(audioElement, false);
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
