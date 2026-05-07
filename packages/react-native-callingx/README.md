@@ -103,11 +103,6 @@ private func pushRegistry(
 }
 ```
 
-`metadata: AnyObject` keeps the file building on Xcode older than the iOS
-26.4 SDK. `private` silences a Swift protocol-conformance warning that
-fires under the iOS 26.4 SDK; `@objc` still exposes the selector so PushKit
-dispatches at runtime.
-
 ## Notes
 
 - Import from `@stream-io/react-native-callingx`.

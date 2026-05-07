@@ -148,9 +148,16 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
     }
   } else if (isIncomingCall) {
     logger.debug(`joinCallingxCall: Joining incoming call ${call.cid}`);
-    const skipIncomingPushInForeground =
-      StreamVideoRN.getConfig().push?.ios?.skipIncomingPushInForeground ??
-      false;
+    let skipIncomingPushInForeground = false;
+    if (Platform.OS === 'ios') {
+      skipIncomingPushInForeground =
+        StreamVideoRN.getConfig().push?.ios?.skipIncomingPushInForeground ??
+        false;
+    } else {
+      skipIncomingPushInForeground =
+        StreamVideoRN.getConfig().push?.android?.skipIncomingPushInForeground ??
+        false;
+    }
     const shouldSkipDisplayIncoming = skipIncomingPushInForeground
       ? await isAppInForeground()
       : false;
