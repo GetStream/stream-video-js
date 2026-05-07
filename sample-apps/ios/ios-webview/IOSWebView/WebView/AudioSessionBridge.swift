@@ -130,6 +130,8 @@ final class AudioSessionBridge: @unchecked Sendable {
         return encoder
     }()
 
+    private let audioSessionObserver = AVAudioSessionObserver()
+
     init(
         webView: WKWebView,
         audioSession: AVAudioSession = .sharedInstance(),
@@ -146,30 +148,30 @@ final class AudioSessionBridge: @unchecked Sendable {
         guard !started else { return }
         started = true
 
+        try? audioSession.setCategory(.playAndRecord, mode: .voiceChat, options: [.mixWithOthers])
+        try? audioSession.setActive(true)
+
+        // When this one is set to true, Call audio continues even when the
+        // AudioSession is interrupted.
+        do {
+            try audioSession.setPrefersNoInterruptionsFromSystemAlerts(true)
+            AppState.shared.log(.lifecycle, "info", "AVAudioSession.setPrefersNoInterruptionsFromSystemAlerts updated to true")
+        } catch {
+            AppState.shared.log(.errors, "info", "Failed to set AVAudioSession.setPrefersNoInterruptionsFromSystemAlerts = true")
+        }
+
         notificationCenter
             .publisher(for: AVAudioSession.interruptionNotification)
             .receive(on: processingQueue)
             .sink { [weak self] in self?.handleInterruption($0) }
             .store(in: &cancellables)
 
-        notificationCenter
-            .publisher(for: AVAudioSession.routeChangeNotification)
-            .receive(on: processingQueue)
-            .sink { [weak self] in self?.handleRouteChange($0) }
-            .store(in: &cancellables)
-
-        // Recovery triggers for the case iOS never delivers
-        // `interruption.ended`. See `clearStaleInterruptionIfRecovered()`.
+//         Recovery triggers for the case iOS never delivers
+//         `interruption.ended`. See `clearStaleInterruptionIfRecovered()`.
         notificationCenter
             .publisher(for: AVAudioSession.silenceSecondaryAudioHintNotification)
             .receive(on: processingQueue)
             .sink { [weak self] _ in self?.handleSecondaryAudioHintChange() }
-            .store(in: &cancellables)
-
-        notificationCenter
-            .publisher(for: UIApplication.didBecomeActiveNotification)
-            .receive(on: processingQueue)
-            .sink { [weak self] _ in self?.handleAppDidBecomeActive() }
             .store(in: &cancellables)
 
         // mediaservicesWereReset coincides with WebKit's `RTCAudioSession`
@@ -178,11 +180,32 @@ final class AudioSessionBridge: @unchecked Sendable {
         // post a `routeChangeNotification` the bridge sees, but the
         // media-services reset does — so we treat it as another
         // recovery trigger.
+//        notificationCenter
+//            .publisher(for: AVAudioSession.mediaServicesWereResetNotification)
+//            .receive(on: processingQueue)
+//            .sink { [weak self] _ in self?.handleMediaServicesWereReset() }
+//            .store(in: &cancellables)
+
         notificationCenter
-            .publisher(for: AVAudioSession.mediaServicesWereResetNotification)
+            .publisher(for: UIApplication.didBecomeActiveNotification)
             .receive(on: processingQueue)
-            .sink { [weak self] _ in self?.handleMediaServicesWereReset() }
+            .sink { [weak self] _ in self?.handleAppDidBecomeActive() }
             .store(in: &cancellables)
+
+        notificationCenter
+            .publisher(for: AVAudioSession.routeChangeNotification)
+            .receive(on: processingQueue)
+            .sink { [weak self] in self?.handleRouteChange($0) }
+            .store(in: &cancellables)
+
+        audioSessionObserver
+            .publisher
+            .removeDuplicates()
+            .print("[IP]AVAudioSessionSnapshot updated: ")
+            .sink { _ = $0 }
+            .store(in: &cancellables)
+
+        audioSessionObserver.startObserving()
 
         // Initial snapshot so the page sees ground truth at page load,
         // even before any interruption or route change happens.
@@ -200,6 +223,7 @@ final class AudioSessionBridge: @unchecked Sendable {
         disarmRecoveryTimer()
         latestInterruption = nil
         latestRouteChange = nil
+        audioSessionObserver.stopObserving()
     }
 
     // MARK: - Notification handlers
