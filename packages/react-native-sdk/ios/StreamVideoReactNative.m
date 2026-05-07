@@ -228,7 +228,7 @@ RCT_EXPORT_MODULE();
 }
 
 +(void)didReceiveIncomingVoIPPush:(PKPushPayload *)payload
-                       mustReport:(BOOL)mustReport
+                         metadata:(id _Nullable)metadata
                 completionHandler:(void (^_Nullable)(void))completion {
     NSDictionary *streamPayload = payload.dictionaryPayload[@"stream"];
     if (!streamPayload) {
@@ -253,6 +253,7 @@ RCT_EXPORT_MODULE();
     }
 
     NSString *type = @"PKPushTypeVoIP";
+    BOOL mustReport = readMustReportFromMetadata(metadata);
 
     // Both skip paths require mustReport == NO; skipping while YES risks
     // PushKit terminating the app.
@@ -279,9 +280,10 @@ RCT_EXPORT_MODULE();
     [StreamVideoReactNative didReceiveIncomingPushWithPayload:payload forType:type];
 }
 
-+(BOOL)readMustReportFromMetadata:(id _Nullable)metadata {
-    // Fail-safe: return YES on any uncertainty so unknown metadata never
-    // causes CallKit to be skipped.
+// Reads `PKVoIPPushMetadata.mustReport` via runtime dispatch. Fail-safe:
+// returns YES on any uncertainty (nil, missing property, wrong return type)
+// so unknown metadata never causes CallKit to be skipped.
+static BOOL readMustReportFromMetadata(id _Nullable metadata) {
     SEL selector = @selector(mustReport);
     if (!metadata || ![metadata respondsToSelector:selector]) {
         return YES;

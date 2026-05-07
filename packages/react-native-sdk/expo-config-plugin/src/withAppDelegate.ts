@@ -373,14 +373,17 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
 }
 
 // Injects the iOS 26.4+ VoIP push delegate.
-// - AnyObject + @objc: builds on Xcode older than the iOS 26.4 SDK.
-// - private: silences the iOS 26.4 SDK protocol-conformance warning.
+// - AnyObject for metadata: builds on Xcode older than the iOS 26.4 SDK.
+// - Swift label `didReceiveIncomingVoIPPushWith` (no "Payload") matches the
+//   protocol's optional requirement on the iOS 26.4 SDK; combined with
+//   `private`, the method is excluded from protocol-conformance checking and
+//   Swift auto-derives the same ObjC selector PushKit dispatches on.
 function addDidReceiveIncomingVoIPPushMetadataCallbackSwift(contents: string) {
-  // Match the unique @objc annotation, not the function name: the legacy and
+  // Match the unique signature, not just the function name: the legacy and
   // new delegates are both 4-arg `pushRegistry(...)` methods, so
   // findSwiftFunctionCodeBlock would confuse them.
   const idempotencyMarker =
-    '@objc(pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:)';
+    'didReceiveIncomingVoIPPushWith payload: PKPushPayload';
   if (contents.includes(idempotencyMarker)) {
     return contents;
   }
@@ -388,17 +391,15 @@ function addDidReceiveIncomingVoIPPushMetadataCallbackSwift(contents: string) {
     contents,
     'class AppDelegate',
     `
-  ${idempotencyMarker}
   private func pushRegistry(
     _ registry: PKPushRegistry,
-    didReceiveIncomingVoIPPushWithPayload payload: PKPushPayload,
+    didReceiveIncomingVoIPPushWith payload: PKPushPayload,
     metadata: AnyObject,
     withCompletionHandler completion: @escaping () -> Void
   ) {
-    let mustReport = StreamVideoReactNative.readMustReport(fromMetadata: metadata)
     StreamVideoReactNative.didReceiveIncomingVoIPPush(
       payload,
-      mustReport: mustReport,
+      metadata: metadata,
       completionHandler: completion
     )
   }
@@ -412,8 +413,7 @@ function addDidReceiveIncomingVoIPPushMetadataCallbackSwift(contents: string) {
 // from the legacy one, so findObjcFunctionCodeBlock is safe to use here.
 function addDidReceiveIncomingVoIPPushMetadataCallbackObjc(contents: string) {
   const onIncomingPush = `
-  BOOL mustReport = [StreamVideoReactNative readMustReportFromMetadata:metadata];
-  [StreamVideoReactNative didReceiveIncomingVoIPPush:payload mustReport:mustReport completionHandler:completion];
+  [StreamVideoReactNative didReceiveIncomingVoIPPush:payload metadata:metadata completionHandler:completion];
 `;
   if (
     !contents.includes(

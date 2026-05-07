@@ -87,17 +87,15 @@ Requires iOS 26.4+ (no-op on older versions). Also add this delegate to your
 `AppDelegate.swift`:
 
 ```swift title="AppDelegate.swift"
-@objc(pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:)
 private func pushRegistry(
   _ registry: PKPushRegistry,
-  didReceiveIncomingVoIPPushWithPayload payload: PKPushPayload,
+  didReceiveIncomingVoIPPushWith payload: PKPushPayload,
   metadata: AnyObject,
   withCompletionHandler completion: @escaping () -> Void
 ) {
-  let mustReport = StreamVideoReactNative.readMustReport(fromMetadata: metadata)
   StreamVideoReactNative.didReceiveIncomingVoIPPush(
     payload,
-    mustReport: mustReport,
+    metadata: metadata,
     completionHandler: completion
   )
 }

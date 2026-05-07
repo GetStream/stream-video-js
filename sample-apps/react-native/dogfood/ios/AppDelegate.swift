@@ -80,10 +80,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     metadata: AnyObject,
     withCompletionHandler completion: @escaping () -> Void
   ) {
-    let mustReport = StreamVideoReactNative.readMustReport(fromMetadata: metadata)
     StreamVideoReactNative.didReceiveIncomingVoIPPush(
       payload,
-      mustReport: mustReport,
+      metadata: metadata,
       completionHandler: completion
     )
   }

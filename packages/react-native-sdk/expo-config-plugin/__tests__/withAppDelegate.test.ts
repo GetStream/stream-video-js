@@ -145,10 +145,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       /didReceiveIncomingVoIPPushWithPayload:\(PKPushPayload \*\)payload metadata:\(id\)metadata withCompletionHandler/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /readMustReportFromMetadata:metadata/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /\[StreamVideoReactNative didReceiveIncomingVoIPPush:payload mustReport:mustReport completionHandler:completion\]/,
+      /\[StreamVideoReactNative didReceiveIncomingVoIPPush:payload metadata:metadata completionHandler:completion\]/,
     );
     // Must not name PKVoIPPushMetadata (would break older-Xcode consumers).
     expect(updatedConfig.modResults.contents).not.toContain(
@@ -202,24 +199,23 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       /StreamVideoReactNative.didReceiveIncomingPush/,
     );
 
-    // iOS 26.4+ VoIP push delegate, pinned by @objc selector
-    expect(updatedConfig.modResults.contents).toContain(
-      '@objc(pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:)',
-    );
-    expect(updatedConfig.modResults.contents).toMatch(/metadata: AnyObject/);
+    // iOS 26.4+ VoIP push delegate. Swift label `didReceiveIncomingVoIPPushWith`
+    // (no "Payload") matches the protocol's optional requirement; `private`
+    // excludes it from conformance checking on the iOS 26.4 SDK.
     expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative\.readMustReport\(fromMetadata: metadata\)/,
+      /private func pushRegistry\(\s+_ registry: PKPushRegistry,\s+didReceiveIncomingVoIPPushWith payload: PKPushPayload,\s+metadata: AnyObject,/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative\.didReceiveIncomingVoIPPush\(/,
+      /StreamVideoReactNative\.didReceiveIncomingVoIPPush\(\s+payload,\s+metadata: metadata,/,
     );
     // Must not name PKVoIPPushMetadata (would break older-Xcode consumers).
     expect(updatedConfig.modResults.contents).not.toContain(
       'PKVoIPPushMetadata',
     );
-    // `private` silences the iOS 26.4 SDK protocol-conformance warning.
-    expect(updatedConfig.modResults.contents).toMatch(
-      /private func pushRegistry\(\s+_ registry: PKPushRegistry,\s+didReceiveIncomingVoIPPushWithPayload payload: PKPushPayload,\s+metadata: AnyObject,/,
+    // Must not pin the selector via @objc — that re-introduces the conflict
+    // with the protocol's optional requirement on the iOS 26.4 SDK.
+    expect(updatedConfig.modResults.contents).not.toContain(
+      '@objc(pushRegistry:didReceiveIncomingVoIPPushWithPayload',
     );
 
     modifiedConfigSwift = updatedConfig;

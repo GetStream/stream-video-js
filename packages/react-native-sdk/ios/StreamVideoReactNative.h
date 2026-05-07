@@ -19,17 +19,15 @@
 /**
  * VoIP push entry point for iOS 26.4+. Call from your AppDelegate's
  * `pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:`
- * delegate. Read `mustReport` with `+readMustReportFromMetadata:`.
+ * delegate. The SDK reads `mustReport` from `metadata` internally and decides
+ * whether to show CallKit and/or forward the push to JS based on the
+ * configured options.
+ *
+ * `metadata` is typed `id` (not `PKVoIPPushMetadata *`) so the call site
+ * compiles on Xcode older than the iOS 26.4 SDK.
  */
 + (void)didReceiveIncomingVoIPPush:(PKPushPayload *)payload
-                        mustReport:(BOOL)mustReport
+                          metadata:(id _Nullable)metadata
                  completionHandler:(void (^_Nullable)(void))completion;
-
-/**
- * Reads `mustReport` from a `PKVoIPPushMetadata` object. `metadata` is typed
- * `id` so the call site compiles on Xcode older than the iOS 26.4 SDK.
- * Returns `YES` on any failure so unknown metadata never skips CallKit.
- */
-+ (BOOL)readMustReportFromMetadata:(id _Nullable)metadata;
 
 @end
