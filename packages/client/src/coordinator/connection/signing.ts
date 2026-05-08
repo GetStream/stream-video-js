@@ -1,39 +1,53 @@
-export function getUserFromToken(token: string) {
-  const fragments = token.split('.');
-  if (fragments.length !== 3) {
-    return '';
-  }
-  const b64Payload = fragments[1];
-  const payload = decodeBase64(b64Payload);
-  const data = JSON.parse(payload);
-  return data.user_id as string | undefined;
-}
+type JwtPayload = { user_id?: string };
 
-// base-64 decoder throws exception if encoded string is not padded by '=' to make string length
-// in multiples of 4. So gonna use our own method for this purpose to keep backwards compatibility
-// https://github.com/beatgammit/base64-js/blob/master/index.js#L26
-const decodeBase64 = (s: string): string => {
-  const e = {} as { [key: string]: number },
-    w = String.fromCharCode,
-    L = s.length;
-  let i,
-    b = 0,
-    c,
-    x,
-    l = 0,
-    a,
-    r = '';
-  const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-  for (i = 0; i < 64; i++) {
-    e[A.charAt(i)] = i;
-  }
-  for (x = 0; x < L; x++) {
-    c = e[s.charAt(x)];
-    b = (b << 6) + c;
-    l += 6;
-    while (l >= 8) {
-      if ((a = (b >>> (l -= 8)) & 0xff) || x < L - 2) r += w(a);
+const BASE64_ALPHABET =
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+/**
+ * Self-contained standard-base64 decoder. Returns a Latin1-style binary string
+ * (one byte per output character), mirroring `atob`'s contract. Used because:
+ *
+ * - `atob` is a Hermes built-in only since React Native 0.74; users on the
+ *   project's peer-dep floor (RN 0.73) do not have it.
+ * - `Buffer` is not shipped by React Native at all.
+ *
+ * Returning a self-contained decoder keeps the decoder's behaviour identical
+ * across Node, browsers, and React Native without requiring a polyfill.
+ *
+ * The input must already be standard base64 (the `-`/`_` to `+`/`/`
+ * normalisation happens in the caller). Padding is tolerated but not required.
+ * Invalid characters are skipped, matching `atob`'s lenient behaviour.
+ */
+const decodeStandardBase64 = (input: string): string => {
+  let output = '';
+  let buffer = 0;
+  let bits = 0;
+  for (let i = 0; i < input.length; i++) {
+    const ch = input.charAt(i);
+    if (ch === '=') break;
+    const value = BASE64_ALPHABET.indexOf(ch);
+    if (value === -1) continue;
+    buffer = (buffer << 6) | value;
+    bits += 6;
+    if (bits >= 8) {
+      bits -= 8;
+      output += String.fromCharCode((buffer >> bits) & 0xff);
     }
   }
-  return r;
+  return output;
 };
+
+const decodeJwtPayload = (token: string): JwtPayload | undefined => {
+  const parts = token.split('.');
+  if (parts.length !== 3) return undefined;
+  const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+  try {
+    const json = decodeStandardBase64(normalized);
+    return JSON.parse(json) as JwtPayload;
+  } catch {
+    return undefined;
+  }
+};
+
+export const getUserFromToken = (token: string): string =>
+  decodeJwtPayload(token)?.user_id ?? '';

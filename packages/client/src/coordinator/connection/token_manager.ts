@@ -1,5 +1,4 @@
 import { getUserFromToken } from './signing';
-import { isFunction } from './utils';
 import type { TokenOrProvider, UserWithId } from './types';
 
 /**
@@ -8,41 +7,31 @@ import type { TokenOrProvider, UserWithId } from './types';
  * Handles all the operations around user token.
  */
 export class TokenManager {
-  private loadTokenPromise: Promise<string> | null = null;
-  private type: 'static' | 'provider' = 'static';
   private readonly secret?: string;
+  private type: 'static' | 'provider' = 'static';
   private token?: string;
   private tokenProvider?: TokenOrProvider;
   private user?: UserWithId;
-  private isAnonymous?: boolean;
+  private isAnonymous = false;
+  private loadInFlight: Promise<string | undefined> | null = null;
 
   constructor(secret?: string) {
     this.secret = secret;
   }
 
-  /**
-   * Set the static string token or token provider.
-   * Token provider should return a token string or a promise which resolves to string token.
-   *
-   * @param {TokenOrProvider} tokenOrProvider - the token or token provider.
-   * @param {UserResponse} user - the user object.
-   * @param {boolean} isAnonymous - whether the user is anonymous or not.
-   */
   setTokenOrProvider = async (
     tokenOrProvider: TokenOrProvider,
     user: UserWithId,
     isAnonymous: boolean,
-  ) => {
+  ): Promise<void> => {
     this.user = user;
     this.isAnonymous = isAnonymous;
     this.validateToken(tokenOrProvider);
 
-    if (isFunction(tokenOrProvider)) {
+    if (typeof tokenOrProvider === 'function') {
       this.tokenProvider = tokenOrProvider;
       this.type = 'provider';
-    }
-
-    if (typeof tokenOrProvider === 'string') {
+    } else if (typeof tokenOrProvider === 'string') {
       this.token = tokenOrProvider;
       this.type = 'static';
     }
@@ -54,30 +43,72 @@ export class TokenManager {
    * Resets the token manager.
    * Useful for client disconnection or switching user.
    */
-  reset = () => {
+  reset = (): void => {
     this.token = undefined;
     this.tokenProvider = undefined;
     this.type = 'static';
     this.user = undefined;
-    this.loadTokenPromise = null;
+    this.loadInFlight = null;
   };
 
-  // Validates the user token.
-  validateToken = (tokenOrProvider: TokenOrProvider) => {
-    // allow empty token for anon user
+  /**
+   * Resolves when token is ready. Returns the in-flight promise (or null when no
+   * load is in progress). Callers may `await` the return value directly:
+   * `await null` resolves to null, which preserves the legacy contract.
+   */
+  tokenReady = (): Promise<string | undefined> | null => this.loadInFlight;
+
+  /**
+   * Fetches a token from tokenProvider function and sets it in the manager.
+   * For static tokens, resolves to the cached token immediately.
+   *
+   * Concurrent calls share the same in-flight promise (the provider is invoked
+   * exactly once per cycle). The in-flight slot is cleared after settlement so a
+   * subsequent call triggers a fresh provider invocation.
+   */
+  loadToken = (): Promise<string | undefined> => {
+    if (this.loadInFlight) return this.loadInFlight;
+    this.loadInFlight = (async () => {
+      if (this.type === 'static') return this.token;
+      if (!this.tokenProvider || typeof this.tokenProvider !== 'function') {
+        return undefined;
+      }
+      try {
+        const token = await this.tokenProvider();
+        this.validateToken(token);
+        this.token = token;
+        return token;
+      } catch (e) {
+        throw new Error(`Call to tokenProvider failed with message: ${e}`, {
+          cause: e,
+        });
+      }
+    })().finally(() => {
+      this.loadInFlight = null;
+    });
+    return this.loadInFlight;
+  };
+
+  /** Returns the current cached token, or undefined when none has been loaded. */
+  getToken = (): string | undefined => this.token;
+
+  isStatic = (): boolean => this.type === 'static';
+
+  validateToken = (tokenOrProvider: TokenOrProvider): void => {
     if (this.user && this.isAnonymous && !tokenOrProvider) return;
 
-    // Don't allow empty token for non-server side client.
     if (!this.secret && !tokenOrProvider) {
       throw new Error('User token can not be empty');
     }
 
-    if (typeof tokenOrProvider !== 'string' && !isFunction(tokenOrProvider)) {
+    if (
+      typeof tokenOrProvider !== 'string' &&
+      typeof tokenOrProvider !== 'function'
+    ) {
       throw new Error('User token should either be a string or a function');
     }
 
     if (typeof tokenOrProvider === 'string') {
-      // Allow empty token for anonymous users
       if (this.isAnonymous && tokenOrProvider === '') return;
 
       const tokenUserId = getUserFromToken(tokenOrProvider);
@@ -93,52 +124,4 @@ export class TokenManager {
       }
     }
   };
-
-  // Resolves when token is ready. This function is simply to check if loadToken is in progress, in which
-  // case a function should wait.
-  tokenReady = () => this.loadTokenPromise;
-
-  // Fetches a token from tokenProvider function and sets in tokenManager.
-  // In case of static token, it will simply resolve to static token.
-  loadToken = () => {
-    this.loadTokenPromise = new Promise(async (resolve, reject) => {
-      if (this.type === 'static') {
-        return resolve(this.token as string);
-      }
-
-      if (this.tokenProvider && typeof this.tokenProvider !== 'string') {
-        try {
-          const token = await this.tokenProvider();
-          this.validateToken(token);
-          this.token = token;
-        } catch (e) {
-          return reject(
-            new Error(`Call to tokenProvider failed with message: ${e}`, {
-              cause: e,
-            }),
-          );
-        }
-        resolve(this.token);
-      }
-    });
-
-    return this.loadTokenPromise;
-  };
-
-  // Returns a current token
-  getToken = () => {
-    if (this.token) {
-      return this.token;
-    }
-
-    if (this.user && !this.token) {
-      return this.token;
-    }
-
-    throw new Error(
-      `User token is not set. Either client.connectUser wasn't called or client.disconnect was called`,
-    );
-  };
-
-  isStatic = () => this.type === 'static';
 }
