@@ -2,20 +2,11 @@ import AVFoundation
 import AVFAudio
 import AudioToolbox
 import UIKit
-import CallKit
-import UserNotifications
 
 final class AudioScenarios: NSObject {
     private var soundPlayer: AVAudioPlayer?
-    private var ringPlayer: AVAudioPlayer?
     private var autoRestoringDingPlayer: AVAudioPlayer?
     private var noRestoreDingPlayer: AVAudioPlayer?
-    private var toneEngine: AVAudioEngine?
-    private var toneNode: AVAudioSourceNode?
-
-    // CallKit
-    private var provider: CXProvider?
-    private var currentCallUUID: UUID?
 
     override init() {
         super.init()
@@ -128,29 +119,6 @@ final class AudioScenarios: NSObject {
         }
     }
 
-    func playRingtone() {
-        let session = AVAudioSession.sharedInstance()
-        do {
-            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try session.setActive(true, options: [])
-            AppState.shared.audioSessionActive = true
-        } catch {
-            AppState.shared.log(.errors, "audio", "ringtone setCategory failed: \(error)")
-        }
-        AppState.shared.log(.scenarios, "audio", "ringtone start")
-        playResource("ringtone", into: &ringPlayer, loops: -1)
-        if ringPlayer == nil {
-            // Fallback: use AudioEngine sine loop
-            startTone(frequency: 660, stereo: false)
-        }
-    }
-
-    func stopRingtone() {
-        ringPlayer?.stop(); ringPlayer = nil
-        stopTone()
-        AppState.shared.log(.scenarios, "audio", "ringtone stop")
-    }
-
     private func playResource(_ name: String,
                               into player: inout AVAudioPlayer?,
                               loops: Int) {
@@ -167,36 +135,6 @@ final class AudioScenarios: NSObject {
         } catch {
             AppState.shared.log(.errors, "audio", "play \(name) failed: \(error)")
         }
-    }
-
-    // MARK: Notification sound
-
-    func fireNotificationSound() {
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .sound]) { granted, err in
-            if let err { AppState.shared.log(.errors, "audio", "notif auth error: \(err)") }
-            AppState.shared.log(.scenarios, "audio", "notif auth granted=\(granted)")
-            guard granted else { return }
-            let content = UNMutableNotificationContent()
-            content.title = "IOSWebView"
-            content.body = "Simulated notification sound"
-            content.sound = .default
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
-            center.add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger))
-        }
-    }
-
-    // MARK: Audio route toggle
-
-    func toggleRoute() {
-        let session = AVAudioSession.sharedInstance()
-        let isSpeaker = session.currentRoute.outputs.contains { $0.portType == .builtInSpeaker }
-        do {
-            try session.overrideOutputAudioPort(isSpeaker ? .none : .speaker)
-        } catch {
-            AppState.shared.log(.errors, "audio", "overrideOutputAudioPort failed: \(error)")
-        }
-        dumpSessionState(label: "after route toggle")
     }
 
     // MARK: Session state dump
@@ -254,82 +192,12 @@ final class AudioScenarios: NSObject {
         AppState.shared.log(.lifecycle, "audio", "interruption=\(type == .began ? "began" : "ended")")
     }
 
-    // MARK: CallKit
-
-    func simulateCallKitIncoming() {
-        let config = CXProviderConfiguration(localizedName: "IOSWebView Sample")
-        config.supportsVideo = false
-        config.maximumCallsPerCallGroup = 1
-        let prov = CXProvider(configuration: config)
-        prov.setDelegate(self, queue: .main)
-        provider = prov
-        let uuid = UUID()
-        currentCallUUID = uuid
-        let update = CXCallUpdate()
-        update.remoteHandle = CXHandle(type: .generic, value: "IOSWebView Test")
-        update.hasVideo = false
-        prov.reportNewIncomingCall(with: uuid, update: update) { error in
-            if let error {
-                AppState.shared.log(.errors, "audio", "callkit reportNewIncomingCall: \(error)")
-            } else {
-                AppState.shared.log(.scenarios, "audio", "callkit incoming reported uuid=\(uuid)")
-            }
-        }
-    }
-
-    func endCallKitCall() {
-        guard let uuid = currentCallUUID else { return }
-        provider?.reportCall(with: uuid, endedAt: nil, reason: .remoteEnded)
-        currentCallUUID = nil
-        AppState.shared.log(.scenarios, "audio", "callkit ended uuid=\(uuid)")
-    }
-
-    /// Composite repro for the customer "phone call received during a live
-    /// call" scenario.
-    ///
-    /// Sequence:
-    ///   1. Pre-snapshot at t=0 (label: "pre-interruption").
-    ///   2. `simulateCallKitIncoming()` - CallKit hijacks AVAudioSession.
-    ///   3. After `holdSeconds`, `endCallKitCall()` - releases the session.
-    ///   4. Post-snapshot at +0.5s and +3s after end - "did the session
-    ///      come back to .playAndRecord/.videoChat the way WebRTC needs?"
-    ///
-    /// The two post-snapshots make the delayed-restore window visible:
-    /// WebKit's `RTCAudioSession` reactivates on
-    /// `interruptionNotification(.ended + .shouldResume)`, which usually
-    /// arrives within ~100ms but can take longer. If the +3s snapshot still
-    /// shows drift from the pre-snapshot, that's the bug.
-    func simulatePhoneCallInterruption(holdSeconds: TimeInterval = 5) {
-        AppState.shared.log(.scenarios, "audio",
-            "▶︎ phone-call interruption scenario (hold=\(holdSeconds)s)")
-        dumpSessionState(label: "pre-interruption")
-        simulateCallKitIncoming()
-        DispatchQueue.main.asyncAfter(deadline: .now() + holdSeconds) { [weak self] in
-            guard let self else { return }
-            self.endCallKitCall()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-                self?.dumpSessionState(label: "post-interruption +0.5s")
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
-                self?.dumpSessionState(label: "post-recovery-window +3s")
-                AppState.shared.log(.scenarios, "audio",
-                    "▶︎ phone-call interruption scenario complete - compare snapshots")
-            }
-        }
-    }
-
     // MARK: Category picker
 
-    /// The full set of `AVAudioSession.Category` values, with short display
-    /// names for the menu. Pairs with `setCategory(_:)` below.
-    ///
-    /// Use this to put the session into any category on demand, to observe
-    /// how WebRTC, `navigator.audioSession`, and the debug overlay react.
-    /// Applies `mode: .default` and no options - a clean switch. If you want
-    /// options (`.mixWithOthers`, `.defaultToSpeaker`, etc.) or a specific
-    /// mode, combine with the existing "Force mode=.default" / "Toggle route"
-    /// actions afterward, or use "Restore audio (native)" to go back to
-    /// `.playAndRecord/.voiceChat + [.allowBluetooth, .defaultToSpeaker]`.
+    /// The full set of `AVAudioSession.Category` values for the menu. Pairs
+    /// with `setCategory(_:)`, which applies `mode: .default` and no options.
+    /// Use "Restore audio (native)" to return to the WebRTC-friendly
+    /// `.playAndRecord/.videoChat` configuration afterward.
     static let allCategories: [(label: String, category: AVAudioSession.Category)] = [
         (".ambient", .ambient),
         (".soloAmbient", .soloAmbient),
@@ -365,38 +233,6 @@ final class AudioScenarios: NSObject {
         return "." + first.lowercased() + bare.dropFirst()
     }
 
-    // MARK: Hostile switches
-
-    func forcePlaybackCategory() {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
-            AppState.shared.log(.scenarios, "audio", "hostile → .playback/.default")
-            dumpSessionState(label: "after hostile .playback")
-        } catch {
-            AppState.shared.log(.errors, "audio", "forcePlayback: \(error)")
-        }
-    }
-
-    func forceDefaultMode() {
-        do {
-            try AVAudioSession.sharedInstance().setMode(.default)
-            AppState.shared.log(.scenarios, "audio", "hostile → mode=.default (disables AEC/AGC)")
-            dumpSessionState(label: "after mode=.default")
-        } catch {
-            AppState.shared.log(.errors, "audio", "forceDefaultMode: \(error)")
-        }
-    }
-
-    func silentDeactivation() {
-        do {
-            try AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
-            AppState.shared.audioSessionActive = false
-            AppState.shared.log(.scenarios, "audio", "setActive(false, .notifyOthersOnDeactivation)")
-        } catch {
-            AppState.shared.log(.errors, "audio", "setActive(false): \(error)")
-        }
-    }
-
     // MARK: Session restore
 
     /// Hands the audio session back to WebRTC after a hostile change.
@@ -409,9 +245,8 @@ final class AudioScenarios: NSObject {
     ///      puts the session in the state WebRTC wants before it re-asserts.
     ///   3. `setActive(true)` - re-activates so input+output are live again.
     ///
-    /// Use this after running **Play ding (no mixWithOthers)**, **Force .playback**,
-    /// **Force mode=.default**, or **setActive(false)** - or any time WebRTC audio
-    /// seems stuck after a native-side session change.
+    /// Use this after running **Play ding (exclusive, NO restore)** - or any
+    /// time WebRTC audio seems stuck after a native-side session change.
     func restoreForWebRTC() {
         let s = AVAudioSession.sharedInstance()
         dumpSessionState(label: "before restore")
@@ -464,145 +299,6 @@ final class AudioScenarios: NSObject {
             "synthesized interruption=ended (host self-restore)")
     }
 
-    // MARK: Test tone
-
-    func startTone(frequency: Double = 440, stereo: Bool = false) {
-        stopTone()
-        let engine = AVAudioEngine()
-        let sampleRate: Double = 44_100
-        let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: sampleRate,
-                                   channels: stereo ? 2 : 1, interleaved: false)!
-        var phase: Double = 0
-        let increment = 2 * .pi * frequency / sampleRate
-        let node = AVAudioSourceNode(format: format) { _, _, frameCount, abl in
-            let bufferListPointer = UnsafeMutableAudioBufferListPointer(abl)
-            for frame in 0..<Int(frameCount) {
-                let sample = Float(sin(phase)) * 0.2
-                phase += increment
-                if phase > 2 * .pi { phase -= 2 * .pi }
-                for buffer in bufferListPointer {
-                    let buf = buffer.mData?.assumingMemoryBound(to: Float.self)
-                    buf?[frame] = sample
-                }
-            }
-            return noErr
-        }
-        engine.attach(node)
-        engine.connect(node, to: engine.mainMixerNode, format: format)
-        do {
-            try engine.start()
-            toneEngine = engine
-            toneNode = node
-            AppState.shared.log(.scenarios, "audio", "tone \(frequency)Hz started")
-        } catch {
-            AppState.shared.log(.errors, "audio", "tone start: \(error)")
-        }
-    }
-
-    func stopTone() {
-        if let engine = toneEngine {
-            engine.stop()
-            if let node = toneNode { engine.detach(node) }
-        }
-        toneEngine = nil; toneNode = nil
-    }
-
-    // MARK: Mic level meter / record-playback
-
-    private var meterRecorder: AVAudioRecorder?
-    private var meterTimer: Timer?
-    private var lastRecordingURL: URL?
-
-    func startMicMeter() {
-        stopMicMeter()
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .videoChat,
-                                                            options: [.defaultToSpeaker, .allowBluetoothHFP, .allowBluetoothA2DP])
-            try AVAudioSession.sharedInstance().setActive(true, options: [])
-        } catch {
-            AppState.shared.log(.errors, "audio", "meter session: \(error)"); return
-        }
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("mic-meter.caf")
-        let settings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatAppleIMA4,
-            AVSampleRateKey: 22_050.0,
-            AVNumberOfChannelsKey: 1,
-        ]
-        do {
-            let rec = try AVAudioRecorder(url: url, settings: settings)
-            rec.isMeteringEnabled = true
-            rec.record()
-            meterRecorder = rec
-            lastRecordingURL = url
-            meterTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
-                guard let self, let rec = self.meterRecorder else { return }
-                rec.updateMeters()
-                AppState.shared.log(.lifecycle, "mic", String(format: "avgPower=%.1f dB  peak=%.1f dB",
-                                                              rec.averagePower(forChannel: 0),
-                                                              rec.peakPower(forChannel: 0)))
-            }
-            AppState.shared.log(.scenarios, "audio", "mic meter started")
-        } catch {
-            AppState.shared.log(.errors, "audio", "AVAudioRecorder: \(error)")
-        }
-    }
-
-    func stopMicMeter() {
-        meterTimer?.invalidate(); meterTimer = nil
-        meterRecorder?.stop(); meterRecorder = nil
-    }
-
-    func recordAndPlayback(seconds: TimeInterval = 3) {
-        stopMicMeter()
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playAndRecord, mode: .default,
-                                                            options: [.defaultToSpeaker])
-            try AVAudioSession.sharedInstance().setActive(true, options: [])
-        } catch {
-            AppState.shared.log(.errors, "audio", "rec/playback session: \(error)"); return
-        }
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("rec.caf")
-        let settings: [String: Any] = [
-            AVFormatIDKey: kAudioFormatAppleIMA4,
-            AVSampleRateKey: 22_050.0,
-            AVNumberOfChannelsKey: 1,
-        ]
-        do {
-            let rec = try AVAudioRecorder(url: url, settings: settings)
-            rec.record()
-            AppState.shared.log(.scenarios, "audio", "recording \(seconds)s…")
-            DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-                rec.stop()
-                AppState.shared.log(.scenarios, "audio", "playback…")
-                do {
-                    let p = try AVAudioPlayer(contentsOf: url)
-                    p.prepareToPlay(); p.play()
-                    self.soundPlayer = p
-                } catch {
-                    AppState.shared.log(.errors, "audio", "playback: \(error)")
-                }
-            }
-        } catch {
-            AppState.shared.log(.errors, "audio", "AVAudioRecorder: \(error)")
-        }
-    }
-
-    // MARK: Interruption simulation
-
-    func postInterruption(began: Bool) {
-        var info: [AnyHashable: Any] = [
-            AVAudioSessionInterruptionTypeKey: began
-                ? AVAudioSession.InterruptionType.began.rawValue
-                : AVAudioSession.InterruptionType.ended.rawValue,
-        ]
-        if !began {
-            info[AVAudioSessionInterruptionOptionKey] = AVAudioSession.InterruptionOptions.shouldResume.rawValue
-        }
-        NotificationCenter.default.post(name: AVAudioSession.interruptionNotification,
-                                        object: AVAudioSession.sharedInstance(),
-                                        userInfo: info)
-        AppState.shared.log(.scenarios, "audio", "simulated interruption=\(began ? "began" : "ended")")
-    }
 }
 
 extension AudioScenarios: AVAudioPlayerDelegate {
@@ -675,19 +371,3 @@ extension AudioScenarios: AVAudioPlayerDelegate {
     }
 }
 
-extension AudioScenarios: CXProviderDelegate {
-    func providerDidReset(_ provider: CXProvider) {
-        AppState.shared.log(.scenarios, "audio", "callkit provider reset")
-    }
-
-    func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
-        AppState.shared.log(.scenarios, "audio", "callkit endCall")
-        currentCallUUID = nil
-        action.fulfill()
-    }
-
-    func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
-        AppState.shared.log(.scenarios, "audio", "callkit answerCall")
-        action.fulfill()
-    }
-}
