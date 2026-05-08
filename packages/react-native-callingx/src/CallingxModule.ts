@@ -30,7 +30,10 @@ import { isVoipEvent } from './utils/utils';
 
 class CallingxModule implements ICallingxModule {
   private _isSetup = false;
-  private _isOngoingCallsEnabled = false;
+  private _isOngoingCallsEnabled = {
+    android: false,
+    ios: false,
+  };
   private _isHeadlessTaskRegistered = false;
 
   private titleTransformer: (memberName: string, incoming: boolean) => string =
@@ -50,7 +53,9 @@ class CallingxModule implements ICallingxModule {
   }
 
   get isOngoingCallsEnabled(): boolean {
-    return this._isOngoingCallsEnabled;
+    return Platform.OS === 'ios'
+      ? this._isOngoingCallsEnabled.ios
+      : this._isOngoingCallsEnabled.android;
   }
 
   get isSetup(): boolean {
@@ -62,7 +67,10 @@ class CallingxModule implements ICallingxModule {
       return;
     }
 
-    this._isOngoingCallsEnabled = options.enableOngoingCalls ?? false;
+    this._isOngoingCallsEnabled = {
+      android: options.android?.enableOngoingCalls ?? false,
+      ios: options.ios?.enableOngoingCalls ?? false,
+    };
     this.setShouldRejectCallWhenBusy(options.shouldRejectCallWhenBusy ?? false);
 
     if (Platform.OS === 'ios') {

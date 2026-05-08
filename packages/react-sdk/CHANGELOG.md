@@ -2,6 +2,32 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.36.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.36.0...@stream-io/video-react-sdk-1.36.1) (2026-05-08)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.49.0`
+- `@stream-io/video-react-bindings` updated to version `1.15.1`
+
+### Bug Fixes
+
+- **react:** Improve background filter degradation detection ([#2210](https://github.com/GetStream/stream-video-js/issues/2210)) ([391915e](https://github.com/GetStream/stream-video-js/commit/391915e1e025ce3eaf5ebe7b135f57463ead8e42))
+
+## [1.36.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.2...@stream-io/video-react-sdk-1.36.0) (2026-04-28)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.48.0`
+- `@stream-io/video-react-bindings` updated to version `1.15.0`
+
+### Features
+
+- audio connecting hook in bindings and RN UI ([#2214](https://github.com/GetStream/stream-video-js/issues/2214)) ([44c38fa](https://github.com/GetStream/stream-video-js/commit/44c38faaccb5327f6cd5cd6e70781bad93deafaf))
+
+### Bug Fixes
+
+- **egress-composite:** adjust PaginatedGrid sizing ([#1966](https://github.com/GetStream/stream-video-js/issues/1966)) ([9c7009f](https://github.com/GetStream/stream-video-js/commit/9c7009f26d63ef4fcbc8441746e5cd3c2b1935b6))
+
 ## [1.35.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.1...@stream-io/video-react-sdk-1.35.2) (2026-04-15)
 
 ### Dependency Updates

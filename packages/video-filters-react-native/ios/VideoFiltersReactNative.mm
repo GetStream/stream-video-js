@@ -12,6 +12,9 @@ RCT_EXTERN_METHOD(registerVirtualBackgroundFilter:(NSString *)backgroundImageUrl
 RCT_EXTERN_METHOD(registerBlurVideoFilters:(RCTPromiseResolveBlock)resolve
                   withRejecter:(RCTPromiseRejectBlock)reject)
 
+RCT_EXTERN_METHOD(unregisterAllFilters:(RCTPromiseResolveBlock)resolve
+                  withRejecter:(RCTPromiseRejectBlock)reject)
+
 + (BOOL)requiresMainQueueSetup
 {
   return NO;

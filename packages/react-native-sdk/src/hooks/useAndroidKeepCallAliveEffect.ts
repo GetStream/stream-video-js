@@ -53,7 +53,7 @@ async function startForegroundService(call_cid: string) {
   const foregroundServiceConfig = videoConfig.foregroundService;
   const notificationTexts = foregroundServiceConfig.android.notificationTexts;
   const channel = foregroundServiceConfig.android.channel;
-  const smallIconName = videoConfig.push?.android.smallIcon;
+  const smallIconName = videoConfig.push?.android?.smallIcon;
 
   // NOTE: we use requestAnimationFrame to ensure that the foreground service is started after all the current UI operations are done
   // this is a workaround for the crash - android.app.RemoteServiceException$ForegroundServiceDidNotStartInTimeException: Context.startForegroundService() did not then call Service.startForeground()
@@ -89,13 +89,11 @@ export const useAndroidKeepCallAliveEffect = () => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
-  const isOutgoingCall =
-    callingState === CallingState.RINGING && call?.isCreatedByMe;
   const isCallJoined = callingState === CallingState.JOINED;
   const isRingingCall = call?.ringing;
 
   const shouldStartForegroundService =
-    !foregroundServiceStartedRef.current && (isOutgoingCall || isCallJoined);
+    !foregroundServiceStartedRef.current && isCallJoined;
 
   useEffect((): (() => void) | undefined => {
     if (Platform.OS === 'ios' || !activeCallCid) {

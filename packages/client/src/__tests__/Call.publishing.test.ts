@@ -290,6 +290,109 @@ describe('Publishing and Unpublishing tracks', () => {
       expect(participant!.screenShareStream).toBeUndefined();
       expect(participant!.screenShareAudioStream).toBeUndefined();
     });
+
+    it('does not throw if sfuClient is cleared while the mute-state RPC is in flight', async () => {
+      let releaseMuteUpdate!: () => void;
+      let signalMuteUpdateEntered!: () => void;
+      const muteUpdateEntered = new Promise<void>(
+        (resolve) => (signalMuteUpdateEntered = resolve),
+      );
+      sfuClient.updateMuteStates = vi.fn().mockImplementation(() => {
+        signalMuteUpdateEntered();
+        return new Promise<void>((resolve) => (releaseMuteUpdate = resolve));
+      });
+
+      const track = new MediaStreamTrack() as MediaStreamAudioTrack;
+      const mediaStream = new MediaStream();
+      vi.spyOn(mediaStream, 'getAudioTracks').mockReturnValue([track]);
+
+      const inflight = call.publish(mediaStream, TrackType.AUDIO);
+
+      await muteUpdateEntered;
+
+      call['sfuClient'] = undefined;
+      releaseMuteUpdate();
+
+      await inflight;
+    });
+
+    it('updates local stream state when sfuClient is replaced with the same session id', async () => {
+      let releaseMuteUpdate!: () => void;
+      let signalMuteUpdateEntered!: () => void;
+      const muteUpdateEntered = new Promise<void>(
+        (resolve) => (signalMuteUpdateEntered = resolve),
+      );
+      sfuClient.updateMuteStates = vi.fn().mockImplementation(() => {
+        signalMuteUpdateEntered();
+        return new Promise<void>((resolve) => (releaseMuteUpdate = resolve));
+      });
+
+      const track = new MediaStreamTrack() as MediaStreamAudioTrack;
+      const mediaStream = new MediaStream();
+      vi.spyOn(mediaStream, 'getAudioTracks').mockReturnValue([track]);
+
+      const inflight = call.publish(mediaStream, TrackType.AUDIO);
+
+      await muteUpdateEntered;
+
+      const replacementSfuClient = vi.fn() as unknown as StreamSfuClient;
+      // @ts-expect-error sessionId is readonly
+      replacementSfuClient['sessionId'] = sessionId;
+      replacementSfuClient.updateMuteStates = vi.fn();
+      call['sfuClient'] = replacementSfuClient;
+      releaseMuteUpdate();
+
+      await inflight;
+
+      const participant = call.state.findParticipantBySessionId(sessionId);
+      expect(participant?.publishedTracks).toEqual([TrackType.AUDIO]);
+      expect(participant?.audioStream).toBe(mediaStream);
+    });
+
+    it('skips local stream state update when sfuClient is replaced with a new session id', async () => {
+      let releaseMuteUpdate!: () => void;
+      let signalMuteUpdateEntered!: () => void;
+      const muteUpdateEntered = new Promise<void>(
+        (resolve) => (signalMuteUpdateEntered = resolve),
+      );
+      sfuClient.updateMuteStates = vi.fn().mockImplementation(() => {
+        signalMuteUpdateEntered();
+        return new Promise<void>((resolve) => (releaseMuteUpdate = resolve));
+      });
+
+      const track = new MediaStreamTrack() as MediaStreamAudioTrack;
+      const mediaStream = new MediaStream();
+      vi.spyOn(mediaStream, 'getAudioTracks').mockReturnValue([track]);
+
+      const inflight = call.publish(mediaStream, TrackType.AUDIO);
+
+      await muteUpdateEntered;
+
+      const replacementSessionId = 'replacement-session-id';
+      // @ts-expect-error partial data
+      call.state.updateOrAddParticipant(replacementSessionId, {
+        sessionId: replacementSessionId,
+        publishedTracks: [],
+      });
+
+      const replacementSfuClient = vi.fn() as unknown as StreamSfuClient;
+      // @ts-expect-error sessionId is readonly
+      replacementSfuClient['sessionId'] = replacementSessionId;
+      replacementSfuClient.updateMuteStates = vi.fn();
+      call['sfuClient'] = replacementSfuClient;
+      releaseMuteUpdate();
+
+      await inflight;
+
+      const originalParticipant =
+        call.state.findParticipantBySessionId(sessionId);
+      const replacementParticipant =
+        call.state.findParticipantBySessionId(replacementSessionId);
+      expect(originalParticipant?.publishedTracks).toEqual([]);
+      expect(originalParticipant?.audioStream).toBeUndefined();
+      expect(replacementParticipant?.publishedTracks).toEqual([]);
+      expect(replacementParticipant?.audioStream).toBeUndefined();
+    });
   });
 
   describe('Deprecated methods', () => {

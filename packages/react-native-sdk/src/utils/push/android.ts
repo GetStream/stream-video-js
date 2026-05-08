@@ -40,7 +40,7 @@ export async function initAndroidPushToken(
   pushConfig: PushConfig,
   setUnsubscribeListener: (unsubscribe: () => void) => void,
 ) {
-  if (Platform.OS !== 'android' || !pushConfig.android.pushProviderName) {
+  if (Platform.OS !== 'android' || !pushConfig.android?.pushProviderName) {
     return;
   }
   const logger = videoLoggerSystem.getLogger('initAndroidPushToken');
@@ -69,7 +69,7 @@ export async function initAndroidPushToken(
         logger.warn('Failed to remove firebase token from stream', err);
       }
     });
-    const push_provider_name = pushConfig.android.pushProviderName;
+    const push_provider_name = pushConfig.android?.pushProviderName;
     logger.debug(`sending firebase token: ${token} for userId: ${userId}`);
     await client.addDevice(token, 'firebase', push_provider_name);
   };
@@ -336,9 +336,9 @@ export const firebaseDataHandler = async (
     }
 
     // the other types are call.live_started and call.notification
-    const callChannel = pushConfig.android.callChannel;
+    const callChannel = pushConfig.android?.callChannel;
     const callNotificationTextGetters =
-      pushConfig.android.callNotificationTextGetters;
+      pushConfig.android?.callNotificationTextGetters;
     if (!callChannel || !callNotificationTextGetters) {
       logger.debug(
         "Can't show call notification as either or both callChannel and callNotificationTextGetters is not provided",
@@ -364,7 +364,7 @@ export const firebaseDataHandler = async (
       data,
       android: {
         sound: callChannel.sound,
-        smallIcon: pushConfig.android.smallIcon,
+        smallIcon: pushConfig.android?.smallIcon,
         vibrationPattern: callChannel.vibrationPattern,
         channelId,
         importance: 4, // high importance
