@@ -22,8 +22,13 @@ import { CallEndedReason } from '../../gen/video/sfu/models/models';
 describe('Call ringing events', () => {
   describe(`call.accepted`, () => {
     it(`will ignore events from the current user`, async () => {
+      // Same-user call.accepted is either an echo of our own accept() or
+      // an acceptance from another device. The event handler defers to the
+      // session subscription in Call.registerEffects() for the leave path,
+      // so it must not trigger join() here.
       const call = fakeCall();
       vi.spyOn(call, 'join');
+      vi.spyOn(call, 'leave').mockImplementation(async () => {});
       const handler = watchCallAccepted(call);
       const event: CallAcceptedEvent = {
         type: 'call.accepted',
@@ -33,6 +38,7 @@ describe('Call ringing events', () => {
       await handler(event);
 
       expect(call.join).not.toHaveBeenCalled();
+      expect(call.leave).not.toHaveBeenCalled();
     });
 
     it(`will join the call for the caller if atleast one callee has accepted`, async () => {
@@ -119,7 +125,7 @@ describe('Call ringing events', () => {
       expect(call.leave).toHaveBeenCalledWith({
         reject: true,
         reason: 'cancel',
-        message: 'ring: everyone rejected',
+        message: 'ring:everyone-rejected',
       });
     });
 
@@ -171,6 +177,7 @@ describe('Call ringing events', () => {
       });
       // @ts-expect-error incomplete data
       call.state.setMembers([{ user_id: 'm1' }, { user_id: 'm2' }]);
+      call.state.setCallingState(CallingState.RINGING);
       vi.spyOn(call, 'leave').mockImplementation(async () => {
         console.log(`TEST: leave() called`);
       });
@@ -198,7 +205,54 @@ describe('Call ringing events', () => {
       };
       await handler(event);
 
-      expect(call.leave).toHaveBeenCalled();
+      expect(call.leave).toHaveBeenCalledWith({
+        message: 'ring:creator-rejected',
+      });
+    });
+
+    it('all uninvited callees stop ringing when creator cancels before pickup', async () => {
+      // Two separate callee Call instances simulate B and C in
+      // "A rings B and C, A cancels before anyone picks up".
+      const calleeB = fakeCall({ currentUserId: 'B' });
+      const calleeC = fakeCall({ currentUserId: 'C' });
+      for (const callee of [calleeB, calleeC]) {
+        callee.state.updateFromCallResponse({
+          ...fakeMetadata(),
+          // @ts-expect-error type issue
+          created_by: { id: 'A' },
+        });
+        callee.state.setMembers([
+          // @ts-expect-error incomplete data
+          { user_id: 'A' },
+          // @ts-expect-error incomplete data
+          { user_id: 'B' },
+          // @ts-expect-error incomplete data
+          { user_id: 'C' },
+        ]);
+        callee.state.setCallingState(CallingState.RINGING);
+        vi.spyOn(callee, 'leave').mockImplementation(async () => {});
+      }
+
+      const event = {
+        type: 'call.rejected' as const,
+        user: { id: 'A' },
+        call: {
+          created_by: { id: 'A' },
+          session: { rejected_by: { A: new Date().toISOString() } },
+        },
+      };
+
+      // @ts-expect-error type issue
+      await watchCallRejected(calleeB)(event);
+      // @ts-expect-error type issue
+      await watchCallRejected(calleeC)(event);
+
+      expect(calleeB.leave).toHaveBeenCalledWith({
+        message: 'ring:creator-rejected',
+      });
+      expect(calleeC.leave).toHaveBeenCalledWith({
+        message: 'ring:creator-rejected',
+      });
     });
   });
 
@@ -215,7 +269,10 @@ describe('Call ringing events', () => {
       // @ts-expect-error type issue
       await handler(event);
 
-      expect(call.leave).toHaveBeenCalled();
+      expect(call.leave).toHaveBeenCalledWith({
+        message: 'event:call-ended',
+        reject: false,
+      });
     });
 
     it(`will leave the call if joined`, async () => {
@@ -237,7 +294,10 @@ describe('Call ringing events', () => {
       // @ts-expect-error type issue
       await handler(event);
 
-      expect(call.leave).toHaveBeenCalled();
+      expect(call.leave).toHaveBeenCalledWith({
+        message: 'event:call-ended',
+        reject: false,
+      });
     });
 
     it(`will not leave the call if idle`, async () => {
@@ -274,7 +334,9 @@ describe('Call ringing events', () => {
       // @ts-expect-error type issue
       call['dispatcher'].dispatch(event);
 
-      expect(call.leave).toHaveBeenCalled();
+      expect(call.leave).toHaveBeenCalledWith({
+        message: 'sfu:call-ended:ENDED',
+      });
       expect(call.state.endedAt).toBeDefined();
     });
 

@@ -112,6 +112,7 @@ import type {
   UpdateUserPermissionsResponse,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
+import { CallLeaveReasons } from './helpers/CallLeaveReasons';
 import {
   AudioTrackType,
   CallConstructor,
@@ -484,7 +485,10 @@ export class Call {
             this,
             isAcceptedElsewhere ? 'answeredElsewhere' : 'rejected',
           );
-          this.leave().catch(() => {
+          const message = isAcceptedElsewhere
+            ? CallLeaveReasons.deviceAcceptedElsewhere
+            : CallLeaveReasons.deviceRejectedElsewhere;
+          this.leave({ message }).catch(() => {
             this.logger.error(
               'Could not leave a call that was accepted or rejected elsewhere',
             );
@@ -2744,7 +2748,9 @@ export class Call {
       this.leave({
         reject: true,
         reason: 'timeout',
-        message: `ringing timeout - ${this.isCreatedByMe ? 'no one accepted' : `user didn't interact with incoming call screen`}`,
+        message: this.isCreatedByMe
+          ? CallLeaveReasons.ringTimeoutCreator
+          : CallLeaveReasons.ringTimeoutCallee,
       }).catch((err) => {
         this.logger.error('Failed to drop call', err);
       });
