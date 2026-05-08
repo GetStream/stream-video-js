@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { TrackSubscriptionManager } from '../TrackSubscriptionManager';
 import { CallState } from '../../store';
 import { Tracer } from '../../stats';
@@ -23,16 +24,17 @@ describe('TrackSubscriptionManager', () => {
       isLocalParticipant: boolean;
     }> = {},
   ) => {
-    state.updateOrAddParticipant(sessionId, {
+    state.updateOrAddParticipant(
       sessionId,
-      userId: overrides.userId ?? `user-${sessionId}`,
-      publishedTracks: overrides.publishedTracks ?? [],
-      videoDimension: overrides.videoDimension,
-      screenShareDimension: overrides.screenShareDimension,
-      isLocalParticipant: overrides.isLocalParticipant,
-      // @ts-expect-error incomplete data — CallState.updateOrAddParticipant only
-      // reads the subset of fields the manager touches.
-    });
+      fromPartial({
+        sessionId,
+        userId: overrides.userId ?? `user-${sessionId}`,
+        publishedTracks: overrides.publishedTracks ?? [],
+        videoDimension: overrides.videoDimension,
+        screenShareDimension: overrides.screenShareDimension,
+        isLocalParticipant: overrides.isLocalParticipant,
+      }),
+    );
   };
 
   beforeEach(() => {
@@ -161,7 +163,7 @@ describe('TrackSubscriptionManager', () => {
   // apply() — debouncing + SFU push
   // ---------------------------------------------------------------------
 
-  it('apply() debounces rapid calls into one SFU RPC', () => {
+  it('apply() debounces rapid calls into one SFU RPC with the exact subscription payload', () => {
     vi.useFakeTimers();
     addParticipant('a', {
       publishedTracks: [TrackType.VIDEO],
@@ -175,13 +177,19 @@ describe('TrackSubscriptionManager', () => {
     expect(updateSubscriptions).not.toHaveBeenCalled();
     vi.advanceTimersByTime(DebounceType.FAST);
     expect(updateSubscriptions).toHaveBeenCalledTimes(1);
-    expect(updateSubscriptions).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.objectContaining({ sessionId: 'a' })]),
-    );
+    const [payload] = updateSubscriptions.mock.calls[0];
+    expect(payload).toEqual([
+      {
+        userId: 'user-a',
+        sessionId: 'a',
+        trackType: TrackType.VIDEO,
+        dimension: { width: 320, height: 240 },
+      },
+    ]);
     vi.useRealTimers();
   });
 
-  it('apply(0) fires synchronously — no timer involved', () => {
+  it('apply(0) fires synchronously - no timer involved - with the exact subscription payload', () => {
     addParticipant('a', {
       publishedTracks: [TrackType.VIDEO],
       videoDimension: { width: 320, height: 240 },
@@ -192,9 +200,15 @@ describe('TrackSubscriptionManager', () => {
     manager.apply(0 as DebounceType);
 
     expect(updateSubscriptions).toHaveBeenCalledTimes(1);
-    expect(updateSubscriptions).toHaveBeenCalledWith(
-      expect.arrayContaining([expect.objectContaining({ sessionId: 'a' })]),
-    );
+    const [payload] = updateSubscriptions.mock.calls[0];
+    expect(payload).toEqual([
+      {
+        userId: 'user-a',
+        sessionId: 'a',
+        trackType: TrackType.VIDEO,
+        dimension: { width: 320, height: 240 },
+      },
+    ]);
   });
 
   it('apply() with DebounceType.SLOW (default) fires after 1200ms', () => {
@@ -264,6 +278,32 @@ describe('TrackSubscriptionManager', () => {
         latest as { isParticipantVideoEnabled: (id: string) => boolean }
       ).isParticipantVideoEnabled('other-session'),
     ).toBe(true);
+
+    sub.unsubscribe();
+  });
+
+  it('incomingVideoSettings$ replays the latest value to a late subscriber (shareReplay(1))', () => {
+    // Set state BEFORE any subscriber attaches.
+    manager.setOverrides({
+      enabled: true,
+      dimension: { width: 1280, height: 720 },
+    });
+    manager.setOverrides({ enabled: false }, ['muted-session']);
+
+    let latest: unknown;
+    const sub = manager.incomingVideoSettings$.subscribe((v) => {
+      latest = v;
+    });
+
+    // The late subscriber must receive the buffered value synchronously
+    // on attach without needing a fresh setOverrides call.
+    expect(latest).toMatchObject({
+      enabled: true,
+      preferredResolution: { width: 1280, height: 720 },
+      participants: {
+        'muted-session': { enabled: false, preferredResolution: undefined },
+      },
+    });
 
     sub.unsubscribe();
   });

@@ -79,7 +79,7 @@ export class AudioBindingsWatchdog {
       // happens to fire `play`.
       this.onElementPausedChange(existing.element, false);
     } else if (existing && existing.element === audioElement) {
-      // Same element re-registered — drop stale listeners before re-binding.
+      // Same element re-registered - drop stale listeners before re-binding.
       this.detachPlaybackListeners(existing);
     }
     const onPause = () => {

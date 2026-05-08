@@ -41,4 +41,29 @@ describe('Call lifecycle wiring', () => {
     expect(audioBindingsDispose).toHaveBeenCalledTimes(1);
     expect(dynascaleDispose).toHaveBeenCalledTimes(1);
   });
+
+  // Order matters: audio probes and the SFU subscription pump must finish
+  // tearing down before DynascaleManager closes its AudioContext, otherwise
+  // helpers can run on a closed context (logged as warnings or thrown by
+  // happy-dom). This is the contract the leave() teardown chain encodes.
+  it('call.leave() tears down helpers in the documented order', async () => {
+    const trackSubDispose = vi.spyOn(call.trackSubscriptionManager, 'dispose');
+    const audioBindingsDispose = vi.spyOn(
+      call.audioBindingsWatchdog!,
+      'dispose',
+    );
+    const audioHealthStop = vi.spyOn(call.audioHealthMonitor!, 'stop');
+    const dynascaleDispose = vi.spyOn(call.dynascaleManager, 'dispose');
+
+    await call.leave();
+
+    const trackSubOrder = trackSubDispose.mock.invocationCallOrder[0];
+    const audioBindingsOrder = audioBindingsDispose.mock.invocationCallOrder[0];
+    const audioHealthOrder = audioHealthStop.mock.invocationCallOrder[0];
+    const dynascaleOrder = dynascaleDispose.mock.invocationCallOrder[0];
+
+    expect(trackSubOrder).toBeLessThan(audioBindingsOrder);
+    expect(audioBindingsOrder).toBeLessThan(audioHealthOrder);
+    expect(audioHealthOrder).toBeLessThan(dynascaleOrder);
+  });
 });

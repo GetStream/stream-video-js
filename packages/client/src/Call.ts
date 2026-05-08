@@ -1194,7 +1194,9 @@ export class Call {
     // Start the audio-health monitor the first time a call actually has an
     // SFU connection. `start()` is idempotent - safe across SFU migration /
     // reconnection where this may fire more than once.
-    this.audioHealthMonitor?.start();
+    this.audioHealthMonitor?.start().catch((err) => {
+      this.logger.warn('audioHealthMonitor.start failed', err);
+    });
     this.audioHealthAutoRecovery?.start();
 
     const clientDetails = await getClientDetails();

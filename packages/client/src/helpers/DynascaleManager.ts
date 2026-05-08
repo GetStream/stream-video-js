@@ -447,15 +447,22 @@ export class DynascaleManager {
           } else {
             // we will play audio directly through the audio element in other browsers
             audioElement.muted = false;
-            audioElement.play().catch((e) => {
-              if (isDisposed) return;
-              this.tracer.trace('audioPlaybackError', e.message);
-              if (e.name === 'NotAllowedError') {
-                this.tracer.trace('audioPlaybackBlocked', null);
-                this.onAutoplayBlockedChange(audioElement, true);
-              }
-              this.logger.warn(`Failed to play audio stream`, e);
-            });
+            audioElement.play().then(
+              () => {
+                if (isDisposed) return;
+                // Clear any prior autoplay-blocked state for this element.
+                this.onAutoplayBlockedChange(audioElement, false);
+              },
+              (e) => {
+                if (isDisposed) return;
+                this.tracer.trace('audioPlaybackError', e.message);
+                if (e.name === 'NotAllowedError') {
+                  this.tracer.trace('audioPlaybackBlocked', null);
+                  this.onAutoplayBlockedChange(audioElement, true);
+                }
+                this.logger.warn(`Failed to play audio stream`, e);
+              },
+            );
           }
 
           const { selectedDevice } = this.speaker.state;

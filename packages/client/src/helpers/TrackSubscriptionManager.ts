@@ -16,10 +16,10 @@ import {
 /**
  * Per-participant (or global) video-subscription override.
  *
- * - `{ enabled: true, dimension }` — request video at a specific
+ * - `{ enabled: true, dimension }`: request video at a specific
  *   resolution. If set globally, applies to every remote participant
  *   that doesn't have a per-session override.
- * - `{ enabled: false }` — unsubscribe from video entirely. The SFU
+ * - `{ enabled: false }`: unsubscribe from video entirely. The SFU
  *   sends nothing; bandwidth is saved.
  */
 export type VideoTrackSubscriptionOverride =
@@ -50,7 +50,7 @@ export interface VideoTrackSubscriptionOverrides {
  *   current overrides via the `subscriptions` getter.
  * - Debounces and pushes the list to the SFU through
  *   `sfuClient.updateSubscriptions`.
- * - Exposes `incomingVideoSettings$` — a consumer-friendly projection of
+ * - Exposes `incomingVideoSettings$`: a consumer-friendly projection of
  *   the override state for React hooks.
  *
  * Owned by `DynascaleManager` as `readonly trackSubscriptionManager`.
@@ -120,19 +120,19 @@ export class TrackSubscriptionManager {
    * Sets the SFU client used by `apply()` to push subscription updates.
    * Called by the owner on call join; cleared on leave.
    */
-  setSfuClient(sfuClient: StreamSfuClient | undefined) {
+  setSfuClient = (sfuClient: StreamSfuClient | undefined) => {
     this.sfuClient = sfuClient;
-  }
+  };
 
   /**
    * Cancels any pending debounced subscription push. Idempotent.
    */
-  dispose() {
+  dispose = () => {
     if (this.pendingUpdate) {
       clearTimeout(this.pendingUpdate);
       this.pendingUpdate = null;
     }
-  }
+  };
 
   /**
    * The current SFU subscription list, computed from `CallState`
