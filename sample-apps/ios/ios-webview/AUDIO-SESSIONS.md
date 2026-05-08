@@ -141,8 +141,10 @@ If the host can't run the 3-step restore (e.g., the conflicting session
 goes away on its own without an in-app trigger), the bridge itself
 recovers the page-side health signal by synthesizing
 `interruption.ended` once the audio session is observably back. See
-[`HOST-AUDIO-SESSION-BRIDGE.md` → "When iOS does not deliver `.ended`"](./HOST-AUDIO-SESSION-BRIDGE.md#when-ios-does-not-deliver-ended)
-for the recovery contract third-party hosts must implement.
+[`HOST-AUDIO-SESSION-BRIDGE.md`](./HOST-AUDIO-SESSION-BRIDGE.md) for the
+integration contract and
+[`WKWebView+Observaton.swift`](./IOSWebView/WKWebView+Extensions/WKWebView+Observaton.swift)
+for the recovery logic.
 
 > 🧪 The `ios-webview` sample exposes both variants side-by-side as
 > scenarios so you can see the difference in `audioHealth$` live:
@@ -292,101 +294,38 @@ from its perspective nothing changed. The only way to learn about it in
 the page is a native → JS bridge where the host reports `AVAudioSession`
 notifications directly.
 
-The SDK consumes a `CustomEvent` on `window`. Event name:
+The sample app ships a drop-in bridge as a `WKWebView` extension. The
+host wires it with one line after building the `WKWebView`:
 
-```
-stream-video:host-audio-session
+```swift
+wv.configureObservation()
 ```
 
-The SDK augments `WindowEventMap` so a typed listener works without
-importing anything:
+The observer subscribes to every relevant `AVAudioSession` notification,
+normalizes the snapshot, and dispatches it to the page as a
+`stream-video:host-audio-session` `CustomEvent`. See
+[`HOST-AUDIO-SESSION-BRIDGE.md`](./HOST-AUDIO-SESSION-BRIDGE.md) for the
+integration steps and the page-side event contract.
+
+The SDK consumes the event automatically (no app code required) and
+augments `WindowEventMap` so a typed listener works without importing
+anything:
 
 ```ts
 window.addEventListener('stream-video:host-audio-session', (event) => {
-  // event.detail is typed as HostAudioSessionEvent via the augmented
-  // WindowEventMap shipped by `@stream-io/video-client`.
+  // event.detail is typed as HostAudioSessionEvent.
   console.log(event.detail.session.category);
 });
 ```
 
-Payload (`schemaVersion: 1`):
+When `interruption.type === 'began'` arrives without a later `'ended'`,
+`AudioHealthMonitor` flips to
+`{ status: 'unhealthy', reason: 'host-audio-session-interrupted' }`.
+Otherwise it reports `host-audio-session-active`. Both beat the W3C
+reason codes at the same healthy/unhealthy tier - the native observer
+sees transitions WebKit silently ignores.
 
-```ts
-interface HostAudioSessionEvent {
-  schemaVersion: 1;
-  timestamp: number; // epoch ms, when the native snapshot was captured
-  session: {
-    /** Normalized AVAudioSession.Category - e.g. 'playAndRecord'. */
-    category:
-      | 'ambient'
-      | 'soloAmbient'
-      | 'playback'
-      | 'record'
-      | 'playAndRecord'
-      | 'multiRoute';
-    /** Normalized AVAudioSession.Mode - e.g. 'videoChat'. */
-    mode:
-      | 'default'
-      | 'voiceChat'
-      | 'gameChat'
-      | 'videoRecording'
-      | 'measurement'
-      | 'moviePlayback'
-      | 'videoChat'
-      | 'spokenAudio'
-      | 'voicePrompt';
-    /** Active AVAudioSession.CategoryOptions decomposed into a list of names. */
-    options: Array<
-      | 'mixWithOthers'
-      | 'duckOthers'
-      | 'allowBluetoothA2DP'
-      | 'allowAirPlay'
-      | 'defaultToSpeaker'
-      | 'interruptSpokenAudioAndMixWithOthers'
-      | 'overrideMutedMicrophoneInterruption'
-      | 'allowBluetoothHFP'
-    >;
-  };
-  /** Latest interruption event; null if none observed. */
-  interruption: {
-    type: 'began' | 'ended';
-    /** Normalized AVAudioSessionInterruptionReason; null on iOS < 14.5. */
-    reason:
-      | 'default'
-      | 'appWasSuspended'
-      | 'builtInMicMuted'
-      | 'routeDisconnected'
-      | null;
-  } | null;
-  /** Most recent route change; null if none observed. */
-  routeChange: {
-    reason:
-      | 'unknown'
-      | 'newDeviceAvailable'
-      | 'oldDeviceUnavailable'
-      | 'categoryChange'
-      | 'override'
-      | 'wakeFromSleep'
-      | 'noSuitableRouteForCategory'
-      | 'routeConfigurationChange';
-  } | null;
-}
-```
-
-**Contract:**
-
-- **Host side** fires on every interruption notification, every route
-  change, and once at page-load. `AudioHealthMonitor` ignores events with
-  an unknown `schemaVersion` or malformed payload, so bumping the version
-  is the safe way to evolve the shape.
-- **SDK side** treats each event as ground truth for the moment it
-  captures: `interruption.type === 'began'` (without a later `'ended'`)
-  → `{ status: 'unhealthy', reason: 'host-audio-session-interrupted' }`;
-  otherwise → `{ status: 'healthy', reason: 'host-audio-session-active' }`.
-  These beat the W3C reason codes at the same healthy/unhealthy tier,
-  because the native observer sees transitions WebKit silently ignores.
-
-The precedence inside `computeAudioHealthInfo` is:
+Precedence inside `computeAudioHealthInfo`:
 
 1. `host-audio-session-interrupted` (native ground truth)
 2. `audio-session-interrupted` (W3C)
@@ -396,81 +335,13 @@ The precedence inside `computeAudioHealthInfo` is:
 6. `audio-session-active` (W3C)
 7. `unsupported`
 
-Any unhealthy reason still beats any healthy reason - that's why a W3C
+Any unhealthy reason beats any healthy reason - that's why a W3C
 interruption is trusted even when the host bridge reports active.
-
-**Reference host implementation:**
-[`sample-apps/ios/ios-webview/IOSWebView/WebView/AudioSessionBridge.swift`](./IOSWebView/WebView/AudioSessionBridge.swift)
-wires `NotificationCenter.publisher(for:)` to
-`webView.evaluateJavaScript(...)`. It also re-publishes each snapshot on a
-Combine publisher so the **Lifecycle** tab in the debug overlay logs
-every native transition alongside SDK-reported health - flip between the
-Console tab (for `audioHealth` transitions from a React
-`useAudioHealth()` logger) and the Lifecycle tab (for the native
-snapshots that drove them) to correlate cause and effect.
-
-Third-party iOS WebView hosts embedding the SDK can copy
-`AudioSessionBridge.swift` verbatim or reimplement the contract - the JS
-event name and payload are the stable part, the Swift class is
-illustrative.
-
-### Host → page lifecycle bridge (iOS hosts)
-
-`AVAudioSession` interruption events are not enough to triage every
-audio bug. A common customer-reported pattern: a phone call interrupts a
-live call, ends, and the
-`AVAudioSession.interruptionNotification(.ended + .shouldResume)` fires
-_while the host app is still in the background_. WebKit's
-`RTCAudioSession` reactivates correctly, but the in-page SDK has no way
-to know "the user just returned to the app" and trigger any recovery it
-might owe (autoplay retries, `replaceTrack`, mic permission re-checks).
-
-To bridge that gap, the iOS host can forward UIApplication transitions
-into the page as a parallel `CustomEvent`:
-
-```ts
-// 'stream-video:host-lifecycle'
-interface HostLifecycleEvent {
-  schemaVersion: 1;
-  source: 'ios';
-  timestamp: number; // epoch ms
-  state: {
-    transition:
-      | 'didBecomeActive'
-      | 'willResignActive'
-      | 'didEnterBackground'
-      | 'willEnterForeground';
-  };
-}
-```
-
-**Contract:**
-
-- **Host side** fires once per `UIApplication.*Notification` it observes.
-  The four notifications above are sufficient - `applicationProtectedDataWillBecomeUnavailable`
-  and friends are not currently bridged.
-- **SDK side** does not yet consume this event as a first-class signal
-  (no reason code is derived from it). It is exposed today purely for
-  correlation in support logs and as a hook customers can listen to from
-  their React app to drive their own recovery flows. Wiring it into
-  `AudioHealthMonitor` is tracked under "Still open" below.
-
-**Reference host implementation:**
-[`sample-apps/ios/ios-webview/IOSWebView/WebView/LifecycleBridge.swift`](./IOSWebView/WebView/LifecycleBridge.swift).
-Same shape and dispatch path as `AudioSessionBridge.swift`. The Lifecycle
-tab in the debug overlay shows every transition tagged `lifecycle`,
-adjacent to the `bridge`-tagged audio-session snapshots.
 
 ### Still open
 
 Open items on the backlog:
 
-- **Promote `host-lifecycle` to a first-class signal in
-  `AudioHealthMonitor`** - today the bridge is exposed but the monitor
-  ignores it. Good candidate trigger: on `transition === 'didBecomeActive'`
-  while `interruption.type === 'ended'` was the last audio-session event,
-  re-run the autoplay/playback verification path proactively instead of
-  waiting for the next user-driven event.
 - **`getStats()`-based anomaly logs** - detect `audioLevel=0` on all
   inbound streams while connection state is `connected`, for cases the
   six signals above miss.
@@ -558,16 +429,16 @@ mute event fired.
 
 ### From the host side
 
-> ℹ️ If you can afford a host bridge, forward what you observe here into
-> the page via the `stream-video:host-audio-session` `CustomEvent`
-> contract documented above. The SDK consumes it as a first-class signal
-> (`host-audio-session-interrupted` / `host-audio-session-active`), which
-> makes correlation unnecessary - the SDK's own `audioHealth$` already
-> reflects native ground truth.
+> ℹ️ If you can afford a host bridge, drop in the `WKWebView` extension
+> the sample ships and call `wv.configureObservation()` once. The SDK
+> consumes the resulting `stream-video:host-audio-session` event as a
+> first-class signal (`host-audio-session-interrupted` /
+> `host-audio-session-active`), which makes correlation unnecessary -
+> the SDK's own `audioHealth$` already reflects native ground truth.
 >
 > See
-> [`AudioSessionBridge.swift`](./IOSWebView/WebView/AudioSessionBridge.swift)
-> for the reference implementation.
+> [`HOST-AUDIO-SESSION-BRIDGE.md`](./HOST-AUDIO-SESSION-BRIDGE.md) for
+> the integration steps.
 
 **1. Interruption-notification observer** - log every `began` and `ended`
 with the reason. If the ratio isn't 1:1, you have a bug.
@@ -668,8 +539,8 @@ exercises every scenario in this doc. It provides:
 
 - A live `AVAudioSession` state panel in the Scenarios menu.
 - Native-side session manipulation actions - both well-behaved
-  (`Restore audio (native)`) and hostile (`Play ding (exclusive)`, `Force
-.playback`, etc.).
+  (`Restore audio (native)`) and hostile (`Play ding (exclusive)`,
+  `Play ding (exclusive, NO restore)`).
 - JS-side interruption detection via the SDK's `AudioHealthMonitor`, which
   the tutorial subscribes to through `useAudioHealth()` and renders as a
   color-coded badge. The hook's `status` + `reason` flip through
