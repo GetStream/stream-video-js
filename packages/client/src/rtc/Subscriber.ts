@@ -133,6 +133,12 @@ export class Subscriber extends BasePeerConnection {
     if (isSelfSub) {
       const loopbackKey = trackTypeToLoopbackStreamKey(trackType);
       if (loopbackKey) {
+        // Loopback audio routes to the speaker by default, which means
+        // any consumer who opts into self-sub would hear an echo of
+        // their own voice. Disable the track here, so that consumers enable it explicitly.
+        if (e.track.kind === 'audio') {
+          e.track.enabled = false;
+        }
         const previousLoopback = participantToUpdate[loopbackKey];
         this.state.updateParticipant(participantToUpdate.sessionId, {
           [loopbackKey]: primaryStream,
