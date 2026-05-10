@@ -885,21 +885,10 @@ RCT_EXPORT_METHOD(startTrackRecording:(NSDictionary *)options
     NSInteger maxDurationMs = ([maxDuration isKindOfClass:[NSNumber class]])
         ? [maxDuration integerValue] : 5000;
 
-    // Defaults to YES — for the v1 self-sub pre-call test the desired
-    // behaviour is "record the loopback, don't play it through the
-    // speaker". Consumers can opt out by passing `muteLoopbackPlayback:
-    // false` in JS.
-    id muteRaw = options[@"muteLoopbackPlayback"];
-    BOOL muteLoopbackPlayback = YES;
-    if ([muteRaw isKindOfClass:[NSNumber class]]) {
-        muteLoopbackPlayback = [muteRaw boolValue];
-    }
-
     [[TracksRecorderManager shared]
         startRecordingWithVideoTrackId:videoTrackId
                           audioTrackId:audioTrackId
                          maxDurationMs:maxDurationMs
-                  muteLoopbackPlayback:muteLoopbackPlayback
                           webRTCModule:webrtcModule
                             completion:^(NSURL * _Nullable fileURL, NSError * _Nullable err) {
         if (err) {

@@ -117,7 +117,6 @@ import WebRTC
         videoTrackId: String?,
         audioTrackId: String?,
         maxDurationMs: Int,
-        muteLoopbackPlayback: Bool,
         webRTCModule: WebRTCModule,
         completion: @escaping (URL?, NSError?) -> Void
     ) {
@@ -194,15 +193,18 @@ import WebRTC
                 videoTrack.add(sink)
             }
             if let apm = apm {
+                // Always mute the original loopback playback so the
+                // SFU echo can't feed back into the mic. The recording
+                // still captures full audio — bytes are taken from the
+                // tap before the mute is applied.
                 let tap = RecorderAudioRenderTap(
-                    muteOriginal: muteLoopbackPlayback
+                    muteOriginal: true
                 ) { [weak self] pcmBuffer in
                     self?.handleAudioBuffer(pcmBuffer: pcmBuffer)
                 }
                 self.audioRenderTap = tap
                 apm.renderPreProcessingDelegate = tap
-                NSLog("[TracksRecorder] installed renderPreProcessingDelegate (muteLoopbackPlayback=%@)",
-                      muteLoopbackPlayback ? "YES" : "NO")
+                NSLog("[TracksRecorder] installed renderPreProcessingDelegate")
             }
 
             if maxDurationMs > 0 {

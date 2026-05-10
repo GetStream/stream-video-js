@@ -628,12 +628,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         } else {
             DEFAULT_RECORDING_DURATION_MS
         }
-        // Default `true` matches the iOS bridge default and the JS hook.
-        val muteLoopbackPlayback = if (options.hasKey("muteLoopbackPlayback") && !options.isNull("muteLoopbackPlayback")) {
-            options.getBoolean("muteLoopbackPlayback")
-        } else {
-            true
-        }
 
         val webRTCModule = reactApplicationContext.getNativeModule(WebRTCModule::class.java)
         if (webRTCModule == null) {
@@ -647,7 +641,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             videoTrackId = videoTrackId,
             audioTrackId = audioTrackId,
             maxDurationMs = maxDurationMs,
-            muteLoopbackPlayback = muteLoopbackPlayback,
         ) { file, error ->
             if (error != null) {
                 promise.reject(RECORDING_ERROR_CODE, error.message ?: "recording failed", error)

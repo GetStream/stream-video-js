@@ -142,7 +142,6 @@ class TracksRecorderManager private constructor() {
         videoTrackId: String?,
         audioTrackId: String?,
         maxDurationMs: Long,
-        muteLoopbackPlayback: Boolean,
         completion: (File?, Throwable?) -> Unit,
     ) {
         handler.post {
@@ -192,11 +191,9 @@ class TracksRecorderManager private constructor() {
                 this.audioSink = sink
                 WebRTCModuleOptions.getInstance().addPlaybackSamplesObserver(sink)
 
-                // Mute the speaker so the loopback echo doesn't feed
-                // back into the mic. See [applyLoopbackPlaybackMute].
-                if (muteLoopbackPlayback) {
-                    applyLoopbackPlaybackMute(webRTCModule)
-                }
+                // Always mute the speaker so the loopback echo doesn't
+                // feed back into the mic. See [applyLoopbackPlaybackMute].
+                applyLoopbackPlaybackMute(webRTCModule)
             }
 
             if (maxDurationMs > 0) {
