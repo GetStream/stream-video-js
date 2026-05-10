@@ -1,12 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { NativeModules } from 'react-native';
-import { CallingState } from '@stream-io/video-client';
+import {
+  Call,
+  CallingState,
+  videoLoggerSystem,
+  type StreamVideoParticipant,
+} from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 /** @internal */
 const { StreamVideoReactNative } = NativeModules;
 
+// Upper bound on how long `startRecording` will wait for the SFU to
+// echo loopback tracks back via the Subscriber. Tuned generously since
+// this includes connection setup; consumers that want shorter feedback
+// should call `stopRecording` to cancel the wait early.
+const STREAMS_WAIT_TIMEOUT_MS = 10 * 1000;
 const RECORDING_DURATION = 10 * 1000;
+
+export type LoopbackRecordingState = 'idle' | 'awaiting-streams' | 'recording';
+
+export type ResolvedStreams = {
+  audioTrack?: MediaStreamTrack;
+  videoTrack?: MediaStreamTrack;
+};
 
 export interface StartLoopbackRecordingOptions {
   /**
@@ -15,48 +32,32 @@ export interface StartLoopbackRecordingOptions {
    * Audio is always recorded — there is no video-only mode.
    */
   includeVideo?: boolean;
-  /**
-   * When `true` (default), silences the speaker while recording so the
-   * SFU loopback echo can't be re-captured by the mic and form a
-   * feedback loop. The recording itself captures full audio — bytes
-   * are taken from the pipeline before the mute takes effect.
-   *
-   * Defaults to `true` because the v1 use case is the self-sub pre-call
-   * test, where post-mix audio is exactly the loopback echo and
-   * silencing it is the desired behaviour.
-   *
-   * Caveat: the mute is applied at a post-mix point on both platforms,
-   * so any other remote participants on the call are also silenced for
-   * the duration of the recording. Set to `false` if you need to hear
-   * remote audio while recording.
-   *
-   * Implementation differs per platform but the behaviour is the same:
-   *  - iOS zeros the audio buffer in the APM render-pre delegate after
-   *    copying bytes for recording.
-   *  - Android sets the system `AudioTrack`'s volume to 0; the JADM
-   *    audio thread keeps running so our playback-samples callback
-   *    still receives real PCM for the recording.
-   */
-  muteLoopbackPlayback?: boolean;
 }
 
 export interface UseLoopbackRecordingResult {
   /**
-   * Start a recording. The returned promise resolves with the produced
-   * `file://` URI **at the recording's terminal moment** — whether that is
-   * the auto-stop timer expiring, an explicit `stopRecording` call, or a
-   * cleanup-driven stop on unmount/leave. Resolves with `null` if the
-   * writer was torn down before any buffer arrived (no file produced).
-   * Rejects on a fatal error or if a recording is already running.
+   * Start a recording. The hook waits internally for the SFU loopback
+   * streams to arrive on `localParticipant`, then begins recording.
+   *
+   * The returned promise resolves with the produced `file://` URI **at
+   * the recording's terminal moment** — whether that is the auto-stop
+   * timer expiring, an explicit `stopRecording` call, or a cleanup-
+   * driven stop on unmount/leave. Resolves with `null` if no file was
+   * produced (writer torn down before any buffer arrived, or
+   * `stopRecording` was called while still awaiting streams). Rejects
+   * on a fatal error, if a recording is already running, or if the
+   * stream-wait times out.
    */
   startRecording: (
     options?: StartLoopbackRecordingOptions,
   ) => Promise<string | null>;
   /**
-   * Signal an early termination. Resolves once native finalisation has
-   * completed — useful as a sync point before reading the recordings
-   * directory. The URI is **not** delivered here; it is returned by the
-   * still-pending promise from `startRecording`.
+   * Signal an early termination. While `awaiting-streams` this aborts
+   * the wait and the pending `startRecording` resolves with `null`.
+   * While `recording` this signals native finalisation and resolves
+   * once it completes — useful as a sync point before reading the
+   * recordings directory. The URI is **not** delivered here; it is
+   * returned by the still-pending promise from `startRecording`.
    */
   stopRecording: () => Promise<void>;
   /**
@@ -74,8 +75,16 @@ export interface UseLoopbackRecordingResult {
    * avoid racing the disk flush.
    */
   getRecordings: () => Promise<string[]>;
-  /** `true` while a recording is in progress. Drives UI button states. */
-  isRecording: boolean;
+  /**
+   * Lifecycle phase of the recording, owned by the hook:
+   *  - `'idle'`: no recording in progress.
+   *  - `'awaiting-streams'`: `startRecording` was called but the SFU
+   *    has not yet echoed the loopback tracks back.
+   *  - `'recording'`: native pipeline is actively writing.
+   *
+   * Drives UI button labels / disabled states.
+   */
+  recordingState: LoopbackRecordingState;
 }
 
 /**
@@ -85,82 +94,101 @@ export interface UseLoopbackRecordingResult {
  * peer connection, the SDK exposes them as
  * `localParticipant.loopbackVideoStream` / `loopbackAudioStream`, and this
  * hook captures them.
- *
- * The hook is the only public API for loopback recording. Native bridge
- * methods are intentionally not re-exported — see the implementation plan's
- * threat model section for the rationale.
  */
 export function useLoopbackRecording(): UseLoopbackRecordingResult {
   const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
-  const [isRecording, setIsRecording] = useState(false);
-  const isRecordingRef = useRef(false);
-  const isMountedRef = useRef(true);
 
-  // Fire-and-forget early termination. Used by the auto-stop effects on
-  // unmount and call-leave. The pending `startRecording` promise will
-  // resolve when native finalisation completes; if the consumer captured
-  // it (e.g. via `.then(setUri)` against a ref outside the component
-  // tree), the URI lands there.
-  const safeStop = useCallback(() => {
-    if (!isRecordingRef.current) return;
-    StreamVideoReactNative?.stopTrackRecording?.().catch(() => {});
+  const [recordingState, setRecordingState] =
+    useState<LoopbackRecordingState>('idle');
+  const recordingStateRef = useRef<LoopbackRecordingState>('idle');
+  const isMountedRef = useRef(true);
+  // Used to abort the awaiting-streams wait on stop / leave / unmount.
+  const awaitAbortRef = useRef<AbortController | null>(null);
+
+  const updateState = useCallback((next: LoopbackRecordingState) => {
+    recordingStateRef.current = next;
+    if (isMountedRef.current) {
+      setRecordingState(next);
+    }
   }, []);
 
   const stopRecording = useCallback(async (): Promise<void> => {
-    if (!isRecordingRef.current) return;
-    await StreamVideoReactNative.stopTrackRecording();
+    const current = recordingStateRef.current;
+    if (current === 'idle') {
+      return;
+    }
+
+    if (current === 'awaiting-streams') {
+      videoLoggerSystem
+        .getLogger('useLoopbackRecording')
+        .debug('aborting awaiting-streams wait');
+      awaitAbortRef.current?.abort();
+      return;
+    }
+
+    await StreamVideoReactNative?.stopTrackRecording();
   }, []);
 
   const startRecording = useCallback(
     async ({
       includeVideo = true,
-      muteLoopbackPlayback = true,
     }: StartLoopbackRecordingOptions = {}): Promise<string | null> => {
       if (!call) {
-        throw new Error('useLoopbackRecording: no active call in context');
+        return null;
+      }
+      if (recordingStateRef.current !== 'idle') {
+        console.warn('useLoopbackRecording: a recording is already running');
+        return null;
       }
 
-      if (isRecordingRef.current) {
-        throw new Error('useLoopbackRecording: a recording is already running');
-      }
-      const lp = call.state.localParticipant;
-      const videoTrackId = includeVideo
-        ? lp?.loopbackVideoStream?.getVideoTracks()[0]?.id
-        : undefined;
-      const audioTrackId = lp?.loopbackAudioStream?.getAudioTracks()[0]?.id;
+      awaitAbortRef.current = new AbortController();
+      updateState('awaiting-streams');
 
-      if (!videoTrackId && !audioTrackId) {
-        throw new Error(
-          'useLoopbackRecording: no loopback streams available on the ' +
-            'local participant. Ensure the call was joined with ' +
-            '`selfSubEnabled: true` and that the SFU has started echoing ' +
-            'self-sub tracks.',
-        );
-      }
-
-      // Set the ref *before* the await so unmount/call-leave during the
-      // in-flight bridge call can see we intend to be recording and trigger
-      // cleanup. The ref is cleared in the finally block so every
-      // termination path (success, error, sync throw) flips it back.
-      isRecordingRef.current = true;
-      if (isMountedRef.current) setIsRecording(true);
+      let audioTrack: MediaStreamTrack | undefined;
       try {
+        const streams = await waitForLoopbackStreams(call, {
+          includeVideo,
+          signal: awaitAbortRef.current.signal,
+          timeoutMs: STREAMS_WAIT_TIMEOUT_MS,
+        });
+
+        if (streams === null) {
+          videoLoggerSystem
+            .getLogger('useLoopbackRecording')
+            .warn('timed out waiting for loopback streams');
+          return null;
+        }
+
+        audioTrack = streams.audioTrack;
+        const audioTrackId = audioTrack?.id;
+        const videoTrackId = streams.videoTrack?.id;
+
+        // The loopback audio track lands disabled (the SDK default-mutes
+        // it to prevent echo). Enable it so the native recording
+        // pipeline receives PCM; `finally` returns it to muted.
+        if (audioTrack) {
+          audioTrack.enabled = true;
+        }
+        updateState('recording');
+
         const uri: string | null =
           await StreamVideoReactNative.startTrackRecording({
             videoTrackId,
             audioTrackId,
             maxDurationMs: Math.round(RECORDING_DURATION),
-            muteLoopbackPlayback,
           });
         return uri;
       } finally {
-        isRecordingRef.current = false;
-        if (isMountedRef.current) setIsRecording(false);
+        if (audioTrack) {
+          audioTrack.enabled = false;
+        }
+        awaitAbortRef.current = null;
+        updateState('idle');
       }
     },
-    [call],
+    [call, updateState],
   );
 
   const clearRecordings = useCallback(async (): Promise<void> => {
@@ -173,35 +201,121 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
     return list ?? [];
   }, []);
 
-  // Auto-stop on call leave / end. Without this, leaving the call mid-
-  // recording would leave native encoders mid-write while the SFU
-  // subscriber tracks end under their feet — undefined final file state.
+  // Auto-stop on call leave / end. Aborts an awaiting-streams wait or
+  // signals native finalisation depending on which phase we're in.
+  // Without this, leaving the call mid-recording would leave native
+  // encoders mid-write while the SFU subscriber tracks end under their
+  // feet — undefined final file state.
   useEffect(() => {
     if (
       callingState === CallingState.LEFT ||
       callingState === CallingState.IDLE
     ) {
-      safeStop();
+      videoLoggerSystem
+        .getLogger('useLoopbackRecording')
+        .debug('auto-stopping recording on call leave / end');
+      stopRecording().catch(() => {});
     }
-  }, [callingState, safeStop]);
+  }, [callingState, stopRecording]);
 
   // Auto-stop on unmount. Bounds the recording's lifetime to the component
   // that started it. The pending `startRecording` promise still resolves
-  // with the produced URI; consumers that need it after unmount must
-  // capture the promise via a stable ref/store outside the React tree.
+  // (with the URI, or `null` if aborted while awaiting streams); consumers
+  // that need it after unmount must capture the promise via a stable
+  // ref/store outside the React tree.
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
-      safeStop();
+      videoLoggerSystem
+        .getLogger('useLoopbackRecording')
+        .debug('auto-stopping recording on unmount');
+      stopRecording().catch(() => {});
     };
-  }, [safeStop]);
+  }, [stopRecording]);
 
   return {
     startRecording,
     stopRecording,
     clearRecordings,
     getRecordings,
-    isRecording,
+    recordingState,
   };
+}
+
+/**
+ * Subscribe to `localParticipant$` and resolve once the requested
+ * loopback streams are present on the participant. Aborts cleanly on
+ * `signal` (resolves `null`) and rejects on timeout.
+ */
+function waitForLoopbackStreams(
+  call: Call,
+  opts: { includeVideo: boolean; signal: AbortSignal; timeoutMs: number },
+): Promise<ResolvedStreams | null> {
+  return new Promise((resolve, reject) => {
+    const initial = pickLoopbackStreams(
+      call.state.localParticipant,
+      opts.includeVideo,
+    );
+    if (initial) {
+      resolve(initial);
+      return;
+    }
+
+    const cleanup = () => {
+      subscription.unsubscribe();
+      if (timeoutId !== undefined) {
+        clearTimeout(timeoutId);
+      }
+      opts.signal.removeEventListener('abort', onAbort);
+    };
+
+    const onAbort = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    opts.signal.addEventListener('abort', onAbort);
+
+    const timeoutId = setTimeout(() => {
+      cleanup();
+      reject(
+        new Error(
+          'useLoopbackRecording: timed out waiting for loopback streams. ' +
+            'Ensure the call was joined with `selfSubEnabled: true` and ' +
+            'that the SFU is configured to echo self-sub tracks.',
+        ),
+      );
+    }, opts.timeoutMs);
+
+    const subscription = call.state.localParticipant$.subscribe(
+      (participant) => {
+        const ready = pickLoopbackStreams(participant, opts.includeVideo);
+        if (ready) {
+          cleanup();
+          resolve(ready);
+        }
+      },
+    );
+  });
+}
+
+function pickLoopbackStreams(
+  participant: StreamVideoParticipant | undefined,
+  includeVideo: boolean,
+): ResolvedStreams | undefined {
+  if (!participant) {
+    return undefined;
+  }
+
+  const audioTrack = participant.loopbackAudioStream?.getAudioTracks()[0];
+  const videoTrack = includeVideo
+    ? participant.loopbackVideoStream?.getVideoTracks()[0]
+    : undefined;
+
+  if (!audioTrack || (includeVideo && !videoTrack)) {
+    return undefined;
+  }
+
+  return { audioTrack, videoTrack };
 }
