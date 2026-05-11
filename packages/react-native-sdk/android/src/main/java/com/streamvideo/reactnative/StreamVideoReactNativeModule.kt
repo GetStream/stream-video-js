@@ -618,11 +618,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         } else {
             null
         }
-        val audioTrackId = if (options.hasKey("audioTrackId") && !options.isNull("audioTrackId")) {
-            options.getString("audioTrackId")
-        } else {
-            null
-        }
         val maxDurationMs = if (options.hasKey("maxDurationMs") && !options.isNull("maxDurationMs")) {
             options.getInt("maxDurationMs").toLong()
         } else {
@@ -639,7 +634,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             context = reactApplicationContext,
             webRTCModule = webRTCModule,
             videoTrackId = videoTrackId,
-            audioTrackId = audioTrackId,
             maxDurationMs = maxDurationMs,
         ) { file, error ->
             if (error != null) {

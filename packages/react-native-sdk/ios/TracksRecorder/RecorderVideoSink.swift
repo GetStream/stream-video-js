@@ -12,11 +12,11 @@ import WebRTC
 ///
 /// Each delivered `RTCVideoFrame` is normalised to a CVPixelBuffer in the
 /// hardware H.264 encoder's native format — **NV12**
-/// (`kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange`). For
-/// `RTCCVPixelBuffer` sources (camera passthrough) we use the underlying
-/// pixel buffer directly. For `RTCI420Buffer` and other YUV sources we
-/// allocate a fresh IOSurface-backed NV12 buffer and copy planes (no
-/// color-space conversion required).
+/// (`kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange`).
+/// `RTCCVPixelBuffer` sources (camera passthrough) are forwarded with
+/// the underlying pixel buffer unchanged. `RTCI420Buffer` and other YUV
+/// sources are converted into a fresh IOSurface-backed NV12 buffer via
+/// a plane reorder (no color-space conversion required).
 ///
 /// **Why NV12 and not BGRA?** AVAssetWriter's hardware encoder accepts
 /// both, but BGRA requires an internal colour-space conversion that
@@ -30,10 +30,6 @@ import WebRTC
 @objc final class RecorderVideoSink: NSObject, RTCVideoRenderer {
 
     typealias FrameHandler = (_ pixelBuffer: CVPixelBuffer, _ width: Int32, _ height: Int32, _ timestampNs: Int64) -> Void
-
-    /// One-shot diagnostic: prints the first frame the sink sees so we can
-    /// confirm WebRTC is actually delivering frames to this renderer.
-    private static var firstFrameLogged = false
 
     private let frameHandler: FrameHandler
 
@@ -50,16 +46,10 @@ import WebRTC
 
     func renderFrame(_ frame: RTCVideoFrame?) {
         guard let frame = frame, frame.width > 0, frame.height > 0 else { return }
-        if !RecorderVideoSink.firstFrameLogged {
-            RecorderVideoSink.firstFrameLogged = true
-            NSLog("[TracksRecorder] RecorderVideoSink first frame: %dx%d buffer=%@",
-                  frame.width, frame.height, String(describing: type(of: frame.buffer)))
-        }
 
         let pixelBuffer: CVPixelBuffer?
         if let cvBuffer = frame.buffer as? RTCCVPixelBuffer {
-            // Camera passthrough — already a CVPixelBuffer (typically NV12
-            // on iOS).
+            // Camera passthrough — already a CVPixelBuffer (typically NV12 on iOS).
             pixelBuffer = cvBuffer.pixelBuffer
         } else if let i420 = frame.buffer as? RTCI420Buffer {
             pixelBuffer = Self.makeNV12PixelBuffer(fromI420: i420)

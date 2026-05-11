@@ -877,9 +877,7 @@ RCT_EXPORT_METHOD(startTrackRecording:(NSDictionary *)options
     }
 
     NSString *videoTrackId = options[@"videoTrackId"];
-    NSString *audioTrackId = options[@"audioTrackId"];
     if (![videoTrackId isKindOfClass:[NSString class]]) videoTrackId = nil;
-    if (![audioTrackId isKindOfClass:[NSString class]]) audioTrackId = nil;
 
     NSNumber *maxDuration = options[@"maxDurationMs"];
     NSInteger maxDurationMs = ([maxDuration isKindOfClass:[NSNumber class]])
@@ -887,7 +885,6 @@ RCT_EXPORT_METHOD(startTrackRecording:(NSDictionary *)options
 
     [[TracksRecorderManager shared]
         startRecordingWithVideoTrackId:videoTrackId
-                          audioTrackId:audioTrackId
                          maxDurationMs:maxDurationMs
                           webRTCModule:webrtcModule
                             completion:^(NSURL * _Nullable fileURL, NSError * _Nullable err) {

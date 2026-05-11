@@ -14,21 +14,20 @@ import WebRTC
 ///
 /// The render path WebRTC is using:
 /// ```
-/// SFU → decoder → audio mixer → renderPreProcessingDelegate (us) →
+/// SFU → decoder → audio mixer → renderPreProcessingDelegate →
 ///   render-side processing → speaker
 /// ```
 ///
 /// What the delegate sees per call: an `RTCAudioBuffer` that holds the
 /// **post-mix** decoded audio about to be played to the speaker. In a
 /// self-sub-only call, that's exactly the SFU echo of the local mic. In a
-/// call with multiple remote participants the buffer would contain the
-/// post-mix output (everyone blended together) — v1 does not target that
-/// scenario.
+/// call with multiple remote participants the buffer contains the
+/// post-mix output (everyone blended together).
 ///
 /// **Important:** `RTCAudioBuffer` exposes `rawBuffer(forChannel:)` as
 /// `UnsafeMutablePointer<Float>` in **FloatS16** format — i.e. Float32 values
-/// in the Int16 range -32768…32767. Cast/clamp to `Int16` for our PCM buffer
-/// (no normalisation needed). See the same memo on `ScreenShareAudioMixer`.
+/// in the Int16 range -32768…32767. Cast/clamp to `Int16` for the PCM
+/// destination buffer (no normalisation needed).
 ///
 /// **Threading:** all three protocol methods run on a WebRTC audio
 /// processing thread. The buffer handler closure is invoked from there; the
@@ -44,19 +43,19 @@ import WebRTC
     private let bufferHandler: BufferHandler
 
     /// When `true`, the WebRTC `RTCAudioBuffer` is zero-filled in place
-    /// *after* we've copied it into our recording PCM buffer. The recorder
-    /// keeps the original audio; everything downstream of this delegate
-    /// (render-side APM → audio device module → speaker) sees silence.
-    /// This is how we get "audio in the file, silence at the speaker"
-    /// without disrupting the recording — the standard `track.setVolume(0)`
-    /// / `track.isEnabled = false` mutes apply *before* our tap and would
-    /// silence the recording too.
+    /// *after* the samples have been copied into the recording PCM buffer.
+    /// The recording keeps the original audio; everything downstream of
+    /// this delegate (render-side APM → audio device module → speaker)
+    /// sees silence. This yields "audio in the file, silence at the
+    /// speaker" without disrupting the recording — `track.setVolume(0)`
+    /// / `track.isEnabled = false` mutes apply *before* this tap and
+    /// would silence the recording too.
     ///
     /// Side effect to be aware of: this mutes the entire post-mix
-    /// playback, not just one track. In a self-sub-only call (v1's pre-
-    /// call test scenario) post-mix == loopback, so it's effectively a
-    /// per-track mute. With other remote participants in the call they'd
-    /// be muted at the speaker too while recording is active.
+    /// playback, not just one track. In a self-sub-only call post-mix ==
+    /// loopback, so it's effectively a per-track mute. With other remote
+    /// participants in the call they would be muted at the speaker too
+    /// while recording is active.
     private let muteOriginal: Bool
 
     private var processingSampleRate: Double = 0
@@ -123,8 +122,6 @@ import WebRTC
 
         // Copy each channel: FloatS16 (Float32 in Int16 range) → Int16.
         // No normalisation needed — values already span the Int16 range.
-        // If `muteOriginal` is on, zero the source buffer in the same pass
-        // so the data continuing downstream to the speaker is silence.
         for ch in 0..<channels {
             let src = audioBuffer.rawBuffer(forChannel: ch)
             let dstChannel = dst[ch]
@@ -137,6 +134,9 @@ import WebRTC
                 } else {
                     dstChannel[i] = Int16(v)
                 }
+
+                // If `muteOriginal` is on, zero the source buffer in the same pass
+                // so the data continuing downstream to the speaker is silence.
                 if muteOriginal {
                     src[i] = 0
                 }

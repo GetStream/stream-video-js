@@ -1,5 +1,3 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
 import {
   Call,
   StreamCall,
@@ -7,8 +5,10 @@ import {
   useStreamVideoClient,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
-import { appTheme } from '../../theme';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { randomId } from '../../modules/helpers/randomId';
+import { appTheme } from '../../theme';
 import { LoopbackPanel } from './LoopbackPanel';
 import { PlaybackPanel } from './PlaybackPanel';
 import { RecordingControls } from './RecordingControls';

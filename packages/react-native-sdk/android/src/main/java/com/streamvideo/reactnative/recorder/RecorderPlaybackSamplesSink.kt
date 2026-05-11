@@ -25,6 +25,10 @@ internal class RecorderPlaybackSamplesSink(
     ) -> Unit,
 ) : JavaAudioDeviceModule.PlaybackSamplesReadyCallback {
 
+    companion object {
+        private const val TAG = "TracksRecorder.PbSink"
+    }
+
     @Volatile
     private var _callCount: Int = 0
     val callCount: Int get() = _callCount
@@ -52,9 +56,5 @@ internal class RecorderPlaybackSamplesSink(
         } catch (t: Throwable) {
             Log.e(TAG, "playback samples handler threw", t)
         }
-    }
-
-    companion object {
-        private const val TAG = "TracksRecorder.PbSink"
     }
 }

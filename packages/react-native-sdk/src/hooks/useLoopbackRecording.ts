@@ -162,7 +162,6 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
         }
 
         audioTrack = streams.audioTrack;
-        const audioTrackId = audioTrack?.id;
         const videoTrackId = streams.videoTrack?.id;
 
         // The loopback audio track lands disabled (the SDK default-mutes
@@ -176,7 +175,6 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
         const uri: string | null =
           await StreamVideoReactNative.startTrackRecording({
             videoTrackId,
-            audioTrackId,
             maxDurationMs: Math.round(RECORDING_DURATION),
           });
         return uri;
