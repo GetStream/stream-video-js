@@ -4,7 +4,8 @@ export async function deleteCallChatChannel(
   client: StreamClient,
   event: CallSessionEndedEvent,
 ) {
-  const callId = event.call?.id ?? event.call_cid.split(':')[1];
+  const callIdFromCid = event.call_cid?.split(':')[1];
+  const callId = event.call?.id ?? callIdFromCid;
   if (!callId) return;
 
   const type = 'videocall';
