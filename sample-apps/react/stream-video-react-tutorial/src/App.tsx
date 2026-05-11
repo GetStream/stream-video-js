@@ -70,13 +70,6 @@ export default function App() {
       }
     }
     const myCall = client.call('default', callId);
-    // Opt into the SDK's experimental audio-health auto-recovery - mutes
-    // the mic on `host-audio-session-interrupted` (so remote participants
-    // see us as muted, not broken) and cycles the mic on recovery to
-    // re-acquire fresh `MediaStreamTrack`s. Replaces the in-tutorial
-    // `AudioHealthAutoMute` / `AudioHealthAutoCycle` components that
-    // used to live here.
-    myCall.enableAudioAutoRecovery();
     myCall.join({ create: true }).catch((err) => {
       console.error(`Failed to join the call`, err);
     });

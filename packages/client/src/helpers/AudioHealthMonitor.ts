@@ -273,22 +273,14 @@ export class AudioHealthMonitor {
    * Registers an audio element whose `.play()` was refused by the
    * browser's autoplay policy.
    */
-  registerBlockedAudioElement = (audioElement: HTMLAudioElement) => {
+  updateAutoplayBlockedState = (
+    audioElement: HTMLAudioElement,
+    blocked: boolean,
+  ) => {
     setCurrentValue(this.blockedAudioElementsSubject, (elements) => {
       const next = new Set(elements);
-      next.add(audioElement);
-      return next;
-    });
-    this.updateAudioHealth();
-  };
-
-  /**
-   *  Removes an element from the blocked set.
-   */
-  unregisterBlockedAudioElement = (audioElement: HTMLAudioElement) => {
-    setCurrentValue(this.blockedAudioElementsSubject, (elements) => {
-      const next = new Set(elements);
-      next.delete(audioElement);
+      if (blocked) next.add(audioElement);
+      else next.delete(audioElement);
       return next;
     });
     this.updateAudioHealth();
@@ -314,29 +306,28 @@ export class AudioHealthMonitor {
    * Registers a bound `<audio>` element that fired `'pause'` while its
    * `srcObject` still had a live track.
    */
-  registerPausedAudioElement = (audioElement: HTMLAudioElement) => {
-    setCurrentValue(this.pausedAudioElementsSubject, (elements) => {
-      if (elements.has(audioElement)) return elements;
-      const next = new Set(elements);
-      next.add(audioElement);
-      return next;
-    });
-    this.updateAudioHealth();
-    this.restartPausedAudioElementRecovery();
-  };
-
-  /**
-   * Removes an element from the paused set.
-   */
-  unregisterPausedAudioElement = (audioElement: HTMLAudioElement) => {
-    setCurrentValue(this.pausedAudioElementsSubject, (elements) => {
-      if (!elements.has(audioElement)) return elements;
-      const next = new Set(elements);
-      next.delete(audioElement);
-      return next;
-    });
-    if (this.pausedAudioElementsSubject.getValue().size === 0) {
-      this.clearPausedAudioRecoveryTimer();
+  updateElementPausedState = (
+    audioElement: HTMLAudioElement,
+    paused: boolean,
+  ) => {
+    if (paused) {
+      setCurrentValue(this.pausedAudioElementsSubject, (elements) => {
+        if (elements.has(audioElement)) return elements;
+        const next = new Set(elements);
+        next.add(audioElement);
+        return next;
+      });
+      this.restartPausedAudioElementRecovery();
+    } else {
+      setCurrentValue(this.pausedAudioElementsSubject, (elements) => {
+        if (!elements.has(audioElement)) return elements;
+        const next = new Set(elements);
+        next.delete(audioElement);
+        return next;
+      });
+      if (this.pausedAudioElementsSubject.getValue().size === 0) {
+        this.clearPausedAudioRecoveryTimer();
+      }
     }
     this.updateAudioHealth();
   };

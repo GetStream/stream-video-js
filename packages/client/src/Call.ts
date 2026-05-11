@@ -183,6 +183,7 @@ import {
 } from './helpers/promise';
 import { GetCallStatsResponse } from './gen/shims';
 import { isReactNative } from './helpers/platforms';
+import { isWebKit } from './helpers/browsers';
 
 /**
  * An object representation of a `Call`.
@@ -237,7 +238,7 @@ export class Call {
   /**
    * The DynascaleManager instance.
    */
-  readonly dynascaleManager: DynascaleManager;
+  readonly dynascaleManager: DynascaleManager | undefined;
 
   /**
    * Owns the SFU-side video-subscription state (per-session and global
@@ -402,31 +403,25 @@ export class Call {
       this.state,
       this.tracer,
     );
+
     if (!isReactNative()) {
       this.audioHealthMonitor = new AudioHealthMonitor(this.tracer);
-      const monitor = this.audioHealthMonitor;
       this.audioBindingsWatchdog = new AudioBindingsWatchdog(
         this.state,
         this.tracer,
-        (element, paused) => {
-          if (paused) monitor.registerPausedAudioElement(element);
-          else monitor.unregisterPausedAudioElement(element);
-        },
+        this.audioHealthMonitor.updateElementPausedState,
       );
+      this.dynascaleManager = new DynascaleManager(
+        this.state,
+        this.speaker,
+        this.tracer,
+        this.trackSubscriptionManager,
+        this.audioHealthMonitor.updateAutoplayBlockedState,
+      );
+      if (isWebKit()) {
+        this.updateAudioAutoRecovery({ enabled: true });
+      }
     }
-    const audioMonitor = this.audioHealthMonitor;
-    this.dynascaleManager = new DynascaleManager(
-      this.state,
-      this.speaker,
-      this.tracer,
-      this.trackSubscriptionManager,
-      audioMonitor
-        ? (element, blocked) => {
-            if (blocked) audioMonitor.registerBlockedAudioElement(element);
-            else audioMonitor.unregisterBlockedAudioElement(element);
-          }
-        : () => {},
-    );
   }
 
   /**
@@ -766,7 +761,7 @@ export class Call {
       this.audioBindingsWatchdog?.dispose();
       this.audioHealthAutoRecovery?.stop();
       await this.audioHealthMonitor?.stop();
-      await this.dynascaleManager.dispose();
+      await this.dynascaleManager?.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
       this.state.setParticipants([]);
@@ -3094,7 +3089,7 @@ export class Call {
     sessionId: string,
     trackType: VideoTrackType,
   ) => {
-    return this.dynascaleManager.trackElementVisibility(
+    return this.dynascaleManager?.trackElementVisibility(
       element,
       sessionId,
       trackType,
@@ -3107,7 +3102,7 @@ export class Call {
    * @param element the viewport element.
    */
   setViewport = <T extends HTMLElement>(element: T) => {
-    return this.dynascaleManager.setViewport(element);
+    return this.dynascaleManager?.setViewport(element);
   };
 
   /**
@@ -3130,7 +3125,7 @@ export class Call {
     sessionId: string,
     trackType: VideoTrackType,
   ) => {
-    const unbind = this.dynascaleManager.bindVideoElement(
+    const unbind = this.dynascaleManager?.bindVideoElement(
       videoElement,
       sessionId,
       trackType,
@@ -3159,7 +3154,7 @@ export class Call {
     sessionId: string,
     trackType: AudioTrackType = 'audioTrack',
   ) => {
-    const unbind = this.dynascaleManager.bindAudioElement(
+    const unbind = this.dynascaleManager?.bindAudioElement(
       audioElement,
       sessionId,
       trackType,
@@ -3189,26 +3184,36 @@ export class Call {
   };
 
   /**
-   * Enables automatic mic-mute on audio-health degradation and an optional
-   * mic/camera cycle on recovery.
+   * Updates the audio-health auto-recovery reactor. The reactor itself
+   * is auto-instantiated on Safari and iOS WKWebView (where the signals
+   * it reacts to actually originate) and is absent everywhere else.
+   *
+   * - `{ enabled: false }` tears the reactor down.
+   * - `{ enabled: true }` builds the reactor with the supplied config if
+   *   one does not already exist (no-op on non-Safari).
+   * - Any other shape forwards the config to the live reactor, if one
+   *   exists.
    *
    * @experimental
    */
-  enableAudioAutoRecovery = (config?: AudioHealthAutoRecoveryConfig) => {
-    if (!this.audioHealthMonitor) return;
-    if (this.audioHealthAutoRecovery) {
-      this.audioHealthAutoRecovery.updateConfig(config ?? {});
-      return;
-    }
-    this.audioHealthAutoRecovery = new AudioHealthAutoRecovery(
-      this.audioHealthMonitor.audioHealth$,
-      this.microphone,
-      this.camera,
-      this.tracer,
-      config ?? {},
-    );
-    if (this.sfuClient) {
-      this.audioHealthAutoRecovery.start();
+  updateAudioAutoRecovery = (
+    config: AudioHealthAutoRecoveryConfig & { enabled?: boolean },
+  ) => {
+    const { enabled, ...cfg } = config;
+    if (enabled === false) {
+      this.audioHealthAutoRecovery?.stop();
+      this.audioHealthAutoRecovery = undefined;
+    } else if (enabled === true) {
+      if (!this.audioHealthMonitor) return;
+      this.audioHealthAutoRecovery ??= new AudioHealthAutoRecovery(
+        this.audioHealthMonitor.audioHealth$,
+        this.microphone,
+        this.camera,
+        this.tracer,
+        cfg,
+      );
+      this.audioHealthAutoRecovery.updateConfig(cfg);
+      if (this.sfuClient) this.audioHealthAutoRecovery.start();
     }
   };
 

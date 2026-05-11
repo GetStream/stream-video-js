@@ -235,7 +235,7 @@ describe('AudioHealthMonitor', () => {
   it('stop() clears the blocked-elements set', async () => {
     const monitor = newMonitor();
     monitor.start();
-    monitor.registerBlockedAudioElement(makeBlockedElement());
+    monitor.updateAutoplayBlockedState(makeBlockedElement(), true);
     expect(getCurrentValue(monitor.autoplayBlocked$)).toBe(true);
 
     await monitor.stop();
@@ -248,7 +248,7 @@ describe('AudioHealthMonitor', () => {
 
   it('stays not-started before start() is called', () => {
     const monitor = newMonitor();
-    monitor.registerBlockedAudioElement(makeBlockedElement());
+    monitor.updateAutoplayBlockedState(makeBlockedElement(), true);
     audioSessionStub.state = 'interrupted';
     audioSessionStub.emitStateChange();
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
@@ -297,7 +297,7 @@ describe('AudioHealthMonitor', () => {
     });
   });
 
-  it('emits unhealthy/autoplay-blocked via registerBlockedAudioElement, separate from session interruption', () => {
+  it('emits unhealthy/autoplay-blocked via onAutoplayBlockedChange, separate from session interruption', () => {
     const monitor = newMonitor();
     monitor.start();
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
@@ -305,7 +305,7 @@ describe('AudioHealthMonitor', () => {
     );
 
     const el = makeBlockedElement();
-    monitor.registerBlockedAudioElement(el);
+    monitor.updateAutoplayBlockedState(el, true);
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
       reason: 'autoplay-blocked',
@@ -313,7 +313,7 @@ describe('AudioHealthMonitor', () => {
     });
 
     // Unregistering clears the block.
-    monitor.unregisterBlockedAudioElement(el);
+    monitor.updateAutoplayBlockedState(el, false);
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'healthy',
       reason: 'audio-session-active',
@@ -324,7 +324,7 @@ describe('AudioHealthMonitor', () => {
   it('session-interrupted wins over autoplay-blocked (priority order)', () => {
     const monitor = newMonitor();
     monitor.start();
-    monitor.registerBlockedAudioElement(makeBlockedElement());
+    monitor.updateAutoplayBlockedState(makeBlockedElement(), true);
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
       'autoplay-blocked',
     );
@@ -393,8 +393,8 @@ describe('AudioHealthMonitor', () => {
     const elA = makeBlockedElement(playOk);
     const elB = makeBlockedElement(playFail);
 
-    monitor.registerBlockedAudioElement(elA);
-    monitor.registerBlockedAudioElement(elB);
+    monitor.updateAutoplayBlockedState(elA, true);
+    monitor.updateAutoplayBlockedState(elB, true);
     expect(getCurrentValue(monitor.autoplayBlocked$)).toBe(true);
 
     await monitor.resumeAudio();
@@ -414,7 +414,7 @@ describe('AudioHealthMonitor', () => {
     monitor.start();
 
     const el = makeBlockedElement(vi.fn().mockResolvedValue(undefined));
-    monitor.registerBlockedAudioElement(el);
+    monitor.updateAutoplayBlockedState(el, true);
     expect(getCurrentValue(monitor.autoplayBlocked$)).toBe(true);
 
     await monitor.resumeAudio();
@@ -440,8 +440,8 @@ describe('AudioHealthMonitor', () => {
     const elA = makeBlockedElement(playOk);
     const elB = makeBlockedElement(playFail);
 
-    monitor.registerPausedAudioElement(elA);
-    monitor.registerPausedAudioElement(elB);
+    monitor.updateElementPausedState(elA, true);
+    monitor.updateElementPausedState(elB, true);
 
     await monitor.resumeAudio();
 
@@ -461,7 +461,7 @@ describe('AudioHealthMonitor', () => {
     const playOk = vi.fn().mockResolvedValue(undefined);
     const el = makeBlockedElement(playOk);
 
-    monitor.registerPausedAudioElement(el);
+    monitor.updateElementPausedState(el, true);
     await vi.waitFor(() => expect(playOk).toHaveBeenCalled());
 
     await vi.waitFor(() => {
@@ -484,7 +484,7 @@ describe('AudioHealthMonitor', () => {
       .mockResolvedValue(undefined);
     const el = makeBlockedElement(play);
 
-    monitor.registerPausedAudioElement(el);
+    monitor.updateElementPausedState(el, true);
 
     await vi.advanceTimersByTimeAsync(0);
     expect(play).toHaveBeenCalledTimes(1);
@@ -938,12 +938,12 @@ describe('AudioHealthMonitor', () => {
   // Chrome-coverage: element-paused
   // -------------------------------------------------------------------------
 
-  it('flips to unhealthy/element-paused on registerPausedAudioElement', () => {
+  it('flips to unhealthy/element-paused on onElementPausedChange', () => {
     const monitor = newMonitor();
     monitor.start();
 
     const el = document.createElement('audio');
-    monitor.registerPausedAudioElement(el);
+    monitor.updateElementPausedState(el, true);
 
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unhealthy',
@@ -957,10 +957,10 @@ describe('AudioHealthMonitor', () => {
     const monitor = newMonitor();
     monitor.start();
     const el = document.createElement('audio');
-    monitor.registerPausedAudioElement(el);
+    monitor.updateElementPausedState(el, true);
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe('element-paused');
 
-    monitor.unregisterPausedAudioElement(el);
+    monitor.updateElementPausedState(el, false);
     expect(getCurrentValue(monitor.audioHealth$)).toEqual({
       status: 'unknown',
       reason: 'pending',
@@ -978,7 +978,7 @@ describe('AudioHealthMonitor', () => {
 
     const t = fakeTrack();
     monitor.handleRemoteAudioTrackChange(t, 'muted');
-    monitor.registerBlockedAudioElement(makeBlockedElement());
+    monitor.updateAutoplayBlockedState(makeBlockedElement(), true);
 
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
       'autoplay-blocked',
@@ -993,7 +993,7 @@ describe('AudioHealthMonitor', () => {
     const b = fakeTrack();
     monitor.handleRemoteAudioTrackChange(a, 'muted');
     monitor.handleRemoteAudioTrackChange(b, 'muted');
-    monitor.registerPausedAudioElement(document.createElement('audio'));
+    monitor.updateElementPausedState(document.createElement('audio'), true);
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
       'remote-tracks-muted',
     );
@@ -1056,7 +1056,7 @@ describe('AudioHealthMonitor', () => {
     const el = document.createElement('audio');
     monitor.handleRemoteAudioTrackChange(a, 'muted');
     monitor.handleRemoteAudioTrackChange(b, 'muted');
-    monitor.registerPausedAudioElement(el);
+    monitor.updateElementPausedState(el, true);
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
       'remote-tracks-muted',
     );
