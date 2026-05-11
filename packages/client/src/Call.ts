@@ -978,6 +978,11 @@ export class Call {
     if (data?.ring) {
       this.ringingSubject.next(true);
     }
+
+    // we need this to be set before the callingx.joinCall() is
+    // called to avoid registering the test call in the CallKit/Telecom
+    this.selfSubEnabled = selfSubEnabled;
+
     const callingX = globalThis.streamRNVideoSDK?.callingX;
     if (callingX) {
       // for Android/iOS, we need to start the call in the callingx library as soon as possible
@@ -988,7 +993,6 @@ export class Call {
 
     this.joinResponseTimeout = joinResponseTimeout;
     this.rpcRequestTimeout = rpcRequestTimeout;
-    this.selfSubEnabled = selfSubEnabled;
     // we will count the number of join failures per SFU.
     // once the number of failures reaches 2, we will piggyback on the `migrating_from`
     // field to force the coordinator to provide us another SFU

@@ -65,7 +65,7 @@ function getCallDisplayNameFromCall(call: Call): string {
 }
 
 export async function registerOutgoingCall(call: Call) {
-  if (!CallingxModule || !CallingxModule.isSetup) {
+  if (!CallingxModule || !CallingxModule.isSetup || call.isSelfSubEnabled) {
     return;
   }
 
@@ -101,7 +101,7 @@ export async function registerOutgoingCall(call: Call) {
  * 3. Optionally for non-ringing calls also when ongoing calls are enabled.
  */
 export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
-  if (!CallingxModule || !CallingxModule.isSetup) {
+  if (!CallingxModule || !CallingxModule.isSetup || call.isSelfSubEnabled) {
     return;
   }
 
