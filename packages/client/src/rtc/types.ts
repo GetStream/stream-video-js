@@ -51,6 +51,8 @@ export type OnReconnectionNeeded = (
  * recovered, not merely when the SFU join handshake succeeded.
  */
 export type OnIceConnected = (peerType: PeerType) => void;
+export type OnPeerConnectionConnected = (peerType: PeerType) => void;
+export type OnPeerConnectionAttemptStarted = (peerType: PeerType) => void;
 
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
@@ -59,6 +61,8 @@ export type BasePeerConnectionOpts = {
   dispatcher: Dispatcher;
   onReconnectionNeeded?: OnReconnectionNeeded;
   onIceConnected?: OnIceConnected;
+  onPeerConnectionConnected?: OnPeerConnectionConnected;
+  onPeerConnectionAttemptStarted?: OnPeerConnectionAttemptStarted;
   tag: string;
   enableTracing: boolean;
   iceRestartDelay?: number;

@@ -1,0 +1,209 @@
+.rd__chaos-fab {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 9999;
+  padding: 0.55rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(20, 20, 24, 0.92);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s ease;
+  &:hover {
+    transform: translateY(-1px);
+  }
+  &--active {
+    background: #c0392b;
+    border-color: #e74c3c;
+  }
+}
+
+.rd__chaos-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.rd__chaos-panel {
+  width: min(720px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #1a1c1f;
+  color: #f5f5f5;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  padding: 1.25rem 1.5rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+  }
+
+  &__close {
+    background: transparent;
+    border: 0;
+    color: #aaa;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    &:hover {
+      color: #fff;
+    }
+  }
+
+  &__hint {
+    color: #aaa;
+    font-size: 0.85rem;
+    margin: 0 0 1rem 0;
+    strong {
+      color: #f5f5f5;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 1rem;
+  }
+}
+
+.rd__chaos-section {
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+
+  h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 500;
+    background: #c0392b;
+    color: #fff;
+    padding: 0.1rem 0.45rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &__description {
+    margin: 0 0 0.75rem 0;
+    color: #888;
+    font-size: 0.8rem;
+    white-space: pre-line;
+  }
+
+  &__buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+.rd__chaos-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  & > .rd__chaos-btn {
+    flex: 1;
+  }
+}
+
+.rd__chaos-btn {
+  text-align: left;
+  padding: 0.55rem 0.85rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ddd;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.1s ease;
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  &--active {
+    background: #2980b9;
+    border-color: #3498db;
+    color: #fff;
+  }
+  &--reset {
+    background: #444;
+    color: #fff;
+    border: 1px solid #666;
+    text-align: center;
+    padding: 0.55rem 1.5rem;
+    &:hover {
+      background: #555;
+    }
+  }
+}
+
+.rd__chaos-number {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: #aaa;
+  font-size: 0.85rem;
+  span {
+    font-weight: 500;
+  }
+  input {
+    width: 3.5rem;
+    padding: 0.4rem 0.5rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+}
+
+.rd__chaos-status {
+  color: #f39c12;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.rd__chaos-hint {
+  display: block;
+  color: #888;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+  code {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.05rem 0.25rem;
+    border-radius: 3px;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-size: 0.7rem;
+  }
+}

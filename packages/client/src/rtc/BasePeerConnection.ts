@@ -16,6 +16,8 @@ import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
 import {
   BasePeerConnectionOpts,
   OnIceConnected,
+  OnPeerConnectionAttemptStarted,
+  OnPeerConnectionConnected,
   OnReconnectionNeeded,
   ReconnectReason,
 } from './types';
@@ -37,8 +39,12 @@ export abstract class BasePeerConnection {
 
   private onReconnectionNeeded?: OnReconnectionNeeded;
   private onIceConnected?: OnIceConnected;
+  private onPeerConnectionConnected?: OnPeerConnectionConnected;
+  private onPeerConnectionAttemptStarted?: OnPeerConnectionAttemptStarted;
   private readonly iceRestartDelay: number;
   private iceHasEverConnected = false;
+  private peerConnectionHasEverConnected = false;
+  private peerConnectionAttemptStarted = false;
   private iceRestartTimeout?: NodeJS.Timeout;
   private preConnectStuckTimeout?: NodeJS.Timeout;
   protected isIceRestarting = false;
@@ -65,6 +71,8 @@ export abstract class BasePeerConnection {
       dispatcher,
       onReconnectionNeeded,
       onIceConnected,
+      onPeerConnectionConnected,
+      onPeerConnectionAttemptStarted,
       tag,
       enableTracing,
       clientPublishOptions,
@@ -80,6 +88,8 @@ export abstract class BasePeerConnection {
     this.tag = tag;
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.onIceConnected = onIceConnected;
+    this.onPeerConnectionConnected = onPeerConnectionConnected;
+    this.onPeerConnectionAttemptStarted = onPeerConnectionAttemptStarted;
     this.logger = videoLoggerSystem.getLogger(
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
       { tags: [tag] },
@@ -122,6 +132,8 @@ export abstract class BasePeerConnection {
     this.preConnectStuckTimeout = undefined;
     this.onReconnectionNeeded = undefined;
     this.onIceConnected = undefined;
+    this.onPeerConnectionConnected = undefined;
+    this.onPeerConnectionAttemptStarted = undefined;
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
@@ -239,6 +251,12 @@ export abstract class BasePeerConnection {
     return this.trackIdToTrackType.get(trackId);
   };
 
+  protected beginPeerConnectionAttempt = () => {
+    if (this.peerConnectionAttemptStarted) return;
+    this.peerConnectionAttemptStarted = true;
+    this.onPeerConnectionAttemptStarted?.(this.peerType);
+  };
+
   /**
    * Checks if the `RTCPeerConnection` is healthy.
    * It checks the ICE connection state and the peer connection state.
@@ -316,6 +334,11 @@ export abstract class BasePeerConnection {
       } catch (err) {
         this.tracer.trace('getstatsOnFailure', (err as Error).toString());
       }
+    }
+
+    if (state === 'connected' && !this.peerConnectionHasEverConnected) {
+      this.peerConnectionHasEverConnected = true;
+      this.onPeerConnectionConnected?.(this.peerType);
     }
 
     // we can't recover from a failed connection state (contrary to ICE)

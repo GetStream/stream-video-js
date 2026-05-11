@@ -379,6 +379,7 @@ export class Publisher extends BasePeerConnection {
 
       try {
         this.isIceRestarting = options?.iceRestart ?? false;
+        this.beginPeerConnectionAttempt();
         await this.pc.setLocalDescription(offer);
 
         const { sdp: baseSdp = '' } = offer;

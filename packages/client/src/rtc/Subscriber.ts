@@ -163,6 +163,7 @@ export class Subscriber extends BasePeerConnection {
         );
       }
     }
+    this.beginPeerConnectionAttempt();
     await this.pc.setLocalDescription(answer);
 
     await this.sfuClient.sendAnswer({
