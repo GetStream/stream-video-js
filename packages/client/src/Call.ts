@@ -1730,7 +1730,9 @@ export class Call {
           await this.networkAvailableTask?.promise;
 
           this.logger.info(
-            `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[this.reconnectStrategy]}`,
+            `[Reconnect] Reconnecting with strategy ${
+              WebsocketReconnectStrategy[this.reconnectStrategy]
+            }`,
           );
 
           switch (this.reconnectStrategy) {
@@ -2818,7 +2820,11 @@ export class Call {
       this.leave({
         reject: true,
         reason: 'timeout',
-        message: `ringing timeout - ${this.isCreatedByMe ? 'no one accepted' : `user didn't interact with incoming call screen`}`,
+        message: `ringing timeout - ${
+          this.isCreatedByMe
+            ? 'no one accepted'
+            : `user didn't interact with incoming call screen`
+        }`,
       }).catch((err) => {
         this.logger.error('Failed to drop call', err);
       });
@@ -2879,7 +2885,9 @@ export class Call {
     filename: string,
   ): Promise<DeleteRecordingResponse> => {
     return this.streamClient.delete<DeleteRecordingResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/recordings/${encodeURIComponent(filename)}`,
+      `${this.streamClientBasePath}/${encodeURIComponent(
+        callSessionId,
+      )}/recordings/${encodeURIComponent(filename)}`,
     );
   };
 
@@ -2894,7 +2902,9 @@ export class Call {
     filename: string,
   ): Promise<DeleteTranscriptionResponse> => {
     return this.streamClient.delete<DeleteTranscriptionResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/transcriptions/${encodeURIComponent(filename)}`,
+      `${this.streamClientBasePath}/${encodeURIComponent(
+        callSessionId,
+      )}/transcriptions/${encodeURIComponent(filename)}`,
     );
   };
 
@@ -3169,9 +3179,10 @@ export class Call {
   };
 
   /**
-   * Plays all audio elements blocked by the browser's autoplay policy.
-   * Must be called from within a user gesture (e.g., a click handler) for
-   * the browser to permit playback.
+   * Plays all audio elements blocked by the browser's autoplay policy or
+   * paused while still bound to a live `MediaStream`. Autoplay-blocked
+   * elements usually require a user gesture; paused-live elements can often
+   * recover automatically after transient OS audio-session interruptions.
    */
   resumeAudio = async () => {
     await this.audioHealthMonitor?.resumeAudio();

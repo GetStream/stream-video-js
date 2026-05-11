@@ -46,7 +46,8 @@ export type AudioHealthDirection = 'capture' | 'playback' | 'both';
  *   pipeline broken"; single mutes are ignored to avoid confusing
  *   them with a remote sender's own problem.
  * - `'element-paused'` - a bound `<audio>` element fired `'pause'`
- *   while its `srcObject` still had live tracks.
+ *   while its `srcObject` still had live tracks. The monitor retries
+ *   `.play()` automatically and also via `call.resumeAudio()`.
  * - `'host-audio-session-active'` - iOS host bridge confirms no
  *   active interruption.
  * - `'audio-session-active'` - Safari confirms the session is active.
@@ -91,6 +92,11 @@ const UNKNOWN_NOT_STARTED: AudioHealthInfo = {
   direction: 'both',
 };
 
+const PAUSED_AUDIO_RECOVERY_RETRY_INTERVAL_MS = 500;
+const PAUSED_AUDIO_RECOVERY_MAX_ATTEMPTS = 6;
+const PROBE_AUDIO_CONTEXT_RECOVERY_RETRY_INTERVAL_MS = 500;
+const PROBE_AUDIO_CONTEXT_RECOVERY_MAX_ATTEMPTS = 6;
+
 /**
  * Detects audio-pipeline failure signals and owns the autoplay-recovery
  * path via `resumeAudio()`. Exposes coarse health on `audioHealth$` for
@@ -108,7 +114,9 @@ const UNKNOWN_NOT_STARTED: AudioHealthInfo = {
  * 5. Aggregated `MediaStreamTrack.muted` across remote audio tracks (forwarded by `Subscriber`).
  *    Fires only with >=2 tracked tracks all muted; keys on `track.muted` only
  *    (`enabled === false` is user-toggled silence).
- * 6. Bound `<audio>` elements paused while srcObject is live.
+ * 6. Bound `<audio>` elements paused while srcObject is live. These are
+ *    retried automatically because post-interruption `.play()` often succeeds
+ *    without a fresh user gesture once the element was already playing.
  *
  * `start()` writes `navigator.audioSession.type = 'play-and-record'`
  * (snapshotting the previous value); `stop()` restores the snapshot.
@@ -149,6 +157,13 @@ export class AudioHealthMonitor {
   private blockedAudioElementsSubject = new BehaviorSubject(
     new Set<HTMLAudioElement>(),
   );
+
+  private pausedAudioRecoveryTimer?: ReturnType<typeof setTimeout>;
+  private pausedAudioRecoveryAttempts = 0;
+  private pausedAudioRecoveryInFlight = false;
+  private probeAudioContextRecoveryTimer?: ReturnType<typeof setTimeout>;
+  private probeAudioContextRecoveryAttempts = 0;
+  private probeAudioContextRecoveryInFlight = false;
 
   /**
    * `true` when the browser's autoplay policy is currently blocking
@@ -248,6 +263,8 @@ export class AudioHealthMonitor {
       setCurrentValue(this.blockedAudioElementsSubject, new Set());
       setCurrentValue(this.remoteAudioMutedSubject, new Map());
       setCurrentValue(this.pausedAudioElementsSubject, new Set());
+      this.clearPausedAudioRecoveryTimer();
+      this.clearProbeAudioContextRecoveryTimer();
       this.audioHealthSubject.next(UNKNOWN_NOT_STARTED);
     });
   };
@@ -305,6 +322,7 @@ export class AudioHealthMonitor {
       return next;
     });
     this.updateAudioHealth();
+    this.restartPausedAudioElementRecovery();
   };
 
   /**
@@ -317,16 +335,31 @@ export class AudioHealthMonitor {
       next.delete(audioElement);
       return next;
     });
+    if (this.pausedAudioElementsSubject.getValue().size === 0) {
+      this.clearPausedAudioRecoveryTimer();
+    }
     this.updateAudioHealth();
   };
 
   /**
-   * Retries `.play()` on every blocked audio element. Must be called
-   * from within a user gesture for the autoplay policy to permit
-   * playback. Resolved elements are removed from the blocked set.
+   * Retries `.play()` on every blocked or paused audio element. Blocked
+   * elements may still require a user gesture; paused-live elements can often
+   * resume automatically after transient OS audio-session interruptions.
+   * Resolved elements are removed from their tracking sets.
    */
   resumeAudio = async () => {
     this.tracer.trace('audioHealth.resumeAudio', null);
+    await this.resumeAudioContext();
+    await Promise.all([
+      this.resumeBlockedAudioElements(),
+      this.resumePausedAudioElements(),
+    ]);
+    this.restartProbeAudioContextRecovery();
+    this.restartPausedAudioElementRecovery();
+    this.updateAudioHealth();
+  };
+
+  private resumeBlockedAudioElements = async () => {
     const stillBlocked = new Set<HTMLAudioElement>();
     await Promise.all(
       Array.from(
@@ -342,7 +375,149 @@ export class AudioHealthMonitor {
       ),
     );
     setCurrentValue(this.blockedAudioElementsSubject, stillBlocked);
+  };
+
+  private resumePausedAudioElements = async () => {
+    const elements = Array.from(this.pausedAudioElementsSubject.getValue());
+    this.tracer.trace('audioHealth.resumePausedAudioElements', {
+      count: elements.length,
+    });
+    const resumed = new Set<HTMLAudioElement>();
+    const inactive = new Set<HTMLAudioElement>();
+    await Promise.all(
+      elements.map(async (element) => {
+        try {
+          if (!element.srcObject) {
+            inactive.add(element);
+            return;
+          }
+          await element.play();
+          resumed.add(element);
+        } catch {
+          this.logger.warn(`Can't resume paused audio element: `, element);
+        }
+      }),
+    );
+    setCurrentValue(this.pausedAudioElementsSubject, (current) => {
+      if (!resumed.size && !inactive.size) return current;
+      const next = new Set(current);
+      resumed.forEach((element) => next.delete(element));
+      inactive.forEach((element) => next.delete(element));
+      return next;
+    });
     this.updateAudioHealth();
+  };
+
+  private restartPausedAudioElementRecovery = () => {
+    this.pausedAudioRecoveryAttempts = 0;
+    this.schedulePausedAudioElementRecovery(0);
+  };
+
+  private schedulePausedAudioElementRecovery = (delayInMs: number) => {
+    if (!this.canAutoResumePausedAudioElements()) return;
+    if (this.pausedAudioRecoveryTimer || this.pausedAudioRecoveryInFlight) {
+      return;
+    }
+    if (
+      this.pausedAudioRecoveryAttempts >= PAUSED_AUDIO_RECOVERY_MAX_ATTEMPTS
+    ) {
+      return;
+    }
+    this.pausedAudioRecoveryTimer = setTimeout(() => {
+      this.pausedAudioRecoveryTimer = undefined;
+      void this.runPausedAudioElementRecovery();
+    }, delayInMs);
+  };
+
+  private runPausedAudioElementRecovery = async () => {
+    if (!this.canAutoResumePausedAudioElements()) return;
+    this.pausedAudioRecoveryAttempts += 1;
+    this.pausedAudioRecoveryInFlight = true;
+    try {
+      await this.resumePausedAudioElements();
+    } finally {
+      this.pausedAudioRecoveryInFlight = false;
+    }
+    if (this.pausedAudioElementsSubject.getValue().size === 0) {
+      this.pausedAudioRecoveryAttempts = 0;
+      return;
+    }
+    this.schedulePausedAudioElementRecovery(
+      PAUSED_AUDIO_RECOVERY_RETRY_INTERVAL_MS,
+    );
+  };
+
+  private canAutoResumePausedAudioElements = () => {
+    if (!this.started) return false;
+    if (this.pausedAudioElementsSubject.getValue().size === 0) return false;
+    if (this.hostAudioSession?.interruption?.type === 'began') return false;
+    if (this.audioSessionState === 'interrupted') return false;
+    if (this.audioContext?.state === 'interrupted') return false;
+    return true;
+  };
+
+  private clearPausedAudioRecoveryTimer = () => {
+    clearTimeout(this.pausedAudioRecoveryTimer);
+    this.pausedAudioRecoveryTimer = undefined;
+  };
+
+  private restartProbeAudioContextRecovery = () => {
+    this.probeAudioContextRecoveryAttempts = 0;
+    this.clearProbeAudioContextRecoveryTimer();
+    this.scheduleProbeAudioContextRecovery(0);
+  };
+
+  private scheduleProbeAudioContextRecovery = (delayInMs: number) => {
+    if (!this.canAutoResumeProbeAudioContext()) return;
+    if (
+      this.probeAudioContextRecoveryTimer ||
+      this.probeAudioContextRecoveryInFlight
+    ) {
+      return;
+    }
+    if (
+      this.probeAudioContextRecoveryAttempts >=
+      PROBE_AUDIO_CONTEXT_RECOVERY_MAX_ATTEMPTS
+    ) {
+      return;
+    }
+    this.probeAudioContextRecoveryTimer = setTimeout(() => {
+      this.probeAudioContextRecoveryTimer = undefined;
+      void this.runProbeAudioContextRecovery();
+    }, delayInMs);
+  };
+
+  private runProbeAudioContextRecovery = async () => {
+    if (!this.canAutoResumeProbeAudioContext()) return;
+    this.probeAudioContextRecoveryAttempts += 1;
+    this.probeAudioContextRecoveryInFlight = true;
+    try {
+      await this.resumeAudioContext();
+    } finally {
+      this.probeAudioContextRecoveryInFlight = false;
+    }
+    if (!this.canAutoResumeProbeAudioContext()) {
+      this.probeAudioContextRecoveryAttempts = 0;
+      this.restartPausedAudioElementRecovery();
+      return;
+    }
+    this.scheduleProbeAudioContextRecovery(
+      PROBE_AUDIO_CONTEXT_RECOVERY_RETRY_INTERVAL_MS,
+    );
+  };
+
+  private canAutoResumeProbeAudioContext = () => {
+    const probe = this.audioContext;
+    if (!this.started || !probe) return false;
+    if (probe.state !== 'interrupted') return false;
+    if (this.hostAudioSession?.interruption?.type === 'began') return false;
+    if (this.audioSessionState === 'interrupted') return false;
+    return true;
+  };
+
+  private clearProbeAudioContextRecoveryTimer = () => {
+    clearTimeout(this.probeAudioContextRecoveryTimer);
+    this.probeAudioContextRecoveryTimer = undefined;
   };
 
   /**
@@ -376,6 +551,10 @@ export class AudioHealthMonitor {
     this.audioSessionState = audioSession.state;
     this.tracer.trace('audioHealth.audioSession.state', audioSession.state);
     this.updateAudioHealth();
+    if (audioSession.state === 'active') {
+      this.restartProbeAudioContextRecovery();
+      this.restartPausedAudioElementRecovery();
+    }
   };
 
   private installHostAudioSessionObserver = () => {
@@ -401,6 +580,10 @@ export class AudioHealthMonitor {
     this.hostAudioSession = detail;
     this.tracer.trace('audioHealth.hostAudioSession', detail);
     this.updateAudioHealth();
+    if (detail.interruption?.type !== 'began') {
+      this.restartProbeAudioContextRecovery();
+      this.restartPausedAudioElementRecovery();
+    }
   };
 
   /**
@@ -438,25 +621,36 @@ export class AudioHealthMonitor {
     const state = this.audioContext?.state;
     this.tracer.trace('audioHealth.probeAudioContext.state', state);
     this.updateAudioHealth();
+    if (state === 'interrupted') {
+      this.restartProbeAudioContextRecovery();
+    } else if (state) {
+      this.restartPausedAudioElementRecovery();
+    }
   };
 
-  private resumeAudioContext = () => {
+  private resumeAudioContext = async () => {
     const probe = this.audioContext;
-    if (!probe) return;
-    if (probe.state !== 'suspended' && probe.state !== 'interrupted') return;
-    probe.resume().then(
-      () => {
-        this.tracer.trace('audioHealth.probeAudioContext.resume', probe.state);
-        document.removeEventListener('click', this.resumeAudioContext);
-      },
-      (err) => {
-        this.tracer.trace(
-          'audioHealth.probeAudioContext.resumeError',
-          probe.state,
-        );
-        this.logger.warn(`Can't resume probe audio context`, err);
-      },
-    );
+    if (!probe) return false;
+    if (probe.state !== 'suspended' && probe.state !== 'interrupted') {
+      return false;
+    }
+    try {
+      await probe.resume();
+      this.tracer.trace('audioHealth.probeAudioContext.resume', probe.state);
+      document.removeEventListener('click', this.resumeAudioContext);
+      this.updateAudioHealth();
+      if (probe.state !== 'interrupted') {
+        this.restartPausedAudioElementRecovery();
+      }
+      return true;
+    } catch (err) {
+      this.tracer.trace('audioHealth.probeAudioContext.resumeError', {
+        state: probe.state,
+        error: String(err),
+      });
+      this.logger.warn(`Can't resume probe audio context`, err);
+      return false;
+    }
   };
 
   /**

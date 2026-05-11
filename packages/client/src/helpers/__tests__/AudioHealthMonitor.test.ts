@@ -66,6 +66,7 @@ describe('AudioHealthMonitor', () => {
     while (createdMonitors.length > 0) {
       await createdMonitors.pop()!.stop();
     }
+    vi.useRealTimers();
     uninstallAudioSession();
   });
 
@@ -408,7 +409,7 @@ describe('AudioHealthMonitor', () => {
     expect(remaining.has(elB)).toBe(true);
   });
 
-  it('resumeAudio() clears the set when every play() resolves', async () => {
+  it('resumeAudio() clears the set when every blocked play() resolves', async () => {
     const monitor = newMonitor();
     monitor.start();
 
@@ -426,6 +427,78 @@ describe('AudioHealthMonitor', () => {
       reason: 'audio-session-active',
       direction: 'both',
     });
+  });
+
+  it('resumeAudio() calls .play() on paused-live elements and removes resolved ones', async () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    const playOk = vi.fn().mockResolvedValue(undefined);
+    const playFail = vi
+      .fn()
+      .mockRejectedValue(new DOMException('', 'NotAllowedError'));
+    const elA = makeBlockedElement(playOk);
+    const elB = makeBlockedElement(playFail);
+
+    monitor.registerPausedAudioElement(elA);
+    monitor.registerPausedAudioElement(elB);
+
+    await monitor.resumeAudio();
+
+    expect(playOk).toHaveBeenCalled();
+    expect(playFail).toHaveBeenCalled();
+    // @ts-expect-error private property
+    const remaining = monitor.pausedAudioElementsSubject.getValue();
+    expect(remaining.has(elA)).toBe(false);
+    expect(remaining.has(elB)).toBe(true);
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe('element-paused');
+  });
+
+  it('auto-recovers element-paused when replaying the paused element resolves', async () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    const playOk = vi.fn().mockResolvedValue(undefined);
+    const el = makeBlockedElement(playOk);
+
+    monitor.registerPausedAudioElement(el);
+    await vi.waitFor(() => expect(playOk).toHaveBeenCalled());
+
+    await vi.waitFor(() => {
+      // @ts-expect-error private property
+      expect(monitor.pausedAudioElementsSubject.getValue().has(el)).toBe(false);
+      expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+        'audio-session-active',
+      );
+    });
+  });
+
+  it('retries paused-live elements after the first automatic replay fails', async () => {
+    vi.useFakeTimers();
+    const monitor = newMonitor();
+    monitor.start();
+
+    const play = vi
+      .fn()
+      .mockRejectedValueOnce(new DOMException('', 'AbortError'))
+      .mockResolvedValue(undefined);
+    const el = makeBlockedElement(play);
+
+    monitor.registerPausedAudioElement(el);
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(play).toHaveBeenCalledTimes(1);
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe('element-paused');
+
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(play).toHaveBeenCalledTimes(2);
+    // @ts-expect-error private property
+    expect(monitor.pausedAudioElementsSubject.getValue().has(el)).toBe(false);
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'audio-session-active',
+    );
+    vi.useRealTimers();
   });
 
   // -------------------------------------------------------------------------
@@ -593,6 +666,62 @@ describe('AudioHealthMonitor', () => {
       reason: 'audio-session-interrupted',
       direction: 'both',
     });
+  });
+
+  it('resumes an interrupted probe AudioContext when the host reports active', async () => {
+    const monitor = newMonitor();
+    monitor.start();
+    // @ts-expect-error private property
+    const probe = monitor.audioContext as AudioContext & { state: string };
+    probe.state = 'interrupted';
+    // @ts-expect-error private method
+    monitor.onAudioContextStateChange();
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'audio-context-interrupted',
+    );
+
+    dispatchHostEvent(makeHostEvent());
+
+    await vi.waitFor(() => expect(probe.resume).toHaveBeenCalled());
+    expect(getCurrentValue(monitor.audioHealth$)).toEqual({
+      status: 'healthy',
+      reason: 'host-audio-session-active',
+      direction: 'both',
+    });
+  });
+
+  it('retries interrupted probe AudioContext recovery when the first resume fails', async () => {
+    vi.useFakeTimers();
+    const monitor = newMonitor();
+    monitor.start();
+    // @ts-expect-error private property
+    const probe = monitor.audioContext as AudioContext & { state: string };
+    const resume = vi
+      .fn()
+      .mockRejectedValueOnce(new DOMException('', 'AbortError'))
+      .mockImplementationOnce(async function (
+        this: AudioContext & { state: string },
+      ) {
+        this.state = 'running';
+      });
+    // @ts-expect-error override mock method
+    probe.resume = resume;
+    probe.state = 'interrupted';
+    // @ts-expect-error private method
+    monitor.onAudioContextStateChange();
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(resume).toHaveBeenCalledTimes(1);
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'audio-context-interrupted',
+    );
+
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(resume).toHaveBeenCalledTimes(2);
+    expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
+      'audio-session-active',
+    );
   });
 
   it('stop() detaches the host-bridge listener', async () => {

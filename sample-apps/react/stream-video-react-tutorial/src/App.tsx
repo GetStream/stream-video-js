@@ -129,7 +129,8 @@ export const UILayout = () => {
  * gesture credit it needs.
  *
  * - **Resume audio** → `call.resumeAudio()`. Retries `.play()` on every
- *   `<audio>` the SDK has tracked as autoplay-blocked.
+ *   `<audio>` the SDK has tracked as autoplay-blocked or paused while its
+ *   `srcObject` still has a live `MediaStream`.
  * - **Set audioSession.type=play-and-record** → re-asserts the WebKit hint
  *   that nudges WKWebView toward a WebRTC-friendly AVAudioSession category.
  *   Mirrored to the page console so it shows up in the iOS sample's

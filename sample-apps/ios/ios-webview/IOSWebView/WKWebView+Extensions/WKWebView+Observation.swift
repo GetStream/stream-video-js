@@ -319,6 +319,7 @@ extension WKWebView {
         private func interruptionStarted(_ interruption: Snapshot.Interruption) {
             guard interruption.type == "began" else { return }
             enqueue { strongSelf in
+                strongSelf.logInfo("Interruption started \(interruption)")
                 strongSelf.latestInterruption = interruption
                 strongSelf.audioSessionAdapter.startPolling()
                 strongSelf.backgroundTimer.start()
@@ -329,6 +330,7 @@ extension WKWebView {
         private func interruptionEnded(_ interruption: Snapshot.Interruption) {
             guard interruption.type == "ended" else { return }
             enqueue { strongSelf in
+                strongSelf.logInfo("Interruption ended \(interruption)")
                 strongSelf.latestInterruption = nil
                 strongSelf.audioSessionAdapter.startPolling()
                 strongSelf.backgroundTimer.stop()
@@ -345,6 +347,7 @@ extension WKWebView {
                 // category, the conflicting session has released audio. Dispatch
                 // only if this resolves a stale `began` so we don't spam the page
                 // with redundant snapshots on healthy hint flips.
+                strongSelf.logInfo("Secondary audio hint was silenced")
                 strongSelf.audioSessionAdapter.startPolling()
                 guard strongSelf.clearStaleInterruptionIfRecovered() else { return }
                 strongSelf.sendSnapshot()
@@ -360,6 +363,7 @@ extension WKWebView {
                 // audio session without a matching `interruption.ended`.
                 // Dispatch only if this resolves a stale `began`.
                 strongSelf.audioSessionAdapter.startPolling()
+                strongSelf.logInfo("MediaServices were ressetted")
                 guard strongSelf.clearStaleInterruptionIfRecovered() else { return }
                 strongSelf.sendSnapshot()
                 strongSelf.logInfo("Completed successfully.")
@@ -382,6 +386,7 @@ extension WKWebView {
 
         private func appLifecycleTransitionReceived(_ transition: String) {
             enqueue { strongSelf in
+                strongSelf.logInfo("AppLifecycle transition:\(transition)")
                 strongSelf.sendLifecycleSnapshot(transition: transition)
 
                 guard transition == "didBecomeActive" else { return }

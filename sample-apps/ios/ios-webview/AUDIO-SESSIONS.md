@@ -258,9 +258,10 @@ The client SDK (`@stream-io/video-client`, surfaced via
     Chrome/Firefox out of `'unsupported'`),
     `'not-started'` / `'unsupported'` (pre-start or no usable signal yet).
 - **`call.resumeAudio()`** - iterates every `<audio>` element the SDK
-  tracked as autoplay-blocked and retries `.play()` on each. Must be
-  called from within a user gesture. Wire to a "tap to enable audio"
-  button.
+  tracked as autoplay-blocked or paused while still bound to a live
+  `MediaStream`, then retries `.play()` on each. Autoplay-blocked elements
+  still need a user gesture; paused-live elements are also retried
+  automatically after transient interruptions.
 - **Automatic `navigator.audioSession.type = 'play-and-record'` hint** -
   the monitor writes this on call-join and restores the original on
   leave, nudging WebKit toward a WebRTC-friendly `AVAudioSession`
@@ -404,10 +405,10 @@ Open items on the backlog:
 - **Configurable auto-retry** - a background loop that calls
   `replaceTrack` periodically while health is `unhealthy`. Needs product
   input on aggression vs. race-condition risk.
-- **Unified public `recoverAudio()`** - today `call.resumeAudio()`
-  handles only autoplay. A single method that also triggers
-  `navigator.audioSession.type` writes + `getUserMedia` + `replaceTrack`
-  would simplify customer code.
+- **Deeper public `recoverAudio()`** - today `call.resumeAudio()` handles
+  autoplay-blocked and paused-live playback elements. A broader method that
+  also triggers `navigator.audioSession.type` writes + `getUserMedia` +
+  `replaceTrack` would simplify full capture/playback recovery.
 - **React Native parity** for the cross-browser `'remote-tracks-muted'`
   / `'element-paused'` signals. RN already has native-level access via
   `stream-video-react-native-sdk`; the JS-layer signals are scoped to
