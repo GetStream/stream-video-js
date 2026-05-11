@@ -4,17 +4,16 @@ export async function deleteCallChatChannel(
   client: StreamClient,
   event: CallSessionEndedEvent,
 ) {
-  const callIdFromCid = event.call_cid?.split(':')[1];
-  const callId = event.call?.id ?? callIdFromCid;
-  if (!callId) return;
+  const id = event.call?.id ?? event.call_cid?.split(':')[1];
+  if (!id) return;
 
   const type = 'videocall';
   try {
-    await client.chat.deleteChannel({ type, id: callId, hard_delete: true });
-    console.log(`Hard-deleted chat channel ${type}:${callId}`);
+    await client.chat.deleteChannel({ type, id, hard_delete: true });
+    console.log(`Hard-deleted chat channel ${type}:${id}`);
   } catch (err) {
     if (isChannelNotFound(err)) {
-      console.log(`Chat channel ${type}:${callId} already gone, skipping`);
+      console.log(`Chat channel ${type}:${id} already gone, skipping`);
       return;
     }
     throw err;
