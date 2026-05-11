@@ -274,7 +274,7 @@ final class AudioScenarios: NSObject {
     /// signals other processes, and `setCategory(.playAndRecord, ...)` may or may
     /// not fire a `routeChangeNotification(.categoryChange)` depending on iOS
     /// version, timing, and whether the system coalesces it with the prior
-    /// `.began`. Without an `.ended`, `AudioSessionBridge.latestInterruption`
+    /// `.began`. Without an `.ended`, `WKWebView.AudioSessionObserver.latestInterruption`
     /// stays at `began` and the page-side `AudioHealthMonitor` keeps reading
     /// `host-audio-session-interrupted` even after the session is healthy again.
     ///

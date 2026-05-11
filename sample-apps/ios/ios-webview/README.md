@@ -89,19 +89,17 @@ On the phone:
   - **Errors** - captures `window.onerror`, `unhandledrejection`, and
     `getUserMedia` failures.
   - **Lifecycle** - audio route changes and interruption notifications.
-    Native `AVAudioSession` transitions from `AudioSessionBridge.swift`
-    land here too (tagged `bridge`), so you can see the host-side ground
-    truth that the SDK consumes via the
-    `stream-video:host-audio-session` `CustomEvent`. UIApplication
-    transitions (`didBecomeActive`, `willResignActive`,
-    `didEnterBackground`, `willEnterForeground`) from
-    `LifecycleBridge.swift` are tagged `lifecycle` and forwarded into the
+    Native `AVAudioSession` transitions from `WKWebView+Observation.swift`
+    land here too, so you can see the host-side ground truth that the SDK
+    consumes via the `stream-video:host-audio-session` `CustomEvent`.
+    UIApplication transitions (`didBecomeActive`, `willResignActive`,
+    `didEnterBackground`, `willEnterForeground`) are forwarded into the
     page as `stream-video:host-lifecycle`.
 - **Host audio-session bridge** -
-  [`AudioSessionBridge.swift`](./IOSWebView/WebView/AudioSessionBridge.swift)
-  observes `AVAudioSession` notifications and forwards each snapshot into
-  the page. The SDK's `AudioHealthMonitor` consumes those events and
-  emits the `host-audio-session-interrupted` /
+  [`WKWebView+Observation.swift`](./IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift)
+  observes `AVAudioSession` and `UIApplication` notifications and forwards
+  snapshots into the page. The SDK's `AudioHealthMonitor` consumes the
+  audio-session events and emits the `host-audio-session-interrupted` /
   `host-audio-session-active` reason codes. See
   [`AUDIO-SESSIONS.md`](./AUDIO-SESSIONS.md) for the protocol contract.
 

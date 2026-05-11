@@ -143,7 +143,7 @@ recovers the page-side health signal by synthesizing
 `interruption.ended` once the audio session is observably back. See
 [`HOST-AUDIO-SESSION-BRIDGE.md`](./HOST-AUDIO-SESSION-BRIDGE.md) for the
 integration contract and
-[`WKWebView+Observaton.swift`](./IOSWebView/WKWebView+Extensions/WKWebView+Observaton.swift)
+[`WKWebView+Observation.swift`](./IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift)
 for the recovery logic.
 
 > 🧪 The `ios-webview` sample exposes both variants side-by-side as
@@ -298,7 +298,7 @@ The sample app ships a drop-in bridge as a `WKWebView` extension. The
 host wires it with one line after building the `WKWebView`:
 
 ```swift
-wv.configureObservation()
+wv.configureStreamVideoHostBridge()
 ```
 
 The observer subscribes to every relevant `AVAudioSession` notification,
@@ -337,6 +337,62 @@ Precedence inside `computeAudioHealthInfo`:
 
 Any unhealthy reason beats any healthy reason - that's why a W3C
 interruption is trusted even when the host bridge reports active.
+
+**Reference host implementation:**
+[`sample-apps/ios/ios-webview/IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift`](./IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift)
+wires `NotificationCenter.publisher(for:)` to
+`webView.evaluateJavaScript(...)` and forwards audio-session snapshots into
+the page.
+
+Third-party iOS WebView hosts embedding the SDK can copy
+`WKWebView+Observation.swift` verbatim or reimplement the contract - the JS
+event names and payloads are the stable part, the Swift extension is
+illustrative.
+
+### Host → page lifecycle bridge (iOS hosts)
+
+`AVAudioSession` interruption events are not enough to triage every
+audio bug. A common customer-reported pattern: a phone call interrupts a
+live call, ends, and the
+`AVAudioSession.interruptionNotification(.ended + .shouldResume)` fires
+_while the host app is still in the background_. WebKit's
+`RTCAudioSession` reactivates correctly, but the in-page SDK has no way
+to know "the user just returned to the app" and trigger any recovery it
+might owe (autoplay retries, `replaceTrack`, mic permission re-checks).
+
+To bridge that gap, the iOS host can forward UIApplication transitions
+into the page as a parallel `CustomEvent`:
+
+```ts
+// 'stream-video:host-lifecycle'
+interface HostLifecycleEvent {
+  schemaVersion: 1;
+  source: 'ios';
+  timestamp: number; // epoch ms
+  state: {
+    transition:
+      | 'didBecomeActive'
+      | 'willResignActive'
+      | 'didEnterBackground'
+      | 'willEnterForeground';
+  };
+}
+```
+
+**Contract:**
+
+- **Host side** fires once per `UIApplication.*Notification` it observes.
+  The four notifications above are sufficient - `applicationProtectedDataWillBecomeUnavailable`
+  and friends are not currently bridged.
+- **SDK side** does not yet consume this event as a first-class signal
+  (no reason code is derived from it). It is exposed today purely for
+  correlation in support logs and as a hook customers can listen to from
+  their React app to drive their own recovery flows. Wiring it into
+  `AudioHealthMonitor` is tracked under "Still open" below.
+
+**Reference host implementation:**
+[`sample-apps/ios/ios-webview/IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift`](./IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift).
+It dispatches lifecycle events beside the audio-session snapshots.
 
 ### Still open
 
@@ -430,7 +486,7 @@ mute event fired.
 ### From the host side
 
 > ℹ️ If you can afford a host bridge, drop in the `WKWebView` extension
-> the sample ships and call `wv.configureObservation()` once. The SDK
+> the sample ships and call `wv.configureStreamVideoHostBridge()` once. The SDK
 > consumes the resulting `stream-video:host-audio-session` event as a
 > first-class signal (`host-audio-session-interrupted` /
 > `host-audio-session-active`), which makes correlation unnecessary -
@@ -439,6 +495,8 @@ mute event fired.
 > See
 > [`HOST-AUDIO-SESSION-BRIDGE.md`](./HOST-AUDIO-SESSION-BRIDGE.md) for
 > the integration steps.
+> [`WKWebView+Observation.swift`](./IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift)
+> for the reference implementation.
 
 **1. Interruption-notification observer** - log every `began` and `ended`
 with the reason. If the ratio isn't 1:1, you have a bug.

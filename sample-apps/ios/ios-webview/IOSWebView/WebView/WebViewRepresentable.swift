@@ -1,4 +1,3 @@
-import Combine
 import SwiftUI
 import WebKit
 
@@ -11,11 +10,6 @@ final class WebController: ObservableObject {
     let navigationInterceptor = NavigationInterceptor()
     let consoleBridge = ConsoleBridge()
     let errorBridge = ErrorBridge()
-
-    private var audioSessionBridge: AudioSessionBridge?
-    private var audioSessionBridgeCancellable: AnyCancellable?
-    private var lifecycleBridge: LifecycleBridge?
-    private var lifecycleBridgeCancellable: AnyCancellable?
 
     lazy var audioScenarios: AudioScenarios = AudioScenarios()
 
@@ -46,15 +40,11 @@ final class WebController: ObservableObject {
         wv.navigationDelegate = navigationInterceptor
         if #available(iOS 16.4, *) { wv.isInspectable = true }
 
-        // This is important!!!!!
-        wv.configureObservation()
+        wv.configureStreamVideoHostBridge(
+            configuration: .init(logsEnabled: true)
+        )
 
         self.webView = wv
-    }
-
-    deinit {
-        audioSessionBridge?.stop()
-        lifecycleBridge?.stop()
     }
 
     func load(_ url: URL) {

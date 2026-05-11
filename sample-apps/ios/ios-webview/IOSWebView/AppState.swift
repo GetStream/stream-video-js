@@ -18,10 +18,9 @@ struct LogEntry: Identifiable {
 }
 
 /// Observable log + audio-session state shared between the SwiftUI views and
-/// the headless bridges (`AudioSessionBridge`, `LifecycleBridge`,
-/// `AudioScenarios`, etc.). `@Published` mutations are bounced to the main
-/// thread so that off-thread callers (e.g. CallKit / NotificationCenter) can
-/// safely call `log(_:_:_:)`.
+/// headless helpers such as `AudioScenarios`. `@Published` mutations are
+/// bounced to the main thread so off-thread callers can safely call
+/// `log(_:_:_:)`.
 final class AppState: ObservableObject {
     static let shared = AppState()
     private init() {

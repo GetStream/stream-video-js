@@ -13,8 +13,7 @@
 		29E1DD2F4D27C2F74A39C25E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319B6F992B4602D9A571E884 /* ContentView.swift */; };
 		33719CC1D6D7FC882065074A /* ScenariosMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB5BA7910C4FCACFA90C66A3 /* ScenariosMenu.swift */; };
 		3B8798B8AEEC33480469EFC8 /* PermissionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E013F718BC75F5AD6E4F3178 /* PermissionCoordinator.swift */; };
-		406942852FACC74500BC823D /* AVAudioSession+Observer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 406942842FACC74500BC823D /* AVAudioSession+Observer.swift */; };
-		406942882FACDD7C00BC823D /* WKWebView+Observaton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 406942872FACDD7C00BC823D /* WKWebView+Observaton.swift */; };
+		406942882FACDD7C00BC823D /* WKWebView+Observation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 406942872FACDD7C00BC823D /* WKWebView+Observation.swift */; };
 		423028E0A8D2848DB53C417A /* AudioScenarios.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4E71B2A1BECA28F7F3E3AD7 /* AudioScenarios.swift */; };
 		498377EE7CA24F5A0426C140 /* error-capture.js in Resources */ = {isa = PBXBuildFile; fileRef = 35429890281B5750745E6CA0 /* error-capture.js */; };
 		6225026E87FB6C90353547FA /* NavigationInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AC518543C212E9F5C3BD223 /* NavigationInterceptor.swift */; };
@@ -22,20 +21,16 @@
 		651FD5B731584E0524C3748E /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0B61D4F85004B9D8C6A2357 /* AppState.swift */; };
 		92FA665D6C543D4078839233 /* ConsoleBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8C95C0317F57AE066E511D3 /* ConsoleBridge.swift */; };
 		954B8D2BFE3631E88902F1EF /* ErrorBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF05510E92C48ACB89A6860 /* ErrorBridge.swift */; };
-		B3634A4F1B26E4771873EE32 /* LifecycleBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06BBE633A9755C57EBDDD765 /* LifecycleBridge.swift */; };
-		CD63E4DA58F02B5F4BA19BDF /* AudioSessionBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = E076529A2258BEC33B2903E9 /* AudioSessionBridge.swift */; };
 		D103BE82D7F108B09B3CFE60 /* console-mirror.js in Resources */ = {isa = PBXBuildFile; fileRef = BAF6B45004224C7276B8AE68 /* console-mirror.js */; };
 		E339C51CBDC5C3906FA25F90 /* ding.caf in Resources */ = {isa = PBXBuildFile; fileRef = 4D602AF2903F25E1E5512ED9 /* ding.caf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0270236FF923B373E3585429 /* IOSWebViewApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IOSWebViewApp.swift; sourceTree = "<group>"; };
-		06BBE633A9755C57EBDDD765 /* LifecycleBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LifecycleBridge.swift; sourceTree = "<group>"; };
 		319B6F992B4602D9A571E884 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		35429890281B5750745E6CA0 /* error-capture.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "error-capture.js"; sourceTree = "<group>"; };
 		387DBD1A5444E4EB9B9877CE /* IOSWebView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IOSWebView.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		406942842FACC74500BC823D /* AVAudioSession+Observer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AVAudioSession+Observer.swift"; sourceTree = "<group>"; };
-		406942872FACDD7C00BC823D /* WKWebView+Observaton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WKWebView+Observaton.swift"; sourceTree = "<group>"; };
+		406942872FACDD7C00BC823D /* WKWebView+Observation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "WKWebView+Observation.swift"; sourceTree = "<group>"; };
 		4D602AF2903F25E1E5512ED9 /* ding.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ding.caf; sourceTree = "<group>"; };
 		61B4AF4E42F84875AF1AC245 /* WebViewRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewRepresentable.swift; sourceTree = "<group>"; };
 		6BF05510E92C48ACB89A6860 /* ErrorBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorBridge.swift; sourceTree = "<group>"; };
@@ -47,7 +42,6 @@
 		C4E71B2A1BECA28F7F3E3AD7 /* AudioScenarios.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioScenarios.swift; sourceTree = "<group>"; };
 		CB5BA7910C4FCACFA90C66A3 /* ScenariosMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScenariosMenu.swift; sourceTree = "<group>"; };
 		E013F718BC75F5AD6E4F3178 /* PermissionCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionCoordinator.swift; sourceTree = "<group>"; };
-		E076529A2258BEC33B2903E9 /* AudioSessionBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionBridge.swift; sourceTree = "<group>"; };
 		E0B61D4F85004B9D8C6A2357 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -55,7 +49,7 @@
 		406942862FACDD5B00BC823D /* WKWebView+Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				406942872FACDD7C00BC823D /* WKWebView+Observaton.swift */,
+				406942872FACDD7C00BC823D /* WKWebView+Observation.swift */,
 			);
 			path = "WKWebView+Extensions";
 			sourceTree = "<group>";
@@ -63,11 +57,8 @@
 		5094496513CD5B4E638A86DA /* WebView */ = {
 			isa = PBXGroup;
 			children = (
-				406942842FACC74500BC823D /* AVAudioSession+Observer.swift */,
-				E076529A2258BEC33B2903E9 /* AudioSessionBridge.swift */,
 				A8C95C0317F57AE066E511D3 /* ConsoleBridge.swift */,
 				6BF05510E92C48ACB89A6860 /* ErrorBridge.swift */,
-				06BBE633A9755C57EBDDD765 /* LifecycleBridge.swift */,
 				8AC518543C212E9F5C3BD223 /* NavigationInterceptor.swift */,
 				E013F718BC75F5AD6E4F3178 /* PermissionCoordinator.swift */,
 				61B4AF4E42F84875AF1AC245 /* WebViewRepresentable.swift */,
@@ -217,19 +208,16 @@
 			files = (
 				651FD5B731584E0524C3748E /* AppState.swift in Sources */,
 				423028E0A8D2848DB53C417A /* AudioScenarios.swift in Sources */,
-				CD63E4DA58F02B5F4BA19BDF /* AudioSessionBridge.swift in Sources */,
-				406942882FACDD7C00BC823D /* WKWebView+Observaton.swift in Sources */,
+				406942882FACDD7C00BC823D /* WKWebView+Observation.swift in Sources */,
 				92FA665D6C543D4078839233 /* ConsoleBridge.swift in Sources */,
 				29E1DD2F4D27C2F74A39C25E /* ContentView.swift in Sources */,
 				187B1503E512FDE76E19CD0B /* DebugOverlay.swift in Sources */,
 				954B8D2BFE3631E88902F1EF /* ErrorBridge.swift in Sources */,
 				63EB5159F86853374E114490 /* IOSWebViewApp.swift in Sources */,
-				B3634A4F1B26E4771873EE32 /* LifecycleBridge.swift in Sources */,
 				6225026E87FB6C90353547FA /* NavigationInterceptor.swift in Sources */,
 				3B8798B8AEEC33480469EFC8 /* PermissionCoordinator.swift in Sources */,
 				33719CC1D6D7FC882065074A /* ScenariosMenu.swift in Sources */,
 				161794A3EE200083EB6D6717 /* WebViewRepresentable.swift in Sources */,
-				406942852FACC74500BC823D /* AVAudioSession+Observer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

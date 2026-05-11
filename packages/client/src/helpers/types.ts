@@ -145,7 +145,8 @@ export type HostAudioSessionRouteChangeReason =
  * `AVAudioSession.routeChangeNotification` and forwards each transition
  * into the page via
  * `window.dispatchEvent(new CustomEvent('stream-video:host-audio-session', { detail }))`.
- * See `sample-apps/ios/ios-webview/IOSWebView/WebView/AudioSessionBridge.swift`
+ * See
+ * `sample-apps/ios/ios-webview/IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift`
  * for the reference implementation.
  *
  * Dispatch contract (host side):
