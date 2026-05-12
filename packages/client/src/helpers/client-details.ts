@@ -137,6 +137,7 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
       sdk: sdkInfo,
       os: osInfo,
       device: deviceInfo,
+      webrtcVersion: webRtcInfo?.version || '',
     };
   }
 
@@ -190,5 +191,6 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
         .join(' '),
       version: '',
     },
+    webrtcVersion: webRtcInfo?.version || '',
   };
 };
