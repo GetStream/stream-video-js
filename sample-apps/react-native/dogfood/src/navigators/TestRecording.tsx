@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { TestRecordingStackParamList } from '../../types';
-import { TestRecordingScreen } from '../screens/TestRecording/CallTestRecordingScreen';
+import { TestRecordingScreen } from '../screens/TestRecording/TestRecordingScreen';
 import { NavigationHeader } from '../components/NavigationHeader';
 
 const TestRecordingStack =

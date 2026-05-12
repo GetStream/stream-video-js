@@ -55,24 +55,17 @@ export interface UseLoopbackRecordingResult {
    * Signal an early termination. While `awaiting-streams` this aborts
    * the wait and the pending `startRecording` resolves with `null`.
    * While `recording` this signals native finalisation and resolves
-   * once it completes — useful as a sync point before reading the
-   * recordings directory. The URI is **not** delivered here; it is
-   * returned by the still-pending promise from `startRecording`.
+   * once it completes.
    */
   stopRecording: () => Promise<void>;
   /**
    * Recursively delete every file under the SDK's recordings directory.
-   * Use this in app teardown or when the consumer is done with previously
-   * produced files. The directory is shared across any future recording
-   * use cases — consumers should be aware that this clears all of them.
    */
   clearRecordings: () => Promise<void>;
   /**
    * List every `file://` URI in the SDK's recordings directory, sorted
    * most-recent first. Returns an empty array if the directory doesn't
-   * exist yet (no recording has ever completed). Call this *after* the
-   * `startRecording` promise resolves (or `stopRecording` resolves) to
-   * avoid racing the disk flush.
+   * exist yet.
    */
   getRecordings: () => Promise<string[]>;
   /**
@@ -81,8 +74,6 @@ export interface UseLoopbackRecordingResult {
    *  - `'awaiting-streams'`: `startRecording` was called but the SFU
    *    has not yet echoed the loopback tracks back.
    *  - `'recording'`: native pipeline is actively writing.
-   *
-   * Drives UI button labels / disabled states.
    */
   recordingState: LoopbackRecordingState;
 }
@@ -97,8 +88,9 @@ export interface UseLoopbackRecordingResult {
  */
 export function useLoopbackRecording(): UseLoopbackRecordingResult {
   const call = useCall();
-  const { useCallCallingState } = useCallStateHooks();
+  const { useCallCallingState, useParticipantCount } = useCallStateHooks();
   const callingState = useCallCallingState();
+  const participantCount = useParticipantCount();
 
   const [recordingState, setRecordingState] =
     useState<LoopbackRecordingState>('idle');
@@ -138,8 +130,16 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
       if (!call) {
         return null;
       }
+
       if (recordingStateRef.current !== 'idle') {
         console.warn('useLoopbackRecording: a recording is already running');
+        return null;
+      }
+
+      if (call.state.participantCount > 1) {
+        console.warn(
+          'useLoopbackRecording: cannot start recording with other participants present',
+        );
         return null;
       }
 
@@ -216,11 +216,19 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
     }
   }, [callingState, stopRecording]);
 
-  // Auto-stop on unmount. Bounds the recording's lifetime to the component
-  // that started it. The pending `startRecording` promise still resolves
-  // (with the URI, or `null` if aborted while awaiting streams); consumers
-  // that need it after unmount must capture the promise via a stable
-  // ref/store outside the React tree.
+  // Auto-stop if another participant joins. Loopback recording is a
+  // single-user pre-call test — the moment a second participant arrives
+  // the call is no longer in self-sub territory, so the recording
+  // becomes meaningless and we tear it down.
+  useEffect(() => {
+    if (recordingState !== 'idle' && participantCount > 1) {
+      videoLoggerSystem
+        .getLogger('useLoopbackRecording')
+        .warn(`auto-stopping recording: participantCount=${participantCount}`);
+      stopRecording().catch(() => {});
+    }
+  }, [participantCount, recordingState, stopRecording]);
+
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
