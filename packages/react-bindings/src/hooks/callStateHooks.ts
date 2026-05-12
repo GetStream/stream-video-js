@@ -503,7 +503,7 @@ export const useIncomingVideoSettings = () => {
 
 /**
  * Static fallback emitted on React Native and any environment where
- * `AudioHealthMonitor` isn't constructed. Module-scope so the
+ * `MediaHealthMonitor` isn't constructed. Module-scope so the
  * `useObservableValue` dep reference stays stable across renders.
  */
 const AUTOPLAY_UNBLOCKED$ = of(false);
@@ -512,7 +512,7 @@ const AUTOPLAY_UNBLOCKED$ = of(false);
  * Returns whether the browser's autoplay policy is blocking audio playback.
  *
  * When the browser blocks audio autoplay (e.g., no prior user interaction),
- * this hook returns `true`. Use `call.resumeAudio()` inside a click handler
+ * this hook returns `true`. Use `call.resumeMedia()` inside a click handler
  * to unblock audio playback. Returns `false` on React Native.
  */
 export const useIsAutoplayBlocked = (): boolean => {
@@ -524,7 +524,7 @@ export const useIsAutoplayBlocked = (): boolean => {
 
 /**
  * Static fallback emitted on React Native (and any environment where
- * `AudioHealthMonitor` isn't constructed). Declared at module scope so the
+ * `MediaHealthMonitor` isn't constructed). Declared at module scope so the
  * `useObservableValue` dep reference stays stable across renders.
  */
 const UNKNOWN_AUDIO_HEALTH$ = of<AudioHealthInfo>({
@@ -536,7 +536,7 @@ const UNKNOWN_AUDIO_HEALTH$ = of<AudioHealthInfo>({
 /**
  * Reactive audio-pipeline health for the current {@link Call}.
  *
- * Subscribes to {@link AudioHealthMonitor.audioHealth$} and re-renders on
+ * Subscribes to {@link MediaHealthMonitor.audioHealth$} and re-renders on
  * each emission. When no monitor is attached (React Native, or before the
  * call is fully constructed), returns a static
  * `{ status: 'unknown', reason: 'pending', direction: 'both' }`.

@@ -5,12 +5,12 @@
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { AudioHealthInfo, AudioHealthMonitor } from '../AudioHealthMonitor';
+import { AudioHealthInfo, MediaHealthMonitor } from '../MediaHealthMonitor';
 import { Tracer } from '../../stats';
 import { getCurrentValue } from '../../store/rxUtils';
 import { HOST_AUDIO_SESSION_EVENT, type HostAudioSessionEvent } from '../types';
 
-describe('AudioHealthMonitor', () => {
+describe('MediaHealthMonitor', () => {
   // Stub a minimal `navigator.audioSession` so the browser-only detection
   // pipeline has something to attach to under happy-dom (which doesn't model
   // the W3C Audio Session API yet).
@@ -53,7 +53,7 @@ describe('AudioHealthMonitor', () => {
     delete globalThis.navigator.audioSession;
   };
 
-  const createdMonitors: AudioHealthMonitor[] = [];
+  const createdMonitors: MediaHealthMonitor[] = [];
 
   beforeEach(() => {
     installAudioSession();
@@ -71,7 +71,7 @@ describe('AudioHealthMonitor', () => {
   });
 
   const newMonitor = () => {
-    const monitor = new AudioHealthMonitor(tracer);
+    const monitor = new MediaHealthMonitor(tracer);
     createdMonitors.push(monitor);
     return monitor;
   };
@@ -83,6 +83,18 @@ describe('AudioHealthMonitor', () => {
    */
   const makeBlockedElement = (playMock?: Mock): HTMLAudioElement => {
     const el = document.createElement('audio');
+    Object.defineProperty(el, 'srcObject', { writable: true });
+    el.srcObject = new MediaStream();
+    vi.spyOn(el, 'play').mockImplementation(playMock ?? vi.fn());
+    return el;
+  };
+
+  /**
+   * Same idea as {@link makeBlockedElement} but for `<video>` - happy-dom's
+   * default `<video>` element won't resolve `.play()` either.
+   */
+  const makeVideoElement = (playMock?: Mock): HTMLVideoElement => {
+    const el = document.createElement('video');
     Object.defineProperty(el, 'srcObject', { writable: true });
     el.srcObject = new MediaStream();
     vi.spyOn(el, 'play').mockImplementation(playMock ?? vi.fn());
@@ -379,10 +391,10 @@ describe('AudioHealthMonitor', () => {
   });
 
   // -------------------------------------------------------------------------
-  // resumeAudio()
+  // resumeMedia()
   // -------------------------------------------------------------------------
 
-  it('resumeAudio() calls .play() on each blocked element and removes resolved ones', async () => {
+  it('resumeMedia() calls .play() on each blocked element and removes resolved ones', async () => {
     const monitor = newMonitor();
     monitor.start();
 
@@ -397,7 +409,7 @@ describe('AudioHealthMonitor', () => {
     monitor.updateAutoplayBlockedState(elB, true);
     expect(getCurrentValue(monitor.autoplayBlocked$)).toBe(true);
 
-    await monitor.resumeAudio();
+    await monitor.resumeMedia();
 
     expect(playOk).toHaveBeenCalled();
     expect(playFail).toHaveBeenCalled();
@@ -409,7 +421,7 @@ describe('AudioHealthMonitor', () => {
     expect(remaining.has(elB)).toBe(true);
   });
 
-  it('resumeAudio() clears the set when every blocked play() resolves', async () => {
+  it('resumeMedia() clears the set when every blocked play() resolves', async () => {
     const monitor = newMonitor();
     monitor.start();
 
@@ -417,7 +429,7 @@ describe('AudioHealthMonitor', () => {
     monitor.updateAutoplayBlockedState(el, true);
     expect(getCurrentValue(monitor.autoplayBlocked$)).toBe(true);
 
-    await monitor.resumeAudio();
+    await monitor.resumeMedia();
 
     expect(getCurrentValue(monitor.autoplayBlocked$)).toBe(false);
     // Transition from autoplay-blocked → audio-session-active flowed
@@ -429,7 +441,7 @@ describe('AudioHealthMonitor', () => {
     });
   });
 
-  it('resumeAudio() calls .play() on paused-live elements and removes resolved ones', async () => {
+  it('resumeMedia() calls .play() on paused-live elements and removes resolved ones', async () => {
     const monitor = newMonitor();
     monitor.start();
 
@@ -443,7 +455,7 @@ describe('AudioHealthMonitor', () => {
     monitor.updateElementPausedState(elA, true);
     monitor.updateElementPausedState(elB, true);
 
-    await monitor.resumeAudio();
+    await monitor.resumeMedia();
 
     expect(playOk).toHaveBeenCalled();
     expect(playFail).toHaveBeenCalled();
@@ -1070,5 +1082,256 @@ describe('AudioHealthMonitor', () => {
     expect(getCurrentValue(monitor.audioHealth$).reason).not.toBe(
       'element-paused',
     );
+  });
+
+  // -------------------------------------------------------------------------
+  // Paused video elements
+  // -------------------------------------------------------------------------
+  //
+  // The monitor mirrors the paused-audio retry loop for `<video>` elements
+  // that the iOS WebView pauses during an `AVAudioSession` interruption.
+  // Same bounded retry, same interruption gates, but silent - video pause
+  // must never emit on `audioHealth$` (the signal stays audio-only).
+
+  it('updateVideoElementPausedState(true) schedules a retry that calls .play()', async () => {
+    vi.useFakeTimers();
+    const monitor = newMonitor();
+    monitor.start();
+
+    const play = vi.fn().mockResolvedValue(undefined);
+    const el = makeVideoElement(play);
+    monitor.updateVideoElementPausedState(el, true);
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(play).toHaveBeenCalled();
+    // @ts-expect-error private property
+    expect(monitor.pausedVideoElementsSubject.getValue().has(el)).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it('paused video retry stops at the max-attempts cap', async () => {
+    vi.useFakeTimers();
+    const monitor = newMonitor();
+    monitor.start();
+
+    const play = vi.fn().mockRejectedValue(new DOMException('', 'AbortError'));
+    const el = makeVideoElement(play);
+    monitor.updateVideoElementPausedState(el, true);
+
+    // 6 attempts: initial (delay 0) + 5 retries (delay 500 each).
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(500 * 6);
+
+    expect(play).toHaveBeenCalledTimes(6);
+    // @ts-expect-error private property
+    expect(monitor.pausedVideoElementsSubject.getValue().has(el)).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it('paused video retry is suppressed while host-bridge interruption is began', async () => {
+    vi.useFakeTimers();
+    const monitor = newMonitor();
+    monitor.start();
+
+    dispatchHostEvent(
+      makeHostEvent({ interruption: { type: 'began', reason: null } }),
+    );
+
+    const play = vi.fn().mockResolvedValue(undefined);
+    const el = makeVideoElement(play);
+    monitor.updateVideoElementPausedState(el, true);
+
+    await vi.advanceTimersByTimeAsync(500 * 10);
+
+    expect(play).not.toHaveBeenCalled();
+    // @ts-expect-error private property
+    expect(monitor.pausedVideoElementsSubject.getValue().has(el)).toBe(true);
+    vi.useRealTimers();
+  });
+
+  it('paused video retry is suppressed while audioSessionState is interrupted', async () => {
+    vi.useFakeTimers();
+    const monitor = newMonitor();
+    monitor.start();
+    audioSessionStub.state = 'interrupted';
+    audioSessionStub.emitStateChange();
+
+    const play = vi.fn().mockResolvedValue(undefined);
+    const el = makeVideoElement(play);
+    monitor.updateVideoElementPausedState(el, true);
+
+    await vi.advanceTimersByTimeAsync(500 * 10);
+
+    expect(play).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('paused video retry is suppressed while audioContext is interrupted', async () => {
+    vi.useFakeTimers();
+    const monitor = newMonitor();
+    monitor.start();
+    // @ts-expect-error private property
+    const probe = monitor.audioContext as AudioContext & { state: string };
+    // Make probe.resume() fail so the probe-context recovery loop can't
+    // clear the interruption mid-test.
+    // @ts-expect-error override the mock
+    probe.resume = vi
+      .fn()
+      .mockRejectedValue(new DOMException('', 'AbortError'));
+    probe.state = 'interrupted';
+    // @ts-expect-error private method
+    monitor.onAudioContextStateChange();
+
+    const play = vi.fn().mockResolvedValue(undefined);
+    const el = makeVideoElement(play);
+    monitor.updateVideoElementPausedState(el, true);
+
+    await vi.advanceTimersByTimeAsync(500 * 10);
+
+    expect(play).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('paused video retry restarts when host-bridge interruption clears', async () => {
+    vi.useFakeTimers();
+    const monitor = newMonitor();
+    monitor.start();
+    dispatchHostEvent(
+      makeHostEvent({ interruption: { type: 'began', reason: null } }),
+    );
+
+    const play = vi.fn().mockResolvedValue(undefined);
+    const el = makeVideoElement(play);
+    monitor.updateVideoElementPausedState(el, true);
+    await vi.advanceTimersByTimeAsync(500 * 2);
+    expect(play).not.toHaveBeenCalled();
+
+    // Interruption ends.
+    dispatchHostEvent(
+      makeHostEvent({ interruption: { type: 'ended', reason: null } }),
+    );
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(play).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('paused video retry restarts when W3C audio session goes active', async () => {
+    vi.useFakeTimers();
+    const monitor = newMonitor();
+    monitor.start();
+    audioSessionStub.state = 'interrupted';
+    audioSessionStub.emitStateChange();
+
+    const play = vi.fn().mockResolvedValue(undefined);
+    const el = makeVideoElement(play);
+    monitor.updateVideoElementPausedState(el, true);
+    await vi.advanceTimersByTimeAsync(500 * 2);
+    expect(play).not.toHaveBeenCalled();
+
+    audioSessionStub.state = 'active';
+    audioSessionStub.emitStateChange();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(play).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('paused video retry restarts when probe AudioContext clears interruption', async () => {
+    vi.useFakeTimers();
+    const monitor = newMonitor();
+    monitor.start();
+    // @ts-expect-error private property
+    const probe = monitor.audioContext as AudioContext & { state: string };
+    // Same as above - block auto-recovery so we control the transition.
+    // @ts-expect-error override the mock
+    probe.resume = vi
+      .fn()
+      .mockRejectedValue(new DOMException('', 'AbortError'));
+    probe.state = 'interrupted';
+    // @ts-expect-error private method
+    monitor.onAudioContextStateChange();
+
+    const play = vi.fn().mockResolvedValue(undefined);
+    const el = makeVideoElement(play);
+    monitor.updateVideoElementPausedState(el, true);
+    await vi.advanceTimersByTimeAsync(500 * 2);
+    expect(play).not.toHaveBeenCalled();
+
+    probe.state = 'running';
+    // @ts-expect-error private method
+    monitor.onAudioContextStateChange();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(play).toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it('stop() clears the paused-video set and recovery timer', async () => {
+    vi.useFakeTimers();
+    const monitor = newMonitor();
+    monitor.start();
+
+    const play = vi.fn().mockRejectedValue(new DOMException('', 'AbortError'));
+    const el = makeVideoElement(play);
+    monitor.updateVideoElementPausedState(el, true);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(play).toHaveBeenCalledTimes(1);
+
+    await monitor.stop();
+
+    // @ts-expect-error private property
+    expect(monitor.pausedVideoElementsSubject.getValue().size).toBe(0);
+    // After stop, no scheduled timer should fire more play attempts.
+    await vi.advanceTimersByTimeAsync(500 * 10);
+    expect(play).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it('updateVideoElementPausedState does NOT emit on audioHealth$', async () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    const emissions: AudioHealthInfo[] = [];
+    const sub = monitor.audioHealth$.subscribe((info) => emissions.push(info));
+    const baselineCount = emissions.length;
+
+    const el = makeVideoElement();
+    monitor.updateVideoElementPausedState(el, true);
+    monitor.updateVideoElementPausedState(el, false);
+
+    expect(emissions.length).toBe(baselineCount);
+    sub.unsubscribe();
+  });
+
+  it('updateVideoElementPausedState(el, false) on an unknown element is a no-op', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    const el = makeVideoElement();
+    // No prior `true` for this element.
+    expect(() =>
+      monitor.updateVideoElementPausedState(el, false),
+    ).not.toThrow();
+    // @ts-expect-error private property
+    expect(monitor.pausedVideoElementsSubject.getValue().size).toBe(0);
+  });
+
+  it('resumeMedia() kicks both audio and video recovery loops', async () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    const playAudio = vi.fn().mockResolvedValue(undefined);
+    const playVideo = vi.fn().mockResolvedValue(undefined);
+    const audioEl = makeBlockedElement(playAudio);
+    const videoEl = makeVideoElement(playVideo);
+
+    monitor.updateElementPausedState(audioEl, true);
+    monitor.updateVideoElementPausedState(videoEl, true);
+
+    await monitor.resumeMedia();
+
+    expect(playAudio).toHaveBeenCalled();
+    expect(playVideo).toHaveBeenCalled();
   });
 });

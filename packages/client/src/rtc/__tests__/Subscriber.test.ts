@@ -426,7 +426,7 @@ describe('Subscriber', () => {
 
       // The replacement path stops + removes oldTrack but the browser
       // doesn't dispatch `'ended'`. The Subscriber must synthesise it
-      // so AudioHealthMonitor doesn't carry the stale `muted` entry.
+      // so MediaHealthMonitor doesn't carry the stale `muted` entry.
       expect(cb).toHaveBeenCalledWith(oldTrack, 'ended');
       expect(oldTrack.stop).toHaveBeenCalled();
     });

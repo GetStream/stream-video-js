@@ -32,7 +32,7 @@ declare global {
 /**
  * Name of the `CustomEvent` an iOS `WKWebView` host dispatches on `window`
  * to report `AVAudioSession` state into the embedded page. The SDK's
- * `AudioHealthMonitor` listens for this event and treats its payload as
+ * `MediaHealthMonitor` listens for this event and treats its payload as
  * the authoritative ground-truth signal for audio-session health on iOS,
  * beating the in-page W3C `navigator.audioSession.state` signal when both
  * are available.

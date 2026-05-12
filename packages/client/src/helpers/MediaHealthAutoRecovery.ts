@@ -7,14 +7,14 @@ import type {
   AudioHealthInfo,
   AudioHealthReason,
   AudioHealthStatus,
-} from './AudioHealthMonitor';
+} from './MediaHealthMonitor';
 
 /**
- * Tunable configuration for {@link AudioHealthAutoRecovery}.
+ * Tunable configuration for {@link MediaHealthAutoRecovery}.
  *
  * @experimental
  */
-export interface AudioHealthAutoRecoveryConfig {
+export interface MediaHealthAutoRecoveryConfig {
   /**
    * Auto-mute the local mic on `healthy → unhealthy` transitions whose
    * `direction` includes the capture path (`'capture'` or `'both'`).
@@ -61,7 +61,7 @@ export interface AudioHealthAutoRecoveryConfig {
 }
 
 /**
- * Reacts to `AudioHealthMonitor.audioHealth$` transitions and applies
+ * Reacts to `MediaHealthMonitor.audioHealth$` transitions and applies
  * recovery actions to the local mic and camera.
  *
  * @experimental
@@ -78,17 +78,17 @@ export interface AudioHealthAutoRecoveryConfig {
  *   acquisition. Skips disabled devices so a previously auto-muted user
  *   stays muted (no auto-unmute).
  *
- * Lifecycle mirrors {@link AudioHealthMonitor}: `start()` is idempotent
+ * Lifecycle mirrors {@link MediaHealthMonitor}: `start()` is idempotent
  * and called by `Call` on SFU connect; `stop()` is idempotent and called
  * on SFU disconnect/leave.
  */
-export class AudioHealthAutoRecovery {
-  private logger = videoLoggerSystem.getLogger('AudioHealthAutoRecovery');
+export class MediaHealthAutoRecovery {
+  private logger = videoLoggerSystem.getLogger('MediaHealthAutoRecovery');
   private readonly audioHealth$: Observable<AudioHealthInfo>;
   private readonly microphone: MicrophoneManager;
   private readonly camera: CameraManager;
   private readonly tracer: Tracer;
-  private readonly config: Required<AudioHealthAutoRecoveryConfig> = {
+  private readonly config: Required<MediaHealthAutoRecoveryConfig> = {
     autoMuteOnInterruption: true,
     autoCycleMic: true,
     autoCycleCamera: false,
@@ -109,7 +109,7 @@ export class AudioHealthAutoRecovery {
     microphone: MicrophoneManager,
     camera: CameraManager,
     tracer: Tracer,
-    config: AudioHealthAutoRecoveryConfig,
+    config: MediaHealthAutoRecoveryConfig,
   ) {
     this.audioHealth$ = audioHealth$;
     this.microphone = microphone;
@@ -156,7 +156,7 @@ export class AudioHealthAutoRecovery {
   /**
    * Replaces the active config without tearing down the subscription.
    */
-  updateConfig = (next: AudioHealthAutoRecoveryConfig) => {
+  updateConfig = (next: MediaHealthAutoRecoveryConfig) => {
     Object.assign(this.config, next);
   };
 

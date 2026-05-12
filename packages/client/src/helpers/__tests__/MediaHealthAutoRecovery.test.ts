@@ -4,22 +4,22 @@
 
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
 import { BehaviorSubject } from 'rxjs';
-import { AudioHealthAutoRecovery } from '../AudioHealthAutoRecovery';
+import { MediaHealthAutoRecovery } from '../MediaHealthAutoRecovery';
 import type {
   AudioHealthDirection,
   AudioHealthInfo,
   AudioHealthReason,
   AudioHealthStatus,
-} from '../AudioHealthMonitor';
+} from '../MediaHealthMonitor';
 import { CameraManager, MicrophoneManager } from '../../devices';
 import { Tracer } from '../../stats';
 
-describe('AudioHealthAutoRecovery', () => {
+describe('MediaHealthAutoRecovery', () => {
   let audioHealth$: BehaviorSubject<AudioHealthInfo>;
   let mic: { state: { status: string }; disable: Mock; enable: Mock };
   let cam: { state: { status: string }; disable: Mock; enable: Mock };
   let tracer: Tracer;
-  const recoveries: AudioHealthAutoRecovery[] = [];
+  const recoveries: MediaHealthAutoRecovery[] = [];
 
   const makeDevice = (status: 'enabled' | 'disabled' | undefined) => ({
     state: { status: status ?? 'disabled' },
@@ -45,7 +45,7 @@ describe('AudioHealthAutoRecovery', () => {
   });
 
   const newRecovery = (config = {}) => {
-    const r = new AudioHealthAutoRecovery(
+    const r = new MediaHealthAutoRecovery(
       audioHealth$,
       mic as unknown as MicrophoneManager,
       cam as unknown as CameraManager,

@@ -716,7 +716,7 @@ describe('DynascaleManager', () => {
         true,
       );
 
-      await call.audioHealthMonitor!.resumeAudio();
+      await call.audioHealthMonitor!.resumeMedia();
       await vi.advanceTimersByTimeAsync(0);
 
       expect(playSpy).toHaveBeenCalledTimes(2);
@@ -852,6 +852,125 @@ describe('DynascaleManager', () => {
 
       cleanup1?.();
       cleanup2?.();
+    });
+
+    it('video: forwards pause/play events to MediaHealthMonitor', () => {
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+
+      // Wire a real MediaStream into the participant so the bind's
+      // streamSubscription assigns it to videoElement.srcObject. Then
+      // mock getVideoTracks to report a live track, which is what the
+      // pause-listener's benign-pause filter checks.
+      const mediaStream = new MediaStream();
+      vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
+        { readyState: 'live' } as MediaStreamTrack,
+      ]);
+      call.state.updateParticipant('session-id', {
+        publishedTracks: [TrackType.VIDEO],
+        videoStream: mediaStream,
+      });
+
+      videoElement.dispatchEvent(new Event('pause'));
+      expect(
+        // @ts-expect-error private property
+        call
+          .audioHealthMonitor!.pausedVideoElementsSubject.getValue()
+          .has(videoElement),
+      ).toBe(true);
+
+      videoElement.dispatchEvent(new Event('play'));
+      expect(
+        // @ts-expect-error private property
+        call
+          .audioHealthMonitor!.pausedVideoElementsSubject.getValue()
+          .has(videoElement),
+      ).toBe(false);
+
+      cleanup?.();
+    });
+
+    it('video: filters benign pauses (no live tracks)', () => {
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+
+      // No videoStream on the participant - bind leaves srcObject null,
+      // so the pause-listener's liveness check filters the event out.
+      videoElement.dispatchEvent(new Event('pause'));
+      expect(
+        // @ts-expect-error private property
+        call
+          .audioHealthMonitor!.pausedVideoElementsSubject.getValue()
+          .has(videoElement),
+      ).toBe(false);
+
+      cleanup?.();
+    });
+
+    it('video: cleanup detaches pause/play listeners and clears paused state', () => {
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
+        { readyState: 'live' } as MediaStreamTrack,
+      ]);
+      call.state.updateParticipant('session-id', {
+        publishedTracks: [TrackType.VIDEO],
+        videoStream: mediaStream,
+      });
+
+      videoElement.dispatchEvent(new Event('pause'));
+      expect(
+        // @ts-expect-error private property
+        call.audioHealthMonitor!.pausedVideoElementsSubject.getValue().size,
+      ).toBe(1);
+
+      cleanup?.();
+
+      // Cleanup must drop the element from the recovery set so a
+      // still-paused unbound element doesn't keep the loop alive.
+      expect(
+        // @ts-expect-error private property
+        call.audioHealthMonitor!.pausedVideoElementsSubject.getValue().size,
+      ).toBe(0);
+
+      // Further pause events on the detached element are no-ops.
+      videoElement.dispatchEvent(new Event('pause'));
+      expect(
+        // @ts-expect-error private property
+        call.audioHealthMonitor!.pausedVideoElementsSubject.getValue().size,
+      ).toBe(0);
     });
 
     it('video: should unsubscribe when element dimensions are zero', () => {

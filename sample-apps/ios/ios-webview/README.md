@@ -98,7 +98,7 @@ On the phone:
 - **Host audio-session bridge** -
   [`WKWebView+Observation.swift`](./IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift)
   observes `AVAudioSession` and `UIApplication` notifications and forwards
-  snapshots into the page. The SDK's `AudioHealthMonitor` consumes the
+  snapshots into the page. The SDK's `MediaHealthMonitor` consumes the
   audio-session events and emits the `host-audio-session-interrupted` /
   `host-audio-session-active` reason codes. See
   [`AUDIO-SESSIONS.md`](./AUDIO-SESSIONS.md) for the protocol contract.

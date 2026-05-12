@@ -35,12 +35,25 @@ const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
  * with `NotAllowedError` (autoplay policy block; `blocked === true`) or
  * the binding's `srcObject` is cleared so the autoplay-blocked state no
  * longer applies (`blocked === false`). `Call` provides this at
- * construction time to route the signal into `AudioHealthMonitor`
+ * construction time to route the signal into `MediaHealthMonitor`
  * without coupling `DynascaleManager` to the monitor's API.
  */
 export type OnAutoplayBlockedChange = (
   audioElement: HTMLAudioElement,
   blocked: boolean,
+) => void;
+
+/**
+ * Callback the manager emits when a bound `<video>` element fires
+ * `'pause'` while its `srcObject` still has at least one live video
+ * track (`paused === true`), or `'play'` resumes playback
+ * (`paused === false`). `Call` provides this at construction time to
+ * route the signal into `MediaHealthMonitor` without coupling
+ * `DynascaleManager` to the monitor's API.
+ */
+export type OnVideoElementPausedChange = (
+  videoElement: HTMLVideoElement,
+  paused: boolean,
 ) => void;
 
 /**
@@ -61,6 +74,7 @@ export class DynascaleManager {
   readonly viewportTracker = new ViewportTracker();
   private trackSubscriptionManager: TrackSubscriptionManager;
   private readonly onAutoplayBlockedChange: OnAutoplayBlockedChange;
+  private readonly onVideoElementPausedChange: OnVideoElementPausedChange;
 
   /**
    * Creates a new DynascaleManager instance.
@@ -71,12 +85,14 @@ export class DynascaleManager {
     tracer: Tracer,
     trackSubscriptionManager: TrackSubscriptionManager,
     onAutoplayBlockedChange: OnAutoplayBlockedChange,
+    onVideoElementPausedChange: OnVideoElementPausedChange,
   ) {
     this.callState = callState;
     this.speaker = speaker;
     this.tracer = tracer;
     this.trackSubscriptionManager = trackSubscriptionManager;
     this.onAutoplayBlockedChange = onAutoplayBlockedChange;
+    this.onVideoElementPausedChange = onVideoElementPausedChange;
   }
 
   /**
@@ -330,6 +346,22 @@ export class DynascaleManager {
     // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
     videoElement.muted = true;
 
+    // Forward pause/play to MediaHealthMonitor so paused-live videos
+    // (iOS WebView audio-session interruption symptom) get auto-resumed.
+    // Benign pauses (unbind, end-of-stream) leave only ended tracks and
+    // are filtered here so the recovery loop doesn't churn.
+    const onPause = () => {
+      const srcObject = videoElement.srcObject as MediaStream | null;
+      const tracks = srcObject?.getVideoTracks();
+      if (!tracks?.some((t) => t.readyState === 'live')) return;
+      this.onVideoElementPausedChange(videoElement, true);
+    };
+    const onPlay = () => {
+      this.onVideoElementPausedChange(videoElement, false);
+    };
+    videoElement.addEventListener('pause', onPause);
+    videoElement.addEventListener('play', onPlay);
+
     const trackKey = isVideoTrack ? 'videoStream' : 'screenShareStream';
     const streamSubscription = participant$
       .pipe(distinctUntilKeyChanged(trackKey))
@@ -356,6 +388,9 @@ export class DynascaleManager {
       publishedTracksSubscription?.unsubscribe();
       streamSubscription.unsubscribe();
       resizeObserver?.disconnect();
+      videoElement.removeEventListener('pause', onPause);
+      videoElement.removeEventListener('play', onPlay);
+      this.onVideoElementPausedChange(videoElement, false);
     };
   };
 
@@ -409,7 +444,7 @@ export class DynascaleManager {
     // Captured by every async handler below so a `play().catch` arriving
     // after cleanup can't re-register the now-detached element as
     // autoplay-blocked. Without this guard the element gets stuck in
-    // `AudioHealthMonitor.blockedAudioElementsSubject` forever.
+    // `MediaHealthMonitor.blockedAudioElementsSubject` forever.
     let isDisposed = false;
 
     const isAudioTrack = trackType === 'audioTrack';

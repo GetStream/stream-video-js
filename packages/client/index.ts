@@ -19,7 +19,7 @@ export * from './src/store';
 export * from './src/sorting';
 export * from './src/helpers/client-details';
 export * from './src/helpers/humanize';
-export * from './src/helpers/AudioHealthMonitor';
+export * from './src/helpers/MediaHealthMonitor';
 export {
   HOST_AUDIO_SESSION_EVENT,
   type AudioSessionState,
@@ -33,7 +33,7 @@ export {
   type HostAudioSessionRoute,
   type HostAudioSessionRouteChangeReason,
 } from './src/helpers/types';
-export * from './src/helpers/AudioHealthAutoRecovery';
+export * from './src/helpers/MediaHealthAutoRecovery';
 export * from './src/helpers/DynascaleManager';
 export * from './src/helpers/ViewportTracker';
 export * from './src/helpers/sound-detector';

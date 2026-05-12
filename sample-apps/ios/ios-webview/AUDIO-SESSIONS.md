@@ -236,7 +236,7 @@ Common offenders:
 ### What the SDK provides for detection & recovery
 
 The client SDK (`@stream-io/video-client`, surfaced via
-`@stream-io/video-react-sdk`) ships an `AudioHealthMonitor` owned by each
+`@stream-io/video-react-sdk`) ships a `MediaHealthMonitor` owned by each
 `Call`'s `DynascaleManager`. It exposes:
 
 - **`audioHealth$` observable + `useAudioHealth()` React hook** returning
@@ -257,11 +257,12 @@ The client SDK (`@stream-io/video-client`, surfaced via
     audio track is unmuted and no bound element is paused - flips
     Chrome/Firefox out of `'unsupported'`),
     `'not-started'` / `'unsupported'` (pre-start or no usable signal yet).
-- **`call.resumeAudio()`** - iterates every `<audio>` element the SDK
-  tracked as autoplay-blocked or paused while still bound to a live
-  `MediaStream`, then retries `.play()` on each. Autoplay-blocked elements
-  still need a user gesture; paused-live elements are also retried
-  automatically after transient interruptions.
+- **`call.resumeMedia()`** (and the deprecated `call.resumeAudio()` alias) -
+  iterates every `<audio>` and `<video>` element the SDK tracked as
+  autoplay-blocked or paused while still bound to a live `MediaStream`,
+  then retries `.play()` on each. Autoplay-blocked elements still need a
+  user gesture; paused-live elements are also retried automatically
+  after transient interruptions.
 - **Automatic `navigator.audioSession.type = 'play-and-record'` hint** -
   the monitor writes this on call-join and restores the original on
   leave, nudging WebKit toward a WebRTC-friendly `AVAudioSession`
@@ -276,7 +277,7 @@ function AudioHealthBadge({ call }) {
   const { status, reason } = useAudioHealth();
   if (reason === 'autoplay-blocked') {
     return (
-      <button onClick={() => call.resumeAudio()}>Tap to enable audio</button>
+      <button onClick={() => call.resumeMedia()}>Tap to enable audio</button>
     );
   }
   if (status === 'unhealthy')
@@ -320,7 +321,7 @@ window.addEventListener('stream-video:host-audio-session', (event) => {
 ```
 
 When `interruption.type === 'began'` arrives without a later `'ended'`,
-`AudioHealthMonitor` flips to
+`MediaHealthMonitor` flips to
 `{ status: 'unhealthy', reason: 'host-audio-session-interrupted' }`.
 Otherwise it reports `host-audio-session-active`. Both beat the W3C
 reason codes at the same healthy/unhealthy tier - the native observer
@@ -389,7 +390,7 @@ interface HostLifecycleEvent {
   (no reason code is derived from it). It is exposed today purely for
   correlation in support logs and as a hook customers can listen to from
   their React app to drive their own recovery flows. Wiring it into
-  `AudioHealthMonitor` is tracked under "Still open" below.
+  `MediaHealthMonitor` is tracked under "Still open" below.
 
 **Reference host implementation:**
 [`sample-apps/ios/ios-webview/IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift`](./IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift).
@@ -437,7 +438,7 @@ No matter how sophisticated the SDK, it cannot:
 
 **1. `AudioContext` state - the cleanest single signal**
 
-This is exactly what `AudioHealthMonitor`'s probe `AudioContext` does
+This is exactly what `MediaHealthMonitor`'s probe `AudioContext` does
 internally. Use it directly only if you need the raw transition events.
 
 ```javascript
@@ -459,7 +460,7 @@ live `AudioContext` in the process when the session is disrupted.
 
 **2. Per-track mute events**
 
-Not yet aggregated by `AudioHealthMonitor` - tracked in the
+Not yet aggregated by `MediaHealthMonitor` - tracked in the
 chrome-coverage TODO as the future `'remote-tracks-muted'` reason code.
 Today it's a useful DIY signal on Chrome / Firefox where the probe
 `AudioContext` has no `'interrupted'` state.
@@ -600,7 +601,7 @@ exercises every scenario in this doc. It provides:
 - Native-side session manipulation actions - both well-behaved
   (`Restore audio (native)`) and hostile (`Play ding (exclusive)`,
   `Play ding (exclusive, NO restore)`).
-- JS-side interruption detection via the SDK's `AudioHealthMonitor`, which
+- JS-side interruption detection via the SDK's `MediaHealthMonitor`, which
   the tutorial subscribes to through `useAudioHealth()` and renders as a
   color-coded badge. The hook's `status` + `reason` flip through
   `healthy → unhealthy (audio-session-interrupted)` and back during the

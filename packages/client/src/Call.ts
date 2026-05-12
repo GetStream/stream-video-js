@@ -145,11 +145,11 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
-import { AudioHealthMonitor } from './helpers/AudioHealthMonitor';
+import { MediaHealthMonitor } from './helpers/MediaHealthMonitor';
 import {
-  AudioHealthAutoRecovery,
-  type AudioHealthAutoRecoveryConfig,
-} from './helpers/AudioHealthAutoRecovery';
+  MediaHealthAutoRecovery,
+  type MediaHealthAutoRecoveryConfig,
+} from './helpers/MediaHealthAutoRecovery';
 import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
@@ -251,16 +251,17 @@ export class Call {
   /**
    * Detects audio-pipeline failure signals (OS audio-session interruption
    * on Safari, browser autoplay blocks) and owns recovery via
-   * `resumeAudio()`. Undefined on React Native - RN surfaces audio
-   * interruption through the native bridge instead.
+   * `resumeMedia()`. Also auto-resumes paused `<video>` elements caused
+   * by the same iOS audio-session interruption. Undefined on React Native -
+   * RN surfaces audio interruption through the native bridge instead.
    */
-  readonly audioHealthMonitor: AudioHealthMonitor | undefined;
+  readonly audioHealthMonitor: MediaHealthMonitor | undefined;
 
   /**
    * Optional reactor that mutes the mic on audio-health degradation and
    * cycles devices on recovery.
    */
-  private audioHealthAutoRecovery: AudioHealthAutoRecovery | undefined;
+  private mediaHealthAutoRecovery: MediaHealthAutoRecovery | undefined;
 
   /**
    * Warns periodically when a remote participant is publishing audio but no
@@ -405,7 +406,7 @@ export class Call {
     );
 
     if (!isReactNative()) {
-      this.audioHealthMonitor = new AudioHealthMonitor(this.tracer);
+      this.audioHealthMonitor = new MediaHealthMonitor(this.tracer);
       this.audioBindingsWatchdog = new AudioBindingsWatchdog(
         this.state,
         this.tracer,
@@ -417,9 +418,10 @@ export class Call {
         this.tracer,
         this.trackSubscriptionManager,
         this.audioHealthMonitor.updateAutoplayBlockedState,
+        this.audioHealthMonitor.updateVideoElementPausedState,
       );
       if (isWebKit()) {
-        this.updateAudioAutoRecovery({ enabled: true });
+        this.updateMediaAutoRecovery({ enabled: true });
       }
     }
   }
@@ -759,7 +761,7 @@ export class Call {
       this.trackSubscriptionManager.setSfuClient(undefined);
       this.trackSubscriptionManager.dispose();
       this.audioBindingsWatchdog?.dispose();
-      this.audioHealthAutoRecovery?.stop();
+      this.mediaHealthAutoRecovery?.stop();
       await this.audioHealthMonitor?.stop();
       await this.dynascaleManager?.dispose();
 
@@ -1250,7 +1252,7 @@ export class Call {
     this.audioHealthMonitor?.start().catch((err) => {
       this.logger.warn('audioHealthMonitor.start failed', err);
     });
-    this.audioHealthAutoRecovery?.start();
+    this.mediaHealthAutoRecovery?.start();
 
     if (!performingMigration) {
       // in MIGRATION, `JOINED` state is set in `this.reconnectMigrate()`
@@ -3172,13 +3174,19 @@ export class Call {
   };
 
   /**
-   * Plays all audio elements blocked by the browser's autoplay policy or
-   * paused while still bound to a live `MediaStream`. Autoplay-blocked
-   * elements usually require a user gesture; paused-live elements can often
-   * recover automatically after transient OS audio-session interruptions.
+   * Plays all audio AND video elements blocked by the browser's autoplay
+   * policy or paused while still bound to a live `MediaStream`.
+   * Autoplay-blocked elements usually require a user gesture; paused-live
+   * elements can often recover automatically after transient OS
+   * audio-session interruptions.
    */
+  resumeMedia = async () => {
+    await this.audioHealthMonitor?.resumeMedia();
+  };
+
+  /** @deprecated Use {@link Call.resumeMedia} instead. */
   resumeAudio = async () => {
-    await this.audioHealthMonitor?.resumeAudio();
+    await this.resumeMedia();
   };
 
   /**
@@ -3194,24 +3202,24 @@ export class Call {
    *
    * @experimental
    */
-  updateAudioAutoRecovery = (
-    config: AudioHealthAutoRecoveryConfig & { enabled?: boolean },
+  updateMediaAutoRecovery = (
+    config: MediaHealthAutoRecoveryConfig & { enabled?: boolean },
   ) => {
     const { enabled, ...cfg } = config;
     if (enabled === false) {
-      this.audioHealthAutoRecovery?.stop();
-      this.audioHealthAutoRecovery = undefined;
+      this.mediaHealthAutoRecovery?.stop();
+      this.mediaHealthAutoRecovery = undefined;
     } else if (enabled === true) {
       if (!this.audioHealthMonitor) return;
-      this.audioHealthAutoRecovery ??= new AudioHealthAutoRecovery(
+      this.mediaHealthAutoRecovery ??= new MediaHealthAutoRecovery(
         this.audioHealthMonitor.audioHealth$,
         this.microphone,
         this.camera,
         this.tracer,
         cfg,
       );
-      this.audioHealthAutoRecovery.updateConfig(cfg);
-      if (this.sfuClient) this.audioHealthAutoRecovery.start();
+      this.mediaHealthAutoRecovery.updateConfig(cfg);
+      if (this.sfuClient) this.mediaHealthAutoRecovery.start();
     }
   };
 

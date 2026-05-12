@@ -2,7 +2,7 @@
 
 The drop-in extension in this sample turns a `WKWebView` into a host
 bridge that forwards iOS `AVAudioSession` ground truth into the page.
-The Stream React Video SDK's `AudioHealthMonitor` consumes the events
+The Stream React Video SDK's `MediaHealthMonitor` consumes the events
 to surface accurate interruption signals (phone calls, Siri, ad SDKs,
 conflicting audio sessions) that the W3C-level audio events don't
 reliably catch.
