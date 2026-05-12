@@ -102,7 +102,7 @@ export const paginatedLayoutSortPreset = combineComparators(
  * The sorting preset for livestreams and audio rooms.
  */
 export const livestreamOrAudioRoomSortPreset = combineComparators(
-  ifInvisibleBy(
+  ifInvisibleOrUnknownBy(
     combineComparators(
       dominantSpeaker,
       speaking,

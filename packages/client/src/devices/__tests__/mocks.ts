@@ -95,9 +95,13 @@ export const mockCall = (): Partial<Call> => {
     }),
   );
   return {
+    cid: 'default:test-call',
     state: callState,
     publish: vi.fn(),
     stopPublish: vi.fn(),
+    streamClient: fromPartial({
+      dispatchEvent: vi.fn(),
+    }),
     notifyNoiseCancellationStarting: vi.fn().mockResolvedValue(undefined),
     notifyNoiseCancellationStopped: vi.fn().mockResolvedValue(undefined),
     tracer: new Tracer('tests'),
@@ -126,6 +130,9 @@ export const mockAudioStream = () => {
       handler: EventListenerOrEventListenerObject,
     ) => {
       track.eventHandlers[event] = handler;
+    },
+    removeEventListener(type: string) {
+      delete track.eventHandlers[type];
     },
   };
   return {
@@ -156,6 +163,9 @@ export const mockVideoStream = (
     ) => {
       track.eventHandlers[event] = handler;
     },
+    removeEventListener(type: string) {
+      delete track.eventHandlers[type];
+    },
   };
   return {
     getTracks: () => [track],
@@ -180,6 +190,9 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
     ) => {
       track.eventHandlers[event] = handler;
     },
+    removeEventListener(type: string) {
+      delete track.eventHandlers[type];
+    },
   };
 
   const tracks = [track];
@@ -200,6 +213,9 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
       ) => {
         audioTrack.eventHandlers[event] = handler;
       },
+      removeEventListener(type: string) {
+        delete track.eventHandlers[type];
+      },
     };
     tracks.push(audioTrack);
   }
@@ -209,6 +225,29 @@ export const mockScreenShareStream = (includeAudio: boolean = true) => {
     getVideoTracks: () => tracks,
     getAudioTracks: () => tracks,
   } as any as MediaStream;
+};
+
+export type LocalStorageMock = {
+  getItem: (key: string) => string | null;
+  setItem: (key: string, value: string) => void;
+  removeItem: (key: string) => void;
+  clear: () => void;
+};
+
+export const createLocalStorageMock = (): LocalStorageMock => {
+  const store = new Map<string, string>();
+  return {
+    getItem: (key) => (store.has(key) ? store.get(key)! : null),
+    setItem: (key, value) => {
+      store.set(key, String(value));
+    },
+    removeItem: (key) => {
+      store.delete(key);
+    },
+    clear: () => {
+      store.clear();
+    },
+  };
 };
 
 let deviceIds: Subject<MediaDeviceInfo[]>;

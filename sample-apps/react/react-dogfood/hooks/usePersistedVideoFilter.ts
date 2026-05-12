@@ -4,11 +4,25 @@ import {
   BackgroundBlurLevel,
   BackgroundFilter,
 } from '@stream-io/video-filters-web';
+import { useSettings, SegmentationModel } from '../context/SettingsContext';
+
+const SEGMENTATION_MODEL_URLS: Record<SegmentationModel, string> = {
+  selfie_segmenter_landscape:
+    'https://unpkg.com/@stream-io/video-filters-web@latest/mediapipe/models/selfie_segmenter_landscape.tflite',
+  selfie_multiclass_256x256:
+    'https://unpkg.com/@stream-io/video-filters-web@latest/mediapipe/models/selfie_multiclass_256x256.tflite',
+  selfie_segmenter:
+    'https://unpkg.com/@stream-io/video-filters-web@latest/mediapipe/models/selfie_segmenter.tflite',
+};
+
+export const getSegmentationModelUrl = (model: SegmentationModel) =>
+  SEGMENTATION_MODEL_URLS[model];
 
 type PersistedVideoFilter = {
   backgroundFilter: BackgroundFilter | null;
   backgroundImage: string | null;
   backgroundBlurLevel: BackgroundBlurLevel;
+  segmentationModel?: SegmentationModel;
 };
 
 const loadVideoFilter = (storageKey: string): PersistedVideoFilter | null => {
@@ -39,6 +53,10 @@ export const usePersistedVideoFilter = (storageKey: string) => {
     applyBackgroundImageFilter,
   } = useBackgroundFilters();
 
+  const {
+    settings: { segmentationModel, setSegmentationModel },
+  } = useSettings();
+
   useEffect(() => {
     const filter = loadVideoFilter(storageKey);
     if (!filter || !isReady) return;
@@ -54,6 +72,7 @@ export const usePersistedVideoFilter = (storageKey: string) => {
     applyBackgroundBlurFilter,
     applyBackgroundImageFilter,
     disableBackgroundFilter,
+    setSegmentationModel,
     isReady,
     storageKey,
   ]);
@@ -64,11 +83,13 @@ export const usePersistedVideoFilter = (storageKey: string) => {
       backgroundFilter: backgroundFilter ?? null,
       backgroundImage: backgroundImage ?? null,
       backgroundBlurLevel: backgroundBlurLevel ?? 'high',
+      segmentationModel,
     });
   }, [
     backgroundBlurLevel,
     backgroundFilter,
     backgroundImage,
+    segmentationModel,
     isReady,
     storageKey,
   ]);

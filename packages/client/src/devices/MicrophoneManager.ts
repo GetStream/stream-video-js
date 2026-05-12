@@ -1,4 +1,4 @@
-import { combineLatest, Observable } from 'rxjs';
+import { combineLatest, firstValueFrom, Observable } from 'rxjs';
 import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import { Call } from '../Call';
 import {
@@ -23,12 +23,11 @@ import { CallingState } from '../store';
 import {
   createSafeAsyncSubscription,
   createSubscription,
-  getCurrentValue,
 } from '../store/rxUtils';
-import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { disposeOfMediaStream } from './utils';
 import { promiseWithResolvers } from '../helpers/promise';
+import { DevicePersistenceOptions } from './devicePersistence';
 
 export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState> {
   private speakingWhileMutedNotificationEnabled = true;
@@ -36,7 +35,6 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   private soundDetectorCleanup?: () => Promise<void>;
   private soundDetectorDeviceId?: string;
   private noAudioDetectorCleanup?: () => Promise<void>;
-  private rnSpeechDetector: RNSpeechDetector | undefined;
   private noiseCancellation: INoiseCancellation | undefined;
   private noiseCancellationChangeUnsubscribe: (() => void) | undefined;
   private noiseCancellationRegistration?: Promise<void>;
@@ -44,8 +42,17 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
   private silenceThresholdMs = 5000;
 
-  constructor(call: Call, disableMode: TrackDisableMode = 'stop-tracks') {
-    super(call, new MicrophoneManagerState(disableMode), TrackType.AUDIO);
+  constructor(
+    call: Call,
+    devicePersistence: Required<DevicePersistenceOptions>,
+    disableMode: TrackDisableMode = 'stop-tracks',
+  ) {
+    super(
+      call,
+      new MicrophoneManagerState(disableMode, call.tracer),
+      TrackType.AUDIO,
+      devicePersistence,
+    );
   }
 
   override setup(): void {
@@ -146,9 +153,10 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           if (this.silenceThresholdMs <= 0) return;
 
           const deviceId = this.state.selectedDevice;
-          const devices = getCurrentValue(this.listDevices());
+          const devices = await firstValueFrom(this.listDevices());
           const label = devices.find((d) => d.deviceId === deviceId)?.label;
 
+          let lastCapturesAudio: boolean | undefined;
           this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
             noAudioThresholdMs: this.silenceThresholdMs,
             emitIntervalMs: this.silenceThresholdMs,
@@ -160,7 +168,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
                 deviceId,
                 label,
               };
-              this.call.tracer.trace('mic.capture_report', event);
+
+              if (capturesAudio !== lastCapturesAudio) {
+                lastCapturesAudio = capturesAudio;
+                this.call.tracer.trace('mic.capture_report', event);
+              }
+
               this.call.streamClient.dispatchEvent(event);
             },
           });
@@ -335,10 +348,25 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     // Wait for any in progress mic operation
     await this.statusChangeSettled();
 
-    const canPublish = this.call.permissionsContext.canPublish(this.trackType);
     // apply server-side settings only when the device state is pristine
-    // and server defaults are not deferred to application code
-    if (this.state.status === undefined && !this.deferServerDefaults) {
+    // and there are no persisted preferences
+    const shouldApplyDefaults =
+      this.state.status === undefined &&
+      this.state.optimisticStatus === undefined;
+    let persistedPreferencesApplied = false;
+    const permissionState = await firstValueFrom(
+      this.state.browserPermissionState$,
+    );
+    if (
+      shouldApplyDefaults &&
+      this.devicePersistence.enabled &&
+      permissionState === 'granted'
+    ) {
+      persistedPreferencesApplied = await this.applyPersistedPreferences(true);
+    }
+
+    const canPublish = this.call.permissionsContext.canPublish(this.trackType);
+    if (shouldApplyDefaults && !persistedPreferencesApplied) {
       if (canPublish && settings.mic_default_on) {
         await this.enable();
       }
@@ -392,13 +420,19 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       await this.teardownSpeakingWhileMutedDetection();
 
       if (isReactNative()) {
-        this.rnSpeechDetector = new RNSpeechDetector();
-        const unsubscribe = await this.rnSpeechDetector.start((event) => {
+        const speechActivity =
+          globalThis.streamRNVideoSDK?.nativeEvents?.speechActivity;
+        if (!speechActivity) {
+          this.logger.warn(
+            'Native speech activity not available, make sure the "@stream-io/react-native-webrtc" peer dependency version is satisfied',
+          );
+          return;
+        }
+        const unsubscribe = speechActivity.subscribe((event) => {
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
         });
         this.soundDetectorCleanup = async () => {
           unsubscribe();
-          this.rnSpeechDetector = undefined;
         };
       } else {
         // Need to start a new stream that's not connected to publisher

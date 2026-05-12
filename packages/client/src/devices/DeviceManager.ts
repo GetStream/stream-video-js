@@ -1,15 +1,20 @@
-import { combineLatest, Observable, pairwise } from 'rxjs';
+import { combineLatest, firstValueFrom, Observable, pairwise } from 'rxjs';
 import { Call } from '../Call';
+import type { DeviceDisconnectedEvent } from '../coordinator/connection/types';
 import { TrackPublishOptions } from '../rtc';
 import { CallingState } from '../store';
-import { createSubscription } from '../store/rxUtils';
-import { DeviceManagerState } from './DeviceManagerState';
+import { createSubscription, getCurrentValue } from '../store/rxUtils';
+import {
+  DeviceManagerState,
+  type InputDeviceStatus,
+} from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
 import { ScopedLogger, videoLoggerSystem } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { deviceIds$ } from './devices';
 import {
+  hasPending,
   settled,
   withCancellation,
   withoutConcurrency,
@@ -19,6 +24,15 @@ import {
   MediaStreamFilterEntry,
   MediaStreamFilterRegistrationResult,
 } from './filters';
+import {
+  createSyntheticDevice,
+  defaultDeviceId,
+  DevicePersistenceOptions,
+  DevicePreferenceKey,
+  readPreferences,
+  toPreferenceList,
+  writePreferences,
+} from './devicePersistence';
 
 export abstract class DeviceManager<
   S extends DeviceManagerState<C>,
@@ -32,23 +46,10 @@ export abstract class DeviceManager<
 
   state: S;
 
-  /**
-   * When `true`, the `apply()` method will skip automatically enabling/disabling
-   * the device based on server defaults (`mic_default_on`, `camera_default_on`).
-   *
-   * This is useful when application code wants to handle device preferences
-   * (e.g., persisted user preferences) and prevent server defaults from
-   * overriding them.
-   *
-   * @default false
-   *
-   * @internal
-   */
-  deferServerDefaults = false;
-
   protected readonly call: Call;
   protected readonly trackType: TrackType;
-  protected subscriptions: Function[] = [];
+  protected subscriptions: (() => void)[] = [];
+  protected devicePersistence: Required<DevicePersistenceOptions>;
   protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilterEntry[] = [];
@@ -57,10 +58,16 @@ export abstract class DeviceManager<
     'filterRegistrationConcurrencyTag',
   );
 
-  protected constructor(call: Call, state: S, trackType: TrackType) {
+  protected constructor(
+    call: Call,
+    state: S,
+    trackType: TrackType,
+    devicePersistence: Required<DevicePersistenceOptions>,
+  ) {
     this.call = call;
     this.state = state;
     this.trackType = trackType;
+    this.devicePersistence = devicePersistence;
     this.logger = videoLoggerSystem.getLogger(
       `${TrackType[trackType].toLowerCase()} manager`,
     );
@@ -68,10 +75,7 @@ export abstract class DeviceManager<
   }
 
   setup() {
-    if (this.areSubscriptionsSetUp) {
-      return;
-    }
-
+    if (this.areSubscriptionsSetUp) return;
     this.areSubscriptionsSetUp = true;
 
     if (
@@ -80,6 +84,28 @@ export abstract class DeviceManager<
       (this.trackType === TrackType.AUDIO || this.trackType === TrackType.VIDEO)
     ) {
       this.handleDisconnectedOrReplacedDevices();
+    }
+
+    if (this.devicePersistence.enabled) {
+      this.subscriptions.push(
+        createSubscription(
+          combineLatest([
+            this.state.selectedDevice$,
+            this.state.status$,
+            this.state.browserPermissionState$,
+          ]),
+          ([selectedDevice, status, browserPermissionState]) => {
+            if (
+              !status ||
+              (this.isTrackStoppedDueToTrackEnd && status === 'disabled') ||
+              browserPermissionState !== 'granted'
+            )
+              return;
+
+            this.persistPreference(selectedDevice, status);
+          },
+        ),
+      );
     }
   }
 
@@ -495,14 +521,10 @@ export abstract class DeviceManager<
     }
   }
 
-  private get mediaDeviceKind() {
-    if (this.trackType === TrackType.AUDIO) {
-      return 'audioinput';
-    }
-    if (this.trackType === TrackType.VIDEO) {
-      return 'videoinput';
-    }
-    return '';
+  private get mediaDeviceKind(): MediaDeviceKind {
+    if (this.trackType === TrackType.AUDIO) return 'audioinput';
+    if (this.trackType === TrackType.VIDEO) return 'videoinput';
+    throw new Error('Invalid track type');
   }
 
   private handleDisconnectedOrReplacedDevices() {
@@ -533,6 +555,7 @@ export abstract class DeviceManager<
             }
 
             if (isDeviceDisconnected) {
+              this.dispatchDeviceDisconnectedEvent(prevDevice!);
               await this.disable();
               await this.select(undefined);
             }
@@ -543,7 +566,7 @@ export abstract class DeviceManager<
               ) {
                 await this.enable();
                 this.isTrackStoppedDueToTrackEnd = false;
-              } else {
+              } else if (!hasPending(this.statusChangeConcurrencyTag)) {
                 await this.applySettingsToStream();
               }
             }
@@ -561,5 +584,93 @@ export abstract class DeviceManager<
   protected findDevice(devices: MediaDeviceInfo[], deviceId: string) {
     const kind = this.mediaDeviceKind;
     return devices.find((d) => d.deviceId === deviceId && d.kind === kind);
+  }
+
+  private dispatchDeviceDisconnectedEvent(device: MediaDeviceInfo) {
+    const event: DeviceDisconnectedEvent = {
+      type: 'device.disconnected',
+      call_cid: this.call.cid,
+      status: this.isTrackStoppedDueToTrackEnd
+        ? this.state.prevStatus
+        : this.state.status,
+      deviceId: device.deviceId,
+      label: device.label,
+      kind: device.kind,
+    };
+
+    this.call.tracer.trace('device.disconnected', event);
+    this.call.streamClient.dispatchEvent(event);
+  }
+
+  private persistPreference(
+    selectedDevice: string | undefined,
+    status: InputDeviceStatus,
+  ) {
+    const deviceKind = this.mediaDeviceKind;
+    const deviceKey = deviceKind === 'audioinput' ? 'microphone' : 'camera';
+    const muted =
+      status === 'disabled' ? true : status === 'enabled' ? false : undefined;
+
+    const { storageKey } = this.devicePersistence;
+    if (!selectedDevice) {
+      writePreferences(undefined, deviceKey, muted, storageKey);
+      return;
+    }
+
+    const devices = getCurrentValue(this.listDevices()) || [];
+    const currentDevice =
+      this.findDevice(devices, selectedDevice) ??
+      createSyntheticDevice(selectedDevice, deviceKind);
+
+    writePreferences(currentDevice, deviceKey, muted, storageKey);
+  }
+
+  protected async applyPersistedPreferences(enabledInCallType: boolean) {
+    const deviceKey: DevicePreferenceKey =
+      this.trackType === TrackType.AUDIO ? 'microphone' : 'camera';
+    const preferences = readPreferences(this.devicePersistence.storageKey);
+    const preferenceList = toPreferenceList(preferences[deviceKey]);
+
+    if (preferenceList.length === 0) return false;
+
+    let muted: boolean | undefined;
+    let appliedDevice = false;
+    let appliedMute = false;
+
+    const devices = await firstValueFrom(this.listDevices());
+    for (const preference of preferenceList) {
+      muted ??= preference.muted;
+      if (preference.selectedDeviceId === defaultDeviceId) break;
+
+      const device =
+        devices.find((d) => d.deviceId === preference.selectedDeviceId) ??
+        devices.find((d) => d.label === preference.selectedDeviceLabel);
+
+      if (device) {
+        appliedDevice = true;
+        if (!this.state.selectedDevice) {
+          await this.select(device.deviceId);
+        }
+        muted = preference.muted;
+        break;
+      }
+    }
+
+    const canPublish = this.call.permissionsContext.canPublish(this.trackType);
+    if (typeof muted === 'boolean' && enabledInCallType && canPublish) {
+      await this.applyMutedState(muted);
+      appliedMute = true;
+    }
+
+    return appliedDevice || appliedMute;
+  }
+
+  private async applyMutedState(muted: boolean) {
+    if (this.state.status !== undefined) return;
+    if (muted) {
+      await this.disable();
+    } else {
+      await this.enable();
+    }
   }
 }

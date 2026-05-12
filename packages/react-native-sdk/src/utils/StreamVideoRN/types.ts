@@ -5,6 +5,18 @@ import {
 } from '@stream-io/video-client';
 import type { AndroidChannel } from '@notifee/react-native';
 
+export type AndroidChannelConfig = {
+  id: string;
+  name: string;
+  sound?: string;
+  vibration?: boolean;
+};
+
+export type KeepAliveAndroidNotificationTexts = {
+  title: string;
+  body: string;
+};
+
 export type NonRingingPushEvent =
   | 'call.live_started'
   | 'call.notification'
@@ -25,15 +37,41 @@ export type StreamVideoConfig = {
      */
     publishOptions?: ClientPublishOptions;
 
-    ios: {
+    ios?: {
       /**
        * The name for the alias of push provider used for iOS
        * Pass undefined if you will not be using stream's push notifications but still want to use the functionality of the SDK
        * @example "production-apn-video" or "staging-apn-video" based on the environment
        */
       pushProviderName?: string;
+      supportsVideo?: boolean;
+      /**
+       * Sound to play when an incoming call is received. Must be a valid sound resource name in the project.
+       * @default '' (no sound)
+       */
+      sound?: string;
+      /**
+       * Image to display when an incoming call is received. Must be a valid image resource name in the project.
+       * @default '' (no image)
+       */
+      imageName?: string;
+      /**
+       * Enable calls history. When enabled, the call will be added to the calls history.
+       * @default false
+       */
+      callsHistory?: boolean;
+      /**
+       * Timeout to display an incoming call. When the call is displayed for more than the timeout, the call will be rejected.
+       * @default 60000 (1 minute)
+       */
+      displayCallTimeout?: number;
+      /**
+       * Whether to enable ongoing calls.
+       * @default false
+       */
+      enableOngoingCalls?: boolean;
     };
-    android: {
+    android?: {
       /**
        * The small icon to be used for push notifications for Android
        * Reference the name created (Optional, defaults to 'ic_launcher')
@@ -61,28 +99,30 @@ export type StreamVideoConfig = {
        * The notification channel to be used for incoming calls for Android.
        * @example
        * {
-       *  id: 'stream_incoming_call',
-       *  name: 'Incoming call notifications',
-       *  importance: AndroidImportance.HIGH,
+       *  id: 'incoming_calls_channel',
+       *  name: 'Incoming calls',
+       *  sound?: string;
+       *  vibration?: boolean;
        * }
        */
-      incomingCallChannel?: AndroidChannel;
+      incomingChannel?: AndroidChannelConfig;
       /**
-       * Functions to create the texts shown in the notification for incoming calls in Android.
+       * Texts used for call state notifications while the system is connecting or declining the call.
+       * If not provided, platform defaults will be used.
        * @example
        * {
-       *  getTitle: (createdUserName: string) => `Incoming call from ${createdUserName}`,
-       *  getBody: (createdUserName: string) => `Tap to answer the call`
-       *  getAcceptButtonTitle?: () => `Accept`,
-       *  getDeclineButtonTitle?: () => `Decline`,
+       *  accepting: 'Connecting...',
+       *  rejecting: 'Declining...',
        * }
        */
-      incomingCallNotificationTextGetters?: {
-        getTitle: (createdUserName: string) => string;
-        getBody: (createdUserName: string) => string;
-        getAcceptButtonTitle?: () => string;
-        getDeclineButtonTitle?: () => string;
+      notificationTexts?: {
+        accepting?: string;
+        rejecting?: string;
       };
+      /**
+       * The transformer to be used to transform the call title in the notification for ringing and ongoing calls for Android.
+       */
+      titleTransformer?: (memberName: string, incoming: boolean) => string;
       /**
        * Functions to create the texts shown in the notification for non ringing calls in Android.
        * @example
@@ -110,7 +150,17 @@ export type StreamVideoConfig = {
         ) => string;
         getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
       };
+      /**
+       * Whether to enable ongoing calls.
+       * @default false
+       */
+      enableOngoingCalls?: boolean;
     };
+    /**
+     * Whether to reject calls when the user is busy.
+     * @default false
+     */
+    shouldRejectCallWhenBusy?: boolean;
     /**
      * This function is used to create a custom video client.
      * This is used create a video client for incoming calls in the background and inform call events to the server.
@@ -130,12 +180,6 @@ export type StreamVideoConfig = {
      * }
      */
     createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;
-    /** @deprecated This method will be removed in the future. Please watch for incoming and outgoing calls in the root component of your app.
-        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information */
-    navigateAcceptCall?: () => void;
-    /** @deprecated This method will be removed in the future. Please watch for incoming and outgoing calls in the root component of your app.
-        Please see https://getstream.io/video/docs/react-native/advanced/ringing-calls/#watch-for-incoming-and-outgoing-calls for more information */
-    navigateToIncomingCall?: () => void;
     /** Callback that is called when a non ringing push notification was tapped */
     onTapNonRingingCallNotification?: (
       call_cid: string,
@@ -147,14 +191,11 @@ export type StreamVideoConfig = {
       /**
        * The notification channel to keep call alive in the background for Android using a foreground service.
        */
-      channel: AndroidChannel;
+      channel: Omit<AndroidChannelConfig, 'sound' | 'vibration'>;
       /**
        * The texts shown in the notification to keep call alive in the background
        */
-      notificationTexts: {
-        title: string;
-        body: string;
-      };
+      notificationTexts: KeepAliveAndroidNotificationTexts;
       /**
        * The task to run in the foreground service
        * The task must resolve a promise once complete

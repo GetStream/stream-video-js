@@ -21,12 +21,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24.x
           cache: 'yarn'
@@ -35,17 +35,23 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Resolve Playwright version
+        id: playwright-version
+        run: |
+          PLAYWRIGHT_VERSION=$(yarn workspace @stream-io/egress-composite exec node -p 'require("@playwright/test/package.json").version')
+          echo "version=$PLAYWRIGHT_VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Build packages
         env:
           NODE_ENV: production
         run: yarn build:react:deps
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}${{ runner.arch }}-playwright-browsers
+          key: ${{ runner.os }}${{ runner.arch }}-playwright-browsers-${{ steps.playwright-version.outputs.version }}
 
       - name: Install Playwright browsers if not cached
         if: steps.playwright-cache.outputs.cache-hit != 'true'
@@ -55,10 +61,10 @@ jobs:
         run: npx playwright install-deps
 
       - name: Run Playwright tests
-        run: yarn workspace @stream-io/egress-composite test:e2e
+        run: yarn workspace @stream-io/egress-composite test:e2e:prod
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-results

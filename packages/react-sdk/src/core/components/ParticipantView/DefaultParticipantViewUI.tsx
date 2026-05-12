@@ -7,12 +7,17 @@ import {
   hasVideo,
   SfuModels,
 } from '@stream-io/video-client';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useI18n,
+  useIsAudioConnecting,
+} from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
 
 import {
   Icon,
   IconButton,
+  LoadingIndicator,
   MenuToggle,
   Notification,
   ToggleMenuButtonProps,
@@ -137,12 +142,19 @@ export const ParticipantDetails = ({
   const isTrackPaused =
     trackType !== 'none' ? hasPausedTrack(participant, trackType) : false;
 
+  const isAudioConnecting = useIsAudioConnecting(participant);
+
   return (
     <>
       <div className="str-video__participant-details">
-        <span className="str-video__participant-details__name">
+        <div className="str-video__participant-details__name">
           {name || userId}
-
+          {indicatorsVisible && isAudioConnecting && (
+            <LoadingIndicator
+              className="str-video__participant-details__name--audio-connecting"
+              tooltip={t('Audio is connecting...')}
+            />
+          )}
           {indicatorsVisible && !hasAudioTrack && (
             <span className="str-video__participant-details__name--audio-muted" />
           )}
@@ -155,16 +167,15 @@ export const ParticipantDetails = ({
               className="str-video__participant-details__name--track-paused"
             />
           )}
-          {indicatorsVisible && canUnpin && (
-            // TODO: remove this monstrosity once we have a proper design
+          {indicatorsVisible && pin && (
             <span
-              title={t('Unpin')}
-              onClick={() => call?.unpin(sessionId)}
+              title={canUnpin ? t('Unpin') : t('Pinned')}
+              onClick={canUnpin ? () => call?.unpin(sessionId) : undefined}
               className="str-video__participant-details__name--pinned"
             />
           )}
           {indicatorsVisible && <SpeechIndicator />}
-        </span>
+        </div>
       </div>
       {indicatorsVisible && (
         <Notification

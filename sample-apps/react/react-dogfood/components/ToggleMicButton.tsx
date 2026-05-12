@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 
 import {
+  Browsers,
   DeviceSelectorAudioInput,
   DeviceSelectorAudioOutput,
   Icon,
@@ -10,6 +11,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
+import { isMobile } from '../helpers/isMobile';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
@@ -35,13 +37,19 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 );
 
 export const ToggleMicButton = () => {
+  const inputVisualType =
+    isMobile() || Browsers.isSafari() ? 'list' : 'preview';
+
   return (
     <MenuToggle
       placement="top-start"
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
     >
-      <DeviceSelectorAudioInput visualType="list" title="Microphone" />
+      <DeviceSelectorAudioInput
+        visualType={inputVisualType}
+        title="Microphone"
+      />
       <DeviceSelectorAudioOutput visualType="list" title="Speaker" />
     </MenuToggle>
   );

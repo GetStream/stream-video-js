@@ -1,4 +1,5 @@
 import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import { isRecentDeviceSelectionEnabled } from '../hooks/useDeviceSelectionPreference';
 import type { AppEnvironment } from '../lib/environmentConfig';
 import {
   CreateJwtTokenRequest,
@@ -19,26 +20,50 @@ let client: StreamVideoClient | undefined;
 export const getClient = (
   creds: {
     apiKey: string;
-    user?: User;
+    user: User;
     userToken?: string;
     coordinatorUrl?: string;
   },
   environment: AppEnvironment,
 ) => {
   if (!client) {
-    client = new StreamVideoClient({
-      apiKey: creds.apiKey,
-      user: creds.user,
-      token: creds.userToken,
-      tokenProvider: createTokenProvider(creds.user?.id, environment),
-      options: {
-        baseURL: creds.coordinatorUrl || process.env.NEXT_PUBLIC_STREAM_API_URL,
-        logLevel: 'debug',
-        logger: customSentryLogger(),
-        transformRequest: defaultRequestTransformers,
-        transformResponse: defaultResponseTransformers,
+    const options = {
+      baseURL: creds.coordinatorUrl || process.env.NEXT_PUBLIC_STREAM_API_URL,
+      logLevel: 'debug' as const,
+      logger: customSentryLogger(),
+      transformRequest: defaultRequestTransformers,
+      transformResponse: defaultResponseTransformers,
+      devicePersistence: {
+        enabled: isRecentDeviceSelectionEnabled(),
+        storageKey: '@pronto/device-preferences',
       },
-    });
+    };
+    if (creds.user.type === 'guest' || creds.user.type === 'anonymous') {
+      client = new StreamVideoClient({
+        apiKey: creds.apiKey,
+        user: creds.user,
+        options,
+      });
+    } else {
+      const tokenProvider = createTokenProvider(creds.user.id, environment);
+      if (!creds.userToken && !tokenProvider) {
+        throw new Error(
+          'Cannot initialize StreamVideoClient with an authenticated user without token or tokenProvider',
+        );
+      }
+
+      client = new StreamVideoClient({
+        apiKey: creds.apiKey,
+        user: creds.user,
+        ...(creds.userToken
+          ? {
+              token: creds.userToken,
+              ...(tokenProvider ? { tokenProvider } : {}),
+            }
+          : { tokenProvider: tokenProvider! }),
+        options,
+      });
+    }
   }
 
   return client;

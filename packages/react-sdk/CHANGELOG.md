@@ -2,6 +2,154 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.36.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.36.0...@stream-io/video-react-sdk-1.36.1) (2026-05-08)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.49.0`
+- `@stream-io/video-react-bindings` updated to version `1.15.1`
+
+### Bug Fixes
+
+- **react:** Improve background filter degradation detection ([#2210](https://github.com/GetStream/stream-video-js/issues/2210)) ([391915e](https://github.com/GetStream/stream-video-js/commit/391915e1e025ce3eaf5ebe7b135f57463ead8e42))
+
+## [1.36.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.2...@stream-io/video-react-sdk-1.36.0) (2026-04-28)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.48.0`
+- `@stream-io/video-react-bindings` updated to version `1.15.0`
+
+### Features
+
+- audio connecting hook in bindings and RN UI ([#2214](https://github.com/GetStream/stream-video-js/issues/2214)) ([44c38fa](https://github.com/GetStream/stream-video-js/commit/44c38faaccb5327f6cd5cd6e70781bad93deafaf))
+
+### Bug Fixes
+
+- **egress-composite:** adjust PaginatedGrid sizing ([#1966](https://github.com/GetStream/stream-video-js/issues/1966)) ([9c7009f](https://github.com/GetStream/stream-video-js/commit/9c7009f26d63ef4fcbc8441746e5cd3c2b1935b6))
+
+## [1.35.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.1...@stream-io/video-react-sdk-1.35.2) (2026-04-15)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.47.0`
+- `@stream-io/video-react-bindings` updated to version `1.14.2`
+
+### Bug Fixes
+
+- **pronto:** use list visualType for device selection mobile devices ([#2202](https://github.com/GetStream/stream-video-js/issues/2202)) ([f6b6cd2](https://github.com/GetStream/stream-video-js/commit/f6b6cd2eeef3e776167cae515cc7beb2d566ccde))
+
+## [1.35.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.0...@stream-io/video-react-sdk-1.35.1) (2026-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.46.1`
+- `@stream-io/video-react-bindings` updated to version `1.14.1`
+
+## [1.35.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.2...@stream-io/video-react-sdk-1.35.0) (2026-04-09)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.13.0`
+- `@stream-io/video-client` updated to version `1.46.0`
+- `@stream-io/video-filters-web` updated to version `0.7.4`
+- `@stream-io/video-react-bindings` updated to version `1.14.0`
+
+### Features
+
+- **react-sdk:** Device preview and level indicators to device settings ([#2186](https://github.com/GetStream/stream-video-js/issues/2186)) ([65787d2](https://github.com/GetStream/stream-video-js/commit/65787d222d01f784766e0a7eb757cb3169e08435))
+
+## [1.34.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.1...@stream-io/video-react-sdk-1.34.2) (2026-04-02)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.45.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.15`
+
+### Bug Fixes
+
+- **pins:** render the "pin" indicator regardless of "unpin" capabilities ([#2179](https://github.com/GetStream/stream-video-js/issues/2179)) ([f78cf41](https://github.com/GetStream/stream-video-js/commit/f78cf4115f7fb3f3eb799ac406c3f56cc691c942))
+
+## [1.34.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.34.0...@stream-io/video-react-sdk-1.34.1) (2026-03-27)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.5`
+- `@stream-io/video-filters-web` updated to version `0.7.3`
+- `@stream-io/video-react-bindings` updated to version `1.13.14`
+
+### Bug Fixes
+
+- **react:** expose segmentation smoothing options and add model picker in video effects settings ([#2176](https://github.com/GetStream/stream-video-js/issues/2176)) ([edee6bf](https://github.com/GetStream/stream-video-js/commit/edee6bf8d9aacdfb2ae49fb202ba7f7d1140063f))
+- **react:** reset recording toggle state and expose record button errors ([#2174](https://github.com/GetStream/stream-video-js/issues/2174)) ([2af6347](https://github.com/GetStream/stream-video-js/commit/2af63478ad9050bf339212537a6cb424f97387b8))
+
+## [1.34.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.4...@stream-io/video-react-sdk-1.34.0) (2026-03-20)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.12.0`
+- `@stream-io/video-client` updated to version `1.44.4`
+- `@stream-io/video-react-bindings` updated to version `1.13.13`
+
+### Features
+
+- **react:** display loading indicator while participant audio is connecting ([#2167](https://github.com/GetStream/stream-video-js/issues/2167)) ([bb2e273](https://github.com/GetStream/stream-video-js/commit/bb2e2733a3e88fd60220118f267d74d952f16ed8))
+
+### Bug Fixes
+
+- **react:** remove default broken microphone notification from call controls ([#2158](https://github.com/GetStream/stream-video-js/issues/2158)) ([4a95b9c](https://github.com/GetStream/stream-video-js/commit/4a95b9c29e9d2728ae7eea764f07ec8507aa0f5a))
+
+## [1.33.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.3...@stream-io/video-react-sdk-1.33.4) (2026-03-09)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.7.3`
+
+### Bug Fixes
+
+- **react:** await initialization before enabling / disabling noise cancellation ([#2153](https://github.com/GetStream/stream-video-js/issues/2153)) ([3455a0e](https://github.com/GetStream/stream-video-js/commit/3455a0e597245af6c34332424b4b7029abf7c675))
+
+## [1.33.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.2...@stream-io/video-react-sdk-1.33.3) (2026-03-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.3`
+- `@stream-io/video-react-bindings` updated to version `1.13.12`
+
+## [1.33.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.1...@stream-io/video-react-sdk-1.33.2) (2026-03-06)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.2`
+- `@stream-io/video-react-bindings` updated to version `1.13.11`
+
+## [1.33.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.33.0...@stream-io/video-react-sdk-1.33.1) (2026-03-04)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.44.1`
+- `@stream-io/video-react-bindings` updated to version `1.13.10`
+
+## [1.33.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.4...@stream-io/video-react-sdk-1.33.0) (2026-02-27)
+
+### Dependency Updates
+
+- `@stream-io/video-styling` updated to version `1.11.0`
+- `@stream-io/video-client` updated to version `1.44.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.9`
+
+### Features
+
+- **react:** Deprecate usePersistedDevicePreferences and move the logic to the SDK core ([#2108](https://github.com/GetStream/stream-video-js/issues/2108)) ([7bbbd93](https://github.com/GetStream/stream-video-js/commit/7bbbd93bdd93dd4ebed02c089b6a4ab8423135fd))
+- **react:** Embeddable/pre-built video components ([#2117](https://github.com/GetStream/stream-video-js/issues/2117)) ([11b4b9f](https://github.com/GetStream/stream-video-js/commit/11b4b9f0438877a5917c95117474cedc1f693907))
+
+## [1.32.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.3...@stream-io/video-react-sdk-1.32.4) (2026-02-20)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.43.0`
+- `@stream-io/video-react-bindings` updated to version `1.13.8`
+
 ## [1.32.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.32.2...@stream-io/video-react-sdk-1.32.3) (2026-02-16)
 
 ### Dependency Updates

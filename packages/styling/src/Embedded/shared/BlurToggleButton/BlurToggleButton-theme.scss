@@ -1,0 +1,21 @@
+.str-video__embedded-blur-toggle-container {
+  border-top: 1px solid var(--str-video__base-color3);
+}
+
+.str-video__embedded-blur-toggle {
+  background: transparent;
+  color: var(--str-video__text-color1);
+
+  &:hover:not(:disabled) {
+    background: var(--str-video__button-default-hover);
+  }
+
+  &--active {
+    background: var(--str-video__secondary-color);
+    color: var(--str-video__primary-color);
+
+    &:hover:not(:disabled) {
+      background: var(--str-video__secondary-color);
+    }
+  }
+}

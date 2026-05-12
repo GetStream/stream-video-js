@@ -1,0 +1,11 @@
+.str-video__embedded-participant-view-ui {
+  position: absolute;
+  inset: 0;
+  padding-top: var(--str-video__spacing-md);
+  padding-left: var(--str-video__spacing-md);
+
+  &--screen-share {
+    padding-top: 0;
+    padding-left: 0;
+  }
+}

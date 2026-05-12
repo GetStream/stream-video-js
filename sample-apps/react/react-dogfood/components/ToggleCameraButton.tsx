@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 
 import {
+  Browsers,
   DeviceSelectorVideo,
   Icon,
   MenuToggle,
@@ -9,6 +10,7 @@ import {
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
+import { isMobile } from '../helpers/isMobile';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
@@ -34,13 +36,14 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 );
 
 export const ToggleCameraButton = () => {
+  const visualType = isMobile() || Browsers.isSafari() ? 'list' : 'preview';
   return (
     <MenuToggle
       placement="top-start"
       ToggleButton={ToggleMenuButton}
       visualType={MenuVisualType.MENU}
     >
-      <DeviceSelectorVideo visualType="list" />
+      <DeviceSelectorVideo visualType={visualType} />
     </MenuToggle>
   );
 };

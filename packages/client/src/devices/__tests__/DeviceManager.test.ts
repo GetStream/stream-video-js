@@ -1,10 +1,13 @@
+/* @vitest-environment happy-dom */
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  createLocalStorageMock,
   emitDeviceIds,
+  LocalStorageMock,
   mockBrowserPermission,
   mockCall,
   mockDeviceIds$,
@@ -16,6 +19,8 @@ import { DeviceManager } from '../DeviceManager';
 import { DeviceManagerState } from '../DeviceManagerState';
 import { of } from 'rxjs';
 import { TrackType } from '../../gen/video/sfu/models/models';
+import { PermissionsContext } from '../../permissions';
+import { readPreferences } from '../devicePersistence';
 
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
@@ -47,7 +52,10 @@ class TestInputMediaDeviceManager extends DeviceManager<TestInputMediaDeviceMana
   public stopPublishStream = vi.fn();
   public getTracks = () => this.state.mediaStream?.getTracks() ?? [];
 
-  constructor(call: Call) {
+  constructor(
+    call: Call,
+    devicePersistence = { enabled: false, storageKey: '' },
+  ) {
     super(
       call,
       new TestInputMediaDeviceManagerState(
@@ -55,14 +63,26 @@ class TestInputMediaDeviceManager extends DeviceManager<TestInputMediaDeviceMana
         mockBrowserPermission,
       ),
       TrackType.VIDEO,
+      devicePersistence,
     );
   }
 }
 
-describe('InputMediaDeviceManager.test', () => {
+describe('Device Manager', () => {
   let manager: TestInputMediaDeviceManager;
+  let localStorageMock: LocalStorageMock;
+  let storageKey: string;
 
   beforeEach(() => {
+    storageKey = '@test/device-preferences';
+    localStorageMock = createLocalStorageMock();
+    vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+      of('granted'),
+    );
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      value: localStorageMock,
+    });
     manager = new TestInputMediaDeviceManager(
       new Call({
         id: '',
@@ -70,6 +90,7 @@ describe('InputMediaDeviceManager.test', () => {
         streamClient: new StreamClient('abc123'),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
+      { enabled: false, storageKey },
     );
   });
 
@@ -362,12 +383,252 @@ describe('InputMediaDeviceManager.test', () => {
 
     expect(manager.state.selectedDevice).toBe(undefined);
     expect(manager.state.status).toBe('disabled');
+    expect(manager['call'].streamClient.dispatchEvent).toHaveBeenCalledWith({
+      type: 'device.disconnected',
+      call_cid: manager['call'].cid,
+      status: 'enabled',
+      deviceId: device.deviceId,
+      label: device.label,
+      kind: device.kind,
+    });
 
     vi.useRealTimers();
   });
 
+  describe('persistPreference', () => {
+    it('stores selected device and muted state', () => {
+      const persistenceEnabledManager = new TestInputMediaDeviceManager(
+        manager['call'],
+        { enabled: true, storageKey },
+      );
+      persistenceEnabledManager.state.setDevice(mockVideoDevices[1].deviceId);
+      persistenceEnabledManager.state.setStatus('enabled');
+
+      const preferences = readPreferences(storageKey);
+      expect(preferences.camera).toEqual([
+        {
+          selectedDeviceId: mockVideoDevices[1].deviceId,
+          selectedDeviceLabel: mockVideoDevices[1].label,
+          muted: false,
+        },
+      ]);
+    });
+
+    it('stores default device when selection is cleared', () => {
+      const persistenceEnabledManager = new TestInputMediaDeviceManager(
+        manager['call'],
+        { enabled: true, storageKey },
+      );
+      persistenceEnabledManager.state.setDevice(undefined);
+      persistenceEnabledManager.state.setStatus('disabled');
+
+      const preferences = readPreferences(storageKey);
+      expect(preferences.camera).toEqual([
+        {
+          selectedDeviceId: 'default',
+          selectedDeviceLabel: '',
+          muted: true,
+        },
+      ]);
+    });
+
+    it('persists device history when selection changes', () => {
+      const persistenceEnabledManager = new TestInputMediaDeviceManager(
+        manager['call'],
+        { enabled: true, storageKey },
+      );
+
+      persistenceEnabledManager.state.setDevice(mockVideoDevices[0].deviceId);
+      persistenceEnabledManager.state.setStatus('enabled');
+
+      persistenceEnabledManager.state.setDevice(mockVideoDevices[1].deviceId);
+      persistenceEnabledManager.state.setStatus('enabled');
+
+      const preferences = readPreferences(storageKey);
+      expect(preferences.camera).toEqual([
+        {
+          selectedDeviceId: mockVideoDevices[1].deviceId,
+          selectedDeviceLabel: mockVideoDevices[1].label,
+          muted: false,
+        },
+        {
+          selectedDeviceId: mockVideoDevices[0].deviceId,
+          selectedDeviceLabel: mockVideoDevices[0].label,
+          muted: false,
+        },
+      ]);
+    });
+
+    it('stores preferences when permission is granted', async () => {
+      const persistenceEnabledManager = new TestInputMediaDeviceManager(
+        manager['call'],
+        { enabled: true, storageKey },
+      );
+      const listDevicesSpy = vi.spyOn(persistenceEnabledManager, 'listDevices');
+
+      emitDeviceIds(mockVideoDevices);
+      persistenceEnabledManager.state.setDevice(mockVideoDevices[0].deviceId);
+      persistenceEnabledManager.state.setStatus('enabled');
+
+      expect(readPreferences(storageKey).camera).toBeDefined();
+      expect(listDevicesSpy).toHaveBeenCalled();
+      expect(readPreferences(storageKey).camera).toEqual([
+        {
+          selectedDeviceId: mockVideoDevices[0].deviceId,
+          selectedDeviceLabel: mockVideoDevices[0].label,
+          muted: false,
+        },
+      ]);
+    });
+
+    it('does not store preferences when permission is not granted', async () => {
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('prompt'),
+      );
+      const persistenceEnabledManager = new TestInputMediaDeviceManager(
+        manager['call'],
+        { enabled: true, storageKey },
+      );
+      const listDevicesSpy = vi.spyOn(persistenceEnabledManager, 'listDevices');
+
+      emitDeviceIds(mockVideoDevices);
+      persistenceEnabledManager.state.setDevice(mockVideoDevices[0].deviceId);
+      persistenceEnabledManager.state.setStatus('enabled');
+
+      expect(readPreferences(storageKey).camera).toBeUndefined();
+      expect(listDevicesSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not overwrite preferences when track ends unexpectedly', async () => {
+      const persistenceEnabledManager = new TestInputMediaDeviceManager(
+        manager['call'],
+        { enabled: true, storageKey },
+      );
+
+      await persistenceEnabledManager.enable();
+
+      expect(readPreferences(storageKey).camera).toEqual([
+        {
+          selectedDeviceId: mockVideoDevices[0].deviceId,
+          selectedDeviceLabel: mockVideoDevices[0].label,
+          muted: false,
+        },
+      ]);
+
+      const [track] = persistenceEnabledManager.state.mediaStream!.getTracks();
+      await ((track as MockTrack).eventHandlers['ended'] as Function)();
+
+      expect(readPreferences(storageKey).camera).toEqual([
+        {
+          selectedDeviceId: mockVideoDevices[0].deviceId,
+          selectedDeviceLabel: mockVideoDevices[0].label,
+          muted: false,
+        },
+      ]);
+    });
+  });
+
+  describe('applyPersistedPreferences', () => {
+    beforeEach(() => {
+      manager.dispose();
+      manager = new TestInputMediaDeviceManager(manager['call'], {
+        enabled: true,
+        storageKey,
+      });
+      // @ts-expect-error - read only property
+      manager['call'].permissionsContext = new PermissionsContext();
+      manager['call'].permissionsContext.canPublish = vi
+        .fn()
+        .mockReturnValue(true);
+    });
+
+    it('returns false when no preferences exist', async () => {
+      // @ts-expect-error - private api
+      const result = await manager.applyPersistedPreferences(true);
+      expect(result).toBe(false);
+    });
+
+    it('selects device by id and applies muted state', async () => {
+      localStorageMock.setItem(
+        storageKey,
+        JSON.stringify({
+          camera: [
+            {
+              selectedDeviceId: mockVideoDevices[0].deviceId,
+              selectedDeviceLabel: mockVideoDevices[0].label,
+              muted: true,
+            },
+          ],
+        }),
+      );
+
+      const selectSpy = vi.spyOn(manager, 'select');
+      const disableSpy = vi.spyOn(manager, 'disable');
+
+      // @ts-expect-error - private API
+      const result = await manager.applyPersistedPreferences(true);
+
+      expect(result).toBe(true);
+      expect(selectSpy).toHaveBeenCalledWith(mockVideoDevices[0].deviceId);
+      expect(disableSpy).toHaveBeenCalled();
+    });
+
+    it('selects device by label when device id is not found', async () => {
+      localStorageMock.setItem(
+        storageKey,
+        JSON.stringify({
+          camera: [
+            {
+              selectedDeviceId: 'missing-device',
+              selectedDeviceLabel: mockVideoDevices[1].label,
+              muted: false,
+            },
+          ],
+        }),
+      );
+
+      const selectSpy = vi.spyOn(manager, 'select');
+
+      // @ts-expect-error private api
+      const result = await manager.applyPersistedPreferences(true);
+
+      expect(result).toBe(true);
+      expect(selectSpy).toHaveBeenCalledWith(mockVideoDevices[1].deviceId);
+    });
+
+    it('applies muted state without selecting when default device is stored', async () => {
+      localStorageMock.setItem(
+        storageKey,
+        JSON.stringify({
+          camera: [
+            {
+              selectedDeviceId: 'default',
+              selectedDeviceLabel: '',
+              muted: true,
+            },
+          ],
+        }),
+      );
+
+      const selectSpy = vi.spyOn(manager, 'select');
+      const disableSpy = vi.spyOn(manager, 'disable');
+
+      // @ts-expect-error private api
+      const result = await manager.applyPersistedPreferences(true);
+
+      expect(result).toBe(true);
+      expect(selectSpy).not.toHaveBeenCalled();
+      expect(disableSpy).toHaveBeenCalled();
+    });
+  });
+
   afterEach(() => {
+    manager.dispose();
     vi.clearAllMocks();
     vi.resetModules();
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      value: undefined,
+    });
   });
 });

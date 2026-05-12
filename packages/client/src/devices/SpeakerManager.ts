@@ -1,30 +1,67 @@
-import { combineLatest, Subscription } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import { Call } from '../Call';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
-import { deviceIds$, getAudioOutputDevices } from './devices';
 import {
-  CallSettingsResponse,
+  deviceIds$,
+  getAudioBrowserPermission,
+  getAudioOutputDevices,
+} from './devices';
+import {
   AudioSettingsRequestDefaultDeviceEnum,
+  CallSettingsResponse,
 } from '../gen/coordinator';
+import {
+  createSyntheticDevice,
+  defaultDeviceId,
+  DevicePersistenceOptions,
+  readPreferences,
+  toPreferenceList,
+  writePreferences,
+} from './devicePersistence';
+import { createSubscription, getCurrentValue } from '../store/rxUtils';
 
 export class SpeakerManager {
   readonly state: SpeakerState;
-  private subscriptions: Subscription[] = [];
+  private subscriptions: (() => void)[] = [];
   private areSubscriptionsSetUp = false;
   private readonly call: Call;
   private defaultDevice?: AudioSettingsRequestDefaultDeviceEnum;
+  private readonly devicePersistence: Required<DevicePersistenceOptions>;
 
-  constructor(call: Call) {
+  constructor(
+    call: Call,
+    devicePreferences: Required<DevicePersistenceOptions>,
+  ) {
     this.call = call;
     this.state = new SpeakerState(call.tracer);
+    this.devicePersistence = devicePreferences;
     this.setup();
   }
 
   apply(settings: CallSettingsResponse) {
-    if (!isReactNative()) {
-      return;
+    return isReactNative() ? this.applyRN(settings) : this.applyWeb();
+  }
+
+  private applyWeb() {
+    const { enabled, storageKey } = this.devicePersistence;
+    if (!enabled) return;
+
+    const preferences = readPreferences(storageKey);
+    const preferenceList = toPreferenceList(preferences.speaker);
+    if (preferenceList.length === 0) return;
+
+    const preference = preferenceList[0];
+    const nextDeviceId =
+      preference.selectedDeviceId === defaultDeviceId
+        ? ''
+        : preference.selectedDeviceId;
+    if (this.state.selectedDevice !== nextDeviceId) {
+      this.select(nextDeviceId);
     }
+  }
+
+  private applyRN(settings: CallSettingsResponse) {
     /// Determines if the speaker should be enabled based on a priority hierarchy of
     /// settings.
     ///
@@ -52,30 +89,41 @@ export class SpeakerManager {
       this.defaultDevice = defaultDevice;
       globalThis.streamRNVideoSDK?.callManager.setup({
         defaultDevice,
+        isRingingTypeCall: this.call.ringing,
       });
     }
   }
 
   setup() {
-    if (this.areSubscriptionsSetUp) {
-      return;
-    }
-
+    if (this.areSubscriptionsSetUp) return;
     this.areSubscriptionsSetUp = true;
 
     if (deviceIds$ && !isReactNative()) {
       this.subscriptions.push(
-        combineLatest([deviceIds$!, this.state.selectedDevice$]).subscribe(
+        createSubscription(
+          combineLatest([deviceIds$, this.state.selectedDevice$]),
           ([devices, deviceId]) => {
-            if (!deviceId) {
-              return;
-            }
+            if (!deviceId) return;
             const device = devices.find(
               (d) => d.deviceId === deviceId && d.kind === 'audiooutput',
             );
-            if (!device) {
-              this.select('');
-            }
+            if (!device) this.select('');
+          },
+        ),
+      );
+    }
+
+    if (!isReactNative() && this.devicePersistence.enabled) {
+      this.subscriptions.push(
+        createSubscription(
+          combineLatest([
+            this.state.selectedDevice$,
+            getAudioBrowserPermission(this.call.tracer).asStateObservable(),
+          ]),
+          ([selectedDevice, browserPermissionState]) => {
+            if (!selectedDevice || browserPermissionState !== 'granted') return;
+
+            this.persistSpeakerDevicePreference(selectedDevice);
           },
         ),
       );
@@ -113,7 +161,7 @@ export class SpeakerManager {
    * @internal
    */
   dispose = () => {
-    this.subscriptions.forEach((s) => s.unsubscribe());
+    this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
   };
@@ -151,6 +199,15 @@ export class SpeakerManager {
       }
       return { audioVolume: volume };
     });
+  }
+
+  private persistSpeakerDevicePreference(selectedDevice: string) {
+    const { storageKey } = this.devicePersistence;
+    const devices = getCurrentValue(this.listDevices()) || [];
+    const currentDevice =
+      devices.find((d) => d.deviceId === selectedDevice) ??
+      createSyntheticDevice(selectedDevice, 'audiooutput');
+    writePreferences(currentDevice, 'speaker', undefined, storageKey);
   }
 }
 

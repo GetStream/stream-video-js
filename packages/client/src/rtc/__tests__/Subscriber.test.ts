@@ -11,8 +11,10 @@ import {
   ErrorCode,
   PeerType,
   TrackType,
+  WebsocketReconnectStrategy,
 } from '../../gen/video/sfu/models/models';
 import { NegotiationError } from '../NegotiationError';
+import { ReconnectReason } from '../types';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 
@@ -62,6 +64,7 @@ describe('Subscriber', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
     vi.resetModules();
     subscriber.dispose();
@@ -97,7 +100,14 @@ describe('Subscriber', () => {
       });
     });
 
+    const simulatePriorIceConnected = () => {
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'connected';
+      subscriber['onIceConnectionStateChange']();
+    };
+
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
+      simulatePriorIceConnected();
       vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
       // @ts-expect-error - private field
       subscriber['pc'].iceConnectionState = 'failed';
@@ -106,6 +116,7 @@ describe('Subscriber', () => {
     });
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
+      simulatePriorIceConnected();
       vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
       vi.useFakeTimers();
       // @ts-expect-error - private field
@@ -113,6 +124,51 @@ describe('Subscriber', () => {
       subscriber['onIceConnectionStateChange']();
       vi.runOnlyPendingTimers();
       expect(subscriber.restartIce).toHaveBeenCalled();
+    });
+
+    it(`does NOT perform ICE restart when ICE never connected and state goes to 'failed' — emits REJOIN with 'ice_never_connected'`, () => {
+      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
+      subscriber['onReconnectionNeeded'] = vi.fn();
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'failed';
+      subscriber['onIceConnectionStateChange']();
+      expect(subscriber.restartIce).not.toHaveBeenCalled();
+      expect(subscriber['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.ICE_NEVER_CONNECTED,
+        PeerType.SUBSCRIBER,
+      );
+    });
+
+    it(`isStable() returns true only when ICE is connected/completed and connectionState is connected`, () => {
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'connected';
+      // @ts-expect-error - private field
+      subscriber['pc'].connectionState = 'connected';
+      expect(subscriber.isStable()).toBe(true);
+
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'completed';
+      expect(subscriber.isStable()).toBe(true);
+
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'disconnected';
+      expect(subscriber.isStable()).toBe(false);
+
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'new';
+      expect(subscriber.isStable()).toBe(false);
+    });
+
+    it(`iceHasEverConnected tracks lifetime connectivity`, () => {
+      expect(subscriber['iceHasEverConnected']).toBe(false);
+      simulatePriorIceConnected();
+      expect(subscriber['iceHasEverConnected']).toBe(true);
+      // going disconnected does not reset the flag
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'disconnected';
+      subscriber['onIceConnectionStateChange']();
+      expect(subscriber['iceHasEverConnected']).toBe(true);
     });
 
     it(`should throw NegotiationError when SFU returns an error`, async () => {
@@ -258,6 +314,45 @@ describe('Subscriber', () => {
         'test',
       );
 
+      // @ts-expect-error - private method
+      expect(subscriber.negotiate).toHaveBeenCalledWith(subscriberOffer);
+    });
+
+    it('handles SubscriberOffer when SFU tag changes', () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi.fn();
+      const subscriberOffer = SubscriberOffer.create({
+        sdp: 'offer-sdp',
+        iceRestart: true,
+      });
+
+      const nextSfuClient = {
+        ...sfuClient,
+        tag: 'next-tag',
+      } as StreamSfuClient;
+      subscriber.setSfuClient(nextSfuClient);
+
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'subscriberOffer',
+            subscriberOffer,
+          },
+        }) as DispatchableMessage<'subscriberOffer'>,
+        'test',
+      );
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'subscriberOffer',
+            subscriberOffer,
+          },
+        }) as DispatchableMessage<'subscriberOffer'>,
+        'next-tag',
+      );
+
+      // @ts-expect-error - private method
+      expect(subscriber.negotiate).toHaveBeenCalledTimes(1);
       // @ts-expect-error - private method
       expect(subscriber.negotiate).toHaveBeenCalledWith(subscriberOffer);
     });

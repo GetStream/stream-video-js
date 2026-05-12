@@ -2,7 +2,9 @@ import {
   DefaultParticipantViewUI,
   SpeakerLayout,
 } from '@stream-io/video-react-sdk';
+
 import { useConfigurationContext } from '../../../ConfigurationContext';
+import { EgressReadyParticipantViewUI } from '../EgressReadyParticipantViewUI';
 
 import './Spotlight.scss';
 
@@ -32,7 +34,7 @@ export const Spotlight = () => {
           />
         }
         ParticipantViewUISpotlight={
-          <DefaultParticipantViewUI
+          <EgressReadyParticipantViewUI
             indicatorsVisible={false}
             showMenuButton={false}
           />

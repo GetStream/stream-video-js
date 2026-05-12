@@ -62,12 +62,7 @@ export const oniOSExpoNotificationEvent = (event: ExpoNotification) => {
   }
 };
 
-export const oniOSNotifeeEvent = ({
-  event,
-}: {
-  event: Event;
-  isBackground: boolean;
-}) => {
+export const oniOSNotifeeEvent = ({ event }: { event: Event }) => {
   if (Platform.OS !== 'ios') return;
   const pushConfig = StreamVideoRN.getConfig().push;
   const { type, detail } = event;
@@ -132,7 +127,7 @@ export async function initIosNonVoipToken(
 ) {
   if (
     Platform.OS !== 'ios' ||
-    !pushConfig.ios.pushProviderName ||
+    !pushConfig.ios?.pushProviderName ||
     !pushConfig.onTapNonRingingCallNotification
   ) {
     return;
@@ -160,7 +155,7 @@ export async function initIosNonVoipToken(
         );
       }
     });
-    const push_provider_name = pushConfig.ios.pushProviderName;
+    const push_provider_name = pushConfig.ios?.pushProviderName;
     logger.debug('Add device token to stream', token);
     await client
       .addDevice(token, 'apn', push_provider_name)

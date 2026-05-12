@@ -2,7 +2,7 @@
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
     "skipLibCheck": true,
-    "lib": ["dom"],
+    "lib": ["esnext", "dom"],
     "paths": {
       "react": ["./node_modules/@types/react"],
       "react-native": ["./node_modules/react-native"]

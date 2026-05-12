@@ -42,7 +42,7 @@ export class StreamVideoWriteableStateStore {
    * The currently connected user.
    */
   get connectedUser(): OwnUserResponse | undefined {
-    return RxUtils.getCurrentValue(this.connectedUserSubject);
+    return this.connectedUserSubject.getValue();
   }
 
   /**

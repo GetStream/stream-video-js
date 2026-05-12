@@ -58,11 +58,22 @@ export const isSfuEvent = (
   return Object.prototype.hasOwnProperty.call(sfuEventKinds, eventName);
 };
 
-type TaggedHandler = { [tag: string]: CallEventListener<any>[] | undefined };
+export type ListenerTag = string | (() => string);
+type AnyListener = CallEventListener<keyof AllSfuEvents>;
+
+type DynamicHandler = {
+  tagSelector: () => string;
+  listener: AnyListener;
+};
+
+type EventHandlers = {
+  byTag: Map<string, AnyListener[]>;
+  dynamic: DynamicHandler[];
+};
 
 export class Dispatcher {
   private readonly logger = videoLoggerSystem.getLogger('Dispatcher');
-  private subscribers: Partial<Record<SfuEventKinds, TaggedHandler>> = {};
+  private subscribers = new Map<SfuEventKinds, EventHandlers>();
 
   /**
    * Dispatch an event to all subscribers.
@@ -78,10 +89,13 @@ export class Dispatcher {
     if (!eventKind) return;
     const payload = message.eventPayload[eventKind];
     this.logger.debug(`Dispatching ${eventKind}, tag=${tag}`, payload);
-    const handlers = this.subscribers[eventKind];
+    const handlers = this.subscribers.get(eventKind);
     if (!handlers) return;
-    this.emit(payload, handlers[tag]);
-    if (tag !== '*') this.emit(payload, handlers['*']);
+
+    const { byTag, dynamic } = handlers;
+    this.emit(payload, byTag.get(tag));
+    if (tag !== '*') this.emit(payload, byTag.get('*'));
+    this.emitDynamic(payload, tag, dynamic);
   };
 
   /**
@@ -90,13 +104,35 @@ export class Dispatcher {
    * @param payload the event payload to emit.
    * @param listeners the list of listeners to emit the event to.
    */
-  emit = (payload: any, listeners: CallEventListener<any>[] = []) => {
+  emit = (payload: any, listeners: AnyListener[] = []) => {
     for (const listener of listeners) {
-      try {
-        listener(payload);
-      } catch (e) {
-        this.logger.warn('Listener failed with error', e);
+      this.emitOne(payload, listener);
+    }
+  };
+
+  /**
+   * Emit an event to a list of listeners.
+   *
+   */
+  emitDynamic = (payload: any, tag: string, dynamic: DynamicHandler[]) => {
+    for (const { tagSelector, listener } of dynamic) {
+      const dynamicTag = tagSelector();
+      if (dynamicTag === tag || (tag !== '*' && dynamicTag === '*')) {
+        this.emitOne(payload, listener);
       }
+    }
+  };
+
+  /**
+   * Emit an event to a single listener.
+   * @param payload the event payload to emit.
+   * @param listener the listener to emit the event to.
+   */
+  private emitOne = (payload: any, listener: AnyListener) => {
+    try {
+      listener(payload);
+    } catch (e) {
+      this.logger.warn('Listener failed with error', e);
     }
   };
 
@@ -104,17 +140,25 @@ export class Dispatcher {
    * Subscribe to an event.
    *
    * @param eventName the name of the event to subscribe to.
-   * @param tag for scoping events to a specific tag. Use `*` dispatch to every tag.
+   * @param tag for scoping events to a specific tag. Can be a static tag
+   * string or a function that resolves the tag dynamically.
    * @param fn the callback function to invoke when the event is emitted.
    * @returns a function that can be called to unsubscribe from the event.
    */
   on = <E extends keyof AllSfuEvents>(
     eventName: E,
-    tag: string,
+    tag: ListenerTag,
     fn: CallEventListener<E>,
   ) => {
-    const bucket = (this.subscribers[eventName] ??= {} as TaggedHandler);
-    (bucket[tag] ??= []).push(fn);
+    const { byTag, dynamic } = this.getHandlers(eventName);
+    const listener = fn as AnyListener;
+    if (typeof tag === 'string') {
+      const listeners = byTag.get(tag) ?? [];
+      listeners.push(listener);
+      byTag.set(tag, listeners);
+    } else {
+      dynamic.push({ tagSelector: tag, listener });
+    }
     return () => {
       this.off(eventName, tag, fn);
     };
@@ -124,17 +168,35 @@ export class Dispatcher {
    * Unsubscribe from an event.
    *
    * @param eventName the name of the event to unsubscribe from.
-   * @param tag for scoping events to a specific tag. Use `*` dispatch to every tag.
+   * @param tag the original static/dynamic tag selector used during subscription.
    * @param fn the callback function to remove from the event listeners.
    */
   off = <E extends keyof AllSfuEvents>(
     eventName: E,
-    tag: string,
+    tag: ListenerTag,
     fn: CallEventListener<E>,
   ) => {
-    const bucket = this.subscribers[eventName];
-    const listeners = bucket?.[tag];
-    if (!listeners) return;
-    bucket[tag] = listeners.filter((f) => f !== fn);
+    const bucket = this.subscribers.get(eventName);
+    if (!bucket) return;
+
+    const { byTag, dynamic } = bucket;
+    if (typeof tag === 'string') {
+      const listeners = byTag.get(tag) || [];
+      const idx = listeners.indexOf(fn as AnyListener);
+      if (idx >= 0) listeners.splice(idx, 1);
+    } else {
+      const idx = dynamic.findIndex(({ tagSelector, listener }) => {
+        return tagSelector === tag && listener === fn;
+      });
+      if (idx >= 0) dynamic.splice(idx, 1);
+    }
+  };
+
+  private getHandlers = (eventName: SfuEventKinds): EventHandlers => {
+    const existing = this.subscribers.get(eventName);
+    if (existing) return existing;
+    const next: EventHandlers = { byTag: new Map(), dynamic: [] };
+    this.subscribers.set(eventName, next);
+    return next;
   };
 }

@@ -38,6 +38,7 @@ export const watchParticipantJoined = (state: CallState) => {
         StreamVideoParticipantPatch | undefined,
         Partial<StreamVideoParticipant>
       >(participant, orphanedTracks, {
+        ...(e.isPinned && { pin: { isLocalPin: false, pinnedAt: Date.now() } }),
         viewportVisibilityState: {
           videoTrack: VisibilityState.UNKNOWN,
           screenShareTrack: VisibilityState.UNKNOWN,

@@ -5,7 +5,6 @@ import {
   CancelCallConfirmButton,
   CompositeButton,
   Icon,
-  MicCaptureErrorNotification,
   OwnCapability,
   PermissionRequests,
   PipLayout,
@@ -27,6 +26,7 @@ import { ActiveCallHeader } from './ActiveCallHeader';
 import { CallStatsSidebar, ToggleStatsButton } from './CallStatsWrapper';
 import { ChatUI } from './ChatUI';
 import { ChatWrapper } from './ChatWrapper';
+import { DeviceDisconnectedNotification } from './DeviceDisconnectedNotification';
 import {
   ClosedCaptions,
   ClosedCaptionsSidebar,
@@ -48,6 +48,7 @@ import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { TourPanel } from './TourPanel';
 import { UnreadCountBadge } from './UnreadCountBadge';
+import { AIAgentStatusPanel, AskAIAgentButton } from './VisionAgent';
 
 import {
   useIsDemoEnvironment,
@@ -108,6 +109,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const [showInvitePopup, setShowInvitePopup] = useState(
     isDemoEnvironment && !isTourActive,
   );
+  const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
   const [sidebarContent, setSidebarContent] = useState<SidebarContent>(null);
   const showSidebar = sidebarContent != null;
   const showParticipants = sidebarContent === 'participants';
@@ -245,7 +247,6 @@ export const ActiveCall = (props: ActiveCallProps) => {
             hasPermissionsOnly
           >
             <SpeakingWhileMutedNotification />
-            <MicCaptureErrorNotification />
           </Restricted>
         </div>
         <div
@@ -282,6 +283,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
               <ToggleMoreOptionsListButton />
             </div>
           </div>
+          <DeviceDisconnectedNotification className="rd__call-controls__notification" />
           <div className="str-video__call-controls--group str-video__call-controls--media">
             {remoteFilePublisherAPI && (
               <RemoteVideoControls api={remoteFilePublisherAPI} />
@@ -322,6 +324,16 @@ export const ActiveCall = (props: ActiveCallProps) => {
               </WithTooltip>
             )}
             <RecordCallConfirmationButton />
+            {isDemoEnvironment && (
+              <div className="str-video__call-controls__desktop rd__ai-agent-anchor">
+                <AskAIAgentButton
+                  sessionId={agentSessionId}
+                  onSessionCreated={setAgentSessionId}
+                  onSessionCleared={() => setAgentSessionId(null)}
+                />
+                <AIAgentStatusPanel />
+              </div>
+            )}
             <div className="str-video__call-controls__desktop">
               <CancelCallConfirmButton onLeave={onLeave} />
             </div>

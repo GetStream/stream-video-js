@@ -36,6 +36,7 @@ import {
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
 import { getRandomName } from '../lib/names';
+import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
 
 export type UserMode = 'regular' | 'guest' | 'anon';
 
@@ -182,6 +183,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                     <div className="rd__lobby-settings">
                       <ToggleParticipantsPreviewButton onJoin={onJoin} />
                       <ToggleHiFiButton />
+                      <ToggleNoiseCancellationButton />
                       <ToggleEffectsButton inMeeting={false} />
                       <ToggleSettingsTabModal
                         layoutProps={{

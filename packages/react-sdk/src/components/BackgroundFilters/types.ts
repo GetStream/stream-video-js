@@ -2,6 +2,7 @@ import type {
   BackgroundBlurLevel,
   BackgroundFilter,
   PlatformSupportFlags,
+  SegmentationOptions,
 } from '@stream-io/video-filters-web';
 
 /**
@@ -91,10 +92,17 @@ export type BackgroundFiltersProps = PlatformSupportFlags & {
   onError?: (error: any) => void;
 
   /**
-   * Configuration for performance metric thresholds.
-   * Use this to customize when performance warnings are triggered.
+   * `@deprecated` Performance tuning is now handled internally by the SDK, so
+   * this prop is ignored. Remove this prop; there is no replacement
+   * configuration. Degradation is derived from the processed/source FPS ratio.
    */
   performanceThresholds?: BackgroundFiltersPerformanceThresholds;
+
+  /**
+   * Options for controlling the segmentation mask smoothing in the WebGL shader.
+   * Use this to tune the trade-off between mask responsiveness and visual stability.
+   */
+  segmentationOptions?: SegmentationOptions;
 };
 
 /**
@@ -105,8 +113,8 @@ export type PerformanceDegradationReason = 'frame-drop' | 'cpu-throttling';
 /**
  * Performance degradation information for background filters.
  *
- * Performance is calculated using an Exponential Moving Average (EMA) of FPS values
- * to smooth out quick spikes and provide stable performance warnings.
+ * Performance is calculated from a smoothed processed/source FPS ratio to
+ * provide stable performance warnings.
  */
 export type BackgroundFiltersPerformance = {
   /**

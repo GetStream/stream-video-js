@@ -58,6 +58,7 @@ export class PermissionsContext {
         return false;
       default:
         ensureExhausted(trackType, 'Unknown track type');
+        return false;
     }
   };
 

@@ -1,9 +1,10 @@
 import type { NextAuthOptions, Profile } from 'next-auth';
 import NextAuth from 'next-auth';
 import GoogleProvider, { GoogleProfile } from 'next-auth/providers/google';
-import { CredentialsConfig, Provider } from 'next-auth/providers';
 import { getUserIdFromEmail } from '../../../lib/names';
 import { userId } from '../../../lib/idGenerators';
+import { CredentialsConfig } from 'next-auth/providers/credentials';
+import { Provider } from 'next-auth/providers/index';
 
 /**
  * A custom provider that allows users to sign in with Stream Demo Account.

@@ -1,0 +1,15 @@
+.str-video__embedded-connection-notification {
+  position: absolute;
+  top: var(--str-video__spacing-md);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+
+  .str-video__notification {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+  }
+}

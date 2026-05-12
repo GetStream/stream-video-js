@@ -7,7 +7,7 @@ import type {
 import { StreamClient } from '../coordinator/connection/client';
 import { getSdkInfo } from './client-details';
 import { SdkType } from '../gen/video/sfu/models/models';
-import type { StreamVideoClientOptions } from '../StreamVideoClient';
+import type { StreamVideoClientOptions } from '../types';
 
 /**
  * Utility function to get the instance key.

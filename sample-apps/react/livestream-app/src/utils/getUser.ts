@@ -1,4 +1,5 @@
 import { getURLCredentials } from './getURLCredentials';
+import type { User } from '@stream-io/video-react-sdk';
 
 // a list of random star-wars characters
 export const characters = [
@@ -16,12 +17,7 @@ export const characters = [
   'Finn',
 ];
 
-type UserType = {
-  id: string;
-  name: string;
-};
-
-export const getUser = () => {
+export const getUser = (): User => {
   const { user_id, user_name } = getURLCredentials();
   if (user_id) {
     return {
@@ -40,5 +36,5 @@ export const getUser = () => {
       }),
     );
   }
-  return JSON.parse(window.sessionStorage.getItem('user') || '{}') as UserType;
+  return JSON.parse(window.sessionStorage.getItem('user') || '{}') as User;
 };

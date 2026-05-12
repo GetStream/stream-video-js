@@ -12,17 +12,14 @@ import {
   insertContentsInsideObjcFunctionBlock,
 } from '@expo/config-plugins/build/ios/codeMod';
 
-import {
-  type ConfigProps,
-  type RingingPushNotifications,
-} from './common/types';
+import { type ConfigProps } from './common/types';
 import addNewLinesToAppDelegateObjc from './common/addNewLinesToAppDelegateObjc';
 import { addToSwiftBridgingHeaderFile } from './common/addToSwiftBridgingHeaderFile';
 
 const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
   return withAppDelegateUtil(configuration, (config) => {
     if (
-      !props?.ringingPushNotifications &&
+      !props?.ringing &&
       !props?.iOSEnableMultitaskingCameraAccess &&
       !props?.addNoiseCancellation
     ) {
@@ -42,22 +39,15 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           props.iOSEnableMultitaskingCameraAccess,
           props.addNoiseCancellation,
         );
-        if (props?.ringingPushNotifications) {
+        if (props?.ringing) {
           config.modResults.contents = addObjcImports(
             config.modResults.contents,
-            [
-              '"RNCallKeep.h"',
-              '<PushKit/PushKit.h>',
-              '"RNVoipPushNotificationManager.h"',
-              '"StreamVideoReactNative.h"',
-              '<WebRTC/RTCAudioSession.h>',
-            ],
+            ['<PushKit/PushKit.h>', '"StreamVideoReactNative.h"'],
           );
 
           config.modResults.contents =
             addDidFinishLaunchingWithOptionsRingingObjc(
               config.modResults.contents,
-              props.ringingPushNotifications,
             );
 
           config.modResults.contents = addDidUpdatePushCredentialsObjc(
@@ -65,10 +55,6 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           );
 
           config.modResults.contents = addDidReceiveIncomingPushCallbackObjc(
-            config.modResults.contents,
-          );
-
-          config.modResults.contents = addAudioSessionMethodsObjc(
             config.modResults.contents,
           );
         }
@@ -80,7 +66,7 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
       }
     } else {
       try {
-        if (props?.ringingPushNotifications) {
+        if (props?.ringing) {
           // make it public class AppDelegate: ExpoAppDelegate, PKPushRegistryDelegate {
           const regex = /(class\s+AppDelegate[^{]*)(\s*\{)/;
           config.modResults.contents = config.modResults.contents.replace(
@@ -130,15 +116,14 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           props.iOSEnableMultitaskingCameraAccess,
           props.addNoiseCancellation,
         );
-        if (props?.ringingPushNotifications) {
+        if (props?.ringing) {
           config.modResults.contents = addSwiftImports(
             config.modResults.contents,
-            ['RNCallKeep', 'PushKit', 'RNVoipPushNotification'],
+            ['PushKit', 'stream_video_react_native'],
           );
           config.modResults.contents =
             addDidFinishLaunchingWithOptionsRingingSwift(
               config.modResults.contents,
-              props.ringingPushNotifications,
             );
 
           config.modResults.contents = addDidUpdatePushCredentialsSwift(
@@ -146,10 +131,6 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
           );
 
           config.modResults.contents = addDidReceiveIncomingPushCallbackSwift(
-            config.modResults.contents,
-          );
-
-          config.modResults.contents = addAudioSessionMethodsSwift(
             config.modResults.contents,
           );
         }
@@ -231,33 +212,10 @@ function addDidFinishLaunchingWithOptionsObjc(
   return contents;
 }
 
-function addDidFinishLaunchingWithOptionsRingingSwift(
-  contents: string,
-  ringingPushNotifications: RingingPushNotifications,
-) {
+function addDidFinishLaunchingWithOptionsRingingSwift(contents: string) {
   const functionSelector = 'application(_:didFinishLaunchingWithOptions:)';
-  const supportsVideoString = ringingPushNotifications.disableVideoIos
-    ? 'false'
-    : 'true';
-  const includesCallsInRecents =
-    ringingPushNotifications.includesCallsInRecentsIos ? 'false' : 'true';
-  const setupCallKeep = `  let localizedAppName = Bundle.main.localizedInfoDictionary?["CFBundleDisplayName"] as? String
-    let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
-    RNCallKeep.setup([
-      "appName": localizedAppName != nil ? localizedAppName! : appName as Any,
-      "supportsVideo": ${supportsVideoString},
-      "includesCallsInRecents": ${includesCallsInRecents},
-    ])`;
-  if (!contents.includes('RNCallKeep.setup')) {
-    contents = insertContentsInsideSwiftFunctionBlock(
-      contents,
-      functionSelector,
-      setupCallKeep,
-      { position: 'head' },
-    );
-  }
   // call the setup of voip push notification
-  const voipSetupMethod = 'RNVoipPushNotificationManager.voipRegistration()';
+  const voipSetupMethod = 'StreamVideoReactNative.voipRegistration()';
   if (!contents.includes(voipSetupMethod)) {
     contents = insertContentsInsideSwiftFunctionBlock(
       contents,
@@ -269,34 +227,10 @@ function addDidFinishLaunchingWithOptionsRingingSwift(
   return contents;
 }
 
-function addDidFinishLaunchingWithOptionsRingingObjc(
-  contents: string,
-  ringingPushNotifications: RingingPushNotifications,
-) {
+function addDidFinishLaunchingWithOptionsRingingObjc(contents: string) {
   const functionSelector = 'application:didFinishLaunchingWithOptions:';
-  // call the setup RNCallKeep
-  const supportsVideoString = ringingPushNotifications.disableVideoIos
-    ? '@NO'
-    : '@YES';
-  const includesCallsInRecents =
-    ringingPushNotifications.includesCallsInRecentsIos ? '@YES' : '@NO';
-  const setupCallKeep = `NSString *localizedAppName = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
-  NSString *appName = [[[NSBundle mainBundle] infoDictionary]objectForKey :@"CFBundleDisplayName"];
-  [RNCallKeep setup:@{
-    @"appName": localizedAppName != nil ? localizedAppName : appName,
-    @"supportsVideo": ${supportsVideoString},
-    @"includesCallsInRecents": ${includesCallsInRecents},
-  }];`;
-  if (!contents.includes('[RNCallKeep setup:@')) {
-    contents = insertContentsInsideObjcFunctionBlock(
-      contents,
-      functionSelector,
-      setupCallKeep,
-      { position: 'head' },
-    );
-  }
   // call the setup of voip push notification
-  const voipSetupMethod = '[RNVoipPushNotificationManager voipRegistration];';
+  const voipSetupMethod = '[StreamVideoReactNative voipRegistration];';
   if (!contents.includes(voipSetupMethod)) {
     contents = insertContentsInsideObjcFunctionBlock(
       contents,
@@ -310,7 +244,7 @@ function addDidFinishLaunchingWithOptionsRingingObjc(
 
 function addDidUpdatePushCredentialsSwift(contents: string) {
   const updatedPushCredentialsMethod =
-    'RNVoipPushNotificationManager.didUpdate(credentials, forType: type.rawValue)';
+    'StreamVideoReactNative.didUpdate(credentials, forType: type.rawValue)';
 
   if (!contents.includes(updatedPushCredentialsMethod)) {
     const functionSelector = 'pushRegistry(_:didUpdate:for:)';
@@ -344,7 +278,7 @@ function addDidUpdatePushCredentialsSwift(contents: string) {
 
 function addDidUpdatePushCredentialsObjc(contents: string) {
   const updatedPushCredentialsMethod =
-    '[RNVoipPushNotificationManager didUpdatePushCredentials:credentials forType:(NSString *)type];';
+    '[StreamVideoReactNative didUpdatePushCredentials:credentials forType: (NSString *) type];';
   if (!contents.includes(updatedPushCredentialsMethod)) {
     const functionSelector = 'pushRegistry:didUpdatePushCredentials:forType:';
     const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
@@ -366,148 +300,10 @@ function addDidUpdatePushCredentialsObjc(contents: string) {
   return contents;
 }
 
-function addAudioSessionMethodsSwift(contents: string) {
-  const audioSessionDidActivateMethod =
-    'RTCAudioSession.sharedInstance().audioSessionDidActivate(AVAudioSession.sharedInstance())';
-  if (!contents.includes(audioSessionDidActivateMethod)) {
-    const functionSelector = 'provider(_:didActivate:)';
-    if (!contents.includes('didActivateAudioSession')) {
-      contents = insertContentsInsideSwiftClassBlock(
-        contents,
-        'class AppDelegate',
-        `
-  func provider(_ provider: CXProvider, didActivateAudioSession audioSession: AVAudioSession) {
-    ${audioSessionDidActivateMethod}
-  }
-    `,
-        { position: 'tail' },
-      );
-    } else {
-      contents = insertContentsInsideSwiftFunctionBlock(
-        contents,
-        functionSelector,
-        audioSessionDidActivateMethod,
-        { position: 'tail' },
-      );
-    }
-  }
-  const audioSessionDidDeactivateMethod =
-    'RTCAudioSession.sharedInstance().audioSessionDidDeactivate(AVAudioSession.sharedInstance())';
-
-  if (!contents.includes(audioSessionDidDeactivateMethod)) {
-    const functionSelector = 'provider(_:didDeactivate:)';
-    if (!contents.includes('didDeactivateAudioSession')) {
-      contents = insertContentsInsideSwiftClassBlock(
-        contents,
-        'class AppDelegate',
-        `
-  func provider(_ provider: CXProvider, didDeactivateAudioSession audioSession: AVAudioSession) {
-    ${audioSessionDidDeactivateMethod}
-  }
-    `,
-        { position: 'tail' },
-      );
-    } else {
-      contents = insertContentsInsideSwiftFunctionBlock(
-        contents,
-        functionSelector,
-        audioSessionDidDeactivateMethod,
-        { position: 'tail' },
-      );
-    }
-  }
-  return contents;
-}
-
-function addAudioSessionMethodsObjc(contents: string) {
-  const audioSessionDidActivateMethod =
-    '[[RTCAudioSession sharedInstance] audioSessionDidActivate:[AVAudioSession sharedInstance]];';
-  if (!contents.includes(audioSessionDidActivateMethod)) {
-    const functionSelector = 'provider:didActivateAudioSession:audioSession:';
-    const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
-    if (!codeblock) {
-      contents = addNewLinesToAppDelegateObjc(contents, [
-        '- (void) provider:(CXProvider *) provider didActivateAudioSession:(AVAudioSession *) audioSession {',
-        '  ' /* indentation */ + audioSessionDidActivateMethod,
-        '}',
-      ]);
-    } else {
-      contents = insertContentsInsideObjcFunctionBlock(
-        contents,
-        functionSelector,
-        audioSessionDidActivateMethod,
-        { position: 'tail' },
-      );
-    }
-  }
-  const audioSessionDidDeactivateMethod =
-    '[[RTCAudioSession sharedInstance] audioSessionDidDeactivate:[AVAudioSession sharedInstance]];';
-
-  if (!contents.includes(audioSessionDidDeactivateMethod)) {
-    const functionSelector = 'provider:didDeactivateAudioSession:audioSession:';
-    const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
-    if (!codeblock) {
-      contents = addNewLinesToAppDelegateObjc(contents, [
-        '- (void) provider:(CXProvider *) provider didDeactivateAudioSession:(AVAudioSession *) audioSession {',
-        '  ' /* indentation */ + audioSessionDidDeactivateMethod,
-        '}',
-      ]);
-    } else {
-      contents = insertContentsInsideObjcFunctionBlock(
-        contents,
-        functionSelector,
-        audioSessionDidDeactivateMethod,
-        { position: 'tail' },
-      );
-    }
-  }
-  return contents;
-}
-
 function addDidReceiveIncomingPushCallbackSwift(contents: string) {
   const onIncomingPush = `
-    guard let stream = payload.dictionaryPayload["stream"] as? [String: Any],
-          let createdCallerName = stream["created_by_display_name"] as? String,
-          let cid = stream["call_cid"] as? String else {
-      completion()
-      return
-    }
-
-    // Check if user is busy BEFORE registering the call
-    let shouldReject = StreamVideoReactNative.shouldRejectCallWhenBusy()
-    let hasAnyActiveCall = StreamVideoReactNative.hasAnyActiveCall()
-        
-    if shouldReject && hasAnyActiveCall {
-        // Complete the VoIP notification without showing CallKit UI
-        completion()
-        return
-    }
-    
-    let uuid = UUID().uuidString
-    let videoIncluded = stream["video"] as? String
-    let hasVideo = videoIncluded == "false" ? false : true
-    
-    StreamVideoReactNative.registerIncomingCall(cid, uuid: uuid)
-    
-    RNVoipPushNotificationManager.addCompletionHandler(uuid, completionHandler: completion)
-    
-    RNVoipPushNotificationManager.didReceiveIncomingPush(with: payload, forType: type.rawValue)
-    
-    RNCallKeep.reportNewIncomingCall(uuid,
-                                     handle: createdCallerName,
-                                     handleType: "generic",
-                                     hasVideo: hasVideo,
-                                     localizedCallerName: createdCallerName,
-                                     supportsHolding: false,
-                                     supportsDTMF: false,
-                                     supportsGrouping: false,
-                                     supportsUngrouping: false,
-                                     fromPushKit: true,
-                                     payload: stream,
-                                     withCompletionHandler: nil)`;
-  if (
-    !contents.includes('RNVoipPushNotificationManager.didReceiveIncomingPush')
-  ) {
+    StreamVideoReactNative.didReceiveIncomingPush(payload, forType: type.rawValue, completionHandler: completion)`;
+  if (!contents.includes('StreamVideoReactNative.didReceiveIncomingPush')) {
     const functionSelector =
       'pushRegistry(_:didReceiveIncomingPushWith:for:completion:)';
     const codeblock = findSwiftFunctionCodeBlock(contents, functionSelector);
@@ -541,53 +337,10 @@ function addDidReceiveIncomingPushCallbackSwift(contents: string) {
 
 function addDidReceiveIncomingPushCallbackObjc(contents: string) {
   const onIncomingPush = `
-  // process the payload and store it in the native module's cache
-  NSDictionary *stream = payload.dictionaryPayload[@"stream"];
-  NSString *uuid = [[NSUUID UUID] UUIDString];
-  NSString *createdCallerName = stream[@"created_by_display_name"];
-  NSString *cid = stream[@"call_cid"];
-  
-  // Check if user is busy BEFORE registering the call
-  BOOL shouldReject = [StreamVideoReactNative shouldRejectCallWhenBusy];
-  BOOL hasAnyActiveCall = [StreamVideoReactNative hasAnyActiveCall];
-  
-  if (shouldReject && hasAnyActiveCall) {
-      // Complete the VoIP notification without showing CallKit UI
-      completion();
-      return;
-  }
-  
-  NSString *videoIncluded = stream[@"video"];
-  BOOL hasVideo = [videoIncluded isEqualToString:@"false"] ? NO : YES;
-
-  // store the call cid and uuid in the native module's cache
-  [StreamVideoReactNative registerIncomingCall:cid uuid:uuid];
-
-  // set the completion handler - this one is called by the JS SDK
-  [RNVoipPushNotificationManager addCompletionHandler:uuid completionHandler:completion];
-
-  // send event to JS - the JS SDK will handle the rest and call the 'completionHandler'
-  [RNVoipPushNotificationManager didReceiveIncomingPushWithPayload:payload forType:(NSString *)type];
-
-  // display the incoming call notification
-  [RNCallKeep reportNewIncomingCall: uuid
-                             handle: createdCallerName
-                         handleType: @"generic"
-                           hasVideo: hasVideo
-                localizedCallerName: createdCallerName
-                    supportsHolding: NO
-                       supportsDTMF: NO
-                   supportsGrouping: NO
-                 supportsUngrouping: NO
-                        fromPushKit: YES
-                            payload: stream
-              withCompletionHandler: nil];
+  // process the payload and display the incoming call notification
+  [StreamVideoReactNative didReceiveIncomingPush:payload forType: (NSString *)type completionHandler:completion];
 `;
-  if (
-    !contents.includes(
-      '[RNVoipPushNotificationManager didReceiveIncomingPushWithPayload',
-    )
-  ) {
+  if (!contents.includes('[StreamVideoReactNative didReceiveIncomingPush')) {
     const functionSelector =
       'pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:';
     const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
