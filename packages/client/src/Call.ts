@@ -1186,13 +1186,6 @@ export class Call {
     this.sfuClient = sfuClient;
     this.unifiedSessionId ??= sfuClient.sessionId;
     this.trackSubscriptionManager.setSfuClient(sfuClient);
-    // Start the audio-health monitor the first time a call actually has an
-    // SFU connection. `start()` is idempotent - safe across SFU migration /
-    // reconnection where this may fire more than once.
-    this.audioHealthMonitor?.start().catch((err) => {
-      this.logger.warn('audioHealthMonitor.start failed', err);
-    });
-    this.audioHealthAutoRecovery?.start();
 
     const clientDetails = await getClientDetails();
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
@@ -1253,6 +1246,11 @@ export class Call {
         throw error;
       }
     }
+
+    this.audioHealthMonitor?.start().catch((err) => {
+      this.logger.warn('audioHealthMonitor.start failed', err);
+    });
+    this.audioHealthAutoRecovery?.start();
 
     if (!performingMigration) {
       // in MIGRATION, `JOINED` state is set in `this.reconnectMigrate()`
