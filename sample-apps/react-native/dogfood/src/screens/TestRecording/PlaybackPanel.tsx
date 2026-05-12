@@ -28,9 +28,6 @@ export const PlaybackPanel = ({ uri }: { uri: string }) => {
             <Text style={styles.playButtonGlyph}>{paused ? '▶' : '❚❚'}</Text>
           </View>
         </Pressable>
-        <View style={styles.videoPanelLabelContainer}>
-          <Text style={styles.videoPanelLabel}>{'Recording'}</Text>
-        </View>
       </View>
     </View>
   );

@@ -6,16 +6,20 @@ import { useAppGlobalStoreSetState } from '../../contexts/AppContext';
 import { SourcePickers } from './SourcePickers';
 
 type RecordingControlsProps = {
+  buttonLabel: string;
   recordingState: LoopbackRecordingState;
   recordingUri: string | null;
+  isConnecting: boolean;
   onStart: () => void;
   stopRecording: () => Promise<void>;
   clearRecordings: () => Promise<void>;
 };
 
 export const RecordingControls = ({
+  buttonLabel,
   recordingState,
   recordingUri,
+  isConnecting,
   onStart,
   stopRecording,
   clearRecordings,
@@ -32,33 +36,21 @@ export const RecordingControls = ({
       return;
     }
 
-    if (recordingState === 'idle') {
+    if (recordingState === 'idle' && !isConnecting) {
       onStart();
-    } else if (recordingState === 'recording') {
+    } else {
       stopRecording().catch(() => {});
     }
   };
 
-  const buttonLabel = useMemo(() => {
-    if (isComplete) return 'Complete';
-
-    switch (recordingState) {
-      case 'idle':
-        return 'Record loopback';
-      case 'awaiting-streams':
-        return 'Starting recording…';
-      case 'recording':
-        return 'Stop recording';
-    }
-  }, [recordingState, isComplete]);
-
-  const disabled =
-    !isComplete && recordingState !== 'idle' && recordingState !== 'recording';
+  const disabled = isConnecting;
 
   return (
     <View style={styles.recordingContainer}>
       {isComplete ? null : (
-        <SourcePickers disabled={recordingState === 'recording'} />
+        <SourcePickers
+          disabled={isConnecting || recordingState === 'recording'}
+        />
       )}
       <Pressable
         onPress={handlePress}

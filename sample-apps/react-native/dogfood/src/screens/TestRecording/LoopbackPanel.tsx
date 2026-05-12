@@ -51,9 +51,6 @@ export const LoopbackPanel = () => {
             <Text style={styles.placeholderText}>Waiting…</Text>
           </View>
         )}
-        <View style={styles.videoPanelLabelContainer}>
-          <Text style={styles.videoPanelLabel}>{'Sending'}</Text>
-        </View>
       </View>
     </View>
   );

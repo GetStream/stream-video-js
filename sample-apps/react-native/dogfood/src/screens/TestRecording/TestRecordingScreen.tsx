@@ -1,6 +1,8 @@
 import {
   Call,
+  CallingState,
   StreamCall,
+  useCallStateHooks,
   useLoopbackRecording,
   useStreamVideoClient,
   useTheme,
@@ -57,8 +59,12 @@ export const TestRecordingScreen = () => {
 
 const TestRecordingContent = ({ call }: { call: Call }) => {
   const styles = useStyles();
+  const { useCallCallingState } = useCallStateHooks();
+  const callingState = useCallCallingState();
+
   const { startRecording, stopRecording, clearRecordings, recordingState } =
     useLoopbackRecording();
+
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,6 +84,19 @@ const TestRecordingContent = ({ call }: { call: Call }) => {
     }
   }, [call, startRecording]);
 
+  const isConnecting =
+    (callingState === CallingState.JOINING ||
+      callingState === CallingState.JOINED) &&
+    recordingState !== 'recording' &&
+    !recordingUri;
+
+  const buttonLabel = useMemo(() => {
+    if (isConnecting) return 'Connecting…';
+    if (recordingState === 'idle' && recordingUri) return 'Complete';
+    if (recordingState === 'recording') return 'Stop recording';
+    return 'Record loopback';
+  }, [recordingState, isConnecting, recordingUri]);
+
   return (
     <View style={styles.container}>
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -87,8 +106,10 @@ const TestRecordingContent = ({ call }: { call: Call }) => {
         <LoopbackPanel />
       )}
       <RecordingControls
+        buttonLabel={buttonLabel}
         recordingState={recordingState}
         recordingUri={recordingUri}
+        isConnecting={isConnecting}
         onStart={runTest}
         stopRecording={stopRecording}
         clearRecordings={clearRecordings}
