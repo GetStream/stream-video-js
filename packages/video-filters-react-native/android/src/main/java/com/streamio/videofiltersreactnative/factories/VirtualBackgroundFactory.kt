@@ -44,14 +44,8 @@ class VirtualBackgroundFactory(
 
     override fun build(): VideoFrameProcessor {
         return VideoFrameProcessorWithBitmapFilter {
-            VirtualBackgroundVideoFilter(
-                reactContext, backgroundImageUrlString, foregroundThreshold
-            )
+            VirtualBackgroundVideoFilter(reactContext, backgroundImageUrlString, foregroundThreshold)
         }
-    }
-
-    companion object {
-        private const val TAG = "VirtualBackgroundFactory"
     }
 }
 
@@ -63,10 +57,55 @@ class VirtualBackgroundFactory(
  */
 @Keep
 private class VirtualBackgroundVideoFilter(
-    reactContext: ReactApplicationContext,
-    backgroundImageUrlString: String,
+    private val reactContext: ReactApplicationContext,
+    private val backgroundImageUrlString: String,
     foregroundThreshold: Double = DEFAULT_FOREGROUND_THRESHOLD,
 ) : BitmapVideoFilter() {
+    // Loaded off-thread so a slow URL doesn't block the capture thread.
+    // Frames arriving before the load finishes fall through unfiltered.
+    @Volatile
+    private var virtualBackgroundBitmap: Bitmap? = null
+
+    // Guards against the load thread writing virtualBackgroundBitmap after close().
+    @Volatile
+    private var isClosed = false
+
+    init {
+        Thread { loadBackgroundImage() }.start()
+    }
+
+    private fun loadBackgroundImage() {
+        val bitmap: Bitmap? = try {
+            val uri = Uri.parse(backgroundImageUrlString)
+            if (uri.scheme == null) { // this is a local image
+                val drawableId = ResourceDrawableIdHelper.getInstance()
+                    .getResourceDrawableId(reactContext, backgroundImageUrlString)
+                BitmapFactory.decodeResource(reactContext.resources, drawableId)
+            } else {
+                val connection = URL(backgroundImageUrlString).openConnection().apply {
+                    connectTimeout = REMOTE_IMAGE_TIMEOUT_MS
+                    readTimeout = REMOTE_IMAGE_TIMEOUT_MS
+                }
+                connection.getInputStream().use { stream ->
+                    BitmapFactory.decodeStream(stream)
+                }
+            }
+        } catch (e: IOException) {
+            // URLs may carry signed-access query tokens; log only the host.
+            val host = Uri.parse(backgroundImageUrlString).host ?: "local"
+            Log.e(TAG, "cant get bitmap for image (host=$host)", e)
+            null
+        }
+
+        synchronized(this) {
+            if (isClosed) {
+                bitmap?.recycle()
+                return
+            }
+            virtualBackgroundBitmap = bitmap
+        }
+    }
+
     private val options =
         SelfieSegmenterOptions.Builder().setDetectorMode(SelfieSegmenterOptions.STREAM_MODE)
             .enableRawSizeMask().build()
@@ -92,23 +131,6 @@ private class VirtualBackgroundVideoFilter(
         }
     }
 
-
-    private val virtualBackgroundBitmap by lazy {
-        try {
-            val uri = Uri.parse(backgroundImageUrlString)
-            if (uri.scheme == null) { // this is a local image
-                val drawableId = ResourceDrawableIdHelper.getInstance()
-                    .getResourceDrawableId(reactContext, backgroundImageUrlString)
-                BitmapFactory.decodeResource(reactContext.resources, drawableId)
-            } else {
-                val url = URL(backgroundImageUrlString)
-                BitmapFactory.decodeStream(url.openConnection().getInputStream())
-            }
-        } catch (e: IOException) {
-            Log.e(TAG, "cant get bitmap for image url: $backgroundImageUrlString", e)
-            null
-        }
-    }
 
     private val foregroundPaint by lazy {
         // destination - video frame
@@ -182,6 +204,22 @@ private class VirtualBackgroundVideoFilter(
         if (scaledVirtualBackgroundBitmap!!.isRecycled) return
         // 2. Draw the virtual background behind the person
         canvas.drawBitmap(scaledVirtualBackgroundBitmap!!, 0f, 0f, backgroundPaint)
+    }
+
+    // Free the ML Kit segmenter and cached bitmaps held by the filter.
+    override fun close() {
+        synchronized(this) {
+            isClosed = true
+            virtualBackgroundBitmap?.recycle()
+            virtualBackgroundBitmap = null
+        }
+        segmenter.close()
+        scaledVirtualBackgroundBitmap?.recycle()
+        scaledVirtualBackgroundBitmap = null
+        foregroundMaskBitmap?.recycle()
+        foregroundMaskBitmap = null
+        scaledForegroundBitmap?.recycle()
+        scaledForegroundBitmap = null
     }
 
     private fun scaleVirtualBackgroundBitmap(bitmap: Bitmap, targetHeight: Int): Bitmap {
@@ -260,6 +298,7 @@ private class VirtualBackgroundVideoFilter(
 
     companion object {
         private const val TAG = "VirtualBackgroundVideoFilter"
+        private const val REMOTE_IMAGE_TIMEOUT_MS = 10_000
     }
 }
 

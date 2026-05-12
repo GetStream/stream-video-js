@@ -460,7 +460,8 @@ export class Publisher extends BasePeerConnection {
     const trackInfos: TrackInfo[] = [];
     for (const publishOption of this.publishOptions) {
       const bundle = this.transceiverCache.get(publishOption);
-      if (!bundle || !bundle.transceiver.sender.track) continue;
+      const track = bundle?.transceiver.sender.track;
+      if (!bundle || !track || track.readyState !== 'live') continue;
       trackInfos.push(this.toTrackInfo(bundle, sdp));
     }
     return trackInfos;

@@ -102,6 +102,54 @@ Examples:
 - Public surfaces: explicit TypeScript types/interfaces
 - Consistent naming: `camelCase` for functions/properties, `PascalCase` for components/types
 
+## Class style
+
+- **All class methods must be arrow-function class fields**, not method syntax — including `private`/`protected` methods. This is the convention across `packages/client/src/` (e.g., `Call.leave = async (...) => {}`, `BasePeerConnection.isHealthy = () => {}`). Method syntax breaks it.
+
+  ```ts
+  // good
+  class Foo {
+    doThing = (x: number) => x + 1;
+    private helper = () => {
+      /* ... */
+    };
+  }
+
+  // bad
+  class Foo {
+    doThing(x: number) {
+      return x + 1;
+    }
+    private helper() {
+      /* ... */
+    }
+  }
+  ```
+
+- **Declare state as explicit class fields** at the class body level, not as TypeScript parameter-property shorthand (`constructor(private foo: Foo)`). Assign them from the constructor body. Use field initializers for constants.
+
+  ```ts
+  // good
+  class Foo {
+    private a: number;
+    private b: number;
+    private cache: Map<string, number> = new Map();
+
+    constructor(a: number, b: number) {
+      this.a = a;
+      this.b = b;
+    }
+  }
+
+  // bad
+  class Foo {
+    constructor(
+      private a: number,
+      private b: number,
+    ) {}
+  }
+  ```
+
 ### Deprecation lifecycle
 
 1. Mark with `@deprecated` + rationale + alternative.

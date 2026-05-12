@@ -190,6 +190,11 @@ export type InternalIOSOptions = {
    */
   displayCallTimeout?: number;
   /**
+   * Whether to enable ongoing calls.
+   * @default false
+   */
+  enableOngoingCalls?: boolean;
+  /**
    * When true, ringing pushes that arrive while the app is in the foreground
    * are not shown by CallKit. The push is still delivered to JS via
    * `voipNotificationReceived`, so the app must show its own ringing UI.
@@ -240,6 +245,11 @@ export type InternalAndroidOptions = {
     rejecting?: string;
   };
   /**
+   * Whether to enable ongoing calls.
+   * @default false
+   */
+  enableOngoingCalls?: boolean;
+  /**
    * When true, incoming call push notifications (call.ring) will not be displayed
    * as a notification when the app is in the foreground.
    * @default false
@@ -255,11 +265,6 @@ export type NotificationTransformers = {
 export type CallingExpOptions = {
   ios?: iOSOptions;
   android?: AndroidOptions;
-  /**
-   * Whether to enable ongoing calls.
-   * @default false
-   */
-  enableOngoingCalls?: boolean;
   /**
    * Whether to reject calls when the user is busy.
    * @default false

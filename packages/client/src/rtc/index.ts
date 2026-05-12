@@ -1,5 +1,6 @@
 export * from './codecs';
 export * from './Dispatcher';
+export * from './NegotiationError';
 export * from './IceTrickleBuffer';
 export * from './Publisher';
 export * from './Subscriber';

@@ -37,7 +37,7 @@ export type StreamVideoConfig = {
      */
     publishOptions?: ClientPublishOptions;
 
-    ios: {
+    ios?: {
       /**
        * The name for the alias of push provider used for iOS
        * Pass undefined if you will not be using stream's push notifications but still want to use the functionality of the SDK
@@ -66,6 +66,11 @@ export type StreamVideoConfig = {
        */
       displayCallTimeout?: number;
       /**
+       * Whether to enable ongoing calls.
+       * @default false
+       */
+      enableOngoingCalls?: boolean;
+      /**
        * When true, ringing pushes that arrive while the app is in the
        * foreground are not shown by CallKit. The push is still delivered to
        * JS, so the app must show its own ringing UI. Background pushes are unaffected.
@@ -74,7 +79,7 @@ export type StreamVideoConfig = {
        */
       skipIncomingPushInForeground?: boolean;
     };
-    android: {
+    android?: {
       /**
        * The small icon to be used for push notifications for Android
        * Reference the name created (Optional, defaults to 'ic_launcher')
@@ -154,17 +159,17 @@ export type StreamVideoConfig = {
         getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
       };
       /**
+       * Whether to enable ongoing calls.
+       * @default false
+       */
+      enableOngoingCalls?: boolean;
+      /**
        * When true, incoming call push notifications (call.ring) will not be displayed
        * as a notification when the app is in the foreground.
        * @default false
        */
       skipIncomingPushInForeground?: boolean;
     };
-    /**
-     * Whether to enable ongoing calls.
-     * @default false
-     */
-    enableOngoingCalls?: boolean;
     /**
      * Whether to reject calls when the user is busy.
      * @default false

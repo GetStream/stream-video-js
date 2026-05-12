@@ -48,6 +48,7 @@ import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
 import { ToggleParticipantListButton } from './ToggleParticipantListButton';
 import { TourPanel } from './TourPanel';
 import { UnreadCountBadge } from './UnreadCountBadge';
+import { AIAgentStatusPanel, AskAIAgentButton } from './VisionAgent';
 
 import {
   useIsDemoEnvironment,
@@ -108,6 +109,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
   const [showInvitePopup, setShowInvitePopup] = useState(
     isDemoEnvironment && !isTourActive,
   );
+  const [agentSessionId, setAgentSessionId] = useState<string | null>(null);
   const [sidebarContent, setSidebarContent] = useState<SidebarContent>(null);
   const showSidebar = sidebarContent != null;
   const showParticipants = sidebarContent === 'participants';
@@ -322,6 +324,16 @@ export const ActiveCall = (props: ActiveCallProps) => {
               </WithTooltip>
             )}
             <RecordCallConfirmationButton />
+            {isDemoEnvironment && (
+              <div className="str-video__call-controls__desktop rd__ai-agent-anchor">
+                <AskAIAgentButton
+                  sessionId={agentSessionId}
+                  onSessionCreated={setAgentSessionId}
+                  onSessionCleared={() => setAgentSessionId(null)}
+                />
+                <AIAgentStatusPanel />
+              </div>
+            )}
             <div className="str-video__call-controls__desktop">
               <CancelCallConfirmButton onLeave={onLeave} />
             </div>

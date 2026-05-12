@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/react-native-callingx",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "CallKit and Telecom API capabilities for React Native",
   "main": "./dist/module/index.js",
   "module": "./dist/module/index.js",
@@ -61,7 +61,7 @@
   "devDependencies": {
     "@react-native-community/cli": "20.0.1",
     "@react-native/babel-preset": "^0.81.5",
-    "@stream-io/react-native-webrtc": "137.1.3",
+    "@stream-io/react-native-webrtc": "137.2.0",
     "@types/react": "^19.1.0",
     "del-cli": "^6.0.0",
     "react": "19.1.0",

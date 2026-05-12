@@ -49,6 +49,9 @@ export function extractCallingExpOptions(
     if (pushConfig.ios.displayCallTimeout !== undefined) {
       iosOptions.displayCallTimeout = pushConfig.ios.displayCallTimeout;
     }
+    if (pushConfig.ios.enableOngoingCalls !== undefined) {
+      iosOptions.enableOngoingCalls = pushConfig.ios.enableOngoingCalls;
+    }
     if (pushConfig.ios.skipIncomingPushInForeground !== undefined) {
       iosOptions.skipIncomingPushInForeground =
         pushConfig.ios.skipIncomingPushInForeground;
@@ -70,6 +73,9 @@ export function extractCallingExpOptions(
     if (pushConfig.android.notificationTexts) {
       androidOptions.notificationTexts = pushConfig.android.notificationTexts;
     }
+    if (pushConfig.android.enableOngoingCalls !== undefined) {
+      androidOptions.enableOngoingCalls = pushConfig.android.enableOngoingCalls;
+    }
     if (pushConfig.android.skipIncomingPushInForeground !== undefined) {
       androidOptions.skipIncomingPushInForeground =
         pushConfig.android.skipIncomingPushInForeground;
@@ -87,10 +93,6 @@ export function extractCallingExpOptions(
   if (pushConfig?.shouldRejectCallWhenBusy !== undefined) {
     callingExpOptions.shouldRejectCallWhenBusy =
       pushConfig.shouldRejectCallWhenBusy;
-  }
-
-  if (pushConfig?.enableOngoingCalls !== undefined) {
-    callingExpOptions.enableOngoingCalls = pushConfig?.enableOngoingCalls;
   }
 
   return callingExpOptions;

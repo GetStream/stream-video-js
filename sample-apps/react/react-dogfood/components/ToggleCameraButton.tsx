@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 
 import {
+  Browsers,
   DeviceSelectorVideo,
   Icon,
   MenuToggle,
@@ -35,7 +36,7 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 );
 
 export const ToggleCameraButton = () => {
-  const visualType = isMobile() ? 'list' : 'preview';
+  const visualType = isMobile() || Browsers.isSafari() ? 'list' : 'preview';
   return (
     <MenuToggle
       placement="top-start"

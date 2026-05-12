@@ -149,6 +149,15 @@ private class BlurredBackgroundVideoFilter(
         blurredBackgroundBitmap.recycle()
     }
 
+    // Free the ML Kit segmenter and cached bitmaps held by the filter.
+    override fun close() {
+        segmenter.close()
+        backgroundMaskBitmap?.recycle()
+        backgroundMaskBitmap = null
+        downScaledBackgroundBitmap?.recycle()
+        downScaledBackgroundBitmap = null
+    }
+
     private fun maybeInit(videoFrameBitmap: Bitmap, mask: SegmentationMask) {
         var createScale = false
         if (currentFrameWidth != videoFrameBitmap.width || currentFrameHeight != videoFrameBitmap.height) {

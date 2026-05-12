@@ -30,15 +30,26 @@ import type {
   PerformanceDegradationReason,
 } from './types';
 
+type MediaStreamTrackVideoStats = {
+  deliveredFrames: number;
+  discardedFrames: number;
+  totalFrames: number;
+};
+
+type MediaStreamTrackWithStats = MediaStreamTrack & {
+  stats?: MediaStreamTrackVideoStats;
+};
+
 /**
  * Constants for FPS warning calculation.
- * Smooths out quick spikes using an EMA, ignores brief outliers,
- * and uses two thresholds to avoid flickering near the limit.
+ * Smooths the processed-to-source FPS ratio and uses hysteresis
+ * so the degradation warning doesn't flicker near the limit.
  */
 const ALPHA = 0.2;
-const DEFAULT_FPS = 30;
-const DEVIATION_LIMIT = 0.5;
-const OUTLIER_PERSISTENCE = 5;
+const FPS_RATIO_WARNING_THRESHOLD_LOWER = 0.75;
+const FPS_RATIO_WARNING_THRESHOLD_UPPER = 0.85;
+
+const EMPTY_BACKGROUND_IMAGES: string[] = [];
 
 /**
  * Represents the available background filter processing engines.
@@ -77,6 +88,76 @@ const determineEngine = async (
 };
 
 /**
+ * Samples the raw camera track's frame stats (W3C MediaCapture Extensions) at a
+ * fixed interval and returns a live source fps estimate. Returns `undefined`
+ * while warming up, when the camera is off, or when the browser doesn't expose
+ * `MediaStreamTrack.stats` (currently Chromium-only).
+ */
+const useTrackFramesPerSecond = (call: Call | undefined) => {
+  const { useCameraState } = useCallStateHooks();
+  const { rootMediaStream } = useCameraState();
+  const [fps, setFps] = useState<number | undefined>(undefined);
+  const trackId = rootMediaStream?.getVideoTracks()[0]?.id;
+
+  useEffect(() => {
+    if (!call) {
+      setFps(undefined);
+      return;
+    }
+
+    let previousSnapshot:
+      | (MediaStreamTrackVideoStats & { capturedAt: number })
+      | undefined;
+    let previousTrackId: string | undefined;
+
+    const intervalId = setInterval(() => {
+      const track = rootMediaStream?.getVideoTracks()[0] as
+        | MediaStreamTrackWithStats
+        | undefined;
+
+      const stats = track?.stats;
+      if (!track || !stats) {
+        previousSnapshot = undefined;
+        setFps(undefined);
+        return;
+      }
+
+      if (track.id !== previousTrackId) {
+        previousTrackId = track.id;
+        previousSnapshot = undefined;
+        setFps(undefined);
+      }
+
+      const currentSnapshot = {
+        deliveredFrames: stats.deliveredFrames,
+        discardedFrames: stats.discardedFrames,
+        totalFrames: stats.totalFrames,
+        capturedAt: performance.now(),
+      };
+
+      if (previousSnapshot) {
+        const elapsedSec =
+          (currentSnapshot.capturedAt - previousSnapshot.capturedAt) / 1000;
+
+        const delivered =
+          currentSnapshot.deliveredFrames - previousSnapshot.deliveredFrames;
+
+        const nextFps = Math.round(delivered / elapsedSec);
+        setFps(nextFps);
+      }
+      previousSnapshot = currentSnapshot;
+    }, 1000);
+
+    return () => {
+      clearInterval(intervalId);
+      setFps(undefined);
+    };
+  }, [call, rootMediaStream, trackId]);
+
+  return fps;
+};
+
+/**
  * A provider component that enables the use of background filters in your app.
  *
  * Please make sure you have the `@stream-io/video-filters-web` package installed
@@ -93,7 +174,7 @@ export const BackgroundFiltersProvider = (
   const {
     ContextProvider,
     children,
-    backgroundImages = [],
+    backgroundImages = EMPTY_BACKGROUND_IMAGES,
     backgroundFilter: bgFilterFromProps = undefined,
     backgroundImage: bgImageFromProps = undefined,
     backgroundBlurLevel: bgBlurLevelFromProps = undefined,
@@ -102,7 +183,6 @@ export const BackgroundFiltersProvider = (
     useLegacyFilter,
     basePath,
     onError,
-    performanceThresholds,
     forceSafariSupport,
     forceMobileSupport,
     segmentationOptions,
@@ -120,46 +200,37 @@ export const BackgroundFiltersProvider = (
   const [showLowFpsWarning, setShowLowFpsWarning] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
+  const rootFps = useTrackFramesPerSecond(call);
   const cameraFrameRate = callStatsReport?.publisherStats?.camera?.frameRate;
 
-  const sourceFps =
-    performanceThresholds?.defaultFps || cameraFrameRate || DEFAULT_FPS;
-
-  const fpsWarningThresholdLower =
-    performanceThresholds?.fpsWarningThresholdLower ?? sourceFps * 0.75;
-  const fpsWarningThresholdUpper =
-    performanceThresholds?.fpsWarningThresholdUpper ?? sourceFps * 0.85;
-
-  const emaRef = useRef<number>(sourceFps);
-  const outlierStreakRef = useRef<number>(0);
+  const sourceFps = rootFps ?? cameraFrameRate;
+  const fpsRatioEmaRef = useRef<number | undefined>(undefined);
 
   const handleStats = useCallback(
     (stats: PerformanceStats) => {
       const fps = stats?.fps;
-      if (fps === undefined || fps === null) {
-        emaRef.current = sourceFps;
-        outlierStreakRef.current = 0;
+      if (fps == null || !sourceFps) {
+        fpsRatioEmaRef.current = undefined;
         setShowLowFpsWarning(false);
         return;
       }
 
-      const prevEma = emaRef.current;
-      const deviation = Math.abs(fps - prevEma) / prevEma;
+      const ratio = fps / sourceFps;
+      const prevRatioEma = fpsRatioEmaRef.current ?? ratio;
 
-      const isOutlier = fps < prevEma && deviation > DEVIATION_LIMIT;
-      outlierStreakRef.current = isOutlier ? outlierStreakRef.current + 1 : 0;
-      if (isOutlier && outlierStreakRef.current < OUTLIER_PERSISTENCE) return;
-
-      emaRef.current = ALPHA * fps + (1 - ALPHA) * prevEma;
+      const nextFpsRatioEma = ALPHA * ratio + (1 - ALPHA) * prevRatioEma;
+      fpsRatioEmaRef.current = nextFpsRatioEma;
 
       setShowLowFpsWarning((prev) => {
-        if (prev && emaRef.current > fpsWarningThresholdUpper) return false;
-        if (!prev && emaRef.current < fpsWarningThresholdLower) return true;
+        if (prev && nextFpsRatioEma > FPS_RATIO_WARNING_THRESHOLD_UPPER)
+          return false;
+        if (!prev && nextFpsRatioEma < FPS_RATIO_WARNING_THRESHOLD_LOWER)
+          return true;
 
         return prev;
       });
     },
-    [fpsWarningThresholdLower, fpsWarningThresholdUpper, sourceFps],
+    [sourceFps],
   );
 
   const performance: BackgroundFiltersPerformance = useMemo(() => {
@@ -207,16 +278,17 @@ export const BackgroundFiltersProvider = (
       call?.tracer.trace('backgroundFilters.performance', {
         degraded: currentDegraded,
         reason: performance?.reason,
-        fps: emaRef.current,
+        ratio: fpsRatioEmaRef.current,
+        sourceFps,
       });
     }
     prevDegradedRef.current = currentDegraded;
   }, [
-    performanceThresholds,
     performance.degraded,
     performance.reason,
     backgroundFilter,
     call?.tracer,
+    sourceFps,
   ]);
 
   const applyBackgroundImageFilter = useCallback((imageUrl: string) => {
@@ -237,10 +309,9 @@ export const BackgroundFiltersProvider = (
     setBackgroundImage(undefined);
     setBackgroundBlurLevel(undefined);
 
-    emaRef.current = sourceFps;
-    outlierStreakRef.current = 0;
+    fpsRatioEmaRef.current = undefined;
     setShowLowFpsWarning(false);
-  }, [sourceFps]);
+  }, []);
 
   const [engine, setEngine] = useState<FilterEngine>(FilterEngine.NONE);
   const [isSupported, setIsSupported] = useState(false);
@@ -288,24 +359,45 @@ export const BackgroundFiltersProvider = (
   );
 
   const isReady = useLegacyFilter ? !!tfLite : !!mediaPipe;
-  const contextValue: BackgroundFiltersContextValue = {
-    isSupported,
-    performance,
-    isReady,
-    isLoading,
-    backgroundImage,
-    backgroundBlurLevel,
-    backgroundFilter,
-    disableBackgroundFilter,
-    applyBackgroundBlurFilter,
-    applyBackgroundImageFilter,
-    backgroundImages,
-    tfFilePath,
-    modelFilePath,
-    basePath,
-    onError: handleError,
-    segmentationOptions,
-  };
+
+  const contextValue = useMemo<BackgroundFiltersContextValue>(
+    () => ({
+      isSupported,
+      performance,
+      isReady,
+      isLoading,
+      backgroundImage,
+      backgroundBlurLevel,
+      backgroundFilter,
+      disableBackgroundFilter,
+      applyBackgroundBlurFilter,
+      applyBackgroundImageFilter,
+      backgroundImages,
+      tfFilePath,
+      modelFilePath,
+      basePath,
+      onError: handleError,
+      segmentationOptions,
+    }),
+    [
+      isSupported,
+      performance,
+      isReady,
+      isLoading,
+      backgroundImage,
+      backgroundBlurLevel,
+      backgroundFilter,
+      disableBackgroundFilter,
+      applyBackgroundBlurFilter,
+      applyBackgroundImageFilter,
+      backgroundImages,
+      tfFilePath,
+      modelFilePath,
+      basePath,
+      handleError,
+      segmentationOptions,
+    ],
+  );
   return (
     <ContextProvider.Provider value={contextValue}>
       {children}
