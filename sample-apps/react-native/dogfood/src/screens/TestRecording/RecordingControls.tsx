@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Share from 'react-native-share';
 import type { LoopbackRecordingState } from '@stream-io/video-react-native-sdk';
 import { appTheme } from '../../theme';
 import { useAppGlobalStoreSetState } from '../../contexts/AppContext';
@@ -43,6 +44,15 @@ export const RecordingControls = ({
     }
   };
 
+  const handleShare = () => {
+    if (!recordingUri) return;
+    Share.open({
+      url: recordingUri,
+      type: 'video/mp4',
+      failOnCancel: false,
+    }).catch(() => {});
+  };
+
   const disabled = isConnecting;
 
   return (
@@ -64,6 +74,17 @@ export const RecordingControls = ({
       >
         <Text style={styles.recordButtonText}>{buttonLabel}</Text>
       </Pressable>
+      {isComplete ? (
+        <Pressable
+          onPress={handleShare}
+          style={({ pressed }) => [
+            styles.shareButton,
+            pressed && styles.recordButtonPressed,
+          ]}
+        >
+          <Text style={styles.recordButtonText}>Share</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 };
@@ -81,7 +102,15 @@ const useStyles = () => {
           flex: 1,
           backgroundColor: appTheme.colors.primary,
           borderRadius: 8,
-          paddingVertical: appTheme.spacing.md,
+          paddingVertical: appTheme.spacing.lg,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        shareButton: {
+          backgroundColor: appTheme.colors.primary,
+          borderRadius: 8,
+          paddingVertical: appTheme.spacing.lg,
+          paddingHorizontal: appTheme.spacing.lg,
           justifyContent: 'center',
           alignItems: 'center',
         },
