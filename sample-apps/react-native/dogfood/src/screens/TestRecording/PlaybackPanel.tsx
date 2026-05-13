@@ -1,29 +1,40 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Video from 'react-native-video';
+import Video, { VideoRef } from 'react-native-video';
 import { appTheme } from '../../theme';
 
 export const PlaybackPanel = ({ uri }: { uri: string }) => {
   const styles = useStyles();
 
+  const videoRef = useRef<VideoRef>(null);
   const [paused, setPaused] = useState(true);
+  const [ended, setEnded] = useState(false);
+
+  const onPlayPress = () => {
+    if (paused && ended) {
+      videoRef.current?.seek(0);
+      setEnded(false);
+    }
+    setPaused((p) => !p);
+  };
 
   return (
     <View style={styles.panelContainer}>
       <View style={styles.videoPanel}>
         <Video
+          ref={videoRef}
           source={{ uri }}
           style={StyleSheet.absoluteFillObject}
           paused={paused}
-          resizeMode="contain"
+          resizeMode="cover"
           repeat={false}
-          onEnd={() => setPaused(true)}
+          onEnd={() => {
+            setPaused(true);
+            setEnded(true);
+          }}
           onError={(e) => console.warn('Video playback error', e)}
         />
-        <Pressable
-          onPress={() => setPaused((p) => !p)}
-          style={styles.playOverlay}
-        >
+        <Pressable onPress={onPlayPress} style={styles.playOverlay}>
           <View style={styles.playButton}>
             <Text style={styles.playButtonGlyph}>{paused ? '▶' : '❚❚'}</Text>
           </View>
