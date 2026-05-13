@@ -160,7 +160,7 @@ describe('TrackSubscriptionManager', () => {
   });
 
   // ---------------------------------------------------------------------
-  // apply() — debouncing + SFU push
+  // apply(): debouncing + SFU push
   // ---------------------------------------------------------------------
 
   it('apply() debounces rapid calls into one SFU RPC with the exact subscription payload', () => {
@@ -229,7 +229,7 @@ describe('TrackSubscriptionManager', () => {
   // dispose() cancels pending timeout
   // ---------------------------------------------------------------------
 
-  it('dispose() cancels a pending debounced push — no RPC fires after dispose', () => {
+  it('dispose() cancels a pending debounced push: no RPC fires after dispose', () => {
     vi.useFakeTimers();
     addParticipant('a', {
       publishedTracks: [TrackType.VIDEO],

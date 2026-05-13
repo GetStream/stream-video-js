@@ -188,9 +188,9 @@ const AudioRecoveryButtons = () => {
   const call = useCall();
 
   const handleResumeAudio = () => {
-    console.info('[dogfood] resumeAudio() (manual click)');
-    call?.resumeAudio().catch((err) => {
-      console.error('[dogfood] resumeAudio failed', err);
+    console.info('[dogfood] resumeMedia() (manual click)');
+    call?.resumeMedia().catch((err) => {
+      console.error('[dogfood] resumeMedia failed', err);
     });
   };
 

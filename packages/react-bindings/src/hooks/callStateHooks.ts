@@ -516,9 +516,9 @@ const AUTOPLAY_UNBLOCKED$ = of(false);
  * to unblock audio playback. Returns `false` on React Native.
  */
 export const useIsAutoplayBlocked = (): boolean => {
-  const call = useCall() as Call;
+  const call = useCall();
   return useObservableValue(
-    call.audioHealthMonitor?.autoplayBlocked$ ?? AUTOPLAY_UNBLOCKED$,
+    call?.audioHealthMonitor?.autoplayBlocked$ ?? AUTOPLAY_UNBLOCKED$,
   );
 };
 
@@ -544,9 +544,10 @@ const UNKNOWN_AUDIO_HEALTH$ = of<AudioHealthInfo>({
  * See {@link AudioHealthInfo} for the shape of the returned value.
  */
 export const useAudioHealth = (): AudioHealthInfo => {
-  const call = useCall() as Call;
-  const monitor = call.audioHealthMonitor;
-  return useObservableValue(monitor?.audioHealth$ ?? UNKNOWN_AUDIO_HEALTH$);
+  const call = useCall();
+  return useObservableValue(
+    call?.audioHealthMonitor?.audioHealth$ ?? UNKNOWN_AUDIO_HEALTH$,
+  );
 };
 
 /**
