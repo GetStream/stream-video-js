@@ -1,4 +1,4 @@
-import { BehaviorSubject, distinctUntilChanged, map } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, map, Subject } from 'rxjs';
 import { videoLoggerSystem } from '../logger';
 import type { RemoteAudioTrackChange } from '../rtc';
 import { Tracer } from '../stats';
@@ -148,31 +148,31 @@ export class MediaHealthMonitor {
   /** Latest valid payload from the iOS host bridge, if any. */
   private hostAudioSession?: HostAudioSessionEvent;
 
-  private blockedAudioElementsSubject = new BehaviorSubject(
+  private blockedAudioElements = new BehaviorSubject(
     new Set<HTMLAudioElement>(),
   );
 
-  private remoteAudioMutedSubject = new BehaviorSubject(
+  private remoteAudioMuted = new BehaviorSubject(
     new Map<MediaStreamTrack, boolean>(),
   );
 
-  private pausedAudioElementsSubject = new BehaviorSubject(
+  private pausedAudioElements = new BehaviorSubject(
     new Set<HTMLAudioElement>(),
   );
 
-  private pausedVideoElementsSubject = new BehaviorSubject(
+  private pausedVideoElements = new BehaviorSubject(
     new Set<HTMLVideoElement>(),
   );
 
   private pausedAudioRecovery = new RecoveryLoop({
-    canRun: () => this.canAutoResumePausedAudioElements(),
-    isComplete: () => this.pausedAudioElementsSubject.getValue().size === 0,
+    canRun: () => this.canAutoResume(this.pausedAudioElements),
+    isComplete: () => this.pausedAudioElements.getValue().size === 0,
     run: () => this.resumePausedAudioElements(),
   });
 
   private pausedVideoRecovery = new RecoveryLoop({
-    canRun: () => this.canAutoResumePausedVideoElements(),
-    isComplete: () => this.pausedVideoElementsSubject.getValue().size === 0,
+    canRun: () => this.canAutoResume(this.pausedVideoElements),
+    isComplete: () => this.pausedVideoElements.getValue().size === 0,
     run: () => this.resumePausedVideoElements(),
   });
 
@@ -191,7 +191,7 @@ export class MediaHealthMonitor {
    * audio playback. Recover via `call.resumeMedia()` from a user
    * gesture.
    */
-  autoplayBlocked$ = this.blockedAudioElementsSubject.pipe(
+  autoplayBlocked$ = this.blockedAudioElements.pipe(
     map((elements) => elements.size > 0),
     distinctUntilChanged(),
   );
@@ -281,10 +281,10 @@ export class MediaHealthMonitor {
       }
       this.audioContext = undefined;
 
-      setCurrentValue(this.blockedAudioElementsSubject, new Set());
-      setCurrentValue(this.remoteAudioMutedSubject, new Map());
-      setCurrentValue(this.pausedAudioElementsSubject, new Set());
-      setCurrentValue(this.pausedVideoElementsSubject, new Set());
+      setCurrentValue(this.blockedAudioElements, new Set());
+      setCurrentValue(this.remoteAudioMuted, new Map());
+      setCurrentValue(this.pausedAudioElements, new Set());
+      setCurrentValue(this.pausedVideoElements, new Set());
       this.pausedAudioRecovery.clear();
       this.pausedVideoRecovery.clear();
       this.probeAudioContextRecovery.clear();
@@ -300,12 +300,11 @@ export class MediaHealthMonitor {
     audioElement: HTMLAudioElement,
     blocked: boolean,
   ) => {
-    setCurrentValue(this.blockedAudioElementsSubject, (elements) => {
-      const next = new Set(elements);
-      if (blocked) next.add(audioElement);
-      else next.delete(audioElement);
-      return next;
-    });
+    const elements = this.blockedAudioElements.getValue();
+    if (blocked === elements.has(audioElement)) return;
+    if (blocked) elements.add(audioElement);
+    else elements.delete(audioElement);
+    setCurrentValue(this.blockedAudioElements, elements);
     this.updateAudioHealth();
   };
 
@@ -316,12 +315,9 @@ export class MediaHealthMonitor {
     track: MediaStreamTrack,
     change: RemoteAudioTrackChange,
   ) => {
-    setCurrentValue(this.remoteAudioMutedSubject, (prev) => {
-      const next = new Map(prev);
-      if (change === 'ended') next.delete(track);
-      else next.set(track, change === 'muted');
-      return next;
-    });
+    const tracks = this.remoteAudioMuted.getValue();
+    if (change === 'ended') tracks.delete(track);
+    else tracks.set(track, change === 'muted');
     this.updateAudioHealth();
   };
 
@@ -333,56 +329,44 @@ export class MediaHealthMonitor {
     audioElement: HTMLAudioElement,
     paused: boolean,
   ) => {
-    if (paused) {
-      setCurrentValue(this.pausedAudioElementsSubject, (elements) => {
-        if (elements.has(audioElement)) return elements;
-        const next = new Set(elements);
-        next.add(audioElement);
-        return next;
-      });
-      this.pausedAudioRecovery.restart();
-    } else {
-      setCurrentValue(this.pausedAudioElementsSubject, (elements) => {
-        if (!elements.has(audioElement)) return elements;
-        const next = new Set(elements);
-        next.delete(audioElement);
-        return next;
-      });
-      if (this.pausedAudioElementsSubject.getValue().size === 0) {
-        this.pausedAudioRecovery.clear();
-      }
-    }
+    this.setPausedMediaElement(
+      audioElement,
+      paused,
+      this.pausedAudioElements.getValue(),
+      this.pausedAudioRecovery,
+    );
     this.updateAudioHealth();
   };
 
   /**
    * Registers a bound `<video>` element that fired `'pause'` while its
-   * `srcObject` still had a live video track. Silent recovery: does
-   * NOT emit on {@link audioHealth$}; only kicks the bounded video
-   * recovery loop.
+   * `srcObject` still had a live video track.
    */
   updateVideoElementPausedState = (
     videoElement: HTMLVideoElement,
     paused: boolean,
   ) => {
+    this.setPausedMediaElement(
+      videoElement,
+      paused,
+      this.pausedVideoElements.getValue(),
+      this.pausedVideoRecovery,
+    );
+  };
+
+  private setPausedMediaElement = <T extends HTMLMediaElement>(
+    element: T,
+    paused: boolean,
+    elements: Set<T>,
+    recovery: RecoveryLoop,
+  ) => {
+    if (paused === elements.has(element)) return;
     if (paused) {
-      setCurrentValue(this.pausedVideoElementsSubject, (elements) => {
-        if (elements.has(videoElement)) return elements;
-        const next = new Set(elements);
-        next.add(videoElement);
-        return next;
-      });
-      this.pausedVideoRecovery.restart();
+      elements.add(element);
+      recovery.restart();
     } else {
-      setCurrentValue(this.pausedVideoElementsSubject, (elements) => {
-        if (!elements.has(videoElement)) return elements;
-        const next = new Set(elements);
-        next.delete(videoElement);
-        return next;
-      });
-      if (this.pausedVideoElementsSubject.getValue().size === 0) {
-        this.pausedVideoRecovery.clear();
-      }
+      elements.delete(element);
+      if (elements.size === 0) recovery.clear();
     }
   };
 
@@ -394,7 +378,7 @@ export class MediaHealthMonitor {
    * removed from their tracking sets.
    */
   resumeMedia = async () => {
-    this.tracer.trace('audioHealth.resumeMedia', null);
+    this.tracer.trace('mediaHealth.resumeMedia', null);
     await this.resumeAudioContext();
     await Promise.all([
       this.resumeBlockedAudioElements(),
@@ -408,95 +392,59 @@ export class MediaHealthMonitor {
   };
 
   private resumeBlockedAudioElements = async () => {
-    const stillBlocked = new Set<HTMLAudioElement>();
-    await Promise.all(
-      Array.from(
-        this.blockedAudioElementsSubject.getValue(),
-        async (element) => {
-          try {
-            if (element.srcObject) await element.play();
-          } catch {
-            this.logger.warn(`Can't resume audio for element: `, element);
-            stillBlocked.add(element);
-          }
-        },
-      ),
-    );
-    setCurrentValue(this.blockedAudioElementsSubject, stillBlocked);
+    const subject = this.blockedAudioElements;
+    this.tracer.trace('mediaHealth.resumeBlockedAudioElements', {
+      count: subject.getValue().size,
+    });
+    await this.resumeMediaElements(subject);
   };
 
   private resumePausedAudioElements = async () => {
-    const elements = Array.from(this.pausedAudioElementsSubject.getValue());
-    this.tracer.trace('audioHealth.resumePausedAudioElements', {
-      count: elements.length,
+    const subject = this.pausedAudioElements;
+    this.tracer.trace('mediaHealth.resumePausedAudioElements', {
+      count: subject.getValue().size,
     });
-    const resumed = new Set<HTMLAudioElement>();
-    const inactive = new Set<HTMLAudioElement>();
-    await Promise.all(
-      elements.map(async (element) => {
-        try {
-          if (!element.srcObject) {
-            inactive.add(element);
-            return;
-          }
-          await element.play();
-          resumed.add(element);
-        } catch {
-          this.logger.warn(`Can't resume paused audio element: `, element);
-        }
-      }),
-    );
-    setCurrentValue(this.pausedAudioElementsSubject, (current) => {
-      if (!resumed.size && !inactive.size) return current;
-      const next = new Set(current);
-      resumed.forEach((element) => next.delete(element));
-      inactive.forEach((element) => next.delete(element));
-      return next;
-    });
+    await this.resumeMediaElements(subject);
     this.updateAudioHealth();
   };
 
   private resumePausedVideoElements = async () => {
-    const elements = Array.from(this.pausedVideoElementsSubject.getValue());
-    this.tracer.trace('audioHealth.resumePausedVideoElements', {
-      count: elements.length,
+    const subject = this.pausedVideoElements;
+    this.tracer.trace('mediaHealth.resumePausedVideoElements', {
+      count: subject.getValue().size,
     });
-    const resumed = new Set<HTMLVideoElement>();
-    const inactive = new Set<HTMLVideoElement>();
-    await Promise.all(
-      elements.map(async (element) => {
-        try {
-          if (!element.srcObject) {
-            inactive.add(element);
-            return;
-          }
-          await element.play();
-          resumed.add(element);
-        } catch {
-          this.logger.warn(`Can't resume paused video element: `, element);
-        }
-      }),
-    );
-    setCurrentValue(this.pausedVideoElementsSubject, (current) => {
-      if (!resumed.size && !inactive.size) return current;
-      const next = new Set(current);
-      resumed.forEach((element) => next.delete(element));
-      inactive.forEach((element) => next.delete(element));
-      return next;
-    });
+    await this.resumeMediaElements(subject);
   };
 
-  private canAutoResumePausedAudioElements = () => {
-    if (!this.started) return false;
-    if (this.pausedAudioElementsSubject.getValue().size === 0) return false;
-    if (this.hostAudioSession?.interruption?.type === 'began') return false;
-    if (this.audioSessionState === 'interrupted') return false;
-    return this.audioContext?.state !== 'interrupted';
+  private resumeMediaElements = async <T extends HTMLMediaElement>(
+    subject: BehaviorSubject<Set<T>>,
+  ) => {
+    const elements = subject.getValue();
+    const tasks: Promise<void>[] = [];
+    for (const element of elements) {
+      if (!element.srcObject) {
+        elements.delete(element);
+        continue;
+      }
+      const task = element
+        .play()
+        .then(() => {
+          elements.delete(element);
+        })
+        .catch((err) => {
+          this.logger.warn(`Can't resume playback`, element, err);
+        });
+      tasks.push(task);
+    }
+    await Promise.all(tasks);
+    setCurrentValue(subject, elements);
   };
 
-  private canAutoResumePausedVideoElements = () => {
+  private canAutoResume = <T extends HTMLMediaElement>(
+    subject: BehaviorSubject<Set<T>>,
+  ) => {
     if (!this.started) return false;
-    if (this.pausedVideoElementsSubject.getValue().size === 0) return false;
+    if (subject.getValue().size === 0) return false;
     if (this.hostAudioSession?.interruption?.type === 'began') return false;
     if (this.audioSessionState === 'interrupted') return false;
     return this.audioContext?.state !== 'interrupted';
@@ -507,8 +455,7 @@ export class MediaHealthMonitor {
     if (!this.started || !probe) return false;
     if (probe.state !== 'interrupted') return false;
     if (this.hostAudioSession?.interruption?.type === 'began') return false;
-    if (this.audioSessionState === 'interrupted') return false;
-    return true;
+    return this.audioSessionState !== 'interrupted';
   };
 
   /**
@@ -523,9 +470,9 @@ export class MediaHealthMonitor {
     try {
       this.originalAudioSessionType = audioSession.type;
       audioSession.type = 'play-and-record';
-      this.tracer.trace('audioHealth.audioSession.type', audioSession.type);
+      this.tracer.trace('mediaHealth.audioSession.type', audioSession.type);
     } catch (err) {
-      this.tracer.trace('audioHealth.audioSession.typeError', String(err));
+      this.tracer.trace('mediaHealth.audioSession.typeError', String(err));
     }
   };
 
@@ -540,7 +487,7 @@ export class MediaHealthMonitor {
     const audioSession = this.audioSession;
     if (!audioSession) return;
     this.audioSessionState = audioSession.state;
-    this.tracer.trace('audioHealth.audioSession.state', audioSession.state);
+    this.tracer.trace('mediaHealth.audioSession.state', audioSession.state);
     this.updateAudioHealth();
     if (audioSession.state === 'active') {
       this.probeAudioContextRecovery.restart();
@@ -570,7 +517,7 @@ export class MediaHealthMonitor {
     if (detail.schemaVersion !== 1) return;
     if (!detail.session || typeof detail.session !== 'object') return;
     this.hostAudioSession = detail;
-    this.tracer.trace('audioHealth.hostAudioSession', detail);
+    this.tracer.trace('mediaHealth.hostAudioSession', detail);
     this.updateAudioHealth();
     if (detail.interruption?.type !== 'began') {
       this.probeAudioContextRecovery.restart();
@@ -589,7 +536,7 @@ export class MediaHealthMonitor {
     if (typeof AudioContext === 'undefined') return;
     try {
       const probe = new AudioContext();
-      this.tracer.trace('audioHealth.probeAudioContext.create', probe.state);
+      this.tracer.trace('mediaHealth.probeAudioContext.create', probe.state);
       const source = probe.createConstantSource();
       source.offset.value = 0;
       source.connect(probe.destination);
@@ -603,7 +550,7 @@ export class MediaHealthMonitor {
       this.updateAudioHealth();
     } catch (err) {
       this.tracer.trace(
-        'audioHealth.probeAudioContext.createError',
+        'mediaHealth.probeAudioContext.createError',
         String(err),
       );
       this.logger.warn(`Failed to create probe AudioContext`, err);
@@ -612,7 +559,7 @@ export class MediaHealthMonitor {
 
   private onAudioContextStateChange = () => {
     const state = this.audioContext?.state;
-    this.tracer.trace('audioHealth.probeAudioContext.state', state);
+    this.tracer.trace('mediaHealth.probeAudioContext.state', state);
     this.updateAudioHealth();
     if (state === 'interrupted') {
       this.probeAudioContextRecovery.restart();
@@ -630,7 +577,7 @@ export class MediaHealthMonitor {
     }
     try {
       await probe.resume();
-      this.tracer.trace('audioHealth.probeAudioContext.resume', probe.state);
+      this.tracer.trace('mediaHealth.probeAudioContext.resume', probe.state);
       document.removeEventListener('click', this.resumeAudioContext);
       this.updateAudioHealth();
       if (probe.state !== 'interrupted') {
@@ -639,7 +586,7 @@ export class MediaHealthMonitor {
       }
       return true;
     } catch (err) {
-      this.tracer.trace('audioHealth.probeAudioContext.resumeError', {
+      this.tracer.trace('mediaHealth.probeAudioContext.resumeError', {
         state: probe.state,
         error: String(err),
       });
@@ -656,7 +603,7 @@ export class MediaHealthMonitor {
     const next = this.computeAudioHealthInfo();
     const prev = this.audioHealthSubject.getValue();
     if (next.status === prev.status && next.reason === prev.reason) return;
-    this.tracer.trace('audioHealth.update', next);
+    this.tracer.trace('mediaHealth.update', next);
     this.logger.info(
       `audioHealth: ${prev.status}/${prev.reason} → ${next.status}/${next.reason} (direction: ${next.direction})`,
     );
@@ -701,7 +648,7 @@ export class MediaHealthMonitor {
     }
     // Autoplay-blocked goes first within the cross-browser tier
     // because it's the only user-recoverable reason here.
-    if (this.blockedAudioElementsSubject.getValue().size > 0) {
+    if (this.blockedAudioElements.getValue().size > 0) {
       return {
         status: 'unhealthy',
         reason: 'autoplay-blocked',
@@ -710,7 +657,7 @@ export class MediaHealthMonitor {
     }
     // Threshold is > 1 to avoid false positives on 1:1 calls where a
     // single mute is indistinguishable from a remote sender's problem.
-    const remoteAudioMuted = this.remoteAudioMutedSubject.getValue();
+    const remoteAudioMuted = this.remoteAudioMuted.getValue();
     if (
       remoteAudioMuted.size > 1 &&
       Array.from(remoteAudioMuted.values()).every(Boolean)
@@ -721,7 +668,7 @@ export class MediaHealthMonitor {
         direction: 'playback',
       };
     }
-    if (this.pausedAudioElementsSubject.getValue().size > 0) {
+    if (this.pausedAudioElements.getValue().size > 0) {
       return {
         status: 'unhealthy',
         reason: 'element-paused',

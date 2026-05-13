@@ -241,32 +241,25 @@ export class Call {
   readonly dynascaleManager: DynascaleManager | undefined;
 
   /**
-   * Owns the SFU-side video-subscription state (per-session and global
-   * overrides). Used by `bindVideoElement` for resolution/visibility-driven
-   * subscription updates and by `getReconnectDetails` for restoring state
-   * on reconnect. Exposes `incomingVideoSettings$` for the React hook.
+   * Owns the SFU-side video-subscription state (per-session and global overrides).
    */
   readonly trackSubscriptionManager: TrackSubscriptionManager;
 
   /**
    * Detects audio-pipeline failure signals (OS audio-session interruption
-   * on Safari, browser autoplay blocks) and owns recovery via
-   * `resumeMedia()`. Also auto-resumes paused `<video>` elements caused
-   * by the same iOS audio-session interruption. Undefined on React Native -
-   * RN surfaces audio interruption through the native bridge instead.
+   * on Safari, browser autoplay blocks) and owns recovery via `resumeMedia()`.
+   * Also, auto-resumes paused `<video>` elements caused by the same audio-session interruption.
    */
   readonly audioHealthMonitor: MediaHealthMonitor | undefined;
 
   /**
-   * Optional reactor that mutes the mic on audio-health degradation and
-   * cycles devices on recovery.
+   * Optional reactor that mutes the mic on audio-health degradation and cycles devices on recovery.
    */
   private mediaHealthAutoRecovery: MediaHealthAutoRecovery | undefined;
 
   /**
-   * Warns periodically when a remote participant is publishing audio but no
-   * `<audio>` element has been bound for them. Undefined on React Native
-   * (no DOM audio elements).
+   * Warns periodically when a remote participant is publishing audio, but no
+   * `<audio>` element has been bound for them.
    */
   readonly audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
 
@@ -405,7 +398,7 @@ export class Call {
       this.tracer,
     );
 
-    if (!isReactNative()) {
+    if (typeof document !== 'undefined') {
       this.audioHealthMonitor = new MediaHealthMonitor(this.tracer);
       this.audioBindingsWatchdog = new AudioBindingsWatchdog(
         this.state,
@@ -1725,9 +1718,7 @@ export class Call {
           await this.networkAvailableTask?.promise;
 
           this.logger.info(
-            `[Reconnect] Reconnecting with strategy ${
-              WebsocketReconnectStrategy[this.reconnectStrategy]
-            }`,
+            `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[this.reconnectStrategy]}`,
           );
 
           switch (this.reconnectStrategy) {
@@ -2815,11 +2806,7 @@ export class Call {
       this.leave({
         reject: true,
         reason: 'timeout',
-        message: `ringing timeout - ${
-          this.isCreatedByMe
-            ? 'no one accepted'
-            : `user didn't interact with incoming call screen`
-        }`,
+        message: `ringing timeout - ${this.isCreatedByMe ? 'no one accepted' : `user didn't interact with incoming call screen`}`,
       }).catch((err) => {
         this.logger.error('Failed to drop call', err);
       });
@@ -2880,9 +2867,7 @@ export class Call {
     filename: string,
   ): Promise<DeleteRecordingResponse> => {
     return this.streamClient.delete<DeleteRecordingResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(
-        callSessionId,
-      )}/recordings/${encodeURIComponent(filename)}`,
+      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/recordings/${encodeURIComponent(filename)}`,
     );
   };
 
@@ -2897,9 +2882,7 @@ export class Call {
     filename: string,
   ): Promise<DeleteTranscriptionResponse> => {
     return this.streamClient.delete<DeleteTranscriptionResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(
-        callSessionId,
-      )}/transcriptions/${encodeURIComponent(filename)}`,
+      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/transcriptions/${encodeURIComponent(filename)}`,
     );
   };
 
@@ -3191,16 +3174,11 @@ export class Call {
 
   /**
    * Updates the audio-health auto-recovery reactor. The reactor itself
-   * is auto-instantiated on Safari and iOS WKWebView (where the signals
-   * it reacts to actually originate) and is absent everywhere else.
+   * is auto-instantiated on Safari and iOS WKWebView and is absent everywhere else.
    *
    * - `{ enabled: false }` tears the reactor down.
-   * - `{ enabled: true }` builds the reactor with the supplied config if
-   *   one does not already exist (no-op on non-Safari).
-   * - Any other shape forwards the config to the live reactor, if one
-   *   exists.
-   *
-   * @experimental
+   * - `{ enabled: true }` builds the reactor with the supplied config.
+   * - Any other shape forwards the config to the live reactor if one exists.
    */
   updateMediaAutoRecovery = (
     config: MediaHealthAutoRecoveryConfig & { enabled?: boolean },
