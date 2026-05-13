@@ -164,6 +164,74 @@
   &--hidden {
     visibility: hidden;
   }
+
+  // Debug variant (?debug=true): inline mic/spk dots + reason text.
+  // Overrides the circular badge to a horizontal chip.
+  &--debug {
+    width: auto;
+    height: auto;
+    border-radius: var(--str-video__border-radius-md);
+    background-color: var(--str-video__base-color6);
+    padding: var(--str-video__spacing-xxs) var(--str-video__spacing-sm);
+    gap: var(--str-video__spacing-sm);
+    font-size: var(--str-video__font-size-xs);
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  &__side {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #9ca3af;
+
+    &--healthy {
+      background-color: #22c55e;
+      box-shadow: 0 0 6px #22c55e;
+    }
+
+    &--unhealthy {
+      background-color: #ef4444;
+      box-shadow: 0 0 6px #ef4444;
+    }
+
+    &--unknown {
+      background-color: #9ca3af;
+    }
+  }
+
+  &__reason {
+    opacity: 0.8;
+  }
+}
+
+.rd__header__audio-recovery {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--str-video__spacing-xs);
+
+  &__button {
+    padding: var(--str-video__spacing-xxs) var(--str-video__spacing-sm);
+    border-radius: var(--str-video__border-radius-md);
+    border: 1px solid var(--str-video__base-color5);
+    background-color: var(--str-video__base-color6);
+    color: var(--str-video__text-color1);
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: var(--str-video__font-size-xs);
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      background-color: var(--str-video__base-color5);
+    }
+  }
 }
 
 .rd__call-header__notifications {
