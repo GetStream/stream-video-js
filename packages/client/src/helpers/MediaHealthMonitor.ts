@@ -491,8 +491,7 @@ export class MediaHealthMonitor {
     if (this.pausedAudioElementsSubject.getValue().size === 0) return false;
     if (this.hostAudioSession?.interruption?.type === 'began') return false;
     if (this.audioSessionState === 'interrupted') return false;
-    if (this.audioContext?.state === 'interrupted') return false;
-    return true;
+    return this.audioContext?.state !== 'interrupted';
   };
 
   private canAutoResumePausedVideoElements = () => {
@@ -500,8 +499,7 @@ export class MediaHealthMonitor {
     if (this.pausedVideoElementsSubject.getValue().size === 0) return false;
     if (this.hostAudioSession?.interruption?.type === 'began') return false;
     if (this.audioSessionState === 'interrupted') return false;
-    if (this.audioContext?.state === 'interrupted') return false;
-    return true;
+    return this.audioContext?.state !== 'interrupted';
   };
 
   private canAutoResumeProbeAudioContext = () => {
