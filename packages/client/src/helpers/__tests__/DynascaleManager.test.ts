@@ -884,17 +884,13 @@ describe('DynascaleManager', () => {
       videoElement.dispatchEvent(new Event('pause'));
       expect(
         // @ts-expect-error private property
-        call
-          .audioHealthMonitor!.pausedVideoElementsSubject.getValue()
-          .has(videoElement),
+        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
       ).toBe(true);
 
       videoElement.dispatchEvent(new Event('play'));
       expect(
         // @ts-expect-error private property
-        call
-          .audioHealthMonitor!.pausedVideoElementsSubject.getValue()
-          .has(videoElement),
+        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
       ).toBe(false);
 
       cleanup?.();
@@ -919,9 +915,7 @@ describe('DynascaleManager', () => {
       videoElement.dispatchEvent(new Event('pause'));
       expect(
         // @ts-expect-error private property
-        call
-          .audioHealthMonitor!.pausedVideoElementsSubject.getValue()
-          .has(videoElement),
+        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
       ).toBe(false);
 
       cleanup?.();
@@ -953,7 +947,7 @@ describe('DynascaleManager', () => {
       videoElement.dispatchEvent(new Event('pause'));
       expect(
         // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideoElementsSubject.getValue().size,
+        call.audioHealthMonitor!.pausedVideo.elements.size,
       ).toBe(1);
 
       cleanup?.();
@@ -962,14 +956,14 @@ describe('DynascaleManager', () => {
       // still-paused unbound element doesn't keep the loop alive.
       expect(
         // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideoElementsSubject.getValue().size,
+        call.audioHealthMonitor!.pausedVideo.elements.size,
       ).toBe(0);
 
       // Further pause events on the detached element are no-ops.
       videoElement.dispatchEvent(new Event('pause'));
       expect(
         // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideoElementsSubject.getValue().size,
+        call.audioHealthMonitor!.pausedVideo.elements.size,
       ).toBe(0);
     });
 
