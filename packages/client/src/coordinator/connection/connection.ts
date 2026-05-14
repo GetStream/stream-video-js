@@ -7,7 +7,7 @@ import {
   retryInterval,
   sleep,
 } from './utils';
-import type { StreamVideoEvent, UR } from './types';
+import type { StreamVideoEvent, UR, WSConnectionError } from './types';
 import type { LogLevel } from '@stream-io/logger';
 import type {
   ConnectedEvent,
@@ -36,59 +36,52 @@ import { APIErrorCodes } from './errors';
  * - if the servers fails to publish a message to the client, the WS connection is destroyed
  */
 export class StableWSConnection {
-  // local vars
+  // Parent client reference.
+  client: StreamClient;
+
+  // Underlying WebSocket. wsID is bumped on each new connection so stale
+  // event handlers from previous sockets can be ignored.
+  ws?: WebSocket;
+  /** Incremented when a new WS connection is made */
+  wsID = 1;
+
+  // Connection lifecycle flags.
+  /** We only make 1 attempt to reconnect at the same time.. */
+  isConnecting = false;
+  /** To avoid reconnect if client is disconnected */
+  isDisconnected = false;
+  /** Boolean that indicates if we have a working connection to the server */
+  isHealthy = false;
+
+  // Open-connection promise: resolves on `connection.ok`, rejects on close/error.
   connectionID?: string;
   private connectionOpenSafe?: SafePromise<ConnectedEvent>;
-  consecutiveFailures: number;
-  pingInterval: number;
-  healthCheckTimeoutRef?: number;
-  isConnecting: boolean;
-  isDisconnected: boolean;
-  isHealthy: boolean;
-  isConnectionOpenResolved?: boolean;
-  lastEvent: Date | null;
-  connectionCheckTimeout: number;
-  connectionCheckTimeoutRef?: NodeJS.Timeout;
-  rejectConnectionOpen?: (
-    reason?: Error & {
-      code?: string | number;
-      isWSFailure?: boolean;
-      StatusCode?: string | number;
-    },
-  ) => void;
   resolveConnectionOpen?: (value: ConnectedEvent) => void;
-  totalFailures: number;
-  ws?: WebSocket;
-  wsID: number;
+  rejectConnectionOpen?: (reason?: WSConnectionError) => void;
+  /** Boolean that indicates if the connection promise is resolved */
+  isConnectionOpenResolved?: boolean = false;
 
-  client: StreamClient;
+  // Failure counters (drive retry/backoff scheduling).
+  /** consecutive failures influence the duration of the timeout */
+  consecutiveFailures = 0;
+  /** keep track of the total number of failures */
+  totalFailures = 0;
+
+  // Health-check pings + connection-staleness check.
+  /** Send a health check message every 25 seconds */
+  pingInterval = 25 * 1000;
+  healthCheckTimeoutRef?: number;
+  connectionCheckTimeout = this.pingInterval + 10 * 1000;
+  connectionCheckTimeoutRef?: NodeJS.Timeout;
+  /** Store the last event time for health checks */
+  lastEvent: Date | null = null;
 
   constructor(client: StreamClient) {
     this.client = client;
-    /** consecutive failures influence the duration of the timeout */
-    this.consecutiveFailures = 0;
-    /** keep track of the total number of failures */
-    this.totalFailures = 0;
-    /** We only make 1 attempt to reconnect at the same time.. */
-    this.isConnecting = false;
-    /** To avoid reconnect if client is disconnected */
-    this.isDisconnected = false;
-    /** Boolean that indicates if the connection promise is resolved */
-    this.isConnectionOpenResolved = false;
-    /** Boolean that indicates if we have a working connection to the server */
-    this.isHealthy = false;
-    /** Incremented when a new WS connection is made */
-    this.wsID = 1;
-    /** Store the last event time for health checks */
-    this.lastEvent = null;
-    /** Send a health check message every 25 seconds */
-    this.pingInterval = 25 * 1000;
-    this.connectionCheckTimeout = this.pingInterval + 10 * 1000;
-
     addConnectionEventListeners(this.onlineStatusChanged);
   }
 
-  _log = (msg: string, extra: UR = {}, level: LogLevel = 'info') => {
+  _log = (msg: string, extra: UR | Error = {}, level: LogLevel = 'info') => {
     this.client.logger[level](`connection:${msg}`, extra);
   };
 
@@ -99,9 +92,9 @@ export class StableWSConnection {
   /**
    * connect - Connect to the WS URL
    * the default 15s timeout allows between 2~3 tries
-   * @return {ConnectAPIResponse<ConnectedEvent>} Promise that completes once the first health check message is received
+   * @return Promise that completes once the first health check message is received
    */
-  async connect(timeout = 15000) {
+  connect = async (timeout = 15000): Promise<ConnectedEvent | undefined> => {
     if (this.isConnecting) {
       throw Error(
         `You've called connect twice, can only attempt 1 connection at the time`,
@@ -111,18 +104,18 @@ export class StableWSConnection {
     this.isDisconnected = false;
 
     try {
-      const healthCheck = await this._connect();
+      const healthCheck = await this._connect(timeout);
       this.consecutiveFailures = 0;
 
       this._log(
         `connect() - Established ws connection with healthcheck: ${healthCheck}`,
       );
-    } catch (error) {
+    } catch (caught) {
+      const error = caught as WSConnectionError;
       this.isHealthy = false;
       this.consecutiveFailures += 1;
 
       if (
-        // @ts-expect-error type issue
         error.code === KnownCodes.TOKEN_EXPIRED &&
         !this.client.tokenManager.isStatic()
       ) {
@@ -130,42 +123,44 @@ export class StableWSConnection {
           'connect() - WS failure due to expired token, so going to try to reload token and reconnect',
         );
         this._reconnect({ refreshToken: true });
+      } else if (!error.isWSFailure) {
+        // API rejected the connection and we should not retry
+        throw new Error(
+          JSON.stringify({
+            code: error.code,
+            StatusCode: error.StatusCode,
+            message: error.message,
+            isWSFailure: error.isWSFailure,
+          }),
+        );
       } else {
-        // @ts-expect-error type issue
-        if (!error.isWSFailure) {
-          // API rejected the connection and we should not retry
-          throw new Error(
-            JSON.stringify({
-              // @ts-expect-error type issue
-              code: error.code,
-              // @ts-expect-error type issue
-              StatusCode: error.StatusCode,
-              // @ts-expect-error type issue
-              message: error.message,
-              // @ts-expect-error type issue
-              isWSFailure: error.isWSFailure,
-            }),
-          );
-        }
+        // Transient WS failure (e.g., handshake watchdog). Kick off a
+        // reconnect chain so _waitForHealthy(timeout) below has something
+        // to poll for. Owning the trigger here (rather than inside
+        // _connect()'s catch) keeps a single failure from spawning two
+        // parallel chains - one from this catch and one from _reconnect's
+        // own catch when _connect was called from there.
+        this._reconnect();
       }
     }
 
     return await this._waitForHealthy(timeout);
-  }
+  };
 
   /**
    * _waitForHealthy polls the promise connection to see if its resolved until it times out
    * the default 15s timeout allows between 2~3 tries
    * @param timeout duration(ms)
    */
-  async _waitForHealthy(timeout = 15000) {
+  _waitForHealthy = async (timeout = 15000) => {
     return Promise.race([
       (async () => {
         const interval = 50; // ms
         for (let i = 0; i <= timeout; i += interval) {
           try {
             return await this.connectionOpen;
-          } catch (error: any) {
+          } catch (caught) {
+            const error = caught as WSConnectionError;
             if (i === timeout) {
               throw new Error(
                 JSON.stringify({
@@ -193,7 +188,7 @@ export class StableWSConnection {
         );
       })(),
     ]);
-  }
+  };
 
   /**
    * Builds and returns the url for websocket.
@@ -211,9 +206,8 @@ export class StableWSConnection {
 
   /**
    * disconnect - Disconnect the connection and doesn't recover...
-   *
    */
-  disconnect(timeout?: number) {
+  disconnect = (timeout?: number) => {
     this._log(
       `disconnect() - Closing the websocket connection for wsID ${this.wsID}`,
     );
@@ -275,16 +269,30 @@ export class StableWSConnection {
     delete this.ws;
 
     return isClosedPromise;
-  }
+  };
 
   /**
    * _connect - Connect to the WS endpoint
    *
-   * @return {ConnectAPIResponse<ConnectedEvent>} Promise that completes once the first health check message is received
+   * @param timeoutMs handshake watchdog deadline in ms. Defaults to
+   *   `client.defaultWSTimeout` when not provided. Top-level `connect(timeout)`
+   *   passes its own timeout through so caller-supplied deadlines are honored.
+   * @return Promise that completes once the first health check message is received
    */
-  async _connect() {
+  _connect = async (
+    timeoutMs?: number,
+  ): Promise<ConnectedEvent | undefined> => {
     if (this.isConnecting) return; // ignore _connect if it's currently trying to connect
     this.isConnecting = true;
+    // Snapshot of the connection-id reject closure owned by THIS attempt.
+    // Captured at function entry so that even early failures (e.g.,
+    // tokenManager.loadToken throwing before we reach the WS phase) can
+    // settle the promise the caller is awaiting. Re-captured below if
+    // _connect itself sets up a fresh promise. If a concurrent
+    // openConnection() rotates `client.rejectConnectionId` later, our
+    // captured closure still settles only the original promise (P1) and
+    // never poisons the newer one (P2).
+    let ownRejectConnectionId = this.client.rejectConnectionId;
     let isTokenReady = false;
     try {
       this._log(`_connect() - waiting for token`);
@@ -302,8 +310,11 @@ export class StableWSConnection {
         await this.client.tokenManager.loadToken();
       }
 
-      if (!this.client.isConnectionIsPromisePending) {
+      if (!this.client.isConnectionIdPromisePending) {
         this.client._setupConnectionIdPromise();
+        // recapture: we just rotated the resolver ourselves, the new
+        // closure is the one bound to the promise this attempt owns.
+        ownRejectConnectionId = this.client.rejectConnectionId;
       }
       this._setupConnectionPromise();
       const wsURL = this._buildUrl();
@@ -314,23 +325,74 @@ export class StableWSConnection {
       this.ws.onclose = this.onclose.bind(this, this.wsID);
       this.ws.onerror = this.onerror.bind(this, this.wsID);
       this.ws.onmessage = this.onmessage.bind(this, this.wsID);
-      const response = await this.connectionOpen;
+
+      // race the WS handshake against an explicit deadline so a silent
+      // network drop (e.g., carrier NAT or firewall) cannot wedge _connect()
+      const handshakeTimeout = timeoutMs ?? this.client.defaultWSTimeout;
+      const timers = getTimers();
+      let handshakeTimeoutId: number | undefined;
+      let response: ConnectedEvent | undefined;
+      try {
+        response = await Promise.race<ConnectedEvent | undefined>([
+          this.connectionOpen as Promise<ConnectedEvent>,
+          new Promise<never>((_, reject) => {
+            handshakeTimeoutId = timers.setTimeout(() => {
+              const err: WSConnectionError = new Error(
+                `WS handshake timed out after ${handshakeTimeout}ms`,
+              );
+              err.isWSFailure = true;
+              reject(err);
+            }, handshakeTimeout);
+          }),
+        ]);
+      } finally {
+        timers.clearTimeout(handshakeTimeoutId);
+      }
       this.isConnecting = false;
+
+      // If we were disconnected during the handshake (e.g. closeConnection()
+      // ran while a background _reconnect's _connect was in flight), tear
+      // down the new WS and throw so the caller of connect() does not get
+      // a misleading "success" for a connection that has already been
+      // aborted. We must NOT skip the throw and just return undefined: the
+      // outer connect() would otherwise fall through to _waitForHealthy(),
+      // which would observe the already-resolved connectionOpen promise
+      // and resolve with a ConnectedEvent for a torn-down connection.
+      if (this.isDisconnected) {
+        if (this.ws && this.ws.readyState !== this.ws.CLOSED) {
+          this._destroyCurrentWSConnection();
+        }
+        throw new Error(
+          'WS handshake aborted: disconnect() ran while connecting',
+        );
+      }
 
       if (response) {
         this.connectionID = response.connection_id;
         this.client.resolveConnectionId?.(this.connectionID);
         return response;
       }
-    } catch (err) {
-      this.client._setupConnectionIdPromise();
+    } catch (caught) {
+      const err = caught as WSConnectionError;
       this.isConnecting = false;
-      // @ts-expect-error type issue
       this._log(`_connect() - Error - `, err);
-      this.client.rejectConnectionId?.(err);
+      // Reject THIS attempt's connection-id promise (P1) directly via the
+      // captured closure. Whether or not a concurrent openConnection() has
+      // since rotated client.rejectConnectionId to a newer promise (P2),
+      // calling ownRejectConnectionId only settles P1 - P2 is untouched.
+      // P1's awaiters (e.g., doAxiosRequest awaiting connectionIdPromise)
+      // therefore fail fast instead of being orphaned.
+      ownRejectConnectionId?.(err);
+      // connectionOpen is per-instance and not subject to rotation, so
+      // calling it unconditionally is safe (and a no-op if already settled).
+      this.rejectConnectionOpen?.(err);
+      // tear down a half-open WS so it does not linger and fire a stale wsID later
+      if (this.ws && this.ws.readyState !== this.ws.CLOSED) {
+        this._destroyCurrentWSConnection();
+      }
       throw err;
     }
-  }
+  };
 
   /**
    * _reconnect - Retry the connection to WS endpoint
@@ -388,7 +450,8 @@ export class StableWSConnection {
       this._log('_reconnect() - Finished recoverCallBack');
 
       this.consecutiveFailures = 0;
-    } catch (error: any) {
+    } catch (caught) {
+      const error = caught as WSConnectionError;
       this.isHealthy = false;
       this.consecutiveFailures += 1;
       if (
@@ -416,7 +479,6 @@ export class StableWSConnection {
    * onlineStatusChanged - this function is called when the browser connects or disconnects from the internet.
    *
    * @param {Event} event Event with type online or offline
-   *
    */
   onlineStatusChanged = (event: Event) => {
     if (event.type === 'offline') {
@@ -538,19 +600,14 @@ export class StableWSConnection {
     this._log('onclose() - onclose callback - ' + event.code, { event, wsID });
 
     if (event.code === KnownCodes.WS_CLOSED_SUCCESS) {
-      // this is a permanent error raised by stream..
+      // this is a permanent error raised by stream.
       // usually caused by invalid auth details
-      const error = new Error(
+      const error: WSConnectionError = new Error(
         `WS connection reject with error ${event.reason}`,
       );
-
-      // @ts-expect-error type issue
       error.reason = event.reason;
-      // @ts-expect-error type issue
       error.code = event.code;
-      // @ts-expect-error type issue
       error.wasClean = event.wasClean;
-      // @ts-expect-error type issue
       error.target = event.target;
 
       this.rejectConnectionOpen?.(error);
@@ -622,7 +679,7 @@ export class StableWSConnection {
   private _errorFromWSEvent = (
     event: CloseEvent | ConnectionErrorEvent,
     isWSFailure = true,
-  ) => {
+  ): WSConnectionError => {
     let code: number;
     let statusCode: number;
     let message: string;
@@ -639,11 +696,7 @@ export class StableWSConnection {
 
     const msg = `WS failed with code: ${code}: ${APIErrorCodes[code] || code} and reason: ${message}`;
     this._log(msg, { event }, 'warn');
-    const error = new Error(msg) as Error & {
-      code?: number;
-      isWSFailure?: boolean;
-      StatusCode?: number;
-    };
+    const error = new Error(msg) as WSConnectionError;
     error.code = code;
     /**
      * StatusCode does not exist on any event types but has been left
