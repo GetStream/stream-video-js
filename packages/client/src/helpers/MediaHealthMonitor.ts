@@ -1,91 +1,22 @@
-import { BehaviorSubject, distinctUntilChanged, map, Subject } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, map } from 'rxjs';
 import { videoLoggerSystem } from '../logger';
 import type { RemoteAudioTrackChange } from '../rtc';
 import { Tracer } from '../stats';
 import { setCurrentValue } from '../store/rxUtils';
 import { withoutConcurrency } from './concurrency';
+import {
+  PausedElementsTracker,
+  resumeMediaElements,
+} from './PausedElementsTracker';
 import { RecoveryLoop } from './RecoveryLoop';
 import {
   HOST_AUDIO_SESSION_EVENT,
+  type AudioHealthInfo,
   type AudioSession,
   type AudioSessionState,
   type AudioSessionType,
   type HostAudioSessionEvent,
 } from './types';
-
-/**
- * Coarse audio-pipeline status.
- * Treat `'unknown'` as "no actionable signal" - don't render failure UX,
- * but don't render a green "all clear" either.
- */
-export type AudioHealthStatus = 'healthy' | 'unhealthy' | 'unknown';
-
-/**
- * Which direction(s) of the audio pipeline a signal speaks to.
- * `capture`: mic / outgoing only,
- * `playback`: renderer / incoming only,
- * `both`: signal does not separate the two (most OS-level interruptions,
- *   healthy reasons, and the pre-start state).
- */
-export type AudioHealthDirection = 'capture' | 'playback' | 'both';
-
-/**
- * Specific cause of the current {@link AudioHealthStatus}.
- *
- * - `'host-audio-session-interrupted'` - iOS host bridge reports an
- *   active `AVAudioSession` interruption. Ground truth on iOS.
- * - `'audio-session-interrupted'` - W3C `navigator.audioSession.state`
- *   is `'interrupted'` (Safari 16.4+).
- * - `'audio-context-interrupted'` - probe `AudioContext.state` is
- *   `'interrupted'`. Redundant with the W3C signal on Safari; kept
- *   distinct in case the two ever diverge.
- * - `'autoplay-blocked'` - browser refused `<audio>.play()` without a
- *   prior user gesture. Recoverable via `call.resumeMedia()` from a
- *   click handler.
- * - `'remote-tracks-muted'` - >=2 remote audio tracks all reported
- *   `muted: true` simultaneously. Cross-browser proxy for "audio
- *   pipeline broken"; single mutes are ignored to avoid confusing
- *   them with a remote sender's own problem.
- * - `'element-paused'` - a bound `<audio>` element fired `'pause'`
- *   while its `srcObject` still had live tracks. The monitor retries
- *   `.play()` automatically and also via `call.resumeMedia()`.
- * - `'host-audio-session-active'` - iOS host bridge confirms no
- *   active interruption.
- * - `'audio-session-active'` - Safari confirms the session is active.
- * - `'playback-verified'` - Chrome / Firefox positive-healthy signal:
- *   at least one remote audio track is unmuted and no bound element
- *   is paused.
- * - `'not-started'` - monitor hasn't been started, or has been stopped.
- * - `'pending'` - monitor is running but no signal has resolved yet.
- *   Normal on Chrome / Firefox before remote audio arrives, on Safari
- *   without W3C Audio Session, and during transient Safari activation.
- *   Not an error; render neutral UX.
- */
-export type AudioHealthReason =
-  | 'host-audio-session-interrupted'
-  | 'audio-session-interrupted'
-  | 'audio-context-interrupted'
-  | 'autoplay-blocked'
-  | 'remote-tracks-muted'
-  | 'element-paused'
-  | 'host-audio-session-active'
-  | 'audio-session-active'
-  | 'playback-verified'
-  | 'not-started'
-  | 'pending';
-
-/**
- * Structured audio-health signal emitted on
- * {@link MediaHealthMonitor.audioHealth$}. `status` is the coarse UX
- * bucket; `reason` carries the specific cause for targeted messaging
- * or recovery; `direction` says which side of the pipeline is affected
- * (or `'both'` when bidirectional / healthy).
- */
-export interface AudioHealthInfo {
-  status: AudioHealthStatus;
-  reason: AudioHealthReason;
-  direction: AudioHealthDirection;
-}
 
 const UNKNOWN_NOT_STARTED: AudioHealthInfo = {
   status: 'unknown',
@@ -131,8 +62,8 @@ const UNKNOWN_NOT_STARTED: AudioHealthInfo = {
  *   trigger - transient SFU disconnects must not thrash the probe.
  */
 export class MediaHealthMonitor {
-  private logger = videoLoggerSystem.getLogger('MediaHealthMonitor');
-  private tracer: Tracer;
+  private readonly logger = videoLoggerSystem.getLogger('MediaHealthMonitor');
+  private readonly tracer: Tracer;
   private started = false;
 
   private readonly lifecycleTag = Symbol();
@@ -148,50 +79,29 @@ export class MediaHealthMonitor {
   /** Latest valid payload from the iOS host bridge, if any. */
   private hostAudioSession?: HostAudioSessionEvent;
 
-  private blockedAudioElements = new BehaviorSubject(
-    new Set<HTMLAudioElement>(),
-  );
-
-  private remoteAudioMuted = new BehaviorSubject(
-    new Map<MediaStreamTrack, boolean>(),
-  );
-
-  private pausedAudioElements = new BehaviorSubject(
-    new Set<HTMLAudioElement>(),
-  );
-
-  private pausedVideoElements = new BehaviorSubject(
-    new Set<HTMLVideoElement>(),
-  );
-
-  private pausedAudioRecovery = new RecoveryLoop({
-    canRun: () => this.canAutoResume(this.pausedAudioElements),
-    isComplete: () => this.pausedAudioElements.getValue().size === 0,
-    run: () => this.resumePausedAudioElements(),
-  });
-
-  private pausedVideoRecovery = new RecoveryLoop({
-    canRun: () => this.canAutoResume(this.pausedVideoElements),
-    isComplete: () => this.pausedVideoElements.getValue().size === 0,
-    run: () => this.resumePausedVideoElements(),
-  });
+  private readonly pausedAudio: PausedElementsTracker;
+  private readonly pausedVideo: PausedElementsTracker;
 
   private probeAudioContextRecovery = new RecoveryLoop({
     canRun: () => this.canAutoResumeProbeAudioContext(),
     isComplete: () => !this.canAutoResumeProbeAudioContext(),
     run: () => this.resumeAudioContext(),
-    onCompletion: () => {
-      this.pausedAudioRecovery.restart();
-      this.pausedVideoRecovery.restart();
-    },
+    onCompletion: () => this.restartPausedRecoveries(),
   });
+
+  private remoteAudioMutedSubject = new BehaviorSubject(
+    new Map<MediaStreamTrack, boolean>(),
+  );
+
+  private blockedAudioElementsSubject = new BehaviorSubject(
+    new Set<HTMLAudioElement>(),
+  );
 
   /**
    * `true` when the browser's autoplay policy is currently blocking
-   * audio playback. Recover via `call.resumeMedia()` from a user
-   * gesture.
+   * audio playback. Recover via `call.resumeMedia()` from a user gesture.
    */
-  autoplayBlocked$ = this.blockedAudioElements.pipe(
+  autoplayBlocked$ = this.blockedAudioElementsSubject.pipe(
     map((elements) => elements.size > 0),
     distinctUntilChanged(),
   );
@@ -209,6 +119,17 @@ export class MediaHealthMonitor {
     this.tracer = tracer;
     this.audioSession =
       typeof navigator !== 'undefined' ? navigator.audioSession : undefined;
+    this.pausedAudio = new PausedElementsTracker({
+      kind: 'audio',
+      tracer: this.tracer,
+      canResume: this.canAutoResumePausedElements,
+      onChange: this.updateAudioHealth,
+    });
+    this.pausedVideo = new PausedElementsTracker({
+      kind: 'video',
+      tracer: this.tracer,
+      canResume: this.canAutoResumePausedElements,
+    });
   }
 
   /**
@@ -281,12 +202,10 @@ export class MediaHealthMonitor {
       }
       this.audioContext = undefined;
 
-      setCurrentValue(this.blockedAudioElements, new Set());
-      setCurrentValue(this.remoteAudioMuted, new Map());
-      setCurrentValue(this.pausedAudioElements, new Set());
-      setCurrentValue(this.pausedVideoElements, new Set());
-      this.pausedAudioRecovery.clear();
-      this.pausedVideoRecovery.clear();
+      setCurrentValue(this.blockedAudioElementsSubject, new Set());
+      setCurrentValue(this.remoteAudioMutedSubject, new Map());
+      this.pausedAudio.clear();
+      this.pausedVideo.clear();
       this.probeAudioContextRecovery.clear();
       this.audioHealthSubject.next(UNKNOWN_NOT_STARTED);
     });
@@ -300,11 +219,11 @@ export class MediaHealthMonitor {
     audioElement: HTMLAudioElement,
     blocked: boolean,
   ) => {
-    const elements = this.blockedAudioElements.getValue();
+    const elements = this.blockedAudioElementsSubject.getValue();
     if (blocked === elements.has(audioElement)) return;
     if (blocked) elements.add(audioElement);
     else elements.delete(audioElement);
-    setCurrentValue(this.blockedAudioElements, elements);
+    setCurrentValue(this.blockedAudioElementsSubject, elements);
     this.updateAudioHealth();
   };
 
@@ -315,7 +234,7 @@ export class MediaHealthMonitor {
     track: MediaStreamTrack,
     change: RemoteAudioTrackChange,
   ) => {
-    const tracks = this.remoteAudioMuted.getValue();
+    const tracks = this.remoteAudioMutedSubject.getValue();
     if (change === 'ended') tracks.delete(track);
     else tracks.set(track, change === 'muted');
     this.updateAudioHealth();
@@ -329,13 +248,7 @@ export class MediaHealthMonitor {
     audioElement: HTMLAudioElement,
     paused: boolean,
   ) => {
-    this.setPausedMediaElement(
-      audioElement,
-      paused,
-      this.pausedAudioElements.getValue(),
-      this.pausedAudioRecovery,
-    );
-    this.updateAudioHealth();
+    this.pausedAudio.setPaused(audioElement, paused);
   };
 
   /**
@@ -346,28 +259,7 @@ export class MediaHealthMonitor {
     videoElement: HTMLVideoElement,
     paused: boolean,
   ) => {
-    this.setPausedMediaElement(
-      videoElement,
-      paused,
-      this.pausedVideoElements.getValue(),
-      this.pausedVideoRecovery,
-    );
-  };
-
-  private setPausedMediaElement = <T extends HTMLMediaElement>(
-    element: T,
-    paused: boolean,
-    elements: Set<T>,
-    recovery: RecoveryLoop,
-  ) => {
-    if (paused === elements.has(element)) return;
-    if (paused) {
-      elements.add(element);
-      recovery.restart();
-    } else {
-      elements.delete(element);
-      if (elements.size === 0) recovery.clear();
-    }
+    this.pausedVideo.setPaused(videoElement, paused);
   };
 
   /**
@@ -382,69 +274,30 @@ export class MediaHealthMonitor {
     await this.resumeAudioContext();
     await Promise.all([
       this.resumeBlockedAudioElements(),
-      this.resumePausedAudioElements(),
-      this.resumePausedVideoElements(),
+      this.pausedAudio.resume(),
+      this.pausedVideo.resume(),
     ]);
     this.probeAudioContextRecovery.restart();
-    this.pausedAudioRecovery.restart();
-    this.pausedVideoRecovery.restart();
+    this.restartPausedRecoveries();
     this.updateAudioHealth();
   };
 
   private resumeBlockedAudioElements = async () => {
-    const subject = this.blockedAudioElements;
+    const elements = this.blockedAudioElementsSubject.getValue();
     this.tracer.trace('mediaHealth.resumeBlockedAudioElements', {
-      count: subject.getValue().size,
+      count: elements.size,
     });
-    await this.resumeMediaElements(subject);
+    await resumeMediaElements(elements, this.logger);
+    setCurrentValue(this.blockedAudioElementsSubject, elements);
   };
 
-  private resumePausedAudioElements = async () => {
-    const subject = this.pausedAudioElements;
-    this.tracer.trace('mediaHealth.resumePausedAudioElements', {
-      count: subject.getValue().size,
-    });
-    await this.resumeMediaElements(subject);
-    this.updateAudioHealth();
+  private restartPausedRecoveries = () => {
+    this.pausedAudio.restart();
+    this.pausedVideo.restart();
   };
 
-  private resumePausedVideoElements = async () => {
-    const subject = this.pausedVideoElements;
-    this.tracer.trace('mediaHealth.resumePausedVideoElements', {
-      count: subject.getValue().size,
-    });
-    await this.resumeMediaElements(subject);
-  };
-
-  private resumeMediaElements = async <T extends HTMLMediaElement>(
-    subject: BehaviorSubject<Set<T>>,
-  ) => {
-    const elements = subject.getValue();
-    const tasks: Promise<void>[] = [];
-    for (const element of elements) {
-      if (!element.srcObject) {
-        elements.delete(element);
-        continue;
-      }
-      const task = element
-        .play()
-        .then(() => {
-          elements.delete(element);
-        })
-        .catch((err) => {
-          this.logger.warn(`Can't resume playback`, element, err);
-        });
-      tasks.push(task);
-    }
-    await Promise.all(tasks);
-    setCurrentValue(subject, elements);
-  };
-
-  private canAutoResume = <T extends HTMLMediaElement>(
-    subject: BehaviorSubject<Set<T>>,
-  ) => {
+  private canAutoResumePausedElements = () => {
     if (!this.started) return false;
-    if (subject.getValue().size === 0) return false;
     if (this.hostAudioSession?.interruption?.type === 'began') return false;
     if (this.audioSessionState === 'interrupted') return false;
     return this.audioContext?.state !== 'interrupted';
@@ -491,8 +344,7 @@ export class MediaHealthMonitor {
     this.updateAudioHealth();
     if (audioSession.state === 'active') {
       this.probeAudioContextRecovery.restart();
-      this.pausedAudioRecovery.restart();
-      this.pausedVideoRecovery.restart();
+      this.restartPausedRecoveries();
     }
   };
 
@@ -521,8 +373,7 @@ export class MediaHealthMonitor {
     this.updateAudioHealth();
     if (detail.interruption?.type !== 'began') {
       this.probeAudioContextRecovery.restart();
-      this.pausedAudioRecovery.restart();
-      this.pausedVideoRecovery.restart();
+      this.restartPausedRecoveries();
     }
   };
 
@@ -564,8 +415,7 @@ export class MediaHealthMonitor {
     if (state === 'interrupted') {
       this.probeAudioContextRecovery.restart();
     } else if (state) {
-      this.pausedAudioRecovery.restart();
-      this.pausedVideoRecovery.restart();
+      this.restartPausedRecoveries();
     }
   };
 
@@ -581,8 +431,7 @@ export class MediaHealthMonitor {
       document.removeEventListener('click', this.resumeAudioContext);
       this.updateAudioHealth();
       if (probe.state !== 'interrupted') {
-        this.pausedAudioRecovery.restart();
-        this.pausedVideoRecovery.restart();
+        this.restartPausedRecoveries();
       }
       return true;
     } catch (err) {
@@ -648,7 +497,7 @@ export class MediaHealthMonitor {
     }
     // Autoplay-blocked goes first within the cross-browser tier
     // because it's the only user-recoverable reason here.
-    if (this.blockedAudioElements.getValue().size > 0) {
+    if (this.blockedAudioElementsSubject.getValue().size > 0) {
       return {
         status: 'unhealthy',
         reason: 'autoplay-blocked',
@@ -657,7 +506,7 @@ export class MediaHealthMonitor {
     }
     // Threshold is > 1 to avoid false positives on 1:1 calls where a
     // single mute is indistinguishable from a remote sender's problem.
-    const remoteAudioMuted = this.remoteAudioMuted.getValue();
+    const remoteAudioMuted = this.remoteAudioMutedSubject.getValue();
     if (
       remoteAudioMuted.size > 1 &&
       Array.from(remoteAudioMuted.values()).every(Boolean)
@@ -668,7 +517,7 @@ export class MediaHealthMonitor {
         direction: 'playback',
       };
     }
-    if (this.pausedAudioElements.getValue().size > 0) {
+    if (this.pausedAudio.elements.size > 0) {
       return {
         status: 'unhealthy',
         reason: 'element-paused',

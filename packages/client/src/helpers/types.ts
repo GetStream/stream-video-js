@@ -205,3 +205,77 @@ export interface HostAudioSessionEvent {
    */
   route?: HostAudioSessionRoute;
 }
+
+/**
+ * Coarse audio-pipeline status.
+ * Treat `'unknown'` as "no actionable signal" - don't render failure UX,
+ * but don't render a green "all clear" either.
+ */
+export type AudioHealthStatus = 'healthy' | 'unhealthy' | 'unknown';
+
+/**
+ * Which direction(s) of the audio pipeline a signal speaks to.
+ * `capture`: mic / outgoing only,
+ * `playback`: renderer / incoming only,
+ * `both`: signal does not separate the two (most OS-level interruptions,
+ *   healthy reasons, and the pre-start state).
+ */
+export type AudioHealthDirection = 'capture' | 'playback' | 'both';
+
+/**
+ * Specific cause of the current {@link AudioHealthStatus}.
+ *
+ * - `'host-audio-session-interrupted'` - iOS host bridge reports an
+ *   active `AVAudioSession` interruption. Ground truth on iOS.
+ * - `'audio-session-interrupted'` - W3C `navigator.audioSession.state`
+ *   is `'interrupted'` (Safari 16.4+).
+ * - `'audio-context-interrupted'` - probe `AudioContext.state` is
+ *   `'interrupted'`. Redundant with the W3C signal on Safari; kept
+ *   distinct in case the two ever diverge.
+ * - `'autoplay-blocked'` - browser refused `<audio>.play()` without a
+ *   prior user gesture. Recoverable via `call.resumeMedia()` from a
+ *   click handler.
+ * - `'remote-tracks-muted'` - >=2 remote audio tracks all reported
+ *   `muted: true` simultaneously. Cross-browser proxy for "audio
+ *   pipeline broken"; single mutes are ignored to avoid confusing
+ *   them with a remote sender's own problem.
+ * - `'element-paused'` - a bound `<audio>` element fired `'pause'`
+ *   while its `srcObject` still had live tracks. The monitor retries
+ *   `.play()` automatically and also via `call.resumeMedia()`.
+ * - `'host-audio-session-active'` - iOS host bridge confirms no
+ *   active interruption.
+ * - `'audio-session-active'` - Safari confirms the session is active.
+ * - `'playback-verified'` - Chrome / Firefox positive-healthy signal:
+ *   at least one remote audio track is unmuted and no bound element
+ *   is paused.
+ * - `'not-started'` - monitor hasn't been started, or has been stopped.
+ * - `'pending'` - monitor is running but no signal has resolved yet.
+ *   Normal on Chrome / Firefox before remote audio arrives, on Safari
+ *   without W3C Audio Session, and during transient Safari activation.
+ *   Not an error; render neutral UX.
+ */
+export type AudioHealthReason =
+  | 'host-audio-session-interrupted'
+  | 'audio-session-interrupted'
+  | 'audio-context-interrupted'
+  | 'autoplay-blocked'
+  | 'remote-tracks-muted'
+  | 'element-paused'
+  | 'host-audio-session-active'
+  | 'audio-session-active'
+  | 'playback-verified'
+  | 'not-started'
+  | 'pending';
+
+/**
+ * Structured audio-health signal emitted on
+ * {@link MediaHealthMonitor.audioHealth$}. `status` is the coarse UX
+ * bucket; `reason` carries the specific cause for targeted messaging
+ * or recovery; `direction` says which side of the pipeline is affected
+ * (or `'both'` when bidirectional / healthy).
+ */
+export interface AudioHealthInfo {
+  status: AudioHealthStatus;
+  reason: AudioHealthReason;
+  direction: AudioHealthDirection;
+}

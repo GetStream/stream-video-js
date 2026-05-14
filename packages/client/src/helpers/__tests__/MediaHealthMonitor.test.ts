@@ -5,10 +5,14 @@
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
-import { AudioHealthInfo, MediaHealthMonitor } from '../MediaHealthMonitor';
+import { MediaHealthMonitor } from '../MediaHealthMonitor';
 import { Tracer } from '../../stats';
 import { getCurrentValue } from '../../store/rxUtils';
-import { HOST_AUDIO_SESSION_EVENT, type HostAudioSessionEvent } from '../types';
+import {
+  AudioHealthInfo,
+  HOST_AUDIO_SESSION_EVENT,
+  type HostAudioSessionEvent,
+} from '../types';
 
 describe('MediaHealthMonitor', () => {
   // Stub a minimal `navigator.audioSession` so the browser-only detection
@@ -460,9 +464,9 @@ describe('MediaHealthMonitor', () => {
     expect(playOk).toHaveBeenCalled();
     expect(playFail).toHaveBeenCalled();
     // @ts-expect-error private property
-    const remaining = monitor.pausedAudioElementsSubject.getValue();
-    expect(remaining.has(elA)).toBe(false);
-    expect(remaining.has(elB)).toBe(true);
+    expect(monitor.pausedAudio.elements.has(elA)).toBe(false);
+    // @ts-expect-error private property
+    expect(monitor.pausedAudio.elements.has(elB)).toBe(true);
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe('element-paused');
   });
 
@@ -478,7 +482,7 @@ describe('MediaHealthMonitor', () => {
 
     await vi.waitFor(() => {
       // @ts-expect-error private property
-      expect(monitor.pausedAudioElementsSubject.getValue().has(el)).toBe(false);
+      expect(monitor.pausedAudio.elements.has(el)).toBe(false);
       expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
         'audio-session-active',
       );
@@ -506,7 +510,7 @@ describe('MediaHealthMonitor', () => {
 
     expect(play).toHaveBeenCalledTimes(2);
     // @ts-expect-error private property
-    expect(monitor.pausedAudioElementsSubject.getValue().has(el)).toBe(false);
+    expect(monitor.pausedAudio.elements.has(el)).toBe(false);
     expect(getCurrentValue(monitor.audioHealth$).reason).toBe(
       'audio-session-active',
     );
@@ -716,7 +720,6 @@ describe('MediaHealthMonitor', () => {
       ) {
         this.state = 'running';
       });
-    // @ts-expect-error override mock method
     probe.resume = resume;
     probe.state = 'interrupted';
     // @ts-expect-error private method
@@ -1105,7 +1108,7 @@ describe('MediaHealthMonitor', () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(play).toHaveBeenCalled();
     // @ts-expect-error private property
-    expect(monitor.pausedVideoElementsSubject.getValue().has(el)).toBe(false);
+    expect(monitor.pausedVideo.elements.has(el)).toBe(false);
     vi.useRealTimers();
   });
 
@@ -1124,7 +1127,7 @@ describe('MediaHealthMonitor', () => {
 
     expect(play).toHaveBeenCalledTimes(6);
     // @ts-expect-error private property
-    expect(monitor.pausedVideoElementsSubject.getValue().has(el)).toBe(true);
+    expect(monitor.pausedVideo.elements.has(el)).toBe(true);
     vi.useRealTimers();
   });
 
@@ -1145,7 +1148,7 @@ describe('MediaHealthMonitor', () => {
 
     expect(play).not.toHaveBeenCalled();
     // @ts-expect-error private property
-    expect(monitor.pausedVideoElementsSubject.getValue().has(el)).toBe(true);
+    expect(monitor.pausedVideo.elements.has(el)).toBe(true);
     vi.useRealTimers();
   });
 
@@ -1174,7 +1177,6 @@ describe('MediaHealthMonitor', () => {
     const probe = monitor.audioContext as AudioContext & { state: string };
     // Make probe.resume() fail so the probe-context recovery loop can't
     // clear the interruption mid-test.
-    // @ts-expect-error override the mock
     probe.resume = vi
       .fn()
       .mockRejectedValue(new DOMException('', 'AbortError'));
@@ -1244,7 +1246,6 @@ describe('MediaHealthMonitor', () => {
     // @ts-expect-error private property
     const probe = monitor.audioContext as AudioContext & { state: string };
     // Same as above - block auto-recovery so we control the transition.
-    // @ts-expect-error override the mock
     probe.resume = vi
       .fn()
       .mockRejectedValue(new DOMException('', 'AbortError'));
@@ -1281,7 +1282,7 @@ describe('MediaHealthMonitor', () => {
     await monitor.stop();
 
     // @ts-expect-error private property
-    expect(monitor.pausedVideoElementsSubject.getValue().size).toBe(0);
+    expect(monitor.pausedVideo.elements.size).toBe(0);
     // After stop, no scheduled timer should fire more play attempts.
     await vi.advanceTimersByTimeAsync(500 * 10);
     expect(play).toHaveBeenCalledTimes(1);
@@ -1314,7 +1315,7 @@ describe('MediaHealthMonitor', () => {
       monitor.updateVideoElementPausedState(el, false),
     ).not.toThrow();
     // @ts-expect-error private property
-    expect(monitor.pausedVideoElementsSubject.getValue().size).toBe(0);
+    expect(monitor.pausedVideo.elements.size).toBe(0);
   });
 
   it('resumeMedia() kicks both audio and video recovery loops', async () => {

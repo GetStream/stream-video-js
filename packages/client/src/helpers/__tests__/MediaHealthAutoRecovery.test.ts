@@ -10,7 +10,7 @@ import type {
   AudioHealthInfo,
   AudioHealthReason,
   AudioHealthStatus,
-} from '../MediaHealthMonitor';
+} from '../types';
 import { CameraManager, MicrophoneManager } from '../../devices';
 import { Tracer } from '../../stats';
 
