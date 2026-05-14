@@ -68,8 +68,6 @@ export class Publisher extends BasePeerConnection {
    */
   dispose() {
     super.dispose();
-    // The peer connection is going away; we don't need to wait for the
-    // Firefox encoder-deactivation step inside stopAllTracks before closing.
     this.stopAllTracks().catch((err) => {
       this.logger.warn('Failed to stop tracks during dispose', err);
     });
@@ -165,8 +163,6 @@ export class Publisher extends BasePeerConnection {
     await sender.replaceTrack(track);
     if (track) {
       this.trackIdToTrackType.set(track.id, trackType);
-      // Re-activate encodings that the Firefox unpublish workaround may have
-      // paused during a previous stopTracks() call. No-op on other browsers.
       await this.setSenderEncodingsActive(sender, true);
     }
     if (isAudioTrackType(trackType)) {
@@ -265,8 +261,6 @@ export class Publisher extends BasePeerConnection {
     for (const item of this.transceiverCache.items()) {
       const { publishOption, transceiver } = item;
       if (!trackTypes.includes(publishOption.trackType)) continue;
-      // Firefox keeps emitting RTP after track.stop() unless the sender's
-      // encodings are paused first. Deactivate, then stop.
       await this.setSenderEncodingsActive(transceiver.sender, false);
       this.stopTrack(transceiver.sender.track);
     }
