@@ -146,10 +146,8 @@ import {
   Tracer,
 } from './stats';
 import { MediaHealthMonitor } from './helpers/MediaHealthMonitor';
-import {
-  MediaHealthAutoRecovery,
-  type MediaHealthAutoRecoveryConfig,
-} from './helpers/MediaHealthAutoRecovery';
+import { MediaHealthAutoRecovery } from './helpers/MediaHealthAutoRecovery';
+import type { MediaHealthAutoRecoveryConfig } from './helpers/mediaHealthTypes';
 import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';

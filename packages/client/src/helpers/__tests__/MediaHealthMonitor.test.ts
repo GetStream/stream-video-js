@@ -394,6 +394,42 @@ describe('MediaHealthMonitor', () => {
     sub.unsubscribe();
   });
 
+  it('does not deduplicate emissions when only `direction` changes', () => {
+    const monitor = newMonitor();
+    monitor.start();
+
+    const emissions: AudioHealthInfo[] = [];
+    const sub = monitor.audioHealth$.subscribe((info) => emissions.push(info));
+    expect(emissions).toHaveLength(1); // replay of current value
+
+    // @ts-expect-error private property
+    const subject = monitor.audioHealthSubject;
+    subject.next({
+      status: 'unhealthy',
+      reason: 'autoplay-blocked',
+      direction: 'playback',
+    });
+    subject.next({
+      status: 'unhealthy',
+      reason: 'autoplay-blocked',
+      direction: 'both',
+    });
+
+    // Both pushes must have reached the subscriber.
+    expect(emissions[emissions.length - 2]).toEqual({
+      status: 'unhealthy',
+      reason: 'autoplay-blocked',
+      direction: 'playback',
+    });
+    expect(emissions[emissions.length - 1]).toEqual({
+      status: 'unhealthy',
+      reason: 'autoplay-blocked',
+      direction: 'both',
+    });
+
+    sub.unsubscribe();
+  });
+
   // -------------------------------------------------------------------------
   // resumeMedia()
   // -------------------------------------------------------------------------

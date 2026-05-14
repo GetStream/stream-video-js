@@ -7,64 +7,12 @@ import type {
   AudioHealthInfo,
   AudioHealthReason,
   AudioHealthStatus,
+  MediaHealthAutoRecoveryConfig,
 } from './mediaHealthTypes';
-
-/**
- * Tunable configuration for {@link MediaHealthAutoRecovery}.
- *
- * @experimental
- */
-export interface MediaHealthAutoRecoveryConfig {
-  /**
-   * Auto-mute the local mic on `healthy → unhealthy` transitions whose
-   * `direction` includes the capture path (`'capture'` or `'both'`).
-   * Surfaces a real mute signal to the SFU so remote participants see
-   * the user as explicitly muted instead of broken. Skipped on
-   * `'playback'`-only failures (autoplay-blocked, remote-tracks muted,
-   * AudioContext interruption, host bridge reporting `.record`
-   * category) because muting in those cases actively hurts UX.
-   *
-   * Default `true`.
-   */
-  autoMuteOnInterruption?: boolean;
-
-  /**
-   * Cycle the local mic (`disable() → enable()`) on `unhealthy → healthy`
-   * transitions if the mic is currently `enabled`. Forces fresh
-   * `MediaStreamTrack` acquisition since WebRTC senders still hold stale
-   * track references after the underlying `MediaStream` got yanked by the OS.
-   *
-   * Default `true`.
-   */
-  autoCycleMic?: boolean;
-
-  /**
-   * Cycle the local camera on `unhealthy → healthy` transitions if the
-   * camera is currently `enabled`. Off by default - camera cycling
-   * causes a visible flicker. Enable only if you have evidence the
-   * camera path is also affected by audio-session interruptions
-   * (occasionally true on iOS where AVAudioSession and AVCaptureSession
-   * share state).
-   *
-   * Default `false`.
-   */
-  autoCycleCamera?: boolean;
-
-  /**
-   * Minimum time between successive auto-mutes, in milliseconds.
-   * Prevents oscillation during network glitches that cause rapid
-   * `healthy ↔ unhealthy` flapping.
-   *
-   * Default `1000`.
-   */
-  autoMuteDebounceMs?: number;
-}
 
 /**
  * Reacts to `MediaHealthMonitor.audioHealth$` transitions and applies
  * recovery actions to the local mic and camera.
- *
- * @experimental
  *
  * Two transition triggers:
  *

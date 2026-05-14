@@ -394,8 +394,8 @@ export class MediaHealthMonitor {
       source.connect(probe.destination);
       source.start();
       probe.addEventListener('statechange', this.onAudioContextStateChange);
-      if (probe.state === 'suspended') {
-        document.addEventListener('click', this.resumeAudioContext);
+      if (probe.state === 'suspended' || probe.state === 'interrupted') {
+        this.bindResumeOnUserGesture();
       }
       this.audioContext = probe;
       this.silentSource = source;
@@ -414,10 +414,21 @@ export class MediaHealthMonitor {
     this.tracer.trace('mediaHealth.probeAudioContext.state', state);
     this.updateAudioHealth();
     if (state === 'interrupted') {
+      // Cover both retry paths: the timer-driven loop AND a user gesture.
+      // Some browsers (Safari) only honor `resume()` after a click, even
+      // when the interruption looks transient.
+      this.bindResumeOnUserGesture();
       this.probeAudioContextRecovery.restart();
+    } else if (state === 'suspended') {
+      this.bindResumeOnUserGesture();
     } else if (state) {
       this.restartPausedRecoveries();
     }
+  };
+
+  private bindResumeOnUserGesture = () => {
+    if (typeof document === 'undefined') return;
+    document.addEventListener('click', this.resumeAudioContext);
   };
 
   private resumeAudioContext = async () => {
@@ -452,7 +463,13 @@ export class MediaHealthMonitor {
   private updateAudioHealth = () => {
     const next = this.computeAudioHealthInfo();
     const prev = this.audioHealthSubject.getValue();
-    if (next.status === prev.status && next.reason === prev.reason) return;
+    if (
+      next.status === prev.status &&
+      next.reason === prev.reason &&
+      next.direction === prev.direction
+    ) {
+      return;
+    }
     this.tracer.trace('mediaHealth.update', next);
     this.audioHealthSubject.next(next);
   };
