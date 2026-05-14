@@ -205,6 +205,19 @@ export class StreamVideoClient {
               await call.reject('busy');
             } else {
               await call.updateFromRingingEvent(e as CallRingEvent);
+
+              const callingX = globalThis.streamRNVideoSDK?.callingX;
+              if (
+                callingX &&
+                call.state.callingState === CallingState.RINGING
+              ) {
+                callingX.displayIncomingCall(call).catch((err) => {
+                  this.logger.error(
+                    `Failed to display incoming call ${call?.cid}`,
+                    err,
+                  );
+                });
+              }
             }
           } else {
             call.state.updateFromCallResponse(e.call);
@@ -229,6 +242,16 @@ export class StreamVideoClient {
           } else {
             await call.updateFromRingingEvent(e as CallRingEvent);
             await call.get();
+
+            const callingX = globalThis.streamRNVideoSDK?.callingX;
+            if (callingX && call.state.callingState === CallingState.RINGING) {
+              callingX.displayIncomingCall(call).catch((err) => {
+                this.logger.error(
+                  `Failed to display incoming call ${call.cid}`,
+                  err,
+                );
+              });
+            }
           }
         } else {
           call.state.updateFromCallResponse(e.call);

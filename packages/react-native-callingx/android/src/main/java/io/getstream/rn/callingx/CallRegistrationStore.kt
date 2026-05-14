@@ -18,8 +18,9 @@ object CallRegistrationStore {
     /** Pending actions per callId, queued until the call is registered in Telecom. */
     private val pendingActionsByCallId = ConcurrentHashMap<String, MutableList<CallAction>>()
 
-    // Per-callId pending promises for displayIncomingCall awaiting CALL_REGISTERED_INCOMING_ACTION
-    private val pendingPromises = mutableMapOf<String, Promise>()
+    // Per-callId pending promises for displayIncomingCall/startCall awaiting CALL_REGISTERED(_INCOMING)_ACTION.
+    // Multiple concurrent callers for the same callId queue here and all resolve/reject together.
+    private val pendingPromises = mutableMapOf<String, MutableList<Promise>>()
     private val pendingTimeouts = mutableMapOf<String, Runnable>()
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -33,30 +34,33 @@ object CallRegistrationStore {
         if (promise == null) return
 
         synchronized(pendingPromises) {
-            // Cancel any existing timeout for this callId to avoid a stale runnable
-            // rejecting the new promise after it overwrites the old one.
-            pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
+            pendingPromises.getOrPut(callId) { mutableListOf() }.add(promise)
 
-            pendingPromises[callId] = promise
-
-            val timeoutRunnable = Runnable {
-                synchronized(pendingPromises) {
-                    pendingPromises
-                            .remove(callId)
-                            ?.reject("TIMEOUT", "Timed out waiting for call registration: $callId")
-                    pendingTimeouts.remove(callId)
-                    trackedCallIds.remove(callId)
+            // Schedule the registration timeout once per callId so concurrent callers
+            // share the same deadline instead of resetting it on every track call.
+            if (!pendingTimeouts.containsKey(callId)) {
+                val timeoutRunnable = Runnable {
+                    synchronized(pendingPromises) {
+                        pendingPromises.remove(callId)?.forEach {
+                            it.reject(
+                                    "TIMEOUT",
+                                    "Timed out waiting for call registration: $callId"
+                            )
+                        }
+                        pendingTimeouts.remove(callId)
+                        trackedCallIds.remove(callId)
+                    }
                 }
+                pendingTimeouts[callId] = timeoutRunnable
+                mainHandler.postDelayed(timeoutRunnable, DISPLAY_TIMEOUT_MS)
             }
-            pendingTimeouts[callId] = timeoutRunnable
-            mainHandler.postDelayed(timeoutRunnable, DISPLAY_TIMEOUT_MS)
         }
     }
 
     fun onRegistrationSuccess(callId: String) {
         synchronized(pendingPromises) {
             pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-            pendingPromises.remove(callId)?.resolve(true)
+            pendingPromises.remove(callId)?.forEach { it.resolve(true) }
         }
     }
 
@@ -79,15 +83,13 @@ object CallRegistrationStore {
 
         synchronized(pendingPromises) {
             pendingTimeouts.remove(callId)?.let { mainHandler.removeCallbacks(it) }
-            val promise = pendingPromises.remove(callId)
+            val promises = pendingPromises.remove(callId).orEmpty()
             pendingActionsByCallId.remove(callId)
-            if (promise != null) {
-                if (throwable != null) {
-                    promise.reject(code, message, throwable)
-                } else if (message != null) {
-                    promise.reject(code, message)
-                } else {
-                    promise.reject(code, "Unknown error")
+            promises.forEach { promise ->
+                when {
+                    throwable != null -> promise.reject(code, message, throwable)
+                    message != null -> promise.reject(code, message)
+                    else -> promise.reject(code, "Unknown error")
                 }
             }
         }
@@ -137,6 +139,9 @@ object CallRegistrationStore {
         synchronized(pendingPromises) {
             pendingTimeouts.values.forEach { mainHandler.removeCallbacks(it) }
             pendingTimeouts.clear()
+            pendingPromises.values.flatten().forEach {
+                it.reject("CANCELLED", "Call registration store was cleared")
+            }
             pendingPromises.clear()
         }
         trackedCallIds.clear()

@@ -64,6 +64,23 @@ function getCallDisplayNameFromCall(call: Call): string {
   );
 }
 
+export async function displayIncomingCall(call: Call) {
+  if (!CallingxModule || !CallingxModule.isSetup) {
+    return;
+  }
+  const isIncomingCall = call.ringing && !call.isCreatedByMe;
+  if (!isIncomingCall) {
+    return;
+  }
+
+  await CallingxModule.displayIncomingCall(
+    call.cid,
+    call.state.createdBy?.id ?? getCallDisplayNameFromCall(call), // handle for native call UI (prefer createdBy user id, fallback to call display name)
+    getCallDisplayNameFromCall(call), // display name for display in call screen
+    call.state.settings?.video?.enabled ?? false, // is video call?
+  );
+}
+
 export async function registerOutgoingCall(call: Call) {
   if (!CallingxModule || !CallingxModule.isSetup) {
     return;

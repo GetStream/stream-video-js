@@ -425,6 +425,7 @@ type StreamRNVideoSDKEndCallReason =
   | 'unknown';
 
 type StreamRNVideoSDKCallingX = {
+  displayIncomingCall: (call: Call) => Promise<void>;
   joinCall: (call: Call, activeCalls: Call[]) => Promise<void>;
   endCall: (
     call: Call,

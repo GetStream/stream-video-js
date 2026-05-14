@@ -115,6 +115,14 @@ class CallService : Service(), CallRepository.Listener {
 
             val isVideo = data["video"] == "true"
 
+            if (CallRegistrationStore.isCallTracked(callCid)) {
+              debugLog(
+                TAG,
+                "[service] startIncomingCallFromPush: Call CID is already registered, skipping"
+              )
+              return
+            }
+
             CallRegistrationStore.trackCallRegistration(callCid, null)
 
             val intent =

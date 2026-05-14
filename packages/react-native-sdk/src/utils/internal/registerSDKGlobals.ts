@@ -6,6 +6,7 @@ import {
   endCallingxCall,
   registerOutgoingCall,
   joinCallingxCall,
+  displayIncomingCall,
 } from './callingx/callingx';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
@@ -46,6 +47,7 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     joinCall: joinCallingxCall,
     endCall: endCallingxCall,
     registerOutgoingCall: registerOutgoingCall,
+    displayIncomingCall: displayIncomingCall,
   },
   callManager: {
     setup: ({ defaultDevice, isRingingTypeCall }) => {
