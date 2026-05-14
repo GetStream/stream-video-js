@@ -88,6 +88,7 @@ type StageError = {
 type StagePairState = {
   sid: string;
   attempts: number;
+  startedAt: number;
   lastError?: StageError;
 };
 
@@ -278,7 +279,11 @@ export class ClientEventReporter {
     const pair = this.peerConnectionPairs[peerConnection];
     if (pair) return;
     const sid = generateUUIDv4();
-    this.peerConnectionPairs[peerConnection] = { sid, attempts: 0 };
+    this.peerConnectionPairs[peerConnection] = {
+      sid,
+      attempts: 0,
+      startedAt: Date.now(),
+    };
     this.send({
       ...this.buildCommon('PeerConnectionConnect', sid),
       peer_connection: peerConnection,
@@ -300,6 +305,7 @@ export class ClientEventReporter {
       event_type: 'completed',
       outcome: 'success',
       retry_count_attempt: clamp(pair.attempts - 1, 0, MAX_RETRY_COUNT),
+      elapsed_time: Date.now() - pair.startedAt,
     });
     delete this.peerConnectionPairs[peerConnection];
   };
@@ -346,7 +352,7 @@ export class ClientEventReporter {
   private beginCoordinatorAttempt = () => {
     if (!this.coordinatorPair) {
       const sid = generateUUIDv4();
-      this.coordinatorPair = { sid, attempts: 0 };
+      this.coordinatorPair = { sid, attempts: 0, startedAt: Date.now() };
       this.send({
         ...this.buildCommon('CoordinatorJoin', sid),
         event_type: 'initiated',
@@ -364,6 +370,7 @@ export class ClientEventReporter {
       event_type: 'completed',
       outcome: 'success',
       retry_count_attempt: clamp(pair.attempts - 1, 0, MAX_RETRY_COUNT),
+      elapsed_time: Date.now() - pair.startedAt,
     });
     this.coordinatorPair = undefined;
   };
@@ -386,6 +393,7 @@ export class ClientEventReporter {
       event_type: 'completed',
       outcome: 'failure',
       retry_count_attempt: clamp(pair.attempts - 1, 0, MAX_RETRY_COUNT),
+      elapsed_time: Date.now() - pair.startedAt,
       ...(opts?.callSessionId && {
         call_session_id: truncate(opts.callSessionId, MAX_CALL_SESSION_ID),
       }),
@@ -398,7 +406,7 @@ export class ClientEventReporter {
   private beginWsAttempt = () => {
     if (!this.wsPair) {
       const sid = generateUUIDv4();
-      this.wsPair = { sid, attempts: 0 };
+      this.wsPair = { sid, attempts: 0, startedAt: Date.now() };
       this.send({
         ...this.buildCommon('WSJoin', sid),
         event_type: 'initiated',
@@ -415,6 +423,7 @@ export class ClientEventReporter {
       event_type: 'completed',
       outcome: 'success',
       retry_count_attempt: clamp(pair.attempts - 1, 0, MAX_RETRY_COUNT),
+      elapsed_time: Date.now() - pair.startedAt,
     });
     this.wsPair = undefined;
   };
@@ -429,6 +438,7 @@ export class ClientEventReporter {
       event_type: 'completed',
       outcome: 'failure',
       retry_count_attempt: clamp(pair.attempts - 1, 0, MAX_RETRY_COUNT),
+      elapsed_time: Date.now() - pair.startedAt,
       call_session_id: truncate(opts.callSessionId, MAX_CALL_SESSION_ID),
       sfu_id: truncate(opts.sfuId, MAX_SFU_ID),
       retry_failure_reason: truncate(reason, MAX_REASON),
@@ -446,6 +456,7 @@ export class ClientEventReporter {
       user_id: this.getUserId(),
       type: this.callType,
       id: this.callId,
+      call_cid: `${this.callType}:${this.callId}`,
       stage,
       event_session_id: eventSessionId,
       ...(callSessionId && { call_session_id: callSessionId }),

@@ -422,6 +422,62 @@ describe('ClientEventReporter', () => {
     });
   });
 
+  describe('envelope fields', () => {
+    it('stamps call_cid on every event', async () => {
+      const { reporter, post } = makeReporter({
+        callType: 'audio_room',
+        callId: 'room-7',
+      });
+
+      await reporter.track('CoordinatorJoin', async () => undefined);
+      await flushMicrotasks();
+
+      expect(post.mock.calls[0][1]).toMatchObject({
+        call_cid: 'audio_room:room-7',
+      });
+      expect(post.mock.calls[1][1]).toMatchObject({
+        call_cid: 'audio_room:room-7',
+      });
+    });
+
+    it('includes elapsed_time on completed events only', async () => {
+      const { reporter, post } = makeReporter();
+
+      await reporter.track('CoordinatorJoin', async () => {
+        vi.advanceTimersByTime(750);
+      });
+      await flushMicrotasks();
+
+      const [, init] = post.mock.calls[0];
+      const [, completion] = post.mock.calls[1];
+      expect(init.elapsed_time).toBeUndefined();
+      expect(completion.elapsed_time).toBeGreaterThanOrEqual(750);
+    });
+
+    it('includes elapsed_time on failure completions too', async () => {
+      const { reporter, post } = makeReporter();
+
+      const failing = reporter.track('WSJoin', async () => {
+        vi.advanceTimersByTime(200);
+        throw new Error('boom');
+      });
+      await expect(failing).rejects.toThrow('boom');
+      reporter.close({
+        callSessionId: 'sess',
+        sfuId: 'sfu-1',
+        error: new Error('boom'),
+      });
+      await flushMicrotasks();
+
+      const [, completion] = post.mock.calls[1];
+      expect(completion).toMatchObject({
+        event_type: 'completed',
+        outcome: 'failure',
+      });
+      expect(completion.elapsed_time).toBeGreaterThanOrEqual(200);
+    });
+  });
+
   describe('dispose', () => {
     it('aborts in-flight retries and ignores new sends', async () => {
       const post = vi.fn().mockRejectedValue({ response: { status: 503 } });

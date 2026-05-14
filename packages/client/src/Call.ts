@@ -1552,18 +1552,21 @@ export class Call {
     const requestJoin = async () => {
       const location = await this.streamClient.getLocationHint();
       const request: JoinCallRequest = { ...data, location };
-      return this.streamClient.post<JoinCallResponse, JoinCallRequest>(
-        `${this.streamClientBasePath}/join`,
-        request,
-      );
-    };
-    const joinResponse =
-      (await this.clientEventReporter?.track('CoordinatorJoin', requestJoin)) ??
-      (await requestJoin());
+      const response = await this.streamClient.post<
+        JoinCallResponse,
+        JoinCallRequest
+      >(`${this.streamClientBasePath}/join`, request);
 
-    this.state.updateFromCallResponse(joinResponse.call);
-    this.state.setMembers(joinResponse.members);
-    this.state.setOwnCapabilities(joinResponse.own_capabilities);
+      this.state.updateFromCallResponse(response.call);
+      this.state.setMembers(response.members);
+      this.state.setOwnCapabilities(response.own_capabilities);
+      return response;
+    };
+
+    const reporter = this.clientEventReporter;
+    const joinResponse = reporter
+      ? await reporter.track('CoordinatorJoin', requestJoin)
+      : await requestJoin();
 
     if (data?.ring) {
       this.ringingSubject.next(true);
