@@ -98,6 +98,18 @@ export class AudioBindingsWatchdog {
     audioElement.addEventListener('pause', onPause);
     audioElement.addEventListener('play', onPlay);
     this.bindings.set(key, { element: audioElement, onPause, onPlay });
+    // `pause` only fires on transitions, so an element that's already
+    // paused at register time (e.g., re-register during an iOS audio
+    // session interruption, or a fresh element bound while the session
+    // is still recovering) would never reach MediaHealthMonitor. Cover
+    // that case by handing the element to the tracker directly.
+    if (audioElement.paused) {
+      const srcObject = audioElement.srcObject as MediaStream | null;
+      const tracks = srcObject?.getTracks();
+      if (tracks?.some((t) => t.readyState === 'live')) {
+        this.onElementPausedChange(audioElement, true);
+      }
+    }
   };
 
   /**

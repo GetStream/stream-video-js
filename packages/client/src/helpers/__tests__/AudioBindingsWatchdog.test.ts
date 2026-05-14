@@ -380,9 +380,19 @@ describe('AudioBindingsWatchdog', () => {
       return el;
     };
 
+    it('emits paused=true at register time when the element is already paused with a live srcObject', () => {
+      const el = elementWithLiveStream();
+      watchdogWithCallback.register(el, 'session-1', 'audioTrack');
+      expect(onElementPausedChange).toHaveBeenCalledWith(el, true);
+      expect(onElementPausedChange).toHaveBeenCalledTimes(1);
+    });
+
     it('emits paused=true on `pause` when srcObject is a live MediaStream', () => {
       const el = elementWithLiveStream();
       watchdogWithCallback.register(el, 'session-1', 'audioTrack');
+      // `register()` proactively forwards already-paused-live elements;
+      // clear so this case strictly exercises the `pause` event listener.
+      onElementPausedChange.mockClear();
       el.dispatchEvent(new Event('pause'));
       expect(onElementPausedChange).toHaveBeenCalledWith(el, true);
       expect(onElementPausedChange).toHaveBeenCalledTimes(1);

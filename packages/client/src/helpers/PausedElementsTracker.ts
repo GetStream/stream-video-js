@@ -2,6 +2,7 @@ import { ScopedLogger, videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 import { RecoveryLoop } from './RecoveryLoop';
 import { withoutConcurrency } from './concurrency';
+import { timeboxed } from '../coordinator/connection/utils';
 
 export interface PausedElementsTrackerOptions {
   kind: 'audio' | 'video';
@@ -80,7 +81,7 @@ export const resumeMediaElements = async (
     Array.from(elements, async (element) => {
       if (!element.srcObject) return elements.delete(element);
       try {
-        await element.play();
+        await timeboxed([element.play()], 2000);
         elements.delete(element);
       } catch (err) {
         logger.warn(`Can't resume playback`, element, err);

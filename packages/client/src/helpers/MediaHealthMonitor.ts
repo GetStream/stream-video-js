@@ -419,9 +419,12 @@ export class MediaHealthMonitor {
       // when the interruption looks transient.
       this.bindResumeOnUserGesture();
       this.probeAudioContextRecovery.restart();
-    } else if (state === 'suspended') {
-      this.bindResumeOnUserGesture();
     } else if (state) {
+      // 'suspended' on iOS needs the gesture-bind too (Safari refuses to
+      // resume() without a click after page audio suspension), but we
+      // still want the paused-element loops to retry play() since the
+      // `canAutoResume*` gates treat 'suspended' as recoverable.
+      if (state === 'suspended') this.bindResumeOnUserGesture();
       this.restartPausedRecoveries();
     }
   };

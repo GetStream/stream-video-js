@@ -21,6 +21,7 @@ import { CallState } from '../store';
 import { SpeakerManager } from '../devices';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
+import { timeboxed } from '../coordinator/connection/utils';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -359,6 +360,21 @@ export class DynascaleManager {
     const onPlay = () => {
       this.onVideoElementPausedChange(videoElement, false);
     };
+    // `pause` only fires on transitions, so an element that's already
+    // paused at bind time (React re-mount during an iOS audio-session
+    // interruption, a rebind onto the same DOM element with an unchanged
+    // srcObject, or a `play()` rejection from the force-play path below)
+    // would never reach MediaHealthMonitor's recovery loop. Call this
+    // wherever the element could legitimately end up paused-with-live to
+    // hand it off to the tracker.
+    const registerIfPausedLive = () => {
+      if (!videoElement.paused) return;
+      const tracks = (
+        videoElement.srcObject as MediaStream | null
+      )?.getVideoTracks();
+      if (!tracks?.some((t) => t.readyState === 'live')) return;
+      this.onVideoElementPausedChange(videoElement, true);
+    };
     videoElement.addEventListener('pause', onPause);
     videoElement.addEventListener('play', onPlay);
 
@@ -370,17 +386,21 @@ export class DynascaleManager {
         if (videoElement.srcObject === source) return;
         videoElement.srcObject = source ?? null;
         if (isSafari() || isFirefox()) {
-          setTimeout(() => {
+          setTimeout(async () => {
             videoElement.srcObject = source ?? null;
-            videoElement.play().catch((e) => {
+            try {
+              await timeboxed([videoElement.play()], 2000);
+            } catch (e) {
               this.logger.warn(`Failed to play stream`, e);
-            });
+            }
             // we add extra delay until we attempt to force-play
             // the participant's media stream in Firefox and Safari,
             // as they seem to have some timing issues
+            registerIfPausedLive();
           }, 25);
         }
       });
+    registerIfPausedLive();
 
     return () => {
       requestTrackWithDimensions(DebounceType.FAST, undefined);

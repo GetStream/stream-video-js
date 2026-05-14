@@ -1,3 +1,5 @@
+import { videoLoggerSystem } from '../logger';
+
 export type RecoveryLoopOptions = {
   canRun: () => boolean;
   isComplete: () => boolean;
@@ -39,7 +41,10 @@ export class RecoveryLoop {
     if (this.attempts >= (this.options.maxAttempts ?? 6)) return;
     this.timer = setTimeout(() => {
       this.timer = undefined;
-      void this.runOnce();
+      this.runOnce().catch((err) => {
+        const logger = videoLoggerSystem.getLogger('RecoveryLoop');
+        logger.error('RecoveryLoop failed', err);
+      });
     }, delayInMs);
   };
 
