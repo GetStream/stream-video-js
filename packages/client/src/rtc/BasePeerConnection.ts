@@ -42,7 +42,7 @@ export abstract class BasePeerConnection {
   private iceRestartTimeout?: NodeJS.Timeout;
   private preConnectStuckTimeout?: NodeJS.Timeout;
   protected isIceRestarting = false;
-  private isDisposed = false;
+  protected isDisposed = false;
 
   protected trackIdToTrackType = new Map<string, TrackType>();
 

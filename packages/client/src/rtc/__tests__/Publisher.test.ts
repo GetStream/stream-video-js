@@ -1359,5 +1359,33 @@ describe('Publisher', () => {
       ).resolves.toBeUndefined();
       expect(setParametersSpy).not.toHaveBeenCalled();
     });
+
+    it('on Firefox, helper is a no-op once the publisher is disposed', async () => {
+      vi.mocked(isFirefox).mockReturnValue(true);
+
+      const transceiver = new RTCRtpTransceiver();
+      const track = new MediaStreamTrack();
+      vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
+      const trackStopSpy = vi.spyOn(track, 'stop');
+      const { setParametersSpy } = mockSenderParams(transceiver, [
+        { rid: 'q', active: true },
+      ]);
+
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+      });
+
+      // simulates the state after super.dispose() has run inside dispose()
+      publisher['isDisposed'] = true;
+
+      await publisher.stopTracks(TrackType.VIDEO);
+
+      // sender setParameters is skipped because the PC is being torn down
+      expect(setParametersSpy).not.toHaveBeenCalled();
+      // track.stop() still runs so local resources are released
+      expect(trackStopSpy).toHaveBeenCalled();
+    });
   });
 });

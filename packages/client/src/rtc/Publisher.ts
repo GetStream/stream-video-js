@@ -535,7 +535,7 @@ export class Publisher extends BasePeerConnection {
     sender: RTCRtpSender,
     active: boolean,
   ) => {
-    if (!isFirefox()) return;
+    if (!isFirefox() || this.isDisposed) return;
     const params = sender.getParameters();
     if (!params.encodings || params.encodings.length === 0) return;
     let changed = false;
