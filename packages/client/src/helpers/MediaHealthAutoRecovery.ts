@@ -7,7 +7,7 @@ import type {
   AudioHealthInfo,
   AudioHealthReason,
   AudioHealthStatus,
-} from './types';
+} from './mediaHealthTypes';
 
 /**
  * Tunable configuration for {@link MediaHealthAutoRecovery}.

@@ -9,10 +9,10 @@ import { MediaHealthMonitor } from '../MediaHealthMonitor';
 import { Tracer } from '../../stats';
 import { getCurrentValue } from '../../store/rxUtils';
 import {
-  AudioHealthInfo,
   HOST_AUDIO_SESSION_EVENT,
+  type AudioHealthInfo,
   type HostAudioSessionEvent,
-} from '../types';
+} from '../mediaHealthTypes';
 
 describe('MediaHealthMonitor', () => {
   // Stub a minimal `navigator.audioSession` so the browser-only detection

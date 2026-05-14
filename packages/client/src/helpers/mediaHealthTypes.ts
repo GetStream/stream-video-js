@@ -33,16 +33,13 @@ declare global {
  * Name of the `CustomEvent` an iOS `WKWebView` host dispatches on `window`
  * to report `AVAudioSession` state into the embedded page. The SDK's
  * `MediaHealthMonitor` listens for this event and treats its payload as
- * the authoritative ground-truth signal for audio-session health on iOS,
- * beating the in-page W3C `navigator.audioSession.state` signal when both
- * are available.
+ * the authoritative ground-truth signal for audio-session health on iOS.
  */
 export const HOST_AUDIO_SESSION_EVENT = 'stream-video:host-audio-session';
 
 /**
  * Normalized `AVAudioSession.Category`. The host-side bridge maps Apple's
- * `AVAudioSessionCategory*` raw values to these short names so the
- * payload is platform-agnostic and self-describing in console logs.
+ * `AVAudioSessionCategory*` raw values to these short names.
  */
 export type HostAudioSessionCategory =
   | 'ambient'
@@ -53,8 +50,7 @@ export type HostAudioSessionCategory =
   | 'multiRoute';
 
 /**
- * Normalized `AVAudioSession.Mode`. Same normalization rules as
- * {@link HostAudioSessionCategory}.
+ * Normalized `AVAudioSession.Mode`.
  */
 export type HostAudioSessionMode =
   | 'default'
@@ -68,8 +64,7 @@ export type HostAudioSessionMode =
   | 'voicePrompt';
 
 /**
- * Normalized `AVAudioSession.CategoryOptions` flag names. The host-side
- * bridge decomposes the raw bitmask into a list of these strings.
+ * Normalized `AVAudioSession.CategoryOptions` flag names.
  */
 export type HostAudioSessionCategoryOption =
   | 'mixWithOthers'
@@ -83,9 +78,7 @@ export type HostAudioSessionCategoryOption =
   | 'allowBluetoothHFP';
 
 /**
- * Normalized `AVAudioSession.InterruptionReason`. Available iOS 14.5+;
- * older iOS versions report `null`. Some values are version-gated by
- * Apple (e.g. `builtInMicMuted` is iOS 17+).
+ * Normalized `AVAudioSession.InterruptionReason`.
  */
 export type HostAudioSessionInterruptionReason =
   | 'default'
@@ -94,31 +87,16 @@ export type HostAudioSessionInterruptionReason =
   | 'routeDisconnected';
 
 /**
- * One leg of `AVAudioSession.currentRoute`. The host bridge reports
- * inputs (active capture devices) and outputs (active playback devices)
- * as parallel lists so the page can label which device is currently
- * driving mic / speaker.
- *
- * `name` is `AVAudioSessionPortDescription.portName` (human-readable,
- * e.g. "OL AirPods Pro 3", "iPhone Microphone"). `type` is
- * `AVAudioSession.Port` raw value (well-known values include
- * `BluetoothHFP`, `BluetoothA2DPOutput`, `MicrophoneBuiltIn`,
- * `Receiver`, `Speaker`, `Headphones`, `HeadsetMicrophone`,
- * `LineIn`, `LineOut`, `USBAudio`, `HDMI`, `AirPlay`, `CarAudio`,
- * `BluetoothLE`).
+ * `AVAudioSession.currentRoute`. The host bridge reports inputs and outputs as
+ * lists so the page can label which device is currently driving mic / speaker.
  */
 export interface HostAudioSessionPort {
+  /** `AVAudioSessionPortDescription.portName` (e.g. "iPhone Microphone") */
   name: string;
+  /** `AVAudioSession.Port` raw value (e.g. bluetoothA2DP) */
   type: string;
 }
 
-/**
- * Snapshot of `AVAudioSession.currentRoute` carried by
- * {@link HostAudioSessionEvent}. Lists the active capture and playback
- * ports the OS reports for the call. Empty arrays are valid mid-
- * transition; consumers should treat both lists as "what the device is
- * driving right now" rather than as enumerations of available devices.
- */
 export interface HostAudioSessionRoute {
   inputs: HostAudioSessionPort[];
   outputs: HostAudioSessionPort[];
@@ -140,68 +118,40 @@ export type HostAudioSessionRouteChangeReason =
 /**
  * Payload carried by the {@link HOST_AUDIO_SESSION_EVENT} `CustomEvent`.
  *
- * iOS WebView hosts embedding the SDK can implement a native bridge that
- * observes `AVAudioSession.interruptionNotification` and
- * `AVAudioSession.routeChangeNotification` and forwards each transition
- * into the page via
- * `window.dispatchEvent(new CustomEvent('stream-video:host-audio-session', { detail }))`.
- * See
- * `sample-apps/ios/ios-webview/IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift`
+ * See `sample-apps/ios/ios-webview/IOSWebView/WKWebView+Extensions/WKWebView+Observation.swift`
  * for the reference implementation.
  *
  * Dispatch contract (host side):
- *
  * - Fire on every interruption notification (`began` / `ended`).
  * - Fire on every route-change notification.
  * - Fire once at page load so late subscribers see the current state.
- *
- * Consumer contract (SDK side):
- *
- * - The event is idempotent ground truth: only the latest event is
- *   retained.
- * - Unknown `schemaVersion` → event is ignored with a single warning.
- *   Bump `schemaVersion` when adding / removing required fields.
- * - Missing or malformed required fields → event is ignored with a
- *   warning, no throw.
  */
 export interface HostAudioSessionEvent {
-  /** Schema version. Increment when required fields change shape. */
   schemaVersion: 1;
-  /** Epoch milliseconds when the native snapshot was captured. */
   timestamp: number;
-  /** Snapshot of the native audio session at `timestamp`. */
   session: {
     category: HostAudioSessionCategory;
     mode: HostAudioSessionMode;
-    /** Active category options as a list of names (empty array if none). */
     options: HostAudioSessionCategoryOption[];
   };
   /**
    * Latest interruption event, or `null` if no interruption is active.
-   * `type: 'began'` without a later `'ended'` means the session is
-   * currently interrupted. `reason` is `null` on iOS < 14.5 or when the
-   * system did not provide one.
+   * `type: 'began'` without a later `'ended'` means the session is currently interrupted.
    */
   interruption: {
     type: 'began' | 'ended';
     reason: HostAudioSessionInterruptionReason | null;
   } | null;
   /**
-   * Most recent route change, or `null` if no route change has been
-   * observed since the bridge started.
+   * Most recent route change, or `null` if no route change has been observed since the bridge started.
    */
   routeChange: {
     reason: HostAudioSessionRouteChangeReason;
   } | null;
   /**
-   * Snapshot of the active route at `timestamp`. Lists the input
-   * (capture) and output (playback) ports `AVAudioSession` reports as
-   * currently active, so the page can label them in the UI (e.g.
-   * `mic: AirPods`, `spk: Earpiece`).
-   *
-   * Optional on the wire: older host builds predate this field and
-   * will omit it. New host builds always populate it (empty arrays if
-   * the route is momentarily empty, e.g. between transitions).
+   * Snapshot of the active route at `timestamp`. Lists the input (capture) and
+   * output (playback) ports `AVAudioSession` reports as currently active,
+   * so the page can label them in the UI (e.g. `mic: AirPods`, `spk: Earpiece`).
    */
   route?: HostAudioSessionRoute;
 }
@@ -215,10 +165,9 @@ export type AudioHealthStatus = 'healthy' | 'unhealthy' | 'unknown';
 
 /**
  * Which direction(s) of the audio pipeline a signal speaks to.
- * `capture`: mic / outgoing only,
- * `playback`: renderer / incoming only,
- * `both`: signal does not separate the two (most OS-level interruptions,
- *   healthy reasons, and the pre-start state).
+ * `capture`: mic / outgoing only
+ * `playback`: renderer / incoming only
+ * `both`: signal does not separate the two
  */
 export type AudioHealthDirection = 'capture' | 'playback' | 'both';
 

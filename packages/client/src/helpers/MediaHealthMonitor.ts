@@ -16,7 +16,7 @@ import {
   type AudioSessionState,
   type AudioSessionType,
   type HostAudioSessionEvent,
-} from './types';
+} from './mediaHealthTypes';
 
 const UNKNOWN_NOT_STARTED: AudioHealthInfo = {
   status: 'unknown',
