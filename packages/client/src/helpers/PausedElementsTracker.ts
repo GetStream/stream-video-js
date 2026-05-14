@@ -1,6 +1,7 @@
 import { ScopedLogger, videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 import { RecoveryLoop } from './RecoveryLoop';
+import { withoutConcurrency } from './concurrency';
 
 export interface PausedElementsTrackerOptions {
   kind: 'audio' | 'video';
@@ -51,14 +52,15 @@ export class PausedElementsTracker {
     this.recovery.restart();
   };
 
-  resume = async () => {
-    this.tracer.trace(`mediaHealth.resumePausedElements`, {
-      kind: this.kind,
-      count: this.elements.size,
+  resume = () =>
+    withoutConcurrency(this, async () => {
+      this.tracer.trace(`mediaHealth.resumePausedElements`, {
+        kind: this.kind,
+        count: this.elements.size,
+      });
+      await resumeMediaElements(this.elements, this.logger);
+      this.onChange?.();
     });
-    await resumeMediaElements(this.elements, this.logger);
-    this.onChange?.();
-  };
 
   clear = () => {
     this.elements.clear();
@@ -73,7 +75,7 @@ export class PausedElementsTracker {
 export const resumeMediaElements = async (
   elements: Set<HTMLMediaElement>,
   logger: ScopedLogger,
-): Promise<void> => {
+): Promise<Set<HTMLMediaElement>> => {
   await Promise.all(
     Array.from(elements, async (element) => {
       if (!element.srcObject) return elements.delete(element);
@@ -85,4 +87,5 @@ export const resumeMediaElements = async (
       }
     }),
   );
+  return elements;
 };
