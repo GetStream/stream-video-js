@@ -55,6 +55,9 @@ internal class AudioPipeline(
     @Volatile
     private var mutedSystemAudioTrack: android.media.AudioTrack? = null
 
+    @Volatile
+    private var muteUnavailable: Boolean = false
+
     //diagnostic counters
     private var buffersReceived = 0
     private var samplesAppended = 0
@@ -75,8 +78,9 @@ internal class AudioPipeline(
         WebRTCModuleOptions.getInstance().addPlaybackSamplesObserver(s)
 
         // Always mute the speaker so the loopback echo doesn't feed
-        // back into the mic. See [applyLoopbackPlaybackMute].
-        applyLoopbackPlaybackMute()
+        // back into the mic. First attempt may fail due to a race condition
+        // where the system AudioTrack hasn't been created yet.
+        ensureLoopbackPlaybackMuted()
     }
 
     /**
@@ -138,37 +142,49 @@ internal class AudioPipeline(
     }
 
     /**
-     * Mutes the system playback track by setting its volume to 0 so
-     * the SFU loopback echo doesn't feed back into the mic. The JADM
-     * audio thread keeps running, so the playback-samples callback
-     * still fires with real PCM and the recording captures audio —
-     * only the speaker is silenced.
+     * Idempotent: try to mute the system playback track by setting its
+     * volume to 0. Returns `true` if mute is now in place (either it
+     * was just applied, or it was already applied).
+     *
+     * `WebRtcAudioTrack.audioTrack` is `null` until WebRTC calls
+     * `startPlayout()`, which happens **asynchronously after** the
+     * loopback `MediaStreamTrack` is enabled. The retry path
+     * lives in [handleAudioBufferOnHandler], which only runs after
+     * `startPlayout()` has created the system AudioTrack (that's the
+     * precondition for the JADM playback callback firing at all).
      *
      * Reflection is required because `WebRtcAudioTrack` is package-
      * private and its `audioTrack` field private. Best-effort — if
-     * reflection fails (WebRTC class layout changed), recording still
-     * works; the user just hears the echo.
+     * reflection fails because the class layout changed, recording
+     * still works; the user just hears the echo.
      */
-    private fun applyLoopbackPlaybackMute() {
+    private fun ensureLoopbackPlaybackMuted(): Boolean {
+        if (mutedSystemAudioTrack != null) return true
+        if (muteUnavailable) return false
+
         try {
-            val adm = webRTCModule.audioDeviceModule ?: return
+            val adm = webRTCModule.audioDeviceModule ?: return false
             val audioOutputField = adm.javaClass.getField("audioOutput")
-            val audioOutput = audioOutputField.get(adm) ?: return
+            val audioOutput = audioOutputField.get(adm) ?: return false
             val audioTrackField = audioOutput.javaClass.getDeclaredField("audioTrack")
             audioTrackField.isAccessible = true
             val systemAudioTrack = audioTrackField.get(audioOutput) as? android.media.AudioTrack
             if (systemAudioTrack == null) {
-                Log.w(TAG, "applyLoopbackPlaybackMute: AudioTrack reflection returned null")
-                return
+                // Expected on initial call from start(); WebRTC's startPlayout hasn't created the AudioTrack yet. 
+                return false
             }
             systemAudioTrack.setVolume(0f)
             mutedSystemAudioTrack = systemAudioTrack
+            return true
         } catch (t: Throwable) {
-            Log.w(TAG, "applyLoopbackPlaybackMute failed — recording will still work but speaker will play loopback", t)
+            muteUnavailable = true
+            Log.w(TAG, "speaker mute failed — recording will still work but speaker will play loopback", t)
+            return false
         }
     }
 
     private fun restoreLoopbackPlaybackMute() {
+        muteUnavailable = false
         val track = mutedSystemAudioTrack ?: return
         try {
             track.setVolume(1f)
@@ -204,6 +220,13 @@ internal class AudioPipeline(
         frames: Int,
         arrivalNs: Long,
     ) {
+        // Retry the speaker mute on every sample arrival until it
+        // sticks.The very first delivery is the earliest moment we can be sure
+        // WebRTC's `startPlayout()` has created the system AudioTrack
+        // — the JADM playback callback wouldn't fire otherwise — so
+        // this is the tightest mute window we can achieve from native.
+        ensureLoopbackPlaybackMuted()
+
         val muxerInstance = host.muxer ?: return
 
         // JADM playback always uses 16-bit signed PCM

@@ -4,17 +4,19 @@ import {
   RTCView,
   type MediaStream as RNMediaStream,
 } from '@stream-io/react-native-webrtc';
-import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 import { appTheme } from '../../theme';
+import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
 
-export const LoopbackPanel = () => {
+export const LoopbackPanel = ({
+  loopbackVideoStream,
+  loopbackAudioStream,
+}: {
+  loopbackVideoStream?: MediaStream;
+  loopbackAudioStream: MediaStream;
+}) => {
   const styles = useStyles();
-  const { useCameraState, useLocalParticipant } = useCallStateHooks();
+  const { useCameraState } = useCallStateHooks();
   const { mediaStream: localVideoStream } = useCameraState();
-
-  const localParticipant = useLocalParticipant();
-  const loopbackVideo = localParticipant?.loopbackVideoStream;
-  const loopbackAudio = localParticipant?.loopbackAudioStream;
 
   return (
     <View style={styles.panelContainer}>
@@ -23,7 +25,7 @@ export const LoopbackPanel = () => {
           <View
             style={[
               styles.dot,
-              loopbackAudio && { backgroundColor: '#4CAF50' },
+              loopbackAudioStream && { backgroundColor: '#4CAF50' },
             ]}
           />
           <Text style={styles.badgeText}>Audio loopback</Text>
@@ -32,7 +34,7 @@ export const LoopbackPanel = () => {
           <View
             style={[
               styles.dot,
-              loopbackVideo && { backgroundColor: '#4CAF50' },
+              loopbackVideoStream && { backgroundColor: '#4CAF50' },
             ]}
           />
           <Text style={styles.badgeText}>Video loopback</Text>

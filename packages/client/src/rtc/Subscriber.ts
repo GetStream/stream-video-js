@@ -3,11 +3,7 @@ import { BasePeerConnectionOpts } from './types';
 import { NegotiationError } from './NegotiationError';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
-import {
-  toTrackType,
-  trackTypeToLoopbackStreamKey,
-  trackTypeToParticipantStreamKey,
-} from './helpers/tracks';
+import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { enableStereo, removeCodecsExcept } from './helpers/sdp';
 
 /**
@@ -17,6 +13,14 @@ import { enableStereo, removeCodecsExcept } from './helpers/sdp';
  * @internal
  */
 export class Subscriber extends BasePeerConnection {
+  /**
+   * Remote streams received from the SFU. For a self-sub case
+   * we need to be able to distinguish between the local capture stream.
+   * The map will never contain local streams so we can safely use it to
+   * check if the stream is remote and dispose it when needed.
+   */
+  private trackedStreams: WeakSet<MediaStream> = new WeakSet();
+
   /**
    * Constructs a new `Subscriber` instance.
    */
@@ -105,6 +109,10 @@ export class Subscriber extends BasePeerConnection {
 
     this.trackIdToTrackType.set(e.track.id, trackType);
 
+    if (isSelfSub) {
+      this.trackedStreams.add(primaryStream);
+    }
+
     if (!participantToUpdate) {
       this.logger.warn(
         `[onTrack]: Received track for unknown participant: ${trackId}`,
@@ -125,35 +133,11 @@ export class Subscriber extends BasePeerConnection {
       return;
     }
 
-    // Self-sub: the SFU is sending back our own track as a loopback stream.
-    // Store it in the dedicated loopback fields on the local participant rather
-    // than overwriting the locally captured device streams (videoStream /
-    // audioStream). Clean up the previous loopback stream if one existed
-    // (relevant on reconnect / SFU migration).
-    if (isSelfSub) {
-      const loopbackKey = trackTypeToLoopbackStreamKey(trackType);
-      if (loopbackKey) {
-        // Loopback audio routes to the speaker by default, which means
-        // any consumer who opts into self-sub would hear an echo of
-        // their own voice. Disable the track here, so that consumers enable it explicitly.
-        if (e.track.kind === 'audio') {
-          e.track.enabled = false;
-        }
-        const previousLoopback = participantToUpdate[loopbackKey];
-        this.state.updateParticipant(participantToUpdate.sessionId, {
-          [loopbackKey]: primaryStream,
-        });
-        if (previousLoopback) {
-          this.logger.info(
-            `[onTrack]: Cleaning up previous loopback ${e.track.kind} stream`,
-          );
-          previousLoopback.getTracks().forEach((t) => {
-            t.stop();
-            previousLoopback.removeTrack(t);
-          });
-        }
-      }
-      return;
+    // Self-sub loopback audio routes to the speaker by default, which
+    // would echo the local user's voice. Default-mute here; consumers
+    // (the loopback recording hook) re-enable explicitly when needed.
+    if (isSelfSub && e.track.kind === 'audio') {
+      e.track.enabled = false;
     }
 
     // get the previous stream to dispose it later
@@ -166,10 +150,17 @@ export class Subscriber extends BasePeerConnection {
       [streamKindProp]: primaryStream,
     });
 
-    // now, dispose the previous stream if it exists
     if (previousStream) {
+      if (isSelfSub && !this.trackedStreams.has(previousStream)) {
+        // this is the local capture stream, we don't want to dispose it
+        this.logger.debug(
+          `[onTrack]: Skipping cleanup of previous ${e.track.kind} stream for userId: ${participantToUpdate.userId} because it is not tracked`,
+        );
+        return;
+      }
+
       this.logger.info(
-        `[onTrack]: Cleaning up previous remote ${e.track.kind} tracks for userId: ${participantToUpdate.userId}`,
+        `[onTrack]: Cleaning up previous ${e.track.kind} stream for userId: ${participantToUpdate.userId}`,
       );
       previousStream.getTracks().forEach((t) => {
         t.stop();

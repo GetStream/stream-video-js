@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { NativeModules } from 'react-native';
+import { combineLatest, distinctUntilChanged, map } from 'rxjs';
 import {
   Call,
   CallingState,
@@ -17,6 +18,11 @@ const { StreamVideoReactNative } = NativeModules;
 // should call `stopRecording` to cancel the wait early.
 const STREAMS_WAIT_TIMEOUT_MS = 10 * 1000;
 const RECORDING_DURATION = 10 * 1000;
+
+type LoopbackStreams = {
+  loopbackVideoStream?: MediaStream;
+  loopbackAudioStream?: MediaStream;
+};
 
 export type LoopbackRecordingState = 'idle' | 'awaiting-streams' | 'recording';
 
@@ -76,15 +82,28 @@ export interface UseLoopbackRecordingResult {
    *  - `'recording'`: native pipeline is actively writing.
    */
   recordingState: LoopbackRecordingState;
+  /**
+   * The SFU loopback video stream on the local participant, when
+   * present. Identified by reference inequality against
+   * `call.camera.state.mediaStream`.
+   */
+  loopbackVideoStream?: MediaStream;
+  /**
+   * The SFU loopback audio stream on the local participant, when
+   * present. Identified by reference inequality against
+   * `call.microphone.state.mediaStream`.
+   */
+  loopbackAudioStream?: MediaStream;
 }
 
 /**
  * Records the SFU loopback streams (audio + video) on the local participant
  * to a local MP4 file. Designed for the `selfSubEnabled` pre-call test mode:
  * the SFU echoes the caller's published tracks back through the Subscriber
- * peer connection, the SDK exposes them as
- * `localParticipant.loopbackVideoStream` / `loopbackAudioStream`, and this
- * hook captures them.
+ * peer connection. The hook identifies the loopback streams on the local
+ * participant by reference inequality against
+ * `call.camera.state.mediaStream` / `call.microphone.state.mediaStream` —
+ * the canonical references to the local capture — and captures them.
  */
 export function useLoopbackRecording(): UseLoopbackRecordingResult {
   const call = useCall();
@@ -98,6 +117,17 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
   const isMountedRef = useRef(true);
   // Used to abort the awaiting-streams wait on stop / leave / unmount.
   const awaitAbortRef = useRef<AbortController | null>(null);
+
+  const [loopbackStreams, setLoopbackStreams] = useState<LoopbackStreams>(
+    () => {
+      if (!call) return {};
+      return getLoopbackStreamsFor(
+        call.state.localParticipant,
+        call.camera.state.mediaStream,
+        call.microphone.state.mediaStream,
+      );
+    },
+  );
 
   const updateState = useCallback((next: LoopbackRecordingState) => {
     recordingStateRef.current = next;
@@ -217,15 +247,13 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
   }, [callingState, stopRecording]);
 
   // Auto-stop if another participant joins. Loopback recording is a
-  // single-user pre-call test — the moment a second participant arrives
-  // the call is no longer in self-sub territory, so the recording
-  // becomes meaningless and we tear it down.
+  // single-user pre-call test.
   useEffect(() => {
     if (recordingState !== 'idle' && participantCount > 1) {
+      stopRecording().catch(() => {});
       videoLoggerSystem
         .getLogger('useLoopbackRecording')
-        .warn(`auto-stopping recording: participantCount=${participantCount}`);
-      stopRecording().catch(() => {});
+        .debug('auto-stopping recording on participant count change');
     }
   }, [participantCount, recordingState, stopRecording]);
 
@@ -240,27 +268,72 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
     };
   }, [stopRecording]);
 
+  // Subscribe to the local participant, camera and microphone streams and update the loopback streams state.
+  useEffect(() => {
+    if (!call) return;
+
+    const subscription = combineLatest([
+      call.state.localParticipant$,
+      call.camera.state.mediaStream$,
+      call.microphone.state.mediaStream$,
+    ])
+      .pipe(
+        map(([participant, cameraStream, microphoneStream]) =>
+          getLoopbackStreamsFor(participant, cameraStream, microphoneStream),
+        ),
+        distinctUntilChanged(
+          (a, b) =>
+            a.loopbackVideoStream === b.loopbackVideoStream &&
+            a.loopbackAudioStream === b.loopbackAudioStream,
+        ),
+      )
+      .subscribe(setLoopbackStreams);
+
+    return () => subscription.unsubscribe();
+  }, [call]);
+
   return {
     startRecording,
     stopRecording,
     clearRecordings,
     getRecordings,
     recordingState,
+    loopbackVideoStream: loopbackStreams.loopbackVideoStream,
+    loopbackAudioStream: loopbackStreams.loopbackAudioStream,
+  };
+}
+
+function getLoopbackStreamsFor(
+  participant: StreamVideoParticipant | undefined,
+  cameraStream: MediaStream | undefined,
+  microphoneStream: MediaStream | undefined,
+): LoopbackStreams {
+  return {
+    loopbackVideoStream:
+      participant?.videoStream && participant.videoStream !== cameraStream
+        ? participant.videoStream
+        : undefined,
+    loopbackAudioStream:
+      participant?.audioStream && participant.audioStream !== microphoneStream
+        ? participant.audioStream
+        : undefined,
   };
 }
 
 /**
- * Subscribe to `localParticipant$` and resolve once the requested
- * loopback streams are present on the participant. Aborts cleanly on
- * `signal` (resolves `null`) and rejects on timeout.
+ * Subscribe to `localParticipant$` and resolve once the requested loopback
+ * streams are present on the participant. Aborts cleanly on `signal`
+ * (resolves `null`) and rejects on timeout.
  */
 function waitForLoopbackStreams(
   call: Call,
   opts: { includeVideo: boolean; signal: AbortSignal; timeoutMs: number },
 ): Promise<ResolvedStreams | null> {
   return new Promise((resolve, reject) => {
-    const initial = pickLoopbackStreams(
+    const initial = getLoopbackStreams(
       call.state.localParticipant,
+      call.camera.state.mediaStream,
+      call.microphone.state.mediaStream,
       opts.includeVideo,
     );
     if (initial) {
@@ -294,29 +367,42 @@ function waitForLoopbackStreams(
       );
     }, opts.timeoutMs);
 
-    const subscription = call.state.localParticipant$.subscribe(
-      (participant) => {
-        const ready = pickLoopbackStreams(participant, opts.includeVideo);
-        if (ready) {
-          cleanup();
-          resolve(ready);
-        }
-      },
-    );
+    const subscription = combineLatest([
+      call.state.localParticipant$,
+      call.camera.state.mediaStream$,
+      call.microphone.state.mediaStream$,
+    ]).subscribe(([participant, cameraStream, microphoneStream]) => {
+      const ready = getLoopbackStreams(
+        participant,
+        cameraStream,
+        microphoneStream,
+        opts.includeVideo,
+      );
+      if (ready) {
+        cleanup();
+        resolve(ready);
+      }
+    });
   });
 }
 
-function pickLoopbackStreams(
+function getLoopbackStreams(
   participant: StreamVideoParticipant | undefined,
+  cameraStream: MediaStream | undefined,
+  microphoneStream: MediaStream | undefined,
   includeVideo: boolean,
 ): ResolvedStreams | undefined {
-  if (!participant) {
-    return undefined;
-  }
+  if (!participant) return undefined;
 
-  const audioTrack = participant.loopbackAudioStream?.getAudioTracks()[0];
+  const { loopbackAudioStream, loopbackVideoStream } = getLoopbackStreamsFor(
+    participant,
+    cameraStream,
+    microphoneStream,
+  );
+
+  const audioTrack = loopbackAudioStream?.getAudioTracks()[0];
   const videoTrack = includeVideo
-    ? participant.loopbackVideoStream?.getVideoTracks()[0]
+    ? loopbackVideoStream?.getVideoTracks()[0]
     : undefined;
 
   if (!audioTrack || (includeVideo && !videoTrack)) {

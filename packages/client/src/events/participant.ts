@@ -12,10 +12,7 @@ import {
   VisibilityState,
 } from '../types';
 import { CallState } from '../store';
-import {
-  trackTypeToLoopbackStreamKey,
-  trackTypeToParticipantStreamKey,
-} from '../rtc';
+import { trackTypeToParticipantStreamKey } from '../rtc';
 import { pushToIfMissing } from '../helpers/array';
 
 /**
@@ -134,12 +131,9 @@ const reconcileOrphanedTracks = (
 ): StreamVideoParticipantPatch | undefined => {
   const orphanTracks = state.takeOrphanedTracks(participant.trackLookupPrefix);
   if (!orphanTracks.length) return;
-  const isSelf = participant.sessionId === state.localParticipant?.sessionId;
   const reconciledTracks: StreamVideoParticipantPatch = {};
   for (const orphan of orphanTracks) {
-    const key = isSelf
-      ? trackTypeToLoopbackStreamKey(orphan.trackType)
-      : trackTypeToParticipantStreamKey(orphan.trackType);
+    const key = trackTypeToParticipantStreamKey(orphan.trackType);
     if (!key) continue;
     reconciledTracks[key] = orphan.track;
   }

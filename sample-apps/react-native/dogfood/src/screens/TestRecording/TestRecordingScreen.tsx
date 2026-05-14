@@ -62,8 +62,14 @@ const TestRecordingContent = ({ call }: { call: Call }) => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
-  const { startRecording, stopRecording, clearRecordings, recordingState } =
-    useLoopbackRecording();
+  const {
+    startRecording,
+    stopRecording,
+    clearRecordings,
+    recordingState,
+    loopbackVideoStream,
+    loopbackAudioStream,
+  } = useLoopbackRecording();
 
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +109,10 @@ const TestRecordingContent = ({ call }: { call: Call }) => {
       {recordingState === 'idle' && recordingUri ? (
         <PlaybackPanel uri={recordingUri} />
       ) : (
-        <LoopbackPanel />
+        <LoopbackPanel
+          loopbackVideoStream={loopbackVideoStream}
+          loopbackAudioStream={loopbackAudioStream}
+        />
       )}
       <RecordingControls
         buttonLabel={buttonLabel}
