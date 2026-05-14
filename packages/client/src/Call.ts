@@ -2063,7 +2063,7 @@ export class Call {
    */
   stopPublish = async (...trackTypes: TrackType[]) => {
     if (!this.sfuClient || !this.publisher) return;
-    this.publisher.stopTracks(...trackTypes);
+    await this.publisher.stopTracks(...trackTypes);
     await this.updateLocalStreamState(undefined, ...trackTypes);
   };
 

@@ -22,12 +22,19 @@ import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 import { TransceiverCache } from '../TransceiverCache';
 import { promiseWithResolvers } from '../../helpers/promise';
+import { isFirefox } from '../../helpers/browsers';
 
 vi.mock('../../StreamSfuClient', () => {
   console.log('MOCKING StreamSfuClient');
   return {
     StreamSfuClient: vi.fn(),
   };
+});
+
+vi.mock('../../helpers/browsers', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../../helpers/browsers')>();
+  return { ...actual, isFirefox: vi.fn().mockReturnValue(false) };
 });
 
 describe('Publisher', () => {
@@ -1123,22 +1130,234 @@ describe('Publisher', () => {
       expect(publisher.getTrackType('unknown')).toBeUndefined();
     });
 
-    it('stopTracks should stop tracks', () => {
+    it('stopTracks should stop tracks', async () => {
       const track = cache['cache'][0].transceiver.sender.track!;
       vi.spyOn(track, 'stop');
       expect(publisher['clonedTracks'].size).toBe(3);
-      publisher.stopTracks(TrackType.VIDEO);
+      await publisher.stopTracks(TrackType.VIDEO);
       expect(track!.stop).toHaveBeenCalled();
       expect(publisher['clonedTracks'].size).toBe(1);
     });
 
-    it('stopAllTracks should stop all tracks', () => {
+    it('stopAllTracks should stop all tracks', async () => {
       const track = cache['cache'][0].transceiver.sender.track!;
       vi.spyOn(track, 'stop');
       expect(publisher['clonedTracks'].size).toBe(3);
-      publisher.stopAllTracks();
+      await publisher.stopAllTracks();
       expect(track!.stop).toHaveBeenCalled();
       expect(publisher['clonedTracks'].size).toBe(0);
+    });
+  });
+
+  describe('Firefox unpublish workaround', () => {
+    const mockSenderParams = (
+      transceiver: RTCRtpTransceiver,
+      encodings: RTCRtpEncodingParameters[],
+    ) => {
+      const getParametersSpy = vi
+        .spyOn(transceiver.sender, 'getParameters')
+        .mockReturnValue({
+          // @ts-expect-error incomplete mock
+          codecs: [],
+          encodings,
+        });
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      return { getParametersSpy, setParametersSpy };
+    };
+
+    afterEach(() => {
+      vi.mocked(isFirefox).mockReturnValue(false);
+    });
+
+    it('on Firefox, stopTracks deactivates sender encodings before stopping the track', async () => {
+      vi.mocked(isFirefox).mockReturnValue(true);
+
+      const transceiver = new RTCRtpTransceiver();
+      const track = new MediaStreamTrack();
+      vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
+      const trackStopSpy = vi.spyOn(track, 'stop');
+      const { setParametersSpy } = mockSenderParams(transceiver, [
+        { rid: 'q', active: true },
+        { rid: 'h', active: true },
+        { rid: 'f', active: true },
+      ]);
+
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+      });
+
+      await publisher.stopTracks(TrackType.VIDEO);
+
+      expect(setParametersSpy).toHaveBeenCalledTimes(1);
+      expect(setParametersSpy.mock.calls[0][0].encodings).toEqual([
+        { rid: 'q', active: false },
+        { rid: 'h', active: false },
+        { rid: 'f', active: false },
+      ]);
+      // ordering: deactivate before stop
+      expect(setParametersSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        trackStopSpy.mock.invocationCallOrder[0],
+      );
+      expect(trackStopSpy).toHaveBeenCalled();
+    });
+
+    it('on Firefox, stopTracks does not touch senders for other track types', async () => {
+      vi.mocked(isFirefox).mockReturnValue(true);
+
+      const videoTransceiver = new RTCRtpTransceiver();
+      const videoTrack = new MediaStreamTrack();
+      vi.spyOn(videoTransceiver.sender, 'track', 'get').mockReturnValue(
+        videoTrack,
+      );
+      const { setParametersSpy: videoSetParams } = mockSenderParams(
+        videoTransceiver,
+        [{ rid: 'q', active: true }],
+      );
+
+      const audioTransceiver = new RTCRtpTransceiver();
+      const audioTrack = new MediaStreamTrack();
+      vi.spyOn(audioTransceiver.sender, 'track', 'get').mockReturnValue(
+        audioTrack,
+      );
+      const { setParametersSpy: audioSetParams } = mockSenderParams(
+        audioTransceiver,
+        [{ active: true }],
+      );
+
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver: videoTransceiver,
+        options: {},
+      });
+      publisher['transceiverCache'].add({
+        // @ts-expect-error incomplete data
+        publishOption: { trackType: TrackType.AUDIO, id: 99 },
+        transceiver: audioTransceiver,
+        options: {},
+      });
+
+      await publisher.stopTracks(TrackType.VIDEO);
+
+      expect(videoSetParams).toHaveBeenCalledTimes(1);
+      expect(audioSetParams).not.toHaveBeenCalled();
+    });
+
+    it('on non-Firefox, stopTracks does not call setParameters and still stops the track', async () => {
+      // default: isFirefox() === false
+      const transceiver = new RTCRtpTransceiver();
+      const track = new MediaStreamTrack();
+      vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
+      const trackStopSpy = vi.spyOn(track, 'stop');
+      const { setParametersSpy } = mockSenderParams(transceiver, [
+        { rid: 'q', active: true },
+      ]);
+
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+      });
+
+      await publisher.stopTracks(TrackType.VIDEO);
+
+      expect(setParametersSpy).not.toHaveBeenCalled();
+      expect(trackStopSpy).toHaveBeenCalled();
+    });
+
+    it('on Firefox, stopAllTracks deactivates encodings on every cached sender', async () => {
+      vi.mocked(isFirefox).mockReturnValue(true);
+
+      const t1 = new RTCRtpTransceiver();
+      vi.spyOn(t1.sender, 'track', 'get').mockReturnValue(
+        new MediaStreamTrack(),
+      );
+      const { setParametersSpy: setParams1 } = mockSenderParams(t1, [
+        { rid: 'q', active: true },
+      ]);
+
+      const t2 = new RTCRtpTransceiver();
+      vi.spyOn(t2.sender, 'track', 'get').mockReturnValue(
+        new MediaStreamTrack(),
+      );
+      const { setParametersSpy: setParams2 } = mockSenderParams(t2, [
+        { active: true },
+      ]);
+
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver: t1,
+        options: {},
+      });
+      publisher['transceiverCache'].add({
+        // @ts-expect-error incomplete data
+        publishOption: { trackType: TrackType.AUDIO, id: 99 },
+        transceiver: t2,
+        options: {},
+      });
+
+      await publisher.stopAllTracks();
+
+      expect(setParams1).toHaveBeenCalledTimes(1);
+      expect(setParams2).toHaveBeenCalledTimes(1);
+    });
+
+    it('on Firefox, re-publishing on an existing transceiver re-activates encodings', async () => {
+      vi.mocked(isFirefox).mockReturnValue(true);
+
+      const transceiver = new RTCRtpTransceiver();
+      // simulate a previous stop that paused the encodings
+      const { setParametersSpy } = mockSenderParams(transceiver, [
+        { rid: 'q', active: false },
+        { rid: 'h', active: false },
+        { rid: 'f', active: false },
+      ]);
+
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+      });
+
+      const track = new MediaStreamTrack();
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
+
+      await publisher.publish(track, TrackType.VIDEO);
+
+      expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(clone);
+      // a single setParameters call that flips encodings back on
+      expect(setParametersSpy).toHaveBeenCalledTimes(1);
+      expect(setParametersSpy.mock.calls[0][0].encodings).toEqual([
+        { rid: 'q', active: true },
+        { rid: 'h', active: true },
+        { rid: 'f', active: true },
+      ]);
+    });
+
+    it('helper is a no-op when the sender has no encodings', async () => {
+      vi.mocked(isFirefox).mockReturnValue(true);
+
+      const transceiver = new RTCRtpTransceiver();
+      vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(
+        new MediaStreamTrack(),
+      );
+      // default mock getParameters returns {}, no encodings field
+      const setParametersSpy = vi.spyOn(transceiver.sender, 'setParameters');
+
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+      });
+
+      await expect(
+        publisher.stopTracks(TrackType.VIDEO),
+      ).resolves.toBeUndefined();
+      expect(setParametersSpy).not.toHaveBeenCalled();
     });
   });
 });

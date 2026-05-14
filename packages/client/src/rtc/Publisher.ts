@@ -24,6 +24,7 @@ import { isAudioTrackType } from './helpers/tracks';
 import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
+import { isFirefox } from '../helpers/browsers';
 
 /**
  * The `Publisher` is responsible for publishing/unpublishing media streams to/from the SFU
@@ -67,7 +68,11 @@ export class Publisher extends BasePeerConnection {
    */
   dispose() {
     super.dispose();
-    this.stopAllTracks();
+    // The peer connection is going away; we don't need to wait for the
+    // Firefox encoder-deactivation step inside stopAllTracks before closing.
+    this.stopAllTracks().catch((err) => {
+      this.logger.warn('Failed to stop tracks during dispose', err);
+    });
     this.clonedTracks.clear();
   }
 
@@ -158,7 +163,12 @@ export class Publisher extends BasePeerConnection {
     const sender = transceiver.sender;
     if (sender.track) this.trackIdToTrackType.delete(sender.track.id);
     await sender.replaceTrack(track);
-    if (track) this.trackIdToTrackType.set(track.id, trackType);
+    if (track) {
+      this.trackIdToTrackType.set(track.id, trackType);
+      // Re-activate encodings that the Firefox unpublish workaround may have
+      // paused during a previous stopTracks() call. No-op on other browsers.
+      await this.setSenderEncodingsActive(sender, true);
+    }
     if (isAudioTrackType(trackType)) {
       await this.updateAudioPublishOptions(trackType, options);
     }
@@ -251,10 +261,13 @@ export class Publisher extends BasePeerConnection {
   /**
    * Stops the cloned track that is being published to the SFU.
    */
-  stopTracks = (...trackTypes: TrackType[]) => {
+  stopTracks = async (...trackTypes: TrackType[]) => {
     for (const item of this.transceiverCache.items()) {
       const { publishOption, transceiver } = item;
       if (!trackTypes.includes(publishOption.trackType)) continue;
+      // Firefox keeps emitting RTP after track.stop() unless the sender's
+      // encodings are paused first. Deactivate, then stop.
+      await this.setSenderEncodingsActive(transceiver.sender, false);
       this.stopTrack(transceiver.sender.track);
     }
   };
@@ -262,8 +275,9 @@ export class Publisher extends BasePeerConnection {
   /**
    * Stops all the cloned tracks that are being published to the SFU.
    */
-  stopAllTracks = () => {
+  stopAllTracks = async () => {
     for (const { transceiver } of this.transceiverCache.items()) {
+      await this.setSenderEncodingsActive(transceiver.sender, false);
       this.stopTrack(transceiver.sender.track);
     }
     for (const track of this.clonedTracks) {
@@ -513,5 +527,31 @@ export class Publisher extends BasePeerConnection {
     if (!track) return;
     track.stop();
     this.clonedTracks.delete(track);
+  };
+
+  /**
+   * Firefox keeps sending RTP on an RTCRtpSender after the attached
+   * MediaStreamTrack is stopped via `track.stop()`. Toggling each encoding's
+   * `active` flag pauses or resumes the encoder locally without renegotiation,
+   * which is what other browsers do implicitly on track.stop().
+   *
+   * No-op on non-Firefox browsers and when the sender has no encodings.
+   */
+  private setSenderEncodingsActive = async (
+    sender: RTCRtpSender,
+    active: boolean,
+  ) => {
+    if (!isFirefox()) return;
+    const params = sender.getParameters();
+    if (!params.encodings || params.encodings.length === 0) return;
+    let changed = false;
+    for (const encoding of params.encodings) {
+      if (encoding.active !== active) {
+        encoding.active = active;
+        changed = true;
+      }
+    }
+    if (!changed) return;
+    await sender.setParameters(params);
   };
 }
