@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment happy-dom
+ */
+
 import '../rtc/__tests__/mocks/webrtc.mocks';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
