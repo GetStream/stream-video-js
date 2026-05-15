@@ -34,7 +34,6 @@ import { isFirefox } from '../helpers/browsers';
 export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
   private readonly clonedTracks = new Set<MediaStreamTrack>();
-  private readonly encodingConfigCache = new Map<TrackType, VideoSender>();
   private publishOptions: PublishOption[];
 
   /**
@@ -54,13 +53,16 @@ export class Publisher extends BasePeerConnection {
 
     this.on('changePublishQuality', async (event) => {
       for (const videoSender of event.videoSenders) {
-        const { trackType } = videoSender;
-        this.encodingConfigCache.set(trackType, videoSender);
         // if not publishing, update the encodingConfigCache and don't modify the state.
         // we'll apply this config on the next publish/unmute.
+        const { trackType, publishOptionId } = videoSender;
+        const bundle = this.transceiverCache.getBy(publishOptionId, trackType);
+        if (bundle) {
+          this.transceiverCache.update(bundle.publishOption, { videoSender });
+        }
         if (isFirefox() && !this.isPublishing(trackType)) continue;
 
-        await this.changePublishQuality(videoSender);
+        await this.changePublishQuality(videoSender, bundle);
       }
     });
 
@@ -81,7 +83,6 @@ export class Publisher extends BasePeerConnection {
       this.logger.warn('Failed to stop tracks during dispose', err);
     }
     this.clonedTracks.clear();
-    this.encodingConfigCache.clear();
   }
 
   /**
@@ -110,17 +111,12 @@ export class Publisher extends BasePeerConnection {
       // appear in the SDP in multiple transceivers
       const trackToPublish = this.cloneTrack(track);
 
-      const { transceiver } = this.transceiverCache.get(publishOption) || {};
-      if (!transceiver) {
+      const bundle = this.transceiverCache.get(publishOption);
+      if (!bundle) {
         await this.addTransceiver(trackToPublish, publishOption, options);
       } else {
-        const previousTrack = transceiver.sender.track;
-        await this.updateTransceiver(
-          transceiver,
-          trackToPublish,
-          trackType,
-          options,
-        );
+        const previousTrack = bundle.transceiver.sender.track;
+        await this.updateTransceiver(bundle, trackToPublish, options);
         if (!isReactNative()) {
           this.stopTrack(previousTrack);
         }
@@ -163,20 +159,20 @@ export class Publisher extends BasePeerConnection {
    * Updates the transceiver with the given track and track type.
    */
   private updateTransceiver = async (
-    transceiver: RTCRtpTransceiver,
+    bundle: PublishBundle,
     track: MediaStreamTrack | null,
-    trackType: TrackType,
     options: TrackPublishOptions = {},
   ) => {
+    const { transceiver, publishOption } = bundle;
+    const trackType = publishOption.trackType;
     const sender = transceiver.sender;
     if (sender.track) this.trackIdToTrackType.delete(sender.track.id);
     await sender.replaceTrack(track);
     if (track) {
       this.trackIdToTrackType.set(track.id, trackType);
-      if (isFirefox()) {
+      if (isFirefox() && bundle.videoSender) {
         // restore the encoding config from the cache, if any
-        const cached = this.encodingConfigCache.get(trackType);
-        if (cached) await this.changePublishQuality(cached);
+        await this.changePublishQuality(bundle.videoSender, bundle);
       }
     }
     if (isAudioTrackType(trackType)) {
@@ -247,7 +243,7 @@ export class Publisher extends BasePeerConnection {
       if (hasPublishOption) continue;
       // it is safe to stop the track here, it is a clone
       this.stopTrack(transceiver.sender.track);
-      await this.updateTransceiver(transceiver, null, publishOption.trackType);
+      await this.updateTransceiver(item, null);
     }
   };
 
@@ -293,19 +289,16 @@ export class Publisher extends BasePeerConnection {
     }
   };
 
-  private changePublishQuality = async (videoSender: VideoSender) => {
-    const { trackType, layers, publishOptionId } = videoSender;
-    const enabledLayers = layers.filter((l) => l.active);
+  private changePublishQuality = async (
+    videoSender: VideoSender,
+    bundle: PublishBundle | undefined,
+  ) => {
+    const enabledLayers = videoSender.layers.filter((l) => l.active);
 
     const tag = 'Update publish quality:';
     this.logger.info(`${tag} requested layers by SFU:`, enabledLayers);
 
-    const transceiverId = this.transceiverCache.find(
-      (t) =>
-        t.publishOption.id === publishOptionId &&
-        t.publishOption.trackType === trackType,
-    );
-    const sender = transceiverId?.transceiver.sender;
+    const sender = bundle?.transceiver.sender;
     if (!sender) {
       return this.logger.warn(`${tag} no video sender found.`);
     }
@@ -315,7 +308,7 @@ export class Publisher extends BasePeerConnection {
       return this.logger.warn(`${tag} there are no encodings set.`);
     }
 
-    const codecInUse = transceiverId?.publishOption.codec?.name;
+    const codecInUse = bundle?.publishOption.codec?.name;
     const usesSvcCodec = codecInUse && isSvcCodec(codecInUse);
 
     let changed = false;
@@ -372,7 +365,6 @@ export class Publisher extends BasePeerConnection {
     }
 
     await sender.setParameters(params);
-    this.encodingConfigCache.set(trackType, videoSender);
     this.logger.info(`${tag} enabled rids:`, activeEncoders);
   };
 
@@ -545,7 +537,7 @@ export class Publisher extends BasePeerConnection {
    * which is what other browsers do implicitly on track.stop().
    *
    * Before disabling, snapshots the current encoder state into
-   * `encodingConfigCache` if no entry exists yet, so that a future
+   * `bundle.videoSender` if it isn't set yet, so that a future
    * `updateTransceiver` can restore the prior `active=true` configuration on
    * Firefox even when the SFU hasn't sent a `changePublishQuality` event.
    *
@@ -558,20 +550,22 @@ export class Publisher extends BasePeerConnection {
     const params = sender.getParameters();
     if (!params.encodings || params.encodings.length === 0) return;
 
-    if (!this.encodingConfigCache.has(publishOption.trackType)) {
-      this.encodingConfigCache.set(publishOption.trackType, {
-        trackType: publishOption.trackType,
-        publishOptionId: publishOption.id,
-        codec: publishOption.codec,
-        layers: params.encodings.map((e) => ({
-          name: e.rid ?? 'q',
-          active: !!e.active,
-          maxBitrate: e.maxBitrate ?? 0,
-          scaleResolutionDownBy: e.scaleResolutionDownBy ?? 0,
-          maxFramerate: e.maxFramerate ?? 0,
-          // @ts-expect-error scalabilityMode is not in the typedefs yet
-          scalabilityMode: e.scalabilityMode ?? '',
-        })),
+    if (!bundle.videoSender) {
+      this.transceiverCache.update(publishOption, {
+        videoSender: {
+          trackType: publishOption.trackType,
+          publishOptionId: publishOption.id,
+          codec: publishOption.codec,
+          layers: params.encodings.map((e) => ({
+            name: e.rid ?? 'q',
+            active: !!e.active,
+            maxBitrate: e.maxBitrate ?? 0,
+            scaleResolutionDownBy: e.scaleResolutionDownBy ?? 0,
+            maxFramerate: e.maxFramerate ?? 0,
+            // @ts-expect-error scalabilityMode is not in the typedefs yet
+            scalabilityMode: e.scalabilityMode ?? '',
+          })),
+        },
       });
     }
 

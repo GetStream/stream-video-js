@@ -662,36 +662,39 @@ describe('Publisher', () => {
         options: {},
       });
 
-      await publisher['changePublishQuality']({
-        publishOptionId: 1,
-        trackType: TrackType.VIDEO,
-        layers: [
-          {
-            name: 'q',
-            active: true,
-            maxBitrate: 100,
-            scaleResolutionDownBy: 4,
-            maxFramerate: 30,
-            scalabilityMode: '',
-          },
-          {
-            name: 'h',
-            active: false,
-            maxBitrate: 150,
-            scaleResolutionDownBy: 2,
-            maxFramerate: 30,
-            scalabilityMode: '',
-          },
-          {
-            name: 'f',
-            active: true,
-            maxBitrate: 200,
-            scaleResolutionDownBy: 1,
-            maxFramerate: 30,
-            scalabilityMode: '',
-          },
-        ],
-      });
+      await publisher['changePublishQuality'](
+        {
+          publishOptionId: 1,
+          trackType: TrackType.VIDEO,
+          layers: [
+            {
+              name: 'q',
+              active: true,
+              maxBitrate: 100,
+              scaleResolutionDownBy: 4,
+              maxFramerate: 30,
+              scalabilityMode: '',
+            },
+            {
+              name: 'h',
+              active: false,
+              maxBitrate: 150,
+              scaleResolutionDownBy: 2,
+              maxFramerate: 30,
+              scalabilityMode: '',
+            },
+            {
+              name: 'f',
+              active: true,
+              maxBitrate: 200,
+              scaleResolutionDownBy: 1,
+              maxFramerate: 30,
+              scalabilityMode: '',
+            },
+          ],
+        },
+        publisher['transceiverCache'].getBy(1, TrackType.VIDEO),
+      );
 
       expect(getParametersSpy).toHaveBeenCalled();
       expect(setParametersSpy).toHaveBeenCalled();
@@ -738,20 +741,23 @@ describe('Publisher', () => {
         options: {},
       });
 
-      await publisher['changePublishQuality']({
-        publishOptionId: 1,
-        trackType: TrackType.VIDEO,
-        layers: [
-          {
-            name: 'q',
-            active: true,
-            maxBitrate: 100,
-            scaleResolutionDownBy: 4,
-            maxFramerate: 30,
-            scalabilityMode: '',
-          },
-        ],
-      });
+      await publisher['changePublishQuality'](
+        {
+          publishOptionId: 1,
+          trackType: TrackType.VIDEO,
+          layers: [
+            {
+              name: 'q',
+              active: true,
+              maxBitrate: 100,
+              scaleResolutionDownBy: 4,
+              maxFramerate: 30,
+              scalabilityMode: '',
+            },
+          ],
+        },
+        publisher['transceiverCache'].getBy(1, TrackType.VIDEO),
+      );
 
       expect(getParametersSpy).toHaveBeenCalled();
       expect(setParametersSpy).toHaveBeenCalled();
@@ -801,20 +807,23 @@ describe('Publisher', () => {
         transceiver,
         options: {},
       });
-      await publisher['changePublishQuality']({
-        publishOptionId: 1,
-        trackType: TrackType.VIDEO,
-        layers: [
-          {
-            name: 'q',
-            active: true,
-            maxBitrate: 50,
-            scaleResolutionDownBy: 1,
-            maxFramerate: 30,
-            scalabilityMode: 'L1T3',
-          },
-        ],
-      });
+      await publisher['changePublishQuality'](
+        {
+          publishOptionId: 1,
+          trackType: TrackType.VIDEO,
+          layers: [
+            {
+              name: 'q',
+              active: true,
+              maxBitrate: 50,
+              scaleResolutionDownBy: 1,
+              maxFramerate: 30,
+              scalabilityMode: 'L1T3',
+            },
+          ],
+        },
+        publisher['transceiverCache'].getBy(1, TrackType.VIDEO),
+      );
 
       expect(getParametersSpy).toHaveBeenCalled();
       expect(setParametersSpy).toHaveBeenCalled();
@@ -860,20 +869,23 @@ describe('Publisher', () => {
         options: {},
       });
 
-      await publisher['changePublishQuality']({
-        publishOptionId: 1,
-        trackType: TrackType.VIDEO,
-        layers: [
-          {
-            name: 'q',
-            active: true,
-            maxBitrate: 50,
-            scaleResolutionDownBy: 1,
-            maxFramerate: 30,
-            scalabilityMode: 'L1T3',
-          },
-        ],
-      });
+      await publisher['changePublishQuality'](
+        {
+          publishOptionId: 1,
+          trackType: TrackType.VIDEO,
+          layers: [
+            {
+              name: 'q',
+              active: true,
+              maxBitrate: 50,
+              scaleResolutionDownBy: 1,
+              maxFramerate: 30,
+              scalabilityMode: 'L1T3',
+            },
+          ],
+        },
+        publisher['transceiverCache'].getBy(1, TrackType.VIDEO),
+      );
 
       expect(getParametersSpy).toHaveBeenCalled();
       expect(setParametersSpy).toHaveBeenCalled();
@@ -1324,8 +1336,8 @@ describe('Publisher', () => {
         options: {},
       });
 
-      // stopping seeds encodingConfigCache from the current encoder state
-      // and flips encodings to active=false
+      // stopping seeds the bundle's videoSender from the current encoder
+      // state and flips encodings to active=false
       await publisher.stopTracks(TrackType.VIDEO);
       expect(setParametersSpy).toHaveBeenCalledTimes(1);
       expect(setParametersSpy.mock.calls[0][0].encodings).toEqual([
@@ -1396,9 +1408,10 @@ describe('Publisher', () => {
         'test',
       );
 
-      // cache populated immediately, no setParameters call yet
+      // cache populated immediately on the matching bundle, no setParameters
+      // call yet
       expect(
-        publisher['encodingConfigCache'].get(TrackType.VIDEO),
+        publisher['transceiverCache'].get(publishOption)?.videoSender,
       ).toMatchObject({
         publishOptionId: publishOption.id,
         trackType: TrackType.VIDEO,
@@ -1422,6 +1435,79 @@ describe('Publisher', () => {
         maxFramerate: 30,
         scaleResolutionDownBy: 1,
       });
+    });
+
+    it('on Firefox, restores each publishOption independently across multiple video codecs', async () => {
+      vi.mocked(isFirefox).mockReturnValue(true);
+
+      // simulate a multi-codec publisher (e.g. VP8 + VP9 simulcast/SVC pair)
+      publisher['publishOptions'] = [
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 10, codec: { name: 'vp8' } },
+        // @ts-expect-error incomplete data
+        { trackType: TrackType.VIDEO, id: 11, codec: { name: 'vp9' } },
+      ];
+
+      const vp8Transceiver = new RTCRtpTransceiver();
+      vi.spyOn(vp8Transceiver.sender, 'track', 'get').mockReturnValue(
+        new MediaStreamTrack(),
+      );
+      const { setParametersSpy: vp8Spy } = mockSenderParams(vp8Transceiver, [
+        { rid: 'q', active: true },
+      ]);
+
+      const vp9Transceiver = new RTCRtpTransceiver();
+      vi.spyOn(vp9Transceiver.sender, 'track', 'get').mockReturnValue(
+        new MediaStreamTrack(),
+      );
+      const { setParametersSpy: vp9Spy } = mockSenderParams(vp9Transceiver, [
+        { rid: 'q', active: true },
+      ]);
+
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver: vp8Transceiver,
+        options: {},
+      });
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][1],
+        transceiver: vp9Transceiver,
+        options: {},
+      });
+
+      // stopping should seed videoSender on BOTH bundles and disable
+      // encodings on each sender
+      await publisher.stopTracks(TrackType.VIDEO);
+      expect(vp8Spy).toHaveBeenCalledTimes(1);
+      expect(vp9Spy).toHaveBeenCalledTimes(1);
+
+      const vp8Bundle = publisher['transceiverCache'].get(
+        publisher['publishOptions'][0],
+      );
+      const vp9Bundle = publisher['transceiverCache'].get(
+        publisher['publishOptions'][1],
+      );
+      expect(vp8Bundle?.videoSender).toMatchObject({ publishOptionId: 10 });
+      expect(vp9Bundle?.videoSender).toMatchObject({ publishOptionId: 11 });
+
+      // re-publish: BOTH transceivers should have their encodings restored —
+      // not just the last one seen
+      const track = new MediaStreamTrack();
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
+
+      await publisher.publish(track, TrackType.VIDEO);
+
+      expect(vp8Transceiver.sender.replaceTrack).toHaveBeenCalledWith(clone);
+      expect(vp9Transceiver.sender.replaceTrack).toHaveBeenCalledWith(clone);
+      expect(vp8Spy).toHaveBeenCalledTimes(2);
+      expect(vp9Spy).toHaveBeenCalledTimes(2);
+      expect(vp8Spy.mock.calls[1][0].encodings).toEqual([
+        { rid: 'q', active: true },
+      ]);
+      expect(vp9Spy.mock.calls[1][0].encodings).toEqual([
+        { rid: 'q', active: true },
+      ]);
     });
 
     it('helper is a no-op when the sender has no encodings', async () => {
