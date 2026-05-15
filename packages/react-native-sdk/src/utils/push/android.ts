@@ -193,6 +193,13 @@ export const firebaseDataHandler = async (
                   'debug',
                 );
                 callingx.endCallWithReason(call_cid, endCallReason);
+                callFromPush
+                  .leave({ reject: false, reason: 'cancel' })
+                  .catch((error) => {
+                    logger.error(
+                      `Failed to leave already-ended ringing call ${call_cid}: ${error}`,
+                    );
+                  });
                 resolve(undefined);
                 return;
               }
@@ -323,6 +330,11 @@ export const firebaseDataHandler = async (
         `Removing incoming call notification immediately with callCid: ${call_cid} as it should be closed`,
       );
       callingx.endCallWithReason(call_cid, endCallReason);
+      callFromPush.leave({ reject: false, reason: 'cancel' }).catch((error) => {
+        logger.error(
+          `Failed to leave already-ended ringing call ${call_cid}: ${error}`,
+        );
+      });
     }
   } else {
     const notifeeLib = getNotifeeLibThrowIfNotInstalledForPush();
