@@ -66,11 +66,13 @@ export class Publisher extends BasePeerConnection {
   /**
    * Disposes this Publisher instance.
    */
-  dispose() {
-    super.dispose();
-    this.stopAllTracks().catch((err) => {
+  async dispose(): Promise<void> {
+    await super.dispose();
+    try {
+      await this.stopAllTracks();
+    } catch (err) {
       this.logger.warn('Failed to stop tracks during dispose', err);
-    });
+    }
     this.clonedTracks.clear();
   }
 

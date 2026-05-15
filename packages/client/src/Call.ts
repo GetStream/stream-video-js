@@ -693,10 +693,10 @@ export class Call {
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
 
-      this.subscriber?.dispose();
+      await this.subscriber?.dispose();
       this.subscriber = undefined;
 
-      this.publisher?.dispose();
+      await this.publisher?.dispose();
       this.publisher = undefined;
 
       await this.sfuClient?.leaveAndClose(leaveReason);
@@ -1216,7 +1216,7 @@ export class Call {
       });
     } else {
       const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
-      this.initPublisherAndSubscriber({
+      await this.initPublisherAndSubscriber({
         sfuClient,
         connectionConfig,
         clientDetails,
@@ -1390,7 +1390,7 @@ export class Call {
    * Initializes the Publisher and Subscriber Peer Connections.
    * @internal
    */
-  private initPublisherAndSubscriber = (opts: {
+  private initPublisherAndSubscriber = async (opts: {
     sfuClient: StreamSfuClient;
     connectionConfig: RTCConfiguration;
     statsOptions: StatsOptions;
@@ -1410,7 +1410,7 @@ export class Call {
     } = opts;
     const { enable_rtc_stats: enableTracing } = statsOptions;
     if (closePreviousInstances && this.subscriber) {
-      this.subscriber.dispose();
+      await this.subscriber.dispose();
     }
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
@@ -1441,7 +1441,7 @@ export class Call {
     const isAnonymous = this.streamClient.user?.type === 'anonymous';
     if (!isAnonymous) {
       if (closePreviousInstances && this.publisher) {
-        this.publisher.dispose();
+        await this.publisher.dispose();
       }
       this.publisher = new Publisher(basePeerConnectionOptions, publishOptions);
     }
@@ -1835,8 +1835,8 @@ export class Call {
       // the `migrationTask`
       this.state.setCallingState(CallingState.JOINED);
     } finally {
-      currentSubscriber?.dispose();
-      currentPublisher?.dispose();
+      await currentSubscriber?.dispose();
+      await currentPublisher?.dispose();
 
       // and close the previous SFU client, without specifying close code
       currentSfuClient.close(StreamSfuClient.NORMAL_CLOSURE, 'Migrating away');

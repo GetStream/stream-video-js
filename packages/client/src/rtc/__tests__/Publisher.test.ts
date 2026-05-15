@@ -2,6 +2,7 @@ import './mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { anyString } from 'vitest-mock-extended';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { NegotiationError } from '../NegotiationError';
 import { Publisher } from '../Publisher';
 import { ReconnectReason } from '../types';
@@ -94,11 +95,11 @@ describe('Publisher', () => {
     );
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
     vi.clearAllMocks();
     vi.resetModules();
-    publisher.dispose();
+    await publisher.dispose();
   });
 
   describe('Publishing', () => {
@@ -1156,11 +1157,7 @@ describe('Publisher', () => {
     ) => {
       const getParametersSpy = vi
         .spyOn(transceiver.sender, 'getParameters')
-        .mockReturnValue({
-          // @ts-expect-error incomplete mock
-          codecs: [],
-          encodings,
-        });
+        .mockReturnValue(fromPartial({ codecs: [], encodings }));
       const setParametersSpy = vi
         .spyOn(transceiver.sender, 'setParameters')
         .mockResolvedValue();

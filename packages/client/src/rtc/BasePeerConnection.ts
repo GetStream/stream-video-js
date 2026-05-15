@@ -115,7 +115,7 @@ export abstract class BasePeerConnection {
   /**
    * Disposes the `RTCPeerConnection` instance.
    */
-  dispose() {
+  async dispose(): Promise<void> {
     clearTimeout(this.iceRestartTimeout);
     this.iceRestartTimeout = undefined;
     clearTimeout(this.preConnectStuckTimeout);

@@ -63,11 +63,11 @@ describe('Subscriber', () => {
     });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers();
     vi.clearAllMocks();
     vi.resetModules();
-    subscriber.dispose();
+    await subscriber.dispose();
   });
 
   describe('Subscriber ICE restart', () => {
