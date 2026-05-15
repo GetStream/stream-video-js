@@ -268,25 +268,35 @@ export class Publisher extends BasePeerConnection {
    * Stops the cloned track that is being published to the SFU.
    */
   stopTracks = async (...trackTypes: TrackType[]) => {
-    for (const item of this.transceiverCache.items()) {
-      const { publishOption, transceiver } = item;
-      if (!trackTypes.includes(publishOption.trackType)) continue;
-      await this.disableAllEncodings(item);
-      this.stopTrack(transceiver.sender.track);
-    }
+    return withoutConcurrency(
+      this.eventLockKey('changePublishQuality'),
+      async () => {
+        for (const item of this.transceiverCache.items()) {
+          const { publishOption, transceiver } = item;
+          if (!trackTypes.includes(publishOption.trackType)) continue;
+          await this.disableAllEncodings(item);
+          this.stopTrack(transceiver.sender.track);
+        }
+      },
+    );
   };
 
   /**
    * Stops all the cloned tracks that are being published to the SFU.
    */
   stopAllTracks = async () => {
-    for (const item of this.transceiverCache.items()) {
-      await this.disableAllEncodings(item);
-      this.stopTrack(item.transceiver.sender.track);
-    }
-    for (const track of this.clonedTracks) {
-      this.stopTrack(track);
-    }
+    return withoutConcurrency(
+      this.eventLockKey('changePublishQuality'),
+      async () => {
+        for (const item of this.transceiverCache.items()) {
+          await this.disableAllEncodings(item);
+          this.stopTrack(item.transceiver.sender.track);
+        }
+        for (const track of this.clonedTracks) {
+          this.stopTrack(track);
+        }
+      },
+    );
   };
 
   private changePublishQuality = async (

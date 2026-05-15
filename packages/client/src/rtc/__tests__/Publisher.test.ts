@@ -1510,6 +1510,97 @@ describe('Publisher', () => {
       ]);
     });
 
+    it('on Firefox, serializes stopTracks against changePublishQuality so an inbound event cannot reactivate the encoder mid-stop', async () => {
+      vi.mocked(isFirefox).mockReturnValue(true);
+
+      const transceiver = new RTCRtpTransceiver();
+      const track = new MediaStreamTrack();
+      vi.spyOn(transceiver.sender, 'track', 'get').mockReturnValue(track);
+      // make track.stop() actually flip readyState, matching real browser
+      // semantics — isPublishing relies on it
+      const trackStopSpy = vi.spyOn(track, 'stop').mockImplementation(() => {
+        // @ts-expect-error readonly field
+        track.readyState = 'ended';
+      });
+
+      const { setParametersSpy } = mockSenderParams(transceiver, [
+        { rid: 'q', active: true },
+      ]);
+      // hold setParameters open so we can race a quality event during the
+      // disable phase
+      const { promise: setParamsPromise, resolve: resolveSetParams } =
+        promiseWithResolvers<void>();
+      setParametersSpy.mockReturnValue(setParamsPromise);
+
+      const publishOption = publisher['publishOptions'][0];
+      publisher['transceiverCache'].add({
+        publishOption,
+        transceiver,
+        options: {},
+      });
+
+      // kick off stopTracks but don't await it yet
+      const stopPromise = publisher.stopTracks(TrackType.VIDEO);
+
+      // give the loop a microtask to start the await on setParameters
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // mid-stop: SFU dispatches a quality event
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'changePublishQuality',
+            changePublishQuality: {
+              audioSenders: [],
+              videoSenders: [
+                {
+                  publishOptionId: publishOption.id,
+                  trackType: TrackType.VIDEO,
+                  layers: [
+                    {
+                      name: 'q',
+                      active: true,
+                      maxBitrate: 1_000_000,
+                      scaleResolutionDownBy: 1,
+                      maxFramerate: 30,
+                      scalabilityMode: 'L1T3',
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        }) as DispatchableMessage<'changePublishQuality'>,
+        'test',
+      );
+
+      // event handler is blocked behind stopTracks' lock — setParameters
+      // has only been called once (from disableAllEncodings) and the track
+      // has not been stopped yet
+      expect(setParametersSpy).toHaveBeenCalledTimes(1);
+      expect(trackStopSpy).not.toHaveBeenCalled();
+
+      // release setParameters; stopTracks finishes (stopTrack runs, lock
+      // released), then the queued quality event handler runs
+      resolveSetParams();
+      await stopPromise;
+      await new Promise<void>((r) => setTimeout(r, 0));
+
+      // track was stopped, and the queued quality event was deferred:
+      // setParameters was NOT called a second time
+      expect(trackStopSpy).toHaveBeenCalled();
+      expect(setParametersSpy).toHaveBeenCalledTimes(1);
+
+      // but the SFU's intent is cached on the bundle for the next publish
+      expect(
+        publisher['transceiverCache'].get(publishOption)?.videoSender,
+      ).toMatchObject({
+        publishOptionId: publishOption.id,
+        layers: [{ name: 'q', active: true, maxBitrate: 1_000_000 }],
+      });
+    });
+
     it('helper is a no-op when the sender has no encodings', async () => {
       vi.mocked(isFirefox).mockReturnValue(true);
 
