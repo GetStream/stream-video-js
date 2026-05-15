@@ -615,163 +615,7 @@ describe('DynascaleManager', () => {
       });
     });
 
-    it('audio: should register and unregister watchdog binding', () => {
-      const watchdog = call.audioBindingsWatchdog!;
-      const registerSpy = vi.spyOn(watchdog, 'register');
-      const unregisterSpy = vi.spyOn(watchdog, 'unregister');
-
-      // @ts-expect-error incomplete data
-      call.state.updateOrAddParticipant('session-id', {
-        userId: 'user-id',
-        sessionId: 'session-id',
-        publishedTracks: [],
-      });
-
-      const cleanup = call.bindAudioElement(
-        document.createElement('audio'),
-        'session-id',
-        'audioTrack',
-      );
-
-      expect(registerSpy).toHaveBeenCalledWith(
-        expect.any(HTMLAudioElement),
-        'session-id',
-        'audioTrack',
-      );
-
-      cleanup?.();
-
-      expect(unregisterSpy).toHaveBeenCalledWith('session-id', 'audioTrack');
-    });
-
-    it('audio: should track blocked audio elements on NotAllowedError', async () => {
-      vi.useFakeTimers();
-      const audioElement = document.createElement('audio');
-      Object.defineProperty(audioElement, 'srcObject', { writable: true });
-      const notAllowedError = new DOMException('', 'NotAllowedError');
-      vi.spyOn(audioElement, 'play').mockRejectedValue(notAllowedError);
-
-      // @ts-expect-error incomplete data
-      call.state.updateOrAddParticipant('session-id', {
-        userId: 'user-id',
-        sessionId: 'session-id',
-        publishedTracks: [],
-      });
-
-      const cleanup = call.bindAudioElement(
-        audioElement,
-        'session-id',
-        'audioTrack',
-      );
-
-      const mediaStream = new MediaStream();
-      call.state.updateParticipant('session-id', {
-        audioStream: mediaStream,
-      });
-
-      vi.runAllTimers();
-      await vi.advanceTimersByTimeAsync(0);
-
-      expect(getCurrentValue(call.audioHealthMonitor!.autoplayBlocked$)).toBe(
-        true,
-      );
-
-      cleanup?.();
-      expect(getCurrentValue(call.audioHealthMonitor!.autoplayBlocked$)).toBe(
-        false,
-      );
-    });
-
-    it('audio: should unblock audio elements on explicit resumeAudio call', async () => {
-      vi.useFakeTimers();
-      const audioElement = document.createElement('audio');
-      Object.defineProperty(audioElement, 'srcObject', { writable: true });
-      const playSpy = vi
-        .spyOn(audioElement, 'play')
-        .mockRejectedValueOnce(new DOMException('', 'NotAllowedError'))
-        .mockResolvedValue(undefined);
-
-      // @ts-expect-error incomplete data
-      call.state.updateOrAddParticipant('session-id', {
-        userId: 'user-id',
-        sessionId: 'session-id',
-        publishedTracks: [],
-      });
-
-      const cleanup = call.bindAudioElement(
-        audioElement,
-        'session-id',
-        'audioTrack',
-      );
-
-      const mediaStream = new MediaStream();
-      call.state.updateParticipant('session-id', {
-        audioStream: mediaStream,
-      });
-
-      vi.runAllTimers();
-      await vi.advanceTimersByTimeAsync(0);
-
-      expect(getCurrentValue(call.audioHealthMonitor!.autoplayBlocked$)).toBe(
-        true,
-      );
-
-      await call.audioHealthMonitor!.resumeMedia();
-      await vi.advanceTimersByTimeAsync(0);
-
-      expect(playSpy).toHaveBeenCalledTimes(2);
-      expect(getCurrentValue(call.audioHealthMonitor!.autoplayBlocked$)).toBe(
-        false,
-      );
-
-      cleanup?.();
-    });
-
-    it('audio: does not register a detached element if play() rejects after cleanup', async () => {
-      vi.useFakeTimers();
-      const audioElement = document.createElement('audio');
-      Object.defineProperty(audioElement, 'srcObject', { writable: true });
-      // Hold play()'s rejection until we explicitly trigger it, so cleanup
-      // can run while the .catch handler is still pending.
-      let rejectPlay!: (err: unknown) => void;
-      vi.spyOn(audioElement, 'play').mockReturnValue(
-        new Promise<void>((_, reject) => {
-          rejectPlay = reject;
-        }),
-      );
-
-      // @ts-expect-error incomplete data
-      call.state.updateOrAddParticipant('session-id', {
-        userId: 'user-id',
-        sessionId: 'session-id',
-        publishedTracks: [],
-      });
-
-      const cleanup = call.bindAudioElement(
-        audioElement,
-        'session-id',
-        'audioTrack',
-      );
-      const mediaStream = new MediaStream();
-      call.state.updateParticipant('session-id', {
-        audioStream: mediaStream,
-      });
-      vi.runAllTimers();
-
-      // Tear down the binding before play() rejects.
-      cleanup?.();
-
-      // Now let play() reject. The .catch must NOT register the
-      // already-detached element back into the blocked set.
-      rejectPlay(new DOMException('', 'NotAllowedError'));
-      await vi.advanceTimersByTimeAsync(0);
-
-      expect(getCurrentValue(call.audioHealthMonitor!.autoplayBlocked$)).toBe(
-        false,
-      );
-    });
-
-    it('audio: should clear blocked state when the audio stream is removed', async () => {
+    it('audio: marks element blocked on NotAllowedError', async () => {
       vi.useFakeTimers();
       const audioElement = document.createElement('audio');
       Object.defineProperty(audioElement, 'srcObject', { writable: true });
@@ -800,220 +644,95 @@ describe('DynascaleManager', () => {
       vi.runAllTimers();
       await vi.advanceTimersByTimeAsync(0);
 
-      expect(getCurrentValue(call.audioHealthMonitor!.autoplayBlocked$)).toBe(
+      expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
         true,
       );
 
+      cleanup?.();
+    });
+
+    it('audio: unmarks blocked element on cleanup', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      vi.spyOn(audioElement, 'play').mockRejectedValue(
+        new DOMException('', 'NotAllowedError'),
+      );
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = call.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
       call.state.updateParticipant('session-id', {
-        audioStream: undefined,
+        audioStream: new MediaStream(),
       });
 
       vi.runAllTimers();
       await vi.advanceTimersByTimeAsync(0);
 
+      expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
+        true,
+      );
+
+      cleanup?.();
+
+      expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
+        false,
+      );
+    });
+
+    it('audio: unmarks blocked element when the audio stream is removed', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      vi.spyOn(audioElement, 'play').mockRejectedValue(
+        new DOMException('', 'NotAllowedError'),
+      );
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = call.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      call.state.updateParticipant('session-id', {
+        audioStream: new MediaStream(),
+      });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
+        true,
+      );
+
+      call.state.updateParticipant('session-id', { audioStream: undefined });
+
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
       expect(audioElement.srcObject).toBeNull();
-      expect(getCurrentValue(call.audioHealthMonitor!.autoplayBlocked$)).toBe(
+      expect(getCurrentValue(call.blockedAudioTracker.autoplayBlocked$)).toBe(
         false,
       );
 
       cleanup?.();
-    });
-
-    it('audio: should warn when binding an already-bound session', () => {
-      const watchdog = call.audioBindingsWatchdog!;
-      // @ts-expect-error private property
-      const warnSpy = vi.spyOn(watchdog.logger, 'warn');
-
-      // @ts-expect-error incomplete data
-      call.state.updateOrAddParticipant('session-id', {
-        userId: 'user-id',
-        sessionId: 'session-id',
-        publishedTracks: [],
-      });
-
-      const audioElement1 = document.createElement('audio');
-      const audioElement2 = document.createElement('audio');
-
-      const cleanup1 = call.bindAudioElement(
-        audioElement1,
-        'session-id',
-        'audioTrack',
-      );
-
-      const cleanup2 = call.bindAudioElement(
-        audioElement2,
-        'session-id',
-        'audioTrack',
-      );
-
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Audio element already bound'),
-      );
-
-      cleanup1?.();
-      cleanup2?.();
-    });
-
-    it('video: forwards pause/play events to MediaHealthMonitor', () => {
-      // @ts-expect-error incomplete data
-      call.state.updateOrAddParticipant('session-id', {
-        userId: 'user-id',
-        sessionId: 'session-id',
-        publishedTracks: [],
-      });
-
-      const cleanup = dynascaleManager.bindVideoElement(
-        videoElement,
-        'session-id',
-        'videoTrack',
-      );
-
-      // Wire a real MediaStream into the participant so the bind's
-      // streamSubscription assigns it to videoElement.srcObject. Then
-      // mock getVideoTracks to report a live track, which is what the
-      // pause-listener's benign-pause filter checks.
-      const mediaStream = new MediaStream();
-      vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
-        { readyState: 'live' } as MediaStreamTrack,
-      ]);
-      call.state.updateParticipant('session-id', {
-        publishedTracks: [TrackType.VIDEO],
-        videoStream: mediaStream,
-      });
-
-      videoElement.dispatchEvent(new Event('pause'));
-      expect(
-        // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
-      ).toBe(true);
-
-      videoElement.dispatchEvent(new Event('play'));
-      expect(
-        // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
-      ).toBe(false);
-
-      cleanup?.();
-    });
-
-    it('video: forwards suspend events to MediaHealthMonitor', () => {
-      // @ts-expect-error incomplete data
-      call.state.updateOrAddParticipant('session-id', {
-        userId: 'user-id',
-        sessionId: 'session-id',
-        publishedTracks: [],
-      });
-
-      const cleanup = dynascaleManager.bindVideoElement(
-        videoElement,
-        'session-id',
-        'videoTrack',
-      );
-
-      const mediaStream = new MediaStream();
-      vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
-        { readyState: 'live' } as MediaStreamTrack,
-      ]);
-      call.state.updateParticipant('session-id', {
-        publishedTracks: [TrackType.VIDEO],
-        videoStream: mediaStream,
-      });
-
-      // iOS WebView can stall a live <video> via `suspend` without firing
-      // `pause`; the bind must still route it into MediaHealthMonitor.
-      videoElement.dispatchEvent(new Event('suspend'));
-      expect(
-        // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
-      ).toBe(true);
-
-      videoElement.dispatchEvent(new Event('play'));
-      expect(
-        // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
-      ).toBe(false);
-
-      cleanup?.();
-    });
-
-    it('video: filters benign pauses (no live tracks)', () => {
-      // @ts-expect-error incomplete data
-      call.state.updateOrAddParticipant('session-id', {
-        userId: 'user-id',
-        sessionId: 'session-id',
-        publishedTracks: [],
-      });
-
-      const cleanup = dynascaleManager.bindVideoElement(
-        videoElement,
-        'session-id',
-        'videoTrack',
-      );
-
-      // No videoStream on the participant - bind leaves srcObject null,
-      // so the pause-listener's liveness check filters the event out.
-      videoElement.dispatchEvent(new Event('pause'));
-      expect(
-        // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
-      ).toBe(false);
-
-      // Same filter must apply to `suspend` so benign UA suspends on
-      // an unbound element don't churn the recovery loop.
-      videoElement.dispatchEvent(new Event('suspend'));
-      expect(
-        // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
-      ).toBe(false);
-
-      cleanup?.();
-    });
-
-    it('video: cleanup detaches pause/suspend/play listeners and clears paused state', () => {
-      // @ts-expect-error incomplete data
-      call.state.updateOrAddParticipant('session-id', {
-        userId: 'user-id',
-        sessionId: 'session-id',
-        publishedTracks: [],
-      });
-
-      const cleanup = dynascaleManager.bindVideoElement(
-        videoElement,
-        'session-id',
-        'videoTrack',
-      );
-
-      const mediaStream = new MediaStream();
-      vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
-        { readyState: 'live' } as MediaStreamTrack,
-      ]);
-      call.state.updateParticipant('session-id', {
-        publishedTracks: [TrackType.VIDEO],
-        videoStream: mediaStream,
-      });
-
-      videoElement.dispatchEvent(new Event('pause'));
-      expect(
-        // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideo.elements.size,
-      ).toBe(1);
-
-      cleanup?.();
-
-      // Cleanup must drop the element from the recovery set so a
-      // still-paused unbound element doesn't keep the loop alive.
-      expect(
-        // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideo.elements.size,
-      ).toBe(0);
-
-      // Further pause/suspend events on the detached element are no-ops.
-      videoElement.dispatchEvent(new Event('pause'));
-      videoElement.dispatchEvent(new Event('suspend'));
-      expect(
-        // @ts-expect-error private property
-        call.audioHealthMonitor!.pausedVideo.elements.size,
-      ).toBe(0);
     });
 
     it('video: should unsubscribe when element dimensions are zero', () => {

@@ -1,5 +1,4 @@
 import {
-  AudioHealthInfo,
   Call,
   CallClosedCaption,
   CallIngressResponse,
@@ -502,51 +501,22 @@ export const useIncomingVideoSettings = () => {
 };
 
 /**
- * Static fallback emitted on React Native and any environment where
- * `MediaHealthMonitor` isn't constructed. Module-scope so the
+ * Static fallback emitted when no `Call` is active. Module-scope so the
  * `useObservableValue` dep reference stays stable across renders.
  */
-const AUTOPLAY_UNBLOCKED$ = of(false);
+const AUTOPLAY_BLOCKED$ = of(false);
 
 /**
  * Returns whether the browser's autoplay policy is blocking audio playback.
  *
  * When the browser blocks audio autoplay (e.g., no prior user interaction),
- * this hook returns `true`. Use `call.resumeMedia()` inside a click handler
+ * this hook returns `true`. Use `call.resumeAudio()` inside a click handler
  * to unblock audio playback. Returns `false` on React Native.
  */
 export const useIsAutoplayBlocked = (): boolean => {
   const call = useCall();
   return useObservableValue(
-    call?.audioHealthMonitor?.autoplayBlocked$ ?? AUTOPLAY_UNBLOCKED$,
-  );
-};
-
-/**
- * Static fallback emitted on React Native (and any environment where
- * `MediaHealthMonitor` isn't constructed). Declared at module scope so the
- * `useObservableValue` dep reference stays stable across renders.
- */
-const UNKNOWN_AUDIO_HEALTH$ = of<AudioHealthInfo>({
-  status: 'unknown',
-  reason: 'pending',
-  direction: 'both',
-});
-
-/**
- * Reactive audio-pipeline health for the current {@link Call}.
- *
- * Subscribes to {@link MediaHealthMonitor.audioHealth$} and re-renders on
- * each emission. When no monitor is attached (React Native, or before the
- * call is fully constructed), returns a static
- * `{ status: 'unknown', reason: 'pending', direction: 'both' }`.
- *
- * See {@link AudioHealthInfo} for the shape of the returned value.
- */
-export const useAudioHealth = (): AudioHealthInfo => {
-  const call = useCall();
-  return useObservableValue(
-    call?.audioHealthMonitor?.audioHealth$ ?? UNKNOWN_AUDIO_HEALTH$,
+    call?.blockedAudioTracker.autoplayBlocked$ ?? AUTOPLAY_BLOCKED$,
   );
 };
 

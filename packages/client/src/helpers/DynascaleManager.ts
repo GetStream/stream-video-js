@@ -14,6 +14,7 @@ import {
   takeWhile,
 } from 'rxjs';
 import { ViewportTracker } from './ViewportTracker';
+import type { BlockedAudioTracker } from './BlockedAudioTracker';
 import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
 import { isFirefox, isSafari } from './browsers';
 import { hasScreenShare, hasVideo } from './participantUtils';
@@ -32,32 +33,6 @@ const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
 } as const;
 
 /**
- * Callback the manager emits whenever `audioElement.play()` is refused
- * with `NotAllowedError` (autoplay policy block; `blocked === true`) or
- * the binding's `srcObject` is cleared so the autoplay-blocked state no
- * longer applies (`blocked === false`). `Call` provides this at
- * construction time to route the signal into `MediaHealthMonitor`
- * without coupling `DynascaleManager` to the monitor's API.
- */
-export type OnAutoplayBlockedChange = (
-  audioElement: HTMLAudioElement,
-  blocked: boolean,
-) => void;
-
-/**
- * Callback the manager emits when a bound `<video>` element fires
- * `'pause'` while its `srcObject` still has at least one live video
- * track (`paused === true`), or `'play'` resumes playback
- * (`paused === false`). `Call` provides this at construction time to
- * route the signal into `MediaHealthMonitor` without coupling
- * `DynascaleManager` to the monitor's API.
- */
-export type OnVideoElementPausedChange = (
-  videoElement: HTMLVideoElement,
-  paused: boolean,
-) => void;
-
-/**
  * A manager class that handles dynascale related tasks like:
  *
  * - binding video elements to session ids
@@ -74,8 +49,7 @@ export class DynascaleManager {
 
   readonly viewportTracker = new ViewportTracker();
   private trackSubscriptionManager: TrackSubscriptionManager;
-  private readonly onAutoplayBlockedChange: OnAutoplayBlockedChange;
-  private readonly onVideoElementPausedChange: OnVideoElementPausedChange;
+  private blockedAudioTracker: BlockedAudioTracker;
 
   /**
    * Creates a new DynascaleManager instance.
@@ -85,15 +59,13 @@ export class DynascaleManager {
     speaker: SpeakerManager,
     tracer: Tracer,
     trackSubscriptionManager: TrackSubscriptionManager,
-    onAutoplayBlockedChange: OnAutoplayBlockedChange,
-    onVideoElementPausedChange: OnVideoElementPausedChange,
+    blockedAudioTracker: BlockedAudioTracker,
   ) {
     this.callState = callState;
     this.speaker = speaker;
     this.tracer = tracer;
     this.trackSubscriptionManager = trackSubscriptionManager;
-    this.onAutoplayBlockedChange = onAutoplayBlockedChange;
-    this.onVideoElementPausedChange = onVideoElementPausedChange;
+    this.blockedAudioTracker = blockedAudioTracker;
   }
 
   /**
@@ -347,41 +319,6 @@ export class DynascaleManager {
     // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
     videoElement.muted = true;
 
-    // Forward pause/suspend/play to MediaHealthMonitor so stalled-live
-    // videos (iOS WebView audio-session interruption symptom) get
-    // auto-resumed. `suspend` is also covered because the UA can stop
-    // advancing a `<video>` (NETWORK_IDLE) without flipping `paused`,
-    // and `pause` alone misses that case. Benign transitions (unbind,
-    // end-of-stream) leave only ended tracks and are filtered here so
-    // the recovery loop doesn't churn.
-    const onPauseOrSuspend = () => {
-      const srcObject = videoElement.srcObject as MediaStream | null;
-      const tracks = srcObject?.getVideoTracks();
-      if (!tracks?.some((t) => t.readyState === 'live')) return;
-      this.onVideoElementPausedChange(videoElement, true);
-    };
-    const onPlay = () => {
-      this.onVideoElementPausedChange(videoElement, false);
-    };
-    // `pause`/`suspend` only fire on transitions, so an element that's
-    // already paused at bind time (React re-mount during an iOS
-    // audio-session interruption, a rebind onto the same DOM element
-    // with an unchanged srcObject, or a `play()` rejection from the
-    // force-play path below) would never reach MediaHealthMonitor's
-    // recovery loop. Call this wherever the element could legitimately
-    // end up paused-with-live to hand it off to the tracker.
-    const registerIfPausedLive = () => {
-      if (!videoElement.paused) return;
-      const tracks = (
-        videoElement.srcObject as MediaStream | null
-      )?.getVideoTracks();
-      if (!tracks?.some((t) => t.readyState === 'live')) return;
-      this.onVideoElementPausedChange(videoElement, true);
-    };
-    videoElement.addEventListener('pause', onPauseOrSuspend);
-    videoElement.addEventListener('suspend', onPauseOrSuspend);
-    videoElement.addEventListener('play', onPlay);
-
     const trackKey = isVideoTrack ? 'videoStream' : 'screenShareStream';
     const streamSubscription = participant$
       .pipe(distinctUntilKeyChanged(trackKey))
@@ -397,14 +334,9 @@ export class DynascaleManager {
             } catch (e) {
               this.logger.warn(`Failed to play stream`, e);
             }
-            // we add extra delay until we attempt to force-play
-            // the participant's media stream in Firefox and Safari,
-            // as they seem to have some timing issues
-            registerIfPausedLive();
           }, 25);
         }
       });
-    registerIfPausedLive();
 
     return () => {
       requestTrackWithDimensions(DebounceType.FAST, undefined);
@@ -412,10 +344,6 @@ export class DynascaleManager {
       publishedTracksSubscription?.unsubscribe();
       streamSubscription.unsubscribe();
       resizeObserver?.disconnect();
-      videoElement.removeEventListener('pause', onPauseOrSuspend);
-      videoElement.removeEventListener('suspend', onPauseOrSuspend);
-      videoElement.removeEventListener('play', onPlay);
-      this.onVideoElementPausedChange(videoElement, false);
     };
   };
 
@@ -466,11 +394,6 @@ export class DynascaleManager {
 
     let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
     let gainNode: GainNode | undefined = undefined;
-    // Captured by every async handler below so a `play().catch` arriving
-    // after cleanup can't re-register the now-detached element as
-    // autoplay-blocked. Without this guard the element gets stuck in
-    // `MediaHealthMonitor.blockedAudioElementsSubject` forever.
-    let isDisposed = false;
 
     const isAudioTrack = trackType === 'audioTrack';
     const trackKey = isAudioTrack ? 'audioStream' : 'screenShareAudioStream';
@@ -483,7 +406,7 @@ export class DynascaleManager {
         setTimeout(() => {
           audioElement.srcObject = source ?? null;
           if (!source) {
-            this.onAutoplayBlockedChange(audioElement, false);
+            this.blockedAudioTracker.markBlocked(audioElement, false);
             return;
           }
 
@@ -507,22 +430,14 @@ export class DynascaleManager {
           } else {
             // we will play audio directly through the audio element in other browsers
             audioElement.muted = false;
-            audioElement.play().then(
-              () => {
-                if (isDisposed) return;
-                // Clear any prior autoplay-blocked state for this element.
-                this.onAutoplayBlockedChange(audioElement, false);
-              },
-              (e) => {
-                if (isDisposed) return;
-                this.tracer.trace('audioPlaybackError', e.message);
-                if (e.name === 'NotAllowedError') {
-                  this.tracer.trace('audioPlaybackBlocked', null);
-                  this.onAutoplayBlockedChange(audioElement, true);
-                }
-                this.logger.warn(`Failed to play audio stream`, e);
-              },
-            );
+            audioElement.play().catch((e) => {
+              this.tracer.trace('audioPlaybackError', e.message);
+              if (e.name === 'NotAllowedError') {
+                this.tracer.trace('audioPlaybackBlocked', null);
+                this.blockedAudioTracker.markBlocked(audioElement, true);
+              }
+              this.logger.warn(`Failed to play audio stream`, e);
+            });
           }
 
           const { selectedDevice } = this.speaker.state;
@@ -549,8 +464,7 @@ export class DynascaleManager {
     audioElement.autoplay = true;
 
     return () => {
-      isDisposed = true;
-      this.onAutoplayBlockedChange(audioElement, false);
+      this.blockedAudioTracker.markBlocked(audioElement, false);
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();

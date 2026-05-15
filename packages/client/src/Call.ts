@@ -145,10 +145,8 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
-import { MediaHealthMonitor } from './helpers/MediaHealthMonitor';
-import { MediaHealthAutoRecovery } from './helpers/MediaHealthAutoRecovery';
-import type { MediaHealthAutoRecoveryConfig } from './helpers/mediaHealthTypes';
 import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
+import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
 import { PermissionsContext } from './permissions';
@@ -181,7 +179,6 @@ import {
 } from './helpers/promise';
 import { GetCallStatsResponse } from './gen/shims';
 import { isReactNative } from './helpers/platforms';
-import { isWebKit } from './helpers/browsers';
 
 /**
  * An object representation of a `Call`.
@@ -244,22 +241,18 @@ export class Call {
   readonly trackSubscriptionManager: TrackSubscriptionManager;
 
   /**
-   * Detects audio-pipeline failure signals (OS audio-session interruption
-   * on Safari, browser autoplay blocks) and owns recovery via `resumeMedia()`.
-   * Also, auto-resumes paused `<video>` elements caused by the same audio-session interruption.
-   */
-  readonly audioHealthMonitor: MediaHealthMonitor | undefined;
-
-  /**
-   * Optional reactor that mutes the mic on audio-health degradation and cycles devices on recovery.
-   */
-  private mediaHealthAutoRecovery: MediaHealthAutoRecovery | undefined;
-
-  /**
    * Warns periodically when a remote participant is publishing audio, but no
    * `<audio>` element has been bound for them.
    */
   readonly audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
+
+  /**
+   * Tracks audio elements blocked by the browser's autoplay policy.
+   * Subscribe to `blockedAudioTracker.autoplayBlocked$` to react to the
+   * blocked state, and call {@link Call.resumeAudio} inside a user gesture
+   * to retry playback.
+   */
+  readonly blockedAudioTracker: BlockedAudioTracker;
 
   subscriber?: Subscriber;
   publisher?: Publisher;
@@ -395,25 +388,20 @@ export class Call {
       this.state,
       this.tracer,
     );
+    this.blockedAudioTracker = new BlockedAudioTracker(this.tracer);
 
     if (typeof document !== 'undefined') {
-      this.audioHealthMonitor = new MediaHealthMonitor(this.tracer);
       this.audioBindingsWatchdog = new AudioBindingsWatchdog(
         this.state,
         this.tracer,
-        this.audioHealthMonitor.updateElementPausedState,
       );
       this.dynascaleManager = new DynascaleManager(
         this.state,
         this.speaker,
         this.tracer,
         this.trackSubscriptionManager,
-        this.audioHealthMonitor.updateAutoplayBlockedState,
-        this.audioHealthMonitor.updateVideoElementPausedState,
+        this.blockedAudioTracker,
       );
-      if (isWebKit()) {
-        this.updateMediaAutoRecovery({ enabled: true });
-      }
     }
   }
 
@@ -752,8 +740,6 @@ export class Call {
       this.trackSubscriptionManager.setSfuClient(undefined);
       this.trackSubscriptionManager.dispose();
       this.audioBindingsWatchdog?.dispose();
-      this.mediaHealthAutoRecovery?.stop();
-      await this.audioHealthMonitor?.stop();
       await this.dynascaleManager?.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
@@ -1240,11 +1226,6 @@ export class Call {
       }
     }
 
-    this.audioHealthMonitor?.start().catch((err) => {
-      this.logger.warn('audioHealthMonitor.start failed', err);
-    });
-    this.mediaHealthAutoRecovery?.start();
-
     if (!performingMigration) {
       // in MIGRATION, `JOINED` state is set in `this.reconnectMigrate()`
       this.state.setCallingState(CallingState.JOINED);
@@ -1477,9 +1458,6 @@ export class Call {
       tag: sfuClient.tag,
       enableTracing,
       clientPublishOptions: this.clientPublishOptions,
-      onRemoteAudioTrackChange: (track, change) => {
-        this.audioHealthMonitor?.handleRemoteAudioTrackChange(track, change);
-      },
       onReconnectionNeeded: (kind, reason, peerType) => {
         this.reconnect(kind, reason).catch((err) => {
           const message = `[Reconnect] Error reconnecting, after a ${PeerType[peerType]} error: ${reason}`;
@@ -3155,49 +3133,13 @@ export class Call {
   };
 
   /**
-   * Plays all audio AND video elements blocked by the browser's autoplay
-   * policy or paused while still bound to a live `MediaStream`.
-   * Autoplay-blocked elements usually require a user gesture; paused-live
-   * elements can often recover automatically after transient OS
-   * audio-session interruptions.
-   */
-  resumeMedia = async () => {
-    await this.audioHealthMonitor?.resumeMedia();
-  };
-
-  /** @deprecated Use {@link Call.resumeMedia} instead. */
-  resumeAudio = async () => {
-    await this.resumeMedia();
-  };
-
-  /**
-   * Updates the audio-health auto-recovery reactor. The reactor itself
-   * is auto-instantiated on Safari and iOS WKWebView and is absent everywhere else.
+   * Plays all audio elements blocked by the browser's autoplay policy.
+   * Must be called from within a user gesture (e.g., click handler).
    *
-   * - `{ enabled: false }` tears the reactor down.
-   * - `{ enabled: true }` builds the reactor with the supplied config.
-   * - Any other shape forwards the config to the live reactor if one exists.
+   * Subscribe to `call.blockedAudioTracker.autoplayBlocked$` to know when a
+   * gesture is required.
    */
-  updateMediaAutoRecovery = (
-    config: MediaHealthAutoRecoveryConfig & { enabled?: boolean },
-  ) => {
-    const { enabled, ...cfg } = config;
-    if (enabled === false) {
-      this.mediaHealthAutoRecovery?.stop();
-      this.mediaHealthAutoRecovery = undefined;
-    } else if (enabled === true) {
-      if (!this.audioHealthMonitor) return;
-      this.mediaHealthAutoRecovery ??= new MediaHealthAutoRecovery(
-        this.audioHealthMonitor.audioHealth$,
-        this.microphone,
-        this.camera,
-        this.tracer,
-        cfg,
-      );
-      this.mediaHealthAutoRecovery.updateConfig(cfg);
-      if (this.sfuClient) this.mediaHealthAutoRecovery.start();
-    }
-  };
+  resumeAudio = () => this.blockedAudioTracker.resumeAudio();
 
   /**
    * Binds a DOM <img> element to this call's thumbnail (if enabled in settings).
