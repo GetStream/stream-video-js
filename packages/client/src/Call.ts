@@ -1728,7 +1728,11 @@ export class Call {
       }
 
       let attempt = 0;
-      do {
+      while (
+        this.state.callingState !== CallingState.JOINED &&
+        this.state.callingState !== CallingState.RECONNECTING_FAILED &&
+        this.state.callingState !== CallingState.LEFT
+      ) {
         const reconnectingTime = Date.now() - reconnectStartTime;
         const shouldGiveUpReconnecting =
           this.disconnectionTimeoutSeconds > 0 &&
@@ -1856,11 +1860,7 @@ export class Call {
             error,
           );
         }
-      } while (
-        this.state.callingState !== CallingState.JOINED &&
-        this.state.callingState !== CallingState.RECONNECTING_FAILED &&
-        this.state.callingState !== CallingState.LEFT
-      );
+      }
       this.logger.info('[Reconnect] Reconnection flow finished');
     });
   };

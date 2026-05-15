@@ -18,6 +18,8 @@ import { Subscriber } from '../Subscriber';
 import { Dispatcher } from '../Dispatcher';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
+import { settled } from '../../helpers/concurrency';
+import { promiseWithResolvers } from '../../helpers/promise';
 
 vi.mock('../../StreamSfuClient', () => ({
   StreamSfuClient: vi.fn(),
@@ -325,6 +327,51 @@ describe('Call reconnect stopping conditions', () => {
       await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
 
       expect(call['consecutiveNegotiationFailures']).toBe(0);
+    });
+
+    it('skips a queued reconnect after a previous reconnect already recovered the call', async () => {
+      const networkAvailableTask = promiseWithResolvers<void>();
+      const recoveredSfuClient = {
+        close: vi.fn(),
+        isHealthy: true,
+        tag: 'recovered',
+      } as unknown as StreamSfuClient;
+
+      call.state.setCallingState(CallingState.OFFLINE);
+      call['networkAvailableTask'] = networkAvailableTask;
+
+      const rejoinSpy = vi
+        .spyOn(
+          call as unknown as { reconnectRejoin: () => Promise<void> },
+          'reconnectRejoin',
+        )
+        .mockImplementation(async () => {
+          call['sfuClient'] = recoveredSfuClient;
+          call.state.setCallingState(CallingState.JOINED);
+        });
+
+      const firstReconnect = call['reconnect'](
+        WebsocketReconnectStrategy.REJOIN,
+        'reason1',
+      );
+      const secondReconnect = call['reconnect'](
+        WebsocketReconnectStrategy.REJOIN,
+        'reason2',
+      );
+      const thirdReconnect = call['reconnect'](
+        WebsocketReconnectStrategy.REJOIN,
+        'reason3',
+      );
+
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+      networkAvailableTask.resolve();
+      call['networkAvailableTask'] = undefined;
+
+      await Promise.all([firstReconnect, secondReconnect, thirdReconnect]);
+      await settled(call['reconnectConcurrencyTag']);
+
+      expect(rejoinSpy).toHaveBeenCalledTimes(1);
     });
   });
 
