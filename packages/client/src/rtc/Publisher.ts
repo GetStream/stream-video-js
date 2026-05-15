@@ -34,6 +34,7 @@ import { isFirefox } from '../helpers/browsers';
 export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
   private readonly clonedTracks = new Set<MediaStreamTrack>();
+  private readonly encodingConfigCache = new Map<TrackType, VideoSender>();
   private publishOptions: PublishOption[];
 
   /**
@@ -53,6 +54,12 @@ export class Publisher extends BasePeerConnection {
 
     this.on('changePublishQuality', async (event) => {
       for (const videoSender of event.videoSenders) {
+        const { trackType } = videoSender;
+        this.encodingConfigCache.set(trackType, videoSender);
+        // if not publishing, update the encodingConfigCache and don't modify the state.
+        // we'll apply this config on the next publish/unmute.
+        if (isFirefox() && !this.isPublishing(trackType)) continue;
+
         await this.changePublishQuality(videoSender);
       }
     });
@@ -74,6 +81,7 @@ export class Publisher extends BasePeerConnection {
       this.logger.warn('Failed to stop tracks during dispose', err);
     }
     this.clonedTracks.clear();
+    this.encodingConfigCache.clear();
   }
 
   /**
@@ -165,7 +173,11 @@ export class Publisher extends BasePeerConnection {
     await sender.replaceTrack(track);
     if (track) {
       this.trackIdToTrackType.set(track.id, trackType);
-      await this.setSenderEncodingsActive(sender, true);
+      if (isFirefox()) {
+        // restore the encoding config from the cache, if any
+        const cached = this.encodingConfigCache.get(trackType);
+        if (cached) await this.changePublishQuality(cached);
+      }
     }
     if (isAudioTrackType(trackType)) {
       await this.updateAudioPublishOptions(trackType, options);
@@ -263,7 +275,7 @@ export class Publisher extends BasePeerConnection {
     for (const item of this.transceiverCache.items()) {
       const { publishOption, transceiver } = item;
       if (!trackTypes.includes(publishOption.trackType)) continue;
-      await this.setSenderEncodingsActive(transceiver.sender, false);
+      await this.disableAllEncodings(item);
       this.stopTrack(transceiver.sender.track);
     }
   };
@@ -272,9 +284,9 @@ export class Publisher extends BasePeerConnection {
    * Stops all the cloned tracks that are being published to the SFU.
    */
   stopAllTracks = async () => {
-    for (const { transceiver } of this.transceiverCache.items()) {
-      await this.setSenderEncodingsActive(transceiver.sender, false);
-      this.stopTrack(transceiver.sender.track);
+    for (const item of this.transceiverCache.items()) {
+      await this.disableAllEncodings(item);
+      this.stopTrack(item.transceiver.sender.track);
     }
     for (const track of this.clonedTracks) {
       this.stopTrack(track);
@@ -360,6 +372,7 @@ export class Publisher extends BasePeerConnection {
     }
 
     await sender.setParameters(params);
+    this.encodingConfigCache.set(trackType, videoSender);
     this.logger.info(`${tag} enabled rids:`, activeEncoders);
   };
 
@@ -527,23 +540,45 @@ export class Publisher extends BasePeerConnection {
 
   /**
    * Firefox keeps sending RTP on an RTCRtpSender after the attached
-   * MediaStreamTrack is stopped via `track.stop()`. Toggling each encoding's
-   * `active` flag pauses or resumes the encoder locally without renegotiation,
+   * MediaStreamTrack is stopped via `track.stop()`. Flipping each encoding's
+   * `active` flag to `false` pauses the encoder locally without renegotiation,
    * which is what other browsers do implicitly on track.stop().
+   *
+   * Before disabling, snapshots the current encoder state into
+   * `encodingConfigCache` if no entry exists yet, so that a future
+   * `updateTransceiver` can restore the prior `active=true` configuration on
+   * Firefox even when the SFU hasn't sent a `changePublishQuality` event.
    *
    * No-op on non-Firefox browsers and when the sender has no encodings.
    */
-  private setSenderEncodingsActive = async (
-    sender: RTCRtpSender,
-    active: boolean,
-  ) => {
-    if (!isFirefox() || this.isDisposed) return;
+  private disableAllEncodings = async (bundle: PublishBundle) => {
+    if (this.isDisposed || !isFirefox()) return;
+    const { transceiver, publishOption } = bundle;
+    const sender = transceiver.sender;
     const params = sender.getParameters();
     if (!params.encodings || params.encodings.length === 0) return;
+
+    if (!this.encodingConfigCache.has(publishOption.trackType)) {
+      this.encodingConfigCache.set(publishOption.trackType, {
+        trackType: publishOption.trackType,
+        publishOptionId: publishOption.id,
+        codec: publishOption.codec,
+        layers: params.encodings.map((e) => ({
+          name: e.rid ?? 'q',
+          active: !!e.active,
+          maxBitrate: e.maxBitrate ?? 0,
+          scaleResolutionDownBy: e.scaleResolutionDownBy ?? 0,
+          maxFramerate: e.maxFramerate ?? 0,
+          // @ts-expect-error scalabilityMode is not in the typedefs yet
+          scalabilityMode: e.scalabilityMode ?? '',
+        })),
+      });
+    }
+
     let changed = false;
     for (const encoding of params.encodings) {
-      if (encoding.active !== active) {
-        encoding.active = active;
+      if (encoding.active !== false) {
+        encoding.active = false;
         changed = true;
       }
     }
