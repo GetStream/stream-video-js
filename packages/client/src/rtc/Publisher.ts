@@ -558,7 +558,7 @@ export class Publisher extends BasePeerConnection {
           codec: publishOption.codec,
           layers: params.encodings.map((e) => ({
             name: e.rid ?? 'q',
-            active: !!e.active,
+            active: e.active ?? true,
             maxBitrate: e.maxBitrate ?? 0,
             scaleResolutionDownBy: e.scaleResolutionDownBy ?? 0,
             maxFramerate: e.maxFramerate ?? 0,
@@ -577,6 +577,8 @@ export class Publisher extends BasePeerConnection {
       }
     }
     if (!changed) return;
-    await sender.setParameters(params);
+    await sender.setParameters(params).catch((err) => {
+      this.logger.error('Failed to disable all encodings:', err);
+    });
   };
 }
