@@ -398,12 +398,30 @@ describe('AudioBindingsWatchdog', () => {
       expect(onElementPausedChange).toHaveBeenCalledTimes(1);
     });
 
+    it('emits paused=true on `suspend` when srcObject is a live MediaStream', () => {
+      const el = elementWithLiveStream();
+      watchdogWithCallback.register(el, 'session-1', 'audioTrack');
+      onElementPausedChange.mockClear();
+      el.dispatchEvent(new Event('suspend'));
+      expect(onElementPausedChange).toHaveBeenCalledWith(el, true);
+      expect(onElementPausedChange).toHaveBeenCalledTimes(1);
+    });
+
     it('does NOT emit on `pause` when srcObject is null (benign unbind)', () => {
       const el = document.createElement('audio');
       Object.defineProperty(el, 'srcObject', { writable: true });
       el.srcObject = null;
       watchdogWithCallback.register(el, 'session-1', 'audioTrack');
       el.dispatchEvent(new Event('pause'));
+      expect(onElementPausedChange).not.toHaveBeenCalled();
+    });
+
+    it('does NOT emit on `suspend` when srcObject is null (benign unbind)', () => {
+      const el = document.createElement('audio');
+      Object.defineProperty(el, 'srcObject', { writable: true });
+      el.srcObject = null;
+      watchdogWithCallback.register(el, 'session-1', 'audioTrack');
+      el.dispatchEvent(new Event('suspend'));
       expect(onElementPausedChange).not.toHaveBeenCalled();
     });
 
@@ -419,6 +437,21 @@ describe('AudioBindingsWatchdog', () => {
 
       watchdogWithCallback.register(el, 'session-1', 'audioTrack');
       el.dispatchEvent(new Event('pause'));
+      expect(onElementPausedChange).not.toHaveBeenCalled();
+    });
+
+    it('does NOT emit on `suspend` when every track in srcObject is ended', () => {
+      const el = document.createElement('audio');
+      const stream = new MediaStream();
+      const endedTrack = new MediaStreamTrack();
+      // @ts-expect-error - mocked override
+      endedTrack.readyState = 'ended';
+      vi.spyOn(stream, 'getTracks').mockReturnValue([endedTrack]);
+      Object.defineProperty(el, 'srcObject', { writable: true });
+      el.srcObject = stream;
+
+      watchdogWithCallback.register(el, 'session-1', 'audioTrack');
+      el.dispatchEvent(new Event('suspend'));
       expect(onElementPausedChange).not.toHaveBeenCalled();
     });
 
@@ -445,9 +478,10 @@ describe('AudioBindingsWatchdog', () => {
       // no longer bound.
       expect(onElementPausedChange).toHaveBeenLastCalledWith(el, false);
 
-      // Listeners detached: subsequent pause does not fire forwarding.
+      // Listeners detached: subsequent pause/suspend does not fire forwarding.
       onElementPausedChange.mockClear();
       el.dispatchEvent(new Event('pause'));
+      el.dispatchEvent(new Event('suspend'));
       expect(onElementPausedChange).not.toHaveBeenCalled();
     });
 

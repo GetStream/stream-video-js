@@ -347,11 +347,14 @@ export class DynascaleManager {
     // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
     videoElement.muted = true;
 
-    // Forward pause/play to MediaHealthMonitor so paused-live videos
-    // (iOS WebView audio-session interruption symptom) get auto-resumed.
-    // Benign pauses (unbind, end-of-stream) leave only ended tracks and
-    // are filtered here so the recovery loop doesn't churn.
-    const onPause = () => {
+    // Forward pause/suspend/play to MediaHealthMonitor so stalled-live
+    // videos (iOS WebView audio-session interruption symptom) get
+    // auto-resumed. `suspend` is also covered because the UA can stop
+    // advancing a `<video>` (NETWORK_IDLE) without flipping `paused`,
+    // and `pause` alone misses that case. Benign transitions (unbind,
+    // end-of-stream) leave only ended tracks and are filtered here so
+    // the recovery loop doesn't churn.
+    const onPauseOrSuspend = () => {
       const srcObject = videoElement.srcObject as MediaStream | null;
       const tracks = srcObject?.getVideoTracks();
       if (!tracks?.some((t) => t.readyState === 'live')) return;
@@ -360,13 +363,13 @@ export class DynascaleManager {
     const onPlay = () => {
       this.onVideoElementPausedChange(videoElement, false);
     };
-    // `pause` only fires on transitions, so an element that's already
-    // paused at bind time (React re-mount during an iOS audio-session
-    // interruption, a rebind onto the same DOM element with an unchanged
-    // srcObject, or a `play()` rejection from the force-play path below)
-    // would never reach MediaHealthMonitor's recovery loop. Call this
-    // wherever the element could legitimately end up paused-with-live to
-    // hand it off to the tracker.
+    // `pause`/`suspend` only fire on transitions, so an element that's
+    // already paused at bind time (React re-mount during an iOS
+    // audio-session interruption, a rebind onto the same DOM element
+    // with an unchanged srcObject, or a `play()` rejection from the
+    // force-play path below) would never reach MediaHealthMonitor's
+    // recovery loop. Call this wherever the element could legitimately
+    // end up paused-with-live to hand it off to the tracker.
     const registerIfPausedLive = () => {
       if (!videoElement.paused) return;
       const tracks = (
@@ -375,7 +378,8 @@ export class DynascaleManager {
       if (!tracks?.some((t) => t.readyState === 'live')) return;
       this.onVideoElementPausedChange(videoElement, true);
     };
-    videoElement.addEventListener('pause', onPause);
+    videoElement.addEventListener('pause', onPauseOrSuspend);
+    videoElement.addEventListener('suspend', onPauseOrSuspend);
     videoElement.addEventListener('play', onPlay);
 
     const trackKey = isVideoTrack ? 'videoStream' : 'screenShareStream';
@@ -408,7 +412,8 @@ export class DynascaleManager {
       publishedTracksSubscription?.unsubscribe();
       streamSubscription.unsubscribe();
       resizeObserver?.disconnect();
-      videoElement.removeEventListener('pause', onPause);
+      videoElement.removeEventListener('pause', onPauseOrSuspend);
+      videoElement.removeEventListener('suspend', onPauseOrSuspend);
       videoElement.removeEventListener('play', onPlay);
       this.onVideoElementPausedChange(videoElement, false);
     };

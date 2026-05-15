@@ -12,7 +12,7 @@ const toBindingKey = (
 
 type Binding = {
   element: HTMLAudioElement;
-  onPause: () => void;
+  onPauseOrSuspend: () => void;
   onPlay: () => void;
 };
 
@@ -62,13 +62,13 @@ export class AudioBindingsWatchdog {
    * Warns if a different element is already bound to the same key.
    */
   register = (
-    audioElement: HTMLAudioElement,
+    element: HTMLAudioElement,
     sessionId: string,
     trackType: AudioTrackType,
   ) => {
     const key = toBindingKey(sessionId, trackType);
     const existing = this.bindings.get(key);
-    if (existing && existing.element !== audioElement) {
+    if (existing && existing.element !== element) {
       this.logger.warn(
         `Audio element already bound to ${sessionId} and ${trackType}`,
       );
@@ -78,36 +78,40 @@ export class AudioBindingsWatchdog {
       // downstream audio-health doesn't stay stuck until the new element
       // happens to fire `play`.
       this.onElementPausedChange(existing.element, false);
-    } else if (existing && existing.element === audioElement) {
+    } else if (existing && existing.element === element) {
       // Same element re-registered - drop stale listeners before re-binding.
       this.detachPlaybackListeners(existing);
     }
-    const onPause = () => {
-      // Benign pauses (unbind sets `srcObject = null`, end-of-stream
+    const onPauseOrSuspend = () => {
+      // Benign transitions (unbind sets `srcObject = null`, end-of-stream
       // leaves only ended tracks) shouldn't reach the consumer.
       // They would cause a brief unhealthy flap that immediately
       // gets cleared by the subsequent `unregister`.
-      const srcObject = audioElement.srcObject as MediaStream | null;
+      const srcObject = element.srcObject as MediaStream | null;
       const tracks = srcObject?.getTracks();
       if (!tracks?.some((t) => t.readyState === 'live')) return;
-      this.onElementPausedChange(audioElement, true);
+      this.onElementPausedChange(element, true);
     };
     const onPlay = () => {
-      this.onElementPausedChange(audioElement, false);
+      this.onElementPausedChange(element, false);
     };
-    audioElement.addEventListener('pause', onPause);
-    audioElement.addEventListener('play', onPlay);
-    this.bindings.set(key, { element: audioElement, onPause, onPlay });
-    // `pause` only fires on transitions, so an element that's already
-    // paused at register time (e.g., re-register during an iOS audio
-    // session interruption, or a fresh element bound while the session
-    // is still recovering) would never reach MediaHealthMonitor. Cover
-    // that case by handing the element to the tracker directly.
-    if (audioElement.paused) {
-      const srcObject = audioElement.srcObject as MediaStream | null;
+    // Also listen for `suspend`: iOS WebView can stop advancing audio
+    // (NETWORK_IDLE) during an audio-session interruption without
+    // flipping `paused`, so `pause` alone would miss the stall.
+    element.addEventListener('pause', onPauseOrSuspend);
+    element.addEventListener('suspend', onPauseOrSuspend);
+    element.addEventListener('play', onPlay);
+    this.bindings.set(key, { element, onPauseOrSuspend, onPlay });
+    // `pause`/`suspend` only fire on transitions, so an element that's
+    // already paused at register time (e.g., re-register during an iOS
+    // audio session interruption, or a fresh element bound while the
+    // session is still recovering) would never reach MediaHealthMonitor.
+    // Cover that case by handing the element to the tracker directly.
+    if (element.paused) {
+      const srcObject = element.srcObject as MediaStream | null;
       const tracks = srcObject?.getTracks();
       if (tracks?.some((t) => t.readyState === 'live')) {
-        this.onElementPausedChange(audioElement, true);
+        this.onElementPausedChange(element, true);
       }
     }
   };
@@ -152,8 +156,9 @@ export class AudioBindingsWatchdog {
   };
 
   private detachPlaybackListeners = (binding: Binding) => {
-    const { onPause, element, onPlay } = binding;
-    element.removeEventListener('pause', onPause);
+    const { onPauseOrSuspend, element, onPlay } = binding;
+    element.removeEventListener('pause', onPauseOrSuspend);
+    element.removeEventListener('suspend', onPauseOrSuspend);
     element.removeEventListener('play', onPlay);
   };
 

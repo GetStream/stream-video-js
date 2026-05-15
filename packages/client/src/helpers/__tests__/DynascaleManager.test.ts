@@ -896,6 +896,46 @@ describe('DynascaleManager', () => {
       cleanup?.();
     });
 
+    it('video: forwards suspend events to MediaHealthMonitor', () => {
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      vi.spyOn(mediaStream, 'getVideoTracks').mockReturnValue([
+        { readyState: 'live' } as MediaStreamTrack,
+      ]);
+      call.state.updateParticipant('session-id', {
+        publishedTracks: [TrackType.VIDEO],
+        videoStream: mediaStream,
+      });
+
+      // iOS WebView can stall a live <video> via `suspend` without firing
+      // `pause`; the bind must still route it into MediaHealthMonitor.
+      videoElement.dispatchEvent(new Event('suspend'));
+      expect(
+        // @ts-expect-error private property
+        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
+      ).toBe(true);
+
+      videoElement.dispatchEvent(new Event('play'));
+      expect(
+        // @ts-expect-error private property
+        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
+      ).toBe(false);
+
+      cleanup?.();
+    });
+
     it('video: filters benign pauses (no live tracks)', () => {
       // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
@@ -918,10 +958,18 @@ describe('DynascaleManager', () => {
         call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
       ).toBe(false);
 
+      // Same filter must apply to `suspend` so benign UA suspends on
+      // an unbound element don't churn the recovery loop.
+      videoElement.dispatchEvent(new Event('suspend'));
+      expect(
+        // @ts-expect-error private property
+        call.audioHealthMonitor!.pausedVideo.elements.has(videoElement),
+      ).toBe(false);
+
       cleanup?.();
     });
 
-    it('video: cleanup detaches pause/play listeners and clears paused state', () => {
+    it('video: cleanup detaches pause/suspend/play listeners and clears paused state', () => {
       // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {
         userId: 'user-id',
@@ -959,8 +1007,9 @@ describe('DynascaleManager', () => {
         call.audioHealthMonitor!.pausedVideo.elements.size,
       ).toBe(0);
 
-      // Further pause events on the detached element are no-ops.
+      // Further pause/suspend events on the detached element are no-ops.
       videoElement.dispatchEvent(new Event('pause'));
+      videoElement.dispatchEvent(new Event('suspend'));
       expect(
         // @ts-expect-error private property
         call.audioHealthMonitor!.pausedVideo.elements.size,
