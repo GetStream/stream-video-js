@@ -1,15 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  AudioHealthDirection,
-  AudioHealthReason,
-  AudioHealthStatus,
   CallingState,
   CancelCallConfirmButton,
   humanize,
   Icon,
   LoadingIndicator,
   Notification,
-  useCall,
   useCallStateHooks,
   useI18n,
 } from '@stream-io/video-react-sdk';
@@ -20,7 +16,6 @@ import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleDocumentationButton } from './ToggleDocumentationButton';
 import { LayoutSelectorProps } from './LayoutSelector';
 import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
-import { useIsDebugMode } from './Debug/useIsDebugMode';
 
 const LatencyIndicator = () => {
   const { useCallStatsReport } = useCallStateHooks();
@@ -72,171 +67,6 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
   );
 };
 
-const AUDIO_HEALTH_MESSAGE: Partial<Record<AudioHealthReason, string>> = {
-  'host-audio-session-interrupted': 'Audio session interrupted by the host.',
-  'audio-session-interrupted': 'Audio session interrupted.',
-  'audio-context-interrupted': 'Audio context interrupted.',
-  'autoplay-blocked':
-    'Audio autoplay is blocked. Tap anywhere to enable sound.',
-  'remote-tracks-muted': 'Remote audio tracks are muted.',
-  'element-paused': 'Audio playback is paused.',
-};
-
-const AudioHealthIndicator = () => {
-  const { useAudioHealth } = useCallStateHooks();
-  const { status, reason, direction } = useAudioHealth();
-  const isDebug = useIsDebugMode();
-  useEffect(() => {
-    console.info('[dogfood] audioHealth →', status, reason, `dir=${direction}`);
-  }, [status, reason, direction]);
-
-  const isUnhealthy = status === 'unhealthy';
-  const message = AUDIO_HEALTH_MESSAGE[reason] ?? `Audio issue (${reason}).`;
-
-  if (isDebug) {
-    return (
-      <AudioHealthDebugBadge
-        status={status}
-        direction={direction}
-        reason={reason}
-      />
-    );
-  }
-
-  return (
-    <Notification
-      isVisible={isUnhealthy}
-      message={message}
-      placement="bottom"
-      iconClassName={null}
-    >
-      <div
-        className={clsx('rd__header__audio-health', {
-          'rd__header__audio-health--hidden': !isUnhealthy,
-        })}
-        aria-live="polite"
-        aria-hidden={!isUnhealthy}
-        data-testid="audio-health-badge"
-      >
-        <Icon icon="no-audio" />
-      </div>
-    </Notification>
-  );
-};
-
-// Resolves the per-direction status for one side of the audio pipeline.
-// Healthy/unknown propagate to both sides; an unhealthy status only flips
-// a side red when the failure's `direction` actually implicates that side.
-const resolveSideStatus = (
-  status: AudioHealthStatus,
-  direction: AudioHealthDirection,
-  side: 'capture' | 'playback',
-): AudioHealthStatus => {
-  if (status !== 'unhealthy') return status;
-  if (direction === 'both') return 'unhealthy';
-  return direction === side ? 'unhealthy' : 'healthy';
-};
-
-const AudioHealthDebugBadge = ({
-  status,
-  direction,
-  reason,
-}: {
-  status: AudioHealthStatus;
-  direction: AudioHealthDirection;
-  reason: AudioHealthReason;
-}) => {
-  const micStatus = resolveSideStatus(status, direction, 'capture');
-  const speakerStatus = resolveSideStatus(status, direction, 'playback');
-
-  return (
-    <div
-      className="rd__header__audio-health rd__header__audio-health--debug"
-      aria-live="polite"
-      data-testid="audio-health-badge"
-    >
-      <SideIndicator label="mic" status={micStatus} />
-      <SideIndicator label="spk" status={speakerStatus} />
-      <span className="rd__header__audio-health__reason">({reason})</span>
-    </div>
-  );
-};
-
-const SideIndicator = ({
-  label,
-  status,
-}: {
-  label: string;
-  status: AudioHealthStatus;
-}) => (
-  <span className="rd__header__audio-health__side">
-    {label}
-    <span
-      className={clsx(
-        'rd__header__audio-health__dot',
-        `rd__header__audio-health__dot--${status}`,
-      )}
-    />
-  </span>
-);
-
-// Two manual triage buttons used to verify candidate fixes for audio
-// recovery issues (e.g. post-CallKit-interruption playback resume on iOS
-// WKWebView). Both run inside a real React-dispatched click so any
-// gesture-gated browser API gets the gesture credit it needs.
-const AudioRecoveryButtons = () => {
-  const call = useCall();
-
-  const handleResumeAudio = () => {
-    console.info('[dogfood] resumeMedia() (manual click)');
-    call?.resumeMedia().catch((err) => {
-      console.error('[dogfood] resumeMedia failed', err);
-    });
-  };
-
-  const handleSetAudioSessionType = () => {
-    if (typeof navigator === 'undefined') return;
-    const audioSession = (
-      navigator as Navigator & { audioSession?: { type: string } }
-    ).audioSession;
-    if (!audioSession) {
-      console.warn('[dogfood] navigator.audioSession unavailable');
-      return;
-    }
-    try {
-      audioSession.type = 'play-and-record';
-      console.info(
-        '[dogfood] navigator.audioSession.type =',
-        audioSession.type,
-      );
-    } catch (err) {
-      console.error('[dogfood] audioSession.type write failed', err);
-    }
-  };
-
-  return (
-    <div
-      className="rd__header__audio-recovery"
-      data-testid="audio-recovery-actions"
-    >
-      <button
-        type="button"
-        className="rd__header__audio-recovery__button"
-        onClick={handleResumeAudio}
-      >
-        Resume audio
-      </button>
-      <button
-        type="button"
-        className="rd__header__audio-recovery__button"
-        onClick={handleSetAudioSessionType}
-      >
-        audioSession=play-and-record
-      </button>
-    </div>
-  );
-};
-
 const RecordingIndicator = () => {
   return <div className="rd__header__recording-indicator">Recording...</div>;
 };
@@ -281,7 +111,6 @@ export const ActiveCallHeader = ({
   const { t } = useI18n();
 
   const isDemo = useIsDemoEnvironment();
-  const isDebug = useIsDebugMode();
 
   return (
     <>
@@ -305,8 +134,6 @@ export const ActiveCallHeader = ({
         </div>
 
         <div className="rd__call-header__controls-group">
-          <AudioHealthIndicator />
-          {isDebug && <AudioRecoveryButtons />}
           {(isRecordingInProgress ||
             isRawRecordingInProgress ||
             isIndividualRecordingInProgress) && <RecordingIndicator />}

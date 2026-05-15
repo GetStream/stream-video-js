@@ -19,7 +19,6 @@ export * from './src/store';
 export * from './src/sorting';
 export * from './src/helpers/client-details';
 export * from './src/helpers/humanize';
-export * from './src/helpers/mediaHealthTypes';
 export * from './src/helpers/DynascaleManager';
 export * from './src/helpers/ViewportTracker';
 export * from './src/helpers/sound-detector';

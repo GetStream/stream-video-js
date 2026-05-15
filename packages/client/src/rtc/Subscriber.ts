@@ -1,16 +1,10 @@
 import { BasePeerConnection } from './BasePeerConnection';
-import { BasePeerConnectionOpts, OnRemoteAudioTrackChange } from './types';
+import { BasePeerConnectionOpts } from './types';
 import { NegotiationError } from './NegotiationError';
 import { PeerType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { enableStereo, removeCodecsExcept } from './helpers/sdp';
-
-type RemoteTrackListeners = {
-  onMute: () => void;
-  onUnmute: () => void;
-  onEnded: () => void;
-};
 
 /**
  * A wrapper around the `RTCPeerConnection` that handles the incoming
@@ -19,18 +13,11 @@ type RemoteTrackListeners = {
  * @internal
  */
 export class Subscriber extends BasePeerConnection {
-  private readonly onRemoteAudioTrackChange: OnRemoteAudioTrackChange;
-  private readonly remoteTrackListeners = new Map<
-    MediaStreamTrack,
-    RemoteTrackListeners
-  >();
-
   /**
    * Constructs a new `Subscriber` instance.
    */
   constructor(opts: BasePeerConnectionOpts) {
     super(PeerType.SUBSCRIBER, opts);
-    this.onRemoteAudioTrackChange = opts.onRemoteAudioTrackChange;
     this.pc.addEventListener('track', this.handleOnTrack);
 
     this.on('subscriberOffer', async (subscriberOffer) => {
@@ -48,23 +35,7 @@ export class Subscriber extends BasePeerConnection {
   detachEventHandlers() {
     super.detachEventHandlers();
     this.pc.removeEventListener('track', this.handleOnTrack);
-    for (const { track } of this.pc.getReceivers()) {
-      if (!track) continue;
-      this.detachRemoteTrackListeners(track);
-      if (track.kind === 'audio') {
-        this.onRemoteAudioTrackChange(track, 'ended');
-      }
-    }
   }
-
-  private detachRemoteTrackListeners = (track: MediaStreamTrack) => {
-    const listeners = this.remoteTrackListeners.get(track);
-    if (!listeners) return;
-    track.removeEventListener('mute', listeners.onMute);
-    track.removeEventListener('unmute', listeners.onUnmute);
-    track.removeEventListener('ended', listeners.onEnded);
-    this.remoteTrackListeners.delete(track);
-  };
 
   /**
    * Restarts the ICE connection and renegotiates with the SFU.
@@ -110,24 +81,16 @@ export class Subscriber extends BasePeerConnection {
     );
 
     const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
-    const isAudio = track.kind === 'audio';
-    const onMute = () => {
+    track.addEventListener('mute', () => {
       this.logger.info(`[onTrack]: Track muted: ${trackDebugInfo}`);
-      if (isAudio) this.onRemoteAudioTrackChange(track, 'muted');
-    };
-    const onUnmute = () => {
+    });
+    track.addEventListener('unmute', () => {
       this.logger.info(`[onTrack]: Track unmuted: ${trackDebugInfo}`);
-      if (isAudio) this.onRemoteAudioTrackChange(track, 'unmuted');
-    };
-    const onEnded = () => {
+    });
+    track.addEventListener('ended', () => {
       this.logger.info(`[onTrack]: Track ended: ${trackDebugInfo}`);
       this.state.removeOrphanedTrack(primaryStream.id);
-      if (isAudio) this.onRemoteAudioTrackChange(track, 'ended');
-    };
-    track.addEventListener('mute', onMute);
-    track.addEventListener('unmute', onUnmute);
-    track.addEventListener('ended', onEnded);
-    this.remoteTrackListeners.set(track, { onMute, onUnmute, onEnded });
+    });
 
     const trackType = toTrackType(rawTrackType);
     if (!trackType) {
@@ -172,15 +135,6 @@ export class Subscriber extends BasePeerConnection {
         `[onTrack]: Cleaning up previous remote ${track.kind} tracks for userId: ${participantToUpdate.userId}`,
       );
       previousStream.getTracks().forEach((t) => {
-        // `track.stop()` does not dispatch the `'ended'` event, so the
-        // listeners attached above won't fire for replaced tracks. Detach
-        // them explicitly so the closures don't keep this Subscriber alive
-        // and a late `'ended'` (e.g. from native cleanup) can't double-fire
-        // the synthetic callback issued below.
-        this.detachRemoteTrackListeners(t);
-        if (t.kind === 'audio') {
-          this.onRemoteAudioTrackChange(t, 'ended');
-        }
         t.stop();
         previousStream.removeTrack(t);
       });

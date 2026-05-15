@@ -44,13 +44,6 @@ export type OnReconnectionNeeded = (
   peerType: PeerType,
 ) => void;
 
-export type RemoteAudioTrackChange = 'muted' | 'unmuted' | 'ended';
-
-export type OnRemoteAudioTrackChange = (
-  track: MediaStreamTrack,
-  change: RemoteAudioTrackChange,
-) => void;
-
 /**
  * Fires the first time a peer connection's ICE transport reaches
  * `connected` or `completed` during its lifetime. Used by `Call` to reset
@@ -65,7 +58,6 @@ export type BasePeerConnectionOpts = {
   connectionConfig?: RTCConfiguration;
   dispatcher: Dispatcher;
   onReconnectionNeeded?: OnReconnectionNeeded;
-  onRemoteAudioTrackChange: OnRemoteAudioTrackChange;
   onIceConnected?: OnIceConnected;
   tag: string;
   enableTracing: boolean;

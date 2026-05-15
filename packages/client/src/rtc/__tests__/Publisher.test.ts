@@ -70,7 +70,6 @@ describe('Publisher', () => {
         dispatcher,
         state,
         tag: 'test',
-        onRemoteAudioTrackChange: vi.fn(),
         enableTracing: false,
       },
       [
