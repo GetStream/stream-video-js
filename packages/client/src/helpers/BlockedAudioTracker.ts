@@ -41,6 +41,14 @@ export class BlockedAudioTracker {
   };
 
   /**
+   * Returns whether the given audio element is currently flagged as blocked
+   * by the browser's autoplay policy.
+   */
+  isBlocked = (audioElement: HTMLAudioElement): boolean => {
+    return this.blockedElementsSubject.getValue().has(audioElement);
+  };
+
+  /**
    * Plays all audio elements blocked by the browser's autoplay policy.
    * Must be called from within a user gesture (e.g., click handler).
    */

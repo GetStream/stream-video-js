@@ -682,6 +682,179 @@ describe('DynascaleManager', () => {
       cleanup?.();
     });
 
+    it('video: watchdog re-plays element after a pause event', async () => {
+      vi.useFakeTimers();
+      Object.defineProperties(videoElement, {
+        paused: { writable: true, configurable: true },
+        readyState: { writable: true, configurable: true },
+      });
+      // @ts-expect-error simulate paused, ready-to-play element
+      videoElement.paused = true;
+      // @ts-expect-error simulate paused, ready-to-play element
+      videoElement.readyState = 4;
+      const play = vi.spyOn(videoElement, 'play').mockResolvedValue();
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [TrackType.VIDEO],
+      });
+
+      const cleanup = dynascaleManager.bindVideoElement(
+        videoElement,
+        'session-id',
+        'videoTrack',
+      );
+
+      const mediaStream = new MediaStream();
+      call.state.updateParticipant('session-id', {
+        videoStream: mediaStream,
+      });
+      vi.runAllTimers();
+
+      const callsBeforePause = play.mock.calls.length;
+      videoElement.dispatchEvent(new Event('pause'));
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(play.mock.calls.length).toBeGreaterThan(callsBeforePause);
+
+      cleanup?.();
+    });
+
+    it('audio: watchdog re-plays element after pause when useWebAudio is false', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperties(audioElement, {
+        srcObject: { writable: true },
+        paused: { writable: true, configurable: true },
+        readyState: { writable: true, configurable: true },
+      });
+      // @ts-expect-error simulate paused, ready-to-play element
+      audioElement.paused = true;
+      // @ts-expect-error simulate paused, ready-to-play element
+      audioElement.readyState = 4;
+      const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      call.state.updateParticipant('session-id', {
+        audioStream: new MediaStream(),
+      });
+      vi.runAllTimers();
+
+      const callsBeforePause = play.mock.calls.length;
+      audioElement.dispatchEvent(new Event('pause'));
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(play.mock.calls.length).toBeGreaterThan(callsBeforePause);
+
+      cleanup?.();
+    });
+
+    it('audio: no watchdog attached when useWebAudio is true', async () => {
+      globalThis._isSafari = true;
+      dynascaleManager.setUseWebAudio(true);
+
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperties(audioElement, {
+        srcObject: { writable: true },
+        paused: { writable: true, configurable: true },
+        readyState: { writable: true, configurable: true },
+      });
+      // @ts-expect-error simulate paused, ready-to-play element
+      audioElement.paused = true;
+      // @ts-expect-error simulate paused, ready-to-play element
+      audioElement.readyState = 4;
+      const play = vi.spyOn(audioElement, 'play').mockResolvedValue();
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      call.state.updateParticipant('session-id', {
+        audioStream: new MediaStream(),
+      });
+      vi.runAllTimers();
+
+      audioElement.dispatchEvent(new Event('pause'));
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(play).not.toHaveBeenCalled();
+
+      cleanup?.();
+    });
+
+    it('audio: watchdog defers to BlockedAudioTracker when element is blocked', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperties(audioElement, {
+        srcObject: { writable: true },
+        paused: { writable: true, configurable: true },
+        readyState: { writable: true, configurable: true },
+      });
+      // @ts-expect-error simulate paused, ready-to-play element
+      audioElement.paused = true;
+      // @ts-expect-error simulate paused, ready-to-play element
+      audioElement.readyState = 4;
+      vi.spyOn(audioElement, 'play').mockRejectedValue(
+        new DOMException('', 'NotAllowedError'),
+      );
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = call.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      call.state.updateParticipant('session-id', {
+        audioStream: new MediaStream(),
+      });
+      vi.runAllTimers();
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);
+
+      const traceSpy = vi.spyOn(call.tracer, 'trace');
+      audioElement.dispatchEvent(new Event('pause'));
+      await vi.advanceTimersByTimeAsync(0);
+
+      expect(traceSpy).toHaveBeenCalledWith('mediaPlayback.recover.skipped', {
+        kind: 'audio',
+        reason: 'blocked',
+      });
+
+      cleanup?.();
+    });
+
     it('video: should unsubscribe when element dimensions are zero', () => {
       // @ts-expect-error incomplete data
       call.state.updateOrAddParticipant('session-id', {

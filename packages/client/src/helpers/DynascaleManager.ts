@@ -14,6 +14,7 @@ import {
   takeWhile,
 } from 'rxjs';
 import type { BlockedAudioTracker } from './BlockedAudioTracker';
+import { MediaPlaybackWatchdog } from './MediaPlaybackWatchdog';
 import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
 import { isFirefox, isSafari } from './browsers';
 import { hasScreenShare, hasVideo } from './participantUtils';
@@ -33,7 +34,7 @@ export class DynascaleManager {
   private logger = videoLoggerSystem.getLogger('DynascaleManager');
   private callState: CallState;
   private speaker: SpeakerManager;
-  private tracer: Tracer;
+  private readonly tracer: Tracer;
   private useWebAudio = false;
   private audioContext: AudioContext | undefined;
 
@@ -243,6 +244,12 @@ export class DynascaleManager {
     // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
     videoElement.muted = true;
 
+    const playbackWatchdog = new MediaPlaybackWatchdog({
+      element: videoElement,
+      kind: 'video',
+      tracer: this.tracer,
+    });
+
     const trackKey = isVideoTrack ? 'videoStream' : 'screenShareStream';
     const streamSubscription = participant$
       .pipe(distinctUntilKeyChanged(trackKey))
@@ -268,6 +275,7 @@ export class DynascaleManager {
       publishedTracksSubscription?.unsubscribe();
       streamSubscription.unsubscribe();
       resizeObserver?.disconnect();
+      playbackWatchdog.dispose();
     };
   };
 
@@ -318,6 +326,7 @@ export class DynascaleManager {
 
     let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
     let gainNode: GainNode | undefined = undefined;
+    let audioWatchdog: MediaPlaybackWatchdog | undefined = undefined;
 
     const isAudioTrack = trackType === 'audioTrack';
     const trackKey = isAudioTrack ? 'audioStream' : 'screenShareAudioStream';
@@ -329,6 +338,8 @@ export class DynascaleManager {
 
         setTimeout(() => {
           audioElement.srcObject = source ?? null;
+          audioWatchdog?.dispose();
+          audioWatchdog = undefined;
           if (!source) {
             this.blockedAudioTracker.markBlocked(audioElement, false);
             return;
@@ -361,6 +372,12 @@ export class DynascaleManager {
                 this.blockedAudioTracker.markBlocked(audioElement, true);
               }
               this.logger.warn(`Failed to play audio stream`, e);
+            });
+            audioWatchdog = new MediaPlaybackWatchdog({
+              element: audioElement,
+              kind: 'audio',
+              tracer: this.tracer,
+              isBlocked: () => this.blockedAudioTracker.isBlocked(audioElement),
             });
           }
 
@@ -395,6 +412,8 @@ export class DynascaleManager {
       audioElement.srcObject = null;
       sourceNode?.disconnect();
       gainNode?.disconnect();
+      audioWatchdog?.dispose();
+      audioWatchdog = undefined;
     };
   };
 
