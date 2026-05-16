@@ -44,59 +44,6 @@ describe('DynascaleManager', () => {
     call.leave();
   });
 
-  describe('visibility tracking', () => {
-    it('should track element visibility visibility', () => {
-      let visibilityHandler: any;
-      vi.spyOn(dynascaleManager.viewportTracker, 'observe').mockImplementation(
-        (el, handler) => {
-          visibilityHandler = handler;
-          return vi.fn();
-        },
-      );
-
-      // @ts-expect-error incomplete data
-      call.state.updateOrAddParticipant('session-id', {
-        userId: 'user-id',
-        sessionId: 'session-id',
-        publishedTracks: [],
-      });
-
-      const element = document.createElement('div');
-      const untrack = dynascaleManager.trackElementVisibility(
-        element,
-        'session-id',
-        'videoTrack',
-      );
-
-      expect(visibilityHandler).toBeDefined();
-      expect(dynascaleManager.viewportTracker.observe).toHaveBeenCalledWith(
-        element,
-        expect.any(Function),
-      );
-
-      // test becoming visible
-      visibilityHandler({ isIntersecting: true });
-      expect(
-        call.state.findParticipantBySessionId('session-id')
-          ?.viewportVisibilityState?.videoTrack,
-      ).toBe(VisibilityState.VISIBLE);
-
-      // test becoming invisible
-      visibilityHandler({ isIntersecting: false });
-      expect(
-        call.state.findParticipantBySessionId('session-id')
-          ?.viewportVisibilityState?.videoTrack,
-      ).toBe(VisibilityState.INVISIBLE);
-
-      // test track reset
-      untrack();
-      expect(
-        call.state.findParticipantBySessionId('session-id')
-          ?.viewportVisibilityState?.videoTrack,
-      ).toBe(VisibilityState.UNKNOWN);
-    });
-  });
-
   describe('element binding', () => {
     let videoElement: globalThis.HTMLVideoElement;
 

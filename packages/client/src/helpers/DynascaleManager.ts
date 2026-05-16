@@ -13,7 +13,6 @@ import {
   shareReplay,
   takeWhile,
 } from 'rxjs';
-import { ViewportTracker } from './ViewportTracker';
 import type { BlockedAudioTracker } from './BlockedAudioTracker';
 import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
 import { isFirefox, isSafari } from './browsers';
@@ -24,20 +23,11 @@ import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 import { timeboxed } from '../coordinator/connection/utils';
 
-const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
-  VideoTrackType,
-  VisibilityState
-> = {
-  videoTrack: VisibilityState.UNKNOWN,
-  screenShareTrack: VisibilityState.UNKNOWN,
-} as const;
-
 /**
  * A manager class that handles dynascale related tasks like:
  *
  * - binding video elements to session ids
  * - binding audio elements to session ids
- * - tracking element visibility
  */
 export class DynascaleManager {
   private logger = videoLoggerSystem.getLogger('DynascaleManager');
@@ -47,7 +37,6 @@ export class DynascaleManager {
   private useWebAudio = false;
   private audioContext: AudioContext | undefined;
 
-  readonly viewportTracker = new ViewportTracker();
   private trackSubscriptionManager: TrackSubscriptionManager;
   private blockedAudioTracker: BlockedAudioTracker;
 
@@ -78,71 +67,6 @@ export class DynascaleManager {
       await context.close();
       this.audioContext = undefined;
     }
-  };
-
-  /**
-   * Will begin tracking the given element for visibility changes within the
-   * configured viewport element (`call.setViewport`).
-   *
-   * @param element the element to track.
-   * @param sessionId the session id.
-   * @param trackType the kind of video.
-   * @returns Untrack.
-   */
-  trackElementVisibility = <T extends HTMLElement>(
-    element: T,
-    sessionId: string,
-    trackType: VideoTrackType,
-  ) => {
-    const cleanup = this.viewportTracker.observe(element, (entry) => {
-      this.callState.updateParticipant(sessionId, (participant) => {
-        const previousVisibilityState =
-          participant.viewportVisibilityState ??
-          DEFAULT_VIEWPORT_VISIBILITY_STATE;
-
-        // observer triggers when the element is "moved" to be a fullscreen element
-        // keep it VISIBLE if that happens to prevent fullscreen with placeholder
-        const isVisible =
-          entry.isIntersecting || document.fullscreenElement === element
-            ? VisibilityState.VISIBLE
-            : VisibilityState.INVISIBLE;
-        return {
-          ...participant,
-          viewportVisibilityState: {
-            ...previousVisibilityState,
-            [trackType]: isVisible,
-          },
-        };
-      });
-    });
-
-    return () => {
-      cleanup();
-      // reset visibility state to UNKNOWN upon cleanup
-      // so that the layouts that are not actively observed
-      // can still function normally (runtime layout switching)
-      this.callState.updateParticipant(sessionId, (participant) => {
-        const previousVisibilityState =
-          participant.viewportVisibilityState ??
-          DEFAULT_VIEWPORT_VISIBILITY_STATE;
-        return {
-          ...participant,
-          viewportVisibilityState: {
-            ...previousVisibilityState,
-            [trackType]: VisibilityState.UNKNOWN,
-          },
-        };
-      });
-    };
-  };
-
-  /**
-   * Sets the viewport element to track bound video elements for visibility.
-   *
-   * @param element the viewport element.
-   */
-  setViewport = <T extends HTMLElement>(element: T) => {
-    return this.viewportTracker.setViewport(element);
   };
 
   /**

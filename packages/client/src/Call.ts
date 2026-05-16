@@ -149,6 +149,7 @@ import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
+import { ViewportTracker } from './helpers/ViewportTracker';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
@@ -234,6 +235,12 @@ export class Call {
    * The DynascaleManager instance.
    */
   readonly dynascaleManager: DynascaleManager | undefined;
+
+  /**
+   * Tracks viewport visibility for participant video elements.
+   * Available only in DOM environments.
+   */
+  readonly viewportTracker: ViewportTracker | undefined;
 
   /**
    * Owns the SFU-side video-subscription state (per-session and global overrides).
@@ -395,6 +402,7 @@ export class Call {
         this.state,
         this.tracer,
       );
+      this.viewportTracker = new ViewportTracker(this.state);
       this.dynascaleManager = new DynascaleManager(
         this.state,
         this.speaker,
@@ -3048,7 +3056,7 @@ export class Call {
     sessionId: string,
     trackType: VideoTrackType,
   ) => {
-    return this.dynascaleManager?.trackElementVisibility(
+    return this.viewportTracker?.trackElementVisibility(
       element,
       sessionId,
       trackType,
@@ -3061,7 +3069,7 @@ export class Call {
    * @param element the viewport element.
    */
   setViewport = <T extends HTMLElement>(element: T) => {
-    return this.dynascaleManager?.setViewport(element);
+    return this.viewportTracker?.setViewport(element);
   };
 
   /**
