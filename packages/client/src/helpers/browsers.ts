@@ -9,20 +9,6 @@ export const isSafari = () => {
 };
 
 /**
- * Checks whether the current runtime is a WebKit-engine browser.
- * Safari (desktop / iOS) or an iOS WKWebView host.
- */
-export const isWebKit = () => {
-  if (typeof navigator === 'undefined') return false;
-  const ua = navigator.userAgent || '';
-  if (!/AppleWebKit\//.test(ua)) return false;
-  // Chromium reuses the AppleWebKit/ token; exclude every Chromium /
-  // Gecko derivative that ships on iOS or otherwise.
-  const regExp = /Chrome\/|Chromium\/|CriOS\/|EdgiOS\/|OPiOS\/|FxiOS\/|Android/;
-  return !regExp.test(ua);
-};
-
-/**
  * Checks whether the current browser is Firefox.
  */
 export const isFirefox = () => {
