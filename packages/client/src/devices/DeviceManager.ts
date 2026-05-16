@@ -390,7 +390,7 @@ export abstract class DeviceManager<
   protected async unmuteStream() {
     this.logger.debug('Starting stream');
     let stream: MediaStream;
-    let rootStream: Promise<MediaStream> | undefined;
+    let rootStreamPromise: Promise<MediaStream> | undefined;
     if (
       this.state.mediaStream &&
       this.getTracks().every((t) => t.readyState === 'live')
@@ -465,7 +465,7 @@ export abstract class DeviceManager<
 
       // the rootStream represents the stream coming from the actual device
       // e.g. camera or microphone stream
-      rootStream = this.getStream(constraints as C);
+      rootStreamPromise = this.getStream(constraints as C);
       // we publish the last MediaStream of the chain
       stream = await this.filters.reduce(
         (parent, entry) =>
@@ -482,42 +482,53 @@ export abstract class DeviceManager<
               );
               return parent;
             }),
-        rootStream,
+        rootStreamPromise,
       );
     }
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);
     }
     if (this.state.mediaStream !== stream) {
-      this.state.setMediaStream(stream, await rootStream);
-      const handleTrackEnded = async () => {
-        await this.statusChangeSettled();
-        if (this.enabled) {
-          this.isTrackStoppedDueToTrackEnd = true;
-          setTimeout(() => {
-            this.isTrackStoppedDueToTrackEnd = false;
-          }, 2000);
-          await this.disable();
-        }
-      };
-      const createTrackMuteHandler = (muted: boolean) => () => {
-        if (!isMobile() || this.trackType !== TrackType.VIDEO) return;
-        this.call.notifyTrackMuteState(muted, this.trackType).catch((err) => {
-          this.logger.warn('Error while notifying track mute state', err);
+      const rootStream = await rootStreamPromise;
+      this.state.setMediaStream(stream, rootStream);
+      if (rootStream) {
+        const handleTrackEnded = async () => {
+          await this.statusChangeSettled();
+          if (this.enabled) {
+            this.isTrackStoppedDueToTrackEnd = true;
+            setTimeout(() => {
+              this.isTrackStoppedDueToTrackEnd = false;
+            }, 2000);
+            await this.disable();
+          }
+        };
+        const createTrackMuteHandler = (muted: boolean) => () => {
+          // report all tracks on mobile, and only Video on desktop browsers
+          if (isMobile() || this.trackType == TrackType.VIDEO) {
+            this.call.tracer.trace('navigator.mediaDevices.muteStateUpdated', {
+              trackType: TrackType[this.trackType],
+              muted,
+            });
+            this.call
+              .notifyTrackMuteState(muted, this.trackType)
+              .catch((err) => {
+                this.logger.warn('Error while notifying track mute state', err);
+              });
+          }
+        };
+        rootStream.getTracks().forEach((track) => {
+          const muteHandler = createTrackMuteHandler(true);
+          const unmuteHandler = createTrackMuteHandler(false);
+          track.addEventListener('mute', muteHandler);
+          track.addEventListener('unmute', unmuteHandler);
+          track.addEventListener('ended', handleTrackEnded);
+          this.subscriptions.push(() => {
+            track.removeEventListener('mute', muteHandler);
+            track.removeEventListener('unmute', unmuteHandler);
+            track.removeEventListener('ended', handleTrackEnded);
+          });
         });
-      };
-      stream.getTracks().forEach((track) => {
-        const muteHandler = createTrackMuteHandler(true);
-        const unmuteHandler = createTrackMuteHandler(false);
-        track.addEventListener('mute', muteHandler);
-        track.addEventListener('unmute', unmuteHandler);
-        track.addEventListener('ended', handleTrackEnded);
-        this.subscriptions.push(() => {
-          track.removeEventListener('mute', muteHandler);
-          track.removeEventListener('unmute', unmuteHandler);
-          track.removeEventListener('ended', handleTrackEnded);
-        });
-      });
+      }
     }
   }
 
