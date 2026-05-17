@@ -17,13 +17,19 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
     const { t } = useI18n();
     const { useMicrophoneState } = useCallStateHooks();
-    const { selectedDevice: selectedMic, devices: microphones } =
-      useMicrophoneState();
+    const {
+      selectedDevice: selectedMic,
+      devices: microphones,
+      isSystemMuted,
+    } = useMicrophoneState();
 
     return (
       <button
         ref={ref}
         className="rd__button rd__button--align-left rd__lobby__mic-button"
+        title={
+          isSystemMuted ? t('Microphone is paused by your system') : undefined
+        }
       >
         <Icon className="rd__button__icon" icon="mic" />
         <p className="rd__lobby__mic-button__device">

@@ -380,6 +380,7 @@ export const useCameraState = ({
   const isPromptingPermission = useObservableValue(
     state.isPromptingPermission$,
   );
+  const isSystemMuted = useObservableValue(state.systemMuted$);
 
   return {
     camera,
@@ -396,6 +397,7 @@ export const useCameraState = ({
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
       { optimisticUpdates },
+      isSystemMuted,
     ),
   };
 };
@@ -419,6 +421,7 @@ export const useMicrophoneState = ({
   );
   const isSpeakingWhileMuted = useObservableValue(state.speakingWhileMuted$);
   const audioBitrateProfile = useObservableValue(state.audioBitrateProfile$);
+  const isSystemMuted = useObservableValue(state.systemMuted$);
 
   return {
     microphone,
@@ -435,6 +438,7 @@ export const useMicrophoneState = ({
       useObservableValue(state.status$),
       useObservableValue(state.optimisticStatus$),
       { optimisticUpdates },
+      isSystemMuted,
     ),
   };
 };
@@ -540,6 +544,7 @@ function getComputedStatus(
   status: InputDeviceStatus,
   pendingStatus: InputDeviceStatus,
   options: Required<UseInputMediaDeviceOptions>,
+  isSystemMuted: boolean = false,
 ) {
   const optimisticStatus = pendingStatus ?? status;
 
@@ -550,6 +555,15 @@ function getComputedStatus(
     isMute: status !== 'enabled',
     optimisticIsMute: optimisticStatus !== 'enabled',
     isTogglePending: optimisticStatus !== status,
+    /**
+     * `true` while the OS/browser has muted the underlying hardware track
+     * (e.g., bluetooth disconnect, OS-level mic/camera kill switch, Siri
+     * interruption). Orthogonal to `isMute`/`optimisticIsMute`, which
+     * continue to reflect user intent. UIs should surface this as a
+     * separate hint (e.g. a warning badge) rather than flagging the
+     * control itself as muted.
+     */
+    isSystemMuted,
     /**
      * If optimistic updates are enabled (`options.optimisticUpdates`), we
      * consider the optimistic status to determine whether the device is muted or not.

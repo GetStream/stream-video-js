@@ -49,6 +49,7 @@ export abstract class DeviceManager<
   protected readonly call: Call;
   protected readonly trackType: TrackType;
   protected subscriptions: (() => void)[] = [];
+  protected currentStreamCleanups: (() => void)[] = [];
   protected devicePersistence: Required<DevicePersistenceOptions>;
   protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
@@ -292,9 +293,15 @@ export abstract class DeviceManager<
    * @internal
    */
   dispose = () => {
+    this.runCurrentStreamCleanups();
     this.subscriptions.forEach((s) => s());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
+  };
+
+  private runCurrentStreamCleanups = () => {
+    this.currentStreamCleanups.forEach((c) => c());
+    this.currentStreamCleanups = [];
   };
 
   protected async applySettingsToStream() {
@@ -353,6 +360,7 @@ export abstract class DeviceManager<
         // @ts-expect-error called to dispose the stream in RN
         mediaStream.release();
       }
+      this.runCurrentStreamCleanups();
       this.state.setMediaStream(undefined, undefined);
       this.filters.forEach((entry) => entry.stop?.());
     }
@@ -398,6 +406,11 @@ export abstract class DeviceManager<
       stream = this.state.mediaStream;
       this.enableTracks();
     } else {
+      // We are about to compose a fresh filter chain and acquire a new
+      // root stream. Drop any listeners bound to the previous root stream
+      // before chainWith below registers new ones for the new chain.
+      this.runCurrentStreamCleanups();
+
       const defaultConstraints = this.state.defaultConstraints;
       const constraints: MediaTrackConstraints = {
         ...defaultConstraints,
@@ -455,7 +468,7 @@ export abstract class DeviceManager<
               });
             };
             parentTrack.addEventListener('ended', handleParentTrackEnded);
-            this.subscriptions.push(() => {
+            this.currentStreamCleanups.push(() => {
               parentTrack.removeEventListener('ended', handleParentTrackEnded);
             });
           });
@@ -503,6 +516,7 @@ export abstract class DeviceManager<
           }
         };
         const createTrackMuteHandler = (muted: boolean) => () => {
+          this.state.setSystemMuted(muted);
           // report all tracks on mobile, and only Video on desktop browsers
           if (isMobile() || this.trackType == TrackType.VIDEO) {
             this.call.tracer.trace('navigator.mediaDevices.muteStateUpdated', {
@@ -522,7 +536,7 @@ export abstract class DeviceManager<
           track.addEventListener('mute', muteHandler);
           track.addEventListener('unmute', unmuteHandler);
           track.addEventListener('ended', handleTrackEnded);
-          this.subscriptions.push(() => {
+          this.currentStreamCleanups.push(() => {
             track.removeEventListener('mute', muteHandler);
             track.removeEventListener('unmute', unmuteHandler);
             track.removeEventListener('ended', handleTrackEnded);

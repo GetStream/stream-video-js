@@ -16,6 +16,7 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   protected optimisticStatusSubject = new BehaviorSubject<InputDeviceStatus>(
     undefined,
   );
+  protected systemMutedSubject = new BehaviorSubject<boolean>(false);
   protected mediaStreamSubject = new BehaviorSubject<MediaStream | undefined>(
     undefined,
   );
@@ -36,7 +37,6 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
 
   /**
    * An Observable that emits the current media stream, or `undefined` if the device is currently disabled.
-   *
    */
   mediaStream$ = this.mediaStreamSubject.asObservable();
 
@@ -63,6 +63,18 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
    * An Observable the reflects the requested device status. Useful for optimistic UIs
    */
   optimisticStatus$ = this.optimisticStatusSubject
+    .asObservable()
+    .pipe(distinctUntilChanged());
+
+  /**
+   * An Observable that emits `true` while the OS/browser has muted the
+   * underlying hardware track (e.g., bluetooth disconnect, OS-level
+   * mic/camera kill switch, Siri interruption). Orthogonal to `status$`:
+   * the user's intent remains captured in `status$`, while this signal
+   * reflects what's happening at the hardware level. The UI can compose
+   * the two to decide what to show.
+   */
+  systemMuted$ = this.systemMutedSubject
     .asObservable()
     .pipe(distinctUntilChanged());
 
@@ -131,6 +143,14 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   }
 
   /**
+   * `true` while the OS/browser has muted the underlying hardware track.
+   * See {@link systemMuted$} for the full contract.
+   */
+  get systemMuted() {
+    return RxUtils.getCurrentValue(this.systemMuted$);
+  }
+
+  /**
    * The currently selected device
    */
   get selectedDevice() {
@@ -170,6 +190,14 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   }
 
   /**
+   * @internal
+   * @param value
+   */
+  setSystemMuted(value: boolean) {
+    RxUtils.setCurrentValue(this.systemMutedSubject, value);
+  }
+
+  /**
    * Updates the `mediaStream` state variable.
    *
    * @internal
@@ -183,6 +211,11 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
   ) {
     RxUtils.setCurrentValue(this.mediaStreamSubject, stream);
     RxUtils.setCurrentValue(this.rootMediaStreamSubject, rootStream);
+    // A new (or absent) stream invalidates any prior hardware-mute
+    // signal; that signal belonged to the previous track. The OS will
+    // re-fire 'mute' on the new track if it's already interrupted.
+    const muted = rootStream?.getTracks().some((t) => t.muted) ?? false;
+    RxUtils.setCurrentValue(this.systemMutedSubject, muted);
     if (rootStream) {
       this.setDevice(this.getDeviceIdFromStream(rootStream));
     }

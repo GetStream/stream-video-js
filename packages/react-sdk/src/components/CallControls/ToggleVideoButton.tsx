@@ -43,6 +43,7 @@ export const ToggleVideoPreviewButton = (
     camera,
     hasBrowserPermission,
     isPromptingPermission,
+    isSystemMuted,
     isTogglePending,
     optionsAwareIsMute,
   } = useCameraState({ optimisticUpdates });
@@ -54,7 +55,9 @@ export const ToggleVideoPreviewButton = (
       title={
         !hasBrowserPermission
           ? t('Check your browser video permissions')
-          : (caption ?? t('Video'))
+          : isSystemMuted
+            ? t('Camera is paused by your system')
+            : (caption ?? t('Video'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -97,6 +100,13 @@ export const ToggleVideoPreviewButton = (
             children="?"
           />
         )}
+        {isSystemMuted && hasBrowserPermission && (
+          <span
+            className="str-video__system-muted"
+            title={t('Camera is paused by your system')}
+            children="!"
+          />
+        )}
       </CompositeButton>
     </WithTooltip>
   );
@@ -132,6 +142,7 @@ export const ToggleVideoPublishingButton = (
     optionsAwareIsMute,
     hasBrowserPermission,
     isPromptingPermission,
+    isSystemMuted,
     isTogglePending,
   } = useCameraState({ optimisticUpdates });
   const callSettings = useCallSettings();
@@ -164,7 +175,9 @@ export const ToggleVideoPublishingButton = (
                 ? t('Check your browser video permissions')
                 : !isPublishingVideoAllowed
                   ? t('Video publishing is disabled by the system')
-                  : caption || t('Video')
+                  : isSystemMuted
+                    ? t('Camera is paused by your system')
+                    : caption || t('Video')
           }
           tooltipDisabled={tooltipDisabled}
         >
@@ -205,6 +218,17 @@ export const ToggleVideoPublishingButton = (
                 ?
               </span>
             )}
+            {isSystemMuted &&
+              hasBrowserPermission &&
+              hasPermission &&
+              isPublishingVideoAllowed && (
+                <span
+                  className="str-video__system-muted"
+                  title={t('Camera is paused by your system')}
+                >
+                  !
+                </span>
+              )}
           </CompositeButton>
         </WithTooltip>
       </PermissionNotification>

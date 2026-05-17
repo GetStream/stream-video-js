@@ -16,13 +16,17 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
     const { t } = useI18n();
     const { useCameraState } = useCallStateHooks();
-    const { selectedDevice: selectedCamera, devices: cameras } =
-      useCameraState();
+    const {
+      selectedDevice: selectedCamera,
+      devices: cameras,
+      isSystemMuted,
+    } = useCameraState();
 
     return (
       <button
         ref={ref}
         className="rd__button rd__button--align-left rd__lobby__camera-button"
+        title={isSystemMuted ? t('Camera is paused by your system') : undefined}
       >
         <Icon className="rd__button__icon" icon="camera" />
         <p className="rd__lobby__camera-button__device">

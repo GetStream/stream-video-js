@@ -43,6 +43,7 @@ export const ToggleAudioPreviewButton = (
     microphone,
     hasBrowserPermission,
     isPromptingPermission,
+    isSystemMuted,
     optionsAwareIsMute,
     isTogglePending,
   } = useMicrophoneState({ optimisticUpdates });
@@ -56,7 +57,9 @@ export const ToggleAudioPreviewButton = (
       title={
         !hasBrowserPermission
           ? t('Check your browser audio permissions')
-          : (caption ?? t('Mic'))
+          : isSystemMuted
+            ? t('Microphone is paused by your system')
+            : (caption ?? t('Mic'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -99,6 +102,13 @@ export const ToggleAudioPreviewButton = (
             children="?"
           />
         )}
+        {isSystemMuted && hasBrowserPermission && (
+          <span
+            className="str-video__system-muted"
+            title={t('Microphone is paused by your system')}
+            children="!"
+          />
+        )}
       </CompositeButton>
     </WithTooltip>
   );
@@ -133,6 +143,7 @@ export const ToggleAudioPublishingButton = (
     microphone,
     hasBrowserPermission,
     isPromptingPermission,
+    isSystemMuted,
     isTogglePending,
     optionsAwareIsMute,
   } = useMicrophoneState({ optimisticUpdates });
@@ -161,7 +172,9 @@ export const ToggleAudioPublishingButton = (
               ? t('You have no permission to share your audio')
               : !hasBrowserPermission
                 ? t('Check your browser mic permissions')
-                : (caption ?? t('Mic'))
+                : isSystemMuted
+                  ? t('Microphone is paused by your system')
+                  : (caption ?? t('Mic'))
           }
           tooltipDisabled={tooltipDisabled}
         >
@@ -198,6 +211,14 @@ export const ToggleAudioPublishingButton = (
                 title={t('Waiting for permission')}
               >
                 ?
+              </span>
+            )}
+            {isSystemMuted && hasBrowserPermission && hasPermission && (
+              <span
+                className="str-video__system-muted"
+                title={t('Microphone is paused by your system')}
+              >
+                !
               </span>
             )}
           </CompositeButton>
