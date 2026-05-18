@@ -274,8 +274,9 @@ export class Publisher extends BasePeerConnection {
         for (const item of this.transceiverCache.items()) {
           const { publishOption, transceiver } = item;
           if (!trackTypes.includes(publishOption.trackType)) continue;
-          await this.disableAllEncodings(item);
-          this.stopTrack(transceiver.sender.track);
+          const track = transceiver.sender.track;
+          await this.clearSenderTrack(transceiver.sender);
+          this.stopTrack(track);
         }
       },
     );
@@ -289,8 +290,9 @@ export class Publisher extends BasePeerConnection {
       this.eventLockKey('changePublishQuality'),
       async () => {
         for (const item of this.transceiverCache.items()) {
-          await this.disableAllEncodings(item);
-          this.stopTrack(item.transceiver.sender.track);
+          const track = item.transceiver.sender.track;
+          await this.clearSenderTrack(item.transceiver.sender);
+          this.stopTrack(track);
         }
         for (const track of this.clonedTracks) {
           this.stopTrack(track);
@@ -541,54 +543,21 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
-   * Firefox keeps sending RTP on an RTCRtpSender after the attached
-   * MediaStreamTrack is stopped via `track.stop()`. Flipping each encoding's
-   * `active` flag to `false` pauses the encoder locally without renegotiation,
-   * which is what other browsers do implicitly on track.stop().
+   * Firefox keeps emitting RTP on an RTCRtpSender after the attached
+   * MediaStreamTrack is stopped via `track.stop()`, for both audio and
+   * video. `replaceTrack(null)` is the reliable cross-codec way to
+   * silence the wire (what other browsers do implicitly on track.stop()).
    *
-   * Before disabling, snapshots the current encoder state into
-   * `bundle.videoSender` if it isn't set yet, so that a future
-   * `updateTransceiver` can restore the prior `active=true` configuration on
-   * Firefox even when the SFU hasn't sent a `changePublishQuality` event.
+   * The sender's encoding parameters are preserved across
+   * `replaceTrack`, so a subsequent `replaceTrack(newTrack)` resumes
+   * with the same encoder state.
    *
-   * No-op on non-Firefox browsers and when the sender has no encodings.
+   * No-op on non-Firefox browsers and during teardown.
    */
-  private disableAllEncodings = async (bundle: PublishBundle) => {
+  private clearSenderTrack = async (sender: RTCRtpSender) => {
     if (this.isDisposed || !isFirefox()) return;
-    const { transceiver, publishOption } = bundle;
-    const sender = transceiver.sender;
-    const params = sender.getParameters();
-    if (!params.encodings || params.encodings.length === 0) return;
-
-    if (!bundle.videoSender) {
-      this.transceiverCache.update(publishOption, {
-        videoSender: {
-          trackType: publishOption.trackType,
-          publishOptionId: publishOption.id,
-          codec: publishOption.codec,
-          layers: params.encodings.map((e) => ({
-            name: e.rid ?? 'q',
-            active: e.active ?? true,
-            maxBitrate: e.maxBitrate ?? 0,
-            scaleResolutionDownBy: e.scaleResolutionDownBy ?? 0,
-            maxFramerate: e.maxFramerate ?? 0,
-            // @ts-expect-error scalabilityMode is not in the typedefs yet
-            scalabilityMode: e.scalabilityMode ?? '',
-          })),
-        },
-      });
-    }
-
-    let changed = false;
-    for (const encoding of params.encodings) {
-      if (encoding.active !== false) {
-        encoding.active = false;
-        changed = true;
-      }
-    }
-    if (!changed) return;
-    await sender.setParameters(params).catch((err) => {
-      this.logger.error('Failed to disable all encodings:', err);
+    await sender.replaceTrack(null).catch((err) => {
+      this.logger.warn('Failed to clear sender track', err);
     });
   };
 }
