@@ -5,7 +5,7 @@ import {
   UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
-import { OwnCapability } from '@stream-io/video-client';
+import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { CompositeButton, IconButtonWithMenuProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
@@ -38,15 +38,18 @@ export const ToggleVideoPreviewButton = (
     ...restCompositeButtonProps
   } = props;
   const { t } = useI18n();
-  const { useCameraState } = useCallStateHooks();
+  const { useCameraState, useLocalParticipant } = useCallStateHooks();
   const {
     camera,
     hasBrowserPermission,
     isPromptingPermission,
-    isSystemMuted,
     isTogglePending,
     optionsAwareIsMute,
   } = useCameraState({ optimisticUpdates });
+  const localParticipant = useLocalParticipant();
+  const isSystemMuted = !!localParticipant?.interruptedTracks?.includes(
+    SfuModels.TrackType.VIDEO,
+  );
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, () => camera.toggle());
 
@@ -136,15 +139,19 @@ export const ToggleVideoPublishingButton = (
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_VIDEO);
 
-  const { useCameraState, useCallSettings } = useCallStateHooks();
+  const { useCameraState, useCallSettings, useLocalParticipant } =
+    useCallStateHooks();
   const {
     camera,
     optionsAwareIsMute,
     hasBrowserPermission,
     isPromptingPermission,
-    isSystemMuted,
     isTogglePending,
   } = useCameraState({ optimisticUpdates });
+  const localParticipant = useLocalParticipant();
+  const isSystemMuted = !!localParticipant?.interruptedTracks?.includes(
+    SfuModels.TrackType.VIDEO,
+  );
   const callSettings = useCallSettings();
   const isPublishingVideoAllowed = callSettings?.video.enabled;
   const [tooltipDisabled, setTooltipDisabled] = useState(false);

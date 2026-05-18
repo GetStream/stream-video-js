@@ -1,4 +1,4 @@
-import { OwnCapability } from '@stream-io/video-client';
+import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import {
   Restricted,
   useCallStateHooks,
@@ -38,15 +38,18 @@ export const ToggleAudioPreviewButton = (
     ...restCompositeButtonProps
   } = props;
   const { t } = useI18n();
-  const { useMicrophoneState } = useCallStateHooks();
+  const { useMicrophoneState, useLocalParticipant } = useCallStateHooks();
   const {
     microphone,
     hasBrowserPermission,
     isPromptingPermission,
-    isSystemMuted,
     optionsAwareIsMute,
     isTogglePending,
   } = useMicrophoneState({ optimisticUpdates });
+  const localParticipant = useLocalParticipant();
+  const isSystemMuted = !!localParticipant?.interruptedTracks?.includes(
+    SfuModels.TrackType.AUDIO,
+  );
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, () =>
     microphone.toggle(),
@@ -138,15 +141,18 @@ export const ToggleAudioPublishingButton = (
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_AUDIO);
 
-  const { useMicrophoneState } = useCallStateHooks();
+  const { useMicrophoneState, useLocalParticipant } = useCallStateHooks();
   const {
     microphone,
     hasBrowserPermission,
     isPromptingPermission,
-    isSystemMuted,
     isTogglePending,
     optionsAwareIsMute,
   } = useMicrophoneState({ optimisticUpdates });
+  const localParticipant = useLocalParticipant();
+  const isSystemMuted = !!localParticipant?.interruptedTracks?.includes(
+    SfuModels.TrackType.AUDIO,
+  );
 
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, async () => {

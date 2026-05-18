@@ -395,7 +395,20 @@ describe('Device Manager', () => {
     vi.useRealTimers();
   });
 
-  describe('systemMuted (hardware mute/unmute events)', () => {
+  describe('interruptedTracks (hardware mute/unmute events)', () => {
+    const localSessionId = 'local-session-id';
+
+    beforeEach(() => {
+      manager['call'].state.setParticipants([
+        {
+          sessionId: localSessionId,
+          userId: 'local-user',
+          isLocalParticipant: true,
+          publishedTracks: [],
+        } as any,
+      ]);
+    });
+
     const fireOn = async (track: MockTrack, event: 'mute' | 'unmute') => {
       const handler = track.eventHandlers[event] as Function;
       await handler();
@@ -404,27 +417,32 @@ describe('Device Manager', () => {
     const currentTrack = () =>
       manager.state.mediaStream?.getTracks()[0] as MockTrack;
 
-    it('flips systemMuted to true on a mute event without touching status', async () => {
+    const isInterrupted = () =>
+      !!manager['call'].state.localParticipant?.interruptedTracks?.includes(
+        TrackType.VIDEO,
+      );
+
+    it('adds the track type on a mute event without touching status', async () => {
       await manager.enable();
       expect(manager.state.status).toBe('enabled');
-      expect(manager.state.systemMuted).toBe(false);
+      expect(isInterrupted()).toBe(false);
 
       await fireOn(currentTrack(), 'mute');
 
-      expect(manager.state.systemMuted).toBe(true);
+      expect(isInterrupted()).toBe(true);
       expect(manager.state.status).toBe('enabled');
       expect(manager.state.optimisticStatus).toBe('enabled');
     });
 
-    it('flips systemMuted back to false on the matching unmute event', async () => {
+    it('removes the track type on the matching unmute event', async () => {
       await manager.enable();
       const track = currentTrack();
       await fireOn(track, 'mute');
-      expect(manager.state.systemMuted).toBe(true);
+      expect(isInterrupted()).toBe(true);
 
       await fireOn(track, 'unmute');
 
-      expect(manager.state.systemMuted).toBe(false);
+      expect(isInterrupted()).toBe(false);
       expect(manager.state.status).toBe('enabled');
     });
 
@@ -445,10 +463,10 @@ describe('Device Manager', () => {
       );
     });
 
-    it('emits systemMuted$ transitions to subscribers', async () => {
+    it('emits localParticipant$ transitions to subscribers', async () => {
       const observed: boolean[] = [];
-      const subscription = manager.state.systemMuted$.subscribe((value) =>
-        observed.push(value),
+      const subscription = manager['call'].state.localParticipant$.subscribe(
+        (p) => observed.push(!!p?.interruptedTracks?.includes(TrackType.VIDEO)),
       );
 
       await manager.enable();
@@ -456,11 +474,12 @@ describe('Device Manager', () => {
       await fireOn(track, 'mute');
       await fireOn(track, 'unmute');
 
-      expect(observed).toEqual([false, true, false]);
+      expect(observed).toContain(true);
+      expect(observed[observed.length - 1]).toBe(false);
       subscription.unsubscribe();
     });
 
-    it('reacquires a fresh stream when the device is replaced mid-system-mute', async () => {
+    it('reacquires a fresh stream when the device is replaced mid-interruption', async () => {
       vi.useFakeTimers();
       emitDeviceIds(mockVideoDevices);
 
@@ -468,7 +487,7 @@ describe('Device Manager', () => {
       const device = mockVideoDevices[0];
       await manager.select(device.deviceId);
       await fireOn(currentTrack(), 'mute');
-      expect(manager.state.systemMuted).toBe(true);
+      expect(isInterrupted()).toBe(true);
       expect(manager.state.status).toBe('enabled');
 
       manager.getStream.mockClear();
@@ -498,29 +517,29 @@ describe('Device Manager', () => {
       expect(manager.enabled).toBe(true);
     });
 
-    it('resets systemMuted when the user toggles the device off and back on', async () => {
+    it('clears interruptedTracks when the user toggles the device off and back on', async () => {
       await manager.enable();
       await fireOn(currentTrack(), 'mute');
-      expect(manager.state.systemMuted).toBe(true);
+      expect(isInterrupted()).toBe(true);
 
       await manager.disable();
       // Stream is cleared on disable; the prior hardware-mute signal
       // belonged to the now-gone track.
-      expect(manager.state.systemMuted).toBe(false);
+      expect(isInterrupted()).toBe(false);
 
       await manager.enable();
       // Re-acquired stream is fresh; the stale flag must not carry over.
-      expect(manager.state.systemMuted).toBe(false);
+      expect(isInterrupted()).toBe(false);
     });
 
-    it('resets systemMuted when select() swaps to a different device', async () => {
+    it('clears interruptedTracks when select() swaps to a different device', async () => {
       await manager.enable();
       await fireOn(currentTrack(), 'mute');
-      expect(manager.state.systemMuted).toBe(true);
+      expect(isInterrupted()).toBe(true);
 
       await manager.select(mockVideoDevices[1].deviceId);
 
-      expect(manager.state.systemMuted).toBe(false);
+      expect(isInterrupted()).toBe(false);
     });
 
     it('removes mute/unmute listeners from the prior track when select() swaps the stream', async () => {

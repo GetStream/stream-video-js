@@ -7,6 +7,7 @@ import {
   Icon,
   MenuToggle,
   MenuVisualType,
+  SfuModels,
   ToggleMenuButtonProps,
   useCallStateHooks,
   useI18n,
@@ -16,12 +17,13 @@ import { isMobile } from '../helpers/isMobile';
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
     const { t } = useI18n();
-    const { useMicrophoneState } = useCallStateHooks();
-    const {
-      selectedDevice: selectedMic,
-      devices: microphones,
-      isSystemMuted,
-    } = useMicrophoneState();
+    const { useMicrophoneState, useLocalParticipant } = useCallStateHooks();
+    const { selectedDevice: selectedMic, devices: microphones } =
+      useMicrophoneState();
+    const localParticipant = useLocalParticipant();
+    const isSystemMuted = !!localParticipant?.interruptedTracks?.includes(
+      SfuModels.TrackType.AUDIO,
+    );
 
     return (
       <button

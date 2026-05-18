@@ -273,6 +273,111 @@ describe('Subscriber', () => {
     });
   });
 
+  describe('interruptedTracks', () => {
+    const setup = ({ muted = false }: { muted?: boolean } = {}) => {
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'lookup:TRACK_TYPE_AUDIO';
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+      Object.defineProperty(track, 'muted', {
+        configurable: true,
+        get: () => muted,
+      });
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('session-id', {
+        sessionId: 'session-id',
+        trackLookupPrefix: 'lookup',
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      const calls = (track.addEventListener as ReturnType<typeof vi.fn>).mock
+        .calls;
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of calls) {
+        handlers[event] = handler as () => void;
+      }
+      return { track, handlers };
+    };
+
+    const interruptedFor = (sessionId: string) =>
+      state.participants.find((p) => p.sessionId === sessionId)
+        ?.interruptedTracks ?? [];
+
+    it('adds the track type when the mute handler fires', () => {
+      const { handlers } = setup();
+      expect(interruptedFor('session-id')).toEqual([]);
+
+      handlers['mute']();
+
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+    });
+
+    it('removes the track type when the unmute handler fires', () => {
+      const { handlers } = setup();
+      handlers['mute']();
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+
+      handlers['unmute']();
+
+      expect(interruptedFor('session-id')).toEqual([]);
+    });
+
+    it('seeds the track type when the track arrives already muted', () => {
+      setup({ muted: true });
+
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+    });
+
+    it('clears the track type when the track ends', () => {
+      const { handlers } = setup();
+      handlers['mute']();
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+
+      handlers['ended']();
+
+      expect(interruptedFor('session-id')).toEqual([]);
+    });
+
+    it('does not mutate state for orphaned tracks until associated', () => {
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'orphan:TRACK_TYPE_AUDIO';
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      const calls = (track.addEventListener as ReturnType<typeof vi.fn>).mock
+        .calls;
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of calls) {
+        handlers[event] = handler as () => void;
+      }
+
+      // Orphan: handler fires before the participant exists.
+      handlers['mute']();
+      expect(state.participants).toEqual([]);
+
+      // Once the participant is registered, the next event lands.
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('orphan-session', {
+        sessionId: 'orphan-session',
+        trackLookupPrefix: 'orphan',
+      });
+      handlers['mute']();
+
+      expect(interruptedFor('orphan-session')).toEqual([TrackType.AUDIO]);
+    });
+  });
+
   describe('Negotiation', () => {
     it('negotiates with the SFU', async () => {
       sfuClient.sendAnswer = vi.fn();

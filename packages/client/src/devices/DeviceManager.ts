@@ -25,6 +25,7 @@ import {
   MediaStreamFilterEntry,
   MediaStreamFilterRegistrationResult,
 } from './filters';
+import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
 import {
   createSyntheticDevice,
   defaultDeviceId,
@@ -363,6 +364,7 @@ export abstract class DeviceManager<
       }
       this.runCurrentStreamCleanups();
       this.state.setMediaStream(undefined, undefined);
+      this.setLocalInterrupted(false);
       this.filters.forEach((entry) => entry.stop?.());
     }
   }
@@ -507,6 +509,7 @@ export abstract class DeviceManager<
       this.state.setMediaStream(stream, rootStream);
       if (rootStream) {
         const handleTrackEnded = async () => {
+          this.setLocalInterrupted(false);
           await this.statusChangeSettled();
           if (this.enabled) {
             this.isTrackStoppedDueToTrackEnd = true;
@@ -517,7 +520,7 @@ export abstract class DeviceManager<
           }
         };
         const createTrackMuteHandler = (muted: boolean) => () => {
-          this.state.setSystemMuted(muted);
+          this.setLocalInterrupted(muted);
 
           // WebKit's RTCRtpSender encoder can stay stalled after an iOS /
           // macOS audio session interruption even though the track is
@@ -556,9 +559,27 @@ export abstract class DeviceManager<
             track.removeEventListener('ended', handleTrackEnded);
           });
         });
+        const initialMuted = rootStream.getTracks().some((t) => t.muted);
+        this.setLocalInterrupted(initialMuted);
+      } else {
+        this.setLocalInterrupted(false);
       }
     }
   }
+
+  private setLocalInterrupted = (interrupted: boolean) => {
+    const localParticipant = this.call.state.localParticipant;
+    if (!localParticipant) return;
+    this.call.state.updateParticipant(localParticipant.sessionId, (p) => {
+      const current = p.interruptedTracks ?? [];
+      const has = current.includes(this.trackType);
+      if (interrupted === has) return {};
+      const next = interrupted
+        ? pushToIfMissing([...current], this.trackType)
+        : removeFromIfPresent([...current], this.trackType);
+      return { interruptedTracks: next };
+    });
+  };
 
   private get mediaDeviceKind(): MediaDeviceKind {
     if (this.trackType === TrackType.AUDIO) return 'audioinput';

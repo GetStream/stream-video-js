@@ -1,9 +1,10 @@
 import { BasePeerConnection } from './BasePeerConnection';
 import { BasePeerConnectionOpts } from './types';
 import { NegotiationError } from './NegotiationError';
-import { PeerType } from '../gen/video/sfu/models/models';
+import { PeerType, TrackType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
+import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
 import { enableStereo, removeCodecsExcept } from './helpers/sdp';
 
 /**
@@ -80,21 +81,28 @@ export class Subscriber extends BasePeerConnection {
       track,
     );
 
-    const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
-    track.addEventListener('mute', () => {
-      this.logger.info(`[onTrack]: Track muted: ${trackDebugInfo}`);
-    });
-    track.addEventListener('unmute', () => {
-      this.logger.info(`[onTrack]: Track unmuted: ${trackDebugInfo}`);
-    });
-    track.addEventListener('ended', () => {
-      this.logger.info(`[onTrack]: Track ended: ${trackDebugInfo}`);
-      this.state.removeOrphanedTrack(primaryStream.id);
-    });
-
     const trackType = toTrackType(rawTrackType);
     if (!trackType) {
       return this.logger.error(`Unknown track type: ${rawTrackType}`);
+    }
+
+    const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
+    track.addEventListener('mute', () => {
+      this.logger.info(`[onTrack]: Track muted: ${trackDebugInfo}`);
+      this.setRemoteTrackInterrupted(trackId, trackType, true);
+    });
+    track.addEventListener('unmute', () => {
+      this.logger.info(`[onTrack]: Track unmuted: ${trackDebugInfo}`);
+      this.setRemoteTrackInterrupted(trackId, trackType, false);
+    });
+    track.addEventListener('ended', () => {
+      this.logger.info(`[onTrack]: Track ended: ${trackDebugInfo}`);
+      this.setRemoteTrackInterrupted(trackId, trackType, false);
+      this.state.removeOrphanedTrack(primaryStream.id);
+    });
+
+    if (track.muted) {
+      this.setRemoteTrackInterrupted(trackId, trackType, true);
     }
 
     this.trackIdToTrackType.set(track.id, trackType);
@@ -139,6 +147,26 @@ export class Subscriber extends BasePeerConnection {
         previousStream.removeTrack(t);
       });
     }
+  };
+
+  private setRemoteTrackInterrupted = (
+    trackId: string,
+    trackType: TrackType,
+    interrupted: boolean,
+  ) => {
+    const target = this.state.participants.find(
+      (p) => p.trackLookupPrefix === trackId,
+    );
+    if (!target) return;
+    this.state.updateParticipant(target.sessionId, (p) => {
+      const current = p.interruptedTracks ?? [];
+      const has = current.includes(trackType);
+      if (interrupted === has) return {};
+      const next = interrupted
+        ? pushToIfMissing([...current], trackType)
+        : removeFromIfPresent([...current], trackType);
+      return { interruptedTracks: next };
+    });
   };
 
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
