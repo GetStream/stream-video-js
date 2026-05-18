@@ -1683,6 +1683,12 @@ export class Call {
     )
       return;
 
+    // Drop redundant reconnect calls. If a reconnect is already queued or
+    // running for this Call, that entry will resolve whatever broke;
+    // queueing more entries just replays the full REJOIN cycle (one extra
+    // `POST /join` per entry) once the call is already healthy again.
+    if (hasPending(this.reconnectConcurrencyTag)) return;
+
     return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
       const reconnectStartTime = Date.now();
       this.reconnectStrategy = strategy;
@@ -1728,11 +1734,7 @@ export class Call {
       }
 
       let attempt = 0;
-      while (
-        this.state.callingState !== CallingState.JOINED &&
-        this.state.callingState !== CallingState.RECONNECTING_FAILED &&
-        this.state.callingState !== CallingState.LEFT
-      ) {
+      do {
         const reconnectingTime = Date.now() - reconnectStartTime;
         const shouldGiveUpReconnecting =
           this.disconnectionTimeoutSeconds > 0 &&
@@ -1860,7 +1862,15 @@ export class Call {
             error,
           );
         }
-      }
+      } while (
+        // Cast: TS narrows `callingState` based on the prior loop body and
+        // doesn't see that `reconnectRejoin`/`markAsReconnectingFailed` can
+        // re-mutate it during the next iteration.
+        (this.state.callingState as CallingState) !== CallingState.JOINED &&
+        (this.state.callingState as CallingState) !==
+          CallingState.RECONNECTING_FAILED &&
+        (this.state.callingState as CallingState) !== CallingState.LEFT
+      );
       this.logger.info('[Reconnect] Reconnection flow finished');
     });
   };
