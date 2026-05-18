@@ -307,6 +307,12 @@ export interface PublishOption {
    * @generated from protobuf field: repeated stream.video.sfu.models.AudioBitrate audio_bitrate_profiles = 10;
    */
   audioBitrateProfiles: AudioBitrate[];
+  /**
+   * The degradation preference for video encoding.
+   *
+   * @generated from protobuf field: stream.video.sfu.models.DegradationPreference degradation_preference = 11;
+   */
+  degradationPreference: DegradationPreference;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Codec
@@ -1172,6 +1178,34 @@ export enum ClientCapability {
    */
   SUBSCRIBER_VIDEO_PAUSE = 1,
 }
+/**
+ * DegradationPreference represents the RTCDegradationPreference from WebRTC.
+ * See https://developer.mozilla.org/en-US/docs/Web/API/RTCRtpSender/setParameters#degradationpreference
+ *
+ * @generated from protobuf enum stream.video.sfu.models.DegradationPreference
+ */
+export enum DegradationPreference {
+  /**
+   * @generated from protobuf enum value: DEGRADATION_PREFERENCE_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+  /**
+   * @generated from protobuf enum value: DEGRADATION_PREFERENCE_BALANCED = 1;
+   */
+  BALANCED = 1,
+  /**
+   * @generated from protobuf enum value: DEGRADATION_PREFERENCE_MAINTAIN_FRAMERATE = 2;
+   */
+  MAINTAIN_FRAMERATE = 2,
+  /**
+   * @generated from protobuf enum value: DEGRADATION_PREFERENCE_MAINTAIN_RESOLUTION = 3;
+   */
+  MAINTAIN_RESOLUTION = 3,
+  /**
+   * @generated from protobuf enum value: DEGRADATION_PREFERENCE_MAINTAIN_FRAMERATE_AND_RESOLUTION = 4;
+   */
+  MAINTAIN_FRAMERATE_AND_RESOLUTION = 4,
+}
 // @generated message type with reflection information, may provide speed optimized methods
 class CallState$Type extends MessageType<CallState> {
   constructor() {
@@ -1440,6 +1474,16 @@ class PublishOption$Type extends MessageType<PublishOption> {
         kind: 'message',
         repeat: 2 /*RepeatType.UNPACKED*/,
         T: () => AudioBitrate,
+      },
+      {
+        no: 11,
+        name: 'degradation_preference',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.DegradationPreference',
+          DegradationPreference,
+          'DEGRADATION_PREFERENCE_',
+        ],
       },
     ]);
   }
