@@ -154,6 +154,7 @@ export class Subscriber extends BasePeerConnection {
     trackType: TrackType,
     interrupted: boolean,
   ) => {
+    if (trackType !== TrackType.AUDIO) return;
     const target = this.state.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );

@@ -343,6 +343,45 @@ describe('Subscriber', () => {
       expect(interruptedFor('session-id')).toEqual([]);
     });
 
+    it('ignores non-audio remote tracks to avoid Dynascale false positives', () => {
+      // Remote video track.muted is dominated by viewport-driven
+      // SFU unsubscriptions, so we deliberately only track audio
+      // interruption on remote participants.
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'video-lookup:TRACK_TYPE_VIDEO';
+      // @ts-expect-error - mock
+      track.kind = 'video';
+      Object.defineProperty(track, 'muted', {
+        configurable: true,
+        get: () => true,
+      });
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('video-session', {
+        sessionId: 'video-session',
+        trackLookupPrefix: 'video-lookup',
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      // Seeded muted track is ignored.
+      expect(interruptedFor('video-session')).toEqual([]);
+
+      // Subsequent mute / unmute events are ignored too.
+      const calls = (track.addEventListener as ReturnType<typeof vi.fn>).mock
+        .calls;
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of calls) {
+        handlers[event] = handler as () => void;
+      }
+      handlers['mute']();
+      handlers['unmute']();
+      expect(interruptedFor('video-session')).toEqual([]);
+    });
+
     it('does not mutate state for orphaned tracks until associated', () => {
       const mediaStream = new MediaStream();
       const track = new MediaStreamTrack();
