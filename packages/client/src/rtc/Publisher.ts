@@ -275,7 +275,7 @@ export class Publisher extends BasePeerConnection {
           const { publishOption, transceiver } = item;
           if (!trackTypes.includes(publishOption.trackType)) continue;
           const track = transceiver.sender.track;
-          await this.clearSenderTrack(transceiver.sender);
+          await this.silenceSenderOnFirefox(item);
           this.stopTrack(track);
         }
       },
@@ -291,7 +291,7 @@ export class Publisher extends BasePeerConnection {
       async () => {
         for (const item of this.transceiverCache.items()) {
           const track = item.transceiver.sender.track;
-          await this.clearSenderTrack(item.transceiver.sender);
+          await this.silenceSenderOnFirefox(item);
           this.stopTrack(track);
         }
         for (const track of this.clonedTracks) {
@@ -543,21 +543,68 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
-   * Firefox keeps emitting RTP on an RTCRtpSender after the attached
-   * MediaStreamTrack is stopped via `track.stop()`, for both audio and
-   * video. `replaceTrack(null)` is the reliable cross-codec way to
-   * silence the wire (what other browsers do implicitly on track.stop()).
+   * Silences a Firefox sender on the wire during unpublish.
    *
-   * The sender's encoding parameters are preserved across
-   * `replaceTrack`, so a subsequent `replaceTrack(newTrack)` resumes
-   * with the same encoder state.
+   * Firefox keeps emitting RTP after track.stop(), but the right lever
+   * differs by track type:
+   *   - audio: `replaceTrack(null)` is the only reliable silencer;
+   *     `setParameters({encodings:[...active:false]})` does NOT stop
+   *     the Opus encoder.
+   *   - video: `setParameters({encodings:[...active:false]})` pauses
+   *     the encoder; `replaceTrack(null)` does NOT reliably stop the
+   *     video encoder. The prior active=true configuration is captured
+   *     onto `bundle.videoSender` so `updateTransceiver` can restore
+   *     it on the next publish.
    *
    * No-op on non-Firefox browsers and during teardown.
    */
-  private clearSenderTrack = async (sender: RTCRtpSender) => {
+  private silenceSenderOnFirefox = async (bundle: PublishBundle) => {
     if (this.isDisposed || !isFirefox()) return;
-    await sender.replaceTrack(null).catch((err) => {
-      this.logger.warn('Failed to clear sender track', err);
+    const { transceiver, publishOption } = bundle;
+    if (isAudioTrackType(publishOption.trackType)) {
+      await transceiver.sender.replaceTrack(null).catch((err) => {
+        this.logger.warn('Failed to clear audio sender track', err);
+      });
+      return;
+    }
+    await this.disableAllEncodings(bundle);
+  };
+
+  private disableAllEncodings = async (bundle: PublishBundle) => {
+    const { transceiver, publishOption } = bundle;
+    const sender = transceiver.sender;
+    const params = sender.getParameters();
+    if (!params.encodings || params.encodings.length === 0) return;
+
+    if (!bundle.videoSender) {
+      this.transceiverCache.update(publishOption, {
+        videoSender: {
+          trackType: publishOption.trackType,
+          publishOptionId: publishOption.id,
+          codec: publishOption.codec,
+          layers: params.encodings.map((e) => ({
+            name: e.rid ?? 'q',
+            active: e.active ?? true,
+            maxBitrate: e.maxBitrate ?? 0,
+            scaleResolutionDownBy: e.scaleResolutionDownBy ?? 0,
+            maxFramerate: e.maxFramerate ?? 0,
+            // @ts-expect-error scalabilityMode is not in the typedefs yet
+            scalabilityMode: e.scalabilityMode ?? '',
+          })),
+        },
+      });
+    }
+
+    let changed = false;
+    for (const encoding of params.encodings) {
+      if (encoding.active !== false) {
+        encoding.active = false;
+        changed = true;
+      }
+    }
+    if (!changed) return;
+    await sender.setParameters(params).catch((err) => {
+      this.logger.error('Failed to disable video sender encodings:', err);
     });
   };
 }
