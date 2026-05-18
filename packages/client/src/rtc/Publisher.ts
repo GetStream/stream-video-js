@@ -20,6 +20,7 @@ import {
   toVideoLayers,
 } from './layers';
 import { isSvcCodec } from './codecs';
+import { toRTCDegradationPreference } from './helpers/degradationPreference';
 import { isAudioTrackType } from './helpers/tracks';
 import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
@@ -135,7 +136,9 @@ export class Publisher extends BasePeerConnection {
     });
 
     const params = transceiver.sender.getParameters();
-    params.degradationPreference = 'maintain-framerate';
+    params.degradationPreference =
+      toRTCDegradationPreference(publishOption.degradationPreference) ??
+      'maintain-framerate';
     await transceiver.sender.setParameters(params);
 
     const trackType = publishOption.trackType;
@@ -342,6 +345,17 @@ export class Publisher extends BasePeerConnection {
         encoder.scalabilityMode = scalabilityMode;
         changed = true;
       }
+    }
+
+    const degradationPreference = toRTCDegradationPreference(
+      videoSender.degradationPreference,
+    );
+    if (
+      degradationPreference &&
+      params.degradationPreference !== degradationPreference
+    ) {
+      params.degradationPreference = degradationPreference;
+      changed = true;
     }
 
     const activeEncoders = params.encodings.filter((e) => e.active);
