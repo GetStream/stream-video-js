@@ -1683,7 +1683,7 @@ export class Call {
     )
       return;
 
-    // Drop redundant reconnect calls. If a reconnect is already queued or
+    // Drop redundant reconnect calls. If a reconnecting is already queued or
     // running for this Call, that entry will resolve whatever broke;
     // queueing more entries just replays the full REJOIN cycle (one extra
     // `POST /join` per entry) once the call is already healthy again.
