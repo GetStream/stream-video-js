@@ -577,12 +577,27 @@ describe('Device Manager', () => {
       const CHROME_UA =
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
+      const originalUserAgentDescriptor = Object.getOwnPropertyDescriptor(
+        window.navigator,
+        'userAgent',
+      );
+
       const setUserAgent = (ua: string) => {
         Object.defineProperty(window.navigator, 'userAgent', {
           configurable: true,
           get: () => ua,
         });
       };
+
+      afterEach(() => {
+        if (originalUserAgentDescriptor) {
+          Object.defineProperty(
+            window.navigator,
+            'userAgent',
+            originalUserAgentDescriptor,
+          );
+        }
+      });
 
       it('calls refreshPublishedTrack on Safari unmute', async () => {
         setUserAgent(SAFARI_UA);

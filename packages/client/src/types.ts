@@ -93,11 +93,11 @@ export interface StreamVideoParticipant extends Participant {
   /**
    * The list of tracks that are currently not producing media.
    *
-   * For remote participants this reflects the receiver-side
-   * `RTCRtpReceiver` track `mute`/`unmute` state, so it covers system
-   * mute on the sender (OS audio session interruption, camera permission
-   * revoked, etc.), the sender pausing its track, sustained RTP stalls,
-   * and SFU drops.
+   * For remote participants this is currently surfaced for `TrackType.AUDIO`
+   * only and reflects the receiver-side `RTCRtpReceiver` track `mute`/`unmute`
+   * state, so it covers system mute on the sender (OS audio session
+   * interruption, etc.), the sender pausing its track, sustained RTP stalls,
+   * and SFU drops. Remote video and screen-share interruption is not tracked.
    *
    * For the local participant it reflects the local track `mute`/`unmute`
    * events surfaced by the browser (e.g. bluetooth disconnect, OS-level
@@ -106,9 +106,6 @@ export interface StreamVideoParticipant extends Participant {
    * Orthogonal to `publishedTracks`: a track can be in `publishedTracks`
    * AND in `interruptedTracks` (the participant intends to publish, but
    * no media is flowing right now).
-   *
-   * Local screen-share interruption is not populated today (no underlying
-   * signal). Remote screen-share interruption is captured normally.
    */
   interruptedTracks?: TrackType[];
 
