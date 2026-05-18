@@ -252,6 +252,38 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
+   * Re-arms the encoder for the given track type by detaching and
+   * reattaching the currently published track on each matching sender.
+   *
+   * Workaround for a WebKit / iOS Safari quirk: after a system audio
+   * session interruption (Siri, PSTN call), the `RTCRtpSender` encoder
+   * can stop producing RTP packets even though the underlying
+   * `MediaStreamTrack` is `live` and `track.muted === false`.
+   * `replaceTrack(null)` followed by `replaceTrack(track)` resets the
+   * sender's encoder pipeline without renegotiation, restoring packet
+   * flow with the same SSRC.
+   *
+   * No-op when nothing is published for the given track type.
+   *
+   * @param trackType the track type to refresh.
+   */
+  refreshTrack = async (trackType: TrackType) => {
+    for (const item of this.transceiverCache.items()) {
+      if (item.publishOption.trackType !== trackType) continue;
+      const { sender } = item.transceiver;
+      const track = sender.track;
+      if (!track || track.readyState !== 'live') continue;
+      try {
+        await sender.replaceTrack(null);
+        await sender.replaceTrack(track);
+        this.logger.debug(`Refreshed ${TrackType[trackType]} sender`);
+      } catch (err) {
+        this.logger.warn(`Failed to refresh ${TrackType[trackType]}`, err);
+      }
+    }
+  };
+
+  /**
    * Stops the cloned track that is being published to the SFU.
    */
   stopTracks = (...trackTypes: TrackType[]) => {

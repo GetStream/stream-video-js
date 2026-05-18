@@ -36,7 +36,6 @@ export abstract class DeviceManagerState<C = MediaTrackConstraints> {
 
   /**
    * An Observable that emits the current media stream, or `undefined` if the device is currently disabled.
-   *
    */
   mediaStream$ = this.mediaStreamSubject.asObservable();
 
