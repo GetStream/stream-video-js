@@ -9,6 +9,7 @@ import {
   type InputDeviceStatus,
 } from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
+import { isWebKit } from '../helpers/browsers';
 import { isReactNative } from '../helpers/platforms';
 import { ScopedLogger, videoLoggerSystem } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
@@ -517,6 +518,19 @@ export abstract class DeviceManager<
         };
         const createTrackMuteHandler = (muted: boolean) => () => {
           this.state.setSystemMuted(muted);
+
+          // WebKit's RTCRtpSender encoder can stay stalled after an iOS /
+          // macOS audio session interruption even though the track is
+          // unmuted. Re-arm the sender on every unmute for any WebKit
+          // runtime (Safari + plain iOS WKWebViews). Skipped when the
+          // page is hidden because the encoder won't resume until
+          // foreground anyway.
+          if (!muted && isWebKit() && document.visibilityState !== 'hidden') {
+            this.call.refreshPublishedTrack(this.trackType).catch((err) => {
+              this.logger.warn('Failed to refresh track on system unmute', err);
+            });
+          }
+
           // report all tracks on mobile, and only Video on desktop browsers
           if (isMobile() || this.trackType == TrackType.VIDEO) {
             this.call.tracer.trace('navigator.mediaDevices.muteStateUpdated', {

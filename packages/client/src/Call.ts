@@ -2144,6 +2144,20 @@ export class Call {
   };
 
   /**
+   * Re-arms the encoder for a currently published track type. Useful for
+   * working around WebKit's stalled sender bug after an iOS audio session
+   * interruption (Siri, PSTN call).
+   *
+   * @internal
+   *
+   * @param trackType the track type to refresh.
+   */
+  refreshPublishedTrack = async (trackType: TrackType) => {
+    if (!this.publisher) return;
+    await this.publisher.refreshTrack(trackType);
+  };
+
+  /**
    * Updates the preferred publishing options
    *
    * @internal

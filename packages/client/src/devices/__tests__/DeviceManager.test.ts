@@ -549,6 +549,99 @@ describe('Device Manager', () => {
       expect(oldTrack.eventHandlers['unmute']).toBeUndefined();
       expect(oldTrack.eventHandlers['ended']).toBeUndefined();
     });
+
+    describe('WebKit refreshTrack on unmute (encoder stall workaround)', () => {
+      const SAFARI_UA =
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15';
+      const IOS_WKWEBVIEW_UA =
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
+      const CHROME_UA =
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+      const setUserAgent = (ua: string) => {
+        Object.defineProperty(window.navigator, 'userAgent', {
+          configurable: true,
+          get: () => ua,
+        });
+      };
+
+      it('calls refreshPublishedTrack on Safari unmute', async () => {
+        setUserAgent(SAFARI_UA);
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+
+        await fireOn(track, 'unmute');
+
+        expect(manager['call'].refreshPublishedTrack).toHaveBeenCalledWith(
+          TrackType.VIDEO,
+        );
+      });
+
+      it('calls refreshPublishedTrack on a bare iOS WKWebView (no Safari token)', async () => {
+        setUserAgent(IOS_WKWEBVIEW_UA);
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+
+        await fireOn(track, 'unmute');
+
+        expect(manager['call'].refreshPublishedTrack).toHaveBeenCalledWith(
+          TrackType.VIDEO,
+        );
+      });
+
+      it('does not call refreshPublishedTrack on Chrome unmute', async () => {
+        setUserAgent(CHROME_UA);
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+
+        await fireOn(track, 'unmute');
+
+        expect(manager['call'].refreshPublishedTrack).not.toHaveBeenCalled();
+      });
+
+      it('does not call refreshPublishedTrack on the mute leg', async () => {
+        setUserAgent(SAFARI_UA);
+        await manager.enable();
+        const track = currentTrack();
+
+        await fireOn(track, 'mute');
+
+        expect(manager['call'].refreshPublishedTrack).not.toHaveBeenCalled();
+      });
+
+      it('skips refreshPublishedTrack while the page is hidden', async () => {
+        setUserAgent(SAFARI_UA);
+        const visibilityDescriptor = Object.getOwnPropertyDescriptor(
+          document,
+          'visibilityState',
+        );
+        Object.defineProperty(document, 'visibilityState', {
+          configurable: true,
+          get: () => 'hidden',
+        });
+
+        try {
+          await manager.enable();
+          const track = currentTrack();
+          await fireOn(track, 'mute');
+
+          await fireOn(track, 'unmute');
+
+          expect(manager['call'].refreshPublishedTrack).not.toHaveBeenCalled();
+        } finally {
+          if (visibilityDescriptor) {
+            Object.defineProperty(
+              document,
+              'visibilityState',
+              visibilityDescriptor,
+            );
+          }
+        }
+      });
+    });
   });
 
   describe('persistPreference', () => {
