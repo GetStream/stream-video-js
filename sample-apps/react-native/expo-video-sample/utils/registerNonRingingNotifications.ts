@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications';
-import { router } from 'expo-router';
+import { handleNotificationTap } from './notificationUtils';
 
 /**
  * Register notification tap listeners.
@@ -11,26 +11,16 @@ import { router } from 'expo-router';
 export function registerNonRingingNotificationHandler() {
   // Handle notification taps when app is running
   Notifications.addNotificationResponseReceivedListener((response) => {
-    handleNotificationTap(response.notification.request.content.data);
+    const data = response.notification.request.content.data;
+    const payload = (data?.stream as Record<string, unknown>) ?? data;
+    handleNotificationTap(payload);
   });
 
   // Handle cold-start tap (app was killed, launched by tapping notification)
   const lastResponse = Notifications.getLastNotificationResponse();
   if (lastResponse) {
-    handleNotificationTap(lastResponse.notification.request.content.data);
+    const data = lastResponse.notification.request.content.data;
+    const payload = (data?.stream as Record<string, unknown>) ?? data;
+    handleNotificationTap(payload);
   }
-}
-
-function handleNotificationTap(data?: Record<string, unknown>) {
-  if (!data || data.sender !== 'stream.video') {
-    return;
-  }
-
-  const callCid = data.call_cid;
-  if (!callCid || typeof callCid !== 'string') {
-    return;
-  }
-
-  // Navigate to the meeting screen
-  router.push('/meeting');
 }

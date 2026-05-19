@@ -29,12 +29,16 @@ async function handleNonRingingMessage(
 
 export const setNotificationListeners = () => {
   // Create Android notification channel
-  notifee.createChannel({
-    id: NON_RINGING_CHANNEL_ID,
-    name: 'Call Notifications',
-    importance: AndroidImportance.HIGH,
-    vibration: true,
-  });
+  notifee
+    .createChannel({
+      id: NON_RINGING_CHANNEL_ID,
+      name: 'Call Notifications',
+      importance: AndroidImportance.HIGH,
+      vibration: true,
+    })
+    .catch((error) => {
+      console.error('Error creating notification channel', error);
+    });
 
   // Background message handler
   messaging().setBackgroundMessageHandler(async (msg) => {
@@ -47,7 +51,7 @@ export const setNotificationListeners = () => {
   // Foreground message handler
   messaging().onMessage(async (msg) => {
     if (isFirebaseStreamVideoMessage(msg)) {
-      firebaseDataHandler(msg.data);
+      await firebaseDataHandler(msg.data);
       await handleNonRingingMessage(msg);
     }
   });

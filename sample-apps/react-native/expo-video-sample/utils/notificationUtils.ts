@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import { router } from 'expo-router';
 import { Platform } from 'react-native';
 
 export const NON_RINGING_CHANNEL_ID = 'stream_non_ringing_calls';
@@ -83,4 +84,18 @@ export async function displayNonRingingNotification(
     },
     trigger: null, // immediate
   });
+}
+
+export function handleNotificationTap(data?: Record<string, unknown>) {
+  if (!data || data.sender !== 'stream.video') {
+    return;
+  }
+
+  const callCid = data.call_cid;
+  if (!callCid || typeof callCid !== 'string') {
+    return;
+  }
+
+  // Navigate to the meeting screen
+  router.push(`/meeting?call_cid=${callCid}`);
 }

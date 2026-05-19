@@ -13,7 +13,7 @@ export function setPushConfig() {
   StreamVideoRN.setPushConfig({
     isExpo: true,
     ios: {
-      pushProviderName: 'rn-expo-apn-video',
+      pushProviderName: 'rn-expo-apn-video-p8',
     },
     android: {
       pushProviderName: 'expo-fcm-video',
@@ -25,32 +25,19 @@ export function setPushConfig() {
   registerNonRingingNotificationHandler();
 
   if (Platform.OS === 'ios') {
-    // show notification on foreground
+    // Opt in to showing notifications while the app is foregrounded.
+    // Without this, expo-notifications suppresses foreground banners by default.
+    // Stream APNs payloads always carry aps.alert, so iOS renders the banner
+    // itself in background/killed — nothing extra to do for those states.
     // https://docs.expo.dev/push-notifications/receiving-notifications/#foreground-notification-behavior
     Notifications.setNotificationHandler({
-      handleNotification: async (notification) => {
-        // Suppress native banner for Stream non-ringing notifications
-        // (aps.alert is empty — we display via notifee instead)
-        const stream = notification.request.content.data?.stream as
-          | Record<string, string>
-          | undefined;
-        if (stream?.sender === 'stream.video' && stream?.type !== 'call.ring') {
-          return {
-            shouldShowBanner: false,
-            shouldShowList: false,
-            shouldShowAlert: false,
-            shouldPlaySound: false,
-            shouldSetBadge: false,
-          };
-        }
-        return {
-          shouldShowBanner: true,
-          shouldShowList: false,
-          shouldShowAlert: true,
-          shouldPlaySound: true,
-          shouldSetBadge: false,
-        };
-      },
+      handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+      }),
     });
   }
 }
