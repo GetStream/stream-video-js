@@ -2,6 +2,31 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.50.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.49.0...@stream-io/video-client-1.50.0) (2026-05-18)
+
+### Features
+
+- Automatic audio recovery ([#2240](https://github.com/GetStream/stream-video-js/issues/2240)) ([8131e5b](https://github.com/GetStream/stream-video-js/commit/8131e5b35a1c87c46d99eeaab434f8889ba5d126))
+- **client:** honor SFU degradationPreference on the publisher ([#2241](https://github.com/GetStream/stream-video-js/issues/2241)) ([85b34a3](https://github.com/GetStream/stream-video-js/commit/85b34a39ba669b59fb1842f047a5c03c4fd196f9)), closes [#1886](https://github.com/GetStream/stream-video-js/issues/1886)
+
+### Bug Fixes
+
+- **client:** prevent call.join() hang on silent WS handshake stall ([#2225](https://github.com/GetStream/stream-video-js/issues/2225)) ([68cf5f0](https://github.com/GetStream/stream-video-js/commit/68cf5f05bdd1b2ecb2b14814f4702c14d84dea13))
+
+## [1.49.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.48.0...@stream-io/video-client-1.49.0) (2026-05-08)
+
+### Features
+
+- **client:** bound SFU reconnection attempts and harden ICE recovery ([#2221](https://github.com/GetStream/stream-video-js/issues/2221)) ([bf837b1](https://github.com/GetStream/stream-video-js/commit/bf837b1bbabe5ff4a9a183b5581ef7963ed6cde0))
+
+### Bug Fixes
+
+- **client:** capture sessionId before await in updateLocalStreamState ([#2229](https://github.com/GetStream/stream-video-js/issues/2229)) ([e48ec08](https://github.com/GetStream/stream-video-js/commit/e48ec0848651ff461a18f379283edce2359ce65a))
+- **client:** prevent screen share audio loopback by default ([#2226](https://github.com/GetStream/stream-video-js/issues/2226)) ([6877fb5](https://github.com/GetStream/stream-video-js/commit/6877fb51c168cfcc1b908dfde3c088f1af4b5c27))
+- **client:** stale local publishedTracks after mute and SFU reconnect ([#2230](https://github.com/GetStream/stream-video-js/issues/2230)) ([728147a](https://github.com/GetStream/stream-video-js/commit/728147aab154247e178d4414dd8095285844f5e1))
+- **react:** Improve background filter degradation detection ([#2210](https://github.com/GetStream/stream-video-js/issues/2210)) ([391915e](https://github.com/GetStream/stream-video-js/commit/391915e1e025ce3eaf5ebe7b135f57463ead8e42))
+- **screenshare:** disable echoCancellation by default for screen share audio ([dfc95b1](https://github.com/GetStream/stream-video-js/commit/dfc95b19ca6b723573e1c5970a3ccd6048653480))
+
 ## [1.48.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.47.0...@stream-io/video-client-1.48.0) (2026-04-28)
 
 ### Features

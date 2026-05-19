@@ -16,6 +16,7 @@ export type RTCStatsDataType =
   | RTCSessionDescriptionInit
   | (RTCIceCandidateInit | RTCIceCandidate) // addIceCandidate
   | object
+  | number
   | null
   | undefined;
 

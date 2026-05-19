@@ -3,6 +3,7 @@ import { withoutConcurrency } from '../helpers/concurrency';
 import { videoLoggerSystem } from '../logger';
 
 type FunctionPatch<T> = (currentValue: T) => T;
+type AsyncFunctionPatch<T> = (currentValue: T) => Promise<T>;
 
 /**
  * A value or a function which takes the current value and returns a new value.
@@ -57,6 +58,24 @@ export const setCurrentValue = <T>(subject: Subject<T>, update: Patch<T>) => {
 
   subject.next(next);
   return next;
+};
+
+/**
+ * Updates the value of the provided Subject asynchronously.
+ * Locks the subject to prevent concurrent updates.
+ *
+ * @param subject the subject to update.
+ * @param update the update to apply to the subject.
+ */
+export const setCurrentValueAsync = async <T>(
+  subject: Subject<T>,
+  update: AsyncFunctionPatch<T>,
+) => {
+  return withoutConcurrency(subject, async () => {
+    const next = await update(getCurrentValue(subject));
+    subject.next(next);
+    return next;
+  });
 };
 
 /**

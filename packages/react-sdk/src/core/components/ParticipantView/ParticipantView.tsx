@@ -102,7 +102,6 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
     const [contextVideoPlaceholderElement, setContextVideoPlaceholderElement] =
       useState<HTMLDivElement | null>(null);
 
-    // TODO: allow to pass custom ViewportTracker instance from props
     useTrackElementVisibility({
       sessionId,
       trackedElement,
