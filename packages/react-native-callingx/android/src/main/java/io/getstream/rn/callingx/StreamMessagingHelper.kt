@@ -16,9 +16,17 @@ import com.google.firebase.messaging.RemoteMessage
  * ```
  * class AppMessagingService : ReactNativeFirebaseMessagingService() {
  *   override fun onMessageReceived(remoteMessage: RemoteMessage) {
- *     StreamMessagingHelper.handleMessage(applicationContext, remoteMessage)
- *     // ...forward to other push SDKs here...
- *     super.onMessageReceived(remoteMessage) // keeps RN-Firebase JS handler running
+ *     // pass remote message to React Native Firebase JS background handler
+ *     super.onMessageReceived(remoteMessage)
+ *
+ *     // Optional gate — provided for finer control over the forwarding flow.
+ *     // `handleMessage` is also safe to call unconditionally; it no-ops for
+ *     // payloads that aren't a Stream `call.ring`.
+ *     if (StreamMessagingHelper.isStreamCallRing(remoteMessage)) {
+ *       StreamMessagingHelper.handleMessage(applicationContext, remoteMessage)
+ *     } else {
+ *       // forward to other push SDKs
+ *     }
  *   }
  * }
  * ```
@@ -27,6 +35,10 @@ object StreamMessagingHelper {
 
   private const val TAG = "[Callingx] StreamMessagingHelper"
 
+  /**
+   * Returns `true` if [remoteMessage] is a Stream Video incoming `call.ring` push.
+   * Useful when you want to short-circuit other SDK forwarders for Stream pushes.
+   */
   @JvmStatic
   fun isStreamCallRing(remoteMessage: RemoteMessage): Boolean {
     val data = remoteMessage.data
