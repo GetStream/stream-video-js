@@ -5,7 +5,7 @@ import {
   UseInputMediaDeviceOptions,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
-import { OwnCapability } from '@stream-io/video-client';
+import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import { CompositeButton, IconButtonWithMenuProps } from '../Button/';
 import { DeviceSelectorVideo } from '../DeviceSettings';
 import { PermissionNotification } from '../Notification';
@@ -38,7 +38,7 @@ export const ToggleVideoPreviewButton = (
     ...restCompositeButtonProps
   } = props;
   const { t } = useI18n();
-  const { useCameraState } = useCallStateHooks();
+  const { useCameraState, useLocalParticipant } = useCallStateHooks();
   const {
     camera,
     hasBrowserPermission,
@@ -46,6 +46,10 @@ export const ToggleVideoPreviewButton = (
     isTogglePending,
     optionsAwareIsMute,
   } = useCameraState({ optimisticUpdates });
+  const localParticipant = useLocalParticipant();
+  const isSystemMuted = !!localParticipant?.interruptedTracks?.includes(
+    SfuModels.TrackType.VIDEO,
+  );
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, () => camera.toggle());
 
@@ -54,7 +58,9 @@ export const ToggleVideoPreviewButton = (
       title={
         !hasBrowserPermission
           ? t('Check your browser video permissions')
-          : (caption ?? t('Video'))
+          : isSystemMuted
+            ? t('Camera is paused by your system')
+            : (caption ?? t('Video'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -97,6 +103,13 @@ export const ToggleVideoPreviewButton = (
             children="?"
           />
         )}
+        {isSystemMuted && hasBrowserPermission && (
+          <span
+            className="str-video__system-muted"
+            title={t('Camera is paused by your system')}
+            children="!"
+          />
+        )}
       </CompositeButton>
     </WithTooltip>
   );
@@ -126,7 +139,8 @@ export const ToggleVideoPublishingButton = (
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_VIDEO);
 
-  const { useCameraState, useCallSettings } = useCallStateHooks();
+  const { useCameraState, useCallSettings, useLocalParticipant } =
+    useCallStateHooks();
   const {
     camera,
     optionsAwareIsMute,
@@ -134,6 +148,10 @@ export const ToggleVideoPublishingButton = (
     isPromptingPermission,
     isTogglePending,
   } = useCameraState({ optimisticUpdates });
+  const localParticipant = useLocalParticipant();
+  const isSystemMuted = !!localParticipant?.interruptedTracks?.includes(
+    SfuModels.TrackType.VIDEO,
+  );
   const callSettings = useCallSettings();
   const isPublishingVideoAllowed = callSettings?.video.enabled;
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
@@ -164,7 +182,9 @@ export const ToggleVideoPublishingButton = (
                 ? t('Check your browser video permissions')
                 : !isPublishingVideoAllowed
                   ? t('Video publishing is disabled by the system')
-                  : caption || t('Video')
+                  : isSystemMuted
+                    ? t('Camera is paused by your system')
+                    : caption || t('Video')
           }
           tooltipDisabled={tooltipDisabled}
         >
@@ -205,6 +225,17 @@ export const ToggleVideoPublishingButton = (
                 ?
               </span>
             )}
+            {isSystemMuted &&
+              hasBrowserPermission &&
+              hasPermission &&
+              isPublishingVideoAllowed && (
+                <span
+                  className="str-video__system-muted"
+                  title={t('Camera is paused by your system')}
+                >
+                  !
+                </span>
+              )}
           </CompositeButton>
         </WithTooltip>
       </PermissionNotification>

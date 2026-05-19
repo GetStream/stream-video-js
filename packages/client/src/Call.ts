@@ -145,7 +145,11 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
+import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
+import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
+import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
+import { ViewportTracker } from './helpers/ViewportTracker';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
@@ -230,7 +234,32 @@ export class Call {
   /**
    * The DynascaleManager instance.
    */
-  readonly dynascaleManager: DynascaleManager;
+  readonly dynascaleManager: DynascaleManager | undefined;
+
+  /**
+   * Tracks viewport visibility for participant video elements.
+   * Available only in DOM environments.
+   */
+  readonly viewportTracker: ViewportTracker | undefined;
+
+  /**
+   * Owns the SFU-side video-subscription state (per-session and global overrides).
+   */
+  readonly trackSubscriptionManager: TrackSubscriptionManager;
+
+  /**
+   * Warns periodically when a remote participant is publishing audio, but no
+   * `<audio>` element has been bound for them.
+   */
+  readonly audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
+
+  /**
+   * Tracks audio elements blocked by the browser's autoplay policy.
+   * Subscribe to `blockedAudioTracker.autoplayBlocked$` to react to the
+   * blocked state, and call {@link Call.resumeAudio} inside a user gesture
+   * to retry playback.
+   */
+  readonly blockedAudioTracker: BlockedAudioTracker;
 
   subscriber?: Subscriber;
   publisher?: Publisher;
@@ -362,11 +391,26 @@ export class Call {
     this.microphone = new MicrophoneManager(this, preferences);
     this.speaker = new SpeakerManager(this, preferences);
     this.screenShare = new ScreenShareManager(this);
-    this.dynascaleManager = new DynascaleManager(
+    this.trackSubscriptionManager = new TrackSubscriptionManager(
       this.state,
-      this.speaker,
       this.tracer,
     );
+    this.blockedAudioTracker = new BlockedAudioTracker(this.tracer);
+
+    if (typeof document !== 'undefined') {
+      this.audioBindingsWatchdog = new AudioBindingsWatchdog(
+        this.state,
+        this.tracer,
+      );
+      this.viewportTracker = new ViewportTracker(this.state);
+      this.dynascaleManager = new DynascaleManager(
+        this.state,
+        this.speaker,
+        this.tracer,
+        this.trackSubscriptionManager,
+        this.blockedAudioTracker,
+      );
+    }
   }
 
   /**
@@ -701,8 +745,10 @@ export class Call {
 
       await this.sfuClient?.leaveAndClose(leaveReason);
       this.sfuClient = undefined;
-      this.dynascaleManager.setSfuClient(undefined);
-      await this.dynascaleManager.dispose();
+      this.trackSubscriptionManager.setSfuClient(undefined);
+      this.trackSubscriptionManager.dispose();
+      this.audioBindingsWatchdog?.dispose();
+      await this.dynascaleManager?.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
       this.state.setParticipants([]);
@@ -1126,7 +1172,7 @@ export class Call {
         : previousSfuClient;
     this.sfuClient = sfuClient;
     this.unifiedSessionId ??= sfuClient.sessionId;
-    this.dynascaleManager.setSfuClient(sfuClient);
+    this.trackSubscriptionManager.setSfuClient(sfuClient);
 
     const clientDetails = await getClientDetails();
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
@@ -1293,7 +1339,7 @@ export class Call {
     return {
       strategy,
       announcedTracks,
-      subscriptions: this.dynascaleManager.trackSubscriptions,
+      subscriptions: this.trackSubscriptionManager.subscriptions,
       reconnectAttempt: this.reconnectAttempts,
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
@@ -1976,7 +2022,7 @@ export class Call {
   private restoreSubscribedTracks = () => {
     const { remoteParticipants } = this.state;
     if (remoteParticipants.length <= 0) return;
-    this.dynascaleManager.applyTrackSubscriptions(undefined);
+    this.trackSubscriptionManager.apply(undefined);
   };
 
   /**
@@ -2078,10 +2124,12 @@ export class Call {
     mediaStream: MediaStream | undefined,
     ...trackTypes: TrackType[]
   ) => {
-    if (!this.sfuClient || !this.sfuClient.sessionId) return;
-    await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    const sessionId = this.sfuClient?.sessionId;
+    if (!sessionId) return;
 
-    const { sessionId } = this.sfuClient;
+    await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    if (this.sfuClient?.sessionId !== sessionId) return;
+
     for (const trackType of trackTypes) {
       const streamStateProp = trackTypeToParticipantStreamKey(trackType);
       if (!streamStateProp) continue;
@@ -2093,6 +2141,20 @@ export class Call {
         [streamStateProp]: mediaStream,
       }));
     }
+  };
+
+  /**
+   * Re-arms the encoder for a currently published track type. Useful for
+   * working around WebKit's stalled sender bug after an iOS audio session
+   * interruption (Siri, PSTN call).
+   *
+   * @internal
+   *
+   * @param trackType the track type to refresh.
+   */
+  refreshPublishedTrack = async (trackType: TrackType) => {
+    if (!this.publisher) return;
+    await this.publisher.refreshTrack(trackType);
   };
 
   /**
@@ -3008,7 +3070,7 @@ export class Call {
     sessionId: string,
     trackType: VideoTrackType,
   ) => {
-    return this.dynascaleManager.trackElementVisibility(
+    return this.viewportTracker?.trackElementVisibility(
       element,
       sessionId,
       trackType,
@@ -3021,7 +3083,7 @@ export class Call {
    * @param element the viewport element.
    */
   setViewport = <T extends HTMLElement>(element: T) => {
-    return this.dynascaleManager.setViewport(element);
+    return this.viewportTracker?.setViewport(element);
   };
 
   /**
@@ -3044,7 +3106,7 @@ export class Call {
     sessionId: string,
     trackType: VideoTrackType,
   ) => {
-    const unbind = this.dynascaleManager.bindVideoElement(
+    const unbind = this.dynascaleManager?.bindVideoElement(
       videoElement,
       sessionId,
       trackType,
@@ -3073,26 +3135,33 @@ export class Call {
     sessionId: string,
     trackType: AudioTrackType = 'audioTrack',
   ) => {
-    const unbind = this.dynascaleManager.bindAudioElement(
+    const unbind = this.dynascaleManager?.bindAudioElement(
       audioElement,
       sessionId,
       trackType,
     );
 
     if (!unbind) return;
-    this.leaveCallHooks.add(unbind);
-    return () => {
-      this.leaveCallHooks.delete(unbind);
+    this.audioBindingsWatchdog?.register(audioElement, sessionId, trackType);
+    const cleanup = () => {
       unbind();
+      this.audioBindingsWatchdog?.unregister(sessionId, trackType);
+    };
+    this.leaveCallHooks.add(cleanup);
+    return () => {
+      this.leaveCallHooks.delete(cleanup);
+      cleanup();
     };
   };
 
   /**
    * Plays all audio elements blocked by the browser's autoplay policy.
+   * Must be called from within a user gesture (e.g., click handler).
+   *
+   * Subscribe to `call.blockedAudioTracker.autoplayBlocked$` to know when a
+   * gesture is required.
    */
-  resumeAudio = () => {
-    return this.dynascaleManager.resumeAudio();
-  };
+  resumeAudio = () => this.blockedAudioTracker.resumeAudio();
 
   /**
    * Binds a DOM <img> element to this call's thumbnail (if enabled in settings).
@@ -3146,7 +3215,7 @@ export class Call {
     resolution: VideoDimension | undefined,
     sessionIds?: string[],
   ) => {
-    this.dynascaleManager.setVideoTrackSubscriptionOverrides(
+    this.trackSubscriptionManager.setOverrides(
       resolution
         ? {
             enabled: true,
@@ -3155,7 +3224,7 @@ export class Call {
         : undefined,
       sessionIds,
     );
-    this.dynascaleManager.applyTrackSubscriptions();
+    this.trackSubscriptionManager.apply();
   };
 
   /**
@@ -3163,10 +3232,10 @@ export class Call {
    * and removes any preference for preferred resolution.
    */
   setIncomingVideoEnabled = (enabled: boolean) => {
-    this.dynascaleManager.setVideoTrackSubscriptionOverrides(
+    this.trackSubscriptionManager.setOverrides(
       enabled ? undefined : { enabled: false },
     );
-    this.dynascaleManager.applyTrackSubscriptions();
+    this.trackSubscriptionManager.apply();
   };
 
   /**

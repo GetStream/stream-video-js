@@ -2,6 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.37.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.36.1...@stream-io/video-react-sdk-1.37.0) (2026-05-18)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.8.0`
+- `@stream-io/video-styling` updated to version `1.14.0`
+- `@stream-io/video-client` updated to version `1.50.0`
+- `@stream-io/video-react-bindings` updated to version `1.16.0`
+
+### Features
+
+- Automatic audio recovery ([#2240](https://github.com/GetStream/stream-video-js/issues/2240)) ([8131e5b](https://github.com/GetStream/stream-video-js/commit/8131e5b35a1c87c46d99eeaab434f8889ba5d126))
+
+## [1.36.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.36.0...@stream-io/video-react-sdk-1.36.1) (2026-05-08)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.49.0`
+- `@stream-io/video-react-bindings` updated to version `1.15.1`
+
+### Bug Fixes
+
+- **react:** Improve background filter degradation detection ([#2210](https://github.com/GetStream/stream-video-js/issues/2210)) ([391915e](https://github.com/GetStream/stream-video-js/commit/391915e1e025ce3eaf5ebe7b135f57463ead8e42))
+
 ## [1.36.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.35.2...@stream-io/video-react-sdk-1.36.0) (2026-04-28)
 
 ### Dependency Updates

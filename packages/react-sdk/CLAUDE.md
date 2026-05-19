@@ -287,7 +287,7 @@ useTrackElementVisibility({
 
 **What happens:**
 
-- Hook calls `call.dynascaleManager.trackElementVisibility()`
+- Hook calls `call.viewportTracker.trackElementVisibility()`
 - Uses IntersectionObserver to detect when element enters/exits viewport
 - Client automatically requests lower resolution for invisible participants
 - Returns cleanup function to unobserve on unmount
@@ -705,13 +705,13 @@ useLayoutEffect(() => {
 ```tsx
 // ❌ WRONG - no cleanup
 useEffect(() => {
-  call?.dynascaleManager.trackElementVisibility(element, sessionId, trackType);
+  call?.viewportTracker?.trackElementVisibility(element, sessionId, trackType);
 }, [call, element, sessionId, trackType]);
 
 // ✅ CORRECT - always cleanup observers/subscriptions
 useEffect(() => {
-  if (!element || !call) return;
-  const cleanup = call.dynascaleManager.trackElementVisibility(
+  if (!element || !call?.viewportTracker) return;
+  const cleanup = call.viewportTracker.trackElementVisibility(
     element,
     sessionId,
     trackType,
