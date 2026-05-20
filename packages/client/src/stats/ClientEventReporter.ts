@@ -476,7 +476,7 @@ export class ClientEventReporter {
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
       if (this.disposed) return;
       try {
-        await this.streamClient.post(ENDPOINT, body);
+        await this.streamClient.post(ENDPOINT, { events: [body] });
         return;
       } catch (err) {
         const status = (err as { response?: { status?: number } })?.response

@@ -21,7 +21,10 @@ const makeReporter = (
   overrides: Partial<ClientEventReporterOptions> = {},
 ): { reporter: ClientEventReporter; post: MockInstance } => {
   const post = vi.fn().mockResolvedValue({});
-  const streamClient = { post } as unknown as StreamClient;
+  const streamClient = {
+    post: (path: string, body: { events?: unknown[] } | unknown) =>
+      post(path, (body as { events?: unknown[] } | null)?.events?.[0] ?? body),
+  } as unknown as StreamClient;
   const reporter = new ClientEventReporter({
     streamClient,
     callType: 'default',
@@ -43,6 +46,35 @@ describe('ClientEventReporter', () => {
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
+  });
+
+  describe('wire format', () => {
+    it('wraps each post body in an events array', async () => {
+      const post = vi.fn().mockResolvedValue({});
+      const streamClient = { post } as unknown as StreamClient;
+      const reporter = new ClientEventReporter({
+        streamClient,
+        callType: 'default',
+        callId: 'abc123',
+        getUserId: () => 'alice',
+        getCallSessionId: () => '',
+        sdkVersion: '1.22.2',
+        userAgent: 'ua',
+      });
+
+      await reporter.track('CoordinatorJoin', async () => undefined);
+      await flushMicrotasks();
+
+      expect(post).toHaveBeenCalledTimes(2);
+      const [path, body] = post.mock.calls[0];
+      expect(path).toBe('/call_client_event');
+      expect(Array.isArray(body.events)).toBe(true);
+      expect(body.events).toHaveLength(1);
+      expect(body.events[0]).toMatchObject({
+        stage: 'CoordinatorJoin',
+        event_type: 'initiated',
+      });
+    });
   });
 
   describe('track', () => {
