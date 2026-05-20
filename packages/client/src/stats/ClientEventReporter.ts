@@ -8,7 +8,7 @@ import { SfuJoinError } from '../errors';
 import { ErrorCode } from '../gen/video/sfu/models/models';
 import { videoLoggerSystem } from '../logger';
 
-const ENDPOINT = '/call/client_event';
+const ENDPOINT = '/call_client_event';
 
 const MAX_ATTEMPTS = 5;
 const MAX_CALL_SESSION_ID = 64;
@@ -54,7 +54,7 @@ const clamp = (value: number, min: number, max: number) =>
 
 /**
  * Reports client-side join-lifecycle events (`CoordinatorJoin` / `WSJoin`)
- * to the coordinator's `POST /call/client_event` endpoint.
+ * to the coordinator's `POST /call_client_event` endpoint.
  *
  * Each stage attempt produces a pair: an `initiated` event when the attempt
  * begins, and a `completed` event when it resolves. Both share an
@@ -207,7 +207,7 @@ export class ClientEventReporter {
     this.userAgent = options.userAgent;
   }
 
-  startCorrelation = (_kind: ClientEventCorrelationKind) => {
+  startCorrelation = () => {
     this.joinSuccessId = generateUUIDv4();
     this.clearOpenPairs();
   };

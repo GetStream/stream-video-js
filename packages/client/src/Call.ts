@@ -1088,7 +1088,7 @@ export class Call {
     const joinData: JoinCallData = data;
     maxJoinRetries = Math.max(maxJoinRetries, 1);
     try {
-      await this.withJoinLifecycle('initial', async () => {
+      await this.withJoinLifecycle(async () => {
         for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
           try {
             this.logger.trace(`Joining call (${attempt})`, this.cid);
@@ -1639,12 +1639,9 @@ export class Call {
    * correlation for the lifecycle entry and closes any still-open stage
    * attempts as failures if the lifecycle eventually gives up.
    */
-  private withJoinLifecycle = async <T>(
-    kind: 'initial' | 'migration',
-    op: () => Promise<T>,
-  ): Promise<T> => {
+  private withJoinLifecycle = async <T>(op: () => Promise<T>): Promise<T> => {
     const reporter = this.clientEventReporter;
-    reporter?.startCorrelation(kind);
+    reporter?.startCorrelation();
     try {
       return await op();
     } catch (err) {
@@ -1945,9 +1942,7 @@ export class Call {
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
-    await this.withJoinLifecycle('initial', () =>
-      this.doJoin(this.joinCallData),
-    );
+    await this.withJoinLifecycle(() => this.doJoin(this.joinCallData));
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
     this.sfuStatsReporter?.sendReconnectionTime(
@@ -1979,7 +1974,7 @@ export class Call {
 
     try {
       const currentSfu = currentSfuClient.edgeName;
-      await this.withJoinLifecycle('migration', () =>
+      await this.withJoinLifecycle(() =>
         this.doJoin({
           ...this.joinCallData,
           migrating_from: currentSfu,

@@ -54,7 +54,7 @@ describe('ClientEventReporter', () => {
 
       expect(post).toHaveBeenCalledTimes(2);
       const [path, init] = post.mock.calls[0];
-      expect(path).toBe('/call/client_event');
+      expect(path).toBe('/call_client_event');
       expect(init).toMatchObject({
         user_id: 'alice',
         type: 'default',
