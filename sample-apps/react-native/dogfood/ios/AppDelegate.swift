@@ -63,14 +63,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
     let userInfo = notification.request.content.userInfo
 
-    if let stream = userInfo[AnyHashable("stream")] as? [String: Any],
-       let sender = stream["sender"] as? String,
-       sender == "stream.video" {
-      RNCPushNotificationIOS.didReceiveRemoteNotification(userInfo) { _ in }
-      completionHandler([])
-      return
-    }
-
     // Notifee-created local notifications: notifee handles display itself.
     if notification.request.trigger is UNPushNotificationTrigger == false {
       completionHandler([])
