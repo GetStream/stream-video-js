@@ -5,14 +5,16 @@ export type AudioContextRecoveryOptions = {
   tracer?: Tracer;
 };
 
+// Only "suspended". Calling resume() during "interrupted" can leave the
+// destination zombied (state="running", currentTime frozen, unrecoverable
+// from JS). Wait for iOS to settle, then act.
 const needsRecovery = (state: AudioContextState): boolean => {
-  return state === 'suspended' || state === 'interrupted';
+  return state === 'suspended';
 };
 
 /**
- * Watches an {@link AudioContext} and brings it back to `running` after the
- * platform moves it into `suspended` or `interrupted` (e.g., iOS phone call,
- * Siri, screen lock, tab hidden on WebKit).
+ * Watches an {@link AudioContext} and brings it back to `running` after an
+ * iOS AVAudioSession interruption or cold-start autoplay-policy suspend.
  */
 export class AudioContextRecovery {
   private readonly audioContext: AudioContext;
