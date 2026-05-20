@@ -6,12 +6,15 @@ import React, {
   useState,
 } from 'react';
 import {
+  DeepPartial,
   StreamVideo,
   StreamVideoClient,
   StreamVideoRN,
+  Theme,
 } from '@stream-io/video-react-native-sdk';
 import { Users, UserWithToken } from '../constants/Users';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const API_KEY = 'par8f5s3gn2j';
 
@@ -38,6 +41,7 @@ export function useAuthentication() {
 export function AuthenticationProvider({ children }: PropsWithChildren) {
   const [userId, setUserId] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
+  const customTheme = useCustomTheme();
 
   const userWithToken = Users.find((user) => user.id === userId);
   const client =
@@ -88,10 +92,29 @@ export function AuthenticationProvider({ children }: PropsWithChildren) {
       }}
     >
       {client ? (
-        <StreamVideo client={client}>{children}</StreamVideo>
+        <StreamVideo client={client} style={customTheme}>
+          {children}
+        </StreamVideo>
       ) : (
         <>{children}</>
       )}
     </AuthContext.Provider>
   );
 }
+
+const useCustomTheme = (): DeepPartial<Theme> => {
+  const { top, right, bottom, left } = useSafeAreaInsets();
+
+  const variants: DeepPartial<Theme['variants']> = {
+    insets: {
+      top,
+      right,
+      bottom,
+      left,
+    },
+  };
+
+  return {
+    variants,
+  };
+};
