@@ -24,22 +24,17 @@ export function setPushConfig() {
   setNotificationListeners();
   registerNonRingingNotificationHandler();
 
-  if (Platform.OS === 'ios') {
-    // Opt in to showing notifications while the app is foregrounded.
-    // Without this, expo-notifications suppresses foreground banners by default.
-    // Stream APNs payloads always carry aps.alert, so iOS renders the banner
-    // itself in background/killed — nothing extra to do for those states.
-    // https://docs.expo.dev/push-notifications/receiving-notifications/#foreground-notification-behavior
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowBanner: true,
-        shouldShowList: true,
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-      }),
-    });
-  }
+  // Opt in to showing notifications while the app is foregrounded.
+  // Without this, expo-notifications suppresses foreground banners by default.
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
 }
 
 /**

@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { handleNotificationTap } from './notificationUtils';
+import { Platform } from 'react-native';
 
 /**
  * Register notification tap listeners.
@@ -11,7 +12,7 @@ import { handleNotificationTap } from './notificationUtils';
 export function registerNonRingingNotificationHandler() {
   // Handle notification taps when app is running
   Notifications.addNotificationResponseReceivedListener((response) => {
-    const data = response.notification.request.content.data;
+    const data = extractPushData(response.notification);
     const payload = (data?.stream as Record<string, unknown>) ?? data;
     handleNotificationTap(payload);
   });
@@ -19,8 +20,15 @@ export function registerNonRingingNotificationHandler() {
   // Handle cold-start tap (app was killed, launched by tapping notification)
   const lastResponse = Notifications.getLastNotificationResponse();
   if (lastResponse) {
-    const data = lastResponse.notification.request.content.data;
+    const data = extractPushData(lastResponse.notification);
     const payload = (data?.stream as Record<string, unknown>) ?? data;
     handleNotificationTap(payload);
   }
+}
+
+function extractPushData(notification: Notifications.Notification) {
+  return Platform.select({
+    ios: (notification.request.trigger as any)?.payload,
+    android: notification.request.content.data,
+  });
 }

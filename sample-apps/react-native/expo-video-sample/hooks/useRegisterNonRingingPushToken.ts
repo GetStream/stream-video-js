@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
 import * as Notifications from 'expo-notifications';
 
-const PUSH_PROVIDER_NAME = 'rn-expo-apn-video';
+const PUSH_PROVIDER_NAME = 'rn-expo-apn-video-p8';
 
 /**
  * Registers the APN device token with the Stream backend so that
