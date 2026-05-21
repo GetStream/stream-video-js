@@ -2,8 +2,6 @@ package io.getstream.rn.callingx
 
 import android.annotation.SuppressLint
 import com.google.firebase.messaging.RemoteMessage
-import io.getstream.rn.callingx.utils.LifecycleListener
-import io.getstream.rn.callingx.utils.SettingsStore
 import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService
 
 /**
