@@ -1,6 +1,6 @@
 PODS:
   - boost (1.84.0)
-  - Callingx (0.1.1):
+  - Callingx (0.2.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3183,7 +3183,7 @@ PODS:
     - SocketRocket
     - Yoga
   - SocketRocket (0.7.1)
-  - stream-chat-react-native (9.0.1):
+  - stream-chat-react-native (9.1.3):
     - boost
     - DoubleConversion
     - fast_float
@@ -3241,7 +3241,7 @@ PODS:
     - stream-react-native-webrtc
     - StreamVideoNoiseCancellation
     - Yoga
-  - stream-io-video-filters-react-native (0.12.1):
+  - stream-io-video-filters-react-native (0.12.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -3273,7 +3273,7 @@ PODS:
   - stream-react-native-webrtc (137.2.0):
     - React-Core
     - StreamWebRTC (~> 137.0.54)
-  - stream-video-react-native (1.33.0):
+  - stream-video-react-native (1.35.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3690,7 +3690,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
-  Callingx: 29285fe9e6d19be1ba3b321859b71b01942e13b0
+  Callingx: 55463a4725d99607b58aef620a397649bf333232
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 82d1d7996af4c5850242966eb81e73f9a6dfab1e
@@ -3784,11 +3784,11 @@ SPEC CHECKSUMS:
   RNSVG: 282c14a0d61ce7231e2f4aa213c618171f1dced5
   RNWorklets: 944dddd0eef13006b658e653abbb3ee8365c3809
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stream-chat-react-native: 892a55dc716349e9c953286116a51ff410e9f1a3
+  stream-chat-react-native: ad5be295e157a70583bbff7b996951f4e6c24eeb
   stream-io-noise-cancellation-react-native: ea8ca1d50e305f2a0ffa027ff36c345aa5278237
-  stream-io-video-filters-react-native: 291596aa41ccb9dd508d2d3b54e3f5d84a7f34fe
+  stream-io-video-filters-react-native: 4c242d4349600d889758852cb66d7c8421b4d690
   stream-react-native-webrtc: d5e9e2bfdff70415d153b9ad8e6f1cb7aa3bbb0e
-  stream-video-react-native: d11f2b23c7cd05edcdfd17948336399f11409f41
+  stream-video-react-native: b8946d9cf94375c02d1cabe94b483d900470c50d
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: 57bd35729bcc46b008de4e741a5b23ac28b8854d
   Teleport: 80f24aad22fab8c359e3db4504d9f302651856e5

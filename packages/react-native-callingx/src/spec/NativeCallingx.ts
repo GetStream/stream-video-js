@@ -39,6 +39,8 @@ export interface Spec extends TurboModule {
 
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
 
+  setDefaultAudioDeviceEndpointType(endpointType: string): void;
+
   canPostNotifications(): boolean;
 
   getInitialEvents(): Array<{

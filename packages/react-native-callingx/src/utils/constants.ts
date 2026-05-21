@@ -15,6 +15,7 @@ export const defaultiOSOptions: Required<InternalIOSOptions> = {
   callsHistory: false,
   displayCallTimeout: 60000, // 1 minute
   enableOngoingCalls: false,
+  defaultDeviceEndpointType: 'speaker',
 };
 
 export const defaultAndroidOptions: Omit<

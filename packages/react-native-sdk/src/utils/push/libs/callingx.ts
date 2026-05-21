@@ -52,6 +52,10 @@ export function extractCallingExpOptions(
     if (pushConfig.ios.enableOngoingCalls !== undefined) {
       iosOptions.enableOngoingCalls = pushConfig.ios.enableOngoingCalls;
     }
+    if (pushConfig.ios.defaultDeviceEndpointType !== undefined) {
+      iosOptions.defaultDeviceEndpointType =
+        pushConfig.ios.defaultDeviceEndpointType;
+    }
 
     if (Object.keys(iosOptions).length > 0) {
       callingExpOptions.ios = iosOptions;

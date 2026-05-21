@@ -2,39 +2,64 @@ import Foundation
 import AVFoundation
 import stream_react_native_webrtc
 
+enum DefaultAudioDevice {
+    case speaker
+    case earpiece
+}
+
 @objcMembers public class AudioSessionManager: NSObject {
 
+    private static var defaultAudioDevice: DefaultAudioDevice = .speaker
+
+    // Reset in didDeactivate so the next didActivate (interruption recovery) reapplies.
+    private static var configuredInCurrentActivationCycle: Bool = false
+
+    public static func setDefaultAudioDeviceEndpointType(_ endpointType: String) {
+        defaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
+    }
+
+    public static func reapplyForDidActivateIfNeeded() {
+        if configuredInCurrentActivationCycle { return }
+        createAudioSessionIfNeeded()
+    }
+
+    public static func resetActivationCycle() {
+        configuredInCurrentActivationCycle = false
+    }
+
     public static func createAudioSessionIfNeeded() {
-        #if DEBUG
-        NSLog("%@","[Callingx][createAudioSessionIfNeeded] Creating audio session")
-        #endif
-
-        let categoryOptions: AVAudioSession.CategoryOptions
+        // XCode 16 and older don't expose .allowBluetoothHFP
+        // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
         #if compiler(>=6.2) // For Xcode 26.0+
-            categoryOptions = [.allowBluetoothHFP, .defaultToSpeaker]
+            let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
         #else
-            categoryOptions = [.allowBluetooth, .defaultToSpeaker]
+            let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
         #endif
-        let mode: AVAudioSession.Mode = .voiceChat
 
-        // Configure RTCAudioSessionConfiguration to match our intended settings
-        // This ensures WebRTC's internal state stays consistent during interruptions/route changes
+        var categoryOptions: AVAudioSession.CategoryOptions = [bluetoothOption, .allowBluetoothA2DP]
+        if defaultAudioDevice == .speaker {
+            categoryOptions.insert(.defaultToSpeaker)
+        }
+
+        // webRTC() singleton hardcodes sampleRate=48000 / ioBufferDuration=0.02 — keep those.
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
         rtcConfig.category = AVAudioSession.Category.playAndRecord.rawValue
-        rtcConfig.mode = mode.rawValue
+        rtcConfig.mode = AVAudioSession.Mode.voiceChat.rawValue
         rtcConfig.categoryOptions = categoryOptions
         RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
 
-        // Apply settings via RTCAudioSession (with lock) to keep WebRTC internal state consistent
         let rtcSession = RTCAudioSession.sharedInstance()
         rtcSession.lockForConfiguration()
         defer { rtcSession.unlockForConfiguration() }
 
         do {
             try rtcSession.setConfiguration(rtcConfig)
+            // Set inside do{} so a failure leaves the flag false and the next
+            // didActivate reapply auto-recovers.
+            configuredInCurrentActivationCycle = true
         } catch {
             #if DEBUG
-            NSLog("%@","[Callingx][createAudioSessionIfNeeded] Error configuring audio session: \(error)")
+            NSLog("%@","[Callingx][createAudioSessionIfNeeded] Error: \(error)")
             #endif
         }
     }

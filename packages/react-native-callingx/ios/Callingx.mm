@@ -237,6 +237,18 @@ RCT_EXPORT_METHOD(setShouldRejectCallWhenBusy:(BOOL)shouldReject) {
 }
 #endif
 
+#pragma mark - setDefaultAudioDeviceEndpointType
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)setDefaultAudioDeviceEndpointType:(NSString *)endpointType {
+  [_moduleImpl setDefaultAudioDeviceEndpointType:endpointType];
+}
+#else
+RCT_EXPORT_METHOD(setDefaultAudioDeviceEndpointType:(NSString *)endpointType) {
+  [_moduleImpl setDefaultAudioDeviceEndpointType:endpointType];
+}
+#endif
+
 #pragma mark - getInitialEvents
 
 #ifdef RCT_NEW_ARCH_ENABLED
