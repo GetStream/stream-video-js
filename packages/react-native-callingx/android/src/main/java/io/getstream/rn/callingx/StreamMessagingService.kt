@@ -16,40 +16,16 @@ import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService
  * the merged manifest so this service is the single FCM handler
  */
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
-class StreamMessagingService : ReactNativeFirebaseMessagingService() {
+open class StreamMessagingService : ReactNativeFirebaseMessagingService() {
 
   companion object {
     const val TAG = "[Callingx] StreamMessagingService"
   }
 
   override fun onMessageReceived(remoteMessage: RemoteMessage) {
-    val data = remoteMessage.data
-    debugLog(TAG, "onMessageReceived data = $data")
+    debugLog(TAG, "onMessageReceived data=${remoteMessage.data}")
 
-    val isSupportedStreamVideoCallRing =
-      data["sender"] == "stream.video" && data["type"] == "call.ring"
-
-    if (isSupportedStreamVideoCallRing) {
-      val callCid = data["call_cid"]
-      if (callCid.isNullOrEmpty()) {
-        debugLog(
-          TAG,
-          "missing call_cid for call.ring, skipping CallService start",
-        )
-      } else if (
-        SettingsStore.shouldSkipIncomingPushInForeground(applicationContext) &&
-        LifecycleListener.isInForeground
-      ) {
-        debugLog(
-          TAG,
-          "app is in foreground and skipIncomingPushInForeground=true, letting JS handle call.ring — skipping CallService start",
-        )
-      } else {
-        CallService.startIncomingCallFromPush(applicationContext, data)
-      }
-    } else {
-      debugLog(TAG, "sender or type is not supported, skipping CallService start")
-    }
+    StreamMessagingHelper.handleMessage(applicationContext, remoteMessage)
 
     // Let React Native Firebase continue its normal processing so
     // setBackgroundMessageHandler() still runs in JS.

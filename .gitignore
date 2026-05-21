@@ -61,3 +61,5 @@ project.xcworkspace
 .settings
 local.properties
 android.iml
+
+.claude/worktrees/

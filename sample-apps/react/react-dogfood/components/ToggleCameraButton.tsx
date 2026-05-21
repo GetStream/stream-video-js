@@ -6,6 +6,7 @@ import {
   Icon,
   MenuToggle,
   MenuVisualType,
+  SfuModels,
   ToggleMenuButtonProps,
   useCallStateHooks,
   useI18n,
@@ -15,14 +16,19 @@ import { isMobile } from '../helpers/isMobile';
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
     const { t } = useI18n();
-    const { useCameraState } = useCallStateHooks();
+    const { useCameraState, useLocalParticipant } = useCallStateHooks();
     const { selectedDevice: selectedCamera, devices: cameras } =
       useCameraState();
+    const localParticipant = useLocalParticipant();
+    const isSystemMuted = !!localParticipant?.interruptedTracks?.includes(
+      SfuModels.TrackType.VIDEO,
+    );
 
     return (
       <button
         ref={ref}
         className="rd__button rd__button--align-left rd__lobby__camera-button"
+        title={isSystemMuted ? t('Camera is paused by your system') : undefined}
       >
         <Icon className="rd__button__icon" icon="camera" />
         <p className="rd__lobby__camera-button__device">

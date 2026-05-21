@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.35.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.34.0...@stream-io/video-react-native-sdk-1.35.0) (2026-05-18)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.50.0`
+- `@stream-io/video-react-bindings` updated to version `1.16.0`
+
+### Features
+
+- Automatic audio recovery ([#2240](https://github.com/GetStream/stream-video-js/issues/2240)) ([8131e5b](https://github.com/GetStream/stream-video-js/commit/8131e5b35a1c87c46d99eeaab434f8889ba5d126))
+
+### Bug Fixes
+
+- fixed ws reject event race condition ([#2239](https://github.com/GetStream/stream-video-js/issues/2239)) ([d3f017b](https://github.com/GetStream/stream-video-js/commit/d3f017b220f86ccc448883672bc498fcf5cfa26c))
+
 ## [1.34.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.33.0...@stream-io/video-react-native-sdk-1.34.0) (2026-05-08)
 
 ### Dependency Updates

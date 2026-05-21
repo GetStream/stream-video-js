@@ -395,6 +395,289 @@ describe('Device Manager', () => {
     vi.useRealTimers();
   });
 
+  describe('interruptedTracks (hardware mute/unmute events)', () => {
+    const localSessionId = 'local-session-id';
+
+    beforeEach(() => {
+      manager['call'].state.setParticipants([
+        {
+          sessionId: localSessionId,
+          userId: 'local-user',
+          isLocalParticipant: true,
+          publishedTracks: [],
+        } as any,
+      ]);
+    });
+
+    const fireOn = async (track: MockTrack, event: 'mute' | 'unmute') => {
+      const handler = track.eventHandlers[event] as Function;
+      await handler();
+    };
+
+    const currentTrack = () =>
+      manager.state.mediaStream?.getTracks()[0] as MockTrack;
+
+    const isInterrupted = () =>
+      !!manager['call'].state.localParticipant?.interruptedTracks?.includes(
+        TrackType.VIDEO,
+      );
+
+    it('adds the track type on a mute event without touching status', async () => {
+      await manager.enable();
+      expect(manager.state.status).toBe('enabled');
+      expect(isInterrupted()).toBe(false);
+
+      await fireOn(currentTrack(), 'mute');
+
+      expect(isInterrupted()).toBe(true);
+      expect(manager.state.status).toBe('enabled');
+      expect(manager.state.optimisticStatus).toBe('enabled');
+    });
+
+    it('removes the track type on the matching unmute event', async () => {
+      await manager.enable();
+      const track = currentTrack();
+      await fireOn(track, 'mute');
+      expect(isInterrupted()).toBe(true);
+
+      await fireOn(track, 'unmute');
+
+      expect(isInterrupted()).toBe(false);
+      expect(manager.state.status).toBe('enabled');
+    });
+
+    it('notifies the SFU for video track mute/unmute events', async () => {
+      await manager.enable();
+      const track = currentTrack();
+
+      await fireOn(track, 'mute');
+      expect(manager['call'].notifyTrackMuteState).toHaveBeenCalledWith(
+        true,
+        TrackType.VIDEO,
+      );
+
+      await fireOn(track, 'unmute');
+      expect(manager['call'].notifyTrackMuteState).toHaveBeenCalledWith(
+        false,
+        TrackType.VIDEO,
+      );
+    });
+
+    it('emits localParticipant$ transitions to subscribers', async () => {
+      const observed: boolean[] = [];
+      const subscription = manager['call'].state.localParticipant$.subscribe(
+        (p) => observed.push(!!p?.interruptedTracks?.includes(TrackType.VIDEO)),
+      );
+
+      await manager.enable();
+      const track = currentTrack();
+      await fireOn(track, 'mute');
+      await fireOn(track, 'unmute');
+
+      expect(observed).toContain(true);
+      expect(observed[observed.length - 1]).toBe(false);
+      subscription.unsubscribe();
+    });
+
+    it('reacquires a fresh stream when the device is replaced mid-interruption', async () => {
+      vi.useFakeTimers();
+      emitDeviceIds(mockVideoDevices);
+
+      await manager.enable();
+      const device = mockVideoDevices[0];
+      await manager.select(device.deviceId);
+      await fireOn(currentTrack(), 'mute');
+      expect(isInterrupted()).toBe(true);
+      expect(manager.state.status).toBe('enabled');
+
+      manager.getStream.mockClear();
+
+      emitDeviceIds([
+        { ...device, groupId: device.groupId + 'new' },
+        ...mockVideoDevices.slice(1),
+      ]);
+
+      await vi.runAllTimersAsync();
+
+      // Status stays 'enabled' so the replacement flows through
+      // applySettingsToStream, which forces a fresh getStream call.
+      expect(manager.getStream).toHaveBeenCalled();
+      expect(manager.state.status).toBe('enabled');
+      vi.useRealTimers();
+    });
+
+    it('leaves manager.enabled === true so capability cleanup can still disable it', async () => {
+      await manager.enable();
+      await fireOn(currentTrack(), 'mute');
+
+      // `enabled` continues to reflect requested-publishing intent. Code
+      // that revokes SEND_AUDIO / SEND_VIDEO at the Call layer iterates
+      // managers whose `enabled` is true; if system-muted hid that bit,
+      // the cleanup would skip a still-published track.
+      expect(manager.enabled).toBe(true);
+    });
+
+    it('clears interruptedTracks when the user toggles the device off and back on', async () => {
+      await manager.enable();
+      await fireOn(currentTrack(), 'mute');
+      expect(isInterrupted()).toBe(true);
+
+      await manager.disable();
+      // Stream is cleared on disable; the prior hardware-mute signal
+      // belonged to the now-gone track.
+      expect(isInterrupted()).toBe(false);
+
+      await manager.enable();
+      // Re-acquired stream is fresh; the stale flag must not carry over.
+      expect(isInterrupted()).toBe(false);
+    });
+
+    it('clears interruptedTracks when select() swaps to a different device', async () => {
+      await manager.enable();
+      await fireOn(currentTrack(), 'mute');
+      expect(isInterrupted()).toBe(true);
+
+      await manager.select(mockVideoDevices[1].deviceId);
+
+      expect(isInterrupted()).toBe(false);
+    });
+
+    it('removes mute/unmute listeners from the prior track when select() swaps the stream', async () => {
+      await manager.enable();
+      const oldTrack = currentTrack();
+      expect(oldTrack.eventHandlers['mute']).toBeDefined();
+      expect(oldTrack.eventHandlers['unmute']).toBeDefined();
+
+      await manager.select(mockVideoDevices[1].deviceId);
+
+      // Listeners on the prior track are torn down so a delayed
+      // mute/unmute event cannot clobber the fresh stream's state.
+      expect(oldTrack.eventHandlers['mute']).toBeUndefined();
+      expect(oldTrack.eventHandlers['unmute']).toBeUndefined();
+      expect(oldTrack.eventHandlers['ended']).toBeUndefined();
+    });
+
+    it('removes mute/unmute listeners when the stream is cleared on disable', async () => {
+      await manager.enable();
+      const oldTrack = currentTrack();
+      expect(oldTrack.eventHandlers['mute']).toBeDefined();
+
+      await manager.disable();
+
+      expect(oldTrack.eventHandlers['mute']).toBeUndefined();
+      expect(oldTrack.eventHandlers['unmute']).toBeUndefined();
+      expect(oldTrack.eventHandlers['ended']).toBeUndefined();
+    });
+
+    describe('WebKit refreshTrack on unmute (encoder stall workaround)', () => {
+      const SAFARI_UA =
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15';
+      const IOS_WKWEBVIEW_UA =
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
+      const CHROME_UA =
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+      const originalUserAgentDescriptor = Object.getOwnPropertyDescriptor(
+        window.navigator,
+        'userAgent',
+      );
+
+      const setUserAgent = (ua: string) => {
+        Object.defineProperty(window.navigator, 'userAgent', {
+          configurable: true,
+          get: () => ua,
+        });
+      };
+
+      afterEach(() => {
+        if (originalUserAgentDescriptor) {
+          Object.defineProperty(
+            window.navigator,
+            'userAgent',
+            originalUserAgentDescriptor,
+          );
+        }
+      });
+
+      it('calls refreshPublishedTrack on Safari unmute', async () => {
+        setUserAgent(SAFARI_UA);
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+
+        await fireOn(track, 'unmute');
+
+        expect(manager['call'].refreshPublishedTrack).toHaveBeenCalledWith(
+          TrackType.VIDEO,
+        );
+      });
+
+      it('calls refreshPublishedTrack on a bare iOS WKWebView (no Safari token)', async () => {
+        setUserAgent(IOS_WKWEBVIEW_UA);
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+
+        await fireOn(track, 'unmute');
+
+        expect(manager['call'].refreshPublishedTrack).toHaveBeenCalledWith(
+          TrackType.VIDEO,
+        );
+      });
+
+      it('does not call refreshPublishedTrack on Chrome unmute', async () => {
+        setUserAgent(CHROME_UA);
+        await manager.enable();
+        const track = currentTrack();
+        await fireOn(track, 'mute');
+
+        await fireOn(track, 'unmute');
+
+        expect(manager['call'].refreshPublishedTrack).not.toHaveBeenCalled();
+      });
+
+      it('does not call refreshPublishedTrack on the mute leg', async () => {
+        setUserAgent(SAFARI_UA);
+        await manager.enable();
+        const track = currentTrack();
+
+        await fireOn(track, 'mute');
+
+        expect(manager['call'].refreshPublishedTrack).not.toHaveBeenCalled();
+      });
+
+      it('skips refreshPublishedTrack while the page is hidden', async () => {
+        setUserAgent(SAFARI_UA);
+        const visibilityDescriptor = Object.getOwnPropertyDescriptor(
+          document,
+          'visibilityState',
+        );
+        Object.defineProperty(document, 'visibilityState', {
+          configurable: true,
+          get: () => 'hidden',
+        });
+
+        try {
+          await manager.enable();
+          const track = currentTrack();
+          await fireOn(track, 'mute');
+
+          await fireOn(track, 'unmute');
+
+          expect(manager['call'].refreshPublishedTrack).not.toHaveBeenCalled();
+        } finally {
+          if (visibilityDescriptor) {
+            Object.defineProperty(
+              document,
+              'visibilityState',
+              visibilityDescriptor,
+            );
+          }
+        }
+      });
+    });
+  });
+
   describe('persistPreference', () => {
     it('stores selected device and muted state', () => {
       const persistenceEnabledManager = new TestInputMediaDeviceManager(

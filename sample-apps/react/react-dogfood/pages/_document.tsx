@@ -40,6 +40,8 @@ export default function Document() {
         <link
           href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css"
           rel="stylesheet"
+          integrity="sha384-SDYx9Nwa5fE1fRuBplOPejrcbPOK/ql0Uym6hsGsTvnlC784P5LZhBJIbo8O/O+0"
+          crossOrigin="anonymous"
         />
       </Head>
       <body>

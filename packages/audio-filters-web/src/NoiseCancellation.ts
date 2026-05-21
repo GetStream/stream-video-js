@@ -4,12 +4,11 @@ import type {
   IKrispSDK,
   ISDKPartialOptions,
 } from './krispai';
+import { AudioContextRecovery } from './AudioContextRecovery';
 import { packageName, packageVersion } from './version';
 import { promiseWithResolvers } from './withResolvers';
 import { simd } from 'wasm-feature-detect';
 import type { Tracer } from './tracer';
-
-const MODEL_FILENAME = 'krisp-nc-o-med-v7.kef';
 
 /**
  * Options to pass to the NoiseCancellation instance.
@@ -53,7 +52,6 @@ export interface INoiseCancellation {
   enable: () => Promise<void>;
   disable: () => Promise<void>;
   dispose: () => Promise<void>;
-  resume: () => void;
   setSuppressionLevel: (level: number) => void;
   toFilter: () => (mediaStream: MediaStream) => {
     output: MediaStream;
@@ -84,6 +82,7 @@ export class NoiseCancellation implements INoiseCancellation {
   private sdk?: IKrispSDK;
   private filterNode?: IAudioFilterNode;
   private audioContext?: AudioContext;
+  private recovery?: AudioContextRecovery;
   private restoreTimeoutId?: number;
   private tracer?: Tracer;
 
@@ -148,7 +147,7 @@ export class NoiseCancellation implements INoiseCancellation {
         useSharedArrayBuffer: false,
         models: {
           // https://sdk-docs.krisp.ai/docs/krisp-audio-sdk-model-selection-guide
-          modelNC: `${this.basePath}/${MODEL_FILENAME}`,
+          modelNC: `${this.basePath}/krisp-nc-o-med-v7.kef`,
         },
         ...this.krispSDKParams,
       },
@@ -160,37 +159,15 @@ export class NoiseCancellation implements INoiseCancellation {
     const audioContext = new AudioContext();
     this.audioContext = audioContext;
 
-    this.tracer?.trace(
-      'noiseCancellation.audioContextState',
-      audioContext.state,
-    );
-
-    this.audioContext.addEventListener('statechange', () => {
-      this.tracer?.trace(
-        'noiseCancellation.audioContextState',
-        audioContext.state,
-      );
+    this.recovery = new AudioContextRecovery({
+      audioContext,
+      tracer: this.tracer,
     });
 
-    // AudioContext requires user interaction to start:
-    // https://developer.chrome.com/blog/autoplay/#webaudio
-    const resume = () => {
-      this.resume();
-      document.removeEventListener('click', resume);
-    };
-
-    if (this.audioContext.state === 'suspended') {
-      document.addEventListener('click', resume);
-    }
-
-    const filterNode = await sdk.createNoiseFilter(
-      this.audioContext,
-      () => {
-        this.tracer?.trace('noiseCancellation.started', 'true');
-        this.resolveInitialized();
-      },
-      () => document.removeEventListener('click', resume),
-    );
+    const filterNode = await sdk.createNoiseFilter(this.audioContext, () => {
+      this.tracer?.trace('noiseCancellation.started', 'true');
+      this.resolveInitialized();
+    });
     filterNode.addEventListener('buffer_overflow', this.handleBufferOverflow);
     this.filterNode = filterNode;
 
@@ -232,6 +209,10 @@ export class NoiseCancellation implements INoiseCancellation {
    */
   dispose = async () => {
     window.clearTimeout(this.restoreTimeoutId);
+    if (this.recovery) {
+      this.recovery.dispose();
+      this.recovery = undefined;
+    }
     if (this.audioContext && this.audioContext.state !== 'closed') {
       await this.audioContext.close().catch((err) => {
         console.warn('Failed to close the audio context', err);
@@ -288,31 +269,8 @@ export class NoiseCancellation implements INoiseCancellation {
     destination.channelCount = audioTrack.getSettings().channelCount ?? 1;
 
     source.connect(this.filterNode).connect(destination);
-    // When filter is started, user's microphone media stream is active.
-    // That means that most probably we can resume audio context without
-    // any autoplay policy limitations.
-    this.resume();
-    return { output: destination.stream };
-  };
 
-  resume = () => {
-    // resume if still suspended
-    if (!this.audioContext) return;
-    const state = this.audioContext.state;
-    if (state === 'suspended' || state === 'interrupted') {
-      const tag = 'audioContextResumeNC';
-      this.audioContext.resume().then(
-        () => this.tracer?.trace(tag, this.audioContext?.state),
-        (err) => {
-          const data = [this.audioContext?.state, err?.message];
-          this.tracer?.trace(`${tag}Error`, data);
-          console.warn(
-            'Failed to resume the audio context. Noise Cancellation may not work correctly',
-            err,
-          );
-        },
-      );
-    }
+    return { output: destination.stream };
   };
 
   /**
