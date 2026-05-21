@@ -47,10 +47,6 @@ export const useCustomTheme = (mode: ThemeMode): DeepPartial<Theme> => {
     },
   };
 
-  const callContent: DeepPartial<Theme['callContent']> = {
-    container: { paddingTop: 0, flexDirection: 'column' },
-  };
-
   const lightThemeColors: DeepPartial<Theme['colors']> = {
     buttonPrimary: '#3399ff',
     buttonSecondary: '#eff0f1',
@@ -70,7 +66,6 @@ export const useCustomTheme = (mode: ThemeMode): DeepPartial<Theme> => {
 
   const baseTheme: DeepPartial<Theme> = {
     variants,
-    callContent,
   };
 
   if (mode === 'light') {
