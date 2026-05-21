@@ -61,14 +61,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   }
   
   func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-    let userInfo = notification.request.content.userInfo
-
-    // Notifee-created local notifications: notifee handles display itself.
-    if notification.request.trigger is UNPushNotificationTrigger == false {
-      completionHandler([])
-      return
-    }
-
     // All other remote notifications: show natively
     completionHandler([.sound, .alert, .badge])
   }

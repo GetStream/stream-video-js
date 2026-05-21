@@ -82,7 +82,7 @@ export async function displayNonRingingNotification(
         sender: 'stream.video',
       },
     },
-    trigger: null, // immediate
+    trigger: { channelId: NON_RINGING_CHANNEL_ID },
   });
 }
 

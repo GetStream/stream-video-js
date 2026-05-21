@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useStreamVideoClient } from '@stream-io/video-react-native-sdk';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 
 const PUSH_PROVIDER_NAME = 'rn-apn-video';
@@ -25,7 +24,7 @@ export const useRegisterNonRingingPushToken = () => {
       return;
     }
 
-    const userId = client.streamClient._user?.id ?? '';
+    const userId = client.streamClient.user?.id ?? '';
 
     const registerToken = async (token: string) => {
       if (

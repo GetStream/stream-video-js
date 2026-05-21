@@ -2,7 +2,6 @@ import {
   StreamVideoClient,
   StreamVideoRN,
 } from '@stream-io/video-react-native-sdk';
-import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createToken } from './createToken';

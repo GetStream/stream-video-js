@@ -11,11 +11,13 @@ export function registerNonRingingNotificationHandler() {
   // Handle notification taps in foreground/background
   PushNotificationIOS.addEventListener('localNotification', (notification) => {
     handleNotificationTap(notification.getData()?.stream);
+    notification.finish(PushNotificationIOS.FetchResult.NoData);
   });
 
   PushNotificationIOS.getInitialNotification().then((notification) => {
     if (notification) {
       handleNotificationTap(notification.getData()?.stream);
+      notification.finish(PushNotificationIOS.FetchResult.NoData);
     }
   });
 }

@@ -23,7 +23,7 @@ export const useRegisterNonRingingPushToken = () => {
       return;
     }
 
-    const userId = client.streamClient._user?.id ?? '';
+    const userId = client.streamClient.user?.id ?? '';
 
     const registerToken = async (token: string) => {
       if (

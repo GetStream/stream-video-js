@@ -20,7 +20,7 @@ async function handleNonRingingMessage(
   }
 
   const data = msg.data;
-  if (!data || data.sender !== 'stream.video') {
+  if (!data || data.sender !== 'stream.video' || !data.call_cid) {
     return;
   }
 

@@ -23,6 +23,7 @@ export function registerNonRingingNotificationHandler() {
     const data = extractPushData(lastResponse.notification);
     const payload = (data?.stream as Record<string, unknown>) ?? data;
     handleNotificationTap(payload);
+    Notifications.clearLastNotificationResponse();
   }
 }
 
