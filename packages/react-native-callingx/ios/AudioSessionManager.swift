@@ -19,12 +19,12 @@ enum DefaultAudioDevice {
     }
 
     public static func reapplyForDidActivateIfNeeded() {
-        if configuredInCurrentActivationCycle { return }
+        if stateQueue.sync(execute: { configuredInCurrentActivationCycle }) { return }
         createAudioSessionIfNeeded()
     }
 
     public static func resetActivationCycle() {
-        configuredInCurrentActivationCycle = false
+        stateQueue.async { configuredInCurrentActivationCycle = false }
     }
 
     public static func createAudioSessionIfNeeded() {
@@ -58,7 +58,7 @@ enum DefaultAudioDevice {
             try rtcSession.setConfiguration(rtcConfig)
             // Set inside do{} so a failure leaves the flag false and the next
             // didActivate reapply auto-recovers.
-            configuredInCurrentActivationCycle = true
+            stateQueue.async { configuredInCurrentActivationCycle = true }
         } catch {
             #if DEBUG
             NSLog("%@","[Callingx][createAudioSessionIfNeeded] Error: \(error)")
