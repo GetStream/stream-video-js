@@ -9,13 +9,13 @@ enum DefaultAudioDevice {
 
 @objcMembers public class AudioSessionManager: NSObject {
 
+    private static let stateQueue = DispatchQueue(label: "io.getstream.callingx.audioSessionManager")
     private static var defaultAudioDevice: DefaultAudioDevice = .speaker
-
-    // Reset in didDeactivate so the next didActivate (interruption recovery) reapplies.
     private static var configuredInCurrentActivationCycle: Bool = false
 
     public static func setDefaultAudioDeviceEndpointType(_ endpointType: String) {
-        defaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
+        let next: DefaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
+        stateQueue.async { defaultAudioDevice = next }
     }
 
     public static func reapplyForDidActivateIfNeeded() {
@@ -28,6 +28,8 @@ enum DefaultAudioDevice {
     }
 
     public static func createAudioSessionIfNeeded() {
+        let currentDevice = stateQueue.sync { defaultAudioDevice }
+
         // XCode 16 and older don't expose .allowBluetoothHFP
         // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
         #if compiler(>=6.2) // For Xcode 26.0+
@@ -37,7 +39,7 @@ enum DefaultAudioDevice {
         #endif
 
         var categoryOptions: AVAudioSession.CategoryOptions = [bluetoothOption, .allowBluetoothA2DP]
-        if defaultAudioDevice == .speaker {
+        if currentDevice == .speaker {
             categoryOptions.insert(.defaultToSpeaker)
         }
 
