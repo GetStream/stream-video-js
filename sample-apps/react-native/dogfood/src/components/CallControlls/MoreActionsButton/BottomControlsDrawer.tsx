@@ -53,12 +53,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
   const call = useCall();
 
   // negative offset to position the drawer component above the bottom controls
-  const {
-    theme: {
-      variants: { insets },
-    },
-  } = useTheme();
-  const callContentPaddingBottom = insets.bottom;
+  const callContentPaddingBottom = theme.variants.insets.bottom;
   const offset = -bottomControlsHeight - callContentPaddingBottom;
 
   const translateY = useRef<any>(
