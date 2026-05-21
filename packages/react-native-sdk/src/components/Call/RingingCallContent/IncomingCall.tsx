@@ -45,17 +45,29 @@ export const IncomingCall = ({
 }: IncomingCallProps) => {
   const { t } = useI18n();
   const {
-    theme: { colors, incomingCall, typefaces },
+    theme: { colors, incomingCall, typefaces, variants },
   } = useTheme();
 
   const landscapeContentStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
 
+  const insetStyles: ViewStyle = {
+    paddingTop: variants.insets.top,
+    paddingBottom: variants.insets.bottom,
+    paddingLeft: variants.insets.left,
+    paddingRight: variants.insets.right,
+  };
+
   return (
     <Background>
       <View
-        style={[styles.content, landscapeContentStyles, incomingCall.content]}
+        style={[
+          styles.content,
+          landscapeContentStyles,
+          insetStyles,
+          incomingCall.content,
+        ]}
       >
         <View style={[styles.topContainer, incomingCall.topContainer]}>
           <UserInfo />
