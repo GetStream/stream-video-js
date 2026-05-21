@@ -29,7 +29,7 @@ const Calls = () => {
   return (
     <StreamCall call={firstCall}>
       <CallLeaveOnUnmount call={firstCall} />
-      <View style={styles.container}>
+      <View style={StyleSheet.absoluteFill}>
         <RingingCallContent landscape={orientation === 'landscape'} />
       </View>
     </StreamCall>
@@ -61,9 +61,3 @@ export const Call = () => {
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-  },
-});
