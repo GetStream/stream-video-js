@@ -1720,6 +1720,7 @@ export class Call {
     reason: ReconnectReason,
   ): Promise<void> => {
     if (
+      this.state.callingState === CallingState.JOINING ||
       this.state.callingState === CallingState.RECONNECTING ||
       this.state.callingState === CallingState.MIGRATING ||
       this.state.callingState === CallingState.RECONNECTING_FAILED
