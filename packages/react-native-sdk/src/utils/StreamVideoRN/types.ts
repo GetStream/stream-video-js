@@ -70,6 +70,14 @@ export type StreamVideoConfig = {
        * @default false
        */
       enableOngoingCalls?: boolean;
+      /**
+       * When true, ringing pushes that arrive while the app is in the
+       * foreground are not shown by CallKit. The push is still delivered to
+       * JS, so the app must show its own ringing UI. Background pushes are unaffected.
+       * Requires iOS 26.4 or newer version of iOS.
+       * @default false
+       */
+      skipIncomingPushInForeground?: boolean;
     };
     android?: {
       /**
@@ -155,6 +163,12 @@ export type StreamVideoConfig = {
        * @default false
        */
       enableOngoingCalls?: boolean;
+      /**
+       * When true, incoming call push notifications (call.ring) will not be displayed
+       * as a notification when the app is in the foreground.
+       * @default false
+       */
+      skipIncomingPushInForeground?: boolean;
     };
     /**
      * Whether to reject calls when the user is busy.

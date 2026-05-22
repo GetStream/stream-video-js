@@ -17,7 +17,7 @@ export function setPushConfig() {
   StreamVideoRN.setPushConfig({
     isExpo: true,
     ios: {
-      pushProviderName: 'rn-expo-apn-video',
+      pushProviderName: 'rn-expo-apn-video-p8',
     },
     android: {
       pushProviderName: 'expo-fcm-video',

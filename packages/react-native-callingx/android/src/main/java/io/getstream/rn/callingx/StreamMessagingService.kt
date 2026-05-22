@@ -25,6 +25,8 @@ open class StreamMessagingService : ReactNativeFirebaseMessagingService() {
 
     StreamMessagingHelper.handleMessage(applicationContext, remoteMessage)
 
+    // Let React Native Firebase continue its normal processing so
+    // setBackgroundMessageHandler() still runs in JS.
     super.onMessageReceived(remoteMessage)
   }
 }

@@ -2,6 +2,9 @@ package io.getstream.rn.callingx
 
 import android.content.Context
 import com.google.firebase.messaging.RemoteMessage
+import io.getstream.rn.callingx.utils.LifecycleListener
+import io.getstream.rn.callingx.utils.SettingsStore
+
 
 /**
  * Public entry point for consumer apps that host their own [com.google.firebase.messaging.FirebaseMessagingService].
@@ -53,7 +56,6 @@ object StreamMessagingHelper {
   @JvmStatic
   fun handleMessage(context: Context, remoteMessage: RemoteMessage) {
     val data = remoteMessage.data
-    debugLog(TAG, "handleMessage data = $data")
 
     if (!isStreamCallRing(remoteMessage)) {
       debugLog(TAG, "sender or type is not supported, skipping CallService start")
@@ -64,6 +66,17 @@ object StreamMessagingHelper {
     if (callCid.isNullOrEmpty()) {
       debugLog(TAG, "missing call_cid for call.ring, skipping CallService start")
       return
+    }
+
+    if (
+        SettingsStore.shouldSkipIncomingPushInForeground(context) &&
+        LifecycleListener.isInForeground
+      ) {
+        debugLog(
+          TAG,
+          "app is in foreground and skipIncomingPushInForeground=true, letting JS handle call.ring — skipping CallService start",
+        )
+        return
     }
 
     CallService.startIncomingCallFromPush(context.applicationContext, data)

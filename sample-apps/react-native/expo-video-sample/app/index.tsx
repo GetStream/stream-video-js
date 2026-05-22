@@ -6,14 +6,12 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Alert,
-  View,
 } from 'react-native';
 import {
   isExpoNotificationStreamVideoEvent,
   oniOSExpoNotificationEvent,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { NavigationHeader } from '../components/NavigationHeader';
