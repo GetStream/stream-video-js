@@ -36,11 +36,7 @@ export default function CreateCallScreen() {
       // This listener is fired whenever a notification is received while the app is foregrounded.
       // here the notification payload is processed and the call is added to the low level client state
       const subscription = Notifications.addNotificationReceivedListener(
-        (notification) => {
-          if (isExpoNotificationStreamVideoEvent(notification)) {
-            oniOSExpoNotificationEvent(notification);
-          }
-        },
+        (notification) => {},
       );
       return () => {
         subscription.remove();

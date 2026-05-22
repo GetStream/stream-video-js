@@ -7,7 +7,13 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { useAppContext } from '../context/AppContext';
 import { createToken } from '../utils/createToken';
+import { useRegisterNonRingingPushToken } from '../hooks/useRegisterNonRingingPushToken';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const NonRingingPushTokenRegistration = () => {
+  useRegisterNonRingingPushToken();
+  return null;
+};
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const { user } = useAppContext();
@@ -67,6 +73,7 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
 
   return (
     <StreamVideo client={videoClient} style={customTheme}>
+      <NonRingingPushTokenRegistration />
       {children}
     </StreamVideo>
   );
