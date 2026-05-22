@@ -7,7 +7,11 @@ import {
   KeyboardAvoidingView,
   Alert,
 } from 'react-native';
-import { useCalls } from '@stream-io/video-react-native-sdk';
+import {
+  isExpoNotificationStreamVideoEvent,
+  oniOSExpoNotificationEvent,
+  useCalls,
+} from '@stream-io/video-react-native-sdk';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { NavigationHeader } from '../components/NavigationHeader';

@@ -194,6 +194,15 @@ export type InternalIOSOptions = {
    * @default false
    */
   enableOngoingCalls?: boolean;
+  /**
+   * When true, ringing pushes that arrive while the app is in the foreground
+   * are not shown by CallKit. The push is still delivered to JS via
+   * `voipNotificationReceived`, so the app must show its own ringing UI.
+   * Background pushes are unaffected. Requires iOS 26.4+; no-op on older
+   * versions.
+   * @default false
+   */
+  skipIncomingPushInForeground?: boolean;
 };
 type iOSOptions = Omit<
   InternalIOSOptions,
@@ -240,6 +249,12 @@ export type InternalAndroidOptions = {
    * @default false
    */
   enableOngoingCalls?: boolean;
+  /**
+   * When true, incoming call push notifications (call.ring) will not be displayed
+   * as a notification when the app is in the foreground.
+   * @default false
+   */
+  skipIncomingPushInForeground?: boolean;
 };
 type AndroidOptions = InternalAndroidOptions & NotificationTransformers;
 

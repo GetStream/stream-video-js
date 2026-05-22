@@ -1,11 +1,14 @@
 import React, { PropsWithChildren, useEffect, useState } from 'react';
 import {
+  DeepPartial,
   StreamVideo,
   StreamVideoClient,
+  Theme,
 } from '@stream-io/video-react-native-sdk';
 import { useAppContext } from '../context/AppContext';
 import { createToken } from '../utils/createToken';
 import { useRegisterNonRingingPushToken } from '../hooks/useRegisterNonRingingPushToken';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const NonRingingPushTokenRegistration = () => {
   useRegisterNonRingingPushToken();
@@ -14,6 +17,7 @@ const NonRingingPushTokenRegistration = () => {
 
 export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   const { user } = useAppContext();
+  const customTheme = useCustomTheme();
   const [videoClient, setVideoClient] = useState<StreamVideoClient | undefined>(
     undefined,
   );
@@ -68,9 +72,26 @@ export const VideoWrapper = ({ children }: PropsWithChildren<{}>) => {
   }
 
   return (
-    <StreamVideo client={videoClient}>
+    <StreamVideo client={videoClient} style={customTheme}>
       <NonRingingPushTokenRegistration />
       {children}
     </StreamVideo>
   );
+};
+
+const useCustomTheme = (): DeepPartial<Theme> => {
+  const { top, right, bottom, left } = useSafeAreaInsets();
+
+  const variants: DeepPartial<Theme['variants']> = {
+    insets: {
+      top,
+      right,
+      bottom,
+      left,
+    },
+  };
+
+  return {
+    variants,
+  };
 };
