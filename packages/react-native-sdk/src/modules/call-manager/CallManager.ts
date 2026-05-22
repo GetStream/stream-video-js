@@ -112,6 +112,12 @@ export class CallManager {
    */
   start = (config?: StreamInCallManagerConfig): void => {
     if (shouldBypassForCallKit()) {
+      // Forward only the passive endpoint preference; callingx reads it when
+      // CallKit drives session activation.
+      if (config?.audioRole === 'communicator' && CallingxModule) {
+        const type = config.deviceEndpointType ?? 'speaker';
+        CallingxModule.setDefaultAudioDeviceEndpointType(type);
+      }
       videoLoggerSystem
         .getLogger('CallManager')
         .debug(

@@ -56,6 +56,10 @@ export function extractCallingExpOptions(
       iosOptions.skipIncomingPushInForeground =
         pushConfig.ios.skipIncomingPushInForeground;
     }
+    if (pushConfig.ios.defaultDeviceEndpointType !== undefined) {
+      iosOptions.defaultDeviceEndpointType =
+        pushConfig.ios.defaultDeviceEndpointType;
+    }
 
     if (Object.keys(iosOptions).length > 0) {
       callingExpOptions.ios = iosOptions;

@@ -16,6 +16,7 @@ import {
   type EventName,
   type EventParams,
   type CallingExpOptions,
+  type DefaultDeviceEndpointType,
   type VoipEventName,
   type VoipEventParams,
   type VoipEventData,
@@ -75,6 +76,11 @@ class CallingxModule implements ICallingxModule {
 
     if (Platform.OS === 'ios') {
       NativeCallingModule.setupiOS({ ...defaultiOSOptions, ...options.ios });
+      if (options.ios?.defaultDeviceEndpointType) {
+        NativeCallingModule.setDefaultAudioDeviceEndpointType(
+          options.ios.defaultDeviceEndpointType,
+        );
+      }
     }
 
     if (Platform.OS === 'android') {
@@ -119,6 +125,13 @@ class CallingxModule implements ICallingxModule {
 
   setShouldRejectCallWhenBusy(shouldReject: boolean): void {
     NativeCallingModule.setShouldRejectCallWhenBusy(shouldReject);
+  }
+
+  setDefaultAudioDeviceEndpointType(
+    endpointType: DefaultDeviceEndpointType,
+  ): void {
+    if (Platform.OS !== 'ios') return;
+    NativeCallingModule.setDefaultAudioDeviceEndpointType(endpointType);
   }
 
   getInitialEvents(): EventData[] {

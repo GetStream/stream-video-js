@@ -1,6 +1,6 @@
 PODS:
   - boost (1.84.0)
-  - Callingx (0.1.1):
+  - Callingx (0.2.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3029,7 +3029,7 @@ PODS:
     - RNWorklets
     - SocketRocket
     - Yoga
-  - RNScreens (4.24.0):
+  - RNScreens (4.25.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3056,10 +3056,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNScreens/common (= 4.24.0)
+    - RNScreens/common (= 4.25.0)
     - SocketRocket
     - Yoga
-  - RNScreens/common (4.24.0):
+  - RNScreens/common (4.25.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3088,7 +3088,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNSVG (15.15.4):
+  - RNSVG (15.15.5):
     - boost
     - DoubleConversion
     - fast_float
@@ -3114,10 +3114,10 @@ PODS:
     - ReactCodegen
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
-    - RNSVG/common (= 15.15.4)
+    - RNSVG/common (= 15.15.5)
     - SocketRocket
     - Yoga
-  - RNSVG/common (15.15.4):
+  - RNSVG/common (15.15.5):
     - boost
     - DoubleConversion
     - fast_float
@@ -3235,7 +3235,7 @@ PODS:
     - SocketRocket
     - Yoga
   - SocketRocket (0.7.1)
-  - stream-chat-react-native (9.1.2):
+  - stream-chat-react-native (9.2.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3293,7 +3293,7 @@ PODS:
     - stream-react-native-webrtc
     - StreamVideoNoiseCancellation
     - Yoga
-  - stream-io-video-filters-react-native (0.12.1):
+  - stream-io-video-filters-react-native (0.12.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -3325,7 +3325,7 @@ PODS:
   - stream-react-native-webrtc (137.2.0):
     - React-Core
     - StreamWebRTC (~> 137.0.54)
-  - stream-video-react-native (1.33.0):
+  - stream-video-react-native (1.35.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3355,7 +3355,7 @@ PODS:
     - stream-react-native-webrtc
     - Yoga
   - StreamVideoNoiseCancellation (1.0.3)
-  - StreamWebRTC (137.0.54)
+  - StreamWebRTC (137.0.75)
   - Teleport (0.5.6):
     - boost
     - DoubleConversion
@@ -3745,7 +3745,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
-  Callingx: 3f52b6edd63e11d5455b362cd7aadba771841497
+  Callingx: b3fdb14eff4b66223bc2461b1206093ab3c79dc2
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
   FBLazyVector: 3bcb3055086e5d90a12f0fe1668e79f6eceabc17
@@ -3836,17 +3836,17 @@ SPEC CHECKSUMS:
   RNPermissions: 0ecd34c3febdf7adbc5c176b6f49a9257668822e
   RNReactNativeHapticFeedback: f86671382ee3010153a6e1ee6def6fca99f218a6
   RNReanimated: 8865aa14d69ed194ae41aa58c15a51c3e066f492
-  RNScreens: 656e050942ae9445f5cc45d05d57f13ce7a4c8e4
-  RNSVG: 7d61168bfce19c34046118e5018e237d1cea1d3f
+  RNScreens: c9e3c1ff969f77b061f31e792777a576267f9eb2
+  RNSVG: 94f3b1de85239beff9f355f92c5e57f5707e230a
   RNWorklets: 79252e2fa12db14970f4e881168ce82a4d1fe823
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stream-chat-react-native: 7f9a9771af1da1bc0331ac7d25ad6e5725431a6d
+  stream-chat-react-native: 52b4829ff71f63367711b0f2d97b113e9df2acd5
   stream-io-noise-cancellation-react-native: 0314125f43c80454a93c3b902cf692c165bc0af0
-  stream-io-video-filters-react-native: 5212557e7319decffa8d2090094f4ad3809e944d
+  stream-io-video-filters-react-native: 4c49a9999ef5a25ec321a019ddeaab31adbb65e6
   stream-react-native-webrtc: 253c3e537845e780289445e45a0e1e576d445f1c
-  stream-video-react-native: 8777fcf1c432d146ebcbe9d6063e76a7605ae11e
+  stream-video-react-native: 065936523957b7c8637c0a4e02cc2d4ec15862c2
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
-  StreamWebRTC: 57bd35729bcc46b008de4e741a5b23ac28b8854d
+  StreamWebRTC: 2715e909ed87ef9247532137d384f82c914d1653
   Teleport: 186d3e9baedfbb95815ba3e80e63bfcd4dbd5871
   VisionCamera: 68d40255fa8866e815cbbb063730102d3da276fd
   Yoga: e9fea23bf9b2766818ce9a8df72f584bf5ad36cd

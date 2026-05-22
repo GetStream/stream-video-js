@@ -1,6 +1,8 @@
 import type { EventListener } from './EventManager';
 import type { ManagableTask } from './utils/headlessTask';
 
+export type DefaultDeviceEndpointType = 'speaker' | 'earpiece';
+
 export interface ICallingxModule {
   /**
    * Whether the module can post call notifications. Android only. iOS always returns true.
@@ -30,6 +32,14 @@ export interface ICallingxModule {
    * @param shouldReject - Whether to reject calls when the user is busy.
    */
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
+
+  /**
+   * Set the default audio endpoint for CallKit-managed calls (iOS only; no-op on Android).
+   * Sticky preference applied next time CallKit activates the session.
+   */
+  setDefaultAudioDeviceEndpointType(
+    endpointType: DefaultDeviceEndpointType,
+  ): void;
   /**
    * Get the initial events. This method is used to get the initial events from the app launch.
    * The events are queued and can be retrieved after the module is setup.
@@ -203,6 +213,11 @@ export type InternalIOSOptions = {
    * @default false
    */
   skipIncomingPushInForeground?: boolean;
+  /**
+   * Default audio endpoint when CallKit activates the session.
+   * `'earpiece'` omits `.defaultToSpeaker` for voice-only call UX.
+   */
+  defaultDeviceEndpointType?: DefaultDeviceEndpointType;
 };
 type iOSOptions = Omit<
   InternalIOSOptions,

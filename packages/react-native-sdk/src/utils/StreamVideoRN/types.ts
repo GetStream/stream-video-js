@@ -77,6 +77,13 @@ export type StreamVideoConfig = {
        * @default false
        */
       skipIncomingPushInForeground?: boolean;
+      /**
+       * Default audio endpoint for CallKit-managed calls on iOS.
+       * `'earpiece'` routes voice-only / phone-style calls to the built-in receiver.
+       * Set via `setPushConfig` so it's in place before CallKit's `CXAnswerCallAction`.
+       * @default 'speaker'
+       */
+      defaultDeviceEndpointType?: 'speaker' | 'earpiece';
     };
     android?: {
       /**
