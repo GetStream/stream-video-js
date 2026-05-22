@@ -195,13 +195,29 @@ export const BackstageLayout = (props: BackstageLayoutProps) => {
   const participantCount = useParticipantCount();
   const startsAt = useCallStartsAt();
   const { t } = useI18n();
+  const [startsAtPassed, setStartsAtPassed] = useState(
+    () => !!startsAt && startsAt.getTime() < Date.now(),
+  );
+
+  useEffect(() => {
+    if (!startsAt || startsAtPassed) return;
+
+    const check = () => {
+      if (startsAt.getTime() < Date.now()) {
+        setStartsAtPassed(true);
+      }
+    };
+
+    const interval = setInterval(check, 1000);
+    return () => clearInterval(interval);
+  }, [startsAt, startsAtPassed]);
 
   return (
     <div className="str-video__livestream-layout__wrapper">
       <div className="str-video__livestream-layout__backstage">
         {startsAt && (
           <span className="str-video__livestream-layout__starts-at">
-            {startsAt.getTime() < Date.now()
+            {startsAtPassed
               ? t('Livestream starts soon')
               : t('Livestream starts at {{ time }}', {
                   time: startsAt.toLocaleTimeString([], {
