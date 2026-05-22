@@ -28,6 +28,10 @@
 @property (nonatomic, strong) CXCallController *callKeepCallController;
 @property (nonatomic, strong) CXProvider *callKeepProvider;
 
+// Returns the persisted `skipIncomingPushInForeground` setting.
+// Dispatched from StreamVideoReactNative via runtime lookup.
++ (BOOL)shouldSkipIncomingPushInForeground;
+
 @end
 
 @implementation Callingx {
@@ -91,6 +95,10 @@ RCT_EXPORT_MODULE(Callingx)
 
 + (BOOL)canRegisterCall {
   return [CallingxImpl canRegisterCall];
+}
+
++ (BOOL)shouldSkipIncomingPushInForeground {
+  return [Settings getSkipIncomingPushInForeground];
 }
 
 + (void)endCall:(NSString *)callId reason:(int)reason {
@@ -175,9 +183,10 @@ RCT_EXPORT_MODULE(Callingx)
     @"ringtoneSound" : options.sound(),
     @"imageName" : options.imageName(),
     @"includesCallsInRecents" : @(options.callsHistory()),
-    @"displayCallTimeout" : @(options.displayCallTimeout())
+    @"displayCallTimeout" : @(options.displayCallTimeout()),
+    @"skipIncomingPushInForeground" : @(options.skipIncomingPushInForeground())
   };
-  
+
   [self _setupiOSWithOptions:optionsDict];
 }
 #else
@@ -190,7 +199,8 @@ RCT_EXPORT_METHOD(setupiOS:(NSDictionary *)options) {
     @"ringtoneSound" : options[@"sound"] ?: @"",
     @"imageName" : options[@"imageName"] ?: @"",
     @"includesCallsInRecents" : options[@"callsHistory"] ?: @(NO),
-    @"displayCallTimeout" : options[@"displayCallTimeout"] ?: @(0)
+    @"displayCallTimeout" : options[@"displayCallTimeout"] ?: @(0),
+    @"skipIncomingPushInForeground" : options[@"skipIncomingPushInForeground"] ?: @(NO)
   };
 
   [self _setupiOSWithOptions:optionsDict];

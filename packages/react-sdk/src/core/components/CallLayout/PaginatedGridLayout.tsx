@@ -152,7 +152,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
 
     const cleanup = call.setViewport(paginatedGridLayoutWrapperElement);
 
-    return () => cleanup();
+    return () => cleanup?.();
   }, [paginatedGridLayoutWrapperElement, call]);
 
   // only used to render video elements

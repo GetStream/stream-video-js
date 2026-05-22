@@ -80,7 +80,7 @@ RCT_EXPORT_MODULE();
         #endif
         return YES;
     }
-    
+
     SEL selector = @selector(canRegisterCall);
     if (![callingxClass respondsToSelector:selector]) {
         #if DEBUG
@@ -88,21 +88,59 @@ RCT_EXPORT_MODULE();
         #endif
         return YES;
     }
-    
+
     NSMethodSignature *signature = [callingxClass methodSignatureForSelector:selector];
     NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
     [invocation setTarget:callingxClass];
     [invocation setSelector:selector];
     [invocation invoke];
-    
+
     BOOL canRegister = NO;
     [invocation getReturnValue:&canRegister];
-    
+
     #if DEBUG
     NSLog(@"[StreamVideoReactNative][canRegisterCall] canRegisterCall = %@", canRegister ? @"YES" : @"NO");
     #endif
-    
+
     return canRegister;
+}
+
++(BOOL)shouldSkipIncomingPushInForeground {
+    Class callingxClass = NSClassFromString(@"Callingx");
+    if (!callingxClass) {
+        return NO;
+    }
+
+    SEL selector = @selector(shouldSkipIncomingPushInForeground);
+    if (![callingxClass respondsToSelector:selector]) {
+        return NO;
+    }
+
+    NSMethodSignature *signature = [callingxClass methodSignatureForSelector:selector];
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+    [invocation setTarget:callingxClass];
+    [invocation setSelector:selector];
+    [invocation invoke];
+
+    BOOL shouldSkip = NO;
+    [invocation getReturnValue:&shouldSkip];
+    return shouldSkip;
+}
+
++(BOOL)isAppInForeground {
+    // applicationState must be read on the main thread (PushKit delivers on
+    // main, so the common path skips dispatch). Treat Inactive as foreground:
+    // covers brief transitions and system overlays.
+    __block UIApplicationState state = UIApplicationStateActive;
+    void (^readState)(void) = ^{
+        state = [UIApplication sharedApplication].applicationState;
+    };
+    if ([NSThread isMainThread]) {
+        readState();
+    } else {
+        dispatch_sync(dispatch_get_main_queue(), readState);
+    }
+    return state != UIApplicationStateBackground;
 }
 
 +(void)voipRegistration {
@@ -166,7 +204,7 @@ RCT_EXPORT_MODULE();
         }
         return;
     }
-    
+
     NSString *callCid = streamPayload[@"call_cid"];
     if (!callCid) {
         #if DEBUG
@@ -177,7 +215,7 @@ RCT_EXPORT_MODULE();
         }
         return;
     }
-    
+
     if (![StreamVideoReactNative canRegisterCall]) {
         if (completion) {
             completion();
@@ -187,6 +225,90 @@ RCT_EXPORT_MODULE();
 
     [StreamVideoReactNative reportNewIncomingCall:streamPayload forType:type completionHandler:completion];
     [StreamVideoReactNative didReceiveIncomingPushWithPayload:payload forType:type];
+}
+
++(void)didReceiveIncomingVoIPPush:(PKPushPayload *)payload
+                         metadata:(id _Nullable)metadata
+                completionHandler:(void (^_Nullable)(void))completion {
+    NSDictionary *streamPayload = payload.dictionaryPayload[@"stream"];
+    if (!streamPayload) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingVoIPPush] Stream payload not found");
+        #endif
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+
+    NSString *callCid = streamPayload[@"call_cid"];
+    if (!callCid) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][didReceiveIncomingVoIPPush] Missing required field: call_cid");
+        #endif
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+
+    NSString *type = @"PKPushTypeVoIP";
+    BOOL mustReport = readMustReportFromMetadata(metadata);
+
+    // Both skip paths require mustReport == NO; skipping while YES risks
+    // PushKit terminating the app.
+    if (!mustReport && ![StreamVideoReactNative canRegisterCall]) {
+        // Busy reject: drop without forwarding to JS.
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+
+    if (!mustReport &&
+        [StreamVideoReactNative shouldSkipIncomingPushInForeground] &&
+        [StreamVideoReactNative isAppInForeground]) {
+        // Foreground skip: hide CallKit, let JS render the ringing UI.
+        [StreamVideoReactNative didReceiveIncomingPushWithPayload:payload forType:type];
+        if (completion) {
+            completion();
+        }
+        return;
+    }
+
+    [StreamVideoReactNative reportNewIncomingCall:streamPayload forType:type completionHandler:completion];
+    [StreamVideoReactNative didReceiveIncomingPushWithPayload:payload forType:type];
+}
+
+// Reads `PKVoIPPushMetadata.mustReport` via runtime dispatch. Fail-safe:
+// returns YES on any uncertainty (nil, missing property, wrong return type)
+// so unknown metadata never causes CallKit to be skipped.
+static BOOL readMustReportFromMetadata(id _Nullable metadata) {
+    SEL selector = @selector(mustReport);
+    if (!metadata || ![metadata respondsToSelector:selector]) {
+        return YES;
+    }
+    NSMethodSignature *signature = [metadata methodSignatureForSelector:selector];
+    if (!signature || signature.methodReturnLength != sizeof(BOOL)) {
+        return YES;
+    }
+    // BOOL encodes as "c" (legacy ABIs) or "B" (modern). Reject anything else
+    // so getReturnValue: never reads garbage from an object-returning selector.
+    const char *returnType = signature.methodReturnType;
+    if (!returnType ||
+        (strcmp(returnType, @encode(BOOL)) != 0 &&
+         strcmp(returnType, @encode(bool)) != 0)) {
+        return YES;
+    }
+
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+    [invocation setTarget:metadata];
+    [invocation setSelector:selector];
+    [invocation invoke];
+
+    BOOL mustReport = NO;
+    [invocation getReturnValue:&mustReport];
+    return mustReport;
 }
 
 +(void)reportNewIncomingCall:(NSDictionary *)streamPayload forType:(NSString *)type completionHandler: (void (^_Nullable)(void)) completion {
