@@ -48,7 +48,6 @@ import {
 } from './devicePersistence';
 import {
   ActiveVirtualSession,
-  VIRTUAL_DEVICE_PREFIX,
   VirtualDevice,
   VirtualDeviceEntry,
   VirtualDeviceHandle,
@@ -125,8 +124,7 @@ export abstract class DeviceManager<
             if (
               !status ||
               (this.isTrackStoppedDueToTrackEnd && status === 'disabled') ||
-              browserPermissionState !== 'granted' ||
-              selectedDevice?.startsWith(VIRTUAL_DEVICE_PREFIX)
+              browserPermissionState !== 'granted'
             )
               return;
 
@@ -177,7 +175,8 @@ export abstract class DeviceManager<
         'Virtual devices are only supported for camera and microphone.',
       );
     }
-    const deviceId = `${VIRTUAL_DEVICE_PREFIX}${generateUUIDv4()}`;
+
+    const deviceId = `stream-virtual:${generateUUIDv4()}`;
     const entry: VirtualDeviceEntry<C> = {
       deviceId,
       kind: this.mediaDeviceKind,
@@ -240,7 +239,7 @@ export abstract class DeviceManager<
 
   protected async getSelectedStream(constraints: C): Promise<MediaStream> {
     const deviceId = this.state.selectedDevice;
-    if (!deviceId?.startsWith(VIRTUAL_DEVICE_PREFIX)) {
+    if (!deviceId?.startsWith("stream-virtual")) {
       return this.getStream(constraints);
     }
 

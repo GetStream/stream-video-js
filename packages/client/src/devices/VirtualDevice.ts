@@ -66,5 +66,3 @@ export interface VirtualDeviceHandle {
    */
   unregister: () => Promise<void>;
 }
-
-export const VIRTUAL_DEVICE_PREFIX = 'stream-virtual:';

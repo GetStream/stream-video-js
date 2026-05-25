@@ -1,8 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  createSoundDetector,
-  VIRTUAL_DEVICE_PREFIX,
-} from '@stream-io/video-client';
+import { createSoundDetector } from '@stream-io/video-client';
 import clsx from 'clsx';
 import { DeviceListItem } from '../../hooks';
 
@@ -12,8 +9,6 @@ const DeviceLevelIndicator = ({ deviceId }: { deviceId: string }) => {
   const [audioLevel, setAudioLevel] = useState(0);
 
   useEffect(() => {
-    if (deviceId.startsWith(VIRTUAL_DEVICE_PREFIX)) return;
-
     let cancelled = false;
     let dispose: (() => Promise<void>) | undefined;
 
