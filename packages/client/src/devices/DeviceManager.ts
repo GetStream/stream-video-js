@@ -239,7 +239,7 @@ export abstract class DeviceManager<
 
   protected async getSelectedStream(constraints: C): Promise<MediaStream> {
     const deviceId = this.state.selectedDevice;
-    if (!deviceId?.startsWith("stream-virtual")) {
+    if (!deviceId?.startsWith('stream-virtual')) {
       return this.getStream(constraints);
     }
 
