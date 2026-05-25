@@ -19,6 +19,7 @@ export class StatsTracer {
   private readonly pc: RTCPeerConnection;
   private readonly peerType: PeerType;
   private readonly trackIdToTrackType: Map<string, TrackType>;
+  private readonly driftThresholdMs: number;
 
   private costOverrides?: Map<TrackType, number>;
 
@@ -33,10 +34,12 @@ export class StatsTracer {
     pc: RTCPeerConnection,
     peerType: PeerType,
     trackIdToTrackType: Map<string, TrackType>,
+    statsTimestampDriftThresholdMs: number = 0,
   ) {
     this.pc = pc;
     this.peerType = peerType;
     this.trackIdToTrackType = trackIdToTrackType;
+    this.driftThresholdMs = statsTimestampDriftThresholdMs;
   }
 
   /**
@@ -49,7 +52,11 @@ export class StatsTracer {
    */
   get = async (): Promise<ComputedStats> => {
     const stats = await this.pc.getStats();
-    const currentStats = toObject(stats);
+    const currentStats = toObjectWithCorrectedTimestamp(
+      stats,
+      Date.now(),
+      this.driftThresholdMs,
+    );
 
     const performanceStats = this.withOverrides(
       this.peerType === PeerType.SUBSCRIBER
@@ -213,14 +220,31 @@ export class StatsTracer {
 }
 
 /**
- * Convert the stat report to an object.
+ * Convert the stat report to an object, correcting clock drift along the way.
+ * Entries whose `timestamp` differs from `wallNow` by more than `thresholdMs`
+ * are replaced with a clone whose `timestamp` is set to `wallNow`. The platform
+ * clock backing `DOMHighResTimeStamp` can desynchronise from `Date.now()` after
+ * system sleep or clock-jump events (notably on Electron/Chromium), which
+ * corrupts the delta-compressed stats payload. A non-positive `thresholdMs`
+ * disables correction.
  *
  * @param report the stat report to convert.
+ * @param wallNow current wall-clock time used as the drift reference.
+ * @param thresholdMs maximum tolerated drift in milliseconds.
  */
-const toObject = (report: RTCStatsReport): Record<string, RTCStats> => {
+const toObjectWithCorrectedTimestamp = (
+  report: RTCStatsReport,
+  wallNow: number,
+  thresholdMs: number,
+): Record<string, RTCStats> => {
   const obj: Record<string, RTCStats> = {};
-  report.forEach((v, k) => {
-    obj[k] = v;
+  const driftCorrectionEnabled = thresholdMs > 0;
+  report.forEach((entry, key) => {
+    obj[key] =
+      driftCorrectionEnabled &&
+      Math.abs(entry.timestamp - wallNow) > thresholdMs
+        ? { ...entry, timestamp: wallNow }
+        : entry;
   });
   return obj;
 };
