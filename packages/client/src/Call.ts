@@ -287,6 +287,7 @@ export class Call {
   private statsReportingIntervalInMs: number = 2000;
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
+  private lastStatsOptions?: StatsOptions;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
 
   private readonly clientStore: StreamVideoWriteableStateStore;
@@ -736,6 +737,7 @@ export class Call {
       this.sfuStatsReporter?.flush();
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
+      this.lastStatsOptions = undefined;
 
       this.subscriber?.dispose();
       this.subscriber = undefined;
@@ -1125,17 +1127,19 @@ export class Call {
     const performingFastReconnect =
       this.reconnectStrategy === WebsocketReconnectStrategy.FAST;
 
-    let statsOptions = this.sfuStatsReporter?.options;
+    let statsOptions = this.lastStatsOptions;
     if (
       !this.credentials ||
       !statsOptions ||
       performingRejoin ||
-      performingMigration
+      performingMigration ||
+      data?.migrating_from
     ) {
       try {
         const joinResponse = await this.doJoinRequest(data);
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
+        this.lastStatsOptions = statsOptions;
       } catch (error) {
         // prevent triggering reconnect flow if the state is OFFLINE
         const avoidRestoreState =
@@ -1613,11 +1617,18 @@ export class Call {
     reason: ReconnectReason,
   ): Promise<void> => {
     if (
+      this.state.callingState === CallingState.JOINING ||
       this.state.callingState === CallingState.RECONNECTING ||
       this.state.callingState === CallingState.MIGRATING ||
       this.state.callingState === CallingState.RECONNECTING_FAILED
     )
       return;
+
+    // Drop redundant reconnect calls. If a reconnect is already queued or
+    // running for this Call, that entry will resolve whatever broke;
+    // queueing more entries just replays the full REJOIN cycle (one extra
+    // `POST /join` per entry) once the call is already healthy again.
+    if (hasPending(this.reconnectConcurrencyTag)) return;
 
     return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
       const reconnectStartTime = Date.now();
