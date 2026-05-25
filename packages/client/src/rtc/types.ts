@@ -52,6 +52,23 @@ export type OnReconnectionNeeded = (
  */
 export type OnIceConnected = (peerType: PeerType) => void;
 
+/**
+ * Snapshot of the peer connection's ICE and DTLS state surfaced to telemetry
+ * consumers (e.g. `ClientEventReporter`). Fired on every transition of
+ * either `iceConnectionState` or `peerConnectionState`.
+ */
+export type PeerConnectionStateChangeEvent = {
+  peerType: PeerType;
+  iceConnectionState: RTCIceConnectionState;
+  peerConnectionState: RTCPeerConnectionState;
+  sfuId: string;
+  userSessionId: string;
+};
+
+export type OnPeerConnectionStateChange = (
+  event: PeerConnectionStateChangeEvent,
+) => void;
+
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
@@ -59,6 +76,7 @@ export type BasePeerConnectionOpts = {
   dispatcher: Dispatcher;
   onReconnectionNeeded?: OnReconnectionNeeded;
   onIceConnected?: OnIceConnected;
+  onPeerConnectionStateChange?: OnPeerConnectionStateChange;
   tag: string;
   enableTracing: boolean;
   iceRestartDelay?: number;

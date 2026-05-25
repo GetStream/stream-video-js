@@ -130,6 +130,7 @@ import {
   ClientCapability,
   ClientDetails,
   Codec,
+  ErrorCode,
   ParticipantSource,
   PeerType,
   PublishOption,
@@ -139,6 +140,7 @@ import {
   WebsocketReconnectStrategy,
 } from './gen/video/sfu/models/models';
 import {
+  ClientEventReporter,
   createStatsReporter,
   getSdkSignature,
   SfuStatsReporter,
@@ -287,6 +289,7 @@ export class Call {
   private statsReportingIntervalInMs: number = 2000;
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
+  private clientEventReporter?: ClientEventReporter;
   private lastStatsOptions?: StatsOptions;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -451,6 +454,18 @@ export class Call {
       if (this.state.callingState === CallingState.LEFT) {
         this.state.setCallingState(CallingState.IDLE);
       }
+
+      const clientDetails = await getClientDetails();
+      const { sdkVersion } = getSdkSignature(clientDetails);
+      this.clientEventReporter = new ClientEventReporter({
+        streamClient: this.streamClient,
+        callType: this.type,
+        callId: this.id,
+        getUserId: () => this.streamClient.user?.id ?? '',
+        getCallSessionId: () => this.state.session?.id ?? '',
+        sdkVersion,
+        userAgent: this.streamClient.getUserAgent(),
+      });
 
       this.initialized = true;
     });
@@ -739,11 +754,19 @@ export class Call {
       this.sfuStatsReporter = undefined;
       this.lastStatsOptions = undefined;
 
+      this.clientEventReporter?.abort({
+        callSessionId: this.state.session?.id ?? '',
+        sfuId: this.credentials?.server.edge_name ?? '',
+      });
+
       this.subscriber?.dispose();
       this.subscriber = undefined;
 
       this.publisher?.dispose();
       this.publisher = undefined;
+
+      this.clientEventReporter?.dispose();
+      this.clientEventReporter = undefined;
 
       await this.sfuClient?.leaveAndClose(leaveReason);
       this.sfuClient = undefined;
@@ -1061,48 +1084,69 @@ export class Call {
     const joinData: JoinCallData = data;
     maxJoinRetries = Math.max(maxJoinRetries, 1);
     try {
-      for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-        try {
-          this.logger.trace(`Joining call (${attempt})`, this.cid);
-          await this.doJoin(data);
-          delete joinData.migrating_from;
-          delete joinData.migrating_from_list;
-          break;
-        } catch (err) {
-          this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-          if (
-            (err instanceof ErrorFromResponse && err.unrecoverable) ||
-            (err instanceof SfuJoinError && err.unrecoverable)
-          ) {
-            // if the error is unrecoverable, we should not retry as that signals
-            // that connectivity is good, but the coordinator doesn't allow the user
-            // to join the call due to some reason (e.g., ended call, expired token...)
-            throw err;
-          }
+      await this.withJoinLifecycle(async () => {
+        for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+          try {
+            this.logger.trace(`Joining call (${attempt})`, this.cid);
+            await this.doJoin(data);
+            delete joinData.migrating_from;
+            delete joinData.migrating_from_list;
+            return;
+          } catch (err) {
+            this.logger.warn(`Failed to join call (${attempt})`, this.cid);
+            if (
+              (err instanceof ErrorFromResponse && err.unrecoverable) ||
+              (err instanceof SfuJoinError && err.unrecoverable)
+            ) {
+              throw err;
+            }
 
-          // immediately switch to a different SFU in case of recoverable join error
-          const switchSfu =
-            err instanceof SfuJoinError &&
-            SfuJoinError.isJoinErrorCode(err.errorEvent);
+            const switchSfu =
+              err instanceof SfuJoinError &&
+              SfuJoinError.isJoinErrorCode(err.errorEvent);
 
-          const sfuId = this.credentials?.server.edge_name || '';
-          const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-          sfuJoinFailures.set(sfuId, failures);
-          if (switchSfu || failures >= 2) {
-            joinData.migrating_from = sfuId;
-            joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
-          }
+            const sfuId = this.credentials?.server.edge_name || '';
+            const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+            sfuJoinFailures.set(sfuId, failures);
+            if (switchSfu || failures >= 2) {
+              joinData.migrating_from = sfuId;
+              joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
+              this.clientEventReporter?.migrate({
+                callSessionId: this.state.session?.id ?? '',
+                sfuId,
+                error: err,
+              });
+            }
 
-          if (attempt === maxJoinRetries - 1) {
-            throw err;
+            if (attempt === maxJoinRetries - 1) {
+              throw err;
+            }
           }
+          await sleep(retryInterval(attempt));
         }
-        await sleep(retryInterval(attempt));
-      }
+      });
     } catch (error) {
       callingX?.endCall(this, 'error');
       throw error;
     }
+  };
+
+  private withJoinLifecycle = <T>(op: () => Promise<T>): Promise<T> => {
+    const reporter = this.clientEventReporter;
+    return reporter ? reporter.withJoinLifecycle(op) : op();
+  };
+
+  private trackCoordinatorJoin = <T>(op: () => Promise<T>): Promise<T> => {
+    const reporter = this.clientEventReporter;
+    return reporter ? reporter.track('CoordinatorJoin', op) : op();
+  };
+
+  private trackWsJoin = <T>(op: () => Promise<T>): Promise<T> => {
+    if (this.reconnectStrategy === WebsocketReconnectStrategy.FAST) {
+      return op();
+    }
+    const reporter = this.clientEventReporter;
+    return reporter ? reporter.track('WSJoin', op) : op();
   };
 
   /**
@@ -1202,20 +1246,24 @@ export class Call {
         ? this.getPreferredSubscribeOptions()
         : [];
 
+      const unifiedSessionId = this.unifiedSessionId;
+      const capabilities = Array.from(this.clientCapabilities);
       try {
         const { callState, fastReconnectDeadlineSeconds, publishOptions } =
-          await sfuClient.join({
-            unifiedSessionId: this.unifiedSessionId,
-            subscriberSdp,
-            publisherSdp,
-            clientDetails,
-            fastReconnect: performingFastReconnect,
-            reconnectDetails,
-            preferredPublishOptions,
-            preferredSubscribeOptions,
-            capabilities: Array.from(this.clientCapabilities),
-            source: ParticipantSource.WEBRTC_UNSPECIFIED,
-          });
+          await this.trackWsJoin(() =>
+            sfuClient.join({
+              unifiedSessionId,
+              subscriberSdp,
+              publisherSdp,
+              clientDetails,
+              fastReconnect: performingFastReconnect,
+              reconnectDetails,
+              preferredPublishOptions,
+              preferredSubscribeOptions,
+              capabilities,
+              source: ParticipantSource.WEBRTC_UNSPECIFIED,
+            }),
+          );
 
         this.currentPublishOptions = publishOptions;
         this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
@@ -1482,6 +1530,9 @@ export class Call {
         // "ICE never connected" failure budget can be cleared.
         this.iceFailuresWithoutConnect = 0;
       },
+      onPeerConnectionStateChange: (event) => {
+        this.clientEventReporter?.onPeerConnectionStateChange(event);
+      },
     };
 
     this.subscriber = new Subscriber(basePeerConnectionOptions);
@@ -1536,10 +1587,12 @@ export class Call {
   doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
     const location = await this.streamClient.getLocationHint();
     const request: JoinCallRequest = { ...data, location };
-    const joinResponse = await this.streamClient.post<
-      JoinCallResponse,
-      JoinCallRequest
-    >(`${this.streamClientBasePath}/join`, request);
+    const joinResponse = await this.trackCoordinatorJoin(() =>
+      this.streamClient.post<JoinCallResponse, JoinCallRequest>(
+        `${this.streamClientBasePath}/join`,
+        request,
+      ),
+    );
     this.state.updateFromCallResponse(joinResponse.call);
     this.state.setMembers(joinResponse.members);
     this.state.setOwnCapabilities(joinResponse.own_capabilities);
@@ -1834,7 +1887,7 @@ export class Call {
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
-    await this.doJoin(this.joinCallData);
+    await this.withJoinLifecycle(() => this.doJoin(this.joinCallData));
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
     this.sfuStatsReporter?.sendReconnectionTime(
@@ -1866,11 +1919,13 @@ export class Call {
 
     try {
       const currentSfu = currentSfuClient.edgeName;
-      await this.doJoin({
-        ...this.joinCallData,
-        migrating_from: currentSfu,
-        migrating_from_list: [currentSfu],
-      });
+      await this.withJoinLifecycle(() =>
+        this.doJoin({
+          ...this.joinCallData,
+          migrating_from: currentSfu,
+          migrating_from_list: [currentSfu],
+        }),
+      );
     } finally {
       // cleanup the migration_from field after the migration is complete or failed
       // as we don't want to keep dirty data in the join call data
@@ -1912,6 +1967,10 @@ export class Call {
   private registerReconnectHandlers = () => {
     // handles the legacy "goAway" event
     const unregisterGoAway = this.on('goAway', () => {
+      this.clientEventReporter?.markWSAttemptFailedExternal({
+        code: 'REQUEST_TIMEOUT',
+        reason: 'SFU goAway',
+      });
       this.reconnect(
         WebsocketReconnectStrategy.MIGRATE,
         ReconnectReason.GO_AWAY,
@@ -1921,6 +1980,13 @@ export class Call {
     // handles the "error" event, through which the SFU can request a reconnect
     const unregisterOnError = this.on('error', (e) => {
       const { reconnectStrategy: strategy, error } = e;
+      if (!SfuJoinError.isJoinErrorCode(e)) {
+        const code = error?.code ? ErrorCode[error.code] : 'REQUEST_TIMEOUT';
+        this.clientEventReporter?.markWSAttemptFailedExternal({
+          code: code ?? 'REQUEST_TIMEOUT',
+          reason: error?.message || 'SFU error during WS join',
+        });
+      }
       // SFU_FULL is a join error, and when emitted, although it specifies a
       // `migrate` strategy, we should actually perform a REJOIN to a new SFU.
       // This is now handled separately in the `call.join()` method.
@@ -1947,6 +2013,10 @@ export class Call {
         this.tracer.trace('network.changed', e);
         if (!e.online) {
           this.logger.debug('[Reconnect] Going offline');
+          this.clientEventReporter?.markWSAttemptFailedExternal({
+            code: 'NETWORK_OFFLINE',
+            reason: 'Device offline',
+          });
           if (!this.hasJoinedOnce) return;
           this.lastOfflineTimestamp = Date.now();
           // create a new task that would resolve when the network is available

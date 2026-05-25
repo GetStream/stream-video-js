@@ -16,6 +16,7 @@ import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
 import {
   BasePeerConnectionOpts,
   OnIceConnected,
+  OnPeerConnectionStateChange,
   OnReconnectionNeeded,
   ReconnectReason,
 } from './types';
@@ -37,6 +38,7 @@ export abstract class BasePeerConnection {
 
   private onReconnectionNeeded?: OnReconnectionNeeded;
   private onIceConnected?: OnIceConnected;
+  private onPeerConnectionStateChange?: OnPeerConnectionStateChange;
   private readonly iceRestartDelay: number;
   private iceHasEverConnected = false;
   private iceRestartTimeout?: NodeJS.Timeout;
@@ -65,6 +67,7 @@ export abstract class BasePeerConnection {
       dispatcher,
       onReconnectionNeeded,
       onIceConnected,
+      onPeerConnectionStateChange,
       tag,
       enableTracing,
       clientPublishOptions,
@@ -80,6 +83,7 @@ export abstract class BasePeerConnection {
     this.tag = tag;
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.onIceConnected = onIceConnected;
+    this.onPeerConnectionStateChange = onPeerConnectionStateChange;
     this.logger = videoLoggerSystem.getLogger(
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
       { tags: [tag] },
@@ -122,6 +126,7 @@ export abstract class BasePeerConnection {
     this.preConnectStuckTimeout = undefined;
     this.onReconnectionNeeded = undefined;
     this.onIceConnected = undefined;
+    this.onPeerConnectionStateChange = undefined;
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
@@ -313,6 +318,9 @@ export abstract class BasePeerConnection {
   private onConnectionStateChange = async () => {
     const state = this.pc.connectionState;
     this.logger.debug(`Connection state changed`, state);
+    if (state === 'failed') {
+      this.fireOnPeerConnectionStateChange();
+    }
     if (this.tracer && (state === 'connected' || state === 'failed')) {
       try {
         const stats = await this.stats.get();
@@ -341,7 +349,18 @@ export abstract class BasePeerConnection {
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
     this.logger.debug(`ICE connection state changed`, state);
+    this.fireOnPeerConnectionStateChange();
     this.handleConnectionStateUpdate(state);
+  };
+
+  private fireOnPeerConnectionStateChange = () => {
+    this.onPeerConnectionStateChange?.({
+      peerType: this.peerType,
+      iceConnectionState: this.pc.iceConnectionState,
+      peerConnectionState: this.pc.connectionState,
+      sfuId: this.sfuClient.edgeName,
+      userSessionId: this.sfuClient.sessionId,
+    });
   };
 
   private handleConnectionStateUpdate = (
