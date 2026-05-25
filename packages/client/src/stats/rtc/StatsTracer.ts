@@ -228,6 +228,11 @@ export class StatsTracer {
  * corrupts the delta-compressed stats payload. A non-positive `thresholdMs`
  * disables correction.
  *
+ * Remote-sourced stat types (`remote-inbound-rtp`, `remote-outbound-rtp`) are
+ * exempt: their timestamps reflect when the corresponding RTCP report arrived
+ * locally, so a stale value is legitimate evidence that RTCP has stalled and
+ * must be preserved as a degradation signal.
+ *
  * @param report the stat report to convert.
  * @param wallNow current wall-clock time used as the drift reference.
  * @param thresholdMs maximum tolerated drift in milliseconds.
@@ -242,12 +247,16 @@ const toObjectWithCorrectedTimestamp = (
   report.forEach((entry, key) => {
     obj[key] =
       driftCorrectionEnabled &&
+      !isRemoteSourcedStat(entry.type) &&
       Math.abs(entry.timestamp - wallNow) > thresholdMs
         ? { ...entry, timestamp: wallNow }
         : entry;
   });
   return obj;
 };
+
+const isRemoteSourcedStat = (type: RTCStatsType): boolean =>
+  type === 'remote-inbound-rtp' || type === 'remote-outbound-rtp';
 
 /**
  * Apply delta compression to the stats report.

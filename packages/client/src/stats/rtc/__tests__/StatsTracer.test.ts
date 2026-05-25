@@ -82,6 +82,40 @@ describe('StatsTracer timestamp drift correction', () => {
     expect(delta.timestamp).toBe(WALL_NOW + THRESHOLD_MS);
   });
 
+  it('does not correct remote-sourced stat types even when their timestamps are stale', async () => {
+    const map = new Map<string, RTCStats>([
+      ['local', { id: 'local', timestamp: WALL_NOW + 10_000, type: 'codec' }],
+      [
+        'remote-in',
+        {
+          id: 'remote-in',
+          timestamp: WALL_NOW - 30_000,
+          type: 'remote-inbound-rtp',
+        },
+      ],
+      [
+        'remote-out',
+        {
+          id: 'remote-out',
+          timestamp: WALL_NOW - 30_000,
+          type: 'remote-outbound-rtp',
+        },
+      ],
+    ]);
+    const tracer = new StatsTracer(
+      makePc(map as unknown as RTCStatsReport),
+      PeerType.SUBSCRIBER,
+      new Map(),
+      THRESHOLD_MS,
+    );
+
+    const { delta } = await tracer.get();
+
+    expect(delta['remote-in'].timestamp).toBe(WALL_NOW - 30_000);
+    expect(delta['remote-out'].timestamp).toBe(WALL_NOW - 30_000);
+    expect(delta.timestamp).toBe(WALL_NOW);
+  });
+
   it('does not correct when the threshold is disabled (0)', async () => {
     const report = makeReport([
       { id: 'a', timestamp: WALL_NOW },
