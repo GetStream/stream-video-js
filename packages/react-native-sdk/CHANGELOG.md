@@ -2,6 +2,23 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.36.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.35.0...@stream-io/video-react-native-sdk-1.36.0) (2026-05-25)
+
+### Dependency Updates
+
+- `@stream-io/react-native-callingx` updated to version `0.3.0`
+
+- non ringing pn removal ([#2206](https://github.com/GetStream/stream-video-js/issues/2206)) ([fab78b3](https://github.com/GetStream/stream-video-js/commit/fab78b3cb6f2643a121e376a6c0166fbcacac655))
+
+### Features
+
+- added option to skip ringing notification in foreground ([#2213](https://github.com/GetStream/stream-video-js/issues/2213)) ([8b43986](https://github.com/GetStream/stream-video-js/commit/8b43986c89d510c75668967fde46d7cb75f1636f))
+
+### Bug Fixes
+
+- missing callingx iOS default audio route selection ([#2251](https://github.com/GetStream/stream-video-js/issues/2251)) ([067ebf4](https://github.com/GetStream/stream-video-js/commit/067ebf4a223d3f346fdb5edaa682272f3354af6b)), closes [#2219](https://github.com/GetStream/stream-video-js/issues/2219)
+- missing safe area insets usage ([#2250](https://github.com/GetStream/stream-video-js/issues/2250)) ([932e409](https://github.com/GetStream/stream-video-js/commit/932e4090831f05b432a9935c30428a40a15c8f47))
+
 ## [1.35.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.34.0...@stream-io/video-react-native-sdk-1.35.0) (2026-05-18)
 
 ### Dependency Updates
