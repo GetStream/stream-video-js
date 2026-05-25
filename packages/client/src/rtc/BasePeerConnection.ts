@@ -141,6 +141,10 @@ export abstract class BasePeerConnection {
       this.onIceConnectionStateChange,
     );
     pc.removeEventListener('icegatheringstatechange', this.onIceGatherChange);
+    pc.removeEventListener(
+      'connectionstatechange',
+      this.onConnectionStateChange,
+    );
     this.unsubscribeIceTrickle?.();
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions = [];
