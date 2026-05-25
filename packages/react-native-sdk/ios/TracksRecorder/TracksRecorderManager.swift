@@ -156,7 +156,6 @@ import WebRTC
             self.videoPipeline?.detachSink()
             self.audioPipeline?.detachSink()
 
-            // Capture refs needed on the off-queue drain.
             let video = self.videoPipeline
             let audio = self.audioPipeline
             let writer = self.assetWriter
@@ -171,44 +170,32 @@ import WebRTC
                       Int(writer?.status.rawValue ?? -1))
                 video?.logSummary()
                 audio?.logSummary()
-                video?.completeFramesAndInvalidate()
                 self.fireTerminalCompletion(url: nil, error: writer?.error as NSError?)
                 self.cleanupAfterStop()
                 DispatchQueue.main.async { completion() }
                 return
             }
 
-            // Drain the encoder OFF the recorder queue. CompleteFrames is
-            // synchronous w.r.t. encoder output, but the output callback
-            // dispatches each encoded sample back to this queue — blocking
-            // the queue waiting for the drain would deadlock the queued
-            // sample handlers. Hop off, drain, hop back.
-            DispatchQueue.global(qos: .userInitiated).async {
-                video?.completeFramesAndInvalidate()
+            video?.markInputAsFinished()
+            audio?.markInputAsFinished()
 
+            assetWriter.finishWriting { [weak self] in
+                guard let self = self else {
+                    DispatchQueue.main.async { completion() }
+                    return
+                }
                 self.queue.async {
-                    video?.markInputAsFinished()
-                    audio?.markInputAsFinished()
-
-                    assetWriter.finishWriting { [weak self] in
-                        guard let self = self else {
-                            DispatchQueue.main.async { completion() }
-                            return
-                        }
-                        self.queue.async {
-                            let resolved: URL? = (assetWriter.status == .completed) ? outputURL : nil
-                            let writerError: NSError? = (assetWriter.status == .failed)
-                                ? (assetWriter.error as NSError?)
-                                : nil
-                            video?.logSummary()
-                            audio?.logSummary()
-                            NSLog("[TracksRecorder] recording finalised → %@",
-                                  resolved?.absoluteString ?? "(no file produced)")
-                            self.fireTerminalCompletion(url: resolved, error: writerError)
-                            self.cleanupAfterStop()
-                            DispatchQueue.main.async { completion() }
-                        }
-                    }
+                    let resolved: URL? = (assetWriter.status == .completed) ? outputURL : nil
+                    let writerError: NSError? = (assetWriter.status == .failed)
+                        ? (assetWriter.error as NSError?)
+                        : nil
+                    video?.logSummary()
+                    audio?.logSummary()
+                    NSLog("[TracksRecorder] recording finalised → %@",
+                          resolved?.absoluteString ?? "(no file produced)")
+                    self.fireTerminalCompletion(url: resolved, error: writerError)
+                    self.cleanupAfterStop()
+                    DispatchQueue.main.async { completion() }
                 }
             }
         }
@@ -304,7 +291,6 @@ import WebRTC
     private func cleanupAfterFailure() {
         videoPipeline?.detachSink()
         audioPipeline?.detachSink()
-        videoPipeline?.completeFramesAndInvalidate()
         autoStopTimer?.cancel()
         autoStopTimer = nil
         resetTransientState()

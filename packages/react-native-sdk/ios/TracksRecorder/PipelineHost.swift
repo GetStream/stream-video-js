@@ -3,6 +3,7 @@
 //
 
 import AVFoundation
+import CoreMedia
 import Foundation
 
 /// Internal coordination contract between `TracksRecorderManager` and its
@@ -34,6 +35,16 @@ internal protocol PipelineHost: AnyObject {
     func onTrackAdded()
 
     func onFatalError(_ error: NSError)
+}
+
+/// Maps an absolute monotonic timestamp (nanoseconds) to presentation time
+/// relative to the recording's shared origin. The first sample from either
+/// pipeline seeds the origin via `host.seedOriginNs`; later samples use
+/// elapsed = timestamp − origin (clamped to 0).
+internal func presentationTime(host: PipelineHost, timestampNs: UInt64) -> CMTime {
+    let origin = host.seedOriginNs(timestampNs)
+    let elapsed: Int64 = timestampNs >= origin ? Int64(timestampNs - origin) : 0
+    return CMTime(value: elapsed, timescale: 1_000_000_000)
 }
 
 internal func makeRecorderError(_ message: String, code: Int) -> NSError {

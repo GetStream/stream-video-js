@@ -56,14 +56,11 @@ internal final class AudioPipeline {
     /// `track.isEnabled = false` mutes apply *before* this tap and would
     /// silence the recording too.
     func start() {
-        let tap = RecorderAudioRenderTap(
-            muteOriginal: true
-        ) { [weak self] pcmBuffer in
+        let tap = RecorderAudioRenderTap(muteOriginal: true) { [weak self] pcmBuffer in
             self?.handleAudioBuffer(pcmBuffer: pcmBuffer)
         }
         renderTap = tap
         apm.renderPreProcessingDelegate = tap
-        NSLog("[TracksRecorder.Audio] installed renderPreProcessingDelegate")
     }
 
     /// On-queue. Clear the render-tap delegate slot — only if it still
@@ -105,58 +102,35 @@ internal final class AudioPipeline {
     // MARK: - Tap → queue bridge
 
     private func handleAudioBuffer(pcmBuffer: AVAudioPCMBuffer) {
-        // The buffer's backing memory is owned by WebRTC for the duration
-        // of this call. Copy it before hopping queues so the data stays
-        // valid when read asynchronously on the recorder queue.
-        //
+        // Unlike `VideoPipeline`'s `CVPixelBuffer` closure capture, an
+        // ARC-retained `AVAudioPCMBuffer` does *not* extend the lifetime
+        // of the underlying PCM samples — those live in WebRTC's
+        // render-buffer pool and are reused the moment this callback
+        // returns. A deep copy before the queue hop is mandatory.
+        guard let copy = AudioPipeline.deepCopyPCMBuffer(pcmBuffer) else { return }
+        guard let host = host else { return }
+
         // `DispatchTime.now().uptimeNanoseconds` is the monotonic clock
         // that matches `RTCVideoFrame.timeStampNs` on iOS — both reduce
         // to `mach_absolute_time()` converted to nanoseconds, so the
         // shared time origin works coherently across both pipelines.
         let captureTimeNs = DispatchTime.now().uptimeNanoseconds
-        guard let copy = AVAudioPCMBuffer(
-            pcmFormat: pcmBuffer.format,
-            frameCapacity: pcmBuffer.frameCapacity
-        ) else { return }
-        copy.frameLength = pcmBuffer.frameLength
-        let frameLength = Int(pcmBuffer.frameLength)
-        let channelCount = Int(pcmBuffer.format.channelCount)
-        if let src = pcmBuffer.int16ChannelData, let dst = copy.int16ChannelData {
-            for ch in 0..<channelCount {
-                memcpy(dst[ch], src[ch], frameLength * MemoryLayout<Int16>.size)
-            }
-        } else if let src = pcmBuffer.floatChannelData, let dst = copy.floatChannelData {
-            for ch in 0..<channelCount {
-                memcpy(dst[ch], src[ch], frameLength * MemoryLayout<Float>.size)
-            }
-        } else if let src = pcmBuffer.int32ChannelData, let dst = copy.int32ChannelData {
-            for ch in 0..<channelCount {
-                memcpy(dst[ch], src[ch], frameLength * MemoryLayout<Int32>.size)
-            }
-        }
-
-        guard let host = host else { return }
         host.queue.async { [weak self] in
-            self?.handleAudioBufferOnQueue(copy: copy, captureTimeNs: captureTimeNs)
+            self?.handleAudioBufferOnQueue(pcmBuffer: copy, captureTimeNs: captureTimeNs)
         }
     }
 
-    private func handleAudioBufferOnQueue(copy: AVAudioPCMBuffer, captureTimeNs: UInt64) {
+    private func handleAudioBufferOnQueue(pcmBuffer: AVAudioPCMBuffer, captureTimeNs: UInt64) {
         guard let host = host, host.isRecording, let writer = host.assetWriter else { return }
 
         // Lazy-create the writer's audio input on the first buffer. The
         // input's settings depend on the runtime PCM format reported by
         // WebRTC.
         if audioInput == nil {
-            configureAudioInput(format: copy.format, writer: writer)
+            configureAudioInput(format: pcmBuffer.format, writer: writer)
         }
 
-        // First buffer of any kind establishes the recording's origin so
-        // PTS=0 maps to the first delivery. Without this, an audio-only
-        // recording would never set the origin (the video path is the
-        // only other writer) and every audio buffer would be dropped at
-        // the guard below — yielding a 0-second file.
-        let origin = host.seedOriginNs(captureTimeNs)
+        let pts = presentationTime(host: host, timestampNs: captureTimeNs)
 
         guard writer.status == .writing,
               let audioInput = audioInput,
@@ -165,12 +139,11 @@ internal final class AudioPipeline {
             return
         }
 
-        let elapsed: Int64 = captureTimeNs >= origin ? Int64(captureTimeNs - origin) : 0
-        let pts = CMTime(value: elapsed, timescale: 1_000_000_000)
-        guard let sampleBuffer = AudioPipeline.makeSampleBuffer(from: copy, pts: pts) else {
+        guard let sampleBuffer = AudioPipeline.makeSampleBuffer(from: pcmBuffer, pts: pts) else {
             buffersDropped += 1
             return
         }
+
         if audioInput.append(sampleBuffer) {
             buffersReceived += 1
             samplesAppended += 1
@@ -186,7 +159,7 @@ internal final class AudioPipeline {
         }
     }
 
-    // MARK: - Asset writer input
+    // MARK: - Asset writer input setup
 
     private func configureAudioInput(format: AVAudioFormat, writer: AVAssetWriter) {
         let settings: [String: Any] = [
@@ -197,18 +170,24 @@ internal final class AudioPipeline {
         ]
         let input = AVAssetWriterInput(mediaType: .audio, outputSettings: settings)
         input.expectsMediaDataInRealTime = true
-        if writer.canAdd(input) {
-            writer.add(input)
-            audioInput = input
-            inputAdded = true
-            host?.onTrackAdded()
-        } else {
+
+        guard writer.canAdd(input) else {
             NSLog("[TracksRecorder.Audio] writer cannot add audio input")
+            host?.onFatalError(makeRecorderError("audio_input_add_failed", code: 4))
+            return
         }
+         
+        writer.add(input)
+        audioInput = input
+        inputAdded = true
+        host?.onTrackAdded()
     }
 
     // MARK: - PCM → CMSampleBuffer helper
 
+    /// Converts an `AVAudioPCMBuffer` into a `CMSampleBuffer` suitable for
+    /// `AVAssetWriterInput.append`. Returns `nil` if any Core Media call
+    /// fails; the caller treats that as a dropped buffer.
     private static func makeSampleBuffer(
         from pcmBuffer: AVAudioPCMBuffer,
         pts: CMTime
@@ -257,5 +236,35 @@ internal final class AudioPipeline {
         )
         guard setStatus == noErr else { return nil }
         return sb
+    }
+
+    /// Returns a deep copy of the supplied `AVAudioPCMBuffer`. WebRTC owns
+    /// the source buffer's backing memory only for the duration of the
+    /// render-tap callback; ARC retains the wrapper across the queue hop
+    /// but not the underlying PCM samples. Copying here lets the recorder
+    /// queue read the data later without racing WebRTC's render-buffer
+    /// reuse.
+    private static func deepCopyPCMBuffer(_ source: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
+        guard let copy = AVAudioPCMBuffer(
+            pcmFormat: source.format,
+            frameCapacity: source.frameCapacity
+        ) else { return nil }
+        copy.frameLength = source.frameLength
+        let frameLength = Int(source.frameLength)
+        let channelCount = Int(source.format.channelCount)
+        if let src = source.int16ChannelData, let dst = copy.int16ChannelData {
+            for ch in 0..<channelCount {
+                memcpy(dst[ch], src[ch], frameLength * MemoryLayout<Int16>.size)
+            }
+        } else if let src = source.floatChannelData, let dst = copy.floatChannelData {
+            for ch in 0..<channelCount {
+                memcpy(dst[ch], src[ch], frameLength * MemoryLayout<Float>.size)
+            }
+        } else if let src = source.int32ChannelData, let dst = copy.int32ChannelData {
+            for ch in 0..<channelCount {
+                memcpy(dst[ch], src[ch], frameLength * MemoryLayout<Int32>.size)
+            }
+        }
+        return copy
     }
 }
