@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CallContent,
   NoiseCancellationProvider,
+  StreamTheme,
   useCall,
   useIsInPiPMode,
   useModeration,
@@ -20,6 +21,7 @@ import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
+import { AudioConnectingParticipantLabel } from './AudioConnectingParticipantLabel';
 import { useLayout } from '../contexts/LayoutContext';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
@@ -30,6 +32,24 @@ type ActiveCallProps = {
   onCallEnded: () => void;
   onChatOpenHandler: () => void;
   unreadCountIndicator: number;
+};
+
+// Since we are adding CustomTopControls, we need to override the callContent container paddingTop to 0
+const CustomCallContentThemeOverride = ({
+  children,
+}: React.PropsWithChildren<{}>) => {
+  const { theme } = useTheme();
+  const customTheme = {
+    ...theme,
+    callContent: {
+      ...theme.callContent,
+      container: {
+        ...theme.callContent.container,
+        paddingTop: 0,
+      },
+    },
+  };
+  return <StreamTheme theme={customTheme}>{children}</StreamTheme>;
 };
 
 export const ActiveCall = ({
@@ -124,13 +144,16 @@ export const ActiveCall = ({
           barStyle={themeMode === 'light' ? 'dark-content' : 'light-content'}
         />
         {!isInPiPMode && <CustomTopControls />}
-        <CallContent
-          iOSPiPIncludeLocalParticipantVideo
-          onHangupCallHandler={onHangupCallHandler}
-          CallControls={CustomBottomControls}
-          landscape={isLandscape}
-          layout={selectedLayout}
-        />
+        <CustomCallContentThemeOverride>
+          <CallContent
+            iOSPiPIncludeLocalParticipantVideo
+            onHangupCallHandler={onHangupCallHandler}
+            CallControls={CustomBottomControls}
+            ParticipantLabel={AudioConnectingParticipantLabel}
+            landscape={isLandscape}
+            layout={selectedLayout}
+          />
+        </CustomCallContentThemeOverride>
         <ParticipantsInfoListModal
           isCallParticipantsInfoVisible={isCallParticipantsVisible}
           setIsCallParticipantsInfoVisible={setIsCallParticipantsVisible}

@@ -8,4 +8,6 @@ import android.graphics.Bitmap
  */
 abstract class BitmapVideoFilter {
   abstract fun applyFilter(videoFrameBitmap: Bitmap)
+
+  open fun close() {}
 }

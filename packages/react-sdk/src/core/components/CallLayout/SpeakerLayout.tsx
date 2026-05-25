@@ -149,7 +149,7 @@ export const SpeakerLayout = ({
 
     const cleanup = call.setViewport(participantsBarWrapperElement);
 
-    return () => cleanup();
+    return () => cleanup?.();
   }, [participantsBarWrapperElement, call]);
 
   const isOneOnOneCall = allParticipants.length === 2;

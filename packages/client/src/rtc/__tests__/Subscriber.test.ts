@@ -11,8 +11,10 @@ import {
   ErrorCode,
   PeerType,
   TrackType,
+  WebsocketReconnectStrategy,
 } from '../../gen/video/sfu/models/models';
 import { NegotiationError } from '../NegotiationError';
+import { ReconnectReason } from '../types';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 
@@ -26,10 +28,11 @@ vi.mock('../../StreamSfuClient', () => {
 describe('Subscriber', () => {
   let sfuClient: StreamSfuClient;
   let subscriber: Subscriber;
-  const state = new CallState();
+  let state: CallState;
   let dispatcher: Dispatcher;
 
   beforeEach(() => {
+    state = new CallState();
     dispatcher = new Dispatcher();
     sfuClient = new StreamSfuClient({
       dispatcher,
@@ -62,6 +65,7 @@ describe('Subscriber', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
     vi.resetModules();
     subscriber.dispose();
@@ -97,7 +101,14 @@ describe('Subscriber', () => {
       });
     });
 
+    const simulatePriorIceConnected = () => {
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'connected';
+      subscriber['onIceConnectionStateChange']();
+    };
+
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
+      simulatePriorIceConnected();
       vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
       // @ts-expect-error - private field
       subscriber['pc'].iceConnectionState = 'failed';
@@ -106,6 +117,7 @@ describe('Subscriber', () => {
     });
 
     it(`should perform ICE restart when connection state changes to 'disconnected'`, () => {
+      simulatePriorIceConnected();
       vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
       vi.useFakeTimers();
       // @ts-expect-error - private field
@@ -113,6 +125,51 @@ describe('Subscriber', () => {
       subscriber['onIceConnectionStateChange']();
       vi.runOnlyPendingTimers();
       expect(subscriber.restartIce).toHaveBeenCalled();
+    });
+
+    it(`does NOT perform ICE restart when ICE never connected and state goes to 'failed' — emits REJOIN with 'ice_never_connected'`, () => {
+      vi.spyOn(subscriber, 'restartIce').mockResolvedValue();
+      subscriber['onReconnectionNeeded'] = vi.fn();
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'failed';
+      subscriber['onIceConnectionStateChange']();
+      expect(subscriber.restartIce).not.toHaveBeenCalled();
+      expect(subscriber['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.ICE_NEVER_CONNECTED,
+        PeerType.SUBSCRIBER,
+      );
+    });
+
+    it(`isStable() returns true only when ICE is connected/completed and connectionState is connected`, () => {
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'connected';
+      // @ts-expect-error - private field
+      subscriber['pc'].connectionState = 'connected';
+      expect(subscriber.isStable()).toBe(true);
+
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'completed';
+      expect(subscriber.isStable()).toBe(true);
+
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'disconnected';
+      expect(subscriber.isStable()).toBe(false);
+
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'new';
+      expect(subscriber.isStable()).toBe(false);
+    });
+
+    it(`iceHasEverConnected tracks lifetime connectivity`, () => {
+      expect(subscriber['iceHasEverConnected']).toBe(false);
+      simulatePriorIceConnected();
+      expect(subscriber['iceHasEverConnected']).toBe(true);
+      // going disconnected does not reset the flag
+      // @ts-expect-error - private field
+      subscriber['pc'].iceConnectionState = 'disconnected';
+      subscriber['onIceConnectionStateChange']();
+      expect(subscriber['iceHasEverConnected']).toBe(true);
     });
 
     it(`should throw NegotiationError when SFU returns an error`, async () => {
@@ -213,6 +270,150 @@ describe('Subscriber', () => {
       expect(baseStream.getTracks).toHaveBeenCalled();
       expect(baseTrack.stop).toHaveBeenCalled();
       expect(baseStream.removeTrack).toHaveBeenCalledWith(baseTrack);
+    });
+  });
+
+  describe('interruptedTracks', () => {
+    const setup = ({ muted = false }: { muted?: boolean } = {}) => {
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'lookup:TRACK_TYPE_AUDIO';
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+      Object.defineProperty(track, 'muted', {
+        configurable: true,
+        get: () => muted,
+      });
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('session-id', {
+        sessionId: 'session-id',
+        trackLookupPrefix: 'lookup',
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      const calls = (track.addEventListener as ReturnType<typeof vi.fn>).mock
+        .calls;
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of calls) {
+        handlers[event] = handler as () => void;
+      }
+      return { track, handlers };
+    };
+
+    const interruptedFor = (sessionId: string) =>
+      state.participants.find((p) => p.sessionId === sessionId)
+        ?.interruptedTracks ?? [];
+
+    it('adds the track type when the mute handler fires', () => {
+      const { handlers } = setup();
+      expect(interruptedFor('session-id')).toEqual([]);
+
+      handlers['mute']();
+
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+    });
+
+    it('removes the track type when the unmute handler fires', () => {
+      const { handlers } = setup();
+      handlers['mute']();
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+
+      handlers['unmute']();
+
+      expect(interruptedFor('session-id')).toEqual([]);
+    });
+
+    it('seeds the track type when the track arrives already muted', () => {
+      setup({ muted: true });
+
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+    });
+
+    it('clears the track type when the track ends', () => {
+      const { handlers } = setup();
+      handlers['mute']();
+      expect(interruptedFor('session-id')).toEqual([TrackType.AUDIO]);
+
+      handlers['ended']();
+
+      expect(interruptedFor('session-id')).toEqual([]);
+    });
+
+    it('ignores non-audio remote tracks to avoid Dynascale false positives', () => {
+      // Remote video track.muted is dominated by viewport-driven
+      // SFU unsubscriptions, so we deliberately only track audio
+      // interruption on remote participants.
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'video-lookup:TRACK_TYPE_VIDEO';
+      // @ts-expect-error - mock
+      track.kind = 'video';
+      Object.defineProperty(track, 'muted', {
+        configurable: true,
+        get: () => true,
+      });
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('video-session', {
+        sessionId: 'video-session',
+        trackLookupPrefix: 'video-lookup',
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      // Seeded muted track is ignored.
+      expect(interruptedFor('video-session')).toEqual([]);
+
+      // Subsequent mute / unmute events are ignored too.
+      const calls = (track.addEventListener as ReturnType<typeof vi.fn>).mock
+        .calls;
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of calls) {
+        handlers[event] = handler as () => void;
+      }
+      handlers['mute']();
+      handlers['unmute']();
+      expect(interruptedFor('video-session')).toEqual([]);
+    });
+
+    it('does not mutate state for orphaned tracks until associated', () => {
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'orphan:TRACK_TYPE_AUDIO';
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      const calls = (track.addEventListener as ReturnType<typeof vi.fn>).mock
+        .calls;
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of calls) {
+        handlers[event] = handler as () => void;
+      }
+
+      // Orphan: handler fires before the participant exists.
+      handlers['mute']();
+      expect(state.participants).toEqual([]);
+
+      // Once the participant is registered, the next event lands.
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('orphan-session', {
+        sessionId: 'orphan-session',
+        trackLookupPrefix: 'orphan',
+      });
+      handlers['mute']();
+
+      expect(interruptedFor('orphan-session')).toEqual([TrackType.AUDIO]);
     });
   });
 

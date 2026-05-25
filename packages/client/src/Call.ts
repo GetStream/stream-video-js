@@ -7,7 +7,9 @@ import {
   isAudioTrackType,
   isSfuEvent,
   muteTypeToTrackType,
+  NegotiationError,
   Publisher,
+  ReconnectReason,
   Subscriber,
   toRtcConfiguration,
   TrackPublishOptions,
@@ -143,11 +145,16 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
+import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
+import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
+import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
+import { ViewportTracker } from './helpers/ViewportTracker';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
 import { retryInterval, sleep } from './coordinator/connection/utils';
+import { SlidingWindowRateLimiter } from './helpers/SlidingWindowRateLimiter';
 import {
   AllCallEvents,
   CallEventListener,
@@ -227,7 +234,32 @@ export class Call {
   /**
    * The DynascaleManager instance.
    */
-  readonly dynascaleManager: DynascaleManager;
+  readonly dynascaleManager: DynascaleManager | undefined;
+
+  /**
+   * Tracks viewport visibility for participant video elements.
+   * Available only in DOM environments.
+   */
+  readonly viewportTracker: ViewportTracker | undefined;
+
+  /**
+   * Owns the SFU-side video-subscription state (per-session and global overrides).
+   */
+  readonly trackSubscriptionManager: TrackSubscriptionManager;
+
+  /**
+   * Warns periodically when a remote participant is publishing audio, but no
+   * `<audio>` element has been bound for them.
+   */
+  readonly audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
+
+  /**
+   * Tracks audio elements blocked by the browser's autoplay policy.
+   * Subscribe to `blockedAudioTracker.autoplayBlocked$` to react to the
+   * blocked state, and call {@link Call.resumeAudio} inside a user gesture
+   * to retry playback.
+   */
+  readonly blockedAudioTracker: BlockedAudioTracker;
 
   subscriber?: Subscriber;
   publisher?: Publisher;
@@ -271,6 +303,17 @@ export class Call {
   private disconnectionTimeoutSeconds: number = 0;
   private lastOfflineTimestamp: number = 0;
   private networkAvailableTask: PromiseWithResolvers<void> | undefined;
+
+  // (10 attempts per rolling 120 s window).
+  private readonly rejoinRateLimiter = new SlidingWindowRateLimiter(10, 120000);
+  // "Network doesn't support WebRTC" detector: counts peer-connection
+  // failures where ICE never reached `connected`/`completed`.
+  private maxIceFailuresWithoutConnect = 2;
+  private iceFailuresWithoutConnect = 0;
+  // Consecutive-negotiation-failure detector: stops the reconnect loop when
+  // the SFU keeps failing to negotiate SDP for us.
+  private maxConsecutiveNegotiationFailures = 3;
+  private consecutiveNegotiationFailures = 0;
   // maintain the order of publishing tracks to restore them after a reconnection
   // it shouldn't contain duplicates
   private trackPublishOrder: TrackType[] = [];
@@ -348,11 +391,26 @@ export class Call {
     this.microphone = new MicrophoneManager(this, preferences);
     this.speaker = new SpeakerManager(this, preferences);
     this.screenShare = new ScreenShareManager(this);
-    this.dynascaleManager = new DynascaleManager(
+    this.trackSubscriptionManager = new TrackSubscriptionManager(
       this.state,
-      this.speaker,
       this.tracer,
     );
+    this.blockedAudioTracker = new BlockedAudioTracker(this.tracer);
+
+    if (typeof document !== 'undefined') {
+      this.audioBindingsWatchdog = new AudioBindingsWatchdog(
+        this.state,
+        this.tracer,
+      );
+      this.viewportTracker = new ViewportTracker(this.state);
+      this.dynascaleManager = new DynascaleManager(
+        this.state,
+        this.speaker,
+        this.tracer,
+        this.trackSubscriptionManager,
+        this.blockedAudioTracker,
+      );
+    }
   }
 
   /**
@@ -687,12 +745,28 @@ export class Call {
 
       await this.sfuClient?.leaveAndClose(leaveReason);
       this.sfuClient = undefined;
-      this.dynascaleManager.setSfuClient(undefined);
-      await this.dynascaleManager.dispose();
+      this.trackSubscriptionManager.setSfuClient(undefined);
+      this.trackSubscriptionManager.dispose();
+      this.audioBindingsWatchdog?.dispose();
+      await this.dynascaleManager?.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
       this.state.setParticipants([]);
       this.state.dispose();
+
+      // Reset reconnect-related accumulators so a future `call.join()` on the
+      // same instance starts with a fresh budget. The `Call` may be reused
+      // (see `Call.test.ts` "can reuse call instance") so this is required.
+      // Strategy/reason/attempts must also be cleared: when `leave()` is
+      // reached via `giveUpAndLeave()` the success-path reset at the end of
+      // `joinFlow` never runs, leaving stale values that would make the next
+      // fresh `join()` send a stale `ReconnectDetails` to the SFU.
+      this.rejoinRateLimiter.reset();
+      this.iceFailuresWithoutConnect = 0;
+      this.consecutiveNegotiationFailures = 0;
+      this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
+      this.reconnectReason = '';
+      this.reconnectAttempts = 0;
 
       // Call all leave call hooks, e.g. to clean up global event handlers
       this.leaveCallHooks.forEach((hook) => hook());
@@ -1098,7 +1172,7 @@ export class Call {
         : previousSfuClient;
     this.sfuClient = sfuClient;
     this.unifiedSessionId ??= sfuClient.sessionId;
-    this.dynascaleManager.setSfuClient(sfuClient);
+    this.trackSubscriptionManager.setSfuClient(sfuClient);
 
     const clientDetails = await getClientDetails();
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
@@ -1169,9 +1243,23 @@ export class Call {
     // when performing fast reconnect, or when we reuse the same SFU client,
     // (ws remained healthy), we just need to restore the ICE connection
     if (performingFastReconnect) {
-      // the SFU automatically issues an ICE restart on the subscriber
-      // we don't have to do it ourselves
-      await this.restoreICE(sfuClient, { includeSubscriber: false });
+      // The SFU automatically issues an ICE restart on the subscriber,
+      // so we only need to decide about the publisher. If the publisher's
+      // peer connection is still stable (ICE still connected end-to-end),
+      // the signal WebSocket drop was the only problem — the new WS alone
+      // is enough, and restarting ICE would add unnecessary SDP/ICE churn.
+      const publisherIsStable = this.publisher?.isStable() ?? true;
+      const includePublisher =
+        !!this.publisher?.isPublishing() && !publisherIsStable;
+      if (!includePublisher && this.publisher?.isPublishing()) {
+        this.logger.info(
+          '[Reconnect] FAST: skipping publisher ICE restart, publisher PC is stable',
+        );
+      }
+      await this.restoreICE(sfuClient, {
+        includeSubscriber: false,
+        includePublisher,
+      });
     } else {
       const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
       this.initPublisherAndSubscriber({
@@ -1223,6 +1311,15 @@ export class Call {
     // reset the reconnect strategy to unspecified after a successful reconnection
     this.reconnectStrategy = WebsocketReconnectStrategy.UNSPECIFIED;
     this.reconnectReason = '';
+    // A successful SFU join handshake resets the consecutive-negotiation
+    // counter (negotiation just succeeded). It does NOT reset
+    // `iceFailuresWithoutConnect` or the rolling `rejoinRateLimiter`;
+    // those track WebRTC-level health and rejoin frequency, which are not
+    // proven by the SFU handshake alone. ICE-failures-without-connect is
+    // cleared via the `onIceConnected` callback when the peer connection
+    // actually reaches `connected`/`completed` end-to-end. The rejoin
+    // rolling window decays naturally as old timestamps age out.
+    this.consecutiveNegotiationFailures = 0;
 
     this.logger.info(`Joined call ${this.cid}`);
   };
@@ -1242,7 +1339,7 @@ export class Call {
     return {
       strategy,
       announcedTracks,
-      subscriptions: this.dynascaleManager.trackSubscriptions,
+      subscriptions: this.trackSubscriptionManager.subscriptions,
       reconnectAttempt: this.reconnectAttempts,
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
@@ -1375,6 +1472,12 @@ export class Call {
           this.logger.warn(message, err);
         });
       },
+      onIceConnected: () => {
+        // ICE has reached `connected`/`completed` end-to-end on at least
+        // one peer connection, WebRTC is actually working, so the
+        // "ICE never connected" failure budget can be cleared.
+        this.iceFailuresWithoutConnect = 0;
+      },
     };
 
     this.subscriber = new Subscriber(basePeerConnectionOptions);
@@ -1501,11 +1604,13 @@ export class Call {
    * @internal
    *
    * @param strategy the reconnection strategy to use.
-   * @param reason the reason for the reconnection.
+   * @param reason the reason for the reconnection. Pass a `ReconnectReason.*`
+   *   constant when the SDK should react to it (e.g.
+   *   `ICE_NEVER_CONNECTED` increments the unsupported-network counter).
    */
   private reconnect = async (
     strategy: WebsocketReconnectStrategy,
-    reason: string,
+    reason: ReconnectReason,
   ): Promise<void> => {
     if (
       this.state.callingState === CallingState.RECONNECTING ||
@@ -1529,6 +1634,35 @@ export class Call {
         }
       };
 
+      const giveUpAndLeave = async (message: string) => {
+        this.logger.warn(
+          `[Reconnect] Giving up: ${message}. Leaving the call.`,
+        );
+        // If we're mid-iteration, the state can be JOINING; `Call.leave` would
+        // then wait for JOINED before proceeding, but no more attempts will run
+        // so JOINED never comes. Transition to RECONNECTING so `leave()` proceeds.
+        if (this.state.callingState === CallingState.JOINING) {
+          this.state.setCallingState(CallingState.RECONNECTING);
+        }
+        try {
+          await this.leave({ message });
+        } catch (err) {
+          this.logger.warn(`[Reconnect] leave() failed after ${message}`, err);
+        }
+      };
+
+      // Count this entry into reconnect if it was triggered by a peer
+      // connection that never reached `connected`/`completed`.
+      if (reason === ReconnectReason.ICE_NEVER_CONNECTED) {
+        this.iceFailuresWithoutConnect++;
+        if (
+          this.iceFailuresWithoutConnect >= this.maxIceFailuresWithoutConnect
+        ) {
+          await giveUpAndLeave('webrtc_unsupported_network');
+          return;
+        }
+      }
+
       let attempt = 0;
       do {
         const reconnectingTime = Date.now() - reconnectStartTime;
@@ -1542,6 +1676,19 @@ export class Call {
           );
           await markAsReconnectingFailed();
           return;
+        }
+
+        // Rejoin rate limit: bound the number of REJOIN (and MIGRATE)
+        // transitions inside a rolling window. FAST is not counted because
+        // it does not issue a new backend `joinCall`.
+        if (
+          this.reconnectStrategy === WebsocketReconnectStrategy.REJOIN ||
+          this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE
+        ) {
+          if (!this.rejoinRateLimiter.tryRegister()) {
+            await giveUpAndLeave('rejoin_attempt_limit_exceeded');
+            return;
+          }
         }
 
         // we don't increment reconnect attempts for the FAST strategy.
@@ -1581,6 +1728,8 @@ export class Call {
               );
               break;
           }
+          // reconnection worked — reset the negotiation-failure streak.
+          this.consecutiveNegotiationFailures = 0;
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
           if (this.state.callingState === CallingState.OFFLINE) {
@@ -1599,8 +1748,19 @@ export class Call {
             await markAsReconnectingFailed();
             return;
           }
+          if (error instanceof NegotiationError) {
+            this.consecutiveNegotiationFailures++;
+            if (
+              this.consecutiveNegotiationFailures >=
+              this.maxConsecutiveNegotiationFailures
+            ) {
+              await giveUpAndLeave('repeated_negotiation_failures');
+              return;
+            }
+          }
 
-          await sleep(500);
+          // exponential backoff with jitter, capped at 5 s
+          await sleep(retryInterval(attempt));
 
           const wasMigrating =
             this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
@@ -1741,9 +1901,10 @@ export class Call {
   private registerReconnectHandlers = () => {
     // handles the legacy "goAway" event
     const unregisterGoAway = this.on('goAway', () => {
-      this.reconnect(WebsocketReconnectStrategy.MIGRATE, 'goAway').catch(
-        (err) => this.logger.warn('[Reconnect] Error reconnecting', err),
-      );
+      this.reconnect(
+        WebsocketReconnectStrategy.MIGRATE,
+        ReconnectReason.GO_AWAY,
+      ).catch((err) => this.logger.warn('[Reconnect] Error reconnecting', err));
     });
 
     // handles the "error" event, through which the SFU can request a reconnect
@@ -1760,7 +1921,10 @@ export class Call {
           this.logger.warn(`Can't leave call after disconnect request`, err);
         });
       } else {
-        this.reconnect(strategy, error?.message || 'SFU Error').catch((err) => {
+        this.reconnect(
+          strategy,
+          error?.message || ReconnectReason.SFU_ERROR,
+        ).catch((err) => {
           this.logger.warn('[Reconnect] Error reconnecting', err);
         });
       }
@@ -1787,12 +1951,14 @@ export class Call {
               }
             }
 
-            this.reconnect(strategy, 'Going online').catch((err) => {
-              this.logger.warn(
-                '[Reconnect] Error reconnecting after going online',
-                err,
-              );
-            });
+            this.reconnect(strategy, ReconnectReason.NETWORK_BACK_ONLINE).catch(
+              (err) => {
+                this.logger.warn(
+                  '[Reconnect] Error reconnecting after going online',
+                  err,
+                );
+              },
+            );
           });
           this.networkAvailableTask = networkAvailableTask;
           this.sfuStatsReporter?.stop();
@@ -1856,7 +2022,7 @@ export class Call {
   private restoreSubscribedTracks = () => {
     const { remoteParticipants } = this.state;
     if (remoteParticipants.length <= 0) return;
-    this.dynascaleManager.applyTrackSubscriptions(undefined);
+    this.trackSubscriptionManager.apply(undefined);
   };
 
   /**
@@ -1958,10 +2124,12 @@ export class Call {
     mediaStream: MediaStream | undefined,
     ...trackTypes: TrackType[]
   ) => {
-    if (!this.sfuClient || !this.sfuClient.sessionId) return;
-    await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    const sessionId = this.sfuClient?.sessionId;
+    if (!sessionId) return;
 
-    const { sessionId } = this.sfuClient;
+    await this.notifyTrackMuteState(!mediaStream, ...trackTypes);
+    if (this.sfuClient?.sessionId !== sessionId) return;
+
     for (const trackType of trackTypes) {
       const streamStateProp = trackTypeToParticipantStreamKey(trackType);
       if (!streamStateProp) continue;
@@ -1973,6 +2141,20 @@ export class Call {
         [streamStateProp]: mediaStream,
       }));
     }
+  };
+
+  /**
+   * Re-arms the encoder for a currently published track type. Useful for
+   * working around WebKit's stalled sender bug after an iOS audio session
+   * interruption (Siri, PSTN call).
+   *
+   * @internal
+   *
+   * @param trackType the track type to refresh.
+   */
+  refreshPublishedTrack = async (trackType: TrackType) => {
+    if (!this.publisher) return;
+    await this.publisher.refreshTrack(trackType);
   };
 
   /**
@@ -2888,7 +3070,7 @@ export class Call {
     sessionId: string,
     trackType: VideoTrackType,
   ) => {
-    return this.dynascaleManager.trackElementVisibility(
+    return this.viewportTracker?.trackElementVisibility(
       element,
       sessionId,
       trackType,
@@ -2901,7 +3083,7 @@ export class Call {
    * @param element the viewport element.
    */
   setViewport = <T extends HTMLElement>(element: T) => {
-    return this.dynascaleManager.setViewport(element);
+    return this.viewportTracker?.setViewport(element);
   };
 
   /**
@@ -2924,7 +3106,7 @@ export class Call {
     sessionId: string,
     trackType: VideoTrackType,
   ) => {
-    const unbind = this.dynascaleManager.bindVideoElement(
+    const unbind = this.dynascaleManager?.bindVideoElement(
       videoElement,
       sessionId,
       trackType,
@@ -2953,26 +3135,33 @@ export class Call {
     sessionId: string,
     trackType: AudioTrackType = 'audioTrack',
   ) => {
-    const unbind = this.dynascaleManager.bindAudioElement(
+    const unbind = this.dynascaleManager?.bindAudioElement(
       audioElement,
       sessionId,
       trackType,
     );
 
     if (!unbind) return;
-    this.leaveCallHooks.add(unbind);
-    return () => {
-      this.leaveCallHooks.delete(unbind);
+    this.audioBindingsWatchdog?.register(audioElement, sessionId, trackType);
+    const cleanup = () => {
       unbind();
+      this.audioBindingsWatchdog?.unregister(sessionId, trackType);
+    };
+    this.leaveCallHooks.add(cleanup);
+    return () => {
+      this.leaveCallHooks.delete(cleanup);
+      cleanup();
     };
   };
 
   /**
    * Plays all audio elements blocked by the browser's autoplay policy.
+   * Must be called from within a user gesture (e.g., click handler).
+   *
+   * Subscribe to `call.blockedAudioTracker.autoplayBlocked$` to know when a
+   * gesture is required.
    */
-  resumeAudio = () => {
-    return this.dynascaleManager.resumeAudio();
-  };
+  resumeAudio = () => this.blockedAudioTracker.resumeAudio();
 
   /**
    * Binds a DOM <img> element to this call's thumbnail (if enabled in settings).
@@ -3026,7 +3215,7 @@ export class Call {
     resolution: VideoDimension | undefined,
     sessionIds?: string[],
   ) => {
-    this.dynascaleManager.setVideoTrackSubscriptionOverrides(
+    this.trackSubscriptionManager.setOverrides(
       resolution
         ? {
             enabled: true,
@@ -3035,7 +3224,7 @@ export class Call {
         : undefined,
       sessionIds,
     );
-    this.dynascaleManager.applyTrackSubscriptions();
+    this.trackSubscriptionManager.apply();
   };
 
   /**
@@ -3043,10 +3232,10 @@ export class Call {
    * and removes any preference for preferred resolution.
    */
   setIncomingVideoEnabled = (enabled: boolean) => {
-    this.dynascaleManager.setVideoTrackSubscriptionOverrides(
+    this.trackSubscriptionManager.setOverrides(
       enabled ? undefined : { enabled: false },
     );
-    this.dynascaleManager.applyTrackSubscriptions();
+    this.trackSubscriptionManager.apply();
   };
 
   /**
@@ -3056,6 +3245,45 @@ export class Call {
    */
   setDisconnectionTimeout = (timeoutSeconds: number) => {
     this.disconnectionTimeoutSeconds = timeoutSeconds;
+  };
+
+  /**
+   * Configures the rolling-window limit for REJOIN/MIGRATE attempts. Once
+   * `maxAttempts` rejoins have been registered inside `windowSeconds`, the
+   * SDK stops retrying and transitions the call to `LEFT` with the
+   * `rejoin_attempt_limit_exceeded` leave message.
+   *
+   * Defaults: 10 attempts per 120 seconds (aligned with the Swift SDK).
+   * Both arguments are clamped to a minimum of 1.
+   */
+  setRejoinAttemptLimit = (maxAttempts: number, windowSeconds: number) => {
+    this.rejoinRateLimiter.setLimits(
+      Math.max(1, maxAttempts),
+      Math.max(1, windowSeconds) * 1000,
+    );
+  };
+
+  /**
+   * Configures how many peer-connection failures where ICE never reached
+   * `connected`/`completed` are tolerated before the SDK concludes that the
+   * current network cannot support WebRTC and transitions the call to
+   * `LEFT` with the `webrtc_unsupported_network` leave message.
+   *
+   * Default: 2. Clamped to a minimum of 1.
+   */
+  setMaxIceFailuresWithoutConnect = (n: number) => {
+    this.maxIceFailuresWithoutConnect = Math.max(1, n);
+  };
+
+  /**
+   * Configures how many consecutive SDP `NegotiationError`s are tolerated
+   * before the SDK stops retrying and transitions the call to `LEFT` with
+   * the `repeated_negotiation_failures` leave message.
+   *
+   * Default: 3. Clamped to a minimum of 1.
+   */
+  setMaxConsecutiveNegotiationFailures = (n: number) => {
+    this.maxConsecutiveNegotiationFailures = Math.max(1, n);
   };
 
   /**

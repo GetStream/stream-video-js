@@ -20,6 +20,7 @@ import {
   type InputDeviceStatus,
 } from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
+import { isWebKit } from '../helpers/browsers';
 import { isReactNative } from '../helpers/platforms';
 import { ScopedLogger, videoLoggerSystem } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
@@ -35,6 +36,7 @@ import {
   MediaStreamFilterEntry,
   MediaStreamFilterRegistrationResult,
 } from './filters';
+import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
 import {
   createSyntheticDevice,
   defaultDeviceId,
@@ -68,6 +70,7 @@ export abstract class DeviceManager<
   protected readonly call: Call;
   protected readonly trackType: TrackType;
   protected subscriptions: (() => void)[] = [];
+  protected currentStreamCleanups: (() => void)[] = [];
   protected devicePersistence: Required<DevicePersistenceOptions>;
   protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
@@ -427,10 +430,16 @@ export abstract class DeviceManager<
    * @internal
    */
   dispose = () => {
+    this.runCurrentStreamCleanups();
     this.subscriptions.forEach((s) => s());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
     this.virtualDevicesSubject.next([]);
+  };
+
+  private runCurrentStreamCleanups = () => {
+    this.currentStreamCleanups.forEach((c) => c());
+    this.currentStreamCleanups = [];
   };
 
   protected async applySettingsToStream() {
@@ -494,7 +503,9 @@ export abstract class DeviceManager<
         // @ts-expect-error called to dispose the stream in RN
         mediaStream.release();
       }
+      this.runCurrentStreamCleanups();
       this.state.setMediaStream(undefined, undefined);
+      this.setLocalInterrupted(false);
       this.filters.forEach((entry) => entry.stop?.());
     }
   }
@@ -531,7 +542,7 @@ export abstract class DeviceManager<
   protected async unmuteStream() {
     this.logger.debug('Starting stream');
     let stream: MediaStream;
-    let rootStream: Promise<MediaStream> | undefined;
+    let rootStreamPromise: Promise<MediaStream> | undefined;
     if (
       this.state.mediaStream &&
       this.getTracks().every((t) => t.readyState === 'live')
@@ -539,6 +550,11 @@ export abstract class DeviceManager<
       stream = this.state.mediaStream;
       this.enableTracks();
     } else {
+      // We are about to compose a fresh filter chain and acquire a new
+      // root stream. Drop any listeners bound to the previous root stream
+      // before chainWith below registers new ones for the new chain.
+      this.runCurrentStreamCleanups();
+
       const defaultConstraints = this.state.defaultConstraints;
       const constraints = this.getResolvedConstraints({
         ...defaultConstraints,
@@ -596,7 +612,7 @@ export abstract class DeviceManager<
               });
             };
             parentTrack.addEventListener('ended', handleParentTrackEnded);
-            this.subscriptions.push(() => {
+            this.currentStreamCleanups.push(() => {
               parentTrack.removeEventListener('ended', handleParentTrackEnded);
             });
           });
@@ -604,8 +620,10 @@ export abstract class DeviceManager<
           return filterStream;
         };
 
-      rootStream = this.getSelectedStream(constraints);
-
+      // the rootStream represents the stream coming from the actual device
+      // e.g. camera or microphone stream
+      rootStreamPromise = this.getSelectedStream(constraints as C);
+      // we publish the last MediaStream of the chain
       stream = await this.filters.reduce(
         (parent, entry) =>
           parent
@@ -621,44 +639,88 @@ export abstract class DeviceManager<
               );
               return parent;
             }),
-        rootStream,
+        rootStreamPromise,
       );
     }
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);
     }
     if (this.state.mediaStream !== stream) {
-      this.state.setMediaStream(stream, await rootStream);
-      const handleTrackEnded = async () => {
-        await this.statusChangeSettled();
-        if (this.enabled) {
-          this.isTrackStoppedDueToTrackEnd = true;
-          setTimeout(() => {
-            this.isTrackStoppedDueToTrackEnd = false;
-          }, 2000);
-          await this.disable();
-        }
-      };
-      const createTrackMuteHandler = (muted: boolean) => () => {
-        if (!isMobile() || this.trackType !== TrackType.VIDEO) return;
-        this.call.notifyTrackMuteState(muted, this.trackType).catch((err) => {
-          this.logger.warn('Error while notifying track mute state', err);
+      const rootStream = await rootStreamPromise;
+      this.state.setMediaStream(stream, rootStream);
+      if (rootStream) {
+        const handleTrackEnded = async () => {
+          this.setLocalInterrupted(false);
+          await this.statusChangeSettled();
+          if (this.enabled) {
+            this.isTrackStoppedDueToTrackEnd = true;
+            setTimeout(() => {
+              this.isTrackStoppedDueToTrackEnd = false;
+            }, 2000);
+            await this.disable();
+          }
+        };
+        const createTrackMuteHandler = (muted: boolean) => () => {
+          this.setLocalInterrupted(muted);
+
+          // WebKit's RTCRtpSender encoder can stay stalled after an iOS /
+          // macOS audio session interruption even though the track is
+          // unmuted. Re-arm the sender on every unmute for any WebKit
+          // runtime (Safari + plain iOS WKWebViews). Skipped when the
+          // page is hidden because the encoder won't resume until
+          // foreground anyway.
+          if (!muted && isWebKit() && document.visibilityState !== 'hidden') {
+            this.call.refreshPublishedTrack(this.trackType).catch((err) => {
+              this.logger.warn('Failed to refresh track on system unmute', err);
+            });
+          }
+
+          // report all tracks on mobile, and only Video on desktop browsers
+          if (isMobile() || this.trackType == TrackType.VIDEO) {
+            this.call.tracer.trace('navigator.mediaDevices.muteStateUpdated', {
+              trackType: TrackType[this.trackType],
+              muted,
+            });
+            this.call
+              .notifyTrackMuteState(muted, this.trackType)
+              .catch((err) => {
+                this.logger.warn('Error while notifying track mute state', err);
+              });
+          }
+        };
+        rootStream.getTracks().forEach((track) => {
+          const muteHandler = createTrackMuteHandler(true);
+          const unmuteHandler = createTrackMuteHandler(false);
+          track.addEventListener('mute', muteHandler);
+          track.addEventListener('unmute', unmuteHandler);
+          track.addEventListener('ended', handleTrackEnded);
+          this.currentStreamCleanups.push(() => {
+            track.removeEventListener('mute', muteHandler);
+            track.removeEventListener('unmute', unmuteHandler);
+            track.removeEventListener('ended', handleTrackEnded);
+          });
         });
-      };
-      stream.getTracks().forEach((track) => {
-        const muteHandler = createTrackMuteHandler(true);
-        const unmuteHandler = createTrackMuteHandler(false);
-        track.addEventListener('mute', muteHandler);
-        track.addEventListener('unmute', unmuteHandler);
-        track.addEventListener('ended', handleTrackEnded);
-        this.subscriptions.push(() => {
-          track.removeEventListener('mute', muteHandler);
-          track.removeEventListener('unmute', unmuteHandler);
-          track.removeEventListener('ended', handleTrackEnded);
-        });
-      });
+        const initialMuted = rootStream.getTracks().some((t) => t.muted);
+        this.setLocalInterrupted(initialMuted);
+      } else {
+        this.setLocalInterrupted(false);
+      }
     }
   }
+
+  private setLocalInterrupted = (interrupted: boolean) => {
+    const localParticipant = this.call.state.localParticipant;
+    if (!localParticipant) return;
+    this.call.state.updateParticipant(localParticipant.sessionId, (p) => {
+      const current = p.interruptedTracks ?? [];
+      const has = current.includes(this.trackType);
+      if (interrupted === has) return {};
+      const next = interrupted
+        ? pushToIfMissing([...current], this.trackType)
+        : removeFromIfPresent([...current], this.trackType);
+      return { interruptedTracks: next };
+    });
+  };
 
   private get mediaDeviceKind(): 'audioinput' | 'videoinput' {
     if (this.trackType === TrackType.AUDIO) return 'audioinput';

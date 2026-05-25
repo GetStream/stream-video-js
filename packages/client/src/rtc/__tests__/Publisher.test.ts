@@ -2,12 +2,15 @@ import './mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { anyString } from 'vitest-mock-extended';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { NegotiationError } from '../NegotiationError';
 import { Publisher } from '../Publisher';
+import { ReconnectReason } from '../types';
 import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import {
+  DegradationPreference,
   ErrorCode,
   PeerType,
   PublishOption,
@@ -81,12 +84,14 @@ describe('Publisher', () => {
           fps: 30,
           maxTemporalLayers: 3,
           maxSpatialLayers: 3,
+          degradationPreference: DegradationPreference.UNSPECIFIED,
         },
       ],
     );
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.clearAllMocks();
     vi.resetModules();
     publisher.dispose();
@@ -166,16 +171,19 @@ describe('Publisher', () => {
             changePublishQuality: {
               audioSenders: [],
               videoSenders: [
-                {
+                fromPartial({
                   publishOptionId: 1,
                   trackType: TrackType.VIDEO,
                   layers: [],
-                },
-                {
+                  degradationPreference: DegradationPreference.BALANCED,
+                }),
+                fromPartial({
                   publishOptionId: 2,
                   trackType: TrackType.SCREEN_SHARE,
                   layers: [],
-                },
+                  degradationPreference:
+                    DegradationPreference.MAINTAIN_RESOLUTION,
+                }),
               ],
             },
           },
@@ -250,7 +258,14 @@ describe('Publisher', () => {
       expect(publisher['negotiate']).toHaveBeenCalled();
     });
 
+    const simulatePriorIceConnected = () => {
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      publisher['onIceConnectionStateChange']();
+    };
+
     it(`should perform ICE restart when connection state changes to 'failed'`, () => {
+      simulatePriorIceConnected();
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
       // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'failed';
@@ -259,6 +274,7 @@ describe('Publisher', () => {
     });
 
     it(`should perform rejoin when ICE restart fails after connection state changes to 'failed'`, async () => {
+      simulatePriorIceConnected();
       const { promise: lock, resolve: unlock } = promiseWithResolvers<void>();
       publisher['onReconnectionNeeded'] = vi
         .fn()
@@ -274,6 +290,7 @@ describe('Publisher', () => {
     });
 
     it(`should perform fast reconnect when ICE restart fails with SIGNAL_LOST error`, async () => {
+      simulatePriorIceConnected();
       const { promise: lock, resolve: unlock } = promiseWithResolvers<void>();
       publisher['onReconnectionNeeded'] = vi
         .fn()
@@ -325,6 +342,7 @@ describe('Publisher', () => {
     });
 
     it(`should perform REJOIN reconnect when ICE restart fails with any other error code`, async () => {
+      simulatePriorIceConnected();
       const { promise: lock, resolve: unlock } = promiseWithResolvers<void>();
       publisher['onReconnectionNeeded'] = vi
         .fn()
@@ -365,6 +383,7 @@ describe('Publisher', () => {
     });
 
     it(`should schedule ICE restart when connection state changes to 'disconnected'`, () => {
+      simulatePriorIceConnected();
       vi.spyOn(publisher, 'restartIce').mockResolvedValue();
       vi.useFakeTimers();
       // @ts-expect-error private api
@@ -376,6 +395,7 @@ describe('Publisher', () => {
     });
 
     it(`should perform rejoin when scheduled ICE restart fails`, async () => {
+      simulatePriorIceConnected();
       vi.spyOn(publisher, 'restartIce').mockRejectedValue('ICE restart failed');
       const { promise: lock, resolve } = promiseWithResolvers<void>();
       publisher['onReconnectionNeeded'] = vi
@@ -391,6 +411,202 @@ describe('Publisher', () => {
       await lock;
       expect(publisher.restartIce).toHaveBeenCalled();
       expect(publisher['onReconnectionNeeded']).toHaveBeenCalled();
+    });
+
+    it(`iceHasEverConnected is false before any connected state is observed`, () => {
+      expect(publisher['iceHasEverConnected']).toBe(false);
+    });
+
+    it(`iceHasEverConnected becomes true after 'connected' ICE state`, () => {
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      publisher['onIceConnectionStateChange']();
+      expect(publisher['iceHasEverConnected']).toBe(true);
+    });
+
+    it(`iceHasEverConnected also flips on 'completed' ICE state`, () => {
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'completed';
+      publisher['onIceConnectionStateChange']();
+      expect(publisher['iceHasEverConnected']).toBe(true);
+    });
+
+    it(`does NOT call restartIce when ICE never connected and state goes to 'failed' — emits REJOIN with 'ice_never_connected'`, () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      publisher['onReconnectionNeeded'] = vi.fn();
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'failed';
+      publisher['onIceConnectionStateChange']();
+      expect(publisher.restartIce).not.toHaveBeenCalled();
+      expect(publisher['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.ICE_NEVER_CONNECTED,
+        PeerType.PUBLISHER_UNSPECIFIED,
+      );
+    });
+
+    it(`pre-connect 'disconnected' does not restart or escalate immediately`, () => {
+      // ICE has never reached `connected`. A `disconnected` transition at
+      // this point is just the browser's checking phase wobbling; the
+      // browser may yet move back to checking/connected. The SDK should
+      // wait it out — no synchronous restart, no synchronous REJOIN. Only
+      // a terminal `failed` before connect, or the pre-connect watchdog
+      // expiring, should escalate via `ICE_NEVER_CONNECTED`.
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      publisher['onReconnectionNeeded'] = vi.fn();
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      expect(publisher.restartIce).not.toHaveBeenCalled();
+      expect(publisher['onReconnectionNeeded']).not.toHaveBeenCalled();
+    });
+
+    it(`pre-connect 'disconnected' watchdog escalates to REJOIN if state stays stuck`, () => {
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      publisher['onReconnectionNeeded'] = vi.fn();
+      vi.useFakeTimers();
+      const watchdogMs = publisher['iceRestartDelay'] * 2;
+
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      // before the watchdog fires, no escalation
+      vi.advanceTimersByTime(watchdogMs - 1);
+      expect(publisher['onReconnectionNeeded']).not.toHaveBeenCalled();
+
+      // watchdog fires; still stuck in disconnected → escalate
+      vi.advanceTimersByTime(2);
+      expect(publisher.restartIce).not.toHaveBeenCalled();
+      expect(publisher['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.ICE_NEVER_CONNECTED,
+        PeerType.PUBLISHER_UNSPECIFIED,
+      );
+    });
+
+    it(`pre-connect 'disconnected' watchdog is canceled when ICE recovers to 'connected'`, () => {
+      publisher['onReconnectionNeeded'] = vi.fn();
+      vi.useFakeTimers();
+      const watchdogMs = publisher['iceRestartDelay'] * 2;
+
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      // recover before the watchdog window expires
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      publisher['onIceConnectionStateChange']();
+
+      // advance past the original watchdog window — must NOT fire now
+      vi.advanceTimersByTime(watchdogMs + 100);
+
+      expect(publisher['iceHasEverConnected']).toBe(true);
+      expect(publisher['onReconnectionNeeded']).not.toHaveBeenCalled();
+    });
+
+    it(`pre-connect 'disconnected' that recovers to 'connected' continues normally`, () => {
+      publisher['onReconnectionNeeded'] = vi.fn();
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      // browser now reaches connected — the normal connected branch runs
+      // and `iceHasEverConnected` flips to true.
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      publisher['onIceConnectionStateChange']();
+      expect(publisher['iceHasEverConnected']).toBe(true);
+      expect(publisher['onReconnectionNeeded']).not.toHaveBeenCalled();
+    });
+
+    it(`isStable() returns false when ICE is 'new'`, () => {
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'new';
+      // default connectionState in mock is 'connected'
+      expect(publisher.isStable()).toBe(false);
+    });
+
+    it(`isStable() returns true when ICE is 'connected' and connectionState is 'connected'`, () => {
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      // @ts-expect-error private api
+      publisher['pc'].connectionState = 'connected';
+      expect(publisher.isStable()).toBe(true);
+    });
+
+    it(`isStable() returns true when ICE is 'completed' and connectionState is 'connected'`, () => {
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'completed';
+      // @ts-expect-error private api
+      publisher['pc'].connectionState = 'connected';
+      expect(publisher.isStable()).toBe(true);
+    });
+
+    it(`isStable() returns false when ICE is 'disconnected'`, () => {
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'disconnected';
+      // @ts-expect-error private api
+      publisher['pc'].connectionState = 'connected';
+      expect(publisher.isStable()).toBe(false);
+    });
+
+    it(`after connected→disconnected→connected cycle, subsequent 'failed' DOES trigger ICE restart (flag stays true)`, () => {
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      publisher['onIceConnectionStateChange']();
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'disconnected';
+      publisher['onIceConnectionStateChange']();
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      publisher['onIceConnectionStateChange']();
+
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      publisher['onReconnectionNeeded'] = vi.fn();
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'failed';
+      publisher['onIceConnectionStateChange']();
+      expect(publisher.restartIce).toHaveBeenCalled();
+      // the reason here is the regular restart path, NOT 'ice_never_connected'
+      expect(publisher['onReconnectionNeeded']).not.toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.ICE_NEVER_CONNECTED,
+        PeerType.PUBLISHER_UNSPECIFIED,
+      );
+    });
+
+    it(`connection-state 'failed' (distinct from ICE state) still fires REJOIN even after ICE was connected`, () => {
+      // mark ICE as connected first
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      publisher['onIceConnectionStateChange']();
+
+      publisher['onReconnectionNeeded'] = vi.fn();
+      // @ts-expect-error private api
+      publisher['pc'].connectionState = 'failed';
+      publisher['onConnectionStateChange']();
+      expect(publisher['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.CONNECTION_FAILED,
+        PeerType.PUBLISHER_UNSPECIFIED,
+      );
+    });
+
+    it(`'completed' state is treated as connectivity — subsequent 'failed' DOES trigger ICE restart`, () => {
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'completed';
+      publisher['onIceConnectionStateChange']();
+
+      vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      publisher['onReconnectionNeeded'] = vi.fn();
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'failed';
+      publisher['onIceConnectionStateChange']();
+      expect(publisher.restartIce).toHaveBeenCalled();
+      expect(publisher['onReconnectionNeeded']).not.toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.ICE_NEVER_CONNECTED,
+        PeerType.PUBLISHER_UNSPECIFIED,
+      );
     });
 
     it(`should schedule ICE restart but cancel it if connection recovers in the meantime`, () => {
@@ -447,6 +663,7 @@ describe('Publisher', () => {
       await publisher['changePublishQuality']({
         publishOptionId: 1,
         trackType: TrackType.VIDEO,
+        degradationPreference: DegradationPreference.UNSPECIFIED,
         layers: [
           {
             name: 'q',
@@ -523,6 +740,7 @@ describe('Publisher', () => {
       await publisher['changePublishQuality']({
         publishOptionId: 1,
         trackType: TrackType.VIDEO,
+        degradationPreference: DegradationPreference.UNSPECIFIED,
         layers: [
           {
             name: 'q',
@@ -586,6 +804,7 @@ describe('Publisher', () => {
       await publisher['changePublishQuality']({
         publishOptionId: 1,
         trackType: TrackType.VIDEO,
+        degradationPreference: DegradationPreference.UNSPECIFIED,
         layers: [
           {
             name: 'q',
@@ -645,6 +864,7 @@ describe('Publisher', () => {
       await publisher['changePublishQuality']({
         publishOptionId: 1,
         trackType: TrackType.VIDEO,
+        degradationPreference: DegradationPreference.UNSPECIFIED,
         layers: [
           {
             name: 'q',
@@ -669,6 +889,93 @@ describe('Publisher', () => {
         },
       ]);
     });
+
+    it('applies degradationPreference from the SFU event', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      vi.spyOn(transceiver.sender, 'getParameters').mockReturnValue({
+        // @ts-expect-error incomplete data
+        codecs: [{ mimeType: 'video/VP8' }],
+        encodings: [{ rid: 'q', active: true }],
+        degradationPreference: 'maintain-framerate',
+      });
+
+      publisher['transceiverCache'].add({
+        // @ts-expect-error incomplete data
+        publishOption: { trackType: TrackType.VIDEO, id: 1 },
+        transceiver,
+        options: {},
+      });
+
+      await publisher['changePublishQuality']({
+        publishOptionId: 1,
+        trackType: TrackType.VIDEO,
+        degradationPreference: DegradationPreference.BALANCED,
+        layers: [
+          {
+            name: 'q',
+            active: true,
+            maxBitrate: 100,
+            scaleResolutionDownBy: 1,
+            maxFramerate: 30,
+            scalabilityMode: '',
+          },
+        ],
+      });
+
+      expect(setParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy.mock.calls[0][0].degradationPreference).toBe(
+        'balanced',
+      );
+    });
+
+    it('does not call setParameters when nothing changes and degradationPreference is UNSPECIFIED', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      vi.spyOn(transceiver.sender, 'getParameters').mockReturnValue({
+        // @ts-expect-error incomplete data
+        codecs: [{ mimeType: 'video/VP8' }],
+        encodings: [
+          {
+            rid: 'q',
+            active: true,
+            maxBitrate: 100,
+            scaleResolutionDownBy: 1,
+            maxFramerate: 30,
+          },
+        ],
+        degradationPreference: 'maintain-framerate',
+      });
+
+      publisher['transceiverCache'].add({
+        // @ts-expect-error incomplete data
+        publishOption: { trackType: TrackType.VIDEO, id: 1 },
+        transceiver,
+        options: {},
+      });
+
+      await publisher['changePublishQuality']({
+        publishOptionId: 1,
+        trackType: TrackType.VIDEO,
+        degradationPreference: DegradationPreference.UNSPECIFIED,
+        layers: [
+          {
+            name: 'q',
+            active: true,
+            maxBitrate: 100,
+            scaleResolutionDownBy: 1,
+            maxFramerate: 30,
+            scalabilityMode: '',
+          },
+        ],
+      });
+
+      expect(setParametersSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('changePublishOptions', () => {
@@ -683,12 +990,27 @@ describe('Publisher', () => {
       vi.spyOn(publisher, 'negotiate').mockResolvedValue();
 
       publisher['publishOptions'] = [
-        // @ts-expect-error incomplete data
-        { trackType: TrackType.VIDEO, id: 0, codec: { name: 'vp8' } },
-        // @ts-expect-error incomplete data
-        { trackType: TrackType.VIDEO, id: 1, codec: { name: 'av1' } },
-        // @ts-expect-error incomplete data
-        { trackType: TrackType.VIDEO, id: 2, codec: { name: 'vp9' } },
+        {
+          trackType: TrackType.VIDEO,
+          id: 0,
+          // @ts-expect-error incomplete data
+          codec: { name: 'vp8' },
+          degradationPreference: DegradationPreference.UNSPECIFIED,
+        },
+        {
+          trackType: TrackType.VIDEO,
+          id: 1,
+          // @ts-expect-error incomplete data
+          codec: { name: 'av1' },
+          degradationPreference: DegradationPreference.UNSPECIFIED,
+        },
+        {
+          trackType: TrackType.VIDEO,
+          id: 2,
+          // @ts-expect-error incomplete data
+          codec: { name: 'vp9' },
+          degradationPreference: DegradationPreference.UNSPECIFIED,
+        },
       ];
 
       publisher['transceiverCache'].add({

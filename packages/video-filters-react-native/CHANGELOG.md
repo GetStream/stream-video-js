@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.12.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.1...@stream-io/video-filters-react-native-0.12.2) (2026-05-08)
+
+## [0.12.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.0...@stream-io/video-filters-react-native-0.12.1) (2026-04-28)
+
+### Bug Fixes
+
+- **rn:** perf and stability fixes for video-filters ([#2216](https://github.com/GetStream/stream-video-js/issues/2216)) ([db1405b](https://github.com/GetStream/stream-video-js/commit/db1405b02a5745ee14a54a76a164c47ed59f56c6))
+
 ## [0.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.11.0...@stream-io/video-filters-react-native-0.12.0) (2026-04-09)
 
 ### Features

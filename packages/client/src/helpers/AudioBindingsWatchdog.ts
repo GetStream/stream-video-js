@@ -21,10 +21,12 @@ export class AudioBindingsWatchdog {
   private readonly unsubscribeCallingState: () => void;
   private logger = videoLoggerSystem.getLogger('AudioBindingsWatchdog');
 
-  constructor(
-    private state: CallState,
-    private tracer: Tracer,
-  ) {
+  private readonly state: CallState;
+  private readonly tracer: Tracer;
+
+  constructor(state: CallState, tracer: Tracer) {
+    this.tracer = tracer;
+    this.state = state;
     this.unsubscribeCallingState = createSubscription(
       state.callingState$,
       (callingState) => {
@@ -43,19 +45,19 @@ export class AudioBindingsWatchdog {
    * Warns if a different element is already bound to the same key.
    */
   register = (
-    audioElement: HTMLAudioElement,
+    element: HTMLAudioElement,
     sessionId: string,
     trackType: AudioTrackType,
   ) => {
     const key = toBindingKey(sessionId, trackType);
     const existing = this.bindings.get(key);
-    if (existing && existing !== audioElement) {
+    if (existing && existing !== element) {
       this.logger.warn(
         `Audio element already bound to ${sessionId} and ${trackType}`,
       );
       this.tracer.trace('audioBinding.alreadyBoundWarning', trackType);
     }
-    this.bindings.set(key, audioElement);
+    this.bindings.set(key, element);
   };
 
   /**
@@ -83,6 +85,7 @@ export class AudioBindingsWatchdog {
    */
   dispose = () => {
     this.stop();
+    this.bindings.clear();
     this.unsubscribeCallingState();
   };
 

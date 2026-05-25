@@ -3,7 +3,6 @@ import {
   StreamVideoClient,
   type Call,
 } from '@stream-io/video-client';
-import type { AndroidChannel } from '@notifee/react-native';
 
 export type AndroidChannelConfig = {
   id: string;
@@ -37,7 +36,7 @@ export type StreamVideoConfig = {
      */
     publishOptions?: ClientPublishOptions;
 
-    ios: {
+    ios?: {
       /**
        * The name for the alias of push provider used for iOS
        * Pass undefined if you will not be using stream's push notifications but still want to use the functionality of the SDK
@@ -65,8 +64,28 @@ export type StreamVideoConfig = {
        * @default 60000 (1 minute)
        */
       displayCallTimeout?: number;
+      /**
+       * Whether to enable ongoing calls.
+       * @default false
+       */
+      enableOngoingCalls?: boolean;
+      /**
+       * When true, ringing pushes that arrive while the app is in the
+       * foreground are not shown by CallKit. The push is still delivered to
+       * JS, so the app must show its own ringing UI. Background pushes are unaffected.
+       * Requires iOS 26.4 or newer version of iOS.
+       * @default false
+       */
+      skipIncomingPushInForeground?: boolean;
+      /**
+       * Default audio endpoint for CallKit-managed calls on iOS.
+       * `'earpiece'` routes voice-only / phone-style calls to the built-in receiver.
+       * Set via `setPushConfig` so it's in place before CallKit's `CXAnswerCallAction`.
+       * @default 'speaker'
+       */
+      defaultDeviceEndpointType?: 'speaker' | 'earpiece';
     };
-    android: {
+    android?: {
       /**
        * The small icon to be used for push notifications for Android
        * Reference the name created (Optional, defaults to 'ic_launcher')
@@ -79,17 +98,6 @@ export type StreamVideoConfig = {
        * @example "production-fcm-video" or "staging-fcm-video" based on the environment
        */
       pushProviderName?: string;
-      /**
-       * The notification channel to be used for non ringing calls for Android.
-       * @example
-       * {
-       *  id: 'stream_call_notifications',
-       *  name: 'Call notifications',
-       *  importance: AndroidImportance.HIGH,
-       *  sound: 'default',
-       * }
-       */
-      callChannel?: AndroidChannel;
       /**
        * The notification channel to be used for incoming calls for Android.
        * @example
@@ -118,39 +126,14 @@ export type StreamVideoConfig = {
        * The transformer to be used to transform the call title in the notification for ringing and ongoing calls for Android.
        */
       titleTransformer?: (memberName: string, incoming: boolean) => string;
+      enableOngoingCalls?: boolean;
       /**
-       * Functions to create the texts shown in the notification for non ringing calls in Android.
-       * @example
-       *  getTitle(type, createdUserName) {
-            if (type === 'call.live_started') {
-              return `Call went live, it was started by ${createdUserName}`;
-            } else if (type === 'call.missed') {
-              return `Missed call from ${createdUserName}`;
-            } else {
-              return `${createdUserName} is notifying you about a call`;
-            }
-          },
-          getBody(type, _createdUserName) {
-            if (type === 'call.missed') {
-              return 'Missed call!';
-            } else {
-              return 'Tap to open the call';
-            }
-          },
+       * When true, incoming call push notifications (call.ring) will not be displayed
+       * as a notification when the app is in the foreground.
+       * @default false
        */
-      callNotificationTextGetters?: {
-        getTitle: (
-          type: NonRingingPushEvent,
-          createdUserName: string,
-        ) => string;
-        getBody: (type: NonRingingPushEvent, createdUserName: string) => string;
-      };
+      skipIncomingPushInForeground?: boolean;
     };
-    /**
-     * Whether to enable ongoing calls.
-     * @default false
-     */
-    enableOngoingCalls?: boolean;
     /**
      * Whether to reject calls when the user is busy.
      * @default false
@@ -175,11 +158,6 @@ export type StreamVideoConfig = {
      * }
      */
     createStreamVideoClient: () => Promise<StreamVideoClient | undefined>;
-    /** Callback that is called when a non ringing push notification was tapped */
-    onTapNonRingingCallNotification?: (
-      call_cid: string,
-      type: NonRingingPushEvent,
-    ) => void;
   };
   foregroundService: {
     android: {
