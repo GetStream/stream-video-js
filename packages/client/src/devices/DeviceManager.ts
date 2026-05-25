@@ -1,9 +1,20 @@
-import { combineLatest, firstValueFrom, Observable, pairwise } from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  firstValueFrom,
+  map,
+  Observable,
+  pairwise,
+} from 'rxjs';
 import { Call } from '../Call';
 import type { DeviceDisconnectedEvent } from '../coordinator/connection/types';
 import { TrackPublishOptions } from '../rtc';
 import { CallingState } from '../store';
-import { createSubscription, getCurrentValue } from '../store/rxUtils';
+import {
+  createSubscription,
+  getCurrentValue,
+  setCurrentValue,
+} from '../store/rxUtils';
 import {
   DeviceManagerState,
   type InputDeviceStatus,
@@ -35,6 +46,13 @@ import {
   toPreferenceList,
   writePreferences,
 } from './devicePersistence';
+import {
+  ActiveVirtualSession,
+  VirtualDevice,
+  VirtualDeviceEntry,
+  VirtualDeviceHandle,
+} from './VirtualDevice';
+import { generateUUIDv4 } from '../coordinator/connection/utils';
 
 export abstract class DeviceManager<
   S extends DeviceManagerState<C>,
@@ -56,6 +74,11 @@ export abstract class DeviceManager<
   protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilterEntry[] = [];
+  private virtualDevicesSubject = new BehaviorSubject<VirtualDeviceEntry<C>[]>(
+    [],
+  );
+  private activeVirtualSession: ActiveVirtualSession | undefined;
+  private virtualDeviceConcurrencyTag = Symbol('virtualDeviceConcurrencyTag');
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
   private filterRegistrationConcurrencyTag = Symbol(
     'filterRegistrationConcurrencyTag',
@@ -119,8 +142,119 @@ export abstract class DeviceManager<
    *
    * @returns an Observable that will be updated if a device is connected or disconnected
    */
-  listDevices() {
-    return this.getDevices();
+  listDevices(): Observable<MediaDeviceInfo[]> {
+    return combineLatest([this.getDevices(), this.virtualDevicesSubject]).pipe(
+      map(([real, virtual]) => [
+        ...real,
+        ...virtual.map((d) =>
+          createSyntheticDevice(d.deviceId, d.kind, d.label),
+        ),
+      ]),
+    );
+  }
+
+  /**
+   * Registers a virtual camera or microphone backed by a caller-supplied
+   * stream factory. The device appears in `listDevices()` and can be selected
+   * via `select()` like any real device.
+   *
+   * Web only. React Native is not supported.
+   *
+   * Only supported for camera and microphone managers; calling on any other
+   * manager throws.
+   */
+  registerVirtualDevice(virtualDevice: VirtualDevice<C>): VirtualDeviceHandle {
+    if (isReactNative()) {
+      throw new Error('Virtual devices are not supported on React Native.');
+    }
+    if (
+      this.trackType !== TrackType.AUDIO &&
+      this.trackType !== TrackType.VIDEO
+    ) {
+      throw new Error(
+        'Virtual devices are only supported for camera and microphone.',
+      );
+    }
+
+    const deviceId = `stream-virtual:${generateUUIDv4()}`;
+    const entry: VirtualDeviceEntry<C> = {
+      deviceId,
+      kind: this.mediaDeviceKind,
+      ...virtualDevice,
+    };
+
+    setCurrentValue(this.virtualDevicesSubject, (current) => [
+      ...current,
+      entry,
+    ]);
+
+    return {
+      deviceId: entry.deviceId,
+      unregister: async () => {
+        await withoutConcurrency(this.virtualDeviceConcurrencyTag, async () => {
+          setCurrentValue(this.virtualDevicesSubject, (current) =>
+            current.filter((d) => d !== entry),
+          );
+          if (this.activeVirtualSession?.deviceId === deviceId) {
+            await this.stopActiveVirtualSession();
+          }
+        });
+
+        if (this.state.selectedDevice === deviceId) {
+          await this.statusChangeSettled();
+
+          await this.disable({ forceStop: true });
+          await this.select(undefined);
+        }
+      },
+    };
+  }
+
+  protected sanitizeVirtualStream(stream: MediaStream): MediaStream {
+    stream.getTracks().forEach((track) => {
+      const originalGetSettings = track.getSettings.bind(track);
+      track.getSettings = () => {
+        const settings = originalGetSettings();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { deviceId, ...rest } = settings;
+        return rest;
+      };
+    });
+
+    return stream;
+  }
+
+  protected findVirtualDevice(deviceId: string | undefined) {
+    if (!deviceId) return undefined;
+    return getCurrentValue(this.virtualDevicesSubject).find(
+      (d) => d.deviceId === deviceId,
+    );
+  }
+
+  private async stopActiveVirtualSession() {
+    const session = this.activeVirtualSession;
+    this.activeVirtualSession = undefined;
+    await session?.stop?.();
+  }
+
+  protected async getSelectedStream(constraints: C): Promise<MediaStream> {
+    const deviceId = this.state.selectedDevice;
+    if (!deviceId?.startsWith('stream-virtual')) {
+      return this.getStream(constraints);
+    }
+
+    return withoutConcurrency(this.virtualDeviceConcurrencyTag, async () => {
+      const virtualDevice = this.findVirtualDevice(deviceId);
+      if (!virtualDevice) {
+        throw new Error(`Virtual device is not registered: ${deviceId}`);
+      }
+
+      await this.stopActiveVirtualSession();
+      const { stream, stop } = await virtualDevice.getUserMedia(constraints);
+      this.activeVirtualSession = { deviceId, stop };
+
+      return this.sanitizeVirtualStream(stream);
+    });
   }
 
   /**
@@ -299,6 +433,7 @@ export abstract class DeviceManager<
     this.subscriptions.forEach((s) => s());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
+    this.virtualDevicesSubject.next([]);
   };
 
   private runCurrentStreamCleanups = () => {
@@ -330,6 +465,10 @@ export abstract class DeviceManager<
 
   protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
 
+  protected getResolvedConstraints(constraints: C): C {
+    return constraints;
+  }
+
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 
   protected publishStream(
@@ -357,6 +496,7 @@ export abstract class DeviceManager<
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
     if (allEnded) {
+      await this.stopActiveVirtualSession();
       // @ts-expect-error release() is present in react-native-webrtc
       if (typeof mediaStream.release === 'function') {
         // @ts-expect-error called to dispose the stream in RN
@@ -415,12 +555,12 @@ export abstract class DeviceManager<
       this.runCurrentStreamCleanups();
 
       const defaultConstraints = this.state.defaultConstraints;
-      const constraints: MediaTrackConstraints = {
+      const constraints = this.getResolvedConstraints({
         ...defaultConstraints,
         deviceId: this.state.selectedDevice
           ? { exact: this.state.selectedDevice }
           : undefined,
-      };
+      } as C);
 
       /**
        * Chains two media streams together.
@@ -481,7 +621,7 @@ export abstract class DeviceManager<
 
       // the rootStream represents the stream coming from the actual device
       // e.g. camera or microphone stream
-      rootStreamPromise = this.getStream(constraints as C);
+      rootStreamPromise = this.getSelectedStream(constraints as C);
       // we publish the last MediaStream of the chain
       stream = await this.filters.reduce(
         (parent, entry) =>
@@ -581,7 +721,7 @@ export abstract class DeviceManager<
     });
   };
 
-  private get mediaDeviceKind(): MediaDeviceKind {
+  private get mediaDeviceKind(): 'audioinput' | 'videoinput' {
     if (this.trackType === TrackType.AUDIO) return 'audioinput';
     if (this.trackType === TrackType.VIDEO) return 'videoinput';
     throw new Error('Invalid track type');

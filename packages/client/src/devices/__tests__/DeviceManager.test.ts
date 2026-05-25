@@ -17,7 +17,7 @@ import {
 } from './mocks';
 import { DeviceManager } from '../DeviceManager';
 import { DeviceManagerState } from '../DeviceManagerState';
-import { of } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { PermissionsContext } from '../../permissions';
 import { readPreferences } from '../devicePersistence';
@@ -219,6 +219,126 @@ describe('Device Manager', () => {
     await manager.select(deviceId);
 
     expect(spy.mock.calls.length).toBe(1);
+  });
+
+  it('should use a virtual device stream factory instead of requesting a real device stream', async () => {
+    const virtualStream = mockVideoStream();
+    const getUserMedia = vi.fn(() => ({ stream: virtualStream }));
+
+    const { deviceId } = manager.registerVirtualDevice({
+      label: 'Virtual camera',
+      getUserMedia,
+    });
+
+    await manager.select(deviceId);
+    await manager.enable();
+
+    expect(getUserMedia).toHaveBeenCalledOnce();
+    expect(getUserMedia).toHaveBeenCalledWith({
+      deviceId: { exact: deviceId },
+    });
+    expect(manager.getStream).not.toHaveBeenCalled();
+    expect(manager.state.mediaStream).toBe(virtualStream);
+    expect(manager.state.selectedDevice).toBe(deviceId);
+  });
+
+  it('should call virtual device stop when switching away from it', async () => {
+    const stop = vi.fn();
+    const virtualStream = mockVideoStream();
+
+    const { deviceId } = manager.registerVirtualDevice({
+      label: 'Virtual camera',
+      getUserMedia: vi.fn(() => ({ stream: virtualStream, stop })),
+    });
+
+    await manager.select(deviceId);
+    await manager.enable();
+    await manager.select(mockVideoDevices[1].deviceId);
+
+    expect(stop).toHaveBeenCalledTimes(1);
+  });
+
+  it('should support an async getUserMedia returning a Promise', async () => {
+    const virtualStream = mockVideoStream();
+    const getUserMedia = vi.fn(() =>
+      Promise.resolve({ stream: virtualStream }),
+    );
+
+    const { deviceId } = manager.registerVirtualDevice({
+      label: 'Async virtual camera',
+      getUserMedia,
+    });
+
+    await manager.select(deviceId);
+    await manager.enable();
+
+    expect(getUserMedia).toHaveBeenCalledOnce();
+    expect(manager.state.mediaStream).toBe(virtualStream);
+    expect(manager.state.selectedDevice).toBe(deviceId);
+  });
+
+  it('should roll back selection when getUserMedia rejects', async () => {
+    const failure = new Error('factory boom');
+    const getUserMedia = vi.fn(() => Promise.reject(failure));
+
+    await manager.enable();
+    const previousDevice = manager.state.selectedDevice;
+
+    const { deviceId } = manager.registerVirtualDevice({
+      label: 'Failing camera',
+      getUserMedia,
+    });
+
+    await expect(manager.select(deviceId)).rejects.toThrow(failure);
+
+    expect(manager.state.selectedDevice).toBe(previousDevice);
+  });
+
+  it('should stop the active session and clear selection on unregister', async () => {
+    const stop = vi.fn();
+    const virtualStream = mockVideoStream();
+
+    const { deviceId, unregister } = manager.registerVirtualDevice({
+      label: 'Virtual camera',
+      getUserMedia: vi.fn(() => ({ stream: virtualStream, stop })),
+    });
+
+    await manager.select(deviceId);
+    await manager.enable();
+
+    await unregister();
+
+    expect(stop).toHaveBeenCalledTimes(1);
+    expect(manager.state.selectedDevice).not.toBe(deviceId);
+  });
+
+  it('should remove the entry on unregister without stopping when not selected', async () => {
+    const stop = vi.fn();
+    const getUserMedia = vi.fn(() => ({ stream: mockVideoStream(), stop }));
+
+    const { unregister } = manager.registerVirtualDevice({
+      label: 'Unused virtual camera',
+      getUserMedia,
+    });
+
+    await unregister();
+
+    expect(stop).not.toHaveBeenCalled();
+    expect(getUserMedia).not.toHaveBeenCalled();
+  });
+
+  it('should expose virtual devices via listDevices() with the provided label', async () => {
+    manager.registerVirtualDevice({
+      label: 'My virtual camera',
+      getUserMedia: vi.fn(() => ({ stream: mockVideoStream() })),
+    });
+
+    const devices = await firstValueFrom(manager.listDevices());
+
+    expect(devices.length).toBe(mockVideoDevices.length + 1);
+    const virtual = devices.find((d) => d.label === 'My virtual camera');
+    expect(virtual).toBeDefined();
+    expect(virtual?.kind).toBe('videoinput');
   });
 
   it('should resume previously enabled state', async () => {
