@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.37.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.37.1...@stream-io/video-react-sdk-1.37.2) (2026-05-25)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.8.1`
+
 ## [1.37.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.37.0...@stream-io/video-react-sdk-1.37.1) (2026-05-25)
 
 - fixed impure function usage issue ([#2254](https://github.com/GetStream/stream-video-js/issues/2254)) ([6afe0bc](https://github.com/GetStream/stream-video-js/commit/6afe0bcba355cf91595a6e4e2dfc9bd0dd9c7041))
