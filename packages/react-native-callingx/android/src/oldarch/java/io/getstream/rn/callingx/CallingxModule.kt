@@ -45,6 +45,11 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun setDefaultAudioDeviceEndpointType(endpointType: String?) {
+        // leave empty
+    }
+
+    @ReactMethod
     fun setupAndroid(options: ReadableMap) {
         impl.setupAndroid(options)
     }
