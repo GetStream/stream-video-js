@@ -76,6 +76,31 @@ VoIP events:
 - `voipNotificationsRegistered`
 - `voipNotificationReceived`
 
+## Skip CallKit when the app is in the foreground (iOS 26.4+)
+
+Set `skipIncomingPushInForeground: true` in `setup()` to hide CallKit for
+ringing pushes that arrive while the user is already inside your app. The
+push is still delivered to JS via `voipNotificationReceived`, so the app
+must show its own ringing UI. Background pushes are unaffected.
+
+Requires iOS 26.4+ (no-op on older versions). Also add this delegate to your
+`AppDelegate.swift`:
+
+```swift title="AppDelegate.swift"
+private func pushRegistry(
+  _ registry: PKPushRegistry,
+  didReceiveIncomingVoIPPushWith payload: PKPushPayload,
+  metadata: AnyObject,
+  withCompletionHandler completion: @escaping () -> Void
+) {
+  StreamVideoReactNative.didReceiveIncomingVoIPPush(
+    payload,
+    metadata: metadata,
+    completionHandler: completion
+  )
+}
+```
+
 ## Notes
 
 - Import from `@stream-io/react-native-callingx`.

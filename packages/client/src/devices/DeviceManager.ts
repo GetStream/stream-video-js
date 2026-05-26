@@ -1,14 +1,26 @@
-import { combineLatest, firstValueFrom, Observable, pairwise } from 'rxjs';
+import {
+  BehaviorSubject,
+  combineLatest,
+  firstValueFrom,
+  map,
+  Observable,
+  pairwise,
+} from 'rxjs';
 import { Call } from '../Call';
 import type { DeviceDisconnectedEvent } from '../coordinator/connection/types';
 import { TrackPublishOptions } from '../rtc';
 import { CallingState } from '../store';
-import { createSubscription, getCurrentValue } from '../store/rxUtils';
+import {
+  createSubscription,
+  getCurrentValue,
+  setCurrentValue,
+} from '../store/rxUtils';
 import {
   DeviceManagerState,
   type InputDeviceStatus,
 } from './DeviceManagerState';
 import { isMobile } from '../helpers/compatibility';
+import { isWebKit } from '../helpers/browsers';
 import { isReactNative } from '../helpers/platforms';
 import { ScopedLogger, videoLoggerSystem } from '../logger';
 import { TrackType } from '../gen/video/sfu/models/models';
@@ -24,6 +36,7 @@ import {
   MediaStreamFilterEntry,
   MediaStreamFilterRegistrationResult,
 } from './filters';
+import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
 import {
   createSyntheticDevice,
   defaultDeviceId,
@@ -33,6 +46,13 @@ import {
   toPreferenceList,
   writePreferences,
 } from './devicePersistence';
+import {
+  ActiveVirtualSession,
+  VirtualDevice,
+  VirtualDeviceEntry,
+  VirtualDeviceHandle,
+} from './VirtualDevice';
+import { generateUUIDv4 } from '../coordinator/connection/utils';
 
 export abstract class DeviceManager<
   S extends DeviceManagerState<C>,
@@ -49,10 +69,16 @@ export abstract class DeviceManager<
   protected readonly call: Call;
   protected readonly trackType: TrackType;
   protected subscriptions: (() => void)[] = [];
+  protected currentStreamCleanups: (() => void)[] = [];
   protected devicePersistence: Required<DevicePersistenceOptions>;
   protected areSubscriptionsSetUp = false;
   private isTrackStoppedDueToTrackEnd = false;
   private filters: MediaStreamFilterEntry[] = [];
+  private virtualDevicesSubject = new BehaviorSubject<VirtualDeviceEntry<C>[]>(
+    [],
+  );
+  private activeVirtualSession: ActiveVirtualSession | undefined;
+  private virtualDeviceConcurrencyTag = Symbol('virtualDeviceConcurrencyTag');
   private statusChangeConcurrencyTag = Symbol('statusChangeConcurrencyTag');
   private filterRegistrationConcurrencyTag = Symbol(
     'filterRegistrationConcurrencyTag',
@@ -116,8 +142,119 @@ export abstract class DeviceManager<
    *
    * @returns an Observable that will be updated if a device is connected or disconnected
    */
-  listDevices() {
-    return this.getDevices();
+  listDevices(): Observable<MediaDeviceInfo[]> {
+    return combineLatest([this.getDevices(), this.virtualDevicesSubject]).pipe(
+      map(([real, virtual]) => [
+        ...real,
+        ...virtual.map((d) =>
+          createSyntheticDevice(d.deviceId, d.kind, d.label),
+        ),
+      ]),
+    );
+  }
+
+  /**
+   * Registers a virtual camera or microphone backed by a caller-supplied
+   * stream factory. The device appears in `listDevices()` and can be selected
+   * via `select()` like any real device.
+   *
+   * Web only. React Native is not supported.
+   *
+   * Only supported for camera and microphone managers; calling on any other
+   * manager throws.
+   */
+  registerVirtualDevice(virtualDevice: VirtualDevice<C>): VirtualDeviceHandle {
+    if (isReactNative()) {
+      throw new Error('Virtual devices are not supported on React Native.');
+    }
+    if (
+      this.trackType !== TrackType.AUDIO &&
+      this.trackType !== TrackType.VIDEO
+    ) {
+      throw new Error(
+        'Virtual devices are only supported for camera and microphone.',
+      );
+    }
+
+    const deviceId = `stream-virtual:${generateUUIDv4()}`;
+    const entry: VirtualDeviceEntry<C> = {
+      deviceId,
+      kind: this.mediaDeviceKind,
+      ...virtualDevice,
+    };
+
+    setCurrentValue(this.virtualDevicesSubject, (current) => [
+      ...current,
+      entry,
+    ]);
+
+    return {
+      deviceId: entry.deviceId,
+      unregister: async () => {
+        await withoutConcurrency(this.virtualDeviceConcurrencyTag, async () => {
+          setCurrentValue(this.virtualDevicesSubject, (current) =>
+            current.filter((d) => d !== entry),
+          );
+          if (this.activeVirtualSession?.deviceId === deviceId) {
+            await this.stopActiveVirtualSession();
+          }
+        });
+
+        if (this.state.selectedDevice === deviceId) {
+          await this.statusChangeSettled();
+
+          await this.disable({ forceStop: true });
+          await this.select(undefined);
+        }
+      },
+    };
+  }
+
+  protected sanitizeVirtualStream(stream: MediaStream): MediaStream {
+    stream.getTracks().forEach((track) => {
+      const originalGetSettings = track.getSettings.bind(track);
+      track.getSettings = () => {
+        const settings = originalGetSettings();
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { deviceId, ...rest } = settings;
+        return rest;
+      };
+    });
+
+    return stream;
+  }
+
+  protected findVirtualDevice(deviceId: string | undefined) {
+    if (!deviceId) return undefined;
+    return getCurrentValue(this.virtualDevicesSubject).find(
+      (d) => d.deviceId === deviceId,
+    );
+  }
+
+  private async stopActiveVirtualSession() {
+    const session = this.activeVirtualSession;
+    this.activeVirtualSession = undefined;
+    await session?.stop?.();
+  }
+
+  protected async getSelectedStream(constraints: C): Promise<MediaStream> {
+    const deviceId = this.state.selectedDevice;
+    if (!deviceId?.startsWith('stream-virtual')) {
+      return this.getStream(constraints);
+    }
+
+    return withoutConcurrency(this.virtualDeviceConcurrencyTag, async () => {
+      const virtualDevice = this.findVirtualDevice(deviceId);
+      if (!virtualDevice) {
+        throw new Error(`Virtual device is not registered: ${deviceId}`);
+      }
+
+      await this.stopActiveVirtualSession();
+      const { stream, stop } = await virtualDevice.getUserMedia(constraints);
+      this.activeVirtualSession = { deviceId, stop };
+
+      return this.sanitizeVirtualStream(stream);
+    });
   }
 
   /**
@@ -292,9 +429,16 @@ export abstract class DeviceManager<
    * @internal
    */
   dispose = () => {
+    this.runCurrentStreamCleanups();
     this.subscriptions.forEach((s) => s());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
+    this.virtualDevicesSubject.next([]);
+  };
+
+  private runCurrentStreamCleanups = () => {
+    this.currentStreamCleanups.forEach((c) => c());
+    this.currentStreamCleanups = [];
   };
 
   protected async applySettingsToStream() {
@@ -320,6 +464,10 @@ export abstract class DeviceManager<
   }
 
   protected abstract getDevices(): Observable<MediaDeviceInfo[]>;
+
+  protected getResolvedConstraints(constraints: C): C {
+    return constraints;
+  }
 
   protected abstract getStream(constraints: C): Promise<MediaStream>;
 
@@ -348,12 +496,15 @@ export abstract class DeviceManager<
     this.muteLocalStream(stopTracks);
     const allEnded = this.getTracks().every((t) => t.readyState === 'ended');
     if (allEnded) {
+      await this.stopActiveVirtualSession();
       // @ts-expect-error release() is present in react-native-webrtc
       if (typeof mediaStream.release === 'function') {
         // @ts-expect-error called to dispose the stream in RN
         mediaStream.release();
       }
+      this.runCurrentStreamCleanups();
       this.state.setMediaStream(undefined, undefined);
+      this.setLocalInterrupted(false);
       this.filters.forEach((entry) => entry.stop?.());
     }
   }
@@ -390,7 +541,7 @@ export abstract class DeviceManager<
   protected async unmuteStream() {
     this.logger.debug('Starting stream');
     let stream: MediaStream;
-    let rootStream: Promise<MediaStream> | undefined;
+    let rootStreamPromise: Promise<MediaStream> | undefined;
     if (
       this.state.mediaStream &&
       this.getTracks().every((t) => t.readyState === 'live')
@@ -398,13 +549,18 @@ export abstract class DeviceManager<
       stream = this.state.mediaStream;
       this.enableTracks();
     } else {
+      // We are about to compose a fresh filter chain and acquire a new
+      // root stream. Drop any listeners bound to the previous root stream
+      // before chainWith below registers new ones for the new chain.
+      this.runCurrentStreamCleanups();
+
       const defaultConstraints = this.state.defaultConstraints;
-      const constraints: MediaTrackConstraints = {
+      const constraints = this.getResolvedConstraints({
         ...defaultConstraints,
         deviceId: this.state.selectedDevice
           ? { exact: this.state.selectedDevice }
           : undefined,
-      };
+      } as C);
 
       /**
        * Chains two media streams together.
@@ -455,7 +611,7 @@ export abstract class DeviceManager<
               });
             };
             parentTrack.addEventListener('ended', handleParentTrackEnded);
-            this.subscriptions.push(() => {
+            this.currentStreamCleanups.push(() => {
               parentTrack.removeEventListener('ended', handleParentTrackEnded);
             });
           });
@@ -465,7 +621,7 @@ export abstract class DeviceManager<
 
       // the rootStream represents the stream coming from the actual device
       // e.g. camera or microphone stream
-      rootStream = this.getStream(constraints as C);
+      rootStreamPromise = this.getSelectedStream(constraints as C);
       // we publish the last MediaStream of the chain
       stream = await this.filters.reduce(
         (parent, entry) =>
@@ -482,46 +638,90 @@ export abstract class DeviceManager<
               );
               return parent;
             }),
-        rootStream,
+        rootStreamPromise,
       );
     }
     if (this.call.state.callingState === CallingState.JOINED) {
       await this.publishStream(stream);
     }
     if (this.state.mediaStream !== stream) {
-      this.state.setMediaStream(stream, await rootStream);
-      const handleTrackEnded = async () => {
-        await this.statusChangeSettled();
-        if (this.enabled) {
-          this.isTrackStoppedDueToTrackEnd = true;
-          setTimeout(() => {
-            this.isTrackStoppedDueToTrackEnd = false;
-          }, 2000);
-          await this.disable();
-        }
-      };
-      const createTrackMuteHandler = (muted: boolean) => () => {
-        if (!isMobile() || this.trackType !== TrackType.VIDEO) return;
-        this.call.notifyTrackMuteState(muted, this.trackType).catch((err) => {
-          this.logger.warn('Error while notifying track mute state', err);
+      const rootStream = await rootStreamPromise;
+      this.state.setMediaStream(stream, rootStream);
+      if (rootStream) {
+        const handleTrackEnded = async () => {
+          this.setLocalInterrupted(false);
+          await this.statusChangeSettled();
+          if (this.enabled) {
+            this.isTrackStoppedDueToTrackEnd = true;
+            setTimeout(() => {
+              this.isTrackStoppedDueToTrackEnd = false;
+            }, 2000);
+            await this.disable();
+          }
+        };
+        const createTrackMuteHandler = (muted: boolean) => () => {
+          this.setLocalInterrupted(muted);
+
+          // WebKit's RTCRtpSender encoder can stay stalled after an iOS /
+          // macOS audio session interruption even though the track is
+          // unmuted. Re-arm the sender on every unmute for any WebKit
+          // runtime (Safari + plain iOS WKWebViews). Skipped when the
+          // page is hidden because the encoder won't resume until
+          // foreground anyway.
+          if (!muted && isWebKit() && document.visibilityState !== 'hidden') {
+            this.call.refreshPublishedTrack(this.trackType).catch((err) => {
+              this.logger.warn('Failed to refresh track on system unmute', err);
+            });
+          }
+
+          // report all tracks on mobile, and only Video on desktop browsers
+          if (isMobile() || this.trackType == TrackType.VIDEO) {
+            this.call.tracer.trace('navigator.mediaDevices.muteStateUpdated', {
+              trackType: TrackType[this.trackType],
+              muted,
+            });
+            this.call
+              .notifyTrackMuteState(muted, this.trackType)
+              .catch((err) => {
+                this.logger.warn('Error while notifying track mute state', err);
+              });
+          }
+        };
+        rootStream.getTracks().forEach((track) => {
+          const muteHandler = createTrackMuteHandler(true);
+          const unmuteHandler = createTrackMuteHandler(false);
+          track.addEventListener('mute', muteHandler);
+          track.addEventListener('unmute', unmuteHandler);
+          track.addEventListener('ended', handleTrackEnded);
+          this.currentStreamCleanups.push(() => {
+            track.removeEventListener('mute', muteHandler);
+            track.removeEventListener('unmute', unmuteHandler);
+            track.removeEventListener('ended', handleTrackEnded);
+          });
         });
-      };
-      stream.getTracks().forEach((track) => {
-        const muteHandler = createTrackMuteHandler(true);
-        const unmuteHandler = createTrackMuteHandler(false);
-        track.addEventListener('mute', muteHandler);
-        track.addEventListener('unmute', unmuteHandler);
-        track.addEventListener('ended', handleTrackEnded);
-        this.subscriptions.push(() => {
-          track.removeEventListener('mute', muteHandler);
-          track.removeEventListener('unmute', unmuteHandler);
-          track.removeEventListener('ended', handleTrackEnded);
-        });
-      });
+        const initialMuted = rootStream.getTracks().some((t) => t.muted);
+        this.setLocalInterrupted(initialMuted);
+      } else {
+        this.setLocalInterrupted(false);
+      }
     }
   }
 
-  private get mediaDeviceKind(): MediaDeviceKind {
+  private setLocalInterrupted = (interrupted: boolean) => {
+    const localParticipant = this.call.state.localParticipant;
+    if (!localParticipant) return;
+    this.call.state.updateParticipant(localParticipant.sessionId, (p) => {
+      const current = p.interruptedTracks ?? [];
+      const has = current.includes(this.trackType);
+      if (interrupted === has) return {};
+      const next = interrupted
+        ? pushToIfMissing([...current], this.trackType)
+        : removeFromIfPresent([...current], this.trackType);
+      return { interruptedTracks: next };
+    });
+  };
+
+  private get mediaDeviceKind(): 'audioinput' | 'videoinput' {
     if (this.trackType === TrackType.AUDIO) return 'audioinput';
     if (this.trackType === TrackType.VIDEO) return 'videoinput';
     throw new Error('Invalid track type');

@@ -48,8 +48,9 @@ export const normalize = (
 export const createSyntheticDevice = (
   deviceId: string,
   kind: MediaDeviceKind,
+  label = '',
 ): MediaDeviceInfo => {
-  return { deviceId, kind, label: '', groupId: '' } as MediaDeviceInfo;
+  return { deviceId, kind, label, groupId: '' } as MediaDeviceInfo;
 };
 
 export const readPreferences = (storageKey: string): LocalDevicePreferences => {

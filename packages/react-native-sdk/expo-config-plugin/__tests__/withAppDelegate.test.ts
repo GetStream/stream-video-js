@@ -140,6 +140,18 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       /didReceiveIncomingPush:payload/,
     );
 
+    // iOS 26.4+ VoIP push delegate
+    expect(updatedConfig.modResults.contents).toMatch(
+      /didReceiveIncomingVoIPPushWithPayload:\(PKPushPayload \*\)payload metadata:\(id\)metadata withCompletionHandler/,
+    );
+    expect(updatedConfig.modResults.contents).toMatch(
+      /\[StreamVideoReactNative didReceiveIncomingVoIPPush:payload metadata:metadata completionHandler:completion\]/,
+    );
+    // Must not name PKVoIPPushMetadata (would break older-Xcode consumers).
+    expect(updatedConfig.modResults.contents).not.toContain(
+      'PKVoIPPushMetadata',
+    );
+
     modifiedConfigObjC = updatedConfig;
   });
 
@@ -185,6 +197,25 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     );
     expect(updatedConfig.modResults.contents).toMatch(
       /StreamVideoReactNative.didReceiveIncomingPush/,
+    );
+
+    // iOS 26.4+ VoIP push delegate. Swift label `didReceiveIncomingVoIPPushWith`
+    // (no "Payload") matches the protocol's optional requirement; `private`
+    // excludes it from conformance checking on the iOS 26.4 SDK.
+    expect(updatedConfig.modResults.contents).toMatch(
+      /private func pushRegistry\(\s+_ registry: PKPushRegistry,\s+didReceiveIncomingVoIPPushWith payload: PKPushPayload,\s+metadata: AnyObject,/,
+    );
+    expect(updatedConfig.modResults.contents).toMatch(
+      /StreamVideoReactNative\.didReceiveIncomingVoIPPush\(\s+payload,\s+metadata: metadata,/,
+    );
+    // Must not name PKVoIPPushMetadata (would break older-Xcode consumers).
+    expect(updatedConfig.modResults.contents).not.toContain(
+      'PKVoIPPushMetadata',
+    );
+    // Must not pin the selector via @objc — that re-introduces the conflict
+    // with the protocol's optional requirement on the iOS 26.4 SDK.
+    expect(updatedConfig.modResults.contents).not.toContain(
+      '@objc(pushRegistry:didReceiveIncomingVoIPPushWithPayload',
     );
 
     modifiedConfigSwift = updatedConfig;

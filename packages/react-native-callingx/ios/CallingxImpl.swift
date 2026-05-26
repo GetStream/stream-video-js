@@ -827,6 +827,10 @@ import stream_react_native_webrtc
         // When CallKit activates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
 
+        // No-op on the first didActivate per call (CXAction.perform already configured);
+        // only fires for interruption recovery / unhold cycles. See Apple Forums 749202.
+        AudioSessionManager.reapplyForDidActivateIfNeeded()
+
         // Enable wake lock to keep the device awake during the call
         DispatchQueue.main.async {
             UIApplication.shared.isIdleTimerDisabled = true
@@ -843,6 +847,7 @@ import stream_react_native_webrtc
         // When CallKit deactivates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
         getAudioDeviceModule()?.reset()
+        AudioSessionManager.resetActivationCycle()
 
         // Disable wake lock when the call ends
         DispatchQueue.main.async {
@@ -930,6 +935,12 @@ import stream_react_native_webrtc
             #endif
             if didFail { pending.action.fail() } else { pending.action.fulfill() }
         }
+    }
+
+    // MARK: - Audio Configuration
+
+    @objc public func setDefaultAudioDeviceEndpointType(_ endpointType: String) {
+        AudioSessionManager.setDefaultAudioDeviceEndpointType(endpointType)
     }
 
     // MARK: - Helper Methods

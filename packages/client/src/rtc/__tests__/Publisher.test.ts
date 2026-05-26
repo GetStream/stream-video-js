@@ -10,6 +10,7 @@ import { CallState } from '../../store';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { DispatchableMessage, Dispatcher } from '../Dispatcher';
 import {
+  DegradationPreference,
   ErrorCode,
   PeerType,
   PublishOption,
@@ -90,6 +91,7 @@ describe('Publisher', () => {
           fps: 30,
           maxTemporalLayers: 3,
           maxSpatialLayers: 3,
+          degradationPreference: DegradationPreference.UNSPECIFIED,
         },
       ],
     );
@@ -176,16 +178,19 @@ describe('Publisher', () => {
             changePublishQuality: {
               audioSenders: [],
               videoSenders: [
-                {
+                fromPartial({
                   publishOptionId: 1,
                   trackType: TrackType.VIDEO,
                   layers: [],
-                },
-                {
+                  degradationPreference: DegradationPreference.BALANCED,
+                }),
+                fromPartial({
                   publishOptionId: 2,
                   trackType: TrackType.SCREEN_SHARE,
                   layers: [],
-                },
+                  degradationPreference:
+                    DegradationPreference.MAINTAIN_RESOLUTION,
+                }),
               ],
             },
           },
@@ -666,6 +671,7 @@ describe('Publisher', () => {
         {
           publishOptionId: 1,
           trackType: TrackType.VIDEO,
+          degradationPreference: DegradationPreference.UNSPECIFIED,
           layers: [
             {
               name: 'q',
@@ -745,6 +751,7 @@ describe('Publisher', () => {
         {
           publishOptionId: 1,
           trackType: TrackType.VIDEO,
+          degradationPreference: DegradationPreference.UNSPECIFIED,
           layers: [
             {
               name: 'q',
@@ -811,6 +818,7 @@ describe('Publisher', () => {
         {
           publishOptionId: 1,
           trackType: TrackType.VIDEO,
+          degradationPreference: DegradationPreference.UNSPECIFIED,
           layers: [
             {
               name: 'q',
@@ -873,6 +881,7 @@ describe('Publisher', () => {
         {
           publishOptionId: 1,
           trackType: TrackType.VIDEO,
+          degradationPreference: DegradationPreference.UNSPECIFIED,
           layers: [
             {
               name: 'q',
@@ -899,6 +908,99 @@ describe('Publisher', () => {
         },
       ]);
     });
+
+    it('applies degradationPreference from the SFU event', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      vi.spyOn(transceiver.sender, 'getParameters').mockReturnValue({
+        // @ts-expect-error incomplete data
+        codecs: [{ mimeType: 'video/VP8' }],
+        encodings: [{ rid: 'q', active: true }],
+        degradationPreference: 'maintain-framerate',
+      });
+
+      publisher['transceiverCache'].add({
+        // @ts-expect-error incomplete data
+        publishOption: { trackType: TrackType.VIDEO, id: 1 },
+        transceiver,
+        options: {},
+      });
+
+      await publisher['changePublishQuality'](
+        {
+          publishOptionId: 1,
+          trackType: TrackType.VIDEO,
+          degradationPreference: DegradationPreference.BALANCED,
+          layers: [
+            {
+              name: 'q',
+              active: true,
+              maxBitrate: 100,
+              scaleResolutionDownBy: 1,
+              maxFramerate: 30,
+              scalabilityMode: '',
+            },
+          ],
+        },
+        publisher['transceiverCache'].getBy(1, TrackType.VIDEO),
+      );
+
+      expect(setParametersSpy).toHaveBeenCalled();
+      expect(setParametersSpy.mock.calls[0][0].degradationPreference).toBe(
+        'balanced',
+      );
+    });
+
+    it('does not call setParameters when nothing changes and degradationPreference is UNSPECIFIED', async () => {
+      const transceiver = new RTCRtpTransceiver();
+      const setParametersSpy = vi
+        .spyOn(transceiver.sender, 'setParameters')
+        .mockResolvedValue();
+      vi.spyOn(transceiver.sender, 'getParameters').mockReturnValue({
+        // @ts-expect-error incomplete data
+        codecs: [{ mimeType: 'video/VP8' }],
+        encodings: [
+          {
+            rid: 'q',
+            active: true,
+            maxBitrate: 100,
+            scaleResolutionDownBy: 1,
+            maxFramerate: 30,
+          },
+        ],
+        degradationPreference: 'maintain-framerate',
+      });
+
+      publisher['transceiverCache'].add({
+        // @ts-expect-error incomplete data
+        publishOption: { trackType: TrackType.VIDEO, id: 1 },
+        transceiver,
+        options: {},
+      });
+
+      await publisher['changePublishQuality'](
+        {
+          publishOptionId: 1,
+          trackType: TrackType.VIDEO,
+          degradationPreference: DegradationPreference.UNSPECIFIED,
+          layers: [
+            {
+              name: 'q',
+              active: true,
+              maxBitrate: 100,
+              scaleResolutionDownBy: 1,
+              maxFramerate: 30,
+              scalabilityMode: '',
+            },
+          ],
+        },
+        publisher['transceiverCache'].getBy(1, TrackType.VIDEO),
+      );
+
+      expect(setParametersSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('changePublishOptions', () => {
@@ -913,12 +1015,27 @@ describe('Publisher', () => {
       vi.spyOn(publisher, 'negotiate').mockResolvedValue();
 
       publisher['publishOptions'] = [
-        // @ts-expect-error incomplete data
-        { trackType: TrackType.VIDEO, id: 0, codec: { name: 'vp8' } },
-        // @ts-expect-error incomplete data
-        { trackType: TrackType.VIDEO, id: 1, codec: { name: 'av1' } },
-        // @ts-expect-error incomplete data
-        { trackType: TrackType.VIDEO, id: 2, codec: { name: 'vp9' } },
+        {
+          trackType: TrackType.VIDEO,
+          id: 0,
+          // @ts-expect-error incomplete data
+          codec: { name: 'vp8' },
+          degradationPreference: DegradationPreference.UNSPECIFIED,
+        },
+        {
+          trackType: TrackType.VIDEO,
+          id: 1,
+          // @ts-expect-error incomplete data
+          codec: { name: 'av1' },
+          degradationPreference: DegradationPreference.UNSPECIFIED,
+        },
+        {
+          trackType: TrackType.VIDEO,
+          id: 2,
+          // @ts-expect-error incomplete data
+          codec: { name: 'vp9' },
+          degradationPreference: DegradationPreference.UNSPECIFIED,
+        },
       ];
 
       publisher['transceiverCache'].add({

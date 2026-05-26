@@ -68,12 +68,10 @@ const RingingCallPanel = ({
   CallPreparingIndicator = DefaultCallPreparingIndicator,
   landscape,
   onBackPress,
-}: RingingCallContentProps) => {
+  callingState,
+}: RingingCallContentProps & { callingState: CallingState }) => {
   const call = useCall();
   const isCallCreatedByMe = call?.isCreatedByMe;
-
-  const { useCallCallingState } = useCallStateHooks();
-  const callingState = useCallCallingState();
 
   switch (callingState) {
     case CallingState.RINGING:
@@ -102,15 +100,12 @@ export const RingingCallContent = (props: RingingCallContentProps) => {
   const {
     theme: { ringingCallContent },
   } = useTheme();
+  const { useCallCallingState } = useCallStateHooks();
+  const callingState = useCallCallingState();
+
   return (
-    <View style={[styles.container, ringingCallContent.container]}>
-      <RingingCallPanel {...props} />
+    <View style={[StyleSheet.absoluteFill, ringingCallContent.container]}>
+      <RingingCallPanel {...props} callingState={callingState} />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-  },
-});

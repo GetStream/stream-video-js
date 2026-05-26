@@ -52,6 +52,14 @@ export function extractCallingExpOptions(
     if (pushConfig.ios.enableOngoingCalls !== undefined) {
       iosOptions.enableOngoingCalls = pushConfig.ios.enableOngoingCalls;
     }
+    if (pushConfig.ios.skipIncomingPushInForeground !== undefined) {
+      iosOptions.skipIncomingPushInForeground =
+        pushConfig.ios.skipIncomingPushInForeground;
+    }
+    if (pushConfig.ios.defaultDeviceEndpointType !== undefined) {
+      iosOptions.defaultDeviceEndpointType =
+        pushConfig.ios.defaultDeviceEndpointType;
+    }
 
     if (Object.keys(iosOptions).length > 0) {
       callingExpOptions.ios = iosOptions;
@@ -71,6 +79,10 @@ export function extractCallingExpOptions(
     }
     if (pushConfig.android.enableOngoingCalls !== undefined) {
       androidOptions.enableOngoingCalls = pushConfig.android.enableOngoingCalls;
+    }
+    if (pushConfig.android.skipIncomingPushInForeground !== undefined) {
+      androidOptions.skipIncomingPushInForeground =
+        pushConfig.android.skipIncomingPushInForeground;
     }
   }
 

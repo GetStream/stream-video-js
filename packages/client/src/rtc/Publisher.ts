@@ -7,6 +7,7 @@ import type {
 import { NegotiationError } from './NegotiationError';
 import { TransceiverCache } from './TransceiverCache';
 import {
+  DegradationPreference,
   PeerType,
   PublishOption,
   TrackInfo,
@@ -20,6 +21,7 @@ import {
   toVideoLayers,
 } from './layers';
 import { isSvcCodec } from './codecs';
+import { toRTCDegradationPreference } from './helpers/degradationPreference';
 import { isAudioTrackType } from './helpers/tracks';
 import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
@@ -144,7 +146,9 @@ export class Publisher extends BasePeerConnection {
     });
 
     const params = transceiver.sender.getParameters();
-    params.degradationPreference = 'maintain-framerate';
+    params.degradationPreference =
+      toRTCDegradationPreference(publishOption.degradationPreference) ??
+      'maintain-framerate';
     await transceiver.sender.setParameters(params);
 
     const trackType = publishOption.trackType;
@@ -265,6 +269,38 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
+   * Re-arms the encoder for the given track type by detaching and
+   * reattaching the currently published track on each matching sender.
+   *
+   * Workaround for a WebKit / iOS Safari quirk: after a system audio
+   * session interruption (Siri, PSTN call), the `RTCRtpSender` encoder
+   * can stop producing RTP packets even though the underlying
+   * `MediaStreamTrack` is `live` and `track.muted === false`.
+   * `replaceTrack(null)` followed by `replaceTrack(track)` resets the
+   * sender's encoder pipeline without renegotiation, restoring packet
+   * flow with the same SSRC.
+   *
+   * No-op when nothing is published for the given track type.
+   *
+   * @param trackType the track type to refresh.
+   */
+  refreshTrack = async (trackType: TrackType) => {
+    for (const item of this.transceiverCache.items()) {
+      if (item.publishOption.trackType !== trackType) continue;
+      const { sender } = item.transceiver;
+      const track = sender.track;
+      if (!track || track.readyState !== 'live') continue;
+      try {
+        await sender.replaceTrack(null);
+        await sender.replaceTrack(track);
+        this.logger.debug(`Refreshed ${TrackType[trackType]} sender`);
+      } catch (err) {
+        this.logger.warn(`Failed to refresh ${TrackType[trackType]}`, err);
+      }
+    }
+  };
+
+  /**
    * Stops the cloned track that is being published to the SFU.
    */
   stopTracks = async (...trackTypes: TrackType[]) => {
@@ -369,6 +405,17 @@ export class Publisher extends BasePeerConnection {
         encoder.scalabilityMode = scalabilityMode;
         changed = true;
       }
+    }
+
+    const degradationPreference = toRTCDegradationPreference(
+      videoSender.degradationPreference,
+    );
+    if (
+      degradationPreference &&
+      params.degradationPreference !== degradationPreference
+    ) {
+      params.degradationPreference = degradationPreference;
+      changed = true;
     }
 
     const activeEncoders = params.encodings.filter((e) => e.active);
@@ -582,6 +629,7 @@ export class Publisher extends BasePeerConnection {
           trackType: publishOption.trackType,
           publishOptionId: publishOption.id,
           codec: publishOption.codec,
+          degradationPreference: DegradationPreference.UNSPECIFIED,
           layers: params.encodings.map((e) => ({
             name: e.rid ?? 'q',
             active: e.active ?? true,

@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-dogfood",
-  "version": "4.35.0",
+  "version": "4.36.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -15,7 +15,7 @@
     "@notifee/react-native": "9.1.8",
     "@react-native-clipboard/clipboard": "^1.16.3",
     "@react-native-community/netinfo": "^11.4.1",
-    "@react-native-community/push-notification-ios": "^1.11.0",
+    "@react-native-community/push-notification-ios": "^1.12.0",
     "@react-native-firebase/app": "~23.7.0",
     "@react-native-firebase/messaging": "~23.7.0",
     "@react-navigation/native": "^7.1.18",

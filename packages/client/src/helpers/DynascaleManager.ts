@@ -4,9 +4,8 @@ import {
   VideoTrackType,
   VisibilityState,
 } from '../types';
-import { TrackType, VideoDimension } from '../gen/video/sfu/models/models';
+import { VideoDimension } from '../gen/video/sfu/models/models';
 import {
-  BehaviorSubject,
   combineLatest,
   distinctUntilChanged,
   distinctUntilKeyChanged,
@@ -14,337 +13,61 @@ import {
   shareReplay,
   takeWhile,
 } from 'rxjs';
-import { ViewportTracker } from './ViewportTracker';
-import { AudioBindingsWatchdog } from './AudioBindingsWatchdog';
+import type { BlockedAudioTracker } from './BlockedAudioTracker';
+import { MediaPlaybackWatchdog } from './MediaPlaybackWatchdog';
+import type { TrackSubscriptionManager } from './TrackSubscriptionManager';
 import { isFirefox, isSafari } from './browsers';
-import { isReactNative } from './platforms';
-import {
-  hasScreenShare,
-  hasScreenShareAudio,
-  hasVideo,
-} from './participantUtils';
-import type { TrackSubscriptionDetails } from '../gen/video/sfu/signal_rpc/signal';
+import { hasScreenShare, hasVideo } from './participantUtils';
 import { CallState } from '../store';
-import type { StreamSfuClient } from '../StreamSfuClient';
 import { SpeakerManager } from '../devices';
-import { getCurrentValue, setCurrentValue } from '../store/rxUtils';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
-
-const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
-  VideoTrackType,
-  VisibilityState
-> = {
-  videoTrack: VisibilityState.UNKNOWN,
-  screenShareTrack: VisibilityState.UNKNOWN,
-} as const;
-
-type VideoTrackSubscriptionOverride =
-  | {
-      enabled: true;
-      dimension: VideoDimension;
-    }
-  | { enabled: false };
-
-const globalOverrideKey = Symbol('globalOverrideKey');
-
-interface VideoTrackSubscriptionOverrides {
-  [sessionId: string]: VideoTrackSubscriptionOverride | undefined;
-  [globalOverrideKey]?: VideoTrackSubscriptionOverride;
-}
+import { timeboxed } from '../coordinator/connection/utils';
 
 /**
  * A manager class that handles dynascale related tasks like:
  *
  * - binding video elements to session ids
  * - binding audio elements to session ids
- * - tracking element visibility
- * - updating subscriptions based on viewport visibility
- * - updating subscriptions based on video element dimensions
- * - updating subscriptions based on published tracks
  */
 export class DynascaleManager {
-  /**
-   * The viewport tracker instance.
-   */
-  readonly viewportTracker = new ViewportTracker();
-
   private logger = videoLoggerSystem.getLogger('DynascaleManager');
   private callState: CallState;
   private speaker: SpeakerManager;
-  private tracer: Tracer;
+  private readonly tracer: Tracer;
   private useWebAudio = false;
   private audioContext: AudioContext | undefined;
-  private sfuClient: StreamSfuClient | undefined;
-  private pendingSubscriptionsUpdate: NodeJS.Timeout | null = null;
-  readonly audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
 
-  /**
-   * Audio elements that were blocked by the browser's autoplay policy.
-   * These can be retried by calling `resumeAudio()` from a user gesture.
-   */
-  private blockedAudioElementsSubject = new BehaviorSubject<
-    Set<HTMLAudioElement>
-  >(new Set());
-
-  /**
-   * Whether the browser's autoplay policy is blocking audio playback.
-   * Will be `true` when the browser blocks autoplay (e.g., no prior user interaction).
-   * Use `resumeAudio()` within a user gesture to unblock.
-   */
-  autoplayBlocked$ = this.blockedAudioElementsSubject.pipe(
-    map((elements) => elements.size > 0),
-    distinctUntilChanged(),
-  );
-
-  private addBlockedAudioElement = (audioElement: HTMLAudioElement) => {
-    setCurrentValue(this.blockedAudioElementsSubject, (elements) => {
-      const next = new Set(elements);
-      next.add(audioElement);
-      return next;
-    });
-  };
-
-  private removeBlockedAudioElement = (audioElement: HTMLAudioElement) => {
-    setCurrentValue(this.blockedAudioElementsSubject, (elements) => {
-      const nextElements = new Set(elements);
-      nextElements.delete(audioElement);
-      return nextElements;
-    });
-  };
-
-  private videoTrackSubscriptionOverridesSubject =
-    new BehaviorSubject<VideoTrackSubscriptionOverrides>({});
-
-  videoTrackSubscriptionOverrides$ =
-    this.videoTrackSubscriptionOverridesSubject.asObservable();
-
-  incomingVideoSettings$ = this.videoTrackSubscriptionOverrides$.pipe(
-    map((overrides) => {
-      const { [globalOverrideKey]: globalSettings, ...participants } =
-        overrides;
-      return {
-        enabled: globalSettings?.enabled !== false,
-        preferredResolution: globalSettings?.enabled
-          ? globalSettings.dimension
-          : undefined,
-        participants: Object.fromEntries(
-          Object.entries(participants).map(
-            ([sessionId, participantOverride]) => [
-              sessionId,
-              {
-                enabled: participantOverride?.enabled !== false,
-                preferredResolution: participantOverride?.enabled
-                  ? participantOverride.dimension
-                  : undefined,
-              },
-            ],
-          ),
-        ),
-        isParticipantVideoEnabled: (sessionId: string) =>
-          overrides[sessionId]?.enabled ??
-          overrides[globalOverrideKey]?.enabled ??
-          true,
-      };
-    }),
-    shareReplay(1),
-  );
+  private trackSubscriptionManager: TrackSubscriptionManager;
+  private blockedAudioTracker: BlockedAudioTracker;
 
   /**
    * Creates a new DynascaleManager instance.
    */
-  constructor(callState: CallState, speaker: SpeakerManager, tracer: Tracer) {
+  constructor(
+    callState: CallState,
+    speaker: SpeakerManager,
+    tracer: Tracer,
+    trackSubscriptionManager: TrackSubscriptionManager,
+    blockedAudioTracker: BlockedAudioTracker,
+  ) {
     this.callState = callState;
     this.speaker = speaker;
     this.tracer = tracer;
-    if (!isReactNative()) {
-      this.audioBindingsWatchdog = new AudioBindingsWatchdog(callState, tracer);
-    }
+    this.trackSubscriptionManager = trackSubscriptionManager;
+    this.blockedAudioTracker = blockedAudioTracker;
   }
 
   /**
-   * Disposes the allocated resources and closes the audio context if it was created.
+   * Closes the audio context if it was created.
    */
   dispose = async () => {
-    if (this.pendingSubscriptionsUpdate) {
-      clearTimeout(this.pendingSubscriptionsUpdate);
-    }
-    this.audioBindingsWatchdog?.dispose();
-    setCurrentValue(this.blockedAudioElementsSubject, new Set());
     const context = this.audioContext;
     if (context && context.state !== 'closed') {
       document.removeEventListener('click', this.resumeAudioContext);
       await context.close();
       this.audioContext = undefined;
     }
-  };
-
-  setSfuClient(sfuClient: StreamSfuClient | undefined) {
-    this.sfuClient = sfuClient;
-  }
-
-  get trackSubscriptions() {
-    const subscriptions: TrackSubscriptionDetails[] = [];
-    // Use getParticipantsSnapshot() to bypass the observable pipeline
-    // and avoid stale data caused by shareReplay with no active subscribers
-    const participants = this.callState.getParticipantsSnapshot();
-    const videoTrackSubscriptionOverrides =
-      this.videoTrackSubscriptionOverridesSubject.getValue();
-    for (const p of participants) {
-      if (p.isLocalParticipant) continue;
-      // NOTE: audio tracks don't have to be requested explicitly
-      // as the SFU will implicitly subscribe us to all of them,
-      // once they become available.
-      if (p.videoDimension && hasVideo(p)) {
-        const override =
-          videoTrackSubscriptionOverrides[p.sessionId] ??
-          videoTrackSubscriptionOverrides[globalOverrideKey];
-
-        if (override?.enabled !== false) {
-          subscriptions.push({
-            userId: p.userId,
-            sessionId: p.sessionId,
-            trackType: TrackType.VIDEO,
-            dimension: override?.dimension ?? p.videoDimension,
-          });
-        }
-      }
-      if (p.screenShareDimension && hasScreenShare(p)) {
-        subscriptions.push({
-          userId: p.userId,
-          sessionId: p.sessionId,
-          trackType: TrackType.SCREEN_SHARE,
-          dimension: p.screenShareDimension,
-        });
-      }
-      if (hasScreenShareAudio(p)) {
-        subscriptions.push({
-          userId: p.userId,
-          sessionId: p.sessionId,
-          trackType: TrackType.SCREEN_SHARE_AUDIO,
-        });
-      }
-    }
-    return subscriptions;
-  }
-
-  get videoTrackSubscriptionOverrides() {
-    return getCurrentValue(this.videoTrackSubscriptionOverrides$);
-  }
-
-  setVideoTrackSubscriptionOverrides = (
-    override: VideoTrackSubscriptionOverride | undefined,
-    sessionIds?: string[],
-  ) => {
-    this.tracer.trace('setVideoTrackSubscriptionOverrides', [
-      override,
-      sessionIds,
-    ]);
-    if (!sessionIds) {
-      return setCurrentValue(
-        this.videoTrackSubscriptionOverridesSubject,
-        override ? { [globalOverrideKey]: override } : {},
-      );
-    }
-
-    return setCurrentValue(
-      this.videoTrackSubscriptionOverridesSubject,
-      (overrides) => ({
-        ...overrides,
-        ...Object.fromEntries(sessionIds.map((id) => [id, override])),
-      }),
-    );
-  };
-
-  applyTrackSubscriptions = (
-    debounceType: DebounceType = DebounceType.SLOW,
-  ) => {
-    if (this.pendingSubscriptionsUpdate) {
-      clearTimeout(this.pendingSubscriptionsUpdate);
-    }
-
-    const updateSubscriptions = () => {
-      this.pendingSubscriptionsUpdate = null;
-      this.sfuClient
-        ?.updateSubscriptions(this.trackSubscriptions)
-        .catch((err: unknown) => {
-          this.logger.debug(`Failed to update track subscriptions`, err);
-        });
-    };
-
-    if (debounceType) {
-      this.pendingSubscriptionsUpdate = setTimeout(
-        updateSubscriptions,
-        debounceType,
-      );
-    } else {
-      updateSubscriptions();
-    }
-  };
-
-  /**
-   * Will begin tracking the given element for visibility changes within the
-   * configured viewport element (`call.setViewport`).
-   *
-   * @param element the element to track.
-   * @param sessionId the session id.
-   * @param trackType the kind of video.
-   * @returns Untrack.
-   */
-  trackElementVisibility = <T extends HTMLElement>(
-    element: T,
-    sessionId: string,
-    trackType: VideoTrackType,
-  ) => {
-    const cleanup = this.viewportTracker.observe(element, (entry) => {
-      this.callState.updateParticipant(sessionId, (participant) => {
-        const previousVisibilityState =
-          participant.viewportVisibilityState ??
-          DEFAULT_VIEWPORT_VISIBILITY_STATE;
-
-        // observer triggers when the element is "moved" to be a fullscreen element
-        // keep it VISIBLE if that happens to prevent fullscreen with placeholder
-        const isVisible =
-          entry.isIntersecting || document.fullscreenElement === element
-            ? VisibilityState.VISIBLE
-            : VisibilityState.INVISIBLE;
-        return {
-          ...participant,
-          viewportVisibilityState: {
-            ...previousVisibilityState,
-            [trackType]: isVisible,
-          },
-        };
-      });
-    });
-
-    return () => {
-      cleanup();
-      // reset visibility state to UNKNOWN upon cleanup
-      // so that the layouts that are not actively observed
-      // can still function normally (runtime layout switching)
-      this.callState.updateParticipant(sessionId, (participant) => {
-        const previousVisibilityState =
-          participant.viewportVisibilityState ??
-          DEFAULT_VIEWPORT_VISIBILITY_STATE;
-        return {
-          ...participant,
-          viewportVisibilityState: {
-            ...previousVisibilityState,
-            [trackType]: VisibilityState.UNKNOWN,
-          },
-        };
-      });
-    };
-  };
-
-  /**
-   * Sets the viewport element to track bound video elements for visibility.
-   *
-   * @param element the viewport element.
-   */
-  setViewport = <T extends HTMLElement>(element: T) => {
-    return this.viewportTracker.setViewport(element);
   };
 
   /**
@@ -399,7 +122,7 @@ export class DynascaleManager {
       this.callState.updateParticipantTracks(trackType, {
         [sessionId]: { dimension },
       });
-      this.applyTrackSubscriptions(debounceType);
+      this.trackSubscriptionManager.apply(debounceType);
     };
 
     const participant$ = this.callState.participants$.pipe(
@@ -521,6 +244,12 @@ export class DynascaleManager {
     // https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
     videoElement.muted = true;
 
+    const playbackWatchdog = new MediaPlaybackWatchdog({
+      element: videoElement,
+      kind: 'video',
+      tracer: this.tracer,
+    });
+
     const trackKey = isVideoTrack ? 'videoStream' : 'screenShareStream';
     const streamSubscription = participant$
       .pipe(distinctUntilKeyChanged(trackKey))
@@ -529,14 +258,13 @@ export class DynascaleManager {
         if (videoElement.srcObject === source) return;
         videoElement.srcObject = source ?? null;
         if (isSafari() || isFirefox()) {
-          setTimeout(() => {
+          setTimeout(async () => {
             videoElement.srcObject = source ?? null;
-            videoElement.play().catch((e) => {
+            try {
+              await timeboxed([videoElement.play()], 2000);
+            } catch (e) {
               this.logger.warn(`Failed to play stream`, e);
-            });
-            // we add extra delay until we attempt to force-play
-            // the participant's media stream in Firefox and Safari,
-            // as they seem to have some timing issues
+            }
           }, 25);
         }
       });
@@ -547,6 +275,7 @@ export class DynascaleManager {
       publishedTracksSubscription?.unsubscribe();
       streamSubscription.unsubscribe();
       resizeObserver?.disconnect();
+      playbackWatchdog.dispose();
     };
   };
 
@@ -568,8 +297,6 @@ export class DynascaleManager {
   ) => {
     const participant = this.callState.findParticipantBySessionId(sessionId);
     if (!participant || participant.isLocalParticipant) return;
-
-    this.audioBindingsWatchdog?.register(audioElement, sessionId, trackType);
 
     const participant$ = this.callState.participants$.pipe(
       map((ps) => ps.find((p) => p.sessionId === sessionId)),
@@ -599,6 +326,7 @@ export class DynascaleManager {
 
     let sourceNode: MediaStreamAudioSourceNode | undefined = undefined;
     let gainNode: GainNode | undefined = undefined;
+    let audioWatchdog: MediaPlaybackWatchdog | undefined = undefined;
 
     const isAudioTrack = trackType === 'audioTrack';
     const trackKey = isAudioTrack ? 'audioStream' : 'screenShareAudioStream';
@@ -610,8 +338,10 @@ export class DynascaleManager {
 
         setTimeout(() => {
           audioElement.srcObject = source ?? null;
+          audioWatchdog?.dispose();
+          audioWatchdog = undefined;
           if (!source) {
-            this.removeBlockedAudioElement(audioElement);
+            this.blockedAudioTracker.markBlocked(audioElement, false);
             return;
           }
 
@@ -639,9 +369,15 @@ export class DynascaleManager {
               this.tracer.trace('audioPlaybackError', e.message);
               if (e.name === 'NotAllowedError') {
                 this.tracer.trace('audioPlaybackBlocked', null);
-                this.addBlockedAudioElement(audioElement);
+                this.blockedAudioTracker.markBlocked(audioElement, true);
               }
               this.logger.warn(`Failed to play audio stream`, e);
+            });
+            audioWatchdog = new MediaPlaybackWatchdog({
+              element: audioElement,
+              kind: 'audio',
+              tracer: this.tracer,
+              isBlocked: () => this.blockedAudioTracker.isBlocked(audioElement),
             });
           }
 
@@ -669,43 +405,16 @@ export class DynascaleManager {
     audioElement.autoplay = true;
 
     return () => {
-      this.audioBindingsWatchdog?.unregister(sessionId, trackType);
-      this.removeBlockedAudioElement(audioElement);
+      this.blockedAudioTracker.markBlocked(audioElement, false);
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();
       audioElement.srcObject = null;
       sourceNode?.disconnect();
       gainNode?.disconnect();
+      audioWatchdog?.dispose();
+      audioWatchdog = undefined;
     };
-  };
-
-  /**
-   * Plays all audio elements blocked by the browser's autoplay policy.
-   * Must be called from within a user gesture (e.g., click handler).
-   *
-   * @returns a promise that resolves when all blocked elements have been retried.
-   */
-  resumeAudio = async () => {
-    this.tracer.trace('resumeAudio', null);
-    const blocked = new Set<HTMLAudioElement>();
-    await Promise.all(
-      Array.from(
-        getCurrentValue(this.blockedAudioElementsSubject),
-        async (el) => {
-          try {
-            if (el.srcObject) {
-              await el.play();
-            }
-          } catch {
-            this.logger.warn(`Can't resume audio for element: `, el);
-            blocked.add(el);
-          }
-        },
-      ),
-    );
-
-    setCurrentValue(this.blockedAudioElementsSubject, blocked);
   };
 
   private getOrCreateAudioContext = (): AudioContext | undefined => {

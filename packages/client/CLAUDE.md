@@ -394,6 +394,7 @@ src/
 ├── devices/                   # Device management
 ├── stats/                     # Call statistics and reporting
 ├── helpers/                   # Utilities
+│   └── types.ts               # Audio-health + host-audio-session type definitions
 ├── permissions/               # Permissions handling
 ├── sorting/                   # Participant sorting
 └── gen/                       # Generated code (do not edit)

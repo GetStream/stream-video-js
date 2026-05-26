@@ -176,9 +176,9 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     return getVideoDevices(this.call.tracer);
   }
 
-  protected override getStream(
+  protected override getResolvedConstraints(
     constraints: MediaTrackConstraints,
-  ): Promise<MediaStream> {
+  ): MediaTrackConstraints {
     constraints.width = this.targetResolution.width;
     constraints.height = this.targetResolution.height;
     // We can't set both device id and facing mode
@@ -192,6 +192,13 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       constraints.facingMode =
         this.state.direction === 'front' ? 'user' : 'environment';
     }
+
+    return constraints;
+  }
+
+  protected override getStream(
+    constraints: MediaTrackConstraints,
+  ): Promise<MediaStream> {
     return getVideoStream(constraints, this.call.tracer);
   }
 }

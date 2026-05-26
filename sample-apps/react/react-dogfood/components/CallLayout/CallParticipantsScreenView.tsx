@@ -30,7 +30,7 @@ export const CallParticipantsScreenView = (props: {
   useEffect(() => {
     if (!scrollWrapper || !call) return;
     const cleanup = call.setViewport(scrollWrapper);
-    return () => cleanup();
+    return () => cleanup?.();
   }, [scrollWrapper, call]);
 
   const scrollUpClickHandler = () => {

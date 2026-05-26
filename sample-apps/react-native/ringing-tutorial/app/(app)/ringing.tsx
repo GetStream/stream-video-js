@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 import {
   RingingCallContent,
   StreamCall,
@@ -25,9 +24,9 @@ export default function Ringing() {
 
   return (
     <StreamCall call={call}>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <RingingCallContent />
-      </SafeAreaView>
+      </View>
     </StreamCall>
   );
 }
