@@ -354,13 +354,17 @@ export abstract class BasePeerConnection {
   };
 
   private fireOnPeerConnectionStateChange = () => {
-    this.onPeerConnectionStateChange?.({
-      peerType: this.peerType,
-      iceConnectionState: this.pc.iceConnectionState,
-      peerConnectionState: this.pc.connectionState,
-      sfuId: this.sfuClient.edgeName,
-      userSessionId: this.sfuClient.sessionId,
-    });
+    try {
+      this.onPeerConnectionStateChange?.({
+        peerType: this.peerType,
+        iceConnectionState: this.pc.iceConnectionState,
+        peerConnectionState: this.pc.connectionState,
+        sfuId: this.sfuClient.edgeName,
+        userSessionId: this.sfuClient.sessionId,
+      });
+    } catch (err) {
+      this.logger.warn('onPeerConnectionStateChange listener threw', err);
+    }
   };
 
   private handleConnectionStateUpdate = (

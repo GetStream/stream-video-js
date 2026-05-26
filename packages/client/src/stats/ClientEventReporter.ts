@@ -195,6 +195,16 @@ export class ClientEventReporter {
     const role: ClientEventPeerConnection =
       event.peerType === PeerType.SUBSCRIBER ? 'subscribe' : 'publish';
 
+    if (event.iceConnectionState === 'failed') {
+      this.emitPeerConnectionFailure(
+        role,
+        'ICE_CONNECTIVITY_FAILED',
+        'ICE connectivity checks failed',
+        'FAILED',
+      );
+      return;
+    }
+
     if (event.peerConnectionState === 'failed') {
       this.emitPeerConnectionFailure(
         role,
@@ -216,14 +226,6 @@ export class ClientEventReporter {
       case 'completed':
         this.emitPeerConnectionSuccess(role);
         this.pcEverConnected[role] = true;
-        break;
-      case 'failed':
-        this.emitPeerConnectionFailure(
-          role,
-          'ICE_CONNECTIVITY_FAILED',
-          'ICE connectivity checks failed',
-          'FAILED',
-        );
         break;
       default:
         break;

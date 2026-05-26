@@ -426,6 +426,19 @@ export class Call {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
 
+      const clientDetails = await getClientDetails();
+      const { sdkVersion } = getSdkSignature(clientDetails);
+      this.clientEventReporter = new ClientEventReporter({
+        streamClient: this.streamClient,
+        callType: this.type,
+        callId: this.id,
+        getUserId: () => this.streamClient.user?.id ?? '',
+        getCallSessionId: () => this.state.session?.id ?? '',
+        getSfuId: () => this.credentials?.server.edge_name ?? '',
+        sdkVersion,
+        userAgent: this.streamClient.getUserAgent(),
+      });
+
       this.leaveCallHooks.add(
         this.on('all', (event) => {
           // update state with the latest event data
@@ -454,19 +467,6 @@ export class Call {
       if (this.state.callingState === CallingState.LEFT) {
         this.state.setCallingState(CallingState.IDLE);
       }
-
-      const clientDetails = await getClientDetails();
-      const { sdkVersion } = getSdkSignature(clientDetails);
-      this.clientEventReporter = new ClientEventReporter({
-        streamClient: this.streamClient,
-        callType: this.type,
-        callId: this.id,
-        getUserId: () => this.streamClient.user?.id ?? '',
-        getCallSessionId: () => this.state.session?.id ?? '',
-        getSfuId: () => this.credentials?.server.edge_name ?? '',
-        sdkVersion,
-        userAgent: this.streamClient.getUserAgent(),
-      });
 
       this.initialized = true;
     });
