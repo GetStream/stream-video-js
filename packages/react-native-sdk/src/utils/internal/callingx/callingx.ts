@@ -25,6 +25,20 @@ async function isAppInForeground(): Promise<boolean> {
 }
 
 /**
+ * Android-only. Helps to distinguish between app in foreground and on the lock screen.
+ */
+async function isKeyguardLocked(): Promise<boolean> {
+  if (Platform.OS !== 'android') {
+    return false;
+  }
+  try {
+    return await NativeModules.StreamVideoReactNative.isKeyguardLocked();
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Gets the call display name. To be used for display in native call screen.
  */
 export function getCallDisplayName(
@@ -158,9 +172,11 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
         StreamVideoRN.getConfig().push?.android?.skipIncomingPushInForeground ??
         false;
     }
-    const shouldSkipDisplayIncoming = skipIncomingPushInForeground
-      ? await isAppInForeground()
-      : false;
+    const shouldSkipDisplayIncoming =
+      skipIncomingPushInForeground &&
+      (await isAppInForeground()) &&
+      !(await isKeyguardLocked());
+
     try {
       // Leave any existing active ringing calls before joining a new ringing call
       const activeCallsToLeave = activeCalls.filter(

@@ -2,6 +2,7 @@ package com.streamvideo.reactnative
 
 import android.app.Activity
 import android.app.KeyguardManager
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Build
 import android.view.WindowManager
@@ -63,5 +64,14 @@ object StreamVideoReactNative {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && keyguardManager != null) {
             keyguardManager.requestDismissKeyguard(activity, null)
         }
+    }
+
+    /**
+     * Returns whether the device keyguard (lock screen) is currently showing or secure.
+     */
+    @JvmStatic
+    fun isKeyguardLocked(context: Context): Boolean {
+        val keyguardManager = context.getSystemService<KeyguardManager>() ?: return false
+        return keyguardManager.isKeyguardLocked
     }
 }
