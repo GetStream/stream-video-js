@@ -35,6 +35,7 @@ describe('fromRTCDegradationPreference', () => {
       DegradationPreference.MAINTAIN_FRAMERATE_AND_RESOLUTION,
     ],
   ] as const)('maps "%s" to %s', (preference, expected) => {
+    // @ts-expect-error not in the lib types yet
     expect(fromRTCDegradationPreference(preference)).toBe(expected);
   });
 
