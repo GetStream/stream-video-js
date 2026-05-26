@@ -1119,13 +1119,17 @@ export class Call {
               err instanceof SfuJoinError &&
               SfuJoinError.isJoinErrorCode(err.errorEvent);
 
-            const sfuId = this.credentials?.server.edge_name || '';
-            const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-            sfuJoinFailures.set(sfuId, failures);
-            if (switchSfu || failures >= 2) {
-              joinData.migrating_from = sfuId;
-              joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
-              this.clientEventReporter?.startCorrelation();
+            const sfuId = this.credentials?.server.edge_name;
+            if (sfuId) {
+              const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+              sfuJoinFailures.set(sfuId, failures);
+              if (switchSfu || failures >= 2) {
+                joinData.migrating_from = sfuId;
+                joinData.migrating_from_list = Array.from(
+                  sfuJoinFailures.keys(),
+                );
+                this.clientEventReporter?.startCorrelation();
+              }
             }
 
             if (attempt === maxJoinRetries - 1) {
