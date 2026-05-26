@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.51.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.50.0...@stream-io/video-client-1.51.0) (2026-05-26)
+
+### Features
+
+- **client:** Register virtual devices ([#2220](https://github.com/GetStream/stream-video-js/issues/2220)) ([c663e2d](https://github.com/GetStream/stream-video-js/commit/c663e2df9f82cf64c38a9d3e6a1e86282107b27d))
+
+### Bug Fixes
+
+- **client:** bail reconnects during in-flight lifecycles and clean up listeners ([#2257](https://github.com/GetStream/stream-video-js/issues/2257)) ([f6fa17e](https://github.com/GetStream/stream-video-js/commit/f6fa17e041cef1aebeba38b06d6cfba5c085e5a6))
+- **client:** stop sending RTP after track.stop() on Firefox ([#2237](https://github.com/GetStream/stream-video-js/issues/2237)) ([5b7e9b8](https://github.com/GetStream/stream-video-js/commit/5b7e9b8bd17c43f17d66586dd88617ae91bac609))
+
 ## [1.50.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.49.0...@stream-io/video-client-1.50.0) (2026-05-18)
 
 ### Features
