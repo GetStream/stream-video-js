@@ -373,11 +373,12 @@ function addDidReceiveIncomingPushCallbackObjc(contents: string) {
 }
 
 // Injects the iOS 26.4+ VoIP push delegate.
-// - AnyObject for metadata: builds on Xcode older than the iOS 26.4 SDK.
-// - Swift label `didReceiveIncomingVoIPPushWith` (no "Payload") matches the
-//   protocol's optional requirement on the iOS 26.4 SDK; combined with
-//   `private`, the method is excluded from protocol-conformance checking and
-//   Swift auto-derives the same ObjC selector PushKit dispatches on.
+// - Requires Xcode that ships the iOS 26.4 SDK (PKVoIPPushMetadata is only
+//   declared there). `@available(iOS 26.4, *)` gates the call site so older
+//   deployment targets remain valid.
+// - PushKit dispatches to this selector on iOS 26.4+; older OS versions hit
+//   the legacy `pushRegistry(_:didReceiveIncomingPushWith:for:completion:)`
+//   delegate.
 function addDidReceiveIncomingVoIPPushMetadataCallbackSwift(contents: string) {
   // Match the unique signature, not just the function name: the legacy and
   // new delegates are both 4-arg `pushRegistry(...)` methods, so
@@ -391,10 +392,11 @@ function addDidReceiveIncomingVoIPPushMetadataCallbackSwift(contents: string) {
     contents,
     'class AppDelegate',
     `
-  private func pushRegistry(
+  @available(iOS 26.4, *)
+  public func pushRegistry(
     _ registry: PKPushRegistry,
     didReceiveIncomingVoIPPushWith payload: PKPushPayload,
-    metadata: AnyObject,
+    metadata: PKVoIPPushMetadata,
     withCompletionHandler completion: @escaping () -> Void
   ) {
     StreamVideoReactNative.didReceiveIncomingVoIPPush(
@@ -408,9 +410,10 @@ function addDidReceiveIncomingVoIPPushMetadataCallbackSwift(contents: string) {
   );
 }
 
-// ObjC counterpart of the Swift helper. Uses `id` for the metadata so it
-// builds on Xcode older than the iOS 26.4 SDK. The new selector is different
-// from the legacy one, so findObjcFunctionCodeBlock is safe to use here.
+// ObjC counterpart of the Swift helper. Uses the typed `PKVoIPPushMetadata *`
+// and `API_AVAILABLE(ios(26.4))`, which requires Xcode that ships the iOS
+// 26.4 SDK. The new selector is different from the legacy one, so
+// findObjcFunctionCodeBlock is safe to use here.
 function addDidReceiveIncomingVoIPPushMetadataCallbackObjc(contents: string) {
   const onIncomingPush = `
   [StreamVideoReactNative didReceiveIncomingVoIPPush:payload metadata:metadata completionHandler:completion];
@@ -425,7 +428,7 @@ function addDidReceiveIncomingVoIPPushMetadataCallbackObjc(contents: string) {
     const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
     if (!codeblock) {
       return addNewLinesToAppDelegateObjc(contents, [
-        '- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingVoIPPushWithPayload:(PKPushPayload *)payload metadata:(id)metadata withCompletionHandler:(void (^)(void))completion {',
+        '- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingVoIPPushWithPayload:(PKPushPayload *)payload metadata:(PKVoIPPushMetadata *)metadata withCompletionHandler:(void (^)(void))completion API_AVAILABLE(ios(26.4)) {',
         ...onIncomingPush.trim().split('\n'),
         '}',
       ]);

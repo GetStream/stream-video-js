@@ -142,14 +142,10 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
 
     // iOS 26.4+ VoIP push delegate
     expect(updatedConfig.modResults.contents).toMatch(
-      /didReceiveIncomingVoIPPushWithPayload:\(PKPushPayload \*\)payload metadata:\(id\)metadata withCompletionHandler/,
+      /didReceiveIncomingVoIPPushWithPayload:\(PKPushPayload \*\)payload metadata:\(PKVoIPPushMetadata \*\)metadata withCompletionHandler:\(void \(\^\)\(void\)\)completion API_AVAILABLE\(ios\(26\.4\)\)/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
       /\[StreamVideoReactNative didReceiveIncomingVoIPPush:payload metadata:metadata completionHandler:completion\]/,
-    );
-    // Must not name PKVoIPPushMetadata (would break older-Xcode consumers).
-    expect(updatedConfig.modResults.contents).not.toContain(
-      'PKVoIPPushMetadata',
     );
 
     modifiedConfigObjC = updatedConfig;
@@ -199,23 +195,17 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       /StreamVideoReactNative.didReceiveIncomingPush/,
     );
 
-    // iOS 26.4+ VoIP push delegate. Swift label `didReceiveIncomingVoIPPushWith`
-    // (no "Payload") matches the protocol's optional requirement; `private`
-    // excludes it from conformance checking on the iOS 26.4 SDK.
+    // iOS 26.4+ VoIP push delegate. `@available(iOS 26.4, *)` gates the
+    // typed `PKVoIPPushMetadata` argument; PushKit dispatches to this
+    // selector on iOS 26.4+ while older OS versions hit the legacy delegate.
+    // `public` is required because the Expo template declares AppDelegate as
+    // `public class AppDelegate` and Swift requires conforming methods to
+    // match the public protocol's visibility.
     expect(updatedConfig.modResults.contents).toMatch(
-      /private func pushRegistry\(\s+_ registry: PKPushRegistry,\s+didReceiveIncomingVoIPPushWith payload: PKPushPayload,\s+metadata: AnyObject,/,
+      /@available\(iOS 26\.4, \*\)\s+public func pushRegistry\(\s+_ registry: PKPushRegistry,\s+didReceiveIncomingVoIPPushWith payload: PKPushPayload,\s+metadata: PKVoIPPushMetadata,/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
       /StreamVideoReactNative\.didReceiveIncomingVoIPPush\(\s+payload,\s+metadata: metadata,/,
-    );
-    // Must not name PKVoIPPushMetadata (would break older-Xcode consumers).
-    expect(updatedConfig.modResults.contents).not.toContain(
-      'PKVoIPPushMetadata',
-    );
-    // Must not pin the selector via @objc — that re-introduces the conflict
-    // with the protocol's optional requirement on the iOS 26.4 SDK.
-    expect(updatedConfig.modResults.contents).not.toContain(
-      '@objc(pushRegistry:didReceiveIncomingVoIPPushWithPayload',
     );
 
     modifiedConfigSwift = updatedConfig;

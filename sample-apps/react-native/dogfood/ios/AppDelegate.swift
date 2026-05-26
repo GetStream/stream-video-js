@@ -60,14 +60,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     StreamVideoReactNative.didReceiveIncomingPush(payload, forType: type.rawValue, completionHandler: completion)
   }
 
-  // Handle incoming VoIP pushes on iOS 26.4+. AnyObject keeps this building
-  // on older Xcode; private excludes it from Swift's protocol-conformance
-  // check on the iOS 26.4 SDK (which would otherwise conflict with the typed
-  // optional requirement).
-  private func pushRegistry(
+  // Handle incoming VoIP pushes on iOS 26.4+. Requires the iOS 26.4 SDK to
+  // build (PKVoIPPushMetadata is only declared there). PushKit dispatches to
+  // this selector on 26.4+; older OS versions hit the legacy delegate above.
+  @available(iOS 26.4, *)
+  func pushRegistry(
     _ registry: PKPushRegistry,
     didReceiveIncomingVoIPPushWith payload: PKPushPayload,
-    metadata: AnyObject,
+    metadata: PKVoIPPushMetadata,
     withCompletionHandler completion: @escaping () -> Void
   ) {
     StreamVideoReactNative.didReceiveIncomingVoIPPush(
