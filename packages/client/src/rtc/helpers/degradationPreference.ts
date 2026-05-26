@@ -20,3 +20,21 @@ export const toRTCDegradationPreference = (
       ensureExhausted(preference, 'Unknown degradation preference');
   }
 };
+
+export const fromRTCDegradationPreference = (
+  preference: RTCDegradationPreference | undefined,
+): DegradationPreference => {
+  switch (preference) {
+    case 'balanced':
+      return DegradationPreference.BALANCED;
+    case 'maintain-framerate':
+      return DegradationPreference.MAINTAIN_FRAMERATE;
+    case 'maintain-resolution':
+      return DegradationPreference.MAINTAIN_RESOLUTION;
+    // @ts-expect-error not in the typedefs yet
+    case 'maintain-framerate-and-resolution':
+      return DegradationPreference.MAINTAIN_FRAMERATE_AND_RESOLUTION;
+    default:
+      return DegradationPreference.UNSPECIFIED;
+  }
+};

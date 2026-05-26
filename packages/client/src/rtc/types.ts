@@ -9,6 +9,7 @@ import { CallState } from '../store';
 import { Dispatcher } from './Dispatcher';
 import type { OptimalVideoLayer } from './layers';
 import type { ClientPublishOptions } from '../types';
+import type { VideoSender } from '../gen/video/sfu/event/events';
 
 /**
  * Canonical reasons the SDK uses to trigger a reconnection. Free-form strings
@@ -91,6 +92,7 @@ export type PublishBundle = {
   publishOption: PublishOption;
   transceiver: RTCRtpTransceiver;
   options: TrackPublishOptions;
+  videoSender?: VideoSender;
 };
 
 export type TrackLayersCache = {
