@@ -7,7 +7,6 @@ import type {
 import { NegotiationError } from './NegotiationError';
 import { TransceiverCache } from './TransceiverCache';
 import {
-  DegradationPreference,
   PeerType,
   PublishOption,
   TrackInfo,
@@ -21,7 +20,10 @@ import {
   toVideoLayers,
 } from './layers';
 import { isSvcCodec } from './codecs';
-import { toRTCDegradationPreference } from './helpers/degradationPreference';
+import {
+  fromRTCDegradationPreference,
+  toRTCDegradationPreference,
+} from './helpers/degradationPreference';
 import { isAudioTrackType } from './helpers/tracks';
 import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
@@ -629,7 +631,9 @@ export class Publisher extends BasePeerConnection {
           trackType: publishOption.trackType,
           publishOptionId: publishOption.id,
           codec: publishOption.codec,
-          degradationPreference: DegradationPreference.UNSPECIFIED,
+          degradationPreference: fromRTCDegradationPreference(
+            params.degradationPreference,
+          ),
           layers: params.encodings.map((e) => ({
             name: e.rid ?? 'q',
             active: e.active ?? true,
