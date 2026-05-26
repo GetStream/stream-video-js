@@ -307,6 +307,8 @@ export type EventName =
   | 'didDisplayIncomingCall'
   | 'didToggleHoldCallAction'
   | 'didChangeAudioRoute'
+  | 'didChangeMicMuteState'
+  | 'didEndAudioInterruption'
   | 'didReceiveStartCallAction'
   | 'didPerformSetMutedCallAction'
   | 'didActivateAudioSession'
@@ -336,6 +338,12 @@ export type EventParams = {
   didChangeAudioRoute: {
     callId: string;
     output: string;
+  };
+  didChangeMicMuteState: {
+    muted: boolean;
+  };
+  didEndAudioInterruption: {
+    shouldResume: boolean;
   };
   didReceiveStartCallAction: {
     callId: string;
