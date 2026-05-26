@@ -463,6 +463,7 @@ export class Call {
         callId: this.id,
         getUserId: () => this.streamClient.user?.id ?? '',
         getCallSessionId: () => this.state.session?.id ?? '',
+        getSfuId: () => this.credentials?.server.edge_name ?? '',
         sdkVersion,
         userAgent: this.streamClient.getUserAgent(),
       });
@@ -692,6 +693,18 @@ export class Call {
   };
 
   /**
+   * Aborts any in-flight join-stage telemetry pair with `BACKEND_LEAVE`.
+   * Called from `call.ended` / SFU `callEnded` handlers before invoking
+   * `leave()` so the captured failure code reflects the backend origin
+   * rather than the default `CLIENT_ABORTED` applied in `leave()`.
+   *
+   * @internal
+   */
+  reportBackendLeave = (reason: string) => {
+    this.clientEventReporter?.abort({ code: 'BACKEND_LEAVE', reason });
+  };
+
+  /**
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({ reject, reason, message }: CallLeaveOptions = {}) => {
@@ -755,8 +768,8 @@ export class Call {
       this.lastStatsOptions = undefined;
 
       this.clientEventReporter?.abort({
-        callSessionId: this.state.session?.id ?? '',
-        sfuId: this.credentials?.server.edge_name ?? '',
+        code: 'CLIENT_ABORTED',
+        reason: leaveReason,
       });
 
       this.subscriber?.dispose();
@@ -1111,11 +1124,7 @@ export class Call {
             if (switchSfu || failures >= 2) {
               joinData.migrating_from = sfuId;
               joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
-              this.clientEventReporter?.migrate({
-                callSessionId: this.state.session?.id ?? '',
-                sfuId,
-                error: err,
-              });
+              this.clientEventReporter?.startCorrelation();
             }
 
             if (attempt === maxJoinRetries - 1) {
@@ -1967,9 +1976,9 @@ export class Call {
   private registerReconnectHandlers = () => {
     // handles the legacy "goAway" event
     const unregisterGoAway = this.on('goAway', () => {
-      this.clientEventReporter?.markWSAttemptFailedExternal({
-        code: 'REQUEST_TIMEOUT',
-        reason: 'SFU goAway',
+      this.clientEventReporter?.captureWsError({
+        code: 'SFU_GO_AWAY',
+        reason: 'SFU goAway received during WS join',
       });
       this.reconnect(
         WebsocketReconnectStrategy.MIGRATE,
@@ -1982,7 +1991,7 @@ export class Call {
       const { reconnectStrategy: strategy, error } = e;
       if (!SfuJoinError.isJoinErrorCode(e)) {
         const code = error?.code ? ErrorCode[error.code] : 'REQUEST_TIMEOUT';
-        this.clientEventReporter?.markWSAttemptFailedExternal({
+        this.clientEventReporter?.captureWsError({
           code: code ?? 'REQUEST_TIMEOUT',
           reason: error?.message || 'SFU error during WS join',
         });
@@ -2013,7 +2022,7 @@ export class Call {
         this.tracer.trace('network.changed', e);
         if (!e.online) {
           this.logger.debug('[Reconnect] Going offline');
-          this.clientEventReporter?.markWSAttemptFailedExternal({
+          this.clientEventReporter?.captureWsError({
             code: 'NETWORK_OFFLINE',
             reason: 'Device offline',
           });

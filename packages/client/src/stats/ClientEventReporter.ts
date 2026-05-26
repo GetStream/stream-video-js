@@ -31,6 +31,7 @@ export type ClientEventReporterOptions = {
   callId: string;
   getUserId: () => string;
   getCallSessionId: () => string;
+  getSfuId: () => string;
   sdkVersion: string;
   userAgent: string;
 };
@@ -51,7 +52,7 @@ type StagePairState = {
   sid: string;
   attempts: number;
   startedAt: number;
-  joinSuccessIdSnapshot: string;
+  joinSuccessIdSnapshot?: string;
   lastError?: StageError;
 };
 
@@ -89,11 +90,13 @@ type PeerConnectionContext = {
  */
 export class ClientEventReporter {
   private readonly logger = videoLoggerSystem.getLogger('ClientEventReporter');
+
   private readonly streamClient: StreamClient;
   private readonly callType: string;
   private readonly callId: string;
   private readonly getUserId: () => string;
   private readonly getCallSessionId: () => string;
+  private readonly getSfuId: () => string;
   private readonly sdkVersion: string;
   private readonly userAgent: string;
   private disposed = false;
@@ -118,14 +121,14 @@ export class ClientEventReporter {
     this.callId = options.callId;
     this.getUserId = options.getUserId;
     this.getCallSessionId = options.getCallSessionId;
+    this.getSfuId = options.getSfuId;
     this.sdkVersion = options.sdkVersion;
     this.userAgent = options.userAgent;
   }
 
   startCorrelation = () => {
+    this.close();
     this.joinSuccessId = generateUUIDv4();
-    this.coordinatorPair = undefined;
-    this.wsPair = undefined;
   };
 
   withJoinLifecycle = async <T>(op: () => Promise<T>): Promise<T> => {
@@ -133,11 +136,7 @@ export class ClientEventReporter {
     try {
       return await op();
     } catch (err) {
-      this.close({
-        callSessionId: this.getCallSessionId(),
-        sfuId: '',
-        error: err,
-      });
+      this.close();
       throw err;
     }
   };
@@ -157,9 +156,8 @@ export class ClientEventReporter {
     }
   };
 
-  markWSAttemptFailedExternal = (opts: { code: string; reason: string }) => {
+  captureWsError = (opts: { code: string; reason: string }) => {
     if (!this.wsPair) return;
-
     applyError(this.wsPair, {
       reason: opts.reason,
       code: opts.code,
@@ -167,66 +165,26 @@ export class ClientEventReporter {
     });
   };
 
-  migrate = (opts: {
-    callSessionId: string;
-    sfuId: string;
-    error: unknown;
-  }) => {
-    if (this.wsPair) {
-      applyError(this.wsPair, mapWsJoinError(opts.error));
-      this.failWs({ callSessionId: opts.callSessionId, sfuId: opts.sfuId });
-    }
-    this.joinSuccessId = generateUUIDv4();
-  };
-
-  close = (opts: { callSessionId: string; sfuId: string; error?: unknown }) => {
-    if (opts.error !== undefined) {
-      if (this.coordinatorPair) {
-        applyError(this.coordinatorPair, mapHttpError(opts.error));
-      }
-      if (this.wsPair) {
-        applyError(this.wsPair, mapWsJoinError(opts.error));
-      }
-    }
-    if (this.coordinatorPair) {
-      this.failCoordinator({ callSessionId: opts.callSessionId });
-    }
-    if (this.wsPair) {
-      this.failWs({ callSessionId: opts.callSessionId, sfuId: opts.sfuId });
-    }
+  close = () => {
+    if (this.coordinatorPair) this.failCoordinator();
+    if (this.wsPair) this.failWs();
   };
 
   abort = (opts: {
-    callSessionId: string;
-    sfuId: string;
-    code?: ClientEventStandardCode;
-    reason?: string;
+    code: 'CLIENT_ABORTED' | 'BACKEND_LEAVE';
+    reason: string;
   }) => {
-    const code: ClientEventStandardCode = opts.code ?? 'CLIENT_ABORTED';
-    const reason =
-      opts.reason ??
-      (code === 'BACKEND_LEAVE'
-        ? 'Aborted: backend ended call during connect'
-        : 'Aborted: user left during retry');
-    const stageError: StageError = {
-      reason,
-      code,
-      severity: SEVERITY.CLIENT,
-    };
-    if (this.coordinatorPair) {
-      applyError(this.coordinatorPair, stageError);
-      this.failCoordinator({ callSessionId: opts.callSessionId });
-    }
-    if (this.wsPair) {
-      applyError(this.wsPair, stageError);
-      this.failWs({ callSessionId: opts.callSessionId, sfuId: opts.sfuId });
-    }
-    for (const role of Object.keys(
-      this.peerConnectionPairs,
-    ) as ClientEventPeerConnection[]) {
-      if (!this.peerConnectionPairs[role]) continue;
-      this.emitPeerConnectionFailure(role, code, reason, 'NOT_CONNECTED');
-    }
+    const { code, reason } = opts;
+    const stageError: StageError = { code, reason, severity: SEVERITY.CLIENT };
+
+    applyError(this.coordinatorPair, stageError);
+    applyError(this.wsPair, stageError);
+
+    this.failCoordinator();
+    this.failWs();
+
+    this.emitPeerConnectionFailure('publish', code, reason, 'NOT_CONNECTED');
+    this.emitPeerConnectionFailure('subscribe', code, reason, 'NOT_CONNECTED');
   };
 
   dispose = () => {
@@ -294,7 +252,7 @@ export class ClientEventReporter {
       sid: generateUUIDv4(),
       attempts: 0,
       startedAt: Date.now(),
-      joinSuccessIdSnapshot: this.joinSuccessId ?? '',
+      joinSuccessIdSnapshot: this.joinSuccessId,
     };
     this.send({
       ...this.buildCommon(
@@ -314,6 +272,7 @@ export class ClientEventReporter {
     const pair = this.peerConnectionPairs[role];
     const pcContext = this.peerConnectionContexts[role];
     if (!pair || !pcContext) return;
+
     this.send({
       ...this.buildCommon('PeerConnectionConnect', pair),
       peer_connection: role,
@@ -397,8 +356,9 @@ export class ClientEventReporter {
         sid: generateUUIDv4(),
         attempts: 0,
         startedAt: Date.now(),
-        joinSuccessIdSnapshot: this.joinSuccessId ?? '',
+        joinSuccessIdSnapshot: this.joinSuccessId,
       };
+
       this.send({
         ...this.buildCommon('CoordinatorJoin', this.coordinatorPair),
         event_type: 'initiated',
@@ -420,7 +380,7 @@ export class ClientEventReporter {
     this.coordinatorPair = undefined;
   };
 
-  private failCoordinator = (opts: { callSessionId?: string }) => {
+  private failCoordinator = () => {
     const pair = this.coordinatorPair;
     if (!pair || !pair.lastError) {
       this.coordinatorPair = undefined;
@@ -433,7 +393,6 @@ export class ClientEventReporter {
       outcome: 'failure',
       retry_count_attempt: pair.attempts - 1,
       elapsed_time: Date.now() - pair.startedAt,
-      ...(opts.callSessionId && { call_session_id: opts.callSessionId }),
       retry_failure_reason: reason,
       retry_failure_code: code,
     });
@@ -446,7 +405,7 @@ export class ClientEventReporter {
         sid: generateUUIDv4(),
         attempts: 0,
         startedAt: Date.now(),
-        joinSuccessIdSnapshot: this.joinSuccessId ?? '',
+        joinSuccessIdSnapshot: this.joinSuccessId,
       };
       this.send({
         ...this.buildCommon('WSJoin', this.wsPair),
@@ -469,21 +428,21 @@ export class ClientEventReporter {
     this.wsPair = undefined;
   };
 
-  private failWs = (opts: { callSessionId: string; sfuId: string }) => {
+  private failWs = () => {
     const pair = this.wsPair;
     if (!pair || !pair.lastError) {
       this.wsPair = undefined;
       return;
     }
     const { reason, code } = pair.lastError;
+    const sfuId = this.getSfuId();
     this.send({
       ...this.buildCommon('WSJoin', pair),
       event_type: 'completed',
       outcome: 'failure',
       retry_count_attempt: pair.attempts - 1,
       elapsed_time: Date.now() - pair.startedAt,
-      call_session_id: opts.callSessionId,
-      sfu_id: opts.sfuId,
+      ...(sfuId && { sfu_id: sfuId }),
       retry_failure_reason: reason,
       retry_failure_code: code,
     });
@@ -554,6 +513,7 @@ const errorMessage = (err: unknown): string =>
 
 const applyError = (pair: StagePairState | undefined, next: StageError) => {
   if (!pair) return;
+
   if (!pair.lastError || next.severity >= pair.lastError.severity) {
     pair.lastError = next;
   }
@@ -572,12 +532,14 @@ const mapHttpError = (err: unknown): StageError => {
       severity: SEVERITY.TRANSPORT,
     };
   }
+
   return { reason, code: 'REQUEST_TIMEOUT', severity: SEVERITY.TRANSPORT };
 };
 
 const mapWsJoinError = (err: unknown): StageError => {
   if (err instanceof SfuJoinError) {
     const sfuError = err.errorEvent.error;
+
     return {
       reason: sfuError?.message || err.message,
       code: sfuError ? ErrorCode[sfuError.code] : 'SFU_ERROR',
