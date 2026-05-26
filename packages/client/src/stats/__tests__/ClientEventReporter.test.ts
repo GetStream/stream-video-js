@@ -75,10 +75,13 @@ describe('ClientEventReporter', () => {
 
     it('emits completed:failure when lifecycle throws after retries', async () => {
       const { reporter, events } = makeReporter();
+      const httpError = Object.assign(new Error('500'), {
+        response: { status: 503 },
+      });
       await expect(
         reporter.withJoinLifecycle(async () => {
           await reporter
-            .track('CoordinatorJoin', () => Promise.reject(new Error('boom')))
+            .track('CoordinatorJoin', () => Promise.reject(httpError))
             .catch(() => {});
           throw new Error('exhausted');
         }),
