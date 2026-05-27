@@ -10,14 +10,13 @@ import React_RCTAppDelegate
 import ReactAppDependencyProvider
 
 import UserNotifications
-import PushKit
 import WebRTC
 import RNCPushNotificationIOS
 import stream_io_noise_cancellation_react_native
 import stream_video_react_native
 
 @main
-class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, PKPushRegistryDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
   var window: UIWindow?
 
   var reactNativeDelegate: ReactNativeDelegate?
@@ -40,43 +39,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
     return RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler)
   }
-  
-  // --- Handle updated push credentials
-  func pushRegistry(
-    _ registry: PKPushRegistry,
-    didUpdate credentials: PKPushCredentials,
-    for type: PKPushType
-  ) {
-    StreamVideoReactNative.didUpdate(credentials, forType: type.rawValue)
-  }
-  
-  // --- Handle incoming pushes
-  func pushRegistry(
-    _ registry: PKPushRegistry,
-    didReceiveIncomingPushWith payload: PKPushPayload,
-    for type: PKPushType,
-    completion: @escaping () -> Void
-  ) {
-    StreamVideoReactNative.didReceiveIncomingPush(payload, forType: type.rawValue, completionHandler: completion)
-  }
 
-  // Handle incoming VoIP pushes on iOS 26.4+. Requires the iOS 26.4 SDK to
-  // build (PKVoIPPushMetadata is only declared there). PushKit dispatches to
-  // this selector on 26.4+; older OS versions hit the legacy delegate above.
-  @available(iOS 26.4, *)
-  func pushRegistry(
-    _ registry: PKPushRegistry,
-    didReceiveIncomingVoIPPushWith payload: PKPushPayload,
-    metadata: PKVoIPPushMetadata,
-    withCompletionHandler completion: @escaping () -> Void
-  ) {
-    StreamVideoReactNative.didReceiveIncomingVoIPPush(
-      payload,
-      metadata: metadata,
-      completionHandler: completion
-    )
-  }
-  
   func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
     // All other remote notifications: show natively
     completionHandler([.sound, .alert, .badge])
@@ -95,7 +58,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     // Uncomment the next line to enable verbose WebRTC logs
     // WebRTCModuleOptions.sharedInstance().loggingSeverity = .verbose
     
-    StreamVideoReactNative.voipRegistration()
+    StreamVideoReactNative.voipRegistrationManaged()
     
     let center = UNUserNotificationCenter.current()
     center.delegate = self

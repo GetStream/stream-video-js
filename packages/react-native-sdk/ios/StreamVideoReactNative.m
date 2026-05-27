@@ -168,6 +168,30 @@ RCT_EXPORT_MODULE();
     [voipManagerClass voipRegistration];
 }
 
++(void)voipRegistrationManaged {
+    Class voipManagerClass = NSClassFromString(@"Callingx.VoipNotificationsManager");
+    if (!voipManagerClass) {
+        voipManagerClass = NSClassFromString(@"VoipNotificationsManager");
+    }
+
+    if (!voipManagerClass) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][voipRegistrationManaged] VoipNotificationsManager not available");
+        #endif
+        return;
+    }
+
+    SEL selector = @selector(voipRegistrationManaged);
+    if (![voipManagerClass respondsToSelector:selector]) {
+        #if DEBUG
+        NSLog(@"[StreamVideoReactNative][voipRegistrationManaged] VoipNotificationsManager does not respond to voipRegistrationManaged");
+        #endif
+        return;
+    }
+
+    [voipManagerClass voipRegistrationManaged];
+}
+
 +(void)didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(NSString *)type {
     Class voipManagerClass = NSClassFromString(@"Callingx.VoipNotificationsManager");
     if (!voipManagerClass) {
