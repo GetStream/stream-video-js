@@ -49,6 +49,12 @@ const NoMessages = () => {
 
 const PaperClipIcon = () => <Icon icon="paperclip" />;
 
+// VirtualizedMessageList decides the floating unread pill's visibility from a
+// timestamp heuristic (no IntersectionObserver), which false-positives on short
+// lists and shows it alongside the inline UnreadMessagesSeparator. Suppress the
+// pill and keep the accurate inline separator.
+const NoUnreadMessagesNotification = () => null;
+
 export const ChatUI = ({
   onClose,
   channelType = CHANNEL_TYPE,
@@ -73,6 +79,7 @@ export const ChatUI = ({
       overrides={{
         EmptyStateIndicator: NoMessages,
         AttachmentSelectorInitiationButtonContents: PaperClipIcon,
+        UnreadMessagesNotification: NoUnreadMessagesNotification,
       }}
     >
       <Channel>

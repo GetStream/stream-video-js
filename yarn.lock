@@ -2,7 +2,7 @@
 # Manual changes might be lost - proceed with caution!
 
 __metadata:
-  version: 9
+  version: 10
   cacheKey: 10
 
 "@0no-co/graphql.web@npm:^1.0.13, @0no-co/graphql.web@npm:^1.0.8":
@@ -8900,8 +8900,8 @@ __metadata:
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
     sass: "npm:^1.93.2"
-    stream-chat: "npm:^9.43.2"
-    stream-chat-react: "npm:^14.2.0"
+    stream-chat: "npm:^9.44.2"
+    stream-chat-react: "npm:^14.3.0"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
   languageName: unknown
@@ -9189,8 +9189,8 @@ __metadata:
     react-dom: "npm:19.1.0"
     rimraf: "npm:^6.0.1"
     sass: "npm:^1.93.2"
-    stream-chat: "npm:^9.43.2"
-    stream-chat-react: "npm:^14.2.0"
+    stream-chat: "npm:^9.44.2"
+    stream-chat-react: "npm:^14.3.0"
     swr: "npm:^2.3.6"
     yargs: "npm:^18.0.0"
   languageName: unknown
@@ -9249,8 +9249,8 @@ __metadata:
     react-native-vision-camera: "npm:^4.7.2"
     react-native-worklets: "npm:^0.7.3"
     rxjs: "npm:~7.8.2"
-    stream-chat: "npm:^9.43.2"
-    stream-chat-react-native: "npm:^9.1.3"
+    stream-chat: "npm:^9.44.2"
+    stream-chat-react-native: "npm:^9.3.0"
     typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
@@ -9449,8 +9449,8 @@ __metadata:
     react: "npm:19.1.0"
     react-dom: "npm:19.1.0"
     react-router-dom: "npm:^6.30.1"
-    stream-chat: "npm:^9.43.2"
-    stream-chat-react: "npm:^14.2.0"
+    stream-chat: "npm:^9.44.2"
+    stream-chat-react: "npm:^14.3.0"
     tailwindcss: "npm:^3.4.18"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.7"
@@ -24839,9 +24839,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"stream-chat-react-native-core@npm:9.2.1":
-  version: 9.2.1
-  resolution: "stream-chat-react-native-core@npm:9.2.1"
+"stream-chat-react-native-core@npm:9.3.0":
+  version: 9.3.0
+  resolution: "stream-chat-react-native-core@npm:9.3.0"
   dependencies:
     "@gorhom/bottom-sheet": "npm:5.2.9"
     "@ungap/structured-clone": "npm:^1.3.0"
@@ -24865,7 +24865,6 @@ __metadata:
     emoji-mart: ">=5.4.0"
     react-native: ">=0.73.0"
     react-native-gesture-handler: ">=2.18.0"
-    react-native-keyboard-controller: ">=1.20.2"
     react-native-reanimated: ">=3.16.0"
     react-native-safe-area-context: ">=5.4.1"
     react-native-svg: ">=15.8.0"
@@ -24879,19 +24878,17 @@ __metadata:
       optional: true
     emoji-mart:
       optional: true
-    react-native-keyboard-controller:
-      optional: true
-  checksum: 10/6f20b94d707093b5c946d7bacfb8ba83dd686a9bf588ba335b95faaeede9360ff8073a35737dd5d2d7c5f3a3455119558fd4d5969db224482a96a1dd3d4afc30
+  checksum: 10/1f44aa4cf82b752d00153f4cb0d6b1cc6140029ecb87f075b288d8a1f5aa84272f4489d163131e2a34d756c980037c95283b14a75fbedad31fa750cd3204df7d
   languageName: node
   linkType: hard
 
-"stream-chat-react-native@npm:^9.1.3":
-  version: 9.2.1
-  resolution: "stream-chat-react-native@npm:9.2.1"
+"stream-chat-react-native@npm:^9.3.0":
+  version: 9.3.0
+  resolution: "stream-chat-react-native@npm:9.3.0"
   dependencies:
     es6-symbol: "npm:^3.1.3"
     mime: "npm:^4.0.7"
-    stream-chat-react-native-core: "npm:9.2.1"
+    stream-chat-react-native-core: "npm:9.3.0"
   peerDependencies:
     "@react-native-camera-roll/camera-roll": ">=7.9.0"
     "@react-native-clipboard/clipboard": ">=1.16.0"
@@ -24925,13 +24922,13 @@ __metadata:
       optional: true
     react-native-video:
       optional: true
-  checksum: 10/58eb30481eef074779ab0acff2d7d3f079535c16a2a01097ef3da05a72058e7841090bc085a65fb35271c2ab6c91e25717f722855926261a5efab86db8edfd81
+  checksum: 10/de30ba9e737b4c04f53f3a4a22f76f26dbd5bd2cdd3ba67d71f58b8a02df845546f60f92770b73f886039c957529f751a95b5137fd94285541adf6f58584cfa2
   languageName: node
   linkType: hard
 
-"stream-chat-react@npm:^14.2.0":
-  version: 14.2.0
-  resolution: "stream-chat-react@npm:14.2.0"
+"stream-chat-react@npm:^14.3.0":
+  version: 14.3.0
+  resolution: "stream-chat-react@npm:14.3.0"
   dependencies:
     "@braintree/sanitize-url": "npm:^6.0.4"
     "@floating-ui/react": "npm:^0.27.2"
@@ -24969,7 +24966,7 @@ __metadata:
     modern-normalize: ^3.0.1
     react: ^19.0.0 || ^18.0.0 || ^17.0.0
     react-dom: ^19.0.0 || ^18.0.0 || ^17.0.0
-    stream-chat: ^9.43.0
+    stream-chat: ^9.44.2
   dependenciesMeta:
     "@stream-io/transliterate":
       optional: true
@@ -24984,11 +24981,11 @@ __metadata:
       optional: true
     modern-normalize:
       optional: true
-  checksum: 10/2e062ae10d2fe9d99a4083d74be6e0d1993227822796edf2126b06f3216316d4f3879f31fc151642be395e33e1c085bcb0beec1edfb718f896eab7a1ad2eac01
+  checksum: 10/e39f9c9e0d39a574a109b6a827f2df186f340d84329b63430b4ea7e1a599096061e4accaa2530221dccf8c28ee02130e28c0378e13b3803ee57c0baa262d83c6
   languageName: node
   linkType: hard
 
-"stream-chat@npm:^9.43.2, stream-chat@npm:^9.44.2":
+"stream-chat@npm:^9.44.2":
   version: 9.44.2
   resolution: "stream-chat@npm:9.44.2"
   dependencies:

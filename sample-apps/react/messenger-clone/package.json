@@ -22,8 +22,8 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-router-dom": "^6.30.1",
-    "stream-chat": "^9.43.2",
-    "stream-chat-react": "^14.2.0"
+    "stream-chat": "^9.44.2",
+    "stream-chat-react": "^14.3.0"
   },
   "devDependencies": {
     "@types/react": "~19.1.17",
