@@ -158,6 +158,7 @@ export class ClientEventReporter {
 
   captureWsError = (opts: { code: string; reason: string }) => {
     if (!this.wsPair) return;
+
     applyError(this.wsPair, {
       reason: opts.reason,
       code: opts.code,
@@ -244,11 +245,13 @@ export class ClientEventReporter {
         'NOT_CONNECTED',
       );
     }
+
     const pcContext: PeerConnectionContext = {
       sfuId: ctx.sfuId,
       userSessionId: ctx.userSessionId,
       wasPreviouslyConnected: this.pcEverConnected[role],
     };
+
     this.peerConnectionContexts[role] = pcContext;
     this.peerConnectionPairs[role] = {
       sid: generateUUIDv4(),
@@ -256,6 +259,7 @@ export class ClientEventReporter {
       startedAt: Date.now(),
       joinSuccessIdSnapshot: this.joinSuccessId,
     };
+
     this.send({
       ...this.buildCommon(
         'PeerConnectionConnect',
@@ -481,6 +485,7 @@ export class ClientEventReporter {
   private sendWithRetry = async (body: Record<string, unknown>) => {
     for (let attempt = 0; attempt < 5; attempt++) {
       if (this.disposed) return;
+
       try {
         await this.streamClient.post('/call_client_event', { events: [body] });
         return;
@@ -513,6 +518,15 @@ export class ClientEventReporter {
 const errorMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err);
 
+const isTimeout = (err: unknown): boolean => {
+  const e = err as { code?: string; name?: string; message?: string } | null;
+  return (
+    e?.code === 'ECONNABORTED' ||
+    e?.name === 'TimeoutError' ||
+    /timed out|timeout/i.test(e?.message ?? '')
+  );
+};
+
 const applyError = (pair: StagePairState | undefined, next: StageError) => {
   if (!pair) return;
 
@@ -524,18 +538,15 @@ const applyError = (pair: StagePairState | undefined, next: StageError) => {
 const mapHttpError = (err: unknown): StageError => {
   const reason = errorMessage(err);
   const status = (err as { response?: { status?: number } })?.response?.status;
-  if (typeof status === 'number' && status >= 500) {
-    return { reason, code: 'REQUEST_TIMEOUT', severity: SEVERITY.SERVER };
+
+  if (isTimeout(err)) {
+    return { reason, code: 'REQUEST_TIMEOUT', severity: SEVERITY.TRANSPORT };
   }
-  if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    return {
-      reason: 'Device offline',
-      code: 'NETWORK_OFFLINE',
-      severity: SEVERITY.TRANSPORT,
-    };
+  if (typeof status === 'number' && status >= 500) {
+    return { reason, code: `HTTP_${status}`, severity: SEVERITY.SERVER };
   }
 
-  return { reason, code: 'REQUEST_TIMEOUT', severity: SEVERITY.TRANSPORT };
+  return { reason, code: 'NETWORK_ERROR', severity: SEVERITY.TRANSPORT };
 };
 
 const mapWsJoinError = (err: unknown): StageError => {

@@ -73,7 +73,7 @@ describe('ClientEventReporter', () => {
       expect(ev[1].retry_count_attempt).toBe(2);
     });
 
-    it('emits completed:failure when lifecycle throws after retries', async () => {
+    it('emits completed:failure with HTTP_{status} when lifecycle throws after retries', async () => {
       const { reporter, events } = makeReporter();
       const httpError = Object.assign(new Error('500'), {
         response: { status: 503 },
@@ -89,8 +89,28 @@ describe('ClientEventReporter', () => {
       const ev = events();
       expect(ev).toHaveLength(2);
       expect(ev[1].outcome).toBe('failure');
-      expect(ev[1].retry_failure_code).toBe('REQUEST_TIMEOUT');
+      expect(ev[1].retry_failure_code).toBe('HTTP_503');
       expect(typeof ev[1].retry_failure_reason).toBe('string');
+    });
+
+    it('emits REQUEST_TIMEOUT only for actual timeouts', async () => {
+      const { reporter, events } = makeReporter();
+      const timeoutError = Object.assign(
+        new Error('timeout of 5000ms exceeded'),
+        {
+          code: 'ECONNABORTED',
+        },
+      );
+      await expect(
+        reporter.withJoinLifecycle(async () => {
+          await reporter
+            .track('CoordinatorJoin', () => Promise.reject(timeoutError))
+            .catch(() => {});
+          throw new Error('exhausted');
+        }),
+      ).rejects.toThrow('exhausted');
+      const ev = events();
+      expect(ev[1].retry_failure_code).toBe('REQUEST_TIMEOUT');
     });
   });
 
