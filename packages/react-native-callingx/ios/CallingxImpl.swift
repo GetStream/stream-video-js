@@ -2,6 +2,7 @@ import Foundation
 import CallKit
 import AVFoundation
 import UIKit
+import Combine
 import stream_react_native_webrtc
 
 // MARK: - Event Names
@@ -47,6 +48,10 @@ import stream_react_native_webrtc
     /// Tracks whether the active audio-session interruption began with a hardware mic mute (iOS 17+).
     /// Used so `audioSessionDidEndInterruption` can emit the matching `didChangeMicMuteState: { muted: false }`.
     private var wasMicMutedAtInterruption: Bool = false
+    /// Combine subscription to the AudioDeviceModule's engine-lifecycle publisher.
+    /// Wired lazily in `setup()` because `webRTCModule` (the ADM source) is injected
+    /// from the TurboModule host after `init`.
+    private var engineSubscription: AnyCancellable?
 
     // Pending CXActions awaiting JS fulfillment
     private var pendingAnswerActions: [String: (action: CXAnswerCallAction, enqueuedAt: DispatchTime)] = [:]
@@ -103,6 +108,8 @@ import stream_react_native_webrtc
     deinit {
         RTCAudioSession.sharedInstance().remove(self)
         NotificationCenter.default.removeObserver(self)
+        engineSubscription?.cancel()
+        engineSubscription = nil
 
         callKeepProvider?.setDelegate(nil, queue: nil)
         callKeepProvider?.invalidate()
@@ -425,9 +432,9 @@ import stream_react_native_webrtc
     // MARK: - Setup Methods
     @objc public func setup(options: [String: Any]) {
         callKeepCallController = CXCallController()
-        
+
         Settings.setSettings(options)
-        
+
         // This is mostly needed for very first setup, as we need to override the default
         // provider configuration which is set in the constructor.
         // IMPORTANT: We override CXProvider instance only if there is no registered call, otherwise we may lose corrsponding call state/events from CallKit
@@ -435,12 +442,32 @@ import stream_react_native_webrtc
             let oldProvider = CallingxImpl.sharedProvider
             let newProvider = CXProvider(configuration: Settings.getProviderConfiguration())
             newProvider.setDelegate(self, queue: nil)
-            
+
             CallingxImpl.sharedProvider = newProvider
             callKeepProvider = newProvider
-            
+
             oldProvider?.setDelegate(nil, queue: nil)
             oldProvider?.invalidate()
+        }
+
+        // Mark callingx as the audio-session owner so StreamInCallManager's
+        // engine-observer sink no-ops during the CallKit-managed lifetime.
+        CallingxSessionOwnership.callingxOwnsSession = true
+
+        // Subscribe to the AudioDeviceModule's engine lifecycle (idempotent).
+        // The publisher delivers on its own serial queue; AudioSessionManager
+        // serializes on its own stateQueue, so cross-queue is safe.
+        if engineSubscription == nil, let adm = getAudioDeviceModule() {
+            engineSubscription = adm.publisher.sink { event in
+                switch event {
+                case .willEnableAudioEngine:
+                    AudioSessionManager.shared.engineWillEnable()
+                case .didDisableAudioEngine:
+                    AudioSessionManager.shared.engineDidDisable()
+                default:
+                    break
+                }
+            }
         }
 
         isSetup = true
@@ -724,7 +751,7 @@ import stream_react_native_webrtc
         }
         
         getAudioDeviceModule()?.reset()
-        AudioSessionManager.createAudioSessionIfNeeded()
+        AudioSessionManager.shared.createAudioSessionIfNeeded()
         
         sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
             "callId": call.cid,
@@ -752,7 +779,7 @@ import stream_react_native_webrtc
         #endif
         
         getAudioDeviceModule()?.reset()
-        AudioSessionManager.createAudioSessionIfNeeded()
+        AudioSessionManager.shared.createAudioSessionIfNeeded()
         
         let source = call.isSelfAnswered ? "app" : "sys"
         sendEvent(CallingxEvents.performAnswerCallAction, body: [
@@ -913,10 +940,6 @@ import stream_react_native_webrtc
         // When CallKit activates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
 
-        // No-op on the first didActivate per call (CXAction.perform already configured);
-        // only fires for interruption recovery / unhold cycles. See Apple Forums 749202.
-        AudioSessionManager.reapplyForDidActivateIfNeeded()
-
         // Enable wake lock to keep the device awake during the call
         DispatchQueue.main.async {
             UIApplication.shared.isIdleTimerDisabled = true
@@ -933,7 +956,10 @@ import stream_react_native_webrtc
         // When CallKit deactivates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
         getAudioDeviceModule()?.reset()
-        AudioSessionManager.resetActivationCycle()
+
+        // Release the cross-package handoff guard so StreamInCallManager can
+        // own the audio session again for non-CallKit flows.
+        CallingxSessionOwnership.callingxOwnsSession = false
 
         // Disable wake lock when the call ends
         DispatchQueue.main.async {
@@ -1026,7 +1052,7 @@ import stream_react_native_webrtc
     // MARK: - Audio Configuration
 
     @objc public func setDefaultAudioDeviceEndpointType(_ endpointType: String) {
-        AudioSessionManager.setDefaultAudioDeviceEndpointType(endpointType)
+        AudioSessionManager.shared.setDefaultAudioDeviceEndpointType(endpointType)
     }
 
     // MARK: - Helper Methods

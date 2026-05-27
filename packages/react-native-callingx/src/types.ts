@@ -292,14 +292,12 @@ export type InfoDisplayOptions = {
 };
 
 export type EventData = {
-  eventName: EventName;
-  params: EventParams[EventName];
-};
+  [K in EventName]: { eventName: K; params: EventParams[K] };
+}[EventName];
 
 export type VoipEventData = {
-  eventName: VoipEventName;
-  params: VoipEventParams[VoipEventName];
-};
+  [K in VoipEventName]: { eventName: K; params: VoipEventParams[K] };
+}[VoipEventName];
 
 export type EventName =
   | 'answerCall'

@@ -9,25 +9,41 @@ enum DefaultAudioDevice {
 
 @objcMembers public class AudioSessionManager: NSObject {
 
-    private static let stateQueue = DispatchQueue(label: "io.getstream.callingx.audioSessionManager")
-    private static var defaultAudioDevice: DefaultAudioDevice = .speaker
-    private static var configuredInCurrentActivationCycle: Bool = false
+    public static let shared = AudioSessionManager()
 
-    public static func setDefaultAudioDeviceEndpointType(_ endpointType: String) {
+    private let stateQueue = DispatchQueue(label: "io.getstream.callingx.audioSessionManager")
+    private var defaultAudioDevice: DefaultAudioDevice = .speaker
+
+    public func setDefaultAudioDeviceEndpointType(_ endpointType: String) {
         let next: DefaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
-        stateQueue.async { defaultAudioDevice = next }
+        stateQueue.async { self.defaultAudioDevice = next }
     }
 
-    public static func reapplyForDidActivateIfNeeded() {
-        if stateQueue.sync(execute: { configuredInCurrentActivationCycle }) { return }
-        createAudioSessionIfNeeded()
+    /// Belt-and-braces config writer kept for the initial-activation window
+    /// (called from `CXStartCallAction.perform` / `CXAnswerCallAction.perform`).
+    /// The engine-observer path (`engineWillEnable`) is the authoritative reapply
+    /// on subsequent activations.
+    public func createAudioSessionIfNeeded() {
+        applyCallKitConfiguration()
     }
 
-    public static func resetActivationCycle() {
-        stateQueue.async { configuredInCurrentActivationCycle = false }
+    /// Called from the AudioDeviceModule publisher's `.willEnableAudioEngine` event.
+    /// Reapplies the callingx audio-session configuration on every engine rebuild
+    /// (initial activation, interruption recovery, mode change). CallKit owns
+    /// activation, so we never call `setActive`.
+    public func engineWillEnable() {
+        applyCallKitConfiguration()
     }
 
-    public static func createAudioSessionIfNeeded() {
+    /// Called from the AudioDeviceModule publisher's `.didDisableAudioEngine` event.
+    /// CallKit owns deactivation — no-op on the CallKit path.
+    public func engineDidDisable() {
+        // No-op: CallKit's `provider(_:didDeactivate:)` handles `setActive(false)`.
+    }
+
+    // MARK: - Private
+
+    private func applyCallKitConfiguration() {
         let currentDevice = stateQueue.sync { defaultAudioDevice }
 
         // XCode 16 and older don't expose .allowBluetoothHFP
@@ -56,9 +72,6 @@ enum DefaultAudioDevice {
 
         do {
             try rtcSession.setConfiguration(rtcConfig)
-            // Set inside do{} so a failure leaves the flag false and the next
-            // didActivate reapply auto-recovers.
-            stateQueue.async { configuredInCurrentActivationCycle = true }
         } catch {
             #if DEBUG
             NSLog("%@","[Callingx][createAudioSessionIfNeeded] Error: \(error)")
