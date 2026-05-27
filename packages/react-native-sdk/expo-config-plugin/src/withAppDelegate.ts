@@ -4,16 +4,12 @@ import {
 } from '@expo/config-plugins';
 import {
   addSwiftImports,
-  insertContentsInsideSwiftClassBlock,
   insertContentsInsideSwiftFunctionBlock,
-  findSwiftFunctionCodeBlock,
   addObjcImports,
-  findObjcFunctionCodeBlock,
   insertContentsInsideObjcFunctionBlock,
 } from '@expo/config-plugins/build/ios/codeMod';
 
 import { type ConfigProps } from './common/types';
-import addNewLinesToAppDelegateObjc from './common/addNewLinesToAppDelegateObjc';
 import { addToSwiftBridgingHeaderFile } from './common/addToSwiftBridgingHeaderFile';
 
 const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
@@ -42,24 +38,11 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
         if (props?.ringing) {
           config.modResults.contents = addObjcImports(
             config.modResults.contents,
-            ['<PushKit/PushKit.h>', '"StreamVideoReactNative.h"'],
+            ['"StreamVideoReactNative.h"'],
           );
 
           config.modResults.contents =
             addDidFinishLaunchingWithOptionsRingingObjc(
-              config.modResults.contents,
-            );
-
-          config.modResults.contents = addDidUpdatePushCredentialsObjc(
-            config.modResults.contents,
-          );
-
-          config.modResults.contents = addDidReceiveIncomingPushCallbackObjc(
-            config.modResults.contents,
-          );
-
-          config.modResults.contents =
-            addDidReceiveIncomingVoIPPushMetadataCallbackObjc(
               config.modResults.contents,
             );
         }
@@ -71,30 +54,6 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
       }
     } else {
       try {
-        if (props?.ringing) {
-          // make it public class AppDelegate: ExpoAppDelegate, PKPushRegistryDelegate {
-          const regex = /(class\s+AppDelegate[^{]*)(\s*\{)/;
-          config.modResults.contents = config.modResults.contents.replace(
-            regex,
-            (match, declarationPart, openBrace) => {
-              // Check if PKPushRegistryDelegate is already in the declaration part
-              if (declarationPart.includes('PKPushRegistryDelegate')) {
-                return match; // Already present, no change needed
-              }
-
-              const trimmedDecl = declarationPart.trimRight();
-
-              // If the declaration already has a colon (superclass or other protocols)
-              if (trimmedDecl.includes(':')) {
-                return `${trimmedDecl}, PKPushRegistryDelegate${openBrace}`;
-              } else {
-                // No colon, so AppDelegate is the first thing to be listed after :
-                // This means the class declaration was like "class AppDelegate {"
-                return `${trimmedDecl}: PKPushRegistryDelegate${openBrace}`;
-              }
-            },
-          );
-        }
         config.modResults.contents = addSwiftImports(
           config.modResults.contents,
           ['WebRTC'],
@@ -124,23 +83,10 @@ const withAppDelegate: ConfigPlugin<ConfigProps> = (configuration, props) => {
         if (props?.ringing) {
           config.modResults.contents = addSwiftImports(
             config.modResults.contents,
-            ['PushKit', 'stream_video_react_native'],
+            ['stream_video_react_native'],
           );
           config.modResults.contents =
             addDidFinishLaunchingWithOptionsRingingSwift(
-              config.modResults.contents,
-            );
-
-          config.modResults.contents = addDidUpdatePushCredentialsSwift(
-            config.modResults.contents,
-          );
-
-          config.modResults.contents = addDidReceiveIncomingPushCallbackSwift(
-            config.modResults.contents,
-          );
-
-          config.modResults.contents =
-            addDidReceiveIncomingVoIPPushMetadataCallbackSwift(
               config.modResults.contents,
             );
         }
@@ -224,224 +170,42 @@ function addDidFinishLaunchingWithOptionsObjc(
 
 function addDidFinishLaunchingWithOptionsRingingSwift(contents: string) {
   const functionSelector = 'application(_:didFinishLaunchingWithOptions:)';
-  // call the setup of voip push notification
-  const voipSetupMethod = 'StreamVideoReactNative.voipRegistration()';
-  if (!contents.includes(voipSetupMethod)) {
-    contents = insertContentsInsideSwiftFunctionBlock(
-      contents,
-      functionSelector,
-      '  ' /* indentation */ + voipSetupMethod,
-      { position: 'head' },
+  const voipSetupMethod = 'StreamVideoReactNative.voipRegistrationManaged()';
+  if (contents.includes(voipSetupMethod)) {
+    return contents;
+  }
+  const updated = insertContentsInsideSwiftFunctionBlock(
+    contents,
+    functionSelector,
+    '  ' + voipSetupMethod,
+    { position: 'head' },
+  );
+  if (!updated.includes(voipSetupMethod)) {
+    throw new Error(
+      `Could not find ${functionSelector} in AppDelegate to inject ${voipSetupMethod}`,
     );
   }
-  return contents;
+  return updated;
 }
 
 function addDidFinishLaunchingWithOptionsRingingObjc(contents: string) {
   const functionSelector = 'application:didFinishLaunchingWithOptions:';
-  // call the setup of voip push notification
-  const voipSetupMethod = '[StreamVideoReactNative voipRegistration];';
-  if (!contents.includes(voipSetupMethod)) {
-    contents = insertContentsInsideObjcFunctionBlock(
-      contents,
-      functionSelector,
-      voipSetupMethod,
-      { position: 'head' },
-    );
-  }
-  return contents;
-}
-
-function addDidUpdatePushCredentialsSwift(contents: string) {
-  const updatedPushCredentialsMethod =
-    'StreamVideoReactNative.didUpdate(credentials, forType: type.rawValue)';
-
-  if (!contents.includes(updatedPushCredentialsMethod)) {
-    const functionSelector = 'pushRegistry(_:didUpdate:for:)';
-    const codeblock = findSwiftFunctionCodeBlock(contents, functionSelector);
-    if (!codeblock) {
-      return insertContentsInsideSwiftClassBlock(
-        contents,
-        'class AppDelegate',
-        `
-    public func pushRegistry(
-      _ registry: PKPushRegistry,
-      didUpdate credentials: PKPushCredentials,
-      for type: PKPushType
-    ) {
-      ${updatedPushCredentialsMethod}
-    }
-            `,
-        { position: 'tail' },
-      );
-    } else {
-      return insertContentsInsideSwiftFunctionBlock(
-        contents,
-        functionSelector,
-        updatedPushCredentialsMethod,
-        { position: 'tail' },
-      );
-    }
-  }
-  return contents;
-}
-
-function addDidUpdatePushCredentialsObjc(contents: string) {
-  const updatedPushCredentialsMethod =
-    '[StreamVideoReactNative didUpdatePushCredentials:credentials forType: (NSString *) type];';
-  if (!contents.includes(updatedPushCredentialsMethod)) {
-    const functionSelector = 'pushRegistry:didUpdatePushCredentials:forType:';
-    const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
-    if (!codeblock) {
-      return addNewLinesToAppDelegateObjc(contents, [
-        '- (void)pushRegistry:(PKPushRegistry *)registry didUpdatePushCredentials:(PKPushCredentials *)credentials forType:(PKPushType)type {',
-        '  ' /* indentation */ + updatedPushCredentialsMethod,
-        '}',
-      ]);
-    } else {
-      return insertContentsInsideObjcFunctionBlock(
-        contents,
-        functionSelector,
-        updatedPushCredentialsMethod,
-        { position: 'tail' },
-      );
-    }
-  }
-  return contents;
-}
-
-function addDidReceiveIncomingPushCallbackSwift(contents: string) {
-  const onIncomingPush = `
-    StreamVideoReactNative.didReceiveIncomingPush(payload, forType: type.rawValue, completionHandler: completion)`;
-  if (!contents.includes('StreamVideoReactNative.didReceiveIncomingPush')) {
-    const functionSelector =
-      'pushRegistry(_:didReceiveIncomingPushWith:for:completion:)';
-    const codeblock = findSwiftFunctionCodeBlock(contents, functionSelector);
-    if (!codeblock) {
-      return insertContentsInsideSwiftClassBlock(
-        contents,
-        'class AppDelegate',
-        `
-  public func pushRegistry(
-    _ registry: PKPushRegistry,
-    didReceiveIncomingPushWith payload: PKPushPayload,
-    for type: PKPushType,
-    completion: @escaping () -> Void
-  ) {
-    ${onIncomingPush}
-  }
-        `,
-        { position: 'tail' },
-      );
-    } else {
-      return insertContentsInsideSwiftFunctionBlock(
-        contents,
-        functionSelector,
-        onIncomingPush,
-        { position: 'tail' },
-      );
-    }
-  }
-  return contents;
-}
-
-function addDidReceiveIncomingPushCallbackObjc(contents: string) {
-  const onIncomingPush = `
-  // process the payload and display the incoming call notification
-  [StreamVideoReactNative didReceiveIncomingPush:payload forType: (NSString *)type completionHandler:completion];
-`;
-  if (!contents.includes('[StreamVideoReactNative didReceiveIncomingPush')) {
-    const functionSelector =
-      'pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:';
-    const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
-    if (!codeblock) {
-      return addNewLinesToAppDelegateObjc(contents, [
-        '- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingPushWithPayload:(PKPushPayload *)payload forType:(PKPushType)type withCompletionHandler:(void (^)(void))completion {',
-        ...onIncomingPush.trim().split('\n'),
-        '}',
-      ]);
-    } else {
-      return insertContentsInsideObjcFunctionBlock(
-        contents,
-        functionSelector,
-        onIncomingPush,
-        { position: 'tail' },
-      );
-    }
-  }
-  return contents;
-}
-
-// Injects the iOS 26.4+ VoIP push delegate.
-// - Requires Xcode that ships the iOS 26.4 SDK (PKVoIPPushMetadata is only
-//   declared there). `@available(iOS 26.4, *)` gates the call site so older
-//   deployment targets remain valid.
-// - PushKit dispatches to this selector on iOS 26.4+; older OS versions hit
-//   the legacy `pushRegistry(_:didReceiveIncomingPushWith:for:completion:)`
-//   delegate.
-function addDidReceiveIncomingVoIPPushMetadataCallbackSwift(contents: string) {
-  // Match the unique signature, not just the function name: the legacy and
-  // new delegates are both 4-arg `pushRegistry(...)` methods, so
-  // findSwiftFunctionCodeBlock would confuse them.
-  const idempotencyMarker =
-    'didReceiveIncomingVoIPPushWith payload: PKPushPayload';
-  if (contents.includes(idempotencyMarker)) {
+  const voipSetupMethod = '[StreamVideoReactNative voipRegistrationManaged];';
+  if (contents.includes(voipSetupMethod)) {
     return contents;
   }
-  return insertContentsInsideSwiftClassBlock(
+  const updated = insertContentsInsideObjcFunctionBlock(
     contents,
-    'class AppDelegate',
-    `
-  @available(iOS 26.4, *)
-  public func pushRegistry(
-    _ registry: PKPushRegistry,
-    didReceiveIncomingVoIPPushWith payload: PKPushPayload,
-    metadata: PKVoIPPushMetadata,
-    withCompletionHandler completion: @escaping () -> Void
-  ) {
-    StreamVideoReactNative.didReceiveIncomingVoIPPush(
-      payload,
-      metadata: metadata,
-      completionHandler: completion
-    )
-  }
-        `,
-    { position: 'tail' },
+    functionSelector,
+    voipSetupMethod,
+    { position: 'head' },
   );
-}
-
-// ObjC counterpart of the Swift helper. Uses the typed `PKVoIPPushMetadata *`
-// and `API_AVAILABLE(ios(26.4))`, which requires Xcode that ships the iOS
-// 26.4 SDK. The new selector is different from the legacy one, so
-// findObjcFunctionCodeBlock is safe to use here.
-function addDidReceiveIncomingVoIPPushMetadataCallbackObjc(contents: string) {
-  const onIncomingPush = `
-  [StreamVideoReactNative didReceiveIncomingVoIPPush:payload metadata:metadata completionHandler:completion];
-`;
-  if (
-    !contents.includes(
-      '[StreamVideoReactNative didReceiveIncomingVoIPPush:payload',
-    )
-  ) {
-    const functionSelector =
-      'pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:';
-    const codeblock = findObjcFunctionCodeBlock(contents, functionSelector);
-    if (!codeblock) {
-      return addNewLinesToAppDelegateObjc(contents, [
-        '- (void)pushRegistry:(PKPushRegistry *)registry didReceiveIncomingVoIPPushWithPayload:(PKPushPayload *)payload metadata:(PKVoIPPushMetadata *)metadata withCompletionHandler:(void (^)(void))completion API_AVAILABLE(ios(26.4)) {',
-        ...onIncomingPush.trim().split('\n'),
-        '}',
-      ]);
-    } else {
-      return insertContentsInsideObjcFunctionBlock(
-        contents,
-        functionSelector,
-        onIncomingPush,
-        { position: 'tail' },
-      );
-    }
+  if (!updated.includes(voipSetupMethod)) {
+    throw new Error(
+      `Could not find ${functionSelector} in AppDelegate to inject ${voipSetupMethod}`,
+    );
   }
-  return contents;
+  return updated;
 }
 
 export default withAppDelegate;
