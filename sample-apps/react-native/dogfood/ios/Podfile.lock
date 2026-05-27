@@ -3235,7 +3235,7 @@ PODS:
     - SocketRocket
     - Yoga
   - SocketRocket (0.7.1)
-  - stream-chat-react-native (9.1.3):
+  - stream-chat-react-native (9.3.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -3840,7 +3840,7 @@ SPEC CHECKSUMS:
   RNSVG: d9938e7f6ea1616124dd2d64b933322ac2059e05
   RNWorklets: 944dddd0eef13006b658e653abbb3ee8365c3809
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
-  stream-chat-react-native: ad5be295e157a70583bbff7b996951f4e6c24eeb
+  stream-chat-react-native: d18ba3e2eff335f53bbf0553642d4a94a0d433c7
   stream-io-noise-cancellation-react-native: ea8ca1d50e305f2a0ffa027ff36c345aa5278237
   stream-io-video-filters-react-native: 9e2af996fbd218582dd4c6bc07efe5278975978a
   stream-react-native-webrtc: 42d0c3806cd5c87b7c78364cec4944f20c08aac2
