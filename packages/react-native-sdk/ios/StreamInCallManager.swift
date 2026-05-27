@@ -2,6 +2,7 @@ import Foundation
 import React
 import UIKit
 import AVFoundation
+import Combine
 import stream_react_native_webrtc
 import AVKit
 import MediaPlayer
@@ -48,6 +49,9 @@ class StreamInCallManager: RCTEventEmitter {
 
     private var hasRegisteredRouteObserver = false
     private var stereoRefreshWorkItem: DispatchWorkItem?
+    /// Combine subscription to the AudioDeviceModule's engine-lifecycle publisher.
+    /// Wired in `setup()`; torn down in `stop()`.
+    private var engineSubscription: AnyCancellable?
 
     override func invalidate() {
         stop()
@@ -104,10 +108,13 @@ class StreamInCallManager: RCTEventEmitter {
             adm.reset()
 
             if (callAudioRole == .listener) {
-                // enables high quality audio playback but disables microphone
+                // enables high quality audio playback but disables microphone.
+                // .spokenAudio + .mixWithOthers: listener flow is passive spoken-audio
+                // playback, so let other apps' audio coexist (music keeps playing under it)
+                // and let the system handle ducking semantics for spoken content.
                 intendedCategory = .playback
-                intendedMode = .default
-                intendedOptions = []
+                intendedMode = .spokenAudio
+                intendedOptions = [.mixWithOthers]
                 // TODO: for stereo we should disallow BluetoothHFP and allow only allowBluetoothA2DP
                 // note: this is the behaviour of iOS native SDK, but fails here with (OSStatus error -50.)
                 // intendedOptions = self.enableStereo ? [.allowBluetoothA2DP] : []
@@ -151,7 +158,105 @@ class StreamInCallManager: RCTEventEmitter {
             } catch {
                 log("Error setting audio session: \(error.localizedDescription)")
             }
+
+            // Subscribe to the AudioDeviceModule's engine lifecycle (idempotent).
+            // The sink does the authoritative reapply on every engine rebuild
+            // (interruption recovery, mode swap) and owns `setActive(true/false)`
+            // since there's no CallKit on this path.
+            // Skipped when callingx owns the session (CallKit-managed call active).
+            if engineSubscription == nil {
+                engineSubscription = adm.publisher.sink { [weak self] event in
+                    guard let self else { return }
+                    self.audioSessionQueue.async {
+                        switch event {
+                        case .willEnableAudioEngine:
+                            self.applyConfigForEngineEnable()
+                        case .didDisableAudioEngine:
+                            self.applyConfigForEngineDisable()
+                        default:
+                            break
+                        }
+                    }
+                }
+            }
         }
+    }
+
+    // MARK: - Engine Lifecycle Handlers (non-CallKit path)
+
+    /// Reapplies the same `AVAudioSessionConfiguration` that `setup()` writes
+    /// on every engine rebuild, then activates the session.
+    /// No-ops when callingx owns the session.
+    private func applyConfigForEngineEnable() {
+        if Self.callingxOwnsSession() {
+            log("engineWillEnable: callingx owns the session, skipping")
+            return
+        }
+
+        let intendedCategory: AVAudioSession.Category
+        let intendedMode: AVAudioSession.Mode
+        let intendedOptions: AVAudioSession.CategoryOptions
+
+        if callAudioRole == .listener {
+            intendedCategory = .playback
+            intendedMode = .spokenAudio
+            intendedOptions = [.mixWithOthers]
+        } else {
+            // XCode 16 and older don't expose .allowBluetoothHFP
+            // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
+            #if compiler(>=6.2)
+                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
+            #else
+                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
+            #endif
+            intendedCategory = .playAndRecord
+            intendedMode = .voiceChat
+            intendedOptions = defaultAudioDevice == .speaker ? [bluetoothOption, .defaultToSpeaker] : [bluetoothOption]
+        }
+
+        let rtcConfig = RTCAudioSessionConfiguration.webRTC()
+        rtcConfig.category = intendedCategory.rawValue
+        rtcConfig.mode = intendedMode.rawValue
+        rtcConfig.categoryOptions = intendedOptions
+        RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
+
+        let session = RTCAudioSession.sharedInstance()
+        session.lockForConfiguration()
+        defer { session.unlockForConfiguration() }
+        do {
+            try session.setConfiguration(rtcConfig)
+            try session.setActive(true)
+            log("engineWillEnable: applied category=\(intendedCategory.rawValue) mode=\(intendedMode.rawValue) activated=true")
+        } catch {
+            log("engineWillEnable error: \(error.localizedDescription)")
+        }
+    }
+
+    private func applyConfigForEngineDisable() {
+        if Self.callingxOwnsSession() {
+            return
+        }
+
+        let session = RTCAudioSession.sharedInstance()
+        session.lockForConfiguration()
+        defer { session.unlockForConfiguration() }
+        do {
+            try session.setActive(false, options: .notifyOthersOnDeactivation)
+            log("engineDidDisable: deactivated session")
+        } catch {
+            log("engineDidDisable error: \(error.localizedDescription)")
+        }
+    }
+
+    /// Runtime KVC lookup of `CallingxSessionOwnership.callingxOwnsSession`.
+    /// `@stream-io/react-native-callingx` is an optional peer dep, so a direct
+    /// Swift `import` is not safe — match the existing `NSClassFromString`
+    /// pattern used in `StreamVideoReactNative.m` for `Callingx.VoipNotificationsManager`.
+    private static func callingxOwnsSession() -> Bool {
+        guard let cls = NSClassFromString("Callingx.CallingxSessionOwnership") else {
+            return false
+        }
+        return ((cls as AnyObject).value(forKey: "callingxOwnsSession") as? Bool) ?? false
     }
 
     @objc
@@ -170,21 +275,17 @@ class StreamInCallManager: RCTEventEmitter {
                 self.log("Wake lock enabled (idle timer disabled)")
                 self.log("defaultAudioDevice: \(self.defaultAudioDevice)")
             }
-            let session = RTCAudioSession.sharedInstance()
-            session.lockForConfiguration()
-            defer {
-                session.unlockForConfiguration()
-            }
+            // setPlayout(true) triggers .willEnableAudioEngine, whose sink
+            // applies the preset and calls setActive(true). No explicit
+            // session.setActive(true) here.
             do {
-                try session.setActive(true)
-                self.log("audio session activated")
                 let adm = getAudioDeviceModule()
                 try adm.setPlayout(true)
                 self.log("adm.setPlayout(true) done")
             } catch {
-                log("Error activating audio session: \(error.localizedDescription)")
+                log("Error starting playout: \(error.localizedDescription)")
             }
-            
+
             audioManagerActivated = true
         }
     }
@@ -195,18 +296,13 @@ class StreamInCallManager: RCTEventEmitter {
             if !audioManagerActivated {
                 return
             }
-            let session = RTCAudioSession.sharedInstance()
-            session.lockForConfiguration()
-            defer {
-                session.unlockForConfiguration()
-            }
-            do {
-                try session.setActive(false)
-                let adm = getAudioDeviceModule()
-                adm.reset()
-            } catch {
-                log("Error deactivating audio session: \(error.localizedDescription)")
-            }
+            // adm.reset() triggers .didDisableAudioEngine, whose sink calls
+            // setActive(false, options: .notifyOthersOnDeactivation).
+            let adm = getAudioDeviceModule()
+            adm.reset()
+            // Tear down the engine-observer subscription so a re-setup wires a fresh one.
+            engineSubscription?.cancel()
+            engineSubscription = nil
             // Cancel any pending debounced stereo refresh
             stereoRefreshWorkItem?.cancel()
             stereoRefreshWorkItem = nil

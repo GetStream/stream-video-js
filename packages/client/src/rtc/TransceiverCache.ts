@@ -1,4 +1,4 @@
-import { PublishOption } from '../gen/video/sfu/models/models';
+import { PublishOption, TrackType } from '../gen/video/sfu/models/models';
 import type { OptimalVideoLayer } from './layers';
 import type { PublishBundle, TrackLayersCache } from './types';
 
@@ -25,10 +25,17 @@ export class TransceiverCache {
    * Gets the transceiver for the given publish option.
    */
   get = (publishOption: PublishOption): PublishBundle | undefined => {
+    return this.getBy(publishOption.id, publishOption.trackType);
+  };
+
+  /**
+   * Gets the transceiver for the given publish option id and track type.
+   */
+  getBy = (publishOptionId: number, trackType: TrackType) => {
     return this.cache.find(
       (bundle) =>
-        bundle.publishOption.id === publishOption.id &&
-        bundle.publishOption.trackType === publishOption.trackType,
+        bundle.publishOption.id === publishOptionId &&
+        bundle.publishOption.trackType === trackType,
     );
   };
 

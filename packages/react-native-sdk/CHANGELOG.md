@@ -2,6 +2,50 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.36.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.36.0...@stream-io/video-react-native-sdk-1.36.1) (2026-05-26)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.7.0`
+- `@stream-io/react-native-callingx` updated to version `0.3.1`
+- `@stream-io/video-filters-react-native` updated to version `0.12.3`
+- `@stream-io/video-client` updated to version `1.51.0`
+- `@stream-io/video-react-bindings` updated to version `1.16.1`
+
+- pinned rn version ([#2259](https://github.com/GetStream/stream-video-js/issues/2259)) ([04d192e](https://github.com/GetStream/stream-video-js/commit/04d192ed9aca73705fd5eefa8184e29ebc778eea))
+
+## [1.36.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.35.0...@stream-io/video-react-native-sdk-1.36.0) (2026-05-25)
+
+### Dependency Updates
+
+- `@stream-io/react-native-callingx` updated to version `0.3.0`
+
+- non ringing pn removal ([#2206](https://github.com/GetStream/stream-video-js/issues/2206)) ([fab78b3](https://github.com/GetStream/stream-video-js/commit/fab78b3cb6f2643a121e376a6c0166fbcacac655))
+
+### Features
+
+- added option to skip ringing notification in foreground ([#2213](https://github.com/GetStream/stream-video-js/issues/2213)) ([8b43986](https://github.com/GetStream/stream-video-js/commit/8b43986c89d510c75668967fde46d7cb75f1636f))
+
+### Bug Fixes
+
+- missing callingx iOS default audio route selection ([#2251](https://github.com/GetStream/stream-video-js/issues/2251)) ([067ebf4](https://github.com/GetStream/stream-video-js/commit/067ebf4a223d3f346fdb5edaa682272f3354af6b)), closes [#2219](https://github.com/GetStream/stream-video-js/issues/2219)
+- missing safe area insets usage ([#2250](https://github.com/GetStream/stream-video-js/issues/2250)) ([932e409](https://github.com/GetStream/stream-video-js/commit/932e4090831f05b432a9935c30428a40a15c8f47))
+
+## [1.35.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.34.0...@stream-io/video-react-native-sdk-1.35.0) (2026-05-18)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.50.0`
+- `@stream-io/video-react-bindings` updated to version `1.16.0`
+
+### Features
+
+- Automatic audio recovery ([#2240](https://github.com/GetStream/stream-video-js/issues/2240)) ([8131e5b](https://github.com/GetStream/stream-video-js/commit/8131e5b35a1c87c46d99eeaab434f8889ba5d126))
+
+### Bug Fixes
+
+- fixed ws reject event race condition ([#2239](https://github.com/GetStream/stream-video-js/issues/2239)) ([d3f017b](https://github.com/GetStream/stream-video-js/commit/d3f017b220f86ccc448883672bc498fcf5cfa26c))
+
 ## [1.34.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.33.0...@stream-io/video-react-native-sdk-1.34.0) (2026-05-08)
 
 ### Dependency Updates

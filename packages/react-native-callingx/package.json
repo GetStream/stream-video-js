@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/react-native-callingx",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "description": "CallKit and Telecom API capabilities for React Native",
   "main": "./dist/module/index.js",
   "module": "./dist/module/index.js",
@@ -60,19 +60,19 @@
   },
   "devDependencies": {
     "@react-native-community/cli": "20.0.1",
-    "@react-native/babel-preset": "^0.81.5",
-    "@stream-io/react-native-webrtc": "137.2.0",
+    "@react-native/babel-preset": "0.81.5",
+    "@stream-io/react-native-webrtc": "145.0.0-alpha.4",
     "@types/react": "^19.1.0",
     "del-cli": "^6.0.0",
     "react": "19.1.0",
-    "react-native": "^0.81.5",
+    "react-native": "0.81.5",
     "react-native-builder-bob": "^0.40.15",
     "typescript": "^5.9.2"
   },
   "peerDependencies": {
     "@react-native-firebase/app": ">=23.0.0",
     "@react-native-firebase/messaging": ">=23.0.0",
-    "@stream-io/react-native-webrtc": ">=137.1.2",
+    "@stream-io/react-native-webrtc": ">=145.0.0-alpha.4",
     "react": "*",
     "react-native": "*"
   },

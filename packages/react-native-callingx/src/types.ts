@@ -1,6 +1,8 @@
 import type { EventListener } from './EventManager';
 import type { ManagableTask } from './utils/headlessTask';
 
+export type DefaultDeviceEndpointType = 'speaker' | 'earpiece';
+
 export interface ICallingxModule {
   /**
    * Whether the module can post call notifications. Android only. iOS always returns true.
@@ -30,6 +32,14 @@ export interface ICallingxModule {
    * @param shouldReject - Whether to reject calls when the user is busy.
    */
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
+
+  /**
+   * Set the default audio endpoint for CallKit-managed calls (iOS only; no-op on Android).
+   * Sticky preference applied next time CallKit activates the session.
+   */
+  setDefaultAudioDeviceEndpointType(
+    endpointType: DefaultDeviceEndpointType,
+  ): void;
   /**
    * Get the initial events. This method is used to get the initial events from the app launch.
    * The events are queued and can be retrieved after the module is setup.
@@ -194,6 +204,20 @@ export type InternalIOSOptions = {
    * @default false
    */
   enableOngoingCalls?: boolean;
+  /**
+   * When true, ringing pushes that arrive while the app is in the foreground
+   * are not shown by CallKit. The push is still delivered to JS via
+   * `voipNotificationReceived`, so the app must show its own ringing UI.
+   * Background pushes are unaffected. Requires iOS 26.4+; no-op on older
+   * versions.
+   * @default false
+   */
+  skipIncomingPushInForeground?: boolean;
+  /**
+   * Default audio endpoint when CallKit activates the session.
+   * `'earpiece'` omits `.defaultToSpeaker` for voice-only call UX.
+   */
+  defaultDeviceEndpointType?: DefaultDeviceEndpointType;
 };
 type iOSOptions = Omit<
   InternalIOSOptions,
@@ -240,6 +264,12 @@ export type InternalAndroidOptions = {
    * @default false
    */
   enableOngoingCalls?: boolean;
+  /**
+   * When true, incoming call push notifications (call.ring) will not be displayed
+   * as a notification when the app is in the foreground.
+   * @default false
+   */
+  skipIncomingPushInForeground?: boolean;
 };
 type AndroidOptions = InternalAndroidOptions & NotificationTransformers;
 
@@ -262,14 +292,12 @@ export type InfoDisplayOptions = {
 };
 
 export type EventData = {
-  eventName: EventName;
-  params: EventParams[EventName];
-};
+  [K in EventName]: { eventName: K; params: EventParams[K] };
+}[EventName];
 
 export type VoipEventData = {
-  eventName: VoipEventName;
-  params: VoipEventParams[VoipEventName];
-};
+  [K in VoipEventName]: { eventName: K; params: VoipEventParams[K] };
+}[VoipEventName];
 
 export type EventName =
   | 'answerCall'
@@ -277,6 +305,8 @@ export type EventName =
   | 'didDisplayIncomingCall'
   | 'didToggleHoldCallAction'
   | 'didChangeAudioRoute'
+  | 'didChangeMicMuteState'
+  | 'didEndAudioInterruption'
   | 'didReceiveStartCallAction'
   | 'didPerformSetMutedCallAction'
   | 'didActivateAudioSession'
@@ -306,6 +336,12 @@ export type EventParams = {
   didChangeAudioRoute: {
     callId: string;
     output: string;
+  };
+  didChangeMicMuteState: {
+    muted: boolean;
+  };
+  didEndAudioInterruption: {
+    shouldResume: boolean;
   };
   didReceiveStartCallAction: {
     callId: string;

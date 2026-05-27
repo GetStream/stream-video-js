@@ -4,6 +4,21 @@ import type { ConnectionErrorEvent } from '../../gen/coordinator';
 
 export const sleep = (m: number) => new Promise((r) => setTimeout(r, m));
 
+export const timeboxed = async <T extends Promise<unknown>[]>(
+  promises: [...T],
+  ms: number,
+): Promise<{ [K in keyof T]: Awaited<T[K]> }> => {
+  let timerId: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timerId = setTimeout(() => reject(new Error('timebox error')), ms);
+  });
+  try {
+    return await Promise.race([Promise.all(promises), timeout]);
+  } finally {
+    clearTimeout(timerId!);
+  }
+};
+
 export function isFunction<T>(value: Function | T): value is Function {
   return (
     value &&

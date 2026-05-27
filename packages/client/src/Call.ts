@@ -145,7 +145,11 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
+import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
+import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
+import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
+import { ViewportTracker } from './helpers/ViewportTracker';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
 import { StreamClient } from './coordinator/connection/client';
@@ -230,7 +234,32 @@ export class Call {
   /**
    * The DynascaleManager instance.
    */
-  readonly dynascaleManager: DynascaleManager;
+  readonly dynascaleManager: DynascaleManager | undefined;
+
+  /**
+   * Tracks viewport visibility for participant video elements.
+   * Available only in DOM environments.
+   */
+  readonly viewportTracker: ViewportTracker | undefined;
+
+  /**
+   * Owns the SFU-side video-subscription state (per-session and global overrides).
+   */
+  readonly trackSubscriptionManager: TrackSubscriptionManager;
+
+  /**
+   * Warns periodically when a remote participant is publishing audio, but no
+   * `<audio>` element has been bound for them.
+   */
+  readonly audioBindingsWatchdog: AudioBindingsWatchdog | undefined;
+
+  /**
+   * Tracks audio elements blocked by the browser's autoplay policy.
+   * Subscribe to `blockedAudioTracker.autoplayBlocked$` to react to the
+   * blocked state, and call {@link Call.resumeAudio} inside a user gesture
+   * to retry playback.
+   */
+  readonly blockedAudioTracker: BlockedAudioTracker;
 
   subscriber?: Subscriber;
   publisher?: Publisher;
@@ -258,6 +287,7 @@ export class Call {
   private statsReportingIntervalInMs: number = 2000;
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
+  private lastStatsOptions?: StatsOptions;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
 
   private readonly clientStore: StreamVideoWriteableStateStore;
@@ -362,11 +392,26 @@ export class Call {
     this.microphone = new MicrophoneManager(this, preferences);
     this.speaker = new SpeakerManager(this, preferences);
     this.screenShare = new ScreenShareManager(this);
-    this.dynascaleManager = new DynascaleManager(
+    this.trackSubscriptionManager = new TrackSubscriptionManager(
       this.state,
-      this.speaker,
       this.tracer,
     );
+    this.blockedAudioTracker = new BlockedAudioTracker(this.tracer);
+
+    if (typeof document !== 'undefined') {
+      this.audioBindingsWatchdog = new AudioBindingsWatchdog(
+        this.state,
+        this.tracer,
+      );
+      this.viewportTracker = new ViewportTracker(this.state);
+      this.dynascaleManager = new DynascaleManager(
+        this.state,
+        this.speaker,
+        this.tracer,
+        this.trackSubscriptionManager,
+        this.blockedAudioTracker,
+      );
+    }
   }
 
   /**
@@ -692,17 +737,20 @@ export class Call {
       this.sfuStatsReporter?.flush();
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
+      this.lastStatsOptions = undefined;
 
-      this.subscriber?.dispose();
+      await this.subscriber?.dispose();
       this.subscriber = undefined;
 
-      this.publisher?.dispose();
+      await this.publisher?.dispose();
       this.publisher = undefined;
 
       await this.sfuClient?.leaveAndClose(leaveReason);
       this.sfuClient = undefined;
-      this.dynascaleManager.setSfuClient(undefined);
-      await this.dynascaleManager.dispose();
+      this.trackSubscriptionManager.setSfuClient(undefined);
+      this.trackSubscriptionManager.dispose();
+      this.audioBindingsWatchdog?.dispose();
+      await this.dynascaleManager?.dispose();
 
       this.state.setCallingState(CallingState.LEFT);
       this.state.setParticipants([]);
@@ -1079,17 +1127,19 @@ export class Call {
     const performingFastReconnect =
       this.reconnectStrategy === WebsocketReconnectStrategy.FAST;
 
-    let statsOptions = this.sfuStatsReporter?.options;
+    let statsOptions = this.lastStatsOptions;
     if (
       !this.credentials ||
       !statsOptions ||
       performingRejoin ||
-      performingMigration
+      performingMigration ||
+      data?.migrating_from
     ) {
       try {
         const joinResponse = await this.doJoinRequest(data);
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
+        this.lastStatsOptions = statsOptions;
       } catch (error) {
         // prevent triggering reconnect flow if the state is OFFLINE
         const avoidRestoreState =
@@ -1126,7 +1176,7 @@ export class Call {
         : previousSfuClient;
     this.sfuClient = sfuClient;
     this.unifiedSessionId ??= sfuClient.sessionId;
-    this.dynascaleManager.setSfuClient(sfuClient);
+    this.trackSubscriptionManager.setSfuClient(sfuClient);
 
     const clientDetails = await getClientDetails();
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
@@ -1216,7 +1266,7 @@ export class Call {
       });
     } else {
       const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
-      this.initPublisherAndSubscriber({
+      await this.initPublisherAndSubscriber({
         sfuClient,
         connectionConfig,
         clientDetails,
@@ -1293,7 +1343,7 @@ export class Call {
     return {
       strategy,
       announcedTracks,
-      subscriptions: this.dynascaleManager.trackSubscriptions,
+      subscriptions: this.trackSubscriptionManager.subscriptions,
       reconnectAttempt: this.reconnectAttempts,
       fromSfuId: migratingFromSfuId || '',
       previousSessionId: performingRejoin ? previousSessionId || '' : '',
@@ -1390,7 +1440,7 @@ export class Call {
    * Initializes the Publisher and Subscriber Peer Connections.
    * @internal
    */
-  private initPublisherAndSubscriber = (opts: {
+  private initPublisherAndSubscriber = async (opts: {
     sfuClient: StreamSfuClient;
     connectionConfig: RTCConfiguration;
     statsOptions: StatsOptions;
@@ -1410,7 +1460,7 @@ export class Call {
     } = opts;
     const { enable_rtc_stats: enableTracing } = statsOptions;
     if (closePreviousInstances && this.subscriber) {
-      this.subscriber.dispose();
+      await this.subscriber.dispose();
     }
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
@@ -1441,7 +1491,7 @@ export class Call {
     const isAnonymous = this.streamClient.user?.type === 'anonymous';
     if (!isAnonymous) {
       if (closePreviousInstances && this.publisher) {
-        this.publisher.dispose();
+        await this.publisher.dispose();
       }
       this.publisher = new Publisher(basePeerConnectionOptions, publishOptions);
     }
@@ -1567,11 +1617,18 @@ export class Call {
     reason: ReconnectReason,
   ): Promise<void> => {
     if (
+      this.state.callingState === CallingState.JOINING ||
       this.state.callingState === CallingState.RECONNECTING ||
       this.state.callingState === CallingState.MIGRATING ||
       this.state.callingState === CallingState.RECONNECTING_FAILED
     )
       return;
+
+    // Drop redundant reconnect calls. If a reconnect is already queued or
+    // running for this Call, that entry will resolve whatever broke;
+    // queueing more entries just replays the full REJOIN cycle (one extra
+    // `POST /join` per entry) once the call is already healthy again.
+    if (hasPending(this.reconnectConcurrencyTag)) return;
 
     return withoutConcurrency(this.reconnectConcurrencyTag, async () => {
       const reconnectStartTime = Date.now();
@@ -1835,8 +1892,8 @@ export class Call {
       // the `migrationTask`
       this.state.setCallingState(CallingState.JOINED);
     } finally {
-      currentSubscriber?.dispose();
-      currentPublisher?.dispose();
+      await currentSubscriber?.dispose();
+      await currentPublisher?.dispose();
 
       // and close the previous SFU client, without specifying close code
       currentSfuClient.close(StreamSfuClient.NORMAL_CLOSURE, 'Migrating away');
@@ -1976,7 +2033,7 @@ export class Call {
   private restoreSubscribedTracks = () => {
     const { remoteParticipants } = this.state;
     if (remoteParticipants.length <= 0) return;
-    this.dynascaleManager.applyTrackSubscriptions(undefined);
+    this.trackSubscriptionManager.apply(undefined);
   };
 
   /**
@@ -2063,7 +2120,7 @@ export class Call {
    */
   stopPublish = async (...trackTypes: TrackType[]) => {
     if (!this.sfuClient || !this.publisher) return;
-    this.publisher.stopTracks(...trackTypes);
+    await this.publisher.stopTracks(...trackTypes);
     await this.updateLocalStreamState(undefined, ...trackTypes);
   };
 
@@ -2095,6 +2152,20 @@ export class Call {
         [streamStateProp]: mediaStream,
       }));
     }
+  };
+
+  /**
+   * Re-arms the encoder for a currently published track type. Useful for
+   * working around WebKit's stalled sender bug after an iOS audio session
+   * interruption (Siri, PSTN call).
+   *
+   * @internal
+   *
+   * @param trackType the track type to refresh.
+   */
+  refreshPublishedTrack = async (trackType: TrackType) => {
+    if (!this.publisher) return;
+    await this.publisher.refreshTrack(trackType);
   };
 
   /**
@@ -3010,7 +3081,7 @@ export class Call {
     sessionId: string,
     trackType: VideoTrackType,
   ) => {
-    return this.dynascaleManager.trackElementVisibility(
+    return this.viewportTracker?.trackElementVisibility(
       element,
       sessionId,
       trackType,
@@ -3023,7 +3094,7 @@ export class Call {
    * @param element the viewport element.
    */
   setViewport = <T extends HTMLElement>(element: T) => {
-    return this.dynascaleManager.setViewport(element);
+    return this.viewportTracker?.setViewport(element);
   };
 
   /**
@@ -3046,7 +3117,7 @@ export class Call {
     sessionId: string,
     trackType: VideoTrackType,
   ) => {
-    const unbind = this.dynascaleManager.bindVideoElement(
+    const unbind = this.dynascaleManager?.bindVideoElement(
       videoElement,
       sessionId,
       trackType,
@@ -3075,26 +3146,33 @@ export class Call {
     sessionId: string,
     trackType: AudioTrackType = 'audioTrack',
   ) => {
-    const unbind = this.dynascaleManager.bindAudioElement(
+    const unbind = this.dynascaleManager?.bindAudioElement(
       audioElement,
       sessionId,
       trackType,
     );
 
     if (!unbind) return;
-    this.leaveCallHooks.add(unbind);
-    return () => {
-      this.leaveCallHooks.delete(unbind);
+    this.audioBindingsWatchdog?.register(audioElement, sessionId, trackType);
+    const cleanup = () => {
       unbind();
+      this.audioBindingsWatchdog?.unregister(sessionId, trackType);
+    };
+    this.leaveCallHooks.add(cleanup);
+    return () => {
+      this.leaveCallHooks.delete(cleanup);
+      cleanup();
     };
   };
 
   /**
    * Plays all audio elements blocked by the browser's autoplay policy.
+   * Must be called from within a user gesture (e.g., click handler).
+   *
+   * Subscribe to `call.blockedAudioTracker.autoplayBlocked$` to know when a
+   * gesture is required.
    */
-  resumeAudio = () => {
-    return this.dynascaleManager.resumeAudio();
-  };
+  resumeAudio = () => this.blockedAudioTracker.resumeAudio();
 
   /**
    * Binds a DOM <img> element to this call's thumbnail (if enabled in settings).
@@ -3148,7 +3226,7 @@ export class Call {
     resolution: VideoDimension | undefined,
     sessionIds?: string[],
   ) => {
-    this.dynascaleManager.setVideoTrackSubscriptionOverrides(
+    this.trackSubscriptionManager.setOverrides(
       resolution
         ? {
             enabled: true,
@@ -3157,7 +3235,7 @@ export class Call {
         : undefined,
       sessionIds,
     );
-    this.dynascaleManager.applyTrackSubscriptions();
+    this.trackSubscriptionManager.apply();
   };
 
   /**
@@ -3165,10 +3243,10 @@ export class Call {
    * and removes any preference for preferred resolution.
    */
   setIncomingVideoEnabled = (enabled: boolean) => {
-    this.dynascaleManager.setVideoTrackSubscriptionOverrides(
+    this.trackSubscriptionManager.setOverrides(
       enabled ? undefined : { enabled: false },
     );
-    this.dynascaleManager.applyTrackSubscriptions();
+    this.trackSubscriptionManager.apply();
   };
 
   /**

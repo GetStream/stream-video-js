@@ -22,7 +22,7 @@
     "@react-navigation/bottom-tabs": "^7.4.8",
     "@react-navigation/native": "^7.1.18",
     "@stream-io/react-native-callingx": "workspace:^",
-    "@stream-io/react-native-webrtc": "137.2.0",
+    "@stream-io/react-native-webrtc": "145.0.0-alpha.4",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "expo": "^55.0.0",
     "expo-blur": "~55.0.10",

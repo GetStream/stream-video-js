@@ -2,6 +2,7 @@ import Foundation
 import CallKit
 import AVFoundation
 import UIKit
+import Combine
 import stream_react_native_webrtc
 
 // MARK: - Event Names
@@ -10,6 +11,8 @@ import stream_react_native_webrtc
     public static let didToggleHoldAction = "didToggleHoldCallAction"
     public static let didPerformSetMutedCallAction = "didPerformSetMutedCallAction"
     public static let didChangeAudioRoute = "didChangeAudioRoute"
+    public static let didChangeMicMuteState = "didChangeMicMuteState"
+    public static let didEndAudioInterruption = "didEndAudioInterruption"
     public static let didDisplayIncomingCall = "didDisplayIncomingCall"
     public static let didActivateAudioSession = "didActivateAudioSession"
     public static let didDeactivateAudioSession = "didDeactivateAudioSession"
@@ -25,23 +28,30 @@ import stream_react_native_webrtc
 }
 
 // MARK: - Callingx Implementation
-@objc public class CallingxImpl: NSObject, CXProviderDelegate {
-    
+@objc public class CallingxImpl: NSObject, CXProviderDelegate, RTCAudioSessionDelegate {
+
     // MARK: - Shared State
     @objc public static var sharedProvider: CXProvider?
     @objc public static var uuidStorage: UUIDStorage?
     @objc public static var sharedInstance: CallingxImpl?
     /// Events stored before the module instance exists (e.g. VoIP from killed state). Drained in getInitialEvents().
     private static var delayedEvents: [[String: Any]] = []
-    
+
     // MARK: - Instance Properties
     @objc public var callKeepCallController: CXCallController?
     @objc public var callKeepProvider: CXProvider?
     @objc public weak var eventEmitter: CallingxEventEmitter?
     @objc public weak var webRTCModule: WebRTCModule?
-    
+
     private var canSendEvents: Bool = false
     private var isSetup: Bool = false
+    /// Tracks whether the active audio-session interruption began with a hardware mic mute (iOS 17+).
+    /// Used so `audioSessionDidEndInterruption` can emit the matching `didChangeMicMuteState: { muted: false }`.
+    private var wasMicMutedAtInterruption: Bool = false
+    /// Combine subscription to the AudioDeviceModule's engine-lifecycle publisher.
+    /// Wired lazily in `setup()` because `webRTCModule` (the ADM source) is injected
+    /// from the TurboModule host after `init`.
+    private var engineSubscription: AnyCancellable?
 
     // Pending CXActions awaiting JS fulfillment
     private var pendingAnswerActions: [String: (action: CXAnswerCallAction, enqueuedAt: DispatchTime)] = [:]
@@ -64,14 +74,22 @@ import stream_react_native_webrtc
 
         isSetup = false
         canSendEvents = false
-        
+
+        // Route changes go through RTCAudioSessionDelegate (fires after WebRTC's
+        // internal bookkeeping, so we don't need to defensively re-read currentRoute).
+        RTCAudioSession.sharedInstance().add(self)
+
+        // Interruptions stay on NSNotificationCenter: the delegate's
+        // `audioSessionDidBeginInterruption:` callback doesn't carry userInfo, and
+        // `AVAudioSessionInterruptionReasonKey` (which we branch on for hardware
+        // mic-mute / route-disconnect) lives there.
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(onAudioRouteChange(_:)),
-            name: AVAudioSession.routeChangeNotification,
+            selector: #selector(onAudioInterruption(_:)),
+            name: AVAudioSession.interruptionNotification,
             object: nil
         )
-        
+
         CallingxImpl.sharedInstance = self
 
         if CallingxImpl.uuidStorage == nil {
@@ -88,8 +106,11 @@ import stream_react_native_webrtc
     }
     
     deinit {
+        RTCAudioSession.sharedInstance().remove(self)
         NotificationCenter.default.removeObserver(self)
-        
+        engineSubscription?.cancel()
+        engineSubscription = nil
+
         callKeepProvider?.setDelegate(nil, queue: nil)
         callKeepProvider?.invalidate()
         CallingxImpl.sharedProvider = nil
@@ -321,27 +342,99 @@ import stream_react_native_webrtc
         }
     }
     
-    @objc private func onAudioRouteChange(_ notification: Notification) {
-        guard let info = notification.userInfo,
-              let reasonValue = info[AVAudioSessionRouteChangeReasonKey] as? UInt,
-              let output = CallingxImpl.getAudioOutput() else {
+    // MARK: - RTCAudioSessionDelegate
+
+    public func audioSessionDidChangeRoute(_ session: RTCAudioSession,
+                                           reason: AVAudioSession.RouteChangeReason,
+                                           previousRoute: AVAudioSessionRouteDescription) {
+        guard let output = CallingxImpl.getAudioOutput() else {
             return
         }
-        
+
         let params: [String: Any] = [
             "output": output,
-            "reason": reasonValue
+            "reason": reason.rawValue
         ]
-     
+
         sendEvent(CallingxEvents.didChangeAudioRoute, body: params)
+    }
+
+    // MARK: - Audio Session Interruption
+
+    @objc private func onAudioInterruption(_ notification: Notification) {
+        guard let info = notification.userInfo,
+              let typeRaw = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeRaw) else {
+            return
+        }
+
+        switch type {
+        case .began:
+            handleInterruptionBegan(info: info)
+        case .ended:
+            handleInterruptionEnded(info: info)
+        @unknown default:
+            break
+        }
+    }
+
+    private func handleInterruptionBegan(info: [AnyHashable: Any]) {
+        #if DEBUG
+        NSLog("%@", "[Callingx][onAudioInterruption][began]")
+        #endif
+
+        // iOS 14.5+ delivers an `AVAudioSessionInterruptionReasonKey` describing
+        // what triggered the interruption. Hardware mic-mute and route-disconnect
+        // (both iOS 17+) must not drop the call; other reasons (PSTN, Siri, alarm)
+        // are handled by CallKit's didDeactivate path.
+        guard #available(iOS 14.5, *),
+              let reasonRaw = info[AVAudioSessionInterruptionReasonKey] as? UInt,
+              let reason = AVAudioSession.InterruptionReason(rawValue: reasonRaw) else {
+            return
+        }
+
+        if #available(iOS 17.0, *) {
+            switch reason {
+            case .builtInMicMuted:
+                wasMicMutedAtInterruption = true
+                sendEvent(CallingxEvents.didChangeMicMuteState, body: ["muted": true])
+            case .routeDisconnected:
+                // Route gone (headphones unplugged). The route-change delegate will
+                // surface the fallback output; keep the call alive.
+                break
+            default:
+                break
+            }
+        }
+    }
+
+    private func handleInterruptionEnded(info: [AnyHashable: Any]) {
+        let shouldResume: Bool
+        if let optsRaw = info[AVAudioSessionInterruptionOptionKey] as? UInt {
+            shouldResume = AVAudioSession.InterruptionOptions(rawValue: optsRaw).contains(.shouldResume)
+        } else {
+            shouldResume = false
+        }
+
+        #if DEBUG
+        NSLog("%@", "[Callingx][onAudioInterruption][ended] shouldResume=\(shouldResume)")
+        #endif
+
+        if wasMicMutedAtInterruption {
+            wasMicMutedAtInterruption = false
+            sendEvent(CallingxEvents.didChangeMicMuteState, body: ["muted": false])
+        }
+
+        sendEvent(CallingxEvents.didEndAudioInterruption,
+                  body: ["shouldResume": shouldResume])
     }
     
     // MARK: - Setup Methods
     @objc public func setup(options: [String: Any]) {
         callKeepCallController = CXCallController()
-        
+
         Settings.setSettings(options)
-        
+
         // This is mostly needed for very first setup, as we need to override the default
         // provider configuration which is set in the constructor.
         // IMPORTANT: We override CXProvider instance only if there is no registered call, otherwise we may lose corrsponding call state/events from CallKit
@@ -349,12 +442,32 @@ import stream_react_native_webrtc
             let oldProvider = CallingxImpl.sharedProvider
             let newProvider = CXProvider(configuration: Settings.getProviderConfiguration())
             newProvider.setDelegate(self, queue: nil)
-            
+
             CallingxImpl.sharedProvider = newProvider
             callKeepProvider = newProvider
-            
+
             oldProvider?.setDelegate(nil, queue: nil)
             oldProvider?.invalidate()
+        }
+
+        // Mark callingx as the audio-session owner so StreamInCallManager's
+        // engine-observer sink no-ops during the CallKit-managed lifetime.
+        CallingxSessionOwnership.callingxOwnsSession = true
+
+        // Subscribe to the AudioDeviceModule's engine lifecycle (idempotent).
+        // The publisher delivers on its own serial queue; AudioSessionManager
+        // serializes on its own stateQueue, so cross-queue is safe.
+        if engineSubscription == nil, let adm = getAudioDeviceModule() {
+            engineSubscription = adm.publisher.sink { event in
+                switch event {
+                case .willEnableAudioEngine:
+                    AudioSessionManager.shared.engineWillEnable()
+                case .didDisableAudioEngine:
+                    AudioSessionManager.shared.engineDidDisable()
+                default:
+                    break
+                }
+            }
         }
 
         isSetup = true
@@ -638,7 +751,7 @@ import stream_react_native_webrtc
         }
         
         getAudioDeviceModule()?.reset()
-        AudioSessionManager.createAudioSessionIfNeeded()
+        AudioSessionManager.shared.createAudioSessionIfNeeded()
         
         sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
             "callId": call.cid,
@@ -666,7 +779,7 @@ import stream_react_native_webrtc
         #endif
         
         getAudioDeviceModule()?.reset()
-        AudioSessionManager.createAudioSessionIfNeeded()
+        AudioSessionManager.shared.createAudioSessionIfNeeded()
         
         let source = call.isSelfAnswered ? "app" : "sys"
         sendEvent(CallingxEvents.performAnswerCallAction, body: [
@@ -844,6 +957,10 @@ import stream_react_native_webrtc
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
         getAudioDeviceModule()?.reset()
 
+        // Release the cross-package handoff guard so StreamInCallManager can
+        // own the audio session again for non-CallKit flows.
+        CallingxSessionOwnership.callingxOwnsSession = false
+
         // Disable wake lock when the call ends
         DispatchQueue.main.async {
             UIApplication.shared.isIdleTimerDisabled = false
@@ -930,6 +1047,12 @@ import stream_react_native_webrtc
             #endif
             if didFail { pending.action.fail() } else { pending.action.fulfill() }
         }
+    }
+
+    // MARK: - Audio Configuration
+
+    @objc public func setDefaultAudioDeviceEndpointType(_ endpointType: String) {
+        AudioSessionManager.shared.setDefaultAudioDeviceEndpointType(endpointType)
     }
 
     // MARK: - Helper Methods

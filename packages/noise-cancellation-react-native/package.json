@@ -48,15 +48,15 @@
   },
   "homepage": "https://github.com/GetStream/stream-video-js#readme",
   "devDependencies": {
-    "@stream-io/react-native-webrtc": "137.2.0",
+    "@stream-io/react-native-webrtc": "145.0.0-alpha.4",
     "react": "19.1.0",
-    "react-native": "^0.81.5",
+    "react-native": "0.81.5",
     "react-native-builder-bob": "^0.37.0",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@stream-io/react-native-webrtc": ">=137.1.2",
+    "@stream-io/react-native-webrtc": ">=145.0.0-alpha.4",
     "react-native": "*"
   },
   "react-native-builder-bob": {

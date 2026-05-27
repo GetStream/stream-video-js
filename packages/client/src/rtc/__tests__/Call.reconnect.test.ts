@@ -43,7 +43,7 @@ const makeCall = () => {
  */
 const primeForReconnect = (call: Call) => {
   // put the call in a non-terminal, non-JOINED state so the do-while iterates
-  call.state.setCallingState(CallingState.JOINING);
+  call.state.setCallingState(CallingState.IDLE);
   // force the strategy-decider in the catch block to always pick REJOIN,
   // so tests that care about the rejoin rate limiter don't bounce to FAST
   // based on wall-clock timing. Individual tests that want to exercise the
@@ -136,7 +136,7 @@ describe('Call reconnect stopping conditions', () => {
       });
 
       for (let i = 0; i < 5; i++) {
-        call.state.setCallingState(CallingState.JOINING);
+        call.state.setCallingState(CallingState.IDLE);
         await call['reconnect'](WebsocketReconnectStrategy.FAST, 'test');
       }
 
@@ -401,6 +401,125 @@ describe('Call reconnect stopping conditions', () => {
       expect(limiter.maxAttempts).toBe(1);
       expect(limiter.windowMs).toBe(1000);
     });
+  });
+});
+
+/**
+ * Entry-condition bails. `reconnect()` must drop new triggers when:
+ * - A join/reconnect/migrate lifecycle is already in progress.
+ * - A reconnect is already queued via `hasPending(reconnectConcurrencyTag)`.
+ * - The terminal `RECONNECTING_FAILED` state has been reached.
+ *
+ * These are pure short-circuits — none of the strategy implementations
+ * should be invoked.
+ */
+describe('Call reconnect entry-condition bails', () => {
+  let call: Call;
+
+  beforeEach(() => {
+    call = makeCall();
+    vi.spyOn(connectionUtils, 'sleep').mockResolvedValue(undefined);
+    vi.spyOn(call, 'leave').mockResolvedValue(undefined);
+    vi.spyOn(call, 'get').mockResolvedValue({} as never);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const stubAllStrategies = () => ({
+    fast: vi
+      .spyOn(
+        call as unknown as { reconnectFast: () => Promise<void> },
+        'reconnectFast',
+      )
+      .mockResolvedValue(undefined),
+    rejoin: vi
+      .spyOn(
+        call as unknown as { reconnectRejoin: () => Promise<void> },
+        'reconnectRejoin',
+      )
+      .mockResolvedValue(undefined),
+    migrate: vi
+      .spyOn(
+        call as unknown as { reconnectMigrate: () => Promise<void> },
+        'reconnectMigrate',
+      )
+      .mockResolvedValue(undefined),
+  });
+
+  it('bails immediately when state is JOINING — Call.join owns recovery during the initial join window', async () => {
+    const strategies = stubAllStrategies();
+    call.state.setCallingState(CallingState.JOINING);
+
+    await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+    expect(strategies.fast).not.toHaveBeenCalled();
+    expect(strategies.rejoin).not.toHaveBeenCalled();
+    expect(strategies.migrate).not.toHaveBeenCalled();
+  });
+
+  it('bails immediately when state is RECONNECTING — another reconnect is already running', async () => {
+    const strategies = stubAllStrategies();
+    call.state.setCallingState(CallingState.RECONNECTING);
+
+    await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+    expect(strategies.fast).not.toHaveBeenCalled();
+    expect(strategies.rejoin).not.toHaveBeenCalled();
+    expect(strategies.migrate).not.toHaveBeenCalled();
+  });
+
+  it('bails immediately when state is MIGRATING — reconnectMigrate is in flight', async () => {
+    const strategies = stubAllStrategies();
+    call.state.setCallingState(CallingState.MIGRATING);
+
+    await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+    expect(strategies.fast).not.toHaveBeenCalled();
+    expect(strategies.rejoin).not.toHaveBeenCalled();
+    expect(strategies.migrate).not.toHaveBeenCalled();
+  });
+
+  it('bails immediately when state is RECONNECTING_FAILED — terminal, no further attempts', async () => {
+    const strategies = stubAllStrategies();
+    call.state.setCallingState(CallingState.RECONNECTING_FAILED);
+
+    await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+    expect(strategies.fast).not.toHaveBeenCalled();
+    expect(strategies.rejoin).not.toHaveBeenCalled();
+    expect(strategies.migrate).not.toHaveBeenCalled();
+  });
+
+  it('drops duplicate reconnect calls while one is already pending', async () => {
+    let resolveFirst: () => void = () => {};
+    const firstStrategy = new Promise<void>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const rejoinSpy = vi
+      .spyOn(
+        call as unknown as { reconnectRejoin: () => Promise<void> },
+        'reconnectRejoin',
+      )
+      .mockImplementationOnce(async () => {
+        await firstStrategy;
+        call.state.setCallingState(CallingState.JOINED);
+      });
+
+    primeForReconnect(call);
+
+    const firstCall = call['reconnect'](
+      WebsocketReconnectStrategy.REJOIN,
+      'first',
+    );
+    await Promise.resolve();
+    call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'second');
+
+    expect(rejoinSpy).toHaveBeenCalledTimes(1);
+
+    resolveFirst();
+    await firstCall;
   });
 });
 

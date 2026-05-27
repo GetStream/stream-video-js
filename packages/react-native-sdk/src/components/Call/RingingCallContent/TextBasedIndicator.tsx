@@ -13,12 +13,23 @@ export const TextBasedIndicator = (props: TextBasedIndicatorProps) => {
     theme: {
       colors,
       typefaces,
-      variants: { iconSizes },
+      variants: { iconSizes, insets },
     },
   } = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.sheetTertiary }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.sheetTertiary,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+        },
+      ]}
+    >
       {props.onBackPress && (
         <View style={styles.backContainer}>
           <Pressable

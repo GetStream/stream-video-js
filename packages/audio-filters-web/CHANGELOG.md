@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.8.0...@stream-io/audio-filters-web-0.8.1) (2026-05-25)
+
+### Bug Fixes
+
+- **audio-filters-web:** recover AudioContext after iOS interruption ([#2249](https://github.com/GetStream/stream-video-js/issues/2249)) ([1dc4f22](https://github.com/GetStream/stream-video-js/commit/1dc4f22bdd0568c355611cff42d0a817f73afe0d))
+
+## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.7.3...@stream-io/audio-filters-web-0.8.0) (2026-05-18)
+
+### Features
+
+- Automatic audio recovery ([#2240](https://github.com/GetStream/stream-video-js/issues/2240)) ([8131e5b](https://github.com/GetStream/stream-video-js/commit/8131e5b35a1c87c46d99eeaab434f8889ba5d126))
+
 ## [0.7.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.7.2...@stream-io/audio-filters-web-0.7.3) (2026-03-09)
 
 ### Bug Fixes

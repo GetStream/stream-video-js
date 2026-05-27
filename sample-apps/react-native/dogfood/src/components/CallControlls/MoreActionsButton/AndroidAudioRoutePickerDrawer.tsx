@@ -51,6 +51,11 @@ export const AndroidAudioRoutePickerDrawer: React.FC<
   const screenHeight = useWindowDimensions().height;
   const drawerHeight = screenHeight * 0.8;
   const styles = useStyles();
+  const {
+    theme: {
+      variants: { insets },
+    },
+  } = useTheme();
 
   const [audioDeviceStatus, setAudioDeviceStatus] =
     useState<AudioDeviceStatus>();
@@ -66,7 +71,7 @@ export const AndroidAudioRoutePickerDrawer: React.FC<
   const selectedAudioDeviceName = audioDeviceStatus?.selectedDevice;
 
   // negative offset is needed so the drawer component start above the bottom controls
-  const offset = -bottomControlsHeight;
+  const offset = -bottomControlsHeight - insets.bottom;
 
   const translateY = useRef<any>(
     new Animated.Value(drawerHeight + offset),
