@@ -43,9 +43,9 @@
     "webrtc-adapter": "^8.2.4"
   },
   "devDependencies": {
-    "@openapitools/openapi-generator-cli": "^2.25.0",
-    "@rollup/plugin-replace": "^6.0.2",
-    "@rollup/plugin-typescript": "^12.1.4",
+    "@openapitools/openapi-generator-cli": "^2.34.0",
+    "@rollup/plugin-replace": "^6.0.3",
+    "@rollup/plugin-typescript": "^12.3.0",
     "@stream-io/audio-filters-web": "workspace:^",
     "@stream-io/node-sdk": "^0.7.59",
     "@total-typescript/shoehorn": "^0.1.2",
@@ -55,8 +55,8 @@
     "dotenv": "^16.6.1",
     "happy-dom": "^20.9.0",
     "prettier": "^3.8.3",
-    "rimraf": "^6.0.1",
-    "rollup": "^4.52.4",
+    "rimraf": "^6.1.3",
+    "rollup": "^4.60.4",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4",
     "vitest-mock-extended": "^3.1.1"

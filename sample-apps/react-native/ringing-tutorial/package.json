@@ -17,7 +17,7 @@
     "@react-native-community/netinfo": "12.0.1",
     "@react-native-firebase/app": "^24.0.0",
     "@react-native-firebase/messaging": "^24.0.0",
-    "@react-navigation/native": "^7.1.18",
+    "@react-navigation/native": "^7.2.5",
     "@stream-io/react-native-callingx": "workspace:^",
     "@stream-io/react-native-webrtc": "137.2.0",
     "@stream-io/video-react-native-sdk": "workspace:^",
