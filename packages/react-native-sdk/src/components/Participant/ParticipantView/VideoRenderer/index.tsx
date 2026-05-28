@@ -194,7 +194,7 @@ export const VideoRenderer = ({
   return (
     <View
       onLayout={onLayout}
-      style={[styles.container, videoRenderer.container]}
+      style={[StyleSheet.absoluteFill, videoRenderer.container]}
     >
       {call && !isLocalParticipant && (
         <TrackSubscriber
@@ -209,7 +209,7 @@ export const VideoRenderer = ({
       videoStreamToRender &&
       (objectFit || isVideoDimensionsValid) ? (
         <RTCView
-          style={[styles.videoStream, videoRenderer.videoStream]}
+          style={[StyleSheet.absoluteFill, videoRenderer.videoStream]}
           streamURL={videoStreamToRender.toURL()}
           mirror={mirror}
           ref={viewRef}
@@ -229,12 +229,3 @@ export const VideoRenderer = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  videoStream: {
-    ...StyleSheet.absoluteFillObject,
-  },
-});

@@ -74,6 +74,7 @@ const DefaultLocalParticipantViewVideoFallback = () => {
   return (
     <View
       style={[
+        StyleSheet.absoluteFill,
         styles.videoFallback,
         { backgroundColor: colors.sheetSecondary },
         floatingParticipantsView.videoFallback,
@@ -224,7 +225,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   videoFallback: {
-    ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
   },

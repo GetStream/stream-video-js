@@ -99,7 +99,7 @@ export const Lobby = ({
                   mirror={true}
                   streamURL={localVideoStream.toURL()}
                   objectFit="cover"
-                  style={StyleSheet.absoluteFillObject}
+                  style={StyleSheet.absoluteFill}
                 />
               ) : (
                 <View style={[styles.avatarContainer, lobby.avatarContainer]}>

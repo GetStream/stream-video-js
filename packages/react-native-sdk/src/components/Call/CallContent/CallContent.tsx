@@ -257,7 +257,11 @@ export const CallContent = ({
       <View style={[styles.container, landscapeStyles, callContent.container]}>
         <View style={[styles.content, callContent.callParticipantsContainer]}>
           <View
-            style={[styles.view, callContent.topContainer]}
+            style={[
+              StyleSheet.absoluteFill,
+              styles.view,
+              callContent.topContainer,
+            ]}
             // "box-none" disallows the container view to be not take up touches
             // and allows only the top and floating view (its child views) to take up the touches
             pointerEvents="box-none"
@@ -310,7 +314,6 @@ const useStyles = () => {
         },
         content: { flex: 1 },
         view: {
-          ...StyleSheet.absoluteFillObject,
           zIndex: Z_INDEX.IN_FRONT,
         },
       }),

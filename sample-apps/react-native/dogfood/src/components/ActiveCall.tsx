@@ -207,10 +207,6 @@ const useStyles = () => {
           width: theme.variants.insets.right,
           backgroundColor: theme.colors.sheetPrimary,
         },
-        view: {
-          ...StyleSheet.absoluteFillObject,
-          zIndex: Z_INDEX.IN_FRONT,
-        },
       }),
     [theme],
   );
