@@ -1,7 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
-import { appTheme } from '../../theme';
+import { appTheme } from '../../../theme';
 
 export const PlaybackPanel = ({ uri }: { uri: string }) => {
   const styles = useStyles();

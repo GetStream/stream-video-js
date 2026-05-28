@@ -7,8 +7,8 @@ import {
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
-import { AndroidAudioRoutePickerDrawer } from '../../components/CallControlls/MoreActionsButton/AndroidAudioRoutePickerDrawer';
-import { AudioOutput } from '../../assets/AudioOutput';
+import { AndroidAudioRoutePickerDrawer } from '../../../components/CallControlls/MoreActionsButton/AndroidAudioRoutePickerDrawer';
+import { AudioOutput } from '../../../assets/AudioOutput';
 
 export const SourcePickers = ({ disabled = false }: { disabled?: boolean }) => {
   const {

@@ -9,13 +9,22 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { TestRecordingStackParamList } from '../../../types';
 import { randomId } from '../../modules/helpers/randomId';
 import { appTheme } from '../../theme';
-import { LoopbackPanel } from './LoopbackPanel';
-import { PlaybackPanel } from './PlaybackPanel';
-import { RecordingControls } from './RecordingControls';
+import {
+  LoopbackPanel,
+  RecordingControls,
+  InlineCallStats,
+} from './components';
 
-export const TestRecordingScreen = () => {
+type Props = NativeStackScreenProps<
+  TestRecordingStackParamList,
+  'TestRecordingScreen'
+>;
+
+export const TestRecordingScreen = ({ navigation }: Props) => {
   const client = useStreamVideoClient();
 
   const callId = useMemo(() => {
@@ -52,12 +61,18 @@ export const TestRecordingScreen = () => {
 
   return (
     <StreamCall call={call}>
-      <TestRecordingContent call={call} />
+      <TestRecordingContent call={call} navigation={navigation} />
     </StreamCall>
   );
 };
 
-const TestRecordingContent = ({ call }: { call: Call }) => {
+const TestRecordingContent = ({
+  call,
+  navigation,
+}: {
+  call: Call;
+  navigation: Props['navigation'];
+}) => {
   const styles = useStyles();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
@@ -71,57 +86,56 @@ const TestRecordingContent = ({ call }: { call: Call }) => {
     loopbackAudioStream,
   } = useLoopbackRecording();
 
-  const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Clear any prior recording left on disk when the screen mounts so each
+  // run starts fresh (e.g. when returning from the results screen).
+  useEffect(() => {
+    clearRecordings().catch(() => {});
+  }, [clearRecordings]);
 
   const runTest = useCallback(async () => {
     setError(null);
-    setRecordingUri(null);
 
     try {
+      call.setStatsReportingIntervalInMs(500);
       await call.join({ create: true, selfSubEnabled: true });
       const uri = await startRecording();
-      setRecordingUri(uri);
+      if (!uri) return;
+      navigation.replace('TestRecordingResults', { uri });
     } catch (e) {
       console.error(e);
       setError(String(e));
     } finally {
       call.leave().catch(() => {});
     }
-  }, [call, startRecording]);
+  }, [call, navigation, startRecording]);
 
   const isConnecting =
     (callingState === CallingState.JOINING ||
       callingState === CallingState.JOINED) &&
-    recordingState !== 'recording' &&
-    !recordingUri;
+    recordingState !== 'recording';
 
   const buttonLabel = useMemo(() => {
     if (isConnecting) return 'Connecting…';
-    if (recordingState === 'idle' && recordingUri) return 'Complete';
     if (recordingState === 'recording') return 'Stop recording';
     return 'Record loopback';
-  }, [recordingState, isConnecting, recordingUri]);
+  }, [recordingState, isConnecting]);
 
   return (
     <View style={styles.container}>
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      {recordingState === 'idle' && recordingUri ? (
-        <PlaybackPanel uri={recordingUri} />
-      ) : (
-        <LoopbackPanel
-          loopbackVideoStream={loopbackVideoStream}
-          loopbackAudioStream={loopbackAudioStream}
-        />
-      )}
+      <LoopbackPanel
+        loopbackVideoStream={loopbackVideoStream}
+        loopbackAudioStream={loopbackAudioStream}
+      />
+      <InlineCallStats />
       <RecordingControls
         buttonLabel={buttonLabel}
         recordingState={recordingState}
-        recordingUri={recordingUri}
         isConnecting={isConnecting}
         onStart={runTest}
         stopRecording={stopRecording}
-        clearRecordings={clearRecordings}
       />
     </View>
   );

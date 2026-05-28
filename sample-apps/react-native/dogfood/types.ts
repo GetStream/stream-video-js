@@ -18,6 +18,7 @@ export type MeetingStackParamList = {
 
 export type TestRecordingStackParamList = {
   TestRecordingScreen: undefined;
+  TestRecordingResults: { uri: string };
 };
 
 export type CallStackParamList = {

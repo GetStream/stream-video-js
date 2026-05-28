@@ -1,42 +1,27 @@
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Share from 'react-native-share';
 import type { LoopbackRecordingState } from '@stream-io/video-react-native-sdk';
-import { appTheme } from '../../theme';
-import { useAppGlobalStoreSetState } from '../../contexts/AppContext';
+import { appTheme } from '../../../theme';
 import { SourcePickers } from './SourcePickers';
 
 type RecordingControlsProps = {
   buttonLabel: string;
   recordingState: LoopbackRecordingState;
-  recordingUri: string | null;
   isConnecting: boolean;
   onStart: () => void;
   stopRecording: () => Promise<void>;
-  clearRecordings: () => Promise<void>;
 };
 
 export const RecordingControls = ({
   buttonLabel,
   recordingState,
-  recordingUri,
   isConnecting,
   onStart,
   stopRecording,
-  clearRecordings,
 }: RecordingControlsProps) => {
   const styles = useStyles();
-  const appSet = useAppGlobalStoreSetState();
-
-  const isComplete = recordingState === 'idle' && !!recordingUri;
 
   const handlePress = () => {
-    if (isComplete) {
-      clearRecordings().catch(() => {});
-      appSet({ appMode: 'None' });
-      return;
-    }
-
     if (recordingState === 'idle' && !isConnecting) {
       onStart();
     } else {
@@ -44,24 +29,13 @@ export const RecordingControls = ({
     }
   };
 
-  const handleShare = () => {
-    if (!recordingUri) return;
-    Share.open({
-      url: recordingUri,
-      type: 'video/mp4',
-      failOnCancel: false,
-    }).catch(() => {});
-  };
-
   const disabled = isConnecting;
 
   return (
     <View style={styles.recordingContainer}>
-      {isComplete ? null : (
-        <SourcePickers
-          disabled={isConnecting || recordingState === 'recording'}
-        />
-      )}
+      <SourcePickers
+        disabled={isConnecting || recordingState === 'recording'}
+      />
       <Pressable
         onPress={handlePress}
         disabled={disabled}
@@ -74,17 +48,6 @@ export const RecordingControls = ({
       >
         <Text style={styles.recordButtonText}>{buttonLabel}</Text>
       </Pressable>
-      {isComplete ? (
-        <Pressable
-          onPress={handleShare}
-          style={({ pressed }) => [
-            styles.shareButton,
-            pressed && styles.recordButtonPressed,
-          ]}
-        >
-          <Text style={styles.recordButtonText}>Share</Text>
-        </Pressable>
-      ) : null}
     </View>
   );
 };
@@ -103,14 +66,6 @@ const useStyles = () => {
           backgroundColor: appTheme.colors.primary,
           borderRadius: 8,
           paddingVertical: appTheme.spacing.lg,
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-        shareButton: {
-          backgroundColor: appTheme.colors.primary,
-          borderRadius: 8,
-          paddingVertical: appTheme.spacing.lg,
-          paddingHorizontal: appTheme.spacing.lg,
           justifyContent: 'center',
           alignItems: 'center',
         },

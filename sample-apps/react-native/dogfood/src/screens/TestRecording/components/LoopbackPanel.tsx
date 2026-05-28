@@ -4,15 +4,17 @@ import {
   RTCView,
   type MediaStream as RNMediaStream,
 } from '@stream-io/react-native-webrtc';
-import { appTheme } from '../../theme';
+import { appTheme } from '../../../theme';
 import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+import { Mic } from '../../../assets/Mic';
+import { Video } from '../../../assets/Video';
 
 export const LoopbackPanel = ({
   loopbackVideoStream,
   loopbackAudioStream,
 }: {
   loopbackVideoStream?: MediaStream;
-  loopbackAudioStream: MediaStream;
+  loopbackAudioStream?: MediaStream;
 }) => {
   const styles = useStyles();
   const { useCameraState } = useCallStateHooks();
@@ -20,27 +22,6 @@ export const LoopbackPanel = ({
 
   return (
     <View style={styles.panelContainer}>
-      <View style={styles.statusRow}>
-        <View style={styles.badge}>
-          <View
-            style={[
-              styles.dot,
-              loopbackAudioStream && { backgroundColor: '#4CAF50' },
-            ]}
-          />
-          <Text style={styles.badgeText}>Audio loopback</Text>
-        </View>
-        <View style={styles.badge}>
-          <View
-            style={[
-              styles.dot,
-              loopbackVideoStream && { backgroundColor: '#4CAF50' },
-            ]}
-          />
-          <Text style={styles.badgeText}>Video loopback</Text>
-        </View>
-      </View>
-
       <View style={styles.videoPanel}>
         {localVideoStream ? (
           <RTCView
@@ -53,6 +34,31 @@ export const LoopbackPanel = ({
             <Text style={styles.placeholderText}>Waiting…</Text>
           </View>
         )}
+      </View>
+
+      <View style={styles.statusRow}>
+        <View style={styles.badge}>
+          <View
+            style={[
+              styles.dot,
+              loopbackAudioStream && { backgroundColor: '#4CAF50' },
+            ]}
+          />
+          <View style={styles.iconContainer}>
+            <Mic color={appTheme.colors.static_white} />
+          </View>
+        </View>
+        <View style={styles.badge}>
+          <View
+            style={[
+              styles.dot,
+              loopbackVideoStream && { backgroundColor: '#4CAF50' },
+            ]}
+          />
+          <View style={styles.iconContainer}>
+            <Video color={appTheme.colors.static_white} />
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -67,6 +73,13 @@ const useStyles = () => {
           gap: appTheme.spacing.md,
         },
         statusRow: {
+          position: 'absolute',
+          right: 0,
+          bottom: 0,
+          paddingHorizontal: appTheme.spacing.md,
+          paddingVertical: appTheme.spacing.sm,
+          borderTopLeftRadius: appTheme.spacing.md,
+          backgroundColor: appTheme.colors.static_overlay,
           flexDirection: 'row',
           gap: appTheme.spacing.md,
         },
@@ -81,9 +94,11 @@ const useStyles = () => {
           borderRadius: 4,
           backgroundColor: appTheme.colors.disabled,
         },
-        badgeText: {
-          color: appTheme.colors.static_white,
-          fontSize: 13,
+        iconContainer: {
+          width: 12,
+          height: 12,
+          alignItems: 'center',
+          justifyContent: 'center',
         },
         videoPanel: {
           flex: 1,
