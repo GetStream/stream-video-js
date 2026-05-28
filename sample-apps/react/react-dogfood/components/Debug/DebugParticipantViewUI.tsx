@@ -5,6 +5,7 @@ import {
   GenericMenu,
   GenericMenuButtonItem,
   hasAudio,
+  hasInterruptedTrack,
   hasScreenShare,
   hasScreenShareAudio,
   hasVideo,
@@ -13,6 +14,7 @@ import {
   ParticipantActionsContextMenu,
   Restricted,
   SfuModels,
+  StreamVideoParticipant,
   useCall,
   useI18n,
   useMenuContext,
@@ -23,19 +25,18 @@ import { useIsDebugMode } from './useIsDebugMode';
 import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
 
 const InterruptedTrackBadge = ({
-  interruptedTracks,
+  participant,
 }: {
-  interruptedTracks?: SfuModels.TrackType[];
+  participant: StreamVideoParticipant;
 }) => {
-  if (!interruptedTracks || interruptedTracks.length === 0) return null;
   const labels: string[] = [];
-  if (interruptedTracks.includes(SfuModels.TrackType.AUDIO))
+  if (hasInterruptedTrack(participant, SfuModels.TrackType.AUDIO))
     labels.push('audio');
-  if (interruptedTracks.includes(SfuModels.TrackType.VIDEO))
+  if (hasInterruptedTrack(participant, SfuModels.TrackType.VIDEO))
     labels.push('video');
-  if (interruptedTracks.includes(SfuModels.TrackType.SCREEN_SHARE))
+  if (hasInterruptedTrack(participant, SfuModels.TrackType.SCREEN_SHARE))
     labels.push('screen');
-  if (interruptedTracks.includes(SfuModels.TrackType.SCREEN_SHARE_AUDIO))
+  if (hasInterruptedTrack(participant, SfuModels.TrackType.SCREEN_SHARE_AUDIO))
     labels.push('screen audio');
   if (labels.length === 0) return null;
   return (
@@ -65,7 +66,7 @@ export const DebugParticipantViewUI = () => {
   const call = useCall();
   const { participant, participantViewElement, trackType } =
     useParticipantViewContext();
-  const { sessionId, userId, interruptedTracks } = participant;
+  const { sessionId, userId } = participant;
 
   const isDemoEnvironment = useIsDemoEnvironment();
   const participantContextMenuActions = isDemoEnvironment
@@ -98,7 +99,6 @@ export const DebugParticipantViewUI = () => {
         <DefaultParticipantViewUI
           ParticipantActionsContextMenu={participantContextMenuActions}
         />
-        <InterruptedTrackBadge interruptedTracks={interruptedTracks} />
       </div>
     );
   }
@@ -107,7 +107,7 @@ export const DebugParticipantViewUI = () => {
       <DefaultParticipantViewUI
         ParticipantActionsContextMenu={participantContextMenuActions}
       />
-      <InterruptedTrackBadge interruptedTracks={interruptedTracks} />
+      <InterruptedTrackBadge participant={participant} />
       <div className="rd__debug__extra">
         <DebugStatsView call={call!} sessionId={sessionId} userId={userId} />
       </div>
