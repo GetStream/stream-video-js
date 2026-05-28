@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 
-const RTCPeerConnectionMock = vi.fn((): Partial<RTCPeerConnection> => {
+const RTCPeerConnectionMock = vi.fn(function (): Partial<RTCPeerConnection> {
   return {
     addEventListener: vi.fn(),
     addIceCandidate: vi.fn(),
@@ -23,7 +23,7 @@ const RTCPeerConnectionMock = vi.fn((): Partial<RTCPeerConnection> => {
 });
 vi.stubGlobal('RTCPeerConnection', RTCPeerConnectionMock);
 
-const MediaStreamMock = vi.fn((): Partial<MediaStream> => {
+const MediaStreamMock = vi.fn(function (): Partial<MediaStream> {
   return {
     getTracks: vi.fn().mockReturnValue([]),
     addTrack: vi.fn(),
@@ -34,7 +34,7 @@ const MediaStreamMock = vi.fn((): Partial<MediaStream> => {
 });
 vi.stubGlobal('MediaStream', MediaStreamMock);
 
-const MediaStreamTrackMock = vi.fn((): Partial<MediaStreamTrack> => {
+const MediaStreamTrackMock = vi.fn(function (): Partial<MediaStreamTrack> {
   return {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
@@ -49,7 +49,7 @@ const MediaStreamTrackMock = vi.fn((): Partial<MediaStreamTrack> => {
 });
 vi.stubGlobal('MediaStreamTrack', MediaStreamTrackMock);
 
-const RTCRtpTransceiverMock = vi.fn((): Partial<RTCRtpTransceiver> => {
+const RTCRtpTransceiverMock = vi.fn(function (): Partial<RTCRtpTransceiver> {
   return {
     // @ts-expect-error - incomplete mock
     sender: {
@@ -64,24 +64,25 @@ const RTCRtpTransceiverMock = vi.fn((): Partial<RTCRtpTransceiver> => {
 });
 vi.stubGlobal('RTCRtpTransceiver', RTCRtpTransceiverMock);
 
-const RTCTrackEvent = vi.fn(
-  (type: string, eventInitDict: RTCTrackEventInit): Partial<RTCTrackEvent> => {
-    return {
-      type,
-      ...eventInitDict,
-    };
-  },
-);
+const RTCTrackEvent = vi.fn(function (
+  type: string,
+  eventInitDict: RTCTrackEventInit,
+): Partial<RTCTrackEvent> {
+  return {
+    type,
+    ...eventInitDict,
+  };
+});
 vi.stubGlobal('RTCTrackEvent', RTCTrackEvent);
 
-const RTCRtpReceiverMock = vi.fn((): Partial<typeof RTCRtpReceiver> => {
+const RTCRtpReceiverMock = vi.fn(function (): Partial<typeof RTCRtpReceiver> {
   return {
     getCapabilities: vi.fn(),
   };
 });
 vi.stubGlobal('RTCRtpReceiver', RTCRtpReceiverMock);
 
-const RTCRtpSenderMock = vi.fn((): Partial<typeof RTCRtpSender> => {
+const RTCRtpSenderMock = vi.fn(function (): Partial<typeof RTCRtpSender> {
   return {
     getCapabilities: vi.fn(),
     // @ts-expect-error - incomplete mock
@@ -90,7 +91,7 @@ const RTCRtpSenderMock = vi.fn((): Partial<typeof RTCRtpSender> => {
 });
 vi.stubGlobal('RTCRtpSender', RTCRtpSenderMock);
 
-const AudioContextMock = vi.fn((): Partial<AudioContext> => {
+const AudioContextMock = vi.fn(function (): Partial<AudioContext> {
   return {
     state: 'suspended',
     sinkId: '',
