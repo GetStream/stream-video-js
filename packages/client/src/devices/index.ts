@@ -10,3 +10,4 @@ export * from './ScreenShareManager';
 export * from './ScreenShareState';
 export * from './SpeakerManager';
 export * from './SpeakerState';
+export * from './VirtualDevice';

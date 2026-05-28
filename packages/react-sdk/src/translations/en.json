@@ -60,8 +60,10 @@
 
   "Microphone on": "Microphone on",
   "Microphone off": "Microphone off",
+  "Microphone is paused by your system": "Microphone is paused by your system",
   "Camera on": "Camera on",
   "Camera off": "Camera off",
+  "Camera is paused by your system": "Camera is paused by your system",
   "No camera found": "No camera found",
   "Video is disabled": "Video is disabled",
   "Pinned": "Pinned",
@@ -91,6 +93,7 @@
   "Dominant Speaker": "Dominant Speaker",
   "Poor connection quality": "Poor connection quality. Please check your internet connection.",
   "Video paused due to insufficient bandwidth": "Video paused due to insufficient bandwidth",
+  "Audio is connecting...": "Audio is connecting...",
 
   "Participants": "Participants",
   "Anonymous": ", and ({{ count }}) anonymous",

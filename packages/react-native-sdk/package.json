@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-sdk",
-  "version": "1.30.3",
+  "version": "1.36.1",
   "description": "Stream Video SDK for React Native",
   "author": "https://getstream.io",
   "homepage": "https://getstream.io/video/docs/react-native/",
@@ -58,32 +58,23 @@
     "text-encoding-polyfill": "0.6.7"
   },
   "peerDependencies": {
-    "@notifee/react-native": ">=9.0.0",
     "@react-native-community/netinfo": ">=9.0.0",
-    "@react-native-community/push-notification-ios": ">=1.11.0",
     "@react-native-firebase/app": ">=17.5.0",
     "@react-native-firebase/messaging": ">=17.5.0",
     "@stream-io/noise-cancellation-react-native": ">=0.1.0",
-    "@stream-io/react-native-webrtc": ">=137.1.0",
+    "@stream-io/react-native-callingx": ">=0.1.0",
+    "@stream-io/react-native-webrtc": ">=137.2.0",
     "@stream-io/video-filters-react-native": ">=0.1.0",
     "expo": ">=47.0.0",
     "expo-build-properties": "*",
     "expo-notifications": "*",
     "react": ">=17.0.0",
     "react-native": ">=0.73.0",
-    "react-native-callkeep": ">=4.3.11",
     "react-native-gesture-handler": ">=2.8.0",
     "react-native-reanimated": ">=2.7.0",
-    "react-native-svg": ">=13.6.0",
-    "react-native-voip-push-notification": ">=3.3.1"
+    "react-native-svg": ">=13.6.0"
   },
   "peerDependenciesMeta": {
-    "@notifee/react-native": {
-      "optional": true
-    },
-    "@react-native-community/push-notification-ios": {
-      "optional": true
-    },
     "@react-native-firebase/app": {
       "optional": true
     },
@@ -91,6 +82,9 @@
       "optional": true
     },
     "@stream-io/noise-cancellation-react-native": {
+      "optional": true
+    },
+    "@stream-io/react-native-callingx": {
       "optional": true
     },
     "@stream-io/video-filters-react-native": {
@@ -105,16 +99,10 @@
     "expo-notifications": {
       "optional": true
     },
-    "react-native-callkeep": {
-      "optional": true
-    },
     "react-native-gesture-handler": {
       "optional": true
     },
     "react-native-reanimated": {
-      "optional": true
-    },
-    "react-native-voip-push-notification": {
       "optional": true
     }
   },
@@ -123,14 +111,13 @@
     "@expo/config-plugins": "54.0.2",
     "@expo/config-types": "^54.0.8",
     "@expo/plist": "^0.4.7",
-    "@notifee/react-native": "9.1.8",
     "@react-native-community/netinfo": "11.4.1",
-    "@react-native-community/push-notification-ios": "1.11.0",
     "@react-native-firebase/app": "^23.4.0",
     "@react-native-firebase/messaging": "^23.4.0",
-    "@react-native/babel-preset": "^0.81.5",
+    "@react-native/babel-preset": "0.81.5",
     "@stream-io/noise-cancellation-react-native": "workspace:^",
-    "@stream-io/react-native-webrtc": "137.1.0",
+    "@stream-io/react-native-callingx": "workspace:^",
+    "@stream-io/react-native-webrtc": "137.2.0",
     "@stream-io/video-filters-react-native": "workspace:^",
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "13.3.3",
@@ -144,13 +131,11 @@
     "expo-notifications": "~0.32.12",
     "jest": "^29.7.0",
     "react": "19.1.0",
-    "react-native": "^0.81.5",
+    "react-native": "0.81.5",
     "react-native-builder-bob": "~0.23",
-    "react-native-callkeep": "^4.3.16",
     "react-native-gesture-handler": "^2.28.0",
     "react-native-reanimated": "~4.1.2",
     "react-native-svg": "^15.14.0",
-    "react-native-voip-push-notification": "3.3.3",
     "react-native-worklets": "^0.5.0",
     "react-test-renderer": "19.1.0",
     "rimraf": "^6.0.1",

@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { Call } from '../Call';
 import { CameraDirection, CameraManagerState } from './CameraManagerState';
 import { DeviceManager } from './DeviceManager';
@@ -25,7 +25,12 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     call: Call,
     devicePersistence: Required<DevicePersistenceOptions>,
   ) {
-    super(call, new CameraManagerState(), TrackType.VIDEO, devicePersistence);
+    super(
+      call,
+      new CameraManagerState(call.tracer),
+      TrackType.VIDEO,
+      devicePersistence,
+    );
   }
 
   private isDirectionSupportedByDevice() {
@@ -135,7 +140,14 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       this.state.status === undefined &&
       this.state.optimisticStatus === undefined;
     let persistedPreferencesApplied = false;
-    if (shouldApplyDefaults && this.devicePersistence.enabled) {
+    const permissionState = await firstValueFrom(
+      this.state.browserPermissionState$,
+    );
+    if (
+      shouldApplyDefaults &&
+      this.devicePersistence.enabled &&
+      permissionState === 'granted'
+    ) {
       persistedPreferencesApplied =
         await this.applyPersistedPreferences(enabledInCallType);
     }
@@ -164,9 +176,9 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     return getVideoDevices(this.call.tracer);
   }
 
-  protected override getStream(
+  protected override getResolvedConstraints(
     constraints: MediaTrackConstraints,
-  ): Promise<MediaStream> {
+  ): MediaTrackConstraints {
     constraints.width = this.targetResolution.width;
     constraints.height = this.targetResolution.height;
     // We can't set both device id and facing mode
@@ -180,6 +192,13 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       constraints.facingMode =
         this.state.direction === 'front' ? 'user' : 'environment';
     }
+
+    return constraints;
+  }
+
+  protected override getStream(
+    constraints: MediaTrackConstraints,
+  ): Promise<MediaStream> {
     return getVideoStream(constraints, this.call.tracer);
   }
 }

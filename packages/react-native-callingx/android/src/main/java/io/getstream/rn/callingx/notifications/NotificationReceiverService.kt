@@ -1,0 +1,87 @@
+package io.getstream.rn.callingx.notifications
+
+import android.app.Service
+import android.content.Intent
+import android.os.IBinder
+import android.telecom.DisconnectCause
+import android.util.Log
+import io.getstream.rn.callingx.CallingxModuleImpl
+import io.getstream.rn.callingx.getDisconnectCauseString
+
+class NotificationReceiverService : Service() {
+
+  companion object {
+    const val TAG = "[Callingx] NotificationReceiverService"
+  }
+
+  override fun onBind(intent: Intent?): IBinder? = null
+
+  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    val action = intent?.action
+    if (action == null) {
+      stopSelf(startId)
+      return START_NOT_STICKY
+    }
+
+    when (action) {
+      CallingxModuleImpl.CALL_ANSWERED_ACTION -> onCallAnswered(intent)
+      CallingxModuleImpl.CALL_END_ACTION -> onCallEnded(intent)
+    }
+
+    stopSelf(startId)
+    return START_NOT_STICKY
+  }
+
+  private fun onCallAnswered(intent: Intent) {
+    val callId = intent.getStringExtra(CallingxModuleImpl.EXTRA_CALL_ID)
+    val source = intent.getStringExtra(CallingxModuleImpl.EXTRA_SOURCE)
+    callId?.let {
+      try {
+        Intent(CallingxModuleImpl.CALL_OPTIMISTIC_ACCEPT_ACTION)
+                .apply {
+                    setPackage(packageName)
+                    putExtra(CallingxModuleImpl.EXTRA_CALL_ID, it)
+                }
+                .also { it -> sendBroadcast(it) }
+
+        NotificationIntentFactory.getPendingBroadcastIntent(
+                        applicationContext,
+                        CallingxModuleImpl.CALL_ANSWERED_ACTION,
+                        it
+                ) { putExtra(CallingxModuleImpl.EXTRA_SOURCE, source) }
+                .send()
+
+        NotificationIntentFactory.getLaunchActivityIntent(
+                        applicationContext,
+                        CallingxModuleImpl.CALL_ANSWERED_ACTION,
+                        it,
+                        source
+                )
+                .send()
+      } catch (e: Exception) {
+        Log.e(TAG, "Error sending call answered intent", e)
+      }
+    }
+  }
+
+  /** Mirrors [NotificationReceiverActivity] on API levels below 33 where the service receives notification actions. */
+  private fun onCallEnded(intent: Intent) {
+    val callId = intent.getStringExtra(CallingxModuleImpl.EXTRA_CALL_ID)
+    val source = intent.getStringExtra(CallingxModuleImpl.EXTRA_SOURCE)
+    try {
+      Intent(CallingxModuleImpl.CALL_END_ACTION)
+        .apply {
+          setPackage(packageName)
+          putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
+          putExtra(CallingxModuleImpl.EXTRA_SOURCE, source)
+          putExtra(
+            CallingxModuleImpl.EXTRA_DISCONNECT_CAUSE,
+            getDisconnectCauseString(DisconnectCause(DisconnectCause.REJECTED))
+          )
+        }
+        .also { sendBroadcast(it) }
+    } catch (e: Exception) {
+      Log.e(TAG, "Error sending call end intent", e)
+    }
+  }
+}

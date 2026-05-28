@@ -1,23 +1,74 @@
-import type { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
+import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
 import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
+import { audioDeviceModuleEvents } from '@stream-io/react-native-webrtc';
+import { getCallingxLibIfAvailable } from '../push/libs/callingx';
+import {
+  endCallingxCall,
+  registerOutgoingCall,
+  joinCallingxCall,
+} from './callingx/callingx';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
 const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {
   checkPermission: StreamRNVideoSDKGlobals['permissions']['check'] | undefined;
 };
 
+const CallingxModule = getCallingxLibIfAvailable();
+
+/**
+ * Checks if StreamInCallManager should be bypassed because CallKit is handling
+ * the audio session via CallingX.
+ *
+ * On iOS, when CallingX is set up and has a registered call, the audio session
+ * is managed by CallKit through CallingxImpl.swift.
+ * In this case, StreamInCallManager should not run to avoid conflicting audio
+ * session configurations.
+ */
+const shouldBypassForCallKit = ({
+  isRingingTypeCall,
+}: {
+  isRingingTypeCall: boolean;
+}): boolean => {
+  if (Platform.OS !== 'ios') {
+    return false;
+  }
+  if (!CallingxModule) {
+    return false;
+  }
+  const bypass =
+    CallingxModule.isSetup &&
+    (isRingingTypeCall || CallingxModule.isOngoingCallsEnabled);
+  return bypass;
+};
+
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
+  callingX: {
+    joinCall: joinCallingxCall,
+    endCall: endCallingxCall,
+    registerOutgoingCall: registerOutgoingCall,
+  },
   callManager: {
-    setup: ({ defaultDevice }) => {
+    setup: ({ defaultDevice, isRingingTypeCall }) => {
+      if (shouldBypassForCallKit({ isRingingTypeCall })) {
+        // Forward the sticky preference; callingx reads it on next CallKit activation.
+        CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice);
+        return;
+      }
       StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
         defaultDevice,
       );
       StreamInCallManagerNativeModule.setup();
     },
-    start: () => {
+    start: ({ isRingingTypeCall }) => {
+      if (shouldBypassForCallKit({ isRingingTypeCall })) {
+        return;
+      }
       StreamInCallManagerNativeModule.start();
     },
-    stop: () => {
+    stop: ({ isRingingTypeCall }) => {
+      if (shouldBypassForCallKit({ isRingingTypeCall })) {
+        return;
+      }
       StreamInCallManagerNativeModule.stop();
     },
   },
@@ -35,6 +86,18 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       return Boolean(
         await StreamVideoReactNativeModule.checkPermission?.(permission),
       );
+    },
+  },
+  nativeEvents: {
+    speechActivity: {
+      subscribe(cb) {
+        const subscription = audioDeviceModuleEvents.addSpeechActivityListener(
+          (data) => {
+            cb({ isSoundDetected: data.event === 'started' });
+          },
+        );
+        return () => subscription.remove();
+      },
     },
   },
 };

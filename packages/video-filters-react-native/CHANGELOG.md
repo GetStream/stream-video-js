@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.12.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.2...@stream-io/video-filters-react-native-0.12.3) (2026-05-26)
+
+## [0.12.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.1...@stream-io/video-filters-react-native-0.12.2) (2026-05-08)
+
+## [0.12.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.0...@stream-io/video-filters-react-native-0.12.1) (2026-04-28)
+
+### Bug Fixes
+
+- **rn:** perf and stability fixes for video-filters ([#2216](https://github.com/GetStream/stream-video-js/issues/2216)) ([db1405b](https://github.com/GetStream/stream-video-js/commit/db1405b02a5745ee14a54a76a164c47ed59f56c6))
+
+## [0.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.11.0...@stream-io/video-filters-react-native-0.12.0) (2026-04-09)
+
+### Features
+
+- callkit/telecom integration ([#2028](https://github.com/GetStream/stream-video-js/issues/2028)) ([d579acd](https://github.com/GetStream/stream-video-js/commit/d579acd1975fb4945e40452b27e372694c737628))
+
+## [0.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.10.1...@stream-io/video-filters-react-native-0.11.0) (2026-03-31)
+
+### Features
+
+- screen share audio ([#2157](https://github.com/GetStream/stream-video-js/issues/2157)) ([ba3b9d8](https://github.com/GetStream/stream-video-js/commit/ba3b9d8c2168d7c1cd66050524a5dc0a0f7e3e6e))
+
 ## [0.10.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.10.0...@stream-io/video-filters-react-native-0.10.1) (2026-03-06)
 
 ### Bug Fixes

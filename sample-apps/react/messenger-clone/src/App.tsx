@@ -9,7 +9,7 @@ import { UserList } from './components/UserList';
 import { UserContextProvider } from './contexts/UserContext';
 import { getSelectedUser } from './utils/user';
 
-import 'stream-chat-react/dist/css/v2/index.css';
+import 'stream-chat-react/dist/css/index.css';
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './styles/index.scss';
 

@@ -89,9 +89,15 @@ function TransportDiagramPlaceholder(props: PropsWithChildren) {
 
 async function fetchPeerConnectionCandidatePair(pc: RTCPeerConnection) {
   const reportObj = Object.fromEntries((await pc.getStats()).entries());
-  const transportEntry: RTCTransportStats | undefined = Object.values(
-    reportObj,
-  ).find((entry) => entry.type === 'transport');
+  const activeTransports = Object.values(reportObj).filter(
+    (entry): entry is RTCTransportStats =>
+      entry.type === 'transport' && !!entry.selectedCandidatePairId,
+  );
+  const transportEntry =
+    activeTransports.find(
+      (entry) =>
+        reportObj[entry.selectedCandidatePairId!]?.state === 'succeeded',
+    ) ?? activeTransports[0];
 
   if (!transportEntry?.selectedCandidatePairId) {
     return null;
@@ -104,11 +110,13 @@ async function fetchPeerConnectionCandidatePair(pc: RTCPeerConnection) {
     reportObj[candidatePairEntry.localCandidateId];
   const remoteCandidateEntry: any =
     reportObj[candidatePairEntry.remoteCandidateId];
-  const rawProtocol =
-    localCandidateEntry.protocol ?? localCandidateEntry.relayProtocol;
-  const protocol: string = rawProtocol
-    ? localCandidateEntry.protocol.toUpperCase()
-    : '-';
+  // For relay candidates, `protocol` is the TURN→peer leg (usually UDP);
+  // `relayProtocol` is the client↔TURN leg — that's the one the user sees.
+  const isRelay = localCandidateEntry.candidateType === 'relay';
+  const rawProtocol: string | undefined = isRelay
+    ? localCandidateEntry.relayProtocol
+    : localCandidateEntry.protocol;
+  const protocol = rawProtocol ? rawProtocol.toUpperCase() : '-';
 
   return {
     local: formatCandidateEntry(localCandidateEntry),

@@ -41,6 +41,7 @@ const PaginatedGridLayoutGroup = ({
 }: PaginatedGridLayoutGroupProps) => {
   return (
     <div
+      data-group-size={group.length}
       className={clsx('str-video__paginated-grid-layout__group', {
         'str-video__paginated-grid-layout--one': group.length === 1,
         'str-video__paginated-grid-layout--two-four':
@@ -151,7 +152,7 @@ export const PaginatedGridLayout = (props: PaginatedGridLayoutProps) => {
 
     const cleanup = call.setViewport(paginatedGridLayoutWrapperElement);
 
-    return () => cleanup();
+    return () => cleanup?.();
   }, [paginatedGridLayoutWrapperElement, call]);
 
   // only used to render video elements

@@ -20,10 +20,15 @@ import {
   toVideoLayers,
 } from './layers';
 import { isSvcCodec } from './codecs';
+import {
+  fromRTCDegradationPreference,
+  toRTCDegradationPreference,
+} from './helpers/degradationPreference';
 import { isAudioTrackType } from './helpers/tracks';
 import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
+import { isFirefox } from '../helpers/browsers';
 
 /**
  * The `Publisher` is responsible for publishing/unpublishing media streams to/from the SFU
@@ -52,7 +57,16 @@ export class Publisher extends BasePeerConnection {
 
     this.on('changePublishQuality', async (event) => {
       for (const videoSender of event.videoSenders) {
-        await this.changePublishQuality(videoSender);
+        // if not publishing, update the encodingConfigCache and don't modify the state.
+        // we'll apply this config on the next publish/unmute.
+        const { trackType, publishOptionId } = videoSender;
+        const bundle = this.transceiverCache.getBy(publishOptionId, trackType);
+        if (bundle) {
+          this.transceiverCache.update(bundle.publishOption, { videoSender });
+        }
+        if (isFirefox() && !this.isPublishing(trackType)) continue;
+
+        await this.changePublishQuality(videoSender, bundle);
       }
     });
 
@@ -65,9 +79,13 @@ export class Publisher extends BasePeerConnection {
   /**
    * Disposes this Publisher instance.
    */
-  dispose() {
-    super.dispose();
-    this.stopAllTracks();
+  async dispose(): Promise<void> {
+    await super.dispose();
+    try {
+      await this.stopAllTracks();
+    } catch (err) {
+      this.logger.warn('Failed to stop tracks during dispose', err);
+    }
     this.clonedTracks.clear();
   }
 
@@ -97,17 +115,12 @@ export class Publisher extends BasePeerConnection {
       // appear in the SDP in multiple transceivers
       const trackToPublish = this.cloneTrack(track);
 
-      const { transceiver } = this.transceiverCache.get(publishOption) || {};
-      if (!transceiver) {
+      const bundle = this.transceiverCache.get(publishOption);
+      if (!bundle) {
         await this.addTransceiver(trackToPublish, publishOption, options);
       } else {
-        const previousTrack = transceiver.sender.track;
-        await this.updateTransceiver(
-          transceiver,
-          trackToPublish,
-          trackType,
-          options,
-        );
+        const previousTrack = bundle.transceiver.sender.track;
+        await this.updateTransceiver(bundle, trackToPublish, options);
         if (!isReactNative()) {
           this.stopTrack(previousTrack);
         }
@@ -135,7 +148,9 @@ export class Publisher extends BasePeerConnection {
     });
 
     const params = transceiver.sender.getParameters();
-    params.degradationPreference = 'maintain-framerate';
+    params.degradationPreference =
+      toRTCDegradationPreference(publishOption.degradationPreference) ??
+      'maintain-framerate';
     await transceiver.sender.setParameters(params);
 
     const trackType = publishOption.trackType;
@@ -150,15 +165,22 @@ export class Publisher extends BasePeerConnection {
    * Updates the transceiver with the given track and track type.
    */
   private updateTransceiver = async (
-    transceiver: RTCRtpTransceiver,
+    bundle: PublishBundle,
     track: MediaStreamTrack | null,
-    trackType: TrackType,
     options: TrackPublishOptions = {},
   ) => {
+    const { transceiver, publishOption } = bundle;
+    const trackType = publishOption.trackType;
     const sender = transceiver.sender;
     if (sender.track) this.trackIdToTrackType.delete(sender.track.id);
     await sender.replaceTrack(track);
-    if (track) this.trackIdToTrackType.set(track.id, trackType);
+    if (track) {
+      this.trackIdToTrackType.set(track.id, trackType);
+      if (isFirefox() && bundle.videoSender) {
+        // restore the encoding config from the cache, if any
+        await this.changePublishQuality(bundle.videoSender, bundle);
+      }
+    }
     if (isAudioTrackType(trackType)) {
       await this.updateAudioPublishOptions(trackType, options);
     }
@@ -227,7 +249,7 @@ export class Publisher extends BasePeerConnection {
       if (hasPublishOption) continue;
       // it is safe to stop the track here, it is a clone
       this.stopTrack(transceiver.sender.track);
-      await this.updateTransceiver(transceiver, null, publishOption.trackType);
+      await this.updateTransceiver(item, null);
     }
   };
 
@@ -249,41 +271,84 @@ export class Publisher extends BasePeerConnection {
   };
 
   /**
+   * Re-arms the encoder for the given track type by detaching and
+   * reattaching the currently published track on each matching sender.
+   *
+   * Workaround for a WebKit / iOS Safari quirk: after a system audio
+   * session interruption (Siri, PSTN call), the `RTCRtpSender` encoder
+   * can stop producing RTP packets even though the underlying
+   * `MediaStreamTrack` is `live` and `track.muted === false`.
+   * `replaceTrack(null)` followed by `replaceTrack(track)` resets the
+   * sender's encoder pipeline without renegotiation, restoring packet
+   * flow with the same SSRC.
+   *
+   * No-op when nothing is published for the given track type.
+   *
+   * @param trackType the track type to refresh.
+   */
+  refreshTrack = async (trackType: TrackType) => {
+    for (const item of this.transceiverCache.items()) {
+      if (item.publishOption.trackType !== trackType) continue;
+      const { sender } = item.transceiver;
+      const track = sender.track;
+      if (!track || track.readyState !== 'live') continue;
+      try {
+        await sender.replaceTrack(null);
+        await sender.replaceTrack(track);
+        this.logger.debug(`Refreshed ${TrackType[trackType]} sender`);
+      } catch (err) {
+        this.logger.warn(`Failed to refresh ${TrackType[trackType]}`, err);
+      }
+    }
+  };
+
+  /**
    * Stops the cloned track that is being published to the SFU.
    */
-  stopTracks = (...trackTypes: TrackType[]) => {
-    for (const item of this.transceiverCache.items()) {
-      const { publishOption, transceiver } = item;
-      if (!trackTypes.includes(publishOption.trackType)) continue;
-      this.stopTrack(transceiver.sender.track);
-    }
+  stopTracks = async (...trackTypes: TrackType[]) => {
+    return withoutConcurrency(
+      this.eventLockKey('changePublishQuality'),
+      async () => {
+        for (const item of this.transceiverCache.items()) {
+          const { publishOption, transceiver } = item;
+          if (!trackTypes.includes(publishOption.trackType)) continue;
+          const track = transceiver.sender.track;
+          await this.silenceSenderOnFirefox(item);
+          this.stopTrack(track);
+        }
+      },
+    );
   };
 
   /**
    * Stops all the cloned tracks that are being published to the SFU.
    */
-  stopAllTracks = () => {
-    for (const { transceiver } of this.transceiverCache.items()) {
-      this.stopTrack(transceiver.sender.track);
-    }
-    for (const track of this.clonedTracks) {
-      this.stopTrack(track);
-    }
+  stopAllTracks = async () => {
+    return withoutConcurrency(
+      this.eventLockKey('changePublishQuality'),
+      async () => {
+        for (const item of this.transceiverCache.items()) {
+          const track = item.transceiver.sender.track;
+          await this.silenceSenderOnFirefox(item);
+          this.stopTrack(track);
+        }
+        for (const track of this.clonedTracks) {
+          this.stopTrack(track);
+        }
+      },
+    );
   };
 
-  private changePublishQuality = async (videoSender: VideoSender) => {
-    const { trackType, layers, publishOptionId } = videoSender;
-    const enabledLayers = layers.filter((l) => l.active);
+  private changePublishQuality = async (
+    videoSender: VideoSender,
+    bundle: PublishBundle | undefined,
+  ) => {
+    const enabledLayers = videoSender.layers.filter((l) => l.active);
 
     const tag = 'Update publish quality:';
     this.logger.info(`${tag} requested layers by SFU:`, enabledLayers);
 
-    const transceiverId = this.transceiverCache.find(
-      (t) =>
-        t.publishOption.id === publishOptionId &&
-        t.publishOption.trackType === trackType,
-    );
-    const sender = transceiverId?.transceiver.sender;
+    const sender = bundle?.transceiver.sender;
     if (!sender) {
       return this.logger.warn(`${tag} no video sender found.`);
     }
@@ -293,7 +358,7 @@ export class Publisher extends BasePeerConnection {
       return this.logger.warn(`${tag} there are no encodings set.`);
     }
 
-    const codecInUse = transceiverId?.publishOption.codec?.name;
+    const codecInUse = bundle?.publishOption.codec?.name;
     const usesSvcCodec = codecInUse && isSvcCodec(codecInUse);
 
     let changed = false;
@@ -342,6 +407,17 @@ export class Publisher extends BasePeerConnection {
         encoder.scalabilityMode = scalabilityMode;
         changed = true;
       }
+    }
+
+    const degradationPreference = toRTCDegradationPreference(
+      videoSender.degradationPreference,
+    );
+    if (
+      degradationPreference &&
+      params.degradationPreference !== degradationPreference
+    ) {
+      params.degradationPreference = degradationPreference;
+      changed = true;
     }
 
     const activeEncoders = params.encodings.filter((e) => e.active);
@@ -460,7 +536,8 @@ export class Publisher extends BasePeerConnection {
     const trackInfos: TrackInfo[] = [];
     for (const publishOption of this.publishOptions) {
       const bundle = this.transceiverCache.get(publishOption);
-      if (!bundle || !bundle.transceiver.sender.track) continue;
+      const track = bundle?.transceiver.sender.track;
+      if (!bundle || !track || track.readyState !== 'live') continue;
       trackInfos.push(this.toTrackInfo(bundle, sdp));
     }
     return trackInfos;
@@ -512,5 +589,74 @@ export class Publisher extends BasePeerConnection {
     if (!track) return;
     track.stop();
     this.clonedTracks.delete(track);
+  };
+
+  /**
+   * Silences a Firefox sender on the wire during unpublish.
+   *
+   * Firefox keeps emitting RTP after track.stop(), but the right lever
+   * differs by track type:
+   *   - audio: `replaceTrack(null)` is the only reliable silencer;
+   *     `setParameters({encodings:[...active:false]})` does NOT stop
+   *     the Opus encoder.
+   *   - video: `setParameters({encodings:[...active:false]})` pauses
+   *     the encoder; `replaceTrack(null)` does NOT reliably stop the
+   *     video encoder. The prior active=true configuration is captured
+   *     onto `bundle.videoSender` so `updateTransceiver` can restore
+   *     it on the next publish.
+   *
+   * No-op on non-Firefox browsers and during teardown.
+   */
+  private silenceSenderOnFirefox = async (bundle: PublishBundle) => {
+    if (this.isDisposed || !isFirefox()) return;
+    const { transceiver, publishOption } = bundle;
+    if (isAudioTrackType(publishOption.trackType)) {
+      await transceiver.sender.replaceTrack(null).catch((err) => {
+        this.logger.warn('Failed to clear audio sender track', err);
+      });
+      return;
+    }
+    await this.disableAllEncodings(bundle);
+  };
+
+  private disableAllEncodings = async (bundle: PublishBundle) => {
+    const { transceiver, publishOption } = bundle;
+    const sender = transceiver.sender;
+    const params = sender.getParameters();
+    if (!params.encodings || params.encodings.length === 0) return;
+
+    if (!bundle.videoSender) {
+      this.transceiverCache.update(publishOption, {
+        videoSender: {
+          trackType: publishOption.trackType,
+          publishOptionId: publishOption.id,
+          codec: publishOption.codec,
+          degradationPreference: fromRTCDegradationPreference(
+            params.degradationPreference,
+          ),
+          layers: params.encodings.map((e) => ({
+            name: e.rid ?? 'q',
+            active: e.active ?? true,
+            maxBitrate: e.maxBitrate ?? 0,
+            scaleResolutionDownBy: e.scaleResolutionDownBy ?? 0,
+            maxFramerate: e.maxFramerate ?? 0,
+            // @ts-expect-error scalabilityMode is not in the typedefs yet
+            scalabilityMode: e.scalabilityMode ?? '',
+          })),
+        },
+      });
+    }
+
+    let changed = false;
+    for (const encoding of params.encodings) {
+      if (encoding.active !== false) {
+        encoding.active = false;
+        changed = true;
+      }
+    }
+    if (!changed) return;
+    await sender.setParameters(params).catch((err) => {
+      this.logger.error('Failed to disable video sender encodings:', err);
+    });
   };
 }

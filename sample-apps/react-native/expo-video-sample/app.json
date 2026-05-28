@@ -16,6 +16,7 @@
       "appleTeamId": "EHV7XZLAHA"
     },
     "android": {
+      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -49,11 +50,6 @@
       [
         "expo-build-properties",
         {
-          "android": {
-            "extraMavenRepos": [
-              "$rootDir/../../../node_modules/@notifee/react-native/android/libs"
-            ]
-          },
           "ios": {
             "useFrameworks": "static",
             "forceStaticLinking": [
@@ -65,7 +61,6 @@
           }
         }
       ],
-      "@react-native-firebase/app",
       [
         "@stream-io/video-react-native-sdk",
         {
@@ -73,22 +68,24 @@
           "addNoiseCancellation": true,
           "androidKeepCallAlive": true,
           "appleTeamId": "EHV7XZLAHA",
-          "ringingPushNotifications": {
-            "disableVideoIos": false,
-            "includesCallsInRecentsIos": false,
-            "showWhenLockedAndroid": true
-          },
+          "ringing": true,
           "enableNonRingingPushNotifications": true,
           "androidPictureInPicture": true,
           "iOSEnableMultitaskingCameraAccess": true
         }
       ],
-      "@config-plugins/react-native-callkeep",
       [
         "@config-plugins/react-native-webrtc",
         {
           "cameraPermission": "$(PRODUCT_NAME) requires camera access in order to capture and transmit video",
           "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "sounds": []
         }
       ],
       "expo-router",

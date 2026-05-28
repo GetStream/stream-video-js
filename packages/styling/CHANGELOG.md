@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.13.0...@stream-io/video-styling-1.14.0) (2026-05-18)
+
+### Features
+
+- Automatic audio recovery ([#2240](https://github.com/GetStream/stream-video-js/issues/2240)) ([8131e5b](https://github.com/GetStream/stream-video-js/commit/8131e5b35a1c87c46d99eeaab434f8889ba5d126))
+
+## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.12.0...@stream-io/video-styling-1.13.0) (2026-04-09)
+
+### Features
+
+- **react-sdk:** Device preview and level indicators to device settings ([#2186](https://github.com/GetStream/stream-video-js/issues/2186)) ([65787d2](https://github.com/GetStream/stream-video-js/commit/65787d222d01f784766e0a7eb757cb3169e08435))
+
+## [1.12.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.11.0...@stream-io/video-styling-1.12.0) (2026-03-20)
+
+### Features
+
+- **react:** display loading indicator while participant audio is connecting ([#2167](https://github.com/GetStream/stream-video-js/issues/2167)) ([bb2e273](https://github.com/GetStream/stream-video-js/commit/bb2e2733a3e88fd60220118f267d74d952f16ed8))
+
 ## [1.11.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.10.0...@stream-io/video-styling-1.11.0) (2026-02-27)
 
 ### Features

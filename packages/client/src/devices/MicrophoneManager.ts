@@ -24,7 +24,6 @@ import {
   createSafeAsyncSubscription,
   createSubscription,
 } from '../store/rxUtils';
-import { RNSpeechDetector } from '../helpers/RNSpeechDetector';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { disposeOfMediaStream } from './utils';
 import { promiseWithResolvers } from '../helpers/promise';
@@ -36,7 +35,6 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   private soundDetectorCleanup?: () => Promise<void>;
   private soundDetectorDeviceId?: string;
   private noAudioDetectorCleanup?: () => Promise<void>;
-  private rnSpeechDetector: RNSpeechDetector | undefined;
   private noiseCancellation: INoiseCancellation | undefined;
   private noiseCancellationChangeUnsubscribe: (() => void) | undefined;
   private noiseCancellationRegistration?: Promise<void>;
@@ -51,7 +49,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   ) {
     super(
       call,
-      new MicrophoneManagerState(disableMode),
+      new MicrophoneManagerState(disableMode, call.tracer),
       TrackType.AUDIO,
       devicePersistence,
     );
@@ -158,6 +156,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
           const devices = await firstValueFrom(this.listDevices());
           const label = devices.find((d) => d.deviceId === deviceId)?.label;
 
+          let lastCapturesAudio: boolean | undefined;
           this.noAudioDetectorCleanup = createNoAudioDetector(mediaStream, {
             noAudioThresholdMs: this.silenceThresholdMs,
             emitIntervalMs: this.silenceThresholdMs,
@@ -169,7 +168,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
                 deviceId,
                 label,
               };
-              this.call.tracer.trace('mic.capture_report', event);
+
+              if (capturesAudio !== lastCapturesAudio) {
+                lastCapturesAudio = capturesAudio;
+                this.call.tracer.trace('mic.capture_report', event);
+              }
+
               this.call.streamClient.dispatchEvent(event);
             },
           });
@@ -350,7 +354,14 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.state.status === undefined &&
       this.state.optimisticStatus === undefined;
     let persistedPreferencesApplied = false;
-    if (shouldApplyDefaults && this.devicePersistence.enabled) {
+    const permissionState = await firstValueFrom(
+      this.state.browserPermissionState$,
+    );
+    if (
+      shouldApplyDefaults &&
+      this.devicePersistence.enabled &&
+      permissionState === 'granted'
+    ) {
       persistedPreferencesApplied = await this.applyPersistedPreferences(true);
     }
 
@@ -409,13 +420,19 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       await this.teardownSpeakingWhileMutedDetection();
 
       if (isReactNative()) {
-        this.rnSpeechDetector = new RNSpeechDetector();
-        const unsubscribe = await this.rnSpeechDetector.start((event) => {
+        const speechActivity =
+          globalThis.streamRNVideoSDK?.nativeEvents?.speechActivity;
+        if (!speechActivity) {
+          this.logger.warn(
+            'Native speech activity not available, make sure the "@stream-io/react-native-webrtc" peer dependency version is satisfied',
+          );
+          return;
+        }
+        const unsubscribe = speechActivity.subscribe((event) => {
           this.state.setSpeakingWhileMuted(event.isSoundDetected);
         });
         this.soundDetectorCleanup = async () => {
           unsubscribe();
-          this.rnSpeechDetector = undefined;
         };
       } else {
         // Need to start a new stream that's not connected to publisher

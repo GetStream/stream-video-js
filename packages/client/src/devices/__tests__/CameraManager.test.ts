@@ -210,6 +210,25 @@ describe('CameraManager', () => {
     });
   });
 
+  it('should pass resolved camera constraints to virtual devices', async () => {
+    const virtualStream = mockVideoStream();
+    const getUserMedia = vi.fn(() => ({ stream: virtualStream }));
+
+    const { deviceId } = manager.registerVirtualDevice({
+      label: 'Virtual camera',
+      getUserMedia,
+    });
+
+    await manager.select(deviceId);
+    await manager.enable();
+
+    expect(getUserMedia).toHaveBeenCalledWith({
+      deviceId: { exact: deviceId },
+      width: 1280,
+      height: 720,
+    });
+  });
+
   it(`should set target resolution, but shouldn't change device status`, async () => {
     manager['targetResolution'] = { width: 640, height: 480 };
 
@@ -306,6 +325,9 @@ describe('CameraManager', () => {
     });
 
     it('should skip defaults when preferences are applied', async () => {
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('granted'),
+      );
       const devicePersistence = { enabled: true, storageKey: '' };
       const persistedManager = new CameraManager(call, devicePersistence);
       const applySpy = vi
@@ -327,6 +349,32 @@ describe('CameraManager', () => {
       expect(applySpy).toHaveBeenCalledWith(true);
       expect(selectDirectionSpy).not.toHaveBeenCalled();
       expect(enableSpy).not.toHaveBeenCalled();
+    });
+
+    it('should skip persisted preferences when permission is not granted', async () => {
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('prompt'),
+      );
+      const devicePersistence = { enabled: true, storageKey: '' };
+      const persistedManager = new CameraManager(call, devicePersistence);
+      const applySpy = vi.spyOn(
+        persistedManager as never,
+        'applyPersistedPreferences',
+      );
+      const enableSpy = vi.spyOn(persistedManager, 'enable');
+
+      await persistedManager.apply(
+        fromPartial({
+          enabled: true,
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        }),
+        true,
+      );
+
+      expect(applySpy).not.toHaveBeenCalled();
+      expect(enableSpy).toHaveBeenCalled();
     });
 
     it('should not apply defaults when device is not pristine', async () => {
@@ -445,6 +493,9 @@ describe('CameraManager', () => {
           createVideoStreamForDevice(selectedDevice.deviceId),
         );
       });
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('granted'),
+      );
 
       const stressManager = new CameraManager(call, {
         enabled: true,

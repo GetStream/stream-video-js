@@ -3,6 +3,7 @@ import { DeviceManagerState } from './DeviceManagerState';
 import { isReactNative } from '../helpers/platforms';
 import { getVideoBrowserPermission } from './devices';
 import { RxUtils } from '../store';
+import { Tracer } from '../stats';
 
 export type CameraDirection = 'front' | 'back' | undefined;
 
@@ -18,8 +19,8 @@ export class CameraManagerState extends DeviceManagerState {
     .asObservable()
     .pipe(distinctUntilChanged());
 
-  constructor() {
-    super('stop-tracks', getVideoBrowserPermission());
+  constructor(tracer: Tracer | undefined) {
+    super('stop-tracks', getVideoBrowserPermission(tracer));
   }
 
   /**

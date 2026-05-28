@@ -81,7 +81,7 @@ function useForceSubscriptions() {
     [participants],
   );
   const [subscribedParticipants, setSubscribedParticipants] = useState(
-    new Set<string>(),
+    () => new Set<string>(),
   );
   const subscribedParticipantCount = useMemo(
     () =>
@@ -103,7 +103,7 @@ function useForceSubscriptions() {
       };
     }
     call.state.updateParticipantTracks('videoTrack', changes);
-    call.dynascaleManager.applyTrackSubscriptions();
+    call.trackSubscriptionManager.apply();
     setSubscribedParticipants(new Set(Object.keys(changes)));
   }, []);
 

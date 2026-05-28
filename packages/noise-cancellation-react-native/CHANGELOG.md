@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.6.0...@stream-io/noise-cancellation-react-native-0.7.0) (2026-04-09)
+
+### Features
+
+- callkit/telecom integration ([#2028](https://github.com/GetStream/stream-video-js/issues/2028)) ([d579acd](https://github.com/GetStream/stream-video-js/commit/d579acd1975fb4945e40452b27e372694c737628))
+
+## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.5.1...@stream-io/noise-cancellation-react-native-0.6.0) (2026-03-31)
+
+### Features
+
+- screen share audio ([#2157](https://github.com/GetStream/stream-video-js/issues/2157)) ([ba3b9d8](https://github.com/GetStream/stream-video-js/commit/ba3b9d8c2168d7c1cd66050524a5dc0a0f7e3e6e))
+
 ## [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.5.0...@stream-io/noise-cancellation-react-native-0.5.1) (2026-03-06)
 
 ### Bug Fixes

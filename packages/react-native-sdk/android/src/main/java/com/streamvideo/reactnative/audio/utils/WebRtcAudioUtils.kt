@@ -55,14 +55,78 @@ object WebRtcAudioUtils {
      * what might be the root cause.
      */
     fun logAudioState(tag: String, reactContext: ReactContext) {
-        reactContext.currentActivity?.let {
-            Log.d(tag, "volumeControlStream: " + streamTypeToString(it.volumeControlStream))
-        }
+        Log.d(tag, getAudioStateLog(reactContext))
+    }
+
+    /**
+     * Returns a string containing information about the current audio state.
+     * Similar to logAudioState but returns the information instead of logging it.
+     */
+    fun getAudioStateLog(reactContext: ReactContext): String {
         val audioManager = reactContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        logDeviceInfo(tag)
-        logAudioStateBasic(tag, reactContext, audioManager)
-        logAudioStateVolume(tag, audioManager)
-        logAudioDeviceInfo(tag, audioManager)
+        val sb = StringBuilder()
+
+        // Volume control stream
+        reactContext.currentActivity?.let {
+            sb.appendLine("volumeControlStream: ${streamTypeToString(it.volumeControlStream)}")
+        }
+
+        // Device info
+        sb.appendLine("Android SDK: ${Build.VERSION.SDK_INT}, Release: ${Build.VERSION.RELEASE}, Brand: ${Build.BRAND}, Device: ${Build.DEVICE}, Id: ${Build.ID}, Hardware: ${Build.HARDWARE}, Manufacturer: ${Build.MANUFACTURER}, Model: ${Build.MODEL}, Product: ${Build.PRODUCT}")
+
+        // Basic audio state
+        sb.appendLine("Audio State: audio mode: ${modeToString(audioManager.mode)}, has mic: ${hasMicrophone(reactContext)}, mic muted: ${audioManager.isMicrophoneMute}, music active: ${audioManager.isMusicActive}, speakerphone: ${audioManager.isSpeakerphoneOn}, BT SCO: ${audioManager.isBluetoothScoOn}")
+
+        // Volume info
+        val fixedVolume = audioManager.isVolumeFixed
+        sb.appendLine("  fixed volume=$fixedVolume")
+        if (!fixedVolume) {
+            val streams = intArrayOf(
+                AudioManager.STREAM_VOICE_CALL,
+                AudioManager.STREAM_MUSIC,
+                AudioManager.STREAM_RING,
+                AudioManager.STREAM_ALARM,
+                AudioManager.STREAM_NOTIFICATION,
+                AudioManager.STREAM_SYSTEM
+            )
+            for (stream in streams) {
+                val info = StringBuilder()
+                info.append("  ${streamTypeToString(stream)}: ")
+                info.append("volume=${audioManager.getStreamVolume(stream)}")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    info.append(", min=${audioManager.getStreamMinVolume(stream)}")
+                }
+                info.append(", max=${audioManager.getStreamMaxVolume(stream)}")
+                info.append(", muted=${audioManager.isStreamMute(stream)}")
+                sb.appendLine(info.toString())
+            }
+        }
+
+        // Audio devices
+        val inputDevices = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
+        val outputDevices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+        val devices = inputDevices + outputDevices
+        if (devices.isNotEmpty()) {
+            sb.appendLine("Audio Devices:")
+            for (device in devices) {
+                val info = StringBuilder()
+                info.append("  ${deviceTypeToString(device.type)}")
+                info.append(if (device.isSource) "(in): " else "(out): ")
+                if (device.channelCounts.isNotEmpty()) {
+                    info.append("channels=${device.channelCounts.contentToString()}, ")
+                }
+                if (device.encodings.isNotEmpty()) {
+                    info.append("encodings=${device.encodings.contentToString()}, ")
+                }
+                if (device.sampleRates.isNotEmpty()) {
+                    info.append("sample rates=${device.sampleRates.contentToString()}, ")
+                }
+                info.append("id=${device.id}")
+                sb.appendLine(info.toString())
+            }
+        }
+
+        return sb.toString()
     }
 
     /** Converts AudioDeviceInfo types to local string representation.  */

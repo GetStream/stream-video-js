@@ -10,6 +10,7 @@ import {
   ClientDetails,
   Codec,
   ConnectionQuality,
+  DegradationPreference,
   Error as Error$,
   GoAwayReason,
   ICETrickle as ICETrickle$,
@@ -625,6 +626,10 @@ export interface ParticipantJoined {
    * @generated from protobuf field: stream.video.sfu.models.Participant participant = 2;
    */
   participant?: Participant;
+  /**
+   * @generated from protobuf field: bool is_pinned = 3;
+   */
+  isPinned: boolean;
 }
 /**
  * ParticipantJoined is fired when a user leaves a call
@@ -836,6 +841,10 @@ export interface VideoSender {
    * @generated from protobuf field: int32 publish_option_id = 5;
    */
   publishOptionId: number;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.DegradationPreference degradation_preference = 6;
+   */
+  degradationPreference: DegradationPreference;
 }
 /**
  * sent to users when they need to change the quality of their video
@@ -1561,6 +1570,7 @@ class ParticipantJoined$Type extends MessageType<ParticipantJoined> {
     super('stream.video.sfu.event.ParticipantJoined', [
       { no: 1, name: 'call_cid', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
       { no: 2, name: 'participant', kind: 'message', T: () => Participant },
+      { no: 3, name: 'is_pinned', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
     ]);
   }
 }
@@ -1800,6 +1810,16 @@ class VideoSender$Type extends MessageType<VideoSender> {
         name: 'publish_option_id',
         kind: 'scalar',
         T: 5 /*ScalarType.INT32*/,
+      },
+      {
+        no: 6,
+        name: 'degradation_preference',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.DegradationPreference',
+          DegradationPreference,
+          'DEGRADATION_PREFERENCE_',
+        ],
       },
     ]);
   }

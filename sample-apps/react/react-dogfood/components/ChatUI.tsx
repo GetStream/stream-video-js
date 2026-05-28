@@ -2,26 +2,17 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import {
   Channel,
-  MESSAGE_ACTIONS,
-  MessageInput,
-  SendButtonProps,
+  MessageComposer,
   useChannelStateContext,
   useChatContext,
   VirtualizedMessageList,
   Window,
+  WithComponents,
 } from 'stream-chat-react';
 
 import { Icon, IconButton } from '@stream-io/video-react-sdk';
 
 import { CHANNEL_TYPE } from '.';
-
-const ALLOWED_MESSAGE_ACTIONS = [
-  MESSAGE_ACTIONS.edit,
-  MESSAGE_ACTIONS.delete,
-  MESSAGE_ACTIONS.flag,
-  MESSAGE_ACTIONS.quote,
-  MESSAGE_ACTIONS.react,
-];
 
 const NoMessages = () => {
   const { messages } = useChannelStateContext();
@@ -56,24 +47,13 @@ const NoMessages = () => {
   return null;
 };
 
-const ChatSendButton = ({ sendMessage, ...rest }: SendButtonProps) => {
-  return (
-    <div className="str-chat__send-button-container">
-      <button
-        aria-label="ArrowRightIcon"
-        className="str-chat__send-button"
-        data-testid="send-button"
-        onClick={sendMessage}
-        type="button"
-        {...rest}
-      >
-        <Icon icon="chevron-right" />
-      </button>
-    </div>
-  );
-};
-
 const PaperClipIcon = () => <Icon icon="paperclip" />;
+
+// VirtualizedMessageList decides the floating unread pill's visibility from a
+// timestamp heuristic (no IntersectionObserver), which false-positives on short
+// lists and shows it alongside the inline UnreadMessagesSeparator. Suppress the
+// pill and keep the accurate inline separator.
+const NoUnreadMessagesNotification = () => null;
 
 export const ChatUI = ({
   onClose,
@@ -95,32 +75,33 @@ export const ChatUI = ({
   }, [channelId, channelType, client, router.query, setActiveChannel]);
 
   return (
-    <Channel
-      EmptyStateIndicator={NoMessages}
-      SendButton={ChatSendButton}
-      AttachmentSelectorInitiationButtonContents={PaperClipIcon}
+    <WithComponents
+      overrides={{
+        EmptyStateIndicator: NoMessages,
+        AttachmentSelectorInitiationButtonContents: PaperClipIcon,
+        UnreadMessagesNotification: NoUnreadMessagesNotification,
+      }}
     >
-      <Window>
-        <div className="rd__chat-wrapper">
-          <div className="rd__chat-header">
-            <h2 className="rd__chat-header__title">Chat</h2>
-            <IconButton
-              className="rd__chat-header__icon"
-              onClick={onClose}
-              icon="close"
-            />
+      <Channel>
+        <Window>
+          <div className="rd__chat-wrapper">
+            <div className="rd__chat-header">
+              <h2 className="rd__chat-header__title">Chat</h2>
+              <IconButton
+                className="rd__chat-header__icon"
+                onClick={onClose}
+                icon="close"
+              />
+            </div>
           </div>
-        </div>
-        <VirtualizedMessageList
-          shouldGroupByUser
-          messageActions={ALLOWED_MESSAGE_ACTIONS}
-        />
-        <MessageInput
-          focus
-          maxRows={5}
-          additionalTextareaProps={{ placeholder: 'Send a message' }}
-        />
-      </Window>
-    </Channel>
+          <VirtualizedMessageList shouldGroupByUser />
+          <MessageComposer
+            focus
+            maxRows={5}
+            additionalTextareaProps={{ placeholder: 'Send a message' }}
+          />
+        </Window>
+      </Channel>
+    </WithComponents>
   );
 };

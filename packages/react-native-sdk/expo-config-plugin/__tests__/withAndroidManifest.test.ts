@@ -27,17 +27,12 @@ jest.mock('@expo/config-plugins', () => {
 const readAndroidManifestAsync =
   AndroidConfig.Manifest.readAndroidManifestAsync;
 
-const getMainApplicationOrThrow =
-  AndroidConfig.Manifest.getMainApplicationOrThrow;
-
 const getMainActivityOrThrow = AndroidConfig.Manifest.getMainActivityOrThrow;
 
 const sampleManifestPath = getFixturePath('AndroidManifest.xml');
 
 const props: ConfigProps = {
-  ringingPushNotifications: {
-    disableVideoIos: false,
-  },
+  ringing: true,
   androidPictureInPicture: true,
   androidKeepCallAlive: true,
 };
@@ -57,15 +52,6 @@ describe('withStreamVideoReactNativeSDKManifest', () => {
       config,
       props,
     ) as CustomExpoConfig;
-
-    const mainApp = getMainApplicationOrThrow(updatedConfig.modResults);
-
-    expect(
-      mainApp.service?.some(
-        (service) =>
-          service.$['android:name'] === 'app.notifee.core.ForegroundService',
-      ),
-    ).toBeTruthy();
 
     const mainActivity = getMainActivityOrThrow(updatedConfig.modResults);
 
@@ -104,15 +90,6 @@ describe('withStreamVideoReactNativeSDKManifest', () => {
       modifiedConfig!,
       props,
     ) as CustomExpoConfig;
-
-    const mainApp = getMainApplicationOrThrow(updatedConfig.modResults);
-
-    expect(
-      mainApp.service?.filter(
-        (service) =>
-          service.$['android:name'] === 'app.notifee.core.ForegroundService',
-      ).length,
-    ).toBe(1);
 
     modifiedConfig = updatedConfig;
   });

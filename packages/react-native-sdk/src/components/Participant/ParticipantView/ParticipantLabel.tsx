@@ -1,5 +1,11 @@
 import React, { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import {
   BadNetwork,
   MicOff,
@@ -7,7 +13,11 @@ import {
   ScreenShareIndicator,
   VideoSlash,
 } from '../../../icons';
-import { useCall, useI18n } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useI18n,
+  useIsAudioConnecting,
+} from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { type ParticipantViewProps } from './ParticipantView';
 import { Z_INDEX } from '../../../constants';
@@ -52,14 +62,10 @@ export const ParticipantLabel = ({
   const participantName = name ?? userId;
 
   const participantLabel = isLocalParticipant ? t('You') : participantName;
-  const isPinningEnabled = pin?.isLocalPin;
   const isAudioMuted = !hasAudio(participant);
   const isVideoMuted = !hasVideo(participant);
   const isTrackPaused = trackType && hasPausedTrack(participant, trackType);
-
-  const unPinParticipantHandler = () => {
-    call?.unpin(sessionId);
-  };
+  const isAudioConnecting = useIsAudioConnecting(participant);
 
   if (trackType === 'screenShareTrack') {
     const screenShareText = isLocalParticipant
@@ -109,6 +115,13 @@ export const ParticipantLabel = ({
       ]}
     >
       <View style={styles.wrapper}>
+        {isAudioConnecting && (
+          <ActivityIndicator
+            size="small"
+            color={colors.iconPrimary}
+            style={styles.audioConnectingIndicator}
+          />
+        )}
         <Text style={[styles.userNameLabel, userNameLabel]} numberOfLines={1}>
           {participantLabel}
         </Text>
@@ -133,10 +146,10 @@ export const ParticipantLabel = ({
             <BadNetwork color={colors.iconPrimary} size={iconSizes.sm} />
           </View>
         )}
-        {isPinningEnabled && (
+        {pin && (
           <Pressable
             style={[styles.pinIconContainer, pinIconContainer]}
-            onPress={unPinParticipantHandler}
+            onPress={pin.isLocalPin ? () => call?.unpin(sessionId) : undefined}
           >
             <PinVertical color={colors.iconPrimary} size={iconSizes.sm} />
           </Pressable>
@@ -178,6 +191,10 @@ const useStyles = () => {
           fontSize: 13,
           fontWeight: '400',
           color: theme.colors.textPrimary,
+        },
+        audioConnectingIndicator: {
+          marginRight: theme.variants.spacingSizes.sm,
+          justifyContent: 'center',
         },
         screenShareIconContainer: {
           marginRight: theme.variants.spacingSizes.sm,

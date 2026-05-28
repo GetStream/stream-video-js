@@ -32,13 +32,10 @@ import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Alert, LogBox } from 'react-native';
+import { Alert, Appearance, LogBox } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
-import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import {
   defaultTheme,
-  isPushNotificationiOSStreamVideoEvent,
-  onPushNotificationiOSStreamVideoEvent,
   StreamTheme,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
@@ -72,19 +69,12 @@ const StackNavigator = () => {
       ? appTheme.colors.static_white
       : defaultTheme.colors.sheetPrimary;
 
+  useEffect(() => {
+    Appearance.setColorScheme(themeMode);
+  }, [themeMode]);
+
   useDeepLinkEffect();
   useSyncPermissions();
-
-  useEffect(() => {
-    PushNotificationIOS.addEventListener('notification', (notification) => {
-      if (isPushNotificationiOSStreamVideoEvent(notification)) {
-        onPushNotificationiOSStreamVideoEvent(notification);
-      }
-    });
-    return () => {
-      PushNotificationIOS.removeEventListener('notification');
-    };
-  }, []);
 
   let mode;
   switch (appMode) {
@@ -183,30 +173,17 @@ const StackNavigator = () => {
 };
 
 /**
- * This component is used to watch for incoming calls and set the app mode to 'Call'
+ * This component is used to watch for ringing calls and set the app mode to 'Call'
  */
 const RingingWatcher = () => {
   const setState = useAppGlobalStoreSetState();
-  const calls = useCalls().filter((c) => c.ringing);
+  const hasRingingCall = useCalls().some((c) => c.ringing);
 
   useEffect(() => {
-    if (calls.length > 1) {
-      const lastCallCreatedBy = calls.at(-1)?.state.createdBy;
-      Alert.alert(
-        `Incoming call from ${
-          lastCallCreatedBy?.name ?? lastCallCreatedBy?.id
-        }, only 1 call at a time is supported`,
-      );
-    }
-  }, [calls]);
-
-  const firstCall = calls[0];
-
-  useEffect(() => {
-    if (firstCall) {
+    if (hasRingingCall) {
       setState({ appMode: 'Call' });
     }
-  }, [firstCall, setState]);
+  }, [hasRingingCall, setState]);
 
   return null;
 };

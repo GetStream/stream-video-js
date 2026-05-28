@@ -3,6 +3,7 @@ import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
 import { AllSfuEvents } from '../../rtc';
 import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 import type { DevicePersistenceOptions } from '../../devices/devicePersistence';
+import { InputDeviceStatus } from '../../devices';
 
 export type UR = Record<string, unknown>;
 
@@ -39,6 +40,21 @@ export type APIErrorResponse = {
   StatusCode: number;
   details?: ErrorResponseDetails;
   unrecoverable?: boolean;
+};
+
+/**
+ * A standard `Error` augmented with the metadata that the coordinator
+ * WebSocket connection layer attaches to rejection causes.
+ * `isWSFailure: true` marks transient/retriable failures; absent or `false`
+ * indicates a permanent failure that should not be retried.
+ */
+export type WSConnectionError = Error & {
+  code?: string | number;
+  isWSFailure?: boolean;
+  StatusCode?: string | number;
+  reason?: string;
+  wasClean?: boolean;
+  target?: EventTarget | null;
 };
 
 export class ErrorFromResponse<T> extends Error {
@@ -126,6 +142,27 @@ export type MicCaptureReportEvent = {
   label?: string;
 };
 
+export type DeviceDisconnectedEvent = {
+  type: 'device.disconnected';
+  call_cid: string;
+  /**
+   * The device status at the time it was disconnected.
+   */
+  status: InputDeviceStatus;
+  /**
+   * The disconnected device ID.
+   */
+  deviceId: string;
+  /**
+   * The human-readable label of the disconnected device.
+   */
+  label?: string;
+  /**
+   * The disconnected device kind.
+   */
+  kind: MediaDeviceKind;
+};
+
 export type StreamVideoEvent = (
   | VideoEvent
   | NetworkChangedEvent
@@ -133,6 +170,7 @@ export type StreamVideoEvent = (
   | TransportChangedEvent
   | ConnectionRecoveredEvent
   | MicCaptureReportEvent
+  | DeviceDisconnectedEvent
 ) & { received_at?: string | Date };
 
 // TODO: we should use WSCallEvent here but that needs fixing

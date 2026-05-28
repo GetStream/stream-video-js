@@ -4,15 +4,14 @@ import {
   StreamVideoClient,
   videoLoggerSystem,
 } from '@stream-io/video-client';
-import type {
-  NonRingingPushEvent,
-  StreamVideoConfig,
-} from '../../StreamVideoRN/types';
-import { onNewCallNotification } from '../../internal/newNotificationCallbacks';
+import type { StreamVideoConfig } from '../../StreamVideoRN/types';
 import { pushUnsubscriptionCallbacks } from './constants';
+import { AppState } from 'react-native';
+import type { EndCallReason } from '@stream-io/react-native-callingx';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
+const logger = videoLoggerSystem.getLogger('callingx');
 type CanAddPushWSSubscriptionsRef = { current: boolean };
 
 /**
@@ -24,44 +23,40 @@ export const shouldCallBeEnded = (
   created_by_id: string | undefined,
   receiver_id: string | undefined,
 ) => {
-  /* callkeep reasons for ending a call
-    FAILED: 1,
-    REMOTE_ENDED: 2,
-    UNANSWERED: 3,
-    ANSWERED_ELSEWHERE: 4,
-    DECLINED_ELSEWHERE: 5,
-    MISSED: 6
-  */
   const callSession = callFromPush.state.session;
   const rejected_by = callSession?.rejected_by;
   const accepted_by = callSession?.accepted_by;
   let mustEndCall = false;
-  let callkeepReason = 0;
-  if (created_by_id && rejected_by) {
+  let endCallReason: EndCallReason = 'unknown';
+
+  if (callFromPush.state.endedAt) {
+    mustEndCall = true;
+    endCallReason = 'remote';
+  } else if (created_by_id && rejected_by) {
     if (rejected_by[created_by_id]) {
-      // call was cancelled by the caller
+      // call was cancelled by the caller before the receiver could answer
       mustEndCall = true;
-      callkeepReason = 2;
+      endCallReason = 'canceled';
     }
   } else if (receiver_id && rejected_by) {
     if (rejected_by[receiver_id]) {
       // call was rejected by the receiver in some other device
       mustEndCall = true;
-      callkeepReason = 5;
+      endCallReason = 'rejected';
     }
   } else if (receiver_id && accepted_by) {
     if (accepted_by[receiver_id]) {
       // call was accepted by the receiver in some other device
       mustEndCall = true;
-      callkeepReason = 4;
+      endCallReason = 'answeredElsewhere';
     }
   }
   videoLoggerSystem
     .getLogger('shouldCallBeEnded')
     .debug(
-      `callCid: ${callFromPush.cid} mustEndCall: ${mustEndCall} callkeepReason: ${callkeepReason}`,
+      `callCid: ${callFromPush.cid} mustEndCall: ${mustEndCall} endCallReason: ${endCallReason}`,
     );
-  return { mustEndCall, callkeepReason };
+  return { mustEndCall, endCallReason };
 };
 
 /* An action for the notification or callkeep and app does not have JS context setup yet, so we need to do two steps:
@@ -71,105 +66,96 @@ export const shouldCallBeEnded = (
 export const processCallFromPushInBackground = async (
   pushConfig: PushConfig,
   call_cid: string,
-  action: Parameters<typeof processCallFromPush>[2],
+  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
+  /**
+   * Callback to inform iOS CallKit that the action can be fulfilled
+   * Needed for iOS CallKit fullfillment of action
+   * as per ios docs "Instead, wait until you establish a connection and then fulfill the object."
+   * This means we wait until call.get() is done and call.join() or call.leave() is invoked (not completed) to fulfill the action
+   */
+  onIOSActionCanBeFulfilled: (didFail: boolean) => void,
 ) => {
   let videoClient: StreamVideoClient | undefined;
 
   try {
     videoClient = await pushConfig.createStreamVideoClient();
     if (!videoClient) {
+      throw new Error('createStreamVideoClient returned null');
+    }
+  } catch (e) {
+    logger.error(
+      'processCallFromPushInBackground: failed to create video client',
+      e,
+    );
+    onIOSActionCanBeFulfilled(true);
+    return;
+  }
+
+  let callFromPush: Call;
+  try {
+    callFromPush = await videoClient.onRingingCall(call_cid);
+  } catch (e) {
+    logger.error(
+      'processCallFromPushInBackground: failed to fetch call from push notification',
+      e,
+    );
+    onIOSActionCanBeFulfilled(true);
+    return;
+  }
+  if (action === 'accept') {
+    if (pushConfig.publishOptions) {
+      callFromPush.updatePublishOptions(pushConfig.publishOptions);
+    }
+    logger.debug(
+      `joining call from push notification with callCid: ${callFromPush.cid}`,
+    );
+    const callingState = callFromPush.state.callingState;
+    if (
+      callingState !== CallingState.RINGING &&
+      callingState !== CallingState.IDLE
+    ) {
+      logger.debug(
+        `skipping join call as it is not in ringing or idle state from push notification. callCid: ${callFromPush.cid}`,
+      );
+      onIOSActionCanBeFulfilled(true);
       return;
     }
-  } catch (e) {
-    const logger = videoLoggerSystem.getLogger(
-      'processCallFromPushInBackground',
-    );
-    logger.error('failed to create video client', e);
-    return;
-  }
-  await processCallFromPush(videoClient, call_cid, action, pushConfig);
-};
-
-/**
- * This function is used process the call from push notifications due to incoming call
- * It does the following steps:
- * 1. Get the call from the client if present or create a new call
- * 2. Fetch the latest state of the call from the server if its not already in ringing state
- * 3. Join or leave the call based on the user's action.
- */
-export const processCallFromPush = async (
-  client: StreamVideoClient,
-  call_cid: string,
-  action: 'accept' | 'decline' | 'pressed' | 'backgroundDelivered',
-  pushConfig: PushConfig,
-) => {
-  let callFromPush: Call;
-  try {
-    callFromPush = await client.onRingingCall(call_cid);
-  } catch (e) {
-    const logger = videoLoggerSystem.getLogger('processCallFromPush');
-    logger.error('failed to fetch call from push notification', e);
-    return;
-  }
-  // note: when action was pressed or delivered, we dont need to do anything as the only thing is to do is to get the call which adds it to the client
-  try {
-    if (action === 'accept') {
-      if (pushConfig.publishOptions) {
-        callFromPush.updatePublishOptions(pushConfig.publishOptions);
-      }
-      videoLoggerSystem
-        .getLogger('processCallFromPush')
-        .debug(
-          `joining call from push notification with callCid: ${callFromPush.cid}`,
-        );
+    try {
+      onIOSActionCanBeFulfilled(false);
       await callFromPush.join();
-    } else if (action === 'decline') {
-      const canReject =
-        callFromPush.state.callingState === CallingState.RINGING;
-      videoLoggerSystem
-        .getLogger('processCallFromPush')
-        .debug(
-          `declining call from push notification with callCid: ${callFromPush.cid} reject: ${canReject}`,
-        );
-      await callFromPush.leave({ reject: canReject, reason: 'decline' });
+    } catch (e) {
+      logger.warn(
+        'processCallFromPushInBackground: failed to join call from push notification',
+        e,
+      );
     }
-  } catch (e) {
-    const logger = videoLoggerSystem.getLogger('processCallFromPush');
-    logger.warn(`failed to process ${action} call from push notification`, e);
-  }
-};
-
-/**
- * This function is used process the call from push notifications due to non ringing calls
- * It does the following steps:
- * 1. Get the call from the client if present or create a new call
- * 2. Fetch the latest state of the call from the server
- * 3. Call all the callbacks to inform the app about the call
- */
-export const processNonIncomingCallFromPush = async (
-  client: StreamVideoClient,
-  call_cid: string,
-  nonRingingNotificationType: NonRingingPushEvent,
-) => {
-  let callFromPush: Call;
-  try {
-    const _callFromPush = client.state.calls.find((c) => c.cid === call_cid);
-    if (_callFromPush) {
-      callFromPush = _callFromPush;
-    } else {
-      // if not it means that WS is not alive when receiving the push notifications and we need to fetch the call
-      const [callType, callId] = call_cid.split(':');
-      callFromPush = client.call(callType as string, callId as string);
-      await callFromPush.get();
+  } else if (action === 'decline') {
+    const alreadyLeft = callFromPush.state.callingState === CallingState.LEFT;
+    if (alreadyLeft) {
+      onIOSActionCanBeFulfilled(false);
+      return;
     }
-  } catch (e) {
-    const logger = videoLoggerSystem.getLogger(
-      'processNonIncomingCallFromPush',
+    const canReject =
+      callFromPush.state.callingState === CallingState.RINGING ||
+      callFromPush.state.callingState === CallingState.IDLE;
+    const isCurrentUserMember = callFromPush.state.members.some(
+      (member) => member.user_id === callFromPush.currentUserId,
     );
-    logger.error('failed to fetch call from push notification', e);
-    return;
+    const reject = canReject && isCurrentUserMember;
+    logger.debug(
+      `declining call from push notification with callCid: ${callFromPush.cid} reject: ${reject}`,
+    );
+    try {
+      await callFromPush.leave({ reject, reason: 'decline' });
+      onIOSActionCanBeFulfilled(false);
+    } catch (e) {
+      logger.warn(
+        'processCallFromPushInBackground: failed to decline call from push notification',
+        e,
+      );
+      onIOSActionCanBeFulfilled(true);
+    }
   }
-  onNewCallNotification(callFromPush, nonRingingNotificationType);
 };
 
 /**
@@ -190,4 +176,22 @@ export const clearPushWSEventSubscriptions = (call_cid: string) => {
  */
 export const canAddPushWSSubscriptionsRef: CanAddPushWSSubscriptionsRef = {
   current: true,
+};
+
+export const canListenToWS = () =>
+  canAddPushWSSubscriptionsRef.current && AppState.currentState !== 'active';
+
+export const shouldCallBeClosed = (
+  call: Call,
+  pushData: { [key: string]: string | object },
+) => {
+  const created_by_id = pushData?.created_by_id as string;
+  const receiver_id = pushData?.receiver_id as string;
+
+  const { mustEndCall, endCallReason } = shouldCallBeEnded(
+    call,
+    created_by_id,
+    receiver_id,
+  );
+  return { mustEndCall, endCallReason };
 };

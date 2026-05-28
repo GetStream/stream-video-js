@@ -15,18 +15,17 @@ const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
       }
     }
     addBackgroundMode('audio');
-    if (props?.ringingPushNotifications) {
+    if (props?.ringing || props?.iosKeepCallAlive) {
       addBackgroundMode('voip');
+    }
+    if (props?.ringing) {
       addBackgroundMode('fetch');
       addBackgroundMode('processing');
       config.modResults['BGTaskSchedulerPermittedIdentifiers'] = [
         '$(PRODUCT_BUNDLE_IDENTIFIER)',
       ];
     }
-    if (
-      props?.enableNonRingingPushNotifications ||
-      props?.ringingPushNotifications
-    ) {
+    if (props?.enableNonRingingPushNotifications || props?.ringing) {
       addBackgroundMode('remote-notification');
     }
     return config;

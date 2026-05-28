@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import type { Event, StreamChat } from 'stream-chat';
+import type { Channel, StreamChat } from 'stream-chat';
 
 import { CHANNEL_TYPE } from '../components';
 
@@ -13,35 +13,28 @@ export const useWatchChannel = ({
   channelId?: string;
   channelType?: string;
 }) => {
-  const [channelWatched, setChannelWatched] = useState(false);
+  const [channel, setChannel] = useState<Channel | undefined>();
   const router = useRouter();
 
   useEffect(() => {
     if (!client) return;
     const type = (router.query['channel_type'] as string) || channelType;
-    const channel = client.channel(type, channelId);
-    // initiate watching now so we can receive message events
-    const watchingPromise = channel.watch();
+    const ch = client.channel(type, channelId);
+    let cancelled = false;
+
+    ch.watch()
+      .then(() => {
+        if (!cancelled) setChannel(ch);
+      })
+      .catch((err) => {
+        console.warn('Failed to watch chat channel', err);
+      });
 
     return () => {
-      watchingPromise.then(() => {
-        // channel.stopWatching();
-      });
+      cancelled = true;
+      setChannel(undefined);
     };
   }, [client, channelId, channelType, router.query]);
 
-  useEffect(() => {
-    if (!client) return;
-    const cid = `${channelType}:${channelId}`;
-    const handleEvent = (event: Event) => {
-      if (event?.cid === cid) setChannelWatched(true);
-    };
-
-    client.on('user.watching.start', handleEvent);
-    return () => {
-      client.off('user.watching.start', handleEvent);
-    };
-  }, [client, channelType, channelId]);
-
-  return channelWatched;
+  return { channel, channelWatched: !!channel };
 };

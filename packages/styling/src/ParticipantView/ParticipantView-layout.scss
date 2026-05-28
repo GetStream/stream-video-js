@@ -72,6 +72,14 @@ $scope-name: 'str-video__participant-view';
         mask-image: var(--str-video__icon--mic-off);
       }
 
+      .str-video__participant-details__name--audio-connecting {
+        .str-video__loading-indicator__icon {
+          width: 1rem;
+          height: 1rem;
+          border-width: 2px;
+        }
+      }
+
       .str-video__participant-details__name--video-muted {
         @include icon();
         -webkit-mask-image: var(--str-video__icon--camera-off);

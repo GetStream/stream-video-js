@@ -97,10 +97,11 @@ export function DevicesDash() {
 }
 
 function useVideoDevices() {
+  const call = useCall();
   const devices$ = useMemo(() => getVideoDevices(), []);
   const permission$ = useMemo(
-    () => getVideoBrowserPermission().asObservable(),
-    [],
+    () => getVideoBrowserPermission(call?.tracer).asObservable(),
+    [call],
   );
 
   return {
@@ -110,10 +111,11 @@ function useVideoDevices() {
 }
 
 function useAudioDevices() {
+  const call = useCall();
   const devices$ = useMemo(() => getAudioDevices(), []);
   const permission$ = useMemo(
-    () => getAudioBrowserPermission().asObservable(),
-    [],
+    () => getAudioBrowserPermission(call?.tracer).asObservable(),
+    [call],
   );
 
   return {

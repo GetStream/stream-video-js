@@ -7,12 +7,7 @@ import {
   KeyboardAvoidingView,
   Alert,
 } from 'react-native';
-import {
-  isExpoNotificationStreamVideoEvent,
-  oniOSExpoNotificationEvent,
-  useCalls,
-} from '@stream-io/video-react-native-sdk';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useCalls } from '@stream-io/video-react-native-sdk';
 import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import { NavigationHeader } from '../components/NavigationHeader';
@@ -32,21 +27,6 @@ export default function CreateCallScreen() {
       }
     };
     requestPermissions();
-
-    if (Platform.OS === 'ios') {
-      // This listener is fired whenever a notification is received while the app is foregrounded.
-      // here the notification payload is processed and the call is added to the low level client state
-      const subscription = Notifications.addNotificationReceivedListener(
-        (notification) => {
-          if (isExpoNotificationStreamVideoEvent(notification)) {
-            oniOSExpoNotificationEvent(notification);
-          }
-        },
-      );
-      return () => {
-        subscription.remove();
-      };
-    }
   }, []);
 
   const calls = useCalls().filter((c) => c.ringing);
@@ -75,12 +55,10 @@ export default function CreateCallScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <NavigationHeader />
-      <SafeAreaView style={styles.createCallContainer}>
-        <ScrollView>
-          <CreateMeetingCall />
-          <CreateRingingCall />
-        </ScrollView>
-      </SafeAreaView>
+      <ScrollView style={styles.createCallContainer}>
+        <CreateMeetingCall />
+        <CreateRingingCall />
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

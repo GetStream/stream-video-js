@@ -50,7 +50,9 @@ export const BottomControls = ({
           />
           <ToggleAudioPublishingButton />
           <ToggleVideoPublishingButton />
-          <ScreenShareToggleButton />
+          <ScreenShareToggleButton
+            screenShareOptions={{ type: 'inApp', includeAudio: true }}
+          />
           <RecordCallButton
             toggleCallRecording={toggleCallRecording}
             isAwaitingResponse={isAwaitingResponse}
@@ -83,12 +85,20 @@ const SubtitleContainer = ({
     useCallStateHooks();
   const isCaptioningInProgress = useIsCallCaptioningInProgress();
   const { isSpeakingWhileMuted } = useMicrophoneState();
+  const {
+    theme: {
+      variants: { insets },
+    },
+  } = useTheme();
   if (!isCaptioningInProgress || !isSpeakingWhileMuted) {
     return null;
   }
   return (
     <View
-      style={[styles.subtitleContainer, { bottom: controlsContainerHeight }]}
+      style={[
+        styles.subtitleContainer,
+        { bottom: controlsContainerHeight + insets.bottom },
+      ]}
     >
       <ClosedCaptions />
       <View style={styles.speakingLabelContainer}>

@@ -3,6 +3,7 @@ import { ComponentType } from 'react';
 import { DominantSpeaker, DominantSpeakerScreenShare } from './DominantSpeaker';
 import { PaginatedGrid } from './PaginatedGrid';
 import { Spotlight } from './Spotlight';
+import { useNotifyEgressReady } from '../../hooks';
 
 // NOTE: with the current setup of the app, using this layout breaks in DEV mode.
 // The reason for it seems to be yarn and how `workspace:^` versions are resolved.
@@ -36,7 +37,10 @@ export type ScreenshareLayout =
   | 'skool';
 
 const CustomSkoolStreamLayout = () => {
-  return <SkoolStreamLayout excludeLocalParticipant />;
+  const notifyReady = useNotifyEgressReady();
+  return (
+    <SkoolStreamLayout excludeLocalParticipant notifyReady={notifyReady} />
+  );
 };
 
 export const layoutMap: Record<
