@@ -1717,9 +1717,7 @@ export class Call {
           await this.networkAvailableTask?.promise;
 
           this.logger.info(
-            `[Reconnect] Reconnecting with strategy ${
-              WebsocketReconnectStrategy[this.reconnectStrategy]
-            }`,
+            `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[this.reconnectStrategy]}`,
           );
 
           switch (this.reconnectStrategy) {
@@ -2821,11 +2819,7 @@ export class Call {
       this.leave({
         reject: true,
         reason: 'timeout',
-        message: `ringing timeout - ${
-          this.isCreatedByMe
-            ? 'no one accepted'
-            : `user didn't interact with incoming call screen`
-        }`,
+        message: `ringing timeout - ${this.isCreatedByMe ? 'no one accepted' : `user didn't interact with incoming call screen`}`,
       }).catch((err) => {
         this.logger.error('Failed to drop call', err);
       });
@@ -2886,9 +2880,7 @@ export class Call {
     filename: string,
   ): Promise<DeleteRecordingResponse> => {
     return this.streamClient.delete<DeleteRecordingResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(
-        callSessionId,
-      )}/recordings/${encodeURIComponent(filename)}`,
+      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/recordings/${encodeURIComponent(filename)}`,
     );
   };
 
@@ -2903,9 +2895,7 @@ export class Call {
     filename: string,
   ): Promise<DeleteTranscriptionResponse> => {
     return this.streamClient.delete<DeleteTranscriptionResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(
-        callSessionId,
-      )}/transcriptions/${encodeURIComponent(filename)}`,
+      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/transcriptions/${encodeURIComponent(filename)}`,
     );
   };
 
