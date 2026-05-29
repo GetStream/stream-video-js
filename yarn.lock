@@ -7572,7 +7572,6 @@ __metadata:
     "@react-native-firebase/app": "npm:^24.0.0"
     "@react-native-firebase/messaging": "npm:^24.0.0"
     "@react-native/metro-config": "npm:^0.85.3"
-    "@react-navigation/native": "npm:^7.2.5"
     "@stream-io/react-native-callingx": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:137.2.0"
     "@stream-io/video-react-native-sdk": "workspace:^"
