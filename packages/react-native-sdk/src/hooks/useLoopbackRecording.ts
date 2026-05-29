@@ -17,7 +17,9 @@ const { StreamVideoReactNative } = NativeModules;
 // this includes connection setup; consumers that want shorter feedback
 // should call `stopRecording` to cancel the wait early.
 const STREAMS_WAIT_TIMEOUT_MS = 10 * 1000;
-const RECORDING_DURATION = 10 * 1000;
+const DEFAULT_RECORDING_DURATION = 10 * 1000;
+const MIN_RECORDING_DURATION = 5 * 1000;
+const MAX_RECORDING_DURATION = 2 * 60 * 1000;
 
 type LoopbackStreams = {
   loopbackVideoStream?: MediaStream;
@@ -38,6 +40,14 @@ export interface StartLoopbackRecordingOptions {
    * Audio is always recorded — there is no video-only mode.
    */
   includeVideo?: boolean;
+  /**
+   * Maximum recording duration in milliseconds, after which the
+   * recording auto-stops and finalises the file.
+   *
+   * Defaults to `10_000` (10 seconds). Clamped to
+   * `[5_000, 120_000]` (5 seconds — 2 minutes).
+   */
+  maxDurationMs?: number;
 }
 
 export interface UseLoopbackRecordingResult {
@@ -156,6 +166,7 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
   const startRecording = useCallback(
     async ({
       includeVideo = true,
+      maxDurationMs = DEFAULT_RECORDING_DURATION,
     }: StartLoopbackRecordingOptions = {}): Promise<string | null> => {
       if (!call) {
         return null;
@@ -202,10 +213,15 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
         }
         updateState('recording');
 
+        const clampedDuration = Math.min(
+          MAX_RECORDING_DURATION,
+          Math.max(MIN_RECORDING_DURATION, maxDurationMs),
+        );
+
         const uri: string | null =
           await StreamVideoReactNative.startTrackRecording({
             videoTrackId,
-            maxDurationMs: Math.round(RECORDING_DURATION),
+            maxDurationMs: Math.round(clampedDuration),
           });
         return uri;
       } finally {

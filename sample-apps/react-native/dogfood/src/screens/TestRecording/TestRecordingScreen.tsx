@@ -2,6 +2,7 @@ import {
   Call,
   CallingState,
   StreamCall,
+  useCall,
   useCallStateHooks,
   useLoopbackRecording,
   useStreamVideoClient,
@@ -61,19 +62,18 @@ export const TestRecordingScreen = ({ navigation }: Props) => {
 
   return (
     <StreamCall call={call}>
-      <TestRecordingContent call={call} navigation={navigation} />
+      <TestRecordingContent navigation={navigation} />
     </StreamCall>
   );
 };
 
 const TestRecordingContent = ({
-  call,
   navigation,
 }: {
-  call: Call;
   navigation: Props['navigation'];
 }) => {
   const styles = useStyles();
+  const call = useCall();
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
@@ -98,6 +98,8 @@ const TestRecordingContent = ({
     setError(null);
 
     try {
+      if (!call) return;
+
       call.setStatsReportingIntervalInMs(500);
       await call.join({ create: true, selfSubEnabled: true });
       const uri = await startRecording();
@@ -107,7 +109,7 @@ const TestRecordingContent = ({
       console.error(e);
       setError(String(e));
     } finally {
-      call.leave().catch(() => {});
+      call?.leave().catch(() => {});
     }
   }, [call, navigation, startRecording]);
 
