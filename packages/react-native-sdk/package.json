@@ -115,6 +115,7 @@
     "@react-native-firebase/app": "^24.0.0",
     "@react-native-firebase/messaging": "^24.0.0",
     "@react-native/babel-preset": "0.85.3",
+    "@react-native/metro-config": "0.85.3",
     "@stream-io/noise-cancellation-react-native": "workspace:^",
     "@stream-io/react-native-callingx": "workspace:^",
     "@stream-io/react-native-webrtc": "137.2.0",

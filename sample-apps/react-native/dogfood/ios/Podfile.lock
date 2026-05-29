@@ -2467,7 +2467,7 @@ PODS:
     - Yoga
   - StreamVideoNoiseCancellation (1.0.3)
   - StreamWebRTC (137.0.75)
-  - Teleport (0.5.6):
+  - Teleport (1.1.7):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2488,9 +2488,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - Teleport/common (= 0.5.6)
+    - Teleport/common (= 1.1.7)
     - Yoga
-  - Teleport/common (0.5.6):
+  - Teleport/common (1.1.7):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2927,7 +2927,7 @@ SPEC CHECKSUMS:
   stream-video-react-native: 9bf4d74385422a332e4f04210879b70442a2bf2c
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: 2715e909ed87ef9247532137d384f82c914d1653
-  Teleport: 21d00c012093e678629b203070948727ed783bb6
+  Teleport: 58dccc8594d74a77cdc2a2191b60656f9aaac743
   VisionCamera: b51af005669c6642dd1b4fca434eda4c1778de87
   Yoga: e240fec777ff1f21ef42ccebbb44b6d262125855
 

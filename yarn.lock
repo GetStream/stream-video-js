@@ -6098,7 +6098,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/metro-config@npm:^0.85.3":
+"@react-native/metro-config@npm:0.85.3, @react-native/metro-config@npm:^0.85.3":
   version: 0.85.3
   resolution: "@react-native/metro-config@npm:0.85.3"
   dependencies:
@@ -7152,6 +7152,7 @@ __metadata:
     "@react-native-community/netinfo": "npm:12.0.1"
     "@react-native-firebase/app": "npm:^24.0.0"
     "@react-native-firebase/messaging": "npm:^24.0.0"
+    "@react-native/metro-config": "npm:^0.85.3"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:137.2.0"
@@ -7169,6 +7170,7 @@ __metadata:
     expo-splash-screen: "npm:~56.0.10"
     expo-system-ui: "npm:~56.0.5"
     react: "npm:19.2.3"
+    react-dom: "npm:19.2.3"
     react-native: "npm:0.85.3"
     react-native-gesture-handler: "npm:~2.31.2"
     react-native-reanimated: "npm:4.3.1"
@@ -7176,7 +7178,7 @@ __metadata:
     react-native-screens: "npm:4.25.2"
     react-native-svg: "npm:15.15.5"
     react-native-worklets: "npm:0.8.3"
-    typescript: "npm:~5.9.3"
+    typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
 
@@ -7554,6 +7556,7 @@ __metadata:
     axios: "npm:^1.16.1"
     babel-plugin-react-compiler: "npm:^1.0.0"
     react: "npm:19.2.3"
+    react-dom: "npm:19.2.3"
     react-native: "npm:0.85.3"
     react-native-blob-util: "npm:^0.22.2"
     react-native-device-info: "npm:^14.1.1"
@@ -7566,7 +7569,7 @@ __metadata:
     react-native-safe-area-context: "npm:~5.8.0"
     react-native-screens: "npm:4.25.2"
     react-native-svg: "npm:15.15.5"
-    react-native-teleport: "npm:^0.5.6"
+    react-native-teleport: "npm:^1.1.7"
     react-native-toast-message: "npm:^2.3.3"
     react-native-video: "npm:^6.19.2"
     react-native-vision-camera: "npm:^4.7.3"
@@ -7590,6 +7593,7 @@ __metadata:
     "@react-native-community/netinfo": "npm:12.0.1"
     "@react-native-firebase/app": "npm:^24.0.0"
     "@react-native-firebase/messaging": "npm:^24.0.0"
+    "@react-native/metro-config": "npm:^0.85.3"
     "@react-navigation/native": "npm:^7.2.5"
     "@stream-io/react-native-callingx": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:137.2.0"
@@ -7606,6 +7610,7 @@ __metadata:
     expo-system-ui: "npm:~56.0.5"
     expo-web-browser: "npm:~56.0.5"
     react: "npm:19.2.3"
+    react-dom: "npm:19.2.3"
     react-native: "npm:0.85.3"
     react-native-gesture-handler: "npm:~2.31.2"
     react-native-reanimated: "npm:4.3.1"
@@ -7613,7 +7618,7 @@ __metadata:
     react-native-screens: "npm:4.25.2"
     react-native-svg: "npm:15.15.5"
     react-native-worklets: "npm:0.8.3"
-    typescript: "npm:~5.9.3"
+    typescript: "npm:^5.9.3"
   languageName: unknown
   linkType: soft
 
@@ -7629,6 +7634,7 @@ __metadata:
     "@react-native-firebase/app": "npm:^24.0.0"
     "@react-native-firebase/messaging": "npm:^24.0.0"
     "@react-native/babel-preset": "npm:0.85.3"
+    "@react-native/metro-config": "npm:0.85.3"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:137.2.0"
@@ -19581,14 +19587,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-teleport@npm:^0.5.6":
-  version: 0.5.6
-  resolution: "react-native-teleport@npm:0.5.6"
+"react-native-teleport@npm:^1.1.7":
+  version: 1.1.7
+  resolution: "react-native-teleport@npm:1.1.7"
   peerDependencies:
     react: "*"
     react-dom: "*"
     react-native: "*"
-  checksum: 10/cf53f37287fd9becaecb57dc50961b56f5623f86a3490f61b082f5267a65acdd9d06cd5b318d1e6ec183f87fdaddc768ca6f0082670f1c50ca5786dc3957a6f1
+  checksum: 10/61793da786065e0a2189c5c1fc5031c270485d2fcf69919e0f933f262c890a299524b3fe00bff56fcb0ebacd43ececf58472a0cf9d93a13804d58f5d32a66633
   languageName: node
   linkType: hard
 
@@ -22439,7 +22445,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.9.3, typescript@npm:~5.9.3":
+"typescript@npm:^5.9.3":
   version: 5.9.3
   resolution: "typescript@npm:5.9.3"
   bin:
@@ -22449,7 +22455,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.9.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A~5.9.3#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^5.9.3#optional!builtin<compat/typescript>":
   version: 5.9.3
   resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
   bin:
