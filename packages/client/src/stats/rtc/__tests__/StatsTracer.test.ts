@@ -65,6 +65,24 @@ describe('StatsTracer timestamp drift correction', () => {
     expect(delta.timestamp).toBe(WALL_NOW);
   });
 
+  it('clamps local (non-remote) stat types when their timestamps are stale (past drift)', async () => {
+    const report = makeReport([
+      { id: 'a', timestamp: WALL_NOW + 2000 },
+      { id: 'b', timestamp: WALL_NOW - 10_000 },
+    ]);
+    const tracer = new StatsTracer(
+      makePc(report),
+      PeerType.SUBSCRIBER,
+      new Map(),
+      THRESHOLD_MS,
+    );
+
+    const { delta } = await tracer.get();
+
+    expect(delta['b'].timestamp).toBe(WALL_NOW);
+    expect(delta.timestamp).toBe(WALL_NOW + 2000);
+  });
+
   it('keeps timestamps with drift exactly at the threshold (exclusive boundary)', async () => {
     const report = makeReport([
       { id: 'a', timestamp: WALL_NOW },
