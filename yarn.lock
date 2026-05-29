@@ -7523,6 +7523,7 @@ __metadata:
     "@react-native/babel-preset": "npm:^0.85.3"
     "@react-native/metro-config": "npm:^0.85.3"
     "@react-native/typescript-config": "npm:^0.85.3"
+    "@react-navigation/elements": "npm:^2.9.19"
     "@react-navigation/native": "npm:^7.2.5"
     "@react-navigation/native-stack": "npm:^7.16.0"
     "@stream-io/noise-cancellation-react-native": "workspace:^"

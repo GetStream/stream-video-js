@@ -18,6 +18,7 @@
     "@react-native-community/push-notification-ios": "^1.12.0",
     "@react-native-firebase/app": "^24.0.0",
     "@react-native-firebase/messaging": "^24.0.0",
+    "@react-navigation/elements": "^2.9.19",
     "@react-navigation/native": "^7.2.5",
     "@react-navigation/native-stack": "^7.16.0",
     "@stream-io/noise-cancellation-react-native": "workspace:^",
@@ -68,5 +69,12 @@
   },
   "installConfig": {
     "hoistingLimits": "workspaces"
+  },
+  "reanimated": {
+    "staticFeatureFlags": {
+      "USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS": true,
+      "USE_SYNCHRONIZABLE_FOR_MUTABLES": true,
+      "FORCE_REACT_RENDER_FOR_SETTLED_ANIMATIONS": false
+    }
   }
 }
