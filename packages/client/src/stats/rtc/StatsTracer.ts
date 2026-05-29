@@ -228,13 +228,6 @@ export class StatsTracer {
  * corrupts the delta-compressed stats payload. A non-positive `thresholdMs`
  * disables correction.
  *
- * Remote-sourced stat types (`remote-inbound-rtp`, `remote-outbound-rtp`)
- * are exempt only from the past-drift clamp: their timestamps reflect when
- * the corresponding RTCP report arrived locally, so a stale value is
- * legitimate evidence that RTCP has stalled and must be preserved as a
- * degradation signal. Timestamps in the future are still impossible and are
- * clamped like any other stat.
- *
  * @param report the stat report to convert.
  * @param wallNow current wall-clock time used as the drift reference.
  * @param thresholdMs maximum tolerated drift in milliseconds.
@@ -245,21 +238,16 @@ const toObjectWithCorrectedTimestamp = (
   thresholdMs: number,
 ): Record<string, RTCStats> => {
   const obj: Record<string, RTCStats> = {};
-  const driftCorrectionEnabled = thresholdMs > 0;
+  const correctDrift = thresholdMs > 0;
   report.forEach((entry, key) => {
-    const drift = entry.timestamp - wallNow;
-    const driftedFuture = drift > thresholdMs;
-    const driftedPast = drift < -thresholdMs;
-    const shouldClamp =
-      driftCorrectionEnabled &&
-      (driftedFuture || (driftedPast && !isRemoteSourcedStat(entry.type)));
-    obj[key] = shouldClamp ? { ...entry, timestamp: wallNow } : entry;
+    const drift = Math.abs(entry.timestamp - wallNow);
+    obj[key] =
+      correctDrift && drift > thresholdMs
+        ? { ...entry, timestamp: wallNow }
+        : entry;
   });
   return obj;
 };
-
-const isRemoteSourcedStat = (type: RTCStatsType): boolean =>
-  type === 'remote-inbound-rtp' || type === 'remote-outbound-rtp';
 
 /**
  * Apply delta compression to the stats report.
