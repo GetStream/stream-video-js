@@ -167,6 +167,9 @@ RCT_EXPORT_MODULE(Callingx)
   WebRTCModule *webrtcModule = [[RCTBridge currentBridge] moduleForName:@"WebRTCModule"];
   _moduleImpl.webRTCModule = webrtcModule;
 
+  // Must run after webRTCModule injection: getAudioDeviceModule() depends on it.
+  [_moduleImpl wireEngineSubscription];
+
   self.callKeepCallController = _moduleImpl.callKeepCallController;
   self.callKeepProvider = _moduleImpl.callKeepProvider;
 }

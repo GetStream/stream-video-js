@@ -11,8 +11,17 @@ enum DefaultAudioDevice {
 
     public static let shared = AudioSessionManager()
 
+    /// Guards the `defaultAudioDevice` cache. Strictly an in-memory state queue —
+    /// session writes never run here (they'd risk a deadlock since
+    /// `applyCallKitConfiguration` does `stateQueue.sync` to read the cache).
     private let stateQueue = DispatchQueue(label: "io.getstream.callingx.audioSessionManager")
     private var defaultAudioDevice: DefaultAudioDevice = .speaker
+
+    /// Serializes engine-driven session writes against each other (multiple
+    /// `.willEnableAudioEngine` events in arrival order). Cross-path
+    /// serialization vs `stateQueue` / WebRTC's own paths is via
+    /// `RTCAudioSession.lockForConfiguration`, not via this queue.
+    private let audioSessionQueue = DispatchQueue(label: "io.getstream.callingx.audioSession")
 
     public func setDefaultAudioDeviceEndpointType(_ endpointType: String) {
         let next: DefaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
@@ -21,6 +30,8 @@ enum DefaultAudioDevice {
 
     /// Belt-and-braces config writer kept for the initial-activation window
     /// (called from `CXStartCallAction.perform` / `CXAnswerCallAction.perform`).
+    /// Stays synchronous — callers expect to `action.fulfill()` on a configured
+    /// session, and `provider(_:didActivate:)` may fire imminently.
     /// The engine-observer path (`engineWillEnable`) is the authoritative reapply
     /// on subsequent activations.
     public func createAudioSessionIfNeeded() {
@@ -31,8 +42,14 @@ enum DefaultAudioDevice {
     /// Reapplies the callingx audio-session configuration on every engine rebuild
     /// (initial activation, interruption recovery, mode change). CallKit owns
     /// activation, so we never call `setActive`.
+    ///
+    /// Hops onto `audioSessionQueue` because the sink is Combine-driven with no
+    /// synchronous caller waiting; this serializes back-to-back engine events
+    /// against each other.
     public func engineWillEnable() {
-        applyCallKitConfiguration()
+        audioSessionQueue.async { [weak self] in
+            self?.applyCallKitConfiguration()
+        }
     }
 
     /// Called from the AudioDeviceModule publisher's `.didDisableAudioEngine` event.

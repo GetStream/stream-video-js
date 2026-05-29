@@ -450,27 +450,32 @@ import stream_react_native_webrtc
             oldProvider?.invalidate()
         }
 
-        // Mark callingx as the audio-session owner so StreamInCallManager's
-        // engine-observer sink no-ops during the CallKit-managed lifetime.
-        CallingxSessionOwnership.callingxOwnsSession = true
+        isSetup = true
+    }
 
-        // Subscribe to the AudioDeviceModule's engine lifecycle (idempotent).
-        // The publisher delivers on its own serial queue; AudioSessionManager
-        // serializes on its own stateQueue, so cross-queue is safe.
-        if engineSubscription == nil, let adm = getAudioDeviceModule() {
-            engineSubscription = adm.publisher.sink { event in
-                switch event {
-                case .willEnableAudioEngine:
-                    AudioSessionManager.shared.engineWillEnable()
-                case .didDisableAudioEngine:
-                    AudioSessionManager.shared.engineDidDisable()
-                default:
-                    break
-                }
+    /// Wires the AudioDeviceModule engine-lifecycle subscription. Must be called
+    /// *after* `webRTCModule` is injected from the TurboModule host — `setup()`
+    /// runs before that injection on the callingx path, so attempting to wire
+    /// here would silently no-op (`getAudioDeviceModule()` would return nil).
+    ///
+    /// Idempotent and process-lifetime: the subscription survives until `deinit`
+    /// cancels it. Ownership of the audio session is a separate, behavioral
+    /// concern (`CallingxSessionOwnership.callingxOwnsSession`) gated inside
+    /// the sink — subscription presence does not imply ownership.
+    @objc public func wireEngineSubscription() {
+        guard engineSubscription == nil, let adm = getAudioDeviceModule() else { return }
+
+        engineSubscription = adm.publisher.sink { event in
+            guard CallingxSessionOwnership.callingxOwnsSession else { return }
+            switch event {
+            case .willEnableAudioEngine:
+                AudioSessionManager.shared.engineWillEnable()
+            case .didDisableAudioEngine:
+                AudioSessionManager.shared.engineDidDisable()
+            default:
+                break
             }
         }
-
-        isSetup = true
     }
     
     @objc public func getInitialEvents() -> [[String: Any]] {
@@ -741,7 +746,7 @@ import stream_react_native_webrtc
         #if DEBUG
         NSLog("%@","[Callingx][CXProviderDelegate][provider:performStartCallAction]")
         #endif
-        
+
         guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
             #if DEBUG
             NSLog("%@","[Callingx][CXProviderDelegate][provider:performStartCallAction] callId not found")
@@ -749,7 +754,11 @@ import stream_react_native_webrtc
             action.fail()
             return
         }
-        
+
+        // Claim audio-session ownership BEFORE adm.reset() and createAudioSessionIfNeeded:
+        // both can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
+        // through the ADM publisher. The engine sink gates on this flag.
+        CallingxSessionOwnership.callingxOwnsSession = true
         getAudioDeviceModule()?.reset()
         AudioSessionManager.shared.createAudioSessionIfNeeded()
         
@@ -777,7 +786,11 @@ import stream_react_native_webrtc
         #if DEBUG
         NSLog("%@","[Callingx][CXProviderDelegate][provider:performAnswerCallAction] isSelfAnswered: \(call.isSelfAnswered)")
         #endif
-        
+
+        // Claim audio-session ownership BEFORE adm.reset() and createAudioSessionIfNeeded:
+        // both can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
+        // through the ADM publisher. The engine sink gates on this flag.
+        CallingxSessionOwnership.callingxOwnsSession = true
         getAudioDeviceModule()?.reset()
         AudioSessionManager.shared.createAudioSessionIfNeeded()
         
@@ -937,6 +950,13 @@ import stream_react_native_webrtc
         NSLog("%@","[Callingx][CXProviderDelegate][provider:didActivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
         #endif
 
+        // Re-claim ownership BEFORE notifying WebRTC. Handles the PSTN/Siri
+        // interruption-resume case: didDeactivate cleared the flag if the call
+        // had ended, but for an interruption the call is still tracked and
+        // ownership was preserved — re-asserting here is a no-op then, and
+        // closes any edge case where it had been cleared.
+        CallingxSessionOwnership.callingxOwnsSession = true
+
         // When CallKit activates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
 
@@ -957,9 +977,16 @@ import stream_react_native_webrtc
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
         getAudioDeviceModule()?.reset()
 
-        // Release the cross-package handoff guard so StreamInCallManager can
-        // own the audio session again for non-CallKit flows.
-        CallingxSessionOwnership.callingxOwnsSession = false
+        // Invariant: callingx ships with maximumCallsPerCallGroup = maximumCallGroups = 1
+        // (see packages/react-native-callingx/src/utils/constants.ts defaultiOSOptions).
+        // So `UUIDStorage.count() == 0` reliably distinguishes:
+        //   - true end-of-call (call removed in CXEndCallAction.perform before didDeactivate)
+        //   - PSTN/Siri interruption (call still tracked, will resume via didActivate)
+        // Do NOT "fix" this to handle multi-call semantics — the product does not support
+        // concurrent CallKit calls. See plan: critically-review-the-implementation-zesty-spindle.
+        if let storage = CallingxImpl.uuidStorage, storage.count() == 0 {
+            CallingxSessionOwnership.callingxOwnsSession = false
+        }
 
         // Disable wake lock when the call ends
         DispatchQueue.main.async {
@@ -1011,6 +1038,14 @@ import stream_react_native_webrtc
             pendingAnswerActions.removeAll()
             pendingEndActions.removeAll()
         }
+
+        // A provider reset invalidates all CallKit calls. didDeactivate is not
+        // guaranteed to fire in its usual shape afterwards, so release ownership
+        // here and wipe UUIDStorage to keep the `count() == 0` discriminator in
+        // didDeactivate honest (stale entries would otherwise refuse to release
+        // ownership on the next end-of-call).
+        CallingxImpl.uuidStorage?.removeAllObjects()
+        CallingxSessionOwnership.callingxOwnsSession = false
 
         sendEvent(CallingxEvents.providerReset, body: nil)
     }
