@@ -238,13 +238,10 @@ const toObjectWithCorrectedTimestamp = (
   thresholdMs: number,
 ): Record<string, RTCStats> => {
   const obj: Record<string, RTCStats> = {};
-  const correctDrift = thresholdMs > 0;
-  report.forEach((entry, key) => {
-    const drift = Math.abs(entry.timestamp - wallNow);
-    obj[key] =
-      correctDrift && drift > thresholdMs
-        ? { ...entry, timestamp: wallNow }
-        : entry;
+  const correct = thresholdMs > 0;
+  report.forEach((v, k) => {
+    const drift = Math.abs(v.timestamp - wallNow);
+    obj[k] = correct && drift > thresholdMs ? { ...v, timestamp: wallNow } : v;
   });
   return obj;
 };
