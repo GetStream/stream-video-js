@@ -51,17 +51,6 @@ target 'StreamReactNativeVideoSDKSample' do
       # :ccache_enabled => true
     )
 
-    # Fix fmt consteval compilation error with Xcode 26+
-    fmt_base = File.join(installer.sandbox.pod_dir('fmt'), 'include', 'fmt', 'base.h')
-    if File.exist?(fmt_base)
-      content = File.read(fmt_base)
-      patched = content.gsub(/^#\s*define FMT_USE_CONSTEVAL 1$/, '# define FMT_USE_CONSTEVAL 0')
-      if patched != content
-        File.chmod(0644, fmt_base)
-        File.write(fmt_base, patched)
-      end
-    end
-
     # With use_frameworks! each pod is built as a framework module. Some native
     # modules (e.g. react-native-webrtc) expose public headers that import
     # React-Core headers via "#import <React/...>", and React-Core ships those
