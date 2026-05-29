@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.3.0...@stream-io/react-native-callingx-0.3.1) (2026-05-26)
+
+### Bug Fixes
+
+- added missing bridge method placeholders ([#2260](https://github.com/GetStream/stream-video-js/issues/2260)) ([9f1bbd4](https://github.com/GetStream/stream-video-js/commit/9f1bbd41337f999c850e22a9ebcc97b8a9b226b8))
+
 ## [0.3.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.2.0...@stream-io/react-native-callingx-0.3.0) (2026-05-25)
 
 ### Features

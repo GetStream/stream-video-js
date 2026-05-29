@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   hasAudio,
+  hasInterruptedTrack,
   hasPausedTrack,
   hasScreenShare,
   hasScreenShareAudio,
@@ -117,6 +118,52 @@ describe('participantUtils', () => {
         pin: { isLocalPin: false, pinnedAt: 0 },
       });
       expect(isPinned(participant)).toBe(false);
+    });
+  });
+
+  describe('hasInterruptedTrack', () => {
+    it('returns true when the track is both interrupted and published', () => {
+      const participant = createMockParticipant({
+        publishedTracks: [TrackType.AUDIO],
+        interruptedTracks: [TrackType.AUDIO],
+      });
+      expect(hasInterruptedTrack(participant, TrackType.AUDIO)).toBe(true);
+    });
+
+    it('returns false when the track is interrupted but no longer published', () => {
+      const participant = createMockParticipant({
+        publishedTracks: [],
+        interruptedTracks: [TrackType.AUDIO],
+      });
+      expect(hasInterruptedTrack(participant, TrackType.AUDIO)).toBe(false);
+    });
+
+    it('returns false when the track is published but not interrupted', () => {
+      const participant = createMockParticipant({
+        publishedTracks: [TrackType.AUDIO],
+        interruptedTracks: [],
+      });
+      expect(hasInterruptedTrack(participant, TrackType.AUDIO)).toBe(false);
+    });
+
+    it('returns false when interruptedTracks is undefined', () => {
+      const participant = createMockParticipant({
+        publishedTracks: [TrackType.AUDIO],
+        interruptedTracks: undefined,
+      });
+      expect(hasInterruptedTrack(participant, TrackType.AUDIO)).toBe(false);
+    });
+
+    it('checks each track type independently', () => {
+      const participant = createMockParticipant({
+        publishedTracks: [TrackType.AUDIO, TrackType.VIDEO],
+        interruptedTracks: [TrackType.VIDEO],
+      });
+      expect(hasInterruptedTrack(participant, TrackType.AUDIO)).toBe(false);
+      expect(hasInterruptedTrack(participant, TrackType.VIDEO)).toBe(true);
+      expect(hasInterruptedTrack(participant, TrackType.SCREEN_SHARE)).toBe(
+        false,
+      );
     });
   });
 
