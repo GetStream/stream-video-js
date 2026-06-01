@@ -23,6 +23,14 @@ import { VisibilityState } from '../../types';
 import { noopComparator } from '../../sorting';
 import { TrackType } from '../../gen/video/sfu/models/models';
 
+vi.mock(import('../browsers'), async (importOriginal) => {
+  const module = await importOriginal();
+  return {
+    ...module,
+    isSafari: () => globalThis._isSafari ?? false,
+  };
+});
+
 describe('DynascaleManager', () => {
   let dynascaleManager: DynascaleManager;
   let call: Call;
@@ -50,13 +58,6 @@ describe('DynascaleManager', () => {
     beforeEach(() => {
       // Mock global isSafari to false for testing
       globalThis._isSafari = false;
-      vi.mock(import('../browsers'), async (importOriginal) => {
-        const module = await importOriginal();
-        return {
-          ...module,
-          isSafari: () => globalThis._isSafari ?? false,
-        };
-      });
 
       dynascaleManager.setUseWebAudio(false);
 

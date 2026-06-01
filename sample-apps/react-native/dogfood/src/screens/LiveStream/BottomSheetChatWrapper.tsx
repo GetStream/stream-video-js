@@ -216,19 +216,20 @@ const LivestreamChat = ({
   channel,
   focusOutsideMessageInput,
 }: LivestreamChatProps) => {
-  const { shouldHandleKeyboardEvents } = useBottomSheetInternal();
+  const { animatedKeyboardState, textInputNodesRef } = useBottomSheetInternal();
 
   /**
-   * Done as per the text input behaviour from BottomSheetTextInput(https://github.com/gorhom/react-native-bottom-sheet/blob/master/src/components/bottomSheetTextInput/BottomSheetTextInput.tsx)
-   * to solve the issue around keyboard hiding the text input in the chat inside bottom sheet.
+   * Mirrors the focus/blur handling of the library's own BottomSheetTextInput
+   * (https://github.com/gorhom/react-native-bottom-sheet/blob/master/src/components/bottomSheetTextInput/BottomSheetTextInput.tsx)
+   * by driving the sheet's keyboard target, so the keyboard does not hide the
+   * chat input inside the bottom sheet.
    * The tip in https://ui.gorhom.dev/components/bottom-sheet/keyboard-handling/ is followed.
    */
   useEffect(() => {
     return () => {
-      // Reset the flag on unmount
-      shouldHandleKeyboardEvents.value = false;
+      animatedKeyboardState.set((state) => ({ ...state, target: undefined }));
     };
-  }, [shouldHandleKeyboardEvents]);
+  }, [animatedKeyboardState]);
 
   return (
     <View style={styles.chatContainer}>
@@ -237,13 +238,26 @@ const LivestreamChat = ({
         additionalTextInputProps={
           Platform.OS === 'ios'
             ? {
-                // Done as per https://ui.gorhom.dev/components/bottom-sheet/keyboard-handling/ to solve keyboard hiding the text input in the chat inside bottom sheet.
-                onBlur: () => {
-                  shouldHandleKeyboardEvents.value = false;
+                onBlur: (e) => {
+                  const target = e.nativeEvent.target;
+                  if (target != null) {
+                    textInputNodesRef.current.delete(target);
+                  }
+                  animatedKeyboardState.set((state) => ({
+                    ...state,
+                    target: undefined,
+                  }));
                   focusOutsideMessageInput();
                 },
-                onFocus: () => {
-                  shouldHandleKeyboardEvents.value = true;
+                onFocus: (e) => {
+                  const target = e.nativeEvent.target;
+                  if (target != null) {
+                    textInputNodesRef.current.add(target);
+                    animatedKeyboardState.set((state) => ({
+                      ...state,
+                      target,
+                    }));
+                  }
                 },
               }
             : {}

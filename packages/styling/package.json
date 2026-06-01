@@ -13,7 +13,7 @@
     "directory": "packages/styling"
   },
   "devDependencies": {
-    "rimraf": "^6.0.1",
-    "sass": "^1.93.2"
+    "rimraf": "^6.1.3",
+    "sass": "^1.100.0"
   }
 }
