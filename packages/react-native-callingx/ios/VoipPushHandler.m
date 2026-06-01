@@ -213,14 +213,22 @@ static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
     NSLog(@"[VoipPushHandler][pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:] completion");
 }
 
+// iOS 26.4 added a new VoIP push selector that carries a `PKVoIPPushMetadata`
+// argument (notably `mustReport`). The type only exists in the iOS 26.4 SDK,
+// so the `#ifdef __IPHONE_26_4` gate ensures this file still compiles on
+// older Xcode versions — older Xcode simply doesn't emit this method, and
+// PushKit on those builds dispatches to the legacy selector above.
+#ifdef __IPHONE_26_4
 - (void)pushRegistry:(PKPushRegistry *)registry
-         didReceiveIncomingVoIPPushWithPayload:(PKPushPayload *)payload
-                                      metadata:(id)metadata
-                         withCompletionHandler:(void (^)(void))completion API_AVAILABLE(ios(26.4)) {
-      [VoipPushHandler handleIncomingVoIPPush:payload
-                                     metadata:metadata
-                            completionHandler:completion];
-      NSLog(@"[VoipPushHandler][pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:] completion");
+   didReceiveIncomingVoIPPushWithPayload:(PKPushPayload *)payload
+                                metadata:(PKVoIPPushMetadata *)metadata
+                   withCompletionHandler:(void (^)(void))completion
+                                                                API_AVAILABLE(ios(26.4)) {
+    [VoipPushHandler handleIncomingVoIPPush:payload
+                                   metadata:metadata
+                          completionHandler:completion];
+    NSLog(@"[VoipPushHandler][pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:] completion");
 }
+#endif
 
 @end
