@@ -13,6 +13,7 @@ export type ClientEventPeerConnection = 'publish' | 'subscribe';
 
 export type ClientEventStage =
   | 'JoinInitiated'
+  | 'CoordinatorWS'
   | 'CoordinatorJoin'
   | 'WSJoin'
   | 'PeerConnectionConnect';
@@ -22,17 +23,18 @@ export type ClientEventStandardCode =
   | 'BACKEND_LEAVE'
   | 'REQUEST_TIMEOUT'
   | 'NETWORK_OFFLINE'
-  | 'ICE_GATHERING_FAILED'
   | 'ICE_CONNECTIVITY_FAILED'
   | 'DTLS_CONNECTIVITY_FAILED';
 
-export type ClientEventReporterOptions = {
-  streamClient: StreamClient;
+export type CallReportContext = {
   callType: string;
-  callId: string;
-  getUserId: () => string;
   getCallSessionId: () => string;
   getSfuId: () => string;
+};
+
+export type ClientEventReporterOptions = {
+  streamClient: StreamClient;
+  getUserId: () => string;
   sdkVersion: string;
   userAgent: string;
 };
@@ -63,88 +65,238 @@ type PeerConnectionContext = {
   wasPreviouslyConnected: boolean;
 };
 
-/**
- * Reports client-side join-lifecycle telemetry to
- * `POST /api/v2/video/call_client_event`.
- *
- * Three stages are tracked: `CoordinatorJoin` (HTTP `/join`), `WSJoin`
- * (SFU WebSocket open + join RPC), and `PeerConnectionConnect` (one per
- * publish/subscribe peer connection). Every stage attempt produces a pair of
- * events — an `initiated` event when the attempt begins, and a `completed`
- * event when it resolves — sharing one `event_session_id`. A shared
- * `join_attempt_id` correlates all pairs from one logical join lifecycle.
- *
- * `CoordinatorJoin` + `WSJoin` use the fold model: one pair is held open
- * across the `Call.join` retry loop. Internal retries within that lifecycle
- * increment `retry_count_attempt`; only the final outcome emits the
- * `completed` event. `PeerConnectionConnect` does not fold: every ICE
- * connect attempt (initial, restart, post-drop reconnect) produces its own
- * pair with a fresh `event_session_id`. `was_previously_connected`
- * distinguishes fresh connects from reconnects.
- *
- * All transports run detached from the caller's promise chain — reporting
- * never blocks or fails the join. Internal POST retries follow the SDK's
- * `retryInterval(attempt)` backoff (up to 5 attempts). Validation failures
- * (HTTP 4xx) are not retried. Events are not persisted across page reloads;
- * the backend treats absent completions as failures after a 60-second
- * grace window.
- */
+const pcKey = (callId: string, role: ClientEventPeerConnection): string =>
+  `${callId}:${role}`;
+
 export class ClientEventReporter {
   private readonly logger = videoLoggerSystem.getLogger('ClientEventReporter');
 
   private readonly streamClient: StreamClient;
-  private readonly callType: string;
-  private readonly callId: string;
   private readonly getUserId: () => string;
-  private readonly getCallSessionId: () => string;
-  private readonly getSfuId: () => string;
   private readonly sdkVersion: string;
   private readonly userAgent: string;
   private disposed = false;
 
-  private joinAttemptId?: string;
-  private coordinatorPair?: StagePairState;
-  private wsPair?: StagePairState;
-  private peerConnectionPairs: Partial<
-    Record<ClientEventPeerConnection, StagePairState>
-  > = {};
-  private peerConnectionContexts: Partial<
-    Record<ClientEventPeerConnection, PeerConnectionContext>
-  > = {};
-  private pcEverConnected: Record<ClientEventPeerConnection, boolean> = {
-    publish: false,
-    subscribe: false,
-  };
+  private coordinatorConnectId?: string;
+  private coordinatorWsPair?: StagePairState;
+
+  private callContexts = new Map<string, CallReportContext>();
+  private joinAttemptIds = new Map<string, string>();
+  private coordinatorPairs = new Map<string, StagePairState>();
+  private wsPairs = new Map<string, StagePairState>();
+  private peerConnectionPairs = new Map<string, StagePairState>();
+  private peerConnectionContexts = new Map<string, PeerConnectionContext>();
+  private pcEverConnected = new Map<string, boolean>();
 
   constructor(options: ClientEventReporterOptions) {
     this.streamClient = options.streamClient;
-    this.callType = options.callType;
-    this.callId = options.callId;
     this.getUserId = options.getUserId;
-    this.getCallSessionId = options.getCallSessionId;
-    this.getSfuId = options.getSfuId;
     this.sdkVersion = options.sdkVersion;
     this.userAgent = options.userAgent;
   }
 
-  startCorrelation = () => {
-    this.close();
-    this.joinAttemptId = generateUUIDv4();
-    this.emitJoinInitiated();
+  dispose = () => {
+    this.disposed = true;
   };
 
-  /**
-   * Emits the `JoinInitiated` event — fired once per join attempt, when the
-   * `join_attempt_id` is minted. Unlike the staged events it carries no
-   * `event_session_id` (no init/completed pair) and no call identifiers.
-   */
-  private emitJoinInitiated = () => {
-    if (!this.joinAttemptId) return;
+  getCoordinatorConnectId = (): string => this.coordinatorConnectId ?? '';
 
+  mintCoordinatorConnectId = (): string => {
+    this.coordinatorConnectId = generateUUIDv4();
+    return this.coordinatorConnectId;
+  };
+
+  trackCoordinatorWs = async <T>(op: () => Promise<T>): Promise<T> => {
+    this.beginCoordinatorWs();
+    try {
+      const result = await op();
+      this.succeedCoordinatorWs();
+      return result;
+    } catch (err) {
+      applyError(this.coordinatorWsPair, mapHttpError(err));
+      throw err;
+    }
+  };
+
+  reportCoordinatorWsReconnectInitiated = () => {
+    this.beginCoordinatorWs();
+  };
+
+  reportCoordinatorWsReconnectCompleted = () => {
+    this.succeedCoordinatorWs();
+  };
+
+  closeCoordinatorWs = () => {
+    const pair = this.coordinatorWsPair;
+    if (!pair || !pair.lastError) {
+      this.coordinatorWsPair = undefined;
+      return;
+    }
+    const { reason, code } = pair.lastError;
+    this.send({
+      ...this.buildCoordinatorWsCommon(pair),
+      event_type: 'completed',
+      outcome: 'failure',
+      retry_count_attempt: pair.attempts - 1,
+      elapsed_time: Date.now() - pair.startedAt,
+      retry_failure_reason: reason,
+      retry_failure_code: code,
+    });
+    this.coordinatorWsPair = undefined;
+  };
+
+  private beginCoordinatorWs = () => {
+    if (!this.coordinatorWsPair) {
+      this.coordinatorWsPair = {
+        sid: generateUUIDv4(),
+        attempts: 0,
+        startedAt: Date.now(),
+      };
+      this.send({
+        ...this.buildCoordinatorWsCommon(this.coordinatorWsPair),
+        event_type: 'initiated',
+      });
+    }
+    this.coordinatorWsPair.attempts++;
+  };
+
+  private succeedCoordinatorWs = () => {
+    const pair = this.coordinatorWsPair;
+    if (!pair) return;
+    this.send({
+      ...this.buildCoordinatorWsCommon(pair),
+      event_type: 'completed',
+      outcome: 'success',
+      retry_count_attempt: pair.attempts - 1,
+      elapsed_time: Date.now() - pair.startedAt,
+    });
+    this.coordinatorWsPair = undefined;
+  };
+
+  private buildCoordinatorWsCommon = (
+    pair: StagePairState,
+  ): Record<string, unknown> => ({
+    user_id: this.getUserId(),
+    stage: 'CoordinatorWS',
+    event_session_id: pair.sid,
+    ...(this.coordinatorConnectId && {
+      coordinator_connect_id: this.coordinatorConnectId,
+    }),
+    timestamp: new Date().toISOString(),
+    user_agent: this.userAgent,
+    sdk_version: this.sdkVersion,
+  });
+
+  registerCall = (callId: string, ctx: CallReportContext) => {
+    this.callContexts.set(callId, ctx);
+  };
+
+  unregisterCall = (callId: string) => {
+    this.callContexts.delete(callId);
+    this.joinAttemptIds.delete(callId);
+    this.coordinatorPairs.delete(callId);
+    this.wsPairs.delete(callId);
+    for (const role of ['publish', 'subscribe'] as const) {
+      const key = pcKey(callId, role);
+      this.peerConnectionPairs.delete(key);
+      this.peerConnectionContexts.delete(key);
+      this.pcEverConnected.delete(key);
+    }
+  };
+
+  startCorrelation = (callId: string) => {
+    this.closeCallPairs(callId);
+    this.joinAttemptIds.set(callId, generateUUIDv4());
+    this.emitJoinInitiated(callId);
+  };
+
+  withJoinLifecycle = async <T>(
+    callId: string,
+    op: () => Promise<T>,
+  ): Promise<T> => {
+    this.startCorrelation(callId);
+    try {
+      return await op();
+    } catch (err) {
+      this.closeCallPairs(callId);
+      throw err;
+    }
+  };
+
+  track = async <T>(
+    callId: string,
+    stage: 'CoordinatorJoin' | 'WSJoin',
+    op: () => Promise<T>,
+  ): Promise<T> => {
+    this.beginAttempt(callId, stage);
+    try {
+      const result = await op();
+      this.succeedAttempt(callId, stage);
+      return result;
+    } catch (err) {
+      this.applyStageError(callId, stage, err);
+      throw err;
+    }
+  };
+
+  captureWsError = (callId: string, opts: { code: string; reason: string }) => {
+    const pair = this.wsPairs.get(callId);
+    if (!pair) return;
+    applyError(pair, {
+      reason: opts.reason,
+      code: opts.code,
+      severity: SEVERITY.SERVER,
+    });
+  };
+
+  close = (callId: string) => {
+    this.closeCallPairs(callId);
+  };
+
+  abort = (
+    callId: string,
+    opts: { code: 'CLIENT_ABORTED' | 'BACKEND_LEAVE'; reason: string },
+  ) => {
+    const { code, reason } = opts;
+    const stageError: StageError = { code, reason, severity: SEVERITY.CLIENT };
+
+    applyError(this.coordinatorPairs.get(callId), stageError);
+    applyError(this.wsPairs.get(callId), stageError);
+    this.failCoordinator(callId);
+    this.failWs(callId);
+
+    this.emitPeerConnectionFailure(
+      callId,
+      'publish',
+      code,
+      reason,
+      'NOT_CONNECTED',
+    );
+    this.emitPeerConnectionFailure(
+      callId,
+      'subscribe',
+      code,
+      reason,
+      'NOT_CONNECTED',
+    );
+  };
+
+  private closeCallPairs = (callId: string) => {
+    if (this.coordinatorPairs.get(callId)) this.failCoordinator(callId);
+    if (this.wsPairs.get(callId)) this.failWs(callId);
+  };
+
+  private emitJoinInitiated = (callId: string) => {
+    const joinAttemptId = this.joinAttemptIds.get(callId);
+    if (!joinAttemptId) return;
+    const coordinatorConnectId = this.getCoordinatorConnectId();
     this.send({
       user_id: this.getUserId(),
       stage: 'JoinInitiated',
-      join_attempt_id: this.joinAttemptId,
+      join_attempt_id: joinAttemptId,
+      ...(coordinatorConnectId && {
+        coordinator_connect_id: coordinatorConnectId,
+      }),
       timestamp: new Date().toISOString(),
       user_agent: this.userAgent,
       sdk_version: this.sdkVersion,
@@ -152,73 +304,150 @@ export class ClientEventReporter {
     });
   };
 
-  withJoinLifecycle = async <T>(op: () => Promise<T>): Promise<T> => {
-    this.startCorrelation();
-    try {
-      return await op();
-    } catch (err) {
-      this.close();
-      throw err;
-    }
-  };
-
-  track = async <T>(
+  private beginAttempt = (
+    callId: string,
     stage: 'CoordinatorJoin' | 'WSJoin',
-    op: () => Promise<T>,
-  ): Promise<T> => {
-    this.beginAttempt(stage);
-    try {
-      const result = await op();
-      this.succeedAttempt(stage);
-      return result;
-    } catch (err) {
-      this.applyStageError(stage, err);
-      throw err;
+  ) => {
+    if (stage === 'CoordinatorJoin') this.beginCoordinatorAttempt(callId);
+    else this.beginWsAttempt(callId);
+  };
+
+  private succeedAttempt = (
+    callId: string,
+    stage: 'CoordinatorJoin' | 'WSJoin',
+  ) => {
+    if (stage === 'CoordinatorJoin') this.succeedCoordinator(callId);
+    else this.succeedWs(callId);
+  };
+
+  private applyStageError = (
+    callId: string,
+    stage: 'CoordinatorJoin' | 'WSJoin',
+    err: unknown,
+  ) => {
+    if (stage === 'CoordinatorJoin') {
+      applyError(this.coordinatorPairs.get(callId), mapHttpError(err));
+    } else {
+      applyError(this.wsPairs.get(callId), mapWsJoinError(err));
     }
   };
 
-  captureWsError = (opts: { code: string; reason: string }) => {
-    if (!this.wsPair) return;
+  private beginCoordinatorAttempt = (callId: string) => {
+    let pair = this.coordinatorPairs.get(callId);
+    if (!pair) {
+      pair = {
+        sid: generateUUIDv4(),
+        attempts: 0,
+        startedAt: Date.now(),
+        joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
+      };
+      this.coordinatorPairs.set(callId, pair);
+      this.send({
+        ...this.buildCommon(callId, 'CoordinatorJoin', pair),
+        event_type: 'initiated',
+      });
+    }
+    pair.attempts++;
+  };
 
-    applyError(this.wsPair, {
-      reason: opts.reason,
-      code: opts.code,
-      severity: SEVERITY.SERVER,
+  private succeedCoordinator = (callId: string) => {
+    const pair = this.coordinatorPairs.get(callId);
+    if (!pair) return;
+    this.send({
+      ...this.buildCommon(callId, 'CoordinatorJoin', pair),
+      event_type: 'completed',
+      outcome: 'success',
+      retry_count_attempt: pair.attempts - 1,
+      elapsed_time: Date.now() - pair.startedAt,
     });
+    this.coordinatorPairs.delete(callId);
   };
 
-  close = () => {
-    if (this.coordinatorPair) this.failCoordinator();
-    if (this.wsPair) this.failWs();
+  private failCoordinator = (callId: string) => {
+    const pair = this.coordinatorPairs.get(callId);
+    if (!pair || !pair.lastError) {
+      this.coordinatorPairs.delete(callId);
+      return;
+    }
+    const { reason, code } = pair.lastError;
+    this.send({
+      ...this.buildCommon(callId, 'CoordinatorJoin', pair),
+      event_type: 'completed',
+      outcome: 'failure',
+      retry_count_attempt: pair.attempts - 1,
+      elapsed_time: Date.now() - pair.startedAt,
+      retry_failure_reason: reason,
+      retry_failure_code: code,
+    });
+    this.coordinatorPairs.delete(callId);
   };
 
-  abort = (opts: {
-    code: 'CLIENT_ABORTED' | 'BACKEND_LEAVE';
-    reason: string;
-  }) => {
-    const { code, reason } = opts;
-    const stageError: StageError = { code, reason, severity: SEVERITY.CLIENT };
-
-    applyError(this.coordinatorPair, stageError);
-    applyError(this.wsPair, stageError);
-
-    this.failCoordinator();
-    this.failWs();
-
-    this.emitPeerConnectionFailure('publish', code, reason, 'NOT_CONNECTED');
-    this.emitPeerConnectionFailure('subscribe', code, reason, 'NOT_CONNECTED');
+  private beginWsAttempt = (callId: string) => {
+    let pair = this.wsPairs.get(callId);
+    if (!pair) {
+      pair = {
+        sid: generateUUIDv4(),
+        attempts: 0,
+        startedAt: Date.now(),
+        joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
+      };
+      this.wsPairs.set(callId, pair);
+      const sfuId = this.getSfuId(callId);
+      this.send({
+        ...this.buildCommon(callId, 'WSJoin', pair),
+        ...(sfuId && { sfu_id: sfuId }),
+        event_type: 'initiated',
+      });
+    }
+    pair.attempts++;
   };
 
-  dispose = () => {
-    this.disposed = true;
+  private succeedWs = (callId: string) => {
+    const pair = this.wsPairs.get(callId);
+    if (!pair) return;
+    const sfuId = this.getSfuId(callId);
+    this.send({
+      ...this.buildCommon(callId, 'WSJoin', pair),
+      ...(sfuId && { sfu_id: sfuId }),
+      event_type: 'completed',
+      outcome: 'success',
+      retry_count_attempt: pair.attempts - 1,
+      elapsed_time: Date.now() - pair.startedAt,
+    });
+    this.wsPairs.delete(callId);
   };
 
-  onPeerConnectionStateChange = (event: PeerConnectionStateChangeEvent) => {
+  private failWs = (callId: string) => {
+    const pair = this.wsPairs.get(callId);
+    if (!pair || !pair.lastError) {
+      this.wsPairs.delete(callId);
+      return;
+    }
+    const { reason, code } = pair.lastError;
+    const sfuId = this.getSfuId(callId);
+    this.send({
+      ...this.buildCommon(callId, 'WSJoin', pair),
+      event_type: 'completed',
+      outcome: 'failure',
+      retry_count_attempt: pair.attempts - 1,
+      elapsed_time: Date.now() - pair.startedAt,
+      ...(sfuId && { sfu_id: sfuId }),
+      retry_failure_reason: reason,
+      retry_failure_code: code,
+    });
+    this.wsPairs.delete(callId);
+  };
+
+  onPeerConnectionStateChange = (
+    callId: string,
+    event: PeerConnectionStateChangeEvent,
+  ) => {
     const role: ClientEventPeerConnection =
       event.peerType === PeerType.SUBSCRIBER ? 'subscribe' : 'publish';
 
     if (event.iceConnectionState === 'failed') {
       this.emitPeerConnectionFailure(
+        callId,
         role,
         'ICE_CONNECTIVITY_FAILED',
         'ICE connectivity checks failed',
@@ -229,6 +458,7 @@ export class ClientEventReporter {
 
     if (event.peerConnectionState === 'failed') {
       this.emitPeerConnectionFailure(
+        callId,
         role,
         'DTLS_CONNECTIVITY_FAILED',
         'DTLS connectivity checks failed',
@@ -239,15 +469,15 @@ export class ClientEventReporter {
 
     switch (event.iceConnectionState) {
       case 'checking':
-        this.openOrSupersedePeerConnectionPair(role, {
+        this.openOrSupersedePeerConnectionPair(callId, role, {
           sfuId: event.sfuId,
           userSessionId: event.userSessionId,
         });
         break;
       case 'connected':
       case 'completed':
-        this.emitPeerConnectionSuccess(role);
-        this.pcEverConnected[role] = true;
+        this.emitPeerConnectionSuccess(callId, role);
+        this.pcEverConnected.set(pcKey(callId, role), true);
         break;
       default:
         break;
@@ -255,11 +485,14 @@ export class ClientEventReporter {
   };
 
   private openOrSupersedePeerConnectionPair = (
+    callId: string,
     role: ClientEventPeerConnection,
     ctx: { sfuId: string; userSessionId: string },
   ) => {
-    if (this.peerConnectionPairs[role]) {
+    const key = pcKey(callId, role);
+    if (this.peerConnectionPairs.get(key)) {
       this.emitPeerConnectionFailure(
+        callId,
         role,
         'ICE_CONNECTIVITY_FAILED',
         'Superseded by new ICE attempt',
@@ -268,26 +501,25 @@ export class ClientEventReporter {
     }
 
     const pcContext: PeerConnectionContext = {
-      sfuId: ctx.sfuId,
+      sfuId: ctx.sfuId || this.getSfuId(callId),
       userSessionId: ctx.userSessionId,
-      wasPreviouslyConnected: this.pcEverConnected[role],
+      wasPreviouslyConnected: this.pcEverConnected.get(key) === true,
     };
 
-    this.peerConnectionContexts[role] = pcContext;
-    this.peerConnectionPairs[role] = {
+    const pair: StagePairState = {
       sid: generateUUIDv4(),
       attempts: 0,
       startedAt: Date.now(),
-      joinAttemptIdSnapshot: this.joinAttemptId,
+      joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
     };
+    this.peerConnectionContexts.set(key, pcContext);
+    this.peerConnectionPairs.set(key, pair);
 
     this.send({
-      ...this.buildCommon(
-        'PeerConnectionConnect',
-        this.peerConnectionPairs[role]!,
-      ),
+      ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
       peer_connection: role,
       was_previously_connected: pcContext.wasPreviouslyConnected,
+      ...(pcContext.sfuId && { sfu_id: pcContext.sfuId }),
       ...(pcContext.userSessionId && {
         user_session_id: pcContext.userSessionId,
       }),
@@ -295,15 +527,20 @@ export class ClientEventReporter {
     });
   };
 
-  private emitPeerConnectionSuccess = (role: ClientEventPeerConnection) => {
-    const pair = this.peerConnectionPairs[role];
-    const pcContext = this.peerConnectionContexts[role];
+  private emitPeerConnectionSuccess = (
+    callId: string,
+    role: ClientEventPeerConnection,
+  ) => {
+    const key = pcKey(callId, role);
+    const pair = this.peerConnectionPairs.get(key);
+    const pcContext = this.peerConnectionContexts.get(key);
     if (!pair || !pcContext) return;
 
     this.send({
-      ...this.buildCommon('PeerConnectionConnect', pair),
+      ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
       peer_connection: role,
       was_previously_connected: pcContext.wasPreviouslyConnected,
+      ...(pcContext.sfuId && { sfu_id: pcContext.sfuId }),
       ...(pcContext.userSessionId && {
         user_session_id: pcContext.userSessionId,
       }),
@@ -312,18 +549,20 @@ export class ClientEventReporter {
       retry_count_attempt: 0,
       elapsed_time: Date.now() - pair.startedAt,
     });
-    delete this.peerConnectionPairs[role];
-    delete this.peerConnectionContexts[role];
+    this.peerConnectionPairs.delete(key);
+    this.peerConnectionContexts.delete(key);
   };
 
   private emitPeerConnectionFailure = (
+    callId: string,
     role: ClientEventPeerConnection,
     code: ClientEventStandardCode,
     reason: string,
     iceState: 'CONNECTED' | 'FAILED' | 'NOT_CONNECTED',
   ) => {
-    const pair = this.peerConnectionPairs[role];
-    const pcContext = this.peerConnectionContexts[role];
+    const key = pcKey(callId, role);
+    const pair = this.peerConnectionPairs.get(key);
+    const pcContext = this.peerConnectionContexts.get(key);
     if (!pair || !pcContext) return;
 
     applyError(pair, { reason, code, severity: SEVERITY.SERVER });
@@ -331,7 +570,7 @@ export class ClientEventReporter {
     const finalCode = pair.lastError?.code ?? code;
 
     this.send({
-      ...this.buildCommon('PeerConnectionConnect', pair),
+      ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
       peer_connection: role,
       was_previously_connected: pcContext.wasPreviouslyConnected,
       ...(pcContext.userSessionId && {
@@ -346,151 +585,35 @@ export class ClientEventReporter {
       retry_failure_reason: finalReason,
       retry_failure_code: finalCode,
     });
-    delete this.peerConnectionPairs[role];
-    delete this.peerConnectionContexts[role];
+    this.peerConnectionPairs.delete(key);
+    this.peerConnectionContexts.delete(key);
   };
 
-  private beginAttempt = (stage: 'CoordinatorJoin' | 'WSJoin') => {
-    if (stage === 'CoordinatorJoin') {
-      this.beginCoordinatorAttempt();
-    } else {
-      this.beginWsAttempt();
-    }
-  };
-
-  private succeedAttempt = (stage: 'CoordinatorJoin' | 'WSJoin') => {
-    if (stage === 'CoordinatorJoin') {
-      this.succeedCoordinator();
-    } else {
-      this.succeedWs();
-    }
-  };
-
-  private applyStageError = (
-    stage: 'CoordinatorJoin' | 'WSJoin',
-    err: unknown,
-  ) => {
-    if (stage === 'CoordinatorJoin') {
-      applyError(this.coordinatorPair, mapHttpError(err));
-    } else {
-      applyError(this.wsPair, mapWsJoinError(err));
-    }
-  };
-
-  private beginCoordinatorAttempt = () => {
-    if (!this.coordinatorPair) {
-      this.coordinatorPair = {
-        sid: generateUUIDv4(),
-        attempts: 0,
-        startedAt: Date.now(),
-        joinAttemptIdSnapshot: this.joinAttemptId,
-      };
-
-      this.send({
-        ...this.buildCommon('CoordinatorJoin', this.coordinatorPair),
-        event_type: 'initiated',
-      });
-    }
-    this.coordinatorPair.attempts++;
-  };
-
-  private succeedCoordinator = () => {
-    const pair = this.coordinatorPair;
-    if (!pair) return;
-    this.send({
-      ...this.buildCommon('CoordinatorJoin', pair),
-      event_type: 'completed',
-      outcome: 'success',
-      retry_count_attempt: pair.attempts - 1,
-      elapsed_time: Date.now() - pair.startedAt,
-    });
-    this.coordinatorPair = undefined;
-  };
-
-  private failCoordinator = () => {
-    const pair = this.coordinatorPair;
-    if (!pair || !pair.lastError) {
-      this.coordinatorPair = undefined;
-      return;
-    }
-    const { reason, code } = pair.lastError;
-    this.send({
-      ...this.buildCommon('CoordinatorJoin', pair),
-      event_type: 'completed',
-      outcome: 'failure',
-      retry_count_attempt: pair.attempts - 1,
-      elapsed_time: Date.now() - pair.startedAt,
-      retry_failure_reason: reason,
-      retry_failure_code: code,
-    });
-    this.coordinatorPair = undefined;
-  };
-
-  private beginWsAttempt = () => {
-    if (!this.wsPair) {
-      this.wsPair = {
-        sid: generateUUIDv4(),
-        attempts: 0,
-        startedAt: Date.now(),
-        joinAttemptIdSnapshot: this.joinAttemptId,
-      };
-      this.send({
-        ...this.buildCommon('WSJoin', this.wsPair),
-        event_type: 'initiated',
-      });
-    }
-    this.wsPair.attempts++;
-  };
-
-  private succeedWs = () => {
-    const pair = this.wsPair;
-    if (!pair) return;
-    this.send({
-      ...this.buildCommon('WSJoin', pair),
-      event_type: 'completed',
-      outcome: 'success',
-      retry_count_attempt: pair.attempts - 1,
-      elapsed_time: Date.now() - pair.startedAt,
-    });
-    this.wsPair = undefined;
-  };
-
-  private failWs = () => {
-    const pair = this.wsPair;
-    if (!pair || !pair.lastError) {
-      this.wsPair = undefined;
-      return;
-    }
-    const { reason, code } = pair.lastError;
-    const sfuId = this.getSfuId();
-    this.send({
-      ...this.buildCommon('WSJoin', pair),
-      event_type: 'completed',
-      outcome: 'failure',
-      retry_count_attempt: pair.attempts - 1,
-      elapsed_time: Date.now() - pair.startedAt,
-      ...(sfuId && { sfu_id: sfuId }),
-      retry_failure_reason: reason,
-      retry_failure_code: code,
-    });
-    this.wsPair = undefined;
-  };
+  private getSfuId = (callId: string): string =>
+    this.callContexts.get(callId)?.getSfuId() ?? '';
 
   private buildCommon = (
+    callId: string,
     stage: ClientEventStage,
     pair: StagePairState,
   ): Record<string, unknown> => {
-    const callSessionId = this.getCallSessionId();
+    const ctx = this.callContexts.get(callId);
+    const callType = ctx?.callType ?? '';
+    const callSessionId = ctx?.getCallSessionId() ?? '';
+    const coordinatorConnectId = this.getCoordinatorConnectId();
     return {
       user_id: this.getUserId(),
-      type: this.callType,
-      id: this.callId,
-      call_cid: `${this.callType}:${this.callId}`,
+      type: callType,
+      id: callId,
+      call_cid: `${callType}:${callId}`,
       stage,
       event_session_id: pair.sid,
       ...(callSessionId && { call_session_id: callSessionId }),
       ...(pair.joinAttemptIdSnapshot && {
         join_attempt_id: pair.joinAttemptIdSnapshot,
+      }),
+      ...(coordinatorConnectId && {
+        coordinator_connect_id: coordinatorConnectId,
       }),
       timestamp: new Date().toISOString(),
       user_agent: this.userAgent,

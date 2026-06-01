@@ -140,7 +140,6 @@ import {
   WebsocketReconnectStrategy,
 } from './gen/video/sfu/models/models';
 import {
-  ClientEventReporter,
   createStatsReporter,
   getSdkSignature,
   SfuStatsReporter,
@@ -289,7 +288,6 @@ export class Call {
   private statsReportingIntervalInMs: number = 2000;
   private statsReporter?: StatsReporter;
   private sfuStatsReporter?: SfuStatsReporter;
-  private clientEventReporter?: ClientEventReporter;
   private lastStatsOptions?: StatsOptions;
   private dropTimeout: ReturnType<typeof setTimeout> | undefined;
 
@@ -426,17 +424,10 @@ export class Call {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
 
-      const clientDetails = await getClientDetails();
-      const { sdkVersion } = getSdkSignature(clientDetails);
-      this.clientEventReporter = new ClientEventReporter({
-        streamClient: this.streamClient,
+      this.streamClient.clientEventReporter.registerCall(this.id, {
         callType: this.type,
-        callId: this.id,
-        getUserId: () => this.streamClient.user?.id ?? '',
         getCallSessionId: () => this.state.session?.id ?? '',
         getSfuId: () => this.credentials?.server.edge_name ?? '',
-        sdkVersion,
-        userAgent: this.streamClient.getUserAgent(),
       });
 
       this.leaveCallHooks.add(
@@ -701,7 +692,10 @@ export class Call {
    * @internal
    */
   reportBackendLeave = (reason: string) => {
-    this.clientEventReporter?.abort({ code: 'BACKEND_LEAVE', reason });
+    this.streamClient.clientEventReporter.abort(this.id, {
+      code: 'BACKEND_LEAVE',
+      reason,
+    });
   };
 
   /**
@@ -768,7 +762,7 @@ export class Call {
       this.lastStatsOptions = undefined;
 
       await this.subscriber?.dispose();
-      this.clientEventReporter?.abort({
+      this.streamClient.clientEventReporter.abort(this.id, {
         code: 'CLIENT_ABORTED',
         reason: leaveReason,
       });
@@ -779,8 +773,7 @@ export class Call {
       await this.publisher?.dispose();
       this.publisher = undefined;
 
-      this.clientEventReporter?.dispose();
-      this.clientEventReporter = undefined;
+      this.streamClient.clientEventReporter.unregisterCall(this.id);
 
       await this.sfuClient?.leaveAndClose(leaveReason);
       this.sfuClient = undefined;
@@ -1128,7 +1121,7 @@ export class Call {
                 joinData.migrating_from_list = Array.from(
                   sfuJoinFailures.keys(),
                 );
-                this.clientEventReporter?.startCorrelation();
+                this.streamClient.clientEventReporter.startCorrelation(this.id);
               }
             }
 
@@ -1145,22 +1138,14 @@ export class Call {
     }
   };
 
-  private withJoinLifecycle = <T>(op: () => Promise<T>): Promise<T> => {
-    const reporter = this.clientEventReporter;
-    return reporter ? reporter.withJoinLifecycle(op) : op();
-  };
+  private withJoinLifecycle = <T>(op: () => Promise<T>): Promise<T> =>
+    this.streamClient.clientEventReporter.withJoinLifecycle(this.id, op);
 
-  private trackCoordinatorJoin = <T>(op: () => Promise<T>): Promise<T> => {
-    const reporter = this.clientEventReporter;
-    return reporter ? reporter.track('CoordinatorJoin', op) : op();
-  };
+  private trackCoordinatorJoin = <T>(op: () => Promise<T>): Promise<T> =>
+    this.streamClient.clientEventReporter.track(this.id, 'CoordinatorJoin', op);
 
   private trackWsJoin = <T>(op: () => Promise<T>): Promise<T> => {
-    if (this.reconnectStrategy === WebsocketReconnectStrategy.FAST) {
-      return op();
-    }
-    const reporter = this.clientEventReporter;
-    return reporter ? reporter.track('WSJoin', op) : op();
+    return this.streamClient.clientEventReporter.track(this.id, 'WSJoin', op);
   };
 
   /**
@@ -1545,7 +1530,10 @@ export class Call {
         this.iceFailuresWithoutConnect = 0;
       },
       onPeerConnectionStateChange: (event) => {
-        this.clientEventReporter?.onPeerConnectionStateChange(event);
+        this.streamClient.clientEventReporter.onPeerConnectionStateChange(
+          this.id,
+          event,
+        );
       },
     };
 
@@ -1981,7 +1969,7 @@ export class Call {
   private registerReconnectHandlers = () => {
     // handles the legacy "goAway" event
     const unregisterGoAway = this.on('goAway', () => {
-      this.clientEventReporter?.captureWsError({
+      this.streamClient.clientEventReporter.captureWsError(this.id, {
         code: 'SFU_GO_AWAY',
         reason: 'SFU goAway received during WS join',
       });
@@ -1996,7 +1984,7 @@ export class Call {
       const { reconnectStrategy: strategy, error } = e;
       if (!SfuJoinError.isJoinErrorCode(e)) {
         const code = error?.code ? ErrorCode[error.code] : 'REQUEST_TIMEOUT';
-        this.clientEventReporter?.captureWsError({
+        this.streamClient.clientEventReporter.captureWsError(this.id, {
           code: code ?? 'REQUEST_TIMEOUT',
           reason: error?.message || 'SFU error during WS join',
         });
@@ -2027,7 +2015,7 @@ export class Call {
         this.tracer.trace('network.changed', e);
         if (!e.online) {
           this.logger.debug('[Reconnect] Going offline');
-          this.clientEventReporter?.captureWsError({
+          this.streamClient.clientEventReporter.captureWsError(this.id, {
             code: 'NETWORK_OFFLINE',
             reason: 'Device offline',
           });

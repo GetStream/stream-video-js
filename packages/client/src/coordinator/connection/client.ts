@@ -37,6 +37,7 @@ import {
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 import { ScopedLogger, videoLoggerSystem } from '../../logger';
+import { ClientEventReporter } from '../../stats';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -64,6 +65,7 @@ export class StreamClient {
   userID?: string;
   wsBaseURL?: string;
   wsConnection: StableWSConnection | null;
+  readonly clientEventReporter: ClientEventReporter;
   private wsPromiseSafe: SafePromise<ConnectedEvent | undefined> | null;
   consecutiveFailures: number;
   defaultWSTimeout: number;
@@ -149,6 +151,15 @@ export class StreamClient {
     this.defaultWSTimeout = this.options.defaultWsTimeout ?? 15000;
 
     this.logger = videoLoggerSystem.getLogger('coordinator');
+
+    const { clientAppIdentifier = {} } = this.options;
+    this.clientEventReporter = new ClientEventReporter({
+      streamClient: this,
+      getUserId: () => this.user?.id ?? '',
+      sdkVersion:
+        clientAppIdentifier.sdkVersion ?? process.env.PKG_VERSION ?? '0.0.0',
+      userAgent: this.getUserAgent(),
+    });
   }
 
   getAuthType = () => {
@@ -178,6 +189,9 @@ export class StreamClient {
   };
 
   _getConnectionID = () => this.wsConnection?.connectionID;
+
+  getCoordinatorConnectId = () =>
+    this.clientEventReporter.getCoordinatorConnectId();
 
   _hasConnectionID = () => Boolean(this._getConnectionID());
 
