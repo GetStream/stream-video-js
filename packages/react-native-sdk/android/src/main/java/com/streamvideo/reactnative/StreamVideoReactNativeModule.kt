@@ -116,11 +116,6 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun isKeyguardLocked(promise: Promise) {
-        promise.resolve(StreamVideoReactNative.isKeyguardLocked(reactApplicationContext))
-    }
-
-    @ReactMethod
     fun isCallAliveConfigured(promise: Promise) {
         val permissionsDeclared =
             CallAlivePermissionsHelper.hasForegroundServicePermissionsDeclared(reactApplicationContext)

@@ -2,7 +2,7 @@
  * Internal utils for callingx library usage from video-client.
  * See @./registerSDKGlobals.ts for more usage details.
  */
-import { AppState, NativeModules, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import type { EndCallReason } from '@stream-io/react-native-callingx';
 import { getCallingxLibIfAvailable } from '../../push/libs/callingx';
 import { waitForAudioSessionActivation } from './audioSessionPromise';
@@ -12,31 +12,8 @@ import type {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
-import { StreamVideoRN } from '../../StreamVideoRN';
+
 const CallingxModule = getCallingxLibIfAvailable();
-
-async function isAppInForeground(): Promise<boolean> {
-  if (Platform.OS === 'android') {
-    const nativeModule = NativeModules.StreamVideoAppLifecycle;
-    const state = await nativeModule.getCurrentAppState();
-    return state === 'active';
-  }
-  return AppState.currentState !== 'background';
-}
-
-/**
- * Android-only. Helps to distinguish between app in foreground and on the lock screen.
- */
-async function isKeyguardLocked(): Promise<boolean> {
-  if (Platform.OS !== 'android') {
-    return false;
-  }
-  try {
-    return await NativeModules.StreamVideoReactNative.isKeyguardLocked();
-  } catch {
-    return false;
-  }
-}
 
 /**
  * Gets the call display name. To be used for display in native call screen.
