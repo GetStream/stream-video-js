@@ -137,6 +137,7 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
       sdk: sdkInfo,
       os: osInfo,
       device: deviceInfo,
+      webrtcVersion: webRtcInfo?.version || '',
     };
   }
 
@@ -173,11 +174,12 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
   const uaBrowser = userAgentData?.fullVersionList?.find(
     (v) => !v.brand.includes('Chromium') && !v.brand.match(/[()\-./:;=?_]/g),
   );
+  const browserVersion = uaBrowser?.version || browser.version || '';
   return {
     sdk: sdkInfo,
     browser: {
       name: uaBrowser?.brand || browser.name || navigator.userAgent,
-      version: uaBrowser?.version || browser.version || '',
+      version: browserVersion,
     },
     os: {
       name: userAgentData?.platform || os.name || '',
@@ -190,5 +192,6 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
         .join(' '),
       version: '',
     },
+    webrtcVersion: browserVersion,
   };
 };
