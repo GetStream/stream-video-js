@@ -1458,7 +1458,10 @@ export class Call {
       closePreviousInstances,
       unifiedSessionId,
     } = opts;
-    const { enable_rtc_stats: enableTracing } = statsOptions;
+    const {
+      enable_rtc_stats: enableTracing,
+      reporting_interval_ms: reportingIntervalMs,
+    } = statsOptions;
     if (closePreviousInstances && this.subscriber) {
       await this.subscriber.dispose();
     }
@@ -1469,6 +1472,7 @@ export class Call {
       connectionConfig,
       tag: sfuClient.tag,
       enableTracing,
+      statsTimestampDriftThresholdMs: reportingIntervalMs / 2,
       clientPublishOptions: this.clientPublishOptions,
       onReconnectionNeeded: (kind, reason, peerType) => {
         this.reconnect(kind, reason).catch((err) => {
