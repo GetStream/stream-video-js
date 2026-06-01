@@ -4,7 +4,6 @@ export default defineConfig({
   test: {
     testTimeout: 15000,
     coverage: {
-      ignoreEmptyLines: true,
       provider: 'v8',
       include: ['src/**'],
       exclude: ['**/__tests__/**', 'src/gen/**'],
