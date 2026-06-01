@@ -18,11 +18,15 @@ const makeReporter = () => {
     userAgent: 'test-agent',
   });
 
-  const events = (): Record<string, unknown>[] =>
+  const allEvents = (): Record<string, unknown>[] =>
     post.mock.calls.map(
       (c) => (c[1] as { events: Record<string, unknown>[] }).events[0],
     );
-  return { reporter, post, events };
+  // staged events only — excludes the cross-cutting `JoinInitiated` event so
+  // stage-based index/count assertions stay stable.
+  const events = (): Record<string, unknown>[] =>
+    allEvents().filter((e) => e.stage !== 'JoinInitiated');
+  return { reporter, post, events, allEvents };
 };
 
 const pcEvent = (
@@ -51,7 +55,7 @@ describe('ClientEventReporter', () => {
       expect(ev[1].outcome).toBe('success');
       expect(ev[1].retry_count_attempt).toBe(0);
       expect(ev[0].event_session_id).toBe(ev[1].event_session_id);
-      expect(ev[0].join_success_id).toBe(ev[1].join_success_id);
+      expect(ev[0].join_attempt_id).toBe(ev[1].join_attempt_id);
     });
 
     it('folds retries into one pair with retry_count_attempt', async () => {
@@ -148,19 +152,19 @@ describe('ClientEventReporter', () => {
     });
   });
 
-  describe('jsi correlation', () => {
-    it('shares join_success_id across all pairs in one lifecycle', async () => {
+  describe('join_attempt_id correlation', () => {
+    it('shares join_attempt_id across all pairs in one lifecycle', async () => {
       const { reporter, events } = makeReporter();
       await reporter.withJoinLifecycle(async () => {
         await reporter.track('CoordinatorJoin', () => Promise.resolve('ok'));
         await reporter.track('WSJoin', () => Promise.resolve('ok'));
       });
       const ev = events();
-      const ids = new Set(ev.map((e) => e.join_success_id));
+      const ids = new Set(ev.map((e) => e.join_attempt_id));
       expect(ids.size).toBe(1);
     });
 
-    it('rotates join_success_id on a fresh startCorrelation', async () => {
+    it('rotates join_attempt_id on a fresh startCorrelation', async () => {
       const { reporter, events } = makeReporter();
       await reporter.withJoinLifecycle(() =>
         reporter.track('CoordinatorJoin', () => Promise.resolve('a')),
@@ -169,34 +173,34 @@ describe('ClientEventReporter', () => {
         reporter.track('CoordinatorJoin', () => Promise.resolve('b')),
       );
       const ev = events();
-      expect(ev[0].join_success_id).not.toBe(ev[2].join_success_id);
+      expect(ev[0].join_attempt_id).not.toBe(ev[2].join_attempt_id);
     });
 
-    it('snapshotted jsi: completed carries the same jsi as initiated even if rotated mid-flight', async () => {
+    it('snapshotted join_attempt_id: completed carries the same join_attempt_id as initiated even if rotated mid-flight', async () => {
       const { reporter, events } = makeReporter();
       await reporter.withJoinLifecycle(async () => {
         await reporter
           .track('WSJoin', () => Promise.reject(new Error('fail')))
           .catch(() => {});
-        // simulate explicit migrate boundary that rotates jsi
+        // simulate explicit migrate boundary that rotates join_attempt_id
         reporter.startCorrelation();
         await reporter.track('WSJoin', () => Promise.resolve('ok'));
       });
       const ev = events();
-      // first ws pair (initiated + failure) under jsi-A
+      // first ws pair (initiated + failure) under join_attempt_id-A
       const firstPair = ev.filter(
         (e) => e.event_session_id === ev[0].event_session_id,
       );
       expect(firstPair).toHaveLength(2);
-      expect(firstPair[0].join_success_id).toBe(firstPair[1].join_success_id);
-      // second ws pair under jsi-B
+      expect(firstPair[0].join_attempt_id).toBe(firstPair[1].join_attempt_id);
+      // second ws pair under join_attempt_id-B
       const secondInitiated = ev.find(
         (e) =>
           e.event_type === 'initiated' &&
           e.event_session_id !== ev[0].event_session_id,
       );
-      expect(secondInitiated?.join_success_id).not.toBe(
-        firstPair[0].join_success_id,
+      expect(secondInitiated?.join_attempt_id).not.toBe(
+        firstPair[0].join_attempt_id,
       );
     });
   });
@@ -361,11 +365,35 @@ describe('ClientEventReporter', () => {
     });
   });
 
+  describe('JoinInitiated', () => {
+    it('emits one JoinInitiated when a correlation starts, carrying the attempt id', () => {
+      const { reporter, allEvents } = makeReporter();
+      reporter.startCorrelation();
+      const init = allEvents().filter((e) => e.stage === 'JoinInitiated');
+      expect(init).toHaveLength(1);
+      expect(init[0].event_type).toBe('initiated');
+      expect(init[0].user_id).toBe('user-1');
+      expect(typeof init[0].join_attempt_id).toBe('string');
+      // no per-stage session id and no call identifiers on JoinInitiated
+      expect(init[0].event_session_id).toBeUndefined();
+      expect(init[0].call_cid).toBeUndefined();
+    });
+
+    it('emits a fresh JoinInitiated (new attempt id) on each correlation', () => {
+      const { reporter, allEvents } = makeReporter();
+      reporter.startCorrelation();
+      reporter.startCorrelation();
+      const init = allEvents().filter((e) => e.stage === 'JoinInitiated');
+      expect(init).toHaveLength(2);
+      expect(init[0].join_attempt_id).not.toBe(init[1].join_attempt_id);
+    });
+  });
+
   describe('dispose', () => {
     it('stops emitting after dispose', () => {
       const { reporter, post } = makeReporter();
-      reporter.startCorrelation();
       reporter.dispose();
+      reporter.startCorrelation();
       reporter.onPeerConnectionStateChange(
         pcEvent({ iceConnectionState: 'checking' }),
       );

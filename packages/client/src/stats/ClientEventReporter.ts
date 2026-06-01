@@ -12,6 +12,7 @@ import type { PeerConnectionStateChangeEvent } from '../rtc';
 export type ClientEventPeerConnection = 'publish' | 'subscribe';
 
 export type ClientEventStage =
+  | 'JoinInitiated'
   | 'CoordinatorJoin'
   | 'WSJoin'
   | 'PeerConnectionConnect';
@@ -52,7 +53,7 @@ type StagePairState = {
   sid: string;
   attempts: number;
   startedAt: number;
-  joinSuccessIdSnapshot?: string;
+  joinAttemptIdSnapshot?: string;
   lastError?: StageError;
 };
 
@@ -71,7 +72,7 @@ type PeerConnectionContext = {
  * publish/subscribe peer connection). Every stage attempt produces a pair of
  * events — an `initiated` event when the attempt begins, and a `completed`
  * event when it resolves — sharing one `event_session_id`. A shared
- * `join_success_id` correlates all pairs from one logical join lifecycle.
+ * `join_attempt_id` correlates all pairs from one logical join lifecycle.
  *
  * `CoordinatorJoin` + `WSJoin` use the fold model: one pair is held open
  * across the `Call.join` retry loop. Internal retries within that lifecycle
@@ -101,7 +102,7 @@ export class ClientEventReporter {
   private readonly userAgent: string;
   private disposed = false;
 
-  private joinSuccessId?: string;
+  private joinAttemptId?: string;
   private coordinatorPair?: StagePairState;
   private wsPair?: StagePairState;
   private peerConnectionPairs: Partial<
@@ -128,7 +129,27 @@ export class ClientEventReporter {
 
   startCorrelation = () => {
     this.close();
-    this.joinSuccessId = generateUUIDv4();
+    this.joinAttemptId = generateUUIDv4();
+    this.emitJoinInitiated();
+  };
+
+  /**
+   * Emits the `JoinInitiated` event — fired once per join attempt, when the
+   * `join_attempt_id` is minted. Unlike the staged events it carries no
+   * `event_session_id` (no init/completed pair) and no call identifiers.
+   */
+  private emitJoinInitiated = () => {
+    if (!this.joinAttemptId) return;
+
+    this.send({
+      user_id: this.getUserId(),
+      stage: 'JoinInitiated',
+      join_attempt_id: this.joinAttemptId,
+      timestamp: new Date().toISOString(),
+      user_agent: this.userAgent,
+      sdk_version: this.sdkVersion,
+      event_type: 'initiated',
+    });
   };
 
   withJoinLifecycle = async <T>(op: () => Promise<T>): Promise<T> => {
@@ -257,7 +278,7 @@ export class ClientEventReporter {
       sid: generateUUIDv4(),
       attempts: 0,
       startedAt: Date.now(),
-      joinSuccessIdSnapshot: this.joinSuccessId,
+      joinAttemptIdSnapshot: this.joinAttemptId,
     };
 
     this.send({
@@ -362,7 +383,7 @@ export class ClientEventReporter {
         sid: generateUUIDv4(),
         attempts: 0,
         startedAt: Date.now(),
-        joinSuccessIdSnapshot: this.joinSuccessId,
+        joinAttemptIdSnapshot: this.joinAttemptId,
       };
 
       this.send({
@@ -411,7 +432,7 @@ export class ClientEventReporter {
         sid: generateUUIDv4(),
         attempts: 0,
         startedAt: Date.now(),
-        joinSuccessIdSnapshot: this.joinSuccessId,
+        joinAttemptIdSnapshot: this.joinAttemptId,
       };
       this.send({
         ...this.buildCommon('WSJoin', this.wsPair),
@@ -468,8 +489,8 @@ export class ClientEventReporter {
       stage,
       event_session_id: pair.sid,
       ...(callSessionId && { call_session_id: callSessionId }),
-      ...(pair.joinSuccessIdSnapshot && {
-        join_success_id: pair.joinSuccessIdSnapshot,
+      ...(pair.joinAttemptIdSnapshot && {
+        join_attempt_id: pair.joinAttemptIdSnapshot,
       }),
       timestamp: new Date().toISOString(),
       user_agent: this.userAgent,
