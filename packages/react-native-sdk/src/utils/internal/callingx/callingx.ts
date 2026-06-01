@@ -162,20 +162,6 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
     }
   } else if (isIncomingCall) {
     logger.debug(`joinCallingxCall: Joining incoming call ${call.cid}`);
-    let skipIncomingPushInForeground = false;
-    if (Platform.OS === 'ios') {
-      skipIncomingPushInForeground =
-        StreamVideoRN.getConfig().push?.ios?.skipIncomingPushInForeground ??
-        false;
-    } else {
-      skipIncomingPushInForeground =
-        StreamVideoRN.getConfig().push?.android?.skipIncomingPushInForeground ??
-        false;
-    }
-    const shouldSkipDisplayIncoming =
-      skipIncomingPushInForeground &&
-      (await isAppInForeground()) &&
-      !(await isKeyguardLocked());
 
     try {
       // Leave any existing active ringing calls before joining a new ringing call
@@ -193,29 +179,25 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
           logger.error(`failed to leave active call ${activeCall.cid}`, e);
         });
       }
-      if (shouldSkipDisplayIncoming) {
-        await startCallInCallingx();
-      } else {
-        // Awaits native CallKit/Telecom registration before answering.
-        // Safe to call even if the call is already registered (e.g. from VoIP push) --
-        // iOS early-returns with no error, Android sends the registered broadcast.
-        const callDisplayName = getCallDisplayNameFromCall(call);
-        await CallingxModule.displayIncomingCall(
-          call.cid, // unique id for call
-          call.state.createdBy?.id ?? callDisplayName, // handle for native call UI (prefer createdBy user id, fallback to call display name)
-          callDisplayName, // display name for display in call screen
-          call.state.settings?.video?.enabled ?? false, // is video call?
-        );
+      // Awaits native CallKit/Telecom registration before answering.
+      // Safe to call even if the call is already registered (e.g. from VoIP push) --
+      // iOS early-returns with no error, Android sends the registered broadcast.
+      const callDisplayName = getCallDisplayNameFromCall(call);
+      await CallingxModule.displayIncomingCall(
+        call.cid, // unique id for call
+        call.state.createdBy?.id ?? callDisplayName, // handle for native call UI (prefer createdBy user id, fallback to call display name)
+        callDisplayName, // display name for display in call screen
+        call.state.settings?.video?.enabled ?? false, // is video call?
+      );
 
-        await CallingxModule.answerIncomingCall(call.cid);
+      await CallingxModule.answerIncomingCall(call.cid);
 
-        if (Platform.OS === 'ios') {
-          await waitForAudioSessionActivation();
-        }
+      if (Platform.OS === 'ios') {
+        await waitForAudioSessionActivation();
       }
     } catch (error) {
       logger.error(
-        `Error joining incoming call in callingx: ${call.cid} shouldSkipDisplayIncoming: ${shouldSkipDisplayIncoming}`,
+        `Error joining incoming call in callingx: ${call.cid}`,
         error,
       );
     }
