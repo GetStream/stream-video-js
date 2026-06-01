@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.4...@stream-io/video-filters-web-0.7.5) (2026-06-01)
+
 ## [0.7.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.3...@stream-io/video-filters-web-0.7.4) (2026-04-09)
 
 ### Bug Fixes
