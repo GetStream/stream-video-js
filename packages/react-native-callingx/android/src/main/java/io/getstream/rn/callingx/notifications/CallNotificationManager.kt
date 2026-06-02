@@ -20,6 +20,7 @@ import io.getstream.rn.callingx.debugLog
 import io.getstream.rn.callingx.getDisconnectCauseString
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.repo.CallRepository
+import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
 import androidx.core.graphics.toColorInt
 
@@ -303,8 +304,24 @@ class CallNotificationManager(
         notificationsState[callId] = current.copy(optimisticState = OptimisticState.NONE, lastSnapshot = null)
     }
 
+    // when skipIncomingPushInForeground is true, we use the ongoing channel 
+    // for the notification to avoid notification overlapping app ui, just for UX purposes
+    private fun shouldShowAsIncoming(
+            call: Call.Registered,
+            optimisticState: OptimisticState
+    ): Boolean {
+        val isIncoming =
+                call.isIncoming() && !call.isActive && optimisticState == OptimisticState.NONE
+        if (!isIncoming) return false
+
+        val skipInForeground =
+                SettingsStore.shouldSkipIncomingPushInForeground(context) &&
+                        LifecycleListener.isInForeground
+        return !skipInForeground
+    }
+
     private fun getChannelId(call: Call.Registered, optimisticState: OptimisticState): String {
-        return if (call.isIncoming() && !call.isActive && optimisticState == OptimisticState.NONE) {
+        return if (shouldShowAsIncoming(call, optimisticState)) {
             notificationsConfig.incomingChannel.id
         } else {
             notificationsConfig.ongoingChannel.id
