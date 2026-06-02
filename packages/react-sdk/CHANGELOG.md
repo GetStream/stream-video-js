@@ -2,6 +2,18 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.37.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.37.3...@stream-io/video-react-sdk-1.37.4) (2026-06-01)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.8.2`
+- `@stream-io/video-styling` updated to version `1.14.1`
+- `@stream-io/video-client` updated to version `1.52.0`
+- `@stream-io/video-filters-web` updated to version `0.7.5`
+- `@stream-io/video-react-bindings` updated to version `1.16.2`
+
+- **deps:** upgrade React Native 0.85, React 19.2, Vite 8/Vitest 4, and Expo 56 ([#2268](https://github.com/GetStream/stream-video-js/issues/2268)) ([2c8ab9d](https://github.com/GetStream/stream-video-js/commit/2c8ab9d9238f3700dabbd04c9ce5bf3aaa4c7a13))
+
 ## [1.37.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.37.2...@stream-io/video-react-sdk-1.37.3) (2026-05-26)
 
 ### Dependency Updates

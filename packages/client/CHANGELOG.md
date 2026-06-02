@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.52.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.51.0...@stream-io/video-client-1.52.0) (2026-06-01)
+
+- **deps:** upgrade React Native 0.85, React 19.2, Vite 8/Vitest 4, and Expo 56 ([#2268](https://github.com/GetStream/stream-video-js/issues/2268)) ([2c8ab9d](https://github.com/GetStream/stream-video-js/commit/2c8ab9d9238f3700dabbd04c9ce5bf3aaa4c7a13))
+
+### Features
+
+- **client:** add hasInterruptedTrack helper ([#2266](https://github.com/GetStream/stream-video-js/issues/2266)) ([c723eb6](https://github.com/GetStream/stream-video-js/commit/c723eb67bffcb00edc03e4960a0d3a600bba8687))
+- **client:** echo negotiationId in subscriber offer answer ([#2166](https://github.com/GetStream/stream-video-js/issues/2166)) ([749e0ad](https://github.com/GetStream/stream-video-js/commit/749e0ad025d579cf2a2792e6016f5eaffb9ee7a7))
+
+### Bug Fixes
+
+- **client:** clamp drifted getStats timestamps to wall time ([#2258](https://github.com/GetStream/stream-video-js/issues/2258)) ([9d96df5](https://github.com/GetStream/stream-video-js/commit/9d96df552337fea27285a4260a4d1d76b39eb7b7))
+
 ## [1.51.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.50.0...@stream-io/video-client-1.51.0) (2026-05-26)
 
 ### Features

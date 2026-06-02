@@ -1,4 +1,10 @@
-import { CSSProperties, ElementType, ReactNode } from 'react';
+import {
+  CSSProperties,
+  ElementType,
+  ReactNode,
+  useEffect,
+  useRef,
+} from 'react';
 import useSWR from 'swr';
 
 export function useValuePoller<T>(
@@ -42,6 +48,16 @@ export function ValuePoller(props: {
     props.pollIntervalMs,
   );
 
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const indicator = indicatorRef.current;
+    if (!indicator || !lastPollTimestamp) return;
+    indicator.style.setProperty(
+      '--rd-value-poller-animation-delay',
+      `${(lastPollTimestamp - Date.now()) / 1000}s`,
+    );
+  }, [lastPollTimestamp]);
+
   if (typeof value === 'undefined') {
     return <div className="rd__value-poller">-</div>;
   }
@@ -50,9 +66,6 @@ export function ValuePoller(props: {
     nextPollTimestamp && lastPollTimestamp
       ? `${(nextPollTimestamp - lastPollTimestamp) / 1000}s`
       : undefined;
-  const animationDelay = lastPollTimestamp
-    ? `${(lastPollTimestamp - Date.now()) / 1000}s`
-    : undefined;
 
   const Container = props.as ?? 'div';
 
@@ -62,13 +75,12 @@ export function ValuePoller(props: {
       style={
         {
           '--rd-value-poller-animation-duration': animationDuration,
-          '--rd-value-poller-animation-delay': animationDelay,
         } as CSSProperties
       }
     >
       {value}
       {props.indicator && (
-        <span className="rd__value-poller-indicator">
+        <span ref={indicatorRef} className="rd__value-poller-indicator">
           {typeof props.indicator === 'function'
             ? props.indicator(value)
             : props.indicator}

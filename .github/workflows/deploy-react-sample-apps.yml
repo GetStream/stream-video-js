@@ -7,7 +7,13 @@ on:
     paths:
       - '.github/workflows/deploy-react-sample-apps.yml'
       - 'sample-apps/react/**'
-      - '!packages/**' # avoid duplicated deployment if react-sdk also changed
+      # react-sdk and its dependencies (kept in sync with `build:react:deps`)
+      - 'packages/client/**'
+      - 'packages/react-bindings/**'
+      - 'packages/react-sdk/**'
+      - 'packages/styling/**'
+      - 'packages/video-filters-web/**'
+      - 'packages/audio-filters-web/**'
   pull_request:
     types:
       - opened
@@ -16,8 +22,13 @@ on:
     paths:
       - '.github/workflows/deploy-react-sample-apps.yml'
       - 'sample-apps/react/**'
-      - 'packages/**'
-      - '!packages/react-native-sdk/**'
+      # react-sdk and its dependencies (kept in sync with `build:react:deps`)
+      - 'packages/client/**'
+      - 'packages/react-bindings/**'
+      - 'packages/react-sdk/**'
+      - 'packages/styling/**'
+      - 'packages/video-filters-web/**'
+      - 'packages/audio-filters-web/**'
   workflow_dispatch:
 
 concurrency:
