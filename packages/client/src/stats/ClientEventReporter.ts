@@ -95,10 +95,6 @@ export class ClientEventReporter {
     this.userAgent = options.userAgent;
   }
 
-  dispose = () => {
-    this.disposed = true;
-  };
-
   getCoordinatorConnectId = (): string => this.coordinatorConnectId ?? '';
 
   mintCoordinatorConnectId = (): string => {
@@ -118,20 +114,13 @@ export class ClientEventReporter {
     }
   };
 
-  reportCoordinatorWsReconnectInitiated = () => {
-    this.beginCoordinatorWs();
-  };
-
-  reportCoordinatorWsReconnectCompleted = () => {
-    this.succeedCoordinatorWs();
-  };
-
   closeCoordinatorWs = () => {
     const pair = this.coordinatorWsPair;
     if (!pair || !pair.lastError) {
       this.coordinatorWsPair = undefined;
       return;
     }
+
     const { reason, code } = pair.lastError;
     this.send({
       ...this.buildCoordinatorWsCommon(pair),
@@ -142,6 +131,7 @@ export class ClientEventReporter {
       retry_failure_reason: reason,
       retry_failure_code: code,
     });
+
     this.coordinatorWsPair = undefined;
   };
 
@@ -196,6 +186,7 @@ export class ClientEventReporter {
     this.joinAttemptIds.delete(callId);
     this.coordinatorPairs.delete(callId);
     this.wsPairs.delete(callId);
+
     for (const role of ['publish', 'subscribe'] as const) {
       const key = pcKey(callId, role);
       this.peerConnectionPairs.delete(key);
@@ -262,6 +253,7 @@ export class ClientEventReporter {
 
     applyError(this.coordinatorPairs.get(callId), stageError);
     applyError(this.wsPairs.get(callId), stageError);
+
     this.failCoordinator(callId);
     this.failWs(callId);
 

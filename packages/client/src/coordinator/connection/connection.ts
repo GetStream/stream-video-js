@@ -52,7 +52,6 @@ export class StableWSConnection {
   isDisconnected = false;
   /** Boolean that indicates if we have a working connection to the server */
   isHealthy = false;
-  private hasEverBeenHealthy = false;
 
   // Open-connection promise: resolves on `connection.ok`, rejects on close/error.
   connectionID?: string;
@@ -655,15 +654,6 @@ export class StableWSConnection {
     if (healthy === this.isHealthy) return;
 
     this.isHealthy = healthy;
-
-    if (healthy) {
-      if (this.hasEverBeenHealthy) {
-        this.client.clientEventReporter.reportCoordinatorWsReconnectCompleted();
-      }
-      this.hasEverBeenHealthy = true;
-    } else if (this.hasEverBeenHealthy) {
-      this.client.clientEventReporter.reportCoordinatorWsReconnectInitiated();
-    }
 
     if (this.isHealthy || dispatchImmediately) {
       this.client.dispatchEvent({
