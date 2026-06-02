@@ -1,15 +1,17 @@
+/* Embedded at the bottom of each participant panel: capped height with its
+   own scroll so the video keeps the remaining vertical space. */
 .event-log {
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  height: 200px;
+  max-height: 150px;
   flex-shrink: 0;
 }
 
 .event-log__header {
-  padding: 8px 16px;
-  font-size: 12px;
+  padding: 6px 12px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -34,8 +36,8 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
-  padding: 3px 16px;
-  font-size: 13px;
+  padding: 3px 12px;
+  font-size: 12px;
   line-height: 1.5;
 }
 

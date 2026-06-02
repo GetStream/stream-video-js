@@ -8,13 +8,15 @@ import {
   StreamVideo,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import type { ParticipantSession } from '../types';
+import type { EventLogEntry, ParticipantSession } from '../types';
 import { KeyControls } from './KeyControls';
 import { KeyStateDump } from './KeyStateDump';
+import { EventLog } from './EventLog';
 import './ParticipantPanel.css';
 
 interface ParticipantPanelProps {
   participant: ParticipantSession;
+  events: EventLogEntry[];
   onRemove: (userId: string) => void;
   onToggleE2EE: (userId: string, enabled: boolean) => void;
   onRotateKey: (userId: string, localOnly: boolean) => void;
@@ -40,6 +42,7 @@ const CallUI = () => {
 
 export const ParticipantPanel = memo(function ParticipantPanel({
   participant,
+  events,
   onRemove,
   onToggleE2EE,
   onRotateKey,
@@ -137,6 +140,8 @@ export const ParticipantPanel = memo(function ParticipantPanel({
       )}
 
       {e2eeActive && <KeyStateDump e2eeManager={participant.e2eeManager} />}
+
+      <EventLog entries={events} />
     </div>
   );
 });

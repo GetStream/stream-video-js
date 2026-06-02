@@ -46,7 +46,12 @@ const fetchCredentials = async (userId: string) => {
 
 export const useE2EEDemo = () => {
   const [participants, setParticipants] = useState<ParticipantSession[]>([]);
-  const [events, setEvents] = useState<EventLogEntry[]>([]);
+  // Per-participant event logs, keyed by userId. Each participant box renders
+  // its own slice, so events are attributed to whoever they're about rather
+  // than dumped into one shared pane.
+  const [eventsByUser, setEventsByUser] = useState<
+    Record<string, EventLogEntry[]>
+  >({});
   const [loading, setLoading] = useState(false);
   const [e2eeEnabled, setE2eeEnabled] = useState(true);
   const [preferredCodec, setPreferredCodec] = useState<PreferredCodec>('vp8');
@@ -88,11 +93,21 @@ export const useE2EEDemo = () => {
   // ---------------------------------------------------------------------------
 
   const logEvent = useCallback(
-    (message: string, type: EventLogEntry['type']) => {
-      setEvents((prev) => [
-        ...prev,
-        { id: ++eventIdRef.current, timestamp: new Date(), message, type },
-      ]);
+    (userId: string, message: string, type: EventLogEntry['type']) => {
+      const MAX_ENTRIES = 100;
+      setEventsByUser((prev) => {
+        const entries = [
+          ...(prev[userId] ?? []),
+          { id: ++eventIdRef.current, timestamp: new Date(), message, type },
+        ];
+        return {
+          ...prev,
+          [userId]:
+            entries.length > MAX_ENTRIES
+              ? entries.slice(entries.length - MAX_ENTRIES)
+              : entries,
+        };
+      });
     },
     [],
   );
@@ -125,7 +140,8 @@ export const useE2EEDemo = () => {
         (p) => p.userId === fromUserId,
       );
       logEvent(
-        `Distributed ${sender?.name ?? fromUserId}'s key to ${recipient.name}`,
+        toUserId,
+        `Received ${sender?.name ?? fromUserId}'s key`,
         'key-distribute',
       );
     },
@@ -172,7 +188,8 @@ export const useE2EEDemo = () => {
           participantsRef.current.find((p) => p.userId === remoteUserId)
             ?.name ?? remoteUserId;
         logEvent(
-          `${name} failed to decrypt frames from ${remoteName} — key mismatch`,
+          userId,
+          `Failed to decrypt from ${remoteName}: key mismatch`,
           'error',
         );
         setParticipants((prev) =>
@@ -187,14 +204,20 @@ export const useE2EEDemo = () => {
         const remoteName =
           participantsRef.current.find((p) => p.userId === remoteUserId)
             ?.name ?? remoteUserId;
-        logEvent(
-          `${name} can now decrypt frames from ${remoteName} — key resolved`,
-          'join',
-        );
+        logEvent(userId, `Decryption resumed from ${remoteName}`, 'join');
         setParticipants((prev) =>
           prev.map((p) =>
             p.userId === userId ? { ...p, decryptionFailed: false } : p,
           ),
+        );
+      });
+
+      // The local encoder has no key, so this participant is publishing nothing.
+      e2eeManager.on('e2ee.missing_key', () => {
+        logEvent(
+          userId,
+          'No encryption key set: outgoing frames dropped',
+          'error',
         );
       });
 
@@ -209,7 +232,8 @@ export const useE2EEDemo = () => {
           })
           .join(', ');
         logEvent(
-          `${name} — encode: ${report.encode.fps} fps | decode: [${decodeInfo}]`,
+          userId,
+          `Encode ${report.encode.fps} fps | decode [${decodeInfo}]`,
           'perf',
         );
       });
@@ -224,7 +248,7 @@ export const useE2EEDemo = () => {
           activeSharedKeyIndexRef.current,
           sharedKey.slice(0),
         );
-        logEvent(`Distributed shared key to ${name}`, 'key-distribute');
+        logEvent(userId, 'Shared key applied', 'key-distribute');
       }
 
       // Initialize per-user keys only when E2EE is active and no shared key
@@ -233,7 +257,8 @@ export const useE2EEDemo = () => {
       if (e2eeEnabled && !useSharedKey) {
         initialKey = initializeKey(e2eeManager, userId);
         logEvent(
-          `${name} set key: ${toHex(initialKey).slice(0, 16)}...`,
+          userId,
+          `Set key: ${toHex(initialKey).slice(0, 16)}...`,
           'key-set',
         );
       } else if (useSharedKey && sharedKeyBytesRef.current) {
@@ -246,7 +271,8 @@ export const useE2EEDemo = () => {
       call.updatePublishOptions({ preferredCodec: preferredCodecRef.current });
       await call.join({ create: true });
       logEvent(
-        `${name} joined the call${e2eeEnabled ? (useSharedKey ? ' (shared key)' : '') : ' (no E2EE)'}`,
+        userId,
+        `Joined the call${e2eeEnabled ? (useSharedKey ? ' (shared key)' : '') : ' (no E2EE)'}`,
         'join',
       );
 
@@ -279,10 +305,7 @@ export const useE2EEDemo = () => {
               other.keyIndex,
               other.currentKey.slice(0),
             );
-            logEvent(
-              `Distributed ${other.name}'s key to ${name}`,
-              'key-distribute',
-            );
+            logEvent(userId, `Received ${other.name}'s key`, 'key-distribute');
           }
         }
       }
@@ -290,7 +313,8 @@ export const useE2EEDemo = () => {
       // Pure state update — no side effects
       setParticipants((prev) => [...prev, newParticipant]);
     } catch (err) {
-      logEvent(`Failed to add participant: ${err}`, 'error');
+      // No participant box exists to attribute this to — surface to console.
+      console.error('[e2ee-demo] Failed to add participant:', err);
     } finally {
       setLoading(false);
     }
@@ -315,7 +339,8 @@ export const useE2EEDemo = () => {
         { localOnly },
       );
       logEvent(
-        `${target.name} rotated key (#${keyIndex}): ${toHex(key).slice(0, 16)}...${localOnly ? ' [LOCAL ONLY]' : ''}`,
+        targetUserId,
+        `Rotated key (#${keyIndex}): ${toHex(key).slice(0, 16)}...${localOnly ? ' [LOCAL ONLY]' : ''}`,
         'key-rotate',
       );
 
@@ -344,7 +369,8 @@ export const useE2EEDemo = () => {
         { localOnly },
       ).then(({ key, keyIndex }) => {
         logEvent(
-          `${target.name} set key (#${keyIndex}): ${toHex(key).slice(0, 16)}...${localOnly ? ' [LOCAL ONLY]' : ''}`,
+          targetUserId,
+          `Set key (#${keyIndex}): ${toHex(key).slice(0, 16)}...${localOnly ? ' [LOCAL ONLY]' : ''}`,
           'key-set',
         );
 
@@ -373,7 +399,6 @@ export const useE2EEDemo = () => {
       target.call.leave().catch(() => {});
       target.call.e2eeManager?.dispose();
       target.client.disconnectUser().catch(() => {});
-      logEvent(`${target.name} left the call`, 'leave');
 
       // Remove departed user's keys from remaining participants
       const remaining = allParticipants.filter(
@@ -383,13 +408,20 @@ export const useE2EEDemo = () => {
       revokeKeys(targetUserId, managers);
       for (const other of remaining) {
         logEvent(
-          `Removed ${target.name}'s keys from ${other.name}`,
+          other.userId,
+          `Removed ${target.name}'s keys`,
           'key-distribute',
         );
       }
 
       // Pure state update
       setParticipants((prev) => prev.filter((p) => p.userId !== targetUserId));
+      // Drop the departed participant's log along with their box.
+      setEventsByUser((prev) => {
+        const next = { ...prev };
+        delete next[targetUserId];
+        return next;
+      });
     },
     [logEvent],
   );
@@ -416,7 +448,8 @@ export const useE2EEDemo = () => {
               p.currentKey = key;
               p.keyIndex = 0;
               logEvent(
-                `${p.name} set key: ${toHex(key).slice(0, 16)}...`,
+                p.userId,
+                `Set key: ${toHex(key).slice(0, 16)}...`,
                 'key-set',
               );
             }
@@ -453,10 +486,13 @@ export const useE2EEDemo = () => {
         setSharedPassphrase(null);
         sharedKeyBytesRef.current = null;
       }
-      logEvent(
-        `E2EE ${enabled ? 'enabled' : 'disabled'} for all`,
-        enabled ? 'join' : 'leave',
-      );
+      for (const p of all) {
+        logEvent(
+          p.userId,
+          `E2EE ${enabled ? 'enabled' : 'disabled'}`,
+          enabled ? 'join' : 'leave',
+        );
+      }
     },
     [logEvent, sendKey],
   );
@@ -487,7 +523,8 @@ export const useE2EEDemo = () => {
         newKey = key;
         newKeyIndex = 0;
         logEvent(
-          `${target.name} set key: ${toHex(key).slice(0, 16)}...`,
+          targetUserId,
+          `Set key: ${toHex(key).slice(0, 16)}...`,
           'key-set',
         );
         // Need to update the ref before distributeKey reads it
@@ -519,7 +556,8 @@ export const useE2EEDemo = () => {
         ),
       );
       logEvent(
-        `${target.name}: E2EE ${enabled ? 'enabled' : 'disabled'}`,
+        targetUserId,
+        `E2EE ${enabled ? 'enabled' : 'disabled'}`,
         enabled ? 'join' : 'leave',
       );
     },
@@ -561,10 +599,15 @@ export const useE2EEDemo = () => {
       setParticipants((prev) =>
         prev.map((p) => ({ ...p, currentKey: key, keyIndex })),
       );
-      logEvent(
-        `Shared key set from "${passphrase.length > 12 ? passphrase.slice(0, 12) + '...' : passphrase}" — per-user keys revoked`,
-        'key-set',
-      );
+      const passLabel =
+        passphrase.length > 12 ? passphrase.slice(0, 12) + '...' : passphrase;
+      for (const p of all) {
+        logEvent(
+          p.userId,
+          `Shared key set from "${passLabel}", per-user keys revoked`,
+          'key-set',
+        );
+      }
     },
     [logEvent],
   );
@@ -584,7 +627,7 @@ export const useE2EEDemo = () => {
   return {
     callId: callIdRef.current,
     participants,
-    events,
+    eventsByUser,
     loading,
     e2eeEnabled,
     preferredCodec,

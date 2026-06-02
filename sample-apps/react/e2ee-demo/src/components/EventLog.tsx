@@ -24,9 +24,7 @@ export const EventLog = ({ entries }: { entries: EventLogEntry[] }) => {
       <div className="event-log__header">Event Log</div>
       <div className="event-log__entries">
         {entries.length === 0 && (
-          <div className="event-log__empty">
-            Add a participant to get started
-          </div>
+          <div className="event-log__empty">No events yet</div>
         )}
         {entries.map((entry) => (
           <div

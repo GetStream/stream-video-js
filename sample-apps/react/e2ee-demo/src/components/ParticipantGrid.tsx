@@ -1,9 +1,10 @@
-import type { ParticipantSession } from '../types';
+import type { EventLogEntry, ParticipantSession } from '../types';
 import { ParticipantPanel } from './ParticipantPanel';
 import './ParticipantGrid.css';
 
 interface ParticipantGridProps {
   participants: ParticipantSession[];
+  eventsByUser: Record<string, EventLogEntry[]>;
   onRemove: (userId: string) => void;
   onToggleE2EE: (userId: string, enabled: boolean) => void;
   onRotateKey: (userId: string, localOnly: boolean) => void;
@@ -11,8 +12,11 @@ interface ParticipantGridProps {
   onDismissError: (userId: string) => void;
 }
 
+const EMPTY_EVENTS: EventLogEntry[] = [];
+
 export const ParticipantGrid = ({
   participants,
+  eventsByUser,
   onRemove,
   onToggleE2EE,
   onRotateKey,
@@ -34,6 +38,7 @@ export const ParticipantGrid = ({
         <ParticipantPanel
           key={p.userId}
           participant={p}
+          events={eventsByUser[p.userId] ?? EMPTY_EVENTS}
           onRemove={onRemove}
           onToggleE2EE={onToggleE2EE}
           onRotateKey={onRotateKey}
