@@ -170,7 +170,7 @@ function addDidFinishLaunchingWithOptionsObjc(
 
 function addDidFinishLaunchingWithOptionsRingingSwift(contents: string) {
   const functionSelector = 'application(_:didFinishLaunchingWithOptions:)';
-  const voipSetupMethod = 'StreamVideoReactNative.voipRegistrationManaged()';
+  const voipSetupMethod = 'StreamVideoReactNative.voipRegistration()';
   if (contents.includes(voipSetupMethod)) {
     return contents;
   }
@@ -190,7 +190,7 @@ function addDidFinishLaunchingWithOptionsRingingSwift(contents: string) {
 
 function addDidFinishLaunchingWithOptionsRingingObjc(contents: string) {
   const functionSelector = 'application:didFinishLaunchingWithOptions:';
-  const voipSetupMethod = '[StreamVideoReactNative voipRegistrationManaged];';
+  const voipSetupMethod = '[StreamVideoReactNative voipRegistration];';
   if (contents.includes(voipSetupMethod)) {
     return contents;
   }

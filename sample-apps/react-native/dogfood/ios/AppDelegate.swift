@@ -58,7 +58,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     // Uncomment the next line to enable verbose WebRTC logs
     // WebRTCModuleOptions.sharedInstance().loggingSeverity = .verbose
     
-    StreamVideoReactNative.voipRegistrationManaged()
+    StreamVideoReactNative.voipRegistration()
     
     let center = UNUserNotificationCenter.current()
     center.delegate = self

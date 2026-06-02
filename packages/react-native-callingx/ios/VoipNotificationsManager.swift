@@ -21,12 +21,6 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     private static var lastVoipToken = ""
     private static var voipRegistry: PKPushRegistry?
 
-    // When true, `voipRegistration()` uses an SDK-owned `PKPushRegistryDelegate`
-    // (`VoipPushHandler`) instead of casting the host app's `AppDelegate`.
-    // Toggle it via `voipRegistrationManaged()` before registration; flipping
-    // it after a registry has been created is a no-op.
-    @objc public static var isManaged: Bool = false
-    
     private var canSendEvents: Bool = false
     private var delayedEvents: [[String:Any]] = []
     
@@ -66,30 +60,20 @@ typealias RNVoipPushNotificationCompletion = () -> Void
             #endif
             let voipPushManager = VoipNotificationsManager.shared()
             voipPushManager.sendEventWithNameWrapper(name: VoipNotificationsEvents.registered, body: ["token": lastVoipToken])
-        } else {
-            #if DEBUG
-            NSLog("%@","[VoipNotificationsManager] voipRegistration enter (isManaged = \(isManaged))")
-            #endif
-            DispatchQueue.main.async {
-                let voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
-                let pushDelegate = isManaged ? VoipPushHandler.sharedInstance() : RCTSharedApplication()?.delegate as? PKPushRegistryDelegate
-                if let delegate = pushDelegate {
-                    voipRegistry.delegate = delegate
-                    voipRegistry.desiredPushTypes = [.voIP]
-                    VoipNotificationsManager.voipRegistry = voipRegistry
-                    isVoipRegistered = true
-                } else {
-                    #if DEBUG
-                    NSLog("%@","[VoipNotificationsManager] voipRegistration pushDelegate not found. return")
-                    #endif
-                }
-            }
+            return
         }
-    }
 
-    @objc public static func voipRegistrationManaged() {
-        isManaged = true
-        voipRegistration()
+        #if DEBUG
+        NSLog("%@","[VoipNotificationsManager] voipRegistration enter")
+        #endif
+
+        DispatchQueue.main.async {
+            let registry = PKPushRegistry(queue: DispatchQueue.main)
+            registry.delegate = VoipPushHandler.sharedInstance()
+            registry.desiredPushTypes = [.voIP]
+            VoipNotificationsManager.voipRegistry = registry
+            isVoipRegistered = true
+        }
     }
     
     @objc public static func didUpdatePushCredentials(_ credentials: PKPushCredentials, forType type: String) {

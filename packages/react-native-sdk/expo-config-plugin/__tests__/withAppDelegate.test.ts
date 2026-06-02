@@ -138,7 +138,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
       /#import "StreamVideoReactNative.h"/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /\[StreamVideoReactNative voipRegistrationManaged\]/,
+      /\[StreamVideoReactNative voipRegistration\]/,
     );
     expect(updatedConfig.modResults.contents).not.toContain(
       '<PushKit/PushKit.h>',
@@ -190,7 +190,7 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     // internally, so the AppDelegate shouldn't have PushKit imports,
     // PKPushRegistryDelegate conformance, or any pushRegistry(...) methods.
     expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative\.voipRegistrationManaged\(\)/,
+      /StreamVideoReactNative\.voipRegistration\(\)/,
     );
     expect(updatedConfig.modResults.contents).not.toMatch(/^import PushKit/m);
     expect(updatedConfig.modResults.contents).not.toContain(
