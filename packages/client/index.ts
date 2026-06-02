@@ -23,7 +23,6 @@ export * from './src/helpers/DynascaleManager';
 export * from './src/helpers/ViewportTracker';
 export * from './src/helpers/sound-detector';
 export * from './src/helpers/participantUtils';
-export * from './src/helpers/RNSpeechDetector';
 export * from './src/rtc/e2ee/EncryptionManager';
 export * as Browsers from './src/helpers/browsers';
 

@@ -1,4 +1,4 @@
-import { OwnCapability } from '@stream-io/video-client';
+import { OwnCapability, SfuModels } from '@stream-io/video-client';
 import {
   Restricted,
   useCallStateHooks,
@@ -38,7 +38,7 @@ export const ToggleAudioPreviewButton = (
     ...restCompositeButtonProps
   } = props;
   const { t } = useI18n();
-  const { useMicrophoneState } = useCallStateHooks();
+  const { useMicrophoneState, useLocalParticipant } = useCallStateHooks();
   const {
     microphone,
     hasBrowserPermission,
@@ -46,6 +46,10 @@ export const ToggleAudioPreviewButton = (
     optionsAwareIsMute,
     isTogglePending,
   } = useMicrophoneState({ optimisticUpdates });
+  const localParticipant = useLocalParticipant();
+  const isSystemMuted = !!localParticipant?.interruptedTracks?.includes(
+    SfuModels.TrackType.AUDIO,
+  );
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, () =>
     microphone.toggle(),
@@ -56,7 +60,9 @@ export const ToggleAudioPreviewButton = (
       title={
         !hasBrowserPermission
           ? t('Check your browser audio permissions')
-          : (caption ?? t('Mic'))
+          : isSystemMuted
+            ? t('Microphone is paused by your system')
+            : (caption ?? t('Mic'))
       }
       tooltipDisabled={tooltipDisabled}
     >
@@ -99,6 +105,13 @@ export const ToggleAudioPreviewButton = (
             children="?"
           />
         )}
+        {isSystemMuted && hasBrowserPermission && (
+          <span
+            className="str-video__system-muted"
+            title={t('Microphone is paused by your system')}
+            children="!"
+          />
+        )}
       </CompositeButton>
     </WithTooltip>
   );
@@ -128,7 +141,7 @@ export const ToggleAudioPublishingButton = (
   const { hasPermission, requestPermission, isAwaitingPermission } =
     useRequestPermission(OwnCapability.SEND_AUDIO);
 
-  const { useMicrophoneState } = useCallStateHooks();
+  const { useMicrophoneState, useLocalParticipant } = useCallStateHooks();
   const {
     microphone,
     hasBrowserPermission,
@@ -136,6 +149,10 @@ export const ToggleAudioPublishingButton = (
     isTogglePending,
     optionsAwareIsMute,
   } = useMicrophoneState({ optimisticUpdates });
+  const localParticipant = useLocalParticipant();
+  const isSystemMuted = !!localParticipant?.interruptedTracks?.includes(
+    SfuModels.TrackType.AUDIO,
+  );
 
   const [tooltipDisabled, setTooltipDisabled] = useState(false);
   const handleClick = createCallControlHandler(props, async () => {
@@ -161,7 +178,9 @@ export const ToggleAudioPublishingButton = (
               ? t('You have no permission to share your audio')
               : !hasBrowserPermission
                 ? t('Check your browser mic permissions')
-                : (caption ?? t('Mic'))
+                : isSystemMuted
+                  ? t('Microphone is paused by your system')
+                  : (caption ?? t('Mic'))
           }
           tooltipDisabled={tooltipDisabled}
         >
@@ -198,6 +217,14 @@ export const ToggleAudioPublishingButton = (
                 title={t('Waiting for permission')}
               >
                 ?
+              </span>
+            )}
+            {isSystemMuted && hasBrowserPermission && hasPermission && (
+              <span
+                className="str-video__system-muted"
+                title={t('Microphone is paused by your system')}
+              >
+                !
               </span>
             )}
           </CompositeButton>

@@ -18,6 +18,7 @@ import org.webrtc.YuvConverter
 class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVideoFilter) :
   VideoFrameProcessor {
   private val yuvConverter = YuvConverter()
+  private val yuvFrame = YuvFrame()
   private var inputWidth = 0
   private var inputHeight = 0
   private var inputBuffer: VideoFrame.TextureBuffer? = null
@@ -25,9 +26,8 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
   private val textures = IntArray(1)
   private var inputFrameBitmap: Bitmap? = null
 
-  private val bitmapVideoFilter by lazy {
-    bitmapVideoFilterFunc.invoke()
-  }
+  private val bitmapVideoFilterLazy = lazy { bitmapVideoFilterFunc.invoke() }
+  private val bitmapVideoFilter: BitmapVideoFilter by bitmapVideoFilterLazy
 
   init {
     GLES20.glGenTextures(1, textures, 0)
@@ -35,7 +35,7 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
 
   override fun process(frame: VideoFrame, surfaceTextureHelper: SurfaceTextureHelper): VideoFrame {
     // Step 1: Video Frame to Bitmap
-    val inputFrameBitmap = YuvFrame.bitmapFromVideoFrame(frame) ?: return frame
+    val inputFrameBitmap = yuvFrame.bitmapFromVideoFrame(frame) ?: return frame
 
     // Prepare helpers (runs only once or if the dimensions change)
     initialize(
@@ -66,9 +66,6 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
   }
 
   private fun initialize(width: Int, height: Int, textureHelper: SurfaceTextureHelper) {
-    // TODO: temporarily disabled due to crash: java.lang.IllegalStateException: release() called on an object with refcount < 1
-//     yuvBuffer?.release()
-
     if (this.inputWidth != width || this.inputHeight != height) {
       Log.d(TAG, "initialize - width: $width height: $height")
       this.inputWidth = width
@@ -89,6 +86,25 @@ class VideoFrameProcessorWithBitmapFilter(bitmapVideoFilterFunc: () -> BitmapVid
       )
       this.inputFrameBitmap =
         Bitmap.createBitmap(this.inputWidth, this.inputHeight, Bitmap.Config.ARGB_8888)
+    }
+  }
+
+  // Runs on the GL thread serialized with process() — inline cleanup is safe.
+  // Always delete the texture: glGenTextures in init can return a valid id even
+  // before initialize() runs, so enable-then-disable would leak it otherwise.
+  override fun dispose() {
+    if (bitmapVideoFilterLazy.isInitialized()) {
+      bitmapVideoFilter.close()
+    }
+    yuvFrame.close()
+    inputFrameBitmap?.recycle()
+    inputFrameBitmap = null
+    yuvConverter.release()
+    inputBuffer?.release()
+    inputBuffer = null
+    if (textures[0] != 0) {
+      GLES20.glDeleteTextures(1, intArrayOf(textures[0]), 0)
+      textures[0] = 0
     }
   }
 

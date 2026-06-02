@@ -148,11 +148,19 @@ export const ViewerLivestream = ({
   ]);
 
   if (endedAt != null) {
-    return <CallEndedView />;
+    return (
+      <View style={[styles.container, viewerLivestream.container]}>
+        <CallEndedView />
+      </View>
+    );
   }
 
   if (!canJoinLive || callingState !== CallingState.JOINED) {
-    return <ViewerLobby isLive={canJoinLive} />;
+    return (
+      <View style={[styles.container, viewerLivestream.container]}>
+        <ViewerLobby isLive={canJoinLive} />
+      </View>
+    );
   }
 
   return (

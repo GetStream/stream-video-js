@@ -37,6 +37,13 @@ import UIKit
         setSettings(["shouldRejectCallWhenBusy": shouldReject])
     }
 
+    public static func getSkipIncomingPushInForeground() -> Bool {
+        guard let skip = getSettings()["skipIncomingPushInForeground"] as? Bool else {
+            return false
+        }
+        return skip
+    }
+
     public static func getProviderConfiguration() -> CXProviderConfiguration {
         #if DEBUG
         NSLog("%@","[Settings][getProviderConfiguration]")

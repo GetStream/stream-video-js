@@ -12,7 +12,7 @@ export const ToggleDualCameraButton = () => {
       <div className="rd__dual-toggle">
         <DegradedPerformanceNotification className="rd__call-controls__notification" />
         <ToggleVideoPublishingButton
-          Menu={<DeviceSelectorVideo visualType="preview" />}
+          Menu={<DeviceSelectorVideo visualType="list" />}
           menuPlacement="top"
         />
       </div>

@@ -8,21 +8,16 @@ import {
   StreamCall,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CallStackParamList } from '../../types';
 import { NavigationHeader } from '../components/NavigationHeader';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
 import { useOrientation } from '../hooks/useOrientation';
 
 const CallStack = createNativeStackNavigator<CallStackParamList>();
 
 const Calls = () => {
   const calls = useCalls().filter((c) => c.ringing);
-  const { top } = useSafeAreaInsets();
   const orientation = useOrientation();
 
   const firstCall = calls.at(-1);
@@ -34,9 +29,9 @@ const Calls = () => {
   return (
     <StreamCall call={firstCall}>
       <CallLeaveOnUnmount call={firstCall} />
-      <SafeAreaView style={[styles.container, { top }]}>
+      <View style={StyleSheet.absoluteFill}>
         <RingingCallContent landscape={orientation === 'landscape'} />
-      </SafeAreaView>
+      </View>
     </StreamCall>
   );
 };
@@ -66,9 +61,3 @@ export const Call = () => {
     </>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-  },
-});

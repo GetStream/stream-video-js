@@ -5,6 +5,7 @@ import {
   GenericMenu,
   GenericMenuButtonItem,
   hasAudio,
+  hasInterruptedTrack,
   hasScreenShare,
   hasScreenShareAudio,
   hasVideo,
@@ -12,6 +13,8 @@ import {
   OwnCapability,
   ParticipantActionsContextMenu,
   Restricted,
+  SfuModels,
+  StreamVideoParticipant,
   useCall,
   useI18n,
   useMenuContext,
@@ -20,6 +23,44 @@ import {
 import { DebugStatsView } from './DebugStatsView';
 import { useIsDebugMode } from './useIsDebugMode';
 import { useIsDemoEnvironment } from '../../context/AppEnvironmentContext';
+
+const InterruptedTrackBadge = ({
+  participant,
+}: {
+  participant: StreamVideoParticipant;
+}) => {
+  const labels: string[] = [];
+  if (hasInterruptedTrack(participant, SfuModels.TrackType.AUDIO))
+    labels.push('audio');
+  if (hasInterruptedTrack(participant, SfuModels.TrackType.VIDEO))
+    labels.push('video');
+  if (hasInterruptedTrack(participant, SfuModels.TrackType.SCREEN_SHARE))
+    labels.push('screen');
+  if (hasInterruptedTrack(participant, SfuModels.TrackType.SCREEN_SHARE_AUDIO))
+    labels.push('screen audio');
+  if (labels.length === 0) return null;
+  return (
+    <div
+      title="Receiver-side track is not currently producing media"
+      style={{
+        position: 'absolute',
+        top: 8,
+        left: 8,
+        padding: '2px 6px',
+        borderRadius: 4,
+        background: 'rgba(220, 38, 38, 0.85)',
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: 0.2,
+        pointerEvents: 'none',
+        zIndex: 5,
+      }}
+    >
+      {`${labels.join(' + ')} interrupted`}
+    </div>
+  );
+};
 
 export const DebugParticipantViewUI = () => {
   const call = useCall();
@@ -66,6 +107,7 @@ export const DebugParticipantViewUI = () => {
       <DefaultParticipantViewUI
         ParticipantActionsContextMenu={participantContextMenuActions}
       />
+      <InterruptedTrackBadge participant={participant} />
       <div className="rd__debug__extra">
         <DebugStatsView call={call!} sessionId={sessionId} userId={userId} />
       </div>

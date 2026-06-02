@@ -5345,6 +5345,12 @@ export interface JoinCallRequest {
    */
   data?: CallRequest;
   /**
+   * if true, the participant will be marked as publsihing to large audience
+   * @type {boolean}
+   * @memberof JoinCallRequest
+   */
+  hint_high_scale_livestream_publisher?: boolean;
+  /**
    *
    * @type {string}
    * @memberof JoinCallRequest

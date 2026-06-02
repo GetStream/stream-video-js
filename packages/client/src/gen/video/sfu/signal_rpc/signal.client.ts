@@ -14,6 +14,8 @@ import type {
   ICETrickleResponse,
   SendAnswerRequest,
   SendAnswerResponse,
+  SendMetricsRequest,
+  SendMetricsResponse,
   SendStatsRequest,
   SendStatsResponse,
   SetPublisherRequest,
@@ -92,6 +94,13 @@ export interface ISignalServerClient {
     input: SendStatsRequest,
     options?: RpcOptions,
   ): UnaryCall<SendStatsRequest, SendStatsResponse>;
+  /**
+   * @generated from protobuf rpc: SendMetrics(stream.video.sfu.signal.SendMetricsRequest) returns (stream.video.sfu.signal.SendMetricsResponse);
+   */
+  sendMetrics(
+    input: SendMetricsRequest,
+    options?: RpcOptions,
+  ): UnaryCall<SendMetricsRequest, SendMetricsResponse>;
   /**
    * @generated from protobuf rpc: StartNoiseCancellation(stream.video.sfu.signal.StartNoiseCancellationRequest) returns (stream.video.sfu.signal.StartNoiseCancellationResponse);
    */
@@ -241,13 +250,30 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
     );
   }
   /**
+   * @generated from protobuf rpc: SendMetrics(stream.video.sfu.signal.SendMetricsRequest) returns (stream.video.sfu.signal.SendMetricsResponse);
+   */
+  sendMetrics(
+    input: SendMetricsRequest,
+    options?: RpcOptions,
+  ): UnaryCall<SendMetricsRequest, SendMetricsResponse> {
+    const method = this.methods[7],
+      opt = this._transport.mergeOptions(options);
+    return stackIntercept<SendMetricsRequest, SendMetricsResponse>(
+      'unary',
+      this._transport,
+      method,
+      opt,
+      input,
+    );
+  }
+  /**
    * @generated from protobuf rpc: StartNoiseCancellation(stream.video.sfu.signal.StartNoiseCancellationRequest) returns (stream.video.sfu.signal.StartNoiseCancellationResponse);
    */
   startNoiseCancellation(
     input: StartNoiseCancellationRequest,
     options?: RpcOptions,
   ): UnaryCall<StartNoiseCancellationRequest, StartNoiseCancellationResponse> {
-    const method = this.methods[7],
+    const method = this.methods[8],
       opt = this._transport.mergeOptions(options);
     return stackIntercept<
       StartNoiseCancellationRequest,
@@ -261,7 +287,7 @@ export class SignalServerClient implements ISignalServerClient, ServiceInfo {
     input: StopNoiseCancellationRequest,
     options?: RpcOptions,
   ): UnaryCall<StopNoiseCancellationRequest, StopNoiseCancellationResponse> {
-    const method = this.methods[8],
+    const method = this.methods[9],
       opt = this._transport.mergeOptions(options);
     return stackIntercept<
       StopNoiseCancellationRequest,

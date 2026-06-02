@@ -1,8 +1,5 @@
 import type { StreamVideoConfig } from './types';
 import pushLogoutCallbacks from '../internal/pushLogoutCallback';
-import newNotificationCallbacks, {
-  type NewCallNotificationCallback,
-} from '../internal/newNotificationCallbacks';
 import { setupIosVoipPushEvents } from '../push/setupIosVoipPushEvents';
 import { setupCallingExpEvents } from '../push/setupCallingExpEvents';
 import {
@@ -148,35 +145,16 @@ export class StreamVideoRN {
    * Typically used on user logout.
    */
   static onPushLogout() {
-    if (pushLogoutCallbacks.current) {
-      return Promise.all(
-        pushLogoutCallbacks.current.map((callback) => callback()),
-      ).then(() => {});
+    const callbacks = pushLogoutCallbacks.current;
+    if (!callbacks) {
+      return Promise.resolve();
     }
-    return Promise.resolve();
+    pushLogoutCallbacks.current = [];
+    return Promise.all(callbacks.map((callback) => callback())).then(() => {});
   }
 
   static clearPushLogoutCallbacks() {
     pushLogoutCallbacks.current = [];
-  }
-
-  /**
-   * This function is used to add a callback to be called when a new call notification is received.
-   * @param callback
-   * @returns Unsubscribe function
-   */
-  static addOnNewCallNotificationListener(
-    callback: NewCallNotificationCallback,
-  ) {
-    if (!newNotificationCallbacks.current) {
-      newNotificationCallbacks.current = [callback];
-    } else {
-      newNotificationCallbacks.current.push(callback);
-    }
-    return () => {
-      newNotificationCallbacks.current =
-        newNotificationCallbacks.current?.filter((cb) => cb !== callback);
-    };
   }
 
   /**

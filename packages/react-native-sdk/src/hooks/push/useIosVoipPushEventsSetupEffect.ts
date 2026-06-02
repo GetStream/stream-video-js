@@ -88,7 +88,7 @@ export const useIosVoipPushEventsSetupEffect = () => {
 
   useEffect(() => {
     const pushConfig = StreamVideoRN.getConfig().push;
-    const pushProviderName = pushConfig?.ios.pushProviderName;
+    const pushProviderName = pushConfig?.ios?.pushProviderName;
     const callingx = getCallingxLibIfAvailable();
 
     if (Platform.OS !== 'ios' || !client || !pushProviderName || !callingx) {

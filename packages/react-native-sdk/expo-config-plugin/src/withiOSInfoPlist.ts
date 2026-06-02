@@ -15,8 +15,10 @@ const withStreamVideoReactNativeSDKiOSInfoPList: ConfigPlugin<ConfigProps> = (
       }
     }
     addBackgroundMode('audio');
-    if (props?.ringing) {
+    if (props?.ringing || props?.iosKeepCallAlive) {
       addBackgroundMode('voip');
+    }
+    if (props?.ringing) {
       addBackgroundMode('fetch');
       addBackgroundMode('processing');
       config.modResults['BGTaskSchedulerPermittedIdentifiers'] = [

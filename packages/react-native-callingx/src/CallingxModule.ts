@@ -16,6 +16,7 @@ import {
   type EventName,
   type EventParams,
   type CallingExpOptions,
+  type DefaultDeviceEndpointType,
   type VoipEventName,
   type VoipEventParams,
   type VoipEventData,
@@ -30,7 +31,10 @@ import { isVoipEvent } from './utils/utils';
 
 class CallingxModule implements ICallingxModule {
   private _isSetup = false;
-  private _isOngoingCallsEnabled = false;
+  private _isOngoingCallsEnabled = {
+    android: false,
+    ios: false,
+  };
   private _isHeadlessTaskRegistered = false;
 
   private titleTransformer: (memberName: string, incoming: boolean) => string =
@@ -50,7 +54,9 @@ class CallingxModule implements ICallingxModule {
   }
 
   get isOngoingCallsEnabled(): boolean {
-    return this._isOngoingCallsEnabled;
+    return Platform.OS === 'ios'
+      ? this._isOngoingCallsEnabled.ios
+      : this._isOngoingCallsEnabled.android;
   }
 
   get isSetup(): boolean {
@@ -62,11 +68,19 @@ class CallingxModule implements ICallingxModule {
       return;
     }
 
-    this._isOngoingCallsEnabled = options.enableOngoingCalls ?? false;
+    this._isOngoingCallsEnabled = {
+      android: options.android?.enableOngoingCalls ?? false,
+      ios: options.ios?.enableOngoingCalls ?? false,
+    };
     this.setShouldRejectCallWhenBusy(options.shouldRejectCallWhenBusy ?? false);
 
     if (Platform.OS === 'ios') {
       NativeCallingModule.setupiOS({ ...defaultiOSOptions, ...options.ios });
+      if (options.ios?.defaultDeviceEndpointType) {
+        NativeCallingModule.setDefaultAudioDeviceEndpointType(
+          options.ios.defaultDeviceEndpointType,
+        );
+      }
     }
 
     if (Platform.OS === 'android') {
@@ -75,6 +89,7 @@ class CallingxModule implements ICallingxModule {
         incomingChannel,
         ongoingChannel,
         notificationTexts,
+        skipIncomingPushInForeground = false,
       } = options.android ?? {};
 
       this.titleTransformer =
@@ -90,6 +105,7 @@ class CallingxModule implements ICallingxModule {
           ...(ongoingChannel ?? {}),
         },
         notificationTexts,
+        skipIncomingPushInForeground,
       };
 
       if (
@@ -109,6 +125,13 @@ class CallingxModule implements ICallingxModule {
 
   setShouldRejectCallWhenBusy(shouldReject: boolean): void {
     NativeCallingModule.setShouldRejectCallWhenBusy(shouldReject);
+  }
+
+  setDefaultAudioDeviceEndpointType(
+    endpointType: DefaultDeviceEndpointType,
+  ): void {
+    if (Platform.OS !== 'ios') return;
+    NativeCallingModule.setDefaultAudioDeviceEndpointType(endpointType);
   }
 
   getInitialEvents(): EventData[] {

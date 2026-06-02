@@ -1,9 +1,9 @@
+import { videoLoggerSystem } from '@stream-io/video-client';
 import { Platform } from 'react-native';
+import { StreamVideoConfig } from '../../StreamVideoRN/types';
+import { getCallingxLib } from '../libs/callingx';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canListenToWS, shouldCallBeClosed } from './utils';
-import { StreamVideoConfig } from '../../StreamVideoRN/types';
-import { videoLoggerSystem } from '@stream-io/video-client';
-import { getCallingxLib } from '../libs/callingx';
 
 export const onVoipNotificationReceived = async (
   notification: any,
@@ -43,7 +43,7 @@ export const onVoipNotificationReceived = async (
   }
 
   const call_cid = notification?.stream?.call_cid;
-  if (!call_cid || Platform.OS !== 'ios' || !pushConfig.ios.pushProviderName) {
+  if (!call_cid || Platform.OS !== 'ios' || !pushConfig.ios?.pushProviderName) {
     return;
   }
 

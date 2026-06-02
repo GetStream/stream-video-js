@@ -1,5 +1,6 @@
 import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
 import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
+import { audioDeviceModuleEvents } from '@stream-io/react-native-webrtc';
 import { getCallingxLibIfAvailable } from '../push/libs/callingx';
 import {
   endCallingxCall,
@@ -49,6 +50,8 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callManager: {
     setup: ({ defaultDevice, isRingingTypeCall }) => {
       if (shouldBypassForCallKit({ isRingingTypeCall })) {
+        // Forward the sticky preference; callingx reads it on next CallKit activation.
+        CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice);
         return;
       }
       StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
@@ -83,6 +86,18 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       return Boolean(
         await StreamVideoReactNativeModule.checkPermission?.(permission),
       );
+    },
+  },
+  nativeEvents: {
+    speechActivity: {
+      subscribe(cb) {
+        const subscription = audioDeviceModuleEvents.addSpeechActivityListener(
+          (data) => {
+            cb({ isSoundDetected: data.event === 'started' });
+          },
+        );
+        return () => subscription.remove();
+      },
     },
   },
 };

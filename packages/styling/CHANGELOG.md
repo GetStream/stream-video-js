@@ -2,6 +2,14 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.14.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.14.0...@stream-io/video-styling-1.14.1) (2026-06-01)
+
+## [1.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.13.0...@stream-io/video-styling-1.14.0) (2026-05-18)
+
+### Features
+
+- Automatic audio recovery ([#2240](https://github.com/GetStream/stream-video-js/issues/2240)) ([8131e5b](https://github.com/GetStream/stream-video-js/commit/8131e5b35a1c87c46d99eeaab434f8889ba5d126))
+
 ## [1.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.12.0...@stream-io/video-styling-1.13.0) (2026-04-09)
 
 ### Features

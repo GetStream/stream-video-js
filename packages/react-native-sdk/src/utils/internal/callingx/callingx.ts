@@ -12,6 +12,7 @@ import type {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
+
 const CallingxModule = getCallingxLibIfAvailable();
 
 /**
@@ -78,10 +79,11 @@ export async function registerOutgoingCall(call: Call) {
 
   try {
     logger.debug(`registerOutgoingCall: Registering outgoing call ${call.cid}`);
+    const callDisplayName = getCallDisplayNameFromCall(call);
     await CallingxModule.startCall(
       call.cid, // unique id for call
-      call.state.createdBy?.id ?? getCallDisplayNameFromCall(call), // handle for native call UI (prefer createdBy user id, fallback to call display name)
-      getCallDisplayNameFromCall(call), // display name for display in call screen
+      call.state.createdBy?.id ?? callDisplayName, // handle for native call UI (prefer createdBy user id, fallback to call display name)
+      callDisplayName, // display name for display in call screen
       call.state.settings?.video?.enabled ?? false, // is video call?
     );
   } catch (error) {
@@ -109,23 +111,26 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
   const isOutcomingCall = call.ringing && call.isCreatedByMe;
   const isIncomingCall = call.ringing && !call.isCreatedByMe;
 
+  const startCallInCallingx = async () => {
+    logger.debug(`joinCallingxCall: Joining call ${call.cid}`);
+    const callDisplayName = getCallDisplayNameFromCall(call);
+    await CallingxModule.startCall(
+      call.cid, // unique id for call
+      call.state.createdBy?.id ?? callDisplayName, // handle for native call UI (prefer createdBy user id, fallback to call display name)
+      callDisplayName, // display name for display in call screen
+      call.state.settings?.video?.enabled ?? false, // is video call?
+    );
+    if (Platform.OS === 'ios') {
+      await waitForAudioSessionActivation();
+    }
+  };
+
   if (
     isOutcomingCall ||
     (!call.ringing && CallingxModule.isOngoingCallsEnabled)
   ) {
     try {
-      logger.debug(`joinCallingxCall: Joining call ${call.cid}`);
-      await CallingxModule.startCall(
-        call.cid, // unique id for call
-        call.state.createdBy?.id ?? getCallDisplayNameFromCall(call), // handle for native call UI (prefer createdBy user id, fallback to call display name)
-        getCallDisplayNameFromCall(call), // display name for display in call screen
-        call.state.settings?.video?.enabled ?? false, // is video call?
-      );
-
-      // Wait for audio session activation on iOS only
-      if (Platform.OS === 'ios') {
-        await waitForAudioSessionActivation();
-      }
+      await startCallInCallingx();
     } catch (error) {
       logger.error(
         `startCallingxCall: Error starting call in callingx: ${call.cid}`,
@@ -134,6 +139,7 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
     }
   } else if (isIncomingCall) {
     logger.debug(`joinCallingxCall: Joining incoming call ${call.cid}`);
+
     try {
       // Leave any existing active ringing calls before joining a new ringing call
       const activeCallsToLeave = activeCalls.filter(
@@ -150,14 +156,14 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
           logger.error(`failed to leave active call ${activeCall.cid}`, e);
         });
       }
-
       // Awaits native CallKit/Telecom registration before answering.
       // Safe to call even if the call is already registered (e.g. from VoIP push) --
       // iOS early-returns with no error, Android sends the registered broadcast.
+      const callDisplayName = getCallDisplayNameFromCall(call);
       await CallingxModule.displayIncomingCall(
         call.cid, // unique id for call
-        call.state.createdBy?.id ?? getCallDisplayNameFromCall(call), // handle for native call UI (prefer createdBy user id, fallback to call display name)
-        getCallDisplayNameFromCall(call), // display name for display in call screen
+        call.state.createdBy?.id ?? callDisplayName, // handle for native call UI (prefer createdBy user id, fallback to call display name)
+        callDisplayName, // display name for display in call screen
         call.state.settings?.video?.enabled ?? false, // is video call?
       );
 
@@ -168,7 +174,7 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
       }
     } catch (error) {
       logger.error(
-        `Error displaying incoming call in callingx: ${call.cid}`,
+        `Error joining incoming call in callingx: ${call.cid}`,
         error,
       );
     }

@@ -373,6 +373,7 @@ export const useCameraState = ({
   const { state } = camera;
   const direction = useObservableValue(state.direction$);
   const mediaStream = useObservableValue(state.mediaStream$);
+  const rootMediaStream = useObservableValue(state.rootMediaStream$);
   const selectedDevice = useObservableValue(state.selectedDevice$);
   const { getDevices } = useLazyDeviceList(camera);
   const hasBrowserPermission = useObservableValue(state.hasBrowserPermission$);
@@ -384,6 +385,7 @@ export const useCameraState = ({
     camera,
     direction,
     mediaStream,
+    rootMediaStream,
     get devices() {
       return getDevices();
     },
@@ -493,19 +495,29 @@ export const useScreenShareState = ({
  */
 export const useIncomingVideoSettings = () => {
   const call = useCall() as Call;
-  return useObservableValue(call.dynascaleManager.incomingVideoSettings$);
+  return useObservableValue(
+    call.trackSubscriptionManager.incomingVideoSettings$,
+  );
 };
+
+/**
+ * Static fallback emitted when no `Call` is active. Module-scope so the
+ * `useObservableValue` dep reference stays stable across renders.
+ */
+const AUTOPLAY_BLOCKED$ = of(false);
 
 /**
  * Returns whether the browser's autoplay policy is blocking audio playback.
  *
  * When the browser blocks audio autoplay (e.g., no prior user interaction),
  * this hook returns `true`. Use `call.resumeAudio()` inside a click handler
- * to unblock audio playback.
+ * to unblock audio playback. Returns `false` on React Native.
  */
 export const useIsAutoplayBlocked = (): boolean => {
-  const call = useCall() as Call;
-  return useObservableValue(call.dynascaleManager.autoplayBlocked$);
+  const call = useCall();
+  return useObservableValue(
+    call?.blockedAudioTracker.autoplayBlocked$ ?? AUTOPLAY_BLOCKED$,
+  );
 };
 
 /**

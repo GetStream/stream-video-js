@@ -10,6 +10,7 @@ import {
   ClientDetails,
   Codec,
   ConnectionQuality,
+  DegradationPreference,
   Error as Error$,
   GoAwayReason,
   ICETrickle as ICETrickle$,
@@ -674,6 +675,10 @@ export interface SubscriberOffer {
    * @generated from protobuf field: string sdp = 2;
    */
   sdp: string;
+  /**
+   * @generated from protobuf field: uint32 negotiation_id = 3;
+   */
+  negotiationId: number;
 }
 /**
  * @generated from protobuf message stream.video.sfu.event.PublisherAnswer
@@ -836,6 +841,10 @@ export interface VideoSender {
    * @generated from protobuf field: int32 publish_option_id = 5;
    */
   publishOptionId: number;
+  /**
+   * @generated from protobuf field: stream.video.sfu.models.DegradationPreference degradation_preference = 6;
+   */
+  degradationPreference: DegradationPreference;
 }
 /**
  * sent to users when they need to change the quality of their video
@@ -1601,6 +1610,12 @@ class SubscriberOffer$Type extends MessageType<SubscriberOffer> {
     super('stream.video.sfu.event.SubscriberOffer', [
       { no: 1, name: 'ice_restart', kind: 'scalar', T: 8 /*ScalarType.BOOL*/ },
       { no: 2, name: 'sdp', kind: 'scalar', T: 9 /*ScalarType.STRING*/ },
+      {
+        no: 3,
+        name: 'negotiation_id',
+        kind: 'scalar',
+        T: 13 /*ScalarType.UINT32*/,
+      },
     ]);
   }
 }
@@ -1795,6 +1810,16 @@ class VideoSender$Type extends MessageType<VideoSender> {
         name: 'publish_option_id',
         kind: 'scalar',
         T: 5 /*ScalarType.INT32*/,
+      },
+      {
+        no: 6,
+        name: 'degradation_preference',
+        kind: 'enum',
+        T: () => [
+          'stream.video.sfu.models.DegradationPreference',
+          DegradationPreference,
+          'DEGRADATION_PREFERENCE_',
+        ],
       },
     ]);
   }

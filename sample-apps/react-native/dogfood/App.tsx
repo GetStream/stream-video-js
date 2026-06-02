@@ -32,13 +32,10 @@ import { setPushConfig } from './src/utils/setPushConfig';
 import { useSyncPermissions } from './src/hooks/useSyncPermissions';
 import { NavigationHeader } from './src/components/NavigationHeader';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Alert, LogBox } from 'react-native';
+import { Appearance, LogBox, Platform } from 'react-native';
 import { LiveStream } from './src/navigators/Livestream';
-import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import {
   defaultTheme,
-  isPushNotificationiOSStreamVideoEvent,
-  onPushNotificationiOSStreamVideoEvent,
   StreamTheme,
   useCalls,
 } from '@stream-io/video-react-native-sdk';
@@ -72,19 +69,12 @@ const StackNavigator = () => {
       ? appTheme.colors.static_white
       : defaultTheme.colors.sheetPrimary;
 
+  useEffect(() => {
+    Appearance.setColorScheme(themeMode);
+  }, [themeMode]);
+
   useDeepLinkEffect();
   useSyncPermissions();
-
-  useEffect(() => {
-    PushNotificationIOS.addEventListener('notification', (notification) => {
-      if (isPushNotificationiOSStreamVideoEvent(notification)) {
-        onPushNotificationiOSStreamVideoEvent(notification);
-      }
-    });
-    return () => {
-      PushNotificationIOS.removeEventListener('notification');
-    };
-  }, []);
 
   let mode;
   switch (appMode) {
@@ -165,7 +155,7 @@ const StackNavigator = () => {
 
   const containerStyle = {
     flex: 1,
-    paddingBottom: bottom,
+    paddingBottom: Platform.OS === 'android' ? bottom : 0,
     backgroundColor: color,
   };
 

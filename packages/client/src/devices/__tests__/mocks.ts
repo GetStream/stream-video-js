@@ -104,6 +104,8 @@ export const mockCall = (): Partial<Call> => {
     }),
     notifyNoiseCancellationStarting: vi.fn().mockResolvedValue(undefined),
     notifyNoiseCancellationStopped: vi.fn().mockResolvedValue(undefined),
+    notifyTrackMuteState: vi.fn().mockResolvedValue(undefined),
+    refreshPublishedTrack: vi.fn().mockResolvedValue(undefined),
     tracer: new Tracer('tests'),
   };
 };
