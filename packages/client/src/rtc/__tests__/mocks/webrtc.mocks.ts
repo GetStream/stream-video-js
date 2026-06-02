@@ -94,7 +94,7 @@ const RTCRtpSenderMock = vi.fn(function (): Partial<typeof RTCRtpSender> {
 RTCRtpSenderMock.prototype.transform = null;
 vi.stubGlobal('RTCRtpSender', RTCRtpSenderMock);
 
-const WorkerMock = vi.fn((): Partial<Worker> => {
+const WorkerMock = vi.fn(function (): Partial<Worker> {
   return {
     postMessage: vi.fn(),
     terminate: vi.fn(),
@@ -104,14 +104,15 @@ const WorkerMock = vi.fn((): Partial<Worker> => {
 });
 vi.stubGlobal('Worker', WorkerMock);
 
-const RTCRtpScriptTransformMock = vi.fn(
-  (worker: Worker, options?: unknown): Partial<RTCRtpScriptTransform> => {
-    return {
-      worker,
-      options,
-    };
-  },
-);
+const RTCRtpScriptTransformMock = vi.fn(function (
+  worker: Worker,
+  options?: unknown,
+): Partial<RTCRtpScriptTransform> {
+  return {
+    worker,
+    options,
+  };
+});
 vi.stubGlobal('RTCRtpScriptTransform', RTCRtpScriptTransformMock);
 
 if (typeof URL !== 'undefined' && typeof URL.createObjectURL !== 'function') {
