@@ -30,12 +30,15 @@ enum DefaultAudioDevice {
 
     /// Belt-and-braces config writer kept for the initial-activation window
     /// (called from `CXStartCallAction.perform` / `CXAnswerCallAction.perform`).
-    /// Stays synchronous — callers expect to `action.fulfill()` on a configured
-    /// session, and `provider(_:didActivate:)` may fire imminently.
-    /// The engine-observer path (`engineWillEnable`) is the authoritative reapply
-    /// on subsequent activations.
+    /// Stays synchronous from the caller's perspective — `audioSessionQueue.sync`
+    /// blocks until configuration completes so `action.fulfill()` runs on a configured
+    /// session and `provider(_:didActivate:)` may fire imminently. Serializes with
+    /// `engineWillEnable` (e.g. work queued by `adm.reset()` runs first on the queue).
+    /// The engine-observer path is the authoritative reapply on subsequent activations.
     public func createAudioSessionIfNeeded() {
-        applyCallKitConfiguration()
+        audioSessionQueue.sync {
+            self.applyCallKitConfiguration()
+        }
     }
 
     /// Called from the AudioDeviceModule publisher's `.willEnableAudioEngine` event.
