@@ -17,6 +17,16 @@ export type RotationEvent = {
 };
 
 /**
+ * Fired when the local encoder has no key to encrypt with — the host has not
+ * provided one yet, or a key import failed. Outgoing frames are dropped (the
+ * sender publishes nothing) until a key is set via `setKey` / `setSharedKey`.
+ */
+export type MissingKeyEvent = {
+  /** The local sender that has no usable key. */
+  userId: string;
+};
+
+/**
  * Fired when the SDK detects that the E2EE session is broken for a remote
  * user — decryption has failed repeatedly past the internal tolerance.
  */
@@ -63,6 +73,17 @@ export type E2EEEventMap = {
   'e2ee.encryption_failed': string;
 
   /**
+   * Emitted when the encoder has no key for the local user, so outgoing
+   * frames are being dropped — the sender is effectively publishing nothing.
+   * Distinct from {@link E2EEEventMap}'s `e2ee.encryption_failed`, which means
+   * a key was present but the crypto operation threw.
+   *
+   * The host should set / distribute a key for this user. Throttled to at
+   * most once per second per user in the worker, and stops once a key is set.
+   */
+  'e2ee.missing_key': MissingKeyEvent;
+
+  /**
    * Emitted every second when perf reporting is enabled via
    * {@link EncryptionManager.setPerfReport}.
    */
@@ -92,6 +113,7 @@ export const e2eeEventKinds = {
   'e2ee.decryption_failed': true,
   'e2ee.decryption_resumed': true,
   'e2ee.encryption_failed': true,
+  'e2ee.missing_key': true,
   'e2ee.perf_report': true,
   'e2ee.broken': true,
   'e2ee.rotation_needed': true,

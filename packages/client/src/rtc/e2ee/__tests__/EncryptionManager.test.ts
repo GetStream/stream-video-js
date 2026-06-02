@@ -330,6 +330,19 @@ describe('EncryptionManager', () => {
       expect(callback).toHaveBeenCalledWith('clear-bytes-too-large');
     });
 
+    it('emits e2ee.missing_key', () => {
+      const callback = vi.fn();
+      manager.on('e2ee.missing_key', callback);
+
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+      messageHandler({
+        data: { type: 'e2ee.missing_key', userId: 'local-user' },
+      });
+
+      expect(callback).toHaveBeenCalledWith({ userId: 'local-user' });
+    });
+
     it('emits e2ee.perf_report', () => {
       const callback = vi.fn();
       manager.on('e2ee.perf_report', callback);

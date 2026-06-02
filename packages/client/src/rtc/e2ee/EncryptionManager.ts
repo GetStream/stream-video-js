@@ -7,6 +7,7 @@ import type { E2EEEventMap } from './events';
 export type {
   E2EEEventMap,
   E2EEBrokenEvent,
+  MissingKeyEvent,
   PerfReport,
   RotationEvent,
 } from './events';
@@ -362,6 +363,10 @@ export class EncryptionManager extends TypedEventEmitter<E2EEEventMap> {
         this.logger.error(`Encryption failed: ${e.data.reason}`);
         this.emit('e2ee.encryption_failed', e.data.reason);
         break;
+      case 'e2ee.missing_key':
+        this.logger.warn(`No encryption key for user: ${e.data.userId}`);
+        this.emit('e2ee.missing_key', { userId: e.data.userId });
+        break;
       case 'e2ee.rotation_needed':
         this.logger.warn(
           `Rekey requested (counter-threshold) for user: ${e.data.userId}`,
@@ -399,9 +404,12 @@ export class EncryptionManager extends TypedEventEmitter<E2EEEventMap> {
   };
 
   private validateKeyLength = (rawKey: ArrayBuffer) => {
-    const expected = this.algorithm === 'AES-256-GCM' ? 32 : 16;
+    const is256 = this.algorithm === 'AES-256-GCM';
+    const expected = is256 ? 32 : 16;
     if (rawKey.byteLength !== expected) {
-      throw new Error(`Key must be exactly ${expected} bytes`);
+      throw new Error(
+        `Key must be exactly ${expected} bytes (${is256 ? 'AES-256' : 'AES-128'})`,
+      );
     }
   };
 }

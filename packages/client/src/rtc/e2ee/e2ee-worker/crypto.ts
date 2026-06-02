@@ -44,12 +44,6 @@ const keyFingerprints: UserKeyMap<Uint8Array> = new Map();
 /** Consecutive-failure counter per (userId, keyIndex). */
 const decryptionFailureCounts: UserKeyMap<number> = new Map();
 
-interface ReplayState {
-  highest: number;
-  seen: Set<number>;
-}
-const replayWindows: UserKeyMap<ReplayState> = new Map();
-
 /** Map<userId, latest keyIndex>. */
 const latestKeyIndex = new Map<string, number>();
 
@@ -172,37 +166,86 @@ export const resetDecryptionFailures = (userId: string, keyIndex: number) => {
   decryptionFailureCounts.get(userId)?.delete(keyIndex);
 };
 
+interface ReplayState {
+  highest: number;
+  seen: Set<number>;
+}
+
 /**
- * Sliding-window replay guard. Returns true if the frame counter is
- * acceptable (new, or within the window and not previously seen); false if
- * the frame is a replay or older than the window.
+ * How many distinct sender IV-prefix "epochs" a single track's replay guard
+ * retains. One epoch is the normal case; a second or third appears only
+ * briefly around a key re-import or a sender restart, while frames carrying
+ * the old and new prefix interleave in the jitter buffer. Older epochs are
+ * evicted, which is safe: the sender never reuses an (ivPrefix, counter) pair.
  */
-export const checkReplayWindow = (
-  userId: string,
-  keyIndex: number,
-  counter: number,
-): boolean => {
-  const inner = getOrCreate(replayWindows, userId);
-  const state = inner.get(keyIndex);
-  if (!state) {
-    inner.set(keyIndex, { highest: counter, seen: new Set([counter]) });
-    return true;
-  }
-  if (counter > state.highest) {
-    state.highest = counter;
-    const cutoff = counter - REPLAY_WINDOW;
-    if (cutoff > 0) {
-      for (const c of state.seen) {
-        if (c <= cutoff) state.seen.delete(c);
-      }
-    }
-    state.seen.add(counter);
-    return true;
-  }
-  if (counter <= state.highest - REPLAY_WINDOW) return false;
-  if (state.seen.has(counter)) return false;
-  state.seen.add(counter);
+const REPLAY_EPOCHS = 3;
+
+const prefixEquals = (a: Uint8Array, b: Uint8Array): boolean => {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
   return true;
+};
+
+/** Stateful, per-track replay guard. See {@link createReplayWindow}. */
+export interface ReplayWindow {
+  /**
+   * Returns true if `counter` is acceptable (new, or within the window and
+   * not previously seen for this sender prefix); false if it is a replay or
+   * older than the window.
+   */
+  check: (counter: number, ivPrefix: Uint8Array) => boolean;
+}
+
+/**
+ * Creates a replay guard scoped to a single decode transform — i.e. a single
+ * remote track. Those tracks travel on independent SSRCs with independent
+ * jitter buffers, cross-track delivery skew could advance the shared `highest`
+ * far enough that the lagging track's frames were rejected as
+ * "older than the window" — dropped media and spurious decryption-failure events.
+ *
+ * Scoping per track removes that coupling: each guard only ever sees its own
+ * track's monotonic counter subsequence. Within a track the window is further
+ * partitioned by the sender's IV prefix, so a sender restart (fresh random
+ * prefix, frame counter reset to 0) opens a clean window instead of having
+ * its low counters rejected against a stale `highest`.
+ *
+ * The sender-side frame counter stays global per user (see `nextFrameCounter`)
+ * — that, combined with the per-(userId, keyIndex) IV prefix, is what keeps
+ * IVs unique across a user's tracks, and it keeps the on-wire format identical
+ * for cross-SDK receivers. Only the receive-side replay bookkeeping changed.
+ */
+export const createReplayWindow = (): ReplayWindow => {
+  const epochs: Array<{ prefix: Uint8Array; state: ReplayState }> = [];
+  return {
+    check: (counter, ivPrefix) => {
+      let epoch = epochs.find((e) => prefixEquals(e.prefix, ivPrefix));
+      if (!epoch) {
+        epoch = {
+          prefix: ivPrefix.slice(),
+          state: { highest: counter, seen: new Set([counter]) },
+        };
+        epochs.unshift(epoch);
+        if (epochs.length > REPLAY_EPOCHS) epochs.pop();
+        return true;
+      }
+      const { state } = epoch;
+      if (counter > state.highest) {
+        state.highest = counter;
+        const cutoff = counter - REPLAY_WINDOW;
+        if (cutoff > 0) {
+          for (const c of state.seen) {
+            if (c <= cutoff) state.seen.delete(c);
+          }
+        }
+        state.seen.add(counter);
+        return true;
+      }
+      if (counter <= state.highest - REPLAY_WINDOW) return false;
+      if (state.seen.has(counter)) return false;
+      state.seen.add(counter);
+      return true;
+    },
+  };
 };
 
 /**
@@ -237,8 +280,6 @@ export const importKey = async (
     );
     latestKeyIndex.set(userId, keyIndex);
     resetDecryptionFailures(userId, keyIndex);
-    // Fresh key instance → fresh replay window.
-    replayWindows.get(userId)?.delete(keyIndex);
   } catch (e: any) {
     self.postMessage({
       type: 'error',
@@ -262,11 +303,11 @@ export const importSharedKey = async (
     sharedKey = { key: cryptoKey, keyIndex };
     sharedKeyFingerprint = fp;
     sharedSenderIvPrefix = randomBytes(IV_PREFIX_LEN);
-    // The shared keyIndex now refers to a fresh key → reset replay state
-    // and decryption-failure state tied to that slot for every user.
-    for (const inner of replayWindows.values()) inner.delete(keyIndex);
-    for (const inner of decryptionFailureCounts.values())
+    // The shared keyIndex now refers to a fresh key → reset decryption-failure
+    // state tied to that slot for every user
+    for (const inner of decryptionFailureCounts.values()) {
       inner.delete(keyIndex);
+    }
   } catch (e: any) {
     self.postMessage({
       type: 'error',
@@ -286,7 +327,6 @@ export const removeKeys = (userId: string) => {
   keyFingerprints.delete(userId);
   latestKeyIndex.delete(userId);
   decryptionFailureCounts.delete(userId);
-  replayWindows.delete(userId);
   rekeyRequested.delete(userId);
 };
 
@@ -332,7 +372,6 @@ export const dispose = () => {
   latestKeyIndex.clear();
   frameCounters.clear();
   decryptionFailureCounts.clear();
-  replayWindows.clear();
   rekeyRequested.clear();
   sharedKey = null;
   sharedSenderIvPrefix = null;

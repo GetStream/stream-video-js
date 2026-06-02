@@ -16,7 +16,7 @@ vi.stubGlobal('self', { postMessage });
 // catch blocks, but it's clearer this way).
 import {
   __setFrameCounterForTest,
-  checkReplayWindow,
+  createReplayWindow,
   dispose,
   dumpKeyState,
   getKey,
@@ -153,50 +153,71 @@ describe('importKey algorithm variants', () => {
   });
 });
 
-describe('checkReplayWindow', () => {
-  it('accepts the first frame for a (user, keyIndex)', () => {
-    expect(checkReplayWindow('alice', 1, 100)).toBe(true);
+describe('createReplayWindow', () => {
+  const PREFIX_A = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+  const PREFIX_B = new Uint8Array([9, 9, 9, 9, 9, 9, 9, 9]);
+
+  it('accepts the first frame', () => {
+    const w = createReplayWindow();
+    expect(w.check(100, PREFIX_A)).toBe(true);
   });
 
   it('accepts monotonically increasing counters', () => {
-    expect(checkReplayWindow('alice', 1, 1)).toBe(true);
-    expect(checkReplayWindow('alice', 1, 2)).toBe(true);
-    expect(checkReplayWindow('alice', 1, 3)).toBe(true);
+    const w = createReplayWindow();
+    expect(w.check(1, PREFIX_A)).toBe(true);
+    expect(w.check(2, PREFIX_A)).toBe(true);
+    expect(w.check(3, PREFIX_A)).toBe(true);
   });
 
   it('rejects an exact replay', () => {
-    expect(checkReplayWindow('alice', 1, 5)).toBe(true);
-    expect(checkReplayWindow('alice', 1, 5)).toBe(false);
+    const w = createReplayWindow();
+    expect(w.check(5, PREFIX_A)).toBe(true);
+    expect(w.check(5, PREFIX_A)).toBe(false);
   });
 
   it('accepts out-of-order frames within the window', () => {
-    expect(checkReplayWindow('alice', 1, 10)).toBe(true);
-    expect(checkReplayWindow('alice', 1, 8)).toBe(true); // late arrival
-    expect(checkReplayWindow('alice', 1, 8)).toBe(false); // replay of late arrival
+    const w = createReplayWindow();
+    expect(w.check(10, PREFIX_A)).toBe(true);
+    expect(w.check(8, PREFIX_A)).toBe(true); // late arrival
+    expect(w.check(8, PREFIX_A)).toBe(false); // replay of late arrival
   });
 
   it('rejects frames older than the replay window', () => {
+    const w = createReplayWindow();
     const high = REPLAY_WINDOW + 50;
-    expect(checkReplayWindow('alice', 1, high)).toBe(true);
-    expect(checkReplayWindow('alice', 1, 1)).toBe(false);
-    expect(checkReplayWindow('alice', 1, high - REPLAY_WINDOW)).toBe(false);
+    expect(w.check(high, PREFIX_A)).toBe(true);
+    expect(w.check(1, PREFIX_A)).toBe(false);
+    expect(w.check(high - REPLAY_WINDOW, PREFIX_A)).toBe(false);
   });
 
-  it('isolates state per (user, keyIndex)', () => {
-    expect(checkReplayWindow('alice', 1, 5)).toBe(true);
-    expect(checkReplayWindow('alice', 2, 5)).toBe(true);
-    expect(checkReplayWindow('bob', 1, 5)).toBe(true);
+  it('isolates state per track (the M1 fix)', () => {
+    // Each decode transform owns its own guard, so one track racing far
+    // ahead in counter terms can never evict a slower track's frames — the
+    // failure mode of the old shared (userId, keyIndex) window.
+    const audio = createReplayWindow();
+    const video = createReplayWindow();
+    expect(audio.check(REPLAY_WINDOW * 4, PREFIX_A)).toBe(true);
+    expect(video.check(5, PREFIX_A)).toBe(true);
+    expect(video.check(6, PREFIX_A)).toBe(true);
   });
 
-  it('resets when the key at that index is re-imported', async () => {
-    await importKey('alice', 1, rawKey(0x01));
-    expect(checkReplayWindow('alice', 1, 100)).toBe(true);
-    expect(checkReplayWindow('alice', 1, 100)).toBe(false); // replay
+  it('opens a fresh window when the sender IV prefix changes', () => {
+    // Sender restart: a new random prefix with the counter reset to 0. The
+    // low counter must not be rejected against the previous prefix's
+    // `highest`, but replays within the original prefix are still caught.
+    const w = createReplayWindow();
+    expect(w.check(5000, PREFIX_A)).toBe(true);
+    expect(w.check(1, PREFIX_B)).toBe(true);
+    expect(w.check(2, PREFIX_B)).toBe(true);
+    expect(w.check(5000, PREFIX_A)).toBe(false);
+  });
 
-    // Fresh key instance at the same keyIndex must reset the window:
-    // the new prefix gives fresh IVs, old counters are meaningless.
-    await importKey('alice', 1, rawKey(0x02));
-    expect(checkReplayWindow('alice', 1, 100)).toBe(true);
+  it('partitions replay state by prefix within a single guard', () => {
+    const w = createReplayWindow();
+    expect(w.check(5, PREFIX_A)).toBe(true);
+    expect(w.check(5, PREFIX_B)).toBe(true); // different epoch, not a replay
+    expect(w.check(5, PREFIX_A)).toBe(false); // replay within prefix A
+    expect(w.check(5, PREFIX_B)).toBe(false); // replay within prefix B
   });
 });
 

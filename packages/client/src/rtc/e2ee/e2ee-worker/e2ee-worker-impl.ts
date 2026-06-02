@@ -61,7 +61,7 @@ import {
 } from './codec';
 import { enqueue, readTrailer, writeTrailer } from './utils';
 import {
-  checkReplayWindow,
+  createReplayWindow,
   dispose as disposeCrypto,
   dumpKeyState,
   fillIV,
@@ -159,6 +159,25 @@ const signalEncodeFailure = (reason: string) => {
   self.postMessage({ type: 'e2ee.encryption_failed', reason });
 };
 
+/**
+ * Throttled per-user notification that the encoder has no key for the local
+ * user, so outgoing frames are being dropped — the sender publishes nothing.
+ * Without this, a missing key (host never called setKey, or a key import
+ * failed) is completely silent: black video with no actionable signal.
+ * Throttled to one message per second per user; it stops firing on its own
+ * once a key is imported and frames start flowing.
+ */
+const missingKeyNotifiedAt = new Map<string, number>();
+const MISSING_KEY_THROTTLE_MS = 1000;
+const notifyMissingKey = (userId: string) => {
+  const now = Date.now();
+  const last = missingKeyNotifiedAt.get(userId) || 0;
+  if (now - last > MISSING_KEY_THROTTLE_MS) {
+    missingKeyNotifiedAt.set(userId, now);
+    self.postMessage({ type: 'e2ee.missing_key', userId });
+  }
+};
+
 const encodeTransform = (userId: string, codec: string | undefined) => {
   const isNalu = codec === 'h264';
   const iv = new Uint8Array(IV_LEN);
@@ -175,11 +194,17 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
       }
 
       const entry = getLatestKey(userId);
-      if (!entry) return;
+      if (!entry) {
+        notifyMissingKey(userId);
+        return;
+      }
 
       const { key: cryptoKey, keyIndex } = entry;
       const prefix = getSenderIvPrefix(userId, keyIndex);
-      if (!prefix) return;
+      if (!prefix) {
+        notifyMissingKey(userId);
+        return;
+      }
 
       const src = new Uint8Array(frame.data);
       const clearBytes = getClearByteCount(codec, frame.type, src);
@@ -270,6 +295,10 @@ const decodeTransform = (userId: string) => {
   const iv = new Uint8Array(IV_LEN);
   const ivView = new DataView(iv.buffer);
 
+  // Replay state is scoped to this transform — i.e. this single remote track —
+  // so a remote user's audio/video/screenshare tracks never share a window.
+  const replay = createReplayWindow();
+
   return new TransformStream<EncodedFrame, EncodedFrame>({
     async transform(frame, controller: FrameController) {
       if (frame.data.byteLength === 0) {
@@ -307,7 +336,7 @@ const decodeTransform = (userId: string) => {
         return;
       }
 
-      if (!checkReplayWindow(userId, keyIndex, frameCounter)) {
+      if (!replay.check(frameCounter, ivPrefix)) {
         // Frame is a replay or older than the sliding window. Drop it
         // silently — these are not true decryption failures.
         return;
@@ -475,6 +504,7 @@ addEventListener('message', ({ data }: MessageEvent) => {
         stopPerfReport();
         teardownAllTransforms();
         disposeCrypto();
+        missingKeyNotifiedAt.clear();
         break;
       default:
         // Insertable Streams fallback: Chrome sends transform setup as
