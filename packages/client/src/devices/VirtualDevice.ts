@@ -37,8 +37,9 @@ export interface VirtualDevice<C = MediaTrackConstraints> {
 /**
  * @internal Internal entry stored in the device manager's registry.
  */
-export interface VirtualDeviceEntry<C = MediaTrackConstraints>
-  extends VirtualDevice<C> {
+export interface VirtualDeviceEntry<
+  C = MediaTrackConstraints,
+> extends VirtualDevice<C> {
   readonly deviceId: string;
   readonly kind: 'audioinput' | 'videoinput';
 }
