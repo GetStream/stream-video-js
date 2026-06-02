@@ -55,9 +55,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
-    // Uncomment the next line to enable verbose WebRTC logs
-    // WebRTCModuleOptions.sharedInstance().loggingSeverity = .verbose
-    
     StreamVideoReactNative.voipRegistration()
     
     let center = UNUserNotificationCenter.current()
@@ -68,8 +65,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     let options = WebRTCModuleOptions.sharedInstance()
     options.enableMultitaskingCameraAccess = true
     #if DEBUG
-    // Native WebRTC logs (debug-only)
-    options.loggingSeverity = .verbose
+    // Native WebRTC logs (debug-only), use `.verbose` to log everything
+    options.loggingSeverity = .warning
     #endif
 
     let delegate = ReactNativeDelegate()

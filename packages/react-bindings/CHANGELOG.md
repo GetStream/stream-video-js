@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.16.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.16.1...@stream-io/video-react-bindings-1.16.2) (2026-06-01)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.52.0`
+
+- **deps:** upgrade React Native 0.85, React 19.2, Vite 8/Vitest 4, and Expo 56 ([#2268](https://github.com/GetStream/stream-video-js/issues/2268)) ([2c8ab9d](https://github.com/GetStream/stream-video-js/commit/2c8ab9d9238f3700dabbd04c9ce5bf3aaa4c7a13))
+
+## [1.16.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.16.0...@stream-io/video-react-bindings-1.16.1) (2026-05-26)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.51.0`
+
 ## [1.16.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.15.1...@stream-io/video-react-bindings-1.16.0) (2026-05-18)
 
 ### Dependency Updates

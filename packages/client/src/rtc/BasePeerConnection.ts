@@ -42,7 +42,7 @@ export abstract class BasePeerConnection {
   private iceRestartTimeout?: NodeJS.Timeout;
   private preConnectStuckTimeout?: NodeJS.Timeout;
   protected isIceRestarting = false;
-  private isDisposed = false;
+  protected isDisposed = false;
 
   protected trackIdToTrackType = new Map<string, TrackType>();
 
@@ -69,6 +69,7 @@ export abstract class BasePeerConnection {
       enableTracing,
       clientPublishOptions,
       iceRestartDelay = 2500,
+      statsTimestampDriftThresholdMs = 0,
     }: BasePeerConnectionOpts,
   ) {
     this.peerType = peerType;
@@ -85,7 +86,12 @@ export abstract class BasePeerConnection {
       { tags: [tag] },
     );
     this.pc = this.createPeerConnection(connectionConfig);
-    this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
+    this.stats = new StatsTracer(
+      this.pc,
+      peerType,
+      this.trackIdToTrackType,
+      statsTimestampDriftThresholdMs,
+    );
     if (enableTracing) {
       this.tracer = new Tracer(
         `${tag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`,
@@ -115,7 +121,7 @@ export abstract class BasePeerConnection {
   /**
    * Disposes the `RTCPeerConnection` instance.
    */
-  dispose() {
+  async dispose(): Promise<void> {
     clearTimeout(this.iceRestartTimeout);
     this.iceRestartTimeout = undefined;
     clearTimeout(this.preConnectStuckTimeout);
@@ -187,13 +193,21 @@ export abstract class BasePeerConnection {
     const getTag = () => this.tag;
     this.subscriptions.push(
       this.dispatcher.on(event, getTag, (e) => {
-        const lockKey = `pc.${this.lock}.${event}`;
+        const lockKey = this.eventLockKey(event);
         withoutConcurrency(lockKey, async () => fn(e)).catch((err) => {
           if (this.isDisposed) return;
           this.logger.warn(`Error handling ${event}`, err);
         });
       }),
     );
+  };
+
+  /**
+   * Returns the per-event `withoutConcurrency` tag used to serialize the
+   * dispatcher handler for `event` on this peer connection.
+   */
+  protected eventLockKey = (event: keyof AllSfuEvents): string => {
+    return `pc.${this.lock}.${event}`;
   };
 
   /**

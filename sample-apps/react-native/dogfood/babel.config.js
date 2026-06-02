@@ -1,13 +1,8 @@
 module.exports = function (api) {
-  // we disable caching for picking up changes in the environment variables - https://www.npmjs.com/package/react-native-dotenv
-  api.cache(false);
+  api.cache(true);
 
   return {
     presets: ['module:@react-native/babel-preset'],
-    plugins: [
-      'babel-plugin-react-compiler',
-      'module:react-native-dotenv',
-      'react-native-worklets/plugin',
-    ],
+    plugins: ['babel-plugin-react-compiler', 'react-native-worklets/plugin'],
   };
 };

@@ -51,14 +51,15 @@ target 'StreamReactNativeVideoSDKSample' do
       # :ccache_enabled => true
     )
 
-    # Fix fmt consteval compilation error with Xcode 26+
-    fmt_base = File.join(installer.sandbox.pod_dir('fmt'), 'include', 'fmt', 'base.h')
-    if File.exist?(fmt_base)
-      content = File.read(fmt_base)
-      patched = content.gsub(/^#\s*define FMT_USE_CONSTEVAL 1$/, '# define FMT_USE_CONSTEVAL 0')
-      if patched != content
-        File.chmod(0644, fmt_base)
-        File.write(fmt_base, patched)
+    # With use_frameworks! each pod is built as a framework module. Some native
+    # modules (e.g. react-native-webrtc) expose public headers that import
+    # React-Core headers via "#import <React/...>", and React-Core ships those
+    # as non-modular. Xcode's explicitly-built modules promote that into
+    # "-Werror=non-modular-include-in-framework-module", which fails the
+    # PrecompileModule step. Allow non-modular includes for the pod targets.
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
       end
     end
   end

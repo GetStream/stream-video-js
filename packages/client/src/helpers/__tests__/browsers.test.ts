@@ -9,6 +9,10 @@ import {
 import { getClientDetails } from '../client-details';
 import { ClientDetails } from '../../gen/video/sfu/models/models';
 
+vi.mock('../client-details', () => ({
+  getClientDetails: vi.fn(),
+}));
+
 describe('browsers', () => {
   beforeEach(() => {
     Object.defineProperty(globalThis, 'navigator', {
@@ -156,10 +160,6 @@ describe('browsers', () => {
   });
 
   describe('isSupportedBrowser', () => {
-    vi.mock('../client-details', () => ({
-      getClientDetails: vi.fn(),
-    }));
-
     it('should return false if browser is undefined', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
         browser: undefined,
