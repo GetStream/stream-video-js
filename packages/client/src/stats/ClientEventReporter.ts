@@ -45,6 +45,7 @@ export type ClientEventStandardCode =
 
 export type CallReportContext = {
   callType: string;
+  callId: string;
   getCallSessionId: () => string;
   getSfuId: () => string;
 };
@@ -768,18 +769,17 @@ export class ClientEventReporter {
   };
 
   private buildCommon = (
-    callId: string,
+    cid: string,
     stage: ClientEventStage,
     pair: StagePairState,
   ): Record<string, unknown> => {
-    const ctx = this.callContexts.get(callId);
-    const callType = ctx?.callType ?? '';
+    const ctx = this.callContexts.get(cid);
     const coordinatorConnectId = this.getCoordinatorConnectId();
     return {
       user_id: this.getUserId(),
-      type: callType,
-      id: callId,
-      call_cid: `${callType}:${callId}`,
+      type: ctx?.callType ?? '',
+      id: ctx?.callId ?? '',
+      call_cid: cid,
       stage,
       event_session_id: pair.sid,
       ...(pair.joinAttemptIdSnapshot && {

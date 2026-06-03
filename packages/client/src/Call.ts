@@ -424,8 +424,9 @@ export class Call {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
 
-      this.streamClient.clientEventReporter.registerCall(this.id, {
+      this.streamClient.clientEventReporter.registerCall(this.cid, {
         callType: this.type,
+        callId: this.id,
         getCallSessionId: () => this.state.session?.id ?? '',
         getSfuId: () => this.credentials?.server.edge_name ?? '',
       });
@@ -692,7 +693,7 @@ export class Call {
    * @internal
    */
   reportBackendLeave = (reason: string) => {
-    this.streamClient.clientEventReporter.abort(this.id, {
+    this.streamClient.clientEventReporter.abort(this.cid, {
       code: 'BACKEND_LEAVE',
       reason,
     });
@@ -762,7 +763,7 @@ export class Call {
       this.lastStatsOptions = undefined;
 
       await this.subscriber?.dispose();
-      this.streamClient.clientEventReporter.abort(this.id, {
+      this.streamClient.clientEventReporter.abort(this.cid, {
         code: 'CLIENT_ABORTED',
         reason: leaveReason,
       });
@@ -773,7 +774,7 @@ export class Call {
       await this.publisher?.dispose();
       this.publisher = undefined;
 
-      this.streamClient.clientEventReporter.unregisterCall(this.id);
+      this.streamClient.clientEventReporter.unregisterCall(this.cid);
 
       await this.sfuClient?.leaveAndClose(leaveReason);
       this.sfuClient = undefined;
@@ -1121,7 +1122,9 @@ export class Call {
                 joinData.migrating_from_list = Array.from(
                   sfuJoinFailures.keys(),
                 );
-                this.streamClient.clientEventReporter.startCorrelation(this.id);
+                this.streamClient.clientEventReporter.startCorrelation(
+                  this.cid,
+                );
               }
             }
 
@@ -1139,13 +1142,17 @@ export class Call {
   };
 
   private withJoinLifecycle = <T>(op: () => Promise<T>): Promise<T> =>
-    this.streamClient.clientEventReporter.withJoinLifecycle(this.id, op);
+    this.streamClient.clientEventReporter.withJoinLifecycle(this.cid, op);
 
   private trackCoordinatorJoin = <T>(op: () => Promise<T>): Promise<T> =>
-    this.streamClient.clientEventReporter.track(this.id, 'CoordinatorJoin', op);
+    this.streamClient.clientEventReporter.track(
+      this.cid,
+      'CoordinatorJoin',
+      op,
+    );
 
   private trackWsJoin = <T>(op: () => Promise<T>): Promise<T> => {
-    return this.streamClient.clientEventReporter.track(this.id, 'WSJoin', op);
+    return this.streamClient.clientEventReporter.track(this.cid, 'WSJoin', op);
   };
 
   /**
@@ -1531,13 +1538,13 @@ export class Call {
       },
       onPeerConnectionStateChange: (event) => {
         this.streamClient.clientEventReporter.onPeerConnectionStateChange(
-          this.id,
+          this.cid,
           event,
         );
       },
       onRemoteTrackUnmute: (trackType, trackId) => {
         this.streamClient.clientEventReporter.reportFirstFrame(
-          this.id,
+          this.cid,
           trackType,
           trackId,
         );
@@ -1978,7 +1985,7 @@ export class Call {
   private registerReconnectHandlers = () => {
     // handles the legacy "goAway" event
     const unregisterGoAway = this.on('goAway', () => {
-      this.streamClient.clientEventReporter.captureWsError(this.id, {
+      this.streamClient.clientEventReporter.captureWsError(this.cid, {
         code: 'SFU_GO_AWAY',
         reason: 'SFU goAway received during WS join',
       });
@@ -1993,7 +2000,7 @@ export class Call {
       const { reconnectStrategy: strategy, error } = e;
       if (!SfuJoinError.isJoinErrorCode(e)) {
         const code = error?.code ? ErrorCode[error.code] : 'REQUEST_TIMEOUT';
-        this.streamClient.clientEventReporter.captureWsError(this.id, {
+        this.streamClient.clientEventReporter.captureWsError(this.cid, {
           code: code ?? 'REQUEST_TIMEOUT',
           reason: error?.message || 'SFU error during WS join',
         });
@@ -2024,7 +2031,7 @@ export class Call {
         this.tracer.trace('network.changed', e);
         if (!e.online) {
           this.logger.debug('[Reconnect] Going offline');
-          this.streamClient.clientEventReporter.captureWsError(this.id, {
+          this.streamClient.clientEventReporter.captureWsError(this.cid, {
             code: 'NETWORK_OFFLINE',
             reason: 'Device offline',
           });
