@@ -1,5 +1,6 @@
 export * from './utils';
 export * from './devices';
+export * from './BrowserPermission';
 export * from './DeviceManager';
 export * from './DeviceManagerState';
 export * from './CameraManager';
