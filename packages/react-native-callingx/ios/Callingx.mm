@@ -38,8 +38,6 @@
   CallingxImpl *_moduleImpl;
 }
 
-@synthesize moduleRegistry = _moduleRegistry;
-
 #pragma mark - Singleton
 
 + (id)allocWithZone:(NSZone *)zone {
@@ -163,10 +161,10 @@ RCT_EXPORT_MODULE(Callingx)
 - (void)_setupiOSWithOptions:(NSDictionary *)optionsDict {
   [_moduleImpl setupWithOptions:optionsDict];
 
-  // Resolve WebRTCModule via the injected RCTModuleRegistry so CallingxImpl can
-  // access its AudioDeviceModule. Works on both old and new arch, including
-  // bridgeless (where [RCTBridge currentBridge] is a stub that returns nil).
-  WebRTCModule *webrtcModule = [self.moduleRegistry moduleForName:"WebRTCModule"];
+  // Inject WebRTCModule so CallingxImpl can access AudioDeviceModule.
+  // self.bridge is NOT available on TurboModules — use currentBridge instead,
+  // which returns the real RCTBridge or RCTBridgeProxy (bridgeless interop).
+  WebRTCModule *webrtcModule = [[RCTBridge currentBridge] moduleForName:@"WebRTCModule"];
   _moduleImpl.webRTCModule = webrtcModule;
 
   self.callKeepCallController = _moduleImpl.callKeepCallController;
