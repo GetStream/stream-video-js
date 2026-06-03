@@ -10,14 +10,13 @@ import React_RCTAppDelegate
 import ReactAppDependencyProvider
 
 import UserNotifications
-import PushKit
 import WebRTC
 import RNCPushNotificationIOS
 import stream_io_noise_cancellation_react_native
 import stream_video_react_native
 
 @main
-class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, PKPushRegistryDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
   var window: UIWindow?
 
   var reactNativeDelegate: ReactNativeDelegate?
@@ -40,43 +39,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
   func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
     return RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler)
   }
-  
-  // --- Handle updated push credentials
-  func pushRegistry(
-    _ registry: PKPushRegistry,
-    didUpdate credentials: PKPushCredentials,
-    for type: PKPushType
-  ) {
-    StreamVideoReactNative.didUpdate(credentials, forType: type.rawValue)
-  }
-  
-  // --- Handle incoming pushes
-  func pushRegistry(
-    _ registry: PKPushRegistry,
-    didReceiveIncomingPushWith payload: PKPushPayload,
-    for type: PKPushType,
-    completion: @escaping () -> Void
-  ) {
-    StreamVideoReactNative.didReceiveIncomingPush(payload, forType: type.rawValue, completionHandler: completion)
-  }
 
-  // Handle incoming VoIP pushes on iOS 26.4+. AnyObject keeps this building
-  // on older Xcode; private excludes it from Swift's protocol-conformance
-  // check on the iOS 26.4 SDK (which would otherwise conflict with the typed
-  // optional requirement).
-  private func pushRegistry(
-    _ registry: PKPushRegistry,
-    didReceiveIncomingVoIPPushWith payload: PKPushPayload,
-    metadata: AnyObject,
-    withCompletionHandler completion: @escaping () -> Void
-  ) {
-    StreamVideoReactNative.didReceiveIncomingVoIPPush(
-      payload,
-      metadata: metadata,
-      completionHandler: completion
-    )
-  }
-  
   func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
     // All other remote notifications: show natively
     completionHandler([.sound, .alert, .badge])
