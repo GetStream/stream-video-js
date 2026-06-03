@@ -297,7 +297,6 @@ export class StreamVideoClient {
     }
 
     const reporter = this.streamClient.clientEventReporter;
-    reporter.setUserId(user.id ?? '');
     reporter.mintCoordinatorConnectId();
 
     const connectUserResponse = await withoutConcurrency(
@@ -313,11 +312,9 @@ export class StreamVideoClient {
         for (let attempt = 0; attempt < maxConnectUserRetries; attempt++) {
           try {
             this.logger.trace(`Connecting user (${attempt})`, user);
-            return await reporter.trackCoordinatorWs(() =>
-              user.type === 'guest'
-                ? client.connectGuestUser(user)
-                : client.connectUser(user, tokenOrProvider),
-            );
+            return await (user.type === 'guest'
+              ? client.connectGuestUser(user)
+              : client.connectUser(user, tokenOrProvider));
           } catch (err) {
             this.logger.warn(`Failed to connect a user (${attempt})`, err);
             errorQueue.push(err as Error);
@@ -619,7 +616,6 @@ export class StreamVideoClient {
     user: UserWithId,
     tokenOrProvider: TokenOrProvider,
   ) => {
-    this.streamClient.clientEventReporter.setUserId(user.id ?? '');
     return withoutConcurrency(this.connectionConcurrencyTag, () =>
       this.streamClient.connectAnonymousUser(user, tokenOrProvider),
     );

@@ -55,6 +55,7 @@ type StagePairState = {
   attempts: number;
   startedAt: number;
   joinAttemptIdSnapshot?: string;
+  userIdSnapshot?: string;
   lastError?: StageError;
 };
 
@@ -73,7 +74,6 @@ export class ClientEventReporter {
   private readonly streamClient: StreamClient;
   private readonly sdkVersion: string;
   private readonly userAgent: string;
-  private userId = '';
   private disposed = false;
 
   private coordinatorConnectId?: string;
@@ -93,9 +93,7 @@ export class ClientEventReporter {
     this.userAgent = options.userAgent;
   }
 
-  setUserId = (userId: string) => {
-    this.userId = userId;
-  };
+  private getUserId = (): string => this.streamClient.userID ?? '';
 
   getCoordinatorConnectId = (): string => this.coordinatorConnectId ?? '';
 
@@ -143,6 +141,10 @@ export class ClientEventReporter {
         sid: generateUUIDv4(),
         attempts: 0,
         startedAt: Date.now(),
+        // snapshot the user id now: the failure event is emitted from
+        // StreamVideoClient after a failed connect has already cleared
+        // `streamClient.userID` via disconnectUser().
+        userIdSnapshot: this.getUserId(),
       };
       this.send({
         ...this.buildCoordinatorWsCommon(this.coordinatorWsPair),
@@ -168,7 +170,7 @@ export class ClientEventReporter {
   private buildCoordinatorWsCommon = (
     pair: StagePairState,
   ): Record<string, unknown> => ({
-    user_id: this.userId,
+    user_id: pair.userIdSnapshot ?? this.getUserId(),
     stage: 'CoordinatorWS',
     event_session_id: pair.sid,
     ...(this.coordinatorConnectId && {
@@ -285,7 +287,7 @@ export class ClientEventReporter {
     if (!joinAttemptId) return;
     const coordinatorConnectId = this.getCoordinatorConnectId();
     this.send({
-      user_id: this.userId,
+      user_id: this.getUserId(),
       stage: 'JoinInitiated',
       join_attempt_id: joinAttemptId,
       ...(coordinatorConnectId && {
@@ -609,7 +611,7 @@ export class ClientEventReporter {
     const callType = ctx?.callType ?? '';
     const coordinatorConnectId = this.getCoordinatorConnectId();
     return {
-      user_id: this.userId,
+      user_id: this.getUserId(),
       type: callType,
       id: callId,
       call_cid: `${callType}:${callId}`,

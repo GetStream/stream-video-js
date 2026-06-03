@@ -239,11 +239,14 @@ export class StreamClient {
     await this.tokenManager.setTokenOrProvider(tokenOrProvider, user, false);
     this._setUser(user);
 
-    this.connectUserTask = this.openConnection();
+    const connectTask = this.openConnection();
+    this.connectUserTask = connectTask;
 
     try {
       addConnectionEventListeners(this.updateNetworkConnectionStatus);
-      return await this.connectUserTask;
+      return await this.clientEventReporter.trackCoordinatorWs(
+        () => connectTask,
+      );
     } catch (err) {
       if (this.persistUserOnConnectionFailure) {
         // cleanup client to allow the user to retry connectUser again
