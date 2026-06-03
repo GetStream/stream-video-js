@@ -470,12 +470,8 @@ class StreamInCallManager: RCTEventEmitter {
 
     // MARK: - Helper Methods
     private func getAudioDeviceModule() -> AudioDeviceModule {
-        guard let bridge = self.bridge else {
-            fatalError("StreamInCallManager: RCTBridge is not available yet.")
-        }
-
-        guard let webrtcModule = bridge.module(forName: "WebRTCModule") as? WebRTCModule else {
-            fatalError("WebRTCModule is required but not registered with the bridge")
+        guard let webrtcModule = moduleRegistry?.module(forName: "WebRTCModule") as? WebRTCModule else {
+            fatalError("WebRTCModule is required but not registered with the module registry")
         }
 
         return webrtcModule.audioDeviceModule

@@ -49,9 +49,6 @@ void broadcastNotificationCallback(CFNotificationCenterRef center,
     AVAudioPlayer *_busyTonePlayer; // Instance variable
 }
 
-// necessary for addUIBlock usage https://github.com/facebook/react-native/issues/50800#issuecomment-2823327307
-@synthesize viewRegistry_DEPRECATED = _viewRegistry_DEPRECATED;
-
 RCT_EXPORT_MODULE();
 
 +(BOOL)requiresMainQueueSetup {
@@ -924,7 +921,7 @@ RCT_EXPORT_METHOD(stopInAppScreenCapture:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(startScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 {
-    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
+    WebRTCModule *webrtcModule = [self.moduleRegistry moduleForName:"WebRTCModule"];
     WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
 
     ScreenShareAudioMixer *mixer = webrtcModule.audioDeviceModule.screenShareAudioMixer;
@@ -955,7 +952,7 @@ RCT_EXPORT_METHOD(startScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(stopScreenShareAudioMixing:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
 {
-    WebRTCModule *webrtcModule = [self.bridge moduleForClass:[WebRTCModule class]];
+    WebRTCModule *webrtcModule = [self.moduleRegistry moduleForName:"WebRTCModule"];
     WebRTCModuleOptions *options = [WebRTCModuleOptions sharedInstance];
 
     // Stop feeding audio to the mixer
