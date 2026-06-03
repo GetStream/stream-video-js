@@ -1535,6 +1535,13 @@ export class Call {
           event,
         );
       },
+      onRemoteTrackUnmute: (trackType, trackId) => {
+        this.streamClient.clientEventReporter.reportFirstFrame(
+          this.id,
+          trackType,
+          trackId,
+        );
+      },
     };
 
     this.subscriber = new Subscriber(basePeerConnectionOptions);

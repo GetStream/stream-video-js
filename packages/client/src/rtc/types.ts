@@ -2,6 +2,7 @@ import {
   AudioBitrateProfile,
   PeerType,
   PublishOption,
+  TrackType,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
@@ -70,6 +71,16 @@ export type OnPeerConnectionStateChange = (
   event: PeerConnectionStateChangeEvent,
 ) => void;
 
+/**
+ * Fired when a remote track starts receiving media (`unmute`). Used by
+ * telemetry to report the `FirstVideoFrame` / `FirstAudioFrame` stage; the
+ * consumer decides which track types are relevant.
+ */
+export type OnRemoteTrackUnmute = (
+  trackType: TrackType,
+  trackId: string,
+) => void;
+
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
@@ -78,6 +89,7 @@ export type BasePeerConnectionOpts = {
   onReconnectionNeeded?: OnReconnectionNeeded;
   onIceConnected?: OnIceConnected;
   onPeerConnectionStateChange?: OnPeerConnectionStateChange;
+  onRemoteTrackUnmute?: OnRemoteTrackUnmute;
   tag: string;
   enableTracing: boolean;
   iceRestartDelay?: number;

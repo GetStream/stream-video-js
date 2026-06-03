@@ -1,4 +1,4 @@
-import { ErrorCode, PeerType } from '../gen/video/sfu/models/models';
+import { ErrorCode, PeerType, TrackType } from '../gen/video/sfu/models/models';
 import type { StreamClient } from '../coordinator/connection/client';
 import {
   generateUUIDv4,
@@ -23,7 +23,9 @@ export type ClientEventStage =
   | 'MediaDevicePermission'
   | 'CoordinatorJoin'
   | 'WSJoin'
-  | 'PeerConnectionConnect';
+  | 'PeerConnectionConnect'
+  | 'FirstVideoFrame'
+  | 'FirstAudioFrame';
 
 export type MediaPermissionDevice = 'camera' | 'microphone';
 
@@ -114,6 +116,7 @@ export class ClientEventReporter {
   private mediaPermissionSession?: MediaPermissionSession;
   private mediaPermissionUnsubscribe?: () => void;
   private currentCallId?: string;
+  private firstFrameReported = new Set<string>();
 
   constructor(options: ClientEventReporterOptions) {
     this.streamClient = options.streamClient;
@@ -298,6 +301,41 @@ export class ClientEventReporter {
     }
   };
 
+  reportFirstFrame = (
+    callId: string,
+    trackType: TrackType,
+    trackId: string,
+  ) => {
+    const stage =
+      trackType === TrackType.VIDEO
+        ? 'FirstVideoFrame'
+        : trackType === TrackType.AUDIO
+          ? 'FirstAudioFrame'
+          : undefined;
+
+    if (!stage) return;
+    const key = `${callId}:${stage}`;
+    if (this.firstFrameReported.has(key)) return;
+
+    this.firstFrameReported.add(key);
+
+    const pair: StagePairState = {
+      sid: generateUUIDv4(),
+      attempts: 0,
+      startedAt: Date.now(),
+      joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
+    };
+
+    const sfuId = this.getSfuId(callId);
+    this.send({
+      ...this.buildCommon(callId, stage, pair),
+      ...this.sessionIdField(callId),
+      ...(sfuId && { sfu_id: sfuId }),
+      track_id: trackId,
+      event_type: 'initiated',
+    });
+  };
+
   registerCall = (callId: string, ctx: CallReportContext) => {
     console.log('registerCall', callId);
     this.callContexts.set(callId, ctx);
@@ -314,6 +352,9 @@ export class ClientEventReporter {
 
     if (this.currentCallId === callId) this.currentCallId = undefined;
 
+    this.firstFrameReported.delete(`${callId}:FirstVideoFrame`);
+    this.firstFrameReported.delete(`${callId}:FirstAudioFrame`);
+
     for (const role of ['publish', 'subscribe'] as const) {
       const key = pcKey(callId, role);
       this.peerConnectionPairs.delete(key);
@@ -325,6 +366,9 @@ export class ClientEventReporter {
   startCorrelation = (callId: string) => {
     this.closeCallPairs(callId);
     this.joinAttemptIds.set(callId, generateUUIDv4());
+    // a fresh attempt (e.g. full rejoin) re-reports the first frame
+    this.firstFrameReported.delete(`${callId}:FirstVideoFrame`);
+    this.firstFrameReported.delete(`${callId}:FirstAudioFrame`);
     this.emitJoinInitiated(callId);
   };
 

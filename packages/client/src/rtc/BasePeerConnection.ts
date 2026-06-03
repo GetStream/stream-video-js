@@ -18,6 +18,7 @@ import {
   OnIceConnected,
   OnPeerConnectionStateChange,
   OnReconnectionNeeded,
+  OnRemoteTrackUnmute,
   ReconnectReason,
 } from './types';
 import type { ClientPublishOptions } from '../types';
@@ -39,6 +40,7 @@ export abstract class BasePeerConnection {
   private onReconnectionNeeded?: OnReconnectionNeeded;
   private onIceConnected?: OnIceConnected;
   private onPeerConnectionStateChange?: OnPeerConnectionStateChange;
+  protected onRemoteTrackUnmute?: OnRemoteTrackUnmute;
   private readonly iceRestartDelay: number;
   private iceHasEverConnected = false;
   private iceRestartTimeout?: NodeJS.Timeout;
@@ -68,6 +70,7 @@ export abstract class BasePeerConnection {
       onReconnectionNeeded,
       onIceConnected,
       onPeerConnectionStateChange,
+      onRemoteTrackUnmute,
       tag,
       enableTracing,
       clientPublishOptions,
@@ -84,6 +87,7 @@ export abstract class BasePeerConnection {
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.onIceConnected = onIceConnected;
     this.onPeerConnectionStateChange = onPeerConnectionStateChange;
+    this.onRemoteTrackUnmute = onRemoteTrackUnmute;
     this.logger = videoLoggerSystem.getLogger(
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
       { tags: [tag] },
@@ -127,6 +131,7 @@ export abstract class BasePeerConnection {
     this.onReconnectionNeeded = undefined;
     this.onIceConnected = undefined;
     this.onPeerConnectionStateChange = undefined;
+    this.onRemoteTrackUnmute = undefined;
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
