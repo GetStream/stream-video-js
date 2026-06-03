@@ -10,10 +10,10 @@ import { videoLoggerSystem } from '../logger';
 import type { PeerConnectionStateChangeEvent } from '../rtc';
 import { createSubscription } from '../store/rxUtils';
 import {
-  type BrowserPermissionState,
   getAudioBrowserPermission,
   getVideoBrowserPermission,
 } from '../devices';
+import type { BrowserPermissionState } from '../devices/BrowserPermission';
 
 export type ClientEventPeerConnection = 'publish' | 'subscribe';
 
