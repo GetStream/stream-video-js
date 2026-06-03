@@ -17,37 +17,6 @@ static NSString *const DEFAULT_DISPLAY_NAME = @"Unknown Caller";
 
 #pragma mark - Helpers
 
-// Reads `PKVoIPPushMetadata.mustReport` via runtime dispatch. Fail-safe:
-// returns YES on any uncertainty (nil, missing property, wrong return type)
-// so unknown metadata never causes CallKit to be skipped.
-static BOOL readMustReportFromMetadata(id _Nullable metadata) {
-    SEL selector = @selector(mustReport);
-    if (!metadata || ![metadata respondsToSelector:selector]) {
-        return YES;
-    }
-    NSMethodSignature *signature = [metadata methodSignatureForSelector:selector];
-    if (!signature || signature.methodReturnLength != sizeof(BOOL)) {
-        return YES;
-    }
-    // BOOL encodes as "c" (legacy ABIs) or "B" (modern). Reject anything else
-    // so getReturnValue: never reads garbage from an object-returning selector.
-    const char *returnType = signature.methodReturnType;
-    if (!returnType ||
-        (strcmp(returnType, @encode(BOOL)) != 0 &&
-         strcmp(returnType, @encode(bool)) != 0)) {
-        return YES;
-    }
-
-    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
-    [invocation setTarget:metadata];
-    [invocation setSelector:selector];
-    [invocation invoke];
-
-    BOOL mustReport = NO;
-    [invocation getReturnValue:&mustReport];
-    return mustReport;
-}
-
 // applicationState must be read on the main thread (PushKit delivers on
 // main, so the common path skips dispatch). Treat Inactive as foreground:
 // covers brief transitions and system overlays.
@@ -142,8 +111,27 @@ static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
     [VoipNotificationsManager didReceiveIncomingPushWithPayload:payload forType:type];
 }
 
+#pragma mark - PKPushRegistryDelegate (managed mode)
+
+- (void)pushRegistry:(PKPushRegistry *)registry
+   didUpdatePushCredentials:(PKPushCredentials *)credentials
+                    forType:(PKPushType)type {
+    [VoipNotificationsManager didUpdatePushCredentials:credentials forType:(NSString *)type];
+}
+
+- (void)pushRegistry:(PKPushRegistry *)registry
+   didReceiveIncomingPushWithPayload:(PKPushPayload *)payload
+                             forType:(PKPushType)type
+               withCompletionHandler:(void (^)(void))completion {
+    [VoipPushHandler handleIncomingPush:payload
+                                forType:(NSString *)type
+                      completionHandler:completion];
+    NSLog(@"[VoipPushHandler][pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:] completion");
+}
+
+#ifdef __IPHONE_26_4
 + (void)handleIncomingVoIPPush:(PKPushPayload *)payload
-                      metadata:(id _Nullable)metadata
+                      metadata:(PKVoIPPushMetadata * _Nullable)metadata
              completionHandler:(void (^_Nullable)(void))completion {
     NSDictionary *streamPayload = payload.dictionaryPayload[@"stream"];
     if (!streamPayload) {
@@ -168,7 +156,7 @@ static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
     }
 
     NSString *type = @"PKPushTypeVoIP";
-    BOOL mustReport = readMustReportFromMetadata(metadata);
+    BOOL mustReport = metadata ? metadata.mustReport : YES;
 
     // Both skip paths require mustReport == NO; skipping while YES risks
     // PushKit terminating the app.
@@ -195,30 +183,11 @@ static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
     [VoipNotificationsManager didReceiveIncomingPushWithPayload:payload forType:type];
 }
 
-#pragma mark - PKPushRegistryDelegate (managed mode)
-
-- (void)pushRegistry:(PKPushRegistry *)registry
-   didUpdatePushCredentials:(PKPushCredentials *)credentials
-                    forType:(PKPushType)type {
-    [VoipNotificationsManager didUpdatePushCredentials:credentials forType:(NSString *)type];
-}
-
-- (void)pushRegistry:(PKPushRegistry *)registry
-   didReceiveIncomingPushWithPayload:(PKPushPayload *)payload
-                             forType:(PKPushType)type
-               withCompletionHandler:(void (^)(void))completion {
-    [VoipPushHandler handleIncomingPush:payload
-                                forType:(NSString *)type
-                      completionHandler:completion];
-    NSLog(@"[VoipPushHandler][pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:] completion");
-}
-
 // iOS 26.4 added a new VoIP push selector that carries a `PKVoIPPushMetadata`
 // argument (notably `mustReport`). The type only exists in the iOS 26.4 SDK,
 // so the `#ifdef __IPHONE_26_4` gate ensures this file still compiles on
 // older Xcode versions — older Xcode simply doesn't emit this method, and
 // PushKit on those builds dispatches to the legacy selector above.
-#ifdef __IPHONE_26_4
 - (void)pushRegistry:(PKPushRegistry *)registry
    didReceiveIncomingVoIPPushWithPayload:(PKPushPayload *)payload
                                 metadata:(PKVoIPPushMetadata *)metadata

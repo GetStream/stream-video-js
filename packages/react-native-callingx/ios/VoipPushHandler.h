@@ -14,12 +14,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 /**
  * Handles an iOS 26.4+ `pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:`
- * callback. `metadata` is typed `id` so this header compiles on Xcode older
- * than the iOS 26.4 SDK; `mustReport` is read via runtime selector dispatch.
+ * callback. Gated behind `__IPHONE_26_4` because `PKVoIPPushMetadata` only
+ * exists in the iOS 26.4 SDK; on older Xcode this declaration is omitted and
+ * PushKit dispatches to the legacy `handleIncomingPush:forType:` path instead.
  */
+#ifdef __IPHONE_26_4
 + (void)handleIncomingVoIPPush:(PKPushPayload *)payload
-                      metadata:(id _Nullable)metadata
-             completionHandler:(void (^_Nullable)(void))completion;
+                      metadata:(PKVoIPPushMetadata * _Nullable)metadata
+             completionHandler:(void (^_Nullable)(void))completion API_AVAILABLE(ios(26.4));
+#endif
 
 @end
 
