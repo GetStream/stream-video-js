@@ -172,9 +172,6 @@ export class ClientEventReporter {
         sid: generateUUIDv4(),
         attempts: 0,
         startedAt: Date.now(),
-        // snapshot the user id now: the failure event is emitted from
-        // StreamVideoClient after a failed connect has already cleared
-        // `streamClient.userID` via disconnectUser().
         userIdSnapshot: this.getUserId(),
       };
       this.send({
@@ -799,6 +796,7 @@ export class ClientEventReporter {
 
   private send = (body: Record<string, unknown>) => {
     if (this.disposed) return;
+
     void this.sendWithRetry(body);
   };
 
@@ -811,7 +809,7 @@ export class ClientEventReporter {
           'post',
           '/call_client_event',
           { events: [body] },
-          { skipConnectionId: true },
+          { publicEndpoint: true },
         );
         return;
       } catch (err) {
