@@ -237,6 +237,7 @@ export class ClientEventReporter {
   captureWsError = (callId: string, opts: { code: string; reason: string }) => {
     const pair = this.wsPairs.get(callId);
     if (!pair) return;
+
     applyError(pair, {
       reason: opts.reason,
       code: opts.code,
@@ -677,6 +678,7 @@ const errorMessage = (err: unknown): string =>
 
 const isTimeout = (err: unknown): boolean => {
   const e = err as { code?: string; name?: string; message?: string } | null;
+
   return (
     e?.code === 'ECONNABORTED' ||
     e?.name === 'TimeoutError' ||
@@ -716,5 +718,6 @@ const mapWsJoinError = (err: unknown): StageError => {
       severity: SEVERITY.SERVER,
     };
   }
+
   return mapHttpError(err);
 };

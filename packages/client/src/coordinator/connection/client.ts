@@ -189,9 +189,6 @@ export class StreamClient {
 
   _getConnectionID = () => this.wsConnection?.connectionID;
 
-  getCoordinatorConnectId = () =>
-    this.clientEventReporter.getCoordinatorConnectId();
-
   _hasConnectionID = () => Boolean(this._getConnectionID());
 
   /**
