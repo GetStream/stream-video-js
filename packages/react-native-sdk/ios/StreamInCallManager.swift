@@ -241,7 +241,7 @@ class StreamInCallManager: RCTEventEmitter {
         session.lockForConfiguration()
         defer { session.unlockForConfiguration() }
         do {
-            try session.setActive(false, options: .notifyOthersOnDeactivation)
+            try session.setActive(false)
             log("engineDidDisable: deactivated session")
         } catch {
             log("engineDidDisable error: \(error.localizedDescription)")
@@ -297,7 +297,6 @@ class StreamInCallManager: RCTEventEmitter {
                 return
             }
             // adm.reset() triggers .didDisableAudioEngine, whose sink calls
-            // setActive(false, options: .notifyOthersOnDeactivation).
             let adm = getAudioDeviceModule()
             adm.reset()
             // Tear down the engine-observer subscription so a re-setup wires a fresh one.
