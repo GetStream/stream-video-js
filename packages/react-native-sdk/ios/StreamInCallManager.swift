@@ -250,8 +250,7 @@ class StreamInCallManager: RCTEventEmitter {
 
     /// Runtime KVC lookup of `CallingxSessionOwnership.callingxOwnsSession`.
     /// `@stream-io/react-native-callingx` is an optional peer dep, so a direct
-    /// Swift `import` is not safe — match the existing `NSClassFromString`
-    /// pattern used in `StreamVideoReactNative.m` for `Callingx.VoipNotificationsManager`.
+    /// Swift `import` is not safe
     private static func callingxOwnsSession() -> Bool {
         guard let cls = NSClassFromString("Callingx.CallingxSessionOwnership") else {
             return false

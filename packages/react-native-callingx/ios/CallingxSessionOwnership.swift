@@ -1,7 +1,10 @@
 import Foundation
 
 /// Cross-package handoff guard. `CallingxImpl` flips `callingxOwnsSession`
-/// to `true` on `setup` and back to `false` on `provider(_:didDeactivate:)`.
+/// to `true` at CX-action entry points (`CXStartCallAction.perform`,
+/// `CXAnswerCallAction.perform`, re-asserted in `provider(_:didActivate:)`)
+/// and back to `false` in `provider(_:didDeactivate:)` when no calls remain
+/// (`UUIDStorage.count() == 0`) or on `providerDidReset`.
 ///
 /// `StreamInCallManager` (in `@stream-io/video-react-native-sdk`) consults this
 /// flag from its AudioDeviceModule publisher sink and no-ops when callingx owns
