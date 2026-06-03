@@ -134,7 +134,7 @@ export const getClearByteCount = (
   data: Uint8Array,
 ): number => {
   if (frameType === undefined) return 1; // audio (Opus TOC byte)
-  if (codec === 'vp8') return frameType === 'key' ? 10 : 3;
+  if (codec === 'vp8' || codec === 'vp9') return frameType === 'key' ? 10 : 3;
   if (codec === 'h264') return h264ClearBytes(data);
-  return 0; // VP9 / others
+  return 0; // others
 };

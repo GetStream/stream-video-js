@@ -69,13 +69,14 @@ describe('getClearByteCount', () => {
     expect(getClearByteCount('opus', undefined, new Uint8Array(50))).toBe(1);
   });
 
-  it('returns 10 for VP8 keyframes, 3 for delta', () => {
+  it('returns 10 for VP8/VP9 keyframes, 3 for delta', () => {
     expect(getClearByteCount('vp8', 'key', new Uint8Array(50))).toBe(10);
     expect(getClearByteCount('vp8', 'delta', new Uint8Array(50))).toBe(3);
+    expect(getClearByteCount('vp9', 'key', new Uint8Array(50))).toBe(10);
+    expect(getClearByteCount('vp9', 'delta', new Uint8Array(50))).toBe(3);
   });
 
-  it('returns 0 for VP9 and unknown codecs', () => {
-    expect(getClearByteCount('vp9', 'key', new Uint8Array(50))).toBe(0);
+  it('returns 0 for unknown codecs', () => {
     expect(getClearByteCount('unknown', 'delta', new Uint8Array(50))).toBe(0);
   });
 
