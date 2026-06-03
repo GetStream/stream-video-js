@@ -155,7 +155,6 @@ export class StreamClient {
     const { clientAppIdentifier = {} } = this.options;
     this.clientEventReporter = new ClientEventReporter({
       streamClient: this,
-      getUserId: () => this.user?.id ?? '',
       sdkVersion:
         clientAppIdentifier.sdkVersion ?? process.env.PKG_VERSION ?? '0.0.0',
       userAgent: this.getUserAgent(),
@@ -481,6 +480,7 @@ export class StreamClient {
     options: AxiosRequestConfig & {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
       publicEndpoint?: boolean;
+      skipConnectionId?: boolean;
     } = {},
   ): Promise<T> => {
     if (!options.publicEndpoint) {
@@ -489,14 +489,18 @@ export class StreamClient {
         this.guestUserCreatePromise,
       ]);
       // we need to wait for presence of connection id before making requests
-      try {
-        await this.connectionIdPromise;
-      } catch {
-        // in case connection id was rejected
-        // reconnection maybe in progress
-        // we can wait for healthy connection to resolve, which rejects when 15s timeout is reached
-        await this.wsConnection?._waitForHealthy();
-        await this.connectionIdPromise;
+      // (skipped for connection-independent requests like join telemetry, which
+      // must be deliverable even when the coordinator WS itself failed)
+      if (!options.skipConnectionId) {
+        try {
+          await this.connectionIdPromise;
+        } catch {
+          // in case connection id was rejected
+          // reconnection maybe in progress
+          // we can wait for healthy connection to resolve, which rejects when 15s timeout is reached
+          await this.wsConnection?._waitForHealthy();
+          await this.connectionIdPromise;
+        }
       }
     }
     const requestConfig = this._enrichAxiosOptions(options);

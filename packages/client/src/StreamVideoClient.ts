@@ -297,6 +297,7 @@ export class StreamVideoClient {
     }
 
     const reporter = this.streamClient.clientEventReporter;
+    reporter.setUserId(user.id ?? '');
     reporter.mintCoordinatorConnectId();
 
     const connectUserResponse = await withoutConcurrency(
@@ -618,6 +619,7 @@ export class StreamVideoClient {
     user: UserWithId,
     tokenOrProvider: TokenOrProvider,
   ) => {
+    this.streamClient.clientEventReporter.setUserId(user.id ?? '');
     return withoutConcurrency(this.connectionConcurrencyTag, () =>
       this.streamClient.connectAnonymousUser(user, tokenOrProvider),
     );

@@ -34,7 +34,6 @@ export type CallReportContext = {
 
 export type ClientEventReporterOptions = {
   streamClient: StreamClient;
-  getUserId: () => string;
   sdkVersion: string;
   userAgent: string;
 };
@@ -72,9 +71,9 @@ export class ClientEventReporter {
   private readonly logger = videoLoggerSystem.getLogger('ClientEventReporter');
 
   private readonly streamClient: StreamClient;
-  private readonly getUserId: () => string;
   private readonly sdkVersion: string;
   private readonly userAgent: string;
+  private userId = '';
   private disposed = false;
 
   private coordinatorConnectId?: string;
@@ -90,10 +89,13 @@ export class ClientEventReporter {
 
   constructor(options: ClientEventReporterOptions) {
     this.streamClient = options.streamClient;
-    this.getUserId = options.getUserId;
     this.sdkVersion = options.sdkVersion;
     this.userAgent = options.userAgent;
   }
+
+  setUserId = (userId: string) => {
+    this.userId = userId;
+  };
 
   getCoordinatorConnectId = (): string => this.coordinatorConnectId ?? '';
 
@@ -166,7 +168,7 @@ export class ClientEventReporter {
   private buildCoordinatorWsCommon = (
     pair: StagePairState,
   ): Record<string, unknown> => ({
-    user_id: this.getUserId(),
+    user_id: this.userId,
     stage: 'CoordinatorWS',
     event_session_id: pair.sid,
     ...(this.coordinatorConnectId && {
@@ -283,7 +285,7 @@ export class ClientEventReporter {
     if (!joinAttemptId) return;
     const coordinatorConnectId = this.getCoordinatorConnectId();
     this.send({
-      user_id: this.getUserId(),
+      user_id: this.userId,
       stage: 'JoinInitiated',
       join_attempt_id: joinAttemptId,
       ...(coordinatorConnectId && {
@@ -347,6 +349,7 @@ export class ClientEventReporter {
     if (!pair) return;
     this.send({
       ...this.buildCommon(callId, 'CoordinatorJoin', pair),
+      ...this.sessionIdField(callId),
       event_type: 'completed',
       outcome: 'success',
       retry_count_attempt: pair.attempts - 1,
@@ -364,6 +367,7 @@ export class ClientEventReporter {
     const { reason, code } = pair.lastError;
     this.send({
       ...this.buildCommon(callId, 'CoordinatorJoin', pair),
+      ...this.sessionIdField(callId),
       event_type: 'completed',
       outcome: 'failure',
       retry_count_attempt: pair.attempts - 1,
@@ -387,6 +391,7 @@ export class ClientEventReporter {
       const sfuId = this.getSfuId(callId);
       this.send({
         ...this.buildCommon(callId, 'WSJoin', pair),
+        ...this.sessionIdField(callId),
         ...(sfuId && { sfu_id: sfuId }),
         event_type: 'initiated',
       });
@@ -400,6 +405,7 @@ export class ClientEventReporter {
     const sfuId = this.getSfuId(callId);
     this.send({
       ...this.buildCommon(callId, 'WSJoin', pair),
+      ...this.sessionIdField(callId),
       ...(sfuId && { sfu_id: sfuId }),
       event_type: 'completed',
       outcome: 'success',
@@ -419,6 +425,7 @@ export class ClientEventReporter {
     const sfuId = this.getSfuId(callId);
     this.send({
       ...this.buildCommon(callId, 'WSJoin', pair),
+      ...this.sessionIdField(callId),
       event_type: 'completed',
       outcome: 'failure',
       retry_count_attempt: pair.attempts - 1,
@@ -509,6 +516,7 @@ export class ClientEventReporter {
 
     this.send({
       ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
+      ...this.sessionIdField(callId),
       peer_connection: role,
       was_previously_connected: pcContext.wasPreviouslyConnected,
       ...(pcContext.sfuId && { sfu_id: pcContext.sfuId }),
@@ -530,6 +538,7 @@ export class ClientEventReporter {
 
     this.send({
       ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
+      ...this.sessionIdField(callId),
       peer_connection: role,
       was_previously_connected: pcContext.wasPreviouslyConnected,
       ...(pcContext.sfuId && { sfu_id: pcContext.sfuId }),
@@ -563,6 +572,7 @@ export class ClientEventReporter {
 
     this.send({
       ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
+      ...this.sessionIdField(callId),
       peer_connection: role,
       was_previously_connected: pcContext.wasPreviouslyConnected,
       ...(pcContext.userSessionId && {
@@ -584,6 +594,12 @@ export class ClientEventReporter {
   private getSfuId = (callId: string): string =>
     this.callContexts.get(callId)?.getSfuId() ?? '';
 
+  private sessionIdField = (callId: string): Record<string, unknown> => {
+    const callSessionId =
+      this.callContexts.get(callId)?.getCallSessionId() ?? '';
+    return callSessionId ? { call_session_id: callSessionId } : {};
+  };
+
   private buildCommon = (
     callId: string,
     stage: ClientEventStage,
@@ -591,16 +607,14 @@ export class ClientEventReporter {
   ): Record<string, unknown> => {
     const ctx = this.callContexts.get(callId);
     const callType = ctx?.callType ?? '';
-    const callSessionId = ctx?.getCallSessionId() ?? '';
     const coordinatorConnectId = this.getCoordinatorConnectId();
     return {
-      user_id: this.getUserId(),
+      user_id: this.userId,
       type: callType,
       id: callId,
       call_cid: `${callType}:${callId}`,
       stage,
       event_session_id: pair.sid,
-      ...(callSessionId && { call_session_id: callSessionId }),
       ...(pair.joinAttemptIdSnapshot && {
         join_attempt_id: pair.joinAttemptIdSnapshot,
       }),
@@ -623,7 +637,12 @@ export class ClientEventReporter {
       if (this.disposed) return;
 
       try {
-        await this.streamClient.post('/call_client_event', { events: [body] });
+        await this.streamClient.doAxiosRequest(
+          'post',
+          '/call_client_event',
+          { events: [body] },
+          { skipConnectionId: true },
+        );
         return;
       } catch (err) {
         const status = (err as { response?: { status?: number } })?.response
