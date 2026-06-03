@@ -48,10 +48,9 @@ export const onVoipNotificationReceived = async (
   }
 
   const callingx = getCallingxLib();
-  if (callingx.isCallTracked(call_cid)) {
-    //same call_cid is already tracked, so we skip the notification
+  if (pushUnsubscriptionCallbacks.has(call_cid)) {
     logger.debug(
-      `the same call_cid ${call_cid} is already tracked, skipping the call.ring notification`,
+      `the same call_cid ${call_cid} is already being watched, skipping the call.ring notification`,
     );
     return;
   }
@@ -91,6 +90,7 @@ export const onVoipNotificationReceived = async (
           event,
         );
         unsubscribe();
+        pushUnsubscriptionCallbacks.delete(call_cid);
         return;
       }
       const _closed = closeCallIfNecessary();
@@ -100,6 +100,7 @@ export const onVoipNotificationReceived = async (
           event,
         );
         unsubscribe();
+        pushUnsubscriptionCallbacks.delete(call_cid);
       }
     });
 
