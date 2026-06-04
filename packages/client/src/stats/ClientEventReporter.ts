@@ -8,11 +8,6 @@ import {
 import { SfuJoinError } from '../errors';
 import { videoLoggerSystem } from '../logger';
 import type { PeerConnectionStateChangeEvent } from '../rtc';
-import { createSubscription } from '../store/rxUtils';
-import {
-  getAudioBrowserPermission,
-  getVideoBrowserPermission,
-} from '../devices';
 import type { BrowserPermissionState } from '../devices/BrowserPermission';
 
 export type ClientEventPeerConnection = 'publish' | 'subscribe';
@@ -109,14 +104,13 @@ export class ClientEventReporter {
 
   private callContexts = new Map<string, CallReportContext>();
   private joinAttemptIds = new Map<string, string>();
+  private activeMediaPermissionJoinCallIds = new Set<string>();
   private coordinatorPairs = new Map<string, StagePairState>();
   private wsPairs = new Map<string, StagePairState>();
   private peerConnectionPairs = new Map<string, StagePairState>();
   private peerConnectionContexts = new Map<string, PeerConnectionContext>();
   private pcEverConnected = new Map<string, boolean>();
   private mediaPermissionSession?: MediaPermissionSession;
-  private mediaPermissionUnsubscribe?: () => void;
-  private currentCallId?: string;
   private firstFrameReported = new Set<string>();
 
   constructor(options: ClientEventReporterOptions) {
@@ -210,34 +204,20 @@ export class ClientEventReporter {
     sdk_version: this.sdkVersion,
   });
 
-  private ensureMediaPermissionWatcher = () => {
-    if (this.mediaPermissionUnsubscribe) return;
-    const unsubscribeCamera = createSubscription(
-      getVideoBrowserPermission().asStateObservable(),
-      (state) =>
-        this.reportMediaPermission('camera', toMediaPermissionState(state)),
-    );
-    const unsubscribeMicrophone = createSubscription(
-      getAudioBrowserPermission().asStateObservable(),
-      (state) =>
-        this.reportMediaPermission('microphone', toMediaPermissionState(state)),
-    );
-    this.mediaPermissionUnsubscribe = () => {
-      unsubscribeCamera();
-      unsubscribeMicrophone();
-    };
-  };
-
   reportMediaPermission = (
-    device: MediaPermissionDevice,
-    state: MediaPermissionState,
+    callId: string,
+    trackType: TrackType,
+    state: BrowserPermissionState,
   ) => {
+    const device = toMediaPermissionDevice(trackType);
+    if (!device) return;
+
     const session: MediaPermissionSession = this.mediaPermissionSession ?? {
       camera: 'NOT_INITIATED',
       microphone: 'NOT_INITIATED',
     };
     this.mediaPermissionSession = session;
-    session[device] = state;
+    session[device] = toMediaPermissionState(state);
 
     const anyPrompting =
       session.camera === 'INITIATED' || session.microphone === 'INITIATED';
@@ -248,15 +228,20 @@ export class ClientEventReporter {
         session.closeTimer = undefined;
       }
       if (!session.pair) {
-        const callId = this.currentCallId;
-        if (!callId) return;
+        const joinAttemptId = this.joinAttemptIds.get(callId);
+        if (
+          !joinAttemptId ||
+          !this.activeMediaPermissionJoinCallIds.has(callId)
+        ) {
+          return;
+        }
 
         session.callId = callId;
         session.pair = {
           sid: generateUUIDv4(),
           attempts: 0,
           startedAt: Date.now(),
-          joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
+          joinAttemptIdSnapshot: joinAttemptId,
         };
         this.emitMediaPermission(session, 'initiated');
       }
@@ -278,8 +263,9 @@ export class ClientEventReporter {
     if (!pair || !callId) return;
 
     const states = {
-      microphone: session.microphone,
-      camera: session.camera,
+      microphone_permission_status: session.microphone,
+      camera_permission_status: session.camera,
+      screen_share_status: 'NOT_INITIATED',
     };
     if (eventType === 'initiated') {
       this.send({
@@ -335,20 +321,16 @@ export class ClientEventReporter {
   };
 
   registerCall = (callId: string, ctx: CallReportContext) => {
-    console.log('registerCall', callId);
     this.callContexts.set(callId, ctx);
-    this.currentCallId = callId;
-    this.ensureMediaPermissionWatcher();
   };
 
   unregisterCall = (callId: string) => {
-    console.log('unregisterCall', callId);
     this.callContexts.delete(callId);
     this.joinAttemptIds.delete(callId);
+    this.activeMediaPermissionJoinCallIds.delete(callId);
     this.coordinatorPairs.delete(callId);
     this.wsPairs.delete(callId);
-
-    if (this.currentCallId === callId) this.currentCallId = undefined;
+    this.closeMediaPermissionSession(callId);
 
     this.firstFrameReported.delete(`${callId}:FirstVideoFrame`);
     this.firstFrameReported.delete(`${callId}:FirstAudioFrame`);
@@ -364,6 +346,7 @@ export class ClientEventReporter {
   startCorrelation = (callId: string) => {
     this.closeCallPairs(callId);
     this.joinAttemptIds.set(callId, generateUUIDv4());
+    this.activeMediaPermissionJoinCallIds.add(callId);
     // a fresh attempt (e.g. full rejoin) re-reports the first frame
     this.firstFrameReported.delete(`${callId}:FirstVideoFrame`);
     this.firstFrameReported.delete(`${callId}:FirstAudioFrame`);
@@ -380,6 +363,8 @@ export class ClientEventReporter {
     } catch (err) {
       this.closeCallPairs(callId);
       throw err;
+    } finally {
+      this.activeMediaPermissionJoinCallIds.delete(callId);
     }
   };
 
@@ -446,6 +431,16 @@ export class ClientEventReporter {
   private closeCallPairs = (callId: string) => {
     if (this.coordinatorPairs.get(callId)) this.failCoordinator(callId);
     if (this.wsPairs.get(callId)) this.failWs(callId);
+  };
+
+  private closeMediaPermissionSession = (callId: string) => {
+    const session = this.mediaPermissionSession;
+    if (!session || session.callId !== callId) return;
+
+    if (session.closeTimer) {
+      clearTimeout(session.closeTimer);
+    }
+    this.mediaPermissionSession = undefined;
   };
 
   private emitJoinInitiated = (callId: string) => {
@@ -837,6 +832,19 @@ export class ClientEventReporter {
     }
   };
 }
+
+const toMediaPermissionDevice = (
+  trackType: TrackType,
+): MediaPermissionDevice | undefined => {
+  switch (trackType) {
+    case TrackType.AUDIO:
+      return 'microphone';
+    case TrackType.VIDEO:
+      return 'camera';
+    default:
+      return undefined;
+  }
+};
 
 const toMediaPermissionState = (
   state: BrowserPermissionState,
