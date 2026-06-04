@@ -195,7 +195,7 @@ export class ClientEventReporter {
   ): Record<string, unknown> => ({
     user_id: pair.userIdSnapshot ?? this.getUserId(),
     stage: 'CoordinatorWS',
-    event_session_id: pair.sid,
+    stage_id: pair.sid,
     ...(this.coordinatorConnectId && {
       coordinator_connect_id: this.coordinatorConnectId,
     }),
@@ -776,7 +776,7 @@ export class ClientEventReporter {
       id: ctx?.callId ?? '',
       call_cid: cid,
       stage,
-      event_session_id: pair.sid,
+      stage_id: pair.sid,
       ...(pair.joinAttemptIdSnapshot && {
         join_attempt_id: pair.joinAttemptIdSnapshot,
       }),
