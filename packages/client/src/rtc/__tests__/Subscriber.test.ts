@@ -287,7 +287,6 @@ describe('Subscriber', () => {
         connectionConfig: { iceServers: [] },
         tag: 'test',
         enableTracing: true,
-        // @ts-expect-error - partial mock
         e2ee: e2eeMock,
       });
 
@@ -331,7 +330,6 @@ describe('Subscriber', () => {
         connectionConfig: { iceServers: [] },
         tag: 'test',
         enableTracing: true,
-        // @ts-expect-error - partial mock
         e2ee: e2eeMock,
       });
 

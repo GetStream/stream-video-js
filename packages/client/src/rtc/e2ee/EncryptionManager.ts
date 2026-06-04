@@ -3,6 +3,7 @@ import { promiseWithResolvers } from '../../helpers/promise';
 import { TypedEventEmitter } from '../../helpers/TypedEventEmitter';
 import { type ScopedLogger, videoLoggerSystem } from '../../logger';
 import type { E2EEEventMap } from './events';
+import type { E2EEManager } from './E2EEManager';
 
 export type {
   E2EEEventMap,
@@ -58,15 +59,16 @@ export type KeyStateReport = {
  * }
  * ```
  */
-export class EncryptionManager extends TypedEventEmitter<E2EEEventMap> {
+export class EncryptionManager
+  extends TypedEventEmitter<E2EEEventMap>
+  implements E2EEManager
+{
   private readonly logger: ScopedLogger;
   private readonly algorithm: E2EEAlgorithm;
   private disposed = false;
   private piped?: WeakSet<RTCRtpSender | RTCRtpReceiver>;
 
-  private pendingKeyDump?: ReturnType<
-    typeof promiseWithResolvers<KeyStateReport>
-  >;
+  private pendingKeyDump?: PromiseWithResolvers<KeyStateReport>;
 
   private readonly userId: string;
   private readonly worker: Worker;

@@ -300,7 +300,7 @@ const decodeTransform = (userId: string) => {
   const replay = createReplayWindow();
 
   return new TransformStream<EncodedFrame, EncodedFrame>({
-    async transform(frame, controller: FrameController) {
+    async transform(frame, controller) {
       if (frame.data.byteLength === 0) {
         controller.enqueue(frame);
         bumpDecodeCount(userId);

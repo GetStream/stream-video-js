@@ -9,7 +9,7 @@ import { CallState } from '../store';
 import { Dispatcher } from './Dispatcher';
 import type { OptimalVideoLayer } from './layers';
 import type { ClientPublishOptions } from '../types';
-import type { EncryptionManager } from './e2ee/EncryptionManager';
+import type { E2EEManager } from './e2ee/E2EEManager';
 import type { VideoSender } from '../gen/video/sfu/event/events';
 
 /**
@@ -66,7 +66,7 @@ export type BasePeerConnectionOpts = {
   iceRestartDelay?: number;
   clientPublishOptions?: ClientPublishOptions;
   statsTimestampDriftThresholdMs?: number;
-  e2ee?: EncryptionManager;
+  e2ee?: E2EEManager;
 };
 
 export type TrackPublishOptions = {

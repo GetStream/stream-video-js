@@ -158,7 +158,6 @@ describe('Publisher', () => {
           state,
           tag: 'test',
           enableTracing: false,
-          // @ts-expect-error - partial mock
           e2ee: e2eeMock,
         },
         [

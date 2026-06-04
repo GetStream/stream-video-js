@@ -14,14 +14,14 @@ import {
 import { CallState } from '../store';
 import { trackTypeToParticipantStreamKey } from '../rtc';
 import { pushToIfMissing } from '../helpers/array';
-import type { EncryptionManager } from '../rtc/e2ee/EncryptionManager';
+import type { E2EEManager } from '../rtc/e2ee/E2EEManager';
 
 /**
  * An event responder which handles the `participantJoined` event.
  */
 export const watchParticipantJoined = (
   state: CallState,
-  e2ee?: EncryptionManager,
+  e2ee?: E2EEManager,
 ) => {
   return function onParticipantJoined(e: ParticipantJoined) {
     const { participant } = e;
@@ -81,10 +81,7 @@ export const watchParticipantUpdated = (state: CallState) => {
  * An event responder which handles the `trackPublished` event.
  * The SFU will send this event when a participant publishes a track.
  */
-export const watchTrackPublished = (
-  state: CallState,
-  e2ee?: EncryptionManager,
-) => {
+export const watchTrackPublished = (state: CallState, e2ee?: E2EEManager) => {
   return function onTrackPublished(e: TrackPublished) {
     const { type, sessionId } = e;
     // An optimization for large calls.
@@ -111,10 +108,7 @@ export const watchTrackPublished = (
  * An event responder which handles the `trackUnpublished` event.
  * The SFU will send this event when a participant unpublishes a track.
  */
-export const watchTrackUnpublished = (
-  state: CallState,
-  e2ee?: EncryptionManager,
-) => {
+export const watchTrackUnpublished = (state: CallState, e2ee?: E2EEManager) => {
   return function onTrackUnpublished(e: TrackUnpublished) {
     const { type, sessionId } = e;
     // An optimization for large calls. See `watchTrackPublished`.
@@ -147,7 +141,7 @@ export const watchTrackUnpublished = (
 const reconcileOrphanedTracks = (
   state: CallState,
   participant: Participant,
-  e2ee?: EncryptionManager,
+  e2ee?: E2EEManager,
 ): StreamVideoParticipantPatch | undefined => {
   const orphanTracks = state.takeOrphanedTracks(participant.trackLookupPrefix);
   if (!orphanTracks.length) return;

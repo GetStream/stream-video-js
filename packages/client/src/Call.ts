@@ -15,7 +15,7 @@ import {
   TrackPublishOptions,
   trackTypeToParticipantStreamKey,
 } from './rtc';
-import { EncryptionManager } from './rtc/e2ee/EncryptionManager';
+import type { E2EEManager } from './rtc/e2ee/E2EEManager';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -264,7 +264,7 @@ export class Call {
 
   subscriber?: Subscriber;
   publisher?: Publisher;
-  e2eeManager?: EncryptionManager;
+  e2eeManager?: E2EEManager;
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -2201,9 +2201,10 @@ export class Call {
    * Must be called before {@link join} so the RTCPeerConnection is
    * configured with `encodedInsertableStreams` on Chrome.
    *
-   * @param e2ee - An EncryptionManager created via `EncryptionManager.create()`.
+   * @param e2ee - Any `E2EEManager`. Use `EncryptionManager.create()` for the
+   *         built-in AES-GCM scheme, or pass your own implementation.
    */
-  setE2EEManager = (e2ee: EncryptionManager) => {
+  setE2EEManager = (e2ee: E2EEManager) => {
     this.e2eeManager = e2ee;
   };
 

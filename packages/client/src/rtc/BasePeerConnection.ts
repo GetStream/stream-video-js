@@ -8,7 +8,7 @@ import {
   TrackType,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
-import { EncryptionManager } from './e2ee/EncryptionManager';
+import type { E2EEManager } from './e2ee/E2EEManager';
 import { NegotiationError } from './NegotiationError';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
@@ -34,7 +34,7 @@ export abstract class BasePeerConnection {
   protected readonly state: CallState;
   protected readonly dispatcher: Dispatcher;
   protected readonly clientPublishOptions?: ClientPublishOptions;
-  protected readonly e2ee?: EncryptionManager;
+  protected readonly e2ee?: E2EEManager;
   protected tag: string;
   protected sfuClient: StreamSfuClient;
 
