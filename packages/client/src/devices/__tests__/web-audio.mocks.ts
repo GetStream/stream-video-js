@@ -63,7 +63,9 @@ export const setupAudioContextMock = () => {
   const mockContext = createMockAudioContext();
   vi.stubGlobal(
     'AudioContext',
-    vi.fn(() => mockContext),
+    vi.fn(function () {
+      return mockContext;
+    }),
   );
   return mockContext;
 };

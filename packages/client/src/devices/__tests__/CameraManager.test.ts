@@ -50,7 +50,9 @@ vi.mock('../devices.ts', () => {
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
   return {
-    Call: vi.fn(() => mockCall()),
+    Call: vi.fn(function () {
+      return mockCall();
+    }),
   };
 });
 
@@ -204,6 +206,25 @@ describe('CameraManager', () => {
     await manager.select(deviceId);
 
     expect((getVideoStream as Mock).mock.lastCall[0]).toEqual({
+      deviceId: { exact: deviceId },
+      width: 1280,
+      height: 720,
+    });
+  });
+
+  it('should pass resolved camera constraints to virtual devices', async () => {
+    const virtualStream = mockVideoStream();
+    const getUserMedia = vi.fn(() => ({ stream: virtualStream }));
+
+    const { deviceId } = manager.registerVirtualDevice({
+      label: 'Virtual camera',
+      getUserMedia,
+    });
+
+    await manager.select(deviceId);
+    await manager.enable();
+
+    expect(getUserMedia).toHaveBeenCalledWith({
       deviceId: { exact: deviceId },
       width: 1280,
       height: 720,

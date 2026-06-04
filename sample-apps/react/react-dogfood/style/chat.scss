@@ -59,3 +59,77 @@
 .str-chat__channel {
   overflow: hidden;
 }
+
+.rd-chat__chat-button__wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.rd-chat__chat-button__unread-count-bubble {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: var(--str-video__border-radius-circle);
+  background: var(--str-video__brand-color3);
+  color: var(--str-video__base-color4);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.rd-chat__new-message-toast {
+  position: fixed;
+  right: var(--str-video__spacing-lg);
+  bottom: 96px;
+  max-width: 280px;
+  padding: var(--str-video__spacing-md);
+  background: var(--str-video__background-color1);
+  border-radius: var(--str-video__border-radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  animation: rd-chat__new-message-toast-in 0.18s ease-out;
+}
+
+@keyframes rd-chat__new-message-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rd-chat__new-message-notification {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.rd-chat__new-message-notification__sender {
+  font-size: var(--str-video__font-size-sm);
+  font-weight: 600;
+  color: var(--str-video__text-color1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rd-chat__new-message-notification__text {
+  font-size: var(--str-video__font-size-sm);
+  color: var(--str-video__text-color3);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}

@@ -1,9 +1,9 @@
+import { videoLoggerSystem } from '@stream-io/video-client';
 import { Platform } from 'react-native';
+import { StreamVideoConfig } from '../../StreamVideoRN/types';
+import { getCallingxLib } from '../libs/callingx';
 import { pushUnsubscriptionCallbacks } from './constants';
 import { canListenToWS, shouldCallBeClosed } from './utils';
-import { StreamVideoConfig } from '../../StreamVideoRN/types';
-import { videoLoggerSystem } from '@stream-io/video-client';
-import { getCallingxLib } from '../libs/callingx';
 
 export const onVoipNotificationReceived = async (
   notification: any,
@@ -43,15 +43,14 @@ export const onVoipNotificationReceived = async (
   }
 
   const call_cid = notification?.stream?.call_cid;
-  if (!call_cid || Platform.OS !== 'ios' || !pushConfig.ios.pushProviderName) {
+  if (!call_cid || Platform.OS !== 'ios' || !pushConfig.ios?.pushProviderName) {
     return;
   }
 
   const callingx = getCallingxLib();
-  if (callingx.isCallTracked(call_cid)) {
-    //same call_cid is already tracked, so we skip the notification
+  if (pushUnsubscriptionCallbacks.has(call_cid)) {
     logger.debug(
-      `the same call_cid ${call_cid} is already tracked, skipping the call.ring notification`,
+      `the same call_cid ${call_cid} is already being watched, skipping the call.ring notification`,
     );
     return;
   }
@@ -91,6 +90,7 @@ export const onVoipNotificationReceived = async (
           event,
         );
         unsubscribe();
+        pushUnsubscriptionCallbacks.delete(call_cid);
         return;
       }
       const _closed = closeCallIfNecessary();
@@ -100,6 +100,7 @@ export const onVoipNotificationReceived = async (
           event,
         );
         unsubscribe();
+        pushUnsubscriptionCallbacks.delete(call_cid);
       }
     });
 

@@ -20,7 +20,7 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     private static var isVoipRegistered = false
     private static var lastVoipToken = ""
     private static var voipRegistry: PKPushRegistry?
-    
+
     private var canSendEvents: Bool = false
     private var delayedEvents: [[String:Any]] = []
     
@@ -60,28 +60,19 @@ typealias RNVoipPushNotificationCompletion = () -> Void
             #endif
             let voipPushManager = VoipNotificationsManager.shared()
             voipPushManager.sendEventWithNameWrapper(name: VoipNotificationsEvents.registered, body: ["token": lastVoipToken])
-        } else {
-            #if DEBUG
-            NSLog("%@","[VoipNotificationsManager] voipRegistration enter")
-            #endif
-            DispatchQueue.main.async {
-                let voipRegistry = PKPushRegistry(queue: DispatchQueue.main)
-                // Set the registry's delegate to AppDelegate
-                // Note: The original code casts the delegate, but this should be handled by AppDelegate
-                if let appDelegate = RCTSharedApplication()?.delegate as? PKPushRegistryDelegate {
-                    voipRegistry.delegate = appDelegate
-                    // Set the push type to VoIP
-                    // Store the registry to prevent deallocation
-                    voipRegistry.desiredPushTypes = [.voIP]
-                    VoipNotificationsManager.voipRegistry = voipRegistry
-                    
-                    isVoipRegistered = true
-                } else {
-                    #if DEBUG
-                    NSLog("%@","[VoipNotificationsManager] voipRegistration appDelegate not found. return")
-                    #endif
-                }
-            }
+            return
+        }
+
+        #if DEBUG
+        NSLog("%@","[VoipNotificationsManager] voipRegistration enter")
+        #endif
+
+        DispatchQueue.main.async {
+            let registry = PKPushRegistry(queue: DispatchQueue.main)
+            registry.delegate = VoipPushHandler.sharedInstance()
+            registry.desiredPushTypes = [.voIP]
+            VoipNotificationsManager.voipRegistry = registry
+            isVoipRegistered = true
         }
     }
     

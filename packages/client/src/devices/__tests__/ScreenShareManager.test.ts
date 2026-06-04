@@ -26,7 +26,9 @@ vi.mock('../devices.ts', () => {
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
   return {
-    Call: vi.fn(() => mockCall()),
+    Call: vi.fn(function () {
+      return mockCall();
+    }),
   };
 });
 
@@ -34,7 +36,6 @@ describe('ScreenShareManager', () => {
   let manager: ScreenShareManager;
 
   beforeEach(() => {
-    const devicePersistence = { enabled: false, storageKey: '' };
     manager = new ScreenShareManager(
       new Call({
         id: '',
@@ -42,7 +43,6 @@ describe('ScreenShareManager', () => {
         streamClient: new StreamClient('abc123'),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
-      devicePersistence,
     );
   });
 

@@ -7,6 +7,7 @@ import {
   Icon,
   MenuToggle,
   MenuVisualType,
+  SfuModels,
   ToggleMenuButtonProps,
   useCallStateHooks,
   useI18n,
@@ -16,14 +17,21 @@ import { isMobile } from '../helpers/isMobile';
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
     const { t } = useI18n();
-    const { useMicrophoneState } = useCallStateHooks();
+    const { useMicrophoneState, useLocalParticipant } = useCallStateHooks();
     const { selectedDevice: selectedMic, devices: microphones } =
       useMicrophoneState();
+    const localParticipant = useLocalParticipant();
+    const isSystemMuted = !!localParticipant?.interruptedTracks?.includes(
+      SfuModels.TrackType.AUDIO,
+    );
 
     return (
       <button
         ref={ref}
         className="rd__button rd__button--align-left rd__lobby__mic-button"
+        title={
+          isSystemMuted ? t('Microphone is paused by your system') : undefined
+        }
       >
         <Icon className="rd__button__icon" icon="mic" />
         <p className="rd__lobby__mic-button__device">

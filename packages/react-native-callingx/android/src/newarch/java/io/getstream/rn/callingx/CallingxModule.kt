@@ -37,6 +37,10 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         // leave empty
     }
 
+    override fun setDefaultAudioDeviceEndpointType(endpointType: String?) {
+        // leave empty
+    }
+
     override fun setupAndroid(options: ReadableMap) {
         impl.setupAndroid(options)
     }

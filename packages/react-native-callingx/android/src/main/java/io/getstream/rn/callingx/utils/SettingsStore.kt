@@ -9,6 +9,7 @@ object SettingsStore {
     private const val KEY_REJECT_CALL_WHEN_BUSY = "reject_call_when_busy"
     private const val KEY_OPTIMISTIC_ACCEPTING_TEXT = "optimistic_accepting_text"
     private const val KEY_OPTIMISTIC_REJECTING_TEXT = "optimistic_rejecting_text"
+    private const val KEY_SKIP_INCOMING_PUSH_IN_FOREGROUND = "skip_incoming_push_in_foreground"
 
     private const val DEFAULT_OPTIMISTIC_ACCEPTING_TEXT = "Connecting..."
     private const val DEFAULT_OPTIMISTIC_REJECTING_TEXT = "Declining..."
@@ -47,5 +48,15 @@ object SettingsStore {
     fun getOptimisticRejectingText(context: Context): String {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         return prefs.getString(KEY_OPTIMISTIC_REJECTING_TEXT, DEFAULT_OPTIMISTIC_REJECTING_TEXT) ?: DEFAULT_OPTIMISTIC_REJECTING_TEXT
+    }
+
+    fun setSkipIncomingPushInForeground(context: Context, skip: Boolean) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit { putBoolean(KEY_SKIP_INCOMING_PUSH_IN_FOREGROUND, skip) }
+    }
+
+    fun shouldSkipIncomingPushInForeground(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getBoolean(KEY_SKIP_INCOMING_PUSH_IN_FOREGROUND, false)
     }
 }

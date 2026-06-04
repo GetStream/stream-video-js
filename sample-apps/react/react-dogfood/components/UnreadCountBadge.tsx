@@ -1,58 +1,38 @@
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { Event, StreamChat } from 'stream-chat';
-import { CHANNEL_TYPE } from '.';
+import type { Channel, Event } from 'stream-chat';
 
-// FIXME: unread count 0 on load (even if before refresh was >0)
-export const UnreadCountBadge = ({
-  chatClient: client,
-  channelId,
-  channelWatched,
-}: {
-  chatClient?: StreamChat | null;
-  channelId: string;
-  channelWatched: boolean;
-}) => {
+export const UnreadCountBadge = (props: { channel?: Channel }) => {
+  const { channel } = props;
   const [unread, setUnread] = useState(0);
-  const router = useRouter();
-  const channelType = (router.query['channel_type'] as string) || CHANNEL_TYPE;
-  const cid = `${channelType}:${channelId}`;
 
   useEffect(() => {
-    if (!client) return;
+    if (!channel) {
+      setUnread(0);
+      return;
+    }
 
-    const handleEvent = (event: Event) => {
-      if (event?.cid === cid) setUnread(0);
-    };
+    const sync = () => setUnread(channel.countUnread());
+    sync();
 
-    client.on('notification.mark_read', handleEvent);
-    return () => client.off('notification.mark_read', handleEvent);
-  }, [client, cid]);
-
-  useEffect(() => {
-    if (!client || !channelWatched) return;
-
-    const handleEvent = () => {
-      const channel = client.activeChannels[cid];
-      setUnread(channel?.countUnread() ?? 0);
-    };
-
-    handleEvent();
-
-    client.on('message.new', handleEvent);
-    client.on('message.updated', handleEvent);
-    client.on('message.deleted', handleEvent);
+    const subs = [
+      channel.on('message.new', sync),
+      channel.on('message.updated', sync),
+      channel.on('message.deleted', sync),
+      channel.on('notification.mark_read', (e: Event) => {
+        if (e?.cid === channel.cid) setUnread(0);
+      }),
+    ];
 
     return () => {
-      client.off('message.new', handleEvent);
-      client.off('message.updated', handleEvent);
-      client.off('message.deleted', handleEvent);
+      subs.forEach((s) => s.unsubscribe());
     };
-  }, [client, channelWatched, cid]);
+  }, [channel]);
 
   if (!unread) return null;
 
   return (
-    <div className="str-chat__chat-button__unread-count-bubble">{unread}</div>
+    <div className="rd-chat__chat-button__unread-count-bubble">
+      {unread > 99 ? '99+' : unread}
+    </div>
   );
 };

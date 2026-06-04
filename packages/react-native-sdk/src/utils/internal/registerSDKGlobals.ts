@@ -50,6 +50,8 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callManager: {
     setup: ({ defaultDevice, isRingingTypeCall }) => {
       if (shouldBypassForCallKit({ isRingingTypeCall })) {
+        // Forward the sticky preference; callingx reads it on next CallKit activation.
+        CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice);
         return;
       }
       StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(

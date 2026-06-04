@@ -8,9 +8,7 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-native-sdk';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthProgressLoader } from './AuthProgressLoader';
-import { StyleSheet } from 'react-native';
 import { CallControlsComponent } from './CallControlsComponent';
 
 export const MeetingUI = () => {
@@ -34,21 +32,13 @@ export const MeetingUI = () => {
     return <AuthProgressLoader />;
   }
   return (
-    <SafeAreaView style={styles.container}>
-      <NoiseCancellationProvider>
-        <BackgroundFiltersProvider>
-          <CallContent
-            CallControls={CallControlsComponent}
-            iOSPiPIncludeLocalParticipantVideo={true}
-          />
-        </BackgroundFiltersProvider>
-      </NoiseCancellationProvider>
-    </SafeAreaView>
+    <NoiseCancellationProvider>
+      <BackgroundFiltersProvider>
+        <CallContent
+          CallControls={CallControlsComponent}
+          iOSPiPIncludeLocalParticipantVideo={true}
+        />
+      </BackgroundFiltersProvider>
+    </NoiseCancellationProvider>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-});

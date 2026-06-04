@@ -63,7 +63,7 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
         call.state.updateParticipantTracks(trackType, {
           [participantSessionId]: { dimension },
         });
-        call.dynascaleManager.applyTrackSubscriptions(debounceType);
+        call.trackSubscriptionManager.apply(debounceType);
       };
       const isPublishingTrack$ = call.state.participants$.pipe(
         map((ps) => ps.find((p) => p.sessionId === participantSessionId)),

@@ -130,15 +130,20 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     expect(updatedConfig.modResults.contents).toMatch(
       /options.enableMultitaskingCameraAccess = YES/,
     );
+
+    // Managed-mode VoIP registration: the SDK owns the PKPushRegistry delegate
+    // internally, so the AppDelegate shouldn't have PushKit imports,
+    // PKPushRegistryDelegate conformance, or any pushRegistry(...) methods.
     expect(updatedConfig.modResults.contents).toMatch(
-      /#import <PushKit\/PushKit.h>/,
+      /#import "StreamVideoReactNative.h"/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /didUpdatePushCredentials:credentials/,
+      /\[StreamVideoReactNative voipRegistration\]/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /didReceiveIncomingPush:payload/,
+    expect(updatedConfig.modResults.contents).not.toContain(
+      '<PushKit/PushKit.h>',
     );
+    expect(updatedConfig.modResults.contents).not.toContain('pushRegistry:');
 
     modifiedConfigObjC = updatedConfig;
   });
@@ -172,19 +177,27 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     expect(updatedConfig.modResults.contents).toMatch(
       /NoiseCancellationManager.getInstance/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(/PKPushRegistryDelegate/);
     expect(updatedConfig.modResults.contents).toMatch(/^import WebRTC/m);
-    expect(updatedConfig.modResults.contents).toMatch(/^import PushKit/m);
+    expect(updatedConfig.modResults.contents).toMatch(
+      /^import stream_video_react_native/m,
+    );
     // Check Swift implementation
     expect(updatedConfig.modResults.contents).toMatch(
       /options.enableMultitaskingCameraAccess = true/,
     );
 
+    // Managed-mode VoIP registration: the SDK owns the PKPushRegistry delegate
+    // internally, so the AppDelegate shouldn't have PushKit imports,
+    // PKPushRegistryDelegate conformance, or any pushRegistry(...) methods.
     expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative.didUpdate/,
+      /StreamVideoReactNative\.voipRegistration\(\)/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative.didReceiveIncomingPush/,
+    expect(updatedConfig.modResults.contents).not.toMatch(/^import PushKit/m);
+    expect(updatedConfig.modResults.contents).not.toContain(
+      'PKPushRegistryDelegate',
+    );
+    expect(updatedConfig.modResults.contents).not.toContain(
+      'func pushRegistry(',
     );
 
     modifiedConfigSwift = updatedConfig;

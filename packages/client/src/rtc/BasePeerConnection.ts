@@ -13,7 +13,12 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
-import type { BasePeerConnectionOpts, OnReconnectionNeeded } from './types';
+import {
+  BasePeerConnectionOpts,
+  OnIceConnected,
+  OnReconnectionNeeded,
+  ReconnectReason,
+} from './types';
 import type { ClientPublishOptions } from '../types';
 
 /**
@@ -31,10 +36,13 @@ export abstract class BasePeerConnection {
   protected sfuClient: StreamSfuClient;
 
   private onReconnectionNeeded?: OnReconnectionNeeded;
+  private onIceConnected?: OnIceConnected;
   private readonly iceRestartDelay: number;
+  private iceHasEverConnected = false;
   private iceRestartTimeout?: NodeJS.Timeout;
+  private preConnectStuckTimeout?: NodeJS.Timeout;
   protected isIceRestarting = false;
-  private isDisposed = false;
+  protected isDisposed = false;
 
   protected trackIdToTrackType = new Map<string, TrackType>();
 
@@ -56,10 +64,12 @@ export abstract class BasePeerConnection {
       state,
       dispatcher,
       onReconnectionNeeded,
+      onIceConnected,
       tag,
       enableTracing,
       clientPublishOptions,
       iceRestartDelay = 2500,
+      statsTimestampDriftThresholdMs = 0,
     }: BasePeerConnectionOpts,
   ) {
     this.peerType = peerType;
@@ -70,12 +80,18 @@ export abstract class BasePeerConnection {
     this.clientPublishOptions = clientPublishOptions;
     this.tag = tag;
     this.onReconnectionNeeded = onReconnectionNeeded;
+    this.onIceConnected = onIceConnected;
     this.logger = videoLoggerSystem.getLogger(
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
       { tags: [tag] },
     );
     this.pc = this.createPeerConnection(connectionConfig);
-    this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
+    this.stats = new StatsTracer(
+      this.pc,
+      peerType,
+      this.trackIdToTrackType,
+      statsTimestampDriftThresholdMs,
+    );
     if (enableTracing) {
       this.tracer = new Tracer(
         `${tag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`,
@@ -105,10 +121,13 @@ export abstract class BasePeerConnection {
   /**
    * Disposes the `RTCPeerConnection` instance.
    */
-  dispose() {
+  async dispose(): Promise<void> {
     clearTimeout(this.iceRestartTimeout);
     this.iceRestartTimeout = undefined;
+    clearTimeout(this.preConnectStuckTimeout);
+    this.preConnectStuckTimeout = undefined;
     this.onReconnectionNeeded = undefined;
+    this.onIceConnected = undefined;
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
@@ -128,6 +147,10 @@ export abstract class BasePeerConnection {
       this.onIceConnectionStateChange,
     );
     pc.removeEventListener('icegatheringstatechange', this.onIceGatherChange);
+    pc.removeEventListener(
+      'connectionstatechange',
+      this.onConnectionStateChange,
+    );
     this.unsubscribeIceTrickle?.();
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions = [];
@@ -145,14 +168,17 @@ export abstract class BasePeerConnection {
    */
   protected tryRestartIce = () => {
     this.restartIce().catch((e) => {
-      const reason = 'restartICE() failed, initiating reconnect';
-      this.logger.error(reason, e);
+      this.logger.error('restartICE() failed, initiating reconnect', e);
       const strategy =
         e instanceof NegotiationError &&
         e.error.code === ErrorCode.PARTICIPANT_SIGNAL_LOST
           ? WebsocketReconnectStrategy.FAST
           : WebsocketReconnectStrategy.REJOIN;
-      this.onReconnectionNeeded?.(strategy, reason, this.peerType);
+      this.onReconnectionNeeded?.(
+        strategy,
+        ReconnectReason.RESTART_ICE_FAILED,
+        this.peerType,
+      );
     });
   };
 
@@ -167,13 +193,21 @@ export abstract class BasePeerConnection {
     const getTag = () => this.tag;
     this.subscriptions.push(
       this.dispatcher.on(event, getTag, (e) => {
-        const lockKey = `pc.${this.lock}.${event}`;
+        const lockKey = this.eventLockKey(event);
         withoutConcurrency(lockKey, async () => fn(e)).catch((err) => {
           if (this.isDisposed) return;
           this.logger.warn(`Error handling ${event}`, err);
         });
       }),
     );
+  };
+
+  /**
+   * Returns the per-event `withoutConcurrency` tag used to serialize the
+   * dispatcher handler for `event` on this peer connection.
+   */
+  protected eventLockKey = (event: keyof AllSfuEvents): string => {
+    return `pc.${this.lock}.${event}`;
   };
 
   /**
@@ -240,6 +274,20 @@ export abstract class BasePeerConnection {
   };
 
   /**
+   * Returns true only when the peer connection is currently fully established
+   * (ICE `connected`/`completed` AND connection state `connected`).
+   * Transient states like `disconnected`, `checking`, or `new` return false.
+   */
+  isStable = () => {
+    const iceState = this.pc.iceConnectionState;
+    const connectionState = this.pc.connectionState;
+    return (
+      (iceState === 'connected' || iceState === 'completed') &&
+      connectionState === 'connected'
+    );
+  };
+
+  /**
    * Handles the ICECandidate event and
    * Initiates an ICE Trickle process with the SFU.
    */
@@ -292,7 +340,7 @@ export abstract class BasePeerConnection {
     if (state === 'failed') {
       this.onReconnectionNeeded?.(
         WebsocketReconnectStrategy.REJOIN,
-        'Connection failed',
+        ReconnectReason.CONNECTION_FAILED,
         this.peerType,
       );
       return;
@@ -320,6 +368,54 @@ export abstract class BasePeerConnection {
     // do nothing when ICE is restarting
     if (this.isIceRestarting) return;
 
+    // Pre-connect handling: ICE has never reached `connected`/`completed`.
+    // Restart is futile here (the data plane was never established), but
+    // these two terminal-ish states need different treatment:
+    // - `failed` is terminal, escalate to REJOIN so a new SFU/credentials
+    //   /PC configuration gets a chance, and let `Call.reconnect` count
+    //   this toward the unsupported-network budget.
+    // - `disconnected` is transient, the browser may yet move back to
+    //   `checking`/`connected`. Don't restart, don't escalate; wait it
+    //   out. If it ultimately fails, ICE will transition to `failed` and
+    //   the branch above will take over.
+    if (!this.iceHasEverConnected) {
+      if (state === 'failed') {
+        this.logger.info('ICE failed before connected, escalating to REJOIN');
+        clearTimeout(this.preConnectStuckTimeout);
+        this.preConnectStuckTimeout = undefined;
+        this.onReconnectionNeeded?.(
+          WebsocketReconnectStrategy.REJOIN,
+          ReconnectReason.ICE_NEVER_CONNECTED,
+          this.peerType,
+        );
+        return;
+      }
+      if (state === 'disconnected') {
+        this.logger.info('ICE disconnected before connected, wait to recover');
+        // Watchdog: if the browser stays in `disconnected` without ever
+        // reaching `connected` or transitioning to `failed`, escalate to
+        // REJOIN ourselves so we don't wait silently forever. Rare but
+        // observed on flaky mobile networks.
+        clearTimeout(this.preConnectStuckTimeout);
+        this.preConnectStuckTimeout = setTimeout(() => {
+          if (
+            !this.iceHasEverConnected &&
+            this.pc.iceConnectionState === 'disconnected'
+          ) {
+            this.logger.info(
+              'ICE stuck in pre-connect disconnected, escalating to REJOIN',
+            );
+            this.onReconnectionNeeded?.(
+              WebsocketReconnectStrategy.REJOIN,
+              ReconnectReason.ICE_NEVER_CONNECTED,
+              this.peerType,
+            );
+          }
+        }, this.iceRestartDelay * 2);
+        return;
+      }
+    }
+
     switch (state) {
       case 'failed':
         // in the `failed` state, we try to restart ICE immediately
@@ -341,12 +437,24 @@ export abstract class BasePeerConnection {
         break;
 
       case 'connected':
-        // in the `connected` state, we clear the ice restart timeout if it exists
+      case 'completed':
+        // Fire `onIceConnected` exactly once per peer-connection lifetime —
+        // the first time ICE reaches `connected`/`completed` end-to-end.
+        // Used by `Call` to reset the unsupported-network failure counter
+        // only after WebRTC has actually recovered, not merely on SFU join.
+        if (!this.iceHasEverConnected) {
+          this.iceHasEverConnected = true;
+          this.onIceConnected?.(this.peerType);
+        }
+        // clear any scheduled restartICE since the connection is healthy
         if (this.iceRestartTimeout) {
           this.logger.info('connected connection, canceling restartICE');
           clearTimeout(this.iceRestartTimeout);
           this.iceRestartTimeout = undefined;
         }
+        // clear the pre-connect watchdog if it was armed
+        clearTimeout(this.preConnectStuckTimeout);
+        this.preConnectStuckTimeout = undefined;
         break;
     }
   };

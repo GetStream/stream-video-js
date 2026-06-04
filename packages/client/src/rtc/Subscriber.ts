@@ -1,9 +1,10 @@
 import { BasePeerConnection } from './BasePeerConnection';
 import { BasePeerConnectionOpts } from './types';
 import { NegotiationError } from './NegotiationError';
-import { PeerType } from '../gen/video/sfu/models/models';
+import { PeerType, TrackType } from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
+import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
 import { enableStereo, removeCodecsExcept } from './helpers/sdp';
 
 /**
@@ -75,7 +76,8 @@ export class Subscriber extends BasePeerConnection {
   };
 
   private handleOnTrack = (e: RTCTrackEvent) => {
-    const [primaryStream] = e.streams;
+    const { streams, track } = e;
+    const [primaryStream] = streams;
     // example: `e3f6aaf8-b03d-4911-be36-83f47d37a76a:TRACK_TYPE_VIDEO`
     const [trackId, rawTrackType] = primaryStream.id.split(':');
     const participantToUpdate = this.state.participants.find(
@@ -84,30 +86,35 @@ export class Subscriber extends BasePeerConnection {
     const isSelfSub = !!participantToUpdate?.isLocalParticipant;
     this.logger.debug(
       `[onTrack]: Got remote ${rawTrackType} track for userId: ${participantToUpdate?.userId}`,
-      e.track.id,
-      e.track,
+      track.id,
+      track,
     );
-
-    const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
-    e.track.addEventListener('mute', () => {
-      this.logger.info(`[onTrack]: Track muted: ${trackDebugInfo}`);
-    });
-
-    e.track.addEventListener('unmute', () => {
-      this.logger.info(`[onTrack]: Track unmuted: ${trackDebugInfo}`);
-    });
-
-    e.track.addEventListener('ended', () => {
-      this.logger.info(`[onTrack]: Track ended: ${trackDebugInfo}`);
-      this.state.removeOrphanedTrack(primaryStream.id);
-    });
 
     const trackType = toTrackType(rawTrackType);
     if (!trackType) {
       return this.logger.error(`Unknown track type: ${rawTrackType}`);
     }
 
-    this.trackIdToTrackType.set(e.track.id, trackType);
+    const trackDebugInfo = `${participantToUpdate?.userId} ${rawTrackType}:${trackId}`;
+    track.addEventListener('mute', () => {
+      this.logger.info(`[onTrack]: Track muted: ${trackDebugInfo}`);
+      this.setRemoteTrackInterrupted(trackId, trackType, true);
+    });
+    track.addEventListener('unmute', () => {
+      this.logger.info(`[onTrack]: Track unmuted: ${trackDebugInfo}`);
+      this.setRemoteTrackInterrupted(trackId, trackType, false);
+    });
+    track.addEventListener('ended', () => {
+      this.logger.info(`[onTrack]: Track ended: ${trackDebugInfo}`);
+      this.setRemoteTrackInterrupted(trackId, trackType, false);
+      this.state.removeOrphanedTrack(primaryStream.id);
+    });
+
+    if (track.muted) {
+      this.setRemoteTrackInterrupted(trackId, trackType, true);
+    }
+
+    this.trackIdToTrackType.set(track.id, trackType);
 
     if (isSelfSub) {
       this.trackedStreams.add(primaryStream);
@@ -160,13 +167,34 @@ export class Subscriber extends BasePeerConnection {
       }
 
       this.logger.info(
-        `[onTrack]: Cleaning up previous ${e.track.kind} stream for userId: ${participantToUpdate.userId}`,
+        `[onTrack]: Cleaning up previous remote ${track.kind} tracks for userId: ${participantToUpdate.userId}`,
       );
       previousStream.getTracks().forEach((t) => {
         t.stop();
         previousStream.removeTrack(t);
       });
     }
+  };
+
+  private setRemoteTrackInterrupted = (
+    trackId: string,
+    trackType: TrackType,
+    interrupted: boolean,
+  ) => {
+    if (trackType !== TrackType.AUDIO) return;
+    const target = this.state.participants.find(
+      (p) => p.trackLookupPrefix === trackId,
+    );
+    if (!target) return;
+    this.state.updateParticipant(target.sessionId, (p) => {
+      const current = p.interruptedTracks ?? [];
+      const has = current.includes(trackType);
+      if (interrupted === has) return {};
+      const next = interrupted
+        ? pushToIfMissing([...current], trackType)
+        : removeFromIfPresent([...current], trackType);
+      return { interruptedTracks: next };
+    });
   };
 
   private negotiate = async (subscriberOffer: SubscriberOffer) => {

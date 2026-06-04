@@ -18,6 +18,7 @@ export interface Spec extends TurboModule {
     imageName: string | null;
     callsHistory: boolean;
     displayCallTimeout: number;
+    skipIncomingPushInForeground: boolean;
   }): void;
 
   setupAndroid(options: {
@@ -35,9 +36,12 @@ export interface Spec extends TurboModule {
       accepting?: string;
       rejecting?: string;
     };
+    skipIncomingPushInForeground: boolean;
   }): void;
 
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
+
+  setDefaultAudioDeviceEndpointType(endpointType: string): void;
 
   canPostNotifications(): boolean;
 

@@ -35,29 +35,26 @@ export const CallStatusBadge: React.FC<CallStatusBadgeProps> = ({
   const { useCallSession } = useCallStateHooks();
   const session = useCallSession();
   const startedAt = session?.started_at;
-  const startedAtDate = useMemo(() => {
+  const startedAtMs = useMemo(() => {
     if (!startedAt) {
-      return Date.now();
+      return null;
     }
     const date = new Date(startedAt).getTime();
-    return isNaN(date) ? Date.now() : date;
+    return isNaN(date) ? null : date;
   }, [startedAt]);
 
   useEffect(() => {
-    const initialElapsedSeconds = Math.max(
-      0,
-      (Date.now() - startedAtDate) / 1000,
-    );
-
-    setElapsed(formatTime(initialElapsedSeconds));
-
-    const interval = setInterval(() => {
-      const elapsedSeconds = (Date.now() - startedAtDate) / 1000;
+    const start = startedAtMs ?? Date.now();
+    const updateElapsed = () => {
+      const elapsedSeconds = Math.max(0, (Date.now() - start) / 1000);
       setElapsed(formatTime(elapsedSeconds));
-    }, 1000);
+    };
+
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 1000);
 
     return () => clearInterval(interval);
-  }, [startedAtDate]);
+  }, [startedAtMs]);
 
   const recordingMessage = isCallRecordingInProgress
     ? 'Stopping recording...'
