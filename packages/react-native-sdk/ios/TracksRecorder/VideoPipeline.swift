@@ -26,6 +26,8 @@ internal final class VideoPipeline {
 
     private weak var host: PipelineHost?
     private let videoTrack: RTCVideoTrack
+    private let targetWidth: Int32
+    private let targetHeight: Int32
 
     private var sink: RecorderVideoSink?
     private var videoInput: AVAssetWriterInput?
@@ -42,9 +44,16 @@ internal final class VideoPipeline {
 
     // MARK: - Init
 
-    init(host: PipelineHost, videoTrack: RTCVideoTrack) {
+    init(
+        host: PipelineHost,
+        videoTrack: RTCVideoTrack,
+        targetWidth: Int32 = 0,
+        targetHeight: Int32 = 0
+    ) {
         self.host = host
         self.videoTrack = videoTrack
+        self.targetWidth = targetWidth
+        self.targetHeight = targetHeight
     }
 
     // MARK: - Public API
@@ -139,17 +148,24 @@ internal final class VideoPipeline {
 
         framesReceived += 1
 
-        // Lazy-create the writer's video input on the first frame so its
-        // dimensions and pixel format match the actual buffer that WebRTC
-        // is producing. Locking these at first-frame time avoids guessing
-        // and survives whatever pixel format the sink hands us.
+        // Lazy-create the writer's video input on the first frame.
+        // Prefer the publisher's max video dimensions so the encoder
+        // is sized for the highest layer the SFU might ever forward;
+        // fall back to the first frame's actual dimensions when no
+        // target is supplied.
         if videoInput == nil {
             let actualW = Int32(CVPixelBufferGetWidth(pixelBuffer))
             let actualH = Int32(CVPixelBufferGetHeight(pixelBuffer))
+            let (encW, encH) = resolveEncoderDimensions(
+                targetW: targetWidth,
+                targetH: targetHeight,
+                frameW: actualW,
+                frameH: actualH
+            )
             let pixelFormat = CVPixelBufferGetPixelFormatType(pixelBuffer)
             configureVideoInput(
-                width: actualW,
-                height: actualH,
+                width: encW,
+                height: encH,
                 pixelFormat: pixelFormat,
                 writer: writer
             )
@@ -212,24 +228,43 @@ internal final class VideoPipeline {
 
     // MARK: - Asset writer input setup
 
-    /// Builds the H.264 `AVAssetWriterInput` and its pixel-buffer adaptor on
-    /// the first frame. AVFoundation owns the encoder — it picks hardware
-    /// when available and falls back to software transparently if the
-    /// hardware H.264 pool is contended (e.g. by WebRTC's publisher).
-    ///
-    /// The pixel format passed in is read straight from the first frame's
-    /// `CVPixelBuffer`, so we never lie to the adaptor about what we'll
-    /// hand it. Mismatch → silent conversion or rejected frames.
+    /// Picks the encoder dimensions, preferring the caller-supplied
+    /// target but oriented to match the frame buffer. Publish options
+    /// are expressed in WebRTC's canonical landscape form; the buffer
+    /// may be portrait — swap target axes when they disagree. Falls
+    /// back to the frame's own dimensions if no target was supplied.
+    private func resolveEncoderDimensions(
+        targetW: Int32,
+        targetH: Int32,
+        frameW: Int32,
+        frameH: Int32
+    ) -> (Int32, Int32) {
+        guard targetW > 0 && targetH > 0 else { return (frameW, frameH) }
+        let framePortrait = frameH > frameW
+        let targetPortrait = targetH > targetW
+        if framePortrait == targetPortrait {
+            return (targetW, targetH)
+        }
+        return (targetH, targetW)
+    }
+
+    /// Builds the H.264 `AVAssetWriterInput` and its pixel-buffer
+    /// adaptor. AVFoundation owns the encoder and falls back from
+    /// hardware to software if the H.264 pool is contended.
     private func configureVideoInput(
         width: Int32,
         height: Int32,
         pixelFormat: OSType,
         writer: AVAssetWriter
     ) {
+        // `AVVideoScalingModeResizeAspect` lets AVFoundation scale
+        // incoming pixel buffers to the encoder's output dimensions
+        // while preserving aspect ratio.
         let settings: [String: Any] = [
             AVVideoCodecKey: AVVideoCodecType.h264,
             AVVideoWidthKey: width,
             AVVideoHeightKey: height,
+            AVVideoScalingModeKey: AVVideoScalingModeResizeAspect,
             AVVideoCompressionPropertiesKey: [
                 AVVideoAverageBitRateKey: VideoPipeline.bitRate,
             ],
@@ -237,10 +272,10 @@ internal final class VideoPipeline {
         let input = AVAssetWriterInput(mediaType: .video, outputSettings: settings)
         input.expectsMediaDataInRealTime = true
 
+        // Omit width/height in source attributes so the adaptor
+        // accepts buffers at any layer resolution the SFU forwards.
         let pbAttributes: [String: Any] = [
             kCVPixelBufferPixelFormatTypeKey as String: pixelFormat,
-            kCVPixelBufferWidthKey as String: width,
-            kCVPixelBufferHeightKey as String: height,
         ]
         let adaptor = AVAssetWriterInputPixelBufferAdaptor(
             assetWriterInput: input,

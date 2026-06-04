@@ -826,6 +826,30 @@ export class Call {
   }
 
   /**
+   * The largest video publish dimension across the current publish options.
+   *
+   * @internal
+   */
+  getMaxVideoPublishDimension = (): VideoDimension | undefined => {
+    if (!this.currentPublishOptions) return undefined;
+    let maxDimension: VideoDimension | undefined;
+    let maxArea = 0;
+    for (const opt of this.currentPublishOptions) {
+      if (opt.trackType !== TrackType.VIDEO) continue;
+
+      const dim = opt.videoDimension;
+      if (!dim || !dim.width || !dim.height) continue;
+
+      const area = dim.width * dim.height;
+      if (area > maxArea) {
+        maxDimension = dim;
+        maxArea = area;
+      }
+    }
+    return maxDimension;
+  };
+
+  /**
    * A flag indicating whether the call was created by the current user.
    */
   get isCreatedByMe() {

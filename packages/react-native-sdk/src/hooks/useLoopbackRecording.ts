@@ -218,10 +218,19 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
           Math.max(MIN_RECORDING_DURATION, maxDurationMs),
         );
 
+        // Pre-size the native encoder to the publisher's max video
+        // publish-option dimension. Without this, the encoder locks to
+        // whatever the SFU happens to echo *first* and stays there for the
+        // rest of the recording even after the network improves and
+        // higher layers arrive.
+        const publishMaxDim = call.getMaxVideoPublishDimension();
+
         const uri: string | null =
           await StreamVideoReactNative.startTrackRecording({
             videoTrackId,
             maxDurationMs: Math.round(clampedDuration),
+            targetWidth: publishMaxDim?.width,
+            targetHeight: publishMaxDim?.height,
           });
         return uri;
       } finally {

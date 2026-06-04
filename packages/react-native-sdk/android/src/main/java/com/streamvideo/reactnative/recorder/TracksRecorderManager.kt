@@ -76,6 +76,8 @@ class TracksRecorderManager private constructor() : PipelineHost {
             webRTCModule: WebRTCModule,
             videoTrackId: String?,
             maxDurationMs: Long,
+            targetWidth: Int = 0,
+            targetHeight: Int = 0,
             completion: (File?, Throwable?) -> Unit,
     ) {
         handler.post {
@@ -108,7 +110,12 @@ class TracksRecorderManager private constructor() : PipelineHost {
             this.isRecording = true
 
             if (resolvedVideoTrack != null) {
-                val pipeline = VideoPipeline(host = this, videoTrack = resolvedVideoTrack)
+                val pipeline = VideoPipeline(
+                        host = this,
+                        videoTrack = resolvedVideoTrack,
+                        targetWidth = targetWidth,
+                        targetHeight = targetHeight,
+                )
                 videoPipeline = pipeline
                 pendingPipelines++
                 pipeline.start()

@@ -23,6 +23,8 @@ import org.webrtc.VideoTrack
 internal class VideoPipeline(
     private val host: PipelineHost,
     private val videoTrack: VideoTrack,
+    private val targetWidth: Int = 0,
+    private val targetHeight: Int = 0,
 ) {
     private companion object {
         const val TAG = "TracksRecorder.Video"
@@ -137,11 +139,17 @@ internal class VideoPipeline(
         val height = frame.buffer.height
         if (width <= 0 || height <= 0) return
 
-        // Lazy-create the encoder on the first frame so its dimensions
-        // match the actual delivered resolution. The format-changed
-        // event from the encoder's first output then carries the
-        // SPS/PPS-bearing MediaFormat the muxer needs.
-        val enc = encoder ?: createEncoder(width, height) ?: return
+        // Lazy-create the encoder on the first frame. Prefer the
+        // publisher's max video dimensions so the encoder is sized for the
+        // highest layer the SFU might ever forward; fall back to the
+        // first frame's actual dimensions when no target is supplied.
+        val (encW, encH) = resolveEncoderDimensions(
+            targetW = targetWidth,
+            targetH = targetHeight,
+            frameW = width,
+            frameH = height,
+        )
+        val enc = encoder ?: createEncoder(encW, encH) ?: return
 
         // WebRTC's adaptive layers can change resolution mid-recording.
         // The encoder's input slots are sized to its configured
@@ -273,6 +281,33 @@ internal class VideoPipeline(
             return -1
         }
         return width * height * 3 / 2
+    }
+
+    /**
+     * Picks the encoder dimensions, preferring the caller-supplied
+     * `targetW`/`targetH` (publisher's max video publish dimension) but
+     * oriented to match the actual frame buffer. Publish options are
+     * expressed in WebRTC's canonical landscape form; the buffer may
+     * be portrait. When they disagree, swap the target axes so the
+     * encoder slot is in the same orientation as the frames flowing
+     * through it. Falls back to the frame's own dimensions if no
+     * target was supplied (target ≤ 0).
+     */
+    private fun resolveEncoderDimensions(
+        targetW: Int,
+        targetH: Int,
+        frameW: Int,
+        frameH: Int,
+    ): Pair<Int, Int> {
+        if (targetW <= 0 || targetH <= 0) return frameW to frameH
+
+        val framePortrait = frameH > frameW
+        val targetPortrait = targetH > targetW
+        return if (framePortrait == targetPortrait) {
+            targetW to targetH
+        } else {
+            targetH to targetW
+        }
     }
 
     private fun createEncoder(width: Int, height: Int): MediaCodec? {

@@ -61,6 +61,8 @@ import WebRTC
     @objc public func startRecording(
         videoTrackId: String?,
         maxDurationMs: Int,
+        targetWidth: Int,
+        targetHeight: Int,
         webRTCModule: WebRTCModule,
         completion: @escaping (URL?, NSError?) -> Void
     ) {
@@ -110,7 +112,12 @@ import WebRTC
             self.isRecording = true
 
             if let videoTrack = videoTrack {
-                let pipeline = VideoPipeline(host: self, videoTrack: videoTrack)
+                let pipeline = VideoPipeline(
+                    host: self,
+                    videoTrack: videoTrack,
+                    targetWidth: Int32(targetWidth),
+                    targetHeight: Int32(targetHeight)
+                )
                 self.videoPipeline = pipeline
                 self.pendingPipelines += 1
                 pipeline.start()

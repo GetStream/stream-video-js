@@ -711,9 +711,19 @@ RCT_EXPORT_METHOD(startTrackRecording:(NSDictionary *)options
     NSInteger maxDurationMs = ([maxDuration isKindOfClass:[NSNumber class]])
         ? [maxDuration integerValue] : 5000;
 
+    NSNumber *targetW = options[@"targetWidth"];
+    NSInteger targetWidth = ([targetW isKindOfClass:[NSNumber class]])
+        ? [targetW integerValue] : 0;
+
+    NSNumber *targetH = options[@"targetHeight"];
+    NSInteger targetHeight = ([targetH isKindOfClass:[NSNumber class]])
+        ? [targetH integerValue] : 0;
+
     [[TracksRecorderManager shared]
         startRecordingWithVideoTrackId:videoTrackId
                          maxDurationMs:maxDurationMs
+                           targetWidth:targetWidth
+                          targetHeight:targetHeight
                           webRTCModule:webrtcModule
                             completion:^(NSURL * _Nullable fileURL, NSError * _Nullable err) {
         if (err) {

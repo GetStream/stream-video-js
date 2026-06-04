@@ -623,6 +623,16 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
         } else {
             DEFAULT_RECORDING_DURATION_MS
         }
+        val targetWidth = if (options.hasKey("targetWidth") && !options.isNull("targetWidth")) {
+            options.getInt("targetWidth")
+        } else {
+            0
+        }
+        val targetHeight = if (options.hasKey("targetHeight") && !options.isNull("targetHeight")) {
+            options.getInt("targetHeight")
+        } else {
+            0
+        }
 
         val webRTCModule = reactApplicationContext.getNativeModule(WebRTCModule::class.java)
         if (webRTCModule == null) {
@@ -635,6 +645,8 @@ class StreamVideoReactNativeModule(reactContext: ReactApplicationContext) :
             webRTCModule = webRTCModule,
             videoTrackId = videoTrackId,
             maxDurationMs = maxDurationMs,
+            targetWidth = targetWidth,
+            targetHeight = targetHeight,
         ) { file, error ->
             if (error != null) {
                 promise.reject(RECORDING_ERROR_CODE, error.message ?: "recording failed", error)
