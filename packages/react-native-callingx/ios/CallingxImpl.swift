@@ -464,6 +464,9 @@ import stream_react_native_webrtc
     /// the sink — subscription presence does not imply ownership.
     @objc public func wireEngineSubscription() {
         guard engineSubscription == nil, let adm = getAudioDeviceModule() else { return }
+        #if DEBUG
+        NSLog("%@","[Callingx][wireEngineSubscription]")
+        #endif
 
         engineSubscription = adm.publisher.sink { event in
             guard CallingxSessionOwnership.callingxOwnsSession else { return }

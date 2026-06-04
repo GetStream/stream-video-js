@@ -51,6 +51,9 @@ enum DefaultAudioDevice {
     /// against each other.
     public func engineWillEnable() {
         audioSessionQueue.async { [weak self] in
+            #if DEBUG
+            NSLog("%@","[Callingx][engineWillEnable]")
+            #endif
             self?.applyCallKitConfiguration()
         }
     }

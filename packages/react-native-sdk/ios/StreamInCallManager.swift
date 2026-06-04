@@ -165,6 +165,9 @@ class StreamInCallManager: RCTEventEmitter {
             // since there's no CallKit on this path.
             // Skipped when callingx owns the session (CallKit-managed call active).
             if engineSubscription == nil {
+                #if DEBUG
+                NSLog("%@","[StreamInCallManager][wireEngineSubscription]")
+                #endif
                 engineSubscription = adm.publisher.sink { [weak self] event in
                     guard let self else { return }
                     self.audioSessionQueue.async {
