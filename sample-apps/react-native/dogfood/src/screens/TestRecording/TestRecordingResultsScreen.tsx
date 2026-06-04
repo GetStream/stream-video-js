@@ -77,7 +77,9 @@ const useStyles = () => {
       StyleSheet.create({
         container: {
           flex: 1,
-          padding: appTheme.spacing.md,
+          paddingHorizontal: appTheme.spacing.md,
+          paddingTop: appTheme.spacing.md,
+          paddingBottom: appTheme.spacing.md + theme.variants.insets.bottom,
           gap: appTheme.spacing.md,
           backgroundColor: theme.colors.sheetPrimary,
         },

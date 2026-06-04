@@ -27,7 +27,7 @@ export const LoopbackPanel = ({
           <RTCView
             streamURL={(localVideoStream as unknown as RNMediaStream).toURL()}
             objectFit="cover"
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
           />
         ) : (
           <View style={styles.videoPanelPlaceholder}>

@@ -24,7 +24,7 @@ export const PlaybackPanel = ({ uri }: { uri: string }) => {
         <Video
           ref={videoRef}
           source={{ uri }}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           paused={paused}
           resizeMode="cover"
           repeat={false}
@@ -74,7 +74,7 @@ const useStyles = () => {
           fontSize: 12,
         },
         playOverlay: {
-          ...StyleSheet.absoluteFillObject,
+          ...StyleSheet.absoluteFill,
           justifyContent: 'center',
           alignItems: 'center',
         },
