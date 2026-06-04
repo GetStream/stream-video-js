@@ -379,6 +379,7 @@ import stream_react_native_webrtc
     }
 
     private func handleInterruptionBegan(info: [AnyHashable: Any]) {
+        // Observability + JS-event only; audio recovery is WebRTC's (AudioEngineDevice restarts the engine on interruption-end).
         #if DEBUG
         NSLog("%@", "[Callingx][onAudioInterruption][began]")
         #endif
@@ -409,6 +410,7 @@ import stream_react_native_webrtc
     }
 
     private func handleInterruptionEnded(info: [AnyHashable: Any]) {
+        // Observability + JS-event only; CallKit re-activates the session via didActivate, WebRTC restarts the engine.
         let shouldResume: Bool
         if let optsRaw = info[AVAudioSessionInterruptionOptionKey] as? UInt {
             shouldResume = AVAudioSession.InterruptionOptions(rawValue: optsRaw).contains(.shouldResume)
