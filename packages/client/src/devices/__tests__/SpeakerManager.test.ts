@@ -29,6 +29,10 @@ vi.mock('../devices.ts', () => {
   };
 });
 
+vi.mock('../../stats/ClientEventReporter', () => ({
+  ClientEventReporter: vi.fn(() => ({})),
+}));
+
 describe('SpeakerManager.test', () => {
   let manager: SpeakerManager;
   let storageKey: string;

@@ -54,6 +54,10 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
+vi.mock('../../stats/ClientEventReporter', () => ({
+  ClientEventReporter: vi.fn(() => ({})),
+}));
+
 vi.mock('../../helpers/compatibility.ts', () => {
   console.log('MOCKING mobile device');
   return {

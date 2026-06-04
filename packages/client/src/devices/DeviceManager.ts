@@ -112,21 +112,6 @@ export abstract class DeviceManager<
       this.handleDisconnectedOrReplacedDevices();
     }
 
-    if (
-      !isReactNative() &&
-      (this.trackType === TrackType.AUDIO || this.trackType === TrackType.VIDEO)
-    ) {
-      this.subscriptions.push(
-        createSubscription(this.state.browserPermissionState$, (state) => {
-          this.call.streamClient.clientEventReporter?.reportMediaPermission(
-            this.call.cid,
-            this.trackType,
-            state,
-          );
-        }),
-      );
-    }
-
     if (this.devicePersistence.enabled) {
       this.subscriptions.push(
         createSubscription(

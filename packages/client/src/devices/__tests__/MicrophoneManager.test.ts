@@ -80,6 +80,10 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
+vi.mock('../../stats/ClientEventReporter', () => ({
+  ClientEventReporter: vi.fn(() => ({})),
+}));
+
 describe('MicrophoneManager', () => {
   let manager: MicrophoneManager;
   let call: Call;

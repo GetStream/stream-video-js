@@ -29,6 +29,10 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
+vi.mock('../../stats/ClientEventReporter', () => ({
+  ClientEventReporter: vi.fn(() => ({})),
+}));
+
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
   return {
