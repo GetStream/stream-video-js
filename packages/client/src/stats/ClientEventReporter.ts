@@ -12,13 +12,15 @@ import {
   getAudioBrowserPermission,
   getVideoBrowserPermission,
 } from '../devices';
-import type { BrowserPermission } from '../devices/BrowserPermission';
+import type {
+  BrowserPermission,
+  BrowserPermissionState,
+} from '../devices/BrowserPermission';
 import { getCurrentValue } from '../store/rxUtils';
 
 export type ClientEventPeerConnection = 'publish' | 'subscribe';
 
 export type ClientEventStage =
-  | 'JoinInitiated'
   | 'CoordinatorWS'
   | 'MediaDevicePermission'
   | 'CoordinatorJoin'
@@ -27,7 +29,11 @@ export type ClientEventStage =
   | 'FirstVideoFrame'
   | 'FirstAudioFrame';
 
-export type MediaPermissionState = 'GRANTED' | 'NOT_GRANTED';
+export type MediaPermissionState =
+  | 'INITIATED'
+  | 'FAILED'
+  | 'GRANTED'
+  | 'NOT_INITIATED';
 
 export type ClientEventStandardCode =
   | 'CLIENT_ABORTED'
@@ -276,7 +282,6 @@ export class ClientEventReporter {
     // a fresh attempt (e.g. full rejoin) re-reports the first frame
     this.firstFrameReported.delete(`${callId}:FirstVideoFrame`);
     this.firstFrameReported.delete(`${callId}:FirstAudioFrame`);
-    this.emitJoinInitiated(callId);
     this.emitMediaPermission(callId);
   };
 
@@ -356,24 +361,6 @@ export class ClientEventReporter {
   private closeCallPairs = (callId: string) => {
     if (this.coordinatorPairs.get(callId)) this.failCoordinator(callId);
     if (this.wsPairs.get(callId)) this.failWs(callId);
-  };
-
-  private emitJoinInitiated = (callId: string) => {
-    const joinAttemptId = this.joinAttemptIds.get(callId);
-    if (!joinAttemptId) return;
-    const coordinatorConnectId = this.getCoordinatorConnectId();
-    this.send({
-      user_id: this.getUserId(),
-      stage: 'JoinInitiated',
-      join_attempt_id: joinAttemptId,
-      ...(coordinatorConnectId && {
-        coordinator_connect_id: coordinatorConnectId,
-      }),
-      timestamp: new Date().toISOString(),
-      user_agent: this.userAgent,
-      sdk_version: this.sdkVersion,
-      event_type: 'initiated',
-    });
   };
 
   private beginAttempt = (
@@ -750,10 +737,23 @@ export class ClientEventReporter {
 
 const readPermissionStatus = (
   permission: BrowserPermission,
-): MediaPermissionState =>
-  getCurrentValue(permission.asStateObservable()) === 'granted'
-    ? 'GRANTED'
-    : 'NOT_GRANTED';
+): MediaPermissionState => {
+  const state = getCurrentValue<BrowserPermissionState>(
+    permission.asStateObservable(),
+  );
+
+  switch (state) {
+    case 'granted':
+      return 'GRANTED';
+    case 'denied':
+      return 'FAILED';
+    case 'prompting':
+      return 'INITIATED';
+    case 'prompt':
+    default:
+      return 'NOT_INITIATED';
+  }
+};
 
 const errorMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err);
