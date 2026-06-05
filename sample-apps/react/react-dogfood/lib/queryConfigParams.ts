@@ -96,8 +96,9 @@ export const applyQueryConfigParams = async (
     ? parseInt(bitrateOverride, 10)
     : undefined;
 
-  // E2EE must be fully initialized before join() so the RTCPeerConnection
-  // is configured with encodedInsertableStreams on Chromium.
+  // E2EE must be fully initialized before join() so the RTCPeerConnection can
+  // be configured for E2EE (the legacy Insertable Streams path needs
+  // encodedInsertableStreams).
   if (encryptionKey && call.currentUserId && EncryptionManager.isSupported()) {
     const rawKey = await deriveKeyFromPassphrase(encryptionKey);
     const e2ee = await EncryptionManager.create(call.currentUserId);

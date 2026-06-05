@@ -12,7 +12,6 @@ import type { E2EEManager } from './e2ee/E2EEManager';
 import { NegotiationError } from './NegotiationError';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
-import { isChrome } from '../helpers/browsers';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
 import {
@@ -111,8 +110,8 @@ export abstract class BasePeerConnection {
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const config: RTCConfiguration = { ...connectionConfig };
-    // Chrome needs encodedInsertableStreams for the Insertable Streams path.
-    if (this.e2ee && isChrome()) {
+    // The legacy Insertable Streams path requires this non-standard flag.
+    if (this.e2ee?.shouldUseInsertableStreams?.()) {
       // @ts-expect-error not part of the standard lib yet
       config.encodedInsertableStreams = true;
     }

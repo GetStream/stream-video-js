@@ -10,11 +10,6 @@ vi.mock('../e2ee-worker', () => ({
   },
 }));
 
-// Default to non-Chrome so pipe() uses RTCRtpScriptTransform path
-vi.mock('../../../helpers/browsers', () => ({
-  isChrome: vi.fn(() => false),
-}));
-
 describe('EncryptionManager', () => {
   let manager: EncryptionManager;
 
@@ -140,58 +135,112 @@ describe('EncryptionManager', () => {
     });
   });
 
-  describe('Chrome insertable streams path', () => {
-    const withChromePath = async (fn: () => void) => {
-      const { isChrome } = await import('../../../helpers/browsers');
-      vi.mocked(isChrome).mockReturnValue(true);
+  describe('Insertable Streams (opt-in / fallback) path', () => {
+    /** Stub the non-standard createEncodedStreams on the sender/receiver prototypes. */
+    const withInsertableStreams = async (fn: () => void | Promise<void>) => {
       Object.assign(RTCRtpSender.prototype, { createEncodedStreams: vi.fn() });
+      Object.assign(RTCRtpReceiver.prototype, {
+        createEncodedStreams: vi.fn(),
+      });
       try {
-        fn();
+        await fn();
       } finally {
         // @ts-expect-error - cleaning up non-standard property from mock prototype
         delete RTCRtpSender.prototype.createEncodedStreams;
-        vi.mocked(isChrome).mockReturnValue(false);
+        // @ts-expect-error - cleaning up non-standard property from mock prototype
+        delete RTCRtpReceiver.prototype.createEncodedStreams;
       }
     };
 
-    it('uses createEncodedStreams when in Chrome', async () => {
-      const readable = {};
-      const writable = {};
-      const receiver = {
-        createEncodedStreams: vi.fn(() => ({ readable, writable })),
-      } as unknown as RTCRtpReceiver;
+    it('defaults to RTCRtpScriptTransform even when createEncodedStreams exists', async () => {
+      await withInsertableStreams(() => {
+        const receiver: Record<string, unknown> = {
+          transform: null,
+          createEncodedStreams: vi.fn(),
+        };
+        manager.decrypt(receiver as unknown as RTCRtpReceiver, 'remote-user');
 
-      await withChromePath(() => {
-        manager.decrypt(receiver, 'remote-user');
-
-        // @ts-expect-error not present in the standard lib
-        expect(receiver.createEncodedStreams).toHaveBeenCalled();
-        const worker = getWorker(manager);
-        expect(worker.postMessage).toHaveBeenCalledWith(
-          {
-            operation: 'decode',
-            userId: 'remote-user',
-            readable,
-            writable,
-          },
-          [readable, writable],
-        );
+        expect(receiver.transform).toBeDefined();
+        expect(receiver.createEncodedStreams).not.toHaveBeenCalled();
+        expect(manager.shouldUseInsertableStreams()).toBe(false);
       });
     });
 
-    it('prevents double-piping on the same receiver (Chrome path)', async () => {
+    it('uses createEncodedStreams when forceInsertableStreams is set', async () => {
       const readable = {};
       const writable = {};
       const receiver = {
         createEncodedStreams: vi.fn(() => ({ readable, writable })),
       } as unknown as RTCRtpReceiver;
 
-      await withChromePath(() => {
-        manager.decrypt(receiver, 'user-a');
-        manager.decrypt(receiver, 'user-b');
+      await withInsertableStreams(async () => {
+        const mgr = await EncryptionManager.create('local-user', {
+          forceInsertableStreams: true,
+        });
+        try {
+          expect(mgr.shouldUseInsertableStreams()).toBe(true);
+          mgr.decrypt(receiver, 'remote-user');
 
-        // @ts-expect-error not present in the standard lib
-        expect(receiver.createEncodedStreams).toHaveBeenCalledTimes(1);
+          // @ts-expect-error not present in the standard lib
+          expect(receiver.createEncodedStreams).toHaveBeenCalled();
+          const worker = getWorker(mgr);
+          expect(worker.postMessage).toHaveBeenCalledWith(
+            { operation: 'decode', userId: 'remote-user', readable, writable },
+            [readable, writable],
+          );
+        } finally {
+          mgr.dispose();
+        }
+      });
+    });
+
+    it('falls back to Insertable Streams when RTCRtpScriptTransform is unavailable', async () => {
+      const original = globalThis.RTCRtpScriptTransform;
+      delete globalThis.RTCRtpScriptTransform;
+      const readable = {};
+      const writable = {};
+      const receiver = {
+        createEncodedStreams: vi.fn(() => ({ readable, writable })),
+      } as unknown as RTCRtpReceiver;
+
+      try {
+        await withInsertableStreams(async () => {
+          const mgr = await EncryptionManager.create('local-user');
+          try {
+            expect(mgr.shouldUseInsertableStreams()).toBe(true);
+            mgr.decrypt(receiver, 'remote-user');
+
+            // @ts-expect-error not present in the standard lib
+            expect(receiver.createEncodedStreams).toHaveBeenCalled();
+          } finally {
+            mgr.dispose();
+          }
+        });
+      } finally {
+        globalThis.RTCRtpScriptTransform = original;
+      }
+    });
+
+    it('prevents double-piping the same receiver on the Insertable Streams path', async () => {
+      const readable = {};
+      const writable = {};
+      const receiver = {
+        createEncodedStreams: vi.fn(() => ({ readable, writable })),
+      } as unknown as RTCRtpReceiver;
+
+      await withInsertableStreams(async () => {
+        const mgr = await EncryptionManager.create('local-user', {
+          forceInsertableStreams: true,
+        });
+        try {
+          mgr.decrypt(receiver, 'user-a');
+          mgr.decrypt(receiver, 'user-b');
+
+          // @ts-expect-error not present in the standard lib
+          expect(receiver.createEncodedStreams).toHaveBeenCalledTimes(1);
+        } finally {
+          mgr.dispose();
+        }
       });
     });
   });

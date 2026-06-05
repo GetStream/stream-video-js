@@ -2198,8 +2198,9 @@ export class Call {
   /**
    * Set the E2EE (end-to-end encryption) manager for this call.
    *
-   * Must be called before {@link join} so the RTCPeerConnection is
-   * configured with `encodedInsertableStreams` on Chrome.
+   * Must be called before {@link join} so the RTCPeerConnection can be
+   * configured for E2EE (the legacy Insertable Streams path needs
+   * `encodedInsertableStreams`).
    *
    * @param e2ee - Any `E2EEManager`. Use `EncryptionManager.create()` for the
    *         built-in AES-GCM scheme, or pass your own implementation.

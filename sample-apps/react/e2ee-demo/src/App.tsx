@@ -12,6 +12,8 @@ const App = () => {
     eventsByUser,
     loading,
     e2eeEnabled,
+    forceInsertableStreams,
+    setForceInsertableStreams,
     preferredCodec,
     setPreferredCodec,
     sharedPassphrase,
@@ -31,9 +33,11 @@ const App = () => {
         callId={callId}
         participantCount={participants.length}
         e2eeEnabled={e2eeEnabled}
+        forceInsertableStreams={forceInsertableStreams}
         preferredCodec={preferredCodec}
         sharedPassphrase={sharedPassphrase}
         onToggleE2EE={toggleE2EE}
+        onToggleForceInsertableStreams={setForceInsertableStreams}
         onCodecChange={setPreferredCodec}
         onSetSharedKey={setSharedKey}
         onAddParticipant={addParticipant}

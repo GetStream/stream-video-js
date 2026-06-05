@@ -54,6 +54,7 @@ export const useE2EEDemo = () => {
   >({});
   const [loading, setLoading] = useState(false);
   const [e2eeEnabled, setE2eeEnabled] = useState(true);
+  const [forceInsertableStreams, setForceInsertableStreams] = useState(false);
   const [preferredCodec, setPreferredCodec] = useState<PreferredCodec>('vp8');
   const [sharedPassphrase, setSharedPassphrase] = useState<string | null>(null);
 
@@ -178,7 +179,9 @@ export const useE2EEDemo = () => {
 
       // Always create E2EE manager so transforms are in the pipeline.
       // When E2EE is off, the worker passes frames through unchanged.
-      const e2eeManager = await EncryptionManager.create(userId);
+      const e2eeManager = await EncryptionManager.create(userId, {
+        forceInsertableStreams,
+      });
       call.setE2EEManager(e2eeManager);
       e2eeManager.setEnabled(e2eeEnabled);
 
@@ -318,7 +321,7 @@ export const useE2EEDemo = () => {
     } finally {
       setLoading(false);
     }
-  }, [e2eeEnabled, logEvent, sendKey]);
+  }, [e2eeEnabled, forceInsertableStreams, logEvent, sendKey]);
 
   // ---------------------------------------------------------------------------
   // Key operations
@@ -397,7 +400,7 @@ export const useE2EEDemo = () => {
 
       // SDK cleanup
       target.call.leave().catch(() => {});
-      target.call.e2eeManager?.dispose();
+      target.e2eeManager.dispose();
       target.client.disconnectUser().catch(() => {});
 
       // Remove departed user's keys from remaining participants
@@ -630,6 +633,8 @@ export const useE2EEDemo = () => {
     eventsByUser,
     loading,
     e2eeEnabled,
+    forceInsertableStreams,
+    setForceInsertableStreams,
     preferredCodec,
     setPreferredCodec,
     sharedPassphrase,

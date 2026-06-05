@@ -8,9 +8,11 @@ interface HeaderProps {
   callId: string;
   participantCount: number;
   e2eeEnabled: boolean;
+  forceInsertableStreams: boolean;
   preferredCodec: PreferredCodec;
   sharedPassphrase: string | null;
   onToggleE2EE: (enabled: boolean) => void;
+  onToggleForceInsertableStreams: (force: boolean) => void;
   onCodecChange: (codec: PreferredCodec) => void;
   onSetSharedKey: (passphrase: string) => void;
   onAddParticipant: () => void;
@@ -21,9 +23,11 @@ export const Header = ({
   callId,
   participantCount,
   e2eeEnabled,
+  forceInsertableStreams,
   preferredCodec,
   sharedPassphrase,
   onToggleE2EE,
+  onToggleForceInsertableStreams,
   onCodecChange,
   onSetSharedKey,
   onAddParticipant,
@@ -76,6 +80,22 @@ export const Header = ({
               <option value="vp9">VP9</option>
               <option value="h264">H.264</option>
               <option value="av1">AV1</option>
+            </select>
+          </label>
+          <label
+            className="header__codec-select"
+            title="Chosen per participant when joining, so it locks once the first participant is added."
+          >
+            Transform
+            <select
+              value={forceInsertableStreams ? 'insertable' : 'script'}
+              onChange={(e) =>
+                onToggleForceInsertableStreams(e.target.value === 'insertable')
+              }
+              disabled={loading || participantCount > 0}
+            >
+              <option value="script">RTCRtpScriptTransform</option>
+              <option value="insertable">Insertable Streams (legacy)</option>
             </select>
           </label>
           <label className="header__toggle">
