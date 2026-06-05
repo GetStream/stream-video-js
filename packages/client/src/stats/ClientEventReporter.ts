@@ -76,6 +76,7 @@ type StagePairState = {
   joinAttemptIdSnapshot?: string;
   userIdSnapshot?: string;
   lastError?: StageError;
+  initiatedDelivery?: Promise<boolean>;
 };
 
 type PeerConnectionContext = {
@@ -142,7 +143,7 @@ export class ClientEventReporter {
     }
 
     const { reason, code } = pair.lastError;
-    this.send({
+    this.sendCompleted(pair, {
       ...this.buildCoordinatorWsCommon(pair),
       event_type: 'completed',
       outcome: 'failure',
@@ -163,7 +164,7 @@ export class ClientEventReporter {
         startedAt: Date.now(),
         userIdSnapshot: this.getUserId(),
       };
-      this.send({
+      this.coordinatorWsPair.initiatedDelivery = this.sendTracked({
         ...this.buildCoordinatorWsCommon(this.coordinatorWsPair),
         event_type: 'initiated',
       });
@@ -174,7 +175,7 @@ export class ClientEventReporter {
   private succeedCoordinatorWs = () => {
     const pair = this.coordinatorWsPair;
     if (!pair) return;
-    this.send({
+    this.sendCompleted(pair, {
       ...this.buildCoordinatorWsCommon(pair),
       event_type: 'completed',
       outcome: 'success',
@@ -421,7 +422,7 @@ export class ClientEventReporter {
         joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
       };
       this.coordinatorPairs.set(callId, pair);
-      this.send({
+      pair.initiatedDelivery = this.sendTracked({
         ...this.buildCommon(callId, 'CoordinatorJoin', pair),
         event_type: 'initiated',
       });
@@ -432,7 +433,7 @@ export class ClientEventReporter {
   private succeedCoordinator = (callId: string) => {
     const pair = this.coordinatorPairs.get(callId);
     if (!pair) return;
-    this.send({
+    this.sendCompleted(pair, {
       ...this.buildCommon(callId, 'CoordinatorJoin', pair),
       ...this.sessionIdField(callId),
       event_type: 'completed',
@@ -450,7 +451,7 @@ export class ClientEventReporter {
       return;
     }
     const { reason, code } = pair.lastError;
-    this.send({
+    this.sendCompleted(pair, {
       ...this.buildCommon(callId, 'CoordinatorJoin', pair),
       ...this.sessionIdField(callId),
       event_type: 'completed',
@@ -474,7 +475,7 @@ export class ClientEventReporter {
       };
       this.wsPairs.set(callId, pair);
       const sfuId = this.getSfuId(callId);
-      this.send({
+      pair.initiatedDelivery = this.sendTracked({
         ...this.buildCommon(callId, 'WSJoin', pair),
         ...this.sessionIdField(callId),
         ...(sfuId && { sfu_id: sfuId }),
@@ -488,7 +489,7 @@ export class ClientEventReporter {
     const pair = this.wsPairs.get(callId);
     if (!pair) return;
     const sfuId = this.getSfuId(callId);
-    this.send({
+    this.sendCompleted(pair, {
       ...this.buildCommon(callId, 'WSJoin', pair),
       ...this.sessionIdField(callId),
       ...(sfuId && { sfu_id: sfuId }),
@@ -508,7 +509,7 @@ export class ClientEventReporter {
     }
     const { reason, code } = pair.lastError;
     const sfuId = this.getSfuId(callId);
-    this.send({
+    this.sendCompleted(pair, {
       ...this.buildCommon(callId, 'WSJoin', pair),
       ...this.sessionIdField(callId),
       event_type: 'completed',
@@ -599,7 +600,7 @@ export class ClientEventReporter {
     this.peerConnectionContexts.set(key, pcContext);
     this.peerConnectionPairs.set(key, pair);
 
-    this.send({
+    pair.initiatedDelivery = this.sendTracked({
       ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(callId),
       peer_connection: role,
@@ -621,7 +622,7 @@ export class ClientEventReporter {
     const pcContext = this.peerConnectionContexts.get(key);
     if (!pair || !pcContext) return;
 
-    this.send({
+    this.sendCompleted(pair, {
       ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(callId),
       peer_connection: role,
@@ -655,7 +656,7 @@ export class ClientEventReporter {
     const finalReason = pair.lastError?.reason ?? reason;
     const finalCode = pair.lastError?.code ?? code;
 
-    this.send({
+    this.sendCompleted(pair, {
       ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(callId),
       peer_connection: role,
@@ -711,15 +712,46 @@ export class ClientEventReporter {
     };
   };
 
+  // Fire-and-forget send for standalone events (no `initiated`/`completed`
+  // pairing, e.g. JoinInitiated, MediaDevicePermission, FirstFrame).
   private send = (body: Record<string, unknown>) => {
     if (this.disposed) return;
 
     void this.sendWithRetry(body);
   };
 
-  private sendWithRetry = async (body: Record<string, unknown>) => {
+  // Send and report whether it was actually delivered. Used to track the
+  // delivery of `initiated` events so the paired `completed` can be gated on it.
+  private sendTracked = (body: Record<string, unknown>): Promise<boolean> => {
+    if (this.disposed) return Promise.resolve(false);
+    return this.sendWithRetry(body);
+  };
+
+  // Emit a `completed` event only if its `initiated` was delivered. If the
+  // `initiated` never made it (e.g. dropped while offline), drop the
+  // `completed` too — losing both is preferable to an orphaned `completed`.
+  private sendCompleted = (
+    pair: StagePairState,
+    body: Record<string, unknown>,
+  ) => {
+    const gate = pair.initiatedDelivery ?? Promise.resolve(true);
+    void gate.then((delivered) => {
+      if (delivered) {
+        this.send(body);
+      } else {
+        this.logger.debug(
+          'Skipping completed event; its initiated was not delivered',
+          body.stage,
+        );
+      }
+    });
+  };
+
+  private sendWithRetry = async (
+    body: Record<string, unknown>,
+  ): Promise<boolean> => {
     for (let attempt = 0; attempt < 5; attempt++) {
-      if (this.disposed) return;
+      if (this.disposed) return false;
 
       try {
         await this.streamClient.doAxiosRequest(
@@ -728,7 +760,7 @@ export class ClientEventReporter {
           { events: [body] },
           { publicEndpoint: true },
         );
-        return;
+        return true;
       } catch (err) {
         const status = (err as { response?: { status?: number } })?.response
           ?.status;
@@ -738,7 +770,7 @@ export class ClientEventReporter {
             body.stage,
             body.event_type,
           );
-          return;
+          return false;
         }
         if (attempt === 4) {
           this.logger.debug(
@@ -747,11 +779,12 @@ export class ClientEventReporter {
             body.event_type,
             err,
           );
-          return;
+          return false;
         }
         await sleep(retryInterval(attempt));
       }
     }
+    return false;
   };
 }
 
