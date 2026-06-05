@@ -86,7 +86,7 @@ rootProject.allprojects {
             url = 'https://oss.sonatype.org/content/repositories/snapshots/'
             content {
                 // This efficiently tells Gradle to only look for this specific dependency here
-                includeModule('io.getstream', 'stream-video-android-noise-cancellation')
+                includeModule('io.getstream', 'io.getstream:stream-video-android-noise-cancellation-libwebrtc')
             }
         }
     }
