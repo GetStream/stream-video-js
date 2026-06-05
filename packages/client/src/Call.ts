@@ -424,13 +424,6 @@ export class Call {
     await withoutConcurrency(this.joinLeaveConcurrencyTag, async () => {
       if (this.initialized) return;
 
-      this.streamClient.clientEventReporter.registerCall(this.cid, {
-        callType: this.type,
-        callId: this.id,
-        getCallSessionId: () => this.state.session?.id ?? '',
-        getSfuId: () => this.credentials?.server.edge_name ?? '',
-      });
-
       this.leaveCallHooks.add(
         this.on('all', (event) => {
           // update state with the latest event data
@@ -1141,8 +1134,19 @@ export class Call {
     }
   };
 
-  private withJoinLifecycle = <T>(op: () => Promise<T>): Promise<T> =>
-    this.streamClient.clientEventReporter.withJoinLifecycle(this.cid, op);
+  private withJoinLifecycle = <T>(op: () => Promise<T>): Promise<T> => {
+    this.streamClient.clientEventReporter.registerCall(this.cid, {
+      callType: this.type,
+      callId: this.id,
+      getCallSessionId: () => this.state.session?.id ?? '',
+      getSfuId: () => this.credentials?.server.edge_name ?? '',
+    });
+
+    return this.streamClient.clientEventReporter.withJoinLifecycle(
+      this.cid,
+      op,
+    );
+  };
 
   private trackCoordinatorJoin = <T>(op: () => Promise<T>): Promise<T> =>
     this.streamClient.clientEventReporter.track(
