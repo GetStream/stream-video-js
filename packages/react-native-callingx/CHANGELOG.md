@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.3.1...@stream-io/react-native-callingx-0.4.0) (2026-06-04)
+
+### Features
+
+- added self managed push kit delegate management ([#2263](https://github.com/GetStream/stream-video-js/issues/2263)) ([ede4671](https://github.com/GetStream/stream-video-js/commit/ede467138a4727ccdc5cf3702b16747c516775a5))
+
+### Bug Fixes
+
+- skip notification bg->fg transition case ([#2262](https://github.com/GetStream/stream-video-js/issues/2262)) ([e5cd46f](https://github.com/GetStream/stream-video-js/commit/e5cd46fa557d83f3de1c983d1aca2adfac9ad0ee))
+
 ## [0.3.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.3.0...@stream-io/react-native-callingx-0.3.1) (2026-05-26)
 
 ### Bug Fixes
