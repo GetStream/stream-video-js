@@ -143,6 +143,66 @@ describe('encryptAv1Frame / decryptAv1Frame', () => {
     await expect(decryptAv1Frame(parsed, wrong)).rejects.toBeTruthy();
   });
 
+  it('rejects a frame that splices in an OBU from a stale frame counter', async () => {
+    const key = await importKey([
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    ]);
+    // A fresh frame at a new counter: base layer (spatial 0, tileIdx 0).
+    const fresh = await encryptAv1Frame(
+      new Uint8Array([...td, ...codedObu([1, 2, 3, 4], 0, 0)]),
+      key,
+      0,
+      ivPrefix,
+      100,
+    );
+    // A previously observed frame at an older counter, on a different layer
+    // (spatial 1, tileIdx 0) so its re-derived layer salt still matches once
+    // spliced in - only the frame counter differs.
+    const stale = await encryptAv1Frame(
+      new Uint8Array([...td, ...codedObu([9, 9, 9, 9], 0, 1)]),
+      key,
+      0,
+      ivPrefix,
+      50,
+    );
+    const freshParsed = parseEncryptedAv1(fresh!)!;
+    const staleObu = parseEncryptedAv1(stale!)!.obus.find(
+      (o) => o.spatialId === 1,
+    )!;
+    // parseEncryptedAv1 reads the frame-global counter (100) from the fresh
+    // base OBU; the spliced OBU carries its own inline header with counter 50.
+    const spliced = { ...freshParsed, obus: [...freshParsed.obus, staleObu] };
+    expect(spliced.frameCounter).toBe(100);
+    await expect(decryptAv1Frame(spliced, key)).rejects.toBeTruthy();
+  });
+
+  it('rejects a frame whose OBU inline header carries a different ivPrefix', async () => {
+    const key = await importKey([
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    ]);
+    const fresh = await encryptAv1Frame(
+      new Uint8Array([...td, ...codedObu([1, 2, 3, 4], 0, 0)]),
+      key,
+      0,
+      ivPrefix,
+      100,
+    );
+    const otherPrefix = new Uint8Array([80, 70, 60, 50, 40, 30, 20, 10]);
+    const stale = await encryptAv1Frame(
+      new Uint8Array([...td, ...codedObu([9, 9, 9, 9], 0, 1)]),
+      key,
+      0,
+      otherPrefix,
+      100,
+    );
+    const freshParsed = parseEncryptedAv1(fresh!)!;
+    const staleObu = parseEncryptedAv1(stale!)!.obus.find(
+      (o) => o.spatialId === 1,
+    )!;
+    const spliced = { ...freshParsed, obus: [...freshParsed.obus, staleObu] };
+    await expect(decryptAv1Frame(spliced, key)).rejects.toBeTruthy();
+  });
+
   it('returns the frame unchanged when there are no coded OBUs', async () => {
     const key = await importKey([
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,

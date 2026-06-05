@@ -79,6 +79,12 @@ const concatBytes = (a: Uint8Array, b: Uint8Array): Uint8Array => {
   return out;
 };
 
+const bytesEqual = (a: Uint8Array, b: Uint8Array): boolean => {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+};
+
 /**
  * The header bytes authenticated as AAD. We force obu_has_size_field on so the
  * value matches what serializeObus emits and what the depacketizer
@@ -185,6 +191,13 @@ export const parseEncryptedAv1 = (data: Uint8Array): EncryptedAv1 | null => {
  * Decrypt every encrypted OBU of a frame returned by parseEncryptedAv1. Throws
  * if any GCM tag fails (the caller drops the whole frame). Returns the
  * re-serialized plaintext frame.
+ *
+ * Every encrypted OBU must carry the same keyIndex, ivPrefix, and frameCounter
+ * as the frame-global values parseEncryptedAv1 read from the first coded OBU -
+ * the only tuple the caller's replay window checks. A legitimate temporal unit
+ * always satisfies this (encryptAv1Frame stamps one counter across the frame;
+ * SVC dropping only removes OBUs). A mismatch means an OBU was spliced in from
+ * another frame to dodge replay protection, so the whole frame is dropped.
  */
 export const decryptAv1Frame = async (
   parsed: EncryptedAv1,
@@ -196,6 +209,13 @@ export const decryptAv1Frame = async (
       if (!AV1_ENCRYPTED_OBU_TYPES.has(obu.type)) return;
       const ih = readInlineHeader(obu.payload);
       if (!ih) return; // a coded OBU without our header: leave as-is
+      if (
+        ih.keyIndex !== parsed.keyIndex ||
+        ih.frameCounter !== parsed.frameCounter ||
+        !bytesEqual(ih.ivPrefix, parsed.ivPrefix)
+      ) {
+        throw new Error('AV1 OBU header does not match the frame');
+      }
       const layerKey = (obu.spatialId << 3) | obu.temporalId;
       const tileIdx = tileCounts.get(layerKey) ?? 0;
       tileCounts.set(layerKey, tileIdx + 1);
