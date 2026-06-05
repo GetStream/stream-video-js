@@ -1,7 +1,7 @@
 import '@stream-io/video-styling/dist/css/embedded.css';
 import 'stream-chat-react/dist/css/index.css';
 import '../style/index.scss';
-import { ComponentType } from 'react';
+import { ComponentType, useEffect, useState } from 'react';
 import { Session } from 'next-auth';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
@@ -9,6 +9,7 @@ import { SessionProvider } from 'next-auth/react';
 import { StreamTheme } from '@stream-io/video-react-sdk';
 import { SettingsProvider } from '../context/SettingsContext';
 import { AppEnvironmentProvider } from '../context/AppEnvironmentContext';
+import { ChaosPanel } from '../components/ChaosPanel/ChaosPanel';
 
 const GoogleAnalytics = dynamic(
   () => import('@next/third-parties/google').then((mod) => mod.GoogleAnalytics),
@@ -47,6 +48,7 @@ export default function App({
         <SettingsProvider>
           <StreamTheme>
             <Component {...pageProps} />
+            <ChaosPanelGate />
           </StreamTheme>
         </SettingsProvider>
       </AppEnvironmentProvider>
@@ -55,3 +57,14 @@ export default function App({
     </SessionProvider>
   );
 }
+
+const ChaosPanelGate = () => {
+  const [enabled, setEnabled] = useState(false);
+
+  useEffect(() => {
+    setEnabled(new URLSearchParams(window.location.search).has('debug'));
+  }, []);
+
+  if (!enabled) return null;
+  return <ChaosPanel />;
+};
