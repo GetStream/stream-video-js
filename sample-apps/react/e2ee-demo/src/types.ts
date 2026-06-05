@@ -6,6 +6,9 @@ import type {
 
 export type PreferredCodec = 'vp8' | 'vp9' | 'h264' | 'av1';
 
+/** Which SDK call layout each participant panel renders: paginated grid or speaker. */
+export type CallLayout = 'grid' | 'speaker';
+
 export interface ParticipantSession {
   // Identity
   userId: string;

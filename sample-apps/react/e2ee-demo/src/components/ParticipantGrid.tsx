@@ -1,9 +1,10 @@
-import type { EventLogEntry, ParticipantSession } from '../types';
+import type { CallLayout, EventLogEntry, ParticipantSession } from '../types';
 import { ParticipantPanel } from './ParticipantPanel';
 import './ParticipantGrid.css';
 
 interface ParticipantGridProps {
   participants: ParticipantSession[];
+  layout: CallLayout;
   eventsByUser: Record<string, EventLogEntry[]>;
   onRemove: (userId: string) => void;
   onToggleE2EE: (userId: string, enabled: boolean) => void;
@@ -16,6 +17,7 @@ const EMPTY_EVENTS: EventLogEntry[] = [];
 
 export const ParticipantGrid = ({
   participants,
+  layout,
   eventsByUser,
   onRemove,
   onToggleE2EE,
@@ -38,6 +40,7 @@ export const ParticipantGrid = ({
         <ParticipantPanel
           key={p.userId}
           participant={p}
+          layout={layout}
           events={eventsByUser[p.userId] ?? EMPTY_EVENTS}
           onRemove={onRemove}
           onToggleE2EE={onToggleE2EE}

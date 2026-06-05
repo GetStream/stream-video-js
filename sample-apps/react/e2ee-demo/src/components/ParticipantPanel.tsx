@@ -3,12 +3,13 @@ import {
   CallingState,
   CallControls,
   PaginatedGridLayout,
+  SpeakerLayout,
   StreamCall,
   StreamTheme,
   StreamVideo,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import type { EventLogEntry, ParticipantSession } from '../types';
+import type { CallLayout, EventLogEntry, ParticipantSession } from '../types';
 import { KeyControls } from './KeyControls';
 import { KeyStateDump } from './KeyStateDump';
 import { EventLog } from './EventLog';
@@ -16,6 +17,7 @@ import './ParticipantPanel.css';
 
 interface ParticipantPanelProps {
   participant: ParticipantSession;
+  layout: CallLayout;
   events: EventLogEntry[];
   onRemove: (userId: string) => void;
   onToggleE2EE: (userId: string, enabled: boolean) => void;
@@ -24,7 +26,7 @@ interface ParticipantPanelProps {
   onDismissError: (userId: string) => void;
 }
 
-const CallUI = () => {
+const CallUI = ({ layout }: { layout: CallLayout }) => {
   const { useCallCallingState } = useCallStateHooks();
   const callingState = useCallCallingState();
 
@@ -34,7 +36,7 @@ const CallUI = () => {
 
   return (
     <StreamTheme>
-      <PaginatedGridLayout />
+      {layout === 'speaker' ? <SpeakerLayout /> : <PaginatedGridLayout />}
       <CallControls />
     </StreamTheme>
   );
@@ -42,6 +44,7 @@ const CallUI = () => {
 
 export const ParticipantPanel = memo(function ParticipantPanel({
   participant,
+  layout,
   events,
   onRemove,
   onToggleE2EE,
@@ -113,7 +116,7 @@ export const ParticipantPanel = memo(function ParticipantPanel({
       <div className="participant-panel__video">
         <StreamVideo client={client}>
           <StreamCall call={call}>
-            <CallUI />
+            <CallUI layout={layout} />
           </StreamCall>
         </StreamVideo>
         {participant.decryptionFailed && (

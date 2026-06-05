@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { EncryptionManager } from '@stream-io/video-react-sdk';
 import { MAX_PARTICIPANTS } from '../config';
-import type { PreferredCodec } from '../types';
+import type { CallLayout, PreferredCodec } from '../types';
 import './Header.css';
 
 interface HeaderProps {
@@ -10,10 +10,12 @@ interface HeaderProps {
   e2eeEnabled: boolean;
   forceInsertableStreams: boolean;
   preferredCodec: PreferredCodec;
+  layout: CallLayout;
   sharedPassphrase: string | null;
   onToggleE2EE: (enabled: boolean) => void;
   onToggleForceInsertableStreams: (force: boolean) => void;
   onCodecChange: (codec: PreferredCodec) => void;
+  onLayoutChange: (layout: CallLayout) => void;
   onSetSharedKey: (passphrase: string) => void;
   onAddParticipant: () => void;
   loading: boolean;
@@ -25,10 +27,12 @@ export const Header = ({
   e2eeEnabled,
   forceInsertableStreams,
   preferredCodec,
+  layout,
   sharedPassphrase,
   onToggleE2EE,
   onToggleForceInsertableStreams,
   onCodecChange,
+  onLayoutChange,
   onSetSharedKey,
   onAddParticipant,
   loading,
@@ -80,6 +84,16 @@ export const Header = ({
               <option value="vp9">VP9</option>
               <option value="h264">H.264</option>
               <option value="av1">AV1</option>
+            </select>
+          </label>
+          <label className="header__codec-select">
+            Layout
+            <select
+              value={layout}
+              onChange={(e) => onLayoutChange(e.target.value as CallLayout)}
+            >
+              <option value="grid">Grid</option>
+              <option value="speaker">Speaker</option>
             </select>
           </label>
           <label

@@ -16,6 +16,8 @@ const App = () => {
     setForceInsertableStreams,
     preferredCodec,
     setPreferredCodec,
+    layout,
+    setLayout,
     sharedPassphrase,
     setSharedKey,
     toggleE2EE,
@@ -35,16 +37,19 @@ const App = () => {
         e2eeEnabled={e2eeEnabled}
         forceInsertableStreams={forceInsertableStreams}
         preferredCodec={preferredCodec}
+        layout={layout}
         sharedPassphrase={sharedPassphrase}
         onToggleE2EE={toggleE2EE}
         onToggleForceInsertableStreams={setForceInsertableStreams}
         onCodecChange={setPreferredCodec}
+        onLayoutChange={setLayout}
         onSetSharedKey={setSharedKey}
         onAddParticipant={addParticipant}
         loading={loading}
       />
       <ParticipantGrid
         participants={participants}
+        layout={layout}
         eventsByUser={eventsByUser}
         onRemove={removeParticipant}
         onToggleE2EE={toggleParticipantE2EE}

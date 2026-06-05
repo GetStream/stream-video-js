@@ -26,6 +26,7 @@ import type {
   ParticipantSession,
   EventLogEntry,
   PreferredCodec,
+  CallLayout,
 } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -38,6 +39,20 @@ const fetchCredentials = async (userId: string) => {
   url.searchParams.set('user_id', userId);
   const { apiKey, token } = await fetch(url).then((r) => r.json());
   return { apiKey: apiKey as string, token: token as string };
+};
+
+const CALL_ID_PARAM = 'call_id';
+
+/**
+ * Resolve the call ID from the `call_id` URL param so the demo is bookmarkable
+ * and shareable. Falls back to a fresh random ID when the param is absent.
+ */
+const resolveInitialCallId = (): string => {
+  const fromUrl =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get(CALL_ID_PARAM)
+      : null;
+  return fromUrl || `e2ee-demo-${crypto.randomUUID().slice(0, 8)}`;
 };
 
 // ---------------------------------------------------------------------------
@@ -56,9 +71,11 @@ export const useE2EEDemo = () => {
   const [e2eeEnabled, setE2eeEnabled] = useState(true);
   const [forceInsertableStreams, setForceInsertableStreams] = useState(false);
   const [preferredCodec, setPreferredCodec] = useState<PreferredCodec>('vp8');
+  const [layout, setLayout] = useState<CallLayout>('grid');
   const [sharedPassphrase, setSharedPassphrase] = useState<string | null>(null);
 
-  const callIdRef = useRef(`e2ee-demo-${crypto.randomUUID().slice(0, 8)}`);
+  const callIdRef = useRef('');
+  if (!callIdRef.current) callIdRef.current = resolveInitialCallId();
   const eventIdRef = useRef(0);
   const participantsRef = useRef<ParticipantSession[]>([]);
   const preferredCodecRef = useRef(preferredCodec);
@@ -66,6 +83,15 @@ export const useE2EEDemo = () => {
   const sharedKeyIndexRef = useRef(0); // next index to use
   const activeSharedKeyIndexRef = useRef(-1); // last-set index (-1 = none)
   const sharedKeyBytesRef = useRef<ArrayBuffer | null>(null); // derived key bytes for display
+
+  // Reflect the call ID in the URL so the demo can be bookmarked and shared.
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get(CALL_ID_PARAM) !== callIdRef.current) {
+      url.searchParams.set(CALL_ID_PARAM, callIdRef.current);
+      window.history.replaceState(null, '', url);
+    }
+  }, []);
 
   // Keep refs in sync with state (for use in async callbacks and cleanup)
   useEffect(() => {
@@ -637,6 +663,8 @@ export const useE2EEDemo = () => {
     setForceInsertableStreams,
     preferredCodec,
     setPreferredCodec,
+    layout,
+    setLayout,
     sharedPassphrase,
     setSharedKey,
     toggleE2EE,
