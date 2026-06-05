@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { LoopbackRecordingState } from '@stream-io/video-react-native-sdk';
 import { appTheme } from '../../../theme';
-import { SourcePickers } from './SourcePickers';
 
 type RecordingControlsProps = {
   buttonLabel: string;
@@ -33,9 +32,6 @@ export const RecordingControls = ({
 
   return (
     <View style={styles.recordingContainer}>
-      <SourcePickers
-        disabled={isConnecting || recordingState === 'recording'}
-      />
       <Pressable
         onPress={handlePress}
         disabled={disabled}

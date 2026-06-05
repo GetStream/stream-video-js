@@ -5,7 +5,10 @@ import {
   type MediaStream as RNMediaStream,
 } from '@stream-io/react-native-webrtc';
 import { appTheme } from '../../../theme';
-import { useCallStateHooks } from '@stream-io/video-react-native-sdk';
+import {
+  useCallStateHooks,
+  ToggleCameraFaceButton,
+} from '@stream-io/video-react-native-sdk';
 import { Mic } from '../../../assets/Mic';
 import { Video } from '../../../assets/Video';
 
@@ -34,6 +37,10 @@ export const LoopbackPanel = ({
             <Text style={styles.placeholderText}>Waiting…</Text>
           </View>
         )}
+      </View>
+
+      <View style={styles.toggleCameraFaceButton}>
+        <ToggleCameraFaceButton />
       </View>
 
       <View style={styles.statusRow}>
@@ -129,6 +136,11 @@ const useStyles = () => {
         videoPanelLabel: {
           color: appTheme.colors.static_white,
           fontSize: 12,
+        },
+        toggleCameraFaceButton: {
+          position: 'absolute',
+          bottom: 12,
+          left: 16,
         },
       }),
     [],
