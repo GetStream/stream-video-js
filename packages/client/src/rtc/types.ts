@@ -79,6 +79,7 @@ export type OnPeerConnectionStateChange = (
 export type OnRemoteTrackUnmute = (
   trackType: TrackType,
   trackId: string,
+  sfuId: string,
 ) => void;
 
 export type BasePeerConnectionOpts = {

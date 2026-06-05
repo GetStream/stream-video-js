@@ -225,6 +225,7 @@ export class ClientEventReporter {
     callId: string,
     trackType: TrackType,
     trackId: string,
+    sfuId?: string,
   ) => {
     const stage =
       trackType === TrackType.VIDEO
@@ -246,11 +247,11 @@ export class ClientEventReporter {
       joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
     };
 
-    const sfuId = this.getSfuId(callId);
+    const resolvedSfuId = sfuId || this.getSfuId(callId);
     this.send({
       ...this.buildCommon(callId, stage, pair),
       ...this.sessionIdField(callId),
-      ...(sfuId && { sfu_id: sfuId }),
+      ...(resolvedSfuId && { sfu_id: resolvedSfuId }),
       track_id: trackId,
       event_type: 'initiated',
     });
