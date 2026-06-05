@@ -94,6 +94,7 @@ export type BasePeerConnectionOpts = {
   enableTracing: boolean;
   iceRestartDelay?: number;
   clientPublishOptions?: ClientPublishOptions;
+  statsTimestampDriftThresholdMs?: number;
 };
 
 export type TrackPublishOptions = {

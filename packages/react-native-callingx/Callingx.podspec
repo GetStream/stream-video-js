@@ -14,7 +14,7 @@ Pod::Spec.new do |s|
   s.source       = { :git => "https://github.com/GetStream/stream-video-js/tree/main/packages/react-native-callingx.git", :tag => "#{s.version}" }
 
   s.source_files = "ios/**/*.{h,m,mm,swift}"
-  s.public_header_files = "ios/CallingxPublic.h"
+  s.public_header_files = "ios/CallingxPublic.h", "ios/VoipPushHandler.h"
   s.swift_version = "5.0"
 
   s.dependency "stream-react-native-webrtc"

@@ -75,6 +75,7 @@ export abstract class BasePeerConnection {
       enableTracing,
       clientPublishOptions,
       iceRestartDelay = 2500,
+      statsTimestampDriftThresholdMs = 0,
     }: BasePeerConnectionOpts,
   ) {
     this.peerType = peerType;
@@ -93,7 +94,12 @@ export abstract class BasePeerConnection {
       { tags: [tag] },
     );
     this.pc = this.createPeerConnection(connectionConfig);
-    this.stats = new StatsTracer(this.pc, peerType, this.trackIdToTrackType);
+    this.stats = new StatsTracer(
+      this.pc,
+      peerType,
+      this.trackIdToTrackType,
+      statsTimestampDriftThresholdMs,
+    );
     if (enableTracing) {
       this.tracer = new Tracer(
         `${tag}-${peerType === PeerType.SUBSCRIBER ? 'sub' : 'pub'}`,

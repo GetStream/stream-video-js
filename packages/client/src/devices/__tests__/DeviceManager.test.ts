@@ -25,7 +25,9 @@ import { readPreferences } from '../devicePersistence';
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
   return {
-    Call: vi.fn(() => mockCall()),
+    Call: vi.fn(function () {
+      return mockCall();
+    }),
   };
 });
 

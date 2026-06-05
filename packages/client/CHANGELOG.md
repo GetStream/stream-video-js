@@ -2,6 +2,30 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.52.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.51.0...@stream-io/video-client-1.52.0) (2026-06-01)
+
+- **deps:** upgrade React Native 0.85, React 19.2, Vite 8/Vitest 4, and Expo 56 ([#2268](https://github.com/GetStream/stream-video-js/issues/2268)) ([2c8ab9d](https://github.com/GetStream/stream-video-js/commit/2c8ab9d9238f3700dabbd04c9ce5bf3aaa4c7a13))
+
+### Features
+
+- **client:** add hasInterruptedTrack helper ([#2266](https://github.com/GetStream/stream-video-js/issues/2266)) ([c723eb6](https://github.com/GetStream/stream-video-js/commit/c723eb67bffcb00edc03e4960a0d3a600bba8687))
+- **client:** echo negotiationId in subscriber offer answer ([#2166](https://github.com/GetStream/stream-video-js/issues/2166)) ([749e0ad](https://github.com/GetStream/stream-video-js/commit/749e0ad025d579cf2a2792e6016f5eaffb9ee7a7))
+
+### Bug Fixes
+
+- **client:** clamp drifted getStats timestamps to wall time ([#2258](https://github.com/GetStream/stream-video-js/issues/2258)) ([9d96df5](https://github.com/GetStream/stream-video-js/commit/9d96df552337fea27285a4260a4d1d76b39eb7b7))
+
+## [1.51.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.50.0...@stream-io/video-client-1.51.0) (2026-05-26)
+
+### Features
+
+- **client:** Register virtual devices ([#2220](https://github.com/GetStream/stream-video-js/issues/2220)) ([c663e2d](https://github.com/GetStream/stream-video-js/commit/c663e2df9f82cf64c38a9d3e6a1e86282107b27d))
+
+### Bug Fixes
+
+- **client:** bail reconnects during in-flight lifecycles and clean up listeners ([#2257](https://github.com/GetStream/stream-video-js/issues/2257)) ([f6fa17e](https://github.com/GetStream/stream-video-js/commit/f6fa17e041cef1aebeba38b06d6cfba5c085e5a6))
+- **client:** stop sending RTP after track.stop() on Firefox ([#2237](https://github.com/GetStream/stream-video-js/issues/2237)) ([5b7e9b8](https://github.com/GetStream/stream-video-js/commit/5b7e9b8bd17c43f17d66586dd88617ae91bac609))
+
 ## [1.50.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.49.0...@stream-io/video-client-1.50.0) (2026-05-18)
 
 ### Features

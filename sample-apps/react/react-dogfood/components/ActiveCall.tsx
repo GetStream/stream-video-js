@@ -123,7 +123,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   // FIXME: could be replaced with "notification.message_new" but users would have to be at least members
   // possible fix with "allow to join" permissions in place (expensive?)
-  const channelWatched = useWatchChannel({
+  const { channel } = useWatchChannel({
     chatClient,
     channelId: activeCall?.id,
   });
@@ -371,11 +371,10 @@ export const ActiveCall = (props: ActiveCallProps) => {
             />
             {!chatDisabled && (
               <NewMessageNotification
-                chatClient={chatClient}
-                channelWatched={channelWatched}
+                channel={channel}
                 disableOnChatOpen={showChat}
               >
-                <div className="str-chat__chat-button__wrapper">
+                <div className="rd-chat__chat-button__wrapper">
                   <WithTooltip title={t('Chat')}>
                     <CompositeButton
                       active={showChat}
@@ -393,13 +392,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
                       <Icon icon="chat" />
                     </CompositeButton>
                   </WithTooltip>
-                  {!showChat && (
-                    <UnreadCountBadge
-                      channelWatched={channelWatched}
-                      chatClient={chatClient}
-                      channelId={activeCall.id}
-                    />
-                  )}
+                  {!showChat && <UnreadCountBadge channel={channel} />}
                 </div>
               </NewMessageNotification>
             )}
