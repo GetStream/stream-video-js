@@ -30,7 +30,9 @@ vi.mock('../devices.ts', () => {
 });
 
 vi.mock('../../stats/ClientEventReporter', () => ({
-  ClientEventReporter: vi.fn(() => ({})),
+  ClientEventReporter: vi.fn(function () {
+    return {};
+  }),
 }));
 
 describe('SpeakerManager.test', () => {

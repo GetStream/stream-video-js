@@ -83,7 +83,9 @@ vi.mock('../../Call.ts', () => {
 });
 
 vi.mock('../../stats/ClientEventReporter', () => ({
-  ClientEventReporter: vi.fn(() => ({})),
+  ClientEventReporter: vi.fn(function () {
+    return {};
+  }),
 }));
 
 describe('MicrophoneManager', () => {

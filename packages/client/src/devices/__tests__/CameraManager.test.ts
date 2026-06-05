@@ -57,7 +57,9 @@ vi.mock('../../Call.ts', () => {
 });
 
 vi.mock('../../stats/ClientEventReporter', () => ({
-  ClientEventReporter: vi.fn(() => ({})),
+  ClientEventReporter: vi.fn(function () {
+    return {};
+  }),
 }));
 
 vi.mock('../../helpers/compatibility.ts', () => {
