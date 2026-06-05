@@ -114,9 +114,16 @@ describe('EncryptionManager', () => {
       });
     });
 
-    it('rejects AV1 codec', () => {
-      const sender = { transform: null } as unknown as RTCRtpSender;
-      expect(() => manager.encrypt(sender, 'av1')).toThrow(/AV1/);
+    it('attaches a transform for AV1', () => {
+      const sender: Record<string, unknown> = { transform: null };
+      manager.encrypt(sender as unknown as RTCRtpSender, 'av1');
+
+      expect(sender.transform).toBeDefined();
+      expect((sender.transform as Record<string, unknown>).options).toEqual({
+        operation: 'encode',
+        userId: 'local-user',
+        codec: 'av1',
+      });
     });
   });
 

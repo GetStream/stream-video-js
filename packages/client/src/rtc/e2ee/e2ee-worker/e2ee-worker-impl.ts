@@ -19,7 +19,11 @@
  * - VP9: 0 bytes (descriptor is in RTP header)
  * - H264: NALU-aware — clear up to first slice NALU start + 2, then
  *   RBSP-escape the encrypted tail to prevent fake start codes
- * - AV1: not supported
+ * - AV1: does not use the clear-byte/trailer scheme above. Each coded OBU
+ *   (tile group / frame) carries an 18-byte inline header + GCM tag inside its
+ *   payload; no frame trailer, since the AV1 RTP packetizer parses OBUs. The
+ *   per-OBU IV is salted by layer id so it survives SVC layer dropping. See
+ *   ./av1.ts.
  *
  * Encrypted frames carry a 20-byte trailer:
  *   [4B frameCounter][8B ivPrefix][1B keyIndex][2B clearBytes|flags]
@@ -59,6 +63,7 @@ import {
   rbspEscape,
   rbspUnescape,
 } from './codec';
+import { decryptAv1Frame, encryptAv1Frame, parseEncryptedAv1 } from './av1';
 import { enqueue, readTrailer, writeTrailer } from './utils';
 import {
   createReplayWindow,
@@ -178,6 +183,34 @@ const notifyMissingKey = (userId: string) => {
   }
 };
 
+/**
+ * Shared encode tail: time the encryption, emit the produced frame, and surface
+ * failures. `produce` returns the new frame bytes, or null if it already
+ * decided to drop the frame (after signaling its own specific reason). Any
+ * throw is reported via signalEncodeFailure and the frame is dropped - never
+ * emitted in the clear.
+ */
+const finishEncode = async (
+  frame: EncodedFrame,
+  controller: FrameController,
+  produce: () => Promise<Uint8Array<ArrayBuffer> | null>,
+) => {
+  try {
+    const t0 = perfEnabled ? performance.now() : 0;
+    const out = await produce();
+    if (perfEnabled) {
+      const dt = performance.now() - t0;
+      if (dt > encodeMaxCryptoMs) encodeMaxCryptoMs = dt;
+    }
+    if (!out) return;
+    frame.data = out.buffer;
+    controller.enqueue(frame);
+    if (perfEnabled) encodeFrameCount++;
+  } catch (err: any) {
+    signalEncodeFailure(err?.message || String(err));
+  }
+};
+
 const encodeTransform = (userId: string, codec: string | undefined) => {
   const isNalu = codec === 'h264';
   const iv = new Uint8Array(IV_LEN);
@@ -206,36 +239,50 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
         return;
       }
 
-      const src = new Uint8Array(frame.data);
-      const clearBytes = getClearByteCount(codec, frame.type, src);
-      if (clearBytes > MAX_CLEAR_BYTES) {
-        // Impossibly large clear header — drop instead of corrupting the
-        // trailer by overflowing the RBSP flag bit.
-        signalEncodeFailure('clearBytes exceeds trailer capacity');
-        return;
+      if (codec === 'av1') {
+        return finishEncode(frame, controller, async () => {
+          // frameCounter MUST come from the shared monotonic per-user counter
+          // (same source as the v2 path) - a base-layer OBU has salt 0, so its
+          // IV matches a v2 frame's at the same counter; only the never-
+          // repeating counter keeps (key, IV) pairs unique across this user's
+          // AV1 and non-AV1 tracks.
+          const counter = nextFrameCounter(userId);
+          const out = await encryptAv1Frame(
+            new Uint8Array(frame.data),
+            cryptoKey,
+            keyIndex,
+            prefix,
+            counter,
+          );
+          if (!out) {
+            signalEncodeFailure('AV1 frame not parseable');
+            return null;
+          }
+          return out;
+        });
       }
 
-      try {
-        // nextFrameCounter throws at the 32-bit ceiling; catching here keeps
-        // the sender fail-closed if the integrator ignored the earlier
-        // rekeyRequested signal.
+      return finishEncode(frame, controller, async () => {
+        const src = new Uint8Array(frame.data);
+        const clearBytes = getClearByteCount(codec, frame.type, src);
+        if (clearBytes > MAX_CLEAR_BYTES) {
+          // Impossibly large clear header - drop instead of corrupting the
+          // trailer by overflowing the RBSP flag bit.
+          signalEncodeFailure('clearBytes exceeds trailer capacity');
+          return null;
+        }
+        // nextFrameCounter throws at the 32-bit ceiling; finishEncode catches
+        // it and fails closed if the integrator ignored the rekey signal.
         const counter = nextFrameCounter(userId);
         fillIV(iv, ivView, prefix, counter);
         const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : EMPTY_AAD;
         const plaintext = clearBytes > 0 ? src.subarray(clearBytes) : src;
-
-        const t0 = perfEnabled ? performance.now() : 0;
         const encrypted = await crypto.subtle.encrypt(
           { name: 'AES-GCM', iv, additionalData: aad as BufferSource },
           cryptoKey,
           plaintext as BufferSource,
         );
-        if (perfEnabled) {
-          const dt = performance.now() - t0;
-          if (dt > encodeMaxCryptoMs) encodeMaxCryptoMs = dt;
-        }
         const ciphertext = new Uint8Array(encrypted);
-
         if (isNalu && clearBytes > 0) {
           const escaped = rbspEscape(ciphertext);
           const dst = new Uint8Array(clearBytes + escaped.length + TRAILER_LEN);
@@ -250,32 +297,24 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
             clearBytes,
             true,
           );
-          frame.data = dst.buffer;
-        } else {
-          const dst = new Uint8Array(
-            clearBytes + ciphertext.length + TRAILER_LEN,
-          );
-          if (clearBytes > 0) dst.set(aad, 0);
-          dst.set(ciphertext, clearBytes);
-          writeTrailer(
-            dst,
-            clearBytes + ciphertext.length,
-            counter,
-            prefix,
-            keyIndex,
-            clearBytes,
-            false,
-          );
-          frame.data = dst.buffer;
+          return dst;
         }
-        controller.enqueue(frame);
-        if (perfEnabled) encodeFrameCount++;
-      } catch (err: any) {
-        // Dropping the frame here avoids leaking plaintext, but the host
-        // needs to know — otherwise the sender publishes nothing with no
-        // surfaced error.
-        signalEncodeFailure(err?.message || String(err));
-      }
+        const dst = new Uint8Array(
+          clearBytes + ciphertext.length + TRAILER_LEN,
+        );
+        if (clearBytes > 0) dst.set(aad, 0);
+        dst.set(ciphertext, clearBytes);
+        writeTrailer(
+          dst,
+          clearBytes + ciphertext.length,
+          counter,
+          prefix,
+          keyIndex,
+          clearBytes,
+          false,
+        );
+        return dst;
+      });
     },
   });
 };
@@ -299,8 +338,58 @@ const decodeTransform = (userId: string) => {
   // so a remote user's audio/video/screenshare tracks never share a window.
   const replay = createReplayWindow();
 
+  /**
+   * Shared decode tail: gate on key validity / availability / replay, time the
+   * decryption, emit the plaintext, and run the failure / recovery bookkeeping.
+   * `decrypt` returns the plaintext frame bytes and throws on a GCM tag failure
+   * (which drops the whole frame). Only the param extraction and the decrypt
+   * itself differ between the v2-trailer and AV1-inline formats.
+   */
+  const finishDecode = async (
+    frame: EncodedFrame,
+    controller: FrameController,
+    keyIndex: number,
+    ivPrefix: Uint8Array,
+    frameCounter: number,
+    decrypt: (key: CryptoKey) => Promise<ArrayBuffer>,
+  ) => {
+    if (isKeyInvalid(userId, keyIndex)) return;
+    const cryptoKey = getKey(userId, keyIndex);
+    if (!cryptoKey) {
+      notifyFailure();
+      return;
+    }
+    // A replay or a frame older than the sliding window is dropped silently -
+    // these are not true decryption failures.
+    if (!replay.check(frameCounter, ivPrefix)) return;
+    try {
+      const t0 = perfEnabled ? performance.now() : 0;
+      const data = await decrypt(cryptoKey);
+      if (perfEnabled) {
+        const dt = performance.now() - t0;
+        if (dt > decodeMaxCryptoMs) decodeMaxCryptoMs = dt;
+      }
+      if (hasDecryptionFailures(userId, keyIndex)) {
+        resetDecryptionFailures(userId, keyIndex);
+        self.postMessage({ type: 'e2ee.decryption_resumed', userId });
+      }
+      frame.data = data;
+      controller.enqueue(frame);
+      bumpDecodeCount(userId);
+    } catch {
+      // Only fire `e2ee.broken` on the transition - otherwise the host would
+      // receive one notification per frame once tolerance is hit.
+      const wasInvalid = isKeyInvalid(userId, keyIndex);
+      recordDecryptionFailure(userId, keyIndex);
+      notifyFailure();
+      if (!wasInvalid && isKeyInvalid(userId, keyIndex)) {
+        self.postMessage({ type: 'e2ee.broken', userId, keyIndex });
+      }
+    }
+  };
+
   return new TransformStream<EncodedFrame, EncodedFrame>({
-    async transform(frame, controller) {
+    async transform(frame, controller: FrameController) {
       if (frame.data.byteLength === 0) {
         controller.enqueue(frame);
         bumpDecodeCount(userId);
@@ -311,15 +400,27 @@ const decodeTransform = (userId: string) => {
       const trailer = readTrailer(src);
 
       if (!trailer) {
-        // Unencrypted frame (or version mismatch); pass through untouched.
-        controller.enqueue(frame);
-        bumpDecodeCount(userId);
-        return;
+        // No v2 trailer. Could be a v3-encrypted AV1 frame (OBU-inline, no
+        // trailer) or a genuinely unencrypted frame. Detect AV1 from the OBU
+        // stream; anything else passes through untouched.
+        const parsed = parseEncryptedAv1(src);
+        if (!parsed) {
+          controller.enqueue(frame);
+          bumpDecodeCount(userId);
+          return;
+        }
+        return finishDecode(
+          frame,
+          controller,
+          parsed.keyIndex,
+          parsed.ivPrefix,
+          parsed.frameCounter,
+          (key) => decryptAv1Frame(parsed, key).then((out) => out.buffer),
+        );
       }
 
       const { frameCounter, ivPrefix, keyIndex, clearBytes, isRbsp, version } =
         trailer;
-
       if (version !== E2EE_VERSION) {
         // readTrailer already filters wrong versions, but keep the explicit
         // branch so future bumps surface via notifyFailure rather than
@@ -328,69 +429,32 @@ const decodeTransform = (userId: string) => {
         return;
       }
 
-      if (isKeyInvalid(userId, keyIndex)) return;
-
-      const cryptoKey = getKey(userId, keyIndex);
-      if (!cryptoKey) {
-        notifyFailure();
-        return;
-      }
-
-      if (!replay.check(frameCounter, ivPrefix)) {
-        // Frame is a replay or older than the sliding window. Drop it
-        // silently — these are not true decryption failures.
-        return;
-      }
-
-      const bodyEnd = src.length - TRAILER_LEN;
-      fillIV(iv, ivView, ivPrefix, frameCounter);
-      const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : EMPTY_AAD;
-
-      try {
-        let ciphertext: Uint8Array;
-        if (isRbsp) {
-          ciphertext = rbspUnescape(src.subarray(clearBytes, bodyEnd));
-        } else {
-          ciphertext = src.subarray(clearBytes, bodyEnd);
-        }
-
-        const t0 = perfEnabled ? performance.now() : 0;
-        const decrypted = await crypto.subtle.decrypt(
-          { name: 'AES-GCM', iv, additionalData: aad as BufferSource },
-          cryptoKey,
-          ciphertext as BufferSource,
-        );
-        if (perfEnabled) {
-          const dt = performance.now() - t0;
-          if (dt > decodeMaxCryptoMs) decodeMaxCryptoMs = dt;
-        }
-
-        if (hasDecryptionFailures(userId, keyIndex)) {
-          resetDecryptionFailures(userId, keyIndex);
-          self.postMessage({ type: 'e2ee.decryption_resumed', userId });
-        }
-
-        if (clearBytes === 0) {
-          frame.data = decrypted;
-        } else {
+      return finishDecode(
+        frame,
+        controller,
+        keyIndex,
+        ivPrefix,
+        frameCounter,
+        async (key) => {
+          const bodyEnd = src.length - TRAILER_LEN;
+          fillIV(iv, ivView, ivPrefix, frameCounter);
+          const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : EMPTY_AAD;
+          const ciphertext = isRbsp
+            ? rbspUnescape(src.subarray(clearBytes, bodyEnd))
+            : src.subarray(clearBytes, bodyEnd);
+          const decrypted = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv, additionalData: aad as BufferSource },
+            key,
+            ciphertext as BufferSource,
+          );
+          if (clearBytes === 0) return decrypted;
           const plaintext = new Uint8Array(decrypted);
           const dst = new Uint8Array(clearBytes + plaintext.length);
           dst.set(src.subarray(0, clearBytes), 0);
           dst.set(plaintext, clearBytes);
-          frame.data = dst.buffer;
-        }
-        controller.enqueue(frame);
-        bumpDecodeCount(userId);
-      } catch {
-        // Only fire `e2ee.broken` on the transition — otherwise the host
-        // would receive one notification per frame once tolerance is hit.
-        const wasInvalid = isKeyInvalid(userId, keyIndex);
-        recordDecryptionFailure(userId, keyIndex);
-        notifyFailure();
-        if (!wasInvalid && isKeyInvalid(userId, keyIndex)) {
-          self.postMessage({ type: 'e2ee.broken', userId, keyIndex });
-        }
-      }
+          return dst.buffer;
+        },
+      );
     },
   });
 };
@@ -409,16 +473,6 @@ const setupTransform = ({
   codec?: string;
 }) => {
   if (operation === 'encode') {
-    if (codec === 'av1') {
-      // Defence in depth: EncryptionManager also blocks this, but any
-      // caller that bypasses it would otherwise silently produce frames
-      // with `clearBytes = 0` and break SFU layer selection.
-      self.postMessage({
-        type: 'error',
-        message: 'AV1 is not supported for E2EE',
-      });
-      return;
-    }
     if (!isSupportedCodec(codec)) {
       self.postMessage({
         type: 'error',

@@ -251,7 +251,6 @@ export class EncryptionManager
    * @internal
    */
   encrypt = (sender: RTCRtpSender, codec?: string): void => {
-    if (codec === 'av1') throw new Error(`AV1 is unsupported`);
     this.pipe(sender, { operation: 'encode', userId: this.userId, codec });
   };
 

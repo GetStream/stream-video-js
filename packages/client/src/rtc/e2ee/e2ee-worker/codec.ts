@@ -116,7 +116,7 @@ export const rbspUnescape = (data: Uint8Array): Uint8Array => {
 };
 
 /** Codecs the worker knows how to split into clear header + encrypted body. */
-const SUPPORTED_CODECS = new Set(['opus', 'vp8', 'vp9', 'h264']);
+const SUPPORTED_CODECS = new Set(['opus', 'vp8', 'vp9', 'h264', 'av1']);
 
 export const isSupportedCodec = (codec: string | undefined): boolean =>
   codec === undefined || SUPPORTED_CODECS.has(codec);

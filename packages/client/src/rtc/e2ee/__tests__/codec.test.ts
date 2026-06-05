@@ -104,6 +104,7 @@ describe('isSupportedCodec', () => {
     expect(isSupportedCodec('vp8')).toBe(true);
     expect(isSupportedCodec('vp9')).toBe(true);
     expect(isSupportedCodec('h264')).toBe(true);
+    expect(isSupportedCodec('av1')).toBe(true);
   });
 
   it('accepts undefined (audio codec passthrough)', () => {
@@ -111,7 +112,6 @@ describe('isSupportedCodec', () => {
   });
 
   it('rejects unknown or mis-cased codecs', () => {
-    expect(isSupportedCodec('av1')).toBe(false);
     expect(isSupportedCodec('H264')).toBe(false);
     expect(isSupportedCodec('video/vp8')).toBe(false);
   });

@@ -1,0 +1,3 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AV1 E2EE golden vectors (cross-SDK contract) > produces stable encrypted bytes for a fixed input 1`] = `"1200360028deadbeef03000101010101010101000000015014a28199d1db3423404ede21fbc5b55b818127caad"`;

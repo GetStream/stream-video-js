@@ -62,3 +62,21 @@ export const COUNTER_REKEY_THRESHOLD = 0x80000000; // 2^31
  * Encoding throws here and fails closed rather than silently wrapping.
  */
 export const COUNTER_HARD_LIMIT = 0xffffffff; // 2^32 - 1
+
+/**
+ * Format discriminator for the AV1 inline-OBU scheme, carried in each encrypted
+ * OBU's inline header. NOT a successor to {@link E2EE_VERSION} (the trailer
+ * scheme the other codecs use): the two are per-codec formats that co-ship and
+ * coexist at runtime, told apart by this byte. It also doubles as a
+ * forward-looking evolution hook once this ships. Nothing is released yet, so
+ * the value is free to change before release.
+ */
+export const AV1_VERSION = 3;
+
+/**
+ * Inline header prepended to each encrypted AV1 OBU payload (v3):
+ *   [4B magic][1B version][1B keyIndex][8B ivPrefix][4B frameCounter] = 18 B.
+ * Mirrors the v2 trailer fields, relocated inside the OBU because an AV1 frame
+ * cannot carry a trailing trailer (RtpPacketizerAv1 parses OBUs).
+ */
+export const AV1_INLINE_HEADER_LEN = 18;
