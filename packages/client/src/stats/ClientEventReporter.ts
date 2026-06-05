@@ -21,6 +21,7 @@ import { getCurrentValue } from '../store/rxUtils';
 export type ClientEventPeerConnection = 'publish' | 'subscribe';
 
 export type ClientEventStage =
+  | 'JoinInitiated'
   | 'CoordinatorWS'
   | 'MediaDevicePermission'
   | 'CoordinatorJoin'
@@ -279,9 +280,9 @@ export class ClientEventReporter {
   startCorrelation = (callId: string) => {
     this.closeCallPairs(callId);
     this.joinAttemptIds.set(callId, generateUUIDv4());
-    // a fresh attempt (e.g. full rejoin) re-reports the first frame
     this.firstFrameReported.delete(`${callId}:FirstVideoFrame`);
     this.firstFrameReported.delete(`${callId}:FirstAudioFrame`);
+    this.emitJoinInitiated(callId);
     this.emitMediaPermission(callId);
   };
 
@@ -361,6 +362,24 @@ export class ClientEventReporter {
   private closeCallPairs = (callId: string) => {
     if (this.coordinatorPairs.get(callId)) this.failCoordinator(callId);
     if (this.wsPairs.get(callId)) this.failWs(callId);
+  };
+
+  private emitJoinInitiated = (callId: string) => {
+    const joinAttemptId = this.joinAttemptIds.get(callId);
+    if (!joinAttemptId) return;
+    const coordinatorConnectId = this.getCoordinatorConnectId();
+    this.send({
+      user_id: this.getUserId(),
+      stage: 'JoinInitiated',
+      join_attempt_id: joinAttemptId,
+      ...(coordinatorConnectId && {
+        coordinator_connect_id: coordinatorConnectId,
+      }),
+      timestamp: new Date().toISOString(),
+      user_agent: this.userAgent,
+      sdk_version: this.sdkVersion,
+      event_type: 'initiated',
+    });
   };
 
   private beginAttempt = (
