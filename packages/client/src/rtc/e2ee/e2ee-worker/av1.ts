@@ -2,8 +2,7 @@
  * AV1 E2EE: encrypt the coded-data OBU payloads of a temporal unit, leaving all
  * framing OBUs clear. Each encrypted OBU carries an inline header plus the GCM
  * tag inside its (resized) payload - no frame trailer. See ./av1-obu.ts for the
- * pure OBU parsing and the layer-salt helpers, and the design spec at
- * docs/superpowers/specs/2026-06-05-av1-e2ee-wire-format-design.md.
+ * pure OBU parsing and the layer-salt helpers.
  */
 import {
   AV1_INLINE_HEADER_LEN,
