@@ -222,12 +222,7 @@ export class ClientEventReporter {
     });
   };
 
-  reportFirstFrame = (
-    cid: string,
-    trackType: TrackType,
-    trackId: string,
-    sfuId?: string,
-  ) => {
+  reportFirstFrame = (cid: string, trackType: TrackType, trackId: string) => {
     const stage =
       trackType === TrackType.VIDEO
         ? 'FirstVideoFrame'
@@ -248,7 +243,7 @@ export class ClientEventReporter {
       joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
     };
 
-    const resolvedSfuId = sfuId || this.getSfuId(cid);
+    const resolvedSfuId = this.getSfuId(cid);
     this.send({
       ...this.buildCommon(cid, stage, pair),
       ...this.sessionIdField(cid),
