@@ -1140,6 +1140,7 @@ export class Call {
       callId: this.id,
       getCallSessionId: () => this.state.session?.id ?? '',
       getSfuId: () => this.credentials?.server.edge_name ?? '',
+      getUserSessionId: () => this.sfuClient?.sessionId ?? '',
     });
 
     return this.streamClient.clientEventReporter.withJoinLifecycle(

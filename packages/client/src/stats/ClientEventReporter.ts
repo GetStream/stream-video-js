@@ -49,6 +49,7 @@ export type CallReportContext = {
   callId: string;
   getCallSessionId: () => string;
   getSfuId: () => string;
+  getUserSessionId: () => string;
 };
 
 export type ClientEventReporterOptions = {
@@ -79,7 +80,7 @@ type StagePairState = {
   initiatedDelivery?: Promise<boolean>;
 };
 
-type PeerConnectionContext = {
+type PeerConnectionPairState = StagePairState & {
   sfuId: string;
   userSessionId: string;
   wasPreviouslyConnected: boolean;
@@ -103,8 +104,7 @@ export class ClientEventReporter {
   private joinAttemptIds = new Map<string, string>();
   private coordinatorPairs = new Map<string, StagePairState>();
   private wsPairs = new Map<string, StagePairState>();
-  private peerConnectionPairs = new Map<string, StagePairState>();
-  private peerConnectionContexts = new Map<string, PeerConnectionContext>();
+  private peerConnectionPairs = new Map<string, PeerConnectionPairState>();
   private pcEverConnected = new Map<string, boolean>();
   private firstFrameReported = new Set<string>();
 
@@ -274,7 +274,6 @@ export class ClientEventReporter {
     for (const role of ['publish', 'subscribe'] as const) {
       const key = pcKey(callId, role);
       this.peerConnectionPairs.delete(key);
-      this.peerConnectionContexts.delete(key);
       this.pcEverConnected.delete(key);
     }
   };
@@ -530,7 +529,7 @@ export class ClientEventReporter {
     const role: ClientEventPeerConnection =
       event.peerType === PeerType.SUBSCRIBER ? 'subscribe' : 'publish';
 
-    if (event.iceConnectionState === 'failed') {
+    if (event.stateType === 'ice' && event.state === 'failed') {
       this.emitPeerConnectionFailure(
         callId,
         role,
@@ -541,7 +540,7 @@ export class ClientEventReporter {
       return;
     }
 
-    if (event.peerConnectionState === 'failed') {
+    if (event.stateType === 'peerConnection' && event.state === 'failed') {
       this.emitPeerConnectionFailure(
         callId,
         role,
@@ -552,15 +551,14 @@ export class ClientEventReporter {
       return;
     }
 
-    switch (event.iceConnectionState) {
-      case 'checking':
-        this.openOrSupersedePeerConnectionPair(callId, role, {
-          sfuId: event.sfuId,
-          userSessionId: event.userSessionId,
-        });
+    if (event.stateType !== 'peerConnection') return;
+
+    switch (event.state) {
+      case 'connecting':
+        if (this.peerConnectionPairs.has(pcKey(callId, role))) return;
+        this.openPeerConnectionPair(callId, role);
         break;
       case 'connected':
-      case 'completed':
         this.emitPeerConnectionSuccess(callId, role);
         this.pcEverConnected.set(pcKey(callId, role), true);
         break;
@@ -569,45 +567,30 @@ export class ClientEventReporter {
     }
   };
 
-  private openOrSupersedePeerConnectionPair = (
+  private openPeerConnectionPair = (
     callId: string,
     role: ClientEventPeerConnection,
-    ctx: { sfuId: string; userSessionId: string },
   ) => {
     const key = pcKey(callId, role);
-    if (this.peerConnectionPairs.get(key)) {
-      this.emitPeerConnectionFailure(
-        callId,
-        role,
-        'ICE_CONNECTIVITY_FAILED',
-        'Superseded by new ICE attempt',
-        'NOT_CONNECTED',
-      );
-    }
-
-    const pcContext: PeerConnectionContext = {
-      sfuId: ctx.sfuId || this.getSfuId(callId),
-      userSessionId: ctx.userSessionId,
-      wasPreviouslyConnected: this.pcEverConnected.get(key) === true,
-    };
-
-    const pair: StagePairState = {
+    const pair: PeerConnectionPairState = {
       sid: generateUUIDv4(),
       attempts: 0,
       startedAt: Date.now(),
       joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
+      sfuId: this.getSfuId(callId),
+      userSessionId: this.getUserSessionId(callId),
+      wasPreviouslyConnected: this.pcEverConnected.get(key) === true,
     };
-    this.peerConnectionContexts.set(key, pcContext);
     this.peerConnectionPairs.set(key, pair);
 
     pair.initiatedDelivery = this.sendTracked({
       ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(callId),
       peer_connection: role,
-      was_previously_connected: pcContext.wasPreviouslyConnected,
-      ...(pcContext.sfuId && { sfu_id: pcContext.sfuId }),
-      ...(pcContext.userSessionId && {
-        user_session_id: pcContext.userSessionId,
+      was_previously_connected: pair.wasPreviouslyConnected,
+      ...(pair.sfuId && { sfu_id: pair.sfuId }),
+      ...(pair.userSessionId && {
+        user_session_id: pair.userSessionId,
       }),
       event_type: 'initiated',
     });
@@ -619,17 +602,16 @@ export class ClientEventReporter {
   ) => {
     const key = pcKey(callId, role);
     const pair = this.peerConnectionPairs.get(key);
-    const pcContext = this.peerConnectionContexts.get(key);
-    if (!pair || !pcContext) return;
+    if (!pair) return;
 
     this.sendCompleted(pair, {
       ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(callId),
       peer_connection: role,
-      was_previously_connected: pcContext.wasPreviouslyConnected,
-      ...(pcContext.sfuId && { sfu_id: pcContext.sfuId }),
-      ...(pcContext.userSessionId && {
-        user_session_id: pcContext.userSessionId,
+      was_previously_connected: pair.wasPreviouslyConnected,
+      ...(pair.sfuId && { sfu_id: pair.sfuId }),
+      ...(pair.userSessionId && {
+        user_session_id: pair.userSessionId,
       }),
       event_type: 'completed',
       outcome: 'success',
@@ -637,7 +619,6 @@ export class ClientEventReporter {
       elapsed_time: Date.now() - pair.startedAt,
     });
     this.peerConnectionPairs.delete(key);
-    this.peerConnectionContexts.delete(key);
   };
 
   private emitPeerConnectionFailure = (
@@ -649,36 +630,33 @@ export class ClientEventReporter {
   ) => {
     const key = pcKey(callId, role);
     const pair = this.peerConnectionPairs.get(key);
-    const pcContext = this.peerConnectionContexts.get(key);
-    if (!pair || !pcContext) return;
-
-    applyError(pair, { reason, code, severity: SEVERITY.SERVER });
-    const finalReason = pair.lastError?.reason ?? reason;
-    const finalCode = pair.lastError?.code ?? code;
+    if (!pair) return;
 
     this.sendCompleted(pair, {
       ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(callId),
       peer_connection: role,
-      was_previously_connected: pcContext.wasPreviouslyConnected,
-      ...(pcContext.userSessionId && {
-        user_session_id: pcContext.userSessionId,
+      was_previously_connected: pair.wasPreviouslyConnected,
+      ...(pair.userSessionId && {
+        user_session_id: pair.userSessionId,
       }),
-      ...(pcContext.sfuId && { sfu_id: pcContext.sfuId }),
+      ...(pair.sfuId && { sfu_id: pair.sfuId }),
       event_type: 'completed',
       outcome: 'failure',
       retry_count_attempt: 0,
       elapsed_time: Date.now() - pair.startedAt,
       ice_state: iceState,
-      retry_failure_reason: finalReason,
-      retry_failure_code: finalCode,
+      retry_failure_reason: reason,
+      retry_failure_code: code,
     });
     this.peerConnectionPairs.delete(key);
-    this.peerConnectionContexts.delete(key);
   };
 
   private getSfuId = (callId: string): string =>
     this.callContexts.get(callId)?.getSfuId() ?? '';
+
+  private getUserSessionId = (callId: string): string =>
+    this.callContexts.get(callId)?.getUserSessionId() ?? '';
 
   private sessionIdField = (callId: string): Record<string, unknown> => {
     const callSessionId =

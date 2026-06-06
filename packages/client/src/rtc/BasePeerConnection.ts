@@ -337,9 +337,10 @@ export abstract class BasePeerConnection {
   private onConnectionStateChange = async () => {
     const state = this.pc.connectionState;
     this.logger.debug(`Connection state changed`, state);
-    if (state === 'failed') {
-      this.fireOnPeerConnectionStateChange();
-    }
+    this.fireOnPeerConnectionStateChange({
+      stateType: 'peerConnection',
+      state,
+    });
     if (this.tracer && (state === 'connected' || state === 'failed')) {
       try {
         const stats = await this.stats.get();
@@ -368,18 +369,19 @@ export abstract class BasePeerConnection {
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
     this.logger.debug(`ICE connection state changed`, state);
-    this.fireOnPeerConnectionStateChange();
+    this.fireOnPeerConnectionStateChange({ stateType: 'ice', state });
     this.handleConnectionStateUpdate(state);
   };
 
-  private fireOnPeerConnectionStateChange = () => {
+  private fireOnPeerConnectionStateChange = (
+    event:
+      | { stateType: 'ice'; state: RTCIceConnectionState }
+      | { stateType: 'peerConnection'; state: RTCPeerConnectionState },
+  ) => {
     try {
       this.onPeerConnectionStateChange?.({
         peerType: this.peerType,
-        iceConnectionState: this.pc.iceConnectionState,
-        peerConnectionState: this.pc.connectionState,
-        sfuId: this.sfuClient.edgeName,
-        userSessionId: this.sfuClient.sessionId,
+        ...event,
       });
     } catch (err) {
       this.logger.warn('onPeerConnectionStateChange listener threw', err);

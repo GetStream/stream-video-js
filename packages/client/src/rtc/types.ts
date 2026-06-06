@@ -59,13 +59,17 @@ export type OnIceConnected = (peerType: PeerType) => void;
  * consumers (e.g. `ClientEventReporter`). Fired on every transition of
  * either `iceConnectionState` or `peerConnectionState`.
  */
-export type PeerConnectionStateChangeEvent = {
-  peerType: PeerType;
-  iceConnectionState: RTCIceConnectionState;
-  peerConnectionState: RTCPeerConnectionState;
-  sfuId: string;
-  userSessionId: string;
-};
+export type PeerConnectionStateChangeEvent =
+  | {
+      peerType: PeerType;
+      stateType: 'ice';
+      state: RTCIceConnectionState;
+    }
+  | {
+      peerType: PeerType;
+      stateType: 'peerConnection';
+      state: RTCPeerConnectionState;
+    };
 
 export type OnPeerConnectionStateChange = (
   event: PeerConnectionStateChangeEvent,
