@@ -1551,12 +1551,11 @@ export class Call {
           event,
         );
       },
-      onRemoteTrackUnmute: (trackType, trackId, sfuId) => {
+      onRemoteTrackUnmute: (trackType, trackId) => {
         this.streamClient.clientEventReporter.reportFirstFrame(
           this.cid,
           trackType,
           trackId,
-          sfuId,
         );
       },
     };

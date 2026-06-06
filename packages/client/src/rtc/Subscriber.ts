@@ -94,7 +94,7 @@ export class Subscriber extends BasePeerConnection {
     track.addEventListener('unmute', () => {
       this.logger.info(`[onTrack]: Track unmuted: ${trackDebugInfo}`);
       this.setRemoteTrackInterrupted(trackId, trackType, false);
-      this.onRemoteTrackUnmute?.(trackType, track.id, this.sfuClient.edgeName);
+      this.onRemoteTrackUnmute?.(trackType, track.id);
     });
     track.addEventListener('ended', () => {
       this.logger.info(`[onTrack]: Track ended: ${trackDebugInfo}`);
