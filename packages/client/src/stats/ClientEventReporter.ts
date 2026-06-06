@@ -681,24 +681,17 @@ export class ClientEventReporter {
     };
   };
 
-  // Fire-and-forget send for standalone events (no `initiated`/`completed`
-  // pairing, e.g. JoinInitiated, MediaDevicePermission, FirstFrame).
   private send = (body: Record<string, unknown>) => {
     if (this.disposed) return;
 
     void this.sendWithRetry(body);
   };
 
-  // Send and report whether it was actually delivered. Used to track the
-  // delivery of `initiated` events so the paired `completed` can be gated on it.
   private sendTracked = (body: Record<string, unknown>): Promise<boolean> => {
     if (this.disposed) return Promise.resolve(false);
     return this.sendWithRetry(body);
   };
 
-  // Emit a `completed` event only if its `initiated` was delivered. If the
-  // `initiated` never made it (e.g. dropped while offline), drop the
-  // `completed` too — losing both is preferable to an orphaned `completed`.
   private sendCompleted = (
     pair: StagePairState,
     body: Record<string, unknown>,
