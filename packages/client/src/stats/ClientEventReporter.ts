@@ -86,8 +86,8 @@ type PeerConnectionPairState = StagePairState & {
   wasPreviouslyConnected: boolean;
 };
 
-const pcKey = (callId: string, role: ClientEventPeerConnection): string =>
-  `${callId}:${role}`;
+const pcKey = (cid: string, role: ClientEventPeerConnection): string =>
+  `${cid}:${role}`;
 
 export class ClientEventReporter {
   private readonly logger = videoLoggerSystem.getLogger('ClientEventReporter');
@@ -199,19 +199,19 @@ export class ClientEventReporter {
     sdk_version: this.sdkVersion,
   });
 
-  private emitMediaPermission = (callId: string) => {
-    if (!this.callContexts.has(callId)) return;
+  private emitMediaPermission = (cid: string) => {
+    if (!this.callContexts.has(cid)) return;
 
     const pair: StagePairState = {
       sid: generateUUIDv4(),
       attempts: 0,
       startedAt: Date.now(),
-      joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
+      joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
     };
 
     this.send({
-      ...this.buildCommon(callId, 'MediaDevicePermission', pair),
-      ...this.sessionIdField(callId),
+      ...this.buildCommon(cid, 'MediaDevicePermission', pair),
+      ...this.sessionIdField(cid),
       microphone_permission_status: readPermissionStatus(
         getAudioBrowserPermission(),
       ),
@@ -223,7 +223,7 @@ export class ClientEventReporter {
   };
 
   reportFirstFrame = (
-    callId: string,
+    cid: string,
     trackType: TrackType,
     trackId: string,
     sfuId?: string,
@@ -236,7 +236,7 @@ export class ClientEventReporter {
           : undefined;
 
     if (!stage) return;
-    const key = `${callId}:${stage}`;
+    const key = `${cid}:${stage}`;
     if (this.firstFrameReported.has(key)) return;
 
     this.firstFrameReported.add(key);
@@ -245,79 +245,79 @@ export class ClientEventReporter {
       sid: generateUUIDv4(),
       attempts: 0,
       startedAt: Date.now(),
-      joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
+      joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
     };
 
-    const resolvedSfuId = sfuId || this.getSfuId(callId);
+    const resolvedSfuId = sfuId || this.getSfuId(cid);
     this.send({
-      ...this.buildCommon(callId, stage, pair),
-      ...this.sessionIdField(callId),
+      ...this.buildCommon(cid, stage, pair),
+      ...this.sessionIdField(cid),
       ...(resolvedSfuId && { sfu_id: resolvedSfuId }),
       track_id: trackId,
       event_type: 'initiated',
     });
   };
 
-  registerCall = (callId: string, ctx: CallReportContext) => {
-    this.callContexts.set(callId, ctx);
+  registerCall = (cid: string, ctx: CallReportContext) => {
+    this.callContexts.set(cid, ctx);
   };
 
-  unregisterCall = (callId: string) => {
-    this.callContexts.delete(callId);
-    this.joinAttemptIds.delete(callId);
-    this.coordinatorPairs.delete(callId);
-    this.wsPairs.delete(callId);
+  unregisterCall = (cid: string) => {
+    this.callContexts.delete(cid);
+    this.joinAttemptIds.delete(cid);
+    this.coordinatorPairs.delete(cid);
+    this.wsPairs.delete(cid);
 
-    this.firstFrameReported.delete(`${callId}:FirstVideoFrame`);
-    this.firstFrameReported.delete(`${callId}:FirstAudioFrame`);
+    this.firstFrameReported.delete(`${cid}:FirstVideoFrame`);
+    this.firstFrameReported.delete(`${cid}:FirstAudioFrame`);
 
     for (const role of ['publish', 'subscribe'] as const) {
-      const key = pcKey(callId, role);
+      const key = pcKey(cid, role);
       this.peerConnectionPairs.delete(key);
       this.pcEverConnected.delete(key);
     }
   };
 
-  startCorrelation = (callId: string) => {
-    this.closeCallPairs(callId);
-    this.joinAttemptIds.set(callId, generateUUIDv4());
-    this.firstFrameReported.delete(`${callId}:FirstVideoFrame`);
-    this.firstFrameReported.delete(`${callId}:FirstAudioFrame`);
-    this.emitJoinInitiated(callId);
-    this.emitMediaPermission(callId);
+  startCorrelation = (cid: string) => {
+    this.closeCallPairs(cid);
+    this.joinAttemptIds.set(cid, generateUUIDv4());
+    this.firstFrameReported.delete(`${cid}:FirstVideoFrame`);
+    this.firstFrameReported.delete(`${cid}:FirstAudioFrame`);
+    this.emitJoinInitiated(cid);
+    this.emitMediaPermission(cid);
   };
 
   withJoinLifecycle = async <T>(
-    callId: string,
+    cid: string,
     op: () => Promise<T>,
   ): Promise<T> => {
-    this.startCorrelation(callId);
+    this.startCorrelation(cid);
     try {
       return await op();
     } catch (err) {
-      this.closeCallPairs(callId);
+      this.closeCallPairs(cid);
       throw err;
     }
   };
 
   track = async <T>(
-    callId: string,
+    cid: string,
     stage: 'CoordinatorJoin' | 'WSJoin',
     op: () => Promise<T>,
   ): Promise<T> => {
-    this.beginAttempt(callId, stage);
+    this.beginAttempt(cid, stage);
     try {
       const result = await op();
-      this.succeedAttempt(callId, stage);
+      this.succeedAttempt(cid, stage);
       return result;
     } catch (err) {
-      this.applyStageError(callId, stage, err);
+      this.applyStageError(cid, stage, err);
       throw err;
     }
   };
 
-  captureWsError = (callId: string, opts: { code: string; reason: string }) => {
-    const pair = this.wsPairs.get(callId);
+  captureWsError = (cid: string, opts: { code: string; reason: string }) => {
+    const pair = this.wsPairs.get(cid);
     if (!pair) return;
 
     applyError(pair, {
@@ -327,32 +327,32 @@ export class ClientEventReporter {
     });
   };
 
-  close = (callId: string) => {
-    this.closeCallPairs(callId);
+  close = (cid: string) => {
+    this.closeCallPairs(cid);
   };
 
   abort = (
-    callId: string,
+    cid: string,
     opts: { code: 'CLIENT_ABORTED' | 'BACKEND_LEAVE'; reason: string },
   ) => {
     const { code, reason } = opts;
     const stageError: StageError = { code, reason, severity: SEVERITY.CLIENT };
 
-    applyError(this.coordinatorPairs.get(callId), stageError);
-    applyError(this.wsPairs.get(callId), stageError);
+    applyError(this.coordinatorPairs.get(cid), stageError);
+    applyError(this.wsPairs.get(cid), stageError);
 
-    this.failCoordinator(callId);
-    this.failWs(callId);
+    this.failCoordinator(cid);
+    this.failWs(cid);
 
     this.emitPeerConnectionFailure(
-      callId,
+      cid,
       'publish',
       code,
       reason,
       'NOT_CONNECTED',
     );
     this.emitPeerConnectionFailure(
-      callId,
+      cid,
       'subscribe',
       code,
       reason,
@@ -360,13 +360,13 @@ export class ClientEventReporter {
     );
   };
 
-  private closeCallPairs = (callId: string) => {
-    if (this.coordinatorPairs.get(callId)) this.failCoordinator(callId);
-    if (this.wsPairs.get(callId)) this.failWs(callId);
+  private closeCallPairs = (cid: string) => {
+    if (this.coordinatorPairs.get(cid)) this.failCoordinator(cid);
+    if (this.wsPairs.get(cid)) this.failWs(cid);
   };
 
-  private emitJoinInitiated = (callId: string) => {
-    const joinAttemptId = this.joinAttemptIds.get(callId);
+  private emitJoinInitiated = (cid: string) => {
+    const joinAttemptId = this.joinAttemptIds.get(cid);
     if (!joinAttemptId) return;
     const coordinatorConnectId = this.getCoordinatorConnectId();
     this.send({
@@ -383,76 +383,73 @@ export class ClientEventReporter {
     });
   };
 
-  private beginAttempt = (
-    callId: string,
-    stage: 'CoordinatorJoin' | 'WSJoin',
-  ) => {
-    if (stage === 'CoordinatorJoin') this.beginCoordinatorAttempt(callId);
-    else this.beginWsAttempt(callId);
+  private beginAttempt = (cid: string, stage: 'CoordinatorJoin' | 'WSJoin') => {
+    if (stage === 'CoordinatorJoin') this.beginCoordinatorAttempt(cid);
+    else this.beginWsAttempt(cid);
   };
 
   private succeedAttempt = (
-    callId: string,
+    cid: string,
     stage: 'CoordinatorJoin' | 'WSJoin',
   ) => {
-    if (stage === 'CoordinatorJoin') this.succeedCoordinator(callId);
-    else this.succeedWs(callId);
+    if (stage === 'CoordinatorJoin') this.succeedCoordinator(cid);
+    else this.succeedWs(cid);
   };
 
   private applyStageError = (
-    callId: string,
+    cid: string,
     stage: 'CoordinatorJoin' | 'WSJoin',
     err: unknown,
   ) => {
     if (stage === 'CoordinatorJoin') {
-      applyError(this.coordinatorPairs.get(callId), mapHttpError(err));
+      applyError(this.coordinatorPairs.get(cid), mapHttpError(err));
     } else {
-      applyError(this.wsPairs.get(callId), mapWsJoinError(err));
+      applyError(this.wsPairs.get(cid), mapWsJoinError(err));
     }
   };
 
-  private beginCoordinatorAttempt = (callId: string) => {
-    let pair = this.coordinatorPairs.get(callId);
+  private beginCoordinatorAttempt = (cid: string) => {
+    let pair = this.coordinatorPairs.get(cid);
     if (!pair) {
       pair = {
         sid: generateUUIDv4(),
         attempts: 0,
         startedAt: Date.now(),
-        joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
+        joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
       };
-      this.coordinatorPairs.set(callId, pair);
+      this.coordinatorPairs.set(cid, pair);
       pair.initiatedDelivery = this.sendTracked({
-        ...this.buildCommon(callId, 'CoordinatorJoin', pair),
+        ...this.buildCommon(cid, 'CoordinatorJoin', pair),
         event_type: 'initiated',
       });
     }
     pair.attempts++;
   };
 
-  private succeedCoordinator = (callId: string) => {
-    const pair = this.coordinatorPairs.get(callId);
+  private succeedCoordinator = (cid: string) => {
+    const pair = this.coordinatorPairs.get(cid);
     if (!pair) return;
     this.sendCompleted(pair, {
-      ...this.buildCommon(callId, 'CoordinatorJoin', pair),
-      ...this.sessionIdField(callId),
+      ...this.buildCommon(cid, 'CoordinatorJoin', pair),
+      ...this.sessionIdField(cid),
       event_type: 'completed',
       outcome: 'success',
       retry_count_attempt: pair.attempts - 1,
       elapsed_time: Date.now() - pair.startedAt,
     });
-    this.coordinatorPairs.delete(callId);
+    this.coordinatorPairs.delete(cid);
   };
 
-  private failCoordinator = (callId: string) => {
-    const pair = this.coordinatorPairs.get(callId);
+  private failCoordinator = (cid: string) => {
+    const pair = this.coordinatorPairs.get(cid);
     if (!pair || !pair.lastError) {
-      this.coordinatorPairs.delete(callId);
+      this.coordinatorPairs.delete(cid);
       return;
     }
     const { reason, code } = pair.lastError;
     this.sendCompleted(pair, {
-      ...this.buildCommon(callId, 'CoordinatorJoin', pair),
-      ...this.sessionIdField(callId),
+      ...this.buildCommon(cid, 'CoordinatorJoin', pair),
+      ...this.sessionIdField(cid),
       event_type: 'completed',
       outcome: 'failure',
       retry_count_attempt: pair.attempts - 1,
@@ -460,23 +457,23 @@ export class ClientEventReporter {
       retry_failure_reason: reason,
       retry_failure_code: code,
     });
-    this.coordinatorPairs.delete(callId);
+    this.coordinatorPairs.delete(cid);
   };
 
-  private beginWsAttempt = (callId: string) => {
-    let pair = this.wsPairs.get(callId);
+  private beginWsAttempt = (cid: string) => {
+    let pair = this.wsPairs.get(cid);
     if (!pair) {
       pair = {
         sid: generateUUIDv4(),
         attempts: 0,
         startedAt: Date.now(),
-        joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
+        joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
       };
-      this.wsPairs.set(callId, pair);
-      const sfuId = this.getSfuId(callId);
+      this.wsPairs.set(cid, pair);
+      const sfuId = this.getSfuId(cid);
       pair.initiatedDelivery = this.sendTracked({
-        ...this.buildCommon(callId, 'WSJoin', pair),
-        ...this.sessionIdField(callId),
+        ...this.buildCommon(cid, 'WSJoin', pair),
+        ...this.sessionIdField(cid),
         ...(sfuId && { sfu_id: sfuId }),
         event_type: 'initiated',
       });
@@ -484,33 +481,33 @@ export class ClientEventReporter {
     pair.attempts++;
   };
 
-  private succeedWs = (callId: string) => {
-    const pair = this.wsPairs.get(callId);
+  private succeedWs = (cid: string) => {
+    const pair = this.wsPairs.get(cid);
     if (!pair) return;
-    const sfuId = this.getSfuId(callId);
+    const sfuId = this.getSfuId(cid);
     this.sendCompleted(pair, {
-      ...this.buildCommon(callId, 'WSJoin', pair),
-      ...this.sessionIdField(callId),
+      ...this.buildCommon(cid, 'WSJoin', pair),
+      ...this.sessionIdField(cid),
       ...(sfuId && { sfu_id: sfuId }),
       event_type: 'completed',
       outcome: 'success',
       retry_count_attempt: pair.attempts - 1,
       elapsed_time: Date.now() - pair.startedAt,
     });
-    this.wsPairs.delete(callId);
+    this.wsPairs.delete(cid);
   };
 
-  private failWs = (callId: string) => {
-    const pair = this.wsPairs.get(callId);
+  private failWs = (cid: string) => {
+    const pair = this.wsPairs.get(cid);
     if (!pair || !pair.lastError) {
-      this.wsPairs.delete(callId);
+      this.wsPairs.delete(cid);
       return;
     }
     const { reason, code } = pair.lastError;
-    const sfuId = this.getSfuId(callId);
+    const sfuId = this.getSfuId(cid);
     this.sendCompleted(pair, {
-      ...this.buildCommon(callId, 'WSJoin', pair),
-      ...this.sessionIdField(callId),
+      ...this.buildCommon(cid, 'WSJoin', pair),
+      ...this.sessionIdField(cid),
       event_type: 'completed',
       outcome: 'failure',
       retry_count_attempt: pair.attempts - 1,
@@ -519,11 +516,11 @@ export class ClientEventReporter {
       retry_failure_reason: reason,
       retry_failure_code: code,
     });
-    this.wsPairs.delete(callId);
+    this.wsPairs.delete(cid);
   };
 
   onPeerConnectionStateChange = (
-    callId: string,
+    cid: string,
     event: PeerConnectionStateChangeEvent,
   ) => {
     const role: ClientEventPeerConnection =
@@ -531,7 +528,7 @@ export class ClientEventReporter {
 
     if (event.stateType === 'ice' && event.state === 'failed') {
       this.emitPeerConnectionFailure(
-        callId,
+        cid,
         role,
         'ICE_CONNECTIVITY_FAILED',
         'ICE connectivity checks failed',
@@ -542,7 +539,7 @@ export class ClientEventReporter {
 
     if (event.stateType === 'peerConnection' && event.state === 'failed') {
       this.emitPeerConnectionFailure(
-        callId,
+        cid,
         role,
         'DTLS_CONNECTIVITY_FAILED',
         'DTLS connectivity checks failed',
@@ -555,12 +552,12 @@ export class ClientEventReporter {
 
     switch (event.state) {
       case 'connecting':
-        if (this.peerConnectionPairs.has(pcKey(callId, role))) return;
-        this.openPeerConnectionPair(callId, role);
+        if (this.peerConnectionPairs.has(pcKey(cid, role))) return;
+        this.openPeerConnectionPair(cid, role);
         break;
       case 'connected':
-        this.emitPeerConnectionSuccess(callId, role);
-        this.pcEverConnected.set(pcKey(callId, role), true);
+        this.emitPeerConnectionSuccess(cid, role);
+        this.pcEverConnected.set(pcKey(cid, role), true);
         break;
       default:
         break;
@@ -568,24 +565,24 @@ export class ClientEventReporter {
   };
 
   private openPeerConnectionPair = (
-    callId: string,
+    cid: string,
     role: ClientEventPeerConnection,
   ) => {
-    const key = pcKey(callId, role);
+    const key = pcKey(cid, role);
     const pair: PeerConnectionPairState = {
       sid: generateUUIDv4(),
       attempts: 0,
       startedAt: Date.now(),
-      joinAttemptIdSnapshot: this.joinAttemptIds.get(callId),
-      sfuId: this.getSfuId(callId),
-      userSessionId: this.getUserSessionId(callId),
+      joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
+      sfuId: this.getSfuId(cid),
+      userSessionId: this.getUserSessionId(cid),
       wasPreviouslyConnected: this.pcEverConnected.get(key) === true,
     };
     this.peerConnectionPairs.set(key, pair);
 
     pair.initiatedDelivery = this.sendTracked({
-      ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
-      ...this.sessionIdField(callId),
+      ...this.buildCommon(cid, 'PeerConnectionConnect', pair),
+      ...this.sessionIdField(cid),
       peer_connection: role,
       was_previously_connected: pair.wasPreviouslyConnected,
       ...(pair.sfuId && { sfu_id: pair.sfuId }),
@@ -597,16 +594,16 @@ export class ClientEventReporter {
   };
 
   private emitPeerConnectionSuccess = (
-    callId: string,
+    cid: string,
     role: ClientEventPeerConnection,
   ) => {
-    const key = pcKey(callId, role);
+    const key = pcKey(cid, role);
     const pair = this.peerConnectionPairs.get(key);
     if (!pair) return;
 
     this.sendCompleted(pair, {
-      ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
-      ...this.sessionIdField(callId),
+      ...this.buildCommon(cid, 'PeerConnectionConnect', pair),
+      ...this.sessionIdField(cid),
       peer_connection: role,
       was_previously_connected: pair.wasPreviouslyConnected,
       ...(pair.sfuId && { sfu_id: pair.sfuId }),
@@ -622,19 +619,19 @@ export class ClientEventReporter {
   };
 
   private emitPeerConnectionFailure = (
-    callId: string,
+    cid: string,
     role: ClientEventPeerConnection,
     code: ClientEventStandardCode,
     reason: string,
     iceState: 'CONNECTED' | 'FAILED' | 'NOT_CONNECTED',
   ) => {
-    const key = pcKey(callId, role);
+    const key = pcKey(cid, role);
     const pair = this.peerConnectionPairs.get(key);
     if (!pair) return;
 
     this.sendCompleted(pair, {
-      ...this.buildCommon(callId, 'PeerConnectionConnect', pair),
-      ...this.sessionIdField(callId),
+      ...this.buildCommon(cid, 'PeerConnectionConnect', pair),
+      ...this.sessionIdField(cid),
       peer_connection: role,
       was_previously_connected: pair.wasPreviouslyConnected,
       ...(pair.userSessionId && {
@@ -652,15 +649,14 @@ export class ClientEventReporter {
     this.peerConnectionPairs.delete(key);
   };
 
-  private getSfuId = (callId: string): string =>
-    this.callContexts.get(callId)?.getSfuId() ?? '';
+  private getSfuId = (cid: string): string =>
+    this.callContexts.get(cid)?.getSfuId() ?? '';
 
-  private getUserSessionId = (callId: string): string =>
-    this.callContexts.get(callId)?.getUserSessionId() ?? '';
+  private getUserSessionId = (cid: string): string =>
+    this.callContexts.get(cid)?.getUserSessionId() ?? '';
 
-  private sessionIdField = (callId: string): Record<string, unknown> => {
-    const callSessionId =
-      this.callContexts.get(callId)?.getCallSessionId() ?? '';
+  private sessionIdField = (cid: string): Record<string, unknown> => {
+    const callSessionId = this.callContexts.get(cid)?.getCallSessionId() ?? '';
     return callSessionId ? { call_session_id: callSessionId } : {};
   };
 
