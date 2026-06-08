@@ -1136,6 +1136,7 @@ export class Call {
     }
   };
 
+  /** Runs a join attempt under client event reporting, starting a new join correlation (`joinReason`) before `op`. */
   private withJoinLifecycle = <T>(
     joinReason: JoinReason,
     op: () => Promise<T>,
@@ -1155,6 +1156,7 @@ export class Call {
     );
   };
 
+  /** Wraps the coordinator `JoinCall` request to emit the `CoordinatorJoin` reporting pair. */
   private trackCoordinatorJoin = <T>(op: () => Promise<T>): Promise<T> =>
     this.streamClient.clientEventReporter.track(
       this.cid,
@@ -1162,6 +1164,7 @@ export class Call {
       op,
     );
 
+  /** Wraps the SFU signaling WebSocket join to emit the `WSJoin` reporting pair. */
   private trackWsJoin = <T>(op: () => Promise<T>): Promise<T> => {
     return this.streamClient.clientEventReporter.track(this.cid, 'WSJoin', op);
   };
