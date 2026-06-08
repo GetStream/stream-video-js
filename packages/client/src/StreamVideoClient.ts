@@ -297,7 +297,7 @@ export class StreamVideoClient {
     }
 
     const reporter = this.streamClient.clientEventReporter;
-    reporter.mintCoordinatorConnectId();
+    reporter.startCoordinatorConnection();
 
     const connectUserResponse = await withoutConcurrency(
       this.connectionConcurrencyTag,

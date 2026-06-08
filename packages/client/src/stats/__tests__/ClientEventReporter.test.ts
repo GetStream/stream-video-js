@@ -32,7 +32,7 @@ describe('ClientEventReporter', () => {
       getSdkVersion: () => '1.0.0',
     });
     reporter = new ClientEventReporter({ streamClient });
-    connectId = reporter.mintCoordinatorConnectId();
+    connectId = reporter.startCoordinatorConnection();
 
     const ctx: CallReportContext = {
       callType: 'default',

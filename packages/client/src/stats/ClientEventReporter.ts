@@ -108,15 +108,17 @@ export class ClientEventReporter {
   private joinReasons = new Map<string, JoinReason>();
   private coordinatorPairs = new Map<string, StagePairState>();
   private wsPairs = new Map<string, StagePairState>();
+
   private peerConnectionPairs = new Map<string, PeerConnectionPairState>();
   private pcEverConnected = new Map<string, boolean>();
+
   private firstFrameReported = new Set<string>();
 
   constructor(options: ClientEventReporterOptions) {
     this.streamClient = options.streamClient;
   }
 
-  mintCoordinatorConnectId = (): string => {
+  startCoordinatorConnection = (): string => {
     this.coordinatorConnectId = generateUUIDv4();
     return this.coordinatorConnectId;
   };
@@ -126,11 +128,43 @@ export class ClientEventReporter {
     try {
       const result = await op();
       this.succeedCoordinatorWs();
+
       return result;
     } catch (err) {
       applyError(this.coordinatorWsPair, mapHttpError(err));
       throw err;
     }
+  };
+
+  private beginCoordinatorWs = () => {
+    if (!this.coordinatorWsPair) {
+      this.coordinatorWsPair = {
+        sid: generateUUIDv4(),
+        attempts: 0,
+        startedAt: Date.now(),
+        userIdSnapshot: this.streamClient.userID,
+      };
+      this.coordinatorWsPair.initiatedDelivery = this.sendTracked({
+        ...this.buildCoordinatorWsCommon(this.coordinatorWsPair),
+        event_type: 'initiated',
+      });
+    }
+
+    this.coordinatorWsPair.attempts++;
+  };
+
+  private succeedCoordinatorWs = () => {
+    const pair = this.coordinatorWsPair;
+    if (!pair) return;
+    this.sendCompleted(pair, {
+      ...this.buildCoordinatorWsCommon(pair),
+      event_type: 'completed',
+      outcome: 'success',
+      retry_count_attempt: pair.attempts - 1,
+      elapsed_time: Date.now() - pair.startedAt,
+    });
+
+    this.coordinatorWsPair = undefined;
   };
 
   closeCoordinatorWs = () => {
@@ -154,35 +188,6 @@ export class ClientEventReporter {
     this.coordinatorWsPair = undefined;
   };
 
-  private beginCoordinatorWs = () => {
-    if (!this.coordinatorWsPair) {
-      this.coordinatorWsPair = {
-        sid: generateUUIDv4(),
-        attempts: 0,
-        startedAt: Date.now(),
-        userIdSnapshot: this.streamClient.userID,
-      };
-      this.coordinatorWsPair.initiatedDelivery = this.sendTracked({
-        ...this.buildCoordinatorWsCommon(this.coordinatorWsPair),
-        event_type: 'initiated',
-      });
-    }
-    this.coordinatorWsPair.attempts++;
-  };
-
-  private succeedCoordinatorWs = () => {
-    const pair = this.coordinatorWsPair;
-    if (!pair) return;
-    this.sendCompleted(pair, {
-      ...this.buildCoordinatorWsCommon(pair),
-      event_type: 'completed',
-      outcome: 'success',
-      retry_count_attempt: pair.attempts - 1,
-      elapsed_time: Date.now() - pair.startedAt,
-    });
-    this.coordinatorWsPair = undefined;
-  };
-
   private buildCoordinatorWsCommon = (
     pair: StagePairState,
   ): Record<string, unknown> => ({
@@ -198,8 +203,7 @@ export class ClientEventReporter {
   });
 
   private emitMediaPermission = (cid: string) => {
-    if (!this.callContexts.has(cid)) return;
-    if (isReactNative()) return;
+    if (isReactNative() || !this.callContexts.has(cid)) return;
 
     const pair: StagePairState = {
       sid: generateUUIDv4(),
@@ -217,37 +221,6 @@ export class ClientEventReporter {
       camera_permission_status: readPermissionStatus(
         getVideoBrowserPermission(),
       ),
-      event_type: 'initiated',
-    });
-  };
-
-  reportFirstFrame = (cid: string, trackType: TrackType, trackId: string) => {
-    const stage =
-      trackType === TrackType.VIDEO
-        ? 'FirstVideoFrame'
-        : trackType === TrackType.AUDIO
-          ? 'FirstAudioFrame'
-          : undefined;
-
-    if (!stage) return;
-    const key = `${cid}:${stage}`;
-    if (this.firstFrameReported.has(key)) return;
-
-    this.firstFrameReported.add(key);
-
-    const pair: StagePairState = {
-      sid: generateUUIDv4(),
-      attempts: 0,
-      startedAt: Date.now(),
-      joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
-    };
-
-    const resolvedSfuId = this.getSfuId(cid);
-    this.send({
-      ...this.buildCommon(cid, stage, pair),
-      ...this.sessionIdField(cid),
-      ...(resolvedSfuId && { sfu_id: resolvedSfuId }),
-      track_id: trackId,
       event_type: 'initiated',
     });
   };
@@ -317,6 +290,38 @@ export class ClientEventReporter {
       this.applyStageError(cid, stage, err);
       throw err;
     }
+  };
+
+  reportFirstFrame = (cid: string, trackType: TrackType, trackId: string) => {
+    const stage =
+      trackType === TrackType.VIDEO
+        ? 'FirstVideoFrame'
+        : trackType === TrackType.AUDIO
+          ? 'FirstAudioFrame'
+          : undefined;
+
+    if (!stage) return;
+
+    const key = `${cid}:${stage}`;
+    if (this.firstFrameReported.has(key)) return;
+
+    this.firstFrameReported.add(key);
+
+    const pair: StagePairState = {
+      sid: generateUUIDv4(),
+      attempts: 0,
+      startedAt: Date.now(),
+      joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
+    };
+
+    const resolvedSfuId = this.getSfuId(cid);
+    this.send({
+      ...this.buildCommon(cid, stage, pair),
+      ...this.sessionIdField(cid),
+      ...(resolvedSfuId && { sfu_id: resolvedSfuId }),
+      track_id: trackId,
+      event_type: 'initiated',
+    });
   };
 
   captureWsError = (cid: string, opts: { code: string; reason: string }) => {
@@ -498,6 +503,7 @@ export class ClientEventReporter {
         event_type: 'initiated',
       });
     }
+
     pair.attempts++;
   };
 
@@ -514,6 +520,7 @@ export class ClientEventReporter {
       retry_count_attempt: pair.attempts - 1,
       elapsed_time: Date.now() - pair.startedAt,
     });
+
     this.wsPairs.delete(cid);
   };
 
@@ -523,8 +530,10 @@ export class ClientEventReporter {
       this.wsPairs.delete(cid);
       return;
     }
+
     const { reason, code } = pair.lastError;
     const sfuId = this.getSfuId(cid);
+
     this.sendCompleted(pair, {
       ...this.buildCommon(cid, 'WSJoin', pair),
       ...this.sessionIdField(cid),
