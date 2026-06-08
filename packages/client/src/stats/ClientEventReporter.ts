@@ -99,7 +99,6 @@ export class ClientEventReporter {
   private readonly logger = videoLoggerSystem.getLogger('ClientEventReporter');
 
   private streamClient: StreamClient;
-  private disposed = false;
 
   private coordinatorConnectId?: string;
   private coordinatorWsPair?: StagePairState;
@@ -375,6 +374,9 @@ export class ClientEventReporter {
   private closeCallPairs = (cid: string) => {
     if (this.coordinatorPairs.get(cid)) this.failCoordinator(cid);
     if (this.wsPairs.get(cid)) this.failWs(cid);
+    for (const role of ['publish', 'subscribe'] as const) {
+      this.peerConnectionPairs.delete(pcKey(cid, role));
+    }
   };
 
   private emitJoinInitiated = (cid: string) => {
@@ -705,15 +707,11 @@ export class ClientEventReporter {
   };
 
   private send = (body: Record<string, unknown>) => {
-    if (this.disposed) return;
-
     void this.sendWithRetry(body);
   };
 
-  private sendTracked = (body: Record<string, unknown>): Promise<boolean> => {
-    if (this.disposed) return Promise.resolve(false);
-    return this.sendWithRetry(body);
-  };
+  private sendTracked = (body: Record<string, unknown>): Promise<boolean> =>
+    this.sendWithRetry(body);
 
   private sendCompleted = (
     pair: StagePairState,
@@ -736,8 +734,6 @@ export class ClientEventReporter {
     body: Record<string, unknown>,
   ): Promise<boolean> => {
     for (let attempt = 0; attempt < 5; attempt++) {
-      if (this.disposed) return false;
-
       try {
         await this.streamClient.doAxiosRequest(
           'post',

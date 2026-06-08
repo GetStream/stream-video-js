@@ -301,4 +301,36 @@ describe('ClientEventReporter', () => {
       ice_state: 'FAILED',
     });
   });
+
+  it('opens a fresh peer connection pair after a new correlation', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    reporter.onPeerConnectionStateChange(cid, {
+      peerType: PeerType.PUBLISHER_UNSPECIFIED,
+      stateType: 'peerConnection',
+      state: 'connecting',
+    });
+
+    reporter.startCorrelation(cid, 'full-rejoin');
+    reporter.onPeerConnectionStateChange(cid, {
+      peerType: PeerType.PUBLISHER_UNSPECIFIED,
+      stateType: 'peerConnection',
+      state: 'connecting',
+    });
+    reporter.onPeerConnectionStateChange(cid, {
+      peerType: PeerType.PUBLISHER_UNSPECIFIED,
+      stateType: 'peerConnection',
+      state: 'connected',
+    });
+    await flush();
+
+    const pc = postedEvents().filter(
+      (e) => e.stage === 'PeerConnectionConnect',
+    );
+    const initiated = pc.filter((e) => e.event_type === 'initiated');
+    const completed = pc.filter((e) => e.event_type === 'completed');
+
+    expect(initiated).toHaveLength(2);
+    expect(completed).toHaveLength(1);
+    expect(completed[0].stage_id).toBe(initiated[1].stage_id);
+  });
 });
