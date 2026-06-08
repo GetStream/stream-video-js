@@ -1,4 +1,5 @@
 import { ErrorCode, PeerType, TrackType } from '../gen/video/sfu/models/models';
+import { ErrorFromResponse } from '../coordinator/connection/types';
 import type { StreamClient } from '../coordinator/connection/client';
 import {
   generateUUIDv4,
@@ -801,16 +802,20 @@ const applyError = (pair: StagePairState | undefined, next: StageError) => {
 
 const mapHttpError = (err: unknown): StageError => {
   const reason = errorMessage(err);
-  const status = (err as { response?: { status?: number } })?.response?.status;
 
   if (isTimeout(err)) {
     return { reason, code: 'REQUEST_TIMEOUT', severity: SEVERITY.TRANSPORT };
   }
-  if (typeof status === 'number' && status >= 500) {
-    return { reason, code: `HTTP_${status}`, severity: SEVERITY.SERVER };
+
+  if (err instanceof ErrorFromResponse) {
+    return {
+      reason: `HTTP ${err.status}: ${err.message}`,
+      code: err.code != null ? String(err.code) : 'SERVER_ERROR',
+      severity: SEVERITY.SERVER,
+    };
   }
 
-  return { reason, code: 'NETWORK_ERROR', severity: SEVERITY.TRANSPORT };
+  return { reason, code: 'NETWORK_OFFLINE', severity: SEVERITY.TRANSPORT };
 };
 
 const mapWsJoinError = (err: unknown): StageError => {

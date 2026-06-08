@@ -3,6 +3,8 @@ import { fromPartial } from '@total-typescript/shoehorn';
 import { of } from 'rxjs';
 import { ClientEventReporter, CallReportContext } from '../ClientEventReporter';
 import type { StreamClient } from '../../coordinator/connection/client';
+import { ErrorFromResponse } from '../../coordinator/connection/types';
+import type { AxiosResponse } from 'axios';
 import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
 
 vi.mock('../../devices', () => ({
@@ -168,7 +170,31 @@ describe('ClientEventReporter', () => {
     expect(completed).toHaveLength(1);
     expect(completed[0]).toMatchObject({
       outcome: 'failure',
-      retry_failure_code: 'NETWORK_ERROR',
+      retry_failure_code: 'NETWORK_OFFLINE',
+    });
+  });
+
+  it('forwards the backend error code and status on a server error', async () => {
+    const err = new ErrorFromResponse({
+      message: 'server boom',
+      code: 16,
+      status: 500,
+      response: fromPartial<AxiosResponse>({}),
+      unrecoverable: false,
+    });
+    await expect(
+      reporter.trackCoordinatorWs(() => Promise.reject(err)),
+    ).rejects.toBe(err);
+    reporter.closeCoordinatorWs();
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) => e.stage === 'CoordinatorWS' && e.event_type === 'completed',
+    );
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      retry_failure_code: '16',
+      retry_failure_reason: 'HTTP 500: server boom',
     });
   });
 
