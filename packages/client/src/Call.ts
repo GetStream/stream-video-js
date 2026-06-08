@@ -762,7 +762,6 @@ export class Call {
         reason: leaveReason,
       });
 
-      this.subscriber?.dispose();
       this.subscriber = undefined;
 
       await this.publisher?.dispose();
