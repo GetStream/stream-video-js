@@ -115,11 +115,6 @@ export class ClientEventReporter {
     this.streamClient = options.streamClient;
   }
 
-  private getUserId = (): string => this.streamClient.userID ?? '';
-
-  private getCoordinatorConnectId = (): string =>
-    this.coordinatorConnectId ?? '';
-
   mintCoordinatorConnectId = (): string => {
     this.coordinatorConnectId = generateUUIDv4();
     return this.coordinatorConnectId;
@@ -164,7 +159,7 @@ export class ClientEventReporter {
         sid: generateUUIDv4(),
         attempts: 0,
         startedAt: Date.now(),
-        userIdSnapshot: this.getUserId(),
+        userIdSnapshot: this.streamClient.userID,
       };
       this.coordinatorWsPair.initiatedDelivery = this.sendTracked({
         ...this.buildCoordinatorWsCommon(this.coordinatorWsPair),
@@ -190,7 +185,7 @@ export class ClientEventReporter {
   private buildCoordinatorWsCommon = (
     pair: StagePairState,
   ): Record<string, unknown> => ({
-    user_id: pair.userIdSnapshot ?? this.getUserId(),
+    user_id: pair.userIdSnapshot ?? this.streamClient.userID,
     stage: 'CoordinatorWS',
     stage_id: pair.sid,
     ...(this.coordinatorConnectId && {
@@ -370,9 +365,9 @@ export class ClientEventReporter {
   private emitJoinInitiated = (cid: string) => {
     const joinAttemptId = this.joinAttemptIds.get(cid);
     if (!joinAttemptId) return;
-    const coordinatorConnectId = this.getCoordinatorConnectId();
+    const coordinatorConnectId = this.coordinatorConnectId;
     this.send({
-      user_id: this.getUserId(),
+      user_id: this.streamClient.userID,
       stage: 'JoinInitiated',
       join_attempt_id: joinAttemptId,
       ...(coordinatorConnectId && {
@@ -674,9 +669,9 @@ export class ClientEventReporter {
     pair: StagePairState,
   ): Record<string, unknown> => {
     const ctx = this.callContexts.get(cid);
-    const coordinatorConnectId = this.getCoordinatorConnectId();
+    const coordinatorConnectId = this.coordinatorConnectId;
     return {
-      user_id: this.getUserId(),
+      user_id: this.streamClient.userID,
       type: ctx?.callType ?? '',
       id: ctx?.callId ?? '',
       call_cid: cid,
