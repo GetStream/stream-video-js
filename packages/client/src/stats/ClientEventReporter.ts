@@ -89,7 +89,7 @@ const pcKey = (cid: string, role: ClientEventPeerConnection): string =>
 export class ClientEventReporter {
   private readonly logger = videoLoggerSystem.getLogger('ClientEventReporter');
 
-  private readonly streamClient: StreamClient;
+  private streamClient: StreamClient;
   private disposed = false;
 
   private coordinatorConnectId?: string;
