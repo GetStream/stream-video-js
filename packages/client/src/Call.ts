@@ -151,6 +151,7 @@ import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
+import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { ViewportTracker } from './helpers/ViewportTracker';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
@@ -1560,6 +1561,8 @@ export class Call {
         );
       },
       onRemoteTrackUnmute: (trackType, trackId) => {
+        if (trackType !== TrackType.AUDIO) return;
+
         this.streamClient.clientEventReporter.reportFirstFrame(
           this.cid,
           trackType,
@@ -3224,18 +3227,56 @@ export class Call {
     sessionId: string,
     trackType: VideoTrackType,
   ) => {
-    const unbind = this.dynascaleManager?.bindVideoElement(
+    const unbindDynascale = this.dynascaleManager?.bindVideoElement(
       videoElement,
       sessionId,
       trackType,
     );
 
-    if (!unbind) return;
+    const stopFirstFrameDetector = this.bindFirstVideoFrameDetector(
+      videoElement,
+      sessionId,
+      trackType,
+    );
+
+    if (!unbindDynascale && !stopFirstFrameDetector) return;
+
+    const unbind = () => {
+      stopFirstFrameDetector?.();
+      unbindDynascale?.();
+    };
+
     this.leaveCallHooks.add(unbind);
     return () => {
       this.leaveCallHooks.delete(unbind);
       unbind();
     };
+  };
+
+  private bindFirstVideoFrameDetector = (
+    videoElement: HTMLVideoElement,
+    sessionId: string,
+    trackType: VideoTrackType,
+  ) => {
+    if (trackType !== 'videoTrack') return;
+
+    return createFirstVideoFrameDetector(videoElement, () => {
+      this.reportFirstRenderedVideoFrame(sessionId);
+    });
+  };
+
+  private reportFirstRenderedVideoFrame = (sessionId: string) => {
+    const participant = this.state.findParticipantBySessionId(sessionId);
+    if (participant?.isLocalParticipant) return;
+
+    const trackId = participant?.videoStream?.getVideoTracks()[0]?.id;
+    if (!trackId) return;
+
+    this.streamClient.clientEventReporter.reportFirstFrame(
+      this.cid,
+      TrackType.VIDEO,
+      trackId,
+    );
   };
 
   /**
