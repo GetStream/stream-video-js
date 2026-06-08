@@ -36,6 +36,12 @@ export type MediaPermissionState =
   | 'GRANTED'
   | 'NOT_INITIATED';
 
+export type JoinReason =
+  | 'first-attempt'
+  | 'network-available'
+  | 'migration'
+  | 'full-rejoin';
+
 export type ClientEventStandardCode =
   | 'CLIENT_ABORTED'
   | 'BACKEND_LEAVE'
@@ -72,6 +78,7 @@ type StagePairState = {
   attempts: number;
   startedAt: number;
   joinAttemptIdSnapshot?: string;
+  joinReasonSnapshot?: JoinReason;
   userIdSnapshot?: string;
   lastError?: StageError;
   initiatedDelivery?: Promise<boolean>;
@@ -97,6 +104,7 @@ export class ClientEventReporter {
 
   private callContexts = new Map<string, CallReportContext>();
   private joinAttemptIds = new Map<string, string>();
+  private joinReasons = new Map<string, JoinReason>();
   private coordinatorPairs = new Map<string, StagePairState>();
   private wsPairs = new Map<string, StagePairState>();
   private peerConnectionPairs = new Map<string, PeerConnectionPairState>();
@@ -253,6 +261,7 @@ export class ClientEventReporter {
   unregisterCall = (cid: string) => {
     this.callContexts.delete(cid);
     this.joinAttemptIds.delete(cid);
+    this.joinReasons.delete(cid);
     this.coordinatorPairs.delete(cid);
     this.wsPairs.delete(cid);
 
@@ -266,9 +275,10 @@ export class ClientEventReporter {
     }
   };
 
-  startCorrelation = (cid: string) => {
+  startCorrelation = (cid: string, joinReason: JoinReason) => {
     this.closeCallPairs(cid);
     this.joinAttemptIds.set(cid, generateUUIDv4());
+    this.joinReasons.set(cid, joinReason);
     this.firstFrameReported.delete(`${cid}:FirstVideoFrame`);
     this.firstFrameReported.delete(`${cid}:FirstAudioFrame`);
     this.emitJoinInitiated(cid);
@@ -277,9 +287,10 @@ export class ClientEventReporter {
 
   withJoinLifecycle = async <T>(
     cid: string,
+    joinReason: JoinReason,
     op: () => Promise<T>,
   ): Promise<T> => {
-    this.startCorrelation(cid);
+    this.startCorrelation(cid, joinReason);
     try {
       return await op();
     } catch (err) {
@@ -404,10 +415,14 @@ export class ClientEventReporter {
         attempts: 0,
         startedAt: Date.now(),
         joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
+        joinReasonSnapshot: this.joinReasons.get(cid),
       };
       this.coordinatorPairs.set(cid, pair);
       pair.initiatedDelivery = this.sendTracked({
         ...this.buildCommon(cid, 'CoordinatorJoin', pair),
+        ...(pair.joinReasonSnapshot && {
+          join_reason: pair.joinReasonSnapshot,
+        }),
         event_type: 'initiated',
       });
     }
@@ -420,6 +435,7 @@ export class ClientEventReporter {
     this.sendCompleted(pair, {
       ...this.buildCommon(cid, 'CoordinatorJoin', pair),
       ...this.sessionIdField(cid),
+      ...(pair.joinReasonSnapshot && { join_reason: pair.joinReasonSnapshot }),
       event_type: 'completed',
       outcome: 'success',
       retry_count_attempt: pair.attempts - 1,
@@ -438,6 +454,7 @@ export class ClientEventReporter {
     this.sendCompleted(pair, {
       ...this.buildCommon(cid, 'CoordinatorJoin', pair),
       ...this.sessionIdField(cid),
+      ...(pair.joinReasonSnapshot && { join_reason: pair.joinReasonSnapshot }),
       event_type: 'completed',
       outcome: 'failure',
       retry_count_attempt: pair.attempts - 1,

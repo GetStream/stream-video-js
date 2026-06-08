@@ -43,7 +43,7 @@ describe('ClientEventReporter', () => {
   });
 
   it('emits an initiated then a completed event on success', async () => {
-    reporter.startCorrelation(cid);
+    reporter.startCorrelation(cid, 'first-attempt');
     await reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok'));
     await flush();
 
@@ -54,19 +54,32 @@ describe('ClientEventReporter', () => {
       call_cid: cid,
       user_id: 'user-1',
       coordinator_connect_id: connectId,
+      join_reason: 'first-attempt',
     });
     expect(events[1]).toMatchObject({
       event_type: 'completed',
       outcome: 'success',
       retry_count_attempt: 0,
+      join_reason: 'first-attempt',
     });
 
     expect(events[0].stage_id).toBe(events[1].stage_id);
     expect(events[0].join_attempt_id).toBeTruthy();
   });
 
+  it('carries the join_reason given to startCorrelation', async () => {
+    reporter.startCorrelation(cid, 'migration');
+    await reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok'));
+    await flush();
+
+    const events = postedEvents().filter((e) => e.stage === 'CoordinatorJoin');
+    expect(events).toHaveLength(2);
+    expect(events[0]).toMatchObject({ join_reason: 'migration' });
+    expect(events[1]).toMatchObject({ join_reason: 'migration' });
+  });
+
   it('folds in-stage retries into a single pair', async () => {
-    reporter.startCorrelation(cid);
+    reporter.startCorrelation(cid, 'first-attempt');
     await expect(
       reporter.track(cid, 'CoordinatorJoin', () =>
         Promise.reject(new Error('boom')),
@@ -88,7 +101,7 @@ describe('ClientEventReporter', () => {
   });
 
   it('emits a failure completion on abort', async () => {
-    reporter.startCorrelation(cid);
+    reporter.startCorrelation(cid, 'first-attempt');
     void reporter.track(cid, 'CoordinatorJoin', () => new Promise(() => {}));
     reporter.abort(cid, { code: 'CLIENT_ABORTED', reason: 'user left' });
     await flush();
@@ -106,7 +119,7 @@ describe('ClientEventReporter', () => {
   });
 
   it('emits a JoinInitiated event when correlation starts', async () => {
-    reporter.startCorrelation(cid);
+    reporter.startCorrelation(cid, 'first-attempt');
     await flush();
 
     const join = postedEvents().filter((e) => e.stage === 'JoinInitiated');
@@ -160,7 +173,7 @@ describe('ClientEventReporter', () => {
   });
 
   it('includes sfu_id and call_session_id on a WSJoin completion', async () => {
-    reporter.startCorrelation(cid);
+    reporter.startCorrelation(cid, 'first-attempt');
     await reporter.track(cid, 'WSJoin', () => Promise.resolve('ok'));
     await flush();
 
@@ -175,7 +188,7 @@ describe('ClientEventReporter', () => {
   });
 
   it('reports media device permission status on correlation start', async () => {
-    reporter.startCorrelation(cid);
+    reporter.startCorrelation(cid, 'first-attempt');
     await flush();
 
     const perm = postedEvents().filter(
@@ -190,7 +203,7 @@ describe('ClientEventReporter', () => {
   });
 
   it('reports the first video frame only once', async () => {
-    reporter.startCorrelation(cid);
+    reporter.startCorrelation(cid, 'first-attempt');
     reporter.reportFirstFrame(cid, TrackType.VIDEO, 'track-1');
     reporter.reportFirstFrame(cid, TrackType.VIDEO, 'track-1');
     await flush();
@@ -205,7 +218,7 @@ describe('ClientEventReporter', () => {
   });
 
   it('tracks a publisher peer connection connect', async () => {
-    reporter.startCorrelation(cid);
+    reporter.startCorrelation(cid, 'first-attempt');
     reporter.onPeerConnectionStateChange(cid, {
       peerType: PeerType.PUBLISHER_UNSPECIFIED,
       stateType: 'peerConnection',
@@ -237,7 +250,7 @@ describe('ClientEventReporter', () => {
   });
 
   it('reports an ICE failure on the peer connection', async () => {
-    reporter.startCorrelation(cid);
+    reporter.startCorrelation(cid, 'first-attempt');
     reporter.onPeerConnectionStateChange(cid, {
       peerType: PeerType.SUBSCRIBER,
       stateType: 'peerConnection',

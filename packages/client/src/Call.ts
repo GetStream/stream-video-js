@@ -142,6 +142,7 @@ import {
 import {
   createStatsReporter,
   getSdkSignature,
+  JoinReason,
   SfuStatsReporter,
   StatsReporter,
   Tracer,
@@ -1085,7 +1086,7 @@ export class Call {
     const joinData: JoinCallData = data;
     maxJoinRetries = Math.max(maxJoinRetries, 1);
     try {
-      await this.withJoinLifecycle(async () => {
+      await this.withJoinLifecycle('first-attempt', async () => {
         for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
           try {
             this.logger.trace(`Joining call (${attempt})`, this.cid);
@@ -1117,6 +1118,7 @@ export class Call {
                 );
                 this.streamClient.clientEventReporter.startCorrelation(
                   this.cid,
+                  'first-attempt',
                 );
               }
             }
@@ -1134,7 +1136,10 @@ export class Call {
     }
   };
 
-  private withJoinLifecycle = <T>(op: () => Promise<T>): Promise<T> => {
+  private withJoinLifecycle = <T>(
+    joinReason: JoinReason,
+    op: () => Promise<T>,
+  ): Promise<T> => {
     this.streamClient.clientEventReporter.registerCall(this.cid, {
       callType: this.type,
       callId: this.id,
@@ -1145,6 +1150,7 @@ export class Call {
 
     return this.streamClient.clientEventReporter.withJoinLifecycle(
       this.cid,
+      joinReason,
       op,
     );
   };
@@ -1914,7 +1920,13 @@ export class Call {
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
-    await this.withJoinLifecycle(() => this.doJoin(this.joinCallData));
+    const joinReason: JoinReason =
+      this.reconnectReason === ReconnectReason.NETWORK_BACK_ONLINE
+        ? 'network-available'
+        : 'full-rejoin';
+    await this.withJoinLifecycle(joinReason, () =>
+      this.doJoin(this.joinCallData),
+    );
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
     this.sfuStatsReporter?.sendReconnectionTime(
@@ -1946,7 +1958,7 @@ export class Call {
 
     try {
       const currentSfu = currentSfuClient.edgeName;
-      await this.withJoinLifecycle(() =>
+      await this.withJoinLifecycle('migration', () =>
         this.doJoin({
           ...this.joinCallData,
           migrating_from: currentSfu,
