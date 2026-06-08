@@ -7,6 +7,7 @@ import {
   sleep,
 } from '../coordinator/connection/utils';
 import { SfuJoinError } from '../errors';
+import { isReactNative } from '../helpers/platforms';
 import { videoLoggerSystem } from '../logger';
 import type { PeerConnectionStateChangeEvent } from '../rtc';
 import {
@@ -199,6 +200,7 @@ export class ClientEventReporter {
 
   private emitMediaPermission = (cid: string) => {
     if (!this.callContexts.has(cid)) return;
+    if (isReactNative()) return;
 
     const pair: StagePairState = {
       sid: generateUUIDv4(),
