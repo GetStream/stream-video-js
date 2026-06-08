@@ -2040,10 +2040,6 @@ export class Call {
         this.tracer.trace('network.changed', e);
         if (!e.online) {
           this.logger.debug('[Reconnect] Going offline');
-          this.streamClient.clientEventReporter.captureWsError(this.cid, {
-            code: 'NETWORK_OFFLINE',
-            reason: 'Device offline',
-          });
           if (!this.hasJoinedOnce) return;
           this.lastOfflineTimestamp = Date.now();
           // create a new task that would resolve when the network is available

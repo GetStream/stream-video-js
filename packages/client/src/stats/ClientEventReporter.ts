@@ -40,22 +40,19 @@ export type ClientEventStandardCode =
   | 'CLIENT_ABORTED'
   | 'BACKEND_LEAVE'
   | 'REQUEST_TIMEOUT'
-  | 'NETWORK_OFFLINE'
   | 'ICE_CONNECTIVITY_FAILED'
   | 'DTLS_CONNECTIVITY_FAILED';
 
 export type CallReportContext = {
   callType: string;
   callId: string;
-  getCallSessionId: () => string;
   getSfuId: () => string;
+  getCallSessionId: () => string;
   getUserSessionId: () => string;
 };
 
 export type ClientEventReporterOptions = {
   streamClient: StreamClient;
-  sdkVersion: string;
-  userAgent: string;
 };
 
 const SEVERITY = {
@@ -93,8 +90,6 @@ export class ClientEventReporter {
   private readonly logger = videoLoggerSystem.getLogger('ClientEventReporter');
 
   private readonly streamClient: StreamClient;
-  private readonly sdkVersion: string;
-  private readonly userAgent: string;
   private disposed = false;
 
   private coordinatorConnectId?: string;
@@ -110,8 +105,6 @@ export class ClientEventReporter {
 
   constructor(options: ClientEventReporterOptions) {
     this.streamClient = options.streamClient;
-    this.sdkVersion = options.sdkVersion;
-    this.userAgent = options.userAgent;
   }
 
   private getUserId = (): string => this.streamClient.userID ?? '';
@@ -195,8 +188,8 @@ export class ClientEventReporter {
       coordinator_connect_id: this.coordinatorConnectId,
     }),
     timestamp: new Date().toISOString(),
-    user_agent: this.userAgent,
-    sdk_version: this.sdkVersion,
+    user_agent: this.streamClient.getUserAgent(),
+    sdk_version: this.streamClient.getSdkVersion(),
   });
 
   private emitMediaPermission = (cid: string) => {
@@ -372,8 +365,8 @@ export class ClientEventReporter {
         coordinator_connect_id: coordinatorConnectId,
       }),
       timestamp: new Date().toISOString(),
-      user_agent: this.userAgent,
-      sdk_version: this.sdkVersion,
+      user_agent: this.streamClient.getUserAgent(),
+      sdk_version: this.streamClient.getSdkVersion(),
       event_type: 'initiated',
     });
   };
@@ -676,8 +669,8 @@ export class ClientEventReporter {
         coordinator_connect_id: coordinatorConnectId,
       }),
       timestamp: new Date().toISOString(),
-      user_agent: this.userAgent,
-      sdk_version: this.sdkVersion,
+      user_agent: this.streamClient.getUserAgent(),
+      sdk_version: this.streamClient.getSdkVersion(),
     };
   };
 

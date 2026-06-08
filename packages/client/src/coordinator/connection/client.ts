@@ -152,13 +152,7 @@ export class StreamClient {
 
     this.logger = videoLoggerSystem.getLogger('coordinator');
 
-    const { clientAppIdentifier = {} } = this.options;
-    this.clientEventReporter = new ClientEventReporter({
-      streamClient: this,
-      sdkVersion:
-        clientAppIdentifier.sdkVersion ?? process.env.PKG_VERSION ?? '0.0.0',
-      userAgent: this.getUserAgent(),
-    });
+    this.clientEventReporter = new ClientEventReporter({ streamClient: this });
   }
 
   getAuthType = () => {
@@ -629,6 +623,11 @@ export class StreamClient {
     this.logger.info('StreamClient.connect: this.wsConnection.connect()');
     return await this.wsConnection.connect(this.defaultWSTimeout);
   };
+
+  getSdkVersion = (): string =>
+    this.options.clientAppIdentifier?.sdkVersion ||
+    process.env.PKG_VERSION ||
+    '0.0.0';
 
   getUserAgent = (): string => {
     if (!this.cachedUserAgent) {
