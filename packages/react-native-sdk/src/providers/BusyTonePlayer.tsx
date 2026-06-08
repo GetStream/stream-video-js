@@ -16,14 +16,13 @@ const BusyTonePlayer = () => {
       return;
     }
 
+    const logger = videoLoggerSystem.getLogger('RejectCallWhenBusy');
+    let busyToneTimeout: ReturnType<typeof setTimeout> | undefined;
+
     const unsubscribe = client.on('call.rejected', async (event) => {
       const isCallCreatedByMe =
         event.call.created_by.id === client.state.connectedUser?.id;
       const isCalleeBusy = isCallCreatedByMe && event.reason === 'busy';
-
-      let busyToneTimeout: ReturnType<typeof setTimeout> | undefined;
-
-      const logger = videoLoggerSystem.getLogger('RejectCallWhenBusy');
 
       if (isCalleeBusy) {
         if (busyToneTimeout) {
@@ -51,14 +50,15 @@ const BusyTonePlayer = () => {
             logger.error('playBusyTone failed:', error);
           });
       }
-      return () => {
-        StreamVideoRN.stopBusyTone().catch((err) =>
-          logger.error('stopBusyTone on cleanup failed:', err),
-        );
-        clearTimeout(busyToneTimeout);
-        unsubscribe();
-      };
     });
+
+    return () => {
+      clearTimeout(busyToneTimeout);
+      StreamVideoRN.stopBusyTone().catch((err) =>
+        logger.error('stopBusyTone on cleanup failed:', err),
+      );
+      unsubscribe();
+    };
   }, [client]);
 
   return null;

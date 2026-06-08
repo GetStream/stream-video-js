@@ -31,6 +31,7 @@ export const AppStateListener = () => {
       return;
     }
 
+    let cancelled = false;
     const disablePiP = RxUtils.getCurrentValue(disablePiPMode$);
     const logger = videoLoggerSystem.getLogger('AppStateListener');
     const initialPipMode =
@@ -40,6 +41,7 @@ export const AppStateListener = () => {
 
     NativeModules?.StreamVideoReactNative?.isInPiPMode().then(
       (isInPiP: boolean | null | undefined) => {
+        if (cancelled) return;
         isInPiPMode$.next(!!isInPiP);
         logger.debug(
           'Initial PiP mode on mount (after asking native module) set to ',
@@ -60,6 +62,7 @@ export const AppStateListener = () => {
     );
 
     return () => {
+      cancelled = true;
       subscriptionPiPChange.remove();
     };
   }, []);

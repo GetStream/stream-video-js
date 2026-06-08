@@ -209,13 +209,22 @@ export const CallParticipantsList = ({
     return style;
   }, [itemWidth, itemHeight, horizontal, landscape, styles]);
 
-  const participantProps: ParticipantViewComponentProps = {
-    ParticipantLabel,
-    ParticipantNetworkQualityIndicator,
-    ParticipantReaction,
-    ParticipantVideoFallback,
-    VideoRenderer,
-  };
+  const participantProps = useMemo<ParticipantViewComponentProps>(
+    () => ({
+      ParticipantLabel,
+      ParticipantNetworkQualityIndicator,
+      ParticipantReaction,
+      ParticipantVideoFallback,
+      VideoRenderer,
+    }),
+    [
+      ParticipantLabel,
+      ParticipantNetworkQualityIndicator,
+      ParticipantReaction,
+      ParticipantVideoFallback,
+      VideoRenderer,
+    ],
+  );
 
   const renderItem = useCallback<NonNullable<FlatListProps['renderItem']>>(
     ({ item: participant }) => {
@@ -238,8 +247,13 @@ export const CallParticipantsList = ({
         </>
       );
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [itemContainerStyle],
+    [
+      ParticipantView,
+      itemContainerStyle,
+      participantProps,
+      supportedReactions,
+      mirror,
+    ],
   );
 
   // in vertical mode, only when there are more than 2 participants in a call, the participants should be displayed in a grid

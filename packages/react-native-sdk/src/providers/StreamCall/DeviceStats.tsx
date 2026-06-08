@@ -8,7 +8,6 @@ import {
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 
 const { StreamVideoReactNative } = NativeModules;
-const eventEmitter = new NativeEventEmitter(StreamVideoReactNative);
 /**
  * This is a renderless component to get the device stats like thermal state and power saver mode.
  */
@@ -19,6 +18,8 @@ export const DeviceStats = () => {
 
   useEffect(() => {
     if (!call || callingState !== CallingState.JOINED) return;
+
+    const eventEmitter = new NativeEventEmitter(StreamVideoReactNative);
 
     StreamVideoReactNative.isLowPowerModeEnabled().then(
       (initialPowerMode: boolean) => {

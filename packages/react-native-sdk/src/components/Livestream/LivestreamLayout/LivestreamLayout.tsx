@@ -1,9 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import {
-  hasScreenShare,
-  SfuModels,
-  StreamVideoParticipant,
-} from '@stream-io/video-client';
+import React from 'react';
+import { hasScreenShare, type VideoTrackType } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { usePaginatedLayoutSortPreset } from '../../../hooks/usePaginatedLayoutSortPreset';
@@ -56,20 +52,17 @@ export const LivestreamLayout = ({
 
   usePaginatedLayoutSortPreset(call);
 
-  const [objectFit, setObjectFit] =
-    useState<
-      React.ComponentProps<NonNullable<typeof VideoRenderer>>['objectFit']
-    >();
-
-  const onDimensionsChange = useCallback(
-    (d: SfuModels.VideoDimension | undefined) => {
-      if (d) {
-        const isWidthWide = d.width > d.height;
-        setObjectFit(isWidthWide ? 'contain' : 'cover');
-      }
-    },
-    [],
+  // objectFit is derived from the active track's dimensions during render.
+  // A renderless child probe would set it via an effect and force an extra re-render.
+  const activeTrackType: VideoTrackType = hasOngoingScreenShare
+    ? 'screenShareTrack'
+    : 'videoTrack';
+  const activeParticipant = hasOngoingScreenShare ? presenter : currentSpeaker;
+  const { width, height } = useTrackDimensions(
+    activeParticipant,
+    activeTrackType,
   );
+  const objectFit: 'contain' | 'cover' = width > height ? 'contain' : 'cover';
 
   const landScapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
@@ -90,53 +83,21 @@ export const LivestreamLayout = ({
         (presenter.isLocalParticipant && ScreenShareOverlay ? (
           <ScreenShareOverlay />
         ) : (
-          <>
-            <VideoRenderer
-              trackType="screenShareTrack"
-              objectFit={objectFit}
-              participant={presenter}
-            />
-            <VideoTrackDimensionsRenderLessComponent
-              onDimensionsChange={onDimensionsChange}
-              participant={presenter}
-              trackType="screenShareTrack"
-            />
-          </>
+          <VideoRenderer
+            trackType="screenShareTrack"
+            objectFit={objectFit}
+            participant={presenter}
+          />
         ))}
       {VideoRenderer && !hasOngoingScreenShare && currentSpeaker && (
-        <>
-          <VideoRenderer
-            participant={currentSpeaker}
-            objectFit={objectFit}
-            trackType="videoTrack"
-          />
-          <VideoTrackDimensionsRenderLessComponent
-            onDimensionsChange={onDimensionsChange}
-            participant={currentSpeaker}
-            trackType="videoTrack"
-          />
-        </>
+        <VideoRenderer
+          participant={currentSpeaker}
+          objectFit={objectFit}
+          trackType="videoTrack"
+        />
       )}
     </View>
   );
-};
-
-const VideoTrackDimensionsRenderLessComponent = ({
-  onDimensionsChange,
-  participant,
-  trackType,
-}: {
-  onDimensionsChange: (d: SfuModels.VideoDimension | undefined) => void;
-  participant: StreamVideoParticipant;
-  trackType: 'videoTrack' | 'screenShareTrack';
-}) => {
-  const { width, height } = useTrackDimensions(participant, trackType);
-
-  useEffect(() => {
-    onDimensionsChange({ width, height });
-  }, [width, height, onDimensionsChange]);
-
-  return null;
 };
 
 const styles = StyleSheet.create({

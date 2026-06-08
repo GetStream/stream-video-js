@@ -69,11 +69,15 @@ export const Lobby = ({
   const { t } = useI18n();
   const localVideoStream = mediaStream as unknown as MediaStream | undefined;
 
-  const connectedUserAsParticipant = {
-    userId: connectedUser?.id,
-    image: connectedUser?.image,
-    name: connectedUser?.name,
-  } as StreamVideoParticipant;
+  const connectedUserAsParticipant = useMemo(
+    () =>
+      ({
+        userId: connectedUser?.id,
+        image: connectedUser?.image,
+        name: connectedUser?.name,
+      }) as StreamVideoParticipant,
+    [connectedUser?.id, connectedUser?.image, connectedUser?.name],
+  );
 
   return (
     <View style={[styles.container, lobby.container]}>
