@@ -117,7 +117,8 @@ export class ClientEventReporter {
 
   private getUserId = (): string => this.streamClient.userID ?? '';
 
-  getCoordinatorConnectId = (): string => this.coordinatorConnectId ?? '';
+  private getCoordinatorConnectId = (): string =>
+    this.coordinatorConnectId ?? '';
 
   mintCoordinatorConnectId = (): string => {
     this.coordinatorConnectId = generateUUIDv4();
@@ -277,10 +278,12 @@ export class ClientEventReporter {
 
   startCorrelation = (cid: string, joinReason: JoinReason) => {
     this.closeCallPairs(cid);
+
     this.joinAttemptIds.set(cid, generateUUIDv4());
     this.joinReasons.set(cid, joinReason);
     this.firstFrameReported.delete(`${cid}:FirstVideoFrame`);
     this.firstFrameReported.delete(`${cid}:FirstAudioFrame`);
+
     this.emitJoinInitiated(cid);
     this.emitMediaPermission(cid);
   };
