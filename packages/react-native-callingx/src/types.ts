@@ -305,12 +305,18 @@ export type EventName =
   | 'didDisplayIncomingCall'
   | 'didToggleHoldCallAction'
   | 'didChangeAudioRoute'
-  | 'didChangeMicMuteState'
-  | 'didEndAudioInterruption'
+  | 'didAudioInterruption'
   | 'didReceiveStartCallAction'
   | 'didPerformSetMutedCallAction'
   | 'didActivateAudioSession'
   | 'didDeactivateAudioSession';
+
+export type IOSAudioInterruptionEvent = {
+  source: 'callingx';
+  phase: 'began' | 'ended';
+  reason?: 'default' | 'builtInMicMuted' | 'routeDisconnected' | (string & {});
+  shouldResume?: boolean;
+};
 
 export type EventParams = {
   answerCall: {
@@ -337,12 +343,7 @@ export type EventParams = {
     callId: string;
     output: string;
   };
-  didChangeMicMuteState: {
-    muted: boolean;
-  };
-  didEndAudioInterruption: {
-    shouldResume: boolean;
-  };
+  didAudioInterruption: IOSAudioInterruptionEvent;
   didReceiveStartCallAction: {
     callId: string;
   };

@@ -15,6 +15,13 @@ export type AudioDeviceStatus = {
 export type AudioRole = 'communicator' | 'listener';
 export type DeviceEndpointType = 'speaker' | 'earpiece';
 
+export type IOSAudioInterruptionEvent = {
+  source: 'callmanager' | 'callingx';
+  phase: 'began' | 'ended';
+  reason?: 'default' | 'builtInMicMuted' | 'routeDisconnected' | (string & {});
+  shouldResume?: boolean;
+};
+
 export type StreamInCallManagerConfig =
   | {
       audioRole: 'communicator';

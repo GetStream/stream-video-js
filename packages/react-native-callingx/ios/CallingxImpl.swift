@@ -11,8 +11,7 @@ import stream_react_native_webrtc
     public static let didToggleHoldAction = "didToggleHoldCallAction"
     public static let didPerformSetMutedCallAction = "didPerformSetMutedCallAction"
     public static let didChangeAudioRoute = "didChangeAudioRoute"
-    public static let didChangeMicMuteState = "didChangeMicMuteState"
-    public static let didEndAudioInterruption = "didEndAudioInterruption"
+    public static let didAudioInterruption = "didAudioInterruption"
     public static let didDisplayIncomingCall = "didDisplayIncomingCall"
     public static let didActivateAudioSession = "didActivateAudioSession"
     public static let didDeactivateAudioSession = "didDeactivateAudioSession"
@@ -45,9 +44,6 @@ import stream_react_native_webrtc
 
     private var canSendEvents: Bool = false
     private var isSetup: Bool = false
-    /// Tracks whether the active audio-session interruption began with a hardware mic mute (iOS 17+).
-    /// Used so `audioSessionDidEndInterruption` can emit the matching `didChangeMicMuteState: { muted: false }`.
-    private var wasMicMutedAtInterruption: Bool = false
     /// Combine subscription to the AudioDeviceModule's engine-lifecycle publisher.
     /// Wired lazily in `setup()` because `webRTCModule` (the ADM source) is injected
     /// from the TurboModule host after `init`.
@@ -361,76 +357,70 @@ import stream_react_native_webrtc
 
     // MARK: - Audio Session Interruption
 
+    // Observability + JS-event only; audio recovery is WebRTC's: AudioEngineDevice
+    // restarts the engine on interruption-end. We do not touch the session here.
     @objc private func onAudioInterruption(_ notification: Notification) {
+        guard CallingxSessionOwnership.callingxOwnsSession else {
+            return
+        }
+
         guard let info = notification.userInfo,
               let typeRaw = info[AVAudioSessionInterruptionTypeKey] as? UInt,
               let type = AVAudioSession.InterruptionType(rawValue: typeRaw) else {
             return
         }
 
+        let reason = interruptionReason(info)
+        var payload: [String: Any] = ["source": "callingx"]
+        if let reason {
+            payload["reason"] = reason
+        }
+
         switch type {
         case .began:
-            handleInterruptionBegan(info: info)
+            payload["phase"] = "began"
+            sendEvent(CallingxEvents.didAudioInterruption, body: payload)
+            #if DEBUG
+            NSLog("%@", "[Callingx] Audio interruption began (reason=\(reason ?? "n/a")). Recovery owned by WebRTC AudioEngineDevice.")
+            #endif
         case .ended:
-            handleInterruptionEnded(info: info)
+            var shouldResume = false
+            if let optsRaw = info[AVAudioSessionInterruptionOptionKey] as? UInt {
+                shouldResume = AVAudioSession.InterruptionOptions(rawValue: optsRaw).contains(.shouldResume)
+            }
+            payload["phase"] = "ended"
+            payload["shouldResume"] = shouldResume
+            sendEvent(CallingxEvents.didAudioInterruption, body: payload)
+            #if DEBUG
+            NSLog("%@", "[Callingx] Audio interruption ended (shouldResume=\(shouldResume)). WebRTC restarts the engine.")
+            #endif
         @unknown default:
             break
         }
     }
 
-    private func handleInterruptionBegan(info: [AnyHashable: Any]) {
-        // Observability + JS-event only; audio recovery is WebRTC's (AudioEngineDevice restarts the engine on interruption-end).
-        #if DEBUG
-        NSLog("%@", "[Callingx][onAudioInterruption][began]")
-        #endif
-
-        // iOS 14.5+ delivers an `AVAudioSessionInterruptionReasonKey` describing
-        // what triggered the interruption. Hardware mic-mute and route-disconnect
-        // (both iOS 17+) must not drop the call; other reasons (PSTN, Siri, alarm)
-        // are handled by CallKit's didDeactivate path.
+    private func interruptionReason(_ info: [AnyHashable: Any]) -> String? {
         guard #available(iOS 14.5, *),
               let reasonRaw = info[AVAudioSessionInterruptionReasonKey] as? UInt,
               let reason = AVAudioSession.InterruptionReason(rawValue: reasonRaw) else {
-            return
+            return nil
         }
-
         if #available(iOS 17.0, *) {
             switch reason {
             case .builtInMicMuted:
-                wasMicMutedAtInterruption = true
-                sendEvent(CallingxEvents.didChangeMicMuteState, body: ["muted": true])
+                return "builtInMicMuted"
             case .routeDisconnected:
-                // Route gone (headphones unplugged). The route-change delegate will
-                // surface the fallback output; keep the call alive.
-                break
+                return "routeDisconnected"
             default:
                 break
             }
         }
+        if reason == .default {
+            return "default"
+        }
+        return "raw(\(reason.rawValue))"
     }
 
-    private func handleInterruptionEnded(info: [AnyHashable: Any]) {
-        // Observability + JS-event only; CallKit re-activates the session via didActivate, WebRTC restarts the engine.
-        let shouldResume: Bool
-        if let optsRaw = info[AVAudioSessionInterruptionOptionKey] as? UInt {
-            shouldResume = AVAudioSession.InterruptionOptions(rawValue: optsRaw).contains(.shouldResume)
-        } else {
-            shouldResume = false
-        }
-
-        #if DEBUG
-        NSLog("%@", "[Callingx][onAudioInterruption][ended] shouldResume=\(shouldResume)")
-        #endif
-
-        if wasMicMutedAtInterruption {
-            wasMicMutedAtInterruption = false
-            sendEvent(CallingxEvents.didChangeMicMuteState, body: ["muted": false])
-        }
-
-        sendEvent(CallingxEvents.didEndAudioInterruption,
-                  body: ["shouldResume": shouldResume])
-    }
-    
     // MARK: - Setup Methods
     @objc public func setup(options: [String: Any]) {
         callKeepCallController = CXCallController()
@@ -1113,4 +1103,3 @@ import stream_react_native_webrtc
         return adm
     }
 }
-

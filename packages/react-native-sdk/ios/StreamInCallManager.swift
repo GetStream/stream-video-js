@@ -30,6 +30,10 @@ private enum Constants {
     static let stereoRefreshDebounceSeconds: TimeInterval = 0.5
 }
 
+private enum StreamInCallManagerEvents {
+    static let audioInterruption = "StreamInCallManagerAudioInterruption"
+}
+
 @objc(StreamInCallManager)
 class StreamInCallManager: RCTEventEmitter {
 
@@ -470,9 +474,9 @@ class StreamInCallManager: RCTEventEmitter {
         log("Unregistered AVAudioSession.routeChangeNotification observer")
     }
 
-    // MARK: - Interruption Handling (debug-only observability)
+    // MARK: - Interruption Handling
 
-    /// Observes `AVAudioSession.interruptionNotification` purely to log *why* an interruption fired
+    /// Observes `AVAudioSession.interruptionNotification` to trace and log *why* an interruption fired
     /// (mic-mute / route-disconnect / PSTN-Siri). Recovery is NOT done here: WebRTC's
     /// AudioEngineDevice owns it — it stops the engine on interruption-begin and restarts it on
     /// interruption-end (re-activating the session itself via AVAudioEngine.start)
@@ -495,26 +499,39 @@ class StreamInCallManager: RCTEventEmitter {
 
     @objc
     private func handleAudioInterruption(_ notification: Notification) {
-        #if DEBUG
         guard let info = notification.userInfo,
               let typeRaw = info[AVAudioSessionInterruptionTypeKey] as? UInt,
               let type = AVAudioSession.InterruptionType(rawValue: typeRaw) else {
             return
         }
 
+        let reason = interruptionReason(info)
+        var payload: [String: Any] = ["source": "callmanager"]
+        if let reason {
+            payload["reason"] = reason
+        }
+
         switch type {
         case .began:
-            log("Audio interruption began (reason=\(interruptionReasonDescription(info))). Recovery owned by WebRTC AudioEngineDevice.")
+            payload["phase"] = "began"
+            sendEvent(withName: StreamInCallManagerEvents.audioInterruption, body: payload)
+            #if DEBUG
+            log("Audio interruption began (reason=\(reason ?? "n/a")). Recovery owned by WebRTC AudioEngineDevice.")
+            #endif
         case .ended:
             var shouldResume = false
             if let optsRaw = info[AVAudioSessionInterruptionOptionKey] as? UInt {
                 shouldResume = AVAudioSession.InterruptionOptions(rawValue: optsRaw).contains(.shouldResume)
             }
+            payload["phase"] = "ended"
+            payload["shouldResume"] = shouldResume
+            sendEvent(withName: StreamInCallManagerEvents.audioInterruption, body: payload)
+            #if DEBUG
             log("Audio interruption ended (shouldResume=\(shouldResume)). WebRTC restarts the engine.")
+            #endif
         @unknown default:
             break
         }
-        #endif
     }
 
     @objc
@@ -580,18 +597,7 @@ class StreamInCallManager: RCTEventEmitter {
     // MARK: - RCTEventEmitter
 
     override func supportedEvents() -> [String]! {
-        // TODO: list events that can be sent to JS
-        return []
-    }
-
-    @objc
-    override func addListener(_ eventName: String!) {
-        super.addListener(eventName)
-    }
-
-    @objc
-    override func removeListeners(_ count: Double) {
-        super.removeListeners(count)
+        return [StreamInCallManagerEvents.audioInterruption]
     }
 
     // MARK: - Helper Methods
@@ -637,13 +643,13 @@ class StreamInCallManager: RCTEventEmitter {
         }
     }
 
-    /// Best-effort name for the iOS 14.5+ `AVAudioSessionInterruptionReasonKey` (debug logging only).
+    /// Best-effort name for the iOS 14.5+ `AVAudioSessionInterruptionReasonKey`.
     /// Names the iOS 17 cases we care about and falls back to the raw value otherwise.
-    private func interruptionReasonDescription(_ info: [AnyHashable: Any]) -> String {
+    private func interruptionReason(_ info: [AnyHashable: Any]) -> String? {
         guard #available(iOS 14.5, *),
               let reasonRaw = info[AVAudioSessionInterruptionReasonKey] as? UInt,
               let reason = AVAudioSession.InterruptionReason(rawValue: reasonRaw) else {
-            return "n/a"
+            return nil
         }
         if #available(iOS 17.0, *) {
             switch reason {
