@@ -35,7 +35,7 @@ const flush = () => enqueue(async () => undefined);
 
 const setKey = async (userId: string) => {
   message({
-    type: 'setKey',
+    type: 'cmd.set_key',
     userId,
     keyIndex: 0,
     rawKey: new Uint8Array(KEY).buffer,
@@ -43,7 +43,7 @@ const setKey = async (userId: string) => {
   await flush();
 };
 const removeKeys = async (userId: string) => {
-  message({ type: 'removeKeys', userId });
+  message({ type: 'cmd.remove_keys', userId });
   await flush();
 };
 
@@ -77,7 +77,14 @@ const drive = async (
     close: () => resolveDone(),
     abort: () => resolveDone(),
   });
-  message({ readable, writable, operation, userId, codec });
+  message({
+    type: 'cmd.setup_transform',
+    readable,
+    writable,
+    operation,
+    userId,
+    codec,
+  });
   await done;
   return out;
 };
@@ -115,7 +122,7 @@ beforeEach(() => {
   posted.length = 0;
 });
 afterEach(async () => {
-  message({ type: 'dispose' });
+  message({ type: 'cmd.dispose' });
   await flush();
 });
 

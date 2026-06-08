@@ -53,7 +53,7 @@ describe('EncryptionManager', () => {
 
       const worker = getWorker(manager);
       expect(worker.postMessage).toHaveBeenCalledWith(
-        { type: 'setKey', userId: 'remote-user', keyIndex: 0, rawKey },
+        { type: 'cmd.set_key', userId: 'remote-user', keyIndex: 0, rawKey },
         [rawKey],
       );
     });
@@ -72,7 +72,7 @@ describe('EncryptionManager', () => {
 
       const worker = getWorker(manager);
       expect(worker.postMessage).toHaveBeenCalledWith(
-        { type: 'setSharedKey', keyIndex: 0, rawKey },
+        { type: 'cmd.set_shared_key', keyIndex: 0, rawKey },
         [rawKey],
       );
     });
@@ -90,7 +90,7 @@ describe('EncryptionManager', () => {
 
       const worker = getWorker(manager);
       expect(worker.postMessage).toHaveBeenCalledWith({
-        type: 'removeKeys',
+        type: 'cmd.remove_keys',
         userId: 'remote-user',
       });
     });
@@ -185,7 +185,13 @@ describe('EncryptionManager', () => {
           expect(receiver.createEncodedStreams).toHaveBeenCalled();
           const worker = getWorker(mgr);
           expect(worker.postMessage).toHaveBeenCalledWith(
-            { operation: 'decode', userId: 'remote-user', readable, writable },
+            {
+              type: 'cmd.setup_transform',
+              operation: 'decode',
+              userId: 'remote-user',
+              readable,
+              writable,
+            },
             [readable, writable],
           );
         } finally {

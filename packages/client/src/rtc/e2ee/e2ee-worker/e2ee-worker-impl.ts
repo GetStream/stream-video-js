@@ -217,7 +217,7 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
   const ivView = new DataView(iv.buffer);
 
   return new TransformStream<EncodedFrame, EncodedFrame>({
-    async transform(frame, controller: FrameController) {
+    async transform(frame, controller) {
       // e2eeActive only gates encoding — the decoder always accepts both
       // encrypted (trailer present) and unencrypted frames from peers.
       if (!e2eeActive || frame.data.byteLength === 0) {
@@ -389,7 +389,7 @@ const decodeTransform = (userId: string) => {
   };
 
   return new TransformStream<EncodedFrame, EncodedFrame>({
-    async transform(frame, controller: FrameController) {
+    async transform(frame, controller) {
       if (frame.data.byteLength === 0) {
         controller.enqueue(frame);
         bumpDecodeCount(userId);
@@ -472,14 +472,12 @@ const setupTransform = ({
   userId: string;
   codec?: string;
 }) => {
-  if (operation === 'encode') {
-    if (!isSupportedCodec(codec)) {
-      self.postMessage({
-        type: 'error',
-        message: `Unsupported codec for E2EE: ${codec}`,
-      });
-      return;
-    }
+  if (operation === 'encode' && !isSupportedCodec(codec)) {
+    self.postMessage({
+      type: 'e2ee.error',
+      message: `Unsupported codec for E2EE: ${codec}`,
+    });
+    return;
   }
 
   const transform =
@@ -495,7 +493,7 @@ const setupTransform = ({
     .catch((err: any) => {
       if (abort.signal.aborted) return; // clean shutdown, not an error
       self.postMessage({
-        type: 'error',
+        type: 'e2ee.error',
         message: `Transform pipeline error (${operation}, ${userId}): ${err?.message || err}`,
       });
     })
@@ -509,73 +507,62 @@ const teardownAllTransforms = () => {
   activePipelines.clear();
 };
 
-addEventListener('rtctransform', ((event: Event) => {
-  const { readable, writable, options } = (
-    event as unknown as {
-      transformer: {
-        readable: ReadableStream;
-        writable: WritableStream;
-        options: { operation: string; userId: string; codec?: string };
-      };
-    }
-  ).transformer;
+addEventListener('rtctransform', (event) => {
+  const { readable, writable, options } = event.transformer;
   // Route through the same queue as message-based setup so that any
   // in-flight key import completes before we wire up the transform.
   enqueue(async () => {
     setupTransform({ readable, writable, ...options });
   }).catch((err: any) => {
     self.postMessage({
-      type: 'error',
+      type: 'e2ee.error',
       message: `Transform setup failed: ${err?.message || err}`,
     });
   });
-}) as EventListener);
+});
 
-addEventListener('message', ({ data }: MessageEvent) => {
+addEventListener('message', ({ data }) => {
   enqueue(async () => {
     switch (data.type) {
-      case 'setKey':
+      case 'cmd.set_key':
         await importKey(data.userId, data.keyIndex, data.rawKey);
         break;
-      case 'setSharedKey':
+      case 'cmd.set_shared_key':
         await importSharedKey(data.keyIndex, data.rawKey);
         break;
-      case 'removeKeys':
+      case 'cmd.remove_keys':
         removeKeys(data.userId);
         decodeFrameCounts.delete(data.userId);
         break;
-      case 'e2ee-enabled':
+      case 'cmd.set_enabled':
         e2eeActive = !!data.enabled;
         break;
-      case 'perf-report':
+      case 'cmd.set_perf_report':
         if (data.enabled) startPerfReport();
         else stopPerfReport();
         break;
-      case 'dumpKeyState':
-        self.postMessage({ type: 'keyState', ...dumpKeyState() });
+      case 'cmd.dump_key_state':
+        self.postMessage({ type: 'e2ee.key_state', ...dumpKeyState() });
         break;
-      case 'dispose':
+      case 'cmd.dispose':
         stopPerfReport();
         teardownAllTransforms();
         disposeCrypto();
         missingKeyNotifiedAt.clear();
         break;
+      case 'cmd.setup_transform':
+        setupTransform(data);
+        break;
       default:
-        // Insertable Streams fallback: Chrome sends transform setup as
-        // untyped messages with {readable, writable, operation, ...}.
-        if (data.readable && data.writable) {
-          setupTransform(data);
-        } else {
-          self.postMessage({
-            type: 'error',
-            message: `Unknown message type: ${data.type}`,
-          });
-        }
+        self.postMessage({
+          type: 'e2ee.error',
+          message: `Unknown command type: ${data.type}`,
+        });
         break;
     }
   }).catch((err: any) => {
     self.postMessage({
-      type: 'error',
+      type: 'e2ee.error',
       message: `Message handler error: ${err?.message || err}`,
     });
   });

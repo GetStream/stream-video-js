@@ -282,7 +282,7 @@ export const importKey = async (
     resetDecryptionFailures(userId, keyIndex);
   } catch (e: any) {
     self.postMessage({
-      type: 'error',
+      type: 'e2ee.error',
       message: `Failed to import key for user ${userId}: ${e?.message || e}`,
     });
   }
@@ -310,7 +310,7 @@ export const importSharedKey = async (
     }
   } catch (e: any) {
     self.postMessage({
-      type: 'error',
+      type: 'e2ee.error',
       message: `Failed to import shared key: ${e?.message || e}`,
     });
   }

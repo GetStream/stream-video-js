@@ -228,7 +228,7 @@ export class EncryptionManager
    */
   setKey = (userId: string, keyIndex: number, rawKey: ArrayBuffer): void => {
     this.validateKeyLength(rawKey);
-    this.worker.postMessage({ type: 'setKey', userId, keyIndex, rawKey }, [
+    this.worker.postMessage({ type: 'cmd.set_key', userId, keyIndex, rawKey }, [
       rawKey,
     ]);
   };
@@ -246,7 +246,7 @@ export class EncryptionManager
    */
   setSharedKey = (keyIndex: number, rawKey: ArrayBuffer): void => {
     this.validateKeyLength(rawKey);
-    this.worker.postMessage({ type: 'setSharedKey', keyIndex, rawKey }, [
+    this.worker.postMessage({ type: 'cmd.set_shared_key', keyIndex, rawKey }, [
       rawKey,
     ]);
   };
@@ -260,7 +260,7 @@ export class EncryptionManager
    * @param userId - The user's ID whose keys should be removed.
    */
   removeKeys = (userId: string): void => {
-    this.worker.postMessage({ type: 'removeKeys', userId });
+    this.worker.postMessage({ type: 'cmd.remove_keys', userId });
   };
 
   /**
@@ -297,7 +297,7 @@ export class EncryptionManager
    * @param enabled - Whether E2EE should be active.
    */
   setEnabled = (enabled: boolean): void => {
-    this.worker.postMessage({ type: 'e2ee-enabled', enabled });
+    this.worker.postMessage({ type: 'cmd.set_enabled', enabled });
   };
 
   /**
@@ -318,10 +318,10 @@ export class EncryptionManager
     this.piped.add(target);
     // @ts-expect-error createEncodedStreams is not in the standard typedefs
     const { readable, writable } = target.createEncodedStreams();
-    this.worker.postMessage({ ...options, readable, writable }, [
-      readable,
-      writable,
-    ]);
+    this.worker.postMessage(
+      { type: 'cmd.setup_transform', ...options, readable, writable },
+      [readable, writable],
+    );
   };
 
   /**
@@ -348,7 +348,7 @@ export class EncryptionManager
    * @param enabled - Whether to enable or disable perf reporting.
    */
   setPerfReport = (enabled: boolean): void => {
-    this.worker.postMessage({ type: 'perf-report', enabled });
+    this.worker.postMessage({ type: 'cmd.set_perf_report', enabled });
   };
 
   /**
@@ -358,7 +358,7 @@ export class EncryptionManager
   requestKeyDump = (): Promise<KeyStateReport> => {
     if (this.pendingKeyDump) return this.pendingKeyDump.promise;
     this.pendingKeyDump = promiseWithResolvers<KeyStateReport>();
-    this.worker.postMessage({ type: 'dumpKeyState' });
+    this.worker.postMessage({ type: 'cmd.dump_key_state' });
     return this.pendingKeyDump.promise;
   };
 
@@ -366,14 +366,14 @@ export class EncryptionManager
    * Clear all keys from the worker and reset internal state.
    */
   private cleanup = (): void => {
-    this.worker.postMessage({ type: 'dispose' });
+    this.worker.postMessage({ type: 'cmd.dispose' });
     this.piped = undefined;
   };
 
   private handleWorkerMessage = (e: MessageEvent) => {
     const { type } = e.data ?? {};
     switch (type) {
-      case 'error':
+      case 'e2ee.error':
         this.logger.error(e.data.message);
         break;
       case 'e2ee.decryption_failed':
@@ -407,7 +407,7 @@ export class EncryptionManager
           keyIndex: e.data.keyIndex,
         });
         break;
-      case 'keyState':
+      case 'e2ee.key_state':
         this.pendingKeyDump?.resolve({
           perUserKeys: e.data.perUserKeys,
           sharedKey: e.data.sharedKey,
