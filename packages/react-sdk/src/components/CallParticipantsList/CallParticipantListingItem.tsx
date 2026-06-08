@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { ComponentProps, ComponentType, forwardRef } from 'react';
+import { ComponentProps, ComponentType, forwardRef, memo } from 'react';
 import { useConnectedUser, useI18n } from '@stream-io/video-react-bindings';
 import {
   hasAudio,
@@ -20,60 +20,64 @@ type CallParticipantListingItemProps = {
   /** Custom component used to display participant's name */
   DisplayName?: ComponentType<{ participant: StreamVideoParticipant }>;
 };
-export const CallParticipantListingItem = ({
-  participant,
-  DisplayName = DefaultDisplayName,
-}: CallParticipantListingItemProps) => {
-  const isAudioOn = hasAudio(participant);
-  const isVideoOn = hasVideo(participant);
-  const isPinnedOn = isPinned(participant);
+export const CallParticipantListingItem = memo(
+  function CallParticipantListingItem({
+    participant,
+    DisplayName = DefaultDisplayName,
+  }: CallParticipantListingItemProps) {
+    const isAudioOn = hasAudio(participant);
+    const isVideoOn = hasVideo(participant);
+    const isPinnedOn = isPinned(participant);
 
-  const { t } = useI18n();
+    const { t } = useI18n();
 
-  return (
-    <div className="str-video__participant-listing-item">
-      <Avatar name={participant.name} imageSrc={participant.image} />
-      <DisplayName participant={participant} />
-      <div className="str-video__participant-listing-item__media-indicator-group">
-        <MediaIndicator
-          title={isAudioOn ? t('Microphone on') : t('Microphone off')}
-          className={clsx(
-            'str-video__participant-listing-item__icon',
-            `str-video__participant-listing-item__icon-${
-              isAudioOn ? 'mic' : 'mic-off'
-            }`,
-          )}
-        />
-        <MediaIndicator
-          title={isVideoOn ? t('Camera on') : t('Camera off')}
-          className={clsx(
-            'str-video__participant-listing-item__icon',
-            `str-video__participant-listing-item__icon-${
-              isVideoOn ? 'camera' : 'camera-off'
-            }`,
-          )}
-        />
-        {isPinnedOn && (
+    return (
+      <div className="str-video__participant-listing-item">
+        <Avatar name={participant.name} imageSrc={participant.image} />
+        <DisplayName participant={participant} />
+        <div className="str-video__participant-listing-item__media-indicator-group">
           <MediaIndicator
-            title={t('Pinned')}
+            title={isAudioOn ? t('Microphone on') : t('Microphone off')}
             className={clsx(
               'str-video__participant-listing-item__icon',
-              'str-video__participant-listing-item__icon-pinned',
+              `str-video__participant-listing-item__icon-${
+                isAudioOn ? 'mic' : 'mic-off'
+              }`,
             )}
           />
-        )}
+          <MediaIndicator
+            title={isVideoOn ? t('Camera on') : t('Camera off')}
+            className={clsx(
+              'str-video__participant-listing-item__icon',
+              `str-video__participant-listing-item__icon-${
+                isVideoOn ? 'camera' : 'camera-off'
+              }`,
+            )}
+          />
+          {isPinnedOn && (
+            <MediaIndicator
+              title={t('Pinned')}
+              className={clsx(
+                'str-video__participant-listing-item__icon',
+                'str-video__participant-listing-item__icon-pinned',
+              )}
+            />
+          )}
 
-        <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
-          <ParticipantViewContext.Provider
-            value={{ participant, trackType: 'none' }}
-          >
-            <ParticipantActionsContextMenu />
-          </ParticipantViewContext.Provider>
-        </MenuToggle>
+          <MenuToggle placement="bottom-end" ToggleButton={ToggleButton}>
+            <ParticipantViewContext.Provider
+              value={{ participant, trackType: 'none' }}
+            >
+              <ParticipantActionsContextMenu />
+            </ParticipantViewContext.Provider>
+          </MenuToggle>
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  },
+);
+
+CallParticipantListingItem.displayName = 'CallParticipantListingItem';
 
 const MediaIndicator = (props: ComponentProps<'div'>) => (
   <WithTooltip {...props} />
