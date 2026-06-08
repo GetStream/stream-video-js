@@ -42,16 +42,7 @@ export default function inlineWorker({ include }: InlineWorkerOptions): Plugin {
         input: implPath,
         plugins: [
           typescript({
-            tsconfig: false,
-            compilerOptions: {
-              target: 'ES2020',
-              module: 'ES2020',
-              lib: ['ES2020', 'WebWorker'],
-              moduleResolution: 'node',
-              strict: true,
-              declaration: false,
-              sourceMap: false,
-            },
+            tsconfig: resolve(dir, name, 'tsconfig.json'),
             exclude: ['**/node_modules/**', '**/__tests__/**'],
           }),
         ],
