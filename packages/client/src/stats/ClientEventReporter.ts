@@ -275,15 +275,19 @@ export class ClientEventReporter {
   };
 
   startCorrelation = (cid: string, joinReason: JoinReason) => {
-    this.closeCallPairs(cid);
+    try {
+      this.closeCallPairs(cid);
 
-    this.joinAttemptIds.set(cid, generateUUIDv4());
-    this.joinReasons.set(cid, joinReason);
-    this.firstFrameReported.delete(`${cid}:FirstVideoFrame`);
-    this.firstFrameReported.delete(`${cid}:FirstAudioFrame`);
+      this.joinAttemptIds.set(cid, generateUUIDv4());
+      this.joinReasons.set(cid, joinReason);
+      this.firstFrameReported.delete(`${cid}:FirstVideoFrame`);
+      this.firstFrameReported.delete(`${cid}:FirstAudioFrame`);
 
-    this.emitJoinInitiated(cid);
-    this.emitMediaPermission(cid);
+      this.emitJoinInitiated(cid);
+      this.emitMediaPermission(cid);
+    } catch (err) {
+      this.logger.warn('Failed to start join correlation', err);
+    }
   };
 
   withJoinLifecycle = async <T>(
@@ -335,29 +339,37 @@ export class ClientEventReporter {
     cid: string,
     opts: { code: 'CLIENT_ABORTED' | 'BACKEND_LEAVE'; reason: string },
   ) => {
-    const { code, reason } = opts;
-    const stageError: StageError = { code, reason, severity: SEVERITY.CLIENT };
+    try {
+      const { code, reason } = opts;
+      const stageError: StageError = {
+        code,
+        reason,
+        severity: SEVERITY.CLIENT,
+      };
 
-    applyError(this.coordinatorPairs.get(cid), stageError);
-    applyError(this.wsPairs.get(cid), stageError);
+      applyError(this.coordinatorPairs.get(cid), stageError);
+      applyError(this.wsPairs.get(cid), stageError);
 
-    this.failCoordinator(cid);
-    this.failWs(cid);
+      this.failCoordinator(cid);
+      this.failWs(cid);
 
-    this.emitPeerConnectionFailure(
-      cid,
-      'publish',
-      code,
-      reason,
-      'NOT_CONNECTED',
-    );
-    this.emitPeerConnectionFailure(
-      cid,
-      'subscribe',
-      code,
-      reason,
-      'NOT_CONNECTED',
-    );
+      this.emitPeerConnectionFailure(
+        cid,
+        'publish',
+        code,
+        reason,
+        'NOT_CONNECTED',
+      );
+      this.emitPeerConnectionFailure(
+        cid,
+        'subscribe',
+        code,
+        reason,
+        'NOT_CONNECTED',
+      );
+    } catch (err) {
+      this.logger.warn('Failed to report abort', err);
+    }
   };
 
   private closeCallPairs = (cid: string) => {
