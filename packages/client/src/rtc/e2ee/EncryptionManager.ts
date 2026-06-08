@@ -1,4 +1,3 @@
-import { promiseWithResolvers } from '../../helpers/promise';
 import { TypedEventEmitter } from '../../helpers/TypedEventEmitter';
 import { type ScopedLogger, videoLoggerSystem } from '../../logger';
 import type { E2EEEventMap } from './events';
@@ -7,6 +6,7 @@ import type { E2EEManager } from './E2EEManager';
 export type {
   E2EEEventMap,
   E2EEBrokenEvent,
+  KeyStateReport,
   MissingKeyEvent,
   PerfReport,
   RotationEvent,
@@ -37,21 +37,6 @@ type CreateOptions = {
 };
 
 /**
- * Snapshot of key state returned by {@link EncryptionManager.requestKeyDump}.
- *
- * `fingerprint` is the hex of the first 8 bytes of SHA-256(rawKey) — a
- * non-reversible identifier safe to log. Raw key material is never returned.
- */
-export type KeyStateReport = {
-  perUserKeys: Array<{
-    userId: string;
-    keyIndex: number;
-    fingerprint: string;
-  }>;
-  sharedKey: { keyIndex: number; fingerprint: string } | null;
-};
-
-/**
  * End-to-end encryption manager for WebRTC media tracks.
  *
  * Handles key distribution to the E2EE Web Worker and attaches
@@ -77,8 +62,6 @@ export class EncryptionManager
   private readonly forceInsertableStreams: boolean;
   private disposed = false;
   private piped?: WeakSet<RTCRtpSender | RTCRtpReceiver>;
-
-  private pendingKeyDump?: PromiseWithResolvers<KeyStateReport>;
 
   private readonly userId: string;
   private readonly worker: Worker;
@@ -353,13 +336,14 @@ export class EncryptionManager
 
   /**
    * Request a snapshot of all keys held by the worker.
-   * Returns per-user keys and the shared key (if set) with hex-encoded raw bytes.
+   *
+   * The snapshot is delivered asynchronously via the `e2ee.key_state` event
+   * (subscribe with `manager.on('e2ee.key_state', handler)`). Each report lists
+   * the per-user keys and the shared key (if set) with non-reversible
+   * fingerprints; raw key material is never returned.
    */
-  requestKeyDump = (): Promise<KeyStateReport> => {
-    if (this.pendingKeyDump) return this.pendingKeyDump.promise;
-    this.pendingKeyDump = promiseWithResolvers<KeyStateReport>();
+  requestKeyDump = (): void => {
     this.worker.postMessage({ type: 'cmd.dump_key_state' });
-    return this.pendingKeyDump.promise;
   };
 
   /**
@@ -408,11 +392,10 @@ export class EncryptionManager
         });
         break;
       case 'e2ee.key_state':
-        this.pendingKeyDump?.resolve({
+        this.emit('e2ee.key_state', {
           perUserKeys: e.data.perUserKeys,
           sharedKey: e.data.sharedKey,
         });
-        this.pendingKeyDump = undefined;
         break;
       case 'e2ee.perf_report':
         this.emit('e2ee.perf_report', {

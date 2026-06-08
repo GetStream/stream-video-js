@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type {
   EncryptionManager,
   KeyStateReport,
@@ -13,9 +13,10 @@ export const KeyStateDump = ({ e2eeManager }: KeyStateDumpProps) => {
   const [report, setReport] = useState<KeyStateReport | null>(null);
   const [open, setOpen] = useState(false);
 
-  const handleDump = useCallback(async () => {
-    const state = await e2eeManager.requestKeyDump();
-    setReport(state);
+  useEffect(() => e2eeManager.on('e2ee.key_state', setReport), [e2eeManager]);
+
+  const handleDump = useCallback(() => {
+    e2eeManager.requestKeyDump();
     setOpen(true);
   }, [e2eeManager]);
 

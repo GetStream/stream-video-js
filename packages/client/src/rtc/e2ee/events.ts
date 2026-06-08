@@ -38,6 +38,22 @@ export type E2EEBrokenEvent = {
 };
 
 /**
+ * Snapshot of key state delivered via the `e2ee.key_state` event in response
+ * to {@link EncryptionManager.requestKeyDump}.
+ *
+ * `fingerprint` is the hex of the first 8 bytes of SHA-256(rawKey), a
+ * non-reversible identifier safe to log. Raw key material is never returned.
+ */
+export type KeyStateReport = {
+  perUserKeys: Array<{
+    userId: string;
+    keyIndex: number;
+    fingerprint: string;
+  }>;
+  sharedKey: { keyIndex: number; fingerprint: string } | null;
+};
+
+/**
  * Events emitted by the E2EE {@link EncryptionManager}.
  *
  * Subscribe with `manager.on(eventName, handler)` / unsubscribe via the
@@ -103,6 +119,14 @@ export type E2EEEventMap = {
    * will fail closed at the hard limit.
    */
   'e2ee.rotation_needed': RotationEvent;
+
+  /**
+   * Emitted in response to {@link EncryptionManager.requestKeyDump}: a
+   * snapshot of the keys the worker currently holds (per-user and shared),
+   * identified by non-reversible fingerprints. Raw key material is never
+   * included.
+   */
+  'e2ee.key_state': KeyStateReport;
 };
 
 /**
@@ -117,4 +141,5 @@ export const e2eeEventKinds = {
   'e2ee.perf_report': true,
   'e2ee.broken': true,
   'e2ee.rotation_needed': true,
+  'e2ee.key_state': true,
 } as const satisfies Record<keyof E2EEEventMap, true>;

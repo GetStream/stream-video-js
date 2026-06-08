@@ -96,6 +96,17 @@ describe('EncryptionManager', () => {
     });
   });
 
+  describe('requestKeyDump', () => {
+    it('posts a cmd.dump_key_state message to the worker', () => {
+      manager.requestKeyDump();
+
+      const worker = getWorker(manager);
+      expect(worker.postMessage).toHaveBeenCalledWith({
+        type: 'cmd.dump_key_state',
+      });
+    });
+  });
+
   describe('encrypt', () => {
     it('attaches a transform to the sender', () => {
       const sender: Record<string, unknown> = { transform: null };
@@ -427,6 +438,23 @@ describe('EncryptionManager', () => {
         decode,
         decodeMaxCryptoMs: 3,
       });
+    });
+
+    it('emits e2ee.key_state in response to a key dump', () => {
+      const callback = vi.fn();
+      manager.on('e2ee.key_state', callback);
+
+      const worker = getWorker(manager);
+      const messageHandler = getEventHandler(worker, 'message');
+      const perUserKeys = [
+        { userId: 'bob', keyIndex: 0, fingerprint: 'abc123' },
+      ];
+      const sharedKey = { keyIndex: 1, fingerprint: 'def456' };
+      messageHandler({
+        data: { type: 'e2ee.key_state', perUserKeys, sharedKey },
+      });
+
+      expect(callback).toHaveBeenCalledWith({ perUserKeys, sharedKey });
     });
 
     it('supports multiple listeners per event', () => {
