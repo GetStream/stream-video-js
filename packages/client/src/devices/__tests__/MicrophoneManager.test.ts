@@ -82,7 +82,7 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
-vi.mock('../../stats/ClientEventReporter', () => ({
+vi.mock('../../reporting/ClientEventReporter', () => ({
   ClientEventReporter: vi.fn(function () {
     return {};
   }),
