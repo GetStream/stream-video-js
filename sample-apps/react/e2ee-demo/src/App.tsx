@@ -1,63 +1,29 @@
-import { useE2EEDemo } from './hooks/useE2EEDemo';
-import { Header } from './components/Header';
-import { ParticipantGrid } from './components/ParticipantGrid';
+import { useEffect } from 'react';
+import { HarnessProvider, useCreateHarness } from './hooks/useHarness';
+import { ControlBar } from './components/ControlBar';
+import { CallGrid } from './components/CallGrid';
+import { resolveCallId, writeUrl } from './harness/url';
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './App.css';
 
 const App = () => {
-  const {
-    callId,
-    participants,
-    eventsByUser,
-    loading,
-    e2eeEnabled,
-    forceInsertableStreams,
-    setForceInsertableStreams,
-    preferredCodec,
-    setPreferredCodec,
-    layout,
-    setLayout,
-    sharedPassphrase,
-    setSharedKey,
-    toggleE2EE,
-    toggleParticipantE2EE,
-    addParticipant,
-    removeParticipant,
-    rotateKey,
-    setKeyFromInput,
-    dismissError,
-  } = useE2EEDemo();
+  const callId = resolveCallId(window.location.search);
+  const engine = useCreateHarness(callId);
+
+  // Reflect the call id in the URL so the harness is bookmarkable and shareable.
+  useEffect(() => {
+    writeUrl(callId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
-    <div className="app">
-      <Header
-        callId={callId}
-        participantCount={participants.length}
-        e2eeEnabled={e2eeEnabled}
-        forceInsertableStreams={forceInsertableStreams}
-        preferredCodec={preferredCodec}
-        layout={layout}
-        sharedPassphrase={sharedPassphrase}
-        onToggleE2EE={toggleE2EE}
-        onToggleForceInsertableStreams={setForceInsertableStreams}
-        onCodecChange={setPreferredCodec}
-        onLayoutChange={setLayout}
-        onSetSharedKey={setSharedKey}
-        onAddParticipant={addParticipant}
-        loading={loading}
-      />
-      <ParticipantGrid
-        participants={participants}
-        layout={layout}
-        eventsByUser={eventsByUser}
-        onRemove={removeParticipant}
-        onToggleE2EE={toggleParticipantE2EE}
-        onRotateKey={rotateKey}
-        onSetKey={setKeyFromInput}
-        onDismissError={dismissError}
-      />
-    </div>
+    <HarnessProvider value={engine}>
+      <div className="app">
+        <ControlBar />
+        <CallGrid />
+      </div>
+    </HarnessProvider>
   );
 };
 

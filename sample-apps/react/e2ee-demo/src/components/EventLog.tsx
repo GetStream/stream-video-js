@@ -1,6 +1,19 @@
 import { useEffect, useRef } from 'react';
-import type { EventLogEntry } from '../types';
 import './EventLog.css';
+
+export interface EventLogEntry {
+  id: number;
+  timestamp: Date;
+  message: string;
+  type:
+    | 'key-set'
+    | 'key-rotate'
+    | 'key-distribute'
+    | 'join'
+    | 'leave'
+    | 'error'
+    | 'perf';
+}
 
 const TYPE_LABELS: Record<EventLogEntry['type'], string> = {
   'key-set': '🔑',

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toHex } from '../e2ee/keys';
+import { toHex } from '../harness/keys';
 import './KeyControls.css';
 
 interface KeyControlsProps {
@@ -79,7 +79,7 @@ export const KeyControls = ({
         />
         <span>Local only</span>
         <span className="key-controls__local-only-hint">
-          (skip distribution — causes key mismatch)
+          (skip distribution - causes key mismatch)
         </span>
       </label>
     </div>

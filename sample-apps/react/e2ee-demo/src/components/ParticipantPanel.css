@@ -99,9 +99,10 @@
   flex-direction: column;
 }
 
-.participant-panel__video .str-video__paginated-grid-layout {
+.participant-panel__video .str-video__paginated-grid-layout__wrapper {
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
 .participant-panel__toast {
@@ -145,4 +146,17 @@
   height: 100%;
   color: var(--color-text-secondary);
   font-size: 13px;
+}
+
+.participant-panel--spy {
+  box-shadow: 0 0 0 2px #b42318 inset;
+}
+.participant-panel__spy-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: #b42318;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
 }

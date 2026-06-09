@@ -1,88 +1,67 @@
-import { memo, useCallback } from 'react';
+import { memo } from 'react';
 import {
   CallingState,
   CallControls,
   PaginatedGridLayout,
-  SpeakerLayout,
   StreamCall,
   StreamTheme,
   StreamVideo,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import type { CallLayout, EventLogEntry, ParticipantSession } from '../types';
+import type { HarnessParticipant } from '../harness/snapshot';
+import { useHarnessEngine } from '../hooks/useHarness';
 import { KeyControls } from './KeyControls';
-import { KeyStateDump } from './KeyStateDump';
+import { StatusReadout } from './StatusReadout';
+import { ChaosControls } from './ChaosControls';
+import { SpyOverlay } from './SpyOverlay';
 import { EventLog } from './EventLog';
+import type { EventLogEntry } from './EventLog';
 import './ParticipantPanel.css';
 
-interface ParticipantPanelProps {
-  participant: ParticipantSession;
-  layout: CallLayout;
-  events: EventLogEntry[];
-  onRemove: (userId: string) => void;
-  onToggleE2EE: (userId: string, enabled: boolean) => void;
-  onRotateKey: (userId: string, localOnly: boolean) => void;
-  onSetKey: (userId: string, input: string, localOnly: boolean) => void;
-  onDismissError: (userId: string) => void;
-}
-
-const CallUI = ({ layout }: { layout: CallLayout }) => {
+const CallUI = () => {
   const { useCallCallingState } = useCallStateHooks();
-  const callingState = useCallCallingState();
-
-  if (callingState !== CallingState.JOINED) {
+  if (useCallCallingState() !== CallingState.JOINED) {
     return <div className="participant-panel__loading">Connecting...</div>;
   }
-
   return (
     <StreamTheme>
-      {layout === 'speaker' ? <SpeakerLayout /> : <PaginatedGridLayout />}
+      <PaginatedGridLayout />
       <CallControls />
     </StreamTheme>
   );
 };
 
+interface Props {
+  participant: HarnessParticipant;
+  nameByUserId: Record<string, string>;
+  events: EventLogEntry[];
+}
+
 export const ParticipantPanel = memo(function ParticipantPanel({
   participant,
-  layout,
+  nameByUserId,
   events,
-  onRemove,
-  onToggleE2EE,
-  onRotateKey,
-  onSetKey,
-  onDismissError,
-}: ParticipantPanelProps) {
+}: Props) {
+  const engine = useHarnessEngine();
   const {
     userId,
     name,
     color,
+    role,
     client,
     call,
     currentKey,
     keyIndex,
-    e2eeActive,
+    enabled,
+    tracks,
   } = participant;
-
-  const handleRemove = useCallback(() => onRemove(userId), [onRemove, userId]);
-  const handleToggleE2EE = useCallback(
-    (enabled: boolean) => onToggleE2EE(userId, enabled),
-    [onToggleE2EE, userId],
-  );
-  const handleRotate = useCallback(
-    (localOnly: boolean) => onRotateKey(userId, localOnly),
-    [onRotateKey, userId],
-  );
-  const handleSetKey = useCallback(
-    (input: string, localOnly: boolean) => onSetKey(userId, input, localOnly),
-    [onSetKey, userId],
-  );
-  const handleDismiss = useCallback(
-    () => onDismissError(userId),
-    [onDismissError, userId],
-  );
+  const isSpy = role === 'spy';
 
   return (
-    <div className="participant-panel" style={{ borderTopColor: color }}>
+    <div
+      className={`participant-panel ${isSpy ? 'participant-panel--spy' : ''}`}
+      style={{ borderTopColor: color }}
+    >
       <div className="participant-panel__header">
         <div className="participant-panel__identity">
           <span
@@ -90,22 +69,27 @@ export const ParticipantPanel = memo(function ParticipantPanel({
             style={{ backgroundColor: color }}
           />
           <span className="participant-panel__name">{name}</span>
-          <span className="participant-panel__user-id" title={userId}>
-            {userId.slice(0, 24)}...
-          </span>
+          {isSpy && (
+            <span className="participant-panel__spy-badge">SPY · no key</span>
+          )}
         </div>
         <div className="participant-panel__actions">
-          <label className="participant-panel__e2ee-toggle" title="Toggle E2EE">
-            <input
-              type="checkbox"
-              checked={e2eeActive}
-              onChange={(e) => handleToggleE2EE(e.target.checked)}
-            />
-            E2EE
-          </label>
+          {!isSpy && (
+            <label
+              className="participant-panel__e2ee-toggle"
+              title="Toggle E2EE"
+            >
+              <input
+                type="checkbox"
+                checked={enabled}
+                onChange={(e) => engine.setEnabled(userId, e.target.checked)}
+              />
+              E2EE
+            </label>
+          )}
           <button
             className="participant-panel__remove"
-            onClick={handleRemove}
+            onClick={() => engine.removeParticipant(userId)}
             title="Remove participant"
           >
             &times;
@@ -116,33 +100,27 @@ export const ParticipantPanel = memo(function ParticipantPanel({
       <div className="participant-panel__video">
         <StreamVideo client={client}>
           <StreamCall call={call}>
-            <CallUI layout={layout} />
+            <CallUI />
           </StreamCall>
         </StreamVideo>
-        {participant.decryptionFailed && (
-          <div className="participant-panel__toast">
-            <span>⚠️ Decryption failed — key mismatch</span>
-            <button
-              className="participant-panel__toast-dismiss"
-              onClick={handleDismiss}
-            >
-              &times;
-            </button>
-          </div>
-        )}
+        {isSpy && <SpyOverlay failingCount={tracks.failingFrom.length} />}
       </div>
 
-      {currentKey && (
+      <StatusReadout participant={participant} nameByUserId={nameByUserId} />
+
+      {!isSpy && currentKey && (
         <KeyControls
           currentKey={currentKey}
           keyIndex={keyIndex}
           color={color}
-          onRotate={handleRotate}
-          onSetKey={handleSetKey}
+          onRotate={(localOnly) => engine.rotateKey(userId, localOnly)}
+          onSetKey={(input, localOnly) =>
+            engine.setKey(userId, input, localOnly)
+          }
         />
       )}
 
-      {e2eeActive && <KeyStateDump e2eeManager={participant.e2eeManager} />}
+      {!isSpy && <ChaosControls participant={participant} />}
 
       <EventLog entries={events} />
     </div>
