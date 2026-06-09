@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
 import {
   CallContent,
   CallingState,
@@ -10,6 +11,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { AuthProgressLoader } from './AuthProgressLoader';
 import { CallControlsComponent } from './CallControlsComponent';
+import { CallId } from './CallId';
 
 export const MeetingUI = () => {
   const { useCallCallingState } = useCallStateHooks();
@@ -34,11 +36,20 @@ export const MeetingUI = () => {
   return (
     <NoiseCancellationProvider>
       <BackgroundFiltersProvider>
-        <CallContent
-          CallControls={CallControlsComponent}
-          iOSPiPIncludeLocalParticipantVideo={true}
-        />
+        <View style={styles.container}>
+          <CallContent
+            CallControls={CallControlsComponent}
+            iOSPiPIncludeLocalParticipantVideo={true}
+          />
+          <CallId />
+        </View>
       </BackgroundFiltersProvider>
     </NoiseCancellationProvider>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});
