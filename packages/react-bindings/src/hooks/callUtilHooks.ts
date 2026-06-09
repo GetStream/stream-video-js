@@ -3,6 +3,8 @@ import { useCall } from '../contexts';
 import { useIsCallRecordingInProgress } from './callStateHooks';
 import {
   hasAudio,
+  hasScreenShare,
+  hasScreenShareAudio,
   hasVideo,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
@@ -119,5 +121,39 @@ export const useIsVideoConnecting = (
   return useIsTrackConnecting(
     participant.videoStream?.getVideoTracks()[0],
     hasVideo(participant),
+  );
+};
+
+/**
+ * Custom hook for checking if a screen share track is connecting.
+ *
+ * This hook checks if the participant has a screen share track and if the screen share track is unmuted.
+ *
+ * @param participant the participant to check.
+ * @returns true if the screen share track is connecting, false otherwise.
+ */
+export const useIsScreenShareConnecting = (
+  participant: StreamVideoParticipant,
+): boolean => {
+  return useIsTrackConnecting(
+    participant.screenShareStream?.getVideoTracks()[0],
+    hasScreenShare(participant),
+  );
+};
+
+/**
+ * Custom hook for checking if a screen share audio track is connecting.
+ *
+ * This hook checks if the participant has a screen share audio track and if the screen share audio track is unmuted.
+ *
+ * @param participant the participant to check.
+ * @returns true if the screen share audio track is connecting, false otherwise.
+ */
+export const useIsScreenShareAudioConnecting = (
+  participant: StreamVideoParticipant,
+): boolean => {
+  return useIsTrackConnecting(
+    participant.screenShareAudioStream?.getAudioTracks()[0],
+    hasScreenShareAudio(participant),
   );
 };
