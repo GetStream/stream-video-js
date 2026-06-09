@@ -57,18 +57,14 @@ export const useToggleCallRecording = () => {
  * its `unmute` event (first frame/buffer received).
  */
 const useIsTrackConnecting = (
-  stream: MediaStream | undefined,
+  track: MediaStreamTrack | undefined,
   hasTrack: boolean,
 ): boolean => {
-  const trackId = stream?.getTracks()[0]?.id;
-
   const [unmuted, setUnmuted] = useState(() => {
-    const track = stream?.getTracks()[0];
     return !!track && !track.muted;
   });
 
   useEffect(() => {
-    const track = stream?.getTracks()[0];
     if (!track) {
       setUnmuted(false);
       return;
@@ -87,7 +83,7 @@ const useIsTrackConnecting = (
       track.removeEventListener('mute', handler);
       track.removeEventListener('unmute', handler);
     };
-  }, [stream, trackId]);
+  }, [track]);
 
   return hasTrack && !unmuted;
 };
@@ -103,7 +99,10 @@ const useIsTrackConnecting = (
 export const useIsAudioConnecting = (
   participant: StreamVideoParticipant,
 ): boolean => {
-  return useIsTrackConnecting(participant.audioStream, hasAudio(participant));
+  return useIsTrackConnecting(
+    participant.audioStream?.getAudioTracks()[0],
+    hasAudio(participant),
+  );
 };
 
 /**
@@ -117,5 +116,8 @@ export const useIsAudioConnecting = (
 export const useIsVideoConnecting = (
   participant: StreamVideoParticipant,
 ): boolean => {
-  return useIsTrackConnecting(participant.videoStream, hasVideo(participant));
+  return useIsTrackConnecting(
+    participant.videoStream?.getVideoTracks()[0],
+    hasVideo(participant),
+  );
 };
