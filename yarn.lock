@@ -7347,15 +7347,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stream-io/react-native-webrtc@npm:145.0.0-alpha.5":
-  version: 145.0.0-alpha.5
-  resolution: "@stream-io/react-native-webrtc@npm:145.0.0-alpha.5"
+"@stream-io/react-native-webrtc@npm:145.0.0-alpha.7":
+  version: 145.0.0-alpha.7
+  resolution: "@stream-io/react-native-webrtc@npm:145.0.0-alpha.7"
   dependencies:
     base64-js: "npm:1.5.1"
     debug: "npm:4.3.4"
   peerDependencies:
     react-native: ">=0.73.0"
-  checksum: 10/aa76dcd212a918d5696321ddc418b43b7c9151ced8f773604f0d0a46800dd6465b19eab60eee21ea897809222059cf4785586ea5f88d42aac992bcbbc1ca85f7
+  checksum: 10/a2ef802f8119ff5ca98af6ec1d1212be6d06e20c71237ec2fc1407cd0f4cb08e8e7e08672a54bc300246e0f8c0d3018646a89bb348bdf96a90b5383b0393dc32
   languageName: node
   linkType: hard
 
@@ -7606,7 +7606,7 @@ __metadata:
     "@react-navigation/native-stack": "npm:^7.16.0"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "npm:145.0.0-alpha.5"
+    "@stream-io/react-native-webrtc": "npm:145.0.0-alpha.7"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:^19.2.15"
