@@ -6,16 +6,12 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  background: repeating-linear-gradient(
-    45deg,
-    #1a0000,
-    #1a0000 10px,
-    #2a0000 10px,
-    #2a0000 20px
-  );
-  color: #ffb4ab;
+  /* Translucent tint so the undecryptable (gibberish) video shows underneath. */
+  background: rgba(40, 0, 0, 0.25);
+  color: #ffd7d2;
   text-align: center;
   pointer-events: none;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
 }
 .spy-overlay__lock {
   font-size: 28px;
@@ -26,5 +22,5 @@
 }
 .spy-overlay__sub {
   font-size: 11px;
-  opacity: 0.85;
+  opacity: 0.95;
 }

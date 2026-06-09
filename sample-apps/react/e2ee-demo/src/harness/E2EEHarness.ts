@@ -61,6 +61,9 @@ export const defaultDeps = (): HarnessDeps => ({
       apiKey,
       user: { id: userId, name },
       token,
+      // DIAGNOSTIC: surface the SDK's "E2EE encryptor attached to sender" debug
+      // line and any worker errors while we confirm frames are encrypted.
+      options: { logLevel: 'debug' },
       tokenProvider: () => fetchCredentials(userId).then((c) => c.token),
     }),
   createManager: (userId, opts) => EncryptionManager.create(userId, opts),
@@ -225,11 +228,10 @@ export class E2EEHarness {
         fetchCredentials: this.deps.fetchCredentials,
       });
       const call = client.call(CALL_TYPE, this.config.callId);
+      const isNormal = opts.role === 'normal';
       const manager = await this.deps.createManager(userId, {
         forceInsertableStreams: this.config.transform === 'insertable',
       });
-      call.setE2EEManager(manager);
-      manager.setEnabled(this.config.e2eeEnabled);
 
       const p: EngineParticipant = {
         userId,
@@ -241,47 +243,68 @@ export class E2EEHarness {
         call,
         manager,
         keyIndex: 0,
-        enabled: this.config.e2eeEnabled,
+        enabled: isNormal && this.config.e2eeEnabled,
         keyStore: null,
         perf: null,
         failingFrom: new Set(),
         unsubscribes: [],
       };
 
-      this.wireEvents(p);
-      manager.setPerfReport(true);
-      manager.requestKeyDump();
+      // The spy joins as a plain participant: her manager is created but never
+      // attached to the call, so no encode/decode transform is installed. Peers'
+      // encrypted frames reach her decoder untouched and render as gibberish -
+      // the proof that the media is unusable without the keys. Her own camera
+      // publishes in the clear, so legitimate participants still see her.
+      if (isNormal) {
+        call.setE2EEManager(manager);
+        manager.setEnabled(this.config.e2eeEnabled);
+        this.wireEvents(p);
+        manager.setPerfReport(true);
+        manager.requestKeyDump();
 
-      if (opts.withKey) {
-        const key = generateKey();
-        manager.setKey(userId, 0, key.slice(0));
-        p.currentKey = key;
-        this.addLog(
-          userId,
-          `Set key: ${toHex(key).slice(0, 16)}...`,
-          'key-set',
-        );
-      } else if (
-        this.config.keyMode === 'shared' &&
-        this.sharedKeyBytes &&
-        this.config.e2eeEnabled &&
-        opts.role === 'normal'
-      ) {
-        manager.setSharedKey(
-          this.activeSharedKeyIndex,
-          this.sharedKeyBytes.slice(0),
-        );
-        p.currentKey = this.sharedKeyBytes;
-        p.keyIndex = this.activeSharedKeyIndex;
-        this.addLog(userId, 'Shared key applied', 'key-distribute');
+        if (opts.withKey) {
+          const key = generateKey();
+          manager.setKey(userId, 0, key.slice(0));
+          p.currentKey = key;
+          this.addLog(
+            userId,
+            `Set key: ${toHex(key).slice(0, 16)}...`,
+            'key-set',
+          );
+        } else if (
+          this.config.keyMode === 'shared' &&
+          this.sharedKeyBytes &&
+          this.config.e2eeEnabled
+        ) {
+          manager.setSharedKey(
+            this.activeSharedKeyIndex,
+            this.sharedKeyBytes.slice(0),
+          );
+          p.currentKey = this.sharedKeyBytes;
+          p.keyIndex = this.activeSharedKeyIndex;
+          this.addLog(userId, 'Shared key applied', 'key-distribute');
+        }
       }
 
       call.updatePublishOptions({ preferredCodec: this.config.codec });
       await call.join({ create: true });
       this.addLog(userId, `Joined the call`, 'join');
 
+      // Publish real camera + mic so there is encrypted media flowing - for
+      // peers to decrypt and for the spy to fail to decrypt into gibberish.
+      try {
+        await call.camera.enable();
+        await call.microphone.enable();
+      } catch (err) {
+        this.addLog(
+          userId,
+          `Could not enable camera/mic: ${String(err)}`,
+          'error',
+        );
+      }
+
       this.participants.push(p);
-      if (opts.role === 'normal') this.exchangeOnJoin(p);
+      if (isNormal) this.exchangeOnJoin(p);
       this.emit();
     } catch (err) {
       this.globalError = `Failed to add ${opts.name}: ${String(err)}`;
@@ -382,7 +405,7 @@ export class E2EEHarness {
   private distribute = (from: EngineParticipant): void => {
     if (!from.currentKey) return;
     for (const r of this.participants) {
-      if (r.userId === from.userId) continue;
+      if (r.userId === from.userId || r.role === 'spy') continue;
       this.sendKey(r.userId, from.userId, from.keyIndex, from.currentKey);
     }
   };
@@ -396,12 +419,14 @@ export class E2EEHarness {
     this.sharedKeyBytes = key;
     this.config.keyMode = 'shared';
 
-    for (const p of this.participants) {
+    // The spy never receives the shared key - she stays an outsider.
+    const targets = this.participants.filter((p) => p.role === 'normal');
+    for (const p of targets) {
       p.manager.setSharedKey(keyIndex, key.slice(0));
     }
     // Revoke per-user keys so the shared key is the baseline.
-    for (const p of this.participants) {
-      for (const other of this.participants) {
+    for (const p of targets) {
+      for (const other of targets) {
         if (other.userId !== p.userId) p.manager.removeKeys(other.userId);
       }
       p.manager.removeKeys(p.userId);
@@ -410,7 +435,7 @@ export class E2EEHarness {
     }
     const label =
       passphrase.length > 12 ? passphrase.slice(0, 12) + '...' : passphrase;
-    for (const p of this.participants) {
+    for (const p of targets) {
       this.addLog(
         p.userId,
         `Shared key set from "${label}", per-user keys revoked`,
@@ -428,6 +453,7 @@ export class E2EEHarness {
     if (!userId) this.config.e2eeEnabled = enabled;
 
     for (const p of targets) {
+      if (p.role === 'spy') continue;
       p.manager.setEnabled(enabled);
       p.enabled = enabled;
       if (!enabled) {
@@ -475,6 +501,7 @@ export class E2EEHarness {
       (p) => p.userId !== targetUserId,
     );
     for (const other of this.participants) {
+      if (other.role === 'spy') continue;
       other.manager.removeKeys(targetUserId);
       other.failingFrom.delete(targetUserId);
       this.addLog(
@@ -514,9 +541,11 @@ export class E2EEHarness {
 
   /** Remove `targetUserId`'s key from `fromUserId`'s manager (or from all). */
   revokeKey = (targetUserId: string, fromUserId?: string): void => {
-    const holders = fromUserId
-      ? this.participants.filter((p) => p.userId === fromUserId)
-      : this.participants.filter((p) => p.userId !== targetUserId);
+    const holders = (
+      fromUserId
+        ? this.participants.filter((p) => p.userId === fromUserId)
+        : this.participants.filter((p) => p.userId !== targetUserId)
+    ).filter((p) => p.role === 'normal');
     for (const h of holders) {
       h.manager.removeKeys(targetUserId);
       this.addLog(h.userId, `Revoked ${targetUserId}'s key`, 'key-distribute');

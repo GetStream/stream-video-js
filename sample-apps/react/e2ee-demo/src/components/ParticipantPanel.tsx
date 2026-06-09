@@ -53,7 +53,6 @@ export const ParticipantPanel = memo(function ParticipantPanel({
     currentKey,
     keyIndex,
     enabled,
-    tracks,
   } = participant;
   const isSpy = role === 'spy';
 
@@ -103,7 +102,7 @@ export const ParticipantPanel = memo(function ParticipantPanel({
             <CallUI />
           </StreamCall>
         </StreamVideo>
-        {isSpy && <SpyOverlay failingCount={tracks.failingFrom.length} />}
+        {isSpy && <SpyOverlay />}
       </div>
 
       <StatusReadout participant={participant} nameByUserId={nameByUserId} />
