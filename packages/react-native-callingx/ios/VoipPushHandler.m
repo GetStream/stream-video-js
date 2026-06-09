@@ -80,9 +80,7 @@ static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
          completionHandler:(void (^_Nullable)(void))completion {
     NSDictionary *streamPayload = payload.dictionaryPayload[@"stream"];
     if (!streamPayload) {
-        #if DEBUG
-        NSLog(@"[VoipPushHandler][handleIncomingPush] Stream payload not found");
-        #endif
+        [CallingxLogBridge pushError:@"[handleIncomingPush] Stream payload not found"];
         if (completion) {
             completion();
         }
@@ -91,9 +89,7 @@ static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
 
     NSString *callCid = streamPayload[@"call_cid"];
     if (!callCid) {
-        #if DEBUG
-        NSLog(@"[VoipPushHandler][handleIncomingPush] Missing required field: call_cid");
-        #endif
+        [CallingxLogBridge pushError:@"[handleIncomingPush] Missing required field: call_cid"];
         if (completion) {
             completion();
         }
@@ -126,7 +122,7 @@ static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
     [VoipPushHandler handleIncomingPush:payload
                                 forType:(NSString *)type
                       completionHandler:completion];
-    NSLog(@"[VoipPushHandler][pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:] completion");
+    [CallingxLogBridge pushDebug:@"[pushRegistry:didReceiveIncomingPushWithPayload:forType:withCompletionHandler:] completion"];
 }
 
 #ifdef __IPHONE_26_4
@@ -135,9 +131,7 @@ static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
              completionHandler:(void (^_Nullable)(void))completion {
     NSDictionary *streamPayload = payload.dictionaryPayload[@"stream"];
     if (!streamPayload) {
-        #if DEBUG
-        NSLog(@"[VoipPushHandler][handleIncomingVoIPPush] Stream payload not found");
-        #endif
+        [CallingxLogBridge pushError:@"[handleIncomingVoIPPush] Stream payload not found"];
         if (completion) {
             completion();
         }
@@ -146,9 +140,7 @@ static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
 
     NSString *callCid = streamPayload[@"call_cid"];
     if (!callCid) {
-        #if DEBUG
-        NSLog(@"[VoipPushHandler][handleIncomingVoIPPush] Missing required field: call_cid");
-        #endif
+        [CallingxLogBridge pushError:@"[handleIncomingVoIPPush] Missing required field: call_cid"];
         if (completion) {
             completion();
         }
@@ -196,7 +188,7 @@ static void reportIncomingCallFromStreamPayload(NSDictionary *streamPayload,
     [VoipPushHandler handleIncomingVoIPPush:payload
                                    metadata:metadata
                           completionHandler:completion];
-    NSLog(@"[VoipPushHandler][pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:] completion");
+    [CallingxLogBridge pushDebug:@"[pushRegistry:didReceiveIncomingVoIPPushWithPayload:metadata:withCompletionHandler:] completion"];
 }
 #endif
 

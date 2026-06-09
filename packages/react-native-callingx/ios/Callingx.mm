@@ -562,11 +562,11 @@ RCT_EXPORT_METHOD(fulfillEndCallAction:(NSString *)callId didFail:(BOOL)didFail)
 
 #ifdef RCT_NEW_ARCH_ENABLED
 - (void)log:(NSString *)message level:(NSString *)level {
-  NSLog(@"[Callingx][log] %@, %@", message, level);
+  [CallingxLogBridge js:message level:level];
 }
 #else
 RCT_EXPORT_METHOD(log:(NSString *)message level:(NSString *)level) {
-  NSLog(@"[Callingx][log] %@, %@", message, level);
+  [CallingxLogBridge js:message level:level];
 }
 #endif
 

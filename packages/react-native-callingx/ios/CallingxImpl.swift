@@ -48,6 +48,9 @@ import stream_react_native_webrtc
     /// Wired lazily in `setup()` because `webRTCModule` (the ADM source) is injected
     /// from the TurboModule host after `init`.
     private var engineSubscription: AnyCancellable?
+    /// The ADM `engineSubscription` is bound to. Tracked so we can detect a new ADM
+    /// (a JS reload recreates WebRTCModule) and re-wire instead of staying on a dead publisher.
+    private weak var subscribedADM: AudioDeviceModule?
 
     // Pending CXActions awaiting JS fulfillment
     private var pendingAnswerActions: [String: (action: CXAnswerCallAction, enqueuedAt: DispatchTime)] = [:]
@@ -55,6 +58,21 @@ import stream_react_native_webrtc
     private let pendingActionsQueue = DispatchQueue(label: "io.getstream.callingx.pendingActions")
     // a large timeout to accomodate for cold start + metro server load time
     private let pendingActionTimeoutSeconds = 30
+
+    /// UUIDs of mute actions the app requested via `setMutedCall`. Lets the perform delegate skip
+    /// app-initiated mutes (vs system ones from the native CallKit UI). A set so concurrent toggles
+    /// each match their own UUID. Guarded by `pendingActionsQueue`.
+    private var appInitiatedMuteActionIds: Set<UUID> = []
+
+    /// `true` while the audio engine is starting. Startup toggles `voiceProcessingInputMuted`, which
+    /// iOS 17+ surfaces as system-initiated mutes — artifacts, not user intent, so we skip them.
+    /// Set on `willEnableAudioEngine`, cleared on `willStartAudioEngine`. Guarded by `pendingActionsQueue`.
+    private var isAudioEngineStarting = false
+
+    /// Mute value of the last app-requested `CXSetMutedCallAction`. iOS 17+ round-trips it back as a
+    /// system-initiated action of the same value; we skip that echo (a real UI toggle flips the value).
+    /// Reset when the call ends. Guarded by `pendingActionsQueue`.
+    private var lastAppRequestedMute: Bool?
 
     @objc public static func getSharedInstance() -> CallingxImpl {
         if sharedInstance == nil {
@@ -139,9 +157,7 @@ import stream_react_native_webrtc
         guard let storage = uuidStorage else { return }
         
         if storage.containsCid(callId) {
-            #if DEBUG
-            NSLog("%@","[Callingx][reportNewIncomingCall] callId already exists")
-            #endif
+            CallingxLog.core.debugPublic("[reportNewIncomingCall] callId already exists")
             completion?()
             resolve?(true)
             return
@@ -159,10 +175,7 @@ import stream_react_native_webrtc
         callUpdate.localizedCallerName = localizedCallerName
         
         sharedProvider?.reportNewIncomingCall(with: uuid, update: callUpdate) { error in
-            #if DEBUG
-            NSLog("%@","[Callingx][reportNewIncomingCall] callId = \(callId), error = \(String(describing: error))")
-            #endif
-            
+            CallingxLog.core.debugPublic("[reportNewIncomingCall] callId = \(callId), error = \(String(describing: error))")
             let errorCode = error != nil ? CallingxImpl.getIncomingCallErrorCode(error!) : ""
             
             let body = [
@@ -184,9 +197,7 @@ import stream_react_native_webrtc
             }
         
             if error == nil {
-                #if DEBUG
-                NSLog("%@","[Callingx][reportNewIncomingCall] success callId = \(callId)")
-                #endif
+                CallingxLog.core.debugPublic("[reportNewIncomingCall] success callId = \(callId)")
                 resolve?(true)
             } else {
               reject?("DISPLAY_INCOMING_CALL_ERROR", error?.localizedDescription, error)
@@ -228,14 +239,10 @@ import stream_react_native_webrtc
     }
     
     @objc public static func endCall(_ callId: String, reason: Int) {
-        #if DEBUG
-        NSLog("%@","[Callingx][endCall] callId = \(callId) reason = \(reason)")
-        #endif
+        CallingxLog.core.debugPublic("[endCall] callId = \(callId) reason = \(reason)")
         
         guard let call = uuidStorage?.getCall(forCid: callId) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][endCall] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[endCall] callId not found")
             return
         }
         
@@ -266,9 +273,7 @@ import stream_react_native_webrtc
     
     // MARK: - Instance Methods
     @objc public func requestTransaction(_ transaction: CXTransaction) {
-        #if DEBUG
-        NSLog("%@","[Callingx][requestTransaction] transaction = \(transaction)")
-        #endif
+        CallingxLog.core.debugPublic("[requestTransaction] transaction = \(transaction)")
         
         if callKeepCallController == nil {
             callKeepCallController = CXCallController()
@@ -276,21 +281,22 @@ import stream_react_native_webrtc
         
         callKeepCallController?.request(transaction) { [weak self] error in
             if let error = error {
-                #if DEBUG
-                NSLog("%@","[Callingx][requestTransaction] Error requesting transaction (\(transaction.actions)): (\(error))")
-                #endif
+                CallingxLog.core.errorPublic("[requestTransaction] Error requesting transaction (\(transaction.actions)): (\(error))")
 
                 // Reset per-call action-source flags for all actions in the failed transaction
                 for action in transaction.actions {
+                    if let mutedAction = action as? CXSetMutedCallAction {
+                        self?.pendingActionsQueue.sync {
+                            _ = self?.appInitiatedMuteActionIds.remove(mutedAction.uuid)
+                        }
+                    }
                     if let callAction = action as? CXCallAction,
                        let call = CallingxImpl.uuidStorage?.getCallByUUID(callAction.callUUID) {
                         call.resetAllSelfFlags()
                     }
                 }
             } else {
-                #if DEBUG
-                NSLog("%@","[Callingx][requestTransaction] Requested transaction successfully")
-                #endif
+                CallingxLog.core.debugPublic("[requestTransaction] Requested transaction successfully")
                 
                 if let startCallAction = transaction.actions.first as? CXStartCallAction {
                     let callUpdate = CXCallUpdate()
@@ -309,9 +315,7 @@ import stream_react_native_webrtc
     }
     
     @objc public func sendEvent(_ name: String, body: [String: Any]?) {
-        #if DEBUG
-        NSLog("%@","[Callingx] sendEventWithNameWrapper: \(name)")
-        #endif
+        CallingxLog.core.debugPublic("sendEventWithNameWrapper: \(name)")
         
         let sendEventAction = {
             var dictionary: [String: Any] = ["eventName": name]
@@ -323,9 +327,7 @@ import stream_react_native_webrtc
                 self.eventEmitter?.emitEvent(dictionary)
             } else {
                 CallingxImpl.delayedEvents.append(dictionary)
-                #if DEBUG
-                NSLog("%@","[Callingx] delayedEvents: \(CallingxImpl.delayedEvents)")
-                #endif
+                CallingxLog.core.debugPublic("delayedEvents: \(CallingxImpl.delayedEvents)")
             }
         }
 
@@ -380,9 +382,7 @@ import stream_react_native_webrtc
         case .began:
             payload["phase"] = "began"
             sendEvent(CallingxEvents.didAudioInterruption, body: payload)
-            #if DEBUG
-            NSLog("%@", "[Callingx] Audio interruption began (reason=\(reason ?? "n/a")). Recovery owned by WebRTC AudioEngineDevice.")
-            #endif
+            CallingxLog.core.debugPublic("Audio interruption began (reason=\(reason ?? "n/a")). Recovery owned by WebRTC AudioEngineDevice.")
         case .ended:
             var shouldResume = false
             if let optsRaw = info[AVAudioSessionInterruptionOptionKey] as? UInt {
@@ -391,9 +391,7 @@ import stream_react_native_webrtc
             payload["phase"] = "ended"
             payload["shouldResume"] = shouldResume
             sendEvent(CallingxEvents.didAudioInterruption, body: payload)
-            #if DEBUG
-            NSLog("%@", "[Callingx] Audio interruption ended (shouldResume=\(shouldResume)). WebRTC restarts the engine.")
-            #endif
+            CallingxLog.core.debugPublic("Audio interruption ended (shouldResume=\(shouldResume)). WebRTC restarts the engine.")
         @unknown default:
             break
         }
@@ -445,26 +443,25 @@ import stream_react_native_webrtc
         isSetup = true
     }
 
-    /// Wires the AudioDeviceModule engine-lifecycle subscription. Must be called
-    /// *after* `webRTCModule` is injected from the TurboModule host — `setup()`
-    /// runs before that injection on the callingx path, so attempting to wire
-    /// here would silently no-op (`getAudioDeviceModule()` would return nil).
-    ///
-    /// Idempotent and process-lifetime: the subscription survives until `deinit`
-    /// cancels it. Ownership of the audio session is a separate, behavioral
-    /// concern (`CallingxSessionOwnership.callingxOwnsSession`) gated inside
-    /// the sink — subscription presence does not imply ownership.
+    /// Wires the ADM engine-lifecycle subscription. Call after `webRTCModule` is injected
+    /// (it's nil during `setup()` on the callingx path). Re-wires when the ADM changes — a JS
+    /// reload recreates WebRTCModule while this singleton persists; a no-op for the same ADM.
     @objc public func wireEngineSubscription() {
-        guard engineSubscription == nil, let adm = getAudioDeviceModule() else { return }
-        #if DEBUG
-        NSLog("%@","[Callingx][wireEngineSubscription]")
-        #endif
+        guard let adm = getAudioDeviceModule() else { return }
+        guard subscribedADM !== adm else { return } // already wired to this ADM
+        engineSubscription?.cancel()                // ADM changed (e.g. JS reload) — rewire
+        subscribedADM = adm
+        CallingxLog.core.debugPublic("[wireEngineSubscription]")
 
-        engineSubscription = adm.publisher.sink { event in
+        engineSubscription = adm.publisher.sink { [weak self] event in
             guard CallingxSessionOwnership.callingxOwnsSession else { return }
             switch event {
             case .willEnableAudioEngine:
+                self?.pendingActionsQueue.sync { self?.isAudioEngineStarting = true }
                 AudioSessionManager.shared.engineWillEnable()
+            case .willStartAudioEngine:
+                // Engine is now rendering; voice-processing mute reflects real intent again.
+                self?.pendingActionsQueue.sync { self?.isAudioEngineStarting = false }
             case .didDisableAudioEngine:
                 AudioSessionManager.shared.engineDidDisable()
             default:
@@ -476,9 +473,7 @@ import stream_react_native_webrtc
     @objc public func getInitialEvents() -> [[String: Any]] {
         var events: [[String: Any]] = []
         let action = {
-            #if DEBUG
-            NSLog("%@","[Callingx][getInitialEvents] delayedEvents = \(CallingxImpl.delayedEvents)")
-            #endif
+            CallingxLog.core.debugPublic("[getInitialEvents] delayedEvents = \(CallingxImpl.delayedEvents)")
             
             events = CallingxImpl.delayedEvents
             CallingxImpl.delayedEvents = []
@@ -498,22 +493,16 @@ import stream_react_native_webrtc
         
     // MARK: - Call Management
     @objc public func answerIncomingCall(_ callId: String) -> Bool {
-        #if DEBUG
-        NSLog("%@","[Callingx][answerIncomingCall] callId = \(callId)")
-        #endif
+        CallingxLog.core.debugPublic("[answerIncomingCall] callId = \(callId)")
 
         guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][answerIncomingCall] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[answerIncomingCall] callId not found")
             return false
         }
         
         // Guard: already answered or ended — prevent duplicate CXAnswerCallAction transactions
         if call.isAnswered || call.hasEnded {
-            #if DEBUG
-            NSLog("%@","[Callingx][answerIncomingCall] callId already answered/ended, skipping")
-            #endif
+            CallingxLog.core.debugPublic("[answerIncomingCall] callId already answered/ended, skipping")
             return true
         }
         
@@ -560,9 +549,7 @@ import stream_react_native_webrtc
                 let popTime = DispatchTime.now() + .milliseconds(timeout)
                 DispatchQueue.main.asyncAfter(deadline: popTime) { [weak self] in
                     guard let self = self, !self.isSetup else { return }
-                    #if DEBUG
-                    NSLog("%@","[Callingx] Displayed a call without a reachable app, ending the call: \(callId)")
-                    #endif
+                    CallingxLog.core.debugPublic("Displayed a call without a reachable app, ending the call: \(callId)")
                     CallingxImpl.endCall(callId, reason: CXCallEndedReason.failed.rawValue)
                 }
             }
@@ -570,22 +557,16 @@ import stream_react_native_webrtc
     }
     
     @objc public func endCall(_ callId: String) -> Bool {
-        #if DEBUG
-        NSLog("%@","[Callingx][endCall] callId = \(callId)")
-        #endif
+        CallingxLog.core.debugPublic("[endCall] callId = \(callId)")
         
         guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][endCall] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[endCall] callId not found")
             return false
         }
         
         // Guard: already ended — prevent duplicate CXEndCallAction transactions
         if call.hasEnded {
-            #if DEBUG
-            NSLog("%@","[Callingx][endCall] callId already ended, skipping")
-            #endif
+            CallingxLog.core.debugPublic("[endCall] callId already ended, skipping")
             return true
         }
         
@@ -601,9 +582,7 @@ import stream_react_native_webrtc
     
     @objc public func isCallTracked(_ callId: String) -> Bool {
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][isCallTracked] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[isCallTracked] callId not found")
             return false
         }
         
@@ -617,14 +596,10 @@ import stream_react_native_webrtc
     }
     
     @objc public func setCurrentCallActive(_ callId: String) -> Bool {
-        #if DEBUG
-        NSLog("%@","[Callingx][setCurrentCallActive] callId = \(callId)")
-        #endif
+        CallingxLog.core.debugPublic("[setCurrentCallActive] callId = \(callId)")
       
         guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][setCurrentCallActive] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[setCurrentCallActive] callId not found")
             return false
         }
         
@@ -637,35 +612,30 @@ import stream_react_native_webrtc
     }
     
     @objc public func setMutedCall(_ callId: String, isMuted: Bool) -> Bool {
-        #if DEBUG
-        NSLog("%@","[Callingx][setMutedCall] muted = \(isMuted)")
-        #endif
-        
+        CallingxLog.core.debugPublic("[setMutedCall] muted = \(isMuted)")
         guard let call = CallingxImpl.uuidStorage?.getCall(forCid: callId) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][setMutedCall] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[setMutedCall] callId not found")
             return false
         }
         
-        call.markSelfMuted()
         let setMutedAction = CXSetMutedCallAction(call: call.uuid, muted: isMuted)
+        // Record the action UUID so the perform delegate can recognize this as app-initiated
+        // (and skip echoing it back to JS) without racing on a shared per-call flag.
+        pendingActionsQueue.sync {
+            _ = appInitiatedMuteActionIds.insert(setMutedAction.uuid)
+        }
         let transaction = CXTransaction()
         transaction.addAction(setMutedAction)
-        
+
         requestTransaction(transaction)
         return true
     }
     
     @objc public func setOnHoldCall(_ callId: String, isOnHold: Bool) -> Bool {
-        #if DEBUG
-        NSLog("%@","[Callingx][setOnHold] uuidString = \(callId), shouldHold = \(isOnHold)")
-        #endif
+        CallingxLog.core.debugPublic("[setOnHold] uuidString = \(callId), shouldHold = \(isOnHold)")
         
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][setOnHoldCall] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[setOnHoldCall] callId not found")
             return false
         }
         
@@ -683,16 +653,12 @@ import stream_react_native_webrtc
         callerName: String,
         hasVideo: Bool
     ) {
-        #if DEBUG
-        NSLog("%@","[Callingx][startCall] uuidString = \(callId), phoneNumber = \(phoneNumber)")
-        #endif
+        CallingxLog.core.debugPublic("[startCall] uuidString = \(callId), phoneNumber = \(phoneNumber)")
         
         guard let storage = CallingxImpl.uuidStorage else { return }
       
         if (storage.containsCid(callId)) {
-          #if DEBUG
-          NSLog("%@","[Callingx][startCall] Call \(callId) is already registered")
-          #endif
+          CallingxLog.core.debugPublic("[startCall] Call \(callId) is already registered")
           return
         }
         
@@ -714,14 +680,10 @@ import stream_react_native_webrtc
         phoneNumber: String,
         callerName: String
     ) -> Bool {
-        #if DEBUG
-        NSLog("%@","[Callingx][updateDisplay] uuidString = \(callId) displayName = \(callerName) uri = \(phoneNumber)")
-        #endif
+        CallingxLog.core.debugPublic("[updateDisplay] uuidString = \(callId) displayName = \(callerName) uri = \(phoneNumber)")
         
         guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][updateDisplay] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[updateDisplay] callId not found")
             return false
         }
         
@@ -738,23 +700,18 @@ import stream_react_native_webrtc
     
     // MARK: - CXProviderDelegate
     public func provider(_ provider: CXProvider, perform action: CXStartCallAction) {
-        #if DEBUG
-        NSLog("%@","[Callingx][CXProviderDelegate][provider:performStartCallAction]")
-        #endif
+        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performStartCallAction]")
 
         guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][CXProviderDelegate][provider:performStartCallAction] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performStartCallAction] callId not found")
             action.fail()
             return
         }
 
-        // Claim audio-session ownership BEFORE adm.reset() and createAudioSessionIfNeeded:
+        // Claim audio-session ownership BEFORE createAudioSessionIfNeeded:
         // both can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
         // through the ADM publisher. The engine sink gates on this flag.
         CallingxSessionOwnership.callingxOwnsSession = true
-        getAudioDeviceModule()?.reset()
         AudioSessionManager.shared.createAudioSessionIfNeeded()
         
         sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
@@ -771,22 +728,16 @@ import stream_react_native_webrtc
     
     public func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
         guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][CXProviderDelegate][provider:performAnswerCallAction] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performAnswerCallAction] callId not found")
             action.fail()
             return
         }
         
-        #if DEBUG
-        NSLog("%@","[Callingx][CXProviderDelegate][provider:performAnswerCallAction] isSelfAnswered: \(call.isSelfAnswered)")
-        #endif
-
+        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performAnswerCallAction] isSelfAnswered: \(call.isSelfAnswered)")
         // Claim audio-session ownership BEFORE adm.reset() and createAudioSessionIfNeeded:
         // both can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
         // through the ADM publisher. The engine sink gates on this flag.
         CallingxSessionOwnership.callingxOwnsSession = true
-        getAudioDeviceModule()?.reset()
         AudioSessionManager.shared.createAudioSessionIfNeeded()
         
         let source = call.isSelfAnswered ? "app" : "sys"
@@ -812,9 +763,7 @@ import stream_react_native_webrtc
             let timeout = DispatchTime.now() + DispatchTimeInterval.seconds(pendingActionTimeoutSeconds)
             pendingActionsQueue.asyncAfter(deadline: timeout) { [weak self] in
                 if let pending = self?.pendingAnswerActions.removeValue(forKey: cid) {
-                    #if DEBUG
-                    NSLog("%@","[Callingx][CXProviderDelegate][provider:performAnswerCallAction] answer timeout for callId: \(cid)")
-                    #endif
+                    CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performAnswerCallAction] answer timeout for callId: \(cid)")
                     pending.action.fail()
                 }
             }
@@ -823,18 +772,14 @@ import stream_react_native_webrtc
 
     public func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
         guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][CXProviderDelegate][provider:performEndCallAction] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performEndCallAction] callId not found")
             // End actions represent explicit user intent to close call UI.
             // Fulfill stale/duplicate end actions to avoid "Call Failed" UX.
             action.fulfill()
             return
         }
 
-        #if DEBUG
-        NSLog("%@","[Callingx][CXProviderDelegate][provider:performEndCallAction] isSelfEnded: \(call.isSelfEnded)")
-        #endif
+        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performEndCallAction] isSelfEnded: \(call.isSelfEnded)")
 
         let source = call.isSelfEnded ? "app" : "sys"
         sendEvent(CallingxEvents.performEndCallAction, body: [
@@ -845,6 +790,8 @@ import stream_react_native_webrtc
         call.resetSelfEnded()
         call.markEnded()
         CallingxImpl.uuidStorage?.removeCid(call.cid)
+        // Forget this call's mute intent so its stale value can't be read as an echo next call.
+        pendingActionsQueue.sync { lastAppRequestedMute = nil }
 
         if source == "app" {
             // App initiated this end — no need to wait for JS, fulfill immediately
@@ -859,9 +806,7 @@ import stream_react_native_webrtc
             let timeout = DispatchTime.now() + DispatchTimeInterval.seconds(pendingActionTimeoutSeconds)
             pendingActionsQueue.asyncAfter(deadline: timeout) { [weak self] in
                 if let pending = self?.pendingEndActions.removeValue(forKey: cid) {
-                    #if DEBUG
-                    NSLog("%@","[Callingx][CXProviderDelegate][provider:performEndCallAction] end timeout for callId: \(cid)")
-                    #endif
+                    CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performEndCallAction] end timeout for callId: \(cid)")
                     pending.action.fulfill()
                 }
             }
@@ -869,14 +814,10 @@ import stream_react_native_webrtc
     }
     
     public func provider(_ provider: CXProvider, perform action: CXSetHeldCallAction) {
-        #if DEBUG
-        NSLog("%@","[Callingx][CXProviderDelegate][provider:performSetHeldCallAction]")
-        #endif
+        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performSetHeldCallAction]")
         
         guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][CXProviderDelegate][provider:performSetHeldCallAction] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performSetHeldCallAction] callId not found")
             action.fail()
             return
         }
@@ -891,25 +832,25 @@ import stream_react_native_webrtc
     
     public func provider(_ provider: CXProvider, perform action: CXSetMutedCallAction) {
         guard let call = CallingxImpl.uuidStorage?.getCallByUUID(action.callUUID) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][CXProviderDelegate][provider:performSetMutedCallAction] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performSetMutedCallAction] callId not found")
             action.fail()
             return
         }
         
-        let isAppInitiated = call.isSelfMuted
-        call.resetSelfMuted()
-        
-        #if DEBUG
-        NSLog("%@","[Callingx][CXProviderDelegate][provider:performSetMutedCallAction] \(action.isMuted) isAppInitiated: \(isAppInitiated)")
-        #endif
-        
-        // Only send the event to JS when the mute was initiated by the system
-        // (e.g. user tapped mute on the native CallKit UI).
-        // Skip app-initiated actions to prevent the feedback loop:
-        // app mutes mic → setMutedCall → CallKit delegate → event to JS → mic toggle → loop
-        if !isAppInitiated {
+        // Resolve all three suppression flags in one queue hop (serialized state).
+        let (isAppInitiated, suppressDuringStartup, isMuteEcho) = pendingActionsQueue.sync { () -> (Bool, Bool, Bool) in
+            let appInitiated = appInitiatedMuteActionIds.remove(action.uuid) != nil
+            // Remember the value so its iOS 17+ system echo can be skipped below.
+            if appInitiated { lastAppRequestedMute = action.isMuted }
+            let echo = !appInitiated && lastAppRequestedMute == action.isMuted
+            return (appInitiated, isAudioEngineStarting, echo)
+        }
+
+        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performSetMutedCallAction] \(action.isMuted) isAppInitiated: \(isAppInitiated) suppressDuringStartup: \(suppressDuringStartup) isMuteEcho: \(isMuteEcho)")
+        // Forward to JS only genuine system mutes (user tapped native CallKit UI). Skip app-initiated
+        // actions (feedback loop), their iOS 17+ system echoes, and engine-startup artifacts —
+        // see each flag's field docs.
+        if !isAppInitiated && !suppressDuringStartup && !isMuteEcho {
             sendEvent(CallingxEvents.didPerformSetMutedCallAction, body: [
                 "muted": action.isMuted,
                 "callId": call.cid
@@ -920,14 +861,10 @@ import stream_react_native_webrtc
     }
   
     public func provider(_ provider: CXProvider, perform action: CXPlayDTMFCallAction) {
-        #if DEBUG
-        NSLog("%@","[Callingx][CXProviderDelegate][provider:performPlayDTMFCallAction]")
-        #endif
+        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performPlayDTMFCallAction]")
         
         guard let callId = CallingxImpl.uuidStorage?.getCid(forUUID: action.callUUID) else {
-            #if DEBUG
-            NSLog("%@","[Callingx][CXProviderDelegate][provider:performPlayDTMFCallAction] callId not found")
-            #endif
+            CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performPlayDTMFCallAction] callId not found")
             action.fail()
             return
         }
@@ -941,10 +878,7 @@ import stream_react_native_webrtc
     }
     
     public func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
-        #if DEBUG
-        NSLog("%@","[Callingx][CXProviderDelegate][provider:didActivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
-        #endif
-
+        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:didActivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
         // Re-claim ownership BEFORE notifying WebRTC. Handles the PSTN/Siri
         // interruption-resume case: didDeactivate cleared the flag if the call
         // had ended, but for an interruption the call is still tracked and
@@ -964,9 +898,7 @@ import stream_react_native_webrtc
     }
     
     public func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
-        #if DEBUG
-        NSLog("%@","[Callingx][CXProviderDelegate][provider:didDeactivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
-        #endif
+        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:didDeactivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
 
         // When CallKit deactivates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
@@ -994,9 +926,7 @@ import stream_react_native_webrtc
     public func provider(_ provider: CXProvider, timedOutPerforming action: CXAction) {
         // note: in practice we should never be getting this callback as we already have a pending timeout set.
         // in our tests callkit timesout and exectutes this method in approximately 60 seconds.
-        #if DEBUG
-        NSLog("%@","[Callingx][CXProviderDelegate][provider:timedOutPerformingAction]")
-        #endif
+        CallingxLog.core.debugPublic("[CXProviderDelegate][provider:timedOutPerformingAction]")
 
         guard let callAction = action as? CXCallAction else {
             return
@@ -1007,31 +937,26 @@ import stream_react_native_webrtc
             if let answerEntry = pendingAnswerActions.first(where: { $0.value.action.callUUID == callAction.callUUID }) {
                 pendingAnswerActions.removeValue(forKey: answerEntry.key)
                 let elapsedMs = elapsedMilliseconds(since: answerEntry.value.enqueuedAt)
-                #if DEBUG
-                NSLog("%@","[Callingx][CXProviderDelegate][provider:timedOutPerformingAction] removed pending answer action for callId: \(answerEntry.key), elapsedMs=\(elapsedMs)")
-                #endif
+                CallingxLog.core.debugPublic("[CXProviderDelegate][provider:timedOutPerformingAction] removed pending answer action for callId: \(answerEntry.key), elapsedMs=\(elapsedMs)")
             }
 
             if let endEntry = pendingEndActions.first(where: { $0.value.action.callUUID == callAction.callUUID }) {
                 pendingEndActions.removeValue(forKey: endEntry.key)
                 let elapsedMs = elapsedMilliseconds(since: endEntry.value.enqueuedAt)
-                #if DEBUG
-                NSLog("%@","[Callingx][CXProviderDelegate][provider:timedOutPerformingAction] removed pending end action for callId: \(endEntry.key), elapsedMs=\(elapsedMs)")
-                #endif
+                CallingxLog.core.debugPublic("[CXProviderDelegate][provider:timedOutPerformingAction] removed pending end action for callId: \(endEntry.key), elapsedMs=\(elapsedMs)")
             }
         }
     }
   
     public func providerDidReset(_ provider: CXProvider) {
-        #if DEBUG
-        NSLog("%@","[Callingx][providerDidReset]")
-        #endif
+        CallingxLog.core.debugPublic("[providerDidReset]")
 
         // Clear any pending actions to prevent memory leaks.
         // After a provider reset, all pending CXActions are invalid.
         pendingActionsQueue.sync {
             pendingAnswerActions.removeAll()
             pendingEndActions.removeAll()
+            lastAppRequestedMute = nil
         }
 
         // A provider reset invalidates all CallKit calls. didDeactivate is not
@@ -1050,15 +975,11 @@ import stream_react_native_webrtc
     @objc public func fulfillAnswerCallAction(_ callId: String, didFail: Bool) {
         pendingActionsQueue.sync { [weak self] in
             guard let pending = self?.pendingAnswerActions.removeValue(forKey: callId) else {
-                #if DEBUG
-                NSLog("%@","[Callingx][fulfillAnswerCallAction] action not found for callId: \(callId)")
-                #endif
+                CallingxLog.core.debugPublic("[fulfillAnswerCallAction] action not found for callId: \(callId)")
                 return
             }
             let elapsedMs = elapsedMilliseconds(since: pending.enqueuedAt)
-            #if DEBUG
-            NSLog("%@","[Callingx][fulfillAnswerCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
-            #endif
+            CallingxLog.core.debugPublic("[fulfillAnswerCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
             if didFail { pending.action.fail() } else { pending.action.fulfill() }
         }
     }
@@ -1066,15 +987,11 @@ import stream_react_native_webrtc
     @objc public func fulfillEndCallAction(_ callId: String, didFail: Bool) {
         pendingActionsQueue.sync { [weak self] in
             guard let pending = self?.pendingEndActions.removeValue(forKey: callId) else {
-                #if DEBUG
-                NSLog("%@","[Callingx][fulfillEndCallAction] action not found for callId: \(callId)")
-                #endif
+                CallingxLog.core.debugPublic("[fulfillEndCallAction] action not found for callId: \(callId)")
                 return
             }
             let elapsedMs = elapsedMilliseconds(since: pending.enqueuedAt)
-            #if DEBUG
-            NSLog("%@","[Callingx][fulfillEndCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
-            #endif
+            CallingxLog.core.debugPublic("[fulfillEndCallAction] callId: \(callId), didFail: \(didFail), elapsedMs=\(elapsedMs)")
             if didFail { pending.action.fail() } else { pending.action.fulfill() }
         }
     }
@@ -1095,9 +1012,7 @@ import stream_react_native_webrtc
 
     private func getAudioDeviceModule() -> AudioDeviceModule? {
         guard let adm = webRTCModule?.audioDeviceModule else {
-            #if DEBUG
-            NSLog("%@","[Callingx] WebRTCModule is not available. Ensure it was injected from the TurboModule host.")
-            #endif
+            CallingxLog.core.errorPublic("WebRTCModule is not available. Ensure it was injected from the TurboModule host.")
             return nil
         }
         return adm

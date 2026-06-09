@@ -51,9 +51,7 @@ enum DefaultAudioDevice {
     /// against each other.
     public func engineWillEnable() {
         audioSessionQueue.async { [weak self] in
-            #if DEBUG
-            NSLog("%@","[Callingx][engineWillEnable]")
-            #endif
+            CallingxLog.audio.debugPublic("[engineWillEnable]")
             self?.applyCallKitConfiguration()
         }
     }
@@ -96,9 +94,7 @@ enum DefaultAudioDevice {
         do {
             try rtcSession.setConfiguration(rtcConfig)
         } catch {
-            #if DEBUG
-            NSLog("%@","[Callingx][createAudioSessionIfNeeded] Error: \(error)")
-            #endif
+            CallingxLog.audio.errorPublic("[createAudioSessionIfNeeded] Error: \(error)")
         }
     }
 }
