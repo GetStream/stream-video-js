@@ -37,7 +37,7 @@ import {
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 import { ScopedLogger, videoLoggerSystem } from '../../logger';
-import { ClientEventReporter } from '../../stats';
+import { ClientEventReporter } from '../../reporting';
 
 export class StreamClient {
   _user?: UserWithId;

@@ -142,11 +142,11 @@ import {
 import {
   createStatsReporter,
   getSdkSignature,
-  JoinReason,
   SfuStatsReporter,
   StatsReporter,
   Tracer,
 } from './stats';
+import { JoinReason } from './reporting';
 import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
