@@ -39,6 +39,11 @@ const COORD_WS_MODES: Mode<CoordinatorWsMode>[] = [
       'Close N times then succeed → CoordinatorWS connects with retry_count_attempt: N',
     withN: true,
   },
+  {
+    value: 'auth-error',
+    label:
+      'Auth error (close 4401) → CoordinatorWS connect failure — checks whether the status is forwarded vs generic NETWORK_OFFLINE',
+  },
 ];
 
 const WS_MODES: Mode<WsMode>[] = [
@@ -63,6 +68,16 @@ const WS_MODES: Mode<WsMode>[] = [
     label:
       'SFU_FULL N times then succeed → N WSJoin completed/failure (SFU_FULL) + final WSJoin completed/success',
     withN: true,
+  },
+  {
+    value: 'sfu-unauthenticated',
+    label:
+      'SFU UNAUTHENTICATED on join → WSJoin completed/failure with code=UNAUTHENTICATED',
+  },
+  {
+    value: 'sfu-go-away',
+    label:
+      'SFU goAway after join → migration (new join_attempt_id, join_reason=migration)',
   },
 ];
 

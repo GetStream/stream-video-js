@@ -1,15 +1,23 @@
 import { SfuEvents, SfuModels } from '@stream-io/video-react-sdk';
 
 export type CoordinatorMode = 'off' | 'fail-always' | 'fail-then-succeed';
-export type CoordinatorWsMode = 'off' | 'fail-always' | 'fail-then-succeed';
+export type CoordinatorWsMode =
+  | 'off'
+  | 'fail-always'
+  | 'fail-then-succeed'
+  | 'auth-error';
+
+type CoordinatorWsFailureKind = 'close' | 'auth-error';
 export type WsMode =
   | 'off'
   | 'fail-always'
   | 'fail-then-succeed'
   | 'sfu-full-always'
-  | 'sfu-full-then-succeed';
+  | 'sfu-full-then-succeed'
+  | 'sfu-unauthenticated'
+  | 'sfu-go-away';
 
-type WsFailureKind = 'close' | 'sfu-full';
+type WsFailureKind = 'close' | 'sfu-full' | 'sfu-unauthenticated' | 'go-away';
 
 export type ChaosState = {
   coordinator: { mode: CoordinatorMode; failCount: number; remaining: number };
@@ -138,17 +146,18 @@ class ChaosController {
     return false;
   };
 
-  shouldFailCoordinatorWs = (url: string) => {
-    if (!COORDINATOR_WS_PATTERN.test(url)) return false;
+  shouldFailCoordinatorWs = (url: string): CoordinatorWsFailureKind | null => {
+    if (!COORDINATOR_WS_PATTERN.test(url)) return null;
     const c = this.state.coordinatorWs;
-    if (c.mode === 'off') return false;
-    if (c.mode === 'fail-always') return true;
+    if (c.mode === 'off') return null;
+    if (c.mode === 'auth-error') return 'auth-error';
+    if (c.mode === 'fail-always') return 'close';
     if (c.mode === 'fail-then-succeed' && c.remaining > 0) {
       c.remaining--;
       this.notify();
-      return true;
+      return 'close';
     }
-    return false;
+    return null;
   };
 
   shouldFailWs = (url: string): WsFailureKind | null => {
@@ -157,6 +166,17 @@ class ChaosController {
     if (w.mode === 'off') return null;
     if (w.mode === 'fail-always') return 'close';
     if (w.mode === 'sfu-full-always') return 'sfu-full';
+    if (w.mode === 'sfu-unauthenticated') return 'sfu-unauthenticated';
+    if (w.mode === 'sfu-go-away') {
+      // fire once: the migration it triggers opens a new SFU WS, and we must
+      // not inject another goAway into that one (otherwise: endless migration).
+      if (w.remaining > 0) {
+        w.remaining--;
+        this.notify();
+        return 'go-away';
+      }
+      return null;
+    }
     if (w.mode === 'fail-then-succeed' && w.remaining > 0) {
       w.remaining--;
       this.notify();
@@ -273,11 +293,17 @@ class ChaosController {
     ) {
       const urlStr = typeof url === 'string' ? url : url.toString();
       const controller = getChaosController();
-      if (controller.shouldFailCoordinatorWs(urlStr)) {
+      const coordWsFailure = controller.shouldFailCoordinatorWs(urlStr);
+      if (coordWsFailure) {
         const ws = new Orig(urlStr, protocols);
+        // 4401 carries an auth status on the close; 4000 is a plain open failure.
+        const [code, reason] =
+          coordWsFailure === 'auth-error'
+            ? [4401, 'Chaos: simulated coordinator WS auth error']
+            : [4000, 'Chaos: simulated coordinator WS open failure'];
         Promise.resolve().then(() => {
           try {
-            ws.close(4000, 'Chaos: simulated coordinator WS open failure');
+            ws.close(code, reason);
           } catch {
             // ignore
           }
@@ -298,59 +324,33 @@ class ChaosController {
       }
       if (failure === 'sfu-full') {
         const ws = new Orig(urlStr, protocols);
-        ws.binaryType = 'arraybuffer';
-        const sendOriginal = ws.send.bind(ws);
-        let injected = false;
-        ws.send = (data: string | ArrayBufferLike | Blob | ArrayBufferView) => {
-          sendOriginal(data);
-          if (injected) return;
-          let isJoinRequest = false;
-          try {
-            let bytes: Uint8Array | undefined;
-            if (data instanceof ArrayBuffer) {
-              bytes = new Uint8Array(data);
-            } else if (ArrayBuffer.isView(data)) {
-              bytes = new Uint8Array(
-                data.buffer,
-                data.byteOffset,
-                data.byteLength,
-              );
-            }
-            if (bytes) {
-              const req = SfuEvents.SfuRequest.fromBinary(bytes);
-              isJoinRequest = req.requestPayload?.oneofKind === 'joinRequest';
-            }
-          } catch {
-            // ignore
-          }
-          if (!isJoinRequest) return;
-          injected = true;
-          const errorEvent = SfuEvents.SfuEvent.create({
-            eventPayload: {
-              oneofKind: 'error',
-              error: {
-                error: {
-                  code: SfuModels.ErrorCode.SFU_FULL,
-                  message: 'Chaos: simulated SFU_FULL',
-                  shouldRetry: true,
-                },
-                reconnectStrategy: SfuModels.WebsocketReconnectStrategy.REJOIN,
-              },
-            },
-          });
-          const payload = SfuEvents.SfuEvent.toBinary(errorEvent);
-          const buffer = payload.buffer.slice(
-            payload.byteOffset,
-            payload.byteOffset + payload.byteLength,
-          ) as ArrayBuffer;
-          Promise.resolve().then(() => {
-            try {
-              ws.dispatchEvent(new MessageEvent('message', { data: buffer }));
-            } catch {
-              // ignore
-            }
-          });
-        };
+        injectSfuEventOnJoin(ws, () =>
+          buildSfuErrorEvent(
+            SfuModels.ErrorCode.SFU_FULL,
+            'Chaos: simulated SFU_FULL',
+            SfuModels.WebsocketReconnectStrategy.REJOIN,
+            true,
+          ),
+        );
+        return ws;
+      }
+      if (failure === 'sfu-unauthenticated') {
+        const ws = new Orig(urlStr, protocols);
+        injectSfuEventOnJoin(ws, () =>
+          buildSfuErrorEvent(
+            SfuModels.ErrorCode.UNAUTHENTICATED,
+            'Chaos: simulated UNAUTHENTICATED',
+            // unrecoverable: the SDK should fail the join, not retry
+            SfuModels.WebsocketReconnectStrategy.DISCONNECT,
+            false,
+          ),
+        );
+        return ws;
+      }
+      if (failure === 'go-away') {
+        const ws = new Orig(urlStr, protocols);
+        // fire after the join settles so it behaves like a live migration signal
+        injectSfuEventOnJoin(ws, buildGoAwayEvent, 1500);
         return ws;
       }
       return new Orig(urlStr, protocols);
@@ -360,6 +360,80 @@ class ChaosController {
     return Patched;
   };
 }
+
+const buildSfuErrorEvent = (
+  code: SfuModels.ErrorCode,
+  message: string,
+  reconnectStrategy: SfuModels.WebsocketReconnectStrategy,
+  shouldRetry: boolean,
+): SfuEvents.SfuEvent =>
+  SfuEvents.SfuEvent.create({
+    eventPayload: {
+      oneofKind: 'error',
+      error: {
+        error: { code, message, shouldRetry },
+        reconnectStrategy,
+      },
+    },
+  });
+
+const buildGoAwayEvent = (): SfuEvents.SfuEvent =>
+  SfuEvents.SfuEvent.create({
+    eventPayload: {
+      oneofKind: 'goAway',
+      goAway: { reason: SfuModels.GoAwayReason.REBALANCE },
+    },
+  });
+
+/**
+ * Hooks the WS so that, when the client sends its `joinRequest`, a synthetic
+ * SFU event (built by `buildEvent`) is dispatched back to the client once.
+ * `delayMs` lets a `goAway` fire after the join has settled.
+ */
+const injectSfuEventOnJoin = (
+  ws: WebSocket,
+  buildEvent: () => SfuEvents.SfuEvent,
+  delayMs = 0,
+) => {
+  ws.binaryType = 'arraybuffer';
+  const sendOriginal = ws.send.bind(ws);
+  let injected = false;
+  ws.send = (data: string | ArrayBufferLike | Blob | ArrayBufferView) => {
+    sendOriginal(data);
+    if (injected) return;
+    let isJoinRequest = false;
+    try {
+      let bytes: Uint8Array | undefined;
+      if (data instanceof ArrayBuffer) {
+        bytes = new Uint8Array(data);
+      } else if (ArrayBuffer.isView(data)) {
+        bytes = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+      }
+      if (bytes) {
+        const req = SfuEvents.SfuRequest.fromBinary(bytes);
+        isJoinRequest = req.requestPayload?.oneofKind === 'joinRequest';
+      }
+    } catch {
+      // ignore
+    }
+    if (!isJoinRequest) return;
+    injected = true;
+    const payload = SfuEvents.SfuEvent.toBinary(buildEvent());
+    const buffer = payload.buffer.slice(
+      payload.byteOffset,
+      payload.byteOffset + payload.byteLength,
+    ) as ArrayBuffer;
+    const fire = () => {
+      try {
+        ws.dispatchEvent(new MessageEvent('message', { data: buffer }));
+      } catch {
+        // ignore
+      }
+    };
+    if (delayMs > 0) setTimeout(fire, delayMs);
+    else Promise.resolve().then(fire);
+  };
+};
 
 let singleton: ChaosController | null = null;
 
