@@ -16,6 +16,10 @@
     "url": "https://github.com/GetStream/stream-video-js.git",
     "directory": "packages/react-bindings"
   },
+  "homepage": "https://github.com/GetStream/stream-video-js/tree/main/packages/react-bindings#readme",
+  "bugs": {
+    "url": "https://github.com/GetStream/stream-video-js/issues"
+  },
   "files": [
     "dist",
     "src",

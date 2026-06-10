@@ -24,6 +24,9 @@
     "url": "https://github.com/GetStream/stream-video-js.git",
     "directory": "packages/react-native-sdk"
   },
+  "bugs": {
+    "url": "https://github.com/GetStream/stream-video-js/issues"
+  },
   "files": [
     "dist",
     "src",

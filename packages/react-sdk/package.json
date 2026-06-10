@@ -29,6 +29,10 @@
     "url": "https://github.com/GetStream/stream-video-js.git",
     "directory": "packages/react-sdk"
   },
+  "homepage": "https://github.com/GetStream/stream-video-js/tree/main/packages/react-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/GetStream/stream-video-js/issues"
+  },
   "files": [
     "dist",
     "src",

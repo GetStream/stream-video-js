@@ -21,6 +21,10 @@
     "url": "https://github.com/GetStream/stream-video-js.git",
     "directory": "packages/client"
   },
+  "homepage": "https://github.com/GetStream/stream-video-js/tree/main/packages/client#readme",
+  "bugs": {
+    "url": "https://github.com/GetStream/stream-video-js/issues"
+  },
   "files": [
     "dist",
     "src",

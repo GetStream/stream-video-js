@@ -20,6 +20,10 @@
     "url": "https://github.com/GetStream/stream-video-js.git",
     "directory": "packages/codemod"
   },
+  "homepage": "https://github.com/GetStream/stream-video-js/tree/main/packages/codemod#readme",
+  "bugs": {
+    "url": "https://github.com/GetStream/stream-video-js/issues"
+  },
   "dependencies": {
     "jscodeshift": "^17.3.0"
   },

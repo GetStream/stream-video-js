@@ -20,6 +20,10 @@
     "url": "https://github.com/GetStream/stream-video-js.git",
     "directory": "packages/audio-filters-web"
   },
+  "homepage": "https://github.com/GetStream/stream-video-js/tree/main/packages/audio-filters-web#readme",
+  "bugs": {
+    "url": "https://github.com/GetStream/stream-video-js/issues"
+  },
   "sideEffects": false,
   "files": [
     "dist",

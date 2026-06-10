@@ -12,6 +12,10 @@
     "url": "https://github.com/GetStream/stream-video-js.git",
     "directory": "packages/styling"
   },
+  "homepage": "https://github.com/GetStream/stream-video-js/tree/main/packages/styling#readme",
+  "bugs": {
+    "url": "https://github.com/GetStream/stream-video-js/issues"
+  },
   "devDependencies": {
     "rimraf": "^6.1.3",
     "sass": "^1.100.0"
