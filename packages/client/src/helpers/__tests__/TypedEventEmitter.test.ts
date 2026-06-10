@@ -72,6 +72,16 @@ describe('TypedEventEmitter', () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
+  it('removes a once() listener via off(originalFn) before it fires', () => {
+    // once() stores an internal wrapper, but the documented unsubscribe path
+    // off(name, handler) takes the original handler - it must still cancel.
+    const listener = vi.fn();
+    emitter.once('ping', listener);
+    emitter.off('ping', listener);
+    emitter.emit('ping', { n: 1 });
+    expect(listener).not.toHaveBeenCalled();
+  });
+
   it('delivers events to onAny() listeners with (event, payload)', () => {
     const any = vi.fn();
     emitter.onAny(any);

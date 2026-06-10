@@ -80,6 +80,15 @@ describe('getClearByteCount', () => {
     expect(getClearByteCount('unknown', 'delta', new Uint8Array(50))).toBe(0);
   });
 
+  it('clamps VP8/VP9 clear bytes to the frame length', () => {
+    // A frame shorter than the nominal clear-byte count must not claim more
+    // clear bytes than it has (matches the H264 clamp). Otherwise encode builds
+    // a zero-padded clear header and decode a length-mismatched AAD -> GCM
+    // fails for a frame that should have round-tripped.
+    expect(getClearByteCount('vp8', 'delta', new Uint8Array(2))).toBe(2);
+    expect(getClearByteCount('vp9', 'key', new Uint8Array(5))).toBe(5);
+  });
+
   it('returns clear bytes up to first slice NALU for H.264', () => {
     // Annex B: [00 00 00 01][SPS][00 00 00 01][slice NALU type 5][...]
     // SPS NALU type 7, slice IDR type 5.

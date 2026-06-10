@@ -50,13 +50,7 @@
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#aes-gcm
  */
 
-import {
-  E2EE_VERSION,
-  EMPTY_AAD,
-  IV_LEN,
-  MAX_CLEAR_BYTES,
-  TRAILER_LEN,
-} from './constants';
+import { EMPTY_AAD, IV_LEN, MAX_CLEAR_BYTES, TRAILER_LEN } from './constants';
 import {
   getClearByteCount,
   isSupportedCodec,
@@ -437,14 +431,9 @@ const decodeTransform = (userId: string) => {
         );
       }
 
-      const { clearBytes, isRbsp, version } = trailer;
-      if (version !== E2EE_VERSION) {
-        // readTrailer already filters wrong versions, but keep the explicit
-        // branch so future bumps surface via notifyFailure rather than
-        // silently dropping as "not our trailer".
-        notifyFailure();
-        return;
-      }
+      // readTrailer only returns non-null for our current wire version, so no
+      // version check is needed here.
+      const { clearBytes, isRbsp } = trailer;
 
       // For an RBSP (H264) frame the ciphertext AND the counter/ivPrefix/keyIndex
       // were escaped as one unit (finding 11), so recover them by un-escaping

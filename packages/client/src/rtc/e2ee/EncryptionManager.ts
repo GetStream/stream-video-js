@@ -195,7 +195,14 @@ export class EncryptionManager
       type: 'application/javascript',
     });
     const url = URL.createObjectURL(blob);
-    const worker = new Worker(url, { name: 'stream-video-e2ee' });
+    let worker: Worker;
+    try {
+      worker = new Worker(url, { name: 'stream-video-e2ee' });
+    } catch (err) {
+      // e.g. a CSP `worker-src` without `blob:`. Don't leak the object URL.
+      URL.revokeObjectURL(url);
+      throw err;
+    }
     const algorithm = options?.algorithm ?? 'AES-128-GCM';
     const forceRtpScriptTransform = options?.forceRtpScriptTransform ?? false;
     return new EncryptionManager(
@@ -250,14 +257,16 @@ export class EncryptionManager
    *         an integer in the range 0-255: the frame trailer carries it in a
    *         single byte, so values outside that range are rejected.
    * @param rawKey - Raw AES key material: 16 bytes for AES-128-GCM (default)
-   *         or 32 bytes for AES-256-GCM. Transferred to the worker (zero-copy).
+   *         or 32 bytes for AES-256-GCM. Structured-cloned to the worker; the
+   *         caller's buffer is not detached and may be re-imported.
    */
   setKey = (userId: string, keyIndex: number, rawKey: ArrayBuffer): void => {
     this.validateKeyIndex(keyIndex);
     this.validateKeyLength(rawKey);
-    this.worker.postMessage({ type: 'cmd.set_key', userId, keyIndex, rawKey }, [
-      rawKey,
-    ]);
+    // Structured-clone the key (no transfer list): transferring would detach
+    // the caller's ArrayBuffer, breaking the documented "safe to re-import the
+    // same raw key material" contract. The copy of 16/32 bytes is negligible.
+    this.worker.postMessage({ type: 'cmd.set_key', userId, keyIndex, rawKey });
   };
 
   /**
@@ -270,14 +279,15 @@ export class EncryptionManager
    * @param keyIndex - Key rotation index. Must be an integer in the range
    *         0-255 (it is carried in a single trailer byte).
    * @param rawKey - Raw AES key material: 16 bytes for AES-128-GCM (default)
-   *         or 32 bytes for AES-256-GCM. Transferred to the worker (zero-copy).
+   *         or 32 bytes for AES-256-GCM. Structured-cloned to the worker; the
+   *         caller's buffer is not detached and may be re-imported.
    */
   setSharedKey = (keyIndex: number, rawKey: ArrayBuffer): void => {
     this.validateKeyIndex(keyIndex);
     this.validateKeyLength(rawKey);
-    this.worker.postMessage({ type: 'cmd.set_shared_key', keyIndex, rawKey }, [
-      rawKey,
-    ]);
+    // Structured-clone (no transfer list) so the caller's buffer is not
+    // detached - see setKey.
+    this.worker.postMessage({ type: 'cmd.set_shared_key', keyIndex, rawKey });
   };
 
   /**

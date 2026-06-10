@@ -128,18 +128,3 @@ export type E2EEEventMap = {
    */
   'e2ee.key_state': KeyStateReport;
 };
-
-/**
- * Exhaustiveness trip-wire for {@link E2EEEventMap}. Adding a key to the
- * event map without a matching entry here produces a TS compile error.
- */
-export const e2eeEventKinds = {
-  'e2ee.decryption_failed': true,
-  'e2ee.decryption_resumed': true,
-  'e2ee.encryption_failed': true,
-  'e2ee.missing_key': true,
-  'e2ee.perf_report': true,
-  'e2ee.broken': true,
-  'e2ee.rotation_needed': true,
-  'e2ee.key_state': true,
-} as const satisfies Record<keyof E2EEEventMap, true>;

@@ -123,6 +123,26 @@ describe('EncryptionManager', () => {
       expect(mgr).toBeInstanceOf(EncryptionManager);
       mgr.dispose();
     });
+
+    it('revokes the blob URL if the Worker constructor throws', async () => {
+      // e.g. a CSP `worker-src` that disallows `blob:`. The object URL created
+      // just before must not leak.
+      const revokeSpy = vi.spyOn(URL, 'revokeObjectURL');
+      const OriginalWorker = globalThis.Worker;
+      // @ts-expect-error replace the global Worker for this test
+      globalThis.Worker = class {
+        constructor() {
+          throw new Error('worker-src blocked by CSP');
+        }
+      };
+      try {
+        await expect(EncryptionManager.create('u')).rejects.toThrow(/CSP/);
+        expect(revokeSpy).toHaveBeenCalled();
+      } finally {
+        globalThis.Worker = OriginalWorker;
+        revokeSpy.mockRestore();
+      }
+    });
   });
 
   describe('setKey', () => {
@@ -131,10 +151,14 @@ describe('EncryptionManager', () => {
       manager.setKey('remote-user', 0, rawKey);
 
       const worker = getWorker(manager);
-      expect(worker.postMessage).toHaveBeenCalledWith(
-        { type: 'cmd.set_key', userId: 'remote-user', keyIndex: 0, rawKey },
-        [rawKey],
-      );
+      // The key buffer is structured-cloned (no transfer list), so the caller's
+      // ArrayBuffer is not detached and can be safely re-imported.
+      expect(worker.postMessage).toHaveBeenCalledWith({
+        type: 'cmd.set_key',
+        userId: 'remote-user',
+        keyIndex: 0,
+        rawKey,
+      });
     });
 
     it('rejects keys that are not 16 bytes', () => {
@@ -173,10 +197,20 @@ describe('EncryptionManager', () => {
       manager.setSharedKey(0, rawKey);
 
       const worker = getWorker(manager);
-      expect(worker.postMessage).toHaveBeenCalledWith(
-        { type: 'cmd.set_shared_key', keyIndex: 0, rawKey },
-        [rawKey],
-      );
+      expect(worker.postMessage).toHaveBeenCalledWith({
+        type: 'cmd.set_shared_key',
+        keyIndex: 0,
+        rawKey,
+      });
+    });
+
+    it('does not transfer (detach) the caller key buffer', () => {
+      const rawKey = new ArrayBuffer(16);
+      manager.setSharedKey(0, rawKey);
+      const worker = getWorker(manager);
+      // No transfer list -> structured clone, caller buffer stays usable.
+      const transferList = vi.mocked(worker.postMessage).mock.calls[0][1];
+      expect(transferList).toBeUndefined();
     });
 
     it('rejects keys that are not 16 bytes', () => {

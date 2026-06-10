@@ -134,7 +134,13 @@ export const getClearByteCount = (
   data: Uint8Array,
 ): number => {
   if (frameType === undefined) return 1; // audio (Opus TOC byte)
-  if (codec === 'vp8' || codec === 'vp9') return frameType === 'key' ? 10 : 3;
+  if (codec === 'vp8' || codec === 'vp9') {
+    // Clamp to the frame length (as h264ClearBytes does): a frame shorter than
+    // the nominal header must not claim more clear bytes than it has, or encode
+    // zero-pads the clear header and decode builds a length-mismatched AAD.
+    const clear = frameType === 'key' ? 10 : 3;
+    return clear > data.length ? data.length : clear;
+  }
   if (codec === 'h264') return h264ClearBytes(data);
   return 0; // others
 };

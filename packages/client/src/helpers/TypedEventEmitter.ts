@@ -23,6 +23,16 @@ export class TypedEventEmitter<M extends EventMap> {
   private readonly emitterLogger: ScopedLogger;
   private readonly byEvent = new Map<keyof M, Set<Listener<any>>>();
   private readonly anyListeners = new Set<AnyListener<M>>();
+  /**
+   * Maps a `once` listener's original fn to the internal self-removing wrapper
+   * that was actually registered, so `off(event, originalFn)` can find and
+   * remove it (otherwise the documented unsubscribe path is a no-op for
+   * once-listeners).
+   */
+  private readonly onceWrappers = new Map<
+    keyof M,
+    Map<Listener<any>, Listener<any>>
+  >();
 
   constructor(loggerScope = 'TypedEventEmitter') {
     this.emitterLogger = videoLoggerSystem.getLogger(loggerScope);
@@ -40,16 +50,33 @@ export class TypedEventEmitter<M extends EventMap> {
 
   once<E extends keyof M>(event: E, fn: Listener<M[E]>): () => void {
     const wrapper: Listener<M[E]> = (payload) => {
-      this.off(event, wrapper);
+      // Remove via the original fn so both the wrapper and the mapping go.
+      this.off(event, fn);
       return fn(payload);
     };
-    return this.on(event, wrapper);
+    let wrappers = this.onceWrappers.get(event);
+    if (!wrappers) {
+      wrappers = new Map();
+      this.onceWrappers.set(event, wrappers);
+    }
+    wrappers.set(fn as Listener<any>, wrapper as Listener<any>);
+    this.on(event, wrapper);
+    return () => this.off(event, fn);
   }
 
   off<E extends keyof M>(event: E, fn: Listener<M[E]>): void {
+    // A once() listener registered an internal wrapper under this original fn;
+    // resolve it so unsubscribing by the original handler works.
+    const wrappers = this.onceWrappers.get(event);
+    const wrapper = wrappers?.get(fn as Listener<any>);
+    if (wrappers && wrapper) {
+      wrappers.delete(fn as Listener<any>);
+      if (wrappers.size === 0) this.onceWrappers.delete(event);
+    }
     const listeners = this.byEvent.get(event);
     if (!listeners) return;
     listeners.delete(fn as Listener<any>);
+    if (wrapper) listeners.delete(wrapper);
     if (listeners.size === 0) this.byEvent.delete(event);
   }
 
@@ -78,8 +105,10 @@ export class TypedEventEmitter<M extends EventMap> {
     if (event === undefined) {
       this.byEvent.clear();
       this.anyListeners.clear();
+      this.onceWrappers.clear();
     } else {
       this.byEvent.delete(event);
+      this.onceWrappers.delete(event);
     }
   }
 
