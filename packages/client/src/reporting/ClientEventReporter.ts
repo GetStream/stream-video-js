@@ -83,7 +83,6 @@ type StagePairState = {
   joinReasonSnapshot?: JoinReason;
   userIdSnapshot?: string;
   lastError?: StageError;
-  initiatedDelivery?: Promise<boolean>;
 };
 
 type PeerConnectionPairState = StagePairState & {
@@ -153,7 +152,7 @@ export class ClientEventReporter {
         startedAt: Date.now(),
         userIdSnapshot: this.coordinatorConnectUserId,
       };
-      this.coordinatorWsPair.initiatedDelivery = this.sendTracked({
+      this.send({
         ...this.buildCoordinatorWsCommon(this.coordinatorWsPair),
         event_type: 'initiated',
       });
@@ -165,7 +164,7 @@ export class ClientEventReporter {
   private succeedCoordinatorWs = () => {
     const pair = this.coordinatorWsPair;
     if (!pair) return;
-    this.sendCompleted(pair, {
+    this.send({
       ...this.buildCoordinatorWsCommon(pair),
       event_type: 'completed',
       outcome: 'success',
@@ -184,7 +183,7 @@ export class ClientEventReporter {
     }
 
     const { reason, code } = pair.lastError;
-    this.sendCompleted(pair, {
+    this.send({
       ...this.buildCoordinatorWsCommon(pair),
       event_type: 'completed',
       outcome: 'failure',
@@ -447,7 +446,7 @@ export class ClientEventReporter {
         joinReasonSnapshot: this.joinReasons.get(cid),
       };
       this.coordinatorPairs.set(cid, pair);
-      pair.initiatedDelivery = this.sendTracked({
+      this.send({
         ...this.buildCommon(cid, 'CoordinatorJoin', pair),
         ...(pair.joinReasonSnapshot && {
           join_reason: pair.joinReasonSnapshot,
@@ -461,7 +460,7 @@ export class ClientEventReporter {
   private succeedCoordinator = (cid: string) => {
     const pair = this.coordinatorPairs.get(cid);
     if (!pair) return;
-    this.sendCompleted(pair, {
+    this.send({
       ...this.buildCommon(cid, 'CoordinatorJoin', pair),
       ...this.sessionIdField(cid),
       ...(pair.joinReasonSnapshot && { join_reason: pair.joinReasonSnapshot }),
@@ -480,7 +479,7 @@ export class ClientEventReporter {
       return;
     }
     const { reason, code } = pair.lastError;
-    this.sendCompleted(pair, {
+    this.send({
       ...this.buildCommon(cid, 'CoordinatorJoin', pair),
       ...this.sessionIdField(cid),
       ...(pair.joinReasonSnapshot && { join_reason: pair.joinReasonSnapshot }),
@@ -505,7 +504,7 @@ export class ClientEventReporter {
       };
       this.wsPairs.set(cid, pair);
       const sfuId = this.getSfuId(cid);
-      pair.initiatedDelivery = this.sendTracked({
+      this.send({
         ...this.buildCommon(cid, 'WSJoin', pair),
         ...this.sessionIdField(cid),
         ...(sfuId && { sfu_id: sfuId }),
@@ -520,7 +519,7 @@ export class ClientEventReporter {
     const pair = this.wsPairs.get(cid);
     if (!pair) return;
     const sfuId = this.getSfuId(cid);
-    this.sendCompleted(pair, {
+    this.send({
       ...this.buildCommon(cid, 'WSJoin', pair),
       ...this.sessionIdField(cid),
       ...(sfuId && { sfu_id: sfuId }),
@@ -543,7 +542,7 @@ export class ClientEventReporter {
     const { reason, code } = pair.lastError;
     const sfuId = this.getSfuId(cid);
 
-    this.sendCompleted(pair, {
+    this.send({
       ...this.buildCommon(cid, 'WSJoin', pair),
       ...this.sessionIdField(cid),
       event_type: 'completed',
@@ -618,7 +617,7 @@ export class ClientEventReporter {
     };
     this.peerConnectionPairs.set(key, pair);
 
-    pair.initiatedDelivery = this.sendTracked({
+    this.send({
       ...this.buildCommon(cid, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(cid),
       peer_connection: role,
@@ -639,7 +638,7 @@ export class ClientEventReporter {
     const pair = this.peerConnectionPairs.get(key);
     if (!pair) return;
 
-    this.sendCompleted(pair, {
+    this.send({
       ...this.buildCommon(cid, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(cid),
       peer_connection: role,
@@ -667,7 +666,7 @@ export class ClientEventReporter {
     const pair = this.peerConnectionPairs.get(key);
     if (!pair) return;
 
-    this.sendCompleted(pair, {
+    this.send({
       ...this.buildCommon(cid, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(cid),
       peer_connection: role,
@@ -726,26 +725,6 @@ export class ClientEventReporter {
 
   private send = (body: Record<string, unknown>) => {
     void this.sendWithRetry(body);
-  };
-
-  private sendTracked = (body: Record<string, unknown>): Promise<boolean> =>
-    this.sendWithRetry(body);
-
-  private sendCompleted = (
-    pair: StagePairState,
-    body: Record<string, unknown>,
-  ) => {
-    const gate = pair.initiatedDelivery ?? Promise.resolve(true);
-    void gate.then((delivered) => {
-      if (delivered) {
-        this.send(body);
-      } else {
-        this.logger.debug(
-          'Skipping completed event; its initiated was not delivered',
-          body.stage,
-        );
-      }
-    });
   };
 
   private sendWithRetry = async (

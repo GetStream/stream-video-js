@@ -446,14 +446,6 @@ export class Call {
       this.registerEffects();
       this.registerReconnectHandlers();
 
-      this.clientEventReporter.registerCall(this.cid, {
-        callType: this.type,
-        callId: this.id,
-        getCallSessionId: () => this.state.session?.id ?? '',
-        getSfuId: () => this.credentials?.server.edge_name ?? '',
-        getUserSessionId: () => this.sfuClient?.sessionId ?? '',
-      });
-
       // Set up the device managers again. Although this is already done
       // in the DeviceManager's constructor, they'll need to be re-set up
       // in the cases where a call instance is recycled (join -> leave -> join).
@@ -1088,6 +1080,14 @@ export class Call {
 
     await this.setup();
 
+    this.clientEventReporter.registerCall(this.cid, {
+      callType: this.type,
+      callId: this.id,
+      getCallSessionId: () => this.state.session?.id ?? '',
+      getSfuId: () => this.credentials?.server.edge_name ?? '',
+      getUserSessionId: () => this.sfuClient?.sessionId ?? '',
+    });
+
     this.joinResponseTimeout = joinResponseTimeout;
     this.rpcRequestTimeout = rpcRequestTimeout;
     // we will count the number of join failures per SFU.
@@ -1127,10 +1127,12 @@ export class Call {
                 joinData.migrating_from_list = Array.from(
                   sfuJoinFailures.keys(),
                 );
-                this.clientEventReporter.startCorrelation(
-                  this.cid,
-                  'first-attempt',
-                );
+                if (attempt < maxJoinRetries - 1) {
+                  this.clientEventReporter.startCorrelation(
+                    this.cid,
+                    'first-attempt',
+                  );
+                }
               }
             }
 
