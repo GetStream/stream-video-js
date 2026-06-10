@@ -1569,7 +1569,11 @@ export class Call {
         );
       },
       onRemoteTrackUnmute: (trackType, trackId) => {
-        if (trackType !== TrackType.AUDIO) return;
+        const reportable =
+          trackType === TrackType.AUDIO ||
+          (isReactNative() && trackType === TrackType.VIDEO);
+
+        if (!reportable) return;
 
         this.streamClient.clientEventReporter.reportFirstFrame(
           this.cid,
