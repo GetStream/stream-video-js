@@ -177,6 +177,10 @@ interface ReplayState {
  * briefly around a key re-import or a sender restart, while frames carrying
  * the old and new prefix interleave in the jitter buffer. Older epochs are
  * evicted, which is safe: the sender never reuses an (ivPrefix, counter) pair.
+ *
+ * Epochs are created and evicted ONLY by `commit`, i.e. only by frames that
+ * authenticated. A relay therefore cannot fabricate novel-prefix frames to
+ * evict a genuine epoch and re-open a replay window (review finding 2).
  */
 const REPLAY_EPOCHS = 3;
 
@@ -189,11 +193,23 @@ const prefixEquals = (a: Uint8Array, b: Uint8Array): boolean => {
 /** Stateful, per-track replay guard. See {@link createReplayWindow}. */
 export interface ReplayWindow {
   /**
-   * Returns true if `counter` is acceptable (new, or within the window and
-   * not previously seen for this sender prefix); false if it is a replay or
-   * older than the window.
+   * Read-only acceptance check. Returns true if `counter` is admissible for
+   * this sender prefix (a novel prefix, newer than the prefix's high-water
+   * mark, or within the window and not previously committed); false if it is
+   * a replay or older than the window.
+   *
+   * Does NOT mutate any state. The counter, prefix and keyIndex it reads are
+   * plaintext in the frame trailer and forgeable by a relay, so the window is
+   * only advanced once the frame authenticates — see {@link commit}.
    */
-  check: (counter: number, ivPrefix: Uint8Array) => boolean;
+  peek: (counter: number, ivPrefix: Uint8Array) => boolean;
+  /**
+   * Records `counter` as seen for this sender prefix, advancing the high-water
+   * mark and creating / evicting epochs as needed. Call this ONLY after the
+   * frame authenticates (AES-GCM succeeds), so unauthenticated bytes can never
+   * wedge the window (review finding 1) or evict a genuine epoch (finding 2).
+   */
+  commit: (counter: number, ivPrefix: Uint8Array) => void;
 }
 
 /**
@@ -216,9 +232,20 @@ export interface ReplayWindow {
  */
 export const createReplayWindow = (): ReplayWindow => {
   const epochs: Array<{ prefix: Uint8Array; state: ReplayState }> = [];
+  const findEpoch = (ivPrefix: Uint8Array) =>
+    epochs.find((e) => prefixEquals(e.prefix, ivPrefix));
   return {
-    check: (counter, ivPrefix) => {
-      let epoch = epochs.find((e) => prefixEquals(e.prefix, ivPrefix));
+    peek: (counter, ivPrefix) => {
+      const epoch = findEpoch(ivPrefix);
+      // A prefix with no committed frame yet opens a clean window.
+      if (!epoch) return true;
+      const { state } = epoch;
+      if (counter > state.highest) return true;
+      if (counter <= state.highest - REPLAY_WINDOW) return false;
+      return !state.seen.has(counter);
+    },
+    commit: (counter, ivPrefix) => {
+      let epoch = findEpoch(ivPrefix);
       if (!epoch) {
         epoch = {
           prefix: ivPrefix.slice(),
@@ -226,7 +253,7 @@ export const createReplayWindow = (): ReplayWindow => {
         };
         epochs.unshift(epoch);
         if (epochs.length > REPLAY_EPOCHS) epochs.pop();
-        return true;
+        return;
       }
       const { state } = epoch;
       if (counter > state.highest) {
@@ -237,13 +264,8 @@ export const createReplayWindow = (): ReplayWindow => {
             if (c <= cutoff) state.seen.delete(c);
           }
         }
-        state.seen.add(counter);
-        return true;
       }
-      if (counter <= state.highest - REPLAY_WINDOW) return false;
-      if (state.seen.has(counter)) return false;
       state.seen.add(counter);
-      return true;
     },
   };
 };

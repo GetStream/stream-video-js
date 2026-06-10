@@ -339,11 +339,19 @@ const decodeTransform = (userId: string) => {
   const replay = createReplayWindow();
 
   /**
-   * Shared decode tail: gate on key validity / availability / replay, time the
+   * Shared decode tail: gate on key availability / replay, time the
    * decryption, emit the plaintext, and run the failure / recovery bookkeeping.
    * `decrypt` returns the plaintext frame bytes and throws on a GCM tag failure
    * (which drops the whole frame). Only the param extraction and the decrypt
    * itself differ between the v2-trailer and AV1-inline formats.
+   *
+   * Trust ordering (the SFrame / SRTP rule): everything read before the decrypt
+   * call — `frameCounter`, `ivPrefix`, `keyIndex` — is plaintext in the trailer
+   * and forgeable by a relay, so nothing here mutates trust state until GCM
+   * authenticates the frame. The replay window is only *peeked* up front and
+   * *committed* after success; the failure counter is diagnostic only (it
+   * gates the `e2ee.broken` signal, never the decrypt attempt) so a burst of
+   * forged frames cannot latch a genuine key invalid (review findings 1-3).
    */
   const finishDecode = async (
     frame: EncodedFrame,
@@ -353,15 +361,14 @@ const decodeTransform = (userId: string) => {
     frameCounter: number,
     decrypt: (key: CryptoKey) => Promise<ArrayBuffer>,
   ) => {
-    if (isKeyInvalid(userId, keyIndex)) return;
     const cryptoKey = getKey(userId, keyIndex);
     if (!cryptoKey) {
       notifyFailure();
       return;
     }
-    // A replay or a frame older than the sliding window is dropped silently -
-    // these are not true decryption failures.
-    if (!replay.check(frameCounter, ivPrefix)) return;
+    // Read-only replay check. A replay or a frame older than the sliding
+    // window is dropped silently - these are not true decryption failures.
+    if (!replay.peek(frameCounter, ivPrefix)) return;
     try {
       const t0 = perfEnabled ? performance.now() : 0;
       const data = await decrypt(cryptoKey);
@@ -369,6 +376,8 @@ const decodeTransform = (userId: string) => {
         const dt = performance.now() - t0;
         if (dt > decodeMaxCryptoMs) decodeMaxCryptoMs = dt;
       }
+      // Authenticated: only now is it safe to advance the replay window.
+      replay.commit(frameCounter, ivPrefix);
       if (hasDecryptionFailures(userId, keyIndex)) {
         resetDecryptionFailures(userId, keyIndex);
         self.postMessage({ type: 'e2ee.decryption_resumed', userId });

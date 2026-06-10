@@ -28,6 +28,7 @@ import {
   recordDecryptionFailure,
   isKeyInvalid,
   removeKeys,
+  type ReplayWindow,
   resetDecryptionFailures,
 } from '../e2ee-worker/crypto';
 
@@ -156,38 +157,48 @@ describe('importKey algorithm variants', () => {
 describe('createReplayWindow', () => {
   const PREFIX_A = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
   const PREFIX_B = new Uint8Array([9, 9, 9, 9, 9, 9, 9, 9]);
+  const PREFIX_C = new Uint8Array([3, 3, 3, 3, 3, 3, 3, 3]);
+  const PREFIX_D = new Uint8Array([4, 4, 4, 4, 4, 4, 4, 4]);
+
+  // Mirrors the real decode flow: a frame is only recorded (commit) once it
+  // would have authenticated. Returns whether the window admitted it.
+  const accept = (w: ReplayWindow, counter: number, prefix: Uint8Array) => {
+    const ok = w.peek(counter, prefix);
+    if (ok) w.commit(counter, prefix);
+    return ok;
+  };
 
   it('accepts the first frame', () => {
     const w = createReplayWindow();
-    expect(w.check(100, PREFIX_A)).toBe(true);
+    expect(accept(w, 100, PREFIX_A)).toBe(true);
   });
 
   it('accepts monotonically increasing counters', () => {
     const w = createReplayWindow();
-    expect(w.check(1, PREFIX_A)).toBe(true);
-    expect(w.check(2, PREFIX_A)).toBe(true);
-    expect(w.check(3, PREFIX_A)).toBe(true);
+    expect(accept(w, 1, PREFIX_A)).toBe(true);
+    expect(accept(w, 2, PREFIX_A)).toBe(true);
+    expect(accept(w, 3, PREFIX_A)).toBe(true);
   });
 
   it('rejects an exact replay', () => {
     const w = createReplayWindow();
-    expect(w.check(5, PREFIX_A)).toBe(true);
-    expect(w.check(5, PREFIX_A)).toBe(false);
+    expect(accept(w, 5, PREFIX_A)).toBe(true);
+    expect(accept(w, 5, PREFIX_A)).toBe(false);
   });
 
   it('accepts out-of-order frames within the window', () => {
     const w = createReplayWindow();
-    expect(w.check(10, PREFIX_A)).toBe(true);
-    expect(w.check(8, PREFIX_A)).toBe(true); // late arrival
-    expect(w.check(8, PREFIX_A)).toBe(false); // replay of late arrival
+    expect(accept(w, 10, PREFIX_A)).toBe(true);
+    expect(accept(w, 8, PREFIX_A)).toBe(true); // late arrival
+    expect(accept(w, 8, PREFIX_A)).toBe(false); // replay of late arrival
   });
 
   it('rejects frames older than the replay window', () => {
     const w = createReplayWindow();
     const high = REPLAY_WINDOW + 50;
-    expect(w.check(high, PREFIX_A)).toBe(true);
-    expect(w.check(1, PREFIX_A)).toBe(false);
-    expect(w.check(high - REPLAY_WINDOW, PREFIX_A)).toBe(false);
+    expect(accept(w, high, PREFIX_A)).toBe(true);
+    expect(accept(w, 1, PREFIX_A)).toBe(false);
+    expect(accept(w, high - REPLAY_WINDOW, PREFIX_A)).toBe(false);
   });
 
   it('isolates state per track (the M1 fix)', () => {
@@ -196,9 +207,9 @@ describe('createReplayWindow', () => {
     // failure mode of the old shared (userId, keyIndex) window.
     const audio = createReplayWindow();
     const video = createReplayWindow();
-    expect(audio.check(REPLAY_WINDOW * 4, PREFIX_A)).toBe(true);
-    expect(video.check(5, PREFIX_A)).toBe(true);
-    expect(video.check(6, PREFIX_A)).toBe(true);
+    expect(accept(audio, REPLAY_WINDOW * 4, PREFIX_A)).toBe(true);
+    expect(accept(video, 5, PREFIX_A)).toBe(true);
+    expect(accept(video, 6, PREFIX_A)).toBe(true);
   });
 
   it('opens a fresh window when the sender IV prefix changes', () => {
@@ -206,18 +217,59 @@ describe('createReplayWindow', () => {
     // low counter must not be rejected against the previous prefix's
     // `highest`, but replays within the original prefix are still caught.
     const w = createReplayWindow();
-    expect(w.check(5000, PREFIX_A)).toBe(true);
-    expect(w.check(1, PREFIX_B)).toBe(true);
-    expect(w.check(2, PREFIX_B)).toBe(true);
-    expect(w.check(5000, PREFIX_A)).toBe(false);
+    expect(accept(w, 5000, PREFIX_A)).toBe(true);
+    expect(accept(w, 1, PREFIX_B)).toBe(true);
+    expect(accept(w, 2, PREFIX_B)).toBe(true);
+    expect(accept(w, 5000, PREFIX_A)).toBe(false);
   });
 
   it('partitions replay state by prefix within a single guard', () => {
     const w = createReplayWindow();
-    expect(w.check(5, PREFIX_A)).toBe(true);
-    expect(w.check(5, PREFIX_B)).toBe(true); // different epoch, not a replay
-    expect(w.check(5, PREFIX_A)).toBe(false); // replay within prefix A
-    expect(w.check(5, PREFIX_B)).toBe(false); // replay within prefix B
+    expect(accept(w, 5, PREFIX_A)).toBe(true);
+    expect(accept(w, 5, PREFIX_B)).toBe(true); // different epoch, not a replay
+    expect(accept(w, 5, PREFIX_A)).toBe(false); // replay within prefix A
+    expect(accept(w, 5, PREFIX_B)).toBe(false); // replay within prefix B
+  });
+
+  // --- authenticate-before-commit (review findings 1-2) -------------------
+
+  it('peek is read-only — a forged high counter cannot wedge the track (finding 1)', () => {
+    const w = createReplayWindow();
+    // A genuine frame establishes the window.
+    expect(accept(w, 10, PREFIX_A)).toBe(true);
+    // A forged frame copies the prefix and claims the 32-bit max counter. It
+    // peeks OK (it looks newer than anything seen), but GCM will reject it, so
+    // it is NEVER committed.
+    expect(w.peek(COUNTER_HARD_LIMIT, PREFIX_A)).toBe(true);
+    // Because the forged frame was not committed, `highest` did not advance:
+    // genuine frames keep flowing instead of all landing below
+    // `highest - REPLAY_WINDOW` and being dropped forever.
+    expect(accept(w, 11, PREFIX_A)).toBe(true);
+    expect(accept(w, 12, PREFIX_A)).toBe(true);
+  });
+
+  it('an uncommitted peek never advances the window or creates an epoch', () => {
+    const w = createReplayWindow();
+    // Repeatedly peeking far-future counters (forged, never authenticated)
+    // must leave the window untouched, so a genuine low counter is still new.
+    expect(w.peek(900_000, PREFIX_A)).toBe(true);
+    expect(w.peek(900_000, PREFIX_A)).toBe(true);
+    expect(accept(w, 1, PREFIX_A)).toBe(true);
+    expect(accept(w, 1, PREFIX_A)).toBe(false); // now it is a real replay
+  });
+
+  it('an uncommitted novel-prefix peek cannot evict a committed epoch (finding 2)', () => {
+    const w = createReplayWindow();
+    // Authentic frame on prefix A is committed.
+    expect(accept(w, 5, PREFIX_A)).toBe(true);
+    // Attacker injects frames with distinct novel prefixes (> REPLAY_EPOCHS
+    // worth). They fail GCM, so they are peeked but never committed — no epoch
+    // is created, nothing is evicted.
+    for (const p of [PREFIX_B, PREFIX_C, PREFIX_D]) {
+      expect(w.peek(1, p)).toBe(true); // a novel prefix always peeks OK
+    }
+    // Prefix A's epoch survived, so replaying the authentic frame is caught.
+    expect(w.peek(5, PREFIX_A)).toBe(false);
   });
 });
 

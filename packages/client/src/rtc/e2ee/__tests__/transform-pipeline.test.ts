@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OBU_FRAME, writeLeb128 } from '../e2ee-worker/av1-obu';
+import {
+  COUNTER_HARD_LIMIT,
+  FAILURE_TOLERANCE,
+  TRAILER_LEN,
+} from '../e2ee-worker/constants';
 
 type Posted = { type?: string; userId?: string; keyIndex?: number };
 const posted: Posted[] = [];
@@ -221,6 +226,83 @@ describe('decode pipeline edge behaviors', () => {
     ]);
     expect(out).toHaveLength(0);
     expect(posted.some((m) => m.type === 'e2ee.decryption_failed')).toBe(true);
+  });
+
+  // --- authenticate-before-mutate (review findings 1 & 3) ------------------
+
+  it('a forged max-counter frame does not freeze the track (finding 1)', async () => {
+    const user = freshUser();
+    await setKey(user);
+    // Two genuine frames (counters 1 and 2 for this user).
+    const [g1, g2] = await drive('encode', user, 'vp8', [
+      frame([1, 2, 3, 4, 5, 6, 7, 8], 'delta'),
+      frame([9, 10, 11, 12, 13, 14, 15, 16], 'delta'),
+    ]);
+    // Forge a frame: copy g1 (real ivPrefix + keyIndex), rewrite the trailer
+    // counter to the 32-bit max, and corrupt the body so GCM rejects it.
+    const forged = new Uint8Array(g1.data.slice(0));
+    new DataView(forged.buffer).setUint32(
+      forged.length - TRAILER_LEN,
+      COUNTER_HARD_LIMIT,
+    );
+    forged[5] ^= 0xff;
+    posted.length = 0;
+    // The forged frame arrives first, then the genuine frames. With the old
+    // mutate-before-auth window the forged max counter advanced `highest` to
+    // 2^32-1, dropping every later genuine frame as "older than the window".
+    const out = await drive('decode', user, undefined, [
+      { ...g1, data: forged.buffer },
+      g1,
+      g2,
+    ]);
+    expect(out).toHaveLength(2);
+    expect(Array.from(new Uint8Array(out[0].data))).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8,
+    ]);
+    expect(Array.from(new Uint8Array(out[1].data))).toEqual([
+      9, 10, 11, 12, 13, 14, 15, 16,
+    ]);
+  });
+
+  it('keeps attempting decryption after the failure tolerance is exceeded (finding 3)', async () => {
+    const user = freshUser();
+    await setKey(user);
+    // Encode FAILURE_TOLERANCE + 2 genuine frames with distinct rising
+    // counters, then tamper all but the last.
+    const n = FAILURE_TOLERANCE + 2;
+    const plaintexts = Array.from({ length: n }, (_, i) => [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      i & 0xff,
+    ]);
+    const encrypted = await drive(
+      'encode',
+      user,
+      'vp8',
+      plaintexts.map((p) => frame(p, 'delta')),
+    );
+    expect(encrypted).toHaveLength(n);
+    const garbage = encrypted.slice(0, n - 1).map((f) => {
+      const bytes = new Uint8Array(f.data.slice(0));
+      bytes[5] ^= 0xff; // flip a ciphertext byte; trailer/counter stay intact
+      return { ...f, data: bytes.buffer };
+    });
+    const genuine = encrypted[n - 1];
+    posted.length = 0;
+    const out = await drive('decode', user, undefined, [...garbage, genuine]);
+    // The genuine final frame still decrypts — the key was NOT latched invalid
+    // by the preceding failure burst.
+    expect(out).toHaveLength(1);
+    expect(Array.from(new Uint8Array(out[0].data))).toEqual(plaintexts[n - 1]);
+    // The break is surfaced once (on the tolerance crossing) and recovery once.
+    expect(posted.filter((m) => m.type === 'e2ee.broken')).toHaveLength(1);
+    expect(posted.some((m) => m.type === 'e2ee.decryption_resumed')).toBe(true);
   });
 });
 
