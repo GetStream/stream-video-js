@@ -132,6 +132,12 @@ export const encryptAv1Frame = async (
   const tileCounts = new Map<number, number>();
   let encryptedAny = false;
 
+  // Frame-global: keyIndex, ivPrefix and frameCounter are identical for every
+  // OBU in this temporal unit, so build the inline header once instead of
+  // re-allocating it per OBU. It is read-only below, safe across the concurrent
+  // per-OBU encrypts.
+  const inlineHeader = writeInlineHeader(keyIndex, ivPrefix, frameCounter);
+
   await Promise.all(
     obus.map(async (obu) => {
       if (!AV1_ENCRYPTED_OBU_TYPES.has(obu.type)) return;
@@ -142,7 +148,6 @@ export const encryptAv1Frame = async (
 
       const salt = packSalt(obu.spatialId, obu.temporalId, tileIdx);
       const iv = buildIv(ivPrefix, salt, frameCounter);
-      const inlineHeader = writeInlineHeader(keyIndex, ivPrefix, frameCounter);
       const aad = concatBytes(aadHeader(obu), inlineHeader);
       const cipher = new Uint8Array(
         await crypto.subtle.encrypt(

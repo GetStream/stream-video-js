@@ -258,6 +258,17 @@ describe('createReplayWindow', () => {
     expect(accept(w, 1, PREFIX_A)).toBe(false); // now it is a real replay
   });
 
+  it('handles a counter jump larger than the replay window', () => {
+    // Exercises the window-advance path where the whole bitmap is stale and
+    // must be cleared at once.
+    const w = createReplayWindow();
+    expect(accept(w, 1, PREFIX_A)).toBe(true);
+    const far = 1 + REPLAY_WINDOW * 3;
+    expect(accept(w, far, PREFIX_A)).toBe(true); // jump well beyond the window
+    expect(accept(w, far, PREFIX_A)).toBe(false); // replay of the far frame
+    expect(accept(w, 2, PREFIX_A)).toBe(false); // now far older than the window
+  });
+
   it('an uncommitted novel-prefix peek cannot evict a committed epoch (finding 2)', () => {
     const w = createReplayWindow();
     // Authentic frame on prefix A is committed.

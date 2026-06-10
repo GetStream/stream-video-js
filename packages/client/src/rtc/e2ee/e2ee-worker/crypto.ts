@@ -168,8 +168,34 @@ export const resetDecryptionFailures = (userId: string, keyIndex: number) => {
 
 interface ReplayState {
   highest: number;
-  seen: Set<number>;
+  /**
+   * RFC 6479-style sliding-window bitmap: bit `counter % REPLAY_WINDOW` marks a
+   * seen counter. Gives O(1) accept/replay checks and amortized O(1) window
+   * advance, instead of the O(REPLAY_WINDOW) `Set` prune that ran on every
+   * in-order frame, per track, in the real-time decode worker.
+   */
+  bitmap: Uint32Array;
 }
+
+/** REPLAY_WINDOW bits packed into 32-bit words. */
+const REPLAY_WINDOW_WORDS = REPLAY_WINDOW >>> 5;
+
+const replayBit = (counter: number) => {
+  const idx = counter % REPLAY_WINDOW;
+  return { word: idx >>> 5, mask: 1 << (idx & 31) };
+};
+const replaySeen = (bitmap: Uint32Array, counter: number): boolean => {
+  const { word, mask } = replayBit(counter);
+  return (bitmap[word] & mask) !== 0;
+};
+const replaySet = (bitmap: Uint32Array, counter: number) => {
+  const { word, mask } = replayBit(counter);
+  bitmap[word] |= mask;
+};
+const replayClear = (bitmap: Uint32Array, counter: number) => {
+  const { word, mask } = replayBit(counter);
+  bitmap[word] &= ~mask;
+};
 
 /**
  * How many distinct sender IV-prefix "epochs" a single track's replay guard
@@ -242,14 +268,16 @@ export const createReplayWindow = (): ReplayWindow => {
       const { state } = epoch;
       if (counter > state.highest) return true;
       if (counter <= state.highest - REPLAY_WINDOW) return false;
-      return !state.seen.has(counter);
+      return !replaySeen(state.bitmap, counter);
     },
     commit: (counter, ivPrefix) => {
       let epoch = findEpoch(ivPrefix);
       if (!epoch) {
+        const bitmap = new Uint32Array(REPLAY_WINDOW_WORDS);
+        replaySet(bitmap, counter);
         epoch = {
           prefix: ivPrefix.slice(),
-          state: { highest: counter, seen: new Set([counter]) },
+          state: { highest: counter, bitmap },
         };
         epochs.unshift(epoch);
         if (epochs.length > REPLAY_EPOCHS) epochs.pop();
@@ -257,15 +285,21 @@ export const createReplayWindow = (): ReplayWindow => {
       }
       const { state } = epoch;
       if (counter > state.highest) {
-        state.highest = counter;
-        const cutoff = counter - REPLAY_WINDOW;
-        if (cutoff > 0) {
-          for (const c of state.seen) {
-            if (c <= cutoff) state.seen.delete(c);
+        // Advance the window. Each slot is reused every REPLAY_WINDOW counters,
+        // so the slots for the counters skipped between the old high-water mark
+        // and the new one may still hold a stale bit and must be cleared. O(1)
+        // for an in-order frame (no skipped slots); bounded by REPLAY_WINDOW for
+        // a jump, where the whole bitmap is stale and cleared at once.
+        if (counter - state.highest >= REPLAY_WINDOW) {
+          state.bitmap.fill(0);
+        } else {
+          for (let c = state.highest + 1; c < counter; c++) {
+            replayClear(state.bitmap, c);
           }
         }
+        state.highest = counter;
       }
-      state.seen.add(counter);
+      replaySet(state.bitmap, counter);
     },
   };
 };
