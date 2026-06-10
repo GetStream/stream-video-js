@@ -48,6 +48,9 @@ export type ClientEventStandardCode =
   | 'CLIENT_ABORTED'
   | 'BACKEND_LEAVE'
   | 'REQUEST_TIMEOUT'
+  | 'NETWORK_ERROR'
+  | 'SFU_ERROR'
+  | 'SFU_GO_AWAY'
   | 'ICE_CONNECTIVITY_FAILED'
   | 'DTLS_CONNECTIVITY_FAILED';
 
@@ -388,7 +391,13 @@ export class ClientEventReporter {
     if (this.coordinatorPairs.get(cid)) this.failCoordinator(cid);
     if (this.wsPairs.get(cid)) this.failWs(cid);
     for (const role of ['publish', 'subscribe'] as const) {
-      this.peerConnectionPairs.delete(pcKey(cid, role));
+      this.emitPeerConnectionFailure(
+        cid,
+        role,
+        'CLIENT_ABORTED',
+        'superseded by a new join attempt',
+        'NOT_CONNECTED',
+      );
     }
   };
 
@@ -822,7 +831,7 @@ const mapHttpError = (err: unknown): StageError => {
     };
   }
 
-  return { reason, code: 'NETWORK_OFFLINE', severity: SEVERITY.TRANSPORT };
+  return { reason, code: 'NETWORK_ERROR', severity: SEVERITY.TRANSPORT };
 };
 
 const mapWsJoinError = (err: unknown): StageError => {

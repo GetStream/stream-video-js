@@ -170,7 +170,7 @@ describe('ClientEventReporter', () => {
     expect(completed).toHaveLength(1);
     expect(completed[0]).toMatchObject({
       outcome: 'failure',
-      retry_failure_code: 'NETWORK_OFFLINE',
+      retry_failure_code: 'NETWORK_ERROR',
     });
   });
 
@@ -368,8 +368,17 @@ describe('ClientEventReporter', () => {
     const completed = pc.filter((e) => e.event_type === 'completed');
 
     expect(initiated).toHaveLength(2);
-    expect(completed).toHaveLength(1);
-    expect(completed[0].stage_id).toBe(initiated[1].stage_id);
+    // the pair superseded by the new correlation closes with a failure,
+    // the fresh pair closes with a success
+    expect(completed).toHaveLength(2);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      retry_failure_code: 'CLIENT_ABORTED',
+      retry_failure_reason: 'superseded by a new join attempt',
+    });
+    expect(completed[0].stage_id).toBe(initiated[0].stage_id);
+    expect(completed[1]).toMatchObject({ outcome: 'success' });
+    expect(completed[1].stage_id).toBe(initiated[1].stage_id);
   });
 
   it('marks a peer connection as previously connected on reconnect', async () => {

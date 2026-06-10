@@ -1789,7 +1789,9 @@ export class Call {
           await this.networkAvailableTask?.promise;
 
           this.logger.info(
-            `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[this.reconnectStrategy]}`,
+            `[Reconnect] Reconnecting with strategy ${
+              WebsocketReconnectStrategy[this.reconnectStrategy]
+            }`,
           );
 
           switch (this.reconnectStrategy) {
@@ -2010,9 +2012,9 @@ export class Call {
     const unregisterOnError = this.on('error', (e) => {
       const { reconnectStrategy: strategy, error } = e;
       if (!SfuJoinError.isJoinErrorCode(e)) {
-        const code = error?.code ? ErrorCode[error.code] : 'REQUEST_TIMEOUT';
+        const code = error?.code ? ErrorCode[error.code] : undefined;
         this.clientEventReporter.captureWsError(this.cid, {
-          code: code ?? 'REQUEST_TIMEOUT',
+          code: code ?? 'SFU_ERROR',
           reason: error?.message || 'SFU error during WS join',
         });
       }
