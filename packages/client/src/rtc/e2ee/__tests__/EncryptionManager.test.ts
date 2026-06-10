@@ -2,6 +2,7 @@ import '../../__tests__/mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EncryptionManager } from '../EncryptionManager';
+import { isChrome } from '../../../helpers/browsers';
 
 // Mock the worker module so create() doesn't need the real bundled function
 vi.mock('../e2ee-worker', () => ({
@@ -10,10 +11,19 @@ vi.mock('../e2ee-worker', () => ({
   },
 }));
 
+// Mock browser detection so we can drive the Chrome vs non-Chrome transform
+// selection deterministically. Defaults to non-Chrome (reset in beforeEach).
+vi.mock('../../../helpers/browsers', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../../../helpers/browsers')>();
+  return { ...actual, isChrome: vi.fn().mockReturnValue(false) };
+});
+
 describe('EncryptionManager', () => {
   let manager: EncryptionManager;
 
   beforeEach(async () => {
+    vi.mocked(isChrome).mockReturnValue(false);
     manager = await EncryptionManager.create('local-user');
   });
 
@@ -32,6 +42,75 @@ describe('EncryptionManager', () => {
 
       try {
         expect(EncryptionManager.isSupported()).toBe(false);
+      } finally {
+        globalThis.RTCRtpScriptTransform = original;
+      }
+    });
+  });
+
+  describe('preferredTransform', () => {
+    const setInsertableStreams = (available: boolean) => {
+      if (available) {
+        Object.assign(RTCRtpSender.prototype, {
+          createEncodedStreams: vi.fn(),
+        });
+      } else {
+        // @ts-expect-error - cleaning up non-standard property from mock prototype
+        delete RTCRtpSender.prototype.createEncodedStreams;
+      }
+    };
+
+    afterEach(() => {
+      // @ts-expect-error - cleaning up non-standard property from mock prototype
+      delete RTCRtpSender.prototype.createEncodedStreams;
+    });
+
+    it('defaults Chrome to Insertable Streams', () => {
+      vi.mocked(isChrome).mockReturnValue(true);
+      setInsertableStreams(true);
+      expect(EncryptionManager.preferredTransform()).toBe('insertable');
+    });
+
+    it('opts Chrome onto RTCRtpScriptTransform when forced', () => {
+      vi.mocked(isChrome).mockReturnValue(true);
+      setInsertableStreams(true);
+      expect(
+        EncryptionManager.preferredTransform({
+          forceRtpScriptTransform: true,
+        }),
+      ).toBe('script');
+    });
+
+    it('falls back to RTCRtpScriptTransform on Chrome without Insertable Streams', () => {
+      vi.mocked(isChrome).mockReturnValue(true);
+      setInsertableStreams(false);
+      expect(EncryptionManager.preferredTransform()).toBe('script');
+    });
+
+    it('prefers RTCRtpScriptTransform on non-Chrome browsers', () => {
+      vi.mocked(isChrome).mockReturnValue(false);
+      setInsertableStreams(true);
+      expect(EncryptionManager.preferredTransform()).toBe('script');
+    });
+
+    it('falls back to Insertable Streams on non-Chrome without RTCRtpScriptTransform', () => {
+      vi.mocked(isChrome).mockReturnValue(false);
+      setInsertableStreams(true);
+      const original = globalThis.RTCRtpScriptTransform;
+      delete globalThis.RTCRtpScriptTransform;
+      try {
+        expect(EncryptionManager.preferredTransform()).toBe('insertable');
+      } finally {
+        globalThis.RTCRtpScriptTransform = original;
+      }
+    });
+
+    it('returns undefined when neither API is available', () => {
+      setInsertableStreams(false);
+      const original = globalThis.RTCRtpScriptTransform;
+      delete globalThis.RTCRtpScriptTransform;
+      try {
+        expect(EncryptionManager.preferredTransform()).toBeUndefined();
       } finally {
         globalThis.RTCRtpScriptTransform = original;
       }
@@ -146,7 +225,7 @@ describe('EncryptionManager', () => {
     });
   });
 
-  describe('Insertable Streams (opt-in / fallback) path', () => {
+  describe('transform path selection', () => {
     /** Stub the non-standard createEncodedStreams on the sender/receiver prototypes. */
     const withInsertableStreams = async (fn: () => void | Promise<void>) => {
       Object.assign(RTCRtpSender.prototype, { createEncodedStreams: vi.fn() });
@@ -163,7 +242,8 @@ describe('EncryptionManager', () => {
       }
     };
 
-    it('defaults to RTCRtpScriptTransform even when createEncodedStreams exists', async () => {
+    it('uses RTCRtpScriptTransform on non-Chrome even when createEncodedStreams exists', async () => {
+      vi.mocked(isChrome).mockReturnValue(false);
       await withInsertableStreams(() => {
         const receiver: Record<string, unknown> = {
           transform: null,
@@ -177,7 +257,8 @@ describe('EncryptionManager', () => {
       });
     });
 
-    it('uses createEncodedStreams when forceInsertableStreams is set', async () => {
+    it('defaults Chrome to the Insertable Streams path', async () => {
+      vi.mocked(isChrome).mockReturnValue(true);
       const readable = {};
       const writable = {};
       const receiver = {
@@ -185,9 +266,7 @@ describe('EncryptionManager', () => {
       } as unknown as RTCRtpReceiver;
 
       await withInsertableStreams(async () => {
-        const mgr = await EncryptionManager.create('local-user', {
-          forceInsertableStreams: true,
-        });
+        const mgr = await EncryptionManager.create('local-user');
         try {
           expect(mgr.shouldUseInsertableStreams()).toBe(true);
           mgr.decrypt(receiver, 'remote-user');
@@ -211,7 +290,30 @@ describe('EncryptionManager', () => {
       });
     });
 
+    it('opts Chrome back onto RTCRtpScriptTransform when forceRtpScriptTransform is set', async () => {
+      vi.mocked(isChrome).mockReturnValue(true);
+      await withInsertableStreams(async () => {
+        const receiver: Record<string, unknown> = {
+          transform: null,
+          createEncodedStreams: vi.fn(),
+        };
+        const mgr = await EncryptionManager.create('local-user', {
+          forceRtpScriptTransform: true,
+        });
+        try {
+          expect(mgr.shouldUseInsertableStreams()).toBe(false);
+          mgr.decrypt(receiver as unknown as RTCRtpReceiver, 'remote-user');
+
+          expect(receiver.transform).toBeDefined();
+          expect(receiver.createEncodedStreams).not.toHaveBeenCalled();
+        } finally {
+          mgr.dispose();
+        }
+      });
+    });
+
     it('falls back to Insertable Streams when RTCRtpScriptTransform is unavailable', async () => {
+      vi.mocked(isChrome).mockReturnValue(false);
       const original = globalThis.RTCRtpScriptTransform;
       delete globalThis.RTCRtpScriptTransform;
       const readable = {};
@@ -239,6 +341,7 @@ describe('EncryptionManager', () => {
     });
 
     it('prevents double-piping the same receiver on the Insertable Streams path', async () => {
+      vi.mocked(isChrome).mockReturnValue(true);
       const readable = {};
       const writable = {};
       const receiver = {
@@ -246,9 +349,7 @@ describe('EncryptionManager', () => {
       } as unknown as RTCRtpReceiver;
 
       await withInsertableStreams(async () => {
-        const mgr = await EncryptionManager.create('local-user', {
-          forceInsertableStreams: true,
-        });
+        const mgr = await EncryptionManager.create('local-user');
         try {
           mgr.decrypt(receiver, 'user-a');
           mgr.decrypt(receiver, 'user-b');
