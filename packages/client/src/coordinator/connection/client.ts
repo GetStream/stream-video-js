@@ -37,7 +37,6 @@ import {
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 import { ScopedLogger, videoLoggerSystem } from '../../logger';
-import { ClientEventReporter } from '../../reporting';
 
 export class StreamClient {
   _user?: UserWithId;
@@ -65,7 +64,6 @@ export class StreamClient {
   userID?: string;
   wsBaseURL?: string;
   wsConnection: StableWSConnection | null;
-  readonly clientEventReporter: ClientEventReporter;
   private wsPromiseSafe: SafePromise<ConnectedEvent | undefined> | null;
   consecutiveFailures: number;
   defaultWSTimeout: number;
@@ -151,8 +149,6 @@ export class StreamClient {
     this.defaultWSTimeout = this.options.defaultWsTimeout ?? 15000;
 
     this.logger = videoLoggerSystem.getLogger('coordinator');
-
-    this.clientEventReporter = new ClientEventReporter({ streamClient: this });
   }
 
   getAuthType = () => {
@@ -230,14 +226,11 @@ export class StreamClient {
     await this.tokenManager.setTokenOrProvider(tokenOrProvider, user, false);
     this._setUser(user);
 
-    const connectTask = this.openConnection();
-    this.connectUserTask = connectTask;
+    this.connectUserTask = this.openConnection();
 
     try {
       addConnectionEventListeners(this.updateNetworkConnectionStatus);
-      return await this.clientEventReporter.trackCoordinatorWs(
-        () => connectTask,
-      );
+      return await this.connectUserTask;
     } catch (err) {
       if (this.persistUserOnConnectionFailure) {
         // cleanup client to allow the user to retry connectUser again

@@ -146,7 +146,7 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
-import { JoinReason } from './reporting';
+import type { ClientEventReporter, JoinReason } from './reporting';
 import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
@@ -295,6 +295,7 @@ export class Call {
 
   private readonly clientStore: StreamVideoWriteableStateStore;
   public readonly streamClient: StreamClient;
+  public readonly clientEventReporter: ClientEventReporter;
   private sfuClient?: StreamSfuClient;
   private sfuClientTag = 0;
   private unifiedSessionId?: string;
@@ -360,6 +361,7 @@ export class Call {
     type,
     id,
     streamClient,
+    clientEventReporter,
     members,
     ownCapabilities,
     sortParticipantsBy,
@@ -373,6 +375,7 @@ export class Call {
     this.ringingSubject = new BehaviorSubject(ringing);
     this.watching = watching;
     this.streamClient = streamClient;
+    this.clientEventReporter = clientEventReporter;
     this.clientStore = clientStore;
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
     this.logger = videoLoggerSystem.getLogger('Call');
@@ -443,7 +446,7 @@ export class Call {
       this.registerEffects();
       this.registerReconnectHandlers();
 
-      this.streamClient.clientEventReporter.registerCall(this.cid, {
+      this.clientEventReporter.registerCall(this.cid, {
         callType: this.type,
         callId: this.id,
         getCallSessionId: () => this.state.session?.id ?? '',
@@ -696,7 +699,7 @@ export class Call {
    * @internal
    */
   reportBackendLeave = (reason: string) => {
-    this.streamClient.clientEventReporter.abort(this.cid, {
+    this.clientEventReporter.abort(this.cid, {
       code: 'BACKEND_LEAVE',
       reason,
     });
@@ -766,7 +769,7 @@ export class Call {
       this.lastStatsOptions = undefined;
 
       await this.subscriber?.dispose();
-      this.streamClient.clientEventReporter.abort(this.cid, {
+      this.clientEventReporter.abort(this.cid, {
         code: 'CLIENT_ABORTED',
         reason: leaveReason,
       });
@@ -776,7 +779,7 @@ export class Call {
       await this.publisher?.dispose();
       this.publisher = undefined;
 
-      this.streamClient.clientEventReporter.unregisterCall(this.cid);
+      this.clientEventReporter.unregisterCall(this.cid);
 
       await this.sfuClient?.leaveAndClose(leaveReason);
       this.sfuClient = undefined;
@@ -1124,7 +1127,7 @@ export class Call {
                 joinData.migrating_from_list = Array.from(
                   sfuJoinFailures.keys(),
                 );
-                this.streamClient.clientEventReporter.startCorrelation(
+                this.clientEventReporter.startCorrelation(
                   this.cid,
                   'first-attempt',
                 );
@@ -1149,30 +1152,7 @@ export class Call {
     joinReason: JoinReason,
     op: () => Promise<T>,
   ): Promise<T> =>
-    this.streamClient.clientEventReporter.withJoinLifecycle(
-      this.cid,
-      joinReason,
-      op,
-    );
-
-  /**
-   * Wraps the coordinator-side join sequence (the `JoinCall` request and, for
-   * ringing calls, the subsequent `accept`) to emit the `CoordinatorJoin`
-   * reporting pair. A failure anywhere in the sequence keeps the pair open so
-   * the retry folds into it (`retry_count_attempt`) instead of emitting a fresh
-   * success on the next attempt.
-   */
-  private trackCoordinatorJoin = <T>(op: () => Promise<T>): Promise<T> =>
-    this.streamClient.clientEventReporter.track(
-      this.cid,
-      'CoordinatorJoin',
-      op,
-    );
-
-  /** Wraps the SFU signaling WebSocket join to emit the `WSJoin` reporting pair. */
-  private trackWsJoin = <T>(op: () => Promise<T>): Promise<T> => {
-    return this.streamClient.clientEventReporter.track(this.cid, 'WSJoin', op);
-  };
+    this.clientEventReporter.withJoinLifecycle(this.cid, joinReason, op);
 
   /**
    * Will make a single attempt to watch for call related WebSocket events
@@ -1205,8 +1185,10 @@ export class Call {
       data?.migrating_from
     ) {
       try {
-        const joinResponse = await this.trackCoordinatorJoin(() =>
-          this.doJoinRequest(data),
+        const joinResponse = await this.clientEventReporter.track(
+          this.cid,
+          'CoordinatorJoin',
+          () => this.doJoinRequest(data),
         );
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
@@ -1277,7 +1259,7 @@ export class Call {
       const capabilities = Array.from(this.clientCapabilities);
       try {
         const { callState, fastReconnectDeadlineSeconds, publishOptions } =
-          await this.trackWsJoin(() =>
+          await this.clientEventReporter.track(this.cid, 'WSJoin', () =>
             sfuClient.join({
               unifiedSessionId,
               subscriberSdp,
@@ -1562,10 +1544,7 @@ export class Call {
         this.iceFailuresWithoutConnect = 0;
       },
       onPeerConnectionStateChange: (event) => {
-        this.streamClient.clientEventReporter.onPeerConnectionStateChange(
-          this.cid,
-          event,
-        );
+        this.clientEventReporter.onPeerConnectionStateChange(this.cid, event);
       },
       onRemoteTrackUnmute: (trackType, trackId) => {
         const reportable =
@@ -1574,11 +1553,7 @@ export class Call {
 
         if (!reportable) return;
 
-        this.streamClient.clientEventReporter.reportFirstFrame(
-          this.cid,
-          trackType,
-          trackId,
-        );
+        this.clientEventReporter.reportFirstFrame(this.cid, trackType, trackId);
       },
     };
 
@@ -2019,7 +1994,7 @@ export class Call {
   private registerReconnectHandlers = () => {
     // handles the legacy "goAway" event
     const unregisterGoAway = this.on('goAway', () => {
-      this.streamClient.clientEventReporter.captureWsError(this.cid, {
+      this.clientEventReporter.captureWsError(this.cid, {
         code: 'SFU_GO_AWAY',
         reason: 'SFU goAway received during WS join',
       });
@@ -2034,7 +2009,7 @@ export class Call {
       const { reconnectStrategy: strategy, error } = e;
       if (!SfuJoinError.isJoinErrorCode(e)) {
         const code = error?.code ? ErrorCode[error.code] : 'REQUEST_TIMEOUT';
-        this.streamClient.clientEventReporter.captureWsError(this.cid, {
+        this.clientEventReporter.captureWsError(this.cid, {
           code: code ?? 'REQUEST_TIMEOUT',
           reason: error?.message || 'SFU error during WS join',
         });
@@ -3280,7 +3255,7 @@ export class Call {
     const trackId = participant?.videoStream?.getVideoTracks()[0]?.id;
     if (!trackId) return;
 
-    this.streamClient.clientEventReporter.reportFirstFrame(
+    this.clientEventReporter.reportFirstFrame(
       this.cid,
       TrackType.VIDEO,
       trackId,

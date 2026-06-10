@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Call } from '../Call';
 import { Publisher } from '../rtc';
 import { StreamClient } from '../coordinator/connection/client';
+import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { PermissionsContext } from '../permissions';
 import { OwnCapability } from '../gen/coordinator';
@@ -15,10 +16,12 @@ describe('Publishing and Unpublishing tracks', () => {
   let call: Call;
 
   beforeEach(async () => {
+    const streamClient = new StreamClient('abc');
     call = new Call({
       type: 'test',
       id: generateUUIDv4(),
-      streamClient: new StreamClient('abc'),
+      streamClient,
+      clientEventReporter: new ClientEventReporter({ streamClient }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
 

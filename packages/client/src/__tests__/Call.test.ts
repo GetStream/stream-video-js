@@ -307,7 +307,7 @@ describe('client event reporting', () => {
 
   it('reports a backend-leave client event', () => {
     const call = client.call('default', generateUUIDv4());
-    const reporter = call.streamClient.clientEventReporter;
+    const reporter = call.clientEventReporter;
     const abortSpy = vi.spyOn(reporter, 'abort');
 
     call.reportBackendLeave('call ended by backend');
@@ -322,7 +322,7 @@ describe('client event reporting', () => {
     const call = client.call('default', generateUUIDv4());
     await call.getOrCreate();
 
-    const reporter = call.streamClient.clientEventReporter;
+    const reporter = call.clientEventReporter;
     const abortSpy = vi.spyOn(reporter, 'abort');
     const unregisterSpy = vi.spyOn(reporter, 'unregisterCall');
 

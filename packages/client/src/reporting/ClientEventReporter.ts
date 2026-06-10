@@ -101,6 +101,7 @@ export class ClientEventReporter {
   private streamClient: StreamClient;
 
   private coordinatorConnectId?: string;
+  private coordinatorConnectUserId?: string;
   private coordinatorWsPair?: StagePairState;
 
   private callContexts = new Map<string, CallReportContext>();
@@ -118,8 +119,16 @@ export class ClientEventReporter {
     this.streamClient = options.streamClient;
   }
 
-  startCoordinatorConnection = (): string => {
+  /**
+   * Starts a new coordinator connection correlation scope.
+   *
+   * @param userId the id of the user being connected. Captured here because
+   * the `CoordinatorWS` stage emits before the connection flow assigns
+   * the user to the client, so it can't be read from the client yet.
+   */
+  startCoordinatorConnection = (userId?: string): string => {
     this.coordinatorConnectId = generateUUIDv4();
+    this.coordinatorConnectUserId = userId;
     return this.coordinatorConnectId;
   };
 
@@ -142,7 +151,7 @@ export class ClientEventReporter {
         sid: generateUUIDv4(),
         attempts: 0,
         startedAt: Date.now(),
-        userIdSnapshot: this.streamClient.userID,
+        userIdSnapshot: this.coordinatorConnectUserId,
       };
       this.coordinatorWsPair.initiatedDelivery = this.sendTracked({
         ...this.buildCoordinatorWsCommon(this.coordinatorWsPair),

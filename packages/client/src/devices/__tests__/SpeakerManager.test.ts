@@ -14,6 +14,7 @@ import { SpeakerManager } from '../SpeakerManager';
 import { checkIfAudioOutputChangeSupported } from '../devices';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import { ClientEventReporter } from '../../reporting';
 import { StreamVideoWriteableStateStore } from '../../store';
 import { defaultDeviceId } from '../devicePersistence';
 
@@ -28,12 +29,6 @@ vi.mock('../devices.ts', () => {
     resolveDeviceId: (deviceId) => deviceId,
   };
 });
-
-vi.mock('../../reporting/ClientEventReporter', () => ({
-  ClientEventReporter: vi.fn(function () {
-    return {};
-  }),
-}));
 
 describe('SpeakerManager.test', () => {
   let manager: SpeakerManager;
@@ -51,11 +46,13 @@ describe('SpeakerManager.test', () => {
       value: localStorageMock,
     });
     const devicePersistence = { enabled: false, storageKey };
+    const streamClient = new StreamClient('abc123');
     manager = new SpeakerManager(
       new Call({
         id: '',
         type: '',
-        streamClient: new StreamClient('abc123'),
+        streamClient,
+        clientEventReporter: new ClientEventReporter({ streamClient }),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
       devicePersistence,
@@ -135,11 +132,13 @@ describe('SpeakerManager.test', () => {
   });
 
   it('persists speaker selection when permission is granted', async () => {
+    const streamClient = new StreamClient('abc123');
     const persistedManager = new SpeakerManager(
       new Call({
         id: '',
         type: '',
-        streamClient: new StreamClient('abc123'),
+        streamClient,
+        clientEventReporter: new ClientEventReporter({ streamClient }),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
       { enabled: true, storageKey },
@@ -168,11 +167,13 @@ describe('SpeakerManager.test', () => {
     });
 
     it('selects the persisted speaker device', () => {
+      const streamClient = new StreamClient('abc123');
       const persistedManager = new SpeakerManager(
         new Call({
           id: '',
           type: '',
-          streamClient: new StreamClient('abc123'),
+          streamClient,
+          clientEventReporter: new ClientEventReporter({ streamClient }),
           clientStore: new StreamVideoWriteableStateStore(),
         }),
         { enabled: true, storageKey },
@@ -199,11 +200,13 @@ describe('SpeakerManager.test', () => {
     });
 
     it('selects system default when persisted device is default', () => {
+      const streamClient = new StreamClient('abc123');
       const persistedManager = new SpeakerManager(
         new Call({
           id: '',
           type: '',
-          streamClient: new StreamClient('abc123'),
+          streamClient,
+          clientEventReporter: new ClientEventReporter({ streamClient }),
           clientStore: new StreamVideoWriteableStateStore(),
         }),
         { enabled: true, storageKey },
