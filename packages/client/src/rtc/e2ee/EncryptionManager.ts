@@ -239,11 +239,13 @@ export class EncryptionManager
    * (with a new `keyIndex`) when participants join or leave — that's
    * orthogonal to IV uniqueness and is about forward/backward secrecy.
    *
-   * @param userId - The user's ID. For per-user keys, this must match the
-   *         `trackLookupPrefix` that appears in the remote participant's stream ID
-   *         (format: `trackLookupPrefix:TRACK_TYPE_*`). The subscriber uses this
-   *         prefix for key lookup during decryption. With shared keys this doesn't
-   *         matter since the shared key is used as a fallback for all users.
+   * @param userId - The key owner's user ID: the local user's `currentUserId`
+   *         when storing your own encryption key, or a remote participant's
+   *         `userId` when storing a key received from them to decrypt their
+   *         media. This is the ID the worker uses for key lookup (the encryptor
+   *         looks up the local key by `currentUserId`; the decryptor looks up
+   *         each remote participant's key by their `userId`). Irrelevant with a
+   *         shared key, which is the fallback for every user.
    * @param keyIndex - Monotonically increasing index for key rotation.
    * @param rawKey - Raw AES key material: 16 bytes for AES-128-GCM (default)
    *         or 32 bytes for AES-256-GCM. Transferred to the worker (zero-copy).
