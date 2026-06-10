@@ -487,6 +487,29 @@ const decodeTransform = (userId: string) => {
   });
 };
 
+/**
+ * Pick the transform for a pipeline. Decode frames are always processed; encode
+ * frames whose codec the worker can't split fail closed - every frame is dropped
+ * (never published in the clear) and the failure is surfaced as an observable
+ * `e2ee.encryption_failed`. Previously the unsupported case returned without
+ * piping, leaving the encoder's frames to buffer forever with no signal
+ * (finding 14).
+ */
+const selectTransform = (
+  operation: string,
+  userId: string,
+  codec: string | undefined,
+): TransformStream<EncodedFrame, EncodedFrame> => {
+  if (operation !== 'encode') return decodeTransform(userId);
+  if (isSupportedCodec(codec)) return encodeTransform(userId, codec);
+  self.postMessage({
+    type: 'e2ee.encryption_failed',
+    reason: `unsupported codec for E2EE: ${codec}`,
+  });
+  // A transform that enqueues nothing - every frame is dropped (fail closed).
+  return new TransformStream<EncodedFrame, EncodedFrame>({ transform() {} });
+};
+
 const setupTransform = ({
   readable,
   writable,
@@ -500,19 +523,7 @@ const setupTransform = ({
   userId: string;
   codec?: string;
 }) => {
-  if (operation === 'encode' && !isSupportedCodec(codec)) {
-    self.postMessage({
-      type: 'e2ee.error',
-      message: `Unsupported codec for E2EE: ${codec}`,
-    });
-    return;
-  }
-
-  const transform =
-    operation === 'encode'
-      ? encodeTransform(userId, codec)
-      : decodeTransform(userId);
-
+  const transform = selectTransform(operation, userId, codec);
   const abort = new AbortController();
   activePipelines.add(abort);
   readable

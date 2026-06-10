@@ -1466,6 +1466,7 @@ export class Call {
     } = statsOptions;
     if (closePreviousInstances && this.subscriber) {
       await this.subscriber.dispose();
+      this.state.removeAllOrphanedTracks();
     }
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
@@ -2204,8 +2205,18 @@ export class Call {
    *
    * @param e2ee - Any `E2EEManager`. Use `EncryptionManager.create()` for the
    *         built-in AES-GCM scheme, or pass your own implementation.
+   * @throws if called after the peer connections have been built (i.e. after
+   *         `join`): those PCs were already configured without an encryptor, so
+   *         adopting a manager now would silently publish/receive cleartext for
+   *         the live session.
    */
   setE2EEManager = (e2ee: E2EEManager) => {
+    if (this.publisher || this.subscriber) {
+      throw new Error(
+        'setE2EEManager must be called before join(): the peer connections ' +
+          'already exist and would publish/receive cleartext for the current session.',
+      );
+    }
     this.e2eeManager = e2ee;
   };
 

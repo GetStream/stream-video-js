@@ -318,6 +318,20 @@ describe('encode pipeline edge behaviors', () => {
     expect(out).toHaveLength(0);
     expect(posted.some((m) => m.type === 'e2ee.missing_key')).toBe(true);
   });
+
+  it('fails closed and signals encryption_failed on an unsupported codec (finding 14)', async () => {
+    const user = freshUser();
+    await setKey(user);
+    // A codec the worker can't split must not be published in the clear and
+    // must not stall the encoder (the old behavior left frames buffering with
+    // no signal). The pipeline drains - nothing is emitted - and the failure is
+    // observable via e2ee.encryption_failed.
+    const out = await drive('encode', user, 'theora', [
+      frame([1, 2, 3, 4, 5], 'delta'),
+    ]);
+    expect(out).toHaveLength(0);
+    expect(posted.some((m) => m.type === 'e2ee.encryption_failed')).toBe(true);
+  }, 3000);
 });
 
 describe('h264 trailer start-code safety (finding 11)', () => {
