@@ -213,6 +213,44 @@ describe('ClientEventReporter', () => {
     });
   });
 
+  it('folds in-stage WSJoin retries into a single pair', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    await expect(
+      reporter.track(cid, 'WSJoin', () => Promise.reject(new Error('boom'))),
+    ).rejects.toThrow('boom');
+    await reporter.track(cid, 'WSJoin', () => Promise.resolve('ok'));
+    await flush();
+
+    const events = postedEvents().filter((e) => e.stage === 'WSJoin');
+    const initiated = events.filter((e) => e.event_type === 'initiated');
+    const completed = events.filter((e) => e.event_type === 'completed');
+
+    expect(initiated).toHaveLength(1);
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'success',
+      retry_count_attempt: 1,
+    });
+  });
+
+  it('reports a WSJoin failure with the captured SFU error', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    void reporter.track(cid, 'WSJoin', () => new Promise(() => {}));
+    reporter.captureWsError(cid, { code: 'SFU_ERROR', reason: 'sfu closed' });
+    reporter.close(cid);
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) => e.stage === 'WSJoin' && e.event_type === 'completed',
+    );
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      retry_failure_code: 'SFU_ERROR',
+      retry_failure_reason: 'sfu closed',
+    });
+  });
+
   it('reports media device permission status on correlation start', async () => {
     reporter.startCorrelation(cid, 'first-attempt');
     await flush();
@@ -332,5 +370,60 @@ describe('ClientEventReporter', () => {
     expect(initiated).toHaveLength(2);
     expect(completed).toHaveLength(1);
     expect(completed[0].stage_id).toBe(initiated[1].stage_id);
+  });
+
+  it('marks a peer connection as previously connected on reconnect', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    const connect = () => {
+      reporter.onPeerConnectionStateChange(cid, {
+        peerType: PeerType.PUBLISHER_UNSPECIFIED,
+        stateType: 'peerConnection',
+        state: 'connecting',
+      });
+      reporter.onPeerConnectionStateChange(cid, {
+        peerType: PeerType.PUBLISHER_UNSPECIFIED,
+        stateType: 'peerConnection',
+        state: 'connected',
+      });
+    };
+    connect();
+    connect();
+    await flush();
+
+    const initiated = postedEvents().filter(
+      (e) =>
+        e.stage === 'PeerConnectionConnect' && e.event_type === 'initiated',
+    );
+    expect(initiated).toHaveLength(2);
+    expect(initiated[0]).toMatchObject({ was_previously_connected: false });
+    expect(initiated[1]).toMatchObject({ was_previously_connected: true });
+  });
+
+  it('keeps reporting state isolated between concurrent calls', async () => {
+    const cid2 = 'default:call-2';
+    reporter.registerCall(cid2, {
+      callType: 'default',
+      callId: 'call-2',
+      getCallSessionId: () => 'session-2',
+      getSfuId: () => 'sfu-2',
+      getUserSessionId: () => 'user-session-2',
+    });
+
+    reporter.startCorrelation(cid, 'first-attempt');
+    reporter.startCorrelation(cid2, 'first-attempt');
+    await reporter.track(cid, 'WSJoin', () => Promise.resolve('ok'));
+    await reporter.track(cid2, 'WSJoin', () => Promise.resolve('ok'));
+    await flush();
+
+    const ws1 = postedEvents().filter(
+      (e) => e.stage === 'WSJoin' && e.call_cid === cid,
+    );
+    const ws2 = postedEvents().filter(
+      (e) => e.stage === 'WSJoin' && e.call_cid === cid2,
+    );
+    expect(ws1).toHaveLength(2);
+    expect(ws2).toHaveLength(2);
+    expect(ws1.every((e) => e.sfu_id === 'sfu-1')).toBe(true);
+    expect(ws2.every((e) => e.sfu_id === 'sfu-2')).toBe(true);
   });
 });
