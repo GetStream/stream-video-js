@@ -2439,7 +2439,7 @@ PODS:
     - ReactNativeDependencies
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (145.0.0-alpha.8):
+  - stream-react-native-webrtc (145.0.0-alpha.9):
     - React-Core
     - StreamWebRTC (= 145.10.0)
   - stream-video-react-native (1.37.0):
@@ -2618,7 +2618,6 @@ DEPENDENCIES:
   - "stream-io-video-filters-react-native (from `../node_modules/@stream-io/video-filters-react-native`)"
   - "stream-react-native-webrtc (from `../node_modules/@stream-io/react-native-webrtc`)"
   - "stream-video-react-native (from `../node_modules/@stream-io/video-react-native-sdk`)"
-  - StreamWebRTC (from `https://raw.githubusercontent.com/GetStream/stream-video-swift-webrtc/145.10.0/StreamWebRTC.podspec`)
   - Teleport (from `../node_modules/react-native-teleport`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -2626,6 +2625,7 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - StreamVideoNoiseCancellation
+    - StreamWebRTC
 
 EXTERNAL SOURCES:
   Callingx:
@@ -2821,8 +2821,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@stream-io/react-native-webrtc"
   stream-video-react-native:
     :path: "../node_modules/@stream-io/video-react-native-sdk"
-  StreamWebRTC:
-    :podspec: https://raw.githubusercontent.com/GetStream/stream-video-swift-webrtc/145.10.0/StreamWebRTC.podspec
   Teleport:
     :path: "../node_modules/react-native-teleport"
   VisionCamera:
@@ -2925,7 +2923,7 @@ SPEC CHECKSUMS:
   stream-chat-react-native: 2d735ccdddfcfc16727480d5784f089548b7fc9c
   stream-io-noise-cancellation-react-native: d8e53f7e61750f066a25d34229b0e569e815b88b
   stream-io-video-filters-react-native: 2b855ed39efd48c366b1c288704e205a6ccdff48
-  stream-react-native-webrtc: f96252fe6892aed63e3717f2090f389b2f31e6ef
+  stream-react-native-webrtc: 5be718839d720c4361906c6d879801cd14ea81b3
   stream-video-react-native: 7e3bc0428ee3feb8700e02e394be7e5cbe9569a4
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
   StreamWebRTC: ff3698ef9a94e7ca90dd54ce36991066323fd855
@@ -2933,6 +2931,6 @@ SPEC CHECKSUMS:
   VisionCamera: b51af005669c6642dd1b4fca434eda4c1778de87
   Yoga: e240fec777ff1f21ef42ccebbb44b6d262125855
 
-PODFILE CHECKSUM: eee5964477faeab0e1761ea192d9b9e5f1c91773
+PODFILE CHECKSUM: 07a707e557b2b5633699c949bfc2e227de85931a
 
 COCOAPODS: 1.15.2

@@ -13,8 +13,6 @@ node_require('react-native-permissions/scripts/setup.rb')
 platform :ios, min_ios_version_supported
 prepare_react_native_project!
 
-pod 'StreamWebRTC', podspec: 'https://raw.githubusercontent.com/GetStream/stream-video-swift-webrtc/145.10.0/StreamWebRTC.podspec'
-
 setup_permissions([
   'Camera',
   'Microphone',
