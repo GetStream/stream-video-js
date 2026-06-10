@@ -142,6 +142,29 @@ describe('EncryptionManager', () => {
         /16 bytes/,
       );
     });
+
+    it('rejects a keyIndex above the 8-bit wire limit', () => {
+      // The trailer carries keyIndex in a single byte; 256 would wrap to 0 on
+      // the wire and the receiver would look up the wrong key (finding 9).
+      expect(() => manager.setKey('user', 256, new ArrayBuffer(16))).toThrow(
+        /keyIndex/,
+      );
+    });
+
+    it('rejects a negative or non-integer keyIndex', () => {
+      expect(() => manager.setKey('user', -1, new ArrayBuffer(16))).toThrow(
+        /keyIndex/,
+      );
+      expect(() => manager.setKey('user', 1.5, new ArrayBuffer(16))).toThrow(
+        /keyIndex/,
+      );
+    });
+
+    it('accepts the maximum 8-bit keyIndex (255)', () => {
+      expect(() =>
+        manager.setKey('user', 255, new ArrayBuffer(16)),
+      ).not.toThrow();
+    });
   });
 
   describe('setSharedKey', () => {
@@ -159,6 +182,12 @@ describe('EncryptionManager', () => {
     it('rejects keys that are not 16 bytes', () => {
       expect(() => manager.setSharedKey(0, new ArrayBuffer(8))).toThrow(
         /16 bytes/,
+      );
+    });
+
+    it('rejects a keyIndex above the 8-bit wire limit', () => {
+      expect(() => manager.setSharedKey(256, new ArrayBuffer(16))).toThrow(
+        /keyIndex/,
       );
     });
   });

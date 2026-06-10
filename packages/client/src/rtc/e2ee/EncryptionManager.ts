@@ -246,11 +246,14 @@ export class EncryptionManager
    *         looks up the local key by `currentUserId`; the decryptor looks up
    *         each remote participant's key by their `userId`). Irrelevant with a
    *         shared key, which is the fallback for every user.
-   * @param keyIndex - Monotonically increasing index for key rotation.
+   * @param keyIndex - Monotonically increasing index for key rotation. Must be
+   *         an integer in the range 0-255: the frame trailer carries it in a
+   *         single byte, so values outside that range are rejected.
    * @param rawKey - Raw AES key material: 16 bytes for AES-128-GCM (default)
    *         or 32 bytes for AES-256-GCM. Transferred to the worker (zero-copy).
    */
   setKey = (userId: string, keyIndex: number, rawKey: ArrayBuffer): void => {
+    this.validateKeyIndex(keyIndex);
     this.validateKeyLength(rawKey);
     this.worker.postMessage({ type: 'cmd.set_key', userId, keyIndex, rawKey }, [
       rawKey,
@@ -264,11 +267,13 @@ export class EncryptionManager
    * This is the simplest E2EE mode: all participants use the same
    * passphrase-derived key. No per-user key distribution needed.
    *
-   * @param keyIndex - Key rotation index.
+   * @param keyIndex - Key rotation index. Must be an integer in the range
+   *         0-255 (it is carried in a single trailer byte).
    * @param rawKey - Raw AES key material: 16 bytes for AES-128-GCM (default)
    *         or 32 bytes for AES-256-GCM. Transferred to the worker (zero-copy).
    */
   setSharedKey = (keyIndex: number, rawKey: ArrayBuffer): void => {
+    this.validateKeyIndex(keyIndex);
     this.validateKeyLength(rawKey);
     this.worker.postMessage({ type: 'cmd.set_shared_key', keyIndex, rawKey }, [
       rawKey,
@@ -457,6 +462,20 @@ export class EncryptionManager
     if (rawKey.byteLength !== expected) {
       throw new Error(
         `Key must be exactly ${expected} bytes (${is256 ? 'AES-256' : 'AES-128'})`,
+      );
+    }
+  };
+
+  /**
+   * The frame trailer carries the keyIndex in a single byte, so the wire format
+   * caps it at 255. A larger value would be truncated to `keyIndex & 0xFF`, and
+   * the receiver would look up the wrong key (or key 0) and fail every decrypt.
+   * Reject it at the boundary instead of shipping a silently-broken key epoch.
+   */
+  private validateKeyIndex = (keyIndex: number) => {
+    if (!Number.isInteger(keyIndex) || keyIndex < 0 || keyIndex > 255) {
+      throw new Error(
+        `keyIndex must be an integer between 0 and 255, got ${keyIndex}`,
       );
     }
   };

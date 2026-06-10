@@ -64,7 +64,7 @@ import {
   rbspUnescape,
 } from './codec';
 import { decryptAv1Frame, encryptAv1Frame, parseEncryptedAv1 } from './av1';
-import { enqueue, readTrailer, writeTrailer } from './utils';
+import { enqueue, readTrailer, readTrailerIv, writeTrailer } from './utils';
 import {
   createReplayWindow,
   dispose as disposeCrypto,
@@ -284,19 +284,28 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
         );
         const ciphertext = new Uint8Array(encrypted);
         if (isNalu && clearBytes > 0) {
-          const escaped = rbspEscape(ciphertext);
-          const dst = new Uint8Array(clearBytes + escaped.length + TRAILER_LEN);
-          dst.set(aad, 0);
-          dst.set(escaped, clearBytes);
+          // RBSP-escape the ciphertext AND the trailer as one unit so the
+          // trailer's counter bytes can't form fake Annex-B start codes that
+          // libwebrtc's H264 packetizer would split on (finding 11). The last 7
+          // trailer bytes (clearBytes|RBSP_FLAG, version, magic) are start-code
+          // safe by construction - the RBSP flag forces the clearBytes high byte
+          // >= 0x80 - so they pass through escaping unchanged and the decoder can
+          // still read clearBytes from the raw frame tail to locate the unit.
+          const unit = new Uint8Array(ciphertext.length + TRAILER_LEN);
+          unit.set(ciphertext, 0);
           writeTrailer(
-            dst,
-            clearBytes + escaped.length,
+            unit,
+            ciphertext.length,
             counter,
             prefix,
             keyIndex,
             clearBytes,
             true,
           );
+          const escaped = rbspEscape(unit);
+          const dst = new Uint8Array(clearBytes + escaped.length);
+          dst.set(aad, 0);
+          dst.set(escaped, clearBytes);
           return dst;
         }
         const dst = new Uint8Array(
@@ -428,14 +437,28 @@ const decodeTransform = (userId: string) => {
         );
       }
 
-      const { frameCounter, ivPrefix, keyIndex, clearBytes, isRbsp, version } =
-        trailer;
+      const { clearBytes, isRbsp, version } = trailer;
       if (version !== E2EE_VERSION) {
         // readTrailer already filters wrong versions, but keep the explicit
         // branch so future bumps surface via notifyFailure rather than
         // silently dropping as "not our trailer".
         notifyFailure();
         return;
+      }
+
+      // For an RBSP (H264) frame the ciphertext AND the counter/ivPrefix/keyIndex
+      // were escaped as one unit (finding 11), so recover them by un-escaping
+      // from the clear header to the end - only the start-code-safe trailer tail
+      // (clearBytes/version/magic, read above) stayed in the clear. A non-RBSP
+      // frame keeps the whole trailer raw, so the fields read straight off it.
+      let { frameCounter, ivPrefix, keyIndex } = trailer;
+      let ciphertext: Uint8Array;
+      if (isRbsp) {
+        const unit = rbspUnescape(src.subarray(clearBytes));
+        ({ frameCounter, ivPrefix, keyIndex } = readTrailerIv(unit));
+        ciphertext = unit.subarray(0, unit.length - TRAILER_LEN);
+      } else {
+        ciphertext = src.subarray(clearBytes, src.length - TRAILER_LEN);
       }
 
       return finishDecode(
@@ -445,12 +468,8 @@ const decodeTransform = (userId: string) => {
         ivPrefix,
         frameCounter,
         async (key) => {
-          const bodyEnd = src.length - TRAILER_LEN;
           fillIV(iv, ivView, ivPrefix, frameCounter);
           const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : EMPTY_AAD;
-          const ciphertext = isRbsp
-            ? rbspUnescape(src.subarray(clearBytes, bodyEnd))
-            : src.subarray(clearBytes, bodyEnd);
           const decrypted = await crypto.subtle.decrypt(
             { name: 'AES-GCM', iv, additionalData: aad as BufferSource },
             key,

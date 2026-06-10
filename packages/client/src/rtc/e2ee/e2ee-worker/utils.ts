@@ -85,6 +85,27 @@ export const writeTrailer = (
   view.setUint32(offset + OFF_MAGIC, MAGIC);
 };
 
+/**
+ * Read just the IV-derivation fields (frameCounter, ivPrefix, keyIndex) from
+ * the 20-byte trailer at the end of `buf`. No magic/version validation: the
+ * decode path uses this on an already-recognized H264 RBSP frame, after the
+ * encrypted unit (ciphertext + these fields) has been un-escaped — those three
+ * fields are escaped together with the ciphertext so they cannot form fake
+ * Annex-B start codes (finding 11), so they are not readable from the raw frame
+ * tail the way {@link readTrailer} reads clearBytes/version/magic.
+ */
+export const readTrailerIv = (
+  buf: Uint8Array,
+): Pick<Trailer, 'frameCounter' | 'ivPrefix' | 'keyIndex'> => {
+  const view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+  const start = buf.length - TRAILER_LEN;
+  return {
+    frameCounter: view.getUint32(start),
+    ivPrefix: buf.subarray(start + OFF_IV_PREFIX, start + OFF_KEY_INDEX),
+    keyIndex: buf[start + OFF_KEY_INDEX],
+  };
+};
+
 export const readTrailer = (src: Uint8Array): Trailer | null => {
   if (src.length < TRAILER_LEN) return null;
   const view = new DataView(src.buffer, src.byteOffset, src.byteLength);
@@ -99,6 +120,12 @@ export const readTrailer = (src: Uint8Array): Trailer | null => {
   // Defensive consistency check — decryption would fail anyway, but this
   // lets us bail out before allocating / calling crypto.subtle.
   if (clearBytes > src.length - TRAILER_LEN) return null;
+  // clearBytes/isRbsp/version/magic always live in the start-code-safe last 7
+  // trailer bytes (the RBSP flag keeps the clearBytes high byte >= 0x80), so
+  // they read correctly even when the rest of the trailer was escaped. The
+  // frameCounter/ivPrefix/keyIndex below are valid ONLY for non-RBSP frames; on
+  // an RBSP frame they sit inside the escaped unit and must be re-read with
+  // {@link readTrailerIv} after un-escaping (finding 11).
   return {
     frameCounter: view.getUint32(start),
     ivPrefix: src.subarray(start + OFF_IV_PREFIX, start + OFF_KEY_INDEX),

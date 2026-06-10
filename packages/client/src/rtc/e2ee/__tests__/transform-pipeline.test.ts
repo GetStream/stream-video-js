@@ -26,6 +26,9 @@ await import('../e2ee-worker/e2ee-worker-impl');
 // `enqueue` is the worker's own serial message queue; awaiting a no-op task
 // flushes everything queued before it (e.g. an async setKey).
 const { enqueue } = await import('../e2ee-worker/utils');
+// Test seam to position the per-user frame counter so we can hit the low
+// values whose big-endian encoding forms Annex-B start codes.
+const { __setFrameCounterForTest } = await import('../e2ee-worker/crypto');
 
 type Frame = {
   data: ArrayBuffer;
@@ -314,5 +317,73 @@ describe('encode pipeline edge behaviors', () => {
     ]);
     expect(out).toHaveLength(0);
     expect(posted.some((m) => m.type === 'e2ee.missing_key')).toBe(true);
+  });
+});
+
+describe('h264 trailer start-code safety (finding 11)', () => {
+  // SPS NALU, then an IDR slice NALU. h264ClearBytes leaves the start code +
+  // NALU header + 2 slice-header bytes in the clear (14 bytes here) and
+  // encrypts the rest.
+  const H264_KEYFRAME = [
+    0,
+    0,
+    0,
+    1,
+    0x67,
+    0x42,
+    0x00,
+    0x0a, // SPS
+    0,
+    0,
+    0,
+    1,
+    0x65,
+    0xb8,
+    0x40, // IDR slice: start code + NALU header + 1 byte
+    0xaa,
+    0xbb,
+    0xcc,
+    0xdd,
+    0xee, // encrypted body
+  ];
+  const H264_CLEAR_BYTES = 14;
+
+  const hasAnnexBStartCode = (b: Uint8Array): boolean => {
+    for (let i = 0; i + 2 < b.length; i++) {
+      if (b[i] === 0 && b[i + 1] === 0 && b[i + 2] === 1) return true;
+    }
+    return false;
+  };
+
+  it.each([
+    ['counter 1 -> 00 00 00 01', 0],
+    ['counter 256 -> 00 00 01 00', 255],
+  ])(
+    'leaves no fake Annex-B start code in the encrypted region (%s)',
+    async (_label, seed) => {
+      const user = freshUser();
+      await setKey(user);
+      __setFrameCounterForTest(user, seed);
+      const [encrypted] = await drive('encode', user, 'h264', [
+        frame(H264_KEYFRAME, 'key'),
+      ]);
+      expect(encrypted).toBeDefined();
+      const bytes = new Uint8Array(encrypted.data);
+      // The clear NALU header legitimately carries start codes; only the
+      // encrypted region after it must be start-code free, or libwebrtc's H264
+      // packetizer would split a spurious NALU and corrupt the frame.
+      expect(hasAnnexBStartCode(bytes.subarray(H264_CLEAR_BYTES))).toBe(false);
+    },
+  );
+
+  it('round-trips an h264 frame whose counter would form a start code', async () => {
+    const user = freshUser();
+    await setKey(user);
+    __setFrameCounterForTest(user, 0); // next counter = 1 -> trailer 00 00 00 01
+    const [encrypted] = await drive('encode', user, 'h264', [
+      frame(H264_KEYFRAME, 'key'),
+    ]);
+    const [decrypted] = await drive('decode', user, undefined, [encrypted]);
+    expect(Array.from(new Uint8Array(decrypted.data))).toEqual(H264_KEYFRAME);
   });
 });
