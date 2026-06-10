@@ -1156,7 +1156,13 @@ export class Call {
     );
   };
 
-  /** Wraps the coordinator `JoinCall` request to emit the `CoordinatorJoin` reporting pair. */
+  /**
+   * Wraps the coordinator-side join sequence (the `JoinCall` request and, for
+   * ringing calls, the subsequent `accept`) to emit the `CoordinatorJoin`
+   * reporting pair. A failure anywhere in the sequence keeps the pair open so
+   * the retry folds into it (`retry_count_attempt`) instead of emitting a fresh
+   * success on the next attempt.
+   */
   private trackCoordinatorJoin = <T>(op: () => Promise<T>): Promise<T> =>
     this.streamClient.clientEventReporter.track(
       this.cid,
@@ -1200,7 +1206,9 @@ export class Call {
       data?.migrating_from
     ) {
       try {
-        const joinResponse = await this.doJoinRequest(data);
+        const joinResponse = await this.trackCoordinatorJoin(() =>
+          this.doJoinRequest(data),
+        );
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
         this.lastStatsOptions = statsOptions;
@@ -1623,15 +1631,12 @@ export class Call {
   doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
     const location = await this.streamClient.getLocationHint();
     const request: JoinCallRequest = { ...data, location };
-    const joinResponse = await this.trackCoordinatorJoin(async () => {
-      const response = await this.streamClient.post<
-        JoinCallResponse,
-        JoinCallRequest
-      >(`${this.streamClientBasePath}/join`, request);
+    const joinResponse = await this.streamClient.post<
+      JoinCallResponse,
+      JoinCallRequest
+    >(`${this.streamClientBasePath}/join`, request);
 
-      this.state.updateFromCallResponse(response.call);
-      return response;
-    });
+    this.state.updateFromCallResponse(joinResponse.call);
     this.state.setMembers(joinResponse.members);
     this.state.setOwnCapabilities(joinResponse.own_capabilities);
 
