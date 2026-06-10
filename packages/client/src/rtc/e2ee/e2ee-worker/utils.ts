@@ -9,6 +9,34 @@ import {
 } from './constants';
 import type { Trailer } from './types';
 
+/** Constant-length byte comparison shared by the replay guard and AV1 OBU matching. */
+export const bytesEqual = (a: Uint8Array, b: Uint8Array): boolean => {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+};
+
+/**
+ * Per-key throttle: `tryFire(key)` returns true at most once per `intervalMs`
+ * for a given key (recording the time when it does), false otherwise. Used to
+ * rate-limit the worker's missing-key / decryption-failure notifications to the
+ * host so a sustained failure can't flood the main thread.
+ */
+export const createThrottle = (intervalMs: number) => {
+  const lastFiredAt = new Map<string, number>();
+  return {
+    tryFire: (key: string): boolean => {
+      const now = Date.now();
+      if (now - (lastFiredAt.get(key) ?? 0) > intervalMs) {
+        lastFiredAt.set(key, now);
+        return true;
+      }
+      return false;
+    },
+    reset: () => lastFiredAt.clear(),
+  };
+};
+
 const msgQueue: Array<() => Promise<void>> = [];
 let msgQueueRunning = false;
 

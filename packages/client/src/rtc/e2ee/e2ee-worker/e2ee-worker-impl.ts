@@ -58,7 +58,13 @@ import {
   rbspUnescape,
 } from './codec';
 import { decryptAv1Frame, encryptAv1Frame, parseEncryptedAv1 } from './av1';
-import { enqueue, readTrailer, readTrailerIv, writeTrailer } from './utils';
+import {
+  createThrottle,
+  enqueue,
+  readTrailer,
+  readTrailerIv,
+  writeTrailer,
+} from './utils';
 import {
   createReplayWindow,
   dispose as disposeCrypto,
@@ -166,13 +172,9 @@ const signalEncodeFailure = (reason: string) => {
  * Throttled to one message per second per user; it stops firing on its own
  * once a key is imported and frames start flowing.
  */
-const missingKeyNotifiedAt = new Map<string, number>();
-const MISSING_KEY_THROTTLE_MS = 1000;
+const missingKeyThrottle = createThrottle(1000);
 const notifyMissingKey = (userId: string) => {
-  const now = Date.now();
-  const last = missingKeyNotifiedAt.get(userId) || 0;
-  if (now - last > MISSING_KEY_THROTTLE_MS) {
-    missingKeyNotifiedAt.set(userId, now);
+  if (missingKeyThrottle.tryFire(userId)) {
     self.postMessage({ type: 'e2ee.missing_key', userId });
   }
 };
@@ -323,13 +325,11 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
 };
 
 const decodeTransform = (userId: string) => {
-  let lastFailureNotification = 0;
-  const FAILURE_THROTTLE_MS = 1000;
-
+  // Per-track throttle (one userId per transform); rate-limits the failure
+  // signal to at most once per second.
+  const failureThrottle = createThrottle(1000);
   const notifyFailure = () => {
-    const now = Date.now();
-    if (now - lastFailureNotification > FAILURE_THROTTLE_MS) {
-      lastFailureNotification = now;
+    if (failureThrottle.tryFire(userId)) {
       self.postMessage({ type: 'e2ee.decryption_failed', userId });
     }
   };
@@ -576,7 +576,7 @@ addEventListener('message', ({ data }) => {
         stopPerfReport();
         teardownAllTransforms();
         disposeCrypto();
-        missingKeyNotifiedAt.clear();
+        missingKeyThrottle.reset();
         break;
       case 'cmd.setup_transform':
         setupTransform(data);

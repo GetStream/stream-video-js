@@ -5,6 +5,7 @@ import {
   IV_PREFIX_LEN,
   REPLAY_WINDOW,
 } from './constants';
+import { bytesEqual } from './utils';
 import type { ResolvedKey } from './types';
 
 /**
@@ -23,25 +24,37 @@ const getOrCreate = <V>(map: UserKeyMap<V>, userId: string): Map<number, V> => {
   return inner;
 };
 
-/** Imported CryptoKey, not extractable. */
-const keyStore: UserKeyMap<CryptoKey> = new Map();
+/** The pieces of one imported key, always written and deleted as a unit. */
+interface KeyMaterial {
+  /** Imported CryptoKey, not extractable. */
+  key: CryptoKey;
+  /**
+   * Sender-side random IV prefix (8 bytes), freshly generated per key import.
+   * Receivers read the prefix from the frame trailer and do NOT consult this:
+   * keeping it per (userId, keyIndex) ensures repeated imports of the *same raw
+   * key* get distinct prefixes, so no IV reuse.
+   */
+  ivPrefix: Uint8Array;
+  /**
+   * 8-byte SHA-256 prefix of the raw key, kept only for debug/introspection via
+   * `dumpKeyState`. Non-reversible, so exposing it does not leak key material.
+   */
+  fingerprint: Uint8Array;
+}
 
 /**
- * Sender-side random IV prefix (8 bytes), freshly generated per key import.
- * Receivers read the prefix from the frame trailer and do NOT consult this
- * map. Keeping it per (userId, keyIndex) ensures that repeated imports of
- * the *same raw key* get distinct prefixes → no IV reuse.
+ * Per-user key material, indexed `perUserKeys.get(userId)?.get(keyIndex)`. One
+ * entry per (userId, keyIndex) replaces the earlier parallel keyStore /
+ * senderIvPrefixes / keyFingerprints maps, which were always written and
+ * deleted together - collapsing them removes the multi-map consistency risk.
  */
-const senderIvPrefixes: UserKeyMap<Uint8Array> = new Map();
+const perUserKeys: UserKeyMap<KeyMaterial> = new Map();
 
 /**
- * 8-byte SHA-256 prefix of the raw key, kept only for debug/introspection
- * via `dumpKeyState`. Non-reversible, so exposing it does not leak key
- * material.
+ * Consecutive-failure counter per (userId, keyIndex). Kept separate from
+ * {@link perUserKeys}: it is maintained on the decode path and a shared-key
+ * user has no per-user entry to hang it off, so its lifecycle differs.
  */
-const keyFingerprints: UserKeyMap<Uint8Array> = new Map();
-
-/** Consecutive-failure counter per (userId, keyIndex). */
 const decryptionFailureCounts: UserKeyMap<number> = new Map();
 
 /** Map<userId, latest keyIndex>. */
@@ -53,14 +66,15 @@ const latestKeyIndex = new Map<string, number>();
  * Deliberately persistent across `removeKeys`: if the same raw key is ever
  * re-imported for a user later in this worker's lifetime, the counter keeps
  * climbing so we cannot reuse an (ivPrefix, counter) pair. Combined with a
- * fresh random `senderIvPrefixes` entry per import, this gives two
- * independent guards against AES-GCM IV reuse.
+ * fresh random `ivPrefix` per import, this gives two independent guards against
+ * AES-GCM IV reuse.
  */
 const frameCounters = new Map<string, number>();
 
-let sharedKey: ResolvedKey | null = null;
-let sharedSenderIvPrefix: Uint8Array | null = null;
-let sharedKeyFingerprint: Uint8Array | null = null;
+/** Shared fallback key with its sender IV prefix and fingerprint. */
+let sharedKey:
+  | (ResolvedKey & { ivPrefix: Uint8Array; fingerprint: Uint8Array })
+  | null = null;
 
 const randomBytes = (n: number): Uint8Array => {
   const bytes = new Uint8Array(n);
@@ -77,8 +91,8 @@ export const getKey = (
   userId: string,
   keyIndex: number,
 ): CryptoKey | undefined => {
-  const perUser = keyStore.get(userId)?.get(keyIndex);
-  if (perUser) return perUser;
+  const perUser = perUserKeys.get(userId)?.get(keyIndex);
+  if (perUser) return perUser.key;
   if (sharedKey && keyIndex === sharedKey.keyIndex) return sharedKey.key;
   return undefined;
 };
@@ -86,8 +100,8 @@ export const getKey = (
 export const getLatestKey = (userId: string): ResolvedKey | null => {
   const idx = latestKeyIndex.get(userId);
   if (idx !== undefined) {
-    const key = keyStore.get(userId)?.get(idx);
-    if (key) return { key, keyIndex: idx };
+    const km = perUserKeys.get(userId)?.get(idx);
+    if (km) return { key: km.key, keyIndex: idx };
   }
   return sharedKey;
 };
@@ -101,9 +115,9 @@ export const getSenderIvPrefix = (
   userId: string,
   keyIndex: number,
 ): Uint8Array | null => {
-  const perUser = senderIvPrefixes.get(userId)?.get(keyIndex);
-  if (perUser) return perUser;
-  if (sharedKey && keyIndex === sharedKey.keyIndex) return sharedSenderIvPrefix;
+  const perUser = perUserKeys.get(userId)?.get(keyIndex);
+  if (perUser) return perUser.ivPrefix;
+  if (sharedKey && keyIndex === sharedKey.keyIndex) return sharedKey.ivPrefix;
   return null;
 };
 
@@ -210,12 +224,6 @@ const replayClear = (bitmap: Uint32Array, counter: number) => {
  */
 const REPLAY_EPOCHS = 3;
 
-const prefixEquals = (a: Uint8Array, b: Uint8Array): boolean => {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
-  return true;
-};
-
 /** Stateful, per-track replay guard. See {@link createReplayWindow}. */
 export interface ReplayWindow {
   /**
@@ -259,7 +267,7 @@ export interface ReplayWindow {
 export const createReplayWindow = (): ReplayWindow => {
   const epochs: Array<{ prefix: Uint8Array; state: ReplayState }> = [];
   const findEpoch = (ivPrefix: Uint8Array) =>
-    epochs.find((e) => prefixEquals(e.prefix, ivPrefix));
+    epochs.find((e) => bytesEqual(e.prefix, ivPrefix));
   return {
     peek: (counter, ivPrefix) => {
       const epoch = findEpoch(ivPrefix);
@@ -328,12 +336,11 @@ export const importKey = async (
       ]),
       fingerprint(rawKey),
     ]);
-    getOrCreate(keyStore, userId).set(keyIndex, cryptoKey);
-    getOrCreate(keyFingerprints, userId).set(keyIndex, fp);
-    getOrCreate(senderIvPrefixes, userId).set(
-      keyIndex,
-      randomBytes(IV_PREFIX_LEN),
-    );
+    getOrCreate(perUserKeys, userId).set(keyIndex, {
+      key: cryptoKey,
+      ivPrefix: randomBytes(IV_PREFIX_LEN),
+      fingerprint: fp,
+    });
     latestKeyIndex.set(userId, keyIndex);
     resetDecryptionFailures(userId, keyIndex);
   } catch (e: any) {
@@ -356,9 +363,12 @@ export const importSharedKey = async (
       ]),
       fingerprint(rawKey),
     ]);
-    sharedKey = { key: cryptoKey, keyIndex };
-    sharedKeyFingerprint = fp;
-    sharedSenderIvPrefix = randomBytes(IV_PREFIX_LEN);
+    sharedKey = {
+      key: cryptoKey,
+      keyIndex,
+      ivPrefix: randomBytes(IV_PREFIX_LEN),
+      fingerprint: fp,
+    };
     // The shared keyIndex now refers to a fresh key → reset decryption-failure
     // state tied to that slot for every user
     for (const inner of decryptionFailureCounts.values()) {
@@ -378,9 +388,7 @@ export const importSharedKey = async (
  * reuse if the same raw key is imported again later in this worker.
  */
 export const removeKeys = (userId: string) => {
-  keyStore.delete(userId);
-  senderIvPrefixes.delete(userId);
-  keyFingerprints.delete(userId);
+  perUserKeys.delete(userId);
   latestKeyIndex.delete(userId);
   decryptionFailureCounts.delete(userId);
   rekeyRequested.delete(userId);
@@ -398,38 +406,33 @@ const toHex = (bytes: Uint8Array): string =>
  * exposing the key itself.
  */
 export const dumpKeyState = () => {
-  const perUserKeys: Array<{
+  const keys: Array<{
     userId: string;
     keyIndex: number;
     fingerprint: string;
   }> = [];
-  for (const [userId, keys] of keyFingerprints) {
-    for (const [keyIndex, fp] of keys) {
-      perUserKeys.push({ userId, keyIndex, fingerprint: toHex(fp) });
+  for (const [userId, perKeyIndex] of perUserKeys) {
+    for (const [keyIndex, km] of perKeyIndex) {
+      keys.push({ userId, keyIndex, fingerprint: toHex(km.fingerprint) });
     }
   }
   return {
-    perUserKeys,
-    sharedKey:
-      sharedKeyFingerprint && sharedKey
-        ? {
-            keyIndex: sharedKey.keyIndex,
-            fingerprint: toHex(sharedKeyFingerprint),
-          }
-        : null,
+    perUserKeys: keys,
+    sharedKey: sharedKey
+      ? {
+          keyIndex: sharedKey.keyIndex,
+          fingerprint: toHex(sharedKey.fingerprint),
+        }
+      : null,
   };
 };
 
 /** Clear all state — called on worker dispose. */
 export const dispose = () => {
-  keyStore.clear();
-  senderIvPrefixes.clear();
-  keyFingerprints.clear();
+  perUserKeys.clear();
   latestKeyIndex.clear();
   frameCounters.clear();
   decryptionFailureCounts.clear();
   rekeyRequested.clear();
   sharedKey = null;
-  sharedSenderIvPrefix = null;
-  sharedKeyFingerprint = null;
 };

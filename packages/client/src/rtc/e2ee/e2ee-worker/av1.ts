@@ -12,6 +12,7 @@ import {
   MAGIC,
 } from './constants';
 import { fillIV } from './crypto';
+import { bytesEqual } from './utils';
 import {
   AV1_ENCRYPTED_OBU_TYPES,
   applySalt,
@@ -77,12 +78,6 @@ const concatBytes = (a: Uint8Array, b: Uint8Array): Uint8Array => {
   out.set(a, 0);
   out.set(b, a.length);
   return out;
-};
-
-const bytesEqual = (a: Uint8Array, b: Uint8Array): boolean => {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
-  return true;
 };
 
 /**
