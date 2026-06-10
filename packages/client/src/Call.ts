@@ -443,6 +443,14 @@ export class Call {
       this.registerEffects();
       this.registerReconnectHandlers();
 
+      this.streamClient.clientEventReporter.registerCall(this.cid, {
+        callType: this.type,
+        callId: this.id,
+        getCallSessionId: () => this.state.session?.id ?? '',
+        getSfuId: () => this.credentials?.server.edge_name ?? '',
+        getUserSessionId: () => this.sfuClient?.sessionId ?? '',
+      });
+
       // Set up the device managers again. Although this is already done
       // in the DeviceManager's constructor, they'll need to be re-set up
       // in the cases where a call instance is recycled (join -> leave -> join).
@@ -1140,21 +1148,12 @@ export class Call {
   private withJoinLifecycle = <T>(
     joinReason: JoinReason,
     op: () => Promise<T>,
-  ): Promise<T> => {
-    this.streamClient.clientEventReporter.registerCall(this.cid, {
-      callType: this.type,
-      callId: this.id,
-      getCallSessionId: () => this.state.session?.id ?? '',
-      getSfuId: () => this.credentials?.server.edge_name ?? '',
-      getUserSessionId: () => this.sfuClient?.sessionId ?? '',
-    });
-
-    return this.streamClient.clientEventReporter.withJoinLifecycle(
+  ): Promise<T> =>
+    this.streamClient.clientEventReporter.withJoinLifecycle(
       this.cid,
       joinReason,
       op,
     );
-  };
 
   /**
    * Wraps the coordinator-side join sequence (the `JoinCall` request and, for
