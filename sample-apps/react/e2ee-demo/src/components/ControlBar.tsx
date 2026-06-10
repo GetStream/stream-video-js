@@ -1,15 +1,28 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { EncryptionManager } from '@stream-io/video-react-sdk';
 import { MAX_PARTICIPANTS } from '../config';
 import { useHarnessEngine, useSnapshot } from '../hooks/useHarness';
 import type { PreferredCodec, TransformPath } from '../harness/snapshot';
+import {
+  detectTransformSupport,
+  transformLabels,
+} from '../harness/transformSupport';
 import './ControlBar.css';
 
 export const ControlBar = () => {
   const engine = useHarnessEngine();
   const { config, participants, globalError } = useSnapshot();
   const isSupported = EncryptionManager.isSupported();
+  const support = useMemo(detectTransformSupport, []);
   const [shared, setShared] = useState('');
+
+  const transformOption = (path: TransformPath, available: boolean): string => {
+    const tags: string[] = [];
+    if (support.recommended === path) tags.push('detected');
+    if (!available) tags.push('unavailable, falls back');
+    const base = transformLabels[path];
+    return tags.length ? `${base} (${tags.join(', ')})` : base;
+  };
 
   const joined = participants.length;
   const normals = participants.filter((p) => p.role === 'normal').length;
@@ -44,7 +57,7 @@ export const ControlBar = () => {
             <option value="av1">AV1</option>
           </select>
         </label>
-        <label title="Locks after the first participant joins">
+        <label title="Auto-detected for this browser; locks after the first participant joins">
           Transform
           <select
             value={config.transform}
@@ -53,9 +66,18 @@ export const ControlBar = () => {
               engine.setConfig({ transform: e.target.value as TransformPath })
             }
           >
-            <option value="script">RTCRtpScriptTransform</option>
-            <option value="insertable">Insertable Streams (legacy)</option>
+            <option value="insertable">
+              {transformOption('insertable', support.hasInsertableStreams)}
+            </option>
+            <option value="script">
+              {transformOption('script', support.hasScriptTransform)}
+            </option>
           </select>
+          {support.recommended && (
+            <span className="control-bar__hint">
+              auto: {transformLabels[support.recommended]}
+            </span>
+          )}
         </label>
         <label title="Locks after the first participant joins">
           KeyMode

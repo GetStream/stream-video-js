@@ -17,6 +17,7 @@ import {
 } from '../config';
 import { generateKey, toHex, parseKeyInput } from './keys';
 import type { SendKeyFn } from './keyTransport';
+import { detectTransformSupport } from './transformSupport';
 import type {
   HarnessConfig,
   HarnessParticipant,
@@ -50,7 +51,7 @@ export interface HarnessDeps {
   }) => StreamVideoClient;
   createManager: (
     userId: string,
-    opts: { forceInsertableStreams: boolean },
+    opts: { forceRtpScriptTransform: boolean },
   ) => Promise<EncryptionManager>;
 }
 
@@ -109,7 +110,8 @@ export class E2EEHarness {
     this.config = {
       callId: init.callId,
       codec: init.codec ?? 'vp8',
-      transform: 'script',
+      // Preselect the path the SDK would actually attach in this browser.
+      transform: detectTransformSupport().recommended ?? 'insertable',
       keyMode: 'per-user',
       e2eeEnabled: true,
     };
@@ -230,7 +232,7 @@ export class E2EEHarness {
       const call = client.call(CALL_TYPE, this.config.callId);
       const isNormal = opts.role === 'normal';
       const manager = await this.deps.createManager(userId, {
-        forceInsertableStreams: this.config.transform === 'insertable',
+        forceRtpScriptTransform: this.config.transform === 'script',
       });
 
       const p: EngineParticipant = {

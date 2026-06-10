@@ -62,6 +62,11 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+.control-bar__hint {
+  font-size: 11px;
+  color: #6e7681;
+  font-style: italic;
+}
 .control-bar__toggle {
   color: #c9d1d9;
 }
