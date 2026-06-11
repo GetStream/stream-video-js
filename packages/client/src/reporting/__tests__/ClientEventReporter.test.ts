@@ -103,6 +103,30 @@ describe('ClientEventReporter', () => {
     });
   });
 
+  it('reports the latest error when folded retries fail differently', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    const attempt = (err: Error) =>
+      expect(
+        reporter.track(cid, 'CoordinatorJoin', () => Promise.reject(err)),
+      ).rejects.toThrow();
+
+    await attempt(new Error('error A'));
+    await attempt(new Error('error B'));
+    await attempt(new Error('error B'));
+    reporter.close(cid);
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) => e.stage === 'CoordinatorJoin' && e.event_type === 'completed',
+    );
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      retry_count_attempt: 2,
+      retry_failure_reason: 'error B',
+    });
+  });
+
   it('emits a failure completion on abort', async () => {
     reporter.startCorrelation(cid, 'first-attempt');
     void reporter.track(cid, 'CoordinatorJoin', () => new Promise(() => {}));

@@ -66,16 +66,9 @@ export type ClientEventReporterOptions = {
   streamClient: StreamClient;
 };
 
-const SEVERITY = {
-  CLIENT: 1,
-  TRANSPORT: 2,
-  SERVER: 3,
-} as const;
-
 type StageError = {
   reason: string;
   code: string;
-  severity: number;
 };
 
 type StagePairState = {
@@ -339,11 +332,7 @@ export class ClientEventReporter {
     const pair = this.wsPairs.get(cid);
     if (!pair) return;
 
-    applyError(pair, {
-      reason: opts.reason,
-      code: opts.code,
-      severity: SEVERITY.SERVER,
-    });
+    applyError(pair, { reason: opts.reason, code: opts.code });
   };
 
   close = (cid: string) => {
@@ -356,11 +345,7 @@ export class ClientEventReporter {
   ) => {
     try {
       const { code, reason } = opts;
-      const stageError: StageError = {
-        code,
-        reason,
-        severity: SEVERITY.CLIENT,
-      };
+      const stageError: StageError = { code, reason };
 
       applyError(this.coordinatorPairs.get(cid), stageError);
       applyError(this.wsPairs.get(cid), stageError);
@@ -798,12 +783,11 @@ const readPermissionStatus = (
 const errorMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err);
 
+// a pair reports the most recent error it saw - the most proximate
+// cause of the stage failure
 const applyError = (pair: StagePairState | undefined, next: StageError) => {
   if (!pair) return;
-
-  if (!pair.lastError || next.severity >= pair.lastError.severity) {
-    pair.lastError = next;
-  }
+  pair.lastError = next;
 };
 
 const mapCoordinatorHttpError = (err: unknown): StageError => {
@@ -811,14 +795,9 @@ const mapCoordinatorHttpError = (err: unknown): StageError => {
     return {
       reason: err.message,
       code: err.code != null ? String(err.code) : 'SERVER_ERROR',
-      severity: SEVERITY.SERVER,
     };
   }
-  return {
-    reason: errorMessage(err),
-    code: 'SERVER_ERROR',
-    severity: SEVERITY.TRANSPORT,
-  };
+  return { reason: errorMessage(err), code: 'SERVER_ERROR' };
 };
 
 const mapCoordinatorWsError = (err: unknown): StageError => {
@@ -826,7 +805,6 @@ const mapCoordinatorWsError = (err: unknown): StageError => {
     return {
       reason: err.message,
       code: err.code != null ? String(err.code) : 'SERVER_ERROR',
-      severity: SEVERITY.SERVER,
     };
   }
 
@@ -834,23 +812,20 @@ const mapCoordinatorWsError = (err: unknown): StageError => {
     try {
       const parsed = JSON.parse(err.message);
       if (typeof parsed.isWSFailure === 'boolean') {
+        // isWSFailure: false -> the API rejected the connection (backend code)
+        // isWSFailure: true  -> transport-level failure
         return {
           reason: parsed.message || err.message,
           code:
             !parsed.isWSFailure && parsed.code
               ? String(parsed.code)
               : 'SERVER_ERROR',
-          severity: parsed.isWSFailure ? SEVERITY.TRANSPORT : SEVERITY.SERVER,
         };
       }
     } catch {}
   }
 
-  return {
-    reason: errorMessage(err),
-    code: 'SERVER_ERROR',
-    severity: SEVERITY.TRANSPORT,
-  };
+  return { reason: errorMessage(err), code: 'SERVER_ERROR' };
 };
 
 const mapWsJoinError = (err: unknown): StageError => {
@@ -860,14 +835,13 @@ const mapWsJoinError = (err: unknown): StageError => {
     return {
       reason: sfuError?.message || err.message,
       code: sfuError ? ErrorCode[sfuError.code] : 'SFU_ERROR',
-      severity: SEVERITY.SERVER,
     };
   }
 
   const reason = errorMessage(err);
   if (err instanceof SfuTimeoutError) {
-    return { reason, code: 'REQUEST_TIMEOUT', severity: SEVERITY.TRANSPORT };
+    return { reason, code: 'REQUEST_TIMEOUT' };
   }
 
-  return { reason, code: 'SFU_ERROR', severity: SEVERITY.TRANSPORT };
+  return { reason, code: 'SFU_ERROR' };
 };
