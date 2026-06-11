@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ScreenShareManager } from '../ScreenShareManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import { ClientEventReporter } from '../../reporting';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import * as RxUtils from '../../store/rxUtils';
 import { mockCall, mockDeviceIds$, mockScreenShareStream } from './mocks';
@@ -36,11 +37,13 @@ describe('ScreenShareManager', () => {
   let manager: ScreenShareManager;
 
   beforeEach(() => {
+    const streamClient = new StreamClient('abc123');
     manager = new ScreenShareManager(
       new Call({
         id: '',
         type: '',
-        streamClient: new StreamClient('abc123'),
+        streamClient,
+        clientEventReporter: new ClientEventReporter({ streamClient }),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
     );

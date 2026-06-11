@@ -43,6 +43,7 @@ import {
   readPreferences,
   toPreferenceList,
 } from '../devicePersistence';
+import { ClientEventReporter } from '../../reporting';
 
 vi.mock('../devices.ts', () => {
   console.log('MOCKING devices API');
@@ -82,6 +83,12 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
+vi.mock('../../reporting/ClientEventReporter', () => ({
+  ClientEventReporter: vi.fn(function () {
+    return {};
+  }),
+}));
+
 describe('MicrophoneManager', () => {
   let manager: MicrophoneManager;
   let call: Call;
@@ -92,10 +99,12 @@ describe('MicrophoneManager', () => {
       of('granted'),
     );
 
+    const streamClient = new StreamClient('abc123');
     call = new Call({
       id: '',
       type: '',
-      streamClient: new StreamClient('abc123'),
+      streamClient,
+      clientEventReporter: new ClientEventReporter({ streamClient }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
     const devicePersistence = { enabled: false, storageKey: '' };

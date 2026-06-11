@@ -5,6 +5,7 @@ import {
   TrackUnpublishReason,
 } from '../../gen/video/sfu/models/models';
 import { StreamClient } from '../../coordinator/connection/client';
+import { ClientEventReporter } from '../../reporting';
 import { handleRemoteSoftMute } from '../mutes';
 import type { CallEventListener } from '../../coordinator/connection/types';
 
@@ -15,10 +16,12 @@ describe('mutes', () => {
 
     beforeEach(() => {
       // @ts-expect-error incomplete data
+      const streamClient = new StreamClient('api-key');
       call = new Call({
         type: 'test',
         id: 'test',
-        streamClient: new StreamClient('api-key'),
+        streamClient,
+        clientEventReporter: new ClientEventReporter({ streamClient }),
       });
 
       // @ts-expect-error partial data

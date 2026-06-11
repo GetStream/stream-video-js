@@ -16,6 +16,7 @@ import {
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import { ClientEventReporter } from '../../reporting';
 import { SfuEvent } from '../../gen/video/sfu/event/events';
 import { CallEndedReason } from '../../gen/video/sfu/models/models';
 
@@ -372,6 +373,7 @@ const fakeCall = ({ ring = true, currentUserId = 'test-user-id' } = {}) => {
     id: '12345',
     clientStore: store,
     streamClient: client,
+    clientEventReporter: new ClientEventReporter({ streamClient: client }),
     ringing: ring,
   });
 };
