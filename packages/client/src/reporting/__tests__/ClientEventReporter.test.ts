@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { ClientEventReporter, CallReportContext } from '../ClientEventReporter';
 import type { StreamClient } from '../../coordinator/connection/client';
 import { ErrorFromResponse } from '../../coordinator/connection/types';
+import { SfuTimeoutError } from '../../errors';
 import type { AxiosResponse } from 'axios';
 import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
 
@@ -170,16 +171,19 @@ describe('ClientEventReporter', () => {
     expect(completed).toHaveLength(1);
     expect(completed[0]).toMatchObject({
       outcome: 'failure',
-      retry_failure_code: 'NETWORK_ERROR',
+      retry_failure_code: 'SERVER_ERROR',
+      retry_failure_reason: 'ws down',
     });
   });
 
   it('reports an API-rejected websocket connection with the backend code', async () => {
-    const rejection = Object.assign(
-      new Error(
-        JSON.stringify({ code: 41, StatusCode: 401, message: 'bad token' }),
-      ),
-      { code: 41, StatusCode: 401, isWSFailure: false },
+    const rejection = new Error(
+      JSON.stringify({
+        code: 41,
+        StatusCode: 401,
+        message: 'bad token',
+        isWSFailure: false,
+      }),
     );
     await expect(
       reporter.trackCoordinatorWs(() => Promise.reject(rejection)),
@@ -194,20 +198,18 @@ describe('ClientEventReporter', () => {
     expect(completed[0]).toMatchObject({
       outcome: 'failure',
       retry_failure_code: '41',
+      retry_failure_reason: 'bad token',
     });
   });
 
-  it('reports a transient websocket failure as a network error', async () => {
-    const failure = Object.assign(
-      new Error(
-        JSON.stringify({
-          code: '',
-          StatusCode: '',
-          message: 'initial WS connection could not be established',
-          isWSFailure: true,
-        }),
-      ),
-      { code: '', StatusCode: '', isWSFailure: true },
+  it('reports a transient websocket failure with the default code', async () => {
+    const failure = new Error(
+      JSON.stringify({
+        code: '',
+        StatusCode: '',
+        message: 'initial WS connection could not be established',
+        isWSFailure: true,
+      }),
     );
     await expect(
       reporter.trackCoordinatorWs(() => Promise.reject(failure)),
@@ -221,7 +223,8 @@ describe('ClientEventReporter', () => {
     expect(completed).toHaveLength(1);
     expect(completed[0]).toMatchObject({
       outcome: 'failure',
-      retry_failure_code: 'NETWORK_ERROR',
+      retry_failure_code: 'SERVER_ERROR',
+      retry_failure_reason: 'initial WS connection could not be established',
     });
   });
 
@@ -245,7 +248,7 @@ describe('ClientEventReporter', () => {
     expect(completed[0]).toMatchObject({
       outcome: 'failure',
       retry_failure_code: '16',
-      retry_failure_reason: 'HTTP 500: server boom',
+      retry_failure_reason: 'server boom',
     });
   });
 
@@ -299,6 +302,28 @@ describe('ClientEventReporter', () => {
       outcome: 'failure',
       retry_failure_code: 'SFU_ERROR',
       retry_failure_reason: 'sfu closed',
+    });
+  });
+
+  it('reports a WSJoin timeout as REQUEST_TIMEOUT', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    await expect(
+      reporter.track(cid, 'WSJoin', () =>
+        Promise.reject(
+          new SfuTimeoutError('SFU WS connection failed to open after 5000ms'),
+        ),
+      ),
+    ).rejects.toThrow();
+    reporter.close(cid);
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) => e.stage === 'WSJoin' && e.event_type === 'completed',
+    );
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      retry_failure_code: 'REQUEST_TIMEOUT',
     });
   });
 

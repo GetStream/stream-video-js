@@ -1,15 +1,12 @@
 import { ErrorCode, PeerType, TrackType } from '../gen/video/sfu/models/models';
-import {
-  ErrorFromResponse,
-  type WSConnectionError,
-} from '../coordinator/connection/types';
+import { ErrorFromResponse } from '../coordinator/connection/types';
 import type { StreamClient } from '../coordinator/connection/client';
 import {
   generateUUIDv4,
   retryInterval,
   sleep,
 } from '../coordinator/connection/utils';
-import { SfuJoinError } from '../errors';
+import { SfuJoinError, SfuTimeoutError } from '../errors';
 import { isReactNative } from '../helpers/platforms';
 import { videoLoggerSystem } from '../logger';
 import type { PeerConnectionStateChangeEvent } from '../rtc';
@@ -441,7 +438,7 @@ export class ClientEventReporter {
     err: unknown,
   ) => {
     if (stage === 'CoordinatorJoin') {
-      applyError(this.coordinatorPairs.get(cid), mapHttpError(err));
+      applyError(this.coordinatorPairs.get(cid), mapCoordinatorHttpError(err));
     } else {
       applyError(this.wsPairs.get(cid), mapWsJoinError(err));
     }
@@ -801,16 +798,6 @@ const readPermissionStatus = (
 const errorMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err);
 
-const isTimeout = (err: unknown): boolean => {
-  const e = err as { code?: string; name?: string; message?: string } | null;
-
-  return (
-    e?.code === 'ECONNABORTED' ||
-    e?.name === 'TimeoutError' ||
-    /timed out|timeout/i.test(e?.message ?? '')
-  );
-};
-
 const applyError = (pair: StagePairState | undefined, next: StageError) => {
   if (!pair) return;
 
@@ -819,22 +806,51 @@ const applyError = (pair: StagePairState | undefined, next: StageError) => {
   }
 };
 
-const mapHttpError = (err: unknown): StageError => {
-  const reason = errorMessage(err);
-
-  if (isTimeout(err)) {
-    return { reason, code: 'REQUEST_TIMEOUT', severity: SEVERITY.TRANSPORT };
-  }
-
+const mapCoordinatorHttpError = (err: unknown): StageError => {
   if (err instanceof ErrorFromResponse) {
     return {
-      reason: `HTTP ${err.status}: ${err.message}`,
+      reason: err.message,
+      code: err.code != null ? String(err.code) : 'SERVER_ERROR',
+      severity: SEVERITY.SERVER,
+    };
+  }
+  return {
+    reason: errorMessage(err),
+    code: 'SERVER_ERROR',
+    severity: SEVERITY.TRANSPORT,
+  };
+};
+
+const mapCoordinatorWsError = (err: unknown): StageError => {
+  if (err instanceof ErrorFromResponse) {
+    return {
+      reason: err.message,
       code: err.code != null ? String(err.code) : 'SERVER_ERROR',
       severity: SEVERITY.SERVER,
     };
   }
 
-  return { reason, code: 'NETWORK_ERROR', severity: SEVERITY.TRANSPORT };
+  if (err instanceof Error) {
+    try {
+      const parsed = JSON.parse(err.message);
+      if (typeof parsed.isWSFailure === 'boolean') {
+        return {
+          reason: parsed.message || err.message,
+          code:
+            !parsed.isWSFailure && parsed.code
+              ? String(parsed.code)
+              : 'SERVER_ERROR',
+          severity: parsed.isWSFailure ? SEVERITY.TRANSPORT : SEVERITY.SERVER,
+        };
+      }
+    } catch {}
+  }
+
+  return {
+    reason: errorMessage(err),
+    code: 'SERVER_ERROR',
+    severity: SEVERITY.TRANSPORT,
+  };
 };
 
 const mapWsJoinError = (err: unknown): StageError => {
@@ -848,24 +864,10 @@ const mapWsJoinError = (err: unknown): StageError => {
     };
   }
 
-  return mapHttpError(err);
-};
+  const reason = errorMessage(err);
+  if (err instanceof SfuTimeoutError) {
+    return { reason, code: 'REQUEST_TIMEOUT', severity: SEVERITY.TRANSPORT };
+  }
 
-const mapCoordinatorWsError = (err: unknown): StageError => {
-  const e = err as WSConnectionError;
-  if (e?.isWSFailure === true) {
-    return {
-      reason: e.message,
-      code: 'NETWORK_ERROR',
-      severity: SEVERITY.TRANSPORT,
-    };
-  }
-  if (e?.isWSFailure === false) {
-    return {
-      reason: e.message,
-      code: e.code ? String(e.code) : 'SERVER_ERROR',
-      severity: SEVERITY.SERVER,
-    };
-  }
-  return mapHttpError(err);
+  return { reason, code: 'SFU_ERROR', severity: SEVERITY.TRANSPORT };
 };
