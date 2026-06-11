@@ -2,6 +2,26 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.38.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.37.0...@stream-io/video-react-native-sdk-1.38.0) (2026-06-11)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.8.0`
+- `@stream-io/react-native-callingx` updated to version `0.5.0`
+- `@stream-io/video-filters-react-native` updated to version `0.13.0`
+- `@stream-io/video-client` updated to version `1.53.0`
+- `@stream-io/video-react-bindings` updated to version `1.16.3`
+
+- upgrade Expo config-plugin (react-native-webrtc) to v15 and bump Expo SDK 56 deps ([#2276](https://github.com/GetStream/stream-video-js/issues/2276)) ([af675b8](https://github.com/GetStream/stream-video-js/commit/af675b8bd6bcf08320f748cb8be1b56bedf13937))
+
+### Features
+
+- webrtc 145 upgrade ([#2133](https://github.com/GetStream/stream-video-js/issues/2133)) ([07825e4](https://github.com/GetStream/stream-video-js/commit/07825e402193ed07acf1d41831545326a0ad93d9)), closes [rn-webrtc#27](https://github.com/GetStream/rn-webrtc/issues/27)
+
+### Bug Fixes
+
+- leave call when it was cancelled during bg ([#2277](https://github.com/GetStream/stream-video-js/issues/2277)) ([6dc77a3](https://github.com/GetStream/stream-video-js/commit/6dc77a3733c3bc7f4f87c0fd0f6a20a7a0dd1d27))
+
 ## [1.37.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.36.2...@stream-io/video-react-native-sdk-1.37.0) (2026-06-04)
 
 ### Dependency Updates
