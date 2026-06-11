@@ -1097,64 +1097,61 @@ export class Call {
     const joinData: JoinCallData = data;
     maxJoinRetries = Math.max(maxJoinRetries, 1);
     try {
-      await this.withJoinLifecycle('first-attempt', async () => {
-        for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-          try {
-            this.logger.trace(`Joining call (${attempt})`, this.cid);
-            await this.doJoin(data);
-            delete joinData.migrating_from;
-            delete joinData.migrating_from_list;
-            return;
-          } catch (err) {
-            this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-            if (
-              (err instanceof ErrorFromResponse && err.unrecoverable) ||
-              (err instanceof SfuJoinError && err.unrecoverable)
-            ) {
-              throw err;
-            }
+      await this.clientEventReporter.withJoinLifecycle(
+        this.cid,
+        'first-attempt',
+        async () => {
+          for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+            try {
+              this.logger.trace(`Joining call (${attempt})`, this.cid);
+              await this.doJoin(data);
+              delete joinData.migrating_from;
+              delete joinData.migrating_from_list;
+              return;
+            } catch (err) {
+              this.logger.warn(`Failed to join call (${attempt})`, this.cid);
+              if (
+                (err instanceof ErrorFromResponse && err.unrecoverable) ||
+                (err instanceof SfuJoinError && err.unrecoverable)
+              ) {
+                throw err;
+              }
 
-            const switchSfu =
-              err instanceof SfuJoinError &&
-              SfuJoinError.isJoinErrorCode(err.errorEvent);
+              const switchSfu =
+                err instanceof SfuJoinError &&
+                SfuJoinError.isJoinErrorCode(err.errorEvent);
 
-            const sfuId = this.credentials?.server.edge_name;
-            if (sfuId) {
-              const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-              sfuJoinFailures.set(sfuId, failures);
-              if (switchSfu || failures >= 2) {
-                joinData.migrating_from = sfuId;
-                joinData.migrating_from_list = Array.from(
-                  sfuJoinFailures.keys(),
-                );
-                if (attempt < maxJoinRetries - 1) {
-                  this.clientEventReporter.startCorrelation(
-                    this.cid,
-                    'first-attempt',
+              const sfuId = this.credentials?.server.edge_name;
+              if (sfuId) {
+                const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+                sfuJoinFailures.set(sfuId, failures);
+                if (switchSfu || failures >= 2) {
+                  joinData.migrating_from = sfuId;
+                  joinData.migrating_from_list = Array.from(
+                    sfuJoinFailures.keys(),
                   );
+                  if (attempt < maxJoinRetries - 1) {
+                    this.clientEventReporter.startCorrelation(
+                      this.cid,
+                      'first-attempt',
+                    );
+                  }
                 }
               }
-            }
 
-            if (attempt === maxJoinRetries - 1) {
-              throw err;
+              if (attempt === maxJoinRetries - 1) {
+                throw err;
+              }
             }
+            await sleep(retryInterval(attempt));
           }
-          await sleep(retryInterval(attempt));
-        }
-      });
+        },
+      );
     } catch (error) {
       callingX?.endCall(this, 'error');
       throw error;
     }
   };
-
-  /** Runs a join attempt under client event reporting, starting a new join correlation (`joinReason`) before `op`. */
-  private withJoinLifecycle = <T>(
-    joinReason: JoinReason,
-    op: () => Promise<T>,
-  ): Promise<T> =>
-    this.clientEventReporter.withJoinLifecycle(this.cid, joinReason, op);
 
   /**
    * Will make a single attempt to watch for call related WebSocket events
@@ -1916,7 +1913,7 @@ export class Call {
       this.reconnectReason === ReconnectReason.NETWORK_BACK_ONLINE
         ? 'network-available'
         : 'full-rejoin';
-    await this.withJoinLifecycle(joinReason, () =>
+    await this.clientEventReporter.withJoinLifecycle(this.cid, joinReason, () =>
       this.doJoin(this.joinCallData),
     );
     await this.restorePublishedTracks();
@@ -1950,12 +1947,15 @@ export class Call {
 
     try {
       const currentSfu = currentSfuClient.edgeName;
-      await this.withJoinLifecycle('migration', () =>
-        this.doJoin({
-          ...this.joinCallData,
-          migrating_from: currentSfu,
-          migrating_from_list: [currentSfu],
-        }),
+      await this.clientEventReporter.withJoinLifecycle(
+        this.cid,
+        'migration',
+        () =>
+          this.doJoin({
+            ...this.joinCallData,
+            migrating_from: currentSfu,
+            migrating_from_list: [currentSfu],
+          }),
       );
     } finally {
       // cleanup the migration_from field after the migration is complete or failed
@@ -2912,7 +2912,11 @@ export class Call {
       this.leave({
         reject: true,
         reason: 'timeout',
-        message: `ringing timeout - ${this.isCreatedByMe ? 'no one accepted' : `user didn't interact with incoming call screen`}`,
+        message: `ringing timeout - ${
+          this.isCreatedByMe
+            ? 'no one accepted'
+            : `user didn't interact with incoming call screen`
+        }`,
       }).catch((err) => {
         this.logger.error('Failed to drop call', err);
       });
@@ -2973,7 +2977,9 @@ export class Call {
     filename: string,
   ): Promise<DeleteRecordingResponse> => {
     return this.streamClient.delete<DeleteRecordingResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/recordings/${encodeURIComponent(filename)}`,
+      `${this.streamClientBasePath}/${encodeURIComponent(
+        callSessionId,
+      )}/recordings/${encodeURIComponent(filename)}`,
     );
   };
 
@@ -2988,7 +2994,9 @@ export class Call {
     filename: string,
   ): Promise<DeleteTranscriptionResponse> => {
     return this.streamClient.delete<DeleteTranscriptionResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/transcriptions/${encodeURIComponent(filename)}`,
+      `${this.streamClientBasePath}/${encodeURIComponent(
+        callSessionId,
+      )}/transcriptions/${encodeURIComponent(filename)}`,
     );
   };
 
