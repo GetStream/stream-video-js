@@ -347,8 +347,8 @@ export class ClientEventReporter {
       const { code, reason } = opts;
       const stageError: StageError = { code, reason };
 
-      applyError(this.coordinatorPairs.get(cid), stageError);
-      applyError(this.wsPairs.get(cid), stageError);
+      applyErrorIfAbsent(this.coordinatorPairs.get(cid), stageError);
+      applyErrorIfAbsent(this.wsPairs.get(cid), stageError);
 
       this.failCoordinator(cid);
       this.failWs(cid);
@@ -422,11 +422,17 @@ export class ClientEventReporter {
     stage: 'CoordinatorJoin' | 'WSJoin',
     err: unknown,
   ) => {
-    if (stage === 'CoordinatorJoin') {
-      applyError(this.coordinatorPairs.get(cid), mapCoordinatorHttpError(err));
-    } else {
-      applyError(this.wsPairs.get(cid), mapWsJoinError(err));
-    }
+    const pair =
+      stage === 'CoordinatorJoin'
+        ? this.coordinatorPairs.get(cid)
+        : this.wsPairs.get(cid);
+
+    applyErrorIfAbsent(
+      pair,
+      stage === 'CoordinatorJoin'
+        ? mapCoordinatorHttpError(err)
+        : mapWsJoinError(err),
+    );
   };
 
   private beginCoordinatorAttempt = (cid: string) => {
@@ -448,6 +454,7 @@ export class ClientEventReporter {
         event_type: 'initiated',
       });
     }
+    pair.lastError = undefined;
     pair.attempts++;
   };
 
@@ -506,6 +513,7 @@ export class ClientEventReporter {
       });
     }
 
+    pair.lastError = undefined;
     pair.attempts++;
   };
 
@@ -783,10 +791,16 @@ const readPermissionStatus = (
 const errorMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err);
 
-// a pair reports the most recent error it saw - the most proximate
-// cause of the stage failure
 const applyError = (pair: StagePairState | undefined, next: StageError) => {
   if (!pair) return;
+  pair.lastError = next;
+};
+
+const applyErrorIfAbsent = (
+  pair: StagePairState | undefined,
+  next: StageError,
+) => {
+  if (!pair || pair.lastError) return;
   pair.lastError = next;
 };
 
@@ -832,7 +846,7 @@ const mapWsJoinError = (err: unknown): StageError => {
 
     return {
       reason: sfuError?.message || err.message,
-      code: sfuError ? ErrorCode[sfuError.code] : 'SFU_ERROR',
+      code: (sfuError && ErrorCode[sfuError.code]) || 'SFU_ERROR',
     };
   }
 
