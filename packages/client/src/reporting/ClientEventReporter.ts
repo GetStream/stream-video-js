@@ -1,5 +1,8 @@
 import { ErrorCode, PeerType, TrackType } from '../gen/video/sfu/models/models';
-import { ErrorFromResponse } from '../coordinator/connection/types';
+import {
+  ErrorFromResponse,
+  type WSConnectionError,
+} from '../coordinator/connection/types';
 import type { StreamClient } from '../coordinator/connection/client';
 import {
   generateUUIDv4,
@@ -142,7 +145,7 @@ export class ClientEventReporter {
 
       return result;
     } catch (err) {
-      applyError(this.coordinatorWsPair, mapHttpError(err));
+      applyError(this.coordinatorWsPair, mapCoordinatorWsError(err));
       throw err;
     }
   };
@@ -845,5 +848,24 @@ const mapWsJoinError = (err: unknown): StageError => {
     };
   }
 
+  return mapHttpError(err);
+};
+
+const mapCoordinatorWsError = (err: unknown): StageError => {
+  const e = err as WSConnectionError;
+  if (e?.isWSFailure === true) {
+    return {
+      reason: e.message,
+      code: 'NETWORK_ERROR',
+      severity: SEVERITY.TRANSPORT,
+    };
+  }
+  if (e?.isWSFailure === false) {
+    return {
+      reason: e.message,
+      code: e.code ? String(e.code) : 'SERVER_ERROR',
+      severity: SEVERITY.SERVER,
+    };
+  }
   return mapHttpError(err);
 };

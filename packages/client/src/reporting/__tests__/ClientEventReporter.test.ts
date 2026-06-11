@@ -174,6 +174,57 @@ describe('ClientEventReporter', () => {
     });
   });
 
+  it('reports an API-rejected websocket connection with the backend code', async () => {
+    const rejection = Object.assign(
+      new Error(
+        JSON.stringify({ code: 41, StatusCode: 401, message: 'bad token' }),
+      ),
+      { code: 41, StatusCode: 401, isWSFailure: false },
+    );
+    await expect(
+      reporter.trackCoordinatorWs(() => Promise.reject(rejection)),
+    ).rejects.toThrow();
+    reporter.closeCoordinatorWs();
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) => e.stage === 'CoordinatorWS' && e.event_type === 'completed',
+    );
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      retry_failure_code: '41',
+    });
+  });
+
+  it('reports a transient websocket failure as a network error', async () => {
+    const failure = Object.assign(
+      new Error(
+        JSON.stringify({
+          code: '',
+          StatusCode: '',
+          message: 'initial WS connection could not be established',
+          isWSFailure: true,
+        }),
+      ),
+      { code: '', StatusCode: '', isWSFailure: true },
+    );
+    await expect(
+      reporter.trackCoordinatorWs(() => Promise.reject(failure)),
+    ).rejects.toThrow();
+    reporter.closeCoordinatorWs();
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) => e.stage === 'CoordinatorWS' && e.event_type === 'completed',
+    );
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      retry_failure_code: 'NETWORK_ERROR',
+    });
+  });
+
   it('forwards the backend error code and status on a server error', async () => {
     const err = new ErrorFromResponse({
       message: 'server boom',
