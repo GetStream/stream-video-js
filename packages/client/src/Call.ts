@@ -683,21 +683,6 @@ export class Call {
   };
 
   /**
-   * Aborts any in-flight join-stage telemetry pair with `BACKEND_LEAVE`.
-   * Called from `call.ended` / SFU `callEnded` handlers before invoking
-   * `leave()` so the captured failure code reflects the backend origin
-   * rather than the default `CLIENT_ABORTED` applied in `leave()`.
-   *
-   * @internal
-   */
-  reportBackendLeave = (reason: string) => {
-    this.clientEventReporter.abort(this.cid, {
-      code: 'BACKEND_LEAVE',
-      reason,
-    });
-  };
-
-  /**
    * Leave the call and stop the media streams that were published by the call.
    */
   leave = async ({ reject, reason, message }: CallLeaveOptions = {}) => {

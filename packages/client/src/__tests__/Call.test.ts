@@ -305,19 +305,6 @@ describe('client event reporting', () => {
     vi.restoreAllMocks();
   });
 
-  it('reports a backend-leave client event', () => {
-    const call = client.call('default', generateUUIDv4());
-    const reporter = call.clientEventReporter;
-    const abortSpy = vi.spyOn(reporter, 'abort');
-
-    call.reportBackendLeave('call ended by backend');
-
-    expect(abortSpy).toHaveBeenCalledWith(call.cid, {
-      code: 'BACKEND_LEAVE',
-      reason: 'call ended by backend',
-    });
-  });
-
   it('reports a client-aborted event and unregisters the call on leave', async () => {
     const call = client.call('default', generateUUIDv4());
     await call.getOrCreate();
