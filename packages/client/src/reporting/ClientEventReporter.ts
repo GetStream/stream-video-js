@@ -812,8 +812,6 @@ const mapCoordinatorWsError = (err: unknown): StageError => {
     try {
       const parsed = JSON.parse(err.message);
       if (typeof parsed.isWSFailure === 'boolean') {
-        // isWSFailure: false -> the API rejected the connection (backend code)
-        // isWSFailure: true  -> transport-level failure
         return {
           reason: parsed.message || err.message,
           code:
