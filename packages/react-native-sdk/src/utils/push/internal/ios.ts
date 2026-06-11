@@ -48,10 +48,9 @@ export const onVoipNotificationReceived = async (
   }
 
   const callingx = getCallingxLib();
-  if (callingx.isCallTracked(call_cid)) {
-    //same call_cid is already tracked, so we skip the notification
+  if (pushUnsubscriptionCallbacks.has(call_cid)) {
     logger.debug(
-      `the same call_cid ${call_cid} is already tracked, skipping the call.ring notification`,
+      `the same call_cid ${call_cid} is already being watched, skipping the call.ring notification`,
     );
     return;
   }
@@ -76,6 +75,11 @@ export const onVoipNotificationReceived = async (
         `callingx.endCallWithReason for call_cid: ${call_cid} endCallReason: ${endCallReason}`,
       );
       callingx.endCallWithReason(call_cid, endCallReason);
+      callFromPush.leave({ reject: false }).catch((error) => {
+        logger.error(
+          `Failed to leave already-ended ringing call ${call_cid}: ${error}`,
+        );
+      });
       return true;
     }
     return false;
@@ -91,6 +95,7 @@ export const onVoipNotificationReceived = async (
           event,
         );
         unsubscribe();
+        pushUnsubscriptionCallbacks.delete(call_cid);
         return;
       }
       const _closed = closeCallIfNecessary();
@@ -100,6 +105,7 @@ export const onVoipNotificationReceived = async (
           event,
         );
         unsubscribe();
+        pushUnsubscriptionCallbacks.delete(call_cid);
       }
     });
 

@@ -2,6 +2,21 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.37.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.36.2...@stream-io/video-react-native-sdk-1.37.0) (2026-06-04)
+
+### Dependency Updates
+
+- `@stream-io/react-native-callingx` updated to version `0.4.0`
+
+### Features
+
+- added self managed push kit delegate management ([#2263](https://github.com/GetStream/stream-video-js/issues/2263)) ([ede4671](https://github.com/GetStream/stream-video-js/commit/ede467138a4727ccdc5cf3702b16747c516775a5))
+
+### Bug Fixes
+
+- adjusted voip notification gate for background ws events handling ([#2272](https://github.com/GetStream/stream-video-js/issues/2272)) ([472e425](https://github.com/GetStream/stream-video-js/commit/472e4258fe057dd9f09990bfb976e0e6093fae16))
+- skip notification bg->fg transition case ([#2262](https://github.com/GetStream/stream-video-js/issues/2262)) ([e5cd46f](https://github.com/GetStream/stream-video-js/commit/e5cd46fa557d83f3de1c983d1aca2adfac9ad0ee))
+
 ## [1.36.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.36.1...@stream-io/video-react-native-sdk-1.36.2) (2026-06-01)
 
 ### Dependency Updates

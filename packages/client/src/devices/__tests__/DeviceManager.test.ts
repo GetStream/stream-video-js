@@ -1,6 +1,7 @@
 /* @vitest-environment happy-dom */
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import { ClientEventReporter } from '../../reporting';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -21,6 +22,12 @@ import { firstValueFrom, of } from 'rxjs';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { PermissionsContext } from '../../permissions';
 import { readPreferences } from '../devicePersistence';
+
+vi.mock('../../reporting/ClientEventReporter', () => ({
+  ClientEventReporter: vi.fn(function () {
+    return {};
+  }),
+}));
 
 vi.mock('../../Call.ts', () => {
   console.log('MOCKING Call');
@@ -85,11 +92,13 @@ describe('Device Manager', () => {
       configurable: true,
       value: localStorageMock,
     });
+    const streamClient = new StreamClient('abc123');
     manager = new TestInputMediaDeviceManager(
       new Call({
         id: '',
         type: '',
-        streamClient: new StreamClient('abc123'),
+        streamClient,
+        clientEventReporter: new ClientEventReporter({ streamClient }),
         clientStore: new StreamVideoWriteableStateStore(),
       }),
       { enabled: false, storageKey },

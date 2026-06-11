@@ -17,7 +17,9 @@ import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
 import {
   BasePeerConnectionOpts,
   OnIceConnected,
+  OnPeerConnectionStateChange,
   OnReconnectionNeeded,
+  OnRemoteTrackUnmute,
   ReconnectReason,
 } from './types';
 import type { ClientPublishOptions } from '../types';
@@ -39,6 +41,8 @@ export abstract class BasePeerConnection {
 
   private onReconnectionNeeded?: OnReconnectionNeeded;
   private onIceConnected?: OnIceConnected;
+  private onPeerConnectionStateChange?: OnPeerConnectionStateChange;
+  protected onRemoteTrackUnmute?: OnRemoteTrackUnmute;
   private readonly iceRestartDelay: number;
   private iceHasEverConnected = false;
   private iceRestartTimeout?: NodeJS.Timeout;
@@ -67,6 +71,8 @@ export abstract class BasePeerConnection {
       dispatcher,
       onReconnectionNeeded,
       onIceConnected,
+      onPeerConnectionStateChange,
+      onRemoteTrackUnmute,
       tag,
       enableTracing,
       clientPublishOptions,
@@ -85,6 +91,8 @@ export abstract class BasePeerConnection {
     this.tag = tag;
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.onIceConnected = onIceConnected;
+    this.onPeerConnectionStateChange = onPeerConnectionStateChange;
+    this.onRemoteTrackUnmute = onRemoteTrackUnmute;
     this.logger = videoLoggerSystem.getLogger(
       peerType === PeerType.SUBSCRIBER ? 'Subscriber' : 'Publisher',
       { tags: [tag] },
@@ -138,6 +146,8 @@ export abstract class BasePeerConnection {
     this.preConnectStuckTimeout = undefined;
     this.onReconnectionNeeded = undefined;
     this.onIceConnected = undefined;
+    this.onPeerConnectionStateChange = undefined;
+    this.onRemoteTrackUnmute = undefined;
     this.isDisposed = true;
     this.detachEventHandlers();
     this.pc.close();
@@ -337,6 +347,10 @@ export abstract class BasePeerConnection {
   private onConnectionStateChange = async () => {
     const state = this.pc.connectionState;
     this.logger.debug(`Connection state changed`, state);
+    this.fireOnPeerConnectionStateChange({
+      stateType: 'peerConnection',
+      state,
+    });
     if (this.tracer && (state === 'connected' || state === 'failed')) {
       try {
         const stats = await this.stats.get();
@@ -365,7 +379,23 @@ export abstract class BasePeerConnection {
   private onIceConnectionStateChange = () => {
     const state = this.pc.iceConnectionState;
     this.logger.debug(`ICE connection state changed`, state);
+    this.fireOnPeerConnectionStateChange({ stateType: 'ice', state });
     this.handleConnectionStateUpdate(state);
+  };
+
+  private fireOnPeerConnectionStateChange = (
+    event:
+      | { stateType: 'ice'; state: RTCIceConnectionState }
+      | { stateType: 'peerConnection'; state: RTCPeerConnectionState },
+  ) => {
+    try {
+      this.onPeerConnectionStateChange?.({
+        peerType: this.peerType,
+        ...event,
+      });
+    } catch (err) {
+      this.logger.warn('onPeerConnectionStateChange listener threw', err);
+    }
   };
 
   private handleConnectionStateUpdate = (

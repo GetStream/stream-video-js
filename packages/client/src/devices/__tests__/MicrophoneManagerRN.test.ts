@@ -13,6 +13,7 @@ import { of } from 'rxjs';
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { OwnCapability } from '../../gen/coordinator';
 import { settled, withoutConcurrency } from '../../helpers/concurrency';
+import { ClientEventReporter } from '../../reporting';
 
 let speechActivityCallback:
   | ((state: { isSoundDetected: boolean }) => void)
@@ -82,12 +83,14 @@ describe('MicrophoneManager React Native', () => {
     };
 
     const devicePersistence = { enabled: false, storageKey: '' };
+    const streamClient = new StreamClient('abc123');
     manager = new MicrophoneManager(
       new Call({
         id: '',
         type: '',
-        streamClient: new StreamClient('abc123'),
+        streamClient,
         clientStore: new StreamVideoWriteableStateStore(),
+        clientEventReporter: new ClientEventReporter({ streamClient }),
       }),
       devicePersistence,
     );

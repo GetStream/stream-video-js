@@ -13,6 +13,8 @@ class RTCViewPip: UIView {
 
     private var pictureInPictureController: StreamPictureInPictureController? = StreamPictureInPictureController()
     private var webRtcModule: WebRTCModule?
+    // Back-reference set by RTCViewPipManager
+    weak var manager: RTCViewPipManager?
 
     @objc var onPiPChange: RCTBubblingEventBlock?
 
@@ -193,12 +195,10 @@ class RTCViewPip: UIView {
                 self.pictureInPictureController?.onPiPStateChange = { [weak self] isActive in
                     self?.sendPiPChangeEvent(isActive: isActive)
                 }
-                if let reactTag = self.reactTag, let bridge = self.webRtcModule?.bridge {
-                    if let manager = bridge.module(for: RTCViewPipManager.self) as? RTCViewPipManager,
-                       let size = manager.getCachedSize(for: reactTag) {
-                        PictureInPictureLogger.log("Applying cached size \(size) for reactTag \(reactTag)")
-                        self.setPreferredContentSize(size)
-                    }
+                if let reactTag = self.reactTag,
+                   let size = self.manager?.getCachedSize(for: reactTag) {
+                    PictureInPictureLogger.log("Applying cached size \(size) for reactTag \(reactTag)")
+                    self.setPreferredContentSize(size)
                 }
             }
         }

@@ -130,27 +130,20 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     expect(updatedConfig.modResults.contents).toMatch(
       /options.enableMultitaskingCameraAccess = YES/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /#import <PushKit\/PushKit.h>/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /didUpdatePushCredentials:credentials/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /didReceiveIncomingPush:payload/,
-    );
 
-    // iOS 26.4+ VoIP push delegate
+    // Managed-mode VoIP registration: the SDK owns the PKPushRegistry delegate
+    // internally, so the AppDelegate shouldn't have PushKit imports,
+    // PKPushRegistryDelegate conformance, or any pushRegistry(...) methods.
     expect(updatedConfig.modResults.contents).toMatch(
-      /didReceiveIncomingVoIPPushWithPayload:\(PKPushPayload \*\)payload metadata:\(id\)metadata withCompletionHandler/,
+      /#import "StreamVideoReactNative.h"/,
     );
     expect(updatedConfig.modResults.contents).toMatch(
-      /\[StreamVideoReactNative didReceiveIncomingVoIPPush:payload metadata:metadata completionHandler:completion\]/,
+      /\[StreamVideoReactNative voipRegistration\]/,
     );
-    // Must not name PKVoIPPushMetadata (would break older-Xcode consumers).
     expect(updatedConfig.modResults.contents).not.toContain(
-      'PKVoIPPushMetadata',
+      '<PushKit/PushKit.h>',
     );
+    expect(updatedConfig.modResults.contents).not.toContain('pushRegistry:');
 
     modifiedConfigObjC = updatedConfig;
   });
@@ -184,38 +177,27 @@ describe('withStreamVideoReactNativeSDKAppDelegate', () => {
     expect(updatedConfig.modResults.contents).toMatch(
       /NoiseCancellationManager.getInstance/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(/PKPushRegistryDelegate/);
     expect(updatedConfig.modResults.contents).toMatch(/^import WebRTC/m);
-    expect(updatedConfig.modResults.contents).toMatch(/^import PushKit/m);
+    expect(updatedConfig.modResults.contents).toMatch(
+      /^import stream_video_react_native/m,
+    );
     // Check Swift implementation
     expect(updatedConfig.modResults.contents).toMatch(
       /options.enableMultitaskingCameraAccess = true/,
     );
 
+    // Managed-mode VoIP registration: the SDK owns the PKPushRegistry delegate
+    // internally, so the AppDelegate shouldn't have PushKit imports,
+    // PKPushRegistryDelegate conformance, or any pushRegistry(...) methods.
     expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative.didUpdate/,
+      /StreamVideoReactNative\.voipRegistration\(\)/,
     );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative.didReceiveIncomingPush/,
-    );
-
-    // iOS 26.4+ VoIP push delegate. Swift label `didReceiveIncomingVoIPPushWith`
-    // (no "Payload") matches the protocol's optional requirement; `private`
-    // excludes it from conformance checking on the iOS 26.4 SDK.
-    expect(updatedConfig.modResults.contents).toMatch(
-      /private func pushRegistry\(\s+_ registry: PKPushRegistry,\s+didReceiveIncomingVoIPPushWith payload: PKPushPayload,\s+metadata: AnyObject,/,
-    );
-    expect(updatedConfig.modResults.contents).toMatch(
-      /StreamVideoReactNative\.didReceiveIncomingVoIPPush\(\s+payload,\s+metadata: metadata,/,
-    );
-    // Must not name PKVoIPPushMetadata (would break older-Xcode consumers).
+    expect(updatedConfig.modResults.contents).not.toMatch(/^import PushKit/m);
     expect(updatedConfig.modResults.contents).not.toContain(
-      'PKVoIPPushMetadata',
+      'PKPushRegistryDelegate',
     );
-    // Must not pin the selector via @objc — that re-introduces the conflict
-    // with the protocol's optional requirement on the iOS 26.4 SDK.
     expect(updatedConfig.modResults.contents).not.toContain(
-      '@objc(pushRegistry:didReceiveIncomingVoIPPushWithPayload',
+      'func pushRegistry(',
     );
 
     modifiedConfigSwift = updatedConfig;

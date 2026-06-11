@@ -42,6 +42,7 @@ import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
 import { isReactNative } from './helpers/platforms';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
+import { ClientEventReporter } from './reporting';
 
 /**
  * A `StreamVideoClient` instance lets you communicate with our API, and authenticate users.
@@ -60,6 +61,7 @@ export class StreamVideoClient {
 
   protected readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
+  readonly clientEventReporter: ClientEventReporter;
 
   private effectsRegistered = false;
   private eventHandlersToUnregister: Array<() => void> = [];
@@ -97,6 +99,9 @@ export class StreamVideoClient {
     this.rejectCallWhenBusy = clientOptions?.rejectCallWhenBusy ?? false;
 
     this.streamClient = createCoordinatorClient(apiKey, clientOptions);
+    this.clientEventReporter = new ClientEventReporter({
+      streamClient: this.streamClient,
+    });
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
     this.readOnlyStateStore = new StreamVideoReadOnlyStateStore(
@@ -214,6 +219,7 @@ export class StreamVideoClient {
 
         call = new Call({
           streamClient: this.streamClient,
+          clientEventReporter: this.clientEventReporter,
           type: e.call.type,
           id: e.call.id,
           members: e.members,
@@ -296,6 +302,9 @@ export class StreamVideoClient {
       return this.connectAnonymousUser(user as UserWithId, tokenOrProvider);
     }
 
+    const reporter = this.clientEventReporter;
+    reporter.startCoordinatorConnection(user.id);
+
     const connectUserResponse = await withoutConcurrency(
       this.connectionConcurrencyTag,
       async () => {
@@ -309,13 +318,16 @@ export class StreamVideoClient {
         for (let attempt = 0; attempt < maxConnectUserRetries; attempt++) {
           try {
             this.logger.trace(`Connecting user (${attempt})`, user);
-            return user.type === 'guest'
-              ? await client.connectGuestUser(user)
-              : await client.connectUser(user, tokenOrProvider);
+            return await reporter.trackCoordinatorWs(() =>
+              user.type === 'guest'
+                ? client.connectGuestUser(user)
+                : client.connectUser(user, tokenOrProvider),
+            );
           } catch (err) {
             this.logger.warn(`Failed to connect a user (${attempt})`, err);
             errorQueue.push(err as Error);
             if (attempt === maxConnectUserRetries - 1) {
+              reporter.closeCoordinatorWs();
               onConnectUserError?.(err as Error, errorQueue);
               throw err;
             }
@@ -415,6 +427,7 @@ export class StreamVideoClient {
       call ??
       new Call({
         streamClient: this.streamClient,
+        clientEventReporter: this.clientEventReporter,
         id: id,
         type: type,
         clientStore: this.writeableStateStore,
@@ -448,6 +461,7 @@ export class StreamVideoClient {
     for (const c of response.calls) {
       const call = new Call({
         streamClient: this.streamClient,
+        clientEventReporter: this.clientEventReporter,
         id: c.call.id,
         type: c.call.type,
         members: c.members,
@@ -591,6 +605,7 @@ export class StreamVideoClient {
         const [callType, callId] = call_cid.split(':');
         call = new Call({
           streamClient: this.streamClient,
+          clientEventReporter: this.clientEventReporter,
           type: callType,
           id: callId,
           clientStore: this.writeableStateStore,

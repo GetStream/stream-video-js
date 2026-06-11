@@ -48,11 +48,14 @@ export interface Spec extends TurboModule {
   getInitialEvents(): Array<{
     eventName: string;
     params: {
-      callId: string;
+      callId?: string;
       cause?: string;
       muted?: boolean;
       hold?: boolean;
       source?: string;
+      phase?: string;
+      reason?: string;
+      shouldResume?: boolean;
     };
   }>;
 
@@ -147,10 +150,14 @@ export interface Spec extends TurboModule {
   readonly onNewEvent: EventEmitter<{
     eventName: string;
     params: {
-      callId: string;
+      callId?: string;
       cause?: string;
       muted?: boolean;
       hold?: boolean;
+      source?: string;
+      phase?: string;
+      reason?: string;
+      shouldResume?: boolean;
     };
   }>;
 

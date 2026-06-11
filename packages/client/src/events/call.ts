@@ -87,6 +87,10 @@ export const watchCallEnded = (call: Call) => {
       callingState !== CallingState.IDLE &&
       callingState !== CallingState.LEFT
     ) {
+      call.clientEventReporter.abort(call.cid, {
+        code: 'BACKEND_LEAVE',
+        reason: 'call.ended event received',
+      });
       call
         .leave({ message: 'call.ended event received', reject: false })
         .catch((err) => {
@@ -116,6 +120,10 @@ export const watchSfuCallEnded = (call: Call) => {
       call.state.setEndedAt(new Date());
       const reason = CallEndedReason[e.reason];
       globalThis.streamRNVideoSDK?.callingX?.endCall(call, 'remote');
+      call.clientEventReporter.abort(call.cid, {
+        code: 'BACKEND_LEAVE',
+        reason: `callEnded received: ${reason}`,
+      });
       await call.leave({ message: `callEnded received: ${reason}` });
     } catch (err) {
       call.logger.error(

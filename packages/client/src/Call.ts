@@ -131,6 +131,7 @@ import {
   ClientCapability,
   ClientDetails,
   Codec,
+  ErrorCode,
   ParticipantSource,
   PeerType,
   PublishOption,
@@ -146,10 +147,12 @@ import {
   StatsReporter,
   Tracer,
 } from './stats';
+import type { ClientEventReporter, JoinReason } from './reporting';
 import { AudioBindingsWatchdog } from './helpers/AudioBindingsWatchdog';
 import { BlockedAudioTracker } from './helpers/BlockedAudioTracker';
 import { TrackSubscriptionManager } from './helpers/TrackSubscriptionManager';
 import { DynascaleManager } from './helpers/DynascaleManager';
+import { createFirstVideoFrameDetector } from './helpers/firstVideoFrame';
 import { ViewportTracker } from './helpers/ViewportTracker';
 import { PermissionsContext } from './permissions';
 import { CallTypes } from './CallType';
@@ -294,6 +297,7 @@ export class Call {
 
   private readonly clientStore: StreamVideoWriteableStateStore;
   public readonly streamClient: StreamClient;
+  public readonly clientEventReporter: ClientEventReporter;
   private sfuClient?: StreamSfuClient;
   private sfuClientTag = 0;
   private unifiedSessionId?: string;
@@ -359,6 +363,7 @@ export class Call {
     type,
     id,
     streamClient,
+    clientEventReporter,
     members,
     ownCapabilities,
     sortParticipantsBy,
@@ -372,6 +377,7 @@ export class Call {
     this.ringingSubject = new BehaviorSubject(ringing);
     this.watching = watching;
     this.streamClient = streamClient;
+    this.clientEventReporter = clientEventReporter;
     this.clientStore = clientStore;
     this.streamClientBasePath = `/call/${this.type}/${this.id}`;
     this.logger = videoLoggerSystem.getLogger('Call');
@@ -742,10 +748,17 @@ export class Call {
       this.lastStatsOptions = undefined;
 
       await this.subscriber?.dispose();
+      this.clientEventReporter.abort(this.cid, {
+        code: 'CLIENT_ABORTED',
+        reason: leaveReason,
+      });
+
       this.subscriber = undefined;
 
       await this.publisher?.dispose();
       this.publisher = undefined;
+
+      this.clientEventReporter.unregisterCall(this.cid);
 
       await this.sfuClient?.leaveAndClose(leaveReason);
       this.sfuClient = undefined;
@@ -1054,6 +1067,14 @@ export class Call {
 
     await this.setup();
 
+    this.clientEventReporter.registerCall(this.cid, {
+      callType: this.type,
+      callId: this.id,
+      getCallSessionId: () => this.state.session?.id ?? '',
+      getSfuId: () => this.credentials?.server.edge_name ?? '',
+      getUserSessionId: () => this.sfuClient?.sessionId ?? '',
+    });
+
     this.joinResponseTimeout = joinResponseTimeout;
     this.rpcRequestTimeout = rpcRequestTimeout;
     // we will count the number of join failures per SFU.
@@ -1063,44 +1084,56 @@ export class Call {
     const joinData: JoinCallData = data;
     maxJoinRetries = Math.max(maxJoinRetries, 1);
     try {
-      for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
-        try {
-          this.logger.trace(`Joining call (${attempt})`, this.cid);
-          await this.doJoin(data);
-          delete joinData.migrating_from;
-          delete joinData.migrating_from_list;
-          break;
-        } catch (err) {
-          this.logger.warn(`Failed to join call (${attempt})`, this.cid);
-          if (
-            (err instanceof ErrorFromResponse && err.unrecoverable) ||
-            (err instanceof SfuJoinError && err.unrecoverable)
-          ) {
-            // if the error is unrecoverable, we should not retry as that signals
-            // that connectivity is good, but the coordinator doesn't allow the user
-            // to join the call due to some reason (e.g., ended call, expired token...)
-            throw err;
-          }
+      await this.clientEventReporter.withJoinLifecycle(
+        this.cid,
+        'first-attempt',
+        async () => {
+          for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+            try {
+              this.logger.trace(`Joining call (${attempt})`, this.cid);
+              await this.doJoin(data);
+              delete joinData.migrating_from;
+              delete joinData.migrating_from_list;
+              return;
+            } catch (err) {
+              this.logger.warn(`Failed to join call (${attempt})`, this.cid);
+              if (
+                (err instanceof ErrorFromResponse && err.unrecoverable) ||
+                (err instanceof SfuJoinError && err.unrecoverable)
+              ) {
+                throw err;
+              }
 
-          // immediately switch to a different SFU in case of recoverable join error
-          const switchSfu =
-            err instanceof SfuJoinError &&
-            SfuJoinError.isJoinErrorCode(err.errorEvent);
+              const switchSfu =
+                err instanceof SfuJoinError &&
+                SfuJoinError.isJoinErrorCode(err.errorEvent);
 
-          const sfuId = this.credentials?.server.edge_name || '';
-          const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
-          sfuJoinFailures.set(sfuId, failures);
-          if (switchSfu || failures >= 2) {
-            joinData.migrating_from = sfuId;
-            joinData.migrating_from_list = Array.from(sfuJoinFailures.keys());
-          }
+              const sfuId = this.credentials?.server.edge_name;
+              if (sfuId) {
+                const failures = (sfuJoinFailures.get(sfuId) || 0) + 1;
+                sfuJoinFailures.set(sfuId, failures);
+                if (switchSfu || failures >= 2) {
+                  joinData.migrating_from = sfuId;
+                  joinData.migrating_from_list = Array.from(
+                    sfuJoinFailures.keys(),
+                  );
+                  if (attempt < maxJoinRetries - 1) {
+                    this.clientEventReporter.startCorrelation(
+                      this.cid,
+                      'first-attempt',
+                    );
+                  }
+                }
+              }
 
-          if (attempt === maxJoinRetries - 1) {
-            throw err;
+              if (attempt === maxJoinRetries - 1) {
+                throw err;
+              }
+            }
+            await sleep(retryInterval(attempt));
           }
-        }
-        await sleep(retryInterval(attempt));
-      }
+        },
+      );
     } catch (error) {
       callingX?.endCall(this, 'error');
       throw error;
@@ -1138,7 +1171,11 @@ export class Call {
       data?.migrating_from
     ) {
       try {
-        const joinResponse = await this.doJoinRequest(data);
+        const joinResponse = await this.clientEventReporter.track(
+          this.cid,
+          'CoordinatorJoin',
+          () => this.doJoinRequest(data),
+        );
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
         this.lastStatsOptions = statsOptions;
@@ -1204,20 +1241,24 @@ export class Call {
         ? this.getPreferredSubscribeOptions()
         : [];
 
+      const unifiedSessionId = this.unifiedSessionId;
+      const capabilities = Array.from(this.clientCapabilities);
       try {
         const { callState, fastReconnectDeadlineSeconds, publishOptions } =
-          await sfuClient.join({
-            unifiedSessionId: this.unifiedSessionId,
-            subscriberSdp,
-            publisherSdp,
-            clientDetails,
-            fastReconnect: performingFastReconnect,
-            reconnectDetails,
-            preferredPublishOptions,
-            preferredSubscribeOptions,
-            capabilities: Array.from(this.clientCapabilities),
-            source: ParticipantSource.WEBRTC_UNSPECIFIED,
-          });
+          await this.clientEventReporter.track(this.cid, 'WSJoin', () =>
+            sfuClient.join({
+              unifiedSessionId,
+              subscriberSdp,
+              publisherSdp,
+              clientDetails,
+              fastReconnect: performingFastReconnect,
+              reconnectDetails,
+              preferredPublishOptions,
+              preferredSubscribeOptions,
+              capabilities,
+              source: ParticipantSource.WEBRTC_UNSPECIFIED,
+            }),
+          );
 
         this.currentPublishOptions = publishOptions;
         this.fastReconnectDeadlineSeconds = fastReconnectDeadlineSeconds;
@@ -1490,6 +1531,18 @@ export class Call {
         // "ICE never connected" failure budget can be cleared.
         this.iceFailuresWithoutConnect = 0;
       },
+      onPeerConnectionStateChange: (event) => {
+        this.clientEventReporter.onPeerConnectionStateChange(this.cid, event);
+      },
+      onRemoteTrackUnmute: (trackType, trackId) => {
+        const reportable =
+          trackType === TrackType.AUDIO ||
+          (isReactNative() && trackType === TrackType.VIDEO);
+
+        if (!reportable) return;
+
+        this.clientEventReporter.reportFirstFrame(this.cid, trackType, trackId);
+      },
     };
 
     this.subscriber = new Subscriber(basePeerConnectionOptions);
@@ -1548,6 +1601,7 @@ export class Call {
       JoinCallResponse,
       JoinCallRequest
     >(`${this.streamClientBasePath}/join`, request);
+
     this.state.updateFromCallResponse(joinResponse.call);
     this.state.setMembers(joinResponse.members);
     this.state.setOwnCapabilities(joinResponse.own_capabilities);
@@ -1721,7 +1775,9 @@ export class Call {
           await this.networkAvailableTask?.promise;
 
           this.logger.info(
-            `[Reconnect] Reconnecting with strategy ${WebsocketReconnectStrategy[this.reconnectStrategy]}`,
+            `[Reconnect] Reconnecting with strategy ${
+              WebsocketReconnectStrategy[this.reconnectStrategy]
+            }`,
           );
 
           switch (this.reconnectStrategy) {
@@ -1842,7 +1898,13 @@ export class Call {
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.REJOIN;
     this.state.setCallingState(CallingState.RECONNECTING);
-    await this.doJoin(this.joinCallData);
+    const joinReason: JoinReason =
+      this.reconnectReason === ReconnectReason.NETWORK_BACK_ONLINE
+        ? 'network-available'
+        : 'full-rejoin';
+    await this.clientEventReporter.withJoinLifecycle(this.cid, joinReason, () =>
+      this.doJoin(this.joinCallData),
+    );
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
     this.sfuStatsReporter?.sendReconnectionTime(
@@ -1874,11 +1936,16 @@ export class Call {
 
     try {
       const currentSfu = currentSfuClient.edgeName;
-      await this.doJoin({
-        ...this.joinCallData,
-        migrating_from: currentSfu,
-        migrating_from_list: [currentSfu],
-      });
+      await this.clientEventReporter.withJoinLifecycle(
+        this.cid,
+        'migration',
+        () =>
+          this.doJoin({
+            ...this.joinCallData,
+            migrating_from: currentSfu,
+            migrating_from_list: [currentSfu],
+          }),
+      );
     } finally {
       // cleanup the migration_from field after the migration is complete or failed
       // as we don't want to keep dirty data in the join call data
@@ -1920,6 +1987,10 @@ export class Call {
   private registerReconnectHandlers = () => {
     // handles the legacy "goAway" event
     const unregisterGoAway = this.on('goAway', () => {
+      this.clientEventReporter.captureWsError(this.cid, {
+        code: 'SFU_GO_AWAY',
+        reason: 'SFU goAway received during WS join',
+      });
       this.reconnect(
         WebsocketReconnectStrategy.MIGRATE,
         ReconnectReason.GO_AWAY,
@@ -1929,6 +2000,13 @@ export class Call {
     // handles the "error" event, through which the SFU can request a reconnect
     const unregisterOnError = this.on('error', (e) => {
       const { reconnectStrategy: strategy, error } = e;
+      if (!SfuJoinError.isJoinErrorCode(e)) {
+        const code = error?.code ? ErrorCode[error.code] : undefined;
+        this.clientEventReporter.captureWsError(this.cid, {
+          code: code ?? 'SFU_ERROR',
+          reason: error?.message || 'SFU error during WS join',
+        });
+      }
       // SFU_FULL is a join error, and when emitted, although it specifies a
       // `migrate` strategy, we should actually perform a REJOIN to a new SFU.
       // This is now handled separately in the `call.join()` method.
@@ -2847,7 +2925,11 @@ export class Call {
       this.leave({
         reject: true,
         reason: 'timeout',
-        message: `ringing timeout - ${this.isCreatedByMe ? 'no one accepted' : `user didn't interact with incoming call screen`}`,
+        message: `ringing timeout - ${
+          this.isCreatedByMe
+            ? 'no one accepted'
+            : `user didn't interact with incoming call screen`
+        }`,
       }).catch((err) => {
         this.logger.error('Failed to drop call', err);
       });
@@ -2908,7 +2990,9 @@ export class Call {
     filename: string,
   ): Promise<DeleteRecordingResponse> => {
     return this.streamClient.delete<DeleteRecordingResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/recordings/${encodeURIComponent(filename)}`,
+      `${this.streamClientBasePath}/${encodeURIComponent(
+        callSessionId,
+      )}/recordings/${encodeURIComponent(filename)}`,
     );
   };
 
@@ -2923,7 +3007,9 @@ export class Call {
     filename: string,
   ): Promise<DeleteTranscriptionResponse> => {
     return this.streamClient.delete<DeleteTranscriptionResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(callSessionId)}/transcriptions/${encodeURIComponent(filename)}`,
+      `${this.streamClientBasePath}/${encodeURIComponent(
+        callSessionId,
+      )}/transcriptions/${encodeURIComponent(filename)}`,
     );
   };
 
@@ -3149,18 +3235,56 @@ export class Call {
     sessionId: string,
     trackType: VideoTrackType,
   ) => {
-    const unbind = this.dynascaleManager?.bindVideoElement(
+    const unbindDynascale = this.dynascaleManager?.bindVideoElement(
       videoElement,
       sessionId,
       trackType,
     );
 
-    if (!unbind) return;
+    const stopFirstFrameDetector = this.bindFirstVideoFrameDetector(
+      videoElement,
+      sessionId,
+      trackType,
+    );
+
+    if (!unbindDynascale && !stopFirstFrameDetector) return;
+
+    const unbind = () => {
+      stopFirstFrameDetector?.();
+      unbindDynascale?.();
+    };
+
     this.leaveCallHooks.add(unbind);
     return () => {
       this.leaveCallHooks.delete(unbind);
       unbind();
     };
+  };
+
+  private bindFirstVideoFrameDetector = (
+    videoElement: HTMLVideoElement,
+    sessionId: string,
+    trackType: VideoTrackType,
+  ) => {
+    if (trackType !== 'videoTrack') return;
+
+    return createFirstVideoFrameDetector(videoElement, () => {
+      this.reportFirstRenderedVideoFrame(sessionId);
+    });
+  };
+
+  private reportFirstRenderedVideoFrame = (sessionId: string) => {
+    const participant = this.state.findParticipantBySessionId(sessionId);
+    if (participant?.isLocalParticipant) return;
+
+    const trackId = participant?.videoStream?.getVideoTracks()[0]?.id;
+    if (!trackId) return;
+
+    this.clientEventReporter.reportFirstFrame(
+      this.cid,
+      TrackType.VIDEO,
+      trackId,
+    );
   };
 
   /**

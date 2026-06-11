@@ -617,6 +617,11 @@ export class StreamClient {
     return await this.wsConnection.connect(this.defaultWSTimeout);
   };
 
+  getSdkVersion = (): string =>
+    this.options.clientAppIdentifier?.sdkVersion ||
+    process.env.PKG_VERSION ||
+    '0.0.0';
+
   getUserAgent = (): string => {
     if (!this.cachedUserAgent) {
       const { clientAppIdentifier = {} } = this.options;
