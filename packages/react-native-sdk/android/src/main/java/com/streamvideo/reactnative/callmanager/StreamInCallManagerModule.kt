@@ -178,7 +178,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
 
     @Suppress("unused")
     @ReactMethod
-    fun chooseAudioDeviceEndpoint(endpointDeviceName: String) {
+    fun chooseAudioDeviceEndpoint(deviceId: String) {
         AudioDeviceManager.runInAudioThread {
             if (mAudioDeviceManager.callAudioRole !== CallAudioRole.Communicator) {
                 Log.e(
@@ -187,8 +187,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                 )
                 return@runInAudioThread
             }
-            mAudioDeviceManager.switchDeviceFromDeviceName(
-                endpointDeviceName
+            mAudioDeviceManager.switchDeviceById(
+                deviceId
             )
         }
     }

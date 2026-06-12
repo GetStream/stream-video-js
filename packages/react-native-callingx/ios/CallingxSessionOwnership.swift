@@ -34,4 +34,17 @@ public class CallingxSessionOwnership: NSObject {
             _callingxOwnsSession = newValue
         }
     }
+
+    /// The audio output device the user picked during an active CallKit call —
+    /// `"speaker"`, an input port `uid`, or `nil` to use the default. `StreamInCallManager`
+    /// (in `@stream-io/video-react-native-sdk`) writes this via KVC on the class object
+    /// (`setValue(_:forKey:"requestedOutputDeviceId")`), symmetric with how it reads
+    /// `callingxOwnsSession`. The SDK performs the live switch itself; this tells callingx
+    /// (which owns the session under CallKit) what to re-apply on its next engine re-enable,
+    /// so a rebuild doesn't clobber the pick. Storage lives in `AudioSessionManager`; this
+    /// is just the cross-package bridge.
+    @objc public class var requestedOutputDeviceId: String? {
+        get { AudioSessionManager.shared.requestedOutputDeviceId }
+        set { AudioSessionManager.shared.setRequestedOutputDeviceId(newValue) }
+    }
 }

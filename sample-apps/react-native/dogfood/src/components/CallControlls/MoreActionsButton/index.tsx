@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   CallControlsButton,
-  callManager,
   OwnCapability,
   useCall,
   useCallStateHooks,
@@ -13,7 +12,6 @@ import {
   Alert,
   Image,
   Modal,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -35,7 +33,7 @@ import ClosedCaptions from '../../../assets/ClosedCaptions';
 import Screenshot from '../../../assets/Screenshot';
 import Hearing from '../../../assets/Hearing';
 import { AudioOutput } from '../../../assets/AudioOutput';
-import { AndroidAudioRoutePickerDrawer } from './AndroidAudioRoutePickerDrawer';
+import { AudioRoutePickerDrawer } from './AudioRoutePickerDrawer';
 
 /**
  * The props for the More Actions Button in the Call Controls.
@@ -70,10 +68,8 @@ export const MoreActionsButton = ({
     setEnabled: setNoiseCancellationEnabled,
   } = useNoiseCancellation();
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-  const [
-    isAndroidAudioRoutePickerDrawerVisible,
-    setIsAndroidAudioRoutePickerDrawerVisible,
-  ] = useState(false);
+  const [isAudioRoutePickerDrawerVisible, setIsAudioRoutePickerDrawerVisible] =
+    useState(false);
   const [showCallStats, setShowCallStats] = useState(false);
   const [feedbackModalVisible, setFeedbackModalVisible] = useState(false);
   const [screenshotModalVisible, setScreenshotModalVisible] = useState(false);
@@ -135,11 +131,8 @@ export const MoreActionsButton = ({
   };
 
   const showAudioRoutePicker = async () => {
-    if (Platform.OS === 'ios') {
-      callManager.ios.showDeviceSelector();
-    } else {
-      setIsAndroidAudioRoutePickerDrawerVisible(true);
-    }
+    // One custom picker for all platforms (Android, iOS, iOS+CallKit).
+    setIsAudioRoutePickerDrawerVisible(true);
     setIsDrawerVisible(false);
   };
 
@@ -314,12 +307,12 @@ export const MoreActionsButton = ({
       style={moreActionsButton}
       color={buttonColor}
     >
-      {Platform.OS === 'android' && !!controlsContainerHeight && (
-        <AndroidAudioRoutePickerDrawer
-          isVisible={isAndroidAudioRoutePickerDrawerVisible}
+      {!!controlsContainerHeight && (
+        <AudioRoutePickerDrawer
+          isVisible={isAudioRoutePickerDrawerVisible}
           bottomControlsHeight={controlsContainerHeight}
           onClose={() => {
-            setIsAndroidAudioRoutePickerDrawerVisible(false);
+            setIsAudioRoutePickerDrawerVisible(false);
           }}
         />
       )}

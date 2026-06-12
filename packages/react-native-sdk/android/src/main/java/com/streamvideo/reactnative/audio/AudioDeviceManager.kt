@@ -58,7 +58,9 @@ class AudioDeviceManager(
         val nonBluetoothEndpoints = HashMap<@EndpointType Int, AudioDeviceEndpoint>()
         for (device in initialEndpoints) {
             if (device.isBluetoothType()) {
-                bluetoothEndpoints[device.name] = device
+                // Keyed by the stable AudioDeviceInfo.id (not name) so two
+                // identically-named Bluetooth devices remain distinct.
+                bluetoothEndpoints[device.deviceId.toString()] = device
             } else {
                 nonBluetoothEndpoints[device.type] = device
             }
@@ -66,7 +68,7 @@ class AudioDeviceManager(
         EndpointMaps(bluetoothEndpoints, nonBluetoothEndpoints)
     }
 
-    private var cachedAvailableEndpointNamesSet = setOf<String>()
+    private var cachedAvailableEndpointIdsSet = setOf<String>()
 
     /** Returns the currently selected audio device. */
     private var _selectedAudioDeviceEndpoint: AudioDeviceEndpoint? = null
@@ -84,10 +86,6 @@ class AudioDeviceManager(
     // Default audio device; speaker phone for video calls or earpiece for audio only phone calls
     @EndpointType
     var defaultAudioDevice = AudioDeviceEndpoint.TYPE_SPEAKER
-
-    /** Contains the user-selected audio device which overrides the predefined selection scheme */
-    @EndpointType
-    private var userSelectedAudioDevice: Int? = null
 
     var enableStereo: Boolean = false
 
@@ -127,7 +125,6 @@ class AudioDeviceManager(
     fun start(activity: Activity) {
         runInAudioThread {
             setup()
-            userSelectedAudioDevice = null
             selectedAudioDeviceEndpoint = null
             if (callAudioRole == CallAudioRole.Communicator) {
                 // Audio routing is manually controlled by the SDK in communication media mode
@@ -169,13 +166,36 @@ class AudioDeviceManager(
         }
     }
 
-    private fun getEndpointFromName(name: String): AudioDeviceEndpoint? {
-        val endpointType = AudioDeviceEndpointUtils.endpointStringToType(name)
-        val endpoint = when (endpointType) {
-            AudioDeviceEndpoint.TYPE_SPEAKER, AudioDeviceEndpoint.TYPE_EARPIECE, AudioDeviceEndpoint.TYPE_WIRED_HEADSET -> mEndpointMaps.nonBluetoothEndpoints[endpointType]
-            else -> mEndpointMaps.bluetoothEndpoints[name]
+    /**
+     * Finds a Bluetooth endpoint by its (possibly non-unique) display name.
+     * Used only for internal SCO bookkeeping where the platform reports the
+     * connected device by name; Android connects a single BT call device at a
+     * time, so the first match is the active one.
+     */
+    private fun bluetoothEndpointByName(name: String?): AudioDeviceEndpoint? {
+        if (name == null) return null
+        return mEndpointMaps.bluetoothEndpoints.values.firstOrNull { it.name == name }
+    }
+
+    /**
+     * Resolves the currently-active Bluetooth endpoint. On API 31+ it keys off
+     * the authoritative communication-device id (so two same-named BT devices
+     * are disambiguated); otherwise it falls back to matching by name.
+     */
+    private fun activeBluetoothEndpoint(): AudioDeviceEndpoint? {
+        if (Build.VERSION.SDK_INT >= 31) {
+            mAudioManager.communicationDevice?.id?.toString()?.let { id ->
+                mEndpointMaps.bluetoothEndpoints[id]?.let { return it }
+            }
         }
-        return endpoint
+        return bluetoothEndpointByName(bluetoothManager.getDeviceName())
+    }
+
+    /** Resolves a non-Bluetooth endpoint by its stable device id. */
+    private fun nonBluetoothEndpointById(deviceId: String): AudioDeviceEndpoint? {
+        return mEndpointMaps.nonBluetoothEndpoints.values.firstOrNull {
+            it.deviceId.toString() == deviceId
+        }
     }
 
     fun setSpeakerphoneOn(enable: Boolean) {
@@ -206,16 +226,12 @@ class AudioDeviceManager(
         this.selectedAudioDeviceEndpoint = newDevice
     }
 
-    fun switchDeviceFromDeviceName(
-        deviceName: String
+    fun switchDeviceById(
+        deviceId: String
     ) {
-        Log.d(TAG, "switchDeviceFromDeviceName: deviceName = $deviceName")
-        Log.d(
-            TAG,
-            "switchDeviceFromDeviceName: mEndpointMaps.bluetoothEndpoints = ${mEndpointMaps.bluetoothEndpoints}"
-        )
+        Log.d(TAG, "switchDeviceById: deviceId = $deviceId")
         runInAudioThread {
-            val btDevice = mEndpointMaps.bluetoothEndpoints[deviceName]
+            val btDevice = mEndpointMaps.bluetoothEndpoints[deviceId]
             if (btDevice != null) {
                 if (Build.VERSION.SDK_INT >= 31) {
                     mAudioManager.setCommunicationDevice(btDevice.deviceInfo)
@@ -227,10 +243,12 @@ class AudioDeviceManager(
                     )
                 }
             } else {
-                val endpointType = AudioDeviceEndpointUtils.endpointStringToType(deviceName)
-                switchDeviceEndpointType(
-                    endpointType
-                )
+                val endpoint = nonBluetoothEndpointById(deviceId)
+                if (endpoint != null) {
+                    switchDeviceEndpointType(endpoint.type)
+                } else {
+                    Log.e(TAG, "switchDeviceById: no endpoint found for id $deviceId")
+                }
             }
         }
     }
@@ -290,7 +308,7 @@ class AudioDeviceManager(
         if (Build.VERSION.SDK_INT >= 31) {
             return (mEndpointMaps.bluetoothEndpoints.values + mEndpointMaps.nonBluetoothEndpoints.values).sorted()
         } else {
-            val btEndpoint = mEndpointMaps.bluetoothEndpoints[bluetoothManager.getDeviceName()]
+            val btEndpoint = bluetoothEndpointByName(bluetoothManager.getDeviceName())
             if (btEndpoint != null) {
                 val list = mutableListOf(btEndpoint)
                 list.addAll(mEndpointMaps.nonBluetoothEndpoints.values)
@@ -304,8 +322,9 @@ class AudioDeviceManager(
 
     private fun maybeAddCallEndpoint(endpoint: AudioDeviceEndpoint): Int {
         if (endpoint.isBluetoothType()) {
-            if (!mEndpointMaps.bluetoothEndpoints.containsKey(endpoint.name)) {
-                mEndpointMaps.bluetoothEndpoints[endpoint.name] = endpoint
+            val key = endpoint.deviceId.toString()
+            if (!mEndpointMaps.bluetoothEndpoints.containsKey(key)) {
+                mEndpointMaps.bluetoothEndpoints[key] = endpoint
                 Log.d(TAG, "maybeAddCallEndpoint: bluetooth endpoint added: " + endpoint.name)
                 return 1
             }
@@ -322,8 +341,9 @@ class AudioDeviceManager(
     private fun maybeRemoveCallEndpoint(endpoint: AudioDeviceEndpoint): Int {
         // TODO:: determine if it is necessary to cleanup listeners here
         if (endpoint.isBluetoothType()) {
-            if (mEndpointMaps.bluetoothEndpoints.containsKey(endpoint.name)) {
-                mEndpointMaps.bluetoothEndpoints.remove(endpoint.name)
+            val key = endpoint.deviceId.toString()
+            if (mEndpointMaps.bluetoothEndpoints.containsKey(key)) {
+                mEndpointMaps.bluetoothEndpoints.remove(key)
                 Log.d(TAG, "maybeRemoveCallEndpoint: bluetooth endpoint removed: " + endpoint.name)
                 return 1
             }
@@ -380,18 +400,18 @@ class AudioDeviceManager(
     fun updateAudioDeviceState() {
         runInAudioThread {
             val audioDevices = getCurrentDeviceEndpoints()
-            val audioDeviceNamesSet = audioDevices.map { it.name }.toSet()
-            val devicesChanged = if (cachedAvailableEndpointNamesSet.size != audioDevices.size) {
+            // Compare by stable device id, not name, so a swap between two
+            // identically-named devices is still detected as a change.
+            val audioDeviceIdsSet = audioDevices.map { it.deviceId.toString() }.toSet()
+            val devicesChanged = if (cachedAvailableEndpointIdsSet.size != audioDevices.size) {
                 true
             } else {
-                cachedAvailableEndpointNamesSet != audioDeviceNamesSet
+                cachedAvailableEndpointIdsSet != audioDeviceIdsSet
             }
-            cachedAvailableEndpointNamesSet = audioDeviceNamesSet
+            cachedAvailableEndpointIdsSet = audioDeviceIdsSet
             Log.d(
                 TAG,
-                ("updateAudioDeviceState() Device status: available=$audioDevices, selected=$selectedAudioDeviceEndpoint, user selected=" + endpointTypeDebug(
-                    userSelectedAudioDevice
-                ))
+                ("updateAudioDeviceState() Device status: available=$audioDevices, selected=$selectedAudioDeviceEndpoint")
             )
 
             if (devicesChanged) {
@@ -412,10 +432,6 @@ class AudioDeviceManager(
                 newAudioDevice = it.type
             }
             var deviceSwitched = false
-            val userSelectedAudioDevice = this.userSelectedAudioDevice
-            if (userSelectedAudioDevice !== null && userSelectedAudioDevice != AudioDeviceEndpoint.TYPE_UNKNOWN) {
-                newAudioDevice = userSelectedAudioDevice
-            }
             Log.d(
                 TAG, ("Decided newAudioDevice: ${endpointTypeDebug(newAudioDevice)}")
             )
@@ -427,10 +443,6 @@ class AudioDeviceManager(
              * */
             fun revertBTSelection() {
                 val selectedAudioDeviceEndpoint = this.selectedAudioDeviceEndpoint
-                // BT connection, so revert user selection if needed
-                if (userSelectedAudioDevice == AudioDeviceEndpoint.TYPE_BLUETOOTH) {
-                    this.userSelectedAudioDevice = null
-                }
                 // prev selection was not BT, but new was BT
                 // new can now be WiredHeadset or default if there was no selection before
                 if (selectedAudioDeviceEndpoint != null && selectedAudioDeviceEndpoint.type != AudioDeviceEndpoint.TYPE_UNKNOWN && selectedAudioDeviceEndpoint.type != AudioDeviceEndpoint.TYPE_BLUETOOTH) {
@@ -467,8 +479,7 @@ class AudioDeviceManager(
 
                     // already selected BT device
                     if (bluetoothManager.bluetoothState == BluetoothManager.State.SCO_CONNECTED) {
-                        selectedAudioDeviceEndpoint =
-                            getEndpointFromName(bluetoothManager.getDeviceName()!!)
+                        selectedAudioDeviceEndpoint = activeBluetoothEndpoint()
                         this.selectedAudioDeviceEndpoint = selectedAudioDeviceEndpoint
                         deviceSwitched = true
                     } else if (
@@ -541,12 +552,24 @@ class AudioDeviceManager(
 
     fun audioStatusMap(): WritableMap {
         val endpoint = this.selectedAudioDeviceEndpoint
-        val availableEndpoints = Arguments.fromList(getCurrentDeviceEndpoints().map { it.name })
+        val devices = Arguments.createArray()
+        for (device in getCurrentDeviceEndpoints()) {
+            val deviceMap = Arguments.createMap()
+            deviceMap.putString("id", device.deviceId.toString())
+            deviceMap.putString("name", device.name)
+            deviceMap.putString(
+                "type",
+                AudioDeviceEndpointUtils.endpointTypeToString(device.type)
+            )
+            devices.pushMap(deviceMap)
+        }
 
         val data = Arguments.createMap()
-        data.putArray("devices", availableEndpoints)
+        data.putArray("devices", devices)
         data.putString("currentEndpointType", endpointTypeDebug(endpoint?.type))
-        data.putString("selectedDevice", endpoint?.name)
+        if (endpoint != null) {
+            data.putString("selectedDeviceId", endpoint.deviceId.toString())
+        }
         return data
     }
 

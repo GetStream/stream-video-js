@@ -1,6 +1,6 @@
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import type {
-  AudioDeviceStatus,
+  AudioDevicesState,
   IOSAudioInterruptionEvent,
   StreamInCallManagerConfig,
 } from './types';
@@ -10,43 +10,77 @@ import { videoLoggerSystem } from '@stream-io/video-client';
 const NativeManager = NativeModules.StreamInCallManager;
 const CallingxModule = getCallingxLibIfAvailable();
 const AUDIO_INTERRUPTION_EVENT = 'StreamInCallManagerAudioInterruption';
+const AUDIO_DEVICE_CHANGED_EVENT = 'onAudioDeviceChanged';
 
 const invariant = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message);
 };
 
-class AndroidCallManager {
+/**
+ * Cross-platform audio output device picker. Works on Android, iOS, and iOS
+ * with CallKit (`@stream-io/react-native-callingx`).
+ *
+ * When CallKit owns the audio session, calls are transparently routed through
+ * callingx; otherwise they go to the SDK's in-call manager. Consumers don't
+ * need to branch on platform or call type.
+ */
+class AudioDevicesManager {
   private eventEmitter?: NativeEventEmitter;
 
   /**
-   * Get the current audio device status.
+   * Get the current audio device state (available devices + the selected one).
+   * Read directly from the audio session, so it works on every path.
    */
-  getAudioDeviceStatus = async (): Promise<AudioDeviceStatus> => {
-    invariant(Platform.OS === 'android', 'Supported only on Android');
+  getStatus = async (): Promise<AudioDevicesState> => {
     return NativeManager.getAudioDeviceStatus();
   };
 
   /**
-   * Switches the audio device to the specified endpoint.
+   * Switch the audio output to the device with the given id.
    *
-   * @param endpointName the device name.
+   * @param deviceId the stable {@link AudioDevice.id} (not the display name).
    */
-  selectAudioDevice = (endpointName: string): void => {
-    invariant(Platform.OS === 'android', 'Supported only on Android');
-    NativeManager.chooseAudioDeviceEndpoint(endpointName);
+  select = (deviceId: string): void => {
+    // One native call covers both paths: the in-call manager applies the switch when
+    // the SDK owns the session, and hands the pick to callingx (via the shared
+    // CallingxSessionOwnership bridge) when CallKit owns it.
+    NativeManager.chooseAudioDeviceEndpoint(deviceId);
   };
 
   /**
-   * Register a listener for audio device changes.
-   * @param onChange callback to be called when the audio device changes.
+   * Register a listener for audio device changes. Returns an unsubscribe fn.
+   *
+   * @param onChange called with the latest {@link AudioDevicesState} on change.
    */
-  addAudioDeviceChangeListener = (
-    onChange: (audioDeviceStatus: AudioDeviceStatus) => void,
+  addChangeListener = (
+    onChange: (state: AudioDevicesState) => void,
   ): (() => void) => {
-    invariant(Platform.OS === 'android', 'Supported only on Android');
+    const unsubscribes: Array<() => void> = [];
+
+    // Primary source: the SDK's in-call manager. Its event carries the full
+    // state and is the single source backing getStatus().
     this.eventEmitter ??= new NativeEventEmitter(NativeManager);
-    const s = this.eventEmitter.addListener('onAudioDeviceChanged', onChange);
-    return () => s.remove();
+    const sdkSub = this.eventEmitter.addListener(
+      AUDIO_DEVICE_CHANGED_EVENT,
+      onChange,
+    );
+    unsubscribes.push(() => sdkSub.remove());
+
+    // On iOS, when callingx (CallKit) owns the session, route changes arrive via
+    // its signal and the SDK's observer is suppressed. Subscribe to both so an
+    // ownership change after subscription can't strand the listener; re-fetch to
+    // normalize (and ignore the rare duplicate fire — setState is idempotent).
+    if (Platform.OS === 'ios' && CallingxModule) {
+      const cxSub = CallingxModule.addEventListener(
+        'didChangeAudioRoute',
+        () => {
+          this.getStatus().then(onChange);
+        },
+      );
+      unsubscribes.push(() => cxSub.remove());
+    }
+
+    return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
   };
 }
 
@@ -113,7 +147,7 @@ const shouldBypassForCallKit = (): boolean => {
 };
 
 export class CallManager {
-  android = new AndroidCallManager();
+  audioDevices = new AudioDevicesManager();
   ios = new IOSCallManager();
   speaker = new SpeakerManager();
 
