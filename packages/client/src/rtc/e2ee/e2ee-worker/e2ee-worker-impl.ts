@@ -67,20 +67,17 @@ import {
   writeTrailer,
 } from './utils';
 import {
+  createFailureTracker,
   createReplayWindow,
   dispose as disposeCrypto,
   dumpKeyState,
   fillIV,
   getKey,
   getLatestKey,
-  hasDecryptionFailures,
   importKey,
   importSharedKey,
-  isKeyInvalid,
   nextFrameCounter,
-  recordDecryptionFailure,
   removeKeys,
-  resetDecryptionFailures,
 } from './crypto';
 
 /** Minimal shape of an RTCEncodedVideoFrame / RTCEncodedAudioFrame. */
@@ -157,13 +154,6 @@ const stopPerfReport = () => {
  */
 const activePipelines = new Set<AbortController>();
 
-let encodeFailureSignaled = false;
-const signalEncodeFailure = (reason: string) => {
-  if (encodeFailureSignaled) return;
-  encodeFailureSignaled = true;
-  self.postMessage({ type: 'e2ee.encryption_failed', reason });
-};
-
 /**
  * Throttled per-user notification that the encoder has no key for the local
  * user, so outgoing frames are being dropped — the sender publishes nothing.
@@ -179,39 +169,52 @@ const notifyMissingKey = (userId: string) => {
   }
 };
 
-/**
- * Shared encode tail: time the encryption, emit the produced frame, and surface
- * failures. `produce` returns the new frame bytes, or null if it already
- * decided to drop the frame (after signaling its own specific reason). Any
- * throw is reported via signalEncodeFailure and the frame is dropped - never
- * emitted in the clear.
- */
-const finishEncode = async (
-  frame: EncodedFrame,
-  controller: FrameController,
-  produce: () => Promise<Uint8Array<ArrayBuffer> | null>,
-) => {
-  try {
-    const t0 = perfEnabled ? performance.now() : 0;
-    const out = await produce();
-    if (perfEnabled) {
-      const dt = performance.now() - t0;
-      if (dt > encodeMaxCryptoMs) encodeMaxCryptoMs = dt;
-    }
-    if (!out) return;
-    frame.data = out.buffer;
-    controller.enqueue(frame);
-    if (perfEnabled) encodeFrameCount++;
-  } catch (err: any) {
-    signalEncodeFailure(err?.message || String(err));
-  }
-};
-
 const encodeTransform = (userId: string, codec: string | undefined) => {
   const profile = getCodecProfile(codec);
   const isNalu = profile.rbsp;
   const iv = new Uint8Array(IV_LEN);
   const ivView = new DataView(iv.buffer);
+
+  // Per-track encode-failure latch: signal the first failure of a run, then stay
+  // quiet until a frame encrypts again. Scoping it per transform and re-arming
+  // on success means a later permanent fail-closed (e.g. the counter hard limit)
+  // is still surfaced instead of being swallowed by one earlier transient error
+  // for the rest of the worker's life (review finding 2.3).
+  let encodeFailed = false;
+  const signalEncodeFailure = (reason: string) => {
+    if (encodeFailed) return;
+    encodeFailed = true;
+    self.postMessage({ type: 'e2ee.encryption_failed', reason });
+  };
+
+  /**
+   * Encode tail: time the encryption, emit the produced frame, and surface
+   * failures. `produce` returns the new frame bytes, or null if it already
+   * decided to drop the frame (after signaling its own specific reason). Any
+   * throw is reported via signalEncodeFailure and the frame is dropped - never
+   * emitted in the clear. A successful emit re-arms the failure latch.
+   */
+  const finishEncode = async (
+    frame: EncodedFrame,
+    controller: FrameController,
+    produce: () => Promise<Uint8Array<ArrayBuffer> | null>,
+  ) => {
+    try {
+      const t0 = perfEnabled ? performance.now() : 0;
+      const out = await produce();
+      if (perfEnabled) {
+        const dt = performance.now() - t0;
+        if (dt > encodeMaxCryptoMs) encodeMaxCryptoMs = dt;
+      }
+      if (!out) return;
+      frame.data = out.buffer;
+      controller.enqueue(frame);
+      encodeFailed = false;
+      if (perfEnabled) encodeFrameCount++;
+    } catch (err: any) {
+      signalEncodeFailure(err?.message || String(err));
+    }
+  };
 
   return new TransformStream<EncodedFrame, EncodedFrame>({
     async transform(frame, controller) {
@@ -315,21 +318,26 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
 };
 
 const decodeTransform = (userId: string) => {
-  // Per-track throttle (one userId per transform); rate-limits the failure
-  // signal to at most once per second.
+  // Per-track throttles (one userId per transform); rate-limit the failure and
+  // recovery signals to at most once per second each so a flapping track can't
+  // flood the host.
   const failureThrottle = createThrottle(1000);
   const notifyFailure = () => {
     if (failureThrottle.tryFire(userId)) {
       self.postMessage({ type: 'e2ee.decryption_failed', userId });
     }
   };
+  const resumedThrottle = createThrottle(1000);
 
   const iv = new Uint8Array(IV_LEN);
   const ivView = new DataView(iv.buffer);
 
-  // Replay state is scoped to this transform — i.e. this single remote track —
-  // so a remote user's audio/video/screenshare tracks never share a window.
+  // Replay state and failure accounting are scoped to this transform — i.e. this
+  // single remote track — so a user's audio/video/screenshare tracks never share
+  // a window or a failure count (the latter is what lets e2ee.broken fire, see
+  // finding 2.2).
   const replay = createReplayWindow();
+  const failures = createFailureTracker();
 
   /**
    * Shared decode tail: gate on key availability / replay, time the
@@ -371,20 +379,21 @@ const decodeTransform = (userId: string) => {
       }
       // Authenticated: only now is it safe to advance the replay window.
       replay.commit(frameCounter, ivPrefix);
-      if (hasDecryptionFailures(userId, keyIndex)) {
-        resetDecryptionFailures(userId, keyIndex);
+      // Recovery edge: fire only when this track had been failing, throttled so
+      // a flapping track can't emit resumed once per frame.
+      if (failures.recordSuccess(keyIndex) && resumedThrottle.tryFire(userId)) {
         self.postMessage({ type: 'e2ee.decryption_resumed', userId });
       }
       frame.data = data;
       controller.enqueue(frame);
       bumpDecodeCount(userId);
     } catch {
-      // Only fire `e2ee.broken` on the transition - otherwise the host would
-      // receive one notification per frame once tolerance is hit.
-      const wasInvalid = isKeyInvalid(userId, keyIndex);
-      recordDecryptionFailure(userId, keyIndex);
+      // recordFailure returns true only on the failure that crosses the
+      // tolerance, so `e2ee.broken` fires once per failure run rather than once
+      // per frame after the threshold.
+      const becameInvalid = failures.recordFailure(keyIndex);
       notifyFailure();
-      if (!wasInvalid && isKeyInvalid(userId, keyIndex)) {
+      if (becameInvalid) {
         self.postMessage({ type: 'e2ee.broken', userId, keyIndex });
       }
     }

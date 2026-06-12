@@ -307,6 +307,58 @@ describe('decode pipeline edge behaviors', () => {
     expect(posted.filter((m) => m.type === 'e2ee.broken')).toHaveLength(1);
     expect(posted.some((m) => m.type === 'e2ee.decryption_resumed')).toBe(true);
   });
+
+  it('scopes failure accounting per track so a healthy track cannot mask a broken one (finding 2.2)', async () => {
+    const user = freshUser();
+    await setKey(user);
+    // A video track and an audio track for the SAME user + keyIndex. Encode
+    // FAILURE_TOLERANCE + 1 video frames (then tamper them so each fails GCM)
+    // and one genuine audio frame on the same shared key.
+    const n = FAILURE_TOLERANCE + 1;
+    const videoPts = Array.from({ length: n }, (_, i) => [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      i & 0xff,
+    ]);
+    const videoEnc = await drive(
+      'encode',
+      user,
+      'vp8',
+      videoPts.map((p) => frame(p, 'delta')),
+    );
+    const [audioEnc] = await drive('encode', user, 'opus', [
+      frame([0x01, 0x02, 0x03, 0x04], undefined),
+    ]);
+    const tamperedVideo = videoEnc.map((f) => {
+      const bytes = new Uint8Array(f.data.slice(0));
+      bytes[5] ^= 0xff;
+      return { ...f, data: bytes.buffer };
+    });
+
+    // Video decode transform: every frame fails, so the break surfaces once.
+    posted.length = 0;
+    const vOut = await drive('decode', user, undefined, tamperedVideo);
+    expect(vOut).toHaveLength(0);
+    expect(posted.filter((m) => m.type === 'e2ee.broken')).toHaveLength(1);
+
+    // Audio decode transform (a SEPARATE track): the genuine frame decrypts and
+    // must NOT emit decryption_resumed - this track never failed. With the old
+    // per-(user, keyIndex) counter shared across tracks, the audio success reset
+    // the video failures and spuriously "resumed" (and kept e2ee.broken from
+    // ever firing).
+    posted.length = 0;
+    const aOut = await drive('decode', user, undefined, [audioEnc]);
+    expect(aOut).toHaveLength(1);
+    expect(posted.some((m) => m.type === 'e2ee.decryption_resumed')).toBe(
+      false,
+    );
+  });
 });
 
 describe('encode pipeline edge behaviors', () => {
@@ -332,6 +384,27 @@ describe('encode pipeline edge behaviors', () => {
     expect(out).toHaveLength(0);
     expect(posted.some((m) => m.type === 'e2ee.encryption_failed')).toBe(true);
   }, 3000);
+
+  it('re-signals encryption_failed after recovery instead of latching for the worker lifetime (finding 2.3)', async () => {
+    const user = freshUser();
+    await setKey(user);
+    // One av1 encode transform: an unparseable (non-AV1) frame fails to encrypt,
+    // a valid AV1 temporal unit then encrypts (recovering the track), and a
+    // second bad frame must signal AGAIN. The old worker-lifetime latch emitted
+    // only the first signal and then went silent forever - so a later permanent
+    // fail-closed dropped every frame with no event.
+    const bad = () => frame([0x80, 0x80, 0x80], 'delta'); // forbidden bit -> unparseable
+    const good = () => frame([...td, ...codedObu([1, 2, 3])], 'key');
+    posted.length = 0;
+    const out = await drive('encode', user, 'av1', [bad(), good(), bad()]);
+    // Only the valid frame is emitted; both bad frames are dropped (fail closed).
+    expect(out).toHaveLength(1);
+    // Signaled on the first bad frame, re-armed by the good frame, signaled
+    // again on the second bad frame.
+    expect(
+      posted.filter((m) => m.type === 'e2ee.encryption_failed'),
+    ).toHaveLength(2);
+  });
 });
 
 describe('h264 trailer start-code safety (finding 11)', () => {

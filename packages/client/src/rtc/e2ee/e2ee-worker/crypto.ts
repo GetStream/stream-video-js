@@ -50,13 +50,6 @@ interface KeyMaterial {
  */
 const perUserKeys: UserKeyMap<KeyMaterial> = new Map();
 
-/**
- * Consecutive-failure counter per (userId, keyIndex). Kept separate from
- * {@link perUserKeys}: it is maintained on the decode path and a shared-key
- * user has no per-user entry to hang it off, so its lifecycle differs.
- */
-const decryptionFailureCounts: UserKeyMap<number> = new Map();
-
 /** Map<userId, latest keyIndex>. */
 const latestKeyIndex = new Map<string, number>();
 
@@ -161,21 +154,40 @@ export const nextFrameCounter = (userId: string): number => {
   return c;
 };
 
-export const isKeyInvalid = (userId: string, keyIndex: number): boolean =>
-  (decryptionFailureCounts.get(userId)?.get(keyIndex) || 0) > FAILURE_TOLERANCE;
+/**
+ * Per-track consecutive-decryption-failure tracker, scoped to a single decode
+ * transform like the replay window (see {@link createReplayWindow}). Keeping it
+ * per-track is load-bearing: a counter shared across all of a user's tracks lets
+ * one track's healthy frames reset another's failures, so `FAILURE_TOLERANCE` is
+ * never crossed and the terminal `e2ee.broken` signal can never fire while
+ * `e2ee.decryption_resumed` flaps once per healthy frame (review finding 2.2).
+ * Counts are keyed by keyIndex so a key rotation within the track starts fresh.
+ */
+export interface FailureTracker {
+  /**
+   * Record one decryption failure at `keyIndex`. Returns true ONLY on the
+   * failure that crosses {@link FAILURE_TOLERANCE}, so the caller fires
+   * `e2ee.broken` exactly once per failure run.
+   */
+  recordFailure: (keyIndex: number) => boolean;
+  /**
+   * Clear the failure count at `keyIndex` after a successful decrypt. Returns
+   * true if there were failures to clear, so the caller can fire
+   * `e2ee.decryption_resumed` on the recovery edge (and only then).
+   */
+  recordSuccess: (keyIndex: number) => boolean;
+}
 
-export const recordDecryptionFailure = (userId: string, keyIndex: number) => {
-  const inner = getOrCreate(decryptionFailureCounts, userId);
-  inner.set(keyIndex, (inner.get(keyIndex) || 0) + 1);
-};
-
-export const hasDecryptionFailures = (
-  userId: string,
-  keyIndex: number,
-): boolean => (decryptionFailureCounts.get(userId)?.get(keyIndex) || 0) > 0;
-
-export const resetDecryptionFailures = (userId: string, keyIndex: number) => {
-  decryptionFailureCounts.get(userId)?.delete(keyIndex);
+export const createFailureTracker = (): FailureTracker => {
+  const counts = new Map<number, number>();
+  return {
+    recordFailure: (keyIndex) => {
+      const next = (counts.get(keyIndex) ?? 0) + 1;
+      counts.set(keyIndex, next);
+      return next === FAILURE_TOLERANCE + 1;
+    },
+    recordSuccess: (keyIndex) => counts.delete(keyIndex),
+  };
 };
 
 interface ReplayState {
@@ -349,7 +361,6 @@ export const importKey = async (
       await importKeyMaterial(rawKey),
     );
     latestKeyIndex.set(userId, keyIndex);
-    resetDecryptionFailures(userId, keyIndex);
   } catch (e: any) {
     self.postMessage({
       type: 'e2ee.error',
@@ -364,11 +375,6 @@ export const importSharedKey = async (
 ) => {
   try {
     sharedKey = { ...(await importKeyMaterial(rawKey)), keyIndex };
-    // The shared keyIndex now refers to a fresh key → reset decryption-failure
-    // state tied to that slot for every user
-    for (const inner of decryptionFailureCounts.values()) {
-      inner.delete(keyIndex);
-    }
   } catch (e: any) {
     self.postMessage({
       type: 'e2ee.error',
@@ -385,7 +391,6 @@ export const importSharedKey = async (
 export const removeKeys = (userId: string) => {
   perUserKeys.delete(userId);
   latestKeyIndex.delete(userId);
-  decryptionFailureCounts.delete(userId);
   rekeyRequested.delete(userId);
 };
 
@@ -427,7 +432,6 @@ export const dispose = () => {
   perUserKeys.clear();
   latestKeyIndex.clear();
   frameCounters.clear();
-  decryptionFailureCounts.clear();
   rekeyRequested.clear();
   sharedKey = null;
 };

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   COUNTER_HARD_LIMIT,
   COUNTER_REKEY_THRESHOLD,
+  FAILURE_TOLERANCE,
   IV_PREFIX_LEN,
   REPLAY_WINDOW,
 } from '../e2ee-worker/constants';
@@ -16,6 +17,7 @@ vi.stubGlobal('self', { postMessage });
 // catch blocks, but it's clearer this way).
 import {
   __setFrameCounterForTest,
+  createFailureTracker,
   createReplayWindow,
   dispose,
   dumpKeyState,
@@ -24,11 +26,8 @@ import {
   importKey,
   importSharedKey,
   nextFrameCounter,
-  recordDecryptionFailure,
-  isKeyInvalid,
   removeKeys,
   type ReplayWindow,
-  resetDecryptionFailures,
 } from '../e2ee-worker/crypto';
 
 const rawKey = (seed = 0xab): ArrayBuffer => {
@@ -283,29 +282,45 @@ describe('createReplayWindow', () => {
   });
 });
 
-describe('decryption failure accounting', () => {
-  it('records consecutive failures and marks the key invalid past tolerance', () => {
-    for (let i = 0; i < 12; i++) recordDecryptionFailure('alice', 1);
-    expect(isKeyInvalid('alice', 1)).toBe(true);
+describe('createFailureTracker', () => {
+  it('flags the break only on the failure that crosses tolerance', () => {
+    const tracker = createFailureTracker();
+    // The first FAILURE_TOLERANCE failures stay under the bar.
+    for (let i = 0; i < FAILURE_TOLERANCE; i++) {
+      expect(tracker.recordFailure(1)).toBe(false);
+    }
+    // The next one crosses it - the break transition fires exactly once.
+    expect(tracker.recordFailure(1)).toBe(true);
+    expect(tracker.recordFailure(1)).toBe(false); // already broken, no re-fire
   });
 
-  it('reset clears the failure count', () => {
-    for (let i = 0; i < 12; i++) recordDecryptionFailure('alice', 1);
-    resetDecryptionFailures('alice', 1);
-    expect(isKeyInvalid('alice', 1)).toBe(false);
+  it('recordSuccess clears the count and reports whether there were failures', () => {
+    const tracker = createFailureTracker();
+    expect(tracker.recordSuccess(1)).toBe(false); // nothing to resume
+    tracker.recordFailure(1);
+    expect(tracker.recordSuccess(1)).toBe(true); // had a failure -> recovered
+    expect(tracker.recordSuccess(1)).toBe(false); // already clear
+    // After a reset the tolerance bar can be crossed (and reported) again.
+    for (let i = 0; i < FAILURE_TOLERANCE; i++) tracker.recordFailure(1);
+    expect(tracker.recordFailure(1)).toBe(true);
   });
 
-  it('handles userIds that contain colons (no key collision)', () => {
-    // Historical bug: composite "userId:keyIndex" string keys confused
-    // userIds containing a literal colon. Nested Maps fix this.
-    recordDecryptionFailure('user:1', 2);
-    recordDecryptionFailure('user', 1);
-    // "user:1" with key 2 and "user" with key 1 should be isolated.
-    resetDecryptionFailures('user', 1);
-    // "user:1"'s failure count must still be recorded.
-    for (let i = 0; i < 12; i++) recordDecryptionFailure('user:1', 2);
-    expect(isKeyInvalid('user:1', 2)).toBe(true);
-    expect(isKeyInvalid('user', 1)).toBe(false);
+  it('counts each keyIndex independently within a track', () => {
+    const tracker = createFailureTracker();
+    for (let i = 0; i <= FAILURE_TOLERANCE; i++) tracker.recordFailure(1);
+    // keyIndex 2 starts fresh: a key rotation does not inherit index 1's count.
+    expect(tracker.recordFailure(2)).toBe(false);
+  });
+
+  it('scopes failures per tracker so one track cannot reset another', () => {
+    const video = createFailureTracker();
+    const audio = createFailureTracker();
+    for (let i = 0; i <= FAILURE_TOLERANCE; i++) video.recordFailure(1);
+    // The audio track shares neither the count nor the recovery edge.
+    expect(audio.recordFailure(1)).toBe(false);
+    expect(audio.recordSuccess(1)).toBe(true); // only its own single failure
+    // ...and video's break state is untouched by audio's activity.
+    expect(video.recordSuccess(1)).toBe(true);
   });
 });
 
