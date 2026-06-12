@@ -52,7 +52,7 @@
 
 import { EMPTY_AAD, IV_LEN, MAX_CLEAR_BYTES, TRAILER_LEN } from './constants';
 import {
-  getClearByteCount,
+  getCodecProfile,
   isSupportedCodec,
   rbspEscapeInto,
   rbspEscapedLength,
@@ -73,7 +73,6 @@ import {
   fillIV,
   getKey,
   getLatestKey,
-  getSenderIvPrefix,
   hasDecryptionFailures,
   importKey,
   importSharedKey,
@@ -209,7 +208,8 @@ const finishEncode = async (
 };
 
 const encodeTransform = (userId: string, codec: string | undefined) => {
-  const isNalu = codec === 'h264';
+  const profile = getCodecProfile(codec);
+  const isNalu = profile.rbsp;
   const iv = new Uint8Array(IV_LEN);
   const ivView = new DataView(iv.buffer);
 
@@ -229,14 +229,9 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
         return;
       }
 
-      const { key: cryptoKey, keyIndex } = entry;
-      const prefix = getSenderIvPrefix(userId, keyIndex);
-      if (!prefix) {
-        notifyMissingKey(userId);
-        return;
-      }
+      const { key: cryptoKey, keyIndex, ivPrefix: prefix } = entry;
 
-      if (codec === 'av1') {
+      if (profile.scheme === 'av1') {
         return finishEncode(frame, controller, async () => {
           // frameCounter MUST come from the shared monotonic per-user counter
           // (same source as the v2 path) - a base-layer OBU has salt 0, so its
@@ -261,7 +256,7 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
 
       return finishEncode(frame, controller, async () => {
         const src = new Uint8Array(frame.data);
-        const clearBytes = getClearByteCount(codec, frame.type, src);
+        const clearBytes = profile.clearBytes(frame.type, src);
         if (clearBytes > MAX_CLEAR_BYTES) {
           // Impossibly large clear header - drop instead of corrupting the
           // trailer by overflowing the RBSP flag bit.

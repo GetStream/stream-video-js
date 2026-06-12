@@ -21,7 +21,6 @@ import {
   dumpKeyState,
   getKey,
   getLatestKey,
-  getSenderIvPrefix,
   importKey,
   importSharedKey,
   nextFrameCounter,
@@ -49,17 +48,17 @@ describe('importKey', () => {
     await importKey('alice', 1, rawKey());
     expect(getKey('alice', 1)).toBeDefined();
 
-    const prefix = getSenderIvPrefix('alice', 1);
-    expect(prefix).not.toBeNull();
+    const prefix = getLatestKey('alice')?.ivPrefix;
+    expect(prefix).toBeDefined();
     expect(prefix!.length).toBe(IV_PREFIX_LEN);
   });
 
   it('generates a fresh prefix on each import (even for the same raw key)', async () => {
     await importKey('alice', 1, rawKey(0x01));
-    const p1 = Array.from(getSenderIvPrefix('alice', 1)!);
+    const p1 = Array.from(getLatestKey('alice')!.ivPrefix);
 
     await importKey('alice', 1, rawKey(0x01));
-    const p2 = Array.from(getSenderIvPrefix('alice', 1)!);
+    const p2 = Array.from(getLatestKey('alice')!.ivPrefix);
 
     // 64 bits of randomness — practically impossible for two draws to collide.
     expect(p2).not.toEqual(p1);
@@ -350,7 +349,7 @@ describe('removeKeys', () => {
     await importKey('alice', 1, rawKey());
     removeKeys('alice');
     expect(getKey('alice', 1)).toBeUndefined();
-    expect(getSenderIvPrefix('alice', 1)).toBeNull();
+    expect(getLatestKey('alice')).toBeNull();
   });
 
   it('does not affect other users', async () => {

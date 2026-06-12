@@ -14,12 +14,12 @@ import {
 import { fillIV } from './crypto';
 import { bytesEqual } from './utils';
 import {
-  AV1_ENCRYPTED_OBU_TYPES,
   applySalt,
+  AV1_ENCRYPTED_OBU_TYPES,
+  type Obu,
   packSalt,
   parseObus,
   serializeObus,
-  type Obu,
 } from './av1-obu';
 
 // Inline header offsets: magic|version|keyIndex|ivPrefix|frameCounter.
@@ -104,6 +104,32 @@ const buildIv = (
 };
 
 /**
+ * Derive the per-OBU AES-GCM params shared by encrypt and decrypt: the
+ * layer-salted IV and the AAD (OBU header + inline header). Advances
+ * `tileCounts` for the OBU's layer so the positional tileIdx is re-derived
+ * identically on both sides (same-layer OBUs are never dropped independently).
+ * The derivation MUST stay byte-for-byte identical across the two paths - a
+ * one-sided tweak would ship an interop break that only surfaces as blanket GCM
+ * failures.
+ */
+const obuCryptoParams = (
+  obu: Obu,
+  tileCounts: Map<number, number>,
+  ivPrefix: Uint8Array,
+  frameCounter: number,
+  inlineHeader: Uint8Array,
+): { iv: Uint8Array<ArrayBuffer>; aad: Uint8Array } => {
+  const layerKey = (obu.spatialId << 3) | obu.temporalId;
+  const tileIdx = tileCounts.get(layerKey) ?? 0;
+  tileCounts.set(layerKey, tileIdx + 1);
+  const salt = packSalt(obu.spatialId, obu.temporalId, tileIdx);
+  return {
+    iv: buildIv(ivPrefix, salt, frameCounter),
+    aad: concatBytes(aadHeader(obu), inlineHeader),
+  };
+};
+
+/**
  * Encrypt the payload of every tile-group / frame OBU in a temporal unit.
  * Returns the re-serialized frame, the original buffer unchanged when there is
  * no coded data, or null when the stream is not parseable AV1.
@@ -137,13 +163,13 @@ export const encryptAv1Frame = async (
     obus.map(async (obu) => {
       if (!AV1_ENCRYPTED_OBU_TYPES.has(obu.type)) return;
       encryptedAny = true;
-      const layerKey = (obu.spatialId << 3) | obu.temporalId;
-      const tileIdx = tileCounts.get(layerKey) ?? 0;
-      tileCounts.set(layerKey, tileIdx + 1);
-
-      const salt = packSalt(obu.spatialId, obu.temporalId, tileIdx);
-      const iv = buildIv(ivPrefix, salt, frameCounter);
-      const aad = concatBytes(aadHeader(obu), inlineHeader);
+      const { iv, aad } = obuCryptoParams(
+        obu,
+        tileCounts,
+        ivPrefix,
+        frameCounter,
+        inlineHeader,
+      );
       const cipher = new Uint8Array(
         await crypto.subtle.encrypt(
           { name: 'AES-GCM', iv, additionalData: aad as BufferSource },
@@ -222,23 +248,22 @@ export const decryptAv1Frame = async (
       ) {
         throw new Error('AV1 OBU header does not match the frame');
       }
-      const layerKey = (obu.spatialId << 3) | obu.temporalId;
-      const tileIdx = tileCounts.get(layerKey) ?? 0;
-      tileCounts.set(layerKey, tileIdx + 1);
-
-      const salt = packSalt(obu.spatialId, obu.temporalId, tileIdx);
-      const iv = buildIv(ih.ivPrefix, salt, ih.frameCounter);
       const inlineHeader = obu.payload.subarray(0, AV1_INLINE_HEADER_LEN);
       const cipher = obu.payload.subarray(AV1_INLINE_HEADER_LEN);
-      const aad = concatBytes(aadHeader(obu), inlineHeader);
-      const plain = new Uint8Array(
+      const { iv, aad } = obuCryptoParams(
+        obu,
+        tileCounts,
+        ih.ivPrefix,
+        ih.frameCounter,
+        inlineHeader,
+      );
+      obu.payload = new Uint8Array(
         await crypto.subtle.decrypt(
           { name: 'AES-GCM', iv, additionalData: aad as BufferSource },
           key,
           cipher as BufferSource,
         ),
       );
-      obu.payload = plain;
     }),
   );
   return serializeObus(parsed.obus);

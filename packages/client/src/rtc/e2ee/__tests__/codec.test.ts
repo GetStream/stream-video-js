@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  getClearByteCount,
+  getCodecProfile,
   isSupportedCodec,
   rbspEscape,
   rbspEscapeInto,
@@ -107,21 +107,29 @@ describe('rbspEscapeInto + rbspEscapedLength (multi-segment)', () => {
   });
 });
 
-describe('getClearByteCount', () => {
+describe('codec clear-byte rules', () => {
+  // The clear-byte count per codec, via the same profile.clearBytes path the
+  // encoder uses (getClearByteCount delegate removed to save a hot-path frame).
+  const clearBytes = (
+    codec: string | undefined,
+    frameType: string | undefined,
+    data: Uint8Array,
+  ) => getCodecProfile(codec).clearBytes(frameType, data);
+
   it('returns 1 for audio (undefined frameType)', () => {
-    expect(getClearByteCount(undefined, undefined, new Uint8Array(50))).toBe(1);
-    expect(getClearByteCount('opus', undefined, new Uint8Array(50))).toBe(1);
+    expect(clearBytes(undefined, undefined, new Uint8Array(50))).toBe(1);
+    expect(clearBytes('opus', undefined, new Uint8Array(50))).toBe(1);
   });
 
   it('returns 10 for VP8/VP9 keyframes, 3 for delta', () => {
-    expect(getClearByteCount('vp8', 'key', new Uint8Array(50))).toBe(10);
-    expect(getClearByteCount('vp8', 'delta', new Uint8Array(50))).toBe(3);
-    expect(getClearByteCount('vp9', 'key', new Uint8Array(50))).toBe(10);
-    expect(getClearByteCount('vp9', 'delta', new Uint8Array(50))).toBe(3);
+    expect(clearBytes('vp8', 'key', new Uint8Array(50))).toBe(10);
+    expect(clearBytes('vp8', 'delta', new Uint8Array(50))).toBe(3);
+    expect(clearBytes('vp9', 'key', new Uint8Array(50))).toBe(10);
+    expect(clearBytes('vp9', 'delta', new Uint8Array(50))).toBe(3);
   });
 
   it('returns 0 for unknown codecs', () => {
-    expect(getClearByteCount('unknown', 'delta', new Uint8Array(50))).toBe(0);
+    expect(clearBytes('unknown', 'delta', new Uint8Array(50))).toBe(0);
   });
 
   it('clamps VP8/VP9 clear bytes to the frame length', () => {
@@ -129,8 +137,8 @@ describe('getClearByteCount', () => {
     // clear bytes than it has (matches the H264 clamp). Otherwise encode builds
     // a zero-padded clear header and decode a length-mismatched AAD -> GCM
     // fails for a frame that should have round-tripped.
-    expect(getClearByteCount('vp8', 'delta', new Uint8Array(2))).toBe(2);
-    expect(getClearByteCount('vp9', 'key', new Uint8Array(5))).toBe(5);
+    expect(clearBytes('vp8', 'delta', new Uint8Array(2))).toBe(2);
+    expect(clearBytes('vp9', 'key', new Uint8Array(5))).toBe(5);
   });
 
   it('returns clear bytes up to first slice NALU for H.264', () => {
@@ -141,13 +149,43 @@ describe('getClearByteCount', () => {
     const sliceHeader = [0x65, 0xb8, 0x40]; // NALU type 5 + 2 bytes of slice header
     const payload = new Uint8Array([...sps, ...sliceSC, ...sliceHeader]);
     // Slice start at byte 8, start code length 4, so clear = 8 + 4 + 2 = 14.
-    expect(getClearByteCount('h264', 'key', payload)).toBe(14);
+    expect(clearBytes('h264', 'key', payload)).toBe(14);
   });
 
   it('returns 0 for H.264 with no slice NALU', () => {
     // Only SPS (type 7), no slice.
     const data = new Uint8Array([0x00, 0x00, 0x00, 0x01, 0x67, 0x42]);
-    expect(getClearByteCount('h264', 'key', data)).toBe(0);
+    expect(clearBytes('h264', 'key', data)).toBe(0);
+  });
+});
+
+describe('getCodecProfile', () => {
+  it('marks only h264 for RBSP escaping and only av1 as the OBU scheme', () => {
+    // The load-bearing invariant of the table: a codec is fully described in one
+    // place, so a half-wired codec (e.g. NALU escaping forgotten) is impossible.
+    expect(getCodecProfile('h264')).toMatchObject({
+      scheme: 'trailer',
+      rbsp: true,
+    });
+    expect(getCodecProfile('av1')).toMatchObject({
+      scheme: 'av1',
+      rbsp: false,
+    });
+    for (const codec of ['opus', 'vp8', 'vp9']) {
+      expect(getCodecProfile(codec)).toMatchObject({
+        scheme: 'trailer',
+        rbsp: false,
+      });
+    }
+  });
+
+  it('falls back to a passthrough trailer profile for unknown / absent codecs', () => {
+    for (const codec of [undefined, 'h265', 'video/vp8']) {
+      expect(getCodecProfile(codec)).toMatchObject({
+        scheme: 'trailer',
+        rbsp: false,
+      });
+    }
   });
 });
 

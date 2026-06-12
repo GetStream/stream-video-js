@@ -472,7 +472,7 @@ describe('EncryptionManager', () => {
         data: { type: 'e2ee.decryption_failed', userId: 'bob' },
       });
 
-      expect(callback).toHaveBeenCalledWith('bob');
+      expect(callback).toHaveBeenCalledWith({ userId: 'bob' });
     });
 
     it('does not throw when no e2ee.decryption_failed listener is subscribed', () => {
@@ -537,7 +537,7 @@ describe('EncryptionManager', () => {
         data: { type: 'e2ee.decryption_resumed', userId: 'bob' },
       });
 
-      expect(callback).toHaveBeenCalledWith('bob');
+      expect(callback).toHaveBeenCalledWith({ userId: 'bob' });
     });
 
     it('does not throw when no e2ee.decryption_resumed listener is subscribed', () => {
@@ -564,7 +564,9 @@ describe('EncryptionManager', () => {
         },
       });
 
-      expect(callback).toHaveBeenCalledWith('clear-bytes-too-large');
+      expect(callback).toHaveBeenCalledWith({
+        reason: 'clear-bytes-too-large',
+      });
     });
 
     it('emits e2ee.missing_key', () => {
@@ -633,8 +635,8 @@ describe('EncryptionManager', () => {
         data: { type: 'e2ee.decryption_failed', userId: 'bob' },
       });
 
-      expect(a).toHaveBeenCalledWith('bob');
-      expect(b).toHaveBeenCalledWith('bob');
+      expect(a).toHaveBeenCalledWith({ userId: 'bob' });
+      expect(b).toHaveBeenCalledWith({ userId: 'bob' });
     });
 
     it('supports unsubscribe via the returned function', () => {

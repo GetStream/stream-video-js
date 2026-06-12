@@ -7,11 +7,56 @@ import type { E2EEManager } from './E2EEManager';
 export type {
   E2EEEventMap,
   E2EEBrokenEvent,
+  DecryptionFailedEvent,
+  DecryptionResumedEvent,
+  EncryptionFailedEvent,
   KeyStateReport,
   MissingKeyEvent,
   PerfReport,
   RotationEvent,
 } from './events';
+
+/**
+ * Per worker-event logging: severity + a message builder fed the event payload.
+ * `null` means "forward without logging" (perf_report / key_state are verbose /
+ * high-frequency). This table is the only per-event code in the worker-message
+ * path; being keyed by {@link E2EEEventMap} it fails to compile if an event is
+ * added without an entry, so the worker contract can't silently drift.
+ */
+const WORKER_EVENT_LOG: {
+  [E in keyof E2EEEventMap]: {
+    level: 'error' | 'warn' | 'info';
+    message: (payload: E2EEEventMap[E]) => string;
+  } | null;
+} = {
+  'e2ee.decryption_failed': {
+    level: 'warn',
+    message: (p) => `Decryption failed for user: ${p.userId}`,
+  },
+  'e2ee.decryption_resumed': {
+    level: 'info',
+    message: (p) => `Decryption resumed for user: ${p.userId}`,
+  },
+  'e2ee.encryption_failed': {
+    level: 'error',
+    message: (p) => `Encryption failed: ${p.reason}`,
+  },
+  'e2ee.missing_key': {
+    level: 'warn',
+    message: (p) => `No encryption key for user: ${p.userId}`,
+  },
+  'e2ee.rotation_needed': {
+    level: 'warn',
+    message: (p) => `Rekey requested (counter-threshold) for user: ${p.userId}`,
+  },
+  'e2ee.broken': {
+    level: 'error',
+    message: (p) =>
+      `E2EE broken for user ${p.userId} at keyIndex ${p.keyIndex}`,
+  },
+  'e2ee.key_state': null,
+  'e2ee.perf_report': null,
+};
 
 /**
  * AES-GCM variant used for media frame encryption.
@@ -410,56 +455,22 @@ export class EncryptionManager
   };
 
   private handleWorkerMessage = (e: MessageEvent) => {
-    const { type } = e.data ?? {};
-    switch (type) {
-      case 'e2ee.error':
-        this.logger.error(e.data.message);
-        break;
-      case 'e2ee.decryption_failed':
-        this.logger.warn(`Decryption failed for user: ${e.data.userId}`);
-        this.emit('e2ee.decryption_failed', e.data.userId);
-        break;
-      case 'e2ee.decryption_resumed':
-        this.logger.info(`Decryption resumed for user: ${e.data.userId}`);
-        this.emit('e2ee.decryption_resumed', e.data.userId);
-        break;
-      case 'e2ee.encryption_failed':
-        this.logger.error(`Encryption failed: ${e.data.reason}`);
-        this.emit('e2ee.encryption_failed', e.data.reason);
-        break;
-      case 'e2ee.missing_key':
-        this.logger.warn(`No encryption key for user: ${e.data.userId}`);
-        this.emit('e2ee.missing_key', { userId: e.data.userId });
-        break;
-      case 'e2ee.rotation_needed':
-        this.logger.warn(
-          `Rekey requested (counter-threshold) for user: ${e.data.userId}`,
-        );
-        this.emit('e2ee.rotation_needed', { userId: e.data.userId });
-        break;
-      case 'e2ee.broken':
-        this.logger.error(
-          `E2EE broken for user ${e.data.userId} at keyIndex ${e.data.keyIndex}`,
-        );
-        this.emit('e2ee.broken', {
-          userId: e.data.userId,
-          keyIndex: e.data.keyIndex,
-        });
-        break;
-      case 'e2ee.key_state':
-        this.emit('e2ee.key_state', {
-          perUserKeys: e.data.perUserKeys,
-          sharedKey: e.data.sharedKey,
-        });
-        break;
-      case 'e2ee.perf_report':
-        this.emit('e2ee.perf_report', {
-          encode: e.data.encode,
-          decode: e.data.decode,
-          decodeMaxCryptoMs: e.data.decodeMaxCryptoMs,
-        });
-        break;
+    const { type, ...payload } = e.data ?? {};
+    // `e2ee.error` is a worker-internal log-only channel, never surfaced as an
+    // SDK event, so it has no E2EEEventMap entry and is handled separately.
+    if (type === 'e2ee.error') {
+      this.logger.error(e.data.message);
+      return;
     }
+    if (!(type in WORKER_EVENT_LOG)) return; // unknown / non-event message
+    const event = type as keyof E2EEEventMap;
+    const log = WORKER_EVENT_LOG[event];
+    if (log)
+      this.logger[log.level]((log.message as (p: any) => string)(payload));
+    // The worker posts each notification already shaped as its event-map
+    // payload, so the rest of the message forwards verbatim. WORKER_EVENT_LOG is
+    // keyed by E2EEEventMap, so a new event won't compile without an entry here.
+    this.emit(event, payload as never);
   };
 
   private handleWorkerError = (e: ErrorEvent) => {

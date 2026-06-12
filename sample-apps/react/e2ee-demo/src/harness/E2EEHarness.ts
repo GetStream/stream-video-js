@@ -589,7 +589,7 @@ export class E2EEHarness {
   private wireEvents = (p: EngineParticipant): void => {
     const m = p.manager;
     p.unsubscribes.push(
-      m.on('e2ee.decryption_failed', (remoteUserId: string) => {
+      m.on('e2ee.decryption_failed', ({ userId: remoteUserId }) => {
         p.failingFrom.add(remoteUserId);
         const name = this.nameFor(remoteUserId);
         this.addLog(
@@ -599,7 +599,7 @@ export class E2EEHarness {
         );
         this.emit();
       }),
-      m.on('e2ee.decryption_resumed', (remoteUserId: string) => {
+      m.on('e2ee.decryption_resumed', ({ userId: remoteUserId }) => {
         p.failingFrom.delete(remoteUserId);
         this.addLog(
           p.userId,

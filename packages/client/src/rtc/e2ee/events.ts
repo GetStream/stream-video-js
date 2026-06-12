@@ -27,6 +27,33 @@ export type MissingKeyEvent = {
 };
 
 /**
+ * Fired when the worker fails to decrypt a frame from a remote participant.
+ * Throttled to at most once per second per remote user in the worker.
+ */
+export type DecryptionFailedEvent = {
+  /** Remote user whose frame could not be decrypted. */
+  userId: string;
+};
+
+/**
+ * Fired when decryption resumes for a remote participant after previously
+ * reported failures.
+ */
+export type DecryptionResumedEvent = {
+  /** Remote user whose frames decrypt successfully again. */
+  userId: string;
+};
+
+/**
+ * Fired at most once per worker session when an outgoing frame fails to
+ * encrypt. When this fires, the sender is effectively publishing nothing.
+ */
+export type EncryptionFailedEvent = {
+  /** Short, human-readable reason the encrypt failed. */
+  reason: string;
+};
+
+/**
  * Fired when the SDK detects that the E2EE session is broken for a remote
  * user — decryption has failed repeatedly past the internal tolerance.
  */
@@ -67,26 +94,20 @@ export type E2EEEventMap = {
    * Emitted when the worker fails to decrypt a frame from a remote participant.
    * Indicates a key mismatch, a rotation in progress, or a tampered frame.
    * Throttled to at most once per second per remote user in the worker.
-   *
-   * Payload: remote user id.
    */
-  'e2ee.decryption_failed': string;
+  'e2ee.decryption_failed': DecryptionFailedEvent;
 
   /**
    * Emitted when decryption resumes successfully for a remote participant
    * after previously reported failures.
-   *
-   * Payload: remote user id.
    */
-  'e2ee.decryption_resumed': string;
+  'e2ee.decryption_resumed': DecryptionResumedEvent;
 
   /**
    * Emitted at most once per worker session if an outgoing frame fails to
    * encrypt. When this fires, the sender is effectively publishing nothing.
-   *
-   * Payload: short reason string.
    */
-  'e2ee.encryption_failed': string;
+  'e2ee.encryption_failed': EncryptionFailedEvent;
 
   /**
    * Emitted when the encoder has no key for the local user, so outgoing

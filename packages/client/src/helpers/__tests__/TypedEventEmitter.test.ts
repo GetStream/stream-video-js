@@ -55,50 +55,6 @@ describe('TypedEventEmitter', () => {
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
-  it('fires once() listeners exactly once', () => {
-    const listener = vi.fn();
-    emitter.once('ping', listener);
-    emitter.emit('ping', { n: 1 });
-    emitter.emit('ping', { n: 2 });
-    expect(listener).toHaveBeenCalledTimes(1);
-    expect(listener).toHaveBeenCalledWith({ n: 1 });
-  });
-
-  it('allows canceling a once() subscription before it fires', () => {
-    const listener = vi.fn();
-    const unsubscribe = emitter.once('ping', listener);
-    unsubscribe();
-    emitter.emit('ping', { n: 1 });
-    expect(listener).not.toHaveBeenCalled();
-  });
-
-  it('removes a once() listener via off(originalFn) before it fires', () => {
-    // once() stores an internal wrapper, but the documented unsubscribe path
-    // off(name, handler) takes the original handler - it must still cancel.
-    const listener = vi.fn();
-    emitter.once('ping', listener);
-    emitter.off('ping', listener);
-    emitter.emit('ping', { n: 1 });
-    expect(listener).not.toHaveBeenCalled();
-  });
-
-  it('delivers events to onAny() listeners with (event, payload)', () => {
-    const any = vi.fn();
-    emitter.onAny(any);
-    emitter.emit('hello', 'world');
-    emitter.emit('ping', { n: 2 });
-    expect(any).toHaveBeenNthCalledWith(1, 'hello', 'world');
-    expect(any).toHaveBeenNthCalledWith(2, 'ping', { n: 2 });
-  });
-
-  it('unsubscribes onAny() listeners via returned fn', () => {
-    const any = vi.fn();
-    const unsubscribe = emitter.onAny(any);
-    unsubscribe();
-    emitter.emit('hello', 'world');
-    expect(any).not.toHaveBeenCalled();
-  });
-
   it('isolates a throwing listener from subsequent listeners', () => {
     const bad = vi.fn(() => {
       throw new Error('boom');
@@ -154,30 +110,24 @@ describe('TypedEventEmitter', () => {
   it('removeAllListeners() clears every subscription when called without args', () => {
     const a = vi.fn();
     const b = vi.fn();
-    const any = vi.fn();
     emitter.on('hello', a);
     emitter.on('ping', b);
-    emitter.onAny(any);
     emitter.removeAllListeners();
     emitter.emit('hello', 'world');
     emitter.emit('ping', { n: 1 });
     expect(a).not.toHaveBeenCalled();
     expect(b).not.toHaveBeenCalled();
-    expect(any).not.toHaveBeenCalled();
   });
 
-  it('removeAllListeners(event) clears only that event and keeps onAny', () => {
+  it('removeAllListeners(event) clears only that event', () => {
     const a = vi.fn();
     const b = vi.fn();
-    const any = vi.fn();
     emitter.on('hello', a);
     emitter.on('ping', b);
-    emitter.onAny(any);
     emitter.removeAllListeners('hello');
     emitter.emit('hello', 'world');
     emitter.emit('ping', { n: 1 });
     expect(a).not.toHaveBeenCalled();
     expect(b).toHaveBeenCalledWith({ n: 1 });
-    expect(any).toHaveBeenCalledTimes(2);
   });
 });

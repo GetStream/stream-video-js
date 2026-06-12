@@ -87,6 +87,11 @@ const fingerprint = async (rawKey: ArrayBuffer): Promise<Uint8Array> => {
   return new Uint8Array(hash, 0, 8);
 };
 
+/**
+ * Resolve the decryption key for (userId, keyIndex): the per-user entry if one
+ * is registered, else the shared key when it owns that index, else undefined.
+ * Used on the DECODE path, where the keyIndex comes from the frame trailer.
+ */
 export const getKey = (
   userId: string,
   keyIndex: number,
@@ -97,28 +102,21 @@ export const getKey = (
   return undefined;
 };
 
-export const getLatestKey = (userId: string): ResolvedKey | null => {
+/**
+ * The latest key for a user, paired with the sender IV prefix to encrypt with -
+ * the single lookup the ENCODE path needs. Resolves the most recently imported
+ * per-user key, falling back to the shared key. The `ivPrefix` rides along so
+ * the encoder never resolves the same material a second time.
+ */
+export const getLatestKey = (
+  userId: string,
+): (ResolvedKey & { ivPrefix: Uint8Array }) | null => {
   const idx = latestKeyIndex.get(userId);
   if (idx !== undefined) {
     const km = perUserKeys.get(userId)?.get(idx);
-    if (km) return { key: km.key, keyIndex: idx };
+    if (km) return { key: km.key, keyIndex: idx, ivPrefix: km.ivPrefix };
   }
   return sharedKey;
-};
-
-/**
- * Returns the sender IV prefix for a given (userId, keyIndex) — used only
- * on the ENCODE path. Falls back to the shared-key prefix if no per-user
- * key is registered at that index.
- */
-export const getSenderIvPrefix = (
-  userId: string,
-  keyIndex: number,
-): Uint8Array | null => {
-  const perUser = perUserKeys.get(userId)?.get(keyIndex);
-  if (perUser) return perUser.ivPrefix;
-  if (sharedKey && keyIndex === sharedKey.keyIndex) return sharedKey.ivPrefix;
-  return null;
 };
 
 /** Fill a pre-allocated IV buffer: [8-byte prefix][4-byte frame counter BE]. */
@@ -323,24 +321,33 @@ const aesGcmParams = (rawKey: ArrayBuffer): AesKeyAlgorithm => ({
   length: rawKey.byteLength * 8,
 });
 
+/**
+ * Import raw AES-GCM key bytes into a non-extractable CryptoKey, paired with a
+ * fresh random sender IV prefix and the key fingerprint. Shared by
+ * {@link importKey} and {@link importSharedKey}; the fresh-per-import prefix is
+ * what lets the same raw key be re-imported without risking AES-GCM IV reuse.
+ */
+const importKeyMaterial = async (rawKey: ArrayBuffer): Promise<KeyMaterial> => {
+  const [key, fp] = await Promise.all([
+    crypto.subtle.importKey('raw', rawKey, aesGcmParams(rawKey), false, [
+      'encrypt',
+      'decrypt',
+    ]),
+    fingerprint(rawKey),
+  ]);
+  return { key, ivPrefix: randomBytes(IV_PREFIX_LEN), fingerprint: fp };
+};
+
 export const importKey = async (
   userId: string,
   keyIndex: number,
   rawKey: ArrayBuffer,
 ) => {
   try {
-    const [cryptoKey, fp] = await Promise.all([
-      crypto.subtle.importKey('raw', rawKey, aesGcmParams(rawKey), false, [
-        'encrypt',
-        'decrypt',
-      ]),
-      fingerprint(rawKey),
-    ]);
-    getOrCreate(perUserKeys, userId).set(keyIndex, {
-      key: cryptoKey,
-      ivPrefix: randomBytes(IV_PREFIX_LEN),
-      fingerprint: fp,
-    });
+    getOrCreate(perUserKeys, userId).set(
+      keyIndex,
+      await importKeyMaterial(rawKey),
+    );
     latestKeyIndex.set(userId, keyIndex);
     resetDecryptionFailures(userId, keyIndex);
   } catch (e: any) {
@@ -356,19 +363,7 @@ export const importSharedKey = async (
   rawKey: ArrayBuffer,
 ) => {
   try {
-    const [cryptoKey, fp] = await Promise.all([
-      crypto.subtle.importKey('raw', rawKey, aesGcmParams(rawKey), false, [
-        'encrypt',
-        'decrypt',
-      ]),
-      fingerprint(rawKey),
-    ]);
-    sharedKey = {
-      key: cryptoKey,
-      keyIndex,
-      ivPrefix: randomBytes(IV_PREFIX_LEN),
-      fingerprint: fp,
-    };
+    sharedKey = { ...(await importKeyMaterial(rawKey)), keyIndex };
     // The shared keyIndex now refers to a fresh key → reset decryption-failure
     // state tied to that slot for every user
     for (const inner of decryptionFailureCounts.values()) {

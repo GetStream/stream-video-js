@@ -23,9 +23,13 @@ const findStartCode = (
 /**
  * Returns clear-byte count for H.264: everything up to the first slice
  * NALU's start index + 2 (start code + NALU header + 1 byte of slice header).
- * Slice NALUs: type 1 (non-IDR) and type 5 (IDR).
+ * Slice NALUs: type 1 (non-IDR) and type 5 (IDR). Takes the unused frame type so
+ * it conforms to {@link CodecProfile.clearBytes} and can be referenced directly.
  */
-const h264ClearBytes = (data: Uint8Array): number => {
+const h264ClearBytes = (
+  _frameType: string | undefined,
+  data: Uint8Array,
+): number => {
   let sc = findStartCode(data, 0);
   while (sc) {
     const headerPos = sc.pos + sc.len;
@@ -145,32 +149,67 @@ export const rbspUnescape = (data: Uint8Array): Uint8Array => {
   return result.subarray(0, j);
 };
 
-/** Codecs the worker knows how to split into clear header + encrypted body. */
-const SUPPORTED_CODECS = new Set(['opus', 'vp8', 'vp9', 'h264', 'av1']);
-
-export const isSupportedCodec = (codec: string | undefined): boolean =>
-  codec === undefined || SUPPORTED_CODECS.has(codec);
-
 /**
- * How many leading bytes of a frame stay unencrypted (passed as AAD).
- * This lets the SFU detect keyframes and select layers without decrypting.
- *
- * `frameType === undefined` indicates an audio frame (no keyframe concept
- * in the encoded transform API).
+ * How E2EE splits a frame, per codec — the single source of encode-side codec
+ * knowledge. Adding a codec here wires it into support detection, clear-byte
+ * sizing, RBSP escaping, and framing-scheme selection at once, so a codec can't
+ * be half-supported (e.g. an H265 entry that forgets NALU escaping and ships
+ * start-code-corrupting ciphertext).
  */
-export const getClearByteCount = (
-  codec: string | undefined,
+export interface CodecProfile {
+  /**
+   * `'trailer'` = clear header + encrypted body + 20-byte trailer (audio,
+   * VP8/VP9, H264). `'av1'` = per-OBU inline header, no trailer (see ./av1.ts).
+   */
+  scheme: 'trailer' | 'av1';
+  /** RBSP-escape ciphertext + trailer to suppress fake Annex-B start codes (H264). */
+  rbsp: boolean;
+  /**
+   * Leading bytes left unencrypted (passed as AAD) so the SFU can read frame
+   * headers / select layers without decrypting.
+   */
+  clearBytes: (frameType: string | undefined, data: Uint8Array) => number;
+}
+
+// Audio (no keyframe concept) keeps the Opus TOC byte clear; anything without a
+// codec-specific rule encrypts the whole frame.
+const defaultClearBytes = (frameType: string | undefined): number =>
+  frameType === undefined ? 1 : 0;
+
+// VP8/VP9 keep a fixed header clear, clamped to the frame length so a short
+// frame never claims more clear bytes than it has - otherwise encode zero-pads
+// the clear header and decode builds a length-mismatched AAD.
+const vpClearBytes = (
   frameType: string | undefined,
   data: Uint8Array,
 ): number => {
-  if (frameType === undefined) return 1; // audio (Opus TOC byte)
-  if (codec === 'vp8' || codec === 'vp9') {
-    // Clamp to the frame length (as h264ClearBytes does): a frame shorter than
-    // the nominal header must not claim more clear bytes than it has, or encode
-    // zero-pads the clear header and decode builds a length-mismatched AAD.
-    const clear = frameType === 'key' ? 10 : 3;
-    return clear > data.length ? data.length : clear;
-  }
-  if (codec === 'h264') return h264ClearBytes(data);
-  return 0; // others
+  const clear = frameType === 'key' ? 10 : 3;
+  return clear > data.length ? data.length : clear;
 };
+
+// AV1 carries no clear prefix in this scheme (each OBU has an inline header
+// instead); the encoder branches on `scheme` first, so this is never invoked.
+const noClearBytes = (): number => 0;
+
+const CODEC_PROFILES: Record<string, CodecProfile> = {
+  opus: { scheme: 'trailer', rbsp: false, clearBytes: defaultClearBytes },
+  vp8: { scheme: 'trailer', rbsp: false, clearBytes: vpClearBytes },
+  vp9: { scheme: 'trailer', rbsp: false, clearBytes: vpClearBytes },
+  h264: { scheme: 'trailer', rbsp: true, clearBytes: h264ClearBytes },
+  av1: { scheme: 'av1', rbsp: false, clearBytes: noClearBytes },
+};
+
+// Unknown / absent codec: audio passes through with the Opus clear byte, video
+// encrypts whole. Matches the legacy `frameType === undefined ? 1 : 0` fallback.
+const DEFAULT_PROFILE: CodecProfile = {
+  scheme: 'trailer',
+  rbsp: false,
+  clearBytes: defaultClearBytes,
+};
+
+/** Resolve a codec's profile, falling back to the passthrough default. */
+export const getCodecProfile = (codec: string | undefined): CodecProfile =>
+  (codec !== undefined && CODEC_PROFILES[codec]) || DEFAULT_PROFILE;
+
+export const isSupportedCodec = (codec: string | undefined): boolean =>
+  codec === undefined || codec in CODEC_PROFILES;
