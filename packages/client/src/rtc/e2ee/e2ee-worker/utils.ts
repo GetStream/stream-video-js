@@ -37,38 +37,24 @@ export const createThrottle = (intervalMs: number) => {
   };
 };
 
-const msgQueue: Array<() => Promise<void>> = [];
-let msgQueueRunning = false;
-
-const drain = async () => {
-  if (msgQueueRunning) return;
-  msgQueueRunning = true;
-  try {
-    while (msgQueue.length > 0) {
-      const task = msgQueue.shift()!;
-      await task();
-    }
-  } finally {
-    msgQueueRunning = false;
-  }
-};
+/** Settled tail of the serial task chain; the next task chains off it. */
+let tail: Promise<unknown> = Promise.resolve();
 
 /**
  * Serialize async tasks to prevent races between key operations and
  * transform setup (e.g. `setKey` arriving while a transform is being wired
  * up). Returns a promise that resolves/rejects with the task's own outcome.
+ *
+ * Tasks run strictly FIFO, one at a time: each is chained off the previous
+ * task's settled result. The chain's `tail` swallows errors so one rejecting
+ * task never stalls the queue, while the returned promise still surfaces that
+ * task's own rejection to its caller.
  */
-export const enqueue = <T>(fn: () => Promise<T>): Promise<T> =>
-  new Promise<T>((resolve, reject) => {
-    msgQueue.push(async () => {
-      try {
-        resolve(await fn());
-      } catch (e) {
-        reject(e);
-      }
-    });
-    drain();
-  });
+export const enqueue = <T>(fn: () => Promise<T>): Promise<T> => {
+  const run = tail.then(fn);
+  tail = run.catch(() => {});
+  return run;
+};
 
 // Offsets inside the 20-byte trailer.
 const OFF_IV_PREFIX = FRAME_COUNTER_LEN; // 4

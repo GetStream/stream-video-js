@@ -123,6 +123,23 @@ describe('enqueue', () => {
     expect(order).toEqual([0, 1, 2, 3, 4]);
   });
 
+  it('runs tasks serially, never overlapping a previous task still in flight', async () => {
+    // Serialization, not just emission order: each task body yields several
+    // microtasks while "active". If two ran concurrently, active would exceed 1.
+    let active = 0;
+    let maxActive = 0;
+    const task = () =>
+      enqueue(async () => {
+        active++;
+        maxActive = Math.max(maxActive, active);
+        await Promise.resolve();
+        await Promise.resolve();
+        active--;
+      });
+    await Promise.all([task(), task(), task()]);
+    expect(maxActive).toBe(1);
+  });
+
   it('continues running later tasks after one rejects', async () => {
     const seen: string[] = [];
     const ok1 = enqueue(async () => {
