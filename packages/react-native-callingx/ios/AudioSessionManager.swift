@@ -65,29 +65,44 @@ enum DefaultAudioDevice {
     // MARK: - Private
 
     private func applyCallKitConfiguration() {
-        let currentDevice = stateQueue.sync { defaultAudioDevice }
+        let rtcSession = RTCAudioSession.sharedInstance()
 
-        // XCode 16 and older don't expose .allowBluetoothHFP
-        // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
-        #if compiler(>=6.2) // For Xcode 26.0+
-            let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
-        #else
-            let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
-        #endif
-
-        var categoryOptions: AVAudioSession.CategoryOptions = [bluetoothOption, .allowBluetoothA2DP]
-        if currentDevice == .speaker {
-            categoryOptions.insert(.defaultToSpeaker)
-        }
+        // Relax to a pure-output (.playback) session when mic permission is
+        // missing — but only once CallKit has already activated the session.
+        let usePlaybackFallback = rtcSession.isActive && !micPermissionGranted()
 
         // webRTC() singleton hardcodes sampleRate=48000 / ioBufferDuration=0.02 — keep those.
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
-        rtcConfig.category = AVAudioSession.Category.playAndRecord.rawValue
-        rtcConfig.mode = AVAudioSession.Mode.voiceChat.rawValue
-        rtcConfig.categoryOptions = categoryOptions
+        if usePlaybackFallback {
+            // Known gap: .playback can't route to the receiver (earpiece) — that route
+            // only exists under .playAndRecord.
+            rtcConfig.category = AVAudioSession.Category.playback.rawValue
+            rtcConfig.mode = AVAudioSession.Mode.spokenAudio.rawValue
+            rtcConfig.categoryOptions = []
+        } else {
+            let currentDevice = stateQueue.sync { defaultAudioDevice }
+
+            // XCode 16 and older don't expose .allowBluetoothHFP
+            // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
+            #if compiler(>=6.2) // For Xcode 26.0+
+                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
+            #else
+                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
+            #endif
+
+            var categoryOptions: AVAudioSession.CategoryOptions = [bluetoothOption, .allowBluetoothA2DP]
+            if currentDevice == .speaker {
+                categoryOptions.insert(.defaultToSpeaker)
+            }
+
+            rtcConfig.category = AVAudioSession.Category.playAndRecord.rawValue
+            rtcConfig.mode = AVAudioSession.Mode.voiceChat.rawValue
+            rtcConfig.categoryOptions = categoryOptions
+        }
         RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
 
-        let rtcSession = RTCAudioSession.sharedInstance()
+        CallingxLog.audio.debugPublic("[applyCallKitConfiguration] category=\(rtcConfig.category) mode=\(rtcConfig.mode)")
+
         rtcSession.lockForConfiguration()
         defer { rtcSession.unlockForConfiguration() }
 
@@ -95,6 +110,14 @@ enum DefaultAudioDevice {
             try rtcSession.setConfiguration(rtcConfig)
         } catch {
             CallingxLog.audio.errorPublic("[createAudioSessionIfNeeded] Error: \(error)")
+        }
+    }
+
+    private func micPermissionGranted() -> Bool {
+        if #available(iOS 17.0, *) {
+            return AVAudioApplication.shared.recordPermission == .granted
+        } else {
+            return AVAudioSession.sharedInstance().recordPermission == .granted
         }
     }
 }

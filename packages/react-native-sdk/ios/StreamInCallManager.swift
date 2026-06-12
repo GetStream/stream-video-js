@@ -120,9 +120,11 @@ class StreamInCallManager: RCTEventEmitter {
         } else if !micPermissionGranted() {
             // Communicator without mic permission (denied or not yet asked): use a
             // pure-output, no-VPIO session so the output-only AVAudioEngine renders
-            // remote audio. Mirrors stream-video-swift 
+            // remote audio. Mirrors stream-video-swift
             // (isRecordingEnabled ? .playAndRecord : .playback). We can't record anyway.
             // Self-heals: granting permission + unmuting rebuilds the engine.
+            // Known gap: .playback can't route to the receiver (earpiece) — that route
+            // only exists under .playAndRecord.
             category = .playback
             mode = .spokenAudio
             options = []
