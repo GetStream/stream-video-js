@@ -390,8 +390,13 @@ export class ClientEventReporter {
     const joinAttemptId = this.joinAttemptIds.get(cid);
     if (!joinAttemptId) return;
     const coordinatorConnectId = this.coordinatorConnectId;
+    const ctx = this.callContexts.get(cid);
+
     this.send({
       user_id: this.streamClient.userID,
+      type: ctx?.callType,
+      id: ctx?.callId,
+      call_cid: cid,
       stage: 'JoinInitiated',
       join_attempt_id: joinAttemptId,
       ...(coordinatorConnectId && {

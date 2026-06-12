@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.53.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.53.0...@stream-io/video-client-1.53.1) (2026-06-12)
+
+### Bug Fixes
+
+- **client:** Send call data in JoinInitiated event ([#2283](https://github.com/GetStream/stream-video-js/issues/2283)) ([7e9ce3e](https://github.com/GetStream/stream-video-js/commit/7e9ce3e3e3c4ebe8080f86793855a39abe7e19ef))
+- **ios:** joining a call muted may break remote audio playout ([#2282](https://github.com/GetStream/stream-video-js/issues/2282)) ([dc672a6](https://github.com/GetStream/stream-video-js/commit/dc672a69971d6ca46648696c242609c687cb42d7))
+
 ## [1.53.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.52.0...@stream-io/video-client-1.53.0) (2026-06-11)
 
 ### Features
