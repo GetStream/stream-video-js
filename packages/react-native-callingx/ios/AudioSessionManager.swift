@@ -109,7 +109,7 @@ enum DefaultAudioDevice {
         do {
             try rtcSession.setConfiguration(rtcConfig)
         } catch {
-            CallingxLog.audio.errorPublic("[createAudioSessionIfNeeded] Error: \(error)")
+            CallingxLog.audio.errorPublic("[applyCallKitConfiguration] Error: \(error)")
         }
     }
 

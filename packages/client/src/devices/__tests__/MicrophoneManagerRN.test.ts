@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MicrophoneManager } from '../MicrophoneManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
-import { StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import {
   mockAudioDevices,
   mockAudioStream,
@@ -262,6 +262,25 @@ describe('MicrophoneManager React Native', () => {
       timeout: 100,
     });
     expect(setMutedRecordingPreparedMock).not.toHaveBeenCalledWith(true);
+  });
+
+  it('should release prepared muted recording when the call is left', async () => {
+    await manager.disable();
+    await vi.waitUntil(
+      () =>
+        setMutedRecordingPreparedMock.mock.calls.some(([arg]) => arg === true),
+      { timeout: 100 },
+    );
+    setMutedRecordingPreparedMock.mockClear();
+
+    manager['call'].state.setCallingState(CallingState.LEFT);
+
+    await vi.waitUntil(
+      () =>
+        setMutedRecordingPreparedMock.mock.calls.some(([arg]) => arg === false),
+      { timeout: 100 },
+    );
+    expect(setMutedRecordingPreparedMock).toHaveBeenCalledWith(false);
   });
 
   afterEach(() => {

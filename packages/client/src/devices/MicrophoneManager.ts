@@ -76,6 +76,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
         ]) => {
           try {
             if (callingState === CallingState.LEFT) {
+              this.setMutedRecordingPrepared(false);
               await this.stopSpeakingWhileMutedDetection();
             }
             if (callingState !== CallingState.JOINED) return;
