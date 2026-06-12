@@ -100,19 +100,7 @@ export const rbspEscapeInto = (
   }
 };
 
-/**
- * Escape a single buffer, returning the same buffer when no escapes are needed.
- */
-export const rbspEscape = (data: Uint8Array): Uint8Array => {
-  const segments = [data];
-  const escapedLength = rbspEscapedLength(segments);
-  if (escapedLength === data.length) return data;
-  const result = new Uint8Array(escapedLength);
-  rbspEscapeInto(result, 0, segments);
-  return result;
-};
-
-/** Reverse of rbspEscape: strip 0x03 after 0x00 0x00 before 0x00-0x03. */
+/** Reverse of RBSP escaping: strip 0x03 after 0x00 0x00 before 0x00-0x03. */
 export const rbspUnescape = (data: Uint8Array): Uint8Array => {
   let remove = 0;
   for (let i = 0; i < data.length - 2; ++i) {

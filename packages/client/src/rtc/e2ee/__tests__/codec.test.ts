@@ -2,11 +2,19 @@ import { describe, expect, it } from 'vitest';
 import {
   getCodecProfile,
   isSupportedCodec,
-  rbspEscape,
   rbspEscapeInto,
   rbspEscapedLength,
   rbspUnescape,
 } from '../e2ee-worker/codec';
+
+// Single-buffer escape helper. Production only ever escapes the
+// [ciphertext, trailer] segment pair via rbspEscapedLength + rbspEscapeInto, so
+// this convenience wrapper lives in the test rather than the shipped worker.
+const rbspEscape = (data: Uint8Array): Uint8Array => {
+  const out = new Uint8Array(rbspEscapedLength([data]));
+  rbspEscapeInto(out, 0, [data]);
+  return out;
+};
 
 describe('rbspEscape + rbspUnescape', () => {
   const roundTrip = (input: number[]) => {
@@ -18,7 +26,7 @@ describe('rbspEscape + rbspUnescape', () => {
 
   it('is identity when no escape needed', () => {
     const { escaped } = roundTrip([1, 2, 3, 4, 5]);
-    // No zero pairs → the function returns the SAME underlying buffer.
+    // No zero pairs → no emulation-prevention bytes inserted.
     expect(escaped).toEqual(new Uint8Array([1, 2, 3, 4, 5]));
   });
 

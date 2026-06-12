@@ -146,6 +146,5 @@ export const readTrailer = (src: Uint8Array): Trailer | null => {
     keyIndex: src[start + OFF_KEY_INDEX],
     clearBytes,
     isRbsp: (raw & RBSP_FLAG) !== 0,
-    version,
   };
 };

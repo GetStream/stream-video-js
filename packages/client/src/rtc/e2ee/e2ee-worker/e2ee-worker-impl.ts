@@ -410,9 +410,8 @@ const decodeTransform = (userId: string) => {
       const trailer = readTrailer(src);
 
       if (!trailer) {
-        // No v2 trailer. Could be a v3-encrypted AV1 frame (OBU-inline, no
-        // trailer) or a genuinely unencrypted frame. Detect AV1 from the OBU
-        // stream; anything else passes through untouched.
+        // No trailer. Could be a an AV1 frame (OBU-inline, no trailer) or
+        // a genuinely unencrypted frame. Detect AV1 from the OBU stream
         const parsed = parseEncryptedAv1(src);
         if (!parsed) {
           controller.enqueue(frame);
@@ -429,8 +428,6 @@ const decodeTransform = (userId: string) => {
         );
       }
 
-      // readTrailer only returns non-null for our current wire version, so no
-      // version check is needed here.
       const { clearBytes, isRbsp } = trailer;
 
       // For an RBSP (H264) frame the ciphertext AND the counter/ivPrefix/keyIndex

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  E2EE_VERSION,
   IV_PREFIX_LEN,
   MAGIC,
   MAX_CLEAR_BYTES,
@@ -30,7 +29,6 @@ describe('writeTrailer + readTrailer', () => {
     expect(trailer!.keyIndex).toBe(7);
     expect(trailer!.clearBytes).toBe(10);
     expect(trailer!.isRbsp).toBe(false);
-    expect(trailer!.version).toBe(E2EE_VERSION);
     expect(Array.from(trailer!.ivPrefix)).toEqual(Array.from(prefix));
   });
 

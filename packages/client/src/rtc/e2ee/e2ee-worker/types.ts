@@ -12,5 +12,4 @@ export interface Trailer {
   keyIndex: number;
   clearBytes: number;
   isRbsp: boolean;
-  version: number;
 }
