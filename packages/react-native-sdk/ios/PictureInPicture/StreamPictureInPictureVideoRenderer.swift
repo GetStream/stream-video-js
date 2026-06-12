@@ -431,7 +431,9 @@ final class StreamPictureInPictureVideoRenderer: UIView, RTCVideoRenderer {
             if shouldShowAvatar {
                 PictureInPictureLogger.log("updateOverlayVisibility: showing avatar, forcing layout. participantName=\(participantName ?? "nil"), avatarView.participantName='\(avatarView.participantName ?? "nil")'")
                 avatarView.setNeedsLayout()
-                avatarView.layoutIfNeeded()
+                if bounds.width > 0, bounds.height > 0 {
+                    avatarView.layoutIfNeeded()
+                }
             }
             
             // Participant overlay shows on BOTH video and avatar (matches upstream)
