@@ -44,37 +44,67 @@ const h264ClearBytes = (data: Uint8Array): number => {
 };
 
 /**
+ * Total length of `segments` after RBSP escaping (sum of segment lengths plus
+ * the inserted emulation-prevention bytes), treating the segments as one
+ * contiguous stream so a 0x00 0x00 run is recognised across a segment boundary.
+ * Lets a caller size a destination buffer exactly before escaping into it with
+ * {@link rbspEscapeInto}.
+ */
+export const rbspEscapedLength = (segments: Uint8Array[]): number => {
+  let total = 0;
+  let zeros = 0;
+  for (const seg of segments) {
+    total += seg.length;
+    for (let i = 0; i < seg.length; ++i) {
+      const byte = seg[i];
+      if (zeros >= 2 && byte <= 3) {
+        total++;
+        zeros = 0;
+      }
+      zeros = byte === 0 ? zeros + 1 : 0;
+    }
+  }
+  return total;
+};
+
+/**
  * Insert emulation-prevention bytes (0x03) after 0x00 0x00 when followed by
- * 0x00-0x03, preventing fake Annex B start codes in the encrypted payload.
- *
- * Two-pass: count required escapes first so the output buffer is sized
- * exactly. Saves up to 50% of the allocation for the non-worst-case path.
+ * 0x00-0x03, preventing fake Annex B start codes in the encrypted payload, by
+ * escaping `segments` (treated as one contiguous stream) into `dst` starting at
+ * byte `offset`. `dst` must have at least {@link rbspEscapedLength}(segments)
+ * bytes of room from `offset`. Splitting the length pass from the write lets the
+ * encoder escape ciphertext + trailer straight behind the clear header in a
+ * single copy instead of staging them through an intermediate buffer.
+ */
+export const rbspEscapeInto = (
+  dst: Uint8Array,
+  offset: number,
+  segments: Uint8Array[],
+): void => {
+  let j = offset;
+  let zeros = 0;
+  for (const seg of segments) {
+    for (let i = 0; i < seg.length; ++i) {
+      const byte = seg[i];
+      if (zeros >= 2 && byte <= 3) {
+        dst[j++] = 3;
+        zeros = 0;
+      }
+      dst[j++] = byte;
+      zeros = byte === 0 ? zeros + 1 : 0;
+    }
+  }
+};
+
+/**
+ * Escape a single buffer, returning the same buffer when no escapes are needed.
  */
 export const rbspEscape = (data: Uint8Array): Uint8Array => {
-  let escapeCount = 0;
-  let zeros = 0;
-  for (let i = 0; i < data.length; ++i) {
-    const byte = data[i];
-    if (zeros >= 2 && byte <= 3) {
-      escapeCount++;
-      zeros = 0;
-    }
-    zeros = byte === 0 ? zeros + 1 : 0;
-  }
-  if (escapeCount === 0) return data;
-
-  const result = new Uint8Array(data.length + escapeCount);
-  let j = 0;
-  zeros = 0;
-  for (let i = 0; i < data.length; ++i) {
-    const byte = data[i];
-    if (zeros >= 2 && byte <= 3) {
-      result[j++] = 3;
-      zeros = 0;
-    }
-    result[j++] = byte;
-    zeros = byte === 0 ? zeros + 1 : 0;
-  }
+  const segments = [data];
+  const escapedLength = rbspEscapedLength(segments);
+  if (escapedLength === data.length) return data;
+  const result = new Uint8Array(escapedLength);
+  rbspEscapeInto(result, 0, segments);
   return result;
 };
 

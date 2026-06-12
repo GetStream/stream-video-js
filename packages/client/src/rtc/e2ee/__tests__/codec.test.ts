@@ -3,6 +3,8 @@ import {
   getClearByteCount,
   isSupportedCodec,
   rbspEscape,
+  rbspEscapeInto,
+  rbspEscapedLength,
   rbspUnescape,
 } from '../e2ee-worker/codec';
 
@@ -60,6 +62,48 @@ describe('rbspEscape + rbspUnescape', () => {
         expect(escaped[i + 2]).toBeGreaterThanOrEqual(3);
       }
     }
+  });
+});
+
+describe('rbspEscapeInto + rbspEscapedLength (multi-segment)', () => {
+  // The H264 encode path escapes [ciphertext, trailer] as one stream straight
+  // behind the clear header. These lock in that escaping the segments is
+  // byte-identical to escaping their concatenation, including when an escape
+  // sequence straddles the segment boundary.
+  const concat = (...segs: number[][]) => new Uint8Array(segs.flat());
+
+  const escapeSegments = (segs: number[][]) => {
+    const segments = segs.map((s) => new Uint8Array(s));
+    const out = new Uint8Array(rbspEscapedLength(segments));
+    rbspEscapeInto(out, 0, segments);
+    return out;
+  };
+
+  it('matches single-buffer escaping of the concatenation', () => {
+    const a = [0xaa, 0, 0, 1, 0xbb];
+    const b = [0, 0, 2, 0xcc];
+    expect(Array.from(escapeSegments([a, b]))).toEqual(
+      Array.from(rbspEscape(concat(a, b))),
+    );
+  });
+
+  it('escapes a 00 00 run that straddles the segment boundary', () => {
+    // a ends in 00 00, b starts with 01 -> the escape byte must be inserted at
+    // the boundary exactly as if the bytes were one buffer.
+    const a = [0xaa, 0, 0];
+    const b = [1, 0xbb];
+    const escaped = escapeSegments([a, b]);
+    expect(Array.from(escaped)).toEqual([0xaa, 0, 0, 3, 1, 0xbb]);
+    expect(Array.from(rbspUnescape(escaped))).toEqual([...a, ...b]);
+  });
+
+  it('writes at a non-zero offset, leaving earlier bytes untouched', () => {
+    const segments = [new Uint8Array([0, 0, 1])];
+    const out = new Uint8Array(2 + rbspEscapedLength(segments));
+    out[0] = 0x11;
+    out[1] = 0x22;
+    rbspEscapeInto(out, 2, segments);
+    expect(Array.from(out)).toEqual([0x11, 0x22, 0, 0, 3, 1]);
   });
 });
 

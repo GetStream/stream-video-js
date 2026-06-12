@@ -33,6 +33,12 @@ export interface Obu {
   hasExtension: boolean;
   /** OBU payload (mutable; replaced with ciphertext during encryption). */
   payload: Uint8Array;
+  /**
+   * Optional bytes serialized immediately before {@link payload}, counted in
+   * obu_size. Lets the encryptor prepend the inline header without copying the
+   * ciphertext to splice it on (see encryptAv1Frame).
+   */
+  prefix?: Uint8Array;
 }
 
 /**
@@ -153,9 +159,12 @@ export const serializeObus = (obus: Obu[]): Uint8Array<ArrayBuffer> => {
   for (const obu of obus) {
     const header = obu.header.slice();
     header[0] |= 0x02; // obu_has_size_field
-    const size = writeLeb128(obu.payload.length);
-    parts.push(header, size, obu.payload);
-    total += header.length + size.length + obu.payload.length;
+    const prefixLen = obu.prefix ? obu.prefix.length : 0;
+    const size = writeLeb128(prefixLen + obu.payload.length);
+    parts.push(header, size);
+    if (obu.prefix) parts.push(obu.prefix);
+    parts.push(obu.payload);
+    total += header.length + size.length + prefixLen + obu.payload.length;
   }
   const out = new Uint8Array(total);
   let off = 0;

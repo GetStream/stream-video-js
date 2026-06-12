@@ -54,7 +54,8 @@ import { EMPTY_AAD, IV_LEN, MAX_CLEAR_BYTES, TRAILER_LEN } from './constants';
 import {
   getClearByteCount,
   isSupportedCodec,
-  rbspEscape,
+  rbspEscapeInto,
+  rbspEscapedLength,
   rbspUnescape,
 } from './codec';
 import { decryptAv1Frame, encryptAv1Frame, parseEncryptedAv1 } from './av1';
@@ -287,21 +288,15 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
           // safe by construction - the RBSP flag forces the clearBytes high byte
           // >= 0x80 - so they pass through escaping unchanged and the decoder can
           // still read clearBytes from the raw frame tail to locate the unit.
-          const unit = new Uint8Array(ciphertext.length + TRAILER_LEN);
-          unit.set(ciphertext, 0);
-          writeTrailer(
-            unit,
-            ciphertext.length,
-            counter,
-            prefix,
-            keyIndex,
-            clearBytes,
-            true,
-          );
-          const escaped = rbspEscape(unit);
-          const dst = new Uint8Array(clearBytes + escaped.length);
+          // Escape ciphertext + trailer straight behind the clear header so the
+          // ciphertext is copied once, not staged through an intermediate unit
+          // buffer then copied again behind the header (finding 4.1).
+          const trailer = new Uint8Array(TRAILER_LEN);
+          writeTrailer(trailer, 0, counter, prefix, keyIndex, clearBytes, true);
+          const body = [ciphertext, trailer];
+          const dst = new Uint8Array(clearBytes + rbspEscapedLength(body));
           dst.set(aad, 0);
-          dst.set(escaped, clearBytes);
+          rbspEscapeInto(dst, clearBytes, body);
           return dst;
         }
         const dst = new Uint8Array(

@@ -151,7 +151,13 @@ export const encryptAv1Frame = async (
           obu.payload as BufferSource,
         ),
       );
-      obu.payload = concatBytes(inlineHeader, cipher);
+      // Prepend the inline header as a serialized prefix rather than concat-ing
+      // it onto the ciphertext: serializeObus then copies the ciphertext once
+      // (into the output) instead of twice (once here, once on serialize). The
+      // header is frame-global and read-only, so sharing it across OBUs is safe
+      // (finding 4.2).
+      obu.prefix = inlineHeader;
+      obu.payload = cipher;
     }),
   );
 

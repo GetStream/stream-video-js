@@ -165,6 +165,17 @@ describe('serializeObus', () => {
     expect(out[0] & 0x02).toBe(0x02);
   });
 
+  it('serializes prefix before payload, with obu_size covering both', () => {
+    // The encryptor stores the inline header as a prefix instead of concat-ing
+    // it onto the ciphertext; serializeObus must emit prefix then payload and
+    // size obu_size for the sum, byte-identical to a single concatenated payload.
+    const obus = parseObus(new Uint8Array(makeObu(OBU_FRAME, [4, 5, 6])))!;
+    obus[0].prefix = new Uint8Array([1, 2, 3]);
+    const out = serializeObus(obus);
+    const reparsed = parseObus(out)!;
+    expect(Array.from(reparsed[0].payload)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
   it('does not mutate the source OBU header', () => {
     // Header byte without the size-field bit; serializeObus must not flip it
     // on the original Obu object (it should copy before setting the bit).
