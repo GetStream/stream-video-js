@@ -85,7 +85,7 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         return;
       }
       if (enabled) {
-        // Mute via the voice-processing unit (its the default, fail safe config here) so the input chain
+        // Mute via the voice-processing unit (it's the default, fail safe config here) so the input chain
         // stays built while muted, rather than tearing the engine down.
         AudioDeviceModule.setMuteMode(
           AudioEngineMuteMode.VoiceProcessing,
