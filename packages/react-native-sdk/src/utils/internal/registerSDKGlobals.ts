@@ -1,6 +1,10 @@
 import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
 import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
-import { audioDeviceModuleEvents } from '@stream-io/react-native-webrtc';
+import {
+  AudioDeviceModule,
+  AudioEngineMuteMode,
+  audioDeviceModuleEvents,
+} from '@stream-io/react-native-webrtc';
 import { getCallingxLibIfAvailable } from '../push/libs/callingx';
 import {
   endCallingxCall,
@@ -70,6 +74,24 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         return;
       }
       StreamInCallManagerNativeModule.stop();
+    },
+    // iOS-only. Keep the AVAudioEngine mic-input (voice-processing) chain
+    // prepared while muted so the engine stays full-duplex and remote audio
+    // renders when joining muted. Intentionally NOT gated by
+    // `shouldBypassForCallKit`: it acts on the shared `RTCAudioDeviceModule`, so
+    // it must run for both the StreamInCallManager and CallKit/callingx paths.
+    setMutedRecordingPrepared: (enabled) => {
+      if (Platform.OS !== 'ios') {
+        return;
+      }
+      if (enabled) {
+        // Mute via the voice-processing unit (its the default, fail safe config here) so the input chain
+        // stays built while muted, rather than tearing the engine down.
+        AudioDeviceModule.setMuteMode(
+          AudioEngineMuteMode.VoiceProcessing,
+        ).catch(() => {});
+      }
+      AudioDeviceModule.setRecordingAlwaysPreparedMode(enabled).catch(() => {});
     },
   },
   permissions: {
