@@ -4,13 +4,13 @@ export const MAGIC = 0xdeadbeef;
 /**
  * Wire format version. Bump when the trailer layout or IV derivation changes.
  *
- * v2:  [4B frameCounter][8B ivPrefix][1B keyIndex][2B clearBytes|flags]
- *      [1B version][4B magic] = 20 bytes.
- *      IV = ivPrefix ∥ frameCounter (12 bytes). ivPrefix is a sender-chosen
- *      random value, fresh per key import — prevents IV reuse even when the
- *      same raw key ends up being used across worker sessions.
+ * v1: [4B frameCounter][8B ivPrefix][1B keyIndex][2B clearBytes|flags]
+ *     [1B version][4B magic] = 20 bytes.
+ *     IV = ivPrefix ∥ frameCounter (12 bytes). ivPrefix is a sender-chosen
+ *     random value, fresh per key import — prevents IV reuse even when the
+ *     same raw key ends up being used across worker sessions.
  */
-export const E2EE_VERSION = 2;
+export const E2EE_VERSION = 1;
 
 /** Sender-chosen random prefix occupying the first 8 bytes of the IV. */
 export const IV_PREFIX_LEN = 8;
