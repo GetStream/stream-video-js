@@ -105,7 +105,7 @@ export const writeTrailer = (
  * decode path uses this on an already-recognized H264 RBSP frame, after the
  * encrypted unit (ciphertext + these fields) has been un-escaped — those three
  * fields are escaped together with the ciphertext so they cannot form fake
- * Annex-B start codes (finding 11), so they are not readable from the raw frame
+ * Annex-B start codes, so they are not readable from the raw frame
  * tail the way {@link readTrailer} reads clearBytes/version/magic.
  */
 export const readTrailerIv = (
@@ -139,7 +139,7 @@ export const readTrailer = (src: Uint8Array): Trailer | null => {
   // they read correctly even when the rest of the trailer was escaped. The
   // frameCounter/ivPrefix/keyIndex below are valid ONLY for non-RBSP frames; on
   // an RBSP frame they sit inside the escaped unit and must be re-read with
-  // {@link readTrailerIv} after un-escaping (finding 11).
+  // {@link readTrailerIv} after un-escaping.
   return {
     frameCounter: view.getUint32(start),
     ivPrefix: src.subarray(start + OFF_IV_PREFIX, start + OFF_KEY_INDEX),

@@ -231,9 +231,9 @@ describe('decode pipeline edge behaviors', () => {
     expect(posted.some((m) => m.type === 'e2ee.decryption_failed')).toBe(true);
   });
 
-  // --- authenticate-before-mutate (review findings 1 & 3) ------------------
+  // --- authenticate-before-mutate ------------------------------------------
 
-  it('a forged max-counter frame does not freeze the track (finding 1)', async () => {
+  it('a forged max-counter frame does not freeze the track', async () => {
     const user = freshUser();
     await setKey(user);
     // Two genuine frames (counters 1 and 2 for this user).
@@ -267,7 +267,7 @@ describe('decode pipeline edge behaviors', () => {
     ]);
   });
 
-  it('keeps attempting decryption after the failure tolerance is exceeded (finding 3)', async () => {
+  it('keeps attempting decryption after the failure tolerance is exceeded', async () => {
     const user = freshUser();
     await setKey(user);
     // Encode FAILURE_TOLERANCE + 2 genuine frames with distinct rising
@@ -308,7 +308,7 @@ describe('decode pipeline edge behaviors', () => {
     expect(posted.some((m) => m.type === 'e2ee.decryption_resumed')).toBe(true);
   });
 
-  it('scopes failure accounting per track so a healthy track cannot mask a broken one (finding 2.2)', async () => {
+  it('scopes failure accounting per track so a healthy track cannot mask a broken one', async () => {
     const user = freshUser();
     await setKey(user);
     // A video track and an audio track for the SAME user + keyIndex. Encode
@@ -371,7 +371,7 @@ describe('encode pipeline edge behaviors', () => {
     expect(posted.some((m) => m.type === 'e2ee.missing_key')).toBe(true);
   });
 
-  it('fails closed and signals encryption_failed on an unsupported codec (finding 14)', async () => {
+  it('fails closed and signals encryption_failed on an unsupported codec', async () => {
     const user = freshUser();
     await setKey(user);
     // A codec the worker can't split must not be published in the clear and
@@ -385,7 +385,7 @@ describe('encode pipeline edge behaviors', () => {
     expect(posted.some((m) => m.type === 'e2ee.encryption_failed')).toBe(true);
   }, 3000);
 
-  it('re-signals encryption_failed after recovery instead of latching for the worker lifetime (finding 2.3)', async () => {
+  it('re-signals encryption_failed after recovery instead of latching for the worker lifetime', async () => {
     const user = freshUser();
     await setKey(user);
     // One av1 encode transform: an unparseable (non-AV1) frame fails to encrypt,
@@ -407,7 +407,7 @@ describe('encode pipeline edge behaviors', () => {
   });
 });
 
-describe('h264 trailer start-code safety (finding 11)', () => {
+describe('h264 trailer start-code safety', () => {
   // SPS NALU, then an IDR slice NALU. h264ClearBytes leaves the start code +
   // NALU header + 2 slice-header bytes in the clear (14 bytes here) and
   // encrypts the rest.

@@ -179,7 +179,7 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
   // quiet until a frame encrypts again. Scoping it per transform and re-arming
   // on success means a later permanent fail-closed (e.g. the counter hard limit)
   // is still surfaced instead of being swallowed by one earlier transient error
-  // for the rest of the worker's life (review finding 2.3).
+  // for the rest of the worker's life.
   let encodeFailed = false;
   const signalEncodeFailure = (reason: string) => {
     if (encodeFailed) return;
@@ -281,14 +281,14 @@ const encodeTransform = (userId: string, codec: string | undefined) => {
         if (isNalu && clearBytes > 0) {
           // RBSP-escape the ciphertext AND the trailer as one unit so the
           // trailer's counter bytes can't form fake Annex-B start codes that
-          // libwebrtc's H264 packetizer would split on (finding 11). The last 7
+          // libwebrtc's H264 packetizer would split on. The last 7
           // trailer bytes (clearBytes|RBSP_FLAG, version, magic) are start-code
           // safe by construction - the RBSP flag forces the clearBytes high byte
           // >= 0x80 - so they pass through escaping unchanged and the decoder can
           // still read clearBytes from the raw frame tail to locate the unit.
           // Escape ciphertext + trailer straight behind the clear header so the
           // ciphertext is copied once, not staged through an intermediate unit
-          // buffer then copied again behind the header (finding 4.1).
+          // buffer then copied again behind the header.
           const trailer = new Uint8Array(TRAILER_LEN);
           writeTrailer(trailer, 0, counter, prefix, keyIndex, clearBytes, true);
           const body = [ciphertext, trailer];
@@ -334,8 +334,7 @@ const decodeTransform = (userId: string) => {
 
   // Replay state and failure accounting are scoped to this transform — i.e. this
   // single remote track — so a user's audio/video/screenshare tracks never share
-  // a window or a failure count (the latter is what lets e2ee.broken fire, see
-  // finding 2.2).
+  // a window or a failure count (the latter is what lets e2ee.broken fire).
   const replay = createReplayWindow();
   const failures = createFailureTracker();
 
@@ -352,7 +351,7 @@ const decodeTransform = (userId: string) => {
    * authenticates the frame. The replay window is only *peeked* up front and
    * *committed* after success; the failure counter is diagnostic only (it
    * gates the `e2ee.broken` signal, never the decrypt attempt) so a burst of
-   * forged frames cannot latch a genuine key invalid (review findings 1-3).
+   * forged frames cannot latch a genuine key invalid.
    */
   const finishDecode = async (
     frame: EncodedFrame,
@@ -435,7 +434,7 @@ const decodeTransform = (userId: string) => {
       const { clearBytes, isRbsp } = trailer;
 
       // For an RBSP (H264) frame the ciphertext AND the counter/ivPrefix/keyIndex
-      // were escaped as one unit (finding 11), so recover them by un-escaping
+      // were escaped as one unit, so recover them by un-escaping
       // from the clear header to the end - only the start-code-safe trailer tail
       // (clearBytes/version/magic, read above) stayed in the clear. A non-RBSP
       // frame keeps the whole trailer raw, so the fields read straight off it.
@@ -480,8 +479,7 @@ const decodeTransform = (userId: string) => {
  * frames whose codec the worker can't split fail closed - every frame is dropped
  * (never published in the clear) and the failure is surfaced as an observable
  * `e2ee.encryption_failed`. Previously the unsupported case returned without
- * piping, leaving the encoder's frames to buffer forever with no signal
- * (finding 14).
+ * piping, leaving the encoder's frames to buffer forever with no signal.
  */
 const selectTransform = (
   operation: string,

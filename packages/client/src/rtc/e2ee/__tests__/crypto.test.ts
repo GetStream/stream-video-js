@@ -229,9 +229,9 @@ describe('createReplayWindow', () => {
     expect(accept(w, 5, PREFIX_B)).toBe(false); // replay within prefix B
   });
 
-  // --- authenticate-before-commit (review findings 1-2) -------------------
+  // --- authenticate-before-commit -----------------------------------------
 
-  it('peek is read-only — a forged high counter cannot wedge the track (finding 1)', () => {
+  it('peek is read-only — a forged high counter cannot wedge the track', () => {
     const w = createReplayWindow();
     // A genuine frame establishes the window.
     expect(accept(w, 10, PREFIX_A)).toBe(true);
@@ -267,7 +267,7 @@ describe('createReplayWindow', () => {
     expect(accept(w, 2, PREFIX_A)).toBe(false); // now far older than the window
   });
 
-  it('an uncommitted novel-prefix peek cannot evict a committed epoch (finding 2)', () => {
+  it('an uncommitted novel-prefix peek cannot evict a committed epoch', () => {
     const w = createReplayWindow();
     // Authentic frame on prefix A is committed.
     expect(accept(w, 5, PREFIX_A)).toBe(true);

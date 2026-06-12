@@ -160,7 +160,7 @@ export const nextFrameCounter = (userId: string): number => {
  * per-track is load-bearing: a counter shared across all of a user's tracks lets
  * one track's healthy frames reset another's failures, so `FAILURE_TOLERANCE` is
  * never crossed and the terminal `e2ee.broken` signal can never fire while
- * `e2ee.decryption_resumed` flaps once per healthy frame (review finding 2.2).
+ * `e2ee.decryption_resumed` flaps once per healthy frame.
  * Counts are keyed by keyIndex so a key rotation within the track starts fresh.
  */
 export interface FailureTracker {
@@ -230,7 +230,7 @@ const replayClear = (bitmap: Uint32Array, counter: number) => {
  *
  * Epochs are created and evicted ONLY by `commit`, i.e. only by frames that
  * authenticated. A relay therefore cannot fabricate novel-prefix frames to
- * evict a genuine epoch and re-open a replay window (review finding 2).
+ * evict a genuine epoch and re-open a replay window.
  */
 const REPLAY_EPOCHS = 3;
 
@@ -251,7 +251,7 @@ export interface ReplayWindow {
    * Records `counter` as seen for this sender prefix, advancing the high-water
    * mark and creating / evicting epochs as needed. Call this ONLY after the
    * frame authenticates (AES-GCM succeeds), so unauthenticated bytes can never
-   * wedge the window (review finding 1) or evict a genuine epoch (finding 2).
+   * wedge the window or evict a genuine epoch.
    */
   commit: (counter: number, ivPrefix: Uint8Array) => void;
 }

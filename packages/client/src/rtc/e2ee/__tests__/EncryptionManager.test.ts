@@ -169,7 +169,7 @@ describe('EncryptionManager', () => {
 
     it('rejects a keyIndex above the 8-bit wire limit', () => {
       // The trailer carries keyIndex in a single byte; 256 would wrap to 0 on
-      // the wire and the receiver would look up the wrong key (finding 9).
+      // the wire and the receiver would look up the wrong key.
       expect(() => manager.setKey('user', 256, new ArrayBuffer(16))).toThrow(
         /keyIndex/,
       );
