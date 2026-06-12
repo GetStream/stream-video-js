@@ -292,14 +292,12 @@ export type InfoDisplayOptions = {
 };
 
 export type EventData = {
-  eventName: EventName;
-  params: EventParams[EventName];
-};
+  [K in EventName]: { eventName: K; params: EventParams[K] };
+}[EventName];
 
 export type VoipEventData = {
-  eventName: VoipEventName;
-  params: VoipEventParams[VoipEventName];
-};
+  [K in VoipEventName]: { eventName: K; params: VoipEventParams[K] };
+}[VoipEventName];
 
 export type EventName =
   | 'answerCall'
@@ -307,10 +305,18 @@ export type EventName =
   | 'didDisplayIncomingCall'
   | 'didToggleHoldCallAction'
   | 'didChangeAudioRoute'
+  | 'didAudioInterruption'
   | 'didReceiveStartCallAction'
   | 'didPerformSetMutedCallAction'
   | 'didActivateAudioSession'
   | 'didDeactivateAudioSession';
+
+export type IOSAudioInterruptionEvent = {
+  source: 'callingx';
+  phase: 'began' | 'ended';
+  reason?: 'default' | 'builtInMicMuted' | 'routeDisconnected' | (string & {});
+  shouldResume?: boolean;
+};
 
 export type EventParams = {
   answerCall: {
@@ -337,6 +343,7 @@ export type EventParams = {
     callId: string;
     output: string;
   };
+  didAudioInterruption: IOSAudioInterruptionEvent;
   didReceiveStartCallAction: {
     callId: string;
   };

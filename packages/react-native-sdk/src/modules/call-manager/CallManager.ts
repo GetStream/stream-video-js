@@ -1,10 +1,15 @@
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
-import { AudioDeviceStatus, StreamInCallManagerConfig } from './types';
+import type {
+  AudioDeviceStatus,
+  IOSAudioInterruptionEvent,
+  StreamInCallManagerConfig,
+} from './types';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 import { videoLoggerSystem } from '@stream-io/video-client';
 
 const NativeManager = NativeModules.StreamInCallManager;
 const CallingxModule = getCallingxLibIfAvailable();
+const AUDIO_INTERRUPTION_EVENT = 'StreamInCallManagerAudioInterruption';
 
 const invariant = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message);
@@ -46,12 +51,31 @@ class AndroidCallManager {
 }
 
 class IOSCallManager {
+  private eventEmitter?: NativeEventEmitter;
+
   /**
    * Will trigger the iOS device selector.
    */
   showDeviceSelector = (): void => {
     invariant(Platform.OS === 'ios', 'Supported only on iOS');
     NativeManager.showAudioRoutePicker();
+  };
+
+  /**
+   * Register a listener for iOS audio interruptions.
+   *
+   * @param onInterruption callback to be called when iOS reports an audio interruption.
+   */
+  addAudioInterruptionListener = (
+    onInterruption: (event: IOSAudioInterruptionEvent) => void,
+  ): (() => void) => {
+    invariant(Platform.OS === 'ios', 'Supported only on iOS');
+    this.eventEmitter ??= new NativeEventEmitter(NativeManager);
+    const s = this.eventEmitter.addListener(
+      AUDIO_INTERRUPTION_EVENT,
+      onInterruption,
+    );
+    return () => s.remove();
   };
 }
 

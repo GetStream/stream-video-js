@@ -14,6 +14,7 @@ import type {
   StartRecordingResponse,
 } from './gen/coordinator';
 import type { StreamClient } from './coordinator/connection/client';
+import type { ClientEventReporter } from './reporting';
 import type {
   RejectReason,
   StreamClientOptions,
@@ -310,6 +311,11 @@ export type CallConstructor = {
    * The streamClient instance to use.
    */
   streamClient: StreamClient;
+
+  /**
+   * The shared client event reporter, owned by `StreamVideoClient`.
+   */
+  clientEventReporter: ClientEventReporter;
 
   /**
    * The Call type.

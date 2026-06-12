@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.4.0...@stream-io/react-native-callingx-0.5.0) (2026-06-11)
+
+### Features
+
+- webrtc 145 upgrade ([#2133](https://github.com/GetStream/stream-video-js/issues/2133)) ([07825e4](https://github.com/GetStream/stream-video-js/commit/07825e402193ed07acf1d41831545326a0ad93d9)), closes [rn-webrtc#27](https://github.com/GetStream/rn-webrtc/issues/27)
+
 ## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.3.1...@stream-io/react-native-callingx-0.4.0) (2026-06-04)
 
 ### Features
