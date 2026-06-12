@@ -393,7 +393,7 @@ export class ClientEventReporter {
     const ctx = this.callContexts.get(cid);
 
     this.send({
-      user_id: this.streamClient.userID,
+      user_id: this.streamClient.userID || this.coordinatorConnectUserId,
       type: ctx?.callType,
       id: ctx?.callId,
       call_cid: cid,
@@ -712,7 +712,7 @@ export class ClientEventReporter {
     const ctx = this.callContexts.get(cid);
     const coordinatorConnectId = this.coordinatorConnectId;
     return {
-      user_id: this.streamClient.userID,
+      user_id: this.streamClient.userID || this.coordinatorConnectUserId,
       type: ctx?.callType ?? '',
       id: ctx?.callId ?? '',
       call_cid: cid,
