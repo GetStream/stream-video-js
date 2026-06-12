@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.38.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.38.0...@stream-io/video-react-native-sdk-1.38.1) (2026-06-12)
+
+### Dependency Updates
+
+- `@stream-io/react-native-callingx` updated to version `0.5.1`
+- `@stream-io/video-client` updated to version `1.53.1`
+- `@stream-io/video-react-bindings` updated to version `1.16.4`
+
+### Bug Fixes
+
+- avoid constraint warning log spam in iOS PiP ([ead822b](https://github.com/GetStream/stream-video-js/commit/ead822b2d12e5f09a14d8b179f1d6a49450b2491))
+- **ios:** joining a call muted may break remote audio playout ([#2282](https://github.com/GetStream/stream-video-js/issues/2282)) ([dc672a6](https://github.com/GetStream/stream-video-js/commit/dc672a69971d6ca46648696c242609c687cb42d7))
+
 ## [1.38.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.37.0...@stream-io/video-react-native-sdk-1.38.0) (2026-06-11)
 
 ### Dependency Updates
