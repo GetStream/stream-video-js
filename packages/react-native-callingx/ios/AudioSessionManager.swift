@@ -67,9 +67,9 @@ enum DefaultAudioDevice {
     private func applyCallKitConfiguration() {
         let rtcSession = RTCAudioSession.sharedInstance()
 
-        // Relax to a pure-output (.playback) session when mic permission is
-        // missing — but only once CallKit has already activated the session.
-        let usePlaybackFallback = rtcSession.isActive && !micPermissionGranted()
+        // Relax to a pure-output (.playback) session when mic permission is missing
+        // same logic as in StreamInCallManager
+        let usePlaybackFallback = !micPermissionGranted()
 
         // webRTC() singleton hardcodes sampleRate=48000 / ioBufferDuration=0.02 — keep those.
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
