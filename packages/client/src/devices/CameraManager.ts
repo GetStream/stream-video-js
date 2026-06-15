@@ -7,6 +7,7 @@ import { VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
+import { CallingState } from '../store';
 import { DevicePersistenceOptions } from './devicePersistence';
 
 export class CameraManager extends DeviceManager<CameraManagerState> {
@@ -124,6 +125,53 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     }
   }
 
+  override enable(): Promise<void> {
+    if (
+      isReactNative() &&
+      this.call.state.callingState !== CallingState.JOINED
+    ) {
+      this.state.setPendingStatus('enabled');
+      return Promise.resolve();
+    }
+
+    return super.enable();
+  }
+
+  override disable(options: { forceStop?: boolean }): Promise<void>;
+  override disable(forceStop?: boolean): Promise<void>;
+  override async disable(
+    forceStopOrOptions?: boolean | { forceStop?: boolean },
+  ): Promise<void> {
+    if (
+      isReactNative() &&
+      this.call.state.callingState !== CallingState.JOINED
+    ) {
+      this.state.setPendingStatus('disabled');
+      return;
+    }
+
+    // forward verbatim to the base, narrowing so the right overload is selected
+    if (forceStopOrOptions === undefined) return super.disable();
+    if (typeof forceStopOrOptions === 'boolean') {
+      return super.disable(forceStopOrOptions);
+    }
+    return super.disable(forceStopOrOptions);
+  }
+
+  override toggle(): Promise<void> {
+    if (
+      isReactNative() &&
+      this.call.state.callingState !== CallingState.JOINED
+    ) {
+      this.state.setPendingStatus(
+        this.state.optimisticStatus === 'enabled' ? 'disabled' : 'enabled',
+      );
+      return Promise.resolve();
+    }
+
+    return super.toggle();
+  }
+
   /**
    * Applies the video settings to the camera.
    *
@@ -164,6 +212,13 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       if (canPublish && settings.camera_default_on && enabledInCallType) {
         await this.enable();
       }
+    }
+
+    if (isReactNative() && publish) {
+      // on RN we need to reconcile the optimistic status to ensure the track is published
+      // because enbling/disabling the mic before JOINED will just update the optimistic status
+      // but not the actual track state
+      await this.reconcileOptimisticStatus();
     }
 
     const { mediaStream } = this.state;

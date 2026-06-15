@@ -509,6 +509,23 @@ export abstract class DeviceManager<
     }
   }
 
+  protected reconcileOptimisticStatus = async (): Promise<void> => {
+    const target = this.state.optimisticStatus;
+    await withCancellation(this.statusChangeConcurrencyTag, async (signal) => {
+      try {
+        if (target === 'enabled' && this.state.status !== 'enabled') {
+          await this.unmuteStream();
+          if (!signal.aborted) this.state.setStatus('enabled');
+        } else if (target === 'disabled' && this.state.status === 'enabled') {
+          // mirror whatever disable() does to stop/pause the track per disableMode
+          if (!signal.aborted) this.state.setStatus('disabled');
+        }
+      } finally {
+        if (!signal.aborted) this.state.setPendingStatus(this.state.status);
+      }
+    });
+  };
+
   private disableTracks() {
     this.getTracks().forEach((track) => {
       if (track.enabled) track.enabled = false;

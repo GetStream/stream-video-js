@@ -187,6 +187,53 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     }
   }
 
+  override enable(): Promise<void> {
+    if (
+      isReactNative() &&
+      this.call.state.callingState !== CallingState.JOINED
+    ) {
+      this.state.setPendingStatus('enabled');
+      return Promise.resolve();
+    }
+
+    return super.enable();
+  }
+
+  override disable(options: { forceStop?: boolean }): Promise<void>;
+  override disable(forceStop?: boolean): Promise<void>;
+  override async disable(
+    forceStopOrOptions?: boolean | { forceStop?: boolean },
+  ): Promise<void> {
+    if (
+      isReactNative() &&
+      this.call.state.callingState !== CallingState.JOINED
+    ) {
+      this.state.setPendingStatus('disabled');
+      return;
+    }
+
+    // forward verbatim to the base, narrowing so the right overload is selected
+    if (forceStopOrOptions === undefined) return super.disable();
+    if (typeof forceStopOrOptions === 'boolean') {
+      return super.disable(forceStopOrOptions);
+    }
+    return super.disable(forceStopOrOptions);
+  }
+
+  override toggle(): Promise<void> {
+    if (
+      isReactNative() &&
+      this.call.state.callingState !== CallingState.JOINED
+    ) {
+      this.state.setPendingStatus(
+        this.state.optimisticStatus === 'enabled' ? 'disabled' : 'enabled',
+      );
+      return Promise.resolve();
+    }
+
+    return super.toggle();
+  }
+
   /**
    * Enables noise cancellation for the microphone.
    *
@@ -374,6 +421,13 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       if (canPublish && settings.mic_default_on) {
         await this.enable();
       }
+    }
+
+    if (isReactNative() && publish) {
+      // on RN we need to reconcile the optimistic status to ensure the track is published
+      // because enbling/disabling the mic before JOINED state will just update the optimistic status
+      // but not the actual track state
+      await this.reconcileOptimisticStatus();
     }
 
     const { mediaStream } = this.state;
