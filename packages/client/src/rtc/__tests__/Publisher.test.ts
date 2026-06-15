@@ -633,6 +633,218 @@ describe('Publisher', () => {
     });
   });
 
+  describe('Candidate-pair migration', () => {
+    const candidatePair = (
+      local: string,
+      remote: string,
+    ): RTCIceCandidatePair =>
+      ({
+        local: { candidate: local },
+        remote: { candidate: remote },
+      }) as unknown as RTCIceCandidatePair;
+
+    const publishVideo = async () => {
+      // @ts-expect-error private API
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue(undefined);
+      const track = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(new MediaStreamTrack());
+      await publisher.publish(track, TrackType.VIDEO);
+    };
+
+    const iceTransportOf = (p: Publisher) =>
+      (p['pc'].addTransceiver as any).mock.results[0].value.sender.transport
+        .iceTransport;
+
+    it('attaches a single candidate-pair listener across multiple transceivers', async () => {
+      await publisher.dispose();
+      publisher = new Publisher(
+        { sfuClient, dispatcher, state, tag: 'test', enableTracing: false },
+        [
+          fromPartial<PublishOption>({
+            id: 1,
+            trackType: TrackType.VIDEO,
+            bitrate: 1000,
+            codec: { name: 'vp9' },
+            fps: 30,
+            maxTemporalLayers: 3,
+            maxSpatialLayers: 3,
+            degradationPreference: DegradationPreference.UNSPECIFIED,
+          }),
+          fromPartial<PublishOption>({
+            id: 2,
+            trackType: TrackType.VIDEO,
+            bitrate: 500,
+            codec: { name: 'vp8' },
+            fps: 30,
+            maxTemporalLayers: 3,
+            maxSpatialLayers: 3,
+            degradationPreference: DegradationPreference.UNSPECIFIED,
+          }),
+        ],
+      );
+
+      await publishVideo();
+
+      expect(publisher['pc'].addTransceiver).toHaveBeenCalledTimes(2);
+      expect(iceTransportOf(publisher).addEventListener).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
+    it('does not create a monitor when the selected-pair API is unavailable', async () => {
+      vi.spyOn(publisher as never, 'negotiate').mockResolvedValue(undefined);
+      const bare = new RTCRtpTransceiver();
+      delete (bare.sender as any).transport;
+      (publisher['pc'].addTransceiver as any).mockReturnValue(bare);
+      const track = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(new MediaStreamTrack());
+
+      await publisher.publish(track, TrackType.VIDEO);
+
+      expect(publisher['candidatePairMonitor']).toBeUndefined();
+    });
+
+    it('opens the suppression window before negotiating on ICE restart', async () => {
+      await publishVideo();
+      const monitor = publisher['candidatePairMonitor']!;
+      expect(monitor).toBeDefined();
+
+      const suppressSpy = vi.spyOn(monitor, 'suppress');
+      const negotiateSpy = publisher['negotiate'] as any;
+      negotiateSpy.mockClear();
+
+      await publisher.restartIce();
+
+      expect(suppressSpy).toHaveBeenCalledTimes(1);
+      expect(negotiateSpy).toHaveBeenCalledTimes(1);
+      expect(suppressSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        negotiateSpy.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('does not suppress when an ICE restart is already in progress', async () => {
+      await publishVideo();
+      const monitor = publisher['candidatePairMonitor']!;
+      const suppressSpy = vi.spyOn(monitor, 'suppress');
+      (publisher['negotiate'] as any).mockClear();
+      // @ts-expect-error private api
+      publisher['pc'].signalingState = 'have-local-offer';
+
+      await publisher.restartIce();
+
+      expect(suppressSpy).not.toHaveBeenCalled();
+      expect(publisher['negotiate']).not.toHaveBeenCalled();
+    });
+
+    it('routes a detected migration through tryRestartIce with a REJOIN fallback', async () => {
+      await publishVideo();
+      const monitor = publisher['candidatePairMonitor']!;
+      expect(monitor).toBeDefined();
+
+      const { promise: lock, resolve: unlock } = promiseWithResolvers<void>();
+      publisher['onReconnectionNeeded'] = vi
+        .fn()
+        .mockImplementation(() => unlock());
+      vi.spyOn(publisher, 'restartIce').mockRejectedValue('migration failed');
+
+      // simulate the monitor detecting an organic path migration
+      (monitor as any)['onMigration']();
+
+      await lock;
+      expect(publisher.restartIce).toHaveBeenCalled();
+      expect(publisher['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        anyString(),
+        PeerType.PUBLISHER_UNSPECIFIED,
+      );
+    });
+
+    it('triggers an ICE restart when the selected pair migrates while stable', async () => {
+      vi.useFakeTimers();
+      await publishVideo();
+      const iceTransport = iceTransportOf(publisher);
+      const restartSpy = vi
+        .spyOn(publisher, 'restartIce')
+        .mockResolvedValue(undefined);
+
+      // make the connection look fully established, then let the initial
+      // suppression window elapse so a later change counts as a migration
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      iceTransport.__setSelectedCandidatePair(candidatePair('a', 'x'));
+      vi.advanceTimersByTime(2000);
+
+      iceTransport.__emitSelectedCandidatePairChange(candidatePair('b', 'y'));
+      expect(restartSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('absorbs the pair change from a reconnect-driven ICE restart instead of looping', async () => {
+      vi.useFakeTimers();
+      await publishVideo();
+      const iceTransport = iceTransportOf(publisher);
+
+      // reach steady state: connection established and the initial
+      // suppression window (opened by start()) elapsed, so a stable pair
+      // change would otherwise be treated as an organic migration
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      iceTransport.__setSelectedCandidatePair(candidatePair('a', 'x'));
+      vi.advanceTimersByTime(2000);
+
+      // spy WITHOUT replacing the implementation, so the real restartIce()
+      // runs its real candidatePairMonitor.suppress(), and any monitor-driven
+      // re-entry is still counted
+      const restartSpy = vi.spyOn(publisher, 'restartIce');
+
+      // Call.restoreICE() drives the reconnect ICE restart through this method
+      await publisher.restartIce();
+
+      // the restart changes the selected pair; this lands asynchronously, well
+      // after restartIce() resolves. Suppression must absorb it, not loop.
+      iceTransport.__emitSelectedCandidatePairChange(candidatePair('b', 'y'));
+
+      expect(restartSpy).toHaveBeenCalledTimes(1); // only the reconnect call
+    });
+
+    it('still reports a later organic migration once a reconnect-driven restart settles', async () => {
+      vi.useFakeTimers();
+      await publishVideo();
+      const iceTransport = iceTransportOf(publisher);
+
+      // @ts-expect-error private api
+      publisher['pc'].iceConnectionState = 'connected';
+      iceTransport.__setSelectedCandidatePair(candidatePair('a', 'x'));
+      vi.advanceTimersByTime(2000); // initial suppression lifts
+
+      const restartSpy = vi.spyOn(publisher, 'restartIce');
+
+      await publisher.restartIce(); // reconnect ICE restart (restoreICE)
+      iceTransport.__emitSelectedCandidatePairChange(candidatePair('b', 'y'));
+      expect(restartSpy).toHaveBeenCalledTimes(1); // restart-induced, absorbed
+
+      vi.advanceTimersByTime(2000); // suppression window elapses while stable
+
+      // a genuine WiFi -> LTE switch after the restart settled is still caught
+      iceTransport.__emitSelectedCandidatePairChange(candidatePair('c', 'z'));
+      expect(restartSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('stops the monitor and removes the listener on dispose', async () => {
+      await publishVideo();
+      const monitor = publisher['candidatePairMonitor']!;
+      const stopSpy = vi.spyOn(monitor, 'stop');
+      const iceTransport = iceTransportOf(publisher);
+
+      await publisher.dispose();
+
+      expect(stopSpy).toHaveBeenCalled();
+      expect(iceTransport.removeEventListener).toHaveBeenCalledWith(
+        'selectedcandidatepairchange',
+        expect.any(Function),
+      );
+    });
+  });
+
   describe('changePublishQuality', () => {
     it('can dynamically activate/deactivate simulcast layers', async () => {
       const transceiver = new RTCRtpTransceiver();
