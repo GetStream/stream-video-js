@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.53.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.53.1...@stream-io/video-client-1.53.2) (2026-06-12)
+
+### Bug Fixes
+
+- **client:** keep user_id populated in call event telemetry when a disconnect races an in-flight join ([#2284](https://github.com/GetStream/stream-video-js/issues/2284)) ([4403348](https://github.com/GetStream/stream-video-js/commit/4403348115500499cd60919a417d97659546bb8b))
+
 ## [1.53.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.53.0...@stream-io/video-client-1.53.1) (2026-06-12)
 
 ### Bug Fixes
