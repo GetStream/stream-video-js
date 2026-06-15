@@ -2,6 +2,46 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.38.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.38.1...@stream-io/video-react-native-sdk-1.38.2) (2026-06-12)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.53.2`
+- `@stream-io/video-react-bindings` updated to version `1.16.5`
+
+## [1.38.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.38.0...@stream-io/video-react-native-sdk-1.38.1) (2026-06-12)
+
+### Dependency Updates
+
+- `@stream-io/react-native-callingx` updated to version `0.5.1`
+- `@stream-io/video-client` updated to version `1.53.1`
+- `@stream-io/video-react-bindings` updated to version `1.16.4`
+
+### Bug Fixes
+
+- avoid constraint warning log spam in iOS PiP ([ead822b](https://github.com/GetStream/stream-video-js/commit/ead822b2d12e5f09a14d8b179f1d6a49450b2491))
+- **ios:** joining a call muted may break remote audio playout ([#2282](https://github.com/GetStream/stream-video-js/issues/2282)) ([dc672a6](https://github.com/GetStream/stream-video-js/commit/dc672a69971d6ca46648696c242609c687cb42d7))
+
+## [1.38.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.37.0...@stream-io/video-react-native-sdk-1.38.0) (2026-06-11)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.8.0`
+- `@stream-io/react-native-callingx` updated to version `0.5.0`
+- `@stream-io/video-filters-react-native` updated to version `0.13.0`
+- `@stream-io/video-client` updated to version `1.53.0`
+- `@stream-io/video-react-bindings` updated to version `1.16.3`
+
+- upgrade Expo config-plugin (react-native-webrtc) to v15 and bump Expo SDK 56 deps ([#2276](https://github.com/GetStream/stream-video-js/issues/2276)) ([af675b8](https://github.com/GetStream/stream-video-js/commit/af675b8bd6bcf08320f748cb8be1b56bedf13937))
+
+### Features
+
+- webrtc 145 upgrade ([#2133](https://github.com/GetStream/stream-video-js/issues/2133)) ([07825e4](https://github.com/GetStream/stream-video-js/commit/07825e402193ed07acf1d41831545326a0ad93d9)), closes [rn-webrtc#27](https://github.com/GetStream/rn-webrtc/issues/27)
+
+### Bug Fixes
+
+- leave call when it was cancelled during bg ([#2277](https://github.com/GetStream/stream-video-js/issues/2277)) ([6dc77a3](https://github.com/GetStream/stream-video-js/commit/6dc77a3733c3bc7f4f87c0fd0f6a20a7a0dd1d27))
+
 ## [1.37.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.36.2...@stream-io/video-react-native-sdk-1.37.0) (2026-06-04)
 
 ### Dependency Updates

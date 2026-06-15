@@ -329,6 +329,88 @@ describe('ClientEventReporter', () => {
     });
   });
 
+  it('keeps the captured SFU error over CLIENT_ABORTED on abort', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    void reporter.track(cid, 'WSJoin', () => new Promise(() => {}));
+    reporter.captureWsError(cid, {
+      code: 'SFU_ERROR',
+      reason: 'sfu disconnect',
+    });
+    reporter.abort(cid, {
+      code: 'CLIENT_ABORTED',
+      reason: 'SFU instructed to disconnect',
+    });
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) => e.stage === 'WSJoin' && e.event_type === 'completed',
+    );
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      retry_failure_code: 'SFU_ERROR',
+      retry_failure_reason: 'sfu disconnect',
+    });
+  });
+
+  it('keeps a captured SFU error over a later WSJoin timeout', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    await expect(
+      reporter.track(cid, 'WSJoin', async () => {
+        reporter.captureWsError(cid, {
+          code: 'SFU_ERROR',
+          reason: 'unauthenticated',
+        });
+        throw new SfuTimeoutError(
+          'SFU WS connection failed to open after 5000ms',
+        );
+      }),
+    ).rejects.toThrow();
+    reporter.close(cid);
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) => e.stage === 'WSJoin' && e.event_type === 'completed',
+    );
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      retry_failure_code: 'SFU_ERROR',
+      retry_failure_reason: 'unauthenticated',
+    });
+  });
+
+  it('lets a later WSJoin attempt override a previous attempt captured error', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    await expect(
+      reporter.track(cid, 'WSJoin', async () => {
+        reporter.captureWsError(cid, {
+          code: 'SFU_ERROR',
+          reason: 'attempt 1 sfu error',
+        });
+        throw new SfuTimeoutError('attempt 1 timeout');
+      }),
+    ).rejects.toThrow();
+    await expect(
+      reporter.track(cid, 'WSJoin', () =>
+        Promise.reject(new SfuTimeoutError('attempt 2 timeout')),
+      ),
+    ).rejects.toThrow();
+    reporter.close(cid);
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) => e.stage === 'WSJoin' && e.event_type === 'completed',
+    );
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      retry_count_attempt: 1,
+      retry_failure_code: 'REQUEST_TIMEOUT',
+      retry_failure_reason: 'attempt 2 timeout',
+    });
+  });
+
   it('reports a WSJoin timeout as REQUEST_TIMEOUT', async () => {
     reporter.startCorrelation(cid, 'first-attempt');
     await expect(
