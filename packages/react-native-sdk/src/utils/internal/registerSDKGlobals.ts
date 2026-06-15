@@ -61,7 +61,6 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
         defaultDevice,
       );
-      StreamInCallManagerNativeModule.setup();
     },
     start: ({ isRingingTypeCall }) => {
       if (shouldBypassForCallKit({ isRingingTypeCall })) {

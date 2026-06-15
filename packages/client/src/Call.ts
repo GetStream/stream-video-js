@@ -1341,6 +1341,10 @@ export class Call {
     // re-apply them on later reconnections or server-side data fetches
     if (!this.deviceSettingsAppliedOnce && this.state.settings) {
       await this.applyDeviceConfig(this.state.settings, true, false);
+      globalThis.streamRNVideoSDK?.callManager.setup({
+        defaultDevice: this.state.settings.audio.default_device,
+        isRingingTypeCall: this.ringing,
+      });
       globalThis.streamRNVideoSDK?.callManager.start({
         isRingingTypeCall: this.ringing,
       });
