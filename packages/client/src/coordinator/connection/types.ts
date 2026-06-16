@@ -214,11 +214,11 @@ export type StreamClientOptions = Partial<AxiosRequestConfig> & {
   browser?: boolean;
 
   /**
-   * Disables the client-side event reporter (call lifecycle telemetry).
-   * Useful for non-interactive sessions such as egress/recording where the
-   * telemetry adds no value. Defaults to `false`.
+   * Enables the client-side event reporter (call lifecycle telemetry).
+   * Set to `false` for non-interactive sessions such as egress/recording
+   * where the telemetry adds no value. Defaults to `true`.
    */
-  disableClientEventReporting?: boolean;
+  clientEventsReportingEnabled?: boolean;
 
   /**
    *  @deprecated Use `logOptions` instead.

@@ -94,7 +94,7 @@ export const useInitializeClientAndCall = () => {
       baseURL,
       logLevel,
       maxConnectUserRetries: 25,
-      disableClientEventReporting: true,
+      clientEventsReportingEnabled: false,
     });
   }, [apiKey, baseURL, logLevel]);
 
