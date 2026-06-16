@@ -101,6 +101,7 @@ export class StreamVideoClient {
     this.streamClient = createCoordinatorClient(apiKey, clientOptions);
     this.clientEventReporter = new ClientEventReporter({
       streamClient: this.streamClient,
+      enabled: !clientOptions?.disableClientEventReporting,
     });
 
     this.writeableStateStore = new StreamVideoWriteableStateStore();
