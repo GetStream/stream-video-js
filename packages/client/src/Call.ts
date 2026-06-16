@@ -1692,6 +1692,7 @@ export class Call {
       const reconnectStartTime = Date.now();
       this.reconnectStrategy = strategy;
       this.reconnectReason = reason;
+      const sfuRejoinFailures = new Map<string, number>();
 
       const markAsReconnectingFailed = async () => {
         try {
@@ -1764,8 +1765,8 @@ export class Call {
         if (this.reconnectStrategy !== WebsocketReconnectStrategy.FAST) {
           this.reconnectAttempts++;
         }
-        const currentStrategy =
-          WebsocketReconnectStrategy[this.reconnectStrategy];
+        const attemptedStrategy = this.reconnectStrategy;
+        const currentStrategy = WebsocketReconnectStrategy[attemptedStrategy];
         try {
           // wait until the network is available
           await this.networkAvailableTask?.promise;
@@ -1786,9 +1787,27 @@ export class Call {
             case WebsocketReconnectStrategy.FAST:
               await this.reconnectFast();
               break;
-            case WebsocketReconnectStrategy.REJOIN:
-              await this.reconnectRejoin();
+            case WebsocketReconnectStrategy.REJOIN: {
+              const currentSfu = this.credentials?.server.edge_name;
+              if (
+                this.joinCallData &&
+                currentSfu &&
+                (sfuRejoinFailures.get(currentSfu) ?? 0) >= 2
+              ) {
+                this.joinCallData.migrating_from = currentSfu;
+                this.joinCallData.migrating_from_list = Array.from(
+                  sfuRejoinFailures.keys(),
+                );
+              }
+
+              try {
+                await this.reconnectRejoin();
+              } finally {
+                delete this.joinCallData?.migrating_from;
+                delete this.joinCallData?.migrating_from_list;
+              }
               break;
+            }
             case WebsocketReconnectStrategy.MIGRATE:
               await this.reconnectMigrate();
               break;
@@ -1803,6 +1822,20 @@ export class Call {
           this.consecutiveNegotiationFailures = 0;
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
+          if (attemptedStrategy === WebsocketReconnectStrategy.REJOIN) {
+            const failedSfu = this.credentials?.server.edge_name;
+            if (failedSfu) {
+              const switchSfu =
+                error instanceof SfuJoinError &&
+                SfuJoinError.isJoinErrorCode(error.errorEvent);
+              const failures = (sfuRejoinFailures.get(failedSfu) ?? 0) + 1;
+              sfuRejoinFailures.set(
+                failedSfu,
+                switchSfu ? Math.max(failures, 2) : failures,
+              );
+            }
+          }
+
           if (this.state.callingState === CallingState.OFFLINE) {
             this.logger.debug(
               `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,

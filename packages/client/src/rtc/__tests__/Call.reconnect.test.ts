@@ -19,19 +19,23 @@ import { Subscriber } from '../Subscriber';
 import { Dispatcher } from '../Dispatcher';
 import { StreamSfuClient } from '../../StreamSfuClient';
 import { IceTrickleBuffer } from '../IceTrickleBuffer';
+import { SfuJoinError } from '../../errors';
 
 vi.mock('../../StreamSfuClient', () => ({
   StreamSfuClient: vi.fn(),
 }));
 
-const makeCall = () => {
+const makeCall = ({ reportingEnabled = true } = {}) => {
   const streamClient = new StreamClient('test-key');
   const clientStore = new StreamVideoWriteableStateStore();
   return new Call({
     type: 'default',
     id: 'test-call',
     streamClient,
-    clientEventReporter: new ClientEventReporter({ streamClient }),
+    clientEventReporter: new ClientEventReporter({
+      streamClient,
+      enabled: reportingEnabled,
+    }),
     clientStore,
     ringing: false,
     watching: false,
@@ -403,6 +407,99 @@ describe('Call reconnect stopping conditions', () => {
       expect(limiter.maxAttempts).toBe(1);
       expect(limiter.windowMs).toBe(1000);
     });
+  });
+});
+
+describe('Call reconnect rejoin SFU migration hints', () => {
+  let call: Call;
+  const credentials = {
+    server: {
+      url: 'https://getstream.io/',
+      ws_endpoint: 'https://getstream.io/ws',
+      edge_name: 'sfu-1',
+    },
+    token: 'token',
+    ice_servers: [],
+  };
+
+  beforeEach(() => {
+    call = makeCall({ reportingEnabled: false });
+    call['credentials'] = credentials;
+    call['joinCallData'] = { create: true };
+    primeForReconnect(call);
+    call.setRejoinAttemptLimit(3, 60);
+    vi.spyOn(connectionUtils, 'sleep').mockResolvedValue(undefined);
+    vi.spyOn(call, 'leave').mockResolvedValue(undefined);
+    vi.spyOn(call, 'get').mockResolvedValue({} as never);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('asks the coordinator to avoid an SFU after repeated rejoin failures without leaking migration hints', async () => {
+    const doJoinRequestArgs: unknown[] = [];
+    const doJoinRequest = vi
+      .spyOn(
+        call as unknown as {
+          doJoinRequest: (data?: unknown) => Promise<unknown>;
+        },
+        'doJoinRequest',
+      )
+      .mockImplementation(async (data?: unknown) => {
+        doJoinRequestArgs.push(JSON.parse(JSON.stringify(data)));
+        throw new Error('rejoin failed');
+      });
+
+    await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+    expect(doJoinRequest).toHaveBeenCalledTimes(3);
+    expect(doJoinRequestArgs[0]).toEqual({ create: true });
+    expect(doJoinRequestArgs[1]).toEqual({ create: true });
+    expect(doJoinRequestArgs[2]).toEqual({
+      create: true,
+      migrating_from: 'sfu-1',
+      migrating_from_list: ['sfu-1'],
+    });
+    expect(call['joinCallData']).toEqual({ create: true });
+  });
+
+  it('asks the coordinator to avoid an SFU immediately after an SFU join error', async () => {
+    call.setRejoinAttemptLimit(2, 60);
+    const doJoinRequestArgs: unknown[] = [];
+    const sfuFullError = new SfuJoinError({
+      error: {
+        code: ErrorCode.SFU_FULL,
+        message: 'SFU is full',
+      },
+      reconnectStrategy: WebsocketReconnectStrategy.REJOIN,
+    } as never);
+    const doJoinRequest = vi
+      .spyOn(
+        call as unknown as {
+          doJoinRequest: (data?: unknown) => Promise<unknown>;
+        },
+        'doJoinRequest',
+      )
+      .mockImplementationOnce(async (data?: unknown) => {
+        doJoinRequestArgs.push(JSON.parse(JSON.stringify(data)));
+        throw sfuFullError;
+      })
+      .mockImplementation(async (data?: unknown) => {
+        doJoinRequestArgs.push(JSON.parse(JSON.stringify(data)));
+        throw new Error('rejoin failed');
+      });
+
+    await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+    expect(doJoinRequest).toHaveBeenCalledTimes(2);
+    expect(doJoinRequestArgs[0]).toEqual({ create: true });
+    expect(doJoinRequestArgs[1]).toEqual({
+      create: true,
+      migrating_from: 'sfu-1',
+      migrating_from_list: ['sfu-1'],
+    });
+    expect(call['joinCallData']).toEqual({ create: true });
   });
 });
 
