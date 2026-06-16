@@ -164,6 +164,14 @@ export class StreamSfuClient {
    */
   isClosingClean = false;
 
+  /**
+   * One-shot latch guarding `onSignalClose`. The signal connection can be
+   * detected as dead by more than one source (the health watchdog and the
+   * WebSocket `close` event, which on a wedged socket can arrive seconds
+   * apart). This ensures revival is triggered at most once per client.
+   */
+  private signalClosed = false;
+
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: number;
   private connectionCheckTimeout?: NodeJS.Timeout;
@@ -336,7 +344,7 @@ export class StreamSfuClient {
           this.signalWs.addEventListener('open', onOpen);
 
           this.signalWs.addEventListener('close', (e) => {
-            this.handleWebSocketClose(e);
+            this.notifySignalClose(`${e.code} ${e.reason ?? ''}`);
             // Normally, this shouldn't have any effect, because WS should never emit 'close'
             // before emitting 'open'. However, stranger things have happened, and we don't
             // want to leave signalReady in a pending state.
@@ -371,11 +379,12 @@ export class StreamSfuClient {
     return this.joinResponseTask.promise;
   }
 
-  private handleWebSocketClose = (e: CloseEvent) => {
-    this.signalWs.removeEventListener('close', this.handleWebSocketClose);
+  private notifySignalClose = (reason: string) => {
+    if (this.signalClosed) return;
+    this.signalClosed = true;
     getTimers().clearInterval(this.keepAliveInterval);
     clearTimeout(this.connectionCheckTimeout);
-    this.onSignalClose?.(`${e.code} ${e.reason}`);
+    this.onSignalClose?.(reason.trim());
   };
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
@@ -392,7 +401,9 @@ export class StreamSfuClient {
     ) {
       this.logger.debug(`Closing SFU WS connection: ${code} - ${reason}`);
       ws.close(code, `js-client: ${reason}`);
-      ws.removeEventListener('close', this.handleWebSocketClose);
+    }
+    if (!this.isClosingClean) {
+      this.notifySignalClose(`${code} ${reason ?? ''}`);
     }
     this.dispose(reason);
   };

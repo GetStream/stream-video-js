@@ -852,6 +852,50 @@ describe('Call reconnect wiring (PC event → leave)', () => {
 });
 
 /**
+ * `handleSfuSignalClose` is the bridge from a dead signal WS to the reconnect
+ * loop. A reconnect swaps in a fresh SFU client, but the old socket can still
+ * fire a (delayed) `close` later. Such stragglers must be ignored: only the
+ * currently-active client may drive a reconnect.
+ */
+describe('Call.handleSfuSignalClose superseded-client guard', () => {
+  let call: Call;
+
+  beforeEach(() => {
+    call = makeCall();
+    vi.spyOn(call, 'leave').mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('ignores a signal close from a superseded SFU client', () => {
+    call.state.setCallingState(CallingState.JOINED);
+    const reconnectSpy = vi
+      .spyOn(call as unknown as { reconnect: () => Promise<void> }, 'reconnect')
+      .mockResolvedValue(undefined);
+
+    const currentClient = { isLeaving: false, isClosingClean: false };
+    const supersededClient = { isLeaving: false, isClosingClean: false };
+    (call as unknown as { sfuClient: unknown }).sfuClient = currentClient;
+
+    // a close from a client that is no longer active must not reconnect
+    call['handleSfuSignalClose'](
+      supersededClient as unknown as StreamSfuClient,
+      '1006 ',
+    );
+    expect(reconnectSpy).not.toHaveBeenCalled();
+
+    // the active client's close still drives a reconnect
+    call['handleSfuSignalClose'](
+      currentClient as unknown as StreamSfuClient,
+      '1006 ',
+    );
+    expect(reconnectSpy).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
  * `leave()` runs after both the success path (end of `joinFlow`) and the
  * giveUpAndLeave path. Only the success path resets `reconnectStrategy` /
  * `reconnectReason`. Without resetting them in `leave()` itself, a Call

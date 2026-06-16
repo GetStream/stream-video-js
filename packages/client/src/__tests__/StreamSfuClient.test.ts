@@ -38,9 +38,13 @@ class CapturingWebSocket {
     this.closeArgs = { code, reason };
     this.readyState = CapturingWebSocket.CLOSED;
   }
+  /** Test helper: synchronously fire a registered event (e.g. `close`). */
+  emit(event: string, payload: unknown) {
+    this.listeners.get(event)?.forEach((listener) => listener(payload));
+  }
 }
 
-const buildSfuClient = () => {
+const buildSfuClient = (onSignalClose?: (reason: string) => void) => {
   const dispatcher = new Dispatcher();
   const streamClient = new StreamClient('test-key');
   return new StreamSfuClient({
@@ -59,6 +63,7 @@ const buildSfuClient = () => {
     },
     tag: 'test',
     enableTracing: false,
+    onSignalClose,
   });
 };
 
@@ -161,6 +166,59 @@ describe('StreamSfuClient.close()', () => {
       }
       process.off('unhandledRejection', onProcessUnhandled);
     }
+  });
+});
+
+describe('StreamSfuClient signal-close revival', () => {
+  beforeEach(() => {
+    CapturingWebSocket.instances = [];
+    vi.stubGlobal('WebSocket', CapturingWebSocket);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+  });
+
+  it('drives revival immediately on an unhealthy close, without waiting for the onclose event', () => {
+    const onSignalClose = vi.fn();
+    const sfuClient = buildSfuClient(onSignalClose);
+
+    // A wedged socket may fire `onclose` only after the OS TCP timeout. The
+    // health watchdog closes with ERROR_CONNECTION_UNHEALTHY; revival must
+    // start now, not when (or if) the transport `close` event arrives.
+    sfuClient.close(
+      StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+      'SFU connection unhealthy',
+    );
+
+    expect(onSignalClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('notifies revival only once when the late onclose event follows an unhealthy close', () => {
+    const onSignalClose = vi.fn();
+    const sfuClient = buildSfuClient(onSignalClose);
+    const ws = CapturingWebSocket.instances.at(-1)!;
+
+    // watchdog closes the dead socket (revival triggered proactively)...
+    sfuClient.close(
+      StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+      'SFU connection unhealthy',
+    );
+    // ...then the OS finally surfaces the wedged socket's `close` event.
+    ws.emit('close', { code: 1006, reason: '' });
+
+    expect(onSignalClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('notifies revival when only the onclose event fires (server-initiated close)', () => {
+    const onSignalClose = vi.fn();
+    buildSfuClient(onSignalClose);
+    const ws = CapturingWebSocket.instances.at(-1)!;
+
+    ws.emit('close', { code: 1006, reason: '' });
+
+    expect(onSignalClose).toHaveBeenCalledTimes(1);
   });
 });
 

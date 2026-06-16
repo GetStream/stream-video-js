@@ -50,25 +50,14 @@ const MediaStreamTrackMock = vi.fn(function (): Partial<MediaStreamTrack> {
 vi.stubGlobal('MediaStreamTrack', MediaStreamTrackMock);
 
 // Minimal RTCIceTransport stand-in. `getSelectedCandidatePair` defaults to
-// `null` so the Publisher's CandidatePairMonitor stays dormant in tests that
-// don't care; the `__set`/`__emit` helpers let candidate-pair tests drive it.
+// `null`; `__setSelectedCandidatePair` lets the Publisher reconnect tests drive
+// the selected pair across a disconnect/reconnect flap.
 const makeIceTransportMock = () => {
   let selected: RTCIceCandidatePair | null = null;
-  const listeners = new Set<() => void>();
   return {
     getSelectedCandidatePair: vi.fn(() => selected),
-    addEventListener: vi.fn((_type: string, cb: () => void) => {
-      listeners.add(cb);
-    }),
-    removeEventListener: vi.fn((_type: string, cb: () => void) => {
-      listeners.delete(cb);
-    }),
     __setSelectedCandidatePair: (pair: RTCIceCandidatePair | null) => {
       selected = pair;
-    },
-    __emitSelectedCandidatePairChange: (pair: RTCIceCandidatePair | null) => {
-      selected = pair;
-      listeners.forEach((cb) => cb());
     },
   };
 };

@@ -29,7 +29,6 @@ import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
 import { isFirefox } from '../helpers/browsers';
-import { CandidatePairMonitor } from './helpers/CandidatePairMonitor';
 
 /**
  * The `Publisher` is responsible for publishing/unpublishing media streams to/from the SFU
@@ -40,7 +39,7 @@ export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
   private readonly clonedTracks = new Set<MediaStreamTrack>();
   private publishOptions: PublishOption[];
-  private candidatePairMonitor?: CandidatePairMonitor;
+  private pairBeforeDisconnect?: RTCIceCandidatePair | null;
 
   /**
    * Constructs a new `Publisher` instance.
@@ -83,7 +82,6 @@ export class Publisher extends BasePeerConnection {
    */
   async dispose(): Promise<void> {
     await super.dispose();
-    this.candidatePairMonitor?.stop();
     try {
       await this.stopAllTracks();
     } catch (err) {
@@ -162,34 +160,6 @@ export class Publisher extends BasePeerConnection {
     this.trackIdToTrackType.set(track.id, trackType);
 
     await this.negotiate();
-
-    this.watchCandidatePair(transceiver);
-  };
-
-  /**
-   * Attaches a `CandidatePairMonitor` to the peer connection's BUNDLE-shared
-   * ICE transport, once, so that an organic network path migration triggers an
-   * ICE restart and the SFU learns the new transport path.
-   *
-   * No-op if a monitor is already attached or the platform does not expose the
-   * selected-candidate-pair API (React Native, older Safari).
-   */
-  private watchCandidatePair = (transceiver: RTCRtpTransceiver) => {
-    if (this.candidatePairMonitor) return;
-    const iceTransport = transceiver.sender.transport?.iceTransport;
-    if (
-      !iceTransport ||
-      typeof iceTransport.getSelectedCandidatePair !== 'function'
-    ) {
-      this.logger.debug('Selected candidate pair API unavailable, skipping');
-      return;
-    }
-    this.candidatePairMonitor = new CandidatePairMonitor({
-      iceTransport,
-      isStable: () => this.isStable(),
-      onMigration: () => this.tryRestartIce(),
-    });
-    this.candidatePairMonitor.start();
   };
 
   /**
@@ -470,10 +440,59 @@ export class Publisher extends BasePeerConnection {
       this.logger.debug('ICE restart is already in progress');
       return;
     }
-    // open the settle window before negotiating so the restart-induced
-    // candidate-pair change is absorbed instead of looping into another restart
-    this.candidatePairMonitor?.suppress();
     await this.negotiate({ iceRestart: true });
+  };
+
+  /**
+   * Snapshots the selected candidate pair when ICE drops so the reconnect
+   * handler can tell an organic path migration apart from a same-path recovery.
+   */
+  protected onIceDisconnected = (): void => {
+    this.pairBeforeDisconnect = this.getSelectedCandidatePair();
+  };
+
+  /**
+   * Keeps the scheduled ICE restart only when the connection recovered on a
+   * different candidate pair: an organic path migration (e.g., Wi-Fi to LTE)
+   * the SFU must be told about. A same-path recovery cancels the restart.
+   */
+  protected shouldKeepScheduledIceRestart = (): boolean => {
+    const migrated = this.isTransportPathChanged(
+      this.pairBeforeDisconnect,
+      this.getSelectedCandidatePair(),
+    );
+    this.pairBeforeDisconnect = undefined;
+    return migrated;
+  };
+
+  /**
+   * Reads the currently selected ICE candidate pair off the BUNDLE-shared
+   * transport, or `undefined` when no transport is available yet or the
+   * platform doesn't expose the API (Firefox, older Safari).
+   */
+  private getSelectedCandidatePair = () => {
+    for (const { transceiver } of this.transceiverCache.items()) {
+      const iceTransport = transceiver.sender.transport?.iceTransport;
+      if (typeof iceTransport?.getSelectedCandidatePair === 'function') {
+        return iceTransport.getSelectedCandidatePair();
+      }
+    }
+    return undefined;
+  };
+
+  /**
+   * Returns true when two candidate pairs describe a different transport path
+   * (different local or remote candidate).
+   */
+  private isTransportPathChanged = (
+    a: RTCIceCandidatePair | null | undefined,
+    b: RTCIceCandidatePair | null | undefined,
+  ): boolean => {
+    if (!a || !b) return false;
+    return (
+      a.local?.candidate !== b.local?.candidate ||
+      a.remote?.candidate !== b.remote?.candidate
+    );
   };
 
   /**

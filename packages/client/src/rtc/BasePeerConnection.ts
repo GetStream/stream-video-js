@@ -193,6 +193,21 @@ export abstract class BasePeerConnection {
   };
 
   /**
+   * Hook invoked when ICE transitions to `disconnected` and a restart is being
+   * scheduled. Subclasses may snapshot transport state here to inform the
+   * reconnect decision made by `keepScheduledIceRestart`. No-op by default.
+   */
+  protected onIceDisconnected = (): void => {};
+
+  /**
+   * Hook invoked when ICE recovers to `connected`/`completed` while a restart
+   * is still scheduled. Returning `true` keeps the restart (it runs
+   * immediately); returning `false` cancels it. Defaults to canceling, the
+   * right choice when the connection recovered on the same transport path.
+   */
+  protected shouldKeepScheduledIceRestart = (): boolean => false;
+
+  /**
    * Handles events synchronously.
    * Consecutive events are queued and executed one after the other.
    */
@@ -457,6 +472,7 @@ export abstract class BasePeerConnection {
         // in the `disconnected` state, we schedule a restartICE() after a delay
         // as the browser might recover the connection in the meantime
         this.logger.info('disconnected connection, scheduling restartICE');
+        this.onIceDisconnected();
         clearTimeout(this.iceRestartTimeout);
         this.iceRestartTimeout = setTimeout(() => {
           const currentState = this.pc.iceConnectionState;
@@ -476,11 +492,19 @@ export abstract class BasePeerConnection {
           this.iceHasEverConnected = true;
           this.onIceConnected?.(this.peerType);
         }
-        // clear any scheduled restartICE since the connection is healthy
+        // a restartICE was scheduled while disconnected, and the browser
+        // recovered on its own before it fired. Cancel it, unless the recovery
+        // landed on a different ICE path, in which case the SFU still needs to
+        // learn the new transport, so let the restart proceed immediately.
         if (this.iceRestartTimeout) {
-          this.logger.info('connected connection, canceling restartICE');
           clearTimeout(this.iceRestartTimeout);
           this.iceRestartTimeout = undefined;
+          if (this.shouldKeepScheduledIceRestart()) {
+            this.logger.info('ICE path migrated on reconnect, restarting ICE');
+            this.tryRestartIce();
+          } else {
+            this.logger.info('connected connection, canceling restartICE');
+          }
         }
         // clear the pre-connect watchdog if it was armed
         clearTimeout(this.preConnectStuckTimeout);
