@@ -49,30 +49,14 @@ const MediaStreamTrackMock = vi.fn(function (): Partial<MediaStreamTrack> {
 });
 vi.stubGlobal('MediaStreamTrack', MediaStreamTrackMock);
 
-// Minimal RTCIceTransport stand-in. `getSelectedCandidatePair` defaults to
-// `null`; `__setSelectedCandidatePair` lets the Publisher reconnect tests drive
-// the selected pair across a disconnect/reconnect flap.
-const makeIceTransportMock = () => {
-  let selected: RTCIceCandidatePair | null = null;
-  return {
-    getSelectedCandidatePair: vi.fn(() => selected),
-    __setSelectedCandidatePair: (pair: RTCIceCandidatePair | null) => {
-      selected = pair;
-    },
-  };
-};
-
 const RTCRtpTransceiverMock = vi.fn(function (): Partial<RTCRtpTransceiver> {
   return {
+    // @ts-expect-error - incomplete mock
     sender: {
       track: null,
       replaceTrack: vi.fn(),
       getParameters: vi.fn().mockReturnValue({}),
       setParameters: vi.fn(),
-      transport: {
-        // @ts-expect-error - incomplete mock
-        iceTransport: makeIceTransportMock(),
-      },
     },
     setCodecPreferences: vi.fn(),
     mid: '',

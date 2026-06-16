@@ -39,7 +39,6 @@ export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
   private readonly clonedTracks = new Set<MediaStreamTrack>();
   private publishOptions: PublishOption[];
-  private pairBeforeDisconnect?: RTCIceCandidatePair | null;
 
   /**
    * Constructs a new `Publisher` instance.
@@ -441,58 +440,6 @@ export class Publisher extends BasePeerConnection {
       return;
     }
     await this.negotiate({ iceRestart: true });
-  };
-
-  /**
-   * Snapshots the selected candidate pair when ICE drops so the reconnect
-   * handler can tell an organic path migration apart from a same-path recovery.
-   */
-  protected onIceDisconnected = (): void => {
-    this.pairBeforeDisconnect = this.getSelectedCandidatePair();
-  };
-
-  /**
-   * Keeps the scheduled ICE restart only when the connection recovered on a
-   * different candidate pair: an organic path migration (e.g., Wi-Fi to LTE)
-   * the SFU must be told about. A same-path recovery cancels the restart.
-   */
-  protected shouldKeepScheduledIceRestart = (): boolean => {
-    const migrated = this.isTransportPathChanged(
-      this.pairBeforeDisconnect,
-      this.getSelectedCandidatePair(),
-    );
-    this.pairBeforeDisconnect = undefined;
-    return migrated;
-  };
-
-  /**
-   * Reads the currently selected ICE candidate pair off the BUNDLE-shared
-   * transport, or `undefined` when no transport is available yet or the
-   * platform doesn't expose the API (Firefox, older Safari).
-   */
-  private getSelectedCandidatePair = () => {
-    for (const { transceiver } of this.transceiverCache.items()) {
-      const iceTransport = transceiver.sender.transport?.iceTransport;
-      if (typeof iceTransport?.getSelectedCandidatePair === 'function') {
-        return iceTransport.getSelectedCandidatePair();
-      }
-    }
-    return undefined;
-  };
-
-  /**
-   * Returns true when two candidate pairs describe a different transport path
-   * (different local or remote candidate).
-   */
-  private isTransportPathChanged = (
-    a: RTCIceCandidatePair | null | undefined,
-    b: RTCIceCandidatePair | null | undefined,
-  ): boolean => {
-    if (!a || !b) return false;
-    return (
-      a.local?.candidate !== b.local?.candidate ||
-      a.remote?.candidate !== b.remote?.candidate
-    );
   };
 
   /**
