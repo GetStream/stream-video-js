@@ -194,6 +194,72 @@ describe('Subscriber', () => {
     });
   });
 
+  describe('Subscriber negotiation', () => {
+    const subscriberOffer: SubscriberOffer = {
+      sdp: 'subscriber-offer-sdp',
+      iceRestart: false,
+      negotiationId: 10,
+    };
+
+    beforeEach(() => {
+      sfuClient.sendAnswer = vi.fn().mockResolvedValue({ response: {} });
+    });
+
+    it('resets isIceRestarting once a negotiation completes', async () => {
+      subscriber['isIceRestarting'] = true;
+
+      await subscriber['negotiate'](subscriberOffer);
+
+      expect(sfuClient.sendAnswer).toHaveBeenCalledWith({
+        peerType: PeerType.SUBSCRIBER,
+        sdp: '',
+        negotiationId: 10,
+      });
+      expect(subscriber['isIceRestarting']).toBe(false);
+    });
+
+    it('resets isIceRestarting even when the negotiation fails', async () => {
+      subscriber['isIceRestarting'] = true;
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+      expect(subscriber['isIceRestarting']).toBe(false);
+    });
+
+    it('rolls back the remote description when a negotiation fails mid-offer', async () => {
+      const setRemoteDescription = vi.fn().mockResolvedValue({});
+      subscriber['pc'].setRemoteDescription = setRemoteDescription;
+      // @ts-expect-error - readonly field
+      subscriber['pc'].signalingState = 'have-remote-offer';
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+      expect(setRemoteDescription).toHaveBeenCalledWith({ type: 'rollback' });
+    });
+
+    it('does not roll back when the peer connection never applied the offer', async () => {
+      // signalingState stays 'stable' because setRemoteDescription rejected
+      subscriber['pc'].setRemoteDescription = vi
+        .fn()
+        .mockRejectedValue(new Error('set remote description failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'set remote description failed',
+      );
+      expect(subscriber['pc'].setRemoteDescription).not.toHaveBeenCalledWith({
+        type: 'rollback',
+      });
+    });
+  });
+
   describe('OnTrack', () => {
     it('should add unknown tracks to the to the call state', () => {
       const mediaStream = new MediaStream();

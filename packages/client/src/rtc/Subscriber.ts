@@ -23,6 +23,7 @@ export class Subscriber extends BasePeerConnection {
 
     this.on('subscriberOffer', async (subscriberOffer) => {
       return this.negotiate(subscriberOffer).catch((err) => {
+        this.tracer?.trace('subscriber.negotiationFailed', err.message);
         this.logger.error(`Negotiation failed.`, err);
       });
     });
@@ -172,34 +173,41 @@ export class Subscriber extends BasePeerConnection {
   };
 
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
-    await this.pc.setRemoteDescription({
-      type: 'offer',
-      sdp: subscriberOffer.sdp,
-    });
+    try {
+      await this.pc.setRemoteDescription({
+        type: 'offer',
+        sdp: subscriberOffer.sdp,
+      });
 
-    this.addTrickledIceCandidates();
+      this.addTrickledIceCandidates();
 
-    const answer = await this.pc.createAnswer();
-    if (answer.sdp) {
-      answer.sdp = enableStereo(subscriberOffer.sdp, answer.sdp);
-      const { dangerouslyForceCodec, subscriberFmtpLine } =
-        this.clientPublishOptions || {};
-      if (dangerouslyForceCodec) {
-        answer.sdp = removeCodecsExcept(
-          answer.sdp,
-          dangerouslyForceCodec,
-          subscriberFmtpLine,
-        );
+      const answer = await this.pc.createAnswer();
+      if (answer.sdp) {
+        answer.sdp = enableStereo(subscriberOffer.sdp, answer.sdp);
+        const { dangerouslyForceCodec, subscriberFmtpLine } =
+          this.clientPublishOptions || {};
+        if (dangerouslyForceCodec) {
+          answer.sdp = removeCodecsExcept(
+            answer.sdp,
+            dangerouslyForceCodec,
+            subscriberFmtpLine,
+          );
+        }
       }
+      await this.pc.setLocalDescription(answer);
+
+      await this.sfuClient.sendAnswer({
+        peerType: PeerType.SUBSCRIBER,
+        sdp: answer.sdp || '',
+        negotiationId: subscriberOffer.negotiationId,
+      });
+    } catch (err) {
+      if (this.pc.signalingState === 'have-remote-offer') {
+        await this.pc.setRemoteDescription({ type: 'rollback' });
+      }
+      throw err;
+    } finally {
+      this.isIceRestarting = false;
     }
-    await this.pc.setLocalDescription(answer);
-
-    await this.sfuClient.sendAnswer({
-      peerType: PeerType.SUBSCRIBER,
-      sdp: answer.sdp || '',
-      negotiationId: subscriberOffer.negotiationId,
-    });
-
-    this.isIceRestarting = false;
   };
 }
