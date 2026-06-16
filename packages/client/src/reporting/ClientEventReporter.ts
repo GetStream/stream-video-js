@@ -64,6 +64,7 @@ export type CallReportContext = {
 
 export type ClientEventReporterOptions = {
   streamClient: StreamClient;
+  enabled?: boolean;
 };
 
 type StageError = {
@@ -94,6 +95,7 @@ export class ClientEventReporter {
   private readonly logger = videoLoggerSystem.getLogger('ClientEventReporter');
 
   private streamClient: StreamClient;
+  private enabled: boolean;
 
   private coordinatorConnectId?: string;
   private coordinatorConnectUserId?: string;
@@ -112,6 +114,7 @@ export class ClientEventReporter {
 
   constructor(options: ClientEventReporterOptions) {
     this.streamClient = options.streamClient;
+    this.enabled = options.enabled ?? true;
   }
 
   /**
@@ -731,6 +734,7 @@ export class ClientEventReporter {
   };
 
   private send = (body: Record<string, unknown>) => {
+    if (!this.enabled) return;
     void this.sendWithRetry(body);
   };
 
