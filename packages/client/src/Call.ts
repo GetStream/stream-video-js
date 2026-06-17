@@ -1230,7 +1230,10 @@ export class Call {
       const isReconnecting =
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
       const reconnectDetails = isReconnecting
-        ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
+        ? this.getReconnectDetails(
+            previousSfuClient?.edgeName,
+            previousSessionId,
+          )
         : undefined;
       const preferredPublishOptions = !isReconnecting
         ? this.getPreferredPublishOptions()
