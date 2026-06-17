@@ -158,26 +158,25 @@ export const CallContent = ({
   const showSpotlightLayout = hasScreenShare || layout === 'spotlight';
 
   useEffect(() => {
-    if (isInPiPMode && Platform.OS === 'android') {
-      const unsubFunc = call?.on('call.ended', () => {
+    if (!isInPiPMode || Platform.OS !== 'android') return;
+    const unsubFunc = call?.on('call.ended', () => {
+      videoLoggerSystem
+        .getLogger('CallContent')
+        .debug(`exiting PiP mode due to call.ended`);
+      NativeModules.StreamVideoReactNative.exitPipMode();
+    });
+    const subscription = call?.state.callingState$.subscribe((state) => {
+      if (state === CallingState.LEFT) {
         videoLoggerSystem
           .getLogger('CallContent')
-          .debug(`exiting PiP mode due to call.ended`);
+          .debug(`exiting PiP mode due to callingState: LEFT`);
         NativeModules.StreamVideoReactNative.exitPipMode();
-      });
-      const subscription = call?.state.callingState$.subscribe((state) => {
-        if (state === CallingState.LEFT) {
-          videoLoggerSystem
-            .getLogger('CallContent')
-            .debug(`exiting PiP mode due to callingState: LEFT`);
-          NativeModules.StreamVideoReactNative.exitPipMode();
-        }
-      });
-      return () => {
-        unsubFunc?.();
-        subscription?.unsubscribe();
-      };
-    }
+      }
+    });
+    return () => {
+      unsubFunc?.();
+      subscription?.unsubscribe();
+    };
   }, [isInPiPMode, call]);
 
   const showFloatingView =
@@ -203,6 +202,7 @@ export const CallContent = ({
         prevInCallManager.stop();
       };
     }
+    return undefined;
   }, []);
 
   const handleFloatingViewParticipantSwitch = () => {

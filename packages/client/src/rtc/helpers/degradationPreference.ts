@@ -18,6 +18,7 @@ export const toRTCDegradationPreference = (
       return undefined;
     default:
       ensureExhausted(preference, 'Unknown degradation preference');
+      return undefined;
   }
 };
 

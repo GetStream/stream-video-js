@@ -62,7 +62,6 @@ const DEFAULT_STREAM_VIDEO_CONFIG: StreamVideoConfig = {
 
 export class StreamVideoRN {
   private static config = DEFAULT_STREAM_VIDEO_CONFIG;
-  private static busyToneTimeout: NodeJS.Timeout | null = null;
 
   /**
    * Update the global config for StreamVideoRN except for push config.

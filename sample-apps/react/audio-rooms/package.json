@@ -16,10 +16,11 @@
     "react-router-dom": "^6.30.3"
   },
   "devDependencies": {
+    "@stream-io/typescript-config": "workspace:^",
     "@types/react": "~19.2.15",
     "@types/react-dom": "~19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^8.0.14"
   }
 }

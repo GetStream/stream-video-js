@@ -26,7 +26,7 @@ export const HLSLivestreamUI = () => {
   useEffect(() => {
     if (!videoRef || !playlist_url) return;
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     if (autoJoin && isBroadcasting) {
       hls.on(HLS.Events.ERROR, (e, data) => {
         console.error('HLS error, attempting to recover', e, data);

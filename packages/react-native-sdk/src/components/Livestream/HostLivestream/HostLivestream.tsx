@@ -90,12 +90,11 @@ export const HostLivestream = ({
   // Automatically route audio to speaker devices as relevant for watching videos.
   useEffect(() => {
     const prevInCallManager = getRNInCallManagerLibNoThrow();
-    if (prevInCallManager) {
-      prevInCallManager.start({ media: 'video' });
-      return () => {
-        prevInCallManager.stop();
-      };
-    }
+    if (!prevInCallManager) return;
+    prevInCallManager.start({ media: 'video' });
+    return () => {
+      prevInCallManager.stop();
+    };
   }, []);
 
   const [topViewHeight, setTopViewHeight] = React.useState<number>();

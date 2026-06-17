@@ -71,7 +71,7 @@ export const ViewerLivestreamControls = ({
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [showPlayPauseButton, setShowPlayPauseButton] = useState(true);
-  const playPauseTimeout = useRef<NodeJS.Timeout | null>(null);
+  const playPauseTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hidePlayPauseButtonAfterDelay = useCallback(() => {
     if (playPauseTimeout.current) {

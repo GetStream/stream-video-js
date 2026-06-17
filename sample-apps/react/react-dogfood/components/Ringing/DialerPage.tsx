@@ -25,6 +25,16 @@ import appTranslations from '../../translations';
 import { DefaultAppHeader } from '../DefaultAppHeader';
 import { DialingCallNotification } from './DialingCallNotification';
 
+function findLastIndex<T>(
+  arr: readonly T[],
+  predicate: (value: T) => boolean,
+): number {
+  for (let i = arr.length - 1; i >= 0; i--) {
+    if (predicate(arr[i])) return i;
+  }
+  return -1;
+}
+
 export const DialerPage = ({
   apiKey,
   user,
@@ -61,7 +71,7 @@ export const DialerPage = ({
         const nextUserIds = [...prevUserIds];
         nextUserIds[index] = value;
         nextUserIds.splice(
-          nextUserIds.findLastIndex((uid) => uid !== '') + 1,
+          findLastIndex(nextUserIds, (uid) => uid !== '') + 1,
           Number.POSITIVE_INFINITY,
           '',
         );
@@ -101,7 +111,7 @@ export const DialerPage = ({
           ...pastedUserIds,
         );
         nextUserIds.splice(
-          nextUserIds.findLastIndex((uid) => uid !== '') + 1,
+          findLastIndex(nextUserIds, (uid) => uid !== '') + 1,
           Number.POSITIVE_INFINITY,
           '',
         );

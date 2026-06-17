@@ -143,13 +143,12 @@ const useCanJoinEarly = () => {
   );
 
   useEffect(() => {
-    if (!canJoinEarly) {
-      const handle = setInterval(() => {
-        setCanJoinEarly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
-      }, 1000);
+    if (canJoinEarly) return;
+    const handle = setInterval(() => {
+      setCanJoinEarly(checkCanJoinEarly(startsAt, joinAheadTimeSeconds));
+    }, 1000);
 
-      return () => clearInterval(handle);
-    }
+    return () => clearInterval(handle);
   }, [canJoinEarly, startsAt, joinAheadTimeSeconds]);
 
   return canJoinEarly;

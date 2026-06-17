@@ -1,20 +1,8 @@
 {
+  "extends": "@stream-io/typescript-config/library-web.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "module": "ES2020",
-    "target": "ES2020",
-    "lib": ["esnext", "dom"],
-    "declaration": true,
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "strictNullChecks": true,
-    "sourceMap": true,
-    "inlineSources": true,
+    "types": ["node"],
     "jsx": "react-jsxdev"
   },
   "exclude": ["**/__tests__/**"],
