@@ -25,7 +25,7 @@ vi.mock('../../StreamSfuClient', () => ({
   StreamSfuClient: vi.fn(),
 }));
 
-const makeCall = ({ reportingEnabled = true } = {}) => {
+const makeCall = ({ reportingEnabled = false } = {}) => {
   const streamClient = new StreamClient('test-key');
   const clientStore = new StreamVideoWriteableStateStore();
   return new Call({
@@ -423,7 +423,7 @@ describe('Call reconnect rejoin SFU migration hints', () => {
   };
 
   beforeEach(() => {
-    call = makeCall({ reportingEnabled: false });
+    call = makeCall();
     call['credentials'] = credentials;
     call['joinCallData'] = { create: true };
     primeForReconnect(call);
