@@ -501,6 +501,56 @@ describe('Call reconnect rejoin SFU migration hints', () => {
     });
     expect(call['joinCallData']).toEqual({ create: true });
   });
+
+  it('gives every SFU two tries before excluding it (a once-failed SFU is re-served, not yet listed)', async () => {
+    call.setRejoinAttemptLimit(5, 60);
+    call['credentials'] = {
+      ...credentials,
+      server: { ...credentials.server, edge_name: 'sfu-a' },
+    };
+
+    const pool = ['sfu-a', 'sfu-b', 'sfu-c'];
+    const sent: Array<{
+      migrating_from?: string;
+      migrating_from_list?: string[];
+    }> = [];
+    vi.spyOn(
+      call as unknown as {
+        doJoinRequest: (data?: unknown) => Promise<unknown>;
+      },
+      'doJoinRequest',
+    ).mockImplementation(async (data?: unknown) => {
+      const clone = JSON.parse(JSON.stringify(data ?? {}));
+      sent.push(clone);
+      const excluded = new Set<string>(clone.migrating_from_list ?? []);
+      const assigned = pool.find((s) => !excluded.has(s)) ?? pool.at(-1)!;
+      call['credentials'] = {
+        ...credentials,
+        server: { ...credentials.server, edge_name: assigned },
+      };
+      throw new Error('connect failed');
+    });
+
+    await call['reconnect'](WebsocketReconnectStrategy.REJOIN, 'test');
+
+    expect(sent).toHaveLength(5);
+    expect(sent[0].migrating_from_list).toBeUndefined();
+    expect(sent[1].migrating_from_list).toBeUndefined();
+    expect(sent[2].migrating_from).toBe('sfu-a');
+    expect(sent[2].migrating_from_list).toEqual(['sfu-a']);
+    expect(sent[3].migrating_from).toBe('sfu-a');
+    expect(sent[3].migrating_from_list).toEqual(['sfu-a']);
+    expect(sent[3].migrating_from_list).not.toContain('sfu-b');
+    expect(sent[4].migrating_from).toBe('sfu-b');
+    expect(sent[4].migrating_from_list).toEqual(['sfu-a', 'sfu-b']);
+
+    for (const req of sent) {
+      if (req.migrating_from) {
+        expect(req.migrating_from_list).toContain(req.migrating_from);
+      }
+    }
+    expect(call['joinCallData']).toEqual({ create: true });
+  });
 });
 
 /**

@@ -1788,16 +1788,14 @@ export class Call {
               await this.reconnectFast();
               break;
             case WebsocketReconnectStrategy.REJOIN: {
-              const currentSfu = this.credentials?.server.edge_name;
-              if (
-                this.joinCallData &&
-                currentSfu &&
-                (sfuRejoinFailures.get(currentSfu) ?? 0) >= 2
-              ) {
-                this.joinCallData.migrating_from = currentSfu;
-                this.joinCallData.migrating_from_list = Array.from(
-                  sfuRejoinFailures.keys(),
-                );
+              const confirmedBadSfus = Array.from(sfuRejoinFailures)
+                .filter(([, failures]) => failures >= 2)
+                .map(([sfu]) => sfu);
+
+              if (this.joinCallData && confirmedBadSfus.length) {
+                this.joinCallData.migrating_from =
+                  confirmedBadSfus[confirmedBadSfus.length - 1];
+                this.joinCallData.migrating_from_list = confirmedBadSfus;
               }
 
               try {
