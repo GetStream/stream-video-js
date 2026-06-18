@@ -2057,6 +2057,7 @@ export class Call {
           this.sfuStatsReporter?.stop();
           this.state.setCallingState(CallingState.OFFLINE);
         } else {
+          if (!this.networkAvailableTask) return;
           this.logger.debug('[Reconnect] Going online');
           this.sfuClient?.close(
             StreamSfuClient.DISPOSE_OLD_SOCKET,
