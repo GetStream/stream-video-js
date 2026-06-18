@@ -49,14 +49,41 @@ const MediaStreamTrackMock = vi.fn(function (): Partial<MediaStreamTrack> {
 });
 vi.stubGlobal('MediaStreamTrack', MediaStreamTrackMock);
 
+// Minimal RTCIceTransport stand-in. `getSelectedCandidatePair` defaults to
+// `null` so the Publisher's CandidatePairMonitor stays dormant in tests that
+// don't care; the `__set`/`__emit` helpers let candidate-pair tests drive it.
+const makeIceTransportMock = () => {
+  let selected: RTCIceCandidatePair | null = null;
+  const listeners = new Set<() => void>();
+  return {
+    getSelectedCandidatePair: vi.fn(() => selected),
+    addEventListener: vi.fn((_type: string, cb: () => void) => {
+      listeners.add(cb);
+    }),
+    removeEventListener: vi.fn((_type: string, cb: () => void) => {
+      listeners.delete(cb);
+    }),
+    __setSelectedCandidatePair: (pair: RTCIceCandidatePair | null) => {
+      selected = pair;
+    },
+    __emitSelectedCandidatePairChange: (pair: RTCIceCandidatePair | null) => {
+      selected = pair;
+      listeners.forEach((cb) => cb());
+    },
+  };
+};
+
 const RTCRtpTransceiverMock = vi.fn(function (): Partial<RTCRtpTransceiver> {
   return {
-    // @ts-expect-error - incomplete mock
     sender: {
       track: null,
       replaceTrack: vi.fn(),
       getParameters: vi.fn().mockReturnValue({}),
       setParameters: vi.fn(),
+      transport: {
+        // @ts-expect-error - incomplete mock
+        iceTransport: makeIceTransportMock(),
+      },
     },
     setCodecPreferences: vi.fn(),
     mid: '',

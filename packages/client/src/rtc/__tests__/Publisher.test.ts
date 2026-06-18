@@ -168,6 +168,100 @@ describe('Publisher', () => {
     });
   });
 
+  describe('Candidate pair migration', () => {
+    // the mock transceiver hangs __set/__emit helpers off its iceTransport
+    const iceTransportMock = () =>
+      (vi.mocked(publisher['pc'].addTransceiver).mock.results[0].value as any)
+        .sender.transport.iceTransport;
+
+    // a selected pair on interface `net` (keyed by the network-id extension)
+    const pairOn = (net: number) => ({
+      local: {
+        candidate: `candidate:f${net} 1 udp 1 1.1.1.${net} 5000 typ srflx network-id ${net}`,
+      },
+      remote: { candidate: 'candidate:r 1 udp 1 2.2.2.2 5000 typ host' },
+    });
+
+    const publishVideo = async () => {
+      // @ts-expect-error - private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+      const track = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(new MediaStreamTrack());
+      await publisher.publish(track, TrackType.VIDEO);
+    };
+
+    it('attaches a selected-candidate-pair listener when publishing', async () => {
+      await publishVideo();
+      expect(iceTransportMock().addEventListener).toHaveBeenCalledWith(
+        'selectedcandidatepairchange',
+        expect.any(Function),
+      );
+    });
+
+    it('removes the listener when the publisher is disposed', async () => {
+      await publishVideo();
+      const iceTransport = iceTransportMock();
+      await publisher.dispose();
+      expect(iceTransport.removeEventListener).toHaveBeenCalledWith(
+        'selectedcandidatepairchange',
+        expect.any(Function),
+      );
+    });
+
+    it('skips attachment when the selected-candidate-pair API is unavailable', async () => {
+      // @ts-expect-error - private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+      // emulate React Native without the patched WebRTC binary / old Safari
+      vi.mocked(publisher['pc'].addTransceiver).mockReturnValueOnce({
+        sender: {
+          track: null,
+          getParameters: vi.fn().mockReturnValue({}),
+          setParameters: vi.fn(),
+          transport: undefined,
+        },
+        mid: '',
+      } as unknown as RTCRtpTransceiver);
+      const track = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(new MediaStreamTrack());
+
+      await publisher.publish(track, TrackType.VIDEO);
+
+      expect(publisher['candidatePairMonitor']).toBeUndefined();
+    });
+
+    it('restarts ICE when the selected candidate pair migrates organically', async () => {
+      const restartSpy = vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      // isStable() requires both ICE and connection state to be connected
+      // @ts-expect-error - readonly field
+      publisher['pc'].iceConnectionState = 'connected';
+
+      await publishVideo();
+      const iceTransport = iceTransportMock();
+
+      // first observation establishes the baseline path...
+      iceTransport.__emitSelectedCandidatePairChange(pairOn(1));
+      // ...then an organic migration to a new interface fires the restart
+      iceTransport.__emitSelectedCandidatePairChange(pairOn(2));
+
+      expect(restartSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('suppresses a flap back to a recently used path (no restart loop)', async () => {
+      const restartSpy = vi.spyOn(publisher, 'restartIce').mockResolvedValue();
+      // @ts-expect-error - readonly field
+      publisher['pc'].iceConnectionState = 'connected';
+
+      await publishVideo();
+      const iceTransport = iceTransportMock();
+
+      iceTransport.__emitSelectedCandidatePairChange(pairOn(1)); // baseline
+      iceTransport.__emitSelectedCandidatePairChange(pairOn(2)); // 1 -> 2: fires
+      iceTransport.__emitSelectedCandidatePairChange(pairOn(1)); // 2 -> 1: flap, suppressed
+
+      expect(restartSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Event Handling', () => {
     it('handles changePublishQuality events', () => {
       publisher['changePublishQuality'] = vi.fn();
