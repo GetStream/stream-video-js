@@ -24,7 +24,8 @@ export class Subscriber extends BasePeerConnection {
     this.on('subscriberOffer', async (subscriberOffer) => {
       return this.negotiate(subscriberOffer).catch((err) => {
         this.tracer?.trace('subscriber.negotiationFailed', err.message);
-        this.logger.error(`Negotiation failed.`, err);
+        this.logger.error(`Negotiation failed`, err);
+        this.tryRestartIce();
       });
     });
   }
@@ -45,13 +46,11 @@ export class Subscriber extends BasePeerConnection {
   restartIce = async () => {
     this.logger.debug('Restarting ICE connection');
     if (this.pc.signalingState === 'have-remote-offer') {
-      this.logger.debug('ICE restart is already in progress');
+      this.logger.debug('ICE negotiation is already in progress');
       return;
     }
     if (this.pc.connectionState === 'new') {
-      this.logger.debug(
-        `ICE connection is not yet established, skipping restart.`,
-      );
+      this.logger.debug(`ICE connection not yet established, skipping restart`);
       return;
     }
     const previousIsIceRestarting = this.isIceRestarting;
@@ -203,7 +202,9 @@ export class Subscriber extends BasePeerConnection {
       });
     } catch (err) {
       if (this.pc.signalingState === 'have-remote-offer') {
-        await this.pc.setRemoteDescription({ type: 'rollback' });
+        await this.pc.setRemoteDescription({ type: 'rollback' }).catch((e) => {
+          this.logger.warn('Failed to rollback after negotiation error', e);
+        });
       }
       throw err;
     } finally {

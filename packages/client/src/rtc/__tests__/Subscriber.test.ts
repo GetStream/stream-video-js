@@ -258,6 +258,22 @@ describe('Subscriber', () => {
         type: 'rollback',
       });
     });
+
+    it('propagates the original error even when the rollback itself fails', async () => {
+      subscriber['pc'].setRemoteDescription = vi
+        .fn()
+        .mockResolvedValueOnce({}) // applying the offer succeeds
+        .mockRejectedValueOnce(new Error('rollback failed')); // rollback fails
+      // @ts-expect-error - readonly field
+      subscriber['pc'].signalingState = 'have-remote-offer';
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+    });
   });
 
   describe('OnTrack', () => {
