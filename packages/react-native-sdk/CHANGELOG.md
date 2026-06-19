@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.39.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.38.2...@stream-io/video-react-native-sdk-1.39.0) (2026-06-19)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.54.0`
+- `@stream-io/video-react-bindings` updated to version `1.17.0`
+
+### Features
+
+- **client:** show connecting indicator while video track is connecting ([#2275](https://github.com/GetStream/stream-video-js/issues/2275)) ([a9c670d](https://github.com/GetStream/stream-video-js/commit/a9c670dec44cc008f1b22aab8cb61998e71d3050)), closes [GetStream/react-native-webrtc#32](https://github.com/GetStream/react-native-webrtc/issues/32)
+
 ## [1.38.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.38.1...@stream-io/video-react-native-sdk-1.38.2) (2026-06-12)
 
 ### Dependency Updates
