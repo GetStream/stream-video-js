@@ -51,15 +51,16 @@ export interface PrRollup {
   carriers: PkgVersion[];
 }
 
-// Conventional-changelog links PR/issue refs as "[#2284](.../issues/2284)".
-// Commit hashes use the same bracket form without the leading "#", so the "#"
-// in the pattern keeps them out.
+// Extract the PR number from each changelog bullet. Conventional-changelog links
+// the PR as "[#2284](.../issues/2284)" and the commit hash as "[4403348](...)"
+// (no leading "#", so it never matches). A bullet can also carry trailing
+// "closes [#N]" issue references; those are not the PR that shipped the change,
+// so only the first "[#N]" per line (the PR ref) is taken.
 export function extractPrNumbers(text: string): number[] {
   const found = new Set<number>();
-  const re = /\[#(\d+)\]/g;
-  let match: RegExpExecArray | null;
-  while ((match = re.exec(text)) !== null) {
-    found.add(Number(match[1]));
+  for (const line of text.split('\n')) {
+    const match = line.match(/\[#(\d+)\]/);
+    if (match) found.add(Number(match[1]));
   }
   return [...found].sort((a, b) => a - b);
 }
@@ -166,6 +167,31 @@ export function renderIssueComment(
   );
 }
 
+// Keep only the closing-issue numbers that live in `repo`, parsed from the JSON
+// that `gh pr view --json closingIssuesReferences` emits. A PR can close an
+// issue in another repository (changelogs here reference other GetStream repos);
+// commenting on a same-number issue in this repo would be wrong, so cross-repo
+// references are dropped.
+export function sameRepoIssueNumbers(
+  closingRefsJson: string,
+  repo: string,
+): number[] {
+  try {
+    const data = JSON.parse(closingRefsJson) as {
+      closingIssuesReferences?: { number?: number; url?: string }[];
+    };
+    const prefix = `https://github.com/${repo}/`;
+    return (data.closingIssuesReferences ?? [])
+      .filter(
+        (ref) => typeof ref.url === 'string' && ref.url.startsWith(prefix),
+      )
+      .map((ref) => ref.number)
+      .filter((n): n is number => typeof n === 'number');
+  } catch {
+    return [];
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Impure shell + CLI (validated via --dry-run)
 // ---------------------------------------------------------------------------
@@ -241,21 +267,14 @@ function toVersionLink(pkg: PkgVersion): VersionLink {
   };
 }
 
-// Issues a PR closes (from "Fixes #N" / linked issues), same repo only.
+// Issue numbers a PR closes, restricted to this repository (cross-repo closing
+// references are dropped by sameRepoIssueNumbers).
 function linkedIssues(pr: number): number[] {
   const out = gh(
-    [
-      'pr',
-      'view',
-      String(pr),
-      '--json',
-      'closingIssuesReferences',
-      '-q',
-      '.closingIssuesReferences[].number',
-    ],
+    ['pr', 'view', String(pr), '--json', 'closingIssuesReferences'],
     { allowFailure: true },
   );
-  return out ? out.split('\n').filter(Boolean).map(Number) : [];
+  return out ? sameRepoIssueNumbers(out, REPO) : [];
 }
 
 function alreadyCommented(kind: 'pr' | 'issue', number: number): boolean {
@@ -288,8 +307,16 @@ function postComment(
     console.log(`= ${kind} #${number}: already announced, skipping`);
     return;
   }
-  gh([kind, 'comment', String(number), '--body', body]);
-  console.log(`+ ${kind} #${number}: comment posted`);
+  try {
+    gh([kind, 'comment', String(number), '--body', body]);
+    console.log(`+ ${kind} #${number}: comment posted`);
+  } catch (error) {
+    // One bad target (a number that is an issue rather than a PR, or a
+    // transient GitHub error) must not abort the remaining notifications.
+    console.warn(
+      `WARN: failed to comment on ${kind} #${number}: ${(error as Error).message}`,
+    );
+  }
 }
 
 function readTopChangelogs(

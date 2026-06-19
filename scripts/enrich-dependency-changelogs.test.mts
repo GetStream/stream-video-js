@@ -144,6 +144,32 @@ test('parseOwnChanges ignores the Dependency Updates section (passthrough = empt
   assert.equal(own.other.length, 0);
 });
 
+test('parseOwnChanges captures Chores and Refactors section bullets as "other"', () => {
+  const body = [
+    '### Features',
+    '',
+    '- a feature ([#1](https://x/issues/1))',
+    '',
+    '### Chores',
+    '',
+    '- a chore ([#2](https://x/issues/2))',
+    '',
+    '### Refactors',
+    '',
+    '- a refactor ([#3](https://x/issues/3))',
+    '',
+    '### Dependency Updates',
+    '',
+    '- `dep` updated to version `1.0.0`',
+    '',
+  ].join('\n');
+  const own = parseOwnChanges(body);
+  assert.deepEqual(own.Features, ['- a feature ([#1](https://x/issues/1))']);
+  assert.ok(own.other.includes('- a chore ([#2](https://x/issues/2))'));
+  assert.ok(own.other.includes('- a refactor ([#3](https://x/issues/3))'));
+  assert.equal(own.other.length, 2);
+});
+
 test('resolveOldDepVersion finds the dep version from the previous mentioning entry', () => {
   const entries = parseEntries(REACT_SDK_CL);
   // top entry (index 0) has client 1.53.2; previous entry has client 1.53.0

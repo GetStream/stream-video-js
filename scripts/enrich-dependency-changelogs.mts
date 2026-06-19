@@ -168,7 +168,9 @@ export function parseOwnChanges(body: string): OwnChanges {
     const bullet = normalizeBullet(line);
     if (current === 'Features') result.Features.push(bullet);
     else if (current === 'Bug Fixes') result['Bug Fixes'].push(bullet);
-    else if (current === 'other') result.other.push(bullet);
+    // Any other visible section (Chores, Refactors, or loose pre-heading
+    // bullets) is still an own change. Dependency Updates was skipped above.
+    else result.other.push(bullet);
   }
   return result;
 }

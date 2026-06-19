@@ -5,6 +5,7 @@ import {
   COMMENT_MARKER,
   extractPrNumbers,
   buildReleaseRollup,
+  sameRepoIssueNumbers,
   renderPrComment,
   renderIssueComment,
   type VersionLink,
@@ -52,8 +53,19 @@ test('extractPrNumbers picks up linked PR refs, not commit hashes', () => {
   );
 });
 
-test('extractPrNumbers dedupes and sorts', () => {
-  assert.deepEqual(extractPrNumbers('[#30] [#10] [#10] [#20]'), [10, 20, 30]);
+test('extractPrNumbers dedupes across bullets and sorts', () => {
+  assert.deepEqual(
+    extractPrNumbers('- a [#30]\n- b [#10]\n- c [#10]\n- d [#20]'),
+    [10, 20, 30],
+  );
+});
+
+test('extractPrNumbers takes the PR ref per bullet and ignores trailing "closes [#N]" issue refs', () => {
+  const body = [
+    '- fix a thing ([#2048](https://github.com/GetStream/stream-video-js/issues/2048)) ([76eadd1](https://github.com/GetStream/stream-video-js/commit/76eadd1)), closes [#1962](https://github.com/GetStream/stream-video-js/issues/1962)',
+    '- another fix ([#2050](https://github.com/GetStream/stream-video-js/issues/2050)) ([abc1234](https://github.com/GetStream/stream-video-js/commit/abc1234))',
+  ].join('\n');
+  assert.deepEqual(extractPrNumbers(body), [2048, 2050]);
 });
 
 test('buildReleaseRollup splits source vs carrier and ignores older entries', () => {
@@ -78,6 +90,25 @@ test('buildReleaseRollup splits source vs carrier and ignores older entries', ()
   });
   // #2284 lived in an OLDER client entry (1.53.2), not the released top entry
   assert.equal(rollup.has(2284), false);
+});
+
+test('buildReleaseRollup classifies a PR under a Chores section as a source', () => {
+  const cl = `# Changelog
+
+## [1.0.0](https://github.com/GetStream/stream-video-js/compare/x...y) (2026-06-19)
+
+### Chores
+
+- **client:** bump something ([#4242](https://github.com/GetStream/stream-video-js/issues/4242)) ([abc1234](https://github.com/GetStream/stream-video-js/commit/abc1234))
+`;
+  const rollup = buildReleaseRollup(
+    [{ name: '@stream-io/video-client', version: '1.0.0' }],
+    { '@stream-io/video-client': cl },
+  );
+  assert.deepEqual(rollup.get(4242), {
+    sources: [{ name: '@stream-io/video-client', version: '1.0.0' }],
+    carriers: [],
+  });
 });
 
 test('renderPrComment groups sources and carriers and ends with the marker', () => {
@@ -127,4 +158,36 @@ test('renderIssueComment uses the issue lead line', () => {
   );
   assert.match(body, /The fix for this issue has been released/);
   assert.ok(body.trimEnd().endsWith(COMMENT_MARKER));
+});
+
+test('sameRepoIssueNumbers keeps same-repo closing issues and drops cross-repo ones', () => {
+  const json = JSON.stringify({
+    closingIssuesReferences: [
+      {
+        number: 100,
+        url: 'https://github.com/GetStream/stream-video-js/issues/100',
+      },
+      {
+        number: 32,
+        url: 'https://github.com/GetStream/react-native-webrtc/issues/32',
+      },
+      {
+        number: 200,
+        url: 'https://github.com/GetStream/stream-video-js/issues/200',
+      },
+    ],
+  });
+  assert.deepEqual(
+    sameRepoIssueNumbers(json, 'GetStream/stream-video-js'),
+    [100, 200],
+  );
+});
+
+test('sameRepoIssueNumbers returns [] for empty, malformed, or missing input', () => {
+  assert.deepEqual(sameRepoIssueNumbers('', 'GetStream/stream-video-js'), []);
+  assert.deepEqual(
+    sameRepoIssueNumbers('not json', 'GetStream/stream-video-js'),
+    [],
+  );
+  assert.deepEqual(sameRepoIssueNumbers('{}', 'GetStream/stream-video-js'), []);
 });
