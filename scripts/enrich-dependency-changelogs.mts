@@ -562,7 +562,7 @@ function topEntryPreview(changelogText: string): string {
 }
 
 // Packages released in this run: the trailing block of release commits at HEAD.
-function packagesReleasedInThisRun(): ReleasedPackage[] {
+export function packagesReleasedInThisRun(): ReleasedPackage[] {
   const log = run('git', ['log', '--format=%s', '-n', '60']);
   const released: ReleasedPackage[] = [];
   for (const subject of log.split('\n')) {
