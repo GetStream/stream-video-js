@@ -134,55 +134,28 @@ function renderVersionLine(link: VersionLink): string {
   return `- \`${link.name}@${link.version}\` - [release notes](${link.releaseUrl}) | [npm](${link.npmUrl})`;
 }
 
-function renderGroups(sources: VersionLink[], carriers: VersionLink[]): string {
-  const parts: string[] = [];
-  if (sources.length) {
-    parts.push('**Shipped in**', ...sources.map(renderVersionLine));
-  }
-  if (carriers.length) {
-    if (parts.length) parts.push('');
-    parts.push(
-      '**Available to SDK users in**',
-      ...carriers.map(renderVersionLine),
-    );
-  }
-  return parts.join('\n');
-}
-
-function renderComment(
-  lead: string,
-  sources: VersionLink[],
-  carriers: VersionLink[],
-): string {
+function renderComment(lead: string, versions: VersionLink[]): string {
   return [
     lead,
     '',
-    renderGroups(sources, carriers),
+    '**Shipped with:**',
+    ...versions.map(renderVersionLine),
     '',
-    '<sub>Posted automatically when the release went out. 🤖</sub>',
     COMMENT_MARKER,
   ].join('\n');
 }
 
-export function renderPrComment(
-  sources: VersionLink[],
-  carriers: VersionLink[],
-): string {
+export function renderPrComment(versions: VersionLink[]): string {
   return renderComment(
     '🎉 The changes from this pull request have been released.',
-    sources,
-    carriers,
+    versions,
   );
 }
 
-export function renderIssueComment(
-  sources: VersionLink[],
-  carriers: VersionLink[],
-): string {
+export function renderIssueComment(versions: VersionLink[]): string {
   return renderComment(
     '🎉 The fix for this issue has been released.',
-    sources,
-    carriers,
+    versions,
   );
 }
 
@@ -389,16 +362,12 @@ function run(dryRun: boolean): void {
   };
 
   for (const [pr, { sources, carriers }] of rollup) {
-    const srcLinks = sources.map(linkFor);
-    const carLinks = carriers.map(linkFor);
-    postComment('pr', pr, renderPrComment(srcLinks, carLinks), dryRun);
+    // Sources first (where the change originated), then the packages that carry
+    // it; they are disjoint, so the merged list has no duplicate package.
+    const versions = [...sources, ...carriers].map(linkFor);
+    postComment('pr', pr, renderPrComment(versions), dryRun);
     for (const issue of linkedIssues(pr)) {
-      postComment(
-        'issue',
-        issue,
-        renderIssueComment(srcLinks, carLinks),
-        dryRun,
-      );
+      postComment('issue', issue, renderIssueComment(versions), dryRun);
     }
   }
 }

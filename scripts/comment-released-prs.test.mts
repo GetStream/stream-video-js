@@ -180,16 +180,14 @@ test('buildReleaseRollup does not attribute a carrier when the bumped version is
   });
 });
 
-test('renderPrComment groups sources and carriers and ends with the marker', () => {
-  const src: VersionLink[] = [
+test('renderPrComment lists all versions under "Shipped with:" and ends with the marker', () => {
+  const versions: VersionLink[] = [
     {
       name: '@stream-io/video-client',
       version: '1.54.0',
       releaseUrl: 'https://gh/r/client',
       npmUrl: 'https://npm/client',
     },
-  ];
-  const car: VersionLink[] = [
     {
       name: '@stream-io/video-react-sdk',
       version: '1.38.0',
@@ -197,35 +195,36 @@ test('renderPrComment groups sources and carriers and ends with the marker', () 
       npmUrl: 'https://npm/sdk',
     },
   ];
-  const body = renderPrComment(src, car);
-  assert.match(body, /\*\*Shipped in\*\*/);
-  assert.match(body, /\*\*Available to SDK users in\*\*/);
+  const body = renderPrComment(versions);
+  assert.match(body, /\*\*Shipped with:\*\*/);
+  assert.ok(!body.includes('Available to SDK users in'));
   assert.match(body, /`@stream-io\/video-client@1\.54\.0`/);
+  assert.match(body, /`@stream-io\/video-react-sdk@1\.38\.0`/);
   assert.match(body, /\[npm\]\(https:\/\/npm\/sdk\)/);
+  assert.ok(!body.includes('Posted automatically')); // footer line removed
   assert.ok(body.trimEnd().endsWith(COMMENT_MARKER));
   assert.ok(!body.includes('—')); // no em-dash
 });
 
-test('renderPrComment with only sources omits the carrier group', () => {
-  const src: VersionLink[] = [
+test('renderPrComment renders a single version', () => {
+  const body = renderPrComment([
     {
       name: '@stream-io/video-react-sdk',
       version: '1.38.0',
       releaseUrl: 'r',
       npmUrl: 'n',
     },
-  ];
-  const body = renderPrComment(src, []);
-  assert.match(body, /\*\*Shipped in\*\*/);
-  assert.ok(!body.includes('Available to SDK users in'));
+  ]);
+  assert.match(body, /\*\*Shipped with:\*\*/);
+  assert.match(body, /`@stream-io\/video-react-sdk@1\.38\.0`/);
 });
 
 test('renderIssueComment uses the issue lead line', () => {
-  const body = renderIssueComment(
-    [{ name: 'p', version: '1.0.0', releaseUrl: 'r', npmUrl: 'n' }],
-    [],
-  );
+  const body = renderIssueComment([
+    { name: 'p', version: '1.0.0', releaseUrl: 'r', npmUrl: 'n' },
+  ]);
   assert.match(body, /The fix for this issue has been released/);
+  assert.match(body, /\*\*Shipped with:\*\*/);
   assert.ok(body.trimEnd().endsWith(COMMENT_MARKER));
 });
 
