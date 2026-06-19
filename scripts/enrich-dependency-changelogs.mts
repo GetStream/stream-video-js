@@ -16,11 +16,15 @@
  *
  * Modes:
  *   --package <name>   Enrich one package's working-tree CHANGELOG.md top entry
- *                      in place (used as a pre-publish step so the npm tarball
- *                      ships the enriched file). No git, no GitHub.
- *   --finalize         Enrich every package released in the current run, make a
- *                      single follow-up commit, push, then update each GitHub
- *                      release body. Run after `nx run-many --target version`.
+ *                      in place (a pre-publish step so the npm tarball ships the
+ *                      enriched file). With --notes-out it also writes the top
+ *                      entry to a file for the github postTarget to publish as
+ *                      the release body (born enriched). No git.
+ *   --finalize         Enrich every package released in the current run and
+ *                      commit the enriched changelogs. Run after
+ *                      `nx run-many --target version`. GitHub releases are
+ *                      already enriched by the github postTarget, so this only
+ *                      reconciles the committed repo files.
  *
  * The transform is additive and idempotent: the bare dependency lines are the
  * source of truth and are never removed; nested detail is regenerated on every
@@ -30,16 +34,8 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import {
-  existsSync,
-  mkdtempSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 
@@ -354,7 +350,6 @@ export function enrichTopEntry(
 // ---------------------------------------------------------------------------
 
 const RELEASE_COMMIT_RE = /^chore\((.+)\): release version (.+)$/;
-const TAG_PREFIX = '@stream-io/';
 const COMMIT_MESSAGE =
   'chore(release): expand SDK changelogs with upstream dependency changes';
 
@@ -442,13 +437,22 @@ function formatWithPrettier(changelogPath: string): void {
 }
 
 // Enrich one package's working-tree changelog. Returns true when it changed.
+// When notesOut is set, also writes the top entry of the on-disk changelog
+// there (enriched or not) so the github postTarget can publish it as the
+// release body (born enriched).
 function enrichPackageChangelog(
   name: string,
   {
     workspace,
     dryRun,
     format,
-  }: { workspace: Workspace; dryRun: boolean; format: boolean },
+    notesOut,
+  }: {
+    workspace: Workspace;
+    dryRun: boolean;
+    format: boolean;
+    notesOut?: string | null;
+  },
 ): boolean {
   const pkg = workspace.get(name);
   if (!pkg) {
@@ -462,20 +466,26 @@ function enrichPackageChangelog(
   const depChangelogs = collectDepChangelogs(runtimeDeps, workspace);
   const original = readText(changelogPath);
   const enriched = enrichTopEntry(original, { depChangelogs, runtimeDeps });
+  const changed = enriched !== original;
 
-  if (enriched === original) {
-    console.log(`= ${name}: no enrichment needed`);
-    return false;
-  }
   if (dryRun) {
     console.log(`\n--- ${name} (dry run, top entry preview) ---`);
     console.log(topEntryPreview(enriched));
-    return true;
+    return changed;
   }
-  writeText(changelogPath, enriched);
-  if (format) formatWithPrettier(changelogPath);
-  console.log(`+ ${name}: changelog enriched`);
-  return true;
+
+  if (changed) {
+    writeText(changelogPath, enriched);
+    if (format) formatWithPrettier(changelogPath);
+    console.log(`+ ${name}: changelog enriched`);
+  } else {
+    console.log(`= ${name}: no enrichment needed`);
+  }
+
+  if (notesOut) {
+    writeText(notesOut, `${topEntryPreview(readText(changelogPath))}\n`);
+  }
+  return changed;
 }
 
 // Reconstruct the top entry text (header + body) for previews / release notes.
@@ -502,34 +512,9 @@ function packagesReleasedInThisRun(): ReleasedPackage[] {
   return released;
 }
 
-// Update a GitHub release body with the enriched top entry.
-function updateGithubRelease(
-  name: string,
-  version: string,
-  changelogPath: string,
-  { dryRun }: { dryRun: boolean },
-): void {
-  const tag = `${TAG_PREFIX}${name.replace(TAG_PREFIX, '')}-${version}`;
-  const notes = topEntryPreview(readText(changelogPath));
-  if (dryRun) {
-    console.log(`\n--- gh release edit ${tag} (dry run) ---\n${notes}`);
-    return;
-  }
-  const tmp = mkdtempSync(join(tmpdir(), 'enrich-notes-'));
-  try {
-    const notesFile = join(tmp, 'notes.md');
-    writeText(notesFile, `${notes}\n`);
-    run('gh', ['release', 'edit', tag, '--notes-file', notesFile]);
-    console.log(`+ updated GitHub release ${tag}`);
-  } catch (error) {
-    console.warn(
-      `WARN: could not update release ${tag}: ${(error as Error).message}`,
-    );
-  } finally {
-    rmSync(tmp, { recursive: true, force: true });
-  }
-}
-
+// Commit the enriched changelogs of every package released in this run. The
+// GitHub release bodies are produced at release time by the github postTarget
+// (born enriched), so finalize only reconciles the committed repo files.
 function finalize({
   workspace,
   dryRun,
@@ -546,12 +531,12 @@ function finalize({
     `Released this run: ${released.map((r) => `${r.name}@${r.version}`).join(', ')}`,
   );
 
-  const changed: { name: string; changelogPath: string }[] = [];
+  const changed: string[] = [];
   for (const { name } of released) {
     const pkg = workspace.get(name);
     if (!pkg) continue;
     if (enrichPackageChangelog(name, { workspace, dryRun, format: true })) {
-      changed.push({ name, changelogPath: join(pkg.dir, 'CHANGELOG.md') });
+      changed.push(join(pkg.dir, 'CHANGELOG.md'));
     }
   }
 
@@ -561,39 +546,37 @@ function finalize({
   }
 
   if (dryRun) {
-    console.log(
-      `\n[dry run] would commit ${changed.length} changelog(s) and update releases`,
-    );
-  } else {
-    run('git', ['add', ...changed.map((c) => c.changelogPath)]);
-    run('git', ['commit', '-m', COMMIT_MESSAGE]);
-    run('git', ['push']);
-    console.log(`+ committed and pushed enriched changelogs`);
+    console.log(`\n[dry run] would commit ${changed.length} changelog(s)`);
+    return;
   }
-
-  for (const { name, version } of released) {
-    const pkg = workspace.get(name);
-    if (!pkg) continue;
-    if (!changed.some((c) => c.name === name)) continue;
-    updateGithubRelease(name, version, join(pkg.dir, 'CHANGELOG.md'), {
-      dryRun,
-    });
-  }
+  run('git', ['add', ...changed]);
+  run('git', ['commit', '-m', COMMIT_MESSAGE]);
+  run('git', ['push']);
+  console.log(`+ committed and pushed enriched changelogs`);
 }
 
 interface CliOptions {
   mode: 'package' | 'finalize' | null;
   package: string | null;
+  notesOut: string | null;
   dryRun: boolean;
 }
 
 function parseArgs(argv: string[]): CliOptions {
-  const options: CliOptions = { mode: null, package: null, dryRun: false };
+  const options: CliOptions = {
+    mode: null,
+    package: null,
+    notesOut: null,
+    dryRun: false,
+  };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--package') {
       options.mode = 'package';
       options.package = argv[i + 1] ?? null;
+      i += 1;
+    } else if (arg === '--notes-out') {
+      options.notesOut = argv[i + 1] ?? null;
       i += 1;
     } else if (arg === '--finalize') {
       options.mode = 'finalize';
@@ -618,14 +601,16 @@ function printHelpAndExit(code: number, errorMessage?: string): never {
   console.log(`Enrich SDK changelogs with upstream dependency changes.
 
 Usage:
-  node scripts/enrich-dependency-changelogs.mts --package <name> [--dry-run]
+  node scripts/enrich-dependency-changelogs.mts --package <name> [--notes-out <file>] [--dry-run]
   node scripts/enrich-dependency-changelogs.mts --finalize [--dry-run]
 
 Options:
-  --package <name>   Enrich one package's working-tree CHANGELOG.md (pre-publish).
-  --finalize         Enrich released packages, commit, push, update GitHub releases.
-  --dry-run          Print what would change without writing, committing, or pushing.
-  --help, -h         Show this help.
+  --package <name>    Enrich one package's working-tree CHANGELOG.md (pre-publish).
+  --notes-out <file>  With --package, also write the enriched top entry to <file>
+                      for the github postTarget to publish as the release body.
+  --finalize          Enrich released packages and commit the changelogs.
+  --dry-run           Print what would change without writing, committing, or pushing.
+  --help, -h          Show this help.
 `);
   process.exit(code);
 }
@@ -641,6 +626,7 @@ function main(): void {
       workspace,
       dryRun: options.dryRun,
       format: true,
+      notesOut: options.notesOut,
     });
   } else {
     finalize({ workspace, dryRun: options.dryRun });

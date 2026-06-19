@@ -25,8 +25,8 @@
         "push": true,
         "skipCommitTypes": ["ci", "refactor", "test", "docs"],
         "postTargets": [
-          "@stream-io/video-react-bindings:github",
           "@stream-io/video-react-bindings:enrich-changelog",
+          "@stream-io/video-react-bindings:github",
           "@stream-io/video-react-bindings:publish"
         ]
       }
@@ -35,7 +35,7 @@
       "executor": "@jscutlery/semver:github",
       "options": {
         "tag": "${tag}",
-        "notes": "${notes}"
+        "notesFile": "packages/react-bindings/.release-notes.md"
       }
     },
     "publish": {
@@ -54,7 +54,7 @@
       "options": {
         "commands": [
           {
-            "command": "node scripts/enrich-dependency-changelogs.mts --package @stream-io/video-react-bindings",
+            "command": "node scripts/enrich-dependency-changelogs.mts --package @stream-io/video-react-bindings --notes-out packages/react-bindings/.release-notes.md",
             "forwardAllArgs": false
           }
         ]
