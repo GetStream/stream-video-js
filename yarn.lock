@@ -7511,7 +7511,7 @@ __metadata:
   resolution: "@stream-io/video-react-bindings@workspace:packages/react-bindings"
   dependencies:
     "@rollup/plugin-typescript": "npm:^12.3.0"
-    "@stream-io/video-client": "workspace:^"
+    "@stream-io/video-client": "workspace:*"
     "@types/react": "npm:~19.2.15"
     i18next: "npm:^25.10.10"
     react: "npm:19.2.3"
@@ -7520,7 +7520,6 @@ __metadata:
     rxjs: "npm:~7.8.2"
     typescript: "npm:^5.9.3"
   peerDependencies:
-    "@stream-io/video-client": "workspace:^"
     react: ^17 || ^18 || ^19
   languageName: unknown
   linkType: soft
