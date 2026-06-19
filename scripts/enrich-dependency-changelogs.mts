@@ -409,7 +409,7 @@ export function enrichAllEntries(
 
 const RELEASE_COMMIT_RE = /^chore\((.+)\): release version (.+)$/;
 const COMMIT_MESSAGE =
-  'chore(release): expand SDK changelogs with upstream dependency changes';
+  'docs(changelog): expand SDK changelogs with upstream dependency changes';
 
 // Execute a command, returning trimmed stdout and surfacing failures clearly.
 function run(
