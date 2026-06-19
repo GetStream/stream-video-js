@@ -51,10 +51,6 @@ export const LivestreamLayout = ({
 
   usePaginatedLayoutSortPreset(call);
 
-  // objectFit is intentionally left unset: VideoRenderer already derives it from
-  // its own track-dimensions subscription, so setting it here would only add
-  // a layout re-render on every dimension change without changing the result.
-
   const landScapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
   };
