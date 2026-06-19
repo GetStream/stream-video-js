@@ -27,6 +27,7 @@
         "postTargets": [
           "@stream-io/video-react-sdk:update-version",
           "@stream-io/video-react-sdk:github",
+          "@stream-io/video-react-sdk:enrich-changelog",
           "@stream-io/video-react-sdk:publish",
           "@stream-io/video-react-sdk:deploy-sample-apps"
         ]
@@ -71,6 +72,17 @@
           }
         ],
         "parallel": false
+      }
+    },
+    "enrich-changelog": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "node scripts/enrich-dependency-changelogs.mts --package @stream-io/video-react-sdk",
+            "forwardAllArgs": false
+          }
+        ]
       }
     }
   }

@@ -26,6 +26,7 @@
         "skipCommitTypes": ["ci", "refactor", "test", "docs"],
         "postTargets": [
           "@stream-io/video-react-bindings:github",
+          "@stream-io/video-react-bindings:enrich-changelog",
           "@stream-io/video-react-bindings:publish"
         ]
       }
@@ -43,6 +44,17 @@
         "commands": [
           {
             "command": "yarn release:react-bindings",
+            "forwardAllArgs": false
+          }
+        ]
+      }
+    },
+    "enrich-changelog": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "node scripts/enrich-dependency-changelogs.mts --package @stream-io/video-react-bindings",
             "forwardAllArgs": false
           }
         ]

@@ -53,7 +53,7 @@
     "sample:react:livestream-app": "yarn workspace @stream-io/livestream-app run dev",
     "sample:react:zoom-clone": "yarn workspace @stream-io/zoom-clone-react run dev",
     "sample:react:tutorial": "yarn workspace @stream-io/stream-video-react-tutorial run dev",
-    "release": "nx run-many --target version --parallel=1",
+    "release": "nx run-many --target version --parallel=1 && node scripts/enrich-dependency-changelogs.mts --finalize",
     "release:client": "yarn workspace @stream-io/video-client npm publish --access=public --tag=latest",
     "release:codemod": "yarn workspace @stream-io/video-codemod npm publish --access=public --tag=latest",
     "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public --tag=latest",
@@ -66,6 +66,7 @@
     "release:noise-cancellation-react-native": "yarn workspace @stream-io/noise-cancellation-react-native npm publish --access=public --tag=latest",
     "release:react-native-callingx": "yarn workspace @stream-io/react-native-callingx npm publish --access=public --tag=latest",
     "release:styling": "yarn workspace @stream-io/video-styling npm publish --access=public --tag=latest",
+    "release:enrich-changelogs": "node scripts/enrich-dependency-changelogs.mts --finalize",
     "postinstall": "husky"
   },
   "devDependencies": {
@@ -88,7 +89,7 @@
   },
   "lint-staged": {
     "*.{js,ts,tsx}": "yarn eslint --cache --fix",
-    "*.{js,ts,jsx,tsx,md,mdx,scss,css,html,mjs,json}": "yarn prettier --write"
+    "*.{js,ts,jsx,tsx,md,mdx,scss,css,html,mjs,mts,json}": "yarn prettier --write"
   },
   "dependenciesMeta": {
     "@firebase/util": {
