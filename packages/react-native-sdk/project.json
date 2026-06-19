@@ -90,7 +90,7 @@
       "options": {
         "commands": [
           {
-            "command": "node scripts/enrich-dependency-changelogs.mts --package @stream-io/video-react-native-sdk --notes-out packages/react-native-sdk/.release-notes.md",
+            "command": "node scripts/release/enrich-dependency-changelogs.mts --package @stream-io/video-react-native-sdk --notes-out packages/react-native-sdk/.release-notes.md",
             "forwardAllArgs": false
           }
         ]
