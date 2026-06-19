@@ -9,12 +9,9 @@
     }
   },
   "defaultBase": "main",
-  "targetDependencies": {
-    "version": [
-      {
-        "target": "version",
-        "projects": "dependencies"
-      }
-    ]
+  "targetDefaults": {
+    "version": {
+      "dependsOn": ["^version"]
+    }
   }
 }
