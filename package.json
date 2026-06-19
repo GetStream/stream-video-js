@@ -66,7 +66,6 @@
     "release:noise-cancellation-react-native": "yarn workspace @stream-io/noise-cancellation-react-native npm publish --access=public --tag=latest",
     "release:react-native-callingx": "yarn workspace @stream-io/react-native-callingx npm publish --access=public --tag=latest",
     "release:styling": "yarn workspace @stream-io/video-styling npm publish --access=public --tag=latest",
-    "release:enrich-changelogs": "node scripts/enrich-dependency-changelogs.mts --finalize",
     "postinstall": "husky"
   },
   "devDependencies": {
