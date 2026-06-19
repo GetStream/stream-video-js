@@ -9,6 +9,7 @@ import {
   collectUpstreamRange,
   bulletIdentity,
   enrichTopEntry,
+  enrichAllEntries,
 } from './enrich-dependency-changelogs.mts';
 
 // Fixtures mirror the real @jscutlery/semver output (after prettier turns `*` into `-`).
@@ -349,4 +350,74 @@ test('enrichTopEntry returns input unchanged when top entry has no Dependency Up
     runtimeDeps: RUNTIME_DEPS,
   });
   assert.equal(out, CLIENT_CL);
+});
+
+// Backfill fixtures: a dependent with three historical entries, each bumping
+// the client, and a client changelog with one entry per bumped version.
+const SDK_MULTI = `# Changelog
+
+## [1.2.0](compare) (2026-01-03)
+
+### Dependency Updates
+
+- \`@stream-io/video-client\` updated to version \`3.0.0\`
+
+## [1.1.0](compare) (2026-01-02)
+
+### Dependency Updates
+
+- \`@stream-io/video-client\` updated to version \`2.0.0\`
+
+## [1.0.0](compare) (2026-01-01)
+
+### Dependency Updates
+
+- \`@stream-io/video-client\` updated to version \`1.0.0\`
+`;
+
+const DEP_MULTI = `# Changelog
+
+## [3.0.0](compare) (2026-01-03)
+
+### Features
+
+- **client:** feature three ([#3](https://h/i/issues/3)) ([ccc3333](https://h/i/commit/ccc3333000))
+
+## [2.0.0](compare) (2026-01-02)
+
+### Bug Fixes
+
+- **client:** fix two ([#2](https://h/i/issues/2)) ([bbb2222](https://h/i/commit/bbb2222000))
+
+## [1.0.0](compare) (2026-01-01)
+
+### Features
+
+- **client:** initial ([#1](https://h/i/issues/1)) ([aaa1111](https://h/i/commit/aaa1111000))
+`;
+
+test('enrichAllEntries enriches historical entries, not just the top', () => {
+  const out = enrichAllEntries(SDK_MULTI, {
+    depChangelogs: { '@stream-io/video-client': DEP_MULTI },
+    runtimeDeps: ['@stream-io/video-client'],
+  });
+  // top entry (client 2.0.0 -> 3.0.0)
+  assert.match(out, /feature three/);
+  // historical middle entry (client 1.0.0 -> 2.0.0)
+  assert.match(out, /fix two/);
+  // oldest entry has no prior entry to resolve OLD from -> stays bare
+  assert.doesNotMatch(out, /initial/);
+  // every version header is preserved
+  assert.match(out, /## \[1\.2\.0\]/);
+  assert.match(out, /## \[1\.1\.0\]/);
+  assert.match(out, /## \[1\.0\.0\]/);
+});
+
+test('enrichAllEntries is idempotent', () => {
+  const opts = {
+    depChangelogs: { '@stream-io/video-client': DEP_MULTI },
+    runtimeDeps: ['@stream-io/video-client'],
+  };
+  const once = enrichAllEntries(SDK_MULTI, opts);
+  assert.equal(enrichAllEntries(once, opts), once);
 });

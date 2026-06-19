@@ -266,6 +266,82 @@ function rewriteDependencyUpdates(
   return out.join('\n');
 }
 
+// Build the dependency -> nested-bullets map for a single changelog entry.
+// Returns null when the entry has no Dependency Updates block; otherwise a map
+// (possibly empty) keyed by dependency name.
+function buildEntryRenderMap(
+  entries: ChangelogEntry[],
+  index: number,
+  depChangelogs: Record<string, string>,
+  runtimeSet: Set<string>,
+): Map<string, string[]> | null {
+  const entry = entries[index];
+  const deps = parseDependencyUpdates(entry.body);
+  if (deps.length === 0) return null;
+
+  // Seed with the entry's own changes so an upstream change the SDK already
+  // documents itself is not inlined a second time under a dependency.
+  const seen = new Set<string>();
+  const own = parseOwnChanges(entry.body);
+  for (const bullet of [...own.Features, ...own['Bug Fixes'], ...own.other]) {
+    seen.add(bulletIdentity(bullet));
+  }
+
+  const renderMap = new Map<string, string[]>();
+  for (const dep of deps) {
+    if (!runtimeSet.has(dep.name)) continue;
+    const depText = depChangelogs[dep.name];
+    if (!depText) continue;
+    const oldVersion = resolveOldDepVersion(entries, dep.name, index);
+    if (!oldVersion) continue;
+
+    const range = collectUpstreamRange(
+      parseEntries(depText),
+      oldVersion,
+      dep.version,
+    );
+    const groups: ChangeGroups = { Features: [], 'Bug Fixes': [], Other: [] };
+    for (const upstream of range) {
+      const changes = parseOwnChanges(upstream.body);
+      const buckets: [keyof ChangeGroups, string[]][] = [
+        ['Features', changes.Features],
+        ['Bug Fixes', changes['Bug Fixes']],
+        ['Other', changes.other],
+      ];
+      for (const [label, bullets] of buckets) {
+        for (const bullet of bullets) {
+          const id = bulletIdentity(bullet);
+          if (seen.has(id)) continue;
+          seen.add(id);
+          groups[label].push(bullet);
+        }
+      }
+    }
+    const nested = renderNested(groups);
+    if (nested.length) renderMap.set(dep.name, nested);
+  }
+  return renderMap;
+}
+
+// Rewrite a single entry's region in the full changelog text.
+function spliceEntry(
+  sdkText: string,
+  entries: ChangelogEntry[],
+  index: number,
+  renderMap: Map<string, string[]>,
+): string {
+  const start = sdkText.indexOf(entries[index].headerLine);
+  const end =
+    index + 1 < entries.length
+      ? sdkText.indexOf(entries[index + 1].headerLine)
+      : sdkText.length;
+  const rewritten = rewriteDependencyUpdates(
+    sdkText.slice(start, end),
+    renderMap,
+  );
+  return sdkText.slice(0, start) + rewritten + sdkText.slice(end);
+}
+
 /**
  * Enrich the top (most recent) entry of an SDK changelog by inlining the
  * upstream changes behind each runtime dependency bump. Returns the input
@@ -278,68 +354,50 @@ export function enrichTopEntry(
   try {
     const entries = parseEntries(sdkText);
     if (entries.length === 0) return sdkText;
-
-    const top = entries[0];
-    const deps = parseDependencyUpdates(top.body);
-    if (deps.length === 0) return sdkText;
-
-    const runtimeSet = new Set(runtimeDeps);
-    const seen = new Set<string>();
-    // Seed with the SDK entry's own changes so an upstream change the SDK
-    // already documents itself is not inlined a second time under a dependency.
-    const ownTop = parseOwnChanges(top.body);
-    for (const bullet of [
-      ...ownTop.Features,
-      ...ownTop['Bug Fixes'],
-      ...ownTop.other,
-    ]) {
-      seen.add(bulletIdentity(bullet));
-    }
-    const renderMap = new Map<string, string[]>();
-
-    for (const dep of deps) {
-      if (!runtimeSet.has(dep.name)) continue;
-      const depText = depChangelogs[dep.name];
-      if (!depText) continue;
-      const oldVersion = resolveOldDepVersion(entries, dep.name, 0);
-      if (!oldVersion) continue;
-
-      const range = collectUpstreamRange(
-        parseEntries(depText),
-        oldVersion,
-        dep.version,
-      );
-      const groups: ChangeGroups = { Features: [], 'Bug Fixes': [], Other: [] };
-      for (const entry of range) {
-        const own = parseOwnChanges(entry.body);
-        const buckets: [keyof ChangeGroups, string[]][] = [
-          ['Features', own.Features],
-          ['Bug Fixes', own['Bug Fixes']],
-          ['Other', own.other],
-        ];
-        for (const [label, bullets] of buckets) {
-          for (const bullet of bullets) {
-            const id = bulletIdentity(bullet);
-            if (seen.has(id)) continue;
-            seen.add(id);
-            groups[label].push(bullet);
-          }
-        }
-      }
-      const nested = renderNested(groups);
-      if (nested.length) renderMap.set(dep.name, nested);
-    }
-
-    const topStart = sdkText.indexOf(top.headerLine);
-    const topEnd =
-      entries.length > 1
-        ? sdkText.indexOf(entries[1].headerLine)
-        : sdkText.length;
-    const rewritten = rewriteDependencyUpdates(
-      sdkText.slice(topStart, topEnd),
-      renderMap,
+    const renderMap = buildEntryRenderMap(
+      entries,
+      0,
+      depChangelogs,
+      new Set(runtimeDeps),
     );
-    return sdkText.slice(0, topStart) + rewritten + sdkText.slice(topEnd);
+    if (!renderMap) return sdkText;
+    return spliceEntry(sdkText, entries, 0, renderMap);
+  } catch {
+    return sdkText;
+  }
+}
+
+/**
+ * Enrich every entry of an SDK changelog. Used to backfill historical entries
+ * so past releases also show the upstream changes behind their dependency
+ * bumps. Each entry is enriched independently against the dependency versions
+ * it shipped; entries with no resolvable previous version are left as-is.
+ */
+export function enrichAllEntries(
+  sdkText: string,
+  { depChangelogs = {}, runtimeDeps = [] }: EnrichOptions = {},
+): string {
+  try {
+    const entries = parseEntries(sdkText);
+    if (entries.length === 0) return sdkText;
+    const runtimeSet = new Set(runtimeDeps);
+    let out = sdkText.slice(0, sdkText.indexOf(entries[0].headerLine));
+    for (let i = 0; i < entries.length; i += 1) {
+      const start = sdkText.indexOf(entries[i].headerLine);
+      const end =
+        i + 1 < entries.length
+          ? sdkText.indexOf(entries[i + 1].headerLine)
+          : sdkText.length;
+      const region = sdkText.slice(start, end);
+      const renderMap = buildEntryRenderMap(
+        entries,
+        i,
+        depChangelogs,
+        runtimeSet,
+      );
+      out += renderMap ? rewriteDependencyUpdates(region, renderMap) : region;
+    }
+    return out;
   } catch {
     return sdkText;
   }
@@ -447,11 +505,13 @@ function enrichPackageChangelog(
     dryRun,
     format,
     notesOut,
+    allEntries,
   }: {
     workspace: Workspace;
     dryRun: boolean;
     format: boolean;
     notesOut?: string | null;
+    allEntries?: boolean;
   },
 ): boolean {
   const pkg = workspace.get(name);
@@ -465,7 +525,8 @@ function enrichPackageChangelog(
   const runtimeDeps = runtimeWorkspaceDeps(pkg.manifest, workspace);
   const depChangelogs = collectDepChangelogs(runtimeDeps, workspace);
   const original = readText(changelogPath);
-  const enriched = enrichTopEntry(original, { depChangelogs, runtimeDeps });
+  const transform = allEntries ? enrichAllEntries : enrichTopEntry;
+  const enriched = transform(original, { depChangelogs, runtimeDeps });
   const changed = enriched !== original;
 
   if (dryRun) {
@@ -559,6 +620,7 @@ interface CliOptions {
   mode: 'package' | 'finalize' | null;
   package: string | null;
   notesOut: string | null;
+  backfill: boolean;
   dryRun: boolean;
 }
 
@@ -567,6 +629,7 @@ function parseArgs(argv: string[]): CliOptions {
     mode: null,
     package: null,
     notesOut: null,
+    backfill: false,
     dryRun: false,
   };
   for (let i = 0; i < argv.length; i += 1) {
@@ -580,6 +643,8 @@ function parseArgs(argv: string[]): CliOptions {
       i += 1;
     } else if (arg === '--finalize') {
       options.mode = 'finalize';
+    } else if (arg === '--backfill') {
+      options.backfill = true;
     } else if (arg === '--dry-run') {
       options.dryRun = true;
     } else if (arg === '--help' || arg === '-h') {
@@ -602,12 +667,15 @@ function printHelpAndExit(code: number, errorMessage?: string): never {
 
 Usage:
   node scripts/enrich-dependency-changelogs.mts --package <name> [--notes-out <file>] [--dry-run]
+  node scripts/enrich-dependency-changelogs.mts --package <name> --backfill [--dry-run]
   node scripts/enrich-dependency-changelogs.mts --finalize [--dry-run]
 
 Options:
   --package <name>    Enrich one package's working-tree CHANGELOG.md (pre-publish).
   --notes-out <file>  With --package, also write the enriched top entry to <file>
                       for the github postTarget to publish as the release body.
+  --backfill          With --package, enrich every historical entry, not just the
+                      most recent one (one-time backfill of past releases).
   --finalize          Enrich released packages and commit the changelogs.
   --dry-run           Print what would change without writing, committing, or pushing.
   --help, -h          Show this help.
@@ -627,6 +695,7 @@ function main(): void {
       dryRun: options.dryRun,
       format: true,
       notesOut: options.notesOut,
+      allEntries: options.backfill,
     });
   } else {
     finalize({ workspace, dryRun: options.dryRun });
