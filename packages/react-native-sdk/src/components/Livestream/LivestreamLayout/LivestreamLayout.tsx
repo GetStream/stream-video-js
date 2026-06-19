@@ -1,5 +1,5 @@
 import React from 'react';
-import { hasScreenShare, type VideoTrackType } from '@stream-io/video-client';
+import { hasScreenShare } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { usePaginatedLayoutSortPreset } from '../../../hooks/usePaginatedLayoutSortPreset';
@@ -9,7 +9,6 @@ import {
   type VideoRendererProps,
 } from '../../Participant';
 import type { ScreenShareOverlayProps } from '../../utility/ScreenShareOverlay';
-import { useTrackDimensions } from '../../../hooks';
 
 /**
  * Props for the LivestreamLayout component.
@@ -52,17 +51,9 @@ export const LivestreamLayout = ({
 
   usePaginatedLayoutSortPreset(call);
 
-  // objectFit is derived from the active track's dimensions during render.
-  // A renderless child probe would set it via an effect and force an extra re-render.
-  const activeTrackType: VideoTrackType = hasOngoingScreenShare
-    ? 'screenShareTrack'
-    : 'videoTrack';
-  const activeParticipant = hasOngoingScreenShare ? presenter : currentSpeaker;
-  const { width, height } = useTrackDimensions(
-    activeParticipant,
-    activeTrackType,
-  );
-  const objectFit: 'contain' | 'cover' = width > height ? 'contain' : 'cover';
+  // objectFit is intentionally left unset: VideoRenderer already derives it from
+  // its own track-dimensions subscription, so setting it here would only add
+  // a layout re-render on every dimension change without changing the result.
 
   const landScapeStyles: ViewStyle = {
     flexDirection: landscape ? 'row' : 'column',
@@ -83,18 +74,10 @@ export const LivestreamLayout = ({
         (presenter.isLocalParticipant && ScreenShareOverlay ? (
           <ScreenShareOverlay />
         ) : (
-          <VideoRenderer
-            trackType="screenShareTrack"
-            objectFit={objectFit}
-            participant={presenter}
-          />
+          <VideoRenderer trackType="screenShareTrack" participant={presenter} />
         ))}
       {VideoRenderer && !hasOngoingScreenShare && currentSpeaker && (
-        <VideoRenderer
-          participant={currentSpeaker}
-          objectFit={objectFit}
-          trackType="videoTrack"
-        />
+        <VideoRenderer participant={currentSpeaker} trackType="videoTrack" />
       )}
     </View>
   );
