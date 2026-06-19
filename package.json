@@ -20,6 +20,7 @@
     "build:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run build",
     "test:react-native:sdk": "yarn workspace @stream-io/video-react-native-sdk run test",
     "test:codemod": "yarn workspace @stream-io/video-codemod run test",
+    "test:scripts": "node --test scripts/*.test.mts",
     "start:react-native:ios:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run ios",
     "start:react-native:android:dogfood": "yarn workspace @stream-io/video-react-native-dogfood run android",
     "build:styling": "yarn workspace @stream-io/video-styling run build",
