@@ -26,6 +26,7 @@
         "skipCommitTypes": ["ci", "docs"],
         "postTargets": [
           "@stream-io/video-react-native-sdk:update-version",
+          "@stream-io/video-react-native-sdk:enrich-changelog",
           "@stream-io/video-react-native-sdk:github",
           "@stream-io/video-react-native-sdk:publish"
         ]
@@ -46,7 +47,7 @@
       "executor": "@jscutlery/semver:github",
       "options": {
         "tag": "${tag}",
-        "notes": "${notes}"
+        "notesFile": "packages/react-native-sdk/.release-notes.md"
       }
     },
     "publish": {
@@ -55,6 +56,17 @@
         "commands": [
           {
             "command": "yarn release:react-native-sdk",
+            "forwardAllArgs": false
+          }
+        ]
+      }
+    },
+    "enrich-changelog": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "node scripts/enrich-dependency-changelogs.mts --package @stream-io/video-react-native-sdk --notes-out packages/react-native-sdk/.release-notes.md",
             "forwardAllArgs": false
           }
         ]

@@ -63,3 +63,6 @@ local.properties
 android.iml
 
 .claude/worktrees/
+
+# transient release notes written by the enrich-changelog release postTarget
+packages/*/.release-notes.md
