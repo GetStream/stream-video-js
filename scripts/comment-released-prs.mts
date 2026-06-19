@@ -11,14 +11,17 @@
  * `--finalize` commit (so `packagesReleasedInThisRun` still sees the release
  * commits at HEAD).
  *
- * The roll-up is read straight out of the enriched changelogs: a PR found in a
- * package's own Features / Bug Fixes is a "source" of that package; a PR found
- * only under the enriched `Dependency Updates` nested bullets is a "carrier".
+ * The roll-up is read straight out of the changelogs without needing them to be
+ * enriched: a PR in a package's own changes (Features / Bug Fixes / Chores /
+ * ...) makes that package a "source"; a package whose bare `Dependency Updates`
+ * line bumps a released source package to its released version is a "carrier" of
+ * that source's PRs.
  *
  * Written as TypeScript executed natively via Node's type stripping (Node 24+).
  */
 
 import {
+  parseDependencyUpdates,
   parseEntries,
   parseOwnChanges,
 } from './enrich-dependency-changelogs.mts';
@@ -65,15 +68,31 @@ export function extractPrNumbers(text: string): number[] {
   return [...found].sort((a, b) => a - b);
 }
 
-// Map each PR reference in the released packages' changelog top entries to the
-// versions that ship it, split into source (own changes) and carrier
-// (dependency-update nested bullets) roles.
+// Map each released PR to the versions that ship it. A "source" is a package
+// whose own changes list the PR. A "carrier" is a package whose top entry bumps
+// a released source package to its released version, read from the bare
+// `Dependency Updates` lines so no changelog enrichment is required.
 export function buildReleaseRollup(
   released: ReleasedPackage[],
   changelogs: Record<string, string>,
 ): Map<number, PrRollup> {
-  const result = new Map<number, PrRollup>();
+  const releasedVersion = new Map<string, string>();
+  const ownPrs = new Map<string, number[]>();
+  const depBumps = new Map<string, { name: string; version: string }[]>();
 
+  for (const { name, version } of released) {
+    releasedVersion.set(name, version);
+    const entries = changelogs[name] ? parseEntries(changelogs[name]) : [];
+    const body = entries[0]?.body ?? '';
+    const own = parseOwnChanges(body);
+    const ownText = [...own.Features, ...own['Bug Fixes'], ...own.other].join(
+      '\n',
+    );
+    ownPrs.set(name, extractPrNumbers(ownText));
+    depBumps.set(name, parseDependencyUpdates(body));
+  }
+
+  const result = new Map<number, PrRollup>();
   const add = (pr: number, role: 'sources' | 'carriers', pkg: PkgVersion) => {
     let entry = result.get(pr);
     if (!entry) {
@@ -84,27 +103,27 @@ export function buildReleaseRollup(
     if (!bucket.some((p) => p.name === pkg.name)) bucket.push(pkg);
   };
 
+  // Sources: each released package owns its own PRs.
   for (const { name, version } of released) {
-    const text = changelogs[name];
-    if (!text) continue;
-    const entries = parseEntries(text);
-    if (entries.length === 0) continue;
-    const body = entries[0].body;
+    for (const pr of ownPrs.get(name) ?? []) {
+      add(pr, 'sources', { name, version });
+    }
+  }
 
-    const own = parseOwnChanges(body);
-    const ownText = [...own.Features, ...own['Bug Fixes'], ...own.other].join(
-      '\n',
-    );
-    const ownPrs = new Set(extractPrNumbers(ownText));
-    const allPrs = extractPrNumbers(body);
-
-    const pkg: PkgVersion = { name, version };
-    for (const pr of allPrs) {
-      add(pr, ownPrs.has(pr) ? 'sources' : 'carriers', pkg);
+  // Carriers: a package that bumps a released source package to its released
+  // version ships that source package's PRs.
+  for (const { name, version } of released) {
+    for (const dep of depBumps.get(name) ?? []) {
+      if (releasedVersion.get(dep.name) !== dep.version) continue;
+      for (const pr of ownPrs.get(dep.name) ?? []) {
+        add(pr, 'carriers', { name, version });
+      }
     }
   }
 
   for (const entry of result.values()) {
+    const sourceNames = new Set(entry.sources.map((p) => p.name));
+    entry.carriers = entry.carriers.filter((p) => !sourceNames.has(p.name));
     entry.sources.sort((a, b) => a.name.localeCompare(b.name));
     entry.carriers.sort((a, b) => a.name.localeCompare(b.name));
   }

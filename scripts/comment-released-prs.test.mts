@@ -111,6 +111,75 @@ test('buildReleaseRollup classifies a PR under a Chores section as a source', ()
   });
 });
 
+test('buildReleaseRollup derives carriers from a BARE dependency-update line (no enrichment)', () => {
+  const clientCl = `# Changelog
+
+## [1.54.0](https://github.com/GetStream/stream-video-js/compare/x...y) (2026-06-19)
+
+### Bug Fixes
+
+- **client:** a real fix ([#2286](https://github.com/GetStream/stream-video-js/issues/2286)) ([aaaaaaa](https://github.com/GetStream/stream-video-js/commit/aaaaaaa))
+`;
+  // react-sdk top entry is BARE: a dependency bump with no nested bullets, the
+  // state forward-enrichment can leave behind.
+  const reactSdkBare = `# Changelog
+
+## [1.38.0](https://github.com/GetStream/stream-video-js/compare/x...y) (2026-06-19)
+
+### Dependency Updates
+
+- \`@stream-io/video-client\` updated to version \`1.54.0\`
+`;
+  const rollup = buildReleaseRollup(
+    [
+      { name: '@stream-io/video-client', version: '1.54.0' },
+      { name: '@stream-io/video-react-sdk', version: '1.38.0' },
+    ],
+    {
+      '@stream-io/video-client': clientCl,
+      '@stream-io/video-react-sdk': reactSdkBare,
+    },
+  );
+  assert.deepEqual(rollup.get(2286), {
+    sources: [{ name: '@stream-io/video-client', version: '1.54.0' }],
+    carriers: [{ name: '@stream-io/video-react-sdk', version: '1.38.0' }],
+  });
+});
+
+test('buildReleaseRollup does not attribute a carrier when the bumped version is not the released one', () => {
+  const clientCl = `# Changelog
+
+## [1.54.0](https://github.com/GetStream/stream-video-js/compare/x...y) (2026-06-19)
+
+### Bug Fixes
+
+- **client:** a real fix ([#2286](https://github.com/GetStream/stream-video-js/issues/2286)) ([aaaaaaa](https://github.com/GetStream/stream-video-js/commit/aaaaaaa))
+`;
+  // react-sdk bumped client to 1.53.9 (a prior release), not this run's 1.54.0.
+  const reactSdkBare = `# Changelog
+
+## [1.38.0](https://github.com/GetStream/stream-video-js/compare/x...y) (2026-06-19)
+
+### Dependency Updates
+
+- \`@stream-io/video-client\` updated to version \`1.53.9\`
+`;
+  const rollup = buildReleaseRollup(
+    [
+      { name: '@stream-io/video-client', version: '1.54.0' },
+      { name: '@stream-io/video-react-sdk', version: '1.38.0' },
+    ],
+    {
+      '@stream-io/video-client': clientCl,
+      '@stream-io/video-react-sdk': reactSdkBare,
+    },
+  );
+  assert.deepEqual(rollup.get(2286), {
+    sources: [{ name: '@stream-io/video-client', version: '1.54.0' }],
+    carriers: [],
+  });
+});
+
 test('renderPrComment groups sources and carriers and ends with the marker', () => {
   const src: VersionLink[] = [
     {
