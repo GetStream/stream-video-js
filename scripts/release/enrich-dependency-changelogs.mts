@@ -33,33 +33,30 @@
  * Written as TypeScript executed natively via Node's type stripping (Node 24+).
  */
 
-import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 
+import {
+  DEP_LINE_RE,
+  normalizeBullet,
+  parseDependencyUpdates,
+  parseEntries,
+  parseOwnChanges,
+  type ChangelogEntry,
+} from './lib/changelog.mts';
+import { run } from './lib/exec.mts';
+import { packagesReleasedInThisRun } from './lib/released-packages.mts';
+import {
+  loadWorkspacePackages,
+  type PackageManifest,
+  type Workspace,
+} from './lib/workspace.mts';
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-interface ChangelogEntry {
-  version: string;
-  date: string;
-  headerLine: string;
-  body: string;
-}
-
-interface DependencyUpdate {
-  name: string;
-  version: string;
-}
-
-interface OwnChanges {
-  Features: string[];
-  'Bug Fixes': string[];
-  other: string[];
-}
 
 interface ChangeGroups {
   Features: string[];
@@ -72,108 +69,15 @@ interface EnrichOptions {
   runtimeDeps?: string[];
 }
 
-interface PackageManifest {
-  name?: string;
-  dependencies?: Record<string, string>;
-}
-
-interface WorkspacePackage {
-  dir: string;
-  manifest: PackageManifest;
-}
-
-type Workspace = Map<string, WorkspacePackage>;
-
-interface ReleasedPackage {
-  name: string;
-  version: string;
-}
-
 // ---------------------------------------------------------------------------
-// Pure changelog transform (unit-tested)
+// Pure enrichment transform (unit-tested)
 // ---------------------------------------------------------------------------
 
-const VERSION_HEADER_RE =
-  /^## \[(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\]\([^)]*\)(?:\s*\(([^)]*)\))?/;
-const DEP_LINE_RE = /^[-*]\s+`([^`]+)`\s+updated to version\s+`([^`]+)`\s*$/;
 const SECTION_LABELS: (keyof ChangeGroups)[] = [
   'Features',
   'Bug Fixes',
   'Other',
 ];
-
-// Split a CHANGELOG into version entries, newest first.
-export function parseEntries(text: string): ChangelogEntry[] {
-  const chunks = text.split(/^(?=## \[)/m);
-  const entries: ChangelogEntry[] = [];
-  for (const chunk of chunks) {
-    const match = chunk.match(VERSION_HEADER_RE);
-    if (!match) continue;
-    const newlineIndex = chunk.indexOf('\n');
-    const headerLine =
-      newlineIndex === -1 ? chunk : chunk.slice(0, newlineIndex);
-    const body = newlineIndex === -1 ? '' : chunk.slice(newlineIndex + 1);
-    entries.push({ version: match[1], date: match[2] || '', headerLine, body });
-  }
-  return entries;
-}
-
-// Return the text under a "### <title>" sub-section, or null when absent.
-function extractSection(body: string, title: string): string | null {
-  const lines = body.split('\n');
-  let found = false;
-  let capturing = false;
-  const out: string[] = [];
-  for (const line of lines) {
-    const heading = line.match(/^###\s+(.+?)\s*$/);
-    if (heading) {
-      capturing = heading[1] === title;
-      if (capturing) found = true;
-      continue;
-    }
-    if (capturing) out.push(line);
-  }
-  return found ? out.join('\n') : null;
-}
-
-// Parse the "### Dependency Updates" bullets into { name, version } pairs.
-export function parseDependencyUpdates(body: string): DependencyUpdate[] {
-  const section = extractSection(body, 'Dependency Updates');
-  if (section === null) return [];
-  const updates: DependencyUpdate[] = [];
-  for (const line of section.split('\n')) {
-    const match = line.match(DEP_LINE_RE);
-    if (match) updates.push({ name: match[1], version: match[2] });
-  }
-  return updates;
-}
-
-// Normalize a bullet to a leading "- " marker and strip trailing whitespace.
-function normalizeBullet(line: string): string {
-  return line.replace(/^[-*]\s+/, '- ').replace(/\s+$/, '');
-}
-
-// Collect a version entry's own changes, ignoring its Dependency Updates block.
-export function parseOwnChanges(body: string): OwnChanges {
-  const result: OwnChanges = { Features: [], 'Bug Fixes': [], other: [] };
-  let current = 'other';
-  for (const line of body.split('\n')) {
-    const heading = line.match(/^###\s+(.+?)\s*$/);
-    if (heading) {
-      current = heading[1];
-      continue;
-    }
-    if (current === 'Dependency Updates') continue;
-    if (!/^[-*]\s+/.test(line)) continue;
-    const bullet = normalizeBullet(line);
-    if (current === 'Features') result.Features.push(bullet);
-    else if (current === 'Bug Fixes') result['Bug Fixes'].push(bullet);
-    // Any other visible section (Chores, Refactors, or loose pre-heading
-    // bullets) is still an own change. Dependency Updates was skipped above.
-    else result.other.push(bullet);
-  }
-  return result;
-}
 
 // Walk older entries to find the dependency version the SDK shipped before.
 export function resolveOldDepVersion(
@@ -409,34 +313,8 @@ export function enrichAllEntries(
 // CLI orchestration (validated via --dry-run against the real changelogs)
 // ---------------------------------------------------------------------------
 
-const RELEASE_COMMIT_RE = /^chore\((.+)\): release version (.+)$/;
 const COMMIT_MESSAGE =
   'docs(changelog): expand SDK changelogs with upstream dependency changes';
-
-// Execute a command, returning trimmed stdout and surfacing failures clearly.
-function run(
-  command: string,
-  args: string[],
-  { allowFailure = false }: { allowFailure?: boolean } = {},
-): string {
-  try {
-    return execFileSync(command, args, {
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
-  } catch (error) {
-    if (allowFailure) return '';
-    const err = error as { stdout?: unknown; stderr?: unknown };
-    const details = [err.stdout, err.stderr].filter(Boolean).join('\n');
-    throw new Error(
-      `Command failed: ${[command, ...args].join(' ')}\n${details}`,
-    );
-  }
-}
-
-function readJson<T>(path: string): T {
-  return JSON.parse(readFileSync(path, 'utf8')) as T;
-}
 
 function readText(path: string): string {
   return readFileSync(path, 'utf8');
@@ -444,20 +322,6 @@ function readText(path: string): string {
 
 function writeText(path: string, value: string): void {
   writeFileSync(path, value);
-}
-
-// Map every workspace package name to its directory and manifest.
-function loadWorkspacePackages(packagesDir: string): Workspace {
-  const map: Workspace = new Map();
-  for (const entry of readdirSync(packagesDir)) {
-    const manifestPath = join(packagesDir, entry, 'package.json');
-    if (!existsSync(manifestPath)) continue;
-    const manifest = readJson<PackageManifest>(manifestPath);
-    if (manifest.name) {
-      map.set(manifest.name, { dir: join(packagesDir, entry), manifest });
-    }
-  }
-  return map;
 }
 
 // Runtime workspace dependencies of a package (excludes devDependencies).
@@ -563,18 +427,6 @@ function topEntryPreview(changelogText: string): string {
   return changelogText.slice(start, end).trim();
 }
 
-// Packages released in this run: the trailing block of release commits at HEAD.
-export function packagesReleasedInThisRun(): ReleasedPackage[] {
-  const log = run('git', ['log', '--format=%s', '-n', '60']);
-  const released: ReleasedPackage[] = [];
-  for (const subject of log.split('\n')) {
-    const match = subject.match(RELEASE_COMMIT_RE);
-    if (!match) break;
-    released.push({ name: match[1], version: match[2] });
-  }
-  return released;
-}
-
 // Commit the enriched changelogs of every package released in this run. The
 // GitHub release bodies are produced at release time by the github postTarget
 // (born enriched), so finalize only reconciles the committed repo files.
@@ -668,9 +520,9 @@ function printHelpAndExit(code: number, errorMessage?: string): never {
   console.log(`Enrich SDK changelogs with upstream dependency changes.
 
 Usage:
-  node scripts/enrich-dependency-changelogs.mts --package <name> [--notes-out <file>] [--dry-run]
-  node scripts/enrich-dependency-changelogs.mts --package <name> --backfill [--dry-run]
-  node scripts/enrich-dependency-changelogs.mts --finalize [--dry-run]
+  node scripts/release/enrich-dependency-changelogs.mts --package <name> [--notes-out <file>] [--dry-run]
+  node scripts/release/enrich-dependency-changelogs.mts --package <name> --backfill [--dry-run]
+  node scripts/release/enrich-dependency-changelogs.mts --finalize [--dry-run]
 
 Options:
   --package <name>    Enrich one package's working-tree CHANGELOG.md (pre-publish).

@@ -24,18 +24,14 @@ import {
   parseDependencyUpdates,
   parseEntries,
   parseOwnChanges,
-} from './enrich-dependency-changelogs.mts';
+} from './lib/changelog.mts';
+import type { ReleasedPackage } from './lib/released-packages.mts';
 
 // ---------------------------------------------------------------------------
 // Pure core (unit-tested)
 // ---------------------------------------------------------------------------
 
 export const COMMENT_MARKER = '<!-- stream-release-comment -->';
-
-export interface ReleasedPackage {
-  name: string;
-  version: string;
-}
 
 export interface PkgVersion {
   name: string;
@@ -188,51 +184,16 @@ export function sameRepoIssueNumbers(
 // Impure shell + CLI (validated via --dry-run)
 // ---------------------------------------------------------------------------
 
-import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import process from 'node:process';
 
-import { packagesReleasedInThisRun } from './enrich-dependency-changelogs.mts';
+import { gh } from './lib/exec.mts';
+import { loadWorkspacePackages, type Workspace } from './lib/workspace.mts';
+import { packagesReleasedInThisRun } from './lib/released-packages.mts';
 
 const REPO = 'GetStream/stream-video-js';
-
-interface PackageInfo {
-  dir: string;
-  private: boolean;
-}
-
-// Run `gh`, returning trimmed stdout. Read calls pass allowFailure so a missing
-// gh / network / auth degrades to a fallback rather than aborting the release.
-function gh(args: string[], { allowFailure = false } = {}): string {
-  try {
-    return execFileSync('gh', args, {
-      encoding: 'utf8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    }).trim();
-  } catch (error) {
-    if (allowFailure) return '';
-    throw error;
-  }
-}
-
-// name -> { dir, private } for every workspace package.
-function loadPackages(packagesDir: string): Map<string, PackageInfo> {
-  const map = new Map<string, PackageInfo>();
-  for (const entry of readdirSync(packagesDir)) {
-    const manifestPath = join(packagesDir, entry, 'package.json');
-    if (!existsSync(manifestPath)) continue;
-    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-    if (manifest.name) {
-      map.set(manifest.name, {
-        dir: join(packagesDir, entry),
-        private: manifest.private === true,
-      });
-    }
-  }
-  return map;
-}
 
 function npmUrl(name: string, version: string): string {
   return `https://www.npmjs.com/package/${name}/v/${version}`;
@@ -313,7 +274,7 @@ function postComment(
 
 function readTopChangelogs(
   released: ReleasedPackage[],
-  packages: Map<string, PackageInfo>,
+  packages: Workspace,
 ): Record<string, string> {
   const changelogs: Record<string, string> = {};
   for (const { name } of released) {
@@ -329,10 +290,10 @@ function readTopChangelogs(
 
 function run(dryRun: boolean): void {
   const repoRoot = process.cwd();
-  const packages = loadPackages(resolve(repoRoot, 'packages'));
+  const packages = loadWorkspacePackages(resolve(repoRoot, 'packages'));
 
   const released = packagesReleasedInThisRun().filter(
-    (p) => !packages.get(p.name)?.private,
+    (p) => !packages.get(p.name)?.manifest.private,
   );
   if (released.length === 0) {
     console.log('No published packages released at HEAD. Nothing to comment.');
