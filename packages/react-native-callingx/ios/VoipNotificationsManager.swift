@@ -55,17 +55,13 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     
     @objc public static func voipRegistration() {
         if isVoipRegistered {
-            #if DEBUG
-            NSLog("%@","[VoipNotificationsManager] voipRegistration is already registered. return _lastVoipToken = \(lastVoipToken)")
-            #endif
+            CallingxLog.voip.debugPublic("voipRegistration is already registered. return _lastVoipToken = \(lastVoipToken)")
             let voipPushManager = VoipNotificationsManager.shared()
             voipPushManager.sendEventWithNameWrapper(name: VoipNotificationsEvents.registered, body: ["token": lastVoipToken])
             return
         }
 
-        #if DEBUG
-        NSLog("%@","[VoipNotificationsManager] voipRegistration enter")
-        #endif
+        CallingxLog.voip.debugPublic("voipRegistration enter")
 
         DispatchQueue.main.async {
             let registry = PKPushRegistry(queue: DispatchQueue.main)
@@ -77,10 +73,8 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     }
     
     @objc public static func didUpdatePushCredentials(_ credentials: PKPushCredentials, forType type: String) {
-        #if DEBUG
-        NSLog("%@","[VoipNotificationsManager] didUpdatePushCredentials credentials.token = \(credentials.token), type = \(type)")
-        #endif
-        
+        CallingxLog.voip.debug("didUpdatePushCredentials credentials.token = \(credentials.token, privacy: .private), type = \(type, privacy: .public)")
+
         let voipTokenLength = credentials.token.count
         if voipTokenLength == 0 {
             return
@@ -93,10 +87,8 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     }
     
     @objc public static func didReceiveIncomingPushWithPayload(_ payload: PKPushPayload, forType type: String) {
-        #if DEBUG
-        NSLog("%@","[VoipNotificationsManager] didReceiveIncomingPushWithPayload payload.dictionaryPayload = \(payload.dictionaryPayload), type = \(type)")
-        #endif
-        
+        CallingxLog.voip.debug("didReceiveIncomingPushWithPayload payload.dictionaryPayload = \(payload.dictionaryPayload, privacy: .private), type = \(type, privacy: .public)")
+
         let dictionaryPayload: [String: Any] = Dictionary(uniqueKeysWithValues: payload.dictionaryPayload.map { (key, value) in
             (String(describing: key), value)
         })
@@ -109,9 +101,7 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     @objc public func getInitialEvents() -> [[String: Any]] {
         var events: [[String: Any]] = []
         let action = {
-            #if DEBUG
-            NSLog("%@","[VoipNotificationsManager][getInitialEvents] delayedEvents = \(self.delayedEvents)")
-            #endif
+            CallingxLog.voip.debugPublic("[getInitialEvents] delayedEvents = \(self.delayedEvents)")
             
             events = self.delayedEvents
             self.delayedEvents = []
@@ -138,9 +128,7 @@ typealias RNVoipPushNotificationCompletion = () -> Void
     }
 
     private func sendEventWithNameWrapper(name: String, body: [String: Any]?) {
-        #if DEBUG
-        NSLog("%@","[VoipNotificationsManager] sendEventWithNameWrapper: \(name)")
-        #endif
+        CallingxLog.voip.debugPublic("sendEventWithNameWrapper: \(name)")
         
         let sendEventAction = {
             var dictionary: [String: Any] = ["eventName": name]
@@ -152,9 +140,7 @@ typealias RNVoipPushNotificationCompletion = () -> Void
                 self.eventEmitter?.emitVoipEvent(dictionary)
             } else {
                 self.delayedEvents.append(dictionary)
-                #if DEBUG
-                NSLog("%@","[VoipNotificationsManager] delayedEvents: \(self.delayedEvents)")
-                #endif
+                CallingxLog.voip.debugPublic("delayedEvents: \(self.delayedEvents)")
             }
         }
 

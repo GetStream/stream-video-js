@@ -7,6 +7,7 @@ import '../rtc/__tests__/mocks/webrtc.mocks';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Call } from '../Call';
 import { StreamClient } from '../coordinator/connection/client';
+import { ClientEventReporter } from '../reporting';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { StreamVideoWriteableStateStore } from '../store';
 
@@ -14,10 +15,12 @@ describe('Call lifecycle wiring', () => {
   let call: Call;
 
   beforeEach(() => {
+    const streamClient = new StreamClient('abc');
     call = new Call({
       type: 'test',
       id: generateUUIDv4(),
-      streamClient: new StreamClient('abc'),
+      streamClient,
+      clientEventReporter: new ClientEventReporter({ streamClient }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
   });

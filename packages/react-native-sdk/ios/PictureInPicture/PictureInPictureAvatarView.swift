@@ -191,7 +191,9 @@ final class PictureInPictureAvatarView: UIView {
         if !isVideoEnabled {
             PictureInPictureLogger.log("AvatarView updateVisibility: becoming visible, forcing layout")
             setNeedsLayout()
-            layoutIfNeeded()
+            if bounds.width > 0, bounds.height > 0 {
+                layoutIfNeeded()
+            }
         }
     }
 

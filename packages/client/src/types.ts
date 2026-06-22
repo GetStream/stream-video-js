@@ -14,6 +14,7 @@ import type {
   StartRecordingResponse,
 } from './gen/coordinator';
 import type { StreamClient } from './coordinator/connection/client';
+import type { ClientEventReporter } from './reporting';
 import type {
   RejectReason,
   StreamClientOptions,
@@ -312,6 +313,11 @@ export type CallConstructor = {
   streamClient: StreamClient;
 
   /**
+   * The shared client event reporter, owned by `StreamVideoClient`.
+   */
+  clientEventReporter: ClientEventReporter;
+
+  /**
    * The Call type.
    */
   type: string;
@@ -474,6 +480,18 @@ export type StreamRNVideoSDKGlobals = {
      * Stops the in call manager.
      */
     stop({ isRingingTypeCall }: StreamRNVideoSDKCallManagerRingingParams): void;
+
+    /**
+     * iOS-only. Keeps the audio engine's microphone-input (voice-processing)
+     * chain prepared while the mic is muted, so the `AVAudioEngine` stays full-duplex
+     * meaning: mic going out and speaker coming in, simultaneously
+     *
+     * Without this, joining muted builds an output-only engine under the
+     * `PlayAndRecord`/`VoiceChat` (VPIO) session, which makes the remote audio
+     * not audible when joining muted. As echo cancellation expects the mic to be
+     * prepared.
+     */
+    setMutedRecordingPrepared?(enabled: boolean): void;
   };
   permissions: {
     /**

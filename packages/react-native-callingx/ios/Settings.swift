@@ -10,9 +10,7 @@ import UIKit
     }
 
     public static func setSettings(_ options: [String: Any]?) {
-        #if DEBUG
-        NSLog("%@","[Settings][setSettings] options = \(String(describing: options))")
-        #endif
+        CallingxLog.settings.debugPublic("[setSettings] options = \(String(describing: options))")
 
         var settings: [String: Any] = getSettings()
 
@@ -45,9 +43,7 @@ import UIKit
     }
 
     public static func getProviderConfiguration() -> CXProviderConfiguration {
-        #if DEBUG
-        NSLog("%@","[Settings][getProviderConfiguration]")
-        #endif
+        CallingxLog.settings.debugPublic("[getProviderConfiguration]")
       
         let settings = getSettings()
         let providerConfiguration = CXProviderConfiguration()
