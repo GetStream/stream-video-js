@@ -1,7 +1,85 @@
-import { Icon, useCall, useCallStateHooks } from '@stream-io/video-react-sdk';
+import { useCallback, useMemo } from 'react';
+import {
+  DropDownSelect,
+  DropDownSelectOption,
+  Icon,
+  useCall,
+  useCallStateHooks,
+} from '@stream-io/video-react-sdk';
 import { decodeBase64 } from 'stream-chat';
 import { useRouter } from 'next/router';
 import { getConnectionString } from '../lib/connectionString';
+
+// `RTCRtpEncodingParameters.codec` (per-encoding codec selection) is newer than
+// the DOM typedefs shipped with the repo's TS lib, so widen it locally.
+type EncodingWithCodec = RTCRtpEncodingParameters & {
+  codec?: RTCRtpCodecParameters;
+};
+
+// codec subtypes that are infrastructure, not selectable media codecs
+const NON_MEDIA_CODECS = new Set([
+  'rtx',
+  'red',
+  'ulpfec',
+  'flexfec-03',
+  'cn',
+  'telephone-event',
+]);
+
+// best-effort friendly names keyed by the first 4 hex chars of profile-level-id
+const H264_PROFILES: Record<string, string> = {
+  '42e0': 'constrained baseline',
+  '4200': 'baseline',
+  '4d00': 'main',
+  '6400': 'high',
+  '640c': 'high',
+  f400: 'high 4:4:4',
+};
+
+const fmtpParam = (fmtp: string | undefined, key: string): string | undefined =>
+  fmtp
+    ?.split(';')
+    .map((p) => p.trim())
+    .find((p) => p.startsWith(`${key}=`))
+    ?.slice(key.length + 1);
+
+// human label that distinguishes codec AND profile, e.g.
+// "H264 high (640c1f) pm1", "H264 constrained baseline (42e01f) pm1",
+// "VP9 profile 2", "AV1 profile 0", "VP8", "OPUS"
+const describeCodec = (codec: RTCRtpCodecParameters): string => {
+  const name = (codec.mimeType.split('/')[1] || codec.mimeType).toUpperCase();
+  const fmtp = codec.sdpFmtpLine;
+  if (name === 'H264') {
+    const pli = fmtpParam(fmtp, 'profile-level-id');
+    const pm = fmtpParam(fmtp, 'packetization-mode');
+    const profile = pli
+      ? H264_PROFILES[pli.slice(0, 4).toLowerCase()]
+      : undefined;
+    return `H264${profile ? ` ${profile}` : ''}${pli ? ` (${pli})` : ''}${
+      pm ? ` pm${pm}` : ''
+    }`;
+  }
+  if (name === 'VP9') {
+    const p = fmtpParam(fmtp, 'profile-id');
+    return `VP9${p ? ` profile ${p}` : ''}`;
+  }
+  if (name === 'AV1') {
+    const p = fmtpParam(fmtp, 'profile');
+    return `AV1${p ? ` profile ${p}` : ''}`;
+  }
+  return name;
+};
+
+// stable identity for dedupe / current-codec matching (mimeType + fmtp profile)
+const codecKey = (c: { mimeType: string; sdpFmtpLine?: string }) =>
+  `${c.mimeType.toLowerCase()}|${c.sdpFmtpLine ?? ''}`;
+
+// reach the protected RTCPeerConnection via the bracket-notation escape hatch,
+// mirroring the existing `call['credentials']` access in this file.
+const getPublisherPc = (
+  call?: ReturnType<typeof useCall>,
+): RTCPeerConnection | undefined =>
+  call?.publisher?.['pc'] as RTCPeerConnection | undefined;
 
 export const DevMenu = () => {
   const call = useCall();
@@ -24,6 +102,14 @@ export const DevMenu = () => {
       </li>
       <li className="rd__dev-menu__item">
         <RestartSubscriber />
+      </li>
+
+      <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
+      <li className="rd__dev-menu__item">
+        <CodecSelector kind="video" />
+      </li>
+      <li className="rd__dev-menu__item">
+        <CodecSelector kind="audio" />
       </li>
 
       <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
@@ -136,7 +222,9 @@ export const DevMenu = () => {
         <a
           className="rd__link rd__link--faux-button rd__link--align-left"
           href={withParams(
-            `/stats/${call.cid}?user_id=${call.currentUserId}&user_session_id=${call['unifiedSessionId'] || localParticipant.sessionId}&kind=details`,
+            `/stats/${call.cid}?user_id=${call.currentUserId}&user_session_id=${
+              call['unifiedSessionId'] || localParticipant.sessionId
+            }&kind=details`,
           )}
           rel="noreferrer"
           target="_blank"
@@ -148,7 +236,9 @@ export const DevMenu = () => {
         <a
           className="rd__link rd__link--faux-button rd__link--align-left"
           href={withParams(
-            `/stats/${call.cid}?user_id=${call.currentUserId}&user_session_id=${call['unifiedSessionId'] || localParticipant.sessionId}&kind=timeline`,
+            `/stats/${call.cid}?user_id=${call.currentUserId}&user_session_id=${
+              call['unifiedSessionId'] || localParticipant.sessionId
+            }&kind=timeline`,
           )}
           rel="noreferrer"
           target="_blank"
@@ -374,6 +464,94 @@ const ConnectToLocalSfu = (props: { port?: number; sfuId?: string }) => {
       <Icon className="rd__button__icon" icon="mediation" />
       Connect to local {sfuId}
     </button>
+  );
+};
+
+/**
+ * Switches the active publish codec for a given track kind in place, without
+ * triggering an SDP renegotiation. Reads the negotiated codecs from the
+ * publisher sender's `getParameters().codecs` and applies the chosen one via
+ * `encodings[].codec` + `setParameters()`. Distinct codec profiles (e.g. H264
+ * constrained-baseline vs high) are listed as separate options.
+ *
+ * Dev tool only: requires Chrome 111+ / recent Safari & Firefox, and only
+ * codecs already present in the negotiated SDP can be selected.
+ */
+const CodecSelector = ({ kind }: { kind: 'video' | 'audio' }) => {
+  const call = useCall();
+
+  // recompute on each menu mount (DevMenu mounts when opened, mid-call)
+  const { options, currentIndex } = useMemo(() => {
+    const pc = getPublisherPc(call);
+    const sender = pc?.getSenders().find((s) => s.track?.kind === kind);
+    const params = sender?.getParameters();
+    const seen = new Set<string>();
+    const opts = (params?.codecs ?? []).filter((c) => {
+      const sub = (c.mimeType.split('/')[1] || '').toLowerCase();
+      if (NON_MEDIA_CODECS.has(sub)) return false;
+      const key = codecKey(c);
+      if (seen.has(key)) return false; // drop exact dupes; keep distinct profiles
+      seen.add(key);
+      return true;
+    });
+    const active = (params?.encodings?.[0] as EncodingWithCodec | undefined)
+      ?.codec;
+    const activeKey = active ? codecKey(active) : undefined;
+    const idx = activeKey
+      ? Math.max(
+          0,
+          opts.findIndex((c) => codecKey(c) === activeKey),
+        )
+      : 0;
+    return { options: opts, currentIndex: idx };
+  }, [call, kind]);
+
+  const handleSelect = useCallback(
+    (index: number) => {
+      const chosen = options[index];
+      const pc = getPublisherPc(call);
+      if (!chosen || !pc) return;
+      const senders = pc.getSenders().filter((s) => s.track?.kind === kind);
+      for (const sender of senders) {
+        const params = sender.getParameters();
+        if (!params.encodings?.length) continue;
+        for (const enc of params.encodings) {
+          (enc as EncodingWithCodec).codec = chosen;
+        }
+        sender
+          .setParameters(params)
+          .catch((err) => console.error(`Failed to switch ${kind} codec`, err));
+      }
+    },
+    [call, kind, options],
+  );
+
+  if (!call || options.length === 0) {
+    return (
+      <button className="rd__button rd__button--align-left" disabled>
+        <Icon className="rd__button__icon" icon="mediation" />
+        No {kind} codecs
+      </button>
+    );
+  }
+
+  return (
+    <DropDownSelect
+      icon="mediation"
+      defaultSelectedIndex={currentIndex}
+      defaultSelectedLabel={`${
+        kind === 'video' ? 'Video' : 'Audio'
+      }: ${describeCodec(options[currentIndex])}`}
+      handleSelect={handleSelect}
+    >
+      {options.map((c, i) => (
+        <DropDownSelectOption
+          key={`${codecKey(c)}-${i}`}
+          label={describeCodec(c)}
+          selected={i === currentIndex}
+        />
+      ))}
+    </DropDownSelect>
   );
 };
 
