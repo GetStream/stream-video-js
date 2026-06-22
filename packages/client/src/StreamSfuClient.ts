@@ -177,7 +177,7 @@ export class StreamSfuClient {
   private connectionCheckTimeout?: NodeJS.Timeout;
   private migrateAwayTimeout?: NodeJS.Timeout;
   private readonly pingIntervalInMs = 5 * 1000;
-  private readonly unhealthyTimeoutInMs = 15 * 1000;
+  private readonly unhealthyTimeoutInMs = this.pingIntervalInMs * 2;
   private lastMessageTimestamp?: Date;
   private readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
