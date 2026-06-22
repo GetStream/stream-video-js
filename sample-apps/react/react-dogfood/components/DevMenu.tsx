@@ -46,7 +46,10 @@ const fmtpParam = (fmtp: string | undefined, key: string): string | undefined =>
 // human label that distinguishes codec AND profile, e.g.
 // "H264 high (640c1f) pm1", "H264 constrained baseline (42e01f) pm1",
 // "VP9 profile 2", "AV1 profile 0", "VP8", "OPUS"
-const describeCodec = (codec: RTCRtpCodecParameters): string => {
+const describeCodec = (codec: {
+  mimeType: string;
+  sdpFmtpLine?: string;
+}): string => {
   const name = (codec.mimeType.split('/')[1] || codec.mimeType).toUpperCase();
   const fmtp = codec.sdpFmtpLine;
   if (name === 'H264') {
@@ -468,32 +471,37 @@ const ConnectToLocalSfu = (props: { port?: number; sfuId?: string }) => {
 };
 
 /**
- * Switches the active publish codec for a given track kind in place, without
- * triggering an SDP renegotiation. Reads the negotiated codecs from the
- * publisher sender's `getParameters().codecs` and applies the chosen one via
- * `encodings[].codec` + `setParameters()`. Distinct codec profiles (e.g. H264
- * constrained-baseline vs high) are listed as separate options.
+ * Switches the active publish codec for a given track kind in place via
+ * `setParameters` (no renegotiation). The dropdown lists the codecs the SFU
+ * actually negotiated for the publisher sender (`getParameters().codecs`) so
+ * every option is guaranteed switchable; distinct profiles (e.g. H264
+ * constrained-baseline vs high) appear as separate options. Selecting one sets
+ * `encodings[].codec` and calls `setParameters()`.
  *
- * Dev tool only: requires Chrome 111+ / recent Safari & Firefox, and only
- * codecs already present in the negotiated SDP can be selected.
+ * The list reflects the negotiated SDP only: codecs the SFU did not negotiate
+ * (it owns codec selection) can't be switched to here and won't appear.
+ *
+ * Dev tool only: requires a browser supporting per-encoding codec selection.
  */
 const CodecSelector = ({ kind }: { kind: 'video' | 'audio' }) => {
   const call = useCall();
 
   // recompute on each menu mount (DevMenu mounts when opened, mid-call)
   const { options, currentIndex } = useMemo(() => {
-    const pc = getPublisherPc(call);
-    const sender = pc?.getSenders().find((s) => s.track?.kind === kind);
+    const sender = getPublisherPc(call)
+      ?.getSenders()
+      .find((s) => s.track?.kind === kind);
     const params = sender?.getParameters();
     const seen = new Set<string>();
     const opts = (params?.codecs ?? []).filter((c) => {
       const sub = (c.mimeType.split('/')[1] || '').toLowerCase();
       if (NON_MEDIA_CODECS.has(sub)) return false;
       const key = codecKey(c);
-      if (seen.has(key)) return false; // drop exact dupes; keep distinct profiles
+      if (seen.has(key)) return false; // drop dupes; keep distinct profiles
       seen.add(key);
       return true;
     });
+    // preselect the codec set on the first encoding, else the active (first)
     const active = (params?.encodings?.[0] as EncodingWithCodec | undefined)
       ?.codec;
     const activeKey = active ? codecKey(active) : undefined;
@@ -515,11 +523,21 @@ const CodecSelector = ({ kind }: { kind: 'video' | 'audio' }) => {
       for (const sender of senders) {
         const params = sender.getParameters();
         if (!params.encodings?.length) continue;
+        // the codec object must come from this sender's current params.codecs
+        const target = params.codecs.find(
+          (c) => codecKey(c) === codecKey(chosen),
+        );
+        if (!target) continue;
         for (const enc of params.encodings) {
-          (enc as EncodingWithCodec).codec = chosen;
+          (enc as EncodingWithCodec).codec = target;
         }
         sender
           .setParameters(params)
+          .then(() =>
+            console.log(
+              `[CodecSelector] ${kind} -> ${describeCodec(chosen)} applied`,
+            ),
+          )
           .catch((err) => console.error(`Failed to switch ${kind} codec`, err));
       }
     },
