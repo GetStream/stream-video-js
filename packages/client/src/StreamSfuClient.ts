@@ -177,7 +177,13 @@ export class StreamSfuClient {
   private connectionCheckTimeout?: NodeJS.Timeout;
   private migrateAwayTimeout?: NodeJS.Timeout;
   private readonly pingIntervalInMs = 5 * 1000;
-  private readonly unhealthyTimeoutInMs = this.pingIntervalInMs * 2;
+  /**
+   * Inactivity window before the signal socket is treated as unhealthy.
+   * Covers two full ping intervals plus a 2s grace period, so a single
+   * lost or delayed `healthCheckResponse` cannot prematurely close a live
+   * socket (the second probe's response still has time to arrive).
+   */
+  private readonly unhealthyTimeoutInMs = this.pingIntervalInMs * 2 + 2 * 1000;
   private lastMessageTimestamp?: Date;
   private readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
