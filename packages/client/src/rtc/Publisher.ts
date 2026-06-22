@@ -29,7 +29,6 @@ import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { isReactNative } from '../helpers/platforms';
 import { isFirefox } from '../helpers/browsers';
-import { CandidatePairMonitor } from './helpers/CandidatePairMonitor';
 
 /**
  * The `Publisher` is responsible for publishing/unpublishing media streams to/from the SFU
@@ -40,7 +39,6 @@ export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
   private readonly clonedTracks = new Set<MediaStreamTrack>();
   private publishOptions: PublishOption[];
-  private candidatePairMonitor?: CandidatePairMonitor;
 
   /**
    * Constructs a new `Publisher` instance.
@@ -83,7 +81,6 @@ export class Publisher extends BasePeerConnection {
    */
   async dispose(): Promise<void> {
     await super.dispose();
-    this.candidatePairMonitor?.stop();
     try {
       await this.stopAllTracks();
     } catch (err) {
@@ -162,35 +159,6 @@ export class Publisher extends BasePeerConnection {
     this.trackIdToTrackType.set(track.id, trackType);
 
     await this.negotiate();
-
-    this.watchCandidatePair(transceiver);
-  };
-
-  /**
-   * Attaches a `CandidatePairMonitor` to the peer connection's BUNDLE-shared
-   * ICE transport, once, so that an organic network path migration triggers an
-   * ICE restart and the SFU learns the new transport path.
-   *
-   * No-op if a monitor is already attached or the platform does not expose the
-   * selected-candidate-pair API (React Native without the patched WebRTC
-   * binary, older Safari).
-   */
-  private watchCandidatePair = (transceiver: RTCRtpTransceiver) => {
-    if (this.candidatePairMonitor) return;
-    const iceTransport = transceiver.sender.transport?.iceTransport;
-    if (
-      !iceTransport ||
-      typeof iceTransport.getSelectedCandidatePair !== 'function'
-    ) {
-      this.logger.debug('Selected candidate pair API unavailable, skipping');
-      return;
-    }
-    this.candidatePairMonitor = new CandidatePairMonitor({
-      iceTransport,
-      isStable: () => this.isStable(),
-      onMigration: () => this.tryRestartIce(),
-    });
-    this.candidatePairMonitor.start();
   };
 
   /**
