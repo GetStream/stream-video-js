@@ -13,10 +13,10 @@
           "types": [
             { "type": "feat", "section": "Features" },
             { "type": "fix", "section": "Bug Fixes" },
-            { "type": "chore", "hidden": false },
+            { "type": "chore", "section": "Chores" },
             { "type": "docs", "hidden": true },
             { "type": "style", "hidden": true },
-            { "type": "refactor", "hidden": true },
+            { "type": "refactor", "section": "Refactors" },
             { "type": "perf", "section": "Features" },
             { "type": "test", "hidden": true }
           ]
@@ -25,6 +25,7 @@
         "push": true,
         "skipCommitTypes": ["ci", "refactor", "test", "docs"],
         "postTargets": [
+          "@stream-io/video-react-bindings:enrich-changelog",
           "@stream-io/video-react-bindings:github",
           "@stream-io/video-react-bindings:publish"
         ]
@@ -34,7 +35,7 @@
       "executor": "@jscutlery/semver:github",
       "options": {
         "tag": "${tag}",
-        "notes": "${notes}"
+        "notesFile": "packages/react-bindings/.release-notes.md"
       }
     },
     "publish": {
@@ -43,6 +44,17 @@
         "commands": [
           {
             "command": "yarn release:react-bindings",
+            "forwardAllArgs": false
+          }
+        ]
+      }
+    },
+    "enrich-changelog": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "node scripts/release/enrich-dependency-changelogs.mts --package @stream-io/video-react-bindings --notes-out packages/react-bindings/.release-notes.md",
             "forwardAllArgs": false
           }
         ]
