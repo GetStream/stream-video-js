@@ -174,6 +174,7 @@ export class StableWSConnection {
             await sleep(interval);
           }
         }
+        return undefined;
       })(),
       (async () => {
         await sleep(timeout);
@@ -372,6 +373,7 @@ export class StableWSConnection {
         this.client.resolveConnectionId?.(this.connectionID);
         return response;
       }
+      return undefined;
     } catch (caught) {
       const err = caught as WSConnectionError;
       this.isConnecting = false;

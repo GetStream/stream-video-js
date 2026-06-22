@@ -158,11 +158,12 @@ export const removeCodecsExcept = (
     // If a specific fmtp profile is requested, only keep payloads whose fmtp config matches it
     if (fmtpProfileToKeep) {
       const filtered = new Set<number>();
-      const required = new Set(fmtpProfileToKeep.split(';'));
+      const required = fmtpProfileToKeep.split(';');
       for (const fmtp of media.fmtp) {
+        const actual = new Set(fmtp.config.split(';'));
         if (
           payloadsToKeep.has(fmtp.payload) &&
-          required.difference(new Set(fmtp.config.split(';'))).size === 0
+          required.every((part) => actual.has(part))
         ) {
           filtered.add(fmtp.payload);
         }

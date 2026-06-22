@@ -2450,9 +2450,8 @@ export class Call {
    */
   muteSelf = (type: TrackMuteType) => {
     const myUserId = this.currentUserId;
-    if (myUserId) {
-      return this.muteUser(myUserId, type);
-    }
+    if (!myUserId) return undefined;
+    return this.muteUser(myUserId, type);
   };
 
   /**
@@ -2470,9 +2469,9 @@ export class Call {
       }
     }
 
-    if (userIdsToMute.length > 0) {
-      return this.muteUser(userIdsToMute, type);
-    }
+    return userIdsToMute.length > 0
+      ? this.muteUser(userIdsToMute, type)
+      : undefined;
   };
 
   /**
