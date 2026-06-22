@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.54.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.53.2...@stream-io/video-client-1.54.0) (2026-06-19)
+
+### Features
+
+- **client:** allow disabling client event reporter ([#2286](https://github.com/GetStream/stream-video-js/issues/2286)) ([d727916](https://github.com/GetStream/stream-video-js/commit/d72791614c98ca3bedafe0538e0ac68050260ead))
+
+### Bug Fixes
+
+- **client:** avoid SFU socket close when online fires without offline recovery ([#2292](https://github.com/GetStream/stream-video-js/issues/2292)) ([3034188](https://github.com/GetStream/stream-video-js/commit/30341888eddbe878e97d39bb2f11c5b4455755d6))
+- **client:** send migrating_from after repeated rejoin failures ([#2287](https://github.com/GetStream/stream-video-js/issues/2287)) ([1c14617](https://github.com/GetStream/stream-video-js/commit/1c14617ce8cccbb97cc68e8ba75225f49607ccbe))
+
 ## [1.53.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.53.1...@stream-io/video-client-1.53.2) (2026-06-12)
 
 ### Bug Fixes

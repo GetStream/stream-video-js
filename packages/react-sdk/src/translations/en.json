@@ -94,6 +94,7 @@
   "Poor connection quality": "Poor connection quality. Please check your internet connection.",
   "Video paused due to insufficient bandwidth": "Video paused due to insufficient bandwidth",
   "Audio is connecting...": "Audio is connecting...",
+  "Video is connecting...": "Video is connecting...",
 
   "Participants": "Participants",
   "Anonymous": ", and ({{ count }}) anonymous",

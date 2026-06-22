@@ -618,3 +618,36 @@ describe('ClientEventReporter', () => {
     expect(ws2.every((e) => e.sfu_id === 'sfu-2')).toBe(true);
   });
 });
+
+describe('ClientEventReporter (disabled)', () => {
+  const cid = 'default:call-1';
+  let doAxiosRequest: ReturnType<typeof vi.fn>;
+  let reporter: ClientEventReporter;
+
+  beforeEach(() => {
+    doAxiosRequest = vi.fn().mockResolvedValue({});
+    const streamClient = fromPartial<StreamClient>({
+      userID: 'user-1',
+      doAxiosRequest,
+      getUserAgent: () => 'test-agent',
+      getSdkVersion: () => '1.0.0',
+    });
+    reporter = new ClientEventReporter({ streamClient, enabled: false });
+    reporter.startCoordinatorConnection('user-1');
+    reporter.registerCall(cid, {
+      callType: 'default',
+      callId: 'call-1',
+      getCallSessionId: () => 'session-1',
+      getSfuId: () => 'sfu-1',
+      getUserSessionId: () => 'user-session-1',
+    });
+  });
+
+  it('does not post any events when disabled', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    await reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok'));
+    await flush();
+
+    expect(doAxiosRequest).not.toHaveBeenCalled();
+  });
+});

@@ -53,7 +53,7 @@
     "sample:react:livestream-app": "yarn workspace @stream-io/livestream-app run dev",
     "sample:react:zoom-clone": "yarn workspace @stream-io/zoom-clone-react run dev",
     "sample:react:tutorial": "yarn workspace @stream-io/stream-video-react-tutorial run dev",
-    "release": "nx run-many --target version --parallel=1",
+    "release": "nx run-many --target version --parallel=1 && node scripts/enrich-dependency-changelogs.mts --finalize",
     "release:client": "yarn workspace @stream-io/video-client npm publish --access=public --tag=latest",
     "release:codemod": "yarn workspace @stream-io/video-codemod npm publish --access=public --tag=latest",
     "release:react-bindings": "yarn workspace @stream-io/video-react-bindings npm publish --access=public --tag=latest",
@@ -70,8 +70,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
-    "@jscutlery/semver": "^5.8.1",
-    "@nx/devkit": "^21.6.11",
+    "@jscutlery/semver": "^6.1.2",
+    "@nx/devkit": "^22.7.5",
     "eslint": "^9.39.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
@@ -80,7 +80,7 @@
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "nx": "^21.6.11",
+    "nx": "^22.7.5",
     "prettier": "^3.8.3",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.60.0",
@@ -88,7 +88,7 @@
   },
   "lint-staged": {
     "*.{js,ts,tsx}": "yarn eslint --cache --fix",
-    "*.{js,ts,jsx,tsx,md,mdx,scss,css,html,mjs,json}": "yarn prettier --write"
+    "*.{js,ts,jsx,tsx,md,mdx,scss,css,html,mjs,mts,json}": "yarn prettier --write"
   },
   "dependenciesMeta": {
     "@firebase/util": {
