@@ -2,147 +2,19 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  parseEntries,
-  parseDependencyUpdates,
-  parseOwnChanges,
   resolveOldDepVersion,
   collectUpstreamRange,
   bulletIdentity,
   enrichTopEntry,
   enrichAllEntries,
 } from './enrich-dependency-changelogs.mts';
-
-// Fixtures mirror the real @jscutlery/semver output (after prettier turns `*` into `-`).
-const CLIENT_CL = `# Changelog
-
-This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
-
-## [1.53.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.53.1...@stream-io/video-client-1.53.2) (2026-06-12)
-
-### Bug Fixes
-
-- **client:** keep user_id populated in call event telemetry ([#2284](https://github.com/GetStream/stream-video-js/issues/2284)) ([4403348](https://github.com/GetStream/stream-video-js/commit/4403348115500499cd60919a417d97659546bb8b))
-
-## [1.53.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.53.0...@stream-io/video-client-1.53.1) (2026-06-12)
-
-### Bug Fixes
-
-- **client:** Send call data in JoinInitiated event ([#2283](https://github.com/GetStream/stream-video-js/issues/2283)) ([7e9ce3e](https://github.com/GetStream/stream-video-js/commit/7e9ce3e3e3c4ebe8080f86793855a39abe7e19ef))
-- **ios:** joining a call muted may break remote audio playout ([#2282](https://github.com/GetStream/stream-video-js/issues/2282)) ([dc672a6](https://github.com/GetStream/stream-video-js/commit/dc672a69971d6ca46648696c242609c687cb42d7))
-
-## [1.53.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.52.0...@stream-io/video-client-1.53.0) (2026-06-11)
-
-### Features
-
-- **client:** Call event reporting ([#2261](https://github.com/GetStream/stream-video-js/issues/2261)) ([246b8c8](https://github.com/GetStream/stream-video-js/commit/246b8c826cccd22a09cd34391e9a773e91860fa8))
-
-### Bug Fixes
-
-- **client:** preserve captured stage error ([#2281](https://github.com/GetStream/stream-video-js/issues/2281)) ([890ce0b](https://github.com/GetStream/stream-video-js/commit/890ce0b25d0f1530ba9ebd2ef56fe366f3377312))
-
-## [1.52.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.51.0...@stream-io/video-client-1.52.0) (2026-06-01)
-
-- **deps:** upgrade React Native 0.85 ([#2268](https://github.com/GetStream/stream-video-js/issues/2268)) ([2c8ab9d](https://github.com/GetStream/stream-video-js/commit/2c8ab9d9238f3700dabbd04c9ce5bf3aaa4c7a13))
-
-### Features
-
-- **client:** add hasInterruptedTrack helper ([#2266](https://github.com/GetStream/stream-video-js/issues/2266)) ([c723eb6](https://github.com/GetStream/stream-video-js/commit/c723eb67bffcb00edc03e4960a0d3a600bba8687))
-`;
-
-// A dependent SDK changelog: top entry is a pure dependency bump.
-const REACT_SDK_CL = `# Changelog
-
-This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
-
-## [1.37.7](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.37.6...@stream-io/video-react-sdk-1.37.7) (2026-06-12)
-
-### Dependency Updates
-
-- \`@stream-io/video-client\` updated to version \`1.53.2\`
-- \`@stream-io/video-react-bindings\` updated to version \`1.16.5\`
-
-## [1.37.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.37.5...@stream-io/video-react-sdk-1.37.6) (2026-06-12)
-
-### Dependency Updates
-
-- \`@stream-io/video-client\` updated to version \`1.53.0\`
-- \`@stream-io/video-react-bindings\` updated to version \`1.16.4\`
-`;
-
-// react-bindings: a pure passthrough of client (no own Features/Bug Fixes).
-const BINDINGS_CL = `# Changelog
-
-## [1.16.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.16.4...@stream-io/video-react-bindings-1.16.5) (2026-06-12)
-
-### Dependency Updates
-
-- \`@stream-io/video-client\` updated to version \`1.53.2\`
-
-## [1.16.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.16.3...@stream-io/video-react-bindings-1.16.4) (2026-06-12)
-
-### Dependency Updates
-
-- \`@stream-io/video-client\` updated to version \`1.53.1\`
-`;
-
-const RUNTIME_DEPS = [
-  '@stream-io/video-client',
-  '@stream-io/video-react-bindings',
-  '@stream-io/video-filters-web',
-];
-
-test('parseEntries splits on version headers, newest first', () => {
-  const entries = parseEntries(CLIENT_CL);
-  assert.equal(entries.length, 4);
-  assert.equal(entries[0].version, '1.53.2');
-  assert.equal(entries[1].version, '1.53.1');
-  assert.equal(entries[3].version, '1.52.0');
-  assert.match(entries[0].headerLine, /^## \[1\.53\.2\]/);
-});
-
-test('parseDependencyUpdates extracts name + version from the Dependency Updates block', () => {
-  const top = parseEntries(REACT_SDK_CL)[0];
-  const deps = parseDependencyUpdates(top.body);
-  assert.deepEqual(deps, [
-    { name: '@stream-io/video-client', version: '1.53.2' },
-    { name: '@stream-io/video-react-bindings', version: '1.16.5' },
-  ]);
-});
-
-test('parseDependencyUpdates also accepts the raw `*` bullet form', () => {
-  const body =
-    '\n### Dependency Updates\n\n* `@stream-io/video-client` updated to version `9.9.9`\n';
-  assert.deepEqual(parseDependencyUpdates(body), [
-    { name: '@stream-io/video-client', version: '9.9.9' },
-  ]);
-});
-
-test('parseOwnChanges collects Features and Bug Fixes bullets', () => {
-  const entries = parseEntries(CLIENT_CL);
-  const v1530 = entries.find((e) => e.version === '1.53.0')!;
-  const own = parseOwnChanges(v1530.body);
-  assert.equal(own.Features.length, 1);
-  assert.match(own.Features[0], /Call event reporting/);
-  assert.equal(own['Bug Fixes'].length, 1);
-  assert.match(own['Bug Fixes'][0], /preserve captured stage error/);
-});
-
-test('parseOwnChanges captures loose pre-section bullets as "other"', () => {
-  const entries = parseEntries(CLIENT_CL);
-  const v1520 = entries.find((e) => e.version === '1.52.0')!;
-  const own = parseOwnChanges(v1520.body);
-  assert.equal(own.other.length, 1);
-  assert.match(own.other[0], /upgrade React Native/);
-  assert.equal(own.Features.length, 1);
-});
-
-test('parseOwnChanges ignores the Dependency Updates section (passthrough = empty)', () => {
-  const top = parseEntries(BINDINGS_CL)[0];
-  const own = parseOwnChanges(top.body);
-  assert.equal(own.Features.length, 0);
-  assert.equal(own['Bug Fixes'].length, 0);
-  assert.equal(own.other.length, 0);
-});
+import { parseEntries } from './lib/changelog.mts';
+import {
+  CLIENT_CL,
+  REACT_SDK_CL,
+  BINDINGS_CL,
+  RUNTIME_DEPS,
+} from './lib/changelog.fixtures.mts';
 
 test('resolveOldDepVersion finds the dep version from the previous mentioning entry', () => {
   const entries = parseEntries(REACT_SDK_CL);
