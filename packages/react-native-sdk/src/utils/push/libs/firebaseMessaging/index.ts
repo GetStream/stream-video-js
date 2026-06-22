@@ -7,7 +7,7 @@ export type FirebaseMessagingType = Type;
 const INSTALLATION_INSTRUCTION =
   'Please see https://rnfirebase.io/messaging/usage#installation for installation instructions';
 
-export function getFirebaseMessagingLib() {
+export function getFirebaseMessagingLib(): FirebaseMessagingType {
   if (!lib) {
     throw Error(
       '@react-native-firebase/messaging is not installed. ' +
@@ -17,7 +17,9 @@ export function getFirebaseMessagingLib() {
   return lib;
 }
 
-export function getFirebaseMessagingLibNoThrow(isExpo: boolean) {
+export function getFirebaseMessagingLibNoThrow(
+  isExpo: boolean,
+): FirebaseMessagingType | undefined {
   if (!lib) {
     const logger = videoLoggerSystem.getLogger(
       'getFirebaseMessagingLibNoThrow',

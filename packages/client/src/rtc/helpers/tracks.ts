@@ -23,6 +23,7 @@ export const trackTypeToParticipantStreamKey = (
       throw new Error('Track type is unspecified');
     default:
       ensureExhausted(trackType, 'Unknown track type');
+      return undefined;
   }
 };
 
@@ -40,6 +41,7 @@ export const muteTypeToTrackType = (
       return TrackType.SCREEN_SHARE_AUDIO;
     default:
       ensureExhausted(muteType, 'Unknown mute type');
+      return undefined;
   }
 };
 

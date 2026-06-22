@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.17.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.16.5...@stream-io/video-react-bindings-1.17.0) (2026-06-19)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.54.0`
+
+### Features
+
+- **client:** show connecting indicator while video track is connecting ([#2275](https://github.com/GetStream/stream-video-js/issues/2275)) ([a9c670d](https://github.com/GetStream/stream-video-js/commit/a9c670dec44cc008f1b22aab8cb61998e71d3050)), closes [GetStream/react-native-webrtc#32](https://github.com/GetStream/react-native-webrtc/issues/32)
+
+### Bug Fixes
+
+- **react-bindings:** declare @stream-io/video-client as a runtime dependency ([#2294](https://github.com/GetStream/stream-video-js/issues/2294)) ([978602c](https://github.com/GetStream/stream-video-js/commit/978602cd44e4551ff5af33d8da9f41a55036106f))
+
 ## [1.16.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.16.4...@stream-io/video-react-bindings-1.16.5) (2026-06-12)
 
 ### Dependency Updates

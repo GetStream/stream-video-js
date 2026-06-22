@@ -81,7 +81,7 @@ export const MoreActionsButton = ({
   const setState = useAppGlobalStoreSetState();
   const themeMode = useAppGlobalStoreValue((store) => store.themeMode);
   const call = useCall();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const {
     useIsCallCaptioningInProgress,
     useHasPermissions,

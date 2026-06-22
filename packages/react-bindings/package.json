@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-bindings",
-  "version": "1.16.5",
+  "version": "1.17.0",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
   "types": "./dist/index.d.ts",
@@ -26,20 +26,20 @@
     "CHANGELOG.md"
   ],
   "dependencies": {
+    "@stream-io/video-client": "workspace:*",
     "i18next": "^25.10.10",
     "rxjs": "~7.8.2"
   },
   "peerDependencies": {
-    "@stream-io/video-client": "workspace:^",
     "react": "^17 || ^18 || ^19"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^12.3.0",
-    "@stream-io/video-client": "workspace:^",
+    "@stream-io/typescript-config": "workspace:^",
     "@types/react": "~19.2.15",
     "react": "19.2.3",
     "rimraf": "^6.1.3",
     "rollup": "^4.60.4",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   }
 }

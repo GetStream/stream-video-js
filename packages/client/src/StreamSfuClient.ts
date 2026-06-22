@@ -714,7 +714,7 @@ export class StreamSfuClient {
       return;
     }
     this.logger.debug(`Sending message to: ${this.edgeName}`, msgJson);
-    this.signalWs.send(SfuRequest.toBinary(message));
+    this.signalWs.send(SfuRequest.toBinary(message) as Uint8Array<ArrayBuffer>);
   };
 
   private keepAlive = () => {
