@@ -284,20 +284,6 @@ export abstract class BasePeerConnection {
   };
 
   /**
-   * Returns true only when the peer connection is currently fully established
-   * (ICE `connected`/`completed` AND connection state `connected`).
-   * Transient states like `disconnected`, `checking`, or `new` return false.
-   */
-  isStable = () => {
-    const iceState = this.pc.iceConnectionState;
-    const connectionState = this.pc.connectionState;
-    return (
-      (iceState === 'connected' || iceState === 'completed') &&
-      connectionState === 'connected'
-    );
-  };
-
-  /**
    * Handles the ICECandidate event and
    * Initiates an ICE Trickle process with the SFU.
    */

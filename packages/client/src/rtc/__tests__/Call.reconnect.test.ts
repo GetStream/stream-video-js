@@ -671,43 +671,6 @@ describe('Call reconnect wiring (PC event → leave)', () => {
     expect(publisher.restartIce).toHaveBeenCalled();
   });
 
-  /**
-   * Scenario 4 (manual smoke equivalent: drop only the signal WS while the
-   * publisher PC stays `connected`): the FAST path should NOT call
-   * `publisher.restartIce()` because the PC is stable.
-   */
-  it('FAST path skips publisher.restartIce when publisher PC is stable', async () => {
-    const publisher = makePublisherWiredToCall();
-    // @ts-expect-error private field
-    publisher['pc'].iceConnectionState = 'connected';
-    publisher['onIceConnectionStateChange']();
-    // @ts-expect-error private field
-    publisher['pc'].connectionState = 'connected';
-
-    // pretend the publisher has tracks so isPublishing() would return true
-    vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
-    const restartIceSpy = vi.spyOn(publisher, 'restartIce').mockResolvedValue();
-    const setSfuSpy = vi.spyOn(publisher, 'setSfuClient');
-    call['publisher'] = publisher;
-
-    // mimic the FAST branch in doJoin: restoreICE is the gateway
-    const publisherIsStable = call['publisher']?.isStable() ?? true;
-    const includePublisher =
-      !!call['publisher']?.isPublishing() && !publisherIsStable;
-    await call['restoreICE'](sfuClient, {
-      includeSubscriber: false,
-      includePublisher,
-    });
-
-    expect(includePublisher).toBe(false);
-    expect(setSfuSpy).toHaveBeenCalledWith(sfuClient); // wire still updated
-    expect(restartIceSpy).not.toHaveBeenCalled(); // but NO ICE restart
-  });
-
-  /**
-   * Counterpart to the above: when the publisher PC is NOT stable (e.g.,
-   * `disconnected`), the FAST path SHOULD still issue an ICE restart.
-   */
   it('FAST path DOES call publisher.restartIce when publisher PC is unstable', async () => {
     const publisher = makePublisherWiredToCall();
     // @ts-expect-error private field
@@ -722,15 +685,8 @@ describe('Call reconnect wiring (PC event → leave)', () => {
     const restartIceSpy = vi.spyOn(publisher, 'restartIce').mockResolvedValue();
     call['publisher'] = publisher;
 
-    const publisherIsStable = call['publisher']?.isStable() ?? true;
-    const includePublisher =
-      !!call['publisher']?.isPublishing() && !publisherIsStable;
-    await call['restoreICE'](sfuClient, {
-      includeSubscriber: false,
-      includePublisher,
-    });
+    await call['restoreICE'](sfuClient, { includeSubscriber: false });
 
-    expect(includePublisher).toBe(true);
     expect(restartIceSpy).toHaveBeenCalled();
   });
 

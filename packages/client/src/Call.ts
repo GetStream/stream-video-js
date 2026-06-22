@@ -1288,23 +1288,9 @@ export class Call {
     // when performing fast reconnect, or when we reuse the same SFU client,
     // (ws remained healthy), we just need to restore the ICE connection
     if (performingFastReconnect) {
-      // The SFU automatically issues an ICE restart on the subscriber,
-      // so we only need to decide about the publisher. If the publisher's
-      // peer connection is still stable (ICE still connected end-to-end),
-      // the signal WebSocket drop was the only problem — the new WS alone
-      // is enough, and restarting ICE would add unnecessary SDP/ICE churn.
-      const publisherIsStable = this.publisher?.isStable() ?? true;
-      const includePublisher =
-        !!this.publisher?.isPublishing() && !publisherIsStable;
-      if (!includePublisher && this.publisher?.isPublishing()) {
-        this.logger.info(
-          '[Reconnect] FAST: skipping publisher ICE restart, publisher PC is stable',
-        );
-      }
-      await this.restoreICE(sfuClient, {
-        includeSubscriber: false,
-        includePublisher,
-      });
+      // the SFU automatically issues an ICE restart on the subscriber
+      // we don't have to do it ourselves
+      await this.restoreICE(sfuClient, { includeSubscriber: false });
     } else {
       const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
       await this.initPublisherAndSubscriber({

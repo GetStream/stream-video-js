@@ -141,26 +141,6 @@ describe('Subscriber', () => {
       );
     });
 
-    it(`isStable() returns true only when ICE is connected/completed and connectionState is connected`, () => {
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'connected';
-      // @ts-expect-error - private field
-      subscriber['pc'].connectionState = 'connected';
-      expect(subscriber.isStable()).toBe(true);
-
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'completed';
-      expect(subscriber.isStable()).toBe(true);
-
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'disconnected';
-      expect(subscriber.isStable()).toBe(false);
-
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'new';
-      expect(subscriber.isStable()).toBe(false);
-    });
-
     it(`iceHasEverConnected tracks lifetime connectivity`, () => {
       expect(subscriber['iceHasEverConnected']).toBe(false);
       simulatePriorIceConnected();
