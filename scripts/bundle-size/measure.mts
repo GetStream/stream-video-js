@@ -88,9 +88,24 @@ export function formatDelta(
   return `${sign}${magnitude} (${sign}${pct.toFixed(1)}%)`;
 }
 
+// Preferred row order: the core + UI SDKs first, in this sequence; every other
+// package follows, alphabetically.
+const PREFERRED_ORDER = [
+  '@stream-io/video-client',
+  '@stream-io/video-react-bindings',
+  '@stream-io/video-react-sdk',
+  '@stream-io/video-react-native-sdk',
+];
+
+function packageRank(pkg: string): number {
+  const i = PREFERRED_ORDER.indexOf(pkg);
+  return i === -1 ? PREFERRED_ORDER.length : i;
+}
+
 function sortEntries(entries: SizeEntry[]): SizeEntry[] {
   return [...entries].sort(
     (a, b) =>
+      packageRank(a.package) - packageRank(b.package) ||
       a.package.localeCompare(b.package) ||
       (a.entry ?? '').localeCompare(b.entry ?? '') ||
       FLAVOUR_ORDER.indexOf(a.flavour) - FLAVOUR_ORDER.indexOf(b.flavour),

@@ -176,6 +176,36 @@ test('renderComment tags non-esm builds inline', () => {
   );
 });
 
+test('renderComment orders packages by the preferred list, then alphabetically', () => {
+  const mk = (pkg: string): SizeReport['targets'][number] => ({
+    package: pkg,
+    flavour: 'esm',
+    unminified: 1000,
+    minified: 500,
+  });
+  const report: SizeReport = {
+    targets: [
+      mk('@stream-io/video-filters-web'),
+      mk('@stream-io/video-react-native-sdk'),
+      mk(REACT_SDK),
+      mk(CLIENT),
+      mk(BINDINGS),
+    ],
+  };
+  const body = renderComment(report);
+  const positions = [
+    'video-client',
+    'video-react-bindings',
+    'video-react-sdk',
+    'video-react-native-sdk',
+    'video-filters-web',
+  ].map((p) => body.indexOf(`| @stream-io/${p} |`));
+  assert.ok(
+    positions.every((p, i) => i === 0 || (p > positions[i - 1] && p !== -1)),
+    `rows out of preferred order: ${positions.join(', ')}`,
+  );
+});
+
 // Clean multiples of 1024 so the rendered KB values are exact.
 const uiReport: SizeReport = {
   targets: [
