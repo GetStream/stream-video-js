@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, useEffect, useState } from 'react';
+import { ComponentPropsWithoutRef, memo, useEffect, useState } from 'react';
 import {
   AudioTrackType,
   StreamVideoParticipant,
@@ -18,11 +18,11 @@ export type AudioProps = ComponentPropsWithoutRef<'audio'> & {
   trackType?: AudioTrackType;
 };
 
-export const Audio = ({
+export const Audio = memo(function Audio({
   participant,
   trackType = 'audioTrack',
   ...rest
-}: AudioProps) => {
+}: AudioProps) {
   const call = useCall();
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(
     null,
@@ -47,6 +47,6 @@ export const Audio = ({
       data-track-type={trackType}
     />
   );
-};
+});
 
 Audio.displayName = 'Audio';

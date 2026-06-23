@@ -33,6 +33,13 @@ export function useDragToScroll(
   element: HTMLElement | null,
   options: DragToScrollOptions = {},
 ) {
+  const {
+    enabled,
+    decay = 0.95,
+    minVelocity = 0.5,
+    dragThreshold = 5,
+  } = options;
+
   const stateRef = useRef<DragScrollState>({
     isDragging: false,
     isPointerActive: false,
@@ -46,9 +53,7 @@ export function useDragToScroll(
   });
 
   useEffect(() => {
-    if (!element || !options.enabled) return;
-
-    const { decay = 0.95, minVelocity = 0.5, dragThreshold = 5 } = options;
+    if (!element || !enabled) return;
 
     const state = stateRef.current;
 
@@ -158,5 +163,5 @@ export function useDragToScroll(
 
       stopMomentum();
     };
-  }, [element, options]);
+  }, [element, enabled, decay, minVelocity, dragThreshold]);
 }
