@@ -59,9 +59,12 @@ jobs:
         if: github.event_name == 'pull_request'
         continue-on-error: true
         run: |
-          run_id=$(gh run list --workflow test.yml --branch main --status success \
-            --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+          latest=$(gh run list --workflow test.yml --branch main --status success \
+            --limit 1 --json databaseId,headSha)
+          run_id=$(echo "$latest" | jq -r '.[0].databaseId // empty')
+          sha=$(echo "$latest" | jq -r '.[0].headSha // empty' | cut -c1-7)
           echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "baseline-ref=${sha:+main@$sha}" >> "$GITHUB_OUTPUT"
 
       - name: Download main bundle-size baseline
         if: github.event_name == 'pull_request' && steps.bundle-size-baseline.outputs.run-id != ''
@@ -77,6 +80,8 @@ jobs:
       - name: Report bundle-size delta
         if: github.event_name == 'pull_request'
         continue-on-error: true
+        env:
+          BASELINE_REF: ${{ steps.bundle-size-baseline.outputs.baseline-ref }}
         run: node scripts/bundle-size/measure.mts --out bundle-sizes.json --baseline baseline/bundle-sizes.json --pr ${{ github.event.pull_request.number }}
 
       # main: measure and publish the baseline for future PRs to compare against.
