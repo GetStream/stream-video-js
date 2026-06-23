@@ -254,6 +254,115 @@ describe('Subscriber', () => {
         'send answer failed',
       );
     });
+
+    it('restores the previous generation in the buffer when a negotiation rolls back', async () => {
+      const sdp = (ufrag: string) =>
+        `v=0\r\na=ice-ufrag:${ufrag}\r\na=ice-pwd:pwd\r\n`;
+      const updateActiveGeneration = vi.spyOn(
+        sfuClient.iceTrickleBuffer,
+        'updateActiveGeneration',
+      );
+      // previously-committed generation u0; the new (failing) offer is u1
+      // @ts-expect-error - overriding readonly mock field
+      subscriber['pc'].currentRemoteDescription = {
+        type: 'offer',
+        sdp: sdp('u0'),
+      };
+      // @ts-expect-error - overriding readonly mock field
+      subscriber['pc'].remoteDescription = { type: 'offer', sdp: sdp('u1') };
+      // @ts-expect-error - readonly field
+      subscriber['pc'].signalingState = 'have-remote-offer';
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+
+      // advanced to the new generation, then restored to the rolled-back one
+      expect(updateActiveGeneration).toHaveBeenCalledWith(
+        PeerType.SUBSCRIBER,
+        sdp('u1'),
+      );
+      expect(updateActiveGeneration).toHaveBeenLastCalledWith(
+        PeerType.SUBSCRIBER,
+        sdp('u0'),
+      );
+    });
+  });
+
+  describe('ICE candidate trickling', () => {
+    const trickle = (ufrag: string, candidate: string) => ({
+      peerType: PeerType.SUBSCRIBER,
+      iceCandidate: JSON.stringify({ usernameFragment: ufrag, candidate }),
+    });
+
+    const sdp = (ufrag: string) =>
+      `v=0\r\na=ice-ufrag:${ufrag}\r\na=ice-pwd:pwd\r\n`;
+
+    const setRemoteUfrag = (ufrag: string) => {
+      // @ts-expect-error - overriding readonly remoteDescription on the mock
+      subscriber['pc'].remoteDescription = { type: 'offer', sdp: sdp(ufrag) };
+    };
+
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    it('declares the active generation from the remote description and adds emitted candidates', async () => {
+      const addIceCandidate = vi
+        .spyOn(subscriber['pc'], 'addIceCandidate')
+        .mockResolvedValue();
+      const updateActiveGeneration = vi.spyOn(
+        sfuClient.iceTrickleBuffer,
+        'updateActiveGeneration',
+      );
+      setRemoteUfrag('u1');
+      sfuClient.iceTrickleBuffer.push(trickle('u1', 'c1'));
+
+      subscriber['addTrickledIceCandidates']();
+      await flush();
+
+      expect(updateActiveGeneration).toHaveBeenCalledWith(
+        PeerType.SUBSCRIBER,
+        sdp('u1'),
+      );
+      expect(addIceCandidate).toHaveBeenCalledWith({
+        usernameFragment: 'u1',
+        candidate: 'c1',
+      });
+    });
+
+    it('does not re-add a superseded-generation candidate after an ICE restart', async () => {
+      const addIceCandidate = vi
+        .spyOn(subscriber['pc'], 'addIceCandidate')
+        .mockResolvedValue();
+
+      setRemoteUfrag('u0');
+      sfuClient.iceTrickleBuffer.push(trickle('u0', 'c0'));
+      subscriber['addTrickledIceCandidates']();
+      await flush();
+      expect(addIceCandidate).toHaveBeenCalledWith({
+        usernameFragment: 'u0',
+        candidate: 'c0',
+      });
+
+      addIceCandidate.mockClear();
+
+      // ICE restart -> generation u1; the old u0 candidate must not be re-added
+      setRemoteUfrag('u1');
+      sfuClient.iceTrickleBuffer.push(trickle('u1', 'c1'));
+      subscriber['addTrickledIceCandidates']();
+      await flush();
+
+      expect(addIceCandidate).toHaveBeenCalledWith({
+        usernameFragment: 'u1',
+        candidate: 'c1',
+      });
+      expect(addIceCandidate).not.toHaveBeenCalledWith({
+        usernameFragment: 'u0',
+        candidate: 'c0',
+      });
+    });
   });
 
   describe('OnTrack', () => {

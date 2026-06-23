@@ -172,6 +172,9 @@ export class Subscriber extends BasePeerConnection {
   };
 
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
+    // The generation currently committed on the peer connection. If this
+    // negotiation fails and rolls back, the buffer is restored to it.
+    const previousSdp = this.pc.currentRemoteDescription?.sdp;
     try {
       await this.pc.setRemoteDescription({
         type: 'offer',
@@ -205,6 +208,8 @@ export class Subscriber extends BasePeerConnection {
         await this.pc.setRemoteDescription({ type: 'rollback' }).catch((e) => {
           this.logger.warn('Failed to rollback after negotiation error', e);
         });
+        const { iceTrickleBuffer } = this.sfuClient;
+        iceTrickleBuffer.updateActiveGeneration(this.peerType, previousSdp);
       }
       throw err;
     } finally {
