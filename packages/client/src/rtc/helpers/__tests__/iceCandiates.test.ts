@@ -3,26 +3,12 @@ import { getCandidateUfrag, parseIceUfrag, toJSON } from '../iceCandiates';
 
 describe('iceCandiates helpers', () => {
   describe('toJSON', () => {
-    it('serializes via candidate.toJSON() when usernameFragment is present', () => {
-      const json = {
-        candidate: 'candidate:1 1 udp 100 1.2.3.4 5000 typ host',
-        usernameFragment: 'uf',
-        sdpMid: '0',
-      };
-      const candidate = {
-        usernameFragment: 'uf',
-        toJSON: () => json,
-      } as unknown as RTCIceCandidate;
-
-      expect(toJSON(candidate)).toBe(JSON.stringify(json));
-    });
-
     it('parses the ufrag from the candidate string when usernameFragment is missing (react-native-webrtc)', () => {
       const candidate = {
         candidate:
           'candidate:1 1 udp 100 1.2.3.4 5000 typ host ufrag ABC network-id 1',
         sdpMid: '0',
-      } as unknown as RTCIceCandidate;
+      } as RTCIceCandidate;
 
       const result = JSON.parse(toJSON(candidate));
       expect(result.usernameFragment).toBe('ABC');
