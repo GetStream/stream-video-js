@@ -75,6 +75,11 @@ export const onVoipNotificationReceived = async (
         `callingx.endCallWithReason for call_cid: ${call_cid} endCallReason: ${endCallReason}`,
       );
       callingx.endCallWithReason(call_cid, endCallReason);
+      callFromPush.leave({ reject: false }).catch((error) => {
+        logger.error(
+          `Failed to leave already-ended ringing call ${call_cid}: ${error}`,
+        );
+      });
       return true;
     }
     return false;

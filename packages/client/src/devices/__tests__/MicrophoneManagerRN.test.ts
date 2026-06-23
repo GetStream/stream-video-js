@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MicrophoneManager } from '../MicrophoneManager';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
-import { StreamVideoWriteableStateStore } from '../../store';
+import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 import {
   mockAudioDevices,
   mockAudioStream,
@@ -13,6 +13,7 @@ import { of } from 'rxjs';
 import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { OwnCapability } from '../../gen/coordinator';
 import { settled, withoutConcurrency } from '../../helpers/concurrency';
+import { ClientEventReporter } from '../../reporting';
 
 let speechActivityCallback:
   | ((state: { isSoundDetected: boolean }) => void)
@@ -53,11 +54,13 @@ describe('MicrophoneManager React Native', () => {
   let manager: MicrophoneManager;
   let checkPermissionMock: ReturnType<typeof vi.fn>;
   let subscribeMock: ReturnType<typeof vi.fn>;
+  let setMutedRecordingPreparedMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     speechActivityCallback = null;
     unsubscribeMocks = [];
     checkPermissionMock = vi.fn(async () => true);
+    setMutedRecordingPreparedMock = vi.fn();
     subscribeMock = vi.fn((cb) => {
       speechActivityCallback = cb;
       const unsub = vi.fn();
@@ -70,6 +73,7 @@ describe('MicrophoneManager React Native', () => {
         setup: vi.fn(),
         start: vi.fn(),
         stop: vi.fn(),
+        setMutedRecordingPrepared: setMutedRecordingPreparedMock,
       },
       permissions: {
         check: checkPermissionMock,
@@ -82,12 +86,14 @@ describe('MicrophoneManager React Native', () => {
     };
 
     const devicePersistence = { enabled: false, storageKey: '' };
+    const streamClient = new StreamClient('abc123');
     manager = new MicrophoneManager(
       new Call({
         id: '',
         type: '',
-        streamClient: new StreamClient('abc123'),
+        streamClient,
         clientStore: new StreamVideoWriteableStateStore(),
+        clientEventReporter: new ClientEventReporter({ streamClient }),
       }),
       devicePersistence,
     );
@@ -205,6 +211,76 @@ describe('MicrophoneManager React Native', () => {
 
     await vi.waitUntil(() => fn.mock.calls.length > 0, { timeout: 100 });
     expect(fn).toHaveBeenCalled();
+  });
+
+  it('should prepare muted recording when mic is disabled and user can send audio', async () => {
+    await manager.enable();
+    await manager.disable();
+
+    await vi.waitUntil(
+      () =>
+        setMutedRecordingPreparedMock.mock.calls.some(([arg]) => arg === true),
+      { timeout: 100 },
+    );
+    expect(setMutedRecordingPreparedMock).toHaveBeenCalledWith(true);
+  });
+
+  it('should release prepared muted recording when mic is enabled', async () => {
+    await manager.disable();
+    setMutedRecordingPreparedMock.mockClear();
+    await manager.enable();
+
+    await vi.waitUntil(
+      () =>
+        setMutedRecordingPreparedMock.mock.calls.some(([arg]) => arg === false),
+      { timeout: 100 },
+    );
+    expect(setMutedRecordingPreparedMock).toHaveBeenCalledWith(false);
+  });
+
+  it('should not prepare muted recording when user cannot send audio', async () => {
+    await manager.disable();
+    manager['call'].state.setOwnCapabilities([]);
+    setMutedRecordingPreparedMock.mockClear();
+    // toggle status to re-run the reactive subscription with no send-audio cap
+    await manager.enable();
+    await manager.disable();
+
+    await vi.waitUntil(
+      () => setMutedRecordingPreparedMock.mock.calls.length > 0,
+      { timeout: 100 },
+    );
+    expect(setMutedRecordingPreparedMock).not.toHaveBeenCalledWith(true);
+  });
+
+  it('should not prepare muted recording if native microphone permission is denied', async () => {
+    checkPermissionMock.mockResolvedValue(false);
+    await manager.enable();
+    await manager.disable();
+
+    await vi.waitUntil(() => checkPermissionMock.mock.calls.length > 0, {
+      timeout: 100,
+    });
+    expect(setMutedRecordingPreparedMock).not.toHaveBeenCalledWith(true);
+  });
+
+  it('should release prepared muted recording when the call is left', async () => {
+    await manager.disable();
+    await vi.waitUntil(
+      () =>
+        setMutedRecordingPreparedMock.mock.calls.some(([arg]) => arg === true),
+      { timeout: 100 },
+    );
+    setMutedRecordingPreparedMock.mockClear();
+
+    manager['call'].state.setCallingState(CallingState.LEFT);
+
+    await vi.waitUntil(
+      () =>
+        setMutedRecordingPreparedMock.mock.calls.some(([arg]) => arg === false),
+      { timeout: 100 },
+    );
+    expect(setMutedRecordingPreparedMock).toHaveBeenCalledWith(false);
   });
 
   afterEach(() => {

@@ -1,4 +1,5 @@
 import { ComponentProps, useEffect, useState } from 'react';
+import { useEffectEvent } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
 
 type SearchInputProps = ComponentProps<'input'> & {
@@ -20,11 +21,12 @@ export const SearchInput = ({
   const [inputElement, setInputElement] = useState<HTMLInputElement | null>(
     null,
   );
+  const onExitSearch = useEffectEvent(exitSearch);
   useEffect(() => {
     if (!inputElement) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'escape') exitSearch();
+      if (e.key.toLowerCase() === 'escape') onExitSearch();
     };
 
     inputElement.addEventListener('keydown', handleKeyDown);
@@ -32,7 +34,7 @@ export const SearchInput = ({
     return () => {
       inputElement.removeEventListener('keydown', handleKeyDown);
     };
-  }, [exitSearch, inputElement]);
+  }, [inputElement]);
 
   return (
     <div

@@ -62,11 +62,11 @@ export const isSupportedBrowser = async (): Promise<boolean> => {
   const [major] = browser.version.split('.');
   const version = parseInt(major, 10);
   return (
-    (name.includes('chrome') && version >= 124) ||
-    (name.includes('edge') && version >= 124) ||
-    (name.includes('firefox') && version >= 124) ||
-    (name.includes('safari') && version >= 17) ||
+    (name.includes('chrome') && version >= 136) ||
+    (name.includes('edge') && version >= 136) ||
+    (name.includes('firefox') && version >= 137) ||
+    (name.includes('safari') && version >= 18) ||
     (name.includes('webkit') && version >= 605) || // WebView on iOS
-    (name.includes('webview') && version >= 124) // WebView on Android
+    (name.includes('webview') && version >= 136) // WebView on Android
   );
 };

@@ -1,5 +1,6 @@
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import { ClientEventReporter } from '../../reporting';
 import { CallingState, StreamVideoWriteableStateStore } from '../../store';
 
 import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
@@ -56,6 +57,12 @@ vi.mock('../../Call.ts', () => {
   };
 });
 
+vi.mock('../../reporting/ClientEventReporter', () => ({
+  ClientEventReporter: vi.fn(function () {
+    return {};
+  }),
+}));
+
 vi.mock('../../helpers/compatibility.ts', () => {
   console.log('MOCKING mobile device');
   return {
@@ -76,10 +83,12 @@ describe('CameraManager', () => {
 
   beforeEach(() => {
     const devicePersistence = { enabled: false, storageKey: '' };
+    const streamClient = new StreamClient('abc123', { devicePersistence });
     call = new Call({
       id: '',
       type: '',
-      streamClient: new StreamClient('abc123', { devicePersistence }),
+      streamClient,
+      clientEventReporter: new ClientEventReporter({ streamClient }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
     manager = new CameraManager(call, devicePersistence);

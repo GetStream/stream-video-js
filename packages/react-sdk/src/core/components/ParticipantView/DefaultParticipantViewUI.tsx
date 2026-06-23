@@ -11,6 +11,7 @@ import {
   useCall,
   useI18n,
   useIsAudioConnecting,
+  useIsVideoConnecting,
 } from '@stream-io/video-react-bindings';
 import clsx from 'clsx';
 
@@ -143,6 +144,7 @@ export const ParticipantDetails = ({
     trackType !== 'none' ? hasPausedTrack(participant, trackType) : false;
 
   const isAudioConnecting = useIsAudioConnecting(participant);
+  const isVideoConnecting = useIsVideoConnecting(participant);
 
   return (
     <>
@@ -157,6 +159,12 @@ export const ParticipantDetails = ({
           )}
           {indicatorsVisible && !hasAudioTrack && (
             <span className="str-video__participant-details__name--audio-muted" />
+          )}
+          {indicatorsVisible && isVideoConnecting && (
+            <LoadingIndicator
+              className="str-video__participant-details__name--video-connecting"
+              tooltip={t('Video is connecting...')}
+            />
           )}
           {indicatorsVisible && !hasVideoTrack && (
             <span className="str-video__participant-details__name--video-muted" />

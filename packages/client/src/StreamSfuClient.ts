@@ -40,7 +40,7 @@ import {
 import { withoutConcurrency } from './helpers/concurrency';
 import { getTimers } from './timers';
 import { Tracer, TraceSlice } from './stats';
-import { SfuJoinError } from './errors';
+import { SfuJoinError, SfuTimeoutError } from './errors';
 
 export type StreamSfuClientConstructor = {
   /**
@@ -353,7 +353,7 @@ export class StreamSfuClient {
           timeoutId = setTimeout(() => {
             const message = `SFU WS connection failed to open after ${this.joinResponseTimeout}ms`;
             this.tracer?.trace('signal.timeout', message);
-            reject(new Error(message));
+            reject(new SfuTimeoutError(message));
           }, this.joinResponseTimeout);
         }),
       ]),
@@ -644,7 +644,7 @@ export class StreamSfuClient {
       cleanupJoinSubscriptions();
       const message = `Waiting for "joinResponse" has timed out after ${this.joinResponseTimeout}ms`;
       this.tracer?.trace('joinRequestTimeout', message);
-      current.reject(new Error(message));
+      current.reject(new SfuTimeoutError(message));
     }, this.joinResponseTimeout);
 
     const joinRequest = SfuRequest.create({
@@ -697,7 +697,7 @@ export class StreamSfuClient {
       return;
     }
     this.logger.debug(`Sending message to: ${this.edgeName}`, msgJson);
-    this.signalWs.send(SfuRequest.toBinary(message));
+    this.signalWs.send(SfuRequest.toBinary(message) as Uint8Array<ArrayBuffer>);
   };
 
   private keepAlive = () => {

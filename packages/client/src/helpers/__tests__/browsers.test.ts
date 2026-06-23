@@ -169,70 +169,70 @@ describe('browsers', () => {
 
     it('should return true for supported Chrome version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Chrome', version: '124' },
+        browser: { name: 'Chrome', version: '136' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return true for supported Chrome detailed version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Chrome', version: '124.0.7204.158' },
+        browser: { name: 'Chrome', version: '136.0.7204.158' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return false for unsupported Chrome version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Chrome', version: '123' },
+        browser: { name: 'Chrome', version: '135' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });
 
     it('should return false for unsupported Chrome detailed version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Chrome', version: '123.0.1234.99' },
+        browser: { name: 'Chrome', version: '135.0.1234.99' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });
 
     it('should return true for supported Edge version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Edge', version: '124' },
+        browser: { name: 'Edge', version: '136' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return false for unsupported Edge version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Edge', version: '123' },
+        browser: { name: 'Edge', version: '135' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });
 
     it('should return true for supported Firefox version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Firefox', version: '124' },
+        browser: { name: 'Firefox', version: '137' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return false for unsupported Firefox version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Firefox', version: '123' },
+        browser: { name: 'Firefox', version: '136' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });
 
     it('should return true for supported Safari version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Safari', version: '17' },
+        browser: { name: 'Safari', version: '18' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return false for unsupported Safari version', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'Safari', version: '16' },
+        browser: { name: 'Safari', version: '17' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });
@@ -253,14 +253,14 @@ describe('browsers', () => {
 
     it('should return true for supported WebView version (WebView on Android)', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'WebView', version: '124' },
+        browser: { name: 'WebView', version: '136' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(true);
     });
 
     it('should return false for unsupported WebView version (WebView on Android)', async () => {
       vi.mocked(getClientDetails).mockResolvedValue({
-        browser: { name: 'WebView', version: '123' },
+        browser: { name: 'WebView', version: '135' },
       } as ClientDetails);
       expect(await isSupportedBrowser()).toBe(false);
     });

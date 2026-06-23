@@ -98,12 +98,12 @@ export const VideoRenderer = React.memo(
       isParticipantVideoEnabled(participant.sessionId);
 
     useEffect(() => {
-      if (Platform.OS === 'ios' && registerIosScreenshot && canShowVideo) {
-        registerIosScreenshot(participant, trackType, viewRef);
-        return () => {
-          deregisterIosScreenshot(participant, trackType);
-        };
-      }
+      if (Platform.OS !== 'ios' || !registerIosScreenshot || !canShowVideo)
+        return;
+      registerIosScreenshot(participant, trackType, viewRef);
+      return () => {
+        deregisterIosScreenshot(participant, trackType);
+      };
     }, [
       participant,
       trackType,

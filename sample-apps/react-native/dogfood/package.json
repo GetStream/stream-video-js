@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-react-native-dogfood",
-  "version": "4.37.0",
+  "version": "4.39.0",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -23,7 +23,7 @@
     "@react-navigation/native-stack": "^7.16.0",
     "@stream-io/noise-cancellation-react-native": "workspace:^",
     "@stream-io/react-native-callingx": "workspace:^",
-    "@stream-io/react-native-webrtc": "137.2.0",
+    "@stream-io/react-native-webrtc": "145.0.0",
     "@stream-io/video-filters-react-native": "workspace:^",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "axios": "^1.16.1",
@@ -62,7 +62,7 @@
     "@types/react": "^19.2.15",
     "babel-plugin-react-compiler": "^1.0.0",
     "react-dom": "19.2.3",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "engines": {
     "node": ">=22.11.0"
