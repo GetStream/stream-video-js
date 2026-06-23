@@ -3,6 +3,7 @@ import {
   forwardRef,
   SetStateAction,
   useCallback,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -150,13 +151,21 @@ const ActiveUsersSearchResults = ({
   const { useParticipants } = useCallStateHooks();
   const participants = useParticipants({ sortBy: name });
 
+  // cache: each distinct name is normalized once
+  const normalizedNameCache = useRef<Map<string, string> | null>(null);
+
   const activeUsersSearchFn = useCallback(
     async (queryString: string) => {
       const normalizedQuery = normalizeString(queryString);
-      const queryRegExp = new RegExp(normalizedQuery, 'i');
-      return participants.filter((p) =>
-        normalizeString(p.name).match(queryRegExp),
-      );
+      const cache = (normalizedNameCache.current ??= new Map<string, string>());
+      return participants.filter((p) => {
+        let normalizedName = cache.get(p.name);
+        if (normalizedName === undefined) {
+          normalizedName = normalizeString(p.name);
+          cache.set(p.name, normalizedName);
+        }
+        return normalizedName.includes(normalizedQuery);
+      });
     },
     [participants],
   );
@@ -191,8 +200,10 @@ const BlockedUsersSearchResults = ({
 
   const blockedUsersSearchFn = useCallback(
     async (queryString: string) => {
-      const queryRegExp = new RegExp(queryString, 'i');
-      return blockedUsers.filter((userId) => userId.match(queryRegExp));
+      const normalizedQuery = queryString.toLowerCase();
+      return blockedUsers.filter((userId) =>
+        userId.toLowerCase().includes(normalizedQuery),
+      );
     },
     [blockedUsers],
   );
