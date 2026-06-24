@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Pressable,
   type StyleProp,
@@ -61,6 +61,16 @@ export type FloatingParticipantViewProps = ParticipantViewComponentProps &
     onPressHandler?: () => void;
   };
 
+const floatingAlignmentMap: Record<
+  FloatingParticipantViewAlignment,
+  FloatingViewAlignment
+> = {
+  'top-left': FloatingViewAlignment.topLeft,
+  'top-right': FloatingViewAlignment.topRight,
+  'bottom-left': FloatingViewAlignment.bottomLeft,
+  'bottom-right': FloatingViewAlignment.bottomRight,
+};
+
 const DefaultLocalParticipantViewVideoFallback = () => {
   const {
     theme: {
@@ -114,16 +124,6 @@ export const FloatingParticipantView = ({
     },
   } = useTheme();
 
-  const floatingAlignmentMap: Record<
-    FloatingParticipantViewAlignment,
-    FloatingViewAlignment
-  > = {
-    'top-left': FloatingViewAlignment.topLeft,
-    'top-right': FloatingViewAlignment.topRight,
-    'bottom-left': FloatingViewAlignment.bottomLeft,
-    'bottom-right': FloatingViewAlignment.bottomRight,
-  };
-
   const [containerDimensions, setContainerDimensions] = React.useState<{
     width: number;
     height: number;
@@ -134,13 +134,21 @@ export const FloatingParticipantView = ({
     'videoTrack',
   );
 
-  const participantViewProps: ParticipantViewComponentProps = {
-    ParticipantLabel: null,
-    ParticipantNetworkQualityIndicator,
-    ParticipantReaction,
-    ParticipantVideoFallback,
-    VideoRenderer,
-  };
+  const participantViewProps: ParticipantViewComponentProps = useMemo(
+    () => ({
+      ParticipantLabel: null,
+      ParticipantNetworkQualityIndicator,
+      ParticipantReaction,
+      ParticipantVideoFallback,
+      VideoRenderer,
+    }),
+    [
+      ParticipantNetworkQualityIndicator,
+      ParticipantReaction,
+      ParticipantVideoFallback,
+      VideoRenderer,
+    ],
+  );
 
   if (!participant) {
     return null;

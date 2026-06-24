@@ -1,11 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  NativeModules,
-  Platform,
-  StyleSheet,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { NativeModules, Platform, StyleSheet, View } from 'react-native';
 import {
   CallParticipantsGrid,
   type CallParticipantsGridProps,
@@ -139,17 +133,44 @@ export const CallContent = ({
 
   useAutoEnterPiPEffect(disablePictureInPicture);
 
-  const [remoteParticipants, setRemoteParticipants] = useState<
-    StreamVideoParticipant[]
-  >(() => call?.state.remoteParticipants ?? []);
+  // CallContent only needs to know whether to show the floating view (0 / 1-2 / 3+
+  // remote participants) and the single participant to render in it. Storing a count
+  // bucket plus that one participant - instead of the whole array - means CallContent
+  // re-renders only on bucket-boundary crossings, not on every debounced emission.
+  const [floatingViewState, setFloatingViewState] = useState<{
+    remoteCountBucket: number;
+    firstRemoteParticipant: StreamVideoParticipant | undefined;
+  }>(() => {
+    const remote = call?.state.remoteParticipants ?? [];
+    return {
+      remoteCountBucket: Math.min(remote.length, 3),
+      firstRemoteParticipant: remote.length === 1 ? remote[0] : undefined,
+    };
+  });
   useEffect(() => {
     if (!call) {
-      setRemoteParticipants([]);
+      setFloatingViewState({
+        remoteCountBucket: 0,
+        firstRemoteParticipant: undefined,
+      });
       return;
     }
     const sub = call.state.remoteParticipants$
       .pipe(debounceTime(300))
-      .subscribe(setRemoteParticipants);
+      .subscribe((remoteParticipants) => {
+        const remoteCountBucket = Math.min(remoteParticipants.length, 3);
+        const firstRemoteParticipant =
+          remoteParticipants.length === 1 ? remoteParticipants[0] : undefined;
+        setFloatingViewState((prev) => {
+          if (
+            prev.remoteCountBucket === remoteCountBucket &&
+            prev.firstRemoteParticipant === firstRemoteParticipant
+          ) {
+            return prev;
+          }
+          return { remoteCountBucket, firstRemoteParticipant };
+        });
+      });
     return () => sub.unsubscribe();
   }, [call]);
   const localParticipant = useLocalParticipant();
@@ -179,16 +200,18 @@ export const CallContent = ({
     };
   }, [isInPiPMode, call]);
 
+  const { remoteCountBucket, firstRemoteParticipant } = floatingViewState;
+
   const showFloatingView =
     !showSpotlightLayout &&
     !isInPiPMode &&
-    remoteParticipants.length > 0 &&
-    remoteParticipants.length < 3;
+    remoteCountBucket > 0 &&
+    remoteCountBucket < 3;
 
   const isRemoteParticipantInFloatingView =
     showFloatingView &&
     showRemoteParticipantInFloatingView &&
-    remoteParticipants.length === 1;
+    remoteCountBucket === 1;
 
   /**
    * This hook is used to handle IncallManager specs of the application.
@@ -206,7 +229,7 @@ export const CallContent = ({
   }, []);
 
   const handleFloatingViewParticipantSwitch = () => {
-    if (remoteParticipants.length !== 1) {
+    if (remoteCountBucket !== 1) {
       return;
     }
     setShowRemoteParticipantInFloatingView((prevState) => !prevState);
@@ -242,10 +265,6 @@ export const CallContent = ({
     supportedReactions,
   };
 
-  const landscapeStyles: ViewStyle = {
-    flexDirection: landscape ? 'row' : 'column',
-  };
-
   return (
     <>
       {!disablePictureInPicture && (
@@ -254,7 +273,13 @@ export const CallContent = ({
           mirror={mirror}
         />
       )}
-      <View style={[styles.container, landscapeStyles, callContent.container]}>
+      <View
+        style={[
+          styles.container,
+          landscape ? landscapeStyles.row : landscapeStyles.column,
+          callContent.container,
+        ]}
+      >
         <View style={[styles.content, callContent.callParticipantsContainer]}>
           <View
             style={[
@@ -270,7 +295,7 @@ export const CallContent = ({
               <FloatingParticipantView
                 participant={
                   isRemoteParticipantInFloatingView
-                    ? remoteParticipants[0]
+                    ? firstRemoteParticipant
                     : localParticipant
                 }
                 onPressHandler={handleFloatingViewParticipantSwitch}
@@ -298,6 +323,11 @@ export const CallContent = ({
     </>
   );
 };
+
+const landscapeStyles = StyleSheet.create({
+  row: { flexDirection: 'row' },
+  column: { flexDirection: 'column' },
+});
 
 const useStyles = () => {
   const { theme } = useTheme();
