@@ -15,6 +15,14 @@ import { enableStereo, removeCodecsExcept } from './helpers/sdp';
  */
 export class Subscriber extends BasePeerConnection {
   /**
+   * Remote streams received from the SFU. For a self-sub case
+   * we need to be able to distinguish between the local capture stream.
+   * The map will never contain local streams so we can safely use it to
+   * check if the stream is remote and dispose it when needed.
+   */
+  private trackedStreams?: WeakSet<MediaStream>;
+
+  /**
    * Constructs a new `Subscriber` instance.
    */
   constructor(opts: BasePeerConnectionOpts) {
@@ -75,6 +83,7 @@ export class Subscriber extends BasePeerConnection {
     const participantToUpdate = this.state.participants.find(
       (p) => p.trackLookupPrefix === trackId,
     );
+    const isSelfSub = !!participantToUpdate?.isLocalParticipant;
     this.logger.debug(
       `[onTrack]: Got remote ${rawTrackType} track for userId: ${participantToUpdate?.userId}`,
       track.id,
@@ -108,6 +117,11 @@ export class Subscriber extends BasePeerConnection {
 
     this.trackIdToTrackType.set(track.id, trackType);
 
+    if (isSelfSub) {
+      this.trackedStreams ??= new WeakSet<MediaStream>();
+      this.trackedStreams.add(primaryStream);
+    }
+
     if (!participantToUpdate) {
       this.logger.warn(
         `[onTrack]: Received track for unknown participant: ${trackId}`,
@@ -128,6 +142,13 @@ export class Subscriber extends BasePeerConnection {
       return;
     }
 
+    // Self-sub loopback audio routes to the speaker by default, which
+    // would echo the local user's voice. Default-mute here; consumers
+    // (the loopback recording hook) re-enable explicitly when needed.
+    if (isSelfSub && e.track.kind === 'audio') {
+      e.track.enabled = false;
+    }
+
     // get the previous stream to dispose it later
     // usually this happens during migration, when the stream is replaced
     // with a new one but the old one is still in the state
@@ -138,8 +159,15 @@ export class Subscriber extends BasePeerConnection {
       [streamKindProp]: primaryStream,
     });
 
-    // now, dispose the previous stream if it exists
     if (previousStream) {
+      if (isSelfSub && !this.trackedStreams?.has(previousStream)) {
+        // this is the local capture stream, we don't want to dispose it
+        this.logger.debug(
+          `[onTrack]: Skipping cleanup of previous ${e.track.kind} stream for userId: ${participantToUpdate.userId} because it is not tracked`,
+        );
+        return;
+      }
+
       this.logger.info(
         `[onTrack]: Cleaning up previous remote ${track.kind} tracks for userId: ${participantToUpdate.userId}`,
       );
