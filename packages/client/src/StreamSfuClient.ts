@@ -176,7 +176,7 @@ export class StreamSfuClient {
   private keepAliveInterval?: number;
   private connectionCheckTimeout?: NodeJS.Timeout;
   private migrateAwayTimeout?: NodeJS.Timeout;
-  private readonly pingIntervalInMs = 5 * 1000;
+  private readonly pingIntervalInMs = 4 * 1000;
   /**
    * Inactivity window before the signal socket is treated as unhealthy.
    * Covers two full ping intervals plus a 2s grace period, so a single
