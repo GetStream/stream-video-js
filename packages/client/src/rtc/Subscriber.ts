@@ -20,7 +20,7 @@ export class Subscriber extends BasePeerConnection {
    * The map will never contain local streams so we can safely use it to
    * check if the stream is remote and dispose it when needed.
    */
-  private trackedStreams: WeakSet<MediaStream> = new WeakSet();
+  private trackedStreams?: WeakSet<MediaStream>;
 
   /**
    * Constructs a new `Subscriber` instance.
@@ -118,6 +118,7 @@ export class Subscriber extends BasePeerConnection {
     this.trackIdToTrackType.set(track.id, trackType);
 
     if (isSelfSub) {
+      this.trackedStreams ??= new WeakSet<MediaStream>();
       this.trackedStreams.add(primaryStream);
     }
 
@@ -159,7 +160,7 @@ export class Subscriber extends BasePeerConnection {
     });
 
     if (previousStream) {
-      if (isSelfSub && !this.trackedStreams.has(previousStream)) {
+      if (isSelfSub && !this.trackedStreams?.has(previousStream)) {
         // this is the local capture stream, we don't want to dispose it
         this.logger.debug(
           `[onTrack]: Skipping cleanup of previous ${e.track.kind} stream for userId: ${participantToUpdate.userId} because it is not tracked`,

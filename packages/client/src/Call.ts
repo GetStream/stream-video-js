@@ -325,7 +325,7 @@ export class Call {
   private joinResponseTimeout?: number;
   private rpcRequestTimeout?: number;
   private joinCallData?: JoinCallData;
-  private selfSubEnabled = false;
+  private allowOwnTracksLoopback = false;
   private hasJoinedOnce = false;
   private deviceSettingsAppliedOnce = false;
   private credentials?: Credentials;
@@ -834,8 +834,8 @@ export class Call {
   /**
    * A flag indicating whether self-subscription is enabled for the call.
    */
-  get isSelfSubEnabled() {
-    return this.selfSubEnabled;
+  get isOwnTracksLoopbackAllowed() {
+    return this.allowOwnTracksLoopback;
   }
 
   /**
@@ -1074,13 +1074,13 @@ export class Call {
     maxJoinRetries = 3,
     joinResponseTimeout,
     rpcRequestTimeout,
-    selfSubEnabled = false,
+    allowOwnTracksLoopback = false,
     ...data
   }: JoinCallData & {
     maxJoinRetries?: number;
     joinResponseTimeout?: number;
     rpcRequestTimeout?: number;
-    selfSubEnabled?: boolean;
+    allowOwnTracksLoopback?: boolean;
   } = {}): Promise<void> => {
     const callingState = this.state.callingState;
 
@@ -1094,7 +1094,7 @@ export class Call {
 
     // we need this to be set before the callingx.joinCall() is
     // called to avoid registering the test call in the CallKit/Telecom
-    this.selfSubEnabled = selfSubEnabled;
+    this.allowOwnTracksLoopback = allowOwnTracksLoopback;
 
     const callingX = globalThis.streamRNVideoSDK?.callingX;
     if (callingX) {
@@ -1596,7 +1596,7 @@ export class Call {
         basePeerConnectionOptions,
         publishOptions,
         {
-          selfSubEnabled: this.selfSubEnabled,
+          selfSubEnabled: this.allowOwnTracksLoopback,
         },
       );
     }

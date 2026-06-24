@@ -101,7 +101,7 @@ const TestRecordingContent = ({
       if (!call) return;
 
       call.setStatsReportingIntervalInMs(500);
-      await call.join({ create: true, selfSubEnabled: true });
+      await call.join({ create: true, allowOwnTracksLoopback: true });
       const uri = await startRecording();
       if (!uri) return;
       navigation.replace('TestRecordingResults', { uri });

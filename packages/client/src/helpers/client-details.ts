@@ -192,6 +192,6 @@ export const getClientDetails = async (): Promise<ClientDetails> => {
         .join(' '),
       version: '',
     },
-    webrtcVersion: webRtcInfo?.version || '',
+    webrtcVersion: browserVersion,
   };
 };

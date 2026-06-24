@@ -7634,6 +7634,7 @@ __metadata:
     react-native-reanimated: "npm:4.3.1"
     react-native-safe-area-context: "npm:~5.8.0"
     react-native-screens: "npm:4.25.2"
+    react-native-share: "npm:^12.3.1"
     react-native-svg: "npm:15.15.5"
     react-native-teleport: "npm:^1.1.7"
     react-native-toast-message: "npm:^2.3.3"
@@ -19898,6 +19899,13 @@ __metadata:
     react: "*"
     react-native: ">=0.82.0"
   checksum: 10/b0fca70d7aafbd8ff993c0e0329ee78fe453391eaff9556e87fb619d0d58b93b497e47ff5477a1028ecad35d4165f47c833ccb22049e59c5d55a1c55a13029b0
+  languageName: node
+  linkType: hard
+
+"react-native-share@npm:^12.3.1":
+  version: 12.3.1
+  resolution: "react-native-share@npm:12.3.1"
+  checksum: 10/9ddd8048cc31b664df95215bcc4d29e406b63eee9137f41dbe4da3d2e078fffd6d8733bfc9492a7abc1fea51aab5a5058540249f4431a52f24c43fbcd34aa9b6
   languageName: node
   linkType: hard
 

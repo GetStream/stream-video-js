@@ -108,7 +108,7 @@ export interface UseLoopbackRecordingResult {
 
 /**
  * Records the SFU loopback streams (audio + video) on the local participant
- * to a local MP4 file. Designed for the `selfSubEnabled` pre-call test mode:
+ * to a local MP4 file. Designed for the `allowOwnTracksLoopback` pre-call test mode:
  * the SFU echoes the caller's published tracks back through the Subscriber
  * peer connection. The hook identifies the loopback streams on the local
  * participant by reference inequality against
@@ -386,7 +386,7 @@ function waitForLoopbackStreams(
       reject(
         new Error(
           'useLoopbackRecording: timed out waiting for loopback streams. ' +
-            'Ensure the call was joined with `selfSubEnabled: true` and ' +
+            'Ensure the call was joined with `allowOwnTracksLoopback: true` and ' +
             'that the SFU is configured to echo self-sub tracks.',
         ),
       );
