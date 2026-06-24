@@ -31,16 +31,18 @@ export function getCallDisplayName(
 
   if (callMembers.length > 0) {
     // for ringing calls, members array contains all call members from the very early state and participants array is empty in the beginning
-    names = callMembers
-      .filter((member) => member.user.id !== currentUserId)
-      .map((member) => member.user.name)
-      .filter((name): name is string => name !== undefined);
+    names = callMembers.flatMap((member) =>
+      member.user.id !== currentUserId && member.user.name
+        ? [member.user.name]
+        : [],
+    );
   } else if (participants.length > 0) {
     // for non-ringing calls, members array is empty and we rely on participants array there
-    names = participants
-      .filter((participant) => participant.userId !== currentUserId)
-      .map((participant) => participant.name)
-      .filter(Boolean);
+    names = participants.flatMap((participant) =>
+      participant.userId !== currentUserId && participant.name
+        ? [participant.name]
+        : [],
+    );
   }
 
   // if no names are found, we use the name of the current user

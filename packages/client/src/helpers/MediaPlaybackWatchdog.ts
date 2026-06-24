@@ -93,6 +93,7 @@ export class MediaPlaybackWatchdog {
     const HAVE_CURRENT_DATA = 2;
     if (this.element.readyState < HAVE_CURRENT_DATA) return 'notReady';
     if (!this.element.paused) return 'notPaused';
+    return undefined;
   };
 
   private attemptPlay = async () => {

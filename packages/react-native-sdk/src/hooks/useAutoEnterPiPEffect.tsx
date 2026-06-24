@@ -31,20 +31,14 @@ export function useAutoEnterPiPEffect(
       return;
     }
 
+    // if disable prop was sent, immediately disable PiP mode auto enter
+    if (disablePictureInPicture) {
+      NativeModules.StreamVideoReactNative.canAutoEnterPipMode(false);
+    }
+
     // on unmount always disable PiP mode auto enter
     return () => {
       NativeModules.StreamVideoReactNative.canAutoEnterPipMode(false);
     };
-  }, [disablePictureInPicture]);
-
-  // if disable prop was sent, immediately disable PiP mode
-  useEffect(() => {
-    if (Platform.OS !== 'android') {
-      return;
-    }
-
-    if (disablePictureInPicture) {
-      NativeModules.StreamVideoReactNative.canAutoEnterPipMode(false);
-    }
   }, [disablePictureInPicture]);
 }

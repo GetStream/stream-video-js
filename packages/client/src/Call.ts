@@ -2138,10 +2138,17 @@ export class Call {
         } else {
           if (!this.networkAvailableTask) return;
           this.logger.debug('[Reconnect] Going online');
-          this.sfuClient?.close(
-            StreamSfuClient.DISPOSE_OLD_SOCKET,
-            'Closing WS to reconnect after going online',
-          );
+          // Only discard the socket when no reconnect is already in flight. A
+          // running reconnect owns the SFU-client lifecycle (`doJoin` closes
+          // the previous client once the new session is up). Closing here would
+          // tear down the socket it's mid-join on, leaving the in-flight rejoin
+          // to spin on SIGNAL_LOST.
+          if (!hasPending(this.reconnectConcurrencyTag)) {
+            this.sfuClient?.close(
+              StreamSfuClient.DISPOSE_OLD_SOCKET,
+              'Closing WS to reconnect after going online',
+            );
+          }
           // we went online, release the previous waiters and reset the state
           this.networkAvailableTask?.resolve();
           this.networkAvailableTask = undefined;
@@ -2495,9 +2502,8 @@ export class Call {
    */
   muteSelf = (type: TrackMuteType) => {
     const myUserId = this.currentUserId;
-    if (myUserId) {
-      return this.muteUser(myUserId, type);
-    }
+    if (!myUserId) return undefined;
+    return this.muteUser(myUserId, type);
   };
 
   /**
@@ -2515,9 +2521,9 @@ export class Call {
       }
     }
 
-    if (userIdsToMute.length > 0) {
-      return this.muteUser(userIdsToMute, type);
-    }
+    return userIdsToMute.length > 0
+      ? this.muteUser(userIdsToMute, type)
+      : undefined;
   };
 
   /**
