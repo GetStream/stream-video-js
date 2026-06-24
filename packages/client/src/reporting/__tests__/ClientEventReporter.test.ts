@@ -617,6 +617,58 @@ describe('ClientEventReporter', () => {
     expect(ws1.every((e) => e.sfu_id === 'sfu-1')).toBe(true);
     expect(ws2.every((e) => e.sfu_id === 'sfu-2')).toBe(true);
   });
+
+  describe('drops events for an unregistered call', () => {
+    it('does not emit stage events after the call is unregistered', async () => {
+      reporter.startCorrelation(cid, 'first-attempt');
+      reporter.unregisterCall(cid);
+      await flush();
+      doAxiosRequest.mockClear();
+
+      await reporter.track(cid, 'WSJoin', () => Promise.resolve('ok'));
+      reporter.reportFirstFrame(cid, TrackType.VIDEO, 'track-1');
+      await flush();
+
+      expect(doAxiosRequest).not.toHaveBeenCalled();
+    });
+
+    it('does not emit a stage completion when unregistered mid-flight', async () => {
+      reporter.startCorrelation(cid, 'first-attempt');
+      await flush();
+      doAxiosRequest.mockClear();
+
+      await reporter.track(cid, 'WSJoin', async () => {
+        reporter.unregisterCall(cid);
+        return 'ok';
+      });
+      await flush();
+
+      const completed = postedEvents().filter(
+        (e) => e.stage === 'WSJoin' && e.event_type === 'completed',
+      );
+      expect(completed).toHaveLength(0);
+    });
+
+    it('does not emit JoinInitiated for an unregistered call', async () => {
+      reporter.unregisterCall(cid);
+      reporter.startCorrelation(cid, 'first-attempt');
+      await flush();
+
+      const joinInitiated = postedEvents().filter(
+        (e) => e.stage === 'JoinInitiated',
+      );
+      expect(joinInitiated).toHaveLength(0);
+    });
+
+    it('still emits CoordinatorWS events (connection-scoped, not call-gated)', async () => {
+      reporter.unregisterCall(cid);
+      await reporter.trackCoordinatorWs(() => Promise.resolve('ok'));
+      await flush();
+
+      const ws = postedEvents().filter((e) => e.stage === 'CoordinatorWS');
+      expect(ws.length).toBeGreaterThan(0);
+    });
+  });
 });
 
 describe('ClientEventReporter (disabled)', () => {
