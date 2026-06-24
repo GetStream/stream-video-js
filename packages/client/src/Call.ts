@@ -325,6 +325,7 @@ export class Call {
   private joinResponseTimeout?: number;
   private rpcRequestTimeout?: number;
   private joinCallData?: JoinCallData;
+  private allowOwnTracksLoopback = false;
   private hasJoinedOnce = false;
   private deviceSettingsAppliedOnce = false;
   private credentials?: Credentials;
@@ -787,6 +788,7 @@ export class Call {
       this.leaveCallHooks.forEach((hook) => hook());
       this.initialized = false;
       this.hasJoinedOnce = false;
+      this.allowOwnTracksLoopback = false;
       this.unifiedSessionId = undefined;
       this.ringingSubject.next(false);
       this.cancelAutoDrop();
@@ -829,6 +831,37 @@ export class Call {
   get currentUserId() {
     return this.clientStore.connectedUser?.id;
   }
+
+  /**
+   * A flag indicating whether self-subscription is enabled for the call.
+   */
+  get isOwnTracksLoopbackAllowed() {
+    return this.allowOwnTracksLoopback;
+  }
+
+  /**
+   * The largest video publish dimension across the current publish options.
+   *
+   * @internal
+   */
+  getMaxVideoPublishDimension = (): VideoDimension | undefined => {
+    if (!this.currentPublishOptions) return undefined;
+    let maxDimension: VideoDimension | undefined;
+    let maxArea = 0;
+    for (const opt of this.currentPublishOptions) {
+      if (opt.trackType !== TrackType.VIDEO) continue;
+
+      const dim = opt.videoDimension;
+      if (!dim || !dim.width || !dim.height) continue;
+
+      const area = dim.width * dim.height;
+      if (area > maxArea) {
+        maxDimension = dim;
+        maxArea = area;
+      }
+    }
+    return maxDimension;
+  };
 
   /**
    * A flag indicating whether the call was created by the current user.
@@ -1042,11 +1075,13 @@ export class Call {
     maxJoinRetries = 3,
     joinResponseTimeout,
     rpcRequestTimeout,
+    allowOwnTracksLoopback = false,
     ...data
   }: JoinCallData & {
     maxJoinRetries?: number;
     joinResponseTimeout?: number;
     rpcRequestTimeout?: number;
+    allowOwnTracksLoopback?: boolean;
   } = {}): Promise<void> => {
     const callingState = this.state.callingState;
 
@@ -1054,9 +1089,14 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
+    // we need this to be set before the callingx.joinCall() is
+    // called to avoid registering the test call in the CallKit/Telecom
+    this.allowOwnTracksLoopback = allowOwnTracksLoopback;
+
     if (data?.ring) {
       this.ringingSubject.next(true);
     }
+
     const callingX = globalThis.streamRNVideoSDK?.callingX;
     if (callingX) {
       // for Android/iOS, we need to start the call in the callingx library as soon as possible
@@ -1539,7 +1579,13 @@ export class Call {
       if (closePreviousInstances && this.publisher) {
         await this.publisher.dispose();
       }
-      this.publisher = new Publisher(basePeerConnectionOptions, publishOptions);
+      this.publisher = new Publisher(
+        basePeerConnectionOptions,
+        publishOptions,
+        {
+          selfSubEnabled: this.allowOwnTracksLoopback,
+        },
+      );
     }
 
     this.statsReporter?.stop();

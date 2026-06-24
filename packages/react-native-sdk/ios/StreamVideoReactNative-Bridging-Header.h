@@ -11,6 +11,8 @@
 #import <WebRTC/RTCVideoTrack.h>
 #import <WebRTC/RTCVideoRenderer.h>
 #import <WebRTC/RTCVideoFrameBuffer.h>
+#import <WebRTC/RTCAudioTrack.h>
+#import <WebRTC/RTCAudioRenderer.h>
 #import "WebRTCModule.h"
 #import "WebRTCModuleOptions.h"
 

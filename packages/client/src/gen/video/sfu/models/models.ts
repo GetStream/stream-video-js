@@ -4,7 +4,6 @@
 import { MessageType } from '@protobuf-ts/runtime';
 import { Struct } from '../../../google/protobuf/struct';
 import { Timestamp } from '../../../google/protobuf/timestamp';
-
 /**
  * CallState is the current state of the call
  * as seen by an SFU.
@@ -415,6 +414,10 @@ export interface TrackInfo {
    * @generated from protobuf field: int32 publish_option_id = 12;
    */
   publishOptionId: number;
+  /**
+   * @generated from protobuf field: bool self_sub_audio_video = 13;
+   */
+  selfSubAudioVideo: boolean;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.Error
@@ -1769,6 +1772,12 @@ class TrackInfo$Type extends MessageType<TrackInfo> {
         name: 'publish_option_id',
         kind: 'scalar',
         T: 5 /*ScalarType.INT32*/,
+      },
+      {
+        no: 13,
+        name: 'self_sub_audio_video',
+        kind: 'scalar',
+        T: 8 /*ScalarType.BOOL*/,
       },
     ]);
   }

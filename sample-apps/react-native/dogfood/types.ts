@@ -16,6 +16,11 @@ export type MeetingStackParamList = {
   ChatScreen: { callId: string };
 };
 
+export type TestRecordingStackParamList = {
+  TestRecordingScreen: undefined;
+  TestRecordingResults: { uri: string };
+};
+
 export type CallStackParamList = {
   JoinCallScreen: undefined;
 };
@@ -38,6 +43,7 @@ export type RootStackParamList = {
   AudioRoom: undefined;
   ChooseAppMode: undefined;
   LiveStream: undefined;
+  TestRecording: undefined;
 };
 
 export type ScreenTypes =

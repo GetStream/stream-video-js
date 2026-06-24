@@ -2,32 +2,29 @@
 // @generated from protobuf file "video/sfu/event/events.proto" (package "stream.video.sfu.event", syntax proto3)
 // tslint:disable
 import { MessageType } from '@protobuf-ts/runtime';
-import {
-  CallEndedReason,
-  CallGrants,
-  CallState,
-  ClientCapability,
-  ClientDetails,
-  Codec,
-  ConnectionQuality,
-  DegradationPreference,
-  Error as Error$,
-  GoAwayReason,
-  ICETrickle as ICETrickle$,
-  Participant,
-  ParticipantCount,
-  ParticipantSource,
-  PeerType,
-  Pin,
-  PublishOption,
-  SubscribeOption,
-  TrackInfo,
-  TrackType,
-  TrackUnpublishReason,
-  WebsocketReconnectStrategy,
-} from '../models/models';
+import { CallEndedReason } from '../models/models';
+import { GoAwayReason } from '../models/models';
+import { CallGrants } from '../models/models';
+import { DegradationPreference } from '../models/models';
+import { Codec } from '../models/models';
+import { ConnectionQuality } from '../models/models';
+import { CallState } from '../models/models';
 import { TrackSubscriptionDetails } from '../signal_rpc/signal';
-
+import { TrackInfo } from '../models/models';
+import { ParticipantSource } from '../models/models';
+import { ClientCapability } from '../models/models';
+import { SubscribeOption } from '../models/models';
+import { ClientDetails } from '../models/models';
+import { TrackUnpublishReason } from '../models/models';
+import { Participant } from '../models/models';
+import { TrackType } from '../models/models';
+import { ParticipantCount } from '../models/models';
+import { PeerType } from '../models/models';
+import { WebsocketReconnectStrategy } from '../models/models';
+import { Error as Error$ } from '../models/models';
+import { Pin } from '../models/models';
+import { PublishOption } from '../models/models';
+import { ICETrickle as ICETrickle$ } from '../models/models';
 /**
  * SFUEvent is a message that is sent from the SFU to the client.
  *
