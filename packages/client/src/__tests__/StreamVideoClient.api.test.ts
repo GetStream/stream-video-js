@@ -1,94 +1,122 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  type Mock,
+  vi,
+} from 'vitest';
 import { StreamVideoClient } from '../StreamVideoClient';
-import 'dotenv/config';
+import { Call } from '../Call';
+import { CallCreatedPayload } from './data';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
-import { StreamClient } from '@stream-io/node-sdk';
-import { CreateDeviceRequest } from '../gen/coordinator';
+import type { StreamClient } from '../coordinator/connection/client';
+import type {
+  CreateDeviceRequest,
+  GetEdgesResponse,
+  ListDevicesResponse,
+  QueryCallsResponse,
+  QueryCallStatsResponse,
+} from '../gen/coordinator';
 
-const apiKey = process.env.STREAM_API_KEY!;
-const secret = process.env.STREAM_SECRET!;
-
-const serverClient = new StreamClient(apiKey, secret);
+const apiKey = 'mock-api-key';
 
 describe('StreamVideoClient - coordinator API', () => {
   let client: StreamVideoClient;
+  // the client only talks to the backend through streamClient.post/get/delete,
+  // so we spy on those and assert against them instead of a live backend.
+  let post: Mock<StreamClient['post']>;
+  let get: Mock<StreamClient['get']>;
+  let del: Mock<StreamClient['delete']>;
 
-  beforeAll(() => {
-    const user = { id: 'sara' };
-    client = new StreamVideoClient(apiKey, {
-      // tests run in node, so we have to fake being in browser env
-      browser: true,
-      timeout: 15000,
-    });
-    client.connectUser(
-      user,
-      serverClient.generateUserToken({ user_id: user.id }),
-    );
+  beforeEach(() => {
+    client = new StreamVideoClient(apiKey, { browser: true });
+    post = vi.spyOn(client.streamClient, 'post');
+    get = vi.spyOn(client.streamClient, 'get');
+    del = vi.spyOn(client.streamClient, 'delete');
   });
 
-  it('query calls', { retry: 3, timeout: 20000 }, async () => {
-    let response = await client.queryCalls();
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
 
-    let calls = response.calls;
-    expect(calls.length).toBeGreaterThanOrEqual(1);
+  it('query calls', async () => {
+    const response: QueryCallsResponse = {
+      duration: '1ms',
+      next: 'next-page-token',
+      calls: [
+        {
+          call: CallCreatedPayload.call,
+          members: CallCreatedPayload.members,
+          own_capabilities: [],
+        },
+      ],
+    };
+    post.mockResolvedValue(response);
+
+    await client.queryCalls();
+    expect(post).toHaveBeenCalledWith('/calls', {});
 
     const queryCallsReq = {
       sort: [{ field: 'starts_at', direction: -1 }],
       limit: 2,
     };
-    response = await client.queryCalls(queryCallsReq);
+    const result = await client.queryCalls(queryCallsReq);
+    expect(post).toHaveBeenCalledWith('/calls', queryCallsReq);
 
-    calls = response.calls;
-    expect(calls.length).toBe(2);
-
-    response = await client.queryCalls({
-      ...queryCallsReq,
-      next: response.next,
-    });
-
-    expect(response.calls.length).toBeLessThanOrEqual(2);
-
-    response = await client.queryCalls({
-      filter_conditions: { backstage: { $eq: false } },
-    });
-
-    expect(response.calls.length).toBeGreaterThanOrEqual(1);
+    // each response entry is wrapped into a Call instance
+    expect(result.next).toBe('next-page-token');
+    expect(result.calls).toHaveLength(1);
+    const [call] = result.calls;
+    expect(call).toBeInstanceOf(Call);
+    expect(call.cid).toBe(CallCreatedPayload.call.cid);
   });
 
   it('query calls - ongoing', async () => {
-    const response = await client.queryCalls({
-      filter_conditions: { ongoing: { $eq: true } },
-    });
+    post.mockResolvedValue({ duration: '1ms', calls: [] });
 
-    // Dummy test
-    expect(response.calls).toBeDefined();
+    const queryCallsReq = { filter_conditions: { ongoing: { $eq: true } } };
+    await client.queryCalls(queryCallsReq);
+
+    expect(post).toHaveBeenCalledWith('/calls', queryCallsReq);
   });
 
   it('query calls - upcoming', async () => {
+    post.mockResolvedValue({ duration: '1ms', calls: [] });
+
     const mins30 = 1000 * 60 * 60 * 30;
     const inNext30mins = new Date(Date.now() + mins30);
-    const response = await client.queryCalls({
-      filter_conditions: {
-        starts_at: { $gt: inNext30mins.toISOString() },
-      },
-    });
+    const queryCallsReq = {
+      filter_conditions: { starts_at: { $gt: inNext30mins.toISOString() } },
+    };
+    await client.queryCalls(queryCallsReq);
 
-    // Dummy test
-    expect(response.calls).toBeDefined();
+    expect(post).toHaveBeenCalledWith('/calls', queryCallsReq);
   });
 
   it('query call stats', async () => {
-    const response = await client.queryCallStats({
+    const response: QueryCallStatsResponse = { duration: '1ms', reports: [] };
+    post.mockResolvedValue(response);
+
+    const result = await client.queryCallStats({
       filter_conditions: { call_cid: 'default:test' },
     });
 
-    expect(response.reports).toBeDefined();
+    expect(post).toHaveBeenCalledWith('/call/stats', {
+      filter_conditions: { call_cid: 'default:test' },
+    });
+    expect(result).toBe(response);
   });
 
   it('edges', async () => {
-    const response = await client.edges();
+    const response: GetEdgesResponse = { duration: '1ms', edges: [] };
+    get.mockResolvedValue(response);
 
-    expect(response.edges).toBeDefined();
+    const result = await client.edges();
+
+    expect(get).toHaveBeenCalledWith('/edges');
+    expect(result).toBe(response);
   });
 
   describe('devices', () => {
@@ -99,57 +127,55 @@ describe('StreamVideoClient - coordinator API', () => {
     };
 
     it('add device', async () => {
-      expect(
-        async () =>
-          await client.addDevice(
-            device.id,
-            device.push_provider,
-            device.push_provider_name,
-          ),
-      ).not.toThrowError();
+      post.mockResolvedValue(undefined);
+
+      await client.addDevice(
+        device.id,
+        device.push_provider,
+        device.push_provider_name,
+      );
+
+      expect(post).toHaveBeenCalledWith('/devices', {
+        id: device.id,
+        push_provider: device.push_provider,
+        voip_token: undefined,
+        push_provider_name: device.push_provider_name,
+      });
     });
 
     it('add voip device', async () => {
-      expect(
-        async () =>
-          await client.addVoipDevice(
-            device.id + 'voip',
-            device.push_provider,
-            device.push_provider_name!,
-          ),
-      ).not.toThrowError();
-    });
+      post.mockResolvedValue(undefined);
 
-    it('get devices', { retry: 3, timeout: 15000 }, async () => {
-      // Wait a little bit, because if we query devices too soon backend will return 404
-      await new Promise<void>((resolve) => {
-        setTimeout(resolve, 5000);
+      await client.addVoipDevice(
+        device.id + 'voip',
+        device.push_provider,
+        device.push_provider_name!,
+      );
+
+      expect(post).toHaveBeenCalledWith('/devices', {
+        id: device.id + 'voip',
+        push_provider: device.push_provider,
+        voip_token: true,
+        push_provider_name: device.push_provider_name,
       });
-
-      const response = await client.getDevices();
-
-      expect(response.devices.find((d) => d.id === device.id)).toBeDefined();
-      expect(
-        response.devices.find((d) => d.id === device.id + 'voip'),
-      ).toBeDefined();
     });
 
-    it('remove device', { retry: 3, timeout: 15000 }, async () => {
-      // Wait a little bit, because if we query devices too soon backend will return 404
-      await new Promise<void>((resolve) => {
-        setTimeout(resolve, 5000);
-      });
+    it('get devices', async () => {
+      const response: ListDevicesResponse = { duration: '1ms', devices: [] };
+      get.mockResolvedValue(response);
 
-      expect(
-        async () => await client.removeDevice(device.id),
-      ).not.toThrowError();
-      expect(
-        async () => await client.removeDevice(device.id + 'void'),
-      ).not.toThrowError();
+      const result = await client.getDevices();
+
+      expect(get).toHaveBeenCalledWith('/devices', {});
+      expect(result).toBe(response);
     });
-  });
 
-  afterAll(() => {
-    client.disconnectUser();
+    it('remove device', async () => {
+      del.mockResolvedValue(undefined);
+
+      await client.removeDevice(device.id);
+
+      expect(del).toHaveBeenCalledWith('/devices', { id: device.id });
+    });
   });
 });
