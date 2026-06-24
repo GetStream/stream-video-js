@@ -211,6 +211,12 @@ import WebRTC
     @objc public func clearRecordingsDirectory(completion: @escaping (NSError?) -> Void) {
         queue.async { [weak self] in
             guard let self = self else { return }
+            if self.isRecording {
+                DispatchQueue.main.async {
+                    completion(makeRecorderError("recording_in_progress", code: 1))
+                }
+                return
+            }
             let fm = FileManager.default
             do {
                 let contents = try fm.contentsOfDirectory(

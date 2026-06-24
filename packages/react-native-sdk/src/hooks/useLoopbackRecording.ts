@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NativeModules } from 'react-native';
-import { combineLatest, distinctUntilChanged, map } from 'rxjs';
+import { combineLatest } from 'rxjs';
 import {
   Call,
   CallingState,
@@ -117,9 +117,18 @@ export interface UseLoopbackRecordingResult {
  */
 export function useLoopbackRecording(): UseLoopbackRecordingResult {
   const call = useCall();
-  const { useCallCallingState, useParticipantCount } = useCallStateHooks();
+  const {
+    useCallCallingState,
+    useParticipantCount,
+    useLocalParticipant,
+    useCameraState,
+    useMicrophoneState,
+  } = useCallStateHooks();
   const callingState = useCallCallingState();
   const participantCount = useParticipantCount();
+  const localParticipant = useLocalParticipant();
+  const { mediaStream: cameraStream } = useCameraState();
+  const { mediaStream: microphoneStream } = useMicrophoneState();
 
   const [recordingState, setRecordingState] =
     useState<LoopbackRecordingState>('idle');
@@ -128,15 +137,10 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
   // Used to abort the awaiting-streams wait on stop / leave / unmount.
   const awaitAbortRef = useRef<AbortController | null>(null);
 
-  const [loopbackStreams, setLoopbackStreams] = useState<LoopbackStreams>(
-    () => {
-      if (!call) return {};
-      return getLoopbackStreamsFor(
-        call.state.localParticipant,
-        call.camera.state.mediaStream,
-        call.microphone.state.mediaStream,
-      );
-    },
+  const loopbackStreams = useMemo<LoopbackStreams>(
+    () =>
+      getLoopbackStreamsFor(localParticipant, cameraStream, microphoneStream),
+    [localParticipant, cameraStream, microphoneStream],
   );
 
   const updateState = useCallback((next: LoopbackRecordingState) => {
@@ -160,7 +164,14 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
       return;
     }
 
-    await StreamVideoReactNative?.stopTrackRecording();
+    try {
+      await StreamVideoReactNative.stopTrackRecording();
+    } catch (error) {
+      videoLoggerSystem
+        .getLogger('useLoopbackRecording')
+        .error('failed to stop recording', error);
+      throw new Error('failed to stop recording');
+    }
   }, []);
 
   const startRecording = useCallback(
@@ -173,14 +184,16 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
       }
 
       if (recordingStateRef.current !== 'idle') {
-        console.warn('useLoopbackRecording: a recording is already running');
+        videoLoggerSystem
+          .getLogger('useLoopbackRecording')
+          .warn('a recording is already running');
         return null;
       }
 
       if (call.state.participantCount > 1) {
-        console.warn(
-          'useLoopbackRecording: cannot start recording with other participants present',
-        );
+        videoLoggerSystem
+          .getLogger('useLoopbackRecording')
+          .warn('cannot start recording with other participants present');
         return null;
       }
 
@@ -225,14 +238,21 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
         // higher layers arrive.
         const publishMaxDim = call.getMaxVideoPublishDimension();
 
-        const uri: string | null =
-          await StreamVideoReactNative.startTrackRecording({
-            videoTrackId,
-            maxDurationMs: Math.round(clampedDuration),
-            targetWidth: publishMaxDim?.width,
-            targetHeight: publishMaxDim?.height,
-          });
-        return uri;
+        try {
+          const uri: string | null =
+            await StreamVideoReactNative.startTrackRecording({
+              videoTrackId,
+              maxDurationMs: Math.round(clampedDuration),
+              targetWidth: publishMaxDim?.width,
+              targetHeight: publishMaxDim?.height,
+            });
+          return uri;
+        } catch (error) {
+          videoLoggerSystem
+            .getLogger('useLoopbackRecording')
+            .error('failed to start recording', error);
+          throw new Error('failed to start recording');
+        }
       } finally {
         if (audioTrack) {
           audioTrack.enabled = false;
@@ -245,13 +265,27 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
   );
 
   const clearRecordings = useCallback(async (): Promise<void> => {
-    await StreamVideoReactNative.clearStreamRecordings();
+    try {
+      await StreamVideoReactNative.clearStreamRecordings();
+    } catch (error) {
+      videoLoggerSystem
+        .getLogger('useLoopbackRecording')
+        .error('failed to clear recordings', error);
+      throw new Error('failed to clear recordings');
+    }
   }, []);
 
   const getRecordings = useCallback(async (): Promise<string[]> => {
-    const list: string[] | null | undefined =
-      await StreamVideoReactNative.getStreamRecordings();
-    return list ?? [];
+    try {
+      const list: string[] | null | undefined =
+        await StreamVideoReactNative.getStreamRecordings();
+      return list ?? [];
+    } catch (error) {
+      videoLoggerSystem
+        .getLogger('useLoopbackRecording')
+        .error('failed to get recordings', error);
+      throw new Error('failed to get recordings');
+    }
   }, []);
 
   // Auto-stop on call leave / end. Aborts an awaiting-streams wait or
@@ -292,30 +326,6 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
       stopRecording().catch(() => {});
     };
   }, [stopRecording]);
-
-  // Subscribe to the local participant, camera and microphone streams and update the loopback streams state.
-  useEffect(() => {
-    if (!call) return;
-
-    const subscription = combineLatest([
-      call.state.localParticipant$,
-      call.camera.state.mediaStream$,
-      call.microphone.state.mediaStream$,
-    ])
-      .pipe(
-        map(([participant, cameraStream, microphoneStream]) =>
-          getLoopbackStreamsFor(participant, cameraStream, microphoneStream),
-        ),
-        distinctUntilChanged(
-          (a, b) =>
-            a.loopbackVideoStream === b.loopbackVideoStream &&
-            a.loopbackAudioStream === b.loopbackAudioStream,
-        ),
-      )
-      .subscribe(setLoopbackStreams);
-
-    return () => subscription.unsubscribe();
-  }, [call]);
 
   return {
     startRecording,

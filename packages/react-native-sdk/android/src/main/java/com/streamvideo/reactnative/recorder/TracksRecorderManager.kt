@@ -60,7 +60,7 @@ class TracksRecorderManager private constructor() : PipelineHost {
     private var recordingCompletion: ((File?, Throwable?) -> Unit)? = null
     private var isCompleted = false
     private var isRecording = false
-   
+
     private var pendingPipelines = 0
     private var recordingStartHostTimeNs: Long? = null
     private var autoStopRunnable: Runnable? = null
@@ -110,12 +110,13 @@ class TracksRecorderManager private constructor() : PipelineHost {
             this.isRecording = true
 
             if (resolvedVideoTrack != null) {
-                val pipeline = VideoPipeline(
-                        host = this,
-                        videoTrack = resolvedVideoTrack,
-                        targetWidth = targetWidth,
-                        targetHeight = targetHeight,
-                )
+                val pipeline =
+                        VideoPipeline(
+                                host = this,
+                                videoTrack = resolvedVideoTrack,
+                                targetWidth = targetWidth,
+                                targetHeight = targetHeight,
+                        )
                 videoPipeline = pipeline
                 pendingPipelines++
                 pipeline.start()
@@ -230,6 +231,11 @@ class TracksRecorderManager private constructor() : PipelineHost {
     fun clearRecordingsDirectory(context: Context, completion: (Throwable?) -> Unit) {
         handler.post {
             try {
+                if (isRecording) {
+                    completion(RecordingError("recording_in_progress"))
+                    return@post
+                }
+
                 val dir = recordingsDirectory(context)
                 dir.listFiles()?.forEach { it.deleteRecursively() }
                 completion(null)
@@ -270,7 +276,7 @@ class TracksRecorderManager private constructor() : PipelineHost {
     private fun maybeStartMuxer(muxerInstance: MediaMuxer) {
         if (muxerStarted) return
         if (pendingPipelines > 0) return
-        
+
         try {
             muxerInstance.start()
             muxerStarted = true
@@ -320,6 +326,9 @@ class TracksRecorderManager private constructor() : PipelineHost {
         } catch (t: Throwable) {
             Log.w(TAG, "failed to release muxer", t)
         }
+        try {
+            outputFile?.delete()
+        } catch (_: Throwable) {}
         resetTransientState()
     }
 

@@ -788,6 +788,7 @@ export class Call {
       this.leaveCallHooks.forEach((hook) => hook());
       this.initialized = false;
       this.hasJoinedOnce = false;
+      this.allowOwnTracksLoopback = false;
       this.unifiedSessionId = undefined;
       this.ringingSubject.next(false);
       this.cancelAutoDrop();
@@ -1088,13 +1089,13 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
-    if (data?.ring) {
-      this.ringingSubject.next(true);
-    }
-
     // we need this to be set before the callingx.joinCall() is
     // called to avoid registering the test call in the CallKit/Telecom
     this.allowOwnTracksLoopback = allowOwnTracksLoopback;
+
+    if (data?.ring) {
+      this.ringingSubject.next(true);
+    }
 
     const callingX = globalThis.streamRNVideoSDK?.callingX;
     if (callingX) {

@@ -89,22 +89,12 @@ import WebRTC
             channels: AVAudioChannelCount(channels),
             interleaved: false
         )
-        NSLog("[TracksRecorder] RenderTap initialize sampleRate=%d channels=%d",
-              sampleRate, channels)
     }
 
     public func audioProcessingProcess(audioBuffer: RTCAudioBuffer) {
         counterLock.lock()
         _callCount += 1
-        let count = _callCount
         counterLock.unlock()
-
-        if count == 1 {
-            NSLog("[TracksRecorder] RenderTap FIRST call frames=%d channels=%d",
-                  audioBuffer.frames, audioBuffer.channels)
-        } else if count % 100 == 0 {
-            NSLog("[TracksRecorder] RenderTap call #%d", count)
-        }
 
         guard let format = avFormat else { return }
         let frames = Int(audioBuffer.frames)
