@@ -5,7 +5,8 @@ import {
   TrackType,
 } from '../../gen/video/sfu/models/models';
 import type { RTCCodecStats, RTCMediaSourceStats } from '../types';
-import type { ComputedStats } from './types';
+import type { ComputedStats, PendingDelta } from './types';
+import { withoutConcurrency } from '../../helpers/concurrency';
 
 /**
  * StatsTracer is a class that collects and processes WebRTC stats.
@@ -20,12 +21,26 @@ export class StatsTracer {
   private readonly peerType: PeerType;
   private readonly trackIdToTrackType: Map<string, TrackType>;
   private readonly driftThresholdMs: number;
+  private readonly maxPendingDeltas: number;
+  // serializes get() so overlapping callers (the reporter and the
+  // connection-state-change handler) can't interleave their getStats() and
+  // corrupt the previousSample/pendingDeltas read-modify-write.
+  private readonly sampleTag = Symbol('statsTracerSample');
 
   private costOverrides?: Map<TrackType, number>;
 
-  private previousStats: Record<string, RTCStats> = {};
+  private previousSample: Record<string, RTCStats> = {};
   private frameTimeHistory: number[] = [];
   private fpsHistory: number[] = [];
+
+  /**
+   * The un-acked, delta-compressed samples awaiting delivery confirmation.
+   * Each entry's delta is computed against the immediately preceding sample,
+   * so the list forms a chain the server applies in order. The delivery
+   * baseline advances only when the reporter calls `commitDeltas` after a
+   * successful send; until then the chain is re-sent in full.
+   */
+  private pendingDeltas: PendingDelta[] = [];
 
   /**
    * Creates a new StatsTracer instance.
@@ -35,11 +50,13 @@ export class StatsTracer {
     peerType: PeerType,
     trackIdToTrackType: Map<string, TrackType>,
     statsTimestampDriftThresholdMs: number = 0,
+    maxPendingDeltas: number = 50,
   ) {
     this.pc = pc;
     this.peerType = peerType;
     this.trackIdToTrackType = trackIdToTrackType;
     this.driftThresholdMs = statsTimestampDriftThresholdMs;
+    this.maxPendingDeltas = maxPendingDeltas;
   }
 
   /**
@@ -50,28 +67,69 @@ export class StatsTracer {
    *
    * @internal
    */
-  get = async (): Promise<ComputedStats> => {
-    const stats = await this.pc.getStats();
-    const currentStats = toObjectWithCorrectedTimestamp(
-      stats,
-      Date.now(),
-      this.driftThresholdMs,
-    );
+  get = (): Promise<ComputedStats> =>
+    withoutConcurrency(this.sampleTag, async () => {
+      const stats = await this.pc.getStats();
+      const now = Date.now();
+      const currentStats = toObjectWithCorrectedTimestamp(
+        stats,
+        now,
+        this.driftThresholdMs,
+      );
 
-    const performanceStats = this.withOverrides(
-      this.peerType === PeerType.SUBSCRIBER
-        ? this.getDecodeStats(currentStats)
-        : this.getEncodeStats(currentStats),
-    );
+      // Sustained delivery failure: drop the stale un-acked chain and re-anchor
+      // so the next delta is a full snapshot. A full snapshot overwrites the
+      // server's accumulator, re-syncing it, and keeps the payload bounded.
+      if (this.pendingDeltas.length >= this.maxPendingDeltas) {
+        this.pendingDeltas = [];
+        this.previousSample = {};
+      }
 
-    const delta = deltaCompression(this.previousStats, currentStats);
+      const performanceStats = this.withOverrides(
+        this.peerType === PeerType.SUBSCRIBER
+          ? this.getDecodeStats(currentStats)
+          : this.getEncodeStats(currentStats),
+      );
 
-    // store the current data for the next iteration
-    this.previousStats = currentStats;
-    this.frameTimeHistory = this.frameTimeHistory.slice(-2);
-    this.fpsHistory = this.fpsHistory.slice(-2);
+      const delta = deltaCompression(this.previousSample, currentStats);
 
-    return { performanceStats, delta, stats };
+      // store the current data for the next iteration
+      this.previousSample = currentStats;
+      this.pendingDeltas.push({ delta, ts: now });
+      this.frameTimeHistory = this.frameTimeHistory.slice(-2);
+      this.fpsHistory = this.fpsHistory.slice(-2);
+
+      return { performanceStats, delta, stats };
+    });
+
+  /**
+   * Returns a stable copy of the un-acked delta chain to transmit, oldest first.
+   *
+   * @internal
+   */
+  getPendingDeltas = (): PendingDelta[] => this.pendingDeltas.slice();
+
+  /**
+   * Advances the delivery baseline by dropping exactly the deltas that were
+   * confirmed delivered. Matching is by object identity, so a stale commit
+   * that arrives after a re-anchor (which replaced the chain) is a safe no-op.
+   *
+   * @internal
+   */
+  commitDeltas = (sent: PendingDelta[]): void => {
+    if (sent.length === 0) return;
+    const committed = new Set(sent);
+    this.pendingDeltas = this.pendingDeltas.filter((d) => !committed.has(d));
+  };
+
+  /**
+   * Drops the un-acked chain without sending it. Used when delta reporting is
+   * disabled so the chain can't grow unbounded.
+   *
+   * @internal
+   */
+  clearPendingDeltas = (): void => {
+    this.pendingDeltas = [];
   };
 
   /**
@@ -97,8 +155,8 @@ export class StatsTracer {
         mediaSourceId,
       } = rtp as RTCOutboundRtpStreamStats;
 
-      if (kind === 'audio' || !this.previousStats[id]) continue;
-      const prevRtp = this.previousStats[id] as RTCOutboundRtpStreamStats;
+      if (kind === 'audio' || !this.previousSample[id]) continue;
+      const prevRtp = this.previousSample[id] as RTCOutboundRtpStreamStats;
 
       const deltaTotalEncodeTime =
         totalEncodeTime - (prevRtp.totalEncodeTime || 0);
@@ -150,8 +208,8 @@ export class StatsTracer {
       }
     }
 
-    if (!rtp || !this.previousStats[rtp.id]) return [];
-    const prevRtp = this.previousStats[rtp.id] as RTCInboundRtpStreamStats;
+    if (!rtp || !this.previousSample[rtp.id]) return [];
+    const prevRtp = this.previousSample[rtp.id] as RTCInboundRtpStreamStats;
 
     const {
       framesDecoded = 0,

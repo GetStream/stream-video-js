@@ -2,9 +2,10 @@ import { combineLatest } from 'rxjs';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { OwnCapability, StatsOptions } from '../gen/coordinator';
 import { Publisher, Subscriber } from '../rtc';
-import { Tracer, TraceRecord } from './rtc';
+import { ComputedStats, PendingDelta, Tracer, TraceRecord } from './rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getDeviceState, getWebRTCInfo } from '../helpers/client-details';
+import { hasPending, withoutConcurrency } from '../helpers/concurrency';
 import {
   ClientDetails,
   InputDevices,
@@ -51,6 +52,8 @@ export class SfuStatsReporter {
   private readonly sdkVersion: string;
   private readonly webRTCVersion: string;
   private readonly inputDevices = new Map<'mic' | 'camera', InputDevices>();
+  private readonly statsConcurrencyTag = Symbol('sfuStatsReporter');
+  private isStopped = false;
 
   constructor(
     sfuClient: StreamSfuClient,
@@ -158,69 +161,122 @@ export class SfuStatsReporter {
     });
   };
 
+  /**
+   * Samples both peer connections. Each `StatsTracer.get()` is serialized
+   * internally, so this is safe even if it overlaps another sample (e.g. the
+   * connection-state-change handler). Kept separate from `send()` so an
+   * explicit flush can capture the sample from live peer connections before
+   * they are disposed, without waiting for an in-flight send.
+   */
+  private sample = (): Promise<[ComputedStats, ComputedStats | undefined]> =>
+    Promise.all([this.subscriber.stats.get(), this.publisher?.stats.get()]);
+
+  private send = (
+    subscriberStats: ComputedStats,
+    publisherStats: ComputedStats | undefined,
+    telemetry?: Telemetry,
+  ) => {
+    // serialize sends so overlapping ones can't race on the trace buffers or
+    // deliver an older delta after a newer one already succeeded. Not gated by
+    // `isStopped`: an explicit final flush must still deliver after stop().
+    return withoutConcurrency(this.statsConcurrencyTag, async () => {
+      // The delta chain is delivered only when delta tracing is enabled
+      // (the peer-connection tracer exists). Otherwise we drop the chain so it
+      // can't grow unbounded.
+      const subTracer = this.subscriber.tracer;
+      const pubTracer = this.publisher?.tracer;
+      let subPending: PendingDelta[] = [];
+      if (subTracer) {
+        subPending = this.subscriber.stats.getPendingDeltas();
+      } else {
+        this.subscriber.stats.clearPendingDeltas();
+      }
+      let pubPending: PendingDelta[] = [];
+      if (pubTracer && publisherStats) {
+        pubPending = this.publisher?.stats.getPendingDeltas() ?? [];
+      } else {
+        this.publisher?.stats.clearPendingDeltas();
+      }
+
+      const subscriberTrace = subTracer?.take();
+      const publisherTrace = pubTracer?.take();
+      const tracer = this.tracer.take();
+      const sfuTrace = this.sfuClient.getTrace();
+      const traces: TraceRecord[] = [
+        ...tracer.snapshot,
+        ...(sfuTrace?.snapshot ?? []),
+        ...(publisherTrace?.snapshot ?? []),
+        ...(subscriberTrace?.snapshot ?? []),
+        ...toGetStatsRecords(subPending, subTracer?.traceId),
+        ...toGetStatsRecords(pubPending, pubTracer?.traceId),
+      ];
+
+      try {
+        const { response } = await this.sfuClient.sendStats({
+          sdk: this.sdkName,
+          sdkVersion: this.sdkVersion,
+          webrtcVersion: this.webRTCVersion,
+          subscriberStats: JSON.stringify(flatten(subscriberStats.stats)),
+          publisherStats: publisherStats
+            ? JSON.stringify(flatten(publisherStats.stats))
+            : '[]',
+          subscriberRtcStats: '',
+          publisherRtcStats: '',
+          rtcStats: JSON.stringify(traces),
+          encodeStats: publisherStats?.performanceStats ?? [],
+          decodeStats: subscriberStats.performanceStats,
+          audioDevices: this.inputDevices.get('mic'),
+          videoDevices: this.inputDevices.get('camera'),
+          unifiedSessionId: this.unifiedSessionId,
+          deviceState: getDeviceState(),
+          telemetry,
+        });
+        // An SFU application-layer error means the stats were not accepted.
+        // Treat it like a transport failure: retain the chain and roll back the
+        // RTC traces (handled by the catch below) instead of committing.
+        if (response?.error) {
+          throw new Error(`SFU rejected stats: ${response.error.message}`);
+        }
+        // delivery confirmed: advance the delivery baseline for each chain.
+        if (subTracer) this.subscriber.stats.commitDeltas(subPending);
+        if (pubTracer && publisherStats) {
+          this.publisher?.stats.commitDeltas(pubPending);
+        }
+      } catch (err) {
+        // keep the delta chains (re-sent next interval); only the append-only
+        // RTC event traces are rolled back so they aren't lost.
+        publisherTrace?.rollback();
+        subscriberTrace?.rollback();
+        tracer.rollback();
+        sfuTrace?.rollback();
+        throw err;
+      }
+    });
+  };
+
+  /**
+   * Samples and sends one report. Used by the scheduler and the telemetry path.
+   * Bails if the reporter has been stopped so it never samples disposed peer
+   * connections.
+   */
   private run = async (telemetry?: Telemetry) => {
-    const [subscriberStats, publisherStats] = await Promise.all([
-      this.subscriber.stats.get(),
-      this.publisher?.stats.get(),
-    ]);
-
-    this.subscriber.tracer?.trace('getstats', subscriberStats.delta);
-    if (publisherStats) {
-      this.publisher?.tracer?.trace('getstats', publisherStats.delta);
-    }
-
-    const subscriberTrace = this.subscriber.tracer?.take();
-    const publisherTrace = this.publisher?.tracer?.take();
-    const tracer = this.tracer.take();
-    const sfuTrace = this.sfuClient.getTrace();
-    const traces: TraceRecord[] = [
-      ...tracer.snapshot,
-      ...(sfuTrace?.snapshot ?? []),
-      ...(publisherTrace?.snapshot ?? []),
-      ...(subscriberTrace?.snapshot ?? []),
-    ];
-
-    try {
-      await this.sfuClient.sendStats({
-        sdk: this.sdkName,
-        sdkVersion: this.sdkVersion,
-        webrtcVersion: this.webRTCVersion,
-        subscriberStats: JSON.stringify(flatten(subscriberStats.stats)),
-        publisherStats: publisherStats
-          ? JSON.stringify(flatten(publisherStats.stats))
-          : '[]',
-        subscriberRtcStats: '',
-        publisherRtcStats: '',
-        rtcStats: JSON.stringify(traces),
-        encodeStats: publisherStats?.performanceStats ?? [],
-        decodeStats: subscriberStats.performanceStats,
-        audioDevices: this.inputDevices.get('mic'),
-        videoDevices: this.inputDevices.get('camera'),
-        unifiedSessionId: this.unifiedSessionId,
-        deviceState: getDeviceState(),
-        telemetry,
-      });
-    } catch (err) {
-      publisherTrace?.rollback();
-      subscriberTrace?.rollback();
-      tracer.rollback();
-      sfuTrace?.rollback();
-      throw err;
-    }
+    if (this.isStopped) return;
+    const [subscriberStats, publisherStats] = await this.sample();
+    await this.send(subscriberStats, publisherStats, telemetry);
   };
 
   private scheduleNextReport = () => {
     const intervals = [1500, 3000, 3000, 5000];
     if (this.reportCount < intervals.length) {
       this.timeoutId = setTimeout(() => {
-        this.flush();
+        this.scheduledFlush();
         this.reportCount++;
         this.scheduleNextReport();
       }, intervals[this.reportCount]);
     } else {
       clearInterval(this.intervalId);
       this.intervalId = setInterval(() => {
-        this.flush();
+        this.scheduledFlush();
       }, this.options.reporting_interval_ms);
     }
   };
@@ -231,6 +287,7 @@ export class SfuStatsReporter {
     this.observeDevice(this.microphone, 'mic');
     this.observeDevice(this.camera, 'camera');
 
+    this.isStopped = false;
     this.reportCount = 0;
     clearInterval(this.intervalId);
     clearTimeout(this.timeoutId);
@@ -239,6 +296,7 @@ export class SfuStatsReporter {
   };
 
   stop = () => {
+    this.isStopped = true;
     this.unsubscribeDevicePermissionsSubscription?.();
     this.unsubscribeDevicePermissionsSubscription = undefined;
     this.unsubscribeListDevicesSubscription?.();
@@ -252,9 +310,40 @@ export class SfuStatsReporter {
     this.reportCount = 0;
   };
 
-  flush = () => {
+  /**
+   * Explicit/final flush (leave, migration, re-init). Awaits only the fast
+   * sampling step so callers can capture the final sample from live peer
+   * connections before disposing of them, then fires the send-best-effort. The
+   * returned promise resolves once the sample is taken, not when the sending
+   * completes. No-op once the reporter has been stopped.
+   */
+  flush = async (): Promise<void> => {
+    if (this.isStopped) return;
+    const [subscriberStats, publisherStats] = await this.sample();
+    this.send(subscriberStats, publisherStats).catch((err) => {
+      this.logger.warn('Failed to flush report stats', err);
+    });
+  };
+
+  /**
+   * Flush entry for the periodic scheduler. Skips when the reporter is stopped
+   * or a send is already in flight so ticks can't pile up under slow sends (the
+   * next sample's delta spans the skipped interval).
+   */
+  private scheduledFlush = () => {
+    if (this.isStopped || hasPending(this.statsConcurrencyTag)) return;
     this.run().catch((err) => {
       this.logger.warn('Failed to flush report stats', err);
     });
   };
 }
+
+/**
+ * Wraps un-acked, delta-compressed samples into the legacy `getstats` trace
+ * record shape so the chain rides inside `rtcStats`, wire-compatible with the
+ * server's existing decoder.
+ */
+const toGetStatsRecords = (
+  pending: PendingDelta[],
+  id: string | null = null,
+): TraceRecord[] => pending.map(({ delta, ts }) => ['getstats', id, delta, ts]);

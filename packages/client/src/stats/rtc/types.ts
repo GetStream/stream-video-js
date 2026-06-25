@@ -49,3 +49,14 @@ export type ComputedStats = {
    */
   performanceStats: PerformanceStats[];
 };
+
+/**
+ * A single, not-yet-delivered delta-compressed stats sample.
+ * The `delta` is computed against the immediately preceding sample, so a
+ * sequence of `PendingDelta`s forms a chain that the server applies in order
+ * onto its running accumulator. `ts` is the wall-clock time the sample was taken.
+ */
+export type PendingDelta = {
+  delta: Record<any, any>;
+  ts: number;
+};
