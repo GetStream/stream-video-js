@@ -10,6 +10,8 @@ import {
   endCallingxCall,
   registerOutgoingCall,
   joinCallingxCall,
+  wireAudioEngineSubscription,
+  unwireAudioEngineSubscription,
 } from './callingx/callingx';
 import { registerCallMediaEngine } from './registerMediaEngine';
 
@@ -51,6 +53,8 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     joinCall: joinCallingxCall,
     endCall: endCallingxCall,
     registerOutgoingCall: registerOutgoingCall,
+    wireAudioEngineSubscription: wireAudioEngineSubscription,
+    unwireAudioEngineSubscription: unwireAudioEngineSubscription,
   },
   callManager: {
     setup: ({ defaultDevice, isRingingTypeCall }) => {

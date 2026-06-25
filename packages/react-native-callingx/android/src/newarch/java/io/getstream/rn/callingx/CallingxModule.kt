@@ -41,6 +41,14 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         // leave empty
     }
 
+    override fun wireAudioEngineSubscription() {
+        // leave empty
+    }
+
+    override fun unwireAudioEngineSubscription() {
+        // leave empty
+    }
+
     override fun setupAndroid(options: ReadableMap) {
         impl.setupAndroid(options)
     }

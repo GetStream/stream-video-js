@@ -833,6 +833,7 @@ export class Call {
         this.logger.debug('Disposing per-call media factory');
         await enginePromise
           .then((engine) => {
+            globalThis.streamRNVideoSDK?.callingX?.unwireAudioEngineSubscription();
             return engine.dispose();
           })
           .catch((err) => {
@@ -1184,6 +1185,11 @@ export class Call {
     // globals resolve to the call's factory. Idempotent across
     // reconnect/migration attempts.
     await this.ensureMediaFactory();
+
+    const callingX = globalThis.streamRNVideoSDK?.callingX;
+    if (callingX) {
+      callingX.wireAudioEngineSubscription();
+    }
 
     const performingMigration =
       this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;

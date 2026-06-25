@@ -201,3 +201,27 @@ export async function endCallingxCall(call: Call, reason?: EndCallReason) {
     );
   }
 }
+
+export async function wireAudioEngineSubscription() {
+  if (!CallingxModule || !CallingxModule.isSetup) {
+    return;
+  }
+  const logger = videoLoggerSystem.getLogger('callingx');
+
+  if (Platform.OS === 'ios') {
+    logger.debug('wireEngineSubscription: Wiring engine subscription');
+    CallingxModule.wireAudioEngineSubscription();
+  }
+}
+
+export function unwireAudioEngineSubscription() {
+  if (!CallingxModule || !CallingxModule.isSetup) {
+    return;
+  }
+  const logger = videoLoggerSystem.getLogger('callingx');
+
+  if (Platform.OS === 'ios') {
+    logger.debug('unwireEngineSubscription: Cancelling engine subscription');
+    CallingxModule.unwireAudioEngineSubscription();
+  }
+}

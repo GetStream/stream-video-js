@@ -443,11 +443,10 @@ import stream_react_native_webrtc
         isSetup = true
     }
 
-    /// Wires the ADM engine-lifecycle subscription. Call after `webRTCModule` is injected
-    /// (it's nil during `setup()` on the callingx path). Re-wires when the ADM changes — a JS
-    /// reload recreates WebRTCModule while this singleton persists; a no-op for the same ADM.
-    @objc public func wireEngineSubscription() {
-        guard let adm = getAudioDeviceModule() else { return }
+    /// Wires the ADM engine-lifecycle subscription to the live call factory's ADM. A no-op when
+    /// already wired to that ADM; re-wires when the ADM changes.
+    @objc public func wireAudioEngineSubscription() {
+        guard let adm = getCurrentAudioDeviceModule() else { return }
         guard subscribedADM !== adm else { return } // already wired to this ADM
         engineSubscription?.cancel()                // ADM changed (e.g. JS reload) — rewire
         subscribedADM = adm
@@ -468,6 +467,14 @@ import stream_react_native_webrtc
                 break
             }
         }
+    }
+
+    /// Cancels the ADM engine-lifecycle subscription wired by `wireAudioEngineSubscription`.
+    @objc public func unwireAudioEngineSubscription() {
+        engineSubscription?.cancel()
+        engineSubscription = nil
+        subscribedADM = nil
+        CallingxLog.core.debugPublic("[unwireEngineSubscription]")
     }
     
     @objc public func getInitialEvents() -> [[String: Any]] {
@@ -902,7 +909,7 @@ import stream_react_native_webrtc
 
         // When CallKit deactivates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
-        getAudioDeviceModule()?.reset()
+        // subscribedADM?.reset() TODO: verify if we need to reset the ADM here
 
         // Invariant: callingx ships with maximumCallsPerCallGroup = maximumCallGroups = 1
         // (see packages/react-native-callingx/src/utils/constants.ts defaultiOSOptions).
@@ -1010,9 +1017,11 @@ import stream_react_native_webrtc
         return Int((nowNs - startNs) / 1_000_000)
     }
 
-    private func getAudioDeviceModule() -> AudioDeviceModule? {
-        guard let adm = webRTCModule?.audioDeviceModule else {
-            CallingxLog.core.errorPublic("WebRTCModule is not available. Ensure it was injected from the TurboModule host.")
+    /// The live call factory's ADM, or nil when no call is active. Never triggers a default factory
+    /// build, so wiring before a call exists (or after it ends) is a safe no-op.
+    private func getCurrentAudioDeviceModule() -> AudioDeviceModule? {
+        guard let adm = webRTCModule?.currentAudioDeviceModuleOrNil() else {
+            CallingxLog.core.errorPublic("No live call factory ADM. WebRTCModule missing, or wired outside the join↔leave window.")
             return nil
         }
         return adm
