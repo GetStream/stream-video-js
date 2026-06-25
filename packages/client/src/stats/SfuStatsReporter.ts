@@ -211,8 +211,8 @@ export class SfuStatsReporter {
         ...(sfuTrace?.snapshot ?? []),
         ...(publisherTrace?.snapshot ?? []),
         ...(subscriberTrace?.snapshot ?? []),
-        ...toGetStatsRecords(subPending, subTracer?.traceId),
-        ...toGetStatsRecords(pubPending, pubTracer?.traceId),
+        ...toGetStatsRecords(subPending, subTracer?.id),
+        ...toGetStatsRecords(pubPending, pubTracer?.id),
       ];
 
       try {

@@ -55,9 +55,9 @@ describe('Tracer', () => {
     expect(slice.snapshot.length).toBe(0);
   });
 
-  it('exposes its id via traceId', () => {
-    expect(new Tracer('abc').traceId).toBe('abc');
-    expect(new Tracer(null).traceId).toBeNull();
+  it('exposes its id via .id', () => {
+    expect(new Tracer('abc').id).toBe('abc');
+    expect(new Tracer(null).id).toBeNull();
   });
 
   it('caps the buffer, dropping oldest and leaving an overflow marker', () => {
@@ -69,7 +69,7 @@ describe('Tracer', () => {
 
     const slice = capped.take();
     expect(slice.snapshot.length).toBe(3);
-    expect(slice.snapshot[0][0]).toBe('tracebufferoverflow');
+    expect(slice.snapshot[0][0]).toBe('traceBufferOverflow');
     // newest record is retained
     expect(slice.snapshot[slice.snapshot.length - 1][2]).toEqual({ n: 4 });
   });
@@ -86,6 +86,6 @@ describe('Tracer', () => {
 
     const after = capped.take();
     expect(after.snapshot.length).toBe(3);
-    expect(after.snapshot[0][0]).toBe('tracebufferoverflow');
+    expect(after.snapshot[0][0]).toBe('traceBufferOverflow');
   });
 });

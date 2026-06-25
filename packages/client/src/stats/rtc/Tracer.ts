@@ -9,20 +9,13 @@ import type {
 export class Tracer {
   private buffer: TraceRecord[] = [];
   private enabled = true;
-  private readonly id: string | null;
+  readonly id: string | null;
   private readonly maxBuffer: number;
   private keys?: Map<TraceKey, boolean>;
 
   constructor(id: string | null, maxBuffer: number = 2500) {
     this.id = id;
     this.maxBuffer = maxBuffer;
-  }
-
-  /**
-   * The id stamped onto every trace record produced by this tracer.
-   */
-  get traceId(): string | null {
-    return this.id;
   }
 
   setEnabled = (enabled: boolean) => {
@@ -65,17 +58,16 @@ export class Tracer {
   };
 
   /**
-   * Bounds the buffer to `maxBuffer` records by dropping the oldest ones,
-   * leaving a single `tracebufferoverflow` breadcrumb at the front so the
-   * consumer knows records were dropped. Prevents unbounded growth (and the
-   * eventual oversized, un-sendable payload) under sustained delivery failure.
+   * Bounds the buffer to 2500 records by dropping the oldest ones,
+   * leaving a single `traceBufferOverflow` breadcrumb at the front so the
+   * consumer knows records were dropped.
    */
   private capBuffer = () => {
     const overflow = this.buffer.length - this.maxBuffer;
     if (overflow <= 0) return;
     this.buffer.splice(0, overflow);
     this.buffer[0] = [
-      'tracebufferoverflow',
+      'traceBufferOverflow',
       this.id,
       { dropped: overflow },
       Date.now(),
