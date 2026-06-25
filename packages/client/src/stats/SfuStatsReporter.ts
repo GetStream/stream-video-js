@@ -162,14 +162,17 @@ export class SfuStatsReporter {
   };
 
   /**
-   * Samples both peer connections. Each `StatsTracer.get()` is serialized
+   * Samples both peer connections. Each `StatsTracer.takeSample()` is serialized
    * internally, so this is safe even if it overlaps another sample (e.g. the
    * connection-state-change handler). Kept separate from `send()` so an
    * explicit flush can capture the sample from live peer connections before
    * they are disposed, without waiting for an in-flight send.
    */
   private sample = (): Promise<[ComputedStats, ComputedStats | undefined]> =>
-    Promise.all([this.subscriber.stats.get(), this.publisher?.stats.get()]);
+    Promise.all([
+      this.subscriber.stats.takeSample(),
+      this.publisher?.stats.takeSample(),
+    ]);
 
   private send = (
     subscriberStats: ComputedStats,

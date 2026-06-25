@@ -346,7 +346,7 @@ export abstract class BasePeerConnection {
         // Sample stats into the delivery chain at connect/fail. The reporter
         // ships and commits the un-acked chain, so we must not trace the delta
         // separately here (that would double-send it and corrupt the chain).
-        await this.stats.get();
+        await this.stats.takeSample();
       } catch (err) {
         this.tracer.trace('getstatsOnFailure', (err as Error).toString());
       }

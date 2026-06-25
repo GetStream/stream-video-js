@@ -43,7 +43,7 @@ describe('StatsTracer timestamp drift correction', () => {
       THRESHOLD_MS,
     );
 
-    await tracer.get();
+    await tracer.takeSample();
     const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     expect(delta.timestamp).toBe(WALL_NOW + 2000);
@@ -61,7 +61,7 @@ describe('StatsTracer timestamp drift correction', () => {
       THRESHOLD_MS,
     );
 
-    await tracer.get();
+    await tracer.takeSample();
     const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     expect(delta.timestamp).toBe(WALL_NOW);
@@ -79,7 +79,7 @@ describe('StatsTracer timestamp drift correction', () => {
       THRESHOLD_MS,
     );
 
-    await tracer.get();
+    await tracer.takeSample();
     const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     expect(delta['b'].timestamp).toBe(WALL_NOW);
@@ -98,7 +98,7 @@ describe('StatsTracer timestamp drift correction', () => {
       THRESHOLD_MS,
     );
 
-    await tracer.get();
+    await tracer.takeSample();
     const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     expect(delta.timestamp).toBe(WALL_NOW + THRESHOLD_MS);
@@ -131,7 +131,7 @@ describe('StatsTracer timestamp drift correction', () => {
       THRESHOLD_MS,
     );
 
-    await tracer.get();
+    await tracer.takeSample();
     const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     // both stale and future drift get clamped to wall time, while the
@@ -153,7 +153,7 @@ describe('StatsTracer timestamp drift correction', () => {
       0,
     );
 
-    await tracer.get();
+    await tracer.takeSample();
     const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     expect(delta.timestamp).toBe(WALL_NOW + 99_999);
@@ -215,8 +215,8 @@ describe('StatsTracer pending delta chain', () => {
     ]);
     const tracer = new StatsTracer(pc, PeerType.SUBSCRIBER, new Map(), 0);
 
-    await tracer.get();
-    await tracer.get();
+    await tracer.takeSample();
+    await tracer.takeSample();
 
     expect(tracer.getPendingDeltas()).toHaveLength(2);
   });
@@ -228,8 +228,8 @@ describe('StatsTracer pending delta chain', () => {
     ]);
     const tracer = new StatsTracer(pc, PeerType.SUBSCRIBER, new Map(), 0);
 
-    await tracer.get();
-    await tracer.get();
+    await tracer.takeSample();
+    await tracer.takeSample();
     const sent = tracer.getPendingDeltas();
     tracer.commitDeltas(sent.slice(0, 1));
 
@@ -245,8 +245,8 @@ describe('StatsTracer pending delta chain', () => {
     ]);
     const tracer = new StatsTracer(pc, PeerType.SUBSCRIBER, new Map(), 0);
 
-    await tracer.get();
-    await tracer.get();
+    await tracer.takeSample();
+    await tracer.takeSample();
     tracer.clearPendingDeltas();
 
     expect(tracer.getPendingDeltas()).toHaveLength(0);
@@ -263,9 +263,9 @@ describe('StatsTracer pending delta chain', () => {
       0,
     );
 
-    await tracer.get();
-    await tracer.get();
-    await tracer.get();
+    await tracer.takeSample();
+    await tracer.takeSample();
+    await tracer.takeSample();
     const chain = tracer.getPendingDeltas().map((p) => p.delta);
 
     expect(applyChain({}, chain)).toEqual({
@@ -285,9 +285,9 @@ describe('StatsTracer pending delta chain', () => {
       2, // maxPendingDeltas
     );
 
-    await tracer.get();
-    await tracer.get(); // chain now at the cap
-    await tracer.get(); // exceeds cap -> re-anchor
+    await tracer.takeSample();
+    await tracer.takeSample(); // chain now at the cap
+    await tracer.takeSample(); // exceeds cap -> re-anchor
 
     const chain = tracer.getPendingDeltas();
     expect(chain).toHaveLength(1);
@@ -309,10 +309,10 @@ describe('StatsTracer pending delta chain', () => {
       2,
     );
 
-    await tracer.get();
-    await tracer.get();
+    await tracer.takeSample();
+    await tracer.takeSample();
     const sent = tracer.getPendingDeltas(); // captured before re-anchor
-    await tracer.get(); // re-anchors, dropping `sent`
+    await tracer.takeSample(); // re-anchors, dropping `sent`
     tracer.commitDeltas(sent); // stale commit, must be a no-op
 
     expect(tracer.getPendingDeltas()).toHaveLength(1);
@@ -338,8 +338,8 @@ describe('StatsTracer concurrent sampling', () => {
     const pc = { getStats } as unknown as RTCPeerConnection;
     const tracer = new StatsTracer(pc, PeerType.SUBSCRIBER, new Map(), 0);
 
-    const pA = tracer.get();
-    const pB = tracer.get();
+    const pA = tracer.takeSample();
+    const pB = tracer.takeSample();
 
     // the second sample must not start until the first completes
     expect(getStats).toHaveBeenCalledTimes(1);

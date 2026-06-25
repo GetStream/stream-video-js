@@ -22,7 +22,7 @@ export class StatsTracer {
   private readonly trackIdToTrackType: Map<string, TrackType>;
   private readonly driftThresholdMs: number;
   private readonly maxPendingDeltas: number;
-  // serializes get() so overlapping callers (the reporter and the
+  // serializes takeSample() so overlapping callers (the reporter and the
   // connection-state-change handler) can't interleave their getStats() and
   // corrupt the previousSample/pendingDeltas read-modify-write.
   private readonly sampleTag = Symbol('statsTracerSample');
@@ -66,8 +66,8 @@ export class StatsTracer {
    *
    * @internal
    */
-  get = (): Promise<ComputedStats> =>
-    withoutConcurrency(this.sampleTag, async () => {
+  takeSample = (): Promise<ComputedStats> => {
+    return withoutConcurrency(this.sampleTag, async () => {
       const stats = await this.pc.getStats();
       const now = Date.now();
       const currentStats = toObjectWithCorrectedTimestamp(
@@ -100,6 +100,7 @@ export class StatsTracer {
 
       return { performanceStats, stats };
     });
+  };
 
   /**
    * Returns a stable copy of the un-acked delta chain to transmit, oldest first.

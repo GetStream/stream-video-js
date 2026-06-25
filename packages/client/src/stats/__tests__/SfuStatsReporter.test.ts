@@ -9,8 +9,7 @@ const okResponse = { response: {} };
 const makeSlice = () => ({ snapshot: [] as unknown[], rollback: vi.fn() });
 
 const makeStats = (pending: Array<{ delta: object; ts: number }>) => ({
-  get: vi.fn().mockResolvedValue({
-    delta: {},
+  takeSample: vi.fn().mockResolvedValue({
     performanceStats: [],
     stats: new Map(),
   }),
@@ -133,7 +132,7 @@ describe('SfuStatsReporter delta delivery', () => {
   it('flush() resolves once the sample is taken, without awaiting the send', async () => {
     const t = build();
     const dGet = promiseWithResolvers<object>();
-    t.subStats.get.mockReturnValue(dGet.promise); // sampling hangs
+    t.subStats.takeSample.mockReturnValue(dGet.promise); // sampling hangs
     t.sendStats.mockReturnValue(promiseWithResolvers<object>().promise); // send would hang too
 
     let resolved = false;
@@ -158,7 +157,7 @@ describe('SfuStatsReporter delta delivery', () => {
     await vi.waitFor(() => expect(t.sendStats).toHaveBeenCalledTimes(1));
 
     await t.reporter.flush(); // flush #2: must sample now, not wait for send #1
-    expect(t.subStats.get).toHaveBeenCalledTimes(2);
+    expect(t.subStats.takeSample).toHaveBeenCalledTimes(2);
 
     d.resolve(okResponse);
   });
@@ -167,7 +166,7 @@ describe('SfuStatsReporter delta delivery', () => {
     const t = build();
     t.reporter.stop();
     await t.reporter.flush();
-    expect(t.subStats.get).not.toHaveBeenCalled();
+    expect(t.subStats.takeSample).not.toHaveBeenCalled();
   });
 
   it('skips overlapping scheduled reports while a run is in flight', async () => {
@@ -179,10 +178,10 @@ describe('SfuStatsReporter delta delivery', () => {
 
       t.reporter.start();
       await vi.advanceTimersByTimeAsync(1500); // first scheduled tick -> run in flight
-      expect(t.subStats.get).toHaveBeenCalledTimes(1);
+      expect(t.subStats.takeSample).toHaveBeenCalledTimes(1);
 
       await vi.advanceTimersByTimeAsync(3000); // next tick must be skipped
-      expect(t.subStats.get).toHaveBeenCalledTimes(1);
+      expect(t.subStats.takeSample).toHaveBeenCalledTimes(1);
 
       d.resolve(okResponse);
       t.reporter.stop();
