@@ -72,7 +72,7 @@ export class StableWSConnection {
   pingInterval = 25 * 1000;
   healthCheckTimeoutRef?: number;
   connectionCheckTimeout = this.pingInterval + 10 * 1000;
-  connectionCheckTimeoutRef?: NodeJS.Timeout;
+  connectionCheckTimeoutRef?: number;
   /** Store the last event time for health checks */
   lastEvent: Date | null = null;
 
@@ -222,7 +222,7 @@ export class StableWSConnection {
       getTimers().clearInterval(this.healthCheckTimeoutRef);
     }
     if (this.connectionCheckTimeoutRef) {
-      clearInterval(this.connectionCheckTimeoutRef);
+      getTimers().clearTimeout(this.connectionCheckTimeoutRef);
     }
 
     removeConnectionEventListeners(this.onlineStatusChanged);
@@ -581,7 +581,7 @@ export class StableWSConnection {
         code === KnownCodes.TOKEN_EXPIRED &&
         !this.client.tokenManager.isStatic()
       ) {
-        clearTimeout(this.connectionCheckTimeoutRef);
+        getTimers().clearTimeout(this.connectionCheckTimeoutRef);
         this._log(
           'connect() - WS failure due to expired token, so going to try to reload token and reconnect',
         );
@@ -771,8 +771,9 @@ export class StableWSConnection {
    * to be reconnected.
    */
   scheduleConnectionCheck = () => {
-    clearTimeout(this.connectionCheckTimeoutRef);
-    this.connectionCheckTimeoutRef = setTimeout(() => {
+    const timers = getTimers();
+    timers.clearTimeout(this.connectionCheckTimeoutRef);
+    this.connectionCheckTimeoutRef = timers.setTimeout(() => {
       const now = new Date();
       if (
         this.lastEvent &&

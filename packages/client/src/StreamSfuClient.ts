@@ -174,7 +174,7 @@ export class StreamSfuClient {
 
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: number;
-  private connectionCheckTimeout?: NodeJS.Timeout;
+  private connectionCheckTimeout?: number;
   private migrateAwayTimeout?: NodeJS.Timeout;
   private readonly pingIntervalInMs = 4 * 1000;
   /**
@@ -388,8 +388,9 @@ export class StreamSfuClient {
   private notifySignalClose = (reason: string) => {
     if (this.signalClosed) return;
     this.signalClosed = true;
-    getTimers().clearInterval(this.keepAliveInterval);
-    clearTimeout(this.connectionCheckTimeout);
+    const timers = getTimers();
+    timers.clearInterval(this.keepAliveInterval);
+    timers.clearTimeout(this.connectionCheckTimeout);
     this.onSignalClose?.(reason.trim());
   };
 
@@ -418,8 +419,9 @@ export class StreamSfuClient {
     this.logger.debug('Disposing SFU client');
     this.unsubscribeIceTrickle();
     this.unsubscribeNetworkChanged();
-    clearInterval(this.keepAliveInterval);
-    clearTimeout(this.connectionCheckTimeout);
+    const timers = getTimers();
+    timers.clearInterval(this.keepAliveInterval);
+    timers.clearTimeout(this.connectionCheckTimeout);
     clearTimeout(this.migrateAwayTimeout);
     this.abortController.abort();
     this.migrationTask?.resolve();
@@ -728,8 +730,9 @@ export class StreamSfuClient {
   };
 
   private scheduleConnectionCheck = () => {
-    clearTimeout(this.connectionCheckTimeout);
-    this.connectionCheckTimeout = setTimeout(() => {
+    const timers = getTimers();
+    timers.clearTimeout(this.connectionCheckTimeout);
+    this.connectionCheckTimeout = timers.setTimeout(() => {
       if (this.lastMessageTimestamp) {
         const timeSinceLastMessage =
           new Date().getTime() - this.lastMessageTimestamp.getTime();

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from '../rtc';
 import { StreamClient } from '../coordinator/connection/client';
+import { getTimers } from '../timers';
 
 /**
  * Minimal `WebSocket` stub used to drive `StreamSfuClient.close()` while the
@@ -66,6 +67,35 @@ const buildSfuClient = (onSignalClose?: (reason: string) => void) => {
     onSignalClose,
   });
 };
+
+describe('StreamSfuClient unhealthy watchdog timer source', () => {
+  beforeEach(() => {
+    CapturingWebSocket.instances = [];
+    vi.stubGlobal('WebSocket', CapturingWebSocket);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('arms the unhealthy watchdog on the worker timer, not the main-thread setTimeout', () => {
+    const sfuClient = buildSfuClient();
+    const workerSetTimeout = vi
+      .spyOn(getTimers(), 'setTimeout')
+      .mockReturnValue(1 as unknown as number);
+    const mainSetTimeout = vi.spyOn(globalThis, 'setTimeout');
+
+    (
+      sfuClient as unknown as { scheduleConnectionCheck: () => void }
+    ).scheduleConnectionCheck();
+
+    expect(workerSetTimeout).toHaveBeenCalledTimes(1);
+    expect(mainSetTimeout).not.toHaveBeenCalled();
+
+    sfuClient.close(1000, 'test cleanup');
+  });
+});
 
 describe('StreamSfuClient.close()', () => {
   beforeEach(() => {
