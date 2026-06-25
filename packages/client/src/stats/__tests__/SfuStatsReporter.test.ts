@@ -1,19 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { BehaviorSubject } from 'rxjs';
 import { SfuStatsReporter } from '../SfuStatsReporter';
+import { promiseWithResolvers } from '../../helpers/promise';
 
 // A FinishedUnaryCall-shaped success (no application-layer error).
 const okResponse = { response: {} };
-
-const deferred = <T>() => {
-  let resolve!: (v: T) => void;
-  let reject!: (e?: unknown) => void;
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
-};
 
 const makeSlice = () => ({ snapshot: [] as unknown[], rollback: vi.fn() });
 
@@ -34,7 +25,9 @@ const makeTracer = (id: string) => ({
   traceId: id,
 });
 
-const build = (opts: { withTracer?: boolean; withPublisher?: boolean } = {}) => {
+const build = (
+  opts: { withTracer?: boolean; withPublisher?: boolean } = {},
+) => {
   const withTracer = opts.withTracer ?? true;
   const subPending = [{ delta: { sub: 1 }, ts: 111 }];
   const pubPending = [{ delta: { pub: 1 }, ts: 222 }];
@@ -58,8 +51,12 @@ const build = (opts: { withTracer?: boolean; withPublisher?: boolean } = {}) => 
   const callTracer = { take: vi.fn(makeSlice), setEnabled: vi.fn() };
 
   // device permission is 'denied' so observeDevice() doesn't reach listDevices()
-  const microphone = { state: { browserPermissionState$: new BehaviorSubject('denied') } };
-  const camera = { state: { browserPermissionState$: new BehaviorSubject('denied') } };
+  const microphone = {
+    state: { browserPermissionState$: new BehaviorSubject('denied') },
+  };
+  const camera = {
+    state: { browserPermissionState$: new BehaviorSubject('denied') },
+  };
   const state = { ownCapabilities$: new BehaviorSubject([]) };
 
   const reporter = new SfuStatsReporter(sfuClient as never, {
@@ -135,9 +132,9 @@ describe('SfuStatsReporter delta delivery', () => {
 
   it('flush() resolves once the sample is taken, without awaiting the send', async () => {
     const t = build();
-    const dGet = deferred<object>();
+    const dGet = promiseWithResolvers<object>();
     t.subStats.get.mockReturnValue(dGet.promise); // sampling hangs
-    t.sendStats.mockReturnValue(deferred<object>().promise); // send would hang too
+    t.sendStats.mockReturnValue(promiseWithResolvers<object>().promise); // send would hang too
 
     let resolved = false;
     const flushed = Promise.resolve(t.reporter.flush()).then(() => {
@@ -154,7 +151,7 @@ describe('SfuStatsReporter delta delivery', () => {
 
   it('samples on an explicit flush even while a previous send is in flight', async () => {
     const t = build();
-    const d = deferred<object>();
+    const d = promiseWithResolvers<object>();
     t.sendStats.mockReturnValueOnce(d.promise).mockResolvedValue(okResponse);
 
     t.reporter.flush(); // flush #1: samples, fires the slow send
@@ -177,7 +174,7 @@ describe('SfuStatsReporter delta delivery', () => {
     vi.useFakeTimers();
     try {
       const t = build();
-      const d = deferred<object>();
+      const d = promiseWithResolvers<object>();
       t.sendStats.mockReturnValue(d.promise); // first scheduled send hangs
 
       t.reporter.start();
