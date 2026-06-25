@@ -208,15 +208,26 @@ import stream_react_native_webrtc
     }
     
     @objc public static func canRegisterCall() -> Bool {
+        let hasCall = hasRegisteredCall()
         let shouldReject = Settings.getShouldRejectCallWhenBusy()
-        guard shouldReject else { return true }
-        return !hasRegisteredCall()
+        return !shouldReject || (shouldReject && !hasCall)
     }
-
+    
     @objc public static func hasRegisteredCall() -> Bool {
-        // Backed by the warm CXCallObserver maintained in UUIDStorage — no per-call observer
-        // construction and no cold-snapshot misses. Intersects our calls with CallKit's live set.
-        return uuidStorage?.hasRegisteredCall() ?? false
+        guard let storage = uuidStorage else { return false }
+      
+        let appUUIDs = storage.allUUIDs()
+        if appUUIDs.isEmpty { return false }
+        
+        let observer = CXCallObserver()
+        for call in observer.calls {
+            for uuid in appUUIDs {
+                if call.uuid == uuid {
+                    return true
+                }
+            }
+        }
+        return false
     }
     
     @objc public static func getAudioOutput() -> String? {
@@ -416,12 +427,8 @@ import stream_react_native_webrtc
 
         // This is mostly needed for very first setup, as we need to override the default
         // provider configuration which is set in the constructor.
-        // IMPORTANT: We override the CXProvider instance only when there are no calls in
-        // flight, otherwise we'd destroy CallKit state/events for a live call. We check our
-        // own storage rather than CXCallObserver here: the observer trails registration and
-        // can briefly report empty (e.g. a VoIP-push call reported just before setup runs),
-        // which would wrongly tear down the provider mid-call.
-        if (CallingxImpl.uuidStorage?.count() ?? 0) == 0 {
+        // IMPORTANT: We override CXProvider instance only if there is no registered call, otherwise we may lose corrsponding call state/events from CallKit
+        if !CallingxImpl.hasRegisteredCall() {
             let oldProvider = CallingxImpl.sharedProvider
             let newProvider = CXProvider(configuration: Settings.getProviderConfiguration())
             newProvider.setDelegate(self, queue: nil)
@@ -574,9 +581,18 @@ import stream_react_native_webrtc
     }
     
     @objc public func isCallTracked(_ callId: String) -> Bool {
-        // Backed by the warm CXCallObserver in UUIDStorage — no per-call observer construction
-        // and no cold-snapshot misses. True when the call is tracked AND confirmed live by CallKit.
-        return CallingxImpl.uuidStorage?.isCallTracked(forCid: callId) ?? false
+        guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
+            CallingxLog.core.debugPublic("[isCallTracked] callId not found")
+            return false
+        }
+        
+        let observer = CXCallObserver()
+        for call in observer.calls {
+            if call.uuid == uuid {
+                return true
+            }
+        }
+        return false
     }
     
     @objc public func setCurrentCallActive(_ callId: String) -> Bool {
