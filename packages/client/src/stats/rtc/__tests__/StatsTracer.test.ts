@@ -43,7 +43,8 @@ describe('StatsTracer timestamp drift correction', () => {
       THRESHOLD_MS,
     );
 
-    const { delta } = await tracer.get();
+    await tracer.get();
+    const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     expect(delta.timestamp).toBe(WALL_NOW + 2000);
   });
@@ -60,7 +61,8 @@ describe('StatsTracer timestamp drift correction', () => {
       THRESHOLD_MS,
     );
 
-    const { delta } = await tracer.get();
+    await tracer.get();
+    const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     expect(delta.timestamp).toBe(WALL_NOW);
   });
@@ -77,7 +79,8 @@ describe('StatsTracer timestamp drift correction', () => {
       THRESHOLD_MS,
     );
 
-    const { delta } = await tracer.get();
+    await tracer.get();
+    const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     expect(delta['b'].timestamp).toBe(WALL_NOW);
     expect(delta.timestamp).toBe(WALL_NOW + 2000);
@@ -95,7 +98,8 @@ describe('StatsTracer timestamp drift correction', () => {
       THRESHOLD_MS,
     );
 
-    const { delta } = await tracer.get();
+    await tracer.get();
+    const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     expect(delta.timestamp).toBe(WALL_NOW + THRESHOLD_MS);
   });
@@ -127,7 +131,8 @@ describe('StatsTracer timestamp drift correction', () => {
       THRESHOLD_MS,
     );
 
-    const { delta } = await tracer.get();
+    await tracer.get();
+    const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     // both stale and future drift get clamped to wall time, while the
     // within-threshold anchor stays the delta's top-level timestamp.
@@ -148,7 +153,8 @@ describe('StatsTracer timestamp drift correction', () => {
       0,
     );
 
-    const { delta } = await tracer.get();
+    await tracer.get();
+    const { delta } = tracer.getPendingDeltas().at(-1)!;
 
     expect(delta.timestamp).toBe(WALL_NOW + 99_999);
   });

@@ -60,10 +60,9 @@ export class StatsTracer {
   }
 
   /**
-   * Get the stats from the RTCPeerConnection.
-   * When called, it will return the stats for the current connection.
-   * It will also return the delta between the current stats and the previous stats.
-   * This is used to track the performance of the connection.
+   * Samples the RTCPeerConnection: returns the current stats report and the
+   * derived performance stats, and appends the delta-compressed sample to the
+   * un-acked delivery chain (retrieved via `getPendingDeltas`).
    *
    * @internal
    */
@@ -99,7 +98,7 @@ export class StatsTracer {
       this.frameTimeHistory = this.frameTimeHistory.slice(-2);
       this.fpsHistory = this.fpsHistory.slice(-2);
 
-      return { performanceStats, delta, stats };
+      return { performanceStats, stats };
     });
 
   /**

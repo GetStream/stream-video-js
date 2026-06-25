@@ -41,10 +41,6 @@ export type ComputedStats = {
    */
   stats: RTCStatsReport;
   /**
-   * Delta between the current stats and the previous stats.
-   */
-  delta: Record<any, any>;
-  /**
    * The current iteration of the stats.
    */
   performanceStats: PerformanceStats[];
