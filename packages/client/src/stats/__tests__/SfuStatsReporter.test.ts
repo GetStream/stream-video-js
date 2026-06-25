@@ -21,7 +21,7 @@ const makeStats = (pending: Array<{ delta: object; ts: number }>) => ({
 const makeTracer = (id: string) => ({
   take: vi.fn(makeSlice),
   trace: vi.fn(),
-  traceId: id,
+  id,
 });
 
 const build = (
