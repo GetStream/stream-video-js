@@ -184,7 +184,7 @@ export class StreamSfuClient {
    * socket (the second probe's response still has time to arrive).
    */
   private readonly unhealthyTimeoutInMs = this.pingIntervalInMs * 2 + 2 * 1000;
-  private lastMessageTimestamp?: Date;
+  private lastMessageTimestamp?: number;
   private readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
   private readonly unsubscribeNetworkChanged: () => void;
@@ -325,7 +325,7 @@ export class StreamSfuClient {
       endpoint: `${this.credentials.server.ws_endpoint}?${new URLSearchParams(params).toString()}`,
       tracer: this.tracer,
       onMessage: (message) => {
-        this.lastMessageTimestamp = new Date();
+        this.lastMessageTimestamp = Date.now();
         this.scheduleConnectionCheck();
         const eventKind = message.eventPayload.oneofKind;
         if (eventsToTrace[eventKind]) {
@@ -734,9 +734,7 @@ export class StreamSfuClient {
     timers.clearTimeout(this.connectionCheckTimeout);
     this.connectionCheckTimeout = timers.setTimeout(() => {
       if (this.lastMessageTimestamp) {
-        const timeSinceLastMessage =
-          new Date().getTime() - this.lastMessageTimestamp.getTime();
-
+        const timeSinceLastMessage = Date.now() - this.lastMessageTimestamp;
         if (timeSinceLastMessage > this.unhealthyTimeoutInMs) {
           this.close(
             StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
