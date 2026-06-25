@@ -79,21 +79,62 @@ describe('StreamSfuClient unhealthy watchdog timer source', () => {
     vi.restoreAllMocks();
   });
 
-  it('arms the unhealthy watchdog on the worker timer, not the main-thread setTimeout', () => {
+  it('arms the unhealthy watchdog on the worker timer, not the main-thread setInterval', () => {
     const sfuClient = buildSfuClient();
-    const workerSetTimeout = vi
-      .spyOn(getTimers(), 'setTimeout')
+    const workerSetInterval = vi
+      .spyOn(getTimers(), 'setInterval')
       .mockReturnValue(1 as unknown as number);
-    const mainSetTimeout = vi.spyOn(globalThis, 'setTimeout');
+    const mainSetInterval = vi.spyOn(globalThis, 'setInterval');
 
     (
       sfuClient as unknown as { scheduleConnectionCheck: () => void }
     ).scheduleConnectionCheck();
 
-    expect(workerSetTimeout).toHaveBeenCalledTimes(1);
-    expect(mainSetTimeout).not.toHaveBeenCalled();
+    expect(workerSetInterval).toHaveBeenCalledTimes(1);
+    expect(mainSetInterval).not.toHaveBeenCalled();
 
     sfuClient.close(1000, 'test cleanup');
+  });
+});
+
+describe('StreamSfuClient unhealthy watchdog resilience', () => {
+  beforeEach(() => {
+    CapturingWebSocket.instances = [];
+    vi.stubGlobal('WebSocket', CapturingWebSocket);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('re-arms the unhealthy watchdog after a check passes (not single-shot)', () => {
+    vi.useFakeTimers();
+    const sfuClient = buildSfuClient();
+    const closeSpy = vi.spyOn(sfuClient, 'close').mockImplementation(() => {});
+    const c = sfuClient as unknown as {
+      lastMessageTimestamp?: number;
+      unhealthyTimeoutInMs: number;
+      scheduleConnectionCheck: () => void;
+    };
+    const window = c.unhealthyTimeoutInMs;
+
+    c.lastMessageTimestamp = Date.now();
+    c.scheduleConnectionCheck();
+
+    // The first check fires exactly at the threshold, so it is still healthy
+    // (strict `>`). A single-shot watchdog would now be dead.
+    vi.advanceTimersByTime(window);
+    expect(closeSpy).not.toHaveBeenCalled();
+
+    // No further messages arrive; a self-rescheduling watchdog keeps checking
+    // and now detects the connection as unhealthy.
+    vi.advanceTimersByTime(window);
+    expect(closeSpy).toHaveBeenCalledWith(
+      StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+      expect.stringContaining('unhealthy'),
+    );
   });
 });
 

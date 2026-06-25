@@ -174,7 +174,7 @@ export class StreamSfuClient {
 
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: number;
-  private connectionCheckTimeout?: number;
+  private connectionCheckInterval?: number;
   private migrateAwayTimeout?: NodeJS.Timeout;
   private readonly pingIntervalInMs = 4 * 1000;
   /**
@@ -223,7 +223,7 @@ export class StreamSfuClient {
   /**
    * The error code used when the SFU connection is unhealthy.
    * Usually, this means that no message has been received from the SFU for
-   * a certain amount of time (`connectionCheckTimeout`).
+   * a certain amount of time (`unhealthyTimeoutInMs`).
    */
   static ERROR_CONNECTION_UNHEALTHY = 4001;
   /**
@@ -390,7 +390,7 @@ export class StreamSfuClient {
     this.signalClosed = true;
     const timers = getTimers();
     timers.clearInterval(this.keepAliveInterval);
-    timers.clearTimeout(this.connectionCheckTimeout);
+    timers.clearInterval(this.connectionCheckInterval);
     this.onSignalClose?.(reason.trim());
   };
 
@@ -421,7 +421,7 @@ export class StreamSfuClient {
     this.unsubscribeNetworkChanged();
     const timers = getTimers();
     timers.clearInterval(this.keepAliveInterval);
-    timers.clearTimeout(this.connectionCheckTimeout);
+    timers.clearInterval(this.connectionCheckInterval);
     clearTimeout(this.migrateAwayTimeout);
     this.abortController.abort();
     this.migrationTask?.resolve();
@@ -731,8 +731,8 @@ export class StreamSfuClient {
 
   private scheduleConnectionCheck = () => {
     const timers = getTimers();
-    timers.clearTimeout(this.connectionCheckTimeout);
-    this.connectionCheckTimeout = timers.setTimeout(() => {
+    timers.clearInterval(this.connectionCheckInterval);
+    this.connectionCheckInterval = timers.setInterval(() => {
       if (this.lastMessageTimestamp) {
         const timeSinceLastMessage = Date.now() - this.lastMessageTimestamp;
         if (timeSinceLastMessage > this.unhealthyTimeoutInMs) {
