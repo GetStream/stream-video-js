@@ -6,6 +6,7 @@ import { ComputedStats, PendingDelta, Tracer, TraceRecord } from './rtc';
 import { flatten, getSdkName, getSdkVersion } from './utils';
 import { getDeviceState, getWebRTCInfo } from '../helpers/client-details';
 import { hasPending, withoutConcurrency } from '../helpers/concurrency';
+import { timeboxed } from '../coordinator/connection/utils';
 import {
   ClientDetails,
   InputDevices,
@@ -314,18 +315,25 @@ export class SfuStatsReporter {
   };
 
   /**
-   * Explicit/final flush (leave, migration, re-init). Awaits only the fast
-   * sampling step so callers can capture the final sample from live peer
-   * connections before disposing of them, then fires the send-best-effort. The
-   * returned promise resolves once the sample is taken, not when the sending
-   * completes. No-op once the reporter has been stopped.
+   * Explicit/final flush (leave, migration, re-init). Time-boxes the sampling
+   * step and swallows its failures, so a slow or failing `getStats()` on a
+   * degraded or closing peer connection can never block or reject call teardown
+   * or reconnect setup. On a successful sample it fires the send best-effort;
+   * the returned promise resolves once the sample is taken (or the time-box
+   * elapses / sampling fails), never when the sending completes. No-op once the
+   * reporter has been stopped.
    */
   flush = async (): Promise<void> => {
     if (this.isStopped) return;
-    const [subscriberStats, publisherStats] = await this.sample();
-    this.send(subscriberStats, publisherStats).catch((err) => {
-      this.logger.warn('Failed to flush report stats', err);
-    });
+    try {
+      const [sample] = await timeboxed([this.sample()], 2000);
+      const [subscriberStats, publisherStats] = sample;
+      this.send(subscriberStats, publisherStats).catch((err) => {
+        this.logger.warn('Failed to flush report stats', err);
+      });
+    } catch (err) {
+      this.logger.warn('Failed to sample stats for the final flush', err);
+    }
   };
 
   /**

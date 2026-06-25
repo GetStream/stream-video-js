@@ -148,6 +148,38 @@ describe('SfuStatsReporter delta delivery', () => {
     expect(resolved).toBe(true); // resolves after the sample, not the send
   });
 
+  it('does not reject (and skips the send) when the final sample fails', async () => {
+    const t = build();
+    t.subStats.takeSample.mockRejectedValue(new Error('getStats failed'));
+
+    await expect(t.reporter.flush()).resolves.toBeUndefined();
+    expect(t.sendStats).not.toHaveBeenCalled();
+  });
+
+  it('does not block teardown when the final sample hangs past the time-box', async () => {
+    vi.useFakeTimers();
+    try {
+      const t = build();
+      // sampling never settles (e.g. getStats() wedged on a closing connection)
+      t.subStats.takeSample.mockReturnValue(
+        promiseWithResolvers<object>().promise,
+      );
+
+      let settled = false;
+      const flushed = t.reporter.flush().then(() => {
+        settled = true;
+      });
+
+      await vi.advanceTimersByTimeAsync(2000); // time-box elapses
+      await flushed;
+
+      expect(settled).toBe(true);
+      expect(t.sendStats).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('samples on an explicit flush even while a previous send is in flight', async () => {
     const t = build();
     const d = promiseWithResolvers<object>();
