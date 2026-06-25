@@ -1,4 +1,5 @@
 export * from './codecs';
+export * from './mediaEngine';
 export * from './Dispatcher';
 export * from './NegotiationError';
 export * from './IceTrickleBuffer';

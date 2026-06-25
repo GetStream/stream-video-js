@@ -251,9 +251,12 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     return constraints;
   }
 
-  protected override getStream(
+  protected override async getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
+    // Ensure the call's media factory exists before capture so the resulting
+    // track is owned by it (the WebRTC globals resolve to the live factory).
+    await this.call.ensureMediaFactory();
     return getVideoStream(constraints, this.call.tracer);
   }
 }

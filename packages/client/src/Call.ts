@@ -2,7 +2,9 @@ import { StreamSfuClient } from './StreamSfuClient';
 import { SfuJoinError } from './errors';
 import {
   BasePeerConnectionOpts,
+  type CallMediaEngine,
   Dispatcher,
+  getCallMediaEngineProvider,
   getGenericSdp,
   isAudioTrackType,
   isSfuEvent,
@@ -349,6 +351,14 @@ export class Call {
   private clientCapabilities = new Set<ClientCapability>([
     ClientCapability.SUBSCRIBER_VIDEO_PAUSE,
   ]);
+
+  /**
+   * The in-flight per-call media engine. On web/React this resolves to a thin
+   * globals-backed engine (no provider registered); React Native registers a
+   * provider that owns a per-call native factory.
+   * @internal
+   */
+  private mediaEnginePromise?: Promise<CallMediaEngine>;
 
   /**
    * Constructs a new `Call` instance.
@@ -813,6 +823,22 @@ export class Call {
         stopOnLeavePromises.push(this.screenShare.disable(true));
       }
       await Promise.all(stopOnLeavePromises);
+
+      // Dispose the per-call media engine last — after peer connections and
+      // local tracks are gone — so the backing factory tears down with no
+      // owned PCs/tracks. A fresh `join()` builds a new engine.
+      if (this.mediaEnginePromise) {
+        const enginePromise = this.mediaEnginePromise;
+        this.mediaEnginePromise = undefined;
+        this.logger.debug('Disposing per-call media factory');
+        await enginePromise
+          .then((engine) => {
+            return engine.dispose();
+          })
+          .catch((err) => {
+            this.logger.warn('Failed to dispose media engine', err);
+          });
+      }
     });
   };
 
@@ -1152,6 +1178,12 @@ export class Call {
 
     this.logger.debug('Starting join flow');
     this.state.setCallingState(CallingState.JOINING);
+
+    // Ensure the per-call media engine exists before any peer connection
+    // (codec probe, subscriber, publisher) or capture happens, so the WebRTC
+    // globals resolve to the call's factory. Idempotent across
+    // reconnect/migration attempts.
+    await this.ensureMediaFactory();
 
     const performingMigration =
       this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
@@ -1624,6 +1656,35 @@ export class Call {
     }
 
     return joinResponse;
+  };
+
+  /**
+   * Ensures a {@link CallMediaEngine} exists for this call's media session and
+   * returns it. Idempotent: the engine is created once via the registered
+   * provider (see `setCallMediaEngineProvider`) and cached until `leave()`
+   * disposes it. Concurrent callers (e.g. camera + microphone enabling in
+   * parallel) share the same engine because the in-flight creation promise is
+   * cached, never the unresolved result.
+   *
+   * @internal
+   */
+  ensureMediaFactory = async (): Promise<CallMediaEngine> => {
+    if (!this.mediaEnginePromise) {
+      const provider = getCallMediaEngineProvider();
+
+      const audioBitrateProfile = this.microphone.state.audioBitrateProfile;
+      this.logger.debug(
+        `Requesting per-call media factory creation (audioBitrateProfile=${audioBitrateProfile ?? 'default'})`,
+      );
+      this.mediaEnginePromise = Promise.resolve(
+        provider({ audioBitrateProfile }),
+      ).catch((err) => {
+        // Drop the cached rejection so a retried join() can rebuild the engine
+        this.mediaEnginePromise = undefined;
+        throw err;
+      });
+    }
+    return this.mediaEnginePromise;
   };
 
   /**

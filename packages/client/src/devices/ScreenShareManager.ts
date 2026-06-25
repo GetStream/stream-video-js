@@ -90,6 +90,9 @@ export class ScreenShareManager extends AudioDeviceManager<
     if (!this.state.audioEnabled) {
       constraints.audio = false;
     }
+    // Ensure the call's media factory exists before capture so the resulting
+    // track is owned by it (the WebRTC globals resolve to the live factory).
+    await this.call.ensureMediaFactory();
     const stream = await getScreenShareStream(constraints, this.call.tracer);
     const [track] = stream.getVideoTracks();
     const { contentHint } = this.state.settings || {};

@@ -76,7 +76,10 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
         ]) => {
           try {
             if (callingState === CallingState.LEFT) {
-              this.setMutedRecordingPrepared(false);
+              // The muted-recording-prepared mode is reset in `callManager.stop()`
+              // (during leave, while the call factory is still alive), not here —
+              // this subscription fires asynchronously and could land after the
+              // factory is disposed, forcing a default-ADM rebuild.
               await this.stopSpeakingWhileMutedDetection();
             }
             if (callingState !== CallingState.JOINED) return;
@@ -440,9 +443,12 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     return getAudioDevices(this.call.tracer);
   }
 
-  protected override getStream(
+  protected override async getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
+    // Ensure the call's media factory exists before capture so the resulting
+    // track is owned by it (the WebRTC globals resolve to the live factory).
+    await this.call.ensureMediaFactory();
     return getAudioStream(constraints, this.call.tracer);
   }
 

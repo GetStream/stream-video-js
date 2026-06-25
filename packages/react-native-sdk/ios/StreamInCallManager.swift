@@ -625,7 +625,9 @@ class StreamInCallManager: RCTEventEmitter {
             fatalError("WebRTCModule is required but not registered with the module registry")
         }
 
-        return webrtcModule.audioDeviceModule
+        // Follow the live call's ADM; fall back to the default only when no call factory is
+        // active (bare-fork, or an in-call-manager op firing outside the join↔leave window).
+        return webrtcModule.currentAudioDeviceModuleOrNil() ?? webrtcModule.audioDeviceModule
     }
 
     private func getCurrentWindow() -> UIWindow? {

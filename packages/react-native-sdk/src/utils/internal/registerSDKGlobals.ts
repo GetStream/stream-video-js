@@ -11,6 +11,7 @@ import {
   registerOutgoingCall,
   joinCallingxCall,
 } from './callingx/callingx';
+import { registerCallMediaEngine } from './registerMediaEngine';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
 const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {
@@ -69,6 +70,13 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       StreamInCallManagerNativeModule.start();
     },
     stop: ({ isRingingTypeCall }) => {
+      // Teardown of setMutedRecordingPrepared. Done here (before the CallKit gate)
+      // so it runs on both paths and while the call factory is still alive: leave()
+      // calls stop() before disposing the engine, so the ADM resolves to the call's
+      // factory rather than a default.
+      if (Platform.OS === 'ios') {
+        AudioDeviceModule.setRecordingAlwaysPreparedMode(false).catch(() => {});
+      }
       if (shouldBypassForCallKit({ isRingingTypeCall })) {
         return;
       }
@@ -130,4 +138,6 @@ export function registerSDKGlobals() {
   if (!global.streamRNVideoSDK) {
     global.streamRNVideoSDK = streamRNVideoSDKGlobals;
   }
+
+  registerCallMediaEngine();
 }
