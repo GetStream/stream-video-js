@@ -322,8 +322,10 @@ export abstract class BasePeerConnection {
     });
     if (this.tracer && (state === 'connected' || state === 'failed')) {
       try {
-        const stats = await this.stats.get();
-        this.tracer.trace('getstats', stats.delta);
+        // Sample stats into the delivery chain at connect/fail. The reporter
+        // ships and commits the un-acked chain, so we must not trace the delta
+        // separately here (that would double-send it and corrupt the chain).
+        await this.stats.takeSample();
       } catch (err) {
         this.tracer.trace('getstatsOnFailure', (err as Error).toString());
       }
