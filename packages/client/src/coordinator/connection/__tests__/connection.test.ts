@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StreamClient } from '../client';
 import { StableWSConnection } from '../connection';
 import type { WSConnectionError } from '../types';
+import { getTimers } from '../../../timers';
 
 class StuckWebSocket {
   static CONNECTING = 0;
@@ -107,6 +108,27 @@ const buildClient = () => {
 
   return client;
 };
+
+describe('StableWSConnection connection-check timer source', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  it('arms the connection-check watchdog on the worker timer, not the main-thread setTimeout', () => {
+    const client = buildClient();
+    const wsConnection = new StableWSConnection(client);
+    const workerSetTimeout = vi
+      .spyOn(getTimers(), 'setTimeout')
+      .mockReturnValue(1 as unknown as number);
+    const mainSetTimeout = vi.spyOn(globalThis, 'setTimeout');
+
+    wsConnection.scheduleConnectionCheck();
+
+    expect(workerSetTimeout).toHaveBeenCalledTimes(1);
+    expect(mainSetTimeout).not.toHaveBeenCalled();
+  });
+});
 
 describe('StableWSConnection - silent handshake hang', () => {
   beforeEach(() => {

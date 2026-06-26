@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { Dispatcher } from '../rtc';
 import { StreamClient } from '../coordinator/connection/client';
+import { getTimers } from '../timers';
 
 /**
  * Minimal `WebSocket` stub used to drive `StreamSfuClient.close()` while the
@@ -38,9 +39,13 @@ class CapturingWebSocket {
     this.closeArgs = { code, reason };
     this.readyState = CapturingWebSocket.CLOSED;
   }
+  /** Test helper: synchronously fire a registered event (e.g. `close`). */
+  emit(event: string, payload: unknown) {
+    this.listeners.get(event)?.forEach((listener) => listener(payload));
+  }
 }
 
-const buildSfuClient = () => {
+const buildSfuClient = (onSignalClose?: (reason: string) => void) => {
   const dispatcher = new Dispatcher();
   const streamClient = new StreamClient('test-key');
   return new StreamSfuClient({
@@ -59,8 +64,108 @@ const buildSfuClient = () => {
     },
     tag: 'test',
     enableTracing: false,
+    onSignalClose,
   });
 };
+
+describe('StreamSfuClient unhealthy watchdog timer source', () => {
+  beforeEach(() => {
+    CapturingWebSocket.instances = [];
+    vi.stubGlobal('WebSocket', CapturingWebSocket);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('arms the unhealthy watchdog on the worker timer, not the main-thread setInterval', () => {
+    const sfuClient = buildSfuClient();
+    const workerSetInterval = vi
+      .spyOn(getTimers(), 'setInterval')
+      .mockReturnValue(1 as unknown as number);
+    const mainSetInterval = vi.spyOn(globalThis, 'setInterval');
+
+    (
+      sfuClient as unknown as { scheduleConnectionCheck: () => void }
+    ).scheduleConnectionCheck();
+
+    expect(workerSetInterval).toHaveBeenCalledTimes(1);
+    expect(mainSetInterval).not.toHaveBeenCalled();
+
+    sfuClient.close(1000, 'test cleanup');
+  });
+});
+
+describe('StreamSfuClient unhealthy watchdog resilience', () => {
+  beforeEach(() => {
+    CapturingWebSocket.instances = [];
+    vi.stubGlobal('WebSocket', CapturingWebSocket);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('re-arms the unhealthy watchdog after a check passes (not single-shot)', () => {
+    vi.useFakeTimers();
+    const sfuClient = buildSfuClient();
+    const closeSpy = vi.spyOn(sfuClient, 'close').mockImplementation(() => {});
+    const c = sfuClient as unknown as {
+      lastMessageTimestamp?: number;
+      unhealthyTimeoutInMs: number;
+      scheduleConnectionCheck: () => void;
+    };
+    const window = c.unhealthyTimeoutInMs;
+
+    c.lastMessageTimestamp = Date.now();
+    c.scheduleConnectionCheck();
+
+    // At exactly the threshold the connection is still healthy (strict `>`),
+    // so no poll within the first window closes it. A single-shot watchdog
+    // armed for the threshold would now be dead.
+    vi.advanceTimersByTime(window);
+    expect(closeSpy).not.toHaveBeenCalled();
+
+    // No further messages arrive; the self-rescheduling watchdog keeps polling
+    // and detects the connection as unhealthy on a later tick.
+    vi.advanceTimersByTime(window);
+    expect(closeSpy).toHaveBeenCalledWith(
+      StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+      expect.stringContaining('unhealthy'),
+    );
+  });
+
+  it('detects an unhealthy connection shortly after the threshold, not a full window later', () => {
+    vi.useFakeTimers();
+    const sfuClient = buildSfuClient();
+    const closeSpy = vi.spyOn(sfuClient, 'close').mockImplementation(() => {});
+    const c = sfuClient as unknown as {
+      lastMessageTimestamp?: number;
+      unhealthyTimeoutInMs: number;
+      scheduleConnectionCheck: () => void;
+    };
+    const window = c.unhealthyTimeoutInMs;
+
+    c.lastMessageTimestamp = Date.now();
+    c.scheduleConnectionCheck();
+
+    // healthy up to (and exactly at) the threshold
+    vi.advanceTimersByTime(window);
+    expect(closeSpy).not.toHaveBeenCalled();
+
+    // the watchdog polls finer than the window, so silence is caught well
+    // before a second full window elapses (the old period == window design
+    // could take up to 2x the window to notice).
+    vi.advanceTimersByTime(window / 2);
+    expect(closeSpy).toHaveBeenCalledWith(
+      StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+      expect.stringContaining('unhealthy'),
+    );
+  });
+});
 
 describe('StreamSfuClient.close()', () => {
   beforeEach(() => {
@@ -161,6 +266,59 @@ describe('StreamSfuClient.close()', () => {
       }
       process.off('unhandledRejection', onProcessUnhandled);
     }
+  });
+});
+
+describe('StreamSfuClient signal-close revival', () => {
+  beforeEach(() => {
+    CapturingWebSocket.instances = [];
+    vi.stubGlobal('WebSocket', CapturingWebSocket);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+  });
+
+  it('drives revival immediately on an unhealthy close, without waiting for the onclose event', () => {
+    const onSignalClose = vi.fn();
+    const sfuClient = buildSfuClient(onSignalClose);
+
+    // A wedged socket may fire `onclose` only after the OS TCP timeout. The
+    // health watchdog closes with ERROR_CONNECTION_UNHEALTHY; revival must
+    // start now, not when (or if) the transport `close` event arrives.
+    sfuClient.close(
+      StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+      'SFU connection unhealthy',
+    );
+
+    expect(onSignalClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('notifies revival only once when the late onclose event follows an unhealthy close', () => {
+    const onSignalClose = vi.fn();
+    const sfuClient = buildSfuClient(onSignalClose);
+    const ws = CapturingWebSocket.instances.at(-1)!;
+
+    // watchdog closes the dead socket (revival triggered proactively)...
+    sfuClient.close(
+      StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+      'SFU connection unhealthy',
+    );
+    // ...then the OS finally surfaces the wedged socket's `close` event.
+    ws.emit('close', { code: 1006, reason: '' });
+
+    expect(onSignalClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('notifies revival when only the onclose event fires (server-initiated close)', () => {
+    const onSignalClose = vi.fn();
+    buildSfuClient(onSignalClose);
+    const ws = CapturingWebSocket.instances.at(-1)!;
+
+    ws.emit('close', { code: 1006, reason: '' });
+
+    expect(onSignalClose).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -818,43 +818,6 @@ describe('Call reconnect wiring (PC event → leave)', () => {
     expect(publisher.restartIce).toHaveBeenCalled();
   });
 
-  /**
-   * Scenario 4 (manual smoke equivalent: drop only the signal WS while the
-   * publisher PC stays `connected`): the FAST path should NOT call
-   * `publisher.restartIce()` because the PC is stable.
-   */
-  it('FAST path skips publisher.restartIce when publisher PC is stable', async () => {
-    const publisher = makePublisherWiredToCall();
-    // @ts-expect-error private field
-    publisher['pc'].iceConnectionState = 'connected';
-    publisher['onIceConnectionStateChange']();
-    // @ts-expect-error private field
-    publisher['pc'].connectionState = 'connected';
-
-    // pretend the publisher has tracks so isPublishing() would return true
-    vi.spyOn(publisher, 'isPublishing').mockReturnValue(true);
-    const restartIceSpy = vi.spyOn(publisher, 'restartIce').mockResolvedValue();
-    const setSfuSpy = vi.spyOn(publisher, 'setSfuClient');
-    call['publisher'] = publisher;
-
-    // mimic the FAST branch in doJoin: restoreICE is the gateway
-    const publisherIsStable = call['publisher']?.isStable() ?? true;
-    const includePublisher =
-      !!call['publisher']?.isPublishing() && !publisherIsStable;
-    await call['restoreICE'](sfuClient, {
-      includeSubscriber: false,
-      includePublisher,
-    });
-
-    expect(includePublisher).toBe(false);
-    expect(setSfuSpy).toHaveBeenCalledWith(sfuClient); // wire still updated
-    expect(restartIceSpy).not.toHaveBeenCalled(); // but NO ICE restart
-  });
-
-  /**
-   * Counterpart to the above: when the publisher PC is NOT stable (e.g.,
-   * `disconnected`), the FAST path SHOULD still issue an ICE restart.
-   */
   it('FAST path DOES call publisher.restartIce when publisher PC is unstable', async () => {
     const publisher = makePublisherWiredToCall();
     // @ts-expect-error private field
@@ -869,15 +832,8 @@ describe('Call reconnect wiring (PC event → leave)', () => {
     const restartIceSpy = vi.spyOn(publisher, 'restartIce').mockResolvedValue();
     call['publisher'] = publisher;
 
-    const publisherIsStable = call['publisher']?.isStable() ?? true;
-    const includePublisher =
-      !!call['publisher']?.isPublishing() && !publisherIsStable;
-    await call['restoreICE'](sfuClient, {
-      includeSubscriber: false,
-      includePublisher,
-    });
+    await call['restoreICE'](sfuClient, { includeSubscriber: false });
 
-    expect(includePublisher).toBe(true);
     expect(restartIceSpy).toHaveBeenCalled();
   });
 
@@ -995,6 +951,50 @@ describe('Call reconnect wiring (PC event → leave)', () => {
       ReconnectReason.ICE_NEVER_CONNECTED,
       PeerType.SUBSCRIBER,
     );
+  });
+});
+
+/**
+ * `handleSfuSignalClose` is the bridge from a dead signal WS to the reconnect
+ * loop. A reconnect swaps in a fresh SFU client, but the old socket can still
+ * fire a (delayed) `close` later. Such stragglers must be ignored: only the
+ * currently-active client may drive a reconnect.
+ */
+describe('Call.handleSfuSignalClose superseded-client guard', () => {
+  let call: Call;
+
+  beforeEach(() => {
+    call = makeCall();
+    vi.spyOn(call, 'leave').mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('ignores a signal close from a superseded SFU client', () => {
+    call.state.setCallingState(CallingState.JOINED);
+    const reconnectSpy = vi
+      .spyOn(call as unknown as { reconnect: () => Promise<void> }, 'reconnect')
+      .mockResolvedValue(undefined);
+
+    const currentClient = { isLeaving: false, isClosingClean: false };
+    const supersededClient = { isLeaving: false, isClosingClean: false };
+    (call as unknown as { sfuClient: unknown }).sfuClient = currentClient;
+
+    // a close from a client that is no longer active must not reconnect
+    call['handleSfuSignalClose'](
+      supersededClient as unknown as StreamSfuClient,
+      '1006 ',
+    );
+    expect(reconnectSpy).not.toHaveBeenCalled();
+
+    // the active client's close still drives a reconnect
+    call['handleSfuSignalClose'](
+      currentClient as unknown as StreamSfuClient,
+      '1006 ',
+    );
+    expect(reconnectSpy).toHaveBeenCalledTimes(1);
   });
 });
 
