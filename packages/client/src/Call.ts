@@ -741,7 +741,9 @@ export class Call {
 
       const leaveReason = message ?? reason ?? 'user is leaving the call';
       this.tracer.trace('call.leaveReason', leaveReason);
-      this.sfuStatsReporter?.flush();
+      // await the final sample so it's captured from the still-live peer
+      // connections (disposed below); the send itself stays best-effort.
+      await this.sfuStatsReporter?.flush();
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
       this.lastStatsOptions = undefined;
@@ -1546,6 +1548,11 @@ export class Call {
       enable_rtc_stats: enableTracing,
       reporting_interval_ms: reportingIntervalMs,
     } = statsOptions;
+    // Flush the previous reporter's final sample while its peer connections are
+    // still alive, before we dispose them below. Awaits only the sampling step.
+    await this.sfuStatsReporter?.flush();
+    this.sfuStatsReporter?.stop();
+    this.sfuStatsReporter = undefined;
     if (closePreviousInstances && this.subscriber) {
       await this.subscriber.dispose();
     }
@@ -1614,8 +1621,6 @@ export class Call {
     }
 
     this.tracer.setEnabled(enableTracing);
-    this.sfuStatsReporter?.flush();
-    this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
