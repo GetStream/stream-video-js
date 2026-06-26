@@ -176,14 +176,11 @@ export class StreamSfuClient {
   private keepAliveInterval?: number;
   private connectionCheckInterval?: number;
   private migrateAwayTimeout?: NodeJS.Timeout;
-  private readonly pingIntervalInMs = 4 * 1000;
-  /**
-   * Inactivity window before the signal socket is treated as unhealthy.
-   * Covers two full ping intervals plus a 2s grace period, so a single
-   * lost or delayed `healthCheckResponse` cannot prematurely close a live
-   * socket (the second probe's response still has time to arrive).
-   */
+  private readonly pingIntervalInMs = 5 * 1000;
   private readonly unhealthyTimeoutInMs = this.pingIntervalInMs * 2 + 2 * 1000;
+  private readonly connectionCheckIntervalInMs = Math.round(
+    this.unhealthyTimeoutInMs / 3,
+  );
   private lastMessageTimestamp?: number;
   private readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
@@ -742,6 +739,6 @@ export class StreamSfuClient {
           );
         }
       }
-    }, this.unhealthyTimeoutInMs);
+    }, this.connectionCheckIntervalInMs);
   };
 }

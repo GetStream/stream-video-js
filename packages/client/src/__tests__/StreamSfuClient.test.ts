@@ -123,14 +123,43 @@ describe('StreamSfuClient unhealthy watchdog resilience', () => {
     c.lastMessageTimestamp = Date.now();
     c.scheduleConnectionCheck();
 
-    // The first check fires exactly at the threshold, so it is still healthy
-    // (strict `>`). A single-shot watchdog would now be dead.
+    // At exactly the threshold the connection is still healthy (strict `>`),
+    // so no poll within the first window closes it. A single-shot watchdog
+    // armed for the threshold would now be dead.
     vi.advanceTimersByTime(window);
     expect(closeSpy).not.toHaveBeenCalled();
 
-    // No further messages arrive; a self-rescheduling watchdog keeps checking
-    // and now detects the connection as unhealthy.
+    // No further messages arrive; the self-rescheduling watchdog keeps polling
+    // and detects the connection as unhealthy on a later tick.
     vi.advanceTimersByTime(window);
+    expect(closeSpy).toHaveBeenCalledWith(
+      StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
+      expect.stringContaining('unhealthy'),
+    );
+  });
+
+  it('detects an unhealthy connection shortly after the threshold, not a full window later', () => {
+    vi.useFakeTimers();
+    const sfuClient = buildSfuClient();
+    const closeSpy = vi.spyOn(sfuClient, 'close').mockImplementation(() => {});
+    const c = sfuClient as unknown as {
+      lastMessageTimestamp?: number;
+      unhealthyTimeoutInMs: number;
+      scheduleConnectionCheck: () => void;
+    };
+    const window = c.unhealthyTimeoutInMs;
+
+    c.lastMessageTimestamp = Date.now();
+    c.scheduleConnectionCheck();
+
+    // healthy up to (and exactly at) the threshold
+    vi.advanceTimersByTime(window);
+    expect(closeSpy).not.toHaveBeenCalled();
+
+    // the watchdog polls finer than the window, so silence is caught well
+    // before a second full window elapses (the old period == window design
+    // could take up to 2x the window to notice).
+    vi.advanceTimersByTime(window / 2);
     expect(closeSpy).toHaveBeenCalledWith(
       StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
       expect.stringContaining('unhealthy'),
