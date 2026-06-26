@@ -2,6 +2,20 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.55.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.54.0...@stream-io/video-client-1.55.0) (2026-06-26)
+
+### Features
+
+- pre-call testing ([#2235](https://github.com/GetStream/stream-video-js/issues/2235)) ([87cfaa4](https://github.com/GetStream/stream-video-js/commit/87cfaa456e2ed7d1a0b5034a95d0f09f01903d2e))
+- upgrade to TypeScript 6.0.3, pin ES2022, raise supported-browser floors ([#2290](https://github.com/GetStream/stream-video-js/issues/2290)) ([d9ea158](https://github.com/GetStream/stream-video-js/commit/d9ea15846582fa8db86b3b873eca2afe92ae3593))
+
+### Bug Fixes
+
+- **client:** don't tear down the SFU socket on a network blip during an in-flight reconnect ([#2300](https://github.com/GetStream/stream-video-js/issues/2300)) ([df729c0](https://github.com/GetStream/stream-video-js/commit/df729c01d9eaf9a7229d618b51381f6c6cfeb8ca))
+- **client:** harden SFU reconnection and ICE-restart recovery ([#2285](https://github.com/GetStream/stream-video-js/issues/2285)) ([06e5f58](https://github.com/GetStream/stream-video-js/commit/06e5f5800498e14e47dc1cb8e46449c86d4a4387))
+- **client:** omit client telemetry events for unregistered calls ([#2301](https://github.com/GetStream/stream-video-js/issues/2301)) ([86fc21a](https://github.com/GetStream/stream-video-js/commit/86fc21a82afb2db49ef4fc1562a5b5d456d85f27))
+- **client:** reliably deliver delta-compressed WebRTC stats ([#2304](https://github.com/GetStream/stream-video-js/issues/2304)) ([c5803fc](https://github.com/GetStream/stream-video-js/commit/c5803fc777a241d25c975e316140700c773bc840))
+
 ## [1.54.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.53.2...@stream-io/video-client-1.54.0) (2026-06-19)
 
 ### Features
