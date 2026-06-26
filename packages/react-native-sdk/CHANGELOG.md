@@ -2,6 +2,26 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.40.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.39.0...@stream-io/video-react-native-sdk-1.40.0) (2026-06-26)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.9.0`
+- `@stream-io/react-native-callingx` updated to version `0.6.0`
+- `@stream-io/video-filters-react-native` updated to version `0.14.0`
+- `@stream-io/typescript-config` updated to version `0.1.0`
+- `@stream-io/video-client` updated to version `1.55.0`
+- `@stream-io/video-react-bindings` updated to version `1.18.0`
+
+### Features
+
+- pre-call testing ([#2235](https://github.com/GetStream/stream-video-js/issues/2235)) ([87cfaa4](https://github.com/GetStream/stream-video-js/commit/87cfaa456e2ed7d1a0b5034a95d0f09f01903d2e))
+- upgrade to TypeScript 6.0.3, pin ES2022, raise supported-browser floors ([#2290](https://github.com/GetStream/stream-video-js/issues/2290)) ([d9ea158](https://github.com/GetStream/stream-video-js/commit/d9ea15846582fa8db86b3b873eca2afe92ae3593))
+
+### Performance Improvements
+
+- **react-native-sdk:** reduce re-renders, fix listener cleanup, prune dead code ([#2274](https://github.com/GetStream/stream-video-js/issues/2274)) ([cbf1864](https://github.com/GetStream/stream-video-js/commit/cbf18642f9466614a9ee11d08ceaad8c2ce98d58))
+
 ## [1.39.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.38.2...@stream-io/video-react-native-sdk-1.39.0) (2026-06-19)
 
 ### Dependency Updates
