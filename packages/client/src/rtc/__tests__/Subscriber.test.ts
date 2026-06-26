@@ -292,6 +292,86 @@ describe('Subscriber', () => {
     });
   });
 
+  describe('negotiation failure recovery', () => {
+    const offer = SubscriberOffer.create({
+      sdp: 'offer-sdp',
+      iceRestart: false,
+    });
+    const dispatchOffer = () =>
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'subscriberOffer',
+            subscriberOffer: offer,
+          },
+        }) as DispatchableMessage<'subscriberOffer'>,
+        'test',
+      );
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    it('retries via ICE restart on a single negotiation failure', async () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi.fn().mockRejectedValue(new Error('boom'));
+      // @ts-expect-error - protected method
+      subscriber.tryRestartIce = vi.fn();
+      subscriber['onReconnectionNeeded'] = vi.fn();
+
+      dispatchOffer();
+      await flush();
+
+      // @ts-expect-error - protected method
+      expect(subscriber.tryRestartIce).toHaveBeenCalledTimes(1);
+      expect(subscriber['onReconnectionNeeded']).not.toHaveBeenCalled();
+    });
+
+    it('escalates to REJOIN after repeated failures instead of looping ICE restarts', async () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi.fn().mockRejectedValue(new Error('boom'));
+      // @ts-expect-error - protected method
+      subscriber.tryRestartIce = vi.fn();
+      subscriber['onReconnectionNeeded'] = vi.fn();
+
+      // three consecutive failures (the configured ceiling)
+      for (let i = 0; i < 3; i++) {
+        dispatchOffer();
+        await flush();
+      }
+
+      // the first two fall through to an ICE restart; the third gives up and rejoins
+      // @ts-expect-error - protected method
+      expect(subscriber.tryRestartIce).toHaveBeenCalledTimes(2);
+      expect(subscriber['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.SUBSCRIBER_NEGOTIATION_FAILED,
+        PeerType.SUBSCRIBER,
+      );
+    });
+
+    it('resets the failure counter after a successful negotiation', async () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockRejectedValueOnce(new Error('boom'));
+      // @ts-expect-error - protected method
+      subscriber.tryRestartIce = vi.fn();
+      subscriber['onReconnectionNeeded'] = vi.fn();
+
+      for (let i = 0; i < 5; i++) {
+        dispatchOffer();
+        await flush();
+      }
+
+      // four failures total, but never three in a row, so no REJOIN
+      expect(subscriber['onReconnectionNeeded']).not.toHaveBeenCalled();
+      // @ts-expect-error - protected method
+      expect(subscriber.tryRestartIce).toHaveBeenCalledTimes(4);
+    });
+  });
+
   describe('ICE candidate trickling', () => {
     const trickle = (ufrag: string, candidate: string) => ({
       peerType: PeerType.SUBSCRIBER,

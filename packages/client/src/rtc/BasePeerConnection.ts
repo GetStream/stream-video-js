@@ -38,7 +38,7 @@ export abstract class BasePeerConnection {
   protected tag: string;
   protected sfuClient: StreamSfuClient;
 
-  private onReconnectionNeeded?: OnReconnectionNeeded;
+  protected onReconnectionNeeded?: OnReconnectionNeeded;
   private onIceConnected?: OnIceConnected;
   private onPeerConnectionStateChange?: OnPeerConnectionStateChange;
   protected onRemoteTrackUnmute?: OnRemoteTrackUnmute;

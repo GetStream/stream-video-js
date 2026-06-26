@@ -1,7 +1,11 @@
 import { BasePeerConnection } from './BasePeerConnection';
-import { BasePeerConnectionOpts } from './types';
+import { BasePeerConnectionOpts, ReconnectReason } from './types';
 import { NegotiationError } from './NegotiationError';
-import { PeerType, TrackType } from '../gen/video/sfu/models/models';
+import {
+  PeerType,
+  TrackType,
+  WebsocketReconnectStrategy,
+} from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
@@ -21,6 +25,7 @@ export class Subscriber extends BasePeerConnection {
    * check if the stream is remote and dispose it when needed.
    */
   private trackedStreams?: WeakSet<MediaStream>;
+  private negotiationFailures = 0;
 
   /**
    * Constructs a new `Subscriber` instance.
@@ -30,11 +35,25 @@ export class Subscriber extends BasePeerConnection {
     this.pc.addEventListener('track', this.handleOnTrack);
 
     this.on('subscriberOffer', async (subscriberOffer) => {
-      return this.negotiate(subscriberOffer).catch((err) => {
-        this.tracer?.trace('subscriber.negotiationFailed', err.message);
-        this.logger.error(`Negotiation failed`, err);
-        this.tryRestartIce();
-      });
+      try {
+        const result = await this.negotiate(subscriberOffer);
+        this.negotiationFailures = 0;
+        return result;
+      } catch (err: any) {
+        const message = 'subscriber.negotiationFailed';
+        this.tracer?.trace(message, err.message);
+        this.logger.warn(message, err);
+
+        const failures = ++this.negotiationFailures;
+        if (failures < 3) return this.tryRestartIce();
+
+        this.logger.error(`negotiation failed ${failures} times, rejoining`);
+        this.onReconnectionNeeded?.(
+          WebsocketReconnectStrategy.REJOIN,
+          ReconnectReason.SUBSCRIBER_NEGOTIATION_FAILED,
+          this.peerType,
+        );
+      }
     });
   }
 
