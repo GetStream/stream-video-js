@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.8.2...@stream-io/audio-filters-web-0.9.0) (2026-06-26)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Features
+
+- upgrade to TypeScript 6.0.3, pin ES2022, raise supported-browser floors ([#2290](https://github.com/GetStream/stream-video-js/issues/2290)) ([d9ea158](https://github.com/GetStream/stream-video-js/commit/d9ea15846582fa8db86b3b873eca2afe92ae3593))
+
 ## [0.8.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.8.1...@stream-io/audio-filters-web-0.8.2) (2026-06-01)
 
 ## [0.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.8.0...@stream-io/audio-filters-web-0.8.1) (2026-05-25)

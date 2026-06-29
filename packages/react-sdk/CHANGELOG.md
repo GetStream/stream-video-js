@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.39.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.38.0...@stream-io/video-react-sdk-1.39.0) (2026-06-26)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.9.0`
+- `@stream-io/typescript-config` updated to version `0.1.0`
+- `@stream-io/video-styling` updated to version `1.14.2`
+- `@stream-io/video-client` updated to version `1.55.0`
+- `@stream-io/video-filters-web` updated to version `0.8.0`
+- `@stream-io/video-react-bindings` updated to version `1.18.0`
+
+### Features
+
+- upgrade to TypeScript 6.0.3, pin ES2022, raise supported-browser floors ([#2290](https://github.com/GetStream/stream-video-js/issues/2290)) ([d9ea158](https://github.com/GetStream/stream-video-js/commit/d9ea15846582fa8db86b3b873eca2afe92ae3593))
+
+### Performance Improvements
+
+- **react-sdk:** reduce re-renders and event-listener churn ([#2273](https://github.com/GetStream/stream-video-js/issues/2273)) ([0234d1e](https://github.com/GetStream/stream-video-js/commit/0234d1e2e3e2f031d69ab6335c97924f9f47a6ec))
+
 ## [1.38.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.37.7...@stream-io/video-react-sdk-1.38.0) (2026-06-19)
 
 ### Dependency Updates

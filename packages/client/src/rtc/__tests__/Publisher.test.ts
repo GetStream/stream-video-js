@@ -525,37 +525,6 @@ describe('Publisher', () => {
       expect(publisher['onReconnectionNeeded']).not.toHaveBeenCalled();
     });
 
-    it(`isStable() returns false when ICE is 'new'`, () => {
-      // @ts-expect-error private api
-      publisher['pc'].iceConnectionState = 'new';
-      // default connectionState in mock is 'connected'
-      expect(publisher.isStable()).toBe(false);
-    });
-
-    it(`isStable() returns true when ICE is 'connected' and connectionState is 'connected'`, () => {
-      // @ts-expect-error private api
-      publisher['pc'].iceConnectionState = 'connected';
-      // @ts-expect-error private api
-      publisher['pc'].connectionState = 'connected';
-      expect(publisher.isStable()).toBe(true);
-    });
-
-    it(`isStable() returns true when ICE is 'completed' and connectionState is 'connected'`, () => {
-      // @ts-expect-error private api
-      publisher['pc'].iceConnectionState = 'completed';
-      // @ts-expect-error private api
-      publisher['pc'].connectionState = 'connected';
-      expect(publisher.isStable()).toBe(true);
-    });
-
-    it(`isStable() returns false when ICE is 'disconnected'`, () => {
-      // @ts-expect-error private api
-      publisher['pc'].iceConnectionState = 'disconnected';
-      // @ts-expect-error private api
-      publisher['pc'].connectionState = 'connected';
-      expect(publisher.isStable()).toBe(false);
-    });
-
     it(`after connected→disconnected→connected cycle, subsequent 'failed' DOES trigger ICE restart (flag stays true)`, () => {
       // @ts-expect-error private api
       publisher['pc'].iceConnectionState = 'connected';
@@ -1634,6 +1603,7 @@ describe('Publisher', () => {
                 {
                   publishOptionId: publishOption.id,
                   trackType: TrackType.VIDEO,
+                  degradationPreference: DegradationPreference.UNSPECIFIED,
                   layers: [
                     {
                       name: 'q',
@@ -1728,6 +1698,7 @@ describe('Publisher', () => {
                 {
                   publishOptionId: publishOption.id,
                   trackType: TrackType.VIDEO,
+                  degradationPreference: DegradationPreference.UNSPECIFIED,
                   layers: [
                     {
                       name: 'q',

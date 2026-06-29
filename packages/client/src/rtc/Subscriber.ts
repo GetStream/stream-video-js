@@ -1,7 +1,11 @@
 import { BasePeerConnection } from './BasePeerConnection';
-import { BasePeerConnectionOpts } from './types';
+import { BasePeerConnectionOpts, ReconnectReason } from './types';
 import { NegotiationError } from './NegotiationError';
-import { PeerType, TrackType } from '../gen/video/sfu/models/models';
+import {
+  PeerType,
+  TrackType,
+  WebsocketReconnectStrategy,
+} from '../gen/video/sfu/models/models';
 import { SubscriberOffer } from '../gen/video/sfu/event/events';
 import { toTrackType, trackTypeToParticipantStreamKey } from './helpers/tracks';
 import { pushToIfMissing, removeFromIfPresent } from '../helpers/array';
@@ -21,6 +25,7 @@ export class Subscriber extends BasePeerConnection {
    * check if the stream is remote and dispose it when needed.
    */
   private trackedStreams?: WeakSet<MediaStream>;
+  private negotiationFailures = 0;
 
   /**
    * Constructs a new `Subscriber` instance.
@@ -30,9 +35,25 @@ export class Subscriber extends BasePeerConnection {
     this.pc.addEventListener('track', this.handleOnTrack);
 
     this.on('subscriberOffer', async (subscriberOffer) => {
-      return this.negotiate(subscriberOffer).catch((err) => {
-        this.logger.error(`Negotiation failed.`, err);
-      });
+      try {
+        const result = await this.negotiate(subscriberOffer);
+        this.negotiationFailures = 0;
+        return result;
+      } catch (err: any) {
+        const message = 'subscriber.negotiationFailed';
+        this.tracer?.trace(message, err.message);
+        this.logger.warn(message, err);
+
+        const failures = ++this.negotiationFailures;
+        if (failures < 3) return this.tryRestartIce();
+
+        this.logger.error(`negotiation failed ${failures} times, rejoining`);
+        this.onReconnectionNeeded?.(
+          WebsocketReconnectStrategy.REJOIN,
+          ReconnectReason.SUBSCRIBER_NEGOTIATION_FAILED,
+          this.peerType,
+        );
+      }
     });
   }
 
@@ -52,13 +73,11 @@ export class Subscriber extends BasePeerConnection {
   restartIce = async () => {
     this.logger.debug('Restarting ICE connection');
     if (this.pc.signalingState === 'have-remote-offer') {
-      this.logger.debug('ICE restart is already in progress');
+      this.logger.debug('ICE negotiation is already in progress');
       return;
     }
     if (this.pc.connectionState === 'new') {
-      this.logger.debug(
-        `ICE connection is not yet established, skipping restart.`,
-      );
+      this.logger.debug(`ICE connection not yet established, skipping restart`);
       return;
     }
     const previousIsIceRestarting = this.isIceRestarting;
@@ -200,34 +219,48 @@ export class Subscriber extends BasePeerConnection {
   };
 
   private negotiate = async (subscriberOffer: SubscriberOffer) => {
-    await this.pc.setRemoteDescription({
-      type: 'offer',
-      sdp: subscriberOffer.sdp,
-    });
+    // The generation currently committed on the peer connection. If this
+    // negotiation fails and rolls back, the buffer is restored to it.
+    const previousSdp = this.pc.currentRemoteDescription?.sdp;
+    try {
+      await this.pc.setRemoteDescription({
+        type: 'offer',
+        sdp: subscriberOffer.sdp,
+      });
 
-    this.addTrickledIceCandidates();
+      this.addTrickledIceCandidates();
 
-    const answer = await this.pc.createAnswer();
-    if (answer.sdp) {
-      answer.sdp = enableStereo(subscriberOffer.sdp, answer.sdp);
-      const { dangerouslyForceCodec, subscriberFmtpLine } =
-        this.clientPublishOptions || {};
-      if (dangerouslyForceCodec) {
-        answer.sdp = removeCodecsExcept(
-          answer.sdp,
-          dangerouslyForceCodec,
-          subscriberFmtpLine,
-        );
+      const answer = await this.pc.createAnswer();
+      if (answer.sdp) {
+        answer.sdp = enableStereo(subscriberOffer.sdp, answer.sdp);
+        const { dangerouslyForceCodec, subscriberFmtpLine } =
+          this.clientPublishOptions || {};
+        if (dangerouslyForceCodec) {
+          answer.sdp = removeCodecsExcept(
+            answer.sdp,
+            dangerouslyForceCodec,
+            subscriberFmtpLine,
+          );
+        }
       }
+      await this.pc.setLocalDescription(answer);
+
+      await this.sfuClient.sendAnswer({
+        peerType: PeerType.SUBSCRIBER,
+        sdp: answer.sdp || '',
+        negotiationId: subscriberOffer.negotiationId,
+      });
+    } catch (err) {
+      if (this.pc.signalingState === 'have-remote-offer') {
+        await this.pc.setRemoteDescription({ type: 'rollback' }).catch((e) => {
+          this.logger.warn('Failed to rollback after negotiation error', e);
+        });
+        const { iceTrickleBuffer } = this.sfuClient;
+        iceTrickleBuffer.updateActiveGeneration(this.peerType, previousSdp);
+      }
+      throw err;
+    } finally {
+      this.isIceRestarting = false;
     }
-    await this.pc.setLocalDescription(answer);
-
-    await this.sfuClient.sendAnswer({
-      peerType: PeerType.SUBSCRIBER,
-      sdp: answer.sdp || '',
-      negotiationId: subscriberOffer.negotiationId,
-    });
-
-    this.isIceRestarting = false;
   };
 }

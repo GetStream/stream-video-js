@@ -741,7 +741,9 @@ export class Call {
 
       const leaveReason = message ?? reason ?? 'user is leaving the call';
       this.tracer.trace('call.leaveReason', leaveReason);
-      this.sfuStatsReporter?.flush();
+      // await the final sample so it's captured from the still-live peer
+      // connections (disposed below); the send itself stays best-effort.
+      await this.sfuStatsReporter?.flush();
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
       this.lastStatsOptions = undefined;
@@ -1331,23 +1333,9 @@ export class Call {
     // when performing fast reconnect, or when we reuse the same SFU client,
     // (ws remained healthy), we just need to restore the ICE connection
     if (performingFastReconnect) {
-      // The SFU automatically issues an ICE restart on the subscriber,
-      // so we only need to decide about the publisher. If the publisher's
-      // peer connection is still stable (ICE still connected end-to-end),
-      // the signal WebSocket drop was the only problem — the new WS alone
-      // is enough, and restarting ICE would add unnecessary SDP/ICE churn.
-      const publisherIsStable = this.publisher?.isStable() ?? true;
-      const includePublisher =
-        !!this.publisher?.isPublishing() && !publisherIsStable;
-      if (!includePublisher && this.publisher?.isPublishing()) {
-        this.logger.info(
-          '[Reconnect] FAST: skipping publisher ICE restart, publisher PC is stable',
-        );
-      }
-      await this.restoreICE(sfuClient, {
-        includeSubscriber: false,
-        includePublisher,
-      });
+      // the SFU automatically issues an ICE restart on the subscriber
+      // we don't have to do it ourselves
+      await this.restoreICE(sfuClient, { includeSubscriber: false });
     } else {
       const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
       await this.initPublisherAndSubscriber({
@@ -1546,6 +1534,11 @@ export class Call {
       enable_rtc_stats: enableTracing,
       reporting_interval_ms: reportingIntervalMs,
     } = statsOptions;
+    // Flush the previous reporter's final sample while its peer connections are
+    // still alive, before we dispose them below. Awaits only the sampling step.
+    await this.sfuStatsReporter?.flush();
+    this.sfuStatsReporter?.stop();
+    this.sfuStatsReporter = undefined;
     if (closePreviousInstances && this.subscriber) {
       await this.subscriber.dispose();
     }
@@ -1614,8 +1607,6 @@ export class Call {
     }
 
     this.tracer.setEnabled(enableTracing);
-    this.sfuStatsReporter?.flush();
-    this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
@@ -1683,6 +1674,10 @@ export class Call {
     reason: string,
   ) => {
     this.logger.debug('[Reconnect] SFU signal connection closed');
+    // Ignore a close from a superseded client (e.g. an old socket's delayed
+    // `onclose` arriving after a reconnection already swapped in a new client).
+    // Only the currently active client's death may drive a reconnection.
+    if (sfuClient !== this.sfuClient) return;
     const { callingState } = this.state;
     if (
       // SFU WS closed before we finished current join,
@@ -1723,11 +1718,12 @@ export class Call {
     strategy: WebsocketReconnectStrategy,
     reason: ReconnectReason,
   ): Promise<void> => {
+    const { callingState } = this.state;
     if (
-      this.state.callingState === CallingState.JOINING ||
-      this.state.callingState === CallingState.RECONNECTING ||
-      this.state.callingState === CallingState.MIGRATING ||
-      this.state.callingState === CallingState.RECONNECTING_FAILED
+      callingState === CallingState.JOINING ||
+      callingState === CallingState.RECONNECTING ||
+      callingState === CallingState.MIGRATING ||
+      callingState === CallingState.RECONNECTING_FAILED
     )
       return;
 

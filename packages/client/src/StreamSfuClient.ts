@@ -164,13 +164,24 @@ export class StreamSfuClient {
    */
   isClosingClean = false;
 
+  /**
+   * One-shot latch guarding `onSignalClose`. The signal connection can be
+   * detected as dead by more than one source (the health watchdog and the
+   * WebSocket `close` event, which on a wedged socket can arrive seconds
+   * apart). This ensures revival is triggered at most once per client.
+   */
+  private signalClosed = false;
+
   private readonly rpc: SignalServerClient;
   private keepAliveInterval?: number;
-  private connectionCheckTimeout?: NodeJS.Timeout;
+  private connectionCheckInterval?: number;
   private migrateAwayTimeout?: NodeJS.Timeout;
   private readonly pingIntervalInMs = 5 * 1000;
-  private readonly unhealthyTimeoutInMs = 15 * 1000;
-  private lastMessageTimestamp?: Date;
+  private readonly unhealthyTimeoutInMs = this.pingIntervalInMs * 2 + 2 * 1000;
+  private readonly connectionCheckIntervalInMs = Math.round(
+    this.unhealthyTimeoutInMs / 3,
+  );
+  private lastMessageTimestamp?: number;
   private readonly tracer?: Tracer;
   private readonly unsubscribeIceTrickle: () => void;
   private readonly unsubscribeNetworkChanged: () => void;
@@ -209,7 +220,7 @@ export class StreamSfuClient {
   /**
    * The error code used when the SFU connection is unhealthy.
    * Usually, this means that no message has been received from the SFU for
-   * a certain amount of time (`connectionCheckTimeout`).
+   * a certain amount of time (`unhealthyTimeoutInMs`).
    */
   static ERROR_CONNECTION_UNHEALTHY = 4001;
   /**
@@ -311,7 +322,7 @@ export class StreamSfuClient {
       endpoint: `${this.credentials.server.ws_endpoint}?${new URLSearchParams(params).toString()}`,
       tracer: this.tracer,
       onMessage: (message) => {
-        this.lastMessageTimestamp = new Date();
+        this.lastMessageTimestamp = Date.now();
         this.scheduleConnectionCheck();
         const eventKind = message.eventPayload.oneofKind;
         if (eventsToTrace[eventKind]) {
@@ -336,7 +347,7 @@ export class StreamSfuClient {
           this.signalWs.addEventListener('open', onOpen);
 
           this.signalWs.addEventListener('close', (e) => {
-            this.handleWebSocketClose(e);
+            this.notifySignalClose(`${e.code} ${e.reason ?? ''}`);
             // Normally, this shouldn't have any effect, because WS should never emit 'close'
             // before emitting 'open'. However, stranger things have happened, and we don't
             // want to leave signalReady in a pending state.
@@ -371,11 +382,13 @@ export class StreamSfuClient {
     return this.joinResponseTask.promise;
   }
 
-  private handleWebSocketClose = (e: CloseEvent) => {
-    this.signalWs.removeEventListener('close', this.handleWebSocketClose);
-    getTimers().clearInterval(this.keepAliveInterval);
-    clearTimeout(this.connectionCheckTimeout);
-    this.onSignalClose?.(`${e.code} ${e.reason}`);
+  private notifySignalClose = (reason: string) => {
+    if (this.signalClosed) return;
+    this.signalClosed = true;
+    const timers = getTimers();
+    timers.clearInterval(this.keepAliveInterval);
+    timers.clearInterval(this.connectionCheckInterval);
+    this.onSignalClose?.(reason.trim());
   };
 
   close = (code: number = StreamSfuClient.NORMAL_CLOSURE, reason?: string) => {
@@ -392,7 +405,9 @@ export class StreamSfuClient {
     ) {
       this.logger.debug(`Closing SFU WS connection: ${code} - ${reason}`);
       ws.close(code, `js-client: ${reason}`);
-      ws.removeEventListener('close', this.handleWebSocketClose);
+    }
+    if (!this.isClosingClean) {
+      this.notifySignalClose(`${code} ${reason ?? ''}`);
     }
     this.dispose(reason);
   };
@@ -401,8 +416,9 @@ export class StreamSfuClient {
     this.logger.debug('Disposing SFU client');
     this.unsubscribeIceTrickle();
     this.unsubscribeNetworkChanged();
-    clearInterval(this.keepAliveInterval);
-    clearTimeout(this.connectionCheckTimeout);
+    const timers = getTimers();
+    timers.clearInterval(this.keepAliveInterval);
+    timers.clearInterval(this.connectionCheckInterval);
     clearTimeout(this.migrateAwayTimeout);
     this.abortController.abort();
     this.migrationTask?.resolve();
@@ -711,12 +727,11 @@ export class StreamSfuClient {
   };
 
   private scheduleConnectionCheck = () => {
-    clearTimeout(this.connectionCheckTimeout);
-    this.connectionCheckTimeout = setTimeout(() => {
+    const timers = getTimers();
+    timers.clearInterval(this.connectionCheckInterval);
+    this.connectionCheckInterval = timers.setInterval(() => {
       if (this.lastMessageTimestamp) {
-        const timeSinceLastMessage =
-          new Date().getTime() - this.lastMessageTimestamp.getTime();
-
+        const timeSinceLastMessage = Date.now() - this.lastMessageTimestamp;
         if (timeSinceLastMessage > this.unhealthyTimeoutInMs) {
           this.close(
             StreamSfuClient.ERROR_CONNECTION_UNHEALTHY,
@@ -724,6 +739,6 @@ export class StreamSfuClient {
           );
         }
       }
-    }, this.unhealthyTimeoutInMs);
+    }, this.connectionCheckIntervalInMs);
   };
 }
