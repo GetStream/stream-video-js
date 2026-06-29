@@ -169,6 +169,7 @@ export class NoiseCancellation implements INoiseCancellation {
       this.resolveInitialized();
     });
     filterNode.addEventListener('buffer_overflow', this.handleBufferOverflow);
+    filterNode.addEventListener('error', this.handleError);
     this.filterNode = filterNode;
 
     return this.initializing;
@@ -213,20 +214,21 @@ export class NoiseCancellation implements INoiseCancellation {
       this.recovery.dispose();
       this.recovery = undefined;
     }
-    if (this.audioContext && this.audioContext.state !== 'closed') {
-      await this.audioContext.close().catch((err) => {
-        console.warn('Failed to close the audio context', err);
-      });
-      this.audioContext = undefined;
-    }
     if (this.filterNode) {
       await this.disable();
+      this.filterNode.removeEventListener('error', this.handleError);
       this.filterNode.removeEventListener(
         'buffer_overflow',
         this.handleBufferOverflow,
       );
       this.filterNode.dispose();
       this.filterNode = undefined;
+    }
+    if (this.audioContext && this.audioContext.state !== 'closed') {
+      await this.audioContext.close().catch((err) => {
+        console.warn('Failed to close the audio context', err);
+      });
+      this.audioContext = undefined;
     }
     if (this.sdk) {
       this.sdk.dispose();
@@ -314,6 +316,22 @@ export class NoiseCancellation implements INoiseCancellation {
   };
 
   /**
+   * Traces errors reported by the Krisp SDK.
+   *
+   * The SDK surfaces model fetch/load and unsupported sample-rate failures
+   * (`MODEL_URL_FETCH_ERROR`, `MODEL_LOAD_ERROR`, `SAMPLING_RATE_NOT_SUPPORTED`)
+   * via an `error` event on the filter node, separately from the `ready` callback.
+   * We record them for diagnostics.
+   */
+  private handleError = (
+    e: Event & { data?: { errorCode?: string; errorMessage?: string } },
+  ) => {
+    const code = (e && e.data && e.data.errorCode) || 'UNKNOWN';
+    const message = (e && e.data && e.data.errorMessage) || '';
+    this.tracer?.trace('noiseCancellation.error', `${code} ${message}`.trim());
+  };
+
+  /**
    * Handles the buffer overflow event.
    * Disables the filter and waits for the restore timeout before enabling it again.
    *
@@ -322,15 +340,27 @@ export class NoiseCancellation implements INoiseCancellation {
   private handleBufferOverflow = (
     // extending the Event type to include the data property as it is not yet
     // in the types but exists in the implementation
-    e: Event & { data?: { overflowCount: number } },
+    e: Event & {
+      data?: {
+        overflowCount?: number;
+        isBufferDropped?: boolean;
+      };
+    },
   ) => {
     const count = (e && e.data && e.data.overflowCount) ?? 0;
+    const isBufferDropped = (e && e.data && e.data.isBufferDropped) ?? false;
+
     this.tracer?.trace('noiseCancellation.bufferOverflowCount', String(count));
 
     window.clearTimeout(this.restoreTimeoutId);
     this.disable().catch((err) =>
       console.error('Failed to disable noise cancellation ', err),
     );
+
+    if (isBufferDropped) {
+      this.tracer?.trace('noiseCancellation.bufferDropped', 'true');
+      return;
+    }
 
     if (count < this.restoreAttempts) {
       this.restoreTimeoutId = window.setTimeout(() => {

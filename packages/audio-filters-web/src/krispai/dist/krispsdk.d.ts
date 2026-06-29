@@ -1,19 +1,3 @@
-/* KRISP TECHNOLOGIES, INC
-__________________
-
-[2018] - [2024] Krisp Technologies, Inc.
-All Rights Reserved.
-
-NOTICE: Access to and use of the Software are expressly conditioned upon compliance with the terms and conditions set forth in the Technology License Agreement or Software Evaluation Agreement executed between Krisp Technologies, Inc. and Your Company. In the absence of such an executed agreement, you are not authorized and have no right to access or use the Software, and any such unauthorized use is strictly prohibited.
- */
-/* KRISP TECHNOLOGIES, INC
-__________________
-
-[2018] - [2024] Krisp Technologies, Inc.
-All Rights Reserved.
-
-NOTICE: Access to and use of the Software are expressly conditioned upon compliance with the terms and conditions set forth in the Technology License Agreement or Software Evaluation Agreement executed between Krisp Technologies, Inc. and Your Company. In the absence of such an executed agreement, you are not authorized and have no right to access or use the Software, and any such unauthorized use is strictly prohibited.
- */
 declare class AudioFilterNode
   extends AudioWorkletNode
   implements IAudioFilterNode
@@ -27,12 +11,16 @@ declare class AudioFilterNode
   private sessionStatsCounterIntervalRef;
   private sessionStatsIntervalMS;
   private worker;
+  private onModelLoaded?;
+  private _disposed;
+  private _boundOnWasmWorkerMessage;
   private get debugLogs();
   constructor(
     audioContext: BaseAudioContext,
     params: ISDKCreateFilterParams,
     onReady?: EventListener,
     onDispose?: EventListener,
+    onModelLoaded?: (models: PartialRecord<ModelNames, string>) => void,
   );
   private _onWasmWorkerMessage;
   postMessage(message: EventMessagesTypes, transfer?: Transferable[]): void;
