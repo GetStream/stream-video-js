@@ -66,6 +66,7 @@ export class StableWSConnection {
   consecutiveFailures = 0;
   /** keep track of the total number of failures */
   totalFailures = 0;
+  lastConnectionError?: WSConnectionError;
 
   // Health-check pings + connection-staleness check.
   /** Send a health check message every 25 seconds */
@@ -102,6 +103,7 @@ export class StableWSConnection {
     }
 
     this.isDisconnected = false;
+    this.lastConnectionError = undefined;
 
     try {
       const healthCheck = await this._connect(timeout);
@@ -140,6 +142,7 @@ export class StableWSConnection {
         // _connect()'s catch) keeps a single failure from spawning two
         // parallel chains - one from this catch and one from _reconnect's
         // own catch when _connect was called from there.
+        this.lastConnectionError = error;
         this._reconnect();
       }
     }
@@ -179,14 +182,22 @@ export class StableWSConnection {
       (async () => {
         await sleep(timeout);
         this.isConnecting = false;
-        throw new Error(
-          JSON.stringify({
-            code: '',
-            StatusCode: '',
-            message: 'initial WS connection could not be established',
-            isWSFailure: true,
-          }),
-        );
+        const e = this.lastConnectionError;
+        const errorPayload = e
+          ? {
+              code: e.code,
+              StatusCode: e.StatusCode,
+              message: e.message,
+              isWSFailure: e.isWSFailure,
+            }
+          : {
+              code: '',
+              StatusCode: '',
+              message: 'initial WS connection could not be established',
+              isWSFailure: true,
+            };
+
+        throw new Error(JSON.stringify(errorPayload));
       })(),
     ]);
   };
@@ -376,6 +387,7 @@ export class StableWSConnection {
       return undefined;
     } catch (caught) {
       const err = caught as WSConnectionError;
+      this.lastConnectionError = err;
       this.isConnecting = false;
       this._log(`_connect() - Error - `, err);
       // Reject THIS attempt's connection-id promise (P1) directly via the
