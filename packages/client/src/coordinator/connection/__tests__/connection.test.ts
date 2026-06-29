@@ -193,6 +193,53 @@ describe('StableWSConnection - silent handshake hang', () => {
     expect(outcome.kind).toBe('rejected');
   });
 
+  it('preserves an initial WS close reason when reconnect cannot get healthy', async () => {
+    const client = new StreamClient('test-key', {
+      browser: false,
+      defaultWsTimeout: 5000,
+      WebSocketImpl: ManualWebSocket as unknown as typeof WebSocket,
+      timeout: 1000,
+    });
+    vi.spyOn(client.tokenManager, 'tokenReady').mockResolvedValue('fake-token');
+    vi.spyOn(client.tokenManager, 'loadToken').mockResolvedValue('fake-token');
+    vi.spyOn(client.tokenManager, 'getToken').mockReturnValue('fake-token');
+
+    client._setUser({ id: 'test-user' });
+    client.userID = 'test-user';
+    client.clientID = 'test-user--abcdef';
+    client._setupConnectionIdPromise();
+
+    const wsConnection = new StableWSConnection(client);
+    client.wsConnection = wsConnection;
+
+    const connectAttemptOutcome = wsConnection.connect(5000).then(
+      () => ({ kind: 'resolved' as const }),
+      (error: Error) => ({ kind: 'rejected' as const, error }),
+    );
+
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = ManualWebSocket.instances.at(-1)!;
+    expect(ws).toBeDefined();
+
+    ws.onclose?.({
+      code: 1006,
+      reason: 'specific ws close reason',
+      wasClean: false,
+      target: ws,
+    });
+
+    await vi.advanceTimersByTimeAsync(20000);
+    const outcome = await connectAttemptOutcome;
+
+    expect(outcome.kind).toBe('rejected');
+    if (outcome.kind === 'rejected') {
+      expect(outcome.error.message).toContain('specific ws close reason');
+      expect(outcome.error.message).not.toContain(
+        'initial WS connection could not be established',
+      );
+    }
+  });
+
   it('does not schedule a reconnect (and leaves connectionIdPromise rejected) on a permanent, non-WS failure', async () => {
     const client = new StreamClient('test-key', {
       browser: false,
