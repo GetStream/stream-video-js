@@ -88,6 +88,7 @@ export class NoiseCancellation implements INoiseCancellation {
 
   private readonly initializing: Promise<void>;
   private readonly resolveInitialized!: () => void;
+  private readonly rejectInitialized!: (reason?: unknown) => void;
 
   private readonly basePath: string;
   private readonly restoreTimeoutMs: number;
@@ -105,9 +106,10 @@ export class NoiseCancellation implements INoiseCancellation {
     restoreAttempts = 3,
     krispSDKParams,
   }: NoiseCancellationOptions = {}) {
-    const { promise, resolve } = promiseWithResolvers<void>();
+    const { promise, resolve, reject } = promiseWithResolvers<void>();
     this.initializing = promise;
     this.resolveInitialized = resolve;
+    this.rejectInitialized = reject;
 
     this.basePath = basePath;
     this.restoreTimeoutMs = restoreTimeoutMs;
@@ -215,7 +217,9 @@ export class NoiseCancellation implements INoiseCancellation {
       this.recovery = undefined;
     }
     if (this.filterNode) {
-      await this.disable();
+      await this.disable().catch((err) =>
+        console.warn('Failed to disable noise cancellation on dispose', err),
+      );
       this.filterNode.removeEventListener('error', this.handleError);
       this.filterNode.removeEventListener(
         'buffer_overflow',
@@ -329,6 +333,11 @@ export class NoiseCancellation implements INoiseCancellation {
     const code = (e && e.data && e.data.errorCode) || 'UNKNOWN';
     const message = (e && e.data && e.data.errorMessage) || '';
     this.tracer?.trace('noiseCancellation.error', `${code} ${message}`.trim());
+    this.rejectInitialized(
+      new Error(
+        `NoiseCancellation failed to initialize: ${code} ${message}`.trim(),
+      ),
+    );
   };
 
   /**
