@@ -1,34 +1,34 @@
-import { BasePeerConnection } from './BasePeerConnection';
-import type {
-  BasePeerConnectionOpts,
-  PublishBundle,
-  TrackPublishOptions,
-} from './types';
-import { NegotiationError } from './NegotiationError';
-import { TransceiverCache } from './TransceiverCache';
+import { VideoSender } from '../gen/video/sfu/event/events';
 import {
   PeerType,
   PublishOption,
   TrackInfo,
   TrackType,
 } from '../gen/video/sfu/models/models';
-import { VideoSender } from '../gen/video/sfu/event/events';
+import { isFirefox } from '../helpers/browsers';
+import { withoutConcurrency } from '../helpers/concurrency';
+import { isReactNative } from '../helpers/platforms';
+import { BasePeerConnection } from './BasePeerConnection';
+import { isSvcCodec } from './codecs';
+import {
+  fromRTCDegradationPreference,
+  toRTCDegradationPreference,
+} from './helpers/degradationPreference';
+import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
+import { isAudioTrackType } from './helpers/tracks';
 import {
   computeAudioLayers,
   computeVideoLayers,
   toSvcEncodings,
   toVideoLayers,
 } from './layers';
-import { isSvcCodec } from './codecs';
-import {
-  fromRTCDegradationPreference,
-  toRTCDegradationPreference,
-} from './helpers/degradationPreference';
-import { isAudioTrackType } from './helpers/tracks';
-import { extractMid, removeCodecsExcept, setStartBitrate } from './helpers/sdp';
-import { withoutConcurrency } from '../helpers/concurrency';
-import { isReactNative } from '../helpers/platforms';
-import { isFirefox } from '../helpers/browsers';
+import { NegotiationError } from './NegotiationError';
+import { TransceiverCache } from './TransceiverCache';
+import type {
+  BasePeerConnectionOpts,
+  PublishBundle,
+  TrackPublishOptions,
+} from './types';
 
 /**
  * The `Publisher` is responsible for publishing/unpublishing media streams to/from the SFU
@@ -39,6 +39,7 @@ export class Publisher extends BasePeerConnection {
   private readonly transceiverCache = new TransceiverCache();
   private readonly clonedTracks = new Set<MediaStreamTrack>();
   private publishOptions: PublishOption[];
+  private readonly selfSubEnabled: boolean;
 
   /**
    * Constructs a new `Publisher` instance.
@@ -46,9 +47,11 @@ export class Publisher extends BasePeerConnection {
   constructor(
     baseOptions: BasePeerConnectionOpts,
     publishOptions: PublishOption[],
+    opts: { selfSubEnabled?: boolean } = {},
   ) {
     super(PeerType.PUBLISHER_UNSPECIFIED, baseOptions);
     this.publishOptions = publishOptions;
+    this.selfSubEnabled = opts.selfSubEnabled ?? false;
 
     this.on('iceRestart', (iceRestart) => {
       if (iceRestart.peerType !== PeerType.PUBLISHER_UNSPECIFIED) return;
@@ -190,6 +193,9 @@ export class Publisher extends BasePeerConnection {
     }
     if (isAudioTrackType(trackType)) {
       await this.updateAudioPublishOptions(trackType, options);
+    }
+    if (track && !bundle.negotiated) {
+      await this.negotiate();
     }
   };
 
@@ -494,6 +500,10 @@ export class Publisher extends BasePeerConnection {
 
         const { sdp: answerSdp } = response;
         await this.pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+
+        for (const bundle of this.transceiverCache.items()) {
+          if (bundle.transceiver.sender.track) bundle.negotiated = true;
+        }
       } catch (err) {
         // negotiation failed, rollback to the previous state
         if (this.pc.signalingState === 'have-local-offer') {
@@ -583,6 +593,7 @@ export class Publisher extends BasePeerConnection {
       muted: !isTrackLive,
       codec: publishOption.codec,
       publishOptionId: publishOption.id,
+      selfSubAudioVideo: this.selfSubEnabled,
     };
   };
 

@@ -76,6 +76,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
         ]) => {
           try {
             if (callingState === CallingState.LEFT) {
+              this.setMutedRecordingPrepared(false);
               await this.stopSpeakingWhileMutedDetection();
             }
             if (callingState !== CallingState.JOINED) return;
@@ -84,11 +85,14 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
             if (ownCapabilities.includes(OwnCapability.SEND_AUDIO)) {
               const hasPermission = await this.hasPermission(permissionState);
               if (hasPermission && status !== 'enabled') {
+                this.setMutedRecordingPrepared(true);
                 await this.startSpeakingWhileMutedDetection(deviceId);
               } else {
+                this.setMutedRecordingPrepared(false);
                 await this.stopSpeakingWhileMutedDetection();
               }
             } else {
+              this.setMutedRecordingPrepared(false);
               await this.stopSpeakingWhileMutedDetection();
             }
           } catch (err) {
@@ -465,6 +469,18 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     await soundDetectorCleanup().catch((err) => {
       this.logger.warn('Failed to stop speaking while muted detector', err);
     });
+  }
+
+  /**
+   * iOS-only: keep the mic-input chain prepared while muted
+   * so the `AVAudioEngine` stays full-duplex and remote audio renders on a
+   * muted join.
+   */
+  private setMutedRecordingPrepared(enabled: boolean): void {
+    if (!isReactNative()) return;
+    globalThis.streamRNVideoSDK?.callManager.setMutedRecordingPrepared?.(
+      enabled,
+    );
   }
 
   private async hasPermission(

@@ -29,6 +29,8 @@ export const ReconnectReason = {
   CONNECTION_FAILED: 'connection_failed',
   /** `restartIce()` rejected. */
   RESTART_ICE_FAILED: 'restart_ice_failed',
+  /** Subscriber renegotiation kept failing, escalate to REJOIN. */
+  SUBSCRIBER_NEGOTIATION_FAILED: 'subscriber_negotiation_failed',
   /** SFU `goAway` event, migrate to a new SFU. */
   GO_AWAY: 'go_away',
   /** Network came back online after going offline. */
@@ -112,6 +114,7 @@ export type PublishBundle = {
   transceiver: RTCRtpTransceiver;
   options: TrackPublishOptions;
   videoSender?: VideoSender;
+  negotiated?: boolean;
 };
 
 export type TrackLayersCache = {

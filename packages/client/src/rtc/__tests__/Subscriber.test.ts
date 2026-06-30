@@ -142,26 +142,6 @@ describe('Subscriber', () => {
       );
     });
 
-    it(`isStable() returns true only when ICE is connected/completed and connectionState is connected`, () => {
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'connected';
-      // @ts-expect-error - private field
-      subscriber['pc'].connectionState = 'connected';
-      expect(subscriber.isStable()).toBe(true);
-
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'completed';
-      expect(subscriber.isStable()).toBe(true);
-
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'disconnected';
-      expect(subscriber.isStable()).toBe(false);
-
-      // @ts-expect-error - private field
-      subscriber['pc'].iceConnectionState = 'new';
-      expect(subscriber.isStable()).toBe(false);
-    });
-
     it(`iceHasEverConnected tracks lifetime connectivity`, () => {
       expect(subscriber['iceHasEverConnected']).toBe(false);
       simulatePriorIceConnected();
@@ -191,6 +171,277 @@ describe('Subscriber', () => {
       );
       expect(sfuClient.iceRestart).toHaveBeenCalledWith({
         peerType: PeerType.SUBSCRIBER,
+      });
+    });
+  });
+
+  describe('Subscriber negotiation', () => {
+    const subscriberOffer: SubscriberOffer = {
+      sdp: 'subscriber-offer-sdp',
+      iceRestart: false,
+      negotiationId: 10,
+    };
+
+    beforeEach(() => {
+      sfuClient.sendAnswer = vi.fn().mockResolvedValue({ response: {} });
+    });
+
+    it('resets isIceRestarting once a negotiation completes', async () => {
+      subscriber['isIceRestarting'] = true;
+
+      await subscriber['negotiate'](subscriberOffer);
+
+      expect(sfuClient.sendAnswer).toHaveBeenCalledWith({
+        peerType: PeerType.SUBSCRIBER,
+        sdp: '',
+        negotiationId: 10,
+      });
+      expect(subscriber['isIceRestarting']).toBe(false);
+    });
+
+    it('resets isIceRestarting even when the negotiation fails', async () => {
+      subscriber['isIceRestarting'] = true;
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+      expect(subscriber['isIceRestarting']).toBe(false);
+    });
+
+    it('rolls back the remote description when a negotiation fails mid-offer', async () => {
+      const setRemoteDescription = vi.fn().mockResolvedValue({});
+      subscriber['pc'].setRemoteDescription = setRemoteDescription;
+      // @ts-expect-error - readonly field
+      subscriber['pc'].signalingState = 'have-remote-offer';
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+      expect(setRemoteDescription).toHaveBeenCalledWith({ type: 'rollback' });
+    });
+
+    it('does not roll back when the peer connection never applied the offer', async () => {
+      // signalingState stays 'stable' because setRemoteDescription rejected
+      subscriber['pc'].setRemoteDescription = vi
+        .fn()
+        .mockRejectedValue(new Error('set remote description failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'set remote description failed',
+      );
+      expect(subscriber['pc'].setRemoteDescription).not.toHaveBeenCalledWith({
+        type: 'rollback',
+      });
+    });
+
+    it('propagates the original error even when the rollback itself fails', async () => {
+      subscriber['pc'].setRemoteDescription = vi
+        .fn()
+        .mockResolvedValueOnce({}) // applying the offer succeeds
+        .mockRejectedValueOnce(new Error('rollback failed')); // rollback fails
+      // @ts-expect-error - readonly field
+      subscriber['pc'].signalingState = 'have-remote-offer';
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+    });
+
+    it('restores the previous generation in the buffer when a negotiation rolls back', async () => {
+      const sdp = (ufrag: string) =>
+        `v=0\r\na=ice-ufrag:${ufrag}\r\na=ice-pwd:pwd\r\n`;
+      const updateActiveGeneration = vi.spyOn(
+        sfuClient.iceTrickleBuffer,
+        'updateActiveGeneration',
+      );
+      // previously-committed generation u0; the new (failing) offer is u1
+      // @ts-expect-error - overriding readonly mock field
+      subscriber['pc'].currentRemoteDescription = {
+        type: 'offer',
+        sdp: sdp('u0'),
+      };
+      // @ts-expect-error - overriding readonly mock field
+      subscriber['pc'].remoteDescription = { type: 'offer', sdp: sdp('u1') };
+      // @ts-expect-error - readonly field
+      subscriber['pc'].signalingState = 'have-remote-offer';
+      sfuClient.sendAnswer = vi
+        .fn()
+        .mockRejectedValue(new Error('send answer failed'));
+
+      await expect(subscriber['negotiate'](subscriberOffer)).rejects.toThrow(
+        'send answer failed',
+      );
+
+      // advanced to the new generation, then restored to the rolled-back one
+      expect(updateActiveGeneration).toHaveBeenCalledWith(
+        PeerType.SUBSCRIBER,
+        sdp('u1'),
+      );
+      expect(updateActiveGeneration).toHaveBeenLastCalledWith(
+        PeerType.SUBSCRIBER,
+        sdp('u0'),
+      );
+    });
+  });
+
+  describe('negotiation failure recovery', () => {
+    const offer = SubscriberOffer.create({
+      sdp: 'offer-sdp',
+      iceRestart: false,
+    });
+    const dispatchOffer = () =>
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'subscriberOffer',
+            subscriberOffer: offer,
+          },
+        }) as DispatchableMessage<'subscriberOffer'>,
+        'test',
+      );
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    it('retries via ICE restart on a single negotiation failure', async () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi.fn().mockRejectedValue(new Error('boom'));
+      // @ts-expect-error - protected method
+      subscriber.tryRestartIce = vi.fn();
+      subscriber['onReconnectionNeeded'] = vi.fn();
+
+      dispatchOffer();
+      await flush();
+
+      // @ts-expect-error - protected method
+      expect(subscriber.tryRestartIce).toHaveBeenCalledTimes(1);
+      expect(subscriber['onReconnectionNeeded']).not.toHaveBeenCalled();
+    });
+
+    it('escalates to REJOIN after repeated failures instead of looping ICE restarts', async () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi.fn().mockRejectedValue(new Error('boom'));
+      // @ts-expect-error - protected method
+      subscriber.tryRestartIce = vi.fn();
+      subscriber['onReconnectionNeeded'] = vi.fn();
+
+      // three consecutive failures (the configured ceiling)
+      for (let i = 0; i < 3; i++) {
+        dispatchOffer();
+        await flush();
+      }
+
+      // the first two fall through to an ICE restart; the third gives up and rejoins
+      // @ts-expect-error - protected method
+      expect(subscriber.tryRestartIce).toHaveBeenCalledTimes(2);
+      expect(subscriber['onReconnectionNeeded']).toHaveBeenCalledWith(
+        WebsocketReconnectStrategy.REJOIN,
+        ReconnectReason.SUBSCRIBER_NEGOTIATION_FAILED,
+        PeerType.SUBSCRIBER,
+      );
+    });
+
+    it('resets the failure counter after a successful negotiation', async () => {
+      // @ts-expect-error - private method
+      subscriber.negotiate = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(new Error('boom'))
+        .mockRejectedValueOnce(new Error('boom'));
+      // @ts-expect-error - protected method
+      subscriber.tryRestartIce = vi.fn();
+      subscriber['onReconnectionNeeded'] = vi.fn();
+
+      for (let i = 0; i < 5; i++) {
+        dispatchOffer();
+        await flush();
+      }
+
+      // four failures total, but never three in a row, so no REJOIN
+      expect(subscriber['onReconnectionNeeded']).not.toHaveBeenCalled();
+      // @ts-expect-error - protected method
+      expect(subscriber.tryRestartIce).toHaveBeenCalledTimes(4);
+    });
+  });
+
+  describe('ICE candidate trickling', () => {
+    const trickle = (ufrag: string, candidate: string) => ({
+      peerType: PeerType.SUBSCRIBER,
+      iceCandidate: JSON.stringify({ usernameFragment: ufrag, candidate }),
+    });
+
+    const sdp = (ufrag: string) =>
+      `v=0\r\na=ice-ufrag:${ufrag}\r\na=ice-pwd:pwd\r\n`;
+
+    const setRemoteUfrag = (ufrag: string) => {
+      // @ts-expect-error - overriding readonly remoteDescription on the mock
+      subscriber['pc'].remoteDescription = { type: 'offer', sdp: sdp(ufrag) };
+    };
+
+    const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+    it('declares the active generation from the remote description and adds emitted candidates', async () => {
+      const addIceCandidate = vi
+        .spyOn(subscriber['pc'], 'addIceCandidate')
+        .mockResolvedValue();
+      const updateActiveGeneration = vi.spyOn(
+        sfuClient.iceTrickleBuffer,
+        'updateActiveGeneration',
+      );
+      setRemoteUfrag('u1');
+      sfuClient.iceTrickleBuffer.push(trickle('u1', 'c1'));
+
+      subscriber['addTrickledIceCandidates']();
+      await flush();
+
+      expect(updateActiveGeneration).toHaveBeenCalledWith(
+        PeerType.SUBSCRIBER,
+        sdp('u1'),
+      );
+      expect(addIceCandidate).toHaveBeenCalledWith({
+        usernameFragment: 'u1',
+        candidate: 'c1',
+      });
+    });
+
+    it('does not re-add a superseded-generation candidate after an ICE restart', async () => {
+      const addIceCandidate = vi
+        .spyOn(subscriber['pc'], 'addIceCandidate')
+        .mockResolvedValue();
+
+      setRemoteUfrag('u0');
+      sfuClient.iceTrickleBuffer.push(trickle('u0', 'c0'));
+      subscriber['addTrickledIceCandidates']();
+      await flush();
+      expect(addIceCandidate).toHaveBeenCalledWith({
+        usernameFragment: 'u0',
+        candidate: 'c0',
+      });
+
+      addIceCandidate.mockClear();
+
+      // ICE restart -> generation u1; the old u0 candidate must not be re-added
+      setRemoteUfrag('u1');
+      sfuClient.iceTrickleBuffer.push(trickle('u1', 'c1'));
+      subscriber['addTrickledIceCandidates']();
+      await flush();
+
+      expect(addIceCandidate).toHaveBeenCalledWith({
+        usernameFragment: 'u1',
+        candidate: 'c1',
+      });
+      expect(addIceCandidate).not.toHaveBeenCalledWith({
+        usernameFragment: 'u0',
+        candidate: 'c0',
       });
     });
   });

@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.13.0...@stream-io/video-filters-react-native-0.14.0) (2026-06-26)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Features
+
+- upgrade to TypeScript 6.0.3, pin ES2022, raise supported-browser floors ([#2290](https://github.com/GetStream/stream-video-js/issues/2290)) ([d9ea158](https://github.com/GetStream/stream-video-js/commit/d9ea15846582fa8db86b3b873eca2afe92ae3593))
+
+## [0.13.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.4...@stream-io/video-filters-react-native-0.13.0) (2026-06-11)
+
+### Features
+
+- webrtc 145 upgrade ([#2133](https://github.com/GetStream/stream-video-js/issues/2133)) ([07825e4](https://github.com/GetStream/stream-video-js/commit/07825e402193ed07acf1d41831545326a0ad93d9)), closes [rn-webrtc#27](https://github.com/GetStream/rn-webrtc/issues/27)
+
 ## [0.12.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.3...@stream-io/video-filters-react-native-0.12.4) (2026-06-01)
 
 ## [0.12.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.12.2...@stream-io/video-filters-react-native-0.12.3) (2026-05-26)

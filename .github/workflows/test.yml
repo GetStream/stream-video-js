@@ -13,12 +13,19 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+# Least-privilege token: read code, comment on PRs, and read prior runs to fetch
+# the main bundle-size baseline artifact.
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
 jobs:
   test-and-build:
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -27,7 +34,7 @@ jobs:
           cache: 'yarn'
 
       - name: ESLint Cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: './.eslintcache'
           key: ${{ runner.os }}-eslintcache-${{ github.ref_name }}-${{ hashFiles('.eslintcache') }}
@@ -43,6 +50,54 @@ jobs:
 
       - name: Build packages
         run: NODE_ENV=production yarn build:all
+
+      # --- Bundle-size report (auxiliary, never fails CI) ---
+
+      # PR: find the most recent successful main run that published a baseline.
+      - name: Resolve main bundle-size baseline run
+        id: bundle-size-baseline
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        run: |
+          latest=$(gh run list --workflow test.yml --branch main --status success \
+            --limit 1 --json databaseId,headSha)
+          run_id=$(echo "$latest" | jq -r '.[0].databaseId // empty')
+          sha=$(echo "$latest" | jq -r '.[0].headSha // empty' | cut -c1-7)
+          echo "run-id=$run_id" >> "$GITHUB_OUTPUT"
+          echo "baseline-ref=${sha:+main@$sha}" >> "$GITHUB_OUTPUT"
+
+      - name: Download main bundle-size baseline
+        if: github.event_name == 'pull_request' && steps.bundle-size-baseline.outputs.run-id != ''
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          name: bundle-sizes
+          path: baseline
+          run-id: ${{ steps.bundle-size-baseline.outputs.run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # PR: measure, diff the minified size vs the baseline, post/update a comment.
+      - name: Report bundle-size delta
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        env:
+          BASELINE_REF: ${{ steps.bundle-size-baseline.outputs.baseline-ref }}
+        run: node scripts/bundle-size/measure.mts --out bundle-sizes.json --baseline baseline/bundle-sizes.json --pr ${{ github.event.pull_request.number }}
+
+      # main: measure and publish the baseline for future PRs to compare against.
+      - name: Measure bundle sizes (baseline)
+        if: github.event_name == 'push'
+        continue-on-error: true
+        run: node scripts/bundle-size/measure.mts --out bundle-sizes.json
+
+      - name: Upload bundle-size baseline
+        if: github.event_name == 'push'
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: bundle-sizes
+          path: bundle-sizes.json
+          retention-days: 90
 
       - name: Test RN SDK
         run: yarn test:react-native:sdk

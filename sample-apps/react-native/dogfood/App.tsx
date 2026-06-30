@@ -41,6 +41,7 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import Toast from 'react-native-toast-message';
 import { appTheme } from './src/theme';
+import { TestRecording } from './src/navigators/TestRecording';
 
 // only enable warning and error logs from webrtc library
 Logger.enable(`${Logger.ROOT_PREFIX}:(WARN|ERROR)`);
@@ -110,6 +111,15 @@ const StackNavigator = () => {
         <Stack.Screen
           name="LiveStream"
           component={LiveStream}
+          options={{ headerShown: false }}
+        />
+      );
+      break;
+    case 'TestRecording':
+      mode = (
+        <Stack.Screen
+          name="TestRecording"
+          component={TestRecording}
           options={{ headerShown: false }}
         />
       );

@@ -2,6 +2,49 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.17.0...@stream-io/video-react-bindings-1.18.0) (2026-06-26)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+- `@stream-io/video-client` updated to version `1.55.0`
+
+### Features
+
+- upgrade to TypeScript 6.0.3, pin ES2022, raise supported-browser floors ([#2290](https://github.com/GetStream/stream-video-js/issues/2290)) ([d9ea158](https://github.com/GetStream/stream-video-js/commit/d9ea15846582fa8db86b3b873eca2afe92ae3593))
+
+## [1.17.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.16.5...@stream-io/video-react-bindings-1.17.0) (2026-06-19)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.54.0`
+
+### Features
+
+- **client:** show connecting indicator while video track is connecting ([#2275](https://github.com/GetStream/stream-video-js/issues/2275)) ([a9c670d](https://github.com/GetStream/stream-video-js/commit/a9c670dec44cc008f1b22aab8cb61998e71d3050)), closes [GetStream/react-native-webrtc#32](https://github.com/GetStream/react-native-webrtc/issues/32)
+
+### Bug Fixes
+
+- **react-bindings:** declare @stream-io/video-client as a runtime dependency ([#2294](https://github.com/GetStream/stream-video-js/issues/2294)) ([978602c](https://github.com/GetStream/stream-video-js/commit/978602cd44e4551ff5af33d8da9f41a55036106f))
+
+## [1.16.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.16.4...@stream-io/video-react-bindings-1.16.5) (2026-06-12)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.53.2`
+
+## [1.16.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.16.3...@stream-io/video-react-bindings-1.16.4) (2026-06-12)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.53.1`
+
+## [1.16.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.16.2...@stream-io/video-react-bindings-1.16.3) (2026-06-11)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.53.0`
+
 ## [1.16.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.16.1...@stream-io/video-react-bindings-1.16.2) (2026-06-01)
 
 ### Dependency Updates

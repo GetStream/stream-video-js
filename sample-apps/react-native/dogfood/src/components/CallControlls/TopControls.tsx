@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { TopViewBackground } from '@stream-io/video-react-native-sdk/src/icons';
+import { TopViewBackground } from '../../assets/TopViewBackground';
 import {
   HangUpCallButton,
   useTheme,

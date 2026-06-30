@@ -327,6 +327,7 @@ export class Call {
   private joinResponseTimeout?: number;
   private rpcRequestTimeout?: number;
   private joinCallData?: JoinCallData;
+  private allowOwnTracksLoopback = false;
   private hasJoinedOnce = false;
   private deviceSettingsAppliedOnce = false;
   private credentials?: Credentials;
@@ -742,7 +743,9 @@ export class Call {
 
       const leaveReason = message ?? reason ?? 'user is leaving the call';
       this.tracer.trace('call.leaveReason', leaveReason);
-      this.sfuStatsReporter?.flush();
+      // await the final sample so it's captured from the still-live peer
+      // connections (disposed below); the send itself stays best-effort.
+      await this.sfuStatsReporter?.flush();
       this.sfuStatsReporter?.stop();
       this.sfuStatsReporter = undefined;
       this.lastStatsOptions = undefined;
@@ -789,6 +792,7 @@ export class Call {
       this.leaveCallHooks.forEach((hook) => hook());
       this.initialized = false;
       this.hasJoinedOnce = false;
+      this.allowOwnTracksLoopback = false;
       this.unifiedSessionId = undefined;
       this.ringingSubject.next(false);
       this.cancelAutoDrop();
@@ -831,6 +835,37 @@ export class Call {
   get currentUserId() {
     return this.clientStore.connectedUser?.id;
   }
+
+  /**
+   * A flag indicating whether self-subscription is enabled for the call.
+   */
+  get isOwnTracksLoopbackAllowed() {
+    return this.allowOwnTracksLoopback;
+  }
+
+  /**
+   * The largest video publish dimension across the current publish options.
+   *
+   * @internal
+   */
+  getMaxVideoPublishDimension = (): VideoDimension | undefined => {
+    if (!this.currentPublishOptions) return undefined;
+    let maxDimension: VideoDimension | undefined;
+    let maxArea = 0;
+    for (const opt of this.currentPublishOptions) {
+      if (opt.trackType !== TrackType.VIDEO) continue;
+
+      const dim = opt.videoDimension;
+      if (!dim || !dim.width || !dim.height) continue;
+
+      const area = dim.width * dim.height;
+      if (area > maxArea) {
+        maxDimension = dim;
+        maxArea = area;
+      }
+    }
+    return maxDimension;
+  };
 
   /**
    * A flag indicating whether the call was created by the current user.
@@ -1044,11 +1079,13 @@ export class Call {
     maxJoinRetries = 3,
     joinResponseTimeout,
     rpcRequestTimeout,
+    allowOwnTracksLoopback = false,
     ...data
   }: JoinCallData & {
     maxJoinRetries?: number;
     joinResponseTimeout?: number;
     rpcRequestTimeout?: number;
+    allowOwnTracksLoopback?: boolean;
   } = {}): Promise<void> => {
     const callingState = this.state.callingState;
 
@@ -1056,9 +1093,14 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
+    // we need this to be set before the callingx.joinCall() is
+    // called to avoid registering the test call in the CallKit/Telecom
+    this.allowOwnTracksLoopback = allowOwnTracksLoopback;
+
     if (data?.ring) {
       this.ringingSubject.next(true);
     }
+
     const callingX = globalThis.streamRNVideoSDK?.callingX;
     if (callingX) {
       // for Android/iOS, we need to start the call in the callingx library as soon as possible
@@ -1232,7 +1274,10 @@ export class Call {
       const isReconnecting =
         this.reconnectStrategy !== WebsocketReconnectStrategy.UNSPECIFIED;
       const reconnectDetails = isReconnecting
-        ? this.getReconnectDetails(data?.migrating_from, previousSessionId)
+        ? this.getReconnectDetails(
+            previousSfuClient?.edgeName,
+            previousSessionId,
+          )
         : undefined;
       const preferredPublishOptions = !isReconnecting
         ? this.getPreferredPublishOptions()
@@ -1290,23 +1335,9 @@ export class Call {
     // when performing fast reconnect, or when we reuse the same SFU client,
     // (ws remained healthy), we just need to restore the ICE connection
     if (performingFastReconnect) {
-      // The SFU automatically issues an ICE restart on the subscriber,
-      // so we only need to decide about the publisher. If the publisher's
-      // peer connection is still stable (ICE still connected end-to-end),
-      // the signal WebSocket drop was the only problem — the new WS alone
-      // is enough, and restarting ICE would add unnecessary SDP/ICE churn.
-      const publisherIsStable = this.publisher?.isStable() ?? true;
-      const includePublisher =
-        !!this.publisher?.isPublishing() && !publisherIsStable;
-      if (!includePublisher && this.publisher?.isPublishing()) {
-        this.logger.info(
-          '[Reconnect] FAST: skipping publisher ICE restart, publisher PC is stable',
-        );
-      }
-      await this.restoreICE(sfuClient, {
-        includeSubscriber: false,
-        includePublisher,
-      });
+      // the SFU automatically issues an ICE restart on the subscriber
+      // we don't have to do it ourselves
+      await this.restoreICE(sfuClient, { includeSubscriber: false });
     } else {
       const connectionConfig = toRtcConfiguration(this.credentials.ice_servers);
       await this.initPublisherAndSubscriber({
@@ -1505,6 +1536,11 @@ export class Call {
       enable_rtc_stats: enableTracing,
       reporting_interval_ms: reportingIntervalMs,
     } = statsOptions;
+    // Flush the previous reporter's final sample while its peer connections are
+    // still alive, before we dispose them below. Awaits only the sampling step.
+    await this.sfuStatsReporter?.flush();
+    this.sfuStatsReporter?.stop();
+    this.sfuStatsReporter = undefined;
     if (closePreviousInstances && this.subscriber) {
       await this.subscriber.dispose();
       this.state.removeAllOrphanedTracks();
@@ -1554,7 +1590,13 @@ export class Call {
       if (closePreviousInstances && this.publisher) {
         await this.publisher.dispose();
       }
-      this.publisher = new Publisher(basePeerConnectionOptions, publishOptions);
+      this.publisher = new Publisher(
+        basePeerConnectionOptions,
+        publishOptions,
+        {
+          selfSubEnabled: this.allowOwnTracksLoopback,
+        },
+      );
     }
 
     this.statsReporter?.stop();
@@ -1569,8 +1611,6 @@ export class Call {
     }
 
     this.tracer.setEnabled(enableTracing);
-    this.sfuStatsReporter?.flush();
-    this.sfuStatsReporter?.stop();
     if (statsOptions?.reporting_interval_ms > 0) {
       this.sfuStatsReporter = new SfuStatsReporter(sfuClient, {
         clientDetails,
@@ -1638,6 +1678,10 @@ export class Call {
     reason: string,
   ) => {
     this.logger.debug('[Reconnect] SFU signal connection closed');
+    // Ignore a close from a superseded client (e.g. an old socket's delayed
+    // `onclose` arriving after a reconnection already swapped in a new client).
+    // Only the currently active client's death may drive a reconnection.
+    if (sfuClient !== this.sfuClient) return;
     const { callingState } = this.state;
     if (
       // SFU WS closed before we finished current join,
@@ -1678,11 +1722,12 @@ export class Call {
     strategy: WebsocketReconnectStrategy,
     reason: ReconnectReason,
   ): Promise<void> => {
+    const { callingState } = this.state;
     if (
-      this.state.callingState === CallingState.JOINING ||
-      this.state.callingState === CallingState.RECONNECTING ||
-      this.state.callingState === CallingState.MIGRATING ||
-      this.state.callingState === CallingState.RECONNECTING_FAILED
+      callingState === CallingState.JOINING ||
+      callingState === CallingState.RECONNECTING ||
+      callingState === CallingState.MIGRATING ||
+      callingState === CallingState.RECONNECTING_FAILED
     )
       return;
 
@@ -1696,6 +1741,7 @@ export class Call {
       const reconnectStartTime = Date.now();
       this.reconnectStrategy = strategy;
       this.reconnectReason = reason;
+      const sfuRejoinFailures = new Map<string, number>();
 
       const markAsReconnectingFailed = async () => {
         try {
@@ -1768,8 +1814,8 @@ export class Call {
         if (this.reconnectStrategy !== WebsocketReconnectStrategy.FAST) {
           this.reconnectAttempts++;
         }
-        const currentStrategy =
-          WebsocketReconnectStrategy[this.reconnectStrategy];
+        const attemptedStrategy = this.reconnectStrategy;
+        const currentStrategy = WebsocketReconnectStrategy[attemptedStrategy];
         try {
           // wait until the network is available
           await this.networkAvailableTask?.promise;
@@ -1790,9 +1836,25 @@ export class Call {
             case WebsocketReconnectStrategy.FAST:
               await this.reconnectFast();
               break;
-            case WebsocketReconnectStrategy.REJOIN:
-              await this.reconnectRejoin();
+            case WebsocketReconnectStrategy.REJOIN: {
+              const confirmedBadSfus = Array.from(sfuRejoinFailures)
+                .filter(([, failures]) => failures >= 2)
+                .map(([sfu]) => sfu);
+
+              if (this.joinCallData && confirmedBadSfus.length) {
+                this.joinCallData.migrating_from =
+                  confirmedBadSfus[confirmedBadSfus.length - 1];
+                this.joinCallData.migrating_from_list = confirmedBadSfus;
+              }
+
+              try {
+                await this.reconnectRejoin();
+              } finally {
+                delete this.joinCallData?.migrating_from;
+                delete this.joinCallData?.migrating_from_list;
+              }
               break;
+            }
             case WebsocketReconnectStrategy.MIGRATE:
               await this.reconnectMigrate();
               break;
@@ -1807,6 +1869,20 @@ export class Call {
           this.consecutiveNegotiationFailures = 0;
           break; // do-while loop, reconnection worked, exit the loop
         } catch (error) {
+          if (attemptedStrategy === WebsocketReconnectStrategy.REJOIN) {
+            const failedSfu = this.credentials?.server.edge_name;
+            if (failedSfu) {
+              const switchSfu =
+                error instanceof SfuJoinError &&
+                SfuJoinError.isJoinErrorCode(error.errorEvent);
+              const failures = (sfuRejoinFailures.get(failedSfu) ?? 0) + 1;
+              sfuRejoinFailures.set(
+                failedSfu,
+                switchSfu ? Math.max(failures, 2) : failures,
+              );
+            }
+          }
+
           if (this.state.callingState === CallingState.OFFLINE) {
             this.logger.debug(
               `[Reconnect] Can't reconnect while offline, stopping reconnection attempts`,
@@ -2061,11 +2137,19 @@ export class Call {
           this.sfuStatsReporter?.stop();
           this.state.setCallingState(CallingState.OFFLINE);
         } else {
+          if (!this.networkAvailableTask) return;
           this.logger.debug('[Reconnect] Going online');
-          this.sfuClient?.close(
-            StreamSfuClient.DISPOSE_OLD_SOCKET,
-            'Closing WS to reconnect after going online',
-          );
+          // Only discard the socket when no reconnect is already in flight. A
+          // running reconnect owns the SFU-client lifecycle (`doJoin` closes
+          // the previous client once the new session is up). Closing here would
+          // tear down the socket it's mid-join on, leaving the in-flight rejoin
+          // to spin on SIGNAL_LOST.
+          if (!hasPending(this.reconnectConcurrencyTag)) {
+            this.sfuClient?.close(
+              StreamSfuClient.DISPOSE_OLD_SOCKET,
+              'Closing WS to reconnect after going online',
+            );
+          }
           // we went online, release the previous waiters and reset the state
           this.networkAvailableTask?.resolve();
           this.networkAvailableTask = undefined;
@@ -2443,9 +2527,8 @@ export class Call {
    */
   muteSelf = (type: TrackMuteType) => {
     const myUserId = this.currentUserId;
-    if (myUserId) {
-      return this.muteUser(myUserId, type);
-    }
+    if (!myUserId) return undefined;
+    return this.muteUser(myUserId, type);
   };
 
   /**
@@ -2463,9 +2546,9 @@ export class Call {
       }
     }
 
-    if (userIdsToMute.length > 0) {
-      return this.muteUser(userIdsToMute, type);
-    }
+    return userIdsToMute.length > 0
+      ? this.muteUser(userIdsToMute, type)
+      : undefined;
   };
 
   /**

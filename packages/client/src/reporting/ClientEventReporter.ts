@@ -64,6 +64,7 @@ export type CallReportContext = {
 
 export type ClientEventReporterOptions = {
   streamClient: StreamClient;
+  enabled?: boolean;
 };
 
 type StageError = {
@@ -94,6 +95,7 @@ export class ClientEventReporter {
   private readonly logger = videoLoggerSystem.getLogger('ClientEventReporter');
 
   private streamClient: StreamClient;
+  private enabled: boolean;
 
   private coordinatorConnectId?: string;
   private coordinatorConnectUserId?: string;
@@ -112,6 +114,7 @@ export class ClientEventReporter {
 
   constructor(options: ClientEventReporterOptions) {
     this.streamClient = options.streamClient;
+    this.enabled = options.enabled ?? true;
   }
 
   /**
@@ -216,7 +219,7 @@ export class ClientEventReporter {
       joinAttemptIdSnapshot: this.joinAttemptIds.get(cid),
     };
 
-    this.send({
+    this.sendForCall(cid, {
       ...this.buildCommon(cid, 'MediaDevicePermission', pair),
       ...this.sessionIdField(cid),
       microphone_permission_status: readPermissionStatus(
@@ -319,7 +322,7 @@ export class ClientEventReporter {
     };
 
     const resolvedSfuId = this.getSfuId(cid);
-    this.send({
+    this.sendForCall(cid, {
       ...this.buildCommon(cid, stage, pair),
       ...this.sessionIdField(cid),
       ...(resolvedSfuId && { sfu_id: resolvedSfuId }),
@@ -347,8 +350,8 @@ export class ClientEventReporter {
       const { code, reason } = opts;
       const stageError: StageError = { code, reason };
 
-      applyError(this.coordinatorPairs.get(cid), stageError);
-      applyError(this.wsPairs.get(cid), stageError);
+      applyErrorIfAbsent(this.coordinatorPairs.get(cid), stageError);
+      applyErrorIfAbsent(this.wsPairs.get(cid), stageError);
 
       this.failCoordinator(cid);
       this.failWs(cid);
@@ -390,8 +393,13 @@ export class ClientEventReporter {
     const joinAttemptId = this.joinAttemptIds.get(cid);
     if (!joinAttemptId) return;
     const coordinatorConnectId = this.coordinatorConnectId;
-    this.send({
-      user_id: this.streamClient.userID,
+    const ctx = this.callContexts.get(cid);
+
+    this.sendForCall(cid, {
+      user_id: this.streamClient.userID || this.coordinatorConnectUserId,
+      type: ctx?.callType,
+      id: ctx?.callId,
+      call_cid: cid,
       stage: 'JoinInitiated',
       join_attempt_id: joinAttemptId,
       ...(coordinatorConnectId && {
@@ -422,11 +430,17 @@ export class ClientEventReporter {
     stage: 'CoordinatorJoin' | 'WSJoin',
     err: unknown,
   ) => {
-    if (stage === 'CoordinatorJoin') {
-      applyError(this.coordinatorPairs.get(cid), mapCoordinatorHttpError(err));
-    } else {
-      applyError(this.wsPairs.get(cid), mapWsJoinError(err));
-    }
+    const pair =
+      stage === 'CoordinatorJoin'
+        ? this.coordinatorPairs.get(cid)
+        : this.wsPairs.get(cid);
+
+    applyErrorIfAbsent(
+      pair,
+      stage === 'CoordinatorJoin'
+        ? mapCoordinatorHttpError(err)
+        : mapWsJoinError(err),
+    );
   };
 
   private beginCoordinatorAttempt = (cid: string) => {
@@ -440,7 +454,7 @@ export class ClientEventReporter {
         joinReasonSnapshot: this.joinReasons.get(cid),
       };
       this.coordinatorPairs.set(cid, pair);
-      this.send({
+      this.sendForCall(cid, {
         ...this.buildCommon(cid, 'CoordinatorJoin', pair),
         ...(pair.joinReasonSnapshot && {
           join_reason: pair.joinReasonSnapshot,
@@ -448,13 +462,14 @@ export class ClientEventReporter {
         event_type: 'initiated',
       });
     }
+    pair.lastError = undefined;
     pair.attempts++;
   };
 
   private succeedCoordinator = (cid: string) => {
     const pair = this.coordinatorPairs.get(cid);
     if (!pair) return;
-    this.send({
+    this.sendForCall(cid, {
       ...this.buildCommon(cid, 'CoordinatorJoin', pair),
       ...this.sessionIdField(cid),
       ...(pair.joinReasonSnapshot && { join_reason: pair.joinReasonSnapshot }),
@@ -473,7 +488,7 @@ export class ClientEventReporter {
       return;
     }
     const { reason, code } = pair.lastError;
-    this.send({
+    this.sendForCall(cid, {
       ...this.buildCommon(cid, 'CoordinatorJoin', pair),
       ...this.sessionIdField(cid),
       ...(pair.joinReasonSnapshot && { join_reason: pair.joinReasonSnapshot }),
@@ -498,7 +513,7 @@ export class ClientEventReporter {
       };
       this.wsPairs.set(cid, pair);
       const sfuId = this.getSfuId(cid);
-      this.send({
+      this.sendForCall(cid, {
         ...this.buildCommon(cid, 'WSJoin', pair),
         ...this.sessionIdField(cid),
         ...(sfuId && { sfu_id: sfuId }),
@@ -506,6 +521,7 @@ export class ClientEventReporter {
       });
     }
 
+    pair.lastError = undefined;
     pair.attempts++;
   };
 
@@ -513,7 +529,7 @@ export class ClientEventReporter {
     const pair = this.wsPairs.get(cid);
     if (!pair) return;
     const sfuId = this.getSfuId(cid);
-    this.send({
+    this.sendForCall(cid, {
       ...this.buildCommon(cid, 'WSJoin', pair),
       ...this.sessionIdField(cid),
       ...(sfuId && { sfu_id: sfuId }),
@@ -536,7 +552,7 @@ export class ClientEventReporter {
     const { reason, code } = pair.lastError;
     const sfuId = this.getSfuId(cid);
 
-    this.send({
+    this.sendForCall(cid, {
       ...this.buildCommon(cid, 'WSJoin', pair),
       ...this.sessionIdField(cid),
       event_type: 'completed',
@@ -611,7 +627,7 @@ export class ClientEventReporter {
     };
     this.peerConnectionPairs.set(key, pair);
 
-    this.send({
+    this.sendForCall(cid, {
       ...this.buildCommon(cid, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(cid),
       peer_connection: role,
@@ -632,7 +648,7 @@ export class ClientEventReporter {
     const pair = this.peerConnectionPairs.get(key);
     if (!pair) return;
 
-    this.send({
+    this.sendForCall(cid, {
       ...this.buildCommon(cid, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(cid),
       peer_connection: role,
@@ -660,7 +676,7 @@ export class ClientEventReporter {
     const pair = this.peerConnectionPairs.get(key);
     if (!pair) return;
 
-    this.send({
+    this.sendForCall(cid, {
       ...this.buildCommon(cid, 'PeerConnectionConnect', pair),
       ...this.sessionIdField(cid),
       peer_connection: role,
@@ -699,7 +715,7 @@ export class ClientEventReporter {
     const ctx = this.callContexts.get(cid);
     const coordinatorConnectId = this.coordinatorConnectId;
     return {
-      user_id: this.streamClient.userID,
+      user_id: this.streamClient.userID || this.coordinatorConnectUserId,
       type: ctx?.callType ?? '',
       id: ctx?.callId ?? '',
       call_cid: cid,
@@ -718,7 +734,13 @@ export class ClientEventReporter {
   };
 
   private send = (body: Record<string, unknown>) => {
+    if (!this.enabled) return;
     void this.sendWithRetry(body);
+  };
+
+  private sendForCall = (cid: string, body: Record<string, unknown>) => {
+    if (!this.callContexts.has(cid)) return;
+    this.send(body);
   };
 
   private sendWithRetry = async (
@@ -783,10 +805,16 @@ const readPermissionStatus = (
 const errorMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err);
 
-// a pair reports the most recent error it saw - the most proximate
-// cause of the stage failure
 const applyError = (pair: StagePairState | undefined, next: StageError) => {
   if (!pair) return;
+  pair.lastError = next;
+};
+
+const applyErrorIfAbsent = (
+  pair: StagePairState | undefined,
+  next: StageError,
+) => {
+  if (!pair || pair.lastError) return;
   pair.lastError = next;
 };
 
@@ -832,7 +860,7 @@ const mapWsJoinError = (err: unknown): StageError => {
 
     return {
       reason: sfuError?.message || err.message,
-      code: sfuError ? ErrorCode[sfuError.code] : 'SFU_ERROR',
+      code: (sfuError && ErrorCode[sfuError.code]) || 'SFU_ERROR',
     };
   }
 

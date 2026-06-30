@@ -66,13 +66,14 @@ export class StableWSConnection {
   consecutiveFailures = 0;
   /** keep track of the total number of failures */
   totalFailures = 0;
+  lastConnectionError?: WSConnectionError;
 
   // Health-check pings + connection-staleness check.
   /** Send a health check message every 25 seconds */
   pingInterval = 25 * 1000;
   healthCheckTimeoutRef?: number;
   connectionCheckTimeout = this.pingInterval + 10 * 1000;
-  connectionCheckTimeoutRef?: NodeJS.Timeout;
+  connectionCheckTimeoutRef?: number;
   /** Store the last event time for health checks */
   lastEvent: Date | null = null;
 
@@ -102,6 +103,7 @@ export class StableWSConnection {
     }
 
     this.isDisconnected = false;
+    this.lastConnectionError = undefined;
 
     try {
       const healthCheck = await this._connect(timeout);
@@ -140,6 +142,7 @@ export class StableWSConnection {
         // _connect()'s catch) keeps a single failure from spawning two
         // parallel chains - one from this catch and one from _reconnect's
         // own catch when _connect was called from there.
+        this.lastConnectionError = error;
         this._reconnect();
       }
     }
@@ -174,18 +177,27 @@ export class StableWSConnection {
             await sleep(interval);
           }
         }
+        return undefined;
       })(),
       (async () => {
         await sleep(timeout);
         this.isConnecting = false;
-        throw new Error(
-          JSON.stringify({
-            code: '',
-            StatusCode: '',
-            message: 'initial WS connection could not be established',
-            isWSFailure: true,
-          }),
-        );
+        const e = this.lastConnectionError;
+        const errorPayload = e
+          ? {
+              code: e.code,
+              StatusCode: e.StatusCode,
+              message: e.message,
+              isWSFailure: e.isWSFailure,
+            }
+          : {
+              code: '',
+              StatusCode: '',
+              message: 'initial WS connection could not be established',
+              isWSFailure: true,
+            };
+
+        throw new Error(JSON.stringify(errorPayload));
       })(),
     ]);
   };
@@ -221,7 +233,7 @@ export class StableWSConnection {
       getTimers().clearInterval(this.healthCheckTimeoutRef);
     }
     if (this.connectionCheckTimeoutRef) {
-      clearInterval(this.connectionCheckTimeoutRef);
+      getTimers().clearTimeout(this.connectionCheckTimeoutRef);
     }
 
     removeConnectionEventListeners(this.onlineStatusChanged);
@@ -372,8 +384,10 @@ export class StableWSConnection {
         this.client.resolveConnectionId?.(this.connectionID);
         return response;
       }
+      return undefined;
     } catch (caught) {
       const err = caught as WSConnectionError;
+      this.lastConnectionError = err;
       this.isConnecting = false;
       this._log(`_connect() - Error - `, err);
       // Reject THIS attempt's connection-id promise (P1) directly via the
@@ -579,7 +593,7 @@ export class StableWSConnection {
         code === KnownCodes.TOKEN_EXPIRED &&
         !this.client.tokenManager.isStatic()
       ) {
-        clearTimeout(this.connectionCheckTimeoutRef);
+        getTimers().clearTimeout(this.connectionCheckTimeoutRef);
         this._log(
           'connect() - WS failure due to expired token, so going to try to reload token and reconnect',
         );
@@ -769,8 +783,9 @@ export class StableWSConnection {
    * to be reconnected.
    */
   scheduleConnectionCheck = () => {
-    clearTimeout(this.connectionCheckTimeoutRef);
-    this.connectionCheckTimeoutRef = setTimeout(() => {
+    const timers = getTimers();
+    timers.clearTimeout(this.connectionCheckTimeoutRef);
+    this.connectionCheckTimeoutRef = timers.setTimeout(() => {
       const now = new Date();
       if (
         this.lastEvent &&

@@ -21,7 +21,6 @@ import { BottomControls } from './CallControlls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
 import { TopControls } from './CallControlls/TopControls';
-import { AudioConnectingParticipantLabel } from './AudioConnectingParticipantLabel';
 import { useLayout } from '../contexts/LayoutContext';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';
@@ -149,7 +148,6 @@ export const ActiveCall = ({
             iOSPiPIncludeLocalParticipantVideo
             onHangupCallHandler={onHangupCallHandler}
             CallControls={CustomBottomControls}
-            ParticipantLabel={AudioConnectingParticipantLabel}
             landscape={isLandscape}
             layout={selectedLayout}
           />
