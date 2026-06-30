@@ -112,6 +112,7 @@ export type PublishBundle = {
   transceiver: RTCRtpTransceiver;
   options: TrackPublishOptions;
   videoSender?: VideoSender;
+  negotiated?: boolean;
 };
 
 export type TrackLayersCache = {

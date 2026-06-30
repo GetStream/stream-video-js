@@ -157,6 +157,7 @@ describe('Publisher', () => {
         publishOption: publisher['publishOptions'][0],
         transceiver,
         options: {},
+        negotiated: true,
       });
 
       await publisher.publish(track, TrackType.VIDEO);
@@ -165,6 +166,75 @@ describe('Publisher', () => {
       expect(publisher['pc'].addTransceiver).not.toHaveBeenCalled();
       expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(clone);
       expect(track.stop).toHaveBeenCalled();
+    });
+
+    it('should not renegotiate when reusing an already-negotiated transceiver', async () => {
+      const track = new MediaStreamTrack();
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
+
+      const transceiver = new RTCRtpTransceiver();
+      // @ts-expect-error test setup
+      transceiver.sender.track = track;
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+        negotiated: true,
+      });
+
+      // @ts-expect-error - private method
+      const negotiateSpy = vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+
+      await publisher.publish(track, TrackType.VIDEO);
+
+      expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(clone);
+      expect(negotiateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should renegotiate on republish when a previous negotiation never reached the SFU (SetPublisher timeout)', async () => {
+      const track = new MediaStreamTrack();
+      const transceiver = new RTCRtpTransceiver();
+      // @ts-expect-error test setup
+      transceiver.sender.track = track;
+      const bundle = {
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+        negotiated: false,
+      };
+      publisher['transceiverCache'].add(bundle);
+
+      vi.spyOn(publisher['pc'], 'createOffer')
+        // @ts-expect-error TS picks up the wrong overload
+        .mockResolvedValue({ sdp: 'offer-sdp', type: 'offer' });
+      vi.spyOn(publisher['pc'], 'setLocalDescription').mockResolvedValue();
+      vi.spyOn(publisher['pc'], 'setRemoteDescription').mockResolvedValue();
+      vi.spyOn(publisher, 'getAnnouncedTracks').mockReturnValue([
+        // @ts-expect-error incomplete data
+        { trackId: '123' },
+      ]);
+
+      sfuClient.setPublisher = vi
+        .fn()
+        .mockRejectedValue(new Error('SetPublisherTimeout'));
+      await expect(publisher['negotiate']()).rejects.toThrow(
+        'SetPublisherTimeout',
+      );
+      expect(bundle.negotiated).toBe(false);
+
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
+      sfuClient.setPublisher = vi
+        .fn()
+        .mockResolvedValue({ response: { sdp: 'answer-sdp' } });
+
+      await publisher.publish(track, TrackType.VIDEO);
+
+      expect(publisher['pc'].addTransceiver).not.toHaveBeenCalled();
+      expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(clone);
+      expect(sfuClient.setPublisher).toHaveBeenCalled();
+      expect(bundle.negotiated).toBe(true);
     });
   });
 
@@ -1457,6 +1527,7 @@ describe('Publisher', () => {
         publishOption: publisher['publishOptions'][0],
         transceiver,
         options: {},
+        negotiated: true,
       });
 
       // stopping seeds the bundle's videoSender from the current encoder
@@ -1515,11 +1586,13 @@ describe('Publisher', () => {
         publishOption: publisher['publishOptions'][0],
         transceiver: vp8Transceiver,
         options: {},
+        negotiated: true,
       });
       publisher['transceiverCache'].add({
         publishOption: publisher['publishOptions'][1],
         transceiver: vp9Transceiver,
         options: {},
+        negotiated: true,
       });
 
       await publisher.stopTracks(TrackType.VIDEO);
@@ -1589,6 +1662,7 @@ describe('Publisher', () => {
         publishOption,
         transceiver,
         options: {},
+        negotiated: true,
       });
 
       // SFU sends a changePublishQuality while we are not publishing.
