@@ -121,163 +121,164 @@ export const firebaseDataHandler = async (
     const asForegroundService = canListenToWS();
 
     if (asForegroundService) {
-      // Listen to call events from WS through fg service
-      // note: this will replace the current empty fg service runner
-      //we need to start service (e.g. by calling display incoming call) and than launch bg task, consider making those steps independent
-      await callingx.startBackgroundTask((_: unknown, stopTask: () => void) => {
-        return new Promise((resolve) => {
-          const finishBackgroundTask = () => {
+      // Listen to call events from WS with headless task, bound to call service.
+      // By this moment the call service is already running, so we can acquire the background task.
+      const backgroundTaskOwner = `push:${call_cid}`;
+      await callingx.acquireBackgroundTask(backgroundTaskOwner).catch((e) => {
+        logger.error(
+          `Failed to acquire background task for callCid: ${call_cid} error: ${e}`,
+        );
+      });
+
+      const finishBackgroundTask = () => {
+        callingx.log(
+          `Finishing background task for callCid: ${call_cid}`,
+          'debug',
+        );
+        callingx.releaseBackgroundTask(backgroundTaskOwner);
+      };
+
+      (async () => {
+        try {
+          const _client = await pushConfig.createStreamVideoClient();
+          if (!_client) {
+            logger.debug(
+              `Closing fg service as there is no client to create from push config`,
+            );
+            finishBackgroundTask();
+            return;
+          }
+
+          const callFromPush = await _client.onRingingCall(call_cid);
+          const { mustEndCall, endCallReason } = shouldCallBeClosed(
+            callFromPush,
+            data,
+          );
+          if (mustEndCall) {
+            logger.debug(
+              `Closing fg service callCid: ${call_cid} endCallReason: ${endCallReason}`,
+            );
+
             callingx.log(
-              `Finishing background task for callCid: ${call_cid}`,
+              `Ending call with callCid: ${call_cid} endCallReason: ${endCallReason}`,
               'debug',
             );
-            resolve(undefined);
-            stopTask();
-          };
+            callingx.endCallWithReason(call_cid, endCallReason);
+            callFromPush.leave({ reject: false }).catch((error) => {
+              logger.error(
+                `Failed to leave already-ended ringing call ${call_cid}: ${error}`,
+              );
+            });
+            finishBackgroundTask();
+            return;
+          }
 
-          (async () => {
-            try {
-              const _client = await pushConfig.createStreamVideoClient();
-              if (!_client) {
+          const unsubscribeFunctions: Array<() => void> = [];
+          // check if service needs to be closed if accept/decline event was done on another device
+          const unsubscribe = callFromPush.on('all', (event) => {
+            const _canListenToWS = canListenToWS();
+            if (!_canListenToWS) {
+              logger.debug(
+                `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
+                { event },
+              );
+              unsubscribeFunctions.forEach((fn) => fn());
+
+              finishBackgroundTask();
+              return;
+            }
+
+            const {
+              mustEndCall: mustEndCallFromEvent,
+              endCallReason: endCallReasonFromEvent,
+            } = shouldCallBeClosed(callFromPush, data);
+            if (mustEndCallFromEvent) {
+              logger.debug(
+                `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS} shouldCallBeClosed`,
+                { event },
+              );
+              unsubscribeFunctions.forEach((fn) => fn());
+
+              callingx.endCallWithReason(call_cid, endCallReasonFromEvent);
+              finishBackgroundTask();
+            }
+          });
+
+          // check if service needs to be closed if call was left
+          const stateSubscription = callFromPush.state.callingState$.subscribe(
+            (callingState) => {
+              if (
+                callingState === CallingState.IDLE ||
+                callingState === CallingState.LEFT
+              ) {
                 logger.debug(
-                  `Closing fg service as there is no client to create from push config`,
+                  `Closing fg service from callingState callCid: ${call_cid} callingState: ${callingState}`,
                 );
+                unsubscribeFunctions.forEach((fn) => fn());
+                callingx.log(
+                  `Ending call with callCid: ${call_cid} callingState: ${callingState}`,
+                  'debug',
+                );
+                finishBackgroundTask();
+              }
+            },
+          );
+
+          const endCallSubscription = callingx.addEventListener(
+            'endCall',
+            async ({ callId }: { callId: string }) => {
+              unsubscribeFunctions.forEach((fn) => fn());
+              try {
+                await callFromPush.leave({
+                  reject:
+                    callFromPush.state.callingState === CallingState.RINGING,
+                  reason: 'decline',
+                });
+              } catch (error) {
+                logger.error(
+                  `Failed to leave call with callCid: ${call_cid} error: ${error}`,
+                );
+              } finally {
+                callingx.log(
+                  `Ending call with callCid: ${call_cid} callId: ${callId}`,
+                  'debug',
+                );
+                finishBackgroundTask();
+              }
+            },
+          );
+
+          //stop background task when app comes to foreground
+          const appStateSubscription = AppState.addEventListener(
+            'change',
+            (nextAppState) => {
+              const _canListenToWS = canListenToWS();
+              callingx.log(
+                `AppState changed to: ${nextAppState} for callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
+                'debug',
+              );
+              if (!_canListenToWS) {
+                unsubscribeFunctions.forEach((fn) => fn());
                 finishBackgroundTask();
                 return;
               }
+            },
+          );
 
-              const callFromPush = await _client.onRingingCall(call_cid);
-              const { mustEndCall, endCallReason } = shouldCallBeClosed(
-                callFromPush,
-                data,
-              );
-              if (mustEndCall) {
-                logger.debug(
-                  `Closing fg service callCid: ${call_cid} endCallReason: ${endCallReason}`,
-                );
-
-                callingx.log(
-                  `Ending call with callCid: ${call_cid} endCallReason: ${endCallReason}`,
-                  'debug',
-                );
-                callingx.endCallWithReason(call_cid, endCallReason);
-                callFromPush.leave({ reject: false }).catch((error) => {
-                  logger.error(
-                    `Failed to leave already-ended ringing call ${call_cid}: ${error}`,
-                  );
-                });
-                resolve(undefined);
-                return;
-              }
-
-              const unsubscribeFunctions: Array<() => void> = [];
-              // check if service needs to be closed if accept/decline event was done on another device
-              const unsubscribe = callFromPush.on('all', (event) => {
-                const _canListenToWS = canListenToWS();
-                if (!_canListenToWS) {
-                  logger.debug(
-                    `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
-                    { event },
-                  );
-                  unsubscribeFunctions.forEach((fn) => fn());
-
-                  finishBackgroundTask();
-                  return;
-                }
-
-                const {
-                  mustEndCall: mustEndCallFromEvent,
-                  endCallReason: endCallReasonFromEvent,
-                } = shouldCallBeClosed(callFromPush, data);
-                if (mustEndCallFromEvent) {
-                  logger.debug(
-                    `Closing fg service from event callCid: ${call_cid} canListenToWS: ${_canListenToWS} shouldCallBeClosed`,
-                    { event },
-                  );
-                  unsubscribeFunctions.forEach((fn) => fn());
-
-                  callingx.endCallWithReason(call_cid, endCallReasonFromEvent);
-                  resolve(undefined);
-                }
-              });
-
-              // check if service needs to be closed if call was left
-              const stateSubscription =
-                callFromPush.state.callingState$.subscribe((callingState) => {
-                  if (
-                    callingState === CallingState.IDLE ||
-                    callingState === CallingState.LEFT
-                  ) {
-                    logger.debug(
-                      `Closing fg service from callingState callCid: ${call_cid} callingState: ${callingState}`,
-                    );
-                    unsubscribeFunctions.forEach((fn) => fn());
-                    callingx.log(
-                      `Ending call with callCid: ${call_cid} callingState: ${callingState}`,
-                      'debug',
-                    );
-                    resolve(undefined);
-                  }
-                });
-
-              const endCallSubscription = callingx.addEventListener(
-                'endCall',
-                async ({ callId }: { callId: string }) => {
-                  unsubscribeFunctions.forEach((fn) => fn());
-                  try {
-                    await callFromPush.leave({
-                      reject:
-                        callFromPush.state.callingState ===
-                        CallingState.RINGING,
-                      reason: 'decline',
-                    });
-                  } catch (error) {
-                    logger.error(
-                      `Failed to leave call with callCid: ${call_cid} error: ${error}`,
-                    );
-                  } finally {
-                    callingx.log(
-                      `Ending call with callCid: ${call_cid} callId: ${callId}`,
-                      'debug',
-                    );
-                    resolve(undefined);
-                  }
-                },
-              );
-
-              //stop background task when app comes to foreground
-              const appStateSubscription = AppState.addEventListener(
-                'change',
-                (nextAppState) => {
-                  const _canListenToWS = canListenToWS();
-                  callingx.log(
-                    `AppState changed to: ${nextAppState} for callCid: ${call_cid} canListenToWS: ${_canListenToWS}`,
-                    'debug',
-                  );
-                  if (!_canListenToWS) {
-                    unsubscribeFunctions.forEach((fn) => fn());
-                    finishBackgroundTask();
-                    return;
-                  }
-                },
-              );
-
-              unsubscribeFunctions.push(unsubscribe);
-              unsubscribeFunctions.push(() => stateSubscription.unsubscribe());
-              unsubscribeFunctions.push(() => endCallSubscription.remove());
-              unsubscribeFunctions.push(() => appStateSubscription.remove());
-              pushUnsubscriptionCallbacks.get(call_cid)?.forEach((cb) => cb());
-              pushUnsubscriptionCallbacks.set(call_cid, unsubscribeFunctions);
-            } catch (error) {
-              callingx.log(
-                `Failed to start background task with callCid: ${call_cid} error: ${error}`,
-                'error',
-              );
-              finishBackgroundTask();
-            }
-          })();
-        });
-      });
+          unsubscribeFunctions.push(unsubscribe);
+          unsubscribeFunctions.push(() => stateSubscription.unsubscribe());
+          unsubscribeFunctions.push(() => endCallSubscription.remove());
+          unsubscribeFunctions.push(() => appStateSubscription.remove());
+          pushUnsubscriptionCallbacks.get(call_cid)?.forEach((cb) => cb());
+          pushUnsubscriptionCallbacks.set(call_cid, unsubscribeFunctions);
+        } catch (error) {
+          callingx.log(
+            `Failed to start background task with callCid: ${call_cid} error: ${error}`,
+            'error',
+          );
+          finishBackgroundTask();
+        }
+      })();
     }
 
     if (asForegroundService) {

@@ -82,6 +82,7 @@ async function startForegroundService(call_cid: string) {
  */
 export const useAndroidKeepCallAliveEffect = () => {
   const foregroundServiceStartedRef = useRef(false);
+  const callingxKeepAliveOwnerRef = useRef<string | undefined>(undefined);
 
   const call = useCall();
   keepCallAliveCallRef.current = call;
@@ -101,15 +102,43 @@ export const useAndroidKeepCallAliveEffect = () => {
     }
 
     const callingx = getCallingxLibIfAvailable();
-    if (
-      callingx?.isSetup &&
-      (isRingingCall || (!isRingingCall && callingx?.isOngoingCallsEnabled))
-    ) {
+    const isCallingxManaged =
+      !!callingx?.isSetup &&
+      (isRingingCall || (!isRingingCall && callingx?.isOngoingCallsEnabled));
+
+    const isCallEnded =
+      callingState === CallingState.IDLE || callingState === CallingState.LEFT;
+
+    // Release the callingx keep-alive task when the call ends.
+    if (callingxKeepAliveOwnerRef.current && isCallEnded) {
+      const currentOwner = callingxKeepAliveOwnerRef.current;
+      callingxKeepAliveOwnerRef.current = undefined;
+      callingx?.releaseBackgroundTask(currentOwner).catch(() => {});
       return undefined;
     }
 
-    // start foreground service as soon as the call is joined
-    if (shouldStartForegroundService) {
+    if (isCallingxManaged && callingx) {
+      // Mutual exclusion: never acquire the callingx task while the SDK's own keep-alive FGS is
+      // running — only one keep-alive mechanism should be active per call.
+      if (
+        !callingxKeepAliveOwnerRef.current &&
+        !isCallEnded &&
+        !foregroundServiceStartedRef.current
+      ) {
+        const owner = `keepalive:${activeCallCid}`;
+        callingxKeepAliveOwnerRef.current = owner;
+        callingx.acquireBackgroundTask(owner).catch((e) => {
+          videoLoggerSystem
+            .getLogger('useAndroidKeepCallAliveEffect')
+            .warn('Failed to acquire callingx keep-alive background task', e);
+        });
+      }
+      return undefined;
+    }
+
+    // Start keep-alive FGS as soon as the call is joined — but only if the callingx
+    // keep-alive task isn't already holding the call alive.
+    if (shouldStartForegroundService && !callingxKeepAliveOwnerRef.current) {
       const run = async () => {
         if (foregroundServiceStartedRef.current) {
           return;
@@ -135,10 +164,7 @@ export const useAndroidKeepCallAliveEffect = () => {
       return () => {
         sub.remove();
       };
-    } else if (
-      callingState === CallingState.IDLE ||
-      callingState === CallingState.LEFT
-    ) {
+    } else if (isCallEnded) {
       if (foregroundServiceStartedRef.current) {
         keepCallAliveCallRef.current = undefined;
         // stop foreground service when the call is not active
@@ -161,6 +187,14 @@ export const useAndroidKeepCallAliveEffect = () => {
         keepCallAliveCallRef.current = undefined;
         stopForegroundServiceNoThrow();
         foregroundServiceStartedRef.current = false;
+      }
+      // release the callingx keep-alive task if still held
+      if (callingxKeepAliveOwnerRef.current) {
+        const owner = callingxKeepAliveOwnerRef.current;
+        callingxKeepAliveOwnerRef.current = undefined;
+        getCallingxLibIfAvailable()
+          ?.releaseBackgroundTask(owner)
+          .catch(() => {});
       }
     };
   }, []);

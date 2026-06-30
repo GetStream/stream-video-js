@@ -1,5 +1,4 @@
 import type { EventListener } from './EventManager';
-import type { ManagableTask } from './utils/headlessTask';
 
 export type DefaultDeviceEndpointType = 'speaker' | 'earpiece';
 
@@ -114,23 +113,22 @@ export interface ICallingxModule {
   setOnHoldCall(callId: string, isOnHold: boolean): Promise<void>;
 
   /**
-   * Register a background task provider. This method only registers the task and does not start it.
-   * The task will be automatically started when the service starts (via displayIncomingCall or startCall)
-   * if it has been registered.
-   * @param taskProvider - The task provider function that will be executed when the background task starts.
+   * Acquire a ref-counted background keep-alive task identified by [owner].
+   *
+   * The underlying HeadlessJS task — which keeps React Native's JS runtime and timers alive while
+   * the app is backgrounded — is started on the first acquire and stopped only once the last owner
+   * releases. Multiple independent owners (e.g. ringing-push handling and the keep-call-alive hook)
+   * can hold it simultaneously without tearing down each other's task. No-op on iOS.
+   * @param owner - A stable, unique key identifying the holder (e.g. `push:<cid>`, `keepalive:<cid>`).
    */
-  registerBackgroundTask(taskProvider: ManagableTask): void;
+  acquireBackgroundTask(owner: string): Promise<void>;
 
   /**
-   * Start the background task. This method will only start the task if:
-   * 1. A background task has been registered via registerBackgroundTask
-   * 2. The service is currently started
-   * @param taskProvider - The task provider function. If not provided, uses the previously registered task.
-   * @returns Promise that resolves when the task is started, or rejects if conditions are not met.
+   * Release a keep-alive task previously acquired with [acquireBackgroundTask] for [owner].
+   * The native task is stopped only after all owners have released. No-op on iOS.
+   * @param owner - The same key passed to [acquireBackgroundTask].
    */
-  startBackgroundTask(taskProvider?: ManagableTask): Promise<void>;
-
-  stopBackgroundTask(taskName: string): Promise<void>;
+  releaseBackgroundTask(owner: string): Promise<void>;
 
   /**
    * Fulfill or fail a pending CXAnswerCallAction on iOS.

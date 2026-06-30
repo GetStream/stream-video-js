@@ -30,12 +30,23 @@ import {
 import { isVoipEvent } from './utils/utils';
 
 class CallingxModule implements ICallingxModule {
+  // Grace period for the debounced keep-alive stop: a re-acquire within this window (e.g. the
+  // ringing-push -> keep-alive hand-off) cancels the stop and reuses the running task.
+  private static readonly KEEP_ALIVE_STOP_DEBOUNCE_MS = 2000;
+
   private _isSetup = false;
   private _isOngoingCallsEnabled = {
     android: false,
     ios: false,
   };
-  private _isHeadlessTaskRegistered = false;
+  // Ref-counted keep-alive ownership over the single native background-task slot.
+  // This prevents one caller from tearing down the task another still needs.
+  private _keepAliveOwners = new Set<string>();
+  private _keepAliveResolve: (() => void) | undefined;
+  // Pending debounced stop. When the last owner releases we defer the actual stop briefly; a
+  // re-acquire within the window cancels it and reuses the running task. This keeps the task
+  // continuous across the ringing-push -> keep-alive hand-off.
+  private _keepAliveStopTimer: ReturnType<typeof setTimeout> | undefined;
 
   private titleTransformer: (memberName: string, incoming: boolean) => string =
     (memberName: string) => memberName;
@@ -232,37 +243,74 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.setOnHoldCall(callId, isOnHold);
   }
 
-  registerBackgroundTask(taskProvider: ManagableTask): void {
-    const stopTask = () => {
-      this._isHeadlessTaskRegistered = false;
-      NativeCallingModule.stopBackgroundTask(HEADLESS_TASK_NAME);
-    };
+  private registerBackgroundTask(taskProvider: ManagableTask): void {
+    // We intentionally do NOT route stops through NativeCallingModule.stopBackgroundTask: that uses
+    // startService, so when no CallService is running (the call already ended -> onDestroy) it would
+    // spin up a throwaway CallService just to deliver a no-op stop, which then lingers.
+    const noopStop = () => {};
 
-    setHeadlessTask((taskData: any) => taskProvider(taskData, stopTask));
+    setHeadlessTask((taskData: any) => taskProvider(taskData, noopStop));
 
-    this._isHeadlessTaskRegistered = true;
     NativeCallingModule.registerBackgroundTaskAvailable();
   }
 
-  async startBackgroundTask(taskProvider?: ManagableTask): Promise<void> {
-    // If taskProvider is provided, register it first
-    if (taskProvider) {
-      this.registerBackgroundTask(taskProvider);
+  async acquireBackgroundTask(owner: string): Promise<void> {
+    if (Platform.OS !== 'android') {
+      return;
     }
 
-    // Check if task is registered
-    if (!this._isHeadlessTaskRegistered) {
-      throw new Error(
-        'Background task not registered. Call registerBackgroundTask first.',
-      );
+    // A new owner means we keep the task alive — cancel any pending debounced stop.
+    if (this._keepAliveStopTimer) {
+      clearTimeout(this._keepAliveStopTimer);
+      this._keepAliveStopTimer = undefined;
     }
 
-    return NativeCallingModule.startBackgroundTask(HEADLESS_TASK_NAME, 0);
+    const wasEmpty = this._keepAliveOwners.size === 0;
+    this._keepAliveOwners.add(owner);
+
+    if (!wasEmpty) {
+      return;
+    }
+
+    // First owner, or a re-acquire right after the last release (we just cancelled its pending
+    // stop). Either way we (re-)issue the native start: HeadlessTaskManager ignores it if the task
+    // is genuinely still running (e.g. CallService stayed alive across the hand-off), or starts a
+    // fresh one if the task was already torn down by CallService.onDestroy (e.g. declining one call
+    // and accepting another). Idempotent + self-healing across a CallService teardown.
+    this.registerBackgroundTask(
+      () =>
+        new Promise<void>((resolve) => {
+          if (this._keepAliveOwners.size === 0 && !this._keepAliveStopTimer) {
+            resolve();
+            return;
+          }
+          this._keepAliveResolve = resolve;
+        }),
+    );
+    await NativeCallingModule.startBackgroundTask(HEADLESS_TASK_NAME, 0);
   }
 
-  stopBackgroundTask(): Promise<void> {
-    this._isHeadlessTaskRegistered = false;
-    return NativeCallingModule.stopBackgroundTask(HEADLESS_TASK_NAME);
+  async releaseBackgroundTask(owner: string): Promise<void> {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    if (!this._keepAliveOwners.delete(owner)) {
+      return;
+    }
+    if (this._keepAliveOwners.size > 0 || this._keepAliveStopTimer) {
+      return;
+    }
+    // Last owner released — defer the actual stop. A re-acquire within the window (e.g. the
+    // ringing-push -> keep-alive hand-off) cancels this and reuses the still-running task, avoiding
+    // a stop/restart race on the single native task slot.
+    this._keepAliveStopTimer = setTimeout(() => {
+      this._keepAliveStopTimer = undefined;
+      if (this._keepAliveOwners.size > 0) {
+        return;
+      }
+      this._keepAliveResolve?.();
+      this._keepAliveResolve = undefined;
+    }, CallingxModule.KEEP_ALIVE_STOP_DEBOUNCE_MS);
   }
 
   fulfillAnswerCallAction(callId: string, didFail: boolean): void {
