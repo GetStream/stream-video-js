@@ -7180,7 +7180,7 @@ __metadata:
     "@vitejs/plugin-react": "npm:^6.0.2"
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
-    typescript: "npm:^5.9.3"
+    typescript: "npm:^6.0.3"
     vite: "npm:^8.0.14"
   languageName: unknown
   linkType: soft
