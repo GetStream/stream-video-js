@@ -586,12 +586,18 @@ class CallService : Service(), CallRepository.Listener {
 
     /**
      * Always includes `phoneCall`. Adds the while-in-use types `microphone`/`camera` only when:
+     *  - the platform is Android 11+ (R) — these FGS types were added in API 30; passing them to
+     *    startForeground() on older versions is unsupported, so we keep `phoneCall`-only there, AND
      *  - the corresponding runtime permission is granted, AND
-     *  - the app currently holds while-in-use access
+     *  - the app currently holds while-in-use access (foreground).
      */
     private fun computeForegroundServiceType(): Int {
         var type = ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
 
+        // microphone/camera FGS types require API 30 (R) — keep phoneCall-only below it.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return type
+        }
         if (!LifecycleListener.isInForeground) {
             return type
         }
