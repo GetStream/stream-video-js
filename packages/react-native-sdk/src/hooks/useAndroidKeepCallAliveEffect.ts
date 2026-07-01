@@ -128,6 +128,9 @@ export const useAndroidKeepCallAliveEffect = () => {
         const owner = `keepalive:${activeCallCid}`;
         callingxKeepAliveOwnerRef.current = owner;
         callingx.acquireBackgroundTask(owner).catch((e) => {
+          if (callingxKeepAliveOwnerRef.current === owner) {
+            callingxKeepAliveOwnerRef.current = undefined;
+          }
           videoLoggerSystem
             .getLogger('useAndroidKeepCallAliveEffect')
             .warn('Failed to acquire callingx keep-alive background task', e);
@@ -194,7 +197,14 @@ export const useAndroidKeepCallAliveEffect = () => {
         callingxKeepAliveOwnerRef.current = undefined;
         getCallingxLibIfAvailable()
           ?.releaseBackgroundTask(owner)
-          .catch(() => {});
+          .catch(() => {
+            videoLoggerSystem
+              .getLogger('useAndroidKeepCallAliveEffect')
+              .warn(
+                'Failed to release callingx keep-alive background task',
+                owner,
+              );
+          });
       }
     };
   }, []);
