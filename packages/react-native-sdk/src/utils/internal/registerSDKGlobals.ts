@@ -14,6 +14,7 @@ import {
   unwireAudioEngineSubscription,
 } from './callingx/callingx';
 import { registerCallMediaEngine } from './registerMediaEngine';
+import { callManager as publicCallManager } from '../../modules/call-manager';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
 const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {
@@ -68,23 +69,60 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       );
     },
     start: ({ isRingingTypeCall }) => {
+      // Apply the audio config a consumer recorded via `callManager.start(config)` at this single
+      // join-time start, before the native audio manager is activated.
+      const config = publicCallManager.getStoredConfig();
+      const deviceOverride =
+        config?.audioRole === 'communicator'
+          ? config.deviceEndpointType
+          : undefined;
+      const stereoOutput =
+        config?.audioRole === 'listener'
+          ? config.enableStereoAudioOutput === true
+          : false;
+
       if (shouldBypassForCallKit({ isRingingTypeCall })) {
+        // CallKit owns activation. Only forward an explicit endpoint override; the
+        // SpeakerManager-derived default was already forwarded via `setup`.
+        if (deviceOverride) {
+          CallingxModule?.setDefaultAudioDeviceEndpointType(deviceOverride);
+        }
         return;
       }
+
+      if (config?.audioRole) {
+        StreamInCallManagerNativeModule.setAudioRole(config.audioRole);
+      }
+      if (deviceOverride) {
+        // Override the SpeakerManager-derived default device (set via `setup`).
+        StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
+          deviceOverride,
+        );
+      }
+      StreamInCallManagerNativeModule.setEnableStereoAudioOutput(stereoOutput);
       StreamInCallManagerNativeModule.start();
     },
-    stop: ({ isRingingTypeCall }) => {
-      // Teardown of setMutedRecordingPrepared. Done here (before the CallKit gate)
-      // so it runs on both paths and while the call factory is still alive: leave()
-      // calls stop() before disposing the engine, so the ADM resolves to the call's
-      // factory rather than a default.
-      if (Platform.OS === 'ios') {
-        AudioDeviceModule.setRecordingAlwaysPreparedMode(false).catch(() => {});
+    stop: ({ isRingingTypeCall, shouldStopCallManager }) => {
+      // Clear the stored audio config so it doesn't carry into the next call.
+      publicCallManager.stop();
+
+      // We want to interact with ADM only when it was instantiated. This guards a case when
+      // leave is invoked for ringing call - in this case PC Factory and ADM are not yet created.
+      if (shouldStopCallManager) {
+        // Teardown of setMutedRecordingPrepared. Done here (before the CallKit gate)
+        // so it runs on both paths and while the call factory is still alive: leave()
+        // calls stop() before disposing the engine, so the ADM resolves to the call's
+        // factory rather than a default.
+        if (Platform.OS === 'ios') {
+          AudioDeviceModule.setRecordingAlwaysPreparedMode(false).catch(
+            () => {},
+          );
+        }
+        if (shouldBypassForCallKit({ isRingingTypeCall })) {
+          return;
+        }
+        StreamInCallManagerNativeModule.stop();
       }
-      if (shouldBypassForCallKit({ isRingingTypeCall })) {
-        return;
-      }
-      StreamInCallManagerNativeModule.stop();
     },
     // iOS-only. Keep the AVAudioEngine mic-input (voice-processing) chain
     // prepared while muted so the engine stays full-duplex and remote audio

@@ -481,7 +481,12 @@ export type StreamRNVideoSDKGlobals = {
     /**
      * Stops the in call manager.
      */
-    stop({ isRingingTypeCall }: StreamRNVideoSDKCallManagerRingingParams): void;
+    stop({
+      isRingingTypeCall,
+      shouldStopCallManager,
+    }: StreamRNVideoSDKCallManagerRingingParams & {
+      shouldStopCallManager: boolean;
+    }): void;
 
     /**
      * iOS-only. Keeps the audio engine's microphone-input (voice-processing)

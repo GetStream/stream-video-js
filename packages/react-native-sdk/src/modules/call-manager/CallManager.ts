@@ -4,11 +4,9 @@ import type {
   IOSAudioInterruptionEvent,
   StreamInCallManagerConfig,
 } from './types';
-import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 import { videoLoggerSystem } from '@stream-io/video-client';
 
 const NativeManager = NativeModules.StreamInCallManager;
-const CallingxModule = getCallingxLibIfAvailable();
 const AUDIO_INTERRUPTION_EVENT = 'StreamInCallManagerAudioInterruption';
 
 const invariant = (condition: boolean, message: string) => {
@@ -99,26 +97,32 @@ class SpeakerManager {
   };
 }
 
-const shouldBypassForCallKit = (): boolean => {
-  if (Platform.OS !== 'ios') {
-    return false;
-  }
-  if (!CallingxModule) {
-    return false;
-  }
-  return (
-    CallingxModule.isSetup &&
-    (CallingxModule.hasRegisteredCall() || CallingxModule.isOngoingCallsEnabled)
-  );
-};
-
 export class CallManager {
   android = new AndroidCallManager();
   ios = new IOSCallManager();
   speaker = new SpeakerManager();
 
   /**
-   * Starts the in call manager.
+   * The audio config recorded via {@link start}. The SDK's internal call manager reads it at the
+   * next join-time start and applies it before the native audio manager is activated.
+   */
+  private storedConfig?: StreamInCallManagerConfig;
+
+  /**
+   * The config recorded via {@link start}.
+   *
+   * @internal Read by the SDK's internal call manager at join; not intended for app use.
+   */
+  getStoredConfig = (): StreamInCallManagerConfig | undefined =>
+    this.storedConfig;
+
+  /**
+   * Records the desired audio config for the call.
+   *
+   * This does NOT start the native audio manager — the SDK owns native start/stop and applies this
+   * config at the next join-time start (before the audio manager is activated). Call it **before**
+   * joining. Calling it mid-call only updates the stored config; it does not change the running
+   * call's audio, and the new config takes effect on the next call/rejoin.
    *
    * @param config.audioRole The audio role to set. It can be one of the following:
    * - `'communicator'`: (Default) For use cases like video or voice calls.
@@ -128,49 +132,28 @@ export class CallManager {
    * It prioritizes high-quality stereo audio streaming.
    * Audio routing is controlled by the OS, and manual switching is not supported.
    *
-   * @param config.deviceEndpointType The default audio device endpoint type to set. It can be one of the following:
-   * - `'speaker'`: (Default) For normal video or voice calls.
+   * @param config.deviceEndpointType Overrides the default audio device endpoint. When omitted,
+   * the SDK uses the device derived from the call settings. It can be one of the following:
+   * - `'speaker'`: For normal video or voice calls.
    * - `'earpiece'`: For voice-only mobile call type scenarios.
    *
    * @param config.enableStereoAudioOutput Whether to enable stereo audio output. Only supported for listener audio role.
    */
   start = (config?: StreamInCallManagerConfig): void => {
-    if (shouldBypassForCallKit()) {
-      // Forward only the passive endpoint preference; callingx reads it when
-      // CallKit drives session activation.
-      if (config?.audioRole === 'communicator' && CallingxModule) {
-        const type = config.deviceEndpointType ?? 'speaker';
-        CallingxModule.setDefaultAudioDeviceEndpointType(type);
-      }
-      videoLoggerSystem
-        .getLogger('CallManager')
-        .debug(
-          'start: skipping start as callkit is handling the audio session',
-        );
-      return;
-    }
-    NativeManager.setAudioRole(config?.audioRole ?? 'communicator');
-    if (config?.audioRole === 'communicator') {
-      const type = config.deviceEndpointType ?? 'speaker';
-      NativeManager.setDefaultAudioDeviceEndpointType(type);
-    }
-    if (config?.audioRole === 'listener' && config.enableStereoAudioOutput) {
-      NativeManager.setEnableStereoAudioOutput(true);
-    }
-    NativeManager.start();
+    this.storedConfig = config;
+    videoLoggerSystem
+      .getLogger('CallManager')
+      .debug('start: stored call manager config', { config });
   };
 
   /**
-   * Stops the in call manager.
+   * Clears the stored audio config.
    */
   stop = (): void => {
-    if (shouldBypassForCallKit()) {
-      videoLoggerSystem
-        .getLogger('CallManager')
-        .debug('stop: skipping stop as callkit is handling the audio session');
-      return;
-    }
-    NativeManager.stop();
+    this.storedConfig = undefined;
+    videoLoggerSystem
+      .getLogger('CallManager')
+      .debug('stop: cleared call manager config');
   };
 
   /**

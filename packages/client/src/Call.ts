@@ -329,6 +329,7 @@ export class Call {
   private joinCallData?: JoinCallData;
   private hasJoinedOnce = false;
   private deviceSettingsAppliedOnce = false;
+  private callManagerStarted = false;
   private credentials?: Credentials;
 
   private initialized = false;
@@ -802,19 +803,17 @@ export class Call {
       this.cancelAutoDrop();
       this.clientStore.unregisterCall(this);
 
-      // Only stop the call manager if it was started - this prevents from
-      // creating default peer connection factory and adm without a need.
-      if (this.deviceSettingsAppliedOnce) {
-        globalThis.streamRNVideoSDK?.callManager.stop({
-          isRingingTypeCall: this.ringing,
-        });
-      }
+      globalThis.streamRNVideoSDK?.callManager.stop({
+        isRingingTypeCall: this.ringing,
+        shouldStopCallManager: this.callManagerStarted,
+      });
 
       this.camera.dispose();
       this.microphone.dispose();
       this.screenShare.dispose();
       this.speaker.dispose();
       this.deviceSettingsAppliedOnce = false;
+      this.callManagerStarted = false;
 
       const stopOnLeavePromises: Promise<void>[] = [];
       if (this.camera.stopOnLeave) {
@@ -1383,10 +1382,14 @@ export class Call {
     // re-apply them on later reconnections or server-side data fetches
     if (!this.deviceSettingsAppliedOnce && this.state.settings) {
       await this.applyDeviceConfig(this.state.settings, true, false);
+      this.deviceSettingsAppliedOnce = true;
+    }
+
+    if (!this.callManagerStarted) {
       globalThis.streamRNVideoSDK?.callManager.start({
         isRingingTypeCall: this.ringing,
       });
-      this.deviceSettingsAppliedOnce = true;
+      this.callManagerStarted = true;
     }
 
     // We shouldn't persist the `ring` and `notify` state after joining the call
