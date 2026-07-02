@@ -7729,7 +7729,6 @@ __metadata:
     "@types/react": "npm:~19.2.15"
     "@types/react-test-renderer": "npm:^19.1.0"
     expo: "npm:~56.0.9"
-    expo-build-properties: "npm:~56.0.17"
     expo-module-scripts: "npm:^56.0.3"
     expo-notifications: "npm:~56.0.16"
     intl-pluralrules: "npm:2.0.1"
@@ -7756,7 +7755,6 @@ __metadata:
     "@stream-io/react-native-webrtc": ^145.0.0
     "@stream-io/video-filters-react-native": ">=0.1.0"
     expo: ">=47.0.0"
-    expo-build-properties: "*"
     expo-notifications: "*"
     react: ">=17.0.0"
     react-native: ">=0.73.0"
@@ -7775,8 +7773,6 @@ __metadata:
     "@stream-io/video-filters-react-native":
       optional: true
     expo:
-      optional: true
-    expo-build-properties:
       optional: true
     expo-notifications:
       optional: true
