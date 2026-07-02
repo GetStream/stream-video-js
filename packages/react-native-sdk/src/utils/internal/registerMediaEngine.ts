@@ -33,6 +33,7 @@ export function registerCallMediaEngine() {
         SfuModels.AudioBitrateProfile.MUSIC_HIGH_QUALITY;
       const factory = await CallFactory.create({
         bypassVoiceProcessing,
+        //stereoInputEnabled: false, TODO: decide how this param is defined from client side
       });
       logger.debug(
         `Created per-call factory (bypassVoiceProcessing=${bypassVoiceProcessing})`,

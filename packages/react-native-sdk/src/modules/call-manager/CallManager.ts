@@ -176,11 +176,18 @@ export class CallManager {
   /**
    * For debugging purposes, will emit a log event with the current audio state.
    * in the native layer.
+   *
+   * NOTE: This method might be called outside of the call JOIN/LEFT window,
+   * so it may lead to default peer connection factory and adm being created.
    */
   logAudioState = (): void => NativeManager.logAudioState();
 
   /**
    * For debugging purposes, returns the current audio state as a string.
+   *
+   * NOTE: This method might be called outside of the call JOIN/LEFT window,
+   * so it may lead to default peer connection factory and adm being created.
+   *
    * @returns A string containing the current audio state information.
    */
   getAudioStateLog = (): string => NativeManager.getAudioStateLog();
