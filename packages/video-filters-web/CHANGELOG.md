@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.8.0...@stream-io/video-filters-web-0.8.1) (2026-07-02)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
 ## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.7.5...@stream-io/video-filters-web-0.8.0) (2026-06-26)
 
 ### Dependency Updates
