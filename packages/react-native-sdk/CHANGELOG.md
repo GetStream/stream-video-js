@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.40.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.40.0...@stream-io/video-react-native-sdk-1.40.1) (2026-07-02)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.9.1`
+- `@stream-io/react-native-callingx` updated to version `0.6.1`
+- `@stream-io/video-filters-react-native` updated to version `0.14.1`
+- `@stream-io/typescript-config` updated to version `0.1.0`
+- `@stream-io/video-client` updated to version `1.55.1`
+- `@stream-io/video-react-bindings` updated to version `1.18.1`
+
 ## [1.40.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.39.0...@stream-io/video-react-native-sdk-1.40.0) (2026-06-26)
 
 ### Dependency Updates
