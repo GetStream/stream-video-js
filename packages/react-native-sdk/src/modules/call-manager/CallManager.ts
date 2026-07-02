@@ -62,6 +62,25 @@ class IOSCallManager {
   };
 
   /**
+   * Get the current audio device status.
+   */
+  getAudioDeviceStatus = async (): Promise<AudioDeviceStatus> => {
+    invariant(Platform.OS === 'ios', 'Supported only on iOS');
+    return NativeManager.getAudioDeviceStatus();
+  };
+
+  /**
+   * Switches the audio device to the specified endpoint.
+   *
+   * @param endpointName the device name (e.g. "Speaker", "Earpiece", or a
+   * Bluetooth/wired device name as returned by getAudioDeviceStatus().devices).
+   */
+  selectAudioDevice = (endpointName: string): void => {
+    invariant(Platform.OS === 'ios', 'Supported only on iOS');
+    NativeManager.chooseAudioDeviceEndpoint(endpointName);
+  };
+
+  /**
    * Register a listener for iOS audio interruptions.
    *
    * @param onInterruption callback to be called when iOS reports an audio interruption.

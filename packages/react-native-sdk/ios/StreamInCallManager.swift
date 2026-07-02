@@ -42,6 +42,7 @@ class StreamInCallManager: RCTEventEmitter {
     private var audioManagerActivated = false
     private var callAudioRole: CallAudioRole = .communicator
     private var defaultAudioDevice: DefaultAudioDevice = .speaker
+    private var selectedAudioDeviceEndpoint: String?
     private var enableStereo: Bool = false
     private var previousVolume: Float = 0.75
 
@@ -88,7 +89,92 @@ class StreamInCallManager: RCTEventEmitter {
             self.defaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
         }
     }
-    
+
+    @objc(getAudioDeviceStatus:withRejecter:)
+    func getAudioDeviceStatus(resolve: @escaping RCTPromiseResolveBlock,
+                              reject: @escaping RCTPromiseRejectBlock) {
+        audioSessionQueue.async { [self] in
+            let session = AVAudioSession.sharedInstance()
+
+            // "Speaker"/"Earpiece" are the always-available built-in routes; the
+            // built-in mic is already represented by "Earpiece" so it's skipped.
+            var devices: [String] = ["Speaker", "Earpiece"]
+            for input in session.availableInputs ?? [] where input.portType != .builtInMic {
+                devices.append(input.portName)
+            }
+
+            let currentEndpointType = endpointType(for: session.currentRoute.outputs.first?.portType)
+            let selectedDevice: String = {
+                if let input = session.currentRoute.inputs.first, input.portType != .builtInMic {
+                    return input.portName
+                }
+                return currentEndpointType
+            }()
+
+            DispatchQueue.main.async {
+                resolve([
+                    "devices": devices,
+                    "currentEndpointType": currentEndpointType,
+                    "selectedDevice": selectedDevice,
+                ])
+            }
+        }
+    }
+
+    @objc(chooseAudioDeviceEndpoint:)
+    func chooseAudioDeviceEndpoint(endpointName: String) {
+        audioSessionQueue.async { [weak self] in
+            guard let self else { return }
+            let rtcSession = RTCAudioSession.sharedInstance()
+            rtcSession.lockForConfiguration()
+            defer { rtcSession.unlockForConfiguration() }
+
+            let avSession = AVAudioSession.sharedInstance()
+            do {
+                // Record the choice before rebuilding config so makeAudioConfiguration()
+                // reflects it (adds/removes .defaultToSpeaker) and the route survives
+                // engine rebuilds. The sink owns setActive(); an override needs none.
+                self.selectedAudioDeviceEndpoint = endpointName
+                try rtcSession.setConfiguration(self.makeAudioConfiguration())
+
+                switch endpointName {
+                case "Speaker", "Earpiece":
+                    // Built-in routes: force the output and reset input to the built-in
+                    // mic so a previously preferred Bluetooth/wired mic is released.
+                    try avSession.overrideOutputAudioPort(endpointName == "Speaker" ? .speaker : .none)
+                    if let mic = avSession.availableInputs?.first(where: { $0.portType == .builtInMic }) {
+                        try avSession.setPreferredInput(mic)
+                    }
+                default:
+                    // Bluetooth/wired: prefer that port; iOS routes output to follow it.
+                    try avSession.overrideOutputAudioPort(.none)
+                    if let input = avSession.availableInputs?.first(where: { $0.portName == endpointName }) {
+                        try avSession.setPreferredInput(input)
+                    }
+                }
+                self.log("chooseAudioDeviceEndpoint: switched to \(endpointName)")
+            } catch {
+                self.log("chooseAudioDeviceEndpoint: error switching to \(endpointName): \(error)")
+            }
+        }
+    }
+
+    /// Output port type → the shared cross-platform AudioDeviceEndpointType label.
+    private func endpointType(for portType: AVAudioSession.Port?) -> String {
+        switch portType {
+        case .builtInReceiver:
+            return "Earpiece"
+        case .builtInSpeaker:
+            return "Speaker"
+        case .bluetoothA2DP, .bluetoothHFP, .bluetoothLE:
+            return "Bluetooth Device"
+        case .headphones, .usbAudio, .carAudio:
+            return "Wired Headset"
+        default:
+            return "Unknown"
+        }
+    }
+
     @objc(setEnableStereoAudioOutput:)
     func setEnableStereoAudioOutput(enabled: Bool) {
         audioSessionQueue.async { [self] in
@@ -138,7 +224,12 @@ class StreamInCallManager: RCTEventEmitter {
             #endif
             category = .playAndRecord
             mode = .voiceChat
-            options = defaultAudioDevice == .speaker ? [bluetoothOption, .defaultToSpeaker] : [bluetoothOption]
+            // Key .defaultToSpeaker off the active selection so engine rebuilds
+            // (interruption recovery) preserve the route; fall back to the start
+            // preference until the user picks a device.
+            let wantSpeaker = selectedAudioDeviceEndpoint == "Speaker"
+                || (selectedAudioDeviceEndpoint == nil && defaultAudioDevice == .speaker)
+            options = wantSpeaker ? [bluetoothOption, .defaultToSpeaker] : [bluetoothOption]
         }
 
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
@@ -168,6 +259,15 @@ class StreamInCallManager: RCTEventEmitter {
                 adm.setStereoPlayoutPreference(true)
             }
 
+            // If a Bluetooth/wired device is already connected at start and the user
+            // hasn't chosen a route, prefer it.
+            let startExternalInput = callAudioRole == .communicator && selectedAudioDeviceEndpoint == nil
+                ? AVAudioSession.sharedInstance().availableInputs?.first(where: { $0.portType != .builtInMic })
+                : nil
+            if let startExternalInput {
+                selectedAudioDeviceEndpoint = startExternalInput.portName
+            }
+
             let rtcConfig = makeAudioConfiguration()
             log("Setup with category: \(rtcConfig.category), mode: \(rtcConfig.mode), options: \(rtcConfig.categoryOptions)")
 
@@ -177,6 +277,9 @@ class StreamInCallManager: RCTEventEmitter {
             defer { session.unlockForConfiguration() }
             do {
                 try session.setConfiguration(rtcConfig)
+                if let startExternalInput {
+                    try AVAudioSession.sharedInstance().setPreferredInput(startExternalInput)
+                }
             } catch {
                 // String(describing:) shows the real error; localizedDescription prints a useless "error 0".
                 log("Error setting audio session: \(String(describing: error))")
@@ -313,6 +416,7 @@ class StreamInCallManager: RCTEventEmitter {
             stereoRefreshWorkItem = nil
             callAudioRole = .communicator
             defaultAudioDevice = .speaker
+            selectedAudioDeviceEndpoint = nil
             enableStereo = false
             audioManagerActivated = false
         }
