@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.55.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.55.0...@stream-io/video-client-1.55.1) (2026-07-02)
+
+### Bug Fixes
+
+- **client:** propagate underlying WS connection error through connect timeout ([#2307](https://github.com/GetStream/stream-video-js/issues/2307)) ([30b332c](https://github.com/GetStream/stream-video-js/commit/30b332cd2dc5542305f8722db9a8d55ba139af9a))
+- renegotiate unacknowledged publisher transceivers on republish ([#2309](https://github.com/GetStream/stream-video-js/issues/2309)) ([049f06b](https://github.com/GetStream/stream-video-js/commit/049f06b30ec7f420e0eab0e298545c5d2d3bcc67))
+
 ## [1.55.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.54.0...@stream-io/video-client-1.55.0) (2026-06-26)
 
 ### Features
