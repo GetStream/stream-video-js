@@ -17,6 +17,7 @@
     "build": "yarn copy-version && bob build && yarn build:expo-plugin",
     "test:expo-plugin": "jest --config=expo-config-plugin/jest.config.js --coverage",
     "test": "yarn copy-version && jest --coverage && yarn test:expo-plugin",
+    "test:types": "yarn copy-version && tsc -p tsconfig.spec.json",
     "copy-version": "echo \"export const version = '$npm_package_version';\" > ./src/version.ts"
   },
   "repository": {
