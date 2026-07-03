@@ -21,11 +21,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
 
   var reactNativeDelegate: ReactNativeDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
-  
-  func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-    return RCTLinkingManager.application(application, open: url, options: options)
-  }
-  
+
+  // Kept for the SceneDelegate, which starts React Native when the scene connects.
+  var launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+
   // Forward device token to push-notification-ios
   func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     RNCPushNotificationIOS.didRegisterForRemoteNotifications(withDeviceToken: deviceToken)
@@ -36,10 +35,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     RNCPushNotificationIOS.didFailToRegisterForRemoteNotificationsWithError(error)
   }
   
-  func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-    return RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler)
-  }
-
   func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
     // All other remote notifications: show natively
     completionHandler([.sound, .alert, .badge])
@@ -76,13 +71,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     reactNativeDelegate = delegate
     reactNativeFactory = factory
 
-    window = UIWindow(frame: UIScreen.main.bounds)
-
-    factory.startReactNative(
-      withModuleName: "StreamReactNativeVideoSDKSample",
-      in: window,
-      launchOptions: launchOptions
-    )
+    // The window and React Native root view are created by the SceneDelegate
+    // when the window scene connects (UIScene lifecycle, required by iOS 26+ SDKs).
+    self.launchOptions = launchOptions
 
     return true
   }
