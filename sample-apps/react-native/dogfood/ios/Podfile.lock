@@ -2392,7 +2392,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stream-chat-react-native (9.3.0):
+  - stream-chat-react-native (9.5.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2946,7 +2946,7 @@ SPEC CHECKSUMS:
   RNShare: 26c9524aee8cc3eedbab6d6b98cacce2f5247893
   RNSVG: 8efa5ad14ceb98fe56c03793bd55bc4bd30ad84b
   RNWorklets: 4931990f73bc8f347586918b2e13f11dfadf3b75
-  stream-chat-react-native: 2d735ccdddfcfc16727480d5784f089548b7fc9c
+  stream-chat-react-native: 4cbcc820434b8b923391f8a31d52a68908dcc437
   stream-io-noise-cancellation-react-native: 2081a701554da05288d4f1ecc05abc2be309f040
   stream-io-video-filters-react-native: 0606d072642f15ea4c05e45d66579b6bf7c20459
   stream-react-native-webrtc: af1423d12a18cd213fa1bd745241d1734c9a8235
@@ -2957,6 +2957,6 @@ SPEC CHECKSUMS:
   VisionCamera: b51af005669c6642dd1b4fca434eda4c1778de87
   Yoga: e240fec777ff1f21ef42ccebbb44b6d262125855
 
-PODFILE CHECKSUM: 07a707e557b2b5633699c949bfc2e227de85931a
+PODFILE CHECKSUM: c29d9efec31064fe74fffdba980d3dc6a9a83ae9
 
 COCOAPODS: 1.15.2
