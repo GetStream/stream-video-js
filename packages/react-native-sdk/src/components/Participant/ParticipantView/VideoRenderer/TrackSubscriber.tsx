@@ -7,6 +7,7 @@ import {
   hasScreenShare,
   hasVideo,
   SfuModels,
+  type StreamVideoParticipant,
   type VideoTrackType,
 } from '@stream-io/video-client';
 import {
@@ -14,8 +15,8 @@ import {
   combineLatest,
   distinctUntilChanged,
   distinctUntilKeyChanged,
+  filter,
   map,
-  takeWhile,
 } from 'rxjs';
 export type TrackSubscriberHandle = {
   onLayoutUpdate: (event: LayoutChangeEvent) => void;
@@ -67,7 +68,7 @@ const TrackSubscriber = forwardRef<TrackSubscriberHandle, TrackSubscriberProps>(
       };
       const isPublishingTrack$ = call.state.participants$.pipe(
         map((ps) => ps.find((p) => p.sessionId === participantSessionId)),
-        takeWhile((p) => !!p),
+        filter((p): p is StreamVideoParticipant => !!p),
         distinctUntilKeyChanged('publishedTracks'),
         map((p) =>
           trackType === 'videoTrack' ? hasVideo(p) : hasScreenShare(p),
