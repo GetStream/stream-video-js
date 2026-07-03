@@ -18,9 +18,8 @@ export type BottomControlsProps = Pick<
   CallContentProps,
   'supportedReactions'
 > & {
-  onChatOpenHandler?: () => void;
-  onParticipantInfoPress?: () => void;
-  unreadCountIndicator?: number;
+  onChatOpenHandler: (() => void) | null;
+  onParticipantInfoPress: () => void;
   toggleCallRecording: () => Promise<void>;
   isAwaitingResponse: boolean;
   isCallRecordingInProgress: boolean;
@@ -28,7 +27,6 @@ export type BottomControlsProps = Pick<
 
 export const BottomControls = ({
   onChatOpenHandler,
-  unreadCountIndicator,
   onParticipantInfoPress,
   toggleCallRecording,
   isAwaitingResponse,
@@ -61,10 +59,9 @@ export const BottomControls = ({
         </View>
         <View style={styles.right}>
           <ParticipantsButton onParticipantInfoPress={onParticipantInfoPress} />
-          <ChatButton
-            onPressHandler={onChatOpenHandler}
-            unreadBadgeCount={unreadCountIndicator}
-          />
+          {onChatOpenHandler && (
+            <ChatButton onPressHandler={onChatOpenHandler} />
+          )}
         </View>
       </View>
       {!!controlsContainerHeight && (
