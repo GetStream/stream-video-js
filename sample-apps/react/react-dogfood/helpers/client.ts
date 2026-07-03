@@ -1,4 +1,8 @@
-import { StreamVideoClient, User } from '@stream-io/video-react-sdk';
+import {
+  StreamClientOptions,
+  StreamVideoClient,
+  User,
+} from '@stream-io/video-react-sdk';
 import { isRecentDeviceSelectionEnabled } from '../hooks/useDeviceSelectionPreference';
 import type { AppEnvironment } from '../lib/environmentConfig';
 import {
@@ -27,12 +31,13 @@ export const getClient = (
   environment: AppEnvironment,
 ) => {
   if (!client) {
-    const options = {
+    const options: StreamClientOptions = {
       baseURL: creds.coordinatorUrl || process.env.NEXT_PUBLIC_STREAM_API_URL,
       logLevel: 'debug' as const,
       logger: customSentryLogger(),
       transformRequest: defaultRequestTransformers,
       transformResponse: defaultResponseTransformers,
+      clientAppIdentifier: { app: environment },
       devicePersistence: {
         enabled: isRecentDeviceSelectionEnabled(),
         storageKey: '@pronto/device-preferences',
