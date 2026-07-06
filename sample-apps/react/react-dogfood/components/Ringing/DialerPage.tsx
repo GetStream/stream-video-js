@@ -145,6 +145,7 @@ export const DialerPage = ({
       setRingingCall(call);
       await call.getOrCreate({
         ring: true,
+        video: true,
         data: {
           members,
           settings_override: {
