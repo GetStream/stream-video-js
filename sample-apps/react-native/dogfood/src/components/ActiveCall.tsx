@@ -18,10 +18,10 @@ import {
   View,
 } from 'react-native';
 import { ParticipantsInfoListModal } from './ParticipantsInfoListModal';
-import { BottomControls } from './CallControlls/BottomControls';
+import { BottomControls } from './CallControls/BottomControls';
 import { useOrientation } from '../hooks/useOrientation';
 import { Z_INDEX } from '../constants';
-import { TopControls } from './CallControlls/TopControls';
+import { TopControls } from './CallControls/TopControls';
 import { useLayout } from '../contexts/LayoutContext';
 import { useAppGlobalStoreValue } from '../contexts/AppContext';
 import DeviceInfo from 'react-native-device-info';

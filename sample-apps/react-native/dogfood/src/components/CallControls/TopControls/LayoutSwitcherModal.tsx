@@ -8,9 +8,9 @@ import {
   Modal,
 } from 'react-native';
 import { useTheme } from '@stream-io/video-react-native-sdk';
-import { Grid } from '../../assets/Grid';
-import { SpotLight } from '../../assets/Spotlight';
-import { Layout, useLayout } from '../../contexts/LayoutContext';
+import { Grid } from '../../../assets/Grid';
+import { SpotLight } from '../../../assets/Spotlight';
+import { Layout, useLayout } from '../../../contexts/LayoutContext';
 
 interface AnchorPosition {
   x: number;

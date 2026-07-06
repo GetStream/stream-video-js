@@ -6,9 +6,9 @@ import {
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import LayoutSwitcherModal from './LayoutSwitcherModal';
 import { ColorValue } from 'react-native';
-import { Grid } from '../../assets/Grid';
-import { SpotLight } from '../../assets/Spotlight';
-import { useLayout } from '../../contexts/LayoutContext';
+import { Grid } from '../../../assets/Grid';
+import { SpotLight } from '../../../assets/Spotlight';
+import { useLayout } from '../../../contexts/LayoutContext';
 
 export type LayoutSwitcherButtonProps = {
   /**

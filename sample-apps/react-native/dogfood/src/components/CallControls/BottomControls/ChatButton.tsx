@@ -5,8 +5,8 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import { BadgeCountIndicator } from './BadgeCountIndicator';
-import Chat from '../../assets/Chat';
-import { useUnreadCount } from '../../hooks/useUnreadCount';
+import Chat from '../../../assets/Chat';
+import { useUnreadCount } from '../../../hooks/useUnreadCount';
 
 /**
  * The props for the Chat Button in the Call Controls.
