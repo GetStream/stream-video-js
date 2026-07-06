@@ -55,7 +55,6 @@ concurrency:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
   code_review:
