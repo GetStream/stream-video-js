@@ -53,6 +53,10 @@ concurrency:
   group: react-native-workflow-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
   code_review:
     name: Code Lint, Unit Test and dogfood versioning

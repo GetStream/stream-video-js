@@ -35,6 +35,9 @@ concurrency:
   group: deploy-react-sample-apps-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build-and-deploy-sample-apps:
     name: Deploy ${{ matrix.application.name }}
