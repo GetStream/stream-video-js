@@ -3,16 +3,15 @@ import {
   ScreenShareToggleButton,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
-  useCallStateHooks,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 import React, { useMemo, useState } from 'react';
-import { LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
-import { MoreActionsButton } from './MoreActionsButton';
+import { LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { MoreActionsButton } from '../MoreActionsButton';
 import { ParticipantsButton } from './ParticipantsButton';
 import { ChatButton } from './ChatButton';
 import { RecordCallButton } from './RecordCallButton';
-import { ClosedCaptions } from './ClosedCaptions';
+import { SubtitleContainer } from './SubtitleContainer';
 
 export type BottomControlsProps = Pick<
   CallContentProps,
@@ -71,40 +70,6 @@ export const BottomControls = ({
   );
 };
 
-// speaking while muted and caption controls - aka subtitle on top of video
-const SubtitleContainer = ({
-  controlsContainerHeight,
-}: {
-  controlsContainerHeight: number;
-}) => {
-  const styles = useStyles();
-  const { useIsCallCaptioningInProgress, useMicrophoneState } =
-    useCallStateHooks();
-  const isCaptioningInProgress = useIsCallCaptioningInProgress();
-  const { isSpeakingWhileMuted } = useMicrophoneState();
-  const {
-    theme: {
-      variants: { insets },
-    },
-  } = useTheme();
-  if (!isCaptioningInProgress || !isSpeakingWhileMuted) {
-    return null;
-  }
-  return (
-    <View
-      style={[
-        styles.subtitleContainer,
-        { bottom: controlsContainerHeight + insets.bottom },
-      ]}
-    >
-      <ClosedCaptions />
-      <View style={styles.speakingLabelContainer}>
-        <Text style={styles.label}>{'You are muted. Unmute to speak.'}</Text>
-      </View>
-    </View>
-  );
-};
-
 const useStyles = () => {
   const { theme } = useTheme();
 
@@ -117,18 +82,6 @@ const useStyles = () => {
           paddingHorizontal: theme.variants.spacingSizes.md,
           flexDirection: 'row',
           justifyContent: 'flex-start',
-        },
-        subtitleContainer: {
-          position: 'absolute',
-          left: 0,
-          right: 0,
-        },
-        speakingLabelContainer: {
-          backgroundColor: theme.colors.sheetPrimary,
-        },
-        label: {
-          textAlign: 'center',
-          color: theme.colors.textPrimary,
         },
         left: {
           flex: 2.5,
