@@ -130,16 +130,26 @@ class AndroidCallManager {
     onChange: (audioDeviceStatus: AudioDeviceStatus) => void,
   ): (() => void) => {
     invariant(Platform.OS === 'android', 'Supported only on Android');
-    if (isAndroidTelecomManaged() && CallingxModule) {
+    const cleanups: Array<() => void> = [];
+
+    // Telecom (callingx) route changes.
+    if (CallingxModule?.isSetup && CallingxModule.isTelecomBacked) {
       const sub = CallingxModule.addEventListener(
         'didChangeAudioEndpoints',
         (params) => onChange(snapshotToStatus(params)),
       );
-      return () => sub.remove();
+      cleanups.push(() => sub.remove());
     }
+
+    // StreamInCallManager route changes (non-Telecom calls). Native
+    // suppresses these while in telecom-managed mode, and callingx emits no
+    // endpoint events for non-Telecom calls, so the two sources never overlap
+    // at runtime — safe to keep both subscribed in parallel.
     this.eventEmitter ??= new NativeEventEmitter(NativeManager);
     const s = this.eventEmitter.addListener('onAudioDeviceChanged', onChange);
-    return () => s.remove();
+    cleanups.push(() => s.remove());
+
+    return () => cleanups.forEach((cleanup) => cleanup());
   };
 }
 
