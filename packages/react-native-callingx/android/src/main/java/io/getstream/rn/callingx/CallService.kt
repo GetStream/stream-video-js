@@ -23,6 +23,7 @@ import io.getstream.rn.callingx.notifications.NotificationChannelsManager
 import io.getstream.rn.callingx.notifications.NotificationsConfig
 import io.getstream.rn.callingx.repo.CallRepository
 import io.getstream.rn.callingx.repo.CallRepositoryFactory
+import io.getstream.rn.callingx.utils.AudioEndpointUtils
 import io.getstream.rn.callingx.utils.SettingsStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -347,6 +348,7 @@ class CallService : Service(), CallRepository.Listener {
                 }
             }
             is Call.None, is Call.Unregistered -> {
+                AudioEndpointStore.clear(callId)
                 repromoteForegroundIfNeeded(callId)
                 if (!callRepository.hasRingingCall()) notificationManager.stopRingtone()
 
@@ -422,6 +424,21 @@ class CallService : Service(), CallRepository.Listener {
         sendBroadcastEvent(CallingxModuleImpl.CALL_ENDPOINT_CHANGED_ACTION) {
             putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
             putExtra(CallingxModuleImpl.EXTRA_AUDIO_ENDPOINT, endpoint)
+        }
+    }
+
+    override fun onCallAudioEndpointsChanged(callId: String) {
+        val call = callRepository.getCall(callId) ?: return
+        val snapshotJson =
+                AudioEndpointUtils.snapshotJson(
+                        call.currentCallEndpoint,
+                        call.availableCallEndpoints,
+                )
+        AudioEndpointStore.setSnapshot(callId, snapshotJson)
+
+        sendBroadcastEvent(CallingxModuleImpl.CALL_AUDIO_ENDPOINTS_CHANGED_ACTION) {
+            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
+            putExtra(CallingxModuleImpl.EXTRA_AUDIO_ENDPOINTS_SNAPSHOT, snapshotJson)
         }
     }
 

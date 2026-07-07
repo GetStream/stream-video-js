@@ -46,7 +46,27 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod
     fun setDefaultAudioDeviceEndpointType(endpointType: String?) {
-        // leave empty
+        impl.setDefaultAudioDeviceEndpointType(endpointType)
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun isTelecomBacked(): Boolean {
+        return impl.isTelecomBacked()
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun getRegisteredCallIds(): WritableArray {
+        return impl.getRegisteredCallIds()
+    }
+
+    @ReactMethod
+    fun getAvailableAudioEndpoints(callId: String, promise: Promise) {
+        impl.getAvailableAudioEndpoints(callId, promise)
+    }
+
+    @ReactMethod
+    fun requestAudioEndpointChange(callId: String, endpointId: String, promise: Promise) {
+        impl.requestAudioEndpointChange(callId, endpointId, promise)
     }
 
     @ReactMethod

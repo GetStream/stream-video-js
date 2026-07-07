@@ -1,7 +1,9 @@
 package io.getstream.rn.callingx
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.ParcelUuid
 import android.telecom.DisconnectCause
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -34,6 +36,7 @@ class CallingxModuleImpl(
         const val EXTRA_ON_HOLD = "hold"
         const val EXTRA_DISCONNECT_CAUSE = "disconnect_cause"
         const val EXTRA_AUDIO_ENDPOINT = "audio_endpoint"
+        const val EXTRA_AUDIO_ENDPOINTS_SNAPSHOT = "audio_endpoints_snapshot"
         const val EXTRA_SOURCE = "source"
         const val EXTRA_ACTION = "action_name"
 
@@ -45,6 +48,7 @@ class CallingxModuleImpl(
         const val CALL_ACTIVE_ACTION = "io.getstream.CALL_ACTIVE"
         const val CALL_MUTED_ACTION = "io.getstream.CALL_MUTED"
         const val CALL_ENDPOINT_CHANGED_ACTION = "io.getstream.CALL_ENDPOINT_CHANGED"
+        const val CALL_AUDIO_ENDPOINTS_CHANGED_ACTION = "io.getstream.CALL_AUDIO_ENDPOINTS_CHANGED"
         const val CALL_END_ACTION = "io.getstream.CALL_END"
         const val CALL_REGISTRATION_FAILED_ACTION = "io.getstream.CALL_REGISTRATION_FAILED"
         const val CALL_OPTIMISTIC_ACCEPT_ACTION = "io.getstream.ACCEPT_CALL_OPTIMISTIC"
@@ -72,6 +76,7 @@ class CallingxModuleImpl(
 
         LifecycleListener.unregister()
         CallRegistrationStore.clearAll()
+        AudioEndpointStore.clearAll()
         CallEventBus.unsubscribe(this)
 
         isModuleInitialized = false
@@ -192,12 +197,7 @@ class CallingxModuleImpl(
 
     fun answerIncomingCall(callId: String, promise: Promise) {
         debugLog(TAG, "[module] answerIncomingCall: Answering call: $callId")
-        // TODO: get the call type from the call attributes
-        val isAudioCall = true // TODO: get the call type from the call attributes
-        // registeredCall.callAttributes.callType ==
-        //         CallAttributesCompat.CALL_TYPE_AUDIO_CALL
-        // currentCall?.processAction(TelecomCallAction.Answer(isAudioCall))
-        executeServiceAction(callId, CallAction.Answer(isAudioCall), promise)
+        executeServiceAction(callId, CallAction.Answer, promise)
     }
 
     fun startCall(
@@ -289,6 +289,35 @@ class CallingxModuleImpl(
 
     fun hasRegisteredCall(): Boolean {
         return CallRegistrationStore.hasRegisteredCall()
+    }
+
+    /** Android backs Telecom audio routing only when the Jetpack Telecom repository is used (API 26+). */
+    fun isTelecomBacked(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+
+    fun getAvailableAudioEndpoints(callId: String, promise: Promise) {
+        promise.resolve(AudioEndpointStore.getSnapshot(callId))
+    }
+
+    fun requestAudioEndpointChange(callId: String, endpointId: String, promise: Promise) {
+        debugLog(TAG, "[module] requestAudioEndpointChange: $callId -> $endpointId")
+        val parcelUuid =
+                try {
+                    ParcelUuid.fromString(endpointId)
+                } catch (e: IllegalArgumentException) {
+                    promise.reject("INVALID_ENDPOINT_ID", "Invalid endpoint id: $endpointId", e)
+                    return
+                }
+        executeServiceAction(callId, CallAction.SwitchAudioEndpoint(parcelUuid), promise)
+    }
+
+    fun setDefaultAudioDeviceEndpointType(endpointType: String?) {
+        debugLog(TAG, "[module] setDefaultAudioDeviceEndpointType: $endpointType")
+        AudioEndpointStore.setDefaultEndpointPref(endpointType)
+        SettingsStore.setDefaultDeviceEndpointType(reactApplicationContext, endpointType)
+    }
+
+    fun getRegisteredCallIds(): WritableArray {
+        return Arguments.fromList(CallRegistrationStore.getTrackedCallIds())
     }
 
     fun setMutedCall(callId: String, isMuted: Boolean, promise: Promise) {
@@ -493,6 +522,17 @@ class CallingxModuleImpl(
                     params.putString("output", extras.getString(EXTRA_AUDIO_ENDPOINT))
                 }
                 sendJSEvent("didChangeAudioRoute", params)
+            }
+            CALL_AUDIO_ENDPOINTS_CHANGED_ACTION -> {
+                // The snapshot (a JSON string with endpoints + currentEndpoint) is parsed on the
+                // JS side. Carried as a single string field to survive event param flattening.
+                if (extras.containsKey(EXTRA_AUDIO_ENDPOINTS_SNAPSHOT)) {
+                    params.putString(
+                            "snapshot",
+                            extras.getString(EXTRA_AUDIO_ENDPOINTS_SNAPSHOT),
+                    )
+                }
+                sendJSEvent("didChangeAudioEndpoints", params)
             }
         }
     }

@@ -15,6 +15,65 @@ const invariant = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message);
 };
 
+/**
+ * On Android, whether the current call is managed by Telecom (via callingx).
+ * In that mode, audio routing/mode is owned by Telecom and StreamInCallManager audio methods should not be used
+ */
+const isAndroidTelecomManaged = (): boolean => {
+  if (Platform.OS !== 'android' || !CallingxModule) {
+    return false;
+  }
+  return (
+    CallingxModule.isSetup &&
+    CallingxModule.isTelecomBacked &&
+    (CallingxModule.hasRegisteredCall() || CallingxModule.isOngoingCallsEnabled)
+  );
+};
+
+/** The callId of the (single) call currently registered with Telecom, if any. */
+const getTelecomCallId = (): string | undefined =>
+  CallingxModule?.getRegisteredCallIds()[0];
+
+/** Map a generic Telecom endpoint type to the SDK's endpoint display name. */
+const endpointTypeToDisplayName = (
+  type: string,
+): AudioDeviceStatus['currentEndpointType'] => {
+  switch (type) {
+    case 'earpiece':
+      return 'Earpiece';
+    case 'speaker':
+      return 'Speaker';
+    case 'wired_headset':
+      return 'Wired Headset';
+    case 'bluetooth':
+      return 'Bluetooth Device';
+    default:
+      return 'Unknown';
+  }
+};
+
+type CallingxAudioEndpoint = { id: string; name: string; type: string };
+type CallingxAudioSnapshot = {
+  endpoints: CallingxAudioEndpoint[];
+  currentEndpoint: CallingxAudioEndpoint | null;
+};
+
+/** Adapt a callingx endpoints snapshot to the SDK's {@link AudioDeviceStatus}. */
+const snapshotToStatus = (
+  snapshot: CallingxAudioSnapshot,
+): AudioDeviceStatus => ({
+  devices: snapshot.endpoints.map((e) => e.name),
+  currentEndpointType: snapshot.currentEndpoint
+    ? endpointTypeToDisplayName(snapshot.currentEndpoint.type)
+    : 'Unknown',
+  selectedDevice: snapshot.currentEndpoint?.name ?? '',
+});
+
+/** Priority for the "speakerphone off" fallback: prefer wired, then bluetooth, then earpiece.
+ * only used for Telcom calls for forceSpeakerphoneOn method
+ */
+const NON_SPEAKER_PRIORITY = ['wired_headset', 'bluetooth', 'earpiece'];
+
 class AndroidCallManager {
   private eventEmitter?: NativeEventEmitter;
 
@@ -23,6 +82,14 @@ class AndroidCallManager {
    */
   getAudioDeviceStatus = async (): Promise<AudioDeviceStatus> => {
     invariant(Platform.OS === 'android', 'Supported only on Android');
+    if (isAndroidTelecomManaged()) {
+      const callId = getTelecomCallId();
+      if (callId && CallingxModule) {
+        const snapshot =
+          await CallingxModule.getAvailableAudioEndpoints(callId);
+        return snapshotToStatus(snapshot as CallingxAudioSnapshot);
+      }
+    }
     return NativeManager.getAudioDeviceStatus();
   };
 
@@ -33,6 +100,25 @@ class AndroidCallManager {
    */
   selectAudioDevice = (endpointName: string): void => {
     invariant(Platform.OS === 'android', 'Supported only on Android');
+    if (isAndroidTelecomManaged()) {
+      const callId = getTelecomCallId();
+      const cx = CallingxModule;
+      if (callId && cx) {
+        // Resolve name -> endpoint id from the current Telecom snapshot, then route via Telecom.
+        cx.getAvailableAudioEndpoints(callId)
+          .then((snapshot) => {
+            const target = snapshot.endpoints.find(
+              (e) => e.name === endpointName,
+            );
+            if (target) {
+              return cx.requestAudioEndpointChange(callId, target.id);
+            }
+            return undefined;
+          })
+          .catch(() => {});
+        return;
+      }
+    }
     NativeManager.chooseAudioDeviceEndpoint(endpointName);
   };
 
@@ -44,6 +130,13 @@ class AndroidCallManager {
     onChange: (audioDeviceStatus: AudioDeviceStatus) => void,
   ): (() => void) => {
     invariant(Platform.OS === 'android', 'Supported only on Android');
+    if (isAndroidTelecomManaged() && CallingxModule) {
+      const sub = CallingxModule.addEventListener(
+        'didChangeAudioEndpoints',
+        (params) => onChange(snapshotToStatus(params as CallingxAudioSnapshot)),
+      );
+      return () => sub.remove();
+    }
     this.eventEmitter ??= new NativeEventEmitter(NativeManager);
     const s = this.eventEmitter.addListener('onAudioDeviceChanged', onChange);
     return () => s.remove();
@@ -95,6 +188,32 @@ class SpeakerManager {
    * Forces speakerphone on/off.
    */
   setForceSpeakerphoneOn = (force: boolean): void => {
+    if (isAndroidTelecomManaged()) {
+      const callId = getTelecomCallId();
+      const cx = CallingxModule;
+      if (callId && cx) {
+        // Telecom owns routing: map on -> speaker endpoint, off -> highest-priority
+        // non-speaker endpoint (wired > bluetooth > earpiece), mirroring classic behavior.
+        cx.getAvailableAudioEndpoints(callId)
+          .then((snapshot) => {
+            let target: CallingxAudioEndpoint | undefined;
+            if (force) {
+              target = snapshot.endpoints.find((e) => e.type === 'speaker');
+            } else {
+              for (const type of NON_SPEAKER_PRIORITY) {
+                target = snapshot.endpoints.find((e) => e.type === type);
+                if (target) break;
+              }
+            }
+            if (target) {
+              return cx.requestAudioEndpointChange(callId, target.id);
+            }
+            return undefined;
+          })
+          .catch(() => {});
+        return;
+      }
+    }
     NativeManager.setForceSpeakerphoneOn(force);
   };
 }
@@ -148,6 +267,22 @@ export class CallManager {
           'start: skipping start as callkit is handling the audio session',
         );
       return;
+    }
+    if (isAndroidTelecomManaged()) {
+      // Telecom owns routing/focus; forward the sticky preference to callingx and run in
+      // telecom-managed mode (StreamInCallManager keeps proximity/keep-screen-on only).
+      if (config?.audioRole !== 'listener' && CallingxModule) {
+        CallingxModule.setDefaultAudioDeviceEndpointType(
+          config?.deviceEndpointType ?? 'speaker',
+        );
+      }
+      NativeManager.setTelecomManagedMode(true);
+      NativeManager.setAudioRole(config?.audioRole ?? 'communicator');
+      NativeManager.start();
+      return;
+    }
+    if (Platform.OS === 'android') {
+      NativeManager.setTelecomManagedMode(false);
     }
     NativeManager.setAudioRole(config?.audioRole ?? 'communicator');
     if (config?.audioRole === 'communicator') {
