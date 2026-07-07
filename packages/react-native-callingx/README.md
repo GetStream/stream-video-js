@@ -66,7 +66,6 @@ Call events:
 - `didDisplayIncomingCall`
 - `didToggleHoldCallAction`
 - `didPerformSetMutedCallAction`
-- `didChangeAudioRoute`
 - `didReceiveStartCallAction`
 - `didActivateAudioSession`
 - `didDeactivateAudioSession`

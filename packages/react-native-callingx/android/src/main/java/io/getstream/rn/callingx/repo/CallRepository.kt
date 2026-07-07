@@ -37,7 +37,6 @@ abstract class CallRepository(protected val context: Context) {
     fun onIsCallActive(callId: String)
     fun onCallRegistered(callId: String, incoming: Boolean)
     fun onMuteCallChanged(callId: String, isMuted: Boolean)
-    fun onCallEndpointChanged(callId: String, endpoint: String)
 
     /**
      * Fired when the current endpoint or the set of available endpoints changes.

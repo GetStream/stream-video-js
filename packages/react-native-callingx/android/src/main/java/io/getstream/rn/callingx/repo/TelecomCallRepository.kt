@@ -360,11 +360,6 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                                 debugLog(TAG, "[repository] observeCalls: Mute changed for $callId: ${call.isMuted}")
                                 _listener?.onMuteCallChanged(callId, call.isMuted)
                             }
-                            if (previous.currentCallEndpoint != call.currentCallEndpoint) {
-                                call.currentCallEndpoint?.let {
-                                    _listener?.onCallEndpointChanged(callId, it.name.toString())
-                                }
-                            }
                             if (previous.currentCallEndpoint != call.currentCallEndpoint ||
                                     previous.availableCallEndpoints != call.availableCallEndpoints) {
                                 _listener?.onCallAudioEndpointsChanged(callId)

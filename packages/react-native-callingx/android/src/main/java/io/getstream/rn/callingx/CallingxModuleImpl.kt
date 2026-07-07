@@ -35,7 +35,6 @@ class CallingxModuleImpl(
         const val EXTRA_MUTED = "is_muted"
         const val EXTRA_ON_HOLD = "hold"
         const val EXTRA_DISCONNECT_CAUSE = "disconnect_cause"
-        const val EXTRA_AUDIO_ENDPOINT = "audio_endpoint"
         const val EXTRA_AUDIO_ENDPOINTS_SNAPSHOT = "audio_endpoints_snapshot"
         const val EXTRA_SOURCE = "source"
         const val EXTRA_ACTION = "action_name"
@@ -47,7 +46,6 @@ class CallingxModuleImpl(
         const val CALL_INACTIVE_ACTION = "io.getstream.CALL_INACTIVE"
         const val CALL_ACTIVE_ACTION = "io.getstream.CALL_ACTIVE"
         const val CALL_MUTED_ACTION = "io.getstream.CALL_MUTED"
-        const val CALL_ENDPOINT_CHANGED_ACTION = "io.getstream.CALL_ENDPOINT_CHANGED"
         const val CALL_AUDIO_ENDPOINTS_CHANGED_ACTION = "io.getstream.CALL_AUDIO_ENDPOINTS_CHANGED"
         const val CALL_END_ACTION = "io.getstream.CALL_END"
         const val CALL_REGISTRATION_FAILED_ACTION = "io.getstream.CALL_REGISTRATION_FAILED"
@@ -516,12 +514,6 @@ class CallingxModuleImpl(
                     params.putBoolean("muted", extras.getBoolean(EXTRA_MUTED, false))
                 }
                 sendJSEvent("didPerformSetMutedCallAction", params)
-            }
-            CALL_ENDPOINT_CHANGED_ACTION -> {
-                if (extras.containsKey(EXTRA_AUDIO_ENDPOINT)) {
-                    params.putString("output", extras.getString(EXTRA_AUDIO_ENDPOINT))
-                }
-                sendJSEvent("didChangeAudioRoute", params)
             }
             CALL_AUDIO_ENDPOINTS_CHANGED_ACTION -> {
                 // The snapshot (a JSON string with endpoints + currentEndpoint) is parsed on the

@@ -421,13 +421,6 @@ class CallService : Service(), CallRepository.Listener {
         }
     }
 
-    override fun onCallEndpointChanged(callId: String, endpoint: String) {
-        sendBroadcastEvent(CallingxModuleImpl.CALL_ENDPOINT_CHANGED_ACTION) {
-            putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-            putExtra(CallingxModuleImpl.EXTRA_AUDIO_ENDPOINT, endpoint)
-        }
-    }
-
     override fun onCallAudioEndpointsChanged(callId: String) {
         val call = callRepository.getCall(callId) ?: return
         val snapshotJson =

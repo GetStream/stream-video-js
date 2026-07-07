@@ -10,7 +10,6 @@ import stream_react_native_webrtc
     public static let didReceiveStartCallAction = "didReceiveStartCallAction"
     public static let didToggleHoldAction = "didToggleHoldCallAction"
     public static let didPerformSetMutedCallAction = "didPerformSetMutedCallAction"
-    public static let didChangeAudioRoute = "didChangeAudioRoute"
     public static let didAudioInterruption = "didAudioInterruption"
     public static let didDisplayIncomingCall = "didDisplayIncomingCall"
     public static let didActivateAudioSession = "didActivateAudioSession"
@@ -27,7 +26,7 @@ import stream_react_native_webrtc
 }
 
 // MARK: - Callingx Implementation
-@objc public class CallingxImpl: NSObject, CXProviderDelegate, RTCAudioSessionDelegate {
+@objc public class CallingxImpl: NSObject, CXProviderDelegate {
 
     // MARK: - Shared State
     @objc public static var sharedProvider: CXProvider?
@@ -89,10 +88,6 @@ import stream_react_native_webrtc
         isSetup = false
         canSendEvents = false
 
-        // Route changes go through RTCAudioSessionDelegate (fires after WebRTC's
-        // internal bookkeeping, so we don't need to defensively re-read currentRoute).
-        RTCAudioSession.sharedInstance().add(self)
-
         // Interruptions stay on NSNotificationCenter: the delegate's
         // `audioSessionDidBeginInterruption:` callback doesn't carry userInfo, and
         // `AVAudioSessionInterruptionReasonKey` (which we branch on for hardware
@@ -120,7 +115,6 @@ import stream_react_native_webrtc
     }
     
     deinit {
-        RTCAudioSession.sharedInstance().remove(self)
         NotificationCenter.default.removeObserver(self)
         engineSubscription?.cancel()
         engineSubscription = nil
@@ -217,14 +211,6 @@ import stream_react_native_webrtc
         // Backed by the warm CXCallObserver maintained in UUIDStorage — no per-call observer
         // construction and no cold-snapshot misses. Intersects our calls with CallKit's live set.
         return uuidStorage?.hasRegisteredCall() ?? false
-    }
-    
-    @objc public static func getAudioOutput() -> String? {
-        let outputs = AVAudioSession.sharedInstance().currentRoute.outputs
-        if !outputs.isEmpty {
-            return outputs[0].portType.rawValue
-        }
-        return nil
     }
     
     @objc public static func endCall(_ callId: String, reason: Int) {
@@ -329,23 +315,6 @@ import stream_react_native_webrtc
         }
     }
     
-    // MARK: - RTCAudioSessionDelegate
-
-    public func audioSessionDidChangeRoute(_ session: RTCAudioSession,
-                                           reason: AVAudioSession.RouteChangeReason,
-                                           previousRoute: AVAudioSessionRouteDescription) {
-        guard let output = CallingxImpl.getAudioOutput() else {
-            return
-        }
-
-        let params: [String: Any] = [
-            "output": output,
-            "reason": reason.rawValue
-        ]
-
-        sendEvent(CallingxEvents.didChangeAudioRoute, body: params)
-    }
-
     // MARK: - Audio Session Interruption
 
     // Observability + JS-event only; audio recovery is WebRTC's: AudioEngineDevice
