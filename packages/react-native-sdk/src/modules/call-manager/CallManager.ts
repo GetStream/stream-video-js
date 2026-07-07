@@ -34,9 +34,24 @@ const isAndroidTelecomManaged = (): boolean => {
   );
 };
 
-/** The callId of the (single) call currently registered with Telecom, if any. */
-const getTelecomCallId = (): string | undefined =>
-  CallingxModule?.getRegisteredCallIds()[0];
+/**
+ * When the current call is Telecom-managed, returns the callingx module and the
+ * registered callId. Centralizes the guard so call sites don't repeat the module /
+ * callId checks — `isAndroidTelecomManaged()` already implies the module exists, but
+ * the extra narrowing here is what makes that provable to the type-checker.
+ */
+const getTelecomContext = ():
+  | { cx: NonNullable<typeof CallingxModule>; callId: string }
+  | undefined => {
+  if (!isAndroidTelecomManaged() || !CallingxModule) {
+    return undefined;
+  }
+  const callId = CallingxModule.getRegisteredCallIds()[0];
+  if (!callId) {
+    return undefined;
+  }
+  return { cx: CallingxModule, callId };
+};
 
 /** Map a generic Telecom endpoint type to the SDK's endpoint display name. */
 const endpointTypeToDisplayName = (
@@ -75,13 +90,10 @@ class AndroidCallManager {
    */
   getAudioDeviceStatus = async (): Promise<AudioDeviceStatus> => {
     invariant(Platform.OS === 'android', 'Supported only on Android');
-    if (isAndroidTelecomManaged()) {
-      const callId = getTelecomCallId();
-      if (callId && CallingxModule) {
-        const snapshot =
-          await CallingxModule.getAvailableAudioEndpoints(callId);
-        return snapshotToStatus(snapshot);
-      }
+    const tc = getTelecomContext();
+    if (tc) {
+      const snapshot = await tc.cx.getAvailableAudioEndpoints(tc.callId);
+      return snapshotToStatus(snapshot);
     }
     return NativeManager.getAudioDeviceStatus();
   };
@@ -93,31 +105,29 @@ class AndroidCallManager {
    */
   selectAudioDevice = (endpointName: string): void => {
     invariant(Platform.OS === 'android', 'Supported only on Android');
-    if (isAndroidTelecomManaged()) {
-      const callId = getTelecomCallId();
-      const cx = CallingxModule;
-      if (callId && cx) {
-        // Resolve name -> endpoint id from the current Telecom snapshot, then route via Telecom.
-        cx.getAvailableAudioEndpoints(callId)
-          .then((snapshot) => {
-            const target = snapshot.endpoints.find(
-              (e) => e.name === endpointName,
+    const tc = getTelecomContext();
+    if (tc) {
+      const { cx, callId } = tc;
+      // Resolve name -> endpoint id from the current Telecom snapshot, then route via Telecom.
+      cx.getAvailableAudioEndpoints(callId)
+        .then((snapshot) => {
+          const target = snapshot.endpoints.find(
+            (e) => e.name === endpointName,
+          );
+          if (target) {
+            return cx.requestAudioEndpointChange(callId, target.id);
+          }
+          return undefined;
+        })
+        .catch((error) => {
+          videoLoggerSystem
+            .getLogger('CallManager')
+            .warn(
+              `selectAudioDevice: failed to route to "${endpointName}" for call ${callId} via Telecom`,
+              error,
             );
-            if (target) {
-              return cx.requestAudioEndpointChange(callId, target.id);
-            }
-            return undefined;
-          })
-          .catch((error) => {
-            videoLoggerSystem
-              .getLogger('CallManager')
-              .warn(
-                `selectAudioDevice: failed to route to "${endpointName}" for call ${callId} via Telecom`,
-                error,
-              );
-          });
-        return;
-      }
+        });
+      return;
     }
     NativeManager.chooseAudioDeviceEndpoint(endpointName);
   };
@@ -198,39 +208,37 @@ class SpeakerManager {
    * Forces speakerphone on/off.
    */
   setForceSpeakerphoneOn = (force: boolean): void => {
-    if (isAndroidTelecomManaged()) {
-      const callId = getTelecomCallId();
-      const cx = CallingxModule;
-      if (callId && cx) {
-        // Telecom owns routing: map on -> speaker endpoint, off -> highest-priority
-        // non-speaker endpoint (wired > bluetooth > earpiece), mirroring classic behavior.
-        cx.getAvailableAudioEndpoints(callId)
-          .then((snapshot) => {
-            let target: CallingxAudioEndpoint | undefined;
-            if (force) {
-              target = snapshot.endpoints.find((e) => e.type === 'speaker');
-            } else {
-              // Priority for the "speakerphone off" fallback: prefer wired, then bluetooth, then earpiece.
-              for (const type of ['wired_headset', 'bluetooth', 'earpiece']) {
-                target = snapshot.endpoints.find((e) => e.type === type);
-                if (target) break;
-              }
+    const tc = getTelecomContext();
+    if (tc) {
+      const { cx, callId } = tc;
+      // Telecom owns routing: map on -> speaker endpoint, off -> highest-priority
+      // non-speaker endpoint (wired > bluetooth > earpiece), mirroring classic behavior.
+      cx.getAvailableAudioEndpoints(callId)
+        .then((snapshot) => {
+          let target: CallingxAudioEndpoint | undefined;
+          if (force) {
+            target = snapshot.endpoints.find((e) => e.type === 'speaker');
+          } else {
+            // Priority for the "speakerphone off" fallback: prefer wired, then bluetooth, then earpiece.
+            for (const type of ['wired_headset', 'bluetooth', 'earpiece']) {
+              target = snapshot.endpoints.find((e) => e.type === type);
+              if (target) break;
             }
-            if (target) {
-              return cx.requestAudioEndpointChange(callId, target.id);
-            }
-            return undefined;
-          })
-          .catch((error) => {
-            videoLoggerSystem
-              .getLogger('CallManager')
-              .warn(
-                `setForceSpeakerphoneOn(${force}): failed to route for call ${callId} via Telecom`,
-                error,
-              );
-          });
-        return;
-      }
+          }
+          if (target) {
+            return cx.requestAudioEndpointChange(callId, target.id);
+          }
+          return undefined;
+        })
+        .catch((error) => {
+          videoLoggerSystem
+            .getLogger('CallManager')
+            .warn(
+              `setForceSpeakerphoneOn(${force}): failed to route for call ${callId} via Telecom`,
+              error,
+            );
+        });
+      return;
     }
     NativeManager.setForceSpeakerphoneOn(force);
   };

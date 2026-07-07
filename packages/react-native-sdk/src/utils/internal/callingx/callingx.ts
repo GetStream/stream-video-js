@@ -49,7 +49,6 @@ function recoverAudioToClassicMode() {
   try {
     StreamInCallManagerNativeModule.stop();
     StreamInCallManagerNativeModule.setTelecomManagedMode(false);
-    StreamInCallManagerNativeModule.setup();
     StreamInCallManagerNativeModule.start();
   } catch (error) {
     logger.error('recoverAudioToClassicMode: failed to recover audio', error);
