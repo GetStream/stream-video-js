@@ -91,7 +91,9 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         StreamInCallManagerNativeModule.setup();
         return;
       }
-      StreamInCallManagerNativeModule.setTelecomManagedMode(false);
+      if (Platform.OS === 'android') {
+        StreamInCallManagerNativeModule.setTelecomManagedMode(false);
+      }
       StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
         defaultDevice,
       );

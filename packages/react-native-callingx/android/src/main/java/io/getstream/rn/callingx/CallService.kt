@@ -348,6 +348,7 @@ class CallService : Service(), CallRepository.Listener {
                 }
             }
             is Call.None, is Call.Unregistered -> {
+                CallRegistrationStore.removeTrackedCall(callId)
                 AudioEndpointStore.clear(callId)
                 repromoteForegroundIfNeeded(callId)
                 if (!callRepository.hasRingingCall()) notificationManager.stopRingtone()

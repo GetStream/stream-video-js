@@ -18,13 +18,24 @@ const CallingxModule = getCallingxLibIfAvailable();
 /**
  * Fallback when Telecom registration fails/times out on Android: no component would own audio
  * (Telecom never took over), so re-establish StreamInCallManager in its classic (non-telecom)
- * mode to keep the call audible. No-op on iOS and when Telecom is not the intended owner.
+ * mode to keep the call audible.
  */
 function recoverAudioToClassicMode() {
   if (Platform.OS !== 'android') {
     return;
   }
   if (!CallingxModule?.isSetup || !CallingxModule.isTelecomBacked) {
+    return;
+  }
+  // If a call is already registered, Telecom owns audio for it (the registration
+  // partially succeeded). Switching to classic mode here would fight Telecom's
+  // routing/focus — leave ownership intact.
+  if (CallingxModule.hasRegisteredCall()) {
+    videoLoggerSystem
+      .getLogger('callingx')
+      .debug(
+        'recoverAudioToClassicMode: Telecom already owns a registered call; skipping classic fallback',
+      );
     return;
   }
   const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;

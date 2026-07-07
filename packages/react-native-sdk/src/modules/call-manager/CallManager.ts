@@ -4,6 +4,10 @@ import type {
   IOSAudioInterruptionEvent,
   StreamInCallManagerConfig,
 } from './types';
+import type {
+  AudioEndpoint as CallingxAudioEndpoint,
+  AudioEndpointsSnapshot as CallingxAudioSnapshot,
+} from '@stream-io/react-native-callingx';
 import { getCallingxLibIfAvailable } from '../../utils/push/libs/callingx';
 import { videoLoggerSystem } from '@stream-io/video-client';
 
@@ -52,12 +56,6 @@ const endpointTypeToDisplayName = (
   }
 };
 
-type CallingxAudioEndpoint = { id: string; name: string; type: string };
-type CallingxAudioSnapshot = {
-  endpoints: CallingxAudioEndpoint[];
-  currentEndpoint: CallingxAudioEndpoint | null;
-};
-
 /** Adapt a callingx endpoints snapshot to the SDK's {@link AudioDeviceStatus}. */
 const snapshotToStatus = (
   snapshot: CallingxAudioSnapshot,
@@ -68,11 +66,6 @@ const snapshotToStatus = (
     : 'Unknown',
   selectedDevice: snapshot.currentEndpoint?.name ?? '',
 });
-
-/** Priority for the "speakerphone off" fallback: prefer wired, then bluetooth, then earpiece.
- * only used for Telcom calls for forceSpeakerphoneOn method
- */
-const NON_SPEAKER_PRIORITY = ['wired_headset', 'bluetooth', 'earpiece'];
 
 class AndroidCallManager {
   private eventEmitter?: NativeEventEmitter;
@@ -87,7 +80,7 @@ class AndroidCallManager {
       if (callId && CallingxModule) {
         const snapshot =
           await CallingxModule.getAvailableAudioEndpoints(callId);
-        return snapshotToStatus(snapshot as CallingxAudioSnapshot);
+        return snapshotToStatus(snapshot);
       }
     }
     return NativeManager.getAudioDeviceStatus();
@@ -115,7 +108,14 @@ class AndroidCallManager {
             }
             return undefined;
           })
-          .catch(() => {});
+          .catch((error) => {
+            videoLoggerSystem
+              .getLogger('CallManager')
+              .warn(
+                `selectAudioDevice: failed to route to "${endpointName}" for call ${callId} via Telecom`,
+                error,
+              );
+          });
         return;
       }
     }
@@ -133,7 +133,7 @@ class AndroidCallManager {
     if (isAndroidTelecomManaged() && CallingxModule) {
       const sub = CallingxModule.addEventListener(
         'didChangeAudioEndpoints',
-        (params) => onChange(snapshotToStatus(params as CallingxAudioSnapshot)),
+        (params) => onChange(snapshotToStatus(params)),
       );
       return () => sub.remove();
     }
@@ -200,7 +200,8 @@ class SpeakerManager {
             if (force) {
               target = snapshot.endpoints.find((e) => e.type === 'speaker');
             } else {
-              for (const type of NON_SPEAKER_PRIORITY) {
+              // Priority for the "speakerphone off" fallback: prefer wired, then bluetooth, then earpiece.
+              for (const type of ['wired_headset', 'bluetooth', 'earpiece']) {
                 target = snapshot.endpoints.find((e) => e.type === type);
                 if (target) break;
               }
@@ -210,7 +211,14 @@ class SpeakerManager {
             }
             return undefined;
           })
-          .catch(() => {});
+          .catch((error) => {
+            videoLoggerSystem
+              .getLogger('CallManager')
+              .warn(
+                `setForceSpeakerphoneOn(${force}): failed to route for call ${callId} via Telecom`,
+                error,
+              );
+          });
         return;
       }
     }
