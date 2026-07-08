@@ -5,23 +5,36 @@ import UIKit
 @objcMembers public class Settings: NSObject {
     private static let settingsKey = "CallingxSettings"
 
+    // In-memory cache of the settings dictionary
+    private static var cachedSettings: [String: Any]?
+    private static let cacheQueue = DispatchQueue(label: "io.getstream.callingx.settings")
+
     public static func getSettings() -> [String: Any] {
-        return UserDefaults.standard.dictionary(forKey: settingsKey) ?? [:]
+        return cacheQueue.sync {
+            if let cached = cachedSettings {
+                return cached
+            }
+            cachedSettings = UserDefaults.standard.dictionary(forKey: settingsKey) ?? [:]
+            return cachedSettings!
+        }
     }
 
     public static func setSettings(_ options: [String: Any]?) {
         CallingxLog.settings.debugPublic("[setSettings] options = \(String(describing: options))")
 
-        var settings: [String: Any] = getSettings()
+        cacheQueue.sync {
+            // Load lazily here rather than via getSettings() to avoid re-entrant sync on cacheQueue.
+            var settings = cachedSettings ?? UserDefaults.standard.dictionary(forKey: settingsKey) ?? [:]
 
-        if let options = options {
-            for (key, value) in options {
-                settings[key] = value
+            if let options = options {
+                for (key, value) in options {
+                    settings[key] = value
+                }
             }
-        }
 
-        UserDefaults.standard.set(settings, forKey: settingsKey)
-        UserDefaults.standard.synchronize()
+            cachedSettings = settings
+            UserDefaults.standard.set(settings, forKey: settingsKey)
+        }
     }
 
     public static func getShouldRejectCallWhenBusy() -> Bool {
