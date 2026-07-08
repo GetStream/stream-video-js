@@ -25,6 +25,14 @@ export interface CallManager extends NativeModule {
   setDefaultAudioDeviceEndpointType: (type: DeviceEndpointType) => void;
 
   /**
+   * Enables/disables Telecom-managed mode (Android). Must be set before **start()**.
+   * When enabled, audio focus, mode and device routing are owned by the Android
+   * Telecom stack (via callingx); StreamInCallManager only keeps proximity,
+   * keep-screen-on and mic/output mute.
+   */
+  setTelecomManagedMode: (enabled: boolean) => void;
+
+  /**
    * Choose an audio device endpoint.
    * @param endpointName - The name of the audio device endpoint to choose.
    */

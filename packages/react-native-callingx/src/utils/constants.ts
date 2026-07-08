@@ -21,7 +21,9 @@ export const defaultiOSOptions: Required<InternalIOSOptions> = {
 
 export const defaultAndroidOptions: Omit<
   DeepRequired<InternalAndroidOptions>,
-  'notificationTexts' | 'skipIncomingPushInForeground'
+  | 'notificationTexts'
+  | 'skipIncomingPushInForeground'
+  | 'defaultDeviceEndpointType'
 > = {
   incomingChannel: {
     id: 'stream_incoming_calls_channel',

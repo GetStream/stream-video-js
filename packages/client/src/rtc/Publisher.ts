@@ -187,6 +187,9 @@ export class Publisher extends BasePeerConnection {
     if (isAudioTrackType(trackType)) {
       await this.updateAudioPublishOptions(trackType, options);
     }
+    if (track && !bundle.negotiated) {
+      await this.negotiate();
+    }
   };
 
   /**
@@ -490,6 +493,10 @@ export class Publisher extends BasePeerConnection {
 
         const { sdp: answerSdp } = response;
         await this.pc.setRemoteDescription({ type: 'answer', sdp: answerSdp });
+
+        for (const bundle of this.transceiverCache.items()) {
+          if (bundle.transceiver.sender.track) bundle.negotiated = true;
+        }
       } catch (err) {
         // negotiation failed, rollback to the previous state
         if (this.pc.signalingState === 'have-local-offer') {

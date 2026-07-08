@@ -47,7 +47,7 @@
         <action android:name="io.getstream.CALL_INACTIVE" />
         <action android:name="io.getstream.CALL_ACTIVE" />
         <action android:name="io.getstream.CALL_MUTED" />
-        <action android:name="io.getstream.CALL_ENDPOINT_CHANGED" />
+        <action android:name="io.getstream.CALL_AUDIO_ENDPOINTS_CHANGED" />
         <action android:name="io.getstream.CALL_END" />
         <action android:name="io.getstream.CALL_REGISTRATION_FAILED" />
       </intent-filter>
