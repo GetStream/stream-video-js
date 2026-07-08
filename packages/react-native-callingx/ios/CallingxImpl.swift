@@ -108,6 +108,8 @@ import stream_react_native_webrtc
         if CallingxImpl.sharedProvider == nil {
             CallingxImpl.sharedProvider = CXProvider(configuration: Settings.getProviderConfiguration())
         }
+      
+        callKeepCallController = CXCallController()
         
         callKeepProvider = CallingxImpl.sharedProvider
         callKeepProvider?.setDelegate(nil, queue: nil)
@@ -128,7 +130,8 @@ import stream_react_native_webrtc
     
     // MARK: - Class Methods
     @objc public static func initializeIfNeeded() {
-        _ = getSharedInstance() // ensures the shared instance is created and CXProvider delegate is set        
+        _ = getSharedInstance() // ensures the shared instance is created and CXProvider delegate is set
+        CallingxImpl.sharedProvider?.configuration = Settings.getProviderConfiguration()
     }
     
     @objc public static func reportNewIncomingCall(
@@ -379,29 +382,8 @@ import stream_react_native_webrtc
 
     // MARK: - Setup Methods
     @objc public func setup(options: [String: Any]) {
-        callKeepCallController = CXCallController()
-
         Settings.setSettings(options)
-
-        // This is mostly needed for very first setup, as we need to override the default
-        // provider configuration which is set in the constructor.
-        // IMPORTANT: We override the CXProvider instance only when there are no calls in
-        // flight, otherwise we'd destroy CallKit state/events for a live call. We check our
-        // own storage rather than CXCallObserver here: the observer trails registration and
-        // can briefly report empty (e.g. a VoIP-push call reported just before setup runs),
-        // which would wrongly tear down the provider mid-call.
-        if (CallingxImpl.uuidStorage?.count() ?? 0) == 0 {
-            let oldProvider = CallingxImpl.sharedProvider
-            let newProvider = CXProvider(configuration: Settings.getProviderConfiguration())
-            newProvider.setDelegate(self, queue: nil)
-
-            CallingxImpl.sharedProvider = newProvider
-            callKeepProvider = newProvider
-
-            oldProvider?.setDelegate(nil, queue: nil)
-            oldProvider?.invalidate()
-        }
-
+        CallingxImpl.sharedProvider?.configuration = Settings.getProviderConfiguration()
         isSetup = true
     }
 
@@ -615,6 +597,8 @@ import stream_react_native_webrtc
           return
         }
         
+        CallingxImpl.sharedProvider?.configuration = Settings.getProviderConfiguration()
+      
         let call = storage.getOrCreateCall(forCid: callId, isOutgoing: true)
         call.markStartedConnecting() // outgoing: will be reported via reportOutgoingCall(startedConnectingAt:)
         
