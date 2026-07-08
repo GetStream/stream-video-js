@@ -602,7 +602,8 @@ import stream_react_native_webrtc
         let call = storage.getOrCreateCall(forCid: callId, isOutgoing: true)
         call.markStartedConnecting() // outgoing: will be reported via reportOutgoingCall(startedConnectingAt:)
         
-        let handleType = Settings.getHandleType("generic")
+        let handleTypeString = Settings.getSettings()["handleType"] as? String
+        let handleType = Settings.getHandleType(handleTypeString ?? "generic")
         let callHandle = CXHandle(type: handleType, value: phoneNumber)
         let startCallAction = CXStartCallAction(call: call.uuid, handle: callHandle)
         startCallAction.isVideo = hasVideo
