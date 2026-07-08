@@ -1,11 +1,13 @@
 package io.getstream.rn.callingx
 
+import android.Manifest
 import android.app.Notification
 import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.net.Uri
 import android.os.Binder
@@ -24,6 +26,7 @@ import io.getstream.rn.callingx.notifications.NotificationsConfig
 import io.getstream.rn.callingx.repo.CallRepository
 import io.getstream.rn.callingx.repo.CallRepositoryFactory
 import io.getstream.rn.callingx.utils.AudioEndpointUtils
+import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -108,7 +111,7 @@ class CallService : Service(), CallRepository.Listener {
                 )
                 return
             }
-            
+
             val createdById = data["created_by_id"]
             val createdName = data["created_by_display_name"].orEmpty()
             val displayName = data["call_display_name"].orEmpty()
@@ -143,7 +146,10 @@ class CallService : Service(), CallRepository.Listener {
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob())
     private val actionProcessingLock = Object()
 
+    @Volatile
     private var isInForeground = false
+
+    private val onAppForeground = Runnable { repromoteForegroundTypeIfNeeded() }
 
     private val optimisticNotificationReceiver =
             object : BroadcastReceiver() {
@@ -227,11 +233,15 @@ class CallService : Service(), CallRepository.Listener {
             @Suppress("UnspecifiedRegisterReceiverFlag")
             registerReceiver(optimisticNotificationReceiver, filter)
         }
+
+        LifecycleListener.addOnForegroundListener(onAppForeground)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         debugLog(TAG, "[service] onDestroy: TelecomCallService destroyed")
+
+        LifecycleListener.removeOnForegroundListener(onAppForeground)
 
         unregisterReceiver(optimisticNotificationReceiver)
 
@@ -571,11 +581,7 @@ class CallService : Service(), CallRepository.Listener {
     private fun startForegroundSafely(notificationId: Int, notification: Notification) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(
-                        notificationId,
-                        notification,
-                        ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
-                )
+                startForeground(notificationId, notification, computeForegroundServiceType())
             } else {
                 startForeground(notificationId, notification)
             }
@@ -584,6 +590,76 @@ class CallService : Service(), CallRepository.Listener {
             Log.e(
                     TAG,
                     "[service] startForegroundSafely: Failed to start foreground service: ${e.message}",
+                    e
+            )
+        }
+    }
+
+    /**
+     * Always includes `phoneCall`. Adds the while-in-use types `microphone`/`camera` only when:
+     *  - the platform is Android 11+ (R) — these FGS types were added in API 30; passing them to
+     *    startForeground() on older versions is unsupported, so we keep `phoneCall`-only there, AND
+     *  - the corresponding runtime permission is granted, AND
+     *  - the app currently holds while-in-use access (foreground).
+     */
+    private fun computeForegroundServiceType(): Int {
+        var type = ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
+
+        // microphone/camera FGS types require API 30 (R) — keep phoneCall-only below it.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return type
+        }
+        if (!LifecycleListener.isInForeground) {
+            return type
+        }
+
+        val hasMicPermission =
+                ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) ==
+                        PackageManager.PERMISSION_GRANTED
+        if (hasMicPermission) {
+            type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+        }
+
+        val hasCameraPermission =
+                ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
+                        PackageManager.PERMISSION_GRANTED
+        if (hasCameraPermission) {
+            type = type or ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
+        }
+
+        return type
+    }
+
+    /**
+     * Re-issues [startForeground] for the current foreground call with the full
+     * [computeForegroundServiceType] bitmask. Called when the app enters the foreground (via
+     * [LifecycleListener]) so the microphone/camera types — which cannot be acquired from the
+     * background — get activated during the foreground window and then persist when backgrounded.
+     *
+     * This does NOT recreate the service: calling startForeground again on a running FGS only
+     * updates its active type and notification in place.
+     */
+    private fun repromoteForegroundTypeIfNeeded() {
+        if (!isInForeground) return // service is not foreground yet — nothing to upgrade
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
+
+        val type = computeForegroundServiceType()
+        if (type == ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL) {
+            // Nothing extra to promote (no while-in-use permissions, or not foreground).
+            return
+        }
+
+        val foregroundCallId = notificationManager.getForegroundCallId() ?: return
+        val call = callRepository.getCall(foregroundCallId) ?: return
+        val notificationId = notificationManager.getOrCreateNotificationId(foregroundCallId)
+        val notification = notificationManager.createNotification(foregroundCallId, call)
+
+        try {
+            startForeground(notificationId, notification, type)
+        } catch (e: Exception) {
+            Log.e(
+                    TAG,
+                    "[service] repromoteForegroundType: failed to upgrade FGS type: ${e.message}",
                     e
             )
         }
