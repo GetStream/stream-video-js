@@ -17,6 +17,7 @@ import {
   type EventParams,
   type CallingExpOptions,
   type DefaultDeviceEndpointType,
+  type AudioEndpointsSnapshot,
   type VoipEventName,
   type VoipEventParams,
   type VoipEventData,
@@ -63,6 +64,13 @@ class CallingxModule implements ICallingxModule {
     return this._isSetup;
   }
 
+  get isTelecomBacked(): boolean {
+    if (Platform.OS !== 'android') {
+      return false;
+    }
+    return NativeCallingModule.isTelecomBacked();
+  }
+
   setup(options: CallingExpOptions): void {
     if (this._isSetup) {
       return;
@@ -90,6 +98,7 @@ class CallingxModule implements ICallingxModule {
         ongoingChannel,
         notificationTexts,
         skipIncomingPushInForeground = false,
+        defaultDeviceEndpointType,
       } = options.android ?? {};
 
       this.titleTransformer =
@@ -117,6 +126,12 @@ class CallingxModule implements ICallingxModule {
 
       NativeCallingModule.setupAndroid(notificationsConfig);
 
+      if (defaultDeviceEndpointType) {
+        NativeCallingModule.setDefaultAudioDeviceEndpointType(
+          defaultDeviceEndpointType,
+        );
+      }
+
       registerHeadlessTask();
     }
 
@@ -130,8 +145,42 @@ class CallingxModule implements ICallingxModule {
   setDefaultAudioDeviceEndpointType(
     endpointType: DefaultDeviceEndpointType,
   ): void {
-    if (Platform.OS !== 'ios') return;
     NativeCallingModule.setDefaultAudioDeviceEndpointType(endpointType);
+  }
+
+  getRegisteredCallIds(): string[] {
+    if (Platform.OS !== 'android') {
+      return [];
+    }
+    return NativeCallingModule.getRegisteredCallIds();
+  }
+
+  async getAvailableAudioEndpoints(
+    callId: string,
+  ): Promise<AudioEndpointsSnapshot> {
+    const empty: AudioEndpointsSnapshot = {
+      endpoints: [],
+      currentEndpoint: null,
+    };
+    if (Platform.OS !== 'android') {
+      return empty;
+    }
+    try {
+      const json = await NativeCallingModule.getAvailableAudioEndpoints(callId);
+      return JSON.parse(json) as AudioEndpointsSnapshot;
+    } catch {
+      return empty;
+    }
+  }
+
+  requestAudioEndpointChange(
+    callId: string,
+    endpointId: string,
+  ): Promise<void> {
+    if (Platform.OS !== 'android') {
+      return Promise.resolve();
+    }
+    return NativeCallingModule.requestAudioEndpointChange(callId, endpointId);
   }
 
   getInitialEvents(): EventData[] {

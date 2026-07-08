@@ -3,6 +3,27 @@ import type { ManagableTask } from './utils/headlessTask';
 
 export type DefaultDeviceEndpointType = 'speaker' | 'earpiece';
 
+/** Generic Telecom audio endpoint type names (Android). */
+export type AudioEndpointType =
+  | 'earpiece'
+  | 'speaker'
+  | 'wired_headset'
+  | 'bluetooth'
+  | 'unknown';
+
+/** A single Telecom audio endpoint. `id` is opaque and passed back to select it. */
+export type AudioEndpoint = {
+  id: string;
+  name: string;
+  type: AudioEndpointType;
+};
+
+/** Snapshot of the Telecom audio endpoints for a call. */
+export type AudioEndpointsSnapshot = {
+  endpoints: AudioEndpoint[];
+  currentEndpoint: AudioEndpoint | null;
+};
+
 export interface ICallingxModule {
   /**
    * Whether the module can post call notifications. Android only. iOS always returns true.
@@ -16,6 +37,11 @@ export interface ICallingxModule {
   get canPostNotifications(): boolean;
   get isOngoingCallsEnabled(): boolean;
   get isSetup(): boolean;
+  /**
+   * Whether audio routing on this device is backed by the Jetpack Telecom stack.
+   * Android: true on API 26+. iOS: always false.
+   */
+  get isTelecomBacked(): boolean;
 
   /**
    * Setup the module. This method must be called before any other method.
@@ -34,12 +60,32 @@ export interface ICallingxModule {
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
 
   /**
-   * Set the default audio endpoint for CallKit-managed calls (iOS only; no-op on Android).
-   * Sticky preference applied next time CallKit activates the session.
+   * Set the default audio endpoint applied when the OS activates the call's audio session.
+   * - iOS: applied next time CallKit activates the session.
+   * - Android (Telecom): applied once when the call becomes active and no wired/bluetooth
+   *   device is connected.
+   * Sticky preference.
    */
   setDefaultAudioDeviceEndpointType(
     endpointType: DefaultDeviceEndpointType,
   ): void;
+
+  /**
+   * Call ids currently registered with the native calling module (Android Telecom).
+   * Empty on iOS.
+   */
+  getRegisteredCallIds(): string[];
+
+  /**
+   * Get the current Telecom audio endpoints for a call (Android). On iOS / unknown call,
+   * resolves an empty snapshot.
+   */
+  getAvailableAudioEndpoints(callId: string): Promise<AudioEndpointsSnapshot>;
+
+  /**
+   * Request a Telecom audio-endpoint change by endpoint id (Android). No-op on iOS.
+   */
+  requestAudioEndpointChange(callId: string, endpointId: string): Promise<void>;
   /**
    * Get the initial events. This method is used to get the initial events from the app launch.
    * The events are queued and can be retrieved after the module is setup.
@@ -270,6 +316,13 @@ export type InternalAndroidOptions = {
    * @default false
    */
   skipIncomingPushInForeground?: boolean;
+  /**
+   * Default audio endpoint for Telecom-managed calls on Android.
+   * Applied at call registration as `CallAttributesCompat.preferredStartingCallEndpoint`
+   * Note: Works only before the call is registered.
+   * @default 'speaker'
+   */
+  defaultDeviceEndpointType?: DefaultDeviceEndpointType;
 };
 type AndroidOptions = InternalAndroidOptions & NotificationTransformers;
 
@@ -304,7 +357,7 @@ export type EventName =
   | 'endCall'
   | 'didDisplayIncomingCall'
   | 'didToggleHoldCallAction'
-  | 'didChangeAudioRoute'
+  | 'didChangeAudioEndpoints'
   | 'didAudioInterruption'
   | 'didReceiveStartCallAction'
   | 'didPerformSetMutedCallAction'
@@ -339,10 +392,9 @@ export type EventParams = {
     callId: string;
     muted: boolean;
   };
-  didChangeAudioRoute: {
+  didChangeAudioEndpoints: {
     callId: string;
-    output: string;
-  };
+  } & AudioEndpointsSnapshot;
   didAudioInterruption: IOSAudioInterruptionEvent;
   didReceiveStartCallAction: {
     callId: string;

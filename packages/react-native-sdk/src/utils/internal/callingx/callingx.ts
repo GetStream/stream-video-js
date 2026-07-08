@@ -2,7 +2,7 @@
  * Internal utils for callingx library usage from video-client.
  * See @./registerSDKGlobals.ts for more usage details.
  */
-import { Platform } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import type { EndCallReason } from '@stream-io/react-native-callingx';
 import { getCallingxLibIfAvailable } from '../../push/libs/callingx';
 import { waitForAudioSessionActivation } from './audioSessionPromise';
@@ -14,6 +14,46 @@ import type {
 import { CallingState, videoLoggerSystem } from '@stream-io/video-client';
 
 const CallingxModule = getCallingxLibIfAvailable();
+
+/**
+ * Fallback when Telecom registration fails/times out on Android: no component would own audio
+ * (Telecom never took over), so re-establish StreamInCallManager in its classic (non-telecom)
+ * mode to keep the call audible.
+ */
+function recoverAudioToClassicMode() {
+  if (Platform.OS !== 'android') {
+    return;
+  }
+  if (!CallingxModule?.isSetup || !CallingxModule.isTelecomBacked) {
+    return;
+  }
+  // If a call is already registered, Telecom owns audio for it (the registration
+  // partially succeeded). Switching to classic mode here would fight Telecom's
+  // routing/focus — leave ownership intact.
+  if (CallingxModule.hasRegisteredCall()) {
+    videoLoggerSystem
+      .getLogger('callingx')
+      .debug(
+        'recoverAudioToClassicMode: Telecom already owns a registered call; skipping classic fallback',
+      );
+    return;
+  }
+  const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
+  if (!StreamInCallManagerNativeModule) {
+    return;
+  }
+  const logger = videoLoggerSystem.getLogger('callingx');
+  logger.warn(
+    'Telecom registration failed; falling back to classic StreamInCallManager audio',
+  );
+  try {
+    StreamInCallManagerNativeModule.stop();
+    StreamInCallManagerNativeModule.setTelecomManagedMode(false);
+    StreamInCallManagerNativeModule.start();
+  } catch (error) {
+    logger.error('recoverAudioToClassicMode: failed to recover audio', error);
+  }
+}
 
 /**
  * Gets the call display name. To be used for display in native call screen.
@@ -97,6 +137,7 @@ export async function registerOutgoingCall(call: Call) {
       `registerOutgoingCall: Error registering outgoing call in callingx: ${call.cid}`,
       error,
     );
+    recoverAudioToClassicMode();
   }
 }
 
@@ -146,6 +187,7 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
         `startCallingxCall: Error starting call in callingx: ${call.cid}`,
         error,
       );
+      recoverAudioToClassicMode();
     }
   } else if (isIncomingCall) {
     logger.debug(`joinCallingxCall: Joining incoming call ${call.cid}`);
@@ -187,6 +229,7 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
         `Error joining incoming call in callingx: ${call.cid}`,
         error,
       );
+      recoverAudioToClassicMode();
     }
   }
 }
