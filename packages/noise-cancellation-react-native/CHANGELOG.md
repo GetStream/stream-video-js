@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.9.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.9.1...@stream-io/noise-cancellation-react-native-0.9.2) (2026-07-09)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
 ## [0.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/noise-cancellation-react-native-0.9.0...@stream-io/noise-cancellation-react-native-0.9.1) (2026-07-02)
 
 ### Dependency Updates
