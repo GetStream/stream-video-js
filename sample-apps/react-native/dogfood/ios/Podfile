@@ -28,6 +28,12 @@ end
 target 'StreamReactNativeVideoSDKSample' do
   config = use_native_modules!
 
+  # LOCAL DEV ONLY — do not commit. StreamWebRTC 148.0.0 is not yet on CocoaPods
+  # trunk; consume the locally-built RELEASE WebRTC.xcframework vendored in the
+  # local react-native-webrtc fork (PR GetStream/react-native-webrtc#53) as a
+  # local :path pod. Remove once 148.0.0 is published.
+  pod 'StreamWebRTC', :path => '/Users/santhoshvaiyapuri/Projects/stream-react-native-webrtc/third_party'
+
   # Beginning with firebase-ios-sdk v9+ (react-native-firebase v15+) we must tell CocoaPods to use frameworks.
   # https://rnfirebase.io/#altering-cocoapods-to-use-frameworks
   # Note: must disable flipper due to enabling static linkage
