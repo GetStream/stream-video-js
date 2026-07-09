@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.40.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.40.1...@stream-io/video-react-native-sdk-1.40.2) (2026-07-09)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.9.2`
+- `@stream-io/react-native-callingx` updated to version `0.6.2`
+- `@stream-io/video-filters-react-native` updated to version `0.14.2`
+- `@stream-io/typescript-config` updated to version `0.1.0`
+- `@stream-io/video-client` updated to version `1.55.2`
+- `@stream-io/video-react-bindings` updated to version `1.18.2`
+
+### Bug Fixes
+
+- android callingx calls should handle audio through through telecom ([#2324](https://github.com/GetStream/stream-video-js/issues/2324)) ([95bcc2a](https://github.com/GetStream/stream-video-js/commit/95bcc2a2dac12c0051b61a1704f927793eaaf727))
+- callingx background handling ([#2310](https://github.com/GetStream/stream-video-js/issues/2310)) ([a96df4f](https://github.com/GetStream/stream-video-js/commit/a96df4ffc9279d2d9cd14da5196a275faf3d1891))
+- **react-native-sdk:** subscribe to remote video when the participant appears after mount ([#2317](https://github.com/GetStream/stream-video-js/issues/2317)) ([f9ab807](https://github.com/GetStream/stream-video-js/commit/f9ab807975b75b526b175b85c275dac6b8eedd56))
+- remove redundant expo build-properties plugin that reset ios.forceStaticLinking ([#2314](https://github.com/GetStream/stream-video-js/issues/2314)) ([54689f3](https://github.com/GetStream/stream-video-js/commit/54689f3daf19143192291c712f978fe43e2035a1)), closes [#2313](https://github.com/GetStream/stream-video-js/issues/2313)
+
 ## [1.40.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.40.0...@stream-io/video-react-native-sdk-1.40.1) (2026-07-02)
 
 ### Dependency Updates
