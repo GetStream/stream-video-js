@@ -67,6 +67,8 @@ import stream_react_native_webrtc
     /// iOS 17+ surfaces as system-initiated mutes — artifacts, not user intent, so we skip them.
     /// Set on `willEnableAudioEngine`, cleared on `willStartAudioEngine`. Guarded by `pendingActionsQueue`.
     private var isAudioEngineStarting = false
+    /// Only touched on the CallKit delegate (main) queue
+    private var isAudioSessionActive = false
 
     /// Mute value of the last app-requested `CXSetMutedCallAction`. iOS 17+ round-trips it back as a
     /// system-initiated action of the same value; we skip that echo (a real UI toggle flips the value).
@@ -826,6 +828,7 @@ import stream_react_native_webrtc
 
         // When CallKit activates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
+        isAudioSessionActive = true
 
         // Enable wake lock to keep the device awake during the call
         DispatchQueue.main.async {
@@ -841,6 +844,7 @@ import stream_react_native_webrtc
         // When CallKit deactivates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
         getAudioDeviceModule()?.reset()
+        isAudioSessionActive = false
 
         // Invariant: callingx ships with maximumCallsPerCallGroup = maximumCallGroups = 1
         // (see packages/react-native-callingx/src/utils/constants.ts defaultiOSOptions).
@@ -897,15 +901,25 @@ import stream_react_native_webrtc
             lastAppRequestedMute = nil
         }
 
-        // A provider reset invalidates all CallKit calls. didDeactivate is not
-        // guaranteed to fire in its usual shape afterwards, so release ownership
-        // here and wipe UUIDStorage to keep the `count() == 0` discriminator in
-        // didDeactivate honest (stale entries would otherwise refuse to release
-        // ownership on the next end-of-call).
-        CallingxImpl.uuidStorage?.removeAllObjects()
-        CallingxSessionOwnership.callingxOwnsSession = false
+        // A provider reset tears down the audio session, but provider(_:didDeactivate:) is NOT
+        // guaranteed to fire afterwards. Mirror didDeactivate's teardown here, gated by
+        // `isAudioSessionActive` so it runs exactly once.
+        if isAudioSessionActive {
+            let rtcSession = RTCAudioSession.sharedInstance()
+            rtcSession.audioSessionDidDeactivate(rtcSession.session)
+            getAudioDeviceModule()?.reset()
+            DispatchQueue.main.async {
+                UIApplication.shared.isIdleTimerDisabled = false
+            }
+            isAudioSessionActive = false
+        }
 
-        sendEvent(CallingxEvents.providerReset, body: nil)
+        // Snapshot the tracked cids before wiping storage: JS leaves exactly the calls CallKit was tracking. 
+        let trackedCids = CallingxImpl.uuidStorage?.allCids() ?? []
+        CallingxSessionOwnership.callingxOwnsSession = false
+        CallingxImpl.uuidStorage?.removeAllObjects()
+
+        sendEvent(CallingxEvents.providerReset, body: ["callCids": trackedCids])
     }
     
     // MARK: - Pending Action Fulfillment

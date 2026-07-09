@@ -43,8 +43,13 @@ export function waitForAudioSessionActivation(): Promise<void> {
 /**
  * Resolves the pending audio session activation promise.
  * Called when the didActivateAudioSession event fires or on timeout.
+ *
+ * @param onlyIfPending if `true`, only releases a waiter that already exists and otherwise does
+ * nothing. If `false` (default) and no waiter exists, it remembers the activation so the next
+ * waiter resolves immediately (handles the cold-start race). Pass `true` on teardown (e.g. a
+ * provider reset), where there's nothing to "remember" — the session is going away, not activating.
  */
-export function resolvePendingAudioSession(): void {
+export function resolvePendingAudioSession(onlyIfPending = false): void {
   if (pendingTimeout) {
     clearTimeout(pendingTimeout);
     pendingTimeout = null;
@@ -59,7 +64,7 @@ export function resolvePendingAudioSession(): void {
     }
     pendingResolve = null;
     isAudioSessionAlreadyActivated = false;
-  } else {
+  } else if (!onlyIfPending) {
     isAudioSessionAlreadyActivated = true;
   }
 }
