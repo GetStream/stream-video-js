@@ -602,6 +602,13 @@ export class CallState {
   };
 
   /**
+   * Returns the comparator currently used to sort the participants.
+   */
+  getSortParticipantsBy = (): Comparator<StreamVideoParticipant> => {
+    return this.sortParticipantsBy;
+  };
+
+  /**
    * Gets the current value of an observable, or undefined if the observable has
    * not emitted a value yet.
    *

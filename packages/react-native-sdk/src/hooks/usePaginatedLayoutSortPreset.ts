@@ -6,7 +6,7 @@ import {
 } from '@stream-io/video-client';
 import { useEffect } from 'react';
 
-export const resetSortPreset = (call: Call) => {
+const resetSortPreset = (call: Call) => {
   // reset the sorting to the default for the call type
   const callConfig = CallTypes.get(call.type);
   call.setSortParticipantsBy(

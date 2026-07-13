@@ -7,7 +7,6 @@ import {
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useEffect } from 'react';
-import { resetSortPreset } from './usePaginatedLayoutSortPreset';
 
 export const useSpeakerLayoutSortPreset = (
   call: Call | undefined,
@@ -15,6 +14,7 @@ export const useSpeakerLayoutSortPreset = (
 ) => {
   useEffect(() => {
     if (!call) return;
+    const previousSortPreset = call.getSortParticipantsBy();
     // always show the remote participant in the spotlight
     if (isOneOnOneCall) {
       call.setSortParticipantsBy(combineComparators(screenSharing, loggedIn));
@@ -22,7 +22,7 @@ export const useSpeakerLayoutSortPreset = (
       call.setSortParticipantsBy(speakerLayoutSortPreset);
     }
     return () => {
-      resetSortPreset(call);
+      call.setSortParticipantsBy(previousSortPreset);
     };
   }, [call, isOneOnOneCall]);
 };
