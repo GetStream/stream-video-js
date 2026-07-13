@@ -93,12 +93,6 @@ const onProviderReset =
   async ({ callCids }: EventParams['providerReset']) => {
     logger.debug(`onProviderReset event callCids: ${callCids?.join(', ')}`);
 
-    // After a reset, didActivate/didDeactivate may never fire, so a join flow awaiting the audio
-    // session would hang forever. Release any in-flight waiter — but pass onlyIfPending so we don't
-    // latch "already activated" and make the next call skip its own wait (the session is torn down,
-    // not activated).
-    resolvePendingAudioSession(true);
-
     if (!callCids?.length) {
       return;
     }

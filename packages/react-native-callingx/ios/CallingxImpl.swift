@@ -67,8 +67,6 @@ import stream_react_native_webrtc
     /// iOS 17+ surfaces as system-initiated mutes — artifacts, not user intent, so we skip them.
     /// Set on `willEnableAudioEngine`, cleared on `willStartAudioEngine`. Guarded by `pendingActionsQueue`.
     private var isAudioEngineStarting = false
-    /// Only touched on the CallKit delegate (main) queue
-    private var isAudioSessionActive = false
 
     /// Mute value of the last app-requested `CXSetMutedCallAction`. iOS 17+ round-trips it back as a
     /// system-initiated action of the same value; we skip that echo (a real UI toggle flips the value).
@@ -828,7 +826,6 @@ import stream_react_native_webrtc
 
         // When CallKit activates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
-        isAudioSessionActive = true
 
         // Enable wake lock to keep the device awake during the call
         DispatchQueue.main.async {
@@ -844,7 +841,6 @@ import stream_react_native_webrtc
         // When CallKit deactivates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
         getAudioDeviceModule()?.reset()
-        isAudioSessionActive = false
 
         // Invariant: callingx ships with maximumCallsPerCallGroup = maximumCallGroups = 1
         // (see packages/react-native-callingx/src/utils/constants.ts defaultiOSOptions).
@@ -899,19 +895,6 @@ import stream_react_native_webrtc
             pendingAnswerActions.removeAll()
             pendingEndActions.removeAll()
             lastAppRequestedMute = nil
-        }
-
-        // A provider reset tears down the audio session, but provider(_:didDeactivate:) is NOT
-        // guaranteed to fire afterwards. Mirror didDeactivate's teardown here, gated by
-        // `isAudioSessionActive` so it runs exactly once.
-        if isAudioSessionActive {
-            let rtcSession = RTCAudioSession.sharedInstance()
-            rtcSession.audioSessionDidDeactivate(rtcSession.session)
-            getAudioDeviceModule()?.reset()
-            DispatchQueue.main.async {
-                UIApplication.shared.isIdleTimerDisabled = false
-            }
-            isAudioSessionActive = false
         }
 
         // Snapshot the tracked cids before wiping storage: JS leaves exactly the calls CallKit was tracking. 
