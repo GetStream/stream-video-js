@@ -2,7 +2,6 @@ import { useEffect, useMemo } from 'react';
 import {
   Call,
   CallTypes,
-  combineComparators,
   Comparator,
   defaultSortPreset,
   hasAudio,
@@ -10,8 +9,6 @@ import {
   hasVideo,
   isPinned,
   paginatedLayoutSortPreset,
-  screenSharing,
-  speakerLayoutSortPreset,
   StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useCallStateHooks } from '@stream-io/video-react-bindings';
@@ -92,25 +89,6 @@ export const usePaginatedLayoutSortPreset = (call: Call | undefined) => {
       resetSortPreset(call);
     };
   }, [call]);
-};
-
-export const useSpeakerLayoutSortPreset = (
-  call: Call | undefined,
-  isOneOnOneCall: boolean,
-) => {
-  useEffect(() => {
-    if (!call) return;
-    const previousSortPreset = call.getSortParticipantsBy();
-    // always show the remote participant in the spotlight
-    if (isOneOnOneCall) {
-      call.setSortParticipantsBy(combineComparators(screenSharing, loggedIn));
-    } else {
-      call.setSortParticipantsBy(speakerLayoutSortPreset);
-    }
-    return () => {
-      call.setSortParticipantsBy(previousSortPreset);
-    };
-  }, [call, isOneOnOneCall]);
 };
 
 export const useRawRemoteParticipants = () => {

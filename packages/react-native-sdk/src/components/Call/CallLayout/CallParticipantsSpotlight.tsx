@@ -3,7 +3,10 @@ import {
   hasScreenShare,
   type StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCall } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useSpeakerLayoutSortPreset,
+} from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { debounceTime } from 'rxjs';
 import { ComponentTestIds } from '../../../constants/TestIds';
@@ -18,7 +21,6 @@ import {
 import { useTheme } from '../../../contexts/ThemeContext';
 import { type CallContentProps } from '../CallContent';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
-import { useSpeakerLayoutSortPreset } from '../../../hooks/useSpeakerLayoutSortPreset';
 
 /**
  * Props for the CallParticipantsSpotlight component.

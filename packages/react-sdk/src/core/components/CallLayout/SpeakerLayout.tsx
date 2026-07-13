@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { hasScreenShare } from '@stream-io/video-client';
-import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useCallStateHooks,
+  useSpeakerLayoutSortPreset,
+} from '@stream-io/video-react-bindings';
 
 import {
   DefaultParticipantViewUI,
@@ -19,7 +23,6 @@ import {
   ParticipantPredicate,
   useFilteredParticipants,
   useRawRemoteParticipants,
-  useSpeakerLayoutSortPreset,
 } from './hooks';
 import { useCalculateHardLimit } from '../../hooks/useCalculateHardLimit';
 import { ParticipantsAudio } from '../Audio';
