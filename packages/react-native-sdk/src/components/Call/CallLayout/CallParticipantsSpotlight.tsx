@@ -18,6 +18,7 @@ import {
 import { useTheme } from '../../../contexts/ThemeContext';
 import { type CallContentProps } from '../CallContent';
 import { useIsInPiPMode } from '../../../hooks/useIsInPiPMode';
+import { useSpeakerLayoutSortPreset } from '../../../hooks/useSpeakerLayoutSortPreset';
 
 /**
  * Props for the CallParticipantsSpotlight component.
@@ -70,6 +71,8 @@ export const CallParticipantsSpotlight = ({
       .subscribe(setAllParticipants);
     return () => sub.unsubscribe();
   }, [call]);
+  const isOneOnOneCall = allParticipants.length === 2;
+  useSpeakerLayoutSortPreset(call, isOneOnOneCall);
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight =
     participantInSpotlight && hasScreenShare(participantInSpotlight);
