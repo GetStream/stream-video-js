@@ -14,7 +14,7 @@ import kotlinx.parcelize.Parcelize
  */
 sealed interface CallAction : Parcelable {
     @Parcelize
-    data class Answer(val isAudioCall: Boolean) : CallAction
+    object Answer : CallAction
 
     @Parcelize
     data class Disconnect(val cause: DisconnectCause) : CallAction

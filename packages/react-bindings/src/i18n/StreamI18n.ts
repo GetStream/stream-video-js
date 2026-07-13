@@ -1,4 +1,4 @@
-import i18next from 'i18next';
+import i18next, { type i18n } from 'i18next';
 import {
   TranslationLanguage,
   TranslationsMap,
@@ -27,7 +27,7 @@ export type StreamI18nConstructor = {
 
 export class StreamI18n {
   /** Exposed i18n instance from the i18next library */
-  i18nInstance;
+  i18nInstance: i18n;
   /** Translator function that converts the provided string into its equivalent in the current language. */
   t: TranslatorFunction = defaultTranslationFunction;
 

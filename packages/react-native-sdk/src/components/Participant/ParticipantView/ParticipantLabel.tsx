@@ -17,6 +17,7 @@ import {
   useCall,
   useI18n,
   useIsAudioConnecting,
+  useIsVideoConnecting,
 } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import { type ParticipantViewProps } from './ParticipantView';
@@ -66,6 +67,7 @@ export const ParticipantLabel = ({
   const isVideoMuted = !hasVideo(participant);
   const isTrackPaused = trackType && hasPausedTrack(participant, trackType);
   const isAudioConnecting = useIsAudioConnecting(participant);
+  const isVideoConnecting = useIsVideoConnecting(participant);
 
   if (trackType === 'screenShareTrack') {
     const screenShareText = isLocalParticipant
@@ -115,11 +117,11 @@ export const ParticipantLabel = ({
       ]}
     >
       <View style={styles.wrapper}>
-        {isAudioConnecting && (
+        {(isAudioConnecting || isVideoConnecting) && (
           <ActivityIndicator
             size="small"
             color={colors.iconPrimary}
-            style={styles.audioConnectingIndicator}
+            style={styles.connectingIndicator}
           />
         )}
         <Text style={[styles.userNameLabel, userNameLabel]} numberOfLines={1}>
@@ -192,7 +194,7 @@ const useStyles = () => {
           fontWeight: '400',
           color: theme.colors.textPrimary,
         },
-        audioConnectingIndicator: {
+        connectingIndicator: {
           marginRight: theme.variants.spacingSizes.sm,
           justifyContent: 'center',
         },

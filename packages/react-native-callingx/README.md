@@ -55,7 +55,7 @@ await CallingxModule.displayIncomingCall(
 - `setOnHoldCall(callId, isOnHold)`.
 - `addEventListener(eventName, callback)`.
 - `getInitialEvents()` and `getInitialVoipEvents()`.
-- `registerBackgroundTask(taskProvider)` / `startBackgroundTask()` / `stopBackgroundTask()` (Android).
+- `acquireBackgroundTask(owner)` / `releaseBackgroundTask(owner)` (Android) — ref-counted keep-alive task that keeps the JS runtime/timers alive in the background; the underlying HeadlessJS task starts on the first acquire and stops once all owners release.
 
 ## Event names
 
@@ -66,7 +66,6 @@ Call events:
 - `didDisplayIncomingCall`
 - `didToggleHoldCallAction`
 - `didPerformSetMutedCallAction`
-- `didChangeAudioRoute`
 - `didReceiveStartCallAction`
 - `didActivateAudioSession`
 - `didDeactivateAudioSession`

@@ -30,6 +30,7 @@ export default function CreateRingingCall() {
       const call = videoClient?.call('default', randomId());
       await call?.getOrCreate({
         ring: true,
+        video: true,
         data: {
           settings_override: {
             ring: {

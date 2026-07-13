@@ -4,7 +4,7 @@ import {
   type StreamVideoParticipant,
 } from '@stream-io/video-client';
 import { useCall } from '@stream-io/video-react-bindings';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { debounceTime } from 'rxjs';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
@@ -91,13 +91,28 @@ export const CallParticipantsSpotlight = ({
     mirror,
   };
 
-  const landscapeStyles: ViewStyle = {
-    flexDirection: landscape ? 'row' : 'column',
-  };
-
-  const spotlightContainerLandscapeStyles: ViewStyle = {
-    marginHorizontal: landscape ? 0 : variants.spacingSizes.xs,
-  };
+  // Memoized so the spotlight tile's `style` prop stays referentially stable;
+  // otherwise the fresh array literal defeats ParticipantView's React.memo.
+  const spotlightParticipantStyle = useMemo(
+    () =>
+      isUserAloneInCall
+        ? [
+            styles.fullScreenSpotlightContainer,
+            callParticipantsSpotlight.fullScreenSpotlightContainer,
+          ]
+        : [
+            styles.spotlightContainer,
+            { marginHorizontal: landscape ? 0 : variants.spacingSizes.xs },
+            callParticipantsSpotlight.spotlightContainer,
+          ],
+    [
+      isUserAloneInCall,
+      landscape,
+      styles,
+      callParticipantsSpotlight,
+      variants.spacingSizes.xs,
+    ],
+  );
 
   const showShareScreenOverlay =
     participantInSpotlight?.isLocalParticipant &&
@@ -109,7 +124,7 @@ export const CallParticipantsSpotlight = ({
       testID={ComponentTestIds.CALL_PARTICIPANTS_SPOTLIGHT}
       style={[
         styles.container,
-        landscapeStyles,
+        landscape ? landscapeStyles.row : landscapeStyles.column,
         callParticipantsSpotlight.container,
       ]}
     >
@@ -120,18 +135,7 @@ export const CallParticipantsSpotlight = ({
         ) : (
           <ParticipantView
             participant={participantInSpotlight}
-            style={
-              isUserAloneInCall
-                ? [
-                    styles.fullScreenSpotlightContainer,
-                    callParticipantsSpotlight.fullScreenSpotlightContainer,
-                  ]
-                : [
-                    styles.spotlightContainer,
-                    spotlightContainerLandscapeStyles,
-                    callParticipantsSpotlight.spotlightContainer,
-                  ]
-            }
+            style={spotlightParticipantStyle}
             objectFit={isScreenShareOnSpotlight ? 'contain' : 'cover'}
             trackType={
               isScreenShareOnSpotlight ? 'screenShareTrack' : 'videoTrack'
@@ -165,6 +169,11 @@ export const CallParticipantsSpotlight = ({
     </View>
   );
 };
+
+const landscapeStyles = StyleSheet.create({
+  row: { flexDirection: 'row' },
+  column: { flexDirection: 'column' },
+});
 
 const useStyles = () => {
   const { theme } = useTheme();

@@ -40,7 +40,7 @@ export const useVerticalScrollPosition = (
     const resizeObserver = new ResizeObserver(scrollHandler);
     resizeObserver.observe(scrollElement);
 
-    scrollElement.addEventListener('scroll', scrollHandler);
+    scrollElement.addEventListener('scroll', scrollHandler, { passive: true });
     return () => {
       scrollElement.removeEventListener('scroll', scrollHandler);
       resizeObserver.disconnect();
@@ -84,7 +84,7 @@ export const useHorizontalScrollPosition = (
     const resizeObserver = new ResizeObserver(scrollHandler);
     resizeObserver.observe(scrollElement);
 
-    scrollElement.addEventListener('scroll', scrollHandler);
+    scrollElement.addEventListener('scroll', scrollHandler, { passive: true });
     return () => {
       scrollElement.removeEventListener('scroll', scrollHandler);
       resizeObserver.disconnect();

@@ -49,6 +49,25 @@ export interface Spec extends TurboModule {
 
   canPostNotifications(): boolean;
 
+  /**
+   * Whether audio routing is backed by the Jetpack Telecom stack on this device.
+   * Android: true on API 26+. iOS: always false (CallKit path uses its own bypass).
+   */
+  isTelecomBacked(): boolean;
+
+  /** Call ids currently registered with Telecom (Android). Empty on iOS. */
+  getRegisteredCallIds(): Array<string>;
+
+  /**
+   * Resolves a JSON string snapshot `{ endpoints: [{id,name,type}], currentEndpoint }`
+   * of the Telecom audio endpoints for the given call (Android). Resolves an empty
+   * snapshot on iOS / when the call is unknown.
+   */
+  getAvailableAudioEndpoints(callId: string): Promise<string>;
+
+  /** Requests a Telecom audio-endpoint change by endpoint id (Android). */
+  requestAudioEndpointChange(callId: string, endpointId: string): Promise<void>;
+
   getInitialEvents(): Array<{
     eventName: string;
     params: {
@@ -60,6 +79,7 @@ export interface Spec extends TurboModule {
       phase?: string;
       reason?: string;
       shouldResume?: boolean;
+      snapshot?: string;
     };
   }>;
 
@@ -162,6 +182,7 @@ export interface Spec extends TurboModule {
       phase?: string;
       reason?: string;
       shouldResume?: boolean;
+      snapshot?: string;
     };
   }>;
 

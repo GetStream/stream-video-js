@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StreamClient } from '../client';
 import { StableWSConnection } from '../connection';
 import type { WSConnectionError } from '../types';
+import { getTimers } from '../../../timers';
 
 class StuckWebSocket {
   static CONNECTING = 0;
@@ -108,6 +109,27 @@ const buildClient = () => {
   return client;
 };
 
+describe('StableWSConnection connection-check timer source', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  it('arms the connection-check watchdog on the worker timer, not the main-thread setTimeout', () => {
+    const client = buildClient();
+    const wsConnection = new StableWSConnection(client);
+    const workerSetTimeout = vi
+      .spyOn(getTimers(), 'setTimeout')
+      .mockReturnValue(1 as unknown as number);
+    const mainSetTimeout = vi.spyOn(globalThis, 'setTimeout');
+
+    wsConnection.scheduleConnectionCheck();
+
+    expect(workerSetTimeout).toHaveBeenCalledTimes(1);
+    expect(mainSetTimeout).not.toHaveBeenCalled();
+  });
+});
+
 describe('StableWSConnection - silent handshake hang', () => {
   beforeEach(() => {
     StuckWebSocket.instances = [];
@@ -191,6 +213,53 @@ describe('StableWSConnection - silent handshake hang', () => {
     await vi.advanceTimersByTimeAsync(20000);
     const outcome = await connectAttemptOutcome;
     expect(outcome.kind).toBe('rejected');
+  });
+
+  it('preserves an initial WS close reason when reconnect cannot get healthy', async () => {
+    const client = new StreamClient('test-key', {
+      browser: false,
+      defaultWsTimeout: 5000,
+      WebSocketImpl: ManualWebSocket as unknown as typeof WebSocket,
+      timeout: 1000,
+    });
+    vi.spyOn(client.tokenManager, 'tokenReady').mockResolvedValue('fake-token');
+    vi.spyOn(client.tokenManager, 'loadToken').mockResolvedValue('fake-token');
+    vi.spyOn(client.tokenManager, 'getToken').mockReturnValue('fake-token');
+
+    client._setUser({ id: 'test-user' });
+    client.userID = 'test-user';
+    client.clientID = 'test-user--abcdef';
+    client._setupConnectionIdPromise();
+
+    const wsConnection = new StableWSConnection(client);
+    client.wsConnection = wsConnection;
+
+    const connectAttemptOutcome = wsConnection.connect(5000).then(
+      () => ({ kind: 'resolved' as const }),
+      (error: Error) => ({ kind: 'rejected' as const, error }),
+    );
+
+    await vi.advanceTimersByTimeAsync(0);
+    const ws = ManualWebSocket.instances.at(-1)!;
+    expect(ws).toBeDefined();
+
+    ws.onclose?.({
+      code: 1006,
+      reason: 'specific ws close reason',
+      wasClean: false,
+      target: ws,
+    });
+
+    await vi.advanceTimersByTimeAsync(20000);
+    const outcome = await connectAttemptOutcome;
+
+    expect(outcome.kind).toBe('rejected');
+    if (outcome.kind === 'rejected') {
+      expect(outcome.error.message).toContain('specific ws close reason');
+      expect(outcome.error.message).not.toContain(
+        'initial WS connection could not be established',
+      );
+    }
   });
 
   it('does not schedule a reconnect (and leaves connectionIdPromise rejected) on a permanent, non-WS failure', async () => {

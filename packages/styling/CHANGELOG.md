@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.14.1...@stream-io/video-styling-1.14.2) (2026-06-26)
+
+### Performance Improvements
+
+- **react-sdk:** reduce re-renders and event-listener churn ([#2273](https://github.com/GetStream/stream-video-js/issues/2273)) ([0234d1e](https://github.com/GetStream/stream-video-js/commit/0234d1e2e3e2f031d69ab6335c97924f9f47a6ec))
+
 ## [1.14.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.14.0...@stream-io/video-styling-1.14.1) (2026-06-01)
 
 ## [1.14.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.13.0...@stream-io/video-styling-1.14.0) (2026-05-18)

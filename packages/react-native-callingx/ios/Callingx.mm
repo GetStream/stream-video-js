@@ -437,6 +437,67 @@ RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(hasRegisteredCall) {
 }
 #endif
 
+#pragma mark - isTelecomBacked
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (NSNumber *)isTelecomBacked {
+  // Android-only Telecom routing; iOS uses the CallKit bypass instead.
+  return @NO;
+}
+#else
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isTelecomBacked) {
+  return @NO;
+}
+#endif
+
+#pragma mark - getRegisteredCallIds
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (NSArray<NSString *> *)getRegisteredCallIds {
+  return @[];
+}
+#else
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getRegisteredCallIds) {
+  return @[];
+}
+#endif
+
+#pragma mark - getAvailableAudioEndpoints
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)getAvailableAudioEndpoints:(nonnull NSString *)callId
+                           resolve:(nonnull RCTPromiseResolveBlock)resolve
+                            reject:(nonnull RCTPromiseRejectBlock)reject {
+  resolve(@"{\"endpoints\":[],\"currentEndpoint\":null}");
+}
+#else
+RCT_EXPORT_METHOD(getAvailableAudioEndpoints:(NSString *)callId
+                           resolve:(RCTPromiseResolveBlock)resolve
+                            reject:(RCTPromiseRejectBlock)reject) {
+  resolve(@"{\"endpoints\":[],\"currentEndpoint\":null}");
+}
+#endif
+
+#pragma mark - requestAudioEndpointChange
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (void)requestAudioEndpointChange:(nonnull NSString *)callId
+                        endpointId:(nonnull NSString *)endpointId
+                           resolve:(nonnull RCTPromiseResolveBlock)resolve
+                            reject:(nonnull RCTPromiseRejectBlock)reject {
+  // Not implemented on iOS
+  resolve(@YES);
+}
+#else
+RCT_EXPORT_METHOD(requestAudioEndpointChange:(NSString *)callId
+                        endpointId:(NSString *)endpointId
+                           resolve:(RCTPromiseResolveBlock)resolve
+                            reject:(RCTPromiseRejectBlock)reject) {
+  // Not implemented on iOS
+  resolve(@YES);
+}
+#endif
+
 #pragma mark - setCurrentCallActive
 
 #ifdef RCT_NEW_ARCH_ENABLED

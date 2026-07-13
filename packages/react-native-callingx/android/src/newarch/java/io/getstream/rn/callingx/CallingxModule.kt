@@ -38,7 +38,23 @@ class CallingxModule(reactContext: ReactApplicationContext) :
     }
 
     override fun setDefaultAudioDeviceEndpointType(endpointType: String?) {
-        // leave empty
+        impl.setDefaultAudioDeviceEndpointType(endpointType)
+    }
+
+    override fun isTelecomBacked(): Boolean {
+        return impl.isTelecomBacked()
+    }
+
+    override fun getRegisteredCallIds(): WritableArray {
+        return impl.getRegisteredCallIds()
+    }
+
+    override fun getAvailableAudioEndpoints(callId: String, promise: Promise) {
+        impl.getAvailableAudioEndpoints(callId, promise)
+    }
+
+    override fun requestAudioEndpointChange(callId: String, endpointId: String, promise: Promise) {
+        impl.requestAudioEndpointChange(callId, endpointId, promise)
     }
 
     override fun wireAudioEngineSubscription() {

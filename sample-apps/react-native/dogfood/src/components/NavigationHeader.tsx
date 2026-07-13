@@ -62,7 +62,8 @@ export const NavigationHeader = ({ route }: NativeStackHeaderProps) => {
     (route.name === 'JoinMeetingScreen' ||
       route.name === 'JoinCallScreen' ||
       route.name === 'AudioRoom' ||
-      route.name === 'LiveStreamChoose');
+      route.name === 'LiveStreamChoose' ||
+      route.name === 'TestRecordingScreen');
 
   return (
     <SafeAreaView style={styles.header} edges={['top']}>

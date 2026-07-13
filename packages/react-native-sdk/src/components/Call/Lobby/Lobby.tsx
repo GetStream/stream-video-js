@@ -67,11 +67,15 @@ export const Lobby = ({
   const { optimisticIsMute: cameraIsMuted } = useCameraState();
   const { t } = useI18n();
 
-  const connectedUserAsParticipant = {
-    userId: connectedUser?.id,
-    image: connectedUser?.image,
-    name: connectedUser?.name,
-  } as StreamVideoParticipant;
+  const connectedUserAsParticipant = useMemo(
+    () =>
+      ({
+        userId: connectedUser?.id,
+        image: connectedUser?.image,
+        name: connectedUser?.name,
+      }) as StreamVideoParticipant,
+    [connectedUser?.id, connectedUser?.image, connectedUser?.name],
+  );
 
   return (
     <View style={[styles.container, lobby.container]}>

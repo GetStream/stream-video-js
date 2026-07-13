@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 import { debounceTime } from 'rxjs';
 import {
@@ -76,10 +76,6 @@ export const CallParticipantsGrid = ({
       sub2.unsubscribe();
     };
   }, [call]);
-  const landscapeStyles: ViewStyle = {
-    flexDirection: landscape ? 'row' : 'column',
-  };
-
   const isInPiPMode = useIsInPiPMode();
 
   const showFloatingView =
@@ -125,7 +121,7 @@ export const CallParticipantsGrid = ({
     <View
       style={[
         styles.container,
-        landscapeStyles,
+        landscape ? styles.row : styles.column,
         { backgroundColor: colors.sheetPrimary },
         callParticipantsGrid.container,
       ]}
@@ -145,4 +141,6 @@ export const CallParticipantsGrid = ({
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  row: { flexDirection: 'row' },
+  column: { flexDirection: 'column' },
 });

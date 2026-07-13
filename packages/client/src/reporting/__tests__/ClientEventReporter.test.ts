@@ -617,4 +617,89 @@ describe('ClientEventReporter', () => {
     expect(ws1.every((e) => e.sfu_id === 'sfu-1')).toBe(true);
     expect(ws2.every((e) => e.sfu_id === 'sfu-2')).toBe(true);
   });
+
+  describe('drops events for an unregistered call', () => {
+    it('does not emit stage events after the call is unregistered', async () => {
+      reporter.startCorrelation(cid, 'first-attempt');
+      reporter.unregisterCall(cid);
+      await flush();
+      doAxiosRequest.mockClear();
+
+      await reporter.track(cid, 'WSJoin', () => Promise.resolve('ok'));
+      reporter.reportFirstFrame(cid, TrackType.VIDEO, 'track-1');
+      await flush();
+
+      expect(doAxiosRequest).not.toHaveBeenCalled();
+    });
+
+    it('does not emit a stage completion when unregistered mid-flight', async () => {
+      reporter.startCorrelation(cid, 'first-attempt');
+      await flush();
+      doAxiosRequest.mockClear();
+
+      await reporter.track(cid, 'WSJoin', async () => {
+        reporter.unregisterCall(cid);
+        return 'ok';
+      });
+      await flush();
+
+      const completed = postedEvents().filter(
+        (e) => e.stage === 'WSJoin' && e.event_type === 'completed',
+      );
+      expect(completed).toHaveLength(0);
+    });
+
+    it('does not emit JoinInitiated for an unregistered call', async () => {
+      reporter.unregisterCall(cid);
+      reporter.startCorrelation(cid, 'first-attempt');
+      await flush();
+
+      const joinInitiated = postedEvents().filter(
+        (e) => e.stage === 'JoinInitiated',
+      );
+      expect(joinInitiated).toHaveLength(0);
+    });
+
+    it('still emits CoordinatorWS events (connection-scoped, not call-gated)', async () => {
+      reporter.unregisterCall(cid);
+      await reporter.trackCoordinatorWs(() => Promise.resolve('ok'));
+      await flush();
+
+      const ws = postedEvents().filter((e) => e.stage === 'CoordinatorWS');
+      expect(ws.length).toBeGreaterThan(0);
+    });
+  });
+});
+
+describe('ClientEventReporter (disabled)', () => {
+  const cid = 'default:call-1';
+  let doAxiosRequest: ReturnType<typeof vi.fn>;
+  let reporter: ClientEventReporter;
+
+  beforeEach(() => {
+    doAxiosRequest = vi.fn().mockResolvedValue({});
+    const streamClient = fromPartial<StreamClient>({
+      userID: 'user-1',
+      doAxiosRequest,
+      getUserAgent: () => 'test-agent',
+      getSdkVersion: () => '1.0.0',
+    });
+    reporter = new ClientEventReporter({ streamClient, enabled: false });
+    reporter.startCoordinatorConnection('user-1');
+    reporter.registerCall(cid, {
+      callType: 'default',
+      callId: 'call-1',
+      getCallSessionId: () => 'session-1',
+      getSfuId: () => 'sfu-1',
+      getUserSessionId: () => 'user-session-1',
+    });
+  });
+
+  it('does not post any events when disabled', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    await reporter.track(cid, 'CoordinatorJoin', () => Promise.resolve('ok'));
+    await flush();
+
+    expect(doAxiosRequest).not.toHaveBeenCalled();
+  });
 });

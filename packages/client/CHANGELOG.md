@@ -2,6 +2,38 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.55.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.55.0...@stream-io/video-client-1.55.1) (2026-07-02)
+
+### Bug Fixes
+
+- **client:** propagate underlying WS connection error through connect timeout ([#2307](https://github.com/GetStream/stream-video-js/issues/2307)) ([30b332c](https://github.com/GetStream/stream-video-js/commit/30b332cd2dc5542305f8722db9a8d55ba139af9a))
+- renegotiate unacknowledged publisher transceivers on republish ([#2309](https://github.com/GetStream/stream-video-js/issues/2309)) ([049f06b](https://github.com/GetStream/stream-video-js/commit/049f06b30ec7f420e0eab0e298545c5d2d3bcc67))
+
+## [1.55.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.54.0...@stream-io/video-client-1.55.0) (2026-06-26)
+
+### Features
+
+- pre-call testing ([#2235](https://github.com/GetStream/stream-video-js/issues/2235)) ([87cfaa4](https://github.com/GetStream/stream-video-js/commit/87cfaa456e2ed7d1a0b5034a95d0f09f01903d2e))
+- upgrade to TypeScript 6.0.3, pin ES2022, raise supported-browser floors ([#2290](https://github.com/GetStream/stream-video-js/issues/2290)) ([d9ea158](https://github.com/GetStream/stream-video-js/commit/d9ea15846582fa8db86b3b873eca2afe92ae3593))
+
+### Bug Fixes
+
+- **client:** don't tear down the SFU socket on a network blip during an in-flight reconnect ([#2300](https://github.com/GetStream/stream-video-js/issues/2300)) ([df729c0](https://github.com/GetStream/stream-video-js/commit/df729c01d9eaf9a7229d618b51381f6c6cfeb8ca))
+- **client:** harden SFU reconnection and ICE-restart recovery ([#2285](https://github.com/GetStream/stream-video-js/issues/2285)) ([06e5f58](https://github.com/GetStream/stream-video-js/commit/06e5f5800498e14e47dc1cb8e46449c86d4a4387))
+- **client:** omit client telemetry events for unregistered calls ([#2301](https://github.com/GetStream/stream-video-js/issues/2301)) ([86fc21a](https://github.com/GetStream/stream-video-js/commit/86fc21a82afb2db49ef4fc1562a5b5d456d85f27))
+- **client:** reliably deliver delta-compressed WebRTC stats ([#2304](https://github.com/GetStream/stream-video-js/issues/2304)) ([c5803fc](https://github.com/GetStream/stream-video-js/commit/c5803fc777a241d25c975e316140700c773bc840))
+
+## [1.54.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.53.2...@stream-io/video-client-1.54.0) (2026-06-19)
+
+### Features
+
+- **client:** allow disabling client event reporter ([#2286](https://github.com/GetStream/stream-video-js/issues/2286)) ([d727916](https://github.com/GetStream/stream-video-js/commit/d72791614c98ca3bedafe0538e0ac68050260ead))
+
+### Bug Fixes
+
+- **client:** avoid SFU socket close when online fires without offline recovery ([#2292](https://github.com/GetStream/stream-video-js/issues/2292)) ([3034188](https://github.com/GetStream/stream-video-js/commit/30341888eddbe878e97d39bb2f11c5b4455755d6))
+- **client:** send migrating_from after repeated rejoin failures ([#2287](https://github.com/GetStream/stream-video-js/issues/2287)) ([1c14617](https://github.com/GetStream/stream-video-js/commit/1c14617ce8cccbb97cc68e8ba75225f49607ccbe))
+
 ## [1.53.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.53.1...@stream-io/video-client-1.53.2) (2026-06-12)
 
 ### Bug Fixes

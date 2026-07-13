@@ -13,6 +13,7 @@ import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
 import { withoutConcurrency } from '../helpers/concurrency';
 import { StatsTracer, Tracer, traceRTCPeerConnection } from '../stats';
+import { toJSON } from './helpers/iceCandiates';
 import {
   BasePeerConnectionOpts,
   OnIceConnected,
@@ -37,7 +38,7 @@ export abstract class BasePeerConnection {
   protected tag: string;
   protected sfuClient: StreamSfuClient;
 
-  private onReconnectionNeeded?: OnReconnectionNeeded;
+  protected onReconnectionNeeded?: OnReconnectionNeeded;
   private onIceConnected?: OnIceConnected;
   private onPeerConnectionStateChange?: OnPeerConnectionStateChange;
   protected onRemoteTrackUnmute?: OnRemoteTrackUnmute;
@@ -224,11 +225,17 @@ export abstract class BasePeerConnection {
    * Appends the trickled ICE candidates to the `RTCPeerConnection`.
    */
   protected addTrickledIceCandidates = () => {
+    // Declare the ICE generation this negotiation established so the buffer
+    // only replays candidates of the current generation.
     const { iceTrickleBuffer } = this.sfuClient;
+    const sdp = this.pc.remoteDescription?.sdp;
+    iceTrickleBuffer.updateActiveGeneration(this.peerType, sdp);
+
+    const { subscriber, publisher } = iceTrickleBuffer;
     const observable =
       this.peerType === PeerType.SUBSCRIBER
-        ? iceTrickleBuffer.subscriberCandidates
-        : iceTrickleBuffer.publisherCandidates;
+        ? subscriber.candidates
+        : publisher.candidates;
 
     this.unsubscribeIceTrickle?.();
     this.unsubscribeIceTrickle = createSafeAsyncSubscription(
@@ -284,20 +291,6 @@ export abstract class BasePeerConnection {
   };
 
   /**
-   * Returns true only when the peer connection is currently fully established
-   * (ICE `connected`/`completed` AND connection state `connected`).
-   * Transient states like `disconnected`, `checking`, or `new` return false.
-   */
-  isStable = () => {
-    const iceState = this.pc.iceConnectionState;
-    const connectionState = this.pc.connectionState;
-    return (
-      (iceState === 'connected' || iceState === 'completed') &&
-      connectionState === 'connected'
-    );
-  };
-
-  /**
    * Handles the ICECandidate event and
    * Initiates an ICE Trickle process with the SFU.
    */
@@ -308,27 +301,13 @@ export abstract class BasePeerConnection {
       return;
     }
 
-    const iceCandidate = this.asJSON(candidate);
+    const iceCandidate = toJSON(candidate);
     this.sfuClient
       .iceTrickle({ peerType: this.peerType, iceCandidate })
       .catch((err) => {
         if (this.isDisposed) return;
         this.logger.warn(`ICETrickle failed`, err);
       });
-  };
-
-  /**
-   * Converts the ICE candidate to a JSON string.
-   */
-  private asJSON = (candidate: RTCIceCandidate): string => {
-    if (!candidate.usernameFragment) {
-      // react-native-webrtc doesn't include usernameFragment in the candidate
-      const segments = candidate.candidate.split(' ');
-      const ufragIndex = segments.findIndex((s) => s === 'ufrag') + 1;
-      const usernameFragment = segments[ufragIndex];
-      return JSON.stringify({ ...candidate, usernameFragment });
-    }
-    return JSON.stringify(candidate.toJSON());
   };
 
   /**
@@ -343,8 +322,10 @@ export abstract class BasePeerConnection {
     });
     if (this.tracer && (state === 'connected' || state === 'failed')) {
       try {
-        const stats = await this.stats.get();
-        this.tracer.trace('getstats', stats.delta);
+        // Sample stats into the delivery chain at connect/fail. The reporter
+        // ships and commits the un-acked chain, so we must not trace the delta
+        // separately here (that would double-send it and corrupt the chain).
+        await this.stats.takeSample();
       } catch (err) {
         this.tracer.trace('getstatsOnFailure', (err as Error).toString());
       }
