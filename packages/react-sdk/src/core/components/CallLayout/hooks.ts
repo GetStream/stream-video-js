@@ -107,9 +107,3 @@ const resetSortPreset = (call: Call) => {
     callConfig.options.sortParticipantsBy || defaultSortPreset,
   );
 };
-
-const loggedIn: Comparator<StreamVideoParticipant> = (a, b) => {
-  if (a.isLocalParticipant) return 1;
-  if (b.isLocalParticipant) return -1;
-  return 0;
-};
