@@ -141,26 +141,24 @@ export const CallParticipantsList = ({
     );
     const oldVisibleParticipantSessionIds =
       viewableParticipantSessionIds.current;
+    const visibilityPatch = (
+      videoTrack: VisibilityState,
+    ): StreamVideoParticipantPatches[string] => ({
+      viewportVisibilityState: {
+        videoTrack,
+        screenShareTrack: VisibilityState.UNKNOWN,
+      },
+    });
     newVisibleParticipantSessionIds.forEach((key) => {
       if (!oldVisibleParticipantSessionIds.has(key)) {
         mustUpdate = true;
-        participantPatches[key] = {
-          viewportVisibilityState: {
-            videoTrack: VisibilityState.VISIBLE,
-            screenShareTrack: VisibilityState.UNKNOWN,
-          },
-        };
+        participantPatches[key] = visibilityPatch(VisibilityState.VISIBLE);
       }
     });
     oldVisibleParticipantSessionIds.forEach((key) => {
       if (!newVisibleParticipantSessionIds.has(key)) {
         mustUpdate = true;
-        participantPatches[key] = {
-          viewportVisibilityState: {
-            videoTrack: VisibilityState.VISIBLE,
-            screenShareTrack: VisibilityState.UNKNOWN,
-          },
-        };
+        participantPatches[key] = visibilityPatch(VisibilityState.INVISIBLE);
       }
     });
     viewableParticipantSessionIds.current = newVisibleParticipantSessionIds;
