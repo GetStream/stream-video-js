@@ -1419,6 +1419,7 @@ export class Call {
     if (!this.callManagerStarted) {
       globalThis.streamRNVideoSDK?.callManager.start({
         isRingingTypeCall: this.ringing,
+        cid: this.cid,
       });
       this.callManagerStarted = true;
     }

@@ -424,7 +424,18 @@ type StreamRNVideoSDKCallManagerRingingParams = {
 
 type StreamRNVideoSDKCallManagerSetupParams =
   StreamRNVideoSDKCallManagerRingingParams & {
+    cid: string;
     defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
+  };
+
+type StreamRNVideoSDKCallManagerStartParams =
+  StreamRNVideoSDKCallManagerRingingParams & {
+    cid: string;
+  };
+
+type StreamRNVideoSDKCallManagerStopParams =
+  StreamRNVideoSDKCallManagerRingingParams & {
+    shouldStopCallManager: boolean;
   };
 
 type StreamRNVideoSDKEndCallReason =
@@ -469,6 +480,7 @@ export type StreamRNVideoSDKGlobals = {
     setup({
       defaultDevice,
       isRingingTypeCall,
+      cid,
     }: StreamRNVideoSDKCallManagerSetupParams): void;
 
     /**
@@ -476,7 +488,8 @@ export type StreamRNVideoSDKGlobals = {
      */
     start({
       isRingingTypeCall,
-    }: StreamRNVideoSDKCallManagerRingingParams): void;
+      cid,
+    }: StreamRNVideoSDKCallManagerStartParams): void;
 
     /**
      * Stops the in call manager.
@@ -484,9 +497,7 @@ export type StreamRNVideoSDKGlobals = {
     stop({
       isRingingTypeCall,
       shouldStopCallManager,
-    }: StreamRNVideoSDKCallManagerRingingParams & {
-      shouldStopCallManager: boolean;
-    }): void;
+    }: StreamRNVideoSDKCallManagerStopParams): void;
 
     /**
      * iOS-only. Keeps the audio engine's microphone-input (voice-processing)

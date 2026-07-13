@@ -56,22 +56,17 @@ const shouldBypassForCallKit = ({
  * StreamInCallManager entirely — Telecom provides no proximity/keep-screen-on — instead we
  * run it in "telecom-managed" mode where it only keeps proximity/keep-screen-on/mute.
  */
-const isAndroidTelecomManaged = ({
-  isRingingTypeCall,
-}: {
-  isRingingTypeCall: boolean;
-}): boolean => {
-  if (Platform.OS !== 'android') {
+const isAndroidTelecomManaged = ({ cid }: { cid: string }): boolean => {
+  if (Platform.OS !== 'android' || !CallingxModule) {
     return false;
   }
-  if (!CallingxModule) {
+  if (!CallingxModule.isSetup || !CallingxModule.isTelecomBacked) {
     return false;
   }
-  return (
-    CallingxModule.isSetup &&
-    CallingxModule.isTelecomBacked &&
-    (isRingingTypeCall || CallingxModule.isOngoingCallsEnabled)
-  );
+  // Trust Telecom's actual per-call registration. A call that never registered
+  // (e.g. Telecom registration failed) is not managed, so start() falls through
+  // to the classic path — this is where audio recovery happens.
+  return CallingxModule.isCallTracked(cid);
 };
 
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
@@ -83,28 +78,24 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     unwireAudioEngineSubscription: unwireAudioEngineSubscription,
   },
   callManager: {
-    setup: ({ defaultDevice, isRingingTypeCall }) => {
-      if (shouldBypassForCallKit({ isRingingTypeCall })) {
-        // Forward the sticky preference; callingx reads it on next CallKit activation.
-        CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice);
-        return;
+    setup: ({ defaultDevice, isRingingTypeCall, cid }) => {
+      const isTelecomManaged = isAndroidTelecomManaged({ cid });
+      const isCallKitManaged = shouldBypassForCallKit({ isRingingTypeCall });
+      if (Platform.OS === 'android') {
+        StreamInCallManagerNativeModule.setTelecomManagedMode(isTelecomManaged);
       }
-      if (isAndroidTelecomManaged({ isRingingTypeCall })) {
+
+      if (isTelecomManaged || isCallKitManaged) {
         // Telecom owns routing; forward the sticky preference to callingx and run the
         // in-call manager in telecom-managed mode (proximity/keep-screen-on only).
         CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice);
-        StreamInCallManagerNativeModule.setTelecomManagedMode(true);
-        StreamInCallManagerNativeModule.setup();
-        return;
+      } else {
+        StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
+          defaultDevice,
+        );
       }
-      if (Platform.OS === 'android') {
-        StreamInCallManagerNativeModule.setTelecomManagedMode(false);
-      }
-      StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
-        defaultDevice,
-      );
     },
-    start: ({ isRingingTypeCall }) => {
+    start: ({ isRingingTypeCall, cid }) => {
       // Apply the audio config a consumer recorded via `callManager.start(config)` at this single
       // join-time start, before the native audio manager is activated.
       const config = publicCallManager.getStoredConfig();
@@ -126,18 +117,24 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         return;
       }
 
+      const isTelecomManaged = isAndroidTelecomManaged({ cid });
+      if (Platform.OS === 'android') {
+        StreamInCallManagerNativeModule.setTelecomManagedMode(isTelecomManaged);
+      }
       if (config?.audioRole) {
         StreamInCallManagerNativeModule.setAudioRole(config.audioRole);
       }
       if (deviceOverride) {
         // Override the SpeakerManager-derived default device (set via `setup`).
-        StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
-          deviceOverride,
-        );
+        if (isTelecomManaged) {
+          CallingxModule?.setDefaultAudioDeviceEndpointType(deviceOverride);
+        } else {
+          StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
+            deviceOverride,
+          );
+        }
       }
       StreamInCallManagerNativeModule.setEnableStereoAudioOutput(stereoOutput);
-      // Android telecom-managed calls still start (for proximity/keep-screen-on);
-      // the native side skips routing/focus internally.
       StreamInCallManagerNativeModule.start();
     },
     stop: ({ isRingingTypeCall, shouldStopCallManager }) => {

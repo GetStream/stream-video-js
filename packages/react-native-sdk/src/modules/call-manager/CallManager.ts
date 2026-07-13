@@ -244,19 +244,6 @@ class SpeakerManager {
   };
 }
 
-const shouldBypassForCallKit = (): boolean => {
-  if (Platform.OS !== 'ios') {
-    return false;
-  }
-  if (!CallingxModule) {
-    return false;
-  }
-  return (
-    CallingxModule.isSetup &&
-    (CallingxModule.hasRegisteredCall() || CallingxModule.isOngoingCallsEnabled)
-  );
-};
-
 export class CallManager {
   android = new AndroidCallManager();
   ios = new IOSCallManager();
@@ -304,45 +291,6 @@ export class CallManager {
     videoLoggerSystem
       .getLogger('CallManager')
       .debug('start: stored call manager config', { config });
-    if (shouldBypassForCallKit()) {
-      // Forward only the passive endpoint preference; callingx reads it when
-      // CallKit drives session activation.
-      if (config?.audioRole === 'communicator' && CallingxModule) {
-        const type = config.deviceEndpointType ?? 'speaker';
-        CallingxModule.setDefaultAudioDeviceEndpointType(type);
-      }
-      videoLoggerSystem
-        .getLogger('CallManager')
-        .debug(
-          'start: skipping start as callkit is handling the audio session',
-        );
-      return;
-    }
-    if (isAndroidTelecomManaged()) {
-      // Telecom owns routing/focus; forward the sticky preference to callingx and run in
-      // telecom-managed mode (StreamInCallManager keeps proximity/keep-screen-on only).
-      if (config?.audioRole !== 'listener' && CallingxModule) {
-        CallingxModule.setDefaultAudioDeviceEndpointType(
-          config?.deviceEndpointType ?? 'speaker',
-        );
-      }
-      NativeManager.setTelecomManagedMode(true);
-      NativeManager.setAudioRole(config?.audioRole ?? 'communicator');
-      NativeManager.start();
-      return;
-    }
-    if (Platform.OS === 'android') {
-      NativeManager.setTelecomManagedMode(false);
-    }
-    NativeManager.setAudioRole(config?.audioRole ?? 'communicator');
-    if (config?.audioRole === 'communicator') {
-      const type = config.deviceEndpointType ?? 'speaker';
-      NativeManager.setDefaultAudioDeviceEndpointType(type);
-    }
-    if (config?.audioRole === 'listener' && config.enableStereoAudioOutput) {
-      NativeManager.setEnableStereoAudioOutput(true);
-    }
-    NativeManager.start();
   };
 
   /**
