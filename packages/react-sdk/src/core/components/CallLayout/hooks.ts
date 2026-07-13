@@ -2,7 +2,6 @@ import { useEffect, useMemo } from 'react';
 import {
   Call,
   CallTypes,
-  Comparator,
   defaultSortPreset,
   hasAudio,
   hasScreenShare,
