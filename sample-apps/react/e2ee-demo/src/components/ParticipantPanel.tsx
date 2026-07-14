@@ -69,7 +69,12 @@ export const ParticipantPanel = memo(function ParticipantPanel({
           />
           <span className="participant-panel__name">{name}</span>
           {isSpy && (
-            <span className="participant-panel__spy-badge">SPY · no key</span>
+            <span
+              className="participant-panel__spy-badge"
+              title="Admitted to the call, but never given any keys"
+            >
+              ADMITTED · NO KEYS
+            </span>
           )}
         </div>
         <div className="participant-panel__actions">

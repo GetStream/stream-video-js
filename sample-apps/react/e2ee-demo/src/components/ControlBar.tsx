@@ -113,8 +113,9 @@ export const ControlBar = () => {
         <button
           onClick={() => engine.addSpy()}
           disabled={participants.some((p) => p.role === 'spy')}
+          title="Join a participant that is admitted to the call but never receives keys"
         >
-          + Spy
+          + Keyless
         </button>
         {config.keyMode === 'shared' && config.e2eeEnabled && (
           <span className="control-bar__shared">
