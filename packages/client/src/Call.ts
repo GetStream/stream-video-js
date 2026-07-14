@@ -1633,12 +1633,12 @@ export class Call {
    * Retrieves credentials for joining the call.
    *
    * @internal
-   *
    * @param data the join call data.
    */
   doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
     const location = await this.streamClient.getLocationHint();
-    const request: JoinCallRequest = { ...data, location };
+    const e2ee = !!this.e2eeManager;
+    const request: JoinCallRequest = { ...data, location, e2ee };
     const joinResponse = await this.streamClient.post<
       JoinCallResponse,
       JoinCallRequest
