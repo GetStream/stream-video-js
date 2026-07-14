@@ -4,6 +4,8 @@ import {
   hasVideo,
   OwnCapability,
   StreamVideoParticipant,
+  UpdateUserPermissionsRequestGrantPermissionsEnum,
+  UpdateUserPermissionsRequestRevokePermissionsEnum,
   useCall,
   useCallStateHooks,
   useI18n,
@@ -60,14 +62,18 @@ export const ParticipantActions = (props: ParticipantActionsType) => {
     return null;
   }
 
-  const grantPermission = async (permission: string) => {
+  const grantPermission = async (
+    permission: UpdateUserPermissionsRequestGrantPermissionsEnum,
+  ) => {
     await call?.updateUserPermissions({
       user_id: participant.userId,
       grant_permissions: [permission],
     });
   };
 
-  const revokePermission = async (permission: string) => {
+  const revokePermission = async (
+    permission: UpdateUserPermissionsRequestRevokePermissionsEnum,
+  ) => {
     await call?.updateUserPermissions({
       user_id: participant.userId,
       revoke_permissions: [permission],

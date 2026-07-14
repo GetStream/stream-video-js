@@ -31,7 +31,7 @@ import {
   getCurrentValue,
 } from './store/rxUtils';
 import { ScopedLogger, videoLoggerSystem } from './logger';
-import type {
+import {
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
@@ -77,8 +77,8 @@ import type {
   RingCallResponse,
   SendCallEventRequest,
   SendCallEventResponse,
-  SendReactionRequest,
-  SendReactionResponse,
+  SendVideoReactionRequest,
+  SendVideoReactionResponse,
   StartClosedCaptionsRequest,
   StartClosedCaptionsResponse,
   StartFrameRecordingRequest,
@@ -110,6 +110,8 @@ import type {
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
+  UpdateUserPermissionsRequestGrantPermissionsEnum,
+  UpdateUserPermissionsRequestRevokePermissionsEnum,
   UpdateUserPermissionsResponse,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
@@ -2480,9 +2482,9 @@ export class Call {
    * @param reaction the reaction to send.
    */
   sendReaction = async (
-    reaction: SendReactionRequest,
-  ): Promise<SendReactionResponse> => {
-    return this.streamClient.post<SendReactionResponse, SendReactionRequest>(
+    reaction: SendVideoReactionRequest,
+  ): Promise<SendVideoReactionResponse> => {
+    return this.streamClient.post(
       `${this.streamClientBasePath}/reaction`,
       reaction,
     );
@@ -2700,7 +2702,7 @@ export class Call {
   ): Promise<RequestPermissionResponse> => {
     const { permissions } = data;
     const canRequestPermissions = permissions.every((permission) =>
-      this.permissionsContext.canRequest(permission as OwnCapability),
+      this.permissionsContext.canRequest(permission),
     );
     if (!canRequestPermissions) {
       throw new Error(
@@ -2725,10 +2727,14 @@ export class Call {
    * @param userId the id of the user to grant permissions to.
    * @param permissions the permissions to grant.
    */
-  grantPermissions = async (userId: string, permissions: string[]) => {
+  grantPermissions = async (
+    userId: string,
+    permissions: string[] | UpdateUserPermissionsRequestGrantPermissionsEnum[],
+  ) => {
     return this.updateUserPermissions({
       user_id: userId,
-      grant_permissions: permissions,
+      grant_permissions:
+        permissions as UpdateUserPermissionsRequestGrantPermissionsEnum[],
     });
   };
 
@@ -2744,10 +2750,14 @@ export class Call {
    * @param userId the id of the user to revoke permissions from.
    * @param permissions the permissions to revoke.
    */
-  revokePermissions = async (userId: string, permissions: string[]) => {
+  revokePermissions = async (
+    userId: string,
+    permissions: string[] | UpdateUserPermissionsRequestRevokePermissionsEnum[],
+  ) => {
     return this.updateUserPermissions({
       user_id: userId,
-      revoke_permissions: permissions,
+      revoke_permissions:
+        permissions as UpdateUserPermissionsRequestRevokePermissionsEnum[],
     });
   };
 
