@@ -5,7 +5,8 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { IconWrapper } from '@stream-io/video-react-native-sdk/src/icons';
 import { BadgeCountIndicator } from './BadgeCountIndicator';
-import Chat from '../../assets/Chat';
+import Chat from '../../../assets/Chat';
+import { useUnreadCount } from '../../../hooks/useUnreadCount';
 
 /**
  * The props for the Chat Button in the Call Controls.
@@ -16,10 +17,6 @@ export type ChatButtonProps = {
    * @returns void
    */
   onPressHandler?: () => void;
-  /**
-   * The count of the current unread message to be displayed above on the Chat button.
-   */
-  unreadBadgeCount?: number;
 };
 
 /**
@@ -27,16 +24,14 @@ export type ChatButtonProps = {
  *
  * This call also display the unread count indicator/badge is there messages that are unread.
  */
-export const ChatButton = ({
-  onPressHandler,
-  unreadBadgeCount,
-}: ChatButtonProps) => {
+export const ChatButton = ({ onPressHandler }: ChatButtonProps) => {
   const {
     theme: { colors, chatButton, variants },
   } = useTheme();
+  const unreadCountIndicator = useUnreadCount();
   return (
     <CallControlsButton onPress={onPressHandler} style={chatButton}>
-      <BadgeCountIndicator count={unreadBadgeCount} />
+      <BadgeCountIndicator count={unreadCountIndicator} />
       <IconWrapper>
         <Chat color={colors.iconPrimary} size={variants.iconSizes.md} />
       </IconWrapper>

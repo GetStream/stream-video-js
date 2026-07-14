@@ -3,7 +3,10 @@ import {
   hasScreenShare,
   type StreamVideoParticipant,
 } from '@stream-io/video-client';
-import { useCall } from '@stream-io/video-react-bindings';
+import {
+  useCall,
+  useSpeakerLayoutSortPreset,
+} from '@stream-io/video-react-bindings';
 import { StyleSheet, View } from 'react-native';
 import { debounceTime } from 'rxjs';
 import { ComponentTestIds } from '../../../constants/TestIds';
@@ -70,6 +73,8 @@ export const CallParticipantsSpotlight = ({
       .subscribe(setAllParticipants);
     return () => sub.unsubscribe();
   }, [call]);
+  const isOneOnOneCall = allParticipants.length === 2;
+  useSpeakerLayoutSortPreset(call, isOneOnOneCall);
   const [participantInSpotlight, ...otherParticipants] = allParticipants;
   const isScreenShareOnSpotlight =
     participantInSpotlight && hasScreenShare(participantInSpotlight);

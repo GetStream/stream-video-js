@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  ImageBackground,
-  StyleSheet,
-  Text,
-  View,
-  type ViewStyle,
-} from 'react-native';
+import { Image, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import {
   useCallStateHooks,
   useConnectedUser,
@@ -120,18 +114,22 @@ const Background: React.FunctionComponent<{
 
   if (avatarsToShow.length) {
     return (
-      <ImageBackground
-        source={{
-          uri: avatarsToShow[0],
-        }}
+      <View
         style={[
           styles.background,
           { backgroundColor: colors.sheetTertiary },
           incomingCall.background,
         ]}
       >
+        <Image
+          source={{
+            uri: avatarsToShow[0],
+          }}
+          resizeMode="cover"
+          style={StyleSheet.absoluteFill}
+        />
         {children}
-      </ImageBackground>
+      </View>
     );
   }
   return (

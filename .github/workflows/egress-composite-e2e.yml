@@ -15,6 +15,9 @@ env:
   VITE_STREAM_API_KEY: ${{ vars.EGRESS_STREAM_API_KEY }}
   VITE_STREAM_USER_TOKEN: ${{ secrets.EGRESS_USER_TOKEN }}
 
+permissions:
+  contents: read
+
 jobs:
   test:
     timeout-minutes: 20

@@ -2,6 +2,22 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.9.1...@stream-io/audio-filters-web-0.10.0) (2026-07-09)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Features
+
+- **audio-filters-web:** Upgrade krisp to 2.3.8 ([#2308](https://github.com/GetStream/stream-video-js/issues/2308)) ([acde928](https://github.com/GetStream/stream-video-js/commit/acde928e53363f40a685f3713a9a5c41126063a2))
+
+## [0.9.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.9.0...@stream-io/audio-filters-web-0.9.1) (2026-07-02)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
 ## [0.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.8.2...@stream-io/audio-filters-web-0.9.0) (2026-06-26)
 
 ### Dependency Updates

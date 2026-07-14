@@ -1,7 +1,27 @@
 import type { EventListener } from './EventManager';
-import type { ManagableTask } from './utils/headlessTask';
 
 export type DefaultDeviceEndpointType = 'speaker' | 'earpiece';
+
+/** Generic Telecom audio endpoint type names (Android). */
+export type AudioEndpointType =
+  | 'earpiece'
+  | 'speaker'
+  | 'wired_headset'
+  | 'bluetooth'
+  | 'unknown';
+
+/** A single Telecom audio endpoint. `id` is opaque and passed back to select it. */
+export type AudioEndpoint = {
+  id: string;
+  name: string;
+  type: AudioEndpointType;
+};
+
+/** Snapshot of the Telecom audio endpoints for a call. */
+export type AudioEndpointsSnapshot = {
+  endpoints: AudioEndpoint[];
+  currentEndpoint: AudioEndpoint | null;
+};
 
 export interface ICallingxModule {
   /**
@@ -16,6 +36,11 @@ export interface ICallingxModule {
   get canPostNotifications(): boolean;
   get isOngoingCallsEnabled(): boolean;
   get isSetup(): boolean;
+  /**
+   * Whether audio routing on this device is backed by the Jetpack Telecom stack.
+   * Android: true on API 26+. iOS: always false.
+   */
+  get isTelecomBacked(): boolean;
 
   /**
    * Setup the module. This method must be called before any other method.
@@ -34,12 +59,32 @@ export interface ICallingxModule {
   setShouldRejectCallWhenBusy(shouldReject: boolean): void;
 
   /**
-   * Set the default audio endpoint for CallKit-managed calls (iOS only; no-op on Android).
-   * Sticky preference applied next time CallKit activates the session.
+   * Set the default audio endpoint applied when the OS activates the call's audio session.
+   * - iOS: applied next time CallKit activates the session.
+   * - Android (Telecom): applied once when the call becomes active and no wired/bluetooth
+   *   device is connected.
+   * Sticky preference.
    */
   setDefaultAudioDeviceEndpointType(
     endpointType: DefaultDeviceEndpointType,
   ): void;
+
+  /**
+   * Call ids currently registered with the native calling module (Android Telecom).
+   * Empty on iOS.
+   */
+  getRegisteredCallIds(): string[];
+
+  /**
+   * Get the current Telecom audio endpoints for a call (Android). On iOS / unknown call,
+   * resolves an empty snapshot.
+   */
+  getAvailableAudioEndpoints(callId: string): Promise<AudioEndpointsSnapshot>;
+
+  /**
+   * Request a Telecom audio-endpoint change by endpoint id (Android). No-op on iOS.
+   */
+  requestAudioEndpointChange(callId: string, endpointId: string): Promise<void>;
   /**
    * Get the initial events. This method is used to get the initial events from the app launch.
    * The events are queued and can be retrieved after the module is setup.
@@ -114,23 +159,22 @@ export interface ICallingxModule {
   setOnHoldCall(callId: string, isOnHold: boolean): Promise<void>;
 
   /**
-   * Register a background task provider. This method only registers the task and does not start it.
-   * The task will be automatically started when the service starts (via displayIncomingCall or startCall)
-   * if it has been registered.
-   * @param taskProvider - The task provider function that will be executed when the background task starts.
+   * Acquire a ref-counted background keep-alive task identified by [owner].
+   *
+   * The underlying HeadlessJS task — which keeps React Native's JS runtime and timers alive while
+   * the app is backgrounded — is started on the first acquire and stopped only once the last owner
+   * releases. Multiple independent owners (e.g. ringing-push handling and the keep-call-alive hook)
+   * can hold it simultaneously without tearing down each other's task. No-op on iOS.
+   * @param owner - A stable, unique key identifying the holder (e.g. `push:<cid>`, `keepalive:<cid>`).
    */
-  registerBackgroundTask(taskProvider: ManagableTask): void;
+  acquireBackgroundTask(owner: string): Promise<void>;
 
   /**
-   * Start the background task. This method will only start the task if:
-   * 1. A background task has been registered via registerBackgroundTask
-   * 2. The service is currently started
-   * @param taskProvider - The task provider function. If not provided, uses the previously registered task.
-   * @returns Promise that resolves when the task is started, or rejects if conditions are not met.
+   * Release a keep-alive task previously acquired with [acquireBackgroundTask] for [owner].
+   * The native task is stopped only after all owners have released. No-op on iOS.
+   * @param owner - The same key passed to [acquireBackgroundTask].
    */
-  startBackgroundTask(taskProvider?: ManagableTask): Promise<void>;
-
-  stopBackgroundTask(taskName: string): Promise<void>;
+  releaseBackgroundTask(owner: string): Promise<void>;
 
   /**
    * Fulfill or fail a pending CXAnswerCallAction on iOS.
@@ -270,6 +314,13 @@ export type InternalAndroidOptions = {
    * @default false
    */
   skipIncomingPushInForeground?: boolean;
+  /**
+   * Default audio endpoint for Telecom-managed calls on Android.
+   * Applied at call registration as `CallAttributesCompat.preferredStartingCallEndpoint`
+   * Note: Works only before the call is registered.
+   * @default 'speaker'
+   */
+  defaultDeviceEndpointType?: DefaultDeviceEndpointType;
 };
 type AndroidOptions = InternalAndroidOptions & NotificationTransformers;
 
@@ -304,7 +355,7 @@ export type EventName =
   | 'endCall'
   | 'didDisplayIncomingCall'
   | 'didToggleHoldCallAction'
-  | 'didChangeAudioRoute'
+  | 'didChangeAudioEndpoints'
   | 'didAudioInterruption'
   | 'didReceiveStartCallAction'
   | 'didPerformSetMutedCallAction'
@@ -339,10 +390,9 @@ export type EventParams = {
     callId: string;
     muted: boolean;
   };
-  didChangeAudioRoute: {
+  didChangeAudioEndpoints: {
     callId: string;
-    output: string;
-  };
+  } & AudioEndpointsSnapshot;
   didAudioInterruption: IOSAudioInterruptionEvent;
   didReceiveStartCallAction: {
     callId: string;

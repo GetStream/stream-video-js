@@ -2468,6 +2468,13 @@ export class Call {
   };
 
   /**
+   * Returns the comparator currently used to sort the participants.
+   */
+  getSortParticipantsBy: CallState['getSortParticipantsBy'] = () => {
+    return this.state.getSortParticipantsBy();
+  };
+
+  /**
    * Sends a reaction to the other call participants.
    *
    * @param reaction the reaction to send.

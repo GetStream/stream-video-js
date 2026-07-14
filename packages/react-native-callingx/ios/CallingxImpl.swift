@@ -10,7 +10,6 @@ import stream_react_native_webrtc
     public static let didReceiveStartCallAction = "didReceiveStartCallAction"
     public static let didToggleHoldAction = "didToggleHoldCallAction"
     public static let didPerformSetMutedCallAction = "didPerformSetMutedCallAction"
-    public static let didChangeAudioRoute = "didChangeAudioRoute"
     public static let didAudioInterruption = "didAudioInterruption"
     public static let didDisplayIncomingCall = "didDisplayIncomingCall"
     public static let didActivateAudioSession = "didActivateAudioSession"
@@ -27,7 +26,7 @@ import stream_react_native_webrtc
 }
 
 // MARK: - Callingx Implementation
-@objc public class CallingxImpl: NSObject, CXProviderDelegate, RTCAudioSessionDelegate {
+@objc public class CallingxImpl: NSObject, CXProviderDelegate {
 
     // MARK: - Shared State
     @objc public static var sharedProvider: CXProvider?
@@ -89,10 +88,6 @@ import stream_react_native_webrtc
         isSetup = false
         canSendEvents = false
 
-        // Route changes go through RTCAudioSessionDelegate (fires after WebRTC's
-        // internal bookkeeping, so we don't need to defensively re-read currentRoute).
-        RTCAudioSession.sharedInstance().add(self)
-
         // Interruptions stay on NSNotificationCenter: the delegate's
         // `audioSessionDidBeginInterruption:` callback doesn't carry userInfo, and
         // `AVAudioSessionInterruptionReasonKey` (which we branch on for hardware
@@ -113,6 +108,8 @@ import stream_react_native_webrtc
         if CallingxImpl.sharedProvider == nil {
             CallingxImpl.sharedProvider = CXProvider(configuration: Settings.getProviderConfiguration())
         }
+      
+        callKeepCallController = CXCallController()
         
         callKeepProvider = CallingxImpl.sharedProvider
         callKeepProvider?.setDelegate(nil, queue: nil)
@@ -120,7 +117,6 @@ import stream_react_native_webrtc
     }
     
     deinit {
-        RTCAudioSession.sharedInstance().remove(self)
         NotificationCenter.default.removeObserver(self)
         engineSubscription?.cancel()
         engineSubscription = nil
@@ -134,7 +130,8 @@ import stream_react_native_webrtc
     
     // MARK: - Class Methods
     @objc public static func initializeIfNeeded() {
-        _ = getSharedInstance() // ensures the shared instance is created and CXProvider delegate is set        
+        _ = getSharedInstance() // ensures the shared instance is created and CXProvider delegate is set
+        CallingxImpl.sharedProvider?.configuration = Settings.getProviderConfiguration()
     }
     
     @objc public static func reportNewIncomingCall(
@@ -208,34 +205,15 @@ import stream_react_native_webrtc
     }
     
     @objc public static func canRegisterCall() -> Bool {
-        let hasCall = hasRegisteredCall()
         let shouldReject = Settings.getShouldRejectCallWhenBusy()
-        return !shouldReject || (shouldReject && !hasCall)
+        guard shouldReject else { return true }
+        return !hasRegisteredCall()
     }
-    
+
     @objc public static func hasRegisteredCall() -> Bool {
-        guard let storage = uuidStorage else { return false }
-      
-        let appUUIDs = storage.allUUIDs()
-        if appUUIDs.isEmpty { return false }
-        
-        let observer = CXCallObserver()
-        for call in observer.calls {
-            for uuid in appUUIDs {
-                if call.uuid == uuid {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-    
-    @objc public static func getAudioOutput() -> String? {
-        let outputs = AVAudioSession.sharedInstance().currentRoute.outputs
-        if !outputs.isEmpty {
-            return outputs[0].portType.rawValue
-        }
-        return nil
+        // Backed by the warm CXCallObserver maintained in UUIDStorage — no per-call observer
+        // construction and no cold-snapshot misses. Intersects our calls with CallKit's live set.
+        return uuidStorage?.hasRegisteredCall() ?? false
     }
     
     @objc public static func endCall(_ callId: String, reason: Int) {
@@ -340,23 +318,6 @@ import stream_react_native_webrtc
         }
     }
     
-    // MARK: - RTCAudioSessionDelegate
-
-    public func audioSessionDidChangeRoute(_ session: RTCAudioSession,
-                                           reason: AVAudioSession.RouteChangeReason,
-                                           previousRoute: AVAudioSessionRouteDescription) {
-        guard let output = CallingxImpl.getAudioOutput() else {
-            return
-        }
-
-        let params: [String: Any] = [
-            "output": output,
-            "reason": reason.rawValue
-        ]
-
-        sendEvent(CallingxEvents.didChangeAudioRoute, body: params)
-    }
-
     // MARK: - Audio Session Interruption
 
     // Observability + JS-event only; audio recovery is WebRTC's: AudioEngineDevice
@@ -421,25 +382,8 @@ import stream_react_native_webrtc
 
     // MARK: - Setup Methods
     @objc public func setup(options: [String: Any]) {
-        callKeepCallController = CXCallController()
-
         Settings.setSettings(options)
-
-        // This is mostly needed for very first setup, as we need to override the default
-        // provider configuration which is set in the constructor.
-        // IMPORTANT: We override CXProvider instance only if there is no registered call, otherwise we may lose corrsponding call state/events from CallKit
-        if !CallingxImpl.hasRegisteredCall() {
-            let oldProvider = CallingxImpl.sharedProvider
-            let newProvider = CXProvider(configuration: Settings.getProviderConfiguration())
-            newProvider.setDelegate(self, queue: nil)
-
-            CallingxImpl.sharedProvider = newProvider
-            callKeepProvider = newProvider
-
-            oldProvider?.setDelegate(nil, queue: nil)
-            oldProvider?.invalidate()
-        }
-
+        CallingxImpl.sharedProvider?.configuration = Settings.getProviderConfiguration()
         isSetup = true
     }
 
@@ -581,18 +525,9 @@ import stream_react_native_webrtc
     }
     
     @objc public func isCallTracked(_ callId: String) -> Bool {
-        guard let uuid = CallingxImpl.uuidStorage?.getUUID(forCid: callId) else {
-            CallingxLog.core.debugPublic("[isCallTracked] callId not found")
-            return false
-        }
-        
-        let observer = CXCallObserver()
-        for call in observer.calls {
-            if call.uuid == uuid {
-                return true
-            }
-        }
-        return false
+        // Backed by the warm CXCallObserver in UUIDStorage — no per-call observer construction
+        // and no cold-snapshot misses. True when the call is tracked AND confirmed live by CallKit.
+        return CallingxImpl.uuidStorage?.isCallTracked(forCid: callId) ?? false
     }
     
     @objc public func setCurrentCallActive(_ callId: String) -> Bool {
@@ -662,10 +597,13 @@ import stream_react_native_webrtc
           return
         }
         
+        CallingxImpl.sharedProvider?.configuration = Settings.getProviderConfiguration()
+      
         let call = storage.getOrCreateCall(forCid: callId, isOutgoing: true)
         call.markStartedConnecting() // outgoing: will be reported via reportOutgoingCall(startedConnectingAt:)
         
-        let handleType = Settings.getHandleType("generic")
+        let handleTypeString = Settings.getSettings()["handleType"] as? String
+        let handleType = Settings.getHandleType(handleTypeString ?? "generic")
         let callHandle = CXHandle(type: handleType, value: phoneNumber)
         let startCallAction = CXStartCallAction(call: call.uuid, handle: callHandle)
         startCallAction.isVideo = hasVideo

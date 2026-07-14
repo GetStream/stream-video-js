@@ -45,6 +45,31 @@ const shouldBypassForCallKit = ({
   return bypass;
 };
 
+/**
+ * On Android, when the call is registered with the Telecom stack (via CallingX),
+ * routing/focus/mode must be owned by Telecom (per Android guidance we must not use
+ * AudioManager.setCommunicationDevice / startBluetoothSco). Unlike iOS, we do NOT skip
+ * StreamInCallManager entirely — Telecom provides no proximity/keep-screen-on — instead we
+ * run it in "telecom-managed" mode where it only keeps proximity/keep-screen-on/mute.
+ */
+const isAndroidTelecomManaged = ({
+  isRingingTypeCall,
+}: {
+  isRingingTypeCall: boolean;
+}): boolean => {
+  if (Platform.OS !== 'android') {
+    return false;
+  }
+  if (!CallingxModule) {
+    return false;
+  }
+  return (
+    CallingxModule.isSetup &&
+    CallingxModule.isTelecomBacked &&
+    (isRingingTypeCall || CallingxModule.isOngoingCallsEnabled)
+  );
+};
+
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
   callingX: {
     joinCall: joinCallingxCall,
@@ -58,6 +83,17 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice);
         return;
       }
+      if (isAndroidTelecomManaged({ isRingingTypeCall })) {
+        // Telecom owns routing; forward the sticky preference to callingx and run the
+        // in-call manager in telecom-managed mode (proximity/keep-screen-on only).
+        CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice);
+        StreamInCallManagerNativeModule.setTelecomManagedMode(true);
+        StreamInCallManagerNativeModule.setup();
+        return;
+      }
+      if (Platform.OS === 'android') {
+        StreamInCallManagerNativeModule.setTelecomManagedMode(false);
+      }
       StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
         defaultDevice,
       );
@@ -67,6 +103,8 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       if (shouldBypassForCallKit({ isRingingTypeCall })) {
         return;
       }
+      // Android telecom-managed calls still start (for proximity/keep-screen-on);
+      // the native side skips routing/focus internally.
       StreamInCallManagerNativeModule.start();
     },
     stop: ({ isRingingTypeCall }) => {

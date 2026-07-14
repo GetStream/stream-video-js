@@ -2,6 +2,27 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.6.1...@stream-io/react-native-callingx-0.6.2) (2026-07-09)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Bug Fixes
+
+- android callingx calls should handle audio through through telecom ([#2324](https://github.com/GetStream/stream-video-js/issues/2324)) ([95bcc2a](https://github.com/GetStream/stream-video-js/commit/95bcc2a2dac12c0051b61a1704f927793eaaf727))
+- callingx background handling ([#2310](https://github.com/GetStream/stream-video-js/issues/2310)) ([a96df4f](https://github.com/GetStream/stream-video-js/commit/a96df4ffc9279d2d9cd14da5196a275faf3d1891))
+
+## [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.6.0...@stream-io/react-native-callingx-0.6.1) (2026-07-02)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Bug Fixes
+
+- made CXCallObserver static warm instance ([#2306](https://github.com/GetStream/stream-video-js/issues/2306)) ([ac79c64](https://github.com/GetStream/stream-video-js/commit/ac79c64f7231b12295e726f258e92c28b239d28b))
+
 ## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.5.1...@stream-io/react-native-callingx-0.6.0) (2026-06-26)
 
 ### Dependency Updates

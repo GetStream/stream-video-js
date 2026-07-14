@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import JoinCallScreen from '../screens/Call/JoinCallScreen';
 
 import {
@@ -10,17 +10,34 @@ import {
 } from '@stream-io/video-react-native-sdk';
 import { StyleSheet, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { CallStackParamList } from '../../types';
+import { CallStackParamList, RootStackParamList } from '../../types';
 import { NavigationHeader } from '../components/NavigationHeader';
 import { useOrientation } from '../hooks/useOrientation';
+import { ActiveCall } from '../components/ActiveCall';
+import { LayoutProvider } from '../contexts/LayoutContext';
+import { createNavigationContainerRef } from '@react-navigation/native';
 
 const CallStack = createNativeStackNavigator<CallStackParamList>();
+
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 const Calls = () => {
   const calls = useCalls().filter((c) => c.ringing);
   const orientation = useOrientation();
 
   const firstCall = calls.at(-1);
+
+  const customCallContent = useCallback(() => {
+    return (
+      <LayoutProvider>
+        <ActiveCall
+          onCallEnded={() => {}}
+          onHangupCallHandler={() => firstCall?.leave()}
+          onChatOpenHandler={null}
+        />
+      </LayoutProvider>
+    );
+  }, [firstCall]);
 
   if (!firstCall) {
     return null;
@@ -30,7 +47,10 @@ const Calls = () => {
     <StreamCall call={firstCall}>
       <CallLeaveOnUnmount call={firstCall} />
       <View style={StyleSheet.absoluteFill}>
-        <RingingCallContent landscape={orientation === 'landscape'} />
+        <RingingCallContent
+          landscape={orientation === 'landscape'}
+          CallContent={customCallContent}
+        />
       </View>
     </StreamCall>
   );

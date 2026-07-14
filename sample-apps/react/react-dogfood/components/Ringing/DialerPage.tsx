@@ -145,6 +145,10 @@ export const DialerPage = ({
       setRingingCall(call);
       await call.getOrCreate({
         ring: true,
+        // the backend rejects ring requests with `video: true` on call types
+        // that have video disabled (e.g. `audio_call`):
+        // "Video is not enabled for this call"
+        video: callType !== 'audio_call',
         data: {
           members,
           settings_override: {
