@@ -7,7 +7,6 @@ import {
 } from '@stream-io/video-react-sdk';
 import {
   TOKEN_ENDPOINT,
-  TOKEN_ENVIRONMENT,
   CALL_TYPE,
   PARTICIPANT_NAMES,
   PARTICIPANT_COLORS,
@@ -15,6 +14,7 @@ import {
   SPY_NAME,
   SPY_COLOR,
 } from '../config';
+import { resolveEnvironment } from './url';
 import { generateKey, toHex, parseKeyInput } from './keys';
 import type { SendKeyFn } from './keyTransport';
 import { detectTransformSupport } from './transformSupport';
@@ -30,7 +30,10 @@ const MAX_LOG = 200;
 
 const defaultFetchCredentials = async (userId: string) => {
   const url = new URL(TOKEN_ENDPOINT);
-  url.searchParams.set('environment', TOKEN_ENVIRONMENT);
+  url.searchParams.set(
+    'environment',
+    resolveEnvironment(window.location.search),
+  );
   url.searchParams.set('user_id', userId);
   const { apiKey, token } = await fetch(url).then((r) => r.json());
   return { apiKey: apiKey as string, token: token as string };
@@ -252,18 +255,21 @@ export class E2EEHarness {
         unsubscribes: [],
       };
 
-      // The spy joins as a plain participant: her manager is created but never
-      // attached to the call, so no encode/decode transform is installed. Peers'
-      // encrypted frames reach her decoder untouched and render as gibberish -
-      // the proof that the media is unusable without the keys. Her own camera
-      // publishes in the clear, so legitimate participants still see her.
-      if (isNormal) {
-        call.setE2EEManager(manager);
-        manager.setEnabled(this.config.e2eeEnabled);
-        this.wireEvents(p);
-        manager.setPerfReport(true);
-        manager.requestKeyDump();
+      // Every participant, including the spy, attaches an E2EEManager before
+      // joining. The backend rejects a join whose e2ee flag (which the SDK sends
+      // whenever a manager is attached) does not match the encrypted call, so the
+      // spy cannot join as a plain, manager-less participant anymore. She differs
+      // only in her keys: she never receives any. With E2EE active her decode
+      // transform fails on every peer and renders gibberish - the proof the media
+      // is unusable without the keys - while her own encoder drops outgoing frames
+      // for lack of a key.
+      call.setE2EEManager(manager);
+      manager.setEnabled(this.config.e2eeEnabled);
+      this.wireEvents(p);
+      manager.setPerfReport(true);
+      manager.requestKeyDump();
 
+      if (isNormal) {
         if (opts.withKey) {
           const key = generateKey();
           manager.setKey(userId, 0, key.slice(0));
@@ -289,7 +295,12 @@ export class E2EEHarness {
       }
 
       call.updatePublishOptions({ preferredCodec: this.config.codec });
-      await call.join({ create: true });
+      // Create the call with encryption enabled so it matches the e2ee join sent
+      // above; without it the backend rejects every participant's join.
+      await call.join({
+        create: true,
+        data: { settings_override: { encryption: { enabled: true } } },
+      });
       this.addLog(userId, `Joined the call`, 'join');
 
       // Publish real camera + mic so there is encrypted media flowing - for
@@ -375,7 +386,9 @@ export class E2EEHarness {
     if (!localOnly) this.distribute(target);
     this.addLog(
       targetUserId,
-      `Rotated key (#${keyIndex}): ${toHex(key).slice(0, 16)}...${localOnly ? ' [LOCAL ONLY]' : ''}`,
+      `Rotated key (#${keyIndex}): ${toHex(key).slice(0, 16)}...${
+        localOnly ? ' [LOCAL ONLY]' : ''
+      }`,
       'key-rotate',
     );
     target.manager.requestKeyDump();
@@ -397,7 +410,9 @@ export class E2EEHarness {
     if (!localOnly) this.distribute(target);
     this.addLog(
       targetUserId,
-      `Set key (#${keyIndex}): ${toHex(key).slice(0, 16)}...${localOnly ? ' [LOCAL ONLY]' : ''}`,
+      `Set key (#${keyIndex}): ${toHex(key).slice(0, 16)}...${
+        localOnly ? ' [LOCAL ONLY]' : ''
+      }`,
       'key-set',
     );
     target.manager.requestKeyDump();
@@ -455,8 +470,12 @@ export class E2EEHarness {
     if (!userId) this.config.e2eeEnabled = enabled;
 
     for (const p of targets) {
-      if (p.role === 'spy') continue;
       p.manager.setEnabled(enabled);
+      // The spy owns no keys, so there is nothing to revoke or regenerate for
+      // her. Only her transform's active/passthrough state follows the toggle:
+      // with E2EE off, everyone passes through in the clear and she sees the
+      // call; with it on, she fails to decrypt every peer.
+      if (p.role === 'spy') continue;
       p.enabled = enabled;
       if (!enabled) {
         if (this.config.keyMode === 'per-user') {
