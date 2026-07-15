@@ -116,7 +116,6 @@ export class E2EEHarness {
       // Preselect the path the SDK would actually attach in this browser.
       transform: detectTransformSupport().recommended ?? 'insertable',
       keyMode: 'per-user',
-      e2eeEnabled: true,
     };
     this.snapshot = this.build();
   }
@@ -201,7 +200,7 @@ export class E2EEHarness {
       name: PARTICIPANT_NAMES[index],
       color: PARTICIPANT_COLORS[index],
       role: 'normal',
-      withKey: this.config.e2eeEnabled && this.config.keyMode === 'per-user',
+      withKey: this.config.keyMode === 'per-user',
     });
   };
 
@@ -248,7 +247,7 @@ export class E2EEHarness {
         call,
         manager,
         keyIndex: 0,
-        enabled: isNormal && this.config.e2eeEnabled,
+        enabled: isNormal,
         keyStore: null,
         perf: null,
         failingFrom: new Set(),
@@ -264,7 +263,7 @@ export class E2EEHarness {
       // is unusable without the keys - while her own encoder drops outgoing frames
       // for lack of a key.
       call.setE2EEManager(manager);
-      manager.setEnabled(this.config.e2eeEnabled);
+      manager.setEnabled(true);
       this.wireEvents(p);
       manager.setPerfReport(true);
       manager.requestKeyDump();
@@ -279,11 +278,7 @@ export class E2EEHarness {
             `Set key: ${toHex(key).slice(0, 16)}...`,
             'key-set',
           );
-        } else if (
-          this.config.keyMode === 'shared' &&
-          this.sharedKeyBytes &&
-          this.config.e2eeEnabled
-        ) {
+        } else if (this.config.keyMode === 'shared' && this.sharedKeyBytes) {
           manager.setSharedKey(
             this.activeSharedKeyIndex,
             this.sharedKeyBytes.slice(0),
@@ -346,7 +341,7 @@ export class E2EEHarness {
   };
 
   private exchangeOnJoin = (joiner: EngineParticipant): void => {
-    if (this.config.keyMode === 'shared' || !this.config.e2eeEnabled) return;
+    if (this.config.keyMode === 'shared') return;
     const existing = this.participants.filter(
       (p) => p.userId !== joiner.userId && p.role === 'normal',
     );
@@ -427,7 +422,7 @@ export class E2EEHarness {
     }
   };
 
-  // --- shared key + enable toggle ---
+  // --- shared key ---
 
   setSharedKey = async (passphrase: string): Promise<void> => {
     const key = await parseKeyInput(passphrase);
@@ -457,56 +452,6 @@ export class E2EEHarness {
         p.userId,
         `Shared key set from "${label}", per-user keys revoked`,
         'key-set',
-      );
-    }
-    this.emit();
-  };
-
-  /** Toggle E2EE globally (userId omitted) or for one participant. */
-  setEnabled = (userId: string | undefined, enabled: boolean): void => {
-    const targets = userId
-      ? this.participants.filter((p) => p.userId === userId)
-      : this.participants;
-    if (!userId) this.config.e2eeEnabled = enabled;
-
-    for (const p of targets) {
-      p.manager.setEnabled(enabled);
-      // The spy owns no keys, so there is nothing to revoke or regenerate for
-      // her. Only her transform's active/passthrough state follows the toggle:
-      // with E2EE off, everyone passes through in the clear and she sees the
-      // call; with it on, she fails to decrypt every peer.
-      if (p.role === 'spy') continue;
-      p.enabled = enabled;
-      if (!enabled) {
-        if (this.config.keyMode === 'per-user') {
-          // Per-user mode: revoke this participant's key from everyone else so their
-          // decoders stop attempting decryption (which would otherwise freeze on the
-          // last frame). In shared-key mode, disabling only stops the local encoder.
-          for (const other of this.participants) {
-            if (other.userId !== p.userId) other.manager.removeKeys(p.userId);
-          }
-        }
-        p.currentKey = undefined;
-        p.failingFrom.clear();
-      } else if (!p.currentKey && this.config.keyMode === 'per-user') {
-        const key = generateKey();
-        p.manager.setKey(p.userId, 0, key.slice(0));
-        p.currentKey = key;
-        p.keyIndex = 0;
-        this.addLog(
-          p.userId,
-          `Set key: ${toHex(key).slice(0, 16)}...`,
-          'key-set',
-        );
-        this.distribute(p);
-      } else if (!p.currentKey && this.sharedKeyBytes) {
-        p.currentKey = this.sharedKeyBytes;
-        p.keyIndex = this.activeSharedKeyIndex;
-      }
-      this.addLog(
-        p.userId,
-        `E2EE ${enabled ? 'enabled' : 'disabled'}`,
-        enabled ? 'join' : 'leave',
       );
     }
     this.emit();

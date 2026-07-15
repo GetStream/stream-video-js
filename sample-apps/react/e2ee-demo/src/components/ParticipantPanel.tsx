@@ -43,17 +43,8 @@ export const ParticipantPanel = memo(function ParticipantPanel({
   events,
 }: Props) {
   const engine = useHarnessEngine();
-  const {
-    userId,
-    name,
-    color,
-    role,
-    client,
-    call,
-    currentKey,
-    keyIndex,
-    enabled,
-  } = participant;
+  const { userId, name, color, role, client, call, currentKey, keyIndex } =
+    participant;
   const isSpy = role === 'spy';
 
   return (
@@ -78,19 +69,6 @@ export const ParticipantPanel = memo(function ParticipantPanel({
           )}
         </div>
         <div className="participant-panel__actions">
-          {!isSpy && (
-            <label
-              className="participant-panel__e2ee-toggle"
-              title="Toggle E2EE"
-            >
-              <input
-                type="checkbox"
-                checked={enabled}
-                onChange={(e) => engine.setEnabled(userId, e.target.checked)}
-              />
-              E2EE
-            </label>
-          )}
           <button
             className="participant-panel__remove"
             onClick={() => engine.removeParticipant(userId)}

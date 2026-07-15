@@ -67,9 +67,6 @@
   color: #6e7681;
   font-style: italic;
 }
-.control-bar__toggle {
-  color: #c9d1d9;
-}
 .control-bar__shared {
   display: flex;
   gap: 6px;

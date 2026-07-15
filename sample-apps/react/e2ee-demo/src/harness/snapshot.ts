@@ -51,7 +51,6 @@ export interface HarnessConfig {
   codec: PreferredCodec;
   transform: TransformPath;
   keyMode: KeyMode;
-  e2eeEnabled: boolean;
 }
 
 export interface Snapshot {

@@ -26,7 +26,10 @@ export const ControlBar = () => {
 
   const joined = participants.length;
   const normals = participants.filter((p) => p.role === 'normal').length;
-  const locked = joined > 0; // transform + key mode lock after first join
+  // The transform locks after the first join: each peer connection is created
+  // with it and it cannot change mid-call. KeyMode is not locked - switching to
+  // shared and setting a shared key converts everyone at any point.
+  const transformLocked = joined > 0;
 
   return (
     <header className="control-bar">
@@ -35,11 +38,9 @@ export const ControlBar = () => {
         <span className="control-bar__call-id">
           call: <code>{config.callId}</code>
         </span>
-        {config.e2eeEnabled && (
-          <span className={`control-bar__badge ${isSupported ? 'ok' : 'no'}`}>
-            {isSupported ? 'E2EE supported' : 'E2EE not supported'}
-          </span>
-        )}
+        <span className={`control-bar__badge ${isSupported ? 'ok' : 'no'}`}>
+          {isSupported ? 'E2EE supported' : 'E2EE not supported'}
+        </span>
       </div>
 
       <div className="control-bar__row">
@@ -61,7 +62,7 @@ export const ControlBar = () => {
           Transform
           <select
             value={config.transform}
-            disabled={locked}
+            disabled={transformLocked}
             onChange={(e) =>
               engine.setConfig({ transform: e.target.value as TransformPath })
             }
@@ -79,11 +80,10 @@ export const ControlBar = () => {
             </span>
           )}
         </label>
-        <label title="Locks after the first participant joins">
+        <label title="Switch anytime; setting a shared key converts everyone">
           KeyMode
           <select
             value={config.keyMode}
-            disabled={locked}
             onChange={(e) =>
               engine.setConfig({
                 keyMode: e.target.value as 'per-user' | 'shared',
@@ -94,19 +94,9 @@ export const ControlBar = () => {
             <option value="shared">shared</option>
           </select>
         </label>
-        <label className="control-bar__toggle">
-          <input
-            type="checkbox"
-            checked={config.e2eeEnabled}
-            onChange={(e) => engine.setEnabled(undefined, e.target.checked)}
-          />
-          E2EE
-        </label>
         <button
           onClick={() => engine.addParticipant()}
-          disabled={
-            normals >= MAX_PARTICIPANTS || (config.e2eeEnabled && !isSupported)
-          }
+          disabled={normals >= MAX_PARTICIPANTS || !isSupported}
         >
           + Participant ({normals}/{MAX_PARTICIPANTS})
         </button>
@@ -117,7 +107,7 @@ export const ControlBar = () => {
         >
           + Keyless
         </button>
-        {config.keyMode === 'shared' && config.e2eeEnabled && (
+        {config.keyMode === 'shared' && (
           <span className="control-bar__shared">
             <input
               type="text"

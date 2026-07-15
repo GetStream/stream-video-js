@@ -4,6 +4,13 @@
   background: var(--color-surface);
 }
 
+.key-controls__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
 .key-controls__current {
   display: flex;
   align-items: center;

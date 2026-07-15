@@ -34,6 +34,7 @@ export const KeyControls = ({
 
   return (
     <div className="key-controls">
+      <div className="key-controls__title">Encryption key</div>
       <div className="key-controls__current">
         <span className="key-controls__label">Current Key</span>
         <code className="key-controls__hex" title={hex}>
@@ -51,7 +52,7 @@ export const KeyControls = ({
         <input
           className="key-controls__input"
           type="text"
-          placeholder="Hex key or passphrase..."
+          placeholder="Set this participant's key (hex or passphrase)..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
