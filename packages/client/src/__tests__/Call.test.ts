@@ -300,6 +300,29 @@ describe('muting logic', () => {
   });
 });
 
+describe('client event reporting', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('reports a client-aborted event and unregisters the call on leave', async () => {
+    const call = client.call('default', generateUUIDv4());
+    await call.getOrCreate();
+
+    const reporter = call.clientEventReporter;
+    const abortSpy = vi.spyOn(reporter, 'abort');
+    const unregisterSpy = vi.spyOn(reporter, 'unregisterCall');
+
+    await call.leave();
+
+    expect(abortSpy).toHaveBeenCalledWith(call.cid, {
+      code: 'CLIENT_ABORTED',
+      reason: expect.any(String),
+    });
+    expect(unregisterSpy).toHaveBeenCalledWith(call.cid);
+  });
+});
+
 afterEach(() => {
   client.disconnectUser();
 });

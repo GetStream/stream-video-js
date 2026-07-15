@@ -133,6 +133,11 @@ export type StreamVideoConfig = {
        * @default false
        */
       skipIncomingPushInForeground?: boolean;
+      /**
+       * Default audio endpoint for Telecom-managed calls on Android.
+       * @default 'speaker'
+       */
+      defaultDeviceEndpointType?: 'speaker' | 'earpiece';
     };
     /**
      * Whether to reject calls when the user is busy.

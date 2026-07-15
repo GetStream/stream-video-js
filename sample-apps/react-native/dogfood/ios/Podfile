@@ -60,6 +60,15 @@ target 'StreamReactNativeVideoSDKSample' do
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+
+        # Some pods ship deployment targets (e.g. 9.0/11.0/12.4) below the
+        # minimum the current Xcode toolchain supports. Bump any target that
+        # is lower than the React Native supported minimum so the build's
+        # deployment-target validation passes.
+        current = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        if current.nil? || Gem::Version.new(current) < Gem::Version.new(min_ios_version_supported)
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_ios_version_supported
+        end
       end
     end
   end

@@ -35,6 +35,9 @@ concurrency:
   group: deploy-react-sample-apps-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build-and-deploy-sample-apps:
     name: Deploy ${{ matrix.application.name }}
@@ -80,7 +83,7 @@ jobs:
       MODE: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Node
         uses: actions/setup-node@v6

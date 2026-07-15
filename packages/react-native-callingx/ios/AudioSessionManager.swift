@@ -131,27 +131,42 @@ enum DefaultAudioDevice {
             forceSpeaker = false; preferredInputUid = nil; useDefaultToSpeaker = currentDevice == .speaker
         }
 
-        // XCode 16 and older don't expose .allowBluetoothHFP
-        // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
-        #if compiler(>=6.2) // For Xcode 26.0+
-            let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
-        #else
-            let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
-        #endif
+        let rtcSession = RTCAudioSession.sharedInstance()
 
-        var categoryOptions: AVAudioSession.CategoryOptions = [bluetoothOption, .allowBluetoothA2DP]
-        if useDefaultToSpeaker {
-            categoryOptions.insert(.defaultToSpeaker)
-        }
+        // Relax to a pure-output (.playback) session when mic permission is missing
+        // same logic as in StreamInCallManager
+        let usePlaybackFallback = !micPermissionGranted()
 
         // webRTC() singleton hardcodes sampleRate=48000 / ioBufferDuration=0.02 — keep those.
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
-        rtcConfig.category = AVAudioSession.Category.playAndRecord.rawValue
-        rtcConfig.mode = AVAudioSession.Mode.voiceChat.rawValue
-        rtcConfig.categoryOptions = categoryOptions
+        if usePlaybackFallback {
+            // Known gap: .playback can't route to the receiver (earpiece) — that route
+            // only exists under .playAndRecord.
+            rtcConfig.category = AVAudioSession.Category.playback.rawValue
+            rtcConfig.mode = AVAudioSession.Mode.spokenAudio.rawValue
+            rtcConfig.categoryOptions = []
+        } else {
+            // XCode 16 and older don't expose .allowBluetoothHFP
+            // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
+            #if compiler(>=6.2) // For Xcode 26.0+
+                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetoothHFP
+            #else
+                let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
+            #endif
+
+            var categoryOptions: AVAudioSession.CategoryOptions = [bluetoothOption, .allowBluetoothA2DP]
+            if useDefaultToSpeaker {
+                categoryOptions.insert(.defaultToSpeaker)
+            }
+
+            rtcConfig.category = AVAudioSession.Category.playAndRecord.rawValue
+            rtcConfig.mode = AVAudioSession.Mode.voiceChat.rawValue
+            rtcConfig.categoryOptions = categoryOptions
+        }
         RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
 
-        let rtcSession = RTCAudioSession.sharedInstance()
+        CallingxLog.audio.debugPublic("[applyCallKitConfiguration] category=\(rtcConfig.category) mode=\(rtcConfig.mode)")
+
         rtcSession.lockForConfiguration()
         defer { rtcSession.unlockForConfiguration() }
 
@@ -161,24 +176,36 @@ enum DefaultAudioDevice {
             // output-port override and doesn't reliably keep a preferred input, so an explicit
             // pick must be re-asserted on every reconfigure — mirrors StreamInCallManager /
             // Telegram). A no-explicit-pick call relies on the category flag above.
-            let avSession = AVAudioSession.sharedInstance()
-            if forceSpeaker {
-                // Pin the built-in mic so a stale preferred Bluetooth input can't steal the
-                // route back, then force the loudspeaker.
-                if let mic = avSession.availableInputs?.first(where: { $0.portType == .builtInMic }) {
-                    try avSession.setPreferredInput(mic)
-                }
-                try avSession.overrideOutputAudioPort(.speaker)
-            } else if let preferredInputUid {
-                try avSession.overrideOutputAudioPort(.none)
-                if let port = avSession.availableInputs?.first(where: { $0.uid == preferredInputUid }) {
-                    try avSession.setPreferredInput(port)
-                } else {
-                    CallingxLog.audio.debugPublic("[applyCallKitConfiguration] no input for uid \(preferredInputUid)")
+            // Skipped under the playback fallback: it's output-only (mic permission missing),
+            // so there's no input to prefer and the receiver route is unavailable anyway.
+            if !usePlaybackFallback {
+                let avSession = AVAudioSession.sharedInstance()
+                if forceSpeaker {
+                    // Pin the built-in mic so a stale preferred Bluetooth input can't steal the
+                    // route back, then force the loudspeaker.
+                    if let mic = avSession.availableInputs?.first(where: { $0.portType == .builtInMic }) {
+                        try avSession.setPreferredInput(mic)
+                    }
+                    try avSession.overrideOutputAudioPort(.speaker)
+                } else if let preferredInputUid {
+                    try avSession.overrideOutputAudioPort(.none)
+                    if let port = avSession.availableInputs?.first(where: { $0.uid == preferredInputUid }) {
+                        try avSession.setPreferredInput(port)
+                    } else {
+                        CallingxLog.audio.debugPublic("[applyCallKitConfiguration] no input for uid \(preferredInputUid)")
+                    }
                 }
             }
         } catch {
             CallingxLog.audio.errorPublic("[applyCallKitConfiguration] Error: \(error)")
+        }
+    }
+
+    private func micPermissionGranted() -> Bool {
+        if #available(iOS 17.0, *) {
+            return AVAudioApplication.shared.recordPermission == .granted
+        } else {
+            return AVAudioSession.sharedInstance().recordPermission == .granted
         }
     }
 }

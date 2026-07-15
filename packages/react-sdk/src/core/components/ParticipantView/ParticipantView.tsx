@@ -1,6 +1,7 @@
 import {
   ComponentType,
   forwardRef,
+  memo,
   ReactElement,
   useMemo,
   useState,
@@ -70,8 +71,8 @@ export type ParticipantViewProps = {
   className?: string;
 } & Pick<VideoProps, 'VideoPlaceholder' | 'PictureInPicturePlaceholder'>;
 
-export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
-  function ParticipantView(
+export const ParticipantView = memo(
+  forwardRef<HTMLDivElement, ParticipantViewProps>(function ParticipantView(
     {
       participant,
       trackType = 'videoTrack',
@@ -195,7 +196,7 @@ export const ParticipantView = forwardRef<HTMLDivElement, ParticipantViewProps>(
         </ParticipantViewContext.Provider>
       </div>
     );
-  },
+  }),
 );
 
 ParticipantView.displayName = 'ParticipantView';

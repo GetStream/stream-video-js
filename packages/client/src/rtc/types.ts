@@ -2,6 +2,7 @@ import {
   AudioBitrateProfile,
   PeerType,
   PublishOption,
+  TrackType,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
 import { StreamSfuClient } from '../StreamSfuClient';
@@ -27,6 +28,8 @@ export const ReconnectReason = {
   CONNECTION_FAILED: 'connection_failed',
   /** `restartIce()` rejected. */
   RESTART_ICE_FAILED: 'restart_ice_failed',
+  /** Subscriber renegotiation kept failing, escalate to REJOIN. */
+  SUBSCRIBER_NEGOTIATION_FAILED: 'subscriber_negotiation_failed',
   /** SFU `goAway` event, migrate to a new SFU. */
   GO_AWAY: 'go_away',
   /** Network came back online after going offline. */
@@ -53,6 +56,37 @@ export type OnReconnectionNeeded = (
  */
 export type OnIceConnected = (peerType: PeerType) => void;
 
+/**
+ * Snapshot of the peer connection's ICE and DTLS state surfaced to telemetry
+ * consumers (e.g. `ClientEventReporter`). Fired on every transition of
+ * either `iceConnectionState` or `peerConnectionState`.
+ */
+export type PeerConnectionStateChangeEvent =
+  | {
+      peerType: PeerType;
+      stateType: 'ice';
+      state: RTCIceConnectionState;
+    }
+  | {
+      peerType: PeerType;
+      stateType: 'peerConnection';
+      state: RTCPeerConnectionState;
+    };
+
+export type OnPeerConnectionStateChange = (
+  event: PeerConnectionStateChangeEvent,
+) => void;
+
+/**
+ * Fired when a remote track starts receiving media (`unmute`). Used by
+ * telemetry to report the `FirstVideoFrame` / `FirstAudioFrame` stage; the
+ * consumer decides which track types are relevant.
+ */
+export type OnRemoteTrackUnmute = (
+  trackType: TrackType,
+  trackId: string,
+) => void;
+
 export type BasePeerConnectionOpts = {
   sfuClient: StreamSfuClient;
   state: CallState;
@@ -60,6 +94,8 @@ export type BasePeerConnectionOpts = {
   dispatcher: Dispatcher;
   onReconnectionNeeded?: OnReconnectionNeeded;
   onIceConnected?: OnIceConnected;
+  onPeerConnectionStateChange?: OnPeerConnectionStateChange;
+  onRemoteTrackUnmute?: OnRemoteTrackUnmute;
   tag: string;
   enableTracing: boolean;
   iceRestartDelay?: number;
@@ -76,6 +112,7 @@ export type PublishBundle = {
   transceiver: RTCRtpTransceiver;
   options: TrackPublishOptions;
   videoSender?: VideoSender;
+  negotiated?: boolean;
 };
 
 export type TrackLayersCache = {

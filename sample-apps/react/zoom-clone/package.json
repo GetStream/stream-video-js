@@ -17,10 +17,11 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-router-dom": "^6.30.3",
-    "stream-chat": "^9.44.2",
-    "stream-chat-react": "^14.3.0"
+    "stream-chat": "^9.49.0",
+    "stream-chat-react": "^14.6.1"
   },
   "devDependencies": {
+    "@stream-io/typescript-config": "workspace:^",
     "@types/react": "~19.2.15",
     "@types/react-dom": "~19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
@@ -28,7 +29,7 @@
     "dotenv": "^16.6.1",
     "postcss": "^8.5.15",
     "tailwindcss": "^3.4.19",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vite": "^8.0.14"
   }
 }

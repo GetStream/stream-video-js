@@ -101,6 +101,14 @@ class AudioDeviceManager(
 
     var callAudioRole: CallAudioRole = CallAudioRole.Communicator
 
+    /**
+     * When true, the call is managed by the Android Telecom stack (via callingx).
+     * Telecom owns audio focus, audio mode and device routing, so we must NOT use
+     * AudioManager.setCommunicationDevice / startBluetoothSco / audio-focus APIs here.
+     * We keep owning proximity, keep-screen-on and mic/output mute.
+     */
+    var telecomManagedMode: Boolean = false
+
     val bluetoothManager = BluetoothManager(mReactContext, this)
 
     private val proximityManager by lazy { ProximityManager(mReactContext, this) }
@@ -112,12 +120,14 @@ class AudioDeviceManager(
     }
 
     fun setup() {
-        if (callAudioRole == CallAudioRole.Communicator) {
-            mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
-        } else {
-            // Audio routing is handled automatically by the system in normal media mode
-            // and bluetooth microphones may not work on some devices.
-            mAudioManager.mode = AudioManager.MODE_NORMAL
+        if (!telecomManagedMode) {
+            if (callAudioRole == CallAudioRole.Communicator) {
+                mAudioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+            } else {
+                // Audio routing is handled automatically by the system in normal media mode
+                // and bluetooth microphones may not work on some devices.
+                mAudioManager.mode = AudioManager.MODE_NORMAL
+            }
         }
         audioFocusUtil.setup(callAudioRole, mReactContext)
     }
@@ -130,33 +140,44 @@ class AudioDeviceManager(
                 // Audio routing is manually controlled by the SDK in communication media mode
                 // and local microphone can be published
                 activity.volumeControlStream = AudioManager.STREAM_VOICE_CALL
-                bluetoothManager.start()
-                mAudioManager.registerAudioDeviceCallback(this, null)
-                updateAudioDeviceState()
+                if (!telecomManagedMode) {
+                    // Telecom owns routing/focus; only run our own routing when not Telecom-managed.
+                    bluetoothManager.start()
+                    mAudioManager.registerAudioDeviceCallback(this, null)
+                    updateAudioDeviceState()
+                }
                 proximityManager.start()
             } else {
                 activity.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
             }
-            audioFocusUtil.requestFocus(callAudioRole, mReactContext)
+            if (!telecomManagedMode) {
+                audioFocusUtil.requestFocus(callAudioRole, mReactContext)
+            }
         }
     }
 
     fun stop(activity: Activity) {
         runInAudioThread {
             if (callAudioRole == CallAudioRole.Communicator) {
-                if (Build.VERSION.SDK_INT >= 31) {
-                    mAudioManager.clearCommunicationDevice()
-                } else {
-                    mAudioManager.setSpeakerphoneOn(false)
+                if (!telecomManagedMode) {
+                    // Only tear down what we set up ourselves; Telecom owns its own teardown.
+                    if (Build.VERSION.SDK_INT >= 31) {
+                        mAudioManager.clearCommunicationDevice()
+                    } else {
+                        mAudioManager.setSpeakerphoneOn(false)
+                    }
+                    bluetoothManager.stop()
                 }
                 callAudioRole = CallAudioRole.Communicator
                 enableStereo = false
                 defaultAudioDevice = AudioDeviceEndpoint.TYPE_SPEAKER
-                bluetoothManager.stop()
                 proximityManager.stop()
             }
             activity.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
-            audioFocusUtil.abandonFocus()
+            if (!telecomManagedMode) {
+                audioFocusUtil.abandonFocus()
+            }
+            telecomManagedMode = false
         }
     }
 
@@ -399,6 +420,10 @@ class AudioDeviceManager(
      */
     fun updateAudioDeviceState() {
         runInAudioThread {
+            if (telecomManagedMode) {
+                // Telecom is the single source of truth for routing/endpoints in this mode.
+                return@runInAudioThread
+            }
             val audioDevices = getCurrentDeviceEndpoints()
             // Compare by stable device id, not name, so a swap between two
             // identically-named devices is still detected as a change.
@@ -574,6 +599,10 @@ class AudioDeviceManager(
     }
 
     private fun sendAudioStatusEvent() {
+        if (telecomManagedMode) {
+            // callingx emits endpoint changes in this mode; avoid duplicate/conflicting events.
+            return
+        }
         try {
             if (mReactContext.hasActiveReactInstance()) {
                 val payload = audioStatusMap()

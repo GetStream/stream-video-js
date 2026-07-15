@@ -2,6 +2,49 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.6.1...@stream-io/react-native-callingx-0.6.2) (2026-07-09)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Bug Fixes
+
+- android callingx calls should handle audio through through telecom ([#2324](https://github.com/GetStream/stream-video-js/issues/2324)) ([95bcc2a](https://github.com/GetStream/stream-video-js/commit/95bcc2a2dac12c0051b61a1704f927793eaaf727))
+- callingx background handling ([#2310](https://github.com/GetStream/stream-video-js/issues/2310)) ([a96df4f](https://github.com/GetStream/stream-video-js/commit/a96df4ffc9279d2d9cd14da5196a275faf3d1891))
+
+## [0.6.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.6.0...@stream-io/react-native-callingx-0.6.1) (2026-07-02)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Bug Fixes
+
+- made CXCallObserver static warm instance ([#2306](https://github.com/GetStream/stream-video-js/issues/2306)) ([ac79c64](https://github.com/GetStream/stream-video-js/commit/ac79c64f7231b12295e726f258e92c28b239d28b))
+
+## [0.6.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.5.1...@stream-io/react-native-callingx-0.6.0) (2026-06-26)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Features
+
+- upgrade to TypeScript 6.0.3, pin ES2022, raise supported-browser floors ([#2290](https://github.com/GetStream/stream-video-js/issues/2290)) ([d9ea158](https://github.com/GetStream/stream-video-js/commit/d9ea15846582fa8db86b3b873eca2afe92ae3593))
+
+## [0.5.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.5.0...@stream-io/react-native-callingx-0.5.1) (2026-06-12)
+
+### Bug Fixes
+
+- **ios:** joining a call muted may break remote audio playout ([#2282](https://github.com/GetStream/stream-video-js/issues/2282)) ([dc672a6](https://github.com/GetStream/stream-video-js/commit/dc672a69971d6ca46648696c242609c687cb42d7))
+
+## [0.5.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.4.0...@stream-io/react-native-callingx-0.5.0) (2026-06-11)
+
+### Features
+
+- webrtc 145 upgrade ([#2133](https://github.com/GetStream/stream-video-js/issues/2133)) ([07825e4](https://github.com/GetStream/stream-video-js/commit/07825e402193ed07acf1d41831545326a0ad93d9)), closes [rn-webrtc#27](https://github.com/GetStream/rn-webrtc/issues/27)
+
 ## [0.4.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.3.1...@stream-io/react-native-callingx-0.4.0) (2026-06-04)
 
 ### Features

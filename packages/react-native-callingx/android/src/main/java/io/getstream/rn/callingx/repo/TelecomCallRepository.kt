@@ -10,20 +10,28 @@ import androidx.annotation.RequiresApi
 import androidx.core.telecom.CallAttributesCompat
 import androidx.core.telecom.CallControlResult
 import androidx.core.telecom.CallControlScope
+import androidx.core.telecom.CallEndpointCompat
 import androidx.core.telecom.CallsManager
+import io.getstream.rn.callingx.AudioEndpointStore
 import io.getstream.rn.callingx.debugLog
 import io.getstream.rn.callingx.model.Call
 import io.getstream.rn.callingx.model.CallAction
+import io.getstream.rn.callingx.utils.AudioEndpointUtils
+import io.getstream.rn.callingx.utils.SettingsStore
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -48,6 +56,9 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
 
     companion object {
         private const val TAG = "[Callingx] TelecomCallRepository"
+
+        /** Max time to wait for the pre-call endpoints to populate before registering the call. */
+        private const val PRE_CALL_ENDPOINTS_TIMEOUT_MS = 1500L
     }
 
     @Volatile
@@ -122,6 +133,15 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             return
         }
 
+        // Resolve the preferred starting endpoint from the sticky default preference (if any).
+        // We must keep the pre-call endpoints flow subscribed until the in-call session has
+        // registered its endpoints, otherwise the resolved endpoint's (session-scoped) identifier
+        // is dropped by CallEndpointUuidTracker and no longer matches inside the call scope.
+        var preCallEndpointsJob: Job? = null
+        val preferredStartingEndpoint = resolvePreferredStartingEndpoint { job ->
+            preCallEndpointsJob = job
+        }
+
         // Hold the mutex only for the dedup check — release before entering the long-lived call scope
         val attributes: CallAttributesCompat
         val actionSource: Channel<CallAction>
@@ -139,6 +159,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                         TAG,
                         "[repository] registerCall: Call $callId already registered, ignoring duplicate"
                 )
+                preCallEndpointsJob?.cancel()
                 return
             }
 
@@ -147,7 +168,13 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                     "[repository] registerCall: Call $callId not found in map, proceeding with registration"
             )
 
-            attributes = createCallAttributes(displayName, address, isIncoming, isVideo)
+            attributes = createCallAttributes(
+                    displayName,
+                    address,
+                    isIncoming,
+                    isVideo,
+                    preferredStartingEndpoint,
+            )
             actionSource = Channel<CallAction>()
             flags = CallActionFlags()
             actionFlags[callId] = flags
@@ -204,6 +231,12 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                         updateCallById(callId) { copy(availableCallEndpoints = it) }
                     }
                 }
+                // Once this in-call session has registered its endpoints, the preferred endpoint's
+                // identifier has been reused by it, so the pre-call subscription can be released.
+                launch {
+                    availableEndpoints.first { it.isNotEmpty() }
+                    preCallEndpointsJob?.cancel()
+                }
                 launch {
                     isMuted.collect {
                         updateCallById(callId) { copy(isMuted = it) }
@@ -231,9 +264,65 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             // - The Call.actionSource channel is no longer referenced and can be garbage-collected;
             //   we do not explicitly close it because callers use trySend(), which never suspends.
             debugLog(TAG, "[repository] registerCall: Cleaning up call $callId")
+            preCallEndpointsJob?.cancel()
             removeCall(callId)
             actionFlags.remove(callId)
         }
+    }
+
+    /**
+     * Resolves the preferred starting audio endpoint from the sticky default preference, mirroring
+     * the AndroidX-recommended pattern: read [CallsManager.getAvailableStartingCallEndpoints], pick
+     * the endpoint matching the preference by type, and pass it as
+     * [CallAttributesCompat.preferredStartingCallEndpoint].
+     *
+     * The pre-call endpoints flow is kept subscribed (its [Job] handed back via [onJobStarted]) so
+     * that the endpoint's session-scoped identifier remains valid into the in-call session; the
+     * caller cancels it once the in-call session has registered its own endpoints.
+     *
+     * Returns null (and does not keep a subscription) when there is no preference, no matching
+     * endpoint, or a wired/bluetooth device is present (which must not be overridden).
+     */
+    private suspend fun resolvePreferredStartingEndpoint(
+            onJobStarted: (Job) -> Unit,
+    ): CallEndpointCompat? {
+        // In-memory pref is set by JS setup; fall back to the persisted value for the native
+        // cold-start push path where the call is registered before JS setup runs.
+        val pref =
+                AudioEndpointStore.getDefaultEndpointPref()
+                        ?: SettingsStore.getDefaultDeviceEndpointType(context)
+                        ?: return null
+        val prefType = when (pref) {
+            AudioEndpointUtils.TYPE_EARPIECE -> CallEndpointCompat.TYPE_EARPIECE
+            AudioEndpointUtils.TYPE_SPEAKER -> CallEndpointCompat.TYPE_SPEAKER
+            else -> return null
+        }
+
+        val latestPreCallEndpoints = MutableStateFlow<List<CallEndpointCompat>>(emptyList())
+        // Collected on Main: the underlying audio-device/bluetooth listeners expect a Looper.
+        val job = scope.launch(Dispatchers.Main) {
+            callsManager.getAvailableStartingCallEndpoints().collect {
+                latestPreCallEndpoints.value = it
+            }
+        }
+
+        val endpoints =
+                withTimeoutOrNull(PRE_CALL_ENDPOINTS_TIMEOUT_MS) {
+                    latestPreCallEndpoints.first { it.isNotEmpty() }
+                } ?: emptyList()
+
+        // Never override a physically-connected wired/bluetooth device.
+        val hasWiredOrBt = endpoints.any { AudioEndpointUtils.isWiredOrBluetooth(it.type) }
+        val preferred =
+                if (hasWiredOrBt) null else endpoints.firstOrNull { it.type == prefType }
+
+        if (preferred == null) {
+            job.cancel()
+            return null
+        }
+        debugLog(TAG, "[repository] resolvePreferredStartingEndpoint: preferring '$pref'")
+        onJobStarted(job)
+        return preferred
     }
 
     override fun updateCall(
@@ -271,10 +360,9 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
                                 debugLog(TAG, "[repository] observeCalls: Mute changed for $callId: ${call.isMuted}")
                                 _listener?.onMuteCallChanged(callId, call.isMuted)
                             }
-                            if (previous.currentCallEndpoint != call.currentCallEndpoint) {
-                                call.currentCallEndpoint?.let {
-                                    _listener?.onCallEndpointChanged(callId, it.name.toString())
-                                }
+                            if (previous.currentCallEndpoint != call.currentCallEndpoint ||
+                                    previous.availableCallEndpoints != call.availableCallEndpoints) {
+                                _listener?.onCallAudioEndpointsChanged(callId)
                             }
                         }
                         _listener?.onCallStateChanged(callId, call)
@@ -302,7 +390,7 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
             debugLog(TAG, "[repository] processCallActions[$callId]: action: ${action::class.simpleName}")
             when (action) {
                 is CallAction.Answer -> {
-                    doAnswer(callId, flags, action.isAudioCall)
+                    doAnswer(callId, flags)
                 }
                 is CallAction.Disconnect -> {
                     doDisconnect(callId, flags, action)
@@ -402,11 +490,11 @@ class TelecomCallRepository(context: Context) : CallRepository(context) {
         onIsCallDisconnected(callId, flags)(action.cause)
     }
 
-    private suspend fun CallControlScope.doAnswer(callId: String, flags: CallActionFlags, isAudioCall: Boolean) {
+    private suspend fun CallControlScope.doAnswer(callId: String, flags: CallActionFlags) {
         flags.isSelfAnswered.set(true)
         val callType =
-                if (isAudioCall) CallAttributesCompat.CALL_TYPE_AUDIO_CALL
-                else CallAttributesCompat.CALL_TYPE_VIDEO_CALL
+                _calls.value[callId]?.callAttributes?.callType
+                        ?: CallAttributesCompat.CALL_TYPE_VIDEO_CALL
 
         when (val result = answer(callType)) {
             is CallControlResult.Success -> {

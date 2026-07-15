@@ -52,7 +52,7 @@ const SpeakingRequest = ({
   const customData = useCallCustomData();
 
   const acceptRequest = useCallback(async () => {
-    if (!(call && customData)) return null;
+    if (!(call && customData)) return;
 
     await call?.updateUserPermissions({
       user_id: speakingRequest.user.id,

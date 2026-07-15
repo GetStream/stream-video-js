@@ -143,6 +143,17 @@ class StreamInCallManager: RCTEventEmitter {
             // TODO: for stereo we should disallow BluetoothHFP and allow only allowBluetoothA2DP
             // note: this is the behaviour of iOS native SDK, but fails here with (OSStatus error -50.)
             // options = self.enableStereo ? [.allowBluetoothA2DP] : []
+        } else if !micPermissionGranted() {
+            // Communicator without mic permission (denied or not yet asked): use a
+            // pure-output, no-VPIO session so the output-only AVAudioEngine renders
+            // remote audio. Mirrors stream-video-swift
+            // (isRecordingEnabled ? .playAndRecord : .playback). We can't record anyway.
+            // Self-heals: granting permission + unmuting rebuilds the engine.
+            // Known gap: .playback can't route to the receiver (earpiece) — that route
+            // only exists under .playAndRecord.
+            category = .playback
+            mode = .spokenAudio
+            options = []
         } else {
             // XCode 16 and older don't expose .allowBluetoothHFP
             // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
@@ -183,6 +194,14 @@ class StreamInCallManager: RCTEventEmitter {
         // Keep WebRTC's internal state consistent during interruptions/route changes.
         RTCAudioSessionConfiguration.setWebRTC(rtcConfig)
         return rtcConfig
+    }
+
+    private func micPermissionGranted() -> Bool {
+        if #available(iOS 17.0, *) {
+            return AVAudioApplication.shared.recordPermission == .granted
+        } else {
+            return AVAudioSession.sharedInstance().recordPermission == .granted
+        }
     }
 
     @objc

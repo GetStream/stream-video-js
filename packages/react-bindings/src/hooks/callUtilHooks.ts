@@ -1,7 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useCall } from '../contexts';
 import { useIsCallRecordingInProgress } from './callStateHooks';
-import { hasAudio, StreamVideoParticipant } from '@stream-io/video-client';
+import {
+  hasAudio,
+  hasScreenShare,
+  hasScreenShareAudio,
+  hasVideo,
+  StreamVideoParticipant,
+  Call,
+  combineComparators,
+  screenSharing,
+  speakerLayoutSortPreset,
+  Comparator,
+} from '@stream-io/video-client';
 
 /**
  * Custom hook for toggling call recording in a video call.
@@ -45,27 +56,22 @@ export const useToggleCallRecording = () => {
 };
 
 /**
- * Custom hook for checking if an audio track is connecting.
+ * Internal hook that reports whether a published track is still connecting.
  *
- * This hook checks if the participant has an audio track and if the audio track is unmuted.
- *
- * @param participant the participant to check.
- * @returns true if the audio track is connecting, false otherwise.
+ * A track is considered "connecting" when the participant has published it but
+ * the underlying MediaStreamTrack is still muted (the SFU has signalled the
+ * track but no media has arrived yet). It flips to `false` once the track fires
+ * its `unmute` event (first frame/buffer received).
  */
-export const useIsAudioConnecting = (
-  participant: StreamVideoParticipant,
+const useIsTrackConnecting = (
+  track: MediaStreamTrack | undefined,
+  hasTrack: boolean,
 ): boolean => {
-  const audioStream = participant.audioStream;
-  const hasAudioTrack = hasAudio(participant);
-  const trackId = audioStream?.getAudioTracks()[0]?.id;
-
   const [unmuted, setUnmuted] = useState(() => {
-    const track = audioStream?.getAudioTracks()[0];
     return !!track && !track.muted;
   });
 
   useEffect(() => {
-    const track = audioStream?.getAudioTracks()[0];
     if (!track) {
       setUnmuted(false);
       return;
@@ -84,7 +90,100 @@ export const useIsAudioConnecting = (
       track.removeEventListener('mute', handler);
       track.removeEventListener('unmute', handler);
     };
-  }, [audioStream, trackId]);
+  }, [track]);
 
-  return hasAudioTrack && !unmuted;
+  return hasTrack && !unmuted;
+};
+
+/**
+ * Custom hook for checking if an audio track is connecting.
+ *
+ * This hook checks if the participant has an audio track and if the audio track is unmuted.
+ *
+ * @param participant the participant to check.
+ * @returns true if the audio track is connecting, false otherwise.
+ */
+export const useIsAudioConnecting = (
+  participant: StreamVideoParticipant,
+): boolean => {
+  return useIsTrackConnecting(
+    participant.audioStream?.getAudioTracks()[0],
+    hasAudio(participant),
+  );
+};
+
+/**
+ * Custom hook for checking if a video track is connecting.
+ *
+ * This hook checks if the participant has a video track and if the video track is unmuted.
+ *
+ * @param participant the participant to check.
+ * @returns true if the video track is connecting, false otherwise.
+ */
+export const useIsVideoConnecting = (
+  participant: StreamVideoParticipant,
+): boolean => {
+  return useIsTrackConnecting(
+    participant.videoStream?.getVideoTracks()[0],
+    hasVideo(participant),
+  );
+};
+
+/**
+ * Custom hook for checking if a screen share track is connecting.
+ *
+ * This hook checks if the participant has a screen share track and if the screen share track is unmuted.
+ *
+ * @param participant the participant to check.
+ * @returns true if the screen share track is connecting, false otherwise.
+ */
+export const useIsScreenShareConnecting = (
+  participant: StreamVideoParticipant,
+): boolean => {
+  return useIsTrackConnecting(
+    participant.screenShareStream?.getVideoTracks()[0],
+    hasScreenShare(participant),
+  );
+};
+
+/**
+ * Custom hook for checking if a screen share audio track is connecting.
+ *
+ * This hook checks if the participant has a screen share audio track and if the screen share audio track is unmuted.
+ *
+ * @param participant the participant to check.
+ * @returns true if the screen share audio track is connecting, false otherwise.
+ */
+export const useIsScreenShareAudioConnecting = (
+  participant: StreamVideoParticipant,
+): boolean => {
+  return useIsTrackConnecting(
+    participant.screenShareAudioStream?.getAudioTracks()[0],
+    hasScreenShareAudio(participant),
+  );
+};
+
+const loggedIn: Comparator<StreamVideoParticipant> = (a, b) => {
+  if (a.isLocalParticipant) return 1;
+  if (b.isLocalParticipant) return -1;
+  return 0;
+};
+
+export const useSpeakerLayoutSortPreset = (
+  call: Call | undefined,
+  isOneOnOneCall: boolean,
+) => {
+  useEffect(() => {
+    if (!call) return;
+    const previousSortPreset = call.getSortParticipantsBy();
+    // always show the remote participant in the spotlight
+    if (isOneOnOneCall) {
+      call.setSortParticipantsBy(combineComparators(screenSharing, loggedIn));
+    } else {
+      call.setSortParticipantsBy(speakerLayoutSortPreset);
+    }
+    return () => {
+      call.setSortParticipantsBy(previousSortPreset);
+    };
+  }, [call, isOneOnOneCall]);
 };

@@ -7,6 +7,7 @@ import '../../rtc/__tests__/mocks/webrtc.mocks';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
+import { ClientEventReporter } from '../../reporting';
 import { StreamVideoWriteableStateStore } from '../../store';
 import { noopComparator } from '../../sorting';
 import { VisibilityState } from '../../types';
@@ -17,12 +18,14 @@ describe('ViewportTracker', () => {
   let viewportTracker: ViewportTracker;
 
   beforeEach(() => {
+    const streamClient = new StreamClient('api-key', {
+      devicePersistence: { enabled: false },
+    });
     call = new Call({
       id: 'id',
       type: 'default',
-      streamClient: new StreamClient('api-key', {
-        devicePersistence: { enabled: false },
-      }),
+      streamClient,
+      clientEventReporter: new ClientEventReporter({ streamClient }),
       clientStore: new StreamVideoWriteableStateStore(),
     });
     call.setSortParticipantsBy(noopComparator());

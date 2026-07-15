@@ -53,13 +53,16 @@ concurrency:
   group: react-native-workflow-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   code_review:
     name: Code Lint, Unit Test and dogfood versioning
     timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
@@ -81,7 +84,7 @@ jobs:
     if: ${{ github.event_name != 'workflow_dispatch' || !github.event.inputs.platform || github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both' }}
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Select XCode version
         run: sudo xcode-select --switch /Applications/Xcode_26.1.1.app
@@ -112,7 +115,7 @@ jobs:
     if: ${{ (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (!github.event.inputs.platform || github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both')) }}
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Select XCode version
         run: sudo xcode-select --switch /Applications/Xcode_26.1.1.app
@@ -136,7 +139,7 @@ jobs:
     if: ${{ github.event_name != 'workflow_dispatch' || !github.event.inputs.platform || github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
@@ -186,7 +189,7 @@ jobs:
     if: ${{ (github.event_name != 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (!github.event.inputs.platform || github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both')) }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/rn-bootstrap
         timeout-minutes: 15
