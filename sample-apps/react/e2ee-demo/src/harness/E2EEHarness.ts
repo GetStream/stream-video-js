@@ -29,10 +29,13 @@ import type {
 
 const MAX_LOG = 200;
 
-// Manual overrides all use one fixed key index so that peers on other tabs need
-// to copy only the key value, not coordinate an index. setKey makes the given
-// index the "latest", so the local encoder uses exactly this key.
-const OVERRIDE_KEY_INDEX = 0;
+// Manual overrides and shared keys use one fixed key index so peers on other
+// tabs only need to copy the key value, not coordinate an index. Decryption
+// resolves a key by (userId, keyIndex) from the frame trailer, so a per-tab
+// counter would drift and break cross-tab decryption; a fixed index always
+// lines up. setKey/setSharedKey make the given index the active one, so the
+// local encoder uses exactly this key.
+const FIXED_KEY_INDEX = 0;
 
 const defaultFetchCredentials = async (userId: string) => {
   const url = new URL(TOKEN_ENDPOINT);
@@ -107,7 +110,6 @@ export class E2EEHarness {
   private listeners = new Set<() => void>();
   private snapshot: Snapshot;
   private logId = 0;
-  private sharedKeyIndex = 0; // next shared index to use
   private activeSharedKeyIndex = -1;
   private sharedKeyBytes: ArrayBuffer | null = null;
 
@@ -458,7 +460,7 @@ export class E2EEHarness {
 
   /**
    * Manually set the key for any participant in the call by userId, at the
-   * fixed {@link OVERRIDE_KEY_INDEX}, on every local manager. If the userId
+   * fixed {@link FIXED_KEY_INDEX}, on every local manager. If the userId
    * belongs to a local participant this becomes their encode key; otherwise it
    * is the decode key their peers use. Nothing is auto-distributed - paste the
    * same value into another tab or browser to interoperate.
@@ -467,7 +469,7 @@ export class E2EEHarness {
     const key = await parseKeyInput(input);
     for (const p of this.participants) {
       if (p.role === 'spy') continue; // the spy stays keyless
-      p.manager.setKey(userId, OVERRIDE_KEY_INDEX, key.slice(0));
+      p.manager.setKey(userId, FIXED_KEY_INDEX, key.slice(0));
       p.manager.requestKeyDump();
     }
     const local = this.participants.find(
@@ -475,11 +477,11 @@ export class E2EEHarness {
     );
     if (local) {
       local.currentKey = key;
-      local.keyIndex = OVERRIDE_KEY_INDEX;
+      local.keyIndex = FIXED_KEY_INDEX;
     }
     this.addLog(
       userId,
-      `Manual key override (#${OVERRIDE_KEY_INDEX}): ${toHex(key).slice(0, 16)}...`,
+      `Manual key override (#${FIXED_KEY_INDEX}): ${toHex(key).slice(0, 16)}...`,
       'key-set',
     );
     this.emit();
@@ -489,7 +491,9 @@ export class E2EEHarness {
 
   setSharedKey = async (passphrase: string): Promise<void> => {
     const key = await parseKeyInput(passphrase);
-    const keyIndex = this.sharedKeyIndex++;
+    // Fixed index (not a per-tab counter) so the same passphrase decrypts
+    // across tabs regardless of how many times each side sets it.
+    const keyIndex = FIXED_KEY_INDEX;
     this.activeSharedKeyIndex = keyIndex;
     this.sharedKeyBytes = key;
     this.config.keyMode = 'shared';
@@ -545,7 +549,6 @@ export class E2EEHarness {
   dispose = (): void => {
     for (const p of this.participants) this.teardown(p);
     this.participants = [];
-    this.sharedKeyIndex = 0;
     this.activeSharedKeyIndex = -1;
     this.sharedKeyBytes = null;
     this.log = [];
