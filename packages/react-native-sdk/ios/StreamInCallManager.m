@@ -9,6 +9,10 @@ RCT_EXTERN_METHOD(setDefaultAudioDeviceEndpointType:(NSString *)endpointType)
 
 RCT_EXTERN_METHOD(setEnableStereoAudioOutput:(BOOL)enable)
 
+RCT_EXTERN_METHOD(setMuteMode:(NSInteger)mode)
+
+RCT_EXTERN_METHOD(setRecordingAlwaysPreparedMode:(BOOL)enabled)
+
 RCT_EXTERN_METHOD(setup)
 
 RCT_EXTERN_METHOD(start)

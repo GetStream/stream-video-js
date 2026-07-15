@@ -99,7 +99,30 @@ class StreamInCallManager: RCTEventEmitter {
             self.enableStereo = enabled
         }
     }
-    
+
+    @objc(setMuteMode:)
+    func setMuteMode(mode: NSInteger) {
+        audioSessionQueue.async { [self] in
+            guard let adm = getAudioDeviceModule() else {
+                log("setMuteMode(\(mode)) skipped: no live call ADM")
+                return
+            }
+            let muteMode = RTCAudioEngineMuteMode(rawValue: mode) ?? .voiceProcessing
+            _ = adm.setMuteMode(muteMode)
+        }
+    }
+
+    @objc(setRecordingAlwaysPreparedMode:)
+    func setRecordingAlwaysPreparedMode(enabled: Bool) {
+        audioSessionQueue.async { [self] in
+            guard let adm = getAudioDeviceModule() else {
+                log("setRecordingAlwaysPreparedMode(\(enabled)) skipped: no live call ADM")
+                return
+            }
+            _ = adm.setRecordingAlwaysPreparedMode(enabled)
+        }
+    }
+
     /// Builds the audio config for the current role/device and sets it as WebRTC's default.
     private func makeAudioConfiguration() -> RTCAudioSessionConfiguration {
         let category: AVAudioSession.Category
@@ -165,7 +188,7 @@ class StreamInCallManager: RCTEventEmitter {
 
             // Stereo is listener-only and applies live. Cleared by stop()'s reset().
             if callAudioRole == .listener && enableStereo {
-                adm.setStereoPlayoutPreference(true)
+                adm?.setStereoPlayoutPreference(true)
             }
 
             let rtcConfig = makeAudioConfiguration()
@@ -191,7 +214,7 @@ class StreamInCallManager: RCTEventEmitter {
                 #if DEBUG
                 NSLog("%@","[StreamInCallManager][wireEngineSubscription]")
                 #endif
-                engineSubscription = adm.publisher.sink { [weak self] event in
+                engineSubscription = adm?.publisher.sink { [weak self] event in
                     guard let self else { return }
                     self.audioSessionQueue.async {
                         switch event {
@@ -284,7 +307,7 @@ class StreamInCallManager: RCTEventEmitter {
             // session.setActive(true) here.
             do {
                 let adm = getAudioDeviceModule()
-                try adm.setPlayout(true)
+                try adm?.setPlayout(true)
                 self.log("adm.setPlayout(true) done")
             } catch {
                 // String(describing:) surfaces the real error code (see setup()).
@@ -302,7 +325,7 @@ class StreamInCallManager: RCTEventEmitter {
                 return
             }
             let adm = getAudioDeviceModule()
-            adm.reset()
+            adm?.reset()
             // Deactivate directly: the .didDisableAudioEngine sink is async and we cancel it below.
             applyConfigForEngineDisable()
             // Tear down the engine-observer subscription so a re-setup wires a fresh one.
@@ -375,7 +398,10 @@ class StreamInCallManager: RCTEventEmitter {
     @objc(getAudioStateLog)
     func getAudioStateLog() -> String {
         let session = AVAudioSession.sharedInstance()
-        let adm = getAudioDeviceModule()
+        
+        guard let adm = getAudioDeviceModule() else {
+            return "No audio device module found"
+        }
         
         // WebRTC wraps AVAudioSession with RTCAudioSession; log its state as well.
         let rtcSession = RTCAudioSession.sharedInstance()
@@ -570,7 +596,11 @@ class StreamInCallManager: RCTEventEmitter {
                 stereoRefreshWorkItem?.cancel()
                 // Create a new debounced work item
                 let workItem = DispatchWorkItem { [weak self] in
-                    self?.getAudioDeviceModule().refreshStereoPlayoutState()
+                    guard let adm = self?.getAudioDeviceModule() else {
+                        self?.log("Audio device module is not ready")
+                        return
+                    }
+                    adm.refreshStereoPlayoutState()
                     self?.log("Executed debounced refreshStereoPlayoutState")
                 }
                 stereoRefreshWorkItem = workItem
@@ -620,14 +650,14 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     // MARK: - Helper Methods
-    private func getAudioDeviceModule() -> AudioDeviceModule {
+    private func getAudioDeviceModule() -> AudioDeviceModule? {
         guard let webrtcModule = moduleRegistry?.module(forName: "WebRTCModule") as? WebRTCModule else {
             fatalError("WebRTCModule is required but not registered with the module registry")
         }
 
         // Follow the live call's ADM; fall back to the default only when no call factory is
         // active (bare-fork, or an in-call-manager op firing outside the join↔leave window).
-        return webrtcModule.currentAudioDeviceModuleOrNil() ?? webrtcModule.audioDeviceModule
+        return webrtcModule.currentAudioDeviceModuleOrNil()
     }
 
     private func getCurrentWindow() -> UIWindow? {

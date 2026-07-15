@@ -331,6 +331,7 @@ export class Call {
   private hasJoinedOnce = false;
   private deviceSettingsAppliedOnce = false;
   private callManagerStarted = false;
+  private leaveGeneration = 0;
   private credentials?: Credentials;
 
   private initialized = false;
@@ -708,6 +709,8 @@ export class Call {
       if (callingState === CallingState.LEFT) {
         return;
       }
+
+      this.leaveGeneration += 1;
 
       if (callingState === CallingState.JOINING) {
         const waitUntilCallJoined = () => {
@@ -1219,6 +1222,9 @@ export class Call {
   private doJoin = async (data?: JoinCallData): Promise<void> => {
     const connectStartTime = Date.now();
     const callingState = this.state.callingState;
+    const joinLeaveGeneration = this.leaveGeneration;
+    const supersededByLeave = () =>
+      this.leaveGeneration !== joinLeaveGeneration;
 
     this.joinCallData = data;
 
@@ -1306,6 +1312,11 @@ export class Call {
       // the capabilities of the client (codec support, etc.)
       const { dangerouslyForceCodec, fmtpLine, subscriberFmtpLine } =
         this.clientPublishOptions || {};
+      // skip if a leave superseded this join so codec detection doesn't resolve to a default factory.
+      if (supersededByLeave()) {
+        this.logger.debug('Join superseded by leave; skipping codec detection');
+        return;
+      }
       const [subscriberSdp, publisherSdp] = await Promise.all([
         getGenericSdp('recvonly', dangerouslyForceCodec, subscriberFmtpLine),
         getGenericSdp('sendonly', dangerouslyForceCodec, fmtpLine),
@@ -1365,6 +1376,13 @@ export class Call {
       }
     }
 
+    // If the user left while this join was in flight, bail before re-setting JOINED and before
+    // peer-connection setup below (both run synchronously after this, so one check covers them).
+    if (supersededByLeave()) {
+      this.logger.debug('Join superseded by leave; aborting join flow');
+      return;
+    }
+
     if (!performingMigration) {
       // in MIGRATION, `JOINED` state is set in `this.reconnectMigrate()`
       this.state.setCallingState(CallingState.JOINED);
@@ -1411,12 +1429,16 @@ export class Call {
 
     // device settings should be applied only once, we don't have to
     // re-apply them on later reconnections or server-side data fetches
-    if (!this.deviceSettingsAppliedOnce && this.state.settings) {
+    if (
+      !this.deviceSettingsAppliedOnce &&
+      this.state.settings &&
+      !supersededByLeave()
+    ) {
       await this.applyDeviceConfig(this.state.settings, true, false);
       this.deviceSettingsAppliedOnce = true;
     }
 
-    if (!this.callManagerStarted) {
+    if (!this.callManagerStarted && !supersededByLeave()) {
       globalThis.streamRNVideoSDK?.callManager.start({
         isRingingTypeCall: this.ringing,
         cid: this.cid,

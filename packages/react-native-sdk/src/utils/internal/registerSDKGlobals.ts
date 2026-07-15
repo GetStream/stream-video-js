@@ -1,7 +1,6 @@
 import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
 import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import {
-  AudioDeviceModule,
   AudioEngineMuteMode,
   audioDeviceModuleEvents,
 } from '@stream-io/react-native-webrtc';
@@ -149,9 +148,7 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         // calls stop() before disposing the engine, so the ADM resolves to the call's
         // factory rather than a default.
         if (Platform.OS === 'ios') {
-          AudioDeviceModule.setRecordingAlwaysPreparedMode(false).catch(
-            () => {},
-          );
+          StreamInCallManagerNativeModule.setRecordingAlwaysPreparedMode(false);
         }
         if (shouldBypassForCallKit({ isRingingTypeCall })) {
           return;
@@ -171,11 +168,11 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       if (enabled) {
         // Mute via the voice-processing unit (it's the default, fail safe config here) so the input chain
         // stays built while muted, rather than tearing the engine down.
-        AudioDeviceModule.setMuteMode(
+        StreamInCallManagerNativeModule.setMuteMode(
           AudioEngineMuteMode.VoiceProcessing,
-        ).catch(() => {});
+        );
       }
-      AudioDeviceModule.setRecordingAlwaysPreparedMode(enabled).catch(() => {});
+      StreamInCallManagerNativeModule.setRecordingAlwaysPreparedMode(enabled);
     },
   },
   permissions: {

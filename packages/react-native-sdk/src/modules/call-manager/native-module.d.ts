@@ -86,6 +86,19 @@ export interface CallManager extends NativeModule {
   setEnableStereoAudioOutput: (enable: boolean) => void;
 
   /**
+   * Sets the microphone mute mode on the call's ADM. No-ops when no call ADM is active. iOS-only.
+   * @param mode - The `AudioEngineMuteMode` value.
+   */
+  setMuteMode: (mode: number) => void;
+
+  /**
+   * Keeps the recording chain prepared while muted so the engine stays
+   * full-duplex. No-ops when no call ADM is active. iOS-only.
+   * @param enabled - Whether to keep recording always prepared.
+   */
+  setRecordingAlwaysPreparedMode: (enabled: boolean) => void;
+
+  /**
    * Log the current audio state natively.
    * Meant for debugging purposes.
    */
