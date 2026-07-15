@@ -1,6 +1,6 @@
 export const TOKEN_ENDPOINT =
   'https://pronto.getstream.io/api/auth/create-token';
-export const TOKEN_ENVIRONMENT = 'pronto';
+export const TOKEN_ENVIRONMENT = 'pronto-staging';
 export const CALL_TYPE = 'default';
 export const MAX_PARTICIPANTS = 4;
 
