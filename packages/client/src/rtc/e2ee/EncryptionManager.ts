@@ -14,6 +14,7 @@ export type {
   MissingKeyEvent,
   PerfReport,
   RotationEvent,
+  TrackPerf,
 } from './events';
 
 /**
@@ -353,10 +354,20 @@ export class EncryptionManager
    *
    * @param sender - The RTCRtpSender to encrypt.
    * @param codec - The codec name (e.g. 'vp8', 'h264') for clear-byte rules.
+   * @param trackType - Optional label used only to bucket encode perf stats.
    * @internal
    */
-  encrypt = (sender: RTCRtpSender, codec?: string): void => {
-    this.pipe(sender, { operation: 'encode', userId: this.userId, codec });
+  encrypt = (
+    sender: RTCRtpSender,
+    codec?: string,
+    trackType?: string,
+  ): void => {
+    this.pipe(sender, {
+      operation: 'encode',
+      userId: this.userId,
+      codec,
+      trackType,
+    });
   };
 
   /**
@@ -365,10 +376,15 @@ export class EncryptionManager
    *
    * @param receiver - The RTCRtpReceiver to decrypt.
    * @param userId - The remote user's ID for key lookup in the worker.
+   * @param trackType - Optional label used only to bucket decode perf stats.
    * @internal
    */
-  decrypt = (receiver: RTCRtpReceiver, userId: string): void => {
-    this.pipe(receiver, { operation: 'decode', userId });
+  decrypt = (
+    receiver: RTCRtpReceiver,
+    userId: string,
+    trackType?: string,
+  ): void => {
+    this.pipe(receiver, { operation: 'decode', userId, trackType });
   };
 
   /**
@@ -392,7 +408,12 @@ export class EncryptionManager
    */
   private pipe = (
     target: RTCRtpSender | RTCRtpReceiver,
-    options: { operation: string; userId: string; codec?: string },
+    options: {
+      operation: string;
+      userId: string;
+      codec?: string;
+      trackType?: string;
+    },
   ): void => {
     if (!this.shouldUseInsertableStreams()) {
       target.transform = new RTCRtpScriptTransform(this.worker, options);

@@ -1,10 +1,24 @@
 /**
- * Perf report payload emitted by the E2EE worker.
+ * Per-track throughput sample. For encode `userId` is the local sender; for
+ * decode it is the remote sender. `trackType` is VIDEO / SCREEN_SHARE / AUDIO.
+ * Bucketing per (userId, trackType) keeps a peer's - or the local sender's -
+ * audio and video reported apart instead of summed into one figure.
+ */
+export type TrackPerf = {
+  userId: string;
+  trackType: string;
+  fps: number;
+  maxCryptoMs: number;
+};
+
+/**
+ * Perf report payload emitted by the E2EE worker. Encode entries additionally
+ * carry the `codec` (known when publishing); decode entries do not, since the
+ * remote sender's codec is not reliably known locally.
  */
 export type PerfReport = {
-  encode: { fps: number; maxCryptoMs: number };
-  decode: { userId: string; fps: number }[];
-  decodeMaxCryptoMs: number;
+  encode: (TrackPerf & { codec: string })[];
+  decode: TrackPerf[];
 };
 
 /**

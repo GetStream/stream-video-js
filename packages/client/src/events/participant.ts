@@ -5,7 +5,7 @@ import type {
   TrackPublished,
   TrackUnpublished,
 } from '../gen/video/sfu/event/events';
-import type { Participant } from '../gen/video/sfu/models/models';
+import { type Participant, TrackType } from '../gen/video/sfu/models/models';
 import {
   StreamVideoParticipant,
   StreamVideoParticipantPatch,
@@ -152,7 +152,11 @@ const reconcileOrphanedTracks = (
     reconciledTracks[key] = orphan.track;
 
     if (e2ee && orphan.receiver) {
-      e2ee.decrypt(orphan.receiver, participant.userId);
+      e2ee.decrypt(
+        orphan.receiver,
+        participant.userId,
+        TrackType[orphan.trackType],
+      );
     }
   }
   return reconciledTracks;

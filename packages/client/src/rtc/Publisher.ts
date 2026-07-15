@@ -159,6 +159,7 @@ export class Publisher extends BasePeerConnection {
       this.e2ee.encrypt(
         transceiver.sender,
         publishOption.codec?.name.toLowerCase(),
+        TrackType[publishOption.trackType],
       );
       this.logger.debug('E2EE encryptor attached to sender');
     }

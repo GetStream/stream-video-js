@@ -156,7 +156,7 @@ export class Subscriber extends BasePeerConnection {
       return;
     } else if (this.e2ee) {
       const { userId } = participantToUpdate;
-      this.e2ee.decrypt(e.receiver, userId);
+      this.e2ee.decrypt(e.receiver, userId, TrackType[trackType]);
       this.logger.debug('E2EE decryptor attached to receiver', userId);
     }
 

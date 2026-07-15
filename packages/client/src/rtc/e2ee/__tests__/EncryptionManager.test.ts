@@ -588,22 +588,23 @@ describe('EncryptionManager', () => {
 
       const worker = getWorker(manager);
       const messageHandler = getEventHandler(worker, 'message');
-      const encode = { fps: 30, maxCryptoMs: 2 };
-      const decode = [{ userId: 'bob', fps: 29 }];
-      messageHandler({
-        data: {
-          type: 'e2ee.perf_report',
-          encode,
-          decode,
-          decodeMaxCryptoMs: 3,
+      const encode = [
+        {
+          userId: 'alice',
+          trackType: 'VIDEO',
+          codec: 'vp8',
+          fps: 30,
+          maxCryptoMs: 2,
         },
+      ];
+      const decode = [
+        { userId: 'bob', trackType: 'VIDEO', fps: 29, maxCryptoMs: 3 },
+      ];
+      messageHandler({
+        data: { type: 'e2ee.perf_report', encode, decode },
       });
 
-      expect(callback).toHaveBeenCalledWith({
-        encode,
-        decode,
-        decodeMaxCryptoMs: 3,
-      });
+      expect(callback).toHaveBeenCalledWith({ encode, decode });
     });
 
     it('emits e2ee.key_state in response to a key dump', () => {
