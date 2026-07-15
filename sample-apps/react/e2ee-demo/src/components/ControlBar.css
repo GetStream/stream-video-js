@@ -67,6 +67,15 @@
   color: #6e7681;
   font-style: italic;
 }
+.control-bar button.control-bar__keys-toggle {
+  margin-left: auto;
+  background: #21262d;
+  border: 1px solid #30363d;
+}
+.control-bar button.control-bar__keys-toggle.active {
+  background: #1f6feb;
+  border-color: #1f6feb;
+}
 .control-bar__shared {
   display: flex;
   gap: 6px;

@@ -9,7 +9,12 @@ import {
 } from '../harness/transformSupport';
 import './ControlBar.css';
 
-export const ControlBar = () => {
+interface ControlBarProps {
+  showKeys: boolean;
+  onToggleKeys: () => void;
+}
+
+export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
   const engine = useHarnessEngine();
   const { config, participants, globalError } = useSnapshot();
   const isSupported = EncryptionManager.isSupported();
@@ -41,6 +46,13 @@ export const ControlBar = () => {
         <span className={`control-bar__badge ${isSupported ? 'ok' : 'no'}`}>
           {isSupported ? 'E2EE supported' : 'E2EE not supported'}
         </span>
+        <button
+          className={`control-bar__keys-toggle ${showKeys ? 'active' : ''}`}
+          onClick={onToggleKeys}
+          title="Manually set or override participant keys (for multi-tab testing)"
+        >
+          🔑 Keys {showKeys ? '▲' : '▼'}
+        </button>
       </div>
 
       <div className="control-bar__row">
@@ -117,16 +129,12 @@ export const ControlBar = () => {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && shared.trim()) {
                   engine.setSharedKey(shared.trim());
-                  setShared('');
                 }
               }}
             />
             <button
               disabled={!shared.trim()}
-              onClick={() => {
-                engine.setSharedKey(shared.trim());
-                setShared('');
-              }}
+              onClick={() => engine.setSharedKey(shared.trim())}
             >
               Set shared key
             </button>

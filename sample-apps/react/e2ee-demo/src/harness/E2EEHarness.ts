@@ -23,10 +23,16 @@ import type {
   HarnessParticipant,
   LogEntry,
   PreferredCodec,
+  RosterEntry,
   Snapshot,
 } from './snapshot';
 
 const MAX_LOG = 200;
+
+// Manual overrides all use one fixed key index so that peers on other tabs need
+// to copy only the key value, not coordinate an index. setKey makes the given
+// index the "latest", so the local encoder uses exactly this key.
+const OVERRIDE_KEY_INDEX = 0;
 
 const defaultFetchCredentials = async (userId: string) => {
   const url = new URL(TOKEN_ENDPOINT);
@@ -137,9 +143,31 @@ export class E2EEHarness {
   private build = (): Snapshot => ({
     config: { ...this.config },
     participants: this.participants.map(this.toSnapshotParticipant),
+    roster: this.buildRoster(),
     log: this.log,
     globalError: this.globalError,
   });
+
+  /**
+   * The union of every local participant's SFU roster, deduped by userId. All
+   * local participants share the same call, so this surfaces everyone in the
+   * call - including remote peers joined from other tabs or browsers.
+   */
+  private buildRoster = (): RosterEntry[] => {
+    const localIds = new Set(this.participants.map((p) => p.userId));
+    const seen = new Map<string, RosterEntry>();
+    for (const p of this.participants) {
+      for (const sfu of p.call.state.participants) {
+        if (seen.has(sfu.userId)) continue;
+        seen.set(sfu.userId, {
+          userId: sfu.userId,
+          name: sfu.name || sfu.userId.slice(0, 8),
+          isLocal: localIds.has(sfu.userId),
+        });
+      }
+    }
+    return [...seen.values()];
+  };
 
   private toSnapshotParticipant = (
     p: EngineParticipant,
@@ -312,6 +340,10 @@ export class E2EEHarness {
       }
 
       this.participants.push(p);
+      // Re-emit when the SFU roster changes so the manual key-override panel
+      // tracks peers joining or leaving from other tabs.
+      const rosterSub = p.call.state.participants$.subscribe(() => this.emit());
+      p.unsubscribes.push(() => rosterSub.unsubscribe());
       if (isNormal) this.exchangeOnJoin(p);
       this.emit();
     } catch (err) {
@@ -420,6 +452,37 @@ export class E2EEHarness {
       if (r.userId === from.userId || r.role === 'spy') continue;
       this.sendKey(r.userId, from.userId, from.keyIndex, from.currentKey);
     }
+  };
+
+  // --- manual key override (cross-tab) ---
+
+  /**
+   * Manually set the key for any participant in the call by userId, at the
+   * fixed {@link OVERRIDE_KEY_INDEX}, on every local manager. If the userId
+   * belongs to a local participant this becomes their encode key; otherwise it
+   * is the decode key their peers use. Nothing is auto-distributed - paste the
+   * same value into another tab or browser to interoperate.
+   */
+  overrideKey = async (userId: string, input: string): Promise<void> => {
+    const key = await parseKeyInput(input);
+    for (const p of this.participants) {
+      if (p.role === 'spy') continue; // the spy stays keyless
+      p.manager.setKey(userId, OVERRIDE_KEY_INDEX, key.slice(0));
+      p.manager.requestKeyDump();
+    }
+    const local = this.participants.find(
+      (p) => p.userId === userId && p.role === 'normal',
+    );
+    if (local) {
+      local.currentKey = key;
+      local.keyIndex = OVERRIDE_KEY_INDEX;
+    }
+    this.addLog(
+      userId,
+      `Manual key override (#${OVERRIDE_KEY_INDEX}): ${toHex(key).slice(0, 16)}...`,
+      'key-set',
+    );
+    this.emit();
   };
 
   // --- shared key ---

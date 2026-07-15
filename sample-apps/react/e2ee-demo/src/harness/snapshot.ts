@@ -53,9 +53,20 @@ export interface HarnessConfig {
   keyMode: KeyMode;
 }
 
+/**
+ * A participant seen in the call via the SFU roster (local or remote, including
+ * peers from other tabs/browsers). Used by the manual key-override UI.
+ */
+export interface RosterEntry {
+  userId: string;
+  name: string;
+  isLocal: boolean;
+}
+
 export interface Snapshot {
   config: HarnessConfig;
   participants: HarnessParticipant[];
+  roster: RosterEntry[];
   log: LogEntry[];
   globalError: string | null;
 }
