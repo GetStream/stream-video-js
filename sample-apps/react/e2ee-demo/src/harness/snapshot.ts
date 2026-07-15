@@ -2,6 +2,7 @@ import type {
   StreamVideoClient,
   Call,
   KeyStateReport,
+  PerfReport,
 } from '@stream-io/video-react-sdk';
 
 export type PreferredCodec = 'vp8' | 'vp9' | 'h264' | 'av1';
@@ -40,7 +41,7 @@ export interface HarnessParticipant {
     decryptingFrom: string[];
     failingFrom: string[];
   };
-  perf: { encodeFps?: number; decodeFps: { userId: string; fps: number }[] };
+  perf: PerfReport;
   // Live SDK handles, for rendering only. Never serialized.
   client: StreamVideoClient;
   call: Call;

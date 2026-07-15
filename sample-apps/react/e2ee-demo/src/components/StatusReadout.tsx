@@ -11,14 +11,29 @@ interface Props {
 
 export const StatusReadout = ({ participant, nameByUserId }: Props) => {
   const { enabled, transform, codec, keyStore, tracks, perf } = participant;
+  const nameOf = (userId: string) => nameByUserId[userId] ?? userId.slice(0, 8);
+  // The worker rebuilds its stats maps every report interval, so array order is
+  // non-deterministic. Sort by stable keys so rows do not swap places between
+  // reports and are easy to track.
+  const encodeRows = [...perf.encode].sort(
+    (a, b) =>
+      a.trackType.localeCompare(b.trackType) || a.codec.localeCompare(b.codec),
+  );
+  const decodeRows = [...perf.decode].sort(
+    (a, b) =>
+      nameOf(a.userId).localeCompare(nameOf(b.userId)) ||
+      a.trackType.localeCompare(b.trackType),
+  );
+  const perUserKeys = [...(keyStore?.perUserKeys ?? [])].sort(
+    (a, b) =>
+      nameOf(a.userId).localeCompare(nameOf(b.userId)) ||
+      a.keyIndex - b.keyIndex,
+  );
   return (
     <div className="status-readout">
       <div className="status-readout__row">
         <span className={`status-readout__dot ${enabled ? 'on' : 'off'}`} />
         E2EE {enabled ? 'on' : 'off'} · {transform} · {codec}
-        {perf.encodeFps != null && (
-          <span className="status-readout__perf">enc {perf.encodeFps}fps</span>
-        )}
       </div>
 
       <div className="status-readout__row">
@@ -29,10 +44,9 @@ export const StatusReadout = ({ participant, nameByUserId }: Props) => {
             {keyStore.sharedKey.fingerprint}
           </code>
         )}
-        {keyStore?.perUserKeys.map((k) => (
+        {perUserKeys.map((k) => (
           <code key={`${k.userId}:${k.keyIndex}`} title={k.userId}>
-            {nameByUserId[k.userId] ?? k.userId.slice(0, 8)} #{k.keyIndex}{' '}
-            {k.fingerprint}
+            {nameOf(k.userId)} #{k.keyIndex} {k.fingerprint}
           </code>
         ))}
         {!keyStore?.sharedKey && !keyStore?.perUserKeys.length && (
@@ -51,15 +65,31 @@ export const StatusReadout = ({ participant, nameByUserId }: Props) => {
         )}
       </div>
 
-      {perf.decodeFps.length > 0 && (
+      {encodeRows.length > 0 && (
         <div className="status-readout__row">
-          <span className="status-readout__label">perf</span>
-          {perf.decodeFps
-            .map(
-              (d) =>
-                `${nameByUserId[d.userId] ?? d.userId.slice(0, 8)} ${d.fps}`,
-            )
-            .join(' · ')}
+          <span className="status-readout__label">encode</span>
+          {encodeRows.map((e) => (
+            <span key={e.trackType} className="status-readout__perf">
+              {e.trackType.toLowerCase()} ({e.codec}) {Math.round(e.fps)}fps
+              {e.maxCryptoMs > 0 && ` · ${e.maxCryptoMs.toFixed(1)}ms`}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {decodeRows.length > 0 && (
+        <div className="status-readout__row">
+          <span className="status-readout__label">decode</span>
+          {decodeRows.map((d) => (
+            <span
+              key={`${d.userId}:${d.trackType}`}
+              className="status-readout__perf"
+            >
+              {nameOf(d.userId)} {d.trackType.toLowerCase()} {Math.round(d.fps)}
+              fps
+              {d.maxCryptoMs > 0 && ` · ${d.maxCryptoMs.toFixed(1)}ms`}
+            </span>
+          ))}
         </div>
       )}
     </div>

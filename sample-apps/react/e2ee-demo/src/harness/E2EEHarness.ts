@@ -168,7 +168,12 @@ export class E2EEHarness {
         });
       }
     }
-    return [...seen.values()];
+    // Stable order so the key-override rows do not jump around as the SFU
+    // roster re-sorts (dominant speaker, etc.).
+    return [...seen.values()].sort(
+      (a, b) =>
+        a.name.localeCompare(b.name) || a.userId.localeCompare(b.userId),
+    );
   };
 
   private toSnapshotParticipant = (
@@ -203,8 +208,8 @@ export class E2EEHarness {
         failingFrom,
       },
       perf: {
-        encodeFps: p.perf?.encode.fps,
-        decodeFps: p.perf?.decode ?? [],
+        encode: p.perf?.encode ?? [],
+        decode: p.perf?.decode ?? [],
       },
       client: p.client,
       call: p.call,
