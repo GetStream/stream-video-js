@@ -388,19 +388,6 @@ export class EncryptionManager
   };
 
   /**
-   * Enable or disable E2EE at runtime.
-   *
-   * When disabled, the worker passes frames through without
-   * encryption/decryption. Transforms remain attached so toggling
-   * back on works without reconnecting.
-   *
-   * @param enabled - Whether E2EE should be active.
-   */
-  setEnabled = (enabled: boolean): void => {
-    this.worker.postMessage({ type: 'cmd.set_enabled', enabled });
-  };
-
-  /**
    * Pipe a sender/receiver through the worker's transform.
    * Uses the Insertable Streams path on Chrome and `RTCRtpScriptTransform`
    * elsewhere (see {@link shouldUseInsertableStreams}); tracks already-piped
@@ -444,15 +431,19 @@ export class EncryptionManager
   };
 
   /**
-   * Toggle periodic performance reports from the E2EE worker.
+   * Toggle periodic performance reporting from the E2EE worker.
    *
-   * When enabled, the worker logs encode/decode FPS to the console
-   * every second. Useful for debugging throughput issues.
+   * When enabled, the worker emits an `e2ee.perf_report` event once per second
+   * with per-track encode/decode FPS and crypto timings (subscribe with
+   * `manager.on('e2ee.perf_report', handler)`). Useful for debugging throughput.
    *
    * @param enabled - Whether to enable or disable perf reporting.
    */
-  setPerfReport = (enabled: boolean): void => {
-    this.worker.postMessage({ type: 'cmd.set_perf_report', enabled });
+  enablePerformanceReporting = (enabled: boolean): void => {
+    this.worker.postMessage({
+      type: 'cmd.enable_performance_reporting',
+      enabled,
+    });
   };
 
   /**

@@ -605,7 +605,11 @@ describe('Subscriber', () => {
       onTrack({ streams: [mediaStream], track: mediaStreamTrack, receiver });
 
       // Uses the participant's userId (not trackLookupPrefix) for key lookup
-      expect(e2eeMock.decrypt).toHaveBeenCalledWith(receiver, 'real-user-id');
+      expect(e2eeMock.decrypt).toHaveBeenCalledWith(
+        receiver,
+        'real-user-id',
+        'VIDEO',
+      );
     });
   });
 

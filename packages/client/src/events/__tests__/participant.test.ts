@@ -216,7 +216,7 @@ describe('Participant events', () => {
         },
       });
 
-      expect(e2ee.decrypt).toHaveBeenCalledWith(receiver, 'user-id');
+      expect(e2ee.decrypt).toHaveBeenCalledWith(receiver, 'user-id', 'VIDEO');
     });
 
     it('trackPublished should attach E2EE decryptor to orphaned track receiver', () => {
@@ -242,7 +242,7 @@ describe('Participant events', () => {
         },
       });
 
-      expect(e2ee.decrypt).toHaveBeenCalledWith(receiver, 'user-id');
+      expect(e2ee.decrypt).toHaveBeenCalledWith(receiver, 'user-id', 'AUDIO');
     });
 
     it('trackUnpublished should attach E2EE decryptor to orphaned track receiver', () => {
@@ -268,7 +268,11 @@ describe('Participant events', () => {
         },
       });
 
-      expect(e2ee.decrypt).toHaveBeenCalledWith(receiver, 'user-id');
+      expect(e2ee.decrypt).toHaveBeenCalledWith(
+        receiver,
+        'user-id',
+        'SCREEN_SHARE',
+      );
     });
 
     it('should not call decrypt when no E2EE manager is provided', () => {

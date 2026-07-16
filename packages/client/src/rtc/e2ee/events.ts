@@ -136,7 +136,7 @@ export type E2EEEventMap = {
 
   /**
    * Emitted every second when perf reporting is enabled via
-   * {@link EncryptionManager.setPerfReport}.
+   * {@link EncryptionManager.enablePerformanceReporting}.
    */
   'e2ee.perf_report': PerfReport;
 

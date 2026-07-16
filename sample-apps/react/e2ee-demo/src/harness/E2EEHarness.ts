@@ -293,14 +293,13 @@ export class E2EEHarness {
       // joining. The backend rejects a join whose e2ee flag (which the SDK sends
       // whenever a manager is attached) does not match the encrypted call, so the
       // spy cannot join as a plain, manager-less participant anymore. She differs
-      // only in her keys: she never receives any. With E2EE active her decode
-      // transform fails on every peer and renders gibberish - the proof the media
-      // is unusable without the keys - while her own encoder drops outgoing frames
+      // only in her keys: she never receives any. Her decode transform therefore
+      // fails on every peer and renders gibberish - the proof the media is
+      // unusable without the keys - while her own encoder drops outgoing frames
       // for lack of a key.
       call.setE2EEManager(manager);
-      manager.setEnabled(true);
       this.wireEvents(p);
-      manager.setPerfReport(true);
+      manager.enablePerformanceReporting(true);
       manager.requestKeyDump();
 
       if (isNormal) {

@@ -185,6 +185,7 @@ describe('Publisher', () => {
       expect(e2eeMock.encrypt).toHaveBeenCalledWith(
         expect.anything(), // sender
         'vp9',
+        'VIDEO',
       );
     });
 
