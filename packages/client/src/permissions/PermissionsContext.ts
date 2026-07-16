@@ -88,7 +88,7 @@ export class PermissionsContext {
       case RequestPermissionRequestPermissionsEnum.SCREENSHARE:
         return screensharing.access_request_enabled;
       default:
-        ensureExhausted(permission, 'Unknown permission');
+        ensureExhausted(permission);
         return false;
     }
   };
