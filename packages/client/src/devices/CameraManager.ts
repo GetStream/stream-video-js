@@ -214,16 +214,15 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       }
     }
 
-    if (isReactNative() && publish) {
-      // on RN we need to reconcile the optimistic status to ensure the track is published
-      // because enbling/disabling the mic before JOINED will just update the optimistic status
-      // but not the actual track state
+    if (isReactNative() && publish && canPublish) {
+      // On RN the camera is enabled/disabled optimistically before JOINED. Reconcile now
+      // acquires the track and publishes it, so it fully owns the publish.
       await this.reconcileOptimisticStatus();
-    }
-
-    const { mediaStream } = this.state;
-    if (canPublish && publish && this.enabled && mediaStream) {
-      await this.publishStream(mediaStream);
+    } else {
+      const { mediaStream } = this.state;
+      if (canPublish && publish && this.enabled && mediaStream) {
+        await this.publishStream(mediaStream);
+      }
     }
   }
 
