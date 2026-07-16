@@ -1,125 +1,24 @@
-import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import {
-  BackgroundFiltersProvider,
-  Call,
-  CallingState,
-  CallRequest,
-  NoiseCancellationProvider,
-  StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useCallStateHooks,
   User,
 } from '@stream-io/video-react-sdk';
-import Head from 'next/head';
 import { useRouter } from 'next/router';
-import {
-  ComponentProps,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useEffect, useState } from 'react';
 import { TranslationLanguages } from 'stream-chat';
-import { MeetingUI } from '../../components';
-import { meetingId } from '../../lib/idGenerators';
-import {
-  LobbyE2EEContext,
-  type LobbyE2EEContextValue,
-} from '../../context/LobbyE2EEContext';
+
+import { CallScope } from '../../components/CallScope';
+import { LobbyE2EEContext } from '../../context/LobbyE2EEContext';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
 import { useSettings } from '../../context/SettingsContext';
-import { getSegmentationModelUrl } from '../../hooks';
-import { TourProvider } from '../../context/TourContext';
 import { getClient } from '../../helpers/client';
-import { useCreateStreamChatClient } from '../../hooks';
+import { useCreateStreamChatClient, useLobbyCall } from '../../hooks';
 import { useGleap } from '../../hooks/useGleap';
 import {
   getServerSideCredentialsPropsWithOptions,
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
 import appTranslations from '../../translations';
-import { RingingCallNotification } from '../../components/Ringing/RingingCallNotification';
-
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-
-const HeadComponent = ({ callId }: { callId: string }) => {
-  const { useCallCustomData } = useCallStateHooks();
-  const customData = useCallCustomData();
-
-  return (
-    <Head>
-      <title>Stream Calls: {customData.name || callId}</title>
-      <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-    </Head>
-  );
-};
-
-/**
- * The call-scoped subtree: the noise-cancellation instance and every provider
- * that binds to a specific call live here. It is rendered with `key={call.cid}`
- * so that swapping to a different call (e.g. enabling E2EE navigates to a fresh
- * encrypted call id) fully remounts it - a clean, page-load-like init for the
- * new call. Keeping these providers mounted across an in-place call swap instead
- * races the noise-cancellation lifecycle against the not-yet-ready new call
- * ("Noise cancellation is not available").
- */
-const CallScope = ({
-  call,
-  chatClient,
-  useLegacyFilters,
-  segmentationModel,
-}: {
-  call: Call;
-  chatClient: ComponentProps<typeof MeetingUI>['chatClient'];
-  useLegacyFilters: boolean;
-  segmentationModel: Parameters<typeof getSegmentationModelUrl>[0];
-}) => {
-  const [noiseCancellation, setNoiseCancellation] =
-    useState<INoiseCancellation>();
-  const ncLoader = useRef<Promise<void>>(undefined);
-  useEffect(() => {
-    const load = (ncLoader.current || Promise.resolve())
-      .then(() => import('@stream-io/audio-filters-web'))
-      .then(({ NoiseCancellation }) => {
-        setNoiseCancellation(new NoiseCancellation());
-      });
-    return () => {
-      ncLoader.current = load.then(() => setNoiseCancellation(undefined));
-    };
-  }, []);
-
-  return (
-    <StreamCall call={call}>
-      <HeadComponent callId={call.id} />
-
-      <TourProvider>
-        <BackgroundFiltersProvider
-          forceSafariSupport
-          useLegacyFilter={useLegacyFilters}
-          modelFilePath={getSegmentationModelUrl(segmentationModel)}
-          backgroundImages={[
-            `${basePath}/backgrounds/amsterdam-1.jpg`,
-            `${basePath}/backgrounds/amsterdam-2.jpg`,
-            `${basePath}/backgrounds/boulder-1.jpg`,
-            `${basePath}/backgrounds/boulder-2.jpg`,
-            `${basePath}/backgrounds/gradient-1.jpg`,
-            `${basePath}/backgrounds/gradient-2.jpg`,
-            `${basePath}/backgrounds/gradient-3.jpg`,
-          ]}
-        >
-          {noiseCancellation && (
-            <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
-              <RingingCallNotification />
-              <MeetingUI chatClient={chatClient} />
-            </NoiseCancellationProvider>
-          )}
-        </BackgroundFiltersProvider>
-      </TourProvider>
-    </StreamCall>
-  );
-};
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
@@ -171,103 +70,14 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     },
   });
 
-  const [call, setCall] = useState<Call>();
-  const [callError, setCallError] = useState<string | null>(null);
-  const [encryptionKey, setEncryptionKey] = useState<string | undefined>(
-    e2eeEnabled ? initialEncryptionKey : undefined,
-  );
-  const activeCallRef = useRef<Call | undefined>(undefined);
-
-  // Point the provider tree at `next`, leaving the previous (never-joined) call
-  // behind. Swapping the call object in place avoids a navigation/remount.
-  const swapCall = useCallback((next: Call) => {
-    const prev = activeCallRef.current;
-    if (
-      prev &&
-      prev !== next &&
-      prev.state.callingState !== CallingState.LEFT
-    ) {
-      prev.leave().catch((e) => console.error('Failed to leave call', e));
-    }
-    activeCallRef.current = next;
-    window.call = next;
-    setCall(next);
-  }, []);
-
-  useEffect(() => {
-    if (!client) return;
-    const initial = client.call(callType, callId, { reuseInstance: true });
-    swapCall(initial);
-    // "restricted" is a special call type that only allows the `call_member`
-    // role to join the call.
-    const data: CallRequest =
-      callType === 'restricted'
-        ? { members: [{ user_id: user.id || '!anon', role: 'call_member' }] }
-        : {};
-    if (e2eeEnabled) {
-      data.settings_override = { encryption: { enabled: true } };
-    }
-    initial.getOrCreate({ data }).catch((err) => {
-      console.error(`Failed to get or create call`, err);
-      setCallError(
-        err instanceof Error ? err.message : 'Could not get or create call',
-      );
-    });
-
-    return () => {
-      const active = activeCallRef.current;
-      if (active && active.state.callingState !== CallingState.LEFT) {
-        active.leave().catch((e) => console.error('Failed to leave call', e));
-      }
-      activeCallRef.current = undefined;
-      window.call = undefined;
-      setCall(undefined);
-    };
-  }, [callId, callType, client, e2eeEnabled, user.id, swapCall]);
-
-  // Rewrite the URL (call id + shared key) without a Next.js navigation, so the
-  // invite link stays shareable and the router's leave-on-route-change handler
-  // does not fire.
-  const replaceUrl = useCallback((id: string, key: string | undefined) => {
-    const url = new URL(window.location.href);
-    url.pathname = url.pathname.replace(/[^/]+$/, id);
-    if (key) url.searchParams.set('encryption_key', key);
-    else url.searchParams.delete('encryption_key');
-    window.history.replaceState(window.history.state, '', url.toString());
-  }, []);
-
-  // Encryption is fixed at creation, so toggling swaps in a freshly created call
-  // of the same type. getOrCreate is awaited so the call is fully ready before it
-  // is handed to the providers (no capability race on noise cancellation).
-  const switchEncryption = useCallback(
-    async (enabled: boolean, key?: string) => {
-      if (!client) return;
-      const next = client.call(callType, meetingId());
-      await next.getOrCreate({
-        data: enabled
-          ? { settings_override: { encryption: { enabled: true } } }
-          : {},
-      });
-      swapCall(next);
-      setEncryptionKey(enabled ? key : undefined);
-      replaceUrl(next.id, enabled ? key : undefined);
-    },
-    [client, callType, swapCall, replaceUrl],
-  );
-
-  const e2eeControls = useMemo<LobbyE2EEContextValue>(
-    () => ({
-      encryptionKey,
-      enableEncryption: (key: string) => switchEncryption(true, key),
-      disableEncryption: () => switchEncryption(false),
-      updateEncryptionKey: (key: string) => {
-        setEncryptionKey(key);
-        const id = activeCallRef.current?.id;
-        if (id) replaceUrl(id, key);
-      },
-    }),
-    [encryptionKey, switchEncryption, replaceUrl],
-  );
+  const { call, callError, e2eeControls } = useLobbyCall({
+    client,
+    callId,
+    callType,
+    userId: user.id,
+    e2eeEnabled,
+    initialEncryptionKey,
+  });
 
   // apple-itunes-app meta-tag is used to open the app from the browser
   // we need to update the app-argument to the current URL so that the app
@@ -313,23 +123,21 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }
 
   return (
-    <>
-      <StreamVideo
-        client={client}
-        language={language}
-        fallbackLanguage={fallbackLanguage}
-        translationsOverrides={appTranslations}
-      >
-        <LobbyE2EEContext.Provider value={e2eeControls}>
-          <CallScope
-            call={call}
-            chatClient={chatClient}
-            useLegacyFilters={useLegacyFilters}
-            segmentationModel={segmentationModel}
-          />
-        </LobbyE2EEContext.Provider>
-      </StreamVideo>
-    </>
+    <StreamVideo
+      client={client}
+      language={language}
+      fallbackLanguage={fallbackLanguage}
+      translationsOverrides={appTranslations}
+    >
+      <LobbyE2EEContext.Provider value={e2eeControls}>
+        <CallScope
+          call={call}
+          chatClient={chatClient}
+          useLegacyFilters={useLegacyFilters}
+          segmentationModel={segmentationModel}
+        />
+      </LobbyE2EEContext.Provider>
+    </StreamVideo>
   );
 };
 
