@@ -13,7 +13,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, useRef, useState } from 'react';
+import { ComponentProps, useEffect, useRef, useState } from 'react';
 import { TranslationLanguages } from 'stream-chat';
 import { MeetingUI } from '../../components';
 import { useAppEnvironment } from '../../context/AppEnvironmentContext';
@@ -44,6 +44,73 @@ const HeadComponent = ({ callId }: { callId: string }) => {
   );
 };
 
+/**
+ * The call-scoped subtree: the noise-cancellation instance and every provider
+ * that binds to a specific call live here. It is rendered with `key={call.cid}`
+ * so that swapping to a different call (e.g. enabling E2EE navigates to a fresh
+ * encrypted call id) fully remounts it - a clean, page-load-like init for the
+ * new call. Keeping these providers mounted across an in-place call swap instead
+ * races the noise-cancellation lifecycle against the not-yet-ready new call
+ * ("Noise cancellation is not available").
+ */
+const CallScope = ({
+  call,
+  callId,
+  chatClient,
+  useLegacyFilters,
+  segmentationModel,
+}: {
+  call: Call;
+  callId: string;
+  chatClient: ComponentProps<typeof MeetingUI>['chatClient'];
+  useLegacyFilters: boolean;
+  segmentationModel: Parameters<typeof getSegmentationModelUrl>[0];
+}) => {
+  const [noiseCancellation, setNoiseCancellation] =
+    useState<INoiseCancellation>();
+  const ncLoader = useRef<Promise<void>>(undefined);
+  useEffect(() => {
+    const load = (ncLoader.current || Promise.resolve())
+      .then(() => import('@stream-io/audio-filters-web'))
+      .then(({ NoiseCancellation }) => {
+        setNoiseCancellation(new NoiseCancellation());
+      });
+    return () => {
+      ncLoader.current = load.then(() => setNoiseCancellation(undefined));
+    };
+  }, []);
+
+  return (
+    <StreamCall call={call}>
+      <HeadComponent callId={callId} />
+
+      <TourProvider>
+        <BackgroundFiltersProvider
+          forceSafariSupport
+          useLegacyFilter={useLegacyFilters}
+          modelFilePath={getSegmentationModelUrl(segmentationModel)}
+          backgroundImages={[
+            `${basePath}/backgrounds/amsterdam-1.jpg`,
+            `${basePath}/backgrounds/amsterdam-2.jpg`,
+            `${basePath}/backgrounds/boulder-1.jpg`,
+            `${basePath}/backgrounds/boulder-2.jpg`,
+            `${basePath}/backgrounds/gradient-1.jpg`,
+            `${basePath}/backgrounds/gradient-2.jpg`,
+            `${basePath}/backgrounds/gradient-3.jpg`,
+          ]}
+        >
+          {noiseCancellation && (
+            <NoiseCancellationProvider noiseCancellation={noiseCancellation}>
+              <RingingCallNotification />
+              <MeetingUI chatClient={chatClient} />
+            </NoiseCancellationProvider>
+          )}
+        </BackgroundFiltersProvider>
+      </TourProvider>
+    </StreamCall>
+  );
+};
+
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
   const {
@@ -60,6 +127,12 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const { apiKey, userToken, user, gleapApiKey } = props;
 
   const environment = useAppEnvironment();
+
+  // E2EE is limited to the `pronto` environment for now. When a shared key is
+  // present in the URL, the call must be *created* end-to-end encrypted -
+  // otherwise the backend rejects the (e2ee: true) join. See lib/queryConfigParams.
+  const encryptionKey = router.query['encryption_key'] as string | undefined;
+  const e2eeEnabled = environment === 'pronto' && !!encryptionKey;
 
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
@@ -114,13 +187,17 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         ? { members: [{ user_id: user.id || '!anon', role: 'call_member' }] }
         : {};
 
+    if (e2eeEnabled) {
+      data.settings_override = { encryption: { enabled: true } };
+    }
+
     call.getOrCreate({ data }).catch((err) => {
       console.error(`Failed to get or create call`, err);
       setCallError(
         err instanceof Error ? err.message : 'Could not get or create call',
       );
     });
-  }, [call, callType, user.id]);
+  }, [call, callType, user.id, e2eeEnabled]);
 
   // apple-itunes-app meta-tag is used to open the app from the browser
   // we need to update the app-argument to the current URL so that the app
@@ -140,22 +217,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }, []);
 
   useGleap(gleapApiKey, client, call, user);
-  const [noiseCancellation, setNoiseCancellation] =
-    useState<INoiseCancellation>();
-  const ncLoader = useRef<Promise<void>>(undefined);
-  useEffect(() => {
-    const load = (ncLoader.current || Promise.resolve())
-      .then(() => import('@stream-io/audio-filters-web'))
-      .then(({ NoiseCancellation }) => {
-        // const modelsPath = `${basePath}/krispai/models`;
-        // const nc = new NoiseCancellation({ basePath: modelsPath });
-        const nc = new NoiseCancellation();
-        setNoiseCancellation(nc);
-      });
-    return () => {
-      ncLoader.current = load.then(() => setNoiseCancellation(undefined));
-    };
-  }, []);
 
   if (!client || !call) return null;
 
@@ -189,35 +250,14 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
         fallbackLanguage={fallbackLanguage}
         translationsOverrides={appTranslations}
       >
-        <StreamCall call={call}>
-          <HeadComponent callId={callId} />
-
-          <TourProvider>
-            <BackgroundFiltersProvider
-              forceSafariSupport
-              useLegacyFilter={useLegacyFilters}
-              modelFilePath={getSegmentationModelUrl(segmentationModel)}
-              backgroundImages={[
-                `${basePath}/backgrounds/amsterdam-1.jpg`,
-                `${basePath}/backgrounds/amsterdam-2.jpg`,
-                `${basePath}/backgrounds/boulder-1.jpg`,
-                `${basePath}/backgrounds/boulder-2.jpg`,
-                `${basePath}/backgrounds/gradient-1.jpg`,
-                `${basePath}/backgrounds/gradient-2.jpg`,
-                `${basePath}/backgrounds/gradient-3.jpg`,
-              ]}
-            >
-              {noiseCancellation && (
-                <NoiseCancellationProvider
-                  noiseCancellation={noiseCancellation}
-                >
-                  <RingingCallNotification />
-                  <MeetingUI key={call.cid} chatClient={chatClient} />
-                </NoiseCancellationProvider>
-              )}
-            </BackgroundFiltersProvider>
-          </TourProvider>
-        </StreamCall>
+        <CallScope
+          key={call.cid}
+          call={call}
+          callId={callId}
+          chatClient={chatClient}
+          useLegacyFilters={useLegacyFilters}
+          segmentationModel={segmentationModel}
+        />
       </StreamVideo>
     </>
   );

@@ -266,3 +266,132 @@
 a.mapboxgl-ctrl-logo {
   display: none;
 }
+
+// End-to-end encryption lobby control (pronto only). Sits below the join
+// button; a compact switch that reveals the shared-key row when enabled.
+.rd__lobby-encryption {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: var(--str-video__spacing-md);
+
+  &__switch {
+    display: flex;
+    align-items: center;
+    gap: var(--str-video__spacing-md);
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--str-video__spacing-md);
+    background-color: #1d29380f;
+    border: 1px solid #ffffff08;
+    border-radius: var(--str-video__border-radius-xl);
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  &__lock {
+    font-size: 20px;
+    color: var(--str-video__text-color2);
+    flex-shrink: 0;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-weight: 600;
+    font-size: var(--str-video__font-size-sm);
+  }
+
+  &__subtitle {
+    font-size: var(--str-video__font-size-xs);
+    color: var(--str-video__text-color2);
+  }
+
+  // Toggle track + thumb.
+  &__track {
+    position: relative;
+    flex-shrink: 0;
+    width: 40px;
+    height: 24px;
+    border-radius: var(--str-video__border-radius-circle);
+    background-color: var(--str-video__base-color5);
+    transition: background-color 0.15s ease;
+  }
+
+  &__thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: var(--str-video__border-radius-circle);
+    background-color: #fff;
+    transition: transform 0.15s ease;
+  }
+
+  &__switch--on &__track {
+    background-color: var(--str-video__alert-success);
+  }
+
+  &__switch--on &__thumb {
+    transform: translateX(16px);
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--str-video__spacing-xs);
+    margin-top: var(--str-video__spacing-sm);
+    padding: 0 var(--str-video__spacing-xs);
+  }
+
+  &__key-label {
+    font-size: var(--str-video__font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.25ex;
+    text-transform: uppercase;
+    color: var(--str-video__text-color2);
+    text-align: left;
+  }
+
+  &__key-row {
+    display: flex;
+    align-items: center;
+    gap: var(--str-video__spacing-sm);
+  }
+
+  &__key-input {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: var(--str-video__font-size-xs);
+    color: var(--str-video__text-color2);
+    text-align: left;
+    line-height: 1.4;
+  }
+
+  &__copy {
+    flex-shrink: 0;
+    padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
+    font-size: var(--str-video__font-size-xs);
+    border-radius: var(--str-video__border-radius-md);
+    border: 1px solid var(--str-video__base-color5);
+    background-color: var(--str-video__base-color6);
+    color: var(--str-video__text-color1);
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--str-video__base-color5);
+    }
+  }
+}

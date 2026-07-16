@@ -27,6 +27,7 @@ import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
 import { ToggleParticipantsPreviewButton } from './ToggleParticipantsPreview';
 import { ToggleHiFiButton } from './ToggleHiFiButton';
+import { LobbyEncryption } from './LobbyEncryption';
 
 import { useEdges } from '../hooks/useEdges';
 import { DefaultAppHeader } from './DefaultAppHeader';
@@ -268,6 +269,8 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                 </button>
               )}
             </div>
+
+            {isProntoEnvironment && mode !== 'anon' && <LobbyEncryption />}
 
             {isProntoEnvironment && (
               <div className="rd__lobby__user-modes">

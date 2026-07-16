@@ -53,6 +53,7 @@ const deriveKeyFromPassphrase = async (
 export const applyQueryConfigParams = async (
   call: Call,
   query: NextRouter['query'],
+  allowEncryption = false,
 ) => {
   const config = getQueryConfigParams(query);
   const {
@@ -99,7 +100,12 @@ export const applyQueryConfigParams = async (
   // E2EE must be fully initialized before join() so the RTCPeerConnection can
   // be configured for E2EE (the legacy Insertable Streams path needs
   // encodedInsertableStreams).
-  if (encryptionKey && call.currentUserId && EncryptionManager.isSupported()) {
+  if (
+    allowEncryption &&
+    encryptionKey &&
+    call.currentUserId &&
+    EncryptionManager.isSupported()
+  ) {
     const rawKey = await deriveKeyFromPassphrase(encryptionKey);
     const e2ee = await EncryptionManager.create(call.currentUserId);
     e2ee.setSharedKey(0, rawKey);

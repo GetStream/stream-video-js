@@ -12,7 +12,10 @@ import { useRouter } from 'next/router';
 import { JSX, useCallback, useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
 
-import { useIsRestrictedEnvironment } from '../context/AppEnvironmentContext';
+import {
+  useIsProntoEnvironment,
+  useIsRestrictedEnvironment,
+} from '../context/AppEnvironmentContext';
 import {
   useKeyboardShortcuts,
   usePersistedVideoFilter,
@@ -55,6 +58,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const callState = useCallCallingState();
   useModeration();
   const isRestricted = useIsRestrictedEnvironment();
+  const isPronto = useIsProntoEnvironment();
   const [remoteFilePublisherAPI, setRemoteFilePublisherAPI] =
     useState<RemoteFilePublisher>();
 
@@ -64,7 +68,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!call) throw new Error('No active call found');
       try {
         const { videoFile, videoFileLeaveCallOnEnd } =
-          await applyQueryConfigParams(call, router.query);
+          await applyQueryConfigParams(call, router.query, isPronto);
         if (call.state.callingState !== CallingState.JOINED) {
           if (typeof options.displayName === 'string') {
             const name = options.displayName || getRandomName();
@@ -91,7 +95,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [call, router, chatClient, isRestricted],
+    [call, router, chatClient, isRestricted, isPronto],
   );
 
   const onLeave = useCallback(
