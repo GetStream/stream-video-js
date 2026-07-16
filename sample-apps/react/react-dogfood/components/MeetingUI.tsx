@@ -16,6 +16,7 @@ import {
   useIsProntoEnvironment,
   useIsRestrictedEnvironment,
 } from '../context/AppEnvironmentContext';
+import { useLobbyE2EE } from '../context/LobbyE2EEContext';
 import {
   useKeyboardShortcuts,
   usePersistedVideoFilter,
@@ -59,6 +60,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   useModeration();
   const isRestricted = useIsRestrictedEnvironment();
   const isPronto = useIsProntoEnvironment();
+  const e2ee = useLobbyE2EE();
   const [remoteFilePublisherAPI, setRemoteFilePublisherAPI] =
     useState<RemoteFilePublisher>();
 
@@ -68,7 +70,10 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!call) throw new Error('No active call found');
       try {
         const { videoFile, videoFileLeaveCallOnEnd } =
-          await applyQueryConfigParams(call, router.query, isPronto);
+          await applyQueryConfigParams(call, router.query, {
+            allowEncryption: isPronto,
+            encryptionKey: e2ee?.encryptionKey,
+          });
         if (call.state.callingState !== CallingState.JOINED) {
           if (typeof options.displayName === 'string') {
             const name = options.displayName || getRandomName();
@@ -95,7 +100,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [call, router, chatClient, isRestricted, isPronto],
+    [call, router, chatClient, isRestricted, isPronto, e2ee],
   );
 
   const onLeave = useCallback(

@@ -1,84 +1,68 @@
 import { useCallback, useRef, useState } from 'react';
-import { useRouter } from 'next/router';
 import { useI18n } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
 import { LockIcon } from './LockIcon';
 import { getRandomWords } from '../lib/names';
-import { meetingId } from '../lib/idGenerators';
+import { useLobbyE2EE } from '../context/LobbyE2EEContext';
 
 /**
  * Lobby control that turns on end-to-end encryption for the call and manages the
  * shared room key.
  *
- * The `?encryption_key=` query param is the source of truth: it seeds this
- * control on load, is kept in sync as the user edits the key, and is what the
- * join path (`applyQueryConfigParams`) reads to attach the `EncryptionManager`.
- *
- * A call's `encryption.enabled` flag is fixed at creation and cannot be changed
- * afterwards, so flipping E2EE on/off means moving to a *new* call: we generate a
- * fresh id and soft-navigate to `/join/<newId>?encryption_key=...`, where the
- * encryption-aware `getOrCreate` (see pages/join/[callId].tsx) creates the call
- * encrypted. Because the key and the call id always travel together in the URL,
- * the presence of the key fully determines the call's encryption state - so
- * enabling always starts a fresh encrypted call and disabling a fresh plain one.
- * The shared key itself is client-side only (never sent to the backend), so
- * editing the key on an already-encrypted call is just a shallow URL update.
+ * Encryption is fixed at call creation, so toggling delegates to the call page
+ * (via {@link useLobbyE2EE}), which swaps the active call for a freshly created
+ * one in place - no navigation, no remount. The switch state is kept locally and
+ * optimistic so the key appears immediately; the shared key is client-side only,
+ * so editing it updates the current call without creating a new one.
  *
  * Rendered only in the `pronto` environment (gated by the caller).
  */
 export const LobbyEncryption = () => {
-  const router = useRouter();
   const { t } = useI18n();
+  const e2ee = useLobbyE2EE();
 
-  const keyFromUrl = router.query['encryption_key'] as string | undefined;
-  // Sticky so clearing the key input doesn't collapse the panel; a full
-  // navigation (enable/disable) remounts and re-derives this from the URL.
-  const [enabled] = useState(!!keyFromUrl);
-  const [encryptionKey, setEncryptionKey] = useState(keyFromUrl ?? '');
+  const [enabled, setEnabled] = useState(!!e2ee?.encryptionKey);
+  const [encryptionKey, setEncryptionKey] = useState(e2ee?.encryptionKey ?? '');
+  const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const copyResetRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // Navigate to `callId` carrying (or dropping) the shared key. `shallow` keeps
-  // the same call (key-only edit); a full navigation swaps to a new call id and
-  // re-runs the encryption-aware getOrCreate.
-  const goToCall = useCallback(
-    (callId: string, key: string | undefined, shallow: boolean) => {
-      const query: Record<string, string | string[] | undefined> = {
-        ...router.query,
-        callId,
-      };
-      if (key) query['encryption_key'] = key;
-      else delete query['encryption_key'];
-      router
-        .replace({ pathname: router.pathname, query }, undefined, { shallow })
-        .catch((err) => console.error('Failed to update URL', err));
-    },
-    [router],
-  );
-
-  const onToggle = useCallback(() => {
+  const onToggle = useCallback(async () => {
+    if (!e2ee || busy) return;
     if (!enabled) {
-      // Encryption can't be switched on in place: start a fresh encrypted call.
       const key = encryptionKey || getRandomWords(3);
       setEncryptionKey(key);
-      goToCall(meetingId(), key, false);
+      setEnabled(true); // optimistic: reveal the key right away
+      try {
+        setBusy(true);
+        await e2ee.enableEncryption(key);
+      } catch (err) {
+        console.error('Failed to enable encryption', err);
+        setEnabled(false);
+      } finally {
+        setBusy(false);
+      }
     } else {
-      // Can't un-encrypt a call in place: start a fresh, unencrypted call.
-      goToCall(meetingId(), undefined, false);
+      setEnabled(false);
+      try {
+        setBusy(true);
+        await e2ee.disableEncryption();
+      } catch (err) {
+        console.error('Failed to disable encryption', err);
+        setEnabled(true);
+      } finally {
+        setBusy(false);
+      }
     }
-  }, [enabled, encryptionKey, goToCall]);
+  }, [e2ee, busy, enabled, encryptionKey]);
 
   const onKeyChange = useCallback(
     (value: string) => {
       setEncryptionKey(value);
-      // The key is a client-side shared secret, so it can change on the same
-      // (already-encrypted) call without a new call.
-      if (enabled) {
-        goToCall(router.query['callId'] as string, value || undefined, true);
-      }
+      if (enabled) e2ee?.updateEncryptionKey(value);
     },
-    [enabled, router, goToCall],
+    [e2ee, enabled],
   );
 
   const onCopyLink = useCallback(() => {
@@ -93,12 +77,15 @@ export const LobbyEncryption = () => {
       .catch((err) => console.error('Failed to copy invite link', err));
   }, []);
 
+  if (!e2ee) return null;
+
   return (
     <div className="rd__lobby-encryption">
       <button
         type="button"
         role="switch"
         aria-checked={enabled}
+        disabled={busy}
         className={clsx(
           'rd__lobby-encryption__switch',
           enabled && 'rd__lobby-encryption__switch--on',
@@ -121,36 +108,48 @@ export const LobbyEncryption = () => {
         </span>
       </button>
 
-      {enabled && (
-        <div className="rd__lobby-encryption__details">
-          <div className="rd__lobby-encryption__key-label">
-            {t('Shared key')}
+      <div
+        className={clsx(
+          'rd__lobby-encryption__reveal',
+          enabled && 'rd__lobby-encryption__reveal--open',
+        )}
+      >
+        <div
+          className="rd__lobby-encryption__reveal-inner"
+          aria-hidden={!enabled}
+        >
+          <div className="rd__lobby-encryption__details">
+            <div className="rd__lobby-encryption__key-label">
+              {t('Shared key')}
+            </div>
+            <div className="rd__lobby-encryption__key-row">
+              <input
+                className="rd__input rd__lobby-encryption__key-input"
+                type="text"
+                value={encryptionKey}
+                spellCheck={false}
+                autoComplete="off"
+                placeholder={t('Shared room key')}
+                tabIndex={enabled ? undefined : -1}
+                onChange={(e) => onKeyChange(e.currentTarget.value)}
+              />
+              <button
+                type="button"
+                className="rd__lobby-encryption__copy"
+                tabIndex={enabled ? undefined : -1}
+                onClick={onCopyLink}
+              >
+                {copied ? t('Copied') : t('Copy link')}
+              </button>
+            </div>
+            <p className="rd__lobby-encryption__hint">
+              {t(
+                'Anyone with this key (or the invite link that contains it) can join the call. Share it only with people you trust.',
+              )}
+            </p>
           </div>
-          <div className="rd__lobby-encryption__key-row">
-            <input
-              className="rd__input rd__lobby-encryption__key-input"
-              type="text"
-              value={encryptionKey}
-              spellCheck={false}
-              autoComplete="off"
-              placeholder={t('Shared room key')}
-              onChange={(e) => onKeyChange(e.currentTarget.value)}
-            />
-            <button
-              type="button"
-              className="rd__lobby-encryption__copy"
-              onClick={onCopyLink}
-            >
-              {copied ? t('Copied') : t('Copy link')}
-            </button>
-          </div>
-          <p className="rd__lobby-encryption__hint">
-            {t(
-              'Anyone with this key (or the invite link that contains it) can join the call. Share it only with people you trust.',
-            )}
-          </p>
         </div>
-      )}
+      </div>
     </div>
   );
 };

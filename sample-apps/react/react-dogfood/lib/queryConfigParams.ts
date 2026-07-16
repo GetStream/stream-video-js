@@ -53,7 +53,9 @@ const deriveKeyFromPassphrase = async (
 export const applyQueryConfigParams = async (
   call: Call,
   query: NextRouter['query'],
-  allowEncryption = false,
+  // The shared key is owned by the lobby (it can change without a URL change),
+  // so it is passed in explicitly rather than read from `query`.
+  options: { allowEncryption?: boolean; encryptionKey?: string } = {},
 ) => {
   const config = getQueryConfigParams(query);
   const {
@@ -66,8 +68,8 @@ export const applyQueryConfigParams = async (
     maxSimulcastLayers,
     cameraOverride,
     microphoneOverride,
-    encryptionKey,
   } = config;
+  const { allowEncryption = false, encryptionKey } = options;
 
   if (cameraOverride != null) {
     if (cameraOverride === 'false') {
