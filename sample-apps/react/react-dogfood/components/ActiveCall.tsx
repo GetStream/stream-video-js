@@ -66,6 +66,11 @@ import {
   useRemoteFilePublisher,
 } from './RemoteFilePublisher';
 import { ModerationNotification } from './ModerationNotification';
+import {
+  ToggleWhiteboardButton,
+  useWhiteboard,
+  Whiteboard,
+} from './Whiteboard';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -162,6 +167,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
 
   const remoteFilePublisherAPI = useRemoteFilePublisher();
 
+  const wb = useWhiteboard();
+
   return (
     <div className="rd__call">
       {isDemoEnvironment && <TourPanel highlightClass="rd__highlight" />}
@@ -189,6 +196,8 @@ export const ActiveCall = (props: ActiveCallProps) => {
                   </button>
                 </>,
               )
+            ) : wb.isOpen ? (
+              <Whiteboard wb={wb} />
             ) : (
               <Stage selectedLayout={layout} />
             )}
@@ -242,6 +251,11 @@ export const ActiveCall = (props: ActiveCallProps) => {
         </div>
         <ModerationNotification />
         <div className="rd__notifications">
+          {wb.notice && (
+            <div className="rd__whiteboard__notice" role="status">
+              {wb.notice}
+            </div>
+          )}
           <Restricted
             requiredGrants={[OwnCapability.SEND_AUDIO]}
             hasPermissionsOnly
@@ -306,6 +320,9 @@ export const ActiveCall = (props: ActiveCallProps) => {
             </div>
             <div className="str-video__call-controls__desktop">
               <ScreenShareButton />
+            </div>
+            <div className="str-video__call-controls__desktop">
+              <ToggleWhiteboardButton wb={wb} />
             </div>
             {isPronto && (
               <div className="str-video__call-controls__desktop">
