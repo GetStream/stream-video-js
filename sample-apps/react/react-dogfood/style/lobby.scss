@@ -281,6 +281,14 @@ a.mapboxgl-ctrl-logo {
   width: 100%;
   box-sizing: border-box;
   margin-top: var(--str-video__spacing-md);
+  // Frosted-glass card, matching the "Choose display name" panel.
+  background-color: #1d29380f;
+  border: 1px solid #ffffff08;
+  border-radius: var(--str-video__border-radius-xl);
+  backdrop-filter: blur(10px);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 
   &__switch {
     display: flex;
@@ -289,15 +297,11 @@ a.mapboxgl-ctrl-logo {
     width: 100%;
     box-sizing: border-box;
     padding: var(--str-video__spacing-md);
-    background-color: #1d29380f;
-    border: 1px solid #ffffff08;
-    border-radius: var(--str-video__border-radius-xl);
+    background: transparent;
+    border: none;
     color: inherit;
     text-align: left;
     cursor: pointer;
-    transition:
-      background-color 0.2s ease,
-      border-color 0.2s ease;
   }
 
   &__lock {
@@ -346,22 +350,29 @@ a.mapboxgl-ctrl-logo {
   }
 
   // Encrypted state: a soft green wash + green lock/title (no loud border glow).
-  &__switch--on {
+  &--on {
     background-color: rgba(0, 226, 161, 0.08);
     border-color: rgba(0, 226, 161, 0.4);
   }
 
-  &__switch--on &__lock,
-  &__switch--on &__title {
+  &--on &__lock,
+  &--on &__title {
     color: var(--str-video__alert-success);
   }
 
-  &__switch--on &__track {
+  &--on &__track {
     background-color: var(--str-video__alert-success);
   }
 
-  &__switch--on &__thumb {
+  &--on &__thumb {
     transform: translateX(16px);
+  }
+
+  // Joiner banner: same green as `--on`, but a static informational header
+  // instead of an interactive switch (no track/thumb) - a grayed-out toggle
+  // reads as broken to people who can't change it.
+  &__banner-row {
+    cursor: default;
   }
 
   // Animated reveal: the grid row grows 0fr -> 1fr (height 0 -> auto) so only
@@ -389,7 +400,8 @@ a.mapboxgl-ctrl-logo {
     display: flex;
     flex-direction: column;
     gap: var(--str-video__spacing-xs);
-    padding: var(--str-video__spacing-sm) var(--str-video__spacing-xs) 0;
+    // Inside the card now: align with the switch row, bottom padding to match.
+    padding: 0 var(--str-video__spacing-md) var(--str-video__spacing-md);
   }
 
   &__key-label {
@@ -407,10 +419,55 @@ a.mapboxgl-ctrl-logo {
     gap: var(--str-video__spacing-sm);
   }
 
-  &__key-input {
+  // Holds the key input plus the inline "refresh" button.
+  &__key-field {
+    position: relative;
     flex: 1;
     min-width: 0;
+  }
+
+  &__key-input {
+    width: 100%;
+    box-sizing: border-box;
     text-align: left;
+    // Room for the inline refresh button.
+    padding-right: 2.25rem;
+
+    // Read-only for joiners: signal it isn't editable (no refresh button either).
+    &:read-only {
+      padding-right: var(--str-video__spacing-md);
+      color: var(--str-video__text-color2);
+      cursor: default;
+    }
+  }
+
+  &__refresh {
+    position: absolute;
+    top: 50%;
+    right: var(--str-video__spacing-xs);
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: var(--str-video__border-radius-md);
+    color: var(--str-video__text-color2);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--str-video__text-color1);
+      background-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .str-video__icon {
+      width: 16px;
+      height: 16px;
+      background-color: currentColor;
+    }
   }
 
   &__hint {
