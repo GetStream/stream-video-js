@@ -897,15 +897,12 @@ import stream_react_native_webrtc
             lastAppRequestedMute = nil
         }
 
-        // A provider reset invalidates all CallKit calls. didDeactivate is not
-        // guaranteed to fire in its usual shape afterwards, so release ownership
-        // here and wipe UUIDStorage to keep the `count() == 0` discriminator in
-        // didDeactivate honest (stale entries would otherwise refuse to release
-        // ownership on the next end-of-call).
-        CallingxImpl.uuidStorage?.removeAllObjects()
+        // Snapshot the tracked cids before wiping storage: JS leaves exactly the calls CallKit was tracking. 
+        let trackedCids = CallingxImpl.uuidStorage?.allCids() ?? []
         CallingxSessionOwnership.callingxOwnsSession = false
+        CallingxImpl.uuidStorage?.removeAllObjects()
 
-        sendEvent(CallingxEvents.providerReset, body: nil)
+        sendEvent(CallingxEvents.providerReset, body: ["callCids": trackedCids])
     }
     
     // MARK: - Pending Action Fulfillment
