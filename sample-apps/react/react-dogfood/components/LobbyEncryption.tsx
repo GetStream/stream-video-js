@@ -37,12 +37,10 @@ export const LobbyEncryption = () => {
   //   - joiner on an encrypted call -> show a read-only "encrypted" banner
   //     (and let them enter the key if the link didn't carry it);
   //   - joiner on a plain call -> hide the control entirely (nothing to change).
-  // During load `createdBy` is unknown, so we default to the creator view and
-  // resolve once the call response arrives.
-  // Wait for the call response before deciding what to show: `createdBy` tells
-  // us creator vs joiner, `settings` tells us encrypted vs plain. Until both are
-  // known we render nothing, so a joiner never briefly sees the creator's toggle
-  // (this mirrors the lobby's video preview, which also waits on `settings`).
+  // We only know creator vs joiner (`createdBy`) and encrypted vs plain
+  // (`settings`) once the call response arrives, so until both resolve we render
+  // nothing - a joiner never briefly sees the creator's toggle. This mirrors the
+  // lobby's video preview, which also waits on `settings`.
   const resolved = !!settings && !!createdBy;
   const isEncryptedCall = !!settings?.encryption?.enabled;
   const isJoiner =
