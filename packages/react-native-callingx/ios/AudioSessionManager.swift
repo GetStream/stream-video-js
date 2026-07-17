@@ -11,18 +11,10 @@ enum DefaultAudioDevice {
 
     public static let shared = AudioSessionManager()
 
-    /// Guards the in-memory caches (`defaultAudioDevice`, `_requestedOutputDeviceId`).
-    /// Strictly a state queue — session writes never run here (they'd risk a deadlock
-    /// since `applyCallKitConfiguration` does `stateQueue.sync` to read the caches).
+    /// Guards the `defaultAudioDevice` cache. Strictly an in-memory state queue
     private let stateQueue = DispatchQueue(label: "io.getstream.callingx.audioSessionManager")
     /// The pre-join default endpoint (from `setPushConfig` / `start()`).
     private var defaultAudioDevice: DefaultAudioDevice = .speaker
-    /// The output device the user picked *during* an active CallKit call, or `nil` to use
-    /// `defaultAudioDevice`. `"speaker"` = loudspeaker; any other value is an input port
-    /// `uid` (the built-in mic = earpiece, or a Bluetooth/wired port). The SDK writes this
-    /// through `CallingxSessionOwnership.requestedOutputDeviceId`; we re-apply it on every
-    /// reconfigure so it survives engine rebuilds.
-    private var _requestedOutputDeviceId: String?
 
     /// Serializes engine-driven session writes against each other (multiple
     /// `.willEnableAudioEngine` events in arrival order). Cross-path
@@ -30,39 +22,23 @@ enum DefaultAudioDevice {
     /// `RTCAudioSession.lockForConfiguration`, not via this queue.
     private let audioSessionQueue = DispatchQueue(label: "io.getstream.callingx.audioSession")
 
+    /// Whether the AVAudioSession route-change observer is registered.
+    private var hasRouteObserver = false
+
     /// Sets the pre-join default endpoint (from `setPushConfig` / `start()`). Pure cache —
-    /// `createAudioSessionIfNeeded` applies it when the call's session is established. A
-    /// runtime pick goes through `setRequestedOutputDeviceId` instead.
+    /// `createAudioSessionIfNeeded` applies it when the call's session is established.
     public func setDefaultAudioDeviceEndpointType(_ endpointType: String) {
         let next: DefaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
         stateQueue.async { self.defaultAudioDevice = next }
     }
 
-    /// The runtime output pick, read by the `CallingxSessionOwnership` bridge.
-    public var requestedOutputDeviceId: String? {
-        stateQueue.sync { _requestedOutputDeviceId }
-    }
-
-    /// Records the runtime output pick (written by the SDK via
-    /// `CallingxSessionOwnership.requestedOutputDeviceId`). Store only — the SDK
-    /// (`StreamInCallManager`) performs the live switch itself. callingx re-applies this
-    /// pick on its next engine re-enable (`engineWillEnable` → `applyCallKitConfiguration`),
-    /// so a rebuild doesn't clobber it back to the default.
-    public func setRequestedOutputDeviceId(_ deviceId: String?) {
-        stateQueue.async { self._requestedOutputDeviceId = deviceId }
-    }
-
     /// Belt-and-braces config writer kept for the initial-activation window
     /// (called from `CXStartCallAction.perform` / `CXAnswerCallAction.perform`).
-    /// Stays synchronous from the caller's perspective — `audioSessionQueue.sync`
-    /// blocks until configuration completes so `action.fulfill()` runs on a configured
-    /// session and `provider(_:didActivate:)` may fire imminently. Serializes with
-    /// `engineWillEnable` (e.g. work queued by `adm.reset()` runs first on the queue).
-    /// The engine-observer path is the authoritative reapply on subsequent activations.
     public func createAudioSessionIfNeeded() {
         audioSessionQueue.sync {
             self.applyCallKitConfiguration()
         }
+        startRouteObserver()
     }
 
     /// Called from the AudioDeviceModule publisher's `.willEnableAudioEngine` event.
@@ -86,50 +62,43 @@ enum DefaultAudioDevice {
         // No-op: CallKit's `provider(_:didDeactivate:)` handles `setActive(false)`.
     }
 
-    // MARK: - Private
+    // MARK: - Route-change observer
 
-    /// Whether `uid` is the built-in microphone (i.e. an earpiece pick, in the shared id scheme).
-    /// Used to decide `.defaultToSpeaker`: the earpiece must drop it, but a Bluetooth/wired pick
-    /// may keep it (following the configured default) for a graceful fallback.
-    private func isBuiltInMicUid(_ uid: String) -> Bool {
-        AVAudioSession.sharedInstance().availableInputs?
-            .contains { $0.uid == uid && $0.portType == .builtInMic } ?? false
+    /// Registers the AVAudioSession route-change observer for the current call.
+    /// the change is sent to the JS side.
+    public func startRouteObserver() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.hasRouteObserver else { return }
+            self.hasRouteObserver = true
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(self.handleRouteChange(_:)),
+                name: AVAudioSession.routeChangeNotification,
+                object: nil
+            )
+        }
     }
 
-    private func applyCallKitConfiguration() {
-        let (currentDevice, requested) = stateQueue.sync { (defaultAudioDevice, _requestedOutputDeviceId) }
-
-        // Resolve the effective output and drive it the same way StreamInCallManager does
-        // (see its `makeAudioConfiguration` + `applyOutputRouting`):
-        //   - explicit "speaker" pick → force the loudspeaker via overrideOutputAudioPort(.speaker)
-        //     (even over connected Bluetooth/headphones — the user explicitly chose it);
-        //   - explicit input port (earpiece / BT / wired) → overrideOutputAudioPort(.none) + setPreferredInput;
-        //   - no explicit pick → headphone-aware default via the category flag only
-        //     (.defaultToSpeaker for a speaker default, plain receiver for an earpiece default).
-        // `.defaultToSpeaker` is present whenever the effective output is the speaker — the
-        // default speaker OR an explicit speaker pick — as the durable, route-change-proof
-        // backstop (it survives route changes/interruptions, unlike the temporary override).
-        // An explicit speaker pick ALSO force-overrides to the speaker so it wins over a
-        // currently-connected accessory. Everything else drops `.defaultToSpeaker` and uses
-        // `overrideOutputAudioPort(.none)` (+ setPreferredInput for a specific input port).
-        let forceSpeaker: Bool
-        let preferredInputUid: String?
-        let useDefaultToSpeaker: Bool
-        if let requested {
-            if requested == "speaker" {
-                forceSpeaker = true; preferredInputUid = nil; useDefaultToSpeaker = true
-            } else {
-                forceSpeaker = false; preferredInputUid = requested
-                // Earpiece (built-in mic) must drop `.defaultToSpeaker` — it's input-only with no
-                // output coupling, so keeping it would route the earpiece to the speaker. A specific
-                // Bluetooth/wired pick (output-coupled / auto-routing) instead follows the configured
-                // default, so if its preferred input is later cleared it falls back to the call's
-                // default (speaker/earpiece) rather than always the earpiece.
-                useDefaultToSpeaker = !isBuiltInMicUid(requested) && currentDevice == .speaker
-            }
-        } else {
-            forceSpeaker = false; preferredInputUid = nil; useDefaultToSpeaker = currentDevice == .speaker
+    /// Removes the route-change observer. Called on end-of-call / provider reset.
+    public func stopRouteObserver() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.hasRouteObserver else { return }
+            self.hasRouteObserver = false
+            NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
         }
+    }
+
+    @objc private func handleRouteChange(_ notification: Notification) {
+        // Defensive: a stray notification after ownership is released must not emit.
+        // Read-only — emits a bare signal; JS re-fetches the device status from the SDK.
+        guard CallingxSessionOwnership.callingxOwnsSession else { return }
+        CallingxImpl.sharedInstance?.sendEvent(CallingxEvents.didChangeAudioRoute, body: nil)
+    }
+
+    // MARK: - Private
+
+    private func applyCallKitConfiguration() {
+        let currentDevice = stateQueue.sync { defaultAudioDevice }
 
         let rtcSession = RTCAudioSession.sharedInstance()
 
@@ -154,8 +123,13 @@ enum DefaultAudioDevice {
                 let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
             #endif
 
+            // The default endpoint is driven purely by the category: `.defaultToSpeaker` for a
+            // speaker default, plain `.playAndRecord` (receiver) for an earpiece default. This
+            // is the durable, route-change-proof form — the category is sticky across
+            // interruptions. Runtime device picks are owned by the SDK (`StreamInCallManager`),
+            // not callingx.
             var categoryOptions: AVAudioSession.CategoryOptions = [bluetoothOption, .allowBluetoothA2DP]
-            if useDefaultToSpeaker {
+            if currentDevice == .speaker {
                 categoryOptions.insert(.defaultToSpeaker)
             }
 
@@ -172,30 +146,6 @@ enum DefaultAudioDevice {
 
         do {
             try rtcSession.setConfiguration(rtcConfig)
-            // Re-apply the explicit route AFTER setConfiguration (setCategory resets the
-            // output-port override and doesn't reliably keep a preferred input, so an explicit
-            // pick must be re-asserted on every reconfigure — mirrors StreamInCallManager /
-            // Telegram). A no-explicit-pick call relies on the category flag above.
-            // Skipped under the playback fallback: it's output-only (mic permission missing),
-            // so there's no input to prefer and the receiver route is unavailable anyway.
-            if !usePlaybackFallback {
-                let avSession = AVAudioSession.sharedInstance()
-                if forceSpeaker {
-                    // Pin the built-in mic so a stale preferred Bluetooth input can't steal the
-                    // route back, then force the loudspeaker.
-                    if let mic = avSession.availableInputs?.first(where: { $0.portType == .builtInMic }) {
-                        try avSession.setPreferredInput(mic)
-                    }
-                    try avSession.overrideOutputAudioPort(.speaker)
-                } else if let preferredInputUid {
-                    try avSession.overrideOutputAudioPort(.none)
-                    if let port = avSession.availableInputs?.first(where: { $0.uid == preferredInputUid }) {
-                        try avSession.setPreferredInput(port)
-                    } else {
-                        CallingxLog.audio.debugPublic("[applyCallKitConfiguration] no input for uid \(preferredInputUid)")
-                    }
-                }
-            }
         } catch {
             CallingxLog.audio.errorPublic("[applyCallKitConfiguration] Error: \(error)")
         }

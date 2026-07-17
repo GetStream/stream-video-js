@@ -98,6 +98,27 @@ const snapshotToState = (
  */
 class AudioDevicesManager {
   private eventEmitter?: NativeEventEmitter;
+  private interruptionReassertSetup = false;
+
+  /**
+   * iOS + CallKit only: re-assert the user's output pick after an interruption ends.
+   *
+   * On interruption-end iOS clears the ephemeral route override (`setPreferredInput` /
+   * `overrideOutputAudioPort`) and doesn't restore it, and callingx re-applies its config
+   * only on engine-enable — not the engine-restart of interruption recovery. So we re-drive
+   * the SDK's stored pick. Speaker/earpiece survive on their own via the sticky category
+   * (this is a no-op for them); it matters for Bluetooth/wired.
+   */
+  private ensureInterruptionReassert = () => {
+    if (this.interruptionReassertSetup) return; // subscibed once per app lifetime
+    if (Platform.OS !== 'ios' || !CallingxModule) return;
+    this.interruptionReassertSetup = true;
+    CallingxModule.addEventListener('didAudioInterruption', (event) => {
+      if (event.phase === 'ended') {
+        NativeManager.reapplyAudioRoute();
+      }
+    });
+  };
 
   /**
    * Get the current audio device state (available devices + the selected one).
@@ -134,9 +155,10 @@ class AudioDevicesManager {
       });
       return;
     }
-    // One native call covers the remaining paths: the in-call manager applies the
-    // switch when the SDK owns the session, and hands the pick to callingx (via the
-    // shared CallingxSessionOwnership bridge) when CallKit (iOS) owns it.
+    // The SDK's in-call manager applies the switch on every remaining path, including
+    // iOS CallKit — it writes the route directly (no setActive), so callingx doesn't
+    // need to be involved in the switch.
+    this.ensureInterruptionReassert();
     NativeManager.chooseAudioDeviceEndpoint(deviceId);
   };
 
@@ -176,14 +198,12 @@ class AudioDevicesManager {
     unsubscribes.push(() => sdkSub.remove());
 
     // On iOS, when callingx (CallKit) owns the session, the SDK's own route-change
-    // observer is suppressed. callingx doesn't emit a per-route-change event, but it
-    // does signal session (re)activation — the point at which CallKit establishes /
-    // re-establishes the route — so re-fetch status then to normalize. Subscribe
-    // alongside the SDK source so an ownership change after subscription can't strand
-    // the listener (the duplicate/no-op fire is harmless — setState is idempotent).
+    // observer is inactive (its `start()` is bypassed under CallKit). callingx owns the
+    // session, so it observes route changes and emits `didChangeAudioRoute`; we re-fetch
+    // status from the SDK to normalize.
     if (Platform.OS === 'ios' && CallingxModule) {
       const cxSub = CallingxModule.addEventListener(
-        'didActivateAudioSession',
+        'didChangeAudioRoute',
         () => {
           this.getStatus().then(onChange);
         },
@@ -313,11 +333,14 @@ export class CallManager {
    */
   start = (config?: StreamInCallManagerConfig): void => {
     if (shouldBypassForCallKit()) {
-      // Forward only the passive endpoint preference; callingx reads it when
-      // CallKit drives session activation.
       if (config?.audioRole === 'communicator' && CallingxModule) {
+        // Forward the endpoint preference to both owners: callingx reads it when CallKit
+        // drives session activation, and the SDK's in-call manager needs it too so its
+        // `makeAudioConfiguration` computes the correct `.defaultToSpeaker` fallback when the
+        // SDK drives a device switch under CallKit (a pure cache set — it writes no session).
         const type = config.deviceEndpointType ?? 'speaker';
         CallingxModule.setDefaultAudioDeviceEndpointType(type);
+        NativeManager.setDefaultAudioDeviceEndpointType(type);
       }
       videoLoggerSystem
         .getLogger('CallManager')

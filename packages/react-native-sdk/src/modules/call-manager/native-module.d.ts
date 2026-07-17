@@ -39,6 +39,13 @@ export interface CallManager extends NativeModule {
   chooseAudioDeviceEndpoint: (deviceId: string) => void;
 
   /**
+   * Re-applies the current audio output pick (iOS). Used to restore a Bluetooth/wired
+   * route after an interruption ends, where the ephemeral route override is lost.
+   * No-op if no explicit pick has been made.
+   */
+  reapplyAudioRoute: () => void;
+
+  /**
    * Get the current audio device state (available devices + selected one).
    * @returns The audio devices state.
    */

@@ -307,6 +307,21 @@ class StreamInCallManager: RCTEventEmitter {
         }
     }
 
+    private func clearOutputRouting() {
+        if Self.callingxOwnsSession() {
+            return
+        }
+        let session = RTCAudioSession.sharedInstance()
+        session.lockForConfiguration()
+        defer { session.unlockForConfiguration() }
+        do {
+            try session.overrideOutputAudioPort(.none)
+            try AVAudioSession.sharedInstance().setPreferredInput(nil)
+        } catch {
+            log("clearOutputRouting error: \(String(describing: error))")
+        }
+    }
+
     /// Runtime KVC lookup of `CallingxSessionOwnership.callingxOwnsSession`.
     /// `@stream-io/react-native-callingx` is an optional peer dep, so a direct
     /// Swift `import` is not safe
@@ -315,17 +330,6 @@ class StreamInCallManager: RCTEventEmitter {
             return false
         }
         return ((cls as AnyObject).value(forKey: "callingxOwnsSession") as? Bool) ?? false
-    }
-
-    /// Hands the user's output pick to callingx via the shared bridge (KVC on the class
-    /// object, symmetric with `callingxOwnsSession()`). Under CallKit, callingx owns the
-    /// session and applies + re-applies the pick on every reconfigure, so the SDK must
-    /// not write the session itself.
-    private static func setCallingxRequestedOutput(_ deviceId: String) {
-        guard let cls = NSClassFromString("Callingx.CallingxSessionOwnership") else {
-            return
-        }
-        (cls as AnyObject).setValue(deviceId, forKey: "requestedOutputDeviceId")
     }
 
     @objc
@@ -369,6 +373,7 @@ class StreamInCallManager: RCTEventEmitter {
             }
             let adm = getAudioDeviceModule()
             adm.reset()
+            clearOutputRouting()
             // Deactivate directly: the .didDisableAudioEngine sink is async and we cancel it below.
             applyConfigForEngineDisable()
             // Tear down the engine-observer subscription so a re-setup wires a fresh one.
@@ -412,18 +417,21 @@ class StreamInCallManager: RCTEventEmitter {
 
     @objc(setForceSpeakerphoneOn:)
     func setForceSpeakerphoneOn(enable: Bool) {
-        audioSessionQueue.async { [weak self] in
+        audioSessionQueue.async { [self] in
             let session = RTCAudioSession.sharedInstance()
             session.lockForConfiguration()
             defer {
                 session.unlockForConfiguration()
             }
-            let avAudioSession = AVAudioSession.sharedInstance()
             do {
-                try avAudioSession.overrideOutputAudioPort(enable ? .speaker : .none)
-                try avAudioSession.setActive(true)
+                if enable {
+                    applyOutputRouting(.speaker)
+                } else {
+                    try session.overrideOutputAudioPort(.none)
+                    try AVAudioSession.sharedInstance().setPreferredInput(nil)
+                }
             } catch {
-                self?.log("Error setting speakerphone: \(error)")
+                self.log("Error setting speakerphone: \(error)")
             }
         }
     }
@@ -453,15 +461,6 @@ class StreamInCallManager: RCTEventEmitter {
     /// Switches the audio output to the device with the given id.
     /// `"speaker"` selects the loudspeaker; any other id is an input port uid
     /// (the built-in mic uid selects the earpiece) routed via `setPreferredInput`.
-    ///
-    /// The SDK performs the switch here regardless of who owns the session (mirrors
-    /// `setForceSpeakerphoneOn`): record the pick in `selectedOutput` (which drops
-    /// `.defaultToSpeaker` in `makeAudioConfiguration` so the earpiece route is reachable),
-    /// reconfigure, route, and re-activate. Non-CallKit, the engine-rebuild path re-applies
-    /// `selectedOutput`. Under CallKit, callingx owns the session and reconfigures it on its
-    /// own engine rebuilds, so we additionally *inform* callingx of the pick (via the
-    /// `CallingxSessionOwnership.requestedOutputDeviceId` bridge); callingx re-applies the
-    /// same pick on re-enable instead of re-asserting its default and clobbering it.
     @objc(chooseAudioDeviceEndpoint:)
     func chooseAudioDeviceEndpoint(id: String) {
         audioSessionQueue.async { [self] in
@@ -469,14 +468,9 @@ class StreamInCallManager: RCTEventEmitter {
                 log("chooseAudioDeviceEndpoint ignored: only supported in communicator role")
                 return
             }
+
             let routing: OutputRouting = id == AudioDeviceId.speaker ? .speaker : .input(uid: id)
             selectedOutput = routing
-
-            // Under CallKit, tell callingx what we picked so it re-applies the same route
-            // on its next engine re-enable (it owns the session and reconfigures on rebuilds).
-            if Self.callingxOwnsSession() {
-                Self.setCallingxRequestedOutput(id)
-            }
 
             let session = RTCAudioSession.sharedInstance()
             session.lockForConfiguration()
@@ -484,49 +478,52 @@ class StreamInCallManager: RCTEventEmitter {
             do {
                 // Reconfigure first so the live category matches the pick (e.g. the earpiece
                 // drops `.defaultToSpeaker`, otherwise overrideOutputAudioPort(.none) would
-                // resolve back to the speaker). Then drive the route and (re)activate.
+                // resolve back to the speaker). Then drive the route.
                 try session.setConfiguration(makeAudioConfiguration())
                 applyOutputRouting(routing)
-                try session.setActive(true)
             } catch {
                 log("chooseAudioDeviceEndpoint error: \(String(describing: error))")
             }
         }
     }
 
+    /// Re-applies the current output pick (`selectedOutput`) — category untouched, no setActive.
+    /// Called on interruption-end (via callingx's interruption event, forwarded from JS) to
+    /// restore a Bluetooth/wired route
+    @objc(reapplyAudioRoute)
+    func reapplyAudioRoute() {
+        audioSessionQueue.async { [self] in
+            guard callAudioRole == .communicator, let routing = selectedOutput else { return }
+            let session = RTCAudioSession.sharedInstance()
+            session.lockForConfiguration()
+            defer { session.unlockForConfiguration() }
+            applyOutputRouting(routing)
+        }
+    }
+
     /// Whether `uid` is the built-in microphone (i.e. an earpiece pick, in our id scheme).
-    /// Used to decide `.defaultToSpeaker`: the earpiece must drop it, but a Bluetooth/wired
-    /// pick may keep it (see `makeAudioConfiguration`).
     private func isBuiltInMicUid(_ uid: String) -> Bool {
         AVAudioSession.sharedInstance().availableInputs?
             .contains { $0.uid == uid && $0.portType == .builtInMic } ?? false
     }
 
-    /// Applies an explicit output route to the shared `AVAudioSession`.
-    /// Must be called with `RTCAudioSession`'s configuration lock held.
-    /// Speaker is forced via `overrideOutputAudioPort(.speaker)` (after pinning the built-in
-    /// mic so a stale preferred Bluetooth input can't steal it back); every other device is
-    /// reached via `.none` + `setPreferredInput(port)`. The earpiece lands on the receiver
-    /// because its category dropped `.defaultToSpeaker`; a Bluetooth/wired port lands on the
-    /// device via its preferred-input coupling / auto-routing (which wins even when the
-    /// category keeps `.defaultToSpeaker` for the fallback).
     private func applyOutputRouting(_ routing: OutputRouting) {
-        let avSession = AVAudioSession.sharedInstance()
-        let builtInMic = avSession.availableInputs?.first { $0.portType == .builtInMic }
+        let rtcSession = RTCAudioSession.sharedInstance()
+        let availableInputs = AVAudioSession.sharedInstance().availableInputs
         do {
             switch routing {
-            case .speaker:
-                if let builtInMic {
-                    try avSession.setPreferredInput(builtInMic)
-                }
-                try avSession.overrideOutputAudioPort(.speaker)
-            case .input(let uid):
-                try avSession.overrideOutputAudioPort(.none)
-                if let port = avSession.availableInputs?.first(where: { $0.uid == uid }) {
-                    try avSession.setPreferredInput(port)
-                } else {
-                    log("applyOutputRouting: no input found for id \(uid)")
-                }
+                case .speaker:
+                    if let builtInMic = availableInputs?.first(where: { $0.portType == .builtInMic }) {
+                        try rtcSession.setPreferredInput(builtInMic)
+                    }
+                    try rtcSession.overrideOutputAudioPort(.speaker)
+                case .input(let uid):
+                    try rtcSession.overrideOutputAudioPort(.none)
+                    if let port = availableInputs?.first(where: { $0.uid == uid }) {
+                        try rtcSession.setPreferredInput(port)
+                    } else {
+                        log("applyOutputRouting: no input found for id \(uid)")
+                    }
             }
         } catch {
             log("applyOutputRouting error: \(String(describing: error))")

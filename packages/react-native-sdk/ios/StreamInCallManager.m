@@ -22,6 +22,8 @@ RCT_EXTERN_METHOD(getAudioDeviceStatus:(RCTPromiseResolveBlock)resolve
 
 RCT_EXTERN_METHOD(chooseAudioDeviceEndpoint:(NSString *)id)
 
+RCT_EXTERN_METHOD(reapplyAudioRoute)
+
 RCT_EXTERN_METHOD(setForceSpeakerphoneOn:(BOOL)enable)
 
 RCT_EXTERN_METHOD(setMicrophoneMute:(BOOL)enable)
