@@ -427,7 +427,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     }
 
     if (isReactNative() && publish && canPublish) {
-      // On RN the camera is enabled/disabled optimistically before JOINED. Reconcile now
+      // On RN the microphone is enabled/disabled optimistically before JOINED. Reconcile now
       // acquires the track and publishes it, so it fully owns the publish.
       await this.reconcileOptimisticStatus();
     } else {

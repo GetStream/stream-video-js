@@ -1731,6 +1731,15 @@ export class Call {
   };
 
   /**
+   * Whether the per-call media engine currently exists. True from join until leave.
+   *
+   * @internal an internal getter and should not be used outside the SDK.
+   */
+  get hasMediaEngine(): boolean {
+    return !!this.mediaEnginePromise;
+  }
+
+  /**
    * Ensures a {@link CallMediaEngine} exists for this call's media session and
    * returns it. Idempotent: the engine is created once via the registered
    * provider (see `setCallMediaEngineProvider`) and cached until `leave()`
