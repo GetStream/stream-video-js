@@ -9,7 +9,10 @@ import { TranslationLanguages } from 'stream-chat';
 
 import { CallScope } from '../../components/CallScope';
 import { LobbyE2EEContext } from '../../context/LobbyE2EEContext';
-import { useAppEnvironment } from '../../context/AppEnvironmentContext';
+import {
+  isE2EEEnvironment,
+  useAppEnvironment,
+} from '../../context/AppEnvironmentContext';
 import { useSettings } from '../../context/SettingsContext';
 import { getClient } from '../../helpers/client';
 import { useCreateStreamChatClient, useLobbyCall } from '../../hooks';
@@ -37,13 +40,14 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
 
   const environment = useAppEnvironment();
 
-  // E2EE is limited to the `pronto` environment for now. When a shared key is
-  // present in the URL, the initial call must be *created* end-to-end encrypted -
-  // otherwise the backend rejects the (e2ee: true) join. See lib/queryConfigParams.
+  // E2EE is limited to the `pronto` / `pronto-staging` environments for now.
+  // When a shared key is present in the URL, the initial call must be *created*
+  // end-to-end encrypted - otherwise the backend rejects the (e2ee: true) join.
+  // See lib/queryConfigParams.
   const initialEncryptionKey = router.query['encryption_key'] as
     | string
     | undefined;
-  const e2eeEnabled = environment === 'pronto' && !!initialEncryptionKey;
+  const e2eeEnabled = isE2EEEnvironment(environment) && !!initialEncryptionKey;
 
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {

@@ -38,6 +38,21 @@ export const useAppEnvironment = (): AppEnvironment => {
 export const useIsProntoEnvironment = () => useAppEnvironment() === 'pronto';
 
 /**
+ * Environments where end-to-end encryption is available. `pronto-staging` is
+ * included alongside `pronto` so encrypted calls (and the Slack `--e2ee` /
+ * `--private` links) work on staging too.
+ */
+export const isE2EEEnvironment = (env: AppEnvironment): boolean =>
+  env === 'pronto' || env === 'pronto-staging';
+
+/**
+ * Returns true when end-to-end encryption is available in the current
+ * environment. See {@link isE2EEEnvironment}.
+ */
+export const useIsE2EEEnvironment = () =>
+  isE2EEEnvironment(useAppEnvironment());
+
+/**
  * Returns true if the current app environment is 'demo'.
  */
 export const useIsDemoEnvironment = () => useAppEnvironment() === 'demo';

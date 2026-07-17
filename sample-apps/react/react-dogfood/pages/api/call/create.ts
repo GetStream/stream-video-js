@@ -1,6 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import yargs from 'yargs';
 import { meetingId } from '../../../lib/idGenerators';
+import { getRandomWords } from '../../../lib/names';
+
+/**
+ * A yargs-parsed flag counts as "set" when present, unless explicitly negated
+ * (`--no-e2ee` -> false, or `--e2ee=false`). Bare `--e2ee` / `--private` parse
+ * to `true`, which URLSearchParams stringifies to `"true"`.
+ */
+const isFlagSet = (value: string | null): boolean =>
+  value !== null && value !== 'false' && value !== '0';
 
 const createCallSlackHookAPI = async (
   req: NextApiRequest,
@@ -36,6 +45,15 @@ const createCallSlackHookAPI = async (
       queryParams.delete('staging');
     }
 
+    const withE2ee =
+      isFlagSet(queryParams.get('e2ee')) ||
+      isFlagSet(queryParams.get('private'));
+    queryParams.delete('e2ee');
+    queryParams.delete('private');
+    if (withE2ee) {
+      queryParams.set('encryption_key', getRandomWords(3));
+    }
+
     const protocol = req.headers['x-forwarded-proto'] ? 'https://' : 'http://';
     const host =
       req.headers.host === 'stream-calls-dogfood.vercel.app'
@@ -57,7 +75,9 @@ const createCallSlackHookAPI = async (
           type: 'section',
           text: {
             type: 'mrkdwn',
-            text: `${initiator} has invited you for a new Stream Call \n ${joinUrl}`,
+            text: `${initiator} has invited you for a new Stream Call${
+              withE2ee ? ' :lock: _(end-to-end encrypted)_' : ''
+            } \n ${joinUrl}`,
           },
           accessory: {
             type: 'button',

@@ -13,7 +13,7 @@ import { JSX, useCallback, useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
 
 import {
-  useIsProntoEnvironment,
+  useIsE2EEEnvironment,
   useIsRestrictedEnvironment,
 } from '../context/AppEnvironmentContext';
 import { useLobbyE2EE } from '../context/LobbyE2EEContext';
@@ -59,7 +59,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const callState = useCallCallingState();
   useModeration();
   const isRestricted = useIsRestrictedEnvironment();
-  const isPronto = useIsProntoEnvironment();
+  const allowEncryption = useIsE2EEEnvironment();
   const e2ee = useLobbyE2EE();
   const [remoteFilePublisherAPI, setRemoteFilePublisherAPI] =
     useState<RemoteFilePublisher>();
@@ -71,7 +71,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       try {
         const { videoFile, videoFileLeaveCallOnEnd } =
           await applyQueryConfigParams(call, router.query, {
-            allowEncryption: isPronto,
+            allowEncryption,
             encryptionKey: e2ee?.encryptionKey,
           });
         if (call.state.callingState !== CallingState.JOINED) {
@@ -100,7 +100,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [call, router, chatClient, isRestricted, isPronto, e2ee],
+    [call, router, chatClient, isRestricted, allowEncryption, e2ee],
   );
 
   const onLeave = useCallback(
