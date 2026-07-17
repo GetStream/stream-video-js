@@ -6,6 +6,7 @@ import {
   videoLoggerSystem,
 } from '@stream-io/video-client';
 import { CallFactory } from '@stream-io/react-native-webrtc';
+import { callManager } from '../../modules/call-manager';
 
 const logger = videoLoggerSystem.getLogger('CallMediaEngine');
 
@@ -25,18 +26,28 @@ const logger = videoLoggerSystem.getLogger('CallMediaEngine');
 export function registerCallMediaEngine() {
   setCallMediaEngineProvider(
     async (options: MediaEngineOptions): Promise<CallMediaEngine> => {
-      // The music / high-quality profile maps to building the ADM with voice
-      // processing bypassed. When no profile is requested, the factory is built
-      // with the standard voice profile.
+      // Voice processing must be bypassed for two independent cases:
+      //  1. The music / high-quality mic profile (raw, unprocessed capture).
+      //     Requested via `call.microphone.setAudioBitrateProfile(SfuModels.AudioBitrateProfile.MUSIC_HIGH_QUALITY)`.
+      //     When no profile is requested, the factory is built with the standard voice profile.
+      //  2. Stereo audio output — WebRTC's APM (AEC/NS) downmixes to mono, so
+      //     stereo playout only flows when voice processing is off. On Android
+      //     this is a factory-build-time decision, so the stereo-output preference
+      //     recorded via `callManager.start` must be resolved here, before the factory is built.
+      const config = callManager.getStoredConfig();
+      const stereoOutputRequested =
+        config?.audioRole === 'listener' &&
+        config.enableStereoAudioOutput === true;
       const bypassVoiceProcessing =
         options.audioBitrateProfile ===
-        SfuModels.AudioBitrateProfile.MUSIC_HIGH_QUALITY;
+          SfuModels.AudioBitrateProfile.MUSIC_HIGH_QUALITY ||
+        stereoOutputRequested;
       const factory = await CallFactory.create({
         bypassVoiceProcessing,
         //stereoInputEnabled: false, TODO: decide how this param is defined from client side
       });
       logger.debug(
-        `Created per-call factory (bypassVoiceProcessing=${bypassVoiceProcessing})`,
+        `Created per-call factory (bypassVoiceProcessing=${bypassVoiceProcessing}, stereoOutput=${stereoOutputRequested})`,
       );
 
       return {
