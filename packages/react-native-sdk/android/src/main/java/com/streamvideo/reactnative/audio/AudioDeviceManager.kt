@@ -58,8 +58,6 @@ class AudioDeviceManager(
         val nonBluetoothEndpoints = HashMap<@EndpointType Int, AudioDeviceEndpoint>()
         for (device in initialEndpoints) {
             if (device.isBluetoothType()) {
-                // Keyed by the stable AudioDeviceInfo.id (not name) so two
-                // identically-named Bluetooth devices remain distinct.
                 bluetoothEndpoints[device.deviceId.toString()] = device
             } else {
                 nonBluetoothEndpoints[device.type] = device
@@ -187,21 +185,13 @@ class AudioDeviceManager(
         }
     }
 
-    /**
-     * Finds a Bluetooth endpoint by its (possibly non-unique) display name.
-     * Used only for internal SCO bookkeeping where the platform reports the
-     * connected device by name; Android connects a single BT call device at a
-     * time, so the first match is the active one.
-     */
     private fun bluetoothEndpointByName(name: String?): AudioDeviceEndpoint? {
         if (name == null) return null
         return mEndpointMaps.bluetoothEndpoints.values.firstOrNull { it.name == name }
     }
 
     /**
-     * Resolves the currently-active Bluetooth endpoint. On API 31+ it keys off
-     * the authoritative communication-device id (so two same-named BT devices
-     * are disambiguated); otherwise it falls back to matching by name.
+     * Resolves the currently-active Bluetooth endpoint.
      */
     private fun activeBluetoothEndpoint(): AudioDeviceEndpoint? {
         if (Build.VERSION.SDK_INT >= 31) {
@@ -425,8 +415,7 @@ class AudioDeviceManager(
                 return@runInAudioThread
             }
             val audioDevices = getCurrentDeviceEndpoints()
-            // Compare by stable device id, not name, so a swap between two
-            // identically-named devices is still detected as a change.
+            // Compare by stable device id, not name
             val audioDeviceIdsSet = audioDevices.map { it.deviceId.toString() }.toSet()
             val devicesChanged = if (cachedAvailableEndpointIdsSet.size != audioDevices.size) {
                 true

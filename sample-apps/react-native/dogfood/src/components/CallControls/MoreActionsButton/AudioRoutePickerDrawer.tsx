@@ -45,9 +45,6 @@ type AudioRoutePickerDrawerProps = DrawerProps & {
   bottomControlsHeight: number;
 };
 
-// A single cross-platform audio route picker. Works on Android, iOS, and iOS
-// with CallKit — all backed by the same `useAudioDeviceStatus()` hook +
-// `callManager.audioDevices.select(device.id)`.
 export const AudioRoutePickerDrawer: React.FC<AudioRoutePickerDrawerProps> = ({
   isVisible,
   onClose,

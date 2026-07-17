@@ -131,7 +131,6 @@ export const MoreActionsButton = ({
   };
 
   const showAudioRoutePicker = async () => {
-    // One custom picker for all platforms (Android, iOS, iOS+CallKit).
     setIsAudioRoutePickerDrawerVisible(true);
     setIsDrawerVisible(false);
   };

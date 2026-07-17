@@ -49,8 +49,7 @@ private enum StreamInCallManagerEvents {
     static let audioDeviceChanged = "onAudioDeviceChanged"
 }
 
-/// Stable device-id scheme shared with the Android + callingx (CallKit)
-/// implementations and the JS layer. The built-in speaker is synthetic; every
+/// Stable device-id scheme for the JS layer. The built-in speaker is synthetic; every
 /// other device is keyed by its `AVAudioSessionPortDescription.uid` (the
 /// built-in earpiece is the built-in mic input routed with `.none`).
 private enum AudioDeviceId {
@@ -164,27 +163,14 @@ class StreamInCallManager: RCTEventEmitter {
             #endif
             category = .playAndRecord
             mode = .voiceChat
-            // `.defaultToSpeaker` is the durable, route-change-proof fallback (unlike
-            // `overrideOutputAudioPort`, which the OS clears on the next route change). Include it
-            // whenever the call's fallback output should be the speaker:
-            //  - speaker pick → always (it's the backstop behind the forced override);
-            //  - earpiece pick → never — the built-in mic is input-only with no output coupling, so
-            //    keeping it would route the earpiece to the speaker (the original bug);
-            //  - Bluetooth/wired pick → follow the configured default, so if the pick's preferred
-            //    input is later cleared it falls back to the call's default (speaker/earpiece) rather
-            //    than always the earpiece. The live BT/wired route is unaffected (its preferred input
-            //    / auto-routing wins over the speaker default while connected);
-            //  - no pick → follow the configured default.
-            let effectiveSpeaker: Bool
-            switch selectedOutput {
-            case .speaker:
-                effectiveSpeaker = true
-            case .input(let uid):
-                effectiveSpeaker = !isBuiltInMicUid(uid) && defaultAudioDevice == .speaker
-            case nil:
-                effectiveSpeaker = defaultAudioDevice == .speaker
+            
+            var mustSetDefaultToSpeaker = defaultAudioDevice == .speaker
+            if case .input(let uid) = selectedOutput, isBuiltInMicUid(uid) {
+                // the selected output is a built-in mic
+                // then we always can't use defaultToSpeaker
+                mustSetDefaultToSpeaker = false
             }
-            options = effectiveSpeaker ? [bluetoothOption, .defaultToSpeaker] : [bluetoothOption]
+            options = mustSetDefaultToSpeaker ? [bluetoothOption, .defaultToSpeaker] : [bluetoothOption]
         }
 
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()
@@ -208,13 +194,8 @@ class StreamInCallManager: RCTEventEmitter {
     func setup() {
         audioSessionQueue.async { [self] in
             let adm = getAudioDeviceModule()
-
-            // Fresh non-CallKit call: start from the configured default, discarding any
-            // prior runtime pick. stop() also clears this, but it's bypassed under CallKit,
-            // so a pick made during a preceding CallKit call could otherwise leak in here.
             selectedOutput = nil
 
-            // Stereo is listener-only and applies live. Cleared by stop()'s reset().
             if callAudioRole == .listener && enableStereo {
                 adm.setStereoPlayoutPreference(true)
             }
@@ -222,7 +203,6 @@ class StreamInCallManager: RCTEventEmitter {
             let rtcConfig = makeAudioConfiguration()
             log("Setup with category: \(rtcConfig.category), mode: \(rtcConfig.mode), options: \(rtcConfig.categoryOptions)")
 
-            // Set category only — the sink owns setActive().
             let session = RTCAudioSession.sharedInstance()
             session.lockForConfiguration()
             defer { session.unlockForConfiguration() }
@@ -279,8 +259,7 @@ class StreamInCallManager: RCTEventEmitter {
         session.lockForConfiguration()
         defer { session.unlockForConfiguration() }
         do {
-            try session.setConfiguration(rtcConfig)
-            try session.setActive(true)
+            try session.setConfiguration(rtcConfig, active: true)
             // Re-apply the explicit pick (if any) so it survives the engine rebuild.
             if let selectedOutput {
                 applyOutputRouting(selectedOutput)
@@ -442,10 +421,8 @@ class StreamInCallManager: RCTEventEmitter {
         log("iOS does not support setMicrophoneMute()")
     }
 
-    // MARK: - Audio Device Picker (non-CallKit path)
+    // MARK: - Audio Device Picker
 
-    /// Resolves the current audio devices state: the available output devices,
-    /// the selected device id and the current endpoint type.
     @objc(getAudioDeviceStatus:reject:)
     func getAudioDeviceStatus(resolve: @escaping RCTPromiseResolveBlock,
                               reject: @escaping RCTPromiseRejectBlock) {
@@ -459,8 +436,6 @@ class StreamInCallManager: RCTEventEmitter {
     }
 
     /// Switches the audio output to the device with the given id.
-    /// `"speaker"` selects the loudspeaker; any other id is an input port uid
-    /// (the built-in mic uid selects the earpiece) routed via `setPreferredInput`.
     @objc(chooseAudioDeviceEndpoint:)
     func chooseAudioDeviceEndpoint(id: String) {
         audioSessionQueue.async { [self] in
@@ -530,7 +505,7 @@ class StreamInCallManager: RCTEventEmitter {
         }
     }
 
-    /// Canonical endpoint-type string shared with Android + the JS layer.
+    /// Canonical endpoint-type string shared with the JS layer.M ust match with the Android implementation.
     private func endpointType(for portType: AVAudioSession.Port) -> String {
         switch portType {
         case .builtInSpeaker: return "Speaker"
@@ -541,9 +516,6 @@ class StreamInCallManager: RCTEventEmitter {
         }
     }
 
-    /// Builds the `AudioDevicesState` payload: synthetic Speaker + one entry per
-    /// available input port (built-in mic surfaced as "Earpiece"), the active
-    /// endpoint type, and the selected device id.
     private func buildAudioDevicesState() -> [String: Any] {
         let session = AVAudioSession.sharedInstance()
         let inputs = session.availableInputs ?? []
@@ -794,8 +766,7 @@ class StreamInCallManager: RCTEventEmitter {
 
         logAudioState()
 
-        // Notify JS of the updated device list / selection. Only on the
-        // non-CallKit communicator path — callingx owns this on the CallKit path.
+        // Notify JS of the updated device list / selection.
         audioSessionQueue.async { [weak self] in
             guard let self,
                   self.audioManagerActivated,

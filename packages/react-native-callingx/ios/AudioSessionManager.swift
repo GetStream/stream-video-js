@@ -123,11 +123,6 @@ enum DefaultAudioDevice {
                 let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
             #endif
 
-            // The default endpoint is driven purely by the category: `.defaultToSpeaker` for a
-            // speaker default, plain `.playAndRecord` (receiver) for an earpiece default. This
-            // is the durable, route-change-proof form — the category is sticky across
-            // interruptions. Runtime device picks are owned by the SDK (`StreamInCallManager`),
-            // not callingx.
             var categoryOptions: AVAudioSession.CategoryOptions = [bluetoothOption, .allowBluetoothA2DP]
             if currentDevice == .speaker {
                 categoryOptions.insert(.defaultToSpeaker)
