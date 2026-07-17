@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.41.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.40.2...@stream-io/video-react-native-sdk-1.41.0) (2026-07-17)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.9.3`
+- `@stream-io/react-native-callingx` updated to version `0.7.0`
+- `@stream-io/video-filters-react-native` updated to version `0.14.3`
+- `@stream-io/typescript-config` updated to version `0.1.0`
+- `@stream-io/video-client` updated to version `1.55.2`
+- `@stream-io/video-react-bindings` updated to version `1.18.3`
+
+### Features
+
+- improved providerDidReset handling ([#2329](https://github.com/GetStream/stream-video-js/issues/2329)) ([ccb2273](https://github.com/GetStream/stream-video-js/commit/ccb2273e4cb8cf386df3323fec49c2c98a469119))
+
+### Bug Fixes
+
+- only render RTCView once stream has a video track ([#2331](https://github.com/GetStream/stream-video-js/issues/2331)) ([70cb902](https://github.com/GetStream/stream-video-js/commit/70cb9029d3a6c888743a02011332d683562d42ec))
+- **react-native-sdk:** replace deprecated ImageBackground in IncomingCall ([#2327](https://github.com/GetStream/stream-video-js/issues/2327)) ([4c114ab](https://github.com/GetStream/stream-video-js/commit/4c114ab405fc47782ff432c6d186d20319d9c673))
+- scrolling-off reported visibility incorrectly ([#2330](https://github.com/GetStream/stream-video-js/issues/2330)) ([88d5e97](https://github.com/GetStream/stream-video-js/commit/88d5e97d2c38a6035b70a9e2fc0596a88277e9f6))
+- use speakerLayoutSortPreset in RN spotlight view ([#2332](https://github.com/GetStream/stream-video-js/issues/2332)) ([910a5de](https://github.com/GetStream/stream-video-js/commit/910a5de6160cc34de99ea1615ef40bb034c57078))
+
 ## [1.40.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.40.1...@stream-io/video-react-native-sdk-1.40.2) (2026-07-09)
 
 ### Dependency Updates
