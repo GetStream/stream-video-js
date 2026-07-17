@@ -8,7 +8,6 @@ import {
   clearPushWSEventSubscriptions,
   processCallFromPushInBackground,
 } from './internal/utils';
-import { resolvePendingAudioSession } from '../internal/callingx/audioSessionPromise';
 import {
   getCallingxLib,
   type EventData,
@@ -81,7 +80,6 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
 
 const onDidActivateAudioSession = () => {
   logger.debug('callingExpDidActivateAudioSession');
-  resolvePendingAudioSession();
 };
 
 const onDidDeactivateAudioSession = () => {

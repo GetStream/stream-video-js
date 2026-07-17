@@ -1,5 +1,5 @@
 PODS:
-  - Callingx (0.6.1):
+  - Callingx (0.6.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2414,7 +2414,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stream-io-noise-cancellation-react-native (0.9.1):
+  - stream-io-noise-cancellation-react-native (0.9.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2438,7 +2438,7 @@ PODS:
     - stream-react-native-webrtc
     - StreamVideoNoiseCancellation
     - Yoga
-  - stream-io-video-filters-react-native (0.14.1):
+  - stream-io-video-filters-react-native (0.14.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2461,10 +2461,10 @@ PODS:
     - ReactNativeDependencies
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (145.0.0):
+  - stream-react-native-webrtc (148.0.0):
     - React-Core
-    - StreamWebRTC (= 145.10.0)
-  - stream-video-react-native (1.40.1):
+    - StreamWebRTC (= 148.0.0)
+  - stream-video-react-native (1.40.2):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2488,7 +2488,7 @@ PODS:
     - stream-react-native-webrtc
     - Yoga
   - StreamVideoNoiseCancellation (1.0.3)
-  - StreamWebRTC (145.10.0)
+  - StreamWebRTC (148.0.0)
   - Teleport (1.1.7):
     - hermes-engine
     - RCTRequired
@@ -2641,6 +2641,7 @@ DEPENDENCIES:
   - "stream-io-video-filters-react-native (from `../node_modules/@stream-io/video-filters-react-native`)"
   - "stream-react-native-webrtc (from `../node_modules/@stream-io/react-native-webrtc`)"
   - "stream-video-react-native (from `../node_modules/@stream-io/video-react-native-sdk`)"
+  - StreamWebRTC (from `/Users/santhoshvaiyapuri/Projects/stream-react-native-webrtc/third_party`)
   - Teleport (from `../node_modules/react-native-teleport`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
@@ -2648,7 +2649,6 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - StreamVideoNoiseCancellation
-    - StreamWebRTC
 
 EXTERNAL SOURCES:
   Callingx:
@@ -2846,6 +2846,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@stream-io/react-native-webrtc"
   stream-video-react-native:
     :path: "../node_modules/@stream-io/video-react-native-sdk"
+  StreamWebRTC:
+    :path: "/Users/santhoshvaiyapuri/Projects/stream-react-native-webrtc/third_party"
   Teleport:
     :path: "../node_modules/react-native-teleport"
   VisionCamera:
@@ -2854,7 +2856,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Callingx: 8fb838af02f573575a9eda1b449c9485862bbae2
+  Callingx: c67d870f83809d8f6666d477587562df4c10b3c5
   FBLazyVector: 24e62c765683b8d89006a88a2c8f5cf019f0074d
   hermes-engine: 2d0f6516440ca865b33146ac797ab69743686d86
   RCTDeprecation: a4c521821fab57cbb125b36effe84d897d0dfa12
@@ -2947,16 +2949,16 @@ SPEC CHECKSUMS:
   RNSVG: 8efa5ad14ceb98fe56c03793bd55bc4bd30ad84b
   RNWorklets: 4931990f73bc8f347586918b2e13f11dfadf3b75
   stream-chat-react-native: 4cbcc820434b8b923391f8a31d52a68908dcc437
-  stream-io-noise-cancellation-react-native: 2081a701554da05288d4f1ecc05abc2be309f040
-  stream-io-video-filters-react-native: 0606d072642f15ea4c05e45d66579b6bf7c20459
-  stream-react-native-webrtc: af1423d12a18cd213fa1bd745241d1734c9a8235
-  stream-video-react-native: b76560ec8491fe4443af47dc4cfcf6cd1bb7c2e7
+  stream-io-noise-cancellation-react-native: 297b034c71a4fd4189a5510f256ae658bb18e6f0
+  stream-io-video-filters-react-native: f1c1db763d82643706fd52279aab991aadf718ae
+  stream-react-native-webrtc: 651e0ee53a9b93171a063e09bfd83e5f99544325
+  stream-video-react-native: fcb5336cffaa6f1b804321a295ea0156946664c3
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
-  StreamWebRTC: ff3698ef9a94e7ca90dd54ce36991066323fd855
+  StreamWebRTC: 460590cd3f00840fc67332091e2bb886b9d8592b
   Teleport: 58dccc8594d74a77cdc2a2191b60656f9aaac743
   VisionCamera: b51af005669c6642dd1b4fca434eda4c1778de87
   Yoga: e240fec777ff1f21ef42ccebbb44b6d262125855
 
-PODFILE CHECKSUM: c29d9efec31064fe74fffdba980d3dc6a9a83ae9
+PODFILE CHECKSUM: 068712a25b1074ab4ea6af00707fd973f463c7ac
 
 COCOAPODS: 1.15.2
