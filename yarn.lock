@@ -7130,6 +7130,21 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stream-io/e2ee-demo@workspace:sample-apps/react/e2ee-demo":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/e2ee-demo@workspace:sample-apps/react/e2ee-demo"
+  dependencies:
+    "@stream-io/video-react-sdk": "workspace:^"
+    "@types/react": "npm:^19.2.15"
+    "@types/react-dom": "npm:^19.2.3"
+    "@vitejs/plugin-react": "npm:^6.0.2"
+    react: "npm:19.2.3"
+    react-dom: "npm:19.2.3"
+    typescript: "npm:^6.0.3"
+    vite: "npm:^8.0.14"
+  languageName: unknown
+  linkType: soft
+
 "@stream-io/egress-composite@workspace:sample-apps/react/egress-composite":
   version: 0.0.0-use.local
   resolution: "@stream-io/egress-composite@workspace:sample-apps/react/egress-composite"
@@ -8300,7 +8315,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:~19.2.3":
+"@types/react-dom@npm:^19.2.3, @types/react-dom@npm:~19.2.3":
   version: 19.2.3
   resolution: "@types/react-dom@npm:19.2.3"
   peerDependencies:

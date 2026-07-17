@@ -1,0 +1,73 @@
+import type {
+  StreamVideoClient,
+  Call,
+  KeyStateReport,
+  PerfReport,
+} from '@stream-io/video-react-sdk';
+
+export type PreferredCodec = 'vp8' | 'vp9' | 'h264' | 'av1';
+export type TransformPath = 'script' | 'insertable';
+export type KeyMode = 'per-user' | 'shared';
+export type ParticipantRole = 'normal' | 'spy';
+
+export interface LogEntry {
+  id: number;
+  userId: string | null; // null = global (e.g. spawn failure)
+  timestamp: Date;
+  message: string;
+  type:
+    | 'key-set'
+    | 'key-rotate'
+    | 'key-distribute'
+    | 'join'
+    | 'leave'
+    | 'error'
+    | 'perf';
+}
+
+export interface HarnessParticipant {
+  userId: string;
+  name: string;
+  color: string;
+  role: ParticipantRole;
+  enabled: boolean;
+  transform: TransformPath;
+  codec: PreferredCodec;
+  currentKey?: ArrayBuffer;
+  keyIndex: number;
+  keyStore: KeyStateReport | null;
+  tracks: {
+    encrypting: boolean;
+    decryptingFrom: string[];
+    failingFrom: string[];
+  };
+  perf: PerfReport;
+  // Live SDK handles, for rendering only. Never serialized.
+  client: StreamVideoClient;
+  call: Call;
+}
+
+export interface HarnessConfig {
+  callId: string;
+  codec: PreferredCodec;
+  transform: TransformPath;
+  keyMode: KeyMode;
+}
+
+/**
+ * A participant seen in the call via the SFU roster (local or remote, including
+ * peers from other tabs/browsers). Used by the manual key-override UI.
+ */
+export interface RosterEntry {
+  userId: string;
+  name: string;
+  isLocal: boolean;
+}
+
+export interface Snapshot {
+  config: HarnessConfig;
+  participants: HarnessParticipant[];
+  roster: RosterEntry[];
+  log: LogEntry[];
+  globalError: string | null;
+}

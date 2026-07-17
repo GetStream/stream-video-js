@@ -155,6 +155,14 @@ export class Publisher extends BasePeerConnection {
       toRTCDegradationPreference(publishOption.degradationPreference) ??
       'maintain-framerate';
     await transceiver.sender.setParameters(params);
+    if (this.e2ee) {
+      this.e2ee.encrypt(
+        transceiver.sender,
+        publishOption.codec?.name.toLowerCase(),
+        TrackType[publishOption.trackType],
+      );
+      this.logger.debug('E2EE encryptor attached to sender');
+    }
 
     const trackType = publishOption.trackType;
     this.logger.debug(`Added ${TrackType[trackType]} transceiver`);

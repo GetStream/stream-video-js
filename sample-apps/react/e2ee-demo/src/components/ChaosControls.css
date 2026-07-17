@@ -1,0 +1,35 @@
+.chaos {
+  font-size: 12px;
+  padding: 6px 10px;
+}
+.chaos summary {
+  cursor: pointer;
+  color: #d92d20;
+  font-weight: 600;
+}
+.chaos__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+}
+.chaos__label {
+  color: #6e7681;
+}
+.chaos__muted {
+  color: #6e7681;
+  font-style: italic;
+}
+.chaos button {
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid #d92d20;
+  background: transparent;
+  color: #d92d20;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.chaos button:hover {
+  background: #d92d2015;
+}

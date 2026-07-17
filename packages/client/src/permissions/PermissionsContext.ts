@@ -1,4 +1,8 @@
-import { CallSettingsResponse, OwnCapability } from '../gen/coordinator';
+import {
+  CallSettingsResponse,
+  OwnCapability,
+  RequestPermissionRequestPermissionsEnum,
+} from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { ensureExhausted } from '../helpers/ensureExhausted';
 
@@ -70,20 +74,21 @@ export class PermissionsContext {
    * @param settings the call settings to check against (optional).
    */
   canRequest = (
-    permission: OwnCapability,
+    permission: RequestPermissionRequestPermissionsEnum,
     settings: CallSettingsResponse | undefined = this.settings,
   ) => {
     if (!settings) return false;
 
     const { audio, video, screensharing } = settings;
     switch (permission) {
-      case OwnCapability.SEND_AUDIO:
+      case RequestPermissionRequestPermissionsEnum.SEND_AUDIO:
         return audio.access_request_enabled;
-      case OwnCapability.SEND_VIDEO:
+      case RequestPermissionRequestPermissionsEnum.SEND_VIDEO:
         return video.access_request_enabled;
-      case OwnCapability.SCREENSHARE:
+      case RequestPermissionRequestPermissionsEnum.SCREENSHARE:
         return screensharing.access_request_enabled;
       default:
+        ensureExhausted(permission);
         return false;
     }
   };

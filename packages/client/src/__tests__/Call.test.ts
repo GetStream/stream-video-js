@@ -17,6 +17,7 @@ import { Dispatcher } from '../rtc';
 import { Call } from '../Call';
 import { StreamVideoParticipant } from '../types';
 import { TrackType } from '../gen/video/sfu/models/models';
+import type { E2EEManager } from '../rtc/e2ee/E2EEManager';
 
 const apiKey = process.env.STREAM_API_KEY!;
 const secret = process.env.STREAM_SECRET!;
@@ -297,6 +298,20 @@ describe('muting logic', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+});
+
+describe('setE2EEManager', () => {
+  it('throws when called after the peer connections exist', () => {
+    const call = client.call('default', generateUUIDv4());
+    const e2ee = fromPartial<E2EEManager>({});
+    // Before join there are no peer connections, so it is accepted.
+    expect(() => call.setE2EEManager(e2ee)).not.toThrow();
+    // Once a subscriber/publisher exists (i.e. after join) the PCs were already
+    // built without the manager; setting it now would leave the live session
+    // half-encrypted, so it must be rejected (finding 12).
+    call['subscriber'] = fromPartial({});
+    expect(() => call.setE2EEManager(e2ee)).toThrow(/before join/);
   });
 });
 

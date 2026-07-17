@@ -62,7 +62,9 @@ export default function BareCallRoom(props: ServerSideCredentialsProps) {
 
     const _call = client.call(callType, callId);
     setCall(_call);
-    applyQueryConfigParams(_call, router.query);
+    applyQueryConfigParams(_call, router.query).catch((e) =>
+      console.error('Failed to apply query config params', e),
+    );
 
     window.call = _call;
     return () => {

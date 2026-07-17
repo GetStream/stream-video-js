@@ -1,0 +1,5 @@
+{
+  "extends": "@stream-io/typescript-config/app-web.json",
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

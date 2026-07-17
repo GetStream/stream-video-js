@@ -74,6 +74,7 @@ type OrphanedTrack = {
   trackLookupPrefix: string;
   trackType: TrackType;
   track: MediaStream;
+  receiver?: RTCRtpReceiver;
 };
 
 /**
@@ -587,6 +588,7 @@ export class CallState {
       clearTimeout(taskId);
       this.closedCaptionsTasks.delete(ccKey);
     }
+    this.removeAllOrphanedTracks();
   };
 
   /**
@@ -1260,6 +1262,19 @@ export class CallState {
    */
   removeOrphanedTrack = (id: string) => {
     this.orphanedTracks = this.orphanedTracks.filter((o) => o.id !== id);
+  };
+
+  /**
+   * Drops every orphaned track. Call this when the peer connections that own
+   * the stored receivers go away (full leave, reconnect, or migration):
+   * `pc.close()` does not raise the track `ended` event, so the per-track
+   * cleanup never fires and the receivers + their closed PCs would otherwise
+   * leak for the call's lifetime.
+   *
+   * @internal
+   */
+  removeAllOrphanedTracks = () => {
+    this.orphanedTracks = [];
   };
 
   /**

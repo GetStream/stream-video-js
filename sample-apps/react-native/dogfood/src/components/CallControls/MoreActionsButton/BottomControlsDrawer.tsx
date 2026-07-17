@@ -1,5 +1,5 @@
 import {
-  SendReactionRequest,
+  SendVideoReactionRequest,
   useCall,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
@@ -116,7 +116,7 @@ export const BottomControlsDrawer: React.FC<DrawerProps> = ({
 
   const elasticAnimRef = useRef(new Animated.Value(0.5));
 
-  const onCloseReaction = (reaction?: SendReactionRequest) => {
+  const onCloseReaction = (reaction?: SendVideoReactionRequest) => {
     if (reaction) {
       call?.sendReaction(reaction).catch((e) => {
         console.log('Error on onClose-sendReaction: ', e);

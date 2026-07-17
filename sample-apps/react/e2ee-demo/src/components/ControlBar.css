@@ -1,0 +1,99 @@
+.control-bar {
+  padding: 12px 16px;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.control-bar__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.control-bar__title {
+  font-size: 16px;
+  margin: 0;
+  color: #f0f6fc;
+}
+.control-bar__call-id {
+  color: #8b949e;
+  font-size: 13px;
+}
+.control-bar__badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.control-bar__badge.ok {
+  background: #00b36833;
+  color: #3fb950;
+}
+.control-bar__badge.no {
+  background: #d92d2033;
+  color: #f85149;
+}
+.control-bar label {
+  font-size: 12px;
+  color: #8b949e;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.control-bar select,
+.control-bar input[type='text'] {
+  background: #0d1117;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  padding: 3px 6px;
+}
+.control-bar button {
+  background: #238636;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 12px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.control-bar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.control-bar__hint {
+  font-size: 11px;
+  color: #6e7681;
+  font-style: italic;
+}
+.control-bar button.control-bar__keys-toggle {
+  margin-left: auto;
+  background: #21262d;
+  border: 1px solid #30363d;
+}
+.control-bar button.control-bar__keys-toggle.active {
+  background: #1f6feb;
+  border-color: #1f6feb;
+}
+.control-bar__shared {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-left: auto;
+}
+.control-bar__error {
+  color: #f85149;
+  background: #d92d2022;
+  border: 1px solid #f85149;
+  border-radius: 5px;
+  padding: 6px 10px;
+}
+.control-bar__error span {
+  flex: 1;
+}
+.control-bar__error button {
+  background: transparent;
+  border: 1px solid #f85149;
+  color: #f85149;
+}

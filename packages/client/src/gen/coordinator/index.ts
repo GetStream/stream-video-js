@@ -664,6 +664,12 @@ export interface CallEndedEvent {
    */
   created_at: string;
   /**
+   * The list of members in the call
+   * @type {Array<MemberResponse>}
+   * @memberof CallEndedEvent
+   */
+  members?: Array<MemberResponse>;
+  /**
    * The reason why the call ended, if available
    * @type {string}
    * @memberof CallEndedEvent
@@ -965,6 +971,37 @@ export interface CallIngressResponse {
    * @memberof CallIngressResponse
    */
   whip: WHIPIngress;
+}
+/**
+ *
+ * @export
+ * @interface CallLevelEventPayload
+ */
+export interface CallLevelEventPayload {
+  /**
+   *
+   * @type {string}
+   * @memberof CallLevelEventPayload
+   */
+  event_type: string;
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof CallLevelEventPayload
+   */
+  payload?: { [key: string]: any };
+  /**
+   *
+   * @type {number}
+   * @memberof CallLevelEventPayload
+   */
+  timestamp: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallLevelEventPayload
+   */
+  user_id: string;
 }
 /**
  * This event is sent when a call is started. Clients receiving this event should start the call.
@@ -1443,10 +1480,10 @@ export interface CallReactionEvent {
   created_at: string;
   /**
    *
-   * @type {ReactionResponse}
+   * @type {VideoReactionResponse}
    * @memberof CallReactionEvent
    */
-  reaction: ReactionResponse;
+  reaction: VideoReactionResponse;
   /**
    * The type of event: "call.reaction_new" in this case
    * @type {string}
@@ -1913,6 +1950,12 @@ export interface CallResponse {
    */
   recording: boolean;
   /**
+   * 10-digit routing number for SIP routing
+   * @type {string}
+   * @memberof CallResponse
+   */
+  routing_number?: string;
+  /**
    *
    * @type {CallSessionResponse}
    * @memberof CallResponse
@@ -2304,12 +2347,6 @@ export interface CallSessionResponse {
    * @type {string}
    * @memberof CallSessionResponse
    */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof CallSessionResponse
-   */
   ended_at?: string;
   /**
    *
@@ -2429,6 +2466,12 @@ export interface CallSettingsRequest {
   broadcasting?: BroadcastSettingsRequest;
   /**
    *
+   * @type {EncryptionSettingsRequest}
+   * @memberof CallSettingsRequest
+   */
+  encryption?: EncryptionSettingsRequest;
+  /**
+   *
    * @type {FrameRecordingSettingsRequest}
    * @memberof CallSettingsRequest
    */
@@ -2530,6 +2573,12 @@ export interface CallSettingsResponse {
    * @memberof CallSettingsResponse
    */
   broadcasting: BroadcastSettingsResponse;
+  /**
+   *
+   * @type {EncryptionSettingsResponse}
+   * @memberof CallSettingsResponse
+   */
+  encryption: EncryptionSettingsResponse;
   /**
    *
    * @type {FrameRecordingSettingsResponse}
@@ -2899,7 +2948,49 @@ export interface CallStatsParticipantCounts {
    * @type {number}
    * @memberof CallStatsParticipantCounts
    */
+  average_jitter_ms?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  average_latency_ms?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  avg_user_rating?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  call_event_count?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  cq_score?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
   live_sessions: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  max_freezes_duration_ms?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  min_user_rating?: number;
   /**
    *
    * @type {number}
@@ -2930,6 +3021,18 @@ export interface CallStatsParticipantCounts {
    * @memberof CallStatsParticipantCounts
    */
   sessions: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  sfus_used: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantCounts
+   */
+  total_participant_duration?: number;
 }
 /**
  *
@@ -2981,10 +3084,34 @@ export interface CallStatsParticipantSession {
   ended_at?: string;
   /**
    *
+   * @type {number}
+   * @memberof CallStatsParticipantSession
+   */
+  freezes_duration_ms?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsParticipantSession
+   */
+  ingress?: string;
+  /**
+   *
    * @type {boolean}
    * @memberof CallStatsParticipantSession
    */
   is_live: boolean;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantSession
+   */
+  jitter_ms?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof CallStatsParticipantSession
+   */
+  latency_ms?: number;
   /**
    *
    * @type {CallStatsLocation}
@@ -3060,10 +3187,28 @@ export interface CallStatsReportReadyEvent {
   call_cid: string;
   /**
    *
+   * @type {CallStatsParticipantCounts}
+   * @memberof CallStatsReportReadyEvent
+   */
+  counts: CallStatsParticipantCounts;
+  /**
+   *
    * @type {string}
    * @memberof CallStatsReportReadyEvent
    */
   created_at: string;
+  /**
+   * Whether participants_overview is truncated by the server-side limit
+   * @type {boolean}
+   * @memberof CallStatsReportReadyEvent
+   */
+  is_trimmed?: boolean;
+  /**
+   * Top participant sessions overview
+   * @type {Array<CallStatsParticipant>}
+   * @memberof CallStatsReportReadyEvent
+   */
+  participants_overview?: Array<CallStatsParticipant>;
   /**
    * Call session ID
    * @type {string}
@@ -3131,6 +3276,55 @@ export interface CallStatsReportSummaryResponse {
    * @memberof CallStatsReportSummaryResponse
    */
   quality_score?: number;
+}
+/**
+ *
+ * @export
+ * @interface CallStatsSessionResponse
+ */
+export interface CallStatsSessionResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsSessionResponse
+   */
+  call_ended_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsSessionResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsSessionResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsSessionResponse
+   */
+  call_started_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsSessionResponse
+   */
+  call_type: string;
+  /**
+   *
+   * @type {CallStatsParticipantCounts}
+   * @memberof CallStatsSessionResponse
+   */
+  counts: CallStatsParticipantCounts;
+  /**
+   *
+   * @type {string}
+   * @memberof CallStatsSessionResponse
+   */
+  generated_at: string;
 }
 /**
  * CallTranscription represents a transcription of a call.
@@ -3493,6 +3687,218 @@ export interface ChatActivityStatsResponse {
   Messages?: MessageStatsResponse;
 }
 /**
+ *
+ * @export
+ * @interface ChatPreferencesResponse
+ */
+export interface ChatPreferencesResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof ChatPreferencesResponse
+   */
+  channel_mentions?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ChatPreferencesResponse
+   */
+  default_preference?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ChatPreferencesResponse
+   */
+  direct_mentions?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ChatPreferencesResponse
+   */
+  group_mentions?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ChatPreferencesResponse
+   */
+  here_mentions?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ChatPreferencesResponse
+   */
+  role_mentions?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ChatPreferencesResponse
+   */
+  thread_replies?: string;
+}
+/**
+ * A single client-side telemetry event. JoinInitiated is the top-level marker emitted when a user begins a join attempt and carries only join_attempt_id (no stage_id or coordinator_connect_id). When stage is CoordinatorJoin, CoordinatorWS, WSJoin, or PeerConnectionConnect the event reports a join-lifecycle attempt; initiation and completion of a stage attempt share the same stage_id. FirstAudioFrame and FirstVideoFrame report media readiness and only ever carry an initiated event. MediaDevicePermission reports the result of requesting screen-share, microphone, and camera permissions. Other stage values denote generic client events.
+ * @export
+ * @interface ClientEvent
+ */
+export interface ClientEvent {
+  /**
+   * Call session ID associated with the attempt. Required on every event except CoordinatorJoin initiation and CoordinatorJoin failure (where the call session is not yet established); optional on MediaDevicePermission.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  call_session_id?: string;
+  /**
+   * Camera permission status: INITIATED, FAILED, GRANTED, or NOT_INITIATED. Required on every MediaDevicePermission event.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  camera_permission_status?: string;
+  /**
+   * UUID generated by the client and shared across every event of the same coordinator connection. Required on every event except JoinInitiated, which is reported before a coordinator connection exists.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  coordinator_connect_id?: string;
+  /**
+   * Milliseconds elapsed between the stage attempt's initiation and this event.
+   * @type {number}
+   * @memberof ClientEvent
+   */
+  elapsed_time?: number;
+  /**
+   * Whether the event marks the start (initiated) or resolution (completed) of a stage attempt, or another event-specific value
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  event_type?: string;
+  /**
+   * Terminal state of the peer connection. Required on PeerConnectionConnect failure.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  ice_state?: string;
+  /**
+   * Call ID associated with the event. Required on every stage except CoordinatorWS, where it is optional.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  id?: string;
+  /**
+   * UUID generated by the client and shared across JoinInitiated and the join-lifecycle events (CoordinatorJoin, WSJoin, PeerConnectionConnect) of the same overall join attempt. Required on every join event except CoordinatorWS, which is reported before a join attempt is established.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  join_attempt_id?: string;
+  /**
+   * Microphone permission status: INITIATED, FAILED, GRANTED, or NOT_INITIATED. Required on every MediaDevicePermission event.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  microphone_permission_status?: string;
+  /**
+   * Resolution of a completed event: success or failure. Required on completed join events; forbidden on initiated join events.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  outcome?: string;
+  /**
+   * Which peer connection a PeerConnectionConnect event reports on: publish or subscribe. Required on every PeerConnectionConnect event.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  peer_connection?: string;
+  /**
+   * UTC timestamp at which the ICE connection was established earlier in the session, when applicable
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  previously_connected_timestamp?: string;
+  /**
+   * Total in-stage retries the client made before resolving (0–1000). Required on completed join events.
+   * @type {number}
+   * @memberof ClientEvent
+   */
+  retry_count_attempt?: number;
+  /**
+   * Failure code string. Required on CoordinatorJoin, CoordinatorWS, WSJoin, and PeerConnectionConnect failure.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  retry_failure_code?: string;
+  /**
+   * Failure reason string. Required on CoordinatorJoin, CoordinatorWS, WSJoin, and PeerConnectionConnect failure.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  retry_failure_reason?: string;
+  /**
+   * Screen-share permission status: INITIATED, FAILED, GRANTED, or NOT_INITIATED. Optional on MediaDevicePermission events.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  screen_share_status?: string;
+  /**
+   * Version of the client SDK
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  sdk_version?: string;
+  /**
+   * Identifier of the SFU the client was attempting to connect to. Required on WSJoin and PeerConnectionConnect failure, and on FirstAudioFrame and FirstVideoFrame.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  sfu_id?: string;
+  /**
+   * Discriminator identifying the event kind. JoinInitiated marks the start of a join attempt; join-lifecycle events use CoordinatorJoin, CoordinatorWS, WSJoin, or PeerConnectionConnect; media-readiness events use FirstAudioFrame or FirstVideoFrame; MediaDevicePermission reports device permission results; other values denote generic client events.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  stage?: string;
+  /**
+   * UUID generated by the client at initiation. Identical on the matching completion event. Absent on JoinInitiated.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  stage_id?: string;
+  /**
+   * UTC timestamp at which the event was recorded
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  timestamp?: string;
+  /**
+   * Identifier of the media track the frame belongs to. Required on FirstVideoFrame; optional on FirstAudioFrame.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  track_id?: string;
+  /**
+   * Call type associated with the event. Required on every stage except CoordinatorWS, where it is optional.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  type?: string;
+  /**
+   * User agent string of the client SDK
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  user_agent?: string;
+  /**
+   * ID of the user the event was recorded for
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  user_id?: string;
+  /**
+   * Whether the ICE connection had been established earlier in the same session. Required on every PeerConnectionConnect event so reconnects can be distinguished from fresh connects.
+   * @type {boolean}
+   * @memberof ClientEvent
+   */
+  was_previously_connected?: boolean;
+}
+/**
  * This event is sent when closed captions are being sent in a call, clients should use this to show the closed captions in the call screen
  * @export
  * @interface ClosedCaptionEvent
@@ -3704,21 +4110,21 @@ export interface ConnectionErrorEvent {
   type: string;
 }
 /**
- *
+ * Geographic coordinates
  * @export
- * @interface Coordinates
+ * @interface CoordinatesResponse
  */
-export interface Coordinates {
+export interface CoordinatesResponse {
   /**
-   *
+   * Latitude coordinate
    * @type {number}
-   * @memberof Coordinates
+   * @memberof CoordinatesResponse
    */
   latitude: number;
   /**
-   *
+   * Longitude coordinate
    * @type {number}
-   * @memberof Coordinates
+   * @memberof CoordinatesResponse
    */
   longitude: number;
 }
@@ -3747,6 +4153,12 @@ export interface CountByMinuteResponse {
  * @interface CreateDeviceRequest
  */
 export interface CreateDeviceRequest {
+  /**
+   * Stable physical device identifier used to deduplicate pushes across push providers (e.g. APNs VoIP and Firebase on the same iOS device). Distinct from 'id', which is the push token.
+   * @type {string}
+   * @memberof CreateDeviceRequest
+   */
+  hardware_id?: string;
   /**
    * Device ID
    * @type {string}
@@ -3831,10 +4243,10 @@ export interface CreateGuestResponse {
 export interface Credentials {
   /**
    *
-   * @type {Array<ICEServer>}
+   * @type {Array<ICEServerResponse>}
    * @memberof Credentials
    */
-  ice_servers: Array<ICEServer>;
+  ice_servers: Array<ICEServerResponse>;
   /**
    *
    * @type {SFUResponse}
@@ -4088,6 +4500,12 @@ export interface DeviceResponse {
    */
   disabled_reason?: string;
   /**
+   * Stable physical device identifier used to deduplicate pushes across push providers
+   * @type {string}
+   * @memberof DeviceResponse
+   */
+  hardware_id?: string;
+  /**
    * Device ID
    * @type {string}
    * @memberof DeviceResponse
@@ -4285,6 +4703,32 @@ export interface EgressResponse {
   rtmps: Array<EgressRTMPResponse>;
 }
 /**
+ *
+ * @export
+ * @interface EncryptionSettingsRequest
+ */
+export interface EncryptionSettingsRequest {
+  /**
+   * if true, the call is created end-to-end encrypted
+   * @type {boolean}
+   * @memberof EncryptionSettingsRequest
+   */
+  enabled?: boolean;
+}
+/**
+ * EncryptionSettings is the payload for end-to-end encryption settings
+ * @export
+ * @interface EncryptionSettingsResponse
+ */
+export interface EncryptionSettingsResponse {
+  /**
+   * whether the call is end-to-end encrypted
+   * @type {boolean}
+   * @memberof EncryptionSettingsResponse
+   */
+  enabled: boolean;
+}
+/**
  * Response for ending a call
  * @export
  * @interface EndCallResponse
@@ -4314,7 +4758,19 @@ export interface FeedsPreferencesResponse {
    * @type {string}
    * @memberof FeedsPreferencesResponse
    */
+  comment_mention?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
   comment_reaction?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof FeedsPreferencesResponse
+   */
+  comment_reply?: string;
   /**
    *
    * @type {{ [key: string]: string; }}
@@ -4502,6 +4958,67 @@ export interface GeofenceSettingsResponse {
    * @memberof GeofenceSettingsResponse
    */
   names: Array<string>;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface GetCallParticipantSessionMetricsResponse
+ */
+export interface GetCallParticipantSessionMetricsResponse {
+  /**
+   *
+   * @type {SessionClient}
+   * @memberof GetCallParticipantSessionMetricsResponse
+   */
+  client?: SessionClient;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof GetCallParticipantSessionMetricsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GetCallParticipantSessionMetricsResponse
+   */
+  is_publisher?: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof GetCallParticipantSessionMetricsResponse
+   */
+  is_subscriber?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallParticipantSessionMetricsResponse
+   */
+  joined_at?: string;
+  /**
+   *
+   * @type {Array<PublishedTrackMetrics>}
+   * @memberof GetCallParticipantSessionMetricsResponse
+   */
+  published_tracks?: Array<PublishedTrackMetrics>;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallParticipantSessionMetricsResponse
+   */
+  publisher_type?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallParticipantSessionMetricsResponse
+   */
+  user_id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof GetCallParticipantSessionMetricsResponse
+   */
+  user_session_id?: string;
 }
 /**
  * Basic response information
@@ -4855,24 +5372,43 @@ export interface GroupedStatsResponse {
  */
 export interface HLSSettingsRequest {
   /**
-   *
+   * Whether HLS broadcasting should start automatically
    * @type {boolean}
    * @memberof HLSSettingsRequest
    */
   auto_on?: boolean;
   /**
-   *
+   * Whether HLS broadcasting is enabled
    * @type {boolean}
    * @memberof HLSSettingsRequest
    */
   enabled?: boolean;
   /**
-   *
+   * Quality tracks for HLS. One of: 360p, 480p, 720p, 1080p, 1440p, portrait-360x640, portrait-480x854, portrait-720x1280, portrait-1080x1920, portrait-1440x2560
    * @type {Array<string>}
    * @memberof HLSSettingsRequest
    */
-  quality_tracks: Array<string>;
+  quality_tracks: Array<HLSSettingsRequestQualityTracksEnum>;
 }
+
+/**
+ * @export
+ */
+export const HLSSettingsRequestQualityTracksEnum = {
+  _360P: '360p',
+  _480P: '480p',
+  _720P: '720p',
+  _1080P: '1080p',
+  _1440P: '1440p',
+  PORTRAIT_360X640: 'portrait-360x640',
+  PORTRAIT_480X854: 'portrait-480x854',
+  PORTRAIT_720X1280: 'portrait-720x1280',
+  PORTRAIT_1080X1920: 'portrait-1080x1920',
+  PORTRAIT_1440X2560: 'portrait-1440x2560',
+} as const;
+export type HLSSettingsRequestQualityTracksEnum =
+  (typeof HLSSettingsRequestQualityTracksEnum)[keyof typeof HLSSettingsRequestQualityTracksEnum];
+
 /**
  * HLSSettings is the payload for HLS settings
  * @export
@@ -4942,27 +5478,27 @@ export interface HealthCheckEvent {
   type: string;
 }
 /**
- *
+ * ICE server configuration for WebRTC connections
  * @export
- * @interface ICEServer
+ * @interface ICEServerResponse
  */
-export interface ICEServer {
+export interface ICEServerResponse {
   /**
-   *
+   * ICE server password
    * @type {string}
-   * @memberof ICEServer
+   * @memberof ICEServerResponse
    */
   password: string;
   /**
-   *
+   * ICE server URLs
    * @type {Array<string>}
-   * @memberof ICEServer
+   * @memberof ICEServerResponse
    */
   urls: Array<string>;
   /**
-   *
+   * ICE server username
    * @type {string}
-   * @memberof ICEServer
+   * @memberof ICEServerResponse
    */
   username: string;
 }
@@ -4986,11 +5522,17 @@ export interface IndividualRecordingResponse {
  */
 export interface IndividualRecordingSettingsRequest {
   /**
-   *
+   * Recording mode. One of: available, disabled, auto-on
    * @type {string}
    * @memberof IndividualRecordingSettingsRequest
    */
   mode: IndividualRecordingSettingsRequestModeEnum;
+  /**
+   * Output types to include: audio_only, video_only, audio_video, screenshare_audio_only, screenshare_video_only, screenshare_audio_video
+   * @type {Array<string>}
+   * @memberof IndividualRecordingSettingsRequest
+   */
+  output_types?: Array<IndividualRecordingSettingsRequestOutputTypesEnum>;
 }
 
 /**
@@ -5005,6 +5547,20 @@ export type IndividualRecordingSettingsRequestModeEnum =
   (typeof IndividualRecordingSettingsRequestModeEnum)[keyof typeof IndividualRecordingSettingsRequestModeEnum];
 
 /**
+ * @export
+ */
+export const IndividualRecordingSettingsRequestOutputTypesEnum = {
+  AUDIO_ONLY: 'audio_only',
+  VIDEO_ONLY: 'video_only',
+  AUDIO_VIDEO: 'audio_video',
+  SCREENSHARE_AUDIO_ONLY: 'screenshare_audio_only',
+  SCREENSHARE_VIDEO_ONLY: 'screenshare_video_only',
+  SCREENSHARE_AUDIO_VIDEO: 'screenshare_audio_video',
+} as const;
+export type IndividualRecordingSettingsRequestOutputTypesEnum =
+  (typeof IndividualRecordingSettingsRequestOutputTypesEnum)[keyof typeof IndividualRecordingSettingsRequestOutputTypesEnum];
+
+/**
  *
  * @export
  * @interface IndividualRecordingSettingsResponse
@@ -5016,6 +5572,12 @@ export interface IndividualRecordingSettingsResponse {
    * @memberof IndividualRecordingSettingsResponse
    */
   mode: IndividualRecordingSettingsResponseModeEnum;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof IndividualRecordingSettingsResponse
+   */
+  output_types?: Array<string>;
 }
 
 /**
@@ -5344,6 +5906,12 @@ export interface JoinCallRequest {
    * @memberof JoinCallRequest
    */
   data?: CallRequest;
+  /**
+   * the encryption mode the client intends to use for this join; the join is rejected if it does not match the call's encryption configuration
+   * @type {boolean}
+   * @memberof JoinCallRequest
+   */
+  e2ee?: boolean;
   /**
    * if true, the participant will be marked as publsihing to large audience
    * @type {boolean}
@@ -5688,27 +6256,27 @@ export interface ListTranscriptionsResponse {
   transcriptions: Array<CallTranscription>;
 }
 /**
- *
+ * Geographic location metadata
  * @export
- * @interface Location
+ * @interface LocationResponse
  */
-export interface Location {
+export interface LocationResponse {
   /**
-   *
+   * Continent code
    * @type {string}
-   * @memberof Location
+   * @memberof LocationResponse
    */
   continent_code: string;
   /**
-   *
+   * Country ISO code
    * @type {string}
-   * @memberof Location
+   * @memberof LocationResponse
    */
   country_iso_code: string;
   /**
-   *
+   * Subdivision ISO code
    * @type {string}
-   * @memberof Location
+   * @memberof LocationResponse
    */
   subdivision_iso_code: string;
 }
@@ -5860,6 +6428,19 @@ export interface MetricThreshold {
    * @memberof MetricThreshold
    */
   window_seconds?: number;
+}
+/**
+ *
+ * @export
+ * @interface MetricTimeSeries
+ */
+export interface MetricTimeSeries {
+  /**
+   *
+   * @type {Array<Array<number>>}
+   * @memberof MetricTimeSeries
+   */
+  data_points?: Array<Array<number>>;
 }
 /**
  *
@@ -6486,6 +7067,55 @@ export interface ParticipantSeriesUserStats {
 /**
  *
  * @export
+ * @interface ParticipantSessionDetails
+ */
+export interface ParticipantSessionDetails {
+  /**
+   *
+   * @type {number}
+   * @memberof ParticipantSessionDetails
+   */
+  duration_in_seconds?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSessionDetails
+   */
+  joined_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSessionDetails
+   */
+  left_at?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSessionDetails
+   */
+  publisher_type: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof ParticipantSessionDetails
+   */
+  roles: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSessionDetails
+   */
+  user_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ParticipantSessionDetails
+   */
+  user_session_id: string;
+}
+/**
+ *
+ * @export
  * @interface PerSDKUsageReport
  */
 export interface PerSDKUsageReport {
@@ -6606,6 +7236,55 @@ export interface PublishedTrackFlags {
 /**
  *
  * @export
+ * @interface PublishedTrackMetrics
+ */
+export interface PublishedTrackMetrics {
+  /**
+   *
+   * @type {MetricTimeSeries}
+   * @memberof PublishedTrackMetrics
+   */
+  bitrate?: MetricTimeSeries;
+  /**
+   *
+   * @type {string}
+   * @memberof PublishedTrackMetrics
+   */
+  codec?: string;
+  /**
+   *
+   * @type {MetricTimeSeries}
+   * @memberof PublishedTrackMetrics
+   */
+  framerate?: MetricTimeSeries;
+  /**
+   *
+   * @type {ResolutionMetricsTimeSeries}
+   * @memberof PublishedTrackMetrics
+   */
+  resolution?: ResolutionMetricsTimeSeries;
+  /**
+   *
+   * @type {string}
+   * @memberof PublishedTrackMetrics
+   */
+  track_id?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof PublishedTrackMetrics
+   */
+  track_type?: string;
+  /**
+   *
+   * @type {Array<SessionWarningResponse>}
+   * @memberof PublishedTrackMetrics
+   */
+  warnings?: Array<SessionWarningResponse>;
+}
+/**
+ *
+ * @export
  * @interface PublisherStatsResponse
  */
 export interface PublisherStatsResponse {
@@ -6646,6 +7325,12 @@ export interface PushPreferencesResponse {
    * @memberof PushPreferencesResponse
    */
   chat_level?: string;
+  /**
+   *
+   * @type {ChatPreferencesResponse}
+   * @memberof PushPreferencesResponse
+   */
+  chat_preferences?: ChatPreferencesResponse;
   /**
    *
    * @type {string}
@@ -6778,7 +7463,7 @@ export interface QueryAggregateCallStatsResponse {
  */
 export interface QueryCallMembersRequest {
   /**
-   *
+   * Filter conditions to apply to the query
    * @type {{ [key: string]: any; }}
    * @memberof QueryCallMembersRequest
    */
@@ -6808,7 +7493,7 @@ export interface QueryCallMembersRequest {
    */
   prev?: string;
   /**
-   *
+   * Array of sort parameters
    * @type {Array<SortParamRequest>}
    * @memberof QueryCallMembersRequest
    */
@@ -6852,13 +7537,80 @@ export interface QueryCallMembersResponse {
   prev?: string;
 }
 /**
+ * Basic response information
+ * @export
+ * @interface QueryCallParticipantSessionsResponse
+ */
+export interface QueryCallParticipantSessionsResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallParticipantSessionsResponse
+   */
+  call_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallParticipantSessionsResponse
+   */
+  call_session_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallParticipantSessionsResponse
+   */
+  call_type: string;
+  /**
+   * Duration of the request in milliseconds
+   * @type {number}
+   * @memberof QueryCallParticipantSessionsResponse
+   */
+  duration: number;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallParticipantSessionsResponse
+   */
+  next?: string;
+  /**
+   *
+   * @type {Array<ParticipantSessionDetails>}
+   * @memberof QueryCallParticipantSessionsResponse
+   */
+  participants_sessions: Array<ParticipantSessionDetails>;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallParticipantSessionsResponse
+   */
+  prev?: string;
+  /**
+   *
+   * @type {CallSessionResponse}
+   * @memberof QueryCallParticipantSessionsResponse
+   */
+  session?: CallSessionResponse;
+  /**
+   *
+   * @type {number}
+   * @memberof QueryCallParticipantSessionsResponse
+   */
+  total_participant_duration: number;
+  /**
+   *
+   * @type {number}
+   * @memberof QueryCallParticipantSessionsResponse
+   */
+  total_participant_sessions: number;
+}
+/**
  *
  * @export
  * @interface QueryCallParticipantsRequest
  */
 export interface QueryCallParticipantsRequest {
   /**
-   *
+   * Filter conditions to apply to the query
    * @type {{ [key: string]: any; }}
    * @memberof QueryCallParticipantsRequest
    */
@@ -6925,6 +7677,12 @@ export interface QueryCallSessionParticipantStatsResponse {
    * @memberof QueryCallSessionParticipantStatsResponse
    */
   call_ended_at?: string;
+  /**
+   *
+   * @type {Array<CallLevelEventPayload>}
+   * @memberof QueryCallSessionParticipantStatsResponse
+   */
+  call_events?: Array<CallLevelEventPayload>;
   /**
    *
    * @type {string}
@@ -7036,6 +7794,74 @@ export interface QueryCallSessionParticipantStatsTimelineResponse {
   user_session_id: string;
 }
 /**
+ *
+ * @export
+ * @interface QueryCallSessionStatsRequest
+ */
+export interface QueryCallSessionStatsRequest {
+  /**
+   * Filter conditions to apply to the query
+   * @type {{ [key: string]: any; }}
+   * @memberof QueryCallSessionStatsRequest
+   */
+  filter_conditions?: { [key: string]: any };
+  /**
+   *
+   * @type {number}
+   * @memberof QueryCallSessionStatsRequest
+   */
+  limit?: number;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionStatsRequest
+   */
+  next?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionStatsRequest
+   */
+  prev?: string;
+  /**
+   * Array of sort parameters
+   * @type {Array<SortParamRequest>}
+   * @memberof QueryCallSessionStatsRequest
+   */
+  sort?: Array<SortParamRequest>;
+}
+/**
+ * Basic response information
+ * @export
+ * @interface QueryCallSessionStatsResponse
+ */
+export interface QueryCallSessionStatsResponse {
+  /**
+   *
+   * @type {Array<CallStatsSessionResponse>}
+   * @memberof QueryCallSessionStatsResponse
+   */
+  call_stats: Array<CallStatsSessionResponse>;
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof QueryCallSessionStatsResponse
+   */
+  duration: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionStatsResponse
+   */
+  next?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof QueryCallSessionStatsResponse
+   */
+  prev?: string;
+}
+/**
  * Basic response information
  * @export
  * @interface QueryCallStatsMapResponse
@@ -7133,7 +7959,7 @@ export interface QueryCallStatsMapResponse {
  */
 export interface QueryCallStatsRequest {
   /**
-   *
+   * Filter conditions to apply to the query
    * @type {{ [key: string]: any; }}
    * @memberof QueryCallStatsRequest
    */
@@ -7157,7 +7983,7 @@ export interface QueryCallStatsRequest {
    */
   prev?: string;
   /**
-   *
+   * Array of sort parameters
    * @type {Array<SortParamRequest>}
    * @memberof QueryCallStatsRequest
    */
@@ -7201,7 +8027,7 @@ export interface QueryCallStatsResponse {
  */
 export interface QueryCallsRequest {
   /**
-   *
+   * Filter conditions to apply to the query
    * @type {{ [key: string]: any; }}
    * @memberof QueryCallsRequest
    */
@@ -7287,7 +8113,7 @@ export interface RTMPBroadcastRequest {
    */
   name: string;
   /**
-   * If provided, will override the call's RTMP settings quality
+   * If provided, will override the call's RTMP settings quality. One of: 360p, 480p, 720p, 1080p, 1440p, portrait-360x640, portrait-480x854, portrait-720x1280, portrait-1080x1920, portrait-1440x2560
    * @type {string}
    * @memberof RTMPBroadcastRequest
    */
@@ -7344,13 +8170,13 @@ export interface RTMPIngress {
  */
 export interface RTMPSettingsRequest {
   /**
-   *
+   * Whether RTMP broadcasting is enabled
    * @type {boolean}
    * @memberof RTMPSettingsRequest
    */
   enabled?: boolean;
   /**
-   * Resolution to set for the RTMP stream
+   * Resolution to set for the RTMP stream. One of: 360p, 480p, 720p, 1080p, 1440p, portrait-360x640, portrait-480x854, portrait-720x1280, portrait-1080x1920, portrait-1440x2560
    * @type {string}
    * @memberof RTMPSettingsRequest
    */
@@ -7414,7 +8240,13 @@ export interface RawRecordingResponse {
  */
 export interface RawRecordingSettingsRequest {
   /**
-   *
+   * If true, only audio tracks will be recorded
+   * @type {boolean}
+   * @memberof RawRecordingSettingsRequest
+   */
+  audio_only?: boolean;
+  /**
+   * Recording mode. One of: available, disabled, auto-on
    * @type {string}
    * @memberof RawRecordingSettingsRequest
    */
@@ -7440,6 +8272,12 @@ export type RawRecordingSettingsRequestModeEnum =
 export interface RawRecordingSettingsResponse {
   /**
    *
+   * @type {boolean}
+   * @memberof RawRecordingSettingsResponse
+   */
+  audio_only?: boolean;
+  /**
+   *
    * @type {string}
    * @memberof RawRecordingSettingsResponse
    */
@@ -7460,54 +8298,23 @@ export type RawRecordingSettingsResponseModeEnum =
 /**
  *
  * @export
- * @interface ReactionResponse
- */
-export interface ReactionResponse {
-  /**
-   *
-   * @type {{ [key: string]: any; }}
-   * @memberof ReactionResponse
-   */
-  custom?: { [key: string]: any };
-  /**
-   *
-   * @type {string}
-   * @memberof ReactionResponse
-   */
-  emoji_code?: string;
-  /**
-   *
-   * @type {string}
-   * @memberof ReactionResponse
-   */
-  type: string;
-  /**
-   *
-   * @type {UserResponse}
-   * @memberof ReactionResponse
-   */
-  user: UserResponse;
-}
-/**
- *
- * @export
  * @interface RecordSettingsRequest
  */
 export interface RecordSettingsRequest {
   /**
-   *
+   * Whether to record audio only
    * @type {boolean}
    * @memberof RecordSettingsRequest
    */
   audio_only?: boolean;
   /**
-   *
+   * Recording mode. One of: available, disabled, auto-on
    * @type {string}
    * @memberof RecordSettingsRequest
    */
   mode: RecordSettingsRequestModeEnum;
   /**
-   *
+   * Recording quality. One of: 360p, 480p, 720p, 1080p, 1440p, portrait-360x640, portrait-480x854, portrait-720x1280, portrait-1080x1920, portrait-1440x2560
    * @type {string}
    * @memberof RecordSettingsRequest
    */
@@ -7667,8 +8474,20 @@ export interface RequestPermissionRequest {
    * @type {Array<string>}
    * @memberof RequestPermissionRequest
    */
-  permissions: Array<string>;
+  permissions: Array<RequestPermissionRequestPermissionsEnum>;
 }
+
+/**
+ * @export
+ */
+export const RequestPermissionRequestPermissionsEnum = {
+  SCREENSHARE: 'screenshare',
+  SEND_AUDIO: 'send-audio',
+  SEND_VIDEO: 'send-video',
+} as const;
+export type RequestPermissionRequestPermissionsEnum =
+  (typeof RequestPermissionRequestPermissionsEnum)[keyof typeof RequestPermissionRequestPermissionsEnum];
+
 /**
  *
  * @export
@@ -7683,6 +8502,93 @@ export interface RequestPermissionResponse {
   duration: string;
 }
 /**
+ *
+ * @export
+ * @interface ResolutionMetricsTimeSeries
+ */
+export interface ResolutionMetricsTimeSeries {
+  /**
+   *
+   * @type {MetricTimeSeries}
+   * @memberof ResolutionMetricsTimeSeries
+   */
+  height?: MetricTimeSeries;
+  /**
+   *
+   * @type {MetricTimeSeries}
+   * @memberof ResolutionMetricsTimeSeries
+   */
+  width?: MetricTimeSeries;
+}
+/**
+ * Request to determine SIP trunk authentication requirements
+ * @export
+ * @interface ResolveSipAuthRequest
+ */
+export interface ResolveSipAuthRequest {
+  /**
+   * Host from the SIP From header
+   * @type {string}
+   * @memberof ResolveSipAuthRequest
+   */
+  from_host?: string;
+  /**
+   * SIP caller number
+   * @type {string}
+   * @memberof ResolveSipAuthRequest
+   */
+  sip_caller_number: string;
+  /**
+   * SIP trunk number to look up
+   * @type {string}
+   * @memberof ResolveSipAuthRequest
+   */
+  sip_trunk_number: string;
+  /**
+   * Transport-layer source IP address of the SIP request
+   * @type {string}
+   * @memberof ResolveSipAuthRequest
+   */
+  source_ip?: string;
+}
+/**
+ * Response containing the pre-authentication decision for a SIP trunk
+ * @export
+ * @interface ResolveSipAuthResponse
+ */
+export interface ResolveSipAuthResponse {
+  /**
+   * Authentication result: password, accept, or no_trunk_found
+   * @type {string}
+   * @memberof ResolveSipAuthResponse
+   */
+  auth_result: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ResolveSipAuthResponse
+   */
+  duration: string;
+  /**
+   * Password for digest authentication (when auth_result is password)
+   * @type {string}
+   * @memberof ResolveSipAuthResponse
+   */
+  password?: string;
+  /**
+   * ID of the matched SIP trunk
+   * @type {string}
+   * @memberof ResolveSipAuthResponse
+   */
+  trunk_id?: string;
+  /**
+   * Username for digest authentication (when auth_result is password)
+   * @type {string}
+   * @memberof ResolveSipAuthResponse
+   */
+  username?: string;
+}
+/**
  * Request to resolve SIP inbound routing using challenge authentication
  * @export
  * @interface ResolveSipInboundRequest
@@ -7690,10 +8596,16 @@ export interface RequestPermissionResponse {
 export interface ResolveSipInboundRequest {
   /**
    *
-   * @type {SIPChallenge}
+   * @type {SIPChallengeRequest}
    * @memberof ResolveSipInboundRequest
    */
-  challenge: SIPChallenge;
+  challenge?: SIPChallengeRequest;
+  /**
+   * Optional routing number for routing number-based call routing (10 digits)
+   * @type {string}
+   * @memberof ResolveSipInboundRequest
+   */
+  routing_number?: string;
   /**
    * SIP caller number
    * @type {string}
@@ -7712,6 +8624,12 @@ export interface ResolveSipInboundRequest {
    * @memberof ResolveSipInboundRequest
    */
   sip_trunk_number: string;
+  /**
+   * Optional pre-authenticated trunk ID (from PreAuth no-auth flow)
+   * @type {string}
+   * @memberof ResolveSipInboundRequest
+   */
+  trunk_id?: string;
 }
 /**
  * Response containing resolved SIP inbound routing information
@@ -7879,10 +8797,16 @@ export interface SDKUsageReportResponse {
 export interface SFULocationResponse {
   /**
    *
-   * @type {Coordinates}
+   * @type {CoordinatesResponse}
    * @memberof SFULocationResponse
    */
-  coordinates: Coordinates;
+  coordinates: CoordinatesResponse;
+  /**
+   *
+   * @type {number}
+   * @memberof SFULocationResponse
+   */
+  count?: number;
   /**
    *
    * @type {string}
@@ -7897,10 +8821,10 @@ export interface SFULocationResponse {
   id: string;
   /**
    *
-   * @type {Location}
+   * @type {LocationResponse}
    * @memberof SFULocationResponse
    */
-  location: Location;
+  location: LocationResponse;
 }
 /**
  *
@@ -7960,105 +8884,105 @@ export interface SIPCallerConfigsResponse {
   id: string;
 }
 /**
- *
+ * SIP digest challenge authentication data
  * @export
- * @interface SIPChallenge
+ * @interface SIPChallengeRequest
  */
-export interface SIPChallenge {
+export interface SIPChallengeRequest {
   /**
-   *
+   * Deprecated: A1 hash for backward compatibility
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   a1?: string;
   /**
-   *
+   * Hash algorithm (e.g., MD5, SHA-256)
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   algorithm?: string;
   /**
-   *
+   * Character set
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   charset?: string;
   /**
-   *
+   * Client nonce for qop=auth
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   cnonce?: string;
   /**
-   *
+   * Domain list
    * @type {Array<string>}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   domain?: Array<string>;
   /**
-   *
+   * SIP method (e.g., INVITE)
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   method?: string;
   /**
-   *
+   * Nonce count for qop=auth
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   nc?: string;
   /**
-   *
+   * Server nonce
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   nonce?: string;
   /**
-   *
+   * Opaque value
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   opaque?: string;
   /**
-   *
+   * Quality of protection options
    * @type {Array<string>}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   qop?: Array<string>;
   /**
-   *
+   * Authentication realm
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   realm?: string;
   /**
-   *
+   * Digest response hash from client
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   response?: string;
   /**
-   *
+   * Whether the nonce is stale
    * @type {boolean}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   stale?: boolean;
   /**
-   *
+   * Request URI
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   uri?: string;
   /**
-   *
+   * Whether to hash the username
    * @type {boolean}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   userhash?: boolean;
   /**
-   *
+   * Username for authentication
    * @type {string}
-   * @memberof SIPChallenge
+   * @memberof SIPChallengeRequest
    */
   username?: string;
 }
@@ -8241,6 +9165,12 @@ export interface SIPPinProtectionConfigsResponse {
  */
 export interface SIPTrunkResponse {
   /**
+   * Allowed IPv4/IPv6 addresses or CIDR blocks
+   * @type {Array<string>}
+   * @memberof SIPTrunkResponse
+   */
+  allowed_ips: Array<string>;
+  /**
    * Creation timestamp
    * @type {string}
    * @memberof SIPTrunkResponse
@@ -8381,46 +9311,83 @@ export interface SendCallEventResponse {
 /**
  *
  * @export
- * @interface SendReactionRequest
+ * @interface SendVideoReactionRequest
  */
-export interface SendReactionRequest {
+export interface SendVideoReactionRequest {
   /**
    *
    * @type {{ [key: string]: any; }}
-   * @memberof SendReactionRequest
+   * @memberof SendVideoReactionRequest
    */
   custom?: { [key: string]: any };
   /**
    *
    * @type {string}
-   * @memberof SendReactionRequest
+   * @memberof SendVideoReactionRequest
    */
   emoji_code?: string;
   /**
    *
    * @type {string}
-   * @memberof SendReactionRequest
+   * @memberof SendVideoReactionRequest
    */
   type: string;
 }
 /**
  * Basic response information
  * @export
- * @interface SendReactionResponse
+ * @interface SendVideoReactionResponse
  */
-export interface SendReactionResponse {
+export interface SendVideoReactionResponse {
   /**
    * Duration of the request in milliseconds
    * @type {string}
-   * @memberof SendReactionResponse
+   * @memberof SendVideoReactionResponse
    */
   duration: string;
   /**
    *
-   * @type {ReactionResponse}
-   * @memberof SendReactionResponse
+   * @type {VideoReactionResponse}
+   * @memberof SendVideoReactionResponse
    */
-  reaction: ReactionResponse;
+  reaction: VideoReactionResponse;
+}
+/**
+ *
+ * @export
+ * @interface SessionClient
+ */
+export interface SessionClient {
+  /**
+   *
+   * @type {string}
+   * @memberof SessionClient
+   */
+  ip?: string;
+  /**
+   *
+   * @type {CallStatsLocation}
+   * @memberof SessionClient
+   */
+  location?: CallStatsLocation;
+  /**
+   *
+   * @type {string}
+   * @memberof SessionClient
+   */
+  name?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SessionClient
+   */
+  network_type?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SessionClient
+   */
+  version?: string;
 }
 /**
  *
@@ -8449,11 +9416,42 @@ export interface SessionSettingsResponse {
   inactivity_timeout_seconds: number;
 }
 /**
+ *
+ * @export
+ * @interface SessionWarningResponse
+ */
+export interface SessionWarningResponse {
+  /**
+   *
+   * @type {string}
+   * @memberof SessionWarningResponse
+   */
+  code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SessionWarningResponse
+   */
+  time?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SessionWarningResponse
+   */
+  warning: string;
+}
+/**
  * Credentials for SIP inbound call authentication
  * @export
  * @interface SipInboundCredentials
  */
 export interface SipInboundCredentials {
+  /**
+   * API key for the application
+   * @type {string}
+   * @memberof SipInboundCredentials
+   */
+  api_key: string;
   /**
    * Custom data associated with the call
    * @type {{ [key: string]: any; }}
@@ -8498,7 +9496,7 @@ export interface SipInboundCredentials {
  */
 export interface SortParamRequest {
   /**
-   * Direction of sorting, 1 for Ascending, -1 for Descending, default is 1
+   * Direction of sorting, 1 for Ascending, -1 for Descending, default is 1. One of: -1, 1
    * @type {number}
    * @memberof SortParamRequest
    */
@@ -8509,6 +9507,12 @@ export interface SortParamRequest {
    * @memberof SortParamRequest
    */
   field?: string;
+  /**
+   * Type of field to sort by. Empty string or omitted means string type (default). One of: number, boolean
+   * @type {string}
+   * @memberof SortParamRequest
+   */
+  type?: string;
 }
 /**
  *
@@ -8548,7 +9552,7 @@ export interface StartClosedCaptionsRequest {
    */
   external_storage?: string;
   /**
-   * The spoken language in the call, if not provided the language defined in the transcription settings will be used
+   * The spoken language in the call, if not provided the language defined in the transcription settings will be used. One of: auto, ar, bg, ca, cs, da, de, el, en, es, et, fi, fr, he, hi, hr, hu, id, it, ja, ko, ms, nl, no, pl, pt, ro, ru, sk, sl, sv, ta, th, tl, tr, uk, zh
    * @type {string}
    * @memberof StartClosedCaptionsRequest
    */
@@ -8729,7 +9733,7 @@ export interface StartTranscriptionRequest {
    */
   enable_closed_captions?: boolean;
   /**
-   * The spoken language in the call, if not provided the language defined in the transcription settings will be used
+   * The spoken language in the call, if not provided the language defined in the transcription settings will be used. One of: auto, ar, bg, ca, cs, da, de, el, en, es, et, fi, fr, he, hi, hr, hu, id, it, ja, ko, ms, nl, no, pl, pt, ro, ru, sk, sl, sv, ta, th, tl, tr, uk, zh
    * @type {string}
    * @memberof StartTranscriptionRequest
    */
@@ -9345,8 +10349,49 @@ export interface TranslationSettings {
    * @type {Array<string>}
    * @memberof TranslationSettings
    */
-  languages?: Array<string>;
+  languages?: Array<TranslationSettingsLanguagesEnum>;
 }
+
+/**
+ * @export
+ */
+export const TranslationSettingsLanguagesEnum = {
+  EN: 'en',
+  FR: 'fr',
+  ES: 'es',
+  DE: 'de',
+  IT: 'it',
+  NL: 'nl',
+  PT: 'pt',
+  PL: 'pl',
+  CA: 'ca',
+  CS: 'cs',
+  DA: 'da',
+  EL: 'el',
+  FI: 'fi',
+  ID: 'id',
+  JA: 'ja',
+  RU: 'ru',
+  SV: 'sv',
+  TA: 'ta',
+  TH: 'th',
+  TR: 'tr',
+  HU: 'hu',
+  RO: 'ro',
+  ZH: 'zh',
+  AR: 'ar',
+  TL: 'tl',
+  HE: 'he',
+  HI: 'hi',
+  HR: 'hr',
+  KO: 'ko',
+  MS: 'ms',
+  NO: 'no',
+  UK: 'uk',
+} as const;
+export type TranslationSettingsLanguagesEnum =
+  (typeof TranslationSettingsLanguagesEnum)[keyof typeof TranslationSettingsLanguagesEnum];
+
 /**
  * UnblockUserRequest is the payload for unblocking a user.
  * @export
@@ -9548,13 +10593,13 @@ export interface UpdateUserPermissionsRequest {
    * @type {Array<string>}
    * @memberof UpdateUserPermissionsRequest
    */
-  grant_permissions?: Array<string>;
+  grant_permissions?: Array<UpdateUserPermissionsRequestGrantPermissionsEnum>;
   /**
    *
    * @type {Array<string>}
    * @memberof UpdateUserPermissionsRequest
    */
-  revoke_permissions?: Array<string>;
+  revoke_permissions?: Array<UpdateUserPermissionsRequestRevokePermissionsEnum>;
   /**
    *
    * @type {string}
@@ -9562,6 +10607,29 @@ export interface UpdateUserPermissionsRequest {
    */
   user_id: string;
 }
+
+/**
+ * @export
+ */
+export const UpdateUserPermissionsRequestGrantPermissionsEnum = {
+  SCREENSHARE: 'screenshare',
+  SEND_AUDIO: 'send-audio',
+  SEND_VIDEO: 'send-video',
+} as const;
+export type UpdateUserPermissionsRequestGrantPermissionsEnum =
+  (typeof UpdateUserPermissionsRequestGrantPermissionsEnum)[keyof typeof UpdateUserPermissionsRequestGrantPermissionsEnum];
+
+/**
+ * @export
+ */
+export const UpdateUserPermissionsRequestRevokePermissionsEnum = {
+  SCREENSHARE: 'screenshare',
+  SEND_AUDIO: 'send-audio',
+  SEND_VIDEO: 'send-video',
+} as const;
+export type UpdateUserPermissionsRequestRevokePermissionsEnum =
+  (typeof UpdateUserPermissionsRequestRevokePermissionsEnum)[keyof typeof UpdateUserPermissionsRequestRevokePermissionsEnum];
+
 /**
  * Basic response information
  * @export
@@ -10058,6 +11126,37 @@ export interface VideoReactionOverTimeResponse {
 /**
  *
  * @export
+ * @interface VideoReactionResponse
+ */
+export interface VideoReactionResponse {
+  /**
+   *
+   * @type {{ [key: string]: any; }}
+   * @memberof VideoReactionResponse
+   */
+  custom?: { [key: string]: any };
+  /**
+   *
+   * @type {string}
+   * @memberof VideoReactionResponse
+   */
+  emoji_code?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof VideoReactionResponse
+   */
+  type: string;
+  /**
+   *
+   * @type {UserResponse}
+   * @memberof VideoReactionResponse
+   */
+  user: UserResponse;
+}
+/**
+ *
+ * @export
  * @interface VideoReactionsResponse
  */
 export interface VideoReactionsResponse {
@@ -10192,13 +11291,13 @@ export interface WHIPIngress {
  */
 export interface WSAuthMessage {
   /**
-   *
+   * List of products to subscribe to. One of: chat, video, feeds
    * @type {Array<string>}
    * @memberof WSAuthMessage
    */
-  products?: Array<string>;
+  products?: Array<WSAuthMessageProductsEnum>;
   /**
-   *
+   * JWT token for authentication
    * @type {string}
    * @memberof WSAuthMessage
    */
@@ -10210,3 +11309,14 @@ export interface WSAuthMessage {
    */
   user_details: ConnectUserDetailsRequest;
 }
+
+/**
+ * @export
+ */
+export const WSAuthMessageProductsEnum = {
+  CHAT: 'chat',
+  VIDEO: 'video',
+  FEEDS: 'feeds',
+} as const;
+export type WSAuthMessageProductsEnum =
+  (typeof WSAuthMessageProductsEnum)[keyof typeof WSAuthMessageProductsEnum];

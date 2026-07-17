@@ -1,0 +1,8 @@
+{
+  "extends": "@stream-io/typescript-config/library-web.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "lib": ["ES2022", "WebWorker"]
+  },
+  "include": ["./**/*.ts"]
+}

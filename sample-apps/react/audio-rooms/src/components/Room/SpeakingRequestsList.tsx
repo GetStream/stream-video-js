@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import {
   PermissionRequestEvent,
+  UpdateUserPermissionsRequestGrantPermissionsEnum,
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
@@ -56,7 +57,9 @@ const SpeakingRequest = ({
 
     await call?.updateUserPermissions({
       user_id: speakingRequest.user.id,
-      grant_permissions: [...speakingRequest.permissions],
+      grant_permissions: [
+        ...speakingRequest.permissions,
+      ] as UpdateUserPermissionsRequestGrantPermissionsEnum[],
     });
 
     await call?.update({

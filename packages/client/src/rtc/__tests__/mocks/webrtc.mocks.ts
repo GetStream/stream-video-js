@@ -57,6 +57,7 @@ const RTCRtpTransceiverMock = vi.fn(function (): Partial<RTCRtpTransceiver> {
       replaceTrack: vi.fn(),
       getParameters: vi.fn().mockReturnValue({}),
       setParameters: vi.fn(),
+      transform: null,
     },
     setCodecPreferences: vi.fn(),
     mid: '',
@@ -80,6 +81,7 @@ const RTCRtpReceiverMock = vi.fn(function (): Partial<typeof RTCRtpReceiver> {
     getCapabilities: vi.fn(),
   };
 });
+RTCRtpReceiverMock.prototype.transform = null;
 vi.stubGlobal('RTCRtpReceiver', RTCRtpReceiverMock);
 
 const RTCRtpSenderMock = vi.fn(function (): Partial<typeof RTCRtpSender> {
@@ -89,7 +91,36 @@ const RTCRtpSenderMock = vi.fn(function (): Partial<typeof RTCRtpSender> {
     track: vi.fn(),
   };
 });
+RTCRtpSenderMock.prototype.transform = null;
 vi.stubGlobal('RTCRtpSender', RTCRtpSenderMock);
+
+const WorkerMock = vi.fn(function (): Partial<Worker> {
+  return {
+    postMessage: vi.fn(),
+    terminate: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  };
+});
+vi.stubGlobal('Worker', WorkerMock);
+
+const RTCRtpScriptTransformMock = vi.fn(function (
+  worker: Worker,
+  options?: unknown,
+): Partial<RTCRtpScriptTransform> {
+  return {
+    worker,
+    options,
+  };
+});
+vi.stubGlobal('RTCRtpScriptTransform', RTCRtpScriptTransformMock);
+
+if (typeof URL !== 'undefined' && typeof URL.createObjectURL !== 'function') {
+  Object.defineProperty(URL, 'createObjectURL', {
+    configurable: true,
+    value: vi.fn(() => 'blob:stream-video-e2ee'),
+  });
+}
 
 const AudioContextMock = vi.fn(function (): Partial<AudioContext> {
   return {

@@ -1,48 +1,27 @@
-import type { INoiseCancellation } from '@stream-io/audio-filters-web';
 import {
-  BackgroundFiltersProvider,
-  Call,
-  CallingState,
-  CallRequest,
-  NoiseCancellationProvider,
-  StreamCall,
   StreamVideo,
   StreamVideoClient,
-  useCallStateHooks,
   User,
 } from '@stream-io/video-react-sdk';
-import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TranslationLanguages } from 'stream-chat';
-import { MeetingUI } from '../../components';
-import { useAppEnvironment } from '../../context/AppEnvironmentContext';
+
+import { CallScope } from '../../components/CallScope';
+import { LobbyE2EEContext } from '../../context/LobbyE2EEContext';
+import {
+  isE2EEEnvironment,
+  useAppEnvironment,
+} from '../../context/AppEnvironmentContext';
 import { useSettings } from '../../context/SettingsContext';
-import { getSegmentationModelUrl } from '../../hooks';
-import { TourProvider } from '../../context/TourContext';
 import { getClient } from '../../helpers/client';
-import { useCreateStreamChatClient } from '../../hooks';
+import { useCreateStreamChatClient, useLobbyCall } from '../../hooks';
 import { useGleap } from '../../hooks/useGleap';
 import {
   getServerSideCredentialsPropsWithOptions,
   ServerSideCredentialsProps,
 } from '../../lib/getServerSideCredentialsProps';
 import appTranslations from '../../translations';
-import { RingingCallNotification } from '../../components/Ringing/RingingCallNotification';
-
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-
-const HeadComponent = ({ callId }: { callId: string }) => {
-  const { useCallCustomData } = useCallStateHooks();
-  const customData = useCallCustomData();
-
-  return (
-    <Head>
-      <title>Stream Calls: {customData.name || callId}</title>
-      <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-    </Head>
-  );
-};
 
 const CallRoom = (props: ServerSideCredentialsProps) => {
   const router = useRouter();
@@ -60,6 +39,15 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   const { apiKey, userToken, user, gleapApiKey } = props;
 
   const environment = useAppEnvironment();
+
+  // E2EE is limited to the `pronto` / `pronto-staging` environments for now.
+  // When a shared key is present in the URL, the initial call must be *created*
+  // end-to-end encrypted - otherwise the backend rejects the (e2ee: true) join.
+  // See lib/queryConfigParams.
+  const initialEncryptionKey = router.query['encryption_key'] as
+    | string
+    | undefined;
+  const e2eeEnabled = isE2EEEnvironment(environment) && !!initialEncryptionKey;
 
   const [client, setClient] = useState<StreamVideoClient>();
   useEffect(() => {
@@ -86,41 +74,14 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
     },
   });
 
-  const [call, setCall] = useState<Call>();
-  const [callError, setCallError] = useState<string | null>(null);
-  useEffect(() => {
-    if (!client) return;
-    const _call = client.call(callType, callId, { reuseInstance: true });
-    setCall(_call);
-
-    window.call = _call;
-
-    return () => {
-      if (_call.state.callingState !== CallingState.LEFT) {
-        _call.leave().catch((e) => console.error('Failed to leave call', e));
-        setCall(undefined);
-
-        window.call = undefined;
-      }
-    };
-  }, [callId, callType, client]);
-
-  useEffect(() => {
-    if (!call) return;
-    // "restricted" is a special call type that only allows
-    // `call_member` role to join the call
-    const data: CallRequest =
-      callType === 'restricted'
-        ? { members: [{ user_id: user.id || '!anon', role: 'call_member' }] }
-        : {};
-
-    call.getOrCreate({ data }).catch((err) => {
-      console.error(`Failed to get or create call`, err);
-      setCallError(
-        err instanceof Error ? err.message : 'Could not get or create call',
-      );
-    });
-  }, [call, callType, user.id]);
+  const { call, callError, e2eeControls } = useLobbyCall({
+    client,
+    callId,
+    callType,
+    userId: user.id,
+    e2eeEnabled,
+    initialEncryptionKey,
+  });
 
   // apple-itunes-app meta-tag is used to open the app from the browser
   // we need to update the app-argument to the current URL so that the app
@@ -140,22 +101,6 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }, []);
 
   useGleap(gleapApiKey, client, call, user);
-  const [noiseCancellation, setNoiseCancellation] =
-    useState<INoiseCancellation>();
-  const ncLoader = useRef<Promise<void>>(undefined);
-  useEffect(() => {
-    const load = (ncLoader.current || Promise.resolve())
-      .then(() => import('@stream-io/audio-filters-web'))
-      .then(({ NoiseCancellation }) => {
-        // const modelsPath = `${basePath}/krispai/models`;
-        // const nc = new NoiseCancellation({ basePath: modelsPath });
-        const nc = new NoiseCancellation();
-        setNoiseCancellation(nc);
-      });
-    return () => {
-      ncLoader.current = load.then(() => setNoiseCancellation(undefined));
-    };
-  }, []);
 
   if (!client || !call) return null;
 
@@ -182,44 +127,21 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   }
 
   return (
-    <>
-      <StreamVideo
-        client={client}
-        language={language}
-        fallbackLanguage={fallbackLanguage}
-        translationsOverrides={appTranslations}
-      >
-        <StreamCall call={call}>
-          <HeadComponent callId={callId} />
-
-          <TourProvider>
-            <BackgroundFiltersProvider
-              forceSafariSupport
-              useLegacyFilter={useLegacyFilters}
-              modelFilePath={getSegmentationModelUrl(segmentationModel)}
-              backgroundImages={[
-                `${basePath}/backgrounds/amsterdam-1.jpg`,
-                `${basePath}/backgrounds/amsterdam-2.jpg`,
-                `${basePath}/backgrounds/boulder-1.jpg`,
-                `${basePath}/backgrounds/boulder-2.jpg`,
-                `${basePath}/backgrounds/gradient-1.jpg`,
-                `${basePath}/backgrounds/gradient-2.jpg`,
-                `${basePath}/backgrounds/gradient-3.jpg`,
-              ]}
-            >
-              {noiseCancellation && (
-                <NoiseCancellationProvider
-                  noiseCancellation={noiseCancellation}
-                >
-                  <RingingCallNotification />
-                  <MeetingUI key={call.cid} chatClient={chatClient} />
-                </NoiseCancellationProvider>
-              )}
-            </BackgroundFiltersProvider>
-          </TourProvider>
-        </StreamCall>
-      </StreamVideo>
-    </>
+    <StreamVideo
+      client={client}
+      language={language}
+      fallbackLanguage={fallbackLanguage}
+      translationsOverrides={appTranslations}
+    >
+      <LobbyE2EEContext.Provider value={e2eeControls}>
+        <CallScope
+          call={call}
+          chatClient={chatClient}
+          useLegacyFilters={useLegacyFilters}
+          segmentationModel={segmentationModel}
+        />
+      </LobbyE2EEContext.Provider>
+    </StreamVideo>
   );
 };
 

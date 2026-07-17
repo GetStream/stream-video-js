@@ -1291,6 +1291,42 @@ describe('CallState', () => {
       state.removeOrphanedTrack(id);
       expect(state['orphanedTracks'].length).toBe(0);
     });
+
+    it('removes all orphaned tracks at once', () => {
+      const state = new CallState();
+      state.registerOrphanedTrack({
+        id: 'a',
+        track: new MediaStream(),
+        trackLookupPrefix: '1',
+        trackType: TrackType.VIDEO,
+      });
+      state.registerOrphanedTrack({
+        id: 'b',
+        track: new MediaStream(),
+        trackLookupPrefix: '2',
+        trackType: TrackType.AUDIO,
+      });
+      expect(state['orphanedTracks'].length).toBe(2);
+      state.removeAllOrphanedTracks();
+      expect(state['orphanedTracks'].length).toBe(0);
+    });
+
+    it('purges orphaned tracks on dispose (no receiver/PC leak)', () => {
+      // Orphaned tracks can hold an RTCRtpReceiver tied to a now-closed peer
+      // connection; pc.close() does not raise the track `ended` event, so they
+      // are never purged otherwise and leak for the call's lifetime (finding
+      // 15).
+      const state = new CallState();
+      state.registerOrphanedTrack({
+        id: '123:TRACK_TYPE_VIDEO',
+        track: new MediaStream(),
+        trackLookupPrefix: '123',
+        trackType: TrackType.VIDEO,
+      });
+      expect(state['orphanedTracks'].length).toBe(1);
+      state.dispose();
+      expect(state['orphanedTracks'].length).toBe(0);
+    });
   });
 
   describe('closed captions', () => {

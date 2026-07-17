@@ -1,5 +1,6 @@
 import typescript from '@rollup/plugin-typescript';
 import replace from '@rollup/plugin-replace';
+import inlineWorker from './plugins/rollup-plugin-inline-worker.mts';
 
 import pkg from './package.json' with { type: 'json' };
 
@@ -30,12 +31,15 @@ const external = [
 const browserConfig = {
   input: 'index.ts',
   output: {
-    file: 'dist/index.browser.es.js',
+    dir: 'dist',
     format: 'esm',
     sourcemap: true,
+    entryFileNames: 'index.browser.es.js',
+    chunkFileNames: '[name].browser.es.js',
   },
   external: external.filter((dep) => !browserIgnoredModules.includes(dep)),
   plugins: [
+    inlineWorker({ include: ['e2ee-worker.ts'] }),
     replace({
       preventAssignment: true,
       'process.env.PKG_VERSION': JSON.stringify(pkg.version),
@@ -55,6 +59,7 @@ const createNodeConfig = (outputFile, format) => ({
     file: outputFile,
     format: format,
     sourcemap: true,
+    inlineDynamicImports: true,
   },
   external,
   plugins: [

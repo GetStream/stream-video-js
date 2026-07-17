@@ -9,10 +9,11 @@ import {
 } from './utils';
 import type { StreamVideoEvent, UR, WSConnectionError } from './types';
 import type { LogLevel } from '@stream-io/logger';
-import type {
+import {
   ConnectedEvent,
   ConnectionErrorEvent,
   WSAuthMessage,
+  WSAuthMessageProductsEnum,
 } from '../../gen/coordinator';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 import { getTimers } from '../../timers';
@@ -529,15 +530,17 @@ export class StableWSConnection {
       return;
     }
 
-    const authMessage = JSON.stringify({
+    const wsAuthMessage: WSAuthMessage = {
       token,
+      products: [WSAuthMessageProductsEnum.VIDEO],
       user_details: {
         id: user.id,
         name: user.name,
         image: user.image,
         custom: user.custom,
       },
-    } as WSAuthMessage);
+    };
+    const authMessage = JSON.stringify(wsAuthMessage);
 
     this._log(`onopen() - Sending auth message ${authMessage}`, {}, 'trace');
 

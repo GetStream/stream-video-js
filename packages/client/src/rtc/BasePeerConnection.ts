@@ -8,6 +8,7 @@ import {
   TrackType,
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
+import type { E2EEManager } from './e2ee/E2EEManager';
 import { NegotiationError } from './NegotiationError';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
@@ -35,6 +36,7 @@ export abstract class BasePeerConnection {
   protected readonly state: CallState;
   protected readonly dispatcher: Dispatcher;
   protected readonly clientPublishOptions?: ClientPublishOptions;
+  protected readonly e2ee?: E2EEManager;
   protected tag: string;
   protected sfuClient: StreamSfuClient;
 
@@ -75,6 +77,7 @@ export abstract class BasePeerConnection {
       tag,
       enableTracing,
       clientPublishOptions,
+      e2ee,
       iceRestartDelay = 2500,
       statsTimestampDriftThresholdMs = 0,
     }: BasePeerConnectionOpts,
@@ -85,6 +88,7 @@ export abstract class BasePeerConnection {
     this.dispatcher = dispatcher;
     this.iceRestartDelay = iceRestartDelay;
     this.clientPublishOptions = clientPublishOptions;
+    this.e2ee = e2ee;
     this.tag = tag;
     this.onReconnectionNeeded = onReconnectionNeeded;
     this.onIceConnected = onIceConnected;
@@ -114,7 +118,13 @@ export abstract class BasePeerConnection {
   }
 
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
-    const pc = new RTCPeerConnection(connectionConfig);
+    const config: RTCConfiguration = { ...connectionConfig };
+    // The legacy Insertable Streams path requires this non-standard flag.
+    if (this.e2ee?.shouldUseInsertableStreams?.()) {
+      // @ts-expect-error not part of the standard lib yet
+      config.encodedInsertableStreams = true;
+    }
+    const pc = new RTCPeerConnection(config);
     pc.addEventListener('icecandidate', this.onIceCandidate);
     pc.addEventListener('icecandidateerror', this.onIceCandidateError);
     pc.addEventListener(

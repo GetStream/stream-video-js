@@ -12,7 +12,11 @@ import { useRouter } from 'next/router';
 import { JSX, useCallback, useEffect, useState } from 'react';
 import { StreamChat } from 'stream-chat';
 
-import { useIsRestrictedEnvironment } from '../context/AppEnvironmentContext';
+import {
+  useIsE2EEEnvironment,
+  useIsRestrictedEnvironment,
+} from '../context/AppEnvironmentContext';
+import { useLobbyE2EE } from '../context/LobbyE2EEContext';
 import {
   useKeyboardShortcuts,
   usePersistedVideoFilter,
@@ -55,6 +59,8 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const callState = useCallCallingState();
   useModeration();
   const isRestricted = useIsRestrictedEnvironment();
+  const allowEncryption = useIsE2EEEnvironment();
+  const e2ee = useLobbyE2EE();
   const [remoteFilePublisherAPI, setRemoteFilePublisherAPI] =
     useState<RemoteFilePublisher>();
 
@@ -63,10 +69,11 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
       if (!options.fastJoin) setShow('loading');
       if (!call) throw new Error('No active call found');
       try {
-        const { videoFile, videoFileLeaveCallOnEnd } = applyQueryConfigParams(
-          call,
-          router.query,
-        );
+        const { videoFile, videoFileLeaveCallOnEnd } =
+          await applyQueryConfigParams(call, router.query, {
+            allowEncryption,
+            encryptionKey: e2ee?.encryptionKey,
+          });
         if (call.state.callingState !== CallingState.JOINED) {
           if (typeof options.displayName === 'string') {
             const name = options.displayName || getRandomName();
@@ -93,7 +100,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
         setShow('error-join');
       }
     },
-    [call, router, chatClient, isRestricted],
+    [call, router, chatClient, isRestricted, allowEncryption, e2ee],
   );
 
   const onLeave = useCallback(
