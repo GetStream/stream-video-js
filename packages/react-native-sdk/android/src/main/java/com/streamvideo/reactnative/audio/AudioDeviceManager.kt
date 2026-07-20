@@ -316,19 +316,32 @@ class AudioDeviceManager(
     }
 
     private fun getCurrentDeviceEndpoints(): List<AudioDeviceEndpoint> {
-        if (Build.VERSION.SDK_INT >= 31) {
-            return (mEndpointMaps.bluetoothEndpoints.values + mEndpointMaps.nonBluetoothEndpoints.values).sorted()
+        val endpoints = if (Build.VERSION.SDK_INT >= 31) {
+            (mEndpointMaps.bluetoothEndpoints.values + mEndpointMaps.nonBluetoothEndpoints.values).sorted()
         } else {
             val btEndpoint = bluetoothEndpointByName(bluetoothManager.getDeviceName())
             if (btEndpoint != null) {
                 val list = mutableListOf(btEndpoint)
                 list.addAll(mEndpointMaps.nonBluetoothEndpoints.values)
-                return list.sorted()
+                list.sorted()
             } else {
-                return mEndpointMaps.nonBluetoothEndpoints.values.sorted()
+                mEndpointMaps.nonBluetoothEndpoints.values.sorted()
             }
-
         }
+        return maybeRemoveEarpieceIfWiredPresent(endpoints)
+    }
+
+    /**
+     * When a wired headset is connected the built-in earpiece is not separately
+     * routable — the wired plug physically occupies the receiver path
+     */
+    private fun maybeRemoveEarpieceIfWiredPresent(
+        endpoints: List<AudioDeviceEndpoint>
+    ): List<AudioDeviceEndpoint> {
+        if (endpoints.any { it.isWiredHeadsetType() }) {
+            return endpoints.filterNot { it.type == AudioDeviceEndpoint.TYPE_EARPIECE }
+        }
+        return endpoints
     }
 
     private fun maybeAddCallEndpoint(endpoint: AudioDeviceEndpoint): Int {

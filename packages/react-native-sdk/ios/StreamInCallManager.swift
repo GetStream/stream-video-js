@@ -516,15 +516,29 @@ class StreamInCallManager: RCTEventEmitter {
         }
     }
 
+    private func hasExternalAudioDevice(_ session: AVAudioSession) -> Bool {
+        let external: Set<AVAudioSession.Port> = [
+            .headphones, .headsetMic, .bluetoothHFP, .bluetoothA2DP, .bluetoothLE, .carAudio,
+        ]
+        if session.availableInputs?.contains(where: { external.contains($0.portType) }) == true {
+            return true
+        }
+        return session.currentRoute.outputs.contains { external.contains($0.portType) }
+    }
+
     private func buildAudioDevicesState() -> [String: Any] {
         let session = AVAudioSession.sharedInstance()
         let inputs = session.availableInputs ?? []
+        let hasExternal = hasExternalAudioDevice(session)
 
         var devices: [[String: String]] = [
             ["id": AudioDeviceId.speaker, "name": "Speaker", "type": "Speaker"]
         ]
         for port in inputs {
             let isBuiltInMic = port.portType == .builtInMic
+            // Hide the earpiece when a wired/BT device is present — it can't be routed to
+            // while one is connected, so listing it would be a dead, duplicate option.
+            if isBuiltInMic && hasExternal { continue }
             devices.append([
                 "id": port.uid,
                 "name": isBuiltInMic ? "Earpiece" : port.portName,
@@ -537,9 +551,15 @@ class StreamInCallManager: RCTEventEmitter {
         let selectedDeviceId: String?
         if output?.portType == .builtInSpeaker {
             selectedDeviceId = AudioDeviceId.speaker
+        } else if let inputUid = session.currentRoute.inputs.first?.uid,
+                  devices.contains(where: { $0["id"] == inputUid }) {
+            // The active input maps to a listed device (earpiece / wired / BT).
+            selectedDeviceId = inputUid
         } else {
-            // Earpiece/wired/bluetooth: the active input port uid is the device id.
-            selectedDeviceId = session.currentRoute.inputs.first?.uid
+            // Output is on a device whose active input differs from a listed one — e.g. BT is
+            // the output while the input stayed built-in mic. Match by the output's endpoint
+            // type so the picker highlights the actual output (not the earpiece).
+            selectedDeviceId = devices.first(where: { $0["type"] == currentEndpointType })?["id"]
         }
 
         var result: [String: Any] = [
