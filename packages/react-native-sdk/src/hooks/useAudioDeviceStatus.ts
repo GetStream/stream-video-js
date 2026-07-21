@@ -51,12 +51,35 @@ export const useAudioDeviceStatus = (): AudioDevicesState | undefined => {
 
   useEffect(() => {
     let active = true;
-    const update = (next: AudioDevicesState) => {
-      if (!active) return;
+    let receivedUpdate = false;
+    let unsubscribe = () => {};
+
+    const applyIfChanged = (next: AudioDevicesState) => {
       setState((prev) => (areStatesEqual(prev, next) ? prev : next));
     };
-    callManager.audioDevices.getStatus().then(update);
-    const unsubscribe = callManager.audioDevices.addChangeListener(update);
+
+    // Live change events take precedence over the initial fetch.
+    const onChange = (next: AudioDevicesState) => {
+      if (!active) return;
+      receivedUpdate = true;
+      applyIfChanged(next);
+    };
+
+    try {
+      // Subscribe before fetching so no change between the two is missed.
+      unsubscribe = callManager.audioDevices.addChangeListener(onChange);
+      callManager.audioDevices
+        .getStatus()
+        .then((initial) => {
+          // Don't let the initial snapshot clobber newer event-driven state,
+          // and ignore it entirely after unmount.
+          if (active && !receivedUpdate) applyIfChanged(initial);
+        })
+        .catch(() => {});
+    } catch {
+      // Native/bridge error during setup — leave state undefined.
+    }
+
     return () => {
       active = false;
       unsubscribe();

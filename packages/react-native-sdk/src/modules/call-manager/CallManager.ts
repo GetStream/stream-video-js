@@ -22,6 +22,18 @@ const invariant = (condition: boolean, message: string) => {
 };
 
 /**
+ * Runs a fire-and-forget native call, logging instead of throwing on a bridge
+ * error so it can't crash the caller or an event-dispatch loop.
+ */
+const safeNativeCall = (label: string, fn: () => void): void => {
+  try {
+    fn();
+  } catch (error) {
+    videoLoggerSystem.getLogger('CallManager').warn(`${label} failed`, error);
+  }
+};
+
+/**
  * On Android, whether the current call is managed by Telecom (via callingx).
  * In that mode, audio routing/mode is owned by Telecom and StreamInCallManager audio methods should not be used
  */
@@ -108,7 +120,9 @@ class AudioDevicesManager {
     this.interruptionReassertSetup = true;
     CallingxModule.addEventListener('didAudioInterruption', (event) => {
       if (event.phase === 'ended') {
-        NativeManager.reapplyAudioRoute();
+        safeNativeCall('reapplyAudioRoute', () =>
+          NativeManager.reapplyAudioRoute(),
+        );
       }
     });
   };
@@ -149,7 +163,9 @@ class AudioDevicesManager {
       return;
     }
     this.ensureInterruptionReassert();
-    NativeManager.chooseAudioDeviceEndpoint(deviceId);
+    safeNativeCall('chooseAudioDeviceEndpoint', () =>
+      NativeManager.chooseAudioDeviceEndpoint(deviceId),
+    );
   };
 
   /**
@@ -160,14 +176,25 @@ class AudioDevicesManager {
   addChangeListener = (
     onChange: (state: AudioDevicesState) => void,
   ): (() => void) => {
+    let active = true;
     const unsubscribes: Array<() => void> = [];
 
-    // callingx-owned route changes (Android Telecom + iOS CallKit).
+    // callingx-owned route changes (Android Telecom + iOS CallKit). The event is
+    // signal-only, so re-read the current state — ignoring a resolve that lands
+    // after unsubscribe, and swallowing bridge rejections.
     if (CallingxModule) {
       const cxSub = CallingxModule.addEventListener(
         'didChangeAudioRoute',
         () => {
-          this.getStatus().then(onChange);
+          this.getStatus()
+            .then((state) => {
+              if (active) onChange(state);
+            })
+            .catch((error) => {
+              videoLoggerSystem
+                .getLogger('CallManager')
+                .warn('addChangeListener: getStatus failed', error);
+            });
         },
       );
       unsubscribes.push(() => cxSub.remove());
@@ -182,7 +209,10 @@ class AudioDevicesManager {
     );
     unsubscribes.push(() => sdkSub.remove());
 
-    return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
+    return () => {
+      active = false;
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+    };
   };
 }
 
@@ -306,8 +336,12 @@ export class CallManager {
     if (shouldBypassForCallKit()) {
       if (config?.audioRole === 'communicator' && CallingxModule) {
         const type = config.deviceEndpointType ?? 'speaker';
-        CallingxModule.setDefaultAudioDeviceEndpointType(type);
-        NativeManager.setDefaultAudioDeviceEndpointType(type);
+        safeNativeCall('setDefaultAudioDeviceEndpointType (callingx)', () =>
+          CallingxModule.setDefaultAudioDeviceEndpointType(type),
+        );
+        safeNativeCall('setDefaultAudioDeviceEndpointType', () =>
+          NativeManager.setDefaultAudioDeviceEndpointType(type),
+        );
       }
       videoLoggerSystem
         .getLogger('CallManager')
@@ -320,8 +354,10 @@ export class CallManager {
       // Telecom owns routing/focus; forward the sticky preference to callingx and run in
       // telecom-managed mode (StreamInCallManager keeps proximity/keep-screen-on only).
       if (config?.audioRole !== 'listener' && CallingxModule) {
-        CallingxModule.setDefaultAudioDeviceEndpointType(
-          config?.deviceEndpointType ?? 'speaker',
+        safeNativeCall('setDefaultAudioDeviceEndpointType (callingx)', () =>
+          CallingxModule.setDefaultAudioDeviceEndpointType(
+            config?.deviceEndpointType ?? 'speaker',
+          ),
         );
       }
       NativeManager.setTelecomManagedMode(true);

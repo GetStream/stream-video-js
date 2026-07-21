@@ -551,6 +551,20 @@ class StreamInCallManager: RCTEventEmitter {
 
         let output = session.currentRoute.outputs.first
         let currentEndpointType = output.map { endpointType(for: $0.portType) } ?? "Unknown"
+
+        // Output-only routes (e.g. wired headphones without a mic) never appear in
+        // availableInputs. Add the active output when no listed device already represents
+        // its endpoint type, so it stays visible and selectable in the picker.
+        if let output,
+           output.portType != .builtInSpeaker,
+           !devices.contains(where: { $0["type"] == currentEndpointType }) {
+            devices.append([
+                "id": output.uid,
+                "name": output.portName,
+                "type": currentEndpointType,
+            ])
+        }
+
         let selectedDeviceId: String?
         if output?.portType == .builtInSpeaker {
             selectedDeviceId = AudioDeviceId.speaker
