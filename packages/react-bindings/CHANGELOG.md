@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.18.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.18.2...@stream-io/video-react-bindings-1.18.3) (2026-07-17)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+- `@stream-io/video-client` updated to version `1.55.2`
+
+### Bug Fixes
+
+- use speakerLayoutSortPreset in RN spotlight view ([#2332](https://github.com/GetStream/stream-video-js/issues/2332)) ([910a5de](https://github.com/GetStream/stream-video-js/commit/910a5de6160cc34de99ea1615ef40bb034c57078))
+
 ## [1.18.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.18.1...@stream-io/video-react-bindings-1.18.2) (2026-07-09)
 
 ### Dependency Updates

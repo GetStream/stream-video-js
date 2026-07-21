@@ -360,7 +360,8 @@ export type EventName =
   | 'didReceiveStartCallAction'
   | 'didPerformSetMutedCallAction'
   | 'didActivateAudioSession'
-  | 'didDeactivateAudioSession';
+  | 'didDeactivateAudioSession'
+  | 'providerReset';
 
 export type IOSAudioInterruptionEvent = {
   source: 'callingx';
@@ -397,6 +398,9 @@ export type EventParams = {
   };
   didActivateAudioSession: undefined;
   didDeactivateAudioSession: undefined;
+  providerReset: {
+    callCids: string[];
+  };
 };
 
 export type VoipEventName =

@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.6.2...@stream-io/react-native-callingx-0.7.0) (2026-07-17)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Features
+
+- improved providerDidReset handling ([#2329](https://github.com/GetStream/stream-video-js/issues/2329)) ([ccb2273](https://github.com/GetStream/stream-video-js/commit/ccb2273e4cb8cf386df3323fec49c2c98a469119))
+
 ## [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.6.1...@stream-io/react-native-callingx-0.6.2) (2026-07-09)
 
 ### Dependency Updates

@@ -1,4 +1,8 @@
-import { videoLoggerSystem } from '@stream-io/video-client';
+import {
+  CallingState,
+  videoLoggerSystem,
+  type StreamVideoClient,
+} from '@stream-io/video-client';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
 import {
   clearPushWSEventSubscriptions,
@@ -50,6 +54,10 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     onDidDeactivateAudioSession,
   );
 
+  callingx.addEventListener('providerReset', (params) => {
+    onProviderReset(pushConfig)(params);
+  });
+
   //NOTE: until getInitialEvents invocation, events are delayed and won't be sent to event listeners, this is a way to make sure none of required events are missed
   //in most cases there will be no delayed answers or ends, but if so we don't want to miss any of them
   const events = callingx.getInitialEvents();
@@ -65,6 +73,8 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
       onDidActivateAudioSession();
     } else if (eventName === 'didDeactivateAudioSession') {
       onDidDeactivateAudioSession();
+    } else if (eventName === 'providerReset') {
+      onProviderReset(pushConfig)(params as EventParams['providerReset']);
     }
   });
 }
@@ -77,6 +87,36 @@ const onDidActivateAudioSession = () => {
 const onDidDeactivateAudioSession = () => {
   logger.debug('callingExpDidDeactivateAudioSession');
 };
+
+const onProviderReset =
+  (pushConfig: PushConfig) =>
+  async ({ callCids }: EventParams['providerReset']) => {
+    logger.debug(`onProviderReset event callCids: ${callCids?.join(', ')}`);
+
+    if (!callCids?.length) {
+      return;
+    }
+
+    let videoClient: StreamVideoClient | undefined;
+    try {
+      videoClient = await pushConfig.createStreamVideoClient();
+    } catch (e) {
+      logger.error('onProviderReset: failed to resolve video client', e);
+      return;
+    }
+    if (!videoClient) {
+      return;
+    }
+
+    for (const cid of callCids) {
+      const call = videoClient.state.calls.find((c) => c.cid === cid);
+      if (call && call.state.callingState !== CallingState.LEFT) {
+        call?.leave().catch((error: unknown) => {
+          logger.error(`onProviderReset: error leaving call ${cid}`, error);
+        });
+      }
+    }
+  };
 
 const onAcceptCall =
   (pushConfig: PushConfig) =>
