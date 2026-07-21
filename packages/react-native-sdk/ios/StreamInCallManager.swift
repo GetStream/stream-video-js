@@ -126,7 +126,7 @@ class StreamInCallManager: RCTEventEmitter {
     }
     
     /// Builds the audio config for the current role/device and sets it as WebRTC's default.
-    private func makeAudioConfiguration() -> RTCAudioSessionConfiguration {
+    private func makeAudioConfiguration(for routing: OutputRouting?) -> RTCAudioSessionConfiguration {
         let category: AVAudioSession.Category
         let mode: AVAudioSession.Mode
         let options: AVAudioSession.CategoryOptions
@@ -165,7 +165,7 @@ class StreamInCallManager: RCTEventEmitter {
             mode = .voiceChat
             
             var mustSetDefaultToSpeaker = defaultAudioDevice == .speaker
-            if case .input(let uid) = selectedOutput, isBuiltInMicUid(uid) {
+            if case .input(let uid) = routing, isBuiltInMicUid(uid) {
                 // the selected output is a built-in mic
                 // then we always can't use defaultToSpeaker
                 mustSetDefaultToSpeaker = false
@@ -200,7 +200,7 @@ class StreamInCallManager: RCTEventEmitter {
                 adm.setStereoPlayoutPreference(true)
             }
 
-            let rtcConfig = makeAudioConfiguration()
+            let rtcConfig = makeAudioConfiguration(for: selectedOutput)
             log("Setup with category: \(rtcConfig.category), mode: \(rtcConfig.mode), options: \(rtcConfig.categoryOptions)")
 
             let session = RTCAudioSession.sharedInstance()
@@ -254,7 +254,7 @@ class StreamInCallManager: RCTEventEmitter {
             return
         }
 
-        let rtcConfig = makeAudioConfiguration()
+        let rtcConfig = makeAudioConfiguration(for: selectedOutput)
         let session = RTCAudioSession.sharedInstance()
         session.lockForConfiguration()
         defer { session.unlockForConfiguration() }
@@ -262,7 +262,7 @@ class StreamInCallManager: RCTEventEmitter {
             try session.setConfiguration(rtcConfig, active: true)
             // Re-apply the explicit pick (if any) so it survives the engine rebuild.
             if let selectedOutput {
-                applyOutputRouting(selectedOutput)
+                try applyOutputRouting(selectedOutput)
             }
             log("engineWillEnable: applied category=\(rtcConfig.category) mode=\(rtcConfig.mode) activated=true")
         } catch {
@@ -404,7 +404,7 @@ class StreamInCallManager: RCTEventEmitter {
             }
             do {
                 if enable {
-                    applyOutputRouting(.speaker)
+                    try applyOutputRouting(.speaker)
                 } else {
                     try session.overrideOutputAudioPort(.none)
                     try AVAudioSession.sharedInstance().setPreferredInput(nil)
@@ -445,7 +445,6 @@ class StreamInCallManager: RCTEventEmitter {
             }
 
             let routing: OutputRouting = id == AudioDeviceId.speaker ? .speaker : .input(uid: id)
-            selectedOutput = routing
 
             let session = RTCAudioSession.sharedInstance()
             session.lockForConfiguration()
@@ -454,9 +453,11 @@ class StreamInCallManager: RCTEventEmitter {
                 // Reconfigure first so the live category matches the pick (e.g. the earpiece
                 // drops `.defaultToSpeaker`, otherwise overrideOutputAudioPort(.none) would
                 // resolve back to the speaker). Then drive the route.
-                try session.setConfiguration(makeAudioConfiguration())
-                applyOutputRouting(routing)
+                try session.setConfiguration(makeAudioConfiguration(for: routing))
+                try applyOutputRouting(routing)
+                selectedOutput = routing
             } catch {
+                // a failure leaves the previous route intact.
                 log("chooseAudioDeviceEndpoint error: \(String(describing: error))")
             }
         }
@@ -472,7 +473,11 @@ class StreamInCallManager: RCTEventEmitter {
             let session = RTCAudioSession.sharedInstance()
             session.lockForConfiguration()
             defer { session.unlockForConfiguration() }
-            applyOutputRouting(routing)
+            do {
+                try applyOutputRouting(routing)
+            } catch {
+                log("reapplyAudioRoute error: \(String(describing: error))")
+            }
         }
     }
 
@@ -482,26 +487,24 @@ class StreamInCallManager: RCTEventEmitter {
             .contains { $0.uid == uid && $0.portType == .builtInMic } ?? false
     }
 
-    private func applyOutputRouting(_ routing: OutputRouting) {
+    /// Drives the audio route. Throws if a session command fails, so callers can gate
+    /// committed state (e.g. `selectedOutput`) on the route actually being applied.
+    private func applyOutputRouting(_ routing: OutputRouting) throws {
         let rtcSession = RTCAudioSession.sharedInstance()
         let availableInputs = AVAudioSession.sharedInstance().availableInputs
-        do {
-            switch routing {
-                case .speaker:
-                    if let builtInMic = availableInputs?.first(where: { $0.portType == .builtInMic }) {
-                        try rtcSession.setPreferredInput(builtInMic)
-                    }
-                    try rtcSession.overrideOutputAudioPort(.speaker)
-                case .input(let uid):
-                    try rtcSession.overrideOutputAudioPort(.none)
-                    if let port = availableInputs?.first(where: { $0.uid == uid }) {
-                        try rtcSession.setPreferredInput(port)
-                    } else {
-                        log("applyOutputRouting: no input found for id \(uid)")
-                    }
-            }
-        } catch {
-            log("applyOutputRouting error: \(String(describing: error))")
+        switch routing {
+            case .speaker:
+                if let builtInMic = availableInputs?.first(where: { $0.portType == .builtInMic }) {
+                    try rtcSession.setPreferredInput(builtInMic)
+                }
+                try rtcSession.overrideOutputAudioPort(.speaker)
+            case .input(let uid):
+                try rtcSession.overrideOutputAudioPort(.none)
+                if let port = availableInputs?.first(where: { $0.uid == uid }) {
+                    try rtcSession.setPreferredInput(port)
+                } else {
+                    log("applyOutputRouting: no input found for id \(uid)")
+                }
         }
     }
 
