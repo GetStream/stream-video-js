@@ -213,25 +213,35 @@ export async function endCallingxCall(call: Call, reason?: EndCallReason) {
 }
 
 export async function wireAudioEngineSubscription() {
-  if (!CallingxModule || !CallingxModule.isSetup) {
+  if (!CallingxModule || !CallingxModule.isSetup || Platform.OS !== 'ios') {
     return;
   }
   const logger = videoLoggerSystem.getLogger('callingx');
 
-  if (Platform.OS === 'ios') {
+  try {
     logger.debug('wireEngineSubscription: Wiring engine subscription');
     CallingxModule.wireAudioEngineSubscription();
+  } catch (error) {
+    logger.error(
+      'wireAudioEngineSubscription: Error wiring engine subscription',
+      error,
+    );
   }
 }
 
 export function unwireAudioEngineSubscription() {
-  if (!CallingxModule || !CallingxModule.isSetup) {
+  if (!CallingxModule || !CallingxModule.isSetup || Platform.OS !== 'ios') {
     return;
   }
   const logger = videoLoggerSystem.getLogger('callingx');
 
-  if (Platform.OS === 'ios') {
+  try {
     logger.debug('unwireEngineSubscription: Cancelling engine subscription');
     CallingxModule.unwireAudioEngineSubscription();
+  } catch (error) {
+    logger.error(
+      'unwireAudioEngineSubscription: Error cancelling engine subscription',
+      error,
+    );
   }
 }
