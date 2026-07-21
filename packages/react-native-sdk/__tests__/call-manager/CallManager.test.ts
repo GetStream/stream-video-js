@@ -199,9 +199,11 @@ describe('CallManager Android Telecom branch', () => {
     expect(nativeManager.start).toHaveBeenCalled();
   });
 
-  it('addChangeListener uses callingx events when telecom-managed', () => {
+  it('addChangeListener subscribes to the signal-only route event and re-fetches state', async () => {
     const nativeManager = makeNativeManager();
-    const callingx = makeCallingx();
+    const callingx = makeCallingx({
+      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+    });
     const { CallManager } = loadCallManager({
       os: 'android',
       nativeManager,
@@ -211,12 +213,15 @@ describe('CallManager Android Telecom branch', () => {
     new CallManager().audioDevices.addChangeListener(onChange);
 
     expect(callingx.addEventListener).toHaveBeenCalledWith(
-      'didChangeAudioEndpoints',
+      'didChangeAudioRoute',
       expect.any(Function),
     );
-    // Simulate a native event and assert adaptation.
+    // The event is signal-only: firing it re-reads the current snapshot via getStatus().
     const cb = callingx.addEventListener.mock.calls[0][1];
-    cb({ callId: 'type:id', ...speakerSnapshot });
+    cb();
+    await new Promise((r) => setImmediate(r));
+
+    expect(callingx.getAvailableAudioEndpoints).toHaveBeenCalledWith('type:id');
     expect(onChange).toHaveBeenCalledWith({
       devices: [
         { id: 'ear', name: 'Earpiece', type: 'Earpiece' },

@@ -355,7 +355,6 @@ export type EventName =
   | 'endCall'
   | 'didDisplayIncomingCall'
   | 'didToggleHoldCallAction'
-  | 'didChangeAudioEndpoints'
   | 'didChangeAudioRoute'
   | 'didAudioInterruption'
   | 'didReceiveStartCallAction'
@@ -391,9 +390,6 @@ export type EventParams = {
     callId: string;
     muted: boolean;
   };
-  didChangeAudioEndpoints: {
-    callId: string;
-  } & AudioEndpointsSnapshot;
   didChangeAudioRoute: undefined;
   didAudioInterruption: IOSAudioInterruptionEvent;
   didReceiveStartCallAction: {

@@ -12,8 +12,10 @@ export type AudioDeviceEndpointType =
  * Devices are identified by a stable {@link AudioDevice.id} — never by name —
  * so two devices that share a display name (e.g. two "AirPods Pro") never
  * collide. On iOS the id is the `AVAudioSessionPortDescription.uid`
- * (or the synthetic `'speaker'` / `'earpiece'` for the built-in outputs);
- * on Android it is the `AudioDeviceInfo.id`.
+ * (or the synthetic `'speaker'` / `'earpiece'` for the built-in outputs).
+ * On Android it is the `AudioDeviceInfo.id` for SDK-managed routing, or the
+ * Telecom endpoint id (a `CallEndpointCompat` identifier) when the call is
+ * Telecom-managed via callingx — stable for the lifetime of that call.
  */
 export type AudioDevice = {
   /** Stable, unique device identifier. Pass this to `callManager.audioDevices.select()`. */

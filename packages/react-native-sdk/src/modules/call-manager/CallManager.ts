@@ -162,35 +162,8 @@ class AudioDevicesManager {
   ): (() => void) => {
     const unsubscribes: Array<() => void> = [];
 
-    // Android Telecom (callingx) route changes.
-    if (
-      Platform.OS === 'android' &&
-      CallingxModule?.isSetup &&
-      CallingxModule.isTelecomBacked
-    ) {
-      const cxSub = CallingxModule.addEventListener(
-        'didChangeAudioEndpoints',
-        (params) => onChange(snapshotToState(params)),
-      );
-      unsubscribes.push(() => cxSub.remove());
-    }
-
-    // Primary source: the SDK's in-call manager. Its event carries the full
-    // state and is the single source backing getStatus() on non-Telecom calls.
-    // Native suppresses these while in telecom-managed mode, and callingx emits
-    // no endpoint events for non-Telecom calls, so the two Android sources never
-    // overlap at runtime — safe to keep both subscribed in parallel.
-    this.eventEmitter ??= new NativeEventEmitter(NativeManager);
-    const sdkSub = this.eventEmitter.addListener(
-      AUDIO_DEVICE_CHANGED_EVENT,
-      onChange,
-    );
-    unsubscribes.push(() => sdkSub.remove());
-
-    // On iOS, when callingx (CallKit) owns the session, the SDK's own route-change
-    // observer is inactive. callingx owns the route change observer
-    // So we fetch the status from the SDK to update the state in callingx case.
-    if (Platform.OS === 'ios' && CallingxModule) {
+    // callingx-owned route changes (Android Telecom + iOS CallKit).
+    if (CallingxModule) {
       const cxSub = CallingxModule.addEventListener(
         'didChangeAudioRoute',
         () => {
@@ -199,6 +172,15 @@ class AudioDevicesManager {
       );
       unsubscribes.push(() => cxSub.remove());
     }
+
+    // SDK-managed route changes (non-callingx calls).
+    this.eventEmitter =
+      this.eventEmitter ?? new NativeEventEmitter(NativeManager);
+    const sdkSub = this.eventEmitter.addListener(
+      AUDIO_DEVICE_CHANGED_EVENT,
+      onChange,
+    );
+    unsubscribes.push(() => sdkSub.remove());
 
     return () => unsubscribes.forEach((unsubscribe) => unsubscribe());
   };
