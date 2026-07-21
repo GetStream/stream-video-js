@@ -108,13 +108,9 @@ internal class AudioManagerUtil {
                 AudioDeviceEndpoint.TYPE_BLUETOOTH -> {
                     val didSwitch = bluetoothManager.startScoAudio()
                     if (didSwitch) {
-                        // Prefer the authoritative active communication-device id
-                        // (disambiguates same-named BT); fall back to name match.
                         val activeId = audioManager.communicationDevice?.id?.toString()
-                        return (activeId?.let { endpointMaps.bluetoothEndpoints[it] })
-                            ?: endpointMaps.bluetoothEndpoints.values.firstOrNull {
-                                it.name == bluetoothManager.getDeviceName()
-                            }
+                            ?: return null
+                        return endpointMaps.bluetoothEndpoints[activeId]
                     }
                     return null
                 }
