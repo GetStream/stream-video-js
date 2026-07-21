@@ -3,6 +3,32 @@ import { callManager } from '../modules/call-manager';
 import type { AudioDevicesState } from '../modules/call-manager/types';
 
 /**
+ * Structural equality for two audio device states to avoid redundant re-renders.
+ */
+const areStatesEqual = (
+  a: AudioDevicesState | undefined,
+  b: AudioDevicesState,
+): boolean => {
+  if (!a) return false;
+  if (
+    a.selectedDeviceId !== b.selectedDeviceId ||
+    a.currentEndpointType !== b.currentEndpointType ||
+    a.devices.length !== b.devices.length
+  ) {
+    return false;
+  }
+  return a.devices.every((device, i) => {
+    const other = b.devices[i];
+    return (
+      other !== undefined &&
+      device.id === other.id &&
+      device.name === other.name &&
+      device.type === other.type
+    );
+  });
+};
+
+/**
  * Subscribes to the current audio output device state and keeps it in sync.
  *
  * Works on Android, iOS, and iOS with CallKit
@@ -25,10 +51,12 @@ export const useAudioDeviceStatus = (): AudioDevicesState | undefined => {
 
   useEffect(() => {
     let active = true;
-    callManager.audioDevices.getStatus().then((s) => {
-      if (active) setState(s);
-    });
-    const unsubscribe = callManager.audioDevices.addChangeListener(setState);
+    const update = (next: AudioDevicesState) => {
+      if (!active) return;
+      setState((prev) => (areStatesEqual(prev, next) ? prev : next));
+    };
+    callManager.audioDevices.getStatus().then(update);
+    const unsubscribe = callManager.audioDevices.addChangeListener(update);
     return () => {
       active = false;
       unsubscribe();
