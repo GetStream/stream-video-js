@@ -1,11 +1,11 @@
 import {
   AudioDeviceEndpointType,
-  AudioDeviceStatus,
   callManager,
+  useAudioDeviceStatus,
   useTheme,
 } from '@stream-io/video-react-native-sdk';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import {
   Animated,
   Easing,
@@ -28,8 +28,8 @@ type DrawerProps = {
   onClose: () => void;
 };
 
-const endpointNameToIconImage = (endPointName: AudioDeviceEndpointType) => {
-  switch (endPointName) {
+const endpointTypeToIconImage = (type: AudioDeviceEndpointType | undefined) => {
+  switch (type) {
     case 'Speaker':
       return require('../../../assets/audio-routes/volume_up_24dp.png');
     case 'Earpiece':
@@ -41,13 +41,15 @@ const endpointNameToIconImage = (endPointName: AudioDeviceEndpointType) => {
   }
 };
 
-type AndroidAudioRoutePickerDrawerProps = DrawerProps & {
+type AudioRoutePickerDrawerProps = DrawerProps & {
   bottomControlsHeight: number;
 };
 
-export const AndroidAudioRoutePickerDrawer: React.FC<
-  AndroidAudioRoutePickerDrawerProps
-> = ({ isVisible, onClose, bottomControlsHeight }) => {
+export const AudioRoutePickerDrawer: React.FC<AudioRoutePickerDrawerProps> = ({
+  isVisible,
+  onClose,
+  bottomControlsHeight,
+}) => {
   const screenHeight = useWindowDimensions().height;
   const drawerHeight = screenHeight * 0.8;
   const styles = useStyles();
@@ -57,18 +59,9 @@ export const AndroidAudioRoutePickerDrawer: React.FC<
     },
   } = useTheme();
 
-  const [audioDeviceStatus, setAudioDeviceStatus] =
-    useState<AudioDeviceStatus>();
-
-  useEffect(() => {
-    callManager.android.getAudioDeviceStatus().then(setAudioDeviceStatus);
-    return callManager.android.addAudioDeviceChangeListener(
-      setAudioDeviceStatus,
-    );
-  }, []);
-
+  const audioDeviceStatus = useAudioDeviceStatus();
   const audioRoutes = audioDeviceStatus?.devices ?? [];
-  const selectedAudioDeviceName = audioDeviceStatus?.selectedDevice;
+  const selectedDeviceId = audioDeviceStatus?.selectedDeviceId;
 
   // negative offset is needed so the drawer component start above the bottom controls
   const offset = -bottomControlsHeight - insets.bottom;
@@ -117,7 +110,6 @@ export const AndroidAudioRoutePickerDrawer: React.FC<
 
   useEffect(() => {
     if (isVisible) {
-      callManager.android.getAudioDeviceStatus().then(setAudioDeviceStatus);
       Animated.spring(translateY, {
         toValue: SNAP_TOP,
         useNativeDriver: true,
@@ -134,8 +126,8 @@ export const AndroidAudioRoutePickerDrawer: React.FC<
 
   const elasticAnimRef = useRef(new Animated.Value(0.5));
 
-  const handleOptionPress = (route: string) => {
-    callManager.android.selectAudioDevice(route);
+  const handleOptionPress = (deviceId: string) => {
+    callManager.audioDevices.select(deviceId);
     Animated.timing(elasticAnimRef.current, {
       toValue: 0.2,
       duration: 150,
@@ -167,18 +159,18 @@ export const AndroidAudioRoutePickerDrawer: React.FC<
               <View {...panResponder.panHandlers}>{dragIndicator}</View>
               <FlatList
                 data={audioRoutes}
-                keyExtractor={(item) => item}
+                keyExtractor={(item) => item.id}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={styles.optionContainer}
-                    onPress={() => handleOptionPress(item)}
+                    onPress={() => handleOptionPress(item.id)}
                   >
                     <Image
                       style={styles.routeIcon}
-                      source={endpointNameToIconImage(item)}
+                      source={endpointTypeToIconImage(item.type)}
                     />
-                    <Text style={styles.label}>{item}</Text>
-                    {item === selectedAudioDeviceName && (
+                    <Text style={styles.label}>{item.name}</Text>
+                    {item.id === selectedDeviceId && (
                       <Text style={styles.selectedIcon}>✓</Text> // Checkmark for selected item
                     )}
                   </TouchableOpacity>

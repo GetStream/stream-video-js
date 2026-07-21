@@ -1,7 +1,7 @@
 /**
  * Tests for the Android Telecom (callingx) audio-routing branch in CallManager.
  * The SDK delegates routing to callingx when a call is Telecom-managed, adapting callingx's
- * generic endpoint primitives to the unchanged AudioDeviceStatus shape.
+ * generic endpoint primitives to the cross-platform AudioDevicesState shape.
  */
 
 type Snapshot = {
@@ -75,7 +75,7 @@ const speakerSnapshot: Snapshot = {
 describe('CallManager Android Telecom branch', () => {
   afterEach(() => jest.resetModules());
 
-  it('adapts a callingx snapshot to AudioDeviceStatus', async () => {
+  it('adapts a callingx snapshot to AudioDevicesState', async () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx({
       getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
@@ -85,18 +85,22 @@ describe('CallManager Android Telecom branch', () => {
       nativeManager,
       callingx,
     });
-    const status = await new CallManager().android.getAudioDeviceStatus();
+    const status = await new CallManager().audioDevices.getStatus();
 
     expect(callingx.getAvailableAudioEndpoints).toHaveBeenCalledWith('type:id');
     expect(nativeManager.getAudioDeviceStatus).not.toHaveBeenCalled();
     expect(status).toEqual({
-      devices: ['Earpiece', 'Speaker', 'Sony WH'],
+      devices: [
+        { id: 'ear', name: 'Earpiece', type: 'Earpiece' },
+        { id: 'spk', name: 'Speaker', type: 'Speaker' },
+        { id: 'bt1', name: 'Sony WH', type: 'Bluetooth Device' },
+      ],
+      selectedDeviceId: 'spk',
       currentEndpointType: 'Speaker',
-      selectedDevice: 'Speaker',
     });
   });
 
-  it('selectAudioDevice resolves name -> id and routes via Telecom', async () => {
+  it('select routes via Telecom directly by endpoint id', async () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx({
       getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
@@ -106,7 +110,7 @@ describe('CallManager Android Telecom branch', () => {
       nativeManager,
       callingx,
     });
-    new CallManager().android.selectAudioDevice('Sony WH');
+    new CallManager().audioDevices.select('bt1');
     await new Promise((r) => setImmediate(r));
 
     expect(callingx.requestAudioEndpointChange).toHaveBeenCalledWith(
@@ -195,28 +199,37 @@ describe('CallManager Android Telecom branch', () => {
     expect(nativeManager.start).toHaveBeenCalled();
   });
 
-  it('addAudioDeviceChangeListener uses callingx events when telecom-managed', () => {
+  it('addChangeListener subscribes to the signal-only route event and re-fetches state', async () => {
     const nativeManager = makeNativeManager();
-    const callingx = makeCallingx();
+    const callingx = makeCallingx({
+      getAvailableAudioEndpoints: jest.fn().mockResolvedValue(speakerSnapshot),
+    });
     const { CallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx,
     });
     const onChange = jest.fn();
-    new CallManager().android.addAudioDeviceChangeListener(onChange);
+    new CallManager().audioDevices.addChangeListener(onChange);
 
     expect(callingx.addEventListener).toHaveBeenCalledWith(
-      'didChangeAudioEndpoints',
+      'didChangeAudioRoute',
       expect.any(Function),
     );
-    // Simulate a native event and assert adaptation.
+    // The event is signal-only: firing it re-reads the current snapshot via getStatus().
     const cb = callingx.addEventListener.mock.calls[0][1];
-    cb({ callId: 'type:id', ...speakerSnapshot });
+    cb();
+    await new Promise((r) => setImmediate(r));
+
+    expect(callingx.getAvailableAudioEndpoints).toHaveBeenCalledWith('type:id');
     expect(onChange).toHaveBeenCalledWith({
-      devices: ['Earpiece', 'Speaker', 'Sony WH'],
+      devices: [
+        { id: 'ear', name: 'Earpiece', type: 'Earpiece' },
+        { id: 'spk', name: 'Speaker', type: 'Speaker' },
+        { id: 'bt1', name: 'Sony WH', type: 'Bluetooth Device' },
+      ],
+      selectedDeviceId: 'spk',
       currentEndpointType: 'Speaker',
-      selectedDevice: 'Speaker',
     });
   });
 });

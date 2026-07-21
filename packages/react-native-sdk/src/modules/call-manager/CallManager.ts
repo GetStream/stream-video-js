@@ -1,6 +1,7 @@
 import { NativeEventEmitter, NativeModules, Platform } from 'react-native';
 import type {
-  AudioDeviceStatus,
+  AudioDeviceEndpointType,
+  AudioDevicesState,
   IOSAudioInterruptionEvent,
   StreamInCallManagerConfig,
 } from './types';
@@ -14,9 +15,22 @@ import { videoLoggerSystem } from '@stream-io/video-client';
 const NativeManager = NativeModules.StreamInCallManager;
 const CallingxModule = getCallingxLibIfAvailable();
 const AUDIO_INTERRUPTION_EVENT = 'StreamInCallManagerAudioInterruption';
+const AUDIO_DEVICE_CHANGED_EVENT = 'onAudioDeviceChanged';
 
 const invariant = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message);
+};
+
+/**
+ * Runs a fire-and-forget native call, logging instead of throwing on a bridge
+ * error so it can't crash the caller or an event-dispatch loop.
+ */
+const safeNativeCall = (label: string, fn: () => void): void => {
+  try {
+    fn();
+  } catch (error) {
+    videoLoggerSystem.getLogger('CallManager').warn(`${label} failed`, error);
+  }
 };
 
 /**
@@ -53,10 +67,8 @@ const getTelecomContext = ():
   return { cx: CallingxModule, callId };
 };
 
-/** Map a generic Telecom endpoint type to the SDK's endpoint display name. */
-const endpointTypeToDisplayName = (
-  type: string,
-): AudioDeviceStatus['currentEndpointType'] => {
+/** Map a generic Telecom endpoint type to the SDK's endpoint type. */
+const endpointTypeToDisplayName = (type: string): AudioDeviceEndpointType => {
   switch (type) {
     case 'earpiece':
       return 'Earpiece';
@@ -71,95 +83,136 @@ const endpointTypeToDisplayName = (
   }
 };
 
-/** Adapt a callingx endpoints snapshot to the SDK's {@link AudioDeviceStatus}. */
-const snapshotToStatus = (
+/** Adapt a callingx endpoints snapshot to the SDK's {@link AudioDevicesState}. */
+const snapshotToState = (
   snapshot: CallingxAudioSnapshot,
-): AudioDeviceStatus => ({
-  devices: snapshot.endpoints.map((e) => e.name),
+): AudioDevicesState => ({
+  // callingx endpoint ids are stable and unique — use them directly as the
+  // device id, so `select(device.id)` maps straight back to a Telecom endpoint.
+  devices: snapshot.endpoints.map((e) => ({
+    id: e.id,
+    name: e.name,
+    type: endpointTypeToDisplayName(e.type),
+  })),
+  selectedDeviceId: snapshot.currentEndpoint?.id,
   currentEndpointType: snapshot.currentEndpoint
     ? endpointTypeToDisplayName(snapshot.currentEndpoint.type)
     : 'Unknown',
-  selectedDevice: snapshot.currentEndpoint?.name ?? '',
 });
 
-class AndroidCallManager {
+/**
+ * Cross-platform audio output device picker.
+ */
+class AudioDevicesManager {
   private eventEmitter?: NativeEventEmitter;
+  private interruptionReassertSetup = false;
 
   /**
-   * Get the current audio device status.
+   * iOS + CallKit only: re-assert the user's output pick after an interruption ends.
+   *
+   * On interruption-end iOS clears the ephemeral route override (`setPreferredInput` /
+   * `overrideOutputAudioPort`) and doesn't restore it, and callingx re-applies its config
+   * only on engine-enable — not the engine-restart of interruption recovery.
    */
-  getAudioDeviceStatus = async (): Promise<AudioDeviceStatus> => {
-    invariant(Platform.OS === 'android', 'Supported only on Android');
+  private ensureInterruptionReassert = () => {
+    if (this.interruptionReassertSetup) return; // subscibed once per app lifetime
+    if (Platform.OS !== 'ios' || !CallingxModule) return;
+    this.interruptionReassertSetup = true;
+    CallingxModule.addEventListener('didAudioInterruption', (event) => {
+      if (event.phase === 'ended') {
+        safeNativeCall('reapplyAudioRoute', () =>
+          NativeManager.reapplyAudioRoute(),
+        );
+      }
+    });
+  };
+
+  /**
+   * Get the current audio device state (available devices + the selected one).
+   * Read directly from the audio session, so it works on every path.
+   */
+  getStatus = async (): Promise<AudioDevicesState> => {
+    // Android Telecom owns routing: read the endpoint snapshot from callingx.
     const tc = getTelecomContext();
     if (tc) {
       const snapshot = await tc.cx.getAvailableAudioEndpoints(tc.callId);
-      return snapshotToStatus(snapshot);
+      return snapshotToState(snapshot);
     }
     return NativeManager.getAudioDeviceStatus();
   };
 
   /**
-   * Switches the audio device to the specified endpoint.
+   * Switch the audio output to the device with the given id.
    *
-   * @param endpointName the device name.
+   * @param deviceId the stable {@link AudioDevice.id} (not the display name).
    */
-  selectAudioDevice = (endpointName: string): void => {
-    invariant(Platform.OS === 'android', 'Supported only on Android');
+  select = (deviceId: string): void => {
+    // Android Telecom owns routing: the device id is the callingx endpoint id,
+    // so route by it directly (no name lookup needed).
     const tc = getTelecomContext();
     if (tc) {
       const { cx, callId } = tc;
-      // Resolve name -> endpoint id from the current Telecom snapshot, then route via Telecom.
-      cx.getAvailableAudioEndpoints(callId)
-        .then((snapshot) => {
-          const target = snapshot.endpoints.find(
-            (e) => e.name === endpointName,
+      cx.requestAudioEndpointChange(callId, deviceId).catch((error) => {
+        videoLoggerSystem
+          .getLogger('CallManager')
+          .warn(
+            `select: failed to route to "${deviceId}" for call ${callId} via Telecom`,
+            error,
           );
-          if (target) {
-            return cx.requestAudioEndpointChange(callId, target.id);
-          }
-          return undefined;
-        })
-        .catch((error) => {
-          videoLoggerSystem
-            .getLogger('CallManager')
-            .warn(
-              `selectAudioDevice: failed to route to "${endpointName}" for call ${callId} via Telecom`,
-              error,
-            );
-        });
+      });
       return;
     }
-    NativeManager.chooseAudioDeviceEndpoint(endpointName);
+    this.ensureInterruptionReassert();
+    safeNativeCall('chooseAudioDeviceEndpoint', () =>
+      NativeManager.chooseAudioDeviceEndpoint(deviceId),
+    );
   };
 
   /**
-   * Register a listener for audio device changes.
-   * @param onChange callback to be called when the audio device changes.
+   * Register a listener for audio device changes. Returns an unsubscribe fn.
+   *
+   * @param onChange called with the latest {@link AudioDevicesState} on change.
    */
-  addAudioDeviceChangeListener = (
-    onChange: (audioDeviceStatus: AudioDeviceStatus) => void,
+  addChangeListener = (
+    onChange: (state: AudioDevicesState) => void,
   ): (() => void) => {
-    invariant(Platform.OS === 'android', 'Supported only on Android');
-    const cleanups: Array<() => void> = [];
+    let active = true;
+    const unsubscribes: Array<() => void> = [];
 
-    // Telecom (callingx) route changes.
-    if (CallingxModule?.isSetup && CallingxModule.isTelecomBacked) {
-      const sub = CallingxModule.addEventListener(
-        'didChangeAudioEndpoints',
-        (params) => onChange(snapshotToStatus(params)),
+    // callingx-owned route changes (Android Telecom + iOS CallKit). The event is
+    // signal-only, so re-read the current state — ignoring a resolve that lands
+    // after unsubscribe, and swallowing bridge rejections.
+    if (CallingxModule) {
+      const cxSub = CallingxModule.addEventListener(
+        'didChangeAudioRoute',
+        () => {
+          this.getStatus()
+            .then((state) => {
+              if (active) onChange(state);
+            })
+            .catch((error) => {
+              videoLoggerSystem
+                .getLogger('CallManager')
+                .warn('addChangeListener: getStatus failed', error);
+            });
+        },
       );
-      cleanups.push(() => sub.remove());
+      unsubscribes.push(() => cxSub.remove());
     }
 
-    // StreamInCallManager route changes (non-Telecom calls). Native
-    // suppresses these while in telecom-managed mode, and callingx emits no
-    // endpoint events for non-Telecom calls, so the two sources never overlap
-    // at runtime — safe to keep both subscribed in parallel.
-    this.eventEmitter ??= new NativeEventEmitter(NativeManager);
-    const s = this.eventEmitter.addListener('onAudioDeviceChanged', onChange);
-    cleanups.push(() => s.remove());
+    // SDK-managed route changes (non-callingx calls).
+    this.eventEmitter =
+      this.eventEmitter ?? new NativeEventEmitter(NativeManager);
+    const sdkSub = this.eventEmitter.addListener(
+      AUDIO_DEVICE_CHANGED_EVENT,
+      onChange,
+    );
+    unsubscribes.push(() => sdkSub.remove());
 
-    return () => cleanups.forEach((cleanup) => cleanup());
+    return () => {
+      active = false;
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+    };
   };
 }
 
@@ -258,7 +311,7 @@ const shouldBypassForCallKit = (): boolean => {
 };
 
 export class CallManager {
-  android = new AndroidCallManager();
+  audioDevices = new AudioDevicesManager();
   ios = new IOSCallManager();
   speaker = new SpeakerManager();
 
@@ -281,11 +334,14 @@ export class CallManager {
    */
   start = (config?: StreamInCallManagerConfig): void => {
     if (shouldBypassForCallKit()) {
-      // Forward only the passive endpoint preference; callingx reads it when
-      // CallKit drives session activation.
       if (config?.audioRole === 'communicator' && CallingxModule) {
         const type = config.deviceEndpointType ?? 'speaker';
-        CallingxModule.setDefaultAudioDeviceEndpointType(type);
+        safeNativeCall('setDefaultAudioDeviceEndpointType (callingx)', () =>
+          CallingxModule.setDefaultAudioDeviceEndpointType(type),
+        );
+        safeNativeCall('setDefaultAudioDeviceEndpointType', () =>
+          NativeManager.setDefaultAudioDeviceEndpointType(type),
+        );
       }
       videoLoggerSystem
         .getLogger('CallManager')
@@ -298,8 +354,10 @@ export class CallManager {
       // Telecom owns routing/focus; forward the sticky preference to callingx and run in
       // telecom-managed mode (StreamInCallManager keeps proximity/keep-screen-on only).
       if (config?.audioRole !== 'listener' && CallingxModule) {
-        CallingxModule.setDefaultAudioDeviceEndpointType(
-          config?.deviceEndpointType ?? 'speaker',
+        safeNativeCall('setDefaultAudioDeviceEndpointType (callingx)', () =>
+          CallingxModule.setDefaultAudioDeviceEndpointType(
+            config?.deviceEndpointType ?? 'speaker',
+          ),
         );
       }
       NativeManager.setTelecomManagedMode(true);

@@ -108,7 +108,9 @@ internal class AudioManagerUtil {
                 AudioDeviceEndpoint.TYPE_BLUETOOTH -> {
                     val didSwitch = bluetoothManager.startScoAudio()
                     if (didSwitch) {
-                        return endpointMaps.bluetoothEndpoints[bluetoothManager.getDeviceName()]
+                        val activeId = audioManager.communicationDevice?.id?.toString()
+                            ?: return null
+                        return endpointMaps.bluetoothEndpoints[activeId]
                     }
                     return null
                 }
@@ -166,7 +168,9 @@ internal class AudioManagerUtil {
                     val didSwitch = bluetoothManager.startScoAudio()
                     if (didSwitch) {
                         // NOTE: SCO connection may fail after timeout, how to catch that on older platforms?
-                        return endpointMaps.bluetoothEndpoints[bluetoothManager.getDeviceName()]
+                        return endpointMaps.bluetoothEndpoints.values.firstOrNull {
+                            it.name == bluetoothManager.getDeviceName()
+                        }
                     }
                     return null
                 }

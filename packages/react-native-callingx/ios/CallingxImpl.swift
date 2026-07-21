@@ -11,6 +11,7 @@ import stream_react_native_webrtc
     public static let didToggleHoldAction = "didToggleHoldCallAction"
     public static let didPerformSetMutedCallAction = "didPerformSetMutedCallAction"
     public static let didAudioInterruption = "didAudioInterruption"
+    public static let didChangeAudioRoute = "didChangeAudioRoute"
     public static let didDisplayIncomingCall = "didDisplayIncomingCall"
     public static let didActivateAudioSession = "didActivateAudioSession"
     public static let didDeactivateAudioSession = "didDeactivateAudioSession"
@@ -851,6 +852,7 @@ import stream_react_native_webrtc
         // concurrent CallKit calls. See plan: critically-review-the-implementation-zesty-spindle.
         if let storage = CallingxImpl.uuidStorage, storage.count() == 0 {
             CallingxSessionOwnership.callingxOwnsSession = false
+            AudioSessionManager.shared.stopRouteObserver()
         }
 
         // Disable wake lock when the call ends
@@ -901,6 +903,7 @@ import stream_react_native_webrtc
         let trackedCids = CallingxImpl.uuidStorage?.allCids() ?? []
         CallingxSessionOwnership.callingxOwnsSession = false
         CallingxImpl.uuidStorage?.removeAllObjects()
+        AudioSessionManager.shared.stopRouteObserver()
 
         sendEvent(CallingxEvents.providerReset, body: ["callCids": trackedCids])
     }

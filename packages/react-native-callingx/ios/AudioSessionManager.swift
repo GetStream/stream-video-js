@@ -11,10 +11,9 @@ enum DefaultAudioDevice {
 
     public static let shared = AudioSessionManager()
 
-    /// Guards the `defaultAudioDevice` cache. Strictly an in-memory state queue —
-    /// session writes never run here (they'd risk a deadlock since
-    /// `applyCallKitConfiguration` does `stateQueue.sync` to read the cache).
+    /// Guards the `defaultAudioDevice` cache. Strictly an in-memory state queue
     private let stateQueue = DispatchQueue(label: "io.getstream.callingx.audioSessionManager")
+    /// The pre-join default endpoint (from `setPushConfig` / `start()`).
     private var defaultAudioDevice: DefaultAudioDevice = .speaker
 
     /// Serializes engine-driven session writes against each other (multiple
@@ -23,6 +22,11 @@ enum DefaultAudioDevice {
     /// `RTCAudioSession.lockForConfiguration`, not via this queue.
     private let audioSessionQueue = DispatchQueue(label: "io.getstream.callingx.audioSession")
 
+    /// Whether the AVAudioSession route-change observer is registered.
+    private var hasRouteObserver = false
+
+    /// Sets the pre-join default endpoint (from `setPushConfig` / `start()`). Pure cache —
+    /// `createAudioSessionIfNeeded` applies it when the call's session is established.
     public func setDefaultAudioDeviceEndpointType(_ endpointType: String) {
         let next: DefaultAudioDevice = endpointType.lowercased() == "earpiece" ? .earpiece : .speaker
         stateQueue.async { self.defaultAudioDevice = next }
@@ -30,15 +34,11 @@ enum DefaultAudioDevice {
 
     /// Belt-and-braces config writer kept for the initial-activation window
     /// (called from `CXStartCallAction.perform` / `CXAnswerCallAction.perform`).
-    /// Stays synchronous from the caller's perspective — `audioSessionQueue.sync`
-    /// blocks until configuration completes so `action.fulfill()` runs on a configured
-    /// session and `provider(_:didActivate:)` may fire imminently. Serializes with
-    /// `engineWillEnable` (e.g. work queued by `adm.reset()` runs first on the queue).
-    /// The engine-observer path is the authoritative reapply on subsequent activations.
     public func createAudioSessionIfNeeded() {
         audioSessionQueue.sync {
             self.applyCallKitConfiguration()
         }
+        startRouteObserver()
     }
 
     /// Called from the AudioDeviceModule publisher's `.willEnableAudioEngine` event.
@@ -62,9 +62,44 @@ enum DefaultAudioDevice {
         // No-op: CallKit's `provider(_:didDeactivate:)` handles `setActive(false)`.
     }
 
+    // MARK: - Route-change observer
+
+    /// Registers the AVAudioSession route-change observer for the current call.
+    /// the change is sent to the JS side.
+    public func startRouteObserver() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.hasRouteObserver else { return }
+            self.hasRouteObserver = true
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(self.handleRouteChange(_:)),
+                name: AVAudioSession.routeChangeNotification,
+                object: nil
+            )
+        }
+    }
+
+    /// Removes the route-change observer. Called on end-of-call / provider reset.
+    public func stopRouteObserver() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.hasRouteObserver else { return }
+            self.hasRouteObserver = false
+            NotificationCenter.default.removeObserver(self, name: AVAudioSession.routeChangeNotification, object: nil)
+        }
+    }
+
+    @objc private func handleRouteChange(_ notification: Notification) {
+        // Defensive: a stray notification after ownership is released must not emit.
+        // Read-only — emits a bare signal; JS re-fetches the device status from the SDK.
+        guard CallingxSessionOwnership.callingxOwnsSession else { return }
+        CallingxImpl.sharedInstance?.sendEvent(CallingxEvents.didChangeAudioRoute, body: nil)
+    }
+
     // MARK: - Private
 
     private func applyCallKitConfiguration() {
+        let currentDevice = stateQueue.sync { defaultAudioDevice }
+
         let rtcSession = RTCAudioSession.sharedInstance()
 
         // Relax to a pure-output (.playback) session when mic permission is missing
@@ -80,8 +115,6 @@ enum DefaultAudioDevice {
             rtcConfig.mode = AVAudioSession.Mode.spokenAudio.rawValue
             rtcConfig.categoryOptions = []
         } else {
-            let currentDevice = stateQueue.sync { defaultAudioDevice }
-
             // XCode 16 and older don't expose .allowBluetoothHFP
             // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
             #if compiler(>=6.2) // For Xcode 26.0+
