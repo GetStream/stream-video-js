@@ -57,6 +57,14 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         impl.requestAudioEndpointChange(callId, endpointId, promise)
     }
 
+    override fun wireAudioEngineSubscription() {
+        // leave empty
+    }
+
+    override fun unwireAudioEngineSubscription() {
+        // leave empty
+    }
+
     override fun setupAndroid(options: ReadableMap) {
         impl.setupAndroid(options)
     }

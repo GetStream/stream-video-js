@@ -424,7 +424,18 @@ type StreamRNVideoSDKCallManagerRingingParams = {
 
 type StreamRNVideoSDKCallManagerSetupParams =
   StreamRNVideoSDKCallManagerRingingParams & {
+    cid: string;
     defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
+  };
+
+type StreamRNVideoSDKCallManagerStartParams =
+  StreamRNVideoSDKCallManagerRingingParams & {
+    cid: string;
+  };
+
+type StreamRNVideoSDKCallManagerStopParams =
+  StreamRNVideoSDKCallManagerRingingParams & {
+    shouldStopCallManager: boolean;
   };
 
 type StreamRNVideoSDKEndCallReason =
@@ -456,6 +467,8 @@ type StreamRNVideoSDKCallingX = {
     reason?: StreamRNVideoSDKEndCallReason,
   ) => Promise<void>;
   registerOutgoingCall: (call: Call) => Promise<void>;
+  wireAudioEngineSubscription: () => void;
+  unwireAudioEngineSubscription: () => void;
 };
 
 export type StreamRNVideoSDKGlobals = {
@@ -467,6 +480,7 @@ export type StreamRNVideoSDKGlobals = {
     setup({
       defaultDevice,
       isRingingTypeCall,
+      cid,
     }: StreamRNVideoSDKCallManagerSetupParams): void;
 
     /**
@@ -474,12 +488,16 @@ export type StreamRNVideoSDKGlobals = {
      */
     start({
       isRingingTypeCall,
-    }: StreamRNVideoSDKCallManagerRingingParams): void;
+      cid,
+    }: StreamRNVideoSDKCallManagerStartParams): void;
 
     /**
      * Stops the in call manager.
      */
-    stop({ isRingingTypeCall }: StreamRNVideoSDKCallManagerRingingParams): void;
+    stop({
+      isRingingTypeCall,
+      shouldStopCallManager,
+    }: StreamRNVideoSDKCallManagerStopParams): void;
 
     /**
      * iOS-only. Keeps the audio engine's microphone-input (voice-processing)

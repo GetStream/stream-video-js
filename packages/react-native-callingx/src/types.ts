@@ -51,6 +51,19 @@ export interface ICallingxModule {
    * @param options - The options to setup the callingx module. See {@link CallingExpOptions}
    */
   setup(options: CallingExpOptions): void;
+
+  /**
+   * Wire the audio engine subscription to the live call factory's ADM.
+   */
+  wireAudioEngineSubscription(): void;
+
+  /**
+   * Cancels the ADM engine-lifecycle subscription wired by
+   * {@link wireAudioEngineSubscription}. iOS only; no-op on Android.
+   * Call when the per-call media engine is disposed.
+   */
+  unwireAudioEngineSubscription(): void;
+
   /**
    * Set whether to reject calls when the user is busy.
    * The value is used in iOS native module to prevent calls registration in CallKit when the user is busy.

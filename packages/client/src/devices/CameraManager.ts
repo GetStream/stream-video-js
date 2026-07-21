@@ -7,6 +7,7 @@ import { VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
+import { CallingState } from '../store';
 import { DevicePersistenceOptions } from './devicePersistence';
 
 export class CameraManager extends DeviceManager<CameraManagerState> {
@@ -124,6 +125,53 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     }
   }
 
+  override enable(): Promise<void> {
+    if (
+      isReactNative() &&
+      this.call.state.callingState !== CallingState.JOINED
+    ) {
+      this.state.setPendingStatus('enabled');
+      return Promise.resolve();
+    }
+
+    return super.enable();
+  }
+
+  override disable(options: { forceStop?: boolean }): Promise<void>;
+  override disable(forceStop?: boolean): Promise<void>;
+  override async disable(
+    forceStopOrOptions?: boolean | { forceStop?: boolean },
+  ): Promise<void> {
+    if (
+      isReactNative() &&
+      this.call.state.callingState !== CallingState.JOINED
+    ) {
+      this.state.setPendingStatus('disabled');
+      return;
+    }
+
+    // forward verbatim to the base, narrowing so the right overload is selected
+    if (forceStopOrOptions === undefined) return super.disable();
+    if (typeof forceStopOrOptions === 'boolean') {
+      return super.disable(forceStopOrOptions);
+    }
+    return super.disable(forceStopOrOptions);
+  }
+
+  override toggle(): Promise<void> {
+    if (
+      isReactNative() &&
+      this.call.state.callingState !== CallingState.JOINED
+    ) {
+      this.state.setPendingStatus(
+        this.state.optimisticStatus === 'enabled' ? 'disabled' : 'enabled',
+      );
+      return Promise.resolve();
+    }
+
+    return super.toggle();
+  }
+
   /**
    * Applies the video settings to the camera.
    *
@@ -166,9 +214,15 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       }
     }
 
-    const { mediaStream } = this.state;
-    if (canPublish && publish && this.enabled && mediaStream) {
-      await this.publishStream(mediaStream);
+    if (isReactNative() && publish && canPublish) {
+      // On RN the camera is enabled/disabled optimistically before JOINED. Reconcile now
+      // acquires the track and publishes it, so it fully owns the publish.
+      await this.reconcileOptimisticStatus();
+    } else {
+      const { mediaStream } = this.state;
+      if (canPublish && publish && this.enabled && mediaStream) {
+        await this.publishStream(mediaStream);
+      }
     }
   }
 
@@ -196,9 +250,12 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
     return constraints;
   }
 
-  protected override getStream(
+  protected override async getStream(
     constraints: MediaTrackConstraints,
   ): Promise<MediaStream> {
+    // Ensure the call's media factory exists before capture so the resulting
+    // track is owned by it (the WebRTC globals resolve to the live factory).
+    await this.call.ensureMediaFactory();
     return getVideoStream(constraints, this.call.tracer);
   }
 }

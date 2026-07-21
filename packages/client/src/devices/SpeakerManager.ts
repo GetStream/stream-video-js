@@ -20,6 +20,7 @@ import {
   writePreferences,
 } from './devicePersistence';
 import { createSubscription, getCurrentValue } from '../store/rxUtils';
+import { CallingState } from '../store';
 
 export class SpeakerManager {
   readonly state: SpeakerState;
@@ -62,6 +63,16 @@ export class SpeakerManager {
   }
 
   private applyRN(settings: CallSettingsResponse) {
+    // This guard prevents from setting the default audio device outside of the
+    // call JOIN/LEFT window and makes settings applied only for single active call.
+    const callingState = this.call.state.callingState;
+    if (
+      callingState !== CallingState.JOINING &&
+      callingState !== CallingState.JOINED
+    ) {
+      return;
+    }
+
     /// Determines if the speaker should be enabled based on a priority hierarchy of
     /// settings.
     ///
@@ -90,6 +101,7 @@ export class SpeakerManager {
       globalThis.streamRNVideoSDK?.callManager.setup({
         defaultDevice,
         isRingingTypeCall: this.call.ringing,
+        cid: this.call.cid,
       });
     }
   }
@@ -164,6 +176,7 @@ export class SpeakerManager {
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
+    this.defaultDevice = undefined;
   };
 
   /**

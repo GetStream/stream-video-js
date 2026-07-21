@@ -2,7 +2,9 @@ import { StreamSfuClient } from './StreamSfuClient';
 import { SfuJoinError } from './errors';
 import {
   BasePeerConnectionOpts,
+  type CallMediaEngine,
   Dispatcher,
+  getCallMediaEngineProvider,
   getGenericSdp,
   isAudioTrackType,
   isSfuEvent,
@@ -328,6 +330,8 @@ export class Call {
   private allowOwnTracksLoopback = false;
   private hasJoinedOnce = false;
   private deviceSettingsAppliedOnce = false;
+  private callManagerStarted = false;
+  private leaveGeneration = 0;
   private credentials?: Credentials;
 
   private initialized = false;
@@ -350,6 +354,14 @@ export class Call {
   private clientCapabilities = new Set<ClientCapability>([
     ClientCapability.SUBSCRIBER_VIDEO_PAUSE,
   ]);
+
+  /**
+   * The in-flight per-call media engine. On web/React this resolves to a thin
+   * globals-backed engine (no provider registered); React Native registers a
+   * provider that owns a per-call native factory.
+   * @internal
+   */
+  private mediaEnginePromise?: Promise<CallMediaEngine>;
 
   /**
    * Constructs a new `Call` instance.
@@ -698,6 +710,8 @@ export class Call {
         return;
       }
 
+      this.leaveGeneration += 1;
+
       if (callingState === CallingState.JOINING) {
         const waitUntilCallJoined = () => {
           return new Promise<void>((resolve) => {
@@ -798,6 +812,7 @@ export class Call {
 
       globalThis.streamRNVideoSDK?.callManager.stop({
         isRingingTypeCall: this.ringing,
+        shouldStopCallManager: this.callManagerStarted,
       });
 
       this.camera.dispose();
@@ -805,6 +820,7 @@ export class Call {
       this.screenShare.dispose();
       this.speaker.dispose();
       this.deviceSettingsAppliedOnce = false;
+      this.callManagerStarted = false;
 
       const stopOnLeavePromises: Promise<void>[] = [];
       if (this.camera.stopOnLeave) {
@@ -817,6 +833,23 @@ export class Call {
         stopOnLeavePromises.push(this.screenShare.disable(true));
       }
       await Promise.all(stopOnLeavePromises);
+
+      // Dispose the per-call media engine last — after peer connections and
+      // local tracks are gone — so the backing factory tears down with no
+      // owned PCs/tracks. A fresh `join()` builds a new engine.
+      if (this.mediaEnginePromise) {
+        const enginePromise = this.mediaEnginePromise;
+        this.mediaEnginePromise = undefined;
+        this.logger.debug('Disposing per-call media factory');
+        await enginePromise
+          .then((engine) => {
+            globalThis.streamRNVideoSDK?.callingX?.unwireAudioEngineSubscription();
+            return engine.dispose();
+          })
+          .catch((err) => {
+            this.logger.warn('Failed to dispose media engine', err);
+          });
+      }
     });
   };
 
@@ -1189,11 +1222,25 @@ export class Call {
   private doJoin = async (data?: JoinCallData): Promise<void> => {
     const connectStartTime = Date.now();
     const callingState = this.state.callingState;
+    const joinLeaveGeneration = this.leaveGeneration;
+    const supersededByLeave = () =>
+      this.leaveGeneration !== joinLeaveGeneration;
 
     this.joinCallData = data;
 
     this.logger.debug('Starting join flow');
     this.state.setCallingState(CallingState.JOINING);
+
+    // Ensure the per-call media engine exists before any peer connection
+    // (codec probe, subscriber, publisher) or capture happens, so the WebRTC
+    // globals resolve to the call's factory. Idempotent across
+    // reconnect/migration attempts.
+    await this.ensureMediaFactory();
+
+    const callingX = globalThis.streamRNVideoSDK?.callingX;
+    if (callingX) {
+      callingX.wireAudioEngineSubscription();
+    }
 
     const performingMigration =
       this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
@@ -1265,6 +1312,11 @@ export class Call {
       // the capabilities of the client (codec support, etc.)
       const { dangerouslyForceCodec, fmtpLine, subscriberFmtpLine } =
         this.clientPublishOptions || {};
+      // skip if a leave superseded this join so codec detection doesn't resolve to a default factory.
+      if (supersededByLeave()) {
+        this.logger.debug('Join superseded by leave; skipping codec detection');
+        return;
+      }
       const [subscriberSdp, publisherSdp] = await Promise.all([
         getGenericSdp('recvonly', dangerouslyForceCodec, subscriberFmtpLine),
         getGenericSdp('sendonly', dangerouslyForceCodec, fmtpLine),
@@ -1324,6 +1376,13 @@ export class Call {
       }
     }
 
+    // If the user left while this join was in flight, bail before re-setting JOINED and before
+    // peer-connection setup below (both run synchronously after this, so one check covers them).
+    if (supersededByLeave()) {
+      this.logger.debug('Join superseded by leave; aborting join flow');
+      return;
+    }
+
     if (!performingMigration) {
       // in MIGRATION, `JOINED` state is set in `this.reconnectMigrate()`
       this.state.setCallingState(CallingState.JOINED);
@@ -1370,12 +1429,21 @@ export class Call {
 
     // device settings should be applied only once, we don't have to
     // re-apply them on later reconnections or server-side data fetches
-    if (!this.deviceSettingsAppliedOnce && this.state.settings) {
+    if (
+      !this.deviceSettingsAppliedOnce &&
+      this.state.settings &&
+      !supersededByLeave()
+    ) {
       await this.applyDeviceConfig(this.state.settings, true, false);
+      this.deviceSettingsAppliedOnce = true;
+    }
+
+    if (!this.callManagerStarted && !supersededByLeave()) {
       globalThis.streamRNVideoSDK?.callManager.start({
         isRingingTypeCall: this.ringing,
+        cid: this.cid,
       });
-      this.deviceSettingsAppliedOnce = true;
+      this.callManagerStarted = true;
     }
 
     // We shouldn't persist the `ring` and `notify` state after joining the call
@@ -1660,6 +1728,44 @@ export class Call {
     }
 
     return joinResponse;
+  };
+
+  /**
+   * Whether the per-call media engine currently exists. True from join until leave.
+   *
+   * @internal an internal getter and should not be used outside the SDK.
+   */
+  get hasMediaEngine(): boolean {
+    return !!this.mediaEnginePromise;
+  }
+
+  /**
+   * Ensures a {@link CallMediaEngine} exists for this call's media session and
+   * returns it. Idempotent: the engine is created once via the registered
+   * provider (see `setCallMediaEngineProvider`) and cached until `leave()`
+   * disposes it. Concurrent callers (e.g. camera + microphone enabling in
+   * parallel) share the same engine because the in-flight creation promise is
+   * cached, never the unresolved result.
+   *
+   * @internal
+   */
+  ensureMediaFactory = async (): Promise<CallMediaEngine> => {
+    if (!this.mediaEnginePromise) {
+      const provider = getCallMediaEngineProvider();
+
+      const audioBitrateProfile = this.microphone.state.audioBitrateProfile;
+      this.logger.debug(
+        `Requesting per-call media factory creation (audioBitrateProfile=${audioBitrateProfile ?? 'default'})`,
+      );
+      this.mediaEnginePromise = Promise.resolve(
+        provider({ audioBitrateProfile }),
+      ).catch((err) => {
+        // Drop the cached rejection so a retried join() can rebuild the engine
+        this.mediaEnginePromise = undefined;
+        throw err;
+      });
+    }
+    return this.mediaEnginePromise;
   };
 
   /**
