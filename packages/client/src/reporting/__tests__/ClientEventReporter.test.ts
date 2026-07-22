@@ -7,6 +7,7 @@ import { ErrorFromResponse } from '../../coordinator/connection/types';
 import { SfuTimeoutError } from '../../errors';
 import type { AxiosResponse } from 'axios';
 import { PeerType, TrackType } from '../../gen/video/sfu/models/models';
+import type { PeerConnectionStateChangeEvent } from '../../rtc';
 
 vi.mock('../../devices', () => ({
   getAudioBrowserPermission: () => ({ asStateObservable: () => of('granted') }),
@@ -14,6 +15,27 @@ vi.mock('../../devices', () => ({
 }));
 
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+const peerConnectionEvent = (
+  peerType: PeerType,
+  state: RTCPeerConnectionState,
+  iceConnectionState: RTCIceConnectionState,
+): PeerConnectionStateChangeEvent => ({
+  peerType,
+  stateType: 'peerConnection',
+  state,
+  iceConnectionState,
+});
+
+const iceEvent = (
+  peerType: PeerType,
+  state: RTCIceConnectionState,
+): PeerConnectionStateChangeEvent => ({
+  peerType,
+  stateType: 'ice',
+  state,
+  iceConnectionState: state,
+});
 
 describe('ClientEventReporter', () => {
   const cid = 'default:call-1';
@@ -23,6 +45,21 @@ describe('ClientEventReporter', () => {
 
   const postedEvents = (): Array<Record<string, any>> =>
     doAxiosRequest.mock.calls.map((call) => call[2].events[0]);
+
+  const reportPeerConnectionState = (
+    peerType: PeerType,
+    state: RTCPeerConnectionState,
+    iceConnectionState: RTCIceConnectionState,
+  ) => {
+    reporter.onPeerConnectionStateChange(
+      cid,
+      peerConnectionEvent(peerType, state, iceConnectionState),
+    );
+  };
+
+  const reportIceState = (peerType: PeerType, state: RTCIceConnectionState) => {
+    reporter.onPeerConnectionStateChange(cid, iceEvent(peerType, state));
+  };
 
   beforeEach(() => {
     doAxiosRequest = vi.fn().mockResolvedValue({});
@@ -465,16 +502,16 @@ describe('ClientEventReporter', () => {
 
   it('tracks a publisher peer connection connect', async () => {
     reporter.startCorrelation(cid, 'first-attempt');
-    reporter.onPeerConnectionStateChange(cid, {
-      peerType: PeerType.PUBLISHER_UNSPECIFIED,
-      stateType: 'peerConnection',
-      state: 'connecting',
-    });
-    reporter.onPeerConnectionStateChange(cid, {
-      peerType: PeerType.PUBLISHER_UNSPECIFIED,
-      stateType: 'peerConnection',
-      state: 'connected',
-    });
+    reportPeerConnectionState(
+      PeerType.PUBLISHER_UNSPECIFIED,
+      'connecting',
+      'checking',
+    );
+    reportPeerConnectionState(
+      PeerType.PUBLISHER_UNSPECIFIED,
+      'connected',
+      'connected',
+    );
     await flush();
 
     const events = postedEvents().filter(
@@ -497,16 +534,8 @@ describe('ClientEventReporter', () => {
 
   it('reports an ICE failure on the peer connection', async () => {
     reporter.startCorrelation(cid, 'first-attempt');
-    reporter.onPeerConnectionStateChange(cid, {
-      peerType: PeerType.SUBSCRIBER,
-      stateType: 'peerConnection',
-      state: 'connecting',
-    });
-    reporter.onPeerConnectionStateChange(cid, {
-      peerType: PeerType.SUBSCRIBER,
-      stateType: 'ice',
-      state: 'failed',
-    });
+    reportPeerConnectionState(PeerType.SUBSCRIBER, 'connecting', 'checking');
+    reportIceState(PeerType.SUBSCRIBER, 'failed');
     await flush();
 
     const completed = postedEvents().filter(
@@ -522,25 +551,111 @@ describe('ClientEventReporter', () => {
     });
   });
 
+  it('reports a DTLS failure with the real ICE state (connected)', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    reportPeerConnectionState(
+      PeerType.PUBLISHER_UNSPECIFIED,
+      'connecting',
+      'checking',
+    );
+    reportIceState(PeerType.PUBLISHER_UNSPECIFIED, 'connected');
+    // Aggregate connection fails while ICE stays connected -> genuine DTLS.
+    reportPeerConnectionState(
+      PeerType.PUBLISHER_UNSPECIFIED,
+      'failed',
+      'connected',
+    );
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) =>
+        e.stage === 'PeerConnectionConnect' && e.event_type === 'completed',
+    );
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      peer_connection: 'publish',
+      retry_failure_code: 'DTLS_CONNECTIVITY_FAILED',
+      ice_state: 'CONNECTED',
+    });
+  });
+
+  it('reports a DTLS failure with the real ICE state (never connected)', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    reportPeerConnectionState(
+      PeerType.PUBLISHER_UNSPECIFIED,
+      'connecting',
+      'checking',
+    );
+    // ICE is still `checking` when the aggregate peer-connection state fails:
+    // the reported ice_state must be NOT_CONNECTED, not an assumed CONNECTED.
+    reportPeerConnectionState(
+      PeerType.PUBLISHER_UNSPECIFIED,
+      'failed',
+      'checking',
+    );
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) =>
+        e.stage === 'PeerConnectionConnect' && e.event_type === 'completed',
+    );
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      peer_connection: 'publish',
+      retry_failure_code: 'DTLS_CONNECTIVITY_FAILED',
+      ice_state: 'NOT_CONNECTED',
+    });
+  });
+
+  it('reports the ICE state captured when the pair opened, with no ICE event', async () => {
+    reporter.startCorrelation(cid, 'first-attempt');
+    // The pair opens with ICE already connected (carried on the connecting
+    // event); no separate ICE event is ever delivered.
+    reportPeerConnectionState(
+      PeerType.PUBLISHER_UNSPECIFIED,
+      'connecting',
+      'connected',
+    );
+    reportPeerConnectionState(
+      PeerType.PUBLISHER_UNSPECIFIED,
+      'failed',
+      'connected',
+    );
+    await flush();
+
+    const completed = postedEvents().filter(
+      (e) =>
+        e.stage === 'PeerConnectionConnect' && e.event_type === 'completed',
+    );
+    expect(completed).toHaveLength(1);
+    expect(completed[0]).toMatchObject({
+      outcome: 'failure',
+      retry_failure_code: 'DTLS_CONNECTIVITY_FAILED',
+      ice_state: 'CONNECTED',
+    });
+  });
+
   it('opens a fresh peer connection pair after a new correlation', async () => {
     reporter.startCorrelation(cid, 'first-attempt');
-    reporter.onPeerConnectionStateChange(cid, {
-      peerType: PeerType.PUBLISHER_UNSPECIFIED,
-      stateType: 'peerConnection',
-      state: 'connecting',
-    });
+    reportPeerConnectionState(
+      PeerType.PUBLISHER_UNSPECIFIED,
+      'connecting',
+      'checking',
+    );
 
     reporter.startCorrelation(cid, 'full-rejoin');
-    reporter.onPeerConnectionStateChange(cid, {
-      peerType: PeerType.PUBLISHER_UNSPECIFIED,
-      stateType: 'peerConnection',
-      state: 'connecting',
-    });
-    reporter.onPeerConnectionStateChange(cid, {
-      peerType: PeerType.PUBLISHER_UNSPECIFIED,
-      stateType: 'peerConnection',
-      state: 'connected',
-    });
+    reportPeerConnectionState(
+      PeerType.PUBLISHER_UNSPECIFIED,
+      'connecting',
+      'checking',
+    );
+    reportPeerConnectionState(
+      PeerType.PUBLISHER_UNSPECIFIED,
+      'connected',
+      'connected',
+    );
     await flush();
 
     const pc = postedEvents().filter(
@@ -566,16 +681,16 @@ describe('ClientEventReporter', () => {
   it('marks a peer connection as previously connected on reconnect', async () => {
     reporter.startCorrelation(cid, 'first-attempt');
     const connect = () => {
-      reporter.onPeerConnectionStateChange(cid, {
-        peerType: PeerType.PUBLISHER_UNSPECIFIED,
-        stateType: 'peerConnection',
-        state: 'connecting',
-      });
-      reporter.onPeerConnectionStateChange(cid, {
-        peerType: PeerType.PUBLISHER_UNSPECIFIED,
-        stateType: 'peerConnection',
-        state: 'connected',
-      });
+      reportPeerConnectionState(
+        PeerType.PUBLISHER_UNSPECIFIED,
+        'connecting',
+        'checking',
+      );
+      reportPeerConnectionState(
+        PeerType.PUBLISHER_UNSPECIFIED,
+        'connected',
+        'connected',
+      );
     };
     connect();
     connect();
