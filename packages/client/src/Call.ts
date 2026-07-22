@@ -404,6 +404,7 @@ export class Call {
       this.tracer,
     );
     this.blockedAudioTracker = new BlockedAudioTracker(this.tracer);
+    this.leaveCallHooks.add(this.blockedAudioTracker.dispose);
 
     if (typeof document !== 'undefined') {
       this.audioBindingsWatchdog = new AudioBindingsWatchdog(

@@ -1,0 +1,51 @@
+.str-video__audio-blocked-notification {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+
+  .str-video__audio-blocked-notification__message {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem;
+    max-width: calc(100% - 1.6rem);
+
+    .str-video__icon {
+      width: 1.5rem;
+      height: 1.5rem;
+      flex-shrink: 0;
+    }
+  }
+
+  .str-video__audio-blocked-notification__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    line-height: 1.25;
+  }
+
+  .str-video__audio-blocked-notification__title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .str-video__audio-blocked-notification__subtitle {
+    font-size: 0.75rem;
+    font-weight: 400;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
