@@ -9,6 +9,7 @@ import {
 } from '@stream-io/video-client';
 import {
   useCall,
+  useCallStateHooks,
   useI18n,
   useIsAudioConnecting,
   useIsVideoConnecting,
@@ -44,6 +45,13 @@ export type DefaultParticipantViewUIProps = {
    * Custom component to render the context menu
    */
   ParticipantActionsContextMenu?: ComponentType;
+  /**
+   * Rendered over the tile when this participant's audio is blocked by the
+   * browser's autoplay policy. Selecting it calls {@link Call.resumeAudio} to
+   * unblock audio. Defaults to
+   * {@link DefaultAudioBlockedNotification}; pass `null` to disable.
+   */
+  AudioBlockedNotification?: ComponentType | null;
 };
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
@@ -79,14 +87,51 @@ export const DefaultScreenShareOverlay = () => {
   );
 };
 
+/**
+ * Rendered over a remote participant's tile when the browser's autoplay policy
+ * has blocked their audio. Selecting it calls `call.resumeAudio()`, unblocking
+ * every blocked element at once.
+ */
+export const DefaultAudioBlockedNotification = () => {
+  const call = useCall();
+  const { t } = useI18n();
+
+  return (
+    <button
+      type="button"
+      className="str-video__audio-blocked-notification"
+      onClick={call?.resumeAudio}
+    >
+      <span className="str-video__audio-blocked-notification__message">
+        <Icon icon="speaker" />
+        <span className="str-video__audio-blocked-notification__text">
+          <span className="str-video__audio-blocked-notification__title">
+            {t('Audio blocked')}
+          </span>
+          <span className="str-video__audio-blocked-notification__subtitle">
+            {t('Click or tap to play audio')}
+          </span>
+        </span>
+      </span>
+    </button>
+  );
+};
+
 export const DefaultParticipantViewUI = ({
   indicatorsVisible = true,
   menuPlacement = 'bottom-start',
   showMenuButton = true,
   ParticipantActionsContextMenu = DefaultParticipantActionsContextMenu,
+  AudioBlockedNotification = DefaultAudioBlockedNotification,
 }: DefaultParticipantViewUIProps) => {
   const { participant, trackType } = useParticipantViewContext();
+  const { useAutoplayBlockedSessionIds } = useCallStateHooks();
+  const blockedSessionIds = useAutoplayBlockedSessionIds();
   const isScreenSharing = hasScreenShare(participant);
+  const shouldShowAudioBlockedNotification =
+    !participant.isLocalParticipant &&
+    trackType !== 'screenShareTrack' &&
+    blockedSessionIds.includes(participant.sessionId);
 
   if (
     participant.isLocalParticipant &&
@@ -114,6 +159,9 @@ export const DefaultParticipantViewUI = ({
       )}
       <Reaction participant={participant} />
       <ParticipantDetails indicatorsVisible={indicatorsVisible} />
+      {AudioBlockedNotification && shouldShowAudioBlockedNotification && (
+        <AudioBlockedNotification />
+      )}
     </>
   );
 };

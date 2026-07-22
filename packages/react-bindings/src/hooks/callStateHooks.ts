@@ -521,6 +521,25 @@ export const useIsAutoplayBlocked = (): boolean => {
 };
 
 /**
+ * Stable empty-array fallback for {@link useAutoplayBlockedSessionIds}, kept at
+ * module scope so the `useObservableValue` dep reference is stable.
+ */
+const BLOCKED_SESSION_IDS$ = of<string[]>([]);
+
+/**
+ * Returns the participant `sessionId`s whose audio is currently blocked
+ * by the browser's autoplay policy. Use it to render a per-participant audio
+ * affordance; only some participants may be blocked. Returns an empty list on
+ * React Native / when there is no call.
+ */
+export const useAutoplayBlockedSessionIds = (): string[] => {
+  const call = useCall();
+  return useObservableValue(
+    call?.blockedAudioTracker.blockedSessionIds$ ?? BLOCKED_SESSION_IDS$,
+  );
+};
+
+/**
  * Returns the current call's closed captions queue.
  */
 export const useCallClosedCaptions = (): CallClosedCaption[] => {
