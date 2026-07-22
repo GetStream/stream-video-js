@@ -106,7 +106,7 @@ export const DefaultAudioBlockedNotification = () => {
         <Icon icon="speaker" />
         <span className="str-video__audio-blocked-notification__text">
           <span className="str-video__audio-blocked-notification__title">
-            {t('Audio blocked')}
+            {t('Audio is blocked by your system')}
           </span>
           <span className="str-video__audio-blocked-notification__subtitle">
             {t('Click or tap to play audio')}
