@@ -68,7 +68,10 @@ const Elapsed = ({ startedAt }: { startedAt: string | undefined }) => {
 };
 
 const RecordingIndicator = () => {
-  return <div className="rd__header__recording-indicator">Recording...</div>;
+  const { t } = useI18n();
+  return (
+    <div className="rd__header__recording-indicator">{t('Recording...')}</div>
+  );
 };
 
 const ParticipantCountIndicator = () => {

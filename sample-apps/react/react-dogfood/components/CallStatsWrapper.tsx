@@ -17,7 +17,7 @@ export const ToggleStatsButton = (props: {
       <CompositeButton
         active={active}
         variant="primary"
-        title="Stats"
+        title={t('Stats')}
         onClick={onClick}
       >
         <Icon icon="stats" />

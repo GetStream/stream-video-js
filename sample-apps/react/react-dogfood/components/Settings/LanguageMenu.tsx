@@ -33,6 +33,7 @@ export const LanguageMenu = ({
   const index = languages.findIndex(([lngCode]) => lngCode === language);
   return (
     <DropDownSelect
+      key={language}
       icon="language"
       defaultSelectedIndex={index}
       defaultSelectedLabel={LANGUAGES[language]}

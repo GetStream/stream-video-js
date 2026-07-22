@@ -45,6 +45,7 @@ const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
 );
 
 export const ToggleMicButton = () => {
+  const { t } = useI18n();
   const inputVisualType =
     isMobile() || Browsers.isSafari() ? 'list' : 'preview';
 
@@ -56,9 +57,9 @@ export const ToggleMicButton = () => {
     >
       <DeviceSelectorAudioInput
         visualType={inputVisualType}
-        title="Microphone"
+        title={t('Microphone')}
       />
-      <DeviceSelectorAudioOutput visualType="list" title="Speaker" />
+      <DeviceSelectorAudioOutput visualType="list" title={t('Speaker')} />
     </MenuToggle>
   );
 };

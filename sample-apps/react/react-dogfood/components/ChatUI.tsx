@@ -10,12 +10,13 @@ import {
   WithComponents,
 } from 'stream-chat-react';
 
-import { Icon, IconButton } from '@stream-io/video-react-sdk';
+import { Icon, IconButton, useI18n } from '@stream-io/video-react-sdk';
 
 import { CHANNEL_TYPE } from '.';
 
 const NoMessages = () => {
   const { messages } = useChannelStateContext();
+  const { t } = useI18n();
 
   if (messages?.length === 0) {
     return (
@@ -37,9 +38,9 @@ const NoMessages = () => {
           </g>
         </svg>
 
-        <p className="rd__chat__no-messages__title">Start chatting!</p>
+        <p className="rd__chat__no-messages__title">{t('Start chatting!')}</p>
         <p className="rd__chat__no-messages__description">
-          Let’s get this chat started, why not send the first message?
+          {t('Let’s get this chat started, why not send the first message?')}
         </p>
       </div>
     );
@@ -65,6 +66,7 @@ export const ChatUI = ({
   channelId: string;
 }) => {
   const { client, setActiveChannel } = useChatContext();
+  const { t } = useI18n();
 
   const router = useRouter();
   useEffect(() => {
@@ -86,7 +88,7 @@ export const ChatUI = ({
         <Window>
           <div className="rd__chat-wrapper">
             <div className="rd__chat-header">
-              <h2 className="rd__chat-header__title">Chat</h2>
+              <h2 className="rd__chat-header__title">{t('Chat')}</h2>
               <IconButton
                 className="rd__chat-header__icon"
                 onClick={onClose}
@@ -98,7 +100,7 @@ export const ChatUI = ({
           <MessageComposer
             focus
             maxRows={5}
-            additionalTextareaProps={{ placeholder: 'Send a message' }}
+            additionalTextareaProps={{ placeholder: t('Send a message') }}
           />
         </Window>
       </Channel>
