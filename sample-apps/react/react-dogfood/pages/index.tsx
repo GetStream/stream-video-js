@@ -118,7 +118,7 @@ const HomeContent = () => {
           <img
             className="rd__home-image"
             src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/home.png`}
-            alt="Home"
+            alt={t('Home')}
           />
           <h1 className="rd__home-heading">
             {t('Stream')}
@@ -126,14 +126,11 @@ const HomeContent = () => {
             {isDemoEnvironment && t('Demo')}
           </h1>
           <p className="rd__home-description">
-            {isRestricted ? (
-              <>Join a call by providing its Call ID</>
-            ) : (
-              <>
-                Start a new call or join an existing one by providing its Call
-                ID
-              </>
-            )}
+            {isRestricted
+              ? t('Join a call by providing its Call ID')
+              : t(
+                  'Start a new call or join an existing one by providing its Call ID',
+                )}
           </p>
           <div className="rd__home-join">
             <input

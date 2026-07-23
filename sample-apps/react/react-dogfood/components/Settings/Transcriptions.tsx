@@ -48,6 +48,7 @@ const languages = [
 
 export const TranscriptionSettings = () => {
   const call = useCall();
+  const { t } = useI18n();
   const [transcriptionLanguage, setTranscriptionLanguage] = useState<
     string | undefined
   >('en');
@@ -84,10 +85,10 @@ export const TranscriptionSettings = () => {
         </div>
       </div>
 
-      <h4>Language</h4>
+      <h4>{t('Language')}</h4>
       <DropDownSelect
         icon="language-sign"
-        defaultSelectedLabel="English"
+        defaultSelectedLabel={t('English')}
         defaultSelectedIndex={1}
         handleSelect={(index) =>
           setTranscriptionLanguage(languages[index + 1].code)
@@ -97,7 +98,7 @@ export const TranscriptionSettings = () => {
           language.code ? (
             <DropDownSelectOption
               key={language.code}
-              label={language.label}
+              label={t(language.label)}
               icon="language-sign"
             />
           ) : (

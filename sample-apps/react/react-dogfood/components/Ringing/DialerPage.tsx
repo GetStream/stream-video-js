@@ -209,7 +209,7 @@ export const DialerPage = ({
                 className="rd__input rd__dialer-input"
                 name={`user-id-${index}`}
                 type="text"
-                placeholder="User ID"
+                placeholder={t('User ID')}
                 value={userId}
                 data-index={index}
                 data-1p-ignore
@@ -223,7 +223,7 @@ export const DialerPage = ({
                 <button
                   className="rd__button"
                   type="button"
-                  aria-label="Delete user"
+                  aria-label={t('Delete user')}
                   data-testid={`callee-user-id-${index}-delete`}
                   onClick={() => handleDeleteUserId(index)}
                 >
