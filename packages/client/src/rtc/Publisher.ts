@@ -456,12 +456,12 @@ export class Publisher extends BasePeerConnection {
   private negotiate = async (options?: RTCOfferOptions): Promise<void> => {
     return withoutConcurrency(`publisher.negotiate.${this.lock}`, async () => {
       const offer = await this.pc.createOffer(options);
-      const tracks = this.getAnnouncedTracks(offer.sdp);
-      if (!tracks.length) throw new Error(`Can't negotiate without any tracks`);
-
       try {
         this.isIceRestarting = options?.iceRestart ?? false;
         await this.pc.setLocalDescription(offer);
+        const tracks = this.getAnnouncedTracks(offer.sdp);
+        if (!tracks.length)
+          throw new Error(`Can't negotiate without any tracks`);
 
         const { sdp: baseSdp = '' } = offer;
         const {
