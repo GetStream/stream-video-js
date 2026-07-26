@@ -24,6 +24,7 @@ import { useObservableValue } from './useObservableValue';
 const EMPTY_DEVICES_ARRAY = Object.freeze<MediaDeviceInfo[]>(
   [],
 ) as MediaDeviceInfo[];
+const EMPTY_BLOCKED_SESSION_IDS = Object.freeze<string[]>([]) as string[];
 
 export type UseInputMediaDeviceOptions = {
   /**
@@ -524,7 +525,7 @@ export const useIsAutoplayBlocked = (): boolean => {
  * Stable empty-array fallback for {@link useAutoplayBlockedSessionIds}, kept at
  * module scope so the `useObservableValue` dep reference is stable.
  */
-const BLOCKED_SESSION_IDS$ = of<string[]>([]);
+const BLOCKED_SESSION_IDS$ = of(EMPTY_BLOCKED_SESSION_IDS);
 
 /**
  * Returns the participant `sessionId`s whose audio is currently blocked
@@ -536,6 +537,7 @@ export const useAutoplayBlockedSessionIds = (): string[] => {
   const call = useCall();
   return useObservableValue(
     call?.blockedAudioTracker.blockedSessionIds$ ?? BLOCKED_SESSION_IDS$,
+    EMPTY_BLOCKED_SESSION_IDS,
   );
 };
 
