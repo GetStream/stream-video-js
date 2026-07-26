@@ -1343,7 +1343,6 @@ describe('Publisher', () => {
       const transceiver = new RTCRtpTransceiver();
       // @ts-expect-error test setup
       transceiver.sender.track = track;
-      // a fresh transceiver has no `mid` until an offer is applied
       // @ts-expect-error readonly field
       transceiver.mid = null;
 
@@ -1354,13 +1353,10 @@ describe('Publisher', () => {
         negotiated: false,
       });
 
-      // the first attempt gets the only m-line, mid `0`
       const firstOffer = {
         type: 'offer',
         sdp: sdpWith([{ mid: '0', trackId: track.id, port: 9 }]),
       };
-      // after the rollback, the m-line `0` is left over (rejected, no msid)
-      // and the track is re-offered in a new m-line, mid `1`
       const secondOffer = {
         type: 'offer',
         sdp: sdpWith([
@@ -1376,8 +1372,6 @@ describe('Publisher', () => {
         // @ts-expect-error TS picks up the wrong overload
         .mockResolvedValueOnce(secondOffer);
 
-      // mimic the browser: `mid` is assigned when the offer is applied,
-      // and reverted when the offer is rolled back
       vi.spyOn(pc, 'setLocalDescription').mockImplementation(async (desc) => {
         // @ts-expect-error readonly field
         transceiver.mid =
@@ -1392,7 +1386,6 @@ describe('Publisher', () => {
       });
       vi.spyOn(pc, 'setRemoteDescription').mockResolvedValue();
 
-      // the first negotiation fails -> rollback
       sfuClient.setPublisher = vi
         .fn()
         .mockRejectedValueOnce(new Error('SetPublisherTimeout'));
@@ -1404,7 +1397,6 @@ describe('Publisher', () => {
       });
       expect(transceiver.mid).toBeNull();
 
-      // the second negotiation succeeds
       sfuClient.setPublisher = vi
         .fn()
         .mockResolvedValue({ response: { sdp: 'answer-sdp' } });
