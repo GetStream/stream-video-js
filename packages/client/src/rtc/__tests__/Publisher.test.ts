@@ -1318,6 +1318,97 @@ describe('Publisher', () => {
     });
   });
 
+  describe('mid assignment during negotiation', () => {
+    const sdpWith = (
+      sections: Array<{ mid: string; trackId?: string; port: number }>,
+    ) =>
+      [
+        'v=0',
+        'o=- 0 0 IN IP4 127.0.0.1',
+        's=-',
+        't=0 0',
+        ...sections.flatMap((s) => [
+          `m=video ${s.port} UDP/TLS/RTP/SAVPF 96`,
+          'c=IN IP4 0.0.0.0',
+          `a=mid:${s.mid}`,
+          ...(s.trackId
+            ? [`a=msid:stream-id ${s.trackId}`, 'a=sendonly']
+            : ['a=inactive']),
+        ]),
+        '',
+      ].join('\r\n');
+
+    it('announces the mid the browser assigned, not the one guessed from the pending offer', async () => {
+      const track = new MediaStreamTrack();
+      const transceiver = new RTCRtpTransceiver();
+      // @ts-expect-error test setup
+      transceiver.sender.track = track;
+      // @ts-expect-error readonly field
+      transceiver.mid = null;
+
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+        negotiated: false,
+      });
+
+      const firstOffer = {
+        type: 'offer',
+        sdp: sdpWith([{ mid: '0', trackId: track.id, port: 9 }]),
+      };
+      const secondOffer = {
+        type: 'offer',
+        sdp: sdpWith([
+          { mid: '0', port: 0 },
+          { mid: '1', trackId: track.id, port: 9 },
+        ]),
+      };
+
+      const pc = publisher['pc'];
+      vi.spyOn(pc, 'createOffer')
+        // @ts-expect-error TS picks up the wrong overload
+        .mockResolvedValueOnce(firstOffer)
+        // @ts-expect-error TS picks up the wrong overload
+        .mockResolvedValueOnce(secondOffer);
+
+      vi.spyOn(pc, 'setLocalDescription').mockImplementation(async (desc) => {
+        // @ts-expect-error readonly field
+        transceiver.mid =
+          desc?.sdp === firstOffer.sdp
+            ? '0'
+            : desc?.sdp === secondOffer.sdp
+              ? '1'
+              : null; // rollback reverts the mid of a never-negotiated transceiver
+        // @ts-expect-error readonly field
+        pc.signalingState =
+          desc?.type === 'rollback' ? 'stable' : 'have-local-offer';
+      });
+      vi.spyOn(pc, 'setRemoteDescription').mockResolvedValue();
+
+      sfuClient.setPublisher = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('SetPublisherTimeout'));
+      await expect(publisher['negotiate']()).rejects.toThrow(
+        'SetPublisherTimeout',
+      );
+      expect(pc.setLocalDescription).toHaveBeenLastCalledWith({
+        type: 'rollback',
+      });
+      expect(transceiver.mid).toBeNull();
+
+      sfuClient.setPublisher = vi
+        .fn()
+        .mockResolvedValue({ response: { sdp: 'answer-sdp' } });
+      await publisher['negotiate']();
+
+      expect(sfuClient.setPublisher).toHaveBeenCalledWith({
+        sdp: secondOffer.sdp,
+        tracks: [expect.objectContaining({ trackId: track.id, mid: '1' })],
+      });
+    });
+  });
+
   describe('Firefox unpublish workaround', () => {
     const mockSenderParams = (
       transceiver: RTCRtpTransceiver,
