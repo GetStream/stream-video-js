@@ -143,6 +143,47 @@ describe('DynascaleManager', () => {
       cleanup?.();
     });
 
+    it('audio: tracks the blocked session and clears it once the element plays', async () => {
+      vi.useFakeTimers();
+      const audioElement = document.createElement('audio');
+      Object.defineProperty(audioElement, 'srcObject', { writable: true });
+      vi.spyOn(audioElement, 'play').mockRejectedValue(
+        new DOMException('', 'NotAllowedError'),
+      );
+
+      // @ts-expect-error incomplete data
+      call.state.updateOrAddParticipant('session-id', {
+        userId: 'user-id',
+        sessionId: 'session-id',
+        publishedTracks: [],
+      });
+
+      const cleanup = dynascaleManager.bindAudioElement(
+        audioElement,
+        'session-id',
+        'audioTrack',
+      );
+
+      call.state.updateParticipant('session-id', {
+        audioStream: new MediaStream(),
+      });
+      await vi.advanceTimersByTimeAsync(0); // flush the rejected play()
+
+      expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(true);
+      expect(
+        getCurrentValue(call.blockedAudioTracker.blockedSessionIds$),
+      ).toEqual(['session-id']);
+
+      audioElement.dispatchEvent(new Event('playing'));
+
+      expect(call.blockedAudioTracker.isBlocked(audioElement)).toBe(false);
+      expect(
+        getCurrentValue(call.blockedAudioTracker.blockedSessionIds$),
+      ).toEqual([]);
+
+      cleanup?.();
+    });
+
     it('audio: Safari should use AudioContext for audio playback', () => {
       globalThis._isSafari = true;
       dynascaleManager.setUseWebAudio(true); // enabled by default on Safari

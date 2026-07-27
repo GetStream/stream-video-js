@@ -1,17 +1,16 @@
 .str-video__audio-blocked-notification {
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--str-video__audio-blocked-overlay-color);
   border-radius: inherit;
   transition: background-color 0.15s ease;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--str-video__audio-blocked-overlay-color-hovered);
   }
 
   .str-video__audio-blocked-notification__message {
     background-color: var(--str-video__background-color1);
     border-radius: var(--str-video__border-radius-xs);
     color: var(--str-video__text-color1);
-    z-index: 100;
 
     .str-video__icon {
       background-color: var(--str-video__text-color1);

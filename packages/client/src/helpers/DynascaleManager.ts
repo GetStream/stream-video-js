@@ -329,6 +329,7 @@ export class DynascaleManager {
     let audioWatchdog: MediaPlaybackWatchdog | undefined = undefined;
 
     const clearBlockedAudio = () => {
+      if (!this.blockedAudioTracker.isBlocked(audioElement)) return;
       this.blockedAudioTracker.markBlocked(audioElement, false);
     };
     audioElement.addEventListener('playing', clearBlockedAudio);
@@ -346,7 +347,7 @@ export class DynascaleManager {
           audioWatchdog?.dispose();
           audioWatchdog = undefined;
           if (!source) {
-            this.blockedAudioTracker.markBlocked(audioElement, false);
+            clearBlockedAudio();
             return;
           }
 

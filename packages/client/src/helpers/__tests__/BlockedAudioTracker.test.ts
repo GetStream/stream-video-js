@@ -31,7 +31,7 @@ describe('BlockedAudioTracker', () => {
   });
 
   afterEach(() => {
-    tracker.dispose();
+    tracker.reset();
   });
 
   it('emits autoplayBlocked$ true after markBlocked(el, true)', () => {

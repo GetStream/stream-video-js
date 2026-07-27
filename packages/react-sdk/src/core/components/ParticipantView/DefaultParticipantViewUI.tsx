@@ -101,6 +101,7 @@ export const DefaultAudioBlockedNotification = () => {
       type="button"
       className="str-video__audio-blocked-notification"
       onClick={call?.resumeAudio}
+      aria-live="polite"
     >
       <span className="str-video__audio-blocked-notification__message">
         <Icon icon="speaker" />

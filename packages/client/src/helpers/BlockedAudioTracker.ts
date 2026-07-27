@@ -1,4 +1,4 @@
-import { BehaviorSubject, distinctUntilChanged, map } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, map, shareReplay } from 'rxjs';
 import { videoLoggerSystem } from '../logger';
 import { Tracer } from '../stats';
 import {
@@ -53,6 +53,7 @@ export class BlockedAudioTracker {
       return ids;
     }),
     distinctUntilChanged(isShallowArrayEqual),
+    shareReplay({ bufferSize: 1, refCount: true }),
   );
 
   constructor(tracer: Tracer) {
@@ -85,7 +86,10 @@ export class BlockedAudioTracker {
     });
   };
 
-  dispose = () => {
+  /**
+   * Clears all tracked elements. The tracker stays usable afterwards.
+   */
+  reset = () => {
     if (this.blockedElementsSubject.getValue().length > 0) {
       this.blockedElementsSubject.next([]);
     }
