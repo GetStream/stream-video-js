@@ -2023,7 +2023,6 @@ export const ChannelOwnCapability = {
   UPLOAD_FILE: 'upload-file',
 } as const;
 
- 
 export type ChannelOwnCapability =
   (typeof ChannelOwnCapability)[keyof typeof ChannelOwnCapability];
 
@@ -4311,7 +4310,6 @@ export const OwnCapability = {
   UPDATE_CALL_SETTINGS: 'update-call-settings',
 } as const;
 
- 
 export type OwnCapability = (typeof OwnCapability)[keyof typeof OwnCapability];
 
 export interface OwnUserResponse {
