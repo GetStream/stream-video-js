@@ -5,6 +5,7 @@ import {
   DropDownSelectOption,
   Icon,
   useBackgroundFilters,
+  useI18n,
   VideoPreview,
   WithTooltip,
 } from '@stream-io/video-react-sdk';
@@ -51,6 +52,7 @@ export const VideoEffectsSettings = () => {
   const {
     settings: { segmentationModel, setSegmentationModel },
   } = useSettings();
+  const { t } = useI18n();
 
   const selectedModelIndex = SEGMENTATION_MODEL_OPTIONS.findIndex(
     (model) => model.value === segmentationModel,
@@ -60,8 +62,10 @@ export const VideoEffectsSettings = () => {
   if (!isSupported) {
     return (
       <div className="rd__video-effects">
-        <h3>Unsupported browser</h3>
-        <p>Video filters are available only on modern desktop browsers</p>
+        <h3>{t('Unsupported browser')}</h3>
+        <p>
+          {t('Video filters are available only on modern desktop browsers')}
+        </p>
       </div>
     );
   }
@@ -78,17 +82,17 @@ export const VideoEffectsSettings = () => {
       </div>
       <div className="rd__video-effects__container">
         <div className="rd__video-effects__card">
-          <h4>Effects</h4>
+          <h4>{t('Effects')}</h4>
           <div className="rd__video-effects__list">
             <CompositeButton
-              title="Disable"
+              title={t('Disable')}
               active={!backgroundFilter}
               onClick={() => disableBackgroundFilter()}
             >
               <Icon icon="close" />
             </CompositeButton>
             <CompositeButton
-              title="Blur"
+              title={t('Blur')}
               active={
                 backgroundFilter === 'blur' && backgroundBlurLevel === 'high'
               }
@@ -97,7 +101,7 @@ export const VideoEffectsSettings = () => {
               <Icon icon="blur-icon" />
             </CompositeButton>
             <CompositeButton
-              title="Medium blur"
+              title={t('Medium blur')}
               active={
                 backgroundFilter === 'blur' && backgroundBlurLevel === 'medium'
               }
@@ -109,7 +113,7 @@ export const VideoEffectsSettings = () => {
               />
             </CompositeButton>
             <CompositeButton
-              title="Low blur"
+              title={t('Low blur')}
               active={
                 backgroundFilter === 'blur' && backgroundBlurLevel === 'low'
               }
@@ -120,11 +124,13 @@ export const VideoEffectsSettings = () => {
           </div>
         </div>
         <div className="rd__video-effects__card">
-          <h4>Segmentation model</h4>
-          <WithTooltip title={selectedModel?.description}>
+          <h4>{t('Segmentation model')}</h4>
+          <WithTooltip
+            title={selectedModel ? t(selectedModel.description) : ''}
+          >
             <DropDownSelect
               defaultSelectedIndex={selectedModelIndex}
-              defaultSelectedLabel={selectedModel?.label}
+              defaultSelectedLabel={selectedModel ? t(selectedModel.label) : ''}
               handleSelect={(index) => {
                 const option = SEGMENTATION_MODEL_OPTIONS[index];
                 if (option) setSegmentationModel(option.value);
@@ -133,7 +139,7 @@ export const VideoEffectsSettings = () => {
               {SEGMENTATION_MODEL_OPTIONS.map((option) => (
                 <DropDownSelectOption
                   key={option?.value}
-                  label={option?.label}
+                  label={t(option.label)}
                   selected={option?.value === segmentationModel}
                 />
               ))}
@@ -142,7 +148,7 @@ export const VideoEffectsSettings = () => {
         </div>
         {backgroundImages && backgroundImages.length > 0 && (
           <div className="rd__video-effects__card">
-            <h4>Backgrounds</h4>
+            <h4>{t('Backgrounds')}</h4>
             <div className="rd__video-effects__list">
               {backgroundImages.map((imageUrl) => (
                 <div key={imageUrl} className="rd__video-effects__list-box">
@@ -154,7 +160,7 @@ export const VideoEffectsSettings = () => {
                         'rd__video-effects__image--active',
                     )}
                     src={imageUrl}
-                    alt="Background"
+                    alt={t('Background')}
                     onClick={() => applyBackgroundImageFilter(imageUrl)}
                   />
                 </div>
