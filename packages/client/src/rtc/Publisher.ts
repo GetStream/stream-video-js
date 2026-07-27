@@ -459,6 +459,17 @@ export class Publisher extends BasePeerConnection {
       try {
         this.isIceRestarting = options?.iceRestart ?? false;
         await this.pc.setLocalDescription(offer);
+
+        // the announced tracks have to be read after `setLocalDescription`.
+        // `transceiver.mid` is null until the offer is applied, and reading the
+        // tracks earlier makes `extractMid` guess the mid from the offer SDP.
+        // That guess goes stale after a rolled-back negotiation, and a mid that
+        // doesn't match the m-section carrying the track stops the SFU from
+        // correlating the two: it then answers with every offered codec instead
+        // of the announced one, and we publish the first codec of that list.
+        // See https://www.w3.org/TR/webrtc/#set-description - applying a local
+        // offer sets `transceiver.[[Mid]]` (step 10.1.2), and a rollback resets
+        // it to null for a transceiver that wasn't associated yet (step 11.2.1).
         const tracks = this.getAnnouncedTracks(offer.sdp);
         if (!tracks.length)
           throw new Error(`Can't negotiate without any tracks`);
