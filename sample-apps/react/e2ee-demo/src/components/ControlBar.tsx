@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react';
-import { EncryptionManager } from '@stream-io/video-react-sdk';
+import {
+  EncryptionManager,
+  EncryptionSettingsResponseModeEnum,
+} from '@stream-io/video-react-sdk';
 import { MAX_PARTICIPANTS } from '../config';
 import { useHarnessEngine, useSnapshot } from '../hooks/useHarness';
 import type { PreferredCodec, TransformPath } from '../harness/snapshot';
@@ -16,7 +19,8 @@ interface ControlBarProps {
 
 export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
   const engine = useHarnessEngine();
-  const { config, participants, globalError } = useSnapshot();
+  const { config, participants, globalError, encryptionMode, e2eeEnabled } =
+    useSnapshot();
   const isSupported = EncryptionManager.isSupported();
   const support = useMemo(detectTransformSupport, []);
   const [shared, setShared] = useState('');
@@ -46,6 +50,26 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
         <span className={`control-bar__badge ${isSupported ? 'ok' : 'no'}`}>
           {isSupported ? 'E2EE supported' : 'E2EE not supported'}
         </span>
+        {encryptionMode && (
+          <span
+            className={`control-bar__badge ${
+              encryptionMode === EncryptionSettingsResponseModeEnum.DISABLED
+                ? 'no'
+                : 'ok'
+            }`}
+            title="Encryption mode the backend resolved for this call. auto-on: E2EE required of every participant; available: E2EE optional (what this harness requests); disabled: E2EE not allowed"
+          >
+            mode: {encryptionMode}
+          </span>
+        )}
+        {joined > 0 && (
+          <span
+            className={`control-bar__badge ${e2eeEnabled ? 'ok' : 'no'}`}
+            title="Whether the SFU reports E2EE as actually active for this call (JoinResponse). This is the authoritative signal - the mode badge only says what the call permits."
+          >
+            SFU: E2EE {e2eeEnabled ? 'active' : 'inactive'}
+          </span>
+        )}
         <button
           className={`control-bar__keys-toggle ${showKeys ? 'active' : ''}`}
           onClick={onToggleKeys}

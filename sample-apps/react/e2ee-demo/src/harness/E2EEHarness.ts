@@ -1,7 +1,9 @@
 import {
   EncryptionManager,
+  EncryptionSettingsRequestModeEnum,
   StreamVideoClient,
   type Call,
+  type EncryptionSettingsResponseModeEnum,
   type KeyStateReport,
   type PerfReport,
 } from '@stream-io/video-react-sdk';
@@ -98,6 +100,9 @@ interface EngineParticipant {
   keyStore: KeyStateReport | null;
   perf: PerfReport | null;
   failingFrom: Set<string>;
+  brokenFrom: Set<string>;
+  rotationNeeded: boolean;
+  encryptionFailure: string | null;
   unsubscribes: Array<() => void>;
 }
 
@@ -112,6 +117,8 @@ export class E2EEHarness {
   private logId = 0;
   private activeSharedKeyIndex = -1;
   private sharedKeyBytes: ArrayBuffer | null = null;
+  private encryptionMode: EncryptionSettingsResponseModeEnum | undefined;
+  private e2eeEnabled = false;
 
   constructor(
     init: { callId: string; codec?: PreferredCodec },
@@ -148,6 +155,8 @@ export class E2EEHarness {
     roster: this.buildRoster(),
     log: this.log,
     globalError: this.globalError,
+    encryptionMode: this.encryptionMode,
+    e2eeEnabled: this.e2eeEnabled,
   });
 
   /**
@@ -201,11 +210,14 @@ export class E2EEHarness {
       currentKey: p.currentKey,
       keyIndex: p.keyIndex,
       keyStore: p.keyStore,
+      rotationNeeded: p.rotationNeeded,
+      encryptionFailure: p.encryptionFailure,
       tracks: {
         encrypting:
           p.enabled && (!!p.currentKey || this.activeSharedKeyIndex >= 0),
         decryptingFrom,
         failingFrom,
+        brokenFrom: [...p.brokenFrom],
       },
       perf: {
         encode: p.perf?.encode ?? [],
@@ -286,17 +298,20 @@ export class E2EEHarness {
         keyStore: null,
         perf: null,
         failingFrom: new Set(),
+        brokenFrom: new Set(),
+        rotationNeeded: false,
+        encryptionFailure: null,
         unsubscribes: [],
       };
 
       // Every participant, including the spy, attaches an E2EEManager before
-      // joining. The backend rejects a join whose e2ee flag (which the SDK sends
-      // whenever a manager is attached) does not match the encrypted call, so the
-      // spy cannot join as a plain, manager-less participant anymore. She differs
-      // only in her keys: she never receives any. Her decode transform therefore
-      // fails on every peer and renders gibberish - the proof the media is
-      // unusable without the keys - while her own encoder drops outgoing frames
-      // for lack of a key.
+      // joining. The call is created in `available` mode, so E2EE is optional and
+      // the backend would happily admit a plain, manager-less client - the spy
+      // gets a manager anyway, by choice, because a keyless *decryptor* is the
+      // interesting case: she differs from the others only in her keys, and never
+      // receives any. Her decode transform therefore fails on every peer and
+      // renders gibberish - the proof the media is unusable without the keys -
+      // while her own encoder drops outgoing frames for lack of a key.
       call.setE2EEManager(manager);
       this.wireEvents(p);
       manager.enablePerformanceReporting(true);
@@ -324,11 +339,13 @@ export class E2EEHarness {
       }
 
       call.updatePublishOptions({ preferredCodec: this.config.codec });
-      // Create the call with encryption enabled so it matches the e2ee join sent
-      // above; without it the backend rejects every participant's join.
       await call.join({
         create: true,
-        data: { settings_override: { encryption: { enabled: true } } },
+        data: {
+          settings_override: {
+            encryption: { mode: EncryptionSettingsRequestModeEnum.AVAILABLE },
+          },
+        },
       });
       this.addLog(userId, `Joined the call`, 'join');
 
@@ -350,6 +367,30 @@ export class E2EEHarness {
       // tracks peers joining or leaving from other tabs.
       const rosterSub = p.call.state.participants$.subscribe(() => this.emit());
       p.unsubscribes.push(() => rosterSub.unsubscribe());
+      // Read the encryption mode the backend actually resolved for the call,
+      // rather than trusting the mode we requested above.
+      const settingsSub = p.call.state.settings$.subscribe((settings) => {
+        const mode = settings?.encryption?.mode;
+        if (!mode || mode === this.encryptionMode) return;
+        this.encryptionMode = mode;
+        this.addLog(null, `Call encryption mode: ${mode}`, 'join');
+        this.emit();
+      });
+      p.unsubscribes.push(() => settingsSub.unsubscribe());
+      // Whether E2EE is actually active, straight from the SFU's join response.
+      // This is the signal to trust; the requested mode above only says what the
+      // call permits.
+      const e2eeSub = p.call.state.e2eeEnabled$.subscribe((enabled) => {
+        if (enabled === this.e2eeEnabled) return;
+        this.e2eeEnabled = enabled;
+        this.addLog(
+          null,
+          `SFU reports E2EE ${enabled ? 'active' : 'inactive'}`,
+          enabled ? 'join' : 'error',
+        );
+        this.emit();
+      });
+      p.unsubscribes.push(() => e2eeSub.unsubscribe());
       if (isNormal) this.exchangeOnJoin(p);
       this.emit();
     } catch (err) {
@@ -408,6 +449,16 @@ export class E2EEHarness {
 
   // --- key rotation / set ---
 
+  /**
+   * Installing fresh key material restarts the sender's frame counter at that
+   * key index, so any pending `e2ee.rotation_needed` warning and the last
+   * `e2ee.encryption_failed` reason no longer describe the current encoder.
+   */
+  private clearEncoderWarnings = (p: EngineParticipant): void => {
+    p.rotationNeeded = false;
+    p.encryptionFailure = null;
+  };
+
   rotateKey = (targetUserId: string, localOnly: boolean): void => {
     const target = this.participants.find((p) => p.userId === targetUserId);
     if (!target) return;
@@ -416,6 +467,7 @@ export class E2EEHarness {
     target.manager.setKey(targetUserId, keyIndex, key.slice(0));
     target.currentKey = key;
     target.keyIndex = keyIndex;
+    this.clearEncoderWarnings(target);
     if (!localOnly) this.distribute(target);
     this.addLog(
       targetUserId,
@@ -440,6 +492,7 @@ export class E2EEHarness {
     target.manager.setKey(targetUserId, keyIndex, key.slice(0));
     target.currentKey = key;
     target.keyIndex = keyIndex;
+    this.clearEncoderWarnings(target);
     if (!localOnly) this.distribute(target);
     this.addLog(
       targetUserId,
@@ -482,6 +535,7 @@ export class E2EEHarness {
     if (local) {
       local.currentKey = key;
       local.keyIndex = FIXED_KEY_INDEX;
+      this.clearEncoderWarnings(local);
     }
     this.addLog(
       userId,
@@ -515,6 +569,7 @@ export class E2EEHarness {
       p.manager.removeKeys(p.userId);
       p.currentKey = key;
       p.keyIndex = keyIndex;
+      this.clearEncoderWarnings(p);
     }
     const label =
       passphrase.length > 12 ? passphrase.slice(0, 12) + '...' : passphrase;
@@ -541,6 +596,7 @@ export class E2EEHarness {
       if (other.role === 'spy') continue;
       other.manager.removeKeys(targetUserId);
       other.failingFrom.delete(targetUserId);
+      other.brokenFrom.delete(targetUserId);
       this.addLog(
         other.userId,
         `Removed ${target.name}'s keys`,
@@ -555,6 +611,8 @@ export class E2EEHarness {
     this.participants = [];
     this.activeSharedKeyIndex = -1;
     this.sharedKeyBytes = null;
+    this.encryptionMode = undefined;
+    this.e2eeEnabled = false;
     this.log = [];
     this.logId = 0;
     this.globalError = null;
@@ -598,6 +656,7 @@ export class E2EEHarness {
     target.manager.setKey(targetUserId, keyIndex, key.slice(0));
     target.currentKey = key;
     target.keyIndex = keyIndex;
+    this.clearEncoderWarnings(target);
     this.addLog(
       targetUserId,
       `Set WRONG key (#${keyIndex}) [not distributed]`,
@@ -635,10 +694,20 @@ export class E2EEHarness {
       }),
       m.on('e2ee.decryption_resumed', ({ userId: remoteUserId }) => {
         p.failingFrom.delete(remoteUserId);
+        p.brokenFrom.delete(remoteUserId);
         this.addLog(
           p.userId,
           `Decryption resumed from ${this.nameFor(remoteUserId)}`,
           'join',
+        );
+        this.emit();
+      }),
+      m.on('e2ee.broken', ({ userId: remoteUserId, keyIndex }) => {
+        p.brokenFrom.add(remoteUserId);
+        this.addLog(
+          p.userId,
+          `E2EE broken from ${this.nameFor(remoteUserId)} (key #${keyIndex}): failures past tolerance`,
+          'error',
         );
         this.emit();
       }),
@@ -647,6 +716,24 @@ export class E2EEHarness {
           p.userId,
           'No encryption key set: outgoing frames dropped',
           'error',
+        );
+        this.emit();
+      }),
+      m.on('e2ee.encryption_failed', ({ reason }) => {
+        p.encryptionFailure = reason;
+        this.addLog(
+          p.userId,
+          `Encryption failed, publishing nothing: ${reason}`,
+          'error',
+        );
+        this.emit();
+      }),
+      m.on('e2ee.rotation_needed', () => {
+        p.rotationNeeded = true;
+        this.addLog(
+          p.userId,
+          'Rotation needed: frame counter is approaching the 32-bit ceiling',
+          'key-rotate',
         );
         this.emit();
       }),

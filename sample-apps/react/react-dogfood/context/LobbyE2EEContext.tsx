@@ -3,7 +3,7 @@ import { createContext, useContext } from 'react';
 /**
  * Lobby-facing controls for toggling end-to-end encryption.
  *
- * A call's `encryption.enabled` flag is fixed at creation, so enabling/disabling
+ * A call's encryption setting is fixed at creation, so enabling/disabling
  * swaps the active call for a freshly created one (of the same type) in place -
  * no navigation, no remount - and rewrites the URL via the History API so the
  * invite link stays shareable. The shared key is client-side only, so editing it

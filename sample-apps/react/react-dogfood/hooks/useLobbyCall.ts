@@ -6,6 +6,7 @@ import {
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
 
+import { ENCRYPTION_OVERRIDE } from '../lib/e2ee';
 import { meetingId } from '../lib/idGenerators';
 import type { LobbyE2EEContextValue } from '../context/LobbyE2EEContext';
 
@@ -29,7 +30,7 @@ export type UseLobbyCallResult = {
 /**
  * Owns the join page's active call and the E2EE toggle controls.
  *
- * A call's `encryption.enabled` flag is fixed at creation, so toggling E2EE
+ * A call's encryption setting is fixed at creation, so toggling E2EE
  * swaps the active call for a freshly created one (of the same type) *in place*
  * - no navigation, no remount - and rewrites the URL via the History API so the
  * invite link stays shareable. `getOrCreate` is awaited before the swap so the
@@ -79,7 +80,7 @@ export const useLobbyCall = ({
         ? { members: [{ user_id: userId || '!anon', role: 'call_member' }] }
         : {};
     if (e2eeEnabled) {
-      data.settings_override = { encryption: { enabled: true } };
+      data.settings_override = { encryption: ENCRYPTION_OVERRIDE };
     }
     initial.getOrCreate({ data }).catch((err) => {
       console.error(`Failed to get or create call`, err);
@@ -119,7 +120,7 @@ export const useLobbyCall = ({
       const next = client.call(callType, meetingId());
       await next.getOrCreate({
         data: enabled
-          ? { settings_override: { encryption: { enabled: true } } }
+          ? { settings_override: { encryption: ENCRYPTION_OVERRIDE } }
           : {},
       });
       swapCall(next);

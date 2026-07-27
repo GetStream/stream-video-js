@@ -37,6 +37,7 @@ import {
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
 import { useLobbyE2EE } from '../context/LobbyE2EEContext';
+import { isCallEncrypted } from '../lib/e2ee';
 import { getRandomName } from '../lib/names';
 import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
 
@@ -70,10 +71,9 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const isProntoEnvironment = useIsProntoEnvironment();
   const isDemoEnvironment = useIsDemoEnvironment();
   const e2ee = useLobbyE2EE();
-  // An encrypted call can't be joined without a key (the backend rejects a
-  // non-e2ee join), so gate the Join button until one is provided.
-  const needsEncryptionKey =
-    !!settings?.encryption?.enabled && !e2ee?.encryptionKey;
+  // An `auto-on` call requires E2EE of every participant, so the backend rejects
+  // a non-e2ee join: gate the Join button until a key is provided.
+  const needsEncryptionKey = isCallEncrypted(settings) && !e2ee?.encryptionKey;
   const [displayNameOverride, setDisplayNameOverride] = useState<string | null>(
     isDemoEnvironment ? getRandomName() : null,
   );

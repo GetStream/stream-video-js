@@ -10,7 +10,16 @@ interface Props {
 }
 
 export const StatusReadout = ({ participant, nameByUserId }: Props) => {
-  const { enabled, transform, codec, keyStore, tracks, perf } = participant;
+  const {
+    enabled,
+    transform,
+    codec,
+    keyStore,
+    tracks,
+    perf,
+    rotationNeeded,
+    encryptionFailure,
+  } = participant;
   const nameOf = (userId: string) => nameByUserId[userId] ?? userId.slice(0, 8);
   // The worker rebuilds its stats maps every report interval, so array order is
   // non-deterministic. Sort by stable keys so rows do not swap places between
@@ -63,7 +72,28 @@ export const StatusReadout = ({ participant, nameByUserId }: Props) => {
             · fail {fmtNames(tracks.failingFrom, nameByUserId)}
           </span>
         )}
+        {tracks.brokenFrom.length > 0 && (
+          <span
+            className="status-readout__fail"
+            title="e2ee.broken: decryption failed past the SDK's tolerance"
+          >
+            · broken {fmtNames(tracks.brokenFrom, nameByUserId)}
+          </span>
+        )}
       </div>
+
+      {rotationNeeded && (
+        <div className="status-readout__row status-readout__warn" role="alert">
+          ⚠ rotation needed - frame counter near the 32-bit ceiling; encryption
+          fails closed at the limit
+        </div>
+      )}
+
+      {encryptionFailure && (
+        <div className="status-readout__row status-readout__warn" role="alert">
+          ⚠ encrypt failed ({encryptionFailure}) - publishing nothing
+        </div>
+      )}
 
       {encodeRows.length > 0 && (
         <div className="status-readout__row">

@@ -1,6 +1,7 @@
 import type {
   StreamVideoClient,
   Call,
+  EncryptionSettingsResponseModeEnum,
   KeyStateReport,
   PerfReport,
 } from '@stream-io/video-react-sdk';
@@ -36,10 +37,25 @@ export interface HarnessParticipant {
   currentKey?: ArrayBuffer;
   keyIndex: number;
   keyStore: KeyStateReport | null;
+  /**
+   * Set once `e2ee.rotation_needed` fires for this sender: its frame counter is
+   * approaching the 32-bit ceiling and encryption fails closed at the hard
+   * limit. Cleared as soon as fresh key material is installed.
+   */
+  rotationNeeded: boolean;
+  /** Last `e2ee.encryption_failed` reason, if the local encoder ever threw. */
+  encryptionFailure: string | null;
   tracks: {
     encrypting: boolean;
     decryptingFrom: string[];
+    /** Remotes reporting `e2ee.decryption_failed`, possibly transient. */
     failingFrom: string[];
+    /**
+     * Remotes whose session the SDK declared broken via `e2ee.broken` -
+     * decryption failed past the internal tolerance, so this is terminal
+     * until new key material arrives.
+     */
+    brokenFrom: string[];
   };
   perf: PerfReport;
   // Live SDK handles, for rendering only. Never serialized.
@@ -70,4 +86,18 @@ export interface Snapshot {
   roster: RosterEntry[];
   log: LogEntry[];
   globalError: string | null;
+  /**
+   * Encryption mode the backend resolved for this call, read back from the call
+   * settings after join. `undefined` until the first participant joins. Proves
+   * server-side that the call really is E2EE, independent of what the harness
+   * requested.
+   */
+  encryptionMode: EncryptionSettingsResponseModeEnum | undefined;
+  /**
+   * Whether the SFU reports E2EE as actually active for this call, from the join
+   * response. Unlike {@link Snapshot.encryptionMode} - which is only what the
+   * call permits - this is the authoritative signal, so a mismatch between the
+   * two is exactly the bug this harness exists to catch.
+   */
+  e2eeEnabled: boolean;
 }

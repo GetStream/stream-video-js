@@ -35,6 +35,10 @@
 .status-readout__fail {
   color: #f85149;
 }
+.status-readout__warn {
+  color: #e3b341;
+  margin-top: 4px;
+}
 .status-readout__perf {
   color: #8b949e;
 }

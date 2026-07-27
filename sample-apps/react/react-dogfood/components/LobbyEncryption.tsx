@@ -8,6 +8,7 @@ import {
 import clsx from 'clsx';
 
 import { LockIcon } from './LockIcon';
+import { isCallEncrypted } from '../lib/e2ee';
 import { getRandomWords } from '../lib/names';
 import { useLobbyE2EE } from '../context/LobbyE2EEContext';
 
@@ -42,7 +43,7 @@ export const LobbyEncryption = () => {
   // nothing - a joiner never briefly sees the creator's toggle. This mirrors the
   // lobby's video preview, which also waits on `settings`.
   const resolved = !!settings && !!createdBy;
-  const isEncryptedCall = !!settings?.encryption?.enabled;
+  const isEncryptedCall = isCallEncrypted(settings);
   const isJoiner =
     !!createdBy && !!connectedUser && createdBy.id !== connectedUser.id;
   const locked = isJoiner && isEncryptedCall;

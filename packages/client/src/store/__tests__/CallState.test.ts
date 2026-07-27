@@ -5,7 +5,10 @@ import { fromPartial } from '@total-typescript/shoehorn';
 import { StreamVideoParticipant, VisibilityState } from '../../types';
 import { CallingState } from '../CallingState';
 import { CallState } from '../CallState';
-import { TrackType } from '../../gen/video/sfu/models/models';
+import {
+  type CallState as SfuCallState,
+  TrackType,
+} from '../../gen/video/sfu/models/models';
 import {
   combineComparators,
   conditional,
@@ -384,6 +387,48 @@ describe('CallState', () => {
         { sessionId: '123', pin: { isLocalPin: true, pinnedAt: 1000 } },
         { sessionId: '456' },
       ]);
+    });
+  });
+
+  describe('e2ee', () => {
+    const sfuCallState = (e2EeEnabled: boolean) =>
+      fromPartial<SfuCallState>({
+        participants: [],
+        pins: [],
+        e2EeEnabled,
+      });
+
+    it('is disabled until the SFU reports otherwise', () => {
+      const state = new CallState();
+      expect(state.e2eeEnabled).toBe(false);
+
+      state.updateFromSfuCallState(sfuCallState(false), 'session-id');
+      expect(state.e2eeEnabled).toBe(false);
+    });
+
+    it('is enabled when the SFU call state says so', () => {
+      const state = new CallState();
+      state.updateFromSfuCallState(sfuCallState(true), 'session-id');
+      expect(state.e2eeEnabled).toBe(true);
+    });
+
+    it('follows the SFU across a rejoin into a plain call', () => {
+      const state = new CallState();
+      state.updateFromSfuCallState(sfuCallState(true), 'session-id');
+      state.updateFromSfuCallState(sfuCallState(false), 'session-id');
+      expect(state.e2eeEnabled).toBe(false);
+    });
+
+    it(`doesn't emit when the value didn't change`, () => {
+      const state = new CallState();
+      const listener = vi.fn();
+      state.e2eeEnabled$.subscribe(listener);
+      expect(listener).toHaveBeenCalledTimes(1); // initial value
+
+      state.updateFromSfuCallState(sfuCallState(true), 'session-id');
+      state.updateFromSfuCallState(sfuCallState(true), 'session-id');
+      expect(listener).toHaveBeenCalledTimes(2);
+      expect(listener).toHaveBeenLastCalledWith(true);
     });
   });
 

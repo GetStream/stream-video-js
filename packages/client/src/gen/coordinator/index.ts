@@ -3790,6 +3790,12 @@ export interface ClientEvent {
    */
   join_attempt_id?: string;
   /**
+   * Reason the client initiated the join. Optional on CoordinatorJoin events; empty when not provided.
+   * @type {string}
+   * @memberof ClientEvent
+   */
+  join_reason?: string;
+  /**
    * Microphone permission status: INITIATED, FAILED, GRANTED, or NOT_INITIATED. Required on every MediaDevicePermission event.
    * @type {string}
    * @memberof ClientEvent
@@ -4709,12 +4715,24 @@ export interface EgressResponse {
  */
 export interface EncryptionSettingsRequest {
   /**
-   * if true, the call is created end-to-end encrypted
-   * @type {boolean}
+   * Encryption mode. One of: available, disabled, auto-on
+   * @type {string}
    * @memberof EncryptionSettingsRequest
    */
-  enabled?: boolean;
+  mode?: EncryptionSettingsRequestModeEnum;
 }
+
+/**
+ * @export
+ */
+export const EncryptionSettingsRequestModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type EncryptionSettingsRequestModeEnum =
+  (typeof EncryptionSettingsRequestModeEnum)[keyof typeof EncryptionSettingsRequestModeEnum];
+
 /**
  * EncryptionSettings is the payload for end-to-end encryption settings
  * @export
@@ -4722,12 +4740,24 @@ export interface EncryptionSettingsRequest {
  */
 export interface EncryptionSettingsResponse {
   /**
-   * whether the call is end-to-end encrypted
-   * @type {boolean}
+   * the resolved encryption mode for the call
+   * @type {string}
    * @memberof EncryptionSettingsResponse
    */
-  enabled: boolean;
+  mode: EncryptionSettingsResponseModeEnum;
 }
+
+/**
+ * @export
+ */
+export const EncryptionSettingsResponseModeEnum = {
+  AVAILABLE: 'available',
+  DISABLED: 'disabled',
+  AUTO_ON: 'auto-on',
+} as const;
+export type EncryptionSettingsResponseModeEnum =
+  (typeof EncryptionSettingsResponseModeEnum)[keyof typeof EncryptionSettingsResponseModeEnum];
+
 /**
  * Response for ending a call
  * @export

@@ -79,12 +79,12 @@ const RecordingIndicator = () => {
 const E2EEBadge = () => {
   const { t } = useI18n();
   const isPronto = useIsProntoEnvironment();
-  const { useCallSettings } = useCallStateHooks();
-  const settings = useCallSettings();
+  const { useE2eeEnabled } = useCallStateHooks();
+  const e2eeEnabled = useE2eeEnabled();
   // Compact, always-visible lock chip (the sibling latency/participant-count
   // indicators are hidden below the `sm` breakpoint, so a labelled badge would
   // overflow the header on mobile). The description lives in the tooltip.
-  if (!isPronto || !settings?.encryption?.enabled) return null;
+  if (!isPronto || !e2eeEnabled) return null;
   return (
     <WithTooltip title={t('This call is end-to-end encrypted.')}>
       <div
