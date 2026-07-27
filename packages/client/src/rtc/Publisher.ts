@@ -467,9 +467,10 @@ export class Publisher extends BasePeerConnection {
         // doesn't match the m-section carrying the track stops the SFU from
         // correlating the two: it then answers with every offered codec instead
         // of the announced one, and we publish the first codec of that list.
-        // See https://www.w3.org/TR/webrtc/#set-description - applying a local
-        // offer sets `transceiver.[[Mid]]` (step 10.1.2), and a rollback resets
-        // it to null for a transceiver that wasn't associated yet (step 11.2.1).
+        // Per https://www.w3.org/TR/webrtc/#set-description, applying a local
+        // offer associates the transceiver with its m-section and sets
+        // `[[Mid]]` to `[[JsepMid]]`; a rollback disassociates a transceiver
+        // that wasn't associated before and resets both slots to null.
         const tracks = this.getAnnouncedTracks(offer.sdp);
         if (!tracks.length)
           throw new Error(`Can't negotiate without any tracks`);
