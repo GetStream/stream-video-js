@@ -1,10 +1,8 @@
 import { vi } from 'vitest';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { CallingState, CallState } from '../../store';
-import {
-  NoiseCancellationSettingsModeEnum,
-  OwnCapability,
-} from '../../gen/coordinator';
+import { NoiseCancellationSettingsModeEnum } from '../../compat';
+import { OwnCapability } from '../../gen/coordinator';
 import { Call } from '../../Call';
 import { of, Subject } from 'rxjs';
 import { BrowserPermission } from '../BrowserPermission';
