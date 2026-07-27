@@ -41,14 +41,14 @@ export const ParticipantActionsContextMenu = () => {
   const muteScreenShareAudio = () =>
     call?.muteUser(userId, 'screenshare_audio');
 
-  const grantPermission = (permission: string) => () => {
+  const grantPermission = (permission: OwnCapability) => () => {
     call?.updateUserPermissions({
       user_id: userId,
       grant_permissions: [permission],
     });
   };
 
-  const revokePermission = (permission: string) => () => {
+  const revokePermission = (permission: OwnCapability) => () => {
     call?.updateUserPermissions({
       user_id: userId,
       revoke_permissions: [permission],

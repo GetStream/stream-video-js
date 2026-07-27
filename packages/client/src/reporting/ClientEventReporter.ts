@@ -742,7 +742,7 @@ export class ClientEventReporter {
       try {
         await this.streamClient.doAxiosRequest(
           'post',
-          '/call_client_event',
+          '/api/v2/video/call_client_event',
           { events: [body] },
           { publicEndpoint: true },
         );

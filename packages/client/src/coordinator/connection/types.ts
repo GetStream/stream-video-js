@@ -1,5 +1,5 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { ConnectedEvent, UserRequest, VideoEvent } from '../../gen/coordinator';
+import { ConnectedEvent, UserRequest, WSEvent } from '../../gen/coordinator';
 import { AllSfuEvents } from '../../rtc';
 import type { ConfigureLoggersOptions, LogLevel } from '@stream-io/logger';
 import type { DevicePersistenceOptions } from '../../devices/devicePersistence';
@@ -164,7 +164,7 @@ export type DeviceDisconnectedEvent = {
 };
 
 export type StreamVideoEvent = (
-  | VideoEvent
+  | WSEvent
   | NetworkChangedEvent
   | ConnectionChangedEvent
   | TransportChangedEvent

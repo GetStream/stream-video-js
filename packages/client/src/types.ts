@@ -4,12 +4,10 @@ import type {
   VideoDimension,
 } from './gen/video/sfu/models/models';
 import type {
-  AudioSettingsRequestDefaultDeviceEnum,
-  CallRecordingStartedEventRecordingTypeEnum,
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
-  ReactionResponse,
+  VideoReactionResponse,
   StartRecordingRequest,
   StartRecordingResponse,
 } from './gen/coordinator';
@@ -27,7 +25,7 @@ import { AxiosError } from 'axios';
 import type { Call } from './Call';
 
 export type StreamReaction = Pick<
-  ReactionResponse,
+  VideoReactionResponse,
   'type' | 'emoji_code' | 'custom'
 >;
 
@@ -407,7 +405,7 @@ export type StreamVideoClientOptions =
   | StreamVideoClientOptionsWithAnonymousUser
   | StreamVideoClientOptionsWithAuthenticatedUser;
 
-export type CallRecordingType = CallRecordingStartedEventRecordingTypeEnum;
+export type CallRecordingType = 'composite' | 'individual' | 'raw';
 export type StartCallRecordingFnType = {
   (): Promise<StartRecordingResponse>;
   (type: CallRecordingType): Promise<StartRecordingResponse>;
@@ -424,7 +422,7 @@ type StreamRNVideoSDKCallManagerRingingParams = {
 
 type StreamRNVideoSDKCallManagerSetupParams =
   StreamRNVideoSDKCallManagerRingingParams & {
-    defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
+    defaultDevice: 'speaker' | 'earpiece';
   };
 
 type StreamRNVideoSDKEndCallReason =

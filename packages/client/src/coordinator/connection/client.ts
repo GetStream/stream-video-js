@@ -122,9 +122,7 @@ export class StreamClient {
       });
     }
 
-    this.setBaseURL(
-      this.options.baseURL || 'https://video.stream-io-api.com/video',
-    );
+    this.setBaseURL(this.options.baseURL || 'https://video.stream-io-api.com');
 
     this.axiosInstance = axios.create({
       ...this.options,
@@ -334,7 +332,9 @@ export class StreamClient {
     this.guestUserCreatePromise = this.doAxiosRequest<
       CreateGuestResponse,
       CreateGuestRequest
-    >('post', '/guest', { user }, { publicEndpoint: true });
+    >('post', '/video/guest', { user }, { publicEndpoint: true }).then(
+      (response) => response.data,
+    );
 
     const response = await this.guestUserCreatePromise;
     this.guestUserCreatePromise.finally(
@@ -468,7 +468,7 @@ export class StreamClient {
       config?: AxiosRequestConfig & { maxBodyLength?: number };
       publicEndpoint?: boolean;
     } = {},
-  ): Promise<T> => {
+  ): Promise<AxiosResponse<T>> => {
     if (!options.publicEndpoint) {
       await Promise.all([
         this.tokenManager.tokenReady(),
@@ -513,7 +513,7 @@ export class StreamClient {
       }
       this._logApiResponse<T>(type, url, response);
       this.consecutiveFailures = 0;
-      return response.data;
+      return response;
     } catch (e: any /**TODO: generalize error types  */) {
       e.client_request_id = requestConfig.headers?.['x-client-request-id'];
 
@@ -547,40 +547,56 @@ export class StreamClient {
     }
   };
 
-  get = <T>(url: string, params?: AxiosRequestConfig['params']) => {
-    return this.doAxiosRequest<T, unknown>('get', url, null, {
+  get = async <T>(url: string, params?: AxiosRequestConfig['params']) => {
+    const response = await this.doAxiosRequest<T, unknown>('get', url, null, {
       params,
     });
+    return response.data;
   };
 
-  put = <T, D = unknown>(
+  put = async <T, D = unknown>(
     url: string,
     data?: D,
     params?: AxiosRequestConfig['params'],
   ) => {
-    return this.doAxiosRequest<T, D>('put', url, data, { params });
-  };
-
-  post = <T, D = unknown>(
-    url: string,
-    data?: D,
-    params?: AxiosRequestConfig['params'],
-  ) => {
-    return this.doAxiosRequest<T, D>('post', url, data, { params });
-  };
-
-  patch = <T, D = unknown>(
-    url: string,
-    data?: D,
-    params?: AxiosRequestConfig['params'],
-  ) => {
-    return this.doAxiosRequest<T, D>('patch', url, data, { params });
-  };
-
-  delete = <T>(url: string, params?: AxiosRequestConfig['params']) => {
-    return this.doAxiosRequest<T, unknown>('delete', url, null, {
+    const response = await this.doAxiosRequest<T, D>('put', url, data, {
       params,
     });
+    return response.data;
+  };
+
+  post = async <T, D = unknown>(
+    url: string,
+    data?: D,
+    params?: AxiosRequestConfig['params'],
+  ) => {
+    const response = await this.doAxiosRequest<T, D>('post', url, data, {
+      params,
+    });
+    return response.data;
+  };
+
+  patch = async <T, D = unknown>(
+    url: string,
+    data?: D,
+    params?: AxiosRequestConfig['params'],
+  ) => {
+    const response = await this.doAxiosRequest<T, D>('patch', url, data, {
+      params,
+    });
+    return response.data;
+  };
+
+  delete = async <T>(url: string, params?: AxiosRequestConfig['params']) => {
+    const response = await this.doAxiosRequest<T, unknown>(
+      'delete',
+      url,
+      null,
+      {
+        params,
+      },
+    );
+    return response.data;
   };
 
   dispatchEvent = (event: StreamVideoEvent) => {
@@ -669,11 +685,11 @@ export class StreamClient {
 
     return {
       params: {
-        user_id: this.userID,
-        connection_id: this._getConnectionID(),
-        api_key: this.key,
         ...options.params,
         ...axiosConfigParams,
+        user_id: this.userID,
+        api_key: this.key,
+        connection_id: options.params?.connection_id || this._getConnectionID(),
       },
       headers: {
         ...authorization,

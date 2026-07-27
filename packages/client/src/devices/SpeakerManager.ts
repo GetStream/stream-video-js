@@ -7,10 +7,7 @@ import {
   getAudioBrowserPermission,
   getAudioOutputDevices,
 } from './devices';
-import {
-  AudioSettingsRequestDefaultDeviceEnum,
-  CallSettingsResponse,
-} from '../gen/coordinator';
+import { CallSettingsResponse } from '../gen/coordinator';
 import {
   createSyntheticDevice,
   defaultDeviceId,
@@ -26,7 +23,7 @@ export class SpeakerManager {
   private subscriptions: (() => void)[] = [];
   private areSubscriptionsSetUp = false;
   private readonly call: Call;
-  private defaultDevice?: AudioSettingsRequestDefaultDeviceEnum;
+  private defaultDevice?: 'speaker' | 'earpiece';
   private readonly devicePersistence: Required<DevicePersistenceOptions>;
 
   constructor(
@@ -75,12 +72,11 @@ export class SpeakerManager {
     const speakerOnWithSettingsPriority =
       settings.video.camera_default_on ||
       settings.audio.speaker_default_on ||
-      settings.audio.default_device ===
-        AudioSettingsRequestDefaultDeviceEnum.SPEAKER;
+      settings.audio.default_device === 'speaker';
 
     const defaultDevice = speakerOnWithSettingsPriority
-      ? AudioSettingsRequestDefaultDeviceEnum.SPEAKER
-      : AudioSettingsRequestDefaultDeviceEnum.EARPIECE;
+      ? 'speaker'
+      : 'earpiece';
 
     if (this.defaultDevice !== defaultDevice) {
       this.call.logger.debug('SpeakerManager: setting default device', {

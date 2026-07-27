@@ -17,6 +17,7 @@ import type {
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 import { getTimers } from '../../timers';
 import { APIErrorCodes } from './errors';
+import { decodeWSEvent } from '../../gen/coordinator/model-decoders/event-decoder-mapping';
 
 /**
  * StableWSConnection - A WS connection that reconnects upon failure.
@@ -213,7 +214,7 @@ export class StableWSConnection {
     params.set('stream-auth-type', this.client.getAuthType());
     params.set('X-Stream-Client', this.client.getUserAgent());
 
-    return `${this.client.wsBaseURL}/connect?${params.toString()}`;
+    return `${this.client.wsBaseURL}/api/v2/connect?${params.toString()}`;
   };
 
   /**
@@ -529,15 +530,17 @@ export class StableWSConnection {
       return;
     }
 
-    const authMessage = JSON.stringify({
+    const wsAuthMessage: WSAuthMessage = {
       token,
+      products: ['video'],
       user_details: {
         id: user.id,
         name: user.name,
         image: user.image,
         custom: user.custom,
       },
-    } as WSAuthMessage);
+    };
+    const authMessage = JSON.stringify(wsAuthMessage);
 
     this._log(`onopen() - Sending auth message ${authMessage}`, {}, 'trace');
 
@@ -548,10 +551,12 @@ export class StableWSConnection {
   onmessage = (wsID: number, event: MessageEvent) => {
     if (this.wsID !== wsID) return;
 
+    const parsed =
+      typeof event.data === 'string' ? JSON.parse(event.data) : null;
     const data =
-      typeof event.data === 'string'
-        ? (JSON.parse(event.data) as StreamVideoEvent)
-        : null;
+      parsed && typeof parsed.type === 'string'
+        ? (decodeWSEvent(parsed) as StreamVideoEvent)
+        : (parsed as StreamVideoEvent | null);
 
     // we wait till the first message before we consider the connection open.
     // the reason for this is that auth errors and similar errors trigger a ws.onopen and immediately
@@ -702,10 +707,10 @@ export class StableWSConnection {
       message = event.reason;
       statusCode = 0;
     } else {
-      const { error } = event;
+      const error = event.error as typeof event.error & { StatusCode?: number };
       code = error.code;
       message = error.message;
-      statusCode = error.StatusCode;
+      statusCode = error.StatusCode ?? 0;
     }
 
     const msg = `WS failed with code: ${code}: ${APIErrorCodes[code] || code} and reason: ${message}`;

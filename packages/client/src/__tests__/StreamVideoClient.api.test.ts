@@ -12,6 +12,7 @@ import { Call } from '../Call';
 import { CallCreatedPayload } from './data';
 import { generateUUIDv4 } from '../coordinator/connection/utils';
 import type { StreamClient } from '../coordinator/connection/client';
+import type { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import type {
   CreateDeviceRequest,
   GetEdgesResponse,
@@ -24,17 +25,23 @@ const apiKey = 'mock-api-key';
 
 describe('StreamVideoClient - coordinator API', () => {
   let client: StreamVideoClient;
-  // the client only talks to the backend through streamClient.post/get/delete,
-  // so we spy on those and assert against them instead of a live backend.
+  // Legacy endpoints still use the streamClient helpers. Generated v2 endpoints
+  // go through ApiClient -> streamClient.doAxiosRequest.
   let post: Mock<StreamClient['post']>;
-  let get: Mock<StreamClient['get']>;
-  let del: Mock<StreamClient['delete']>;
+  let doAxiosRequest: Mock<StreamClient['doAxiosRequest']>;
+
+  const mockAxiosResponse = <T>(data: T): AxiosResponse<T> => ({
+    data,
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as InternalAxiosRequestConfig,
+  });
 
   beforeEach(() => {
     client = new StreamVideoClient(apiKey, { browser: true });
     post = vi.spyOn(client.streamClient, 'post');
-    get = vi.spyOn(client.streamClient, 'get');
-    del = vi.spyOn(client.streamClient, 'delete');
+    doAxiosRequest = vi.spyOn(client.streamClient, 'doAxiosRequest');
   });
 
   afterEach(() => {
@@ -53,17 +60,31 @@ describe('StreamVideoClient - coordinator API', () => {
         },
       ],
     };
-    post.mockResolvedValue(response);
+    doAxiosRequest.mockResolvedValue(mockAxiosResponse(response));
 
     await client.queryCalls();
-    expect(post).toHaveBeenCalledWith('/calls', {});
+    expect(doAxiosRequest).toHaveBeenCalledWith(
+      'post',
+      'https://video.stream-io-api.com/api/v2/video/calls',
+      {},
+      expect.objectContaining({
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
 
     const queryCallsReq = {
       sort: [{ field: 'starts_at', direction: -1 }],
       limit: 2,
     };
     const result = await client.queryCalls(queryCallsReq);
-    expect(post).toHaveBeenCalledWith('/calls', queryCallsReq);
+    expect(doAxiosRequest).toHaveBeenLastCalledWith(
+      'post',
+      'https://video.stream-io-api.com/api/v2/video/calls',
+      queryCallsReq,
+      expect.objectContaining({
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
 
     // each response entry is wrapped into a Call instance
     expect(result.next).toBe('next-page-token');
@@ -74,16 +95,25 @@ describe('StreamVideoClient - coordinator API', () => {
   });
 
   it('query calls - ongoing', async () => {
-    post.mockResolvedValue({ duration: '1ms', calls: [] });
+    doAxiosRequest.mockResolvedValue(
+      mockAxiosResponse({ duration: '1ms', calls: [] }),
+    );
 
     const queryCallsReq = { filter_conditions: { ongoing: { $eq: true } } };
     await client.queryCalls(queryCallsReq);
 
-    expect(post).toHaveBeenCalledWith('/calls', queryCallsReq);
+    expect(doAxiosRequest).toHaveBeenCalledWith(
+      'post',
+      'https://video.stream-io-api.com/api/v2/video/calls',
+      queryCallsReq,
+      expect.any(Object),
+    );
   });
 
   it('query calls - upcoming', async () => {
-    post.mockResolvedValue({ duration: '1ms', calls: [] });
+    doAxiosRequest.mockResolvedValue(
+      mockAxiosResponse({ duration: '1ms', calls: [] }),
+    );
 
     const mins30 = 1000 * 60 * 60 * 30;
     const inNext30mins = new Date(Date.now() + mins30);
@@ -92,31 +122,46 @@ describe('StreamVideoClient - coordinator API', () => {
     };
     await client.queryCalls(queryCallsReq);
 
-    expect(post).toHaveBeenCalledWith('/calls', queryCallsReq);
+    expect(doAxiosRequest).toHaveBeenCalledWith(
+      'post',
+      'https://video.stream-io-api.com/api/v2/video/calls',
+      queryCallsReq,
+      expect.any(Object),
+    );
   });
 
   it('query call stats', async () => {
     const response: QueryCallStatsResponse = { duration: '1ms', reports: [] };
-    post.mockResolvedValue(response);
+    doAxiosRequest.mockResolvedValue(mockAxiosResponse(response));
 
     const result = await client.queryCallStats({
       filter_conditions: { call_cid: 'default:test' },
     });
 
-    expect(post).toHaveBeenCalledWith('/call/stats', {
-      filter_conditions: { call_cid: 'default:test' },
-    });
-    expect(result).toBe(response);
+    expect(doAxiosRequest).toHaveBeenCalledWith(
+      'post',
+      'https://video.stream-io-api.com/api/v2/video/call/stats',
+      { filter_conditions: { call_cid: 'default:test' } },
+      expect.objectContaining({
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    expect(result).toMatchObject(response);
   });
 
   it('edges', async () => {
     const response: GetEdgesResponse = { duration: '1ms', edges: [] };
-    get.mockResolvedValue(response);
+    doAxiosRequest.mockResolvedValue(mockAxiosResponse(response));
 
     const result = await client.edges();
 
-    expect(get).toHaveBeenCalledWith('/edges');
-    expect(result).toBe(response);
+    expect(doAxiosRequest).toHaveBeenCalledWith(
+      'get',
+      'https://video.stream-io-api.com/api/v2/video/edges',
+      undefined,
+      expect.any(Object),
+    );
+    expect(result).toMatchObject(response);
   });
 
   describe('devices', () => {
@@ -162,20 +207,32 @@ describe('StreamVideoClient - coordinator API', () => {
 
     it('get devices', async () => {
       const response: ListDevicesResponse = { duration: '1ms', devices: [] };
-      get.mockResolvedValue(response);
+      doAxiosRequest.mockResolvedValue(mockAxiosResponse(response));
 
       const result = await client.getDevices();
 
-      expect(get).toHaveBeenCalledWith('/devices', {});
-      expect(result).toBe(response);
+      expect(doAxiosRequest).toHaveBeenCalledWith(
+        'get',
+        'https://video.stream-io-api.com/api/v2/devices',
+        undefined,
+        expect.any(Object),
+      );
+      expect(result).toMatchObject(response);
     });
 
     it('remove device', async () => {
-      del.mockResolvedValue(undefined);
+      doAxiosRequest.mockResolvedValue(mockAxiosResponse({ duration: '1ms' }));
 
       await client.removeDevice(device.id);
 
-      expect(del).toHaveBeenCalledWith('/devices', { id: device.id });
+      expect(doAxiosRequest).toHaveBeenCalledWith(
+        'delete',
+        'https://video.stream-io-api.com/api/v2/devices',
+        undefined,
+        expect.objectContaining({
+          params: { id: device.id },
+        }),
+      );
     });
   });
 });

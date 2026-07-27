@@ -13,11 +13,7 @@ import { AudioBitrateProfile, TrackType } from '../gen/video/sfu/models/models';
 import { createSoundDetector } from '../helpers/sound-detector';
 import { createNoAudioDetector } from '../helpers/no-audio-detector';
 import { isReactNative } from '../helpers/platforms';
-import {
-  AudioSettingsResponse,
-  NoiseCancellationSettingsModeEnum,
-  OwnCapability,
-} from '../gen/coordinator';
+import { AudioSettingsResponse, OwnCapability } from '../gen/coordinator';
 import { type MicCaptureReportEvent } from '../coordinator/connection/types';
 import { CallingState } from '../store';
 import {
@@ -110,7 +106,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
 
         const autoOn =
           this.call.state.settings?.audio.noise_cancellation?.mode ===
-          NoiseCancellationSettingsModeEnum.AUTO_ON;
+          'auto-on';
 
         if (autoOn && callingState === CallingState.JOINED) {
           this.noiseCancellationRegistration
@@ -203,8 +199,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
     const noiseCancellationSettings = settings?.audio.noise_cancellation;
     if (
       !noiseCancellationSettings ||
-      noiseCancellationSettings.mode ===
-        NoiseCancellationSettingsModeEnum.DISABLED
+      noiseCancellationSettings.mode === 'disabled'
     ) {
       throw new Error('Noise cancellation is disabled for this call type.');
     }
@@ -243,8 +238,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       // handles an edge case where a noise cancellation is enabled after
       // the participant as joined the call -> we immediately enable NC
       if (
-        noiseCancellationSettings.mode ===
-          NoiseCancellationSettingsModeEnum.AUTO_ON &&
+        noiseCancellationSettings.mode === 'auto-on' &&
         this.call.state.callingState === CallingState.JOINED
       ) {
         let canAutoEnable = true;

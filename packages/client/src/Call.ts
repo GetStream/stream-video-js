@@ -31,9 +31,6 @@ import {
 } from './store/rxUtils';
 import { ScopedLogger, videoLoggerSystem } from './logger';
 import type {
-  AcceptCallResponse,
-  BlockUserRequest,
-  BlockUserResponse,
   CallRingEvent,
   CallSettingsResponse,
   CollectUserFeedbackRequest,
@@ -74,15 +71,12 @@ import type {
   RequestPermissionResponse,
   RingCallRequest,
   RingCallResponse,
-  SendCallEventRequest,
-  SendCallEventResponse,
-  SendReactionRequest,
-  SendReactionResponse,
+  SendVideoReactionRequest,
+  SendVideoReactionResponse,
   StartClosedCaptionsRequest,
   StartClosedCaptionsResponse,
   StartFrameRecordingRequest,
   StartFrameRecordingResponse,
-  StartHLSBroadcastingResponse,
   StartRecordingRequest,
   StartRecordingResponse,
   StartRTMPBroadcastsRequest,
@@ -183,6 +177,9 @@ import {
 } from './helpers/promise';
 import { GetCallStatsResponse } from './gen/shims';
 import { isReactNative } from './helpers/platforms';
+import { ApiClient } from './coordinator/connection/api-client';
+import { VideoApi } from './gen/coordinator/video/VideoApi';
+import { CallApi } from './gen/coordinator/video/CallApi';
 
 /**
  * An object representation of a `Call`.
@@ -296,6 +293,8 @@ export class Call {
   private readonly clientStore: StreamVideoWriteableStateStore;
   public readonly streamClient: StreamClient;
   public readonly clientEventReporter: ClientEventReporter;
+  private readonly api: CallApi;
+  private readonly videoApi: VideoApi;
   private sfuClient?: StreamSfuClient;
   private sfuClientTag = 0;
   private unifiedSessionId?: string;
@@ -377,8 +376,10 @@ export class Call {
     this.watching = watching;
     this.streamClient = streamClient;
     this.clientEventReporter = clientEventReporter;
+    this.videoApi = new VideoApi(new ApiClient(streamClient));
+    this.api = new CallApi(this.videoApi, type, id);
     this.clientStore = clientStore;
-    this.streamClientBasePath = `/call/${this.type}/${this.id}`;
+    this.streamClientBasePath = `/video/call/${this.type}/${this.id}`;
     this.logger = videoLoggerSystem.getLogger('Call');
 
     const callTypeConfig = CallTypes.get(type);
@@ -919,10 +920,7 @@ export class Call {
   }): Promise<GetCallResponse> => {
     await this.setup();
 
-    const response = await this.streamClient.get<GetCallResponse>(
-      this.streamClientBasePath,
-      params,
-    );
+    const response = await this.api.get(params);
 
     this.state.updateFromCallResponse(response.call);
     this.state.setMembers(response.members);
@@ -959,10 +957,8 @@ export class Call {
   getOrCreate = async (data?: GetOrCreateCallRequest) => {
     await this.setup();
 
-    const response = await this.streamClient.post<
-      GetOrCreateCallResponse,
-      GetOrCreateCallRequest
-    >(this.streamClientBasePath, data);
+    const response = await this.api.getOrCreate(data);
+    console.log('getOrCreate', response);
 
     this.state.updateFromCallResponse(response.call);
     this.state.setMembers(response.members);
@@ -1007,10 +1003,7 @@ export class Call {
   delete = async (
     data: DeleteCallRequest = {},
   ): Promise<DeleteCallResponse> => {
-    return this.streamClient.post<DeleteCallResponse, DeleteCallRequest>(
-      `${this.streamClientBasePath}/delete`,
-      data,
-    );
+    return this.api.delete(data);
   };
 
   /**
@@ -1018,10 +1011,7 @@ export class Call {
    * All users should be members of the call.
    */
   ring = async (data: RingCallRequest = {}): Promise<RingCallResponse> => {
-    return this.streamClient.post<RingCallResponse, RingCallRequest>(
-      `${this.streamClientBasePath}/ring`,
-      data,
-    );
+    return this.api.ring(data);
   };
 
   /**
@@ -1042,9 +1032,7 @@ export class Call {
   accept = async () => {
     return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
       this.tracer.trace('call.accept', '');
-      return this.streamClient.post<AcceptCallResponse>(
-        `${this.streamClientBasePath}/accept`,
-      );
+      return this.api.accept();
     });
   };
 
@@ -1062,10 +1050,7 @@ export class Call {
   ): Promise<RejectCallResponse> => {
     return withoutConcurrency(this.acceptRejectConcurrencyTag, () => {
       this.tracer.trace('call.reject', reason);
-      return this.streamClient.post<RejectCallResponse, RejectCallRequest>(
-        `${this.streamClientBasePath}/reject`,
-        { reason },
-      );
+      return this.api.reject({ reason });
     });
   };
 
@@ -1633,11 +1618,7 @@ export class Call {
    */
   doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
     const location = await this.streamClient.getLocationHint();
-    const request: JoinCallRequest = { ...data, location };
-    const joinResponse = await this.streamClient.post<
-      JoinCallResponse,
-      JoinCallRequest
-    >(`${this.streamClientBasePath}/join`, request);
+    const joinResponse = await this.api.join({ ...data, location });
 
     this.state.updateFromCallResponse(joinResponse.call);
     this.state.setMembers(joinResponse.members);
@@ -2453,12 +2434,9 @@ export class Call {
    * @param reaction the reaction to send.
    */
   sendReaction = async (
-    reaction: SendReactionRequest,
-  ): Promise<SendReactionResponse> => {
-    return this.streamClient.post<SendReactionResponse, SendReactionRequest>(
-      `${this.streamClientBasePath}/reaction`,
-      reaction,
-    );
+    reaction: SendVideoReactionRequest,
+  ): Promise<SendVideoReactionResponse> => {
+    return this.api.sendVideoReaction(reaction);
   };
 
   /**
@@ -2467,12 +2445,7 @@ export class Call {
    * @param userId the id of the user to block.
    */
   blockUser = async (userId: string) => {
-    return this.streamClient.post<BlockUserResponse, BlockUserRequest>(
-      `${this.streamClientBasePath}/block`,
-      {
-        user_id: userId,
-      },
-    );
+    return this.api.blockUser({ user_id: userId });
   };
 
   /**
@@ -2481,12 +2454,7 @@ export class Call {
    * @param userId the id of the user to unblock.
    */
   unblockUser = async (userId: string) => {
-    return this.streamClient.post<UnblockUserResponse, UnblockUserRequest>(
-      `${this.streamClientBasePath}/unblock`,
-      {
-        user_id: userId,
-      },
-    );
+    return this.api.unblockUser({ user_id: userId });
   };
 
   /**
@@ -2494,10 +2462,7 @@ export class Call {
    * @param data the kick request.
    */
   kickUser = async (data: KickUserRequest): Promise<KickUserResponse> => {
-    return this.streamClient.post<KickUserResponse, KickUserRequest>(
-      `${this.streamClientBasePath}/kick`,
-      data,
-    );
+    return this.api.kickUser(data);
   };
 
   /**
@@ -2538,13 +2503,10 @@ export class Call {
    * @param type the type of the mute operation.
    */
   muteUser = (userId: string | string[], type: TrackMuteType) => {
-    return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
-      `${this.streamClientBasePath}/mute_users`,
-      {
-        user_ids: Array.isArray(userId) ? userId : [userId],
-        [type]: true,
-      },
-    );
+    return this.api.muteUsers({
+      user_ids: Array.isArray(userId) ? userId : [userId],
+      [type]: true,
+    } as MuteUsersRequest);
   };
 
   /**
@@ -2553,13 +2515,10 @@ export class Call {
    * @param type the type of the mute operation.
    */
   muteAllUsers = (type: TrackMuteType) => {
-    return this.streamClient.post<MuteUsersResponse, MuteUsersRequest>(
-      `${this.streamClientBasePath}/mute_users`,
-      {
-        mute_all_users: true,
-        [type]: true,
-      },
-    );
+    return this.api.muteUsers({
+      mute_all_users: true,
+      [type]: true,
+    } as MuteUsersRequest);
   };
 
   /**
@@ -2570,29 +2529,20 @@ export class Call {
     type?: CallRecordingType,
   ): Promise<StartRecordingResponse> => {
     type = typeof dataOrType === 'string' ? dataOrType : type;
-    dataOrType = typeof dataOrType === 'string' ? undefined : dataOrType;
+    const data: StartRecordingRequest | undefined =
+      typeof dataOrType === 'string' ? undefined : dataOrType;
 
-    const endpoint = !type
-      ? `/start_recording`
-      : `/recordings/${encodeURIComponent(type)}/start`;
-
-    return this.streamClient.post<
-      StartRecordingResponse,
-      StartRecordingRequest
-    >(`${this.streamClientBasePath}${endpoint}`, dataOrType);
+    return this.api.startRecording({
+      ...data,
+      recording_type: type ?? 'composite',
+    });
   };
 
   /**
    * Stops recording the call
    */
   stopRecording = async (type?: CallRecordingType) => {
-    const endpoint = !type
-      ? `/stop_recording`
-      : `/recordings/${encodeURIComponent(type)}/stop`;
-
-    return this.streamClient.post<StopRecordingResponse>(
-      `${this.streamClientBasePath}${endpoint}`,
-    );
+    return this.api.stopRecording({ recording_type: type ?? 'composite' });
   };
 
   /**
@@ -2603,19 +2553,14 @@ export class Call {
   startTranscription = async (
     request?: StartTranscriptionRequest,
   ): Promise<StartTranscriptionResponse> => {
-    return this.streamClient.post<
-      StartTranscriptionResponse,
-      StartTranscriptionRequest
-    >(`${this.streamClientBasePath}/start_transcription`, request);
+    return this.api.startTranscription(request);
   };
 
   /**
    * Stops the transcription of the call.
    */
   stopTranscription = async (): Promise<StopTranscriptionResponse> => {
-    return this.streamClient.post<StopTranscriptionResponse>(
-      `${this.streamClientBasePath}/stop_transcription`,
-    );
+    return this.api.stopTranscription();
   };
 
   /**
@@ -2626,10 +2571,7 @@ export class Call {
   ): Promise<StartClosedCaptionsResponse> => {
     const trx = this.state.setCaptioning(true); // optimistic update
     try {
-      return await this.streamClient.post<
-        StartClosedCaptionsResponse,
-        StartClosedCaptionsRequest
-      >(`${this.streamClientBasePath}/start_closed_captions`, options);
+      return await this.api.startClosedCaptions(options);
     } catch (err) {
       trx.rollback(); // revert the optimistic update
       throw err;
@@ -2644,10 +2586,7 @@ export class Call {
   ): Promise<StopClosedCaptionsResponse> => {
     const trx = this.state.setCaptioning(false); // optimistic update
     try {
-      return await this.streamClient.post<
-        StopClosedCaptionsResponse,
-        StopClosedCaptionsRequest
-      >(`${this.streamClientBasePath}/stop_closed_captions`, options);
+      return await this.api.stopClosedCaptions(options);
     } catch (err) {
       trx.rollback(); // revert the optimistic update
       throw err;
@@ -2680,10 +2619,7 @@ export class Call {
         `You are not allowed to request permissions: ${permissions.join(', ')}`,
       );
     }
-    return this.streamClient.post<
-      RequestPermissionResponse,
-      RequestPermissionRequest
-    >(`${this.streamClientBasePath}/request_permission`, data);
+    return this.api.requestPermission(data as RequestPermissionRequest);
   };
 
   /**
@@ -2701,7 +2637,8 @@ export class Call {
   grantPermissions = async (userId: string, permissions: string[]) => {
     return this.updateUserPermissions({
       user_id: userId,
-      grant_permissions: permissions,
+      grant_permissions:
+        permissions as UpdateUserPermissionsRequest['grant_permissions'],
     });
   };
 
@@ -2720,7 +2657,8 @@ export class Call {
   revokePermissions = async (userId: string, permissions: string[]) => {
     return this.updateUserPermissions({
       user_id: userId,
-      revoke_permissions: permissions,
+      revoke_permissions:
+        permissions as UpdateUserPermissionsRequest['revoke_permissions'],
     });
   };
 
@@ -2732,10 +2670,7 @@ export class Call {
    * `call.permissions_updated` event is sent to all members of the call.
    */
   updateUserPermissions = async (data: UpdateUserPermissionsRequest) => {
-    return this.streamClient.post<
-      UpdateUserPermissionsResponse,
-      UpdateUserPermissionsRequest
-    >(`${this.streamClientBasePath}/user_permissions`, data);
+    return this.api.updateUserPermissions(data);
   };
 
   /**
@@ -2743,43 +2678,35 @@ export class Call {
    *
    * @param data the request data.
    * @param params the request params.
+   * @param params.notify @deprecated ignored by the backend; will be removed.
    */
-  goLive = async (data: GoLiveRequest = {}, params?: { notify?: boolean }) => {
-    return this.streamClient.post<GoLiveResponse, GoLiveRequest>(
-      `${this.streamClientBasePath}/go_live`,
-      data,
-      params,
-    );
+  goLive = async (
+    data: GoLiveRequest = {},
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    params?: { notify?: boolean },
+  ): Promise<GoLiveResponse> => {
+    return this.api.goLive(data);
   };
 
   /**
    * Stops the livestreaming of the call.
    */
   stopLive = async (data: StopLiveRequest = {}) => {
-    return this.streamClient.post<StopLiveResponse>(
-      `${this.streamClientBasePath}/stop_live`,
-      data,
-    );
+    return this.api.stopLive(data);
   };
 
   /**
    * Starts the broadcasting of the call.
    */
   startHLS = async () => {
-    return this.streamClient.post<StartHLSBroadcastingResponse>(
-      `${this.streamClientBasePath}/start_broadcasting`,
-      {},
-    );
+    return this.api.startHLSBroadcasting();
   };
 
   /**
    * Stops the broadcasting of the call.
    */
   stopHLS = async () => {
-    return this.streamClient.post<StopHLSBroadcastingResponse>(
-      `${this.streamClientBasePath}/stop_broadcasting`,
-      {},
-    );
+    return this.api.stopHLSBroadcasting();
   };
 
   /**
@@ -2788,19 +2715,14 @@ export class Call {
   startRTMPBroadcasts = async (
     data: StartRTMPBroadcastsRequest,
   ): Promise<StartRTMPBroadcastsResponse> => {
-    return this.streamClient.post<
-      StartRTMPBroadcastsResponse,
-      StartRTMPBroadcastsRequest
-    >(`${this.streamClientBasePath}/rtmp_broadcasts`, data);
+    return this.api.startRTMPBroadcasts(data);
   };
 
   /**
    * Stops all RTMP-out broadcasting of the call.
    */
   stopAllRTMPBroadcasts = async (): Promise<StopAllRTMPBroadcastsResponse> => {
-    return this.streamClient.post<StopAllRTMPBroadcastsResponse>(
-      `${this.streamClientBasePath}/rtmp_broadcasts/stop`,
-    );
+    return this.api.stopAllRTMPBroadcasts();
   };
 
   /**
@@ -2809,9 +2731,7 @@ export class Call {
   stopRTMPBroadcast = async (
     name: string,
   ): Promise<StopRTMPBroadcastsResponse> => {
-    return this.streamClient.post<StopRTMPBroadcastsResponse>(
-      `${this.streamClientBasePath}/rtmp_broadcasts/${name}/stop`,
-    );
+    return this.api.stopRTMPBroadcast({ name });
   };
 
   /**
@@ -2821,19 +2741,14 @@ export class Call {
   startFrameRecording = async (
     data: StartFrameRecordingRequest,
   ): Promise<StartFrameRecordingResponse> => {
-    return this.streamClient.post<
-      StartFrameRecordingResponse,
-      StartFrameRecordingRequest
-    >(`${this.streamClientBasePath}/start_frame_recording`, data);
+    return this.api.startFrameRecording(data);
   };
 
   /**
    * Stops frame recording.
    */
   stopFrameRecording = async (): Promise<StopFrameRecordingResponse> => {
-    return this.streamClient.post<StopFrameRecordingResponse>(
-      `${this.streamClientBasePath}/stop_frame_recording`,
-    );
+    return this.api.stopFrameRecording();
   };
 
   /**
@@ -2842,10 +2757,7 @@ export class Call {
    * @param updates the updates to apply to the call.
    */
   update = async (updates: UpdateCallRequest) => {
-    const response = await this.streamClient.patch<
-      UpdateCallResponse,
-      UpdateCallRequest
-    >(`${this.streamClientBasePath}`, updates);
+    const response = await this.api.update(updates);
 
     const { call, members, own_capabilities } = response;
     this.state.updateFromCallResponse(call);
@@ -2859,9 +2771,7 @@ export class Call {
    * Ends the call. Once the call is ended, it cannot be re-joined.
    */
   endCall = async () => {
-    return this.streamClient.post<EndCallResponse>(
-      `${this.streamClientBasePath}/mark_ended`,
-    );
+    return this.api.end();
   };
 
   /**
@@ -2897,10 +2807,7 @@ export class Call {
    * @param request the request object.
    */
   pinForEveryone = async (request: PinRequest) => {
-    return this.streamClient.post<PinResponse, PinRequest>(
-      `${this.streamClientBasePath}/pin`,
-      request,
-    );
+    return this.api.videoPin(request);
   };
 
   /**
@@ -2911,10 +2818,7 @@ export class Call {
    * @param request the request object.
    */
   unpinForEveryone = async (request: UnpinRequest) => {
-    return this.streamClient.post<UnpinResponse, UnpinRequest>(
-      `${this.streamClientBasePath}/unpin`,
-      request,
-    );
+    return this.api.videoUnpin(request);
   };
 
   /**
@@ -2923,10 +2827,7 @@ export class Call {
    * @returns
    */
   queryMembers = (request?: Omit<QueryCallMembersRequest, 'type' | 'id'>) => {
-    return this.streamClient.post<
-      QueryCallMembersResponse,
-      QueryCallMembersRequest
-    >('/call/members', {
+    return this.videoApi.queryCallMembers({
       ...(request || {}),
       id: this.id,
       type: this.type,
@@ -2943,10 +2844,7 @@ export class Call {
     data: QueryCallParticipantsRequest = {},
     params: { limit?: number } = {},
   ): Promise<QueryCallParticipantsResponse> => {
-    return this.streamClient.post<
-      QueryCallParticipantsResponse,
-      QueryCallParticipantsRequest
-    >(`${this.streamClientBasePath}/participants`, data, params);
+    return this.api.queryCallParticipants({ ...data, ...params });
   };
 
   /**
@@ -2957,10 +2855,7 @@ export class Call {
   updateCallMembers = async (
     data: UpdateCallMembersRequest,
   ): Promise<UpdateCallMembersResponse> => {
-    return this.streamClient.post<
-      UpdateCallMembersResponse,
-      UpdateCallMembersRequest
-    >(`${this.streamClientBasePath}/members`, data);
+    return this.api.updateCallMembers(data);
   };
 
   /**
@@ -3033,13 +2928,12 @@ export class Call {
   listRecordings = async (
     callSessionId?: string,
   ): Promise<ListRecordingsResponse> => {
-    let endpoint = this.streamClientBasePath;
     if (callSessionId) {
-      endpoint = `${endpoint}/${callSessionId}`;
+      return this.streamClient.get<ListRecordingsResponse>(
+        `${this.streamClientBasePath}/${callSessionId}/recordings`,
+      );
     }
-    return this.streamClient.get<ListRecordingsResponse>(
-      `${endpoint}/recordings`,
-    );
+    return this.api.listRecordings();
   };
 
   /**
@@ -3052,11 +2946,7 @@ export class Call {
     callSessionId: string,
     filename: string,
   ): Promise<DeleteRecordingResponse> => {
-    return this.streamClient.delete<DeleteRecordingResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(
-        callSessionId,
-      )}/recordings/${encodeURIComponent(filename)}`,
-    );
+    return this.api.deleteRecording({ session: callSessionId, filename });
   };
 
   /**
@@ -3069,11 +2959,7 @@ export class Call {
     callSessionId: string,
     filename: string,
   ): Promise<DeleteTranscriptionResponse> => {
-    return this.streamClient.delete<DeleteTranscriptionResponse>(
-      `${this.streamClientBasePath}/${encodeURIComponent(
-        callSessionId,
-      )}/transcriptions/${encodeURIComponent(filename)}`,
-    );
+    return this.api.deleteTranscription({ session: callSessionId, filename });
   };
 
   /**
@@ -3092,9 +2978,7 @@ export class Call {
    * @returns the list of transcriptions.
    */
   listTranscriptions = async (): Promise<ListTranscriptionsResponse> => {
-    return this.streamClient.get<ListTranscriptionsResponse>(
-      `${this.streamClientBasePath}/transcriptions`,
-    );
+    return this.api.listTranscriptions();
   };
 
   /**
@@ -3120,9 +3004,9 @@ export class Call {
    * @returns the call report
    */
   getCallReport = async (callSessionID: string = '') => {
-    const endpoint = `${this.streamClientBasePath}/report`;
-    const params = callSessionID !== '' ? { session_id: callSessionID } : {};
-    return this.streamClient.get<GetCallReportResponse>(endpoint, params);
+    return this.api.getCallReport(
+      callSessionID !== '' ? { session_id: callSessionID } : undefined,
+    );
   };
 
   /**
@@ -3146,20 +3030,26 @@ export class Call {
       kind = 'details',
     } = opts;
     if (!sessionId) return;
-    const base = `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${sessionId}`;
+    const pathParams = {
+      call_type: this.type,
+      call_id: this.id,
+      session: sessionId,
+    };
     if (!userId || !userSessionId) {
-      return this.streamClient.get<QueryCallSessionParticipantStatsResponse>(
-        `${base}/participants`,
-      );
+      return this.videoApi.queryCallSessionParticipantStats(pathParams);
     }
     if (kind === 'details') {
-      return this.streamClient.get<GetCallSessionParticipantStatsDetailsResponse>(
-        `${base}/participant/${userId}/${userSessionId}/details`,
-      );
+      return this.videoApi.getCallSessionParticipantStatsDetails({
+        ...pathParams,
+        user: userId,
+        user_session: userSessionId,
+      });
     }
-    return this.streamClient.get<QueryCallSessionParticipantStatsTimelineResponse>(
-      `${base}/participants/${userId}/${userSessionId}/timeline`,
-    );
+    return this.videoApi.getCallSessionParticipantStatsTimeline({
+      ...pathParams,
+      user: userId,
+      user_session: userSessionId,
+    });
   };
 
   /**
@@ -3179,13 +3069,10 @@ export class Call {
     const { sdkName, sdkVersion, ...platform } = getSdkSignature(
       await getClientDetails(),
     );
-    return this.streamClient.post<
-      CollectUserFeedbackResponse,
-      CollectUserFeedbackRequest
-    >(`${this.streamClientBasePath}/feedback`, {
+    return this.api.collectUserFeedback({
       rating,
       reason,
-      user_session_id: this.sfuClient?.sessionId,
+      user_session_id: this.sfuClient?.sessionId ?? '',
       sdk: sdkName,
       sdk_version: sdkVersion,
       custom: {
@@ -3222,10 +3109,7 @@ export class Call {
    * @param payload the payload to send.
    */
   sendCustomEvent = async (payload: { [key: string]: any }) => {
-    return this.streamClient.post<SendCallEventResponse, SendCallEventRequest>(
-      `${this.streamClientBasePath}/event`,
-      { custom: payload },
-    );
+    return this.api.sendCallEvent({ custom: payload });
   };
 
   /**
