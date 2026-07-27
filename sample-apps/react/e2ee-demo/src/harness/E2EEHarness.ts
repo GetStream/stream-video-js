@@ -305,11 +305,11 @@ export class E2EEHarness {
       };
 
       // Every participant, including the spy, attaches an E2EEManager before
-      // joining. The call is created in `available` mode, so E2EE is optional and
-      // the backend would happily admit a plain, manager-less client - the spy
-      // gets a manager anyway, by choice, because a keyless *decryptor* is the
-      // interesting case: she differs from the others only in her keys, and never
-      // receives any. Her decode transform therefore fails on every peer and
+      // joining. The call is created in `auto-on` mode, so E2EE is mandatory and
+      // the backend rejects a join whose e2ee flag (which the SDK sends whenever a
+      // manager is attached) does not match: the spy cannot slip in as a plain,
+      // manager-less client. She differs from the others only in her keys, and
+      // never receives any. Her decode transform therefore fails on every peer and
       // renders gibberish - the proof the media is unusable without the keys -
       // while her own encoder drops outgoing frames for lack of a key.
       call.setE2EEManager(manager);
@@ -343,7 +343,7 @@ export class E2EEHarness {
         create: true,
         data: {
           settings_override: {
-            encryption: { mode: EncryptionSettingsRequestModeEnum.AVAILABLE },
+            encryption: { mode: EncryptionSettingsRequestModeEnum.AUTO_ON },
           },
         },
       });

@@ -57,7 +57,7 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
                 ? 'no'
                 : 'ok'
             }`}
-            title="Encryption mode the backend resolved for this call. auto-on: E2EE required of every participant; available: E2EE optional (what this harness requests); disabled: E2EE not allowed"
+            title="Encryption mode the backend resolved for this call. auto-on: E2EE required of every participant (what this harness requests); available: E2EE optional; disabled: E2EE not allowed"
           >
             mode: {encryptionMode}
           </span>
