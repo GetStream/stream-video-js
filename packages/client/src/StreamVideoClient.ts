@@ -555,8 +555,9 @@ export class StreamVideoClient {
 
   /**
    * getDevices - Returns the devices associated with a current user
-   * @param {string} [userID] User ID. Only works on serverside
+   * @param _userID
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   getDevices = async (_userID?: string) => {
     return this.videoApi.listDevices();
   };
@@ -565,7 +566,9 @@ export class StreamVideoClient {
    * removeDevice - Removes the device with the given id.
    *
    * @param {string} id The device id
+   * @param _userID
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   removeDevice = async (id: string, _userID?: string) => {
     return this.videoApi.deleteDevice({ id });
   };
