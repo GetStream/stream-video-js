@@ -121,12 +121,13 @@ export class E2EEHarness {
   private e2eeEnabled = false;
 
   constructor(
-    init: { callId: string; codec?: PreferredCodec },
+    init: { callId: string; callType?: string; codec?: PreferredCodec },
     deps: HarnessDeps = defaultDeps(),
   ) {
     this.deps = deps;
     this.config = {
       callId: init.callId,
+      callType: init.callType ?? CALL_TYPE,
       codec: init.codec ?? 'vp8',
       // Preselect the path the SDK would actually attach in this browser.
       transform: detectTransformSupport().recommended ?? 'insertable',
@@ -278,7 +279,7 @@ export class E2EEHarness {
         name: opts.name,
         fetchCredentials: this.deps.fetchCredentials,
       });
-      const call = client.call(CALL_TYPE, this.config.callId);
+      const call = client.call(this.config.callType, this.config.callId);
       const isNormal = opts.role === 'normal';
       const manager = await this.deps.createManager(userId, {
         forceRtpScriptTransform: this.config.transform === 'script',
@@ -363,6 +364,7 @@ export class E2EEHarness {
       }
 
       this.participants.push(p);
+      this.publishDebugHandles();
       // Re-emit when the SFU roster changes so the manual key-override panel
       // tracks peers joining or leaving from other tabs.
       const rosterSub = p.call.state.participants$.subscribe(() => this.emit());
@@ -397,6 +399,24 @@ export class E2EEHarness {
       this.globalError = `Failed to add ${opts.name}: ${String(err)}`;
       this.emit();
     }
+  };
+
+  // --- console debugging ---
+
+  /**
+   * Mirror the live `Call` instances onto `window` so they can be poked at from
+   * the browser console: `window.calls.alice`, or `window.call` for the first
+   * participant. Refreshed whenever the participant list changes, so the handles
+   * never point at a call that has already been torn down.
+   *
+   * The harness runs several calls at once, which is why the keyed map is the
+   * primary handle and the singular one is only a shortcut.
+   */
+  private publishDebugHandles = (): void => {
+    window.calls = Object.fromEntries(
+      this.participants.map((p) => [p.name.toLowerCase(), p.call]),
+    );
+    window.call = this.participants[0]?.call;
   };
 
   // --- key exchange ---
@@ -592,6 +612,7 @@ export class E2EEHarness {
     this.participants = this.participants.filter(
       (p) => p.userId !== targetUserId,
     );
+    this.publishDebugHandles();
     for (const other of this.participants) {
       if (other.role === 'spy') continue;
       other.manager.removeKeys(targetUserId);
@@ -609,6 +630,7 @@ export class E2EEHarness {
   dispose = (): void => {
     for (const p of this.participants) this.teardown(p);
     this.participants = [];
+    this.publishDebugHandles();
     this.activeSharedKeyIndex = -1;
     this.sharedKeyBytes = null;
     this.encryptionMode = undefined;

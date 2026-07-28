@@ -3,14 +3,15 @@ import { HarnessProvider, useCreateHarness } from './hooks/useHarness';
 import { ControlBar } from './components/ControlBar';
 import { KeyOverridePanel } from './components/KeyOverridePanel';
 import { CallGrid } from './components/CallGrid';
-import { resolveCallId, writeUrl } from './harness/url';
+import { resolveCallId, resolveCallType, writeUrl } from './harness/url';
 
 import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './App.css';
 
 const App = () => {
   const callId = resolveCallId(window.location.search);
-  const engine = useCreateHarness(callId);
+  const callType = resolveCallType(window.location.search);
+  const engine = useCreateHarness(callId, callType);
   const [showKeys, setShowKeys] = useState(false);
 
   // Reflect the call id in the URL so the harness is bookmarkable and shareable.

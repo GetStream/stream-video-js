@@ -45,7 +45,7 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
       <div className="control-bar__row">
         <h1 className="control-bar__title">Stream E2EE Harness</h1>
         <span className="control-bar__call-id">
-          call: <code>{config.callId}</code>
+          call: <code>{config.callType}</code>:<code>{config.callId}</code>
         </span>
         <span className={`control-bar__badge ${isSupported ? 'ok' : 'no'}`}>
           {isSupported ? 'E2EE supported' : 'E2EE not supported'}

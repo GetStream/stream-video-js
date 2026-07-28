@@ -7,9 +7,12 @@ const HarnessContext = createContext<E2EEHarness | null>(null);
 export const HarnessProvider = HarnessContext.Provider;
 
 /** Create one engine instance, stable for the page lifetime. */
-export const useCreateHarness = (callId: string): E2EEHarness => {
+export const useCreateHarness = (
+  callId: string,
+  callType: string,
+): E2EEHarness => {
   const ref = useRef<E2EEHarness | null>(null);
-  if (!ref.current) ref.current = new E2EEHarness({ callId });
+  if (!ref.current) ref.current = new E2EEHarness({ callId, callType });
   return ref.current;
 };
 

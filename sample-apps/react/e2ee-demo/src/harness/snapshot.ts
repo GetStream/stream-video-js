@@ -65,6 +65,8 @@ export interface HarnessParticipant {
 
 export interface HarnessConfig {
   callId: string;
+  /** Call type every participant joins, from `?call_type=`. Fixed per session. */
+  callType: string;
   codec: PreferredCodec;
   transform: TransformPath;
   keyMode: KeyMode;
