@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import {
   EncryptionManager,
+  EncryptionSettingsRequestModeEnum,
   EncryptionSettingsResponseModeEnum,
 } from '@stream-io/video-react-sdk';
 import { MAX_PARTICIPANTS } from '../config';
@@ -19,8 +20,13 @@ interface ControlBarProps {
 
 export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
   const engine = useHarnessEngine();
-  const { config, participants, globalError, encryptionMode, e2eeEnabled } =
-    useSnapshot();
+  const {
+    config,
+    participants,
+    globalError,
+    resolvedEncryptionMode,
+    e2eeEnabled,
+  } = useSnapshot();
   const isSupported = EncryptionManager.isSupported();
   const support = useMemo(detectTransformSupport, []);
   const [shared, setShared] = useState('');
@@ -39,6 +45,11 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
   // with it and it cannot change mid-call. KeyMode is not locked - switching to
   // shared and setting a shared key converts everyone at any point.
   const transformLocked = joined > 0;
+  // The encryption mode locks once the call exists, not merely while someone is
+  // in it: the backend refuses to change a call's encryption after creation, and
+  // removing every participant does not un-create the call. A resolved mode is
+  // the signal that the server knows about this call.
+  const encryptionLocked = resolvedEncryptionMode !== undefined;
 
   return (
     <header className="control-bar">
@@ -50,16 +61,17 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
         <span className={`control-bar__badge ${isSupported ? 'ok' : 'no'}`}>
           {isSupported ? 'E2EE supported' : 'E2EE not supported'}
         </span>
-        {encryptionMode && (
+        {resolvedEncryptionMode && (
           <span
             className={`control-bar__badge ${
-              encryptionMode === EncryptionSettingsResponseModeEnum.DISABLED
+              resolvedEncryptionMode ===
+              EncryptionSettingsResponseModeEnum.DISABLED
                 ? 'no'
                 : 'ok'
             }`}
-            title="Encryption mode the backend resolved for this call. auto-on: E2EE required of every participant (what this harness requests); available: E2EE optional; disabled: E2EE not allowed"
+            title="Encryption mode the backend resolved for this call. Compare with the Encryption selector below: if they disagree, the backend refused the requested mode."
           >
-            mode: {encryptionMode}
+            mode: {resolvedEncryptionMode}
           </span>
         )}
         {joined > 0 && (
@@ -128,6 +140,28 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
           >
             <option value="per-user">per-user</option>
             <option value="shared">shared</option>
+          </select>
+        </label>
+        <label title="Mode the call is created with; locks once the call exists, because the backend refuses to change a call's encryption after creation. Use a fresh call id to pick a different mode.">
+          Encryption
+          <select
+            value={config.encryptionMode}
+            disabled={encryptionLocked}
+            onChange={(e) =>
+              engine.setEncryptionMode(
+                e.target.value as EncryptionSettingsRequestModeEnum,
+              )
+            }
+          >
+            <option value={EncryptionSettingsRequestModeEnum.AUTO_ON}>
+              auto-on (required)
+            </option>
+            <option value={EncryptionSettingsRequestModeEnum.AVAILABLE}>
+              available (optional)
+            </option>
+            <option value={EncryptionSettingsRequestModeEnum.DISABLED}>
+              disabled (not allowed)
+            </option>
           </select>
         </label>
         <button

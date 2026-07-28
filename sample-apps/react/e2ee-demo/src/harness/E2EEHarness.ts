@@ -117,7 +117,14 @@ export class E2EEHarness {
   private logId = 0;
   private activeSharedKeyIndex = -1;
   private sharedKeyBytes: ArrayBuffer | null = null;
-  private encryptionMode: EncryptionSettingsResponseModeEnum | undefined;
+  private resolvedEncryptionMode:
+    | EncryptionSettingsResponseModeEnum
+    | undefined;
+  // The selector is seeded from the first resolved mode, so joining a call that
+  // someone else created shows its real mode instead of our default. Later
+  // resolutions must not clobber a mode the user has since picked - that would
+  // hide a backend that silently refused the change.
+  private encryptionModeSeeded = false;
   private e2eeEnabled = false;
 
   constructor(
@@ -132,6 +139,7 @@ export class E2EEHarness {
       // Preselect the path the SDK would actually attach in this browser.
       transform: detectTransformSupport().recommended ?? 'insertable',
       keyMode: 'per-user',
+      encryptionMode: EncryptionSettingsRequestModeEnum.AUTO_ON,
     };
     this.snapshot = this.build();
   }
@@ -156,7 +164,7 @@ export class E2EEHarness {
     roster: this.buildRoster(),
     log: this.log,
     globalError: this.globalError,
-    encryptionMode: this.encryptionMode,
+    resolvedEncryptionMode: this.resolvedEncryptionMode,
     e2eeEnabled: this.e2eeEnabled,
   });
 
@@ -235,6 +243,32 @@ export class E2EEHarness {
     patch: Partial<Pick<HarnessConfig, 'codec' | 'transform' | 'keyMode'>>,
   ): void => {
     Object.assign(this.config, patch);
+    this.emit();
+  };
+
+  /**
+   * Choose the encryption mode the call is created with, sent as a settings
+   * override on the first join.
+   *
+   * Creation-time only. The backend refuses to change a call's encryption
+   * afterwards (`UpdateCall failed: "call encryption cannot be changed after
+   * creation"`), which is why the control locks once the call exists. To probe
+   * that refusal, call `update` on a live call straight from the console:
+   * `window.calls.alice.update({ settings_override: { encryption: { mode } } })`.
+   *
+   * The chosen mode is kept even if the backend resolves something else, so the
+   * `mode:` badge disagreeing with this selector stays a visible symptom.
+   */
+  setEncryptionMode = (mode: EncryptionSettingsRequestModeEnum): void => {
+    if (mode === this.config.encryptionMode) return;
+    this.config.encryptionMode = mode;
+    // A user-chosen mode outranks the seed from the original response.
+    this.encryptionModeSeeded = true;
+    this.addLog(
+      null,
+      `Encryption mode set to ${mode} (applies when the call is created)`,
+      'join',
+    );
     this.emit();
   };
 
@@ -344,7 +378,7 @@ export class E2EEHarness {
         create: true,
         data: {
           settings_override: {
-            encryption: { mode: EncryptionSettingsRequestModeEnum.AUTO_ON },
+            encryption: { mode: this.config.encryptionMode },
           },
         },
       });
@@ -373,8 +407,12 @@ export class E2EEHarness {
       // rather than trusting the mode we requested above.
       const settingsSub = p.call.state.settings$.subscribe((settings) => {
         const mode = settings?.encryption?.mode;
-        if (!mode || mode === this.encryptionMode) return;
-        this.encryptionMode = mode;
+        if (!mode || mode === this.resolvedEncryptionMode) return;
+        this.resolvedEncryptionMode = mode;
+        if (!this.encryptionModeSeeded) {
+          this.encryptionModeSeeded = true;
+          this.config.encryptionMode = mode;
+        }
         this.addLog(null, `Call encryption mode: ${mode}`, 'join');
         this.emit();
       });
@@ -633,7 +671,8 @@ export class E2EEHarness {
     this.publishDebugHandles();
     this.activeSharedKeyIndex = -1;
     this.sharedKeyBytes = null;
-    this.encryptionMode = undefined;
+    this.resolvedEncryptionMode = undefined;
+    this.encryptionModeSeeded = false;
     this.e2eeEnabled = false;
     this.log = [];
     this.logId = 0;

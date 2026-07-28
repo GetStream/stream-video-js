@@ -1,6 +1,7 @@
 import type {
   StreamVideoClient,
   Call,
+  EncryptionSettingsRequestModeEnum,
   EncryptionSettingsResponseModeEnum,
   KeyStateReport,
   PerfReport,
@@ -70,6 +71,13 @@ export interface HarnessConfig {
   codec: PreferredCodec;
   transform: TransformPath;
   keyMode: KeyMode;
+  /**
+   * Encryption mode the harness *requests*: sent as a settings override when
+   * creating the call, and pushed via `call.update` when changed afterwards.
+   * Compare against {@link Snapshot.resolvedEncryptionMode} to see whether the
+   * backend actually honored it.
+   */
+  encryptionMode: EncryptionSettingsRequestModeEnum;
 }
 
 /**
@@ -90,16 +98,16 @@ export interface Snapshot {
   globalError: string | null;
   /**
    * Encryption mode the backend resolved for this call, read back from the call
-   * settings after join. `undefined` until the first participant joins. Proves
-   * server-side that the call really is E2EE, independent of what the harness
-   * requested.
+   * settings. `undefined` until the first participant joins. Proves server-side
+   * what the call permits, independent of what the harness
+   * {@link HarnessConfig.encryptionMode requested}.
    */
-  encryptionMode: EncryptionSettingsResponseModeEnum | undefined;
+  resolvedEncryptionMode: EncryptionSettingsResponseModeEnum | undefined;
   /**
    * Whether the SFU reports E2EE as actually active for this call, from the join
-   * response. Unlike {@link Snapshot.encryptionMode} - which is only what the
-   * call permits - this is the authoritative signal, so a mismatch between the
-   * two is exactly the bug this harness exists to catch.
+   * response. Unlike {@link Snapshot.resolvedEncryptionMode} - which is only what
+   * the call permits - this is the authoritative signal, so a mismatch between
+   * the two is exactly the bug this harness exists to catch.
    */
   e2eeEnabled: boolean;
 }
