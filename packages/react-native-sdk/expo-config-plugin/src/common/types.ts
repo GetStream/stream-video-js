@@ -15,5 +15,12 @@ export type ConfigProps =
       iosCallKitIcon?: string;
       /** Path to a custom ringtone file for Android incoming calls (relative to project root). Supported: .mp3, .ogg, .wav, .m4a */
       androidRingtone?: string;
+      /**
+       * Fully-qualified class name (package + class) of a `FirebaseMessagingService`
+       * to use as the base for Android FCM message handling, e.g.
+       * `"expo.modules.notifications.service.ExpoFirebaseMessagingService"` or
+       * `"io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService"`.
+       */
+      androidMessagingServiceBaseClass?: string;
     }
   | undefined;
