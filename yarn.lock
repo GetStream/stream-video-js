@@ -7314,18 +7314,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@stream-io/react-native-webrtc@file:/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1783604614.tgz::locator=%40stream-io%2Fvideo-react-native-dogfood%40workspace%3Asample-apps%2Freact-native%2Fdogfood":
-  version: 0.0.0-local.1783604614
-  resolution: "@stream-io/react-native-webrtc@file:/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1783604614.tgz#/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1783604614.tgz::hash=00ae4b&locator=%40stream-io%2Fvideo-react-native-dogfood%40workspace%3Asample-apps%2Freact-native%2Fdogfood"
-  dependencies:
-    base64-js: "npm:1.5.1"
-    debug: "npm:4.3.4"
-  peerDependencies:
-    react-native: ">=0.73.0"
-  checksum: 10/a1afbc4322f626c71acf471292444b02bc0c9656f6d364c1287b7de0ab61a7998f46891612d20d8a8b8d8d54a7734dfc525d339e140a7d9a922adb571e68f6fe
-  languageName: node
-  linkType: hard
-
 "@stream-io/react-native-webrtc@npm:145.0.0":
   version: 145.0.0
   resolution: "@stream-io/react-native-webrtc@npm:145.0.0"
@@ -7335,6 +7323,18 @@ __metadata:
   peerDependencies:
     react-native: ">=0.73.0"
   checksum: 10/52e3bd1b9479a3bd9992f53933bd3858229e774066d73d7899ce063bac0e5374f21def5332e24d2bde2f3d45ffc87e01f5db3ff69da1bd085a06a3d68ba05de9
+  languageName: node
+  linkType: hard
+
+"@stream-io/react-native-webrtc@npm:145.1.0-alpha.1":
+  version: 145.1.0-alpha.1
+  resolution: "@stream-io/react-native-webrtc@npm:145.1.0-alpha.1"
+  dependencies:
+    base64-js: "npm:1.5.1"
+    debug: "npm:4.3.4"
+  peerDependencies:
+    react-native: ">=0.73.0"
+  checksum: 10/67675ade975c53faef02601421f09d246540b7ec98ee9b27e83aa1383c2585f57b3c4f094001727679867c1ea3ce4f6c9e9dd976a0fae28a113acb91037dd793
   languageName: node
   linkType: hard
 
@@ -7600,7 +7600,7 @@ __metadata:
     "@react-navigation/native-stack": "npm:^7.16.0"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
-    "@stream-io/react-native-webrtc": "file:/Users/santhoshvaiyapuri/Documents/.stream-webrtc-local/stream-io-react-native-webrtc-0.0.0-local.1783604614.tgz"
+    "@stream-io/react-native-webrtc": "npm:145.1.0-alpha.1"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
     "@types/react": "npm:^19.2.15"
