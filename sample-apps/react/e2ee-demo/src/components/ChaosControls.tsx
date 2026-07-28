@@ -9,7 +9,11 @@ export const ChaosControls = ({
 }) => {
   const engine = useHarnessEngine();
   const { participants } = useSnapshot();
-  const others = participants.filter((p) => p.userId !== participant.userId);
+  // Only peers with a manager attached can hold this participant's key, so only
+  // they are revocable: the keyless spy and any plain joiner never received one.
+  const others = participants.filter(
+    (p) => p.userId !== participant.userId && p.enabled,
+  );
 
   return (
     <details className="chaos">
@@ -27,7 +31,9 @@ export const ChaosControls = ({
       </div>
       <div className="chaos__row">
         <span className="chaos__label">Revoke my key from:</span>
-        {others.length === 0 && <span className="chaos__muted">no peers</span>}
+        {others.length === 0 && (
+          <span className="chaos__muted">no key-holding peers</span>
+        )}
         {others.map((o) => (
           <button
             key={o.userId}

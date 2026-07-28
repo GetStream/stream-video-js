@@ -75,8 +75,8 @@ export const defaultDeps = (): HarnessDeps => ({
       apiKey,
       user: { id: userId, name },
       token,
-      // DIAGNOSTIC: surface the SDK's "E2EE encryptor attached to sender" debug
-      // line and any worker errors while we confirm frames are encrypted.
+      // Debug level surfaces the SDK's "E2EE encryptor attached to sender" line
+      // and any worker errors, which is most of the point of this harness.
       options: { logLevel: 'debug' },
       tokenProvider: () => fetchCredentials(userId).then((c) => c.token),
     }),
@@ -402,8 +402,8 @@ export class E2EEHarness {
       // tracks peers joining or leaving from other tabs.
       const rosterSub = p.call.state.participants$.subscribe(() => this.emit());
       p.unsubscribes.push(() => rosterSub.unsubscribe());
-      // Read the encryption mode the backend actually resolved for the call,
-      // rather than trusting the mode we requested above.
+      // Read the encryption mode the backend resolved for this call. The harness
+      // never requests one, so this is whatever the call type is configured with.
       const settingsSub = p.call.state.settings$.subscribe((settings) => {
         const mode = settings?.encryption?.mode;
         if (!mode || mode === this.resolvedEncryptionMode) return;
@@ -413,7 +413,7 @@ export class E2EEHarness {
       });
       p.unsubscribes.push(() => settingsSub.unsubscribe());
       // Whether E2EE is actually active, straight from the SFU's join response.
-      // This is the signal to trust; the requested mode above only says what the
+      // This is the signal to trust; the resolved mode above only says what the
       // call permits.
       const e2eeSub = p.call.state.e2eeEnabled$.subscribe((enabled) => {
         if (enabled === this.e2eeEnabled) return;
@@ -636,7 +636,7 @@ export class E2EEHarness {
     this.emit();
   };
 
-  // --- remove + dispose ---
+  // --- remove ---
 
   removeParticipant = (targetUserId: string): void => {
     const target = this.participants.find((p) => p.userId === targetUserId);
@@ -657,20 +657,6 @@ export class E2EEHarness {
         'key-distribute',
       );
     }
-    this.emit();
-  };
-
-  dispose = (): void => {
-    for (const p of this.participants) this.teardown(p);
-    this.participants = [];
-    this.publishDebugHandles();
-    this.activeSharedKeyIndex = -1;
-    this.sharedKeyBytes = null;
-    this.resolvedEncryptionMode = undefined;
-    this.e2eeEnabled = false;
-    this.log = [];
-    this.logId = 0;
-    this.globalError = null;
     this.emit();
   };
 
@@ -696,8 +682,15 @@ export class E2EEHarness {
         : this.participants.filter((p) => p.userId !== targetUserId)
     ).filter((p) => p.role === 'normal');
     for (const h of holders) {
-      h.manager?.removeKeys(targetUserId);
-      this.addLog(h.userId, `Revoked ${targetUserId}'s key`, 'key-distribute');
+      // A participant joined as plain has no manager and so never held the key.
+      // Skip it rather than logging a revocation that did not happen.
+      if (!h.manager) continue;
+      h.manager.removeKeys(targetUserId);
+      this.addLog(
+        h.userId,
+        `Revoked ${this.nameFor(targetUserId)}'s key`,
+        'key-distribute',
+      );
     }
     this.emit();
   };

@@ -45,10 +45,6 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
   // shared and setting a shared key converts everyone at any point.
   const transformLocked = joined > 0;
   const atCapacity = normals >= MAX_PARTICIPANTS;
-  // The encryption mode locks once the call exists, not merely while someone is
-  // in it: the backend refuses to change a call's encryption after creation, and
-  // removing every participant does not un-create the call. A resolved mode is
-  // the signal that the server knows about this call.
 
   return (
     <header className="control-bar">
@@ -68,7 +64,7 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
                 ? 'no'
                 : 'ok'
             }`}
-            title="Encryption mode the backend resolved for this call. Compare with the Encryption selector below: if they disagree, the backend refused the requested mode."
+            title="Encryption mode the backend resolved for this call, from the call settings. This is only what the call permits: the SFU badge says whether E2EE is actually active."
           >
             mode: {resolvedEncryptionMode}
           </span>
