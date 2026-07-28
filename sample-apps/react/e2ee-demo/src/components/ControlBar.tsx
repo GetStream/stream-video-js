@@ -5,7 +5,7 @@ import {
 } from '@stream-io/video-react-sdk';
 import { MAX_PARTICIPANTS } from '../config';
 import { useHarnessEngine, useSnapshot } from '../hooks/useHarness';
-import type { PreferredCodec, TransformPath } from '../harness/snapshot';
+import type { PreferredCodec, TransformMode } from '../harness/snapshot';
 import {
   detectTransformSupport,
   transformLabels,
@@ -30,13 +30,13 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
   const support = useMemo(detectTransformSupport, []);
   const [shared, setShared] = useState('');
 
-  const transformOption = (path: TransformPath, available: boolean): string => {
-    const tags: string[] = [];
-    if (support.recommended === path) tags.push('detected');
-    if (!available) tags.push('unavailable, falls back');
-    const base = transformLabels[path];
-    return tags.length ? `${base} (${tags.join(', ')})` : base;
-  };
+  // What this browser can do, as a plain capability list. The SDK owns the
+  // choice between the two APIs and does not expose it, so the harness states
+  // facts instead of predicting the pick.
+  const capabilities = [
+    support.hasInsertableStreams && 'Insertable Streams',
+    support.hasScriptTransform && 'RTCRtpScriptTransform',
+  ].filter(Boolean);
 
   const joined = participants.length;
   const normals = participants.filter((p) => p.role === 'normal').length;
@@ -105,27 +105,26 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
             <option value="av1">AV1</option>
           </select>
         </label>
-        <label title="Auto-detected for this browser; locks after the first participant joins">
+        <label title="Whether to force the standard RTCRtpScriptTransform API (Chrome defaults to Insertable Streams); locks after the first participant joins">
           Transform
           <select
             value={config.transform}
             disabled={transformLocked}
             onChange={(e) =>
-              engine.setConfig({ transform: e.target.value as TransformPath })
+              engine.setConfig({ transform: e.target.value as TransformMode })
             }
           >
-            <option value="insertable">
-              {transformOption('insertable', support.hasInsertableStreams)}
-            </option>
-            <option value="script">
-              {transformOption('script', support.hasScriptTransform)}
+            <option value="auto">{transformLabels['auto']}</option>
+            <option value="force-script">
+              {transformLabels['force-script']}
+              {support.hasScriptTransform ? '' : ' (unavailable here)'}
             </option>
           </select>
-          {support.recommended && (
-            <span className="control-bar__hint">
-              auto: {transformLabels[support.recommended]}
-            </span>
-          )}
+          <span className="control-bar__hint">
+            {capabilities.length
+              ? `browser has: ${capabilities.join(', ')}`
+              : 'no encoded transform API'}
+          </span>
         </label>
         <label title="Switch anytime; setting a shared key converts everyone">
           KeyMode

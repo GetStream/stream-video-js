@@ -9,6 +9,7 @@ import {
   WebsocketReconnectStrategy,
 } from '../gen/video/sfu/models/models';
 import type { E2EEManager } from './e2ee/E2EEManager';
+import { hasInsertableStreams } from './e2ee/transformSupport';
 import { NegotiationError } from './NegotiationError';
 import { StreamSfuClient } from '../StreamSfuClient';
 import { AllSfuEvents, Dispatcher } from './Dispatcher';
@@ -120,7 +121,7 @@ export abstract class BasePeerConnection {
   private createPeerConnection = (connectionConfig?: RTCConfiguration) => {
     const config: RTCConfiguration = { ...connectionConfig };
     // The legacy Insertable Streams path requires this non-standard flag.
-    if (this.e2ee?.shouldUseInsertableStreams?.()) {
+    if (this.e2ee && hasInsertableStreams()) {
       // @ts-expect-error not part of the standard lib yet
       config.encodedInsertableStreams = true;
     }

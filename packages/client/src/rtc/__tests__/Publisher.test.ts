@@ -282,6 +282,63 @@ describe('Publisher', () => {
     });
   });
 
+  describe('E2EE peer connection config', () => {
+    const e2ee = { encrypt: vi.fn(), decrypt: vi.fn() };
+
+    /**
+     * Build a publisher and return the RTCConfiguration it constructed its peer
+     * connection with. The publisher from the outer `beforeEach` already
+     * consumed a call, hence the last one rather than the first.
+     */
+    const configOf = async (opts: { e2ee?: typeof e2ee }) => {
+      await publisher.dispose();
+      publisher = new Publisher(
+        {
+          sfuClient,
+          dispatcher,
+          state,
+          tag: 'test',
+          enableTracing: false,
+          ...opts,
+        },
+        [],
+      );
+      const calls = vi.mocked(globalThis.RTCPeerConnection).mock.calls;
+      return calls[calls.length - 1][0] as Record<string, unknown> | undefined;
+    };
+
+    const withInsertableStreams = (available: boolean) => {
+      if (available) {
+        Object.assign(RTCRtpSender.prototype, {
+          createEncodedStreams: vi.fn(),
+        });
+      } else {
+        // @ts-expect-error - non-standard property from the mock prototype
+        delete RTCRtpSender.prototype.createEncodedStreams;
+      }
+    };
+
+    afterEach(() => withInsertableStreams(false));
+
+    it('enables encodedInsertableStreams when a manager is attached', async () => {
+      withInsertableStreams(true);
+      const config = await configOf({ e2ee });
+      expect(config?.encodedInsertableStreams).toBe(true);
+    });
+
+    it('leaves the flag off when no manager is attached', async () => {
+      withInsertableStreams(true);
+      const config = await configOf({});
+      expect(config?.encodedInsertableStreams).toBeUndefined();
+    });
+
+    it('leaves the flag off on browsers without Insertable Streams', async () => {
+      withInsertableStreams(false);
+      const config = await configOf({ e2ee });
+      expect(config?.encodedInsertableStreams).toBeUndefined();
+    });
+  });
+
   describe('Event Handling', () => {
     it('handles changePublishQuality events', () => {
       publisher['changePublishQuality'] = vi.fn();

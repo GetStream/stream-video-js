@@ -1,4 +1,4 @@
-import { isChrome } from '../../helpers/browsers';
+import { preferredTransform } from './transformSupport';
 import { TypedEventEmitter } from '../../helpers/TypedEventEmitter';
 import { type ScopedLogger, videoLoggerSystem } from '../../logger';
 import type { E2EEEventMap } from './events';
@@ -109,7 +109,7 @@ export class EncryptionManager
 {
   private readonly logger: ScopedLogger;
   private readonly algorithm: E2EEAlgorithm;
-  private readonly forceRtpScriptTransform: boolean;
+  private readonly transform: 'script' | 'insertable';
   private disposed = false;
   private piped?: WeakSet<RTCRtpSender | RTCRtpReceiver>;
 
@@ -140,49 +140,11 @@ export class EncryptionManager
     this.worker = worker;
     this.workerUrl = workerUrl;
     this.algorithm = algorithm;
-    this.forceRtpScriptTransform = forceRtpScriptTransform;
+    this.transform =
+      preferredTransform({ forceRtpScriptTransform }) ?? 'script';
     this.worker.addEventListener('message', this.handleWorkerMessage);
     this.worker.addEventListener('error', this.handleWorkerError);
   }
-
-  /**
-   * Decide which WebRTC Encoded Transform API the SDK would attach in the
-   * current browser, without constructing a manager.
-   *
-   * This is the canonical selection logic — {@link isSupported} and the
-   * instance-level transform attachment both defer to it. Use it to feature
-   * detect and preselect a transform path in tooling/UI.
-   *
-   * - `'insertable'` — the legacy Insertable Streams (`createEncodedStreams`)
-   *    path. The default on Chrome, whose `RTCRtpScriptTransform` is still
-   *    unreliable for E2EE.
-   * - `'script'` — the standard `RTCRtpScriptTransform` API. The default on
-   *    Firefox/Safari, and on Chrome when `forceRtpScriptTransform` is set.
-   * - `undefined` — neither API is available, so E2EE is unsupported.
-   *
-   * @param options.forceRtpScriptTransform - Opt a Chrome-based browser onto
-   *        the standard `RTCRtpScriptTransform` API. No effect elsewhere.
-   */
-  static preferredTransform = (options?: {
-    forceRtpScriptTransform?: boolean;
-  }): 'script' | 'insertable' | undefined => {
-    const hasInsertableStreams =
-      typeof RTCRtpSender !== 'undefined' &&
-      'createEncodedStreams' in RTCRtpSender.prototype;
-    const hasScriptTransform = typeof RTCRtpScriptTransform !== 'undefined';
-    if (!hasInsertableStreams && !hasScriptTransform) return undefined;
-
-    // Chrome's RTCRtpScriptTransform is still unreliable: default Chrome to the
-    // Insertable Streams path unless the caller forces the standard API.
-    if (isChrome() && !options?.forceRtpScriptTransform) {
-      return hasInsertableStreams ? 'insertable' : 'script';
-    }
-
-    // Everywhere else (and Chrome with forceRtpScriptTransform): prefer the
-    // standard RTCRtpScriptTransform, falling back to Insertable Streams only
-    // when it's unavailable.
-    return hasScriptTransform ? 'script' : 'insertable';
-  };
 
   /**
    * Check whether the current browser supports WebRTC Encoded Transforms,
@@ -195,7 +157,7 @@ export class EncryptionManager
    *          `createEncodedStreams` API is available.
    */
   static isSupported = (): boolean => {
-    return EncryptionManager.preferredTransform() !== undefined;
+    return preferredTransform() !== undefined;
   };
 
   /**
@@ -388,10 +350,9 @@ export class EncryptionManager
   };
 
   /**
-   * Pipe a sender/receiver through the worker's transform.
-   * Uses the Insertable Streams path on Chrome and `RTCRtpScriptTransform`
-   * elsewhere (see {@link shouldUseInsertableStreams}); tracks already-piped
-   * targets to prevent double-piping.
+   * Pipe a sender/receiver through the worker's transform, using whichever
+   * Encoded Transform API was resolved for this manager at construction time.
+   * Tracks already-piped targets to prevent double-piping.
    */
   private pipe = (
     target: RTCRtpSender | RTCRtpReceiver,
@@ -402,7 +363,7 @@ export class EncryptionManager
       trackType?: string;
     },
   ): void => {
-    if (!this.shouldUseInsertableStreams()) {
+    if (this.transform === 'script') {
       target.transform = new RTCRtpScriptTransform(this.worker, options);
       return;
     }
@@ -414,19 +375,6 @@ export class EncryptionManager
     this.worker.postMessage(
       { type: 'cmd.setup_transform', ...options, readable, writable },
       [readable, writable],
-    );
-  };
-
-  /**
-   * Decide whether to attach the legacy Insertable Streams transform for this
-   * manager. Defers to {@link preferredTransform} with this manager's
-   * `forceRtpScriptTransform` setting.
-   */
-  shouldUseInsertableStreams = (): boolean => {
-    return (
-      EncryptionManager.preferredTransform({
-        forceRtpScriptTransform: this.forceRtpScriptTransform,
-      }) === 'insertable'
     );
   };
 

@@ -20,11 +20,4 @@ export interface E2EEManager {
    * audio are reported apart rather than summed under their userId.
    */
   decrypt(receiver: RTCRtpReceiver, userId: string, trackType?: string): void;
-  /**
-   * Optional. Return `true` if this manager relies on the legacy Insertable
-   * Streams API (`createEncodedStreams`), which requires the RTCPeerConnection
-   * to be created with `encodedInsertableStreams: true`. Managers that use
-   * `RTCRtpScriptTransform` can omit this.
-   */
-  shouldUseInsertableStreams?(): boolean;
 }

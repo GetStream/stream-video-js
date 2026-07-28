@@ -19,7 +19,6 @@ import {
 import { resolveEnvironment } from './url';
 import { generateKey, toHex, parseKeyInput } from './keys';
 import type { SendKeyFn } from './keyTransport';
-import { detectTransformSupport } from './transformSupport';
 import type {
   HarnessConfig,
   HarnessParticipant,
@@ -132,8 +131,7 @@ export class E2EEHarness {
       callId: init.callId,
       callType: init.callType ?? CALL_TYPE,
       codec: init.codec ?? 'vp8',
-      // Preselect the path the SDK would actually attach in this browser.
-      transform: detectTransformSupport().recommended ?? 'insertable',
+      transform: 'auto',
       keyMode: 'per-user',
     };
     this.snapshot = this.build();
@@ -302,7 +300,7 @@ export class E2EEHarness {
       // plain path matters most.
       const manager = opts.e2ee
         ? await this.deps.createManager(userId, {
-            forceRtpScriptTransform: this.config.transform === 'script',
+            forceRtpScriptTransform: this.config.transform === 'force-script',
           })
         : undefined;
 
