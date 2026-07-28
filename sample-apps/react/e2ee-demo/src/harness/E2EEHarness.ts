@@ -1,4 +1,5 @@
 import {
+  CallingState,
   EncryptionManager,
   StreamVideoClient,
   type Call,
@@ -388,6 +389,17 @@ export class E2EEHarness {
 
       this.participants.push(p);
       this.publishDebugHandles();
+      // The call can end without going through removeParticipant - the SDK's own
+      // hang-up button in CallControls, or the SFU dropping us. Retire the panel
+      // when that happens, otherwise it lingers on the "Connecting..." fallback
+      // that CallUI shows for any non-JOINED state. Subscribed after the join, so
+      // the replayed initial value is JOINED and never triggers this.
+      const callingStateSub = p.call.state.callingState$.subscribe((state) => {
+        if (state !== CallingState.LEFT) return;
+        this.addLog(p.userId, 'Left the call', 'leave');
+        this.removeParticipant(p.userId);
+      });
+      p.unsubscribes.push(() => callingStateSub.unsubscribe());
       // Re-emit when the SFU roster changes so the manual key-override panel
       // tracks peers joining or leaving from other tabs.
       const rosterSub = p.call.state.participants$.subscribe(() => this.emit());
