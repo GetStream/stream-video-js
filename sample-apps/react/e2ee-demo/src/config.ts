@@ -1,7 +1,8 @@
 export const TOKEN_ENDPOINT =
   'https://pronto.getstream.io/api/auth/create-token';
 export const TOKEN_ENVIRONMENT = 'pronto-staging';
-export const CALL_TYPE = 'default';
+/** Default call type. Overridable per session with `?call_type=`. */
+export const CALL_TYPE = 'e2ee';
 export const MAX_PARTICIPANTS = 4;
 
 export const PARTICIPANT_NAMES = ['Alice', 'Bob', 'Charlie', 'Diana'];

@@ -67,6 +67,11 @@
   color: #6e7681;
   font-style: italic;
 }
+/* Plain (non-E2EE) join: neutral, so the green button stays the encrypted one. */
+.control-bar button.control-bar__plain {
+  background: #21262d;
+  border: 1px solid #30363d;
+}
 .control-bar button.control-bar__keys-toggle {
   margin-left: auto;
   background: #21262d;

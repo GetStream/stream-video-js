@@ -102,7 +102,9 @@ export const ParticipantPanel = memo(function ParticipantPanel({
         />
       )}
 
-      {!isSpy && <ChaosControls participant={participant} />}
+      {/* Nothing to inject without a key: on a plain call there is no encryption
+          to break, and the buttons would all be no-ops. */}
+      {!isSpy && currentKey && <ChaosControls participant={participant} />}
 
       <EventLog entries={events} />
     </div>

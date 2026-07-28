@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
   EncryptionManager,
-  EncryptionSettingsRequestModeEnum,
   EncryptionSettingsResponseModeEnum,
 } from '@stream-io/video-react-sdk';
 import { MAX_PARTICIPANTS } from '../config';
@@ -45,11 +44,11 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
   // with it and it cannot change mid-call. KeyMode is not locked - switching to
   // shared and setting a shared key converts everyone at any point.
   const transformLocked = joined > 0;
+  const atCapacity = normals >= MAX_PARTICIPANTS;
   // The encryption mode locks once the call exists, not merely while someone is
   // in it: the backend refuses to change a call's encryption after creation, and
   // removing every participant does not un-create the call. A resolved mode is
   // the signal that the server knows about this call.
-  const encryptionLocked = resolvedEncryptionMode !== undefined;
 
   return (
     <header className="control-bar">
@@ -142,33 +141,23 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
             <option value="shared">shared</option>
           </select>
         </label>
-        <label title="Mode the call is created with; locks once the call exists, because the backend refuses to change a call's encryption after creation. Use a fresh call id to pick a different mode.">
-          Encryption
-          <select
-            value={config.encryptionMode}
-            disabled={encryptionLocked}
-            onChange={(e) =>
-              engine.setEncryptionMode(
-                e.target.value as EncryptionSettingsRequestModeEnum,
-              )
-            }
-          >
-            <option value={EncryptionSettingsRequestModeEnum.AUTO_ON}>
-              auto-on (required)
-            </option>
-            <option value={EncryptionSettingsRequestModeEnum.AVAILABLE}>
-              available (optional)
-            </option>
-            <option value={EncryptionSettingsRequestModeEnum.DISABLED}>
-              disabled (not allowed)
-            </option>
-          </select>
-        </label>
         <button
-          onClick={() => engine.addParticipant()}
-          disabled={normals >= MAX_PARTICIPANTS || !isSupported}
+          onClick={() => engine.addParticipant(true)}
+          disabled={atCapacity || !isSupported}
+          title="Join with an E2EE manager attached: the SDK declares e2ee on join and encrypts every frame"
         >
-          + Participant ({normals}/{MAX_PARTICIPANTS})
+          Join (E2EE) ({normals}/{MAX_PARTICIPANTS})
+        </button>
+        <button
+          className="control-bar__plain"
+          onClick={() => engine.addParticipant(false)}
+          // A plain participant needs no Encoded Transforms, so browser support
+          // does not gate it: testing the non-E2EE path on a browser without
+          // E2EE is a case worth having.
+          disabled={atCapacity}
+          title="Join without an E2EE manager: no encoded transforms, media published in the clear"
+        >
+          Join (plain)
         </button>
         <button
           onClick={() => engine.addSpy()}

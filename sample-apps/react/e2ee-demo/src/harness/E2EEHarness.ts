@@ -1,6 +1,5 @@
 import {
   EncryptionManager,
-  EncryptionSettingsRequestModeEnum,
   StreamVideoClient,
   type Call,
   type EncryptionSettingsResponseModeEnum,
@@ -93,7 +92,8 @@ interface EngineParticipant {
   codec: PreferredCodec;
   client: StreamVideoClient;
   call: Call;
-  manager: EncryptionManager;
+  /** Absent for a participant joined as plain: no E2EE, no encoded transforms. */
+  manager?: EncryptionManager;
   currentKey?: ArrayBuffer;
   keyIndex: number;
   enabled: boolean;
@@ -120,11 +120,6 @@ export class E2EEHarness {
   private resolvedEncryptionMode:
     | EncryptionSettingsResponseModeEnum
     | undefined;
-  // The selector is seeded from the first resolved mode, so joining a call that
-  // someone else created shows its real mode instead of our default. Later
-  // resolutions must not clobber a mode the user has since picked - that would
-  // hide a backend that silently refused the change.
-  private encryptionModeSeeded = false;
   private e2eeEnabled = false;
 
   constructor(
@@ -139,7 +134,6 @@ export class E2EEHarness {
       // Preselect the path the SDK would actually attach in this browser.
       transform: detectTransformSupport().recommended ?? 'insertable',
       keyMode: 'per-user',
-      encryptionMode: EncryptionSettingsRequestModeEnum.AUTO_ON,
     };
     this.snapshot = this.build();
   }
@@ -246,35 +240,18 @@ export class E2EEHarness {
     this.emit();
   };
 
-  /**
-   * Choose the encryption mode the call is created with, sent as a settings
-   * override on the first join.
-   *
-   * Creation-time only. The backend refuses to change a call's encryption
-   * afterwards (`UpdateCall failed: "call encryption cannot be changed after
-   * creation"`), which is why the control locks once the call exists. To probe
-   * that refusal, call `update` on a live call straight from the console:
-   * `window.calls.alice.update({ settings_override: { encryption: { mode } } })`.
-   *
-   * The chosen mode is kept even if the backend resolves something else, so the
-   * `mode:` badge disagreeing with this selector stays a visible symptom.
-   */
-  setEncryptionMode = (mode: EncryptionSettingsRequestModeEnum): void => {
-    if (mode === this.config.encryptionMode) return;
-    this.config.encryptionMode = mode;
-    // A user-chosen mode outranks the seed from the original response.
-    this.encryptionModeSeeded = true;
-    this.addLog(
-      null,
-      `Encryption mode set to ${mode} (applies when the call is created)`,
-      'join',
-    );
-    this.emit();
-  };
-
   // --- participants ---
 
-  addParticipant = async (): Promise<void> => {
+  /**
+   * Join a new participant. `e2ee` decides whether it gets an
+   * {@link EncryptionManager}: without one the SDK declares `e2ee: false` and
+   * publishes in the clear, which is how the non-E2EE path gets exercised.
+   *
+   * Whether the call *permits* either is the backend's call - the harness sends
+   * no encryption settings, so the call type's configuration decides, and a
+   * mismatch surfaces as a rejected join.
+   */
+  addParticipant = async (e2ee: boolean): Promise<void> => {
     const normals = this.participants.filter((p) => p.role === 'normal');
     const index = normals.length;
     if (index >= MAX_PARTICIPANTS) return;
@@ -282,7 +259,8 @@ export class E2EEHarness {
       name: PARTICIPANT_NAMES[index],
       color: PARTICIPANT_COLORS[index],
       role: 'normal',
-      withKey: this.config.keyMode === 'per-user',
+      withKey: e2ee && this.config.keyMode === 'per-user',
+      e2ee,
     });
   };
 
@@ -293,6 +271,7 @@ export class E2EEHarness {
       color: SPY_COLOR,
       role: 'spy',
       withKey: false,
+      e2ee: true,
     });
   };
 
@@ -301,6 +280,7 @@ export class E2EEHarness {
     color: string;
     role: 'normal' | 'spy';
     withKey: boolean;
+    e2ee: boolean;
   }): Promise<void> => {
     const userId = `e2ee-${opts.name.toLowerCase()}-${crypto.randomUUID().slice(0, 8)}`;
     try {
@@ -315,9 +295,15 @@ export class E2EEHarness {
       });
       const call = client.call(this.config.callType, this.config.callId);
       const isNormal = opts.role === 'normal';
-      const manager = await this.deps.createManager(userId, {
-        forceRtpScriptTransform: this.config.transform === 'script',
-      });
+      // A plain participant gets no manager at all - not even an unattached one.
+      // Constructing it would spin up a worker nobody uses and would throw on a
+      // browser without Encoded Transforms, which is exactly where testing the
+      // plain path matters most.
+      const manager = opts.e2ee
+        ? await this.deps.createManager(userId, {
+            forceRtpScriptTransform: this.config.transform === 'script',
+          })
+        : undefined;
 
       const p: EngineParticipant = {
         userId,
@@ -329,7 +315,9 @@ export class E2EEHarness {
         call,
         manager,
         keyIndex: 0,
-        enabled: isNormal,
+        // "E2EE on" for this participant: a normal role is not enough, there has
+        // to be a manager attached. A plain participant never encrypts.
+        enabled: isNormal && !!manager,
         keyStore: null,
         perf: null,
         failingFrom: new Set(),
@@ -347,12 +335,17 @@ export class E2EEHarness {
       // never receives any. Her decode transform therefore fails on every peer and
       // renders gibberish - the proof the media is unusable without the keys -
       // while her own encoder drops outgoing frames for lack of a key.
-      call.setE2EEManager(manager);
-      this.wireEvents(p);
-      manager.enablePerformanceReporting(true);
-      manager.requestKeyDump();
+      //
+      // With no manager (`'none'` mode) none of that applies: the SDK declares
+      // `e2ee: false`, attaches no transforms, and the media stays in the clear.
+      if (manager) {
+        call.setE2EEManager(manager);
+        this.wireEvents(p, manager);
+        manager.enablePerformanceReporting(true);
+        manager.requestKeyDump();
+      }
 
-      if (isNormal) {
+      if (isNormal && manager) {
         if (opts.withKey) {
           const key = generateKey();
           manager.setKey(userId, 0, key.slice(0));
@@ -374,14 +367,10 @@ export class E2EEHarness {
       }
 
       call.updatePublishOptions({ preferredCodec: this.config.codec });
-      await call.join({
-        create: true,
-        data: {
-          settings_override: {
-            encryption: { mode: this.config.encryptionMode },
-          },
-        },
-      });
+      // No encryption settings override: whether this call is E2EE is entirely
+      // the backend's decision, taken from the call type's configuration. The
+      // resolved mode is read back below and shown in the header.
+      await call.join({ create: true });
       this.addLog(userId, `Joined the call`, 'join');
 
       // Publish real camera + mic so there is encrypted media flowing - for
@@ -409,10 +398,6 @@ export class E2EEHarness {
         const mode = settings?.encryption?.mode;
         if (!mode || mode === this.resolvedEncryptionMode) return;
         this.resolvedEncryptionMode = mode;
-        if (!this.encryptionModeSeeded) {
-          this.encryptionModeSeeded = true;
-          this.config.encryptionMode = mode;
-        }
         this.addLog(null, `Call encryption mode: ${mode}`, 'join');
         this.emit();
       });
@@ -467,7 +452,7 @@ export class E2EEHarness {
     key: ArrayBuffer,
   ): void => {
     const recipient = this.participants.find((p) => p.userId === toUserId);
-    if (!recipient) return;
+    if (!recipient?.manager) return;
     recipient.manager.setKey(fromUserId, keyIndex, key.slice(0));
     const sender = this.participants.find((p) => p.userId === fromUserId);
     this.addLog(
@@ -519,7 +504,7 @@ export class E2EEHarness {
 
   rotateKey = (targetUserId: string, localOnly: boolean): void => {
     const target = this.participants.find((p) => p.userId === targetUserId);
-    if (!target) return;
+    if (!target?.manager) return;
     const key = generateKey();
     const keyIndex = target.keyIndex + 1;
     target.manager.setKey(targetUserId, keyIndex, key.slice(0));
@@ -544,7 +529,7 @@ export class E2EEHarness {
     localOnly: boolean,
   ): Promise<void> => {
     const target = this.participants.find((p) => p.userId === targetUserId);
-    if (!target) return;
+    if (!target?.manager) return;
     const key = await parseKeyInput(input);
     const keyIndex = target.keyIndex + 1;
     target.manager.setKey(targetUserId, keyIndex, key.slice(0));
@@ -584,8 +569,8 @@ export class E2EEHarness {
     const key = await parseKeyInput(input);
     for (const p of this.participants) {
       if (p.role === 'spy') continue; // the spy stays keyless
-      p.manager.setKey(userId, FIXED_KEY_INDEX, key.slice(0));
-      p.manager.requestKeyDump();
+      p.manager?.setKey(userId, FIXED_KEY_INDEX, key.slice(0));
+      p.manager?.requestKeyDump();
     }
     const local = this.participants.find(
       (p) => p.userId === userId && p.role === 'normal',
@@ -617,14 +602,14 @@ export class E2EEHarness {
     // The spy never receives the shared key - she stays an outsider.
     const targets = this.participants.filter((p) => p.role === 'normal');
     for (const p of targets) {
-      p.manager.setSharedKey(keyIndex, key.slice(0));
+      p.manager?.setSharedKey(keyIndex, key.slice(0));
     }
     // Revoke per-user keys so the shared key is the baseline.
     for (const p of targets) {
       for (const other of targets) {
-        if (other.userId !== p.userId) p.manager.removeKeys(other.userId);
+        if (other.userId !== p.userId) p.manager?.removeKeys(other.userId);
       }
-      p.manager.removeKeys(p.userId);
+      p.manager?.removeKeys(p.userId);
       p.currentKey = key;
       p.keyIndex = keyIndex;
       this.clearEncoderWarnings(p);
@@ -645,7 +630,7 @@ export class E2EEHarness {
 
   removeParticipant = (targetUserId: string): void => {
     const target = this.participants.find((p) => p.userId === targetUserId);
-    if (!target) return;
+    if (!target?.manager) return;
     this.teardown(target);
     this.participants = this.participants.filter(
       (p) => p.userId !== targetUserId,
@@ -653,7 +638,7 @@ export class E2EEHarness {
     this.publishDebugHandles();
     for (const other of this.participants) {
       if (other.role === 'spy') continue;
-      other.manager.removeKeys(targetUserId);
+      other.manager?.removeKeys(targetUserId);
       other.failingFrom.delete(targetUserId);
       other.brokenFrom.delete(targetUserId);
       this.addLog(
@@ -672,7 +657,6 @@ export class E2EEHarness {
     this.activeSharedKeyIndex = -1;
     this.sharedKeyBytes = null;
     this.resolvedEncryptionMode = undefined;
-    this.encryptionModeSeeded = false;
     this.e2eeEnabled = false;
     this.log = [];
     this.logId = 0;
@@ -688,7 +672,7 @@ export class E2EEHarness {
   private teardown = (p: EngineParticipant): void => {
     p.unsubscribes.forEach((u) => u());
     p.call.leave().catch(() => {});
-    p.manager.dispose();
+    p.manager?.dispose();
     p.client.disconnectUser().catch(() => {});
   };
 
@@ -702,7 +686,7 @@ export class E2EEHarness {
         : this.participants.filter((p) => p.userId !== targetUserId)
     ).filter((p) => p.role === 'normal');
     for (const h of holders) {
-      h.manager.removeKeys(targetUserId);
+      h.manager?.removeKeys(targetUserId);
       this.addLog(h.userId, `Revoked ${targetUserId}'s key`, 'key-distribute');
     }
     this.emit();
@@ -711,7 +695,7 @@ export class E2EEHarness {
   /** Set a fresh local key without distributing it: instant decrypt mismatch. */
   setWrongKey = (targetUserId: string): void => {
     const target = this.participants.find((p) => p.userId === targetUserId);
-    if (!target) return;
+    if (!target?.manager) return;
     const key = generateKey();
     const keyIndex = target.keyIndex + 1;
     target.manager.setKey(targetUserId, keyIndex, key.slice(0));
@@ -740,8 +724,7 @@ export class E2EEHarness {
 
   // --- event wiring ---
 
-  private wireEvents = (p: EngineParticipant): void => {
-    const m = p.manager;
+  private wireEvents = (p: EngineParticipant, m: EncryptionManager): void => {
     p.unsubscribes.push(
       m.on('e2ee.decryption_failed', ({ userId: remoteUserId }) => {
         p.failingFrom.add(remoteUserId);

@@ -1,7 +1,6 @@
 import type {
   StreamVideoClient,
   Call,
-  EncryptionSettingsRequestModeEnum,
   EncryptionSettingsResponseModeEnum,
   KeyStateReport,
   PerfReport,
@@ -71,13 +70,6 @@ export interface HarnessConfig {
   codec: PreferredCodec;
   transform: TransformPath;
   keyMode: KeyMode;
-  /**
-   * Encryption mode the harness *requests*: sent as a settings override when
-   * creating the call, and pushed via `call.update` when changed afterwards.
-   * Compare against {@link Snapshot.resolvedEncryptionMode} to see whether the
-   * backend actually honored it.
-   */
-  encryptionMode: EncryptionSettingsRequestModeEnum;
 }
 
 /**
@@ -98,9 +90,9 @@ export interface Snapshot {
   globalError: string | null;
   /**
    * Encryption mode the backend resolved for this call, read back from the call
-   * settings. `undefined` until the first participant joins. Proves server-side
-   * what the call permits, independent of what the harness
-   * {@link HarnessConfig.encryptionMode requested}.
+   * settings. `undefined` until the first participant joins. The harness never
+   * requests a mode - this is purely whatever the call type is configured with
+   * server-side.
    */
   resolvedEncryptionMode: EncryptionSettingsResponseModeEnum | undefined;
   /**
