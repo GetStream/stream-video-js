@@ -40,7 +40,7 @@ export class Publisher extends BasePeerConnection {
   private readonly clonedTracks = new Set<MediaStreamTrack>();
   private publishOptions: PublishOption[];
   private readonly selfSubEnabled: boolean;
-  private readonly transceiverLockKey = `publisher.tx.${this.lock}`;
+  private readonly transceiverLockKey = `pub.tx.${this.lock}`;
 
   /**
    * Constructs a new `Publisher` instance.
