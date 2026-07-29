@@ -38,10 +38,9 @@ class AudioUploader {
         guard let data = AudioUploader.serialize(sample: buffer) else { return false }
 
         isReady = false
-        dataToSend = data
-        byteIndex = 0
-
         serialQueue.async { [weak self] in
+            self?.dataToSend = data
+            self?.byteIndex = 0
             self?.sendDataChunk()
         }
 
