@@ -237,15 +237,21 @@ export const useCallingExpWithCallingStateEffect = () => {
       if (activeCall.state.callingState !== CallingState.JOINED) return;
       if (activeCall.microphone.state.status !== 'enabled') return;
 
-      const isRecording = AudioDeviceModule.isRecording();
-      const state = {
-        trigger,
-        isRecording,
-        isEngineRunning: AudioDeviceModule.isEngineRunning(),
-        isMicrophoneMuted: AudioDeviceModule.isMicrophoneMuted(),
-      };
+      let state;
+      try {
+        state = {
+          trigger,
+          isRecording: AudioDeviceModule.isRecording(),
+          isEngineRunning: AudioDeviceModule.isEngineRunning(),
+          isMicrophoneMuted: AudioDeviceModule.isMicrophoneMuted(),
+        };
+      } catch (error: unknown) {
+        logger.warn('failed to read the ADM recording state', error);
+        return;
+      }
+
       activeCall.tracer.trace('ios.audioRecording.state', state);
-      if (!isRecording) {
+      if (!state.isRecording) {
         logger.warn('mic is enabled but ADM is not recording', state);
       }
     };
