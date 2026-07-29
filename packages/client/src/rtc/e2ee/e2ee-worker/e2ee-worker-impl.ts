@@ -16,14 +16,9 @@
  * can still detect keyframes and select layers:
  * - Audio (Opus): 1 byte clear
  * - VP8: 10 bytes (keyframe) / 3 bytes (delta)
- * - VP9: 0 bytes (descriptor is in RTP header)
+ * - VP9: same as VP8 (10 / 3)
  * - H264: NALU-aware — clear up to first slice NALU start + 2, then
  *   RBSP-escape the encrypted tail to prevent fake start codes
- * - AV1: does not use the clear-byte/trailer scheme above. Each coded OBU
- *   (tile group / frame) carries an 18-byte inline header + GCM tag inside its
- *   payload; no frame trailer, since the AV1 RTP packetizer parses OBUs. The
- *   per-OBU IV is salted by layer id so it survives SVC layer dropping. See
- *   ./av1.ts.
  *
  * Encrypted frames carry a 20-byte trailer:
  *   [4B frameCounter][8B ivPrefix][1B keyIndex][2B clearBytes|flags]
@@ -58,7 +53,6 @@ import {
   rbspEscapedLength,
   rbspUnescape,
 } from './codec';
-import { decryptAv1Frame, encryptAv1Frame, parseEncryptedAv1 } from './av1';
 import {
   createThrottle,
   enqueue,
@@ -296,29 +290,6 @@ const encodeTransform = (
 
       const { key: cryptoKey, keyIndex, ivPrefix: prefix } = entry;
 
-      if (profile.scheme === 'av1') {
-        return finishEncode(frame, controller, async () => {
-          // frameCounter MUST come from the shared monotonic per-user counter
-          // (same source as the v2 path) - a base-layer OBU has salt 0, so its
-          // IV matches a v2 frame's at the same counter; only the never-
-          // repeating counter keeps (key, IV) pairs unique across this user's
-          // AV1 and non-AV1 tracks.
-          const counter = nextFrameCounter(userId);
-          const out = await encryptAv1Frame(
-            new Uint8Array(frame.data),
-            cryptoKey,
-            keyIndex,
-            prefix,
-            counter,
-          );
-          if (!out) {
-            signalEncodeFailure('AV1 frame not parseable');
-            return null;
-          }
-          return out;
-        });
-      }
-
       return finishEncode(frame, controller, async () => {
         const src = new Uint8Array(frame.data);
         const clearBytes = profile.clearBytes(frame.type, src);
@@ -424,11 +395,11 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
   const failures = createFailureTracker();
 
   /**
-   * Shared decode tail: gate on key availability / replay, time the
-   * decryption, emit the plaintext, and run the failure / recovery bookkeeping.
-   * `decrypt` returns the plaintext frame bytes and throws on a GCM tag failure
-   * (which drops the whole frame). Only the param extraction and the decrypt
-   * itself differ between the v2-trailer and AV1-inline formats.
+   * Decode tail: gate on key availability / replay, time the decryption, emit
+   * the plaintext, and run the failure / recovery bookkeeping. `decrypt`
+   * returns the plaintext frame bytes and throws on a GCM tag failure (which
+   * drops the whole frame). Kept separate from the framing parse above so the
+   * trust ordering below lives in one place.
    *
    * Trust ordering (the SFrame / SRTP rule): everything read before the decrypt
    * call — `frameCounter`, `ivPrefix`, `keyIndex` — is plaintext in the trailer
@@ -497,23 +468,10 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
       const trailer = readTrailer(src);
 
       if (!trailer) {
-        // No trailer. Could be a an AV1 frame (OBU-inline, no trailer) or
-        // a genuinely unencrypted frame. Detect AV1 from the OBU stream
-        const parsed = parseEncryptedAv1(src);
-        if (!parsed) {
-          notifyUnencrypted();
-          controller.enqueue(frame);
-          bumpDecodeCount(userId, trackKey);
-          return;
-        }
-        return finishDecode(
-          frame,
-          controller,
-          parsed.keyIndex,
-          parsed.ivPrefix,
-          parsed.frameCounter,
-          (key) => decryptAv1Frame(parsed, key).then((out) => out.buffer),
-        );
+        notifyUnencrypted();
+        controller.enqueue(frame);
+        bumpDecodeCount(userId, trackKey);
+        return;
       }
 
       const { clearBytes, isRbsp } = trailer;

@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { OBU_FRAME, writeLeb128 } from '../e2ee-worker/av1-obu';
 import {
   COUNTER_HARD_LIMIT,
   E2EE_VERSION,
   FAILURE_TOLERANCE,
   MAGIC,
+  MAX_CLEAR_BYTES,
   RBSP_FLAG,
   TRAILER_LEN,
 } from '../e2ee-worker/constants';
@@ -63,7 +63,10 @@ const removeKeys = async (userId: string) => {
   await flush();
 };
 
-const frame = (bytes: number[], type: Frame['type'] = 'delta'): Frame => ({
+// `type` is required, and `undefined` is meaningful: the absence of a key/delta
+// type is exactly how the worker recognizes an audio frame, so a default here
+// would silently turn audio cases into delta video ones.
+const frame = (bytes: number[], type: Frame['type']): Frame => ({
   data: new Uint8Array(bytes).buffer,
   type,
   timestamp: 1,
@@ -106,14 +109,6 @@ const drive = async (
   await done;
   return out;
 };
-
-const codedObu = (payload: number[]): number[] => [
-  (OBU_FRAME << 3) | 0x04 | 0x02,
-  0x00,
-  ...Array.from(writeLeb128(payload.length)),
-  ...payload,
-];
-const td = [(2 << 3) | 0x02, 0x00];
 
 let nextUser = 0;
 const freshUser = () => `user-${nextUser++}`;
@@ -181,14 +176,26 @@ describe('encode -> decode pipeline round-trips', () => {
     expect(await roundTrip('h264', pt, 'key')).toEqual(pt);
   });
 
-  it('av1 (inline-OBU path)', async () => {
-    const pt = [...td, ...codedObu([0xde, 0xad, 0xbe, 0xef, 0x55])];
-    expect(await roundTrip('av1', pt, 'key')).toEqual(pt);
+  it('opus (audio, 1 clear byte)', async () => {
+    const pt = [0x78, 0xaa, 0xbb, 0xcc, 0xdd];
+    // An audio frame is recognized by the ABSENCE of a key/delta type, and that
+    // is what selects the 1-byte Opus TOC clear header.
+    const user = freshUser();
+    await setKey(user);
+    const [encrypted] = await drive('encode', user, 'opus', [
+      frame(pt, undefined),
+    ]);
+    const bytes = Array.from(new Uint8Array(encrypted.data));
+    // TOC byte in the clear (the SFU reads it), everything after it encrypted.
+    expect(bytes[0]).toBe(0x78);
+    expect(bytes.slice(1, pt.length)).not.toEqual(pt.slice(1));
+    const [decrypted] = await drive('decode', user, undefined, [encrypted]);
+    expect(Array.from(new Uint8Array(decrypted.data))).toEqual(pt);
   });
 });
 
 describe('decode pipeline edge behaviors', () => {
-  it('passes an unencrypted (non-AV1) frame through, but signals it', async () => {
+  it('passes an unencrypted frame through, but signals it', async () => {
     const user = freshUser();
     const bytes = [9, 9, 9, 9, 9];
     const [out] = await drive('decode', user, undefined, [
@@ -450,15 +457,23 @@ describe('encode pipeline edge behaviors', () => {
   it('re-signals encryption_failed after recovery instead of latching for the worker lifetime', async () => {
     const user = freshUser();
     await setKey(user);
-    // One av1 encode transform: an unparseable (non-AV1) frame fails to encrypt,
-    // a valid AV1 temporal unit then encrypts (recovering the track), and a
-    // second bad frame must signal AGAIN. The old worker-lifetime latch emitted
-    // only the first signal and then went silent forever - so a later permanent
-    // fail-closed dropped every frame with no event.
-    const bad = () => frame([0x80, 0x80, 0x80], 'delta'); // forbidden bit -> unparseable
-    const good = () => frame([...td, ...codedObu([1, 2, 3])], 'key');
+    // One h264 encode transform: a frame whose clear header exceeds the
+    // trailer's 15-bit clearBytes field fails to encrypt, a normal keyframe then
+    // encrypts (recovering the track), and a second bad frame must signal AGAIN.
+    // The old worker-lifetime latch emitted only the first signal and then went
+    // silent forever - so a later permanent fail-closed dropped every frame with
+    // no event.
+    const bad = () => {
+      // Zero padding, then an IDR slice start code far enough in that
+      // h264ClearBytes reports a clear header past MAX_CLEAR_BYTES.
+      const bytes = new Array(MAX_CLEAR_BYTES + 8).fill(0);
+      bytes.splice(MAX_CLEAR_BYTES, 6, 0, 0, 1, 0x65, 0xaa, 0xbb);
+      return frame(bytes, 'key');
+    };
+    const good = () =>
+      frame([0, 0, 0, 1, 0x65, 0x88, 0x11, 0x22, 0x33, 0x44], 'key');
     posted.length = 0;
-    const out = await drive('encode', user, 'av1', [bad(), good(), bad()]);
+    const out = await drive('encode', user, 'h264', [bad(), good(), bad()]);
     // Only the valid frame is emitted; both bad frames are dropped (fail closed).
     expect(out).toHaveLength(1);
     // Signaled on the first bad frame, re-armed by the good frame, signaled

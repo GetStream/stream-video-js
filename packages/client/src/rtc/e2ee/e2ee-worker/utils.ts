@@ -9,7 +9,7 @@ import {
 } from './constants';
 import type { Trailer } from './types';
 
-/** Constant-length byte comparison shared by the replay guard and AV1 OBU matching. */
+/** Constant-length byte comparison, used by the replay guard to match epochs. */
 export const bytesEqual = (a: Uint8Array, b: Uint8Array): boolean => {
   if (a.length !== b.length) return false;
   for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
@@ -64,7 +64,7 @@ const OFF_VERSION = OFF_CLEAR_BYTES + 2; // 15
 const OFF_MAGIC = OFF_VERSION + 1; // 16
 
 /**
- * Trailer layout (20 bytes, v2):
+ * Trailer layout (20 bytes, v1):
  * [4B frameCounter][8B ivPrefix][1B keyIndex][2B clearBytes|flags]
  * [1B version][4B magic]
  */

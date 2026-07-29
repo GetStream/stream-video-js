@@ -194,10 +194,12 @@ describe('EncryptionManager', () => {
       });
     });
 
-    it('attaches a transform for AV1', () => {
+    it('forwards the codec verbatim, leaving support checks to the worker', () => {
       const sender: Record<string, unknown> = { transform: null };
       manager.encrypt(sender as unknown as RTCRtpSender, 'av1');
 
+      // The manager does not gate on the codec; the worker decides, and fails
+      // closed for one it cannot frame (av1 today).
       expect(sender.transform).toBeDefined();
       expect((sender.transform as Record<string, unknown>).options).toEqual({
         operation: 'encode',

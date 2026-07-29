@@ -98,7 +98,6 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
             <option value="vp8">VP8</option>
             <option value="vp9">VP9</option>
             <option value="h264">H.264</option>
-            <option value="av1">AV1</option>
           </select>
         </label>
         <label title="Whether to force the standard RTCRtpScriptTransform API (Chrome defaults to Insertable Streams); locks after the first participant joins">

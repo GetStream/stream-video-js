@@ -168,31 +168,18 @@ describe('codec clear-byte rules', () => {
 });
 
 describe('getCodecProfile', () => {
-  it('marks only h264 for RBSP escaping and only av1 as the OBU scheme', () => {
+  it('marks only h264 for RBSP escaping', () => {
     // The load-bearing invariant of the table: a codec is fully described in one
     // place, so a half-wired codec (e.g. NALU escaping forgotten) is impossible.
-    expect(getCodecProfile('h264')).toMatchObject({
-      scheme: 'trailer',
-      rbsp: true,
-    });
-    expect(getCodecProfile('av1')).toMatchObject({
-      scheme: 'av1',
-      rbsp: false,
-    });
+    expect(getCodecProfile('h264')).toMatchObject({ rbsp: true });
     for (const codec of ['opus', 'vp8', 'vp9']) {
-      expect(getCodecProfile(codec)).toMatchObject({
-        scheme: 'trailer',
-        rbsp: false,
-      });
+      expect(getCodecProfile(codec)).toMatchObject({ rbsp: false });
     }
   });
 
-  it('falls back to a passthrough trailer profile for unknown / absent codecs', () => {
+  it('falls back to a passthrough profile for unknown / absent codecs', () => {
     for (const codec of [undefined, 'h265', 'video/vp8']) {
-      expect(getCodecProfile(codec)).toMatchObject({
-        scheme: 'trailer',
-        rbsp: false,
-      });
+      expect(getCodecProfile(codec)).toMatchObject({ rbsp: false });
     }
   });
 });
@@ -203,7 +190,6 @@ describe('isSupportedCodec', () => {
     expect(isSupportedCodec('vp8')).toBe(true);
     expect(isSupportedCodec('vp9')).toBe(true);
     expect(isSupportedCodec('h264')).toBe(true);
-    expect(isSupportedCodec('av1')).toBe(true);
   });
 
   it('accepts undefined (audio codec passthrough)', () => {
@@ -213,5 +199,12 @@ describe('isSupportedCodec', () => {
   it('rejects unknown or mis-cased codecs', () => {
     expect(isSupportedCodec('H264')).toBe(false);
     expect(isSupportedCodec('video/vp8')).toBe(false);
+  });
+
+  it('rejects av1, which has no E2EE framing scheme yet', () => {
+    // The encode path turns this into a fail-closed transform: every frame is
+    // dropped and e2ee.encryption_failed is emitted, so an AV1 track can never
+    // be published in the clear on an encrypted call.
+    expect(isSupportedCodec('av1')).toBe(false);
   });
 });

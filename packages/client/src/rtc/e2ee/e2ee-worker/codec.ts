@@ -140,16 +140,14 @@ export const rbspUnescape = (data: Uint8Array): Uint8Array => {
 /**
  * How E2EE splits a frame, per codec — the single source of encode-side codec
  * knowledge. Adding a codec here wires it into support detection, clear-byte
- * sizing, RBSP escaping, and framing-scheme selection at once, so a codec can't
- * be half-supported (e.g. an H265 entry that forgets NALU escaping and ships
- * start-code-corrupting ciphertext).
+ * sizing, and RBSP escaping at once, so a codec can't be half-supported (e.g.
+ * an H265 entry that forgets NALU escaping and ships start-code-corrupting
+ * ciphertext).
+ *
+ * Every supported codec uses one framing scheme: clear header + encrypted body
+ * + 20-byte trailer.
  */
 export interface CodecProfile {
-  /**
-   * `'trailer'` = clear header + encrypted body + 20-byte trailer (audio,
-   * VP8/VP9, H264). `'av1'` = per-OBU inline header, no trailer (see ./av1.ts).
-   */
-  scheme: 'trailer' | 'av1';
   /** RBSP-escape ciphertext + trailer to suppress fake Annex-B start codes (H264). */
   rbsp: boolean;
   /**
@@ -175,22 +173,20 @@ const vpClearBytes = (
   return clear > data.length ? data.length : clear;
 };
 
-// AV1 carries no clear prefix in this scheme (each OBU has an inline header
-// instead); the encoder branches on `scheme` first, so this is never invoked.
-const noClearBytes = (): number => 0;
-
+// AV1 is deliberately absent: it cannot carry a frame trailer (the AV1 RTP
+// packetizer parses the OBU stream), so it needs a framing scheme of its own and
+// is not supported for E2EE yet. Listing it here would ship broken frames, so it
+// falls through to isSupportedCodec and fails closed instead.
 const CODEC_PROFILES: Record<string, CodecProfile> = {
-  opus: { scheme: 'trailer', rbsp: false, clearBytes: defaultClearBytes },
-  vp8: { scheme: 'trailer', rbsp: false, clearBytes: vpClearBytes },
-  vp9: { scheme: 'trailer', rbsp: false, clearBytes: vpClearBytes },
-  h264: { scheme: 'trailer', rbsp: true, clearBytes: h264ClearBytes },
-  av1: { scheme: 'av1', rbsp: false, clearBytes: noClearBytes },
+  opus: { rbsp: false, clearBytes: defaultClearBytes },
+  vp8: { rbsp: false, clearBytes: vpClearBytes },
+  vp9: { rbsp: false, clearBytes: vpClearBytes },
+  h264: { rbsp: true, clearBytes: h264ClearBytes },
 };
 
 // Unknown / absent codec: audio passes through with the Opus clear byte, video
 // encrypts whole. Matches the legacy `frameType === undefined ? 1 : 0` fallback.
 const DEFAULT_PROFILE: CodecProfile = {
-  scheme: 'trailer',
   rbsp: false,
   clearBytes: defaultClearBytes,
 };
