@@ -163,6 +163,11 @@ class StreamInCallManager: RCTEventEmitter {
         audioSessionQueue.async { [self] in
             let adm = getAudioDeviceModule()
 
+            // This path (no CallKit) owns audio-session activation itself, so the
+            // engine must be allowed to start. Restores availability in case a
+            // prior CallKit call had gated it off.
+            _ = adm.setEngineAvailability(.default)
+
             // Stereo is listener-only and applies live. Cleared by stop()'s reset().
             if callAudioRole == .listener && enableStereo {
                 adm.setStereoPlayoutPreference(true)
