@@ -60,18 +60,20 @@ export type OnIceConnected = (peerType: PeerType) => void;
  * Snapshot of the peer connection's ICE and DTLS state surfaced to telemetry
  * consumers (e.g. `ClientEventReporter`). Fired on every transition of
  * either `iceConnectionState` or `peerConnectionState`.
+ *
+ * `iceConnectionState` is the live `RTCPeerConnection.iceConnectionState` read
+ * at the moment the event fires, regardless of which transition triggered it.
+ * Consumers must use it (rather than assuming a value from `stateType`) because
+ * the browser does not guarantee the relative ordering of the `ice` and
+ * `peerConnection` `failed` transitions.
  */
-export type PeerConnectionStateChangeEvent =
-  | {
-      peerType: PeerType;
-      stateType: 'ice';
-      state: RTCIceConnectionState;
-    }
-  | {
-      peerType: PeerType;
-      stateType: 'peerConnection';
-      state: RTCPeerConnectionState;
-    };
+export type PeerConnectionStateChangeEvent = {
+  peerType: PeerType;
+  iceConnectionState: RTCIceConnectionState;
+} & (
+  | { stateType: 'ice'; state: RTCIceConnectionState }
+  | { stateType: 'peerConnection'; state: RTCPeerConnectionState }
+);
 
 export type OnPeerConnectionStateChange = (
   event: PeerConnectionStateChangeEvent,

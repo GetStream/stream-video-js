@@ -32,9 +32,14 @@ enum DefaultAudioDevice {
         stateQueue.async { self.defaultAudioDevice = next }
     }
 
-    /// Belt-and-braces config writer kept for the initial-activation window
-    /// (called from `CXStartCallAction.perform` / `CXAnswerCallAction.perform`).
-    public func createAudioSessionIfNeeded() {
+    /// Applies category/mode/options on the calling thread, blocking until complete.
+    /// Serializes with `engineWillEnable` via `audioSessionQueue`. Does not call
+    /// `setActive` — CallKit owns activation.
+    ///
+    /// Call sites:
+    /// - `CXStartCallAction` / `CXAnswerCallAction` (before `fulfill`)
+    /// - `provider(_:didActivate:)` (after CallKit activates, before the engine starts)
+    public func applyCallKitConfigurationSync() {
         audioSessionQueue.sync {
             self.applyCallKitConfiguration()
         }

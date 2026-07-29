@@ -456,12 +456,24 @@ export class Publisher extends BasePeerConnection {
   private negotiate = async (options?: RTCOfferOptions): Promise<void> => {
     return withoutConcurrency(`publisher.negotiate.${this.lock}`, async () => {
       const offer = await this.pc.createOffer(options);
-      const tracks = this.getAnnouncedTracks(offer.sdp);
-      if (!tracks.length) throw new Error(`Can't negotiate without any tracks`);
-
       try {
         this.isIceRestarting = options?.iceRestart ?? false;
         await this.pc.setLocalDescription(offer);
+
+        // the announced tracks have to be read after `setLocalDescription`.
+        // `transceiver.mid` is null until the offer is applied, and reading the
+        // tracks earlier makes `extractMid` guess the mid from the offer SDP.
+        // That guess goes stale after a rolled-back negotiation, and a mid that
+        // doesn't match the m-section carrying the track stops the SFU from
+        // correlating the two: it then answers with every offered codec instead
+        // of the announced one, and we publish the first codec of that list.
+        // Per https://www.w3.org/TR/webrtc/#set-description, applying a local
+        // offer associates the transceiver with its m-section and sets
+        // `[[Mid]]` to `[[JsepMid]]`; a rollback disassociates a transceiver
+        // that wasn't associated before and resets both slots to null.
+        const tracks = this.getAnnouncedTracks(offer.sdp);
+        if (!tracks.length)
+          throw new Error(`Can't negotiate without any tracks`);
 
         const { sdp: baseSdp = '' } = offer;
         const {

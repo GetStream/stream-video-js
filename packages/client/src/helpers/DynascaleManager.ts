@@ -328,6 +328,12 @@ export class DynascaleManager {
     let gainNode: GainNode | undefined = undefined;
     let audioWatchdog: MediaPlaybackWatchdog | undefined = undefined;
 
+    const clearBlockedAudio = () => {
+      if (!this.blockedAudioTracker.isBlocked(audioElement)) return;
+      this.blockedAudioTracker.markBlocked(audioElement, false);
+    };
+    audioElement.addEventListener('playing', clearBlockedAudio);
+
     const isAudioTrack = trackType === 'audioTrack';
     const trackKey = isAudioTrack ? 'audioStream' : 'screenShareAudioStream';
     const updateMediaStreamSubscription = participant$
@@ -341,7 +347,7 @@ export class DynascaleManager {
           audioWatchdog?.dispose();
           audioWatchdog = undefined;
           if (!source) {
-            this.blockedAudioTracker.markBlocked(audioElement, false);
+            clearBlockedAudio();
             return;
           }
 
@@ -369,7 +375,11 @@ export class DynascaleManager {
               this.tracer.trace('audioPlaybackError', e.message);
               if (e.name === 'NotAllowedError') {
                 this.tracer.trace('audioPlaybackBlocked', null);
-                this.blockedAudioTracker.markBlocked(audioElement, true);
+                this.blockedAudioTracker.markBlocked(
+                  audioElement,
+                  true,
+                  sessionId,
+                );
               }
               this.logger.warn(`Failed to play audio stream`, e);
             });
@@ -405,7 +415,8 @@ export class DynascaleManager {
     audioElement.autoplay = true;
 
     return () => {
-      this.blockedAudioTracker.markBlocked(audioElement, false);
+      audioElement.removeEventListener('playing', clearBlockedAudio);
+      clearBlockedAudio();
       sinkIdSubscription?.unsubscribe();
       volumeSubscription.unsubscribe();
       updateMediaStreamSubscription.unsubscribe();

@@ -1,6 +1,11 @@
 import { FormEvent, useCallback, useState } from 'react';
 import clsx from 'clsx';
-import { Icon, useCall, useMenuContext } from '@stream-io/video-react-sdk';
+import {
+  Icon,
+  useCall,
+  useI18n,
+  useMenuContext,
+} from '@stream-io/video-react-sdk';
 import { getCookie } from '../../helpers/getCookie';
 
 export type Props = {
@@ -20,6 +25,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [errorMessage, setError] = useState<string | null>(null);
   const call = useCall();
+  const { t } = useI18n();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -77,12 +83,14 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
         <img
           className="rd__feedback-image"
           src={`${basePath}/feedback.png`}
-          alt="Feedback"
+          alt={t('Feedback')}
         />
 
-        <h2 className="rd__feedback-heading">Thanks for your feedback!</h2>
+        <h2 className="rd__feedback-heading">
+          {t('Thanks for your feedback!')}
+        </h2>
         <p className="rd__feedback-description">
-          We’ll use it to help better your call experience 😀
+          {t('We’ll use it to help better your call experience 😀')}
         </p>
 
         <div className="rd__feedback-footer">
@@ -92,7 +100,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
               type="button"
               disabled={isSubmitting}
             >
-              Learn More
+              {t('Learn More')}
             </button>
 
             <button
@@ -106,7 +114,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
                 })
               }
             >
-              Close
+              {t('Close')}
             </button>
           </div>
         </div>
@@ -119,10 +127,10 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
       <img
         className="rd__feedback-image"
         src={`${basePath}/feedback.png`}
-        alt="Feedback"
+        alt={t('Feedback')}
       />
       <h4 className="rd__feedback-heading">
-        {inMeeting ? 'How was your call?' : 'You left the call.'}
+        {inMeeting ? t('How was your call?') : t('You left the call.')}
       </h4>
       <p
         className={clsx(
@@ -131,8 +139,8 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
         )}
       >
         {errorMessage && errorMessage}
-        {inMeeting && !errorMessage && 'How is your calling experience?'}
-        {!inMeeting && !errorMessage && 'How was your calling experience?'}
+        {inMeeting && !errorMessage && t('How is your calling experience?')}
+        {!inMeeting && !errorMessage && t('How was your calling experience?')}
       </p>
       <form className="rd__feedback-form" onSubmit={handleSubmit}>
         <div className="rd__feedback-rating-stars">
@@ -160,14 +168,14 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
         <input
           type="email"
           value={email}
-          placeholder="Email"
+          placeholder={t('Email')}
           id="feedback_input"
           className="rd__feedback-input"
           onChange={(e) => setEmail(e.target.value)}
         />
         <textarea
           value={message}
-          placeholder="Message"
+          placeholder={t('Message')}
           id="feedback_message"
           className="rd__feedback-textarea"
           onChange={(e) => setMessage(e.target.value)}
@@ -180,7 +188,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
                 disabled={isSubmitting}
                 onClick={close}
               >
-                Cancel
+                {t('Cancel')}
               </button>
             ) : (
               <button
@@ -190,7 +198,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
                   window.location.assign('https://getstream.io/video/#contact');
                 }}
               >
-                Contact an expert
+                {t('Contact an expert')}
               </button>
             )}
             <button
@@ -198,7 +206,7 @@ export const Feedback = ({ callId, inMeeting = true }: Props) => {
               type="submit"
               disabled={rating.current === 0 || isSubmitting}
             >
-              Submit
+              {t('Submit')}
             </button>
           </div>
         </div>

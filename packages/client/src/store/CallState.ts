@@ -409,21 +409,6 @@ export class CallState {
     this.closedCaptions$ = this.closedCaptionsSubject.asObservable();
 
     /**
-     * Performs shallow comparison of two arrays.
-     * Expects primitive values: [1, 2, 3] is equal to [2, 1, 3].
-     */
-    const isShallowEqual = <T>(a: Array<T>, b: Array<T>): boolean => {
-      if (a.length !== b.length) return false;
-      for (const item of a) {
-        if (!b.includes(item)) return false;
-      }
-      for (const item of b) {
-        if (!a.includes(item)) return false;
-      }
-      return true;
-    };
-
-    /**
      * Creates an Observable from the given subject by piping to the
      * `distinctUntilChanged()` operator.
      */
@@ -436,7 +421,10 @@ export class CallState {
     this.anonymousParticipantCount$ = duc(
       this.anonymousParticipantCountSubject,
     );
-    this.blockedUserIds$ = duc(this.blockedUserIdsSubject, isShallowEqual);
+    this.blockedUserIds$ = duc(
+      this.blockedUserIdsSubject,
+      RxUtils.isShallowArrayEqual,
+    );
     this.backstage$ = duc(this.backstageSubject);
     this.callingState$ = duc(this.callingStateSubject);
     this.ownCapabilities$ = combineLatest([
@@ -471,7 +459,7 @@ export class CallState {
 
         return nextCapabilities;
       }),
-      distinctUntilChanged(isShallowEqual),
+      distinctUntilChanged(RxUtils.isShallowArrayEqual),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
     this.participantCount$ = duc(this.participantCountSubject);

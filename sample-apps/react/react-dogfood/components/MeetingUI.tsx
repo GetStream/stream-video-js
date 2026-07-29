@@ -5,6 +5,7 @@ import {
   noopComparator,
   useCall,
   useCallStateHooks,
+  useI18n,
   useModeration,
 } from '@stream-io/video-react-sdk';
 import Gleap from 'gleap';
@@ -51,6 +52,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   const [lastError, setLastError] = useState<Error>();
   const router = useRouter();
   const call = useCall();
+  const { t } = useI18n();
   const { useCallCallingState } = useCallStateHooks();
   const callState = useCallCallingState();
   useModeration();
@@ -159,7 +161,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   if (show === 'error-join' || show === 'error-leave') {
     childrenToRender = (
       <ErrorPage
-        heading={contents[show].heading}
+        heading={t(contents[show].heading)}
         error={lastError}
         onClickHome={() => router.push(`/`)}
         onClickLobby={() => setShow('lobby')}
@@ -185,7 +187,7 @@ export const MeetingUI = ({ chatClient, mode }: MeetingUIProps) => {
   } else if (!call) {
     childrenToRender = (
       <ErrorPage
-        heading={'Lost active call connection'}
+        heading={t('Lost active call connection')}
         onClickHome={() => router.push(`/`)}
         onClickLobby={() => setShow('lobby')}
       />
@@ -218,49 +220,52 @@ const ErrorPage = ({
   onClickHome,
   onClickLobby,
   error,
-}: ErrorPageProps) => (
-  <div className="rd__error">
-    <div className="rd__error__container">
-      <h1 className="rd__error__header">{heading}</h1>
-      <div className="rd__error__content">
-        {error?.stack && (
-          <div className="rd__error__message">
-            <pre>{error.stack}</pre>
-          </div>
-        )}
-        <p>(see the console for more info)</p>
-      </div>
+}: ErrorPageProps) => {
+  const { t } = useI18n();
+  return (
+    <div className="rd__error">
+      <div className="rd__error__container">
+        <h1 className="rd__error__header">{heading}</h1>
+        <div className="rd__error__content">
+          {error?.stack && (
+            <div className="rd__error__message">
+              <pre>{error.stack}</pre>
+            </div>
+          )}
+          <p>{t('(see the console for more info)')}</p>
+        </div>
 
-      <div className="rd__error__actions">
-        <button
-          data-testid="return-home-button"
-          className="rd__button rd__button--primary"
-          onClick={onClickHome}
-        >
-          Return home
-        </button>
+        <div className="rd__error__actions">
+          <button
+            data-testid="return-home-button"
+            className="rd__button rd__button--primary"
+            onClick={onClickHome}
+          >
+            {t('Return home')}
+          </button>
 
-        <button
-          data-testid="return-home-button"
-          className="rd__button rd__button--secondary"
-          onClick={onClickLobby}
-        >
-          Back to lobby
-        </button>
+          <button
+            data-testid="return-home-button"
+            className="rd__button rd__button--secondary"
+            onClick={onClickLobby}
+          >
+            {t('Back to lobby')}
+          </button>
 
-        <button
-          data-testid="report-issue-button"
-          className="rd__button"
-          onClick={() => {
-            Gleap.startFeedbackFlow('bugreporting');
-          }}
-        >
-          Report an issue
-        </button>
+          <button
+            data-testid="report-issue-button"
+            className="rd__button"
+            onClick={() => {
+              Gleap.startFeedbackFlow('bugreporting');
+            }}
+          >
+            {t('Report an issue')}
+          </button>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const LoadingScreen = () => {
   const { useCallCallingState } = useCallStateHooks();
