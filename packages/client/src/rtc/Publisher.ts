@@ -109,8 +109,6 @@ export class Publisher extends BasePeerConnection {
     options: TrackPublishOptions = {},
   ) => {
     return withoutConcurrency(this.transceiverLockKey, async () => {
-      // the options are read after the lock is acquired, as they may have
-      // changed while this publish was waiting for its turn
       const publishOptions = this.publishOptions.filter(
         (o) => o.trackType === trackType,
       );
