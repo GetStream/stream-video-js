@@ -230,6 +230,8 @@ function resolveFirebaseBomVersion(projectRoot?: string): string | undefined {
   }
 }
 
+const DEPENDENCIES_BLOCK = /dependencies\s*\{/;
+
 function addFirebaseMessagingDependency(
   contents: string,
   bomVersion?: string,
@@ -238,21 +240,22 @@ function addFirebaseMessagingDependency(
     return contents;
   }
 
+  if (!DEPENDENCIES_BLOCK.test(contents)) {
+    throw new Error(
+      '[StreamVideo] Could not find a "dependencies { }" block in the app build.gradle ' +
+        'to add the firebase-messaging compile dependency for the generated FCM service.',
+    );
+  }
+
   const lines =
     `    ${FIREBASE_DEP_MARKER}\n` +
     `    compileOnly(platform("com.google.firebase:firebase-bom:${bomVersion ?? FIREBASE_BOM_FALLBACK_VERSION}"))\n` +
     `    compileOnly("${FIREBASE_MESSAGING_ARTIFACT}")`;
-  return contents.replace(/dependencies\s*\{/, (match) => `${match}\n${lines}`);
+  return contents.replace(DEPENDENCIES_BLOCK, (match) => `${match}\n${lines}`);
 }
 
 const withMessagingServiceGradle: ConfigPlugin = (config) => {
   return withAppBuildGradle(config, (gradleConfig) => {
-    if (gradleConfig.modResults.language !== 'groovy') {
-      throw new Error(
-        '[StreamVideo] "androidMessagingServiceBaseClass" requires a Groovy build.gradle; ' +
-          `found "${gradleConfig.modResults.language}".`,
-      );
-    }
     const bomVersion = resolveFirebaseBomVersion(
       gradleConfig.modRequest.projectRoot,
     );
