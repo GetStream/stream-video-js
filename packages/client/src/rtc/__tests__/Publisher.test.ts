@@ -2040,8 +2040,11 @@ describe('Publisher', () => {
       );
 
       const publishTask = publisher.publish(track, TrackType.VIDEO);
-      // let publish() reach the cache lookup for the new publish option
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      // a macrotask boundary drains the pending microtasks, which is as far
+      // as an unserialized publish() can get: up to the cache lookup for the
+      // new publish option. It cannot resolve earlier under load, so this
+      // does not depend on wall-clock timing.
+      await new Promise((resolve) => setTimeout(resolve, 0));
       releaseCodecSwitch();
       await publishTask;
       await settled(publisher['eventLockKey']('changePublishOptions'));
@@ -2108,7 +2111,9 @@ describe('Publisher', () => {
         }) as DispatchableMessage<'changePublishOptions'>,
         'test',
       );
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      // the handler runs synchronously, so the retired options are in place
+      // and syncPublishOptions is already queued behind this publish
+      expect(publisher['publishOptions']).toHaveLength(1);
 
       firstNegotiation.resolve();
       await publishTask;
