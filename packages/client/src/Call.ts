@@ -2364,8 +2364,12 @@ export class Call {
    * Set the E2EE (end-to-end encryption) manager for this call.
    *
    * Must be called before {@link join} so the RTCPeerConnection can be
-   * configured for E2EE (the legacy Insertable Streams path needs
-   * `encodedInsertableStreams`).
+   * configured for E2EE.
+   *
+   * The manager is kept across {@link leave} so a rejoin of this same instance
+   * stays encrypted: do not dispose it while this call may be joined again.
+   * A disposed manager throws from `encrypt`/`decrypt` rather than silently
+   * publishing nothing, so re-attach a fresh one instead of reusing it.
    *
    * @param e2ee - Any `E2EEManager`. Use `EncryptionManager.create()` for the
    *         built-in AES-GCM scheme, or pass your own implementation.
@@ -2376,10 +2380,7 @@ export class Call {
    */
   setE2EEManager = (e2ee: E2EEManager) => {
     if (this.publisher || this.subscriber) {
-      throw new Error(
-        'setE2EEManager must be called before join(): the peer connections ' +
-          'already exist and would publish/receive cleartext for the current session.',
-      );
+      throw new Error('setE2EEManager must be called before join()');
     }
     this.e2eeManager = e2ee;
   };

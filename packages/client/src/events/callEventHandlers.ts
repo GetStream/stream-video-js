@@ -40,7 +40,12 @@ type RingCallEvents = Extract<
  */
 export const registerEventHandlers = (call: Call, dispatcher: Dispatcher) => {
   const state = call.state;
-  const e2ee = call.e2eeManager;
+  // Read lazily on each event: setE2EEManager can run after setup() (an app that
+  // inspects call settings via get()/getOrCreate() before deciding to encrypt has
+  // already triggered it), so a value captured here would be a stale undefined
+  // for the whole call and orphaned tracks would never get a decryptor.
+  const e2ee = () => call.e2eeManager;
+
   const eventHandlers = [
     call.on('call.ended', watchCallEnded(call)),
     watchSfuCallEnded(call),

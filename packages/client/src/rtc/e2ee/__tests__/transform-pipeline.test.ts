@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { OBU_FRAME, writeLeb128 } from '../e2ee-worker/av1-obu';
 import {
   COUNTER_HARD_LIMIT,
+  E2EE_VERSION,
   FAILURE_TOLERANCE,
+  MAGIC,
+  RBSP_FLAG,
   TRAILER_LEN,
 } from '../e2ee-worker/constants';
 
@@ -178,17 +181,19 @@ describe('encode -> decode pipeline round-trips', () => {
 });
 
 describe('decode pipeline edge behaviors', () => {
-  it('passes an unencrypted (non-AV1) frame through untouched', async () => {
+  it('passes an unencrypted (non-AV1) frame through, but signals it', async () => {
     const user = freshUser();
     const bytes = [9, 9, 9, 9, 9];
     const [out] = await drive('decode', user, undefined, [
       frame(bytes, 'delta'),
     ]);
     expect(Array.from(new Uint8Array(out.data))).toEqual(bytes);
-    expect(posted).toHaveLength(0);
+    // Forwarded as-is (a peer may publish plain), but never silently: the host
+    // needs a signal to notice a downgrade on a call where everyone should encrypt.
+    expect(posted).toEqual([{ type: 'e2ee.unencrypted_frame', userId: user }]);
   });
 
-  it('drops and signals decryption_failed when the key is gone', async () => {
+  it('drops and signals missing_key when the key is gone', async () => {
     const user = freshUser();
     await setKey(user);
     const [encrypted] = await drive('encode', user, 'vp8', [
@@ -198,7 +203,12 @@ describe('decode pipeline edge behaviors', () => {
     posted.length = 0;
     const out = await drive('decode', user, undefined, [encrypted]);
     expect(out).toHaveLength(0);
-    expect(posted.some((m) => m.type === 'e2ee.decryption_failed')).toBe(true);
+    // Not holding the key is reported apart from a failed decrypt, so a host can
+    // tell key distribution lag from a mismatched or tampered frame.
+    expect(posted).toEqual([
+      { type: 'e2ee.missing_key', userId: user, keyIndex: 0 },
+    ]);
+    expect(posted.some((m) => m.type === 'e2ee.decryption_failed')).toBe(false);
   });
 
   it('drops a replayed frame silently (no failure event)', async () => {
@@ -229,6 +239,36 @@ describe('decode pipeline edge behaviors', () => {
     ]);
     expect(out).toHaveLength(0);
     expect(posted.some((m) => m.type === 'e2ee.decryption_failed')).toBe(true);
+  });
+
+  it('survives an RBSP frame that unescapes shorter than the trailer', async () => {
+    const user = freshUser();
+    await setKey(user);
+    const [genuine] = await drive('encode', user, 'h264', [
+      frame([0, 0, 0, 1, 0x65, 0x88, 0x11, 0x22, 0x33, 0x44], 'key'),
+    ]);
+    // Forge a frame that readTrailer accepts as RBSP - valid magic, version and
+    // clearBytes in the start-code-safe tail - whose escaped region unescapes to
+    // fewer than TRAILER_LEN bytes. Reading the trailer at a negative offset
+    // throws, and an unguarded throw out of transform() errors the stream and
+    // kills this track's pipeline for good.
+    const forged = new Uint8Array(40);
+    const view = new DataView(forged.buffer);
+    const clearBytes = 20;
+    for (let i = 0; i < 3; i++) {
+      forged.set([0x00, 0x00, 0x03, 0x00], clearBytes + i * 4);
+    }
+    view.setUint16(forged.length - 7, RBSP_FLAG | clearBytes);
+    forged[forged.length - 5] = E2EE_VERSION;
+    view.setUint32(forged.length - 4, MAGIC);
+    posted.length = 0;
+    // The forged frame arrives first; the genuine frame must still decrypt.
+    const out = await drive('decode', user, undefined, [
+      { ...genuine, data: forged.buffer },
+      genuine,
+    ]);
+    expect(out).toHaveLength(1);
+    expect(posted.some((m) => m.type === 'e2ee.error')).toBe(false);
   });
 
   // --- authenticate-before-mutate ------------------------------------------

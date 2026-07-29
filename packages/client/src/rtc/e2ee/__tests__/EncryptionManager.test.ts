@@ -38,6 +38,7 @@ describe('EncryptionManager', () => {
 
     it('returns false when neither API is available', () => {
       const original = globalThis.RTCRtpScriptTransform;
+      // @ts-expect-error test case
       delete globalThis.RTCRtpScriptTransform;
 
       try {
@@ -306,6 +307,7 @@ describe('EncryptionManager', () => {
     it('falls back to Insertable Streams when RTCRtpScriptTransform is unavailable', async () => {
       vi.mocked(isChrome).mockReturnValue(false);
       const original = globalThis.RTCRtpScriptTransform;
+      // @ts-expect-error test case
       delete globalThis.RTCRtpScriptTransform;
       const readable = {};
       const writable = {};
@@ -607,6 +609,33 @@ describe('EncryptionManager', () => {
       manager.dispose();
 
       expect(worker.terminate).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects every other operation once disposed', () => {
+      const sender = { transform: null } as unknown as RTCRtpSender;
+      const receiver = { transform: null } as unknown as RTCRtpReceiver;
+      manager.dispose();
+
+      // The worker is gone, so postMessage is a silent no-op and an attached
+      // transform would stall forever. Fail loudly instead: a reused manager
+      // (e.g. rejoining a Call that kept it) must not look like it is working.
+      expect(() => manager.encrypt(sender, 'vp8')).toThrow(/after dispose/);
+      expect(() => manager.decrypt(receiver, 'remote-user')).toThrow(
+        /after dispose/,
+      );
+      expect(() =>
+        manager.setKey('user', 0, new Uint8Array(16).buffer),
+      ).toThrow(/after dispose/);
+      expect(() => manager.setSharedKey(0, new Uint8Array(16).buffer)).toThrow(
+        /after dispose/,
+      );
+      expect(() => manager.removeKeys('user')).toThrow(/after dispose/);
+      expect(() => manager.requestKeyDump()).toThrow(/after dispose/);
+      expect(() => manager.enablePerformanceReporting(true)).toThrow(
+        /after dispose/,
+      );
+      expect(sender.transform).toBeNull();
+      expect(receiver.transform).toBeNull();
     });
   });
 });

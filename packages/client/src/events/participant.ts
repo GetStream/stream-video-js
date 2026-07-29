@@ -17,11 +17,17 @@ import { pushToIfMissing } from '../helpers/array';
 import type { E2EEManager } from '../rtc/e2ee/E2EEManager';
 
 /**
+ * Reads the call's current encryption manager. Deliberately not the manager
+ * itself: `Call.setE2EEManager` may be called after these handlers are wired up.
+ */
+type GetE2EEManager = () => E2EEManager | undefined;
+
+/**
  * An event responder which handles the `participantJoined` event.
  */
 export const watchParticipantJoined = (
   state: CallState,
-  e2ee?: E2EEManager,
+  e2ee: GetE2EEManager | undefined = undefined,
 ) => {
   return function onParticipantJoined(e: ParticipantJoined) {
     const { participant } = e;
@@ -81,7 +87,10 @@ export const watchParticipantUpdated = (state: CallState) => {
  * An event responder which handles the `trackPublished` event.
  * The SFU will send this event when a participant publishes a track.
  */
-export const watchTrackPublished = (state: CallState, e2ee?: E2EEManager) => {
+export const watchTrackPublished = (
+  state: CallState,
+  e2ee: GetE2EEManager | undefined = undefined,
+) => {
   return function onTrackPublished(e: TrackPublished) {
     const { type, sessionId } = e;
     // An optimization for large calls.
@@ -108,7 +117,10 @@ export const watchTrackPublished = (state: CallState, e2ee?: E2EEManager) => {
  * An event responder which handles the `trackUnpublished` event.
  * The SFU will send this event when a participant unpublishes a track.
  */
-export const watchTrackUnpublished = (state: CallState, e2ee?: E2EEManager) => {
+export const watchTrackUnpublished = (
+  state: CallState,
+  e2ee: GetE2EEManager | undefined = undefined,
+) => {
   return function onTrackUnpublished(e: TrackUnpublished) {
     const { type, sessionId } = e;
     // An optimization for large calls. See `watchTrackPublished`.
@@ -136,23 +148,24 @@ export const watchTrackUnpublished = (state: CallState, e2ee?: E2EEManager) => {
  *
  * @param state the call state.
  * @param participant the participant.
- * @param e2ee the encryption manager, if E2EE is enabled for the call.
+ * @param e2ee accessor for the call's encryption manager, if any.
  */
 const reconcileOrphanedTracks = (
   state: CallState,
   participant: Participant,
-  e2ee?: E2EEManager,
+  e2ee: GetE2EEManager | undefined,
 ): StreamVideoParticipantPatch | undefined => {
   const orphanTracks = state.takeOrphanedTracks(participant.trackLookupPrefix);
   if (!orphanTracks.length) return;
+  const manager = e2ee?.();
   const reconciledTracks: StreamVideoParticipantPatch = {};
   for (const orphan of orphanTracks) {
     const key = trackTypeToParticipantStreamKey(orphan.trackType);
     if (!key) continue;
     reconciledTracks[key] = orphan.track;
 
-    if (e2ee && orphan.receiver) {
-      e2ee.decrypt(
+    if (manager && orphan.receiver) {
+      manager.decrypt(
         orphan.receiver,
         participant.userId,
         TrackType[orphan.trackType],

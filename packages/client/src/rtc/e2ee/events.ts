@@ -31,12 +31,32 @@ export type RotationEvent = {
 };
 
 /**
- * Fired when the local encoder has no key to encrypt with — the host has not
- * provided one yet, or a key import failed. Outgoing frames are dropped (the
- * sender publishes nothing) until a key is set via `setKey` / `setSharedKey`.
+ * Fired when a key that is needed is not held:
+ * - without `keyIndex`, the local encoder has no key to encrypt with (the host
+ *   never provided one, or a key import failed) and outgoing frames are dropped;
+ * - with `keyIndex`, a remote sender's frame referenced a key at that index that
+ *   this peer does not hold, so the frame was dropped. Normal while a key is
+ *   still in flight or a rotation has not propagated yet.
  */
 export type MissingKeyEvent = {
-  /** The local sender that has no usable key. */
+  /** The sender whose key is missing: the local user, or the remote sender. */
+  userId: string;
+  /**
+   * The keyIndex the remote frame asked for. Present only for the decode
+   * direction; absent when the local encoder has no key at all.
+   */
+  keyIndex?: number;
+};
+
+/**
+ * Fired when a frame from a remote participant arrives unencrypted and is
+ * forwarded to the decoder as-is. Expected when the call's encryption mode is
+ * `available` and that peer publishes plain; on a call where every peer is meant
+ * to encrypt it means media is being rendered without authentication.
+ * Throttled to at most once per second per remote track in the worker.
+ */
+export type UnencryptedFrameEvent = {
+  /** Remote user whose frame carried no E2EE framing. */
   userId: string;
 };
 
@@ -124,15 +144,24 @@ export type E2EEEventMap = {
   'e2ee.encryption_failed': EncryptionFailedEvent;
 
   /**
-   * Emitted when the encoder has no key for the local user, so outgoing
-   * frames are being dropped — the sender is effectively publishing nothing.
-   * Distinct from {@link E2EEEventMap}'s `e2ee.encryption_failed`, which means
-   * a key was present but the crypto operation threw.
+   * Emitted when a needed key is not held. Without `keyIndex`, the encoder has
+   * no key for the local user, so outgoing frames are being dropped — the sender
+   * is effectively publishing nothing. With `keyIndex`, a remote sender's frame
+   * referenced a key this peer does not hold and was dropped; that is the normal
+   * state while key distribution or a rotation is still in flight, which is why
+   * it is not reported as `e2ee.decryption_failed`.
    *
-   * The host should set / distribute a key for this user. Throttled to at
-   * most once per second per user in the worker, and stops once a key is set.
+   * Distinct from `e2ee.encryption_failed`, which means a key was present but
+   * the crypto operation threw. The host should set / distribute a key. Throttled
+   * in the worker and stops once the key arrives.
    */
   'e2ee.missing_key': MissingKeyEvent;
+
+  /**
+   * Emitted when a remote frame arrives unencrypted and is forwarded to the
+   * decoder as-is.
+   */
+  'e2ee.unencrypted_frame': UnencryptedFrameEvent;
 
   /**
    * Emitted every second when perf reporting is enabled via

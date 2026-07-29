@@ -4,8 +4,6 @@
  * but `Call.setE2EEManager` accepts any implementation - so an integrator can
  * plug in a custom scheme (for example RFC 9605 SFrame) by attaching their own
  * encoded transform inside these two methods, without using Stream's worker.
- *
- * These are the only members Publisher and Subscriber ever call.
  */
 export interface E2EEManager {
   /**

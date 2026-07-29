@@ -206,7 +206,7 @@ describe('Participant events', () => {
         receiver,
       });
       // @ts-expect-error partial mock
-      const onParticipantJoined = watchParticipantJoined(state, e2ee);
+      const onParticipantJoined = watchParticipantJoined(state, () => e2ee);
       onParticipantJoined({
         // @ts-expect-error incomplete data
         participant: {
@@ -232,7 +232,7 @@ describe('Participant events', () => {
         receiver,
       });
       // @ts-expect-error partial mock
-      const onTrackPublished = watchTrackPublished(state, e2ee);
+      const onTrackPublished = watchTrackPublished(state, () => e2ee);
       onTrackPublished({
         // @ts-expect-error incomplete data
         participant: {
@@ -258,7 +258,7 @@ describe('Participant events', () => {
         receiver,
       });
       // @ts-expect-error partial mock
-      const onTrackUnPublished = watchTrackUnpublished(state, e2ee);
+      const onTrackUnPublished = watchTrackUnpublished(state, () => e2ee);
       onTrackUnPublished({
         // @ts-expect-error incomplete data
         participant: {
@@ -311,7 +311,7 @@ describe('Participant events', () => {
         id: mediaStream.id,
       });
       // @ts-expect-error partial mock
-      const onParticipantJoined = watchParticipantJoined(state, e2ee);
+      const onParticipantJoined = watchParticipantJoined(state, () => e2ee);
       onParticipantJoined({
         // @ts-expect-error incomplete data
         participant: {

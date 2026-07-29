@@ -104,6 +104,19 @@ const buildIv = (
 };
 
 /**
+ * Consume and return this OBU's positional tileIdx within its layer, advancing
+ * `tileCounts`. Every coded OBU must consume exactly one index on both the
+ * encrypt and the decrypt path - including one the decryptor leaves alone -
+ * otherwise the salt of the following same-layer OBUs shifts.
+ */
+const nextTileIdx = (obu: Obu, tileCounts: Map<number, number>): number => {
+  const layerKey = (obu.spatialId << 3) | obu.temporalId;
+  const tileIdx = tileCounts.get(layerKey) ?? 0;
+  tileCounts.set(layerKey, tileIdx + 1);
+  return tileIdx;
+};
+
+/**
  * Derive the per-OBU AES-GCM params shared by encrypt and decrypt: the
  * layer-salted IV and the AAD (OBU header + inline header). Advances
  * `tileCounts` for the OBU's layer so the positional tileIdx is re-derived
@@ -119,10 +132,11 @@ const obuCryptoParams = (
   frameCounter: number,
   inlineHeader: Uint8Array,
 ): { iv: Uint8Array<ArrayBuffer>; aad: Uint8Array } => {
-  const layerKey = (obu.spatialId << 3) | obu.temporalId;
-  const tileIdx = tileCounts.get(layerKey) ?? 0;
-  tileCounts.set(layerKey, tileIdx + 1);
-  const salt = packSalt(obu.spatialId, obu.temporalId, tileIdx);
+  const salt = packSalt(
+    obu.spatialId,
+    obu.temporalId,
+    nextTileIdx(obu, tileCounts),
+  );
   return {
     iv: buildIv(ivPrefix, salt, frameCounter),
     aad: concatBytes(aadHeader(obu), inlineHeader),
@@ -239,7 +253,13 @@ export const decryptAv1Frame = async (
     parsed.obus.map(async (obu) => {
       if (!AV1_ENCRYPTED_OBU_TYPES.has(obu.type)) return;
       const ih = readInlineHeader(obu.payload);
-      if (!ih) return; // a coded OBU without our header: leave as-is
+      if (!ih) {
+        // Leave the OBU as-is, but still consume this layer's tileIdx: the
+        // encoder counts every coded OBU, so skipping the bump here would shift
+        // the salt of the following same-layer OBUs and fail their GCM check.
+        nextTileIdx(obu, tileCounts);
+        return;
+      }
       if (
         ih.keyIndex !== parsed.keyIndex ||
         ih.frameCounter !== parsed.frameCounter ||

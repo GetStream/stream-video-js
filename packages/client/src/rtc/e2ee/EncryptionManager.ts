@@ -15,49 +15,8 @@ export type {
   PerfReport,
   RotationEvent,
   TrackPerf,
+  UnencryptedFrameEvent,
 } from './events';
-
-/**
- * Per worker-event logging: severity + a message builder fed the event payload.
- * `null` means "forward without logging" (perf_report / key_state are verbose /
- * high-frequency). This table is the only per-event code in the worker-message
- * path; being keyed by {@link E2EEEventMap} it fails to compile if an event is
- * added without an entry, so the worker contract can't silently drift.
- */
-const WORKER_EVENT_LOG: {
-  [E in keyof E2EEEventMap]: {
-    level: 'error' | 'warn' | 'info';
-    message: (payload: E2EEEventMap[E]) => string;
-  } | null;
-} = {
-  'e2ee.decryption_failed': {
-    level: 'warn',
-    message: (p) => `Decryption failed for user: ${p.userId}`,
-  },
-  'e2ee.decryption_resumed': {
-    level: 'info',
-    message: (p) => `Decryption resumed for user: ${p.userId}`,
-  },
-  'e2ee.encryption_failed': {
-    level: 'error',
-    message: (p) => `Encryption failed: ${p.reason}`,
-  },
-  'e2ee.missing_key': {
-    level: 'warn',
-    message: (p) => `No encryption key for user: ${p.userId}`,
-  },
-  'e2ee.rotation_needed': {
-    level: 'warn',
-    message: (p) => `Rekey requested (counter-threshold) for user: ${p.userId}`,
-  },
-  'e2ee.broken': {
-    level: 'error',
-    message: (p) =>
-      `E2EE broken for user ${p.userId} at keyIndex ${p.keyIndex}`,
-  },
-  'e2ee.key_state': null,
-  'e2ee.perf_report': null,
-};
 
 /**
  * AES-GCM variant used for media frame encryption.
@@ -69,7 +28,9 @@ const WORKER_EVENT_LOG: {
 export type E2EEAlgorithm = 'AES-128-GCM' | 'AES-256-GCM';
 
 type CreateOptions = {
-  /** Defaults to `'AES-128-GCM'` */
+  /**
+   * Defaults to 'AES-128-GCM'
+   */
   algorithm?: E2EEAlgorithm;
   /**
    * Opt a Chrome-based browser into the standard `RTCRtpScriptTransform` API
@@ -223,10 +184,23 @@ export class EncryptionManager
   };
 
   /**
+   * Reject any use of a disposed manager. The worker is terminated by
+   * {@link dispose}, so `postMessage` becomes a silent no-op and an attached
+   * transform is wired to a dead worker: frames would stall forever with no key
+   * import, no error and no event. Failing loudly is also fail-closed - a caller
+   * that swallows this still publishes nothing rather than cleartext.
+   */
+  private assertUsable = (operation: string) => {
+    if (this.disposed) {
+      throw new Error(`EncryptionManager.${operation} called after dispose()`);
+    }
+  };
+
+  /**
    * Terminate the worker and release all resources.
    *
-   * After calling this, the manager instance is no longer usable.
-   * Call {@link create} to obtain a new one if needed.
+   * After calling this, the manager instance is no longer usable: every other
+   * method throws. Call {@link create} to obtain a new one if needed.
    * Safe to call multiple times.
    */
   dispose = (): void => {
@@ -269,6 +243,7 @@ export class EncryptionManager
    *         caller's buffer is not detached and may be re-imported.
    */
   setKey = (userId: string, keyIndex: number, rawKey: ArrayBuffer): void => {
+    this.assertUsable('setKey');
     this.validateKeyIndex(keyIndex);
     this.validateKeyLength(rawKey);
     // Structured-clone the key (no transfer list): transferring would detach
@@ -291,6 +266,7 @@ export class EncryptionManager
    *         caller's buffer is not detached and may be re-imported.
    */
   setSharedKey = (keyIndex: number, rawKey: ArrayBuffer): void => {
+    this.assertUsable('setSharedKey');
     this.validateKeyIndex(keyIndex);
     this.validateKeyLength(rawKey);
     // Structured-clone (no transfer list) so the caller's buffer is not
@@ -307,6 +283,7 @@ export class EncryptionManager
    * @param userId - The user's ID whose keys should be removed.
    */
   removeKeys = (userId: string): void => {
+    this.assertUsable('removeKeys');
     this.worker.postMessage({ type: 'cmd.remove_keys', userId });
   };
 
@@ -324,6 +301,7 @@ export class EncryptionManager
     codec?: string,
     trackType?: string,
   ): void => {
+    this.assertUsable('encrypt');
     this.pipe(sender, {
       operation: 'encode',
       userId: this.userId,
@@ -346,6 +324,7 @@ export class EncryptionManager
     userId: string,
     trackType?: string,
   ): void => {
+    this.assertUsable('decrypt');
     this.pipe(receiver, { operation: 'decode', userId, trackType });
   };
 
@@ -388,6 +367,7 @@ export class EncryptionManager
    * @param enabled - Whether to enable or disable perf reporting.
    */
   enablePerformanceReporting = (enabled: boolean): void => {
+    this.assertUsable('enablePerformanceReporting');
     this.worker.postMessage({
       type: 'cmd.enable_performance_reporting',
       enabled,
@@ -403,6 +383,7 @@ export class EncryptionManager
    * fingerprints; raw key material is never returned.
    */
   requestKeyDump = (): void => {
+    this.assertUsable('requestKeyDump');
     this.worker.postMessage({ type: 'cmd.dump_key_state' });
   };
 
@@ -422,14 +403,9 @@ export class EncryptionManager
       this.logger.error(e.data.message);
       return;
     }
-    if (!(type in WORKER_EVENT_LOG)) return; // unknown / non-event message
     const event = type as keyof E2EEEventMap;
-    const log = WORKER_EVENT_LOG[event];
-    if (log)
-      this.logger[log.level]((log.message as (p: any) => string)(payload));
-    // The worker posts each notification already shaped as its event-map
-    // payload, so the rest of the message forwards verbatim. WORKER_EVENT_LOG is
-    // keyed by E2EEEventMap, so a new event won't compile without an entry here.
+    this.logger.debug('Dispatching', event, payload);
+
     this.emit(event, payload as never);
   };
 
