@@ -124,9 +124,8 @@ export class EncryptionManager
   /**
    * Create an EncryptionManager instance and initialize the E2EE Web Worker.
    *
-   * This is async because it dynamically imports the worker module,
-   * keeping the ~5 KB worker source out of the main bundle for consumers
-   * who don't use E2EE.
+   * This is async because it dynamically imports the worker module, keeping
+   * the worker source out of the main bundle for consumers who don't use E2EE.
    *
    * @param userId - The local user's ID (typically `call.currentUserId`),
    *         used for encryption key lookup when attaching encryptors.
@@ -155,9 +154,7 @@ export class EncryptionManager
     options?: CreateOptions,
   ): Promise<EncryptionManager> => {
     if (!EncryptionManager.isSupported()) {
-      throw new Error(
-        `E2EE is not supported in this browser. Check EncryptionManager.isSupported() before calling create().`,
-      );
+      throw new Error(`E2EE is not supported in this browser`);
     }
     const { e2eeWorker } = await import('./e2ee-worker');
     const blob = new Blob([`(${e2eeWorker.toString()})()`], {
