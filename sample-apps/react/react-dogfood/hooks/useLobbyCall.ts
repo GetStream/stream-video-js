@@ -3,10 +3,15 @@ import {
   Call,
   CallingState,
   CallRequest,
+  EncryptionManager,
   StreamVideoClient,
 } from '@stream-io/video-react-sdk';
 
-import { ENCRYPTION_OVERRIDE } from '../lib/e2ee';
+import {
+  deriveKeyFromPassphrase,
+  ENCRYPTION_OVERRIDE,
+  SHARED_KEY_INDEX,
+} from '../lib/e2ee';
 import { meetingId } from '../lib/idGenerators';
 import type { LobbyE2EEContextValue } from '../context/LobbyE2EEContext';
 
@@ -137,8 +142,21 @@ export const useLobbyCall = ({
       disableEncryption: () => switchEncryption(false),
       updateEncryptionKey: (key: string) => {
         setEncryptionKey(key);
-        const id = activeCallRef.current?.id;
-        if (id) replaceUrl(id, key);
+        const activeCall = activeCallRef.current;
+        if (activeCall) replaceUrl(activeCall.id, key);
+        // Before joining there is no manager yet and the key is picked up from
+        // state at join time. Once joined, the worker already holds the old key
+        // and has to be told about the new one, otherwise correcting a mistyped
+        // key would mean rejoining the call. Re-using SHARED_KEY_INDEX replaces
+        // the key in place; the worker clears its failure count for that index on
+        // the first frame that decrypts and reports `e2ee.decryption_resumed`.
+        const manager = activeCall?.e2eeManager;
+        if (!(manager instanceof EncryptionManager)) return;
+        deriveKeyFromPassphrase(key)
+          .then((rawKey) => manager.setSharedKey(SHARED_KEY_INDEX, rawKey))
+          .catch((err) =>
+            console.error('Failed to apply the new encryption key', err),
+          );
       },
     }),
     [encryptionKey, switchEncryption, replaceUrl],

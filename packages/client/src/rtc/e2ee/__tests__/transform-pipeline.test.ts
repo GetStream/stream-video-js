@@ -9,7 +9,12 @@ import {
   TRAILER_LEN,
 } from '../e2ee-worker/constants';
 
-type Posted = { type?: string; userId?: string; keyIndex?: number };
+type Posted = {
+  type?: string;
+  userId?: string;
+  keyIndex?: number;
+  trackType?: string;
+};
 const posted: Posted[] = [];
 
 // The worker registers its 'message' / 'rtctransform' listeners at import time
@@ -71,6 +76,7 @@ const drive = async (
   userId: string,
   codec: string | undefined,
   frames: Frame[],
+  trackType?: string,
 ): Promise<Frame[]> => {
   const out: Frame[] = [];
   const readable = new ReadableStream<Frame>({
@@ -95,6 +101,7 @@ const drive = async (
     operation,
     userId,
     codec,
+    trackType,
   });
   await done;
   return out;
@@ -338,14 +345,29 @@ describe('decode pipeline edge behaviors', () => {
     });
     const genuine = encrypted[n - 1];
     posted.length = 0;
-    const out = await drive('decode', user, undefined, [...garbage, genuine]);
+    const out = await drive(
+      'decode',
+      user,
+      undefined,
+      [...garbage, genuine],
+      'VIDEO',
+    );
     // The genuine final frame still decrypts — the key was NOT latched invalid
     // by the preceding failure burst.
     expect(out).toHaveLength(1);
     expect(Array.from(new Uint8Array(out[0].data))).toEqual(plaintexts[n - 1]);
     // The break is surfaced once (on the tolerance crossing) and recovery once.
-    expect(posted.filter((m) => m.type === 'e2ee.broken')).toHaveLength(1);
-    expect(posted.some((m) => m.type === 'e2ee.decryption_resumed')).toBe(true);
+    // Both name the track: a peer's audio and video are separate transforms
+    // reported under one userId, so a host cannot pair them up without this.
+    expect(posted.filter((m) => m.type === 'e2ee.broken')).toEqual([
+      { type: 'e2ee.broken', userId: user, keyIndex: 0, trackType: 'VIDEO' },
+    ]);
+    expect(posted.filter((m) => m.type === 'e2ee.decryption_resumed')).toEqual([
+      { type: 'e2ee.decryption_resumed', userId: user, trackType: 'VIDEO' },
+    ]);
+    expect(posted.filter((m) => m.type === 'e2ee.decryption_failed')).toEqual([
+      { type: 'e2ee.decryption_failed', userId: user, trackType: 'VIDEO' },
+    ]);
   });
 
   it('scopes failure accounting per track so a healthy track cannot mask a broken one', async () => {

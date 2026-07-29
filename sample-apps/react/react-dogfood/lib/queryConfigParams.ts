@@ -4,6 +4,7 @@ import {
   PreferredCodec,
   EncryptionManager,
 } from '@stream-io/video-react-sdk';
+import { deriveKeyFromPassphrase, SHARED_KEY_INDEX } from './e2ee';
 
 export const getQueryConfigParams = (query: NextRouter['query']) => {
   return {
@@ -22,32 +23,6 @@ export const getQueryConfigParams = (query: NextRouter['query']) => {
     microphoneOverride: query['mic'] as string | undefined,
     encryptionKey: query['encryption_key'] as string | undefined,
   };
-};
-
-/**
- * Derive a 128-bit (16-byte) AES key from a passphrase using PBKDF2.
- */
-const deriveKeyFromPassphrase = async (
-  passphrase: string,
-): Promise<ArrayBuffer> => {
-  const enc = new TextEncoder();
-  const baseKey = await crypto.subtle.importKey(
-    'raw',
-    enc.encode(passphrase),
-    'PBKDF2',
-    false,
-    ['deriveBits'],
-  );
-  return crypto.subtle.deriveBits(
-    {
-      name: 'PBKDF2',
-      salt: enc.encode('stream-e2ee'),
-      iterations: 100_000,
-      hash: 'SHA-256',
-    },
-    baseKey,
-    128,
-  );
 };
 
 export const applyQueryConfigParams = async (
@@ -110,7 +85,7 @@ export const applyQueryConfigParams = async (
   ) {
     const rawKey = await deriveKeyFromPassphrase(encryptionKey);
     const e2ee = await EncryptionManager.create(call.currentUserId);
-    e2ee.setSharedKey(0, rawKey);
+    e2ee.setSharedKey(SHARED_KEY_INDEX, rawKey);
     call.setE2EEManager(e2ee);
   }
 

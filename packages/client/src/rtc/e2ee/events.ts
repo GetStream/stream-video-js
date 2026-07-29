@@ -67,6 +67,8 @@ export type UnencryptedFrameEvent = {
 export type DecryptionFailedEvent = {
   /** Remote user whose frame could not be decrypted. */
   userId: string;
+  /** The failing track (VIDEO / AUDIO / SCREEN_SHARE), tracked per track. */
+  trackType?: string;
 };
 
 /**
@@ -76,6 +78,8 @@ export type DecryptionFailedEvent = {
 export type DecryptionResumedEvent = {
   /** Remote user whose frames decrypt successfully again. */
   userId: string;
+  /** The recovered track. */
+  trackType?: string;
 };
 
 /**
@@ -96,6 +100,8 @@ export type E2EEBrokenEvent = {
   userId: string;
   /** The keyIndex that crossed the failure tolerance. */
   keyIndex: number;
+  /** The broken track. */
+  trackType?: string;
 };
 
 /**

@@ -389,7 +389,7 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
   const failureThrottle = createThrottle(1000);
   const notifyFailure = () => {
     if (failureThrottle.tryFire(userId)) {
-      self.postMessage({ type: 'e2ee.decryption_failed', userId });
+      self.postMessage({ type: 'e2ee.decryption_failed', userId, trackType });
     }
   };
   const resumedThrottle = createThrottle(1000);
@@ -464,7 +464,11 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
       // Recovery edge: fire only when this track had been failing, throttled so
       // a flapping track can't emit resumed once per frame.
       if (failures.recordSuccess(keyIndex) && resumedThrottle.tryFire(userId)) {
-        self.postMessage({ type: 'e2ee.decryption_resumed', userId });
+        self.postMessage({
+          type: 'e2ee.decryption_resumed',
+          userId,
+          trackType,
+        });
       }
       frame.data = data;
       controller.enqueue(frame);
@@ -476,7 +480,7 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
       const becameInvalid = failures.recordFailure(keyIndex);
       notifyFailure();
       if (becameInvalid) {
-        self.postMessage({ type: 'e2ee.broken', userId, keyIndex });
+        self.postMessage({ type: 'e2ee.broken', userId, keyIndex, trackType });
       }
     }
   };
