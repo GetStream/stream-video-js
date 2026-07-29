@@ -211,7 +211,9 @@ private extension AudioUploader {
             return nil
         }
 
-        let frameCount = Int(buffers[0].mDataByteSize) / bytesPerSample
+        let minPlaneBytes = buffers.reduce(Int.max) { min($0, Int($1.mDataByteSize)) }
+        let frameCount = minPlaneBytes / bytesPerSample
+        guard frameCount > 0 else { return nil }
         var output = Data(count: frameCount * channels * bytesPerSample)
         output.withUnsafeMutableBytes { dstRaw in
             guard let dst = dstRaw.baseAddress else { return }
