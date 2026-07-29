@@ -24,6 +24,7 @@ import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 import { TransceiverCache } from '../TransceiverCache';
 import { promiseWithResolvers } from '../../helpers/promise';
+import { settled } from '../../helpers/concurrency';
 import { isFirefox } from '../../helpers/browsers';
 
 vi.mock('../../StreamSfuClient', () => {
@@ -1934,6 +1935,206 @@ describe('Publisher', () => {
       expect(setParametersSpy).not.toHaveBeenCalled();
       // track.stop() still runs so local resources are released
       expect(trackStopSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('concurrent transceiver management', () => {
+    const videoOption = (id: number, codecName: string): PublishOption =>
+      fromPartial({
+        id,
+        trackType: TrackType.VIDEO,
+        bitrate: 1000,
+        codec: { name: codecName },
+        fps: 30,
+        maxTemporalLayers: 3,
+        maxSpatialLayers: 3,
+        degradationPreference: DegradationPreference.UNSPECIFIED,
+      });
+
+    const makeTrack = (): MediaStreamTrack => {
+      const track = new MediaStreamTrack();
+      // @ts-expect-error readonly field
+      track.id = crypto.randomUUID();
+      vi.spyOn(track, 'clone').mockImplementation(() => makeTrack());
+      return track;
+    };
+
+    const makeTransceiver = (track: MediaStreamTrack) => {
+      const transceiver = new RTCRtpTransceiver();
+      // @ts-expect-error test setup
+      transceiver.sender.track = track;
+      transceiver.sender.replaceTrack = vi.fn(async (next) => {
+        // @ts-expect-error test setup
+        transceiver.sender.track = next;
+      });
+      return transceiver;
+    };
+
+    /**
+     * The shared mock returns the same transceiver for every call, which would
+     * hide duplicates. Give every `addTransceiver` call its own transceiver,
+     * with the track bound to the sender like the browser does.
+     */
+    const withDistinctTransceivers = (
+      decorate: (transceiver: RTCRtpTransceiver) => void = () => {},
+    ) => {
+      vi.spyOn(publisher['pc'], 'addTransceiver').mockImplementation(
+        // @ts-expect-error the mock only implements what the Publisher uses
+        (track: MediaStreamTrack) => {
+          const transceiver = makeTransceiver(track);
+          decorate(transceiver);
+          return transceiver;
+        },
+      );
+    };
+
+    const announcedKeys = () =>
+      publisher
+        .getAnnouncedTracks(undefined)
+        .map((track) => `${track.trackType}:${track.publishOptionId}`);
+
+    beforeEach(() => {
+      withDistinctTransceivers();
+      // @ts-expect-error private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+    });
+
+    it('announces one track per publish option when publish() runs concurrently', async () => {
+      await Promise.all([
+        publisher.publish(makeTrack(), TrackType.VIDEO),
+        publisher.publish(makeTrack(), TrackType.VIDEO),
+      ]);
+
+      expect(publisher['transceiverCache'].items()).toHaveLength(1);
+      expect(announcedKeys()).toEqual([`${TrackType.VIDEO}:1`]);
+    });
+
+    it('announces one track per publish option when publish() runs during a codec switch', async () => {
+      const track = makeTrack();
+      await publisher.publish(track, TrackType.VIDEO);
+
+      // stall the first await inside addTransceiver, so the codec switch is
+      // still in-flight when the next publish() looks up the cache
+      let releaseCodecSwitch!: () => void;
+      const codecSwitch = new Promise<void>((resolve) => {
+        releaseCodecSwitch = resolve;
+      });
+      withDistinctTransceivers((transceiver) => {
+        transceiver.sender.setParameters = vi.fn(() => codecSwitch);
+      });
+
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'changePublishOptions',
+            changePublishOptions: {
+              publishOptions: [videoOption(1, 'vp9'), videoOption(2, 'av1')],
+              reason: 'test',
+            },
+          },
+        }) as DispatchableMessage<'changePublishOptions'>,
+        'test',
+      );
+      await vi.waitFor(() =>
+        expect(publisher['pc'].addTransceiver).toHaveBeenCalled(),
+      );
+
+      const publishTask = publisher.publish(track, TrackType.VIDEO);
+      // let publish() reach the cache lookup for the new publish option
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      releaseCodecSwitch();
+      await publishTask;
+      await settled(publisher['eventLockKey']('changePublishOptions'));
+
+      expect(announcedKeys()).toEqual([
+        `${TrackType.VIDEO}:1`,
+        `${TrackType.VIDEO}:2`,
+      ]);
+    });
+
+    it('rejects a queued publish whose publish options were retired', async () => {
+      // stall the first negotiation, so the next publish() has to queue
+      const firstNegotiation = promiseWithResolvers<void>();
+      let negotiations = 0;
+      // @ts-expect-error private method
+      vi.spyOn(publisher, 'negotiate').mockImplementation(() =>
+        ++negotiations === 1 ? firstNegotiation.promise : Promise.resolve(),
+      );
+
+      const firstPublish = publisher.publish(makeTrack(), TrackType.VIDEO);
+      await vi.waitFor(() => expect(negotiations).toBe(1));
+
+      const queuedPublish = publisher.publish(makeTrack(), TrackType.VIDEO);
+      // video is retired while the second publish waits for the lock
+      publisher['publishOptions'] = [];
+
+      firstNegotiation.resolve();
+      await firstPublish;
+
+      // it must not report success without having published anything
+      await expect(queuedPublish).rejects.toThrow(
+        'No publish options found for VIDEO',
+      );
+      expect(publisher['pc'].addTransceiver).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not keep publishing with an option retired mid-publish', async () => {
+      publisher['publishOptions'] = [
+        videoOption(1, 'vp9'),
+        videoOption(2, 'av1'),
+      ];
+
+      // stall the first negotiation, so publish() is suspended in its loop
+      // after option 1 was added but before option 2 is reached
+      const firstNegotiation = promiseWithResolvers<void>();
+      let negotiations = 0;
+      // @ts-expect-error private method
+      vi.spyOn(publisher, 'negotiate').mockImplementation(() =>
+        ++negotiations === 1 ? firstNegotiation.promise : Promise.resolve(),
+      );
+
+      const publishTask = publisher.publish(makeTrack(), TrackType.VIDEO);
+      await vi.waitFor(() => expect(negotiations).toBe(1));
+
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'changePublishOptions',
+            changePublishOptions: {
+              publishOptions: [videoOption(1, 'vp9')],
+              reason: 'test',
+            },
+          },
+        }) as DispatchableMessage<'changePublishOptions'>,
+        'test',
+      );
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      firstNegotiation.resolve();
+      await publishTask;
+      await settled(publisher['eventLockKey']('changePublishOptions'));
+
+      expect(announcedKeys()).toEqual([`${TrackType.VIDEO}:1`]);
+    });
+
+    it('reuses the transceiver on republish after setParameters failed', async () => {
+      withDistinctTransceivers((transceiver) => {
+        transceiver.sender.setParameters = vi
+          .fn()
+          .mockRejectedValueOnce(new Error('InvalidModificationError'));
+      });
+
+      await expect(
+        publisher.publish(makeTrack(), TrackType.VIDEO),
+      ).rejects.toThrow('InvalidModificationError');
+
+      // the transceiver the browser created is tracked, so the republish
+      // reuses it instead of adding a second one for the same publish option
+      await publisher.publish(makeTrack(), TrackType.VIDEO);
+
+      expect(publisher['pc'].addTransceiver).toHaveBeenCalledTimes(1);
+      expect(publisher['transceiverCache'].items()).toHaveLength(1);
+      expect(announcedKeys()).toEqual([`${TrackType.VIDEO}:1`]);
     });
   });
 });
