@@ -12,6 +12,10 @@ import { type ConfigProps } from './common/types';
 const GENERATED_SERVICE_CLASS_NAME = 'StreamVideoMessagingService';
 const STREAM_DEFAULT_SERVICE =
   'io.getstream.rn.callingx.StreamMessagingService';
+/** React Native Firebase's own FCM service. */
+const RN_FIREBASE_SERVICE =
+  'io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService';
+
 const MESSAGING_EVENT_ACTION = 'com.google.firebase.MESSAGING_EVENT';
 /**
  * The generated service lives in the `:app` module, which only has
@@ -79,6 +83,18 @@ function buildServiceSource(
   baseClassFqcn: string,
 ): string {
   const simpleName = baseClassFqcn.split('.').pop();
+
+  const shouldForwardNewToken = baseClassFqcn !== RN_FIREBASE_SERVICE;
+  const onNewToken = shouldForwardNewToken
+    ? `
+  override fun onNewToken(token: String) {
+    super.onNewToken(token)
+    // Keep Stream's device registration working under a non-RNFirebase base.
+    StreamMessagingHelper.forwardNewToken(token)
+  }
+`
+    : '';
+
   return `package ${androidPackage}
 
 import android.annotation.SuppressLint
@@ -102,7 +118,7 @@ class ${GENERATED_SERVICE_CLASS_NAME} : ${simpleName}() {
     // Forward to the base class so its own message handling still runs.
     super.onMessageReceived(remoteMessage)
   }
-}
+${onNewToken}}
 `;
 }
 

@@ -62,6 +62,22 @@ describe('buildServiceSource', () => {
     );
     expect(source).toContain('super.onMessageReceived(remoteMessage)');
   });
+
+  it('forwards onNewToken via StreamMessagingHelper when base is not RN Firebase', () => {
+    expect(source).toContain('override fun onNewToken(token: String)');
+    expect(source).toContain('StreamMessagingHelper.forwardNewToken(token)');
+    // no direct coupling to RN Firebase internals in the generated code
+    expect(source).not.toContain('ReactNativeFirebaseEventEmitter');
+  });
+
+  it('omits the onNewToken override when base already is RN Firebase', () => {
+    const rnfbSource = buildServiceSource(
+      APP_PACKAGE,
+      'io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService',
+    );
+    expect(rnfbSource).not.toContain('override fun onNewToken');
+    expect(rnfbSource).not.toContain('forwardNewToken');
+  });
 });
 
 describe('updateManifest', () => {
