@@ -61,6 +61,18 @@ const setKey = async (userId: string, keyIndex = 0) => {
   });
   await flush();
 };
+const setSharedKey = async (keyIndex: number, rawKey = KEY) => {
+  message({
+    type: 'cmd.set_shared_key',
+    keyIndex,
+    rawKey: new Uint8Array(rawKey).buffer,
+  });
+  await flush();
+};
+const removeSharedKey = async (keyIndex: number) => {
+  message({ type: 'cmd.remove_shared_key', keyIndex });
+  await flush();
+};
 const removeKeys = async (userId: string) => {
   message({ type: 'cmd.remove_keys', userId });
   await flush();
@@ -73,6 +85,11 @@ const frame = (bytes: number[], type: Frame['type']): Frame => ({
   data: new Uint8Array(bytes).buffer,
   type,
   timestamp: 1,
+});
+
+const cloneFrame = (source: Frame): Frame => ({
+  ...source,
+  data: source.data.slice(0),
 });
 
 // Attach a transform via the real worker message path (Insertable Streams
@@ -244,6 +261,51 @@ describe('encode -> decode pipeline round-trips', () => {
     expect(bytes.slice(1, pt.length)).not.toEqual(pt.slice(1));
     const [decrypted] = await drive('decode', user, undefined, [encrypted]);
     expect(Array.from(new Uint8Array(decrypted.data))).toEqual(pt);
+  });
+
+  it('keeps old shared epochs decryptable until explicitly removed', async () => {
+    const user = freshUser();
+    const oldPlaintext = [1, 2, 3, 4, 5, 6, 7, 8];
+    const newPlaintext = [9, 10, 11, 12, 13, 14, 15, 16];
+    const nextKey = KEY.map((byte) => byte + 16);
+
+    await setSharedKey(1);
+    const [oldEncrypted] = await drive('encode', user, 'vp8', [
+      frame(oldPlaintext, 'delta'),
+    ]);
+
+    await setSharedKey(2, nextKey);
+    const [newEncrypted] = await drive('encode', user, 'vp8', [
+      frame(newPlaintext, 'delta'),
+    ]);
+
+    const duringRotation = await drive('decode', user, undefined, [
+      cloneFrame(oldEncrypted),
+      cloneFrame(newEncrypted),
+    ]);
+    expect(
+      duringRotation.map((decoded) => Array.from(new Uint8Array(decoded.data))),
+    ).toEqual([oldPlaintext, newPlaintext]);
+
+    await removeSharedKey(1);
+    posted.length = 0;
+    expect(
+      await drive('decode', user, undefined, [cloneFrame(oldEncrypted)]),
+    ).toHaveLength(0);
+    expect(posted).toContainEqual(
+      expect.objectContaining({
+        type: 'e2ee.missing_key',
+        userId: user,
+        keyIndex: 1,
+      }),
+    );
+
+    const [stillDecryptable] = await drive('decode', user, undefined, [
+      cloneFrame(newEncrypted),
+    ]);
+    expect(Array.from(new Uint8Array(stillDecryptable.data))).toEqual(
+      newPlaintext,
+    );
   });
 });
 

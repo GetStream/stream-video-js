@@ -100,7 +100,12 @@ export type KeyStateReport = {
     keyIndex: number;
     fingerprint: string;
   }>;
-  sharedKey: { keyIndex: number; fingerprint: string } | null;
+  /** Every shared receive epoch, including the one currently used to encode. */
+  sharedKeys: Array<{
+    keyIndex: number;
+    fingerprint: string;
+    isActive: boolean;
+  }>;
 };
 
 /**

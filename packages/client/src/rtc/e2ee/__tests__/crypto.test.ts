@@ -26,6 +26,7 @@ import {
   importSharedKey,
   nextFrameCounter,
   removeKeys,
+  removeSharedKey,
 } from '../e2ee-worker/crypto';
 
 const rawKey = (seed = 0xab): ArrayBuffer => {
@@ -328,7 +329,14 @@ describe('dumpKeyState', () => {
     });
     // Fingerprint is 8 bytes = 16 hex chars.
     expect(dump.perUserKeys[0].fingerprint).toMatch(/^[0-9a-f]{16}$/);
-    expect(dump.sharedKey!.fingerprint).toMatch(/^[0-9a-f]{16}$/);
+    expect(dump.sharedKeys[0].fingerprint).toMatch(/^[0-9a-f]{16}$/);
+    expect(dump.sharedKeys).toEqual([
+      {
+        keyIndex: 0,
+        fingerprint: dump.sharedKeys[0].fingerprint,
+        isActive: true,
+      },
+    ]);
   });
 
   it('identifies key material: same key same print, different key different', async () => {
@@ -344,6 +352,65 @@ describe('dumpKeyState', () => {
 
     expect(same.fingerprint).toBe(alice);
     expect(different.fingerprint).not.toBe(alice);
+  });
+});
+
+describe('shared-key rotation', () => {
+  it('retains old epochs for decryption and encrypts with the newest', async () => {
+    await importSharedKey(1, rawKey(0x11));
+    const oldKey = getKey('alice', 1);
+
+    await importSharedKey(2, rawKey(0x22));
+
+    expect(getKey('alice', 1)).toBe(oldKey);
+    expect(getKey('alice', 2)).toBeDefined();
+    expect(getLatestKey('alice')?.keyIndex).toBe(2);
+  });
+
+  it('keeps the active epoch when importing its replacement fails', async () => {
+    await importSharedKey(1, rawKey(0x11));
+    const active = getLatestKey('alice');
+
+    await importSharedKey(2, new ArrayBuffer(7));
+
+    const stillActive = getLatestKey('alice');
+    expect(stillActive?.keyIndex).toBe(1);
+    expect(stillActive?.key).toBe(active?.key);
+    expect(stillActive?.ivPrefix).toEqual(active?.ivPrefix);
+    expect(getKey('alice', 2)).toBeUndefined();
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'e2ee.error',
+        message: expect.stringContaining('Failed to import shared key'),
+      }),
+    );
+  });
+
+  it('removes only the requested inactive epoch', async () => {
+    await importSharedKey(1, rawKey(0x11));
+    await importSharedKey(2, rawKey(0x22));
+
+    removeSharedKey(1);
+
+    expect(getKey('alice', 1)).toBeUndefined();
+    expect(getKey('alice', 2)).toBeDefined();
+    expect(getLatestKey('alice')?.keyIndex).toBe(2);
+  });
+
+  it('does not reactivate an old epoch when the active one is removed', async () => {
+    await importSharedKey(1, rawKey(0x11));
+    await importSharedKey(2, rawKey(0x22));
+
+    removeSharedKey(2);
+
+    // Epoch 1 remains available to decrypt delayed frames, but silently
+    // resuming encryption with it would undo the caller's rotation policy.
+    expect(getKey('alice', 1)).toBeDefined();
+    expect(getKey('alice', 2)).toBeUndefined();
+    expect(getLatestKey('alice')).toBeNull();
+    expect(dumpKeyState()).toMatchObject({
+      sharedKeys: [{ keyIndex: 1, isActive: false }],
+    });
   });
 });
 

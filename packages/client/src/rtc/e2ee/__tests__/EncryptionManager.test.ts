@@ -93,6 +93,11 @@ describe('EncryptionManager', () => {
         { type: 'cmd.set_shared_key', keyIndex: 0, rawKey },
       ],
       [
+        'removeSharedKey',
+        () => manager.removeSharedKey(0),
+        { type: 'cmd.remove_shared_key', keyIndex: 0 },
+      ],
+      [
         'removeKeys',
         () => manager.removeKeys('remote-user'),
         { type: 'cmd.remove_keys', userId: 'remote-user' },
@@ -151,6 +156,14 @@ describe('EncryptionManager', () => {
     it.each(methods)('%s rejects a key that is not 16 bytes', (m) => {
       for (const bad of [0, 8, 15, 17, 32]) {
         expect(call(m, 0, bad)).toThrow(/16 bytes/);
+      }
+    });
+
+    it('removeSharedKey validates the keyIndex byte', () => {
+      expect(() => manager.removeSharedKey(0)).not.toThrow();
+      expect(() => manager.removeSharedKey(255)).not.toThrow();
+      for (const bad of [256, -1, 1.5, NaN]) {
+        expect(() => manager.removeSharedKey(bad)).toThrow(/keyIndex/);
       }
     });
   });
@@ -340,7 +353,7 @@ describe('EncryptionManager', () => {
         'e2ee.key_state',
         {
           perUserKeys: [{ userId: 'bob', keyIndex: 0, fingerprint: 'abc123' }],
-          sharedKey: { keyIndex: 1, fingerprint: 'def456' },
+          sharedKeys: [{ keyIndex: 1, fingerprint: 'def456', isActive: true }],
         },
       ],
     ];
@@ -425,6 +438,7 @@ describe('EncryptionManager', () => {
       expect(() => manager.setSharedKey(0, new Uint8Array(16).buffer)).toThrow(
         /is disposed/,
       );
+      expect(() => manager.removeSharedKey(0)).toThrow(/is disposed/);
       expect(() => manager.removeKeys('user')).toThrow(/is disposed/);
       expect(() => manager.requestKeyDump()).toThrow(/is disposed/);
       expect(() => manager.enablePerformanceReporting(true)).toThrow(

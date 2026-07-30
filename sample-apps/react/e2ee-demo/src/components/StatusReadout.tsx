@@ -30,6 +30,9 @@ export const StatusReadout = ({ participant, nameByUserId }: Props) => {
       nameOf(a.userId).localeCompare(nameOf(b.userId)) ||
       a.keyIndex - b.keyIndex,
   );
+  const sharedKeys = [...(keyStore?.sharedKeys ?? [])].sort(
+    (a, b) => a.keyIndex - b.keyIndex,
+  );
   return (
     <div className="status-readout">
       <div className="status-readout__row">
@@ -39,18 +42,18 @@ export const StatusReadout = ({ participant, nameByUserId }: Props) => {
 
       <div className="status-readout__row">
         <span className="status-readout__label">keys</span>
-        {keyStore?.sharedKey && (
-          <code title={keyStore.sharedKey.fingerprint}>
-            shared #{keyStore.sharedKey.keyIndex}{' '}
-            {keyStore.sharedKey.fingerprint}
+        {sharedKeys.map((key) => (
+          <code key={key.keyIndex} title={key.fingerprint}>
+            shared #{key.keyIndex} {key.fingerprint}
+            {key.isActive && ' (active)'}
           </code>
-        )}
+        ))}
         {perUserKeys.map((k) => (
           <code key={`${k.userId}:${k.keyIndex}`} title={k.userId}>
             {nameOf(k.userId)} #{k.keyIndex} {k.fingerprint}
           </code>
         ))}
-        {!keyStore?.sharedKey && !keyStore?.perUserKeys.length && (
+        {!sharedKeys.length && !perUserKeys.length && (
           <span className="status-readout__muted">none</span>
         )}
       </div>

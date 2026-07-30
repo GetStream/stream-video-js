@@ -30,7 +30,13 @@
 
 import { isSupportedCodec } from './codec';
 import { enqueue } from './utils';
-import { dumpKeyState, importKey, importSharedKey, removeKeys } from './crypto';
+import {
+  dumpKeyState,
+  importKey,
+  importSharedKey,
+  removeKeys,
+  removeSharedKey,
+} from './crypto';
 import { decodeStats, startPerfReport, stopPerfReport } from './perf';
 import { EncodeNotifier, reportError } from './notifications';
 import { encodeTransform } from './encode';
@@ -104,6 +110,9 @@ addEventListener('message', ({ data }) => {
         break;
       case 'cmd.set_shared_key':
         await importSharedKey(data.keyIndex, data.rawKey);
+        break;
+      case 'cmd.remove_shared_key':
+        removeSharedKey(data.keyIndex);
         break;
       case 'cmd.remove_keys':
         removeKeys(data.userId);

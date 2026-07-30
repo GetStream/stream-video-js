@@ -44,9 +44,11 @@ const latestKeyIndex = new Map<string, number>();
  */
 const frameCounters = new Map<string, number>();
 
-let sharedKey:
-  | (ResolvedKey & { ivPrefix: Uint8Array; fingerprint: Uint8Array })
-  | null = null;
+/** Shared receive keys retained by epoch so in-flight frames survive rotation. */
+const sharedKeys = new Map<number, KeyMaterial>();
+
+/** The shared epoch used for encode fallback. Older retained epochs never win. */
+let activeSharedKeyIndex: number | undefined;
 
 const randomBytes = (n: number): Uint8Array => {
   const bytes = new Uint8Array(n);
@@ -61,7 +63,7 @@ const fingerprint = async (rawKey: ArrayBuffer): Promise<Uint8Array> => {
 
 /**
  * Decryption key for (userId, keyIndex): per-user entry, else the shared key
- * when it owns that index. The keyIndex comes from the frame trailer.
+ * at that index. The keyIndex comes from the frame trailer.
  */
 export const getKey = (
   userId: string,
@@ -69,13 +71,13 @@ export const getKey = (
 ): CryptoKey | undefined => {
   const perUser = perUserKeys.get(userId)?.get(keyIndex);
   if (perUser) return perUser.key;
-  if (sharedKey && keyIndex === sharedKey.keyIndex) return sharedKey.key;
-  return undefined;
+  return sharedKeys.get(keyIndex)?.key;
 };
 
 /**
- * The encode path's only lookup: latest per-user key, else the shared key. The
- * `ivPrefix` rides along so the encoder never resolves the same material twice.
+ * The encode path's only lookup: latest per-user key, else the explicitly
+ * active shared key. Retained shared epochs are receive-only. The `ivPrefix`
+ * rides along so the encoder never resolves the same material twice.
  */
 export const getLatestKey = (
   userId: string,
@@ -85,7 +87,15 @@ export const getLatestKey = (
     const km = perUserKeys.get(userId)?.get(idx);
     if (km) return { key: km.key, keyIndex: idx, ivPrefix: km.ivPrefix };
   }
-  return sharedKey;
+  if (activeSharedKeyIndex === undefined) return null;
+  const shared = sharedKeys.get(activeSharedKeyIndex);
+  return shared
+    ? {
+        key: shared.key,
+        keyIndex: activeSharedKeyIndex,
+        ivPrefix: shared.ivPrefix,
+      }
+    : null;
 };
 
 /** Fill a pre-allocated IV: [8B prefix][4B counter BE]. */
@@ -320,7 +330,9 @@ export const importSharedKey = async (
   rawKey: ArrayBuffer,
 ) => {
   try {
-    sharedKey = { ...(await importKeyMaterial(rawKey)), keyIndex };
+    const material = await importKeyMaterial(rawKey);
+    sharedKeys.set(keyIndex, material);
+    activeSharedKeyIndex = keyIndex;
   } catch (e: any) {
     self.postMessage({
       type: 'e2ee.error',
@@ -336,6 +348,16 @@ export const importSharedKey = async (
 export const removeKeys = (userId: string) => {
   perUserKeys.delete(userId);
   latestKeyIndex.delete(userId);
+};
+
+/**
+ * Removes exactly one shared receive epoch. Removing the active epoch also
+ * disables shared-key encode fallback; an older epoch is never reactivated
+ * implicitly because doing so could resume sending with a retired key.
+ */
+export const removeSharedKey = (keyIndex: number) => {
+  sharedKeys.delete(keyIndex);
+  if (activeSharedKeyIndex === keyIndex) activeSharedKeyIndex = undefined;
 };
 
 const toHex = (bytes: Uint8Array): string =>
@@ -360,12 +382,11 @@ export const dumpKeyState = () => {
   }
   return {
     perUserKeys: keys,
-    sharedKey: sharedKey
-      ? {
-          keyIndex: sharedKey.keyIndex,
-          fingerprint: toHex(sharedKey.fingerprint),
-        }
-      : null,
+    sharedKeys: Array.from(sharedKeys, ([keyIndex, material]) => ({
+      keyIndex,
+      fingerprint: toHex(material.fingerprint),
+      isActive: keyIndex === activeSharedKeyIndex,
+    })),
   };
 };
 
@@ -378,5 +399,6 @@ export const dispose = () => {
   perUserKeys.clear();
   latestKeyIndex.clear();
   frameCounters.clear();
-  sharedKey = null;
+  sharedKeys.clear();
+  activeSharedKeyIndex = undefined;
 };

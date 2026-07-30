@@ -160,6 +160,8 @@ export class EncryptionManager
   /**
    * Fallback key for any user without a per-user key. The simplest E2EE mode:
    * one key for everyone, usually passphrase-derived, no distribution needed.
+   * Setting an epoch makes it active for encryption while older epochs remain
+   * available to decrypt in-flight frames until {@link removeSharedKey}.
    *
    * @param keyIndex - An integer 0-255, since one trailer byte carries it.
    * @param rawKey - 16 bytes for AES-128-GCM, 32 for AES-256-GCM.
@@ -169,6 +171,20 @@ export class EncryptionManager
     this.validateKeyIndex(keyIndex);
     this.validateKeyLength(rawKey);
     this.worker.postMessage({ type: 'cmd.set_shared_key', keyIndex, rawKey });
+  };
+
+  /**
+   * Remove one shared-key epoch from the worker's receive key ring.
+   *
+   * If this is the active epoch, shared-key encryption stops until
+   * {@link setSharedKey} succeeds again. An older epoch is not reactivated.
+   *
+   * @param keyIndex - The exact shared-key epoch to remove.
+   */
+  removeSharedKey = (keyIndex: number): void => {
+    this.assertUsable();
+    this.validateKeyIndex(keyIndex);
+    this.worker.postMessage({ type: 'cmd.remove_shared_key', keyIndex });
   };
 
   /**
