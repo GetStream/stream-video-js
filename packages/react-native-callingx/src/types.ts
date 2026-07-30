@@ -355,12 +355,13 @@ export type EventName =
   | 'endCall'
   | 'didDisplayIncomingCall'
   | 'didToggleHoldCallAction'
-  | 'didChangeAudioEndpoints'
+  | 'didChangeAudioRoute'
   | 'didAudioInterruption'
   | 'didReceiveStartCallAction'
   | 'didPerformSetMutedCallAction'
   | 'didActivateAudioSession'
-  | 'didDeactivateAudioSession';
+  | 'didDeactivateAudioSession'
+  | 'providerReset';
 
 export type IOSAudioInterruptionEvent = {
   source: 'callingx';
@@ -390,15 +391,16 @@ export type EventParams = {
     callId: string;
     muted: boolean;
   };
-  didChangeAudioEndpoints: {
-    callId: string;
-  } & AudioEndpointsSnapshot;
+  didChangeAudioRoute: undefined;
   didAudioInterruption: IOSAudioInterruptionEvent;
   didReceiveStartCallAction: {
     callId: string;
   };
   didActivateAudioSession: undefined;
   didDeactivateAudioSession: undefined;
+  providerReset: {
+    callCids: string[];
+  };
 };
 
 export type VoipEventName =

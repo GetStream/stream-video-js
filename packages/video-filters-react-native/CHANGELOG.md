@@ -2,6 +2,28 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.14.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.4...@stream-io/video-filters-react-native-0.14.5) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.14.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.3...@stream-io/video-filters-react-native-0.14.4) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Bug Fixes
+
+- wait for callkit audio activation and then start audio engine, remove the previous timeout ([#2328](https://github.com/GetStream/stream-video-js/issues/2328)) ([64d6cff](https://github.com/GetStream/stream-video-js/commit/64d6cff02112fa7f9b2ed273f27006675f1d798d))
+
+## [0.14.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.2...@stream-io/video-filters-react-native-0.14.3) (2026-07-17)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
 ## [0.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.1...@stream-io/video-filters-react-native-0.14.2) (2026-07-09)
 
 ### Dependency Updates

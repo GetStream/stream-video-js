@@ -2,6 +2,45 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.40.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.40.0...@stream-io/video-react-sdk-1.40.1) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.10.3`
+- `@stream-io/typescript-config` updated to version `0.1.0`
+- `@stream-io/video-client` updated to version `1.56.1`
+- `@stream-io/video-filters-web` updated to version `0.8.5`
+- `@stream-io/video-react-bindings` updated to version `1.19.1`
+
+## [1.40.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.39.3...@stream-io/video-react-sdk-1.40.0) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.10.2`
+- `@stream-io/typescript-config` updated to version `0.1.0`
+- `@stream-io/video-styling` updated to version `1.15.0`
+- `@stream-io/video-client` updated to version `1.56.0`
+- `@stream-io/video-filters-web` updated to version `0.8.4`
+- `@stream-io/video-react-bindings` updated to version `1.19.0`
+
+### Features
+
+- **react-sdk:** show blocked audio overlay per participant ([#2341](https://github.com/GetStream/stream-video-js/issues/2341)) ([4fe5c40](https://github.com/GetStream/stream-video-js/commit/4fe5c40aaed1829125bff49deec39a008c7abec5))
+
+## [1.39.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.39.2...@stream-io/video-react-sdk-1.39.3) (2026-07-17)
+
+### Dependency Updates
+
+- `@stream-io/audio-filters-web` updated to version `0.10.1`
+- `@stream-io/typescript-config` updated to version `0.1.0`
+- `@stream-io/video-client` updated to version `1.55.2`
+- `@stream-io/video-filters-web` updated to version `0.8.3`
+- `@stream-io/video-react-bindings` updated to version `1.18.3`
+
+### Bug Fixes
+
+- use speakerLayoutSortPreset in RN spotlight view ([#2332](https://github.com/GetStream/stream-video-js/issues/2332)) ([910a5de](https://github.com/GetStream/stream-video-js/commit/910a5de6160cc34de99ea1615ef40bb034c57078))
+
 ## [1.39.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.39.1...@stream-io/video-react-sdk-1.39.2) (2026-07-09)
 
 ### Dependency Updates

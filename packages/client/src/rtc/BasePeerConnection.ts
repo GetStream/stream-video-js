@@ -373,6 +373,7 @@ export abstract class BasePeerConnection {
     try {
       this.onPeerConnectionStateChange?.({
         peerType: this.peerType,
+        iceConnectionState: this.pc.iceConnectionState,
         ...event,
       });
     } catch (err) {

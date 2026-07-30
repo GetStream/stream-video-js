@@ -65,7 +65,7 @@ export const ToggleParticipantListButton = (
         >
           <p className="rd__waiting-room-list__title">
             <Icon className="rd__waiting-room-list__title-icon" icon="info" />
-            Someone wants to join the call
+            {t('Someone wants to join the call')}
           </p>
           <ul className="rd__waiting-room-list__users">
             {waitingRoom.map((user) => (
@@ -79,7 +79,7 @@ export const ToggleParticipantListButton = (
                   type="button"
                   onClick={admitUser(user)}
                 >
-                  Admit
+                  {t('Admit')}
                 </button>
               </li>
             ))}
@@ -90,13 +90,13 @@ export const ToggleParticipantListButton = (
               type="button"
               onClick={() => setIsDismissed(true)}
             >
-              Dismiss
+              {t('Dismiss')}
             </button>
           </div>
         </div>
       )}
       <WithTooltip title={t('Participants')}>
-        <CompositeButton title="Participants" {...props}>
+        <CompositeButton title={t('Participants')} {...props}>
           <Icon icon="participants" />
           {participantCount > 1 && (
             <span className="rd__participant-count">{participantCount}</span>

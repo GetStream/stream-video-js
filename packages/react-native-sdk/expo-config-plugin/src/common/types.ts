@@ -15,5 +15,20 @@ export type ConfigProps =
       iosCallKitIcon?: string;
       /** Path to a custom ringtone file for Android incoming calls (relative to project root). Supported: .mp3, .ogg, .wav, .m4a */
       androidRingtone?: string;
+      /**
+       * Controls the Android FCM messaging-service override that resolves
+       * `com.google.firebase.MESSAGING_EVENT` service collisions (e.g. with
+       * `expo-notifications`).
+       *
+       * - **omitted** — if `expo-notifications` is installed, the plugin
+       *   automatically overrides its service
+       *   (`expo.modules.notifications.service.ExpoFirebaseMessagingService`);
+       *   if it isn't installed, nothing is generated.
+       * - **`null`** — opt out: no override even when `expo-notifications` is installed.
+       * - **a fully-qualified class name** (package + class) — override that specific
+       *   `FirebaseMessagingService`, e.g.
+       *   `"io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService"`.
+       */
+      androidMessagingServiceBaseClass?: string | null;
     }
   | undefined;

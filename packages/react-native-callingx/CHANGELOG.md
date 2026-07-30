@@ -2,6 +2,37 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.8.0...@stream-io/react-native-callingx-0.8.1) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.7.0...@stream-io/react-native-callingx-0.8.0) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Features
+
+- add iOS audio output selection methods ([#2334](https://github.com/GetStream/stream-video-js/issues/2334)) ([e858efe](https://github.com/GetStream/stream-video-js/commit/e858efee6f8741a7f0e469789c64b2780dbcb5ce))
+- added expo plugin for resolving fcm conflicts issue ([#2350](https://github.com/GetStream/stream-video-js/issues/2350)) ([b083873](https://github.com/GetStream/stream-video-js/commit/b0838731e3a040ab87866621f66f36e6827fd0cc))
+
+### Bug Fixes
+
+- wait for callkit audio activation and then start audio engine, remove the previous timeout ([#2328](https://github.com/GetStream/stream-video-js/issues/2328)) ([64d6cff](https://github.com/GetStream/stream-video-js/commit/64d6cff02112fa7f9b2ed273f27006675f1d798d))
+
+## [0.7.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.6.2...@stream-io/react-native-callingx-0.7.0) (2026-07-17)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+### Features
+
+- improved providerDidReset handling ([#2329](https://github.com/GetStream/stream-video-js/issues/2329)) ([ccb2273](https://github.com/GetStream/stream-video-js/commit/ccb2273e4cb8cf386df3323fec49c2c98a469119))
+
 ## [0.6.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.6.1...@stream-io/react-native-callingx-0.6.2) (2026-07-09)
 
 ### Dependency Updates

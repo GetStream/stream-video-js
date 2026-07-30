@@ -5,6 +5,7 @@ import {
   DropDownSelectOption,
   Icon,
   useCallStateHooks,
+  useI18n,
   useMenuContext,
 } from '@stream-io/video-react-sdk';
 import { LayoutMap } from '../hooks';
@@ -43,6 +44,7 @@ const ListMenu = ({
   canScreenshare: (key: string) => boolean;
 }) => {
   const { close } = useMenuContext();
+  const { t } = useI18n();
   return (
     <ul className="rd__layout-selector__list">
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
@@ -61,7 +63,7 @@ const ListMenu = ({
               }}
             >
               <Icon className="rd__button__icon" icon={LayoutMap[key].icon} />
-              {LayoutMap[key].title}
+              {t(LayoutMap[key].title)}
             </button>
           </li>
         ))}
@@ -77,13 +79,14 @@ const DropdownMenu = ({
   handleSelect: (index: number) => void;
   canScreenshare: (key: string) => boolean;
 }) => {
+  const { t } = useI18n();
   return (
     <DropDownSelect
       icon={LayoutMap[selectedLayout].icon || 'grid'}
       defaultSelectedIndex={Object.keys(LayoutMap).findIndex(
         (k) => k === selectedLayout,
       )}
-      defaultSelectedLabel={LayoutMap[selectedLayout].title}
+      defaultSelectedLabel={t(LayoutMap[selectedLayout].title)}
       handleSelect={handleSelect}
     >
       {(Object.keys(LayoutMap) as Array<keyof typeof LayoutMap>)
@@ -92,7 +95,7 @@ const DropdownMenu = ({
           <DropDownSelectOption
             key={key}
             selected={key === selectedLayout}
-            label={LayoutMap[key].title}
+            label={t(LayoutMap[key].title)}
             icon={LayoutMap[key].icon}
           />
         ))}

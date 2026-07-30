@@ -27,7 +27,9 @@ const ParticipantsPreview = ({ onJoin }: Props) => {
   const [first] = session.participants;
   return (
     <div className="rd__participants-preview">
-      <h2 className="rd__participants-preview__heading">Ready to join?</h2>
+      <h2 className="rd__participants-preview__heading">
+        {t('Ready to join?')}
+      </h2>
 
       {thumbnail && <CallPreview style={{ width: '100%', height: '150px' }} />}
 
@@ -53,6 +55,7 @@ const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
   function ToggleMenuButton(props, ref) {
     const { useCallSession } = useCallStateHooks();
     const session = useCallSession();
+    const { t } = useI18n();
     const total = session?.participants?.length || 0;
     return (
       <CompositeButton
@@ -60,7 +63,7 @@ const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
         active={props.menuShown}
         variant="primary"
         className="rd__participants-preview__button"
-        title="Participants already in the call"
+        title={t('Participants already in the call')}
       >
         <Icon icon="participants" />
         {total > 0 && (

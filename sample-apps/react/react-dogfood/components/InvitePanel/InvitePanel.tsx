@@ -64,25 +64,27 @@ export const InvitePopup = ({
 };
 
 export const Invite = () => {
+  const { t } = useI18n();
   const { isCopied, copyInviteLink } = useCopyInviteLink();
   return (
     <div className="rd__invite__copy">
-      <h2 className="rd__invite__copy-header">Share the link</h2>
+      <h2 className="rd__invite__copy-header">{t('Share the link')}</h2>
       <p className="rd__invite__copy-description">
-        Click the button below to copy the call link:
+        {t('Click the button below to copy the call link:')}
       </p>
       <button
         className="rd__button rd__button--primary rd__invite__copy-button"
         onClick={copyInviteLink}
       >
         <Icon className="rd__button__icon" icon="person-add" />
-        {isCopied ? 'Copied invite link' : 'Copy invite link'}
+        {isCopied ? t('Copied invite link') : t('Copy invite link')}
       </button>
     </div>
   );
 };
 
 export const InvitePanel = () => {
+  const { t } = useI18n();
   const isDemoEnvironment = useIsDemoEnvironment();
   const [expanded, setExpanded] = useState(false);
 
@@ -98,7 +100,7 @@ export const InvitePanel = () => {
               className="rd__invite__qr-header rd__invite__qr-header--accordion"
               onClick={() => setExpanded((prev) => !prev)}
             >
-              Test on mobile
+              {t('Test on mobile')}
               <Icon
                 className="rd__invite__qr-chevron"
                 icon={expanded ? 'chevron-up' : 'chevron-down'}
@@ -107,7 +109,7 @@ export const InvitePanel = () => {
             {expanded && (
               <>
                 <p className="rd__invite__qr-description">
-                  To test on a mobile device, scan the QR Code below:
+                  {t('To test on a mobile device, scan the QR Code below:')}
                 </p>
                 <div
                   className="rd__invite__qr-container"
@@ -123,9 +125,9 @@ export const InvitePanel = () => {
           </>
         ) : (
           <>
-            <h2 className="rd__invite__qr-header">Test on mobile</h2>
+            <h2 className="rd__invite__qr-header">{t('Test on mobile')}</h2>
             <p className="rd__invite__qr-description">
-              To test on a mobile device, scan the QR Code below:
+              {t('To test on a mobile device, scan the QR Code below:')}
             </p>
             <div
               className="rd__invite__qr-container"

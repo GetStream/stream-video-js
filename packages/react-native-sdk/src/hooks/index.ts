@@ -11,3 +11,4 @@ export * from './useLoopbackRecording';
 export * from './useTrackDimensions';
 export * from './useScreenshot';
 export * from './useModeration';
+export * from './useAudioDeviceStatus';

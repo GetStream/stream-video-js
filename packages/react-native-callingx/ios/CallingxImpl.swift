@@ -11,6 +11,7 @@ import stream_react_native_webrtc
     public static let didToggleHoldAction = "didToggleHoldCallAction"
     public static let didPerformSetMutedCallAction = "didPerformSetMutedCallAction"
     public static let didAudioInterruption = "didAudioInterruption"
+    public static let didChangeAudioRoute = "didChangeAudioRoute"
     public static let didDisplayIncomingCall = "didDisplayIncomingCall"
     public static let didActivateAudioSession = "didActivateAudioSession"
     public static let didDeactivateAudioSession = "didDeactivateAudioSession"
@@ -646,12 +647,16 @@ import stream_react_native_webrtc
             return
         }
 
-        // Claim audio-session ownership BEFORE createAudioSessionIfNeeded:
+        // Claim audio-session ownership BEFORE applyCallKitConfigurationSync:
         // both can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
         // through the ADM publisher. The engine sink gates on this flag.
         CallingxSessionOwnership.callingxOwnsSession = true
-        AudioSessionManager.shared.createAudioSessionIfNeeded()
-        
+        // Gate the audio engine off until CallKit activates the AVAudioSession
+        // (provider:didActivate:). Prevents the engine starting on the wrong,
+        // CallKit-restricted timing.
+        _ = getAudioDeviceModule()?.setEngineAvailability(.none)
+        AudioSessionManager.shared.applyCallKitConfigurationSync()
+
         sendEvent(CallingxEvents.didReceiveStartCallAction, body: [
             "callId": call.cid,
             "handle": action.handle.value
@@ -672,12 +677,16 @@ import stream_react_native_webrtc
         }
         
         CallingxLog.core.debugPublic("[CXProviderDelegate][provider:performAnswerCallAction] isSelfAnswered: \(call.isSelfAnswered)")
-        // Claim audio-session ownership BEFORE adm.reset() and createAudioSessionIfNeeded:
-        // both can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
+        // Claim audio-session ownership BEFORE applyCallKitConfigurationSync:
+        // it can synchronously fire .didDisableAudioEngine / .willEnableAudioEngine
         // through the ADM publisher. The engine sink gates on this flag.
         CallingxSessionOwnership.callingxOwnsSession = true
-        AudioSessionManager.shared.createAudioSessionIfNeeded()
-        
+        // Gate the audio engine off until CallKit activates the AVAudioSession
+        // (provider:didActivate:). Prevents the engine starting on the wrong,
+        // CallKit-restricted timing.
+        _ = getAudioDeviceModule()?.setEngineAvailability(.none)
+        AudioSessionManager.shared.applyCallKitConfigurationSync()
+
         let source = call.isSelfAnswered ? "app" : "sys"
         sendEvent(CallingxEvents.performAnswerCallAction, body: [
             "callId": call.cid,
@@ -824,6 +833,12 @@ import stream_react_native_webrtc
         // closes any edge case where it had been cleared.
         CallingxSessionOwnership.callingxOwnsSession = true
 
+        // CallKit may activate with its own category/mode; re-apply VoIP preset
+        AudioSessionManager.shared.applyCallKitConfigurationSync()
+
+        // CallKit owns the session timing now — allow the audio engine to start.
+        _ = getAudioDeviceModule()?.setEngineAvailability(.default)
+
         // When CallKit activates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidActivate(audioSession)
 
@@ -838,9 +853,11 @@ import stream_react_native_webrtc
     public func provider(_ provider: CXProvider, didDeactivate audioSession: AVAudioSession) {
         CallingxLog.core.debugPublic("[CXProviderDelegate][provider:didDeactivateAudioSession] category=\(audioSession.category) mode=\(audioSession.mode)")
 
+        // do not let webrtc audio engine auto start until after provider:didActivate:.
+        _ = getAudioDeviceModule()?.setEngineAvailability(.none)
+
         // When CallKit deactivates the AVAudioSession, inform WebRTC as well.
         RTCAudioSession.sharedInstance().audioSessionDidDeactivate(audioSession)
-        getAudioDeviceModule()?.reset()
 
         // Invariant: callingx ships with maximumCallsPerCallGroup = maximumCallGroups = 1
         // (see packages/react-native-callingx/src/utils/constants.ts defaultiOSOptions).
@@ -851,6 +868,7 @@ import stream_react_native_webrtc
         // concurrent CallKit calls. See plan: critically-review-the-implementation-zesty-spindle.
         if let storage = CallingxImpl.uuidStorage, storage.count() == 0 {
             CallingxSessionOwnership.callingxOwnsSession = false
+            AudioSessionManager.shared.stopRouteObserver()
         }
 
         // Disable wake lock when the call ends
@@ -897,15 +915,13 @@ import stream_react_native_webrtc
             lastAppRequestedMute = nil
         }
 
-        // A provider reset invalidates all CallKit calls. didDeactivate is not
-        // guaranteed to fire in its usual shape afterwards, so release ownership
-        // here and wipe UUIDStorage to keep the `count() == 0` discriminator in
-        // didDeactivate honest (stale entries would otherwise refuse to release
-        // ownership on the next end-of-call).
-        CallingxImpl.uuidStorage?.removeAllObjects()
+        // Snapshot the tracked cids before wiping storage: JS leaves exactly the calls CallKit was tracking. 
+        let trackedCids = CallingxImpl.uuidStorage?.allCids() ?? []
         CallingxSessionOwnership.callingxOwnsSession = false
+        CallingxImpl.uuidStorage?.removeAllObjects()
+        AudioSessionManager.shared.stopRouteObserver()
 
-        sendEvent(CallingxEvents.providerReset, body: nil)
+        sendEvent(CallingxEvents.providerReset, body: ["callCids": trackedCids])
     }
     
     // MARK: - Pending Action Fulfillment

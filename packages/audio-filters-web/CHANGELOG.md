@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.10.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.2...@stream-io/audio-filters-web-0.10.3) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.10.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.1...@stream-io/audio-filters-web-0.10.2) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
+## [0.10.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.0...@stream-io/audio-filters-web-0.10.1) (2026-07-17)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
 ## [0.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.9.1...@stream-io/audio-filters-web-0.10.0) (2026-07-09)
 
 ### Dependency Updates

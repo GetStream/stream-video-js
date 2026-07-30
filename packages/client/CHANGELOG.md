@@ -2,6 +2,24 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.56.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.55.2...@stream-io/video-client-1.56.0) (2026-07-30)
+
+### Features
+
+- **react-sdk:** show blocked audio overlay per participant ([#2341](https://github.com/GetStream/stream-video-js/issues/2341)) ([4fe5c40](https://github.com/GetStream/stream-video-js/commit/4fe5c40aaed1829125bff49deec39a008c7abec5))
+
+### Bug Fixes
+
+- **client:** fix stale mid in SetPublisher after PeerConnection rollback ([#2344](https://github.com/GetStream/stream-video-js/issues/2344)) ([9c3e201](https://github.com/GetStream/stream-video-js/commit/9c3e201c9a1cf129e182da961b1d73652508b9f2))
+- **client:** never announce two tracks for the same publish option ([#2352](https://github.com/GetStream/stream-video-js/issues/2352)) ([b9a0c6e](https://github.com/GetStream/stream-video-js/commit/b9a0c6e709805e8658e74a68dc6e84459353db37))
+- **client:** preserve ICE state in peer connection failure reports ([#2340](https://github.com/GetStream/stream-video-js/issues/2340)) ([2ce42a2](https://github.com/GetStream/stream-video-js/commit/2ce42a229eecfc60ae8f6783672c517b94b6ab42))
+
+## [1.55.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.55.1...@stream-io/video-client-1.55.2) (2026-07-17)
+
+### Bug Fixes
+
+- use speakerLayoutSortPreset in RN spotlight view ([#2332](https://github.com/GetStream/stream-video-js/issues/2332)) ([910a5de](https://github.com/GetStream/stream-video-js/commit/910a5de6160cc34de99ea1615ef40bb034c57078))
+
 ## [1.55.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.55.0...@stream-io/video-client-1.55.1) (2026-07-02)
 
 ### Bug Fixes
