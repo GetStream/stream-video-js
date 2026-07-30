@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.19.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.18.3...@stream-io/video-react-bindings-1.19.0) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+- `@stream-io/video-client` updated to version `1.56.0`
+
+### Features
+
+- **react-sdk:** show blocked audio overlay per participant ([#2341](https://github.com/GetStream/stream-video-js/issues/2341)) ([4fe5c40](https://github.com/GetStream/stream-video-js/commit/4fe5c40aaed1829125bff49deec39a008c7abec5))
+
 ## [1.18.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-bindings-1.18.2...@stream-io/video-react-bindings-1.18.3) (2026-07-17)
 
 ### Dependency Updates
