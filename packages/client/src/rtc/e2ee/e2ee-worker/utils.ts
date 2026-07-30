@@ -17,22 +17,30 @@ export const bytesEqual = (a: Uint8Array, b: Uint8Array): boolean => {
 };
 
 /**
- * `tryFire(key)` returns true at most once per `intervalMs` for that key, so a
- * sustained failure cannot flood the host with notifications.
+ * Rate limiter keyed by an arbitrary string, so one throttle can cover several
+ * independent conditions (a keyIndex, a userId) without them muting each other.
  */
-export const createThrottle = (intervalMs: number) => {
-  const lastFiredAt = new Map<string, number>();
-  return {
-    tryFire: (key: string): boolean => {
-      const now = Date.now();
-      if (now - (lastFiredAt.get(key) ?? 0) > intervalMs) {
-        lastFiredAt.set(key, now);
-        return true;
-      }
-      return false;
-    },
+export class Throttle {
+  private readonly intervalMs: number;
+  private lastFiredAt: Map<string, number> = new Map();
+
+  constructor(intervalMs: number) {
+    this.intervalMs = intervalMs;
+  }
+
+  /**
+   * True at most once per `intervalMs` for that key, so a sustained failure
+   * cannot flood the host with notifications.
+   */
+  tryFire = (key: string): boolean => {
+    const now = Date.now();
+    if (now - (this.lastFiredAt.get(key) ?? 0) > this.intervalMs) {
+      this.lastFiredAt.set(key, now);
+      return true;
+    }
+    return false;
   };
-};
+}
 
 let tail: Promise<unknown> = Promise.resolve();
 

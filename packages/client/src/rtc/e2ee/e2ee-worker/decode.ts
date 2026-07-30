@@ -15,12 +15,7 @@
 import { EMPTY_AAD, IV_LEN, TRAILER_LEN } from './constants';
 import { boundarySeedZeros, rbspUnescape } from './codec';
 import { readTrailer, readTrailerIv } from './utils';
-import {
-  createFailureTracker,
-  createReplayWindow,
-  fillIV,
-  getKey,
-} from './crypto';
+import { FailureTracker, ReplayWindow, fillIV, getKey } from './crypto';
 import { decodeStats } from './perf';
 import { DecodeNotifier } from './notifications';
 import type { EncodedFrame, FrameController } from './types';
@@ -41,8 +36,8 @@ export const decodeTransform = (
 
   // Per track, so a user's audio, video and screen share never share a window
   // or a failure count. The separate count is what lets e2ee.broken fire.
-  const replay = createReplayWindow();
-  const failures = createFailureTracker();
+  const replay = new ReplayWindow();
+  const failures = new FailureTracker();
 
   /**
    * Gates on key and replay, decrypts, emits, then records failure or recovery.

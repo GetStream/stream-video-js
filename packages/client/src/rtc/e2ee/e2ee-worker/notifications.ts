@@ -20,7 +20,7 @@
  *   every outgoing track at once, so it is reported per user.
  */
 
-import { createThrottle } from './utils';
+import { Throttle } from './utils';
 
 /** At most one notification per second per key. */
 const THROTTLE_INTERVAL_MS = 1000;
@@ -41,7 +41,7 @@ export const reportError = (message: string): void => {
  * Module-scoped rather than per transform: this condition is per user by
  * definition, so every track sharing one throttle is the point.
  */
-const missingKeyThrottle = createThrottle(THROTTLE_INTERVAL_MS);
+const missingKeyThrottle = new Throttle(THROTTLE_INTERVAL_MS);
 export const notifyMissingEncodeKey = (userId: string): void => {
   if (missingKeyThrottle.tryFire(userId)) {
     self.postMessage({ type: 'e2ee.missing_key', userId });
@@ -91,13 +91,13 @@ export class EncodeNotifier {
 export class DecodeNotifier {
   private readonly userId: string;
   private readonly trackType: string | undefined;
-  private readonly failureThrottle = createThrottle(THROTTLE_INTERVAL_MS);
+  private readonly failureThrottle = new Throttle(THROTTLE_INTERVAL_MS);
   /**
    * A key in flight, or a rotation whose keyIndex has not arrived, are both
    * normal. Keyed by keyIndex: one signal per key epoch.
    */
-  private readonly missingKeyThrottle = createThrottle(THROTTLE_INTERVAL_MS);
-  private readonly cleartextThrottle = createThrottle(THROTTLE_INTERVAL_MS);
+  private readonly missingKeyThrottle = new Throttle(THROTTLE_INTERVAL_MS);
+  private readonly cleartextThrottle = new Throttle(THROTTLE_INTERVAL_MS);
   /**
    * True once a `decryption_failed` reached the host. Pairs the two signals:
    * only a delivered failure needs clearing, and clearing it re-arms this.

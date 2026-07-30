@@ -126,58 +126,89 @@ export const nextFrameCounter = (userId: string): number => {
  * frames on one would reset another's failures, so `FAILURE_TOLERANCE` is never
  * crossed and `e2ee.broken` can never fire.
  */
-export interface FailureTracker {
-  /** True only on the failure crossing {@link FAILURE_TOLERANCE}, so
-   * `e2ee.broken` fires once per run. */
-  recordFailure: (keyIndex: number) => boolean;
+export class FailureTracker {
+  private counts: Map<number, number> = new Map();
+
+  /**
+   * True only on the failure crossing {@link FAILURE_TOLERANCE}, so
+   * `e2ee.broken` fires once per run.
+   */
+  recordFailure = (keyIndex: number): boolean => {
+    const next = (this.counts.get(keyIndex) ?? 0) + 1;
+    this.counts.set(keyIndex, next);
+    return next === FAILURE_TOLERANCE + 1;
+  };
+
   /**
    * True if there was a count to clear. Do NOT gate `e2ee.decryption_resumed`
    * on it: that event names a track, not a key epoch, so a track recovering on
    * a new keyIndex must still clear it.
    */
-  recordSuccess: (keyIndex: number) => boolean;
-}
-
-export const createFailureTracker = (): FailureTracker => {
-  const counts = new Map<number, number>();
-  return {
-    recordFailure: (keyIndex) => {
-      const next = (counts.get(keyIndex) ?? 0) + 1;
-      counts.set(keyIndex, next);
-      return next === FAILURE_TOLERANCE + 1;
-    },
-    recordSuccess: (keyIndex) => counts.delete(keyIndex),
-  };
-};
-
-interface ReplayState {
-  highest: number;
-  /**
-   * RFC 6479-style bitmap: bit `counter % REPLAY_WINDOW` marks a seen counter.
-   * O(1) checks and in-order advance, where a `Set` needs an
-   * O(REPLAY_WINDOW) prune per frame per track.
-   */
-  bitmap: Uint32Array;
+  recordSuccess = (keyIndex: number): boolean => this.counts.delete(keyIndex);
 }
 
 const REPLAY_WINDOW_WORDS = REPLAY_WINDOW >>> 5;
 
-const replayBit = (counter: number) => {
-  const idx = counter % REPLAY_WINDOW;
-  return { word: idx >>> 5, mask: 1 << (idx & 31) };
-};
-const replaySeen = (bitmap: Uint32Array, counter: number): boolean => {
-  const { word, mask } = replayBit(counter);
-  return (bitmap[word] & mask) !== 0;
-};
-const replaySet = (bitmap: Uint32Array, counter: number) => {
-  const { word, mask } = replayBit(counter);
-  bitmap[word] |= mask;
-};
-const replayClear = (bitmap: Uint32Array, counter: number) => {
-  const { word, mask } = replayBit(counter);
-  bitmap[word] &= ~mask;
-};
+/**
+ * One sender IV-prefix epoch: a high-water mark plus an RFC 6479-style bitmap
+ * over the preceding {@link REPLAY_WINDOW} counters, where bit
+ * `counter % REPLAY_WINDOW` marks a seen counter. O(1) checks and in-order
+ * advance, where a `Set` would need an O(REPLAY_WINDOW) prune per frame.
+ */
+class ReplayEpoch {
+  /** Copied, since the caller's view points into a frame buffer that is reused. */
+  readonly prefix: Uint8Array;
+  private highest: number;
+  private bitmap: Uint32Array = new Uint32Array(REPLAY_WINDOW_WORDS);
+
+  constructor(prefix: Uint8Array, counter: number) {
+    this.prefix = prefix.slice();
+    this.highest = counter;
+    this.mark(counter);
+  }
+
+  /** Above the high-water mark, or inside the window and not yet seen. */
+  accepts = (counter: number): boolean => {
+    if (counter > this.highest) return true;
+    if (counter <= this.highest - REPLAY_WINDOW) return false;
+    return !this.isMarked(counter);
+  };
+
+  record = (counter: number): void => {
+    if (counter > this.highest) {
+      // Slots repeat every REPLAY_WINDOW counters, so skipped ones can hold a
+      // stale bit and must be cleared. In-order frames skip none; a large jump
+      // makes the whole bitmap stale.
+      if (counter - this.highest >= REPLAY_WINDOW) {
+        this.bitmap.fill(0);
+      } else {
+        for (let c = this.highest + 1; c < counter; c++) this.clear(c);
+      }
+      this.highest = counter;
+    }
+    this.mark(counter);
+  };
+
+  private slot = (counter: number) => {
+    const idx = counter % REPLAY_WINDOW;
+    return { word: idx >>> 5, mask: 1 << (idx & 31) };
+  };
+
+  private isMarked = (counter: number): boolean => {
+    const { word, mask } = this.slot(counter);
+    return (this.bitmap[word] & mask) !== 0;
+  };
+
+  private mark = (counter: number): void => {
+    const { word, mask } = this.slot(counter);
+    this.bitmap[word] |= mask;
+  };
+
+  private clear = (counter: number): void => {
+    const { word, mask } = this.slot(counter);
+    this.bitmap[word] &= ~mask;
+  };
+}
 
 /**
  * Sender IV-prefix "epochs" one track's guard keeps. One is normal; a second or
@@ -190,8 +221,27 @@ const replayClear = (bitmap: Uint32Array, counter: number) => {
  */
 const REPLAY_EPOCHS = 3;
 
-/** Stateful, per-track replay guard. See {@link createReplayWindow}. */
-export interface ReplayWindow {
+/**
+ * Replay guard for one remote track.
+ *
+ * Shared across tracks it would couple them: independent SSRCs and jitter
+ * buffers mean delivery skew could advance the high-water mark far enough to
+ * reject a lagging track's frames, dropping media and reporting false failures.
+ *
+ * Inside a track the sender's IV prefix partitions the window further, so a
+ * sender restart (fresh prefix, counter near 0) opens a clean window instead of
+ * losing its low counters to a stale mark.
+ *
+ * Only receive-side bookkeeping is per track. The sender's counter stays global
+ * per user (see {@link nextFrameCounter}), which is what keeps IVs unique
+ * across a user's tracks and the wire format identical for other SDKs.
+ */
+export class ReplayWindow {
+  private epochs: ReplayEpoch[] = [];
+
+  private find = (ivPrefix: Uint8Array): ReplayEpoch | undefined =>
+    this.epochs.find((e) => bytesEqual(e.prefix, ivPrefix));
+
   /**
    * True when this prefix can accept `counter`: new prefix, above the
    * high-water mark, or inside the window and not yet committed.
@@ -199,75 +249,26 @@ export interface ReplayWindow {
    * Changes no state. A relay can forge the trailer fields this reads, so only
    * an authenticated frame advances the window. See {@link commit}.
    */
-  peek: (counter: number, ivPrefix: Uint8Array) => boolean;
+  peek = (counter: number, ivPrefix: Uint8Array): boolean => {
+    // A prefix with no committed frame yet opens a clean window.
+    return this.find(ivPrefix)?.accepts(counter) ?? true;
+  };
+
   /**
    * Record `counter` as seen, advancing the high-water mark. Call it only after
    * AES-GCM authenticates, so unauthenticated bytes cannot wedge the window or
    * evict a genuine epoch.
    */
-  commit: (counter: number, ivPrefix: Uint8Array) => void;
-}
-
-/**
- * Replay guard for one remote track.
- *
- * Shared across tracks it would couple them: independent SSRCs and jitter
- * buffers mean delivery skew could advance `highest` far enough to reject a
- * lagging track's frames, dropping media and reporting false failures.
- *
- * Inside a track the sender's IV prefix partitions the window further, so a
- * sender restart (fresh prefix, counter near 0) opens a clean window instead of
- * losing its low counters to a stale `highest`.
- *
- * Only receive-side bookkeeping is per track. The sender's counter stays global
- * per user (see {@link nextFrameCounter}), which is what keeps IVs unique
- * across a user's tracks and the wire format identical for other SDKs.
- */
-export const createReplayWindow = (): ReplayWindow => {
-  const epochs: Array<{ prefix: Uint8Array; state: ReplayState }> = [];
-  const findEpoch = (ivPrefix: Uint8Array) =>
-    epochs.find((e) => bytesEqual(e.prefix, ivPrefix));
-  return {
-    peek: (counter, ivPrefix) => {
-      const epoch = findEpoch(ivPrefix);
-      // A prefix with no committed frame yet opens a clean window.
-      if (!epoch) return true;
-      const { state } = epoch;
-      if (counter > state.highest) return true;
-      if (counter <= state.highest - REPLAY_WINDOW) return false;
-      return !replaySeen(state.bitmap, counter);
-    },
-    commit: (counter, ivPrefix) => {
-      let epoch = findEpoch(ivPrefix);
-      if (!epoch) {
-        const bitmap = new Uint32Array(REPLAY_WINDOW_WORDS);
-        replaySet(bitmap, counter);
-        epoch = {
-          prefix: ivPrefix.slice(),
-          state: { highest: counter, bitmap },
-        };
-        epochs.unshift(epoch);
-        if (epochs.length > REPLAY_EPOCHS) epochs.pop();
-        return;
-      }
-      const { state } = epoch;
-      if (counter > state.highest) {
-        // Slots repeat every REPLAY_WINDOW counters, so skipped ones can hold a
-        // stale bit and must be cleared. In-order frames skip none; a large
-        // jump makes the whole bitmap stale.
-        if (counter - state.highest >= REPLAY_WINDOW) {
-          state.bitmap.fill(0);
-        } else {
-          for (let c = state.highest + 1; c < counter; c++) {
-            replayClear(state.bitmap, c);
-          }
-        }
-        state.highest = counter;
-      }
-      replaySet(state.bitmap, counter);
-    },
+  commit = (counter: number, ivPrefix: Uint8Array): void => {
+    const epoch = this.find(ivPrefix);
+    if (epoch) {
+      epoch.record(counter);
+      return;
+    }
+    this.epochs.unshift(new ReplayEpoch(ivPrefix, counter));
+    if (this.epochs.length > REPLAY_EPOCHS) this.epochs.pop();
   };
-};
+}
 
 /**
  * The buffer length picks the variant; EncryptionManager already validated it
