@@ -265,6 +265,16 @@ const encodeTransform = (
       const { key: cryptoKey, keyIndex, ivPrefix: prefix } = entry;
 
       return finishEncode(frame, controller, async () => {
+        // A key/delta type marks a video frame. An audio-only profile has no
+        // clear-byte rule for one, so drop it rather than ship a whole-frame,
+        // unescaped encrypt the SFU cannot read and a NALU packetizer would
+        // split. Checked before the counter, so a dropped frame costs no IV.
+        if (profile.audioOnly && frame.type !== undefined) {
+          signalEncodeFailure(
+            `no clear-byte rule for video on codec ${codecKey}`,
+          );
+          return null;
+        }
         const src = new Uint8Array(frame.data);
         const clearBytes = profile.clearBytes(frame.type, src);
         if (clearBytes > MAX_CLEAR_BYTES) {

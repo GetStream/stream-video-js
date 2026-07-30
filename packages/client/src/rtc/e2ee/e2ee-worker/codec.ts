@@ -135,11 +135,20 @@ export const rbspUnescape = (data: Uint8Array): Uint8Array => {
 export interface CodecProfile {
   /** Escape ciphertext and trailer against fake Annex-B start codes (H264). */
   rbsp: boolean;
+  /**
+   * The profile can frame audio only, so the encoder fails closed on a frame
+   * that carries a key/delta type. Without this an unlabeled video frame would
+   * be encrypted whole and unescaped: the SFU could not read its headers, and a
+   * NALU packetizer would split it on a random start code in the ciphertext.
+   */
+  audioOnly: boolean;
   /** Leading bytes left clear and passed as AAD, so the SFU can select layers. */
   clearBytes: (frameType: string | undefined, data: Uint8Array) => number;
 }
 
-// Audio has no keyframes: keep the Opus TOC byte clear, encrypt video whole.
+// Audio has no keyframes, so the absence of a frame type identifies it. Keep
+// the Opus TOC byte clear. Only reached for audio: `audioOnly` rejects a video
+// frame before this runs.
 const defaultClearBytes = (frameType: string | undefined): number =>
   frameType === undefined ? 1 : 0;
 
@@ -157,15 +166,18 @@ const vpClearBytes = (
 // frame trailer does not survive. It needs its own scheme. Without an entry it
 // falls through to isSupportedCodec and fails closed.
 const CODEC_PROFILES: Record<string, CodecProfile> = {
-  opus: { rbsp: false, clearBytes: defaultClearBytes },
-  vp8: { rbsp: false, clearBytes: vpClearBytes },
-  vp9: { rbsp: false, clearBytes: vpClearBytes },
-  h264: { rbsp: true, clearBytes: h264ClearBytes },
+  opus: { rbsp: false, audioOnly: true, clearBytes: defaultClearBytes },
+  vp8: { rbsp: false, audioOnly: false, clearBytes: vpClearBytes },
+  vp9: { rbsp: false, audioOnly: false, clearBytes: vpClearBytes },
+  h264: { rbsp: true, audioOnly: false, clearBytes: h264ClearBytes },
 };
 
-// Used when the caller names no codec.
+// Used when the caller names no codec. Audio is safe to frame unlabeled, since
+// the TOC byte rule holds for any audio codec. Video is not: the right clear
+// header and whether to escape both depend on the codec, so it fails closed.
 const DEFAULT_PROFILE: CodecProfile = {
   rbsp: false,
+  audioOnly: true,
   clearBytes: defaultClearBytes,
 };
 

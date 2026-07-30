@@ -541,6 +541,37 @@ describe('encode pipeline edge behaviors', () => {
     expect(posted.some((m) => m.type === 'e2ee.encryption_failed')).toBe(true);
   }, 3000);
 
+  it('fails closed on a video frame whose codec was not supplied', async () => {
+    const user = freshUser();
+    await setKey(user);
+    // Without a codec there is no clear-byte rule and no escaping decision for
+    // video. Encrypting it whole would blind the SFU to the frame headers, and
+    // an unescaped H264 payload would be split by the packetizer on a random
+    // start code in the ciphertext - silently, since nothing would signal it.
+    const out = await drive('encode', user, undefined, [
+      frame([1, 2, 3, 4, 5, 6, 7, 8], 'key'),
+    ]);
+    expect(out).toHaveLength(0);
+    expect(posted.some((m) => m.type === 'e2ee.encryption_failed')).toBe(true);
+  }, 3000);
+
+  it('still encrypts an audio frame whose codec was not supplied', async () => {
+    const user = freshUser();
+    await setKey(user);
+    // The counterpart to the case above: an audio frame carries no key/delta
+    // type, and the 1-byte TOC rule holds for any audio codec, so an unlabeled
+    // audio track must keep working.
+    const pt = [0x78, 0xaa, 0xbb, 0xcc, 0xdd];
+    const [encrypted] = await drive('encode', user, undefined, [
+      frame(pt, undefined),
+    ]);
+    expect(encrypted).toBeDefined();
+    expect(new Uint8Array(encrypted.data)[0]).toBe(0x78);
+    expect(posted.some((m) => m.type === 'e2ee.encryption_failed')).toBe(false);
+    const [decrypted] = await drive('decode', user, undefined, [encrypted]);
+    expect(Array.from(new Uint8Array(decrypted.data))).toEqual(pt);
+  });
+
   it('re-signals encryption_failed after recovery instead of latching for the worker lifetime', async () => {
     const user = freshUser();
     await setKey(user);
