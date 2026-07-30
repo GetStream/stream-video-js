@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  boundarySeedZeros,
   getCodecProfile,
   isSupportedCodec,
   rbspEscapeInto,
@@ -10,9 +11,9 @@ import {
 // Single-buffer escape helper. Production only ever escapes the
 // [ciphertext, trailer] segment pair via rbspEscapedLength + rbspEscapeInto, so
 // this convenience wrapper lives in the test rather than the shipped worker.
-const rbspEscape = (data: Uint8Array): Uint8Array => {
-  const out = new Uint8Array(rbspEscapedLength([data]));
-  rbspEscapeInto(out, 0, [data]);
+const rbspEscape = (data: Uint8Array, seedZeros = 0): Uint8Array => {
+  const out = new Uint8Array(rbspEscapedLength([data], seedZeros));
+  rbspEscapeInto(out, 0, [data], seedZeros);
   return out;
 };
 
@@ -20,7 +21,7 @@ describe('rbspEscape + rbspUnescape', () => {
   const roundTrip = (input: number[]) => {
     const data = new Uint8Array(input);
     const escaped = rbspEscape(data);
-    const unescaped = rbspUnescape(escaped);
+    const unescaped = rbspUnescape(escaped, 0);
     return { escaped, unescaped: Array.from(unescaped) };
   };
 
@@ -57,7 +58,7 @@ describe('rbspEscape + rbspUnescape', () => {
     // deterministic "random" to exercise many byte values
     for (let i = 0; i < input.length; i++) input[i] = (i * 31) & 0xff;
     const escaped = rbspEscape(input);
-    const unescaped = rbspUnescape(escaped);
+    const unescaped = rbspUnescape(escaped, 0);
     expect(Array.from(unescaped)).toEqual(Array.from(input));
   });
 
@@ -80,10 +81,10 @@ describe('rbspEscapeInto + rbspEscapedLength (multi-segment)', () => {
   // sequence straddles the segment boundary.
   const concat = (...segs: number[][]) => new Uint8Array(segs.flat());
 
-  const escapeSegments = (segs: number[][]) => {
+  const escapeSegments = (segs: number[][], seedZeros = 0) => {
     const segments = segs.map((s) => new Uint8Array(s));
-    const out = new Uint8Array(rbspEscapedLength(segments));
-    rbspEscapeInto(out, 0, segments);
+    const out = new Uint8Array(rbspEscapedLength(segments, seedZeros));
+    rbspEscapeInto(out, 0, segments, seedZeros);
     return out;
   };
 
@@ -102,16 +103,62 @@ describe('rbspEscapeInto + rbspEscapedLength (multi-segment)', () => {
     const b = [1, 0xbb];
     const escaped = escapeSegments([a, b]);
     expect(Array.from(escaped)).toEqual([0xaa, 0, 0, 3, 1, 0xbb]);
-    expect(Array.from(rbspUnescape(escaped))).toEqual([...a, ...b]);
+    expect(Array.from(rbspUnescape(escaped, 0))).toEqual([...a, ...b]);
   });
 
   it('writes at a non-zero offset, leaving earlier bytes untouched', () => {
     const segments = [new Uint8Array([0, 0, 1])];
-    const out = new Uint8Array(2 + rbspEscapedLength(segments));
+    const out = new Uint8Array(2 + rbspEscapedLength(segments, 0));
     out[0] = 0x11;
     out[1] = 0x22;
-    rbspEscapeInto(out, 2, segments);
+    rbspEscapeInto(out, 2, segments, 0);
     expect(Array.from(out)).toEqual([0x11, 0x22, 0, 0, 3, 1]);
+  });
+});
+
+describe('boundary seeding (clear header ending in zeros)', () => {
+  // The encoder never escapes the clear header itself, but on the wire the
+  // header's tail and the escaped unit are contiguous. Seeding the escaper
+  // with the header's trailing zeros keeps a start code from forming across
+  // that boundary, e.g. header ...00 + ciphertext 00 01 -> 00 00 01.
+
+  it('boundarySeedZeros counts trailing zeros, capped at 2', () => {
+    expect(boundarySeedZeros(new Uint8Array([1, 2, 3]))).toBe(0);
+    expect(boundarySeedZeros(new Uint8Array([1, 2, 0]))).toBe(1);
+    expect(boundarySeedZeros(new Uint8Array([1, 0, 0]))).toBe(2);
+    expect(boundarySeedZeros(new Uint8Array([0, 0, 0, 0]))).toBe(2);
+    expect(boundarySeedZeros(new Uint8Array([0]))).toBe(1);
+    expect(boundarySeedZeros(new Uint8Array([]))).toBe(0);
+  });
+
+  it('escapes a start code forming across the clear/encrypted boundary', () => {
+    // Header ends in one 0x00 (seed 1); the unit starts 00 01. Unseeded this
+    // would ship ...00 | 00 01 (a 3-byte start code); seeded, an escape byte
+    // lands before the 01.
+    const escaped = rbspEscape(new Uint8Array([0, 1, 0xbb]), 1);
+    expect(Array.from(escaped)).toEqual([0, 3, 1, 0xbb]);
+    expect(Array.from(rbspUnescape(escaped, 1))).toEqual([0, 1, 0xbb]);
+  });
+
+  it('escapes the very first unit byte when the header ends in 00 00', () => {
+    const escaped = rbspEscape(new Uint8Array([1, 0xbb]), 2);
+    expect(Array.from(escaped)).toEqual([3, 1, 0xbb]);
+    expect(Array.from(rbspUnescape(escaped, 2))).toEqual([1, 0xbb]);
+  });
+
+  it('leaves a safe boundary alone', () => {
+    // The unit starts with a non-start-code byte; nothing to escape.
+    const escaped = rbspEscape(new Uint8Array([0xaa, 0, 1]), 2);
+    expect(Array.from(escaped)).toEqual([0xaa, 0, 1]);
+    expect(Array.from(rbspUnescape(escaped, 2))).toEqual([0xaa, 0, 1]);
+  });
+
+  it('round-trips with any seed on content needing internal escapes', () => {
+    const input = [0, 0, 1, 0xaa, 0, 0, 0, 2, 0xbb];
+    for (const seed of [0, 1, 2]) {
+      const escaped = rbspEscape(new Uint8Array(input), seed);
+      expect(Array.from(rbspUnescape(escaped, seed))).toEqual(input);
+    }
   });
 });
 

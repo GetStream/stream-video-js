@@ -670,4 +670,33 @@ describe('h264 trailer start-code safety', () => {
     const [decrypted] = await drive('decode', user, undefined, [encrypted]);
     expect(Array.from(new Uint8Array(decrypted.data))).toEqual(H264_KEYFRAME);
   });
+
+  it('leaves no start code across the clear/encrypted boundary when the clear header ends in 0x00', async () => {
+    // The last clear byte is the first slice-header byte, which multi-slice
+    // encoders can emit as 0x00 (large first_mb_in_slice). If the ciphertext
+    // then starts 00 01, an unseeded escaper would ship a fake start code
+    // spanning the boundary. Ciphertext is not controllable here, so assert
+    // the invariant over the boundary region on many frames instead.
+    const h264ZeroTail = [
+      ...[0, 0, 0, 1, 0x65, 0x00], // slice: start code + NALU header + 0x00
+      ...[0xaa, 0xbb, 0xcc, 0xdd, 0xee], // encrypted body
+    ];
+    const clearBytes = 6;
+    const user = freshUser();
+    await setKey(user);
+    const frames = Array.from({ length: 32 }, () =>
+      frame(h264ZeroTail, 'key' as const),
+    );
+    const encrypted = await drive('encode', user, 'h264', frames);
+    expect(encrypted.length).toBe(frames.length);
+    for (const f of encrypted) {
+      const bytes = new Uint8Array(f.data);
+      // Scan from 2 bytes before the boundary so a code spanning it is seen.
+      expect(hasAnnexBStartCode(bytes.subarray(clearBytes - 2))).toBe(false);
+    }
+    const decrypted = await drive('decode', user, undefined, encrypted);
+    for (const f of decrypted) {
+      expect(Array.from(new Uint8Array(f.data))).toEqual(h264ZeroTail);
+    }
+  });
 });

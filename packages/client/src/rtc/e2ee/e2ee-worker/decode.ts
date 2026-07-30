@@ -13,7 +13,7 @@
  */
 
 import { EMPTY_AAD, IV_LEN, TRAILER_LEN } from './constants';
-import { rbspUnescape } from './codec';
+import { boundarySeedZeros, rbspUnescape } from './codec';
 import { readTrailer, readTrailerIv } from './utils';
 import {
   createFailureTracker,
@@ -121,7 +121,9 @@ export const decodeTransform = (
       let { frameCounter, ivPrefix, keyIndex } = trailer;
       let ciphertext: Uint8Array;
       if (isRbsp) {
-        const unit = rbspUnescape(src.subarray(clearBytes));
+        // Same boundary seed as the encoder, derived from the same clear bytes.
+        const seed = boundarySeedZeros(src.subarray(0, clearBytes));
+        const unit = rbspUnescape(src.subarray(clearBytes), seed);
         // Un-escaping can leave less than a trailer, since readTrailer sized
         // clearBytes against the raw frame. A negative offset would throw out
         // of transform() and kill this track's pipeline for the session, and a

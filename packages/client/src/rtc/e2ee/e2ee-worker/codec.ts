@@ -42,12 +42,37 @@ const h264ClearBytes = (
 };
 
 /**
+ * Escape-state seed for the clear-header boundary: how many 0x00 bytes end the
+ * clear header, capped at 2 (a longer run does not change the escaper's next
+ * decision).
+ *
+ * The clear header itself is never escaped, but its tail and the first escaped
+ * bytes form one contiguous stream on the wire: a header ending in 0x00
+ * followed by ciphertext starting 0x00 0x01 is a fake start code the
+ * packetizer would split on. Seeding the escaper as if the header's zeros were
+ * already scanned closes that gap. Encode and decode both derive the seed from
+ * the same clear bytes, so nothing extra travels in the frame.
+ */
+export const boundarySeedZeros = (clearHeader: Uint8Array): number => {
+  const n = clearHeader.length;
+  let zeros = 0;
+  while (zeros < 2 && zeros < n && clearHeader[n - 1 - zeros] === 0) zeros++;
+  return zeros;
+};
+
+/**
  * Escaped length of `segments`, read as one contiguous stream so a 0x00 0x00
  * run spanning a boundary counts. Sizes the buffer for {@link rbspEscapeInto}.
+ *
+ * @param seedZeros zero-run state entering the stream; see
+ *         {@link boundarySeedZeros}.
  */
-export const rbspEscapedLength = (segments: Uint8Array[]): number => {
+export const rbspEscapedLength = (
+  segments: Uint8Array[],
+  seedZeros: number,
+): number => {
   let total = 0;
-  let zeros = 0;
+  let zeros = seedZeros;
   for (const seg of segments) {
     total += seg.length;
     for (let i = 0; i < seg.length; ++i) {
@@ -64,7 +89,8 @@ export const rbspEscapedLength = (segments: Uint8Array[]): number => {
 
 /**
  * Escape `segments` into `dst` at `offset`, inserting 0x03 after each 0x00 0x00
- * run followed by 0x00-0x03. `dst` needs {@link rbspEscapedLength} bytes free.
+ * run followed by 0x00-0x03. `dst` needs {@link rbspEscapedLength} bytes free,
+ * computed with the same `seedZeros`.
  *
  * Sizing separately lets the encoder escape straight behind the clear header,
  * copying the ciphertext once instead of twice.
@@ -73,9 +99,10 @@ export const rbspEscapeInto = (
   dst: Uint8Array,
   offset: number,
   segments: Uint8Array[],
+  seedZeros: number,
 ): void => {
   let j = offset;
-  let zeros = 0;
+  let zeros = seedZeros;
   for (const seg of segments) {
     for (let i = 0; i < seg.length; ++i) {
       const byte = seg[i];
@@ -89,41 +116,41 @@ export const rbspEscapeInto = (
   }
 };
 
-/** Reverse of {@link rbspEscapeInto}. */
-export const rbspUnescape = (data: Uint8Array): Uint8Array => {
+/**
+ * Reverse of {@link rbspEscapeInto}: drop each 0x03 the escaper inserted,
+ * tracked with the same zero-run state so an escape byte right at the
+ * clear-header boundary (possible only with a non-zero `seedZeros`) is
+ * recognized too.
+ */
+export const rbspUnescape = (
+  data: Uint8Array,
+  seedZeros: number,
+): Uint8Array => {
+  const isEscapeByte = (i: number, zeros: number): boolean =>
+    zeros >= 2 && data[i] === 3 && i + 1 < data.length && data[i + 1] <= 3;
   let remove = 0;
-  for (let i = 0; i < data.length - 2; ++i) {
-    if (
-      data[i] === 0 &&
-      data[i + 1] === 0 &&
-      data[i + 2] === 3 &&
-      i + 3 < data.length &&
-      data[i + 3] <= 3
-    ) {
+  let zeros = seedZeros;
+  for (let i = 0; i < data.length; ++i) {
+    if (isEscapeByte(i, zeros)) {
       remove++;
-      i += 2;
+      zeros = 0;
+      continue;
     }
+    zeros = data[i] === 0 ? zeros + 1 : 0;
   }
   if (remove === 0) return data;
   const result = new Uint8Array(data.length - remove);
   let j = 0;
+  zeros = seedZeros;
   for (let i = 0; i < data.length; ++i) {
-    if (
-      i < data.length - 2 &&
-      data[i] === 0 &&
-      data[i + 1] === 0 &&
-      data[i + 2] === 3 &&
-      i + 3 < data.length &&
-      data[i + 3] <= 3
-    ) {
-      result[j++] = 0;
-      result[j++] = 0;
-      i += 2;
+    if (isEscapeByte(i, zeros)) {
+      zeros = 0;
       continue;
     }
     result[j++] = data[i];
+    zeros = data[i] === 0 ? zeros + 1 : 0;
   }
-  return result.subarray(0, j);
+  return result;
 };
 
 /**

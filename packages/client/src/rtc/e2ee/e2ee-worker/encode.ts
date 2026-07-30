@@ -9,7 +9,12 @@
  */
 
 import { EMPTY_AAD, IV_LEN, MAX_CLEAR_BYTES, TRAILER_LEN } from './constants';
-import { getCodecProfile, rbspEscapeInto, rbspEscapedLength } from './codec';
+import {
+  boundarySeedZeros,
+  getCodecProfile,
+  rbspEscapeInto,
+  rbspEscapedLength,
+} from './codec';
 import { writeTrailer } from './utils';
 import { fillIV, getLatestKey, nextFrameCounter } from './crypto';
 import { encodeStats } from './perf';
@@ -107,7 +112,9 @@ export const encodeTransform = (
         if (isNalu && clearBytes > 0) {
           // Escape ciphertext and trailer as one unit: random ciphertext or
           // the counter bytes could otherwise form a fake Annex-B start code
-          // that libwebrtc's H264 packetizer would split on.
+          // that libwebrtc's H264 packetizer would split on. The escaper is
+          // seeded with the clear header's trailing zeros so a start code
+          // cannot form across the clear/encrypted boundary either.
           //
           // The last 7 trailer bytes survive escaping untouched: the RBSP flag
           // holds the clearBytes high byte at >= 0x80, which breaks any zero
@@ -120,9 +127,12 @@ export const encodeTransform = (
           const trailer = new Uint8Array(TRAILER_LEN);
           writeTrailer(trailer, 0, counter, prefix, keyIndex, clearBytes, true);
           const body = [ciphertext, trailer];
-          const dst = new Uint8Array(clearBytes + rbspEscapedLength(body));
+          const seed = boundarySeedZeros(aad);
+          const dst = new Uint8Array(
+            clearBytes + rbspEscapedLength(body, seed),
+          );
           dst.set(aad, 0);
-          rbspEscapeInto(dst, clearBytes, body);
+          rbspEscapeInto(dst, clearBytes, body, seed);
           return dst;
         }
         const dst = new Uint8Array(
