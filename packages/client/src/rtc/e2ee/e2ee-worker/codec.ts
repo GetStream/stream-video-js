@@ -1,9 +1,6 @@
 /**
- * Codec-specific frame processing.
- *
- * Handles clear-byte calculation (how many header bytes stay unencrypted)
- * and H.264 RBSP escaping/unescaping to prevent fake Annex B start codes
- * in encrypted payloads.
+ * Codec-specific framing: how many header bytes stay clear, and H.264 RBSP
+ * escaping so ciphertext cannot contain a fake Annex B start code.
  */
 const findStartCode = (
   data: Uint8Array,
@@ -21,10 +18,9 @@ const findStartCode = (
 };
 
 /**
- * Returns clear-byte count for H.264: everything up to the first slice
- * NALU's start index + 2 (start code + NALU header + 1 byte of slice header).
- * Slice NALUs: type 1 (non-IDR) and type 5 (IDR). Takes the unused frame type so
- * it conforms to {@link CodecProfile.clearBytes} and can be referenced directly.
+ * Clear bytes up to the first slice NALU (type 1 or 5) plus 2: start code,
+ * NALU header, one byte of slice header. Ignores frameType, to match
+ * {@link CodecProfile.clearBytes}.
  */
 const h264ClearBytes = (
   _frameType: string | undefined,
@@ -37,9 +33,7 @@ const h264ClearBytes = (
     const naluType = data[headerPos] & 0x1f;
     if (naluType === 1 || naluType === 5) {
       const clear = sc.pos + sc.len + 2;
-      // Defensive: ensure we're not asked to leave more clear bytes than
-      // the frame contains. Shouldn't normally happen — slice headers are
-      // larger than 2 bytes — but keeps the encoder honest.
+      // A real slice header exceeds 2 bytes, so this clamp should never bite.
       return clear > data.length ? data.length : clear;
     }
     sc = findStartCode(data, headerPos);
@@ -48,11 +42,8 @@ const h264ClearBytes = (
 };
 
 /**
- * Total length of `segments` after RBSP escaping (sum of segment lengths plus
- * the inserted emulation-prevention bytes), treating the segments as one
- * contiguous stream so a 0x00 0x00 run is recognised across a segment boundary.
- * Lets a caller size a destination buffer exactly before escaping into it with
- * {@link rbspEscapeInto}.
+ * Escaped length of `segments`, read as one contiguous stream so a 0x00 0x00
+ * run spanning a boundary counts. Sizes the buffer for {@link rbspEscapeInto}.
  */
 export const rbspEscapedLength = (segments: Uint8Array[]): number => {
   let total = 0;
@@ -72,13 +63,11 @@ export const rbspEscapedLength = (segments: Uint8Array[]): number => {
 };
 
 /**
- * Insert emulation-prevention bytes (0x03) after 0x00 0x00 when followed by
- * 0x00-0x03, preventing fake Annex B start codes in the encrypted payload, by
- * escaping `segments` (treated as one contiguous stream) into `dst` starting at
- * byte `offset`. `dst` must have at least {@link rbspEscapedLength}(segments)
- * bytes of room from `offset`. Splitting the length pass from the write lets the
- * encoder escape ciphertext + trailer straight behind the clear header in a
- * single copy instead of staging them through an intermediate buffer.
+ * Escape `segments` into `dst` at `offset`, inserting 0x03 after each 0x00 0x00
+ * run followed by 0x00-0x03. `dst` needs {@link rbspEscapedLength} bytes free.
+ *
+ * Sizing separately lets the encoder escape straight behind the clear header,
+ * copying the ciphertext once instead of twice.
  */
 export const rbspEscapeInto = (
   dst: Uint8Array,
@@ -100,7 +89,7 @@ export const rbspEscapeInto = (
   }
 };
 
-/** Reverse of RBSP escaping: strip 0x03 after 0x00 0x00 before 0x00-0x03. */
+/** Reverse of {@link rbspEscapeInto}. */
 export const rbspUnescape = (data: Uint8Array): Uint8Array => {
   let remove = 0;
   for (let i = 0; i < data.length - 2; ++i) {
@@ -138,33 +127,24 @@ export const rbspUnescape = (data: Uint8Array): Uint8Array => {
 };
 
 /**
- * How E2EE splits a frame, per codec — the single source of encode-side codec
- * knowledge. Adding a codec here wires it into support detection, clear-byte
- * sizing, and RBSP escaping at once, so a codec can't be half-supported (e.g.
- * an H265 entry that forgets NALU escaping and ships start-code-corrupting
- * ciphertext).
- *
- * Every supported codec uses one framing scheme: clear header + encrypted body
- * + 20-byte trailer.
+ * How E2EE splits a frame, for one codec. The only place holding encode-side
+ * codec knowledge: one entry wires support detection, clear-byte sizing and
+ * RBSP escaping together, so no codec can be half-supported. An H265 entry
+ * that forgot NALU escaping would ship start-code-corrupting ciphertext.
  */
 export interface CodecProfile {
-  /** RBSP-escape ciphertext + trailer to suppress fake Annex-B start codes (H264). */
+  /** Escape ciphertext and trailer against fake Annex-B start codes (H264). */
   rbsp: boolean;
-  /**
-   * Leading bytes left unencrypted (passed as AAD) so the SFU can read frame
-   * headers / select layers without decrypting.
-   */
+  /** Leading bytes left clear and passed as AAD, so the SFU can select layers. */
   clearBytes: (frameType: string | undefined, data: Uint8Array) => number;
 }
 
-// Audio (no keyframe concept) keeps the Opus TOC byte clear; anything without a
-// codec-specific rule encrypts the whole frame.
+// Audio has no keyframes: keep the Opus TOC byte clear, encrypt video whole.
 const defaultClearBytes = (frameType: string | undefined): number =>
   frameType === undefined ? 1 : 0;
 
-// VP8/VP9 keep a fixed header clear, clamped to the frame length so a short
-// frame never claims more clear bytes than it has - otherwise encode zero-pads
-// the clear header and decode builds a length-mismatched AAD.
+// Clamped to the frame length. A short frame claiming more would make encode
+// zero-pad the header and decode build an AAD of a different length.
 const vpClearBytes = (
   frameType: string | undefined,
   data: Uint8Array,
@@ -173,10 +153,9 @@ const vpClearBytes = (
   return clear > data.length ? data.length : clear;
 };
 
-// AV1 is deliberately absent: it cannot carry a frame trailer (the AV1 RTP
-// packetizer parses the OBU stream), so it needs a framing scheme of its own and
-// is not supported for E2EE yet. Listing it here would ship broken frames, so it
-// falls through to isSupportedCodec and fails closed instead.
+// AV1 is absent on purpose: the AV1 RTP packetizer parses the OBU stream, so a
+// frame trailer does not survive. It needs its own scheme. Without an entry it
+// falls through to isSupportedCodec and fails closed.
 const CODEC_PROFILES: Record<string, CodecProfile> = {
   opus: { rbsp: false, clearBytes: defaultClearBytes },
   vp8: { rbsp: false, clearBytes: vpClearBytes },
@@ -184,14 +163,12 @@ const CODEC_PROFILES: Record<string, CodecProfile> = {
   h264: { rbsp: true, clearBytes: h264ClearBytes },
 };
 
-// Unknown / absent codec: audio passes through with the Opus clear byte, video
-// encrypts whole. Matches the legacy `frameType === undefined ? 1 : 0` fallback.
+// Used when the caller names no codec.
 const DEFAULT_PROFILE: CodecProfile = {
   rbsp: false,
   clearBytes: defaultClearBytes,
 };
 
-/** Resolve a codec's profile, falling back to the passthrough default. */
 export const getCodecProfile = (codec: string | undefined): CodecProfile =>
   (codec !== undefined && CODEC_PROFILES[codec]) || DEFAULT_PROFILE;
 

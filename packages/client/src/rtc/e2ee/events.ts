@@ -1,8 +1,7 @@
 /**
- * Per-track throughput sample. For encode `userId` is the local sender; for
- * decode it is the remote sender. `trackType` is VIDEO / SCREEN_SHARE / AUDIO.
- * Bucketing per (userId, trackType) keeps a peer's - or the local sender's -
- * audio and video reported apart instead of summed into one figure.
+ * Throughput sample for one track. `userId` is the local sender on encode, the
+ * remote sender on decode. The (userId, trackType) pair keeps a peer's audio
+ * and video reported apart instead of summed.
  */
 export type TrackPerf = {
   userId: string;
@@ -12,9 +11,8 @@ export type TrackPerf = {
 };
 
 /**
- * Perf report payload emitted by the E2EE worker. Encode entries additionally
- * carry the `codec` (known when publishing); decode entries do not, since the
- * remote sender's codec is not reliably known locally.
+ * Encode entries carry the `codec` the publisher knows; decode entries cannot,
+ * since a remote sender's codec is not reliably known locally.
  */
 export type PerfReport = {
   encode: (TrackPerf & { codec: string })[];
@@ -22,105 +20,79 @@ export type PerfReport = {
 };
 
 /**
- * Fired when a key that is needed is not held:
- * - without `keyIndex`, the local encoder has no key to encrypt with (the host
- *   never provided one, or a key import failed) and outgoing frames are dropped;
- * - with `keyIndex`, a remote sender's frame referenced a key at that index that
- *   this peer does not hold, so the frame was dropped. Normal while a key is
- *   still in flight or a rotation has not propagated yet.
+ * Fired when a needed key is not held. The `keyIndex` tells the two cases apart:
+ *
+ * - Without it, the local encoder has no key and drops every outgoing frame.
+ *   The host never provided a key, or a key import failed.
+ * - With it, a remote sender's frame named a key this peer does not hold, so
+ *   the frame was dropped. This is normal while a key is in flight, or while a
+ *   rotation propagates.
  */
 export type MissingKeyEvent = {
-  /** The sender whose key is missing: the local user, or the remote sender. */
+  /** The local user, or the remote sender. */
   userId: string;
-  /**
-   * The keyIndex the remote frame asked for. Present only for the decode
-   * direction; absent when the local encoder has no key at all.
-   */
+  /** Decode direction only; absent when the local encoder has no key. */
   keyIndex?: number;
   /**
-   * The stalled track (VIDEO / AUDIO / SCREEN_SHARE). Present only for the
-   * decode direction, which reports per track: two of a peer's tracks can be on
-   * different key epochs, so one may stall while the other plays. The encode
-   * direction has no track: the local user holds no key at all, which stops
-   * every outgoing track at once, and is reported once for the user.
+   * Decode direction only, which reports per track: a peer's tracks can sit on
+   * different key epochs, so one may stall while another plays. The encode
+   * direction stops every outgoing track at once and is reported per user.
    */
   trackType?: string;
 };
 
 /**
- * Fired when a frame from a remote participant arrives unencrypted and is
- * forwarded to the decoder as-is. Expected when the call's encryption mode is
- * `available` and that peer publishes plain; on a call where every peer is meant
- * to encrypt it means media is being rendered without authentication.
- * Throttled to at most once per second per remote track in the worker.
+ * A remote frame arrived unencrypted and went to the decoder as-is. Expected
+ * when the call's mode is `available` and that peer publishes plain; where every
+ * peer must encrypt, it means media renders without authentication.
  */
 export type UnencryptedFrameEvent = {
-  /** Remote user whose frame carried no E2EE framing. */
   userId: string;
-  /** The track arriving in the clear (VIDEO / AUDIO / SCREEN_SHARE). */
   trackType?: string;
 };
 
-/**
- * Fired when the worker fails to decrypt a frame from a remote participant.
- * Throttled to at most once per second per remote user in the worker.
- */
+/** The worker could not decrypt a remote frame. Throttled per track. */
 export type DecryptionFailedEvent = {
-  /** Remote user whose frame could not be decrypted. */
   userId: string;
-  /** The failing track (VIDEO / AUDIO / SCREEN_SHARE), tracked per track. */
   trackType?: string;
 };
 
 /**
- * Fired when decryption resumes for a remote participant after previously
- * reported failures.
+ * Fired when a track decrypts again after a reported failure. See
+ * {@link E2EEEventMap} for how it pairs with `e2ee.decryption_failed`.
  */
 export type DecryptionResumedEvent = {
-  /** Remote user whose frames decrypt successfully again. */
   userId: string;
-  /** The recovered track. */
   trackType?: string;
 };
 
 /**
- * Fired when an outgoing frame fails to encrypt. When this fires, that track is
- * publishing nothing. Latched per track: it fires on the first failure of a run
- * and stays quiet until a frame encrypts again, so a permanently failing track
- * reports once rather than once per frame.
+ * An outgoing frame could not be encrypted, so that track publishes nothing.
+ * Latched per track, so a permanently failing track reports once.
  */
 export type EncryptionFailedEvent = {
-  /** The local sender. */
   userId: string;
-  /**
-   * The track that stopped publishing (VIDEO / AUDIO / SCREEN_SHARE). A sender
-   * usually has several, and only the named one is affected - a codec the
-   * worker cannot split, for example, takes down that track alone.
-   */
+  /** Only this track is affected; the sender's others keep publishing. */
   trackType?: string;
-  /** Short, human-readable reason the encrypt failed. */
+  /** Short, human-readable reason. */
   reason: string;
 };
 
 /**
- * Fired when the SDK detects that the E2EE session is broken for a remote
- * user — decryption has failed repeatedly past the internal tolerance.
+ * Fired when a remote track passes the internal failure tolerance: decryption
+ * has failed on that many consecutive frames.
  */
 export type E2EEBrokenEvent = {
-  /** Remote user whose frames can no longer be decrypted. */
   userId: string;
-  /** The keyIndex that crossed the failure tolerance. */
+  /** The keyIndex that crossed the tolerance. */
   keyIndex: number;
-  /** The broken track. */
   trackType?: string;
 };
 
 /**
- * Snapshot of key state delivered via the `e2ee.key_state` event in response
- * to {@link EncryptionManager.requestKeyDump}.
- *
- * `fingerprint` is the hex of the first 8 bytes of SHA-256(rawKey), a
- * non-reversible identifier safe to log. Raw key material is never returned.
+ * Answer to {@link EncryptionManager.requestKeyDump}. `fingerprint` is hex of
+ * the first 8 bytes of SHA-256(rawKey): not reversible, so safe to log. Key
+ * material is never returned.
  */
 export type KeyStateReport = {
   perUserKeys: Array<{
@@ -132,78 +104,43 @@ export type KeyStateReport = {
 };
 
 /**
- * Events emitted by the E2EE {@link EncryptionManager}.
+ * Events that the E2EE {@link EncryptionManager} emits.
  *
- * Subscribe with `manager.on(eventName, handler)` / unsubscribe via the
- * returned function or `manager.off(eventName, handler)`.
+ * Subscribe with `manager.on(eventName, handler)`. To unsubscribe, call the
+ * function it returns, or `manager.off(eventName, handler)`.
  *
- * Event names use the `e2ee.<snake_case>` convention so they are easy to
- * grep across the codebase and to distinguish from SFU / coordinator events.
+ * Every name follows the `e2ee.<snake_case>` convention. That makes them easy
+ * to grep, and keeps them distinct from SFU and coordinator events.
  */
 export type E2EEEventMap = {
-  /**
-   * Emitted when the worker fails to decrypt a frame from a remote participant.
-   * Indicates a key mismatch, a rotation in progress, or a tampered frame.
-   * Throttled to at most once per second per remote user in the worker.
-   */
+  /** Key mismatch, rotation in progress, or a tampered frame. */
   'e2ee.decryption_failed': DecryptionFailedEvent;
 
   /**
-   * Emitted when decryption resumes on a track that previously reported
-   * `e2ee.decryption_failed`. Paired one-to-one with that event and never
-   * throttled, so a delivered failure is always followed by its recovery and a
-   * host can drive UI straight off the pair. Fires for a track that recovers by
-   * rotating to a new keyIndex too, not only for one whose original key starts
-   * working again.
+   * Pairs one-to-one with `e2ee.decryption_failed` and is never throttled, so a
+   * host can drive its UI from the pair alone. Also fires for a track that
+   * recovers on a new keyIndex.
    */
   'e2ee.decryption_resumed': DecryptionResumedEvent;
 
-  /**
-   * Emitted when an outgoing frame fails to encrypt: that track is publishing
-   * nothing. Latched per track, so a permanently failing track reports once
-   * rather than once per frame.
-   */
+  /** That track is publishing nothing. Latched, so it reports once. */
   'e2ee.encryption_failed': EncryptionFailedEvent;
 
   /**
-   * Emitted when a needed key is not held. Without `keyIndex`, the encoder has
-   * no key for the local user, so outgoing frames are being dropped — the sender
-   * is effectively publishing nothing. With `keyIndex`, a remote sender's frame
-   * referenced a key this peer does not hold and was dropped; that is the normal
-   * state while key distribution or a rotation is still in flight, which is why
-   * it is not reported as `e2ee.decryption_failed`.
-   *
-   * Distinct from `e2ee.encryption_failed`, which means a key was present but
-   * the crypto operation threw. The host should set / distribute a key. Throttled
-   * in the worker and stops once the key arrives.
+   * The host must set or distribute a key. Distinct from
+   * `e2ee.encryption_failed`, where a key was present but the crypto threw.
+   * Throttled, and stops once the key arrives.
    */
   'e2ee.missing_key': MissingKeyEvent;
 
-  /**
-   * Emitted when a remote frame arrives unencrypted and is forwarded to the
-   * decoder as-is.
-   */
   'e2ee.unencrypted_frame': UnencryptedFrameEvent;
 
-  /**
-   * Emitted every second when perf reporting is enabled via
-   * {@link EncryptionManager.enablePerformanceReporting}.
-   */
+  /** Once per second while {@link EncryptionManager.enablePerformanceReporting} is on. */
   'e2ee.perf_report': PerfReport;
 
-  /**
-   * Emitted when the SDK detects that the E2EE session is broken for a
-   * remote user — decryption has failed repeatedly past the internal
-   * tolerance. Fires once per (userId, keyIndex) transition into the
-   * invalid state.
-   */
+  /** Fires once per (userId, keyIndex) entering the failed state. */
   'e2ee.broken': E2EEBrokenEvent;
 
-  /**
-   * Emitted in response to {@link EncryptionManager.requestKeyDump}: a
-   * snapshot of the keys the worker currently holds (per-user and shared),
-   * identified by non-reversible fingerprints. Raw key material is never
-   * included.
-   */
+  /** Answer to {@link EncryptionManager.requestKeyDump}. */
   'e2ee.key_state': KeyStateReport;
 };

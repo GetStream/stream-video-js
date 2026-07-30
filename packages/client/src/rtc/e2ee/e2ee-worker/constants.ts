@@ -1,30 +1,24 @@
-/** Magic marker used to recognize an encrypted frame's trailer. */
+/** Marks an encrypted frame's trailer. */
 export const MAGIC = 0xdeadbeef;
 
 /**
- * Wire format version. Bump when the trailer layout or IV derivation changes.
+ * Wire format version. Bump it when the trailer layout or IV derivation change.
  *
  * v1: [4B frameCounter][8B ivPrefix][1B keyIndex][2B clearBytes|flags]
- *     [1B version][4B magic] = 20 bytes.
- *     IV = ivPrefix ∥ frameCounter (12 bytes). ivPrefix is a sender-chosen
- *     random value, fresh per key import — prevents IV reuse even when the
- *     same raw key ends up being used across worker sessions.
+ * [1B version][4B magic]. IV = ivPrefix ∥ frameCounter.
  */
 export const E2EE_VERSION = 1;
 
-/** Sender-chosen random prefix occupying the first 8 bytes of the IV. */
 export const IV_PREFIX_LEN = 8;
-/** Monotonic counter occupying the last 4 bytes of the IV. */
 export const FRAME_COUNTER_LEN = 4;
 export const IV_LEN = IV_PREFIX_LEN + FRAME_COUNTER_LEN;
 
-/** Field widths in the trailer. */
 const KEY_INDEX_LEN = 1;
 const CLEAR_BYTES_LEN = 2;
 const VERSION_LEN = 1;
 const MAGIC_LEN = 4;
 
-/** 4 + 8 + 1 + 2 + 1 + 4 = 20 */
+/** 4 + 8 + 1 + 2 + 1 + 4 */
 export const TRAILER_LEN =
   FRAME_COUNTER_LEN +
   IV_PREFIX_LEN +
@@ -33,26 +27,21 @@ export const TRAILER_LEN =
   VERSION_LEN +
   MAGIC_LEN;
 
-/** bit 15 of the 2-byte clearBytes field signals RBSP escaping */
+/** Bit 15 of the clearBytes field. Signals RBSP escaping. */
 export const RBSP_FLAG = 0x8000;
-/** 15-bit max for clearBytes (bit 15 is reserved for RBSP_FLAG). */
+/** Bit 15 belongs to RBSP_FLAG, so clearBytes gets 15 bits. */
 export const MAX_CLEAR_BYTES = 0x7fff;
 
 export const EMPTY_AAD = new Uint8Array(0);
 
-/** Consecutive decrypt failures on one track before `e2ee.broken` is emitted. */
+/** Consecutive decrypt failures on one track before `e2ee.broken` fires. */
 export const FAILURE_TOLERANCE = 10;
 
-/**
- * Sliding window (in frames) for replay protection per (userId, keyIndex).
- * Any frame whose counter is ≤ highestSeen - REPLAY_WINDOW is rejected.
- */
+/** Replay window in frames. A counter <= highestSeen - this is rejected. */
 export const REPLAY_WINDOW = 1024;
 
 /**
- * Hard ceiling on the frame counter (a 32-bit big-endian field in the IV). One
- * past this value would wrap into a reused (ivPrefix, counter) pair → IV reuse
- * under AES-GCM → catastrophic. Encoding throws here and fails closed rather
- * than silently wrapping.
+ * One more than this wraps into an (ivPrefix, counter) pair the sender already
+ * used, which is IV reuse under AES-GCM. Encoding throws instead.
  */
 export const COUNTER_HARD_LIMIT = 0xffffffff; // 2^32 - 1

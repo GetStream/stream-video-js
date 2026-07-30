@@ -1,5 +1,5 @@
 /**
- * E2EE worker — populated at build time.
+ * E2EE worker. The build populates it.
  *
  * The actual implementation lives in `e2ee-worker/e2ee-worker-impl.ts` and its
  * sibling modules (`constants.ts`, `codec.ts`, `crypto.ts`, `utils.ts`,
@@ -18,9 +18,9 @@
  * In tests, this module is mocked (see `__tests__/EncryptionManager.test.ts`),
  * so the placeholder is never evaluated.
  *
- * @see e2ee-worker/e2ee-worker-impl.ts — the entry point
- * @see ../../plugins/rollup-plugin-inline-worker.ts — the Rollup plugin
- * @see EncryptionManager.ts — consumes e2eeWorker
+ * @see e2ee-worker/e2ee-worker-impl.ts - the entry point
+ * @see ../../plugins/rollup-plugin-inline-worker.ts - the Rollup plugin
+ * @see EncryptionManager.ts - consumes e2eeWorker
  */
 export function e2eeWorker() {
   // will be populated at build time

@@ -18,39 +18,26 @@ export type {
 } from './events';
 
 /**
- * AES-GCM variant used for media frame encryption.
- *
- * - `'AES-128-GCM'` (default) — 16-byte keys. Matches BSI TR-02102-1 §3.2.
- * - `'AES-256-GCM'` — 32-byte keys. Use when a compliance reviewer (e.g. a
- *    KBV Anlage 31b certifier) explicitly requires 256-bit strength.
+ * - `'AES-128-GCM'` (default): 16-byte keys, per BSI TR-02102-1 §3.2.
+ * - `'AES-256-GCM'`: 32-byte keys. For a compliance reviewer that requires
+ *   256-bit strength, such as a KBV Anlage 31b certifier.
  */
 export type E2EEAlgorithm = 'AES-128-GCM' | 'AES-256-GCM';
 
 type CreateOptions = {
-  /**
-   * Defaults to 'AES-128-GCM'
-   */
   algorithm?: E2EEAlgorithm;
   /**
-   * Opt a Chrome-based browser into the standard `RTCRtpScriptTransform` API
-   * instead of the default Insertable Streams (`createEncodedStreams`) path.
-   *
-   * Defaults to `false`. Chrome ships `RTCRtpScriptTransform` but it's still
-   * unreliable there, so the SDK uses Insertable Streams on Chrome regardless
-   * of whether `RTCRtpScriptTransform` is available. Set this to `true` only to
-   * test or re-enable the standard API on Chrome once it works reliably.
-   *
-   * Has no effect on Firefox/Safari, which only support `RTCRtpScriptTransform`
-   * and always use it.
+   * Put Chrome on the standard `RTCRtpScriptTransform` instead of Insertable
+   * Streams. Chrome ships it but it is still unreliable, so the SDK defaults to
+   * Insertable Streams there. Set it to test or re-enable the standard API once
+   * it works. No effect on Firefox and Safari, which only have the standard one.
    */
   forceRtpScriptTransform?: boolean;
 };
 
 /**
- * End-to-end encryption manager for WebRTC media tracks.
- *
- * Handles key distribution to the E2EE Web Worker and attaches
- * encryption/decryption transforms to RTCRtpSenders and RTCRtpReceivers.
+ * Distributes keys to the E2EE Web Worker and attaches encrypt/decrypt
+ * transforms to RTCRtpSenders and RTCRtpReceivers.
  *
  * @example
  * ```ts
@@ -77,16 +64,7 @@ export class EncryptionManager
   private readonly worker: Worker;
   private readonly workerUrl: string;
 
-  /**
-   * Constructs new EncryptionManager instance.
-   *
-   * @param userId the currentUserId bound to this manager.
-   * @param worker the worker implementation to use.
-   * @param workerUrl the blob URL to revoke on dispose.
-   * @param algorithm the AES-GCM variant expected by this manager.
-   * @param forceRtpScriptTransform opt Chrome into the standard
-   *        `RTCRtpScriptTransform` instead of the default Insertable Streams path.
-   */
+  /** @param workerUrl the blob URL to revoke on dispose. */
   private constructor(
     userId: string,
     worker: Worker,
@@ -107,14 +85,8 @@ export class EncryptionManager
   }
 
   /**
-   * Check whether the current browser supports WebRTC Encoded Transforms,
-   * which are required for E2EE.
-   *
-   * Use this to guard UI (e.g. hide an "Enable E2EE" toggle) or to
-   * avoid calling {@link create} in unsupported environments.
-   *
-   * @returns `true` if either `RTCRtpScriptTransform` or the legacy
-   *          `createEncodedStreams` API is available.
+   * Whether this browser has WebRTC Encoded Transforms, which E2EE requires.
+   * Use it to guard UI, or to avoid calling {@link create} where it would throw.
    */
   static isSupported = (): boolean => {
     return preferredTransform() !== undefined;
@@ -123,14 +95,13 @@ export class EncryptionManager
   /**
    * Create an EncryptionManager instance and initialize the E2EE Web Worker.
    *
-   * This is async because it dynamically imports the worker module, keeping
-   * the worker source out of the main bundle for consumers who don't use E2EE.
+   * Async because it imports the worker module dynamically, keeping the worker
+   * source out of the main bundle for consumers who do not use E2EE.
    *
-   * @param userId - The local user's ID (typically `call.currentUserId`),
-   *         used for encryption key lookup when attaching encryptors.
-   * @param options - Options that can be used to override certain defaults.
-   * @throws {Error} If the browser does not support Encoded Transforms.
-   *         Call {@link isSupported} first to check.
+   * @param userId - The local user's ID, normally `call.currentUserId`. The
+   *         encryptor looks its key up by this.
+   * @throws {Error} If the browser lacks Encoded Transforms. Check
+   *         {@link isSupported} first.
    *
    * @example
    * ```ts
@@ -180,11 +151,10 @@ export class EncryptionManager
   };
 
   /**
-   * Reject any use of a disposed manager. The worker is terminated by
-   * {@link dispose}, so `postMessage` becomes a silent no-op and an attached
-   * transform is wired to a dead worker: frames would stall forever with no key
-   * import, no error and no event. Failing loudly is also fail-closed - a caller
-   * that swallows this still publishes nothing rather than cleartext.
+   * {@link dispose} terminates the worker, so `postMessage` becomes a silent
+   * no-op and an attached transform points at a dead worker: frames would stall
+   * forever with no error and no event. Throwing is also fail-closed, since a
+   * caller that swallows it still publishes nothing rather than cleartext.
    */
   private assertUsable = (operation: string) => {
     if (this.disposed) {
@@ -195,9 +165,8 @@ export class EncryptionManager
   /**
    * Terminate the worker and release all resources.
    *
-   * After calling this, the manager instance is no longer usable: every other
-   * method throws. Call {@link create} to obtain a new one if needed.
-   * Safe to call multiple times.
+   * The manager is unusable afterwards and every other method throws. Call
+   * {@link create} for a new one. Safe to call more than once.
    */
   dispose = (): void => {
     if (this.disposed) return;
@@ -213,70 +182,49 @@ export class EncryptionManager
   /**
    * Set a per-user AES-GCM encryption key in the worker's key store.
    *
-   * Use this when each participant has their own key, distributed by a
-   * central authority. The receiver identifies the correct key via the
-   * `keyIndex` embedded in each encrypted frame's trailer.
+   * Use it when each participant has their own key from a central authority.
+   * The receiver picks the right one by the `keyIndex` in the frame trailer.
    *
    * @remarks
-   * Each call generates a fresh random 8-byte IV prefix on the sender side,
-   * which means callers can safely re-import the same raw key material
-   * without risking AES-GCM IV reuse. Nevertheless, keys should be rotated
-   * (with a new `keyIndex`) when participants join or leave — that's
-   * orthogonal to IV uniqueness and is about forward/backward secrecy.
+   * Each call makes a fresh random IV prefix, so the same raw key can be
+   * imported again without IV reuse. Rotate on join and leave anyway: that is
+   * forward and backward secrecy, a separate concern.
    *
-   * @param userId - The key owner's user ID: the local user's `currentUserId`
-   *         when storing your own encryption key, or a remote participant's
-   *         `userId` when storing a key received from them to decrypt their
-   *         media. This is the ID the worker uses for key lookup (the encryptor
-   *         looks up the local key by `currentUserId`; the decryptor looks up
-   *         each remote participant's key by their `userId`). Irrelevant with a
-   *         shared key, which is the fallback for every user.
-   * @param keyIndex - Monotonically increasing index for key rotation. Must be
-   *         an integer in the range 0-255: the frame trailer carries it in a
-   *         single byte, so values outside that range are rejected.
-   * @param rawKey - Raw AES key material: 16 bytes for AES-128-GCM (default)
-   *         or 32 bytes for AES-256-GCM. Structured-cloned to the worker; the
-   *         caller's buffer is not detached and may be re-imported.
+   * @param userId - The key owner. Pass `currentUserId` for your own key, or a
+   *         remote participant's `userId` for one you received from them.
+   * @param keyIndex - Increases with each rotation. An integer 0-255, since one
+   *         trailer byte carries it.
+   * @param rawKey - 16 bytes for AES-128-GCM, 32 for AES-256-GCM. Cloned, not
+   *         transferred, so the caller's buffer stays usable.
    */
   setKey = (userId: string, keyIndex: number, rawKey: ArrayBuffer): void => {
     this.assertUsable('setKey');
     this.validateKeyIndex(keyIndex);
     this.validateKeyLength(rawKey);
-    // Structured-clone the key (no transfer list): transferring would detach
-    // the caller's ArrayBuffer, breaking the documented "safe to re-import the
-    // same raw key material" contract. The copy of 16/32 bytes is negligible.
+    // No transfer list: a transfer would detach the caller's ArrayBuffer and
+    // break the documented re-import contract. Copying 32 bytes is cheap.
     this.worker.postMessage({ type: 'cmd.set_key', userId, keyIndex, rawKey });
   };
 
   /**
-   * Set a shared AES-GCM key used as a fallback for any user
-   * without a per-user key.
+   * Fallback key for any user without a per-user key. The simplest E2EE mode:
+   * one key for everyone, usually passphrase-derived, no distribution needed.
    *
-   * This is the simplest E2EE mode: all participants use the same
-   * passphrase-derived key. No per-user key distribution needed.
-   *
-   * @param keyIndex - Key rotation index. Must be an integer in the range
-   *         0-255 (it is carried in a single trailer byte).
-   * @param rawKey - Raw AES key material: 16 bytes for AES-128-GCM (default)
-   *         or 32 bytes for AES-256-GCM. Structured-cloned to the worker; the
-   *         caller's buffer is not detached and may be re-imported.
+   * @param keyIndex - An integer 0-255, since one trailer byte carries it.
+   * @param rawKey - 16 bytes for AES-128-GCM, 32 for AES-256-GCM. Cloned, not
+   *         transferred, so the caller's buffer stays usable.
    */
   setSharedKey = (keyIndex: number, rawKey: ArrayBuffer): void => {
     this.assertUsable('setSharedKey');
     this.validateKeyIndex(keyIndex);
     this.validateKeyLength(rawKey);
-    // Structured-clone (no transfer list) so the caller's buffer is not
-    // detached - see setKey.
+    // No transfer list; see setKey.
     this.worker.postMessage({ type: 'cmd.set_shared_key', keyIndex, rawKey });
   };
 
   /**
-   * Remove all encryption keys for a user from the worker's key store.
-   *
-   * Call this when a participant leaves the call to revoke their
-   * decryption capability for future frames.
-   *
-   * @param userId - The user's ID whose keys should be removed.
+   * Drop a user's keys, revoking their ability to decrypt later frames. Call it
+   * when a participant leaves.
    */
   removeKeys = (userId: string): void => {
     this.assertUsable('removeKeys');
@@ -284,12 +232,10 @@ export class EncryptionManager
   };
 
   /**
-   * Attach an encryption transform to an outgoing media track.
-   * Called internally by the Publisher when adding a transceiver.
+   * Called by the Publisher when it adds a transceiver.
    *
-   * @param sender - The RTCRtpSender to encrypt.
-   * @param codec - The codec name (e.g. 'vp8', 'h264') for clear-byte rules.
-   * @param trackType - Optional label used only to bucket encode perf stats.
+   * @param codec - Codec name, e.g. 'vp8', selecting the clear-byte rules.
+   * @param trackType - Optional label; only groups perf stats.
    * @internal
    */
   encrypt = (
@@ -307,12 +253,10 @@ export class EncryptionManager
   };
 
   /**
-   * Attach a decryption transform to an incoming media track.
-   * Called internally by the Subscriber when a remote track arrives.
+   * Called by the Subscriber when a remote track arrives.
    *
-   * @param receiver - The RTCRtpReceiver to decrypt.
-   * @param userId - The remote user's ID for key lookup in the worker.
-   * @param trackType - Optional label used only to bucket decode perf stats.
+   * @param userId - The remote user, for key lookup in the worker.
+   * @param trackType - Optional label; only groups perf stats.
    * @internal
    */
   decrypt = (
@@ -324,11 +268,7 @@ export class EncryptionManager
     this.pipe(receiver, { operation: 'decode', userId, trackType });
   };
 
-  /**
-   * Pipe a sender/receiver through the worker's transform, using whichever
-   * Encoded Transform API was resolved for this manager at construction time.
-   * Tracks already-piped targets to prevent double-piping.
-   */
+  /** Pipe through the worker's transform, tracking targets to avoid double-piping. */
   private pipe = (
     target: RTCRtpSender | RTCRtpReceiver,
     options: {
@@ -356,11 +296,8 @@ export class EncryptionManager
   /**
    * Toggle periodic performance reporting from the E2EE worker.
    *
-   * When enabled, the worker emits an `e2ee.perf_report` event once per second
-   * with per-track encode/decode FPS and crypto timings (subscribe with
-   * `manager.on('e2ee.perf_report', handler)`). Useful for debugging throughput.
-   *
-   * @param enabled - Whether to enable or disable perf reporting.
+   * While on, the worker emits `e2ee.perf_report` once per second with per-track
+   * FPS and crypto timings. Useful for debugging throughput.
    */
   enablePerformanceReporting = (enabled: boolean): void => {
     this.assertUsable('enablePerformanceReporting');
@@ -371,21 +308,14 @@ export class EncryptionManager
   };
 
   /**
-   * Request a snapshot of all keys held by the worker.
-   *
-   * The snapshot is delivered asynchronously via the `e2ee.key_state` event
-   * (subscribe with `manager.on('e2ee.key_state', handler)`). Each report lists
-   * the per-user keys and the shared key (if set) with non-reversible
-   * fingerprints; raw key material is never returned.
+   * Request a snapshot of the worker's keys. It arrives later as the
+   * `e2ee.key_state` event, listing fingerprints only, never key material.
    */
   requestKeyDump = (): void => {
     this.assertUsable('requestKeyDump');
     this.worker.postMessage({ type: 'cmd.dump_key_state' });
   };
 
-  /**
-   * Clear all keys from the worker and reset internal state.
-   */
   private cleanup = (): void => {
     this.worker.postMessage({ type: 'cmd.dispose' });
     this.piped = undefined;
@@ -393,8 +323,7 @@ export class EncryptionManager
 
   private handleWorkerMessage = (e: MessageEvent) => {
     const { type, ...payload } = e.data ?? {};
-    // `e2ee.error` is a worker-internal log-only channel, never surfaced as an
-    // SDK event, so it has no E2EEEventMap entry and is handled separately.
+    // Internal log-only channel: no E2EEEventMap entry, so handle it here.
     if (type === 'e2ee.error') {
       this.logger.error(e.data.message);
       return;
@@ -414,16 +343,17 @@ export class EncryptionManager
     const expected = is256 ? 32 : 16;
     if (rawKey.byteLength !== expected) {
       throw new Error(
-        `Key must be exactly ${expected} bytes (${is256 ? 'AES-256' : 'AES-128'})`,
+        `Key must be exactly ${expected} bytes (${
+          is256 ? 'AES-256' : 'AES-128'
+        })`,
       );
     }
   };
 
   /**
-   * The frame trailer carries the keyIndex in a single byte, so the wire format
-   * caps it at 255. A larger value would be truncated to `keyIndex & 0xFF`, and
-   * the receiver would look up the wrong key (or key 0) and fail every decrypt.
-   * Reject it at the boundary instead of shipping a silently-broken key epoch.
+   * One trailer byte carries the keyIndex. A larger value would truncate to
+   * `keyIndex & 0xFF`, so the receiver would look up the wrong key and fail
+   * every decrypt. Reject it rather than ship a silently broken key epoch.
    */
   private validateKeyIndex = (keyIndex: number) => {
     if (!Number.isInteger(keyIndex) || keyIndex < 0 || keyIndex > 255) {

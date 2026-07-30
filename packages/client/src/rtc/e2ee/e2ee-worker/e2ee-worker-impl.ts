@@ -1,46 +1,26 @@
 /**
- * E2EE Web Worker entry point.
+ * E2EE Web Worker entry point. Wires AES-GCM encrypt/decrypt into WebRTC
+ * Encoded Transforms. The main thread distributes keys by postMessage, and
+ * transforms look one up per frame by (userId, keyIndex).
  *
- * Wires up WebRTC Encoded Transforms for frame encryption/decryption
- * using AES-128-GCM authenticated encryption.
- *
- * ## Key Management
- *
- * Each participant has their own set of symmetric keys, identified by
- * (userId, keyIndex). The main thread distributes keys to the worker
- * via postMessage; transforms look up the correct key per frame.
- *
- * ## Frame Format
- *
- * Codec-specific clear-byte rules preserve frame headers so the SFU
- * can still detect keyframes and select layers:
- * - Audio (Opus): 1 byte clear
- * - VP8: 10 bytes (keyframe) / 3 bytes (delta)
- * - VP9: same as VP8 (10 / 3)
- * - H264: NALU-aware — clear up to first slice NALU start + 2, then
- *   RBSP-escape the encrypted tail to prevent fake start codes
- *
- * Encrypted frames carry a 20-byte trailer:
+ * Frame layout is [clear header][ciphertext + GCM tag][20B trailer], so 36
+ * bytes of overhead. The trailer holds:
  *   [4B frameCounter][8B ivPrefix][1B keyIndex][2B clearBytes|flags]
  *   [1B version][4B 0xDEADBEEF]
  *
- * The 12-byte AES-GCM IV is constructed as:
- *   [8 bytes ivPrefix][4 bytes frameCounter]
- * `ivPrefix` is a random 8-byte value chosen fresh per key import on the
- * sender side, and transmitted inline in every frame's trailer. This
- * guarantees IV uniqueness even when the same raw key material happens to
- * be imported more than once (either in the same worker or across worker
- * sessions), without relying on the host to never reuse keys.
+ * The clear header keeps codec headers readable so the SFU can detect keyframes
+ * and select layers: 1 byte for Opus, 10/3 for VP8 and VP9 (key/delta), and for
+ * H264 everything up to the first slice NALU + 2, with the encrypted tail
+ * RBSP-escaped against fake start codes. It doubles as the AAD, so the SFU can
+ * read it but decrypt still detects tampering.
  *
- * Clear bytes are passed as Additional Authenticated Data (AAD) so the SFU
- * can read them but tampering is detected on decrypt.
+ * The 12-byte IV is [ivPrefix][frameCounter]. `ivPrefix` is random per key
+ * import and travels in the trailer, so IVs stay unique even when the host
+ * imports the same raw key twice.
  *
- * Total overhead per frame: 36 bytes (16 GCM tag + 20 trailer).
+ * rollup-plugin-inline-worker bundles this into the function
+ * `../e2ee-worker.ts` exports.
  *
- * Bundled at build time by rollup-plugin-inline-worker into a
- * self-contained function exported from `../e2ee-worker.ts`.
- *
- * @see ../e2ee-worker.ts — the generated export consumed by EncryptionManager
  * @see https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Using_Encoded_Transforms
  * @see https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt#aes-gcm
  */
@@ -74,7 +54,7 @@ import {
   removeKeys,
 } from './crypto';
 
-/** Minimal shape of an RTCEncodedVideoFrame / RTCEncodedAudioFrame. */
+/** Minimal shape of an RTCEncodedVideo/AudioFrame. */
 interface EncodedFrame {
   data: ArrayBuffer;
   type?: 'key' | 'delta' | 'empty';
@@ -91,16 +71,13 @@ type FrameController = {
 let perfEnabled = false;
 let perfInterval: ReturnType<typeof setInterval> | null = null;
 let perfLastTick = 0;
-// Encode stats are bucketed per outgoing track (keyed by trackType, which is
-// unique per local sender) so two same-codec senders - e.g. a vp8 camera and a
-// vp8 screen share - are reported apart instead of summed into one figure. The
-// codec rides along for display.
+// Keyed by trackType, unique per local sender, so a vp8 camera and a vp8 screen
+// share are reported apart instead of summed.
 const encodeStats = new Map<
   string,
   { userId: string; codec: string; count: number; maxCryptoMs: number }
 >();
-// Decode stats are bucketed per (userId, trackType) for the same reason: a
-// remote peer's video and audio are reported apart, not summed under one userId.
+// Keyed by (userId, trackType) for the same reason.
 const decodeStats = new Map<
   string,
   { userId: string; trackType: string; count: number; maxCryptoMs: number }
@@ -144,7 +121,7 @@ const recordEncodeCrypto = (
 };
 
 const startPerfReport = () => {
-  if (perfInterval) return; // already running — avoid leaking a second interval
+  if (perfInterval) return; // a second interval would leak
   perfEnabled = true;
   perfLastTick = performance.now();
   perfInterval = setInterval(() => {
@@ -200,18 +177,15 @@ const stopPerfReport = () => {
 // --- Transform lifecycle --------------------------------------------------
 
 /**
- * Track in-flight pipelines so `dispose` can tear them down cleanly instead
- * of leaving them to fail per-frame after crypto state has been cleared.
+ * In-flight pipelines, so `dispose` tears them down instead of leaving them to
+ * fail per frame once the crypto state is cleared.
  */
 const activePipelines = new Set<AbortController>();
 
 /**
- * Throttled per-user notification that the encoder has no key for the local
- * user, so outgoing frames are being dropped — the sender publishes nothing.
- * Without this, a missing key (host never called setKey, or a key import
- * failed) is completely silent: black video with no actionable signal.
- * Throttled to one message per second per user; it stops firing on its own
- * once a key is imported and frames start flowing.
+ * The encoder holds no key, so every outgoing frame is dropped. Without this
+ * the host just sees black video with nothing to act on. Throttled per user,
+ * and stops on its own once a key arrives.
  */
 const missingKeyThrottle = createThrottle(1000);
 const notifyMissingKey = (userId: string) => {
@@ -227,18 +201,15 @@ const encodeTransform = (
 ) => {
   const profile = getCodecProfile(codec);
   const isNalu = profile.rbsp;
-  // Bucket this sender's perf stats by trackType (unique per sender); fall back
-  // to codec when a caller does not label the track.
+  // trackType is unique per sender; fall back to codec when it is unlabeled.
   const trackKey = trackType ?? codec ?? 'unknown';
   const codecKey = codec ?? 'unknown';
   const iv = new Uint8Array(IV_LEN);
   const ivView = new DataView(iv.buffer);
 
-  // Per-track encode-failure latch: signal the first failure of a run, then stay
-  // quiet until a frame encrypts again. Scoping it per transform and re-arming
-  // on success means a later permanent fail-closed (e.g. the counter hard limit)
-  // is still surfaced instead of being swallowed by one earlier transient error
-  // for the rest of the worker's life.
+  // Signals the first failure of a run, then stays quiet until a frame encrypts
+  // again. Re-arming on success stops one early transient error from hiding a
+  // later permanent one, such as the counter hard limit.
   let encodeFailed = false;
   const signalEncodeFailure = (reason: string) => {
     if (encodeFailed) return;
@@ -252,11 +223,9 @@ const encodeTransform = (
   };
 
   /**
-   * Encode tail: time the encryption, emit the produced frame, and surface
-   * failures. `produce` returns the new frame bytes, or null if it already
-   * decided to drop the frame (after signaling its own specific reason). Any
-   * throw is reported via signalEncodeFailure and the frame is dropped - never
-   * emitted in the clear. A successful emit re-arms the failure latch.
+   * Times the encryption, emits the frame, reports failures. `produce` returns
+   * the new bytes, or null when it already dropped the frame with its own
+   * reason. Any throw drops the frame; it is never emitted in the clear.
    */
   const finishEncode = async (
     frame: EncodedFrame,
@@ -280,7 +249,7 @@ const encodeTransform = (
 
   return new TransformStream<EncodedFrame, EncodedFrame>({
     async transform(frame, controller) {
-      // Empty frames carry no payload to encrypt - pass them straight through.
+      // No payload to encrypt.
       if (frame.data.byteLength === 0) {
         controller.enqueue(frame);
         bumpEncodeCount(trackKey, userId, codecKey);
@@ -299,13 +268,12 @@ const encodeTransform = (
         const src = new Uint8Array(frame.data);
         const clearBytes = profile.clearBytes(frame.type, src);
         if (clearBytes > MAX_CLEAR_BYTES) {
-          // Impossibly large clear header - drop instead of corrupting the
-          // trailer by overflowing the RBSP flag bit.
+          // Writing this would overflow into the RBSP flag bit.
           signalEncodeFailure('clearBytes exceeds trailer capacity');
           return null;
         }
-        // nextFrameCounter throws at the 32-bit ceiling; finishEncode catches
-        // it and fails closed if the integrator ignored the rekey signal.
+        // Throws at the 32-bit ceiling; finishEncode catches it, so the track
+        // fails closed instead of reusing an IV.
         const counter = nextFrameCounter(userId);
         fillIV(iv, ivView, prefix, counter);
         const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : EMPTY_AAD;
@@ -317,10 +285,15 @@ const encodeTransform = (
         );
         const ciphertext = new Uint8Array(encrypted);
         if (isNalu && clearBytes > 0) {
-          // RBSP-escape the ciphertext AND the trailer as one unit so the
-          // trailer's counter bytes can't form fake Annex-B start codes that
-          // libwebrtc's H264 packetizer would split on. The last 7
-          // trailer bytes (clearBytes|RBSP_FLAG, version, magic) are start-code
+          // Escape ciphertext and trailer as one unit: the counter bytes could
+          // otherwise form a fake Annex-B start code that libwebrtc's H264
+          // packetizer would split on.
+          //
+          // The last 7 trailer bytes survive untouched, since the RBSP flag
+          // holds the clearBytes high byte at >= 0x80 and breaks any zero run.
+          // The decoder needs them to locate the unit.
+          //
+          // Escaping behind the clear header copies the ciphertext once.|RBSP_FLAG, version, magic) are start-code
           // safe by construction - the RBSP flag forces the clearBytes high byte
           // >= 0x80 - so they pass through escaping unchanged and the decoder can
           // still read clearBytes from the raw frame tail to locate the unit.
@@ -356,16 +329,14 @@ const encodeTransform = (
 };
 
 const decodeTransform = (userId: string, trackType: string | undefined) => {
-  // Bucket this receiver's perf stats by trackType (falling back to a constant
-  // when unlabeled) so a peer's audio and video are counted separately.
+  // Counts a peer's audio and video apart.
   const trackKey = trackType ?? 'unknown';
-  // These throttles live inside one transform, i.e. one track, so `userId` is a
-  // constant key - they are single-entry and rate-limit that track alone.
+  // One transform is one track, so `userId` is constant: each throttle holds a
+  // single entry and limits that track alone.
   const failureThrottle = createThrottle(1000);
   /**
-   * True once a `decryption_failed` has actually reached the host for the
-   * current run of failures. Pairs the failure and recovery signals: only a
-   * delivered failure needs clearing, and clearing it is what re-arms this.
+   * True once a `decryption_failed` reached the host. Pairs the two signals:
+   * only a delivered failure needs clearing, and clearing it re-arms this.
    */
   let failureReported = false;
   const notifyFailure = () => {
@@ -375,22 +346,18 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
     }
   };
   /**
-   * Recovery edge. Deliberately NOT throttled: it is an edge, not a level, so a
-   * throttled-away `decryption_resumed` would be lost for good and leave the
-   * host latched on `decryption_failed` for a healthy track. Flooding is
-   * prevented by pairing instead - this can only fire once per delivered
-   * failure, and those are throttled to one per second.
+   * Not throttled, on purpose: this is an edge, not a level, so a throttle
+   * would discard the transition for good and leave the host latched on
+   * `decryption_failed` for a healthy track. Pairing bounds the rate instead.
    */
   const notifyResumed = () => {
     if (!failureReported) return;
     failureReported = false;
     self.postMessage({ type: 'e2ee.decryption_resumed', userId, trackType });
   };
-  // Not holding a key yet is the ordinary state while a peer's key is in flight,
-  // or right after a rotation whose new keyIndex has not arrived. It gets its own
-  // signal rather than being reported as a decryption failure, which a host
-  // cannot tell apart from a key mismatch or a tampered frame. Keyed by keyIndex
-  // so each new key epoch is announced once.
+  // A key in flight, or a rotation whose keyIndex has not arrived, are both
+  // normal. Reported as a decryption failure the host could not tell them from
+  // a key mismatch or tampering. Keyed by keyIndex: one signal per epoch.
   const decodeKeyThrottle = createThrottle(1000);
   const notifyMissingDecodeKey = (keyIndex: number) => {
     if (decodeKeyThrottle.tryFire(String(keyIndex))) {
@@ -402,9 +369,8 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
       });
     }
   };
-  // Cleartext frames are still forwarded - a peer may legitimately publish plain
-  // when the call's encryption mode is `available` - but staying silent would
-  // make an unexpected downgrade invisible to the host, so announce it.
+  // Still forwarded, since a peer may publish plain when the call's mode is
+  // `available`. Announced anyway, or a downgrade would be invisible.
   const cleartextThrottle = createThrottle(1000);
   const notifyUnencrypted = () => {
     if (cleartextThrottle.tryFire(userId)) {
@@ -415,26 +381,21 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
   const iv = new Uint8Array(IV_LEN);
   const ivView = new DataView(iv.buffer);
 
-  // Replay state and failure accounting are scoped to this transform — i.e. this
-  // single remote track — so a user's audio/video/screenshare tracks never share
-  // a window or a failure count (the latter is what lets e2ee.broken fire).
+  // Per track, so a user's audio, video and screen share never share a window
+  // or a failure count. The separate count is what lets e2ee.broken fire.
   const replay = createReplayWindow();
   const failures = createFailureTracker();
 
   /**
-   * Decode tail: gate on key availability / replay, time the decryption, emit
-   * the plaintext, and run the failure / recovery bookkeeping. `decrypt`
-   * returns the plaintext frame bytes and throws on a GCM tag failure (which
-   * drops the whole frame). Kept separate from the framing parse above so the
-   * trust ordering below lives in one place.
+   * Gates on key and replay, decrypts, emits, then records failure or recovery.
+   * `decrypt` throws on a GCM tag failure, dropping the frame. Separate from
+   * the framing parse so the trust ordering lives in one place.
    *
-   * Trust ordering (the SFrame / SRTP rule): everything read before the decrypt
-   * call — `frameCounter`, `ivPrefix`, `keyIndex` — is plaintext in the trailer
-   * and forgeable by a relay, so nothing here mutates trust state until GCM
-   * authenticates the frame. The replay window is only *peeked* up front and
-   * *committed* after success; the failure counter is diagnostic only (it
-   * gates the `e2ee.broken` signal, never the decrypt attempt) so a burst of
-   * forged frames cannot latch a genuine key invalid.
+   * Trust ordering (the SFrame/SRTP rule): a relay can forge `frameCounter`,
+   * `ivPrefix` and `keyIndex`, which are plaintext in the trailer, so nothing
+   * changes trust state until GCM authenticates. Hence peek before, commit
+   * after. The failure counter is diagnostic only - it gates `e2ee.broken`,
+   * never the decrypt attempt - so forged frames cannot mark a key invalid.
    */
   const finishDecode = async (
     frame: EncodedFrame,
@@ -449,8 +410,8 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
       notifyMissingDecodeKey(keyIndex);
       return;
     }
-    // Read-only replay check. A replay or a frame older than the sliding
-    // window is dropped silently - these are not true decryption failures.
+    // No state change. A replay or an out-of-window frame is dropped silently;
+    // neither is a decryption failure.
     if (!replay.peek(frameCounter, ivPrefix)) return;
     try {
       const t0 = perfEnabled ? performance.now() : 0;
@@ -459,21 +420,18 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
         recordDecodeCrypto(userId, trackKey, performance.now() - t0);
       // Authenticated: only now is it safe to advance the replay window.
       replay.commit(frameCounter, ivPrefix);
-      // Clear the broken-tolerance count for this key epoch, then report the
-      // recovery. These are deliberately independent: the count is per
-      // keyIndex, but `decryption_failed` is per track, so a track that
-      // recovers by rotating to a NEW keyIndex still has to clear the failure
-      // the host was told about - gating on `recordSuccess(keyIndex)` here
-      // would leave it latched on failed forever.
+      // Independent on purpose: the count is per keyIndex, but
+      // `decryption_failed` is per track, so a track recovering on a NEW
+      // keyIndex must still clear it. Gating on recordSuccess would latch the
+      // host on failed forever.
       failures.recordSuccess(keyIndex);
       notifyResumed();
       frame.data = data;
       controller.enqueue(frame);
       bumpDecodeCount(userId, trackKey);
     } catch {
-      // recordFailure returns true only on the failure that crosses the
-      // tolerance, so `e2ee.broken` fires once per failure run rather than once
-      // per frame after the threshold.
+      // True only on the failure crossing the tolerance, so `e2ee.broken` fires
+      // once per run, not once per frame.
       const becameInvalid = failures.recordFailure(keyIndex);
       notifyFailure();
       if (becameInvalid) {
@@ -502,21 +460,17 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
 
       const { clearBytes, isRbsp } = trailer;
 
-      // For an RBSP (H264) frame the ciphertext AND the counter/ivPrefix/keyIndex
-      // were escaped as one unit, so recover them by un-escaping
-      // from the clear header to the end - only the start-code-safe trailer tail
-      // (clearBytes/version/magic, read above) stayed in the clear. A non-RBSP
-      // frame keeps the whole trailer raw, so the fields read straight off it.
+      // An RBSP (H264) frame escaped the ciphertext together with the counter,
+      // ivPrefix and keyIndex, so un-escape to recover them; only the trailer
+      // tail read above stayed clear. A non-RBSP frame keeps the trailer raw.
       let { frameCounter, ivPrefix, keyIndex } = trailer;
       let ciphertext: Uint8Array;
       if (isRbsp) {
         const unit = rbspUnescape(src.subarray(clearBytes));
-        // Un-escaping drops one byte per escape sequence, so it can leave less
-        // than a trailer behind - readTrailer only sized clearBytes against the
-        // raw frame. Re-check before reading: a negative trailer offset throws
-        // out of transform(), which errors the TransformStream and kills this
-        // track's pipeline for the rest of the session. Both clearBytes and the
-        // RBSP flag are plaintext, so a relay can forge exactly this shape.
+        // Un-escaping can leave less than a trailer, since readTrailer sized
+        // clearBytes against the raw frame. A negative offset would throw out
+        // of transform() and kill this track's pipeline for the session, and a
+        // relay can forge the shape: clearBytes and the flag are plaintext.
         if (unit.length < TRAILER_LEN) return;
         ({ frameCounter, ivPrefix, keyIndex } = readTrailerIv(unit));
         ciphertext = unit.subarray(0, unit.length - TRAILER_LEN);
@@ -551,11 +505,9 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
 };
 
 /**
- * Pick the transform for a pipeline. Decode frames are always processed; encode
- * frames whose codec the worker can't split fail closed - every frame is dropped
- * (never published in the clear) and the failure is surfaced as an observable
- * `e2ee.encryption_failed`. Previously the unsupported case returned without
- * piping, leaving the encoder's frames to buffer forever with no signal.
+ * Decode always runs. An encode whose codec the worker cannot split fails
+ * closed: it still installs a transform, but one that drops every frame, since
+ * returning without one leaves the encoder buffering forever with no signal.
  */
 const selectTransform = (
   operation: string,
@@ -571,7 +523,7 @@ const selectTransform = (
     trackType,
     reason: `unsupported codec for E2EE: ${codec}`,
   });
-  // A transform that enqueues nothing - every frame is dropped (fail closed).
+  // Enqueues nothing: every frame is dropped.
   return new TransformStream<EncodedFrame, EncodedFrame>({ transform() {} });
 };
 
@@ -597,10 +549,12 @@ const setupTransform = ({
     .pipeThrough(transform)
     .pipeTo(writable, { signal: abort.signal })
     .catch((err: any) => {
-      if (abort.signal.aborted) return; // clean shutdown, not an error
+      if (abort.signal.aborted) return; // clean shutdown
       self.postMessage({
         type: 'e2ee.error',
-        message: `Transform pipeline error (${operation}, ${userId}): ${err?.message || err}`,
+        message: `Transform pipeline error (${operation}, ${userId}): ${
+          err?.message || err
+        }`,
       });
     })
     .finally(() => {
@@ -615,8 +569,8 @@ const teardownAllTransforms = () => {
 
 addEventListener('rtctransform', (event) => {
   const { readable, writable, options } = event.transformer;
-  // Route through the same queue as message-based setup so that any
-  // in-flight key import completes before we wire up the transform.
+  // Same queue as message-based setup, so an in-flight key import completes
+  // before the transform is wired up.
   enqueue(async () => {
     setupTransform({ readable, writable, ...options });
   }).catch((err: any) => {
