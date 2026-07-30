@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.14.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.4...@stream-io/video-filters-react-native-0.14.5) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
 ## [0.14.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-react-native-0.14.3...@stream-io/video-filters-react-native-0.14.4) (2026-07-30)
 
 ### Dependency Updates
