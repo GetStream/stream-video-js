@@ -13,7 +13,6 @@ export type {
   KeyStateReport,
   MissingKeyEvent,
   PerfReport,
-  RotationEvent,
   TrackPerf,
   UnencryptedFrameEvent,
 } from './events';

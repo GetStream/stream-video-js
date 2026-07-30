@@ -417,19 +417,6 @@ describe('EncryptionManager', () => {
       ).not.toThrow();
     });
 
-    it('emits e2ee.rotation_needed on rekeyRequested', () => {
-      const callback = vi.fn();
-      manager.on('e2ee.rotation_needed', callback);
-
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-      messageHandler({
-        data: { type: 'e2ee.rotation_needed', userId: 'local-user' },
-      });
-
-      expect(callback).toHaveBeenCalledWith({ userId: 'local-user' });
-    });
-
     it('emits e2ee.broken', () => {
       const callback = vi.fn();
       manager.on('e2ee.broken', callback);
@@ -443,14 +430,9 @@ describe('EncryptionManager', () => {
       expect(callback).toHaveBeenCalledWith({ userId: 'bob', keyIndex: 3 });
     });
 
-    it('does not throw when no e2ee.rotation_needed / e2ee.broken listeners are subscribed', () => {
+    it('does not throw when no e2ee.broken listeners are subscribed', () => {
       const worker = getWorker(manager);
       const messageHandler = getEventHandler(worker, 'message');
-      expect(() =>
-        messageHandler({
-          data: { type: 'e2ee.rotation_needed', userId: 'local-user' },
-        }),
-      ).not.toThrow();
       expect(() =>
         messageHandler({
           data: { type: 'e2ee.broken', userId: 'bob', keyIndex: 1 },

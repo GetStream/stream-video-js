@@ -17,7 +17,6 @@ export const StatusReadout = ({ participant, nameByUserId }: Props) => {
     keyStore,
     tracks,
     perf,
-    rotationNeeded,
     encryptionFailure,
   } = participant;
   const nameOf = (userId: string) => nameByUserId[userId] ?? userId.slice(0, 8);
@@ -81,13 +80,6 @@ export const StatusReadout = ({ participant, nameByUserId }: Props) => {
           </span>
         )}
       </div>
-
-      {rotationNeeded && (
-        <div className="status-readout__row status-readout__warn" role="alert">
-          ⚠ rotation needed - frame counter near the 32-bit ceiling; encryption
-          fails closed at the limit
-        </div>
-      )}
 
       {encryptionFailure && (
         <div className="status-readout__row status-readout__warn" role="alert">

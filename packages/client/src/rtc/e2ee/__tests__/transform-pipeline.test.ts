@@ -543,7 +543,6 @@ describe('h264 trailer start-code safety', () => {
   it('round-trips an h264 frame whose counter would form a start code', async () => {
     const user = freshUser();
     await setKey(user);
-    __setFrameCounterForTest(user, 0); // next counter = 1 -> trailer 00 00 00 01
     const [encrypted] = await drive('encode', user, 'h264', [
       frame(H264_KEYFRAME, 'key'),
     ]);

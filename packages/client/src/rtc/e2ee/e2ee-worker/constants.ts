@@ -50,15 +50,9 @@ export const FAILURE_TOLERANCE = 10;
 export const REPLAY_WINDOW = 1024;
 
 /**
- * Frame counter at which we ask the host to rotate the key. The counter is a
- * 32-bit big-endian field in the IV, so it wraps at 2^32. We signal early
- * (at 2^31) to give the integrator headroom to distribute a new keyIndex
- * before we hit the hard limit.
- */
-export const COUNTER_REKEY_THRESHOLD = 0x80000000; // 2^31
-/**
- * Hard ceiling on the frame counter. One past this value would wrap into a
- * reused (ivPrefix, counter) pair → IV reuse under AES-GCM → catastrophic.
- * Encoding throws here and fails closed rather than silently wrapping.
+ * Hard ceiling on the frame counter (a 32-bit big-endian field in the IV). One
+ * past this value would wrap into a reused (ivPrefix, counter) pair → IV reuse
+ * under AES-GCM → catastrophic. Encoding throws here and fails closed rather
+ * than silently wrapping.
  */
 export const COUNTER_HARD_LIMIT = 0xffffffff; // 2^32 - 1

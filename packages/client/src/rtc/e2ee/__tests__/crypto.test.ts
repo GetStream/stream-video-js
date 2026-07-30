@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   COUNTER_HARD_LIMIT,
-  COUNTER_REKEY_THRESHOLD,
   FAILURE_TOLERANCE,
   IV_PREFIX_LEN,
   REPLAY_WINDOW,
@@ -98,48 +97,48 @@ describe('nextFrameCounter', () => {
     expect(nextFrameCounter('alice')).toBe(3);
   });
 
-  it('posts rekeyRequested exactly once when the threshold is crossed', () => {
-    __setFrameCounterForTest('alice', COUNTER_REKEY_THRESHOLD - 1);
-    expect(nextFrameCounter('alice')).toBe(COUNTER_REKEY_THRESHOLD);
-
-    const rekeyCalls = postMessage.mock.calls.filter(
-      ([msg]) => msg?.type === 'e2ee.rotation_needed',
-    );
-    expect(rekeyCalls).toHaveLength(1);
-    expect(rekeyCalls[0][0]).toEqual({
-      type: 'e2ee.rotation_needed',
-      userId: 'alice',
-    });
-
-    // Subsequent frames past the threshold must NOT re-post — one message
-    // per session is enough; the host already knows.
-    nextFrameCounter('alice');
-    nextFrameCounter('alice');
-    const rekeyCallsAfter = postMessage.mock.calls.filter(
-      ([msg]) => msg?.type === 'e2ee.rotation_needed',
-    );
-    expect(rekeyCallsAfter).toHaveLength(1);
-  });
-
   it('throws and fails closed at the 32-bit hard limit', () => {
     __setFrameCounterForTest('alice', COUNTER_HARD_LIMIT);
     expect(() => nextFrameCounter('alice')).toThrow(/counter exhausted/);
   });
 
-  it('removeKeys resets the one-shot rekey flag for that user', () => {
-    __setFrameCounterForTest('alice', COUNTER_REKEY_THRESHOLD - 1);
-    nextFrameCounter('alice'); // fires once
-    removeKeys('alice');
+  it('stays exhausted: the failing call does not advance the counter', () => {
+    __setFrameCounterForTest('alice', COUNTER_HARD_LIMIT);
+    expect(() => nextFrameCounter('alice')).toThrow();
+    // Every later frame must fail identically rather than wrapping into a
+    // counter that was already used with this ivPrefix.
+    expect(() => nextFrameCounter('alice')).toThrow();
+    expect(() => nextFrameCounter('alice')).toThrow();
+  });
 
-    // After removeKeys + fresh import, crossing the threshold again should
-    // still be able to fire — the flag was cleared with the rest of
-    // alice's state.
-    __setFrameCounterForTest('alice', COUNTER_REKEY_THRESHOLD - 1);
+  it('a rekey does not recover an exhausted counter', async () => {
+    __setFrameCounterForTest('alice', COUNTER_HARD_LIMIT);
+    expect(() => nextFrameCounter('alice')).toThrow();
+
+    // Importing fresh key material is the remedy an integrator would reach
+    // for first. It gives a new ivPrefix, but the counter is scoped to the
+    // worker rather than to the key, so encryption stays dead.
+    await importKey('alice', 7, rawKey());
+    expect(() => nextFrameCounter('alice')).toThrow(/counter exhausted/);
+
+    // Same after dropping the user's keys entirely.
+    removeKeys('alice');
+    await importKey('alice', 8, rawKey());
+    expect(() => nextFrameCounter('alice')).toThrow(/counter exhausted/);
+  });
+
+  it('never posts a rotation warning ahead of the hard limit', () => {
+    // The 2^31 soft threshold and its `e2ee.rotation_needed` event were
+    // removed: rotating cannot buy back counter budget, so the signal named a
+    // remedy that does nothing. Only the fail-closed ceiling remains.
+    __setFrameCounterForTest('alice', 0x80000000 - 1);
     nextFrameCounter('alice');
-    const rekeyCalls = postMessage.mock.calls.filter(
-      ([msg]) => msg?.type === 'e2ee.rotation_needed',
-    );
-    expect(rekeyCalls).toHaveLength(2);
+    nextFrameCounter('alice');
+    expect(
+      postMessage.mock.calls.filter(([msg]) =>
+        String(msg?.type).startsWith('e2ee.'),
+      ),
+    ).toHaveLength(0);
   });
 });
 

@@ -1,6 +1,5 @@
 import {
   COUNTER_HARD_LIMIT,
-  COUNTER_REKEY_THRESHOLD,
   FAILURE_TOLERANCE,
   IV_PREFIX_LEN,
   REPLAY_WINDOW,
@@ -124,14 +123,8 @@ export const fillIV = (
 };
 
 /**
- * Tracks which (userId) we've already nagged about rekeying in this worker
- * session, so one threshold crossing yields one message — not one per frame.
- */
-const rekeyRequested = new Set<string>();
-
-/**
  * @internal Test-only seam to position the per-user frame counter without
- * spinning 2^31 iterations in unit tests. Not used in production.
+ * spinning 2^32 iterations in unit tests. Not used in production.
  */
 export const __setFrameCounterForTest = (userId: string, value: number) => {
   frameCounters.set(userId, value);
@@ -142,13 +135,7 @@ export const nextFrameCounter = (userId: string): number => {
   if (c > COUNTER_HARD_LIMIT) {
     // Fail closed. One past the 32-bit ceiling would fold into a previously
     // used (ivPrefix, counter) pair under AES-GCM.
-    throw new Error(
-      `frame counter exhausted for user ${userId} — rekey required before further encryption`,
-    );
-  }
-  if (c >= COUNTER_REKEY_THRESHOLD && !rekeyRequested.has(userId)) {
-    rekeyRequested.add(userId);
-    self.postMessage({ type: 'e2ee.rotation_needed', userId });
+    throw new Error(`frame counter exhausted for user ${userId}`);
   }
   frameCounters.set(userId, c);
   return c;
@@ -391,7 +378,6 @@ export const importSharedKey = async (
 export const removeKeys = (userId: string) => {
   perUserKeys.delete(userId);
   latestKeyIndex.delete(userId);
-  rekeyRequested.delete(userId);
 };
 
 const toHex = (bytes: Uint8Array): string =>
@@ -432,6 +418,5 @@ export const dispose = () => {
   perUserKeys.clear();
   latestKeyIndex.clear();
   frameCounters.clear();
-  rekeyRequested.clear();
   sharedKey = null;
 };

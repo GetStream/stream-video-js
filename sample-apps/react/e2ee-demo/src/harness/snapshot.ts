@@ -45,12 +45,6 @@ export interface HarnessParticipant {
   currentKey?: ArrayBuffer;
   keyIndex: number;
   keyStore: KeyStateReport | null;
-  /**
-   * Set once `e2ee.rotation_needed` fires for this sender: its frame counter is
-   * approaching the 32-bit ceiling and encryption fails closed at the hard
-   * limit. Cleared as soon as fresh key material is installed.
-   */
-  rotationNeeded: boolean;
   /** Last `e2ee.encryption_failed` reason, if the local encoder ever threw. */
   encryptionFailure: string | null;
   tracks: {

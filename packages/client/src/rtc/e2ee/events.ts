@@ -22,15 +22,6 @@ export type PerfReport = {
 };
 
 /**
- * Fired when the local sender's frame counter is approaching the 32-bit
- * ceiling. If ignored, encryption will fail closed at the hard limit.
- */
-export type RotationEvent = {
-  /** The local sender whose counter is running out. */
-  userId: string;
-};
-
-/**
  * Fired when a key that is needed is not held:
  * - without `keyIndex`, the local encoder has no key to encrypt with (the host
  *   never provided one, or a key import failed) and outgoing frames are dropped;
@@ -182,13 +173,6 @@ export type E2EEEventMap = {
    * invalid state.
    */
   'e2ee.broken': E2EEBrokenEvent;
-
-  /**
-   * Emitted when fresh key material must be distributed — the local sender's
-   * frame counter is approaching the 32-bit ceiling. If ignored, encryption
-   * will fail closed at the hard limit.
-   */
-  'e2ee.rotation_needed': RotationEvent;
 
   /**
    * Emitted in response to {@link EncryptionManager.requestKeyDump}: a

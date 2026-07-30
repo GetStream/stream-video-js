@@ -101,7 +101,6 @@ interface EngineParticipant {
   perf: PerfReport | null;
   failingFrom: Set<string>;
   brokenFrom: Set<string>;
-  rotationNeeded: boolean;
   encryptionFailure: string | null;
   unsubscribes: Array<() => void>;
 }
@@ -212,7 +211,6 @@ export class E2EEHarness {
       currentKey: p.currentKey,
       keyIndex: p.keyIndex,
       keyStore: p.keyStore,
-      rotationNeeded: p.rotationNeeded,
       encryptionFailure: p.encryptionFailure,
       tracks: {
         encrypting:
@@ -321,7 +319,6 @@ export class E2EEHarness {
         perf: null,
         failingFrom: new Set(),
         brokenFrom: new Set(),
-        rotationNeeded: false,
         encryptionFailure: null,
         unsubscribes: [],
       };
@@ -503,12 +500,17 @@ export class E2EEHarness {
   // --- key rotation / set ---
 
   /**
-   * Installing fresh key material restarts the sender's frame counter at that
-   * key index, so any pending `e2ee.rotation_needed` warning and the last
-   * `e2ee.encryption_failed` reason no longer describe the current encoder.
+   * Drop the last `e2ee.encryption_failed` reason when fresh key material is
+   * installed, so a stale banner does not outlive the encoder it described.
+   * The worker re-arms its own failure latch on the next frame that encrypts,
+   * so a still-failing encoder re-reports within a frame.
+   *
+   * Note this does NOT reset the sender's frame counter - that is scoped to the
+   * worker, not to a key, and a rekey never restores its budget. The one
+   * failure this banner reset would hide is counter exhaustion, which needs
+   * 2^32 frames and cannot be reached here.
    */
   private clearEncoderWarnings = (p: EngineParticipant): void => {
-    p.rotationNeeded = false;
     p.encryptionFailure = null;
   };
 
@@ -772,15 +774,6 @@ export class E2EEHarness {
           p.userId,
           `Encryption failed, publishing nothing: ${reason}`,
           'error',
-        );
-        this.emit();
-      }),
-      m.on('e2ee.rotation_needed', () => {
-        p.rotationNeeded = true;
-        this.addLog(
-          p.userId,
-          'Rotation needed: frame counter is approaching the 32-bit ceiling',
-          'key-rotate',
         );
         this.emit();
       }),
