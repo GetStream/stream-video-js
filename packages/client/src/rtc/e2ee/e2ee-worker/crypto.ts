@@ -368,7 +368,11 @@ export const dumpKeyState = () => {
   };
 };
 
-/** Clear all state. The worker calls it on dispose. */
+/**
+ * @internal Test-only. Clears the module-level key and counter state between
+ * test cases. Production teardown is `Worker.terminate()`, which reclaims the
+ * whole worker. Unused in production, so the bundler drops it.
+ */
 export const dispose = () => {
   perUserKeys.clear();
   latestKeyIndex.clear();

@@ -1,17 +1,9 @@
-import type { TransformMode } from './snapshot';
-
 export interface TransformSupport {
   /** Whether the legacy Insertable Streams (`createEncodedStreams`) API exists. */
   hasInsertableStreams: boolean;
   /** Whether the standard `RTCRtpScriptTransform` API exists. */
   hasScriptTransform: boolean;
 }
-
-/** Human-readable label for each transform mode. */
-export const transformLabels: Record<TransformMode, string> = {
-  auto: 'auto (SDK picks)',
-  'force-script': 'force RTCRtpScriptTransform',
-};
 
 /**
  * Feature-detect which Encoded Transform APIs the current browser exposes.

@@ -285,27 +285,6 @@ describe('EncryptionManager', () => {
       });
     });
 
-    it('opts Chrome back onto RTCRtpScriptTransform when forceRtpScriptTransform is set', async () => {
-      vi.mocked(isChrome).mockReturnValue(true);
-      await withInsertableStreams(async () => {
-        const receiver: Record<string, unknown> = {
-          transform: null,
-          createEncodedStreams: vi.fn(),
-        };
-        const mgr = await EncryptionManager.create('local-user', {
-          forceRtpScriptTransform: true,
-        });
-        try {
-          mgr.decrypt(receiver as unknown as RTCRtpReceiver, 'remote-user');
-
-          expect(receiver.transform).toBeDefined();
-          expect(receiver.createEncodedStreams).not.toHaveBeenCalled();
-        } finally {
-          mgr.dispose();
-        }
-      });
-    });
-
     it('falls back to Insertable Streams when RTCRtpScriptTransform is unavailable', async () => {
       vi.mocked(isChrome).mockReturnValue(false);
       const original = globalThis.RTCRtpScriptTransform;
@@ -603,20 +582,20 @@ describe('EncryptionManager', () => {
       // The worker is gone, so postMessage is a silent no-op and an attached
       // transform would stall forever. Fail loudly instead: a reused manager
       // (e.g. rejoining a Call that kept it) must not look like it is working.
-      expect(() => manager.encrypt(sender, 'vp8')).toThrow(/after dispose/);
+      expect(() => manager.encrypt(sender, 'vp8')).toThrow(/is disposed/);
       expect(() => manager.decrypt(receiver, 'remote-user')).toThrow(
-        /after dispose/,
+        /is disposed/,
       );
       expect(() =>
         manager.setKey('user', 0, new Uint8Array(16).buffer),
-      ).toThrow(/after dispose/);
+      ).toThrow(/is disposed/);
       expect(() => manager.setSharedKey(0, new Uint8Array(16).buffer)).toThrow(
-        /after dispose/,
+        /is disposed/,
       );
-      expect(() => manager.removeKeys('user')).toThrow(/after dispose/);
-      expect(() => manager.requestKeyDump()).toThrow(/after dispose/);
+      expect(() => manager.removeKeys('user')).toThrow(/is disposed/);
+      expect(() => manager.requestKeyDump()).toThrow(/is disposed/);
       expect(() => manager.enablePerformanceReporting(true)).toThrow(
-        /after dispose/,
+        /is disposed/,
       );
       expect(sender.transform).toBeNull();
       expect(receiver.transform).toBeNull();

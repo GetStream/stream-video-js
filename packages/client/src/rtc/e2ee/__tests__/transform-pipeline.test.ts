@@ -34,9 +34,12 @@ await import('../e2ee-worker/e2ee-worker-impl');
 // `enqueue` is the worker's own serial message queue; awaiting a no-op task
 // flushes everything queued before it (e.g. an async setKey).
 const { enqueue } = await import('../e2ee-worker/utils');
-// Test seam to position the per-user frame counter so we can hit the low
-// values whose big-endian encoding forms Annex-B start codes.
-const { __setFrameCounterForTest } = await import('../e2ee-worker/crypto');
+// Test seams: position the per-user frame counter so we can hit the low
+// values whose big-endian encoding forms Annex-B start codes, and reset the
+// worker's module-level key state between tests (production teardown is
+// Worker.terminate(), which tests cannot use).
+const { __setFrameCounterForTest, dispose } =
+  await import('../e2ee-worker/crypto');
 
 type Frame = {
   data: ArrayBuffer;
@@ -135,8 +138,8 @@ beforeEach(() => {
   posted.length = 0;
 });
 afterEach(async () => {
-  message({ type: 'cmd.dispose' });
   await flush();
+  dispose();
 });
 
 describe('encode -> decode pipeline round-trips', () => {

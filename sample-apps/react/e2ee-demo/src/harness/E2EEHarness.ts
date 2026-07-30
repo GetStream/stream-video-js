@@ -62,10 +62,7 @@ export interface HarnessDeps {
       userId: string,
     ) => Promise<{ apiKey: string; token: string }>;
   }) => StreamVideoClient;
-  createManager: (
-    userId: string,
-    opts: { forceRtpScriptTransform: boolean },
-  ) => Promise<EncryptionManager>;
+  createManager: (userId: string) => Promise<EncryptionManager>;
 }
 
 export const defaultDeps = (): HarnessDeps => ({
@@ -80,7 +77,7 @@ export const defaultDeps = (): HarnessDeps => ({
       options: { logLevel: 'debug' },
       tokenProvider: () => fetchCredentials(userId).then((c) => c.token),
     }),
-  createManager: (userId, opts) => EncryptionManager.create(userId, opts),
+  createManager: (userId) => EncryptionManager.create(userId),
 });
 
 /** Internal per-participant state held by the engine (not the snapshot shape). */
@@ -130,7 +127,6 @@ export class E2EEHarness {
       callId: init.callId,
       callType: init.callType ?? CALL_TYPE,
       codec: init.codec ?? 'vp8',
-      transform: 'auto',
       keyMode: 'per-user',
     };
     this.snapshot = this.build();
@@ -206,7 +202,6 @@ export class E2EEHarness {
       color: p.color,
       role: p.role,
       enabled: p.enabled,
-      transform: this.config.transform,
       codec: p.codec,
       currentKey: p.currentKey,
       keyIndex: p.keyIndex,
@@ -231,7 +226,7 @@ export class E2EEHarness {
   // --- config ---
 
   setConfig = (
-    patch: Partial<Pick<HarnessConfig, 'codec' | 'transform' | 'keyMode'>>,
+    patch: Partial<Pick<HarnessConfig, 'codec' | 'keyMode'>>,
   ): void => {
     Object.assign(this.config, patch);
     this.emit();
@@ -297,9 +292,7 @@ export class E2EEHarness {
       // browser without Encoded Transforms, which is exactly where testing the
       // plain path matters most.
       const manager = opts.e2ee
-        ? await this.deps.createManager(userId, {
-            forceRtpScriptTransform: this.config.transform === 'force-script',
-          })
+        ? await this.deps.createManager(userId)
         : undefined;
 
       const p: EngineParticipant = {

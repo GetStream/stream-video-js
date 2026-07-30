@@ -24,31 +24,14 @@ export type {
  */
 export type E2EEAlgorithm = 'AES-128-GCM' | 'AES-256-GCM';
 
-type CreateOptions = {
+/** Options for {@link EncryptionManager.create}. */
+export type EncryptionManagerOptions = {
   algorithm?: E2EEAlgorithm;
-  /**
-   * Put Chrome on the standard `RTCRtpScriptTransform` instead of Insertable
-   * Streams. Chrome ships it but it is still unreliable, so the SDK defaults to
-   * Insertable Streams there. Set it to test or re-enable the standard API once
-   * it works. No effect on Firefox and Safari, which only have the standard one.
-   */
-  forceRtpScriptTransform?: boolean;
 };
 
 /**
  * Distributes keys to the E2EE Web Worker and attaches encrypt/decrypt
  * transforms to RTCRtpSenders and RTCRtpReceivers.
- *
- * @example
- * ```ts
- * import { EncryptionManager } from '@stream-io/video-react-sdk';
- *
- * if (EncryptionManager.isSupported()) {
- *   const e2ee = await EncryptionManager.create(call.currentUserId);
- *   call.setE2EEManager(e2ee);
- *   e2ee.setSharedKey(0, rawKeyBytes);
- * }
- * ```
  */
 export class EncryptionManager
   extends TypedEventEmitter<E2EEEventMap>
@@ -64,13 +47,12 @@ export class EncryptionManager
   private readonly worker: Worker;
   private readonly workerUrl: string;
 
-  /** @param workerUrl the blob URL to revoke on dispose. */
   private constructor(
     userId: string,
     worker: Worker,
     workerUrl: string,
     algorithm: E2EEAlgorithm,
-    forceRtpScriptTransform: boolean,
+    transform: 'script' | 'insertable',
   ) {
     super('EncryptionManager');
     this.logger = videoLoggerSystem.getLogger('EncryptionManager');
@@ -78,8 +60,7 @@ export class EncryptionManager
     this.worker = worker;
     this.workerUrl = workerUrl;
     this.algorithm = algorithm;
-    this.transform =
-      preferredTransform({ forceRtpScriptTransform }) ?? 'script';
+    this.transform = transform;
     this.worker.addEventListener('message', this.handleWorkerMessage);
     this.worker.addEventListener('error', this.handleWorkerError);
   }
@@ -95,13 +76,9 @@ export class EncryptionManager
   /**
    * Create an EncryptionManager instance and initialize the E2EE Web Worker.
    *
-   * Async because it imports the worker module dynamically, keeping the worker
-   * source out of the main bundle for consumers who do not use E2EE.
-   *
-   * @param userId - The local user's ID, normally `call.currentUserId`. The
-   *         encryptor looks its key up by this.
-   * @throws {Error} If the browser lacks Encoded Transforms. Check
-   *         {@link isSupported} first.
+   * @param userId - The local user's ID, normally `call.currentUserId`.
+   * @param options - the create options.
+   * @throws {Error} If the browser lacks Encoded Transforms.
    *
    * @example
    * ```ts
@@ -110,20 +87,13 @@ export class EncryptionManager
    *   call.setE2EEManager(e2ee);
    *   e2ee.setSharedKey(0, keyBytes);
    * }
-   * ```
-   *
-   * @example Opt into AES-256-GCM (32-byte keys)
-   * ```ts
-   * const e2ee = await EncryptionManager.create(userId, {
-   *   algorithm: 'AES-256-GCM',
-   * });
-   * ```
    */
   static create = async (
     userId: string,
-    options?: CreateOptions,
+    options?: EncryptionManagerOptions,
   ): Promise<EncryptionManager> => {
-    if (!EncryptionManager.isSupported()) {
+    const transform = preferredTransform();
+    if (!transform) {
       throw new Error(`E2EE is not supported in this browser`);
     }
     const { e2eeWorker } = await import('./e2ee-worker');
@@ -140,14 +110,7 @@ export class EncryptionManager
       throw err;
     }
     const algorithm = options?.algorithm ?? 'AES-128-GCM';
-    const forceRtpScriptTransform = options?.forceRtpScriptTransform ?? false;
-    return new EncryptionManager(
-      userId,
-      worker,
-      url,
-      algorithm,
-      forceRtpScriptTransform,
-    );
+    return new EncryptionManager(userId, worker, url, algorithm, transform);
   };
 
   /**
@@ -156,10 +119,8 @@ export class EncryptionManager
    * forever with no error and no event. Throwing is also fail-closed, since a
    * caller that swallows it still publishes nothing rather than cleartext.
    */
-  private assertUsable = (operation: string) => {
-    if (this.disposed) {
-      throw new Error(`EncryptionManager.${operation} called after dispose()`);
-    }
+  private assertUsable = () => {
+    if (this.disposed) throw new Error(`EncryptionManager is disposed`);
   };
 
   /**
@@ -171,7 +132,7 @@ export class EncryptionManager
   dispose = (): void => {
     if (this.disposed) return;
     this.disposed = true;
-    this.cleanup();
+    this.piped = undefined;
     this.worker.removeEventListener('message', this.handleWorkerMessage);
     this.worker.removeEventListener('error', this.handleWorkerError);
     this.worker.terminate();
@@ -185,24 +146,14 @@ export class EncryptionManager
    * Use it when each participant has their own key from a central authority.
    * The receiver picks the right one by the `keyIndex` in the frame trailer.
    *
-   * @remarks
-   * Each call makes a fresh random IV prefix, so the same raw key can be
-   * imported again without IV reuse. Rotate on join and leave anyway: that is
-   * forward and backward secrecy, a separate concern.
-   *
-   * @param userId - The key owner. Pass `currentUserId` for your own key, or a
-   *         remote participant's `userId` for one you received from them.
-   * @param keyIndex - Increases with each rotation. An integer 0-255, since one
-   *         trailer byte carries it.
-   * @param rawKey - 16 bytes for AES-128-GCM, 32 for AES-256-GCM. Cloned, not
-   *         transferred, so the caller's buffer stays usable.
+   * @param userId - The key owner.
+   * @param keyIndex - Increases with each rotation.
+   * @param rawKey - 16 bytes for AES-128-GCM, 32 for AES-256-GCM.
    */
   setKey = (userId: string, keyIndex: number, rawKey: ArrayBuffer): void => {
-    this.assertUsable('setKey');
+    this.assertUsable();
     this.validateKeyIndex(keyIndex);
     this.validateKeyLength(rawKey);
-    // No transfer list: a transfer would detach the caller's ArrayBuffer and
-    // break the documented re-import contract. Copying 32 bytes is cheap.
     this.worker.postMessage({ type: 'cmd.set_key', userId, keyIndex, rawKey });
   };
 
@@ -211,29 +162,28 @@ export class EncryptionManager
    * one key for everyone, usually passphrase-derived, no distribution needed.
    *
    * @param keyIndex - An integer 0-255, since one trailer byte carries it.
-   * @param rawKey - 16 bytes for AES-128-GCM, 32 for AES-256-GCM. Cloned, not
-   *         transferred, so the caller's buffer stays usable.
+   * @param rawKey - 16 bytes for AES-128-GCM, 32 for AES-256-GCM.
    */
   setSharedKey = (keyIndex: number, rawKey: ArrayBuffer): void => {
-    this.assertUsable('setSharedKey');
+    this.assertUsable();
     this.validateKeyIndex(keyIndex);
     this.validateKeyLength(rawKey);
-    // No transfer list; see setKey.
     this.worker.postMessage({ type: 'cmd.set_shared_key', keyIndex, rawKey });
   };
 
   /**
-   * Drop a user's keys, revoking their ability to decrypt later frames. Call it
-   * when a participant leaves.
+   * Drop a user's keys, revoking their ability to decrypt later frames.
+   * Call it when a participant leaves.
    */
   removeKeys = (userId: string): void => {
-    this.assertUsable('removeKeys');
+    this.assertUsable();
     this.worker.postMessage({ type: 'cmd.remove_keys', userId });
   };
 
   /**
    * Called by the Publisher when it adds a transceiver.
    *
+   * @param sender - The sender to encrypt.
    * @param codec - Codec name, e.g. 'vp8', selecting the clear-byte rules.
    * @param trackType - Optional label; only groups perf stats.
    * @internal
@@ -243,7 +193,7 @@ export class EncryptionManager
     codec?: string,
     trackType?: string,
   ): void => {
-    this.assertUsable('encrypt');
+    this.assertUsable();
     this.pipe(sender, {
       operation: 'encode',
       userId: this.userId,
@@ -255,6 +205,7 @@ export class EncryptionManager
   /**
    * Called by the Subscriber when a remote track arrives.
    *
+   * @param receiver - The receiver to decrypt.
    * @param userId - The remote user, for key lookup in the worker.
    * @param trackType - Optional label; only groups perf stats.
    * @internal
@@ -264,7 +215,7 @@ export class EncryptionManager
     userId: string,
     trackType?: string,
   ): void => {
-    this.assertUsable('decrypt');
+    this.assertUsable();
     this.pipe(receiver, { operation: 'decode', userId, trackType });
   };
 
@@ -300,7 +251,7 @@ export class EncryptionManager
    * FPS and crypto timings. Useful for debugging throughput.
    */
   enablePerformanceReporting = (enabled: boolean): void => {
-    this.assertUsable('enablePerformanceReporting');
+    this.assertUsable();
     this.worker.postMessage({
       type: 'cmd.enable_performance_reporting',
       enabled,
@@ -312,18 +263,12 @@ export class EncryptionManager
    * `e2ee.key_state` event, listing fingerprints only, never key material.
    */
   requestKeyDump = (): void => {
-    this.assertUsable('requestKeyDump');
+    this.assertUsable();
     this.worker.postMessage({ type: 'cmd.dump_key_state' });
-  };
-
-  private cleanup = (): void => {
-    this.worker.postMessage({ type: 'cmd.dispose' });
-    this.piped = undefined;
   };
 
   private handleWorkerMessage = (e: MessageEvent) => {
     const { type, ...payload } = e.data ?? {};
-    // Internal log-only channel: no E2EEEventMap entry, so handle it here.
     if (type === 'e2ee.error') {
       this.logger.error(e.data.message);
       return;
@@ -343,9 +288,7 @@ export class EncryptionManager
     const expected = is256 ? 32 : 16;
     if (rawKey.byteLength !== expected) {
       throw new Error(
-        `Key must be exactly ${expected} bytes (${
-          is256 ? 'AES-256' : 'AES-128'
-        })`,
+        `Key must be exactly ${expected} bytes (${is256 ? 'AES-256' : 'AES-128'})`,
       );
     }
   };

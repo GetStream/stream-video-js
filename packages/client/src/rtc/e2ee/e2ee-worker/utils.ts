@@ -31,7 +31,6 @@ export const createThrottle = (intervalMs: number) => {
       }
       return false;
     },
-    reset: () => lastFiredAt.clear(),
   };
 };
 

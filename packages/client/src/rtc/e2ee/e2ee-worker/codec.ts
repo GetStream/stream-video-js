@@ -181,8 +181,13 @@ const DEFAULT_PROFILE: CodecProfile = {
   clearBytes: defaultClearBytes,
 };
 
+// Object.hasOwn, not `in`: `in` walks the prototype chain, so a codec named
+// like an Object.prototype member ('toString') would resolve to a function
+// instead of a profile.
 export const getCodecProfile = (codec: string | undefined): CodecProfile =>
-  (codec !== undefined && CODEC_PROFILES[codec]) || DEFAULT_PROFILE;
+  codec !== undefined && Object.hasOwn(CODEC_PROFILES, codec)
+    ? CODEC_PROFILES[codec]
+    : DEFAULT_PROFILE;
 
 export const isSupportedCodec = (codec: string | undefined): boolean =>
-  codec === undefined || codec in CODEC_PROFILES;
+  codec === undefined || Object.hasOwn(CODEC_PROFILES, codec);

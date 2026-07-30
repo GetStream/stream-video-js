@@ -9,13 +9,6 @@ import type {
 // AV1 is deliberately excluded: it has no E2EE framing scheme, so the worker
 // fails closed on it and the track would publish nothing.
 export type PreferredCodec = 'vp8' | 'vp9' | 'h264';
-/**
- * How the Encoded Transform API is chosen for a participant, mirroring the SDK's
- * only knob: `auto` leaves it to the SDK (Insertable Streams on Chrome,
- * `RTCRtpScriptTransform` elsewhere), `force-script` sets
- * `forceRtpScriptTransform` so Chrome uses the standard API too.
- */
-export type TransformMode = 'auto' | 'force-script';
 export type KeyMode = 'per-user' | 'shared';
 export type ParticipantRole = 'normal' | 'spy';
 
@@ -40,7 +33,6 @@ export interface HarnessParticipant {
   color: string;
   role: ParticipantRole;
   enabled: boolean;
-  transform: TransformMode;
   codec: PreferredCodec;
   currentKey?: ArrayBuffer;
   keyIndex: number;
@@ -70,7 +62,6 @@ export interface HarnessConfig {
   /** Call type every participant joins, from `?call_type=`. Fixed per session. */
   callType: string;
   codec: PreferredCodec;
-  transform: TransformMode;
   keyMode: KeyMode;
 }
 

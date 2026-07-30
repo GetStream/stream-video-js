@@ -10,15 +10,8 @@ interface Props {
 }
 
 export const StatusReadout = ({ participant, nameByUserId }: Props) => {
-  const {
-    enabled,
-    transform,
-    codec,
-    keyStore,
-    tracks,
-    perf,
-    encryptionFailure,
-  } = participant;
+  const { enabled, codec, keyStore, tracks, perf, encryptionFailure } =
+    participant;
   const nameOf = (userId: string) => nameByUserId[userId] ?? userId.slice(0, 8);
   // The worker rebuilds its stats maps every report interval, so array order is
   // non-deterministic. Sort by stable keys so rows do not swap places between
@@ -41,7 +34,7 @@ export const StatusReadout = ({ participant, nameByUserId }: Props) => {
     <div className="status-readout">
       <div className="status-readout__row">
         <span className={`status-readout__dot ${enabled ? 'on' : 'off'}`} />
-        E2EE {enabled ? 'on' : 'off'} · {transform} · {codec}
+        E2EE {enabled ? 'on' : 'off'} · {codec}
       </div>
 
       <div className="status-readout__row">

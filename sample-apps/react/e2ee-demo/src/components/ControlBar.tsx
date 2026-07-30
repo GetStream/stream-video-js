@@ -5,11 +5,8 @@ import {
 } from '@stream-io/video-react-sdk';
 import { MAX_PARTICIPANTS } from '../config';
 import { useHarnessEngine, useSnapshot } from '../hooks/useHarness';
-import type { PreferredCodec, TransformMode } from '../harness/snapshot';
-import {
-  detectTransformSupport,
-  transformLabels,
-} from '../harness/transformSupport';
+import type { PreferredCodec } from '../harness/snapshot';
+import { detectTransformSupport } from '../harness/transformSupport';
 import './ControlBar.css';
 
 interface ControlBarProps {
@@ -40,10 +37,6 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
 
   const joined = participants.length;
   const normals = participants.filter((p) => p.role === 'normal').length;
-  // The transform locks after the first join: each peer connection is created
-  // with it and it cannot change mid-call. KeyMode is not locked - switching to
-  // shared and setting a shared key converts everyone at any point.
-  const transformLocked = joined > 0;
   const atCapacity = normals >= MAX_PARTICIPANTS;
 
   return (
@@ -100,27 +93,14 @@ export const ControlBar = ({ showKeys, onToggleKeys }: ControlBarProps) => {
             <option value="h264">H.264</option>
           </select>
         </label>
-        <label title="Whether to force the standard RTCRtpScriptTransform API (Chrome defaults to Insertable Streams); locks after the first participant joins">
-          Transform
-          <select
-            value={config.transform}
-            disabled={transformLocked}
-            onChange={(e) =>
-              engine.setConfig({ transform: e.target.value as TransformMode })
-            }
-          >
-            <option value="auto">{transformLabels['auto']}</option>
-            <option value="force-script">
-              {transformLabels['force-script']}
-              {support.hasScriptTransform ? '' : ' (unavailable here)'}
-            </option>
-          </select>
-          <span className="control-bar__hint">
-            {capabilities.length
-              ? `browser has: ${capabilities.join(', ')}`
-              : 'no encoded transform API'}
-          </span>
-        </label>
+        <span
+          className="control-bar__hint"
+          title="Which Encoded Transform API the SDK attaches is its own choice (Insertable Streams on Chrome, RTCRtpScriptTransform elsewhere)"
+        >
+          {capabilities.length
+            ? `browser has: ${capabilities.join(', ')}`
+            : 'no encoded transform API'}
+        </span>
         <label title="Switch anytime; setting a shared key converts everyone">
           KeyMode
           <select

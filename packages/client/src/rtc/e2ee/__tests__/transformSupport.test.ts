@@ -39,14 +39,6 @@ describe('preferredTransform', () => {
     expect(preferredTransform()).toBe('insertable');
   });
 
-  it('opts Chrome onto RTCRtpScriptTransform when forced', () => {
-    vi.mocked(isChrome).mockReturnValue(true);
-    setInsertableStreams(true);
-    expect(preferredTransform({ forceRtpScriptTransform: true })).toBe(
-      'script',
-    );
-  });
-
   it('falls back to RTCRtpScriptTransform on Chrome without Insertable Streams', () => {
     vi.mocked(isChrome).mockReturnValue(true);
     setInsertableStreams(false);

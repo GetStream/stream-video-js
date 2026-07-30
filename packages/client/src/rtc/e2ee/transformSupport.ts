@@ -21,24 +21,15 @@ export const hasScriptTransform = (): boolean =>
 /**
  * Which Encoded Transform API to attach E2EE with here.
  *
- * - `'insertable'`: legacy Insertable Streams. Default on Chrome, where
+ * - `'insertable'`: legacy Insertable Streams. Used on Chrome, where
  *   `RTCRtpScriptTransform` is still unreliable for E2EE.
- * - `'script'`: the standard API. Default elsewhere, and on Chrome when
- *   `forceRtpScriptTransform` is set.
+ * - `'script'`: the standard API. Used everywhere else.
  * - `undefined`: neither exists, so E2EE cannot run.
  */
-export const preferredTransform = (options?: {
-  forceRtpScriptTransform?: boolean;
-}): 'script' | 'insertable' | undefined => {
+export const preferredTransform = (): 'script' | 'insertable' | undefined => {
   const insertable = hasInsertableStreams();
-  const script = hasScriptTransform();
-  if (!insertable && !script) return undefined;
-
   // Chrome's RTCRtpScriptTransform is still unreliable for E2EE.
-  if (isChrome() && !options?.forceRtpScriptTransform) {
-    return insertable ? 'insertable' : 'script';
-  }
-
-  // Everywhere else, prefer the standard API.
-  return script ? 'script' : 'insertable';
+  if (isChrome() && insertable) return 'insertable';
+  if (hasScriptTransform()) return 'script';
+  return insertable ? 'insertable' : undefined;
 };
