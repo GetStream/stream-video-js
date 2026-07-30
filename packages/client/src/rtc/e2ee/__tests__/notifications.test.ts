@@ -27,11 +27,15 @@ afterEach(() => {
 });
 
 describe('EncodeNotifier', () => {
-  it('latches: one signal per failure run, not one per frame', () => {
+  it('latches: one signal per failure run, and time alone does not re-arm it', () => {
+    // Latching is not throttling: a permanently dead track reports once, no
+    // matter how long it keeps failing.
     const notify = new EncodeNotifier('alice', 'VIDEO');
     notify.failed('first');
     notify.failed('second');
-    notify.failed('third');
+    vi.advanceTimersByTime(60_000);
+    notify.failed('still dead');
+
     expect(postMessage).toHaveBeenCalledTimes(1);
     expect(postMessage).toHaveBeenCalledWith({
       type: 'e2ee.encryption_failed',
@@ -52,32 +56,24 @@ describe('EncodeNotifier', () => {
     ]);
     expect(postMessage.mock.calls[1][0].reason).toBe('counter exhausted');
   });
-
-  it('is not time-based: the latch holds past the throttle window', () => {
-    // Latching and throttling are different mechanisms. Only a successful
-    // frame re-arms this one, so waiting must not resurrect the signal.
-    const notify = new EncodeNotifier('alice', 'VIDEO');
-    notify.failed('dead');
-    vi.advanceTimersByTime(60_000);
-    notify.failed('still dead');
-    expect(postMessage).toHaveBeenCalledTimes(1);
-  });
 });
 
 describe('DecodeNotifier throttling', () => {
-  it('delivers at most one failure per second, then resumes delivering', () => {
+  // Levels: they describe a condition that persists, so one per second is
+  // enough - the next frame re-raises the same condition.
+  it.each([
+    ['decryption_failed', (n: DecodeNotifier) => n.failed()],
+    ['unencrypted_frame', (n: DecodeNotifier) => n.unencrypted()],
+  ])('delivers at most one %s per second', (type, raise) => {
     const notify = new DecodeNotifier('bob', 'VIDEO');
-    notify.failed();
-    notify.failed();
-    notify.failed();
-    expect(types()).toEqual(['e2ee.decryption_failed']);
+    raise(notify);
+    raise(notify);
+    raise(notify);
+    expect(types()).toEqual([`e2ee.${type}`]);
 
     vi.advanceTimersByTime(1001);
-    notify.failed();
-    expect(types()).toEqual([
-      'e2ee.decryption_failed',
-      'e2ee.decryption_failed',
-    ]);
+    raise(notify);
+    expect(types()).toEqual([`e2ee.${type}`, `e2ee.${type}`]);
   });
 
   it('throttles missing_key per keyIndex, so a rotation still reports', () => {
@@ -88,16 +84,6 @@ describe('DecodeNotifier throttling', () => {
     // suppressed by the first one's window.
     notify.missingKey(2);
     expect(postMessage.mock.calls.map(([m]) => m.keyIndex)).toEqual([1, 2]);
-  });
-
-  it('throttles unencrypted_frame', () => {
-    const notify = new DecodeNotifier('bob', 'VIDEO');
-    notify.unencrypted();
-    notify.unencrypted();
-    expect(types()).toEqual(['e2ee.unencrypted_frame']);
-    vi.advanceTimersByTime(1001);
-    notify.unencrypted();
-    expect(types()).toHaveLength(2);
   });
 
   it('does not throttle broken: it is already once per failure run', () => {
@@ -120,33 +106,19 @@ describe('DecodeNotifier throttling', () => {
 });
 
 describe('DecodeNotifier failure/recovery pairing', () => {
-  it('stays silent on recovery when no failure was delivered', () => {
+  it('emits exactly one recovery per delivered failure, unthrottled', () => {
     const notify = new DecodeNotifier('bob', 'VIDEO');
-    notify.resumed();
+    notify.resumed(); // nothing was reported yet, so nothing to clear
     expect(postMessage).not.toHaveBeenCalled();
-  });
 
-  it('emits recovery unthrottled, immediately after a delivered failure', () => {
-    const notify = new DecodeNotifier('bob', 'VIDEO');
     notify.failed();
-    notify.resumed();
-    // Same throttle window as the failure: an edge must not be delayed or
-    // dropped, or the host stays latched on a track that already recovered.
+    notify.resumed(); // inside the failure's own throttle window, still fires:
+    notify.resumed(); // an edge must never be delayed or dropped...
+    notify.resumed(); // ...but it also does not repeat.
     expect(types()).toEqual([
       'e2ee.decryption_failed',
       'e2ee.decryption_resumed',
     ]);
-  });
-
-  it('emits one recovery per delivered failure, never more', () => {
-    const notify = new DecodeNotifier('bob', 'VIDEO');
-    notify.failed();
-    notify.resumed();
-    notify.resumed();
-    notify.resumed();
-    expect(types().filter((t) => t === 'e2ee.decryption_resumed')).toHaveLength(
-      1,
-    );
   });
 
   it('does not emit a recovery for a failure the throttle swallowed', () => {

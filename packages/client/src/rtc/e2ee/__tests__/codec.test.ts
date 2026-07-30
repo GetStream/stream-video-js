@@ -154,46 +154,35 @@ describe('codec clear-byte rules', () => {
     data: Uint8Array,
   ) => getCodecProfile(codec).clearBytes(frameType, data);
 
-  it('returns 1 for audio (undefined frameType)', () => {
-    expect(clearBytes(undefined, undefined, new Uint8Array(50))).toBe(1);
-    expect(clearBytes('opus', undefined, new Uint8Array(50))).toBe(1);
-  });
+  // Annex B: [00 00 00 01][SPS][00 00 00 01][slice NALU type 5][...]. The slice
+  // start code sits at byte 8 and is 4 bytes long, so clear = 8 + 4 + 2 = 14.
+  const h264Idr = new Uint8Array([
+    0x00, 0x00, 0x00, 0x01, 0x67, 0x42, 0x00, 0x0a, 0x00, 0x00, 0x00, 0x01,
+    0x65, 0xb8, 0x40,
+  ]);
+  // Only SPS (type 7), so no slice NALU to end the clear header on.
+  const h264NoSlice = new Uint8Array([0x00, 0x00, 0x00, 0x01, 0x67, 0x42]);
+  const big = new Uint8Array(50);
 
-  it('returns 10 for VP8/VP9 keyframes, 3 for delta', () => {
-    expect(clearBytes('vp8', 'key', new Uint8Array(50))).toBe(10);
-    expect(clearBytes('vp8', 'delta', new Uint8Array(50))).toBe(3);
-    expect(clearBytes('vp9', 'key', new Uint8Array(50))).toBe(10);
-    expect(clearBytes('vp9', 'delta', new Uint8Array(50))).toBe(3);
-  });
-
-  it('returns 0 for unknown codecs', () => {
-    expect(clearBytes('unknown', 'delta', new Uint8Array(50))).toBe(0);
-  });
-
-  it('clamps VP8/VP9 clear bytes to the frame length', () => {
-    // A frame shorter than the nominal clear-byte count must not claim more
-    // clear bytes than it has (matches the H264 clamp). Otherwise encode builds
-    // a zero-padded clear header and decode a length-mismatched AAD -> GCM
-    // fails for a frame that should have round-tripped.
-    expect(clearBytes('vp8', 'delta', new Uint8Array(2))).toBe(2);
-    expect(clearBytes('vp9', 'key', new Uint8Array(5))).toBe(5);
-  });
-
-  it('returns clear bytes up to first slice NALU for H.264', () => {
-    // Annex B: [00 00 00 01][SPS][00 00 00 01][slice NALU type 5][...]
-    // SPS NALU type 7, slice IDR type 5.
-    const sps = [0x00, 0x00, 0x00, 0x01, 0x67, 0x42, 0x00, 0x0a]; // 4-byte SC + 4 bytes
-    const sliceSC = [0x00, 0x00, 0x00, 0x01]; // 4-byte SC at pos 8
-    const sliceHeader = [0x65, 0xb8, 0x40]; // NALU type 5 + 2 bytes of slice header
-    const payload = new Uint8Array([...sps, ...sliceSC, ...sliceHeader]);
-    // Slice start at byte 8, start code length 4, so clear = 8 + 4 + 2 = 14.
-    expect(clearBytes('h264', 'key', payload)).toBe(14);
-  });
-
-  it('returns 0 for H.264 with no slice NALU', () => {
-    // Only SPS (type 7), no slice.
-    const data = new Uint8Array([0x00, 0x00, 0x00, 0x01, 0x67, 0x42]);
-    expect(clearBytes('h264', 'key', data)).toBe(0);
+  it.each([
+    // Audio is identified by the absence of a key/delta type; the Opus TOC
+    // byte stays clear so the SFU can read it.
+    ['audio, codec unlabeled', undefined, undefined, big, 1],
+    ['audio, opus', 'opus', undefined, big, 1],
+    ['vp8 keyframe', 'vp8', 'key', big, 10],
+    ['vp8 delta', 'vp8', 'delta', big, 3],
+    ['vp9 keyframe', 'vp9', 'key', big, 10],
+    ['vp9 delta', 'vp9', 'delta', big, 3],
+    // A frame shorter than the nominal count must not claim more clear bytes
+    // than it has, or encode zero-pads the header and decode builds an AAD of
+    // a different length, failing GCM for a frame that should round-trip.
+    ['vp8 delta shorter than 3 bytes', 'vp8', 'delta', new Uint8Array(2), 2],
+    ['vp9 keyframe shorter than 10 bytes', 'vp9', 'key', new Uint8Array(5), 5],
+    ['h264 up to the first slice NALU', 'h264', 'key', h264Idr, 14],
+    ['h264 with no slice NALU', 'h264', 'key', h264NoSlice, 0],
+    ['an unknown codec', 'unknown', 'delta', big, 0],
+  ])('%s -> %s clear bytes', (_label, codec, frameType, data, expected) => {
+    expect(clearBytes(codec, frameType, data)).toBe(expected);
   });
 });
 

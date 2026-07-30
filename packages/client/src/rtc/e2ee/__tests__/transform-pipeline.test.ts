@@ -202,40 +202,31 @@ describe('worker command interface', () => {
 });
 
 describe('encode -> decode pipeline round-trips', () => {
-  it('vp8 (clear-prefix + trailer path)', async () => {
-    const pt = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-    expect(await roundTrip('vp8', pt, 'delta')).toEqual(pt);
-  });
-
-  it('h264 with a slice NALU (RBSP-escape path)', async () => {
-    const pt = [
-      0,
-      0,
-      0,
-      1,
-      0x67,
-      0x42,
-      0x00,
-      0x0a, // SPS
-      0,
-      0,
-      0,
-      1,
-      0x65,
-      0xb8,
-      0x40, // slice start code + NALU type 5 + 2 bytes
-      0xaa,
-      0xbb,
-      0xcc,
-      0xdd,
-      0xee, // body (encrypted)
-    ];
-    expect(await roundTrip('h264', pt, 'key')).toEqual(pt);
-  });
-
-  it('h264 with no slice NALU (clearBytes 0 path)', async () => {
-    const pt = [0, 0, 0, 1, 0x67, 0x42, 0x00, 0x0a];
-    expect(await roundTrip('h264', pt, 'key')).toEqual(pt);
+  it.each([
+    [
+      'vp8 (clear-prefix + trailer path)',
+      'vp8',
+      'delta' as const,
+      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    ],
+    [
+      'h264 with a slice NALU (RBSP-escape path)',
+      'h264',
+      'key' as const,
+      [
+        ...[0, 0, 0, 1, 0x67, 0x42, 0x00, 0x0a], // SPS
+        ...[0, 0, 0, 1, 0x65, 0xb8, 0x40], // slice start code + type 5 + 2 bytes
+        ...[0xaa, 0xbb, 0xcc, 0xdd, 0xee], // body (encrypted)
+      ],
+    ],
+    [
+      'h264 with no slice NALU (clearBytes 0 path)',
+      'h264',
+      'key' as const,
+      [0, 0, 0, 1, 0x67, 0x42, 0x00, 0x0a],
+    ],
+  ])('%s', async (_label, codec, type, plaintext) => {
+    expect(await roundTrip(codec, plaintext, type)).toEqual(plaintext);
   });
 
   it('opus (audio, 1 clear byte)', async () => {

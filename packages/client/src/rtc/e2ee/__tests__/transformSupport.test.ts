@@ -33,44 +33,33 @@ describe('preferredTransform', () => {
     delete RTCRtpSender.prototype.createEncodedStreams;
   });
 
-  it('defaults Chrome to Insertable Streams', () => {
-    vi.mocked(isChrome).mockReturnValue(true);
-    setInsertableStreams(true);
-    expect(preferredTransform()).toBe('insertable');
-  });
-
-  it('falls back to RTCRtpScriptTransform on Chrome without Insertable Streams', () => {
-    vi.mocked(isChrome).mockReturnValue(true);
-    setInsertableStreams(false);
-    expect(preferredTransform()).toBe('script');
-  });
-
-  it('prefers RTCRtpScriptTransform on non-Chrome browsers', () => {
-    vi.mocked(isChrome).mockReturnValue(false);
-    setInsertableStreams(true);
-    expect(preferredTransform()).toBe('script');
-  });
-
-  it('falls back to Insertable Streams on non-Chrome without RTCRtpScriptTransform', () => {
-    vi.mocked(isChrome).mockReturnValue(false);
-    setInsertableStreams(true);
+  const setScriptTransform = (available: boolean) => {
+    if (available) return;
     const original = globalThis.RTCRtpScriptTransform;
     delete globalThis.RTCRtpScriptTransform;
-    try {
-      expect(preferredTransform()).toBe('insertable');
-    } finally {
+    return () => {
       globalThis.RTCRtpScriptTransform = original;
-    }
-  });
+    };
+  };
 
-  it('returns undefined when neither API is available', () => {
-    setInsertableStreams(false);
-    const original = globalThis.RTCRtpScriptTransform;
-    delete globalThis.RTCRtpScriptTransform;
+  // The whole selection policy is this matrix. Chrome is pinned to Insertable
+  // Streams wherever it exists, because its RTCRtpScriptTransform is still
+  // unreliable for E2EE; everything else prefers the standard API.
+  it.each([
+    ['chrome', true, true, true, 'insertable'],
+    ['chrome, no insertable streams', true, false, true, 'script'],
+    ['chrome, neither API', true, false, false, undefined],
+    ['non-chrome', false, true, true, 'script'],
+    ['non-chrome, no script transform', false, true, false, 'insertable'],
+    ['non-chrome, neither API', false, false, false, undefined],
+  ] as const)('%s', (_label, chrome, insertable, script, expected) => {
+    vi.mocked(isChrome).mockReturnValue(chrome);
+    setInsertableStreams(insertable);
+    const restore = setScriptTransform(script);
     try {
-      expect(preferredTransform()).toBeUndefined();
+      expect(preferredTransform()).toBe(expected);
     } finally {
-      globalThis.RTCRtpScriptTransform = original;
+      restore?.();
     }
   });
 });

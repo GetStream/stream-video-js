@@ -78,148 +78,121 @@ describe('EncryptionManager', () => {
     });
   });
 
-  describe('setKey', () => {
-    it('posts a setKey message to the worker', () => {
-      const rawKey = new ArrayBuffer(16);
-      manager.setKey('remote-user', 0, rawKey);
+  describe('worker commands', () => {
+    const rawKey = new ArrayBuffer(16);
 
-      const worker = getWorker(manager);
-      // The key buffer is structured-cloned (no transfer list), so the caller's
-      // ArrayBuffer is not detached and can be safely re-imported.
-      expect(worker.postMessage).toHaveBeenCalledWith({
-        type: 'cmd.set_key',
-        userId: 'remote-user',
-        keyIndex: 0,
-        rawKey,
-      });
+    it.each([
+      [
+        'setKey',
+        () => manager.setKey('remote-user', 0, rawKey),
+        { type: 'cmd.set_key', userId: 'remote-user', keyIndex: 0, rawKey },
+      ],
+      [
+        'setSharedKey',
+        () => manager.setSharedKey(0, rawKey),
+        { type: 'cmd.set_shared_key', keyIndex: 0, rawKey },
+      ],
+      [
+        'removeKeys',
+        () => manager.removeKeys('remote-user'),
+        { type: 'cmd.remove_keys', userId: 'remote-user' },
+      ],
+      [
+        'requestKeyDump',
+        () => manager.requestKeyDump(),
+        { type: 'cmd.dump_key_state' },
+      ],
+      [
+        'enablePerformanceReporting',
+        () => manager.enablePerformanceReporting(true),
+        { type: 'cmd.enable_performance_reporting', enabled: true },
+      ],
+    ])('%s posts its command', (_name, call, expected) => {
+      call();
+      expect(getWorker(manager).postMessage).toHaveBeenCalledWith(expected);
     });
 
-    it('rejects keys that are not 16 bytes', () => {
-      expect(() => manager.setKey('user', 0, new ArrayBuffer(32))).toThrow(
-        /16 bytes/,
-      );
-    });
-
-    it('rejects a keyIndex above the 8-bit wire limit', () => {
-      // The trailer carries keyIndex in a single byte; 256 would wrap to 0 on
-      // the wire and the receiver would look up the wrong key.
-      expect(() => manager.setKey('user', 256, new ArrayBuffer(16))).toThrow(
-        /keyIndex/,
-      );
-    });
-
-    it('rejects a negative or non-integer keyIndex', () => {
-      expect(() => manager.setKey('user', -1, new ArrayBuffer(16))).toThrow(
-        /keyIndex/,
-      );
-      expect(() => manager.setKey('user', 1.5, new ArrayBuffer(16))).toThrow(
-        /keyIndex/,
-      );
-    });
-
-    it('accepts the maximum 8-bit keyIndex (255)', () => {
-      expect(() =>
-        manager.setKey('user', 255, new ArrayBuffer(16)),
-      ).not.toThrow();
-    });
-  });
-
-  describe('setSharedKey', () => {
-    it('posts a setSharedKey message to the worker', () => {
-      const rawKey = new ArrayBuffer(16);
+    it('clones key material rather than transferring it', () => {
+      // A transfer list would detach the caller's ArrayBuffer and break the
+      // documented contract that the same bytes can be imported again.
       manager.setSharedKey(0, rawKey);
-
-      const worker = getWorker(manager);
-      expect(worker.postMessage).toHaveBeenCalledWith({
-        type: 'cmd.set_shared_key',
-        keyIndex: 0,
-        rawKey,
-      });
-    });
-
-    it('does not transfer (detach) the caller key buffer', () => {
-      const rawKey = new ArrayBuffer(16);
-      manager.setSharedKey(0, rawKey);
-      const worker = getWorker(manager);
-      // No transfer list -> structured clone, caller buffer stays usable.
-      const transferList = vi.mocked(worker.postMessage).mock.calls[0][1];
+      const transferList = vi.mocked(getWorker(manager).postMessage).mock
+        .calls[0][1];
       expect(transferList).toBeUndefined();
     });
+  });
 
-    it('rejects keys that are not 16 bytes', () => {
-      expect(() => manager.setSharedKey(0, new ArrayBuffer(8))).toThrow(
-        /16 bytes/,
-      );
+  // One validation path behind two methods, so the table covers both rather
+  // than repeating each rule per method.
+  describe('key validation', () => {
+    const methods = ['setKey', 'setSharedKey'] as const;
+    const call = (
+      method: (typeof methods)[number],
+      keyIndex: number,
+      bytes: number,
+    ) =>
+      method === 'setKey'
+        ? () => manager.setKey('user', keyIndex, new ArrayBuffer(bytes))
+        : () => manager.setSharedKey(keyIndex, new ArrayBuffer(bytes));
+
+    it.each(methods)('%s accepts a keyIndex across the whole byte', (m) => {
+      expect(call(m, 0, 16)).not.toThrow();
+      expect(call(m, 255, 16)).not.toThrow();
     });
 
-    it('rejects a keyIndex above the 8-bit wire limit', () => {
-      expect(() => manager.setSharedKey(256, new ArrayBuffer(16))).toThrow(
-        /keyIndex/,
-      );
+    it.each(methods)('%s rejects a keyIndex off the wire format', (m) => {
+      // The trailer carries keyIndex in one byte: 256 would wrap to 0 and the
+      // receiver would silently look up the wrong key.
+      for (const bad of [256, -1, 1.5, NaN]) {
+        expect(call(m, bad, 16)).toThrow(/keyIndex/);
+      }
+    });
+
+    it.each(methods)('%s rejects a key that is not 16 bytes', (m) => {
+      for (const bad of [0, 8, 15, 17, 32]) {
+        expect(call(m, 0, bad)).toThrow(/16 bytes/);
+      }
     });
   });
 
-  describe('removeKeys', () => {
-    it('posts a removeKeys message to the worker', () => {
-      manager.removeKeys('remote-user');
+  describe('attaching transforms', () => {
+    it.each([
+      [
+        'encrypt',
+        (t: unknown) => manager.encrypt(t as RTCRtpSender, 'vp8', 'VIDEO'),
+        {
+          operation: 'encode',
+          userId: 'local-user',
+          codec: 'vp8',
+          trackType: 'VIDEO',
+        },
+      ],
+      [
+        'decrypt',
+        (t: unknown) =>
+          manager.decrypt(t as RTCRtpReceiver, 'remote-user', 'AUDIO'),
+        { operation: 'decode', userId: 'remote-user', trackType: 'AUDIO' },
+      ],
+    ])(
+      '%s attaches a transform carrying its options',
+      (_name, attach, options) => {
+        const target: Record<string, unknown> = { transform: null };
+        attach(target);
+        expect(target.transform).toBeDefined();
+        expect((target.transform as Record<string, unknown>).options).toEqual(
+          options,
+        );
+      },
+    );
 
-      const worker = getWorker(manager);
-      expect(worker.postMessage).toHaveBeenCalledWith({
-        type: 'cmd.remove_keys',
-        userId: 'remote-user',
-      });
-    });
-  });
-
-  describe('requestKeyDump', () => {
-    it('posts a cmd.dump_key_state message to the worker', () => {
-      manager.requestKeyDump();
-
-      const worker = getWorker(manager);
-      expect(worker.postMessage).toHaveBeenCalledWith({
-        type: 'cmd.dump_key_state',
-      });
-    });
-  });
-
-  describe('encrypt', () => {
-    it('attaches a transform to the sender', () => {
-      const sender: Record<string, unknown> = { transform: null };
-      manager.encrypt(sender as unknown as RTCRtpSender, 'vp8');
-
-      expect(sender.transform).toBeDefined();
-      expect((sender.transform as Record<string, unknown>).options).toEqual({
-        operation: 'encode',
-        userId: 'local-user',
-        codec: 'vp8',
-      });
-    });
-
-    it('forwards the codec verbatim, leaving support checks to the worker', () => {
+    it('forwards an unsupported codec verbatim instead of gating on it', () => {
+      // The worker owns the decision and fails closed for a codec it cannot
+      // frame (av1 today); duplicating the check here would let the two drift.
       const sender: Record<string, unknown> = { transform: null };
       manager.encrypt(sender as unknown as RTCRtpSender, 'av1');
-
-      // The manager does not gate on the codec; the worker decides, and fails
-      // closed for one it cannot frame (av1 today).
-      expect(sender.transform).toBeDefined();
-      expect((sender.transform as Record<string, unknown>).options).toEqual({
-        operation: 'encode',
-        userId: 'local-user',
-        codec: 'av1',
-      });
-    });
-  });
-
-  describe('decrypt', () => {
-    it('attaches a transform to the receiver', () => {
-      const receiver: Record<string, unknown> = { transform: null };
-      manager.decrypt(receiver as unknown as RTCRtpReceiver, 'remote-user');
-
-      expect(receiver.transform).toBeDefined();
-      expect((receiver.transform as Record<string, unknown>).options).toEqual({
-        operation: 'decode',
-        userId: 'remote-user',
-      });
+      expect(
+        (sender.transform as Record<string, unknown>).options,
+      ).toMatchObject({ codec: 'av1' });
     });
   });
 
@@ -315,7 +288,9 @@ describe('EncryptionManager', () => {
   });
 
   describe('AES-256-GCM opt-in', () => {
-    it('rejects 16-byte keys when created with algorithm AES-256-GCM', async () => {
+    it('swaps the required key length to 32 bytes', async () => {
+      // The default manager's 16-byte rule is covered in `key validation`;
+      // this is only about the algorithm option moving the goalposts.
       const mgr = await EncryptionManager.create('user', {
         algorithm: 'AES-256-GCM',
       });
@@ -323,16 +298,6 @@ describe('EncryptionManager', () => {
         expect(() => mgr.setKey('remote', 0, new ArrayBuffer(16))).toThrow(
           /32 bytes \(AES-256\)/,
         );
-      } finally {
-        mgr.dispose();
-      }
-    });
-
-    it('accepts 32-byte keys when created with algorithm AES-256-GCM', async () => {
-      const mgr = await EncryptionManager.create('user', {
-        algorithm: 'AES-256-GCM',
-      });
-      try {
         expect(() =>
           mgr.setKey('remote', 0, new ArrayBuffer(32)),
         ).not.toThrow();
@@ -340,12 +305,6 @@ describe('EncryptionManager', () => {
       } finally {
         mgr.dispose();
       }
-    });
-
-    it('still enforces 16 bytes for the default (AES-128-GCM) manager', () => {
-      expect(() => manager.setKey('remote', 0, new ArrayBuffer(32))).toThrow(
-        /16 bytes \(AES-128\)/,
-      );
     });
   });
 

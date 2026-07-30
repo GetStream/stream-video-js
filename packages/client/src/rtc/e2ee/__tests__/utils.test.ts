@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   IV_PREFIX_LEN,
-  MAGIC,
   MAX_CLEAR_BYTES,
   TRAILER_LEN,
 } from '../e2ee-worker/constants';
@@ -17,88 +16,75 @@ const randomPrefix = (): Uint8Array => {
 };
 
 describe('writeTrailer + readTrailer', () => {
-  it('round-trips the full trailer payload', () => {
+  it.each([
+    ['without the RBSP flag', false],
+    ['with the RBSP flag', true],
+  ])('round-trips the full payload %s', (_label, isRbsp) => {
     const body = 32;
     const dst = makeFrame(body);
     const prefix = randomPrefix();
-    writeTrailer(dst, body, 123456, prefix, 7, 10, false);
+    writeTrailer(dst, body, 123456, prefix, 7, 10, isRbsp);
 
     const trailer = readTrailer(dst);
     expect(trailer).not.toBeNull();
     expect(trailer!.frameCounter).toBe(123456);
     expect(trailer!.keyIndex).toBe(7);
     expect(trailer!.clearBytes).toBe(10);
-    expect(trailer!.isRbsp).toBe(false);
+    expect(trailer!.isRbsp).toBe(isRbsp);
     expect(Array.from(trailer!.ivPrefix)).toEqual(Array.from(prefix));
   });
 
-  it('round-trips with the RBSP flag set', () => {
-    const dst = makeFrame(20);
-    writeTrailer(dst, 20, 1, randomPrefix(), 3, 5, true);
-    const trailer = readTrailer(dst);
-    expect(trailer!.isRbsp).toBe(true);
-    expect(trailer!.clearBytes).toBe(5);
-  });
-
-  it('rejects clearBytes over the 15-bit maximum', () => {
+  it('rejects a trailer it could not encode', () => {
     const dst = makeFrame(100);
     expect(() =>
       writeTrailer(dst, 100, 1, randomPrefix(), 0, MAX_CLEAR_BYTES + 1, false),
     ).toThrow(/15-bit/);
+    expect(() =>
+      writeTrailer(dst, 20, 1, new Uint8Array(IV_PREFIX_LEN - 1), 0, 0, false),
+    ).toThrow(/ivPrefix/);
   });
 
-  it('rejects ivPrefix of wrong length', () => {
-    const dst = makeFrame(20);
-    const badPrefix = new Uint8Array(IV_PREFIX_LEN - 1);
-    expect(() => writeTrailer(dst, 20, 1, badPrefix, 0, 0, false)).toThrow(
-      /ivPrefix/,
-    );
-  });
-
-  it('returns null for frames shorter than the trailer', () => {
-    expect(readTrailer(new Uint8Array(TRAILER_LEN - 1))).toBeNull();
-  });
-
-  it('returns null when MAGIC does not match', () => {
-    const dst = makeFrame(16);
-    writeTrailer(dst, 16, 1, randomPrefix(), 0, 0, false);
-    dst[dst.length - 1] ^= 0x01; // corrupt the magic
-    expect(readTrailer(dst)).toBeNull();
-  });
-
-  it('returns null for an unknown version (even if MAGIC is valid)', () => {
-    const dst = makeFrame(16);
-    writeTrailer(dst, 16, 1, randomPrefix(), 0, 0, false);
-    // Bump the version byte to something we don't know.
-    dst[dst.length - 5] = 99;
-    expect(readTrailer(dst)).toBeNull();
-  });
-
-  it('returns null when the declared clearBytes overruns the body', () => {
-    // Craft a frame where the trailer claims clearBytes > bodyLen.
+  // Anything unrecognized means "not our trailer", so the frame is forwarded as
+  // cleartext rather than sent to a decrypt that would fail. The exact bytes of
+  // a valid trailer are pinned by the SPEC vectors in conformance.test.ts.
+  it.each([
+    [
+      'the frame is shorter than a trailer',
+      () => new Uint8Array(TRAILER_LEN - 1),
+    ],
+    [
+      'the magic does not match',
+      (f: Uint8Array) => {
+        f[f.length - 1] ^= 0x01;
+        return f;
+      },
+    ],
+    [
+      'the version is unknown',
+      (f: Uint8Array) => {
+        f[f.length - 5] = 99;
+        return f;
+      },
+    ],
+    [
+      'the declared clearBytes overruns the body',
+      (f: Uint8Array) => {
+        // Still inside the 15-bit limit, so only the length check catches it.
+        new DataView(f.buffer).setUint16(f.length - 7, 6);
+        return f;
+      },
+    ],
+  ])('returns null when %s', (_label, corrupt) => {
     const body = 5;
     const dst = makeFrame(body);
     writeTrailer(dst, body, 1, randomPrefix(), 0, 0, false);
-    const view = new DataView(dst.buffer);
-    // Rewrite clearBytes field to body + 1 (still within the 15-bit limit).
-    view.setUint16(dst.length - 7, body + 1);
-    expect(readTrailer(dst)).toBeNull();
-  });
-
-  it('MAGIC constant matches the on-wire value', () => {
-    const dst = makeFrame(16);
-    writeTrailer(dst, 16, 1, randomPrefix(), 0, 0, false);
-    const view = new DataView(dst.buffer);
-    expect(view.getUint32(dst.length - 4)).toBe(MAGIC);
+    expect(readTrailer(corrupt(dst))).toBeNull();
   });
 });
 
 describe('enqueue', () => {
-  it('resolves with the task return value', async () => {
+  it('carries the task outcome back to its own caller', async () => {
     await expect(enqueue(async () => 42)).resolves.toBe(42);
-  });
-
-  it('rejects when the task throws', async () => {
     await expect(
       enqueue(async () => {
         throw new Error('boom');

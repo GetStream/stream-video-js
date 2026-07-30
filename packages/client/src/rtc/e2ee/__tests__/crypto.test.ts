@@ -158,11 +158,6 @@ describe('createReplayWindow', () => {
     return ok;
   };
 
-  it('accepts the first frame', () => {
-    const w = createReplayWindow();
-    expect(accept(w, 100, PREFIX_A)).toBe(true);
-  });
-
   it('accepts monotonically increasing counters', () => {
     const w = createReplayWindow();
     expect(accept(w, 1, PREFIX_A)).toBe(true);
@@ -202,23 +197,16 @@ describe('createReplayWindow', () => {
     expect(accept(video, 6, PREFIX_A)).toBe(true);
   });
 
-  it('opens a fresh window when the sender IV prefix changes', () => {
-    // Sender restart: a new random prefix with the counter reset to 0. The
-    // low counter must not be rejected against the previous prefix's
-    // `highest`, but replays within the original prefix are still caught.
+  it('partitions the window by sender prefix, so a restart is not rejected', () => {
+    // A sender restart or key re-import brings a fresh prefix and a counter
+    // near 0. Those low counters must not be judged against the old prefix's
+    // high-water mark, while replays within each prefix are still caught.
     const w = createReplayWindow();
     expect(accept(w, 5000, PREFIX_A)).toBe(true);
     expect(accept(w, 1, PREFIX_B)).toBe(true);
     expect(accept(w, 2, PREFIX_B)).toBe(true);
-    expect(accept(w, 5000, PREFIX_A)).toBe(false);
-  });
-
-  it('partitions replay state by prefix within a single guard', () => {
-    const w = createReplayWindow();
-    expect(accept(w, 5, PREFIX_A)).toBe(true);
-    expect(accept(w, 5, PREFIX_B)).toBe(true); // different epoch, not a replay
-    expect(accept(w, 5, PREFIX_A)).toBe(false); // replay within prefix A
-    expect(accept(w, 5, PREFIX_B)).toBe(false); // replay within prefix B
+    expect(accept(w, 5000, PREFIX_A)).toBe(false); // replay within prefix A
+    expect(accept(w, 1, PREFIX_B)).toBe(false); // replay within prefix B
   });
 
   // --- authenticate-before-commit -----------------------------------------
@@ -227,25 +215,19 @@ describe('createReplayWindow', () => {
     const w = createReplayWindow();
     // A genuine frame establishes the window.
     expect(accept(w, 10, PREFIX_A)).toBe(true);
-    // A forged frame copies the prefix and claims the 32-bit max counter. It
-    // peeks OK (it looks newer than anything seen), but GCM will reject it, so
-    // it is NEVER committed.
+    // Forged frames copy the prefix and claim far-future counters. They peek
+    // OK (nothing seen is newer), but GCM rejects them, so they are never
+    // committed and `highest` must not move: otherwise every later genuine
+    // frame lands below `highest - REPLAY_WINDOW` and is dropped forever.
     expect(w.peek(COUNTER_HARD_LIMIT, PREFIX_A)).toBe(true);
-    // Because the forged frame was not committed, `highest` did not advance:
-    // genuine frames keep flowing instead of all landing below
-    // `highest - REPLAY_WINDOW` and being dropped forever.
+    expect(w.peek(900_000, PREFIX_A)).toBe(true);
+    expect(w.peek(900_000, PREFIX_A)).toBe(true);
     expect(accept(w, 11, PREFIX_A)).toBe(true);
     expect(accept(w, 12, PREFIX_A)).toBe(true);
-  });
-
-  it('an uncommitted peek never advances the window or creates an epoch', () => {
-    const w = createReplayWindow();
-    // Repeatedly peeking far-future counters (forged, never authenticated)
-    // must leave the window untouched, so a genuine low counter is still new.
-    expect(w.peek(900_000, PREFIX_A)).toBe(true);
-    expect(w.peek(900_000, PREFIX_A)).toBe(true);
+    // The uncommitted peeks also left no epoch behind, so a genuine low
+    // counter is still new rather than a replay.
     expect(accept(w, 1, PREFIX_A)).toBe(true);
-    expect(accept(w, 1, PREFIX_A)).toBe(false); // now it is a real replay
+    expect(accept(w, 1, PREFIX_A)).toBe(false);
   });
 
   it('handles a counter jump larger than the replay window', () => {
@@ -332,37 +314,31 @@ describe('dumpKeyState', () => {
     expect(dump.sharedKey!.fingerprint).toMatch(/^[0-9a-f]{16}$/);
   });
 
-  it('fingerprint is deterministic for the same raw key', async () => {
+  it('identifies key material: same key same print, different key different', async () => {
+    // What makes the dump useful: two peers can compare prints to confirm they
+    // hold the same key, under any user id or key index.
     await importKey('alice', 1, rawKey(0xaa));
-    const fp1 = dumpKeyState().perUserKeys[0].fingerprint;
+    const alice = dumpKeyState().perUserKeys[0].fingerprint;
 
     dispose();
     await importKey('bob', 99, rawKey(0xaa));
-    const fp2 = dumpKeyState().perUserKeys[0].fingerprint;
+    await importKey('bob', 100, rawKey(0x02));
+    const [same, different] = dumpKeyState().perUserKeys;
 
-    expect(fp1).toBe(fp2);
-  });
-
-  it('different raw keys produce different fingerprints', async () => {
-    await importKey('alice', 1, rawKey(0x01));
-    await importKey('alice', 2, rawKey(0x02));
-    const [a, b] = dumpKeyState().perUserKeys;
-    expect(a.fingerprint).not.toBe(b.fingerprint);
+    expect(same.fingerprint).toBe(alice);
+    expect(different.fingerprint).not.toBe(alice);
   });
 });
 
 describe('removeKeys', () => {
-  it('deletes per-user key state', async () => {
-    await importKey('alice', 1, rawKey());
-    removeKeys('alice');
-    expect(getKey('alice', 1)).toBeUndefined();
-    expect(getLatestKey('alice')).toBeNull();
-  });
-
-  it('does not affect other users', async () => {
+  it('deletes that user key state and leaves the others', async () => {
     await importKey('alice', 1, rawKey(0x01));
     await importKey('bob', 1, rawKey(0x02));
+
     removeKeys('alice');
+
+    expect(getKey('alice', 1)).toBeUndefined();
+    expect(getLatestKey('alice')).toBeNull();
     expect(getKey('bob', 1)).toBeDefined();
   });
 });

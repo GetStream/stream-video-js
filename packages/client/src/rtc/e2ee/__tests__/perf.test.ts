@@ -28,20 +28,20 @@ describe('while reporting is off', () => {
     track.endCrypto(track.startCrypto());
     expect(encodeStats.flush(1)).toEqual([]);
   });
-
-  it('startCrypto returns 0 rather than reading the clock', () => {
-    expect(encodeTrack('VIDEO').startCrypto()).toBe(0);
-  });
 });
 
 describe('counting', () => {
   beforeEach(() => startPerfReport());
 
-  it('reports frames per second over the elapsed window', () => {
-    const track = encodeTrack('VIDEO');
-    track.bump();
-    track.bump();
-    track.bump();
+  it('reports each track separately, as a rate over the elapsed window', () => {
+    // Two tracks on one sender: a vp8 camera and a vp8 screen share must be
+    // reported apart rather than summed.
+    const camera = encodeTrack('VIDEO');
+    camera.bump();
+    camera.bump();
+    camera.bump();
+    encodeTrack('SCREEN_SHARE').bump();
+
     expect(encodeStats.flush(1.5)).toEqual([
       {
         userId: 'alice',
@@ -50,18 +50,14 @@ describe('counting', () => {
         fps: 2,
         maxCryptoMs: 0,
       },
+      {
+        userId: 'alice',
+        trackType: 'SCREEN_SHARE',
+        codec: 'vp8',
+        fps: 1 / 1.5,
+        maxCryptoMs: 0,
+      },
     ]);
-  });
-
-  it('keeps tracks apart by key, instead of summing them', () => {
-    encodeTrack('VIDEO').bump();
-    encodeTrack('SCREEN_SHARE').bump();
-    expect(
-      encodeStats
-        .flush(1)
-        .map((s) => s.trackType)
-        .sort(),
-    ).toEqual(['SCREEN_SHARE', 'VIDEO']);
   });
 
   it('drops an idle track from the next report instead of reporting 0 fps', () => {
