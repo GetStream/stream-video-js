@@ -15,6 +15,9 @@ const STREAM_DEFAULT_SERVICE =
 /** React Native Firebase's own FCM service. */
 const RN_FIREBASE_SERVICE =
   'io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService';
+/** expo-notifications' FCM service — the default base auto-detected when installed. */
+const EXPO_NOTIFICATIONS_SERVICE =
+  'expo.modules.notifications.service.ExpoFirebaseMessagingService';
 
 const MESSAGING_EVENT_ACTION = 'com.google.firebase.MESSAGING_EVENT';
 /**
@@ -77,6 +80,34 @@ function validateBaseClass(baseClass: string): void {
   }
 }
 
+function isExpoNotificationsInstalled(projectRoot?: string): boolean {
+  try {
+    require.resolve(
+      'expo-notifications/package.json',
+      projectRoot ? { paths: [projectRoot] } : undefined,
+    );
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function resolveBaseClass(
+  value: string | null | undefined,
+  projectRoot?: string,
+): string | undefined {
+  if (value === null) {
+    return undefined;
+  }
+  if (typeof value === 'string') {
+    validateBaseClass(value);
+    return value;
+  }
+  return isExpoNotificationsInstalled(projectRoot)
+    ? EXPO_NOTIFICATIONS_SERVICE
+    : undefined;
+}
+
 /** Kotlin source for the generated messaging service. */
 function buildServiceSource(
   androidPackage: string,
@@ -114,8 +145,10 @@ import ${baseClassFqcn}
 @SuppressLint("MissingFirebaseInstanceTokenRefresh")
 class ${GENERATED_SERVICE_CLASS_NAME} : ${simpleName}() {
   override fun onMessageReceived(remoteMessage: RemoteMessage) {
-    StreamMessagingHelper.handleMessage(applicationContext, remoteMessage)
-    // Forward to the base class so its own message handling still runs.
+    if (StreamMessagingHelper.isStreamCallRing(remoteMessage)) {
+      StreamMessagingHelper.handleMessage(applicationContext, remoteMessage)
+      return
+    }
     super.onMessageReceived(remoteMessage)
   }
 ${onNewToken}}
@@ -186,13 +219,19 @@ function updateManifest(
   return androidManifest;
 }
 
-const withGeneratedMessagingServiceFile: ConfigPlugin<string> = (
-  config,
-  baseClassFqcn,
-) => {
+const withGeneratedMessagingServiceFile: ConfigPlugin<
+  string | null | undefined
+> = (config, value) => {
   return withDangerousMod(config, [
     'android',
     (dangerousConfig) => {
+      const baseClassFqcn = resolveBaseClass(
+        value,
+        dangerousConfig.modRequest.projectRoot,
+      );
+      if (!baseClassFqcn) {
+        return dangerousConfig;
+      }
       const androidPackage = getAndroidPackage(dangerousConfig);
       const packagePath = androidPackage.replace(/\./g, path.sep);
       const javaDir = path.join(
@@ -217,11 +256,18 @@ const withGeneratedMessagingServiceFile: ConfigPlugin<string> = (
   ]);
 };
 
-const withMessagingServiceManifest: ConfigPlugin<string> = (
+const withMessagingServiceManifest: ConfigPlugin<string | null | undefined> = (
   config,
-  baseClassFqcn,
+  value,
 ) => {
   return withAndroidManifest(config, (androidConfig) => {
+    const baseClassFqcn = resolveBaseClass(
+      value,
+      androidConfig.modRequest.projectRoot,
+    );
+    if (!baseClassFqcn) {
+      return androidConfig;
+    }
     const androidPackage = getAndroidPackage(androidConfig);
     androidConfig.modResults = updateManifest(
       androidConfig.modResults,
@@ -270,8 +316,18 @@ function addFirebaseMessagingDependency(
   return contents.replace(DEPENDENCIES_BLOCK, (match) => `${match}\n${lines}`);
 }
 
-const withMessagingServiceGradle: ConfigPlugin = (config) => {
+const withMessagingServiceGradle: ConfigPlugin<string | null | undefined> = (
+  config,
+  value,
+) => {
   return withAppBuildGradle(config, (gradleConfig) => {
+    const baseClassFqcn = resolveBaseClass(
+      value,
+      gradleConfig.modRequest.projectRoot,
+    );
+    if (!baseClassFqcn) {
+      return gradleConfig;
+    }
     const bomVersion = resolveFirebaseBomVersion(
       gradleConfig.modRequest.projectRoot,
     );
@@ -287,15 +343,16 @@ const withAndroidMessagingService: ConfigPlugin<ConfigProps> = (
   config,
   props,
 ) => {
-  const baseClass = props?.androidMessagingServiceBaseClass;
-  if (!baseClass) {
+  // The messaging-service override only matters for the ringing flow, skip it otherwise.
+  if (!props?.ringing) {
     return config;
   }
-  validateBaseClass(baseClass);
 
-  let updated = withGeneratedMessagingServiceFile(config, baseClass);
-  updated = withMessagingServiceManifest(updated, baseClass);
-  updated = withMessagingServiceGradle(updated);
+  const value = props?.androidMessagingServiceBaseClass;
+
+  let updated = withGeneratedMessagingServiceFile(config, value);
+  updated = withMessagingServiceManifest(updated, value);
+  updated = withMessagingServiceGradle(updated, value);
   return updated;
 };
 
@@ -304,9 +361,12 @@ export {
   updateManifest,
   buildServiceSource,
   validateBaseClass,
+  resolveBaseClass,
+  isExpoNotificationsInstalled,
   getGeneratedServiceFqcn,
   addFirebaseMessagingDependency,
   resolveFirebaseBomVersion,
+  EXPO_NOTIFICATIONS_SERVICE,
   GENERATED_SERVICE_CLASS_NAME,
   STREAM_DEFAULT_SERVICE,
   FIREBASE_MESSAGING_ARTIFACT,

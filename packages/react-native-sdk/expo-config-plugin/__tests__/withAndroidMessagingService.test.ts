@@ -1,11 +1,14 @@
 import { AndroidConfig } from '@expo/config-plugins';
-import {
+import withAndroidMessagingService, {
   updateManifest,
   buildServiceSource,
   validateBaseClass,
+  resolveBaseClass,
+  isExpoNotificationsInstalled,
   getGeneratedServiceFqcn,
   addFirebaseMessagingDependency,
   resolveFirebaseBomVersion,
+  EXPO_NOTIFICATIONS_SERVICE,
   STREAM_DEFAULT_SERVICE,
   FIREBASE_MESSAGING_ARTIFACT,
   FIREBASE_BOM_FALLBACK_VERSION,
@@ -45,6 +48,54 @@ describe('validateBaseClass', () => {
   });
 });
 
+describe('resolveBaseClass', () => {
+  it('returns undefined (opt out) when null is passed', () => {
+    expect(resolveBaseClass(null)).toBeUndefined();
+    // even when expo-notifications is installed in the monorepo
+    expect(resolveBaseClass(null, process.cwd())).toBeUndefined();
+  });
+
+  it('returns the explicit class when a string is passed', () => {
+    expect(resolveBaseClass(EXPO_BASE)).toBe(EXPO_BASE);
+  });
+
+  it('throws on an invalid explicit class', () => {
+    expect(() => resolveBaseClass('NoPackageName')).toThrow();
+  });
+
+  it('auto-detects expo-notifications when omitted (installed)', () => {
+    // expo-notifications is installed in the monorepo, resolvable from here
+    expect(resolveBaseClass(undefined)).toBe(EXPO_NOTIFICATIONS_SERVICE);
+  });
+
+  it('returns undefined when omitted and expo-notifications is not resolvable', () => {
+    expect(
+      resolveBaseClass(undefined, '/definitely/not/a/real/path'),
+    ).toBeUndefined();
+  });
+});
+
+describe('isExpoNotificationsInstalled', () => {
+  it('is true in the monorepo and false for a bogus root', () => {
+    expect(isExpoNotificationsInstalled()).toBe(true);
+    expect(isExpoNotificationsInstalled('/definitely/not/a/real/path')).toBe(
+      false,
+    );
+  });
+});
+
+describe('withAndroidMessagingService (ringing gate)', () => {
+  const config = { name: 'app', slug: 'app' } as never;
+
+  it('is a no-op when ringing is not enabled', () => {
+    expect(withAndroidMessagingService(config, {})).toBe(config);
+    expect(withAndroidMessagingService(config, { ringing: false })).toBe(
+      config,
+    );
+    expect(withAndroidMessagingService(config, undefined)).toBe(config);
+  });
+});
+
 describe('buildServiceSource', () => {
   const source = buildServiceSource(APP_PACKAGE, EXPO_BASE);
 
@@ -56,11 +107,21 @@ describe('buildServiceSource', () => {
     );
   });
 
-  it('injects Stream handling and forwards to super', () => {
+  it('gates call.ring (handles it, skips super) and forwards other messages to super', () => {
+    expect(source).toContain(
+      'if (StreamMessagingHelper.isStreamCallRing(remoteMessage))',
+    );
     expect(source).toContain(
       'StreamMessagingHelper.handleMessage(applicationContext, remoteMessage)',
     );
     expect(source).toContain('super.onMessageReceived(remoteMessage)');
+    // the ring is handled before super, and short-circuits with a return
+    const gateIndex = source.indexOf('isStreamCallRing');
+    const superIndex = source.indexOf('super.onMessageReceived');
+    expect(gateIndex).toBeLessThan(superIndex);
+    expect(source).toMatch(
+      /handleMessage\(applicationContext, remoteMessage\)\s*\n\s*return/,
+    );
   });
 
   it('forwards onNewToken via StreamMessagingHelper when base is not RN Firebase', () => {
