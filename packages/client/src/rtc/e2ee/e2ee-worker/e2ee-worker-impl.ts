@@ -6,7 +6,7 @@
  * Frame layout is [clear header][ciphertext + GCM tag][20B trailer], so 36
  * bytes of overhead. The trailer holds:
  *   [4B frameCounter][8B ivPrefix][1B keyIndex][2B clearBytes|flags]
- *   [1B version][4B 0xDEADBEEF]
+ *   [1B version][4B 0xE2EEFEED]
  *
  * The clear header keeps codec headers readable so the SFU can detect keyframes
  * and select layers: 1 byte for Opus, 10/3 for VP8 and VP9 (key/delta), and for

@@ -1,5 +1,5 @@
 /** Marks an encrypted frame's trailer. */
-export const MAGIC = 0xdeadbeef;
+export const MAGIC = 0xe2eefeed;
 
 /**
  * Wire format version. Bump it when the trailer layout or IV derivation change.
