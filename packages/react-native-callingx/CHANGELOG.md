@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.8.0...@stream-io/react-native-callingx-0.8.1) (2026-07-30)
+
+### Dependency Updates
+
+- `@stream-io/typescript-config` updated to version `0.1.0`
+
 ## [0.8.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.7.0...@stream-io/react-native-callingx-0.8.0) (2026-07-30)
 
 ### Dependency Updates
