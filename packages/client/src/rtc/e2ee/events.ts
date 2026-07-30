@@ -37,6 +37,14 @@ export type MissingKeyEvent = {
    * direction; absent when the local encoder has no key at all.
    */
   keyIndex?: number;
+  /**
+   * The stalled track (VIDEO / AUDIO / SCREEN_SHARE). Present only for the
+   * decode direction, which reports per track: two of a peer's tracks can be on
+   * different key epochs, so one may stall while the other plays. The encode
+   * direction has no track: the local user holds no key at all, which stops
+   * every outgoing track at once, and is reported once for the user.
+   */
+  trackType?: string;
 };
 
 /**
@@ -49,6 +57,8 @@ export type MissingKeyEvent = {
 export type UnencryptedFrameEvent = {
   /** Remote user whose frame carried no E2EE framing. */
   userId: string;
+  /** The track arriving in the clear (VIDEO / AUDIO / SCREEN_SHARE). */
+  trackType?: string;
 };
 
 /**
@@ -74,10 +84,20 @@ export type DecryptionResumedEvent = {
 };
 
 /**
- * Fired at most once per worker session when an outgoing frame fails to
- * encrypt. When this fires, the sender is effectively publishing nothing.
+ * Fired when an outgoing frame fails to encrypt. When this fires, that track is
+ * publishing nothing. Latched per track: it fires on the first failure of a run
+ * and stays quiet until a frame encrypts again, so a permanently failing track
+ * reports once rather than once per frame.
  */
 export type EncryptionFailedEvent = {
+  /** The local sender. */
+  userId: string;
+  /**
+   * The track that stopped publishing (VIDEO / AUDIO / SCREEN_SHARE). A sender
+   * usually has several, and only the named one is affected - a codec the
+   * worker cannot split, for example, takes down that track alone.
+   */
+  trackType?: string;
   /** Short, human-readable reason the encrypt failed. */
   reason: string;
 };
@@ -129,14 +149,19 @@ export type E2EEEventMap = {
   'e2ee.decryption_failed': DecryptionFailedEvent;
 
   /**
-   * Emitted when decryption resumes successfully for a remote participant
-   * after previously reported failures.
+   * Emitted when decryption resumes on a track that previously reported
+   * `e2ee.decryption_failed`. Paired one-to-one with that event and never
+   * throttled, so a delivered failure is always followed by its recovery and a
+   * host can drive UI straight off the pair. Fires for a track that recovers by
+   * rotating to a new keyIndex too, not only for one whose original key starts
+   * working again.
    */
   'e2ee.decryption_resumed': DecryptionResumedEvent;
 
   /**
-   * Emitted at most once per worker session if an outgoing frame fails to
-   * encrypt. When this fires, the sender is effectively publishing nothing.
+   * Emitted when an outgoing frame fails to encrypt: that track is publishing
+   * nothing. Latched per track, so a permanently failing track reports once
+   * rather than once per frame.
    */
   'e2ee.encryption_failed': EncryptionFailedEvent;
 

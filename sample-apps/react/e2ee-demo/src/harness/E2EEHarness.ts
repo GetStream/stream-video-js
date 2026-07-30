@@ -760,19 +760,25 @@ export class E2EEHarness {
         );
         this.emit();
       }),
-      m.on('e2ee.missing_key', () => {
+      // One event name, two directions. Without `keyIndex` the local encoder
+      // holds no key and every outgoing track is stalled; with one, a remote
+      // sender's frame referenced a key this peer does not have yet, which is
+      // routine while distribution or a rotation is in flight.
+      m.on('e2ee.missing_key', ({ keyIndex, trackType }) => {
         this.addLog(
           p.userId,
-          'No encryption key set: outgoing frames dropped',
-          'error',
+          keyIndex === undefined
+            ? 'No encryption key set: outgoing frames dropped'
+            : `Awaiting key ${keyIndex} for ${trackType ?? 'a track'}: frames dropped`,
+          keyIndex === undefined ? 'error' : 'key-distribute',
         );
         this.emit();
       }),
-      m.on('e2ee.encryption_failed', ({ reason }) => {
+      m.on('e2ee.encryption_failed', ({ reason, trackType }) => {
         p.encryptionFailure = reason;
         this.addLog(
           p.userId,
-          `Encryption failed, publishing nothing: ${reason}`,
+          `Encryption failed on ${trackType ?? 'a track'}, publishing nothing: ${reason}`,
           'error',
         );
         this.emit();

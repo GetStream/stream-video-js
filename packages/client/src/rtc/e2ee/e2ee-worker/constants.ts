@@ -40,7 +40,7 @@ export const MAX_CLEAR_BYTES = 0x7fff;
 
 export const EMPTY_AAD = new Uint8Array(0);
 
-/** Mark key invalid after this many consecutive decrypt failures. */
+/** Consecutive decrypt failures on one track before `e2ee.broken` is emitted. */
 export const FAILURE_TOLERANCE = 10;
 
 /**

@@ -243,7 +243,12 @@ const encodeTransform = (
   const signalEncodeFailure = (reason: string) => {
     if (encodeFailed) return;
     encodeFailed = true;
-    self.postMessage({ type: 'e2ee.encryption_failed', reason });
+    self.postMessage({
+      type: 'e2ee.encryption_failed',
+      userId,
+      trackType,
+      reason,
+    });
   };
 
   /**
@@ -354,16 +359,33 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
   // Bucket this receiver's perf stats by trackType (falling back to a constant
   // when unlabeled) so a peer's audio and video are counted separately.
   const trackKey = trackType ?? 'unknown';
-  // Per-track throttles (one userId per transform); rate-limit the failure and
-  // recovery signals to at most once per second each so a flapping track can't
-  // flood the host.
+  // These throttles live inside one transform, i.e. one track, so `userId` is a
+  // constant key - they are single-entry and rate-limit that track alone.
   const failureThrottle = createThrottle(1000);
+  /**
+   * True once a `decryption_failed` has actually reached the host for the
+   * current run of failures. Pairs the failure and recovery signals: only a
+   * delivered failure needs clearing, and clearing it is what re-arms this.
+   */
+  let failureReported = false;
   const notifyFailure = () => {
     if (failureThrottle.tryFire(userId)) {
+      failureReported = true;
       self.postMessage({ type: 'e2ee.decryption_failed', userId, trackType });
     }
   };
-  const resumedThrottle = createThrottle(1000);
+  /**
+   * Recovery edge. Deliberately NOT throttled: it is an edge, not a level, so a
+   * throttled-away `decryption_resumed` would be lost for good and leave the
+   * host latched on `decryption_failed` for a healthy track. Flooding is
+   * prevented by pairing instead - this can only fire once per delivered
+   * failure, and those are throttled to one per second.
+   */
+  const notifyResumed = () => {
+    if (!failureReported) return;
+    failureReported = false;
+    self.postMessage({ type: 'e2ee.decryption_resumed', userId, trackType });
+  };
   // Not holding a key yet is the ordinary state while a peer's key is in flight,
   // or right after a rotation whose new keyIndex has not arrived. It gets its own
   // signal rather than being reported as a decryption failure, which a host
@@ -372,7 +394,12 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
   const decodeKeyThrottle = createThrottle(1000);
   const notifyMissingDecodeKey = (keyIndex: number) => {
     if (decodeKeyThrottle.tryFire(String(keyIndex))) {
-      self.postMessage({ type: 'e2ee.missing_key', userId, keyIndex });
+      self.postMessage({
+        type: 'e2ee.missing_key',
+        userId,
+        keyIndex,
+        trackType,
+      });
     }
   };
   // Cleartext frames are still forwarded - a peer may legitimately publish plain
@@ -381,7 +408,7 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
   const cleartextThrottle = createThrottle(1000);
   const notifyUnencrypted = () => {
     if (cleartextThrottle.tryFire(userId)) {
-      self.postMessage({ type: 'e2ee.unencrypted_frame', userId });
+      self.postMessage({ type: 'e2ee.unencrypted_frame', userId, trackType });
     }
   };
 
@@ -432,15 +459,14 @@ const decodeTransform = (userId: string, trackType: string | undefined) => {
         recordDecodeCrypto(userId, trackKey, performance.now() - t0);
       // Authenticated: only now is it safe to advance the replay window.
       replay.commit(frameCounter, ivPrefix);
-      // Recovery edge: fire only when this track had been failing, throttled so
-      // a flapping track can't emit resumed once per frame.
-      if (failures.recordSuccess(keyIndex) && resumedThrottle.tryFire(userId)) {
-        self.postMessage({
-          type: 'e2ee.decryption_resumed',
-          userId,
-          trackType,
-        });
-      }
+      // Clear the broken-tolerance count for this key epoch, then report the
+      // recovery. These are deliberately independent: the count is per
+      // keyIndex, but `decryption_failed` is per track, so a track that
+      // recovers by rotating to a NEW keyIndex still has to clear the failure
+      // the host was told about - gating on `recordSuccess(keyIndex)` here
+      // would leave it latched on failed forever.
+      failures.recordSuccess(keyIndex);
+      notifyResumed();
       frame.data = data;
       controller.enqueue(frame);
       bumpDecodeCount(userId, trackKey);
@@ -541,6 +567,8 @@ const selectTransform = (
   if (isSupportedCodec(codec)) return encodeTransform(userId, codec, trackType);
   self.postMessage({
     type: 'e2ee.encryption_failed',
+    userId,
+    trackType,
     reason: `unsupported codec for E2EE: ${codec}`,
   });
   // A transform that enqueues nothing - every frame is dropped (fail closed).

@@ -49,11 +49,11 @@ const KEY = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 const message = (data: unknown) => handlers.message({ data });
 const flush = () => enqueue(async () => undefined);
 
-const setKey = async (userId: string) => {
+const setKey = async (userId: string, keyIndex = 0) => {
   message({
     type: 'cmd.set_key',
     userId,
-    keyIndex: 0,
+    keyIndex,
     rawKey: new Uint8Array(KEY).buffer,
   });
   await flush();
@@ -198,13 +198,23 @@ describe('decode pipeline edge behaviors', () => {
   it('passes an unencrypted frame through, but signals it', async () => {
     const user = freshUser();
     const bytes = [9, 9, 9, 9, 9];
-    const [out] = await drive('decode', user, undefined, [
-      frame(bytes, 'delta'),
-    ]);
+    const [out] = await drive(
+      'decode',
+      user,
+      undefined,
+      [frame(bytes, 'delta')],
+      'SCREEN_SHARE',
+    );
     expect(Array.from(new Uint8Array(out.data))).toEqual(bytes);
     // Forwarded as-is (a peer may publish plain), but never silently: the host
     // needs a signal to notice a downgrade on a call where everyone should encrypt.
-    expect(posted).toEqual([{ type: 'e2ee.unencrypted_frame', userId: user }]);
+    expect(posted).toEqual([
+      {
+        type: 'e2ee.unencrypted_frame',
+        userId: user,
+        trackType: 'SCREEN_SHARE',
+      },
+    ]);
   });
 
   it('drops and signals missing_key when the key is gone', async () => {
@@ -215,12 +225,17 @@ describe('decode pipeline edge behaviors', () => {
     ]);
     await removeKeys(user);
     posted.length = 0;
-    const out = await drive('decode', user, undefined, [encrypted]);
+    const out = await drive('decode', user, undefined, [encrypted], 'AUDIO');
     expect(out).toHaveLength(0);
     // Not holding the key is reported apart from a failed decrypt, so a host can
     // tell key distribution lag from a mismatched or tampered frame.
     expect(posted).toEqual([
-      { type: 'e2ee.missing_key', userId: user, keyIndex: 0 },
+      {
+        type: 'e2ee.missing_key',
+        userId: user,
+        keyIndex: 0,
+        trackType: 'AUDIO',
+      },
     ]);
     expect(posted.some((m) => m.type === 'e2ee.decryption_failed')).toBe(false);
   });
@@ -253,6 +268,78 @@ describe('decode pipeline edge behaviors', () => {
     ]);
     expect(out).toHaveLength(0);
     expect(posted.some((m) => m.type === 'e2ee.decryption_failed')).toBe(true);
+  });
+
+  it('pairs every delivered decryption_failed with a decryption_resumed', async () => {
+    const user = freshUser();
+    await setKey(user);
+    const pt = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const [encrypted] = await drive('encode', user, 'vp8', [
+      frame(pt, 'delta'),
+    ]);
+    const corrupt = (): Frame => {
+      const b = new Uint8Array(encrypted.data.slice(0));
+      b[5] ^= 0xff;
+      return { ...encrypted, data: b.buffer };
+    };
+    const valid = (): Frame => ({
+      ...encrypted,
+      data: encrypted.data.slice(0),
+    });
+    posted.length = 0;
+    // Two full fail -> recover cycles inside one throttle window. `resumed` is
+    // an edge, so throttling it would drop a transition permanently and leave
+    // the host latched on `failed` for a track that is fine.
+    await drive(
+      'decode',
+      user,
+      undefined,
+      [corrupt(), valid(), corrupt(), valid()],
+      'VIDEO',
+    );
+    const signals = posted
+      .map((m) => m.type)
+      .filter(
+        (t) =>
+          t === 'e2ee.decryption_failed' || t === 'e2ee.decryption_resumed',
+      );
+    // Never more recoveries than failures, never fewer, and the run ends on the
+    // recovery - so the host's last signal matches the track's real state.
+    const failed = signals.filter((t) => t === 'e2ee.decryption_failed').length;
+    const resumed = signals.filter(
+      (t) => t === 'e2ee.decryption_resumed',
+    ).length;
+    expect(resumed).toBe(failed);
+    expect(signals.at(-1)).toBe('e2ee.decryption_resumed');
+  });
+
+  it('clears a reported failure when the track recovers on a NEW keyIndex', async () => {
+    const user = freshUser();
+    await setKey(user, 0);
+    const pt = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    const [atKey0] = await drive('encode', user, 'vp8', [frame(pt, 'delta')]);
+    await setKey(user, 1);
+    const [atKey1] = await drive('encode', user, 'vp8', [frame(pt, 'delta')]);
+    const tampered = new Uint8Array(atKey0.data.slice(0));
+    tampered[5] ^= 0xff;
+
+    posted.length = 0;
+    // The failure count is per keyIndex, but the host was told "this TRACK is
+    // failing" with no index, so a rotation that fixes the track has to clear
+    // it. Gating recovery on the failing key's own count would latch forever.
+    await drive(
+      'decode',
+      user,
+      undefined,
+      [{ ...atKey0, data: tampered.buffer }, atKey1],
+      'VIDEO',
+    );
+    expect(posted.filter((m) => m.type === 'e2ee.decryption_failed')).toEqual([
+      { type: 'e2ee.decryption_failed', userId: user, trackType: 'VIDEO' },
+    ]);
+    expect(posted.filter((m) => m.type === 'e2ee.decryption_resumed')).toEqual([
+      { type: 'e2ee.decryption_resumed', userId: user, trackType: 'VIDEO' },
+    ]);
   });
 
   it('survives an RBSP frame that unescapes shorter than the trailer', async () => {
