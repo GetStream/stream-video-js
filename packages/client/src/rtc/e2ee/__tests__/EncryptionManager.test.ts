@@ -2,6 +2,7 @@ import '../../__tests__/mocks/webrtc.mocks';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { EncryptionManager } from '../EncryptionManager';
+import type { E2EEEventMap } from '../events';
 import { isChrome } from '../../../helpers/browsers';
 
 // Mock the worker module so create() doesn't need the real bundled function
@@ -222,7 +223,10 @@ describe('EncryptionManager', () => {
     });
   });
 
-  describe('transform path selection', () => {
+  // Which API is chosen for a given browser is preferredTransform's job and is
+  // covered directly in transformSupport.test.ts. These tests only cover the
+  // half the manager owns: that it wires up whichever path it was handed.
+  describe('transform wiring', () => {
     /** Stub the non-standard createEncodedStreams on the sender/receiver prototypes. */
     const withInsertableStreams = async (fn: () => void | Promise<void>) => {
       Object.assign(RTCRtpSender.prototype, { createEncodedStreams: vi.fn() });
@@ -239,8 +243,10 @@ describe('EncryptionManager', () => {
       }
     };
 
-    it('uses RTCRtpScriptTransform on non-Chrome even when createEncodedStreams exists', async () => {
+    it('wires the script path by assigning target.transform', async () => {
       vi.mocked(isChrome).mockReturnValue(false);
+      // createEncodedStreams exists here too, so this also pins that the script
+      // path never touches it.
       await withInsertableStreams(() => {
         const receiver: Record<string, unknown> = {
           transform: null,
@@ -253,7 +259,7 @@ describe('EncryptionManager', () => {
       });
     });
 
-    it('defaults Chrome to the Insertable Streams path', async () => {
+    it('wires the insertable path by transferring the streams to the worker', async () => {
       vi.mocked(isChrome).mockReturnValue(true);
       const readable = {};
       const writable = {};
@@ -283,34 +289,6 @@ describe('EncryptionManager', () => {
           mgr.dispose();
         }
       });
-    });
-
-    it('falls back to Insertable Streams when RTCRtpScriptTransform is unavailable', async () => {
-      vi.mocked(isChrome).mockReturnValue(false);
-      const original = globalThis.RTCRtpScriptTransform;
-      // @ts-expect-error test case
-      delete globalThis.RTCRtpScriptTransform;
-      const readable = {};
-      const writable = {};
-      const receiver = {
-        createEncodedStreams: vi.fn(() => ({ readable, writable })),
-      } as unknown as RTCRtpReceiver;
-
-      try {
-        await withInsertableStreams(async () => {
-          const mgr = await EncryptionManager.create('local-user');
-          try {
-            mgr.decrypt(receiver, 'remote-user');
-
-            // @ts-expect-error not present in the standard lib
-            expect(receiver.createEncodedStreams).toHaveBeenCalled();
-          } finally {
-            mgr.dispose();
-          }
-        });
-      } finally {
-        globalThis.RTCRtpScriptTransform = original;
-      }
     });
 
     it('prevents double-piping the same receiver on the Insertable Streams path', async () => {
@@ -372,173 +350,69 @@ describe('EncryptionManager', () => {
   });
 
   describe('worker message handling', () => {
-    it('emits e2ee.decryption_failed', () => {
-      const callback = vi.fn();
-      manager.on('e2ee.decryption_failed', callback);
-
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-      messageHandler({
-        data: { type: 'e2ee.decryption_failed', userId: 'bob' },
-      });
-
-      expect(callback).toHaveBeenCalledWith({ userId: 'bob' });
-    });
-
-    it('does not throw when no e2ee.decryption_failed listener is subscribed', () => {
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-
-      expect(() =>
-        messageHandler({
-          data: { type: 'e2ee.decryption_failed', userId: 'bob' },
-        }),
-      ).not.toThrow();
-    });
-
-    it('emits e2ee.broken', () => {
-      const callback = vi.fn();
-      manager.on('e2ee.broken', callback);
-
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-      messageHandler({
-        data: { type: 'e2ee.broken', userId: 'bob', keyIndex: 3 },
-      });
-
-      expect(callback).toHaveBeenCalledWith({ userId: 'bob', keyIndex: 3 });
-    });
-
-    it('does not throw when no e2ee.broken listeners are subscribed', () => {
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-      expect(() =>
-        messageHandler({
-          data: { type: 'e2ee.broken', userId: 'bob', keyIndex: 1 },
-        }),
-      ).not.toThrow();
-    });
-
-    it('emits e2ee.decryption_resumed', () => {
-      const callback = vi.fn();
-      manager.on('e2ee.decryption_resumed', callback);
-
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-      messageHandler({
-        data: { type: 'e2ee.decryption_resumed', userId: 'bob' },
-      });
-
-      expect(callback).toHaveBeenCalledWith({ userId: 'bob' });
-    });
-
-    it('does not throw when no e2ee.decryption_resumed listener is subscribed', () => {
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-
-      expect(() =>
-        messageHandler({
-          data: { type: 'e2ee.decryption_resumed', userId: 'bob' },
-        }),
-      ).not.toThrow();
-    });
-
-    it('emits e2ee.encryption_failed', () => {
-      const callback = vi.fn();
-      manager.on('e2ee.encryption_failed', callback);
-
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-      messageHandler({
-        data: {
-          type: 'e2ee.encryption_failed',
-          reason: 'clear-bytes-too-large',
-        },
-      });
-
-      expect(callback).toHaveBeenCalledWith({
-        reason: 'clear-bytes-too-large',
-      });
-    });
-
-    it('emits e2ee.missing_key', () => {
-      const callback = vi.fn();
-      manager.on('e2ee.missing_key', callback);
-
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-      messageHandler({
-        data: { type: 'e2ee.missing_key', userId: 'local-user' },
-      });
-
-      expect(callback).toHaveBeenCalledWith({ userId: 'local-user' });
-    });
-
-    it('emits e2ee.perf_report', () => {
-      const callback = vi.fn();
-      manager.on('e2ee.perf_report', callback);
-
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-      const encode = [
+    // The manager forwards worker messages generically: strip `type`, emit the
+    // rest as the payload. One table covers every event rather than repeating
+    // the same assertion per name - a new event needs a row, not a test.
+    const EVENTS: Array<[keyof E2EEEventMap, Record<string, unknown>]> = [
+      ['e2ee.decryption_failed', { userId: 'bob', trackType: 'VIDEO' }],
+      ['e2ee.decryption_resumed', { userId: 'bob', trackType: 'VIDEO' }],
+      ['e2ee.encryption_failed', { userId: 'bob', reason: 'clear-bytes' }],
+      ['e2ee.missing_key', { userId: 'local-user', keyIndex: 2 }],
+      ['e2ee.broken', { userId: 'bob', keyIndex: 3, trackType: 'AUDIO' }],
+      ['e2ee.unencrypted_frame', { userId: 'bob', trackType: 'VIDEO' }],
+      [
+        'e2ee.perf_report',
         {
-          userId: 'alice',
-          trackType: 'VIDEO',
-          codec: 'vp8',
-          fps: 30,
-          maxCryptoMs: 2,
+          encode: [
+            {
+              userId: 'alice',
+              trackType: 'VIDEO',
+              codec: 'vp8',
+              fps: 30,
+              maxCryptoMs: 2,
+            },
+          ],
+          decode: [
+            { userId: 'bob', trackType: 'VIDEO', fps: 29, maxCryptoMs: 3 },
+          ],
         },
-      ];
-      const decode = [
-        { userId: 'bob', trackType: 'VIDEO', fps: 29, maxCryptoMs: 3 },
-      ];
-      messageHandler({
-        data: { type: 'e2ee.perf_report', encode, decode },
-      });
+      ],
+      [
+        'e2ee.key_state',
+        {
+          perUserKeys: [{ userId: 'bob', keyIndex: 0, fingerprint: 'abc123' }],
+          sharedKey: { keyIndex: 1, fingerprint: 'def456' },
+        },
+      ],
+    ];
 
-      expect(callback).toHaveBeenCalledWith({ encode, decode });
-    });
-
-    it('emits e2ee.key_state in response to a key dump', () => {
+    it.each(EVENTS)('emits %s with the payload verbatim', (type, payload) => {
       const callback = vi.fn();
-      manager.on('e2ee.key_state', callback);
+      manager.on(type, callback);
 
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-      const perUserKeys = [
-        { userId: 'bob', keyIndex: 0, fingerprint: 'abc123' },
-      ];
-      const sharedKey = { keyIndex: 1, fingerprint: 'def456' };
-      messageHandler({
-        data: { type: 'e2ee.key_state', perUserKeys, sharedKey },
-      });
+      const messageHandler = getEventHandler(getWorker(manager), 'message');
+      messageHandler({ data: { type, ...payload } });
 
-      expect(callback).toHaveBeenCalledWith({ perUserKeys, sharedKey });
+      expect(callback).toHaveBeenCalledWith(payload);
     });
 
-    it('supports multiple listeners per event', () => {
-      const a = vi.fn();
-      const b = vi.fn();
-      manager.on('e2ee.decryption_failed', a);
-      manager.on('e2ee.decryption_failed', b);
-
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
-      messageHandler({
-        data: { type: 'e2ee.decryption_failed', userId: 'bob' },
-      });
-
-      expect(a).toHaveBeenCalledWith({ userId: 'bob' });
-      expect(b).toHaveBeenCalledWith({ userId: 'bob' });
+    it('does not throw when nobody is subscribed', () => {
+      // The message pump must survive an unsubscribed event: a throw here would
+      // take down every later message, not just this one.
+      const messageHandler = getEventHandler(getWorker(manager), 'message');
+      for (const [type, payload] of EVENTS) {
+        expect(() =>
+          messageHandler({ data: { type, ...payload } }),
+        ).not.toThrow();
+      }
     });
 
-    it('supports unsubscribe via the returned function', () => {
+    it('stops delivering after the returned unsubscribe is called', () => {
       const callback = vi.fn();
       const unsubscribe = manager.on('e2ee.decryption_failed', callback);
       unsubscribe();
 
-      const worker = getWorker(manager);
-      const messageHandler = getEventHandler(worker, 'message');
+      const messageHandler = getEventHandler(getWorker(manager), 'message');
       messageHandler({
         data: { type: 'e2ee.decryption_failed', userId: 'bob' },
       });

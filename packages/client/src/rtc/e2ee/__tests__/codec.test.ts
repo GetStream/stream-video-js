@@ -18,48 +18,31 @@ const rbspEscape = (data: Uint8Array, seedZeros = 0): Uint8Array => {
 };
 
 describe('rbspEscape + rbspUnescape', () => {
-  const roundTrip = (input: number[]) => {
-    const data = new Uint8Array(input);
-    const escaped = rbspEscape(data);
-    const unescaped = rbspUnescape(escaped, 0);
-    return { escaped, unescaped: Array.from(unescaped) };
-  };
+  // deterministic "random" to exercise many byte values
+  const pseudoRandom = Array.from({ length: 256 }, (_, i) => (i * 31) & 0xff);
 
-  it('is identity when no escape needed', () => {
-    const { escaped } = roundTrip([1, 2, 3, 4, 5]);
+  it.each([
+    ['no escapable sequence', [1, 2, 3, 4, 5]],
+    ['a run of zeros', [0, 0, 0, 0, 0, 0]],
+    ['mixed content', [0xaa, 0, 0, 1, 0xbb, 0xcc, 0, 0, 2, 0xdd]],
+    ['empty input', []],
+    ['a 256-byte buffer', pseudoRandom],
+  ])('round-trips %s', (_label, input) => {
+    const escaped = rbspEscape(new Uint8Array(input));
+    expect(Array.from(rbspUnescape(escaped, 0))).toEqual(input);
+  });
+
+  it('is byte-identical when nothing needs escaping', () => {
     // No zero pairs → no emulation-prevention bytes inserted.
-    expect(escaped).toEqual(new Uint8Array([1, 2, 3, 4, 5]));
+    expect(rbspEscape(new Uint8Array([1, 2, 3, 4, 5]))).toEqual(
+      new Uint8Array([1, 2, 3, 4, 5]),
+    );
   });
 
   it('inserts 0x03 between 00 00 and 00-03', () => {
     // [0, 0, 1] → [0, 0, 3, 1]
     const out = rbspEscape(new Uint8Array([0, 0, 1]));
     expect(Array.from(out)).toEqual([0, 0, 3, 1]);
-  });
-
-  it('round-trips a run of zeros', () => {
-    const { unescaped } = roundTrip([0, 0, 0, 0, 0, 0]);
-    expect(unescaped).toEqual([0, 0, 0, 0, 0, 0]);
-  });
-
-  it('round-trips mixed content', () => {
-    const input = [0xaa, 0, 0, 1, 0xbb, 0xcc, 0, 0, 2, 0xdd];
-    const { unescaped } = roundTrip(input);
-    expect(unescaped).toEqual(input);
-  });
-
-  it('round-trips empty input', () => {
-    const { unescaped } = roundTrip([]);
-    expect(unescaped).toEqual([]);
-  });
-
-  it('round-trips a 256-byte pseudo-random buffer', () => {
-    const input = new Uint8Array(256);
-    // deterministic "random" to exercise many byte values
-    for (let i = 0; i < input.length; i++) input[i] = (i * 31) & 0xff;
-    const escaped = rbspEscape(input);
-    const unescaped = rbspUnescape(escaped, 0);
-    expect(Array.from(unescaped)).toEqual(Array.from(input));
   });
 
   it('produces a buffer free of forbidden start-code-like sequences', () => {
@@ -229,23 +212,41 @@ describe('getCodecProfile', () => {
       expect(getCodecProfile(codec)).toMatchObject({ rbsp: false });
     }
   });
+
+  it('does not resolve Object.prototype members to a profile', () => {
+    // Looked up with `in` rather than Object.hasOwn, 'toString' resolves to a
+    // function: getCodecProfile returns it and profile.clearBytes is undefined,
+    // so every frame on that track throws inside the encode path.
+    for (const codec of ['toString', 'constructor', 'valueOf', '__proto__']) {
+      expect(getCodecProfile(codec)).toBe(getCodecProfile('no-such-codec'));
+      expect(typeof getCodecProfile(codec).clearBytes).toBe('function');
+    }
+  });
 });
 
 describe('isSupportedCodec', () => {
-  it('accepts known codecs', () => {
-    expect(isSupportedCodec('opus')).toBe(true);
-    expect(isSupportedCodec('vp8')).toBe(true);
-    expect(isSupportedCodec('vp9')).toBe(true);
-    expect(isSupportedCodec('h264')).toBe(true);
-  });
-
-  it('accepts undefined (audio codec passthrough)', () => {
-    expect(isSupportedCodec(undefined)).toBe(true);
+  it('accepts the known codecs, and undefined for unlabeled audio', () => {
+    for (const codec of ['opus', 'vp8', 'vp9', 'h264', undefined]) {
+      expect(isSupportedCodec(codec)).toBe(true);
+    }
   });
 
   it('rejects unknown or mis-cased codecs', () => {
     expect(isSupportedCodec('H264')).toBe(false);
     expect(isSupportedCodec('video/vp8')).toBe(false);
+  });
+
+  it('rejects Object.prototype members', () => {
+    // `codec in CODEC_PROFILES` walks the prototype chain and would report
+    // these as supported, sending the track down the encode path with no
+    // usable profile behind it.
+    for (const codec of [
+      'toString',
+      'constructor',
+      'valueOf',
+      'hasOwnProperty',
+    ])
+      expect(isSupportedCodec(codec)).toBe(false);
   });
 
   it('rejects av1, which has no E2EE framing scheme yet', () => {

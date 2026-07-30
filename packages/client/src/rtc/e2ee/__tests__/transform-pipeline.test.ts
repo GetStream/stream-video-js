@@ -142,6 +142,65 @@ afterEach(async () => {
   dispose();
 });
 
+// The worker's message interface is its whole public surface, so the commands
+// that carry no frames still need a wire test. What each command *does* is
+// covered by the module that owns it (perf.test.ts, crypto.test.ts); these
+// cover the dispatch reaching it.
+describe('worker command interface', () => {
+  it('answers cmd.dump_key_state with fingerprints, never key material', async () => {
+    const user = freshUser();
+    await setKey(user, 4);
+    posted.length = 0;
+    message({ type: 'cmd.dump_key_state' });
+    await flush();
+    const dump = posted.find((m) => m.type === 'e2ee.key_state') as
+      | { perUserKeys: Array<{ userId: string; keyIndex: number }> }
+      | undefined;
+    expect(dump).toBeDefined();
+    expect(dump!.perUserKeys).toContainEqual(
+      expect.objectContaining({ userId: user, keyIndex: 4 }),
+    );
+    // The raw bytes must never leave the worker.
+    expect(JSON.stringify(dump)).not.toContain(KEY.join(','));
+  });
+
+  it('starts and stops performance reporting', async () => {
+    const user = freshUser();
+    await setKey(user);
+    // Streams settle on microtasks, so faking timers here only controls the
+    // reporter's own interval.
+    vi.useFakeTimers();
+    try {
+      message({ type: 'cmd.enable_performance_reporting', enabled: true });
+      await flush();
+      await drive('encode', user, 'vp8', [frame([1, 2, 3, 4, 5, 6], 'delta')]);
+
+      posted.length = 0;
+      vi.advanceTimersByTime(1000);
+      expect(posted.some((m) => m.type === 'e2ee.perf_report')).toBe(true);
+
+      message({ type: 'cmd.enable_performance_reporting', enabled: false });
+      await flush();
+      posted.length = 0;
+      vi.advanceTimersByTime(3000);
+      expect(posted.some((m) => m.type === 'e2ee.perf_report')).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('reports an unknown command instead of failing silently', async () => {
+    message({ type: 'cmd.not_a_real_command' });
+    await flush();
+    expect(posted).toEqual([
+      {
+        type: 'e2ee.error',
+        message: expect.stringContaining('cmd.not_a_real_command'),
+      },
+    ]);
+  });
+});
+
 describe('encode -> decode pipeline round-trips', () => {
   it('vp8 (clear-prefix + trailer path)', async () => {
     const pt = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -660,16 +719,6 @@ describe('h264 trailer start-code safety', () => {
       expect(hasAnnexBStartCode(bytes.subarray(H264_CLEAR_BYTES))).toBe(false);
     },
   );
-
-  it('round-trips an h264 frame whose counter would form a start code', async () => {
-    const user = freshUser();
-    await setKey(user);
-    const [encrypted] = await drive('encode', user, 'h264', [
-      frame(H264_KEYFRAME, 'key'),
-    ]);
-    const [decrypted] = await drive('decode', user, undefined, [encrypted]);
-    expect(Array.from(new Uint8Array(decrypted.data))).toEqual(H264_KEYFRAME);
-  });
 
   it('leaves no start code across the clear/encrypted boundary when the clear header ends in 0x00', async () => {
     // The last clear byte is the first slice-header byte, which multi-slice

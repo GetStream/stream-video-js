@@ -1,23 +1,39 @@
-import { describe, expect, it, vi } from 'vitest';
-import { type E2EEManager } from '../E2EEManager';
+import { describe, expect, it } from 'vitest';
+import type { E2EEManager } from '../E2EEManager';
+
+/**
+ * `Call.setE2EEManager` accepts any {@link E2EEManager}, so a third party can
+ * plug in another scheme (RFC 9605 SFrame, say) instead of the built-in one.
+ *
+ * That contract is a compile-time property, so the assertion that matters here
+ * is the type annotation below, not the expectations in the test body: adding a
+ * required member to the interface breaks the build in this file, which is the
+ * signal worth raising, since it is a breaking change for implementors.
+ */
+const attached: string[] = [];
+
+const customImplementation: E2EEManager = {
+  // Parameters are contextually typed from the annotation, so a signature the
+  // interface does not describe fails to compile.
+  encrypt: (sender, codec, trackType) => {
+    attached.push(`encode:${sender.track?.kind}:${codec}:${trackType}`);
+  },
+  decrypt: (receiver, userId, trackType) => {
+    attached.push(`decode:${receiver.track?.kind}:${userId}:${trackType}`);
+  },
+};
 
 describe('E2EEManager contract', () => {
-  it('accepts a minimal custom implementation (encrypt + decrypt only)', () => {
-    const sender = { transform: null } as unknown as RTCRtpSender;
-    const receiver = { transform: null } as unknown as RTCRtpReceiver;
+  it('is satisfied by an implementation providing only encrypt and decrypt', () => {
+    const sender = { track: { kind: 'video' } } as RTCRtpSender;
+    const receiver = { track: { kind: 'audio' } } as RTCRtpReceiver;
 
-    // A custom manager that is NOT an EncryptionManager - e.g. a third-party
-    // RFC 9605 SFrame implementation. The interface is the only contract the
-    // RTC layer relies on, so this object must be a valid E2EEManager.
-    const custom: E2EEManager = {
-      encrypt: vi.fn(),
-      decrypt: vi.fn(),
-    };
+    customImplementation.encrypt(sender, 'vp8', 'VIDEO');
+    customImplementation.decrypt(receiver, 'bob', 'AUDIO');
 
-    custom.encrypt(sender, 'vp8');
-    custom.decrypt(receiver, 'remote-user');
-
-    expect(custom.encrypt).toHaveBeenCalledWith(sender, 'vp8');
-    expect(custom.decrypt).toHaveBeenCalledWith(receiver, 'remote-user');
+    expect(attached).toEqual([
+      'encode:video:vp8:VIDEO',
+      'decode:audio:bob:AUDIO',
+    ]);
   });
 });

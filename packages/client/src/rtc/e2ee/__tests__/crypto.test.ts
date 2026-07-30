@@ -74,6 +74,13 @@ describe('importKey', () => {
     const latest = getLatestKey('bob');
     expect(latest!.keyIndex).toBe(3);
   });
+
+  it('accepts 32-byte raw material (AES-256-GCM)', async () => {
+    const rawKey32 = new ArrayBuffer(32);
+    new Uint8Array(rawKey32).fill(0x42);
+    await importKey('alice', 1, rawKey32);
+    expect(getKey('alice', 1)).toBeDefined();
+  });
 });
 
 describe('nextFrameCounter', () => {
@@ -97,18 +104,13 @@ describe('nextFrameCounter', () => {
     expect(nextFrameCounter('alice')).toBe(3);
   });
 
-  it('throws and fails closed at the 32-bit hard limit', () => {
+  it('throws at the 32-bit hard limit and stays exhausted', () => {
     __setFrameCounterForTest('alice', COUNTER_HARD_LIMIT);
     expect(() => nextFrameCounter('alice')).toThrow(/counter exhausted/);
-  });
-
-  it('stays exhausted: the failing call does not advance the counter', () => {
-    __setFrameCounterForTest('alice', COUNTER_HARD_LIMIT);
-    expect(() => nextFrameCounter('alice')).toThrow();
     // Every later frame must fail identically rather than wrapping into a
     // counter that was already used with this ivPrefix.
-    expect(() => nextFrameCounter('alice')).toThrow();
-    expect(() => nextFrameCounter('alice')).toThrow();
+    expect(() => nextFrameCounter('alice')).toThrow(/counter exhausted/);
+    expect(() => nextFrameCounter('alice')).toThrow(/counter exhausted/);
   });
 
   it('a rekey does not recover an exhausted counter', async () => {
@@ -139,15 +141,6 @@ describe('nextFrameCounter', () => {
         String(msg?.type).startsWith('e2ee.'),
       ),
     ).toHaveLength(0);
-  });
-});
-
-describe('importKey algorithm variants', () => {
-  it('accepts 32-byte raw material (AES-256-GCM)', async () => {
-    const rawKey32 = new ArrayBuffer(32);
-    new Uint8Array(rawKey32).fill(0x42);
-    await importKey('alice', 1, rawKey32);
-    expect(getKey('alice', 1)).toBeDefined();
   });
 });
 
