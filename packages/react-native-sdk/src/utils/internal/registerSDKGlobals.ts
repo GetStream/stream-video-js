@@ -1,4 +1,7 @@
-import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
+import {
+  StreamRNVideoSDKGlobals,
+  videoLoggerSystem,
+} from '@stream-io/video-client';
 import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import {
   AudioEngineMuteMode,
@@ -21,6 +24,18 @@ const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {
 };
 
 const CallingxModule = getCallingxLibIfAvailable();
+
+/**
+ * Runs a fire-and-forget native call, logging instead of throwing on a bridge
+ * error so it can't crash the caller (e.g. the join/leave flow).
+ */
+const safeNativeCall = (label: string, fn: () => void): void => {
+  try {
+    fn();
+  } catch (error) {
+    videoLoggerSystem.getLogger('CallManager').warn(`${label} failed`, error);
+  }
+};
 
 /**
  * Checks if StreamInCallManager should be bypassed because CallKit is handling
@@ -85,12 +100,16 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       }
 
       if (isTelecomManaged || isCallKitManaged) {
-        // Telecom owns routing; forward the sticky preference to callingx and run the
-        // in-call manager in telecom-managed mode (proximity/keep-screen-on only).
-        CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice);
-      } else {
-        StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
-          defaultDevice,
+        safeNativeCall('setup defaultAudioDevice (callingx)', () =>
+          CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice),
+        );
+      }
+
+      if (!isTelecomManaged) {
+        safeNativeCall('setup defaultAudioDevice', () =>
+          StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
+            defaultDevice,
+          ),
         );
       }
     },
@@ -111,7 +130,14 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         // CallKit owns activation. Only forward an explicit endpoint override; the
         // SpeakerManager-derived default was already forwarded via `setup`.
         if (deviceOverride) {
-          CallingxModule?.setDefaultAudioDeviceEndpointType(deviceOverride);
+          safeNativeCall('start defaultAudioDevice (callingx)', () =>
+            CallingxModule?.setDefaultAudioDeviceEndpointType(deviceOverride),
+          );
+          safeNativeCall('start defaultAudioDevice', () =>
+            StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
+              deviceOverride,
+            ),
+          );
         }
         return;
       }
@@ -126,10 +152,14 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       if (deviceOverride) {
         // Override the SpeakerManager-derived default device (set via `setup`).
         if (isTelecomManaged) {
-          CallingxModule?.setDefaultAudioDeviceEndpointType(deviceOverride);
+          safeNativeCall('start defaultAudioDevice (callingx)', () =>
+            CallingxModule?.setDefaultAudioDeviceEndpointType(deviceOverride),
+          );
         } else {
-          StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
-            deviceOverride,
+          safeNativeCall('start defaultAudioDevice', () =>
+            StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
+              deviceOverride,
+            ),
           );
         }
       }
