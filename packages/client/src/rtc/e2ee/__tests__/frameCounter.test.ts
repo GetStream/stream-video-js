@@ -60,7 +60,7 @@ describe('nextFrameCounter', () => {
 
   it('a rekey does not recover an exhausted counter', async () => {
     __setFrameCounterForTest(COUNTER_HARD_LIMIT);
-    expect(() => nextFrameCounter()).toThrow();
+    expect(() => nextFrameCounter()).toThrow(/new EncryptionManager/);
 
     // Importing fresh key material is the remedy an integrator would reach
     // for first. It gives a new ivPrefix, but the counter is scoped to the

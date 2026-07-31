@@ -13,7 +13,9 @@ let counter = 0;
 
 export const nextFrameCounter = (): number => {
   const next = counter + 1;
-  if (next > COUNTER_HARD_LIMIT) throw new Error('frame counter exhausted');
+  if (next > COUNTER_HARD_LIMIT) {
+    throw new Error('frame counter exhausted, create a new EncryptionManager');
+  }
   counter = next;
   return next;
 };
