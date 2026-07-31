@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.15.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.14.2...@stream-io/video-styling-1.15.0) (2026-07-30)
+
+### Features
+
+- **react-sdk:** show blocked audio overlay per participant ([#2341](https://github.com/GetStream/stream-video-js/issues/2341)) ([4fe5c40](https://github.com/GetStream/stream-video-js/commit/4fe5c40aaed1829125bff49deec39a008c7abec5))
+
 ## [1.14.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-styling-1.14.1...@stream-io/video-styling-1.14.2) (2026-06-26)
 
 ### Performance Improvements

@@ -79,7 +79,6 @@ export interface Spec extends TurboModule {
       phase?: string;
       reason?: string;
       shouldResume?: boolean;
-      snapshot?: string;
     };
   }>;
 
@@ -182,7 +181,6 @@ export interface Spec extends TurboModule {
       phase?: string;
       reason?: string;
       shouldResume?: boolean;
-      snapshot?: string;
     };
   }>;
 

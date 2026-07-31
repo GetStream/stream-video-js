@@ -442,7 +442,6 @@ class CallService : Service(), CallRepository.Listener {
 
         sendBroadcastEvent(CallingxModuleImpl.CALL_AUDIO_ENDPOINTS_CHANGED_ACTION) {
             putExtra(CallingxModuleImpl.EXTRA_CALL_ID, callId)
-            putExtra(CallingxModuleImpl.EXTRA_AUDIO_ENDPOINTS_SNAPSHOT, snapshotJson)
         }
     }
 

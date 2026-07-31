@@ -416,6 +416,7 @@ export class Call {
       this.tracer,
     );
     this.blockedAudioTracker = new BlockedAudioTracker(this.tracer);
+    this.leaveCallHooks.add(this.blockedAudioTracker.reset);
 
     if (typeof document !== 'undefined') {
       this.audioBindingsWatchdog = new AudioBindingsWatchdog(
@@ -2543,6 +2544,13 @@ export class Call {
    */
   setSortParticipantsBy: CallState['setSortParticipantsBy'] = (criteria) => {
     return this.state.setSortParticipantsBy(criteria);
+  };
+
+  /**
+   * Returns the comparator currently used to sort the participants.
+   */
+  getSortParticipantsBy: CallState['getSortParticipantsBy'] = () => {
+    return this.state.getSortParticipantsBy();
   };
 
   /**

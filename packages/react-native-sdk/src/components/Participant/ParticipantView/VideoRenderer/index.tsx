@@ -90,8 +90,11 @@ export const VideoRenderer = React.memo(
       ? screenShareStream
       : videoStream) as unknown as MediaStream | undefined;
 
+    const hasVideoTrackInStream =
+      !!videoStreamToRender && videoStreamToRender.getVideoTracks().length > 0;
+
     const canShowVideo =
-      !!videoStreamToRender &&
+      hasVideoTrackInStream &&
       isVisible &&
       isPublishingVideoTrack &&
       !hasPausedTrack(participant, trackType) &&

@@ -1,4 +1,4 @@
-import { Icon } from '@stream-io/video-react-sdk';
+import { Icon, useI18n } from '@stream-io/video-react-sdk';
 
 export const MobileAppBanner = (props: {
   callId: string;
@@ -6,6 +6,7 @@ export const MobileAppBanner = (props: {
   onDismiss?: () => void;
 }) => {
   const { callId, platform, onDismiss } = props;
+  const { t } = useI18n();
   const platformLinks: Record<
     'android' | 'ios',
     { label: string; url: string; active: boolean }[]
@@ -49,10 +50,11 @@ export const MobileAppBanner = (props: {
         alt="logo"
         src={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/home.png`}
       />
-      <h2 className="rd__try-native__title">Try Native Demo!</h2>
+      <h2 className="rd__try-native__title">{t('Try Native Demo!')}</h2>
       <p className="rd__try-native__info-text">
-        We see you are using a mobile device. Why don’t you give it a try on one
-        of our native mobile apps:
+        {t(
+          'We see you are using a mobile device. Why don’t you give it a try on one of our native mobile apps:',
+        )}
       </p>
       {(platformLinks[platform] || [])
         .filter((app) => app.active)
@@ -65,14 +67,14 @@ export const MobileAppBanner = (props: {
             rel="noreferrer"
           >
             <Icon className="rd__button__icon" icon="login" />
-            {link.label}
+            {t(link.label)}
           </a>
         ))}
       <button
         className="rd__try-native__use-browser rd__button rd__button--secondary"
         onClick={onDismiss}
       >
-        Continue With Browser
+        {t('Continue With Browser')}
       </button>
     </div>
   );

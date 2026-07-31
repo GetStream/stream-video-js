@@ -90,6 +90,12 @@ import CallKit
         }
     }
 
+    public func allCids() -> [String] {
+        return queue.sync {
+            return Array(callsByCid.keys)
+        }
+    }
+    
     // MARK: - Legacy API (preserved for backward compatibility)
 
     public func allUUIDs() -> [UUID] {

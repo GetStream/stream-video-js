@@ -38,6 +38,8 @@ export type MediaPermissionState =
   | 'GRANTED'
   | 'NOT_INITIATED';
 
+export type ReportedIceState = 'CONNECTED' | 'FAILED' | 'NOT_CONNECTED';
+
 export type JoinReason =
   | 'first-attempt'
   | 'network-available'
@@ -86,6 +88,7 @@ type PeerConnectionPairState = StagePairState & {
   sfuId: string;
   userSessionId: string;
   wasPreviouslyConnected: boolean;
+  lastIceState?: RTCIceConnectionState;
 };
 
 const pcKey = (cid: string, role: ClientEventPeerConnection): string =>
@@ -356,20 +359,8 @@ export class ClientEventReporter {
       this.failCoordinator(cid);
       this.failWs(cid);
 
-      this.emitPeerConnectionFailure(
-        cid,
-        'publish',
-        code,
-        reason,
-        'NOT_CONNECTED',
-      );
-      this.emitPeerConnectionFailure(
-        cid,
-        'subscribe',
-        code,
-        reason,
-        'NOT_CONNECTED',
-      );
+      this.emitPeerConnectionFailure(cid, 'publish', code, reason);
+      this.emitPeerConnectionFailure(cid, 'subscribe', code, reason);
     } catch (err) {
       this.logger.warn('Failed to report abort', err);
     }
@@ -384,7 +375,6 @@ export class ClientEventReporter {
         role,
         'CLIENT_ABORTED',
         'superseded by a new join attempt',
-        'NOT_CONNECTED',
       );
     }
   };
@@ -573,34 +563,35 @@ export class ClientEventReporter {
     const role: ClientEventPeerConnection =
       event.peerType === PeerType.SUBSCRIBER ? 'subscribe' : 'publish';
 
-    if (event.stateType === 'ice' && event.state === 'failed') {
-      this.emitPeerConnectionFailure(
-        cid,
-        role,
-        'ICE_CONNECTIVITY_FAILED',
-        'ICE connectivity checks failed',
-        'FAILED',
-      );
+    const pair = this.peerConnectionPairs.get(pcKey(cid, role));
+    if (pair) pair.lastIceState = event.iceConnectionState;
+
+    if (event.stateType === 'ice') {
+      if (event.state === 'failed') {
+        this.emitPeerConnectionFailure(
+          cid,
+          role,
+          'ICE_CONNECTIVITY_FAILED',
+          'ICE connectivity checks failed',
+        );
+      }
       return;
     }
 
-    if (event.stateType === 'peerConnection' && event.state === 'failed') {
+    if (event.state === 'failed') {
       this.emitPeerConnectionFailure(
         cid,
         role,
         'DTLS_CONNECTIVITY_FAILED',
         'DTLS connectivity checks failed',
-        'CONNECTED',
       );
       return;
     }
 
-    if (event.stateType !== 'peerConnection') return;
-
     switch (event.state) {
       case 'connecting':
-        if (this.peerConnectionPairs.has(pcKey(cid, role))) return;
-        this.openPeerConnectionPair(cid, role);
+        if (pair) return;
+        this.openPeerConnectionPair(cid, role, event.iceConnectionState);
         break;
       case 'connected':
         this.emitPeerConnectionSuccess(cid, role);
@@ -614,6 +605,7 @@ export class ClientEventReporter {
   private openPeerConnectionPair = (
     cid: string,
     role: ClientEventPeerConnection,
+    iceConnectionState: RTCIceConnectionState,
   ) => {
     const key = pcKey(cid, role);
     const pair: PeerConnectionPairState = {
@@ -624,6 +616,7 @@ export class ClientEventReporter {
       sfuId: this.getSfuId(cid),
       userSessionId: this.getUserSessionId(cid),
       wasPreviouslyConnected: this.pcEverConnected.get(key) === true,
+      lastIceState: iceConnectionState,
     };
     this.peerConnectionPairs.set(key, pair);
 
@@ -670,7 +663,6 @@ export class ClientEventReporter {
     role: ClientEventPeerConnection,
     code: ClientEventStandardCode,
     reason: string,
-    iceState: 'CONNECTED' | 'FAILED' | 'NOT_CONNECTED',
   ) => {
     const key = pcKey(cid, role);
     const pair = this.peerConnectionPairs.get(key);
@@ -689,7 +681,7 @@ export class ClientEventReporter {
       outcome: 'failure',
       retry_count_attempt: 0,
       elapsed_time: Date.now() - pair.startedAt,
-      ice_state: iceState,
+      ice_state: toReportedIceState(pair.lastIceState),
       retry_failure_reason: reason,
       retry_failure_code: code,
     });
@@ -781,6 +773,20 @@ export class ClientEventReporter {
     return false;
   };
 }
+
+const toReportedIceState = (
+  state: RTCIceConnectionState | undefined,
+): ReportedIceState => {
+  switch (state) {
+    case 'connected':
+    case 'completed':
+      return 'CONNECTED';
+    case 'failed':
+      return 'FAILED';
+    default:
+      return 'NOT_CONNECTED';
+  }
+};
 
 const readPermissionStatus = (
   permission: BrowserPermission,

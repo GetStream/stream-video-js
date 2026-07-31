@@ -11,6 +11,21 @@ type AsyncFunctionPatch<T> = (currentValue: T) => Promise<T>;
 export type Patch<T> = T | FunctionPatch<T>;
 
 /**
+ * Performs shallow comparison of two arrays.
+ * Expects primitive values: [1, 2, 3] is equal to [2, 1, 3].
+ */
+export const isShallowArrayEqual = <T>(a: Array<T>, b: Array<T>): boolean => {
+  if (a.length !== b.length) return false;
+  for (const item of a) {
+    if (!b.includes(item)) return false;
+  }
+  for (const item of b) {
+    if (!a.includes(item)) return false;
+  }
+  return true;
+};
+
+/**
  * Checks if the provided update is a function patch.
  *
  * @param update the value to check.

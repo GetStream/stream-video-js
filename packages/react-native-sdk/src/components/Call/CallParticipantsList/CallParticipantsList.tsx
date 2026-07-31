@@ -2,6 +2,7 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
+  useReducer,
   useRef,
   useState,
 } from 'react';
@@ -17,7 +18,6 @@ import {
   type StreamVideoParticipantPatches,
   VisibilityState,
 } from '@stream-io/video-client';
-import { Subject, debounceTime } from 'rxjs';
 import { useCall } from '@stream-io/video-react-bindings';
 import { ComponentTestIds } from '../../../constants/TestIds';
 import {
@@ -109,19 +109,15 @@ export const CallParticipantsList = ({
   if (!viewableParticipantSessionIds.current) {
     viewableParticipantSessionIds.current = new Set();
   }
-  const forceUpdate$Ref = useRef<Subject<void>>(null!);
-  if (!forceUpdate$Ref.current) {
-    forceUpdate$Ref.current = new Subject<void>();
-  }
-  const forceUpdate$ = forceUpdate$Ref.current;
-  const [forceUpdateValue, setForceUpdateValue] = useState(0);
-  useEffect(() => {
-    const sub = forceUpdate$.pipe(debounceTime(500)).subscribe(() => {
-      setForceUpdateValue((v) => v + 1);
-    });
-    return () => sub.unsubscribe();
-  }, [forceUpdate$]);
-  const forceUpdate = useCallback(() => forceUpdate$.next(), [forceUpdate$]);
+  // Debounced force re-render: coalesces rapid viewability changes into a single
+  // re-render 500ms after the last change (drives the FlatList `extraData` below).
+  const [forceUpdateValue, forceRender] = useReducer((v: number) => v + 1, 0);
+  const forceUpdateTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const forceUpdate = useCallback(() => {
+    clearTimeout(forceUpdateTimeout.current);
+    forceUpdateTimeout.current = setTimeout(forceRender, 500);
+  }, []);
+  useEffect(() => () => clearTimeout(forceUpdateTimeout.current), []);
 
   // we use a ref to store the active call object
   // so that it can be used in the onViewableItemsChanged callback
@@ -131,59 +127,64 @@ export const CallParticipantsList = ({
   // This is the function that gets called when the user scrolls the list of participants.
   // It updates viewableParticipantSessionIds HashSet with the session IDs
   // of the participants that are currently visible.
-  const onViewableItemsChanged = useRef<
-    FlatListProps['onViewableItemsChanged']
-  >(({ viewableItems }) => {
-    const participantPatches: StreamVideoParticipantPatches = {};
-    let mustUpdate = false;
-    const newVisibleParticipantSessionIds = new Set<string>(
-      viewableItems.map((v) => v.key),
-    );
-    const oldVisibleParticipantSessionIds =
-      viewableParticipantSessionIds.current;
-    newVisibleParticipantSessionIds.forEach((key) => {
-      if (!oldVisibleParticipantSessionIds.has(key)) {
-        mustUpdate = true;
-        participantPatches[key] = {
-          viewportVisibilityState: {
-            videoTrack: VisibilityState.VISIBLE,
-            screenShareTrack: VisibilityState.UNKNOWN,
-          },
-        };
+  const onViewableItemsChanged = useCallback<
+    NonNullable<FlatListProps['onViewableItemsChanged']>
+  >(
+    ({ viewableItems }) => {
+      const participantPatches: StreamVideoParticipantPatches = {};
+      let mustUpdate = false;
+      const newVisibleParticipantSessionIds = new Set<string>(
+        viewableItems.map((v) => v.key),
+      );
+      const oldVisibleParticipantSessionIds =
+        viewableParticipantSessionIds.current;
+      const visibilityPatch = (
+        videoTrack: VisibilityState,
+      ): StreamVideoParticipantPatches[string] => ({
+        viewportVisibilityState: {
+          videoTrack,
+          screenShareTrack: VisibilityState.UNKNOWN,
+        },
+      });
+      newVisibleParticipantSessionIds.forEach((key) => {
+        if (!oldVisibleParticipantSessionIds.has(key)) {
+          mustUpdate = true;
+          participantPatches[key] = visibilityPatch(VisibilityState.VISIBLE);
+        }
+      });
+      oldVisibleParticipantSessionIds.forEach((key) => {
+        if (!newVisibleParticipantSessionIds.has(key)) {
+          mustUpdate = true;
+          participantPatches[key] = visibilityPatch(VisibilityState.INVISIBLE);
+        }
+      });
+      viewableParticipantSessionIds.current = newVisibleParticipantSessionIds;
+      if (mustUpdate) {
+        activeCallRef.current?.state.updateParticipants(participantPatches);
+        forceUpdate();
       }
-    });
-    oldVisibleParticipantSessionIds.forEach((key) => {
-      if (!newVisibleParticipantSessionIds.has(key)) {
-        mustUpdate = true;
-        participantPatches[key] = {
-          viewportVisibilityState: {
-            videoTrack: VisibilityState.VISIBLE,
-            screenShareTrack: VisibilityState.UNKNOWN,
-          },
-        };
-      }
-    });
-    viewableParticipantSessionIds.current = newVisibleParticipantSessionIds;
-    if (mustUpdate) {
-      activeCallRef.current?.state.updateParticipants(participantPatches);
-      forceUpdate();
-    }
-  }).current;
+    },
+    [forceUpdate],
+  );
 
   // NOTE: key must be sessionId always as it is used to track viewable participants
-  const keyExtractor = useRef<NonNullable<FlatListProps['keyExtractor']>>(
+  const keyExtractor = useCallback<NonNullable<FlatListProps['keyExtractor']>>(
     (item) => item.sessionId,
-  ).current;
+    [],
+  );
 
-  const onLayout = useRef<NonNullable<FlatListProps['onLayout']>>((event) => {
-    const { height, width } = event.nativeEvent.layout;
-    setContainerLayout((prev) => {
-      if (prev.height === height && prev.width === width) {
-        return prev;
-      }
-      return { height, width };
-    });
-  }).current;
+  const onLayout = useCallback<NonNullable<FlatListProps['onLayout']>>(
+    (event) => {
+      const { height, width } = event.nativeEvent.layout;
+      setContainerLayout((prev) => {
+        if (prev.height === height && prev.width === width) {
+          return prev;
+        }
+        return { height, width };
+      });
+    },
+    [],
+  );
 
   const { itemHeight, itemWidth } = calculateParticipantViewSize({
     containerHeight: containerLayout.height,

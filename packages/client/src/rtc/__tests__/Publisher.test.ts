@@ -24,6 +24,7 @@ import { IceTrickleBuffer } from '../IceTrickleBuffer';
 import { StreamClient } from '../../coordinator/connection/client';
 import { TransceiverCache } from '../TransceiverCache';
 import { promiseWithResolvers } from '../../helpers/promise';
+import { settled } from '../../helpers/concurrency';
 import { isFirefox } from '../../helpers/browsers';
 
 vi.mock('../../StreamSfuClient', () => {
@@ -1318,6 +1319,97 @@ describe('Publisher', () => {
     });
   });
 
+  describe('mid assignment during negotiation', () => {
+    const sdpWith = (
+      sections: Array<{ mid: string; trackId?: string; port: number }>,
+    ) =>
+      [
+        'v=0',
+        'o=- 0 0 IN IP4 127.0.0.1',
+        's=-',
+        't=0 0',
+        ...sections.flatMap((s) => [
+          `m=video ${s.port} UDP/TLS/RTP/SAVPF 96`,
+          'c=IN IP4 0.0.0.0',
+          `a=mid:${s.mid}`,
+          ...(s.trackId
+            ? [`a=msid:stream-id ${s.trackId}`, 'a=sendonly']
+            : ['a=inactive']),
+        ]),
+        '',
+      ].join('\r\n');
+
+    it('announces the mid the browser assigned, not the one guessed from the pending offer', async () => {
+      const track = new MediaStreamTrack();
+      const transceiver = new RTCRtpTransceiver();
+      // @ts-expect-error test setup
+      transceiver.sender.track = track;
+      // @ts-expect-error readonly field
+      transceiver.mid = null;
+
+      publisher['transceiverCache'].add({
+        publishOption: publisher['publishOptions'][0],
+        transceiver,
+        options: {},
+        negotiated: false,
+      });
+
+      const firstOffer = {
+        type: 'offer',
+        sdp: sdpWith([{ mid: '0', trackId: track.id, port: 9 }]),
+      };
+      const secondOffer = {
+        type: 'offer',
+        sdp: sdpWith([
+          { mid: '0', port: 0 },
+          { mid: '1', trackId: track.id, port: 9 },
+        ]),
+      };
+
+      const pc = publisher['pc'];
+      vi.spyOn(pc, 'createOffer')
+        // @ts-expect-error TS picks up the wrong overload
+        .mockResolvedValueOnce(firstOffer)
+        // @ts-expect-error TS picks up the wrong overload
+        .mockResolvedValueOnce(secondOffer);
+
+      vi.spyOn(pc, 'setLocalDescription').mockImplementation(async (desc) => {
+        // @ts-expect-error readonly field
+        transceiver.mid =
+          desc?.sdp === firstOffer.sdp
+            ? '0'
+            : desc?.sdp === secondOffer.sdp
+              ? '1'
+              : null; // rollback reverts the mid of a never-negotiated transceiver
+        // @ts-expect-error readonly field
+        pc.signalingState =
+          desc?.type === 'rollback' ? 'stable' : 'have-local-offer';
+      });
+      vi.spyOn(pc, 'setRemoteDescription').mockResolvedValue();
+
+      sfuClient.setPublisher = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('SetPublisherTimeout'));
+      await expect(publisher['negotiate']()).rejects.toThrow(
+        'SetPublisherTimeout',
+      );
+      expect(pc.setLocalDescription).toHaveBeenLastCalledWith({
+        type: 'rollback',
+      });
+      expect(transceiver.mid).toBeNull();
+
+      sfuClient.setPublisher = vi
+        .fn()
+        .mockResolvedValue({ response: { sdp: 'answer-sdp' } });
+      await publisher['negotiate']();
+
+      expect(sfuClient.setPublisher).toHaveBeenCalledWith({
+        sdp: secondOffer.sdp,
+        tracks: [expect.objectContaining({ trackId: track.id, mid: '1' })],
+      });
+    });
+  });
+
   describe('Firefox unpublish workaround', () => {
     const mockSenderParams = (
       transceiver: RTCRtpTransceiver,
@@ -1843,6 +1935,211 @@ describe('Publisher', () => {
       expect(setParametersSpy).not.toHaveBeenCalled();
       // track.stop() still runs so local resources are released
       expect(trackStopSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('concurrent transceiver management', () => {
+    const videoOption = (id: number, codecName: string): PublishOption =>
+      fromPartial({
+        id,
+        trackType: TrackType.VIDEO,
+        bitrate: 1000,
+        codec: { name: codecName },
+        fps: 30,
+        maxTemporalLayers: 3,
+        maxSpatialLayers: 3,
+        degradationPreference: DegradationPreference.UNSPECIFIED,
+      });
+
+    const makeTrack = (): MediaStreamTrack => {
+      const track = new MediaStreamTrack();
+      // @ts-expect-error readonly field
+      track.id = crypto.randomUUID();
+      vi.spyOn(track, 'clone').mockImplementation(() => makeTrack());
+      return track;
+    };
+
+    const makeTransceiver = (track: MediaStreamTrack) => {
+      const transceiver = new RTCRtpTransceiver();
+      // @ts-expect-error test setup
+      transceiver.sender.track = track;
+      transceiver.sender.replaceTrack = vi.fn(async (next) => {
+        // @ts-expect-error test setup
+        transceiver.sender.track = next;
+      });
+      return transceiver;
+    };
+
+    /**
+     * The shared mock returns the same transceiver for every call, which would
+     * hide duplicates. Give every `addTransceiver` call its own transceiver,
+     * with the track bound to the sender like the browser does.
+     */
+    const withDistinctTransceivers = (
+      decorate: (transceiver: RTCRtpTransceiver) => void = () => {},
+    ) => {
+      vi.spyOn(publisher['pc'], 'addTransceiver').mockImplementation(
+        // @ts-expect-error the mock only implements what the Publisher uses
+        (track: MediaStreamTrack) => {
+          const transceiver = makeTransceiver(track);
+          decorate(transceiver);
+          return transceiver;
+        },
+      );
+    };
+
+    const announcedKeys = () =>
+      publisher
+        .getAnnouncedTracks(undefined)
+        .map((track) => `${track.trackType}:${track.publishOptionId}`);
+
+    beforeEach(() => {
+      withDistinctTransceivers();
+      // @ts-expect-error private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+    });
+
+    it('announces one track per publish option when publish() runs concurrently', async () => {
+      await Promise.all([
+        publisher.publish(makeTrack(), TrackType.VIDEO),
+        publisher.publish(makeTrack(), TrackType.VIDEO),
+      ]);
+
+      expect(publisher['transceiverCache'].items()).toHaveLength(1);
+      expect(announcedKeys()).toEqual([`${TrackType.VIDEO}:1`]);
+    });
+
+    it('announces one track per publish option when publish() runs during a codec switch', async () => {
+      const track = makeTrack();
+      await publisher.publish(track, TrackType.VIDEO);
+
+      // stall the first await inside addTransceiver, so the codec switch is
+      // still in-flight when the next publish() looks up the cache
+      let releaseCodecSwitch!: () => void;
+      const codecSwitch = new Promise<void>((resolve) => {
+        releaseCodecSwitch = resolve;
+      });
+      withDistinctTransceivers((transceiver) => {
+        transceiver.sender.setParameters = vi.fn(() => codecSwitch);
+      });
+
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'changePublishOptions',
+            changePublishOptions: {
+              publishOptions: [videoOption(1, 'vp9'), videoOption(2, 'av1')],
+              reason: 'test',
+            },
+          },
+        }) as DispatchableMessage<'changePublishOptions'>,
+        'test',
+      );
+      await vi.waitFor(() =>
+        expect(publisher['pc'].addTransceiver).toHaveBeenCalled(),
+      );
+
+      const publishTask = publisher.publish(track, TrackType.VIDEO);
+      // a macrotask boundary drains the pending microtasks, which is as far
+      // as an unserialized publish() can get: up to the cache lookup for the
+      // new publish option. It cannot resolve earlier under load, so this
+      // does not depend on wall-clock timing.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      releaseCodecSwitch();
+      await publishTask;
+      await settled(publisher['eventLockKey']('changePublishOptions'));
+
+      expect(announcedKeys()).toEqual([
+        `${TrackType.VIDEO}:1`,
+        `${TrackType.VIDEO}:2`,
+      ]);
+    });
+
+    it('rejects a queued publish whose publish options were retired', async () => {
+      // stall the first negotiation, so the next publish() has to queue
+      const firstNegotiation = promiseWithResolvers<void>();
+      let negotiations = 0;
+      // @ts-expect-error private method
+      vi.spyOn(publisher, 'negotiate').mockImplementation(() =>
+        ++negotiations === 1 ? firstNegotiation.promise : Promise.resolve(),
+      );
+
+      const firstPublish = publisher.publish(makeTrack(), TrackType.VIDEO);
+      await vi.waitFor(() => expect(negotiations).toBe(1));
+
+      const queuedPublish = publisher.publish(makeTrack(), TrackType.VIDEO);
+      // video is retired while the second publish waits for the lock
+      publisher['publishOptions'] = [];
+
+      firstNegotiation.resolve();
+      await firstPublish;
+
+      // it must not report success without having published anything
+      await expect(queuedPublish).rejects.toThrow(
+        'No publish options found for VIDEO',
+      );
+      expect(publisher['pc'].addTransceiver).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not keep publishing with an option retired mid-publish', async () => {
+      publisher['publishOptions'] = [
+        videoOption(1, 'vp9'),
+        videoOption(2, 'av1'),
+      ];
+
+      // stall the first negotiation, so publish() is suspended in its loop
+      // after option 1 was added but before option 2 is reached
+      const firstNegotiation = promiseWithResolvers<void>();
+      let negotiations = 0;
+      // @ts-expect-error private method
+      vi.spyOn(publisher, 'negotiate').mockImplementation(() =>
+        ++negotiations === 1 ? firstNegotiation.promise : Promise.resolve(),
+      );
+
+      const publishTask = publisher.publish(makeTrack(), TrackType.VIDEO);
+      await vi.waitFor(() => expect(negotiations).toBe(1));
+
+      dispatcher.dispatch(
+        SfuEvent.create({
+          eventPayload: {
+            oneofKind: 'changePublishOptions',
+            changePublishOptions: {
+              publishOptions: [videoOption(1, 'vp9')],
+              reason: 'test',
+            },
+          },
+        }) as DispatchableMessage<'changePublishOptions'>,
+        'test',
+      );
+      // the handler runs synchronously, so the retired options are in place
+      // and syncPublishOptions is already queued behind this publish
+      expect(publisher['publishOptions']).toHaveLength(1);
+
+      firstNegotiation.resolve();
+      await publishTask;
+      await settled(publisher['eventLockKey']('changePublishOptions'));
+
+      expect(announcedKeys()).toEqual([`${TrackType.VIDEO}:1`]);
+    });
+
+    it('reuses the transceiver on republish after setParameters failed', async () => {
+      withDistinctTransceivers((transceiver) => {
+        transceiver.sender.setParameters = vi
+          .fn()
+          .mockRejectedValueOnce(new Error('InvalidModificationError'));
+      });
+
+      await expect(
+        publisher.publish(makeTrack(), TrackType.VIDEO),
+      ).rejects.toThrow('InvalidModificationError');
+
+      // the transceiver the browser created is tracked, so the republish
+      // reuses it instead of adding a second one for the same publish option
+      await publisher.publish(makeTrack(), TrackType.VIDEO);
+
+      expect(publisher['pc'].addTransceiver).toHaveBeenCalledTimes(1);
+      expect(publisher['transceiverCache'].items()).toHaveLength(1);
+      expect(announcedKeys()).toEqual([`${TrackType.VIDEO}:1`]);
     });
   });
 });

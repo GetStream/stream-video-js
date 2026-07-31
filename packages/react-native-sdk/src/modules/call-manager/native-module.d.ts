@@ -1,6 +1,6 @@
 import 'react-native';
 import type { NativeModule } from 'react-native';
-import type { AudioDeviceStatus, AudioRole, DeviceEndpointType } from './types';
+import type { AudioDevicesState, AudioRole, DeviceEndpointType } from './types';
 
 export interface CallManager extends NativeModule {
   /**
@@ -33,16 +33,23 @@ export interface CallManager extends NativeModule {
   setTelecomManagedMode: (enabled: boolean) => void;
 
   /**
-   * Choose an audio device endpoint.
-   * @param endpointName - The name of the audio device endpoint to choose.
+   * Choose an audio device endpoint by its stable id.
+   * @param deviceId - The id of the audio device to choose (`AudioDevice.id`).
    */
-  chooseAudioDeviceEndpoint: (endpoint: string) => void;
+  chooseAudioDeviceEndpoint: (deviceId: string) => void;
 
   /**
-   * Get the current audio device status.
-   * @returns The audio device status.
+   * Re-applies the current audio output pick (iOS). Used to restore a Bluetooth/wired
+   * route after an interruption ends, where the ephemeral route override is lost.
+   * No-op if no explicit pick has been made.
    */
-  getAudioDeviceStatus: () => Promise<AudioDeviceStatus>;
+  reapplyAudioRoute: () => void;
+
+  /**
+   * Get the current audio device state (available devices + selected one).
+   * @returns The audio devices state.
+   */
+  getAudioDeviceStatus: () => Promise<AudioDevicesState>;
 
   /**
    * Shows the iOS audio route picker.
