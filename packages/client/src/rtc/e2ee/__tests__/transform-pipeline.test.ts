@@ -33,13 +33,14 @@ vi.stubGlobal('self', { postMessage: (m: Posted) => void posted.push(m) });
 await import('../e2ee-worker/e2ee-worker-impl');
 // `enqueue` is the worker's own serial message queue; awaiting a no-op task
 // flushes everything queued before it (e.g. an async setKey).
-const { enqueue } = await import('../e2ee-worker/utils');
+const { enqueue } = await import('../e2ee-worker/queue');
 // Test seams: position the per-user frame counter so we can hit the low
 // values whose big-endian encoding forms Annex-B start codes, and reset the
 // worker's module-level key state between tests (production teardown is
 // Worker.terminate(), which tests cannot use).
-const { __setFrameCounterForTest, dispose } =
-  await import('../e2ee-worker/crypto');
+const { __resetFrameCounterForTest, __setFrameCounterForTest } =
+  await import('../e2ee-worker/frameCounter');
+const { keyStore } = await import('../e2ee-worker/keyStore');
 
 type Frame = {
   data: ArrayBuffer;
@@ -156,7 +157,8 @@ beforeEach(() => {
 });
 afterEach(async () => {
   await flush();
-  dispose();
+  keyStore.clear();
+  __resetFrameCounterForTest();
 });
 
 // The worker's message interface is its whole public surface, so the commands
@@ -760,7 +762,7 @@ describe('h264 trailer start-code safety', () => {
     async (_label, seed) => {
       const user = freshUser();
       await setKey(user);
-      __setFrameCounterForTest(user, seed);
+      __setFrameCounterForTest(seed);
       const [encrypted] = await drive('encode', user, 'h264', [
         frame(H264_KEYFRAME, 'key'),
       ]);

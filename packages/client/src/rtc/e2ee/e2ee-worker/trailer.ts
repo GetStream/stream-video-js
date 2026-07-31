@@ -1,3 +1,17 @@
+/**
+ * The on-wire framing: the 20-byte trailer appended to every encrypted frame,
+ * and the 12-byte IV both directions derive.
+ *
+ * Write and read live together on purpose. They are one contract - the encoder
+ * lays out bytes the decoder must find at the same offsets - so the layout is
+ * defined once, here, and a change to it is a wire break: bump
+ * {@link E2EE_VERSION} and regenerate the SPEC section 11 vectors.
+ *
+ * Layout, from the trailer's first byte:
+ *   [4B frameCounter][8B ivPrefix][1B keyIndex][2B clearBytes|flags]
+ *   [1B version][4B magic]
+ */
+
 import {
   E2EE_VERSION,
   FRAME_COUNTER_LEN,
@@ -9,58 +23,28 @@ import {
 } from './constants';
 import type { Trailer } from './types';
 
-/** Length-safe byte comparison. */
-export const bytesEqual = (a: Uint8Array, b: Uint8Array): boolean => {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
-  return true;
-};
-
-/**
- * Rate limiter keyed by an arbitrary string, so one throttle can cover several
- * independent conditions (a keyIndex, a userId) without them muting each other.
- */
-export class Throttle {
-  private readonly intervalMs: number;
-  private lastFiredAt: Map<string, number> = new Map();
-
-  constructor(intervalMs: number) {
-    this.intervalMs = intervalMs;
-  }
-
-  /**
-   * True at most once per `intervalMs` for that key, so a sustained failure
-   * cannot flood the host with notifications.
-   */
-  tryFire = (key: string): boolean => {
-    const now = Date.now();
-    if (now - (this.lastFiredAt.get(key) ?? 0) > this.intervalMs) {
-      this.lastFiredAt.set(key, now);
-      return true;
-    }
-    return false;
-  };
-}
-
-let tail: Promise<unknown> = Promise.resolve();
-
-/**
- * Run tasks FIFO, one at a time, so a `setKey` cannot race transform setup.
- * `tail` swallows errors so one rejection cannot stall the queue; the returned
- * promise still carries that task's own outcome.
- */
-export const enqueue = <T>(fn: () => Promise<T>): Promise<T> => {
-  const run = tail.then(fn);
-  tail = run.catch(() => {});
-  return run;
-};
-
-// Trailer offsets.
 const OFF_IV_PREFIX = FRAME_COUNTER_LEN; // 4
 const OFF_KEY_INDEX = OFF_IV_PREFIX + IV_PREFIX_LEN; // 12
 const OFF_CLEAR_BYTES = OFF_KEY_INDEX + 1; // 13
 const OFF_VERSION = OFF_CLEAR_BYTES + 2; // 15
 const OFF_MAGIC = OFF_VERSION + 1; // 16
+
+/**
+ * Fill a pre-allocated 12-byte IV: `[8B ivPrefix][4B frameCounter, BE]`.
+ *
+ * The encoder builds it from its own prefix and counter; the decoder rebuilds
+ * the identical bytes from the trailer. The buffer is reused across frames
+ * rather than allocated per frame - this runs once per frame on every track.
+ */
+export const fillIV = (
+  iv: Uint8Array,
+  ivView: DataView,
+  prefix: Uint8Array,
+  frameCounter: number,
+) => {
+  iv.set(prefix, 0);
+  ivView.setUint32(IV_PREFIX_LEN, frameCounter);
+};
 
 export const writeTrailer = (
   dst: Uint8Array,

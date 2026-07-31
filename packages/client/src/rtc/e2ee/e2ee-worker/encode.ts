@@ -1,13 +1,3 @@
-/**
- * Encrypt side of the E2EE transform: plaintext frame in,
- * `[clear header][ciphertext + GCM tag][20B trailer]` out.
- *
- * **Fail closed, always.** Every error path here drops the frame. A frame is
- * never forwarded in the clear because encryption failed.
- *
- * @see decode.ts for the inverse
- */
-
 import { EMPTY_AAD, IV_LEN, MAX_CLEAR_BYTES, TRAILER_LEN } from './constants';
 import {
   boundarySeedZeros,
@@ -15,8 +5,9 @@ import {
   rbspEscapeInto,
   rbspEscapedLength,
 } from './codec';
-import { writeTrailer } from './utils';
-import { fillIV, getLatestKey, nextFrameCounter } from './crypto';
+import { fillIV, writeTrailer } from './trailer';
+import { nextFrameCounter } from './frameCounter';
+import { keyStore } from './keyStore';
 import { encodeStats } from './perf';
 import { EncodeNotifier, notifyMissingEncodeKey } from './notifications';
 import type { EncodedFrame, FrameController } from './types';
@@ -73,7 +64,7 @@ export const encodeTransform = (
         return;
       }
 
-      const entry = getLatestKey(userId);
+      const entry = keyStore.getLatestKey(userId);
       if (!entry) {
         notifyMissingEncodeKey(userId);
         return;
@@ -99,7 +90,7 @@ export const encodeTransform = (
         }
         // Throws at the 32-bit ceiling; finishEncode catches it, so the track
         // fails closed instead of reusing an IV.
-        const counter = nextFrameCounter(userId);
+        const counter = nextFrameCounter();
         fillIV(iv, ivView, prefix, counter);
         const aad = clearBytes > 0 ? src.subarray(0, clearBytes) : EMPTY_AAD;
         const plaintext = clearBytes > 0 ? src.subarray(clearBytes) : src;

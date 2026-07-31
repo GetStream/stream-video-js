@@ -1,21 +1,9 @@
-/**
- * Decrypt side of the E2EE transform.
- *
- * **Codec-agnostic on purpose**: the format is self-describing, so the decoder
- * takes no codec hint. It reads the trailer, recovers the IV fields (un-escaping
- * first on the H264 RBSP path), and decrypts.
- *
- * A frame with no recognizable trailer is forwarded unchanged and reported as
- * `unencrypted_frame`: a peer may legitimately publish plain when the call's
- * mode allows it, and a downgrade must not be silent.
- *
- * @see encode.ts for the inverse
- */
-
 import { EMPTY_AAD, IV_LEN, TRAILER_LEN } from './constants';
 import { boundarySeedZeros, rbspUnescape } from './codec';
-import { readTrailer, readTrailerIv } from './utils';
-import { FailureTracker, ReplayWindow, fillIV, getKey } from './crypto';
+import { fillIV, readTrailer, readTrailerIv } from './trailer';
+import { FailureTracker } from './failureTracker';
+import { ReplayWindow } from './replayWindow';
+import { keyStore } from './keyStore';
 import { decodeStats } from './perf';
 import { DecodeNotifier } from './notifications';
 import type { EncodedFrame, FrameController } from './types';
@@ -58,7 +46,7 @@ export const decodeTransform = (
     frameCounter: number,
     decrypt: (key: CryptoKey) => Promise<ArrayBuffer>,
   ) => {
-    const cryptoKey = getKey(userId, keyIndex);
+    const cryptoKey = keyStore.getKey(userId, keyIndex);
     if (!cryptoKey) {
       notify.missingKey(keyIndex);
       return;

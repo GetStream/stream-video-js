@@ -31,8 +31,10 @@ vi.stubGlobal('crypto', {
 });
 
 await import('../e2ee-worker/e2ee-worker-impl');
-const { enqueue } = await import('../e2ee-worker/utils');
-const { dispose } = await import('../e2ee-worker/crypto');
+const { enqueue } = await import('../e2ee-worker/queue');
+const { keyStore } = await import('../e2ee-worker/keyStore');
+const { __resetFrameCounterForTest } =
+  await import('../e2ee-worker/frameCounter');
 
 type Frame = {
   data: ArrayBuffer;
@@ -108,7 +110,8 @@ const freshUser = () => `vector-user-${nextUser++}`;
 
 afterEach(async () => {
   await flush();
-  dispose();
+  keyStore.clear();
+  __resetFrameCounterForTest();
 });
 
 interface Vector {

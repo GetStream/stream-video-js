@@ -29,14 +29,8 @@
  */
 
 import { isSupportedCodec } from './codec';
-import { enqueue } from './utils';
-import {
-  dumpKeyState,
-  importKey,
-  importSharedKey,
-  removeKeys,
-  removeSharedKey,
-} from './crypto';
+import { enqueue } from './queue';
+import { keyStore } from './keyStore';
 import { decodeStats, startPerfReport, stopPerfReport } from './perf';
 import { EncodeNotifier, reportError } from './notifications';
 import { encodeTransform } from './encode';
@@ -106,16 +100,16 @@ addEventListener('message', ({ data }) => {
   enqueue(async () => {
     switch (data.type) {
       case 'cmd.set_key':
-        await importKey(data.userId, data.keyIndex, data.rawKey);
+        await keyStore.importKey(data.userId, data.keyIndex, data.rawKey);
         break;
       case 'cmd.set_shared_key':
-        await importSharedKey(data.keyIndex, data.rawKey);
+        await keyStore.importSharedKey(data.keyIndex, data.rawKey);
         break;
       case 'cmd.remove_shared_key':
-        removeSharedKey(data.keyIndex);
+        keyStore.removeSharedKey(data.keyIndex);
         break;
       case 'cmd.remove_keys':
-        removeKeys(data.userId);
+        keyStore.removeKeys(data.userId);
         decodeStats.removeUser(data.userId);
         break;
       case 'cmd.enable_performance_reporting':
@@ -123,7 +117,7 @@ addEventListener('message', ({ data }) => {
         else stopPerfReport();
         break;
       case 'cmd.dump_key_state':
-        self.postMessage({ type: 'e2ee.key_state', ...dumpKeyState() });
+        self.postMessage({ type: 'e2ee.key_state', ...keyStore.dump() });
         break;
       case 'cmd.setup_transform':
         setupTransform(data);

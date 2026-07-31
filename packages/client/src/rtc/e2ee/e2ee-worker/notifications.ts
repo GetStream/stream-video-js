@@ -20,10 +20,37 @@
  *   every outgoing track at once, so it is reported per user.
  */
 
-import { Throttle } from './utils';
-
 /** At most one notification per second per key. */
 const THROTTLE_INTERVAL_MS = 1000;
+
+/**
+ * Rate limiter keyed by an arbitrary string, so one throttle can cover several
+ * independent conditions (a keyIndex, a userId) without them muting each other.
+ *
+ * Lives here because throttling is a delivery rule, not a general utility -
+ * every user of it is in this file.
+ */
+class Throttle {
+  private readonly intervalMs: number;
+  private lastFiredAt: Map<string, number> = new Map();
+
+  constructor(intervalMs: number) {
+    this.intervalMs = intervalMs;
+  }
+
+  /**
+   * True at most once per `intervalMs` for that key, so a sustained failure
+   * cannot flood the host with notifications.
+   */
+  tryFire = (key: string): boolean => {
+    const now = Date.now();
+    if (now - (this.lastFiredAt.get(key) ?? 0) > this.intervalMs) {
+      this.lastFiredAt.set(key, now);
+      return true;
+    }
+    return false;
+  };
+}
 
 /**
  * Internal log-only channel: no `E2EEEventMap` entry, so the manager logs it
