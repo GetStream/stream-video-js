@@ -111,11 +111,8 @@ function isPackageUsedByApp(
     const appPackageJson = JSON.parse(
       fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8'),
     );
-    const declared = {
-      ...appPackageJson?.dependencies,
-      ...appPackageJson?.devDependencies,
-    };
-    if (packageName in declared) {
+    // Only runtime dependencies: a devDependency is not linked into the build.
+    if (packageName in { ...appPackageJson?.dependencies }) {
       return true;
     }
   } catch {
@@ -346,7 +343,9 @@ function addFirebaseMessagingDependency(
 
   const lines =
     `    ${FIREBASE_DEP_MARKER}\n` +
-    `    compileOnly(platform("com.google.firebase:firebase-bom:${bomVersion ?? FIREBASE_BOM_FALLBACK_VERSION}"))\n` +
+    `    compileOnly(platform("com.google.firebase:firebase-bom:${
+      bomVersion ?? FIREBASE_BOM_FALLBACK_VERSION
+    }"))\n` +
     `    compileOnly("${FIREBASE_MESSAGING_ARTIFACT}")`;
   return contents.replace(DEPENDENCIES_BLOCK, (match) => `${match}\n${lines}`);
 }

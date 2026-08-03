@@ -126,6 +126,19 @@ describe('isExpoNotificationsInstalled', () => {
     fs.rmSync(projectRoot, { recursive: true, force: true });
   });
 
+  it('ignores a devDependency, which is not linked into the build', () => {
+    const projectRoot = path.join(tmpdir(), `stream-devdep-${Date.now()}`);
+    fs.mkdirSync(projectRoot, { recursive: true });
+    fs.writeFileSync(
+      path.join(projectRoot, 'package.json'),
+      JSON.stringify({
+        devDependencies: { 'expo-notifications': '~57.0.8' },
+      }),
+    );
+    expect(isExpoNotificationsInstalled(projectRoot)).toBe(false);
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  });
+
   it('detects a package installed under the app but not declared', () => {
     const projectRoot = path.join(tmpdir(), `stream-transitive-${Date.now()}`);
     const pkgDir = path.join(projectRoot, 'node_modules', 'expo-notifications');
