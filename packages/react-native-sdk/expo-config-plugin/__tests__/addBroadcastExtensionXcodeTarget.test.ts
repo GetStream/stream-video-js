@@ -110,6 +110,14 @@ describe('resolveDeploymentTarget', () => {
     expect(resolveDeploymentTarget(proj as any)).toBe(MIN_DEPLOYMENT_TARGET);
   });
 
+  // An app may pin ios.deploymentTarget to the toolchain minimum via
+  // expo-build-properties. The extension must not land above it, or screen
+  // share becomes unavailable on the oldest devices the app still supports.
+  it('does not exceed a host app pinned to the toolchain minimum', () => {
+    const proj = createProjectStub(['15.0', '15.0']);
+    expect(resolveDeploymentTarget(proj as any)).toBe('15.0');
+  });
+
   it("raises the target to match the host app's deployment target", () => {
     const proj = createProjectStub(['16.4', '16.4']);
     expect(resolveDeploymentTarget(proj as any)).toBe('16.4');
@@ -121,8 +129,9 @@ describe('resolveDeploymentTarget', () => {
   });
 
   it('compares versions numerically rather than lexically', () => {
-    const proj = createProjectStub(['9.0', '15.0']);
-    expect(resolveDeploymentTarget(proj as any)).toBe('15.0');
+    // lexically '9.0' sorts above '16.0'
+    const proj = createProjectStub(['9.0', '16.0']);
+    expect(resolveDeploymentTarget(proj as any)).toBe('16.0');
   });
 
   it('ignores quoted values and non-version placeholders', () => {
@@ -136,8 +145,8 @@ describe('resolveDeploymentTarget', () => {
     const proj = createProjectStub(['16.4beta']);
     expect(resolveDeploymentTarget(proj as any)).toBe(MIN_DEPLOYMENT_TARGET);
 
-    const withValid = createProjectStub(['16.4beta', '15.1']);
-    expect(resolveDeploymentTarget(withValid as any)).toBe('15.1');
+    const withValid = createProjectStub(['16.4beta', '16.1']);
+    expect(resolveDeploymentTarget(withValid as any)).toBe('16.1');
   });
 
   it('reads the project-level target when the app target inherits it', () => {
@@ -153,19 +162,27 @@ describe('resolveDeploymentTarget', () => {
   // otherwise silently drop screen share on devices in between.
   it('ignores deployment targets belonging to unrelated targets', () => {
     const proj = createProjectStub({
-      appTargets: ['15.1', '15.1'],
-      projectTargets: ['15.1'],
+      appTargets: ['16.1', '16.1'],
+      projectTargets: ['16.1'],
       otherTargets: ['17.0', '18.0'],
     });
-    expect(resolveDeploymentTarget(proj as any)).toBe('15.1');
+    expect(resolveDeploymentTarget(proj as any)).toBe('16.1');
   });
 
-  it('satisfies the minimum accepted by Xcode 27 for a modern app', () => {
-    const proj = createProjectStub(['16.4']);
-    const [major] = resolveDeploymentTarget(proj as any)
-      .split('.')
-      .map(Number);
-    expect(major).toBeGreaterThanOrEqual(15);
+  // Xcode 27 errors out on anything below 15.0, so even the fallback taken when
+  // the host app's target cannot be read has to clear that bar.
+  it('always resolves to a target Xcode 27 accepts', () => {
+    const projects = [
+      createProjectStub([]),
+      createProjectStub(['13.4']),
+      createProjectStub(['16.4']),
+    ];
+    projects.forEach((proj) => {
+      const [major, minor = 0] = resolveDeploymentTarget(proj as any)
+        .split('.')
+        .map(Number);
+      expect(major * 100 + minor).toBeGreaterThanOrEqual(15 * 100);
+    });
   });
 });
 
@@ -205,7 +222,7 @@ describe('addBroadcastExtensionXcodeTarget', () => {
     });
   });
 
-  it('keeps the minimum deployment target for older host apps', () => {
+  it('falls back to the minimum deployment target for older host apps', () => {
     const configurations = addTarget(['13.4']);
 
     configurations.forEach((configuration) => {

@@ -18,10 +18,9 @@ type AddBuildPhaseParams = {
 };
 
 /**
- * The lowest iOS version the broadcast extension's ReplayKit code supports.
- * Apps on older React Native versions stay on this floor.
+ * The lowest iOS version the broadcast extension is built for.
  */
-export const MIN_DEPLOYMENT_TARGET = '14.0';
+export const MIN_DEPLOYMENT_TARGET = '15.0';
 
 /**
  * A plain dotted version number, for example `15` or `16.4`. Anything else
