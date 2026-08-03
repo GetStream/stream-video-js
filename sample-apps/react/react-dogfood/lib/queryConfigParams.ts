@@ -1,5 +1,10 @@
 import { NextRouter } from 'next/router';
-import { Call, PreferredCodec } from '@stream-io/video-react-sdk';
+import {
+  Call,
+  PreferredCodec,
+  EncryptionManager,
+} from '@stream-io/video-react-sdk';
+import { deriveKeyFromPassphrase, SHARED_KEY_INDEX } from './e2ee';
 
 export const getQueryConfigParams = (query: NextRouter['query']) => {
   return {
@@ -16,12 +21,16 @@ export const getQueryConfigParams = (query: NextRouter['query']) => {
     forceCodec: query['force_codec'] as PreferredCodec | undefined,
     cameraOverride: query['camera'] as string | undefined,
     microphoneOverride: query['mic'] as string | undefined,
+    encryptionKey: query['encryption_key'] as string | undefined,
   };
 };
 
-export const applyQueryConfigParams = (
+export const applyQueryConfigParams = async (
   call: Call,
   query: NextRouter['query'],
+  // The shared key is owned by the lobby (it can change without a URL change),
+  // so it is passed in explicitly rather than read from `query`.
+  options: { allowEncryption?: boolean; encryptionKey?: string } = {},
 ) => {
   const config = getQueryConfigParams(query);
   const {
@@ -35,6 +44,7 @@ export const applyQueryConfigParams = (
     cameraOverride,
     microphoneOverride,
   } = config;
+  const { allowEncryption = false, encryptionKey } = options;
 
   if (cameraOverride != null) {
     if (cameraOverride === 'false') {
@@ -63,6 +73,21 @@ export const applyQueryConfigParams = (
   const preferredBitrate = bitrateOverride
     ? parseInt(bitrateOverride, 10)
     : undefined;
+
+  // E2EE must be fully initialized before join() so the RTCPeerConnection can
+  // be configured for E2EE (the legacy Insertable Streams path needs
+  // encodedInsertableStreams).
+  if (
+    allowEncryption &&
+    encryptionKey &&
+    call.currentUserId &&
+    EncryptionManager.isSupported()
+  ) {
+    const rawKey = await deriveKeyFromPassphrase(encryptionKey);
+    const e2ee = await EncryptionManager.create(call.currentUserId);
+    e2ee.setSharedKey(SHARED_KEY_INDEX, rawKey);
+    call.setE2EEManager(e2ee);
+  }
 
   call.updatePublishOptions({
     dangerouslyForceCodec: forceCodec,

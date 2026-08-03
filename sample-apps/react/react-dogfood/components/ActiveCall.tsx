@@ -66,6 +66,7 @@ import {
   useRemoteFilePublisher,
 } from './RemoteFilePublisher';
 import { ModerationNotification } from './ModerationNotification';
+import { E2EEKeyNotification } from './E2EEKeyNotification';
 
 export type ActiveCallProps = {
   chatClient?: StreamChat | null;
@@ -241,6 +242,7 @@ export const ActiveCall = (props: ActiveCallProps) => {
           </div>
         </div>
         <ModerationNotification />
+        <E2EEKeyNotification />
         <div className="rd__notifications">
           <Restricted
             requiredGrants={[OwnCapability.SEND_AUDIO]}

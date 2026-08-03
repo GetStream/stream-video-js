@@ -8,6 +8,7 @@ import {
   Notification,
   useCallStateHooks,
   useI18n,
+  WithTooltip,
 } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
@@ -15,7 +16,11 @@ import { CallHeaderTitle } from './CallHeaderTitle';
 import { ToggleSettingsTabModal } from './Settings/SettingsTabModal';
 import { ToggleDocumentationButton } from './ToggleDocumentationButton';
 import { LayoutSelectorProps } from './LayoutSelector';
-import { useIsDemoEnvironment } from '../context/AppEnvironmentContext';
+import { LockIcon } from './LockIcon';
+import {
+  useIsDemoEnvironment,
+  useIsProntoEnvironment,
+} from '../context/AppEnvironmentContext';
 
 const LatencyIndicator = () => {
   const { useCallStatsReport } = useCallStateHooks();
@@ -71,6 +76,30 @@ const RecordingIndicator = () => {
   const { t } = useI18n();
   return (
     <div className="rd__header__recording-indicator">{t('Recording...')}</div>
+  );
+};
+
+const E2EEBadge = () => {
+  const { t } = useI18n();
+  const isPronto = useIsProntoEnvironment();
+  const { useE2eeEnabled } = useCallStateHooks();
+  const e2eeEnabled = useE2eeEnabled();
+  // Compact, always-visible lock chip (the sibling latency/participant-count
+  // indicators are hidden below the `sm` breakpoint, so a labelled badge would
+  // overflow the header on mobile). The description lives in the tooltip.
+  if (!isPronto || !e2eeEnabled) return null;
+  return (
+    <WithTooltip title={t('This call is end-to-end encrypted.')}>
+      <div
+        className="rd__call-header__e2ee-badge"
+        aria-label={t('End-to-end encrypted')}
+      >
+        <LockIcon className="rd__call-header__e2ee-badge-icon" />
+        <span className="rd__call-header__e2ee-badge-label">
+          {t('Encrypted')}
+        </span>
+      </div>
+    </WithTooltip>
   );
 };
 
@@ -137,6 +166,7 @@ export const ActiveCallHeader = ({
         </div>
 
         <div className="rd__call-header__controls-group">
+          <E2EEBadge />
           {(isRecordingInProgress ||
             isRawRecordingInProgress ||
             isIndividualRecordingInProgress) && <RecordingIndicator />}

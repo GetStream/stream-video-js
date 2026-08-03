@@ -27,6 +27,7 @@ import { ToggleMicButton } from './ToggleMicButton';
 import { ToggleCameraButton } from './ToggleCameraButton';
 import { ToggleParticipantsPreviewButton } from './ToggleParticipantsPreview';
 import { ToggleHiFiButton } from './ToggleHiFiButton';
+import { LobbyEncryption } from './LobbyEncryption';
 
 import { useEdges } from '../hooks/useEdges';
 import { DefaultAppHeader } from './DefaultAppHeader';
@@ -35,6 +36,8 @@ import {
   useIsDemoEnvironment,
   useIsProntoEnvironment,
 } from '../context/AppEnvironmentContext';
+import { useLobbyE2EE } from '../context/LobbyE2EEContext';
+import { isCallEncrypted } from '../lib/e2ee';
 import { getRandomName } from '../lib/names';
 import { ToggleNoiseCancellationButton } from './ToggleNoiseCancellationButton';
 
@@ -67,6 +70,10 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
   const currentUser = useConnectedUser();
   const isProntoEnvironment = useIsProntoEnvironment();
   const isDemoEnvironment = useIsDemoEnvironment();
+  const e2ee = useLobbyE2EE();
+  // An `auto-on` call requires E2EE of every participant, so the backend rejects
+  // a non-e2ee join: gate the Join button until a key is provided.
+  const needsEncryptionKey = isCallEncrypted(settings) && !e2ee?.encryptionKey;
   const [displayNameOverride, setDisplayNameOverride] = useState<string | null>(
     isDemoEnvironment ? getRandomName() : null,
   );
@@ -259,8 +266,13 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                 <button
                   className="rd__button rd__button--primary rd__button--large rd__lobby-join"
                   type="button"
-                  disabled={displayName.length === 0}
+                  disabled={displayName.length === 0 || needsEncryptionKey}
                   data-testid="join-call-button"
+                  title={
+                    needsEncryptionKey
+                      ? t('Enter the shared encryption key to join')
+                      : undefined
+                  }
                   onClick={() => onJoin(displayName)}
                 >
                   <Icon className="rd__button__icon" icon="login" />
@@ -268,6 +280,8 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                 </button>
               )}
             </div>
+
+            {isProntoEnvironment && mode !== 'anon' && <LobbyEncryption />}
 
             {isProntoEnvironment && (
               <div className="rd__lobby__user-modes">

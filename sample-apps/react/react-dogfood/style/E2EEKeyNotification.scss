@@ -1,0 +1,40 @@
+// Inline key-correction form inside the E2EE mismatch notification. The
+// notification is a narrow floating panel, so the form wraps under the message
+// rather than sitting beside it.
+.rd__e2ee-key-notification {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rd__e2ee-key-notification__form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--str-video__base-color5, #4c525c);
+    border-radius: var(--str-video__border-radius-xs, 0.25rem);
+    background: var(--str-video__background-color2, #1c1e22);
+    color: inherit;
+    font: inherit;
+  }
+
+  button {
+    padding: 0.25rem 0.75rem;
+    border: none;
+    border-radius: var(--str-video__border-radius-xs, 0.25rem);
+    background: var(--str-video__primary-color, #005fff);
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
