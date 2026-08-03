@@ -17,6 +17,61 @@ type AddBuildPhaseParams = {
   frameworkPath: string;
 };
 
+/**
+ * The lowest iOS version the broadcast extension's ReplayKit code supports.
+ * Apps on older React Native versions stay on this floor.
+ */
+export const MIN_DEPLOYMENT_TARGET = '14.0';
+
+/**
+ * Returns true when `candidate` is a higher iOS version than `current`.
+ * Values that are not plain version numbers (for example `$(inherited)`)
+ * are treated as not higher.
+ */
+const isHigherVersion = (candidate: string, current: string) => {
+  const parse = (value: string) =>
+    value.split('.').map((part) => Number.parseInt(part, 10));
+  const parsedCandidate = parse(candidate);
+  if (parsedCandidate.some((part) => Number.isNaN(part))) {
+    return false;
+  }
+  const parsedCurrent = parse(current);
+  const length = Math.max(parsedCandidate.length, parsedCurrent.length);
+  for (let index = 0; index < length; index++) {
+    const left = parsedCandidate[index] ?? 0;
+    const right = parsedCurrent[index] ?? 0;
+    if (left !== right) {
+      return left > right;
+    }
+  }
+  return false;
+};
+
+/**
+ * Resolves the deployment target to use for the broadcast extension.
+ *
+ * The extension mirrors the highest deployment target already present in the
+ * host project, so it never requires a newer iOS than the app itself and it
+ * satisfies the minimum the toolchain accepts (Xcode 27 rejects anything below
+ * 15.0). The value only ever moves up from {@link MIN_DEPLOYMENT_TARGET}.
+ */
+export const resolveDeploymentTarget = (proj: XcodeProject) => {
+  const configurations = proj.pbxXCBuildConfigurationSection() ?? {};
+  let resolved = MIN_DEPLOYMENT_TARGET;
+  for (const key of Object.keys(configurations)) {
+    const buildSettings = (configurations as any)[key]?.buildSettings;
+    const value = buildSettings?.IPHONEOS_DEPLOYMENT_TARGET;
+    if (value === undefined || value === null) {
+      continue;
+    }
+    const candidate = String(value).replace(/"/g, '').trim();
+    if (isHigherVersion(candidate, resolved)) {
+      resolved = candidate;
+    }
+  }
+  return resolved;
+};
+
 export default function addBroadcastExtensionXcodeTarget(
   proj: XcodeProject,
   {
@@ -46,6 +101,7 @@ export default function addBroadcastExtensionXcodeTarget(
     marketingVersion,
     extensionName,
     appName,
+    developmentTeamId,
   });
 
   const productFile = addProductFile(proj, extensionName, groupName);
@@ -85,7 +141,8 @@ const addXCConfigurationList = (
     currentProjectVersion,
     marketingVersion,
     extensionName,
-  }: Omit<AddXcodeTargetParams, 'developmentTeamId'>,
+    developmentTeamId,
+  }: AddXcodeTargetParams,
 ) => {
   const commonBuildSettings: any = {
     CLANG_ANALYZER_NONNULL: 'YES',
@@ -98,12 +155,13 @@ const addXCConfigurationList = (
     CODE_SIGN_ENTITLEMENTS: `${extensionName}/${extensionName}.entitlements`,
     CODE_SIGN_STYLE: 'Automatic',
     CURRENT_PROJECT_VERSION: currentProjectVersion,
+    DEVELOPMENT_TEAM: developmentTeamId,
     GCC_C_LANGUAGE_STANDARD: 'gnu11',
     GENERATE_INFOPLIST_FILE: 'YES',
     INFOPLIST_FILE: `${extensionName}/Info.plist`,
     INFOPLIST_KEY_CFBundleDisplayName: `${extensionName}`,
     INFOPLIST_KEY_NSHumanReadableCopyright: quoted(''),
-    IPHONEOS_DEPLOYMENT_TARGET: '14.0',
+    IPHONEOS_DEPLOYMENT_TARGET: resolveDeploymentTarget(proj),
     LD_RUNPATH_SEARCH_PATHS: quoted(
       '$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks',
     ),
