@@ -1,4 +1,7 @@
 import { AndroidConfig } from '@expo/config-plugins';
+import * as fs from 'fs';
+import * as path from 'path';
+import { tmpdir } from 'os';
 import withAndroidMessagingService, {
   updateManifest,
   buildServiceSource,
@@ -81,6 +84,64 @@ describe('isExpoNotificationsInstalled', () => {
     expect(isExpoNotificationsInstalled('/definitely/not/a/real/path')).toBe(
       false,
     );
+  });
+
+  // Regression: detection used require.resolve, which walks up the directory
+  // tree and so found the copy of expo-notifications that a *sibling* workspace
+  // hoisted. The package is not linked into that app's Android build, and the
+  // generated service failed to compile with "Unresolved reference".
+  describe('in a workspace', () => {
+    const sampleApp = (name: string) =>
+      path.join(__dirname, '..', '..', '..', '..', 'sample-apps', name);
+
+    it('is false for an app that does not use expo-notifications', () => {
+      const projectRoot = sampleApp('react-native/ringing-tutorial');
+      // guard: the hoisted copy *is* reachable by walking up, which is the trap
+      expect(
+        fs.existsSync(
+          path.join(projectRoot, 'node_modules', 'expo-notifications'),
+        ),
+      ).toBe(false);
+      expect(isExpoNotificationsInstalled(projectRoot)).toBe(false);
+    });
+
+    it('is true for an app that does use expo-notifications', () => {
+      expect(
+        isExpoNotificationsInstalled(
+          sampleApp('react-native/expo-video-sample'),
+        ),
+      ).toBe(true);
+    });
+  });
+
+  it('detects a declared package even when hoisted out of the app', () => {
+    const projectRoot = path.join(tmpdir(), `stream-hoisted-${Date.now()}`);
+    fs.mkdirSync(projectRoot, { recursive: true });
+    fs.writeFileSync(
+      path.join(projectRoot, 'package.json'),
+      JSON.stringify({ dependencies: { 'expo-notifications': '~57.0.8' } }),
+    );
+    // nothing installed under the app: the declaration is the only signal
+    expect(isExpoNotificationsInstalled(projectRoot)).toBe(true);
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  });
+
+  it('detects a package installed under the app but not declared', () => {
+    const projectRoot = path.join(tmpdir(), `stream-transitive-${Date.now()}`);
+    const pkgDir = path.join(projectRoot, 'node_modules', 'expo-notifications');
+    fs.mkdirSync(pkgDir, { recursive: true });
+    fs.writeFileSync(path.join(projectRoot, 'package.json'), '{}');
+    fs.writeFileSync(path.join(pkgDir, 'package.json'), '{}');
+    expect(isExpoNotificationsInstalled(projectRoot)).toBe(true);
+    fs.rmSync(projectRoot, { recursive: true, force: true });
+  });
+
+  it('is false when the app package.json is unreadable and nothing is installed', () => {
+    const projectRoot = path.join(tmpdir(), `stream-broken-${Date.now()}`);
+    fs.mkdirSync(projectRoot, { recursive: true });
+    fs.writeFileSync(path.join(projectRoot, 'package.json'), 'not json');
+    expect(isExpoNotificationsInstalled(projectRoot)).toBe(false);
+    fs.rmSync(projectRoot, { recursive: true, force: true });
   });
 });
 
