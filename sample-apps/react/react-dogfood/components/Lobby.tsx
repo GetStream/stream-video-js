@@ -206,7 +206,7 @@ export const Lobby = ({ onJoin, mode = 'regular' }: LobbyProps) => {
                   src={`${
                     process.env.NEXT_PUBLIC_BASE_PATH || ''
                   }/lock-person.svg`}
-                  alt="Stream logo"
+                  alt={t('Stream logo')}
                   priority={false}
                   width={36}
                   height={24}

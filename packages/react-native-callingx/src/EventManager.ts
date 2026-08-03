@@ -7,33 +7,8 @@ import type {
   VoipEventName,
 } from './types';
 import { isVoipEvent, isTurboModuleEnabled } from './utils/utils';
-import type { AudioEndpointsSnapshot } from './types';
 
 type EventListener<T> = (params: T) => void;
-
-/**
- * Native carries the audio-endpoints snapshot as a single JSON string (`snapshot`) to survive
- * event-param flattening across the bridge. Expand it into the structured public shape here.
- */
-const normalizeEventParams = (event: EventData | VoipEventData): unknown => {
-  if (event.eventName !== 'didChangeAudioEndpoints') {
-    return event.params;
-  }
-  const raw = event.params as { callId?: string; snapshot?: string };
-  const fallback: AudioEndpointsSnapshot = {
-    endpoints: [],
-    currentEndpoint: null,
-  };
-  let snapshot = fallback;
-  if (raw.snapshot) {
-    try {
-      snapshot = JSON.parse(raw.snapshot) as AudioEndpointsSnapshot;
-    } catch {
-      snapshot = fallback;
-    }
-  }
-  return { callId: raw.callId, ...snapshot };
-};
 
 class EventManager<Name extends EventName | VoipEventName, Params> {
   private listenersCount: number = 0;
@@ -53,8 +28,7 @@ class EventManager<Name extends EventName | VoipEventName, Params> {
       const eventHandler = (event: EventData | VoipEventData) => {
         const eventListeners =
           this.eventListeners.get(event.eventName as Name) || [];
-        const params = normalizeEventParams(event);
-        eventListeners.forEach((listener) => listener(params as Params));
+        eventListeners.forEach((listener) => listener(event.params as Params));
       };
 
       if (isTurboModuleEnabled) {

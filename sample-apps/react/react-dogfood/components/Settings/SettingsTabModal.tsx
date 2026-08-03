@@ -28,7 +28,7 @@ import { VideoEffectsSettings } from './VideoEffects';
 import { TranscriptionSettings } from './Transcriptions';
 import { LanguageMenu } from './LanguageMenu';
 import { CallRecordings } from '../CallRecordings';
-import { useLanguage } from '../../hooks/useLanguage';
+import { useSettings } from '../../context/SettingsContext';
 import { useIsProntoEnvironment } from '../../context/AppEnvironmentContext';
 import { IncomingVideoSettingsDropdown } from '../IncomingVideoSettings';
 import { DeviceSelectionSettingsDropdown } from './DeviceSelection';
@@ -70,10 +70,11 @@ const Tab = ({ children, active, setActive }: PropsWithChildren<TabProps>) => {
 
 const TabPanel = ({ children }: PropsWithChildren) => {
   const { close } = useMenuContext();
+  const { t } = useI18n();
   return (
     <div className="rd__tab-panel">
       <div className="rd__tab-panel__header">
-        <h2 className="rd__tab-panel__heading">Settings</h2>
+        <h2 className="rd__tab-panel__heading">{t('Settings')}</h2>
         <IconButton
           className="rd__tab-panel__close"
           icon="close"
@@ -90,10 +91,11 @@ const SettingsTabModal = ({
   activeTab = 0,
 }: SettingsTabModalProps) => {
   const [active, setActive] = useState(activeTab);
+  const { t } = useI18n();
   return (
     <div className="rd__tabmodal-container">
       <div className="rd__tabmodal-sidebar">
-        <h2 className="rd__tabmodal-header">Settings</h2>
+        <h2 className="rd__tabmodal-header">{t('Settings')}</h2>
         {Children.map(children, (child, index) => {
           if (!child || !child.props.inMeeting || child.props.hidden) {
             return null;
@@ -128,7 +130,9 @@ export const SettingsTabModalMenu = (props: {
   tabModalProps: ToggleSettingsTabModalProps;
   layoutProps: LayoutSelectorProps;
 }) => {
-  const { setLanguage } = useLanguage();
+  const {
+    settings: { language, setLanguage },
+  } = useSettings();
   const { t } = useI18n();
 
   const { tabModalProps, layoutProps } = props;
@@ -151,14 +155,15 @@ export const SettingsTabModalMenu = (props: {
         />
         <IncomingVideoSettingsDropdown title={t('Incoming video quality')} />
         <div className="rd__tab-panel__note">
-          Actual incoming video quality depends on a number of factors, such as
-          the quality of the source video, and network conditions.
+          {t(
+            'Actual incoming video quality depends on a number of factors, such as the quality of the source video, and network conditions.',
+          )}
         </div>
         <DeviceSelectionSettingsDropdown
           title={t('Default device preference')}
         />
       </TabWrapper>
-      <TabWrapper icon="video-effects" label="Effects" inMeeting>
+      <TabWrapper icon="video-effects" label={t('Effects')} inMeeting>
         <VideoEffectsSettings />
       </TabWrapper>
       <TabWrapper icon="grid" label={t('Layout')} inMeeting>
@@ -177,7 +182,7 @@ export const SettingsTabModalMenu = (props: {
 
       <TabWrapper
         icon="transcriptions"
-        label="Transcriptions"
+        label={t('Transcriptions')}
         inMeeting
         hidden={!isPronto}
       >
@@ -185,7 +190,7 @@ export const SettingsTabModalMenu = (props: {
       </TabWrapper>
 
       <TabWrapper icon="language" label={t('Language')} inMeeting>
-        <LanguageMenu setLanguage={setLanguage} />
+        <LanguageMenu language={language} setLanguage={setLanguage!} />
       </TabWrapper>
 
       <TabWrapper

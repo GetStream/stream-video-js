@@ -40,6 +40,7 @@ export class Publisher extends BasePeerConnection {
   private readonly clonedTracks = new Set<MediaStreamTrack>();
   private publishOptions: PublishOption[];
   private readonly selfSubEnabled: boolean;
+  private readonly transceiverLockKey = `pub.tx.${this.lock}`;
 
   /**
    * Constructs a new `Publisher` instance.
@@ -107,28 +108,31 @@ export class Publisher extends BasePeerConnection {
     trackType: TrackType,
     options: TrackPublishOptions = {},
   ) => {
-    if (!this.publishOptions.some((o) => o.trackType === trackType)) {
-      throw new Error(`No publish options found for ${TrackType[trackType]}`);
-    }
+    return withoutConcurrency(this.transceiverLockKey, async () => {
+      const publishOptions = this.publishOptions.filter(
+        (o) => o.trackType === trackType,
+      );
+      if (!publishOptions.length) {
+        throw new Error(`No publish options found for ${TrackType[trackType]}`);
+      }
 
-    for (const publishOption of this.publishOptions) {
-      if (publishOption.trackType !== trackType) continue;
+      for (const publishOption of publishOptions) {
+        // create a clone of the track as otherwise the same trackId will
+        // appear in the SDP in multiple transceivers
+        const trackToPublish = this.cloneTrack(track);
 
-      // create a clone of the track as otherwise the same trackId will
-      // appear in the SDP in multiple transceivers
-      const trackToPublish = this.cloneTrack(track);
-
-      const bundle = this.transceiverCache.get(publishOption);
-      if (!bundle) {
-        await this.addTransceiver(trackToPublish, publishOption, options);
-      } else {
-        const previousTrack = bundle.transceiver.sender.track;
-        await this.updateTransceiver(bundle, trackToPublish, options);
-        if (!isReactNative()) {
-          this.stopTrack(previousTrack);
+        const bundle = this.transceiverCache.get(publishOption);
+        if (!bundle) {
+          await this.addTransceiver(trackToPublish, publishOption, options);
+        } else {
+          const previousTrack = bundle.transceiver.sender.track;
+          await this.updateTransceiver(bundle, trackToPublish, options);
+          if (!isReactNative()) {
+            this.stopTrack(previousTrack);
+          }
         }
       }
-    }
+    });
   };
 
   /**
@@ -139,6 +143,7 @@ export class Publisher extends BasePeerConnection {
     publishOption: PublishOption,
     options: TrackPublishOptions,
   ) => {
+    const trackType = publishOption.trackType;
     const encodings = isAudioTrackType(publishOption.trackType)
       ? computeAudioLayers(publishOption, options)
       : computeVideoLayers(track, publishOption);
@@ -149,17 +154,18 @@ export class Publisher extends BasePeerConnection {
       direction: 'sendonly',
       sendEncodings,
     });
+    // claim the cache entry in the same task that created the transceiver:
+    // an await in between would let a concurrent caller add a second one
+    // for the same publish option
+    this.transceiverCache.add({ publishOption, transceiver, options });
+    this.trackIdToTrackType.set(track.id, trackType);
+    this.logger.debug(`Added ${TrackType[trackType]} transceiver`);
 
     const params = transceiver.sender.getParameters();
     params.degradationPreference =
       toRTCDegradationPreference(publishOption.degradationPreference) ??
       'maintain-framerate';
     await transceiver.sender.setParameters(params);
-
-    const trackType = publishOption.trackType;
-    this.logger.debug(`Added ${TrackType[trackType]} transceiver`);
-    this.transceiverCache.add({ publishOption, transceiver, options });
-    this.trackIdToTrackType.set(track.id, trackType);
 
     await this.negotiate();
   };
@@ -225,38 +231,40 @@ export class Publisher extends BasePeerConnection {
    * Synchronizes the current Publisher state with the provided publish options.
    */
   private syncPublishOptions = async () => {
-    // enable publishing with new options -> [av1, vp9]
-    for (const publishOption of this.publishOptions) {
-      const { trackType } = publishOption;
-      if (!this.isPublishing(trackType)) continue;
-      if (this.transceiverCache.has(publishOption)) continue;
+    return withoutConcurrency(this.transceiverLockKey, async () => {
+      // enable publishing with new options -> [av1, vp9]
+      for (const publishOption of this.publishOptions) {
+        const { trackType } = publishOption;
+        if (!this.isPublishing(trackType)) continue;
+        if (this.transceiverCache.has(publishOption)) continue;
 
-      const item = this.transceiverCache.find(
-        (i) =>
-          !!i.transceiver.sender.track &&
-          i.publishOption.trackType === trackType,
-      );
-      if (!item) continue;
+        const item = this.transceiverCache.find(
+          (i) =>
+            !!i.transceiver.sender.track &&
+            i.publishOption.trackType === trackType,
+        );
+        if (!item) continue;
 
-      // take the track from the existing transceiver for the same track type,
-      // clone it and publish it with the new publish options
-      const track = this.cloneTrack(item.transceiver.sender.track!);
-      await this.addTransceiver(track, publishOption, item.options);
-    }
+        // take the track from the existing transceiver for the same track type,
+        // clone it and publish it with the new publish options
+        const track = this.cloneTrack(item.transceiver.sender.track!);
+        await this.addTransceiver(track, publishOption, item.options);
+      }
 
-    // stop publishing with options not required anymore -> [vp9]
-    for (const item of this.transceiverCache.items()) {
-      const { publishOption, transceiver } = item;
-      const hasPublishOption = this.publishOptions.some(
-        (option) =>
-          option.id === publishOption.id &&
-          option.trackType === publishOption.trackType,
-      );
-      if (hasPublishOption) continue;
-      // it is safe to stop the track here, it is a clone
-      this.stopTrack(transceiver.sender.track);
-      await this.updateTransceiver(item, null);
-    }
+      // stop publishing with options not required anymore -> [vp9]
+      for (const item of this.transceiverCache.items()) {
+        const { publishOption, transceiver } = item;
+        const hasPublishOption = this.publishOptions.some(
+          (option) =>
+            option.id === publishOption.id &&
+            option.trackType === publishOption.trackType,
+        );
+        if (hasPublishOption) continue;
+        // it is safe to stop the track here, it is a clone
+        this.stopTrack(transceiver.sender.track);
+        await this.updateTransceiver(item, null);
+      }
+    });
   };
 
   /**
@@ -456,12 +464,24 @@ export class Publisher extends BasePeerConnection {
   private negotiate = async (options?: RTCOfferOptions): Promise<void> => {
     return withoutConcurrency(`publisher.negotiate.${this.lock}`, async () => {
       const offer = await this.pc.createOffer(options);
-      const tracks = this.getAnnouncedTracks(offer.sdp);
-      if (!tracks.length) throw new Error(`Can't negotiate without any tracks`);
-
       try {
         this.isIceRestarting = options?.iceRestart ?? false;
         await this.pc.setLocalDescription(offer);
+
+        // the announced tracks have to be read after `setLocalDescription`.
+        // `transceiver.mid` is null until the offer is applied, and reading the
+        // tracks earlier makes `extractMid` guess the mid from the offer SDP.
+        // That guess goes stale after a rolled-back negotiation, and a mid that
+        // doesn't match the m-section carrying the track stops the SFU from
+        // correlating the two: it then answers with every offered codec instead
+        // of the announced one, and we publish the first codec of that list.
+        // Per https://www.w3.org/TR/webrtc/#set-description, applying a local
+        // offer associates the transceiver with its m-section and sets
+        // `[[Mid]]` to `[[JsepMid]]`; a rollback disassociates a transceiver
+        // that wasn't associated before and resets both slots to null.
+        const tracks = this.getAnnouncedTracks(offer.sdp);
+        if (!tracks.length)
+          throw new Error(`Can't negotiate without any tracks`);
 
         const { sdp: baseSdp = '' } = offer;
         const {

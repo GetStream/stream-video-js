@@ -5,7 +5,6 @@
 import { NativeModules, Platform } from 'react-native';
 import type { EndCallReason } from '@stream-io/react-native-callingx';
 import { getCallingxLibIfAvailable } from '../../push/libs/callingx';
-import { waitForAudioSessionActivation } from './audioSessionPromise';
 import type {
   Call,
   MemberResponse,
@@ -171,9 +170,6 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
       callDisplayName, // display name for display in call screen
       call.state.settings?.video?.enabled ?? false, // is video call?
     );
-    if (Platform.OS === 'ios') {
-      await waitForAudioSessionActivation();
-    }
   };
 
   if (
@@ -220,10 +216,6 @@ export async function joinCallingxCall(call: Call, activeCalls: Call[]) {
       );
 
       await CallingxModule.answerIncomingCall(call.cid);
-
-      if (Platform.OS === 'ios') {
-        await waitForAudioSessionActivation();
-      }
     } catch (error) {
       logger.error(
         `Error joining incoming call in callingx: ${call.cid}`,
