@@ -53,6 +53,7 @@
       [
         "@stream-io/video-react-native-sdk",
         {
+          "androidMessagingServiceBaseClass": "io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService",
           "ringing": true
         }
       ],
