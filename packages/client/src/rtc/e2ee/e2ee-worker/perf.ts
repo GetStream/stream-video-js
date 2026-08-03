@@ -1,12 +1,3 @@
-/**
- * Optional throughput reporting for the E2EE transforms: per-track frame rates
- * and worst-case crypto time, posted once per second while enabled.
- *
- * Diagnostics only - nothing here affects framing or crypto. While reporting is
- * off every entry point is a no-op, so the transforms can call them per frame
- * without a guard of their own.
- */
-
 /** Labels a perf sample carries. `codec` is known on the encode side only. */
 type StatLabels = { userId: string; trackType: string; codec?: string };
 

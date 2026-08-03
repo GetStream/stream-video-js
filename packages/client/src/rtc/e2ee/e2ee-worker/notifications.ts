@@ -1,25 +1,3 @@
-/**
- * Every host-facing signal the worker emits, and the delivery rules that go
- * with them (SPEC §10). Collected here so the rules can be read as one contract
- * instead of inferred from call sites scattered across the two transforms.
- *
- * The rules, in short:
- *
- * - **Levels are throttled.** `decryption_failed`, `missing_key` and
- *   `unencrypted_frame` describe a condition that persists, so one per second
- *   is enough: the next frame re-raises the same condition.
- * - **Edges are not.** `decryption_resumed` is a state transition. Throttling
- *   it would drop the transition for good and strand the host on
- *   `decryption_failed` for a track that has recovered. It is bounded instead
- *   by pairing: a recovery is only emitted for a failure that was delivered.
- * - **`encryption_failed` is latched** per track, re-arming once a frame
- *   encrypts again, so a permanently dead track reports once, not per frame.
- * - **Anything reported per track carries `trackType`**, or a peer's audio,
- *   video and screen share produce identical messages the host cannot act on.
- *   The encode-side `missing_key` is the one exception: no key at all stalls
- *   every outgoing track at once, so it is reported per user.
- */
-
 /** At most one notification per second per key. */
 const THROTTLE_INTERVAL_MS = 1000;
 
