@@ -114,47 +114,67 @@ describe('isExpoNotificationsInstalled', () => {
     });
   });
 
+  /**
+   * Runs `assertion` against a throwaway project directory. The directory is
+   * removed in a `finally` so a failing assertion does not leave it behind.
+   */
+  const withTempProject = (
+    files: Record<string, string>,
+    assertion: (projectRoot: string) => void,
+  ) => {
+    const projectRoot = fs.mkdtempSync(path.join(tmpdir(), 'stream-plugin-'));
+    try {
+      for (const [relativePath, contents] of Object.entries(files)) {
+        const target = path.join(projectRoot, relativePath);
+        fs.mkdirSync(path.dirname(target), { recursive: true });
+        fs.writeFileSync(target, contents);
+      }
+      assertion(projectRoot);
+    } finally {
+      fs.rmSync(projectRoot, { recursive: true, force: true });
+    }
+  };
+
   it('detects a declared package even when hoisted out of the app', () => {
-    const projectRoot = path.join(tmpdir(), `stream-hoisted-${Date.now()}`);
-    fs.mkdirSync(projectRoot, { recursive: true });
-    fs.writeFileSync(
-      path.join(projectRoot, 'package.json'),
-      JSON.stringify({ dependencies: { 'expo-notifications': '~57.0.8' } }),
+    withTempProject(
+      {
+        'package.json': JSON.stringify({
+          dependencies: { 'expo-notifications': '~57.0.8' },
+        }),
+      },
+      // nothing installed under the app: the declaration is the only signal
+      (projectRoot) =>
+        expect(isExpoNotificationsInstalled(projectRoot)).toBe(true),
     );
-    // nothing installed under the app: the declaration is the only signal
-    expect(isExpoNotificationsInstalled(projectRoot)).toBe(true);
-    fs.rmSync(projectRoot, { recursive: true, force: true });
   });
 
   it('ignores a devDependency, which is not linked into the build', () => {
-    const projectRoot = path.join(tmpdir(), `stream-devdep-${Date.now()}`);
-    fs.mkdirSync(projectRoot, { recursive: true });
-    fs.writeFileSync(
-      path.join(projectRoot, 'package.json'),
-      JSON.stringify({
-        devDependencies: { 'expo-notifications': '~57.0.8' },
-      }),
+    withTempProject(
+      {
+        'package.json': JSON.stringify({
+          devDependencies: { 'expo-notifications': '~57.0.8' },
+        }),
+      },
+      (projectRoot) =>
+        expect(isExpoNotificationsInstalled(projectRoot)).toBe(false),
     );
-    expect(isExpoNotificationsInstalled(projectRoot)).toBe(false);
-    fs.rmSync(projectRoot, { recursive: true, force: true });
   });
 
   it('detects a package installed under the app but not declared', () => {
-    const projectRoot = path.join(tmpdir(), `stream-transitive-${Date.now()}`);
-    const pkgDir = path.join(projectRoot, 'node_modules', 'expo-notifications');
-    fs.mkdirSync(pkgDir, { recursive: true });
-    fs.writeFileSync(path.join(projectRoot, 'package.json'), '{}');
-    fs.writeFileSync(path.join(pkgDir, 'package.json'), '{}');
-    expect(isExpoNotificationsInstalled(projectRoot)).toBe(true);
-    fs.rmSync(projectRoot, { recursive: true, force: true });
+    withTempProject(
+      {
+        'package.json': '{}',
+        'node_modules/expo-notifications/package.json': '{}',
+      },
+      (projectRoot) =>
+        expect(isExpoNotificationsInstalled(projectRoot)).toBe(true),
+    );
   });
 
   it('is false when the app package.json is unreadable and nothing is installed', () => {
-    const projectRoot = path.join(tmpdir(), `stream-broken-${Date.now()}`);
-    fs.mkdirSync(projectRoot, { recursive: true });
-    fs.writeFileSync(path.join(projectRoot, 'package.json'), 'not json');
-    expect(isExpoNotificationsInstalled(projectRoot)).toBe(false);
-    fs.rmSync(projectRoot, { recursive: true, force: true });
+    withTempProject({ 'package.json': 'not json' }, (projectRoot) =>
+      expect(isExpoNotificationsInstalled(projectRoot)).toBe(false),
+    );
   });
 });
 

@@ -5,23 +5,61 @@ import addBroadcastExtensionXcodeTarget, {
 
 const DEVELOPMENT_TEAM_ID = 'ABCDE12345';
 
+type StubOptions = {
+  /** Deployment targets on the host app target's own configurations. */
+  appTargets?: (string | number | undefined)[];
+  /** Deployment targets on the project-level configurations. */
+  projectTargets?: (string | number | undefined)[];
+  /**
+   * Deployment targets belonging to targets other than the host app (widgets,
+   * other extensions). These must never influence the resolved value.
+   */
+  otherTargets?: (string | number | undefined)[];
+};
+
 /**
  * Minimal stand-in for the parts of the `xcode` project object that
  * addBroadcastExtensionXcodeTarget touches. Captures the build configurations
  * it generates so they can be asserted on.
+ *
+ * Models real project structure: configurations live in the flat
+ * XCBuildConfiguration section, and each target reaches its own subset through
+ * an XCConfigurationList.
  */
 const createProjectStub = (
-  deploymentTargets: (string | number | undefined)[],
+  options: StubOptions | (string | number | undefined)[],
 ) => {
+  const {
+    appTargets = [],
+    projectTargets = [],
+    otherTargets = [],
+  } = Array.isArray(options) ? { appTargets: options } : options;
+
   const buildConfigurationSection: Record<string, any> = {};
-  deploymentTargets.forEach((target, index) => {
-    buildConfigurationSection[`UUID${index}`] = {
-      isa: 'XCBuildConfiguration',
-      buildSettings:
-        target === undefined ? {} : { IPHONEOS_DEPLOYMENT_TARGET: target },
-    };
-    buildConfigurationSection[`UUID${index}_comment`] = 'Debug';
-  });
+  const configurationLists: Record<string, any> = {};
+
+  const addList = (
+    listUuid: string,
+    targets: (string | number | undefined)[],
+    prefix: string,
+  ) => {
+    const buildConfigurations = targets.map((target, index) => {
+      const uuid = `${prefix}${index}`;
+      buildConfigurationSection[uuid] = {
+        isa: 'XCBuildConfiguration',
+        buildSettings:
+          target === undefined ? {} : { IPHONEOS_DEPLOYMENT_TARGET: target },
+      };
+      buildConfigurationSection[`${uuid}_comment`] = 'Debug';
+      return { value: uuid, comment: 'Debug' };
+    });
+    configurationLists[listUuid] = { buildConfigurations };
+  };
+
+  addList('APP_LIST', appTargets, 'APP');
+  addList('PROJECT_LIST', projectTargets, 'PROJ');
+  // reachable in the flat section but not from the app or project lists
+  addList('OTHER_LIST', otherTargets, 'OTHER');
 
   let uuidCounter = 0;
 
@@ -33,12 +71,15 @@ const createProjectStub = (
   return {
     addedConfigurations: [] as any[],
     pbxXCBuildConfigurationSection: () => buildConfigurationSection,
+    pbxXCConfigurationList: () => configurationLists,
     generateUuid: () => `GENERATED${uuidCounter++}`,
     getFirstProject: () => ({
       uuid: 'PROJECT_UUID',
-      firstProject: { targets: [] },
+      firstProject: { targets: [], buildConfigurationList: 'PROJECT_LIST' },
     }),
-    getFirstTarget: () => ({ firstTarget: { name: 'TestApp' } }),
+    getFirstTarget: () => ({
+      firstTarget: { name: 'TestApp', buildConfigurationList: 'APP_LIST' },
+    }),
     addXCConfigurationList(configurations: any[]) {
       this.addedConfigurations = configurations;
       return { uuid: 'CONFIG_LIST_UUID' };
@@ -87,6 +128,36 @@ describe('resolveDeploymentTarget', () => {
   it('ignores quoted values and non-version placeholders', () => {
     const proj = createProjectStub(['"16.4"', '$(inherited)', undefined]);
     expect(resolveDeploymentTarget(proj as any)).toBe('16.4');
+  });
+
+  it('rejects versions with a non-numeric suffix', () => {
+    // Number.parseInt('4beta') is 4, so a naive parse would adopt "16.4beta"
+    // verbatim and write an invalid value into the build setting.
+    const proj = createProjectStub(['16.4beta']);
+    expect(resolveDeploymentTarget(proj as any)).toBe(MIN_DEPLOYMENT_TARGET);
+
+    const withValid = createProjectStub(['16.4beta', '15.1']);
+    expect(resolveDeploymentTarget(withValid as any)).toBe('15.1');
+  });
+
+  it('reads the project-level target when the app target inherits it', () => {
+    const proj = createProjectStub({
+      appTargets: ['$(inherited)'],
+      projectTargets: ['16.4'],
+    });
+    expect(resolveDeploymentTarget(proj as any)).toBe('16.4');
+  });
+
+  // The extension must never require a newer iOS than the app it ships inside:
+  // a widget or notification-service extension on a higher target would
+  // otherwise silently drop screen share on devices in between.
+  it('ignores deployment targets belonging to unrelated targets', () => {
+    const proj = createProjectStub({
+      appTargets: ['15.1', '15.1'],
+      projectTargets: ['15.1'],
+      otherTargets: ['17.0', '18.0'],
+    });
+    expect(resolveDeploymentTarget(proj as any)).toBe('15.1');
   });
 
   it('satisfies the minimum accepted by Xcode 27 for a modern app', () => {

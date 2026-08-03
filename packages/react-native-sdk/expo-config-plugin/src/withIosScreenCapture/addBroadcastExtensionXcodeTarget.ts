@@ -24,17 +24,23 @@ type AddBuildPhaseParams = {
 export const MIN_DEPLOYMENT_TARGET = '14.0';
 
 /**
+ * A plain dotted version number, for example `15` or `16.4`. Anything else
+ * (`$(inherited)`, `16.4beta`) is not comparable and must not be adopted:
+ * `Number.parseInt` would silently accept a trailing suffix.
+ */
+const VERSION_PATTERN = /^\d+(?:\.\d+)*$/;
+
+/**
  * Returns true when `candidate` is a higher iOS version than `current`.
- * Values that are not plain version numbers (for example `$(inherited)`)
- * are treated as not higher.
+ * Values that are not plain version numbers are treated as not higher.
  */
 const isHigherVersion = (candidate: string, current: string) => {
+  if (!VERSION_PATTERN.test(candidate)) {
+    return false;
+  }
   const parse = (value: string) =>
     value.split('.').map((part) => Number.parseInt(part, 10));
   const parsedCandidate = parse(candidate);
-  if (parsedCandidate.some((part) => Number.isNaN(part))) {
-    return false;
-  }
   const parsedCurrent = parse(current);
   const length = Math.max(parsedCandidate.length, parsedCurrent.length);
   for (let index = 0; index < length; index++) {
@@ -48,23 +54,53 @@ const isHigherVersion = (candidate: string, current: string) => {
 };
 
 /**
+ * Deployment targets declared by the host app target and by the project itself.
+ *
+ * Scoped to those two on purpose. `pbxXCBuildConfigurationSection()` also
+ * returns configurations belonging to unrelated targets (widgets, share or
+ * notification-service extensions), and adopting the highest of those could make
+ * the broadcast extension require a newer iOS than the app it ships inside,
+ * which would silently drop screen share on devices in between.
+ */
+const collectHostDeploymentTargets = (proj: XcodeProject): string[] => {
+  const configurations = (proj.pbxXCBuildConfigurationSection?.() ??
+    {}) as Record<string, any>;
+  const configurationLists = (proj.pbxXCConfigurationList?.() ?? {}) as Record<
+    string,
+    any
+  >;
+
+  const listUuids = [
+    proj.getFirstTarget?.()?.firstTarget?.buildConfigurationList,
+    proj.getFirstProject?.()?.firstProject?.buildConfigurationList,
+  ].filter((uuid): uuid is string => typeof uuid === 'string');
+
+  const values: string[] = [];
+  for (const listUuid of listUuids) {
+    const entries = configurationLists[listUuid]?.buildConfigurations ?? [];
+    for (const entry of entries) {
+      const value =
+        configurations[entry?.value]?.buildSettings?.IPHONEOS_DEPLOYMENT_TARGET;
+      if (value === undefined || value === null) {
+        continue;
+      }
+      values.push(String(value).replace(/"/g, '').trim());
+    }
+  }
+  return values;
+};
+
+/**
  * Resolves the deployment target to use for the broadcast extension.
  *
- * The extension mirrors the highest deployment target already present in the
- * host project, so it never requires a newer iOS than the app itself and it
- * satisfies the minimum the toolchain accepts (Xcode 27 rejects anything below
- * 15.0). The value only ever moves up from {@link MIN_DEPLOYMENT_TARGET}.
+ * The extension mirrors the highest deployment target of its host app, so it
+ * never requires a newer iOS than the app itself and it satisfies the minimum
+ * the toolchain accepts (Xcode 27 rejects anything below 15.0). The value only
+ * ever moves up from {@link MIN_DEPLOYMENT_TARGET}.
  */
 export const resolveDeploymentTarget = (proj: XcodeProject) => {
-  const configurations = proj.pbxXCBuildConfigurationSection() ?? {};
   let resolved = MIN_DEPLOYMENT_TARGET;
-  for (const key of Object.keys(configurations)) {
-    const buildSettings = (configurations as any)[key]?.buildSettings;
-    const value = buildSettings?.IPHONEOS_DEPLOYMENT_TARGET;
-    if (value === undefined || value === null) {
-      continue;
-    }
-    const candidate = String(value).replace(/"/g, '').trim();
+  for (const candidate of collectHostDeploymentTargets(proj)) {
     if (isHigherVersion(candidate, resolved)) {
       resolved = candidate;
     }
