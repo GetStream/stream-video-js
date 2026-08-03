@@ -78,7 +78,7 @@ enum DefaultAudioDevice {
             // only exists under .playAndRecord.
             rtcConfig.category = AVAudioSession.Category.playback.rawValue
             rtcConfig.mode = AVAudioSession.Mode.spokenAudio.rawValue
-            rtcConfig.categoryOptions = []
+            rtcConfig.categoryOptions = [.mixWithOthers]
         } else {
             let currentDevice = stateQueue.sync { defaultAudioDevice }
 
@@ -90,7 +90,7 @@ enum DefaultAudioDevice {
                 let bluetoothOption: AVAudioSession.CategoryOptions = .allowBluetooth
             #endif
 
-            var categoryOptions: AVAudioSession.CategoryOptions = [bluetoothOption, .allowBluetoothA2DP]
+            var categoryOptions: AVAudioSession.CategoryOptions = [bluetoothOption, .allowBluetoothA2DP, .mixWithOthers]
             if currentDevice == .speaker {
                 categoryOptions.insert(.defaultToSpeaker)
             }
