@@ -64,12 +64,12 @@
     "@stream-io/typescript-config": "workspace:^",
     "@stream-io/video-styling": "workspace:^",
     "@types/node": "^25.9.3",
-    "@types/react": "~19.2.15",
-    "@types/react-dom": "~19.2.3",
+    "@types/react": "~19.2.18",
+    "@types/react-dom": "~19.2.4",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "rimraf": "^6.1.3",
-    "rollup": "^4.60.4",
+    "rollup": "^4.62.3",
     "typescript": "^6.0.3"
   }
 }
