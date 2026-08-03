@@ -15,11 +15,12 @@ export type Listener<P> = (payload: P) => void | Promise<void>;
  * so one bad listener cannot break dispatch for the rest.
  */
 export class TypedEventEmitter<M extends EventMap> {
-  private readonly emitterLogger: ScopedLogger;
+  protected readonly logger: ScopedLogger;
   private readonly byEvent = new Map<keyof M, Set<Listener<any>>>();
 
-  constructor(loggerScope = 'TypedEventEmitter') {
-    this.emitterLogger = videoLoggerSystem.getLogger(loggerScope);
+  constructor(logger: ScopedLogger | string = 'TypedEventEmitter') {
+    this.logger =
+      typeof logger === 'string' ? videoLoggerSystem.getLogger(logger) : logger;
   }
 
   on = <E extends keyof M>(event: E, fn: Listener<M[E]>): (() => void) => {
@@ -60,14 +61,11 @@ export class TypedEventEmitter<M extends EventMap> {
       const result = run();
       if (result && typeof (result as Promise<void>).then === 'function') {
         (result as Promise<void>).catch((err) => {
-          this.emitterLogger.warn(
-            `Listener for '${String(event)}' rejected`,
-            err,
-          );
+          this.logger.warn(`Listener for '${String(event)}' rejected`, err);
         });
       }
     } catch (err) {
-      this.emitterLogger.warn(`Listener for '${String(event)}' threw`, err);
+      this.logger.warn(`Listener for '${String(event)}' threw`, err);
     }
   };
 }

@@ -1,6 +1,5 @@
 import { preferredTransform } from './transformSupport';
 import { TypedEventEmitter } from '../../helpers/TypedEventEmitter';
-import { type ScopedLogger, videoLoggerSystem } from '../../logger';
 import type { E2EEEventMap } from './events';
 import type { E2EEManager } from './E2EEManager';
 
@@ -37,7 +36,6 @@ export class EncryptionManager
   extends TypedEventEmitter<E2EEEventMap>
   implements E2EEManager
 {
-  private readonly logger: ScopedLogger;
   private readonly algorithm: E2EEAlgorithm;
   private readonly transform: 'script' | 'insertable';
   private disposed = false;
@@ -55,7 +53,6 @@ export class EncryptionManager
     transform: 'script' | 'insertable',
   ) {
     super('EncryptionManager');
-    this.logger = videoLoggerSystem.getLogger('EncryptionManager');
     this.userId = userId;
     this.worker = worker;
     this.workerUrl = workerUrl;
