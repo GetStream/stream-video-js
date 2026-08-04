@@ -50,8 +50,7 @@ function getAndroidPackage(config: {
   modResults?: unknown;
 }): string {
   const modResults = config.modResults as
-    | AndroidConfig.Manifest.AndroidManifest
-    | undefined;
+    AndroidConfig.Manifest.AndroidManifest | undefined;
   const pkg = config.android?.package ?? modResults?.manifest?.$?.package;
   if (!pkg) {
     throw new Error(

@@ -48,7 +48,7 @@
   },
   "homepage": "https://github.com/GetStream/stream-video-js#readme",
   "devDependencies": {
-    "@stream-io/react-native-webrtc": "145.1.1",
+    "@stream-io/react-native-webrtc": "145.2.0",
     "@stream-io/typescript-config": "workspace:^",
     "react": "19.2.3",
     "react-native": "0.86.2",
@@ -57,7 +57,7 @@
     "typescript": "^6.0.3"
   },
   "peerDependencies": {
-    "@stream-io/react-native-webrtc": "^145.1.1",
+    "@stream-io/react-native-webrtc": "^145.2.0",
     "react-native": "*"
   },
   "react-native-builder-bob": {
