@@ -1,4 +1,4 @@
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { useChatContext } from 'stream-chat-react';
 import { StreamCall } from '@stream-io/video-react-sdk';
 
