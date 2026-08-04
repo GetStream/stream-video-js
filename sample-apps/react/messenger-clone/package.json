@@ -18,12 +18,12 @@
     "clsx": "^2.1.1",
     "dayjs": "^1.11.20",
     "immer": "^9.0.21",
-    "nanoid": "^5.1.11",
+    "nanoid": "^5.1.16",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-router-dom": "^6.30.3",
-    "stream-chat": "^9.49.0",
-    "stream-chat-react": "^14.6.1"
+    "stream-chat": "^9.50.2",
+    "stream-chat-react": "^14.10.0"
   },
   "devDependencies": {
     "@stream-io/typescript-config": "workspace:^",
