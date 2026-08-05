@@ -55,23 +55,37 @@ describe('StreamVideoClient', () => {
 
   it('public endpoints can be called without authentication', async () => {
     const userId = 'guest-' + generateUUIDv4();
-    const doAxiosRequest = vi
-      .spyOn(client.streamClient, 'doAxiosRequest')
-      .mockResolvedValue({
-        data: { user: { id: userId } },
-      } as any);
+    const post = vi.spyOn(client.streamClient.axiosInstance, 'post');
+    post.mockResolvedValue({
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {},
+      data: {
+        user: {
+          id: userId,
+          created_at: 1704067200000000000,
+          updated_at: 1704067200000000000,
+        },
+      },
+    } as any);
 
     const response = await client.createGuestUser({
       user: { id: userId },
     });
 
-    expect(doAxiosRequest).toHaveBeenCalledWith(
-      'post',
+    expect(post).toHaveBeenCalledWith(
       '/api/v2/guest',
       { user: { id: userId } },
-      { publicEndpoint: true },
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'stream-auth-type': 'anonymous',
+        }),
+      }),
     );
     expect(response.user.id).toContain(userId);
+    expect(response.user.created_at).toBe('2024-01-01T00:00:00.000Z');
+    expect(response.user.updated_at).toBe('2024-01-01T00:00:00.000Z');
   });
 
   it(`private endpoints can't be called without authentication`, async () => {

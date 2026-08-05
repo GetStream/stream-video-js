@@ -35,6 +35,7 @@ import {
   CreateGuestRequest,
   CreateGuestResponse,
 } from '../../gen/coordinator';
+import { decoders } from '../../gen/coordinator/model-decoders/decoders';
 import { makeSafePromise, type SafePromise } from '../../helpers/promise';
 import { ScopedLogger, videoLoggerSystem } from '../../logger';
 
@@ -328,13 +329,17 @@ export class StreamClient {
     this.resolveConnectionId = undefined;
   };
 
-  connectGuestUser = async (user: User & { type: 'guest' }) => {
-    this.guestUserCreatePromise = this.doAxiosRequest<
+  createGuestUser = async (data: CreateGuestRequest) => {
+    const response = await this.doAxiosRequest<
       CreateGuestResponse,
       CreateGuestRequest
-    >('post', '/api/v2/guest', { user }, { publicEndpoint: true }).then(
-      (response) => response.data,
-    );
+    >('post', '/api/v2/guest', data, { publicEndpoint: true });
+    decoders.CreateGuestResponse(response.data);
+    return response.data;
+  };
+
+  connectGuestUser = async (user: User & { type: 'guest' }) => {
+    this.guestUserCreatePromise = this.createGuestUser({ user });
 
     const response = await this.guestUserCreatePromise;
     this.guestUserCreatePromise.finally(

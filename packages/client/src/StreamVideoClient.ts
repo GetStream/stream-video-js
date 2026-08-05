@@ -13,7 +13,6 @@ import type {
   ConnectedEvent,
   CreateDeviceRequest,
   CreateGuestRequest,
-  CreateGuestResponse,
   QueryAggregateCallStatsRequest,
   QueryCallsRequest,
   QueryCallStatsRequest,
@@ -441,11 +440,7 @@ export class StreamVideoClient {
    * @param data the data for the guest user.
    */
   createGuestUser = async (data: CreateGuestRequest) => {
-    const response = await this.streamClient.doAxiosRequest<
-      CreateGuestResponse,
-      CreateGuestRequest
-    >('post', '/api/v2/guest', data, { publicEndpoint: true });
-    return response.data;
+    return this.streamClient.createGuestUser(data);
   };
 
   /**
