@@ -76,6 +76,18 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
+    fun setDisableCommunicationModeWorkaround(disabled: Boolean) {
+        AudioDeviceManager.runInAudioThread {
+            if (audioManagerActivated) {
+                Log.e(TAG, "setDisableCommunicationModeWorkaround(): AudioManager is already activated and so it cannot be changed")
+                return@runInAudioThread
+            }
+            Log.d(TAG, "setDisableCommunicationModeWorkaround(): $disabled")
+            mAudioDeviceManager.disableCommunicationWorkaround = disabled
+        }
+    }
+
+    @ReactMethod
     fun setDefaultAudioDeviceEndpointType(endpointDeviceTypeName: String) {
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
@@ -185,7 +197,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
 
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun getAudioStateLog(): String {
-        return WebRtcAudioUtils.getAudioStateLog(reactApplicationContext)
+        return WebRtcAudioUtils.getAudioStateLog(reactApplicationContext) +
+            "Communication workaround: ${mAudioDeviceManager.communicationWorkaroundState()}\n"
     }
 
     @Suppress("unused")

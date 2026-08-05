@@ -372,6 +372,18 @@ export class CallManager {
     if (config?.audioRole === 'communicator') {
       const type = config.deviceEndpointType ?? 'speaker';
       NativeManager.setDefaultAudioDeviceEndpointType(type);
+      // Only forward when explicitly set, so this per-call config never clobbers a
+      // sticky preference set via setDisableCommunicationModeWorkaround().
+      if (
+        Platform.OS === 'android' &&
+        config.disableCommunicationModeWorkaround !== undefined
+      ) {
+        safeNativeCall('setDisableCommunicationModeWorkaround', () =>
+          NativeManager.setDisableCommunicationModeWorkaround(
+            config.disableCommunicationModeWorkaround ?? false,
+          ),
+        );
+      }
     }
     if (config?.audioRole === 'listener' && config.enableStereoAudioOutput) {
       NativeManager.setEnableStereoAudioOutput(true);
@@ -390,6 +402,23 @@ export class CallManager {
       return;
     }
     NativeManager.stop();
+  };
+
+  /**
+   * Android only. Opt out of the Android 11+ communication-mode keep-alive workaround.
+   *
+   * The SDK plays a silent voice-communication track during communicator-role calls to
+   * stop Android from resetting `MODE_IN_COMMUNICATION` (which breaks routing/AEC).
+   * No-op on iOS and on Android below API 30.
+   * See {@link https://issuetracker.google.com/issues/209493718}
+   */
+  setDisableCommunicationModeWorkaround = (disabled: boolean): void => {
+    if (Platform.OS !== 'android') {
+      return;
+    }
+    safeNativeCall('setDisableCommunicationModeWorkaround', () =>
+      NativeManager.setDisableCommunicationModeWorkaround(disabled),
+    );
   };
 
   /**
