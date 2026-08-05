@@ -1,5 +1,7 @@
 import { Call } from './Call';
 import { StreamClient } from './coordinator/connection/client';
+import { ApiClient } from './coordinator/connection/api-client';
+import { VideoApi } from './gen/coordinator/video/VideoApi';
 import {
   CallingState,
   StreamVideoReadOnlyStateStore,
@@ -11,15 +13,9 @@ import type {
   ConnectedEvent,
   CreateDeviceRequest,
   CreateGuestRequest,
-  CreateGuestResponse,
-  GetEdgesResponse,
-  ListDevicesResponse,
   QueryAggregateCallStatsRequest,
-  QueryAggregateCallStatsResponse,
   QueryCallsRequest,
-  QueryCallsResponse,
   QueryCallStatsRequest,
-  QueryCallStatsResponse,
 } from './gen/coordinator';
 import {
   AllClientEvents,
@@ -61,6 +57,7 @@ export class StreamVideoClient {
 
   protected readonly writeableStateStore: StreamVideoWriteableStateStore;
   streamClient: StreamClient;
+  private readonly videoApi: VideoApi;
   readonly clientEventReporter: ClientEventReporter;
 
   private effectsRegistered = false;
@@ -99,6 +96,7 @@ export class StreamVideoClient {
     this.rejectCallWhenBusy = clientOptions?.rejectCallWhenBusy ?? false;
 
     this.streamClient = createCoordinatorClient(apiKey, clientOptions);
+    this.videoApi = new VideoApi(new ApiClient(this.streamClient));
     this.clientEventReporter = new ClientEventReporter({
       streamClient: this.streamClient,
       enabled: clientOptions?.clientEventsReportingEnabled ?? true,
@@ -442,10 +440,7 @@ export class StreamVideoClient {
    * @param data the data for the guest user.
    */
   createGuestUser = async (data: CreateGuestRequest) => {
-    return this.streamClient.doAxiosRequest<
-      CreateGuestResponse,
-      CreateGuestRequest
-    >('post', '/guest', data, { publicEndpoint: true });
+    return this.streamClient.createGuestUser(data);
   };
 
   /**
@@ -454,10 +449,7 @@ export class StreamVideoClient {
    * @param data the query data.
    */
   queryCalls = async (data: QueryCallsRequest = {}) => {
-    const response = await this.streamClient.post<
-      QueryCallsResponse,
-      QueryCallsRequest
-    >('/calls', data);
+    const response = await this.videoApi.queryCalls({ body: data });
     const calls = [];
     for (const c of response.calls) {
       const call = new Call({
@@ -491,10 +483,7 @@ export class StreamVideoClient {
    * @returns List with summary of available call reports matching the condition.
    */
   queryCallStats = async (data: QueryCallStatsRequest = {}) => {
-    return this.streamClient.post<
-      QueryCallStatsResponse,
-      QueryCallStatsRequest
-    >(`/call/stats`, data);
+    return this.videoApi.queryCallStats(data);
   };
 
   /**
@@ -506,17 +495,14 @@ export class StreamVideoClient {
   queryAggregateCallStats = async (
     data: QueryAggregateCallStatsRequest = {},
   ) => {
-    return this.streamClient.post<
-      QueryAggregateCallStatsResponse,
-      QueryAggregateCallStatsRequest
-    >(`/stats`, data);
+    return this.videoApi.queryAggregateCallStats(data);
   };
 
   /**
    * Returns a list of available data centers available for hosting calls.
    */
   edges = async () => {
-    return this.streamClient.get<GetEdgesResponse>(`/edges`);
+    return this.videoApi.getEdges();
   };
 
   /**
@@ -535,13 +521,14 @@ export class StreamVideoClient {
     userID?: string,
     voip_token?: boolean,
   ) => {
-    return await this.streamClient.post<CreateDeviceRequest>('/devices', {
+    const request: CreateDeviceRequest = {
       id,
-      push_provider,
+      push_provider: push_provider as CreateDeviceRequest['push_provider'],
       voip_token,
       ...(userID != null ? { user_id: userID } : {}),
       ...(push_provider_name != null ? { push_provider_name } : {}),
-    });
+    };
+    return await this.videoApi.createDevice(request);
   };
 
   /**
@@ -569,26 +556,22 @@ export class StreamVideoClient {
 
   /**
    * getDevices - Returns the devices associated with a current user
-   * @param {string} [userID] User ID. Only works on serverside
+   * @param _userID
    */
-  getDevices = async (userID?: string) => {
-    return await this.streamClient.get<ListDevicesResponse>(
-      '/devices',
-      userID ? { user_id: userID } : {},
-    );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getDevices = async (_userID?: string) => {
+    return this.videoApi.listDevices();
   };
 
   /**
    * removeDevice - Removes the device with the given id.
    *
    * @param {string} id The device id
-   * @param {string} [userID] The user id. Only specify this for serverside requests
+   * @param _userID
    */
-  removeDevice = async (id: string, userID?: string) => {
-    return await this.streamClient.delete('/devices', {
-      id,
-      ...(userID ? { user_id: userID } : {}),
-    });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  removeDevice = async (id: string, _userID?: string) => {
+    return this.videoApi.deleteDevice({ id });
   };
 
   /**

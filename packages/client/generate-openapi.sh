@@ -1,46 +1,22 @@
 #!/bin/bash
 set -euo pipefail
 
-FROM_REPO=$1;
 
-if  [ "$FROM_REPO" == 'chat' ]; then
-  PROTOCOL_REPO_DIR="../../../chat"
-else
-  PROTOCOL_REPO_DIR="../../../protocol"
-fi
-if  [ "$FROM_REPO" == 'chat' ]; then
-  SCHEMA_FILE="$PROTOCOL_REPO_DIR/releases/video-openapi-clientside.yaml"
-elif [ "$FROM_REPO" == 'protocol' ]; then
-  SCHEMA_FILE="$PROTOCOL_REPO_DIR/openapi/video-openapi-clientside.yaml"
-else
-  SCHEMA_FILE=$FROM_REPO
-fi
+PKG_DIR="$(cd "$(dirname "$0")" && pwd)"
+CHAT_DIR="$(cd "${1:-$PKG_DIR/../../../chat}" && pwd)"
+SPEC_FILE="$CHAT_DIR/releases/v2/video-clientside-api.yaml"
+OUT="$PKG_DIR/src/gen/coordinator"
 
-if  [ "$FROM_REPO" == 'chat' ]; then
-  # Generate the Coordinator OpenAPI schema
-  make -C $PROTOCOL_REPO_DIR openapi
-fi
+KEEP="video"
+OPTS=(--opt date_type=string)
 
-OUTPUT_DIR="./src/gen/coordinator"
-TEMP_OUTPUT_DIR="./src/gen/openapi-temp"
+[ -x "$CHAT_DIR/build/chat-manager" ] || make -C "$CHAT_DIR/projects/chat-manager" build
+[ -f "$SPEC_FILE" ] || make -C "$CHAT_DIR" openapi >/dev/null
 
-# Clean previous output
-rm -rf $TEMP_OUTPUT_DIR
-rm -rf $OUTPUT_DIR
+rm -rf "$OUT" && mkdir -p "$OUT"
+"$CHAT_DIR/build/chat-manager" openapi generate-client \
+  --language ts --spec "$SPEC_FILE" --output "$OUT" "${OPTS[@]}"
 
-# NOTE: https://openapi-generator.tech/docs/generators/typescript-fetch/
-# Generate the Coordinator API models
-yarn openapi-generator-cli generate \
-  -i "$SCHEMA_FILE" \
-  -g typescript-fetch \
-  -o "$TEMP_OUTPUT_DIR" \
-  --additional-properties=supportsES6=true \
-  --additional-properties=modelPropertyNaming=original \
-  --additional-properties=enumPropertyNaming=UPPERCASE \
-  --additional-properties=withoutRuntimeChecks=true
+echo "export * from './models';" > "$OUT/index.ts"
 
-# Remove the generated API client, just keep the models
-cp -r $TEMP_OUTPUT_DIR/models $OUTPUT_DIR
-rm -rf $TEMP_OUTPUT_DIR
-
-yarn prettier --write $OUTPUT_DIR
+yarn prettier --log-level=warn --write "$OUT" >/dev/null 2>&1 || true

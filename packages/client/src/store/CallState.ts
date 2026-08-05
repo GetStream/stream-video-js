@@ -45,7 +45,7 @@ import {
   UnblockedUserEvent,
   UpdatedCallPermissionsEvent,
   UserResponse,
-  VideoEvent,
+  WSEvent,
 } from '../gen/coordinator';
 import { Timestamp } from '../gen/google/protobuf/timestamp';
 import { ReconnectDetails } from '../gen/video/sfu/event/events';
@@ -340,8 +340,8 @@ export class CallState {
   private closedCaptionsTasks = new Map<string, NodeJS.Timeout>();
 
   private readonly eventHandlers: {
-    [EventType in VideoEvent['type']]:
-      | ((event: Extract<VideoEvent, { type: EventType }>) => void)
+    [EventType in WSEvent['type']]:
+      | ((event: Extract<WSEvent, { type: EventType }>) => void)
       | undefined;
   };
 
@@ -471,6 +471,17 @@ export class CallState {
 
     this.eventHandlers = {
       // these events are not updating the call state:
+      'app.updated': undefined,
+      'call.dtmf': undefined,
+      'ingress.error': undefined,
+      'ingress.started': undefined,
+      'ingress.stopped': undefined,
+      'user.banned': undefined,
+      'user.deactivated': undefined,
+      'user.deleted': undefined,
+      'user.presence.changed': undefined,
+      'user.reactivated': undefined,
+      'user.unbanned': undefined,
       'call.frame_recording_ready': undefined,
       'call.kicked_user': undefined,
       'call.moderation_blur': undefined,
@@ -1154,7 +1165,7 @@ export class CallState {
    *
    * @param event the video event that our backend sent us.
    */
-  updateFromEvent = (event: VideoEvent) => {
+  updateFromEvent = (event: WSEvent) => {
     const update = this.eventHandlers[event.type];
     if (update) {
       update(event as any);

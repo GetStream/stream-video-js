@@ -4,10 +4,8 @@ import { NoiseCancellationStub } from './NoiseCancellationStub';
 import { Call } from '../../Call';
 import { StreamClient } from '../../coordinator/connection/client';
 import { sleep } from '../../coordinator/connection/utils';
-import {
-  NoiseCancellationSettingsModeEnum,
-  OwnCapability,
-} from '../../gen/coordinator';
+import { NoiseCancellationSettingsModeEnum } from '../../compat';
+import { OwnCapability } from '../../gen/coordinator';
 import {
   AudioBitrateProfile,
   TrackType,
