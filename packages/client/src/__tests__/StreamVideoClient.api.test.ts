@@ -18,6 +18,7 @@ import type {
   GetEdgesResponse,
   ListDevicesResponse,
   QueryCallsResponse,
+  QueryCallStatsMapResponse,
   QueryCallStatsResponse,
 } from '../gen/coordinator';
 
@@ -25,9 +26,6 @@ const apiKey = 'mock-api-key';
 
 describe('StreamVideoClient - coordinator API', () => {
   let client: StreamVideoClient;
-  // Legacy endpoints still use the streamClient helpers. Generated v2 endpoints
-  // go through ApiClient -> streamClient.doAxiosRequest.
-  let post: Mock<StreamClient['post']>;
   let doAxiosRequest: Mock<StreamClient['doAxiosRequest']>;
 
   const mockAxiosResponse = <T>(data: T): AxiosResponse<T> => ({
@@ -40,7 +38,6 @@ describe('StreamVideoClient - coordinator API', () => {
 
   beforeEach(() => {
     client = new StreamVideoClient(apiKey, { browser: true });
-    post = vi.spyOn(client.streamClient, 'post');
     doAxiosRequest = vi.spyOn(client.streamClient, 'doAxiosRequest');
   });
 
@@ -149,6 +146,49 @@ describe('StreamVideoClient - coordinator API', () => {
     expect(result).toMatchObject(response);
   });
 
+  it('get call stats map', async () => {
+    const response: QueryCallStatsMapResponse = {
+      call_id: 'test',
+      call_session_id: 'session-1',
+      call_type: 'default',
+      duration: '1ms',
+      counts: {
+        live_sessions: 0,
+        participants: 0,
+        peak_concurrent_sessions: 0,
+        peak_concurrent_users: 0,
+        publishers: 0,
+        sessions: 0,
+        sfus_used: 0,
+      },
+    };
+    doAxiosRequest.mockResolvedValue(mockAxiosResponse(response));
+
+    const call = client.call('default', 'test');
+    const result = await call.getCallStatsMap(
+      {
+        start_time: new Date('2024-01-01T00:00:00.000Z'),
+        end_time: '2024-01-01T00:30:00.000Z',
+        exclude_sfus: true,
+      },
+      'session-1',
+    );
+
+    expect(doAxiosRequest).toHaveBeenCalledWith(
+      'get',
+      'https://video.stream-io-api.com/api/v2/video/call_stats/default/test/session-1/map',
+      undefined,
+      expect.objectContaining({
+        params: {
+          start_time: '2024-01-01T00:00:00.000Z',
+          end_time: '2024-01-01T00:30:00.000Z',
+          exclude_sfus: true,
+        },
+      }),
+    );
+    expect(result).toMatchObject(response);
+  });
+
   it('edges', async () => {
     const response: GetEdgesResponse = { duration: '1ms', edges: [] };
     doAxiosRequest.mockResolvedValue(mockAxiosResponse(response));
@@ -172,7 +212,7 @@ describe('StreamVideoClient - coordinator API', () => {
     };
 
     it('add device', async () => {
-      post.mockResolvedValue(undefined);
+      doAxiosRequest.mockResolvedValue(mockAxiosResponse({ duration: '1ms' }));
 
       await client.addDevice(
         device.id,
@@ -180,16 +220,21 @@ describe('StreamVideoClient - coordinator API', () => {
         device.push_provider_name,
       );
 
-      expect(post).toHaveBeenCalledWith('/devices', {
-        id: device.id,
-        push_provider: device.push_provider,
-        voip_token: undefined,
-        push_provider_name: device.push_provider_name,
-      });
+      expect(doAxiosRequest).toHaveBeenCalledWith(
+        'post',
+        'https://video.stream-io-api.com/api/v2/devices',
+        {
+          id: device.id,
+          push_provider: device.push_provider,
+          voip_token: undefined,
+          push_provider_name: device.push_provider_name,
+        },
+        expect.any(Object),
+      );
     });
 
     it('add voip device', async () => {
-      post.mockResolvedValue(undefined);
+      doAxiosRequest.mockResolvedValue(mockAxiosResponse({ duration: '1ms' }));
 
       await client.addVoipDevice(
         device.id + 'voip',
@@ -197,12 +242,17 @@ describe('StreamVideoClient - coordinator API', () => {
         device.push_provider_name!,
       );
 
-      expect(post).toHaveBeenCalledWith('/devices', {
-        id: device.id + 'voip',
-        push_provider: device.push_provider,
-        voip_token: true,
-        push_provider_name: device.push_provider_name,
-      });
+      expect(doAxiosRequest).toHaveBeenCalledWith(
+        'post',
+        'https://video.stream-io-api.com/api/v2/devices',
+        {
+          id: device.id + 'voip',
+          push_provider: device.push_provider,
+          voip_token: true,
+          push_provider_name: device.push_provider_name,
+        },
+        expect.any(Object),
+      );
     });
 
     it('get devices', async () => {

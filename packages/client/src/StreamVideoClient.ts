@@ -526,13 +526,14 @@ export class StreamVideoClient {
     userID?: string,
     voip_token?: boolean,
   ) => {
-    return await this.streamClient.post<CreateDeviceRequest>('/devices', {
+    const request: CreateDeviceRequest = {
       id,
-      push_provider,
+      push_provider: push_provider as CreateDeviceRequest['push_provider'],
       voip_token,
       ...(userID != null ? { user_id: userID } : {}),
       ...(push_provider_name != null ? { push_provider_name } : {}),
-    });
+    };
+    return await this.videoApi.createDevice(request);
   };
 
   /**

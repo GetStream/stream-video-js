@@ -332,7 +332,7 @@ export class StreamClient {
     this.guestUserCreatePromise = this.doAxiosRequest<
       CreateGuestResponse,
       CreateGuestRequest
-    >('post', '/video/guest', { user }, { publicEndpoint: true }).then(
+    >('post', '/api/v2/guest', { user }, { publicEndpoint: true }).then(
       (response) => response.data,
     );
 

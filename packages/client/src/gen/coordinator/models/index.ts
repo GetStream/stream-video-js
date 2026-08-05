@@ -3577,7 +3577,7 @@ export interface IndividualRecordingSettingsResponse {
 export interface IngressAudioEncodingOptionsRequest {
   bitrate: number;
 
-  channels: '1' | '2';
+  channels: 1 | 2;
 
   enable_dtx?: boolean;
 }
@@ -3638,7 +3638,7 @@ export interface IngressSettingsResponse {
 }
 
 export interface IngressSourceRequest {
-  fps: '30' | '60';
+  fps: 30 | 60;
 
   height: number;
 

@@ -942,7 +942,6 @@ export class Call {
     await this.setup();
 
     const response = await this.api.getOrCreate(data);
-    console.log('getOrCreate', response);
 
     this.state.updateFromCallResponse(response.call);
     this.state.setMembers(response.members);
@@ -3081,9 +3080,25 @@ export class Call {
     callSessionId: string | undefined = this.state.session?.id,
   ): Promise<QueryCallStatsMapResponse> => {
     if (!callSessionId) throw new Error('callSessionId is required');
-    return this.streamClient.get<QueryCallStatsMapResponse>(
-      `${this.streamClient.baseURL}/call_stats/${this.type}/${this.id}/${callSessionId}/map`,
-      params,
+
+    const { start_time, end_time, ...queryParams } = params;
+    return this.videoApi.getCallStatsMap(
+      {
+        call_type: this.type,
+        call_id: this.id,
+        session: callSessionId,
+      },
+      {
+        ...queryParams,
+        ...(start_time !== undefined && {
+          start_time:
+            start_time instanceof Date ? start_time.toISOString() : start_time,
+        }),
+        ...(end_time !== undefined && {
+          end_time:
+            end_time instanceof Date ? end_time.toISOString() : end_time,
+        }),
+      },
     );
   };
 
