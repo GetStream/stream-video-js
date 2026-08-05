@@ -19,7 +19,7 @@
     "hls.js": "^1.6.16",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-router-dom": "^6.30.4"
+    "react-router-dom": "^7.0.0"
   },
   "devDependencies": {
     "@stream-io/typescript-config": "workspace:^",
