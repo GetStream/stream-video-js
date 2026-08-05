@@ -4,6 +4,8 @@ import android.content.Context
 import com.google.firebase.messaging.RemoteMessage
 import io.getstream.rn.callingx.utils.LifecycleListener
 import io.getstream.rn.callingx.utils.SettingsStore
+import io.invertase.firebase.common.ReactNativeFirebaseEventEmitter
+import io.invertase.firebase.messaging.ReactNativeFirebaseMessagingSerializer
 
 
 /**
@@ -32,6 +34,15 @@ import io.getstream.rn.callingx.utils.SettingsStore
  *     }
  *   }
  * }
+ * ```
+ *
+ * If your service does NOT extend [ReactNativeFirebaseMessagingService] (e.g. it extends
+ * another SDK's service), also forward token refreshes so Stream can re-register the device:
+ * ```
+ *   override fun onNewToken(token: String) {
+ *     super.onNewToken(token)
+ *     StreamMessagingHelper.forwardNewToken(token)
+ *   }
  * ```
  */
 object StreamMessagingHelper {
@@ -80,5 +91,21 @@ object StreamMessagingHelper {
     }
 
     CallService.startIncomingCallFromPush(context.applicationContext, data)
+  }
+
+  /**
+   * Re-emits React Native Firebase's `onTokenRefresh` JS event so Stream can re-register the
+   * rotated device token. Call from your service's `onNewToken` when the base class is NOT
+   * `ReactNativeFirebaseMessagingService` (otherwise the base already emits it). No-op if React
+   * Native Firebase is unavailable.
+   */
+  @JvmStatic
+  fun forwardNewToken(token: String) {
+    try {
+      ReactNativeFirebaseEventEmitter.getSharedInstance()
+        .sendEvent(ReactNativeFirebaseMessagingSerializer.newTokenToTokenEvent(token))
+    } catch (t: Throwable) {
+      debugLog(TAG, "failed to forward new FCM token to JS: ${t.message}")
+    }
   }
 }

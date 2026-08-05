@@ -35,7 +35,6 @@ class CallingxModuleImpl(
         const val EXTRA_MUTED = "is_muted"
         const val EXTRA_ON_HOLD = "hold"
         const val EXTRA_DISCONNECT_CAUSE = "disconnect_cause"
-        const val EXTRA_AUDIO_ENDPOINTS_SNAPSHOT = "audio_endpoints_snapshot"
         const val EXTRA_SOURCE = "source"
         const val EXTRA_ACTION = "action_name"
 
@@ -516,15 +515,7 @@ class CallingxModuleImpl(
                 sendJSEvent("didPerformSetMutedCallAction", params)
             }
             CALL_AUDIO_ENDPOINTS_CHANGED_ACTION -> {
-                // The snapshot (a JSON string with endpoints + currentEndpoint) is parsed on the
-                // JS side. Carried as a single string field to survive event param flattening.
-                if (extras.containsKey(EXTRA_AUDIO_ENDPOINTS_SNAPSHOT)) {
-                    params.putString(
-                            "snapshot",
-                            extras.getString(EXTRA_AUDIO_ENDPOINTS_SNAPSHOT),
-                    )
-                }
-                sendJSEvent("didChangeAudioEndpoints", params)
+                sendJSEvent("didChangeAudioRoute", params)
             }
         }
     }

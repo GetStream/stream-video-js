@@ -37,7 +37,8 @@ export type ScreenShareOptions = {
    * (e.g., YouTube video audio) mixed with the user's microphone.
    *
    * - iOS in-app: Audio captured from RPScreenRecorder `.audioApp` buffers.
-   * - iOS broadcast: Audio mixing is **not** currently supported.
+   * - iOS broadcast: Audio captured in the Broadcast Upload Extension and
+   *   streamed to the app over a dedicated socket, then mixed into the audio track.
    * - Android: Audio captured via AudioPlaybackCaptureConfiguration (API 29+).
    *
    * Default: `false`.

@@ -6,9 +6,9 @@ import React, {
   useEffect,
 } from 'react';
 
-import { MMKV } from 'react-native-mmkv';
+import { createMMKV } from 'react-native-mmkv';
 
-export const mmkvStorage = new MMKV();
+export const mmkvStorage = createMMKV();
 
 /**
  * Creates a Atomic store context with a provider and hooks to access the store
@@ -27,8 +27,7 @@ export default function createStoreContext<
 ) {
   type SetStateFuncType = (
     partialStateOrFunc:
-      | Partial<StoreType>
-      | ((prevState: StoreType) => Partial<StoreType>),
+      Partial<StoreType> | ((prevState: StoreType) => Partial<StoreType>),
   ) => void;
 
   // returns unsubscribe function
