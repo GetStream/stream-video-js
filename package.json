@@ -74,7 +74,6 @@
     "@eslint/js": "^9.39.5",
     "@jscutlery/semver": "^6.2.0",
     "@nx/devkit": "^22.7.8",
-    "babel-preset-expo": "57.0.5",
     "eslint": "^9.39.5",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
