@@ -39,8 +39,7 @@ export const ReconnectReason = {
 } as const;
 
 export type ReconnectReason =
-  | (typeof ReconnectReason)[keyof typeof ReconnectReason]
-  | (string & {});
+  (typeof ReconnectReason)[keyof typeof ReconnectReason] | (string & {});
 
 export type OnReconnectionNeeded = (
   kind: WebsocketReconnectStrategy,

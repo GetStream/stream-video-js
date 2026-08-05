@@ -55,8 +55,7 @@ const isAndroidTelecomManaged = (): boolean => {
  * the extra narrowing here is what makes that provable to the type-checker.
  */
 const getTelecomContext = ():
-  | { cx: NonNullable<typeof CallingxModule>; callId: string }
-  | undefined => {
+  { cx: NonNullable<typeof CallingxModule>; callId: string } | undefined => {
   if (!isAndroidTelecomManaged() || !CallingxModule) {
     return undefined;
   }

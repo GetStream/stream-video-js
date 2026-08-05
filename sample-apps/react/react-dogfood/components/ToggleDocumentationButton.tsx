@@ -12,7 +12,7 @@ import {
 export const ToggleMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->(function ToggleMenuButton(props, ref) {
+>(function ToggleMenuButtonRender(props, ref) {
   return (
     <CompositeButton
       className="rd__documentation-button"

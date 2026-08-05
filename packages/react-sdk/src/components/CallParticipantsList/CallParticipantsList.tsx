@@ -226,7 +226,7 @@ const BlockedUsersSearchResults = ({
 };
 
 const ToggleButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  function ToggleButton(props, ref) {
+  function ToggleButtonRender(props, ref) {
     return <IconButton enabled={props.menuShown} icon="filter" ref={ref} />;
   },
 );

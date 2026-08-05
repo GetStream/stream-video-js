@@ -48,9 +48,7 @@ export interface EmbeddedAnonymousUser {
  * Discriminated union for embedded user configuration.
  */
 export type EmbeddedUser =
-  | EmbeddedAuthenticatedUser
-  | EmbeddedGuestUser
-  | EmbeddedAnonymousUser;
+  EmbeddedAuthenticatedUser | EmbeddedGuestUser | EmbeddedAnonymousUser;
 
 /**
  * Base props shared by EmbeddedCall and EmbeddedLivestream.

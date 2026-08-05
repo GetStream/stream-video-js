@@ -43,8 +43,7 @@ const handleWebhook = (req: NextApiRequest, res: NextApiResponse) => {
 
     let event: any;
     let processor:
-      | ((client: StreamClient, event: any) => Promise<void>)
-      | undefined;
+      ((client: StreamClient, event: any) => Promise<void>) | undefined;
 
     try {
       event = JSON.parse(body);

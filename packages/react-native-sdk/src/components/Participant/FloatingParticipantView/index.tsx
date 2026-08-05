@@ -25,10 +25,7 @@ import { useFloatingVideoDimensions } from './useFloatingVideoDimensions';
 import { type StreamVideoParticipant } from '@stream-io/video-client';
 
 export type FloatingParticipantViewAlignment =
-  | 'top-left'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom-right';
+  'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
 /**
  * Props to be passed for the LocalVideoView component.

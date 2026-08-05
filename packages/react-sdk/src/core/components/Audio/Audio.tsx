@@ -18,7 +18,7 @@ export type AudioProps = ComponentPropsWithoutRef<'audio'> & {
   trackType?: AudioTrackType;
 };
 
-export const Audio = memo(function Audio({
+export const Audio = memo(function AudioRender({
   participant,
   trackType = 'audioTrack',
   ...rest

@@ -47,8 +47,4 @@ export type RootStackParamList = {
 };
 
 export type ScreenTypes =
-  | 'lobby'
-  | 'error-join'
-  | 'error-leave'
-  | 'active-call'
-  | 'loading';
+  'lobby' | 'error-join' | 'error-leave' | 'active-call' | 'loading';

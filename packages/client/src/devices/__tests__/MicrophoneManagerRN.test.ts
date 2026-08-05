@@ -16,8 +16,7 @@ import { settled, withoutConcurrency } from '../../helpers/concurrency';
 import { ClientEventReporter } from '../../reporting';
 
 let speechActivityCallback:
-  | ((state: { isSoundDetected: boolean }) => void)
-  | null = null;
+  ((state: { isSoundDetected: boolean }) => void) | null = null;
 let unsubscribeMocks: ReturnType<typeof vi.fn>[] = [];
 
 vi.mock('../../helpers/platforms.ts', () => {
