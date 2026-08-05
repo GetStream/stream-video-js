@@ -20,11 +20,9 @@ export default function MapStats(props: ServerSideCredentialsProps) {
     const start_time = query['start_time'] as string | undefined;
     const end_time = query['end_time'] as string | undefined;
     const exclude_publishers = query['exclude_publishers'] as
-      | string
-      | undefined;
+      string | undefined;
     const exclude_subscribers = query['exclude_subscribers'] as
-      | string
-      | undefined;
+      string | undefined;
     const exclude_sfus = query['exclude_sfus'] as string | undefined;
 
     const _client = getClient({ apiKey, user, userToken }, environment);

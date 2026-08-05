@@ -17,9 +17,7 @@ export type KeepAliveAndroidNotificationTexts = {
 };
 
 export type NonRingingPushEvent =
-  | 'call.live_started'
-  | 'call.notification'
-  | 'call.missed';
+  'call.live_started' | 'call.notification' | 'call.missed';
 
 export type StreamVideoConfig = {
   /**

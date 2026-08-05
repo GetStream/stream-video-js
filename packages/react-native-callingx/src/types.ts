@@ -4,11 +4,7 @@ export type DefaultDeviceEndpointType = 'speaker' | 'earpiece';
 
 /** Generic Telecom audio endpoint type names (Android). */
 export type AudioEndpointType =
-  | 'earpiece'
-  | 'speaker'
-  | 'wired_headset'
-  | 'bluetooth'
-  | 'unknown';
+  'earpiece' | 'speaker' | 'wired_headset' | 'bluetooth' | 'unknown';
 
 /** A single Telecom audio endpoint. `id` is opaque and passed back to select it. */
 export type AudioEndpoint = {
@@ -404,8 +400,7 @@ export type EventParams = {
 };
 
 export type VoipEventName =
-  | 'voipNotificationsRegistered'
-  | 'voipNotificationReceived';
+  'voipNotificationsRegistered' | 'voipNotificationReceived';
 
 export type VoipEventParams = {
   voipNotificationsRegistered: {

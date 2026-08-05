@@ -52,7 +52,7 @@ const ParticipantsPreview = ({ onJoin }: Props) => {
 };
 
 const ToggleMenuButton = forwardRef<HTMLDivElement, ToggleMenuButtonProps>(
-  function ToggleMenuButton(props, ref) {
+  function ToggleMenuButtonRender(props, ref) {
     const { useCallSession } = useCallStateHooks();
     const session = useCallSession();
     const { t } = useI18n();

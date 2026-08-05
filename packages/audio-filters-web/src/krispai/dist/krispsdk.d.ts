@@ -218,16 +218,7 @@ export declare type ISDKPartialOptions = {
   }>;
 };
 export declare type ISampleRate =
-  | number
-  | 8000
-  | 12000
-  | 16000
-  | 24000
-  | 32000
-  | 44100
-  | 48000
-  | 88200
-  | 96000;
+  number | 8000 | 12000 | 16000 | 24000 | 32000 | 44100 | 48000 | 88200 | 96000;
 export declare type PartialRecord<K extends keyof any, T> = {
   [P in K]?: T;
 };

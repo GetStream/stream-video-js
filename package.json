@@ -71,10 +71,10 @@
     "postinstall": "husky"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
-    "@jscutlery/semver": "^6.1.2",
-    "@nx/devkit": "^22.7.5",
-    "eslint": "^9.39.4",
+    "@eslint/js": "^9.39.5",
+    "@jscutlery/semver": "^6.2.0",
+    "@nx/devkit": "^22.7.8",
+    "eslint": "^9.39.5",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-compiler": "^19.1.0-rc.2",
@@ -82,11 +82,11 @@
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "nx": "^22.7.5",
-    "prettier": "^3.8.3",
+    "nx": "^22.7.8",
+    "prettier": "^3.9.6",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.60.0",
-    "vite": "^8.0.14"
+    "typescript-eslint": "^8.65.0",
+    "vite": "^8.2.0"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": "yarn eslint --cache --fix",

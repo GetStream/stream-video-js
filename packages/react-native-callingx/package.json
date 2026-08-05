@@ -63,7 +63,7 @@
     "@react-native/babel-preset": "0.86.2",
     "@stream-io/react-native-webrtc": "145.2.0",
     "@stream-io/typescript-config": "workspace:^",
-    "@types/react": "^19.2.15",
+    "@types/react": "^19.2.18",
     "del-cli": "^6.0.0",
     "react": "19.2.3",
     "react-native": "0.86.2",
