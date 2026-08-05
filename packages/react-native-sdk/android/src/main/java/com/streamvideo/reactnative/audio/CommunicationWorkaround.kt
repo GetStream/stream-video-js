@@ -84,11 +84,16 @@ internal class SilentAudioTrackCommunicationWorkaround(
      */
     private var watchdog: ScheduledExecutorService? = null
 
+    @Volatile
+    private var running = false
+
     override fun start() {
+        running = true
         playAudioTrackIfNeeded()
     }
 
     override fun stop() {
+        running = false
         pauseAudioTrackIfNeeded()
         stopModeWatchdog()
     }
@@ -223,6 +228,8 @@ internal class SilentAudioTrackCommunicationWorkaround(
                 {
                     // Serialize the mode read/write with all other routing on the audio thread.
                     AudioDeviceManager.runInAudioThread {
+                        // Bail if we've been stopped/disposed since this tick was queued
+                        if (!running) return@runInAudioThread
                         val audioManager = context.getSystemService(AUDIO_SERVICE) as AudioManager
                         if (audioManager.mode != AudioManager.MODE_IN_COMMUNICATION) {
                             Log.d(TAG, "Mode watchdog: re-asserting MODE_IN_COMMUNICATION.")

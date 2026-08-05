@@ -181,10 +181,8 @@ class AudioDeviceManager(
         }
     }
 
-    fun stop(activity: Activity) {
+    fun stop(activity: Activity?) {
         runInAudioThread {
-            // Stop the keep-alive first (unconditional/idempotent), before route teardown
-            // and before the block below reassigns callAudioRole/telecomManagedMode.
             communicationWorkaround.stop()
             if (callAudioRole == CallAudioRole.Communicator) {
                 if (!telecomManagedMode) {
@@ -205,7 +203,7 @@ class AudioDeviceManager(
                 defaultAudioDevice = AudioDeviceEndpoint.TYPE_SPEAKER
                 proximityManager.stop()
             }
-            activity.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
+            activity?.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
             if (!telecomManagedMode) {
                 audioFocusUtil.abandonFocus()
             }
@@ -299,9 +297,14 @@ class AudioDeviceManager(
     }
 
     override fun close() {
-        communicationWorkaround.dispose()
-        mAudioManager.unregisterAudioDeviceCallback(this)
-        proximityManager.onDestroy()
+        // Queue teardown on the same single-thread audio executor as start()/stop() so it
+        // is serialized after any pending audio work and can't race a queued start() that
+        // would otherwise touch the workaround's audioTrack/watchdog after disposal.
+        runInAudioThread {
+            communicationWorkaround.dispose()
+            mAudioManager.unregisterAudioDeviceCallback(this)
+            proximityManager.onDestroy()
+        }
     }
 
     /** Short description of the keep-alive workaround state, for the audio debug log. */

@@ -141,10 +141,8 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
         AudioDeviceManager.runInAudioThread {
             if (audioManagerActivated) {
                 Log.d(TAG, "stop() mAudioDeviceManager")
-                reactApplicationContext.currentActivity?.let {
-                    mAudioDeviceManager.stop(it)
-                    audioManagerActivated = false
-                }
+                mAudioDeviceManager.stop(reactApplicationContext.currentActivity)
+                audioManagerActivated = false
                 setMicrophoneMute(false)
                 setKeepScreenOn(false)
             }
