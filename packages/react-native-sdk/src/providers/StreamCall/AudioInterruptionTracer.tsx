@@ -34,8 +34,7 @@ export const AudioInterruptionTracer = () => {
     const removeInCallManagerListener =
       callManager.ios.addAudioInterruptionListener(traceAudioInterruption);
     const callingx = getCallingxLibIfAvailable() as
-      | CallingxAudioInterruptionEvents
-      | undefined;
+      CallingxAudioInterruptionEvents | undefined;
     const callingxSubscription = callingx?.addEventListener(
       'didAudioInterruption',
       traceAudioInterruption,

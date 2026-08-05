@@ -143,10 +143,7 @@ export interface StreamVideoParticipant extends Participant {
 export type VideoTrackType = 'videoTrack' | 'screenShareTrack';
 export type AudioTrackType = 'audioTrack' | 'screenShareAudioTrack';
 export type TrackMuteType =
-  | 'audio'
-  | 'video'
-  | 'screenshare'
-  | 'screenshare_audio';
+  'audio' | 'video' | 'screenshare' | 'screenshare_audio';
 
 /**
  * Represents a participant's pin state.

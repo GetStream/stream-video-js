@@ -16,23 +16,23 @@
     "@mui/material": "^6.5.0",
     "@stream-io/video-react-sdk": "workspace:^",
     "clsx": "^2.1.1",
-    "dayjs": "^1.11.20",
+    "dayjs": "^1.11.21",
     "immer": "^9.0.21",
     "nanoid": "^5.1.16",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-router-dom": "^6.30.3",
+    "react-router-dom": "^6.30.4",
     "stream-chat": "^9.50.2",
     "stream-chat-react": "^14.10.0"
   },
   "devDependencies": {
     "@stream-io/typescript-config": "workspace:^",
-    "@types/react": "~19.2.15",
-    "@types/react-dom": "~19.2.3",
-    "@vitejs/plugin-react": "^6.0.2",
+    "@types/react": "~19.2.18",
+    "@types/react-dom": "~19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
     "dotenv": "^16.6.1",
-    "sass": "^1.100.0",
+    "sass": "^1.102.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.14"
+    "vite": "^8.2.0"
   }
 }

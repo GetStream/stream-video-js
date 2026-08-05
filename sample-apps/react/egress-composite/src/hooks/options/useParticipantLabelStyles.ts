@@ -53,14 +53,14 @@ export const useParticipantLabelStyles = () => {
         }
 
         & .str-video__participant-view {
-          justify-content: ${positionMap.horizontal[
-            participantLabelHorizontalPosition
-          ]};
+          justify-content: ${
+            positionMap.horizontal[participantLabelHorizontalPosition]
+          };
 
           .str-video__participant-details {
-            align-self: ${positionMap.vertical[
-              participantLabelVerticalPosition
-            ]};
+            align-self: ${
+              positionMap.vertical[participantLabelVerticalPosition]
+            };
             margin-inline: ${participantLabelMarginInline};
             margin-block: ${participantLabelMarginBlock};
 

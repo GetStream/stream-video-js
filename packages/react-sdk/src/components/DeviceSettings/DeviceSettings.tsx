@@ -41,7 +41,7 @@ const Menu = () => {
 const ToggleDeviceSettingsMenuButton = forwardRef<
   HTMLButtonElement,
   ToggleMenuButtonProps
->(function ToggleDeviceSettingsMenuButton({ menuShown }, ref) {
+>(function ToggleDeviceSettingsMenuButtonRender({ menuShown }, ref) {
   const { t } = useI18n();
   return (
     <IconButton

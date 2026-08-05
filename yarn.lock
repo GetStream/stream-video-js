@@ -2012,7 +2012,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.39.5, @eslint/js@npm:^9.39.4":
+"@eslint/js@npm:9.39.5, @eslint/js@npm:^9.39.5":
   version: 9.39.5
   resolution: "@eslint/js@npm:9.39.5"
   checksum: 10/042d522f28da10ab205f368a94b620334418eb13a5226e50f7edd03dbe26809eb477d0b7a4dc3968b43a98f6ce594f6c03731214c3e0386fd5bcb74fdb9df64c
@@ -3139,7 +3139,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/dom@npm:^1.6.3, @floating-ui/dom@npm:^1.7.6, @floating-ui/dom@npm:^1.8.0":
+"@floating-ui/dom@npm:^1.6.3, @floating-ui/dom@npm:^1.8.0":
   version: 1.8.0
   resolution: "@floating-ui/dom@npm:1.8.0"
   dependencies:
@@ -3161,7 +3161,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@floating-ui/react@npm:^0.27.19":
+"@floating-ui/react@npm:^0.27.19, @floating-ui/react@npm:^0.27.20":
   version: 0.27.20
   resolution: "@floating-ui/react@npm:0.27.20"
   dependencies:
@@ -3990,7 +3990,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jscutlery/semver@npm:^6.1.2":
+"@jscutlery/semver@npm:^6.2.0":
   version: 6.2.0
   resolution: "@jscutlery/semver@npm:6.2.0"
   dependencies:
@@ -4491,7 +4491,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/devkit@npm:^22.7.5":
+"@nx/devkit@npm:^22.7.8":
   version: 22.7.8
   resolution: "@nx/devkit@npm:22.7.8"
   dependencies:
@@ -4578,7 +4578,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openapitools/openapi-generator-cli@npm:^2.34.0":
+"@openapitools/openapi-generator-cli@npm:^2.40.1":
   version: 2.40.1
   resolution: "@openapitools/openapi-generator-cli@npm:2.40.1"
   dependencies:
@@ -4853,7 +4853,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:^1.60.0":
+"@playwright/test@npm:^1.62.1":
   version: 1.62.1
   resolution: "@playwright/test@npm:1.62.1"
   dependencies:
@@ -5575,7 +5575,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-firebase/app@npm:^24.0.0":
+"@react-native-firebase/app@npm:^24.1.1":
   version: 24.1.1
   resolution: "@react-native-firebase/app@npm:24.1.1"
   dependencies:
@@ -5591,7 +5591,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-firebase/messaging@npm:^24.0.0":
+"@react-native-firebase/messaging@npm:^24.1.1":
   version: 24.1.1
   resolution: "@react-native-firebase/messaging@npm:24.1.1"
   peerDependencies:
@@ -6540,7 +6540,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/nextjs@npm:^10.53.1":
+"@sentry/nextjs@npm:^10.69.0":
   version: 10.69.0
   resolution: "@sentry/nextjs@npm:10.69.0"
   dependencies:
@@ -6624,7 +6624,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/react@npm:10.69.0, @sentry/react@npm:^10.53.1":
+"@sentry/react@npm:10.69.0, @sentry/react@npm:^10.69.0":
   version: 10.69.0
   resolution: "@sentry/react@npm:10.69.0"
   dependencies:
@@ -6680,7 +6680,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry/vite-plugin@npm:^5.3.0":
+"@sentry/vite-plugin@npm:^5.4.0":
   version: 5.4.0
   resolution: "@sentry/vite-plugin@npm:5.4.0"
   dependencies:
@@ -6785,11 +6785,11 @@ __metadata:
   resolution: "@stream-io/audio-filters-web@workspace:packages/audio-filters-web"
   dependencies:
     "@stream-io/typescript-config": "workspace:^"
-    "@types/node": "npm:^25.9.3"
-    concurrently: "npm:^9.2.1"
+    "@types/node": "npm:^25.9.5"
+    concurrently: "npm:^9.2.4"
     rimraf: "npm:^6.1.3"
     typescript: "npm:^6.0.3"
-    vite: "npm:^8.0.14"
+    vite: "npm:^8.2.0"
     wasm-feature-detect: "npm:^1.8.0"
   languageName: unknown
   linkType: soft
@@ -6800,14 +6800,14 @@ __metadata:
   dependencies:
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.15"
-    "@types/react-dom": "npm:~19.2.3"
-    "@vitejs/plugin-react": "npm:^6.0.2"
+    "@types/react": "npm:~19.2.18"
+    "@types/react-dom": "npm:~19.2.4"
+    "@vitejs/plugin-react": "npm:^6.0.5"
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
-    react-router-dom: "npm:^6.30.3"
+    react-router-dom: "npm:^6.30.4"
     typescript: "npm:^6.0.3"
-    vite: "npm:^8.0.14"
+    vite: "npm:^8.2.0"
   languageName: unknown
   linkType: soft
 
@@ -6821,13 +6821,13 @@ __metadata:
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
     "@stream-io/video-styling": "workspace:^"
-    "@types/react": "npm:~19.2.15"
-    "@types/react-dom": "npm:~19.2.3"
-    "@vitejs/plugin-react": "npm:^6.0.2"
+    "@types/react": "npm:~19.2.18"
+    "@types/react-dom": "npm:~19.2.4"
+    "@vitejs/plugin-react": "npm:^6.0.5"
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
     typescript: "npm:^6.0.3"
-    vite: "npm:^8.0.14"
+    vite: "npm:^8.2.0"
   languageName: unknown
   linkType: soft
 
@@ -6836,20 +6836,20 @@ __metadata:
   resolution: "@stream-io/egress-composite@workspace:sample-apps/react/egress-composite"
   dependencies:
     "@emotion/css": "npm:^11.13.5"
-    "@playwright/test": "npm:^1.60.0"
-    "@sentry/react": "npm:^10.53.1"
-    "@sentry/vite-plugin": "npm:^5.3.0"
+    "@playwright/test": "npm:^1.62.1"
+    "@sentry/react": "npm:^10.69.0"
+    "@sentry/vite-plugin": "npm:^5.4.0"
     "@skooldev/skool-stream-layout": "npm:1.0.22"
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.15"
-    "@types/react-dom": "npm:~19.2.3"
-    "@vitejs/plugin-react": "npm:^6.0.2"
+    "@types/react": "npm:~19.2.18"
+    "@types/react-dom": "npm:~19.2.4"
+    "@vitejs/plugin-react": "npm:^6.0.5"
     nanoid: "npm:^5.1.16"
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
     typescript: "npm:^6.0.3"
-    vite: "npm:^8.0.14"
+    vite: "npm:^8.2.0"
   languageName: unknown
   linkType: soft
 
@@ -6870,16 +6870,16 @@ __metadata:
     "@config-plugins/react-native-webrtc": "npm:^15.0.1"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native-community/netinfo": "npm:12.0.1"
-    "@react-native-firebase/app": "npm:^24.0.0"
-    "@react-native-firebase/messaging": "npm:^24.0.0"
+    "@react-native-firebase/app": "npm:^24.1.1"
+    "@react-native-firebase/messaging": "npm:^24.1.1"
     "@react-native/metro-config": "npm:^0.86.2"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
     "@stream-io/react-native-callingx": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:145.2.0"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.15"
-    "@types/react-dom": "npm:~19.2.3"
+    "@types/react": "npm:~19.2.18"
+    "@types/react-dom": "npm:~19.2.4"
     expo: "npm:~57.0.9"
     expo-build-properties: "npm:~57.0.8"
     expo-constants: "npm:~57.0.8"
@@ -6911,16 +6911,16 @@ __metadata:
     "@mui/material": "npm:^6.5.0"
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.15"
-    "@types/react-dom": "npm:~19.2.3"
-    "@vitejs/plugin-react": "npm:^6.0.2"
+    "@types/react": "npm:~19.2.18"
+    "@types/react-dom": "npm:~19.2.4"
+    "@vitejs/plugin-react": "npm:^6.0.5"
     clsx: "npm:^2.1.1"
     hls.js: "npm:^1.6.16"
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
-    react-router-dom: "npm:^6.30.3"
+    react-router-dom: "npm:^6.30.4"
     typescript: "npm:^6.0.3"
-    vite: "npm:^8.0.14"
+    vite: "npm:^8.2.0"
   languageName: unknown
   linkType: soft
 
@@ -6939,22 +6939,22 @@ __metadata:
     "@mui/material": "npm:^6.5.0"
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.15"
-    "@types/react-dom": "npm:~19.2.3"
-    "@vitejs/plugin-react": "npm:^6.0.2"
+    "@types/react": "npm:~19.2.18"
+    "@types/react-dom": "npm:~19.2.4"
+    "@vitejs/plugin-react": "npm:^6.0.5"
     clsx: "npm:^2.1.1"
-    dayjs: "npm:^1.11.20"
+    dayjs: "npm:^1.11.21"
     dotenv: "npm:^16.6.1"
     immer: "npm:^9.0.21"
     nanoid: "npm:^5.1.16"
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
-    react-router-dom: "npm:^6.30.3"
-    sass: "npm:^1.100.0"
+    react-router-dom: "npm:^6.30.4"
+    sass: "npm:^1.102.0"
     stream-chat: "npm:^9.50.2"
     stream-chat-react: "npm:^14.10.0"
     typescript: "npm:^6.0.3"
-    vite: "npm:^8.0.14"
+    vite: "npm:^8.2.0"
   languageName: unknown
   linkType: soft
 
@@ -6999,7 +6999,7 @@ __metadata:
     "@react-native/babel-preset": "npm:0.86.2"
     "@stream-io/react-native-webrtc": "npm:145.2.0"
     "@stream-io/typescript-config": "workspace:^"
-    "@types/react": "npm:^19.2.15"
+    "@types/react": "npm:^19.2.18"
     del-cli: "npm:^6.0.0"
     react: "npm:19.2.3"
     react-native: "npm:0.86.2"
@@ -7032,13 +7032,13 @@ __metadata:
   dependencies:
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.15"
-    "@types/react-dom": "npm:~19.2.3"
-    "@vitejs/plugin-react": "npm:^6.0.2"
+    "@types/react": "npm:~19.2.18"
+    "@types/react-dom": "npm:~19.2.4"
+    "@vitejs/plugin-react": "npm:^6.0.5"
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
     typescript: "npm:^6.0.3"
-    vite: "npm:^8.0.14"
+    vite: "npm:^8.2.0"
   languageName: unknown
   linkType: soft
 
@@ -7060,7 +7060,7 @@ __metadata:
     "@stream-io/video-client": "workspace:^"
     "@vitejs/plugin-basic-ssl": "npm:^2.3.0"
     typescript: "npm:^6.0.3"
-    vite: "npm:^8.0.14"
+    vite: "npm:^8.2.0"
   languageName: unknown
   linkType: soft
 
@@ -7074,7 +7074,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-client@workspace:packages/client"
   dependencies:
-    "@openapitools/openapi-generator-cli": "npm:^2.34.0"
+    "@openapitools/openapi-generator-cli": "npm:^2.40.1"
     "@protobuf-ts/runtime": "npm:^2.11.1"
     "@protobuf-ts/runtime-rpc": "npm:^2.11.1"
     "@protobuf-ts/twirp-transport": "npm:^2.11.1"
@@ -7086,21 +7086,21 @@ __metadata:
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/worker-timer": "npm:^1.2.5"
     "@total-typescript/shoehorn": "npm:^0.1.2"
-    "@types/node": "npm:^25.9.3"
+    "@types/node": "npm:^25.9.5"
     "@types/sdp-transform": "npm:^2.15.0"
     "@types/ua-parser-js": "npm:^0.7.39"
-    "@vitest/coverage-v8": "npm:^4.1.7"
+    "@vitest/coverage-v8": "npm:^4.1.10"
     axios: "npm:^1.19.0"
     dotenv: "npm:^16.6.1"
-    happy-dom: "npm:^20.9.0"
-    prettier: "npm:^3.8.3"
+    happy-dom: "npm:^20.11.1"
+    prettier: "npm:^3.9.6"
     rimraf: "npm:^6.1.3"
-    rollup: "npm:^4.60.4"
+    rollup: "npm:^4.62.4"
     rxjs: "npm:~7.8.2"
     sdp-transform: "npm:^2.15.0"
     typescript: "npm:^6.0.3"
     ua-parser-js: "npm:^1.0.41"
-    vitest: "npm:^4.1.7"
+    vitest: "npm:^4.1.10"
     vitest-mock-extended: "npm:^4.0.0"
     webrtc-adapter: "npm:^8.2.4"
   languageName: unknown
@@ -7112,7 +7112,7 @@ __metadata:
   dependencies:
     "@types/jscodeshift": "npm:^17.3.0"
     jscodeshift: "npm:^17.4.0"
-    vitest: "npm:^4.1.7"
+    vitest: "npm:^4.1.10"
   bin:
     video-codemod: ./bin/cli.js
   languageName: unknown
@@ -7144,11 +7144,11 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/worker-timer": "npm:^1.2.5"
-    "@types/dom-mediacapture-transform": "npm:^0.1.11"
+    "@types/dom-mediacapture-transform": "npm:^0.1.12"
     "@types/emscripten": "npm:^1.41.5"
-    "@types/node": "npm:^25.9.3"
+    "@types/node": "npm:^25.9.5"
     rimraf: "npm:^6.1.3"
-    rollup: "npm:^4.60.4"
+    rollup: "npm:^4.62.4"
     typescript: "npm:^6.0.3"
     wasm-feature-detect: "npm:^1.8.0"
   languageName: unknown
@@ -7158,10 +7158,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-js-root@workspace:."
   dependencies:
-    "@eslint/js": "npm:^9.39.4"
-    "@jscutlery/semver": "npm:^6.1.2"
-    "@nx/devkit": "npm:^22.7.5"
-    eslint: "npm:^9.39.4"
+    "@eslint/js": "npm:^9.39.5"
+    "@jscutlery/semver": "npm:^6.2.0"
+    "@nx/devkit": "npm:^22.7.8"
+    eslint: "npm:^9.39.5"
     eslint-plugin-import: "npm:^2.32.0"
     eslint-plugin-react: "npm:^7.37.5"
     eslint-plugin-react-compiler: "npm:^19.1.0-rc.2"
@@ -7169,11 +7169,11 @@ __metadata:
     globals: "npm:^16.5.0"
     husky: "npm:^9.1.7"
     lint-staged: "npm:^16.4.0"
-    nx: "npm:^22.7.5"
-    prettier: "npm:^3.8.3"
+    nx: "npm:^22.7.8"
+    prettier: "npm:^3.9.6"
     typescript: "npm:^6.0.3"
-    typescript-eslint: "npm:^8.60.0"
-    vite: "npm:^8.0.14"
+    typescript-eslint: "npm:^8.65.0"
+    vite: "npm:^8.2.0"
   dependenciesMeta:
     "@firebase/util":
       built: true
@@ -7205,11 +7205,11 @@ __metadata:
     "@rollup/plugin-typescript": "npm:^12.3.0"
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-client": "workspace:*"
-    "@types/react": "npm:~19.2.15"
+    "@types/react": "npm:~19.2.18"
     i18next: "npm:^25.10.10"
     react: "npm:19.2.3"
     rimraf: "npm:^6.1.3"
-    rollup: "npm:^4.60.4"
+    rollup: "npm:^4.62.4"
     rxjs: "npm:~7.8.2"
     typescript: "npm:^6.0.3"
   peerDependencies:
@@ -7221,10 +7221,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-dogfood@workspace:sample-apps/react/react-dogfood"
   dependencies:
-    "@floating-ui/dom": "npm:^1.7.6"
-    "@floating-ui/react": "npm:^0.27.19"
+    "@floating-ui/dom": "npm:^1.8.0"
+    "@floating-ui/react": "npm:^0.27.20"
     "@next/third-parties": "npm:^16.2.12"
-    "@sentry/nextjs": "npm:^10.53.1"
+    "@sentry/nextjs": "npm:^10.69.0"
     "@stream-io/audio-filters-web": "workspace:^"
     "@stream-io/node-sdk": "npm:^0.7.63"
     "@stream-io/video-filters-web": "workspace:^"
@@ -7232,15 +7232,15 @@ __metadata:
     "@stream-io/video-styling": "workspace:^"
     "@types/geojson": "npm:^7946.0.16"
     "@types/mapbox-gl": "npm:^2.7.21"
-    "@types/node": "npm:^25.9.3"
-    "@types/react": "npm:~19.2.15"
-    "@types/react-dom": "npm:~19.2.3"
+    "@types/node": "npm:^25.9.5"
+    "@types/react": "npm:~19.2.18"
+    "@types/react-dom": "npm:~19.2.4"
     "@types/yargs": "npm:^17.0.35"
     axios: "npm:^1.19.0"
     babel-plugin-react-compiler: "npm:^1.0.0"
     clsx: "npm:^2.1.1"
     dotenv: "npm:^16.6.1"
-    framer-motion: "npm:^12.40.0"
+    framer-motion: "npm:^12.43.0"
     geojson: "npm:^0.5.0"
     gleap: "npm:^14.8.14"
     hotkeys-js: "npm:^3.13.15"
@@ -7254,12 +7254,12 @@ __metadata:
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
     rimraf: "npm:^6.1.3"
-    sass: "npm:^1.100.0"
+    sass: "npm:^1.102.0"
     stream-chat: "npm:^9.50.2"
     stream-chat-react: "npm:^14.10.0"
-    swr: "npm:^2.4.1"
+    swr: "npm:^2.4.2"
     typescript: "npm:^6.0.3"
-    yargs: "npm:^18.0.0"
+    yargs: "npm:^18.1.0"
   languageName: unknown
   linkType: soft
 
@@ -7278,8 +7278,8 @@ __metadata:
     "@react-native-community/cli-platform-ios": "npm:20.2.0"
     "@react-native-community/netinfo": "npm:12.0.1"
     "@react-native-community/push-notification-ios": "npm:^1.12.0"
-    "@react-native-firebase/app": "npm:^24.0.0"
-    "@react-native-firebase/messaging": "npm:^24.0.0"
+    "@react-native-firebase/app": "npm:^24.1.1"
+    "@react-native-firebase/messaging": "npm:^24.1.1"
     "@react-native/babel-preset": "npm:^0.86.2"
     "@react-native/metro-config": "npm:^0.86.2"
     "@react-native/typescript-config": "npm:^0.86.2"
@@ -7291,7 +7291,7 @@ __metadata:
     "@stream-io/react-native-webrtc": "npm:145.2.0"
     "@stream-io/video-filters-react-native": "workspace:^"
     "@stream-io/video-react-native-sdk": "workspace:^"
-    "@types/react": "npm:^19.2.15"
+    "@types/react": "npm:^19.2.18"
     axios: "npm:^1.19.0"
     babel-plugin-react-compiler: "npm:^1.0.0"
     react: "npm:19.2.3"
@@ -7332,13 +7332,13 @@ __metadata:
     "@config-plugins/react-native-webrtc": "npm:^15.0.1"
     "@react-native-async-storage/async-storage": "npm:2.2.0"
     "@react-native-community/netinfo": "npm:12.0.1"
-    "@react-native-firebase/app": "npm:^24.0.0"
-    "@react-native-firebase/messaging": "npm:^24.0.0"
+    "@react-native-firebase/app": "npm:^24.1.1"
+    "@react-native-firebase/messaging": "npm:^24.1.1"
     "@react-native/metro-config": "npm:^0.86.2"
     "@stream-io/react-native-callingx": "workspace:^"
     "@stream-io/react-native-webrtc": "npm:145.2.0"
     "@stream-io/video-react-native-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.15"
+    "@types/react": "npm:~19.2.18"
     expo: "npm:~57.0.9"
     expo-build-properties: "npm:~57.0.8"
     expo-constants: "npm:~57.0.8"
@@ -7371,8 +7371,8 @@ __metadata:
     "@expo/config-types": "npm:^57.0.2"
     "@expo/plist": "npm:^0.7.0"
     "@react-native-community/netinfo": "npm:12.0.1"
-    "@react-native-firebase/app": "npm:^24.0.0"
-    "@react-native-firebase/messaging": "npm:^24.0.0"
+    "@react-native-firebase/app": "npm:^24.1.1"
+    "@react-native-firebase/messaging": "npm:^24.1.1"
     "@react-native/babel-preset": "npm:0.86.2"
     "@react-native/metro-config": "npm:0.86.2"
     "@stream-io/noise-cancellation-react-native": "workspace:^"
@@ -7386,8 +7386,8 @@ __metadata:
     "@testing-library/react-native": "npm:13.3.3"
     "@tsconfig/node18": "npm:^18.2.6"
     "@types/jest": "npm:^29.5.14"
-    "@types/node": "npm:^25.9.3"
-    "@types/react": "npm:~19.2.15"
+    "@types/node": "npm:^25.9.5"
+    "@types/react": "npm:~19.2.18"
     "@types/react-test-renderer": "npm:^19.1.0"
     expo: "npm:~57.0.9"
     expo-module-scripts: "npm:^56.0.3"
@@ -7448,7 +7448,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@stream-io/video-react-sdk@workspace:packages/react-sdk"
   dependencies:
-    "@floating-ui/react": "npm:^0.27.19"
+    "@floating-ui/react": "npm:^0.27.20"
     "@rollup/plugin-json": "npm:^6.1.0"
     "@rollup/plugin-replace": "npm:^6.0.3"
     "@rollup/plugin-typescript": "npm:^12.3.0"
@@ -7458,16 +7458,16 @@ __metadata:
     "@stream-io/video-filters-web": "workspace:*"
     "@stream-io/video-react-bindings": "workspace:*"
     "@stream-io/video-styling": "workspace:^"
-    "@types/node": "npm:^25.9.3"
-    "@types/react": "npm:~19.2.15"
-    "@types/react-dom": "npm:~19.2.3"
+    "@types/node": "npm:^25.9.5"
+    "@types/react": "npm:~19.2.18"
+    "@types/react-dom": "npm:~19.2.4"
     chart.js: "npm:^4.5.1"
     clsx: "npm:^2.1.1"
     react: "npm:19.2.3"
     react-chartjs-2: "npm:^5.3.1"
     react-dom: "npm:19.2.3"
     rimraf: "npm:^6.1.3"
-    rollup: "npm:^4.60.4"
+    rollup: "npm:^4.62.4"
     typescript: "npm:^6.0.3"
   peerDependencies:
     react: ^17 || ^18 || ^19
@@ -7480,7 +7480,7 @@ __metadata:
   resolution: "@stream-io/video-styling@workspace:packages/styling"
   dependencies:
     rimraf: "npm:^6.1.3"
-    sass: "npm:^1.100.0"
+    sass: "npm:^1.102.0"
   languageName: unknown
   linkType: soft
 
@@ -7497,22 +7497,22 @@ __metadata:
   dependencies:
     "@stream-io/typescript-config": "workspace:^"
     "@stream-io/video-react-sdk": "workspace:^"
-    "@types/react": "npm:~19.2.15"
-    "@types/react-dom": "npm:~19.2.3"
-    "@vitejs/plugin-react": "npm:^6.0.2"
-    autoprefixer: "npm:^10.5.0"
+    "@types/react": "npm:~19.2.18"
+    "@types/react-dom": "npm:~19.2.4"
+    "@vitejs/plugin-react": "npm:^6.0.5"
+    autoprefixer: "npm:^10.5.4"
     clsx: "npm:^2.1.1"
     dotenv: "npm:^16.6.1"
     nanoid: "npm:^5.1.16"
-    postcss: "npm:^8.5.15"
+    postcss: "npm:^8.5.25"
     react: "npm:19.2.3"
     react-dom: "npm:19.2.3"
-    react-router-dom: "npm:^6.30.3"
+    react-router-dom: "npm:^6.30.4"
     stream-chat: "npm:^9.50.2"
     stream-chat-react: "npm:^14.10.0"
     tailwindcss: "npm:^3.4.19"
     typescript: "npm:^6.0.3"
-    vite: "npm:^8.0.14"
+    vite: "npm:^8.2.0"
   languageName: unknown
   linkType: soft
 
@@ -7724,7 +7724,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/dom-mediacapture-transform@npm:^0.1.11":
+"@types/dom-mediacapture-transform@npm:^0.1.12":
   version: 0.1.12
   resolution: "@types/dom-mediacapture-transform@npm:0.1.12"
   dependencies:
@@ -7936,7 +7936,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^25.9.3":
+"@types/node@npm:^25.9.5":
   version: 25.9.5
   resolution: "@types/node@npm:25.9.5"
   dependencies:
@@ -7966,7 +7966,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:~19.2.3":
+"@types/react-dom@npm:~19.2.4":
   version: 19.2.4
   resolution: "@types/react-dom@npm:19.2.4"
   peerDependencies:
@@ -7993,7 +7993,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:>=16.0.0, @types/react@npm:^19.2.15, @types/react@npm:~19.2.15":
+"@types/react@npm:*, @types/react@npm:>=16.0.0, @types/react@npm:^19.2.18, @types/react@npm:~19.2.18":
   version: 19.2.18
   resolution: "@types/react@npm:19.2.18"
   dependencies:
@@ -8252,7 +8252,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitejs/plugin-react@npm:^6.0.2":
+"@vitejs/plugin-react@npm:^6.0.5":
   version: 6.0.5
   resolution: "@vitejs/plugin-react@npm:6.0.5"
   dependencies:
@@ -8270,7 +8270,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/coverage-v8@npm:^4.1.7":
+"@vitest/coverage-v8@npm:^4.1.10":
   version: 4.1.10
   resolution: "@vitest/coverage-v8@npm:4.1.10"
   dependencies:
@@ -8966,7 +8966,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"autoprefixer@npm:^10.5.0":
+"autoprefixer@npm:^10.5.4":
   version: 10.5.4
   resolution: "autoprefixer@npm:10.5.4"
   dependencies:
@@ -10172,7 +10172,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"concurrently@npm:^9.2.1":
+"concurrently@npm:^9.2.4":
   version: 9.2.4
   resolution: "concurrently@npm:9.2.4"
   dependencies:
@@ -10636,7 +10636,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.11.20, dayjs@npm:^1.8.15":
+"dayjs@npm:^1.11.20, dayjs@npm:^1.11.21, dayjs@npm:^1.8.15":
   version: 1.11.21
   resolution: "dayjs@npm:1.11.21"
   checksum: 10/dd16f9f2706b61b90e3c346a3211ac3afd9e26193136ce0e87f70bf74d1c17a447bceb230a88b175467fc9f5e3243d8c1544b9897092a12d9c80ee44d338dcb6
@@ -11773,7 +11773,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.39.4":
+"eslint@npm:^9.39.5":
   version: 9.39.5
   resolution: "eslint@npm:9.39.5"
   dependencies:
@@ -12861,7 +12861,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"framer-motion@npm:^12.40.0":
+"framer-motion@npm:^12.43.0":
   version: 12.43.0
   resolution: "framer-motion@npm:12.43.0"
   dependencies:
@@ -13345,7 +13345,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"happy-dom@npm:^20.9.0":
+"happy-dom@npm:^20.11.1":
   version: 20.11.1
   resolution: "happy-dom@npm:20.11.1"
   dependencies:
@@ -17439,7 +17439,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nx@npm:^22.7.5":
+"nx@npm:^22.7.8":
   version: 22.7.8
   resolution: "nx@npm:22.7.8"
   dependencies:
@@ -18405,7 +18405,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.38, postcss@npm:^8.4.47, postcss@npm:^8.5.14, postcss@npm:^8.5.15, postcss@npm:^8.5.23":
+"postcss@npm:^8.4.38, postcss@npm:^8.4.47, postcss@npm:^8.5.14, postcss@npm:^8.5.23, postcss@npm:^8.5.25":
   version: 8.5.25
   resolution: "postcss@npm:8.5.25"
   dependencies:
@@ -18469,7 +18469,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.8.3":
+"prettier@npm:^3.9.6":
   version: 3.9.6
   resolution: "prettier@npm:3.9.6"
   bin:
@@ -19305,7 +19305,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^6.30.3":
+"react-router-dom@npm:^6.30.4":
   version: 6.30.4
   resolution: "react-router-dom@npm:6.30.4"
   dependencies:
@@ -19910,7 +19910,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^4.60.3, rollup@npm:^4.60.4":
+"rollup@npm:^4.60.3, rollup@npm:^4.62.4":
   version: 4.62.4
   resolution: "rollup@npm:4.62.4"
   dependencies:
@@ -20124,7 +20124,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sass@npm:^1.100.0":
+"sass@npm:^1.102.0":
   version: 1.102.0
   resolution: "sass@npm:1.102.0"
   dependencies:
@@ -21434,7 +21434,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swr@npm:^2.4.1":
+"swr@npm:^2.4.2":
   version: 2.4.2
   resolution: "swr@npm:2.4.2"
   dependencies:
@@ -21991,7 +21991,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript-eslint@npm:^8.60.0":
+"typescript-eslint@npm:^8.65.0":
   version: 8.65.0
   resolution: "typescript-eslint@npm:8.65.0"
   dependencies:
@@ -22480,7 +22480,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.0.0 || ^7.0.0 || ^8.0.0, vite@npm:^8.0.14":
+"vite@npm:^6.0.0 || ^7.0.0 || ^8.0.0, vite@npm:^8.2.0":
   version: 8.2.0
   resolution: "vite@npm:8.2.0"
   dependencies:
@@ -22549,7 +22549,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitest@npm:^4.1.7":
+"vitest@npm:^4.1.10":
   version: 4.1.10
   resolution: "vitest@npm:4.1.10"
   dependencies:
@@ -23222,7 +23222,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:^18.0.0":
+"yargs@npm:^18.0.0, yargs@npm:^18.1.0":
   version: 18.1.0
   resolution: "yargs@npm:18.1.0"
   dependencies:

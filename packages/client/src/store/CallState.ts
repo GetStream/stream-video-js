@@ -341,8 +341,7 @@ export class CallState {
 
   private readonly eventHandlers: {
     [EventType in VideoEvent['type']]:
-      | ((event: Extract<VideoEvent, { type: EventType }>) => void)
-      | undefined;
+      ((event: Extract<VideoEvent, { type: EventType }>) => void) | undefined;
   };
 
   /**

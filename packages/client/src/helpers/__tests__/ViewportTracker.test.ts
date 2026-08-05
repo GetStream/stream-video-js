@@ -38,8 +38,7 @@ describe('ViewportTracker', () => {
 
   it('updates participant viewportVisibilityState as visibility changes', () => {
     let visibilityHandler:
-      | ((entry: IntersectionObserverEntry) => void)
-      | undefined;
+      ((entry: IntersectionObserverEntry) => void) | undefined;
     vi.spyOn(viewportTracker, 'observe').mockImplementation((_el, handler) => {
       visibilityHandler = handler;
       return vi.fn();

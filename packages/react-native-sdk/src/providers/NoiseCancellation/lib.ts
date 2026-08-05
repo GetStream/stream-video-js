@@ -17,8 +17,7 @@ export function getNoiseCancellationLibThrowIfNotInstalled() {
 
 export class NoiseCancellationWrapper {
   private static noiseCancellationInstance:
-    | InstanceType<Type['NoiseCancellation']>
-    | undefined;
+    InstanceType<Type['NoiseCancellation']> | undefined;
 
   private constructor() {}
 
