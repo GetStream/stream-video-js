@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@stream-io/video-react-sdk": "workspace:^",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@stream-io/typescript-config": "workspace:^",

@@ -1,10 +1,5 @@
-import {
-  createBrowserRouter,
-  Navigate,
-  Outlet,
-  redirect,
-  RouterProvider,
-} from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, redirect } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 
 import { Login, Room, RoomList } from './pages';
 import { AppShell } from './components/AppShell';

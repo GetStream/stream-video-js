@@ -1,4 +1,4 @@
-import { Link, Outlet, useParams } from 'react-router-dom';
+import { Link, Outlet, useParams } from 'react-router';
 import { useEffect, useState } from 'react';
 import {
   StreamCall,

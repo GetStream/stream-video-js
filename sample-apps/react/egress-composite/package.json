@@ -16,8 +16,8 @@
     "@sentry/react": "^10.69.0",
     "@skooldev/skool-stream-layout": "1.0.22",
     "@stream-io/video-react-sdk": "workspace:^",
-    "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

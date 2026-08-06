@@ -5,7 +5,7 @@ import {
   useCall,
   useCallStateHooks,
 } from '@stream-io/video-react-sdk';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useJoinedCall } from '../../contexts';
 import { PropsWithChildren } from 'react';
 

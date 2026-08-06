@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 import Sidebar from './Sidebar';
 import { JoinedCallProvider, VideoClientProvider } from '../contexts';
 import { CreateRoom } from './CreateRoom/CreateRoom';
