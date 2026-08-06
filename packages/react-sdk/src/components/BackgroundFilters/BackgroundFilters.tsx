@@ -106,14 +106,12 @@ const useTrackFramesPerSecond = (call: Call | undefined) => {
     }
 
     let previousSnapshot:
-      | (MediaStreamTrackVideoStats & { capturedAt: number })
-      | undefined;
+      (MediaStreamTrackVideoStats & { capturedAt: number }) | undefined;
     let previousTrackId: string | undefined;
 
     const intervalId = setInterval(() => {
       const track = rootMediaStream?.getVideoTracks()[0] as
-        | MediaStreamTrackWithStats
-        | undefined;
+        MediaStreamTrackWithStats | undefined;
 
       const stats = track?.stats;
       if (!track || !stats) {

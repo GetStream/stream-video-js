@@ -1,9 +1,5 @@
-import {
-  createBrowserRouter,
-  Outlet,
-  redirect,
-  RouterProvider,
-} from 'react-router-dom';
+import { createBrowserRouter, Outlet, redirect } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 import { AppShell } from './components/AppShell';
 import { UserList } from './components/UserList';
 import { UserContextProvider } from './contexts/UserContext';

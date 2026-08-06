@@ -66,7 +66,7 @@ export const ReactionsButton = ({
 const ToggleReactionsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->(function ToggleReactionsMenuButton({ menuShown }, ref) {
+>(function ToggleReactionsMenuButtonRender({ menuShown }, ref) {
   const { t } = useI18n();
   return (
     <WithTooltip title={t('Reactions')} tooltipDisabled={menuShown}>

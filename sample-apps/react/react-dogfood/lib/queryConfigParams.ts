@@ -6,8 +6,7 @@ export const getQueryConfigParams = (query: NextRouter['query']) => {
     videoFile: query['video_file'] as string | undefined,
     videoFileLeaveCallOnEnd: query['video_file_end_call'] === 'true',
     videoCodecOverride: (query['video_encoder'] || query['video_codec']) as
-      | PreferredCodec
-      | undefined,
+      PreferredCodec | undefined,
     fmtpOverride: query['fmtp'] as string | undefined,
     bitrateOverride: query['bitrate'] as string | undefined,
     videoDecoderOverride: query['video_decoder'] as PreferredCodec | undefined,

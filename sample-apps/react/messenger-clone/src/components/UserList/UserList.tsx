@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Avatar } from 'stream-chat-react';
 import { useUserContext } from '../../contexts/UserContext';
 import users from '../../../data/users.json';

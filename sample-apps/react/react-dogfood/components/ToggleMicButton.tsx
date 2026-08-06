@@ -15,7 +15,7 @@ import {
 import { isMobile } from '../helpers/isMobile';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  function ToggleMenuButton(props, ref) {
+  function ToggleMenuButtonRender(props, ref) {
     const { t } = useI18n();
     const { useMicrophoneState, useLocalParticipant } = useCallStateHooks();
     const { selectedDevice: selectedMic, devices: microphones } =

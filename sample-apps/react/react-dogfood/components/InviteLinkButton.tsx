@@ -2,7 +2,7 @@ import { ComponentProps, ForwardedRef, forwardRef } from 'react';
 import { IconButton, useI18n } from '@stream-io/video-react-sdk';
 import clsx from 'clsx';
 
-export const InviteLinkButton = forwardRef(function InviteLinkButton(
+export const InviteLinkButton = forwardRef(function InviteLinkButtonRender(
   { className, ...props }: ComponentProps<'button'>,
   ref: ForwardedRef<HTMLButtonElement>,
 ) {
@@ -21,16 +21,18 @@ export const InviteLinkButton = forwardRef(function InviteLinkButton(
   );
 });
 
-export const IconInviteLinkButton = forwardRef(function IconInviteLinkButton(
-  { className, ...props }: ComponentProps<'button'>,
-  ref: ForwardedRef<HTMLButtonElement>,
-) {
-  return (
-    <IconButton
-      {...props}
-      icon={'user-plus'}
-      className={clsx('str-video__invite-link-button', className)}
-      ref={ref}
-    />
-  );
-});
+export const IconInviteLinkButton = forwardRef(
+  function IconInviteLinkButtonRender(
+    { className, ...props }: ComponentProps<'button'>,
+    ref: ForwardedRef<HTMLButtonElement>,
+  ) {
+    return (
+      <IconButton
+        {...props}
+        icon={'user-plus'}
+        className={clsx('str-video__invite-link-button', className)}
+        ref={ref}
+      />
+    );
+  },
+);

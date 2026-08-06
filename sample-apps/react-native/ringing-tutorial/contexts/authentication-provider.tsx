@@ -105,16 +105,9 @@ export function AuthenticationProvider({ children }: PropsWithChildren) {
 const useCustomTheme = (): DeepPartial<Theme> => {
   const { top, right, bottom, left } = useSafeAreaInsets();
 
-  const variants: DeepPartial<Theme['variants']> = {
-    insets: {
-      top,
-      right,
-      bottom,
-      left,
-    },
-  };
-
   return {
-    variants,
+    variants: {
+      insets: { top, right, bottom, left },
+    },
   };
 };

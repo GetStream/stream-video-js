@@ -21,10 +21,10 @@
     "directory": "packages/codemod"
   },
   "dependencies": {
-    "jscodeshift": "^17.3.0"
+    "jscodeshift": "^17.4.0"
   },
   "devDependencies": {
     "@types/jscodeshift": "^17.3.0",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.10"
   }
 }

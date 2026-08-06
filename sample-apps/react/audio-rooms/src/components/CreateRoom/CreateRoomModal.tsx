@@ -1,5 +1,5 @@
 import { MouseEventHandler, useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { CloseIcon } from '../icons';
 import { useUserContext } from '../../contexts';

@@ -15,7 +15,7 @@ import { DevMenu } from './DevMenu';
 export const ToggleMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->(function ToggleMenuButton(props, ref) {
+>(function ToggleMenuButtonRender(props, ref) {
   const { t } = useI18n();
   return (
     <WithTooltip title={t('Dev Settings')} tooltipDisabled={props.menuShown}>

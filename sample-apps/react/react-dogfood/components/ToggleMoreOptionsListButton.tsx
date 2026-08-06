@@ -16,7 +16,7 @@ import { DevMenu } from './DevMenu';
 import { useIsProntoEnvironment } from '../context/AppEnvironmentContext';
 
 const ToggleFeedbackButton = forwardRef<HTMLButtonElement>(
-  function ToggleFeedbackButton(_, ref) {
+  function ToggleFeedbackButtonRender(_, ref) {
     const { t } = useI18n();
     return (
       <button ref={ref} className="rd__button rd__more-button">
@@ -28,7 +28,7 @@ const ToggleFeedbackButton = forwardRef<HTMLButtonElement>(
 );
 
 const ToggleDevMenuButton = forwardRef<HTMLButtonElement>(
-  function ToggleDevMenuButton(_, ref) {
+  function ToggleDevMenuButtonRender(_, ref) {
     const { t } = useI18n();
     return (
       <button ref={ref} className="rd__button rd__more-button">
@@ -72,7 +72,7 @@ const Menu = () => {
 export const ToggleMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->(function ToggleMenuButton(props, ref) {
+>(function ToggleMenuButtonRender(props, ref) {
   return (
     <CompositeButton ref={ref} active={props.menuShown} variant="primary">
       <Icon icon="more" />

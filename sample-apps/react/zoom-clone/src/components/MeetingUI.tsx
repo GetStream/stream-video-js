@@ -4,7 +4,7 @@ import {
   SpeakerLayout,
   useCall,
 } from '@stream-io/video-react-sdk';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { PropsWithChildren } from 'react';
 import { useJoinedCall } from '../contexts/JoinedCallProvider';
 

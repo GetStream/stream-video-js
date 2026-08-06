@@ -17,16 +17,16 @@
     "@stream-io/video-react-sdk": "workspace:^",
     "clsx": "^2.1.1",
     "hls.js": "^1.6.16",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-router-dom": "^6.30.3"
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-router": "^8.3.0"
   },
   "devDependencies": {
     "@stream-io/typescript-config": "workspace:^",
-    "@types/react": "~19.2.15",
-    "@types/react-dom": "~19.2.3",
-    "@vitejs/plugin-react": "^6.0.2",
+    "@types/react": "~19.2.18",
+    "@types/react-dom": "~19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
     "typescript": "^6.0.3",
-    "vite": "^8.0.14"
+    "vite": "^8.2.0"
   }
 }

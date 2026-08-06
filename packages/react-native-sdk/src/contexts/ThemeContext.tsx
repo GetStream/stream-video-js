@@ -7,8 +7,17 @@ import React, {
 
 import { defaultTheme, type Theme } from '../theme/theme';
 
+/**
+ * Recursively marks every property of `T` as optional.
+ *
+ * The `extends object` guard is required, not cosmetic: `Theme` carries a
+ * `[component: string]: any` index signature, which the mapped type inherits.
+ * Without the guard that index signature becomes `DeepPartial<any>`, an
+ * all-object type that no primitive leaf can satisfy, and every theme override
+ * fails to typecheck. Guarding short-circuits `any` back to `any`.
+ */
 export type DeepPartial<T> = {
-  [P in keyof T]?: DeepPartial<T[P]>;
+  [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
 export type StreamThemeInputValue = {
