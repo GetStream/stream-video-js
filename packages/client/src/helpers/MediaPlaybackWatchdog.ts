@@ -23,8 +23,10 @@ export class MediaPlaybackWatchdog {
   private tracer: Tracer;
   private controller = new AbortController();
   private pendingTimer: ReturnType<typeof setTimeout> | undefined;
+  private settleTimer: ReturnType<typeof setTimeout> | undefined;
   private attempt = 0;
   private disposed = false;
+  private stopped = false;
 
   constructor(opts: MediaPlaybackWatchdogOptions) {
     this.element = opts.element;
@@ -46,38 +48,62 @@ export class MediaPlaybackWatchdog {
     if (this.disposed) return;
     this.disposed = true;
     this.controller.abort();
+    this.clearTimers();
+  };
+
+  private clearTimers = () => {
     if (this.pendingTimer) clearTimeout(this.pendingTimer);
     this.pendingTimer = undefined;
+    if (this.settleTimer) clearTimeout(this.settleTimer);
+    this.settleTimer = undefined;
   };
 
   private onPlaying = () => {
-    if (this.attempt > 0) {
-      this.tracer.trace('mediaPlayback.recover.success', {
-        kind: this.kind,
-        attempts: this.attempt,
-      });
-    }
-    this.attempt = 0;
     if (this.pendingTimer) clearTimeout(this.pendingTimer);
     this.pendingTimer = undefined;
+    if (this.attempt === 0 || this.settleTimer) return;
+    this.settleTimer ??= setTimeout(this.onSettled, 1000);
+  };
+
+  private onSettled = () => {
+    this.settleTimer = undefined;
+    if (this.element.paused) return;
+    this.tracer.trace('mediaPlayback.recover.success', {
+      kind: this.kind,
+      attempts: this.attempt,
+    });
+    this.attempt = 0;
+    this.stopped = false;
   };
 
   private onPauseOrSuspend = (event: Event) => {
-    if (this.disposed) return;
+    if (this.disposed || this.stopped) return;
     this.tracer.trace('mediaPlayback.paused', {
       kind: this.kind,
       reason: event.type,
     });
+    if (this.settleTimer) clearTimeout(this.settleTimer);
+    this.settleTimer = undefined;
     this.scheduleRecovery();
   };
 
   private scheduleRecovery = () => {
-    if (this.disposed || this.pendingTimer) return;
+    if (this.disposed || this.stopped || this.pendingTimer) return;
     const skipReason = this.computeSkipReason();
     if (skipReason) {
       this.tracer.trace('mediaPlayback.recover.skipped', {
         kind: this.kind,
         reason: skipReason,
+      });
+      return;
+    }
+
+    if (this.attempt >= 10) {
+      this.stopped = true;
+      this.clearTimers();
+      this.tracer.trace('mediaPlayback.recover.giveUp', {
+        kind: this.kind,
+        attempts: this.attempt,
       });
       return;
     }
@@ -109,13 +135,6 @@ export class MediaPlaybackWatchdog {
     } catch (err) {
       if (this.disposed) return;
       this.logger.warn(`Failed to recover ${this.kind} playback`, err);
-      if (this.attempt >= 10) {
-        this.tracer.trace('mediaPlayback.recover.giveUp', {
-          kind: this.kind,
-          attempts: this.attempt,
-        });
-        return;
-      }
       this.scheduleRecovery();
     }
   };

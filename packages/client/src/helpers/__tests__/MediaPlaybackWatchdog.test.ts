@@ -28,18 +28,31 @@ const createMediaElement = (
   state: FakeMediaState = {},
 ) => {
   const el = document.createElement(kind) as HTMLMediaElement;
-  Object.defineProperty(el, 'srcObject', { writable: true });
+  Object.defineProperty(el, 'srcObject', {
+    value: 'srcObject' in state ? state.srcObject : new MediaStream(),
+    writable: true,
+  });
   Object.defineProperty(el, 'paused', { writable: true, configurable: true });
   Object.defineProperty(el, 'readyState', {
+    value: state.readyState ?? 4,
     writable: true,
     configurable: true,
   });
-  Object.defineProperty(el, 'ended', { writable: true, configurable: true });
-  el.srcObject = 'srcObject' in state ? state.srcObject : new MediaStream();
-  el.paused = state.paused ?? true;
-  el.readyState = state.readyState ?? 4;
-  el.ended = state.ended ?? false;
+  Object.defineProperty(el, 'ended', {
+    value: state.ended ?? false,
+    writable: true,
+    configurable: true,
+  });
+  setPaused(el, state.paused ?? true);
   return el;
+};
+
+const setPaused = (el: HTMLMediaElement, paused: boolean) => {
+  Object.defineProperty(el, 'paused', {
+    value: paused,
+    writable: true,
+    configurable: true,
+  });
 };
 
 type SetupOpts = {
@@ -111,13 +124,129 @@ describe('MediaPlaybackWatchdog', () => {
     await vi.advanceTimersByTimeAsync(6000);
     expect(play).toHaveBeenCalledTimes(2);
 
-    // Simulate the element actually starting to play.
+    // Simulate the element actually starting to play, and staying up long
+    // enough for the recovery to count as settled.
+    setPaused(el, false);
     el.dispatchEvent(new Event('playing'));
+    await vi.advanceTimersByTimeAsync(1000);
 
-    // A subsequent pause should still trigger a fresh recovery attempt.
+    // A subsequent pause should trigger a fresh, immediate recovery attempt.
+    setPaused(el, true);
     el.dispatchEvent(new Event('pause'));
     await vi.advanceTimersByTimeAsync(0);
     expect(play).toHaveBeenCalledTimes(3);
+  });
+
+  it('backs off instead of retrying immediately when playback has not settled', async () => {
+    el.dispatchEvent(new Event('pause'));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(play).toHaveBeenCalledTimes(1);
+
+    // resumed, but re-paused before the settle delay elapsed
+    setPaused(el, false);
+    el.dispatchEvent(new Event('playing'));
+    expect(tracer.trace).not.toHaveBeenCalledWith(
+      'mediaPlayback.recover.success',
+      {
+        kind: 'audio',
+        attempts: 1,
+      },
+    );
+    await vi.advanceTimersByTimeAsync(500);
+    setPaused(el, true);
+    el.dispatchEvent(new Event('pause'));
+
+    // the next attempt is subject to backoff, not scheduled on the next tick
+    await vi.advanceTimersByTimeAsync(0);
+    expect(play).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(6000);
+    expect(play).toHaveBeenCalledTimes(2);
+  });
+
+  it('stops fighting an element that re-pauses after every successful play', async () => {
+    setup({ kind: 'video' });
+    // Safari re-pauses the element right after play() resolves. This used to
+    // reset the attempt counter, so the loop spun with a zero delay forever.
+    play.mockImplementation(async () => {
+      setPaused(el, false);
+      el.dispatchEvent(new Event('playing'));
+      setPaused(el, true);
+      el.dispatchEvent(new Event('pause'));
+    });
+
+    el.dispatchEvent(new Event('pause'));
+    for (let i = 0; i < 20; i++) {
+      await vi.advanceTimersByTimeAsync(6000);
+    }
+
+    expect(play).toHaveBeenCalledTimes(10);
+    expect(tracer.trace).toHaveBeenCalledWith('mediaPlayback.recover.giveUp', {
+      kind: 'video',
+      attempts: 10,
+    });
+
+    // External playback can still emit `playing` after the watchdog gave up
+    // (for example from a user gesture or another playback helper). If it
+    // re-pauses before settling, it must not revive the watchdog or trace a
+    // false recovery success.
+    setPaused(el, false);
+    el.dispatchEvent(new Event('playing'));
+    setPaused(el, true);
+    el.dispatchEvent(new Event('pause'));
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(tracer.trace).not.toHaveBeenCalledWith(
+      'mediaPlayback.recover.success',
+      {
+        kind: 'video',
+        attempts: 10,
+      },
+    );
+
+    // and it stays stopped, without tracing the pause storm
+    const traceMock = tracer.trace as unknown as MockInstance;
+    const tracesBefore = traceMock.mock.calls.length;
+    for (let i = 0; i < 100; i++) {
+      el.dispatchEvent(new Event('pause'));
+    }
+    await vi.advanceTimersByTimeAsync(6000);
+
+    expect(play).toHaveBeenCalledTimes(10);
+    expect(traceMock.mock.calls.length).toBe(tracesBefore);
+  });
+
+  it('revives once playback genuinely holds for the settle window', async () => {
+    setup({ kind: 'video' });
+    play.mockImplementation(async () => {
+      setPaused(el, false);
+      el.dispatchEvent(new Event('playing'));
+      setPaused(el, true);
+      el.dispatchEvent(new Event('pause'));
+    });
+
+    el.dispatchEvent(new Event('pause'));
+    for (let i = 0; i < 20; i++) {
+      await vi.advanceTimersByTimeAsync(6000);
+    }
+    expect(play).toHaveBeenCalledTimes(10); // gave up
+
+    play.mockResolvedValue(undefined);
+    setPaused(el, false);
+    el.dispatchEvent(new Event('playing'));
+    await vi.advanceTimersByTimeAsync(1500);
+
+    expect(tracer.trace).toHaveBeenCalledWith('mediaPlayback.recover.success', {
+      kind: 'video',
+      attempts: 10,
+    });
+
+    // recovery is live again: the attempt counter was reset, so a fresh pause
+    // gets an immediate attempt rather than being ignored
+    setPaused(el, true);
+    el.dispatchEvent(new Event('pause'));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(play).toHaveBeenCalledTimes(11);
   });
 
   it('does not attempt recovery when srcObject is null', async () => {
