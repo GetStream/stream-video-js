@@ -2,6 +2,13 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.8.1...@stream-io/react-native-callingx-0.9.0) (2026-08-07)
+
+### Features
+
+- added audio capture for ios broadcast screensharing mode ([#2346](https://github.com/GetStream/stream-video-js/issues/2346)) ([eb40f3e](https://github.com/GetStream/stream-video-js/commit/eb40f3ea5bfc5cfc28f3f6ef81c54bcbdeb1a804))
+- **react-native:** Expo SDK 57 / RN 0.86.2 upgrade and iOS 27 compatibility fixes ([#2355](https://github.com/GetStream/stream-video-js/issues/2355)) ([ea3c29b](https://github.com/GetStream/stream-video-js/commit/ea3c29b227f7a2a9ddb0eb046325e4783b558c94))
+
 ## [0.8.1](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.8.0...@stream-io/react-native-callingx-0.8.1) (2026-07-30)
 
 ### Dependency Updates
