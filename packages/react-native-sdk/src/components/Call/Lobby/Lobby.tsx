@@ -7,9 +7,8 @@ import {
 } from '@stream-io/video-react-bindings';
 import { Avatar } from '../../utility/Avatar';
 import type { StreamVideoParticipant } from '@stream-io/video-client';
-import type { MediaStream } from '@stream-io/react-native-webrtc';
-import { RTCView } from '@stream-io/react-native-webrtc';
 import { LobbyControls as DefaultLobbyControls } from '../CallControls/LobbyControls';
+import { LobbyCameraPreview } from './LobbyCameraPreview';
 import {
   JoinCallButton as DefaultJoinCallButton,
   type JoinCallButtonProps,
@@ -65,9 +64,8 @@ export const Lobby = ({
   const { useCameraState, useCallSettings } = useCallStateHooks();
   const callSettings = useCallSettings();
   const isVideoEnabledInCall = callSettings?.video.enabled;
-  const { isMute: cameraIsMuted, mediaStream } = useCameraState();
+  const { optimisticIsMute: cameraIsMuted } = useCameraState();
   const { t } = useI18n();
-  const localVideoStream = mediaStream as unknown as MediaStream | undefined;
 
   const connectedUserAsParticipant = useMemo(
     () =>
@@ -98,13 +96,8 @@ export const Lobby = ({
               ]}
             >
               <View style={styles.topView} />
-              {!cameraIsMuted && localVideoStream ? (
-                <RTCView
-                  mirror={true}
-                  streamURL={localVideoStream.toURL()}
-                  objectFit="cover"
-                  style={StyleSheet.absoluteFill}
-                />
+              {!cameraIsMuted ? (
+                <LobbyCameraPreview objectFit="cover" />
               ) : (
                 <View style={[styles.avatarContainer, lobby.avatarContainer]}>
                   <Avatar participant={connectedUserAsParticipant} />

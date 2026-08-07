@@ -20,6 +20,7 @@ import {
   writePreferences,
 } from './devicePersistence';
 import { createSubscription, getCurrentValue } from '../store/rxUtils';
+import { CallingState } from '../store';
 
 export class SpeakerManager {
   readonly state: SpeakerState;
@@ -90,6 +91,7 @@ export class SpeakerManager {
       globalThis.streamRNVideoSDK?.callManager.setup({
         defaultDevice,
         isRingingTypeCall: this.call.ringing,
+        cid: this.call.cid,
       });
     }
   }
@@ -164,6 +166,7 @@ export class SpeakerManager {
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
+    this.defaultDevice = undefined;
   };
 
   /**

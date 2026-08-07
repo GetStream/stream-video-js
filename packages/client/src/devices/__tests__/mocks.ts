@@ -106,6 +106,9 @@ export const mockCall = (): Partial<Call> => {
     notifyNoiseCancellationStopped: vi.fn().mockResolvedValue(undefined),
     notifyTrackMuteState: vi.fn().mockResolvedValue(undefined),
     refreshPublishedTrack: vi.fn().mockResolvedValue(undefined),
+    ensureMediaFactory: vi.fn().mockResolvedValue({
+      dispose: vi.fn().mockResolvedValue(undefined),
+    }),
     tracer: new Tracer('tests'),
   };
 };
