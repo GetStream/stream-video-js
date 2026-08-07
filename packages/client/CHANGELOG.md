@@ -2,6 +2,16 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.57.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.56.0...@stream-io/video-client-1.57.0) (2026-08-07)
+
+### Features
+
+- **react-native:** Expo SDK 57 / RN 0.86.2 upgrade and iOS 27 compatibility fixes ([#2355](https://github.com/GetStream/stream-video-js/issues/2355)) ([ea3c29b](https://github.com/GetStream/stream-video-js/commit/ea3c29b227f7a2a9ddb0eb046325e4783b558c94))
+
+### Bug Fixes
+
+- **client:** require stable playback before resetting watchdog retries ([#2361](https://github.com/GetStream/stream-video-js/issues/2361)) ([3e6b675](https://github.com/GetStream/stream-video-js/commit/3e6b67527702111cd0ea80e3bee1c9e6995406aa))
+
 ## [1.56.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.55.2...@stream-io/video-client-1.56.0) (2026-07-30)
 
 ### Features
