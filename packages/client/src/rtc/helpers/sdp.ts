@@ -103,7 +103,7 @@ export const enableStereo = (offerSdp: string, answerSdp: string): string => {
     if (!opus) continue;
 
     for (const fmtp of media.fmtp) {
-      if (fmtp.payload === opus.payload && fmtp.config.includes('stereo=1')) {
+      if (fmtp.payload === opus.payload) {
         offeredStereoMids.add(media.mid!);
       }
     }
@@ -120,7 +120,7 @@ export const enableStereo = (offerSdp: string, answerSdp: string): string => {
     if (!opus) continue;
 
     for (const fmtp of media.fmtp) {
-      if (fmtp.payload === opus.payload && !fmtp.config.includes('stereo=1')) {
+      if (fmtp.payload === opus.payload) {
         fmtp.config += ';stereo=1';
       }
     }
