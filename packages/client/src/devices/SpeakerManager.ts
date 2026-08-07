@@ -63,16 +63,6 @@ export class SpeakerManager {
   }
 
   private applyRN(settings: CallSettingsResponse) {
-    // This guard prevents from setting the default audio device outside of the
-    // call JOIN/LEFT window and makes settings applied only for single active call.
-    const callingState = this.call.state.callingState;
-    if (
-      callingState !== CallingState.JOINING &&
-      callingState !== CallingState.JOINED
-    ) {
-      return;
-    }
-
     /// Determines if the speaker should be enabled based on a priority hierarchy of
     /// settings.
     ///
