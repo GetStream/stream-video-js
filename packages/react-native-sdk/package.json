@@ -34,6 +34,7 @@
     "stream-video-react-native.podspec",
     "package.json",
     "CHANGELOG.md",
+    "NOTICE",
     "app.plugin.js",
     "expo-config-plugin/README.md",
     "expo-config-plugin/static/**/*",
