@@ -1437,6 +1437,7 @@ export class Call {
         cid: this.cid,
         hifiAudioEnabled:
           this.state.settings?.audio.hifi_audio_enabled ?? false,
+        audioBitrateProfile: this.microphone.state.audioBitrateProfile,
       });
       this.callManagerStarted = true;
     }
