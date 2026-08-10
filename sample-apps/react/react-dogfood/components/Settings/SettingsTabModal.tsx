@@ -207,7 +207,7 @@ export const SettingsTabModalMenu = (props: {
 const ToggleSettingsMenuButton = forwardRef<
   HTMLDivElement,
   ToggleMenuButtonProps
->(function ToggleSettingsMenuButton(props, ref) {
+>(function ToggleSettingsMenuButtonRender(props, ref) {
   const { t } = useI18n();
   return (
     <WithTooltip title={t('Settings')}>

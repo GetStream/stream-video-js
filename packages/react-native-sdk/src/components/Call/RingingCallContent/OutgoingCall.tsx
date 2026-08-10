@@ -109,8 +109,7 @@ const Background = () => {
   const { useCameraState } = useCallStateHooks();
   const { isMute, camera } = useCameraState();
   const localVideoStream = camera.state.mediaStream as unknown as
-    | MediaStream
-    | undefined;
+    MediaStream | undefined;
 
   if (isMute || !localVideoStream) {
     return (

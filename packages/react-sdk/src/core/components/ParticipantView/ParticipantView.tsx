@@ -72,131 +72,135 @@ export type ParticipantViewProps = {
 } & Pick<VideoProps, 'VideoPlaceholder' | 'PictureInPicturePlaceholder'>;
 
 export const ParticipantView = memo(
-  forwardRef<HTMLDivElement, ParticipantViewProps>(function ParticipantView(
-    {
-      participant,
-      trackType = 'videoTrack',
-      mirror,
-      muteAudio,
-      refs: { setVideoElement, setVideoPlaceholderElement } = {},
-      className,
-      VideoPlaceholder,
-      PictureInPicturePlaceholder,
-      ParticipantViewUI = DefaultParticipantViewUI as ComponentType,
-    },
-    ref,
-  ) {
-    const { isLocalParticipant, isSpeaking, isDominantSpeaker, sessionId } =
-      participant;
-
-    const hasAudioTrack = hasAudio(participant);
-    const hasVideoTrack = hasVideo(participant);
-    const hasScreenShareAudioTrack = hasScreenShareAudio(participant);
-
-    const [trackedElement, setTrackedElement] = useState<HTMLDivElement | null>(
-      null,
-    );
-
-    const [contextVideoElement, setContextVideoElement] =
-      useState<HTMLVideoElement | null>(null);
-
-    const [contextVideoPlaceholderElement, setContextVideoPlaceholderElement] =
-      useState<HTMLDivElement | null>(null);
-
-    useTrackElementVisibility({
-      sessionId,
-      trackedElement,
-      trackType,
-    });
-
-    const { useIncomingVideoSettings } = useCallStateHooks();
-    const { isParticipantVideoEnabled } = useIncomingVideoSettings();
-
-    const participantViewContextValue = useMemo(
-      () => ({
+  forwardRef<HTMLDivElement, ParticipantViewProps>(
+    function ParticipantViewRender(
+      {
         participant,
-        participantViewElement: trackedElement,
-        videoElement: contextVideoElement,
-        videoPlaceholderElement: contextVideoPlaceholderElement,
-        trackType,
-      }),
-      [
-        contextVideoElement,
+        trackType = 'videoTrack',
+        mirror,
+        muteAudio,
+        refs: { setVideoElement, setVideoPlaceholderElement } = {},
+        className,
+        VideoPlaceholder,
+        PictureInPicturePlaceholder,
+        ParticipantViewUI = DefaultParticipantViewUI as ComponentType,
+      },
+      ref,
+    ) {
+      const { isLocalParticipant, isSpeaking, isDominantSpeaker, sessionId } =
+        participant;
+
+      const hasAudioTrack = hasAudio(participant);
+      const hasVideoTrack = hasVideo(participant);
+      const hasScreenShareAudioTrack = hasScreenShareAudio(participant);
+
+      const [trackedElement, setTrackedElement] =
+        useState<HTMLDivElement | null>(null);
+
+      const [contextVideoElement, setContextVideoElement] =
+        useState<HTMLVideoElement | null>(null);
+
+      const [
         contextVideoPlaceholderElement,
-        participant,
+        setContextVideoPlaceholderElement,
+      ] = useState<HTMLDivElement | null>(null);
+
+      useTrackElementVisibility({
+        sessionId,
         trackedElement,
         trackType,
-      ],
-    );
+      });
 
-    const videoRefs: VideoProps['refs'] = useMemo(
-      () => ({
-        setVideoElement: (element) => {
-          setVideoElement?.(element);
-          setContextVideoElement(element);
-        },
-        setVideoPlaceholderElement: (element) => {
-          setVideoPlaceholderElement?.(element);
-          setContextVideoPlaceholderElement(element);
-        },
-      }),
-      [setVideoElement, setVideoPlaceholderElement],
-    );
+      const { useIncomingVideoSettings } = useCallStateHooks();
+      const { isParticipantVideoEnabled } = useIncomingVideoSettings();
 
-    return (
-      <div
-        data-testid="participant-view"
-        ref={(element) => {
-          applyElementToRef(ref, element);
-          setTrackedElement(element);
-        }}
-        className={clsx(
-          'str-video__participant-view',
-          isDominantSpeaker && 'str-video__participant-view--dominant-speaker',
-          isSpeaking && 'str-video__participant-view--speaking',
-          !hasVideoTrack && 'str-video__participant-view--no-video',
-          !hasAudioTrack && 'str-video__participant-view--no-audio',
-          className,
-        )}
-      >
-        <ParticipantViewContext.Provider value={participantViewContextValue}>
-          {/* mute the local participant, as we don't want to hear ourselves */}
-          {!isLocalParticipant && !muteAudio && (
-            <>
-              {hasAudioTrack && (
-                <Audio participant={participant} trackType="audioTrack" />
-              )}
-              {hasScreenShareAudioTrack && (
-                <Audio
-                  participant={participant}
-                  trackType="screenShareAudioTrack"
-                />
-              )}
-            </>
+      const participantViewContextValue = useMemo(
+        () => ({
+          participant,
+          participantViewElement: trackedElement,
+          videoElement: contextVideoElement,
+          videoPlaceholderElement: contextVideoPlaceholderElement,
+          trackType,
+        }),
+        [
+          contextVideoElement,
+          contextVideoPlaceholderElement,
+          participant,
+          trackedElement,
+          trackType,
+        ],
+      );
+
+      const videoRefs: VideoProps['refs'] = useMemo(
+        () => ({
+          setVideoElement: (element) => {
+            setVideoElement?.(element);
+            setContextVideoElement(element);
+          },
+          setVideoPlaceholderElement: (element) => {
+            setVideoPlaceholderElement?.(element);
+            setContextVideoPlaceholderElement(element);
+          },
+        }),
+        [setVideoElement, setVideoPlaceholderElement],
+      );
+
+      return (
+        <div
+          data-testid="participant-view"
+          ref={(element) => {
+            applyElementToRef(ref, element);
+            setTrackedElement(element);
+          }}
+          className={clsx(
+            'str-video__participant-view',
+            isDominantSpeaker &&
+              'str-video__participant-view--dominant-speaker',
+            isSpeaking && 'str-video__participant-view--speaking',
+            !hasVideoTrack && 'str-video__participant-view--no-video',
+            !hasAudioTrack && 'str-video__participant-view--no-audio',
+            className,
           )}
-          <Video
-            VideoPlaceholder={VideoPlaceholder}
-            PictureInPicturePlaceholder={PictureInPicturePlaceholder}
-            participant={participant}
-            trackType={trackType}
-            refs={videoRefs}
-            enabled={
-              isLocalParticipant ||
-              trackType !== 'videoTrack' ||
-              isParticipantVideoEnabled(participant.sessionId)
-            }
-            mirror={mirror}
-            autoPlay
-          />
-          {isComponentType(ParticipantViewUI) ? (
-            <ParticipantViewUI />
-          ) : (
-            ParticipantViewUI
-          )}
-        </ParticipantViewContext.Provider>
-      </div>
-    );
-  }),
+        >
+          <ParticipantViewContext.Provider value={participantViewContextValue}>
+            {/* mute the local participant, as we don't want to hear ourselves */}
+            {!isLocalParticipant && !muteAudio && (
+              <>
+                {hasAudioTrack && (
+                  <Audio participant={participant} trackType="audioTrack" />
+                )}
+                {hasScreenShareAudioTrack && (
+                  <Audio
+                    participant={participant}
+                    trackType="screenShareAudioTrack"
+                  />
+                )}
+              </>
+            )}
+            <Video
+              VideoPlaceholder={VideoPlaceholder}
+              PictureInPicturePlaceholder={PictureInPicturePlaceholder}
+              participant={participant}
+              trackType={trackType}
+              refs={videoRefs}
+              enabled={
+                isLocalParticipant ||
+                trackType !== 'videoTrack' ||
+                isParticipantVideoEnabled(participant.sessionId)
+              }
+              mirror={mirror}
+              autoPlay
+            />
+            {isComponentType(ParticipantViewUI) ? (
+              <ParticipantViewUI />
+            ) : (
+              ParticipantViewUI
+            )}
+          </ParticipantViewContext.Provider>
+        </div>
+      );
+    },
+  ),
 );
 
 ParticipantView.displayName = 'ParticipantView';

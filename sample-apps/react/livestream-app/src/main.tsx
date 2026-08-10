@@ -2,7 +2,8 @@ import '@stream-io/video-react-sdk/dist/css/styles.css';
 import './main.scss';
 
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 import { StreamTheme } from '@stream-io/video-react-sdk';
 import { createTheme, ThemeProvider } from '@mui/material';
 import { SetupLivestream } from './hosts/SetupLivestream';

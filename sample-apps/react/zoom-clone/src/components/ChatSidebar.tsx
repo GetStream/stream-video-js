@@ -7,7 +7,7 @@ import {
   useChatContext,
   Window,
 } from 'stream-chat-react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 
 import { DEFAULT_CHANNEL_TYPE } from '../utils';
 

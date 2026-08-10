@@ -11,7 +11,7 @@ import {
 } from '../../../components';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  function ToggleMenuButton(props, ref) {
+  function ToggleMenuButtonRender(props, ref) {
     const { useMicrophoneState } = useCallStateHooks();
     const { selectedDevice: selectedMic, devices: microphones } =
       useMicrophoneState();

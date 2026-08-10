@@ -60,7 +60,7 @@ export const UserInfo = () => {
 };
 
 const ToggleMenuButton = forwardRef<HTMLDivElement>(
-  function ToggleMenuButton(props, ref) {
+  function ToggleMenuButtonRender(props, ref) {
     const { data: theSession } = useSession();
     if (!theSession || !theSession.user) return null;
     return (

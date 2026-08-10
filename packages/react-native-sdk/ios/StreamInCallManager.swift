@@ -152,7 +152,7 @@ class StreamInCallManager: RCTEventEmitter {
             // only exists under .playAndRecord.
             category = .playback
             mode = .spokenAudio
-            options = []
+            options = [.mixWithOthers]
         } else {
             // XCode 16 and older don't expose .allowBluetoothHFP
             // https://forums.swift.org/t/xcode-26-avaudiosession-categoryoptions-allowbluetooth-deprecated/80956
@@ -170,7 +170,7 @@ class StreamInCallManager: RCTEventEmitter {
                 // then we always can't use defaultToSpeaker
                 mustSetDefaultToSpeaker = false
             }
-            options = mustSetDefaultToSpeaker ? [bluetoothOption, .defaultToSpeaker] : [bluetoothOption]
+            options = mustSetDefaultToSpeaker ? [bluetoothOption, .defaultToSpeaker, .mixWithOthers] : [bluetoothOption, .mixWithOthers]
         }
 
         let rtcConfig = RTCAudioSessionConfiguration.webRTC()

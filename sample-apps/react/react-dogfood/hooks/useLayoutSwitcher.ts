@@ -117,8 +117,7 @@ export const getLayoutSettings = () => {
 export const useLayoutSwitcher = () => {
   const router = useRouter();
   const layoutOverride = router.query['layout'] as
-    | keyof typeof LayoutMap
-    | undefined;
+    keyof typeof LayoutMap | undefined;
 
   const [layout, setLayout] = useState<keyof typeof LayoutMap>(() => {
     const layoutToUse =

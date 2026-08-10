@@ -10,7 +10,7 @@ import {
 import { CameraMenuWithBlur } from '../BlurToggleButton/BlurToggleButton';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  function ToggleMenuButton(props, ref) {
+  function ToggleMenuButtonRender(props, ref) {
     const { useCameraState } = useCallStateHooks();
     const { selectedDevice: selectedCamera, devices: cameras } =
       useCameraState();

@@ -29,7 +29,7 @@ export type IconButtonWithMenuProps<E extends HTMLElement = HTMLButtonElement> =
 export const CompositeButton = forwardRef<
   HTMLDivElement,
   IconButtonWithMenuProps
->(function CompositeButton(
+>(function CompositeButtonRender(
   {
     disabled,
     caption,
@@ -100,7 +100,7 @@ export const CompositeButton = forwardRef<
 const DefaultToggleMenuButton = forwardRef<
   HTMLButtonElement,
   ToggleMenuButtonProps
->(function DefaultToggleMenuButton({ menuShown }, ref) {
+>(function DefaultToggleMenuButtonRender({ menuShown }, ref) {
   return (
     <IconButton
       className={clsx('str-video__menu-toggle-button', {

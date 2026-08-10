@@ -6,8 +6,7 @@ import {
 import { useConfigurationContext } from '../../../ConfigurationContext';
 
 export const useSpotlightParticipant = ():
-  | StreamVideoParticipant
-  | undefined => {
+  StreamVideoParticipant | undefined => {
   const [speakerInSpotlight, setSpeakerInSpotlight] =
     useState<StreamVideoParticipant>();
 

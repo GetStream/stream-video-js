@@ -22,9 +22,11 @@ export const useVideoStyles = () => {
         }
 
         & .str-video__video {
-          object-fit: ${typeof videoScaleMode === 'undefined'
-            ? undefined
-            : objectFitMap[videoScaleMode]};
+          object-fit: ${
+            typeof videoScaleMode === 'undefined'
+              ? undefined
+              : objectFitMap[videoScaleMode]
+          };
         }
 
         & .str-video__video.str-video__video--screen-share {

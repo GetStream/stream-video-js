@@ -12,9 +12,15 @@ export type RTCStatsDataType =
   | boolean
   | RTCOfferOptions
   | [string | RTCDataChannelInit | undefined] // createDataChannel
-  | (RTCOfferOptions | undefined) // createOffer | createAnswer
+  | (
+      | RTCOfferOptions
+      | undefined // createOffer | createAnswer
+    )
   | RTCSessionDescriptionInit
-  | (RTCIceCandidateInit | RTCIceCandidate) // addIceCandidate
+  | (
+      | RTCIceCandidateInit
+      | RTCIceCandidate // addIceCandidate
+    )
   | object
   | number
   | null

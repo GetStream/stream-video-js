@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { Call, useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { DEFAULT_CALL_TYPE, getURLCredentials } from '../utils';
 

@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { RoomListing } from '../components/RoomList';
 import { RoomListingTabs } from '../components/RoomList/RoomListingTabs';
 import { RoomLiveState, roomStates } from '../utils/roomLiveState';

@@ -49,7 +49,7 @@ const EndCallMenu = (props: {
 const CancelCallToggleMenuButton = forwardRef<
   HTMLButtonElement,
   ToggleMenuButtonProps
->(function CancelCallToggleMenuButton({ menuShown }, ref) {
+>(function CancelCallToggleMenuButtonRender({ menuShown }, ref) {
   const { t } = useI18n();
   return (
     <WithTooltip title={t('Leave call')} tooltipDisabled={menuShown}>

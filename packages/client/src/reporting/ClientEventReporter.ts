@@ -33,18 +33,12 @@ export type ClientEventStage =
   | 'FirstAudioFrame';
 
 export type MediaPermissionState =
-  | 'INITIATED'
-  | 'FAILED'
-  | 'GRANTED'
-  | 'NOT_INITIATED';
+  'INITIATED' | 'FAILED' | 'GRANTED' | 'NOT_INITIATED';
 
 export type ReportedIceState = 'CONNECTED' | 'FAILED' | 'NOT_CONNECTED';
 
 export type JoinReason =
-  | 'first-attempt'
-  | 'network-available'
-  | 'migration'
-  | 'full-rejoin';
+  'first-attempt' | 'network-available' | 'migration' | 'full-rejoin';
 
 export type ClientEventStandardCode =
   | 'CLIENT_ABORTED'

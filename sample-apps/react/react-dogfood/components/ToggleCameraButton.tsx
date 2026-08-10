@@ -14,7 +14,7 @@ import {
 import { isMobile } from '../helpers/isMobile';
 
 const ToggleMenuButton = forwardRef<HTMLButtonElement, ToggleMenuButtonProps>(
-  function ToggleMenuButton(props, ref) {
+  function ToggleMenuButtonRender(props, ref) {
     const { t } = useI18n();
     const { useCameraState, useLocalParticipant } = useCallStateHooks();
     const { selectedDevice: selectedCamera, devices: cameras } =

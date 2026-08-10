@@ -126,7 +126,7 @@ export type PermissionRequestListProps = ComponentProps<'div'> & {
 export const PermissionRequestList = forwardRef<
   HTMLDivElement,
   PermissionRequestListProps
->(function PermissionRequestList(props, ref) {
+>(function PermissionRequestListRender(props, ref) {
   const { permissionRequests, handleUpdatePermission, ...rest } = props;
 
   const { t } = useI18n();

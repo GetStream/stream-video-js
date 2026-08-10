@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.10.4](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.3...@stream-io/audio-filters-web-0.10.4) (2026-08-07)
+
 ## [0.10.3](https://github.com/GetStream/stream-video-js/compare/@stream-io/audio-filters-web-0.10.2...@stream-io/audio-filters-web-0.10.3) (2026-07-30)
 
 ### Dependency Updates

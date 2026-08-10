@@ -1,6 +1,6 @@
 {
   "name": "@stream-io/video-styling",
-  "version": "1.15.0",
+  "version": "1.15.1",
   "license": "See license in LICENSE",
   "scripts": {
     "clean": "rimraf dist",
@@ -14,6 +14,6 @@
   },
   "devDependencies": {
     "rimraf": "^6.1.3",
-    "sass": "^1.100.0"
+    "sass": "^1.102.0"
   }
 }

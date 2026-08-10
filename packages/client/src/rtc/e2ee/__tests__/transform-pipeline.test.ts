@@ -173,8 +173,7 @@ describe('worker command interface', () => {
     message({ type: 'cmd.dump_key_state' });
     await flush();
     const dump = posted.find((m) => m.type === 'e2ee.key_state') as
-      | { perUserKeys: Array<{ userId: string; keyIndex: number }> }
-      | undefined;
+      { perUserKeys: Array<{ userId: string; keyIndex: number }> } | undefined;
     expect(dump).toBeDefined();
     expect(dump!.perUserKeys).toContainEqual(
       expect.objectContaining({ userId: user, keyIndex: 4 }),

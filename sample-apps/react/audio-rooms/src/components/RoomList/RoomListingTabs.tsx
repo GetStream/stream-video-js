@@ -1,5 +1,5 @@
 import { RoomLiveState, roomStates } from '../../utils/roomLiveState';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 type RoomListingTabsProps = {
   activeLiveState: RoomLiveState;

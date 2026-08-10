@@ -15,8 +15,9 @@ const withTarget: ConfigPlugin<ConfigProps> = (configuration, props) => {
   return withXcodeProject(configuration, (config) => {
     const appName = config.modRequest.projectName!;
     const extensionName = 'broadcast';
-    const extensionBundleIdentifier = `${config.ios!
-      .bundleIdentifier!}.broadcast`;
+    const extensionBundleIdentifier = `${
+      config.ios!.bundleIdentifier!
+    }.broadcast`;
     const currentProjectVersion = config.ios!.buildNumber || '1';
     const marketingVersion = config.version!;
 
@@ -37,8 +38,9 @@ const withTarget: ConfigPlugin<ConfigProps> = (configuration, props) => {
       developmentTeamId,
     });
 
-    const appGroupIdentifier = `group.${config.ios!
-      .bundleIdentifier!}.appgroup`;
+    const appGroupIdentifier = `group.${
+      config.ios!.bundleIdentifier!
+    }.appgroup`;
     const extensionRootPath = path.join(
       config.modRequest.platformProjectRoot,
       'broadcast',
@@ -125,6 +127,10 @@ const addBroadcastSourceFiles = ({
     path.join(extensionRootPath, 'SampleUploader.swift'),
   );
   fs.copyFileSync(
+    path.join(__dirname, '..', '..', 'static', 'AudioUploader.swift'),
+    path.join(extensionRootPath, 'AudioUploader.swift'),
+  );
+  fs.copyFileSync(
     path.join(__dirname, '..', '..', 'static', 'SocketConnection.swift'),
     path.join(extensionRootPath, 'SocketConnection.swift'),
   );
@@ -169,6 +175,14 @@ const addBroadcastSourceFiles = ({
 
   proj.addSourceFile(
     'SampleUploader.swift',
+    {
+      target: targetUuid,
+    },
+    groupUuid,
+  );
+
+  proj.addSourceFile(
+    'AudioUploader.swift',
     {
       target: targetUuid,
     },

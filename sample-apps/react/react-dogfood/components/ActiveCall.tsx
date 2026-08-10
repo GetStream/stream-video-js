@@ -76,11 +76,7 @@ export type ActiveCallProps = {
 };
 
 type SidebarContent =
-  | 'participants'
-  | 'chat'
-  | 'stats'
-  | 'closed-captions'
-  | null;
+  'participants' | 'chat' | 'stats' | 'closed-captions' | null;
 
 export const ActiveCall = (props: ActiveCallProps) => {
   const { chatClient, activeCall, onLeave, onJoin } = props;

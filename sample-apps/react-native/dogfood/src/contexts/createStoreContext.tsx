@@ -27,8 +27,7 @@ export default function createStoreContext<
 ) {
   type SetStateFuncType = (
     partialStateOrFunc:
-      | Partial<StoreType>
-      | ((prevState: StoreType) => Partial<StoreType>),
+      Partial<StoreType> | ((prevState: StoreType) => Partial<StoreType>),
   ) => void;
 
   // returns unsubscribe function

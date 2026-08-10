@@ -1,6 +1,6 @@
 import { Button, Stack } from '@mui/material';
 import { LoadingIndicator } from '@stream-io/video-react-sdk';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 type ErrorPanelProps = {
   error: Error;
