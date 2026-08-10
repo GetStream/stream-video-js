@@ -83,7 +83,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
                 return@runInAudioThread
             }
             Log.d(TAG, "setDisableCommunicationModeWorkaround(): $disabled")
-            mAudioDeviceManager.disableCommunicationWorkaround = disabled
+            mAudioDeviceManager.disableCommunicationModeWorkaround = disabled
         }
     }
 
@@ -196,7 +196,7 @@ class StreamInCallManagerModule(reactContext: ReactApplicationContext) :
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun getAudioStateLog(): String {
         return WebRtcAudioUtils.getAudioStateLog(reactApplicationContext) +
-            "Communication workaround: ${mAudioDeviceManager.communicationWorkaroundState()}\n"
+            "Communication mode keep-alive: ${mAudioDeviceManager.communicationModeKeepAliveState()}\n"
     }
 
     @Suppress("unused")

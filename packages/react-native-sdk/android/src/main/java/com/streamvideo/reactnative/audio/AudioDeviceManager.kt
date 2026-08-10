@@ -108,22 +108,22 @@ class AudioDeviceManager(
     var telecomManagedMode: Boolean = false
 
     /**
-     * Opt-out for the Android 11+ communication-mode keep-alive workaround
-     * (see [CommunicationWorkaround]). Sticky developer preference — intentionally
+     * Opt-out for the Android 11+ communication-mode keep-alive
+     * (see [CommunicationModeKeepAlive]). Sticky developer preference — intentionally
      * NOT reset in [stop] (unlike role/stereo/defaultDevice, which are per-call).
      */
-    var disableCommunicationWorkaround: Boolean = false
+    var disableCommunicationModeWorkaround: Boolean = false
 
     /**
      * Keeps MODE_IN_COMMUNICATION owned for the whole Communicator call on Android 11+.
-     * Instantiated once; NoopCommunicationWorkaround below R (SDK-version split), with
-     * per-call gating (role / telecom / opt-out) applied at [start].
+     * Instantiated once; a no-op below R (SDK-version split), with per-call gating
+     * (role / telecom / opt-out) applied at [start].
      */
-    private val communicationWorkaround: CommunicationWorkaround =
+    private val communicationModeKeepAlive: CommunicationModeKeepAlive =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            SilentAudioTrackCommunicationWorkaround(mReactContext)
+            SilentPlaybackKeepAlive(mReactContext)
         } else {
-            NoopCommunicationWorkaround
+            NoCommunicationModeKeepAlive
         }
 
     val bluetoothManager = BluetoothManager(mReactContext, this)
@@ -174,16 +174,16 @@ class AudioDeviceManager(
             // Built last, after focus/routing, so the silent track picks up the correct route.
             if (callAudioRole == CallAudioRole.Communicator &&
                 !telecomManagedMode &&
-                !disableCommunicationWorkaround
+                !disableCommunicationModeWorkaround
             ) {
-                communicationWorkaround.start()
+                communicationModeKeepAlive.start()
             }
         }
     }
 
     fun stop(activity: Activity?) {
         runInAudioThread {
-            communicationWorkaround.stop()
+            communicationModeKeepAlive.stop()
             if (callAudioRole == CallAudioRole.Communicator) {
                 if (!telecomManagedMode) {
                     // Only tear down what we set up ourselves; Telecom owns its own teardown.
@@ -195,7 +195,7 @@ class AudioDeviceManager(
                     bluetoothManager.stop()
                     // Restore the global audio mode set in setup(). It was previously left at
                     // MODE_IN_COMMUNICATION after a call, holding the device in in-call routing.
-                    // Safe here: the keep-alive track/watchdog were stopped above.
+                    // Safe here: the keep-alive was stopped above.
                     mAudioManager.mode = AudioManager.MODE_NORMAL
                 }
                 callAudioRole = CallAudioRole.Communicator
@@ -299,16 +299,16 @@ class AudioDeviceManager(
     override fun close() {
         // Queue teardown on the same single-thread audio executor as start()/stop() so it
         // is serialized after any pending audio work and can't race a queued start() that
-        // would otherwise touch the workaround's audioTrack/watchdog after disposal.
+        // would otherwise touch the keep-alive's track/poller after release.
         runInAudioThread {
-            communicationWorkaround.dispose()
+            communicationModeKeepAlive.release()
             mAudioManager.unregisterAudioDeviceCallback(this)
             proximityManager.onDestroy()
         }
     }
 
-    /** Short description of the keep-alive workaround state, for the audio debug log. */
-    fun communicationWorkaroundState(): String = communicationWorkaround.stateDescription()
+    /** Short description of the keep-alive state, for the audio debug log. */
+    fun communicationModeKeepAliveState(): String = communicationModeKeepAlive.describeState()
 
     override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
         if (addedDevices != null) {
