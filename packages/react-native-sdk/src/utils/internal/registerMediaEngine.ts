@@ -35,9 +35,18 @@ export function registerCallMediaEngine() {
       //     this is a factory-build-time decision, so the stereo-output preference
       //     recorded via `callManager.start` must be resolved here, before the factory is built.
       const config = callManager.getStoredConfig();
-      const stereoOutputRequested =
+      const stereoOutputPreferred =
         config?.audioRole === 'listener' &&
         config.enableStereoAudioOutput === true;
+
+      // Stereo output is a hi-fi feature: only honor it when the dashboard has hi-fi audio enabled (`audio.hifi_audio_enabled`).
+      const stereoOutputRequested =
+        stereoOutputPreferred && options.hifiAudioEnabled === true;
+      if (stereoOutputPreferred && !stereoOutputRequested) {
+        logger.warn(
+          'enableStereoAudioOutput ignored: hi-fi audio is not enabled for this call (audio.hifi_audio_enabled)',
+        );
+      }
       const bypassVoiceProcessing =
         options.audioBitrateProfile ===
           SfuModels.AudioBitrateProfile.MUSIC_HIGH_QUALITY ||

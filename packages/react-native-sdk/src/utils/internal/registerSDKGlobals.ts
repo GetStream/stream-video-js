@@ -113,7 +113,7 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         );
       }
     },
-    start: ({ isRingingTypeCall, cid }) => {
+    start: ({ isRingingTypeCall, cid, hifiAudioEnabled }) => {
       // Apply the audio config a consumer recorded via `callManager.start(config)` at this single
       // join-time start, before the native audio manager is activated.
       const config = publicCallManager.getStoredConfig();
@@ -121,9 +121,11 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         config?.audioRole === 'communicator'
           ? config.deviceEndpointType
           : undefined;
+
+      // Stereo output is a hi-fi feature: only honor it when the dashboard has hi-fi audio enabled (`audio.hifi_audio_enabled`).
       const stereoOutput =
         config?.audioRole === 'listener'
-          ? config.enableStereoAudioOutput === true
+          ? config.enableStereoAudioOutput === true && hifiAudioEnabled
           : false;
 
       if (shouldBypassForCallKit({ isRingingTypeCall })) {

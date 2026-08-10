@@ -25,6 +25,11 @@ export interface MediaEngineOptions {
    * Ignored by the default globals engine.
    */
   audioBitrateProfile?: AudioBitrateProfile;
+  /**
+   * Whether hi-fi audio is enabled for the call. Gates the stereo-output request: stereo
+   * playout is only honored when hi-fi audio is enabled.
+   */
+  hifiAudioEnabled?: boolean;
 }
 
 /**

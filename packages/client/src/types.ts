@@ -428,6 +428,11 @@ type StreamRNVideoSDKCallManagerSetupParams =
 type StreamRNVideoSDKCallManagerStartParams =
   StreamRNVideoSDKCallManagerRingingParams & {
     cid: string;
+    /**
+     * Whether hi-fi audio is enabled for the call (dashboard `audio.hifi_audio_enabled`).
+     * Gates the stereo-output request applied at start.
+     */
+    hifiAudioEnabled: boolean;
   };
 
 type StreamRNVideoSDKCallManagerStopParams =
@@ -486,6 +491,7 @@ export type StreamRNVideoSDKGlobals = {
     start({
       isRingingTypeCall,
       cid,
+      hifiAudioEnabled,
     }: StreamRNVideoSDKCallManagerStartParams): void;
 
     /**
