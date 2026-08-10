@@ -1,20 +1,13 @@
-import React, { createRef } from 'react';
-import { LayoutChangeEvent } from 'react-native';
+import React from 'react';
 import { act, render } from '@testing-library/react-native';
 import { CallingState, SfuModels } from '@stream-io/video-client';
-import TrackSubscriber, {
-  TrackSubscriberHandle,
-} from '../../src/components/Participant/ParticipantView/VideoRenderer/TrackSubscriber';
+import { BehaviorSubject } from 'rxjs';
+import TrackSubscriber from '../../src/components/Participant/ParticipantView/VideoRenderer/TrackSubscriber';
 import mockParticipant from '../mocks/participant';
 import { mockCall } from '../mocks/call';
 import { mockClientWithUser } from '../mocks/client';
 
 jest.useFakeTimers();
-
-const layoutEvent = (width: number, height: number) =>
-  ({
-    nativeEvent: { layout: { width, height, x: 0, y: 0 } },
-  }) as unknown as LayoutChangeEvent;
 
 describe('TrackSubscriber', () => {
   it('requests the video track when the participant appears in state after the subscriber mounted', () => {
@@ -25,15 +18,17 @@ describe('TrackSubscriber', () => {
     call.state.setCallingState(CallingState.JOINED);
 
     const sessionId = 'remote-session-1';
-    const ref = createRef<TrackSubscriberHandle>();
+    const dimensions$ = new BehaviorSubject<
+      SfuModels.VideoDimension | undefined
+    >(undefined);
 
     render(
       <TrackSubscriber
-        ref={ref}
         call={call}
         participantSessionId={sessionId}
         trackType="videoTrack"
         isVisible={true}
+        dimensions$={dimensions$}
       />,
     );
 
@@ -52,7 +47,7 @@ describe('TrackSubscriber', () => {
 
     // The view lays out and reports its dimensions.
     act(() => {
-      ref.current?.onLayoutUpdate(layoutEvent(200, 200));
+      dimensions$.next({ width: 200, height: 200 });
     });
 
     // The client must now request the participant's video track. Before the fix
