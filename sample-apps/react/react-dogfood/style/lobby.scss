@@ -9,12 +9,20 @@
   &-container {
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    // Top-aligned (not centered) so expanding the E2EE panel pushes only the
+    // content below it down - the video preview and Join button stay put.
+    justify-content: flex-start;
     align-items: center;
 
     width: 100%;
     height: 100%;
+    box-sizing: border-box;
     padding: var(--str-video__spacing-lg);
+    // Clear the transparent app header (rd__call-header, z-index 2) that overlays
+    // the top of the lobby, plus a little breathing room.
+    padding-top: 6rem;
+    // Scroll instead of clipping if the content is taller than the viewport.
+    overflow-y: auto;
 
     position: absolute;
     top: 0;
@@ -265,4 +273,228 @@
 .mapboxgl-ctrl-attrib a,
 a.mapboxgl-ctrl-logo {
   display: none;
+}
+
+// End-to-end encryption lobby control (pronto only). Sits below the join
+// button; a compact switch that reveals the shared-key row when enabled.
+.rd__lobby-encryption {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: var(--str-video__spacing-md);
+  // Frosted-glass card, matching the "Choose display name" panel.
+  background-color: #1d29380f;
+  border: 1px solid #ffffff08;
+  border-radius: var(--str-video__border-radius-xl);
+  backdrop-filter: blur(10px);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+
+  &__switch {
+    display: flex;
+    align-items: center;
+    gap: var(--str-video__spacing-md);
+    width: 100%;
+    box-sizing: border-box;
+    padding: var(--str-video__spacing-md);
+    background: transparent;
+    border: none;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  &__lock {
+    font-size: 20px;
+    color: var(--str-video__text-color2);
+    flex-shrink: 0;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__title {
+    font-weight: 600;
+    font-size: var(--str-video__font-size-sm);
+  }
+
+  &__subtitle {
+    font-size: var(--str-video__font-size-xs);
+    color: var(--str-video__text-color2);
+  }
+
+  // Toggle track + thumb.
+  &__track {
+    position: relative;
+    flex-shrink: 0;
+    width: 40px;
+    height: 24px;
+    border-radius: var(--str-video__border-radius-circle);
+    background-color: var(--str-video__base-color5);
+    transition: background-color 0.15s ease;
+  }
+
+  &__thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: var(--str-video__border-radius-circle);
+    background-color: #fff;
+    transition: transform 0.15s ease;
+  }
+
+  // Encrypted state: a soft green wash + green lock/title (no loud border glow).
+  &--on {
+    background-color: rgba(0, 226, 161, 0.08);
+    border-color: rgba(0, 226, 161, 0.4);
+  }
+
+  &--on &__lock,
+  &--on &__title {
+    color: var(--str-video__alert-success);
+  }
+
+  &--on &__track {
+    background-color: var(--str-video__alert-success);
+  }
+
+  &--on &__thumb {
+    transform: translateX(16px);
+  }
+
+  // Joiner banner: same green as `--on`, but a static informational header
+  // instead of an interactive switch (no track/thumb) - a grayed-out toggle
+  // reads as broken to people who can't change it.
+  &__banner-row {
+    cursor: default;
+  }
+
+  // Animated reveal: the grid row grows 0fr -> 1fr (height 0 -> auto) so only
+  // the content below the toggle is pushed down, with a quick motion.
+  &__reveal {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 0.22s ease,
+      opacity 0.22s ease;
+
+    &--open {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+  }
+
+  &__reveal-inner {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  &__details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--str-video__spacing-xs);
+    // Inside the card now: align with the switch row, bottom padding to match.
+    padding: 0 var(--str-video__spacing-md) var(--str-video__spacing-md);
+  }
+
+  &__key-label {
+    font-size: var(--str-video__font-size-xs);
+    font-weight: 600;
+    letter-spacing: 0.25ex;
+    text-transform: uppercase;
+    color: var(--str-video__text-color2);
+    text-align: left;
+  }
+
+  &__key-row {
+    display: flex;
+    align-items: center;
+    gap: var(--str-video__spacing-sm);
+  }
+
+  // Holds the key input plus the inline "refresh" button.
+  &__key-field {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__key-input {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+    // Room for the inline refresh button.
+    padding-right: 2.25rem;
+
+    // Read-only for joiners: signal it isn't editable (no refresh button either).
+    &:read-only {
+      padding-right: var(--str-video__spacing-md);
+      color: var(--str-video__text-color2);
+      cursor: default;
+    }
+  }
+
+  &__refresh {
+    position: absolute;
+    top: 50%;
+    right: var(--str-video__spacing-xs);
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    border-radius: var(--str-video__border-radius-md);
+    color: var(--str-video__text-color2);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--str-video__text-color1);
+      background-color: rgba(255, 255, 255, 0.06);
+    }
+
+    .str-video__icon {
+      width: 16px;
+      height: 16px;
+      background-color: currentColor;
+    }
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: var(--str-video__font-size-xs);
+    color: var(--str-video__text-color2);
+    text-align: left;
+    line-height: 1.4;
+  }
+
+  &__copy {
+    flex-shrink: 0;
+    // Fixed width so swapping the label ("Copy link" -> "Copied") doesn't reflow
+    // and resize the key input next to it.
+    min-width: 5.5rem;
+    padding: var(--str-video__spacing-xs) var(--str-video__spacing-sm);
+    font-size: var(--str-video__font-size-xs);
+    text-align: center;
+    border-radius: var(--str-video__border-radius-md);
+    border: 1px solid var(--str-video__base-color5);
+    background-color: var(--str-video__base-color6);
+    color: var(--str-video__text-color1);
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--str-video__base-color5);
+    }
+  }
 }

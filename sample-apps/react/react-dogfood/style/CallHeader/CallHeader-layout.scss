@@ -69,6 +69,39 @@
   gap: 0.5rem;
 }
 
+// Prominent, always-visible E2EE indicator: a solid green pill with dark,
+// high-contrast text and a soft glow. The icon is always shown; the "Encrypted"
+// label is revealed above the `sm` breakpoint (kept out on small screens so the
+// tight header row - where latency/participant-count are also hidden - never
+// overflows). Full description lives in the tooltip.
+.rd__call-header__e2ee-badge {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--str-video__spacing-xs);
+  height: 28px;
+  min-width: 28px;
+  padding: 0 var(--str-video__spacing-sm);
+  border-radius: var(--str-video__border-radius-md);
+  background-color: var(--str-video__alert-success);
+  color: var(--str-video__base-color7);
+  font-size: var(--str-video__font-size-xs);
+  font-weight: 600;
+  letter-spacing: 0.02ex;
+  box-shadow: 0 0 14px -2px rgba(0, 226, 161, 0.7);
+
+  &-icon {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  &-label {
+    display: none;
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+}
+
 .rd__header__recording-indicator {
   display: flex;
   justify-content: center;
@@ -332,6 +365,10 @@
 
   .rd__header__participant-count {
     display: flex;
+  }
+
+  .rd__call-header__e2ee-badge-label {
+    display: inline;
   }
 
   .rd__user-session {

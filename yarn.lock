@@ -6776,6 +6776,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@stream-io/e2ee-demo@workspace:sample-apps/react/e2ee-demo":
+  version: 0.0.0-use.local
+  resolution: "@stream-io/e2ee-demo@workspace:sample-apps/react/e2ee-demo"
+  dependencies:
+    "@stream-io/typescript-config": "workspace:^"
+    "@stream-io/video-react-sdk": "workspace:^"
+    "@types/react": "npm:~19.2.18"
+    "@types/react-dom": "npm:~19.2.4"
+    "@vitejs/plugin-react": "npm:^6.0.5"
+    react: "npm:19.2.8"
+    react-dom: "npm:19.2.8"
+    typescript: "npm:^6.0.3"
+    vite: "npm:^8.2.0"
+  languageName: unknown
+  linkType: soft
+
 "@stream-io/egress-composite@workspace:sample-apps/react/egress-composite":
   version: 0.0.0-use.local
   resolution: "@stream-io/egress-composite@workspace:sample-apps/react/egress-composite"
