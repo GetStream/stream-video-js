@@ -27,7 +27,6 @@ export function registerCallMediaEngine() {
     const bypassVoiceProcessing = config?.audioRole === 'listener';
     const factory = await CallFactory.create({
       bypassVoiceProcessing,
-      //stereoInputEnabled: false, TODO: decide how this param is defined from client side
     });
     logger.debug(
       `Created per-call factory (bypassVoiceProcessing=${bypassVoiceProcessing})`,
