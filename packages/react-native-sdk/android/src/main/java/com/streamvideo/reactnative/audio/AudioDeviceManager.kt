@@ -107,6 +107,25 @@ class AudioDeviceManager(
      */
     var telecomManagedMode: Boolean = false
 
+    /**
+     * Opt-out for the Android 11+ communication-mode keep-alive
+     * (see [CommunicationModeKeepAlive]). Sticky developer preference — intentionally
+     * NOT reset in [stop] (unlike role/stereo/defaultDevice, which are per-call).
+     */
+    var disableCommunicationModeWorkaround: Boolean = false
+
+    /**
+     * Keeps MODE_IN_COMMUNICATION owned for the whole Communicator call on Android 11+.
+     * Instantiated once; a no-op below R (SDK-version split), with per-call gating
+     * (role / telecom / opt-out) applied at [start].
+     */
+    private val communicationModeKeepAlive: CommunicationModeKeepAlive =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            SilentPlaybackKeepAlive(mReactContext)
+        } else {
+            NoCommunicationModeKeepAlive
+        }
+
     val bluetoothManager = BluetoothManager(mReactContext, this)
 
     private val proximityManager by lazy { ProximityManager(mReactContext, this) }
@@ -151,11 +170,20 @@ class AudioDeviceManager(
             if (!telecomManagedMode) {
                 audioFocusUtil.requestFocus(callAudioRole, mReactContext)
             }
+            // Keep MODE_IN_COMMUNICATION owned for the whole call (Android 11+).
+            // Built last, after focus/routing, so the silent track picks up the correct route.
+            if (callAudioRole == CallAudioRole.Communicator &&
+                !telecomManagedMode &&
+                !disableCommunicationModeWorkaround
+            ) {
+                communicationModeKeepAlive.start()
+            }
         }
     }
 
-    fun stop(activity: Activity) {
+    fun stop(activity: Activity?) {
         runInAudioThread {
+            communicationModeKeepAlive.stop()
             if (callAudioRole == CallAudioRole.Communicator) {
                 if (!telecomManagedMode) {
                     // Only tear down what we set up ourselves; Telecom owns its own teardown.
@@ -165,13 +193,17 @@ class AudioDeviceManager(
                         mAudioManager.setSpeakerphoneOn(false)
                     }
                     bluetoothManager.stop()
+                    // Restore the global audio mode set in setup(). It was previously left at
+                    // MODE_IN_COMMUNICATION after a call, holding the device in in-call routing.
+                    // Safe here: the keep-alive was stopped above.
+                    mAudioManager.mode = AudioManager.MODE_NORMAL
                 }
                 callAudioRole = CallAudioRole.Communicator
                 enableStereo = false
                 defaultAudioDevice = AudioDeviceEndpoint.TYPE_SPEAKER
                 proximityManager.stop()
             }
-            activity.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
+            activity?.volumeControlStream = AudioManager.USE_DEFAULT_STREAM_TYPE
             if (!telecomManagedMode) {
                 audioFocusUtil.abandonFocus()
             }
@@ -265,9 +297,18 @@ class AudioDeviceManager(
     }
 
     override fun close() {
-        mAudioManager.unregisterAudioDeviceCallback(this)
-        proximityManager.onDestroy()
+        // Queue teardown on the same single-thread audio executor as start()/stop() so it
+        // is serialized after any pending audio work and can't race a queued start() that
+        // would otherwise touch the keep-alive's track/poller after release.
+        runInAudioThread {
+            communicationModeKeepAlive.release()
+            mAudioManager.unregisterAudioDeviceCallback(this)
+            proximityManager.onDestroy()
+        }
     }
+
+    /** Short description of the keep-alive state, for the audio debug log. */
+    fun communicationModeKeepAliveState(): String = communicationModeKeepAlive.describeState()
 
     override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
         if (addedDevices != null) {
