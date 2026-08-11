@@ -1435,9 +1435,6 @@ export class Call {
       globalThis.streamRNVideoSDK?.callManager.start({
         isRingingTypeCall: this.ringing,
         cid: this.cid,
-        hifiAudioEnabled:
-          this.state.settings?.audio.hifi_audio_enabled ?? false,
-        audioBitrateProfile: this.microphone.state.audioBitrateProfile,
       });
       this.callManagerStarted = true;
     }
@@ -1749,15 +1746,8 @@ export class Call {
     if (!this.mediaEnginePromise) {
       const provider = getCallMediaEngineProvider();
 
-      const audioBitrateProfile = this.microphone.state.audioBitrateProfile;
-      const hifiAudioEnabled =
-        this.state.settings?.audio.hifi_audio_enabled ?? false;
-      this.logger.debug(
-        `Requesting per-call media factory creation (audioBitrateProfile=${audioBitrateProfile ?? 'default'}, hifiAudioEnabled=${hifiAudioEnabled})`,
-      );
-      this.mediaEnginePromise = Promise.resolve(
-        provider({ audioBitrateProfile, hifiAudioEnabled }),
-      ).catch((err) => {
+      this.logger.debug(`Requesting per-call media factory creation`);
+      this.mediaEnginePromise = Promise.resolve(provider()).catch((err) => {
         // Drop the cached rejection so a retried join() can rebuild the engine
         this.mediaEnginePromise = undefined;
         throw err;

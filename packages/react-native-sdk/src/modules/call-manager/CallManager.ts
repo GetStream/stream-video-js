@@ -335,8 +335,6 @@ export class CallManager {
    * the SDK uses the device derived from the call settings. It can be one of the following:
    * - `'speaker'`: For normal video or voice calls.
    * - `'earpiece'`: For voice-only mobile call type scenarios.
-   *
-   * @param config.enableStereoAudioOutput Whether to enable stereo audio output. Only supported for listener audio role.
    */
   start = (config?: StreamInCallManagerConfig): void => {
     this.storedConfig = config;

@@ -1,9 +1,7 @@
-import type { AudioBitrateProfile } from '../gen/video/sfu/models/models';
-
 /**
  * A per-call media engine. On React Native it owns the call's native
- * `PeerConnectionFactory` (built with the call's audio profile); on web it is a
- * no-op. Capture (`getUserMedia`/`getDisplayMedia`) and peer-connection creation
+ * `PeerConnectionFactory` (built with the call's audio configuration); on web it
+ * is a no-op. Capture (`getUserMedia`/`getDisplayMedia`) and peer-connection creation
  * always go through the WebRTC globals, which resolve to this factory while it
  * is the live call factory — so the engine only needs to manage its lifecycle.
  *
@@ -14,36 +12,15 @@ export interface CallMediaEngine {
 }
 
 /**
- * The options a `Call` passes to a {@link CallMediaEngineProvider} when it
- * mints its engine.
- *
- * @internal
- */
-export interface MediaEngineOptions {
-  /**
-   * The audio bitrate profile the call's factory should be built with.
-   * Ignored by the default globals engine.
-   */
-  audioBitrateProfile?: AudioBitrateProfile;
-  /**
-   * Whether hi-fi audio is enabled for the call. Gates the stereo-output request: stereo
-   * playout is only honored when hi-fi audio is enabled.
-   */
-  hifiAudioEnabled?: boolean;
-}
-
-/**
  * Creates a per-call {@link CallMediaEngine}. Registered once at SDK startup
- * via {@link setCallMediaEngineProvider} (next to `registerGlobals` on React
- * Native). May return the engine synchronously (the default globals engine) or
- * asynchronously (React Native, where allocating the native per-call factory
- * is an async bridge call).
+ * via {@link setCallMediaEngineProvider}. May return the engine synchronously
+ * (the default globals engine) or asynchronously (React Native, where allocating
+ * the native per-call factory is an async bridge call).
  *
  * @internal
  */
-export type CallMediaEngineProvider = (
-  options: MediaEngineOptions,
-) => CallMediaEngine | Promise<CallMediaEngine>;
+export type CallMediaEngineProvider = () =>
+  CallMediaEngine | Promise<CallMediaEngine>;
 
 /**
  * The default engine: a thin, stateless wrapper over the WebRTC globals.

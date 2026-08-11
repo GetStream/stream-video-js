@@ -1,5 +1,4 @@
 import type {
-  AudioBitrateProfile,
   Participant,
   TrackType,
   VideoDimension,
@@ -429,16 +428,6 @@ type StreamRNVideoSDKCallManagerSetupParams =
 type StreamRNVideoSDKCallManagerStartParams =
   StreamRNVideoSDKCallManagerRingingParams & {
     cid: string;
-    /**
-     * Whether hi-fi audio is enabled for the call (dashboard `audio.hifi_audio_enabled`).
-     * Gates the stereo-output request applied at start.
-     */
-    hifiAudioEnabled: boolean;
-    /**
-     * The call's audio bitrate profile. `MUSIC_HIGH_QUALITY` also enables stereo output
-     * (in addition to the `listener` + `enableStereoAudioOutput` path).
-     */
-    audioBitrateProfile?: AudioBitrateProfile;
   };
 
 type StreamRNVideoSDKCallManagerStopParams =
@@ -497,8 +486,6 @@ export type StreamRNVideoSDKGlobals = {
     start({
       isRingingTypeCall,
       cid,
-      hifiAudioEnabled,
-      audioBitrateProfile,
     }: StreamRNVideoSDKCallManagerStartParams): void;
 
     /**

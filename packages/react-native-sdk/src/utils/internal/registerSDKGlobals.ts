@@ -1,5 +1,4 @@
 import {
-  SfuModels,
   StreamRNVideoSDKGlobals,
   videoLoggerSystem,
 } from '@stream-io/video-client';
@@ -114,12 +113,7 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         );
       }
     },
-    start: ({
-      isRingingTypeCall,
-      cid,
-      hifiAudioEnabled,
-      audioBitrateProfile,
-    }) => {
+    start: ({ isRingingTypeCall, cid }) => {
       // Apply the audio config a consumer recorded via `callManager.start(config)` at this single
       // join-time start, before the native audio manager is activated.
       const config = publicCallManager.getStoredConfig();
@@ -127,14 +121,6 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
         config?.audioRole === 'communicator'
           ? config.deviceEndpointType
           : undefined;
-
-      const isMusicHighQuality =
-        audioBitrateProfile ===
-        SfuModels.AudioBitrateProfile.MUSIC_HIGH_QUALITY;
-      const stereoOutput =
-        hifiAudioEnabled &&
-        config?.audioRole === 'listener' &&
-        (config.enableStereoAudioOutput === true || isMusicHighQuality);
 
       if (shouldBypassForCallKit({ isRingingTypeCall })) {
         // CallKit owns activation. Only forward an explicit endpoint override; the
@@ -173,6 +159,8 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
           );
         }
       }
+
+      const stereoOutput = config?.audioRole === 'listener';
       StreamInCallManagerNativeModule.setEnableStereoAudioOutput(stereoOutput);
       StreamInCallManagerNativeModule.start();
     },
