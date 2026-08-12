@@ -117,7 +117,7 @@ Every key import generates:
 
 The fresh prefix per import is what makes re-importing the same raw key safe: it cannot reproduce an `(ivPrefix, counter)` pair from an earlier import. **Receivers never consult a local prefix** - they read it from the frame.
 
-The prefix must come from a **cryptographic RNG**, never from a user id, session id, timestamp or counter. Under a shared key it is the only thing separating one participant's IVs from another's - see the warning in §9.
+The prefix must come from a **cryptographic RNG**, never from a user id, session id, timestamp or counter. Under a shared key it is the only thing separating one participant's IVs from another's (§9 rule 5, Appendix A.2).
 
 ---
 
@@ -134,7 +134,7 @@ The prefix must come from a **cryptographic RNG**, never from a user id, session
 > Note the invariant is on the IV, not on the counter. **`(key, counter)` repeats constantly and that is expected**: under a shared key every participant starts at counter 1, as does the same user on a second device, and so does any sender that reconnects with a fresh manager. Two mechanisms cover two different scopes, and both are load-bearing:
 >
 > - **Within one sender**, the monotonic counter separates frames. It must be **one counter for the whole manager, not one per track** - a per-track counter would let one user's audio and video frames land on the same counter under the same key.
-> - **Between senders**, the counter separates nothing, because they all start near 0. Only the random per-import `ivPrefix` keeps them apart, which is why §9 requires it to come from a cryptographic RNG.
+> - **Between senders**, the counter separates nothing, because they all start near 0. Only the random per-import `ivPrefix` keeps them apart, which is why §9 rule 5 requires a cryptographic RNG (Appendix A.2).
 
 ---
 
@@ -340,61 +340,36 @@ The _level_ notifications (`missing_key`, `decryption_failed`, `unencrypted_fram
 
 ## 9. Counter exhaustion
 
-The counter is a 32-bit IV field. **It must never wrap** - wrapping would fold into a previously used `(ivPrefix, counter)` pair, which is catastrophic under AES-GCM. Check before incrementing and fail closed:
+The counter is a 32-bit IV field and **must never wrap**: a wrap folds into a previously used `(ivPrefix, counter)` pair, which is catastrophic under AES-GCM (Appendix A.1).
+
+> **The five rules.** This is the whole contract; Appendix A carries the reasoning.
+>
+> 1. **One counter per manager**, shared across every track and codec. Hold it as a single value, never a map keyed by user id - a wrong or changed id would hand out a fresh counter starting at 1 under the same key and prefix.
+> 2. **Check before incrementing**, and never store a value past the ceiling.
+> 3. **Never reset it on a key operation.** `setKey`, `setSharedKey`, `removeKeys` and `removeSharedKey` all leave it untouched; only a new manager starts at 0.
+> 4. **Throw at the ceiling.** The frame is dropped and `encryption_failed` is emitted. This is the only counter threshold; nothing fires below it.
+> 5. **Fresh 8-byte `ivPrefix` from a cryptographic RNG on every key import.** Never derived from a user id, session id, timestamp or counter; never reused across imports; never shortened.
 
 ```
 c = counter + 1
 if c > 0xFFFFFFFF:
-    throw            # do NOT store c - the counter stays pinned at the ceiling
+    throw            # do NOT store c: the counter stays pinned at the ceiling
 counter = c
 ```
 
-The throw propagates out of the encode path, so the frame is dropped and `encryption_failed` is emitted. **This ceiling is the only counter threshold; nothing fires below it.**
+Rules 1 and 5 are two independent guards, covering two different scopes (§4). Resetting the counter on import, as rule 3 forbids, collapses them into one.
 
-**Hold the counter as a single value, not as a map keyed by user id.** A manager is bound to one local user at construction and only the encode path draws from the counter, so keying it buys nothing - but it costs a failure mode: a wrong or changed id hands out a _fresh_ counter starting at 1, which under the same key and `ivPrefix` is exactly the IV reuse this ceiling exists to prevent. A single value cannot do that.
+| Action                           | Frame counter           | `ivPrefix`                |
+| -------------------------------- | ----------------------- | ------------------------- |
+| `setKey` / `setSharedKey`        | unchanged, keeps rising | fresh random for the slot |
+| `removeKeys` / `removeSharedKey` | unchanged, keeps rising | dropped with the slot     |
+| new manager                      | reset to 0              | -                         |
 
-> **Why IV reuse is catastrophic, and not merely a leak.** GCM is CTR mode plus GHASH, and a repeated IV breaks both halves.
->
-> The keystream is a function of `(key, IV)` alone, so two frames encrypted under the same one give `C1 ⊕ C2 = P1 ⊕ P2`: the keystream cancels and the plaintexts leak against each other. Video frames are highly correlated and partly predictable, so that XOR is close to recovering both.
->
-> The authentication failure is worse. The tag is `GHASH_H(A, C) ⊕ E_K(J0)`, and `J0` derives from the IV, so on a collision the `E_K(J0)` mask cancels too: `T1 ⊕ T2` leaves a polynomial whose only unknown is the GHASH subkey `H`. Solving it recovers `H`, and an attacker holding `H` can forge a valid tag for **any** frame under that key, not only the two that collided. This is the "forbidden attack", demonstrated in practice against TLS stacks that repeated a nonce.
->
-> A wrap is the guaranteed form of this: `ivPrefix` is fixed for the key's lifetime, so the IV is a pure function of the counter, and wrapping replays the entire IV sequence in order. Hence fail closed rather than wrap.
+Key state per action is §3; this table covers only the counter and the prefix.
 
-**The counter is scoped to the manager, not to the key.** It must survive key imports and removals untouched, and reset only when the manager is torn down:
+**Recovery is a new manager, and the error message must say so.** A rotation gives a disjoint IV space but not a fresh budget, and an exhausted counter does not advance, so a rekeyed track fails identically and publishes nothing for the rest of the manager's life. An error naming rekeying sends integrators down a path that cannot work. `encryption_failed` is latched per track, so the host sees one event per track and then silence rather than a per-frame flood.
 
-| Action                                 | Frame counter           | `ivPrefix`   | Key state                        |
-| -------------------------------------- | ----------------------- | ------------ | -------------------------------- |
-| `setKey` / `setSharedKey`              | unchanged, keeps rising | fresh random | slot added or replaced           |
-| `removeKeys`                           | unchanged, keeps rising | dropped      | user's slots removed             |
-| `removeSharedKey` on an inactive epoch | unchanged, keeps rising | dropped      | shared slot removed              |
-| `removeSharedKey` on the active epoch  | unchanged, keeps rising | dropped      | slot removed; no active fallback |
-| new manager instance                   | reset to 0              | -            | empty                            |
-
-Two guards keep IVs unique within one sender: the persistent counter, and the fresh random `ivPrefix` per import. Resetting the counter on import would collapse them into one.
-
-> **The `ivPrefix` RNG is load-bearing on its own - do not weaken it.** The counter only separates IVs _within_ a single sender. It contributes nothing **between** senders, and under a shared key that is exactly the case that matters: every participant holds the same AES key, and every participant's counter independently starts at 0, so participant A's first frame uses `P_A || 1` and B's uses `P_B || 1`. Only `P_A != P_B` keeps them apart. With 8 random bytes the collision probability across _n_ participants is about `n² / 2^65` (~3e-16 for 100 participants), which is why 64 bits suffice - but it means the prefix must be **8 bytes from a cryptographic RNG, generated fresh on every import**. Deriving it from a user id, session id, timestamp, or counter, reusing one across imports, or shortening it, breaks AES-GCM outright for the entire call. This is the single easiest thing to get wrong when porting.
-
-**Consequence: a rekey cannot recover an exhausted sender.** Rotation gives a disjoint IV space but not a fresh budget, and the failing call does not advance the counter, so every later frame fails identically and the track publishes nothing for the rest of the manager's life. The only recovery is a new manager. Say so in the error message: one that points at rekeying sends integrators down a path that cannot work.
-
-Because `encryption_failed` is latched per track, the host sees one event per track and then silence, not a per-frame flood.
-
-### How long is the budget?
-
-The counter is shared across **all** of a sender's tracks, so the aggregate frame rate is what matters:
-
-```
-months ≈ 2^32 / (aggregate frames per second) / 2.6e6
-```
-
-Worked example, a typical camera call: Opus at 20 ms ptime contributes 50 fps, and a 30 fps camera track with 3 simulcast layers contributes 90 fps (each layer's frames traverse the transform separately), so ~140 fps aggregate.
-
-| Case                                     | Aggregate | Hard stop at 2^32 |
-| ---------------------------------------- | --------- | ----------------- |
-| Camera + mic, 3 simulcast layers         | ~140 fps  | **~12 months**    |
-| Camera + mic, single stream (SVC, 1 rid) | ~80 fps   | ~20 months        |
-
-That is **continuous publishing in a single session**, and counters reset with each new manager, so no real call approaches it. This is a correctness guard, not an operational event. Do not add an early-warning signal below the ceiling: it would fire only after ~6 months, and it could name no remedy that works, since a rotation cannot restore the budget. Do not skip the ceiling check on the same reasoning: a per-track counter, or one that resets on rekey, turns "never happens" into IV reuse.
+**No early-warning signal below the ceiling.** The budget is roughly a year of continuous publishing (Appendix A.3), and no rotation can restore it, so a warning would fire once, months in, naming no remedy.
 
 ---
 
@@ -444,8 +419,7 @@ Pairing bounds the rate for free: a recovery can only be emitted for a failure t
 
 **`encryption_failed` is latched per track**, re-arming when a frame encrypts again. A permanently dead track therefore reports once, not once per frame.
 
-`key_state` returns per-user and shared keys with their **fingerprints only** (hex of the first 8 bytes of `SHA-256(rawKey)`). Raw key material must never leave the worker.
-At most one shared entry has `isActive: true`. It is valid for every shared entry to be inactive after the active epoch is removed.
+`key_state` returns per-user and shared keys with their **fingerprints only** (hex of the first 8 bytes of `SHA-256(rawKey)`). Raw key material must never leave the worker. At most one shared entry has `isActive: true`, and all of them being inactive is a valid state (§3).
 
 ---
 
@@ -505,3 +479,42 @@ A new implementation is conformant when it reproduces the bytes above exactly, d
 - **RED (audio redundancy)** is applied by the packetizer, after the encode transform, so it does not affect this format.
 - **H.264 with no slice NALU** falls back to whole-frame encryption without escaping (§5.4). Flag if any platform's encoder can actually produce this.
 - **AV1 is out of scope for the initial release** (§1). The SFU must not negotiate it on an encrypted call; the client-side fail-closed is a net, not a fallback. Adding it later means a second framing scheme, a new version number, and new vectors.
+
+---
+
+## Appendix A: why
+
+Reference material behind the IV rules in §4 and §9. Nothing here is normative - it is here so that an implementer who wants to know why the rules take this shape, or who is tempted to relax one, does not have to re-derive it.
+
+### A.1 Why IV reuse is catastrophic, not merely a leak
+
+GCM is CTR mode plus GHASH, and a repeated IV breaks both halves.
+
+The keystream is a function of `(key, IV)` alone, so two frames encrypted under the same one give `C1 ⊕ C2 = P1 ⊕ P2`: the keystream cancels and the plaintexts leak against each other. Video frames are highly correlated and partly predictable, so that XOR is close to recovering both.
+
+The authentication failure is worse. The tag is `GHASH_H(A, C) ⊕ E_K(J0)`, and `J0` derives from the IV, so on a collision the `E_K(J0)` mask cancels too: `T1 ⊕ T2` leaves a polynomial whose only unknown is the GHASH subkey `H`. Solving it recovers `H`, and an attacker holding `H` can forge a valid tag for **any** frame under that key, not only the two that collided. This is the "forbidden attack", demonstrated in practice against TLS stacks that repeated a nonce.
+
+A counter wrap is the guaranteed form of it: `ivPrefix` is fixed for the lifetime of an import, so the IV is a pure function of the counter, and wrapping replays the entire IV sequence in order.
+
+### A.2 Why the random `ivPrefix` carries the between-sender case
+
+The counter separates IVs only _within_ one sender. Between senders it contributes nothing, and under a shared key that is exactly the case that matters: every participant holds the same AES key, and every participant's counter independently starts at 0, so A's first frame uses `P_A ∥ 1` and B's uses `P_B ∥ 1`. Only `P_A != P_B` keeps them apart.
+
+With 8 random bytes the collision probability across _n_ participants is about `n² / 2^65` (~3e-16 for 100 participants), which is why 64 bits suffice - and why the prefix has to be a full 8 bytes of cryptographic randomness, fresh on every import. Deriving it from a user id, session id, timestamp or counter, reusing one across imports, or shortening it breaks AES-GCM for the whole call. This is the single easiest thing to get wrong when porting.
+
+### A.3 How long is the budget?
+
+The counter is shared across **all** of a sender's tracks, so the aggregate frame rate is what matters:
+
+```
+months ≈ 2^32 / (aggregate frames per second) / 2.6e6
+```
+
+Worked example, a typical camera call: Opus at 20 ms ptime contributes 50 fps, and a 30 fps camera track with 3 simulcast layers contributes 90 fps (each layer's frames traverse the transform separately), so ~140 fps aggregate.
+
+| Case                                     | Aggregate | Hard stop at 2^32 |
+| ---------------------------------------- | --------- | ----------------- |
+| Camera + mic, 3 simulcast layers         | ~140 fps  | **~12 months**    |
+| Camera + mic, single stream (SVC, 1 rid) | ~80 fps   | ~20 months        |
+
+That is continuous publishing within a single session, and the counter resets with each new manager, so no real call approaches it. The ceiling is a correctness guard, not an operational event.
