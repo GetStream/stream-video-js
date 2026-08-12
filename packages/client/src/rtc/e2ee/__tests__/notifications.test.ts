@@ -86,11 +86,14 @@ describe('DecodeNotifier throttling', () => {
     expect(postMessage.mock.calls.map(([m]) => m.keyIndex)).toEqual([1, 2]);
   });
 
-  it('does not throttle broken: it is already once per failure run', () => {
+  it('does not throttle decryption_stalled: it is already once per failure run', () => {
     const notify = new DecodeNotifier('bob', 'VIDEO');
-    notify.broken(0);
-    notify.broken(1);
-    expect(types()).toEqual(['e2ee.broken', 'e2ee.broken']);
+    notify.stalled(0);
+    notify.stalled(1);
+    expect(types()).toEqual([
+      'e2ee.decryption_stalled',
+      'e2ee.decryption_stalled',
+    ]);
   });
 
   it('scopes throttles per notifier, so one track cannot mute another', () => {

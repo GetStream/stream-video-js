@@ -43,7 +43,7 @@ removeSharedKey(keyIndex: number): void
 
 // diagnostics
 enablePerformanceReporting(enabled: boolean): void
-requestKeyDump(): void
+requestKeyState(): void
 
 // lifecycle
 dispose(): void
@@ -286,11 +286,11 @@ decode with (keyIndex, ivPrefix, counter):
   try:
       plaintext = decrypt(...)
       replayWindow.commit(counter, ivPrefix)      // only after authentication
-      failures.clearFailures(keyIndex)            // gates `broken`, nothing else
+      failures.clearFailures(keyIndex)            // gates `decryption_stalled`, nothing else
       emit decryption_resumed                     // unthrottled and paired; §10
       forward clearHeader || plaintext
   catch:
-      if failures.recordFailure(keyIndex) crosses tolerance: emit broken
+      if failures.recordFailure(keyIndex) crosses tolerance: emit decryption_stalled
       emit decryption_failed (throttled)
       drop
 ```
@@ -312,7 +312,7 @@ The magic is a heuristic, not a guarantee: any 4-byte value collides with random
 Everything read before the decrypt call (`frameCounter`, `ivPrefix`, `keyIndex`, `clearBytes`, the RBSP flag) is **plaintext and forgeable by a relay**. Nothing may mutate trust state until GCM authenticates the frame.
 
 - The replay window is **peeked** before decrypt and **committed** only after success.
-- The failure counter is diagnostic only. It gates the `broken` signal; it never gates a decrypt attempt. A burst of forged frames must not be able to latch a genuine key invalid.
+- The failure counter is diagnostic only. It gates the `decryption_stalled` signal; it never gates a decrypt attempt. A burst of forged frames must not be able to latch a genuine key invalid.
 
 ### Replay window
 
@@ -326,9 +326,9 @@ Scoped **per remote track**, not per user. Remote tracks travel on independent S
 
 ### Failure tolerance
 
-Consecutive decryption failures are counted **per track, per `keyIndex`**. After **10** consecutive failures, the 11th fires `broken` exactly once per failure run. A successful decrypt clears the count for that `keyIndex`, and also fires `decryption_resumed` - but keep the two independent. The count gates `broken` and nothing else; the recovery is gated separately, on whether a failure was ever delivered to the host (§10).
+Consecutive decryption failures are counted **per track, per `keyIndex`**. After **10** consecutive failures, the 11th fires `decryption_stalled` exactly once per failure run. A successful decrypt clears the count for that `keyIndex`, and also fires `decryption_resumed` - but keep the two independent. The count gates `decryption_stalled` and nothing else; the recovery is gated separately, on whether a failure was ever delivered to the host (§10).
 
-Per-track scoping is load-bearing: a counter shared across a user's tracks lets one track's healthy frames reset another's failures, so the threshold is never crossed and `broken` can never fire.
+Per-track scoping is load-bearing: a counter shared across a user's tracks lets one track's healthy frames reset another's failures, so the threshold is never crossed and `decryption_stalled` can never fire.
 
 ### Throttling
 
@@ -400,7 +400,7 @@ That is **continuous publishing in a single session**, and counters reset with e
 
 ## 10. Events
 
-Event names are listed below unprefixed. On the wire and in the JS API they carry an `e2ee.` prefix (`e2ee.missing_key`, `e2ee.broken`, ...); keep that convention so E2EE events stay distinguishable from SFU and coordinator events.
+Event names are listed below unprefixed. On the wire and in the JS API they carry an `e2ee.` prefix (`e2ee.missing_key`, `e2ee.decryption_stalled`, ...); keep that convention so E2EE events stay distinguishable from SFU and coordinator events.
 
 | Event                           | Payload                           | Fires when                                                     | Host action                                                                  |
 | ------------------------------- | --------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------- |
@@ -409,10 +409,10 @@ Event names are listed below unprefixed. On the wire and in the JS API they carr
 | `decryption_failed`             | `userId`, `trackType`             | GCM tag failure on a remote frame                              | key mismatch, rotation, or tampering                                         |
 | `decryption_resumed`            | `userId`, `trackType`             | that track decrypts again                                      | clear the warning raised by `decryption_failed`                              |
 | `encryption_failed`             | `userId`, `trackType`, `reason`   | an outgoing frame could not be encrypted                       | that track is publishing nothing                                             |
-| `broken`                        | `userId`, `keyIndex`, `trackType` | 10+ consecutive failures for `(track, keyIndex)`               | surface to the user; redistribute keys                                       |
+| `decryption_stalled`            | `userId`, `keyIndex`, `trackType` | 10+ consecutive failures for `(track, keyIndex)`               | surface to the user; redistribute keys                                       |
 | `unencrypted_frame`             | `userId`, `trackType`             | a remote frame carried no E2EE framing and was forwarded as-is | expected when the call's mode allows plain publishers; otherwise a downgrade |
 | `perf_report`                   | per-track encode/decode samples   | once per second when perf reporting is on                      | diagnostics                                                                  |
-| `key_state`                     | `KeyStateReport`                  | in response to `requestKeyDump`                                | diagnostics                                                                  |
+| `key_state`                     | `KeyStateReport`                  | in response to `requestKeyState`                               | diagnostics                                                                  |
 
 `missing_key` is deliberately distinct from `decryption_failed`: a host cannot otherwise tell "key not here yet" from "key mismatch or tampering".
 
@@ -431,7 +431,7 @@ on decryption failure:
         emit decryption_failed
 
 on successful decrypt:
-    clear the per-keyIndex failure count      # gates `broken`
+    clear the per-keyIndex failure count      # gates `decryption_stalled`
     if failureReported:                       # gates `resumed`
         failureReported = false
         emit decryption_resumed

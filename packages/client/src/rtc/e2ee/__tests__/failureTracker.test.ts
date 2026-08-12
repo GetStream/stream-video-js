@@ -11,7 +11,7 @@ describe('FailureTracker', () => {
     }
     // The next one crosses it - the break transition fires exactly once.
     expect(tracker.recordFailure(1)).toBe(true);
-    expect(tracker.recordFailure(1)).toBe(false); // already broken, no re-fire
+    expect(tracker.recordFailure(1)).toBe(false); // already stalled, no re-fire
   });
 
   it('recordSuccess clears the count and reports whether there were failures', () => {

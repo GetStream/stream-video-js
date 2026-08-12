@@ -158,9 +158,9 @@ export class DecodeNotifier {
   };
 
   /** Consecutive failures crossed the tolerance. Already once-per-run. */
-  broken = (keyIndex: number): void => {
+  stalled = (keyIndex: number): void => {
     self.postMessage({
-      type: 'e2ee.broken',
+      type: 'e2ee.decryption_stalled',
       userId: this.userId,
       keyIndex,
       trackType: this.trackType,

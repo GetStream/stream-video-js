@@ -103,9 +103,9 @@ describe('EncryptionManager', () => {
         { type: 'cmd.remove_keys', userId: 'remote-user' },
       ],
       [
-        'requestKeyDump',
-        () => manager.requestKeyDump(),
-        { type: 'cmd.dump_key_state' },
+        'requestKeyState',
+        () => manager.requestKeyState(),
+        { type: 'cmd.request_key_state' },
       ],
       [
         'enablePerformanceReporting',
@@ -330,7 +330,10 @@ describe('EncryptionManager', () => {
       ['e2ee.decryption_resumed', { userId: 'bob', trackType: 'VIDEO' }],
       ['e2ee.encryption_failed', { userId: 'bob', reason: 'clear-bytes' }],
       ['e2ee.missing_key', { userId: 'local-user', keyIndex: 2 }],
-      ['e2ee.broken', { userId: 'bob', keyIndex: 3, trackType: 'AUDIO' }],
+      [
+        'e2ee.decryption_stalled',
+        { userId: 'bob', keyIndex: 3, trackType: 'AUDIO' },
+      ],
       ['e2ee.unencrypted_frame', { userId: 'bob', trackType: 'VIDEO' }],
       [
         'e2ee.perf_report',
@@ -440,7 +443,7 @@ describe('EncryptionManager', () => {
       );
       expect(() => manager.removeSharedKey(0)).toThrow(/is disposed/);
       expect(() => manager.removeKeys('user')).toThrow(/is disposed/);
-      expect(() => manager.requestKeyDump()).toThrow(/is disposed/);
+      expect(() => manager.requestKeyState()).toThrow(/is disposed/);
       expect(() => manager.enablePerformanceReporting(true)).toThrow(
         /is disposed/,
       );

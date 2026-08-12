@@ -23,7 +23,8 @@ export const decodeTransform = (
   const ivView = new DataView(iv.buffer);
 
   // Per track, so a user's audio, video and screen share never share a window
-  // or a failure count. The separate count is what lets e2ee.broken fire.
+  // or a failure count. The separate count is what lets
+  // e2ee.decryption_stalled fire.
   const replay = new ReplayWindow();
   const failures = new FailureTracker();
 
@@ -35,7 +36,7 @@ export const decodeTransform = (
    * Trust ordering (the SFrame/SRTP rule): a relay can forge `frameCounter`,
    * `ivPrefix` and `keyIndex`, which are plaintext in the trailer, so nothing
    * changes trust state until GCM authenticates. Hence peek before, commit
-   * after. The failure counter is diagnostic only - it gates `e2ee.broken`,
+   * after. The failure counter is diagnostic only - it gates `e2ee.decryption_stalled`,
    * never the decrypt attempt - so forged frames cannot mark a key invalid.
    */
   const finishDecode = async (
@@ -70,11 +71,11 @@ export const decodeTransform = (
       controller.enqueue(frame);
       stats.bump();
     } catch {
-      // True only on the failure crossing the tolerance, so `e2ee.broken` fires
-      // once per run, not once per frame.
-      const becameInvalid = failures.recordFailure(keyIndex);
+      // True only on the failure crossing the tolerance, so
+      // `e2ee.decryption_stalled` fires once per run, not once per frame.
+      const stalled = failures.recordFailure(keyIndex);
       notify.failed();
-      if (becameInvalid) notify.broken(keyIndex);
+      if (stalled) notify.stalled(keyIndex);
     }
   };
 

@@ -80,9 +80,11 @@ export type EncryptionFailedEvent = {
 
 /**
  * Fired when a remote track passes the internal failure tolerance: decryption
- * has failed on that many consecutive frames.
+ * has failed on that many consecutive frames, so the track renders nothing until
+ * it recovers. The cause is not known here: a key mismatch is the common one,
+ * but a tampered or truncated frame looks the same to the decryptor.
  */
-export type E2EEBrokenEvent = {
+export type DecryptionStalledEvent = {
   userId: string;
   /** The keyIndex that crossed the tolerance. */
   keyIndex: number;
@@ -90,7 +92,7 @@ export type E2EEBrokenEvent = {
 };
 
 /**
- * Answer to {@link EncryptionManager.requestKeyDump}. `fingerprint` is hex of
+ * Answer to {@link EncryptionManager.requestKeyState}. `fingerprint` is hex of
  * the first 8 bytes of SHA-256(rawKey): not reversible, so safe to log. Key
  * material is never returned.
  */
@@ -128,6 +130,13 @@ export type E2EEEventMap = {
    */
   'e2ee.decryption_resumed': DecryptionResumedEvent;
 
+  /**
+   * Consecutive decrypt failures on one track crossed the internal tolerance.
+   * Fires once per (userId, keyIndex) entering that state, and
+   * `e2ee.decryption_resumed` is what clears it.
+   */
+  'e2ee.decryption_stalled': DecryptionStalledEvent;
+
   /** That track is publishing nothing. Latched, so it reports once. */
   'e2ee.encryption_failed': EncryptionFailedEvent;
 
@@ -143,9 +152,6 @@ export type E2EEEventMap = {
   /** Once per second while {@link EncryptionManager.enablePerformanceReporting} is on. */
   'e2ee.perf_report': PerfReport;
 
-  /** Fires once per (userId, keyIndex) entering the failed state. */
-  'e2ee.broken': E2EEBrokenEvent;
-
-  /** Answer to {@link EncryptionManager.requestKeyDump}. */
+  /** Answer to {@link EncryptionManager.requestKeyState}. */
   'e2ee.key_state': KeyStateReport;
 };
