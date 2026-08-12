@@ -18,7 +18,7 @@
     "@react-native-firebase/app": "^24.1.1",
     "@react-native-firebase/messaging": "^24.1.1",
     "@stream-io/react-native-callingx": "workspace:^",
-    "@stream-io/react-native-webrtc": "145.2.0",
+    "@stream-io/react-native-webrtc": "145.3.0",
     "@stream-io/video-react-native-sdk": "workspace:^",
     "expo": "~57.0.9",
     "expo-build-properties": "~57.0.8",

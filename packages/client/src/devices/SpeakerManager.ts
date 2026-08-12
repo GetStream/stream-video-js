@@ -90,6 +90,7 @@ export class SpeakerManager {
       globalThis.streamRNVideoSDK?.callManager.setup({
         defaultDevice,
         isRingingTypeCall: this.call.ringing,
+        cid: this.call.cid,
       });
     }
   }
@@ -164,6 +165,7 @@ export class SpeakerManager {
     this.subscriptions.forEach((unsubscribe) => unsubscribe());
     this.subscriptions = [];
     this.areSubscriptionsSetUp = false;
+    this.defaultDevice = undefined;
   };
 
   /**

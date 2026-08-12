@@ -1564,7 +1564,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-safe-area-context (5.8.0):
+  - react-native-safe-area-context (5.8.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1576,8 +1576,8 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-safe-area-context/common (= 5.8.0)
-    - react-native-safe-area-context/fabric (= 5.8.0)
+    - react-native-safe-area-context/common (= 5.8.1)
+    - react-native-safe-area-context/fabric (= 5.8.1)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -1588,7 +1588,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-safe-area-context/common (5.8.0):
+  - react-native-safe-area-context/common (5.8.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -1610,7 +1610,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-safe-area-context/fabric (5.8.0):
+  - react-native-safe-area-context/fabric (5.8.1):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2549,9 +2549,9 @@ PODS:
     - ReactNativeDependencies
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (145.2.0):
+  - stream-react-native-webrtc (145.3.0):
     - React-Core
-    - StreamWebRTC (= 145.12.0)
+    - StreamWebRTC (= 145.14.0)
   - stream-video-react-native (1.42.0):
     - hermes-engine
     - RCTRequired
@@ -2576,7 +2576,7 @@ PODS:
     - stream-react-native-webrtc
     - Yoga
   - StreamVideoNoiseCancellation (1.0.3)
-  - StreamWebRTC (145.12.0)
+  - StreamWebRTC (145.14.0)
   - Teleport (1.1.12):
     - hermes-engine
     - RCTRequired
@@ -2995,7 +2995,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: 37e8b9921fe7bfa1c83c156bdba73992e19b9bde
   react-native-image-picker: 9dce42d17f5917de55bdff39a587390fd496beda
   react-native-netinfo: 10fc5ca4331d893efc2b90adb43869a85d66654e
-  react-native-safe-area-context: e587b3bb773c66ba6f14e319522f951c73186987
+  react-native-safe-area-context: bcea1b7671431001d60db53f48c2e768698d2860
   react-native-video: c8a32ec11cf5134121fa8bf07017a2522f736b65
   React-NativeModulesApple: f313ed47b56405d621e12ecda106a72020959ff3
   React-networking: e424e5e77a7b124143ceac8acf44352e0baae8bd
@@ -3047,10 +3047,10 @@ SPEC CHECKSUMS:
   stream-chat-react-native: baf7e1c3fc101f8a1b95ad0c6693ddaf2bab384e
   stream-io-noise-cancellation-react-native: b96decfa2b58fcfb2737b2c35c710a002c7b67c3
   stream-io-video-filters-react-native: b6bd02235657b56c9855126f94ffd91a7cfbaf13
-  stream-react-native-webrtc: 74a1d1404c0c7087eef0b1e1a077620033ad996e
+  stream-react-native-webrtc: 1ca47396c7e271a6cce7897dbcdfbe19873398a4
   stream-video-react-native: cb02a465bae6219aeefa7065b834e93d67f8adbc
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
-  StreamWebRTC: e46af4ca150d71aaa662985d6fd0d62b575c6f49
+  StreamWebRTC: 3c6cb5fd01458172a28046ed7f162e24e88c1332
   Teleport: 4cb9855422c04666fbeee9a52e5342466e27b009
   VisionCamera: 68d40255fa8866e815cbbb063730102d3da276fd
   Yoga: 542a30dafe5b0f5f1d9f185ea7b2a3811ac54801
