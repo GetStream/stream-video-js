@@ -20,7 +20,6 @@ import {
   writePreferences,
 } from './devicePersistence';
 import { createSubscription, getCurrentValue } from '../store/rxUtils';
-import { CallingState } from '../store';
 
 export class SpeakerManager {
   readonly state: SpeakerState;
