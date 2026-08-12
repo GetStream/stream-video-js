@@ -61,7 +61,7 @@
   "devDependencies": {
     "@react-native-community/cli": "20.2.0",
     "@react-native/babel-preset": "0.86.2",
-    "@stream-io/react-native-webrtc": "145.2.0",
+    "@stream-io/react-native-webrtc": "145.3.0",
     "@stream-io/typescript-config": "workspace:^",
     "@types/react": "^19.2.18",
     "del-cli": "^6.0.0",
@@ -73,7 +73,7 @@
   "peerDependencies": {
     "@react-native-firebase/app": ">=23.0.0",
     "@react-native-firebase/messaging": ">=23.0.0",
-    "@stream-io/react-native-webrtc": "^145.2.0",
+    "@stream-io/react-native-webrtc": "^145.3.0",
     "react": "*",
     "react-native": "*"
   },
