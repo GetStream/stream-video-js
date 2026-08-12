@@ -51,7 +51,9 @@ import stream_react_native_webrtc
     /// The ADM `engineSubscription` is bound to. Tracked so we can detect a new ADM
     /// (a JS reload recreates WebRTCModule) and re-wire instead of staying on a dead publisher.
     private weak var subscribedADM: AudioDeviceModule?
+    /// Backing storage for the CallKit-provider view of the desired engine gate.
     private var desiredEngineAvailability: RTCAudioEngineAvailability = .default
+    private let engineAvailabilityQueue = DispatchQueue(label: "io.getstream.callingx.engineAvailability")
 
     // Pending CXActions awaiting JS fulfillment
     private var pendingAnswerActions: [String: (action: CXAnswerCallAction, enqueuedAt: DispatchTime)] = [:]
@@ -407,8 +409,12 @@ import stream_react_native_webrtc
         subscribedADM = adm
         CallingxLog.core.debugPublic("[wireEngineSubscription]")
 
-        // Replay fixes potential race for a case when CallKit callbacks are invoked before adm instance exists
-        _ = adm.setEngineAvailability(desiredEngineAvailability)
+        // Replay fixes potential race for a case when CallKit callbacks are invoked before adm instance exists.
+        // Serialized with setDesiredEngineAvailability so the read-then-apply pair can't interleave with a
+        // concurrent CX-queue write; otherwise a stale value could land on the ADM after CX applied a newer one.
+        engineAvailabilityQueue.sync {
+            _ = adm.setEngineAvailability(self.desiredEngineAvailability)
+        }
 
         engineSubscription = adm.publisher.sink { [weak self] event in
             guard CallingxSessionOwnership.callingxOwnsSession else { return }
@@ -989,8 +995,10 @@ import stream_react_native_webrtc
     /// per-call factory), the direct apply is a no-op and the stored value is replayed onto the
     /// ADM in `wireAudioEngineSubscription()`.
     private func setDesiredEngineAvailability(_ availability: RTCAudioEngineAvailability) {
-        desiredEngineAvailability = availability
-        _ = getCurrentAudioDeviceModule()?.setEngineAvailability(availability)
+        engineAvailabilityQueue.sync {
+            self.desiredEngineAvailability = availability
+            _ = self.getCurrentAudioDeviceModule()?.setEngineAvailability(availability)
+        }
     }
 
     /// The live call factory's ADM, or nil when no call is active. Never triggers a default factory
