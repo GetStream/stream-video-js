@@ -1,6 +1,11 @@
-import { EMPTY_AAD, IV_LEN, TRAILER_LEN } from './constants';
+import { E2EE_VERSION, EMPTY_AAD, IV_LEN, TRAILER_LEN } from './constants';
 import { boundarySeedZeros, rbspUnescape } from './codec';
-import { fillIV, readTrailer, readTrailerIv } from './trailer';
+import {
+  fillIV,
+  readFramingVersion,
+  readTrailer,
+  readTrailerIv,
+} from './trailer';
 import { FailureTracker } from './failureTracker';
 import { ReplayWindow } from './replayWindow';
 import { keyStore } from './keyStore';
@@ -91,6 +96,14 @@ export const decodeTransform = (
       const trailer = readTrailer(src);
 
       if (!trailer) {
+        // Ours but unreadable: drop rather than forward. Handing ciphertext to
+        // the decoder renders corruption and reads to the host as a downgrade,
+        // when the actual condition is that this build is the older one.
+        const version = readFramingVersion(src);
+        if (version !== null && version !== E2EE_VERSION) {
+          notify.unsupportedVersion(version);
+          return;
+        }
         notify.unencrypted();
         controller.enqueue(frame);
         stats.bump();

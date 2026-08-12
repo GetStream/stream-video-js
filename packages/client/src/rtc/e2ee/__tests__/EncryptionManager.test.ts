@@ -336,6 +336,10 @@ describe('EncryptionManager', () => {
       ],
       ['e2ee.unencrypted_frame', { userId: 'bob', trackType: 'VIDEO' }],
       [
+        'e2ee.unsupported_version',
+        { userId: 'bob', version: 2, trackType: 'VIDEO' },
+      ],
+      [
         'e2ee.perf_report',
         {
           encode: [

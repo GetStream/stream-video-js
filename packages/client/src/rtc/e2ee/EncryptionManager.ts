@@ -14,6 +14,7 @@ export type {
   PerfReport,
   TrackPerf,
   UnencryptedFrameEvent,
+  UnsupportedVersionEvent,
 } from './events';
 
 /**

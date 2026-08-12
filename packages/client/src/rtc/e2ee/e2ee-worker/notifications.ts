@@ -104,6 +104,13 @@ export class DecodeNotifier {
   private readonly missingKeyThrottle = new Throttle(THROTTLE_INTERVAL_MS);
   private readonly cleartextThrottle = new Throttle(THROTTLE_INTERVAL_MS);
   /**
+   * Keyed by user, deliberately not by version. A sender's version is a
+   * compile-time constant, so a track only ever sees one value legitimately -
+   * while the byte is plaintext, so a relay rewriting it per frame would
+   * otherwise get one event per distinct value and multiply the rate by 255.
+   */
+  private readonly versionThrottle = new Throttle(THROTTLE_INTERVAL_MS);
+  /**
    * True once a `decryption_failed` reached the host. Pairs the two signals:
    * only a delivered failure needs clearing, and clearing it re-arms this.
    */
@@ -142,8 +149,22 @@ export class DecodeNotifier {
     self.postMessage({
       type: 'e2ee.missing_key',
       userId: this.userId,
-      keyIndex,
       trackType: this.trackType,
+      keyIndex,
+    });
+  };
+
+  /**
+   * A frame carried this format but a version this build cannot decrypt, so it
+   * was dropped. Throttled per track.
+   */
+  unsupportedVersion = (version: number): void => {
+    if (!this.versionThrottle.tryFire(this.userId)) return;
+    self.postMessage({
+      type: 'e2ee.unsupported_version',
+      userId: this.userId,
+      trackType: this.trackType,
+      version,
     });
   };
 
@@ -162,8 +183,8 @@ export class DecodeNotifier {
     self.postMessage({
       type: 'e2ee.decryption_stalled',
       userId: this.userId,
-      keyIndex,
       trackType: this.trackType,
+      keyIndex,
     });
   };
 }

@@ -333,6 +333,33 @@ describe('decode pipeline edge behaviors', () => {
     ]);
   });
 
+  it('drops a frame from a newer framing version instead of forwarding it', async () => {
+    const user = freshUser();
+    await setKey(user);
+    const [encrypted] = await drive('encode', user, 'vp8', [
+      frame([1, 2, 3, 4, 5, 6, 7, 8], 'delta'),
+    ]);
+    const future = new Uint8Array(encrypted.data.slice(0));
+    future[future.length - 5] = E2EE_VERSION + 1;
+    posted.length = 0;
+
+    const out = await drive('decode', user, undefined, [
+      { ...encrypted, data: future.buffer },
+    ]);
+
+    // Forwarding would hand ciphertext to the decoder: corrupt media, reported
+    // as a downgrade. The peer is simply newer, so drop and say which version.
+    expect(out).toEqual([]);
+    expect(posted).toEqual([
+      {
+        type: 'e2ee.unsupported_version',
+        userId: user,
+        version: E2EE_VERSION + 1,
+        trackType: undefined,
+      },
+    ]);
+  });
+
   it('drops and signals missing_key when the key is gone', async () => {
     const user = freshUser();
     await setKey(user);

@@ -173,10 +173,12 @@ The leading `clearBytes` bytes stay in plaintext so the SFU can still read frame
 | 4      | 8    | `ivPrefix`            | sender's random prefix for this key import               |
 | 12     | 1    | `keyIndex`            | 0-255                                                    |
 | 13     | 2    | `clearBytes \| flags` | bit 15 = `RBSP_FLAG`, bits 0-14 = clearBytes (max 32767) |
-| 15     | 1    | `version`             | `0x01`                                                   |
-| 16     | 4    | `magic`               | `0xE2EEFEED`                                             |
+| 15     | 1    | `version`             | `0x01`; frozen position, see below                       |
+| 16     | 4    | `magic`               | `0xE2EEFEED`; frozen position, see below                 |
 
 **Overhead:** 16 (GCM tag) + 20 (trailer) = **36 bytes per frame**, plus RBSP escape bytes for H.264.
+
+**The identification suffix is frozen across versions.** The last 5 bytes of the frame are `version ∥ magic` in **every** version of this format, present and future, and are read relative to the **end of the frame** rather than to a trailer start. That is what lets a receiver recognize "encrypted, but written by a version I do not implement" without understanding the trailer that carries it (§12), and it is why a future version may lengthen the trailer without stranding older receivers.
 
 ### 5.3 AAD (Additional Authenticated Data)
 
@@ -275,6 +277,10 @@ on frame:
 
   trailer = readTrailer(frame)          // magic == 0xE2EEFEED && version == 1
   if trailer == null:
+      // Two different conditions; the frozen suffix (§5.2) tells them apart.
+      v = readFramingVersion(frame)     // version byte iff magic matches, else null
+      if v != null and v != 1:
+          drop, emit unsupported_version(v) (throttled per track); return
       emit unencrypted_frame (throttled); forward unchanged; return
   -> recover ciphertext + IV fields (RBSP path per §5.4)
   -> decode with (keyIndex, ivPrefix, frameCounter)
@@ -295,13 +301,15 @@ decode with (keyIndex, ivPrefix, counter):
       drop
 ```
 
-**`readTrailer` validation order:** length >= 20, then `magic == 0xE2EEFEED`, then `version == 1`, then `clearBytes <= frameLength - 20`. Any mismatch means "not our trailer" - forward the frame as cleartext rather than attempting a decrypt.
+**`readTrailer` validation order:** length >= 20, then `magic == 0xE2EEFEED`, then `version == 1`, then `clearBytes <= frameLength - 20`. Any mismatch means "not a v1 trailer" - never attempt a decrypt.
 
-An unknown version must be treated as **not ours**, not as an error. That is what keeps unrelated frames that happen to end in `0xE2EEFEED` from producing spurious failures, and what lets a future version coexist.
+**An unknown version is not a decryption failure, and not a cleartext frame either.** It gets its own disposition: drop the frame and emit `unsupported_version` carrying the observed version. Dropping rather than forwarding is the point - forwarding hands ciphertext to the decoder, which renders as corruption and reads to the host as a downgrade, when the actual condition is a peer on a newer SDK and the remedy is updating this client. Treating it as a decryption failure would be equally wrong: no key can fix it.
+
+Everything else that fails `readTrailer` (short frame, magic mismatch, `clearBytes` overrunning the body) stays "not ours" and is forwarded as cleartext with `unencrypted_frame`. That is what keeps an unrelated frame which happens to end in `0xE2EEFEED` from producing spurious failures.
 
 The magic is a heuristic, not a guarantee: any 4-byte value collides with random data at 2^-32. `0xE2EEFEED` is chosen to be an unlikely accident rather than a common one - a widespread debug fill such as `0xDEADBEEF` shows up in real buffers far more often than a value nothing else uses. No byte of it is `0x00` or `<= 0x03` either, which is what keeps the start-code-safe trailer tail safe (§5.4).
 
-> **Consequence worth knowing.** `unencrypted_frame` therefore also fires for a frame that _is_ encrypted but by a peer on a different `version`. The frame is then handed to the decoder as ciphertext, so the symptom is corrupt media plus an event that reads as a downgrade. Version skew across SDKs must be avoided rather than detected.
+> **Consequence worth knowing.** The magic still collides with random data at 2^-32, so a cleartext frame can be mistaken for ours. If its version byte happens not to be 1 it is dropped rather than forwarded, at that same rate - no worse than the existing behavior for a collision whose version byte _is_ 1, which reaches a decrypt and fails.
 
 ---
 
@@ -377,17 +385,18 @@ Key state per action is §3; this table covers only the counter and the prefix.
 
 Event names are listed below unprefixed. On the wire and in the JS API they carry an `e2ee.` prefix (`e2ee.missing_key`, `e2ee.decryption_stalled`, ...); keep that convention so E2EE events stay distinguishable from SFU and coordinator events.
 
-| Event                           | Payload                           | Fires when                                                     | Host action                                                                  |
-| ------------------------------- | --------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `missing_key` (no `keyIndex`)   | `userId`                          | encoder has no local key; **every outgoing track is dropped**  | provide a key                                                                |
-| `missing_key` (with `keyIndex`) | `userId`, `keyIndex`, `trackType` | a remote frame referenced a key this peer does not hold        | usually benign: key distribution or rotation in flight                       |
-| `decryption_failed`             | `userId`, `trackType`             | GCM tag failure on a remote frame                              | key mismatch, rotation, or tampering                                         |
-| `decryption_resumed`            | `userId`, `trackType`             | that track decrypts again                                      | clear the warning raised by `decryption_failed`                              |
-| `encryption_failed`             | `userId`, `trackType`, `reason`   | an outgoing frame could not be encrypted                       | that track is publishing nothing                                             |
-| `decryption_stalled`            | `userId`, `keyIndex`, `trackType` | 10+ consecutive failures for `(track, keyIndex)`               | surface to the user; redistribute keys                                       |
-| `unencrypted_frame`             | `userId`, `trackType`             | a remote frame carried no E2EE framing and was forwarded as-is | expected when the call's mode allows plain publishers; otherwise a downgrade |
-| `perf_report`                   | per-track encode/decode samples   | once per second when perf reporting is on                      | diagnostics                                                                  |
-| `key_state`                     | `KeyStateReport`                  | in response to `requestKeyState`                               | diagnostics                                                                  |
+| Event                           | Payload                           | Fires when                                                                                       | Host action                                                                   |
+| ------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `missing_key` (no `keyIndex`)   | `userId`                          | encoder has no local key; **every outgoing track is dropped**                                    | provide a key                                                                 |
+| `missing_key` (with `keyIndex`) | `userId`, `keyIndex`, `trackType` | a remote frame referenced a key this peer does not hold                                          | usually benign: key distribution or rotation in flight                        |
+| `decryption_failed`             | `userId`, `trackType`             | GCM tag failure on a remote frame                                                                | key mismatch, rotation, or tampering                                          |
+| `decryption_resumed`            | `userId`, `trackType`             | that track decrypts again                                                                        | clear the warning raised by `decryption_failed`                               |
+| `encryption_failed`             | `userId`, `trackType`, `reason`   | an outgoing frame could not be encrypted                                                         | that track is publishing nothing                                              |
+| `decryption_stalled`            | `userId`, `keyIndex`, `trackType` | 10+ consecutive failures for `(track, keyIndex)`                                                 | surface to the user; redistribute keys                                        |
+| `unencrypted_frame`             | `userId`, `trackType`             | a remote frame carried no E2EE framing and was forwarded as-is                                   | expected when the call's mode allows plain publishers; otherwise a downgrade  |
+| `unsupported_version`           | `userId`, `version`, `trackType`  | a remote frame carried our framing at a version this build cannot read; **the frame is dropped** | prompt the local user to update **this** app, not the peer; no key can fix it |
+| `perf_report`                   | per-track encode/decode samples   | once per second when perf reporting is on                                                        | diagnostics                                                                   |
+| `key_state`                     | `KeyStateReport`                  | in response to `requestKeyState`                                                                 | diagnostics                                                                   |
 
 `missing_key` is deliberately distinct from `decryption_failed`: a host cannot otherwise tell "key not here yet" from "key mismatch or tampering".
 
@@ -395,7 +404,7 @@ Event names are listed below unprefixed. On the wire and in the JS API they carr
 
 **Carry `trackType` on anything reported per track.** Every event above except the encode-side `missing_key` is raised inside one track's transform, so without it a peer's audio, video and screen share produce byte-identical messages the host cannot tell apart or act on. The encode-side `missing_key` is the one genuine exception: the local user holds no key at all, which stalls every outgoing track at once, so it is reported once for the user and carries no track.
 
-**Levels may be throttled; edges may not.** `decryption_failed`, `missing_key` and `unencrypted_frame` are _levels_ - they describe a condition that persists, so throttling them to one per second per track is safe, because the next frame re-raises the same condition.
+**Levels may be throttled; edges may not.** `decryption_failed`, `missing_key`, `unencrypted_frame` and `unsupported_version` are _levels_ - they describe a condition that persists, so throttling them to one per second per track is safe, because the next frame re-raises the same condition.
 
 `decryption_resumed` is an _edge_. Throttling it drops a state transition permanently and strands the host on `decryption_failed` for a track that has recovered. Emit it **unthrottled**, paired one-to-one with delivered failures:
 
@@ -467,8 +476,18 @@ A new implementation is conformant when it reproduces the bytes above exactly, d
 ## 12. Versioning rules
 
 - Bump `version` only when the trailer layout or IV derivation changes, and only in lockstep across SDKs.
-- A receiver seeing an unknown version must treat the frame as **not ours** (forward as cleartext with `unencrypted_frame`), never as a decryption failure.
 - Any change to the AAD composition, the clear-byte rules, or the escaping rules is a wire break and requires a version bump plus new vectors in §11.
+
+### Forward compatibility
+
+Lockstep releases do not give lockstep deployment: SDKs ship inside apps, app versions live in stores for months, and a participant on an old build will join a call with a new one. Version skew is therefore a state to be **detected**, not one that policy can prevent. Two commitments make it detectable, and both must be implemented in v1, before any v2 exists - a v1 receiver that ships without them cannot be fixed retroactively when v2 arrives.
+
+1. **The identification suffix never moves.** The last 5 bytes of every frame, in every version, are `version ∥ magic`, read relative to the end of the frame, with the byte 6 from the end never `0x00` (§5.2). A future version may change everything else in the trailer, including its length.
+2. **An unrecognized version is reported as itself.** Drop the frame and emit `unsupported_version` with the observed version (§7, §10). Never forward it as cleartext, and never report it as a decryption failure.
+
+Together these turn skew from corrupt media that looks like a downgrade into an actionable "update this app". Note the direction: the peer wrote a format newer than this receiver implements, so the **local** client is the one to update - reporting it against the remote participant, whose build is already current, is the easy mistake to make here. Detection is receive-side only, which lands the signal in the right place for exactly that reason: the client that must update is the one that notices. It is a diagnostic, not a security control - a relay forging `version = 99` to force drops achieves nothing it could not achieve by discarding the frames itself.
+
+The complete fix is to negotiate a call-level maximum version at join, so a newer client emits older framing while any older participant is present. That is out of scope here; the suffix commitment is what keeps the un-negotiated case legible.
 
 ---
 

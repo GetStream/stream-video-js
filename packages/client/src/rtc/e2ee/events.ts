@@ -51,6 +51,21 @@ export type UnencryptedFrameEvent = {
   trackType?: string;
 };
 
+/**
+ * A remote frame carried this format's framing but a `version` this build
+ * cannot decrypt, so it was dropped.
+ *
+ * **This client is the one that needs updating**, not the peer: the peer wrote
+ * a newer format than this SDK implements. Prompt the local user to update the
+ * app; no key changes anything.
+ */
+export type UnsupportedVersionEvent = {
+  userId: string;
+  trackType?: string;
+  /** The framing version read from the frame. */
+  version: number;
+};
+
 /** The worker could not decrypt a remote frame. Throttled per track. */
 export type DecryptionFailedEvent = {
   userId: string;
@@ -148,6 +163,13 @@ export type E2EEEventMap = {
   'e2ee.missing_key': MissingKeyEvent;
 
   'e2ee.unencrypted_frame': UnencryptedFrameEvent;
+
+  /**
+   * A peer is publishing a framing version this build cannot read, so its
+   * frames are dropped. Throttled per track; surface it as a prompt to update
+   * **this** client.
+   */
+  'e2ee.unsupported_version': UnsupportedVersionEvent;
 
   /** Once per second while {@link EncryptionManager.enablePerformanceReporting} is on. */
   'e2ee.perf_report': PerfReport;

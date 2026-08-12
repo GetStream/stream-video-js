@@ -766,6 +766,20 @@ export class E2EEHarness {
         );
         this.emit();
       }),
+      // A peer on a newer framing version: its frames are dropped rather than
+      // rendered as garbage. This build is the stale one, so the prompt belongs
+      // on this client, not on the peer.
+      m.on(
+        'e2ee.unsupported_version',
+        ({ userId: remoteUserId, version, trackType }) => {
+          this.addLog(
+            p.userId,
+            `${this.nameFor(remoteUserId)} publishes E2EE version ${version}, which this build cannot read: ${trackType ?? 'track'} dropped. Update this app.`,
+            'error',
+          );
+          this.emit();
+        },
+      ),
       m.on('e2ee.encryption_failed', ({ reason, trackType }) => {
         p.encryptionFailure = reason;
         this.addLog(
