@@ -1,6 +1,8 @@
-import { ICEServer } from '../../gen/coordinator';
+import { ICEServerResponse } from '../../gen/coordinator';
 
-export const toRtcConfiguration = (config: ICEServer[]): RTCConfiguration => {
+export const toRtcConfiguration = (
+  config: ICEServerResponse[],
+): RTCConfiguration => {
   return {
     bundlePolicy: 'max-bundle',
     iceServers: config.map((ice) => ({

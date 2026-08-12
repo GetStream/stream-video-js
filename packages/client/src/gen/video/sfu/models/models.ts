@@ -40,6 +40,14 @@ export interface CallState {
    * @generated from protobuf field: repeated stream.video.sfu.models.Pin pins = 4;
    */
   pins: Pin[];
+  /**
+   * e2ee_enabled is true when the call uses end-to-end encryption. Clients
+   * must enable their frame encryptor; the SFU forwards encrypted frames
+   * opaquely and server-side recording/transcription/broadcasting are disabled.
+   *
+   * @generated from protobuf field: bool e2ee_enabled = 5 [json_name = "e2eeEnabled"];
+   */
+  e2EeEnabled: boolean;
 }
 /**
  * @generated from protobuf message stream.video.sfu.models.ParticipantCount
@@ -1400,6 +1408,13 @@ class CallState$Type extends MessageType<CallState> {
         kind: 'message',
         repeat: 2 /*RepeatType.UNPACKED*/,
         T: () => Pin,
+      },
+      {
+        no: 5,
+        name: 'e2ee_enabled',
+        kind: 'scalar',
+        jsonName: 'e2eeEnabled',
+        T: 8 /*ScalarType.BOOL*/,
       },
     ]);
   }

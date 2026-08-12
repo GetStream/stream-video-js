@@ -146,6 +146,50 @@ describe('Publisher', () => {
       expect(negotiateSpy).toHaveBeenCalled();
     });
 
+    it('should attach an encryptor when E2EE manager is provided', async () => {
+      const e2eeMock = {
+        encrypt: vi.fn(),
+        decrypt: vi.fn(),
+      };
+      publisher.dispose();
+      publisher = new Publisher(
+        {
+          sfuClient,
+          dispatcher,
+          state,
+          tag: 'test',
+          enableTracing: false,
+          e2ee: e2eeMock,
+        },
+        [
+          {
+            id: 1,
+            trackType: TrackType.VIDEO,
+            bitrate: 1000,
+            // @ts-expect-error - incomplete data
+            codec: { name: 'vp9' },
+            fps: 30,
+            maxTemporalLayers: 3,
+            maxSpatialLayers: 3,
+          },
+        ],
+      );
+
+      const track = new MediaStreamTrack();
+      const clone = new MediaStreamTrack();
+      vi.spyOn(track, 'clone').mockReturnValue(clone);
+      // @ts-expect-error - private method
+      vi.spyOn(publisher, 'negotiate').mockResolvedValue();
+
+      await publisher.publish(track, TrackType.VIDEO);
+
+      expect(e2eeMock.encrypt).toHaveBeenCalledWith(
+        expect.anything(), // sender
+        'vp9',
+        'VIDEO',
+      );
+    });
+
     it('should update an existing transceiver for a new track', async () => {
       const track = new MediaStreamTrack();
       const clone = new MediaStreamTrack();
@@ -236,6 +280,63 @@ describe('Publisher', () => {
       expect(transceiver.sender.replaceTrack).toHaveBeenCalledWith(clone);
       expect(sfuClient.setPublisher).toHaveBeenCalled();
       expect(bundle.negotiated).toBe(true);
+    });
+  });
+
+  describe('E2EE peer connection config', () => {
+    const e2ee = { encrypt: vi.fn(), decrypt: vi.fn() };
+
+    /**
+     * Build a publisher and return the RTCConfiguration it constructed its peer
+     * connection with. The publisher from the outer `beforeEach` already
+     * consumed a call, hence the last one rather than the first.
+     */
+    const configOf = async (opts: { e2ee?: typeof e2ee }) => {
+      await publisher.dispose();
+      publisher = new Publisher(
+        {
+          sfuClient,
+          dispatcher,
+          state,
+          tag: 'test',
+          enableTracing: false,
+          ...opts,
+        },
+        [],
+      );
+      const calls = vi.mocked(globalThis.RTCPeerConnection).mock.calls;
+      return calls[calls.length - 1][0] as Record<string, unknown> | undefined;
+    };
+
+    const withInsertableStreams = (available: boolean) => {
+      if (available) {
+        Object.assign(RTCRtpSender.prototype, {
+          createEncodedStreams: vi.fn(),
+        });
+      } else {
+        // @ts-expect-error - non-standard property from the mock prototype
+        delete RTCRtpSender.prototype.createEncodedStreams;
+      }
+    };
+
+    afterEach(() => withInsertableStreams(false));
+
+    it('enables encodedInsertableStreams when a manager is attached', async () => {
+      withInsertableStreams(true);
+      const config = await configOf({ e2ee });
+      expect(config?.encodedInsertableStreams).toBe(true);
+    });
+
+    it('leaves the flag off when no manager is attached', async () => {
+      withInsertableStreams(true);
+      const config = await configOf({});
+      expect(config?.encodedInsertableStreams).toBeUndefined();
+    });
+
+    it('leaves the flag off on browsers without Insertable Streams', async () => {
+      withInsertableStreams(false);
+      const config = await configOf({ e2ee });
+      expect(config?.encodedInsertableStreams).toBeUndefined();
     });
   });
 

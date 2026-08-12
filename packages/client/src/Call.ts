@@ -17,6 +17,7 @@ import {
   TrackPublishOptions,
   trackTypeToParticipantStreamKey,
 } from './rtc';
+import type { E2EEManager } from './rtc/e2ee/E2EEManager';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -32,7 +33,7 @@ import {
   getCurrentValue,
 } from './store/rxUtils';
 import { ScopedLogger, videoLoggerSystem } from './logger';
-import type {
+import {
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
@@ -78,8 +79,8 @@ import type {
   RingCallResponse,
   SendCallEventRequest,
   SendCallEventResponse,
-  SendReactionRequest,
-  SendReactionResponse,
+  SendVideoReactionRequest,
+  SendVideoReactionResponse,
   StartClosedCaptionsRequest,
   StartClosedCaptionsResponse,
   StartFrameRecordingRequest,
@@ -111,6 +112,8 @@ import type {
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
+  UpdateUserPermissionsRequestGrantPermissionsEnum,
+  UpdateUserPermissionsRequestRevokePermissionsEnum,
   UpdateUserPermissionsResponse,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
@@ -268,6 +271,7 @@ export class Call {
 
   subscriber?: Subscriber;
   publisher?: Publisher;
+  e2eeManager?: E2EEManager;
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -1602,6 +1606,7 @@ export class Call {
     this.sfuStatsReporter = undefined;
     if (closePreviousInstances && this.subscriber) {
       await this.subscriber.dispose();
+      this.state.removeAllOrphanedTracks();
     }
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
@@ -1612,6 +1617,7 @@ export class Call {
       enableTracing,
       statsTimestampDriftThresholdMs: reportingIntervalMs / 2,
       clientPublishOptions: this.clientPublishOptions,
+      e2ee: this.e2eeManager,
       onReconnectionNeeded: (kind, reason, peerType) => {
         this.reconnect(kind, reason).catch((err) => {
           const message = `[Reconnect] Error reconnecting, after a ${PeerType[peerType]} error: ${reason}`;
@@ -1688,12 +1694,12 @@ export class Call {
    * Retrieves credentials for joining the call.
    *
    * @internal
-   *
    * @param data the join call data.
    */
   doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
     const location = await this.streamClient.getLocationHint();
-    const request: JoinCallRequest = { ...data, location };
+    const e2ee = !!this.e2eeManager;
+    const request: JoinCallRequest = { ...data, location, e2ee };
     const joinResponse = await this.streamClient.post<
       JoinCallResponse,
       JoinCallRequest
@@ -2449,6 +2455,31 @@ export class Call {
   };
 
   /**
+   * Set the E2EE (end-to-end encryption) manager for this call.
+   *
+   * Must be called before {@link join} so the RTCPeerConnection can be
+   * configured for E2EE.
+   *
+   * The manager is kept across {@link leave} so a rejoin of this same instance
+   * stays encrypted: do not dispose it while this call may be joined again.
+   * A disposed manager throws from `encrypt`/`decrypt` rather than silently
+   * publishing nothing, so re-attach a fresh one instead of reusing it.
+   *
+   * @param e2ee - Any `E2EEManager`. Use `EncryptionManager.create()` for the
+   *         built-in AES-GCM scheme, or pass your own implementation.
+   * @throws if called after the peer connections have been built (i.e. after
+   *         `join`): those PCs were already configured without an encryptor, so
+   *         adopting a manager now would silently publish/receive cleartext for
+   *         the live session.
+   */
+  setE2EEManager = (e2ee: E2EEManager) => {
+    if (this.publisher || this.subscriber) {
+      throw new Error('setE2EEManager must be called before join()');
+    }
+    this.e2eeManager = e2ee;
+  };
+
+  /**
    * Notifies the SFU that a noise cancellation process has started.
    *
    * @internal
@@ -2546,9 +2577,9 @@ export class Call {
    * @param reaction the reaction to send.
    */
   sendReaction = async (
-    reaction: SendReactionRequest,
-  ): Promise<SendReactionResponse> => {
-    return this.streamClient.post<SendReactionResponse, SendReactionRequest>(
+    reaction: SendVideoReactionRequest,
+  ): Promise<SendVideoReactionResponse> => {
+    return this.streamClient.post(
       `${this.streamClientBasePath}/reaction`,
       reaction,
     );
@@ -2766,7 +2797,7 @@ export class Call {
   ): Promise<RequestPermissionResponse> => {
     const { permissions } = data;
     const canRequestPermissions = permissions.every((permission) =>
-      this.permissionsContext.canRequest(permission as OwnCapability),
+      this.permissionsContext.canRequest(permission),
     );
     if (!canRequestPermissions) {
       throw new Error(
@@ -2791,10 +2822,14 @@ export class Call {
    * @param userId the id of the user to grant permissions to.
    * @param permissions the permissions to grant.
    */
-  grantPermissions = async (userId: string, permissions: string[]) => {
+  grantPermissions = async (
+    userId: string,
+    permissions: string[] | UpdateUserPermissionsRequestGrantPermissionsEnum[],
+  ) => {
     return this.updateUserPermissions({
       user_id: userId,
-      grant_permissions: permissions,
+      grant_permissions:
+        permissions as UpdateUserPermissionsRequestGrantPermissionsEnum[],
     });
   };
 
@@ -2810,10 +2845,14 @@ export class Call {
    * @param userId the id of the user to revoke permissions from.
    * @param permissions the permissions to revoke.
    */
-  revokePermissions = async (userId: string, permissions: string[]) => {
+  revokePermissions = async (
+    userId: string,
+    permissions: string[] | UpdateUserPermissionsRequestRevokePermissionsEnum[],
+  ) => {
     return this.updateUserPermissions({
       user_id: userId,
-      revoke_permissions: permissions,
+      revoke_permissions:
+        permissions as UpdateUserPermissionsRequestRevokePermissionsEnum[],
     });
   };
 

@@ -2,6 +2,8 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.8.6](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.8.5...@stream-io/video-filters-web-0.8.6) (2026-08-07)
+
 ## [0.8.5](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-filters-web-0.8.4...@stream-io/video-filters-web-0.8.5) (2026-07-30)
 
 ### Dependency Updates

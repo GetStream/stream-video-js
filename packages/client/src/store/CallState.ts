@@ -74,6 +74,7 @@ type OrphanedTrack = {
   trackLookupPrefix: string;
   trackType: TrackType;
   track: MediaStream;
+  receiver?: RTCRtpReceiver;
 };
 
 /**
@@ -108,6 +109,7 @@ export class CallState {
   >(undefined);
   private transcribingSubject = new BehaviorSubject<boolean>(false);
   private captioningSubject = new BehaviorSubject<boolean>(false);
+  private e2eeEnabledSubject = new BehaviorSubject<boolean>(false);
   private endedBySubject = new BehaviorSubject<UserResponse | undefined>(
     undefined,
   );
@@ -312,6 +314,12 @@ export class CallState {
   captioning$: Observable<boolean>;
 
   /**
+   * Whether end-to-end encryption is active for this call, as reported by the
+   * SFU in the join response.
+   */
+  e2eeEnabled$: Observable<boolean>;
+
+  /**
    * Will provide the user who ended this call.
    */
   endedBy$: Observable<UserResponse | undefined>;
@@ -467,6 +475,7 @@ export class CallState {
     this.rawRecording$ = duc(this.rawRecordingSubject);
     this.transcribing$ = duc(this.transcribingSubject);
     this.captioning$ = duc(this.captioningSubject);
+    this.e2eeEnabled$ = duc(this.e2eeEnabledSubject);
 
     this.eventHandlers = {
       // these events are not updating the call state:
@@ -574,6 +583,7 @@ export class CallState {
       clearTimeout(taskId);
       this.closedCaptionsTasks.delete(ccKey);
     }
+    this.removeAllOrphanedTracks();
   };
 
   /**
@@ -974,6 +984,13 @@ export class CallState {
   }
 
   /**
+   * Whether end-to-end encryption is active for this call.
+   */
+  get e2eeEnabled() {
+    return this.getCurrentValue(this.e2eeEnabled$);
+  }
+
+  /**
    * Will provide the user who ended this call.
    */
   get endedBy() {
@@ -1250,6 +1267,19 @@ export class CallState {
   };
 
   /**
+   * Drops every orphaned track. Call this when the peer connections that own
+   * the stored receivers go away (full leave, reconnect, or migration):
+   * `pc.close()` does not raise the track `ended` event, so the per-track
+   * cleanup never fires and the receivers + their closed PCs would otherwise
+   * leak for the call's lifetime.
+   *
+   * @internal
+   */
+  removeAllOrphanedTracks = () => {
+    this.orphanedTracks = [];
+  };
+
+  /**
    * Takes all orphaned tracks with the given track lookup prefix.
    * All orphaned tracks with the given track lookup prefix are removed from the call state.
    *
@@ -1336,7 +1366,8 @@ export class CallState {
     currentSessionId: string,
     reconnectDetails?: ReconnectDetails,
   ) => {
-    const { participants, participantCount, startedAt, pins } = callState;
+    const { participants, participantCount, startedAt, pins, e2EeEnabled } =
+      callState;
     const localPublishedTracks =
       reconnectDetails?.announcedTracks.map((t) => t.trackType) ?? [];
     this.setParticipants(() => {
@@ -1365,6 +1396,7 @@ export class CallState {
     this.setAnonymousParticipantCount(participantCount?.anonymous || 0);
     this.setStartedAt(startedAt ? Timestamp.toDate(startedAt) : new Date());
     this.setServerSidePins(pins);
+    this.setCurrentValue(this.e2eeEnabledSubject, e2EeEnabled);
   };
 
   private updateFromMemberRemoved = (event: CallMemberRemovedEvent) => {

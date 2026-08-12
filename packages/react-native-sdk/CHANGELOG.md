@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.43.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.42.0...@stream-io/video-react-native-sdk-1.43.0) (2026-08-07)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.10.0`
+- `@stream-io/react-native-callingx` updated to version `0.9.0`
+- `@stream-io/video-filters-react-native` updated to version `0.15.0`
+- `@stream-io/video-client` updated to version `1.57.0`
+- `@stream-io/video-react-bindings` updated to version `1.19.2`
+
+### Features
+
+- added audio capture for ios broadcast screensharing mode ([#2346](https://github.com/GetStream/stream-video-js/issues/2346)) ([eb40f3e](https://github.com/GetStream/stream-video-js/commit/eb40f3ea5bfc5cfc28f3f6ef81c54bcbdeb1a804))
+- **react-native:** Expo SDK 57 / RN 0.86.2 upgrade and iOS 27 compatibility fixes ([#2355](https://github.com/GetStream/stream-video-js/issues/2355)) ([ea3c29b](https://github.com/GetStream/stream-video-js/commit/ea3c29b227f7a2a9ddb0eb046325e4783b558c94))
+
+### Bug Fixes
+
+- **react-native-sdk:** make DeepPartial<Theme> accept theme overrides ([#2354](https://github.com/GetStream/stream-video-js/issues/2354)) ([eedc526](https://github.com/GetStream/stream-video-js/commit/eedc526dd8a2af1b0f7d40870a8925562ade2621)), closes [#005](https://github.com/GetStream/stream-video-js/issues/005)
+
 ## [1.42.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.41.0...@stream-io/video-react-native-sdk-1.42.0) (2026-07-30)
 
 ### Dependency Updates
