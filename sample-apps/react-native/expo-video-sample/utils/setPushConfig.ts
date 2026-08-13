@@ -10,7 +10,6 @@ import { registerNonRingingNotificationHandler } from './registerNonRingingNotif
 
 export function setPushConfig() {
   StreamVideoRN.setPushConfig({
-    isExpo: true,
     ios: {
       pushProviderName: 'rn-expo-apn-video-p8',
     },
