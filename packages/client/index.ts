@@ -23,11 +23,7 @@ export * from './src/helpers/DynascaleManager';
 export * from './src/helpers/ViewportTracker';
 export * from './src/helpers/sound-detector';
 export * from './src/helpers/loopback';
-export {
-  MediaStreamRecorder,
-  type MediaRecordingResult,
-  type MediaStreamRecorderOptions,
-} from './src/helpers/MediaStreamRecorder';
+export * from './src/helpers/MediaStreamRecorder';
 export * from './src/helpers/participantUtils';
 export * as Browsers from './src/helpers/browsers';
 
