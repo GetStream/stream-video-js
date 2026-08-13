@@ -160,12 +160,59 @@ describe('shared-key rotation', () => {
   });
 });
 
-describe('removeKeys', () => {
+describe('removeKey', () => {
+  it('retires one epoch and leaves the rest decryptable', async () => {
+    await keyStore.importKey('alice', 1, rawKey(0x01));
+    await keyStore.importKey('alice', 2, rawKey(0x02));
+
+    keyStore.removeKey('alice', 1);
+
+    expect(keyStore.getKey('alice', 1)).toBeUndefined();
+    expect(keyStore.getKey('alice', 2)).toBeDefined();
+    // Epoch 2 is still the latest, so encoding is untouched.
+    expect(keyStore.getLatestKey('alice')).toMatchObject({ keyIndex: 2 });
+  });
+
+  it('clears the latest pointer when it removes the latest epoch', async () => {
+    await keyStore.importKey('alice', 1, rawKey(0x01));
+    await keyStore.importKey('alice', 2, rawKey(0x02));
+    await keyStore.importSharedKey(9, rawKey(0x09));
+
+    keyStore.removeKey('alice', 2);
+
+    // Leaving the pointer on the removed index would resolve nothing here and
+    // silently fall through to the shared epoch below, widening the key scope
+    // of every outgoing frame. Epoch 1 must not be promoted either.
+    expect(keyStore.getKey('alice', 1)).toBeDefined();
+    expect(keyStore.getLatestKey('alice')).toMatchObject({ keyIndex: 9 });
+  });
+
+  it('leaves no per-user key at all when the last epoch goes', async () => {
+    await keyStore.importKey('alice', 1, rawKey(0x01));
+
+    keyStore.removeKey('alice', 1);
+
+    expect(keyStore.getLatestKey('alice')).toBeNull();
+    expect(keyStore.keyState().perUserKeys).toEqual([]);
+  });
+
+  it('is a no-op for an epoch or user it does not hold', async () => {
+    await keyStore.importKey('alice', 1, rawKey(0x01));
+
+    keyStore.removeKey('alice', 7);
+    keyStore.removeKey('nobody', 1);
+
+    expect(keyStore.getKey('alice', 1)).toBeDefined();
+    expect(keyStore.getLatestKey('alice')).toMatchObject({ keyIndex: 1 });
+  });
+});
+
+describe('removeAllKeys', () => {
   it('deletes that user key state and leaves the others', async () => {
     await keyStore.importKey('alice', 1, rawKey(0x01));
     await keyStore.importKey('bob', 1, rawKey(0x02));
 
-    keyStore.removeKeys('alice');
+    keyStore.removeAllKeys('alice');
 
     expect(keyStore.getKey('alice', 1)).toBeUndefined();
     expect(keyStore.getLatestKey('alice')).toBeNull();

@@ -137,11 +137,29 @@ export class KeyStore {
   };
 
   /**
+   * Retire exactly one of a user's epochs, leaving the rest usable.
+   *
+   * Clearing `latestKeyIndex` along with the slot is load-bearing. Left on a
+   * removed index, {@link getLatestKey} resolves nothing there and falls
+   * through to the active shared epoch, so the local user's frames would
+   * quietly move from a key only they hold to one every participant holds. No
+   * older epoch is promoted either, matching {@link removeSharedKey}.
+   */
+  removeKey = (userId: string, keyIndex: number) => {
+    const perKeyIndex = this.perUserKeys.get(userId);
+    if (!perKeyIndex?.delete(keyIndex)) return;
+    if (perKeyIndex.size === 0) this.perUserKeys.delete(userId);
+    if (this.latestKeyIndex.get(userId) === keyIndex) {
+      this.latestKeyIndex.delete(userId);
+    }
+  };
+
+  /**
    * Leaves the frame counters intact on purpose: a reset counter would reuse
    * IVs if the same raw key is imported again later. They live in
    * `frameCounter.ts`, so this cannot reach them even by accident.
    */
-  removeKeys = (userId: string) => {
+  removeAllKeys = (userId: string) => {
     this.perUserKeys.delete(userId);
     this.latestKeyIndex.delete(userId);
   };

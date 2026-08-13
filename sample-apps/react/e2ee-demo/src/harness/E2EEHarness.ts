@@ -611,9 +611,9 @@ export class E2EEHarness {
     // Revoke per-user keys so the shared key is the baseline.
     for (const p of targets) {
       for (const other of targets) {
-        if (other.userId !== p.userId) p.manager?.removeKeys(other.userId);
+        if (other.userId !== p.userId) p.manager?.removeAllKeys(other.userId);
       }
-      p.manager?.removeKeys(p.userId);
+      p.manager?.removeAllKeys(p.userId);
       p.currentKey = key;
       p.keyIndex = keyIndex;
       this.clearEncoderWarnings(p);
@@ -642,7 +642,7 @@ export class E2EEHarness {
     this.publishDebugHandles();
     for (const other of this.participants) {
       if (other.role === 'spy') continue;
-      other.manager?.removeKeys(targetUserId);
+      other.manager?.removeAllKeys(targetUserId);
       other.failingFrom.delete(targetUserId);
       other.stalledFrom.delete(targetUserId);
       this.addLog(
@@ -679,7 +679,7 @@ export class E2EEHarness {
       // A participant joined as plain has no manager and so never held the key.
       // Skip it rather than logging a revocation that did not happen.
       if (!h.manager) continue;
-      h.manager.removeKeys(targetUserId);
+      h.manager.removeAllKeys(targetUserId);
       this.addLog(
         h.userId,
         `Revoked ${this.nameFor(targetUserId)}'s key`,

@@ -74,8 +74,8 @@ const removeSharedKey = async (keyIndex: number) => {
   message({ type: 'cmd.remove_shared_key', keyIndex });
   await flush();
 };
-const removeKeys = async (userId: string) => {
-  message({ type: 'cmd.remove_keys', userId });
+const removeAllKeys = async (userId: string) => {
+  message({ type: 'cmd.remove_all_keys', userId });
   await flush();
 };
 
@@ -366,7 +366,7 @@ describe('decode pipeline edge behaviors', () => {
     const [encrypted] = await drive('encode', user, 'vp8', [
       frame([1, 2, 3, 4, 5, 6, 7, 8], 'delta'),
     ]);
-    await removeKeys(user);
+    await removeAllKeys(user);
     posted.length = 0;
     const out = await drive('decode', user, undefined, [encrypted], 'AUDIO');
     expect(out).toHaveLength(0);
