@@ -64,6 +64,7 @@ describe('DecodeNotifier throttling', () => {
   it.each([
     ['decryption_failed', (n: DecodeNotifier) => n.failed()],
     ['unencrypted_frame', (n: DecodeNotifier) => n.unencrypted()],
+    ['unsupported_version', (n: DecodeNotifier) => n.unsupportedVersion(2)],
   ])('delivers at most one %s per second', (type, raise) => {
     const notify = new DecodeNotifier('bob', 'VIDEO');
     raise(notify);
@@ -76,6 +77,18 @@ describe('DecodeNotifier throttling', () => {
     expect(types()).toEqual([`e2ee.${type}`, `e2ee.${type}`]);
   });
 
+  // The version byte is plaintext, so a relay can rewrite it per frame. Keying
+  // the throttle by version would hand it one event per distinct value, 255x
+  // the intended rate, for free.
+  it('throttles unsupported_version per track, not per version', () => {
+    const notify = new DecodeNotifier('bob', 'VIDEO');
+    notify.unsupportedVersion(2);
+    notify.unsupportedVersion(3);
+    notify.unsupportedVersion(99);
+    expect(types()).toEqual(['e2ee.unsupported_version']);
+    expect(postMessage.mock.calls[0][0].version).toBe(2);
+  });
+
   it('throttles missing_key per keyIndex, so a rotation still reports', () => {
     const notify = new DecodeNotifier('bob', 'VIDEO');
     notify.missingKey(1);
@@ -86,11 +99,14 @@ describe('DecodeNotifier throttling', () => {
     expect(postMessage.mock.calls.map(([m]) => m.keyIndex)).toEqual([1, 2]);
   });
 
-  it('does not throttle broken: it is already once per failure run', () => {
+  it('does not throttle decryption_stalled: it is already once per failure run', () => {
     const notify = new DecodeNotifier('bob', 'VIDEO');
-    notify.broken(0);
-    notify.broken(1);
-    expect(types()).toEqual(['e2ee.broken', 'e2ee.broken']);
+    notify.stalled(0);
+    notify.stalled(1);
+    expect(types()).toEqual([
+      'e2ee.decryption_stalled',
+      'e2ee.decryption_stalled',
+    ]);
   });
 
   it('scopes throttles per notifier, so one track cannot mute another', () => {

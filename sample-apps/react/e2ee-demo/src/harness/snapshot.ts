@@ -45,11 +45,11 @@ export interface HarnessParticipant {
     /** Remotes reporting `e2ee.decryption_failed`, possibly transient. */
     failingFrom: string[];
     /**
-     * Remotes whose session the SDK declared broken via `e2ee.broken` -
-     * decryption failed past the internal tolerance, so this is terminal
-     * until new key material arrives.
+     * Remotes the SDK reported via `e2ee.decryption_stalled` - decryption
+     * failed past the internal tolerance, so this is terminal until new key
+     * material arrives.
      */
-    brokenFrom: string[];
+    stalledFrom: string[];
   };
   perf: PerfReport;
   // Live SDK handles, for rendering only. Never serialized.

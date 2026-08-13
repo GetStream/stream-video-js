@@ -116,8 +116,8 @@ addEventListener('message', ({ data }) => {
         if (data.enabled) startPerfReport();
         else stopPerfReport();
         break;
-      case 'cmd.dump_key_state':
-        self.postMessage({ type: 'e2ee.key_state', ...keyStore.dump() });
+      case 'cmd.request_key_state':
+        self.postMessage({ type: 'e2ee.key_state', ...keyStore.keyState() });
         break;
       case 'cmd.setup_transform':
         setupTransform(data);

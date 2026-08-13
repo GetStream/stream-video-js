@@ -9,7 +9,7 @@ export class FailureTracker {
 
   /**
    * True only on the failure crossing {@link FAILURE_TOLERANCE}, so
-   * `e2ee.broken` fires once per run.
+   * `e2ee.decryption_stalled` fires once per run.
    */
   recordFailure = (keyIndex: number): boolean => {
     const next = (this.counts.get(keyIndex) ?? 0) + 1;

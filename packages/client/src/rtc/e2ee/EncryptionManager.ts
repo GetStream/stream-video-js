@@ -5,15 +5,16 @@ import type { E2EEManager } from './E2EEManager';
 
 export type {
   E2EEEventMap,
-  E2EEBrokenEvent,
   DecryptionFailedEvent,
   DecryptionResumedEvent,
+  DecryptionStalledEvent,
   EncryptionFailedEvent,
   KeyStateReport,
   MissingKeyEvent,
   PerfReport,
   TrackPerf,
   UnencryptedFrameEvent,
+  UnsupportedVersionEvent,
 } from './events';
 
 /**
@@ -275,9 +276,9 @@ export class EncryptionManager
    * Request a snapshot of the worker's keys. It arrives later as the
    * `e2ee.key_state` event, listing fingerprints only, never key material.
    */
-  requestKeyDump = (): void => {
+  requestKeyState = (): void => {
     this.assertUsable();
-    this.worker.postMessage({ type: 'cmd.dump_key_state' });
+    this.worker.postMessage({ type: 'cmd.request_key_state' });
   };
 
   private handleWorkerMessage = (e: MessageEvent) => {

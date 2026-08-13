@@ -162,7 +162,7 @@ export class KeyStore {
    * Debug snapshot. Fingerprints only: enough to confirm a sender and receiver
    * hold matching key material, and it exposes no key.
    */
-  dump = () => ({
+  keyState = () => ({
     perUserKeys: Array.from(this.perUserKeys).flatMap(([userId, perKeyIndex]) =>
       Array.from(perKeyIndex, ([keyIndex, km]) => ({
         userId,

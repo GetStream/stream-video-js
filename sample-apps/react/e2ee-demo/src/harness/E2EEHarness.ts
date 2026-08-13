@@ -97,7 +97,7 @@ interface EngineParticipant {
   keyStore: KeyStateReport | null;
   perf: PerfReport | null;
   failingFrom: Set<string>;
-  brokenFrom: Set<string>;
+  stalledFrom: Set<string>;
   encryptionFailure: string | null;
   unsubscribes: Array<() => void>;
 }
@@ -114,8 +114,7 @@ export class E2EEHarness {
   private activeSharedKeyIndex = -1;
   private sharedKeyBytes: ArrayBuffer | null = null;
   private resolvedEncryptionMode:
-    | EncryptionSettingsResponseModeEnum
-    | undefined;
+    EncryptionSettingsResponseModeEnum | undefined;
   private e2eeEnabled = false;
 
   constructor(
@@ -212,7 +211,7 @@ export class E2EEHarness {
           p.enabled && (!!p.currentKey || this.activeSharedKeyIndex >= 0),
         decryptingFrom,
         failingFrom,
-        brokenFrom: [...p.brokenFrom],
+        stalledFrom: [...p.stalledFrom],
       },
       perf: {
         encode: p.perf?.encode ?? [],
@@ -311,7 +310,7 @@ export class E2EEHarness {
         keyStore: null,
         perf: null,
         failingFrom: new Set(),
-        brokenFrom: new Set(),
+        stalledFrom: new Set(),
         encryptionFailure: null,
         unsubscribes: [],
       };
@@ -331,7 +330,7 @@ export class E2EEHarness {
         call.setE2EEManager(manager);
         this.wireEvents(p, manager);
         manager.enablePerformanceReporting(true);
-        manager.requestKeyDump();
+        manager.requestKeyState();
       }
 
       if (isNormal && manager) {
@@ -524,7 +523,7 @@ export class E2EEHarness {
       }`,
       'key-rotate',
     );
-    target.manager.requestKeyDump();
+    target.manager.requestKeyState();
     this.emit();
   };
 
@@ -549,7 +548,7 @@ export class E2EEHarness {
       }`,
       'key-set',
     );
-    target.manager.requestKeyDump();
+    target.manager.requestKeyState();
     this.emit();
   };
 
@@ -575,7 +574,7 @@ export class E2EEHarness {
     for (const p of this.participants) {
       if (p.role === 'spy') continue; // the spy stays keyless
       p.manager?.setKey(userId, FIXED_KEY_INDEX, key.slice(0));
-      p.manager?.requestKeyDump();
+      p.manager?.requestKeyState();
     }
     const local = this.participants.find(
       (p) => p.userId === userId && p.role === 'normal',
@@ -645,7 +644,7 @@ export class E2EEHarness {
       if (other.role === 'spy') continue;
       other.manager?.removeKeys(targetUserId);
       other.failingFrom.delete(targetUserId);
-      other.brokenFrom.delete(targetUserId);
+      other.stalledFrom.delete(targetUserId);
       this.addLog(
         other.userId,
         `Removed ${target.name}'s keys`,
@@ -705,7 +704,7 @@ export class E2EEHarness {
       `Set WRONG key (#${keyIndex}) [not distributed]`,
       'key-rotate',
     );
-    target.manager.requestKeyDump();
+    target.manager.requestKeyState();
     this.emit();
   };
 
@@ -736,7 +735,7 @@ export class E2EEHarness {
       }),
       m.on('e2ee.decryption_resumed', ({ userId: remoteUserId }) => {
         p.failingFrom.delete(remoteUserId);
-        p.brokenFrom.delete(remoteUserId);
+        p.stalledFrom.delete(remoteUserId);
         this.addLog(
           p.userId,
           `Decryption resumed from ${this.nameFor(remoteUserId)}`,
@@ -744,11 +743,11 @@ export class E2EEHarness {
         );
         this.emit();
       }),
-      m.on('e2ee.broken', ({ userId: remoteUserId, keyIndex }) => {
-        p.brokenFrom.add(remoteUserId);
+      m.on('e2ee.decryption_stalled', ({ userId: remoteUserId, keyIndex }) => {
+        p.stalledFrom.add(remoteUserId);
         this.addLog(
           p.userId,
-          `E2EE broken from ${this.nameFor(remoteUserId)} (key #${keyIndex}): failures past tolerance`,
+          `E2EE decryption stalled from ${this.nameFor(remoteUserId)} (key #${keyIndex}): failures past tolerance`,
           'error',
         );
         this.emit();
@@ -767,6 +766,20 @@ export class E2EEHarness {
         );
         this.emit();
       }),
+      // A peer on a newer framing version: its frames are dropped rather than
+      // rendered as garbage. This build is the stale one, so the prompt belongs
+      // on this client, not on the peer.
+      m.on(
+        'e2ee.unsupported_version',
+        ({ userId: remoteUserId, version, trackType }) => {
+          this.addLog(
+            p.userId,
+            `${this.nameFor(remoteUserId)} publishes E2EE version ${version}, which this build cannot read: ${trackType ?? 'track'} dropped. Update this app.`,
+            'error',
+          );
+          this.emit();
+        },
+      ),
       m.on('e2ee.encryption_failed', ({ reason, trackType }) => {
         p.encryptionFailure = reason;
         this.addLog(

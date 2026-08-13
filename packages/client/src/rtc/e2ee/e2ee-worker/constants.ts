@@ -34,7 +34,7 @@ export const MAX_CLEAR_BYTES = 0x7fff;
 
 export const EMPTY_AAD = new Uint8Array(0);
 
-/** Consecutive decrypt failures on one track before `e2ee.broken` fires. */
+/** Consecutive decrypt failures on one track before `e2ee.decryption_stalled` fires. */
 export const FAILURE_TOLERANCE = 10;
 
 /** Replay window in frames. A counter <= highestSeen - this is rejected. */

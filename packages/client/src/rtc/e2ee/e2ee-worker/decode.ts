@@ -1,6 +1,11 @@
-import { EMPTY_AAD, IV_LEN, TRAILER_LEN } from './constants';
+import { E2EE_VERSION, EMPTY_AAD, IV_LEN, TRAILER_LEN } from './constants';
 import { boundarySeedZeros, rbspUnescape } from './codec';
-import { fillIV, readTrailer, readTrailerIv } from './trailer';
+import {
+  fillIV,
+  readFramingVersion,
+  readTrailer,
+  readTrailerIv,
+} from './trailer';
 import { FailureTracker } from './failureTracker';
 import { ReplayWindow } from './replayWindow';
 import { keyStore } from './keyStore';
@@ -23,7 +28,8 @@ export const decodeTransform = (
   const ivView = new DataView(iv.buffer);
 
   // Per track, so a user's audio, video and screen share never share a window
-  // or a failure count. The separate count is what lets e2ee.broken fire.
+  // or a failure count. The separate count is what lets
+  // e2ee.decryption_stalled fire.
   const replay = new ReplayWindow();
   const failures = new FailureTracker();
 
@@ -35,7 +41,7 @@ export const decodeTransform = (
    * Trust ordering (the SFrame/SRTP rule): a relay can forge `frameCounter`,
    * `ivPrefix` and `keyIndex`, which are plaintext in the trailer, so nothing
    * changes trust state until GCM authenticates. Hence peek before, commit
-   * after. The failure counter is diagnostic only - it gates `e2ee.broken`,
+   * after. The failure counter is diagnostic only - it gates `e2ee.decryption_stalled`,
    * never the decrypt attempt - so forged frames cannot mark a key invalid.
    */
   const finishDecode = async (
@@ -70,11 +76,11 @@ export const decodeTransform = (
       controller.enqueue(frame);
       stats.bump();
     } catch {
-      // True only on the failure crossing the tolerance, so `e2ee.broken` fires
-      // once per run, not once per frame.
-      const becameInvalid = failures.recordFailure(keyIndex);
+      // True only on the failure crossing the tolerance, so
+      // `e2ee.decryption_stalled` fires once per run, not once per frame.
+      const stalled = failures.recordFailure(keyIndex);
       notify.failed();
-      if (becameInvalid) notify.broken(keyIndex);
+      if (stalled) notify.stalled(keyIndex);
     }
   };
 
@@ -90,6 +96,14 @@ export const decodeTransform = (
       const trailer = readTrailer(src);
 
       if (!trailer) {
+        // Ours but unreadable: drop rather than forward. Handing ciphertext to
+        // the decoder renders corruption and reads to the host as a downgrade,
+        // when the actual condition is that this build is the older one.
+        const version = readFramingVersion(src);
+        if (version !== null && version !== E2EE_VERSION) {
+          notify.unsupportedVersion(version);
+          return;
+        }
         notify.unencrypted();
         controller.enqueue(frame);
         stats.bump();

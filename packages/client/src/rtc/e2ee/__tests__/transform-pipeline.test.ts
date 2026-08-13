@@ -166,11 +166,11 @@ afterEach(async () => {
 // covered by the module that owns it (perf.test.ts, crypto.test.ts); these
 // cover the dispatch reaching it.
 describe('worker command interface', () => {
-  it('answers cmd.dump_key_state with fingerprints, never key material', async () => {
+  it('answers cmd.request_key_state with fingerprints, never key material', async () => {
     const user = freshUser();
     await setKey(user, 4);
     posted.length = 0;
-    message({ type: 'cmd.dump_key_state' });
+    message({ type: 'cmd.request_key_state' });
     await flush();
     const dump = posted.find((m) => m.type === 'e2ee.key_state') as
       { perUserKeys: Array<{ userId: string; keyIndex: number }> } | undefined;
@@ -329,6 +329,33 @@ describe('decode pipeline edge behaviors', () => {
         type: 'e2ee.unencrypted_frame',
         userId: user,
         trackType: 'SCREEN_SHARE',
+      },
+    ]);
+  });
+
+  it('drops a frame from a newer framing version instead of forwarding it', async () => {
+    const user = freshUser();
+    await setKey(user);
+    const [encrypted] = await drive('encode', user, 'vp8', [
+      frame([1, 2, 3, 4, 5, 6, 7, 8], 'delta'),
+    ]);
+    const future = new Uint8Array(encrypted.data.slice(0));
+    future[future.length - 5] = E2EE_VERSION + 1;
+    posted.length = 0;
+
+    const out = await drive('decode', user, undefined, [
+      { ...encrypted, data: future.buffer },
+    ]);
+
+    // Forwarding would hand ciphertext to the decoder: corrupt media, reported
+    // as a downgrade. The peer is simply newer, so drop and say which version.
+    expect(out).toEqual([]);
+    expect(posted).toEqual([
+      {
+        type: 'e2ee.unsupported_version',
+        userId: user,
+        version: E2EE_VERSION + 1,
+        trackType: undefined,
       },
     ]);
   });
@@ -569,8 +596,13 @@ describe('decode pipeline edge behaviors', () => {
     // The break is surfaced once (on the tolerance crossing) and recovery once.
     // Both name the track: a peer's audio and video are separate transforms
     // reported under one userId, so a host cannot pair them up without this.
-    expect(posted.filter((m) => m.type === 'e2ee.broken')).toEqual([
-      { type: 'e2ee.broken', userId: user, keyIndex: 0, trackType: 'VIDEO' },
+    expect(posted.filter((m) => m.type === 'e2ee.decryption_stalled')).toEqual([
+      {
+        type: 'e2ee.decryption_stalled',
+        userId: user,
+        keyIndex: 0,
+        trackType: 'VIDEO',
+      },
     ]);
     expect(posted.filter((m) => m.type === 'e2ee.decryption_resumed')).toEqual([
       { type: 'e2ee.decryption_resumed', userId: user, trackType: 'VIDEO' },
@@ -617,12 +649,14 @@ describe('decode pipeline edge behaviors', () => {
     posted.length = 0;
     const vOut = await drive('decode', user, undefined, tamperedVideo);
     expect(vOut).toHaveLength(0);
-    expect(posted.filter((m) => m.type === 'e2ee.broken')).toHaveLength(1);
+    expect(
+      posted.filter((m) => m.type === 'e2ee.decryption_stalled'),
+    ).toHaveLength(1);
 
     // Audio decode transform (a SEPARATE track): the genuine frame decrypts and
     // must NOT emit decryption_resumed - this track never failed. With the old
     // per-(user, keyIndex) counter shared across tracks, the audio success reset
-    // the video failures and spuriously "resumed" (and kept e2ee.broken from
+    // the video failures and spuriously "resumed" (and kept e2ee.decryption_stalled from
     // ever firing).
     posted.length = 0;
     const aOut = await drive('decode', user, undefined, [audioEnc]);

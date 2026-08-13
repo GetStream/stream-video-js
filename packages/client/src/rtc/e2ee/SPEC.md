@@ -43,7 +43,7 @@ removeSharedKey(keyIndex: number): void
 
 // diagnostics
 enablePerformanceReporting(enabled: boolean): void
-requestKeyDump(): void
+requestKeyState(): void
 
 // lifecycle
 dispose(): void
@@ -117,7 +117,7 @@ Every key import generates:
 
 The fresh prefix per import is what makes re-importing the same raw key safe: it cannot reproduce an `(ivPrefix, counter)` pair from an earlier import. **Receivers never consult a local prefix** - they read it from the frame.
 
-The prefix must come from a **cryptographic RNG**, never from a user id, session id, timestamp or counter. Under a shared key it is the only thing separating one participant's IVs from another's - see the warning in §9.
+The prefix must come from a **cryptographic RNG**, never from a user id, session id, timestamp or counter. Under a shared key it is the only thing separating one participant's IVs from another's (§9 rule 5, Appendix A.2).
 
 ---
 
@@ -134,7 +134,7 @@ The prefix must come from a **cryptographic RNG**, never from a user id, session
 > Note the invariant is on the IV, not on the counter. **`(key, counter)` repeats constantly and that is expected**: under a shared key every participant starts at counter 1, as does the same user on a second device, and so does any sender that reconnects with a fresh manager. Two mechanisms cover two different scopes, and both are load-bearing:
 >
 > - **Within one sender**, the monotonic counter separates frames. It must be **one counter for the whole manager, not one per track** - a per-track counter would let one user's audio and video frames land on the same counter under the same key.
-> - **Between senders**, the counter separates nothing, because they all start near 0. Only the random per-import `ivPrefix` keeps them apart, which is why §9 requires it to come from a cryptographic RNG.
+> - **Between senders**, the counter separates nothing, because they all start near 0. Only the random per-import `ivPrefix` keeps them apart, which is why §9 rule 5 requires a cryptographic RNG (Appendix A.2).
 
 ---
 
@@ -173,10 +173,12 @@ The leading `clearBytes` bytes stay in plaintext so the SFU can still read frame
 | 4      | 8    | `ivPrefix`            | sender's random prefix for this key import               |
 | 12     | 1    | `keyIndex`            | 0-255                                                    |
 | 13     | 2    | `clearBytes \| flags` | bit 15 = `RBSP_FLAG`, bits 0-14 = clearBytes (max 32767) |
-| 15     | 1    | `version`             | `0x01`                                                   |
-| 16     | 4    | `magic`               | `0xE2EEFEED`                                             |
+| 15     | 1    | `version`             | `0x01`; frozen position, see below                       |
+| 16     | 4    | `magic`               | `0xE2EEFEED`; frozen position, see below                 |
 
 **Overhead:** 16 (GCM tag) + 20 (trailer) = **36 bytes per frame**, plus RBSP escape bytes for H.264.
+
+**The identification suffix is frozen across versions.** The last 5 bytes of the frame are `version ∥ magic` in **every** version of this format, present and future, and are read relative to the **end of the frame** rather than to a trailer start. That is what lets a receiver recognize "encrypted, but written by a version I do not implement" without understanding the trailer that carries it (§12), and it is why a future version may lengthen the trailer without stranding older receivers.
 
 ### 5.3 AAD (Additional Authenticated Data)
 
@@ -275,6 +277,10 @@ on frame:
 
   trailer = readTrailer(frame)          // magic == 0xE2EEFEED && version == 1
   if trailer == null:
+      // Two different conditions; the frozen suffix (§5.2) tells them apart.
+      v = readFramingVersion(frame)     // version byte iff magic matches, else null
+      if v != null and v != 1:
+          drop, emit unsupported_version(v) (throttled per track); return
       emit unencrypted_frame (throttled); forward unchanged; return
   -> recover ciphertext + IV fields (RBSP path per §5.4)
   -> decode with (keyIndex, ivPrefix, frameCounter)
@@ -286,22 +292,24 @@ decode with (keyIndex, ivPrefix, counter):
   try:
       plaintext = decrypt(...)
       replayWindow.commit(counter, ivPrefix)      // only after authentication
-      failures.clearFailures(keyIndex)            // gates `broken`, nothing else
+      failures.clearFailures(keyIndex)            // gates `decryption_stalled`, nothing else
       emit decryption_resumed                     // unthrottled and paired; §10
       forward clearHeader || plaintext
   catch:
-      if failures.recordFailure(keyIndex) crosses tolerance: emit broken
+      if failures.recordFailure(keyIndex) crosses tolerance: emit decryption_stalled
       emit decryption_failed (throttled)
       drop
 ```
 
-**`readTrailer` validation order:** length >= 20, then `magic == 0xE2EEFEED`, then `version == 1`, then `clearBytes <= frameLength - 20`. Any mismatch means "not our trailer" - forward the frame as cleartext rather than attempting a decrypt.
+**`readTrailer` validation order:** length >= 20, then `magic == 0xE2EEFEED`, then `version == 1`, then `clearBytes <= frameLength - 20`. Any mismatch means "not a v1 trailer" - never attempt a decrypt.
 
-An unknown version must be treated as **not ours**, not as an error. That is what keeps unrelated frames that happen to end in `0xE2EEFEED` from producing spurious failures, and what lets a future version coexist.
+**An unknown version is not a decryption failure, and not a cleartext frame either.** It gets its own disposition: drop the frame and emit `unsupported_version` carrying the observed version. Dropping rather than forwarding is the point - forwarding hands ciphertext to the decoder, which renders as corruption and reads to the host as a downgrade, when the actual condition is a peer on a newer SDK and the remedy is updating this client. Treating it as a decryption failure would be equally wrong: no key can fix it.
+
+Everything else that fails `readTrailer` (short frame, magic mismatch, `clearBytes` overrunning the body) stays "not ours" and is forwarded as cleartext with `unencrypted_frame`. That is what keeps an unrelated frame which happens to end in `0xE2EEFEED` from producing spurious failures.
 
 The magic is a heuristic, not a guarantee: any 4-byte value collides with random data at 2^-32. `0xE2EEFEED` is chosen to be an unlikely accident rather than a common one - a widespread debug fill such as `0xDEADBEEF` shows up in real buffers far more often than a value nothing else uses. No byte of it is `0x00` or `<= 0x03` either, which is what keeps the start-code-safe trailer tail safe (§5.4).
 
-> **Consequence worth knowing.** `unencrypted_frame` therefore also fires for a frame that _is_ encrypted but by a peer on a different `version`. The frame is then handed to the decoder as ciphertext, so the symptom is corrupt media plus an event that reads as a downgrade. Version skew across SDKs must be avoided rather than detected.
+> **Consequence worth knowing.** The magic still collides with random data at 2^-32, so a cleartext frame can be mistaken for ours. If its version byte happens not to be 1 it is dropped rather than forwarded, at that same rate - no worse than the existing behavior for a collision whose version byte _is_ 1, which reaches a decrypt and fails.
 
 ---
 
@@ -312,7 +320,7 @@ The magic is a heuristic, not a guarantee: any 4-byte value collides with random
 Everything read before the decrypt call (`frameCounter`, `ivPrefix`, `keyIndex`, `clearBytes`, the RBSP flag) is **plaintext and forgeable by a relay**. Nothing may mutate trust state until GCM authenticates the frame.
 
 - The replay window is **peeked** before decrypt and **committed** only after success.
-- The failure counter is diagnostic only. It gates the `broken` signal; it never gates a decrypt attempt. A burst of forged frames must not be able to latch a genuine key invalid.
+- The failure counter is diagnostic only. It gates the `decryption_stalled` signal; it never gates a decrypt attempt. A burst of forged frames must not be able to latch a genuine key invalid.
 
 ### Replay window
 
@@ -326,9 +334,9 @@ Scoped **per remote track**, not per user. Remote tracks travel on independent S
 
 ### Failure tolerance
 
-Consecutive decryption failures are counted **per track, per `keyIndex`**. After **10** consecutive failures, the 11th fires `broken` exactly once per failure run. A successful decrypt clears the count for that `keyIndex`, and also fires `decryption_resumed` - but keep the two independent. The count gates `broken` and nothing else; the recovery is gated separately, on whether a failure was ever delivered to the host (§10).
+Consecutive decryption failures are counted **per track, per `keyIndex`**. After **10** consecutive failures, the 11th fires `decryption_stalled` exactly once per failure run. A successful decrypt clears the count for that `keyIndex`, and also fires `decryption_resumed` - but keep the two independent. The count gates `decryption_stalled` and nothing else; the recovery is gated separately, on whether a failure was ever delivered to the host (§10).
 
-Per-track scoping is load-bearing: a counter shared across a user's tracks lets one track's healthy frames reset another's failures, so the threshold is never crossed and `broken` can never fire.
+Per-track scoping is load-bearing: a counter shared across a user's tracks lets one track's healthy frames reset another's failures, so the threshold is never crossed and `decryption_stalled` can never fire.
 
 ### Throttling
 
@@ -340,79 +348,55 @@ The _level_ notifications (`missing_key`, `decryption_failed`, `unencrypted_fram
 
 ## 9. Counter exhaustion
 
-The counter is a 32-bit IV field. **It must never wrap** - wrapping would fold into a previously used `(ivPrefix, counter)` pair, which is catastrophic under AES-GCM. Check before incrementing and fail closed:
+The counter is a 32-bit IV field and **must never wrap**: a wrap folds into a previously used `(ivPrefix, counter)` pair, which is catastrophic under AES-GCM (Appendix A.1).
+
+> **The five rules.** This is the whole contract; Appendix A carries the reasoning.
+>
+> 1. **One counter per manager**, shared across every track and codec. Hold it as a single value, never a map keyed by user id - a wrong or changed id would hand out a fresh counter starting at 1 under the same key and prefix.
+> 2. **Check before incrementing**, and never store a value past the ceiling.
+> 3. **Never reset it on a key operation.** `setKey`, `setSharedKey`, `removeKeys` and `removeSharedKey` all leave it untouched; only a new manager starts at 0.
+> 4. **Throw at the ceiling.** The frame is dropped and `encryption_failed` is emitted. This is the only counter threshold; nothing fires below it.
+> 5. **Fresh 8-byte `ivPrefix` from a cryptographic RNG on every key import.** Never derived from a user id, session id, timestamp or counter; never reused across imports; never shortened.
 
 ```
 c = counter + 1
 if c > 0xFFFFFFFF:
-    throw            # do NOT store c - the counter stays pinned at the ceiling
+    throw            # do NOT store c: the counter stays pinned at the ceiling
 counter = c
 ```
 
-The throw propagates out of the encode path, so the frame is dropped and `encryption_failed` is emitted. **This ceiling is the only counter threshold; nothing fires below it.**
+Rules 1 and 5 are two independent guards, covering two different scopes (§4). Resetting the counter on import, as rule 3 forbids, collapses them into one.
 
-**Hold the counter as a single value, not as a map keyed by user id.** A manager is bound to one local user at construction and only the encode path draws from the counter, so keying it buys nothing - but it costs a failure mode: a wrong or changed id hands out a _fresh_ counter starting at 1, which under the same key and `ivPrefix` is exactly the IV reuse this ceiling exists to prevent. A single value cannot do that.
+| Action                           | Frame counter           | `ivPrefix`                |
+| -------------------------------- | ----------------------- | ------------------------- |
+| `setKey` / `setSharedKey`        | unchanged, keeps rising | fresh random for the slot |
+| `removeKeys` / `removeSharedKey` | unchanged, keeps rising | dropped with the slot     |
+| new manager                      | reset to 0              | -                         |
 
-> **Why IV reuse is catastrophic, and not merely a leak.** GCM is CTR mode plus GHASH, and a repeated IV breaks both halves.
->
-> The keystream is a function of `(key, IV)` alone, so two frames encrypted under the same one give `C1 ⊕ C2 = P1 ⊕ P2`: the keystream cancels and the plaintexts leak against each other. Video frames are highly correlated and partly predictable, so that XOR is close to recovering both.
->
-> The authentication failure is worse. The tag is `GHASH_H(A, C) ⊕ E_K(J0)`, and `J0` derives from the IV, so on a collision the `E_K(J0)` mask cancels too: `T1 ⊕ T2` leaves a polynomial whose only unknown is the GHASH subkey `H`. Solving it recovers `H`, and an attacker holding `H` can forge a valid tag for **any** frame under that key, not only the two that collided. This is the "forbidden attack", demonstrated in practice against TLS stacks that repeated a nonce.
->
-> A wrap is the guaranteed form of this: `ivPrefix` is fixed for the key's lifetime, so the IV is a pure function of the counter, and wrapping replays the entire IV sequence in order. Hence fail closed rather than wrap.
+Key state per action is §3; this table covers only the counter and the prefix.
 
-**The counter is scoped to the manager, not to the key.** It must survive key imports and removals untouched, and reset only when the manager is torn down:
+**Recovery is a new manager, and the error message must say so.** A rotation gives a disjoint IV space but not a fresh budget, and an exhausted counter does not advance, so a rekeyed track fails identically and publishes nothing for the rest of the manager's life. An error naming rekeying sends integrators down a path that cannot work. `encryption_failed` is latched per track, so the host sees one event per track and then silence rather than a per-frame flood.
 
-| Action                                 | Frame counter           | `ivPrefix`   | Key state                        |
-| -------------------------------------- | ----------------------- | ------------ | -------------------------------- |
-| `setKey` / `setSharedKey`              | unchanged, keeps rising | fresh random | slot added or replaced           |
-| `removeKeys`                           | unchanged, keeps rising | dropped      | user's slots removed             |
-| `removeSharedKey` on an inactive epoch | unchanged, keeps rising | dropped      | shared slot removed              |
-| `removeSharedKey` on the active epoch  | unchanged, keeps rising | dropped      | slot removed; no active fallback |
-| new manager instance                   | reset to 0              | -            | empty                            |
-
-Two guards keep IVs unique within one sender: the persistent counter, and the fresh random `ivPrefix` per import. Resetting the counter on import would collapse them into one.
-
-> **The `ivPrefix` RNG is load-bearing on its own - do not weaken it.** The counter only separates IVs _within_ a single sender. It contributes nothing **between** senders, and under a shared key that is exactly the case that matters: every participant holds the same AES key, and every participant's counter independently starts at 0, so participant A's first frame uses `P_A || 1` and B's uses `P_B || 1`. Only `P_A != P_B` keeps them apart. With 8 random bytes the collision probability across _n_ participants is about `n² / 2^65` (~3e-16 for 100 participants), which is why 64 bits suffice - but it means the prefix must be **8 bytes from a cryptographic RNG, generated fresh on every import**. Deriving it from a user id, session id, timestamp, or counter, reusing one across imports, or shortening it, breaks AES-GCM outright for the entire call. This is the single easiest thing to get wrong when porting.
-
-**Consequence: a rekey cannot recover an exhausted sender.** Rotation gives a disjoint IV space but not a fresh budget, and the failing call does not advance the counter, so every later frame fails identically and the track publishes nothing for the rest of the manager's life. The only recovery is a new manager. Say so in the error message: one that points at rekeying sends integrators down a path that cannot work.
-
-Because `encryption_failed` is latched per track, the host sees one event per track and then silence, not a per-frame flood.
-
-### How long is the budget?
-
-The counter is shared across **all** of a sender's tracks, so the aggregate frame rate is what matters:
-
-```
-months ≈ 2^32 / (aggregate frames per second) / 2.6e6
-```
-
-Worked example, a typical camera call: Opus at 20 ms ptime contributes 50 fps, and a 30 fps camera track with 3 simulcast layers contributes 90 fps (each layer's frames traverse the transform separately), so ~140 fps aggregate.
-
-| Case                                     | Aggregate | Hard stop at 2^32 |
-| ---------------------------------------- | --------- | ----------------- |
-| Camera + mic, 3 simulcast layers         | ~140 fps  | **~12 months**    |
-| Camera + mic, single stream (SVC, 1 rid) | ~80 fps   | ~20 months        |
-
-That is **continuous publishing in a single session**, and counters reset with each new manager, so no real call approaches it. This is a correctness guard, not an operational event. Do not add an early-warning signal below the ceiling: it would fire only after ~6 months, and it could name no remedy that works, since a rotation cannot restore the budget. Do not skip the ceiling check on the same reasoning: a per-track counter, or one that resets on rekey, turns "never happens" into IV reuse.
+**No early-warning signal below the ceiling.** The budget is roughly a year of continuous publishing (Appendix A.3), and no rotation can restore it, so a warning would fire once, months in, naming no remedy.
 
 ---
 
 ## 10. Events
 
-Event names are listed below unprefixed. On the wire and in the JS API they carry an `e2ee.` prefix (`e2ee.missing_key`, `e2ee.broken`, ...); keep that convention so E2EE events stay distinguishable from SFU and coordinator events.
+Event names are listed below unprefixed. On the wire and in the JS API they carry an `e2ee.` prefix (`e2ee.missing_key`, `e2ee.decryption_stalled`, ...); keep that convention so E2EE events stay distinguishable from SFU and coordinator events.
 
-| Event                           | Payload                           | Fires when                                                     | Host action                                                                  |
-| ------------------------------- | --------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `missing_key` (no `keyIndex`)   | `userId`                          | encoder has no local key; **every outgoing track is dropped**  | provide a key                                                                |
-| `missing_key` (with `keyIndex`) | `userId`, `keyIndex`, `trackType` | a remote frame referenced a key this peer does not hold        | usually benign: key distribution or rotation in flight                       |
-| `decryption_failed`             | `userId`, `trackType`             | GCM tag failure on a remote frame                              | key mismatch, rotation, or tampering                                         |
-| `decryption_resumed`            | `userId`, `trackType`             | that track decrypts again                                      | clear the warning raised by `decryption_failed`                              |
-| `encryption_failed`             | `userId`, `trackType`, `reason`   | an outgoing frame could not be encrypted                       | that track is publishing nothing                                             |
-| `broken`                        | `userId`, `keyIndex`, `trackType` | 10+ consecutive failures for `(track, keyIndex)`               | surface to the user; redistribute keys                                       |
-| `unencrypted_frame`             | `userId`, `trackType`             | a remote frame carried no E2EE framing and was forwarded as-is | expected when the call's mode allows plain publishers; otherwise a downgrade |
-| `perf_report`                   | per-track encode/decode samples   | once per second when perf reporting is on                      | diagnostics                                                                  |
-| `key_state`                     | `KeyStateReport`                  | in response to `requestKeyDump`                                | diagnostics                                                                  |
+| Event                           | Payload                           | Fires when                                                                                       | Host action                                                                   |
+| ------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `missing_key` (no `keyIndex`)   | `userId`                          | encoder has no local key; **every outgoing track is dropped**                                    | provide a key                                                                 |
+| `missing_key` (with `keyIndex`) | `userId`, `keyIndex`, `trackType` | a remote frame referenced a key this peer does not hold                                          | usually benign: key distribution or rotation in flight                        |
+| `decryption_failed`             | `userId`, `trackType`             | GCM tag failure on a remote frame                                                                | key mismatch, rotation, or tampering                                          |
+| `decryption_resumed`            | `userId`, `trackType`             | that track decrypts again                                                                        | clear the warning raised by `decryption_failed`                               |
+| `encryption_failed`             | `userId`, `trackType`, `reason`   | an outgoing frame could not be encrypted                                                         | that track is publishing nothing                                              |
+| `decryption_stalled`            | `userId`, `keyIndex`, `trackType` | 10+ consecutive failures for `(track, keyIndex)`                                                 | surface to the user; redistribute keys                                        |
+| `unencrypted_frame`             | `userId`, `trackType`             | a remote frame carried no E2EE framing and was forwarded as-is                                   | expected when the call's mode allows plain publishers; otherwise a downgrade  |
+| `unsupported_version`           | `userId`, `version`, `trackType`  | a remote frame carried our framing at a version this build cannot read; **the frame is dropped** | prompt the local user to update **this** app, not the peer; no key can fix it |
+| `perf_report`                   | per-track encode/decode samples   | once per second when perf reporting is on                                                        | diagnostics                                                                   |
+| `key_state`                     | `KeyStateReport`                  | in response to `requestKeyState`                                                                 | diagnostics                                                                   |
 
 `missing_key` is deliberately distinct from `decryption_failed`: a host cannot otherwise tell "key not here yet" from "key mismatch or tampering".
 
@@ -420,7 +404,7 @@ Event names are listed below unprefixed. On the wire and in the JS API they carr
 
 **Carry `trackType` on anything reported per track.** Every event above except the encode-side `missing_key` is raised inside one track's transform, so without it a peer's audio, video and screen share produce byte-identical messages the host cannot tell apart or act on. The encode-side `missing_key` is the one genuine exception: the local user holds no key at all, which stalls every outgoing track at once, so it is reported once for the user and carries no track.
 
-**Levels may be throttled; edges may not.** `decryption_failed`, `missing_key` and `unencrypted_frame` are _levels_ - they describe a condition that persists, so throttling them to one per second per track is safe, because the next frame re-raises the same condition.
+**Levels may be throttled; edges may not.** `decryption_failed`, `missing_key`, `unencrypted_frame` and `unsupported_version` are _levels_ - they describe a condition that persists, so throttling them to one per second per track is safe, because the next frame re-raises the same condition.
 
 `decryption_resumed` is an _edge_. Throttling it drops a state transition permanently and strands the host on `decryption_failed` for a track that has recovered. Emit it **unthrottled**, paired one-to-one with delivered failures:
 
@@ -431,7 +415,7 @@ on decryption failure:
         emit decryption_failed
 
 on successful decrypt:
-    clear the per-keyIndex failure count      # gates `broken`
+    clear the per-keyIndex failure count      # gates `decryption_stalled`
     if failureReported:                       # gates `resumed`
         failureReported = false
         emit decryption_resumed
@@ -444,8 +428,7 @@ Pairing bounds the rate for free: a recovery can only be emitted for a failure t
 
 **`encryption_failed` is latched per track**, re-arming when a frame encrypts again. A permanently dead track therefore reports once, not once per frame.
 
-`key_state` returns per-user and shared keys with their **fingerprints only** (hex of the first 8 bytes of `SHA-256(rawKey)`). Raw key material must never leave the worker.
-At most one shared entry has `isActive: true`. It is valid for every shared entry to be inactive after the active epoch is removed.
+`key_state` returns per-user and shared keys with their **fingerprints only** (hex of the first 8 bytes of `SHA-256(rawKey)`). Raw key material must never leave the worker. At most one shared entry has `isActive: true`, and all of them being inactive is a valid state (§3).
 
 ---
 
@@ -493,8 +476,18 @@ A new implementation is conformant when it reproduces the bytes above exactly, d
 ## 12. Versioning rules
 
 - Bump `version` only when the trailer layout or IV derivation changes, and only in lockstep across SDKs.
-- A receiver seeing an unknown version must treat the frame as **not ours** (forward as cleartext with `unencrypted_frame`), never as a decryption failure.
 - Any change to the AAD composition, the clear-byte rules, or the escaping rules is a wire break and requires a version bump plus new vectors in §11.
+
+### Forward compatibility
+
+Lockstep releases do not give lockstep deployment: SDKs ship inside apps, app versions live in stores for months, and a participant on an old build will join a call with a new one. Version skew is therefore a state to be **detected**, not one that policy can prevent. Two commitments make it detectable, and both must be implemented in v1, before any v2 exists - a v1 receiver that ships without them cannot be fixed retroactively when v2 arrives.
+
+1. **The identification suffix never moves.** The last 5 bytes of every frame, in every version, are `version ∥ magic`, read relative to the end of the frame, with the byte 6 from the end never `0x00` (§5.2). A future version may change everything else in the trailer, including its length.
+2. **An unrecognized version is reported as itself.** Drop the frame and emit `unsupported_version` with the observed version (§7, §10). Never forward it as cleartext, and never report it as a decryption failure.
+
+Together these turn skew from corrupt media that looks like a downgrade into an actionable "update this app". Note the direction: the peer wrote a format newer than this receiver implements, so the **local** client is the one to update - reporting it against the remote participant, whose build is already current, is the easy mistake to make here. Detection is receive-side only, which lands the signal in the right place for exactly that reason: the client that must update is the one that notices. It is a diagnostic, not a security control - a relay forging `version = 99` to force drops achieves nothing it could not achieve by discarding the frames itself.
+
+The complete fix is to negotiate a call-level maximum version at join, so a newer client emits older framing while any older participant is present. That is out of scope here; the suffix commitment is what keeps the un-negotiated case legible.
 
 ---
 
@@ -505,3 +498,42 @@ A new implementation is conformant when it reproduces the bytes above exactly, d
 - **RED (audio redundancy)** is applied by the packetizer, after the encode transform, so it does not affect this format.
 - **H.264 with no slice NALU** falls back to whole-frame encryption without escaping (§5.4). Flag if any platform's encoder can actually produce this.
 - **AV1 is out of scope for the initial release** (§1). The SFU must not negotiate it on an encrypted call; the client-side fail-closed is a net, not a fallback. Adding it later means a second framing scheme, a new version number, and new vectors.
+
+---
+
+## Appendix A: why
+
+Reference material behind the IV rules in §4 and §9. Nothing here is normative - it is here so that an implementer who wants to know why the rules take this shape, or who is tempted to relax one, does not have to re-derive it.
+
+### A.1 Why IV reuse is catastrophic, not merely a leak
+
+GCM is CTR mode plus GHASH, and a repeated IV breaks both halves.
+
+The keystream is a function of `(key, IV)` alone, so two frames encrypted under the same one give `C1 ⊕ C2 = P1 ⊕ P2`: the keystream cancels and the plaintexts leak against each other. Video frames are highly correlated and partly predictable, so that XOR is close to recovering both.
+
+The authentication failure is worse. The tag is `GHASH_H(A, C) ⊕ E_K(J0)`, and `J0` derives from the IV, so on a collision the `E_K(J0)` mask cancels too: `T1 ⊕ T2` leaves a polynomial whose only unknown is the GHASH subkey `H`. Solving it recovers `H`, and an attacker holding `H` can forge a valid tag for **any** frame under that key, not only the two that collided. This is the "forbidden attack", demonstrated in practice against TLS stacks that repeated a nonce.
+
+A counter wrap is the guaranteed form of it: `ivPrefix` is fixed for the lifetime of an import, so the IV is a pure function of the counter, and wrapping replays the entire IV sequence in order.
+
+### A.2 Why the random `ivPrefix` carries the between-sender case
+
+The counter separates IVs only _within_ one sender. Between senders it contributes nothing, and under a shared key that is exactly the case that matters: every participant holds the same AES key, and every participant's counter independently starts at 0, so A's first frame uses `P_A ∥ 1` and B's uses `P_B ∥ 1`. Only `P_A != P_B` keeps them apart.
+
+With 8 random bytes the collision probability across _n_ participants is about `n² / 2^65` (~3e-16 for 100 participants), which is why 64 bits suffice - and why the prefix has to be a full 8 bytes of cryptographic randomness, fresh on every import. Deriving it from a user id, session id, timestamp or counter, reusing one across imports, or shortening it breaks AES-GCM for the whole call. This is the single easiest thing to get wrong when porting.
+
+### A.3 How long is the budget?
+
+The counter is shared across **all** of a sender's tracks, so the aggregate frame rate is what matters:
+
+```
+months ≈ 2^32 / (aggregate frames per second) / 2.6e6
+```
+
+Worked example, a typical camera call: Opus at 20 ms ptime contributes 50 fps, and a 30 fps camera track with 3 simulcast layers contributes 90 fps (each layer's frames traverse the transform separately), so ~140 fps aggregate.
+
+| Case                                     | Aggregate | Hard stop at 2^32 |
+| ---------------------------------------- | --------- | ----------------- |
+| Camera + mic, 3 simulcast layers         | ~140 fps  | **~12 months**    |
+| Camera + mic, single stream (SVC, 1 rid) | ~80 fps   | ~20 months        |
+
+That is continuous publishing within a single session, and the counter resets with each new manager, so no real call approaches it. The ceiling is a correctness guard, not an operational event.

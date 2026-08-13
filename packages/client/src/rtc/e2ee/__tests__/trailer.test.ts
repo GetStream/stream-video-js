@@ -4,7 +4,11 @@ import {
   MAX_CLEAR_BYTES,
   TRAILER_LEN,
 } from '../e2ee-worker/constants';
-import { readTrailer, writeTrailer } from '../e2ee-worker/trailer';
+import {
+  readFramingVersion,
+  readTrailer,
+  writeTrailer,
+} from '../e2ee-worker/trailer';
 
 const makeFrame = (bodyLen: number): Uint8Array =>
   new Uint8Array(bodyLen + TRAILER_LEN);
@@ -79,5 +83,61 @@ describe('writeTrailer + readTrailer', () => {
     const dst = makeFrame(body);
     writeTrailer(dst, body, 1, randomPrefix(), 0, 0, false);
     expect(readTrailer(corrupt(dst))).toBeNull();
+  });
+});
+
+// The identification suffix is frozen across versions, so this must keep
+// working against a frame written by a version this build knows nothing about.
+describe('readFramingVersion', () => {
+  const framed = (): Uint8Array => {
+    const body = 5;
+    const dst = makeFrame(body);
+    writeTrailer(dst, body, 1, randomPrefix(), 0, 0, false);
+    return dst;
+  };
+
+  // Frozen across every version (SPEC 5.2): an older receiver identifies our
+  // frames from these 5 bytes alone, so a layout change that moves them has to
+  // fail here rather than silently strand those receivers. Literal values on
+  // purpose - reading them from the constants would move with the break.
+  it('pins the identification suffix to the last 5 bytes written', () => {
+    const dst = framed();
+    const view = new DataView(dst.buffer);
+    expect(dst[dst.length - 5]).toBe(1);
+    expect(view.getUint32(dst.length - 4)).toBe(0xe2eefeed);
+  });
+
+  it('reports the version of a frame carrying our framing', () => {
+    expect(readFramingVersion(framed())).toBe(1);
+  });
+
+  it('accepts a caller-supplied view over the same bytes', () => {
+    const dst = framed();
+    const view = new DataView(dst.buffer, dst.byteOffset, dst.byteLength);
+    expect(readFramingVersion(dst, view)).toBe(readFramingVersion(dst));
+  });
+
+  it('reports a version this build cannot read, where readTrailer only says null', () => {
+    const future = framed();
+    future[future.length - 5] = 99;
+    expect(readFramingVersion(future)).toBe(99);
+    expect(readTrailer(future)).toBeNull();
+  });
+
+  it('reads the suffix from the end, so a longer future trailer still resolves', () => {
+    const grown = new Uint8Array(framed().length + 4);
+    const src = framed();
+    // Simulate a v2 trailer with 4 extra bytes ahead of the frozen suffix.
+    grown.set(src.subarray(0, src.length - 5), 0);
+    grown.set(src.subarray(src.length - 5), grown.length - 5);
+    grown[grown.length - 5] = 2;
+    expect(readFramingVersion(grown)).toBe(2);
+  });
+
+  it('returns null when the frame is not ours', () => {
+    const notOurs = framed();
+    notOurs[notOurs.length - 1] ^= 0x01;
+    expect(readFramingVersion(notOurs)).toBeNull();
+    expect(readFramingVersion(new Uint8Array(4))).toBeNull();
   });
 });

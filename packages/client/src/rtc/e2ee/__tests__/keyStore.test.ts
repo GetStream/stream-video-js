@@ -67,7 +67,7 @@ describe('dumpKeyState', () => {
     await keyStore.importKey('alice', 1, rawKey(0x01));
     await keyStore.importSharedKey(0, rawKey(0x02));
 
-    const dump = keyStore.dump();
+    const dump = keyStore.keyState();
     expect(dump.perUserKeys).toHaveLength(1);
     expect(dump.perUserKeys[0]).toMatchObject({
       userId: 'alice',
@@ -89,12 +89,12 @@ describe('dumpKeyState', () => {
     // What makes the dump useful: two peers can compare prints to confirm they
     // hold the same key, under any user id or key index.
     await keyStore.importKey('alice', 1, rawKey(0xaa));
-    const alice = keyStore.dump().perUserKeys[0].fingerprint;
+    const alice = keyStore.keyState().perUserKeys[0].fingerprint;
 
     keyStore.clear();
     await keyStore.importKey('bob', 99, rawKey(0xaa));
     await keyStore.importKey('bob', 100, rawKey(0x02));
-    const [same, different] = keyStore.dump().perUserKeys;
+    const [same, different] = keyStore.keyState().perUserKeys;
 
     expect(same.fingerprint).toBe(alice);
     expect(different.fingerprint).not.toBe(alice);
@@ -154,7 +154,7 @@ describe('shared-key rotation', () => {
     expect(keyStore.getKey('alice', 1)).toBeDefined();
     expect(keyStore.getKey('alice', 2)).toBeUndefined();
     expect(keyStore.getLatestKey('alice')).toBeNull();
-    expect(keyStore.dump()).toMatchObject({
+    expect(keyStore.keyState()).toMatchObject({
       sharedKeys: [{ keyIndex: 1, isActive: false }],
     });
   });

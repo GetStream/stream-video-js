@@ -67,12 +67,12 @@ export const StatusReadout = ({ participant, nameByUserId }: Props) => {
             · fail {fmtNames(tracks.failingFrom, nameByUserId)}
           </span>
         )}
-        {tracks.brokenFrom.length > 0 && (
+        {tracks.stalledFrom.length > 0 && (
           <span
             className="status-readout__fail"
-            title="e2ee.broken: decryption failed past the SDK's tolerance"
+            title="e2ee.decryption_stalled: decryption failed past the SDK's tolerance"
           >
-            · broken {fmtNames(tracks.brokenFrom, nameByUserId)}
+            · stalled {fmtNames(tracks.stalledFrom, nameByUserId)}
           </span>
         )}
       </div>

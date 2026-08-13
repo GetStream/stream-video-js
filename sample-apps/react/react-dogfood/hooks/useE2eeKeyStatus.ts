@@ -29,10 +29,10 @@ export type E2EEKeyStatus =
  * per remote peer - so the verdict comes from the breadth of the failures rather
  * than from any single event.
  *
- * `e2ee.broken` is the trigger, not `e2ee.decryption_failed`: the latter fires
- * once a second for any transient mismatch, including the brief window while a
- * key change propagates, and would cry wolf. `broken` means the track has failed
- * past the SDK's tolerance and is not recovering on its own.
+ * `e2ee.decryption_stalled` is the trigger, not `e2ee.decryption_failed`: the
+ * latter fires once a second for any transient mismatch, including the brief
+ * window while a key change propagates, and would cry wolf. Stalled means the
+ * track has failed past the SDK's tolerance and is not recovering on its own.
  *
  * Blind spots worth knowing: alone in the call, or with every peer muted and
  * camera-off, a wrong key is undetectable. And if two peers share the same wrong
@@ -44,8 +44,8 @@ export const useE2eeKeyStatus = (): E2EEKeyStatus => {
   const remoteParticipants = useRemoteParticipants();
   // Keyed per (userId, trackType) because the SDK counts failures per track: a
   // peer publishing audio and video reports them independently, and their video
-  // can recover while audio is still broken.
-  const [brokenTracks, setBrokenTracks] = useState<ReadonlySet<string>>(
+  // can recover while audio is still stalled.
+  const [stalledTracks, setStalledTracks] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
 
@@ -59,15 +59,15 @@ export const useE2eeKeyStatus = (): E2EEKeyStatus => {
       `${userId}/${trackType ?? 'unknown'}`;
 
     const unsubscribes = [
-      manager.on('e2ee.broken', ({ userId, trackType }) => {
-        setBrokenTracks((prev) => {
+      manager.on('e2ee.decryption_stalled', ({ userId, trackType }) => {
+        setStalledTracks((prev) => {
           const next = new Set(prev);
           next.add(trackKey(userId, trackType));
           return next;
         });
       }),
       manager.on('e2ee.decryption_resumed', ({ userId, trackType }) => {
-        setBrokenTracks((prev) => {
+        setStalledTracks((prev) => {
           const key = trackKey(userId, trackType);
           if (!prev.has(key)) return prev;
           const next = new Set(prev);
@@ -81,9 +81,9 @@ export const useE2eeKeyStatus = (): E2EEKeyStatus => {
   }, [call]);
 
   return useMemo(() => {
-    if (brokenTracks.size === 0) return { kind: 'ok' };
-    const brokenUserIds = new Set(
-      [...brokenTracks].map((key) => key.slice(0, key.lastIndexOf('/'))),
+    if (stalledTracks.size === 0) return { kind: 'ok' };
+    const stalledUserIds = new Set(
+      [...stalledTracks].map((key) => key.slice(0, key.lastIndexOf('/'))),
     );
     // Judge only against peers that are actually sending something: a muted,
     // camera-off peer produces no frames and so no evidence either way. Peers
@@ -93,7 +93,7 @@ export const useE2eeKeyStatus = (): E2EEKeyStatus => {
       (participant) => participant.publishedTracks.length > 0,
     );
     const failing = publishing.filter((participant) =>
-      brokenUserIds.has(participant.userId),
+      stalledUserIds.has(participant.userId),
     );
     if (failing.length === 0) return { kind: 'ok' };
     if (failing.length === publishing.length)
@@ -104,5 +104,5 @@ export const useE2eeKeyStatus = (): E2EEKeyStatus => {
         (participant) => participant.name || participant.userId,
       ),
     };
-  }, [brokenTracks, remoteParticipants]);
+  }, [stalledTracks, remoteParticipants]);
 };

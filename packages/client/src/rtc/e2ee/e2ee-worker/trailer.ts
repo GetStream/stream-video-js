@@ -94,15 +94,50 @@ export const readTrailerIv = (
   };
 };
 
+/**
+ * The frozen identification suffix: `version (1) || magic (4)`. A literal, not
+ * `TRAILER_LEN - OFF_VERSION`, because this length is frozen at 5 for every
+ * version present and future while those two constants describe v1 only - a
+ * later layout change must break the round-trip test, not silently move the
+ * suffix older receivers depend on. `trailer.test.ts` pins it to the bytes
+ * `writeTrailer` actually emits.
+ *
+ * Read from the end rather than from a trailer start, because a future version
+ * may not use a 20-byte trailer, and a receiver that cannot decrypt such a
+ * frame still has to recognize it.
+ */
+const IDENT_SUFFIX_LEN = 5;
+/** Within the suffix: the magic follows the single version byte. */
+const OFF_SUFFIX_MAGIC = 1;
+
+/**
+ * The framing version of a frame carrying this format, or `null` if the frame
+ * is not ours at all.
+ *
+ * This is what separates the two reasons {@link readTrailer} returns `null`:
+ * an unrelated cleartext frame, versus an encrypted frame from a peer on a
+ * version this build cannot decrypt.
+ *
+ * @param view - An existing view over exactly `src`, to avoid a second
+ * allocation on the per-frame decode path. Built here when omitted.
+ */
+export const readFramingVersion = (
+  src: Uint8Array,
+  view?: DataView,
+): number | null => {
+  if (src.length < IDENT_SUFFIX_LEN) return null;
+  const bytes =
+    view ?? new DataView(src.buffer, src.byteOffset, src.byteLength);
+  const start = src.length - IDENT_SUFFIX_LEN;
+  if (bytes.getUint32(start + OFF_SUFFIX_MAGIC) !== MAGIC) return null;
+  return src[start];
+};
+
 export const readTrailer = (src: Uint8Array): Trailer | null => {
   if (src.length < TRAILER_LEN) return null;
   const view = new DataView(src.buffer, src.byteOffset, src.byteLength);
+  if (readFramingVersion(src, view) !== E2EE_VERSION) return null;
   const start = src.length - TRAILER_LEN;
-  if (view.getUint32(start + OFF_MAGIC) !== MAGIC) return null;
-  const version = src[start + OFF_VERSION];
-  // Unknown version means not our trailer, so an unrelated frame that happens
-  // to end in MAGIC does not reach a decrypt.
-  if (version !== E2EE_VERSION) return null;
   const raw = view.getUint16(start + OFF_CLEAR_BYTES);
   const clearBytes = raw & MAX_CLEAR_BYTES;
   // Bail out before allocating; the decrypt would fail anyway.
