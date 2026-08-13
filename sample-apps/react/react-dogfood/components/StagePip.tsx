@@ -1,17 +1,17 @@
 import {
   DefaultParticipantViewUI,
   DefaultParticipantViewUIProps,
-  PipLayout,
   StreamTheme,
   ToggleAudioPublishingButton,
   ToggleVideoPublishingButton,
 } from '@stream-io/video-react-sdk';
+import { AdaptivePipGrid } from './AdaptivePipGrid';
 
 export function StagePip() {
   return (
     <StreamTheme>
       <div className="rd__stage-pip">
-        <PipLayout.Grid ParticipantViewUI={PipParticipantViewUI} />
+        <AdaptivePipGrid ParticipantViewUI={PipParticipantViewUI} />
       </div>
       <div className="str-video__call-controls">
         <div className="str-video__call-controls--group str-video__call-controls--media">
