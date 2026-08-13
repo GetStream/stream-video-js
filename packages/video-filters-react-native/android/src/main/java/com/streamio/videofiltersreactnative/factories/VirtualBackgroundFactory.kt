@@ -222,35 +222,32 @@ private class VirtualBackgroundVideoFilter(
         scaledForegroundBitmap = null
     }
 
-    private fun scaleVirtualBackgroundBitmap(bitmap: Bitmap, targetHeight: Int): Bitmap {
-        val scale = targetHeight.toFloat() / bitmap.height
-        return ensureAlpha(
-            Bitmap.createScaledBitmap(
-                /* src = */
-                bitmap,
-                /* dstWidth = */
-                (bitmap.width * scale).toInt(),
-                /* dstHeight = */
-                targetHeight,
-                /* filter = */
-                true,
-            ),
+    // Cover-scale (like CSS object-fit: cover): scale the source uniformly so it fills the
+    // entire frame, center it, and crop the overflow. This keeps the background covering the
+    // whole frame in any orientation instead of only matching the frame height, which left
+    // a portrait image covering only part of a landscape frame.
+    // Computed once per frame-size change (cached in maybeInit), not per frame.
+    private fun scaleVirtualBackgroundBitmap(
+        bitmap: Bitmap,
+        targetWidth: Int,
+        targetHeight: Int,
+    ): Bitmap {
+        val scale = maxOf(
+            targetWidth.toFloat() / bitmap.width,
+            targetHeight.toFloat() / bitmap.height,
         )
-    }
-
-    private fun ensureAlpha(original: Bitmap): Bitmap {
-        return if (original.hasAlpha()) {
-            original
-        } else {
-            val bitmapWithAlpha = Bitmap.createBitmap(
-                original.width,
-                original.height,
-                Bitmap.Config.ARGB_8888,
+        // ARGB_8888 always has an alpha channel, required for the DST_OVER background draw.
+        val result = Bitmap.createBitmap(targetWidth, targetHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(result)
+        val matrix = Matrix().apply {
+            setScale(scale, scale)
+            postTranslate(
+                (targetWidth - bitmap.width * scale) / 2f,
+                (targetHeight - bitmap.height * scale) / 2f,
             )
-            val canvas = Canvas(bitmapWithAlpha)
-            canvas.drawBitmap(original, 0f, 0f, null)
-            bitmapWithAlpha
         }
+        canvas.drawBitmap(bitmap, matrix, Paint(Paint.FILTER_BITMAP_FLAG))
+        return result
     }
 
     private fun maybeInit(
@@ -262,6 +259,7 @@ private class VirtualBackgroundVideoFilter(
             scaledForegroundBitmap?.recycle()
             scaledVirtualBackgroundBitmap = scaleVirtualBackgroundBitmap(
                 bitmap = backgroundImageBitmap,
+                targetWidth = videoFrameBitmap.width,
                 targetHeight = videoFrameBitmap.height,
             )
             scaledForegroundBitmap = Bitmap.createBitmap(

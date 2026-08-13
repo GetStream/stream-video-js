@@ -1,5 +1,4 @@
 import { lib, type Type } from './lib';
-import { videoLoggerSystem } from '@stream-io/video-client';
 
 export type { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 export type FirebaseMessagingType = Type;
@@ -12,24 +11,6 @@ export function getFirebaseMessagingLib(): FirebaseMessagingType {
     throw Error(
       '@react-native-firebase/messaging is not installed. ' +
         INSTALLATION_INSTRUCTION,
-    );
-  }
-  return lib;
-}
-
-export function getFirebaseMessagingLibNoThrow(
-  isExpo: boolean,
-): FirebaseMessagingType | undefined {
-  if (!lib) {
-    const logger = videoLoggerSystem.getLogger(
-      'getFirebaseMessagingLibNoThrow',
-    );
-    logger.debug(
-      `${
-        isExpo
-          ? 'In Expo, @react-native-firebase/messaging library is required to receive ringing notifications in app killed state for Android.'
-          : ''
-      }${INSTALLATION_INSTRUCTION}`,
     );
   }
   return lib;

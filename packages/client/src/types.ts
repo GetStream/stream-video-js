@@ -9,7 +9,7 @@ import type {
   JoinCallRequest,
   MemberResponse,
   OwnCapability,
-  ReactionResponse,
+  VideoReactionResponse,
   StartRecordingRequest,
   StartRecordingResponse,
 } from './gen/coordinator';
@@ -27,7 +27,7 @@ import { AxiosError } from 'axios';
 import type { Call } from './Call';
 
 export type StreamReaction = Pick<
-  ReactionResponse,
+  VideoReactionResponse,
   'type' | 'emoji_code' | 'custom'
 >;
 
@@ -421,7 +421,18 @@ type StreamRNVideoSDKCallManagerRingingParams = {
 
 type StreamRNVideoSDKCallManagerSetupParams =
   StreamRNVideoSDKCallManagerRingingParams & {
+    cid: string;
     defaultDevice: AudioSettingsRequestDefaultDeviceEnum;
+  };
+
+type StreamRNVideoSDKCallManagerStartParams =
+  StreamRNVideoSDKCallManagerRingingParams & {
+    cid: string;
+  };
+
+type StreamRNVideoSDKCallManagerStopParams =
+  StreamRNVideoSDKCallManagerRingingParams & {
+    shouldStopCallManager: boolean;
   };
 
 type StreamRNVideoSDKEndCallReason =
@@ -453,6 +464,8 @@ type StreamRNVideoSDKCallingX = {
     reason?: StreamRNVideoSDKEndCallReason,
   ) => Promise<void>;
   registerOutgoingCall: (call: Call) => Promise<void>;
+  wireAudioEngineSubscription: () => void;
+  unwireAudioEngineSubscription: () => void;
 };
 
 export type StreamRNVideoSDKGlobals = {
@@ -464,6 +477,7 @@ export type StreamRNVideoSDKGlobals = {
     setup({
       defaultDevice,
       isRingingTypeCall,
+      cid,
     }: StreamRNVideoSDKCallManagerSetupParams): void;
 
     /**
@@ -471,12 +485,16 @@ export type StreamRNVideoSDKGlobals = {
      */
     start({
       isRingingTypeCall,
-    }: StreamRNVideoSDKCallManagerRingingParams): void;
+      cid,
+    }: StreamRNVideoSDKCallManagerStartParams): void;
 
     /**
      * Stops the in call manager.
      */
-    stop({ isRingingTypeCall }: StreamRNVideoSDKCallManagerRingingParams): void;
+    stop({
+      isRingingTypeCall,
+      shouldStopCallManager,
+    }: StreamRNVideoSDKCallManagerStopParams): void;
 
     /**
      * iOS-only. Keeps the audio engine's microphone-input (voice-processing)
@@ -514,5 +532,5 @@ declare global {
 /**
  * The options to pass to {@link Call.join} method.
  */
-export type JoinCallData = Omit<JoinCallRequest, 'location'>;
+export type JoinCallData = Omit<JoinCallRequest, 'location' | 'e2ee'>;
 export { AxiosError };

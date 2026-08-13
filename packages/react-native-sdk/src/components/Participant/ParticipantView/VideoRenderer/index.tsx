@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import { RTCView } from '@stream-io/react-native-webrtc';
@@ -7,15 +7,17 @@ import {
   hasPausedTrack,
   hasScreenShare,
   hasVideo,
+  SfuModels,
   type VideoTrackType,
   VisibilityState,
 } from '@stream-io/video-client';
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
+import { BehaviorSubject } from 'rxjs';
 import { ParticipantVideoFallback as DefaultParticipantVideoFallback } from '../ParticipantVideoFallback';
 import { useTheme } from '../../../../contexts/ThemeContext';
 import { useTrackDimensions } from '../../../../hooks/useTrackDimensions';
 import { useScreenshotIosContext } from '../../../../contexts/internal/ScreenshotIosContext';
-import TrackSubscriber, { TrackSubscriberHandle } from './TrackSubscriber';
+import TrackSubscriber from './TrackSubscriber';
 
 const DEFAULT_VIEWPORT_VISIBILITY_STATE: Record<
   VideoTrackType,
@@ -59,7 +61,13 @@ export const VideoRenderer = React.memo(
     } = useTheme();
     const call = useCall();
     const { useCameraState, useIncomingVideoSettings } = useCallStateHooks();
-    const trackSubscriberRef = useRef<TrackSubscriberHandle>(null);
+    // a sticky note of the dimensions of the RTCView from onLayout
+    // to reuse for a new participant even if dimensions dont change
+    const dimensions$ = useMemo(
+      () =>
+        new BehaviorSubject<SfuModels.VideoDimension | undefined>(undefined),
+      [],
+    );
     const { isParticipantVideoEnabled } = useIncomingVideoSettings();
     const { direction } = useCameraState();
     const viewRef = useRef(null);
@@ -201,7 +209,10 @@ export const VideoRenderer = React.memo(
     const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
       event,
     ) => {
-      trackSubscriberRef.current?.onLayoutUpdate(event);
+      dimensions$.next({
+        width: Math.trunc(event.nativeEvent.layout.width),
+        height: Math.trunc(event.nativeEvent.layout.height),
+      });
     };
 
     return (
@@ -211,11 +222,11 @@ export const VideoRenderer = React.memo(
       >
         {call && !isLocalParticipant && (
           <TrackSubscriber
-            ref={trackSubscriberRef}
             call={call}
             participantSessionId={sessionId}
             trackType={trackType}
             isVisible={isVisible}
+            dimensions$={dimensions$}
           />
         )}
         {canShowVideo &&

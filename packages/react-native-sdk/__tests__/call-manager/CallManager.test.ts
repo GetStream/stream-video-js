@@ -13,6 +13,7 @@ const makeNativeManager = () => ({
   setTelecomManagedMode: jest.fn(),
   setAudioRole: jest.fn(),
   setDefaultAudioDeviceEndpointType: jest.fn(),
+  setEnableStereoAudioOutput: jest.fn(),
   start: jest.fn(),
   stop: jest.fn(),
   setup: jest.fn(),
@@ -26,6 +27,7 @@ const makeCallingx = (overrides: Partial<any> = {}) => ({
   isTelecomBacked: true,
   isOngoingCallsEnabled: false,
   hasRegisteredCall: jest.fn().mockReturnValue(true),
+  isCallTracked: jest.fn().mockReturnValue(true),
   getRegisteredCallIds: jest.fn().mockReturnValue(['type:id']),
   getAvailableAudioEndpoints: jest.fn(),
   requestAudioEndpointChange: jest.fn().mockResolvedValue(undefined),
@@ -45,10 +47,17 @@ const loadCallManager = ({
   callingx: ReturnType<typeof makeCallingx> | undefined;
 }) => {
   let mod!: typeof import('../../src/modules/call-manager/CallManager');
+  let publicCallManager!: import('../../src/modules/call-manager/CallManager').CallManager;
+  let internalCallManager!: NonNullable<
+    typeof globalThis.streamRNVideoSDK
+  >['callManager'];
   jest.isolateModules(() => {
     jest.doMock('react-native', () => ({
       Platform: { OS: os, select: (o: any) => o[os] },
-      NativeModules: { StreamInCallManager: nativeManager },
+      NativeModules: {
+        StreamInCallManager: nativeManager,
+        StreamVideoReactNative: {},
+      }, // mock to avoid pulling the video-client / react-native-webrtc runtime into the test
       NativeEventEmitter: class {
         addListener() {
           return { remove: jest.fn() };
@@ -58,9 +67,25 @@ const loadCallManager = ({
     jest.doMock('../../src/utils/push/libs/callingx', () => ({
       getCallingxLibIfAvailable: () => callingx,
     }));
+    jest.doMock('../../src/utils/internal/callingx/callingx', () => ({
+      endCallingxCall: jest.fn(),
+      registerOutgoingCall: jest.fn(),
+      joinCallingxCall: jest.fn(),
+      wireAudioEngineSubscription: jest.fn(),
+      unwireAudioEngineSubscription: jest.fn(),
+    }));
+    jest.doMock('../../src/utils/internal/registerMediaEngine', () => ({
+      registerCallMediaEngine: jest.fn(),
+    }));
     mod = require('../../src/modules/call-manager/CallManager');
+    publicCallManager = require('../../src/modules/call-manager').callManager;
+    const {
+      registerSDKGlobals,
+    } = require('../../src/utils/internal/registerSDKGlobals');
+    registerSDKGlobals();
+    internalCallManager = globalThis.streamRNVideoSDK!.callManager;
   });
-  return mod;
+  return { ...mod, publicCallManager, internalCallManager };
 };
 
 const speakerSnapshot: Snapshot = {
@@ -73,7 +98,10 @@ const speakerSnapshot: Snapshot = {
 };
 
 describe('CallManager Android Telecom branch', () => {
-  afterEach(() => jest.resetModules());
+  afterEach(() => {
+    jest.resetModules();
+    delete (globalThis as any).streamRNVideoSDK;
+  });
 
   it('adapts a callingx snapshot to AudioDevicesState', async () => {
     const nativeManager = makeNativeManager();
@@ -163,15 +191,16 @@ describe('CallManager Android Telecom branch', () => {
   it('start() enters telecom-managed mode and forwards the default endpoint', () => {
     const nativeManager = makeNativeManager();
     const callingx = makeCallingx();
-    const { CallManager } = loadCallManager({
+    const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx,
     });
-    new CallManager().start({
+    publicCallManager.start({
       audioRole: 'communicator',
       deviceEndpointType: 'earpiece',
     });
+    internalCallManager.start({ isRingingTypeCall: false, cid: 'type:id' });
 
     expect(callingx.setDefaultAudioDeviceEndpointType).toHaveBeenCalledWith(
       'earpiece',
@@ -186,14 +215,16 @@ describe('CallManager Android Telecom branch', () => {
     // callingx present but no registered call and ongoing disabled -> classic path.
     const callingx = makeCallingx({
       hasRegisteredCall: jest.fn().mockReturnValue(false),
+      isCallTracked: jest.fn().mockReturnValue(false),
       isOngoingCallsEnabled: false,
     });
-    const { CallManager } = loadCallManager({
+    const { publicCallManager, internalCallManager } = loadCallManager({
       os: 'android',
       nativeManager,
       callingx,
     });
-    new CallManager().start({ audioRole: 'communicator' });
+    publicCallManager.start({ audioRole: 'communicator' });
+    internalCallManager.start({ isRingingTypeCall: false, cid: 'type:id' });
 
     expect(nativeManager.setTelecomManagedMode).toHaveBeenCalledWith(false);
     expect(nativeManager.start).toHaveBeenCalled();

@@ -11,6 +11,7 @@ export * from './src/stats/types';
 
 export * from './src/Call';
 export * from './src/CallType';
+export * from './src/rtc/mediaEngine';
 export * from './src/StreamVideoClient';
 export * from './src/StreamSfuClient';
 export * from './src/devices';
@@ -25,6 +26,8 @@ export * from './src/helpers/sound-detector';
 export * from './src/helpers/loopback';
 export * from './src/helpers/MediaStreamRecorder';
 export * from './src/helpers/participantUtils';
+export * from './src/rtc/e2ee/E2EEManager';
+export * from './src/rtc/e2ee/EncryptionManager';
 export * as Browsers from './src/helpers/browsers';
 
 export * from './src/logger';

@@ -2,7 +2,9 @@ import { StreamSfuClient } from './StreamSfuClient';
 import { SfuJoinError } from './errors';
 import {
   BasePeerConnectionOpts,
+  type CallMediaEngine,
   Dispatcher,
+  getCallMediaEngineProvider,
   getGenericSdp,
   isAudioTrackType,
   isSfuEvent,
@@ -15,6 +17,7 @@ import {
   TrackPublishOptions,
   trackTypeToParticipantStreamKey,
 } from './rtc';
+import type { E2EEManager } from './rtc/e2ee/E2EEManager';
 import {
   registerEventHandlers,
   registerRingingCallEventHandlers,
@@ -30,7 +33,7 @@ import {
   getCurrentValue,
 } from './store/rxUtils';
 import { ScopedLogger, videoLoggerSystem } from './logger';
-import type {
+import {
   AcceptCallResponse,
   BlockUserRequest,
   BlockUserResponse,
@@ -76,8 +79,8 @@ import type {
   RingCallResponse,
   SendCallEventRequest,
   SendCallEventResponse,
-  SendReactionRequest,
-  SendReactionResponse,
+  SendVideoReactionRequest,
+  SendVideoReactionResponse,
   StartClosedCaptionsRequest,
   StartClosedCaptionsResponse,
   StartFrameRecordingRequest,
@@ -109,6 +112,8 @@ import type {
   UpdateCallRequest,
   UpdateCallResponse,
   UpdateUserPermissionsRequest,
+  UpdateUserPermissionsRequestGrantPermissionsEnum,
+  UpdateUserPermissionsRequestRevokePermissionsEnum,
   UpdateUserPermissionsResponse,
 } from './gen/coordinator';
 import { OwnCapability } from './gen/coordinator';
@@ -266,6 +271,7 @@ export class Call {
 
   subscriber?: Subscriber;
   publisher?: Publisher;
+  e2eeManager?: E2EEManager;
 
   /**
    * Flag telling whether this call is a "ringing" call.
@@ -328,6 +334,8 @@ export class Call {
   private allowOwnTracksLoopback = false;
   private hasJoinedOnce = false;
   private deviceSettingsAppliedOnce = false;
+  private callManagerStarted = false;
+  private leaveGeneration = 0;
   private credentials?: Credentials;
 
   private initialized = false;
@@ -350,6 +358,14 @@ export class Call {
   private clientCapabilities = new Set<ClientCapability>([
     ClientCapability.SUBSCRIBER_VIDEO_PAUSE,
   ]);
+
+  /**
+   * The in-flight per-call media engine. On web/React this resolves to a thin
+   * globals-backed engine (no provider registered); React Native registers a
+   * provider that owns a per-call native factory.
+   * @internal
+   */
+  private mediaEnginePromise?: Promise<CallMediaEngine>;
 
   /**
    * Constructs a new `Call` instance.
@@ -699,6 +715,8 @@ export class Call {
         return;
       }
 
+      this.leaveGeneration += 1;
+
       if (callingState === CallingState.JOINING) {
         const waitUntilCallJoined = () => {
           return new Promise<void>((resolve) => {
@@ -799,6 +817,7 @@ export class Call {
 
       globalThis.streamRNVideoSDK?.callManager.stop({
         isRingingTypeCall: this.ringing,
+        shouldStopCallManager: this.callManagerStarted,
       });
 
       this.camera.dispose();
@@ -806,6 +825,7 @@ export class Call {
       this.screenShare.dispose();
       this.speaker.dispose();
       this.deviceSettingsAppliedOnce = false;
+      this.callManagerStarted = false;
 
       const stopOnLeavePromises: Promise<void>[] = [];
       if (this.camera.stopOnLeave) {
@@ -818,6 +838,23 @@ export class Call {
         stopOnLeavePromises.push(this.screenShare.disable(true));
       }
       await Promise.all(stopOnLeavePromises);
+
+      // Dispose the per-call media engine last — after peer connections and
+      // local tracks are gone — so the backing factory tears down with no
+      // owned PCs/tracks. A fresh `join()` builds a new engine.
+      if (this.mediaEnginePromise) {
+        const enginePromise = this.mediaEnginePromise;
+        this.mediaEnginePromise = undefined;
+        this.logger.debug('Disposing per-call media factory');
+        await enginePromise
+          .then((engine) => {
+            globalThis.streamRNVideoSDK?.callingX?.unwireAudioEngineSubscription();
+            return engine.dispose();
+          })
+          .catch((err) => {
+            this.logger.warn('Failed to dispose media engine', err);
+          });
+      }
     });
   };
 
@@ -937,11 +974,7 @@ export class Call {
       this.clientStore.registerOrUpdateCall(this);
     }
     // Skip speaker setup on RN if ringing was requested or the call is already ringing
-    const skipSpeakerApply = isReactNative()
-      ? params?.ring === true
-        ? true
-        : this.ringing
-      : false;
+    const skipSpeakerApply = isReactNative();
     await this.applyDeviceConfig(
       response.call.settings,
       false,
@@ -978,11 +1011,7 @@ export class Call {
     }
 
     // Skip speaker setup on RN if ringing was requested or the call is already ringing
-    const skipSpeakerApply = isReactNative()
-      ? data?.ring === true
-        ? true
-        : this.ringing
-      : false;
+    const skipSpeakerApply = isReactNative();
     await this.applyDeviceConfig(
       response.call.settings,
       false,
@@ -1190,11 +1219,25 @@ export class Call {
   private doJoin = async (data?: JoinCallData): Promise<void> => {
     const connectStartTime = Date.now();
     const callingState = this.state.callingState;
+    const joinLeaveGeneration = this.leaveGeneration;
+    const supersededByLeave = () =>
+      this.leaveGeneration !== joinLeaveGeneration;
 
     this.joinCallData = data;
 
     this.logger.debug('Starting join flow');
     this.state.setCallingState(CallingState.JOINING);
+
+    // Ensure the per-call media engine exists before any peer connection
+    // (codec probe, subscriber, publisher) or capture happens, so the WebRTC
+    // globals resolve to the call's factory. Idempotent across
+    // reconnect/migration attempts.
+    await this.ensureMediaFactory();
+
+    const callingX = globalThis.streamRNVideoSDK?.callingX;
+    if (callingX) {
+      callingX.wireAudioEngineSubscription();
+    }
 
     const performingMigration =
       this.reconnectStrategy === WebsocketReconnectStrategy.MIGRATE;
@@ -1266,6 +1309,11 @@ export class Call {
       // the capabilities of the client (codec support, etc.)
       const { dangerouslyForceCodec, fmtpLine, subscriberFmtpLine } =
         this.clientPublishOptions || {};
+      // skip if a leave superseded this join so codec detection doesn't resolve to a default factory.
+      if (supersededByLeave()) {
+        this.logger.debug('Join superseded by leave; skipping codec detection');
+        return;
+      }
       const [subscriberSdp, publisherSdp] = await Promise.all([
         getGenericSdp('recvonly', dangerouslyForceCodec, subscriberFmtpLine),
         getGenericSdp('sendonly', dangerouslyForceCodec, fmtpLine),
@@ -1325,6 +1373,13 @@ export class Call {
       }
     }
 
+    // If the user left while this join was in flight, bail before re-setting JOINED and before
+    // peer-connection setup below (both run synchronously after this, so one check covers them).
+    if (supersededByLeave()) {
+      this.logger.debug('Join superseded by leave; aborting join flow');
+      return;
+    }
+
     if (!performingMigration) {
       // in MIGRATION, `JOINED` state is set in `this.reconnectMigrate()`
       this.state.setCallingState(CallingState.JOINED);
@@ -1371,12 +1426,21 @@ export class Call {
 
     // device settings should be applied only once, we don't have to
     // re-apply them on later reconnections or server-side data fetches
-    if (!this.deviceSettingsAppliedOnce && this.state.settings) {
+    if (
+      !this.deviceSettingsAppliedOnce &&
+      this.state.settings &&
+      !supersededByLeave()
+    ) {
       await this.applyDeviceConfig(this.state.settings, true, false);
+      this.deviceSettingsAppliedOnce = true;
+    }
+
+    if (!this.callManagerStarted && !supersededByLeave()) {
       globalThis.streamRNVideoSDK?.callManager.start({
         isRingingTypeCall: this.ringing,
+        cid: this.cid,
       });
-      this.deviceSettingsAppliedOnce = true;
+      this.callManagerStarted = true;
     }
 
     // We shouldn't persist the `ring` and `notify` state after joining the call
@@ -1542,6 +1606,7 @@ export class Call {
     this.sfuStatsReporter = undefined;
     if (closePreviousInstances && this.subscriber) {
       await this.subscriber.dispose();
+      this.state.removeAllOrphanedTracks();
     }
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
@@ -1552,6 +1617,7 @@ export class Call {
       enableTracing,
       statsTimestampDriftThresholdMs: reportingIntervalMs / 2,
       clientPublishOptions: this.clientPublishOptions,
+      e2ee: this.e2eeManager,
       onReconnectionNeeded: (kind, reason, peerType) => {
         this.reconnect(kind, reason).catch((err) => {
           const message = `[Reconnect] Error reconnecting, after a ${PeerType[peerType]} error: ${reason}`;
@@ -1628,12 +1694,12 @@ export class Call {
    * Retrieves credentials for joining the call.
    *
    * @internal
-   *
    * @param data the join call data.
    */
   doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
     const location = await this.streamClient.getLocationHint();
-    const request: JoinCallRequest = { ...data, location };
+    const e2ee = !!this.e2eeManager;
+    const request: JoinCallRequest = { ...data, location, e2ee };
     const joinResponse = await this.streamClient.post<
       JoinCallResponse,
       JoinCallRequest
@@ -1661,6 +1727,39 @@ export class Call {
     }
 
     return joinResponse;
+  };
+
+  /**
+   * Whether the per-call media engine currently exists. True from join until leave.
+   *
+   * @internal an internal getter and should not be used outside the SDK.
+   */
+  get hasMediaEngine(): boolean {
+    return !!this.mediaEnginePromise;
+  }
+
+  /**
+   * Ensures a {@link CallMediaEngine} exists for this call's media session and
+   * returns it. Idempotent: the engine is created once via the registered
+   * provider (see `setCallMediaEngineProvider`) and cached until `leave()`
+   * disposes it. Concurrent callers (e.g. camera + microphone enabling in
+   * parallel) share the same engine because the in-flight creation promise is
+   * cached, never the unresolved result.
+   *
+   * @internal
+   */
+  ensureMediaFactory = async (): Promise<CallMediaEngine> => {
+    if (!this.mediaEnginePromise) {
+      const provider = getCallMediaEngineProvider();
+
+      this.logger.debug(`Requesting per-call media factory creation`);
+      this.mediaEnginePromise = Promise.resolve(provider()).catch((err) => {
+        // Drop the cached rejection so a retried join() can rebuild the engine
+        this.mediaEnginePromise = undefined;
+        throw err;
+      });
+    }
+    return this.mediaEnginePromise;
   };
 
   /**
@@ -2362,6 +2461,31 @@ export class Call {
   };
 
   /**
+   * Set the E2EE (end-to-end encryption) manager for this call.
+   *
+   * Must be called before {@link join} so the RTCPeerConnection can be
+   * configured for E2EE.
+   *
+   * The manager is kept across {@link leave} so a rejoin of this same instance
+   * stays encrypted: do not dispose it while this call may be joined again.
+   * A disposed manager throws from `encrypt`/`decrypt` rather than silently
+   * publishing nothing, so re-attach a fresh one instead of reusing it.
+   *
+   * @param e2ee - Any `E2EEManager`. Use `EncryptionManager.create()` for the
+   *         built-in AES-GCM scheme, or pass your own implementation.
+   * @throws if called after the peer connections have been built (i.e. after
+   *         `join`): those PCs were already configured without an encryptor, so
+   *         adopting a manager now would silently publish/receive cleartext for
+   *         the live session.
+   */
+  setE2EEManager = (e2ee: E2EEManager) => {
+    if (this.publisher || this.subscriber) {
+      throw new Error('setE2EEManager must be called before join()');
+    }
+    this.e2eeManager = e2ee;
+  };
+
+  /**
    * Notifies the SFU that a noise cancellation process has started.
    *
    * @internal
@@ -2459,9 +2583,9 @@ export class Call {
    * @param reaction the reaction to send.
    */
   sendReaction = async (
-    reaction: SendReactionRequest,
-  ): Promise<SendReactionResponse> => {
-    return this.streamClient.post<SendReactionResponse, SendReactionRequest>(
+    reaction: SendVideoReactionRequest,
+  ): Promise<SendVideoReactionResponse> => {
+    return this.streamClient.post(
       `${this.streamClientBasePath}/reaction`,
       reaction,
     );
@@ -2679,7 +2803,7 @@ export class Call {
   ): Promise<RequestPermissionResponse> => {
     const { permissions } = data;
     const canRequestPermissions = permissions.every((permission) =>
-      this.permissionsContext.canRequest(permission as OwnCapability),
+      this.permissionsContext.canRequest(permission),
     );
     if (!canRequestPermissions) {
       throw new Error(
@@ -2704,10 +2828,14 @@ export class Call {
    * @param userId the id of the user to grant permissions to.
    * @param permissions the permissions to grant.
    */
-  grantPermissions = async (userId: string, permissions: string[]) => {
+  grantPermissions = async (
+    userId: string,
+    permissions: string[] | UpdateUserPermissionsRequestGrantPermissionsEnum[],
+  ) => {
     return this.updateUserPermissions({
       user_id: userId,
-      grant_permissions: permissions,
+      grant_permissions:
+        permissions as UpdateUserPermissionsRequestGrantPermissionsEnum[],
     });
   };
 
@@ -2723,10 +2851,14 @@ export class Call {
    * @param userId the id of the user to revoke permissions from.
    * @param permissions the permissions to revoke.
    */
-  revokePermissions = async (userId: string, permissions: string[]) => {
+  revokePermissions = async (
+    userId: string,
+    permissions: string[] | UpdateUserPermissionsRequestRevokePermissionsEnum[],
+  ) => {
     return this.updateUserPermissions({
       user_id: userId,
-      revoke_permissions: permissions,
+      revoke_permissions:
+        permissions as UpdateUserPermissionsRequestRevokePermissionsEnum[],
     });
   };
 

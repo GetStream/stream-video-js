@@ -4,6 +4,21 @@ export function getRandomName() {
   return `${capitalize(pick(words.predicates))} ${capitalize(pick(words.objects))}`;
 }
 
+/**
+ * Builds a memorable, easy-to-share passphrase out of `count` distinct random
+ * words drawn from the same word pools as {@link getRandomName}, joined by `-`
+ * (e.g. `brave-otter-canyon`). Used to seed the E2EE shared key in the lobby.
+ */
+export function getRandomWords(count = 3): string {
+  const pool = [...words.predicates, ...words.objects];
+  const picked: string[] = [];
+  while (picked.length < count && picked.length < pool.length) {
+    const word = pool[Math.floor(Math.random() * pool.length)].toLowerCase();
+    if (!picked.includes(word)) picked.push(word);
+  }
+  return picked.join('-');
+}
+
 export function getUserIdFromEmail(email: string) {
   const name = email.split('@').at(0);
 

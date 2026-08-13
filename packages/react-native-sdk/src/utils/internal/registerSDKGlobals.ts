@@ -1,7 +1,9 @@
-import { StreamRNVideoSDKGlobals } from '@stream-io/video-client';
+import {
+  StreamRNVideoSDKGlobals,
+  videoLoggerSystem,
+} from '@stream-io/video-client';
 import { NativeModules, PermissionsAndroid, Platform } from 'react-native';
 import {
-  AudioDeviceModule,
   AudioEngineMuteMode,
   audioDeviceModuleEvents,
 } from '@stream-io/react-native-webrtc';
@@ -10,7 +12,11 @@ import {
   endCallingxCall,
   registerOutgoingCall,
   joinCallingxCall,
+  wireAudioEngineSubscription,
+  unwireAudioEngineSubscription,
 } from './callingx/callingx';
+import { registerCallMediaEngine } from './registerMediaEngine';
+import { callManager as publicCallManager } from '../../modules/call-manager';
 
 const StreamInCallManagerNativeModule = NativeModules.StreamInCallManager;
 const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {
@@ -18,6 +24,18 @@ const StreamVideoReactNativeModule = NativeModules.StreamVideoReactNative as {
 };
 
 const CallingxModule = getCallingxLibIfAvailable();
+
+/**
+ * Runs a fire-and-forget native call, logging instead of throwing on a bridge
+ * error so it can't crash the caller (e.g. the join/leave flow).
+ */
+const safeNativeCall = (label: string, fn: () => void): void => {
+  try {
+    fn();
+  } catch (error) {
+    videoLoggerSystem.getLogger('CallManager').warn(`${label} failed`, error);
+  }
+};
 
 /**
  * Checks if StreamInCallManager should be bypassed because CallKit is handling
@@ -52,22 +70,17 @@ const shouldBypassForCallKit = ({
  * StreamInCallManager entirely — Telecom provides no proximity/keep-screen-on — instead we
  * run it in "telecom-managed" mode where it only keeps proximity/keep-screen-on/mute.
  */
-const isAndroidTelecomManaged = ({
-  isRingingTypeCall,
-}: {
-  isRingingTypeCall: boolean;
-}): boolean => {
-  if (Platform.OS !== 'android') {
+const isAndroidTelecomManaged = ({ cid }: { cid: string }): boolean => {
+  if (Platform.OS !== 'android' || !CallingxModule) {
     return false;
   }
-  if (!CallingxModule) {
+  if (!CallingxModule.isSetup || !CallingxModule.isTelecomBacked) {
     return false;
   }
-  return (
-    CallingxModule.isSetup &&
-    CallingxModule.isTelecomBacked &&
-    (isRingingTypeCall || CallingxModule.isOngoingCallsEnabled)
-  );
+  // Trust Telecom's actual per-call registration. A call that never registered
+  // (e.g. Telecom registration failed) is not managed, so start() falls through
+  // to the classic path — this is where audio recovery happens.
+  return CallingxModule.isCallTracked(cid);
 };
 
 const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
@@ -75,43 +88,101 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
     joinCall: joinCallingxCall,
     endCall: endCallingxCall,
     registerOutgoingCall: registerOutgoingCall,
+    wireAudioEngineSubscription: wireAudioEngineSubscription,
+    unwireAudioEngineSubscription: unwireAudioEngineSubscription,
   },
   callManager: {
-    setup: ({ defaultDevice, isRingingTypeCall }) => {
-      if (shouldBypassForCallKit({ isRingingTypeCall })) {
-        // Forward the sticky preference; callingx reads it on next CallKit activation.
-        CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice);
-        return;
-      }
-      if (isAndroidTelecomManaged({ isRingingTypeCall })) {
-        // Telecom owns routing; forward the sticky preference to callingx and run the
-        // in-call manager in telecom-managed mode (proximity/keep-screen-on only).
-        CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice);
-        StreamInCallManagerNativeModule.setTelecomManagedMode(true);
-        StreamInCallManagerNativeModule.setup();
-        return;
-      }
+    setup: ({ defaultDevice, isRingingTypeCall, cid }) => {
+      const isTelecomManaged = isAndroidTelecomManaged({ cid });
+      const isCallKitManaged = shouldBypassForCallKit({ isRingingTypeCall });
       if (Platform.OS === 'android') {
-        StreamInCallManagerNativeModule.setTelecomManagedMode(false);
+        StreamInCallManagerNativeModule.setTelecomManagedMode(isTelecomManaged);
       }
-      StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
-        defaultDevice,
-      );
-      StreamInCallManagerNativeModule.setup();
+
+      if (isTelecomManaged || isCallKitManaged) {
+        safeNativeCall('setup defaultAudioDevice (callingx)', () =>
+          CallingxModule?.setDefaultAudioDeviceEndpointType(defaultDevice),
+        );
+      }
+
+      if (!isTelecomManaged) {
+        safeNativeCall('setup defaultAudioDevice', () =>
+          StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
+            defaultDevice,
+          ),
+        );
+      }
     },
-    start: ({ isRingingTypeCall }) => {
+    start: ({ isRingingTypeCall, cid }) => {
+      // Apply the audio config a consumer recorded via `callManager.start(config)` at this single
+      // join-time start, before the native audio manager is activated.
+      const config = publicCallManager.getStoredConfig();
+      const deviceOverride =
+        config?.audioRole === 'communicator'
+          ? config.deviceEndpointType
+          : undefined;
+
       if (shouldBypassForCallKit({ isRingingTypeCall })) {
+        // CallKit owns activation. Only forward an explicit endpoint override; the
+        // SpeakerManager-derived default was already forwarded via `setup`.
+        if (deviceOverride) {
+          safeNativeCall('start defaultAudioDevice (callingx)', () =>
+            CallingxModule?.setDefaultAudioDeviceEndpointType(deviceOverride),
+          );
+          safeNativeCall('start defaultAudioDevice', () =>
+            StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
+              deviceOverride,
+            ),
+          );
+        }
         return;
       }
-      // Android telecom-managed calls still start (for proximity/keep-screen-on);
-      // the native side skips routing/focus internally.
+
+      const isTelecomManaged = isAndroidTelecomManaged({ cid });
+      if (Platform.OS === 'android') {
+        StreamInCallManagerNativeModule.setTelecomManagedMode(isTelecomManaged);
+      }
+      if (config?.audioRole) {
+        StreamInCallManagerNativeModule.setAudioRole(config.audioRole);
+      }
+      if (deviceOverride) {
+        // Override the SpeakerManager-derived default device (set via `setup`).
+        if (isTelecomManaged) {
+          safeNativeCall('start defaultAudioDevice (callingx)', () =>
+            CallingxModule?.setDefaultAudioDeviceEndpointType(deviceOverride),
+          );
+        } else {
+          safeNativeCall('start defaultAudioDevice', () =>
+            StreamInCallManagerNativeModule.setDefaultAudioDeviceEndpointType(
+              deviceOverride,
+            ),
+          );
+        }
+      }
+
+      const stereoOutput = config?.audioRole === 'listener';
+      StreamInCallManagerNativeModule.setEnableStereoAudioOutput(stereoOutput);
       StreamInCallManagerNativeModule.start();
     },
-    stop: ({ isRingingTypeCall }) => {
-      if (shouldBypassForCallKit({ isRingingTypeCall })) {
-        return;
+    stop: ({ isRingingTypeCall, shouldStopCallManager }) => {
+      // Clear the stored audio config so it doesn't carry into the next call.
+      publicCallManager.stop();
+
+      // We want to interact with ADM only when it was instantiated. This guards a case when
+      // leave is invoked for ringing call - in this case PC Factory and ADM are not yet created.
+      if (shouldStopCallManager) {
+        // Teardown of setMutedRecordingPrepared. Done here (before the CallKit gate)
+        // so it runs on both paths and while the call factory is still alive: leave()
+        // calls stop() before disposing the engine, so the ADM resolves to the call's
+        // factory rather than a default.
+        if (Platform.OS === 'ios') {
+          StreamInCallManagerNativeModule.setRecordingAlwaysPreparedMode(false);
+        }
+        if (shouldBypassForCallKit({ isRingingTypeCall })) {
+          return;
+        }
+        StreamInCallManagerNativeModule.stop();
       }
-      StreamInCallManagerNativeModule.stop();
     },
     // iOS-only. Keep the AVAudioEngine mic-input (voice-processing) chain
     // prepared while muted so the engine stays full-duplex and remote audio
@@ -125,11 +196,11 @@ const streamRNVideoSDKGlobals: StreamRNVideoSDKGlobals = {
       if (enabled) {
         // Mute via the voice-processing unit (it's the default, fail safe config here) so the input chain
         // stays built while muted, rather than tearing the engine down.
-        AudioDeviceModule.setMuteMode(
+        StreamInCallManagerNativeModule.setMuteMode(
           AudioEngineMuteMode.VoiceProcessing,
-        ).catch(() => {});
+        );
       }
-      AudioDeviceModule.setRecordingAlwaysPreparedMode(enabled).catch(() => {});
+      StreamInCallManagerNativeModule.setRecordingAlwaysPreparedMode(enabled);
     },
   },
   permissions: {
@@ -169,4 +240,6 @@ export function registerSDKGlobals() {
   if (!globalThis.streamRNVideoSDK) {
     globalThis.streamRNVideoSDK = streamRNVideoSDKGlobals;
   }
+
+  registerCallMediaEngine();
 }

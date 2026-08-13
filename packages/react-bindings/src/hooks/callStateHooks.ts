@@ -190,6 +190,14 @@ export const useIsCallTranscribingInProgress = (): boolean => {
 };
 
 /**
+ * Returns whether end-to-end encryption is active for the current call.
+ */
+export const useE2eeEnabled = (): boolean => {
+  const { e2eeEnabled$ } = useCallState();
+  return useObservableValue(e2eeEnabled$);
+};
+
+/**
  * Returns information about the user who has marked this call as ended.
  */
 export const useCallEndedBy = (): UserResponse | undefined => {

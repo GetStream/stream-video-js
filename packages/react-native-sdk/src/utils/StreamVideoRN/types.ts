@@ -26,6 +26,9 @@ export type StreamVideoConfig = {
    * @default undefined
    */
   push?: {
+    /**
+     * @deprecated Expo is auto-detected; this value is ignored and the property will be removed in a future major version.
+     */
     isExpo?: boolean;
     /**
      * The publish options to be used when joining a call from a push notification.

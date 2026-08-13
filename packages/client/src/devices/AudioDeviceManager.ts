@@ -2,6 +2,7 @@ import { DeviceManager } from './DeviceManager';
 import { AudioDeviceManagerState } from './AudioDeviceManagerState';
 import { AudioBitrateProfile } from '../gen/video/sfu/models/models';
 import { TrackPublishOptions } from '../rtc';
+import { isReactNative } from '../helpers/platforms';
 
 /**
  * Base class for High Fidelity enabled Device Managers.
@@ -16,6 +17,11 @@ export abstract class AudioDeviceManager<
   async setAudioBitrateProfile(profile: AudioBitrateProfile) {
     if (!this.call.state.settings?.audio.hifi_audio_enabled) {
       throw new Error('High Fidelity audio is not enabled for this call');
+    }
+    if (isReactNative() && this.call.hasMediaEngine) {
+      throw new Error(
+        'setAudioBitrateProfile must be called before joining the call.',
+      );
     }
     this.doSetAudioBitrateProfile(profile);
     this.state.setAudioBitrateProfile(profile);
