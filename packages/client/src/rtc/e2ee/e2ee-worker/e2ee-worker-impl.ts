@@ -108,8 +108,13 @@ addEventListener('message', ({ data }) => {
       case 'cmd.remove_shared_key':
         keyStore.removeSharedKey(data.keyIndex);
         break;
-      case 'cmd.remove_keys':
-        keyStore.removeKeys(data.userId);
+      case 'cmd.remove_key':
+        // Deliberately keeps this user's decode stats: they are still
+        // publishing, one epoch was retired.
+        keyStore.removeKey(data.userId, data.keyIndex);
+        break;
+      case 'cmd.remove_all_keys':
+        keyStore.removeAllKeys(data.userId);
         decodeStats.removeUser(data.userId);
         break;
       case 'cmd.enable_performance_reporting':

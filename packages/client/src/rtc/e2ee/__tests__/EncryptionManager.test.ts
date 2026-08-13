@@ -98,9 +98,14 @@ describe('EncryptionManager', () => {
         { type: 'cmd.remove_shared_key', keyIndex: 0 },
       ],
       [
-        'removeKeys',
-        () => manager.removeKeys('remote-user'),
-        { type: 'cmd.remove_keys', userId: 'remote-user' },
+        'removeKey',
+        () => manager.removeKey('remote-user', 3),
+        { type: 'cmd.remove_key', userId: 'remote-user', keyIndex: 3 },
+      ],
+      [
+        'removeAllKeys',
+        () => manager.removeAllKeys('remote-user'),
+        { type: 'cmd.remove_all_keys', userId: 'remote-user' },
       ],
       [
         'requestKeyState',
@@ -150,6 +155,19 @@ describe('EncryptionManager', () => {
       // receiver would silently look up the wrong key.
       for (const bad of [256, -1, 1.5, NaN]) {
         expect(call(m, bad, 16)).toThrow(/keyIndex/);
+      }
+    });
+
+    // The per-epoch removals carry no key material, so they sit outside the
+    // table above while sharing its index rule.
+    it.each([
+      ['removeKey', (i: number) => () => manager.removeKey('user', i)],
+      ['removeSharedKey', (i: number) => () => manager.removeSharedKey(i)],
+    ])('%s applies the same keyIndex rule', (_name, at) => {
+      expect(at(0)).not.toThrow();
+      expect(at(255)).not.toThrow();
+      for (const bad of [256, -1, 1.5, NaN]) {
+        expect(at(bad)).toThrow(/keyIndex/);
       }
     });
 
@@ -446,7 +464,8 @@ describe('EncryptionManager', () => {
         /is disposed/,
       );
       expect(() => manager.removeSharedKey(0)).toThrow(/is disposed/);
-      expect(() => manager.removeKeys('user')).toThrow(/is disposed/);
+      expect(() => manager.removeKey('user', 0)).toThrow(/is disposed/);
+      expect(() => manager.removeAllKeys('user')).toThrow(/is disposed/);
       expect(() => manager.requestKeyState()).toThrow(/is disposed/);
       expect(() => manager.enablePerformanceReporting(true)).toThrow(
         /is disposed/,

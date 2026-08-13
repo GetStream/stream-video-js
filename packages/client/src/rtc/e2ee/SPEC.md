@@ -37,8 +37,10 @@ EncryptionManager.create(userId, {
 
 // key distribution (host-owned: the SDK never derives or exchanges keys)
 setKey(userId: string, keyIndex: number, rawKey: bytes): void
+removeKey(userId: string, keyIndex: number): void
+removeAllKeys(userId: string): void
+
 setSharedKey(keyIndex: number, rawKey: bytes): void
-removeKeys(userId: string): void
 removeSharedKey(keyIndex: number): void
 
 // diagnostics
@@ -74,8 +76,8 @@ await call.join();
 - **`keyIndex` is 0-255** (one trailer byte). Reject anything else at the API boundary. The index identifies a key slot, not a monotonic sequence, so a long-running rotation may wrap 255 → 0 and re-use low indices. Reusing an occupied index replaces that slot immediately, so the host must not reuse it until frames from the old epoch can no longer be in flight.
 - **`rawKey` is exactly 16 bytes** (AES-128) or **32 bytes** (AES-256). Reject other lengths.
 - **The key buffer is copied, not consumed.** Callers may re-import the same bytes.
-- A successful **`setSharedKey(keyIndex, rawKey)`** stores or replaces that shared receive epoch and makes it the active shared epoch for encryption. A failed import changes neither the key ring nor the active epoch.
-- **`removeSharedKey(keyIndex)`** removes exactly that shared receive epoch. Removing the active epoch disables shared-key encryption until another `setSharedKey` succeeds; an older retained epoch is never reactivated implicitly.
+- **Removal comes in per-epoch and per-user forms, and the names must stay distinct.** `removeKey(userId, keyIndex)` retires one epoch; `removeAllKeys(userId)` revokes the participant entirely. Do not render these as overloads of one name: dropping the index argument would then silently mean "revoke everything", which is the opposite of the caller's intent and impossible to catch in review.
+- **Every key operation's outcome is tabulated in Appendix B.** Implement the edge cases (removing the latest or active epoch, a failed import, an absent index) from that table rather than from prose.
 - **Join request carries `e2ee: true`** so the backend knows the call is encrypted.
 - The internal attach points (`encrypt(sender, codec, trackType)` / `decrypt(receiver, userId, trackType)`) are called by the RTC layer, not by apps. Keeping them behind a small interface lets an integrator plug in a different scheme (e.g. SFrame).
 
@@ -90,25 +92,33 @@ A per-user key is identified by **`(userId, keyIndex)`**. A shared key is identi
 - **Shared keys** (`setSharedKey`): an indexed fallback receive-key ring used for any user without a per-user key at the requested index. The most recently imported shared epoch is explicitly active for encryption; older epochs remain receive-only so delayed frames survive a rotation.
 - **Resolution on decode:** per-user entry at that `keyIndex` first; else the shared-key entry at that index; else no key (frame dropped, `missing_key` fired).
 - **Resolution on encode:** the most recently imported per-user key for the local user; else the active shared key. Retained inactive shared epochs must never be selected for encryption.
-- **`removeKeys(userId)`** drops that user's key material but **must not reset the frame counter** (see §9).
-- **`removeSharedKey(keyIndex)`** drops only that shared epoch. If it was active, shared-key encode fallback becomes unavailable; retained older epochs remain usable for decryption but inactive for encryption.
+- **No key operation resets the frame counter** (§9).
 
-### Shared-key rotation
+The state after any individual key call is tabulated in **Appendix B**.
 
-The host owns the grace period and retires old epochs explicitly:
+### 3.1 Rotation
+
+The host owns the grace period and retires old epochs explicitly. Both key kinds follow the same shape - import the new epoch, let frames on the old one drain, then retire it:
 
 ```ts
+await api.distributeToAll(nextKey);
 manager.setSharedKey(7, nextKey); // epoch 7 becomes active; older epochs remain
-// distribute epoch 7 and allow delayed frames from the prior epoch to drain
+// allow delayed frames on epoch 6 to drain
 manager.removeSharedKey(6); // epoch 6 can no longer decrypt
+
+await api.distributeToAll(nextAliceKey);
+manager.setKey(alice, 7, nextAliceKey); // epoch 7 becomes alice's latest
+manager.removeKey(alice, 6); // alice's epoch 6 can no longer decrypt
 ```
+
+Retiring one epoch is what `removeKey` is for; `removeAllKeys` is for a participant leaving. Reaching for `removeAllKeys` mid-rotation would drop the epoch that is currently working along with the one being retired.
 
 All participants must use the same `keyIndex` for the same shared key. Do not reuse an
 index while frames encrypted with its previous material may still arrive: the new import
 replaces that slot, so those delayed frames would resolve the replacement key and fail
 authentication.
 
-### Per-import state
+### 3.2 Per-import state
 
 Every key import generates:
 
@@ -354,7 +364,7 @@ The counter is a 32-bit IV field and **must never wrap**: a wrap folds into a pr
 >
 > 1. **One counter per manager**, shared across every track and codec. Hold it as a single value, never a map keyed by user id - a wrong or changed id would hand out a fresh counter starting at 1 under the same key and prefix.
 > 2. **Check before incrementing**, and never store a value past the ceiling.
-> 3. **Never reset it on a key operation.** `setKey`, `setSharedKey`, `removeKeys` and `removeSharedKey` all leave it untouched; only a new manager starts at 0.
+> 3. **Never reset it on a key operation.** Every method in §3 leaves it untouched; only a new manager starts at 0.
 > 4. **Throw at the ceiling.** The frame is dropped and `encryption_failed` is emitted. This is the only counter threshold; nothing fires below it.
 > 5. **Fresh 8-byte `ivPrefix` from a cryptographic RNG on every key import.** Never derived from a user id, session id, timestamp or counter; never reused across imports; never shortened.
 
@@ -367,11 +377,11 @@ counter = c
 
 Rules 1 and 5 are two independent guards, covering two different scopes (§4). Resetting the counter on import, as rule 3 forbids, collapses them into one.
 
-| Action                           | Frame counter           | `ivPrefix`                |
-| -------------------------------- | ----------------------- | ------------------------- |
-| `setKey` / `setSharedKey`        | unchanged, keeps rising | fresh random for the slot |
-| `removeKeys` / `removeSharedKey` | unchanged, keeps rising | dropped with the slot     |
-| new manager                      | reset to 0              | -                         |
+| Action                    | Frame counter           | `ivPrefix`                |
+| ------------------------- | ----------------------- | ------------------------- |
+| `setKey` / `setSharedKey` | unchanged, keeps rising | fresh random for the slot |
+| any `remove*`             | unchanged, keeps rising | dropped with the slot     |
+| new manager               | reset to 0              | -                         |
 
 Key state per action is §3; this table covers only the counter and the prefix.
 
@@ -537,3 +547,40 @@ Worked example, a typical camera call: Opus at 20 ms ptime contributes 50 fps, a
 | Camera + mic, single stream (SVC, 1 rid) | ~80 fps   | ~20 months        |
 
 That is continuous publishing within a single session, and the counter resets with each new manager, so no real call approaches it. The ceiling is a correctness guard, not an operational event.
+
+---
+
+## Appendix B: key operation outcomes
+
+Normative, unlike Appendix A. One row per key call from §3. "Encode key" is the result of the encode resolution in §3, and only matters for the local user.
+
+**Per-user keys.** Every epoch stays available to decrypt until removed.
+
+| Action             | When                    | Slots after           | Encode key after         |
+| ------------------ | ----------------------- | --------------------- | ------------------------ |
+| `setKey(u, i)`     | import succeeds         | `i` added or replaced | `i`                      |
+| `setKey(u, i)`     | bad index or key length | unchanged             | unchanged                |
+| `setKey(u, i)`     | import fails            | unchanged             | unchanged                |
+| `removeKey(u, i)`  | `i` held, not latest    | `i` gone              | unchanged                |
+| `removeKey(u, i)`  | `i` held, is latest     | `i` gone              | active shared, else none |
+| `removeKey(u, i)`  | `i` not held            | unchanged             | unchanged                |
+| `removeAllKeys(u)` | always                  | all of `u` gone       | active shared, else none |
+
+**Shared-key epochs.** One epoch is active for encryption; the rest are receive-only.
+
+| Action               | When                    | Ring after            | Active epoch after |
+| -------------------- | ----------------------- | --------------------- | ------------------ |
+| `setSharedKey(i)`    | import succeeds         | `i` added or replaced | `i`                |
+| `setSharedKey(i)`    | bad index or key length | unchanged             | unchanged          |
+| `setSharedKey(i)`    | import fails            | unchanged             | unchanged          |
+| `removeSharedKey(i)` | `i` held, not active    | `i` gone              | unchanged          |
+| `removeSharedKey(i)` | `i` held, is active     | `i` gone              | none               |
+| `removeSharedKey(i)` | `i` not held            | unchanged             | unchanged          |
+
+Behind the rows:
+
+- **Nothing is promoted implicitly.** Removing the epoch that was encrypting falls to the next step of the resolution order, never to an older epoch of the same kind.
+- **A failed import changes nothing.** A bad index or key length throws before the store is reached; a failed import is logged internally. Either way the previous epoch survives, including when it was the active one.
+- **Removals are silent.** No key call emits an event. The effect shows on the next frame, or via `key_state` (§10). A frame naming a removed epoch raises `missing_key`.
+- **Calls apply in order.** A serialized queue owns the store, so `setSharedKey(7)` then `removeSharedKey(7)` lands in that order.
+- Each import gets a fresh `ivPrefix` (§3.2), no removal touches the frame counter (§9), and every call throws after `dispose()`.

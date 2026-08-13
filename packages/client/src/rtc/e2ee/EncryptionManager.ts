@@ -186,12 +186,26 @@ export class EncryptionManager
   };
 
   /**
-   * Drop a user's keys, revoking their ability to decrypt later frames.
-   * Call it when a participant leaves.
+   * Retire one of a user's key epochs, leaving their other epochs usable.
+   *
+   * @param userId - The key owner.
+   * @param keyIndex - The exact epoch to remove. Absent epochs are a no-op.
    */
-  removeKeys = (userId: string): void => {
+  removeKey = (userId: string, keyIndex: number): void => {
     this.assertUsable();
-    this.worker.postMessage({ type: 'cmd.remove_keys', userId });
+    this.validateKeyIndex(keyIndex);
+    this.worker.postMessage({ type: 'cmd.remove_key', userId, keyIndex });
+  };
+
+  /**
+   * Drop every key a user holds, revoking their ability to decrypt later
+   * frames. Call it when a participant leaves.
+   *
+   * To retire one rotated epoch instead, use {@link removeKey}.
+   */
+  removeAllKeys = (userId: string): void => {
+    this.assertUsable();
+    this.worker.postMessage({ type: 'cmd.remove_all_keys', userId });
   };
 
   /**

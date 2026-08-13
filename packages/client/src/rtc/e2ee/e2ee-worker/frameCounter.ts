@@ -5,7 +5,7 @@ import { COUNTER_HARD_LIMIT } from './constants';
  * publishes: the IV is `ivPrefix ∥ counter`, so two tracks drawing from
  * separate counters would encrypt different frames under the same IV.
  *
- * Survives `removeKeys` on purpose - if the same raw key is imported again the
+ * Survives `removeAllKeys` on purpose - if the same raw key is imported again the
  * counter keeps climbing, so no (ivPrefix, counter) pair repeats. Second guard
  * against IV reuse, after the per-import random prefix.
  */

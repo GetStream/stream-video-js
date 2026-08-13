@@ -36,12 +36,12 @@ describe('nextFrameCounter', () => {
     expect(nextFrameCounter()).toBe(3);
   });
 
-  it('survives removeKeys — counter is never rolled back', async () => {
+  it('survives removeAllKeys — counter is never rolled back', async () => {
     await keyStore.importKey('alice', 1, rawKey());
     expect(nextFrameCounter()).toBe(1);
     expect(nextFrameCounter()).toBe(2);
 
-    keyStore.removeKeys('alice');
+    keyStore.removeAllKeys('alice');
 
     // Re-import the same raw key. Counter must NOT restart — otherwise
     // we'd reuse IVs on the new import's first frames.
@@ -69,7 +69,7 @@ describe('nextFrameCounter', () => {
     expect(() => nextFrameCounter()).toThrow(/counter exhausted/);
 
     // Same after dropping the user's keys entirely.
-    keyStore.removeKeys('alice');
+    keyStore.removeAllKeys('alice');
     await keyStore.importKey('alice', 8, rawKey());
     expect(() => nextFrameCounter()).toThrow(/counter exhausted/);
   });
