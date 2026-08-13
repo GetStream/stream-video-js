@@ -484,7 +484,6 @@ The SDK only handles **ringing call** push notifications. Non-ringing notificati
 
 ```tsx
 // Safely check if library is installed
-const firebase = getFirebaseMessagingLibNoThrow();
 const callingx = getCallingxLib();
 ```
 

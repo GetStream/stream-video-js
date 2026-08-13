@@ -5,11 +5,7 @@ import {
 } from '@stream-io/video-client';
 import { AppState, Platform } from 'react-native';
 import type { StreamVideoConfig } from '../StreamVideoRN/types';
-import {
-  type FirebaseMessagingTypes,
-  getFirebaseMessagingLib,
-  getFirebaseMessagingLibNoThrow,
-} from './libs';
+import { type FirebaseMessagingTypes, getFirebaseMessagingLib } from './libs';
 import { pushUnsubscriptionCallbacks } from './internal/constants';
 import { canListenToWS, shouldCallBeClosed } from './internal/utils';
 import { setPushLogoutCallback } from '../internal/pushLogoutCallback';
@@ -60,18 +56,14 @@ export async function initAndroidPushToken(
     await client.addDevice(token, 'firebase', push_provider_name);
   };
 
-  const messaging = pushConfig.isExpo
-    ? getFirebaseMessagingLibNoThrow(true)
-    : getFirebaseMessagingLib();
-  if (messaging) {
-    logger.debug(`setting firebase token listeners`);
-    const unsubscribe = messaging().onTokenRefresh((refreshedToken) =>
-      setDeviceToken(refreshedToken),
-    );
-    setUnsubscribeListener(unsubscribe);
-    const token = await messaging().getToken();
-    await setDeviceToken(token);
-  }
+  const messaging = getFirebaseMessagingLib();
+  logger.debug(`setting firebase token listeners`);
+  const unsubscribe = messaging().onTokenRefresh((refreshedToken) =>
+    setDeviceToken(refreshedToken),
+  );
+  setUnsubscribeListener(unsubscribe);
+  const token = await messaging().getToken();
+  await setDeviceToken(token);
 }
 
 /**
