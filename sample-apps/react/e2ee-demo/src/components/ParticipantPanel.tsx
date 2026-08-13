@@ -37,7 +37,7 @@ interface Props {
   events: EventLogEntry[];
 }
 
-export const ParticipantPanel = memo(function ParticipantPanel({
+export const ParticipantPanel = memo(function ParticipantPanelRender({
   participant,
   nameByUserId,
   events,

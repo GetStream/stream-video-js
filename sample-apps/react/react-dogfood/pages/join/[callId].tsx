@@ -45,8 +45,7 @@ const CallRoom = (props: ServerSideCredentialsProps) => {
   // end-to-end encrypted - otherwise the backend rejects the (e2ee: true) join.
   // See lib/queryConfigParams.
   const initialEncryptionKey = router.query['encryption_key'] as
-    | string
-    | undefined;
+    string | undefined;
   const e2eeEnabled = isE2EEEnvironment(environment) && !!initialEncryptionKey;
 
   const [client, setClient] = useState<StreamVideoClient>();
