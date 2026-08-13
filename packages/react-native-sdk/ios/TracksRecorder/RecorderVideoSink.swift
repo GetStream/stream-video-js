@@ -12,11 +12,21 @@ import WebRTC
 ///
 /// Each delivered `RTCVideoFrame` is normalised to a CVPixelBuffer in the
 /// hardware H.264 encoder's native format — **NV12**
-/// (`kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange`).
-/// `RTCCVPixelBuffer` sources (camera passthrough) are forwarded with
-/// the underlying pixel buffer unchanged. `RTCI420Buffer` and other YUV
-/// sources are converted into a fresh IOSurface-backed NV12 buffer via
-/// a plane reorder (no color-space conversion required).
+/// (`kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange`). One branch per
+/// buffer type `renderFrame` can be handed:
+///
+/// - `RTCCVPixelBuffer` (camera passthrough) already wraps a CVPixelBuffer,
+///   so the underlying buffer is forwarded unchanged.
+/// - `RTCNV12Buffer` already holds NV12 planes, but as raw pointers rather
+///   than a CVPixelBuffer, so the planes are copied row-wise into a fresh
+///   one. No format conversion. This is the buffer type decoded remote
+///   frames arrive as, so it is the hot path for loopback recording — do
+///   not remove it. Without it these frames fall through to `toI420()`
+///   below, which converts NV12 → I420 → NV12 and caps throughput at
+///   roughly half the source frame rate.
+/// - `RTCI420Buffer` (and anything else, via `toI420()`) is converted into
+///   a fresh IOSurface-backed NV12 buffer by interleaving the U and V
+///   planes — a plane reorder, no colour-space conversion.
 ///
 /// **Why NV12 and not BGRA?** AVAssetWriter's hardware encoder accepts
 /// both, but BGRA requires an internal colour-space conversion that
@@ -51,6 +61,8 @@ import WebRTC
         if let cvBuffer = frame.buffer as? RTCCVPixelBuffer {
             // Camera passthrough — already a CVPixelBuffer (typically NV12 on iOS).
             pixelBuffer = cvBuffer.pixelBuffer
+        } else if let nv12 = frame.buffer as? RTCNV12Buffer {
+            pixelBuffer = Self.makeNV12PixelBuffer(fromNV12: nv12)
         } else if let i420 = frame.buffer as? RTCI420Buffer {
             pixelBuffer = Self.makeNV12PixelBuffer(fromI420: i420)
         } else {
@@ -65,6 +77,81 @@ import WebRTC
 
         guard let outputBuffer = pixelBuffer else { return }
         frameHandler(outputBuffer, frame.width, frame.height, frame.timeStampNs)
+    }
+
+    private static func makeNV12PixelBuffer(fromNV12 nv12: RTCNV12Buffer) -> CVPixelBuffer? {
+        let width = Int(nv12.width)
+        let height = Int(nv12.height)
+        let chromaWidth = Int(nv12.chromaWidth)
+        let chromaHeight = Int(nv12.chromaHeight)
+
+        guard let buffer = makePixelBuffer(width: width, height: height) else { return nil }
+
+        CVPixelBufferLockBaseAddress(buffer, [])
+        defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
+
+        guard let yDest = CVPixelBufferGetBaseAddressOfPlane(buffer, 0) else { return nil }
+        copyPlane(
+            source: UnsafeRawPointer(nv12.dataY),
+            sourceStride: Int(nv12.strideY),
+            destination: yDest,
+            destinationStride: CVPixelBufferGetBytesPerRowOfPlane(buffer, 0),
+            rowBytes: width,
+            rows: height
+        )
+
+        // Plane 1: UV — already interleaved, so two bytes per chroma sample.
+        guard let uvDest = CVPixelBufferGetBaseAddressOfPlane(buffer, 1) else { return nil }
+        copyPlane(
+            source: UnsafeRawPointer(nv12.dataUV),
+            sourceStride: Int(nv12.strideUV),
+            destination: uvDest,
+            destinationStride: CVPixelBufferGetBytesPerRowOfPlane(buffer, 1),
+            rowBytes: chromaWidth * 2,
+            rows: chromaHeight
+        )
+
+        return buffer
+    }
+
+    private static func makePixelBuffer(width: Int, height: Int) -> CVPixelBuffer? {
+        var pixelBuffer: CVPixelBuffer?
+        let attrs: [String: Any] = [
+            kCVPixelBufferIOSurfacePropertiesKey as String: [:] as [String: Any],
+        ]
+        let status = CVPixelBufferCreate(
+            kCFAllocatorDefault,
+            width,
+            height,
+            kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+            attrs as CFDictionary,
+            &pixelBuffer
+        )
+        guard status == kCVReturnSuccess else { return nil }
+        return pixelBuffer
+    }
+
+    /// Row-wise copy, collapsing to a single `memcpy` when the strides match.
+    private static func copyPlane(
+        source: UnsafeRawPointer,
+        sourceStride: Int,
+        destination: UnsafeMutableRawPointer,
+        destinationStride: Int,
+        rowBytes: Int,
+        rows: Int
+    ) {
+        if sourceStride == destinationStride && sourceStride == rowBytes {
+            memcpy(destination, source, rowBytes * rows)
+            return
+        }
+        let copyBytes = min(rowBytes, min(sourceStride, destinationStride))
+        for row in 0..<rows {
+            memcpy(
+                destination.advanced(by: row * destinationStride),
+                source.advanced(by: row * sourceStride),
+                copyBytes
+            )
+        }
     }
 
     // MARK: - I420 → NV12

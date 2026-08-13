@@ -1,146 +1,71 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NativeModules } from 'react-native';
-import { combineLatest } from 'rxjs';
 import {
-  Call,
   CallingState,
+  DEFAULT_LOOPBACK_RECORDING_DURATION_MS,
+  LOOPBACK_STREAMS_WAIT_TIMEOUT_MS,
+  clampLoopbackRecordingDuration,
+  getLoopbackStreams,
   videoLoggerSystem,
-  type StreamVideoParticipant,
+  waitForLoopbackStreams,
+  withLoopbackAudioEnabled,
+  type LoopbackStreams,
+  type LoopbackTracks,
 } from '@stream-io/video-client';
+
 import { useCall, useCallStateHooks } from '@stream-io/video-react-bindings';
 
 /** @internal */
 const { StreamVideoReactNative } = NativeModules;
 
-// Upper bound on how long `startRecording` will wait for the SFU to
-// echo loopback tracks back via the Subscriber. Tuned generously since
-// this includes connection setup; consumers that want shorter feedback
-// should call `stopRecording` to cancel the wait early.
-const STREAMS_WAIT_TIMEOUT_MS = 10 * 1000;
-const DEFAULT_RECORDING_DURATION = 10 * 1000;
-const MIN_RECORDING_DURATION = 5 * 1000;
-const MAX_RECORDING_DURATION = 2 * 60 * 1000;
-
-type LoopbackStreams = {
-  loopbackVideoStream?: MediaStream;
-  loopbackAudioStream?: MediaStream;
-};
-
 export type LoopbackRecordingState = 'idle' | 'awaiting-streams' | 'recording';
 
-export type ResolvedStreams = {
-  audioTrack?: MediaStreamTrack;
-  videoTrack?: MediaStreamTrack;
-};
+export type ResolvedStreams = LoopbackTracks;
 
 export interface StartLoopbackRecordingOptions {
-  /**
-   * Whether to include the loopback video track in the recording.
-   * Defaults to `true`. Set to `false` for an audio-only recording.
-   * Audio is always recorded — there is no video-only mode.
-   */
+  /** Whether to include loopback video. Audio is always recorded. */
   includeVideo?: boolean;
-  /**
-   * Maximum recording duration in milliseconds, after which the
-   * recording auto-stops and finalises the file.
-   *
-   * Defaults to `10_000` (10 seconds). Clamped to
-   * `[5_000, 120_000]` (5 seconds — 2 minutes).
-   */
+  /** Maximum recording duration in milliseconds. */
   maxDurationMs?: number;
 }
 
 export interface UseLoopbackRecordingResult {
-  /**
-   * Start a recording. The hook waits internally for the SFU loopback
-   * streams to arrive on `localParticipant`, then begins recording.
-   *
-   * The returned promise resolves with the produced `file://` URI **at
-   * the recording's terminal moment** — whether that is the auto-stop
-   * timer expiring, an explicit `stopRecording` call, or a cleanup-
-   * driven stop on unmount/leave. Resolves with `null` if no file was
-   * produced (writer torn down before any buffer arrived, or
-   * `stopRecording` was called while still awaiting streams). Rejects
-   * on a fatal error, if a recording is already running, or if the
-   * stream-wait times out.
-   */
+  /** Starts recording and resolves with a `file://` URI. */
   startRecording: (
     options?: StartLoopbackRecordingOptions,
   ) => Promise<string | null>;
-  /**
-   * Signal an early termination. While `awaiting-streams` this aborts
-   * the wait and the pending `startRecording` resolves with `null`.
-   * While `recording` this signals native finalisation and resolves
-   * once it completes.
-   */
+  /** Stops the current recording or stream wait. */
   stopRecording: () => Promise<void>;
-  /**
-   * Recursively delete every file under the SDK's recordings directory.
-   */
+  /** Deletes all SDK recording files. */
   clearRecordings: () => Promise<void>;
-  /**
-   * List every `file://` URI in the SDK's recordings directory, sorted
-   * most-recent first. Returns an empty array if the directory doesn't
-   * exist yet.
-   */
+  /** Lists SDK recording file URIs. */
   getRecordings: () => Promise<string[]>;
-  /**
-   * Lifecycle phase of the recording, owned by the hook:
-   *  - `'idle'`: no recording in progress.
-   *  - `'awaiting-streams'`: `startRecording` was called but the SFU
-   *    has not yet echoed the loopback tracks back.
-   *  - `'recording'`: native pipeline is actively writing.
-   */
+  /** Lifecycle phase of the recording. */
   recordingState: LoopbackRecordingState;
-  /**
-   * The SFU loopback video stream on the local participant, when
-   * present. Identified by reference inequality against
-   * `call.camera.state.mediaStream`.
-   */
+  /** SFU-echoed video stream on the local participant. */
   loopbackVideoStream?: MediaStream;
-  /**
-   * The SFU loopback audio stream on the local participant, when
-   * present. Identified by reference inequality against
-   * `call.microphone.state.mediaStream`.
-   */
+  /** SFU-echoed audio stream on the local participant. */
   loopbackAudioStream?: MediaStream;
 }
 
-/**
- * Records the SFU loopback streams (audio + video) on the local participant
- * to a local MP4 file. Designed for the `allowOwnTracksLoopback` pre-call test mode:
- * the SFU echoes the caller's published tracks back through the Subscriber
- * peer connection. The hook identifies the loopback streams on the local
- * participant by reference inequality against
- * `call.camera.state.mediaStream` / `call.microphone.state.mediaStream` —
- * the canonical references to the local capture — and captures them.
- */
+/** Records SFU loopback streams to a local MP4 file. */
 export function useLoopbackRecording(): UseLoopbackRecordingResult {
   const call = useCall();
-  const {
-    useCallCallingState,
-    useParticipantCount,
-    useLocalParticipant,
-    useCameraState,
-    useMicrophoneState,
-  } = useCallStateHooks();
+  const { useCallCallingState, useParticipantCount, useLocalParticipant } =
+    useCallStateHooks();
   const callingState = useCallCallingState();
   const participantCount = useParticipantCount();
   const localParticipant = useLocalParticipant();
-  const { mediaStream: cameraStream } = useCameraState();
-  const { mediaStream: microphoneStream } = useMicrophoneState();
 
   const [recordingState, setRecordingState] =
     useState<LoopbackRecordingState>('idle');
   const recordingStateRef = useRef<LoopbackRecordingState>('idle');
   const isMountedRef = useRef(true);
-  // Used to abort the awaiting-streams wait on stop / leave / unmount.
   const awaitAbortRef = useRef<AbortController | null>(null);
 
   const loopbackStreams = useMemo<LoopbackStreams>(
-    () =>
-      getLoopbackStreamsFor(localParticipant, cameraStream, microphoneStream),
-    [localParticipant, cameraStream, microphoneStream],
+    () => getLoopbackStreams(call, localParticipant),
+    [call, localParticipant],
   );
 
   const updateState = useCallback((next: LoopbackRecordingState) => {
@@ -177,7 +102,7 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
   const startRecording = useCallback(
     async ({
       includeVideo = true,
-      maxDurationMs = DEFAULT_RECORDING_DURATION,
+      maxDurationMs = DEFAULT_LOOPBACK_RECORDING_DURATION_MS,
     }: StartLoopbackRecordingOptions = {}): Promise<string | null> => {
       if (!call) {
         return null;
@@ -200,12 +125,11 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
       awaitAbortRef.current = new AbortController();
       updateState('awaiting-streams');
 
-      let audioTrack: MediaStreamTrack | undefined;
       try {
         const streams = await waitForLoopbackStreams(call, {
           includeVideo,
           signal: awaitAbortRef.current.signal,
-          timeoutMs: STREAMS_WAIT_TIMEOUT_MS,
+          timeoutMs: LOOPBACK_STREAMS_WAIT_TIMEOUT_MS,
         });
 
         if (streams === null) {
@@ -215,38 +139,21 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
           return null;
         }
 
-        audioTrack = streams.audioTrack;
-        const videoTrackId = streams.videoTrack?.id;
-
-        // The loopback audio track lands disabled (the SDK default-mutes
-        // it to prevent echo). Enable it so the native recording
-        // pipeline receives PCM; `finally` returns it to muted.
-        if (audioTrack) {
-          audioTrack.enabled = true;
-        }
         updateState('recording');
 
-        const clampedDuration = Math.min(
-          MAX_RECORDING_DURATION,
-          Math.max(MIN_RECORDING_DURATION, maxDurationMs),
-        );
-
-        // Pre-size the native encoder to the publisher's max video
-        // publish-option dimension. Without this, the encoder locks to
-        // whatever the SFU happens to echo *first* and stays there for the
-        // rest of the recording even after the network improves and
-        // higher layers arrive.
         const publishMaxDim = call.getMaxVideoPublishDimension();
 
         try {
-          const uri: string | null =
-            await StreamVideoReactNative.startTrackRecording({
-              videoTrackId,
-              maxDurationMs: Math.round(clampedDuration),
-              targetWidth: publishMaxDim?.width,
-              targetHeight: publishMaxDim?.height,
-            });
-          return uri;
+          return await withLoopbackAudioEnabled(
+            streams,
+            (): Promise<string | null> =>
+              StreamVideoReactNative.startTrackRecording({
+                videoTrackId: streams.videoTrack?.id,
+                maxDurationMs: clampLoopbackRecordingDuration(maxDurationMs),
+                targetWidth: publishMaxDim?.width,
+                targetHeight: publishMaxDim?.height,
+              }),
+          );
         } catch (error) {
           videoLoggerSystem
             .getLogger('useLoopbackRecording')
@@ -254,9 +161,6 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
           throw new Error('failed to start recording');
         }
       } finally {
-        if (audioTrack) {
-          audioTrack.enabled = false;
-        }
         awaitAbortRef.current = null;
         updateState('idle');
       }
@@ -288,11 +192,6 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
     }
   }, []);
 
-  // Auto-stop on call leave / end. Aborts an awaiting-streams wait or
-  // signals native finalisation depending on which phase we're in.
-  // Without this, leaving the call mid-recording would leave native
-  // encoders mid-write while the SFU subscriber tracks end under their
-  // feet — undefined final file state.
   useEffect(() => {
     if (
       callingState === CallingState.LEFT ||
@@ -305,8 +204,6 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
     }
   }, [callingState, stopRecording]);
 
-  // Auto-stop if another participant joins. Loopback recording is a
-  // single-user pre-call test.
   useEffect(() => {
     if (recordingState !== 'idle' && participantCount > 1) {
       stopRecording().catch(() => {});
@@ -336,113 +233,4 @@ export function useLoopbackRecording(): UseLoopbackRecordingResult {
     loopbackVideoStream: loopbackStreams.loopbackVideoStream,
     loopbackAudioStream: loopbackStreams.loopbackAudioStream,
   };
-}
-
-function getLoopbackStreamsFor(
-  participant: StreamVideoParticipant | undefined,
-  cameraStream: MediaStream | undefined,
-  microphoneStream: MediaStream | undefined,
-): LoopbackStreams {
-  return {
-    loopbackVideoStream:
-      participant?.videoStream && participant.videoStream !== cameraStream
-        ? participant.videoStream
-        : undefined,
-    loopbackAudioStream:
-      participant?.audioStream && participant.audioStream !== microphoneStream
-        ? participant.audioStream
-        : undefined,
-  };
-}
-
-/**
- * Subscribe to `localParticipant$` and resolve once the requested loopback
- * streams are present on the participant. Aborts cleanly on `signal`
- * (resolves `null`) and rejects on timeout.
- */
-function waitForLoopbackStreams(
-  call: Call,
-  opts: { includeVideo: boolean; signal: AbortSignal; timeoutMs: number },
-): Promise<ResolvedStreams | null> {
-  return new Promise((resolve, reject) => {
-    const initial = getLoopbackStreams(
-      call.state.localParticipant,
-      call.camera.state.mediaStream,
-      call.microphone.state.mediaStream,
-      opts.includeVideo,
-    );
-    if (initial) {
-      resolve(initial);
-      return;
-    }
-
-    const cleanup = () => {
-      subscription.unsubscribe();
-      if (timeoutId !== undefined) {
-        clearTimeout(timeoutId);
-      }
-      opts.signal.removeEventListener('abort', onAbort);
-    };
-
-    const onAbort = () => {
-      cleanup();
-      resolve(null);
-    };
-
-    opts.signal.addEventListener('abort', onAbort);
-
-    const timeoutId = setTimeout(() => {
-      cleanup();
-      reject(
-        new Error(
-          'useLoopbackRecording: timed out waiting for loopback streams. ' +
-            'Ensure the call was joined with `allowOwnTracksLoopback: true` and ' +
-            'that the SFU is configured to echo self-sub tracks.',
-        ),
-      );
-    }, opts.timeoutMs);
-
-    const subscription = combineLatest([
-      call.state.localParticipant$,
-      call.camera.state.mediaStream$,
-      call.microphone.state.mediaStream$,
-    ]).subscribe(([participant, cameraStream, microphoneStream]) => {
-      const ready = getLoopbackStreams(
-        participant,
-        cameraStream,
-        microphoneStream,
-        opts.includeVideo,
-      );
-      if (ready) {
-        cleanup();
-        resolve(ready);
-      }
-    });
-  });
-}
-
-function getLoopbackStreams(
-  participant: StreamVideoParticipant | undefined,
-  cameraStream: MediaStream | undefined,
-  microphoneStream: MediaStream | undefined,
-  includeVideo: boolean,
-): ResolvedStreams | undefined {
-  if (!participant) return undefined;
-
-  const { loopbackAudioStream, loopbackVideoStream } = getLoopbackStreamsFor(
-    participant,
-    cameraStream,
-    microphoneStream,
-  );
-
-  const audioTrack = loopbackAudioStream?.getAudioTracks()[0];
-  const videoTrack = includeVideo
-    ? loopbackVideoStream?.getVideoTracks()[0]
-    : undefined;
-
-  if (!audioTrack || (includeVideo && !videoTrack)) {
-    return undefined;
-  }
-
-  return { audioTrack, videoTrack };
 }

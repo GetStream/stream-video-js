@@ -5,3 +5,4 @@ export * from './useRequestPermission';
 export * from './useDeviceList';
 export * from './useModeration';
 export * from './useDragToScroll';
+export * from './useLoopbackRecording';
