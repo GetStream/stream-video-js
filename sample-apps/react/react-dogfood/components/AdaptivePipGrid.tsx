@@ -28,8 +28,8 @@ import {
 /** Gap between tiles, in px. Keep in sync with the SCSS gap. */
 const GAP = 4;
 /**
- * The aspect ratio tiles settle on when the window has room for it, matching
- * the main-layout grids (`ParticipantView`'s own `aspect-ratio: 4/3`).
+ * The aspect ratio tiles use whenever it fits at a useful size, matching the
+ * main-layout grids (`ParticipantView`'s own `aspect-ratio: 4/3`).
  */
 const TARGET_ASPECT = 4 / 3;
 /**
@@ -164,6 +164,7 @@ export const AdaptivePipGrid = (props: AdaptivePipGridProps) => {
   }
 
   const selectedGroup = pages[page];
+  const selectedGroupSize = selectedGroup?.length ?? 0;
   const mirror = mirrorLocalParticipantVideo ? undefined : false;
 
   /**
@@ -206,7 +207,9 @@ export const AdaptivePipGrid = (props: AdaptivePipGridProps) => {
     );
   }, [containerElement]);
 
-  useLayoutEffect(applyGeometry);
+  useLayoutEffect(() => {
+    applyGeometry();
+  }, [applyGeometry, selectedGroupSize]);
 
   useEffect(() => {
     if (!containerElement) return;
@@ -342,8 +345,8 @@ const getTiling = (count: number, width: number, height: number): Tiling => {
 /**
  * How far the tile aspect ratio may stray from `TARGET_ASPECT`, as a function
  * of how much room the container has. A cramped window gets the full Meet-like
- * band so the grid can fill it; a spacious one is pinned to `TARGET_ASPECT` so
- * tiles look like the main-layout grid instead of cropped portrait strips.
+ * band so the grid can fill it, but `fitTile` still prefers `TARGET_ASPECT`
+ * whenever it fits above the minimum useful tile size.
  */
 const getAspectBounds = (width: number, height: number) => {
   const smaller = Math.min(width, height);
@@ -376,9 +379,25 @@ const fitTile = (
     return { tileWidth: 0, tileHeight: 0 };
   }
 
+  const targetTile = fitTileWithAspect(cellWidth, cellHeight, TARGET_ASPECT);
+  if (
+    targetTile.tileWidth >= MIN_TILE_WIDTH &&
+    targetTile.tileHeight >= MIN_TILE_HEIGHT
+  ) {
+    return targetTile;
+  }
+
   const cellAspect = cellWidth / cellHeight;
   const aspect = Math.min(bounds.max, Math.max(bounds.min, cellAspect));
+  return fitTileWithAspect(cellWidth, cellHeight, aspect);
+};
 
+const fitTileWithAspect = (
+  cellWidth: number,
+  cellHeight: number,
+  aspect: number,
+) => {
+  const cellAspect = cellWidth / cellHeight;
   return cellAspect > aspect
     ? {
         tileWidth: Math.floor(cellHeight * aspect),
