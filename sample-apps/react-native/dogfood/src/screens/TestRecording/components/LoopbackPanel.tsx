@@ -1,7 +1,12 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
+import {
+  RTCView,
+  type MediaStream as RNMediaStream,
+} from '@stream-io/react-native-webrtc';
 import { appTheme } from '../../../theme';
 import {
+  useCallStateHooks,
   ToggleCameraFaceButton,
   LobbyCameraPreview,
 } from '@stream-io/video-react-native-sdk';
@@ -16,18 +21,21 @@ export const LoopbackPanel = ({
   loopbackAudioStream?: MediaStream;
 }) => {
   const styles = useStyles();
+  const { useCameraState } = useCallStateHooks();
+  const { mediaStream: localVideoStream } = useCameraState();
 
   return (
     <View style={styles.panelContainer}>
       <View style={styles.videoPanel}>
-        {/*
-         * Drives the native camera capturer directly, so it needs no local
-         * track: on RN `camera.enable()` before JOINED only records the intent
-         * and the real track is acquired when the join reconciles it. Used for
-         * the whole run rather than only pre-join, so the self-view keeps a
-         * consistent mirroring instead of flipping when recording starts.
-         */}
-        <LobbyCameraPreview style={StyleSheet.absoluteFill} />
+        {localVideoStream ? (
+          <RTCView
+            streamURL={(localVideoStream as unknown as RNMediaStream).toURL()}
+            objectFit="cover"
+            style={StyleSheet.absoluteFill}
+          />
+        ) : (
+          <LobbyCameraPreview style={StyleSheet.absoluteFill} />
+        )}
       </View>
 
       <View style={styles.toggleCameraFaceButton}>
@@ -105,6 +113,15 @@ const useStyles = () => {
           overflow: 'hidden',
           justifyContent: 'center',
           alignItems: 'center',
+        },
+        videoPanelPlaceholder: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        placeholderText: {
+          color: appTheme.colors.light_gray,
+          fontSize: 13,
         },
         videoPanelLabelContainer: {
           position: 'absolute',
