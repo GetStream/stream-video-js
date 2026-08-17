@@ -6,7 +6,7 @@ import {
   OwnCapability,
 } from '../../gen/coordinator';
 import { Call } from '../../Call';
-import { of, Subject } from 'rxjs';
+import { of, ReplaySubject } from 'rxjs';
 import { BrowserPermission } from '../BrowserPermission';
 import { Tracer } from '../../stats';
 
@@ -284,9 +284,9 @@ export const createLocalStorageMock = (): LocalStorageMock => {
   };
 };
 
-let deviceIds: Subject<MediaDeviceInfo[]>;
+let deviceIds: ReplaySubject<MediaDeviceInfo[]>;
 export const mockDeviceIds$ = () => {
-  deviceIds = new Subject();
+  deviceIds = new ReplaySubject(1);
   return deviceIds;
 };
 

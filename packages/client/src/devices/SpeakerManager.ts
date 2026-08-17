@@ -1,4 +1,4 @@
-import { combineLatest, pairwise } from 'rxjs';
+import { combineLatest, firstValueFrom, pairwise } from 'rxjs';
 import { Call } from '../Call';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
@@ -39,11 +39,15 @@ export class SpeakerManager {
     this.setup();
   }
 
-  apply(settings: CallSettingsResponse) {
-    return isReactNative() ? this.applyRN(settings) : this.applyWeb();
+  async apply(settings: CallSettingsResponse): Promise<void> {
+    if (isReactNative()) {
+      this.applyRN(settings);
+      return;
+    }
+    await this.applyWeb();
   }
 
-  private applyWeb() {
+  private async applyWeb() {
     const { enabled, storageKey } = this.devicePersistence;
     if (!enabled) return;
 
@@ -56,8 +60,26 @@ export class SpeakerManager {
       preference.selectedDeviceId === defaultDeviceId
         ? ''
         : preference.selectedDeviceId;
-    if (this.state.selectedDevice !== nextDeviceId) {
-      this.select(nextDeviceId);
+    if (!nextDeviceId) {
+      if (this.state.selectedDevice !== nextDeviceId) {
+        this.select(nextDeviceId);
+      }
+      return;
+    }
+
+    const permissionState = await firstValueFrom(
+      getAudioBrowserPermission(this.call.tracer).asStateObservable(),
+    );
+    if (permissionState !== 'granted') return;
+
+    const devices = await firstValueFrom(this.listDevices());
+    const device =
+      this.findDevice(devices, nextDeviceId) ??
+      (preference.selectedDeviceLabel
+        ? devices.find((d) => d.label === preference.selectedDeviceLabel)
+        : undefined);
+    if (device && this.state.selectedDevice !== device.deviceId) {
+      this.select(device.deviceId);
     }
   }
 

@@ -205,33 +205,125 @@ describe('SpeakerManager.test', () => {
       );
     };
 
-    it('does nothing when persistence is disabled', () => {
+    it('does nothing when persistence is disabled', async () => {
       const selectSpy = vi.spyOn(manager, 'select');
       // @ts-expect-error - partial data
-      manager.apply({});
+      await manager.apply({});
       expect(selectSpy).not.toHaveBeenCalled();
     });
 
-    it('selects the persisted speaker device', () => {
+    it('selects the persisted speaker device', async () => {
       const persistedManager = createPersistedManager();
+      vi.spyOn(persistedManager, 'listDevices').mockReturnValue(
+        of([
+          {
+            deviceId: 'speaker-1',
+            kind: 'audiooutput',
+            label: 'Speaker 1',
+            groupId: 'speaker-group',
+          } as MediaDeviceInfo,
+        ]),
+      );
       persist('speaker-1', 'Speaker 1');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
       // @ts-expect-error - partial data
-      persistedManager.apply({});
+      await persistedManager.apply({});
 
       expect(selectSpy).toHaveBeenCalledWith('speaker-1');
       expect(persistedManager.state.selectedDevice).toBe('speaker-1');
     });
 
-    it('selects system default when persisted device is default', () => {
+    it('does not select a missing persisted speaker device', async () => {
+      const persistedManager = createPersistedManager();
+      vi.spyOn(persistedManager, 'listDevices').mockReturnValue(
+        of(mockAudioOutputDevices),
+      );
+      persist('speaker-1', 'Speaker 1');
+
+      const selectSpy = vi.spyOn(persistedManager, 'select');
+      // @ts-expect-error - partial data
+      await persistedManager.apply({});
+
+      expect(selectSpy).not.toHaveBeenCalled();
+      expect(persistedManager.state.selectedDevice).toBe('');
+    });
+
+    it('does not restore a speaker preference when audio permission is not granted', async () => {
+      const persistedManager = createPersistedManager();
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('prompt'),
+      );
+      const listDevicesSpy = vi.spyOn(persistedManager, 'listDevices');
+      persist('speaker-1', 'Speaker 1');
+
+      const selectSpy = vi.spyOn(persistedManager, 'select');
+      // @ts-expect-error - partial data
+      await persistedManager.apply({});
+
+      expect(listDevicesSpy).not.toHaveBeenCalled();
+      expect(selectSpy).not.toHaveBeenCalled();
+      expect(persistedManager.state.selectedDevice).toBe('');
+    });
+
+    it('does not restore a speaker preference from a non-output device with the same label', async () => {
+      const persistedManager = createPersistedManager();
+      const videoDevice = {
+        deviceId: 'video-device-id',
+        kind: 'videoinput',
+        label: 'RODECaster Video (19f7:006b)',
+        groupId: 'video-group',
+      } as MediaDeviceInfo;
+      const outputDevice = {
+        deviceId: 'speaker-device-id',
+        kind: 'audiooutput',
+        label: 'RODECaster Video (19f7:006b)',
+        groupId: 'speaker-group',
+      } as MediaDeviceInfo;
+      vi.spyOn(persistedManager, 'listDevices').mockReturnValue(
+        of([outputDevice]),
+      );
+      persist('missing-speaker-device-id', outputDevice.label);
+
+      const selectSpy = vi.spyOn(persistedManager, 'select');
+      // @ts-expect-error - partial data
+      await persistedManager.apply({});
+
+      expect(selectSpy).toHaveBeenCalledWith(outputDevice.deviceId);
+      expect(selectSpy).not.toHaveBeenCalledWith(videoDevice.deviceId);
+      expect(persistedManager.state.selectedDevice).toBe(outputDevice.deviceId);
+    });
+
+    it('does not restore a speaker preference from an empty label placeholder', async () => {
+      const persistedManager = createPersistedManager();
+      vi.spyOn(persistedManager, 'listDevices').mockReturnValue(
+        of([
+          {
+            deviceId: '',
+            kind: 'audiooutput',
+            label: '',
+            groupId: '',
+          } as MediaDeviceInfo,
+        ]),
+      );
+      persist('missing-speaker-device-id', '');
+
+      const selectSpy = vi.spyOn(persistedManager, 'select');
+      // @ts-expect-error - partial data
+      await persistedManager.apply({});
+
+      expect(selectSpy).not.toHaveBeenCalled();
+      expect(persistedManager.state.selectedDevice).toBe('');
+    });
+
+    it('selects system default when persisted device is default', async () => {
       const persistedManager = createPersistedManager();
       persistedManager.select('previous-device');
       persist(defaultDeviceId, '');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
       // @ts-expect-error - partial data
-      persistedManager.apply({});
+      await persistedManager.apply({});
 
       expect(selectSpy).toHaveBeenCalledWith('');
       expect(persistedManager.state.selectedDevice).toBe('');
