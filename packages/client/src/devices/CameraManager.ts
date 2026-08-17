@@ -7,7 +7,6 @@ import { VideoSettingsResponse } from '../gen/coordinator';
 import { TrackType } from '../gen/video/sfu/models/models';
 import { isMobile } from '../helpers/compatibility';
 import { isReactNative } from '../helpers/platforms';
-import { CallingState } from '../store';
 import { DevicePersistenceOptions } from './devicePersistence';
 
 export class CameraManager extends DeviceManager<CameraManagerState> {
@@ -126,10 +125,7 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
   }
 
   override enable(): Promise<void> {
-    if (
-      isReactNative() &&
-      this.call.state.callingState !== CallingState.JOINED
-    ) {
+    if (isReactNative() && !this.call.hasMediaEngine) {
       this.state.setPendingStatus('enabled');
       return Promise.resolve();
     }
@@ -142,10 +138,7 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
   override async disable(
     forceStopOrOptions?: boolean | { forceStop?: boolean },
   ): Promise<void> {
-    if (
-      isReactNative() &&
-      this.call.state.callingState !== CallingState.JOINED
-    ) {
+    if (isReactNative() && !this.call.hasMediaEngine) {
       this.state.setPendingStatus('disabled');
       return;
     }
@@ -159,10 +152,7 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
   }
 
   override toggle(): Promise<void> {
-    if (
-      isReactNative() &&
-      this.call.state.callingState !== CallingState.JOINED
-    ) {
+    if (isReactNative() && !this.call.hasMediaEngine) {
       this.state.setPendingStatus(
         this.state.optimisticStatus === 'enabled' ? 'disabled' : 'enabled',
       );
