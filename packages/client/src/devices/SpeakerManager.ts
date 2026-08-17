@@ -1,4 +1,4 @@
-import { combineLatest } from 'rxjs';
+import { combineLatest, pairwise } from 'rxjs';
 import { Call } from '../Call';
 import { isReactNative } from '../helpers/platforms';
 import { SpeakerState } from './SpeakerState';
@@ -102,13 +102,16 @@ export class SpeakerManager {
     if (deviceIds$ && !isReactNative()) {
       this.subscriptions.push(
         createSubscription(
-          combineLatest([deviceIds$, this.state.selectedDevice$]),
-          ([devices, deviceId]) => {
+          combineLatest([
+            deviceIds$.pipe(pairwise()),
+            this.state.selectedDevice$,
+          ]),
+          ([[prevDevices, currentDevices], deviceId]) => {
             if (!deviceId) return;
-            const device = devices.find(
-              (d) => d.deviceId === deviceId && d.kind === 'audiooutput',
-            );
-            if (!device) this.select('');
+            const isDisconnected =
+              this.findDevice(prevDevices, deviceId) &&
+              !this.findDevice(currentDevices, deviceId);
+            if (isDisconnected) this.select('');
           },
         ),
       );
@@ -202,6 +205,9 @@ export class SpeakerManager {
       return { audioVolume: volume };
     });
   }
+
+  private findDevice = (devices: MediaDeviceInfo[], deviceId: string) =>
+    devices.find((d) => d.deviceId === deviceId && d.kind === 'audiooutput');
 
   private persistSpeakerDevicePreference(selectedDevice: string) {
     const { storageKey } = this.devicePersistence;

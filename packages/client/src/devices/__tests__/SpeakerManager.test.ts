@@ -6,8 +6,10 @@ import {
   emitDeviceIds,
   LocalStorageMock,
   mockAudioDevices,
+  mockAudioOutputDevices,
   mockBrowserPermission,
   mockDeviceIds$,
+  mockDevicesWithoutAudioPermission,
 } from './mocks';
 import { of } from 'rxjs';
 import { SpeakerManager } from '../SpeakerManager';
@@ -122,13 +124,34 @@ describe('SpeakerManager.test', () => {
   });
 
   it('should disable device if selected device is disconnected', () => {
-    emitDeviceIds(mockAudioDevices);
-    const deviceId = mockAudioDevices[1].deviceId;
+    const deviceId = mockAudioOutputDevices[0].deviceId;
+    emitDeviceIds([...mockAudioDevices, ...mockAudioOutputDevices]);
     manager.select(deviceId);
 
-    emitDeviceIds(mockAudioDevices.slice(2));
+    emitDeviceIds([...mockAudioDevices, ...mockAudioOutputDevices.slice(1)]);
 
     expect(manager.state.selectedDevice).toBe('');
+  });
+
+  it('should keep the selection when the device list never exposed audio ids', () => {
+    const deviceId = mockAudioOutputDevices[0].deviceId;
+    emitDeviceIds(mockDevicesWithoutAudioPermission);
+
+    manager.select(deviceId);
+    expect(manager.state.selectedDevice).toBe(deviceId);
+
+    emitDeviceIds(mockDevicesWithoutAudioPermission);
+    expect(manager.state.selectedDevice).toBe(deviceId);
+  });
+
+  it('should keep the selection when the device appears in a later enumeration', () => {
+    const deviceId = mockAudioOutputDevices[0].deviceId;
+    emitDeviceIds(mockDevicesWithoutAudioPermission);
+    manager.select(deviceId);
+
+    emitDeviceIds([...mockAudioDevices, ...mockAudioOutputDevices]);
+
+    expect(manager.state.selectedDevice).toBe(deviceId);
   });
 
   it('persists speaker selection when permission is granted', async () => {
@@ -159,16 +182,9 @@ describe('SpeakerManager.test', () => {
   });
 
   describe('apply (web)', () => {
-    it('does nothing when persistence is disabled', () => {
-      const selectSpy = vi.spyOn(manager, 'select');
-      // @ts-expect-error - partial data
-      manager.apply({});
-      expect(selectSpy).not.toHaveBeenCalled();
-    });
-
-    it('selects the persisted speaker device', () => {
+    const createPersistedManager = () => {
       const streamClient = new StreamClient('abc123');
-      const persistedManager = new SpeakerManager(
+      return new SpeakerManager(
         new Call({
           id: '',
           type: '',
@@ -178,18 +194,27 @@ describe('SpeakerManager.test', () => {
         }),
         { enabled: true, storageKey },
       );
+    };
 
+    const persist = (selectedDeviceId: string, selectedDeviceLabel: string) => {
       localStorageMock.setItem(
         storageKey,
         JSON.stringify({
-          speaker: [
-            {
-              selectedDeviceId: 'speaker-1',
-              selectedDeviceLabel: 'Speaker 1',
-            },
-          ],
+          speaker: [{ selectedDeviceId, selectedDeviceLabel }],
         }),
       );
+    };
+
+    it('does nothing when persistence is disabled', () => {
+      const selectSpy = vi.spyOn(manager, 'select');
+      // @ts-expect-error - partial data
+      manager.apply({});
+      expect(selectSpy).not.toHaveBeenCalled();
+    });
+
+    it('selects the persisted speaker device', () => {
+      const persistedManager = createPersistedManager();
+      persist('speaker-1', 'Speaker 1');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
       // @ts-expect-error - partial data
@@ -200,30 +225,9 @@ describe('SpeakerManager.test', () => {
     });
 
     it('selects system default when persisted device is default', () => {
-      const streamClient = new StreamClient('abc123');
-      const persistedManager = new SpeakerManager(
-        new Call({
-          id: '',
-          type: '',
-          streamClient,
-          clientEventReporter: new ClientEventReporter({ streamClient }),
-          clientStore: new StreamVideoWriteableStateStore(),
-        }),
-        { enabled: true, storageKey },
-      );
+      const persistedManager = createPersistedManager();
       persistedManager.select('previous-device');
-
-      localStorageMock.setItem(
-        storageKey,
-        JSON.stringify({
-          speaker: [
-            {
-              selectedDeviceId: defaultDeviceId,
-              selectedDeviceLabel: '',
-            },
-          ],
-        }),
-      );
+      persist(defaultDeviceId, '');
 
       const selectSpy = vi.spyOn(persistedManager, 'select');
       // @ts-expect-error - partial data
