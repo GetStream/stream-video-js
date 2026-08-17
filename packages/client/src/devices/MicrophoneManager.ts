@@ -191,10 +191,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   }
 
   override enable(): Promise<void> {
-    if (
-      isReactNative() &&
-      this.call.state.callingState !== CallingState.JOINED
-    ) {
+    if (isReactNative() && !this.call.hasMediaEngine) {
       this.state.setPendingStatus('enabled');
       return Promise.resolve();
     }
@@ -207,10 +204,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   override async disable(
     forceStopOrOptions?: boolean | { forceStop?: boolean },
   ): Promise<void> {
-    if (
-      isReactNative() &&
-      this.call.state.callingState !== CallingState.JOINED
-    ) {
+    if (isReactNative() && !this.call.hasMediaEngine) {
       this.state.setPendingStatus('disabled');
       return;
     }
@@ -224,10 +218,7 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
   }
 
   override toggle(): Promise<void> {
-    if (
-      isReactNative() &&
-      this.call.state.callingState !== CallingState.JOINED
-    ) {
+    if (isReactNative() && !this.call.hasMediaEngine) {
       this.state.setPendingStatus(
         this.state.optimisticStatus === 'enabled' ? 'disabled' : 'enabled',
       );
