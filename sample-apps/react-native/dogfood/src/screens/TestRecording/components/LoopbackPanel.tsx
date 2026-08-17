@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import {
   RTCView,
   type MediaStream as RNMediaStream,
@@ -8,7 +8,6 @@ import { appTheme } from '../../../theme';
 import {
   useCallStateHooks,
   ToggleCameraFaceButton,
-  LobbyCameraPreview,
 } from '@stream-io/video-react-native-sdk';
 import { Mic } from '../../../assets/Mic';
 import { Video } from '../../../assets/Video';
@@ -34,7 +33,9 @@ export const LoopbackPanel = ({
             style={StyleSheet.absoluteFill}
           />
         ) : (
-          <LobbyCameraPreview style={StyleSheet.absoluteFill} />
+          <View style={styles.videoPanelPlaceholder}>
+            <Text style={styles.placeholderText}>Waiting…</Text>
+          </View>
         )}
       </View>
 
