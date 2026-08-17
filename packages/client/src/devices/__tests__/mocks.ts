@@ -97,6 +97,7 @@ export const mockCall = (): Partial<Call> => {
   return {
     cid: 'default:test-call',
     state: callState,
+    hasMediaEngine: true,
     publish: vi.fn(),
     stopPublish: vi.fn(),
     streamClient: fromPartial({

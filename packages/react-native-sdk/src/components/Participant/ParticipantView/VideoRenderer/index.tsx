@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { LayoutChangeEvent, Platform, StyleSheet, View } from 'react-native';
 import type { MediaStream } from '@stream-io/react-native-webrtc';
 import { RTCView } from '@stream-io/react-native-webrtc';
 import type { ParticipantViewProps } from '../ParticipantView';
@@ -207,7 +207,7 @@ export const VideoRenderer = React.memo(
     ]);
 
     const onLayout: React.ComponentProps<typeof RTCView>['onLayout'] = (
-      event,
+      event: LayoutChangeEvent,
     ) => {
       dimensions$.next({
         width: Math.trunc(event.nativeEvent.layout.width),

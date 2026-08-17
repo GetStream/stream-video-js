@@ -1,5 +1,5 @@
 PODS:
-  - Callingx (0.8.1):
+  - Callingx (0.9.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2502,7 +2502,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - stream-io-noise-cancellation-react-native (0.9.5):
+  - stream-io-noise-cancellation-react-native (0.10.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2526,7 +2526,7 @@ PODS:
     - stream-react-native-webrtc
     - StreamVideoNoiseCancellation
     - Yoga
-  - stream-io-video-filters-react-native (0.14.5):
+  - stream-io-video-filters-react-native (0.15.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2549,10 +2549,10 @@ PODS:
     - ReactNativeDependencies
     - stream-react-native-webrtc
     - Yoga
-  - stream-react-native-webrtc (145.3.0):
+  - stream-react-native-webrtc (145.3.1):
     - React-Core
-    - StreamWebRTC (= 145.14.0)
-  - stream-video-react-native (1.42.0):
+    - StreamWebRTC (= 145.15.0)
+  - stream-video-react-native (1.43.0):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2576,7 +2576,7 @@ PODS:
     - stream-react-native-webrtc
     - Yoga
   - StreamVideoNoiseCancellation (1.0.3)
-  - StreamWebRTC (145.14.0)
+  - StreamWebRTC (145.15.0)
   - Teleport (1.1.12):
     - hermes-engine
     - RCTRequired
@@ -2949,7 +2949,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  Callingx: 8da0749b933995499c010e35e0275d89bc096a1b
+  Callingx: 1e13711cc1b85d266438b5c4412ecb1bd6bc511d
   FBLazyVector: 3c3be9a019176b5699455f7f66c5444b78a411c6
   hermes-engine: 5da8d7eeb13a48d932b021d8d9df9e27d1acc5be
   MMKVCore: 3d16ce9f7d411e135020915fde98a056859a1efa
@@ -3045,12 +3045,12 @@ SPEC CHECKSUMS:
   RNSVG: 10edb4a8a7e6bb61313c0a2311cc321644ff5e0a
   RNWorklets: ca7e0a49681a74e09f09e389aefd9e453fa0079b
   stream-chat-react-native: baf7e1c3fc101f8a1b95ad0c6693ddaf2bab384e
-  stream-io-noise-cancellation-react-native: b96decfa2b58fcfb2737b2c35c710a002c7b67c3
-  stream-io-video-filters-react-native: b6bd02235657b56c9855126f94ffd91a7cfbaf13
-  stream-react-native-webrtc: 1ca47396c7e271a6cce7897dbcdfbe19873398a4
-  stream-video-react-native: cb02a465bae6219aeefa7065b834e93d67f8adbc
+  stream-io-noise-cancellation-react-native: 1dc825d5b6e69da05dcd7342498e0546a5ffdf49
+  stream-io-video-filters-react-native: d9e5695d2fe09dc897236aecc8527ba45656482d
+  stream-react-native-webrtc: ab1633ad73f2eb1b8baf9f13858c78f2f62d1986
+  stream-video-react-native: 5747603aad92ea28792951bc6cb84a549941a172
   StreamVideoNoiseCancellation: 41f5a712aba288f9636b64b17ebfbdff52c61490
-  StreamWebRTC: 3c6cb5fd01458172a28046ed7f162e24e88c1332
+  StreamWebRTC: 89743e7e21ec6e388462919246051e8ed6b3dfc1
   Teleport: 4cb9855422c04666fbeee9a52e5342466e27b009
   VisionCamera: 68d40255fa8866e815cbbb063730102d3da276fd
   Yoga: 542a30dafe5b0f5f1d9f185ea7b2a3811ac54801
