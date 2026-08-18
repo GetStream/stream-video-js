@@ -3377,7 +3377,9 @@ export class Call {
     skipSpeakerApply: boolean,
   ) => {
     if (!skipSpeakerApply) {
-      this.speaker.apply(settings);
+      await this.speaker.apply(settings).catch((err) => {
+        this.logger.warn('Speaker init failed', err);
+      });
     }
     await this.camera.apply(settings.video, publish).catch((err) => {
       this.logger.warn('Camera init failed', err);

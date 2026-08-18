@@ -73,20 +73,7 @@ rootProject.allprojects {
             url = 'https://central.sonatype.com/repository/maven-snapshots/'
             content {
                 // This efficiently tells Gradle to only look for this specific dependency in this repository
-                includeModule('io.getstream', 'io.getstream:stream-video-android-noise-cancellation-libwebrtc')
-            }
-        }
-    }
-}
-
-rootProject.allprojects {
-    repositories {
-        maven {
-            name = 'Central Sonatype Portal Snapshots'
-            url = 'https://oss.sonatype.org/content/repositories/snapshots/'
-            content {
-                // This efficiently tells Gradle to only look for this specific dependency here
-                includeModule('io.getstream', 'io.getstream:stream-video-android-noise-cancellation-libwebrtc')
+                includeModule('io.getstream', 'stream-video-android-noise-cancellation-libwebrtc')
             }
         }
     }
