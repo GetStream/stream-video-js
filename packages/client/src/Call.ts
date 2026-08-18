@@ -1142,7 +1142,6 @@ export class Call {
       callId: this.id,
       getCallSessionId: () => this.state.session?.id ?? '',
       getSfuId: () => this.credentials?.server.edge_name ?? '',
-      getUserSessionId: () => this.sfuClient?.sessionId ?? '',
     });
 
     this.joinResponseTimeout = joinResponseTimeout;

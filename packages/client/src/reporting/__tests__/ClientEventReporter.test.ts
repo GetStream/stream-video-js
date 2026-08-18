@@ -77,7 +77,6 @@ describe('ClientEventReporter', () => {
       callId: 'call-1',
       getCallSessionId: () => 'session-1',
       getSfuId: () => 'sfu-1',
-      getUserSessionId: () => 'user-session-1',
     };
     reporter.registerCall(cid, ctx);
   });
@@ -91,7 +90,7 @@ describe('ClientEventReporter', () => {
     expect(events).toHaveLength(2);
     expect(events[0]).toMatchObject({
       event_type: 'initiated',
-      call_cid: cid,
+      id: 'call-1',
       user_id: 'user-1',
       coordinator_connect_id: connectId,
       join_reason: 'first-attempt',
@@ -523,7 +522,6 @@ describe('ClientEventReporter', () => {
       peer_connection: 'publish',
       was_previously_connected: false,
       sfu_id: 'sfu-1',
-      user_session_id: 'user-session-1',
     });
     expect(events[1]).toMatchObject({
       event_type: 'completed',
@@ -712,7 +710,6 @@ describe('ClientEventReporter', () => {
       callId: 'call-2',
       getCallSessionId: () => 'session-2',
       getSfuId: () => 'sfu-2',
-      getUserSessionId: () => 'user-session-2',
     });
 
     reporter.startCorrelation(cid, 'first-attempt');
@@ -722,10 +719,10 @@ describe('ClientEventReporter', () => {
     await flush();
 
     const ws1 = postedEvents().filter(
-      (e) => e.stage === 'WSJoin' && e.call_cid === cid,
+      (e) => e.stage === 'WSJoin' && e.id === 'call-1',
     );
     const ws2 = postedEvents().filter(
-      (e) => e.stage === 'WSJoin' && e.call_cid === cid2,
+      (e) => e.stage === 'WSJoin' && e.id === 'call-2',
     );
     expect(ws1).toHaveLength(2);
     expect(ws2).toHaveLength(2);
@@ -806,7 +803,6 @@ describe('ClientEventReporter (disabled)', () => {
       callId: 'call-1',
       getCallSessionId: () => 'session-1',
       getSfuId: () => 'sfu-1',
-      getUserSessionId: () => 'user-session-1',
     });
   });
 

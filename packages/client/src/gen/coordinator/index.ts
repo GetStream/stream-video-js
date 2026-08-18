@@ -8469,6 +8469,32 @@ export interface ReportByHistogramBucket {
   upper_bound?: Bound;
 }
 /**
+ * Reports a batch of client-side telemetry events. Each event is validated and processed independently; one invalid event does not block the rest of the batch.
+ * @export
+ * @interface ReportClientEventRequest
+ */
+export interface ReportClientEventRequest {
+  /**
+   * Client-side events to report (1-100 per request)
+   * @type {Array<ClientEvent>}
+   * @memberof ReportClientEventRequest
+   */
+  events: Array<ClientEvent>;
+}
+/**
+ * Response for reporting client-side telemetry events
+ * @export
+ * @interface ReportClientEventResponse
+ */
+export interface ReportClientEventResponse {
+  /**
+   * Duration of the request in milliseconds
+   * @type {string}
+   * @memberof ReportClientEventResponse
+   */
+  duration: string;
+}
+/**
  *
  * @export
  * @interface ReportResponse
