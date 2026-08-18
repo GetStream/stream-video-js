@@ -125,7 +125,7 @@ export class SpeakerManager {
       this.subscriptions.push(
         createSubscription(
           combineLatest([
-            deviceIds$.pipe(pairwise()),
+            deviceIds$!.pipe(pairwise()),
             this.state.selectedDevice$,
           ]),
           ([[prevDevices, currentDevices], deviceId]) => {
