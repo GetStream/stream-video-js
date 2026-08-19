@@ -22,6 +22,8 @@ export function setupIosVoipPushEvents(
     logger.debug(
       `voipNotificationReceived event call_cid: ${params?.stream?.call_cid}`,
     );
-    onVoipNotificationReceived(params, pushConfig);
+    onVoipNotificationReceived(params, pushConfig).catch((error) => {
+      logger.error(`Error in onVoipNotificationReceived: ${error}`);
+    });
   });
 }

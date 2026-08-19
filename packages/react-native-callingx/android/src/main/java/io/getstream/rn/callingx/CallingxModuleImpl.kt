@@ -365,11 +365,6 @@ class CallingxModuleImpl(
         }
     }
 
-    fun registerBackgroundTaskAvailable() {
-        debugLog(TAG, "[module] registerBackgroundTaskAvailable: Headless task registered")
-    }
-
-
     fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         // no-op: Android Telecom doesn't require explicit action fulfillment
     }

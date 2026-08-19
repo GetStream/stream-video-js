@@ -162,11 +162,6 @@ class CallingxModule(reactContext: ReactApplicationContext) :
         impl.stopBackgroundTask(taskName, promise)
     }
 
-    override fun registerBackgroundTaskAvailable() {
-        impl.registerBackgroundTaskAvailable()
-    }
-
-
     override fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         impl.fulfillAnswerCallAction(callId, didFail)
     }

@@ -143,7 +143,7 @@ class CallingxModule implements ICallingxModule {
       }
 
       registerHeadlessTask();
-      this.registerKeepAliveTask();
+      setHeadlessTask(this.keepAliveHoldTask);
     }
 
     this._isSetup = true;
@@ -314,18 +314,13 @@ class CallingxModule implements ICallingxModule {
         return;
       }
       this._keepAliveResolve = () => {
-        this.log('Releasing callingx keep-alive background task', 'info');
+        this.log(
+          '[headless] Releasing callingx keep-alive background task',
+          'info',
+        );
         resolve();
       };
     });
-
-  private registerKeepAliveTask = (): void => {
-    // We intentionally do NOT route stops through NativeCallingModule.stopBackgroundTask: that uses
-    // startService, so when no CallService is running (the call already ended -> onDestroy) it would
-    // spin up a throwaway CallService just to deliver a no-op stop, which then lingers.
-    setHeadlessTask(() => this.keepAliveHoldTask());
-    NativeCallingModule.registerBackgroundTaskAvailable();
-  };
 
   acquireBackgroundTask = async (owner: string): Promise<void> => {
     if (Platform.OS !== 'android') {

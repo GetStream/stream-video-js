@@ -690,18 +690,6 @@ RCT_EXPORT_METHOD(stopBackgroundTask:(NSString *)taskName
 }
 #endif
 
-#pragma mark - registerBackgroundTaskAvailable
-
-#ifdef RCT_NEW_ARCH_ENABLED
-- (void)registerBackgroundTaskAvailable {
-  // Not implemented on iOS - background tasks work differently on iOS
-}
-#else
-RCT_EXPORT_METHOD(registerBackgroundTaskAvailable) {
-  // Not implemented on iOS - background tasks work differently on iOS
-}
-#endif
-
 #pragma mark - canPostNotifications
 
 #ifdef RCT_NEW_ARCH_ENABLED

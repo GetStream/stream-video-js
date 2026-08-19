@@ -18,6 +18,8 @@ export function setupAndroidPushEvents(
   const callingx = getCallingxLib();
   callingx.addEventListener('ringCallPushReceived', (params) => {
     logger.debug(`ringCallPushReceived event call_cid: ${params?.call_cid}`);
-    firebaseDataHandler(params);
+    firebaseDataHandler(params).catch((error) => {
+      logger.error(`Error in firebaseDataHandler: ${error}`);
+    });
   });
 }

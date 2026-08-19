@@ -75,7 +75,9 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     } else if (eventName === 'providerReset') {
       onProviderReset(pushConfig)(params as EventParams['providerReset']);
     } else if (eventName === 'ringCallPushReceived') {
-      firebaseDataHandler(params);
+      firebaseDataHandler(params).catch((error) => {
+        logger.error(`Error in firebaseDataHandler: ${error}`);
+      });
     }
   });
 }
