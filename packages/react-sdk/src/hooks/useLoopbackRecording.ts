@@ -60,10 +60,10 @@ export type UseLoopbackRecordingResult = {
 /** Records SFU loopback streams for pre-call testing. */
 export const useLoopbackRecording = (): UseLoopbackRecordingResult => {
   const call = useCall();
-  const { useCallCallingState, useRemoteParticipants, useLocalParticipant } =
+  const { useCallCallingState, useParticipantCount, useLocalParticipant } =
     useCallStateHooks();
   const callingState = useCallCallingState();
-  const remoteParticipants = useRemoteParticipants();
+  const participantCount = useParticipantCount();
   const localParticipant = useLocalParticipant();
 
   const [recordingState, setRecordingState] =
@@ -87,23 +87,21 @@ export const useLoopbackRecording = (): UseLoopbackRecordingResult => {
     }
   }, []);
 
-  const stopRecording = useCallback(
-    async (reason = 'requested by the caller'): Promise<void> => {
-      const current = recordingStateRef.current;
-      if (current === 'idle') return;
+  const stopRecording = useCallback(async (): Promise<void> => {
+    const current = recordingStateRef.current;
+    if (current === 'idle') return;
 
-      const logger = videoLoggerSystem.getLogger('useLoopbackRecording');
-      if (current === 'awaiting-streams') {
-        logger.debug(`aborting awaiting-streams wait: ${reason}`);
-        awaitAbortRef.current?.abort(reason);
-        return;
-      }
+    if (current === 'awaiting-streams') {
+      videoLoggerSystem
+        .getLogger('useLoopbackRecording')
+        .debug('aborting the awaiting-streams wait');
+      awaitAbortRef.current?.abort();
+      return;
+    }
 
-      stopRef.current?.();
-      await runRef.current;
-    },
-    [],
-  );
+    stopRef.current?.();
+    await runRef.current;
+  }, []);
 
   const startRecording = useCallback(
     async ({
@@ -118,7 +116,7 @@ export const useLoopbackRecording = (): UseLoopbackRecordingResult => {
         return null;
       }
 
-      if (call.state.remoteParticipants.length > 0) {
+      if (call.state.participantCount > 1) {
         logger.warn('cannot start recording with other participants present');
         return null;
       }
@@ -180,17 +178,15 @@ export const useLoopbackRecording = (): UseLoopbackRecordingResult => {
       callingState === CallingState.LEFT ||
       callingState === CallingState.IDLE
     ) {
-      stopRecording(`calling state became ${callingState}`).catch(() => {});
+      stopRecording().catch(() => {});
     }
   }, [callingState, stopRecording]);
 
   useEffect(() => {
-    if (recordingState !== 'idle' && remoteParticipants.length > 0) {
-      stopRecording(
-        `${remoteParticipants.length} remote participant(s) joined`,
-      ).catch(() => {});
+    if (recordingState !== 'idle' && participantCount > 1) {
+      stopRecording().catch(() => {});
     }
-  }, [remoteParticipants, recordingState, stopRecording]);
+  }, [participantCount, recordingState, stopRecording]);
 
   useEffect(() => {
     isMountedRef.current = true;

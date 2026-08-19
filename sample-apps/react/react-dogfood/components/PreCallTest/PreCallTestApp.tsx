@@ -23,20 +23,29 @@ export const PreCallTestApp = ({
 
   useEffect(() => {
     const _client = getClient({ apiKey, user, userToken }, environment);
-    const _call = _client.call('default', `pre_call_test_${meetingId()}`);
-    _call.setStatsReportingIntervalInMs(500);
-
     setClient(_client);
-    setCall(_call);
-
-    _call.getOrCreate().catch(console.error);
 
     return () => {
       setClient(undefined);
-      setCall(undefined);
-      _call.leave().catch(console.error);
+      _client
+        .disconnectUser()
+        .catch((e) => console.error('Failed to disconnect user', e));
     };
   }, [apiKey, user, userToken, environment]);
+
+  useEffect(() => {
+    if (!client) return;
+
+    const _call = client.call('default', `pre_call_test_${meetingId()}`);
+    _call.setStatsReportingIntervalInMs(500);
+    setCall(_call);
+    _call.getOrCreate().catch(console.error);
+
+    return () => {
+      setCall(undefined);
+      _call.leave().catch((e) => console.error('Failed to leave call', e));
+    };
+  }, [client]);
 
   if (!client || !call) {
     return null;
