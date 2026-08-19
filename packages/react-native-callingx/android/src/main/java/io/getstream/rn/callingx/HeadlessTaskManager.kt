@@ -19,6 +19,9 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
 
   private var activeTaskId: Int? = null
   private var isStarting: Boolean = false
+  private var pendingReactInstanceListener: ReactInstanceEventListener? = null
+  @Volatile
+  private var released: Boolean = false
 
   companion object {
     private const val TAG = "[Callingx] HeadlessTaskManager"
@@ -87,6 +90,10 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
   }
 
   private fun invokeStartTask(reactContext: ReactContext, taskConfig: HeadlessJsTaskConfig) {
+    if (released) {
+      debugLog(TAG, "[headless] invokeStartTask: released, skipping")
+      return
+    }
     debugLog(TAG, "[headless] invokeStartTask: Invoking start task")
     val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(reactContext)
     headlessJsTaskContext.addTaskEventListener(this)
@@ -110,8 +117,16 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
   }
 
   fun release() {
+    released = true
     stopHeadlessTask()
     isStarting = false
+    // Proactively unregister the pending React-context init listener. Otherwise the callback
+    // would fire after CallService is destroyed, invokeStartTask a stale task on this dead
+    // manager, and register `this` as a task listener on the live ReactContext (leak).
+    pendingReactInstanceListener?.let { listener ->
+      removeReactInstanceEventListener(listener)
+      pendingReactInstanceListener = null
+    }
     // Defer cleanup to the back of the main-thread queue so any finish callback already
     // posted by finishTask() drains first — otherwise we'd unregister the listener before
     // it fires and lose the finish log.
@@ -121,6 +136,19 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
         val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
         headlessJsTaskContext.removeTaskEventListener(this)
       }
+    }
+  }
+
+  private fun removeReactInstanceEventListener(listener: ReactInstanceEventListener) {
+    try {
+      if (ReactNativeFeatureFlags.enableBridgelessArchitecture()) {
+        reactHost?.removeReactInstanceEventListener(listener)
+      } else {
+        reactNativeHost.reactInstanceManager.removeReactInstanceEventListener(listener)
+      }
+    } catch (t: Throwable) {
+      // Best-effort — RN may be in a torn-down state.
+      debugLog(TAG, "[headless] failed to remove react-instance listener: ${t.message}")
     }
   }
 
@@ -173,29 +201,29 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
     }
 
   private fun createReactContextAndScheduleTask(taskConfig: HeadlessJsTaskConfig) {
+    val listener = object : ReactInstanceEventListener {
+      override fun onReactContextInitialized(context: ReactContext) {
+        if (released) {
+          debugLog(TAG, "[headless] onReactContextInitialized fired after release, ignoring")
+          removeReactInstanceEventListener(this)
+          pendingReactInstanceListener = null
+          return
+        }
+        debugLog(TAG, "createReactContextAndScheduleTask: React context initialized")
+        invokeStartTask(context, taskConfig)
+        removeReactInstanceEventListener(this)
+        pendingReactInstanceListener = null
+      }
+    }
+    pendingReactInstanceListener = listener
+
     if (ReactNativeFeatureFlags.enableBridgelessArchitecture()) {
       val reactHost = checkNotNull(reactHost)
-      reactHost.addReactInstanceEventListener(
-              object : ReactInstanceEventListener {
-                override fun onReactContextInitialized(context: ReactContext) {
-                  debugLog(TAG, "createReactContextAndScheduleTask: React context initialized")
-                  invokeStartTask(context, taskConfig)
-                  reactHost.removeReactInstanceEventListener(this)
-                }
-              }
-      )
+      reactHost.addReactInstanceEventListener(listener)
       reactHost.start()
     } else {
       val reactInstanceManager = reactNativeHost.reactInstanceManager
-      reactInstanceManager.addReactInstanceEventListener(
-              object : ReactInstanceEventListener {
-                override fun onReactContextInitialized(context: ReactContext) {
-                  debugLog(TAG, "createReactContextAndScheduleTask: React context initialized")
-                  invokeStartTask(context, taskConfig)
-                  reactInstanceManager.removeReactInstanceEventListener(this)
-                }
-              }
-      )
+      reactInstanceManager.addReactInstanceEventListener(listener)
       if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
         reactInstanceManager.createReactContextInBackground()
       }
