@@ -1182,6 +1182,12 @@ export class Call {
               delete joinData.migrating_from_list;
               return;
             } catch (err) {
+              // the user left mid-attempt: the failure is a consequence of that,
+              // so resolve quietly instead of rejecting `join()`
+              if (supersededByLeave()) {
+                this.logger.debug('Join superseded by leave; discarding error');
+                return;
+              }
               this.logger.warn(`Failed to join call (${attempt})`, this.cid);
               if (
                 (err instanceof ErrorFromResponse && err.unrecoverable) ||
@@ -1278,6 +1284,12 @@ export class Call {
           'CoordinatorJoin',
           () => this.doJoinRequest(data, supersededByLeave),
         );
+        if (supersededByLeave()) {
+          this.logger.debug(
+            'Join superseded by leave; discarding join response',
+          );
+          return 'superseded';
+        }
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
         this.lastStatsOptions = statsOptions;
@@ -1294,11 +1306,6 @@ export class Call {
         }
         throw error;
       }
-    }
-
-    if (supersededByLeave()) {
-      this.logger.debug('Join superseded by leave; not creating an SFU client');
-      return 'superseded';
     }
 
     const previousSfuClient = this.sfuClient;
@@ -1360,6 +1367,12 @@ export class Call {
 
       const unifiedSessionId = this.unifiedSessionId;
       const capabilities = Array.from(this.clientCapabilities);
+      if (supersededByLeave()) {
+        this.logger.debug(
+          'Join superseded by leave; skipping the join request',
+        );
+        return 'superseded';
+      }
       try {
         const { callState, fastReconnectDeadlineSeconds, publishOptions } =
           await this.clientEventReporter.track(this.cid, 'WSJoin', () =>
