@@ -44,18 +44,13 @@ public object CallEventBus {
     @JvmStatic
     @Synchronized
     fun drainPendingEvents(): List<CallEvent> {
+        isJsReady = true
         if (pendingEvents.isEmpty()) {
             return emptyList()
         }
         val copy = pendingEvents.toList()
         pendingEvents.clear()
         return copy
-    }
-
-    @JvmStatic
-    @Synchronized
-    fun markJsReady() {
-        isJsReady = true
     }
 }
 

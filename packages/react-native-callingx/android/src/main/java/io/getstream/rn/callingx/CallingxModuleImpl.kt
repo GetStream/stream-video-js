@@ -144,9 +144,8 @@ class CallingxModuleImpl(
         // event and clear it immediately after getting initial events
         val events = delayedEvents
         debugLog(TAG, "[module] getInitialEvents: Getting initial events: $events")
-        delayedEvents = WritableNativeArray()
         canSendEvents = true
-        CallEventBus.markJsReady()
+        delayedEvents = WritableNativeArray()
         return events
     }
 
