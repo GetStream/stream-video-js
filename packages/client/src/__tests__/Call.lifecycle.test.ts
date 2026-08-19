@@ -218,68 +218,77 @@ describe('Call lifecycle wiring', () => {
   // to IDLE and re-registers the call), and MIGRATE sets JOINED unconditionally
   // once the migration task settles.
   describe.each([
-    { strategy: 'reconnectFast' as const, expectRevivedTo: 'idle' },
-    { strategy: 'reconnectMigrate' as const, expectRevivedTo: 'joined' },
-  ])('$strategy after a cancelled join', ({ strategy }) => {
-    it('performs no post-join work', async () => {
-      vi.spyOn(streamClient, '_hasConnectionID').mockReturnValue(true);
-      vi.spyOn(streamClient, 'get').mockResolvedValue({
-        call: { settings: {} },
-        members: [],
-        own_capabilities: [],
-      } as never);
-      vi.spyOn(call.state, 'updateFromCallResponse').mockImplementation(
-        () => {},
-      );
-      vi.spyOn(call.state, 'setMembers').mockImplementation(() => {});
-      vi.spyOn(call.state, 'setOwnCapabilities').mockImplementation(() => {});
-      // @ts-expect-error stubbing a private member for the test
-      vi.spyOn(call, 'applyDeviceConfig').mockResolvedValue(undefined);
-      // @ts-expect-error stubbing a private member for the test
-      vi.spyOn(call, 'restorePublishedTracks').mockResolvedValue(undefined);
-      // @ts-expect-error stubbing a private member for the test
-      vi.spyOn(call, 'restoreSubscribedTracks').mockImplementation(() => {});
-      // @ts-expect-error a minimal SFU client, only the migration path uses it
-      call.sfuClient = {
-        edgeName: 'sfu-a',
-        sessionId: 'session-a',
-        isHealthy: false,
-        enterMigration: () => Promise.resolve(),
-        leaveAndClose: async () => {},
-        close: () => {},
-      };
+    // only MIGRATE keeps pre-migration instances that its own cleanup owns
+    { strategy: 'reconnectFast' as const, releasesPreMigration: false },
+    { strategy: 'reconnectMigrate' as const, releasesPreMigration: true },
+  ])(
+    '$strategy after a cancelled join',
+    ({ strategy, releasesPreMigration }) => {
+      it('performs no post-join work', async () => {
+        vi.spyOn(streamClient, '_hasConnectionID').mockReturnValue(true);
+        vi.spyOn(streamClient, 'get').mockResolvedValue({
+          call: { settings: {} },
+          members: [],
+          own_capabilities: [],
+        } as never);
+        vi.spyOn(call.state, 'updateFromCallResponse').mockImplementation(
+          () => {},
+        );
+        vi.spyOn(call.state, 'setMembers').mockImplementation(() => {});
+        vi.spyOn(call.state, 'setOwnCapabilities').mockImplementation(() => {});
+        // @ts-expect-error stubbing a private member for the test
+        vi.spyOn(call, 'applyDeviceConfig').mockResolvedValue(undefined);
+        // @ts-expect-error stubbing a private member for the test
+        vi.spyOn(call, 'restorePublishedTracks').mockResolvedValue(undefined);
+        // @ts-expect-error stubbing a private member for the test
+        vi.spyOn(call, 'restoreSubscribedTracks').mockImplementation(() => {});
+        const close = vi.fn();
+        // @ts-expect-error a minimal SFU client, only the migration path uses it
+        call.sfuClient = {
+          edgeName: 'sfu-a',
+          sessionId: 'session-a',
+          isHealthy: false,
+          enterMigration: () => Promise.resolve(),
+          leaveAndClose: async () => {},
+          close,
+        };
 
-      let joinStarted = () => {};
-      const joinInFlight = new Promise<void>((resolve) => {
-        joinStarted = resolve;
+        let joinStarted = () => {};
+        const joinInFlight = new Promise<void>((resolve) => {
+          joinStarted = resolve;
+        });
+        let finishJoin = () => {};
+        const joinBlocked = new Promise<void>((resolve) => {
+          finishJoin = resolve;
+        });
+        // what `doJoin` reports once a `leave()` has superseded it
+        // @ts-expect-error stubbing a private member for the test
+        call.doJoin = vi.fn(async () => {
+          joinStarted();
+          await joinBlocked;
+          return 'superseded' as const;
+        });
+
+        // @ts-expect-error invoking a private member for the test
+        const reconnect = call[strategy]();
+        await joinInFlight;
+
+        // the user hangs up mid-reconnect
+        await call.leave();
+        expect(call.state.callingState).toBe(CallingState.LEFT);
+
+        finishJoin();
+        await reconnect;
+
+        expect(call.state.callingState).toBe(CallingState.LEFT);
+        expect(clientStore.calls).not.toContain(call);
+        // the pre-migration SFU client is only ever released by the migration
+        // itself: `leave()` tears down what the `Call` holds, which by then is the
+        // client the cancelled join swapped in
+        expect(close).toHaveBeenCalledTimes(releasesPreMigration ? 1 : 0);
       });
-      let finishJoin = () => {};
-      const joinBlocked = new Promise<void>((resolve) => {
-        finishJoin = resolve;
-      });
-      // what `doJoin` reports once a `leave()` has superseded it
-      // @ts-expect-error stubbing a private member for the test
-      call.doJoin = vi.fn(async () => {
-        joinStarted();
-        await joinBlocked;
-        return 'superseded' as const;
-      });
-
-      // @ts-expect-error invoking a private member for the test
-      const reconnect = call[strategy]();
-      await joinInFlight;
-
-      // the user hangs up mid-reconnect
-      await call.leave();
-      expect(call.state.callingState).toBe(CallingState.LEFT);
-
-      finishJoin();
-      await reconnect;
-
-      expect(call.state.callingState).toBe(CallingState.LEFT);
-      expect(clientStore.calls).not.toContain(call);
-    });
-  });
+    },
+  );
 
   // `initPublisherAndSubscriber` awaits twice before it is done creating the new
   // instances: the previous reporter's final sample and the old peer connections'

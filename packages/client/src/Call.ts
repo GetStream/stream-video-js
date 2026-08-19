@@ -2194,9 +2194,22 @@ export class Call {
       delete this.joinCallData?.migrating_from_list;
     }
 
+    const releasePreMigrationResources = async () => {
+      await currentSubscriber?.dispose();
+      await currentPublisher?.dispose();
+
+      // and close the previous SFU client, without specifying close code
+      currentSfuClient.close(StreamSfuClient.NORMAL_CLOSURE, 'Migrating away');
+    };
+
     // a `leave()` happened while joining: skip the restores and, crucially, the
-    // unconditional `JOINED` transition below
-    if (outcome === 'superseded') return;
+    // unconditional `JOINED` transition below. Release the pre-migration
+    // resources here -- `leave()` only tears down what the `Call` holds now, and
+    // the join may already have swapped in new instances.
+    if (outcome === 'superseded') {
+      await releasePreMigrationResources();
+      return;
+    }
 
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
@@ -2212,11 +2225,7 @@ export class Call {
       // the `migrationTask`
       this.state.setCallingState(CallingState.JOINED);
     } finally {
-      await currentSubscriber?.dispose();
-      await currentPublisher?.dispose();
-
-      // and close the previous SFU client, without specifying close code
-      currentSfuClient.close(StreamSfuClient.NORMAL_CLOSURE, 'Migrating away');
+      await releasePreMigrationResources();
     }
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.MIGRATE,
