@@ -1121,6 +1121,10 @@ export class Call {
       throw new Error(`Illegal State: call.join() shall be called only once`);
     }
 
+    const joinLeaveGeneration = this.leaveGeneration;
+    const supersededByLeave = () =>
+      this.leaveGeneration !== joinLeaveGeneration;
+
     // we need this to be set before the callingx.joinCall() is
     // called to avoid registering the test call in the CallKit/Telecom
     this.allowOwnTracksLoopback = allowOwnTracksLoopback;
@@ -1133,6 +1137,12 @@ export class Call {
     if (callingX) {
       // for Android/iOS, we need to start the call in the callingx library as soon as possible
       await callingX.joinCall(this, this.clientStore.calls);
+    }
+
+    // guard in case CallKit/Telecom)registration took more time than leave() to complete
+    if (supersededByLeave()) {
+      this.logger.debug('Join superseded by leave; skipping join');
+      return;
     }
 
     await this.setup();
@@ -1159,6 +1169,12 @@ export class Call {
         'first-attempt',
         async () => {
           for (let attempt = 0; attempt < maxJoinRetries; attempt++) {
+            // when superseded by leave, an error while doJoin() (an SFU WS timeout, say)
+            // would request a next attempt, we prevent that here
+            if (supersededByLeave()) {
+              this.logger.debug('Join superseded by leave; stopping retries');
+              return;
+            }
             try {
               this.logger.trace(`Joining call (${attempt})`, this.cid);
               await this.doJoin(data);
@@ -1216,7 +1232,9 @@ export class Call {
    *
    * @returns a promise which resolves once the call join-flow has finished.
    */
-  private doJoin = async (data?: JoinCallData): Promise<void> => {
+  private doJoin = async (
+    data?: JoinCallData,
+  ): Promise<'joined' | 'superseded'> => {
     const connectStartTime = Date.now();
     const callingState = this.state.callingState;
     const joinLeaveGeneration = this.leaveGeneration;
@@ -1258,15 +1276,17 @@ export class Call {
         const joinResponse = await this.clientEventReporter.track(
           this.cid,
           'CoordinatorJoin',
-          () => this.doJoinRequest(data),
+          () => this.doJoinRequest(data, supersededByLeave),
         );
         this.credentials = joinResponse.credentials;
         statsOptions = joinResponse.stats_options;
         this.lastStatsOptions = statsOptions;
       } catch (error) {
-        // prevent triggering reconnect flow if the state is OFFLINE
+        // prevent triggering reconnect flow if the state is OFFLINE, and never
+        // restore over a `leave()` that happened while this join was in flight
         const avoidRestoreState =
-          this.state.callingState === CallingState.OFFLINE;
+          this.state.callingState === CallingState.OFFLINE ||
+          supersededByLeave();
 
         if (!avoidRestoreState) {
           // restore the previous call state if the join-flow fails
@@ -1274,6 +1294,11 @@ export class Call {
         }
         throw error;
       }
+    }
+
+    if (supersededByLeave()) {
+      this.logger.debug('Join superseded by leave; not creating an SFU client');
+      return 'superseded';
     }
 
     const previousSfuClient = this.sfuClient;
@@ -1312,7 +1337,7 @@ export class Call {
       // skip if a leave superseded this join so codec detection doesn't resolve to a default factory.
       if (supersededByLeave()) {
         this.logger.debug('Join superseded by leave; skipping codec detection');
-        return;
+        return 'superseded';
       }
       const [subscriberSdp, publisherSdp] = await Promise.all([
         getGenericSdp('recvonly', dangerouslyForceCodec, subscriberFmtpLine),
@@ -1367,8 +1392,11 @@ export class Call {
           StreamSfuClient.JOIN_FAILED,
           'Join request failed, connection considered unhealthy',
         );
-        // restore the previous call state if the join-flow fails
-        this.state.setCallingState(callingState);
+        // restore the previous call state if the join-flow fails, unless a
+        // `leave()` won the race in the meantime (LEFT must stick)
+        if (!supersededByLeave()) {
+          this.state.setCallingState(callingState);
+        }
         throw error;
       }
     }
@@ -1377,7 +1405,7 @@ export class Call {
     // peer-connection setup below (both run synchronously after this, so one check covers them).
     if (supersededByLeave()) {
       this.logger.debug('Join superseded by leave; aborting join flow');
-      return;
+      return 'superseded';
     }
 
     if (!performingMigration) {
@@ -1402,6 +1430,7 @@ export class Call {
         publishOptions: this.currentPublishOptions || [],
         closePreviousInstances: !performingMigration,
         unifiedSessionId: this.unifiedSessionId,
+        isStale: supersededByLeave,
       });
     }
 
@@ -1462,7 +1491,16 @@ export class Call {
     // rolling window decays naturally as old timestamps age out.
     this.consecutiveNegotiationFailures = 0;
 
+    // Closing the previous SFU socket and applying the device settings above are
+    // further awaits, each a window for a `leave()`. Report the cancellation
+    // rather than a join, so callers skip their post-join work.
+    if (supersededByLeave()) {
+      this.logger.debug('Join superseded by leave; not reporting a join');
+      return 'superseded';
+    }
+
     this.logger.info(`Joined call ${this.cid}`);
+    return 'joined';
   };
 
   /**
@@ -1585,6 +1623,7 @@ export class Call {
     publishOptions: PublishOption[];
     closePreviousInstances: boolean;
     unifiedSessionId: string;
+    isStale?: () => boolean;
   }) => {
     const {
       sfuClient,
@@ -1594,6 +1633,7 @@ export class Call {
       publishOptions,
       closePreviousInstances,
       unifiedSessionId,
+      isStale,
     } = opts;
     const {
       enable_rtc_stats: enableTracing,
@@ -1608,6 +1648,13 @@ export class Call {
       await this.subscriber.dispose();
       this.state.removeAllOrphanedTracks();
     }
+    // While stats was flushed a `leave()` can complete in between.
+    // Skip pc setup if so
+    if (isStale?.()) {
+      this.logger.debug('Left during peer connection setup; not creating one');
+      return;
+    }
+
     const basePeerConnectionOptions: BasePeerConnectionOpts = {
       sfuClient,
       dispatcher: this.dispatcher,
@@ -1653,6 +1700,10 @@ export class Call {
       if (closePreviousInstances && this.publisher) {
         await this.publisher.dispose();
       }
+      if (isStale?.()) {
+        this.logger.debug('Left during peer connection setup; stopping');
+        return;
+      }
       this.publisher = new Publisher(
         basePeerConnectionOptions,
         publishOptions,
@@ -1696,7 +1747,10 @@ export class Call {
    * @internal
    * @param data the join call data.
    */
-  doJoinRequest = async (data?: JoinCallData): Promise<JoinCallResponse> => {
+  doJoinRequest = async (
+    data?: JoinCallData,
+    isStale?: () => boolean,
+  ): Promise<JoinCallResponse> => {
     const location = await this.streamClient.getLocationHint();
     const e2ee = !!this.e2eeManager;
     const request: JoinCallRequest = { ...data, location, e2ee };
@@ -1704,6 +1758,15 @@ export class Call {
       JoinCallResponse,
       JoinCallRequest
     >(`${this.streamClientBasePath}/join`, request);
+
+    if (isStale?.()) {
+      // leave() happened while the join request was in flight
+      // skipping any update from response
+      this.logger.debug(
+        'Join request completed after leave; dropping response',
+      );
+      return joinResponse;
+    }
 
     this.state.updateFromCallResponse(joinResponse.call);
     this.state.setMembers(joinResponse.members);
@@ -1823,7 +1886,8 @@ export class Call {
       callingState === CallingState.JOINING ||
       callingState === CallingState.RECONNECTING ||
       callingState === CallingState.MIGRATING ||
-      callingState === CallingState.RECONNECTING_FAILED
+      callingState === CallingState.RECONNECTING_FAILED ||
+      callingState === CallingState.LEFT
     )
       return;
 
@@ -2054,7 +2118,7 @@ export class Call {
     const reconnectStartTime = Date.now();
     this.reconnectStrategy = WebsocketReconnectStrategy.FAST;
     this.state.setCallingState(CallingState.RECONNECTING);
-    await this.doJoin(this.joinCallData);
+    if ((await this.doJoin(this.joinCallData)) === 'superseded') return;
     await this.get(); // fetch the latest call state, as it might have changed
     this.sfuStatsReporter?.sendReconnectionTime(
       WebsocketReconnectStrategy.FAST,
@@ -2074,9 +2138,13 @@ export class Call {
       this.reconnectReason === ReconnectReason.NETWORK_BACK_ONLINE
         ? 'network-available'
         : 'full-rejoin';
-    await this.clientEventReporter.withJoinLifecycle(this.cid, joinReason, () =>
-      this.doJoin(this.joinCallData),
+    const outcome = await this.clientEventReporter.withJoinLifecycle(
+      this.cid,
+      joinReason,
+      () => this.doJoin(this.joinCallData),
     );
+    // don't restore tracks onto a call the user left mid-join
+    if (outcome === 'superseded') return;
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
     this.sfuStatsReporter?.sendReconnectionTime(
@@ -2106,9 +2174,10 @@ export class Call {
 
     const migrationTask = makeSafePromise(currentSfuClient.enterMigration());
 
+    let outcome: 'joined' | 'superseded';
     try {
       const currentSfu = currentSfuClient.edgeName;
-      await this.clientEventReporter.withJoinLifecycle(
+      outcome = await this.clientEventReporter.withJoinLifecycle(
         this.cid,
         'migration',
         () =>
@@ -2124,6 +2193,10 @@ export class Call {
       delete this.joinCallData?.migrating_from;
       delete this.joinCallData?.migrating_from_list;
     }
+
+    // a `leave()` happened while joining: skip the restores and, crucially, the
+    // unconditional `JOINED` transition below
+    if (outcome === 'superseded') return;
 
     await this.restorePublishedTracks();
     this.restoreSubscribedTracks();
