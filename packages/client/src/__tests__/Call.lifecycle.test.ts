@@ -12,9 +12,9 @@ import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, StreamVideoWriteableStateStore } from '../store';
 import { WebsocketReconnectStrategy } from '../gen/video/sfu/models/models';
 
-const deferred = () => {
-  let resolve = () => {};
-  const promise = new Promise<void>((r) => {
+const deferred = <T = void>() => {
+  let resolve: (value: T) => void = () => {};
+  const promise = new Promise<T>((r) => {
     resolve = r;
   });
   return { promise, resolve };
@@ -203,7 +203,7 @@ describe('Call lifecycle wiring', () => {
     vi.spyOn(streamClient, 'getLocationHint').mockResolvedValue('hint');
     const accept = vi.spyOn(call, 'accept').mockResolvedValue({} as never);
     const registerOrUpdateCall = vi.spyOn(clientStore, 'registerOrUpdateCall');
-    const coordinatorJoin = deferred();
+    const coordinatorJoin = deferred<unknown>();
     const post = vi
       .spyOn(streamClient, 'post')
       .mockReturnValue(coordinatorJoin.promise as Promise<never>);
@@ -226,7 +226,7 @@ describe('Call lifecycle wiring', () => {
         },
       },
       stats_options: { reporting_interval_ms: 0, enable_rtc_stats: false },
-    } as never);
+    });
     await joining;
 
     expect(call.state.callingState).toBe(CallingState.LEFT);
