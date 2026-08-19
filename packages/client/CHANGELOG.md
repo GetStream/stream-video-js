@@ -2,6 +2,19 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.58.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.57.0...@stream-io/video-client-1.58.0) (2026-08-18)
+
+### Features
+
+- **client:** add E2EE support via WebRTC Encoded Transforms ([#2198](https://github.com/GetStream/stream-video-js/issues/2198)) ([063de51](https://github.com/GetStream/stream-video-js/commit/063de510e877526089073a46dbd08f329c4af058))
+- hi-fi audio ([#2305](https://github.com/GetStream/stream-video-js/issues/2305)) ([c2e0f21](https://github.com/GetStream/stream-video-js/commit/c2e0f21d4f57bbf2c64fdc3f5bca45a988f3a176))
+
+### Bug Fixes
+
+- **client:** E2EE framing-version detection and event renames ([#2366](https://github.com/GetStream/stream-video-js/issues/2366)) ([050aebf](https://github.com/GetStream/stream-video-js/commit/050aebf6efea84089bee6ded5e62ba02ecc22716))
+- **client:** granular E2EE key removal ([#2368](https://github.com/GetStream/stream-video-js/issues/2368)) ([8f52b9a](https://github.com/GetStream/stream-video-js/commit/8f52b9a6ff9b87382dcd5ebd7414388153be8a13)), closes [#2366](https://github.com/GetStream/stream-video-js/issues/2366)
+- **client:** only deselect the speaker device on a real disconnect ([#2375](https://github.com/GetStream/stream-video-js/issues/2375)) ([d7f780d](https://github.com/GetStream/stream-video-js/commit/d7f780d0924471adfe9ba85accf42e889b01e20b))
+
 ## [1.57.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-client-1.56.0...@stream-io/video-client-1.57.0) (2026-08-07)
 
 ### Features

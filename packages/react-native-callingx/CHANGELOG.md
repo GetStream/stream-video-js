@@ -2,6 +2,12 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [0.10.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.9.0...@stream-io/react-native-callingx-0.10.0) (2026-08-18)
+
+### Features
+
+- hi-fi audio ([#2305](https://github.com/GetStream/stream-video-js/issues/2305)) ([c2e0f21](https://github.com/GetStream/stream-video-js/commit/c2e0f21d4f57bbf2c64fdc3f5bca45a988f3a176))
+
 ## [0.9.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/react-native-callingx-0.8.1...@stream-io/react-native-callingx-0.9.0) (2026-08-07)
 
 ### Features

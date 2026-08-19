@@ -300,25 +300,26 @@ const CONFIG: PackageConfig[] = [
     entries: [
       {
         files: {
-          esm: [file('dist/index.es.js')],
+          esm: [tree('dist/esm')],
           cjs: [file('dist/index.cjs.js')],
         },
       },
     ],
   },
   {
+    // Both entrypoints share one `dist/esm` tree, so the whole tree is reported
+    // once under the main entry rather than split per entrypoint.
     package: '@stream-io/video-react-sdk',
     entries: [
       {
         files: {
-          esm: [file('dist/index.es.js')],
+          esm: [tree('dist/esm')],
           cjs: [file('dist/index.cjs.js')],
         },
       },
       {
         entry: 'embedded',
         files: {
-          esm: [file('dist/embedded.es.js')],
           cjs: [file('dist/embedded.cjs.js')],
         },
       },
@@ -329,7 +330,7 @@ const CONFIG: PackageConfig[] = [
     entries: [
       {
         files: {
-          esm: [file('dist/index.es.js')],
+          esm: [tree('dist/esm')],
           cjs: [file('dist/index.cjs.js')],
         },
       },

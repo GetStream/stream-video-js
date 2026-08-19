@@ -2,6 +2,25 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.44.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.43.0...@stream-io/video-react-native-sdk-1.44.0) (2026-08-18)
+
+### Dependency Updates
+
+- `@stream-io/noise-cancellation-react-native` updated to version `0.11.0`
+- `@stream-io/react-native-callingx` updated to version `0.10.0`
+- `@stream-io/video-filters-react-native` updated to version `0.16.0`
+- `@stream-io/video-client` updated to version `1.58.0`
+- `@stream-io/video-react-bindings` updated to version `1.20.0`
+
+### Features
+
+- **client:** add E2EE support via WebRTC Encoded Transforms ([#2198](https://github.com/GetStream/stream-video-js/issues/2198)) ([063de51](https://github.com/GetStream/stream-video-js/commit/063de510e877526089073a46dbd08f329c4af058))
+- hi-fi audio ([#2305](https://github.com/GetStream/stream-video-js/issues/2305)) ([c2e0f21](https://github.com/GetStream/stream-video-js/commit/c2e0f21d4f57bbf2c64fdc3f5bca45a988f3a176))
+
+### Bug Fixes
+
+- **rn:** subscribe spotlight video after a dropped layout event ([#2362](https://github.com/GetStream/stream-video-js/issues/2362)) ([3acbc48](https://github.com/GetStream/stream-video-js/commit/3acbc482c890e7fe1c633dba7135eb8e311f41e9))
+
 ## [1.43.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-native-sdk-1.42.0...@stream-io/video-react-native-sdk-1.43.0) (2026-08-07)
 
 ### Dependency Updates

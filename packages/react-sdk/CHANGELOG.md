@@ -2,6 +2,17 @@
 
 This file was generated using [@jscutlery/semver](https://github.com/jscutlery/semver).
 
+## [1.41.0](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.40.2...@stream-io/video-react-sdk-1.41.0) (2026-08-18)
+
+### Dependency Updates
+
+- `@stream-io/video-client` updated to version `1.58.0`
+- `@stream-io/video-react-bindings` updated to version `1.20.0`
+
+### Features
+
+- **client:** add E2EE support via WebRTC Encoded Transforms ([#2198](https://github.com/GetStream/stream-video-js/issues/2198)) ([063de51](https://github.com/GetStream/stream-video-js/commit/063de510e877526089073a46dbd08f329c4af058))
+
 ## [1.40.2](https://github.com/GetStream/stream-video-js/compare/@stream-io/video-react-sdk-1.40.1...@stream-io/video-react-sdk-1.40.2) (2026-08-07)
 
 ### Dependency Updates
