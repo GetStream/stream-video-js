@@ -2,17 +2,17 @@
   "name": "@stream-io/video-react-sdk",
   "version": "1.41.0",
   "main": "./dist/index.cjs.js",
-  "module": "./dist/index.es.js",
+  "module": "./dist/esm/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/index.cjs.js"
     },
     "./embedded": {
       "types": "./dist/embedded.d.ts",
-      "import": "./dist/embedded.es.js",
+      "import": "./dist/esm/embedded.js",
       "require": "./dist/embedded.cjs.js"
     },
     "./dist/css/*": "./dist/css/*"
@@ -41,7 +41,11 @@
     "CHANGELOG.md"
   ],
   "sideEffects": [
-    "*.css"
+    "*.css",
+    "./dist/esm/index.js",
+    "./dist/esm/embedded.js",
+    "./dist/index.cjs.js",
+    "./dist/embedded.cjs.js"
   ],
   "dependencies": {
     "@floating-ui/react": "^0.27.20",
