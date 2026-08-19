@@ -12,6 +12,38 @@ import { generateUUIDv4 } from '../coordinator/connection/utils';
 import { CallingState, StreamVideoWriteableStateStore } from '../store';
 import { WebsocketReconnectStrategy } from '../gen/video/sfu/models/models';
 
+const deferred = () => {
+  let resolve = () => {};
+  const promise = new Promise<void>((r) => {
+    resolve = r;
+  });
+  return { promise, resolve };
+};
+
+/** Blocks the first call until `gate` resolves; later calls pass through, so a
+ *  concurrent `leave()` making the same call can still complete. */
+const blockFirstCall = (gate: Promise<void>, onReached: () => void) => {
+  let calls = 0;
+  return async () => {
+    if (++calls === 1) {
+      onReached();
+      await gate;
+    }
+  };
+};
+
+const fakeSfuClient = (overrides: Record<string, unknown> = {}) => ({
+  tag: '1',
+  edgeName: 'sfu-a',
+  sessionId: 'session-a',
+  isHealthy: false,
+  enterMigration: () => Promise.resolve(),
+  leaveAndClose: async () => {},
+  close: () => {},
+  getTrace: () => undefined,
+  ...overrides,
+});
+
 describe('Call lifecycle wiring', () => {
   let call: Call;
   let streamClient: StreamClient;
@@ -30,7 +62,21 @@ describe('Call lifecycle wiring', () => {
       clientEventReporter,
       clientStore,
     });
+    // pass-through: the join lifecycle reporting is not under test here
+    vi.spyOn(clientEventReporter, 'withJoinLifecycle').mockImplementation(
+      (_cid, _reason, op) => op(),
+    );
   });
+
+  /** Stubs everything a coordinator response would otherwise apply. */
+  const stubResponseHandling = () => {
+    vi.spyOn(streamClient, '_hasConnectionID').mockReturnValue(true);
+    vi.spyOn(call.state, 'setMembers').mockImplementation(() => {});
+    vi.spyOn(call.state, 'setOwnCapabilities').mockImplementation(() => {});
+    return vi
+      .spyOn(call.state, 'updateFromCallResponse')
+      .mockImplementation(() => {});
+  };
 
   // Regression guard for the Call-owned helper teardown chain. Each of
   // these helpers holds a resource (timer, listener, AudioContext) that
@@ -75,110 +121,99 @@ describe('Call lifecycle wiring', () => {
     expect(audioBindingsOrder).toBeLessThan(dynascaleOrder);
   });
 
-  // Regression guard for the leave-during-join race. With a blocked SFU each
-  // join attempt burns the WS-open timeout, so the retry loop can still be
-  // running when the user hits hang up. A retry started after `leave()` puts
-  // the calling state back to JOINING/JOINED and the call screen reappears,
-  // which is what makes hang up look like it did nothing.
-  it('stops join retries when the user leaves mid-join', async () => {
-    vi.spyOn(clientEventReporter, 'withJoinLifecycle').mockImplementation(
-      (_cid, _reason, fn) => fn(),
-    );
-    const doJoin = vi.fn(async () => {
-      // the user hangs up while this attempt is in flight
-      await call.leave();
-      throw new Error('SFU WS connection failed to open after 5000ms');
+  // With a blocked SFU every attempt burns the WS-open timeout, so the retry
+  // loop is still running when the user hits hang up. A later attempt would put
+  // the calling state back to JOINING/JOINED and the call screen would reappear,
+  // which is what makes hang up look like it did nothing. On the final attempt
+  // the failure is rethrown, which used to reject `join()` (and end the call by
+  // cid with an `error` reason) for what the user asked for.
+  describe.each([3, 1])('with maxJoinRetries: %i', (maxJoinRetries) => {
+    it('resolves without reviving the call when a leave lands mid-attempt', async () => {
+      const doJoin = vi.fn(async () => {
+        await call.leave();
+        throw new Error('SFU WS connection failed to open after 5000ms');
+      });
+      // @ts-expect-error stubbing a private member for the test
+      call.doJoin = doJoin;
+
+      await expect(call.join({ maxJoinRetries })).resolves.toBeUndefined();
+
+      expect(doJoin).toHaveBeenCalledTimes(1);
+      expect(call.state.callingState).toBe(CallingState.LEFT);
     });
-    // @ts-expect-error overriding a private member for the test
+  });
+
+  // The same, for a hangup during the backoff between two attempts: the next
+  // attempt snapshots the already-bumped leave generation as its own baseline,
+  // so only the loop can stop it.
+  it('starts no further attempt when a leave lands during the retry backoff', async () => {
+    const doJoin = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('SFU WS connection failed'))
+      .mockResolvedValue('joined');
+    // @ts-expect-error stubbing a private member for the test
     call.doJoin = doJoin;
 
-    await call.join({ maxJoinRetries: 3 });
+    const joining = call.join({ maxJoinRetries: 3 });
+    // the first attempt fails, then the user hangs up while the loop sleeps
+    await vi.waitFor(() => expect(doJoin).toHaveBeenCalled());
+    await call.leave();
+    await joining;
 
     expect(doJoin).toHaveBeenCalledTimes(1);
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 
-  // Same race, but through the React Native native-registration preflight:
-  // `join()` awaits CallKit/Telecom registration before anything else, which is
-  // long enough for a native `endCall` to complete a full `leave()`. The join
-  // must not carry on (and `setup()` must not revive LEFT back to IDLE).
+  // On React Native `join()` awaits CallKit/Telecom registration before anything
+  // else, which is long enough for a native `endCall` to complete a full
+  // `leave()`. The join must not carry on, and `setup()` must not revive LEFT.
   it('abandons the join when the user leaves during native registration', async () => {
-    let releaseNativeRegistration = () => {};
-    const nativeRegistration = new Promise<void>((resolve) => {
-      releaseNativeRegistration = resolve;
-    });
-    const streamRNVideoSDK = {
+    const nativeRegistration = deferred();
+    // @ts-expect-error partial RN SDK bridge, only the join/leave path is used
+    globalThis.streamRNVideoSDK = {
       callingX: {
-        joinCall: vi.fn(() => nativeRegistration),
+        joinCall: vi.fn(() => nativeRegistration.promise),
         endCall: vi.fn(),
         unwireAudioEngineSubscription: vi.fn(),
       },
       callManager: { stop: vi.fn() },
     };
-    // @ts-expect-error partial RN SDK bridge, only the join/leave path is used
-    globalThis.streamRNVideoSDK = streamRNVideoSDK;
-
     const doJoin = vi.fn();
-    // @ts-expect-error overriding a private member for the test
+    // @ts-expect-error stubbing a private member for the test
     call.doJoin = doJoin;
 
-    const joinPromise = call.join();
-    // the user hangs up (e.g. the CallKit `endCall` event) while the native
-    // registration is still pending
+    const joining = call.join();
     await call.leave();
     expect(call.state.callingState).toBe(CallingState.LEFT);
 
-    releaseNativeRegistration();
-    await joinPromise;
+    nativeRegistration.resolve();
+    await joining;
 
     expect(doJoin).not.toHaveBeenCalled();
     expect(call.state.callingState).toBe(CallingState.LEFT);
   });
 
-  // A `leave()` can also complete while the coordinator join request is still
-  // in flight. Its response must be discarded: `doJoinRequest` re-registers the
-  // call in the client store (which `leave()` just undid), and the SFU client
-  // created afterwards is invisible to the teardown that already ran, so its
-  // socket and listeners would never be closed.
+  // A `leave()` can also complete while the coordinator join request is in
+  // flight. Applying the response would repopulate a left call, re-register it
+  // in the client store, and tell the caller we accepted a call the user just
+  // hung up. Caching its credentials would make the next `join()` skip the
+  // coordinator block -- and with it the store registration.
   it('discards the coordinator join response when the user already left', async () => {
-    vi.spyOn(clientEventReporter, 'withJoinLifecycle').mockImplementation(
-      (_cid, _reason, fn) => fn(),
-    );
-    vi.spyOn(streamClient, '_hasConnectionID').mockReturnValue(true);
+    const updateFromCallResponse = stubResponseHandling();
     vi.spyOn(streamClient, 'getLocationHint').mockResolvedValue('hint');
-    // mocked so the assertions below can't be satisfied by a throwing state
-    // update -- each one must be provably never reached
-    const updateFromCallResponse = vi
-      .spyOn(call.state, 'updateFromCallResponse')
-      .mockImplementation(() => {});
-    const setMembers = vi
-      .spyOn(call.state, 'setMembers')
-      .mockImplementation(() => {});
-    const setOwnCapabilities = vi
-      .spyOn(call.state, 'setOwnCapabilities')
-      .mockImplementation(() => {});
     const accept = vi.spyOn(call, 'accept').mockResolvedValue({} as never);
     const registerOrUpdateCall = vi.spyOn(clientStore, 'registerOrUpdateCall');
-    const unregisterCall = vi.spyOn(clientStore, 'unregisterCall');
-
-    let respondToCoordinator: (response: unknown) => void = () => {};
-    const coordinatorJoin = new Promise((resolve) => {
-      respondToCoordinator = resolve;
-    });
+    const coordinatorJoin = deferred();
     const post = vi
       .spyOn(streamClient, 'post')
-      .mockReturnValue(coordinatorJoin as Promise<never>);
+      .mockReturnValue(coordinatorJoin.promise as Promise<never>);
 
-    const joinPromise = call.join();
+    const joining = call.join();
     await vi.waitFor(() => expect(post).toHaveBeenCalled());
-
-    // the user hangs up before the coordinator responds
     await call.leave();
     expect(call.state.callingState).toBe(CallingState.LEFT);
-    // `leave()` unregisters the call itself; only later calls are of interest
-    const unregisterCallsAfterLeave = unregisterCall.mock.calls.length;
 
-    respondToCoordinator({
+    coordinatorJoin.resolve({
       call: {},
       members: [],
       own_capabilities: [],
@@ -191,194 +226,139 @@ describe('Call lifecycle wiring', () => {
         },
       },
       stats_options: { reporting_interval_ms: 0, enable_rtc_stats: false },
-    });
-    await joinPromise;
+    } as never);
+    await joining;
 
     expect(call.state.callingState).toBe(CallingState.LEFT);
     expect(clientStore.calls).not.toContain(call);
-    // @ts-expect-error reading a private member for the test
-    expect(call.sfuClient).toBeUndefined();
-    // none of the response's side effects may be applied -- they are not
-    // undoable, and `accept()` would tell the caller we picked up a call the
-    // user just hung up
+    expect(call.watching).toBe(false);
     expect(updateFromCallResponse).not.toHaveBeenCalled();
-    expect(setMembers).not.toHaveBeenCalled();
-    expect(setOwnCapabilities).not.toHaveBeenCalled();
     expect(accept).not.toHaveBeenCalled();
     expect(registerOrUpdateCall).not.toHaveBeenCalled();
-    expect(call.watching).toBe(false);
-    // compensating for a registration that never happened is not attempt-scoped:
-    // with a reused `Call` instance it would evict a newer, live join
-    expect(unregisterCall.mock.calls.length).toBe(unregisterCallsAfterLeave);
+    // @ts-expect-error reading a private member for the test
+    expect(call.sfuClient).toBeUndefined();
+    // @ts-expect-error reading a private member for the test
+    expect(call.credentials).toBeUndefined();
+    // @ts-expect-error reading a private member for the test
+    expect(call.lastStatsOptions).toBeUndefined();
   });
 
   // Reconnection runs on its own concurrency tag, so a hangup can land in the
   // middle of it. `doJoin` cancels itself, but its callers used to carry on with
   // post-join work regardless: FAST calls `get()` (whose `setup()` revives LEFT
   // to IDLE and re-registers the call), and MIGRATE sets JOINED unconditionally
-  // once the migration task settles.
+  // once the migration task settles. MIGRATE also owns the release of the
+  // pre-migration instances, which `leave()` no longer holds by then.
   describe.each([
-    // only MIGRATE keeps pre-migration instances that its own cleanup owns
     { strategy: 'reconnectFast' as const, releasesPreMigration: false },
     { strategy: 'reconnectMigrate' as const, releasesPreMigration: true },
   ])(
     '$strategy after a cancelled join',
     ({ strategy, releasesPreMigration }) => {
       it('performs no post-join work', async () => {
-        vi.spyOn(streamClient, '_hasConnectionID').mockReturnValue(true);
+        stubResponseHandling();
         vi.spyOn(streamClient, 'get').mockResolvedValue({
           call: { settings: {} },
           members: [],
           own_capabilities: [],
         } as never);
-        vi.spyOn(call.state, 'updateFromCallResponse').mockImplementation(
-          () => {},
-        );
-        vi.spyOn(call.state, 'setMembers').mockImplementation(() => {});
-        vi.spyOn(call.state, 'setOwnCapabilities').mockImplementation(() => {});
-        // @ts-expect-error stubbing a private member for the test
+        // @ts-expect-error stubbing private members for the test
         vi.spyOn(call, 'applyDeviceConfig').mockResolvedValue(undefined);
-        // @ts-expect-error stubbing a private member for the test
+        // @ts-expect-error stubbing private members for the test
         vi.spyOn(call, 'restorePublishedTracks').mockResolvedValue(undefined);
-        // @ts-expect-error stubbing a private member for the test
+        // @ts-expect-error stubbing private members for the test
         vi.spyOn(call, 'restoreSubscribedTracks').mockImplementation(() => {});
         const close = vi.fn();
-        // @ts-expect-error a minimal SFU client, only the migration path uses it
-        call.sfuClient = {
-          edgeName: 'sfu-a',
-          sessionId: 'session-a',
-          isHealthy: false,
-          enterMigration: () => Promise.resolve(),
-          leaveAndClose: async () => {},
-          close,
-        };
+        // @ts-expect-error a minimal SFU client for the reconnect paths
+        call.sfuClient = fakeSfuClient({ close });
 
-        let joinStarted = () => {};
-        const joinInFlight = new Promise<void>((resolve) => {
-          joinStarted = resolve;
-        });
-        let finishJoin = () => {};
-        const joinBlocked = new Promise<void>((resolve) => {
-          finishJoin = resolve;
-        });
-        // what `doJoin` reports once a `leave()` has superseded it
+        const join = deferred();
+        const joinInFlight = deferred();
         // @ts-expect-error stubbing a private member for the test
         call.doJoin = vi.fn(async () => {
-          joinStarted();
-          await joinBlocked;
+          joinInFlight.resolve();
+          await join.promise;
+          // what `doJoin` reports once a `leave()` has superseded it
           return 'superseded' as const;
         });
 
         // @ts-expect-error invoking a private member for the test
         const reconnect = call[strategy]();
-        await joinInFlight;
-
-        // the user hangs up mid-reconnect
+        await joinInFlight.promise;
         await call.leave();
         expect(call.state.callingState).toBe(CallingState.LEFT);
 
-        finishJoin();
+        join.resolve();
         await reconnect;
 
         expect(call.state.callingState).toBe(CallingState.LEFT);
         expect(clientStore.calls).not.toContain(call);
-        // the pre-migration SFU client is only ever released by the migration
-        // itself: `leave()` tears down what the `Call` holds, which by then is the
-        // client the cancelled join swapped in
         expect(close).toHaveBeenCalledTimes(releasesPreMigration ? 1 : 0);
       });
     },
   );
 
   // `initPublisherAndSubscriber` awaits twice before it is done creating the new
-  // instances: the previous reporter's final sample and the old peer connections'
-  // disposal. A `leave()` can complete in either window, and anything created
-  // afterwards is invisible to the teardown that already ran: leaked peer
-  // connections keep reporting stats and can trigger a reconnect through
-  // `onReconnectionNeeded`.
-  describe.each(['the final stats sample', 'the publisher disposal'])(
-    'a leave during %s',
-    (window) => {
-      it('leaves no peer connections behind', async () => {
-        let release = () => {};
-        const blocked = new Promise<void>((resolve) => {
-          release = resolve;
-        });
-        let reachedWindow = () => {};
-        const inWindow = new Promise<void>((resolve) => {
-          reachedWindow = resolve;
-        });
-        // block only the call made by the setup below; `leave()` makes the same
-        // calls and has to be able to complete
-        let blockedCalls = 0;
-        const blockOnce = async () => {
-          blockedCalls++;
-          if (blockedCalls === 1) {
-            reachedWindow();
-            await blocked;
-          }
-        };
-        const blockingFinalSample = window === 'the final stats sample';
+  // instances: the previous reporter's final sample, and the old publisher's
+  // disposal. A `leave()` completing in either window would leave peer
+  // connections and reporters behind that its teardown never sees -- they keep
+  // reporting stats and can trigger a reconnect via `onReconnectionNeeded`.
+  describe.each([
+    { window: 'the final stats sample', blockFlush: true },
+    { window: 'the publisher disposal', blockFlush: false },
+  ])('a leave during $window', ({ blockFlush }) => {
+    it('leaves no peer connections behind', async () => {
+      const gate = deferred();
+      const inWindow = deferred();
+      const block = blockFirstCall(gate.promise, inWindow.resolve);
+      // @ts-expect-error stubbing a private member for the test
+      call.sfuStatsReporter = {
+        flush: blockFlush ? block : async () => {},
+        stop: () => {},
+      };
+      if (!blockFlush) {
+        // the previous publisher, disposed after the first staleness check and
+        // before the new publisher and the reporters are created
         // @ts-expect-error stubbing a private member for the test
-        call.sfuStatsReporter = {
-          flush: blockingFinalSample ? blockOnce : async () => {},
-          stop: () => {},
-        };
-        if (!blockingFinalSample) {
-          // the previous publisher, disposed after the first staleness check
-          // and before the new publisher and reporters are created
-          // @ts-expect-error stubbing a private member for the test
-          call.publisher = { dispose: blockOnce };
-        }
-        const sfuClient = {
-          tag: '1',
-          edgeName: 'sfu-a',
-          sessionId: 'session-a',
-          isHealthy: true,
-          leaveAndClose: async () => {},
-          close: () => {},
-          getTrace: () => undefined,
-        };
-        // @ts-expect-error a minimal SFU client for the peer-connection setup
-        call.sfuClient = sfuClient;
-        // @ts-expect-error reading a private member for the test
-        const generation = call.leaveGeneration;
+        call.publisher = { dispose: block };
+      }
+      const sfuClient = fakeSfuClient({ isHealthy: true });
+      // @ts-expect-error a minimal SFU client for the peer-connection setup
+      call.sfuClient = sfuClient;
+      // @ts-expect-error reading a private member for the test
+      const generation = call.leaveGeneration;
 
-        // @ts-expect-error invoking a private member for the test
-        const setupPeerConnections = call.initPublisherAndSubscriber({
-          sfuClient,
-          connectionConfig: {},
-          clientDetails: {},
-          statsOptions: {
-            enable_rtc_stats: false,
-            reporting_interval_ms: 2000,
-          },
-          publishOptions: [],
-          closePreviousInstances: true,
-          unifiedSessionId: 'unified-1',
-          // the predicate `doJoin` passes: the same leave-generation comparison
-          // @ts-expect-error reading a private member for the test
-          isStale: () => call.leaveGeneration !== generation,
-        });
-        await inWindow;
-
-        await call.leave();
-        expect(call.state.callingState).toBe(CallingState.LEFT);
-
-        release();
-        await setupPeerConnections;
-
+      // @ts-expect-error invoking a private member for the test
+      const setupPeerConnections = call.initPublisherAndSubscriber({
+        sfuClient,
+        connectionConfig: {},
+        clientDetails: {},
+        statsOptions: { enable_rtc_stats: false, reporting_interval_ms: 2000 },
+        publishOptions: [],
+        closePreviousInstances: true,
+        unifiedSessionId: 'unified-1',
+        // the predicate `doJoin` passes: the same leave-generation comparison
         // @ts-expect-error reading a private member for the test
-        expect(call.subscriber).toBeUndefined();
-        // @ts-expect-error reading a private member for the test
-        expect(call.publisher).toBeUndefined();
-        // @ts-expect-error reading a private member for the test
-        expect(call.statsReporter).toBeUndefined();
-        // @ts-expect-error reading a private member for the test
-        expect(call.sfuStatsReporter).toBeUndefined();
+        isStale: () => call.leaveGeneration !== generation,
       });
-    },
-  );
+      await inWindow.promise;
+
+      await call.leave();
+      expect(call.state.callingState).toBe(CallingState.LEFT);
+
+      gate.resolve();
+      await setupPeerConnections;
+
+      // @ts-expect-error reading private members for the test
+      expect(call.subscriber).toBeUndefined();
+      // @ts-expect-error reading private members for the test
+      expect(call.publisher).toBeUndefined();
+      // @ts-expect-error reading private members for the test
+      expect(call.statsReporter).toBeUndefined();
+      // @ts-expect-error reading private members for the test
+      expect(call.sfuStatsReporter).toBeUndefined();
+    });
+  });
 
   // Defense in depth for the same class of escape: whatever manages to call
   // `reconnect()` after teardown (a peer connection that outlived it, a late SFU
