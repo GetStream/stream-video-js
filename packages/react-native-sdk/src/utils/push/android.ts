@@ -115,9 +115,6 @@ export const firebaseDataHandler = async (
       return;
     }
 
-    // initialize the callback array immediately to avoid race condition
-    pushUnsubscriptionCallbacks.set(call_cid, []);
-
     const asForegroundService = canListenToWS();
     const backgroundTaskOwner = `push:${call_cid}`;
     nativeLog(
@@ -130,6 +127,8 @@ export const firebaseDataHandler = async (
     };
 
     if (asForegroundService) {
+      // initialize the callback array immediately to avoid race condition
+      pushUnsubscriptionCallbacks.set(call_cid, []);
       // The owner is added synchronously inside acquireBackgroundTask (before its own await), so it
       // is registered immediately even though we don't await the returned promise here.
       nativeLog(`acquiring background task for callCid: ${call_cid}`);
@@ -152,6 +151,7 @@ export const firebaseDataHandler = async (
           finishBackgroundTask();
         }
         await callingx.stopService();
+        pushUnsubscriptionCallbacks.delete(call_cid);
         return;
       }
     } catch (error) {
@@ -161,6 +161,7 @@ export const firebaseDataHandler = async (
         finishBackgroundTask();
       }
       await callingx.stopService();
+      pushUnsubscriptionCallbacks.delete(call_cid);
       return;
     }
 
@@ -186,6 +187,7 @@ export const firebaseDataHandler = async (
               );
             });
             finishBackgroundTask();
+            pushUnsubscriptionCallbacks.delete(call_cid);
             return;
           }
           nativeLog(`watching WS for ringing callCid: ${call_cid}`);
@@ -277,12 +279,16 @@ export const firebaseDataHandler = async (
           unsubscribeFunctions.push(() => endCallSubscription.remove());
           unsubscribeFunctions.push(() => appStateSubscription.remove());
           unsubscribeFunctions.push(finishBackgroundTask);
+          unsubscribeFunctions.push(() =>
+            pushUnsubscriptionCallbacks.delete(call_cid),
+          );
           nativeLog(`WS subscriptions registered for callCid: ${call_cid}`);
         } catch (error) {
           nativeLog(
             `Failed to start background task with callCid: ${call_cid} error: ${error}`,
             'error',
           );
+          pushUnsubscriptionCallbacks.delete(call_cid);
           finishBackgroundTask();
         }
       })();
