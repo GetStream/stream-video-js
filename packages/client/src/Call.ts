@@ -129,7 +129,7 @@ import {
   TrackMuteType,
   VideoTrackType,
 } from './types';
-import { BehaviorSubject, Subject, takeWhile } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { ReconnectDetails } from './gen/video/sfu/event/events';
 import {
   ClientCapability,
@@ -716,17 +716,6 @@ export class Call {
       }
 
       this.leaveGeneration += 1;
-
-      if (callingState === CallingState.JOINING) {
-        const waitUntilCallJoined = () => {
-          return new Promise<void>((resolve) => {
-            this.state.callingState$
-              .pipe(takeWhile((state) => state !== CallingState.JOINED, true))
-              .subscribe(() => resolve());
-          });
-        };
-        await waitUntilCallJoined();
-      }
 
       if (callingState === CallingState.RINGING && reject !== false) {
         if (reject) {
@@ -1333,6 +1322,16 @@ export class Call {
     this.unifiedSessionId ??= sfuClient.sessionId;
     this.trackSubscriptionManager.setSfuClient(sfuClient);
 
+    const abandonJoin = () => {
+      if (previousSfuClient !== sfuClient) {
+        previousSfuClient?.close(
+          StreamSfuClient.DISPOSE_OLD_SOCKET,
+          'Join superseded by leave',
+        );
+      }
+      return 'superseded' as const;
+    };
+
     const clientDetails = await getClientDetails();
     // we don't need to send JoinRequest if we are re-using an existing healthy SFU client
     if (previousSfuClient !== sfuClient) {
@@ -1344,7 +1343,7 @@ export class Call {
       // skip if a leave superseded this join so codec detection doesn't resolve to a default factory.
       if (supersededByLeave()) {
         this.logger.debug('Join superseded by leave; skipping codec detection');
-        return 'superseded';
+        return abandonJoin();
       }
       const [subscriberSdp, publisherSdp] = await Promise.all([
         getGenericSdp('recvonly', dangerouslyForceCodec, subscriberFmtpLine),
@@ -1371,7 +1370,7 @@ export class Call {
         this.logger.debug(
           'Join superseded by leave; skipping the join request',
         );
-        return 'superseded';
+        return abandonJoin();
       }
       try {
         const { callState, fastReconnectDeadlineSeconds, publishOptions } =
@@ -1406,7 +1405,7 @@ export class Call {
           'Join request failed, connection considered unhealthy',
         );
         // restore the previous call state if the join-flow fails, unless a
-        // `leave()` won the race in the meantime (LEFT must stick)
+        // `leave()` happened in the meantime
         if (!supersededByLeave()) {
           this.state.setCallingState(callingState);
         }
@@ -1418,7 +1417,7 @@ export class Call {
     // peer-connection setup below (both run synchronously after this, so one check covers them).
     if (supersededByLeave()) {
       this.logger.debug('Join superseded by leave; aborting join flow');
-      return 'superseded';
+      return abandonJoin();
     }
 
     if (!performingMigration) {
