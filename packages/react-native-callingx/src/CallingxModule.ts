@@ -5,7 +5,6 @@ import {
   registerHeadlessTask,
   setHeadlessTask,
 } from './utils/headlessTask';
-import type { ManagableTask } from './utils/headlessTask';
 import { EventManager } from './EventManager';
 import type { EventListener } from './EventManager';
 import {
@@ -144,6 +143,7 @@ class CallingxModule implements ICallingxModule {
       }
 
       registerHeadlessTask();
+      this.registerKeepAliveTask();
     }
 
     this._isSetup = true;
@@ -307,14 +307,23 @@ class CallingxModule implements ICallingxModule {
     return NativeCallingModule.setOnHoldCall(callId, isOnHold);
   };
 
-  private registerBackgroundTask = (taskProvider: ManagableTask): void => {
+  private keepAliveHoldTask = (): Promise<void> =>
+    new Promise<void>((resolve) => {
+      if (this._keepAliveOwners.size === 0 && !this._keepAliveStopTimer) {
+        resolve();
+        return;
+      }
+      this._keepAliveResolve = () => {
+        this.log('Releasing callingx keep-alive background task', 'info');
+        resolve();
+      };
+    });
+
+  private registerKeepAliveTask = (): void => {
     // We intentionally do NOT route stops through NativeCallingModule.stopBackgroundTask: that uses
     // startService, so when no CallService is running (the call already ended -> onDestroy) it would
     // spin up a throwaway CallService just to deliver a no-op stop, which then lingers.
-    const noopStop = () => {};
-
-    setHeadlessTask((taskData: any) => taskProvider(taskData, noopStop));
-
+    setHeadlessTask(() => this.keepAliveHoldTask());
     NativeCallingModule.registerBackgroundTaskAvailable();
   };
 
@@ -329,30 +338,11 @@ class CallingxModule implements ICallingxModule {
       this._keepAliveStopTimer = undefined;
     }
 
-    const wasEmpty = this._keepAliveOwners.size === 0;
     this._keepAliveOwners.add(owner);
 
-    if (!wasEmpty) {
-      return;
-    }
-
-    // First owner, or a re-acquire right after the last release (we just cancelled its pending
-    // stop). Either way we (re-)issue the native start: HeadlessTaskManager ignores it if the task
-    // is genuinely still running (e.g. CallService stayed alive across the hand-off), or starts a
-    // fresh one if the task was already torn down by CallService.onDestroy (e.g. declining one call
-    // and accepting another). Idempotent + self-healing across a CallService teardown.
-    this.registerBackgroundTask(
-      () =>
-        new Promise<void>((resolve) => {
-          if (this._keepAliveOwners.size === 0 && !this._keepAliveStopTimer) {
-            resolve();
-            return;
-          }
-          this._keepAliveResolve = resolve;
-        }),
-    );
-
     try {
+      // Native start is idempotent for running tasks, so we call in unconditionally, avoiding
+      // potential stale owner leaks.
       await NativeCallingModule.startBackgroundTask(HEADLESS_TASK_NAME, 0);
     } catch (e) {
       this._keepAliveOwners.delete(owner);

@@ -2,9 +2,9 @@ package io.getstream.rn.callingx
 
 import android.os.Bundle
 
-data class CallEvent(val action: String, val extras: Bundle)
+public data class CallEvent(val action: String, val extras: Bundle)
 
-object CallEventBus {
+public object CallEventBus {
 
     interface Listener {
         fun onCallEvent(event: CallEvent)

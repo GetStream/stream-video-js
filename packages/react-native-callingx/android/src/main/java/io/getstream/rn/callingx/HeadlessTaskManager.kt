@@ -18,17 +18,40 @@ import com.facebook.react.jstasks.HeadlessJsTaskEventListener
 class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventListener {
 
   private var activeTaskId: Int? = null
+  private var isStarting: Boolean = false
 
   companion object {
     private const val TAG = "[Callingx] HeadlessTaskManager"
   }
 
-  public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long) {
-    debugLog(TAG, "[headless] startHeadlessTask: Starting headless task: $taskName, $data, $timeout")
-    if (activeTaskId != null) {
-      Log.w(TAG, "[headless] startHeadlessTask: Task already starting or active, ignoring new task request")
+  private fun hasReactContext(): Boolean = reactContext != null
+
+  // ensures the React context is running by booting it via the headless task if not already present
+  fun ensureReactContext() {
+    if (hasReactContext()) {
+      debugLog(TAG, "[headless] ensureReactContext: React context already running, skipping boot")
       return
     }
+    debugLog(
+            TAG,
+            "[headless] ensureReactContext: booting React context via keep-alive headless task"
+    )
+    startHeadlessTask(CallingxModuleImpl.HEADLESS_TASK_NAME, Bundle(), 0)
+  }
+
+  public fun startHeadlessTask(taskName: String, data: Bundle, timeout: Long) {
+    debugLog(
+            TAG,
+            "[headless] startHeadlessTask entry: activeTaskId=$activeTaskId isStarting=$isStarting"
+    )
+    if (activeTaskId != null || isStarting) {
+      Log.w(
+              TAG,
+              "[headless] startHeadlessTask: Task already starting or active, ignoring new task request"
+      )
+      return
+    }
+    isStarting = true
 
     if (UiThreadUtil.isOnUiThread()) {
       startTask(HeadlessJsTaskConfig(taskName, Arguments.fromBundle(data), timeout, true))
@@ -71,6 +94,8 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
     UiThreadUtil.runOnUiThread {
       val taskId = headlessJsTaskContext.startTask(taskConfig)
       activeTaskId = taskId
+      debugLog(TAG, "[headless] invokeStartTask: Task started: $taskId")
+      isStarting = false
     }
   }
 
@@ -79,27 +104,40 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
       val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
       if (headlessJsTaskContext.isTaskRunning(taskId)) {
         headlessJsTaskContext.finishTask(taskId)
-        debugLog(TAG, "Stopped task: $taskId")
+        debugLog(TAG, "[headless] stopTask: Task finished $taskId")
       }
     }
   }
 
   fun release() {
     stopHeadlessTask()
-
-    reactContext?.let { context ->
-      val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
-      headlessJsTaskContext.removeTaskEventListener(this)
+    isStarting = false
+    // Defer cleanup to the back of the main-thread queue so any finish callback already
+    // posted by finishTask() drains first — otherwise we'd unregister the listener before
+    // it fires and lose the finish log.
+    UiThreadUtil.runOnUiThread {
+      activeTaskId = null
+      reactContext?.let { context ->
+        val headlessJsTaskContext = HeadlessJsTaskContext.getInstance(context)
+        headlessJsTaskContext.removeTaskEventListener(this)
+      }
     }
   }
 
   override fun onHeadlessJsTaskStart(taskId: Int) {
-    debugLog(TAG, "[headless] onHeadlessJsTaskStart: Task started: $taskId")
   }
 
   override fun onHeadlessJsTaskFinish(taskId: Int) {
-    debugLog(TAG, "[headless] onHeadlessJsTaskFinish: Task finished: $taskId")
+    if (taskId != activeTaskId) {
+      debugLog(
+              TAG,
+              "[headless] onHeadlessJsTaskFinish: IGNORED foreign taskId=$taskId (our=$activeTaskId)"
+      )
+      return
+    }
+    debugLog(TAG, "[headless] onHeadlessJsTaskFinish Task finished: $taskId state cleared: activeTaskId=null isStarting=false")
     activeTaskId = null
+    isStarting = false
   }
 
   /**
@@ -158,7 +196,9 @@ class HeadlessTaskManager(private val context: Context) : HeadlessJsTaskEventLis
                 }
               }
       )
-      reactInstanceManager.createReactContextInBackground()
+      if (!reactInstanceManager.hasStartedCreatingInitialContext()) {
+        reactInstanceManager.createReactContextInBackground()
+      }
     }
   }
 }
