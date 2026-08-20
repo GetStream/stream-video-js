@@ -64,8 +64,9 @@ let firebaseDataHandlerDeprecationLogged = false;
  * you can safely remove `firebaseDataHandler(...)` wiring from your Firebase messaging handlers.
  */
 export const firebaseDataHandler = async (
-  _data?: FirebaseMessagingTypes.RemoteMessage['data'],
+  data?: FirebaseMessagingTypes.RemoteMessage['data'],
 ) => {
+  void data;
   if (!firebaseDataHandlerDeprecationLogged) {
     firebaseDataHandlerDeprecationLogged = true;
     console.warn(
