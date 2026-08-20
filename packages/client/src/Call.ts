@@ -3375,9 +3375,9 @@ export class Call {
       withDisabledDevices,
     } = opts;
     if (!skipSpeakerApply) {
-      await this.speaker.apply(settings).catch((err) => {
-        this.logger.warn('Speaker init failed', err);
-      });
+      await this.speaker
+        .apply(settings)
+        .catch((err) => this.logger.warn('Speaker init failed', err));
     }
     await this.camera
       .apply(settings.video, publish, withDisabledDevices)
