@@ -936,11 +936,7 @@ export class Call {
     // const calls = useCalls().filter((c) => c.ringing);
     const calls = this.clientStore.calls.filter((c) => c.cid !== this.cid);
     this.clientStore.setCalls([this, ...calls]);
-    const skipSpeakerApply = isReactNative();
-    await this.applyDeviceConfig(settings, {
-      publish: false,
-      skipSpeakerApply,
-    });
+    await this.applyDeviceConfig(settings, { publish: false });
   };
 
   /**
@@ -976,12 +972,7 @@ export class Call {
       this.watching = true;
       this.clientStore.registerOrUpdateCall(this);
     }
-    // Skip speaker setup on RN if ringing was requested or the call is already ringing
-    const skipSpeakerApply = isReactNative();
-    await this.applyDeviceConfig(response.call.settings, {
-      publish: false,
-      skipSpeakerApply,
-    });
+    await this.applyDeviceConfig(response.call.settings, { publish: false });
 
     return response;
   };
@@ -1012,12 +1003,7 @@ export class Call {
       this.clientStore.registerOrUpdateCall(this);
     }
 
-    // Skip speaker setup on RN if ringing was requested or the call is already ringing
-    const skipSpeakerApply = isReactNative();
-    await this.applyDeviceConfig(response.call.settings, {
-      publish: false,
-      skipSpeakerApply,
-    });
+    await this.applyDeviceConfig(response.call.settings, { publish: false });
 
     return response;
   };
@@ -3378,11 +3364,16 @@ export class Call {
     settings: CallSettingsResponse,
     opts: {
       publish: boolean;
-      skipSpeakerApply: boolean;
+      skipSpeakerApply?: boolean;
       withDisabledDevices?: boolean;
     },
   ) => {
-    const { publish, skipSpeakerApply, withDisabledDevices } = opts;
+    const {
+      publish,
+      // Skip speaker setup on RN if ringing was requested or the call is already ringing
+      skipSpeakerApply = isReactNative(),
+      withDisabledDevices,
+    } = opts;
     if (!skipSpeakerApply) {
       await this.speaker.apply(settings).catch((err) => {
         this.logger.warn('Speaker init failed', err);

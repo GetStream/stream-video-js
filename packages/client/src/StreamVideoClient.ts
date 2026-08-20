@@ -39,7 +39,6 @@ import {
   getInstanceKey,
 } from './helpers/clientUtils';
 import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
-import { isReactNative } from './helpers/platforms';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
 import { ClientEventReporter } from './reporting';
@@ -459,7 +458,6 @@ export class StreamVideoClient {
     opts: { withDisabledDevices?: boolean } = {},
   ) => {
     const { withDisabledDevices = true } = opts;
-    const skipSpeakerApply = isReactNative();
     const response = await this.streamClient.post<
       QueryCallsResponse,
       QueryCallsRequest
@@ -479,7 +477,6 @@ export class StreamVideoClient {
       call.state.updateFromCallResponse(c.call);
       await call.applyDeviceConfig(c.call.settings, {
         publish: false,
-        skipSpeakerApply,
         withDisabledDevices,
       });
       if (data.watch) {
