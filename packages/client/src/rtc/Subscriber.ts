@@ -94,6 +94,13 @@ export class Subscriber extends BasePeerConnection {
     }
   };
 
+  /**
+   * Whether the given stream is one the SFU echoed back to us
+   * (`allowOwnTracksLoopback`) rather than a local capture stream.
+   */
+  isSelfSubscribedStream = (stream: MediaStream | undefined): boolean =>
+    !!stream && !!this.trackedStreams?.has(stream);
+
   private handleOnTrack = (e: RTCTrackEvent) => {
     const { streams, track } = e;
     const [primaryStream] = streams;
@@ -212,6 +219,7 @@ export class Subscriber extends BasePeerConnection {
       (p) => p.trackLookupPrefix === trackId,
     );
     if (!target) return;
+    if (target.isLocalParticipant) return;
     this.state.updateParticipant(target.sessionId, (p) => {
       const current = p.interruptedTracks ?? [];
       const has = current.includes(trackType);

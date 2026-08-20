@@ -210,6 +210,16 @@ export const DevMenu = () => {
           Go to Inspector
         </a>
       )}
+      <a
+        className="rd__link rd__link--faux-button rd__link--align-left"
+        href={withParams(
+          `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/pre-call-test`,
+        )}
+        rel="noreferrer"
+        target="_blank"
+      >
+        Pre-call test
+      </a>
       <li className="rd__dev-menu__item rd__dev-menu__item--divider" />
       {call && (
         <a

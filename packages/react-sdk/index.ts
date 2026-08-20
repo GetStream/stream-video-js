@@ -15,6 +15,10 @@ export {
   usePersistedDevicePreferences,
   useDeviceList,
   useModeration,
+  useLoopbackRecording,
+  type LoopbackRecordingState,
+  type StartLoopbackRecordingOptions,
+  type UseLoopbackRecordingResult,
 } from './src/hooks';
 export { applyFilter, type Filter } from './src/utilities/filter';
 

@@ -447,6 +447,65 @@ describe('Subscriber', () => {
   });
 
   describe('OnTrack', () => {
+    const audioStreamNamed = (trackLookupPrefix: string) => {
+      const stream = new MediaStream();
+      // @ts-expect-error - mock
+      stream.id = `${trackLookupPrefix}:TRACK_TYPE_AUDIO`;
+      return stream;
+    };
+
+    const audioTrack = () => {
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+      return track;
+    };
+
+    it('replaces the local capture stream with the echoed one, leaving the capture tracks live', () => {
+      const captureTrack = audioTrack();
+      const captureStream = new MediaStream();
+      captureStream.getTracks = () => [captureTrack];
+      const echoedStream = audioStreamNamed('self-lookup');
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('self-session', {
+        sessionId: 'self-session',
+        trackLookupPrefix: 'self-lookup',
+        isLocalParticipant: true,
+        audioStream: captureStream,
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [echoedStream], track: audioTrack() });
+
+      const participant = state.participants.find(
+        (p) => p.sessionId === 'self-session',
+      );
+      expect(participant?.audioStream).toBe(echoedStream);
+      // the device manager owns the capture stream and is still publishing it
+      expect(captureTrack.stop).not.toHaveBeenCalled();
+      expect(captureStream.removeTrack).not.toHaveBeenCalled();
+    });
+
+    it('reports streams it received as self-subscribed, and capture streams as not', () => {
+      const echoedStream = audioStreamNamed('self-lookup');
+      const captureStream = new MediaStream();
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('self-session', {
+        sessionId: 'self-session',
+        trackLookupPrefix: 'self-lookup',
+        isLocalParticipant: true,
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [echoedStream], track: audioTrack() });
+
+      expect(subscriber.isSelfSubscribedStream(echoedStream)).toBe(true);
+      expect(subscriber.isSelfSubscribedStream(captureStream)).toBe(false);
+      expect(subscriber.isSelfSubscribedStream(undefined)).toBe(false);
+    });
+
     it('should add unknown tracks to the to the call state', () => {
       const mediaStream = new MediaStream();
       const mediaStreamTrack = new MediaStreamTrack();
@@ -681,6 +740,48 @@ describe('Subscriber', () => {
       handlers['ended']();
 
       expect(interruptedFor('session-id')).toEqual([]);
+    });
+
+    it('leaves the local participant alone on a self-sub track', () => {
+      const mediaStream = new MediaStream();
+      const track = new MediaStreamTrack();
+      // @ts-expect-error - mock
+      mediaStream.id = 'self-lookup:TRACK_TYPE_AUDIO';
+      // @ts-expect-error - mock
+      track.kind = 'audio';
+      Object.defineProperty(track, 'muted', {
+        configurable: true,
+        get: () => true,
+      });
+      // @ts-expect-error - incomplete mock
+      state.updateOrAddParticipant('self-session', {
+        sessionId: 'self-session',
+        trackLookupPrefix: 'self-lookup',
+        isLocalParticipant: true,
+        interruptedTracks: [],
+      });
+
+      const onTrack = subscriber['handleOnTrack'];
+      // @ts-expect-error - incomplete mock
+      onTrack({ streams: [mediaStream], track });
+
+      expect(interruptedFor('self-session')).toEqual([]);
+
+      const handlers: Record<string, () => void> = {};
+      for (const [event, handler] of (
+        track.addEventListener as ReturnType<typeof vi.fn>
+      ).mock.calls) {
+        handlers[event] = handler as () => void;
+      }
+
+      handlers['mute']();
+      expect(interruptedFor('self-session')).toEqual([]);
+
+      state.updateParticipant('self-session', {
+        interruptedTracks: [TrackType.AUDIO],
+      });
+      handlers['unmute']();
+      expect(interruptedFor('self-session')).toEqual([TrackType.AUDIO]);
     });
 
     it('ignores non-audio remote tracks to avoid Dynascale false positives', () => {

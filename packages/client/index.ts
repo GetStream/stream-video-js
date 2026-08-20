@@ -23,6 +23,8 @@ export * from './src/helpers/humanize';
 export * from './src/helpers/DynascaleManager';
 export * from './src/helpers/ViewportTracker';
 export * from './src/helpers/sound-detector';
+export * from './src/helpers/loopback';
+export * from './src/helpers/MediaStreamRecorder';
 export * from './src/helpers/participantUtils';
 export * from './src/rtc/e2ee/E2EEManager';
 export * from './src/rtc/e2ee/EncryptionManager';

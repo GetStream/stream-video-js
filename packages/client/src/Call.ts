@@ -2410,12 +2410,18 @@ export class Call {
       const streamStateProp = trackTypeToParticipantStreamKey(trackType);
       if (!streamStateProp) continue;
 
-      this.state.updateParticipant(sessionId, (p) => ({
-        publishedTracks: mediaStream
-          ? pushToIfMissing([...p.publishedTracks], trackType)
-          : p.publishedTracks.filter((t) => t !== trackType),
-        [streamStateProp]: mediaStream,
-      }));
+      this.state.updateParticipant(sessionId, (p) => {
+        const currentStream = p[streamStateProp];
+        const isEchoedStream =
+          this.subscriber?.isSelfSubscribedStream(currentStream);
+
+        return {
+          publishedTracks: mediaStream
+            ? pushToIfMissing([...p.publishedTracks], trackType)
+            : p.publishedTracks.filter((t) => t !== trackType),
+          [streamStateProp]: isEchoedStream ? currentStream : mediaStream,
+        };
+      });
     }
   };
 
