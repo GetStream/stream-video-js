@@ -167,8 +167,13 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
    *
    * @param settings the video settings to apply.
    * @param publish whether to publish the stream after applying the settings.
+   * @param forceDisabled whether to keep the camera disabled, regardless of server-side or local preferences.
    */
-  async apply(settings: VideoSettingsResponse, publish: boolean) {
+  async apply(
+    settings: VideoSettingsResponse,
+    publish: boolean,
+    forceDisabled: boolean = false,
+  ): Promise<void> {
     // Wait for any in progress camera operation
     await this.statusChangeSettled();
     await this.selectTargetResolution(settings.target_resolution);
@@ -182,6 +187,7 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       this.state.browserPermissionState$,
     );
     if (
+      !forceDisabled &&
       shouldApplyDefaults &&
       this.devicePersistence.enabled &&
       permissionState === 'granted'
@@ -199,7 +205,12 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
         await this.selectDirection(direction, { enableCamera: false });
       }
 
-      if (canPublish && settings.camera_default_on && enabledInCallType) {
+      if (
+        !forceDisabled &&
+        canPublish &&
+        settings.camera_default_on &&
+        enabledInCallType
+      ) {
         await this.enable();
       }
     }

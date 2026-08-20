@@ -937,7 +937,10 @@ export class Call {
     const calls = this.clientStore.calls.filter((c) => c.cid !== this.cid);
     this.clientStore.setCalls([this, ...calls]);
     const skipSpeakerApply = isReactNative();
-    await this.applyDeviceConfig(settings, false, skipSpeakerApply);
+    await this.applyDeviceConfig(settings, {
+      publish: false,
+      skipSpeakerApply,
+    });
   };
 
   /**
@@ -975,11 +978,10 @@ export class Call {
     }
     // Skip speaker setup on RN if ringing was requested or the call is already ringing
     const skipSpeakerApply = isReactNative();
-    await this.applyDeviceConfig(
-      response.call.settings,
-      false,
+    await this.applyDeviceConfig(response.call.settings, {
+      publish: false,
       skipSpeakerApply,
-    );
+    });
 
     return response;
   };
@@ -1012,11 +1014,10 @@ export class Call {
 
     // Skip speaker setup on RN if ringing was requested or the call is already ringing
     const skipSpeakerApply = isReactNative();
-    await this.applyDeviceConfig(
-      response.call.settings,
-      false,
+    await this.applyDeviceConfig(response.call.settings, {
+      publish: false,
       skipSpeakerApply,
-    );
+    });
 
     return response;
   };
@@ -1430,7 +1431,10 @@ export class Call {
       this.state.settings &&
       !supersededByLeave()
     ) {
-      await this.applyDeviceConfig(this.state.settings, true, false);
+      await this.applyDeviceConfig(this.state.settings, {
+        publish: true,
+        skipSpeakerApply: false,
+      });
       this.deviceSettingsAppliedOnce = true;
     }
 
@@ -3372,20 +3376,24 @@ export class Call {
    */
   applyDeviceConfig = async (
     settings: CallSettingsResponse,
-    publish: boolean,
-    skipSpeakerApply: boolean,
+    opts: {
+      publish: boolean;
+      skipSpeakerApply: boolean;
+      withDisabledDevices?: boolean;
+    },
   ) => {
+    const { publish, skipSpeakerApply, withDisabledDevices } = opts;
     if (!skipSpeakerApply) {
       await this.speaker.apply(settings).catch((err) => {
         this.logger.warn('Speaker init failed', err);
       });
     }
-    await this.camera.apply(settings.video, publish).catch((err) => {
-      this.logger.warn('Camera init failed', err);
-    });
-    await this.microphone.apply(settings.audio, publish).catch((err) => {
-      this.logger.warn('Mic init failed', err);
-    });
+    await this.camera
+      .apply(settings.video, publish, withDisabledDevices)
+      .catch((err) => this.logger.warn('Camera init failed', err));
+    await this.microphone
+      .apply(settings.audio, publish, withDisabledDevices)
+      .catch((err) => this.logger.warn('Mic init failed', err));
   };
 
   /**

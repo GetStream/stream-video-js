@@ -362,6 +362,33 @@ describe('CameraManager', () => {
       expect(enableSpy).not.toHaveBeenCalled();
     });
 
+    it('should skip persisted preferences when forced disabled', async () => {
+      vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
+        of('granted'),
+      );
+      const devicePersistence = { enabled: true, storageKey: '' };
+      const persistedManager = new CameraManager(call, devicePersistence);
+      const applySpy = vi.spyOn(
+        persistedManager as never,
+        'applyPersistedPreferences',
+      );
+      const enableSpy = vi.spyOn(persistedManager, 'enable');
+
+      await persistedManager.apply(
+        fromPartial({
+          enabled: true,
+          target_resolution: { width: 640, height: 480 },
+          camera_facing: 'front',
+          camera_default_on: true,
+        }),
+        false,
+        true,
+      );
+
+      expect(applySpy).not.toHaveBeenCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
+    });
+
     it('should skip persisted preferences when permission is not granted', async () => {
       vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
         of('prompt'),
