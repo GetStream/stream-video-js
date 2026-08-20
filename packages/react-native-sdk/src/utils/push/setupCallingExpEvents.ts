@@ -132,7 +132,6 @@ const onAcceptCall =
 
     const callingx = getCallingxLib();
     clearPushWSEventSubscriptions(call_cid);
-
     processCallFromPushInBackground(
       pushConfig,
       call_cid,

@@ -141,10 +141,17 @@ export const onRingNotificationReceived = async (
           pushUnsubscriptionCallbacks.delete(call_cid);
           return;
         }
-        nativeLog(`watching WS for ringing callCid: ${call_cid}`);
 
-        const unsubscribeFunctions: Array<() => void> =
-          pushUnsubscriptionCallbacks.get(call_cid) ?? [];
+        // prevent subscriptions in case of call being left and subscriptions being already cleared
+        const unsubscribeFunctions = pushUnsubscriptionCallbacks.get(call_cid);
+        if (!unsubscribeFunctions) {
+          nativeLog(
+            `ring cancelled during onRingingCall for callCid: ${call_cid}, releasing background task`,
+          );
+          finishBackgroundTask();
+          return;
+        }
+        nativeLog(`watching WS for ringing callCid: ${call_cid}`);
         // check if service needs to be closed if accept/decline event was done on another device
         const unsubscribe = callFromPush.on(
           'all',
@@ -187,29 +194,6 @@ export const onRingNotificationReceived = async (
           },
         );
 
-        const endCallSubscription = callingx.addEventListener(
-          'endCall',
-          async ({ callId }: { callId: string }) => {
-            unsubscribeFunctions.forEach((fn) => fn());
-            try {
-              await callFromPush.leave({
-                reject:
-                  callFromPush.state.callingState === CallingState.RINGING,
-                reason: 'decline',
-              });
-            } catch (error) {
-              nativeLog(
-                `Failed to leave call with callCid: ${call_cid} error: ${error}`,
-                'error',
-              );
-            } finally {
-              nativeLog(
-                `endCall handled for callCid: ${call_cid} callId: ${callId}`,
-              );
-            }
-          },
-        );
-
         //stop background task when app comes to foreground
         const appStateSubscription = AppState.addEventListener(
           'change',
@@ -227,7 +211,6 @@ export const onRingNotificationReceived = async (
 
         unsubscribeFunctions.push(unsubscribe);
         unsubscribeFunctions.push(() => stateSubscription.unsubscribe());
-        unsubscribeFunctions.push(() => endCallSubscription.remove());
         unsubscribeFunctions.push(() => appStateSubscription.remove());
         unsubscribeFunctions.push(finishBackgroundTask);
         unsubscribeFunctions.push(() =>
