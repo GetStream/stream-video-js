@@ -14,7 +14,7 @@ import {
   type EventParams,
 } from './libs/callingx';
 import { Platform } from 'react-native';
-import { firebaseDataHandler } from './android';
+import { onRingNotificationReceived } from './internal/android';
 
 type PushConfig = NonNullable<StreamVideoConfig['push']>;
 
@@ -75,8 +75,8 @@ export function setupCallingExpEvents(pushConfig: NonNullable<PushConfig>) {
     } else if (eventName === 'providerReset') {
       onProviderReset(pushConfig)(params as EventParams['providerReset']);
     } else if (eventName === 'ringCallPushReceived') {
-      firebaseDataHandler(params).catch((error) => {
-        logger.error(`Error in firebaseDataHandler: ${error}`);
+      onRingNotificationReceived(params).catch((error) => {
+        logger.error(`Error in onRingNotificationReceived: ${error}`);
       });
     }
   });

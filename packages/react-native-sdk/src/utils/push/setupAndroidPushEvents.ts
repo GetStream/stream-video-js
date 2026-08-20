@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import { videoLoggerSystem } from '@stream-io/video-client';
 import { StreamVideoConfig } from '../StreamVideoRN/types';
 import { getCallingxLib } from './libs';
-import { firebaseDataHandler } from './android';
+import { onRingNotificationReceived } from './internal/android';
 
 export function setupAndroidPushEvents(
   pushConfig: NonNullable<StreamVideoConfig['push']>,
@@ -18,8 +18,8 @@ export function setupAndroidPushEvents(
   const callingx = getCallingxLib();
   callingx.addEventListener('ringCallPushReceived', (params) => {
     logger.debug(`ringCallPushReceived event call_cid: ${params?.call_cid}`);
-    firebaseDataHandler(params).catch((error) => {
-      logger.error(`Error in firebaseDataHandler: ${error}`);
+    onRingNotificationReceived(params).catch((error) => {
+      logger.error(`Error in onRingNotificationReceived: ${error}`);
     });
   });
 }
