@@ -3370,7 +3370,7 @@ export class Call {
   ) => {
     const {
       publish,
-      // Skip speaker setup on RN if ringing was requested or the call is already ringing
+ // Skip speaker setup on RN until joining (explicitly passed as false during join())
       skipSpeakerApply = isReactNative(),
       withDisabledDevices,
     } = opts;
