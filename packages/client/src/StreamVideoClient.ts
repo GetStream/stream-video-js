@@ -39,7 +39,6 @@ import {
   getInstanceKey,
 } from './helpers/clientUtils';
 import { logToConsole, ScopedLogger, videoLoggerSystem } from './logger';
-import { isReactNative } from './helpers/platforms';
 import { withoutConcurrency } from './helpers/concurrency';
 import { enableTimerWorker } from './timers';
 import { ClientEventReporter } from './reporting';
@@ -474,8 +473,13 @@ export class StreamVideoClient {
    * Will query the API for calls matching the given filters.
    *
    * @param data the query data.
+   * @param opts additional options, for tweaking the API behavior.
    */
-  queryCalls = async (data: QueryCallsRequest = {}) => {
+  queryCalls = async (
+    data: QueryCallsRequest = {},
+    opts: { withDisabledDevices?: boolean } = {},
+  ) => {
+    const { withDisabledDevices = true } = opts;
     const response = await this.doQueryCalls(data);
     const calls = [];
     for (const c of response.calls) {
@@ -490,7 +494,10 @@ export class StreamVideoClient {
         clientStore: this.writeableStateStore,
       });
       call.state.updateFromCallResponse(c.call);
-      await call.applyDeviceConfig(c.call.settings, false, isReactNative());
+      await call.applyDeviceConfig(c.call.settings, {
+        publish: false,
+        withDisabledDevices,
+      });
       if (data.watch) {
         await call.setup();
         this.writeableStateStore.registerCall(call);
