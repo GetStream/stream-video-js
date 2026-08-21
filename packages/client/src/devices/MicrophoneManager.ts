@@ -408,12 +408,14 @@ export class MicrophoneManager extends AudioDeviceManager<MicrophoneManagerState
       this.state.browserPermissionState$,
     );
     if (
-      !forceDisabled &&
       shouldApplyDefaults &&
       this.devicePersistence.enabled &&
       permissionState === 'granted'
     ) {
-      persistedPreferencesApplied = await this.applyPersistedPreferences(true);
+      persistedPreferencesApplied = await this.applyPersistedPreferences(
+        true,
+        forceDisabled,
+      );
     }
 
     const canPublish = this.call.permissionsContext.canPublish(this.trackType);

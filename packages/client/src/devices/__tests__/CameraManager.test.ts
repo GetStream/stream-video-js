@@ -357,21 +357,20 @@ describe('CameraManager', () => {
         true,
       );
 
-      expect(applySpy).toHaveBeenCalledWith(true);
+      expect(applySpy).toHaveBeenCalledWith(true, false);
       expect(selectDirectionSpy).not.toHaveBeenCalled();
       expect(enableSpy).not.toHaveBeenCalled();
     });
 
-    it('should skip persisted preferences when forced disabled', async () => {
+    it('should apply persisted device preferences without enabling when forced disabled', async () => {
       vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
         of('granted'),
       );
       const devicePersistence = { enabled: true, storageKey: '' };
       const persistedManager = new CameraManager(call, devicePersistence);
-      const applySpy = vi.spyOn(
-        persistedManager as never,
-        'applyPersistedPreferences',
-      );
+      const applySpy = vi
+        .spyOn(persistedManager as never, 'applyPersistedPreferences')
+        .mockResolvedValue(true);
       const enableSpy = vi.spyOn(persistedManager, 'enable');
 
       await persistedManager.apply(
@@ -385,7 +384,7 @@ describe('CameraManager', () => {
         true,
       );
 
-      expect(applySpy).not.toHaveBeenCalled();
+      expect(applySpy).toHaveBeenCalledWith(true, true);
       expect(enableSpy).not.toHaveBeenCalled();
     });
 

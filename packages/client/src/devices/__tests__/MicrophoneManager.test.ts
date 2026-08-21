@@ -486,11 +486,11 @@ describe('MicrophoneManager', () => {
       // @ts-expect-error - partial data
       await persistedManager.apply({ mic_default_on: true }, true);
 
-      expect(applySpy).toHaveBeenCalledWith(true);
+      expect(applySpy).toHaveBeenCalledWith(true, false);
       expect(enableSpy).not.toHaveBeenCalled();
     });
 
-    it('should skip persisted preferences when forced disabled', async () => {
+    it('should apply persisted device preferences without enabling when forced disabled', async () => {
       vi.spyOn(mockBrowserPermission, 'asStateObservable').mockReturnValue(
         of('granted'),
       );
@@ -500,16 +500,15 @@ describe('MicrophoneManager', () => {
         devicePersistence,
         'disable-tracks',
       );
-      const applySpy = vi.spyOn(
-        persistedManager as never,
-        'applyPersistedPreferences',
-      );
+      const applySpy = vi
+        .spyOn(persistedManager as never, 'applyPersistedPreferences')
+        .mockResolvedValue(true);
       const enableSpy = vi.spyOn(persistedManager, 'enable');
 
       // @ts-expect-error - partial data
       await persistedManager.apply({ mic_default_on: true }, false, true);
 
-      expect(applySpy).not.toHaveBeenCalled();
+      expect(applySpy).toHaveBeenCalledWith(true, true);
       expect(enableSpy).not.toHaveBeenCalled();
     });
 

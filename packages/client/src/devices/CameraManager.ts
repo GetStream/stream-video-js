@@ -187,13 +187,14 @@ export class CameraManager extends DeviceManager<CameraManagerState> {
       this.state.browserPermissionState$,
     );
     if (
-      !forceDisabled &&
       shouldApplyDefaults &&
       this.devicePersistence.enabled &&
       permissionState === 'granted'
     ) {
-      persistedPreferencesApplied =
-        await this.applyPersistedPreferences(enabledInCallType);
+      persistedPreferencesApplied = await this.applyPersistedPreferences(
+        enabledInCallType,
+        forceDisabled,
+      );
     }
 
     // apply a direction and enable the camera only if in "pristine" state,
