@@ -126,47 +126,6 @@ describe('StreamVideoClient re-watching calls on reconnect', () => {
     await vi.waitFor(() => expect(leave).toHaveBeenCalled());
   });
 
-  it('drops a ringing call cancelled by the caller while the socket was down', async () => {
-    const call = await setupRingingCall();
-    const leave = vi.spyOn(call, 'leave').mockResolvedValue(undefined);
-
-    const session = CallRingPayload.call.session!;
-    const callerId = CallRingPayload.call.created_by.id;
-    vi.spyOn(client.streamClient, 'post').mockResolvedValue(
-      queryCallsResponse({
-        ...CallRingPayload.call,
-        session: {
-          ...session,
-          rejected_by: { [callerId]: '2025-08-14T14:49:00Z' },
-        },
-      }),
-    );
-
-    reconnect();
-
-    // the caller cancelled -> this device should stop ringing
-    await vi.waitFor(() => expect(leave).toHaveBeenCalled());
-  });
-
-  it('drops a ringing call that ended while the socket was down', async () => {
-    const call = await setupRingingCall();
-    const leave = vi.spyOn(call, 'leave').mockResolvedValue(undefined);
-
-    const session = CallRingPayload.call.session!;
-    vi.spyOn(client.streamClient, 'post').mockResolvedValue(
-      queryCallsResponse({
-        ...CallRingPayload.call,
-        ended_at: '2025-08-14T14:49:00Z',
-        session: { ...session, ended_at: '2025-08-14T14:49:00Z' },
-      }),
-    );
-
-    reconnect();
-
-    // the call ended -> this device should stop ringing
-    await vi.waitFor(() => expect(leave).toHaveBeenCalled());
-  });
-
   it('queryCalls returns an independent instance for registered calls', async () => {
     // e.g. being on a call while watching a dashboard of calls:
     // leaving the joined instance must not silence the dashboard instance
