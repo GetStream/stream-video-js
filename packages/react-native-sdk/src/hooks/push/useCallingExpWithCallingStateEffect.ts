@@ -242,7 +242,7 @@ export const useCallingExpWithCallingStateEffect = () => {
 
     const traceRecordingState = (trigger: string) => {
       if (activeCall.state.callingState !== CallingState.JOINED) return;
-      if (activeCall.microphone.state.optimisticStatus !== 'enabled') return;
+      if (activeCall.microphone.state.status !== 'enabled') return;
 
       let state;
       try {
