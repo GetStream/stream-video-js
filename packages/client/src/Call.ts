@@ -3370,7 +3370,7 @@ export class Call {
   ) => {
     const {
       publish,
- // Skip speaker setup on RN until joining (explicitly passed as false during join())
+      // Skip speaker setup on RN until joining (explicitly passed as false during join())
       skipSpeakerApply = isReactNative(),
       withDisabledDevices,
     } = opts;
