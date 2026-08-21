@@ -370,7 +370,20 @@ export type EventName =
   | 'didPerformSetMutedCallAction'
   | 'didActivateAudioSession'
   | 'didDeactivateAudioSession'
-  | 'providerReset';
+  | 'providerReset'
+  | 'ringCallPushReceived';
+
+export type RingCallPushPayload = {
+  call_cid?: string;
+  sender?: string;
+  type?: string;
+  created_by_id?: string;
+  created_by_display_name?: string;
+  call_display_name?: string;
+  receiver_id?: string;
+  video?: string;
+  version?: string;
+};
 
 export type IOSAudioInterruptionEvent = {
   source: 'callingx';
@@ -410,6 +423,7 @@ export type EventParams = {
   providerReset: {
     callCids: string[];
   };
+  ringCallPushReceived: RingCallPushPayload;
 };
 
 export type VoipEventName =

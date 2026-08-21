@@ -274,6 +274,7 @@ class CallService : Service(), CallRepository.Listener {
         when (intent.action) {
             ACTION_INCOMING_CALL -> {
                 registerCall(intent, true)
+                headlessJSManager.ensureReactContext()
             }
             ACTION_OUTGOING_CALL -> {
                 registerCall(intent, false)

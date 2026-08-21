@@ -186,11 +186,6 @@ class CallingxModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun registerBackgroundTaskAvailable() {
-        impl.registerBackgroundTaskAvailable()
-    }
-
-    @ReactMethod
     fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         impl.fulfillAnswerCallAction(callId, didFail)
     }

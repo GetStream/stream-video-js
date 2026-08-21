@@ -1,10 +1,7 @@
 import messaging, {
   FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-import {
-  isFirebaseStreamVideoMessage,
-  firebaseDataHandler,
-} from '@stream-io/video-react-native-sdk';
+import { isFirebaseStreamVideoMessage } from '@stream-io/video-react-native-sdk';
 import notifee, { AndroidImportance } from '@notifee/react-native';
 import {
   NON_RINGING_CHANNEL_ID,
@@ -43,7 +40,6 @@ export const setNotificationListeners = () => {
   // Background message handler
   messaging().setBackgroundMessageHandler(async (msg) => {
     if (isFirebaseStreamVideoMessage(msg)) {
-      await firebaseDataHandler(msg.data);
       await handleNonRingingMessage(msg);
     }
   });
@@ -51,7 +47,6 @@ export const setNotificationListeners = () => {
   // Foreground message handler
   messaging().onMessage(async (msg) => {
     if (isFirebaseStreamVideoMessage(msg)) {
-      await firebaseDataHandler(msg.data);
       await handleNonRingingMessage(msg);
     }
   });

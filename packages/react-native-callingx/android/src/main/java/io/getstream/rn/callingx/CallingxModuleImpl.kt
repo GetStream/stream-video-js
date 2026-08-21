@@ -49,6 +49,8 @@ class CallingxModuleImpl(
         const val CALL_END_ACTION = "io.getstream.CALL_END"
         const val CALL_REGISTRATION_FAILED_ACTION = "io.getstream.CALL_REGISTRATION_FAILED"
         const val CALL_OPTIMISTIC_ACCEPT_ACTION = "io.getstream.ACCEPT_CALL_OPTIMISTIC"
+        // Published directly to CallEventBus (not a broadcast), so no manifest intent-filter entry.
+        const val CALL_RING_PUSH_ACTION = "io.getstream.CALL_RING_PUSH"
         // Background task name
         const val HEADLESS_TASK_NAME = "HandleCallBackgroundState"
     }
@@ -142,9 +144,8 @@ class CallingxModuleImpl(
         // event and clear it immediately after getting initial events
         val events = delayedEvents
         debugLog(TAG, "[module] getInitialEvents: Getting initial events: $events")
-        delayedEvents = WritableNativeArray()
         canSendEvents = true
-        CallEventBus.markJsReady()
+        delayedEvents = WritableNativeArray()
         return events
     }
 
@@ -363,11 +364,6 @@ class CallingxModuleImpl(
         }
     }
 
-    fun registerBackgroundTaskAvailable() {
-        debugLog(TAG, "[module] registerBackgroundTaskAvailable: Headless task registered")
-    }
-
-
     fun fulfillAnswerCallAction(callId: String, didFail: Boolean) {
         // no-op: Android Telecom doesn't require explicit action fulfillment
     }
@@ -516,6 +512,12 @@ class CallingxModuleImpl(
             }
             CALL_AUDIO_ENDPOINTS_CHANGED_ACTION -> {
                 sendJSEvent("didChangeAudioRoute", params)
+            }
+            CALL_RING_PUSH_ACTION -> {
+                extras.keySet().forEach { key ->
+                    params.putString(key, extras.getString(key))
+                }
+                sendJSEvent("ringCallPushReceived", params)
             }
         }
     }
