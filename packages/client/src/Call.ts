@@ -337,6 +337,7 @@ export class Call {
   private deviceSettingsAppliedOnce = false;
   private callManagerStarted = false;
   private leaveGeneration = 0;
+  private joinPromise?: Promise<void>;
   private credentials?: Credentials;
 
   private initialized = false;
@@ -1100,6 +1101,35 @@ export class Call {
    * @returns a promise which resolves once the call join-flow has finished.
    */
   join = async ({
+    maxJoinRetries = 3,
+    joinResponseTimeout,
+    rpcRequestTimeout,
+    allowOwnTracksLoopback = false,
+    ...data
+  }: JoinCallData & {
+    maxJoinRetries?: number;
+    joinResponseTimeout?: number;
+    rpcRequestTimeout?: number;
+    allowOwnTracksLoopback?: boolean;
+  } = {}): Promise<void> => {
+    if (this.joinPromise) return this.joinPromise;
+
+    const joinPromise = this.executeJoin({
+      maxJoinRetries,
+      joinResponseTimeout,
+      rpcRequestTimeout,
+      allowOwnTracksLoopback,
+      ...data,
+    }).finally(() => {
+      if (this.joinPromise === joinPromise) {
+        this.joinPromise = undefined;
+      }
+    });
+    this.joinPromise = joinPromise;
+    return joinPromise;
+  };
+
+  private executeJoin = async ({
     maxJoinRetries = 3,
     joinResponseTimeout,
     rpcRequestTimeout,
