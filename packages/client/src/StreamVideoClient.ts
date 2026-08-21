@@ -249,6 +249,17 @@ export class StreamVideoClient {
   };
 
   /**
+   * Queries the API for calls matching the given filters.
+   * @param data the query data.
+   */
+  private doQueryCalls = (data: QueryCallsRequest) => {
+    return this.streamClient.post<QueryCallsResponse, QueryCallsRequest>(
+      '/calls',
+      data,
+    );
+  };
+
+  /**
    * Rewatches the given calls with retry logic.
    * @param callsToReWatch array of call IDs to rewatch
    */
@@ -261,10 +272,21 @@ export class StreamVideoClient {
           `Rewatching calls ${callsToReWatch.join(', ')} attempt ${attempt + 1}`,
         );
 
-        await this.queryCalls({
+        const response = await this.doQueryCalls({
           watch: true,
           filter_conditions: { cid: { $in: callsToReWatch } },
         });
+
+        for (const c of response.calls) {
+          const call = this.writeableStateStore.findCall(
+            c.call.type,
+            c.call.id,
+          );
+
+          if (call) {
+            call.updateFromCallStateResponse(c);
+          }
+        }
 
         return;
       } catch (err) {
@@ -454,10 +476,7 @@ export class StreamVideoClient {
    * @param data the query data.
    */
   queryCalls = async (data: QueryCallsRequest = {}) => {
-    const response = await this.streamClient.post<
-      QueryCallsResponse,
-      QueryCallsRequest
-    >('/calls', data);
+    const response = await this.doQueryCalls(data);
     const calls = [];
     for (const c of response.calls) {
       const call = new Call({
