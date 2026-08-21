@@ -39,6 +39,7 @@ import {
   BlockUserResponse,
   CallRingEvent,
   CallSettingsResponse,
+  CallStateResponseFields,
   CollectUserFeedbackRequest,
   CollectUserFeedbackResponse,
   Credentials,
@@ -940,6 +941,18 @@ export class Call {
   };
 
   /**
+   * Applies a backend-provided call state snapshot
+   * (call, members, own capabilities) to this instance.
+   *
+   * @internal an internal method and should not be used outside the SDK.
+   */
+  updateFromCallStateResponse = (response: CallStateResponseFields) => {
+    this.state.updateFromCallResponse(response.call);
+    this.state.setMembers(response.members);
+    this.state.setOwnCapabilities(response.own_capabilities);
+  };
+
+  /**
    * Loads the information about the call.
    *
    * @param params.ring if set to true, a `call.ring` event will be sent to the call members.
@@ -960,9 +973,7 @@ export class Call {
       params,
     );
 
-    this.state.updateFromCallResponse(response.call);
-    this.state.setMembers(response.members);
-    this.state.setOwnCapabilities(response.own_capabilities);
+    this.updateFromCallStateResponse(response);
 
     if (params?.ring) {
       this.ringingSubject.next(true);
@@ -990,9 +1001,7 @@ export class Call {
       GetOrCreateCallRequest
     >(this.streamClientBasePath, data);
 
-    this.state.updateFromCallResponse(response.call);
-    this.state.setMembers(response.members);
-    this.state.setOwnCapabilities(response.own_capabilities);
+    this.updateFromCallStateResponse(response);
 
     if (data?.ring) {
       this.ringingSubject.next(true);
