@@ -21,7 +21,7 @@ import { DeviceManagerState } from '../DeviceManagerState';
 import { firstValueFrom, of } from 'rxjs';
 import { TrackType } from '../../gen/video/sfu/models/models';
 import { PermissionsContext } from '../../permissions';
-import { readPreferences } from '../devicePersistence';
+import { defaultDeviceId, readPreferences } from '../devicePersistence';
 
 vi.mock('../../reporting/ClientEventReporter', () => ({
   ClientEventReporter: vi.fn(function () {
@@ -1032,6 +1032,29 @@ describe('Device Manager', () => {
 
       expect(result).toBe(true);
       expect(selectSpy).toHaveBeenCalledWith(mockVideoDevices[0].deviceId);
+      expect(enableSpy).not.toHaveBeenCalled();
+    });
+
+    it('retains a default-device mute preference when forced disabled', async () => {
+      localStorageMock.setItem(
+        storageKey,
+        JSON.stringify({
+          camera: [
+            {
+              selectedDeviceId: defaultDeviceId,
+              selectedDeviceLabel: '',
+              muted: false,
+            },
+          ],
+        }),
+      );
+
+      const enableSpy = vi.spyOn(manager, 'enable');
+
+      // @ts-expect-error - private API
+      const result = await manager.applyPersistedPreferences(true, true);
+
+      expect(result).toBe(true);
       expect(enableSpy).not.toHaveBeenCalled();
     });
 
