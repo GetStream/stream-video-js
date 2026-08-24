@@ -210,6 +210,7 @@ export class StreamVideoClient {
               await call.reject('busy');
             } else {
               await call.updateFromRingingEvent(e as CallRingEvent);
+              await call.get();
             }
           } else {
             call.state.updateFromCallResponse(e.call);
